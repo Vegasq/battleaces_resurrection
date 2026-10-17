@@ -39,6 +39,7 @@ CALL_HOOKS = [
     {'name': 'OfflineAuditReadSimFrame', 'rva': 0x3e62160, 'offset': 0x3e60760, 'before': 'e82b5f0000'},
 ]
 COMMUNITY_CALL_HOOKS = [
+    {'name': 'OfflineCommunityJoinGame', 'rva': 0x3e405e3, 'offset': 0x3e3ebe3, 'before': 'e858330100'},
     # Exact request enqueue callers; the shared generic entry remains original.
     # Experimental native lobby/invitation UI; not the normal-play recipe.
     {'name': 'OfflineCommunityEnqueue', 'rva': 0x3e46f3e, 'offset': 0x3e4553e, 'before': 'e84d7072fe'},
@@ -182,12 +183,14 @@ def install(game_dir, *, helper=None, original_path=None, restore=False, dry_run
         raise ValueError('Build a helper supporting experimental community roster ABI1 before installing this patch.')
     if community and helper_bytes is not None and b'BA_RESURRECTION_COMMUNITY_INVITES_V1' not in helper_bytes:
         raise ValueError('Build a helper supporting experimental community invitation ABI1 before installing this patch.')
+    if community and helper_bytes is not None and b'BA_RESURRECTION_COMMUNITY_MATCH_V1' not in helper_bytes:
+        raise ValueError('Build a helper supporting experimental community match ABI1 before installing this patch.')
     manifest = {'schema': 2, 'game_build': 37822, 'patch_version': '0.2.0-dev',
                 'original_sha256': ORIGINAL_SHA256, 'patched_sha256': components['GameAssembly.dll']['patched_sha256'],
                 'helper_sha256': digest(helper_bytes) if helper_bytes is not None else None,
                 'patches': PATCHES, 'hooks': HOOKS, 'tail_hooks': TAIL_HOOKS + (COMMUNITY_TAIL_HOOKS if community else []),
                 'call_hooks': CALL_HOOKS + (COMMUNITY_CALL_HOOKS if community else []),
-                'community': {'experimental': community, 'native_scope': 'custom-invitation-prototype' if community else None},
+                'community': {'experimental': community, 'native_scope': 'custom-match-prototype' if community else None},
                 'components': components,
                 'telemetry': {'recipe_version': telemetry.RECIPE_VERSION, 'runtime_validated': telemetry.RUNTIME_VALIDATED,
                               'unresolved_components': telemetry.UNRESOLVED_COMPONENTS},
@@ -229,7 +232,7 @@ def main():
     parser.add_argument('--original', type=Path, help='verified recovery DLL for an already-patched installation')
     parser.add_argument('--restore', action='store_true')
     parser.add_argument('--dry-run', action='store_true')
-    parser.add_argument('--community-experimental', action='store_true', help='isolated native Create/Leave/roster research; not normal play')
+    parser.add_argument('--community-experimental', action='store_true', help='isolated experimental native Custom Game/invite/match adapter')
     args = parser.parse_args()
     result = install(args.game_dir, helper=args.helper, original_path=args.original,
                      restore=args.restore, dry_run=args.dry_run, community=args.community_experimental)

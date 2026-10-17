@@ -2,6 +2,30 @@ IMPLEMENTATION LEDGER
 Updated: 2026-10-17
 Active objective: implement SERVER_REPLACEMENT_PLAN.txt, Windows only.
 
+CURRENT CUSTOM MATCH INTEGRATION (2026-10-17)
+The first full automated native Custom Game flow passes: picker Invite, popup
+Accept, host Start, guest Ready, real simulation, native results/Continue and a
+second match on the same lobby/connections. custom-match-native01 completed in
+80.610s with clients42256/40320, workers46588/48824 exited0, unchanged sources and
+all owned processes reaped. Both rounds delivered180 frames and native surrender
+results at160. Native pending requests, frozen bootstrap/epoch identity and
+canonical lobby identity restoration are checked. Duplicate native Start/Ready
+and changed-deck rematch pass custom-match-duplicates-deck01. Final helper04 also
+passes a10s timeout/late Ready ACK/new-epoch retry (custom-match-timeout02,90.000s)
+and definitive Start rejection/rollback/retry (custom-match-reject01,79.734s).
+Each test then completes two same-lobby matches; workers exit0 and owned clients
+are reaped, with unchanged hashed sources. Full source suite215:213 pass,2 opt-in
+skips; four C++ helper checks pass. No manual UI or internet acceptance is implied. Detailed native
+evidence, ordering and remaining gaps: native-custom-matches.txt. The user's
+normal-play installation remains unchanged. Experimental helper04 SHA256:
+f2d44aa596aea9c65b7200af4d23762b61ffb3a61b224ddfd9942c472c8b85cd.
+The same helper passes normal idle/real-error regression (52.812s) and native
+Create/Leave/pending-ACK cancellation/re-entry regression (30.750s), with all owned
+processes reaped and hashed sources unchanged. The isolated visible manual entry
+is local/Play Custom Match.cmd; its two editable configs are under local/custom-play.
+No automated surrender/Start/Continue or diagnostic captures are enabled there.
+Manual Custom Game acceptance, native aborted-match recovery and AI remain open.
+
 CURRENT USER PLAYTEST FOLLOW-UP (2026-10-17)
 User confirms: "Play Normal Match worked with no lags!" The matching normal run
 manual-play-20261017-131539 completed match360f017587544f1b8f3e1faada8caba1
@@ -46,8 +70,9 @@ and runtime boundaries are in community-client.txt. The normal patch recipe and
 user's normal-play installation remain unchanged. The opt-in custom picker now
 renders connected server players through native pooled rows with no Steam friend
 lookups. Native Invite/Accept/Decline, cancel, expiry and duplicate Accept now pass
-two-client qualification; native Start/result-return and Try Deck vs AI remain
-unimplemented. See native-custom-invitations.txt for the implemented boundary.
+two-client qualification. The subsequent native Start/result-return milestone
+is recorded above; Try Deck vs AI remains unimplemented. See
+native-custom-invitations.txt for the invitation-specific boundary.
 See community-lobby.txt and community-protocol.txt.
 Neither end-to-end requested user flow is claimed complete.
 Client integration checks: custom-create-native03 passed eight native/server
@@ -91,7 +116,8 @@ name receivers and eligibility checked. All owned clients were reaped and source
 stayed unchanged. Full suite214:212 pass,2 opt-in skips in51.938s; four C++ checks
 pass. Evidence, failed first probe and remaining limits are in
 native-custom-invitations.txt. These are automated native actions, not manual
-mouse/UI acceptance. Custom Start/Ready and match return remain the next work.
+mouse/UI acceptance. Custom Start/Ready and match return were the next work;
+their subsequent qualification is recorded above and in native-custom-matches.txt.
 The same helper/image passed invites-legacy-idle01 in53.469s (clients30408/46576):
 six idle observations without a modal or ready intent, then a real injected error
 displayed the native dialog only on the affected client. Both were reaped.

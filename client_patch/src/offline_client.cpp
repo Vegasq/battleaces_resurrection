@@ -35,6 +35,11 @@ static bool retain(const std::string&);static bool pending(const std::string&);s
 static void reconcileParty(void*);static void anchorClock(void*);static void smoke(void*);
 }
 namespace ba_community_popup {static void reset();static void update();}
+namespace ba_community_match {
+static void reset();static void enqueue(void*,void*,void*);
+static bool acknowledge(void*,const ba_community_wire::Ack&);
+static void snapshot(void*);static void update(void*);static void returned(void*,void*);static void smoke(void*);
+}
 namespace ba_export {
 static void poll(void* front);
 static void consume(void* gameData,void* encoded);
@@ -254,6 +259,7 @@ extern "C" __declspec(dllexport) void OfflineFrontUpdate(void* front,void*) {
 #include "community_roster.cpp"
 #include "community_invites.cpp"
 #include "community_popup.cpp"
+#include "community_match.cpp"
 #include "server_assets_export.cpp"
 #include "lan_audit.cpp"
 #include "telemetry_audit.cpp"

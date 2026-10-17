@@ -1,0 +1,200 @@
+NATIVE CUSTOM START, MATCH HANDOFF AND LOBBY RETURN
+Updated:2026-10-17. Experimental Windows build37822 adapter.
+
+STATUS
+Start/Ready, the narrow original CustomGameCreated handoff and a same-connection
+result/return prototype are implemented. The first automated two-native-client
+two-match flow passes, including duplicate requests, a changed deck, definitive
+Start rejection and an expired attempt with a late Ready ACK. The normal
+Play Normal Match installation remains independently qualified and unchanged.
+
+NATIVE EVIDENCE
+Original GameAssembly SHA256:
+e59d08c01479b27404778048d7e13546dbf3771f6b3912744c7c2bdf80c4e758.
+Addresses are RVAs unless explicitly described as raw file offsets. Evidence is
+original-byte disassembly plus recovered IL2CPP metadata, not recovered source.
+Authored local notes: local/p2-native-start-ready.txt,
+local/p2-custom-start-bootstrap.txt and local/p2-custom-start-native.txt.
+These extend custom-lobby-responses.txt; no game binary or metadata is tracked.
+
+The existing native request enqueue hooks cover both the visible main-screen
+StartGame3cb1080 inline path and the manager's own TryStart. Update action15 is
+TryStartLobbyGame; action16 is ReadyToStartLobbyGame. Native builders allocate
+empty payloads even though the protobuf types have deck/cosmetics fields.
+The adapter reads the real selected deck separately and validates it.
+
+Native SendUpdateAction3cac870 and SendUpdateActions3cad560 assign the returned
+request to manager._pendingLobbyUpdateRequest only AFTER enqueue returns, at
+3cac8e4 and3cad6db respectively. Responses must therefore be deferred and matched
+to the exact rooted native request/manager in the live front session.
+
+ProcessUpdateLobbyStateResponse3e485f0 is void(front,message,error,MethodInfo).
+Its response.currentState is FrontPb.LobbyStateNotification, whose lobbyState
+is CommonPb.LobbyState. A wrapper with a null nested state is unsafe, including
+on some failure paths. Error0 and GeneralFailure2 release the old pending request;
+Timeout1 retains/retries it. The response event carries only Error, not request ID.
+SendUpdateActions runs synchronously and may enqueue a NEW native request before
+the callback returns. Its postcondition is old-request relinquishment, not that
+the pending pointer must remain null. Batched repeated actions are possible.
+
+OnLobbyStateUpdated3cac9c0 automatically emits guest Ready for status5 when an
+existing prediction identifies the local nonhost player. Suppression examines
+only the current pending request's case16 actions; no persistent acknowledged
+epoch flag exists. The first-prediction branch initializes/navigates but does not
+emit Ready. Replaying status5 after an ACK can otherwise issue another Ready.
+
+No expiry read was found in the traced Start/Ready/prediction/notification paths.
+Original Start predicts status5 without setting the expiry field. The custom
+main-screen VM has no countdown field, and its notification hides on status4/5.
+This bounded evidence supports leaving expiry at its default for this prototype;
+it is not proof against every indirect/reflection consumer. Any future displayed
+countdown must come from an authoritative remaining duration and attempt epoch.
+
+HANDOFF ORDER
+ProcessCustomGameCreatedNotification3e40410 is void(front,message,error,MI).
+On success it posts JoiningGameSignal, calls GameServerIntegration.JoinGame,
+updates matchmaking status, then raises CustomGameCreated. The notification's
+playerHandle does not establish ownership. The adapter must validate that itself.
+Only its exact JoinGame call is redirected:
+  RVA3e405e3, raw3e3ebe3, original bytes e858330100, original target3e53940.
+  ABI void(server,GameConnectionInfo,bool spectator,MI), Windows RCX/RDX/R8B/R9.
+  Non-community invocation forwards unchanged to the original target.
+
+The adapter waits for assigned-seat WELCOME31, MATCH_INFO32, frozen BOOTSTRAP12
+and an ordered community LOADING snapshot containing the same match ID/epoch.
+Earlier Starting/Loading snapshots can precede the match ID; bootstrap globals
+can be populated while earlier control events are still queued. Native request
+ACK ownership must also be settled before starting the world.
+
+Within one adapter update, while canonical community identity is still present:
+1. Deliver original CustomGameCreated. The narrow Join hook only captures exact
+   expected server/connection/non-spectator ownership. Let the outer native
+   status/event tail finish before changing any identity.
+2. Deliver original LobbyClosed3e48ad0 with GameStart3 and let all events finish.
+   The manager releases prediction; the screen's Leave/GoBack callback then sees
+   no active prediction and does not send a duplicate community Leave.
+3. Switch to temporary aliased simulation handles1/2 and run existing beginJoined,
+   which supplies the original ProcessJoinedGame/map/simulation bootstrap.
+
+JoiningGameSignal records intent for the next native state Update. Joining state
+polls HasActiveGameConnectionInfo; leaving a frame gap without it can return to
+menu. The capture, original callback tails, closure and bootstrap therefore all
+finish before this adapter update yields.
+
+Front.JoinedGame3e3e050 sends online/Steam presence but writes no local Front
+in-game flag. Suppressing that obsolete transport callback does not lose a local
+flag. Native ProcessJoinedGame still owns its game-server lifecycle fields/events.
+MatchDataManager initially derives IsCustomGame from received GameConfig; existing
+dedicated_results sets the private-match result flag before EndOfGameResponse.
+Do not alter received bootstrap bytes after their authoritative hash is frozen.
+
+ADAPTER POLICY
+Open maps to native status1/2 by membership. Starting maps to5. Loading/Running/
+Results do not generate new Starting notifications. Repeated revisions coalesce;
+a late first Starting projection receives one extra original notification to
+enter the Ready branch. Per-lobby/epoch decisions suppress duplicate wire Start/
+Ready, while each newly retained native request receives its own completion.
+
+Host Start waits for earlier deck edits, submits a differing selected deck for
+validation, then sends the current lobby revision. A guest whose current selected
+deck differs from the frozen attempt cancels readiness rather than silently
+playing a different deck. Definitive rejection uses error2 with current authority.
+
+After original result Continue and actual native world teardown, the match-only
+reset clears simulation/input/bootstrap/result/seat state while preserving the
+community socket, ordered control events, request counter, identity cache and
+deck service. RETURN names the exact finished match. Only authoritative Open
+restores the same native Party/canonical profile and feeds LobbyStateUpdated to
+reinitialize prediction. It does not fabricate a Create or invitation-reply ACK.
+
+QUALIFICATION
+local/custom-match-native01 passed in80.610s, clients42256/40320, with helper
+829098408d8a601bd1bf2ca3932b157e05d4bc158ac65d8cc2f54629b49aadb6.
+Experimental GameAssembly image:
+08b11e51ea09a619b64b321212d69b77ac9da9d028f1b750d74cbe905f06f045.
+Both matches completed at native result frame160 and180 delivered frames, on
+one lobby and the same two TCP sessions. Original Continue returned both clients
+to two-member native prediction/Party with canonical aliases and seat=-1 after
+each match. Workers46588/48824 exited0 and were reaped. Test-owned clients were
+reaped; source hashes stayed unchanged. Start/Ready ACK delay was350ms. This first
+pass used unchanged decks and no injected native duplicate or start failure.
+
+local/custom-match-duplicates-deck01 passed in79.094s, clients47560/46388, helper
+ceff0649fedecaef97bbd730f71a194b8e99b58d2759e517848c651fc0075ff2.
+Original host Start was invoked twice while its first request was pending; a
+second native guest Ready was triggered after each ACK. Each client's two extra
+native requests completed without extra wire Start/Ready or extra workers.
+Exactly two wire Starts and two Readies created two matches. After first return,
+the original deck setters changed host slot0 from75 to1, firing native save
+callbacks; the second frozen bootstrap contained the changed deck. Workers36444
+and50224 exited0, clients were reaped, and source hashes stayed unchanged. This
+is selected-deck/bootstrap evidence; the early surrender does not test that
+changed unit's combat behavior.
+
+local/custom-match-timeout01 is retained as a FAILED harness run,89.469s,
+clients40096/27456, helper039a40eba6b6611cca9eb6c2cd66b18056e7b3be7791ddb38b31a4085985fbc1.
+Both native clients recovered from one delayed Ready/expired Start, completed two
+matches and reopened their lobby. The final assertion incorrectly expected epoch3;
+cancel_start also increments the epoch to invalidate old readiness, so the final
+epoch is4. Workers43244/40392 exited0 and all clients were reaped; sources stayed
+unchanged. The corrected probe separates command counts from epoch increments.
+Its follow-up also retries before the old Ready ACK arrives, exercising a new
+Starting snapshot while the old native request still owns the pending pointer.
+
+local/custom-match-timeout02 passes in90.000s, clients7712/30360, helper
+f2d44aa596aea9c65b7200af4d23762b61ffb3a61b224ddfd9942c472c8b85cd.
+The first Ready is delayed10.5s, beyond the server's10s start deadline. Native
+host prediction rolls back to Full2, then retries after250ms while the guest's
+old request still owns its pending slot. Its late rejection clears that exact
+old request; the original Ready branch then issues epoch3 readiness. Epochs3/4
+complete two matches and return to the same lobby. Three wire Starts/Readies
+were sent; cancellation accounts for the additional epoch increment. Workers
+50868/50472 exited0; all test processes were reaped, source hashes unchanged.
+
+local/custom-match-reject01 passes in79.734s, clients46560/20732, same helper04.
+The server rejects the first Start without creating an epoch/worker. Native
+error2 releases the exact request and restores Full2; retry then completes two
+same-lobby matches, with exactly three Starts/two Readies. Workers19544/42592
+exited0; all owned processes were reaped and source hashes stayed unchanged.
+
+Full source suite:215 tests,213 pass and2 opt-in skips,63.843s. The native bridge
+probe and exact-original telemetry patch checks are enabled; real protected-DACL
+and separate opt-in native-worker fixture tests are skipped. This suite's logs
+are local/source-tests-custommatch01.txt/.json. Four C++ build/wire/transport
+checks pass in helper-custommatch04. PowerShell launcher syntax/config parsing
+passes; secure community launcher options have authored argument/compatibility
+tests but are not a new native TLS custom-match runtime qualification.
+
+The same helper04/experimental image passes custommatch-legacy-idle01 with its
+community flag absent (52.812s, clients48492/50804). Six idle-menu observations
+remain unready/unblocked; a genuine injected server error shows the original
+failure dialog only on the affected client. Both are reaped, sources unchanged.
+The user's normal-play helper/image were independently rechecked unchanged:
+b1eac8fe6aa655dc9ffd7882efe5d47b26dc5e296fe274ccc8f548ed14a6a9f4 and
+3474b2e360c59464814f9d9b03e09f84ea0a0087fc53e13173c75807c74992cd.
+
+custommatch-create-regression01 is retained as a FAILED harness run,31.234s,
+clients49796/48136. Both completed the eight expected Create/Leave transactions,
+including pending-ACK Leave/re-enter; a final exact-log assertion still expected
+the old closure line without its newly recorded reason. Native closures report
+reason1 and null Party. The probe now checks that reason explicitly. Test-owned
+clients were reaped and source hashes stayed unchanged.
+
+Corrected custommatch-create-regression02 passes in30.750s, clients11216/26152,
+on helper04. Eight Create/Leave transactions, including two deliberate pending-
+Create-ACK cancellations/re-entries, finish with no Party/pending requests/seat,
+both presence connections retained and no workers. Owned clients are reaped and
+hashed sources stay unchanged. Publication audit of the staged source/history
+passes; local game files/assets/captures remain excluded.
+
+Reproducible probe: python -m tools.verify_custom_match --game <isolated-copy>
+--assets <verified-assets> --output local/<new-directory>.
+Both clients use original picker/Accept/Start/result Continue actions. Explicit
+test flags concede at frame160 and permit two rounds. Start/Ready ACKs are delayed
+350ms. The probe retains logs, exact source/helper/image hashes, worker cleanup
+and process ownership. It does not constitute manual mouse/visual acceptance,
+native Quit testing, internet qualification or full unit/combat coverage.
+
+Remaining qualification includes departure during start, setup failure,
+aborted match return, late-returning peers and unrelated players. Ordinary queue
+and Try Deck vs AI remain separate work. This prototype is not the default patch.

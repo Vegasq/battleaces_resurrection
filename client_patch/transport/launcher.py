@@ -64,12 +64,14 @@ def load_config(path):
     return value
 
 
-def verify_game(root):
+def verify_game(root, *, community=False):
     from client_patch.patcher.patch_client import contained_path
     root = Path(root).resolve()
     manifest = read_json(root / '.battleaces-resurrection/patch-manifest.json', 131072)
     if not isinstance(manifest, dict) or manifest.get('state') == 'restored':
         raise LaunchError('Install the supported patch before launching')
+    if community and manifest.get('community', {}).get('native_scope') != 'custom-match-prototype':
+        raise LaunchError('Install the experimental community match patch into an isolated copy')
     components = manifest.get('components')
     if not isinstance(components, dict) or 'GameAssembly.dll' not in components:
         raise LaunchError('A current multi-component patch manifest is required')
@@ -88,6 +90,8 @@ def verify_game(root):
                         raise LaunchError('Install a helper supporting secure transport ABI1')
                     if b'BA_RESURRECTION_GAME_PROTOCOL_3' not in helper:
                         raise LaunchError('Install the protocol3 client helper for configurable buffering')
+                    if community and b'BA_RESURRECTION_COMMUNITY_MATCH_V1' not in helper:
+                        raise LaunchError('Install a helper supporting community match ABI1')
                     actual = hashlib.sha256(helper).hexdigest()
                 else:
                     actual = hashlib.file_digest(stream, 'sha256').hexdigest()
@@ -115,6 +119,10 @@ def game_arguments(config, player_id, handle, args):
                     surrender_smoke='-dedicated-surrender-smoke', telemetry_audit='-telemetry-audit', audit='-lan-audit')
     for option, flag in switches.items():
         if getattr(args, option, False): result.append(flag)
+    if getattr(args, 'community_experimental', False):
+        if getattr(args, 'auto_ready', False) or getattr(args, 'rematch_smoke', False):
+            raise LaunchError('Use native Custom Game Invite/Start instead of automatic queue readiness')
+        result.append('-dedicated-community')
     if getattr(args, 'rematch_smoke', False): result.extend(['-dedicated-rematch-smoke', '-dedicated-auto-rematch'])
     if getattr(args, 'recovery_smoke', False): result.append('-dedicated-recovery-smoke')
     if getattr(args, 'postgame_recovery_smoke', False): result.append('-dedicated-postgame-recovery-smoke')
@@ -143,7 +151,7 @@ async def launch(config, remote, args):
     This API also permits controlled in-memory credentials in integration tests;
     there is no public bypass flag or token argument.
     """
-    verify_game(config['game_directory'])
+    verify_game(config['game_directory'], community=getattr(args, 'community_experimental', False))
     parent, child = socket.socketpair(socket.AF_INET)
     parent.setblocking(False)
     writer = task = None
@@ -179,6 +187,7 @@ def main():
     parser = argparse.ArgumentParser(description=__doc__)
     parser.add_argument('--config', type=Path, required=True)
     parser.add_argument('--run-name', default='secure-client')
+    parser.add_argument('--community-experimental', action='store_true', help='use native Custom Game on an experimental patched copy')
     for flag in ('auto-ready', 'smoke', 'deck-smoke', 'surrender-smoke', 'rematch-smoke', 'recovery-smoke', 'postgame-recovery-smoke', 'quit-smoke', 'telemetry-audit', 'audit'):
         parser.add_argument('--' + flag, action='store_true', help='optional development diagnostic')
     args = parser.parse_args()

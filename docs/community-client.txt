@@ -17,12 +17,12 @@ The normal dedicated protocol3 path and patch image remain unchanged by default.
 
 The separate patcher option --community-experimental adds exact request enqueue,
 picker population/release and child presentation guards. It requires helper
-markers BA_RESURRECTION_COMMUNITY_V1, BA_RESURRECTION_COMMUNITY_ROSTER_V1 and
-BA_RESURRECTION_COMMUNITY_INVITES_V1.
+markers BA_RESURRECTION_COMMUNITY_V1, BA_RESURRECTION_COMMUNITY_ROSTER_V1,
+BA_RESURRECTION_COMMUNITY_INVITES_V1 and BA_RESURRECTION_COMMUNITY_MATCH_V1.
 The experimental process also requires -dedicated-community; use an isolated
-working copy. Do not enable this for ordinary play: Start and most custom updates are
-not translated yet. Unsupported operations at the guarded enqueue sites stop
-the prototype session. Normal launchers do not enable
+working copy. Native Start/Ready/results/return now pass automated two-match and
+duplicate/changed-deck probes; failure/manual qualification continues. Details:
+native-custom-matches.txt. AI and other custom updates remain incomplete. Normal launchers do not enable
 the flag, and the user's working secure-client-runtime was not replaced.
 
 SOURCE AND OWNERSHIP
@@ -49,6 +49,9 @@ SOURCE AND OWNERSHIP
   until explicit reconnect settles outstanding native callbacks.
 - community_popup.cpp: observer-owned native panel discovery, typed notification
   cross-check, deferred binding repaint, exact release and bounded native probes.
+- community_match.cpp: exact pending Start/Ready ownership and attempt epochs,
+  selected/frozen deck checks, narrow native Created/Join handoff, GameStart
+  closure and same-connection match teardown/RETURN/restored native lobby.
 
 Directory rows include self and busy players. The displayed status is fixed local
 text; ASCII angle brackets in display names become fullwidth brackets because

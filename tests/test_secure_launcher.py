@@ -94,6 +94,29 @@ class SecureLauncherTests(unittest.TestCase):
         (root / 'GameAssembly.dll').write_bytes(b'changed')
         with self.assertRaises(launch.LaunchError): launch.verify_game(root)
 
+    def test_community_launch_requires_matching_patch_and_helper(self):
+        root, path, manifest = self.install()
+        with self.assertRaisesRegex(launch.LaunchError, 'experimental community'):
+            launch.verify_game(root, community=True)
+        manifest['community'] = dict(native_scope='custom-match-prototype')
+        path.write_text(json.dumps(manifest))
+        with self.assertRaisesRegex(launch.LaunchError, 'community match ABI1'):
+            launch.verify_game(root, community=True)
+        helper = root / 'BattleAcesOffline.dll'
+        helper.write_bytes(helper.read_bytes() + b' BA_RESURRECTION_COMMUNITY_MATCH_V1')
+        manifest['helper_sha256'] = hashlib.sha256(helper.read_bytes()).hexdigest()
+        path.write_text(json.dumps(manifest))
+        launch.verify_game(root, community=True)
+        config = self.load()
+        normal = launch.game_arguments(config, 'p_' + '1' * 32, 1234, argparse.Namespace(run_name='test'))
+        custom = launch.game_arguments(config, 'p_' + '1' * 32, 1234,
+            argparse.Namespace(run_name='test', community_experimental=True))
+        self.assertNotIn('-dedicated-community', normal)
+        self.assertIn('-dedicated-community', custom)
+        with self.assertRaises(launch.LaunchError):
+            launch.game_arguments(config, 'p_' + '1' * 32, 1234,
+                argparse.Namespace(run_name='test', community_experimental=True, auto_ready=True))
+
     def test_game_arguments_have_only_public_identity_and_handle(self):
         config = self.load()
         argv = launch.game_arguments(config, 'p_' + '1' * 32, 1234, argparse.Namespace(run_name='test'))

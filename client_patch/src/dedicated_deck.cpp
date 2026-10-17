@@ -176,12 +176,13 @@ static bool smokeSelection(Obj front) {
 static void rematchSmokeSelection(Obj front) {
     // Test-only second-match edit. Exercise the same native setters, Changed
     // event, AccountService hook and server persistence as a user's deck edit.
-    if(!ba::flag(L"-dedicated-rematch-smoke"))return;
+    if(!ba::flag(L"-dedicated-rematch-smoke") && !ba::flag(L"-community-match-deck-smoke"))return;
     if(!initialized || suppress)throw std::runtime_error("rematch deck editor not initialized");
     Obj ownerAccount=require(ba::get<Obj>(front,"_accountService"),"rematch account missing");
     Obj value=selected(ownerAccount);Root data(staticData(ownerAccount));
     Obj units=require(ba::get<Obj>(value,"_units"),"rematch unit array missing");
-    int index=ba::lanSlot()?1:0;const uint32_t old=ba::read<uint32_t>(units,0x20+4*index);
+    int index=ba::community()?(ba::flag(L"-community-match-host-smoke")?0:1):(ba::lanSlot()?1:0);
+    const uint32_t old=ba::read<uint32_t>(units,0x20+4*index);
     uint32_t replacement=0;
     for(uint32_t candidate:{75u,74u,1u,6u}) {
         bool duplicate=false;

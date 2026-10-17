@@ -12,6 +12,7 @@ param(
     [switch]$DeckSmoke,
     [switch]$SurrenderSmoke,
     [switch]$RematchSmoke,
+    [switch]$CommunityExperimental,
     [switch]$TelemetryAudit,
     [switch]$DiagnosticAudit,
     [ValidateRange(200,10000)][int]$SurrenderFrame = 600,
@@ -45,6 +46,12 @@ foreach ($key in @($PlayerId,$Room,$RunName)) { if ($key -notmatch '^[A-Za-z0-9_
 $manifestPath = Join-Path $root '.battleaces-resurrection/patch-manifest.json'
 $manifest = Get-Content -LiteralPath $manifestPath -Raw | ConvertFrom-Json
 if ($manifest.state -eq 'restored') { throw 'Client is restored; install the patch before launching a private match.' }
+if ($CommunityExperimental -and $manifest.community.native_scope -ne 'custom-match-prototype') {
+    throw 'Install the current experimental community match patch into an isolated copy first.'
+}
+if ($CommunityExperimental -and ($Slot -ge 0 -or $AutoReady -or $RematchSmoke)) {
+    throw 'Custom Game assigns seats after native Invite/Start; omit Slot, AutoReady and RematchSmoke.'
+}
 foreach ($item in @(@('GameAssembly.dll','patched_sha256'),@('BattleAcesOffline.dll','helper_sha256'))) {
     if ((Get-FileHash -LiteralPath (Join-Path $root $item[0]) -Algorithm SHA256).Hash.ToLowerInvariant() -ne $manifest.($item[1])) { throw 'Client/helper hash does not match patch manifest.' }
 }
@@ -57,6 +64,7 @@ $runtime = Join-Path $root 'investigation/runtime'
 New-Item -ItemType Directory -Force -Path $runtime | Out-Null
 $gameArgs = @('-offline-lan', "-dedicated-server=$resolvedAddress", "-player-id=$PlayerId", ('-player-name="'+$DisplayName+'"'), "-room=$Room", '-screen-fullscreen','0','-screen-width','960','-screen-height','540','-logFile',('"' + (Join-Path $runtime "$RunName-$PlayerId.log") + '"'))
 if ($DiagnosticAudit) { $gameArgs += '-lan-audit' }
+if ($CommunityExperimental) { $gameArgs += '-dedicated-community' }
 if ($Slot -ge 0) { $gameArgs += "-lan-slot=$Slot" }
 if ($AutoReady) { $gameArgs += '-dedicated-auto-ready' }
 if ($Smoke) { $gameArgs += '-lan-smoke' }
@@ -69,4 +77,8 @@ if ($Batch) { $gameArgs += @('-batchmode','-nographics') }
 $style = if ($Batch) { 'Hidden' } else { 'Normal' }
 $game = Start-Process -FilePath (Join-Path $root 'Battle Aces.exe') -ArgumentList $gameArgs -WorkingDirectory $root -WindowStyle $style -PassThru
 if ($PassThru) { return $game }
-Write-Host "Connecting to $Address as $DisplayName (PID $($game.Id)). Select your eight units in the deck builder, then press Play."
+if ($CommunityExperimental) {
+    Write-Host "Connecting to $Address as $DisplayName (PID $($game.Id)). Open Custom Game, invite a connected player, then Start after acceptance."
+} else {
+    Write-Host "Connecting to $Address as $DisplayName (PID $($game.Id)). Select your eight units in the deck builder, then press Play."
+}

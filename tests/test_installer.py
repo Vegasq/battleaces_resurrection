@@ -87,13 +87,19 @@ class InstallerTests(unittest.TestCase):
             installer.install(self.root, helper=self.helper, community=True)
         self.assertFalse((self.root / '.battleaces-resurrection').exists())
         self.helper.write_bytes(self.helper.read_bytes() + b' BA_RESURRECTION_COMMUNITY_INVITES_V1')
+        with self.assertRaisesRegex(ValueError, 'community match ABI1'):
+            installer.install(self.root, helper=self.helper, community=True)
+        self.assertFalse((self.root / '.battleaces-resurrection').exists())
+        self.helper.write_bytes(self.helper.read_bytes() + b' BA_RESURRECTION_COMMUNITY_MATCH_V1')
         manifest = installer.install(self.root, helper=self.helper, community=True)
         self.assertTrue(manifest['community']['experimental'])
         self.assertTrue(any(h['name'] == 'OfflineCommunityEnqueue' for h in manifest['call_hooks']))
+        self.assertTrue(any(h['name'] == 'OfflineCommunityJoinGame' for h in manifest['call_hooks']))
         self.assertTrue(any(h['name'] == 'OfflineCommunityRosterRelease' for h in manifest['tail_hooks']))
         normal = installer.install(self.root, helper=self.helper)
         self.assertFalse(normal['community']['experimental'])
         self.assertFalse(any(h['name'] == 'OfflineCommunityEnqueue' for h in normal['call_hooks']))
+        self.assertFalse(any(h['name'] == 'OfflineCommunityJoinGame' for h in normal['call_hooks']))
         self.assertFalse(any(h['name'] == 'OfflineCommunityRosterRelease' for h in normal['tail_hooks']))
 
     def test_file_replacement_failure_rolls_back_earlier_components_and_helper(self):

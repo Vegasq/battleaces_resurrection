@@ -120,7 +120,7 @@ async def run(args):
         require(sum(e['event'] == 'custom_lobby_created' for e in events) == (2 if args.roster else 8), 'unexpected native lobby creations')
         for log in logs:
             require('Community native create response: success=1 pending=0' in log and
-                    'Community native lobby closure delivered; party=0000000000000000' in log,
+                    'Community native lobby closure delivered; reason=1 party=0000000000000000' in log,
                     'native deferred create/closure evidence missing')
             if args.roster:
                 require(churn_stage == 2 and 'COMMUNITY ROSTER SMOKE live departure: count=2 TMP checked' in log,

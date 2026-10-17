@@ -72,3 +72,28 @@ On the development workstation, ignored local/Play Normal Match.cmd supplies the
 tested installation/assets and existing player configs with all automation flags
 omitted. Close the old visible test clients before double-clicking it; the earlier
 Launch Updated Visible Test.cmd deliberately retains its automatic surrender test.
+
+EXPERIMENTAL NATIVE CUSTOM GAME
+Install --community-experimental into an isolated working game copy, then add
+-CommunityExperimental to Launch-Client.ps1 with a personal schema1 config.
+For the local two-client runner, supply both ClientConfig0/ClientConfig1 and add
+-CommunityExperimental; omit Slot/AutoReady/RematchSmoke. Existing server_host
+and server_port config fields still select the server. Community presence has
+no simulation seat until an accepted custom lobby starts. The schema1 room key
+does not select a community lobby; Invite/Accept determines membership.
+
+On this workstation, ignored local/Play Custom Match.cmd uses the experimental
+copy and local/custom-play/player0.json and player1.json, on127.0.0.1:47631.
+One player opens Custom Game -> Invite Friend and selects the other connected
+player. Accept in the other window, then Start as host. Finish/surrender manually,
+press Continue in both windows, and start another match from the restored lobby.
+This launcher enables no automated gameplay, surrender, Continue or diagnostics.
+Start/deck/return are automatically qualified; visible manual acceptance and
+broader abort/departure handling remain open (native-custom-matches.txt).
+
+Launch-SecureClient.ps1 also accepts -CommunityExperimental, or use Python
+client_patch.transport.launcher --community-experimental with the existing
+schema2 configuration. Both verify an experimental match manifest/helper before
+launch. This retains TLS certificate/credential handling; no secrets are added
+to game arguments. Native custom-match runtime qualification over that secure
+path remains separate from the loopback native tests recorded here.

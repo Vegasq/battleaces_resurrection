@@ -10,6 +10,7 @@ param(
     [switch]$DeckSmoke,
     [switch]$SurrenderSmoke,
     [switch]$RematchSmoke,
+    [switch]$CommunityExperimental,
     [switch]$TelemetryAudit,
     [switch]$DiagnosticAudit,
     [ValidateRange(200,10000)][int]$SurrenderFrame = 600,
@@ -20,6 +21,7 @@ $repo = Split-Path -Parent $PSScriptRoot
 $gameRoot = (Resolve-Path -LiteralPath $GameDirectory).Path
 if ($RunName -notmatch '^[A-Za-z0-9_-]{1,48}$') { throw 'Invalid run name.' }
 if ([bool]$ClientConfig0 -ne [bool]$ClientConfig1) { throw 'Supply both client configs or neither.' }
+if ($CommunityExperimental -and -not $ClientConfig0) { throw 'Custom Game requires two profile configs and assigns seats automatically.' }
 $clientConfigs = @($ClientConfig0,$ClientConfig1)
 if ($ClientConfig0) { $clientConfigs = @($clientConfigs | ForEach-Object { (Resolve-Path -LiteralPath $_).Path }) }
 if (-not $AssetDirectory) { $AssetDirectory = Join-Path $repo 'local/assets/build-37822' }
@@ -44,10 +46,10 @@ try {
     if (-not $ready) { throw 'Server startup timeout.' }
     foreach ($slot in 0,1) {
         $clientOptions = if ($ClientConfig0) { @{Config=$clientConfigs[$slot]} } else { @{Slot=$slot;Address="127.0.0.1:$Port"} }
-        $games += & (Join-Path $repo 'client_patch/launcher/Launch-Client.ps1') @clientOptions -GameDirectory $gameRoot -RunName $RunName -AutoReady:$AutoReady -Smoke:$Smoke -DeckSmoke:$DeckSmoke -SurrenderSmoke:$SurrenderSmoke -RematchSmoke:$RematchSmoke -TelemetryAudit:$TelemetryAudit -DiagnosticAudit:$DiagnosticAudit -SurrenderFrame $SurrenderFrame -PassThru
+        $games += & (Join-Path $repo 'client_patch/launcher/Launch-Client.ps1') @clientOptions -GameDirectory $gameRoot -RunName $RunName -AutoReady:$AutoReady -Smoke:$Smoke -DeckSmoke:$DeckSmoke -SurrenderSmoke:$SurrenderSmoke -RematchSmoke:$RematchSmoke -CommunityExperimental:$CommunityExperimental -TelemetryAudit:$TelemetryAudit -DiagnosticAudit:$DiagnosticAudit -SurrenderFrame $SurrenderFrame -PassThru
     }
     Copy-Item -LiteralPath (Join-Path $gameRoot '.battleaces-resurrection/patch-manifest.json') -Destination (Join-Path $run 'patch-manifest.json')
-    [pscustomobject]@{RunName=$RunName;Started=(Get-Date).ToString('o');ServerPid=$service.Id;ServerStarted=$service.StartTime.ToString('o');GamePids=@($games|ForEach-Object Id);GameStarted=@($games|ForEach-Object{[pscustomobject]@{Pid=$_.Id;Started=$_.StartTime.ToString('o')}});DataDirectory=$run;AutoReady=[bool]$AutoReady;Smoke=[bool]$Smoke;DeckSmoke=[bool]$DeckSmoke;SurrenderSmoke=[bool]$SurrenderSmoke;RematchSmoke=[bool]$RematchSmoke;TelemetryAudit=[bool]$TelemetryAudit;DiagnosticAudit=[bool]$DiagnosticAudit;Batch=$false} | ConvertTo-Json -Depth 4 | Set-Content -LiteralPath (Join-Path $run 'processes.json')
+    [pscustomobject]@{RunName=$RunName;Started=(Get-Date).ToString('o');ServerPid=$service.Id;ServerStarted=$service.StartTime.ToString('o');GamePids=@($games|ForEach-Object Id);GameStarted=@($games|ForEach-Object{[pscustomobject]@{Pid=$_.Id;Started=$_.StartTime.ToString('o')}});DataDirectory=$run;AutoReady=[bool]$AutoReady;Smoke=[bool]$Smoke;DeckSmoke=[bool]$DeckSmoke;SurrenderSmoke=[bool]$SurrenderSmoke;RematchSmoke=[bool]$RematchSmoke;CommunityExperimental=[bool]$CommunityExperimental;TelemetryAudit=[bool]$TelemetryAudit;DiagnosticAudit=[bool]$DiagnosticAudit;Batch=$false} | ConvertTo-Json -Depth 4 | Set-Content -LiteralPath (Join-Path $run 'processes.json')
     Write-Output "Server PID $($service.Id), clients $($games[0].Id)/$($games[1].Id), evidence $run"
     $deadline = if ($DurationSeconds) { (Get-Date).AddSeconds($DurationSeconds) } else { [DateTime]::MaxValue }
     while ((Get-Date) -lt $deadline -and @($games | Where-Object { -not $_.HasExited }).Count -gt 0) {

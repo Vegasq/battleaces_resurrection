@@ -197,7 +197,10 @@ Effort allowance: 4-7 days.
   community-protocol.txt). Native Invite/Accept/Decline, cancel, expiry, duplicate
   Accept and lobby departures now pass two-client tests, with native reconnect
   cleanup qualified around interrupted replies (native-custom-invitations.txt).
-  Native Start/Ready/result return, broader races and manual acceptance remain TODO.
+  Native Start/Ready/result return and same-lobby rematch now pass two real clients,
+  including duplicate native requests, changed-deck rematch, rejected Start and
+  timeout/late Ready ACK rollback. Broader races, aborted-match return and manual acceptance remain in qualification; see
+  native-custom-matches.txt.
 - Retain the native deck builder and server deck validation/persistence.
 - TODO: Make Try Deck vs AI start a playable AI match with the currently selected
   eight-unit deck, without a second connected player or original service. Trace

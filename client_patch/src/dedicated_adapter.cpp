@@ -286,7 +286,7 @@ static void rematchSmoke(Obj server) {
 static void releaseRoot(uint32_t& root) {
     if(root){ba::api<void(*)(uint32_t)>("il2cpp_gchandle_free")(root);root=0;}
 }
-static void resetAtMenu(Obj front,Obj server,bool completed) {
+static void resetAtMenu(Obj front,Obj server,bool completed,bool keepCommunity=false) {
     if(!inMenu() || !worldIdle(server) || ba_dedicated_results::updating)
         throw std::runtime_error("dedicated reset requires idle native world and main menu");
     ba::log("Dedicated session reset: match=%s sessions=%u completed=%d nextFrame=%d; native world inactive/zero",
@@ -305,17 +305,22 @@ static void resetAtMenu(Obj front,Obj server,bool completed) {
     ba_local::submittedTicks=0;ba_local::lastSubmittedFrame=-1;ba_local::accumulatedMs=0;
     ba_bootstrap::awaitingWorld=false;ba_bootstrap::creating=false;
     releaseRoot(ba_bootstrap::frontRoot);ba_bootstrap::bootstrapThread=0;
-    ba_lan::closeSocket();
-    if(ba::community()){ba_community_native::reset();ba_community::reset();}
+    if(!keepCommunity) {
+        ba_lan::closeSocket();
+        if(ba::community()){ba_community_native::reset();ba_community::reset();}
+        ba_lan::rx.clear();ba_lan::tx.clear();ba_lan::txPosition=0;
+    }
     ba_lan::closeReceipts();
-    ba_lan::rx.clear();ba_lan::tx.clear();ba_lan::txPosition=0;ba_lan::frames.clear();
+    ba_lan::frames.clear();
     ba_lan::bootstrap.clear();ba_lan::dedicatedDeck.clear();ba_lan::dedicatedMatchId.clear();
     ba_lan::welcomed=false;ba_lan::stopped=false;ba_lan::worldReady=false;ba_lan::running=false;
     ba_lan::peerClosed=false;ba_lan::submittedFirst=false;ba_lan::matchEnded=false;ba_lan::lobbyReady=false;
     ba_lan::nextFrame=0;ba_lan::inputWindow=0;ba_lan::bootstrapHash=0;ba_lan::connectStarted=0;ba_lan::failureReason.clear();
-    ba_dedicated::installing=false;ba_dedicated::initialized=false;
-    ba_dedicated_deck::initialized=false;ba_dedicated_deck::suppress=false;
-    releaseRoot(ba_dedicated_deck::accountRoot);
+    if(!keepCommunity) {
+        ba_dedicated::installing=false;ba_dedicated::initialized=false;
+        ba_dedicated_deck::initialized=false;ba_dedicated_deck::suppress=false;
+        releaseRoot(ba_dedicated_deck::accountRoot);
+    }
     ba_dedicated_results::pending=false;ba_dedicated_results::delivered=false;
     ba_dedicated_results::gameOverFrame=-1;ba_dedicated_results::winningAlliance=31;
     ba_dedicated_results::concededMask=0;ba_dedicated_results::checksum=0;
@@ -323,7 +328,7 @@ static void resetAtMenu(Obj front,Obj server,bool completed) {
     ba_lan_smoke::plan=ba_lan_smoke::Plan{};
     ba::set<Obj>(front,"_playerGameHandle",nullptr);ba::set<Obj>(server,"_playerGameHandle",nullptr);
     ba::dedicatedAssignedSlot=-1;
-    lobbyInstalled=false;joined=false;sawWorld=false;abortRequested=false;appliedReady=-1;
+    lobbyInstalled=keepCommunity;joined=false;sawWorld=false;abortRequested=false;appliedReady=-1;
     failedAt=0;lastWaitLog=0;blocked=false;
     diagnosticAt=0;diagnosticCount=0;
     legacyDisconnectReleaseAttempted=false;legacyDisconnectCheckAt=0;legacyDisconnectChecks=0;
@@ -468,6 +473,7 @@ static void update(Obj front) {
         if(!ba::flag(L"-dedicated-postgame-recovery-smoke"))rematchSmoke(server);
         // User Continue (or native non-result exit), never a synthetic UI click.
         if(joined && sawWorld && inMenu() && worldIdle(server)) {
+            if(ba::community()){ba_community_match::returned(front,server);return;}
             const bool completed=ba_dedicated_results::delivered;
             resetAtMenu(front,server,completed);retryAt=GetTickCount64()+500;return;
         }
@@ -476,6 +482,7 @@ static void update(Obj front) {
         ba_lan::poll();
         if(ba::community()) {
             ba_community_native::update(front);
+            releaseCompletedLegacyDisconnect(front,server);
             releaseHealthyLobbyLegacyDisconnect(front,server);
             return;
         }

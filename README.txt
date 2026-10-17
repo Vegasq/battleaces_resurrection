@@ -14,12 +14,13 @@ Do not treat this development baseline as the finished release.
 Server community control v1 adds a connected-player directory, targeted invites,
 host-controlled custom starts and same-connection rematches. Scripted clients pass
 two matches using the real simulation, with a third player kept outside both games.
-The native Invite Friend/Start UI adapter and Try Deck vs AI are still unfinished.
 The opt-in custom picker now lists connected players and sends targeted invites.
 Two real clients pass native popup decline, cancel, expiry, duplicate Accept and
-lobby departure checks. Custom Start/Ready and AI remain unfinished. Details and
-reproduction commands are in docs/community-client.txt and
-docs/native-custom-invitations.txt.
+lobby departure checks. Native Start/Ready, results/Continue and same-lobby rematch
+now pass automated two-client tests, including duplicate requests and a changed
+deck. Failure/manual acceptance and Try Deck vs AI remain in progress. Details and
+reproduction commands: docs/community-client.txt, docs/native-custom-invitations.txt
+and docs/native-custom-matches.txt.
 See docs/community-protocol.txt and docs/community-lobby.txt for scope and evidence.
 
 Current game wire protocol3 requires updating both helper and server. The server

@@ -42,7 +42,7 @@ async def run(args):
     require(output.is_relative_to(ROOT / 'local'), 'evidence must be under ignored local/')
     verify_game(game); verify_assets(assets)
     manifest = json.loads((game / '.battleaces-resurrection/patch-manifest.json').read_text())
-    require(manifest.get('community', {}).get('native_scope') == 'custom-invitation-prototype',
+    require(manifest.get('community', {}).get('native_scope') in ('custom-invitation-prototype', 'custom-match-prototype'),
             'install the current experimental invitation patch into an isolated copy')
     output.mkdir(parents=True, exist_ok=False)
     (game / 'investigation/runtime').mkdir(parents=True, exist_ok=True)

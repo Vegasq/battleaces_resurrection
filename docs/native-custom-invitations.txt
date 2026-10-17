@@ -1,6 +1,7 @@
 NATIVE CUSTOM INVITATIONS: ADAPTER AND QUALIFICATION
-2026-10-17. Experimental build37822 patch only. Start/Ready/match return remain
-separate work; the normal launcher retains its manually confirmed smooth play.
+2026-10-17. Experimental build37822 patch only. This records the invitation
+milestone; subsequent Start/Ready/match-return work is in native-custom-matches.txt.
+The normal launcher retains its manually confirmed smooth play.
 
 EVIDENCE AND OWNERSHIP
 Original GameAssembly SHA256:
@@ -206,6 +207,7 @@ Quit validation. The test uses loopback development TCP, not a remote TLS sessio
 
 Still unqualified: simultaneous multiple senders, full busy/late-message races,
 disconnect during native Create, sustained invitation churn, manual mouse/UI and
-cross-PC play. Native Start/Ready, gameplay bootstrap/return and Try Deck vs AI are
-not implemented by this change. Neither the normal patch image nor the user's
+cross-PC play. Native Start/Ready and gameplay bootstrap/return were not part of
+this invitation change; see native-custom-matches.txt for their later progress.
+Try Deck vs AI remains unfinished. Neither the normal patch image nor the user's
 normal-play helper/image was changed; their digests were independently rechecked.
