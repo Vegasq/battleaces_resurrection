@@ -11,8 +11,8 @@ Secured listeners require verified TLS followed by authentication version1:
  S30 AUTH_OK: u16 auth version1,player_id string (34 ASCII chars,p_ plus32 hex).
  AUTH bodies including type are bounded to128 bytes before allocation. Tokens
  never appear in logs, CLI arguments or public errors. All admission failures
- use generic type255 authentication failed. See admission.txt for rate/deadline
- limits and remaining pre-TLS handshake bounds. Game HELLO follows AUTH_OK;
+ use generic type255 authentication failed. See admission.txt and tls-transport.txt
+ for authentication and pre-TLS rate/capacity/deadline limits. Game HELLO follows AUTH_OK;
  its protocol version remains2. The current graphical helper uses loopback only.
 
 C21 HELLO: u16 version2, u8 requested slot0/1 or255 for automatic assignment, original GameAssembly SHA25632,

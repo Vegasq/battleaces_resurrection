@@ -89,8 +89,9 @@ Runtime environment overrides:
 Default listener:127.0.0.1:47623, plaintext development mode with self-reported
 identities. Plaintext non-loopback binds are rejected. The server's optional TLS
 listener binds profiles to revocable credentials; see docs/admission.txt and
-docs/tls-transport.txt. Real TLS tests reach a lobby, but graphical-client TLS and
-public handshake admission limits remain pending. Internet play is not ready.
+docs/tls-transport.txt. Raw TLS handshakes have global/source limits and real TLS
+tests reach a lobby. Graphical-client TLS and cross-network qualification remain
+pending. Internet play is not ready.
 
 Original-game assets remain local. Release artifacts will contain our executable
 helper and tooling, not the original or patched full game binaries.

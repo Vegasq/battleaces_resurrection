@@ -49,10 +49,12 @@ pretending it finished. Python may still wait for those threads at interpreter
 exit. Deployment storage must be local/reliable; hard process-exit bounds for
 stuck native file I/O are not established by this mechanism.
 
-TLS handshake deadlines and kernel backlog are bounded, but the application
-counter begins AFTER TLS. A global/source limit on already-accepted pre-TLS
-handshakes is still required before public exposure. The coordinator's peer cap,
-HELLO deadline, room limits and game-message validation remain additional bounds.
+This authentication counter begins AFTER TLS. The separate raw listener now
+limits pending handshakes before TLS allocation:32 total,4 per source,global
+burst64/refill16 per second,source burst16/refill2 per second,4096 source buckets.
+See tls-transport.txt for numeric binding, cancellation and remaining host-load
+qualification limits. Peer caps,HELLO deadlines,room limits and message validation
+remain additional bounds. Graphical-client and cross-network integration is open.
 
 Validation
   python -m unittest tests.test_admission -v

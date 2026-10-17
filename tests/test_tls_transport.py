@@ -153,8 +153,7 @@ class TLSLoopbackTests(unittest.IsolatedAsyncioTestCase):
         for handler in self.handlers: handler.cancel()
         await asyncio.gather(*self.handlers, return_exceptions=True)
         self.loop.set_exception_handler(self.previous_error_handler)
-        for context in self.loop_errors:
-            self.assertIsInstance(context.get("exception"), (ssl.SSLError, OSError, TimeoutError), str(context))
+        self.assertEqual(self.loop_errors, [], "unexpected event-loop error during TLS lifecycle")
 
     async def echo(self, reader, writer):
         self.handlers.add(asyncio.current_task())

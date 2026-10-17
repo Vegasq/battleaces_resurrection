@@ -154,7 +154,7 @@ GameAssembly.dll,UnityPlayer.dll and nested chrome_elf.dll restored to pinned
 pristine hashes, then recipe2 reapplied. No unpatched game process was launched.
 Evidence local/telemetry02-restore.json and telemetry02-reapply.json. The untouched
 recovery installation was read only. The previous user-desktop test clients were
-closed normally before this update; no test server/client is left running.
+closed normally before this update; that run's processes were all stopped.
 
 Manual reusable-client sessions, complete telemetry removal,
 authenticated TLS transport, distributable packages and full release validation
@@ -167,16 +167,24 @@ Seventeen TLS tests and17 admission tests passed, including actual certificates,
 wrong/expired/untrusted identity rejection, credential revocation, rate/capacity,
 thread timeout accounting and shutdown races. Plaintext binds are limited to
 numeric loopback. The graphical helper has not yet integrated TLS/enrollment.
-Already-accepted pre-TLS handshake counts/rates still need explicit limits before
-public exposure. See admission.txt and tls-transport.txt.
+Pre-TLS global/source capacity and rate limits now apply before TLS allocation.
+Thirteen listener tests pass, including Windows cancellation/shutdown, raw socket
+caps, malformed-handshake recovery and application callback failures. Established
+connections still use the independent AUTH/peer/room limits. See admission.txt and
+tls-transport.txt; host-load and cross-network qualification remain outstanding.
 
 Credential persistence has16 passing logic tests. Real Windows private-file
 issuance remains unverified: the restricted execution token received access denied
 before token generation. No permission fallback was added. See credentials.txt.
-The combined suite on2026-10-17 ran139 tests in31.77s:137 pass,2 skip (optional
+The combined suite on2026-10-17 ran152 tests in33.00s:150 pass,2 skip (optional
 native-worker check and actual private Windows-file check). All16 telemetry byte
 tests passed against the read-only untouched originals. Evidence:
-local/source-tests-telemetry-tls.json and source-tests-telemetry-tls.txt.
+local/source-tests-tls-bounds.json and source-tests-tls-bounds.txt. Earlier
+telemetry/TLS groundwork passed137 of139 tests before the13 listener cases.
+
+Source-only commits deba25d (telemetry) and0897ef2 (TLS/admission) were audited
+and pushed. The118 distinct indexed/history source objects had zero audit
+failures; originals,patched DLLs,PKI,credentials and runtime captures stay local.
 
 BASELINE EVIDENCE BEFORE SOURCE MIGRATION
 Original GameAssembly SHA256:

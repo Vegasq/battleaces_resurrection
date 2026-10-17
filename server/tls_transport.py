@@ -159,11 +159,14 @@ async def open_verified_connection(host, port, tls: ClientTLS, *, connect_timeou
 
 
 async def start_tls_server(client_connected, host, port, context, *, handshake_timeout=DEFAULT_HANDSHAKE_TIMEOUT,
-        shutdown_timeout=DEFAULT_SHUTDOWN_TIMEOUT, stream_limit=DEFAULT_STREAM_LIMIT, backlog=128):
+        shutdown_timeout=DEFAULT_SHUTDOWN_TIMEOUT, stream_limit=DEFAULT_STREAM_LIMIT, backlog=128,
+        max_handshakes=32, max_handshakes_per_address=4, handshake_burst=16,
+        handshakes_per_second=2.0, global_handshake_burst=64, global_handshakes_per_second=16.0,
+        max_addresses=4096):
     """Start TLS-only listener; callback runs after the TLS handshake.
 
-    Time and kernel backlog are bounded. This helper does not implement a limit
-    on already accepted pending handshakes, application AUTH or handshake rates.
+    Raw accepts are bounded before TLS allocation by global/source capacity and
+    token buckets. The application callback owns established streams and AUTH.
     """
     _validate_common(context, ssl.PROTOCOL_TLS_SERVER)
     handshake = _timeout(handshake_timeout, 30, "handshake timeout")
@@ -173,8 +176,12 @@ async def start_tls_server(client_connected, host, port, context, *, handshake_t
         raise TLSConfigurationError("listener port must be in0..65535")
     if type(backlog) is not int or not 1 <= backlog <= 1024:
         raise TLSConfigurationError("listener backlog must be in1..1024")
-    return await asyncio.start_server(client_connected, host, port, ssl=context,
-        ssl_handshake_timeout=handshake, ssl_shutdown_timeout=shutdown, limit=limit, backlog=backlog)
+    from .tls_listener import HandshakeBudget, create_listener
+    budget = HandshakeBudget(maximum=max_handshakes, per_address=max_handshakes_per_address,
+        burst=handshake_burst, rate=handshakes_per_second, global_burst=global_handshake_burst,
+        global_rate=global_handshakes_per_second, max_addresses=max_addresses)
+    return create_listener(client_connected, host, port, context, backlog=backlog, budget=budget,
+        handshake_timeout=handshake, shutdown_timeout=shutdown, stream_limit=limit)
 
 
 async def close_tls_stream(writer, *, timeout=DEFAULT_SHUTDOWN_TIMEOUT):

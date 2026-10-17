@@ -23,7 +23,10 @@ API
       stream_limit=65536)
   listener = await start_tls_server(callback, host, port, server_context,
       handshake_timeout=5, shutdown_timeout=2, stream_limit=65536,
-      backlog=128)
+      backlog=128, max_handshakes=32, max_handshakes_per_address=4,
+      handshake_burst=16, handshakes_per_second=2,
+      global_handshake_burst=64, global_handshakes_per_second=16,
+      max_addresses=4096)
   graceful = await close_tls_stream(writer, timeout=2)
 
 ClientTLS is a frozen pair of context and normalized server_hostname. The factory
@@ -76,12 +79,38 @@ up to30 seconds and shutdown/close up to10 seconds. Server kernel backlog is
 bounded to1..1024, default128; stream buffer limit is1024..2097152 bytes.
 
 Stream buffering is not an application-message size limit. Preserve the protocol's
-length checks before reading a body. The TLS server callback runs after a completed
-TLS handshake, so an application admission counter cannot by itself bound raw
-already-accepted handshakes. This helper limits their duration and the kernel
-backlog, not their active count or source-IP rate. Apply explicit connection and
-handshake admission policy before public exposure; retain bounded AUTH deadlines,
-pending verifications, HELLO/readiness limits and per-player queues afterward.
+length checks before reading a body. The listener now accepts raw sockets through
+server/tls_listener.py and reserves capacity BEFORE constructing a TLS transport.
+Only admitted sockets enter asyncio.loop.connect_accepted_socket with the maintained
+SSL context; the callback runs only after that verified negotiation succeeds.
+Rejected raw sockets are immediately closed without reading authentication data.
+
+Defaults:32 pending TLS handshakes total,4 per source IP; global burst64 replenished
+at16/s and source burst16 replenished at2/s. The source table has at most4096 rows,
+expires inactive rows after at least60s and folds IPv4-mapped IPv6 into IPv4 keys.
+Fractional refill survives rejected attempts; a completed handshake still consumes
+its rate token. Multiple players sharing a NAT share its budget. Rates and pending
+TLS counts are distinct from the coordinator's established peer/AUTH/room limits.
+The accept loop yields at least every64 accepts, including rejected connections.
+The kernel backlog and the one raw socket currently being classified are outside
+the pending TLS count. These are application resource bounds, not DDoS protection
+or a qualification of host/network capacity under arbitrary external traffic.
+
+The returned BoundedTLSServer provides sockets,is_serving,close,wait_closed and
+serve_forever. It binds one explicit numeric IPv4/IPv6 interface; DNS bind names
+are rejected. IPv6 binds are IPv6-only. On Windows it uses exclusive address use.
+close cancels outstanding AcceptEx before closing the handle, then cancels and
+reaps pending handshakes. Reservations are released even when cancellation happens
+before the handshake task starts. Already established streams belong to the
+application callback; the coordinator closes those separately during shutdown.
+Aggregate counters retain fixed categories only, never TLS/auth payloads.
+
+Thirteen focused listener tests pass:5 budget tests and8 actual loopback lifecycle
+tests covering raw capacity, source limits, global refill/rates, malformed TLS,
+stalled negotiation, recovery, shutdown/cancellation and failed callback cleanup.
+All17 TLS and17 admission tests also pass with this listener. The original
+Proactor cancellation-order error was reproduced and fixed; tests now reject any
+unexpected event-loop error instead of accepting broad OSError categories.
 
 Private-host certificate enrollment
 The owner provisions a server leaf certificate with serverAuth usage and the
@@ -144,3 +173,4 @@ Official references
   https://docs.python.org/3.12/library/ssl.html#ssl.SSLContext.hostname_checks_common_name
   https://docs.python.org/3.12/library/asyncio-stream.html
   https://docs.python.org/3.12/library/asyncio-eventloop.html#asyncio.loop.create_connection
+  https://docs.python.org/3.12/library/asyncio-eventloop.html#asyncio.loop.connect_accepted_socket
