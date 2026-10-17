@@ -1,0 +1,27 @@
+/local/
+/build/
+/dist/
+/investigation/
+/server/assets/
+/server/data/
+/server/test-data/
+**/Battle Aces_Data/
+__pycache__/
+*.py[cod]
+*.dll
+*.exe
+*.obj
+*.lib
+*.exp
+*.pdb
+*.bin
+*.pb
+*.gz
+*.zip
+*.log
+*.jsonl
+*.tsv
+*.pem
+*.key
+.env
+.env.*

@@ -1,0 +1,401 @@
+BATTLE ACES PRIVATE SERVER AND CLIENT PATCH - IMPLEMENTATION PLAN
+Updated: 2026-10-17
+Target: Battle Aces build 37822, Windows x64 server and clients.
+Status: IMPLEMENTATION ACTIVE. See STATUS.txt; incomplete phases remain future work.
+
+1. OUTCOME AND SCOPE
+
+Deliver a dedicated server that the owner can host on Windows x64,
+plus a reversible patch and launcher that friends install into their existing
+Windows game installation. Friends connect, create/join a private 1v1 room, select
+their eight-unit decks, play a complete match, see the correct result, and play
+again without restarting the game. The server remains available between matches.
+
+Explicit requirements and decisions:
+- Windows x64 server hosting; a patch for the Windows game client.
+- Two clients on this PC remain the first integration test before other PCs.
+- Keep the research and implementation knowledge base current throughout.
+- Client patch requirement added on 2026-10-17: remove outbound analytics and
+  telemetry, including automatic crash-report uploads. Verify the relevant paths
+  are disabled; this is planned work, not an already implemented capability.
+- Put the project in git@github.com:Vegasq/battleaces_resurrection.git with
+  dedicated locations for server source and client patch source/tooling.
+- User confirmed on 2026-10-17 that the remote repository has been created and
+  is waiting for its initial commit. Repository creation is no longer a task.
+- User activated implementation of this plan on 2026-10-17, including the initial
+  source-only commit/publication. Do not commit or push original client
+  files unless an unavoidable dependency has first been demonstrated; default to
+  local import/generation instead. No such exception is currently established.
+- Scope revision on 2026-10-17: user removed Linux hosting entirely for now.
+  This supersedes the earlier Wine decision. Linux/Wine work is outside this plan
+  and is not a release requirement or a scheduled follow-up milestone.
+
+Planning defaults:
+- Friends may connect over the internet, not just the same LAN.
+- First release supports the verified build, existing 1v1 map and unit catalog.
+- Each match has two players. Multiple independent rooms can serve more friends;
+  this does not imply a team mode or more than two players in a match.
+- Windows x64 is the supported platform for both hosting and playing.
+- Private profiles retain decks; original account progression/store/ranked
+  matchmaking are separate projects. No production account is required.
+- In-match reconnect is a later milestone. The first release must handle a
+  disconnect clearly and return surviving clients to a usable lobby.
+
+Release acceptance, in user terms:
+An owner installs the server package on a clean Windows host, imports the required
+assets from their game installation, starts the service, and gives friends its
+address and an invite. Two friends patch their own game copies, connect from
+separate PCs, choose different decks, finish a match and rematch. The server runs
+without the original services or a graphical server client.
+
+2. VERIFIED STARTING POINT
+
+Already demonstrated on this Windows PC:
+- An independent Python server loads the shipped Simulation.dll and runs the
+  actual simulation without UnityPlayer, GameAssembly or Steam in its process.
+- The server owns the map/config, seed, roster, validated decks, ordered 20 Hz
+  inputs and authoritative native result. Clients simulate the same input stream.
+- Two graphical patched clients loaded separate saved decks, produced selected
+  units, surrendered and reached the original post-game flow with matching results.
+- The recorded tests matched sampled observable state between server and clients.
+  These comparisons do not cover every hidden simulation field or RNG state.
+- The independent server completed successive native matches. Client processes
+  still need to be relaunched for each match.
+- The last recorded suite passed 54 checks; see final-validation.json. This plan
+  does not claim that tests were rerun while writing documentation.
+
+Current gaps:
+- Only one active two-player room; client networking/lifecycle assumes one match.
+- No cross-PC or internet play verification, or manual deck/menu usability test.
+- No authenticated identities, encrypted transport or in-match reconnect.
+- Endpoint parsing accepts IPv4:port only; launchers expose development arguments.
+- Build-specific patching exists, but friends do not yet have a release installer.
+- Server deployment still depends on the game directory and a Windows runtime.
+- The packaged server must include its Windows x64 runtime and verify the shipped
+  simulation DLL. Sustained performance and long-match behavior need broader tests.
+
+Evidence:
+  investigation/dedicated/status.txt
+  investigation/dedicated/final-validation.json
+  investigation/dedicated/native-server.txt
+  investigation/dedicated/native-server-sessions.json
+  investigation/runtime/dedicated06-verification.json
+  investigation/runtime/dedicated07-verification.json
+  server/README.txt
+
+3. ARCHITECTURE DECISIONS
+
+Use an authoritative simulation server: a "thick" server in gameplay terms.
+Reuse the shipped simulation instead of reconstructing unit combat, pathfinding,
+economy and abilities. Keep the existing custom protocol and client adaptation;
+the client patch covers startup, profiles, lobby, gameplay and results, beyond
+changing the original service URL. Original server internals remain unknown.
+
+Proposed process layout:
+
+  Patched Windows clients
+           |
+           | authenticated, encrypted connection
+           v
+  Windows server coordinator
+    profiles / invites / rooms / readiness / input validation / match journal
+           |
+           | private, bounded, versioned IPC
+           v
+  One supervised simulation worker per active match
+    exact Simulation.dll + trusted map/config + ordered inputs + native results
+
+The coordinator and simulation workers run directly on Windows x64.
+
+Keep the working Python implementation and native ABI as the starting point.
+First isolate the existing Windows Python simulation wrapper in a child process;
+package its runtime with the worker. Consider a small C++ host only if measured
+packaging or execution problems warrant it. Worker isolation is for fault
+containment and independent matches; no platform portability layer is required.
+
+The coordinator owns external connections and validates client input. The worker
+owns its native world, executes the ordered actions and reports state/result.
+Clients receive only frames accepted by the worker. IPC carries match IDs, frame
+numbers, payload bounds, errors and timeouts. Workers have no public listener.
+Crash or hang of one worker must abort its match without stopping other rooms.
+
+Preserve fixed 50 ms simulation steps. Configure input lead/buffering for network
+latency without silently changing simulation time or dropping player commands.
+Keep the native command validation and ownership checks across the IPC boundary.
+
+4. DELIVERY PHASES AND COMPLETION GATES
+
+P0 - SET UP THE SOURCE REPOSITORY AND FREEZE THE BASELINE
+Effort allowance: 1-2 engineering days.
+- Use the existing remote, which the user reports is waiting for its initial
+  commit. Verify access and branch/history state before publication; preserve any
+  intervening commits. Create a dedicated source checkout; never initialize Git
+  around the installed game tree.
+- Establish the server/, client_patch/, tools/, tests/ and docs/ layout described
+  in section 6. Migrate an explicit allowlist of our source and documentation.
+- Add exclusion rules and a tracked-file audit before the first commit/push.
+  Inspect source for embedded game data as well as checking file extensions.
+- Create and push the audited initial source commit to the existing remote once
+  the baseline checks pass; record its commit ID in the knowledge base.
+- Adapt hardcoded installation/research paths to explicit local configuration.
+  Provide asset import/generation instructions; keep imported files untracked.
+- Preserve original and working patched hashes, reference inputs, bootstrap data,
+  catalog and result evidence. Keep offline tutorial restoration available.
+- Use the user-supplied sibling ../BattleAcesBeta_untouched as an additional
+  read-only recovery source. Its GameAssembly.dll and Simulation.dll hashes were
+  verified against the current baseline on 2026-10-17; see the knowledge base.
+  Verify any other file before restoration; never patch or publish this copy.
+- Define separate game-build, patch, transport-protocol and asset-format versions.
+- Define the server config, data layout, deployment layout and support matrix.
+- Identify the minimal runtime files; remove accidental dependencies on research
+  captures or absolute paths. Import game assets with exact hash verification.
+Done when: the remote has an audited source-only baseline; a fresh clone runs
+the synthetic tests without the game, then a locally supplied installation and
+fresh data directory reproduce the two-client test with explicit compatible
+versions and a documented rollback path. No original game files are in Git history.
+
+P1 - ISOLATE WORKERS AND MAKE THE SERVER REUSABLE
+Depends on P0.
+Effort allowance: 2-4 days.
+- Move native world lifetime behind a supervised worker interface; keep protocol
+  parsing, profiles and room lifecycle in the coordinator.
+- Define explicit lobby/loading/running/completed/aborted transitions and cleanup.
+- Give each match a new ID, worker, seed and immutable deck/roster snapshot.
+- Add a room registry, server-assigned seats, capacity limits and idle expiry.
+- Support at least two independent 1v1 rooms; start with a configurable low limit.
+- Recover from worker crash/hang, slow client, failed load and orderly shutdown.
+Done when: two simultaneous rooms cannot affect each other's frames/profiles;
+killing one worker leaves the other match and the lobby service operational;
+20 sequential matches release their workers and allow new matches.
+
+P2 - FINISH THE CLIENT PATCH AND FRIEND-FACING FLOW
+Depends on P1's lifecycle and protocol contract.
+Effort allowance: 4-7 days.
+- Add a simple launcher/configuration screen for server address, display name and
+  invite credential. Support DNS names and IPv4; defer IPv6 if it delays v1.
+- Separate authenticated profile identity from per-match seat and native army ID.
+- Expose create/join room, player presence, ready/cancel and useful connection
+  errors, using existing game UI where practical. No manual slot assignment.
+- Retain the native deck builder and server deck validation/persistence.
+- Reset all match-specific transport queues, frame counters, managed references,
+  result flags and Unity states on exit, then return to lobby for rematch.
+- Define clear UX for server unavailable, incompatible version, room full,
+  authentication failure, peer disconnect and aborted match.
+- Keep offline tutorial launch working; keep test-only commands opt-in.
+- Inventory analytics/telemetry initialization, event collection, batching,
+  background retries and upload paths in the client and bundled components.
+  Include automatic crash/error reports, usage/performance reports and any
+  child-process reporters. Record the discovered call paths and destinations.
+- Disable those paths at their source, including collection/queue creation where
+  practical, so they cannot upload immediately or accumulate data for later
+  upload. Do not redirect analytics to the replacement server. Preserve required
+  gameplay networking and startup/lifecycle behavior; avoid retry loops or hangs.
+- Keep diagnostic logs local with no automatic upload. A dead endpoint, DNS block
+  or absence of packets in one short run alone does not prove telemetry disabled.
+Done when: manual mouse/keyboard use completes connect -> room -> deck -> ready
+-> play -> result -> lobby -> changed deck -> second match in the same two client
+processes. Repeat after cancellation and a peer disconnect. Inspect the visible
+UI as well as logs and state audits.
+Also required: static call-path review and process-scoped network observation
+confirm no analytics/telemetry/report uploads during startup, idle menus, deck
+editing, gameplay, post-game, rematch, error handling or shutdown. Exercise offline
+startup and later reconnection to check deferred sends. Include child processes;
+document observed traffic and distinguish game-server traffic from reporting.
+
+P3 - ENABLE PRIVATE INTERNET PLAY
+Depends on P1/P2. Effort allowance: 4-7 days.
+- Add authenticated, owner-issued and revocable player credentials; bind saved
+  profiles to server-issued identities instead of a self-reported profile name.
+- Protect the TCP connection with TLS using maintained TLS implementations.
+  Document certificate trust/enrollment in the launcher, including a private-host
+  option. Never solve certificate errors by disabling certificate validation.
+- Keep secrets out of command lines and logs. Limit handshake rates, message size,
+  pending joins and per-player queues; preserve existing command bounds.
+- Add ping/connection status and configurable, bounded input buffering. Measure
+  behavior at 50/100/200 ms RTT, jitter and packet loss before selecting defaults.
+- Define stall handling: bounded wait, clear notice and an explicit aborted result
+  when a connection cannot recover. Do not invent a victory for an unknown state.
+- Support direct connection to an owner-hosted or rented server; document the
+  one exposed service port and host-specific firewall/NAT setup. NAT traversal is
+  not required for v1. A private VPN can be an interim test route.
+Done when: two physical Windows PCs on different networks finish and rematch on
+the Windows server; invalid/revoked credentials fail; injected network stalls
+do not create silent divergence or leave clients stuck in a match.
+
+P4 - PACKAGE THE WINDOWS SERVER AND CLIENT PATCH
+Depends on P1-P3. Effort allowance: 2-4 days.
+- Produce a Windows server archive with bundled runtime, launch/config helpers
+  and an optional documented background-service setup.
+- Select and record the tested Windows versions, required runtime components and
+  service account/data-directory setup. Include a startup health check.
+- Separate program files, imported game assets, configuration and writable data.
+  Provide an asset import/verification command, avoiding a full graphical install
+  on the server. Test copying the required files from the owner's installation.
+  Required game data stays local and is not included in the Git repository or
+  uploaded as a project release asset.
+- Package our patcher/helper/launcher rather than a complete game installation.
+  Check supported original hashes before modifying files, back up originals,
+  apply atomically, detect already-patched installs and support restore/update.
+- Ship sample configuration, compatibility manifest, readable diagnostics and
+  host/player quick-start guides. Keep detailed audits opt-in with retention caps.
+- Support clean shutdown, reboot/service restart, profile backup and restore.
+Done when: follow the documentation on a clean Windows host without the
+development workspace or manually installed developer tools. A clean Windows
+client can install, play, update and restore with original hashes verified.
+
+P5 - RELEASE QUALIFICATION AND FRIEND PLAYTEST
+Depends on P4. Effort allowance: 2-5 days, including fixes found by playtests.
+- Run the existing automated suite plus worker, auth, rematch and protocol cases.
+- Exercise the selectable catalog's slot/tech/ability coverage. Play real battles
+  with movement, targeting, damage, deaths, upgrades, abilities and production;
+  verify natural match completion as well as surrender. Record untested cases.
+- Complete at least 20 sequential rematches and an eight-hour multi-room soak on
+  Windows; inspect worker cleanup, resource growth and frame timing. Measure the
+  sustained 20 Hz simulation budget and operation without a desktop session/GPU.
+- Compare exact bootstrap/input histories and sampled same-frame state across
+  clients and server. Include native end checksum/results where available.
+- Cover crash, malformed/oversized packets, version mismatch, slow load, lost
+  connection, server restart, bad assets and disk/write failures.
+- Repeat the client telemetry checks on the release build, including its first
+  launch on a clean profile and controlled reporter/error paths. Retain the
+  local capture evidence and publish a summary of disabled paths and test scope.
+  Do not claim untested reporting paths have been eliminated.
+- Have friends follow the packaged instructions on their own PCs and record
+  problems. A real second Windows PC and outside-network peer are required;
+  loopback automation does not substitute for those checks.
+Done when: the server and client release artifacts pass the acceptance scenario in
+section 1, no known match-blocking failure remains, and any lesser limitations
+are explicit in release notes. Record measured capacity instead of guessing it.
+
+P6 - FOLLOW-UP FEATURES (AFTER THE FIRST FRIEND-PLAY RELEASE)
+- Reconnect to an active match: authenticate the returning identity, prove a
+  supported state-restore or deterministic replay/catch-up path, bound its cost,
+  then verify matching current state. Lobby reconnect alone is a separate feature.
+- More maps, spectator/replay UX, team modes and a server browser if wanted.
+
+5. ESTIMATE AND PRIORITY
+
+Planning estimate for one experienced engineer: roughly 3-6 focused engineering
+weeks from the current prototype to a packaged, private Windows server and client
+patch release. This is an estimate, not a measured delivery date. It assumes
+testing PCs/friends are available. Substantial client lifecycle discoveries or
+networking issues require re-estimation. The narrower platform scope removes the
+compatibility spike, second deployment package and duplicate platform validation.
+
+The earlier estimate of days to a couple of weeks concerned a smaller Windows
+local/LAN milestone. Internet transport, repeatable client
+sessions and clean-machine installation add work to this requested release.
+
+Critical order: baseline -> reusable server/client lifecycle
+-> cross-PC internet acceptance -> packaging -> release playtest. Protocol and
+documentation work can overlap implementation; defer optional UI polish and extra
+modes until the complete play/rematch path is stable.
+
+First implementation task after this plan: prepare, audit and push the initial
+source-only commit to the existing remote, freezing the working two-client
+baseline. Preserve captured replay
+fixtures locally, then isolate simulation workers and make match cleanup and
+room reuse reliable. The next user-visible milestone is a complete second match
+with changed decks in the same two client processes on this PC.
+
+6. REPOSITORY LAYOUT AND SOURCE-ONLY PUBLICATION
+
+Requested remote: git@github.com:Vegasq/battleaces_resurrection.git
+Repository URL: https://github.com/Vegasq/battleaces_resurrection
+User corrected the remote repository name on 2026-10-17; use this spelling.
+Remote status: user reports it was created and is awaiting its initial commit
+(2026-10-17). Cloning verified access to the empty remote when implementation
+began. See STATUS.txt for current publication state and completed checks.
+
+Proposed layout:
+  server/                 coordinator, simulation wrapper, protocol and profiles
+  client_patch/src/        our helper/hook C++ implementation
+  client_patch/patcher/    guarded patch recipes, installer and restore tooling
+  client_patch/launcher/   connection configuration and launch tooling
+  tools/                  local asset import/extraction and repository audits
+  tests/                  synthetic fixtures and integration test drivers
+  docs/                   plan, knowledge base, protocol and build/host/player guides
+  .github/workflows/      source checks, synthetic tests and content audit
+
+Keep original binaries, game-derived inputs, generated output and private runtime
+data outside tracked paths. Use ignored local directories for imported assets,
+build output, profiles, captures and detailed test evidence. A small tracked
+manifest may specify required file roles, supported versions and hashes without
+containing their contents.
+
+Allowed baseline:
+- Our authored server, patch helper, patcher, launcher and build/test source.
+- Our architecture/protocol notes, research conclusions and implementation plan.
+- Build hashes, offsets and narrowly scoped patch safety signatures where needed.
+- Synthetic test inputs created for this project; test drivers that use optional
+  locally supplied assets for full native integration.
+
+Excluded from Git, including Git LFS and compressed/encoded copies:
+- Battle Aces.exe, GameAssembly.dll, Simulation.dll, Unity/Steam libraries and
+  any other shipped client files, whether original, backed up or patched.
+- Battle Aces_Data, maps, textures, audio, game configuration and extracted game
+  data. The current server/assets/build-37822 directory contains game-derived
+  map/catalog/descriptor data and must not be copied into the repository wholesale.
+- Metadata dumps, full decompilation/disassembly exports, packet/bootstrap/replay
+  captures and game-derived test fixtures. Descriptors or catalogs extracted into
+  JSON remain game-derived content even though their format is text.
+- Compiled output, runtime logs, saved player data, credentials and local paths
+  identifying the developer's environment.
+
+Dependency strategy:
+- The host/player supplies their existing compatible game installation locally.
+- This workspace also has ../BattleAcesBeta_untouched for local recovery and
+  pristine-input checks. It stays outside the repository and remains untouched.
+- Import or generate required runtime inputs from that installation and verify
+  hashes. Where extraction is not yet reproducible, document and implement the
+  missing extraction step instead of committing the captured output.
+- CI runs asset-free tests using synthetic data. Native integration tests clearly
+  report missing local prerequisites; a skipped native test is not a native pass.
+- Build the patch helper from our source and apply recipes to the user's local
+  game. Release packages may contain our compiled helper, never a patched full
+  GameAssembly.dll or embedded copies of game assets.
+
+Before publishing each baseline/release:
+- Review the exact staged file list and diff; scan for binaries, archives, large
+  encoded arrays, embedded game payloads and secrets. Ignore rules alone are not
+  sufficient because already tracked or force-added files can bypass them.
+- Check the commits being pushed as well as the working tree, so removing a file
+  in the latest commit does not conceal its presence in earlier history.
+- Keep an automated content audit in CI to prevent accidental later inclusion.
+- If an original-client-file dependency appears unavoidable, first document why
+  import, extraction or a minimal patch recipe cannot replace it and identify the
+  exact minimal content. Treat it as an explicit exception for user review before
+  publication; do not silently widen the source-only scope.
+
+7. KNOWLEDGE BASE AND EVIDENCE DURING IMPLEMENTATION
+
+For every phase, record:
+- Requirement/decision and its reason; distinguish verified facts from proposals.
+- Original build/asset hashes and the exact source/protocol changes made.
+- Test command/environment, match IDs, logs, failure evidence and acceptance result.
+- Compatibility impact, migration/rollback procedure and remaining limitations.
+
+Update investigation/KNOWLEDGE_BASE.txt and dedicated/status.txt as milestones
+land. Add focused records for worker IPC, protocol revisions,
+rematch lifecycle, telemetry removal, internet tests and release validation.
+Keep failed experiments;
+never replace runtime evidence with inferred or backfilled output.
+During repository migration, make docs/ the source-controlled knowledge base and
+link to local evidence by run ID/hash. Keep captured evidence locally; do not
+automatically publish the existing investigation/ tree. Record the mapping from
+current paths below to the repository layout so prior findings remain traceable.
+
+Current code areas to migrate/change (paths before repository setup):
+  server/native_simulation.py         native ABI/reference and worker boundary
+  server/dedicated_server.py          room registry, scheduling, supervision
+  server/profiles.py                  authenticated identity and persistence
+  server/game_data.py                 trusted bootstrap/deck/action validation
+  server/Launch-Client.ps1            prototype launcher replaced/packaged for users
+  investigation/offline/lan_transport.cpp
+  investigation/offline/local_bootstrap.cpp
+  investigation/offline/dedicated_transport.cpp
+  investigation/offline/dedicated_deck.cpp
+  investigation/offline/dedicated_results.cpp
+                                     client transport, lobby, lifecycle and results
+  investigation/patch_client.py       guarded patch installation and manifest
+  server/tests/                      focused protocol/lifecycle/runtime coverage

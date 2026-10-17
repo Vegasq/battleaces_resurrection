@@ -1,0 +1,226 @@
+// Offline bootstrap for the exact preserved Battle Aces build 37822.
+// Loaded through a normal PE import. No process injection or Steam emulation.
+#define WIN32_LEAN_AND_MEAN
+#include <winsock2.h>
+#include <ws2tcpip.h>
+#include <windows.h>
+#include <bcrypt.h>
+#include <vector>
+#include <deque>
+#include <array>
+#include <string>
+#include <stdint.h>
+#include <stdio.h>
+#include <stdarg.h>
+#include <string.h>
+#include <stdexcept>
+#include <share.h>
+
+namespace ba_catalog { static void exportOnce(); }
+namespace ba_dedicated_results { static void receive(const std::string&); }
+namespace ba_export {
+static void poll(void* front);
+static void consume(void* gameData,void* encoded);
+static void failed(const char* reason);
+}
+
+namespace ba {
+using Obj = void*;
+static HMODULE module;
+static FILE* logfile;
+static Obj owner;
+static uint32_t owner_root;
+static bool exportServerAssets() {
+    const wchar_t* command=GetCommandLineW();const wchar_t* cursor=command;
+    const wchar_t* flag=L"-export-server-assets";const size_t length=wcslen(flag);
+    while((cursor=wcsstr(cursor,flag))!=nullptr) {
+        const wchar_t before=cursor==command ? L' ' : cursor[-1],after=cursor[length];
+        if((before==L' ' || before==L'\t' || before==L'\"') &&
+           (!after || after==L' ' || after==L'\t' || after==L'\"'))return true;
+        cursor+=length;
+    }
+    return false;
+}
+static bool dedicated() { return !exportServerAssets() && wcsstr(GetCommandLineW(),L"-dedicated-server=")!=nullptr; }
+static bool lan() { return !exportServerAssets() && wcsstr(GetCommandLineW(),L"-offline-lan")!=nullptr; }
+static int lanSlot() { return wcsstr(GetCommandLineW(),L"-lan-slot=1") ? 1 : 0; }
+static std::string argument(const wchar_t* key,const char* fallback="") {
+    const wchar_t* value=wcsstr(GetCommandLineW(),key);if(!value)return fallback;
+    value+=wcslen(key);const wchar_t* end=value;while(*end && *end!=L' ' && *end!=L'"')++end;
+    int count=WideCharToMultiByte(CP_UTF8,0,value,static_cast<int>(end-value),nullptr,0,nullptr,nullptr);
+    std::string out(count,'\0');if(count)WideCharToMultiByte(CP_UTF8,0,value,static_cast<int>(end-value),&out[0],count,nullptr,nullptr);return out;
+}
+void lanFrontUpdate(Obj front);
+template<class F> F api(const char* name) {
+    F f=reinterpret_cast<F>(GetProcAddress(module,name));
+    if(!f) throw std::runtime_error(name);
+    return f;
+}
+template<class F> F native(uintptr_t rva) { return reinterpret_cast<F>(reinterpret_cast<uintptr_t>(module)+rva); }
+template<class T> T read(Obj p, size_t off) { return p ? *reinterpret_cast<T*>(static_cast<char*>(p)+off) : T{}; }
+void log(const char* format, ...) {
+    if(!logfile) {
+        wchar_t path[32768]; GetModuleFileNameW(module,path,32768);
+        wchar_t* slash=wcsrchr(path,L'\\'); if(slash) *(slash+1)=0;
+        wcscat_s(path,lan() ? (lanSlot() ? L"investigation\\runtime\\lan-native-1.log" : L"investigation\\runtime\\lan-native-0.log") : L"investigation\\runtime\\offline-native.log");
+        logfile=_wfsopen(path,L"a",_SH_DENYNO);
+    }
+    if(logfile) { fprintf(logfile,"[%llu] ",GetTickCount64()); va_list args;va_start(args,format);vfprintf(logfile,format,args);va_end(args);fputc('\n',logfile);fflush(logfile); }
+}
+LONG CALLBACK trace_exception(EXCEPTION_POINTERS* info) {
+    if(info->ExceptionRecord->ExceptionCode!=0xe06d7363)return EXCEPTION_CONTINUE_SEARCH;
+    static thread_local bool tracing=false;static LONG recorded=0;
+    if(tracing || InterlockedIncrement(&recorded)>32)return EXCEPTION_CONTINUE_SEARCH;
+    tracing=true;
+    void* frames[48];USHORT count=CaptureStackBackTrace(0,48,frames,nullptr);
+    log("Native first-chance C++ exception trace:");
+    for(USHORT i=0;i<count;++i) {
+        uintptr_t address=reinterpret_cast<uintptr_t>(frames[i]);
+        uintptr_t base=reinterpret_cast<uintptr_t>(module);
+        if(address>=base && address<base+0x8000000)log("  GameAssembly RVA 0x%llx",static_cast<unsigned long long>(address-base));
+    }
+    tracing=false;return EXCEPTION_CONTINUE_SEARCH;
+}
+void init() {
+    if(!module) {
+        module=GetModuleHandleW(L"GameAssembly.dll");
+        if(module && wcsstr(GetCommandLineW(),L"-offline-trace"))AddVectoredExceptionHandler(0,trace_exception);
+    }
+    if(!module) throw std::runtime_error("GameAssembly unavailable");
+}
+Obj klass(Obj obj) { return api<Obj(*)(Obj)>("il2cpp_object_get_class")(obj); }
+Obj find_class(const char* ns, const char* name) {
+    Obj domain=api<Obj(*)()>("il2cpp_domain_get")();size_t count=0;
+    const Obj* assemblies=api<const Obj*(*)(Obj,size_t*)>("il2cpp_domain_get_assemblies")(domain,&count);
+    for(size_t i=0;i<count;i++) {
+        Obj img=api<Obj(*)(Obj)>("il2cpp_assembly_get_image")(assemblies[i]);
+        Obj k=api<Obj(*)(Obj,const char*,const char*)>("il2cpp_class_from_name")(img,ns,name);if(k)return k;
+    }
+    throw std::runtime_error(name);
+}
+Obj field(Obj obj,const char* name) {
+    if(!obj)throw std::runtime_error("field on null object");
+    Obj f=api<Obj(*)(Obj,const char*)>("il2cpp_class_get_field_from_name")(klass(obj),name);
+    if(!f)throw std::runtime_error(name);return f;
+}
+template<class T> T get(Obj obj,const char* name) {
+    T value{};api<void(*)(Obj,Obj,void*)>("il2cpp_field_get_value")(obj,field(obj,name),&value);return value;
+}
+template<class T> void set(Obj obj,const char* name,T value) {
+    api<void(*)(Obj,Obj,void*)>("il2cpp_field_set_value")(obj,field(obj,name),&value);
+}
+template<> void set<Obj>(Obj obj,const char* name,Obj value) {
+    api<void(*)(Obj,Obj,Obj)>("il2cpp_field_set_value_object")(obj,field(obj,name),value);
+    if(get<Obj>(obj,name)!=value)throw std::runtime_error("managed reference field verification failed");
+}
+Obj invoke(Obj k,Obj instance,const char* name,int argc,void** args=nullptr) {
+    Obj m=api<Obj(*)(Obj,const char*,int)>("il2cpp_class_get_method_from_name")(k,name,argc);
+    if(!m)throw std::runtime_error(name);
+    Obj exception=nullptr;
+    Obj result=api<Obj(*)(Obj,Obj,void**,Obj*)>("il2cpp_runtime_invoke")(m,instance,args,&exception);
+    if(exception) {
+        char message[8192]={};api<void(*)(Obj,char*,int)>("il2cpp_format_exception")(exception,message,sizeof(message));
+        log("Exception in %s: %s",name,message);
+        char stack[16384]={};api<void(*)(Obj,char*,int)>("il2cpp_format_stack_trace")(exception,stack,sizeof(stack));
+        log("Managed stack: %s",stack);throw std::runtime_error(name);
+    }
+    return result;
+}
+Obj call(Obj obj,const char* name,int argc=0,void** args=nullptr) { return invoke(klass(obj),obj,name,argc,args); }
+Obj make(const char* ns,const char* name) {
+    Obj k=find_class(ns,name);api<void(*)(Obj)>("il2cpp_runtime_class_init")(k);
+    Obj o=api<Obj(*)(Obj)>("il2cpp_object_new")(k);invoke(k,o,".ctor",0);return o;
+}
+Obj str(const char* s) { return api<Obj(*)(const char*)>("il2cpp_string_new")(s); }
+void local_profile(Obj account) {
+    if(get<Obj>(account,"<ProfileCache>k__BackingField"))return;
+    Obj p=make("CommonPb","ProfileData");
+    Obj id=make("CommonPb","ProfileId");
+    set(id,"profileId_",str("offline-0000000000000001"));
+    set(p,"id_",id);set(p,"name_",str("Offline Player"));
+    set(p,"profileLocks_",make("CommonPb","ProfileLocks"));
+    set(p,"progression_",make("CommonPb","PlayerProgression"));
+    set(p,"accountData_",make("CommonPb","AccountData"));
+    set(p,"cosmeticLoadout_",make("CommonPb","CosmeticLoadout"));
+    set(p,"selectedDeck_",make("CommonPb","Deck"));
+    set(account,"<ProfileCache>k__BackingField",p);
+    log("Created local profile and empty local progression state.");
+}
+void local_version(Obj front) {
+    Obj version=make("CommonPb","VersionResponse");
+    set(version,"apiVersionOk_",true);set(version,"buildVersionOk_",true);
+    set(front,"_frontVersionResponse",version);
+    set(front,"_clientVersionOk",true);set(front,"_gameVersionAvailable",true);
+    set(front,"_isLoggedIn",true);
+}
+void dump(Obj obj,const char* label) {
+    if(!obj){log("%s = null",label);return;}
+    Obj k=klass(obj);log("%s = %p (%s)",label,obj,api<const char*(*)(Obj)>("il2cpp_class_get_name")(k));
+    void* iter=nullptr;Obj f;int shown=0;
+    while((f=api<Obj(*)(Obj,void**)>("il2cpp_class_get_fields")(k,&iter)) && shown++<80) {
+        unsigned flags=api<unsigned(*)(Obj)>("il2cpp_field_get_flags")(f);if(flags&0x10)continue;
+        const char* n=api<const char*(*)(Obj)>("il2cpp_field_get_name")(f);
+        size_t off=api<size_t(*)(Obj)>("il2cpp_field_get_offset")(f);
+        log("  +%zx %s = %p",off,n,read<Obj>(obj,off));
+    }
+}
+}
+
+extern "C" __declspec(dllexport) int OfflineInitialUpdate(void* state,void*) {
+    using namespace ba;
+    static bool failed=false;
+    if(failed)return 0;
+    try {
+        init();owner=read<Obj>(state,0x18);
+        if(!owner_root)owner_root=api<uint32_t(*)(Obj,bool)>("il2cpp_gchandle_new")(owner,false);
+        log("Offline initial state reached after game initialization. PID=%lu",GetCurrentProcessId());
+        Obj services=read<Obj>(owner,0x38);
+        local_profile(read<Obj>(services,0x40));
+        local_version(read<Obj>(services,0x10));
+        if(lan()) {
+            Obj background=invoke(find_class("UnityEngine","Application"),nullptr,"get_runInBackground",0);
+            log("LAN Unity runInBackground=%d",*api<bool*(*)(Obj)>("il2cpp_object_unbox")(background));
+        }
+        bool tutorial=!exportServerAssets() && wcsstr(GetCommandLineW(),L"-offline-tutorial")!=nullptr;
+        Obj target=read<Obj>(owner,tutorial ? 0x2f8 : 0x2c0);
+        if(!target)throw std::runtime_error("startup target state missing");
+        log("Entering existing %s state %p",tutorial ? "tutorial01" : "main menu",target);
+        return native<int(*)(Obj,Obj)>(0x4dd1d0)(state,target);
+    } catch(const std::exception& e) { log("Offline initialization failed: %s",e.what());failed=true;return 0; }
+}
+
+extern "C" __declspec(dllexport) void OfflineFrontUpdate(void* front,void*) {
+    // Offline mode owns no connection to the discontinued front service.
+    using namespace ba;
+    static ULONGLONG last=0;
+    if(!owner)return;
+    try {
+        if(!get<Obj>(front,"_frontVersionResponse")) {
+            local_version(front);log("Restored local version state after frontend reset.");
+        }
+        if(!get<bool>(front,"_isLoggedIn"))set(front,"_isLoggedIn",true);
+        if(exportServerAssets()){ba_export::poll(front);return;}
+        ba_catalog::exportOnce();
+        if(lan())lanFrontUpdate(front);
+        if(GetTickCount64()-last<10000)return;
+        last=GetTickCount64();
+        Obj fsm=read<Obj>(owner,0x2b0), state=get<Obj>(fsm,"_currentState");
+        log("Offline state: %s",state ? api<const char*(*)(Obj)>("il2cpp_class_get_name")(klass(state)) : "none");
+        Obj services=read<Obj>(owner,0x38), server=read<Obj>(services,0x18);
+        Obj sim=read<Obj>(server,0x140), player=read<Obj>(sim,0x90);
+        if(sim)log("Offline world: active=%d simFrame=%d presentedFrame=%d playerArmy=%d",
+            read<bool>(sim,0x1a0),read<int>(sim,0xa8),read<int>(sim,0xac),player ? read<int>(player,0x38) : -1);
+    }
+    catch(const std::exception& e) { log("Offline status: %s",e.what()); }
+}
+
+#include "local_loop.cpp"
+#include "catalog_export.cpp"
+#include "lan_smoke.cpp"
+#include "lan_transport.cpp"
+#include "dedicated_transport.cpp"
+#include "dedicated_deck.cpp"
+#include "dedicated_results.cpp"
+#include "local_bootstrap.cpp"
+#include "server_assets_export.cpp"
+#include "lan_audit.cpp"

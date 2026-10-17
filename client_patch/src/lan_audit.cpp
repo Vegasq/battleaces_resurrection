@@ -1,0 +1,176 @@
+#pragma once
+// Include after ba helpers. Hooks ONLY the two SimThread CALL instructions listed
+// in lan-audit-hooks.json; leave Simulation.ReadSimFrame entry unmodified.
+// This samples selected observable state, NOT a complete simulation checksum.
+// Canonical field offsets/strides are from ORIGINAL generated FlatBuffer getters:
+// ../network/audit-getters.asm. No native pointers/padding enter canonical hashes.
+#include <algorithm>
+#include <vector>
+
+namespace ba_audit {
+using ba::Obj;
+using MakeFrame = int(*)(uint64_t,uint32_t,uint32_t*);
+using GetFrame = int(*)(uint64_t,void*);
+static constexpr uint32_t MaxFrameBytes = 16u*1024u*1024u;
+static constexpr unsigned Interval = 20;
+
+struct Hash {
+    uint64_t value=14695981039346656037ull;
+    void bytes(const void* source,size_t count) {
+        const unsigned char* p=static_cast<const unsigned char*>(source);
+        for(size_t i=0;i<count;++i) { value^=p[i];value*=1099511628211ull; }
+    }
+    void u32(uint32_t x) { unsigned char p[4]={static_cast<unsigned char>(x),static_cast<unsigned char>(x>>8),static_cast<unsigned char>(x>>16),static_cast<unsigned char>(x>>24)};bytes(p,4); }
+};
+struct Buffer {
+    const std::vector<unsigned char>& bytes;
+    void bounds(size_t p,size_t n) const {
+        if(p>bytes.size() || n>bytes.size()-p)throw std::runtime_error("audit FlatBuffer bounds");
+    }
+    template<class T> T read(size_t p) const { bounds(p,sizeof(T));T x;memcpy(&x,bytes.data()+p,sizeof(T));return x; }
+    size_t field(size_t table,unsigned index) const {
+        if(!table)return 0;
+        const int64_t v=static_cast<int64_t>(table)-read<int32_t>(table);
+        if(v<0)throw std::runtime_error("audit negative vtable");
+        const size_t at=static_cast<size_t>(v), slot=4u+2u*index;
+        if(slot+2>read<uint16_t>(at))return 0;
+        const uint16_t offset=read<uint16_t>(at+slot);
+        if(!offset)return 0;
+        bounds(table+offset,1);return table+offset;
+    }
+    size_t indirect(size_t p) const { if(!p)return 0;const size_t result=p+read<uint32_t>(p);bounds(result,4);return result; }
+    size_t table(size_t parent,unsigned index) const { return indirect(field(parent,index)); }
+    size_t vector(size_t parent,unsigned index,uint32_t& count,size_t stride) const {
+        size_t p=indirect(field(parent,index));count=p?read<uint32_t>(p):0;
+        if(!p)return 0;
+        if(count>1000000u)throw std::runtime_error("audit unreasonable vector length");
+        bounds(p+4,static_cast<size_t>(count)*stride);return p+4;
+    }
+};
+struct Record { uint32_t id;size_t index; };
+static uint32_t component(Hash& hash,const Buffer& buffer,size_t root,unsigned rootField,unsigned valueWords,bool health=false) {
+    hash.u32(rootField);
+    const size_t t=buffer.table(root,rootField);
+    uint32_t idsCount=0,valuesCount=0,damageCount=0;
+    const size_t ids=buffer.vector(t,0,idsCount,4);
+    const size_t values=buffer.vector(t,1,valuesCount,4u*valueWords);
+    const size_t damage=health ? buffer.vector(t,2,damageCount,4) : 0;
+    if(idsCount!=valuesCount || (health && idsCount!=damageCount))throw std::runtime_error("audit component vector lengths disagree");
+    std::vector<Record> order;order.reserve(idsCount);
+    for(uint32_t i=0;i<idsCount;++i)order.push_back({buffer.read<uint32_t>(ids+4u*i),i});
+    std::sort(order.begin(),order.end(),[](const Record& a,const Record& b){ return a.id<b.id; });
+    hash.u32(idsCount);
+    for(size_t i=0;i<order.size();++i) {
+        const Record& row=order[i];
+        if(i && row.id==order[i-1].id)throw std::runtime_error("audit duplicate component ID");
+        hash.u32(row.id);
+        for(unsigned word=0;word<valueWords;++word)
+            hash.u32(buffer.read<uint32_t>(values+(row.index*valueWords+word)*4u));
+        if(health)hash.u32(buffer.read<uint32_t>(damage+row.index*4u));
+    }
+    return idsCount;
+}
+struct Sample { uint32_t frame,armyCount,typeCount,healthCount,positionCount,resourceCount;uint64_t canonical,raw; };
+static Sample summarize(const std::vector<unsigned char>& bytes,uint32_t viewer) {
+    Buffer b{bytes};const size_t root=b.read<uint32_t>(0);b.bounds(root,4);
+    const size_t frameField=b.field(root,0);
+    Sample s{};s.frame=frameField?b.read<uint32_t>(frameField):0;
+    Hash h;h.u32(1);h.u32(viewer);h.u32(s.frame);
+    s.armyCount=component(h,b,root,2,1);
+    s.typeCount=component(h,b,root,3,1);
+    s.healthCount=component(h,b,root,5,1,true);
+    s.positionCount=component(h,b,root,7,3);
+    s.resourceCount=component(h,b,root,21,8);
+    s.canonical=h.value;Hash raw;raw.bytes(bytes.data(),bytes.size());s.raw=raw.value;
+    return s;
+}
+struct State {
+    bool disabled=false,announced=false;
+    uint64_t world=0;
+    int lastSampledPreviousFrame=-2147483647;
+    MakeFrame make=nullptr;
+    GetFrame get=nullptr;
+    FILE* output=nullptr;
+    FILE* resources=nullptr;
+    std::vector<unsigned char> buffer;
+    ~State() { if(output)fclose(output);if(resources)fclose(resources); }
+};
+static thread_local State state;
+static void path(wchar_t* target,size_t count,const wchar_t* suffix) {
+    GetModuleFileNameW(ba::module,target,static_cast<DWORD>(count));
+    wchar_t* slash=wcsrchr(target,L'\\');if(!slash)throw std::runtime_error("audit module path");*(slash+1)=0;
+    wcscat_s(target,count,L"investigation\\runtime\\");wcscat_s(target,count,suffix);
+}
+static void resourceRows(FILE* output,const std::vector<unsigned char>& bytes,uint32_t frame,uint32_t viewer) {
+    Buffer b{bytes};const size_t root=b.read<uint32_t>(0),t=b.table(root,21);
+    uint32_t count=0,valueCount=0;
+    const size_t ids=b.vector(t,0,count,4),values=b.vector(t,1,valueCount,32);
+    if(count!=valueCount)throw std::runtime_error("audit resource vector lengths disagree");
+    std::vector<Record> order;order.reserve(count);
+    for(uint32_t i=0;i<count;++i)order.push_back({b.read<uint32_t>(ids+4u*i),i});
+    std::sort(order.begin(),order.end(),[](const Record& a,const Record& c){return a.id<c.id;});
+    // Original generated accessors confirm offsets0,4,...28, all signed int32.
+    // ../network/army-resource-getters.asm retains each accessor's instruction.
+    for(const Record& row:order) {
+        fprintf(output,"%lu\t%lu\t%u\t%u\t%u",GetCurrentProcessId(),GetCurrentThreadId(),frame,viewer,row.id);
+        for(unsigned word=0;word<8;++word)fprintf(output,"\t%d",b.read<int32_t>(values+row.index*32u+word*4u));
+        fputc('\n',output);
+    }
+}
+static void capture(Obj simulation,uint32_t originalViewer) {
+    State& s=state;
+    if(s.disabled || !wcsstr(GetCommandLineW(),L"-lan-audit"))return;
+    const uint64_t world=ba::read<uint64_t>(simulation,0x1a8);
+    if(!world)return;
+    const int previousFrame=ba::read<int>(simulation,0xa8);
+    if(s.world!=world || previousFrame<s.lastSampledPreviousFrame) {s.world=world;s.lastSampledPreviousFrame=-2147483647;}
+    if(s.lastSampledPreviousFrame!=-2147483647 && static_cast<int64_t>(previousFrame)-s.lastSampledPreviousFrame<Interval)return;
+    if(!s.make || !s.get) {
+        HMODULE nativeModule=GetModuleHandleW(L"Simulation.dll");
+        if(!nativeModule)throw std::runtime_error("audit Simulation.dll unavailable");
+        s.make=reinterpret_cast<MakeFrame>(GetProcAddress(nativeModule,"SimMakeSimFrame"));
+        s.get=reinterpret_cast<GetFrame>(GetProcAddress(nativeModule,"SimGetSimFrameBuffer"));
+        if(!s.make || !s.get)throw std::runtime_error("audit native exports unavailable");
+    }
+    if(!s.output) {
+        wchar_t suffix[128],filename[32768];swprintf_s(suffix,L"lan-audit-%lu.tsv",GetCurrentProcessId());path(filename,32768,suffix);
+        s.output=_wfsopen(filename,L"a",_SH_DENYNO);
+        if(!s.output)throw std::runtime_error("audit output unavailable");
+        fprintf(s.output,"pid\tthread\tframe\tviewer\tcanonical_fnv1a64\traw_fnv1a64\tbytes\tarmy_entities\ttype_entities\thealth_entities\tposition_entities\tresource_armies\n");
+    }
+    if(!s.resources) {
+        wchar_t suffix[128],filename[32768];swprintf_s(suffix,L"lan-resources-%lu.tsv",GetCurrentProcessId());path(filename,32768,suffix);
+        s.resources=_wfsopen(filename,L"a",_SH_DENYNO);
+        if(!s.resources)throw std::runtime_error("audit resources output unavailable");
+        fprintf(s.resources,"pid\tthread\tframe\tviewer\tarmy\tprimary\tsecondary\tcurrent_supply\tmax_supply\tprimary_gathered\tsecondary_gathered\tprimary_lost\tsecondary_lost\n");
+    }
+    // The normal ReadSimFrame has already copied its data into managed scratch.
+    // Multiple views are an existing supported worker path (recordSimFrames).
+    // Restore native output's original perspective before returning as well.
+    struct Restore { State& s;uint64_t world;uint32_t viewer;~Restore(){uint32_t ignored=0;if(s.make)s.make(world,viewer,&ignored);} } restore{s,world,originalViewer};
+    for(uint32_t viewer=0;viewer<2;++viewer) {
+        uint32_t size=0;
+        const int result=s.make(world,viewer,&size);
+        if(result!=0 || size<8 || size>MaxFrameBytes)throw std::runtime_error("audit SimMakeSimFrame failed/size out of bounds");
+        s.buffer.resize(size);
+        if(s.get(world,s.buffer.data())!=0)throw std::runtime_error("audit SimGetSimFrameBuffer failed");
+        const Sample sample=summarize(s.buffer,viewer);
+        fprintf(s.output,"%lu\t%lu\t%u\t%u\t%016llx\t%016llx\t%u\t%u\t%u\t%u\t%u\t%u\n",GetCurrentProcessId(),GetCurrentThreadId(),sample.frame,viewer,
+            static_cast<unsigned long long>(sample.canonical),static_cast<unsigned long long>(sample.raw),size,sample.armyCount,sample.typeCount,sample.healthCount,sample.positionCount,sample.resourceCount);
+        resourceRows(s.resources,s.buffer,sample.frame,viewer);
+        if(!s.announced && wcsstr(GetCommandLineW(),L"-lan-audit-dump")) {
+            wchar_t suffix[128],filename[32768];swprintf_s(suffix,L"lan-audit-%lu-view%u-frame%u.bin",GetCurrentProcessId(),viewer,sample.frame);path(filename,32768,suffix);
+            FILE* f=_wfsopen(filename,L"wb",_SH_DENYNO);if(f){fwrite(s.buffer.data(),1,s.buffer.size(),f);fclose(f);}
+        }
+    }
+    fflush(s.output);fflush(s.resources);s.lastSampledPreviousFrame=previousFrame;
+    if(!s.announced) {s.announced=true;ba::log("LAN observable-state audit active on simulation worker %lu; fixed views0/1 every20frames; file lan-audit-%lu.tsv",GetCurrentThreadId(),GetCurrentProcessId());}
+}
+}
+
+extern "C" __declspec(dllexport) void OfflineAuditReadSimFrame(void* simulation,void* scratch,uint32_t viewer,void* methodInfo) {
+    // Original is NOT entry-hooked: this is only a wrapper for two direct CALLs.
+    ba::native<void(*)(void*,void*,uint32_t,void*)>(0x3e68090)(simulation,scratch,viewer,methodInfo);
+    try { ba_audit::capture(simulation,viewer); }
+    catch(const std::exception& e) {ba_audit::state.disabled=true;ba::log("LAN audit disabled: %s",e.what());}
+}

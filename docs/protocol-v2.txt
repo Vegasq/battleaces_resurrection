@@ -1,0 +1,38 @@
+DEDICATED ADAPTER PROTOCOL v2 (local implementation, not original gRPC)
+
+All packets: u32 little-endian body length, u8 type, payload. Max2MiB body.
+All integers below little-endian. Strings are u16 byte length then strict UTF8.
+Protocol errors type255 UTF8 close connection. Recoverable selection feedback
+type37 UTF8 keeps connection/lobby alive. Binary framing reused from prototype.
+
+C21 HELLO: u16 version2, u8 requested slot0/1, original GameAssembly SHA25632,
+  original Simulation.dll SHA25632, profile_id string, display_name string,
+  room string. Local server profile keys are simple [A-Za-z0-9_-], max48 chars.
+  Default room 'local', profiles 'player0' and 'player1'. No remote authentication;
+  server defaults loopback. Addresses other than loopback are for trusted LANs.
+S31 WELCOME: u8 assigned slot, u32[8] saved/validated deck.
+C22 SET_DECK: u32[8] entity IDs. Server validates, persists, resets own ready.
+C23 LOBBY_READY: u8 bool. Both connected peers ready triggers server bootstrap.
+S35 LOBBY: u8 connected mask, u8 ready mask, u32 revision, u32[8] deck0,
+  u32[8] deck1. Sent after each accepted selection/readiness/member change.
+S12 BOOTSTRAP: server-generated gzip GameData. Client never publishes GameData.
+S32 MATCH_INFO:32 lowercase ASCII hex match ID, sent immediately before S12.
+C3 LOADED:32-byte SHA256 of exact received gzip after world and identity ready.
+S13 START: empty. Sent only when both clients loaded the server bootstrap.
+C4 INPUT: u32 contiguous frame + InputActionsByPlayer protobuf. Max64KiB proto.
+  Server verifies identity and allowed action cases before native ProcessMsg.
+S14 FRAME: u32 frame, u32 first input length, player0 bytes, player1 bytes.
+  Server processes the same20Hz InputActions on original Simulation.dll before
+  forwarding. No client may set frame delta, speed, game config or another army.
+S36 MATCH_END: UTF8 JSON result/reason. Match inputs stop; reconnect for next match.
+C24 LEAVE: empty. Returns no game data; detaches peer and aborts active match.
+S37 NOTICE: UTF8 recoverable deck/lobby validation feedback, logged by bridge.
+
+Lifecycle: connected lobby -> loading (frozen decks + unique seed/name) -> running
+ -> completed/aborted -> room freed. Server listener persists and accepts another
+ room/match. Current bridge loads one match/process; relaunch client for next one.
+Rooms support2 peers and distinct local profile IDs. No client is a host.
+Frames wait for both input submissions with bounded lookahead and stall timeout.
+Original native simulation processes commands, enforces resources/prerequisites,
+and advances world; server cannot claim exhaustive hostile-client protection until
+every action ownership rule has been audited. This protocol targets trusted LAN.

@@ -1,0 +1,76 @@
+IMPLEMENTATION LEDGER
+Updated: 2026-10-17
+Active objective: implement SERVER_REPLACEMENT_PLAN.txt, Windows only.
+
+P0 IN PROGRESS
+- Remote repository cloned; it was empty. Dedicated source checkout created.
+- Authored server/helper/patcher source migrated with an explicit file allowlist.
+- No game binaries, maps, catalogs, descriptors or captures copied into source.
+- Server runtime paths configurable through CLI/environment; local inputs and
+  output are separated from the repository's tracked source.
+- Patcher refactored into a pure hash-guarded transformation plus a caller-selected
+  installation operation, with original backup and atomic file replacement.
+- Compiler/SDK discovery replaces workstation-specific compiler paths.
+- Publication audit checks indexed blobs and reachable history for unexpected
+  paths, binaries, archives, large encoded payloads and common secret formats.
+- 33 synthetic tests passed locally on Windows/Python 3.12. These validate wire
+  parsing, match construction, native snapshot decoding and publication guards.
+  They do not prove real gameplay or native DLL behavior.
+- Reproducible descriptors and map/catalog export implemented from a locally
+  supplied original installation. All 49 legacy descriptors match byte for byte;
+  one additional telemetry descriptor recovered, with complete dependency closure.
+- Graphical export PID23284 regenerated the exact prior map gzip hash. Its 64-unit
+  catalog matches the earlier catalog except for the exporting process ID. Import
+  validated 52 playable units and generated a local 54-file manifest. Headless and
+  hidden-window attempts initially stalled before the helper entry point; their
+  logs are retained. The cause of the startup delay is not established.
+- Migrated native/client baseline p0-baseline01 PASS: match
+  51e2e0d4e478425595eb6731ac9493e2, server PID44488, clients42804/43028,
+  620 frames and 62 same-frame/view comparisons per client, zero sampled state
+  mismatches. Gunbot/Missilebot production effects and native result agree.
+  Evidence is retained locally in local/matches/p0-baseline01/verification.json.
+  Game profile/replay writes to the user's profile directory remain restricted
+  by the execution sandbox; server profile persistence uses the writable workspace.
+  Owned export and baseline processes were stopped after their runs.
+- Initial commit/push and fresh-clone checks are pending. Origin was updated to
+  git@github.com:Vegasq/battleaces_resurrection.git following the user's rename;
+  the first read of that new URL returned Repository not found. Retry is pending.
+
+P1-P5 INCOMPLETE
+Worker isolation/multiple rooms, reusable client sessions, telemetry removal,
+authenticated TLS transport, distributable packages and full release validation
+remain open. See the plan for the complete acceptance gates. P6 is optional future
+work after the requested first release, not a claim of current support.
+
+BASELINE EVIDENCE BEFORE SOURCE MIGRATION
+Original GameAssembly SHA256:
+  e59d08c01479b27404778048d7e13546dbf3771f6b3912744c7c2bdf80c4e758
+Simulation DLL SHA256:
+  107bb83dc416a16492277392c50104660e34c48911345ae2e0d5afe3929a07fb
+Local research run dedicated06: 620 frames, 62 sampled views per client, zero
+sampled state mismatches; selected-unit production and post-game flow verified.
+Local research run dedicated07: 220 frames, 22 sampled views per client, zero
+sampled state mismatches; final result classification verified.
+Original local suite: 54 recorded passing checks. Native worker/listener completed
+two successive matches with synthetic peers. Clients still required relaunch.
+
+These retained local reports describe the pre-migration prototype. They do not
+automatically validate this checkout after edits. Re-run appropriate native tests
+and record new run IDs/hashes before claiming migrated behavior verified.
+
+RESEARCH BOUNDARY
+REA workflow guided the investigation. Native REA engines were unavailable; native
+findings use local IL2CPP metadata, original-byte disassembly and runtime probes.
+No original server source/binary was available. The custom protocol is an adapter
+for our patched client, not an implementation of every original backend service.
+
+SOURCE MAPPING
+Former server/*.py -> server/*.py
+Former investigation/offline/*.cpp -> client_patch/src/*.cpp (selected current files)
+Former investigation/patch_client.py -> client_patch/patcher/patch_client.py
+Former investigation/hook_support/pe_imports.py -> client_patch/patcher/pe_imports.py
+Former server/Launch-Client.ps1 -> client_patch/launcher/Launch-Client.ps1
+Former dedicated/PROTOCOL.txt -> docs/protocol-v2.txt
+
+Keep captured evidence, untouched recovery files and extracted game data local.
+Publish conclusions, hashes, procedures and authored source, not original files.
