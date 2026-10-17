@@ -185,6 +185,8 @@ Effort allowance: 4-7 days.
   directory. Show connected players with stable server identity, display name
   and available/in-lobby/in-match status. Disable self/busy invitations; update
   joins, departures and status changes without requiring a persistent friend list.
+  Implemented in the opt-in native adapter; pooled live-directory tests pass.
+  Manual visible-menu acceptance remains required.
 - TODO: Add targeted invitations with accept/decline/cancel/expiry, server-checked
   room membership and host ownership. Accepted players join the same custom lobby;
   expose both selected decks/readiness. The host starts from the custom menu; its
@@ -192,7 +194,10 @@ Effort allowance: 4-7 days.
   the native TryStart/ReadyToStart flow. Handle simultaneous invites, disconnects,
   leaving the lobby and return after a match. Presence is separate from room seats.
   Server control v1 and scripted native two-match proof are implemented (see
-  community-protocol.txt); native UI wiring/manual acceptance remain TODO.
+  community-protocol.txt). Native Invite/Accept/Decline, cancel, expiry, duplicate
+  Accept and lobby departures now pass two-client tests, with native reconnect
+  cleanup qualified around interrupted replies (native-custom-invitations.txt).
+  Native Start/Ready/result return, broader races and manual acceptance remain TODO.
 - Retain the native deck builder and server deck validation/persistence.
 - TODO: Make Try Deck vs AI start a playable AI match with the currently selected
   eight-unit deck, without a second connected player or original service. Trace

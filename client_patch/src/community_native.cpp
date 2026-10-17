@@ -1,13 +1,14 @@
 #pragma once
 #include <memory>
-// Opt-in native Create/Leave integration. The normal launcher remains on the
-// independently qualified two-player path. Invite/Start/AI are not enabled here.
+// Opt-in native lobby and invitation integration. The normal launcher remains
+// on the independently qualified two-player path. Start/AI are not enabled here.
 namespace ba_community_native {
 using ba::Obj;using ba_local::Root;
 namespace wire=ba_community_wire;
 static bool installed=false;
 static std::string installedLobby;
 static wire::Lobby authority;
+static wire::Directory directory{};
 // Release managed roots only during an owned Unity-thread reset, never during
 // CRT/DllMain shutdown after IL2CPP may already have stopped.
 static auto& identities=*new std::map<std::string,std::unique_ptr<Root>>();
@@ -23,14 +24,39 @@ static bool owns(Obj front) {
     return ba::community() && front && front==ba_dedicated_session::observedFront &&
         GetCurrentThreadId()==ba_dedicated_session::unityThread;
 }
+static void closeLobby(Obj front);
+static Obj manager(Obj front);
 static void reset() {
+    Obj front=ba_dedicated_session::observedFront;
+    ba_community_invites::reset(front);
+    // Finish only the actual retained Create. A Leave may already have released
+    // that manager and cleared its pointer, in which case there is no callback.
+    while(!requests.empty()) {
+        auto pending=std::move(requests.front());requests.pop_front();
+        if(pending->kind==33 && ba::get<Obj>(pending->manager.get(),"_pendingCreateLobbyRequest")==pending->message.get())
+            ba::native<void(*)(Obj,Obj,int,Obj)>(0x3e48360)(front,nullptr,2,nullptr);
+    }
+    if(installed) {
+        Root party(ba::get<Obj>(front,"_party"));
+        if(!installedLobby.empty() || (party.get() && ba::get<int>(party.get(),"PartyType")==3))closeLobby(front);
+        Root owner(manager(front));
+        wire::require(!ba::get<Obj>(front,"_party") && (!owner.get() ||
+            (!ba::get<Obj>(owner.get(),"_pendingCreateLobbyRequest") && !ba::call(owner.get(),"get_PredictedCustomGameLobby"))),
+            "community reset retained native lobby state");
+        ba::log("Community native reset: party=0 prediction=0 pendingCreate=0 replyCounter=0");
+    }
+    ba_community_popup::reset();
     ba_community_roster::reset();
-    requests.clear();identities.clear();installed=false;installedLobby.clear();authority={};smokeStage=0;smokeRound=0;smokeAt=0;
+    requests.clear();identities.clear();installed=false;installedLobby.clear();authority={};directory={};smokeStage=0;smokeRound=0;smokeAt=0;
+}
+static const wire::Player* player(const std::string& profile) {
+    for(const auto& row:directory.players)if(row.profile==profile)return &row;
+    return directory.revision?nullptr:ba_community::player(profile);
 }
 static Obj named(const std::string& profile) {
     auto found=identities.find(profile);if(found!=identities.end())return found->second->get();
-    const auto* player=ba_community::player(profile);
-    wire::require(player && identities.size()<wire::maxPlayers+2,"community named identity unavailable/capacity");
+    const auto* player=ba_community_native::player(profile);
+    wire::require(player && identities.size()<wire::maxPlayers+64,"community named identity unavailable/capacity");
     Root handle(ba::make("CommonPb","PlayerHandle")),name(ba::make("CommonPb","PlayerHandleWithName"));
     ba::set<uint64_t>(handle.get(),"steamId_",ba_community::alias(profile));ba::set<bool>(handle.get(),"isAliased_",true);
     ba::set<Obj>(name.get(),"playerHandle_",handle.get());
@@ -41,7 +67,7 @@ static Obj named(const std::string& profile) {
 static Obj localRaw() {return ba::get<Obj>(named(ba_community::welcome.profile),"playerHandle_");}
 static void pruneIdentities() {
     for(auto it=identities.begin();it!=identities.end();) {
-        bool keep=it->first==ba_community::welcome.profile || ba_community::player(it->first);
+        bool keep=it->first==ba_community::welcome.profile || player(it->first) || ba_community_invites::retain(it->first);
         for(const auto& member:authority.members)keep|=it->first==member.profile;
         if(keep)++it;else it=identities.erase(it);
     }
@@ -71,6 +97,7 @@ static void installPresence(Obj front) {
     ba::set<uint64_t>(profile,"steamId_",ba_community::alias(ba_community::welcome.profile));
     ba::set<bool>(profile,"isAlias_",true);
     ba::set<Obj>(profile,"name_",ba::get<Obj>(named(ba_community::welcome.profile),"playerName_"));
+    ba_community_invites::anchorClock(front);
     ba_dedicated_session::lobbyInstalled=true;installed=true;
     ba::log("Community presence installed: profile=%s alias=%llu assignedSeat=%d BA_RESURRECTION_COMMUNITY_V1",
         ba_community::welcome.profile.c_str(),static_cast<unsigned long long>(ba_community::alias(ba_community::welcome.profile)),ba::lanSlot());
@@ -139,9 +166,12 @@ static void acknowledge(Obj front,const wire::Ack& ack) {
     ba::log("Community control ACK: request=%u kind=%u success=%d reason=%s",ack.request,ack.kind,ack.success?1:0,ack.reason.c_str());
 }
 static void enqueue(Obj front,Obj consumer) {
-    wire::require(owns(front) && installed && ba_community::online && !ba_lan::stopped,"community request outside owned session");
-    wire::require(requests.size()<16,"community native request capacity");
+    wire::require(owns(front) && installed,"community request outside owned session");
     const int kind=ba::get<int>(consumer,"frontServerMessagesCase_");
+    // A click already inside the original Reply caller will increment its
+    // counter even after connection failure. Retain that credit for reset.
+    if(kind==23 || kind==24 || kind==25){ba_community_invites::enqueue(front,consumer,kind);return;}
+    wire::require(ba_community::online && !ba_lan::stopped && requests.size()<16,"community control request unavailable/capacity");
     Obj message=ba::get<Obj>(consumer,"frontServerMessages_");Root owner(manager(front));
     wire::require(message && owner.get(),"community request/manager unavailable");
     unsigned operation=static_cast<unsigned>(kind);
@@ -185,6 +215,7 @@ static void project(Obj front) {
     if(authority.phase==wire::None){closeLobby(front);return;}
     for(const auto& pending:requests)if(pending->kind==14)return;
     wire::require(authority.id==installedLobby,"community native lobby changed unexpectedly");
+    ba_community_invites::reconcileParty(front);
     Root state(notification());ba::native<void(*)(Obj,Obj,Obj)>(0x3e48820)(front,state.get(),nullptr);
     ba::log("Community native lobby state: revision=%llu members=%llu",static_cast<unsigned long long>(authority.revision),static_cast<unsigned long long>(authority.members.size()));
 }
@@ -238,19 +269,27 @@ static void update(Obj front) {
     if(!installed)return;
     while(!ba_community::events.empty()) {
         auto event=std::move(ba_community::events.front());ba_community::events.pop_front();
-        if(const auto* ack=std::get_if<wire::Ack>(&event)){acknowledge(front,*ack);project(front);}
-        else if(const auto* snapshot=std::get_if<wire::Lobby>(&event)){authority=*snapshot;project(front);}
-        else if(const auto* directory=std::get_if<wire::Directory>(&event)) {
-            ba::log("Community directory: revision=%llu players=%llu",static_cast<unsigned long long>(directory->revision),static_cast<unsigned long long>(directory->players.size()));
+        if(const auto* ack=std::get_if<wire::Ack>(&event)) {
+            if(!ba_community_invites::acknowledge(front,*ack))acknowledge(front,*ack);
+            ba_community_invites::flush(front);project(front);
+        }
+        else if(const auto* snapshot=std::get_if<wire::Lobby>(&event)){authority=*snapshot;ba_community_invites::flush(front);project(front);}
+        else if(const auto* listing=std::get_if<wire::Directory>(&event)) {
+            directory=*listing;pruneIdentities();
+            for(const auto& row:directory.players)named(row.profile);
+            ba::log("Community directory: revision=%llu players=%llu",static_cast<unsigned long long>(directory.revision),static_cast<unsigned long long>(directory.players.size()));
             ba_community_roster::changed();
         }
-        else if(std::holds_alternative<wire::Invitation>(event))ba::log("Community invitation received; native invite adapter pending");
+        else if(const auto* invite=std::get_if<wire::Invitation>(&event))ba_community_invites::receive(front,*invite);
         else if(std::holds_alternative<wire::Aborted>(event))throw std::runtime_error("community match aborted");
     }
     smoke(front);
     dispatch(front);
+    ba_community_invites::dispatch(front);ba_community_invites::flush(front);
     ba_community_roster::update();
+    ba_community_popup::update();
     ba_community_roster::smoke(front);
+    ba_community_invites::smoke(front);
 }
 }
 extern "C" __declspec(dllexport) void OfflineCommunityEnqueue(void* front,void* consumer,void* methodInfo) {

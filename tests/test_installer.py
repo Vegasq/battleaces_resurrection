@@ -83,6 +83,10 @@ class InstallerTests(unittest.TestCase):
             installer.install(self.root, helper=self.helper, community=True)
         self.assertFalse((self.root / '.battleaces-resurrection').exists())
         self.helper.write_bytes(self.helper.read_bytes() + b' BA_RESURRECTION_COMMUNITY_ROSTER_V1')
+        with self.assertRaisesRegex(ValueError, 'community invitation ABI1'):
+            installer.install(self.root, helper=self.helper, community=True)
+        self.assertFalse((self.root / '.battleaces-resurrection').exists())
+        self.helper.write_bytes(self.helper.read_bytes() + b' BA_RESURRECTION_COMMUNITY_INVITES_V1')
         manifest = installer.install(self.root, helper=self.helper, community=True)
         self.assertTrue(manifest['community']['experimental'])
         self.assertTrue(any(h['name'] == 'OfflineCommunityEnqueue' for h in manifest['call_hooks']))

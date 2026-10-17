@@ -45,7 +45,9 @@ Both presence connections survive; no match seats/workers are allocated. Source
 and runtime boundaries are in community-client.txt. The normal patch recipe and
 user's normal-play installation remain unchanged. The opt-in custom picker now
 renders connected server players through native pooled rows with no Steam friend
-lookups. Invite/Start/result-return and Try Deck vs AI remain unimplemented.
+lookups. Native Invite/Accept/Decline, cancel, expiry and duplicate Accept now pass
+two-client qualification; native Start/result-return and Try Deck vs AI remain
+unimplemented. See native-custom-invitations.txt for the implemented boundary.
 See community-lobby.txt and community-protocol.txt.
 Neither end-to-end requested user flow is claimed complete.
 Client integration checks: custom-create-native03 passed eight native/server
@@ -59,7 +61,7 @@ Both actual Custom Game screens created their lobbies. Each picker completed
 three pooled open/close cycles; a third connected peer joined/departed live,
 changing both lists2->3->2. Actual TMP name text and active hierarchy were checked,
 including Unicode/markup-shaped names. Outer rows bind normally; child FriendVMs
-stay unbound; all invitation actions remain disabled pending their translation.
+stay unbound; invitation actions were disabled in this earlier roster-only run.
 Both final Leaves cleared Party and kept presence; no seats/workers; all test
 processes reaped and source hashes unchanged. First attempt only created manager
 state without navigating the screen; its timeout is retained separately. Native
@@ -71,6 +73,35 @@ regression with its community flag absent (roster-legacy-idle01,53.516s). Full
 source suite remains214 tests,212 passed and2 opt-in skips; the retained log is
 source-tests-roster01.txt. Four C++ helper build checks pass. The normal-play
 helper/image hashes and default patch recipe were independently checked unchanged.
+
+Native invitation adapter now passes custom-invites-native03 in67.109s, clients
+9580/1780. The native picker sends to the selected server player; four incoming
+popups show the canonical sender in actual TMP receivers with active hierarchy
+and countdown. Decline, cancel,30s expiry, re-invite and duplicate native Accept
+complete with counter0 and exact two-member native Party/predicted lobbies.
+Guest departure reconciles the host to one member; host departure clears Party.
+Both presence connections survive; no simulation seats/workers were allocated.
+Before/after-native-reply exception probes also pass original modal reconnect,
+settling only outstanding credits and clearing old Party/prediction/invitations.
+Invitation/recovery qualification helper-invites05 SHA256:
+a7b8674cfc048dba70cb9f43cb57a85724b8d6ee5af7f987131aa9361b29e14a.
+Native roster regression invites-roster-regression01 passes31.000s, clients
+33888/47800: three pooled cycles each, live third-player join/departure, actual
+name receivers and eligibility checked. All owned clients were reaped and sources
+stayed unchanged. Full suite214:212 pass,2 opt-in skips in51.938s; four C++ checks
+pass. Evidence, failed first probe and remaining limits are in
+native-custom-invitations.txt. These are automated native actions, not manual
+mouse/UI acceptance. Custom Start/Ready and match return remain the next work.
+The same helper/image passed invites-legacy-idle01 in53.469s (clients30408/46576):
+six idle observations without a modal or ready intent, then a real injected error
+displayed the native dialog only on the affected client. Both were reaped.
+Final departure guard passes custom-invites-leave-race01 with clients50116/22048:
+native host Leave precedes applying an already-accepted invitation; no released
+prediction/Party is revived, and the guest is correctly promoted before leaving.
+Both presence connections remain and all owned clients are reaped, with unchanged
+sources. Final experimental helper-invites06:
+a882b56ccb7a17aaa09f3334bff56b1541dfee59cb3b56592e757d2d123420d0.
+The four C++ build checks pass. Normal-play helper/image hashes remain unchanged.
 
 Server verification:213 source tests,211 pass and2 opt-in skips. The real Windows
 simulation run community-native01 completed two160-frame matches on the same

@@ -40,7 +40,7 @@ CALL_HOOKS = [
 ]
 COMMUNITY_CALL_HOOKS = [
     # Exact request enqueue callers; the shared generic entry remains original.
-    # Experimental native Create/Leave and roster; not the normal-play recipe.
+    # Experimental native lobby/invitation UI; not the normal-play recipe.
     {'name': 'OfflineCommunityEnqueue', 'rva': 0x3e46f3e, 'offset': 0x3e4553e, 'before': 'e84d7072fe'},
     {'name': 'OfflineCommunityEnqueue', 'rva': 0x3e472ce, 'offset': 0x3e458ce, 'before': 'e8bd6c72fe'},
     {'name': 'OfflineCommunityEnqueue', 'rva': 0x3e474e6, 'offset': 0x3e45ae6, 'before': 'e8a56a72fe'},
@@ -48,12 +48,22 @@ COMMUNITY_CALL_HOOKS = [
     {'name': 'OfflineCommunityFriendPresentation', 'rva': 0x3ca89eb, 'offset': 0x3ca6feb, 'before': '41ff9138020000'},
     {'name': 'OfflineCommunityInviteReason', 'rva': 0x3ca8e21, 'offset': 0x3ca7421, 'before': 'e89af5ffff'},
     {'name': 'OfflineCommunityCanInvite', 'rva': 0x3ca8e9d, 'offset': 0x3ca749d, 'before': 'e82ed858fc'},
+    {'name': 'OfflineCommunityEnqueue', 'rva': 0x3cac066, 'offset': 0x3caa666, 'before': 'e8251f8cfe'},
+    {'name': 'OfflineCommunityEnqueue', 'rva': 0x3e46968, 'offset': 0x3e44f68, 'before': 'e8237672fe'},
+    {'name': 'OfflineCommunityEnqueue', 'rva': 0x3d24dad, 'offset': 0x3d233ad, 'before': 'e8de9184fe'},
+    {'name': 'OfflineCommunityPopupLookup', 'rva': 0x3d25a10, 'offset': 0x3d24010, 'before': 'e81b977cfc'},
+    {'name': 'OfflineCommunityPopupChild', 'rva': 0x3d25a38, 'offset': 0x3d24038, 'before': 'ff9038020000'},
+    {'name': 'OfflineCommunityPopupChild', 'rva': 0x3d25a5d, 'offset': 0x3d2405d, 'before': 'ff9038020000'},
+    {'name': 'OfflineCommunityPopupRefreshed', 'rva': 0x3d25b67, 'offset': 0x3d24167, 'before': 'e8140c51fc'},
+    {'name': 'OfflineCommunityPopupRelease', 'rva': 0x3d59831, 'offset': 0x3d57e31, 'before': 'e8caa52bfc'},
+    {'name': 'OfflineCommunityPopupRelease', 'rva': 0x3d5920c, 'offset': 0x3d5780c, 'before': 'e8efab2bfc'},
 ]
 COMMUNITY_TAIL_HOOKS = [
     {'name': 'OfflineCommunityPopulate', 'rva': 0x3ca95cd, 'offset': 0x3ca7bcd, 'before': 'e95e050000'},
     {'name': 'OfflineCommunityPopulate', 'rva': 0x3ca983a, 'offset': 0x3ca7e3a, 'before': 'e9f1020000'},
     {'name': 'OfflineCommunityPopulate', 'rva': 0x3ca989f, 'offset': 0x3ca7e9f, 'before': 'e98c020000'},
     {'name': 'OfflineCommunityRosterRelease', 'rva': 0x3ca97f9, 'offset': 0x3ca7df9, 'before': 'e952020c00'},
+    {'name': 'OfflineCommunityEnqueue', 'rva': 0x3e46b1d, 'offset': 0x3e4511d, 'before': 'e96e7472fe'},
 ]
 def digest(b): return hashlib.sha256(b).hexdigest()
 def build_patch(original, *, include_telemetry=True, community=False):
@@ -170,12 +180,14 @@ def install(game_dir, *, helper=None, original_path=None, restore=False, dry_run
         raise ValueError('Build a helper supporting experimental community ABI1 before installing this patch.')
     if community and helper_bytes is not None and b'BA_RESURRECTION_COMMUNITY_ROSTER_V1' not in helper_bytes:
         raise ValueError('Build a helper supporting experimental community roster ABI1 before installing this patch.')
+    if community and helper_bytes is not None and b'BA_RESURRECTION_COMMUNITY_INVITES_V1' not in helper_bytes:
+        raise ValueError('Build a helper supporting experimental community invitation ABI1 before installing this patch.')
     manifest = {'schema': 2, 'game_build': 37822, 'patch_version': '0.2.0-dev',
                 'original_sha256': ORIGINAL_SHA256, 'patched_sha256': components['GameAssembly.dll']['patched_sha256'],
                 'helper_sha256': digest(helper_bytes) if helper_bytes is not None else None,
                 'patches': PATCHES, 'hooks': HOOKS, 'tail_hooks': TAIL_HOOKS + (COMMUNITY_TAIL_HOOKS if community else []),
                 'call_hooks': CALL_HOOKS + (COMMUNITY_CALL_HOOKS if community else []),
-                'community': {'experimental': community, 'native_scope': 'create-leave-roster-prototype' if community else None},
+                'community': {'experimental': community, 'native_scope': 'custom-invitation-prototype' if community else None},
                 'components': components,
                 'telemetry': {'recipe_version': telemetry.RECIPE_VERSION, 'runtime_validated': telemetry.RUNTIME_VALIDATED,
                               'unresolved_components': telemetry.UNRESOLVED_COMPONENTS},

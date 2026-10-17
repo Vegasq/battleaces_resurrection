@@ -54,7 +54,7 @@ static void present(Obj child,const wire::Player* player) {
     wire::require(!ba::read<bool>(child,0x50),"community child still observes a model");
     const bool self=player && player->profile==ba_community::welcome.profile;
     const bool busy=player && (!player->invitable || player->status!=0);
-    const char* status=!player?"":self?"You":player->status==2?"In a match":player->status==1?"In a lobby":busy?"Unavailable":"Available";
+    const char* status=!player?"":self?"You":ba_community_invites::pending(player->profile)?"Invitation pending":player->status==2?"In a match":player->status==1?"In a lobby":busy?"Unavailable":"Available";
     Root name(ba::str(player?literalName(player->name).c_str():"")),label(ba::str(status));
     property(child,0x3d00b70,name.get());property(child,0x3d00e80,label.get());
     property(child,0x3d00c10,player!=nullptr);property(child,0x3d00cb0,player && player->status==2);
@@ -113,7 +113,7 @@ static void populate(Obj object) {
         wire::require(pool.get() && parent.get() && !strcmp(ba_dedicated_session::className(pool.get()),"UIPoolManager"),"community roster pool unavailable");
         Root type(reflectedType("Uncapped.UI","CustomGameInvitePlayerItemVM"));
         Root rowPool(ba::native<Obj(*)(Obj,Obj,Obj)>(0x3d5d030)(pool.get(),type.get(),nullptr));
-        for(const auto& player:ba_community::directory.players) {
+        for(const auto& player:ba_community_native::directory.players) {
             Root model(modelFor(player));
             Root row(ba::native<Obj(*)(Obj,Obj,Obj,Obj)>(0x3d5cf30)(pool.get(),rowPool.get(),parent.get(),nullptr));
             bool listed=false;
@@ -137,7 +137,7 @@ static void populate(Obj object) {
         }
         property(object,0x3ca9010,!rows.empty());dirty=false;building=false;
         ba::log("Community roster populated: revision=%llu rows=%llu presentationOnly=1 BA_RESURRECTION_COMMUNITY_ROSTER_V1",
-            static_cast<unsigned long long>(ba_community::directory.revision),static_cast<unsigned long long>(rows.size()));
+            static_cast<unsigned long long>(ba_community_native::directory.revision),static_cast<unsigned long long>(rows.size()));
     } catch(...) {
         building=false;
         // Tear down any successfully appended prefix through the native list.
@@ -161,9 +161,7 @@ static void changed() {dirty=true;}
 static void update() {
     if(dirty && screen && initialized(screen->get()) && !building)populate(screen->get());
 }
-// Invitation translation is a separate gate. Keep every row's action disabled
-// in this roster-only experimental slice, including programmatic stale refresh.
-static bool canInvite(const Row&) {return false;}
+static bool canInvite(const Row& row) {return ba_community_invites::canInvite(row.profile);}
 static Obj mainScreen() {
     Root manager(ba_community_native::manager(ba_dedicated_session::observedFront));
     wire::require(manager.get()!=nullptr,"community main screen manager unavailable");
@@ -210,14 +208,14 @@ extern "C" __declspec(dllexport) void OfflineCommunityFriendPresentation(void* c
         using namespace ba_community_roster;
         for(const auto& row:rows)if(row->child.get()==child || row->model.get()==model) {
             wire::require(session() && row->child.get()==child && row->model.get()==model,"community child binding outside owned row");
-            present(child,ba_community::player(row->profile));return;
+            present(child,ba_community_native::player(row->profile));return;
         }
         virtualBind(child,model,method);
     }catch(const std::exception& e){ba_lan::fail("community friend presentation",e);}
 }
 extern "C" __declspec(dllexport) void OfflineCommunityInviteReason(void* object,int reason,void* method) {
     ba::init();
-    if(ba_community_roster::ownedRow(object))reason=0;
+    if(auto* row=ba_community_roster::ownedRow(object))reason=ba_community_invites::pending(row->profile)?4:0;
     ba::native<void(*)(ba::Obj,int,ba::Obj)>(0x3ca83c0)(object,reason,method);
 }
 extern "C" __declspec(dllexport) bool OfflineCommunityCanInvite(void* object,bool* backing,bool value,void* property,void* alsoUpdate,void* method) {
@@ -296,9 +294,9 @@ static void smoke(Obj front) {
         wire::require(screen && initialized(screen->get()) && rows.size()==ba_community::directory.players.size(),"community roster smoke row count");
         wire::require(ba::get<Obj>(smokeButton->get(),"_uiObject")==screen->get(),"community picker owner mismatch");
         for(const auto& row:rows) {
-            const auto* player=ba_community::player(row->profile);
+            const auto* player=ba_community_native::player(row->profile);
             wire::require(player && ba::read<bool>(row->row.get(),0x50) && !ba::read<bool>(row->child.get(),0x50) &&
-                !ba::get<bool>(row->row.get(),"_canInvite"),"community roster smoke binding/action guard");
+                ba::get<bool>(row->row.get(),"_canInvite")==canInvite(*row),"community roster smoke binding/action guard");
             const auto expected=literalName(player->name);
             wire::require(ba_catalog::utf8(ba::get<Obj>(row->child.get(),"_playerName"))==expected,"community roster smoke name mismatch");
             verifyRenderedName(row->child.get(),expected);
@@ -312,7 +310,7 @@ static void smoke(Obj front) {
             if(smokeChurn!=2){smokeAt=now+100;return;}
         }
         ++smokeRounds;
-        ba::log("COMMUNITY ROSTER SMOKE rows verified round=%u count=%llu; TMP text and active hierarchy checked, outer bound, child unbound, actions disabled",smokeRounds,static_cast<unsigned long long>(rows.size()));
+        ba::log("COMMUNITY ROSTER SMOKE rows verified round=%u count=%llu; TMP text and active hierarchy checked, outer bound, child unbound, availability checked",smokeRounds,static_cast<unsigned long long>(rows.size()));
         ba::call(smokeButton->get(),"Hide");
         wire::require(!screen && rows.empty(),"community roster smoke release retained rows");
         smokeStage=smokeRounds<3?1:3;smokeAt=now+1000;

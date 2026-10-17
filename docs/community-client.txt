@@ -6,6 +6,10 @@ The helper can join community control v1 independently of simulation seats,
 receive bounded directory/lobby events, and drive original CustomGameLobbyManager
 Create/Leave callbacks. The native Invite Friend picker can now render that
 directory through its original pooled rows and update live on join/departure.
+Available players can be invited through the native row action. Incoming native
+popups show the canonical sender and countdown; original Accept/Decline callbacks
+now translate to the community protocol. Cancel, expiry, re-invite and duplicate
+Accept are qualified in two real clients, including native Party/lobby membership.
 No Steam identity is needed for these lobby operations or row presentation.
 Canonical named handles use profile-derived lobby aliases, matching display and
 filtered names; temporary simulation handles1/2 are not used for presence.
@@ -13,10 +17,10 @@ The normal dedicated protocol3 path and patch image remain unchanged by default.
 
 The separate patcher option --community-experimental adds exact request enqueue,
 picker population/release and child presentation guards. It requires helper
-markers BA_RESURRECTION_COMMUNITY_V1 and BA_RESURRECTION_COMMUNITY_ROSTER_V1.
+markers BA_RESURRECTION_COMMUNITY_V1, BA_RESURRECTION_COMMUNITY_ROSTER_V1 and
+BA_RESURRECTION_COMMUNITY_INVITES_V1.
 The experimental process also requires -dedicated-community; use an isolated
-working copy. Do not enable this for ordinary play: row invite buttons stay
-disabled until Invite/Reply are translated; Start and most custom updates are
+working copy. Do not enable this for ordinary play: Start and most custom updates are
 not translated yet. Unsupported operations at the guarded enqueue sites stop
 the prototype session. Normal launchers do not enable
 the flag, and the user's working secure-client-runtime was not replaced.
@@ -39,6 +43,12 @@ SOURCE AND OWNERSHIP
   its owned model normally; the child FriendVM remains unbound and receives
   binding setters plus UpdateAllBindings. All child actions/cosmetics and stale
   text are explicitly reset. Ordinary non-community callsites forward unchanged.
+- community_invites.cpp: exact request/invitation correlation, deferred native
+  reply credits, canonical incoming objects, exact-pointer sent cleanup, native
+  clock anchoring and Party reconciliation. Interrupted completion roots survive
+  until explicit reconnect settles outstanding native callbacks.
+- community_popup.cpp: observer-owned native panel discovery, typed notification
+  cross-check, deferred binding repaint, exact release and bounded native probes.
 
 Directory rows include self and busy players. The displayed status is fixed local
 text; ASCII angle brackets in display names become fullwidth brackets because
@@ -62,8 +72,8 @@ and keep the owner/response rooted until the callback returns.
 
 STATIC EVIDENCE
 See custom-lobby-responses.txt, custom-lobby-roster.txt, custom-roster-bindings.txt
-and custom-invite-lifecycle.txt. The latter documents the next invitation adapter;
-its proposed cleanup and response policy are not implemented yet. REA-guided analysis
+and custom-invite-lifecycle.txt. Implemented invitation policy and qualification
+are recorded in native-custom-invitations.txt. REA-guided analysis
 used original-byte disassembly and recovered metadata; native REA engines were
 unavailable. The authored reviews are not live REA engine evidence. Native
 permission tables do not implement the reviewed UI/prediction gates; exact
@@ -159,9 +169,27 @@ was reconstructed from that completed log after the reporting script could not
 serialize skipped test objects; the tests themselves passed and were not rerun.
 Four C++ build checks and installer helper-marker checks also pass.
 
+NATIVE INVITATION QUALIFICATION
+The current adapter passes native picker Invite and actual incoming popup
+Decline/Accept, cancellation,30s expiry, re-invitation, duplicate Accept, native
+two-member Party/prediction, guest departure and host departure. Presence remains
+connected. The final ordinary run is local/custom-invites-native03 (67.109s).
+Both before/after-native-callback failure probes pass original modal reconnect,
+clearing native reply credits, Party, prediction and retained invitation models.
+Final-helper roster regression also passes (invites-roster-regression01,31.000s).
+Exact implementation, digests, evidence and reproduction commands are in
+native-custom-invitations.txt. Full suite214:212 passed,2 opt-in skips,51.938s;
+evidence local/source-tests-invites01.json/.txt. All owned clients were reaped and
+sources stayed unchanged during these runs. No native custom match was started.
+The final helper also passes a native Leave/late-acceptance race: the departing
+host's released prediction stays cleared, its old Party is not appended, and
+the surviving guest is promoted correctly. See custom-invites-leave-race01.
+The ordinary idle-lobby/error-modal regression passed with the preceding helper
+and the community flag absent (invites-legacy-idle01,53.469s).
+
 REMAINING GATES
-Manual roster acceptance, incoming invitation popup,
-deferred Invite/Reply semantics, unsupported-action UI, host Start/guest Ready,
+Manual roster/invitation acceptance, multi-sender/busy races,
+unsupported-action UI, host Start/guest Ready,
 native bootstrap bridge, original result/RETURN/rematch, broader failures and
 manual graphical acceptance remain required. Try Deck vs AI remains separate.
 Do not enable the experimental client by default or claim Custom Game complete

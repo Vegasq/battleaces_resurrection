@@ -1,0 +1,211 @@
+NATIVE CUSTOM INVITATIONS: ADAPTER AND QUALIFICATION
+2026-10-17. Experimental build37822 patch only. Start/Ready/match return remain
+separate work; the normal launcher retains its manually confirmed smooth play.
+
+EVIDENCE AND OWNERSHIP
+Original GameAssembly SHA256:
+e59d08c01479b27404778048d7e13546dbf3771f6b3912744c7c2bdf80c4e758.
+The native findings below come from recovered IL2CPP metadata and disassembly of
+that preserved image. Native REA engines are unavailable in this environment;
+these are local artifact observations, not fabricated REA ledger references.
+Related evidence: custom-invite-lifecycle.txt, custom-roster-bindings.txt,
+custom-lobby-responses.txt, community-protocol.txt. All addresses below are RVAs.
+Ignored investigation notes: local/p2-popup-owned-resolver.txt,
+local/p2-popup-signal-resolver.txt, local/p2-custom-party-reconcile.txt.
+
+The front's MatchmakingStateChange Action contains the real panel observer before
+its first Refresh. MatchmakingStateModel.Observe3d236e0 combines that observer
+at3d237be; Initialize3d24610 binds the model at3d246c4. This permits an early
+bounded delegate lookup without guessing an object address or modifying Steam's
+friend dictionary. Require one distinct exact MatchmakingStatusPanelVM, owned
+front, router, model, service manager and matching lifecycle owners for both
+FriendVM children. Model-set and initialized flags are observed, never forged.
+
+After native pool Take returns, cross-check the panel against the exact
+MatchmakingNotification._viewModel. Resolve the notification from the router's
+typeof(MatchmakingStatusSignal) dictionary INDEX into _handlerCollections, verify
+the closed HandlerCollection<MatchmakingStatusSignal>, and examine bounded Action
+targets. Pending handler changes defer the check. Do not flush or modify handlers.
+The notification assigns _viewModel at3d594e6 after Take3d594d1, so requiring that
+field during first Initialize would reject a legitimate newly allocated panel.
+
+Parent Refresh can precede child binding initialization. Queue presentation until
+the following owned Unity update, then require both child binding collections
+initialized and the exact after-Take owner. Repaint all bindings through native
+UpdateAllBindings3d699d0. Both label and tooltip use rich text; replace angle
+brackets in presentation only. Canonical named protobuf identities stay exact.
+
+PATCH BOUNDARIES
+All optional callsites have exact preimage guards. Shared callees stay original.
+When -dedicated-community is absent each wrapper forwards the original ABI.
+
+  caller RVA / raw offset       original bytes       operation
+  3cac066 / 3caa666             e8251f8cfe            native picker Invite enqueue
+  3e46968 / 3e44f68             e8237672fe            native Reply enqueue
+  3e46b1d / 3e4511d             e96e7472fe            native Cancel enqueue tail
+  3d24dad / 3d233ad             e8de9184fe            panel inlined Cancel/Disband
+  3d25a10 / 3d24010             e81b977cfc            popup friend lookup
+  3d25a38 / 3d24038             ff9038020000          party child model call
+  3d25a5d / 3d2405d             ff9038020000          invite child model call
+  3d25b67 / 3d24167             e8140c51fc            final Refresh Set<int>
+  3d59831 / 3d57e31             e8caa52bfc            signal-driven pool release
+  3d5920c / 3d5780c             e8efab2bfc            notification Dismiss release
+
+Lookup callee4ef130: bool(dictionary, uint64 alias, FriendModel** output), no MI.
+Child virtual binder: void(child,model,MI), original class slot238/MI240.
+Final Set<int> callee236780: bool(panel,int* backing,int value,property,also,MI).
+Preserve all six arguments and return; backing is _externalTeamRating atpanel+bc.
+The no-candidate Refresh path bypasses lookup, so this final call also clears
+stale presentation. Original child ClearModel alone does not clear our labels.
+Release callee13e00 is an interface thunk: void(uint16 slot,class,pool,object),
+slot4, four arguments and no MI. Clear ownership/presentation before forwarding
+exactly once. A dead or unobserved pooled object invalidates pending repaint.
+
+REQUEST AND STATE CORRELATION
+Store each original native request and manager under strong GC handles, associate
+its community request/invitation/lobby IDs, and defer all callbacks until enqueue
+has returned. Reply uses partyLeaderHandle_ (RAW PlayerHandle); Invite/Cancel use
+playerHandle_. Reply's original caller increments its pending counter AFTER the
+enqueue call, so a synchronous synthetic response would corrupt native state.
+
+The native directory is consumed in wire event order. The transport's latest
+directory can already include a later departure; it is not a safe lookup source
+for an earlier invitation event. Retain canonical names for outstanding invites.
+Outgoing success uses automatedAcceptance=true as an explicit custom policy:
+it preserves the existing host Party, while the recipient still must accept.
+Remove a terminal sent request by exact original pointer, never RemoveAll(target).
+
+Received native PartyInvite objects stay retained until their real reply can
+capture GameMode. Same-sender re-invites wait for older reply callbacks. Duplicate
+native replies each owe one counter decrement, but only the first reaches the
+community server. Defer duplicate false callbacks until the primary finishes;
+otherwise the native false callback removes the primary's invitation by sender.
+Native wire statuses are mapped explicitly; their enum numbers differ.
+
+Server acceptance must agree with the authoritative two-member lobby before
+native accepted callbacks run. ProcessLobbyStateNotification does not reconcile
+Party members or creator status; reconcile that separately through Party's
+native constructor3e4c470. The joining guest's first state notification owns
+manager Initialize and native CustomGameScreen navigation; do not initialize it
+twice. Native GetCurrentServerTime uses an anchored DateTime and Unity realtime;
+anchor both on presence installation and convert server remaining_ms on that
+basis. The native countdown itself never expires/removes an invitation.
+
+RUNTIME QUALIFICATION (IN PROGRESS)
+tools.verify_custom_invites launches two real clients in the isolated experimental
+copy. It calls the original picker action and popup Decline/Accept, inspects actual
+TMP text/active hierarchy/countdown, delays invitation ACKs350ms, and tests decline,
+cancel, real30s expiry, duplicate Accept, guest departure and host departure.
+These are automated native UI actions, not manual mouse/keyboard acceptance.
+
+local/custom-invites-native01: stopped after the first successful Decline because
+the smoke verifier incorrectly treated PredictedCustomGameLobby as a named field.
+Correct metadata is get_PredictedCustomGameLobby()->get_CurrentState()->members_.
+The retained evidence proves one native popup with sender label, countdown29,
+deferred reply, counter0 and pool release. It does not qualify the remaining flow.
+Both owned clients were reaped and source hashes were unchanged during that run.
+
+local/custom-invites-native02 passed with helper-invites04:
+  helper171d9ff1727a5c9f6f00d5cbc2b2bda11f8807837a88cf49db5da3eaf6e1f7f2;
+  optional image9cd769c5872ab369048b1279960ee1420350c59e5440860afcece74904a98ae9.
+Both clients completed decline, cancel,30s expiry and acceptance. Four guest
+popups delivered the canonical sender to actual TMP labels with active hierarchy
+and sensible countdown; four returned to the pool. Native duplicate Accept left
+two counter credits but generated one server reply; callbacks settled1 then0.
+Host and guest each had exactly two Party and predicted-lobby members. Guest
+departure rebuilt host Party with one creator/member; host departure cleared it.
+Both presence connections survived, no simulation seats/workers were allocated,
+source hashes were unchanged, and both owned processes were reaped. This does
+not establish manual interaction or starting a match through Custom Game.
+
+EXCEPTION AND RECONNECT REVIEW
+The native reply callback decrements its counter before Party allocation/UI
+events. Removing a C++ operation from its queue before that callback is useful
+for reentrancy, but destroying it on exception loses the counter credit. Keep an
+in-progress strong-rooted operation until completion, record its observed counter
+delta, and let explicit reconnect settle only an unconsumed credit. A settled
+credit must not receive another native decrement. Same-sender re-invites remain
+blocked until all callbacks for the older invitation have completed.
+
+Community reset must also complete the exact pending native Create (when still
+retained), invoke the original LobbyClosed handler for an owned custom Party or
+installed lobby, and verify cleared Party, prediction and pending Create before
+dropping identities. Clearing adapter authority alone would leave stale native
+custom state because the top-level menu FSM includes the custom-lobby screen.
+Fault probes inject once immediately before or after the native reply callback,
+then exercise the existing original reconnect-modal OnConfirm. Their results are
+recorded as separate qualification; these flags are never used by normal play.
+
+Both fault probes passed with helper-invites05 SHA256:
+a7b8674cfc048dba70cb9f43cb57a85724b8d6ee5af7f987131aa9361b29e14a.
+local/custom-invites-recovery-before01:65.016s, clients6808/29712. The deliberate
+pre-callback failure retained both duplicate-Accept reply credits. Original modal
+OnConfirm queued reconnect, reset delivered two false completions, counter reached0,
+and the same profile reconnected with no Party, prediction, invite or popup.
+local/custom-invites-recovery-after01:64.516s, clients44996/5624. The injected
+post-callback failure retained a settled credit and a created native Party. Reset
+did not decrement that credit again, settled the duplicate once, closed the native
+lobby, then restored empty presence through original modal reconnect. Both probes
+kept host presence, reconciled its departed guest, and ended with no server lobbies
+or invitations. All owned processes were reaped; sources stayed unchanged.
+
+The full source suite passed214 tests:212 pass and2 opt-in skips,51.938s, with the
+real inherited-socket bridge and local-original telemetry checks enabled. Evidence
+local/source-tests-invites01.json/.txt. The skips remain real protected Windows
+DACL creation and the separate opt-in native-worker fixture. Four C++ build checks
+and nine installer tests pass, including required invitation-helper marker.
+
+The final ordinary invitation flow also passed with helper-invites05:
+local/custom-invites-native03,67.109s, clients9580/1780. It repeats all four popup
+cycles and completes duplicate Accept, shared native lobby and both departures
+without injected failure. local/invites-roster-regression01 passed31.000s with
+clients33888/47800: three pool cycles each and live directory2->3->2, including
+self/busy-disabled and available-enabled row eligibility. All processes were
+reaped and source hashes stayed unchanged throughout both runs.
+
+Normal-mode regression local/invites-legacy-idle01 passed with helper-invites05
+in53.469s, clients30408/46576, with the community flag absent. Both ordinary menus
+remained unblocked and unready across six observations. A real injected server
+error displayed the original failure dialog only on the affected client; the
+other stayed connected. Both clients were reaped and measured sources unchanged.
+
+DEPARTURE / LATE ACCEPTANCE GUARD
+LeaveLobby(false)3cab820 enqueues Leave at3cab945 then calls manager.Release at
+3cab9a2. Release clears prediction at3cab171/175 and pending Create at3cab1bf/1c6;
+it does not clear Front._party or Front.CustomGameLobby. LobbyClosed3e48ad0 clears
+Party at3e48bb9. Consequently a queued Leave must suppress a subsequent accepted
+notification and invite ACK callback even if the last authority snapshot still
+matches. Keep wire ACCEPTED, remove the exact sent request and mark it applied;
+there is no reply-counter credit owed by this host notification. Normal closure
+owns final cleanup. Do not fabricate a decline or revive released prediction.
+The --leave-on-accept probe invokes original Leave immediately before applying
+the received ACCEPTED event, checks unchanged one-member departing Party and null
+prediction, then verifies guest host-promotion and final cleanup. Reply ACKs use
+ordinary FIFO timing for this case; INVITE/CANCEL ACKs retain350ms test delays.
+local/custom-invites-leave-race01 passed with clients50116/22048 and
+helper-invites06 SHA256:
+a882b56ccb7a17aaa09f3334bff56b1541dfee59cb3b56592e757d2d123420d0.
+The host released its picker/prediction before the accepted notification, kept
+its original one-member Party unchanged until closure, and received no native
+accepted callback. Its delayed invite ACK also did not revive that lobby. The
+guest completed duplicate Accept, reconciled to a one-member creator Party and
+departed. Both presence connections remained; no invitations/lobbies/workers
+survived. Sources stayed unchanged and both owned clients were reaped. Four C++
+build checks pass on this final helper. The experimental GameAssembly hash remains
+9cd769c5872ab369048b1279960ee1420350c59e5440860afcece74904a98ae9.
+
+REPRODUCTION AND LIMITS
+Build client_patch/build.ps1 to a selected ignored build directory, then install
+that helper with the patcher's --community-experimental option into an isolated
+working copy. Never patch the untouched recovery directory. Run:
+  python -m tools.verify_custom_invites --game <copy> --assets <local assets> --output local/<new run>
+Add --completion-failure before or --completion-failure after for the two recovery
+branches. Each run retains manifests, source digests, native/Unity/server logs and
+a machine-readable verification report. Test process termination is not native
+Quit validation. The test uses loopback development TCP, not a remote TLS session.
+
+Still unqualified: simultaneous multiple senders, full busy/late-message races,
+disconnect during native Create, sustained invitation churn, manual mouse/UI and
+cross-PC play. Native Start/Ready, gameplay bootstrap/return and Try Deck vs AI are
+not implemented by this change. Neither the normal patch image nor the user's
+normal-play helper/image was changed; their digests were independently rechecked.

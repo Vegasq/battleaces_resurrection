@@ -27,6 +27,14 @@ static bool retryFromPlay(void* front,int mode);
 }
 namespace ba_community_native { static void update(void* front);static void reset(); }
 namespace ba_community_roster { static void reset();static void changed();static void update();static void smoke(void* front); }
+namespace ba_community_wire {struct Ack;struct Invitation;}
+namespace ba_community_invites {
+static void reset(void*);static void enqueue(void*,void*,int);static bool acknowledge(void*,const ba_community_wire::Ack&);
+static void receive(void*,const ba_community_wire::Invitation&);static void flush(void*);static void dispatch(void*);
+static bool retain(const std::string&);static bool pending(const std::string&);static bool canInvite(const std::string&);
+static void reconcileParty(void*);static void anchorClock(void*);static void smoke(void*);
+}
+namespace ba_community_popup {static void reset();static void update();}
 namespace ba_export {
 static void poll(void* front);
 static void consume(void* gameData,void* encoded);
@@ -244,6 +252,8 @@ extern "C" __declspec(dllexport) void OfflineFrontUpdate(void* front,void*) {
 #include "dedicated_adapter.cpp"
 #include "community_native.cpp"
 #include "community_roster.cpp"
+#include "community_invites.cpp"
+#include "community_popup.cpp"
 #include "server_assets_export.cpp"
 #include "lan_audit.cpp"
 #include "telemetry_audit.cpp"
