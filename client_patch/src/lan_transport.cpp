@@ -1,9 +1,16 @@
 #pragma once
+#include "secure_bridge.hpp"
 // Experimental loopback transport. All IL2CPP work stays on Unity's main thread.
 namespace ba_lan {
 using ba::Obj; using ba_local::Root;
 using Bytes=std::vector<unsigned char>;
 static SOCKET socketValue=INVALID_SOCKET;
+static bool secureMode() {static const bool enabled=!ba::argument(L"-secure-transport-socket=","").empty();return enabled;}
+static ba_secure::Channel& secureChannel() {
+    // Process-lifetime owner: do not invoke Winsock teardown under DllMain's
+    // loader lock. Session closes are explicit and the OS reaps the final handle.
+    static auto* channel=new ba_secure::Channel();return *channel;
+}
 static bool connecting=false, welcomed=false, stopped=false, worldReady=false, running=false;
 static bool winsockStarted=false,peerClosed=false,submittedFirst=false;
 static ULONGLONG connectStarted=0;
@@ -32,6 +39,7 @@ static void recordReceipt(int frame,int actions,int sim,const char* digest) {
     fprintf(receipts,"%lu\t%s\t%d\t%d\t%d\t%s\n",GetCurrentProcessId(),dedicatedMatchId.c_str(),frame,actions,sim,digest);fflush(receipts);
 }
 static void closeSocket() {
+    if(secureMode())secureChannel().end();
     if(socketValue!=INVALID_SOCKET){closesocket(socketValue);socketValue=INVALID_SOCKET;}
     connecting=false;
     if(winsockStarted){WSACleanup();winsockStarted=false;}
@@ -110,12 +118,26 @@ static Obj parse(const char* type,const Bytes& bytes) {
     void* args[]={output.get(),array.get()};ba_local::invokeMethod(selected,nullptr,args);return output.get();
 }
 static void connect() {
-    WSADATA data{};if(WSAStartup(MAKEWORD(2,2),&data))throw std::runtime_error("WSAStartup failed");winsockStarted=true;
     connectStarted=GetTickCount64();
+    std::string endpoint=ba::argument(L"-dedicated-server=","127.0.0.1:47622");
+    if(secureMode()) {
+        if(!ba::dedicated())throw std::runtime_error("Secure transport requires the dedicated adapter");
+        auto& channel=secureChannel();
+        if(!channel.attached()) {
+            const std::string value=ba::argument(L"-secure-transport-socket=","");
+            if(value.empty() || value.size()>20 || value.find_first_not_of("0123456789")!=std::string::npos)
+                throw std::runtime_error("Invalid secure transport handle argument");
+            char* end=nullptr;const unsigned long long handle=_strtoui64(value.c_str(),&end,10);
+            if(!end || *end)throw std::runtime_error("Invalid secure transport handle argument");
+            channel.attach(static_cast<uintptr_t>(handle));
+        }
+        channel.begin();connecting=false;
+        ba::log("Secure transport ABI BA_RESURRECTION_TLS_BRIDGE_V1; invite remains in parent process");
+    } else {
+    WSADATA data{};if(WSAStartup(MAKEWORD(2,2),&data))throw std::runtime_error("WSAStartup failed");winsockStarted=true;
     socketValue=socket(AF_INET,SOCK_STREAM,IPPROTO_TCP);if(socketValue==INVALID_SOCKET)throw std::runtime_error("LAN socket failed");
     u_long nonblocking=1;if(ioctlsocket(socketValue,FIONBIO,&nonblocking))throw std::runtime_error("LAN nonblocking mode failed");
     BOOL yes=TRUE;setsockopt(socketValue,IPPROTO_TCP,TCP_NODELAY,reinterpret_cast<char*>(&yes),sizeof(yes));
-    std::string endpoint=ba::argument(L"-dedicated-server=","127.0.0.1:47622");
     size_t colon=endpoint.rfind(':');if(colon==std::string::npos)throw std::runtime_error("server address must be IPv4:port");
     std::string host=endpoint.substr(0,colon);int port=atoi(endpoint.substr(colon+1).c_str());
     sockaddr_in address{};address.sin_family=AF_INET;address.sin_port=htons(static_cast<u_short>(port));
@@ -123,6 +145,7 @@ static void connect() {
     int r=::connect(socketValue,reinterpret_cast<sockaddr*>(&address),sizeof(address));
     if(r==SOCKET_ERROR && WSAGetLastError()!=WSAEWOULDBLOCK)throw std::runtime_error("loopback relay connection failed");
     connecting=r==SOCKET_ERROR;
+    }
     static const char* hex="e59d08c01479b27404778048d7e13546dbf3771f6b3912744c7c2bdf80c4e758";
     const int requestedSlot=ba::requestedLanSlot();
     Bytes hello;if(ba::dedicated()){hello.push_back(2);hello.push_back(0);}hello.push_back(static_cast<unsigned char>(requestedSlot));
@@ -135,12 +158,12 @@ static void connect() {
         std::string values[]={profile,ba::argument(L"-player-name=",requestedSlot==1?"Player2":"Player1"),ba::argument(L"-room=","local")};
         for(const auto& value:values){if(value.size()>128)throw std::runtime_error("dedicated hello value too long");hello.push_back(static_cast<unsigned char>(value.size()));hello.push_back(0);hello.insert(hello.end(),value.begin(),value.end());}
     }
-    send(ba::dedicated()?21:1,hello);ba::log("LAN connecting to %s requested slot %d protocol=%d",endpoint.c_str(),requestedSlot,ba::dedicated()?2:1);
+    send(ba::dedicated()?21:1,hello);ba::log("LAN connecting to %s requested slot %d protocol=%d transport=%s",endpoint.c_str(),requestedSlot,ba::dedicated()?2:1,secureMode()?"private-TLS-bridge":"development-TCP");
 }
 static void poll() {
     if(stopped || peerClosed)return;
-    if(socketValue==INVALID_SOCKET)connect();
-    if(!welcomed && GetTickCount64()-connectStarted>15000)throw std::runtime_error("match server welcome timed out");
+    if(socketValue==INVALID_SOCKET && (!secureMode() || !secureChannel().active()))connect();
+    if(!welcomed && GetTickCount64()-connectStarted>(secureMode()?30000u:15000u))throw std::runtime_error("match server welcome timed out");
     if(connecting) {
         fd_set writeSet,errorSet;FD_ZERO(&writeSet);FD_ZERO(&errorSet);FD_SET(socketValue,&writeSet);FD_SET(socketValue,&errorSet);timeval time{};
         if(select(0,nullptr,&writeSet,&errorSet,&time)==SOCKET_ERROR)throw std::runtime_error("LAN select failed");
@@ -149,15 +172,17 @@ static void poll() {
         int error=0,errorSize=sizeof(error);if(getsockopt(socketValue,SOL_SOCKET,SO_ERROR,reinterpret_cast<char*>(&error),&errorSize)||error)throw std::runtime_error("LAN connection failed");connecting=false;
     }
     while(txPosition<tx.size()) {
-        int n=::send(socketValue,reinterpret_cast<const char*>(tx.data()+txPosition),static_cast<int>(tx.size()-txPosition),0);
-        if(n==SOCKET_ERROR){if(WSAGetLastError()==WSAEWOULDBLOCK)break;throw std::runtime_error("LAN send failed");}
+        int n=secureMode()?secureChannel().send(reinterpret_cast<const char*>(tx.data()+txPosition),static_cast<int>(tx.size()-txPosition)):
+            ::send(socketValue,reinterpret_cast<const char*>(tx.data()+txPosition),static_cast<int>(tx.size()-txPosition),0);
+        if(n==SOCKET_ERROR){if(secureMode() || WSAGetLastError()==WSAEWOULDBLOCK)break;throw std::runtime_error("LAN send failed");}
         if(n<=0)throw std::runtime_error("LAN send closed");txPosition+=n;
     }
     if(txPosition==tx.size()){tx.clear();txPosition=0;}
     unsigned char buffer[65536];bool reachedEof=false;
     for(int i=0;i<16;++i) {
-        int n=recv(socketValue,reinterpret_cast<char*>(buffer),sizeof(buffer),0);
-        if(n==SOCKET_ERROR){if(WSAGetLastError()==WSAEWOULDBLOCK)break;throw std::runtime_error("LAN receive failed");}
+        int n=secureMode()?secureChannel().receive(reinterpret_cast<char*>(buffer),sizeof(buffer)):
+            recv(socketValue,reinterpret_cast<char*>(buffer),sizeof(buffer),0);
+        if(n==SOCKET_ERROR){if(secureMode() || WSAGetLastError()==WSAEWOULDBLOCK)break;throw std::runtime_error("LAN receive failed");}
         // FIN can arrive in the same poll as the final S36. Parse all preceding
         // bytes before deciding whether the close aborted an unfinished match.
         if(!n){reachedEof=true;break;}rx.insert(rx.end(),buffer,buffer+n);

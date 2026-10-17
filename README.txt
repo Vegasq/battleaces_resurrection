@@ -16,6 +16,7 @@ SOURCE LAYOUT
   client_patch/src/       our C++ helper source
   client_patch/patcher/   exact-build patch recipes and reversible installer
   client_patch/launcher/  client config example, initializer and launcher
+  client_patch/transport/ verified TLS/authentication parent for the secure client
   tools/                  local extraction/import and publication audit
   tests/                  synthetic tests requiring no game installation
   docs/                   implementation plan, protocol and knowledge base
@@ -77,6 +78,12 @@ or DNS name and server_port to its TCP port (default 47623). Then launch with:
 See docs/client-configuration.txt for room/player settings and current transport
 limits. Personal configs are ignored by Git; the example is included in source.
 
+The commands above use schema1 for plaintext loopback development. The secure
+launcher uses secure-client-config.example.json (schema2), an explicit trusted CA,
+expected server name and a private invite handoff. The server IP/DNS and port are
+editable in either config. See docs/secure-client-transport.txt for installation,
+trust/enrollment, its test boundaries and the separate Launch-SecureClient.ps1.
+
 Automated graphical two-client baseline (local diagnostics, normal game commands):
   powershell -File tools/Run-LocalMatch.ps1 -GameDirectory "<game>" -RunName unique-name -AutoReady -Smoke -DeckSmoke -SurrenderSmoke -DurationSeconds 100
   python -m server.verify_dedicated_run local/matches/unique-name --runtime-directory "<game>/investigation/runtime" --processes local/matches/unique-name/processes.json
@@ -90,8 +97,10 @@ Default listener:127.0.0.1:47623, plaintext development mode with self-reported
 identities. Plaintext non-loopback binds are rejected. The server's optional TLS
 listener binds profiles to revocable credentials; see docs/admission.txt and
 docs/tls-transport.txt. Raw TLS handshakes have global/source limits and real TLS
-tests reach a lobby. Graphical-client TLS and cross-network qualification remain
-pending. Internet play is not ready.
+tests reach a lobby. Two actual clients completed two matching TLS1.3 matches in
+the same processes with changed decks; see docs/secure-client-transport.txt.
+Private-file enrollment, manual UI and cross-network qualification remain pending.
+Internet play is not ready.
 
 Original-game assets remain local. Release artifacts will contain our executable
 helper and tooling, not the original or patched full game binaries.

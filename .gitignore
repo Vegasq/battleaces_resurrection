@@ -26,3 +26,5 @@ __pycache__/
 .env
 .env.*
 **/client-config.json
+**/secure-client-config.json
+**/private-invite*.json

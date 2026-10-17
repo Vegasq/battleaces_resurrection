@@ -2,8 +2,9 @@ AUTHENTICATED SERVER ADMISSION
 Updated:2026-10-17
 
 The coordinator optionally accepts TLS plus owner-issued credentials. Scripted
-peers have verified real TLS -> AUTH -> identity-bound HELLO -> lobby. The installed
-graphical game helper still uses plaintext loopback; this is not internet-play
+peers have verified real TLS -> AUTH -> identity-bound HELLO -> lobby. The secure
+client bridge has also completed two actual local game matches with reauthentication;
+see secure-client-transport.txt for that separate evidence. This is not internet-play
 completion. See tls-transport.txt for trust enrollment and credentials.txt for
 private issuance/revocation/storage.
 

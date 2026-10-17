@@ -39,6 +39,8 @@ def inspect_content(name: str, data: bytes) -> list[str]:
         reasons.append("private key")
     if re.search(r"\b(?:gh[pousr]_[A-Za-z0-9]{20,}|github_pat_[A-Za-z0-9_]{30,})\b", content):
         reasons.append("GitHub credential")
+    if re.search(r"(?<![A-Za-z0-9_-])ba1_[A-Za-z0-9_-]{43}(?![A-Za-z0-9_-])", content):
+        reasons.append("player invite credential")
     if re.search(r"[A-Za-z]:[\\/](?:Users|games)[\\/]", content, re.I):
         reasons.append("developer-specific absolute path")
     return reasons

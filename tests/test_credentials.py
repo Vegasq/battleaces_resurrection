@@ -189,6 +189,10 @@ class CredentialsTests(unittest.TestCase):
         with self.assertRaises(c.CredentialError): c.read_credential_file(path)
 
     def test_concurrent_writers_keep_all_records(self):
+        # This case tests preservation, not the production2s busy response.
+        # Allow serialized fsyncs to finish under competing disk I/O; the short
+        # lock-deadline behavior is checked independently below.
+        self.store.lock_timeout = 15
         def issue(number):
             return self.issue("parallel_" + str(number))[0]
         with ThreadPoolExecutor(max_workers=4) as pool:
@@ -203,7 +207,7 @@ class CredentialsTests(unittest.TestCase):
                   "c._ensure_private_directory=lambda p:p.mkdir(parents=True,exist_ok=True)\n"
                   "c._assert_private_path=lambda *a,**k:None\n"
                   "c._private_create=lambda p:p.open('x+b')\n"
-                  "c.CredentialStore(Path(sys.argv[1])).issue_to_file(Path(sys.argv[2]))\n")
+                  "c.CredentialStore(Path(sys.argv[1]),lock_timeout=15).issue_to_file(Path(sys.argv[2]))\n")
         children = []
         try:
             for number in range(4):
@@ -212,7 +216,7 @@ class CredentialsTests(unittest.TestCase):
                     stdout=subprocess.PIPE, stderr=subprocess.PIPE,
                     creationflags=subprocess.CREATE_NO_WINDOW if os.name == "nt" else 0))
             for child in children:
-                stdout, stderr = child.communicate(timeout=10)
+                stdout, stderr = child.communicate(timeout=30)
                 self.assertEqual(child.returncode, 0, stderr.decode())
                 self.assertEqual(stdout, b"")
             self.assertEqual(len(self.store.list_public()), 4)

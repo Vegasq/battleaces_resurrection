@@ -1,0 +1,126 @@
+SECURE CLIENT TRANSPORT
+Updated:2026-10-17
+
+The new helper can use a Python transport parent for verified TLS and invite
+authentication. Its sole local link is an inherited connected socket pair. No
+local listener stays open. Each rematch opens a new authenticated remote session
+over that same private parent/game connection. The game receives only its public
+server-issued identity and an inherited handle; invite tokens stay in the parent.
+
+Status:source implemented and built; native probe completed two authenticated
+sessions and rejected a wrong server certificate before authentication. Thirteen
+bridge tests and seven secure-launch tests pass. The full172-test suite passed170
+tests with2 optional skips. Two actual clients completed two encrypted matches
+and a changed-deck rematch in the same processes. This is automated loopback
+qualification, not observed UI, cross-PC play, real private-file deployment or
+release packaging.
+
+Source/API
+ client_patch/transport/launcher.py loads exact schema2,verifies installed
+ component/helper hashes and the helper's BA_RESURRECTION_TLS_BRIDGE_V1 marker,
+ reads a private invite with server.credentials.read_credential_file, and launches
+ the game with one explicitly inherited socket. Old helpers are rejected before
+ spawning, so an ignored new argument cannot fall back to plaintext networking.
+ client_patch/transport/bridge.py uses server.tls_transport and server.admission;
+ certificate/hostname verification and AUTH complete before any game bytes are
+ forwarded. AUTH_OK must match the identity in the private handoff. No token or
+ raw exception text is logged, put in a URL/environment/CLI, or sent over local IPC.
+ client_patch/src/secure_bridge.hpp owns bounded nonblocking native IPC queues.
+ lan_transport.cpp selects it only with -secure-transport-socket; all game state,
+ frame/result parsing and the existing successful-result cleanup remain shared.
+ TLS failures enter the existing dedicated-session error flow with fixed messages.
+
+Configuration and trust
+Copy launcher/secure-client-config.example.json to a personal secure-client-config.json
+and fill every field. Paths are resolved relative to that config file. server_host
+and server_port select the route; server_name is the expected certificate DNS/IP
+identity; ca_bundle is the explicitly trusted owner's CA certificate. Verify its
+fingerprint through a trusted channel before enrollment. No CA is downloaded or
+machine-wide trust installed. See tls-transport.txt for certificate requirements.
+
+credential_file points to an owner-issued private handoff. Its server-issued ID
+selects the saved profile; schema2 accepts no self-reported player_id or token
+setting. Existing strict private-file checks apply and are never relaxed by this
+launcher. That actual protected-DACL issuance/transfer path still requires normal
+Windows owner-account qualification. These source instructions assume Python3.12;
+the eventual release must bundle its runtime and provide friend-facing enrollment.
+
+Run from the source checkout:
+ powershell -File client_patch/launcher/Launch-SecureClient.ps1 -Config <personal-config>
+Equivalent diagnostics entry:
+ python -m client_patch.transport.launcher --config <personal-config>
+The current schema1 Launch-Client path remains a loopback development mode.
+Do not use the placeholder certificate/name in the example as real enrollment.
+Personal secure configs,private-invite*.json,PEM andkey files are ignored by Git;
+the publication audit additionally rejects a complete bearer-token pattern.
+
+Private IPC version1
+ u32 little-endian body length, u8 version1,u8 kind,u32 nonzero session ID,payload.
+ Kinds:OPEN1(no payload),DATA2(1..65536 bytes),CLOSE3(no payload),FAILURE4(one byte).
+ Body is6..65542 bytes; the size is checked before allocation/read. OPEN IDs must
+ increase exactly by1; retired-session traffic is discarded and future IDs fail
+ closed. The game never sends FAILURE. Failure codes1..7 mean certificate/TLS,
+ connection,authentication,identity,queue,internal or timeout failure.
+ No invitation,certificate,key or token is carried in this protocol.
+
+Native wire/input queues are capped at2 MiB. The parent holds at most64 pending
+game chunks and2 MiB payload per session, plus bounded in-flight/stream buffers.
+Writes/drains have5s deadlines. Remote TCP/TLS and AUTH use the existing bounded
+helpers. The native secure welcome deadline is30s. A remote EOF closes only that
+session; loss of the private process stream requires relaunch. Closing one session
+cancels/drains its relay tasks and TLS stream before the next is created. Revocation
+is checked again on the next session; it does not evict an established match.
+
+The socket pair is explicitly IPv4 loopback, created before spawning the game.
+STARTUPINFO.handle_list restricts inheritance to that endpoint; the helper clears
+its inherit flag, validates a connected loopback stream, and uses nonblocking I/O
+on the game thread. This is process-local capability isolation, not protection
+against an administrator/debugger or a compromised same-user game process. The
+local traffic is game data only; internet traffic travels through verified TLS.
+
+Validation
+ powershell -File client_patch/build.ps1 -OutputDirectory build/helper-secure03
+ Set BA_NATIVE_BRIDGE_PROBE to build/helper-secure03/secure_bridge_probe.exe and:
+ python -m unittest tests.test_client_bridge tests.test_secure_launcher -v
+The authored native executable contains no game code/data. It exercises real
+Windows handle inheritance and the exact header used by the helper. Asset-free
+bridge cases reach the actual coordinator lobby, test reauthentication/revocation,
+certificate/identity rejection, fragmentation,session isolation,queue limits and
+EOF. Real credential storage is substituted in these tests and remains a separate
+gate. The focused result is local/secure-bridge-focused-validation.json.
+
+Opt-in game qualification:
+ python -m tools.run_secure_match --game <patched-test-copy> --assets <local-assets> --run-name <fresh-name>
+This uses ephemeral local test PKI and in-memory invites, authenticates both games,
+then records two native matches,rematch evidence and exact frame receipts. It
+terminates only its own Popen game handles after the bounded run. It does not prove
+normal quit,manual UI,private-file ACLs,clean-host packaging or internet performance.
+
+Actual game result (2026-10-17)
+ local/matches/p3-tls-client02/summary.json:success=true.
+ Clients47900/20052 persisted across matches492f27916dc2458eaf6c18c3fbafac30 and
+ 46695df3044f486fafff6724eeaa3f11. Each match:620 authoritative frames,620 exact
+ receipt records/client,62 sampled views/client,zero mismatches or server errors,
+ and matching native result/checksum. Both workers were released. Four independent
+ TLS1.3 AUTH sessions used TLS_AES_256_GCM_SHA384 with stable per-player identities.
+ Original Continue and deck setters ran between matches; changed unit types75/74
+ appeared in the second world. At both second result screens the exact legacy
+ disconnected modal was released and native navigationCount became0. This was
+ automated native-state observation; the tool-launched windows were not manually
+ inspected. Only harness-owned clients/server were stopped when the test ended.
+ Helpersecure03 SHA256:
+ c0d9ad250ebfb95843be312aabf7ca4d7dc2df851a58665619457221d90f639e
+
+The first isolated attempt p3-tls-client01 stopped after150s before helper entry,
+with no AUTH or HELLO. Two plaintext controls then completed matching620-frame
+games with the new and previous helpers. Their startup gates took about54s and
+19-20s respectively. The warmed secure retry above succeeded without a startup
+code change. Original RGameInit awaits pre-menu asset tasks before helper entry;
+the localization-completion log is a separate callback. Cold-loading delay is a
+possible explanation, not a proven cause. Failed and control evidence is retained.
+The untouched recovery copy was read only; the pending visible test setup was
+not modified. All full game files, test PKI and captures remain outside Git.
+
+Official API references
+ https://docs.python.org/3.12/library/subprocess.html#subprocess.STARTUPINFO
+ https://docs.python.org/3.12/library/socket.html#socket.socketpair

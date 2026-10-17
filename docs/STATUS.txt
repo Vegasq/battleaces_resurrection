@@ -157,7 +157,8 @@ recovery installation was read only. The previous user-desktop test clients were
 closed normally before this update; that run's processes were all stopped.
 
 Manual reusable-client sessions, complete telemetry removal,
-authenticated TLS transport, distributable packages and full release validation
+private credential enrollment, cross-network transport, distributable packages
+and full release validation
 remain open. See the plan for the complete acceptance gates. P6 is optional future
 work after the requested first release, not a claim of current support.
 
@@ -166,7 +167,8 @@ verified TLS -> bounded AUTH -> server-issued identity -> matching HELLO -> lobb
 Seventeen TLS tests and17 admission tests passed, including actual certificates,
 wrong/expired/untrusted identity rejection, credential revocation, rate/capacity,
 thread timeout accounting and shutdown races. Plaintext binds are limited to
-numeric loopback. The graphical helper has not yet integrated TLS/enrollment.
+numeric loopback. The helper's subsequent TLS integration is recorded below;
+real owner-account private-file enrollment remains unverified.
 Pre-TLS global/source capacity and rate limits now apply before TLS allocation.
 Thirteen listener tests pass, including Windows cancellation/shutdown, raw socket
 caps, malformed-handshake recovery and application callback failures. Established
@@ -185,6 +187,38 @@ telemetry/TLS groundwork passed137 of139 tests before the13 listener cases.
 Source-only commits deba25d (telemetry) and0897ef2 (TLS/admission) were audited
 and pushed. The118 distinct indexed/history source objects had zero audit
 failures; originals,patched DLLs,PKI,credentials and runtime captures stay local.
+
+P3 CLIENT TLS / AUTOMATED NATIVE REMATCH QUALIFIED
+Secure schema2 launcher and native bridge now use a private inherited socket and
+maintained Python TLS/authentication. Invites remain in the parent process; no
+local public listener, secret CLI or remote plaintext fallback is used. Component
+hashes and a helper ABI marker are checked before spawning. See
+secure-client-transport.txt for configuration, bounds and trust requirements.
+
+Buildhelper-secure03 and authored native probe passed. Current source suite:
+172 tests,170 pass,2 optional skips in35.88s (private Windows ACL and optional
+native-worker case). Thirteen bridge cases and7 launcher cases cover actual TLS,
+native Windows handle inheritance, session isolation, revocation, wrong trust /
+identity, framing/queue bounds and old-helper rejection. Evidence:
+local/source-tests-secure-bridge-final.json/.txt. Under competing7GiB copy I/O,
+the prior run hit two credential-lock deadlines; preservation tests now allow15s
+for serialized fsyncs. Production2s limits and the separate deadline test remain.
+
+Actual clients47900/20052 completed p3-tls-client02: two620-frame matches,
+620 exact receipt records/client/match,62 sampled views/client/match,zero errors
+or mismatches,matching native results. Four TLS1.3 authenticated sessions prove
+reauthentication across the same-process changed-deck rematch. Both second results
+reached navigationCount0 after exact legacy-modal cleanup. All harness-owned
+processes/workers were released; the pending manual p2-visible04 setup remains.
+Evidence local/matches/p3-tls-client02/summary.json and per-match verification.
+This uses ephemeral PKI/in-memory invites and automated native input. Manual UI,
+private Windows file permissions, cross-PC/network performance and normal quit
+are separate gates. The initial cold-copy TLS run did not reach helper startup;
+two plaintext controls and the warmed secure retry passed without a startup fix.
+
+The server pre-TLS limits were published as7b4b2a6 with127 distinct source objects
+and0 audit failures. Client TLS publication uses the same explicit source allowlist
+and index/history audit; runtime game files, PKI and credentials remain local.
 
 BASELINE EVIDENCE BEFORE SOURCE MIGRATION
 Original GameAssembly SHA256:

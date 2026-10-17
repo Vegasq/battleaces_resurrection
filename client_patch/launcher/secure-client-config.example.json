@@ -1,0 +1,11 @@
+{
+  "schema": 2,
+  "game_directory": "",
+  "server_host": "127.0.0.1",
+  "server_port": 47623,
+  "server_name": "server.example",
+  "ca_bundle": "owner-ca.pem",
+  "credential_file": "private-invite.json",
+  "display_name": "Player",
+  "room": "friends"
+}

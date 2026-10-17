@@ -1,4 +1,10 @@
-CLIENT CONNECTION CONFIGURATION
+CLIENT CONNECTION CONFIGURATION - LOOPBACK DEVELOPMENT SCHEMA1
+
+For authenticated encrypted connections, use the separate schema2 config and
+Launch-SecureClient.ps1 described in secure-client-transport.txt. Its editable
+server_host/server_port select the address, server_name/ca_bundle establish trust,
+and credential_file selects the private owner-issued invite. That path requires
+a compatible secure helper. Do not put an invite into the schema1 file below.
 
 Each player has a personal client-config.json next to Launch-Client.ps1. The
 server address is editable data; changing it never requires rebuilding the patch.
@@ -16,8 +22,8 @@ Then edit client_patch/launcher/client-config.json:
 
 Use 127.0.0.1 or localhost for the current two-client development test. DNS names
 are resolved to IPv4 by the launcher. The endpoint remains configurable for the
-remote-client transport milestone; that integration is not ready yet. IPv6-only
-hosts are not supported in this development version.
+remote-client transport milestone. IPv6-only hosts are not supported by this
+schema1 development launcher.
 
 Launch using that file:
   powershell -File client_patch/launcher/Launch-Client.ps1
@@ -31,14 +37,13 @@ loading of the default config; normal players receive a seat from the server.
 Initialize creates a random persistent player_id. Keep it across matches to keep
 your saved deck. Each player must have a distinct ID; do not share your personal
 config. This development protocol still uses self-reported profile identity.
-The server now supports authenticated TLS admission, but the graphical helper
-has not yet been connected to it. Use the plaintext loopback development listener
-for this config version; remote game connections are not ready yet.
+The server supports authenticated TLS admission through the separate secure
+launcher. Use the plaintext loopback development listener for this config version.
 No credential is accepted by this config version or placed on a command line.
 
 Development server:
   python -m server.dedicated_server --host 127.0.0.1 --port 47623 --assets "<assets>"
 Plaintext binds outside numeric loopback are rejected. The experimental secured
 listener requires certificate/key/store paths together; see admission.txt. Its
-scripted TLS clients can join a lobby, but the game launcher cannot use it yet.
+schema2 secure launcher can use it; this schema1 launcher cannot.
 The configured endpoint is not sent to the original game services.
