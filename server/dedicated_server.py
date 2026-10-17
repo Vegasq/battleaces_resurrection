@@ -27,6 +27,8 @@ except ImportError:
 ROOT = Path(__file__).resolve().parent.parent
 from .paths import ASSETS, DATA, SIMULATION_DLL
 from .admission import AdmissionController, AdmissionError
+from . import community_protocol as community_wire
+from .community import Community
 TICK = 0.05
 
 
@@ -54,6 +56,7 @@ class Peer:
         self.slot = None
         self.profile_id = None
         self.name = None
+        self.community = False
         self.next_input = 0
         self.joined_army = False
         self.closed = False
@@ -97,8 +100,9 @@ class Peer:
 
 
 class Room:
-    def __init__(self, server, name):
+    def __init__(self, server, name, *, community_lobby=None):
         self.server, self.name = server, name
+        self.community_lobby = community_lobby
         self.input_window = server.input_window  # Frozen for this room and both seats.
         self.peers, self.decks = {}, {}
         self.ready, self.loaded = set(), set()
@@ -130,6 +134,7 @@ class Room:
         self.broadcast(p.LOBBY, struct.pack("<BBI", sum(1 << x for x in self.peers),
                                            sum(1 << x for x in self.ready), self.revision)
                        + p.deck_bytes(deck0) + p.deck_bytes(deck1))
+        self.server.community.publish_presence()
 
     def join(self, peer, slot, profile_id, name):
         if slot == p.AUTO_SEAT:
@@ -184,10 +189,10 @@ class Room:
             self.history = None
         self.pending.clear()
         self.input_wait_started = None
-        if aborted:
+        if aborted and self.community_lobby is None:
             for peer in list(self.peers.values()):
                 peer.close(None if previous_state == "completed" else reason)
-        else:
+        elif not aborted:
             # Keep the socket open for the original game's result screen. Late
             # pipelined inputs are harmless and ignored after final-frame delivery.
             self.broadcast(p.MATCH_END, json.dumps({"match": self.match_id,
@@ -203,6 +208,10 @@ class Room:
                 del self.server.rooms[self.name]
             if asyncio.current_task() is not self.task:
                 self.task.cancel()
+        if self.community_lobby is not None:
+            self.server.community.match_finished(self, aborted, reason)
+        else:
+            self.server.community.publish_presence()
         if self.sim is not None:
             sim, self.sim = self.sim, None
             cleanup = asyncio.create_task(self.release_worker(sim))
@@ -219,6 +228,7 @@ class Room:
     async def prepare_match(self):
         # Freeze lobby mutations before awaiting slow native initialization.
         self.state = "preparing"
+        self.server.community.publish_presence()
         self.match_id = uuid.uuid4().hex
         roster = [{"slot": slot, "player_id": slot + 1, "army_id": slot,
                    "name": self.peers[slot].name} for slot in (0, 1)]
@@ -301,6 +311,8 @@ class Room:
                 self.next_tick = self.last_progress + TICK
                 self.broadcast(p.START)
                 self.event("match_started", frame=0, tick_ms=50)
+                if self.community_lobby is not None:
+                    self.server.community.match_running(self)
         elif kind == p.INPUT:
             p.require(self.state == "running", "input outside running match")
             p.require(4 <= len(payload) <= 4 + p.MAX_INPUT, "input size limit")
@@ -460,6 +472,44 @@ class DedicatedServer:
         if (tls_context is None) != (admission is None):
             raise ValueError("TLS and authenticated admission must be configured together")
         self.tls_context, self.admission = tls_context, admission
+        self.community = Community(self)
+
+    def room_count(self):
+        # A custom lobby reserves its capacity before it owns a match worker.
+        return len(self.community.lobbies) + sum(room.community_lobby is None for room in self.rooms.values())
+
+    async def start_custom_match(self, lobby):
+        room = None
+        try:
+            if self.community.lobbies.get(lobby.id) is not lobby:
+                return
+            if len(lobby.members) != 2 or any(self.community.sessions[p].peer.closed for p in lobby.members):
+                self.community.cancel_start(lobby, 'player left before match setup')
+                return
+            name = 'custom_' + lobby.id
+            p.require(name not in self.rooms, 'custom match room already exists')
+            room = Room(self, name, community_lobby=lobby.id)
+            self.rooms[name] = room
+            lobby.room = room
+            for slot, profile in enumerate(lobby.members):
+                peer = self.community.sessions[profile].peer
+                p.require(peer.room is None, 'previous match has not been released')
+                peer.next_input, peer.joined_army = 0, False
+                room.join(peer, slot, profile, peer.name)
+                room.ready.add(slot)
+            room.lobby_state()
+            await room.prepare_match()
+            if room.state == 'loading' and self.community.lobbies.get(lobby.id) is lobby:
+                lobby.match_id = room.match_id
+                self.community.publish_lobby(lobby)
+        except BaseException as error:
+            if room:
+                await room.finish('custom match setup failed', aborted=True)
+            if not isinstance(error, Exception):
+                raise
+            self.audit('custom_match_setup_error', lobby=lobby.id, error=repr(error))
+            if room is None and self.community.lobbies.get(lobby.id) is lobby:
+                self.community.cancel_start(lobby, 'custom match setup failed')
 
     async def start(self, host="127.0.0.1", port=47623):
         if self.tls_context is not None:
@@ -475,10 +525,11 @@ class DedicatedServer:
                 raise ValueError("Plaintext development listeners require a numeric loopback address; configure TLS and credentials for remote hosts")
             self.listener = await asyncio.start_server(self.handle, host, port, limit=p.MAX_BODY + 4)
         address = self.listener.sockets[0].getsockname()
+        self.community.start()
         self.audit("server_started", host=address[0], port=address[1], original_sha256=p.BUILD_SHA,
                    simulation_sha256=p.SIM_SHA, protocol=p.VERSION,
                    transport="tls-auth" if self.admission else "loopback-development",
-                   input_window=self.input_window)
+                   input_window=self.input_window, community_protocol=community_wire.VERSION)
         return address
 
     async def handle(self, reader, writer):
@@ -491,21 +542,32 @@ class DedicatedServer:
             self.peers.add(peer)
             authenticated_id = await self.admission.authenticate(reader, writer) if self.admission else None
             kind, payload = await asyncio.wait_for(p.receive(reader), 5)
-            p.require(kind == p.HELLO, "dedicated protocol3 hello required")
-            slot, profile_id, name, room_name = p.decode_hello(payload)
+            p.require(kind in (p.HELLO, community_wire.HELLO), "dedicated protocol3 or community hello required")
+            is_community = kind == community_wire.HELLO
+            if is_community:
+                profile_id, name = community_wire.decode_hello(payload)
+            else:
+                slot, profile_id, name, room_name = p.decode_hello(payload)
             p.require(not self.closing, "server stopped")
             if authenticated_id is not None and profile_id != authenticated_id:
                 raise AdmissionError("identity_mismatch")
             p.require(all(other is peer or other.closed or other.profile_id != profile_id for other in self.peers),
                       "profile already connected")
-            room = self.rooms.get(room_name)
-            if room is None:
-                p.require(len(self.rooms) < self.max_rooms, "room capacity reached")
-                room = self.rooms[room_name] = Room(self, room_name)
-            room.join(peer, slot, profile_id, name)
+            if is_community:
+                self.community.register(peer, profile_id, name)
+            else:
+                room = self.rooms.get(room_name)
+                if room is None:
+                    p.require(self.room_count() < self.max_rooms, "room capacity reached")
+                    room = self.rooms[room_name] = Room(self, room_name)
+                p.require(room.community_lobby is None, 'custom rooms require an accepted invitation')
+                room.join(peer, slot, profile_id, name)
             while not peer.closed:
                 kind, payload = await p.receive(reader)
-                await peer.room.on_message(peer, kind, payload)
+                if peer.community:
+                    await self.community.handle(peer, kind, payload)
+                else:
+                    await peer.room.on_message(peer, kind, payload)
         except AdmissionError as error:
             self.audit("authentication_failed", connection=peer.connection, category=error.category)
             peer.close("authentication failed")
@@ -518,11 +580,14 @@ class DedicatedServer:
             self.audit("connection_error", connection=peer.connection, error=repr(error))
             peer.close("server error; see server log")
         finally:
-            if peer.room:
+            if peer.community:
+                await self.community.disconnect(peer)
+            elif peer.room:
                 await peer.room.detach(peer, "player disconnected")
             peer.close()
             await sender
             self.peers.discard(peer)
+            self.community.publish_presence()
             self.tasks.discard(task)
 
     async def close(self):
@@ -531,6 +596,7 @@ class DedicatedServer:
             self.admission.stop_accepting()
         if self.listener:
             self.listener.close()
+        await self.community.close()
         rooms = list(set(self.rooms.values()) | self.retired)
         await asyncio.gather(*(room.finish("server stopped", aborted=True) for room in rooms))
         await asyncio.gather(*(room.task for room in rooms), return_exceptions=True)

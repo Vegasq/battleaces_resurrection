@@ -187,9 +187,12 @@ Effort allowance: 4-7 days.
   joins, departures and status changes without requiring a persistent friend list.
 - TODO: Add targeted invitations with accept/decline/cancel/expiry, server-checked
   room membership and host ownership. Accepted players join the same custom lobby;
-  expose both selected decks/readiness and let the host start from the custom menu
-  only when both players are ready. Handle simultaneous invites, disconnects,
+  expose both selected decks/readiness. The host starts from the custom menu; its
+  Start and the guest's acknowledgement must both precede worker creation, matching
+  the native TryStart/ReadyToStart flow. Handle simultaneous invites, disconnects,
   leaving the lobby and return after a match. Presence is separate from room seats.
+  Server control v1 and scripted native two-match proof are implemented (see
+  community-protocol.txt); native UI wiring/manual acceptance remain TODO.
 - Retain the native deck builder and server deck validation/persistence.
 - TODO: Make Try Deck vs AI start a playable AI match with the currently selected
   eight-unit deck, without a second connected player or original service. Trace

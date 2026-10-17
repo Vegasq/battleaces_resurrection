@@ -16,6 +16,7 @@ import uuid
 from unittest import mock
 
 from server import admission as a, protocol as p, tls_transport as tls
+from server import community_protocol as c
 from server.credentials import AuthenticationError
 from server.dedicated_server import DedicatedServer
 from server.profiles import ProfileStore
@@ -263,6 +264,25 @@ class AdmissionTests(unittest.IsolatedAsyncioTestCase):
         self.assertFalse(self.coordinator.rooms)
         self.assertTrue(any(event == 'authentication_failed' and fields['category'] == 'identity_mismatch'
                             for event, fields in self.events))
+        self.assertNotIn(self.store.token, str(self.events))
+
+    async def test_community_directory_requires_authenticated_identity(self):
+        reader, writer = await self.connect(await self.start_coordinator())
+        player = await a.authenticate_client(reader, writer, self.store.token)
+        writer.write(p.encode(c.HELLO, c.hello(player, 'Community Player')))
+        self.assertEqual((await p.receive(reader))[0], c.WELCOME)
+        self.assertEqual((await p.receive(reader))[0], c.DIRECTORY)
+        self.assertEqual(set(self.coordinator.community.sessions), {self.store.player})
+        self.assertFalse(self.coordinator.rooms)
+        self.assertNotIn(self.store.token, str(self.events))
+
+    async def test_community_hello_cannot_impersonate_another_authenticated_player(self):
+        reader, writer = await self.connect(await self.start_coordinator())
+        await a.authenticate_client(reader, writer, self.store.token)
+        writer.write(p.encode(c.HELLO, c.hello('another-player', 'Name')))
+        self.assertEqual(await p.receive(reader), (p.ERROR, b'authentication failed'))
+        self.assertFalse(self.coordinator.community.sessions)
+        self.assertFalse(self.coordinator.rooms)
         self.assertNotIn(self.store.token, str(self.events))
 
     async def test_shutdown_during_authentication_cannot_create_a_room(self):

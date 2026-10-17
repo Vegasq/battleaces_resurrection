@@ -1,6 +1,11 @@
 Native Custom lobby / server roster / Try Deck feasibility
 Read-only review, 2026-10-17, client build 37822
 
+FOLLOW-UP: community-protocol.txt now records the implemented server control.
+try-deck-ai-native.txt resolves this review's open Try Deck button/config question
+using serialized assets. The native custom-menu and local AI adapters are still
+unfinished. Statements below describe the evidence available at this review.
+
 PROVENANCE AND SCOPE
 REA-guided shipped-artifact analysis. Native REA engines remain unavailable;
 this is original-byte disassembly plus existing IL2CPP metadata and extracted

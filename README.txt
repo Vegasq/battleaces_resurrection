@@ -11,6 +11,12 @@ now pass; broader manual/failure flows, complete telemetry removal, private inte
 hosting and release packaging remain under development.
 Do not treat this development baseline as the finished release.
 
+Server community control v1 adds a connected-player directory, targeted invites,
+host-controlled custom starts and same-connection rematches. Scripted clients pass
+two matches using the real simulation, with a third player kept outside both games.
+The native Invite Friend/Start UI adapter and Try Deck vs AI are still unfinished.
+See docs/community-protocol.txt and docs/community-lobby.txt for scope and evidence.
+
 Current game wire protocol3 requires updating both helper and server. The server
 selects a bounded input window with --input-window (2..12, default6); both players
 receive the same setting. See docs/protocol-v3.txt and docs/network-qualification.txt
@@ -33,6 +39,10 @@ build output and test evidence belong under ignored local/, build/ or dist/.
 SOURCE CHECKS (Python 3.12)
   python -m unittest discover -s tests -v
   python -m tools.audit_repository --history
+
+Optional real-simulation custom lobby/rematch probe (Windows, locally imported assets):
+  python -m tools.verify_community_native --assets "<asset directory>" --output local/community-native-test
+This uses scripted TCP peers and deliberate test surrender, without graphical UI.
 
 The audit reads the Git index and reachable history, not ignored runtime files.
 Review the staged diff as well; automated scans cannot establish provenance.

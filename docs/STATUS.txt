@@ -5,8 +5,26 @@ Active objective: implement SERVER_REPLACEMENT_PLAN.txt, Windows only.
 CURRENT USER PLAYTEST FOLLOW-UP (2026-10-17)
 Try Deck vs AI and Custom Game -> Invite Friend using this server's connected
 players are explicit P2 TODOs with acceptance gates in SERVER_REPLACEMENT_PLAN.txt.
-Neither flow is implemented. The custom picker currently depends on Steam friends;
-it needs a server presence/invitation adapter. See community-lobby.txt.
+The server community protocol now implements presence, targeted invitations,
+host Start/guest acknowledgement, validated decks and reusable custom lobbies.
+The graphical custom picker still depends on Steam friends; its native adapter
+and Try Deck vs AI remain unimplemented. See community-lobby.txt and
+community-protocol.txt. Neither end-to-end user flow is claimed complete.
+
+Server verification:213 source tests,211 pass and2 opt-in skips. The real Windows
+simulation run community-native01 completed two160-frame matches on the same
+invited TCP connections with a changed deck. Both peers received identical frames
+and native results; an unrelated third player received no match data. Workers46536
+and36056 exited0 and were reaped. Source hashes stayed unchanged. This is scripted
+transport/native evidence, not graphical custom-menu or changed-deck combat proof.
+Reports: local/source-tests-community01.json and
+local/community-native01/verification.json. Protocol document records test limits.
+
+Try Deck's serialized EditDeckScreen button is now positively mapped to mode4,
+MODE_1VAI, and the shipped practice bot profile. Static analysis identifies a
+separate local AI service sharing the human world, requiring its own join/input
+ownership and result cleanup. No AI game has been implemented or runtime-qualified.
+See try-deck-ai-native.txt; recovered deck/tuning assets remain local.
 
 Normal local play now omits scripted production, automatic surrender, auto-ready,
 Continue and rematch. The ignored local/Play Normal Match.cmd supplies the tested

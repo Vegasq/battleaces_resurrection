@@ -1,0 +1,152 @@
+COMMUNITY SESSION CONTROL V1
+Updated: 2026-10-17. Server implementation: community.py/community_protocol.py.
+
+STATUS AND COMPATIBILITY
+The server implements this extension. The current graphical client helper still
+uses the ordinary protocol3 handshake; its custom-menu adapter is unfinished.
+Selecting this extension requires a new first HELLO. Ordinary protocol3 clients
+retain their existing behavior and cannot enter a custom room by guessing its ID.
+Game frames, worker IPC and the simulation ABI are unchanged. On a TLS listener,
+existing authenticated admission must finish before either kind of HELLO. Profile
+identity must match the credential and cannot be connected twice. Plaintext remains
+loopback-only development with self-reported identity, as in protocol-v3.txt.
+
+WIRE TYPES
+All integers are unsigned little-endian. u8/u16/u32/u64 have their usual widths.
+Each message uses the existing u32 body length, u8 type, payload framing. The body
+limit remains 2 MiB. A text field is u16 UTF-8 byte length followed by those bytes.
+A key is 1..48 ASCII letters, digits, underscores or hyphens. Display names use
+the existing HELLO limits: 1..32 characters, at most128 UTF-8 bytes, no C0 controls.
+A deck is eight u32 unit IDs (32 bytes), validated against the local catalog and
+saved by the existing profile store. No original map/catalog data is embedded here.
+
+The first message is type40 HELLO:
+  u16 communityVersion=1
+  existing protocol3 HELLO payload, including gameVersion=3, seat=255,
+  original/simulation SHA256s, profile key, display name, room="community".
+The server replies type41 WELCOME:
+  u16 communityVersion=1, u16 gameVersion=3, text profile, deck
+This does not allocate a match seat or native world. A directory follows.
+
+Every client command below begins with a nonzero u32 request ID. IDs must strictly
+increase for the connection; reconnect before exhausting u32. Payload length is
+4..256 bytes. Truncation, trailing bytes, invalid UTF-8/key/boolean, repeated IDs,
+unknown commands or rate violations close the sender's session. The command token
+bucket allows a burst of16 and replenishes8/second. Valid requests rejected because
+state changed receive a negative ACK and keep the connection alive.
+
+Client types and fields AFTER the request ID:
+  43 CREATE    u8 mode (only1, custom1v1)
+  45 INVITE    text target profile key
+  46 REPLY     text invitation key, u8 accept (0/1)
+  47 CANCEL    text invitation key
+  48 START     text lobby key, u64 last observed lobby revision
+  49 READY     text lobby key, u32 start epoch, u8 ready (0/1)
+  50 LEAVE     text lobby key
+  51 SET_DECK  deck
+  52 RETURN    text completed/aborted match key
+  55 REFRESH   no additional fields
+
+Server types:
+  42 DIRECTORY u64 revision, u16 row count; each row:
+                 text profile, text display name, u8 status, u8 invitable
+  44 LOBBY     u64 revision, u8 phase, u32 start epoch,
+                 text lobby ID, text host profile, text match ID or empty,
+                 text reason, u8 member count; each member:
+                 text profile, deck, u8 ready, u8 returned
+  53 ACK       u32 request ID, u8 original command type, u8 success,
+                 text reason, text object ID (possibly empty)
+  54 INVITATION u8 status, u32 remaining milliseconds,
+                 text invite ID, text lobby ID, text sender, text target
+  56 ABORTED   text match ID, text reason
+
+Directory status:0 available,1 in lobby,2 in match,3 reserved/unavailable.
+Invite status:0 pending,1 accepted,2 declined,3 cancelled,4 expired,5 busy.
+Lobby phase:0 none,1 open,2 starting,3 loading,4 running,5 results.
+NONE has zero revision/epoch/member count and empty lobby/host/match IDs.
+Invitations are notified only to their sender and target. Lobby snapshots go only
+to members. No directory entry exposes an IP address or admission credential.
+
+Snapshots may arrive BEFORE the ACK for the request that caused them. There is no
+request-response lockstep assumption. Correlate ACKs by request ID and use complete
+lobby snapshots as authority. A native adapter must defer callbacks until the
+originating native call has returned and its pending-request bookkeeping exists.
+Do not synthesize immediate CreateLobby/PartyInviteReply responses from inside
+their enqueue hooks; see custom-lobby-native.txt for the observed native ordering.
+
+DIRECTORY AND LOBBY LIFETIME
+The sorted directory contains at most136 rows, the existing maximum connection
+capacity (64 rooms *2 +8). It publishes full snapshots only when visible state
+changes or a client requests REFRESH. Include legacy clients as non-invitable
+busy entries. Only an available community session is invitable; the UI must also
+disable self. The server independently rejects self/busy/missing targets.
+A slow recipient exhausts its existing bounded output queue and is disconnected;
+directory output must not abort unrelated matches.
+
+CREATE reserves a custom lobby against --max-rooms without starting a worker.
+Only its host can INVITE. A lobby contains at most two profiles. Accept rechecks
+membership and availability atomically on the coordinator, then cancels competing
+invitations to that player or now-full lobby. Invites expire after30 seconds;
+there are at most128 pending globally,8 involving an inviter,8 incoming to a target.
+Host cancellation, decline, expiry, departure and capacity changes notify both ends.
+Open lobbies use the existing --lobby-timeout. Leaving transfers host ownership to
+the remaining member or removes the empty lobby. Presence is independent of seats.
+
+START AND GAME FRAMES
+1. Members select decks while the lobby is OPEN. SET_DECK validates/persists the
+   deck, clears readiness and changes the lobby revision.
+2. Host START names the exact current revision and requires two members. It enters
+   STARTING, increments the epoch and records the host's readiness. Merely accepting
+   an invitation never starts a game.
+3. The guest's READY for that epoch must arrive within10 seconds. ready=false,
+   expiry or a departure cancels the attempt and advances the epoch. Stale READY
+   cannot revive it. This follows native TryStart/ReadyToStart; the host Start
+   request and guest acknowledgement both precede worker creation.
+4. Once both acknowledge, enter LOADING, freeze decks and create a supervised
+   worker using existing validated map/config and room preparation. Host/guest
+   receive the existing protocol3 WELCOME31 with assigned seats0/1 and common input
+   window, ordinary LOBBY35, MATCH_INFO32 and BOOTSTRAP12. The reserved server room
+   name is custom_<lobby ID>; it is not an alternate public join mechanism.
+5. Each client sends ordinary LOADED3. Once both load, START13 begins the game and
+   community phase becomes RUNNING. INPUT4/FRAME14 use protocol3 unchanged. A lobby
+   member/profile ID and a native per-match seat/player handle remain separate.
+6. Normal completion delivers the existing MATCH_END36 with authoritative native
+   result and phase RESULTS. A failure sends ABORTED56 instead of inventing a win.
+   Community sockets remain open. Already-in-flight match packets after completion
+   are ignored; new game packets without an active room are protocol errors.
+7. After native result handling and world teardown, each client sends RETURN with
+   the exact match ID. This releases its old seat/input counters. Once all remaining
+   members return, the same lobby reopens with fresh readiness; another START creates
+   a new match/worker/frame0 on the same connections. A returned member may edit its
+   deck while waiting for the other result screen. LEAVE requires OPEN or STARTING.
+
+A setup failure before a match ID exists releases provisional seats and reopens
+without requiring RETURN for an empty ID. Once a match ID exists, an abort follows
+the normal RESULTS/RETURN cleanup contract even if no bootstrap was delivered.
+Disconnect cancels invitations and removes membership, aborts only that active
+match and permits a survivor to return. Worker shutdown/creation remains supervised.
+Presence while local AI practice is running is a future adapter/protocol requirement;
+v1 does not yet provide an independent practice-busy command.
+
+VERIFICATION AND LIMITS
+213 source tests:211 pass,2 opt-in skips (protected Windows credential DACL and
+optional native worker fixture). Includes15 community lifecycle cases,19 actual-TLS
+admission cases and existing ordinary room/client bridge checks. Coverage includes
+invite races, invalid/stale requests, start timeout, leave/host transfer, capacity,
+isolation, failed/delayed worker creation, mid-game loss and same-socket rematch.
+Local reports: local/source-tests-community01.{json,txt}.
+
+Opt-in actual Windows simulation proof:
+  python -m tools.verify_community_native --assets "<imported asset directory>" --output local/community-native-test
+Recorded run local/community-native01/verification.json passed in16.94s. Three
+scripted TCP sessions completed two160-frame custom matches; the two invited peers
+received identical bootstraps/frames and reconstructed the worker's input journals.
+Native/public results agree; both workers exited0 and were reaped. Each match has
+16 server-view snapshots. The same connections rematched with a changed valid deck;
+the unrelated third session received no match data. Source hashes stayed unchanged.
+
+This probe deliberately surrenders at frame140 by default; it is a test command,
+not a match time limit. It does not run graphical clients or compare client-native
+snapshots. The changed deck is verified in bootstrap/JoinArmy, not in combat effects.
+It does not establish native menu operation, local AI, manual latency improvement,
+cross-PC/internet play or long soak acceptance. Those remain separate plan gates.

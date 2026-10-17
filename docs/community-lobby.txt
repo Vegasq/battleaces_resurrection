@@ -1,27 +1,32 @@
 COMMUNITY PLAYER DIRECTORY, CUSTOM GAMES AND AI PRACTICE
-Updated:2026-10-17. Status: planned; current adapters do not implement these flows.
+Updated:2026-10-17. Server control implemented; native UI and AI adapters unfinished.
 Scope: Windows build37822, existing native UI, authored server/patch source only.
 Detailed authored static trace and guarded hook candidates: custom-lobby-native.txt.
 
 REQUESTED USER FLOW
 Connect to the configured community server. Custom Game -> Invite Friend lists
 everyone connected to that server, with availability. Select an opponent; they
-accept into the custom lobby. Both choose decks and ready; the host starts from
-the custom menu. Result/Continue returns to a usable lobby for another game.
+accept into the custom lobby. Both choose decks; the host starts from the custom
+menu and the guest acknowledges before loading. Result/Continue returns to a usable
+lobby for another game.
 An existing Steam friendship is not required. This is a server-local directory,
 not discovery of players on other servers or a replacement social network.
 
-SERVER WORK
-Separate online presence from occupying one of a match's two seats. Use the
-authenticated server profile as identity and display its chosen name/status.
-Publish bounded snapshots/updates for available, in-lobby and in-match players;
-remove departures and exclude self/busy targets from actionable invitations.
-Add targeted invite IDs, acceptance/decline, host cancellation and expiry. Check
-membership/availability on the server at acceptance and start, including races
-between simultaneous invitations or departures. Reuse existing room/worker/deck
-validation after admission. Readiness must not start a custom game before the
-host's Start request; clear readiness on deck changes. Keep ordinary Play behavior
-separate. New protocol messages need explicit version/bounds and compatibility tests.
+SERVER IMPLEMENTATION
+Community control v1 separates presence from match seats. It publishes bounded
+server-local directories, creates custom lobbies and handles targeted invitation
+acceptance/decline/cancellation/expiry. Membership, host ownership, readiness and
+decks are checked server-side, including simultaneous invite/departure races.
+Host Start and a matching guest acknowledgement precede worker creation. Existing
+validated room/worker execution is reused; results and RETURN permit same-socket
+rematches. Ordinary protocol3 clients keep their existing behavior. TLS admission
+also binds community sessions to authenticated profiles. See community-protocol.txt
+for exact framing, bounds, timeouts, compatibility and verification evidence.
+
+Fifteen community lifecycle tests and two added TLS identity tests pass. The real
+simulation probe completed two custom matches with a changed deck and a third
+uninvolved connected player. These scripted clients do not establish native Invite
+Friend/Start UI operation; that translation and manual acceptance remain to do.
 
 NATIVE CLIENT FINDINGS (STATIC, NOT A WORKING UI IMPLEMENTATION)
 The existing CustomGameLobbyManager and custom menu have lobby creation/update,
@@ -53,11 +58,13 @@ services. Keep this distinct from multiplayer readiness and preserve offline tut
 The current dedicated ready(front,mode) routes every mode into the same two-human
 ready message. This is a confirmed source gap, not an AI implementation.
 
-The retained client log shows Play(mode4), cancellation, then Play(mode3) followed
-by RGameTutorial01State with no active world. CommonPb.GameMode names3 as MODE_FTUE
-and4 as MODE_1VAI. The user's exact visual Try Deck button-to-mode mapping is not
-established by this log alone; do not label mode3 as AI. Trace the specific native
-callback and local AI setup before redirecting or starting simulation.
+The serialized EditDeckScreen button is now resolved: its persistent callback is
+OnMatch1VSAIDeckEditScreenButtonClicked and its selected mode is4, MODE_1VAI.
+Mode3 remains MODE_FTUE. The shipped AI profile and native creation/join/input paths
+are documented in try-deck-ai-native.txt. The existing local loop admits only the
+human service; AI uses a second service referencing that same simulation. Correct
+two-service input ownership, deferred native joining, results and cleanup require
+implementation and runtime qualification. Simply enabling mode4 would lose AI input.
 
 BOUNDARY AND ACCEPTANCE
 REA workflow used existing local IL2CPP metadata, original-byte disassembly and

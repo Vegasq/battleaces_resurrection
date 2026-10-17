@@ -86,7 +86,7 @@ class TestPeer:
         await asyncio.gather(self.pump, return_exceptions=True)
 
 
-class DedicatedLifecycleTests(unittest.IsolatedAsyncioTestCase):
+class DedicatedFixture(unittest.IsolatedAsyncioTestCase):
     async def asyncSetUp(self):
         self.folder = ROOT / "local/test-runs" / ("coordinator-" + uuid.uuid4().hex)
         self.folder.mkdir(parents=True)
@@ -165,6 +165,7 @@ class DedicatedLifecycleTests(unittest.IsolatedAsyncioTestCase):
         self.assertTrue(target.name.startswith("coordinator-"))
         shutil.rmtree(target)
 
+class DedicatedLifecycleTests(DedicatedFixture):
     async def test_two_network_rooms_crash_isolated_and_no_failed_frame_published(self):
         await self.start(max_rooms=2)
         alpha, beta = await asyncio.gather(self.pair("alpha"), self.pair("beta"))

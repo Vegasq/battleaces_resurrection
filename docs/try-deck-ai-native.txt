@@ -1,0 +1,273 @@
+TRY DECK VS AI: SERIALIZED ENTRY, SHIPPED CONFIGURATION, LOCAL BRIDGE BOUNDARY
+2026-10-17; authored native/artifact investigation notes.
+
+This supersedes the unresolved button/config portion of custom-lobby-native.txt.
+It does not claim a working AI match. No game process, UI, binary, or tracked
+source was modified during the investigation. This publication retains authored
+analysis and reference identities; recovered game data tables remain local.
+REA native engines remain unavailable. Evidence is original-byte disassembly,
+IL2CPP metadata, bounded Addressables/UnityFS/type-tree decoding, and source review.
+
+Supported original GameAssembly.dll SHA256:
+e59d08c01479b27404778048d7e13546dbf3771f6b3912744c7c2bdf80c4e758
+Base 0x180000000. All native addresses below are RVAs in this original.
+Disassembly helper: investigation/network/original_disasm.py takes absolute VA
+start and end, not RVA plus length. Metadata helper: metadata_types.py.
+
+1. THE ACTUAL BUTTON IS MODE4, NOT THE TUTORIAL
+
+Addressables catalog m_InternalIds[9701] is EditDeckScreen.prefab, primary key
+Assets/RGame/Content/UI/Prefabs/Menu/EditDeck/EditDeckScreen.prefab.
+Its owning UI bundle is 2fa2b6e70fed51f3d26c422052c7443a.bundle, serialized node
+CAB-9416a50a9c91113ec26dc63b1c7fc309. The AssetBundle container entry has root
+GameObject pathID3855599226795613254, preloadIndex284916, preloadCount3303.
+Only metadata and relevant compressed blocks were read, not a full extraction.
+
+Within the prefab:
+  TrainingButtonContainer GameObject5276710089782879867
+    1vAIButton GameObject5555429760508009484
+      UIButton component-3633333890843804388
+      MatchVSAIButtonVM component-2910902164051815788
+      EditDeckPracticeAccessor component6084513493681055529
+The UIButton persistent click targets that exact VM, assembly RGame, method
+OnMatch1VSAIDeckEditScreenButtonClicked. VM._gameModeSelection is serialized4.
+The same button has ValidateDeckVM/ValidateSelectedDeckVM and GameActivityVM
+bindings which gate interactability on valid deck and queue/game/party activity.
+This is positive serialized ownership evidence, not a method-name guess.
+
+Uncapped.UI.MatchVSAIButtonVM fields:
+  _gameModeSelection +0x50: CommonPb.GameMode
+  _gameSettingController +0x58: UI.IGameSettingController
+  _serviceManager +0x60: ServiceManager
+Inject0x3d25cd0 resolves the controller and service manager from menu dependencies.
+OnMatch1VSAIDeckEditScreenButtonClicked0x3d25e20 tails shared handler0x3d25e30
+with initiatedFromDeckEditScreen=true. MainScreen callback0x3d25e10 passesfalse.
+Shared handler:
+  - Cancels an existing queue through Front.LeaveMatchmakingQueue(true).
+  - Sets AccountService's ABetterChoiceExperiments.PracticeVsAIInitiation to
+    initiatedFromDeckEditScreen+1: deck editor2, main screen1.
+  - Calls ProvingGroundsBotMatchController.UpdateProvingGroundsBotGameSetting
+    with empty game name and !initiatedFromDeckEditScreen. Thus deck practice
+    clears the fake-proving-grounds-practice flag; main-screen practice differs.
+  - Tails Front.JoinMatchmakingQueue at0x3d25f33 using controller and mode4.
+ABI at that tail: void(front RCX, controller RDX, mode R8D, MethodInfo* R9=null).
+
+Current OfflineDedicatedJoinQueue receives but discards the controller argument.
+Current ba_dedicated::ready sends normal C_READY{1} and ignores mode. Mode3 and4
+therefore cannot be inferred from the resulting two-human match. Retain the
+original button preamble, preserve its initiation context, and dispatch mode4
+before normal dedicated readiness. Existing mode1 should retain its normal path.
+Until a complete local AI path exists, mode4 should fail closed with clear feedback.
+
+2. MODE4 MAP AND AI SELECTION ARE SHIPPED DATA
+
+Bundle22afcd27e427dc74c718d35a50f695e4.bundle, serialized node
+CAB-6a30b948abfd45abe2ae52fa9c9e8ed4, contains these objects:
+  MainGameModeConfigList pathID-7856947045019982332
+  GameModeConfig_1vAI pathID320034710770776017
+  GameModeConfig_1v1 pathID-8610502899701476352
+Both mode1 and mode4 point to exactly the same GameDataProvider object
+1504438159821152388 ('MatchMaking Mode') and PrimaryGameScene
+-5571495581878587244 ('RGame1v1'). Mode3 points elsewhere, to authored FTUE data.
+RGame1v1 scene GUID e5faefada0b4fb94dac8a23c675ab696, MapMeta GUID
+4bbdd9969bbb71b43977164bdf88a140, timeline GUID0b1847b94b992394fb6313991576a1a0.
+Mode4 has six alternate scenes, but selecting the primary for the first proof is
+a new explicit policy; this review did not recover the retired server's map RNG.
+
+The converter's managed-reference types are GlobalConfigToProto,
+AbilityDefinitionToProto, ArmyToProto, InitialActionToProto. Its name and target
+types were read from bounded bytes. The generic tree decoder cannot consume the
+variable managed-reference payload automatically; do not treat its partial
+dictionary as a complete decoded converter. In particular, do not copy the FTUE
+army-overlay policy merely because both modes have a GameDataProvider field.
+
+AIManagementConfigDefinition pathID3518351447567259834 has a mode4 entry with
+one opponent profile: AiProfile17, weight1; no teammate profiles. AIProfileTable
+pathID-876738705533209717 contains id17:
+  Enable=true, GameMode4, Name='Easy 1vAI bot'
+  AIConfigDefinition pathID1634604996686542809 ('AIConfig Easy Co-op Bot')
+  AIFuzzyTuning pathID-1335382164848310067 ('CBT1 Easy AI - Try Deck Bot')
+That config references rating-based modifiers and five AIDeck choices of
+Type1, character IDs9,10,11,12,13. Resolve their values from the local installation;
+recovered configuration/tuning values are not reproduced in this repository. Server-side selection/RNG and
+rating interpolation were not recovered; choose and record a deterministic
+first-proof policy instead of claiming exact original matchmaking behavior.
+
+AICharacterTable pathID7563350598616344119 resolves those characters to concrete
+eight-unit decks and all four ability slots. Resolve these through the native
+accessor; recovered deck arrays remain in ignored local evidence.
+Use the locally installed runtime assets and their serializers, not committed
+copies of these assets. AIDeck.GetDeck0x37b6ba0 Type1 retrieves the character's
+AICharacterDefinition.Deck from StaticTables; Type2 retrieves an AIDeckPreset.
+It returns the SHARED definition deck, not a clone. Clone/serialize before any
+adjustment; do not run mutating deck setters on the shipped object.
+
+The profile's fuzzy tuning references base CrispValues plus override
+pathID7965193407814930563 ('TryDeckAI - CrispValues'). Resolve tuning through
+local assets; override values are not copied here. Their semantic names were not
+resolved in this pass. Preserving profile17 through the native AIManager selects
+its rule/tuning path; simply
+assigning a random AI profile or copying a tutorial deck does not reproduce it.
+
+3. HUMAN DECK AND DEBUG BUILDER
+
+The button callback does not itself supply an army/deck. Original mode4 joins
+matchmaking; the retired service supplies the completed match setup. The native
+debug builder supplies a useful locally callable replacement boundary:
+  Front.CreateDebugAIGame0x3e3bcf0:
+    void(front RCX, GameModeConfig* RDX, GamePb.ArmyConfig[]* R8, MethodInfo* R9)
+    calls CreateDebugGame(config,createLocalPlayer=true,aiArmyConfigs).
+  Front.CreateDebugGame0x3e3bd10 waits AssetMemoryManager.CheckDone and loads
+    primary map metadata asynchronously; callback0x3e497e0 constructs request.
+  It calls ProtocolUtil.BuildDynamicGameData0x3dc8e50, then if createLocalPlayer
+    adds human DynamicArmyConfig armyId0/allianceId0, current Front player handle,
+    useCurrentPlayerDeck=true. It does NOT put the selected human deck there.
+  Supplied AI ArmyConfig[] entries become DynamicArmyConfig with
+    useCurrentPlayerDeck=false. No default AI army is fabricated by this method.
+  BuildGameData0x3e3c980 builds shipped static map/config, then
+    ProtocolUtil.CreateGameRequest0x3dcc7b0 and final enqueue tail0x3e4a00f.
+Existing OfflineConsumeCreateRequest already replaces that final enqueue, but
+currently selects overlayTutorial for every non-LAN/non-export path.
+
+Candidate mode4 merge: retain complete mode4 map/static data and correct
+version/API/DLL fields, create distinct human army0/alliance0/profile0 and AI
+army1/alliance1/profile17, with matching identity in each army's player list.
+Snapshot the user's actual AccountService._deckSelector.get_SelectedDeck at
+launch; use the existing eight-slot + four-ability serialization and validation
+from dedicated_deck.cpp. Populate the human deck explicitly during local merge
+when useCurrentPlayerDeck=true; that flag alone previously relied on the server.
+The AI deck comes from one configured character, not the user's edited deck.
+Use owned proto messages rather than mutating shared GameModeConfig/converters.
+Whether cosmetic modifiers/cheat modifiers require additional server merge is a
+qualification gate; this review did not implement that merge.
+
+CreateLocalDebugGame0x3e3bc10 and CreateAIHostedDebugGame0x3e3bc80 also call the
+same NETWORK request builder. Their names do not mean they can launch offline.
+
+4. NATIVE AI IS LOCAL LOGIC WITH A SEPARATE SERVICE INSTANCE
+
+This is the main additional integration boundary beyond the tutorial proof.
+GameServerIntegration.ProcessAIAssignmentNotification0x3e51780 forwards an AI
+handle, armyId and sequenceId through the AIManager RequestAIWithProfile path
+(inlined). RequestAIWithProfile0x3b98580 avoids duplicate army IDs, respects
+_noRejoin, and calls OnAddAI0x3b98730 with AIType3 (Dll), null deck/cosmetics.
+OnAddAI calls AddLocalAI0x3b99170 using current game's address/port/name and the
+human simulation. A direct candidate invocation can provide the selected AI
+deck/cosmetics explicitly; the native assignment route deliberately permits null.
+
+AddLocalAI:
+  - Creates LocalAIDeckSelector and LocalAIGameInstance0x3db42a0.
+  - That instance REFERENCES the human Simulation in _playerSimReference+0x18;
+    IGameInstance.IsOwnerOfSimulation returnsfalse (0x6d5ba0).
+  - Creates its OWN ServiceManager/GameServerIntegration, with _gameSimulation
+    leftnull in Init. Do not replace this with the human GameServer object.
+  - Creates AIPlayerProcess, Init0x37ba0d0, schedules ProcessEnteringGame and its
+    timeout coroutine, then appends the process to AIManager._aiPlayers.
+  - Parses a port string with Int32.Parse even for this local logic.
+  - Sets _hasDllAI=true for AIType3.
+
+ProcessEnteringGame.MoveNext0x37bd4f0 sets the AI GameServer player handle, builds
+GameConnectionInfo, then calls ordinary GameServerIntegration.JoinGame0x3e53940
+at0x37bdaee. That original JoinGame can create a network channel and enqueue a
+join request. Thus RequestAIWithProfile alone is NOT an offline launch routine.
+The coroutine waits for HasActiveGameConnectionInfo and serverState1/2, finds the
+shared Simulation's SimPlayer for its requested army, registers its sim view,
+waits for HQ/world readiness, applies profile ID through SetDefaultAIOverride
+0x3b93fa0 and UpdateAIRuleData0x3b96720, then starts ReadAIInputAction.
+Do not skip those native state/readiness gates by jumping into a coroutine state.
+
+There is a promising native response path for the AI service: original
+ProcessJoinedGame0x3e506b0 with _gameSimulation==null takes branch0x3e50f38,
+builds StaticGameData, constructs JoinArmyCommand, enqueues it at0x3e50feb and
+signals ready. It does not create or shut down the human simulation in that
+branch. _gameSimulation must remainnull on the AI service. This path, required
+ClientConfig/connection data, null front/telemetry, and the exact join response
+still need isolated runtime qualification before calling it a safe implementation.
+
+AIManager.PlayerSimulation_GameCreatedEvent0x3b97d10 initializes the native AI
+world from the game data (AICreateWorld delegate call0x3b980fb). AI data updates
+and the native process remain required after creation. AIPlayerProcess.ReadUnsafe
+0x37bb440 consumes DLL-produced actions and calls AI service
+GameServerIntegration.EnqueueInputAction0x3e53620 at0x37bb853.
+
+Existing local_loop.cpp is SINGLE-service: isTarget accepts only serverRoot,
+tick drains only that service's command/action queues and labels them with its
+human player handle. Enqueue hooks discard other services. Current tutorial
+runtime evidence therefore does not establish working autonomous AI commands.
+
+Conservative candidate bridge (new work, not yet implemented):
+  a. Own one mode4 practice session, unique game handle, human/AI handles, and
+     exact human/AI GameServer GC roots; keep it separate from dedicated ready.
+  b. Build/merge and join the human world using existing native bootstrap.
+  c. Schedule native AI creation on the observed Unity thread only after the
+     shared world/AI world and the selected assets exist. Use profile17/army1.
+  d. Wrap ONLY the AI coroutine's JoinGame callsite. For the exact pending local
+     AI handle/session, register the AI service and synthesize its native join
+     response on a later Unity update; otherwise call original JoinGame.
+     AddLocalAI appends the process after RunCoroutine, so registration cannot
+     assume _aiPlayers already contains it on the first synchronous callback.
+     An owned pending-add scope + exact rooted PlayerGameHandle identity can
+     identify it initially; verify process/instance membership before delivery.
+  e. Admit both exact services into bounded input capture. Each 20Hz frame has
+     separate InputActionsByPlayer entries carrying the real human and AI handles.
+     Include each native JoinArmyCommand once. Push one frame into the shared
+     simulation, not two ticks/worlds; update the AI service's native state without
+     enabling a backend connection. Preserve deterministic ordering and counters.
+  f. Verify the AI actually emits build/move/attack actions and command effects.
+     A profile ID in GameData, an AI world pointer, or an advancing frame alone is
+     insufficient evidence that the opponent is playing.
+
+5. EXACT CANDIDATE CALLSITES (NOT PATCHES INSTALLED BY THIS REVIEW)
+
+RVA         raw offset   original five bytes   destination/ABI
+0x3d25f33  0x3d24533    e998611100             tail Front.JoinMatchmakingQueue;
+  void(front,controller,mode,MethodInfo*). Existing top-level wrapper is enough
+  if it retains controller and dispatches mode correctly; no extra hook needed.
+0x3e4a00f  0x3e4860f    e97c3f72fe             tail generic EnqueueMessage;
+  void(front RCX, FrontServerConsumer RDX, generic MethodInfo* R8).
+  Already hooked for owned debug-create requests; add explicit practice routing.
+0x37bdaee  0x37bc0ee    e84d5e6900             call GameServer.JoinGame0x3e53940;
+  void(aiGameServer RCX, GameConnectionInfo RDX, spectator R8B=false,
+       MethodInfo* R9=null). Callsite wrapper can preserve original non-practice.
+0x37bb853  0x37b9e53    e8c87d6900             call GameServer.EnqueueInputAction;
+  void(aiGameServer RCX, GamePb.InputAction RDX, MethodInfo* R8=null).
+  Existing entry hook is a better place to admit owned AI queues; this exact
+  callsite is a diagnostic boundary, not a recommendation to hook both places.
+For button identity, 0x3d25e20/raw0x3d24420 ten bytes4533c0b201e906000000.
+
+6. END / EXIT / RETURN MUST BE A SEPARATE PRACTICE LIFECYCLE
+
+The established multiplayer result bridge currently requires server-authoritative
+match/result identity and LAN slot assumptions. Do not blindly call it for a
+local mode4 game. Native victory/defeat flow waits for EndOfGameResponse; local
+practice must deliver an appropriate completed local result once, preserve mode4,
+and avoid fabricated progression/currency/rating rewards. Confirm exact mode4 UI
+branches in an isolated test; this pass did not validate result navigation.
+
+Native reusable cleanup boundaries remain:
+  CleanupGameState0x3e51ba0 -> SimulationShutdown0x3e68030.
+  AIManager.PlayerSimulation_SimulationShutdownEvent0x3b97bf0 normally calls
+    DestroyAllAI(true)0x3b9a060, then destroys its AI world and zeros _aiWorld.
+    An AI smoke-test variable can suppress DestroyAllAI; do not enable it.
+  Native InGame shutdown reason0 selects postgame; nonzero selects MainMenu.
+  MatchResultVM.OnContinue0x3d610c0 checks empty NavigationStack and sends native
+    signal2; postgame flow completion0x3def0a0 selects MainMenu.
+These are static/native lifecycle boundaries, not a proven mode4 return test.
+Do not promise direct restoration of the edit-deck sub-screen yet. Preserve the
+selected deck, let native postgame/menu run, then observe actual screen/history.
+
+Before reset/rejoin, stop admitting practice input, let native AI shutdown remove
+its processes/coroutines, verify shared simulation/world and AI world are idle,
+then release owned roots/queues. Keep dedicated presence alive but mark practice
+busy (or decline invites) and prevent a simultaneous multiplayer start. Returning
+to menu must not send C_READY, a lobby-ready signal, or revive the old AI identity.
+Qualification sequence: edit deck -> mode4 -> exact selected human deck -> distinct
+AI profile/deck -> autonomous command effects -> victory and surrender/exit ->
+native result/menu -> second AI game -> ordinary multiplayer invitation/start.
+Also test invalid deck, double click, cancel during asset load, network loss while
+practicing, and shutdown during AI creation. No such runtime tests were run here.
+
+The initial implementation boundary is therefore a small dedicated practice
+coordinator plus two-service local input ownership and result/cleanup support,
+not just enabling mode4 in ba_bootstrap::create. The original client already
+contains the map, decks, AI tuning, AI DLL loop and native UI needed for that work.
