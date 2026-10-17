@@ -303,9 +303,9 @@ with changed decks in the same two client processes on this PC.
 Requested remote: git@github.com:Vegasq/battleaces_resurrection.git
 Repository URL: https://github.com/Vegasq/battleaces_resurrection
 User corrected the remote repository name on 2026-10-17; use this spelling.
-Remote status: user reports it was created and is awaiting its initial commit
-(2026-10-17). Cloning verified access to the empty remote when implementation
-began. See STATUS.txt for current publication state and completed checks.
+Remote status: initial source-only commit a62244f pushed on 2026-10-17. A fresh
+SSH clone passed source checks and reproduced the two-client native baseline.
+See STATUS.txt for current publication state and completed checks.
 
 Proposed layout:
   server/                 coordinator, simulation wrapper, protocol and profiles

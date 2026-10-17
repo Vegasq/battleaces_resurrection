@@ -2,7 +2,7 @@ IMPLEMENTATION LEDGER
 Updated: 2026-10-17
 Active objective: implement SERVER_REPLACEMENT_PLAN.txt, Windows only.
 
-P0 IN PROGRESS
+P0 COMPLETE
 - Remote repository cloned; it was empty. Dedicated source checkout created.
 - Authored server/helper/patcher source migrated with an explicit file allowlist.
 - No game binaries, maps, catalogs, descriptors or captures copied into source.
@@ -13,7 +13,7 @@ P0 IN PROGRESS
 - Compiler/SDK discovery replaces workstation-specific compiler paths.
 - Publication audit checks indexed blobs and reachable history for unexpected
   paths, binaries, archives, large encoded payloads and common secret formats.
-- 33 synthetic tests passed locally on Windows/Python 3.12. These validate wire
+- 37 synthetic tests passed locally on Windows/Python 3.12. These validate wire
   parsing, match construction, native snapshot decoding and publication guards.
   They do not prove real gameplay or native DLL behavior.
 - Reproducible descriptors and map/catalog export implemented from a locally
@@ -32,12 +32,23 @@ P0 IN PROGRESS
   Game profile/replay writes to the user's profile directory remain restricted
   by the execution sandbox; server profile persistence uses the writable workspace.
   Owned export and baseline processes were stopped after their runs.
-- Initial commit/push and fresh-clone checks are pending. Origin was updated to
-  git@github.com:Vegasq/battleaces_resurrection.git following the user's rename;
-  the first read of that new URL returned Repository not found. Retry is pending.
+- Initial source-only commit a62244f pushed to
+  git@github.com:Vegasq/battleaces_resurrection.git. The user's rename is saved.
+  The complete initial index/history audit passed: 50 paths/objects, no failures.
+- A fresh SSH clone of that remote passed all 37 synthetic tests and the history
+  audit without game files. Fresh asset import produced 54 verified local files.
+  The fresh checkout then completed graphical run p0-fresh-clone01 with a new data
+  directory: match c06901c6ec494041bd828a32a6d2b728, 620 frames, 62 same-frame/view
+  comparisons per client, zero sampled state/count/resource mismatches. Selected
+  unit production and the native end result/checksum also match. Owned clients
+  and server exited after the run. This proves the migrated automated baseline;
+  it does not substitute for the manual rematch acceptance gate in P2.
+  Evidence: local/fresh-clone-p0-remote/local/matches/p0-fresh-clone01/verification.json.
+  Local-path Git cloning failed because the installed MSYS shell could not create
+  its signal pipe; the actual SSH clone succeeded without changing host policy.
 
-P1-P5 INCOMPLETE
-Worker isolation/multiple rooms, reusable client sessions, telemetry removal,
+P1 IN PROGRESS; P2-P5 INCOMPLETE
+Worker isolation/multiple-room integration, reusable client sessions, telemetry removal,
 authenticated TLS transport, distributable packages and full release validation
 remain open. See the plan for the complete acceptance gates. P6 is optional future
 work after the requested first release, not a claim of current support.
