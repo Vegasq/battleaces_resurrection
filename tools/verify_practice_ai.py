@@ -92,6 +92,7 @@ async def run(args):
         manifest = json.loads((game / '.battleaces-resurrection/patch-manifest.json').read_text())
         (output / 'patch-manifest.json').write_text(json.dumps(manifest, indent=2))
         if args.offline: require(manifest.get('practice', {}).get('standalone'), 'helper does not support offline practice')
+        if args.settings_first: require(manifest.get('practice', {}).get('difficulty_settings'), 'difficulty settings helper required')
         command = [str(game / 'Battle Aces.exe'),
             '-practice-ai-experimental', '-practice-ai-smoke', '-lan-audit',
             f'-practice-ai-profile={args.profile}',
@@ -105,6 +106,7 @@ async def run(args):
             ['-offline-lan', f'-dedicated-server=127.0.0.1:{address[1]}', '-dedicated-community'])
         if args.human_build: command.append('-lan-smoke')
         if args.edit_deck_between: command.append('-practice-ai-deck-smoke')
+        if args.settings_first: command.append('-practice-settings-smoke')
         startup = subprocess.STARTUPINFO(); startup.dwFlags |= subprocess.STARTF_USESHOWWINDOW; startup.wShowWindow = 0
         clock = ctypes.WinDLL('kernel32').GetTickCount64; clock.restype = ctypes.c_ulonglong
         launch_tick = clock()
@@ -127,7 +129,8 @@ async def run(args):
                 last_network = time.monotonic()
             log = read_native_log(game, process.pid, since_tick=launch_tick)
             require(not any(marker in log for marker in ('Practice stopped in ', 'Offline loop stopped in ',
-                'Offline practice initialization failed:')), 'native practice failure; see logs')
+                'Offline practice initialization failed:', 'Practice settings UI failed in ',
+                'PRACTICE SETTINGS SMOKE failed')), 'native practice failure; see logs')
             unity_log = output / 'game.log'
             if unity_log.exists():
                 unity_text = unity_log.read_text(encoding='utf-8', errors='replace')
@@ -147,6 +150,10 @@ async def run(args):
             'practice did not exercise the available native Edit Deck callback')
         starts = list(re.finditer(r'Practice requested: match=([0-9a-f]{32}) ', log))
         require(len(starts) == args.matches and len({s[1] for s in starts}) == args.matches, 'wrong practice match count/identity')
+        if args.settings_first:
+            settings_done = log.find('PRACTICE SETTINGS SMOKE passed')
+            require(0 <= settings_done < starts[0].start(), 'match did not follow the native Settings selections/return')
+            report['native_settings_before_match'] = True
         report['matches'] = evidence = []
         for index, start in enumerate(starts):
             # Entity IDs can be reused in the next world: never correlate across matches.
@@ -164,6 +171,23 @@ async def run(args):
                 bot_units_with_observed_position_change=sorted(moved),
                 bot_deck_unit_ids_receiving_autonomous_orders=sorted(unit_orders),
                 autonomous_action_records=segment.count('Practice AI action:')))
+            if args.offline and manifest.get('practice', {}).get('difficulty_settings'):
+                difficulty_profile = 18 if args.settings_first else args.profile
+                selected = {17: 'easy', 18: 'normal', 19: 'hard'}[difficulty_profile]
+                tuning = 18 if difficulty_profile == 17 else difficulty_profile
+                require(f'Practice difficulty snapshot: selected={selected} modifierProfile={difficulty_profile} tuningProfile={tuning}' in segment,
+                        'match did not snapshot the requested difficulty')
+                require(f'Practice effective AI profile: id={tuning} expectedTableEntry=1 ' in segment,
+                        'native AI did not use the expected tactical profile')
+                strength = re.search(r'Practice difficulty modifiers: selected=(\w+) resourceQ=(\d+) damageQ=(\d+) healthQ=(\d+)', segment)
+                require(strength is not None and strength[1] == selected, 'difficulty strength evidence missing')
+                health = re.search(r'Practice AI entity: frame=\d+ army=1 id=\d+ type=3 position=\([^)]+\) health=(\d+)', segment)
+                require(health is not None and int(health[1]) > 0, 'native bot core MaxHealth was not observed')
+                human_health = re.search(r'Practice human core MaxHealth: frame=\d+ value=(\d+) viewer=0', segment)
+                require(human_health is not None and int(human_health[1]) > 0, 'native human core MaxHealth was not observed')
+                evidence[-1]['difficulty'] = dict(selected=selected, tuning_profile=tuning,
+                    resource_q32=int(strength[2]), damage_q32=int(strength[3]), health_q32=int(strength[4]),
+                    observed_bot_core_max_health=int(health[1]), observed_human_core_max_health=int(human_health[1]))
             if args.require_ai_movement:
                 require(bool(moved & unit_orders), 'no produced bot deck unit both received an autonomous order and changed position')
             require(segment.count('Practice AI action:') >= 5, 'no sustained autonomous AI inputs')
@@ -224,11 +248,13 @@ def main():
     parser.add_argument('--human-build', action='store_true', help='issue one ordinary human deck-slot0 build at frame300')
     parser.add_argument('--matches', type=int, choices=(1, 2), default=1)
     parser.add_argument('--edit-deck-between', action='store_true', help='use original native setters to change the deck before match2')
+    parser.add_argument('--settings-first', action='store_true', help='cycle actual offline Settings and return with Normal18 before playing')
     parser.add_argument('--profile', type=int, choices=(17, 18, 19), default=17,
-                        help='shipped mode4 profile only; no extra rating/difficulty modifiers')
+                        help='offline difficulty Easy17/Normal18/Hard19; community mode retains raw shipped profile selection')
     parser.add_argument('--require-ai-movement', action='store_true')
     args = parser.parse_args(); require(60 <= args.timeout <= 600, 'timeout must be60..600 seconds')
     require(not args.edit_deck_between or args.matches == 2, 'deck edit requires two matches')
+    require(not args.settings_first or args.offline, 'settings-first requires standalone offline mode')
     require(1200 <= args.frames <= 3600, 'frames must be1200..3600')
     require(0 <= args.idle_seconds <= 60, 'idle seconds must be0..60')
     asyncio.run(run(args))

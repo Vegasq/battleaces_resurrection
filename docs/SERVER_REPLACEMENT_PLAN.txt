@@ -219,13 +219,29 @@ Effort allowance: 4-7 days.
   Standalone repeat play then passed two natural bot wins,36/40 ordered moving
   bot units, native Continue/local cleanup and a changed selected deck between
   matches, with no server. Six idle-menu observations remain clear after the scoped
-  legacy disconnect fix. Manual Normal acceptance, deck persistence after restart
-  and failure cleanup remain open. See practice-ai.txt.
+  legacy disconnect fix. Manual standalone Normal combat, a natural human win and
+  Continue/menu return passed2026-10-17. Deck persistence after restart and failure
+  cleanup remain open. See practice-ai.txt.
+  User request2026-10-17: expose meaningful AI difficulties in Settings, preferably
+  reusing Region in offline practice without changing multiplayer region state.
+  Implemented: offline Settings/General offers Easy, Normal and Hard and saves the
+  choice for the next match/restart. Native UI change/reopen/restart and all three
+  playable match checks pass; bot health changes while human health stays fixed.
+  Manual dropdown acceptance and quantitative damage/resource comparisons remain
+  open. Policy and exact evidence are in practice-difficulty.txt.
+  Investigate the approximately106-second cold startup and improve loading
+  feedback; a network timeout is not established. See client-startup.txt.
   The normal no-lag installation is unchanged.
 - Reset all match-specific transport queues, frame counters, managed references,
   result flags and Unity states on exit, then return to lobby for rematch.
 - Define clear UX for server unavailable, incompatible version, room full,
   authentication failure, peer disconnect and aborted match.
+- TODO (user request2026-10-17): show loading feedback immediately after starting
+  an AI or multiplayer match. Current manual feedback: the screen stays unchanged
+  for5-10 seconds before gameplay starts. Keep a visible preparing/loading state
+  until the actual match is ready, prevent duplicate starts, and clear it on
+  success or failure with an appropriate retry/error message. Use the real local
+  build/load and multiplayer start/ready states, not a fabricated percentage.
 - Keep offline tutorial launch working; keep test-only commands opt-in.
 - Inventory analytics/telemetry initialization, event collection, batching,
   background retries and upload paths in the client and bundled components.

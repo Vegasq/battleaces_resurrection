@@ -21,6 +21,7 @@ namespace ba_catalog { static void exportOnce();static std::string utf8(void*); 
 namespace ba_dedicated_results { static void receive(const std::string&); }
 namespace ba_audit { static void beginMatch(const std::string&);static void practiceAIView(void*,int); }
 namespace ba_telemetry_audit { static void startup();static void state(void* current); }
+namespace ba_practice_settings_ui { static void update(void* front);static bool smokeComplete(); }
 namespace ba_dedicated_session {
 static void update(void* front);
 static bool retryFromPlay(void* front,int mode);
@@ -60,6 +61,7 @@ static HMODULE module;
 static FILE* logfile;
 static Obj owner;
 static uint32_t owner_root;
+static DWORD initialThread=0;
 static const std::vector<std::wstring>& arguments() {
     static const auto values=ba_command_line::parse(GetCommandLineW());return values;
 }
@@ -209,7 +211,9 @@ extern "C" __declspec(dllexport) int OfflineInitialUpdate(void* state,void*) {
     static bool failed=false;
     if(failed)return 0;
     try {
-        init();owner=read<Obj>(state,0x18);
+        init();
+        if(initialThread && initialThread!=GetCurrentThreadId())throw std::runtime_error("initial state changed Unity thread");
+        initialThread=GetCurrentThreadId();owner=read<Obj>(state,0x18);
         if(!owner_root)owner_root=api<uint32_t(*)(Obj,bool)>("il2cpp_gchandle_new")(owner,false);
         log("Offline initial state reached after game initialization. PID=%lu",GetCurrentProcessId());
         ba_telemetry_audit::startup();
@@ -270,7 +274,21 @@ extern "C" __declspec(dllexport) void OfflineFrontUpdate(void* front,void*) {
 #include "community_invites.cpp"
 #include "community_popup.cpp"
 #include "community_match.cpp"
+#include "practice_settings.cpp"
 #include "practice_ai.cpp"
+#include "practice_settings_ui.cpp"
 #include "server_assets_export.cpp"
 #include "lan_audit.cpp"
 #include "telemetry_audit.cpp"
+
+extern "C" __declspec(dllexport) void OfflineStartupReady(void* context,void* freshThreshold,void* reusedThreshold,void* initializer) {
+    // Exact RGameInit.Start completion callsite, after _loadingFinish=true.
+    // Windows x64 passes the two 16-byte Nullable<double> values by pointer.
+    // Keep the original startup stopwatch/logging and its original null
+    // MethodInfo before opening the intro gate, which still waits for assets.
+    ba::init();
+    ba_local::Root owner(initializer);
+    ba::native<void(*)(void*,void*,void*,void*)>(0x3dfd180)(context,freshThreshold,reusedThreshold,nullptr);
+    ba::log("Offline startup assets ready; original Start timing retained; releasing native intro gate");
+    ba::native<void(*)(void*,void*)>(0x3dfced0)(owner.get(),nullptr);
+}

@@ -31,9 +31,11 @@ assets. After building/installing a current helper, copy
 client_patch/launcher/offline-practice.example.json to a personal config, set
 game_directory and display_name, then run:
   powershell -File client_patch/launcher/Launch-Client.ps1 -OfflinePractice -Config "<personal config>"
-Open Edit Deck -> Try Deck vs AI. Normal profile18 is the default. The manual
-launcher has no automatic play or surrender. See docs/practice-ai.txt for runtime
-evidence, the remaining acceptance checks and the experimental scope.
+Open Edit Deck -> Try Deck vs AI. Settings -> General -> AI Difficulty offers
+Easy, Normal and Hard in the offline Region row. Normal is the initial default;
+the saved choice applies to the next match and survives restart. The manual
+launcher has no automatic play or surrender. See docs/practice-ai.txt and
+docs/practice-difficulty.txt for runtime evidence and remaining acceptance.
 
 Current game wire protocol3 requires updating both helper and server. The server
 selects a bounded input window with --input-window (2..12, default6); both players

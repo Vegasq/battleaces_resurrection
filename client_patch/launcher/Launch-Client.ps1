@@ -80,7 +80,14 @@ if ($OfflinePractice) { $gameArgs += '-offline-practice' }
 else { $gameArgs += @('-offline-lan',"-dedicated-server=$resolvedAddress","-room=$Room") }
 if ($DiagnosticAudit) { $gameArgs += '-lan-audit' }
 if ($CommunityExperimental) { $gameArgs += '-dedicated-community' }
-if ($PracticeAIExperimental -or $OfflinePractice) { $gameArgs += @('-practice-ai-experimental',"-practice-ai-profile=$PracticeAIProfile") }
+if ($PracticeAIExperimental -or $OfflinePractice) {
+    $gameArgs += '-practice-ai-experimental'
+    # A saved in-game choice wins over the launcher's initial default. An explicit
+    # -PracticeAIProfile remains a diagnostic override; old helpers keep their ABI.
+    if ($OfflinePractice -and $manifest.practice.difficulty_settings -and -not $PSBoundParameters.ContainsKey('PracticeAIProfile')) {
+        $gameArgs += "-practice-ai-default-profile=$PracticeAIProfile"
+    } else { $gameArgs += "-practice-ai-profile=$PracticeAIProfile" }
+}
 if ($Slot -ge 0) { $gameArgs += "-lan-slot=$Slot" }
 if ($AutoReady) { $gameArgs += '-dedicated-auto-ready' }
 if ($Smoke) { $gameArgs += '-lan-smoke' }

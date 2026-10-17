@@ -17,9 +17,15 @@ PATCHES = [
      'offset': 0x6d42508, 'before': '50156e8001000000', 'after': '80bf6e8001000000'},
     {'name': 'Skip Steam restart and initialization in SubsystemRegistration',
      'offset': 0x3dfa9d7, 'before': '488b0d2272d102', 'after': 'e9880300009090'},
-    {'name': 'Start initial state after assets load, without intro UI input',
-     'offset': 0x3dfd963, 'before': '488d542470488b0d617ccf02e80cdeffff',
-     'after': '4c89e931d2e863dbffff90909090909090'},
+    # The paired startup call hook retains StopInitializationRecording. Pass
+    # this exact Start coroutine's RGameInit owner as the helper's fourth arg;
+    # the wrapper supplies the original null MethodInfo to the original call.
+    {'name': 'Pass initialized startup owner to timing and intro completion hook',
+     'offset': 0x3dfd95b, 'before': '4533c9', 'after': '4d89e9'},
+    # The scoped Apply wrapper needs the invoking VM because native models may
+    # be shared by multiple rows. Recover original MethodInfo from its vtable.
+    {'name': 'Pass exact settings row to scoped difficulty selection hook',
+     'offset': 0x3d17b0d, 'before': '4d8b8110020000', 'after': '4989d890909090'},
 ]
 HOOKS = [
     {'name': 'OfflineDedicatedLeaveQueue', 'rva': 0x3e3e760, 'offset': 0x3e3cd60, 'before': '48895c2408574883ec20'},
@@ -34,12 +40,21 @@ HOOKS = [
     {'name': 'OfflineSignalReadyToPlay', 'rva': 0x3e53d70, 'offset': 0x3e52370, 'before': '40574883ec20'},
 ]
 TAIL_HOOKS = [
+    # Restore this offline settings row's local presentation before native release.
+    {'name': 'OfflinePracticeSettingsRelease', 'rva': 0x2273fcf,
+     'offset': 0x22725cf, 'before': 'e97c5aaf01'},
     {'name': 'OfflineConsumeCreateRequest', 'rva': 0x3e4a00f,
      'offset': 0x3e4860f, 'before': 'e97c3f72fe'},
     {'name': 'OfflineDedicatedRetryLogin', 'rva': 0x3d06ffd,
      'offset': 0x3d055fd, 'before': 'e92e6a86fe'},
 ]
 CALL_HOOKS = [
+    {'name': 'OfflineStartupReady', 'rva': 0x3dff36f, 'offset': 0x3dfd96f, 'before': 'e80cdeffff'},
+    # Scoped enum settings presentation/actions. All other rows/modes forward.
+    {'name': 'OfflinePracticeSettingsModel', 'rva': 0x3d19579, 'offset': 0x3d17b79, 'before': 'e852fdc9fe'},
+    {'name': 'OfflinePracticeSettingsModel', 'rva': 0x3d1960b, 'offset': 0x3d17c0b, 'before': 'e8c0fcc9fe'},
+    {'name': 'OfflinePracticeSettingsApply', 'rva': 0x3d19514, 'offset': 0x3d17b14, 'before': '41ff9108020000'},
+    {'name': 'OfflinePracticeSettingsOptions', 'rva': 0x3c922f2, 'offset': 0x3c908f2, 'before': 'e849000000'},
     # AI entering-game coroutine only; all non-practice calls retain original JoinGame.
     {'name': 'OfflinePracticeAIJoin', 'rva': 0x37bdaee, 'offset': 0x37bc0ee, 'before': 'e84d5e6900'},
     {'name': 'OfflineAuditReadSimFrame', 'rva': 0x3e61faf, 'offset': 0x3e605af, 'before': 'e8dc600000'},
@@ -198,7 +213,8 @@ def install(game_dir, *, helper=None, original_path=None, restore=False, dry_run
                 'patches': PATCHES, 'hooks': HOOKS, 'tail_hooks': TAIL_HOOKS + (COMMUNITY_TAIL_HOOKS if community else []),
                 'call_hooks': CALL_HOOKS + (COMMUNITY_CALL_HOOKS if community else []),
                 'community': {'experimental': community, 'native_scope': 'custom-match-prototype' if community else None},
-                'practice': {'standalone': helper_bytes is not None and b'BA_RESURRECTION_OFFLINE_PRACTICE_V1' in helper_bytes},
+                'practice': {'standalone': helper_bytes is not None and b'BA_RESURRECTION_OFFLINE_PRACTICE_V1' in helper_bytes,
+                             'difficulty_settings': helper_bytes is not None and b'BA_RESURRECTION_PRACTICE_SETTINGS_V1' in helper_bytes},
                 'components': components,
                 'telemetry': {'recipe_version': telemetry.RECIPE_VERSION, 'runtime_validated': telemetry.RUNTIME_VALIDATED,
                               'unresolved_components': telemetry.UNRESOLVED_COMPONENTS},

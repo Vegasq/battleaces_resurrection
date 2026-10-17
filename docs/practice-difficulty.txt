@@ -1,0 +1,169 @@
+OFFLINE PRACTICE DIFFICULTY (2026-10-17, native qualification passed)
+
+User request: select AI difficulty in Settings, reusing the Region selector.
+Scope is the standalone offline launcher. Connected multiplayer retains the
+original Region model and behavior. A choice is snapshotted at match creation;
+later changes affect the next practice match.
+
+COMMUNITY POLICY
+Easy: intact Normal18 tactical profile, first shipped character deck, plus the
+authored Easy17 row: nominal0.9 resource income, damage and maximum health.
+Normal: intact Normal18, unchanged static army modifiers (all authored factors1).
+Hard: intact Hard19, nominal1 resource income and1.15 damage/maximum health.
+The human army is unchanged. Army buffs also apply to bot structures and other
+army entities with the corresponding attributes; this is not a combat-unit filter.
+
+This is a deliberate community practice policy, not a reconstruction of retired
+server matchmaking/rating logic. Easy17's original empty tactical rules failed
+manual movement acceptance. Normal18 passed native movement and manual gameplay.
+Hard19 shares Normal18's tuning/deck; selecting its profile alone would not apply
+the authored strength difference. No extracted table, tuning asset or deck is
+distributed. Values are read from the user's installed AIProfileTable at runtime.
+
+NATIVE MODIFIER CONTRACT
+AIProfile.AIConfigDefinition._cheatModifiersByRating has one row for each choice.
+Its CheatModifier.ToProto (original GameAssembly RVA37b67c0) produces Q32 integers
+using the original float conversion, so nominal decimal values have native float
+rounding. CommonPb.AICheatModifier fields are resourceMultiplier_,
+armyDamageMultiplier_ and armyHealthMultiplier_. This object is not cast to the
+different GamePb.ArmyModifiers type.
+
+Before encoding the owned practice GameConfig, the adapter clones bot army1's
+existing ArmyModifiers (or explicitly initializes resource unity if absent).
+It composes resourcingMultiplier_ using positive bounded Q32 integer arithmetic.
+One fresh-key ModifierConfig is appended to armyBuffs_, preserving existing
+global and army buffs. The key excludes every existing global/army modifier key.
+Attributes damage1/health4 use multiplicative kind1; label mutations remain empty.
+The original Simulation.dll importer defaults resource unity only when modifiers
+are absent. Attribute application stores modifiers per attribute/kind/key; a
+duplicate key replaces a previous modifier. Recalculation directly multiplies
+the supplied Q32 factor, without converting it to a delta from unity.
+
+Original GameAssembly SHA256:
+e59d08c01479b27404778048d7e13546dbf3771f6b3912744c7c2bdf80c4e758.
+Original Simulation.dll SHA256:
+107bb83dc416a16492277392c50104660e34c48911345ae2e0d5afe3929a07fb.
+Simulation RVAs: ArmyConfig import299cb0; attribute apply48760, duplicate key
+replace48b26; recompute48bd0 and multiplicative loop48fe0..490d0 (Q32 call49091).
+Retained ignored evidence: local/p2-practice-difficulty-choices.txt and
+local/practice-settings-modifier-types.json. These are static findings unless a
+runtime qualification is explicitly recorded below.
+
+LOCAL PREFERENCE
+The installation owns .battleaces-resurrection/practice-settings.ini:
+  schema=1
+  difficulty=normal
+Allowed difficulty values are easy, normal and hard. The helper saves atomically
+when a dropdown selection changes. Invalid/unreadable data falls back to the
+launch default with a local log message. A failed save keeps the session choice.
+The original Region variable and its persistence are not repurposed.
+
+SETTINGS ROW OWNERSHIP
+The key22 Region model is shared by distinct rows. The main menu's Region row
+belongs to PlayScreenVM/prefab1 and keeps its native behavior. Only the row in
+UIOptionsMenu/prefab4, General tab, is adapted. The observed original model stays
+bound/subscribed; two scoped Refresh getter calls return a private presentation
+model with boxed choices17/18/19. The native receiver keeps its callback and
+caption updates, with local label/value lists. Per-instance title/help localization
+references are detached and restored on release. Shared tables are not edited.
+The exact calling VM is passed to the Apply wrapper because model identity alone
+cannot distinguish the two rows. Unowned calls recover the original MethodInfo
+from the model's vtable and forward the original function. Settings Reset remains
+the original Region row's no-op; select Normal explicitly to restore difficulty.
+Original preimages/ABI and binding/navigation evidence:
+local/p2-practice-difficulty-ui.txt and local/p2-practice-difficulty-assets.txt.
+
+For a settings-capable helper, Launch-Client.ps1 supplies practice_ai_profile from
+the personal JSON config as -practice-ai-default-profile. A saved UI choice wins.
+An explicit -PracticeAIProfile17/18/19 parameter remains a diagnostic override.
+Older helper installations retain their prior launcher arguments and behavior.
+The selected choice and effective tactical profile are separate in native logs.
+
+QUALIFICATION
+Final helper-difficulty06 SHA256:
+797fac1049c42b81c67d440dbffedceb7c1bbb8f88be58b24c815cbf61b6805d.
+Patched GameAssembly SHA256:
+da8abfdcc054111e869987c8f198fdef031c77e6fd826042fcba02757d72383a.
+Four C++ checks and four focused launcher checks pass, including saved choice
+precedence and explicit diagnostic override. The prior manually accepted helper15
+installation remains frozen as a fallback.
+
+Native practice-settings06 PASSES in36.016s. Client42008 opens the real Settings
+menu, selects General, cycles Easy/Hard/Normal through the actual TMP dropdown
+listener, checks all labels/captions and mappings, closes/reopens and verifies
+Normal. The original shared Region model, value and persistent value remain
+unchanged. Original localization references are restored on release. Client38256
+then restarts with a Hard default and loads saved Normal. Both clients are reaped;
+the previous preference is restored and source hashes remain unchanged. All8
+periodic network snapshots are empty. These are automated native callbacks and
+text/visibility readbacks, not mouse hit-testing or manual visual acceptance.
+
+Native practice-difficulty-easy06, normal06 and hard06 all PASS on the same frozen
+build. Each starts through Edit Deck/Try Deck vs AI, produces and moves bot units,
+receives native results, invokes Continue and returns to the idle local menu.
+Normal begins with an explicit Hard choice, exercises Settings, then starts with
+the UI's final Normal selection. Counts below require both an autonomous Move or
+Attack order and a changed observed position for the same bot deck unit:
+  Easy:   client47052,39 ordered moving units, max supply120,233.484s.
+  Normal: client36676,37 ordered moving units, max supply135,241.313s.
+  Hard:   client41940,40 ordered moving units, max supply129,230.235s.
+Easy and Normal use the test-only surrender at frame3600. Hard ends in a natural
+bot win before that limit. All sources remain unchanged and owned clients are
+reaped. No server starts or community connection exists. All137 periodic netstat
+snapshots have no game-owned TCP/UDP rows; this is not packet capture.
+
+Native bot core MaxHealth is17999/20000/22999 for Easy/Normal/Hard, exactly
+floor(Normal baseline * authored Q32 factor / 2^32). The human core remains20000
+in all three runs. Easy's resource/damage/health Q32 factors are3865470464;
+Normal's are4294967296; Hard's damage/health are4939212288 and resource4294967296.
+The one-HP differences from decimal arithmetic follow the original float-to-Q32
+conversion and integer flooring. This qualifies native health application and
+bot-only scope. Resource rate and attack damage have source/import evidence and
+configuration readbacks, but no independent quantitative gameplay comparison.
+Ignored comparison record: local/practice-difficulty-comparison06.json.
+
+Same-build difficulty-custom-regression06 PASSES two native Custom Game matches
+on the same connections/lobby in82.265s. Clients15160/50460 and workers33304/48452
+are reaped; workers exit0, sources unchanged. Native Invite/Accept/Start/Ready,
+test surrender, results/Continue and second Start all complete. This regression
+does not exercise clicking the connected client's original Region selector.
+
+The source suite passed226 tests (224 pass,2 optional skips) in52.898s for the
+initial settings build; native bridge and original-byte checks were enabled.
+Final helper06's full source suite initially hit one existing timing assertion:
+snapshot_ms98.1875 was below the100ms threshold while native game probes ran.
+No server/timing code was changed. The isolated timing check passes in0.615s;
+the full suite without simultaneous game probes then passes226 tests (224 pass,
+2 optional skips) in49.978s, again with native bridge/original-byte checks enabled.
+Both runs are retained as local/difficulty06-tests.txt and
+local/difficulty06-tests-recheck.txt, plus difficulty06-timing-recheck.txt.
+Native settings02 failed the thread guard because Settings can initialize inside
+the initial->menu transition, before offlineUpdate. The initial native callback
+now records the Unity thread before that transition; later session thread must
+agree. Settings03 then failed its owner guard. Diagnostic settings04 established
+the early candidate is the fully initialized PlayScreenVM/prefab1 row, not a
+partially initialized Settings row. These failed probes are retained, clients
+reaped and preferences restored. The scoped fix checks screen ownership before
+blocking/painting and uses the actual invoking VM for selection interception.
+Settings05 reached the real menu but found public UnityEvent inspection helpers
+stripped from the player. Exact retained persistent-call fields now supply the
+same count/target/method checks, without modifying or invoking those events.
+
+The existing practice AI log field health names the copied view's MaxHealth
+vector, not current remaining health or weapon damage. The neighboring vector
+is CurrentDamage (damage taken). Native tests compare initial core MaxHealth
+between choices; emitted modifier configuration alone is not gameplay proof.
+
+MANUAL HANDOFF
+local/Play AI Match.cmd now uses local/practice-difficulty-play/player.json and
+the exact tested practice-auto-runtime, frozen for the user's manual check.
+Open Settings -> General -> AI Difficulty, choose a level, then Edit Deck ->
+Try Deck vs AI. No automation, automatic surrender or diagnostic audit is enabled.
+The prior manual helper15 remains available through
+local/Play AI Match (Previous Build).cmd and its unchanged practice-play config.
+Both the no-lag normal-match and manual Custom Game installations retain their
+prior helper/GameAssembly hashes. Both real launcher configs/manifests pass an
+argument check with process creation intercepted: one visible offline game,
+saved-choice-compatible default for the new helper, original18 for the fallback,
+and no server/smoke/audit arguments. No visible game was started by this check.
+Manual dropdown acceptance is still pending.

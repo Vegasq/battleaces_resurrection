@@ -73,6 +73,21 @@ tested installation/assets and existing player configs with all automation flags
 omitted. Close the old visible test clients before double-clicking it; the earlier
 Launch Updated Visible Test.cmd deliberately retains its automatic surrender test.
 
+STANDALONE TRY DECK VS AI
+Launch-Client.ps1 -OfflinePractice uses native local deck storage, simulation and
+AI without a replacement server. tools/Run-PracticeMatch.ps1 -Config "<config>"
+provides an ordinary visible session with no automatic surrender or Continue.
+Use a settings-capable patched installation, open Settings -> General ->
+AI Difficulty, choose Easy/Normal/Hard, then Edit Deck -> Try Deck vs AI.
+The offline Settings Region row is reused; connected multiplayer keeps Region.
+Changes apply to the next match and save automatically in the installation's
+.battleaces-resurrection/practice-settings.ini. Select Normal to restore the
+baseline; the original Settings Reset action does not reset this preference.
+The optional personal config practice_ai_profile17/18/19 is the initial default.
+A saved UI choice wins over it; explicit -PracticeAIProfile remains a diagnostic
+override at startup. Older helper installations keep their earlier behavior.
+See practice-difficulty.txt for the three levels and qualification limits.
+
 EXPERIMENTAL NATIVE CUSTOM GAME
 Install --community-experimental into an isolated working game copy, then add
 -CommunityExperimental to Launch-Client.ps1 with a personal schema1 config.

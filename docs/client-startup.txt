@@ -1,0 +1,48 @@
+CLIENT STARTUP TIMING (2026-10-17)
+
+Manual standalone helper15 run24132 eventually reached the menu and a successful
+human AI win. Process start to first native log creation was approximately
+105.850729s; this is an approximate callback milestone, not per-stage profiling.
+The preceding run50152 was closed during loading after approximately93s.
+Ignored evidence: local/practice15-manual-startup-delay.json and the two manual
+run folders named in practice-ai.txt. A full248-file comparison found manual
+and automated game content identical; it does not establish the delay's cause.
+
+Original GameAssembly SHA256:
+e59d08c01479b27404778048d7e13546dbf3771f6b3912744c7c2bdf80c4e758.
+RGameInit.Start MoveNext RVA3dfe460 starts12 pre-menu table loads, then37 further
+loads in parallel. The observed log pause precedes the first12-task barrier's
+completion or continuation, before the retired front login is created.
+Shipped Addressables catalog locations and18405 internal IDs contain no HTTP
+URLs. All133 bundle option records disable retries/timeouts and web loading of
+local bundles. No timeout/retry is present in the inspected await path. Runtime
+ID transforms, OS scheduling and the specific slow table remain unobserved.
+Detailed bounded native evidence is retained in ignored local/
+p2-practice-black-startup.txt and p2-practice-black-assets.txt.
+
+The prior startup patch replaced StopInitializationRecording with TriggerUIFinish,
+which removed the original Start duration log. The new paired patch passes the
+exact RGameInit owner in R9 at RVA3dff35b, then wraps the completion call at
+RVA3dff36f. It calls original StopInitializationRecording3dfd180 with its string,
+two Nullable<double> pointers and null MethodInfo, then TriggerUIFinish3dfced0
+on the rooted owner. It does not skip assets, block on tasks or add a coroutine.
+This restores diagnostics; it is not a claimed startup performance fix.
+
+Isolated helper-startup01:
+2a6d99005f059d9703d1b35cfeb8922f42f2d652a316b28316b62c7338398004.
+Patched GameAssembly:
+bbb828ecd028c67227c07f9cae1db7e3faabe4c45ee4dfd465b624f9f4db3d40.
+Four C++ checks and13 focused patcher/installer/launcher checks pass.
+Native client-startup01 initially FAILED its marker-count assertion because the
+shared match log reader intentionally discards records before initial state.
+The raw PID5264 log has exactly one completion hook and initial/menu callback;
+original Start time19.907s. Preserve that failed report as a validator failure.
+The startup verifier now retains timestamp-qualified records before initial state,
+without changing the shared match reader. New native client-startup02 PASSES:
+client36764, original Start9.755s, observed menu15.141s, elapsed15.516s,
+exactly one completion/initial callback, no match started, sources unchanged,
+owned process reaped. These warm runs do not explain or fix the105.85s delay.
+
+Next diagnostic if needed: bounded per-table start/terminal timing and task status
+for the known12 pre-menu references. Never bypass _loadingFinish on a timer or
+force synchronous Addressables completion. User helper15 remains unchanged.

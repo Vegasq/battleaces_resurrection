@@ -2,7 +2,38 @@ IMPLEMENTATION LEDGER
 Updated: 2026-10-17
 Active objective: implement SERVER_REPLACEMENT_PLAN.txt, Windows only.
 
-STANDALONE DECK TESTING (2026-10-17, manual acceptance pending)
+OFFLINE AI DIFFICULTY (2026-10-17, native checks passed)
+Settings -> General now reuses the offline Region row for Easy/Normal/Hard.
+The choice saves per installation and is snapshotted for the next match.
+Easy combines working Normal tactics with authored0.9 strength; Normal preserves
+the baseline; Hard adds authored1.15 damage/health. The human army is unchanged.
+Native practice-settings06 validates real menu/dropdown callbacks, labels,
+close/reopen, restart persistence and unchanged original Region state.
+Native Easy/Normal/Hard matches pass with39/37/40 ordered moving bot units and
+native results/Continue/local return. Observed bot core MaxHealth is17999/20000/
+22999; human core remains20000. Easy/Normal use test surrender; Hard wins naturally.
+All137 periodic match network snapshots are empty; no server is started.
+Same-build difficulty-custom-regression06 passes two native Start/result/Continue
+cycles with the same two clients, connections and lobby in82.265s. Both workers
+exit0, owned clients/workers are reaped and sources remain unchanged.
+See practice-difficulty.txt for exact builds, failed probes and evidence limits.
+Final source suite:226 tests,224 passed and2 optional skips in49.978s, with native
+bridge/original-byte checks. An earlier timing threshold failure and its isolated
+passing recheck are retained. Four C++ checks pass. local/Play AI Match.cmd now
+uses frozen practice-auto-runtime; Play AI Match (Previous Build).cmd preserves
+the manually accepted helper15. Normal and Custom Game copies are unchanged.
+Manual dropdown/visual acceptance remains open. Immediate match loading feedback
+for both AI and multiplayer is recorded in the plan as the user's next UX TODO.
+
+STANDALONE DECK TESTING (2026-10-17, manual Normal combat accepted)
+The user played standalone Normal18 and reported that the game was very fun.
+Manual run manual-practice-20261017-175711, client24132, records a natural human
+win around frame9475 and native Continue/local menu return, without automation.
+The exact helper15 installation remains frozen. The preceding black-screen
+report was a long startup delay: this successful launch took approximately
+105.85s to its initial helper callback. The slow asset operation is not identified;
+there is no established network timeout. See client-startup.txt.
+
 The user removed the server requirement for Try Deck vs AI. The new offline
 launcher has no server process, imported server assets, address or DNS lookup.
 It reuses the native local deck selector/storage and initializes local editor
@@ -24,8 +55,8 @@ in246.344s. All48 network snapshots are empty; source hashes are unchanged and
 client41320 is reaped. Native practice-custom-regression15 then passes two actual
 Custom Game Start/result/Continue cycles in the same lobby in80.094s. Clients
 45580/49556 and workers43160/50520 are reaped, workers exit0, sources unchanged.
-The exact tested helper15 and GameAssembly are installed in custom-abort-runtime
-for local/Play AI Match.cmd. This launcher starts one visible offline game with
+The exact tested helper15 and GameAssembly were installed in custom-abort-runtime
+for the previous local/Play AI Match.cmd. That launcher starts one visible offline game with
 Normal18, no server process, no automatic surrender/Continue and no heavy audit.
 The no-lag normal and manual Custom Game installations remain hash-identical.
 Cross-process local deck persistence still needs
@@ -52,8 +83,8 @@ practice-ai12 observes40 bot units both receiving Move/Attack orders and changin
 position, maximum supply131 and a natural bot win before scripted surrender.
 Native Continue/cleanup succeeds. Its initial movement-validator failure was
 corrected against saved evidence; the original report is preserved beside the
-passing review. Four focused validator tests pass. Manual Normal feedback and
-failure cleanup remain unqualified; standalone repeat play is recorded above. See
+passing review. Four focused validator tests pass. Failure cleanup remains
+unqualified; standalone manual feedback and repeat play are recorded above. See
 practice-ai.txt for exact evidence and remaining acceptance. Helper-practice12 in
 custom-abort-runtime was frozen for the earlier Normal-profile manual test;
 the standalone helper15 offer above now supersedes it.

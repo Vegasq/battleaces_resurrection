@@ -73,6 +73,26 @@ ConvertTo-Json -InputObject @($global:practiceLaunches) -Depth 4 -Compress
         self.assertNotEqual(result.returncode, 0)
         self.assertIn('standalone offline practice support', result.stderr)
 
+    def test_settings_capable_helper_receives_default_without_overriding_saved_choice(self):
+        self.manifest['practice']['difficulty_settings'] = True
+        self.manifest_path.write_text(json.dumps(self.manifest))
+        result = self.launch()
+        self.assertEqual(result.returncode, 0, result.stderr)
+        arguments = json.loads(result.stdout)[0]['Arguments']
+        self.assertIn('-practice-ai-default-profile=18', arguments)
+        self.assertFalse(any(value.startswith('-practice-ai-profile=') for value in arguments))
+
+    def test_explicit_profile_still_overrides_saved_choice(self):
+        self.manifest['practice']['difficulty_settings'] = True
+        self.manifest_path.write_text(json.dumps(self.manifest))
+        self.script.write_text(self.script.read_text().replace('-OfflinePractice -PassThru',
+                                                             '-OfflinePractice -PracticeAIProfile 19 -PassThru'))
+        result = self.launch()
+        self.assertEqual(result.returncode, 0, result.stderr)
+        arguments = json.loads(result.stdout)[0]['Arguments']
+        self.assertIn('-practice-ai-profile=19', arguments)
+        self.assertFalse(any(value.startswith('-practice-ai-default-profile=') for value in arguments))
+
 
 if __name__ == '__main__':
     unittest.main()

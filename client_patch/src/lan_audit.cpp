@@ -84,7 +84,7 @@ static void practiceAIView(Obj process,int simulationFrame) {
         frameField?buffer.read<uint32_t>(frameField):0,allianceField?buffer.read<uint32_t>(allianceField):0,length);
     // Decode existing observable components only. These are the same verified
     // field layouts used by summarize; no additional simulation/outbox read.
-    struct Entity {uint32_t army=UINT32_MAX,type=0,health=0;std::array<uint32_t,3> position{};bool located=false;};
+    struct Entity {uint32_t army=UINT32_MAX,type=0;int32_t health=0;std::array<uint32_t,3> position{};bool located=false;};
     std::map<uint32_t,Entity> entities;
     for(unsigned field:{2u,3u,5u,7u}) {
         const size_t component=buffer.table(root,field);const unsigned words=field==7?3:1;
@@ -95,7 +95,9 @@ static void practiceAIView(Obj process,int simulationFrame) {
             auto& entity=entities[buffer.read<uint32_t>(ids+4*i)];const size_t value=values+4*words*i;
             if(field==2)entity.army=buffer.read<uint32_t>(value);
             else if(field==3)entity.type=buffer.read<uint32_t>(value);
-            else if(field==5)entity.health=buffer.read<uint32_t>(value);
+            // Native generated vector1 is MaxHealth; vector2 is CurrentDamage.
+            // Keep the historical log field name for evidence-reader compatibility.
+            else if(field==5)entity.health=buffer.read<int32_t>(value);
             else {entity.located=true;for(unsigned word=0;word<3;++word)entity.position[word]=buffer.read<uint32_t>(value+4*word);}
         }
     }
@@ -103,7 +105,7 @@ static void practiceAIView(Obj process,int simulationFrame) {
     for(const auto& row:entities) {
         const auto& entity=row.second;if(entity.army!=1 || !entity.type || !entity.located)continue;
         if(++count>128)break;
-        ba::log("Practice AI entity: frame=%u army=1 id=%u type=%u position=(%u,%u,%u) health=%u",
+        ba::log("Practice AI entity: frame=%u army=1 id=%u type=%u position=(%u,%u,%u) health=%d",
             frameField?buffer.read<uint32_t>(frameField):0,row.first,entity.type,
             entity.position[0],entity.position[1],entity.position[2],entity.health);
     }
@@ -145,7 +147,7 @@ static Sample summarize(const std::vector<unsigned char>& bytes,uint32_t viewer)
     return s;
 }
 struct State {
-    bool disabled=false,announced=false;
+    bool disabled=false,announced=false,practiceHumanCoreObserved=false;
     uint64_t world=0;
     int lastSampledPreviousFrame=-2147483647;
     MakeFrame make=nullptr;
@@ -158,11 +160,31 @@ struct State {
     std::vector<unsigned char> buffer;
     void close() {
         for(FILE* f:{output,resources,legacyOutput,legacyResources})if(f)fclose(f);
-        output=nullptr;resources=nullptr;legacyOutput=nullptr;legacyResources=nullptr;
+        output=nullptr;resources=nullptr;legacyOutput=nullptr;legacyResources=nullptr;practiceHumanCoreObserved=false;
     }
     ~State() {close();}
 };
 static thread_local State state;
+static bool practiceHumanCoreHealth(const std::vector<unsigned char>& bytes,uint32_t frame) {
+    Buffer buffer{bytes};const size_t root=buffer.read<uint32_t>(0);
+    struct Entity {uint32_t army=UINT32_MAX,type=0;int32_t maxHealth=0;};
+    std::map<uint32_t,Entity> entities;
+    for(unsigned field:{2u,3u,5u}) {
+        const size_t table=buffer.table(root,field);uint32_t idsCount=0,valuesCount=0;
+        const size_t ids=buffer.vector(table,0,idsCount,4),values=buffer.vector(table,1,valuesCount,4);
+        if(idsCount!=valuesCount || idsCount>32768)throw std::runtime_error("practice human health component bounds");
+        for(uint32_t i=0;i<idsCount;++i) {
+            auto& entity=entities[buffer.read<uint32_t>(ids+4*i)];
+            if(field==2)entity.army=buffer.read<uint32_t>(values+4*i);
+            else if(field==3)entity.type=buffer.read<uint32_t>(values+4*i);
+            else entity.maxHealth=buffer.read<int32_t>(values+4*i);
+        }
+    }
+    for(const auto& record:entities)if(record.second.army==0 && record.second.type==3 && record.second.maxHealth>0) {
+        ba::log("Practice human core MaxHealth: frame=%u value=%d viewer=0",frame,record.second.maxHealth);return true;
+    }
+    return false;
+}
 static void path(wchar_t* target,size_t count,const wchar_t* suffix) {
     GetModuleFileNameW(ba::module,target,static_cast<DWORD>(count));
     wchar_t* slash=wcsrchr(target,L'\\');if(!slash)throw std::runtime_error("audit module path");*(slash+1)=0;
@@ -244,6 +266,8 @@ static void capture(Obj simulation,uint32_t originalViewer) {
         s.buffer.resize(size);
         if(s.get(world,s.buffer.data())!=0)throw std::runtime_error("audit SimGetSimFrameBuffer failed");
         const Sample sample=summarize(s.buffer,viewer);
+        if(viewer==0 && ba::offlinePractice() && ba::flag(L"-practice-ai-smoke") && !s.practiceHumanCoreObserved)
+            s.practiceHumanCoreObserved=practiceHumanCoreHealth(s.buffer,sample.frame);
         for(FILE* f:{s.output,s.legacyOutput})if(f)fprintf(f,"%lu\t%lu\t%u\t%u\t%016llx\t%016llx\t%u\t%u\t%u\t%u\t%u\t%u\n",GetCurrentProcessId(),GetCurrentThreadId(),sample.frame,viewer,
             static_cast<unsigned long long>(sample.canonical),static_cast<unsigned long long>(sample.raw),size,sample.armyCount,sample.typeCount,sample.healthCount,sample.positionCount,sample.resourceCount);
         resourceRows(s.resources,s.buffer,sample.frame,viewer);

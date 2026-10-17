@@ -9,7 +9,7 @@ struct State {
     Phase phase=Phase::Idle;
     std::unique_ptr<Root> front,controller,human,bot,humanDeck,botDeck,encoded,ai,process,completionInfo,completionUI;
     std::string match;
-    uint32_t request=0;
+    uint32_t request=0,aiProfile=18,difficultyProfile=18;
     bool reserved=false,buildStarted=false,adding=false,joinPending=false,aiStarted=false,result=false;
     bool conceded=false,continued=false,modalReleased=false;
     bool humanReady=false,botReady=false,humanJoined=false,botJoined=false;
@@ -85,13 +85,66 @@ static Obj tableElement(const char* name,uint32_t id) {
     void* args[]={&id};return ba_local::invokeMethod(method,loaded.get(),args);
 }
 static uint32_t profileId() {
-    // Diagnostic profile selection; mode4's shipped default remains17. These
-    // profiles select original tuning/decks, not retired-server cheat modifiers.
-    static const uint32_t id=[](){
-        const auto value=ba::argument(L"-practice-ai-profile=","17");
-        if(value=="17")return 17u;if(value=="18")return 18u;if(value=="19")return 19u;
-        throw std::runtime_error("practice AI profile must be17,18 or19");
-    }();return id;
+    return state.aiProfile; // Frozen at match creation, including through results.
+}
+static void applyDifficultyModifiers(Obj config) {
+    if(!ba::offlinePractice())return;
+    Root profile(tableElement("AIProfileTable",state.difficultyProfile));
+    require(profile.get() && ba::get<bool>(profile.get(),"Enable") && ba::get<int>(profile.get(),"GameMode")==4,"difficulty modifier profile mismatch");
+    Root definition(need(ba::get<Obj>(profile.get(),"AIConfigDefinition"),"difficulty definition missing"));
+    Root rows(need(ba::get<Obj>(definition.get(),"_cheatModifiersByRating"),"difficulty rating row missing"));
+    require(ba::api<uintptr_t(*)(Obj)>("il2cpp_array_length")(rows.get())==1,"difficulty requires one authored rating row");
+    Root row(need(ba::read<Obj>(rows.get(),0x20),"difficulty row missing"));
+    Root authored(need(ba::get<Obj>(row.get(),"CheatModifier"),"difficulty strength missing"));
+    Root strength(need(ba::call(authored.get(),"ToProto"),"difficulty fixed-point conversion failed"));
+    const int64_t unity=INT64_C(4294967296);
+    const int64_t resources=ba::get<int64_t>(strength.get(),"resourceMultiplier_");
+    const int64_t damage=ba::get<int64_t>(strength.get(),"armyDamageMultiplier_");
+    const int64_t health=ba::get<int64_t>(strength.get(),"armyHealthMultiplier_");
+    for(int64_t value:{resources,damage,health})require(value>0 && value<=4*unity,"difficulty strength outside supported bounds");
+    Root armies(ba::get<Obj>(config,"armies_"));
+    require(ba_local::count(armies.get())==2,"difficulty army count changed");
+    Root bot(ba_bootstrap::item(armies.get(),1));
+    require(ba::get<uint32_t>(bot.get(),"armyId_")==1,"difficulty bot army mismatch");
+    if(resources==unity && damage==unity && health==unity) {
+        ba::log("Practice difficulty modifiers: selected=%s resourceQ=%lld damageQ=%lld healthQ=%lld baselineUnchanged=1 humanUnchanged=1",
+            ba_practice_settings::name(state.difficultyProfile),resources,damage,health);return;
+    }
+    Root existing(ba::get<Obj>(bot.get(),"modifiers_"));
+    Root modifiers(existing.get()?ba::call(existing.get(),"Clone"):ba::make("GamePb","ArmyModifiers"));
+    const int64_t baseline=existing.get()?ba::get<int64_t>(existing.get(),"resourcingMultiplier_"):unity;
+    require(baseline>0 && baseline<=16*unity,"difficulty baseline resource multiplier outside supported bounds");
+    // Positive Q32 product without float rounding or an overflowing 64-bit product.
+    const uint64_t a=static_cast<uint64_t>(baseline),b=static_cast<uint64_t>(resources),mask=UINT64_C(0xffffffff);
+    const uint64_t product=((a>>32)*(b>>32)<<32)+(a>>32)*(b&mask)+(a&mask)*(b>>32)+(((a&mask)*(b&mask))>>32);
+    ba::set<int64_t>(modifiers.get(),"resourcingMultiplier_",static_cast<int64_t>(product));
+    std::vector<uint32_t> used;
+    auto collect=[&used](Obj list) {
+        const int count=ba_local::count(need(list,"difficulty modifier collection missing"));
+        require(count>=0 && count<=16384,"difficulty modifier collection capacity");
+        for(int i=0;i<count;++i)used.push_back(ba::get<uint32_t>(ba_bootstrap::item(list,i),"key_"));
+    };
+    collect(ba::get<Obj>(config,"modifiers_"));
+    for(int i=0;i<2;++i) {
+        Obj original=ba::get<Obj>(ba_bootstrap::item(armies.get(),i),"modifiers_");
+        if(original)collect(ba::get<Obj>(original,"armyBuffs_"));
+    }
+    uint32_t key=0xbaac0001;
+    while(std::find(used.begin(),used.end(),key)!=used.end())++key;
+    require(key!=0 && key!=UINT32_MAX,"difficulty modifier key exhausted");
+    Root buff(ba::make("GamePb","ModifierConfig"));ba::set<uint32_t>(buff.get(),"key_",key);
+    for(const auto& entry:std::array<std::pair<int,int64_t>,2>{{{1,damage},{4,health}}}) {
+        Root attribute(ba::make("GamePb","EntityAttribute"));
+        ba::set<int>(attribute.get(),"type_",entry.first);ba::set<int64_t>(attribute.get(),"value_",entry.second);
+        Root modifier(ba::make("GamePb","EntityAttributeModifier"));
+        ba::set<int>(modifier.get(),"modifierType_",1);ba::set<Obj>(modifier.get(),"attribute_",attribute.get());
+        ba_local::addItem(ba::get<Obj>(buff.get(),"modifiers_"),modifier.get());
+    }
+    ba_local::addItem(ba::get<Obj>(modifiers.get(),"armyBuffs_"),buff.get());
+    ba::set<Obj>(bot.get(),"modifiers_",modifiers.get());
+    ba::log("Practice difficulty modifiers: selected=%s resourceQ=%lld damageQ=%lld healthQ=%lld effectiveResourceQ=%llu buffKey=%u humanUnchanged=1",
+        ba_practice_settings::name(state.difficultyProfile),resources,damage,health,product,key);
+    if(ba::flag(L"-practice-ai-smoke"))ba::log("Practice bot army modifiers: %s",ba_catalog::utf8(ba::call(modifiers.get(),"ToString")).c_str());
 }
 static Obj aiDeck() {
     Root profile(tableElement("AIProfileTable",profileId()));
@@ -106,7 +159,7 @@ static Obj aiDeck() {
     Obj definition=need(ba::get<Obj>(need(character.get(),"practice AI character missing"),"AICharacterDefinition"),"practice AI character definition missing");
     Root shared(ba::get<Obj>(definition,"Deck"));Root copy(ba::make("Uncapped","Deck"));
     void* copyArgs[]={need(shared.get(),"practice authored AI deck missing")};ba::call(copy.get(),"CopyFromDeck",1,copyArgs);
-    ba::log("Practice AI policy: profile=%u first shipped character=%u; shared definition copied; no additional server-selected cheats",profileId(),characterId);
+    ba::log("Practice AI policy: profile=%u first shipped character=%u; shared definition copied; offlineDifficulty=%d",profileId(),characterId,ba::offlinePractice()?1:0);
     return ba_dedicated_deck::proto(copy.get());
 }
 static void fail(const char* where,const std::exception& error) {
@@ -129,6 +182,11 @@ static void start(Obj front,Obj controller) {
         ba_community_native::requests.empty() && ba_community_invites::operations.empty() &&
         !ba::get<Obj>(front,"_party") && ba_lan::bootstrap.empty(),"leave multiplayer before starting practice");
     require(ba_dedicated_deck::canReady(front),"practice selected deck is not valid");
+    state.difficultyProfile=ba::offlinePractice()?ba_practice_settings::selection():
+        ba_practice_settings::profile(ba::argument(L"-practice-ai-profile=","17"));
+    // Shipped Easy17 has no tactical group rules and failed movement acceptance.
+    // Offline Easy uses the working Normal tactics plus Easy's authored strength.
+    state.aiProfile=ba::offlinePractice() && state.difficultyProfile==17?18:state.difficultyProfile;
     root(state.front,front);root(state.controller,controller);
     root(state.human,ba::get<Obj>(front,"_playerGameHandle"));
     root(state.humanDeck,ba_dedicated_deck::selectedProto(front));
@@ -142,6 +200,7 @@ static void start(Obj front,Obj controller) {
         state.request=ba_community::send(wire::practice(ba_community::nextRequest(),true));
     }
     ba::log("Practice requested: match=%s mode=4 selectedDeckSnapshot=1 standalone=%d",state.match.c_str(),ba::offlinePractice()?1:0);
+    ba::log("Practice difficulty snapshot: selected=%s modifierProfile=%u tuningProfile=%u",ba_practice_settings::name(state.difficultyProfile),state.difficultyProfile,state.aiProfile);
 }
 static bool acknowledge(Obj front,const wire::Ack& ack) {
     if(ack.kind!=wire::Practice)return false;
@@ -186,6 +245,7 @@ static void consume(Obj front,Obj request,Obj data) {
     require(ba::get<Obj>(request,"gameData_")==data,"practice request data changed");
     Obj config=need(ba::get<Obj>(data,"gameConfig_"),"practice static config missing");
     require(ba::get<int>(config,"gameMode_")==4,"practice builder changed mode");
+    applyDifficultyModifiers(config);
     Obj armies=ba::get<Obj>(config,"armies_");
     require(ba_local::count(armies)==2,"practice primary map must have two armies");
     for(int index=0;index<2;++index) {
@@ -592,13 +652,14 @@ static void offlineUpdate(Obj front) {
                 "offline practice native deck storage ownership");
             Obj profile=ba::get<Obj>(account,"<ProfileCache>k__BackingField");
             ba::set<Obj>(profile,"name_",name.get());ba::set<bool>(profile,"isAlias_",true);
-            ba_dedicated_deck::initialize(front,nullptr);offlineInitialized=true;
+            ba_dedicated_deck::initialize(front,nullptr);ba_practice_settings::selection();offlineInitialized=true;
             ba::log("Offline practice menu ready: native local deck storage; no community or LAN transport; BA_RESURRECTION_OFFLINE_PRACTICE_V1");
         }
         require(offlineFront->get()==front,"offline practice front changed");
         if(frontUpdate(front))return;
         releaseOfflineIdleDisconnect(front);
-        smoke(front);
+        ba_practice_settings_ui::update(front);
+        if(!ba::flag(L"-practice-settings-smoke") || ba_practice_settings_ui::smokeComplete())smoke(front);
     }catch(const std::exception& e){
         offlineFailed=true;
         if(active())fail("offline menu",e);

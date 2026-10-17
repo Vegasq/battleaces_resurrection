@@ -15,13 +15,15 @@ copies the profile's first shipped character deck. Selecting the first choice
 is our policy; the retired server's map/deck randomness is not recovered.
 No extracted decks, maps, tuning assets or original binaries belong in Git.
 
-The first prototype used Easy17; the standalone launcher now defaults to Normal18
-after the movement qualification below. The selected profile supplies native
-bot behavior/fuzzy tuning. The prototype preserves
-the static army modifiers and applies no extra server-selected AI cheats. The
-client exports all rating/difficulty modifier choices but no proven client-side
-selection/army-mapping algorithm was found. A fresh zero-valued ArmyModifiers
-object is not a neutral multiplier and must not be fabricated.
+The first prototype used Easy17; standalone practice defaults to Normal18 after
+the movement qualification below. The selected profile supplies native bot
+behavior/fuzzy tuning. The original prototype preserved static army modifiers.
+The later Settings selector now applies an explicit offline community difficulty
+policy: Easy uses Normal tactics with authored Easy strength, Normal stays at
+baseline, and Hard applies authored Hard strength. See practice-difficulty.txt
+for UI persistence, modifier mapping and separate native qualification. This is
+not a reconstruction of retired-server rating policy. A fresh zero-valued
+ArmyModifiers object is not a neutral multiplier and must not be fabricated.
 
 The human and AI retain separate GameServerIntegration instances and identities.
 The local loop combines their queues into one ordered 20Hz input stream for one
@@ -316,7 +318,7 @@ no forbidden payloads. These source checks do not replace the pending native
 ordinary/custom regression or manual Normal-profile acceptance.
 
 REMAINING ACCEPTANCE
-Manual Normal-profile combat acceptance; local deck persistence across process
+Local deck persistence across process
 restart; AI followed by ordinary multiplayer in
 the same connected process; invalid deck/double click; load cancel;
 connection loss while practicing; shutdown during AI creation. Retain both
@@ -451,4 +453,26 @@ It has no server/address/assets argument and no smoke, automatic surrender,
 automatic Continue or heavy audit flags. The no-lag normal and manual Custom
 Game copies retain their prior hashes. Keep this offered AI installation frozen
 while the user tests movement/fighting, Continue and a changed-deck repeat.
-Local deck persistence across restart and manual visual acceptance remain open.
+Local deck persistence across restart remains open. Manual feedback follows.
+
+MANUAL STANDALONE NORMAL ACCEPTED (2026-10-17)
+The user reported: "PLAYED ai AND THE GAME WAS SUPER FUN! THANK YOU!"
+Run local/matches/manual-practice-20261017-175711 used client24132 and the frozen
+helper15 above, with no server, diagnostic audit, automatic surrender or Continue.
+Native match372c8f21e66abe44eea205121a0063cd ran to approximately9475 frames.
+The result delivered winner0/local-won1, followed by completed1/standalone1,
+idle disconnect cleanup and RGameMainMenuState with no active world. This proves
+manual Normal combat and human win/menu return, not every ability or restart
+persistence. The game subsequently exited.
+
+An earlier launch50152 was closed during loading after approximately93s. The
+successful second launch took approximately105.85s before its first helper
+callback. Keep the working user copy unchanged while profiling startup on the
+separate practice-auto-runtime. See client-startup.txt for evidence and limits.
+
+SUBSEQUENT DIFFICULTY HANDOFF
+The offline Settings selector is now separately qualified on helper-difficulty06
+and offered through local/Play AI Match.cmd using practice-auto-runtime. The
+previous helper15 above remains unchanged and available through
+local/Play AI Match (Previous Build).cmd. See practice-difficulty.txt for all
+three native match results, saved selection, regression and manual boundaries.
