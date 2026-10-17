@@ -85,7 +85,7 @@ validated its first620 frames with complete per-match receipt journals for both
 clients, but did not leave results: the native navigation stack has one entry.
 The follow-up p2-manual01 confirms inactive/zero world, Normal rewardScreen2,
 MatchResultState and a live result VM; its remaining gate is navigation-not-empty.
-Do not claim a second client match has passed.
+Those earlier runs did not demonstrate a second client match.
 
 User reports tool-launched clients produce audio but no visible windows. Windows
 reports HWNDs, but desktop automation does not list these game windows. Earlier
@@ -103,9 +103,31 @@ was delivered at monotonic589129015/589129046; navigationCount1 was observed at
 589139015/589139046. Graceful result-socket EOF occurred later at589188953.
 Thus the blocking navigation entry precedes the replacement server's completed
 connection expiry by about50s. Original client connection-state checks are under
-investigation; do not claim the exact trigger or a successful rematch yet.
+investigation at that point; the later trace/test below resolves this trigger.
 Local evidence: local/matches/p2-visible01/verification.json and the two
 investigation/runtime/dedicated-native-PID.log files in the working installation.
+
+POST-GAME FIX / AUTOMATED SAME-PROCESS REMATCH VERIFIED
+The original UILoginFlowController.OnGameStateCleanedUp checks the intentionally
+offline original front service and displays its disconnected modal. A narrowly
+gated helper now invokes its original HideReconnectUI once, only for that exact
+descriptor after a healthy, validated dedicated result and native world teardown.
+Runtime p2-postgame01 proves the controller/descriptor identity and navigation
+count1->0 on both clients after BOTH matches. Actual coordinator errors are not
+covered by this successful-result-only gate. See client-session-lifecycle.txt.
+
+Helper SHA256 e913dae15cf91665ad739d70d416c99883f99dd1abec2e05e274b9f0a5646edd;
+client PIDs1128/22728 persisted across matches1e23d44b22064ca49c1042c8bff12f81
+and dbd1172ec11a4d85a401f9d8ba3bdc7d. Each match:620 authoritative frames,
+62 sampled views/client,620 complete receipts/client,zero mismatches/server
+errors,matching native results. Original OnContinue, menu/world reset, saved
+deck reload and ordinary native deck setters ran between matches. Changed units:
+seat0 slot0 type1->75;seat1 slot1 type6->74. New world/frame0 and per-match journals
+were observed. The automated native Continue invocation is not manual UI input.
+Second result remained usable by the Continue gate with navigationCount0.
+Evidence local/matches/p2-postgame01/summary.json and per-match verification JSON.
+Manual click/deck/rematch validation, broader failure UX and repeated soak remain
+required before P2/release completion.
 
 Real installer restore/reapply check passed while all game processes were closed:
 both GameAssembly.dll and UnityPlayer.dll restored to pinned pristine hashes,

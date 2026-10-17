@@ -176,6 +176,61 @@ Recovered field offsets used by the reset guard: server mapLoad0xd8, simulation
 The original field registration tables and focused local disassembly establish
 these offsets. Captured metadata/disassembly stays outside the source repository.
 
+COMPLETED-MATCH LEGACY DISCONNECT DIALOG
+
+In the manually launched p2-visible01 pair, both visible windows showed
+"CONNECTION ISSUE / You have been disconnected / RECONNECT / QUIT TO DESKTOP"
+over the native results screen. Both simulations had already reached an inactive,
+zero world and RGamePostGameState; the navigation stack contained one item.
+The first recorded blocked state preceded the dedicated socket's graceful EOF
+by about50 seconds. Coordinator evidence contained620 frames and complete client
+receipts,62 sampled views per client, zero state mismatches and zero server errors.
+This establishes a real UI blocker after a valid match, not a coordinator failure.
+
+Static trace in the supported original identifies the obsolete service path:
+  UILoginFlowController.OnStartJoiningGame RVA0x3d07010 sets game tracking=true
+      and hides front-service reconnection UI while the native match is active.
+  OnGameStateCleanedUp RVA0x3d07020 clears tracking, reads the original
+      FrontServerIntegration connection status at+0x118 and calls UpdateView.
+  UpdateView RVA0x3d07280 selects _disconnectedModal(+0x98) when status=0,
+      unless the original service reports a distinct maintenance/idle condition.
+  ShowModal RVA0x3d07390 records that descriptor in _activeShowUIObject(+0x78)
+      and the native UI object in _activeModal(+0x70).
+The dedicated adapter owns a separate socket; the intentionally unused original
+front service remains disconnected. The other controller, UIGameConnectionStatus,
+does the opposite during cleanup: RVA0x3c899d0 stops its reconnect flow and hides
+its game-connection modal. Local trace files are disconnect-ui-types.json and
+legacy-login-disconnect.asm under investigation/dedicated outside this repository.
+
+The adapter therefore makes at most ONE original UILoginFlowController.
+HideReconnectUI call per match, only after all of these conditions hold:
+  - matching authoritative S36 was delivered after local native winner validation;
+  - this session observed a real active world, now inactive/zero, in native postgame;
+  - transport/input are healthy, failureReason is empty, and packet polling has run;
+  - the exact login controller is found through its GameStateCleanedUp delegate,
+    references this front/server pair, has stopped game tracking, and front status=0;
+  - _activeShowUIObject is exactly its own nonnull _disconnectedModal descriptor,
+    with a live _activeModal. No generic modal type or navigation-count shortcut.
+The controller search is bounded to120 checks at250ms intervals while eligible.
+The release-attempt flag is set BEFORE the call. Inspection/release failure logs
+once and never retries. The flag resets only at the existing safe menu/world reset.
+
+HideReconnectUI RVA0x3d079c0 cancels its own disconnect coroutine and invokes
+HideExistingModal RVA0x3d078c0, which releases that object through the original
+IUIObjectPool. Normal UI release handlers own navigation removal. The helper does
+not clear/pop the navigation stack, change a connection-status field, fabricate
+an input event, replace any cleanup subscriber, or force a postgame transition.
+Other dialogs and all unsuccessful dedicated match paths are untouched. A later
+real coordinator ERROR still stops the helper and enters ordinary error recovery;
+there is no repeated modal suppression. Current dedicated failure presentation
+remains the separately documented logging/native cancellation UX limitation.
+
+Runtime proof requires the exact controller and matching descriptor, navigation
+count before/after original release, and a second match in the same processes.
+The coordinator results below establish those automated checks. Manual Continue
+remains a separate acceptance check. The code logs the precondition and
+post-release native references/count with the match ID.
+
 Prior runtime evidence, before this rematch change: dedicated06 and dedicated07
 showed native result delivery, RGamePostGameState, active0, frame-1 and no local
 army after normal cleanup. That demonstrates one-match native teardown. It does
@@ -196,6 +251,31 @@ Exercise ready/cancel, peer disconnect in a running match, connection refused,
 server shutdown and a failed/slow load. The 120-second safe-stop limitation must
 remain explicit until native async cancellation is demonstrated.
 
-No compiled helper was installed and no client was launched for this source
-change by the lifecycle implementer. Build/runtime outcomes are to be appended
-by the coordinator using exact helper hash, PIDs, match IDs and evidence paths.
+COORDINATOR RUNTIME VALIDATION / 2026-10-17
+
+Helper e913dae15cf91665ad739d70d416c99883f99dd1abec2e05e274b9f0a5646edd
+built with the argument-parser tests passing and was installed after closing the
+two user-desktop clients normally. The source implementer performed no launches;
+the coordinator ran p2-postgame01 with clients1128/22728 and server25548.
+
+Matches1e23d44b22064ca49c1042c8bff12f81 and
+dbd1172ec11a4d85a401f9d8ba3bdc7d both completed in the SAME client processes.
+Each passed620-frame receipt/hash verification and62 sampled state/views per
+client with zero mismatches/server errors and matching native results. Between
+matches, original OnContinue ran at589732062, native menu/world-idle reset passed,
+and ordinary deck setters changed seat0 slot0 from type1 to75 and seat1 slot1
+from6 to74. The second world initialized and began again at frame0.
+
+For both clients and both matches, runtime logs identified UILoginFlowController,
+its identical activeShow/disconnected descriptor, ModalConfirmVM, frontStatus0,
+tracking0 and navigationBefore1. Original HideReconnectUI yielded null modal/
+descriptor references and navigationAfter0. The second result remained at native
+MatchResultState with continue-handler-ready and navigationCount0.
+
+Evidence: local/matches/p2-postgame01/summary.json and verification-MATCH.json;
+working-installation investigation/runtime/lan-native-0.log and lan-native-1.log
+(these fixed-seat logs append older runs; use PID/session/match boundaries).
+This establishes the automated native Continue/rematch path and the precise modal
+release. Manual mouse/keyboard Continue, deck editing, changed seats, and broader
+failure/soak acceptance remain required. It does not claim graphical visibility
+for tool-launched windows or P2 completion.

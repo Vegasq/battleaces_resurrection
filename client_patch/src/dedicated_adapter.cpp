@@ -14,6 +14,9 @@ static bool smokeContinueIssued=false,smokeDeckEdited=false,smokeFinished=false;
 static ULONGLONG smokePostgameAt=0;
 static ULONGLONG diagnosticAt=0;
 static unsigned diagnosticCount=0;
+static bool legacyDisconnectReleaseAttempted=false;
+static ULONGLONG legacyDisconnectCheckAt=0;
+static unsigned legacyDisconnectChecks=0;
 
 static bool inMenu() {
     Obj fsm=ba::read<Obj>(ba::owner,0x2b0);
@@ -26,6 +29,57 @@ static bool worldIdle(Obj server) {
 }
 static const char* className(Obj object) {
     return object?ba::api<const char*(*)(Obj)>("il2cpp_class_get_name")(ba::klass(object)):"null";
+}
+static void releaseCompletedLegacyDisconnect(Obj front,Obj server) {
+    // The shipped login controller rechecks the retired front service during
+    // GameStateCleanedUp, even after a verified dedicated victory/defeat. Its
+    // exact disconnected descriptor is obsolete here; other dialogs and all
+    // unsuccessful coordinator paths keep their native behavior.
+    if(legacyDisconnectReleaseAttempted || legacyDisconnectChecks>=120 ||
+       ba_lan::stopped || !ba_lan::failureReason.empty() || ba_local::failed.load() ||
+       !joined || !sawWorld || !ba_lan::matchEnded || !ba_dedicated_results::delivered ||
+       ba_dedicated_results::updating || ba_dedicated_results::matchId!=ba_lan::dedicatedMatchId ||
+       !worldIdle(server))return;
+    Obj fsm=ba::read<Obj>(ba::owner,0x2b0);
+    if(!fsm || ba::get<Obj>(fsm,"_currentState")!=ba::read<Obj>(ba::owner,0x2f0))return;
+    const ULONGLONG now=GetTickCount64();if(now<legacyDisconnectCheckAt)return;
+    legacyDisconnectCheckAt=now+250;++legacyDisconnectChecks;
+    try {
+        Root event(ba::get<Obj>(server,"GameStateCleanedUp"));if(!event.get())return;
+        Root listeners(ba::call(event.get(),"GetInvocationList"));
+        const size_t count=ba::api<uintptr_t(*)(Obj)>("il2cpp_array_length")(listeners.get());
+        if(count>128)throw std::runtime_error("unexpected native cleanup listener count");
+        Obj loginClass=ba::find_class("Uncapped.UI","UILoginFlowController");
+        for(size_t i=0;i<count;++i) {
+            Obj entry=ba::read<Obj>(listeners.get(),0x20+i*sizeof(Obj));
+            Root controller(ba::call(entry,"get_Target"));
+            if(!controller.get() || ba::klass(controller.get())!=loginClass)continue;
+            if(ba::get<Obj>(controller.get(),"_frontServer")!=front ||
+               ba::get<Obj>(controller.get(),"_gameServer")!=server ||
+               ba::get<bool>(controller.get(),"_isTrackingGameConnection") ||
+               ba::read<int>(front,0x118)!=0)return;
+            Obj descriptor=ba::get<Obj>(controller.get(),"_disconnectedModal");
+            Obj activeDescriptor=ba::get<Obj>(controller.get(),"_activeShowUIObject");
+            Obj modal=ba::get<Obj>(controller.get(),"_activeModal");
+            if(!descriptor || activeDescriptor!=descriptor || !modal)return;
+            Obj navigation=ba::get<Obj>(ba::owner,"<NavigationStack>k__BackingField");
+            Obj stack=navigation?ba::get<Obj>(navigation,"_navigationStack"):nullptr;
+            const int before=stack?ba_local::count(stack):-1;
+            // Mark BEFORE invoking native release. A failed release must never
+            // become an endless popup-dismissal loop or suppress later errors.
+            legacyDisconnectReleaseAttempted=true;
+            ba::log("Dedicated completed legacy disconnect: match=%s controller=%s source=OnGameStateCleanedUp/UpdateView frontStatus=0 tracking=0 activeShow=%p disconnected=%p modal=%s navigationBefore=%d; one original HideReconnectUI call",
+                ba_lan::dedicatedMatchId.c_str(),className(controller.get()),activeDescriptor,descriptor,className(modal),before);
+            ba::call(controller.get(),"HideReconnectUI");
+            ba::log("Dedicated completed legacy disconnect released: match=%s activeShowAfter=%p modalAfter=%p navigationAfter=%d; native pool/navigation ownership retained",
+                ba_lan::dedicatedMatchId.c_str(),ba::get<Obj>(controller.get(),"_activeShowUIObject"),
+                ba::get<Obj>(controller.get(),"_activeModal"),stack?ba_local::count(stack):-1);
+            return;
+        }
+    } catch(const std::exception& e) {
+        legacyDisconnectReleaseAttempted=true;
+        ba::log("Dedicated completed legacy disconnect inspection/release failed; no retry: %s",e.what());
+    }
 }
 static void postgameDiagnostics(Obj server) {
     // Also enabled in manual runs. Diagnostics never alter the UI or weaken a
@@ -124,6 +178,7 @@ static void resetAtMenu(Obj front,Obj server,bool completed) {
     lobbyInstalled=false;joined=false;sawWorld=false;abortRequested=false;appliedReady=-1;
     failedAt=0;lastWaitLog=0;blocked=false;
     diagnosticAt=0;diagnosticCount=0;
+    legacyDisconnectReleaseAttempted=false;legacyDisconnectCheckAt=0;legacyDisconnectChecks=0;
     if(completed){retryAttempts=0;deferredPlay=false;}
 }
 static bool retryFromPlay(Obj front,int) {
@@ -219,6 +274,9 @@ static void update(Obj front) {
         if(joined && ba_local::failed.load())throw std::runtime_error("dedicated local input capture failed");
         if(GetTickCount64()<retryAt)return;
         ba_lan::poll();
+        // Poll first: a real coordinator ERROR/invalid packet must be observed
+        // before considering the obsolete original-front success-path modal.
+        releaseCompletedLegacyDisconnect(front,server);
         if(ba_lan::welcomed && !lobbyInstalled && inMenu())installLobby(front);
         if(lobbyInstalled && !joined && !ba_lan::bootstrap.empty()) {
             if(ba_lan::dedicatedMatchId.empty())throw std::runtime_error("dedicated bootstrap precedes match ID");
