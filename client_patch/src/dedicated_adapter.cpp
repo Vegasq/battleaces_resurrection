@@ -23,6 +23,9 @@ static unsigned diagnosticCount=0;
 static bool legacyDisconnectReleaseAttempted=false;
 static ULONGLONG legacyDisconnectCheckAt=0;
 static unsigned legacyDisconnectChecks=0;
+static bool lobbyDisconnectReleaseAttempted=false;
+static ULONGLONG lobbyDisconnectCheckAt=0,lobbyObservationAt=0;
+static unsigned lobbyDisconnectChecks=0,lobbyObservations=0;
 
 static bool inMenu() {
     Obj fsm=ba::read<Obj>(ba::owner,0x2b0);
@@ -172,6 +175,59 @@ static void releaseCompletedLegacyDisconnect(Obj front,Obj server) {
         ba::log("Dedicated completed legacy disconnect inspection/release failed; no retry: %s",e.what());
     }
 }
+static void releaseHealthyLobbyLegacyDisconnect(Obj front,Obj server) {
+    // Startup also lets the shipped login controller inspect the deliberately
+    // disconnected original front service. A successful replacement WELCOME
+    // must not leave that unrelated modal blocking the ordinary Play button.
+    // Poll the replacement transport first; real errors enter recover() instead.
+    if(!lobbyInstalled || joined || sawWorld || !inMenu() || !worldIdle(server) ||
+       !ba_lan::welcomed || ba_lan::stopped || ba_lan::peerClosed ||
+       !ba_lan::failureReason.empty() || ba_local::failed.load() ||
+       !ba_lan::bootstrap.empty() || ba::read<bool>(ba::owner,0x280))return;
+    const ULONGLONG now=GetTickCount64();
+    if(lobbyDisconnectReleaseAttempted) {
+        // A few read-only observations establish that release stays effective
+        // while idle. Never repeatedly dismiss a modal that reappears.
+        if(!lobbyObservationAt || now<lobbyObservationAt || lobbyObservations>=6)return;
+        lobbyObservationAt=now+5000;++lobbyObservations;
+        try {
+            Root controller(loginController(front,server));if(!controller.get())return;
+            Obj navigation=ba::get<Obj>(ba::owner,"<NavigationStack>k__BackingField");
+            Obj stack=navigation?ba::get<Obj>(navigation,"_navigationStack"):nullptr;
+            ba::log("Dedicated idle lobby observation: sample=%u activeShow=%p modal=%p navigation=%d welcome=1 stopped=0 worldIdle=1",
+                lobbyObservations,ba::get<Obj>(controller.get(),"_activeShowUIObject"),
+                ba::get<Obj>(controller.get(),"_activeModal"),stack?ba_local::count(stack):-1);
+        } catch(const std::exception& e) {
+            lobbyObservations=6;
+            ba::log("Dedicated idle lobby observation unavailable: %s",e.what());
+        }
+        return;
+    }
+    if(lobbyDisconnectChecks>=120 || now<lobbyDisconnectCheckAt)return;
+    lobbyDisconnectCheckAt=now+250;++lobbyDisconnectChecks;
+    try {
+        Root controller(loginController(front,server));if(!controller.get())return;
+        if(ba::get<bool>(controller.get(),"_isTrackingGameConnection") ||
+           ba::read<int>(front,0x118)!=0 || ba::read<Obj>(front,0x20) || ba::read<bool>(front,0x38))return;
+        Obj descriptor=ba::get<Obj>(controller.get(),"_disconnectedModal");
+        Obj activeDescriptor=ba::get<Obj>(controller.get(),"_activeShowUIObject");
+        Obj modal=ba::get<Obj>(controller.get(),"_activeModal");
+        if(!descriptor || activeDescriptor!=descriptor || !modal)return;
+        Obj navigation=ba::get<Obj>(ba::owner,"<NavigationStack>k__BackingField");
+        Obj stack=navigation?ba::get<Obj>(navigation,"_navigationStack"):nullptr;
+        lobbyDisconnectReleaseAttempted=true;
+        ba::log("Dedicated healthy lobby legacy disconnect: controller=%s frontStatus=0 originalChannel=null tracking=0 activeShow=%p disconnected=%p modal=%s navigationBefore=%d; one original HideReconnectUI call",
+            className(controller.get()),activeDescriptor,descriptor,className(modal),stack?ba_local::count(stack):-1);
+        ba::call(controller.get(),"HideReconnectUI");
+        ba::log("Dedicated healthy lobby legacy disconnect released: activeShowAfter=%p modalAfter=%p navigationAfter=%d welcome=1 worldIdle=1; native pool/navigation ownership retained",
+            ba::get<Obj>(controller.get(),"_activeShowUIObject"),ba::get<Obj>(controller.get(),"_activeModal"),
+            stack?ba_local::count(stack):-1);
+        lobbyObservationAt=now+5000;
+    } catch(const std::exception& e) {
+        lobbyDisconnectReleaseAttempted=true;
+        ba::log("Dedicated healthy lobby legacy disconnect inspection/release failed; no retry: %s",e.what());
+    }
+}
 static void postgameDiagnostics(Obj server) {
     // Also enabled in manual runs. Diagnostics never alter the UI or weaken a
     // lifecycle gate, and stop after24 samples rather than logging indefinitely.
@@ -270,6 +326,8 @@ static void resetAtMenu(Obj front,Obj server,bool completed) {
     failedAt=0;lastWaitLog=0;blocked=false;
     diagnosticAt=0;diagnosticCount=0;
     legacyDisconnectReleaseAttempted=false;legacyDisconnectCheckAt=0;legacyDisconnectChecks=0;
+    lobbyDisconnectReleaseAttempted=false;lobbyDisconnectCheckAt=0;lobbyDisconnectChecks=0;
+    lobbyObservationAt=0;lobbyObservations=0;
     reconnectRequested=false;reconnectThenPlay=false;reconnectAfterUpdate=0;
     failureNoticeShown=false;failureNoticeCheckAt=0;failureNoticeChecks=0;
     retryReleaseAttempted=false;retryModalReleased=false;retryContinueIssued=false;
@@ -419,6 +477,7 @@ static void update(Obj front) {
         // before considering the obsolete original-front success-path modal.
         releaseCompletedLegacyDisconnect(front,server);
         if(ba_lan::welcomed && !lobbyInstalled && inMenu())installLobby(front);
+        releaseHealthyLobbyLegacyDisconnect(front,server);
         if(lobbyInstalled && !joined && !ba_lan::bootstrap.empty()) {
             if(ba_lan::dedicatedMatchId.empty())throw std::runtime_error("dedicated bootstrap precedes match ID");
             ba_dedicated_deck::updateLobby(front,false);joined=true;++startedSessions;

@@ -3,6 +3,28 @@ Updated: 2026-10-17
 Active objective: implement SERVER_REPLACEMENT_PLAN.txt, Windows only.
 
 CURRENT USER PLAYTEST FOLLOW-UP (2026-10-17)
+Normal manual startup exposed a second obsolete-service modal: runs
+manual-play-20261017-125901/130000 connected both clients and loaded valid decks,
+but the original login controller blocked the menu with Connection Issue. No
+match had started and no replacement-server error was recorded. Auto-ready tests
+previously entered a match before this idle-menu blocker needed user interaction.
+
+The helper now releases that exact native login-controller disconnected descriptor
+once in a confirmed healthy idle lobby. It requires a valid replacement WELCOME,
+initialized deck/menu, idle world, no bootstrap/error, no original front channel,
+and matching controller ownership. Replacement polling runs first; actual errors
+retain the failure/reconnect path. Existing postgame cleanup remains separately gated.
+Native p2-idle-lobby01 passed: clients45088/47504 each released navigation1->0,
+remained unready with no modal for six5-second observations, then a real injected
+server error displayed the native failure dialog only for the affected client.
+The other client remained connected. All owned test processes were reaped.
+Installed helper SHA256:
+b1eac8fe6aa655dc9ffd7882efe5d47b26dc5e296fe274ccc8f548ed14a6a9f4
+The normal launcher targets this updated working copy. Manual visual confirmation
+and the original unit-pacing retest remain pending. Native details and reproducible
+probe are in client-session-lifecycle.txt; evidence local/matches/p2-idle-lobby01.
+Helper build checks and31 focused recovery/installer/transport source tests pass.
+
 Try Deck vs AI and Custom Game -> Invite Friend using this server's connected
 players are explicit P2 TODOs with acceptance gates in SERVER_REPLACEMENT_PLAN.txt.
 The server community protocol now implements presence, targeted invitations,

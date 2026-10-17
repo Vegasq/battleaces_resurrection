@@ -7,7 +7,10 @@ Protocol3 adds a negotiated per-room input window.
 
 CONTRACT
 
-A TCP connection represents one lobby and at most one match. The Unity process,
+A legacy protocol3 TCP connection represents one lobby and at most one match.
+The new server community extension has a separate multi-match lifetime described
+in community-protocol.txt; the graphical helper still uses legacy protocol3.
+The Unity process,
 local profile and native menu/deck editor survive across connections. This is
 lobby re-entry, not reconnect/catch-up to a running native world.
 
@@ -239,6 +242,59 @@ an input event, replace any cleanup subscriber, or force a postgame transition.
 Other dialogs are untouched. A later real coordinator ERROR still stops the helper
 and enters the explicit failure recovery path described above; there is no repeated
 success-path modal suppression.
+
+HEALTHY INITIAL/IDLE LOBBY MODAL (2026-10-17)
+User-launched normal runs manual-play-20261017-125901 and130000 both connected to
+the replacement server and initialized valid decks, yet displayed Connection Issue
+before any match. Native logs show MainMenu, inactive world and no helper failure;
+server events show two joined/unready clients and no match. The previous postgame
+gate requires a delivered match result and therefore could not address startup.
+
+The original OnConnectionStatusChanged0x3d07050 can schedule DisconnectSequence
+or call UpdateView while game tracking isfalse; it hides the reconnect UI when
+tracking a game. Auto-ready therefore masked this idle-menu failure in earlier
+match probes. Its actual caller was not instrumented in the new run; the runtime
+ownership/descriptor evidence below identifies the live obsolete modal directly.
+
+releaseHealthyLobbyLegacyDisconnect now runs AFTER transport polling and native
+lobby/deck initialization. It requires WELCOME, MainMenu, inactive/zero world,
+no joined/observed world or received bootstrap, no transport/input failure, no
+peer EOF and no application quit. The exact controller must belong to this
+front/game pair, have no game tracking, original front status0, null original
+channel and no pending original closure. Only its own _disconnectedModal with
+matching _activeShowUIObject and a live _activeModal qualifies.
+
+One original HideReconnectUI call removes the modal through its native pool and
+navigation lifetime. It does not write connection status or UI stack fields.
+The attempt is marked before invocation; failures and reappearing dialogs are
+never repeatedly dismissed. Search is bounded to120 checks at250ms. After release,
+six read-only observations follow at5-second intervals while eligible; these do
+not dump simulation state or alter the UI. Flags
+reset only at the existing safe native menu/world reset. Real replacement errors
+are polled first and enter failure recovery, never this healthy-lobby path.
+
+Reproduce the opt-in native regression with a patched working copy:
+  python -m tools.verify_idle_lobby --game "<working game>" --assets "<imported assets>" --output local/matches/idle-probe
+The tool starts two owned graphical clients without auto-ready, gameplay smoke
+or state-audit flags. It checks actual native modal ownership and six idle samples,
+then closes one server peer with an error and requires its native failure notice
+while the other peer remains connected. It terminates its owned clients at test
+teardown; this is not native Quit qualification or manual visual acceptance.
+
+Recorded p2-idle-lobby01 passed in52.5s with helper SHA256
+b1eac8fe6aa655dc9ffd7882efe5d47b26dc5e296fe274ccc8f548ed14a6a9f4.
+Clients45088/47504 found UILoginFlowController, matching disconnected/active
+descriptors, ModalConfirmVM, frontStatus0/tracking0 and navigationBefore1. Each
+original release left null modal/descriptor and navigation0; all six observations
+per client retained that state. Neither client readied or started a worker.
+The real error to45088 displayed the failure dialog and did not trigger another
+healthy release;47504 remained in its unready lobby. Sources were unchanged,
+owned processes reaped. Local verification, native logs and binary manifest:
+local/matches/p2-idle-lobby01. GameAssembly hash and hook recipe were unchanged.
+The updated helper is installed in the normal launcher's local working copy.
+Manual menu confirmation and the no-audit unit-pacing retest remain separate gates.
+The helper build's argument/wire tests and31 focused recovery/installer/transport
+source tests also pass, including the real native private-transport probe.
 
 Runtime proof requires the exact controller and matching descriptor, navigation
 count before/after original release, and a second match in the same processes.
