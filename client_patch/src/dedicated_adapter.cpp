@@ -101,7 +101,8 @@ static bool releaseRetryModal(Obj front,Obj server) {
     return true;
 }
 static void recoverySmokeConfirm(Obj front,Obj server) {
-    if(!ba::flag(L"-dedicated-recovery-smoke") || recoverySmokeStage || !failureNoticeShown)return;
+    const bool quit=ba::flag(L"-dedicated-quit-smoke");
+    if((!quit && !ba::flag(L"-dedicated-recovery-smoke")) || recoverySmokeStage || !failureNoticeShown)return;
     if(!recoverySmokeAt){recoverySmokeAt=GetTickCount64();return;}
     if(GetTickCount64()-recoverySmokeAt<1500)return;
     Root controller(loginController(front,server));if(!controller.get())return;
@@ -109,7 +110,12 @@ static void recoverySmokeConfirm(Obj front,Obj server) {
     Root modal(ba::get<Obj>(controller.get(),"_activeModal"));
     if(!descriptor || ba::get<Obj>(controller.get(),"_activeShowUIObject")!=descriptor ||
        strcmp(className(modal.get()),"ModalConfirmVM"))return;
-    recoverySmokeStage=1;recoverySmokeAt=0;
+    recoverySmokeStage=quit?3:1;recoverySmokeAt=0;
+    if(quit) {
+        ba::log("QUIT SMOKE invoking original disconnected modal OnCancel (NOT manual UI input)");
+        ba::call(modal.get(),"OnCancel");
+        return;
+    }
     ba::log("RECOVERY SMOKE invoking original disconnected modal OnConfirm (NOT manual UI input)");
     ba::call(modal.get(),"OnConfirm");
     ba::log("RECOVERY SMOKE original OnConfirm returned; modalStillOwned=%d queued=%d",

@@ -426,9 +426,9 @@ Its tail now reaches RX thunk RVA7670010. Patched GameAssembly SHA256:
 Evidence: local/recovery02-original-byte-verification.json. This is static byte
 preservation,not a runtime claim about normal Quit or original-service login.
 
-Still unqualified: manual Reconnect/Continue and normal Quit,initial connection
-refusal/authentication failure,lobby failure,async map-load failure,private-parent
-death,20 rematches/soak and separate-PC/network failure behavior. Generic error
+Still unqualified: manual Reconnect/Continue and normal Quit,async map-load failure,
+private-parent death,20 rematches/soak and separate-PC/network failure behavior.
+Later initial-connection/lobby qualification is recorded below. Generic error
 text remains a UX limitation. An unvalidated result never authorizes auto-Continue.
 
 HEALTHY REMATCH REGRESSION / SOURCE VALIDATION
@@ -456,3 +456,126 @@ helper DLL and verified backups; it restores the original components,not a full
 directory uninstall. Evidence: local/recovery02-rollback-reapply.json. An initial
 probe incorrectly expected helper deletion; that assertion was corrected to match
 the existing installer contract. No installer source change was needed.
+
+INITIAL CONNECTION REFUSAL
+p2-prematch-unavailable01 used the same helperrecovery02 in the isolated copy.
+Client37868 connected to a real bound/non-listening loopback endpoint; client39852
+independently entered the live lobby. The native failure dialog reported Secure
+server unavailable. Only after that observation did the harness start TLS on the
+refused endpoint. Reconnect queued on update205 and released on206, reset with
+sessions=0/empty match ID, and opened an unready lobby. Separate Play followed.
+Match2a5cb7d9fb454a21979d1a5b06b547b4 completed620 frames with620 receipts and62
+sampled views per client,zero mismatches/server errors,matching results and two
+TLS1.3 authenticated sessions. Ordered recovery checks all passed. Harness cleanup
+terminated these test clients; this run is not evidence of native Quit.
+
+The harness now isolates pre-match faults to client0 while client1 stays connected.
+It records the exact per-client diagnostic flags. Refusal,authentication rejection
+and lobby-drop modes cannot be combined with delay shaping or other injected faults.
+Quit qualification requires a fault affecting both clients and separately records
+native OnCancel invocation,actual exit codes and any harness-forced termination.
+Only two unforced zero exits may pass Quit. Evidence remains under local/matches/.
+
+PER-INSTANCE FAILURE TEXT RESEARCH
+The original confirm dialog uses instance Bindy bindings and LocalizedString
+subscriptions. Body targets LocalizeStringBindTMP.StringReference,which owns the
+TextMeshProUGUI target. Shared descriptor/model/localization objects must not be
+edited to display a connection reason. A proposed instance override is still under
+investigation: Escape/Back can release the modal without Reconnect or Quit,and
+native Release does not clear Body/TMP text. Restoring only before HideReconnectUI
+would miss this route. Generic native text remains installed pending a verified
+restoration/reuse path; static target discovery alone is not UI qualification.
+
+Original prefab ModalConfirmVM is addressables entry15127/internal13662 in bundle
+2fa2b6e70fed51f3d26c422052c7443a.bundle. Body has one receiver on
+LocalizeStringBindTMP.StringReference; its native UpdateTargetText3c91920 resolves
+its own TextMeshProUGUI but returns without clearing text for null/empty references.
+VM.set_Body3c797c0 can detach an instance's localization subscription without
+editing the shared model. Back3c7a0a0 nevertheless releases unconditionally,and
+the disconnected model's default action0 invokes neither Confirm nor Cancel.
+UILifecycleOwner.Release3c8e9b0 emits ReleaseEvent after IReleaseHandlers,too late
+for the proposed setter/binding restoration. Reacquisition forces ModelUpdated
+29b93a0 and RefreshViewModel3c7a170,but null/empty next-model Body can retain a
+literal in TMP. No all-release restoration is implemented. Authored detailed
+notes remain local/p2-failure-dialog-native-review.txt; no bundle bytes published.
+
+NATIVE QUIT QUALIFICATION: FAILED, CAUSE UNRESOLVED
+Helperrecovery03 SHA25609bbb241eedb6c9425f6d7d940316901a82d42ce3f2dfc9c0b2becc00896b04e
+adds only an opt-in Quit smoke branch to the tested adapter. Original OnCancel,
+Quit bodies and dialog text remain unchanged. p2-native-quit01 completed matching
+matchca02294cd4a74f7da76d6c4e16661b12 (620 receipts/62 sampled views per client,
+zero mismatches/server errors,matching results,two TLS1.3 AUTH sessions). After
+the injected postgame error,both native dialogs invoked their original OnCancel.
+Clients48456/45536 reached native application shutdown,simulation/AI unload and
+three ReplayFrameAllocator disposal log entries,but did not exit within the480s
+overall run. Harness cleanup forcibly terminated both,exit1. Summary success=false.
+All owned processes and ephemeral PKI were cleaned up afterward.
+
+This establishes entry into original Quit,not successful process shutdown.
+Tool-run logs also contain caught denied LocalLow backup writes under the current
+workspace restrictions; their role in the stall is unknown. Each process retained
+a CPU-active thread. ReplayFrameAllocator.Dispose3de0320 logs at ENTRY,so the last
+three messages do not prove all cleanup finished. Subsequent native candidates
+include SimFrameCollection.DisposeFrames3789330 and UnitInterpolationSystem.Dispose
+3c53b40/EnsureJobsComplete3c56040; no sampled stack identifies the stall yet.
+Telemetry changes are not implicated merely by their presence. Further runtime
+boundary tracing or a manual launch/quit comparison is required. Evidence:
+local/matches/p2-native-quit01 and its shutdown-thread-observation.json,isolated
+Unity/native logs. Future harness runs allow60s after both original Quit callbacks,
+independently of startup time; reaching that bound remains a failed,forced exit.
+
+Next isolated diagnostic boundary (not patched): OnDestroy call RVA3de4968,
+raw3de2f68,preimagee8c3e0ffff -> RGameInstance.Dispose3de2a30,continuation3de496d.
+ABI void(this RCX,MethodInfo RDX=null). A wrapper should forward once and record
+entry/return without managed teardown work. Inner direct calls:3de2a85 -> replay
+Dispose3de0320;3de2aa2 -> DisposeFrames3789330;3de2ad2 -> UnitInterpolation.Dispose
+3c53b40;3c53bb2 -> EnsureJobsComplete3c56040. The latter completes job handles at
++a8,+98,+b8 via ScheduleBatchedJobsAndComplete. These boundaries can locate the
+stall; they are not evidence that this candidate caused it. No bypass/forced-success
+shutdown patch was installed. Detailed local notes retain preimages and raw offsets.
+
+AUTHENTICATION FAILURE RECOVERY
+p2-prematch-auth01 used helperrecovery03. The temporary test credential store
+rejected client48060's first authentication only; no production invite/store was
+changed. Client40920 remained connected to the lobby. The actual native dialog
+reported Server invite authentication failed. Client48060 invoked original
+OnConfirm,returned before deferred release,reset session0 and reauthenticated into
+an unready lobby. Only separate Play started matchcaf352939e2a440bbe6d8c514e996d3a.
+Both clients completed620 frames,620 receipts/62 sampled views,zero mismatches/
+server errors and matching results. Two successful TLS1.3 AUTH sessions;one
+recorded authentication rejection. All ordered recovery checks passed. Harness
+cleanup terminated test clients and removed ephemeral PKI. Evidence:
+local/matches/p2-prematch-auth01 and isolated native logs. This qualifies recovery
+after a host accepts the same invite again,not hot-reloading a replaced invite.
+
+LOBBY DISCONNECT RECOVERY
+p2-prematch-lobby01 used the same helperrecovery03 in clients46344/41192. Client0
+entered unready while client1 remained ready in the same lobby. The harness cut
+only client0's real TLS stream after observing its native lobby. No running match
+was aborted and the survivor stayed connected. Original Reconnect returned before
+deferred release,reset session0,and reauthenticated without ready intent. Separate
+Play started match4860fa4ab1b04187a7f64223c1e5b42f. Both clients completed620 frames,
+620 receipts/62 sampled views,zero mismatches/server errors and matching results.
+Three successful TLS1.3 AUTH sessions (two for client0,one for client1). All ordered
+recovery checks passed. Owned clients/workers exited during harness cleanup and
+ephemeral PKI was removed. Evidence:local/matches/p2-prematch-lobby01/native logs.
+
+Source validation:195 tests in46.70s,193 passed,2 opt-in skips (real Windows private
+DACL creation and the separate native-worker fixture). Real inherited-socket bridge
+and original-byte telemetry tests enabled; real native workers exercised in the
+game runs above. Evidence:local/source-tests-recovery03.json/.txt. Focused16-test
+recovery/secure-launcher checks passed again after adding the Quit grace bound.
+Helper build passed its native argument/wire checks. No literal text override was
+compiled into the helper; its exploratory fixed-message draft remains ignored local
+work. Component patch hashes match helperrecovery02; only the helper's opt-in Quit
+diagnostic branch changed. These checks do not qualify successful normal shutdown.
+
+UPDATED MANUAL RETEST PREPARED
+local/Launch Updated Visible Test.cmd runs the verified helperrecovery03 in the
+isolated secure-client-runtime with a fresh protocol3 loopback development server
+on127.0.0.1:47630 and fresh run directory. It preserves the old root installation
+and protocol2 p2-visible04 server. The first match auto-starts/surrenders; there is
+no auto-Continue,deck-edit or auto-rematch flag. User action must check both result
+screens,Continue,change a deck,then Play again. The user was asked to launch it;
+manual acceptance is pending. This local convenience launcher is ignored by Git;
+it is not the packaged/TLS friend installer and does not qualify internet play.

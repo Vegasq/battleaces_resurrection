@@ -118,6 +118,7 @@ def game_arguments(config, player_id, handle, args):
     if getattr(args, 'rematch_smoke', False): result.extend(['-dedicated-rematch-smoke', '-dedicated-auto-rematch'])
     if getattr(args, 'recovery_smoke', False): result.append('-dedicated-recovery-smoke')
     if getattr(args, 'postgame_recovery_smoke', False): result.append('-dedicated-postgame-recovery-smoke')
+    if getattr(args, 'quit_smoke', False): result.append('-dedicated-quit-smoke')
     return result
 
 
@@ -178,7 +179,7 @@ def main():
     parser = argparse.ArgumentParser(description=__doc__)
     parser.add_argument('--config', type=Path, required=True)
     parser.add_argument('--run-name', default='secure-client')
-    for flag in ('auto-ready', 'smoke', 'deck-smoke', 'surrender-smoke', 'rematch-smoke', 'recovery-smoke', 'postgame-recovery-smoke', 'telemetry-audit', 'audit'):
+    for flag in ('auto-ready', 'smoke', 'deck-smoke', 'surrender-smoke', 'rematch-smoke', 'recovery-smoke', 'postgame-recovery-smoke', 'quit-smoke', 'telemetry-audit', 'audit'):
         parser.add_argument('--' + flag, action='store_true', help='optional development diagnostic')
     args = parser.parse_args()
     try:

@@ -1,6 +1,7 @@
+import argparse
 import unittest
 
-from tools.run_secure_match import current_native_log, recovery_evidence
+from tools.run_secure_match import current_native_log, recovery_evidence, scenario_expectations
 
 
 class RecoveryEvidenceTests(unittest.TestCase):
@@ -49,6 +50,41 @@ class RecoveryEvidenceTests(unittest.TestCase):
 
     def test_postgame_requires_native_continue_evidence(self):
         self.assertFalse(recovery_evidence(self.trace(),'old',postgame=True)['native_continue'])
+
+    def test_pre_match_recovery_requires_a_session_zero_reset(self):
+        log = self.trace().replace('match=old sessions=1', 'match= sessions=0')
+        self.assertTrue(all(recovery_evidence(log,None).values()))
+        self.assertFalse(recovery_evidence(self.trace(),None)['reset_old_match'])
+
+
+class QualificationScenarioTests(unittest.TestCase):
+    def options(self, **overrides):
+        values = dict(disconnect_frame=None,postgame_error=False,pre_match_failure=None,
+                      quit_on_failure=False,rtt_ms=0,jitter_ms=0)
+        return argparse.Namespace(**(values | overrides))
+
+    def test_recovery_and_quit_have_distinct_completion_requirements(self):
+        cases = [({},(2,4)), ({'disconnect_frame':100},(1,4)),
+            ({'postgame_error':True},(2,4)),
+            ({'pre_match_failure':'unavailable'},(1,2)),
+            ({'pre_match_failure':'authentication'},(1,2)),
+            ({'pre_match_failure':'lobby'},(1,3)),
+            ({'disconnect_frame':100,'quit_on_failure':True},(0,2)),
+            ({'postgame_error':True,'quit_on_failure':True},(1,2))]
+        for options,expected in cases:
+            with self.subTest(options=options):
+                self.assertEqual(scenario_expectations(self.options(**options)),expected)
+
+    def test_ambiguous_faults_and_unsupported_quit_or_shaping_rejected(self):
+        cases = [dict(disconnect_frame=100,postgame_error=True),
+            dict(pre_match_failure='lobby',postgame_error=True),
+            dict(quit_on_failure=True),
+            dict(pre_match_failure='authentication',quit_on_failure=True),
+            dict(pre_match_failure='unavailable',rtt_ms=50),
+            dict(pre_match_failure='lobby',jitter_ms=20)]
+        for options in cases:
+            with self.subTest(options=options),self.assertRaises(ValueError):
+                scenario_expectations(self.options(**options))
 
 
 if __name__ == '__main__':

@@ -316,6 +316,39 @@ bridge and original-byte telemetry checks enabled; actual worker/game runs passe
 separately. Evidence local/source-tests-recovery02.json/.txt. No manual UI or clean-
 host release acceptance is implied. Root manual server/helper remain unchanged.
 
+P2 INITIAL-FAILURE QUALIFICATION / QUIT STALL
+Initial connection refusal (p2-prematch-unavailable01),one rejected test invite
+(p2-prematch-auth01) and an authenticated lobby drop (p2-prematch-lobby01) all
+passed original Reconnect -> deferred native modal release -> session0 reset ->
+unready lobby -> separate Play. The other client stayed connected. Each fresh
+match completed620 frames with620 receipts/62 sampled views per client,zero
+mismatches/server errors and matching results. TLS1.3 successful AUTH counts2/2/3.
+These use controlled test faults; no production invite/store was changed.
+
+Helperrecovery03 SHA25609bbb241eedb6c9425f6d7d940316901a82d42ce3f2dfc9c0b2becc00896b04e
+adds an opt-in original OnCancel diagnostic. p2-native-quit01 completed a matching
+game and entered normal native Quit on both clients,but both processes remained
+alive until forced cleanup at480s;success=false. The last replay-disposal logs
+are entry logs,not proof teardown finished. Static review identifies job-completion
+boundaries for a future trace; the cause is unresolved. Tool-run LocalLow writes
+were denied; no causality or general manual-launch Quit failure is asserted.
+Future Quit tests allow60s after both native callbacks and reject any forced exit.
+
+Generic dialog text remains unchanged: static review found Escape can release
+the pooled modal without Confirm/Cancel,and null/empty localized Body on reuse
+can preserve a literal override. No unsafe body/descriptor/localization mutation
+was installed. Full lifecycle evidence and remaining work are documented in
+client-session-lifecycle.txt. Full source suite195 tests:193 pass,2 optional skips,
+46.70s; native bridge and original-byte telemetry checks enabled. Focused checks
+passed after the final harness bound change. No game files or private test data
+are included in publication.
+
+A new ignored local/Launch Updated Visible Test.cmd is prepared for the user,
+using the tested isolated helper and protocol3 server on loopback47630. It leaves
+both results for manual Continue/deck-change/Play. Manual acceptance remains
+pending; the older root setup/server remains unchanged. Do not install another
+helper or launch competing tests in this isolated copy while that retest is active.
+
 BASELINE EVIDENCE BEFORE SOURCE MIGRATION
 Original GameAssembly SHA256:
   e59d08c01479b27404778048d7e13546dbf3771f6b3912744c7c2bdf80c4e758

@@ -99,6 +99,25 @@ normal quit,manual UI,private-file ACLs,clean-host packaging or internet perform
 The optional delay/jitter harness and cadence interpretation are documented in
 network-qualification.txt; delayed-stream correctness is not internet qualification.
 
+Failure qualification (use a fresh run name and allow for cold startup):
+ --pre-match-failure unavailable      refuse client0's first TCP connection
+ --pre-match-failure authentication   reject client0's first test invite admission
+ --pre-match-failure lobby            abort client0's authenticated lobby stream
+ --disconnect-frame 100              abort one running-match stream
+ --postgame-error                    send ERROR after both native result screens
+Choose one fault mode. Each recovery test requires original Reconnect,its return
+before deferred modal release,an unready lobby and a separate Play action. Initial
+faults leave client1 connected and require one matching completed game; postgame
+requires two. All use real local TLS/admission and fixed test-only fault injection.
+Pre-match faults cannot be combined with delay/jitter shaping.
+
+Adding --quit-on-failure to a mid-match/postgame fault instead invokes each exact
+owned dialog's original OnCancel. Both process handles must exit naturally with
+code0; any harness termination fails this qualification. After both callbacks,
+shutdown has a separate60s bound. The first native Quit run failed (processes
+remained alive); see client-session-lifecycle.txt. These options require a helper
+with the matching diagnostic flags. They do not enable release auto-retry/auto-quit.
+
 Actual game result (2026-10-17)
  local/matches/p3-tls-client02/summary.json:success=true.
  Clients47900/20052 persisted across matches492f27916dc2458eaf6c18c3fbafac30 and
