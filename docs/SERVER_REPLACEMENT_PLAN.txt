@@ -14,6 +14,11 @@ again without restarting the game. The server remains available between matches.
 Explicit requirements and decisions:
 - Windows x64 server hosting; a patch for the Windows game client.
 - Two clients on this PC remain the first integration test before other PCs.
+- User-requested menu flows: Try Deck vs AI with the selected deck, and Custom
+  Game -> Invite Friend showing players connected to this community server.
+  Invite a chosen player, accept into the custom lobby, then start there.
+- Normal play must not enable scripted production, automatic surrender, automatic
+  Continue or automated rematch. Keep those diagnostic commands opt-in.
 - Keep the research and implementation knowledge base current throughout.
 - Client patch requirement added on 2026-10-17: remove outbound analytics and
   telemetry, including automatic crash-report uploads. Verify the relevant paths
@@ -176,7 +181,20 @@ Effort allowance: 4-7 days.
 - Separate authenticated profile identity from per-match seat and native army ID.
 - Expose create/join room, player presence, ready/cancel and useful connection
   errors, using existing game UI where practical. No manual slot assignment.
+- TODO: Connect Custom Game -> Invite Friend to a server-wide online player
+  directory. Show connected players with stable server identity, display name
+  and available/in-lobby/in-match status. Disable self/busy invitations; update
+  joins, departures and status changes without requiring a persistent friend list.
+- TODO: Add targeted invitations with accept/decline/cancel/expiry, server-checked
+  room membership and host ownership. Accepted players join the same custom lobby;
+  expose both selected decks/readiness and let the host start from the custom menu
+  only when both players are ready. Handle simultaneous invites, disconnects,
+  leaving the lobby and return after a match. Presence is separate from room seats.
 - Retain the native deck builder and server deck validation/persistence.
+- TODO: Make Try Deck vs AI start a playable AI match with the currently selected
+  eight-unit deck, without a second connected player or original service. Trace
+  the native mode/AI setup separately from multiplayer ready; support finish/exit
+  back to the deck/menu and another AI or multiplayer match in the same process.
 - Reset all match-specific transport queues, frame counters, managed references,
   result flags and Unity states on exit, then return to lobby for rematch.
 - Define clear UX for server unavailable, incompatible version, room full,
@@ -196,6 +214,10 @@ Done when: manual mouse/keyboard use completes connect -> room -> deck -> ready
 -> play -> result -> lobby -> changed deck -> second match in the same two client
 processes. Repeat after cancellation and a peer disconnect. Inspect the visible
 UI as well as logs and state audits.
+Also required: one client can use Try Deck vs AI with a changed deck and return;
+two clients can discover each other through Invite Friend, accept an invitation,
+start from the custom menu, finish and rematch. Exercise decline/expiry/busy/leave
+cases and confirm an unrelated online player is not silently joined or started.
 Also required: static call-path review and process-scoped network observation
 confirm no analytics/telemetry/report uploads during startup, idle menus, deck
 editing, gameplay, post-game, rematch, error handling or shutdown. Exercise offline
@@ -213,6 +235,10 @@ Depends on P1/P2. Effort allowance: 4-7 days.
   pending joins and per-player queues; preserve existing command bounds.
 - Add ping/connection status and configurable, bounded input buffering. Measure
   behavior at 50/100/200 ms RTT, jitter and packet loss before selecting defaults.
+- PRIORITY: Investigate the reported unit lag in manual two-client play. Retain
+  frame-delivery gaps and distinguish missing client inputs, Unity update stalls,
+  worker/IPC time, audit I/O and render/presentation delay. Measure click-to-action
+  latency as well as 20 Hz throughput; do not call a larger buffer a latency fix.
 - Define stall handling: bounded wait, clear notice and an explicit aborted result
   when a connection cannot recover. Do not invent a victory for an unknown state.
 - Support direct connection to an owner-hosted or rented server; document the

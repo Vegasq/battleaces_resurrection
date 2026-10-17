@@ -108,6 +108,7 @@ class Room:
         self.match = self.validation = self.sim = None
         self.match_id = None
         self.next_tick = None
+        self.input_wait_started = None
         self.last_progress = time.perf_counter()
         self.history = None
         self.entity_history = {}
@@ -182,6 +183,7 @@ class Room:
             self.history.close()
             self.history = None
         self.pending.clear()
+        self.input_wait_started = None
         if aborted:
             for peer in list(self.peers.values()):
                 peer.close(None if previous_state == "completed" else reason)
@@ -343,13 +345,19 @@ class Room:
                     continue
                 inputs = self.pending.get(self.frame, {})
                 if len(inputs) != 2:
+                    if self.input_wait_started is None:
+                        self.input_wait_started = now
                     if now - self.last_progress > self.server.input_timeout:
                         await self.finish("player input stalled", aborted=True)
                     continue
                 # Native simulation accepts exactly the validated ordered actions
                 # sent to clients. No bootstrap or timing comes from a client.
+                input_wait_ms = (now - self.input_wait_started) * 1000 if self.input_wait_started is not None else 0.0
+                self.input_wait_started = None
                 actions = self.validation.encode_frame(self.frame, inputs)
+                worker_started = time.perf_counter()
                 step = await self.sim.process_frame(actions, dt_ms=50)
+                worker_ms = (time.perf_counter() - worker_started) * 1000
                 if self.state != "running":
                     continue
                 p.require(step.frame == self.frame, "worker returned wrong completed frame")
@@ -358,12 +366,19 @@ class Room:
                 payload = struct.pack("<II", self.frame, len(first)) + first + second
                 if self.history:
                     self.history.write(struct.pack("<I", len(actions)) + actions)
+                snapshot_ms = 0.0
                 if self.server.audit_state and self.frame % 20 == 0:
+                    snapshot_started = time.perf_counter()
                     await self.record_snapshot()
+                    snapshot_ms = (time.perf_counter() - snapshot_started) * 1000
                 if self.state != "running":
                     continue
                 self.broadcast(p.FRAME, payload)
                 self.event("frame_queued", frame=self.frame, interval_ms=(now - self.last_progress)*1000,
+                           input_wait_ms=input_wait_ms,
+                           tick_late_ms=max(0.0, now - self.next_tick) * 1000,
+                           worker_ms=worker_ms, snapshot_ms=snapshot_ms,
+                           frame_work_ms=(time.perf_counter() - now) * 1000,
                            slot0_sha256=hashlib.sha256(first).hexdigest(),
                            slot1_sha256=hashlib.sha256(second).hexdigest(),
                            frame_payload_sha256=hashlib.sha256(payload).hexdigest())

@@ -90,7 +90,7 @@ editable in either config. See docs/secure-client-transport.txt for installation
 trust/enrollment, its test boundaries and the separate Launch-SecureClient.ps1.
 
 Automated graphical two-client baseline (local diagnostics, normal game commands):
-  powershell -File tools/Run-LocalMatch.ps1 -GameDirectory "<game>" -RunName unique-name -AutoReady -Smoke -DeckSmoke -SurrenderSmoke -DurationSeconds 100
+  powershell -File tools/Run-LocalMatch.ps1 -GameDirectory "<game>" -RunName unique-name -AutoReady -Smoke -DeckSmoke -SurrenderSmoke -DiagnosticAudit -DurationSeconds 100
   python -m server.verify_dedicated_run local/matches/unique-name --runtime-directory "<game>/investigation/runtime" --processes local/matches/unique-name/processes.json
 
 Runtime environment overrides:

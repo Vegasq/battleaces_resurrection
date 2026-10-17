@@ -131,3 +131,68 @@ and patch-manifest.json. Clients13332/49748 (50ms) and40392/21852 (100ms).
 One "Secure transport ended" console message occurred in the50ms harness run;
 the native results passed, but the message's cause has not yet been attributed.
 Do not equate this automated evidence with manual postgame UI acceptance.
+
+MANUAL UNIT-PAUSE REPORT AND AUDIT COST (2026-10-17)
+User report: units pause/jump while camera and UI stay smooth. The user-launched
+p2-visible-recovery-20261017-121413 used helperrecovery03, protocol3/window6 on
+loopback, with server snapshots, client snapshots/receipts, telemetry field audits,
+scripted unit builds and frame600 surrender. Auto-Continue, automated deck edits
+and auto-rematch were disabled; all three matches reused clients49088/44568.
+
+ Match                               Hz       p95 ms   Max ms    Resets
+ 5ed1fa35fbe64cc0b430b6a12a37a900     19.972     63.406   124.299     3
+ cdf6983f73d94c22bc4634d48fa76b95     15.847     64.314  1609.289    23
+ e5d4344ee0504cefb75c4ef05033f73f     17.300     63.768  1142.968    19
+All620 frames/client have matching receipt payloads,62 matching sampled views,
+matching native result and zero server errors. Matches1/3 pass the strict verifier.
+Match2's status remains insufficient_evidence: the scripted frame300 build overlaps
+other player actions, so its isolated effect is unproven; no divergence was found.
+Manual changes selected unit2 instead of75 and continued into two later matches.
+This supports native manual rematch/deck interaction, but is not exhaustive visual
+acceptance or natural victory qualification: all three results conceded at600.
+
+Timing observations from original events, before new instrumentation:
+- Match2 frame60:1425.755ms interframe gap,52.029ms before starting work; the two
+  native_snapshot events were1264.030ms apart, with another107.635ms before FRAME.
+- Match2 frame600:1609.289ms gap,58.347ms before work; snapshot events1541.413ms apart.
+- Match3 frame260:1142.968ms gap,42.815ms before work; after the second snapshot
+  event there were1092.496ms before FRAME. That code interval contains synchronous
+  diagnostic event/snapshot writes, before the broadcast can be serviced.
+These observations localize those delays to the audit path. They do not isolate
+disk latency, OS scheduling or worker delay between both snapshot events. Other
+gaps (e.g. match3 frame335,648.209ms before work) remain unexplained. A7.6GB diagnostic
+installation copy/helper build overlapped the test and may have added contention.
+Copy duration plus provenance write time place that copy at approximately
+17:15:18..17:18:20 UTC, overlapping matches2/3 but after match1. This is a material
+confounder; there was no controlled before/after audit experiment in this run.
+
+Normal Run-LocalMatch.ps1 and Launch-Client.ps1 now default to no detailed audits.
+-DiagnosticAudit enables server --audit-state and client -lan-audit deliberately;
+the source README baseline command retains it. The automated secure qualification
+runner retains its own explicit audits. The ignored normal-play shortcut has no
+test automation or audit flags. Without audits the full receipt/state verifier
+reports insufficient evidence by design; basic native logs/server journals remain.
+No input-window or50ms simulation-step change accompanies this adjustment.
+
+New frame_queued fields use monotonic wall-clock durations, in milliseconds:
+- input_wait_ms: elapsed from the first due tick missing either player's input to
+  the tick that can process both. Includes scheduling between polls; it is not RTT
+  and does not prove where a client's input stalled.
+- tick_late_ms: processing start minus its scheduled deadline, clamped at zero.
+  This overlaps input wait; do not add the two durations.
+- worker_ms: time awaiting process_frame, including IPC, scheduling and native work.
+- snapshot_ms: the complete diagnostic snapshot path, including writes; zero when
+  disabled/not sampled. frame_work_ms covers encoding through broadcast enqueue.
+The final event write and asynchronous network send are outside frame_work_ms.
+These fields help select the next investigation and do not measure rendered FPS
+or click-to-display latency. Six queued frames still give nominal250ms frame lead;
+choosing a lower-latency default remains measured follow-up work.
+
+Validation:16 coordinator tests pass, including real loopback/synthetic worker
+coverage that separately injects worker, snapshot and missing-input delays. Actual
+normal/diagnostic launcher argument construction was intercepted at Start-Process:
+normal has no automation/audit flags; diagnostic mode enables both sides' audits;
+zero game/server processes were launched by that check. All changed PS scripts parse.
+Local evidence: the original run's manual-review.json and verification-MATCH.json;
+local/manual-launcher-verification.json. Playability/performance after disabling
+audits still needs the user's next normal match; no claim of a complete lag fix.

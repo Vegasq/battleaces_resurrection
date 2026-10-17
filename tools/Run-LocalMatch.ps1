@@ -11,6 +11,7 @@ param(
     [switch]$SurrenderSmoke,
     [switch]$RematchSmoke,
     [switch]$TelemetryAudit,
+    [switch]$DiagnosticAudit,
     [ValidateRange(200,10000)][int]$SurrenderFrame = 600,
     [ValidateRange(0,3600)][int]$DurationSeconds = 0
 )
@@ -31,7 +32,8 @@ $games = @()
 try {
     $arguments = @('-u','-m','server.dedicated_server','--host','127.0.0.1','--port',"$Port",
         '--assets',('"'+$AssetDirectory+'"'),'--dll',('"'+(Join-Path $AssetDirectory 'Simulation.dll')+'"'),
-        '--data',('"'+$run+'"'),'--audit-state')
+        '--data',('"'+$run+'"'))
+    if ($DiagnosticAudit) { $arguments += '--audit-state' }
     $service = Start-Process -FilePath (Get-Command python -ErrorAction Stop).Source -ArgumentList $arguments -WorkingDirectory $repo -WindowStyle Hidden -RedirectStandardOutput (Join-Path $run 'server.log') -RedirectStandardError (Join-Path $run 'server-error.log') -PassThru
     $deadline = (Get-Date).AddSeconds(15)
     do {
@@ -42,10 +44,10 @@ try {
     if (-not $ready) { throw 'Server startup timeout.' }
     foreach ($slot in 0,1) {
         $clientOptions = if ($ClientConfig0) { @{Config=$clientConfigs[$slot]} } else { @{Slot=$slot;Address="127.0.0.1:$Port"} }
-        $games += & (Join-Path $repo 'client_patch/launcher/Launch-Client.ps1') @clientOptions -GameDirectory $gameRoot -RunName $RunName -AutoReady:$AutoReady -Smoke:$Smoke -DeckSmoke:$DeckSmoke -SurrenderSmoke:$SurrenderSmoke -RematchSmoke:$RematchSmoke -TelemetryAudit:$TelemetryAudit -SurrenderFrame $SurrenderFrame -PassThru
+        $games += & (Join-Path $repo 'client_patch/launcher/Launch-Client.ps1') @clientOptions -GameDirectory $gameRoot -RunName $RunName -AutoReady:$AutoReady -Smoke:$Smoke -DeckSmoke:$DeckSmoke -SurrenderSmoke:$SurrenderSmoke -RematchSmoke:$RematchSmoke -TelemetryAudit:$TelemetryAudit -DiagnosticAudit:$DiagnosticAudit -SurrenderFrame $SurrenderFrame -PassThru
     }
     Copy-Item -LiteralPath (Join-Path $gameRoot '.battleaces-resurrection/patch-manifest.json') -Destination (Join-Path $run 'patch-manifest.json')
-    [pscustomobject]@{RunName=$RunName;Started=(Get-Date).ToString('o');ServerPid=$service.Id;ServerStarted=$service.StartTime.ToString('o');GamePids=@($games|ForEach-Object Id);GameStarted=@($games|ForEach-Object{[pscustomobject]@{Pid=$_.Id;Started=$_.StartTime.ToString('o')}});DataDirectory=$run;AutoReady=[bool]$AutoReady;Smoke=[bool]$Smoke;DeckSmoke=[bool]$DeckSmoke;SurrenderSmoke=[bool]$SurrenderSmoke;RematchSmoke=[bool]$RematchSmoke;TelemetryAudit=[bool]$TelemetryAudit;Batch=$false} | ConvertTo-Json -Depth 4 | Set-Content -LiteralPath (Join-Path $run 'processes.json')
+    [pscustomobject]@{RunName=$RunName;Started=(Get-Date).ToString('o');ServerPid=$service.Id;ServerStarted=$service.StartTime.ToString('o');GamePids=@($games|ForEach-Object Id);GameStarted=@($games|ForEach-Object{[pscustomobject]@{Pid=$_.Id;Started=$_.StartTime.ToString('o')}});DataDirectory=$run;AutoReady=[bool]$AutoReady;Smoke=[bool]$Smoke;DeckSmoke=[bool]$DeckSmoke;SurrenderSmoke=[bool]$SurrenderSmoke;RematchSmoke=[bool]$RematchSmoke;TelemetryAudit=[bool]$TelemetryAudit;DiagnosticAudit=[bool]$DiagnosticAudit;Batch=$false} | ConvertTo-Json -Depth 4 | Set-Content -LiteralPath (Join-Path $run 'processes.json')
     Write-Output "Server PID $($service.Id), clients $($games[0].Id)/$($games[1].Id), evidence $run"
     $deadline = if ($DurationSeconds) { (Get-Date).AddSeconds($DurationSeconds) } else { [DateTime]::MaxValue }
     while ((Get-Date) -lt $deadline -and @($games | Where-Object { -not $_.HasExited }).Count -gt 0) {

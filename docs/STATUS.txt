@@ -2,6 +2,43 @@ IMPLEMENTATION LEDGER
 Updated: 2026-10-17
 Active objective: implement SERVER_REPLACEMENT_PLAN.txt, Windows only.
 
+CURRENT USER PLAYTEST FOLLOW-UP (2026-10-17)
+Try Deck vs AI and Custom Game -> Invite Friend using this server's connected
+players are explicit P2 TODOs with acceptance gates in SERVER_REPLACEMENT_PLAN.txt.
+Neither flow is implemented. The custom picker currently depends on Steam friends;
+it needs a server presence/invitation adapter. See community-lobby.txt.
+
+Normal local play now omits scripted production, automatic surrender, auto-ready,
+Continue and rematch. The ignored local/Play Normal Match.cmd supplies the tested
+copy/configs; docs/client-configuration.txt gives the portable source command.
+The prior visible test used Smoke + SurrenderSmoke and conceded at frame600 in
+every match (30 seconds of simulation time). This was test automation, not a
+server-imposed match limit. Clients must restart without those flags to remove it.
+
+User reports units pause/jump while camera/UI stay smooth. Their visible run
+p2-visible-recovery-20261017-121413 completed three620-frame matches, with changed
+decks and same-process rematches while automated Continue/deck edits were disabled.
+Every match has620 matching receipts and62 matching sampled views per client,
+matching native results and zero server errors. The strict verifier passes matches
+1/3; match2 remains insufficient only for isolating the scripted build's effect
+amid user commands. Do not silently upgrade that verdict to a full smoke pass.
+
+Frame cadence was19.972/15.847/17.300Hz, maximum gaps124.299/1609.289/1142.968ms.
+Several longest delays occurred inside diagnostic snapshot work before frame
+publication, not solely waiting for client input. Normal PowerShell launchers now
+leave client/server state and receipt audits off; -DiagnosticAudit explicitly
+enables them for verification. Basic journals remain. New frame timing fields
+separate observed input wait, worker/IPC and snapshot work. This removes diagnostic
+work from normal play but does not yet prove all reported lag resolved. No buffer
+or simulation timestep was changed. See network-qualification.txt for evidence
+and confounders.16 coordinator tests pass, including timing attribution; actual
+launcher arguments were intercepted/checked with no game processes started.
+Earlier195-test full-suite results below predate this change.
+
+The first no-automation launcher invocation manual-play-20261017-122616 connected
+two clients and closed at the lobby, before any match. It preceded the audit opt-in
+edit and is not performance qualification. The next launch uses the new defaults.
+
 P0 COMPLETE
 - Remote repository cloned; it was empty. Dedicated source checkout created.
 - Authored server/helper/patcher source migrated with an explicit file allowlist.

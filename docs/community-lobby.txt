@@ -1,0 +1,71 @@
+COMMUNITY PLAYER DIRECTORY, CUSTOM GAMES AND AI PRACTICE
+Updated:2026-10-17. Status: planned; current adapters do not implement these flows.
+Scope: Windows build37822, existing native UI, authored server/patch source only.
+Detailed authored static trace and guarded hook candidates: custom-lobby-native.txt.
+
+REQUESTED USER FLOW
+Connect to the configured community server. Custom Game -> Invite Friend lists
+everyone connected to that server, with availability. Select an opponent; they
+accept into the custom lobby. Both choose decks and ready; the host starts from
+the custom menu. Result/Continue returns to a usable lobby for another game.
+An existing Steam friendship is not required. This is a server-local directory,
+not discovery of players on other servers or a replacement social network.
+
+SERVER WORK
+Separate online presence from occupying one of a match's two seats. Use the
+authenticated server profile as identity and display its chosen name/status.
+Publish bounded snapshots/updates for available, in-lobby and in-match players;
+remove departures and exclude self/busy targets from actionable invitations.
+Add targeted invite IDs, acceptance/decline, host cancellation and expiry. Check
+membership/availability on the server at acceptance and start, including races
+between simultaneous invitations or departures. Reuse existing room/worker/deck
+validation after admission. Readiness must not start a custom game before the
+host's Start request; clear readiness on deck changes. Keep ordinary Play behavior
+separate. New protocol messages need explicit version/bounds and compatibility tests.
+
+NATIVE CLIENT FINDINGS (STATIC, NOT A WORKING UI IMPLEMENTATION)
+The existing CustomGameLobbyManager and custom menu have lobby creation/update,
+invitation and start plumbing. The friend picker currently enumerates
+UncappedSteamFriends and checks Steamworks.Friend.IsPlayingThisGame. Inserting a
+server roster into a list alone would still leave that Steam-dependent filter;
+a dedicated roster/availability adapter must drive this UI.
+FriendVM also calls Steam name/status/avatar APIs directly; use scoped native
+property setters for community rows rather than assuming a display-name hook
+covers every inlined access. Preserve native row pooling and lifetime.
+
+StartGame RVA0x3cb1080 inlines TryStartGame and routes to SendUpdateAction0x3cac870.
+Hooking only TryStartGame0x3cabc60 would miss the actual Start handler. Likewise
+InviteToCustomGame0x3cabe80 inlines the front-service invitation wrapper and calls
+EnqueueMessage0x256df90 at0x3cac066; a wrapper-method-only interception is incomplete.
+Native start uses TryStartLobbyGame followed by ReadyToStartLobbyGame. Preserve
+the native UI/request state machine while translating to the private server.
+
+Deliver simulated native responses on a later Unity update: CreateLobby stores
+its pending request after the front call returns; PartyInviteReplyRequest increments
+its pending-response count after enqueue. An immediate callback inside either call
+would run before native bookkeeping is ready. Exact ownership, request correlation,
+timeout/cancel behavior and real callback ordering require runtime qualification.
+
+TRY DECK VS AI (TODO)
+Start with the currently selected eight-unit deck, populate a working AI opponent,
+and support completion/exit back to deck/menu without a second human or the old
+services. Keep this distinct from multiplayer readiness and preserve offline tutorial.
+The current dedicated ready(front,mode) routes every mode into the same two-human
+ready message. This is a confirmed source gap, not an AI implementation.
+
+The retained client log shows Play(mode4), cancellation, then Play(mode3) followed
+by RGameTutorial01State with no active world. CommonPb.GameMode names3 as MODE_FTUE
+and4 as MODE_1VAI. The user's exact visual Try Deck button-to-mode mapping is not
+established by this log alone; do not label mode3 as AI. Trace the specific native
+callback and local AI setup before redirecting or starting simulation.
+
+BOUNDARY AND ACCEPTANCE
+REA workflow used existing local IL2CPP metadata, original-byte disassembly and
+retained runtime/source evidence; the native REA engine was unavailable. These
+findings are not REA retained Evidence IDs and do not establish runtime success.
+Original GameAssembly SHA256:
+e59d08c01479b27404778048d7e13546dbf3771f6b3912744c7c2bdf80c4e758
+Accept only after manual native UI tests cover two invited clients, an unrelated
+online third player, decline/expiry/busy/leave races, chosen decks and rematch.
+AI practice must be independently playable and followed by another AI/multiplayer
+session without restart. Full requirements are tracked under P2 in the plan.

@@ -194,6 +194,46 @@ class DedicatedLifecycleTests(unittest.IsolatedAsyncioTestCase):
         self.assertEqual(second.deck, list(self.template.default_decks[1]))
         self.assertEqual(self.server.rooms["frozen"].input_window, 2)
 
+    async def test_frame_timing_separates_worker_snapshot_and_input_wait(self):
+        await self.start()
+        peers = await self.pair("timing")
+        room = self.server.rooms["timing"]
+        original_step = room.sim.process_frame
+
+        async def slow_step(*args, **kwargs):
+            await asyncio.sleep(0.04)
+            return await original_step(*args, **kwargs)
+
+        async def slow_snapshot():
+            await asyncio.sleep(0.12)
+
+        # Both inputs arrive before the tick. These delays belong to worker and
+        # diagnostic work, not a missing peer; exercise the actual network loop.
+        with mock.patch.object(room.sim, "process_frame", side_effect=slow_step), \
+             mock.patch.object(room, "record_snapshot", side_effect=slow_snapshot):
+            self.server.audit_state = True
+            await self.advance(peers, 0)
+        row = next(e for e in self.events if e["event"] == "frame_queued")
+        self.assertGreaterEqual(row["worker_ms"], 35)
+        self.assertGreaterEqual(row["snapshot_ms"], 100)
+        self.assertGreaterEqual(row["frame_work_ms"], row["worker_ms"] + row["snapshot_ms"])
+        self.assertEqual(row["input_wait_ms"], 0)
+
+        # Deliberately withhold the second player's next frame. After receipt,
+        # the frame must advance once and report observed input wait separately.
+        self.server.audit_state = False
+        await peers[0].send(p.INPUT, struct.pack("<I", 1))
+        await wait_until(lambda: room.input_wait_started is not None)
+        await asyncio.sleep(0.08)
+        await peers[1].send(p.INPUT, struct.pack("<I", 1))
+        frames = await asyncio.gather(*(peer.receive(p.FRAME) for peer in peers))
+        self.assertEqual(frames[0], frames[1])
+        row = next(e for e in self.events if e["event"] == "frame_queued" and e["frame"] == 1)
+        self.assertGreaterEqual(row["input_wait_ms"], 70)
+        self.assertGreaterEqual(row["tick_late_ms"], row["input_wait_ms"])
+        self.assertEqual(row["snapshot_ms"], 0)
+        self.assertIsNone(room.input_wait_started)
+
     async def test_stalled_peer_cannot_accumulate_more_than_negotiated_window(self):
         await self.start()
         for window in (2, 6, 12):

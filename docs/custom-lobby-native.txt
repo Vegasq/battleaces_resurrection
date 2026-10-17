@@ -1,0 +1,222 @@
+Native Custom lobby / server roster / Try Deck feasibility
+Read-only review, 2026-10-17, client build 37822
+
+PROVENANCE AND SCOPE
+REA-guided shipped-artifact analysis. Native REA engines remain unavailable;
+this is original-byte disassembly plus existing IL2CPP metadata and extracted
+protobuf descriptors, not a live REA engine or UI observation. No processes
+started/stopped, no client binary edits, and no tracked source edits.
+Original: investigation/original/GameAssembly.dll, image base 0x180000000,
+SHA256 e59d08c01479b27404778048d7e13546dbf3771f6b3912744c7c2bdf80c4e758.
+Native addresses below are RVAs. Evidence can be reproduced using
+investigation/network/original_disasm.py with base+RVA absolute start/end,
+metadata_types.py, native-map.json, and descriptors/{front_party,common_party,
+common_pb}.proto.json. Shared generic annotations are resolved by method spec
+where needed, not inferred from a neighboring native-map symbol.
+
+Previous failure-body findings remain in:
+  local/p2-failure-dialog-native-review.txt
+  local/p2-failure-dialog-release-boundary.txt
+The Release-to-base callsite is useful but alone does not cover same-prefab
+in-place ModelUpdated replacement; no body override is declared safe/complete.
+
+CONCLUSION
+Native custom games are feasible without a new replacement UI. The client
+already has a lobby manager, predicted state, member grid, host Start, invitations,
+accept/decline, and native status/result presentation. The missing work is a
+replacement-server presence and lobby protocol, plus a scoped roster renderer
+that does not call Steam for name/status/avatar. This is more than changing a
+server address or redirecting the existing two-person ready message.
+
+Try Deck vs AI is a separate path. Native CommonPb.GameMode3 is MODE_FTUE and
+mode4 is MODE_1VAI. This review does not prove which serialized UI action the
+visible Try Deck button currently invokes. An observed mode3 must not be renamed
+AI without resolving that asset callback or recording the actual clicked flow.
+
+NATIVE CUSTOM LOBBY FLOW (STATICALLY OBSERVED)
+1. CustomGameLobbyManager.EnterLobbyScreen 0x3cab7b0 initializes and creates a
+   lobby if PredictedCustomGameLobby is absent, then raises InLobbyScreenChanged.
+   CreateLobby 0x3cac420 declines pending party invites, calls
+   FrontServerIntegration.CreateCustomGameLobby(mode1) at 0x3cac4bb, retains the
+   returned request in _pendingCreateLobbyRequest, and creates predicted local
+   state: mode1, status Open, one local host/player at slot0.
+2. FrontServerIntegration.CreateCustomGameLobby 0x3e46d70 returns a
+   FrontPb.CreateLobbyRequest. Front.ProcessCreateLobbyResponse 0x3e48360 installs
+   native lobby/party data, updates matchmaking status, and raises LobbyCreated.
+   Later Front.ProcessLobbyStateNotification 0x3e48820 installs state/permissions,
+   raises LobbyStateUpdated, updates active lobby and matchmaking status.
+3. CustomGameMainScreenVM 0x3cb1400 RefreshViewModel consumes manager/front data.
+   HasEnoughPlayersToStart 0x3cb0190 is PlayerCount == PlayerCapacity;
+   CanStartGame 0x3cb01a0 additionally requires IsLocalPlayerHost;
+   CanInvitePlayer 0x3cb01c0 requires LobbyStatus Open (1).
+   These are UI checks; server validation must independently enforce membership,
+   host, supported mode, capacity, deck readiness and stale request rejection.
+4. StartGame 0x3cb1080 INLINES manager.TryStartGame 0x3cabc60. It creates a
+   LobbyStateUpdateAction with oneof15 TryStartLobbyGame and tail-calls
+   manager.SendUpdateAction 0x3cac870 at 0x3cb118f. Hooking only TryStartGame
+   misses this button. SendUpdateActions 0x3cad560 validates/predicts, calls
+   Front.UpdateLobbyRequest(list) 0x3e46f70, then retains its returned request.
+5. OnLobbyStateUpdated 0x3cac9c0 reacts to state GameStarting (5). If local
+   member is a non-host player and the corresponding ready action is not already
+   queued, it builds oneof16 ReadyToStartLobbyGame and sends it. Do not replace
+   this handshake with silent ready-on-presence. Host starts, peer acknowledges,
+   then match creation should occur only after the server validates both decks.
+6. Front.ProcessCustomGameCreatedNotification 0x3e40410 chooses native loading
+   mode and calls GameServerIntegration.JoinGame 0x3e53940 at 0x3e405e3, followed
+   by status refresh and CustomGameCreated(error). That original JoinGame path
+   is NOT automatically the replacement GameData/bootstrap path. A new adapter
+   must connect this notification with the existing dedicated bootstrap exactly
+   once and preserve native lobby/game lifecycle; it is an untested integration.
+
+NATIVE INVITATIONS AND THEIR STEAM DEPENDENCIES
+CustomGameInvitePlayerVM.Initialize 0x3ca92e0 initializes bindings, calls
+UncappedSteamFriends.ForceFriendUpdate at 0x3ca93b9, clears pending invite UI,
+subscribes FriendsChanged/PredictedLobbyChanged, and tail-calls Populate at
+0x3ca95cd. OnFriendsChanged 0x3ca9820 calls ClearInvitableFriendsList0x3ca98e0
+then tail-calls Populate at0x3ca983a. Release0x3ca95f0 is the native cleanup.
+ForceFriendUpdate0x3e738a0 has an _isInitialized guard; do not force that flag
+true merely to insert server-roster rows.
+
+PopulateInvitableFriendsList0x3ca9b30 reads _steamFriends._sortedFriends,
+excludes current lobby members, then explicitly calls
+Steamworks.Friend.IsPlayingThisGame at0x3ca9e36. It also requires a non-null
+FriendExtension.Environment and applies region filtering when configured.
+It obtains native pooled invite item VMs, binds a FriendModel, adds them to
+_inviteItems, then updates HasInvitableFriends. Therefore adding synthetic
+FriendModel objects to the list alone cannot provide offline presence.
+
+CustomGameInvitePlayerItemVM.RefreshViewModel0x3ca8960 first binds its child
+FriendVM. It then evaluates region, environment, GameConnectionInfo/busy,
+PartyStatus (InParty1, FeatureLocked2, Invitable3), and pending invitation state.
+CannotInviteReason names: None, Environment, Region, InMatch, PendingInvite,
+FeatureLocked, MissingPartyStatus. It calls native property setters for reason
+and CanInvite. A scoped dedicated row renderer can retain these setters and
+existing visuals, but the ordinary FriendVM refresh is not safe as-is:
+FriendVM.RefreshViewModel0x3d027b0 directly/inlined calls Steam Friend.Name,
+IsPlayingThisGame, SteamFriends.Internal, FriendModel.OnlineStatus, and
+SteamFriends.GetLargeAvatarAsync. Hooking only FriendModel.DisplayName misses
+these inlined calls. FriendModel constructor0x3cff510 calls UpdateFriendExtension
+0x3cff600. Model construction/pooling and avatar omission need explicit design
+and runtime qualification; this note does not endorse guessed pointer writes.
+
+Useful exact instance fields for a future dedicated roster adapter:
+  CustomGameInvitePlayerVM: _pool50, _frontServer58, _steamFriends60,
+    _customLobbyManager68, _inviteItems70, _root78, _hasInvitableFriends80.
+  Invite item: _friendVM60, _frontServer70, _customGameLobbyManager80;
+    CanInvite setter0x3ca8320, CannotInviteReason setter0x3ca83c0.
+  FriendModel: _friend10, _friendExtension18, _isImageDirty20, _image28,
+    _modelChanged30. FriendExtension: PlayerHandle30, FrontHandle38,
+    Region28, PartyStatus24, Environment40, GameConnectionInfo50.
+  FriendVM exposes native setters PlayerName, Online, InGame, OnlineStatus,
+    IsBusy, PlayerStatus, Portrait, ShouldShowFriend and invite permissions.
+Keep the roster scoped to the dedicated session and rooted only for its native
+lifetime; do not fabricate Steam authentication or mutate shared UI assets.
+Initial implementation should show all authenticated connected players with
+availability, keep self/busy rows non-invitable, and update live joins/leaves.
+
+InviteToGame0x3ca8f20 reads its model's FriendExtension.PlayerHandle and
+FrontHandle, then tail-calls manager.InviteToCustomGame0x3cabe80. The manager
+requires Open state, creates partyType3 (CUSTOM_LOBBY) for current gameMode,
+adds a pending request, and INLINES Front.InvitePlayerToPartyRequest before
+enqueuing at0x3cac066. Hooking only the named Front invite method misses it.
+Front.ProcessInvitePlayerToPartyResponse0x3e477f0 provides sender response;
+ProcessPartyInviteRequestNotification0x3e47f60 adds a native PartyInvite and
+refreshes status for the recipient. MatchmakingStatusPanelVM.OnAccept0x3d24700
+and OnDecline0x3d24910 call Front.PartyInviteReplyRequest0x3e46890 with bool
+true/false. ProcessPartyInviteReplyResponse0x3e48050 consumes invite/party state;
+ProcessPartyInviteUpdateNotification0x3e47c40 handles subsequent invite updates.
+Acceptance must be followed by appropriate authoritative lobby notification,
+not just a synthetic accepted button state. Recipient FriendVM presentation
+needs the same dedicated roster treatment as the invite-list rows.
+
+NARROW REQUEST HOOK CANDIDATES
+All following original direct CALLs target native0x256df90. Metadata method
+spec291075 resolves to ServiceIntegration`3.EnqueueMessage, return void.
+ABI: RCX=FrontServerIntegration instance, RDX=FrontPb.FrontServerConsumer,
+R8=original generic MethodInfo. A callsite wrapper can preserve all three and
+call the original callee once for non-dedicated sessions. No executable gateway
+or whole generic-function replacement is needed. Dedicated branch translates
+only supported request kinds; no immediate fake response from inside wrapper.
+
+  Source                       call RVA    raw offset   original 5 bytes
+  manager invite               03cac066    03caa666     e8251f8cfe
+  Front create lobby           03e46f3e    03e4553e     e84d7072fe
+  Front update lobby list      03e472ce    03e458ce     e8bd6c72fe
+  Front update lobby single    03e474e6    03e45ae6     e8a56a72fe
+  Front accept/decline reply   03e46968    03e44f68     e8237672fe
+
+Consumer fields: frontServerMessages_20, frontServerMessagesCase_28,
+messageContext_18. Native request construction at this boundary is incomplete
+with respect to original service-side enrichment: CreateLobby initially fills
+mode/rating; actions may initially have no deck/cosmetics. The dedicated adapter
+must deliberately obtain authenticated local identity/current selected deck,
+not trust absent sender fields or accidentally reactivate original frontend.
+This is a focused set of observed sites, not an exhaustive all-callsite audit;
+cancel-invite, out-of-dialog challenge paths and other variants still require
+coverage if included. Native shared Front methods remain unchanged.
+
+CRITICAL ORDERING
+Defer native responses to a later Unity update after the originating method has
+returned. CreateLobby stores _pendingCreateLobbyRequest after the Front call;
+SendUpdateActions stores _pendingLobbyUpdateRequest after its Front call;
+PartyInviteReplyRequest increments _pendingInviteResponseRequests after enqueue
+(0x3e4696d). Synchronous acknowledgement inside a send wrapper races this state.
+Use actual server-confirmed events/snapshots and keep native callbacks on the
+observed Unity thread. Requests crossing frames must be rooted or copied.
+
+DATA/STATE NEEDED FROM REPLACEMENT SERVER
+CommonPb.LobbyState: status, host handle, repeated members, gameMode, region,
+try-start expiry. Member: named player handle, front handle, isHost, role,
+roleSlot, cosmetics/rating. LobbyPermissions contains repeated role permissions
+and hostPermissions; RolePermissions contains role and allowedActions. Native
+prediction uses them, so an empty/default permission object is not sufficient.
+Action oneof IDs:10 change mode,11 move member,12 promote host,13 kick member,
+14 leave,15 try start,16 ready to start,17 cosmetics. Lobby status values:
+0 None,1 Open,2 Full,3 Closed,4 GameReadyToStart,5 GameStarting.
+GetConfig0x3cab670 supports modes1 and2 only; other modes throw. First delivery
+should advertise only tested1v1 and explicitly decline unsupported operations.
+
+Minimal server design gaps: session-wide authenticated directory independent of
+two match seats; stable player IDs/display names; multiple room IDs/host/slots;
+targeted invitations with accept/decline/cancel/expiry and race rules; room state
+revisions and authoritative permissions/readiness/start; disconnect/leave/return
+after match and rematch. An unrelated connected player must never consume an
+invitation's slot or start a match merely by being present/ready elsewhere.
+
+TRY DECK VS AI: CURRENT PROVEN GAP AND NEXT BOUNDARY
+Wire modes from common_pb.proto: None0,1v1=1,2v2=2,FTUE=3,1vAI=4,2vAI=5,
+temporary second tutorial100. EditDeckPracticeAccessor0x3ceae90 and
+PracticeVAIButtonAccessor0x3d26ba0 are only accessor constructors; metadata does
+not reveal the serialized button event/model that connects the visible action.
+MatchmakingButtonVM.JoinQueue0x3d23380 reads Model.GameMode and tail-calls
+Front.JoinMatchmakingQueue0x3e3c0d0 at0x3d234ab. Front.CreateGame0x3e3bf00 has
+ABI void(front,IGameSettingController*,int gameMode,MethodInfo*) and asks the
+controller for the mode config before asynchronous asset readiness.
+Front.CreateDebugAIGame0x3e3bcf0 calls CreateDebugGame0x3e3bd10 with
+createLocalPlayer=true and supplied AI army configs. These show usable builders,
+not a complete validated single-player AI setup.
+
+Current source (not a new edit in this review):
+client_patch/src/local_bootstrap.cpp OfflineCreateGame sends every dedicated
+mode to ba_dedicated::ready(front,mode). OfflineDedicatedJoinQueue in
+dedicated_deck.cpp does likewise. dedicated_transport.cpp ready currently
+does not validate mode: it submits the selected deck and C_READY{1}, logging
+the mode only. Thus tutorial/practice entries can silently ready the normal
+two-human room. Gate unsupported modes until separate paths exist.
+Existing local bootstrap supports mode3 authored Tutorial1; network/status.txt
+and offline-status.txt distinguish that from ordinary full-deck AI practice.
+
+Next bounded work: resolve actual Try Deck button callback/model; inspect mode4
+GameModeConfig/converters and native AI profile/config selection; choose local
+single-player authority or a one-human server room with AI slot; preserve selected
+eight-unit deck/abilities and native AI initialization; implement independent
+finish/exit/return/rematch state. Qualify changed deck -> active AI commands ->
+completion/exit -> deck/menu -> another AI and multiplayer match. None of that
+is established by the current tutorial proof or two-human simulation tests.
+
+VALIDATION LIMITS
+All new custom/AI findings here are static or source review. No live custom
+lobby, invite popup, connected roster, accept/decline, native host Start, AI
+opponent, or return-to-custom-lobby was exercised by this worker. The exact
+visible Try Deck action remains unresolved. The proposed callsites are concrete
+byte-guarded candidates, not installed/tested patches or a complete call graph.

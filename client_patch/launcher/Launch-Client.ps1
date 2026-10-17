@@ -13,6 +13,7 @@ param(
     [switch]$SurrenderSmoke,
     [switch]$RematchSmoke,
     [switch]$TelemetryAudit,
+    [switch]$DiagnosticAudit,
     [ValidateRange(200,10000)][int]$SurrenderFrame = 600,
     [switch]$Batch,
     [switch]$ExportCatalog,
@@ -54,7 +55,8 @@ if ($manifest.components) {
 }
 $runtime = Join-Path $root 'investigation/runtime'
 New-Item -ItemType Directory -Force -Path $runtime | Out-Null
-$gameArgs = @('-offline-lan', "-dedicated-server=$resolvedAddress", "-player-id=$PlayerId", ('-player-name="'+$DisplayName+'"'), "-room=$Room", '-lan-audit', '-screen-fullscreen','0','-screen-width','960','-screen-height','540','-logFile',('"' + (Join-Path $runtime "$RunName-$PlayerId.log") + '"'))
+$gameArgs = @('-offline-lan', "-dedicated-server=$resolvedAddress", "-player-id=$PlayerId", ('-player-name="'+$DisplayName+'"'), "-room=$Room", '-screen-fullscreen','0','-screen-width','960','-screen-height','540','-logFile',('"' + (Join-Path $runtime "$RunName-$PlayerId.log") + '"'))
+if ($DiagnosticAudit) { $gameArgs += '-lan-audit' }
 if ($Slot -ge 0) { $gameArgs += "-lan-slot=$Slot" }
 if ($AutoReady) { $gameArgs += '-dedicated-auto-ready' }
 if ($Smoke) { $gameArgs += '-lan-smoke' }

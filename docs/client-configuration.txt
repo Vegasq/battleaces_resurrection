@@ -47,3 +47,28 @@ Plaintext binds outside numeric loopback are rejected. The experimental secured
 listener requires certificate/key/store paths together; see admission.txt. Its
 schema2 secure launcher can use it; this schema1 launcher cannot.
 The configured endpoint is not sent to the original game services.
+
+NORMAL TWO-CLIENT PLAY ON ONE PC
+Use the patched installation and imported assets with the existing local runner:
+  powershell -NoProfile -File tools/Run-LocalMatch.ps1 -GameDirectory "<patched game>" -AssetDirectory "<imported assets>" -RunName manual-play-01
+Choose a fresh RunName for each launch. Select decks and press Play in both game
+windows; Continue and the next Play are manual too. Keep the runner console open
+while playing. Optional ClientConfig0/ClientConfig1 select personal configurations;
+both configs must point to the runner's loopback address/port and the same room.
+
+Do not pass Smoke, DeckSmoke, SurrenderSmoke, AutoReady or RematchSmoke for ordinary
+play. SurrenderSmoke queues a native surrender at frame600 by default (30 seconds
+of simulation time); it is a test command, not a dedicated-server match limit.
+The helper checks this flag on every match, including rematches, so restart clients
+without it to turn it off. Normal native victory/surrender rules remain in effect.
+Detailed local state/receipt auditing is opt-in through -DiagnosticAudit on
+Run-LocalMatch.ps1 (both server and clients) or Launch-Client.ps1 (client only).
+Normal play omits this flag. Diagnostic snapshots run on the frame path; several
+long pauses in the recorded manual test fell within that path. Server journals and basic logs
+remain enabled. Runs without diagnostics cannot pass the full sampled-state/receipt
+verifier. Secure automated qualification still explicitly enables its own audits.
+
+On the development workstation, ignored local/Play Normal Match.cmd supplies the
+tested installation/assets and existing player configs with all automation flags
+omitted. Close the old visible test clients before double-clicking it; the earlier
+Launch Updated Visible Test.cmd deliberately retains its automatic surrender test.
