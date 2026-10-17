@@ -3,6 +3,16 @@ Updated: 2026-10-17
 Active objective: implement SERVER_REPLACEMENT_PLAN.txt, Windows only.
 
 CURRENT USER PLAYTEST FOLLOW-UP (2026-10-17)
+User confirms: "Play Normal Match worked with no lags!" The matching normal run
+manual-play-20261017-131539 completed match360f017587544f1b8f3e1faada8caba1
+with1,572 authoritative frames at19.996Hz, p95 interval59.644ms and maximum70.479ms
+(interval statistics exclude the first frame). No server errors or diagnostic
+snapshots; native result at frame1552 has army_conceded_flag=0. Worker22020 was
+released and both clients returned to unready lobbies before disconnecting.
+This records manual startup/playability and no reported unit stutter on this PC.
+It does not establish full client-state comparison, long-session or internet
+performance. Evidence: that run's events.jsonl, processes.json and manual-review.json.
+
 Normal manual startup exposed a second obsolete-service modal: runs
 manual-play-20261017-125901/130000 connected both clients and loaded valid decks,
 but the original login controller blocked the menu with Connection Issue. No
@@ -20,8 +30,8 @@ server error displayed the native failure dialog only for the affected client.
 The other client remained connected. All owned test processes were reaped.
 Installed helper SHA256:
 b1eac8fe6aa655dc9ffd7882efe5d47b26dc5e296fe274ccc8f548ed14a6a9f4
-The normal launcher targets this updated working copy. Manual visual confirmation
-and the original unit-pacing retest remain pending. Native details and reproducible
+The normal launcher targets this updated working copy. Manual startup/play and
+the original unit-pacing retest now pass as reported above. Native details and reproducible
 probe are in client-session-lifecycle.txt; evidence local/matches/p2-idle-lobby01.
 Helper build checks and31 focused recovery/installer/transport source tests pass.
 
@@ -69,7 +79,7 @@ publication, not solely waiting for client input. Normal PowerShell launchers no
 leave client/server state and receipt audits off; -DiagnosticAudit explicitly
 enables them for verification. Basic journals remain. New frame timing fields
 separate observed input wait, worker/IPC and snapshot work. This removes diagnostic
-work from normal play but does not yet prove all reported lag resolved. No buffer
+work from normal play; the subsequent manual test above reports no lag. No buffer
 or simulation timestep was changed. See network-qualification.txt for evidence
 and confounders.16 coordinator tests pass, including timing attribution; actual
 launcher arguments were intercepted/checked with no game processes started.

@@ -194,5 +194,22 @@ normal/diagnostic launcher argument construction was intercepted at Start-Proces
 normal has no automation/audit flags; diagnostic mode enables both sides' audits;
 zero game/server processes were launched by that check. All changed PS scripts parse.
 Local evidence: the original run's manual-review.json and verification-MATCH.json;
-local/manual-launcher-verification.json. Playability/performance after disabling
-audits still needs the user's next normal match; no claim of a complete lag fix.
+local/manual-launcher-verification.json. The manual follow-up below now checks
+normal play with audits disabled; broader network qualification remains open.
+
+NORMAL MANUAL FOLLOW-UP (2026-10-17)
+User: "Play Normal Match worked with no lags!"
+Run manual-play-20261017-131539, clients16072/49516, match
+360f017587544f1b8f3e1faada8caba1. Launcher metadata confirms every automation/audit
+switch false. Native result completed at frame1552, winning alliance0,
+army_conceded_flag=0;1,572 frames published including result tail, worker22020
+released. Both peers subsequently rejoined unready lobbies, then disconnected.
+
+Mean cadence19.996Hz; interframe p95=59.644ms, max=70.479ms (first frame excluded).
+Maximum worker6.105ms, input wait23.946ms; snapshot work0 for every frame. One
+cadence reset and zero server errors. These are server timings, not rendered FPS
+or click-to-display latency. The user's report independently confirms playable
+unit movement. Audits were intentionally disabled, so there is no full receipt/
+sampled-state comparison for this match. Long matches and physical-PC/internet
+tests remain separate gates. Retained evidence: local/matches/<run>/events.jsonl,
+processes.json, patch-manifest.json and authored manual-review.json.
