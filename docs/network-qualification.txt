@@ -1,0 +1,68 @@
+NETWORK DELAY QUALIFICATION
+Updated:2026-10-17
+
+The current protocol2 client queues three input batches and replenishes one after
+each authoritative frame. The coordinator allows bounded contiguous lookahead
+(MAX_AHEAD4), waits for both peers, and advances Simulation.dll by exactly50ms.
+Its input-stall limit is10s. This is a small local pipeline, not a measured choice
+for internet players. Configurable buffering and friend-facing connection status
+remain P3 work. A match can stay deterministic while running slower than20Hz.
+
+tools/run_secure_match.py accepts --rtt-ms0..500, --jitter-ms0..100 and a repeatable
+--network-seed. For example append --rtt-ms100 --jitter-ms10 to the documented
+secure two-client qualification command. Keep every run name unique. The optional
+relay binds and forwards only IPv4 loopback; normal client/server code is unchanged.
+TLS remains end to end with certificate/name verification and authentication.
+The relay never decrypts, logs or persists application/ciphertext payloads.
+
+Model: independent one-way stream-chunk delays of RTT/2 plus uniform +/- jitter.
+Release times are clamped to preserve TCP byte order. Reading and scheduled writing
+are separate, so successive chunks do not each incur cumulative whole-RTT waits.
+There are at most8 concurrent connections,32 queued chunks of at most64KiB per
+direction, bounded stream buffers,5s connect/write deadlines and owned shutdown.
+This models delayed ordered delivery. It does not model remote TCP congestion,
+packet reordering, packet loss/retransmission, bandwidth limits or actual internet
+routing. Those remain physical-PC / controlled-network qualification requirements.
+
+Five asset-free real-socket checks cover ordered large transfers with jitter,
+measured round-trip delay, bounded connection admission/active shutdown, a peer-EOF
+versus shutdown race, and invalid parameters.
+Run: python -m unittest tests.test_stream_shaper -v
+The native harness additionally verifies every completed match's exact input
+receipts, sampled state and native result, and records each TLS authentication.
+Its summary includes actual authoritative-frame cadence, p95/max interframe gap,
+cadence-reset counts and relay counters. Completion success does not assert20Hz.
+
+Retained baseline: p3-tls-client02, no injected delay. First/second match effective
+cadence19.367/19.947Hz; mean interval51.634/50.134ms; p95 63.142/63.555ms; maximum
+487.316/120.045ms;6/2 cadence resets. Both620-frame matches had0 sampled state
+mismatches,620 receipts/client and matching native results. Exact per-match metrics
+are retained in local/matches/p3-tls-client02/timing-analysis.json. Initial loading
+and local scheduling can affect cadence even with no injected network delay.
+
+Controlled-delay results with helpersecure03 / protocol2, no buffering change:
+ Run                  Added RTT  One-way jitter  Match1 Hz  Match2 Hz Resets1/2
+ p3-delay50-01            50ms       none          18.964     19.882      6/3
+ p3-delay100-01          100ms       none          18.965     19.589      7/5
+ p3-delay200-01          200ms       none          13.110     12.215    303/302
+ p3-jitter100-20-01      100ms      +/-20ms        16.967     19.459     16/12
+All four runs completed two620-frame matches in unchanged client processes;
+each client/match had620 receipts,62 sampled views,zero mismatches/errors and
+matching native results. Each run authenticated4 TLS1.3 sessions. Relay queues
+peaked at1/1/2/2 chunks respectively,with0 relay failures/rejections. Every run has
+summary.json and per-match verification under local/matches/<run>.
+
+The200ms run's p95 interframe gaps were110.643/111.904ms, far above its50ms target.
+The second match also included a3.398s maximum gap; its cause is not isolated.
+At50/100ms there were occasional long gaps too. The large repeated cadence reset
+count at200ms is consistent with the three-batch round-trip pipeline being too
+short. It motivates bounded configurable input buffering and a before/after run;
+it does not establish that every observed gap came from network delay. No default
+or native/protocol change was made during this baseline measurement.
+
+The jitter run used seed17. Its first lobby join was114s after server startup;
+the cause of this variable pre-network startup time remains unproven. Its first
+match had a2.433s maximum interframe gap, while the rematch maximum was344.447ms.
+It reached the240s harness deadline about10s after its second result. Both clients
+still logged native result delivery and exact legacy-modal release/navigation0
+before termination. This does not substitute for manual failure/reconnect UX.

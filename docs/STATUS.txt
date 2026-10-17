@@ -220,6 +220,28 @@ The server pre-TLS limits were published as7b4b2a6 with127 distinct source objec
 and0 audit failures. Client TLS publication uses the same explicit source allowlist
 and index/history audit; runtime game files, PKI and credentials remain local.
 
+Client TLS source/docs published asf30a132 after149 indexed/history source objects
+passed the publication audit with0 failures. The working visible-test installation
+was not changed; the secure helper was tested in a separate copy.
+
+P3 delay measurement: p3-delay50-01, p3-delay100-01, p3-delay200-01 and
+p3-jitter100-20-01 each completed two matching620-frame native TLS matches and
+reauthenticated rematches. Five additional real-socket harness tests pass.
+50/100ms rematches measured19.882/19.589Hz;200ms measured13.110/12.215Hz across
+the pair,with303/302 cadence resets.100ms plus +/-20ms one-way jitter rematch
+measured19.459Hz. The three-input-batch pipeline remains unchanged. These findings
+motivate measured bounded input buffering; packet-loss/remote TCP behavior is not
+modeled. See network-qualification.txt for timings, outliers and retained runs.
+No cross-PC or internet acceptance claim follows from these loopback tests.
+
+Static recovery research resolved the shipped disconnected-modal RECONNECT to
+UILoginFlowController.RetryLogin and original gRPC connection code. Its serialized
+CloseOnConfirm isfalse, so it does not automatically close. A dedicated retry must
+queue intent, use original deferred modal release, wait for native menu/world
+teardown, then create a fresh lobby without auto-ready. The separate in-game retry
+also targets original JoinGame. Neither callback is patched yet; failure-button
+runtime acceptance remains open. Details are in client-session-lifecycle.txt.
+
 BASELINE EVIDENCE BEFORE SOURCE MIGRATION
 Original GameAssembly SHA256:
   e59d08c01479b27404778048d7e13546dbf3771f6b3912744c7c2bdf80c4e758

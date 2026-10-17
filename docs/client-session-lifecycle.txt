@@ -84,7 +84,8 @@ adapter; -offline-lan is retained for backwards-compatible launchers.
 
 ERROR AND RETRY BOUNDARIES
 
-Connection/WELCOME timeout is15 seconds. A transport/bootstrap/input error stops
+Connection/WELCOME timeout is15 seconds in development TCP mode and30 seconds
+through the secure bridge. A transport/bootstrap/input error stops
 helper input and closes the connection. After a finished map load with an active
 world, the adapter calls original CleanupGameState(reason1,skipShutdown=false)
 once. Its native shutdown path returns to menu, stops/joins the simulation and
@@ -279,3 +280,55 @@ This establishes the automated native Continue/rematch path and the precise moda
 release. Manual mouse/keyboard Continue, deck editing, changed seats, and broader
 failure/soak acceptance remain required. It does not claim graphical visibility
 for tool-launched windows or P2 completion.
+
+DISCONNECTED BUTTON OWNERSHIP / RECOVERY RESEARCH (2026-10-17; NOT PATCHED)
+
+Read-only original-byte and serialized-asset analysis resolved the exact login
+modal button. Addressable key RGameManagers,catalog entry16878,uses bundle
+8e675ab2882c5c16dacec2b050003038.bundle under StreamingAssets/aa/StandaloneWindows64.
+Bundle SHA256:eecd0a8272588866051dbf7670029ca8ae2c32dd247d749bc1581336b3cccce8.
+Node CAB-23a1fab3f112e907cb2abc7bfbe8ea6d has UILoginFlowController PathID95 at
+offset200800,size4176,on UIMenuCanvas GameObject23. Its _disconnectedModal prefab67
+references model0xf231a2765c0000 and Meta0xf231a2765c0001.
+
+ConfirmEvent has exactly one persistent RetryLogin callback targeting local
+file0/PathID95 (mode1,state2). CancelEvent similarly targets OnQuitApplication.
+CloseOnConfirm=false,CloseOnCancel=false,DefaultCloseAction0. Thus RECONNECT DOES
+NOT automatically release this modal; the controller must release it explicitly.
+
+Original native routes, RVAs in the pinned pristine GameAssembly:
+ UILoginFlowController.RetryLogin 3d06fa0 -> generic connect256da30,constructing
+ Grpc.Core.Channel. This targets the original service path,not the new coordinator.
+ OnQuitApplication3d06f50 -> UnityEngine.Application.Quit5021ad0. This native body
+ is shared with other Quit methods and must remain unchanged.
+ ModalConfirmVM.OnConfirm3c79c40 -> OnConfirmInternal3c79f60,which invokes model
+ Meta.ConfirmEvent before returning to the close-setting check. OnCancelInternal
+ 3c79e20 invokes the separate CancelEvent.
+ HideReconnectUI3d079c0 cancels the controller's coroutine and calls
+ HideExistingModal3d078c0. ModalConfirmVM.Release3c79a70 calls NavigationStack.
+ OnRelease,releases the view and clears transient delegates. The controller's
+ OnModalReleased subscription clears _activeModal(+70)/_activeShowUIObject(+78).
+ UIGameConnectionStatus.OnForceRetryReconnect3c89600 is a separate in-game retry
+ path into original GameServerIntegration.JoinGame3e53940 using saved connection
+ info. It does not enter the dedicated adapter either.
+
+Runtime ownership chain for a future scoped check:
+ controller._disconnectedModal(+98) -> ShowUIObject._model(+18) ->
+ ModalConfirmModel.Meta(+30) -> InvokeUnityEvent.ConfirmEvent(+10)/CancelEvent(+18).
+Offsets in this paragraph are hexadecimal. Persistent callback targets retain
+the owning controller; do not replace shared VM handlers or clear navigation.
+
+Proposed dedicated-only callback behavior (not implemented/tested): enqueue retry
+intent, then invoke original HideReconnectUI on a later Unity update. For an
+interrupted match, existing CleanupGameState3e51ba0 must finish and inMenu plus
+worldIdle must hold before a fresh HELLO. This is a new lobby,not active-match
+resumption. Existing retryFromPlay sets deferredPlay=true,so reusing it unchanged
+would wrongly auto-ready from RECONNECT. If the private transport parent is dead,
+its inherited stream cannot be repaired by a new remote session; relaunch is needed.
+Preserve non-dedicated behavior and the independent Quit callback.
+
+Local retained sources: investigation/dedicated/disconnect-ui-types.json,
+legacy-login-disconnect.asm,investigation/native-map.json and the pristine DLL.
+Focused callback ranges were rechecked with investigation/network/original_disasm.py;
+the bundle was decoded in memory and not extracted/published. No live failure-button
+click, callback replacement, or runtime recovery success is claimed by this trace.

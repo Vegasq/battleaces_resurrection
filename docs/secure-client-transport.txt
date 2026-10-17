@@ -95,6 +95,8 @@ This uses ephemeral local test PKI and in-memory invites, authenticates both gam
 then records two native matches,rematch evidence and exact frame receipts. It
 terminates only its own Popen game handles after the bounded run. It does not prove
 normal quit,manual UI,private-file ACLs,clean-host packaging or internet performance.
+The optional delay/jitter harness and cadence interpretation are documented in
+network-qualification.txt; delayed-stream correctness is not internet qualification.
 
 Actual game result (2026-10-17)
  local/matches/p3-tls-client02/summary.json:success=true.
