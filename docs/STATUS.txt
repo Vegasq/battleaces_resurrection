@@ -47,7 +47,7 @@ P0 COMPLETE
   Local-path Git cloning failed because the installed MSYS shell could not create
   its signal pipe; the actual SSH clone succeeded without changing host policy.
 
-P1 IN PROGRESS; P2-P5 INCOMPLETE
+P1 COMPLETE; P2 IN PROGRESS; P3-P5 INCOMPLETE
 Implemented supervised per-match Windows workers, bounded private IPC, automatic
 seats and a bounded room registry. Ten coordinator lifecycle tests include two
 network rooms, worker crash containment, loading/input/lobby expiry, shutdown
@@ -58,15 +58,73 @@ address space. Worker-level real-DLL isolation/production checks also pass.
 Graphical p1-worker01: match b96befa944cb468aa757725e491a6f07,620 frames,
 62 sampled same-frame/views per client,zero mismatches,production/result match;
 worker43508 released after completion. Evidence local/matches/p1-worker01.
-Full native multi-room/crash/20-successive-match qualification is running.
+Full native multi-room/crash/20-successive-match qualification PASS in177.9s.
+Run local/native-worker-rooms-p1-20:21 ordinary native completions (healthy
+isolation room plus20 sequential same-name matches),1 intentional worker crash,
+all22 workers released/reaped. The failed frame was never published; the healthy
+room continued and the same listener accepted another lobby. Both scripted TCP
+peers received exact bootstraps/frames and reconstructed all3,363 native input
+frames.338 native snapshots; observed interframe mean49.96ms, max82.72ms.
+Source hashes did not change during the run. This is scripted native/network
+qualification, distinct from graphical/manual client acceptance and the8h soak.
+Source commit a6be596 is pushed to the corrected remote.
 
 P2 work in progress includes editable client server-address configuration,
 native-menu session cleanup/reconnect, and partial telemetry guards. These are
 separate from the P1 server changes; see their component documents for validation.
-Worker isolation/multiple-room integration, reusable client sessions, telemetry removal,
+Config-driven graphical p2-config01 PASS: native helper
+879cf0a35a922ed88342f044316c7c144fa6d8284936ade8f797d3d3c25aa612,
+clients46268/1020, assigned seats1/0 (opposite launch order), names with spaces,
+localhost and explicit IPv4 from personal JSON files.620 frames,zero sampled
+mismatches,production and result match. Evidence local/matches/p2-config01.
+Partial telemetry guarded build p2-telemetry01 also completed620 matching frames;
+its startup logs have no Bugsnag initialization or null-reference errors.
+No complete process/network capture or full telemetry-removal claim is available.
+Automated same-process rematch validation is in progress. Run p2-rematch01
+validated its first620 frames with complete per-match receipt journals for both
+clients, but did not leave results: the native navigation stack has one entry.
+The follow-up p2-manual01 confirms inactive/zero world, Normal rewardScreen2,
+MatchResultState and a live result VM; its remaining gate is navigation-not-empty.
+Do not claim a second client match has passed.
+
+User reports tool-launched clients produce audio but no visible windows. Windows
+reports HWNDs, but desktop automation does not list these game windows. Earlier
+graphics-enabled native audits establish simulation evidence, not observed UI.
+A direct user-desktop launcher and standalone server were prepared for visible
+test p2-visible01. The user confirmed both windows visible after launching this
+directly from Explorer. Both completed the match and displayed CONNECTION ISSUE /
+You have been disconnected, with RECONNECT and QUIT TO DESKTOP buttons over the
+result screen. The supplied screenshot identifies the blocking modal.
+
+Visible p2-visible01 evidence: match d5c77d30678642f6a2a61e6cafed2905,
+clients45740/40264,620 server frames,62 sampled views per client and complete
+620-frame receipt journals,zero mismatches,zero server errors. The native result
+was delivered at monotonic589129015/589129046; navigationCount1 was observed at
+589139015/589139046. Graceful result-socket EOF occurred later at589188953.
+Thus the blocking navigation entry precedes the replacement server's completed
+connection expiry by about50s. Original client connection-state checks are under
+investigation; do not claim the exact trigger or a successful rematch yet.
+Local evidence: local/matches/p2-visible01/verification.json and the two
+investigation/runtime/dedicated-native-PID.log files in the working installation.
+
+Real installer restore/reapply check passed while all game processes were closed:
+both GameAssembly.dll and UnityPlayer.dll restored to pinned pristine hashes,
+then the patch reapplied. No restored/unpatched game process was launched.
+
+Manual reusable-client sessions, complete telemetry removal,
 authenticated TLS transport, distributable packages and full release validation
 remain open. See the plan for the complete acceptance gates. P6 is optional future
 work after the requested first release, not a claim of current support.
+
+P3 standalone credential-store support is authored in server/credentials.py;
+it is not yet connected to server admission or client transport. It provides
+owner-issued private handoff files, hash-only storage, stable identities and
+revocation. Sixteen logic tests pass; the real Windows private-file test remains
+unverified because the restricted execution token received access denied before
+token generation. No permission fallback was added. See credentials.txt.
+The combined source suite on2026-10-17 ran100 tests in32.0s:97 pass,3 skip
+(optional original game bytes, optional native worker, actual private Windows
+file check). Evidence local/source-tests-p2-visible01.txt.
 
 BASELINE EVIDENCE BEFORE SOURCE MIGRATION
 Original GameAssembly SHA256:

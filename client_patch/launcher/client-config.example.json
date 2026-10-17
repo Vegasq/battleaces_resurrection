@@ -1,0 +1,9 @@
+{
+  "schema": 1,
+  "game_directory": "",
+  "server_host": "127.0.0.1",
+  "server_port": 47623,
+  "player_id": "",
+  "display_name": "Player",
+  "room": "friends"
+}

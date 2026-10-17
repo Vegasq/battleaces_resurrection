@@ -173,6 +173,33 @@ static bool smokeSelection(Obj front) {
         return passed;
     } catch(const std::exception& e){ba::log("Dedicated deck smoke failed: %s",e.what());return false;}
 }
+static void rematchSmokeSelection(Obj front) {
+    // Test-only second-match edit. Exercise the same native setters, Changed
+    // event, AccountService hook and server persistence as a user's deck edit.
+    if(!ba::flag(L"-dedicated-rematch-smoke"))return;
+    if(!initialized || suppress)throw std::runtime_error("rematch deck editor not initialized");
+    Obj ownerAccount=require(ba::get<Obj>(front,"_accountService"),"rematch account missing");
+    Obj value=selected(ownerAccount);Root data(staticData(ownerAccount));
+    Obj units=require(ba::get<Obj>(value,"_units"),"rematch unit array missing");
+    int index=ba::lanSlot()?1:0;const uint32_t old=ba::read<uint32_t>(units,0x20+4*index);
+    uint32_t replacement=0;
+    for(uint32_t candidate:{75u,74u,1u,6u}) {
+        bool duplicate=false;
+        for(int i=0;i<8;++i)if(ba::read<uint32_t>(units,0x20+4*i)==candidate)duplicate=true;
+        if(duplicate)continue;
+        bool allowLocked=false;void* args[]={&candidate,&index,data.get(),ownerAccount,&allowLocked};
+        Root valid(ba::call(value,"IsValidSlot",5,args));
+        if(*ba::api<bool*(*)(Obj)>("il2cpp_object_unbox")(require(valid.get(),"rematch slot validation missing"))) {replacement=candidate;break;}
+    }
+    if(!replacement || replacement==old)throw std::runtime_error("no distinct valid rematch core unit found");
+    const uint32_t before=savedChanges;logDeck("rematch-before",value);
+    void* setArgs[]={&index,&replacement};ba::call(value,"set_Item",2,setArgs);
+    void* abilityArgs[]={data.get(),ownerAccount};ba::call(value,"AutoAssignAbilities",2,abilityArgs);
+    logDeck("rematch-after",value);
+    if(savedChanges==before || !canReady(front))throw std::runtime_error("native rematch deck edit did not produce a valid save");
+    ba::log("DEDICATED REMATCH SMOKE automated native deck edit: slot=%d old=%u new=%u saveCallbacks=%u full-valid=1",
+        index,old,replacement,savedChanges-before);
+}
 }
 extern "C" __declspec(dllexport) void OfflineDedicatedSaveSelectedDeck(void* account,void*) {
     ba_dedicated_deck::saveSelected(account);

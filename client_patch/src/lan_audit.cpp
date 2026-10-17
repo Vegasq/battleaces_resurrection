@@ -13,6 +13,23 @@ using MakeFrame = int(*)(uint64_t,uint32_t,uint32_t*);
 using GetFrame = int(*)(uint64_t,void*);
 static constexpr uint32_t MaxFrameBytes = 16u*1024u*1024u;
 static constexpr unsigned Interval = 20;
+struct MatchContext {std::string id;unsigned ordinal=0;};
+static SRWLOCK contextLock=SRWLOCK_INIT;
+static MatchContext context;
+struct ContextGuard {
+    bool exclusive;
+    explicit ContextGuard(bool write):exclusive(write){if(write)AcquireSRWLockExclusive(&contextLock);else AcquireSRWLockShared(&contextLock);}
+    ~ContextGuard(){if(exclusive)ReleaseSRWLockExclusive(&contextLock);else ReleaseSRWLockShared(&contextLock);}
+};
+static void beginMatch(const std::string& id) {
+    if(id.size()!=32)throw std::runtime_error("audit match ID invalid");
+    // Called on Unity's thread before ProcessJoinedGame starts a sim worker.
+    ContextGuard guard(true);
+    if(context.id!=id){context.id=id;++context.ordinal;}
+}
+static MatchContext currentMatch() {
+    ContextGuard guard(false);return context;
+}
 
 struct Hash {
     uint64_t value=14695981039346656037ull;
@@ -92,8 +109,15 @@ struct State {
     GetFrame get=nullptr;
     FILE* output=nullptr;
     FILE* resources=nullptr;
+    FILE* legacyOutput=nullptr;
+    FILE* legacyResources=nullptr;
+    MatchContext match;
     std::vector<unsigned char> buffer;
-    ~State() { if(output)fclose(output);if(resources)fclose(resources); }
+    void close() {
+        for(FILE* f:{output,resources,legacyOutput,legacyResources})if(f)fclose(f);
+        output=nullptr;resources=nullptr;legacyOutput=nullptr;legacyResources=nullptr;
+    }
+    ~State() {close();}
 };
 static thread_local State state;
 static void path(wchar_t* target,size_t count,const wchar_t* suffix) {
@@ -119,7 +143,13 @@ static void resourceRows(FILE* output,const std::vector<unsigned char>& bytes,ui
 }
 static void capture(Obj simulation,uint32_t originalViewer) {
     State& s=state;
-    if(s.disabled || !wcsstr(GetCommandLineW(),L"-lan-audit"))return;
+    if(!ba::flag(L"-lan-audit"))return;
+    const MatchContext match=currentMatch();
+    if(s.match.id!=match.id) {
+        s.close();s.match=match;s.disabled=false;s.announced=false;s.world=0;
+        s.lastSampledPreviousFrame=-2147483647;
+    }
+    if(s.disabled)return;
     const uint64_t world=ba::read<uint64_t>(simulation,0x1a8);
     if(!world)return;
     const int previousFrame=ba::read<int>(simulation,0xa8);
@@ -133,16 +163,32 @@ static void capture(Obj simulation,uint32_t originalViewer) {
         if(!s.make || !s.get)throw std::runtime_error("audit native exports unavailable");
     }
     if(!s.output) {
-        wchar_t suffix[128],filename[32768];swprintf_s(suffix,L"lan-audit-%lu.tsv",GetCurrentProcessId());path(filename,32768,suffix);
+        wchar_t suffix[160],filename[32768];
+        if(s.match.id.empty())swprintf_s(suffix,L"lan-audit-%lu.tsv",GetCurrentProcessId());
+        else swprintf_s(suffix,L"lan-audit-%lu-%hs.tsv",GetCurrentProcessId(),s.match.id.c_str());
+        path(filename,32768,suffix);
         s.output=_wfsopen(filename,L"a",_SH_DENYNO);
         if(!s.output)throw std::runtime_error("audit output unavailable");
-        fprintf(s.output,"pid\tthread\tframe\tviewer\tcanonical_fnv1a64\traw_fnv1a64\tbytes\tarmy_entities\ttype_entities\thealth_entities\tposition_entities\tresource_armies\n");
+        if(s.match.ordinal==1 && !s.match.id.empty()) {
+            swprintf_s(suffix,L"lan-audit-%lu.tsv",GetCurrentProcessId());path(filename,32768,suffix);
+            s.legacyOutput=_wfsopen(filename,L"a",_SH_DENYNO);
+            if(!s.legacyOutput)throw std::runtime_error("legacy audit output unavailable");
+        }
+        for(FILE* f:{s.output,s.legacyOutput})if(f)fprintf(f,"pid\tthread\tframe\tviewer\tcanonical_fnv1a64\traw_fnv1a64\tbytes\tarmy_entities\ttype_entities\thealth_entities\tposition_entities\tresource_armies\n");
     }
     if(!s.resources) {
-        wchar_t suffix[128],filename[32768];swprintf_s(suffix,L"lan-resources-%lu.tsv",GetCurrentProcessId());path(filename,32768,suffix);
+        wchar_t suffix[160],filename[32768];
+        if(s.match.id.empty())swprintf_s(suffix,L"lan-resources-%lu.tsv",GetCurrentProcessId());
+        else swprintf_s(suffix,L"lan-resources-%lu-%hs.tsv",GetCurrentProcessId(),s.match.id.c_str());
+        path(filename,32768,suffix);
         s.resources=_wfsopen(filename,L"a",_SH_DENYNO);
         if(!s.resources)throw std::runtime_error("audit resources output unavailable");
-        fprintf(s.resources,"pid\tthread\tframe\tviewer\tarmy\tprimary\tsecondary\tcurrent_supply\tmax_supply\tprimary_gathered\tsecondary_gathered\tprimary_lost\tsecondary_lost\n");
+        if(s.match.ordinal==1 && !s.match.id.empty()) {
+            swprintf_s(suffix,L"lan-resources-%lu.tsv",GetCurrentProcessId());path(filename,32768,suffix);
+            s.legacyResources=_wfsopen(filename,L"a",_SH_DENYNO);
+            if(!s.legacyResources)throw std::runtime_error("legacy resources output unavailable");
+        }
+        for(FILE* f:{s.resources,s.legacyResources})if(f)fprintf(f,"pid\tthread\tframe\tviewer\tarmy\tprimary\tsecondary\tcurrent_supply\tmax_supply\tprimary_gathered\tsecondary_gathered\tprimary_lost\tsecondary_lost\n");
     }
     // The normal ReadSimFrame has already copied its data into managed scratch.
     // Multiple views are an existing supported worker path (recordSimFrames).
@@ -155,16 +201,21 @@ static void capture(Obj simulation,uint32_t originalViewer) {
         s.buffer.resize(size);
         if(s.get(world,s.buffer.data())!=0)throw std::runtime_error("audit SimGetSimFrameBuffer failed");
         const Sample sample=summarize(s.buffer,viewer);
-        fprintf(s.output,"%lu\t%lu\t%u\t%u\t%016llx\t%016llx\t%u\t%u\t%u\t%u\t%u\t%u\n",GetCurrentProcessId(),GetCurrentThreadId(),sample.frame,viewer,
+        for(FILE* f:{s.output,s.legacyOutput})if(f)fprintf(f,"%lu\t%lu\t%u\t%u\t%016llx\t%016llx\t%u\t%u\t%u\t%u\t%u\t%u\n",GetCurrentProcessId(),GetCurrentThreadId(),sample.frame,viewer,
             static_cast<unsigned long long>(sample.canonical),static_cast<unsigned long long>(sample.raw),size,sample.armyCount,sample.typeCount,sample.healthCount,sample.positionCount,sample.resourceCount);
         resourceRows(s.resources,s.buffer,sample.frame,viewer);
+        if(s.legacyResources)resourceRows(s.legacyResources,s.buffer,sample.frame,viewer);
         if(!s.announced && wcsstr(GetCommandLineW(),L"-lan-audit-dump")) {
-            wchar_t suffix[128],filename[32768];swprintf_s(suffix,L"lan-audit-%lu-view%u-frame%u.bin",GetCurrentProcessId(),viewer,sample.frame);path(filename,32768,suffix);
+            wchar_t suffix[160],filename[32768];
+            if(s.match.id.empty())swprintf_s(suffix,L"lan-audit-%lu-view%u-frame%u.bin",GetCurrentProcessId(),viewer,sample.frame);
+            else swprintf_s(suffix,L"lan-audit-%lu-%hs-view%u-frame%u.bin",GetCurrentProcessId(),s.match.id.c_str(),viewer,sample.frame);
+            path(filename,32768,suffix);
             FILE* f=_wfsopen(filename,L"wb",_SH_DENYNO);if(f){fwrite(s.buffer.data(),1,s.buffer.size(),f);fclose(f);}
         }
     }
-    fflush(s.output);fflush(s.resources);s.lastSampledPreviousFrame=previousFrame;
-    if(!s.announced) {s.announced=true;ba::log("LAN observable-state audit active on simulation worker %lu; fixed views0/1 every20frames; file lan-audit-%lu.tsv",GetCurrentThreadId(),GetCurrentProcessId());}
+    for(FILE* f:{s.output,s.resources,s.legacyOutput,s.legacyResources})if(f)fflush(f);
+    s.lastSampledPreviousFrame=previousFrame;
+    if(!s.announced) {s.announced=true;ba::log("LAN observable-state audit active on simulation worker %lu; fixed views0/1 every20frames; pid=%lu match=%s ordinal=%u",GetCurrentThreadId(),GetCurrentProcessId(),s.match.id.c_str(),s.match.ordinal);}
 }
 }
 

@@ -15,9 +15,15 @@
 #include <string.h>
 #include <stdexcept>
 #include <share.h>
+#include "command_line.h"
 
 namespace ba_catalog { static void exportOnce(); }
 namespace ba_dedicated_results { static void receive(const std::string&); }
+namespace ba_audit { static void beginMatch(const std::string&); }
+namespace ba_dedicated_session {
+static void update(void* front);
+static bool retryFromPlay(void* front,int mode);
+}
 namespace ba_export {
 static void poll(void* front);
 static void consume(void* gameData,void* encoded);
@@ -30,25 +36,29 @@ static HMODULE module;
 static FILE* logfile;
 static Obj owner;
 static uint32_t owner_root;
-static bool exportServerAssets() {
-    const wchar_t* command=GetCommandLineW();const wchar_t* cursor=command;
-    const wchar_t* flag=L"-export-server-assets";const size_t length=wcslen(flag);
-    while((cursor=wcsstr(cursor,flag))!=nullptr) {
-        const wchar_t before=cursor==command ? L' ' : cursor[-1],after=cursor[length];
-        if((before==L' ' || before==L'\t' || before==L'\"') &&
-           (!after || after==L' ' || after==L'\t' || after==L'\"'))return true;
-        cursor+=length;
-    }
-    return false;
+static const std::vector<std::wstring>& arguments() {
+    static const auto values=ba_command_line::parse(GetCommandLineW());return values;
 }
-static bool dedicated() { return !exportServerAssets() && wcsstr(GetCommandLineW(),L"-dedicated-server=")!=nullptr; }
-static bool lan() { return !exportServerAssets() && wcsstr(GetCommandLineW(),L"-offline-lan")!=nullptr; }
-static int lanSlot() { return wcsstr(GetCommandLineW(),L"-lan-slot=1") ? 1 : 0; }
+static bool flag(const wchar_t* name){return ba_command_line::has(arguments(),name);}
+static bool exportServerAssets() {return flag(L"-export-server-assets");}
+static bool dedicated() {std::wstring value;return !exportServerAssets() && ba_command_line::value(arguments(),L"-dedicated-server=",value);}
+static bool lan() { return !exportServerAssets() && (dedicated() || flag(L"-offline-lan")); }
+static int dedicatedAssignedSlot=-1;
+static int requestedLanSlot() {
+    std::wstring value;
+    if(ba_command_line::value(arguments(),L"-lan-slot=",value)) {
+        if(value==L"1")return 1;
+        if(value==L"0")return 0;
+    }
+    return dedicated()?255:0;
+}
+// A dedicated army identity does not exist until S_WELCOME assigns its seat.
+static int lanSlot() { return dedicated()?dedicatedAssignedSlot:requestedLanSlot(); }
 static std::string argument(const wchar_t* key,const char* fallback="") {
-    const wchar_t* value=wcsstr(GetCommandLineW(),key);if(!value)return fallback;
-    value+=wcslen(key);const wchar_t* end=value;while(*end && *end!=L' ' && *end!=L'"')++end;
-    int count=WideCharToMultiByte(CP_UTF8,0,value,static_cast<int>(end-value),nullptr,0,nullptr,nullptr);
-    std::string out(count,'\0');if(count)WideCharToMultiByte(CP_UTF8,0,value,static_cast<int>(end-value),&out[0],count,nullptr,nullptr);return out;
+    std::wstring value;if(!ba_command_line::value(arguments(),key,value))return fallback;
+    int count=WideCharToMultiByte(CP_UTF8,WC_ERR_INVALID_CHARS,value.data(),static_cast<int>(value.size()),nullptr,0,nullptr,nullptr);
+    if(!value.empty() && !count)throw std::runtime_error("command-line value has invalid Unicode");
+    std::string out(count,'\0');if(count)WideCharToMultiByte(CP_UTF8,WC_ERR_INVALID_CHARS,value.data(),static_cast<int>(value.size()),&out[0],count,nullptr,nullptr);return out;
 }
 void lanFrontUpdate(Obj front);
 template<class F> F api(const char* name) {
@@ -62,7 +72,9 @@ void log(const char* format, ...) {
     if(!logfile) {
         wchar_t path[32768]; GetModuleFileNameW(module,path,32768);
         wchar_t* slash=wcsrchr(path,L'\\'); if(slash) *(slash+1)=0;
-        wcscat_s(path,lan() ? (lanSlot() ? L"investigation\\runtime\\lan-native-1.log" : L"investigation\\runtime\\lan-native-0.log") : L"investigation\\runtime\\offline-native.log");
+        if(dedicated() && requestedLanSlot()==255) {
+            wchar_t suffix[128];swprintf_s(suffix,L"investigation\\runtime\\dedicated-native-%lu.log",GetCurrentProcessId());wcscat_s(path,suffix);
+        } else wcscat_s(path,lan() ? (requestedLanSlot()==1 ? L"investigation\\runtime\\lan-native-1.log" : L"investigation\\runtime\\lan-native-0.log") : L"investigation\\runtime\\offline-native.log");
         logfile=_wfsopen(path,L"a",_SH_DENYNO);
     }
     if(logfile) { fprintf(logfile,"[%llu] ",GetTickCount64()); va_list args;va_start(args,format);vfprintf(logfile,format,args);va_end(args);fputc('\n',logfile);fflush(logfile); }
@@ -222,5 +234,6 @@ extern "C" __declspec(dllexport) void OfflineFrontUpdate(void* front,void*) {
 #include "dedicated_deck.cpp"
 #include "dedicated_results.cpp"
 #include "local_bootstrap.cpp"
+#include "dedicated_adapter.cpp"
 #include "server_assets_export.cpp"
 #include "lan_audit.cpp"

@@ -4,16 +4,17 @@ Development project for private Battle Aces build 37822 matches. Windows x64
 server and clients are the current target. See docs/SERVER_REPLACEMENT_PLAN.txt
 for the requested outcome and docs/STATUS.txt for evidence and remaining work.
 
-The baseline runs the original simulation in a standalone process, validates
-decks/actions and sequences inputs for patched clients. Private internet hosting,
-multiple rooms, rematches without a client restart, and telemetry removal are
-under development. Do not treat this development baseline as the finished release.
+The coordinator runs each original simulation in an isolated worker, validates
+decks/actions and serves multiple private rooms. Twenty successive native matches
+and worker crash containment are verified. Client rematches, complete telemetry
+removal, private internet hosting and release packaging remain under development.
+Do not treat this development baseline as the finished release.
 
 SOURCE LAYOUT
   server/                 Python server, protocol and native simulation adapter
   client_patch/src/       our C++ helper source
   client_patch/patcher/   exact-build patch recipes and reversible installer
-  client_patch/launcher/  development client launcher
+  client_patch/launcher/  client config example, initializer and launcher
   tools/                  local extraction/import and publication audit
   tests/                  synthetic tests requiring no game installation
   docs/                   implementation plan, protocol and knowledge base
@@ -36,10 +37,13 @@ INSTALL INTO A WORKING GAME COPY (close that game's processes first)
   python -m client_patch.patcher.patch_client --game-dir "<game directory>" --dry-run
   python -m client_patch.patcher.patch_client --game-dir "<game directory>"
 
-The installer verifies the original SHA256, preserves the original locally under
+The installer verifies original component SHA256s, preserves originals locally under
 .battleaces-resurrection/original/, and refuses unknown modifications. For an
 existing compatible prototype patch, --original may identify a verified original
 DLL. Do not target the untouched recovery installation.
+Current guards modify GameAssembly.dll and UnityPlayer.dll; the manifest records
+both hashes. Reviewed telemetry guards are included, but complete reporting
+removal remains unverified. See docs/telemetry.txt for the exact scope.
 
 RESTORE
   python -m client_patch.patcher.patch_client --game-dir "<game directory>" --restore
@@ -62,6 +66,15 @@ Development commands can explicitly select existing local inputs:
   python -m server.dedicated_server --assets "<asset directory>" --dll "<Simulation.dll>"
   powershell -File client_patch/launcher/Launch-Client.ps1 -GameDirectory "<game>" -Slot 0
 
+COMMUNITY CLIENT CONFIGURATION
+Create a personal editable config once:
+  powershell -File client_patch/launcher/Initialize-ClientConfig.ps1 -GameDirectory "<game>"
+Edit client_patch/launcher/client-config.json: set server_host to the server's IP
+or DNS name and server_port to its TCP port (default 47623). Then launch with:
+  powershell -File client_patch/launcher/Launch-Client.ps1
+See docs/client-configuration.txt for room/player settings and private-network
+hosting. Personal configs are ignored by Git; the example is included in source.
+
 Automated graphical two-client baseline (local diagnostics, normal game commands):
   powershell -File tools/Run-LocalMatch.ps1 -GameDirectory "<game>" -RunName unique-name -AutoReady -Smoke -DeckSmoke -SurrenderSmoke -DurationSeconds 100
   python -m server.verify_dedicated_run local/matches/unique-name --runtime-directory "<game>/investigation/runtime" --processes local/matches/unique-name/processes.json
@@ -71,8 +84,8 @@ Runtime environment overrides:
   BA_SIMULATION_DLL   matching Windows x64 Simulation.dll
   BA_DATA_DIR         profiles, match history and local diagnostics
 
-Default listener: 127.0.0.1:47623. Protocol v2 currently supports one two-player
-room with self-reported identities and no TLS. Keep this baseline on loopback or
+Default listener: 127.0.0.1:47623. Protocol v2 currently uses self-reported
+identities and no TLS. Keep this baseline on loopback or
 a trusted private network while the internet-hosting milestone is implemented.
 
 Original-game assets remain local. Release artifacts will contain our executable

@@ -1,0 +1,40 @@
+CLIENT CONNECTION CONFIGURATION
+
+Each player has a personal client-config.json next to Launch-Client.ps1. The
+server address is editable data; changing it never requires rebuilding the patch.
+The example client-config.example.json is tracked. Personal configs are ignored
+by Git because they contain a local installation path and persistent player ID.
+
+Create your personal file once, from the source checkout:
+  powershell -File client_patch/launcher/Initialize-ClientConfig.ps1 -GameDirectory "<your game folder>"
+
+Then edit client_patch/launcher/client-config.json:
+  server_host  IP address or DNS name of the friend's server; no http:// prefix
+  server_port  listening TCP port; default 47623
+  display_name your visible name (spaces allowed)
+  room         same room key for the two players; letters/numbers/dash/underscore
+
+Use 127.0.0.1 when the server runs on this PC. On another PC use the server's LAN
+or private VPN address, for example 192.168.1.50. DNS names are resolved to IPv4
+by the launcher. IPv6-only hosts are not supported in this development version.
+
+Launch using that file:
+  powershell -File client_patch/launcher/Launch-Client.ps1
+Or select a different personal config explicitly:
+  powershell -File client_patch/launcher/Launch-Client.ps1 -Config "<config path>"
+
+Explicit command-line address/player/room settings override the corresponding
+config values. -Slot 0/1 is retained for development probes and skips automatic
+loading of the default config; normal players receive a seat from the server.
+
+Initialize creates a random persistent player_id. Keep it across matches to keep
+your saved deck. Each player must have a distinct ID; do not share your personal
+config. This development protocol still uses self-reported profile identity.
+Authenticated invites and TLS are pending; this file does not imply public
+internet hosting is ready. Use loopback or a trusted private network for now.
+No credential is accepted by this config version or placed on a command line.
+
+The server must listen on the intended interface. Its default is loopback only:
+  python -m server.dedicated_server --host 0.0.0.0 --port 47623 --assets "<assets>"
+0.0.0.0 is a bind setting for the host, not an address to put in a player's config.
+The selected host/port are not sent to the original game services.

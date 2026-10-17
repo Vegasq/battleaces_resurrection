@@ -1,0 +1,84 @@
+TELEMETRY PATCH STATUS
+Updated: 2026-10-17
+Supported input: Battle Aces build 37822, Windows x64.
+
+Status: source-reviewed recipes and static byte validation; initial runtime
+compatibility check passed. Complete reporting/network qualification is OPEN.
+Run p2-telemetry01 completed620 native frames,selected-unit production and native
+result delivery with zero sampled server/client mismatches. Its startup logs did
+not contain Bugsnag initialization or null-reference errors. This is a bounded
+compatibility observation, not proof of zero outbound reporting. Unity analytics,
+performance,CEF and deferred/error-path capture remain unresolved below.
+The installer restored both DLLs to their pinned original hashes and reapplied
+the patch in a separate process-free check. Recovery inputs remain untouched.
+The installer composes these recipes with the existing startup/helper changes.
+This work does not establish that all telemetry or automatic reporting is removed.
+
+client_patch/patcher/telemetry.py provides the pure function
+patch_component(name, original_bytes) -> patched_bytes for GameAssembly.dll and
+UnityPlayer.dll. It validates the entire original SHA-256, each short instruction
+guard, bounds and non-overlap before producing an equal-length copy. Unknown,
+already-patched and partially modified input is rejected. It performs no I/O,
+does not change the caller's bytes, and preserves unrelated bytes. The integrating
+installer must compose other patches from the same pristine input, recalculate
+its final PE checksum, back up originals and provide atomic installation/restore.
+Do not pass another patcher's output as this function's pristine input.
+
+Included, 45 reviewed recipes:
+- GameAssembly: 42 source and defense guards covering the game's Bugsnag wrapper,
+  both SDK initialization paths, notifications, queueing, cached retries, network
+  coroutine and persistence sinks; original BI senders and per-game UI analytics
+  collection. Wrapper guards avoid null-client dereferences after SDK init is
+  disabled. Gameplay networking, deck save and local diagnostic logs are separate.
+- UnityPlayer: force native crash/error reporter initialization disabled; skip
+  only the UnityCrashHandler64 launch branch using its existing failure
+  continuation; guard the in-process report upload sink. The surrounding engine
+  startup and report queue cleanup remain intact. Local crash-dump behavior is
+  untested and may change when the crash-handler child does not run.
+
+Excluded unresolved candidates:
+- Native Unity analytics lifecycle initialization and all null-object consumers.
+- Native Unity performance collection, internal flag writes and delivery.
+- Bundled CEF/crashpad configuration and analytics in remote web content.
+These require further source review plus process-tree/network verification.
+An endpoint block or quiet short run does not prove reporting is disabled.
+
+Follow-up static findings: omitting the Unity analytics singleton is unsafe;
+performance notifications and public getters dereference it without null checks.
+Future changes must preserve initialized objects while suppressing collection.
+CEF reporting was traced through the bundled chrome_elf.dll, where a config
+loader's normal false return prevents Crashpad startup. That separate source
+proposal remains local and is not included in the 45 recipes. Remote web-page
+analytics is an independent surface. None of these findings is a runtime pass.
+
+Required runtime qualification before a removal claim:
+1. Clean and existing profiles: startup, idle menus, deck/options edits, offline
+   tutorial, gameplay, post-game, rematch and shutdown. Check queue/cache creation.
+2. Offline launch followed by reconnection and restart with pre-existing cached
+   reports. Check deferred sends; do not delete caches to conceal behavior.
+3. Controlled managed errors, explicit reporter calls and a disposable client's
+   native crash. Confirm useful local logs, no null exceptions, hangs or retries.
+4. Continuously attribute DNS/network and process activity to the game and all
+   descendants, including Unity/CEF reporters and possible OS reporting handoffs.
+   Correlate this with the reviewed gates and queue/file observations. Distinguish
+   required game-server traffic from optional reporting; never redirect telemetry
+   to the replacement server.
+5. Repeat against the release package and retain exact hashes, actions, durations,
+   capture scope and limitations. Publish a tested-scope summary, not raw captures.
+
+Tests (no game assets needed):
+ python -m unittest tests.test_telemetry_patches -v
+The optional local-original test reads files only. Set BA_TELEMETRY_ORIGINAL_DIR
+to a directory containing the two supported pristine DLLs, then run the same
+command. Without that variable the test reports SKIP, not a native/runtime pass.
+
+Local evidence record: investigation/dedicated/telemetry-removal.txt in the
+research workspace, dated 2026-10-17. Evidence includes exact original hashes,
+native and managed control-flow review and untouched-input guard validation.
+No original files, full disassembly, metadata dumps, SDK keys or captures belong
+in this source repository. The module contains only narrow patch signatures.
+
+Recorded static validation on 2026-10-17: 12 synthetic checks passed, with the
+optional original test skipped by default. Explicitly enabling that test against
+the supplied untouched installation passed all 13 tests; both DLLs' unchanged
+byte spans were compared. No runtime or network claim follows from these tests.

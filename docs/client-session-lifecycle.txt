@@ -1,0 +1,201 @@
+DEDICATED CLIENT SESSION LIFETIME
+Updated: 2026-10-17. Build 37822, Windows x64, transport version 2.
+Status: first reset helper compiled and argument tests passed under coordinator
+control. The subsequently added automated rematch/audit changes require a new
+build and two-session runtime test. Manual UI acceptance remains open.
+
+CONTRACT
+
+A TCP connection represents one lobby and at most one match. The Unity process,
+local profile and native menu/deck editor survive across connections. This is
+lobby re-entry, not reconnect/catch-up to a running native world.
+
+The client sends HELLO21 with the unchanged version-2 layout: version u16le,
+preferred seat u8, original GameAssembly SHA256, Simulation SHA256, then three
+u16le-length UTF-8 strings (profile, display name, room). Preferred seat 255 asks
+the server for the first free seat; explicit -lan-slot=0/1 remains available for
+controlled probes. S_WELCOME31 contains the assigned seat0/1 and 32 deck bytes.
+An auto-seat connection requires a stable explicit -player-id. Profile identity
+must not derive from the assigned seat. Without an explicit seat, native logs
+are dedicated-native-PID.log rather than a shared slot filename.
+
+No native army/player identity is installed before WELCOME. The assigned seat
+drives the current private alias ID (seat+1), JoinArmy and local army. Current
+native player labels remain LAN Player1/2, matching the existing bootstrap
+identity convention; the HELLO profile/display name has separate server scope.
+WELCOME for a fresh connection may assign a different seat from the prior match.
+
+The shared argument reader now tokenizes Windows quoting and matches exact
+option keys. Both -player-name="Player One" and "-player-name=Player One" retain
+spaces. UTF-16 values are converted strictly to UTF-8; another argument's value
+cannot impersonate -room= or -player-id=. An asset-free command_line_tests.cpp
+exercises those cases, Unicode, escaped quotes/backslashes and absent options.
+
+Each new match requires a new S_MATCH_INFO32 ID, canonical S_BOOTSTRAP12,
+SHA256 C_LOADED3 barrier and S_START13. Input and frame sequences restart at0;
+the first three input batches are submitted again. Frozen decks, JoinArmy at
+frame0 and identity validation remain enforced by the server. No client publish
+message or new reset/epoch message is introduced.
+
+After authoritative S_MATCH_END36, the existing result adapter checks the native
+winner and invokes the original EndOfGameResponse path. Native victory/defeat,
+post-game and Continue own their ordinary lifetime. A clean server FIN after a
+complete S36 does not cancel pending results; all buffered packets are parsed
+before FIN is interpreted. A partial final packet or EOF before S36 is an error.
+
+After user Continue, dedicated_adapter.cpp requires ALL of:
+  - the current native FSM is the owner's MainMenu state;
+  - a native world was observed for this session;
+  - Simulation._simulationIsActive is false and _world is zero;
+  - GameServerIntegration._mapLoadInProgress is false.
+It then resets helper state and connects again after500ms. No native world is
+freed by pointer manipulation, the default mode does not advance result UI, and
+no old input or bootstrap crosses the new connection.
+
+The coordinator must retire completed rooms from the active room-name registry
+while keeping old result sockets separate. One player can then Continue into a
+new lobby while the other is still viewing old results. A closed old socket must
+release that profile reservation. Old-room cleanup must not delete a new room
+with the same name. Shutdown/resource bounds must also cover retired rooms.
+Old result sockets may expire after a bounded wait; this does not prevent later
+native Continue. Fresh room readiness starts empty and never inherits old ready.
+
+RESET OWNERSHIP
+
+The Unity front-update thread owns connection reads and lifecycle transitions.
+The adapter checks its thread ID. Native simulation shutdown joins the worker
+before the idle-world boundary. The helper disables command capture before
+clearing both input queues under the existing queue lock.
+
+Reset closes the socket and balances WSAStartup/WSACleanup; clears receive/send
+buffers, pending frames, loaded bootstrap/hash, match ID, saved welcome deck,
+ready/start/end flags, frame counter and the initial-input-pipeline flag; frees
+the helper server/front/account GC handles; resets local-input clocks/counters,
+bootstrap flags, normal-build smoke plan and result pending/delivered metadata.
+Old front/server PlayerGameHandle references are cleared before a new WELCOME.
+Original Unity systems, profile/progression, native UI objects and server-saved
+deck remain owned by their existing lifetimes. Native match creation initializes
+the next world and match data through the same ProcessJoinedGame path as before.
+
+The one-shot dedicated front flags were replaced by the new adapter. Legacy LAN
+and offline tutorial paths retain their existing behavior. Explicit asset export
+still suppresses dedicated networking. -dedicated-server alone enables the
+adapter; -offline-lan is retained for backwards-compatible launchers.
+
+ERROR AND RETRY BOUNDARIES
+
+Connection/WELCOME timeout is15 seconds. A transport/bootstrap/input error stops
+helper input and closes the connection. After a finished map load with an active
+world, the adapter calls original CleanupGameState(reason1,skipShutdown=false)
+once. Its native shutdown path returns to menu, stops/joins the simulation and
+destroys the world. This is an abort, never a synthesized winner or S36 result.
+
+The adapter will not cancel a native async map callback by clearing its flags.
+It waits until loading finishes before requesting cleanup. If a callback never
+finishes or safe native teardown is not observed within120 seconds, it retains
+the old state and logs that a process restart is needed. This limitation remains
+a failed-load UX/lifecycle gap, not a claim that every loading failure recovers.
+
+Once safely at menu, connection errors have at most three automatic retries,
+with1/2/4-second delays. Native Play can request another retry after exhaustion.
+A failed attempt does not automatically ready the room unless Play requested it.
+The current error presentation is local logging/native queue cancellation;
+friend-facing inline error text and retry controls are still separate P2 work.
+
+Test flags remain opt-in. -dedicated-auto-ready readies the first match only.
+Add -dedicated-auto-rematch to also ready after each manual Continue. Neither
+flag alone closes the post-game screen. -dedicated-rematch-smoke additionally
+automates Continue after the FIRST native result, then performs one distinct,
+native-validated core-slot edit on the second lobby's saved deck. Use all three
+flags together to automate two matches. The smoke flag caps auto-ready at TWO
+started matches and leaves the second result screen open. It does not modify
+world state, bypass native validation or invoke a top-level FSM transition.
+
+The smoke waits for inactive/zero world, native RGamePostGameState, active
+UIPostGameController.MatchResultState, a live MatchResultVM and an empty native
+navigation stack, then waits2 seconds and invokes MatchResultVM.OnContinue once.
+Logs explicitly label that call as automated, NOT manual UI input. The second
+deck edit chooses a different, nonduplicate core unit from a short probe list,
+calls original IsValidSlot, Deck.set_Item and AutoAssignAbilities, and requires
+the existing save callback plus full native deck validation before auto-ready.
+The ordinary first-deck smoke setter test remains a one-time process probe.
+
+PER-MATCH LOCAL EVIDENCE
+
+With -lan-audit, each dedicated match writes these game-side runtime files:
+  lan-audit-PID-MATCHID.tsv       existing observable-state audit columns
+  lan-resources-PID-MATCHID.tsv   existing army-resource columns
+  dedicated-receipts-PID-MATCHID.tsv
+      tab-separated header: pid, match, frame, actions, sim, sha256
+      one flushed row per received/applied complete frame; digest is SHA256 of
+      the entire S_FRAME payload (frame u32, length0 u32, input0, input1)
+  dedicated-bootstrap-PID-MATCHID.pb.gz
+
+MATCHID is the32-character server ID. Both TSV audit schemas retain their old
+columns and two fixed viewers; samples from different matches never share a
+match-specific file. The legacy lan-audit-PID.tsv and lan-resources-PID.tsv mirror
+FIRST match only, preserving old single-match probes without duplicate frames.
+The legacy lan-bootstrap-PID.pb.gz remains a latest-match convenience copy.
+Optional raw frame dumps also contain MATCHID. The worker receives a copied
+match label published under an SRW lock BEFORE native world startup. It never
+reads a concurrently mutated transport string. A reused native world address or
+worker thread cannot select the old file because the match label is independent.
+Main-thread frame receipt logs also append match=ID. All captures stay local.
+
+ORIGINAL-BINARY EVIDENCE
+
+GameAssembly SHA256:
+e59d08c01479b27404778048d7e13546dbf3771f6b3912744c7c2bdf80c4e758
+Addresses below are RVAs in that supported original, not in a decompiler rebuild.
+
+Simulation.StopSimulation 0x3e67f30 checks active, calls StopSimThread
+0x3e61140, clears active and emits SimulationShutdownUIFlow with its reason.
+Simulation.SimulationShutdown 0x3e68030 calls StopSimulation, destroys a nonzero
+world, resets SimPlayersBuffer and disposes presented frames.
+GameServerIntegration.CleanupGameState 0x3e51ba0 clears input queues, connection
+and join state, calls SimulationShutdown unless skipShutdown, then LeftGame and
+its native cleanup event. The original completion coroutine 0x3c88bc0 uses the
+same cleanup after its victory/defeat wait and EndOfGameResponse receipt.
+RGameInGameState.Simulation_SimulationShutdownUIFlow 0x3deeb20 selects post-game
+for reason0 and MainMenu for nonzero reasons. RGamePostGameState's
+UIPostGameFlow_OnEnd 0x3def0a0 selects the owner's MainMenu at offset0x2c0.
+
+The opt-in automated Continue calls the actual MatchResultVM.OnContinue
+0x3d610c0. Original disassembly checks NavigationStack's count and sends native
+postgame signal2 only when empty. BasePostGameFSMState.TransitionIn 0x3b7a040
+subscribes its OnPostGameFlowSignal handler; the handler0x6db160 stores that
+signal as _nextScreen. MatchResultState.Update0x3b7a3e0 and the following native
+postgame states then own completion/cleanup. The adapter invokes neither the
+signal handler nor UIPostGameFlow_OnEnd directly. Local focused evidence is
+investigation/dedicated/rematch-on-continue.asm and rematch-postgame-flow.asm.
+The live VM is resolved by the existing owner controller, native current state
+and _matchResultVM field, without manufacturing a UI object.
+
+Recovered field offsets used by the reset guard: server mapLoad0xd8, simulation
+0x140; simulation active0x1a0 and native world0x1a8; owner FSM0x2b0/MainMenu0x2c0.
+The original field registration tables and focused local disassembly establish
+these offsets. Captured metadata/disassembly stays outside the source repository.
+
+Prior runtime evidence, before this rematch change: dedicated06 and dedicated07
+showed native result delivery, RGamePostGameState, active0, frame-1 and no local
+army after normal cleanup. That demonstrates one-match native teardown. It does
+not prove the new reset, a manual Continue click, a second match, changed seat,
+changed deck or aborted-match recovery. Local evidence references:
+investigation/dedicated/native-results.txt and runtime/dedicated07-verification.json.
+
+REQUIRED RUNTIME VALIDATION
+
+Use the same two graphical client PIDs for both matches. Observe native Continue
+with mouse/keyboard, saved deck reloaded, edit a deck and Play again. Record two
+different match IDs, canonical bootstrap hashes and frame0 JoinArmy batches;
+compare server/client same-frame state and native winners for BOTH matches.
+Exercise asynchronous Continue and server result-socket expiry while one player
+waits on the result screen. Reconnect in reverse order to exercise changed seats.
+Check roots/handles, sockets, world handles and frame resets across repeated runs.
+Exercise ready/cancel, peer disconnect in a running match, connection refused,
+server shutdown and a failed/slow load. The 120-second safe-stop limitation must
+remain explicit until native async cancellation is demonstrated.
+
+No compiled helper was installed and no client was launched for this source
+change by the lifecycle implementer. Build/runtime outcomes are to be appended
+by the coordinator using exact helper hash, PIDs, match IDs and evidence paths.

@@ -257,7 +257,8 @@ class DedicatedLifecycleTests(unittest.IsolatedAsyncioTestCase):
         with mock.patch.object(coordinator, "TICK", 0.001):
             peers = await self.pair("result")
             room, worker = await self.complete("result", peers)
-        await asyncio.gather(*(peer.receive(p.ERROR) for peer in peers))
+        await asyncio.gather(*(peer.receive(None) for peer in peers))
+        self.assertTrue(all(kind != p.ERROR for peer in peers for kind, _ in peer.observed))
         self.assertNotIn(room, self.server.retired)
         self.assertIsNotNone(worker.process.poll())
 

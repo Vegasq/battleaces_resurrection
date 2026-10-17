@@ -181,7 +181,7 @@ class Room:
         self.pending.clear()
         if aborted:
             for peer in list(self.peers.values()):
-                peer.close(reason)
+                peer.close(None if previous_state == "completed" else reason)
         else:
             # Keep the socket open for the original game's result screen. Late
             # pipelined inputs are harmless and ignored after final-frame delivery.

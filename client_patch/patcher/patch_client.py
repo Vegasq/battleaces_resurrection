@@ -2,6 +2,7 @@
 from pathlib import Path
 import argparse, hashlib, json, os, struct, uuid
 from .pe_imports import extend_imports_with_thunks, pe_checksum
+from . import telemetry
 ROOT = Path(__file__).resolve().parents[2]
 ORIGINAL_SHA256 = 'e59d08c01479b27404778048d7e13546dbf3771f6b3912744c7c2bdf80c4e758'
 PATCHES = [
@@ -36,11 +37,16 @@ CALL_HOOKS = [
     {'name': 'OfflineAuditReadSimFrame', 'rva': 0x3e62160, 'offset': 0x3e60760, 'before': 'e82b5f0000'},
 ]
 def digest(b): return hashlib.sha256(b).hexdigest()
-def build_patch(original):
+def build_patch(original, *, include_telemetry=True):
     """Pure transformation; only a matching original may enter this routine."""
     if digest(original) != ORIGINAL_SHA256:
         raise ValueError('Original build SHA256 does not match.')
-    patched = bytearray(original)
+    patched = bytearray(telemetry.patch_component('GameAssembly.dll', original) if include_telemetry else original)
+    # Reject a future telemetry recipe that touches an existing startup hook.
+    for site in PATCHES + HOOKS + TAIL_HOOKS + CALL_HOOKS:
+        offset, size = site['offset'], len(bytes.fromhex(site['before']))
+        if patched[offset:offset + size] != original[offset:offset + size]:
+            raise ValueError('Telemetry/startup patch overlap: ' + site['name'])
     for p in PATCHES:
         before, after = bytes.fromhex(p['before']), bytes.fromhex(p['after'])
         o=p['offset']
@@ -65,8 +71,13 @@ def build_patch(original):
         before=bytes.fromhex(hook['before']);o=hook['offset']
         if len(before)!=5 or original[o:o+5]!=before: raise SystemExit('Call original mismatch: '+hook['name'])
         patched[o:o+5]=b'\xe8'+struct.pack('<i',thunks[hook['name']]-(hook['rva']+5))
-    checksum_offset=struct.unpack_from('<I',patched,60)[0]+24+64
-    struct.pack_into('<I',patched,checksum_offset,pe_checksum(patched,checksum_offset))
+    return update_checksum(patched)
+
+
+def update_checksum(data):
+    patched = bytearray(data)
+    checksum_offset = struct.unpack_from('<I', patched, 60)[0] + 24 + 64
+    struct.pack_into('<I', patched, checksum_offset, pe_checksum(patched, checksum_offset))
     return bytes(patched)
 
 
@@ -86,53 +97,72 @@ def install(game_dir, *, helper=None, original_path=None, restore=False, dry_run
     game_dir = Path(game_dir).resolve()
     if game_dir.name.lower() == 'battleacesbeta_untouched':
         raise ValueError('The untouched recovery copy is read-only; choose a working game copy.')
-    target = game_dir / 'GameAssembly.dll'
     state_dir = game_dir / '.battleaces-resurrection'
-    backup = state_dir / 'original/GameAssembly.dll'
     manifest_path = state_dir / 'patch-manifest.json'
-    current = target.read_bytes()
-    source = backup if backup.exists() else Path(original_path) if original_path else target
-    original = source.read_bytes()
-    patched = build_patch(original)
-    known = {ORIGINAL_SHA256, digest(patched)}
     previous = json.loads(manifest_path.read_text()) if manifest_path.exists() else None
-    if previous and previous.get('original_sha256') == ORIGINAL_SHA256:
-        known.add(previous['patched_sha256'])
-    if digest(current) not in known:
-        raise ValueError('Refusing to overwrite unexpected DLL changes.')
+    components, replacements, originals = {}, {}, {}
+    # Validate every input and backup before changing any installed file.
+    for name, recipe in telemetry.COMPONENTS.items():
+        target, backup = game_dir / name, state_dir / 'original' / name
+        source = backup if backup.exists() else Path(original_path) if name == 'GameAssembly.dll' and original_path else target
+        current, original = target.read_bytes(), source.read_bytes()
+        if digest(original) != recipe.original_sha256:
+            raise ValueError('Original build SHA256 does not match: ' + name)
+        patched = build_patch(original) if name == 'GameAssembly.dll' else update_checksum(telemetry.patch_component(name, original))
+        known = {recipe.original_sha256, digest(patched)}
+        if name == 'GameAssembly.dll':
+            known.add(digest(build_patch(original, include_telemetry=False)))
+        if previous:
+            old = previous.get('components', {}).get(name)
+            if old and old.get('original_sha256') == recipe.original_sha256:
+                known.add(old['patched_sha256'])
+            if name == 'GameAssembly.dll' and previous.get('original_sha256') == ORIGINAL_SHA256:
+                known.add(previous['patched_sha256'])
+        if digest(current) not in known:
+            raise ValueError('Refusing to overwrite unexpected DLL changes: ' + name)
+        originals[backup] = original
+        replacements[target] = (current, original if restore else patched)
+        components[name] = {'original_sha256': recipe.original_sha256, 'patched_sha256': digest(patched),
+                            'installed_sha256': digest(original if restore else patched),
+                            'telemetry_guards': len(recipe.patches)}
     helper_path = game_dir / 'BattleAcesOffline.dll'
     helper_bytes = None if restore else Path(helper or ROOT / 'build/helper/BattleAcesOffline.dll').read_bytes()
     if helper_bytes is not None and not helper_bytes.startswith(b'MZ'):
         raise ValueError('Helper is not a PE DLL; build client_patch first.')
-    manifest = {'schema': 1, 'game_build': 37822, 'patch_version': '0.1.0-dev',
-                'original_sha256': ORIGINAL_SHA256, 'patched_sha256': digest(patched),
+    manifest = {'schema': 2, 'game_build': 37822, 'patch_version': '0.2.0-dev',
+                'original_sha256': ORIGINAL_SHA256, 'patched_sha256': components['GameAssembly.dll']['patched_sha256'],
                 'helper_sha256': digest(helper_bytes) if helper_bytes is not None else None,
                 'patches': PATCHES, 'hooks': HOOKS, 'tail_hooks': TAIL_HOOKS, 'call_hooks': CALL_HOOKS,
+                'components': components,
+                'telemetry': {'recipe_version': telemetry.RECIPE_VERSION, 'runtime_validated': telemetry.RUNTIME_VALIDATED,
+                              'unresolved_components': telemetry.UNRESOLVED_COMPONENTS},
                 'state': 'restored' if restore else 'dedicated-prototype-v2'}
     if dry_run:
         return manifest
-    backup.parent.mkdir(parents=True, exist_ok=True)
-    if not backup.exists():
-        atomic_write(backup, original)
+    for backup, original in originals.items():
+        backup.parent.mkdir(parents=True, exist_ok=True)
+        if not backup.exists():
+            atomic_write(backup, original)
     # Every installed file is replaced atomically. Retain prior bytes to roll back
     # if a later replacement fails (e.g. a running game has mapped its DLL).
-    previous_helper = helper_path.read_bytes() if helper_path.exists() else None
-    helper_written = target_written = False
+    changes = {}
+    if helper_bytes is not None:
+        changes[helper_path] = (helper_path.read_bytes() if helper_path.exists() else None, helper_bytes)
+    changes.update(replacements)
+    changes[manifest_path] = (manifest_path.read_bytes() if manifest_path.exists() else None,
+                              json.dumps(manifest, indent=2).encode())
+    written = []
     try:
-        if helper_bytes is not None:
-            atomic_write(helper_path, helper_bytes)
-            helper_written = True
-        atomic_write(target, original if restore else patched)
-        target_written = True
-        atomic_write(manifest_path, json.dumps(manifest, indent=2).encode())
+        for path, (_, content) in changes.items():
+            atomic_write(path, content)
+            written.append(path)
     except OSError:
-        if target_written:
-            atomic_write(target, current)
-        if helper_written:
-            if previous_helper is None:
-                helper_path.unlink()
+        for path in reversed(written):
+            prior = changes[path][0]
+            if prior is None:
+                path.unlink(missing_ok=True)
             else:
-                atomic_write(helper_path, previous_helper)
+                atomic_write(path, prior)
         raise
     return manifest
 

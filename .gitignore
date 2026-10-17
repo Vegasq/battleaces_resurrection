@@ -25,3 +25,4 @@ __pycache__/
 *.key
 .env
 .env.*
+**/client-config.json

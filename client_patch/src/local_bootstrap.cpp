@@ -102,6 +102,7 @@ static Obj encodeGameData(Obj gameData) {
 static void fail(const char* where,const std::exception& error) {
     awaitingWorld=false;creating=false;
     if(ba::exportServerAssets()){ba_export::failed(error.what());return;}
+    if(ba::dedicated()){ba_lan::fail(where,error);return;}
     ba_local::fail(where,error);
 }
 static void poll(Obj server) {
@@ -226,6 +227,7 @@ static void beginJoined(Obj front,Obj encoded,Obj player,bool lan) {
         // JoinedGame ctor initializes inputActionsEncoded_ to ByteString.Empty.
         OfflinePrepareLocalGame(server);
         if(!ba_local::isTarget(server))throw std::runtime_error("local input preparation failed");
+        if(ba::dedicated())ba_audit::beginMatch(ba_lan::dedicatedMatchId);
         Obj joining=ba::get<Obj>(server,"StartJoiningGame");
         if(joining)ba::call(joining,"Invoke");
         int success=0;void* args[]={&success,joined.get()};
@@ -249,6 +251,7 @@ static void beginJoined(Obj front,Obj encoded,Obj player,bool lan) {
 
 namespace ba {
 void lanFrontUpdate(Obj front) {
+    if(dedicated()){ba_dedicated_session::update(front);return;}
     if(ba_lan::stopped)return;
     try {
         ba_lan::poll();
@@ -258,28 +261,13 @@ void lanFrontUpdate(Obj front) {
             if(state==read<Obj>(owner,0x2c0)) {
                 creationStarted=true;
                 ba_lan_bootstrap::identityLan(front,lanSlot());
-                if(dedicated()) {
-                    ba_local::Root deck(ba_dedicated::deckFromIds(ba_lan::dedicatedDeck));
-                    ba_dedicated::installing=true;
-                    try{ba_dedicated_deck::initialize(front,deck.get());}catch(...){ba_dedicated::installing=false;throw;}
-                    ba_dedicated::installing=false;ba_dedicated::initialized=true;
-                    if(!ba_dedicated_deck::smokeSelection(front))throw std::runtime_error("dedicated deck smoke failed");
-                    log("Dedicated lobby ready: choose units in native deck builder, then Play");
-                    if(wcsstr(GetCommandLineW(),L"-dedicated-auto-ready"))ba::native<void(*)(Obj,Obj,int,Obj)>(0x3e3c0d0)(front,owner,1,nullptr);
-                } else {
-                    if(lanSlot()==0)OfflineCreateGame(front,owner,1,nullptr);
-                    log("LAN waiting for canonical host GameData");
-                }
+                if(lanSlot()==0)OfflineCreateGame(front,owner,1,nullptr);
+                log("LAN waiting for canonical host GameData");
             }
         }
         if(creationStarted && !joined && !ba_lan::bootstrap.empty()) {
-            if(dedicated())ba_dedicated_deck::updateLobby(front,false);
             joined=true;ba_local::Root encoded(ba_lan::byteString(ba_lan::bootstrap));
             ba_bootstrap::beginJoined(front,encoded.get(),ba_lan_bootstrap::identityLan(front,lanSlot()),true);
-        }
-        if(dedicated() && creationStarted && !joined) {
-            static int appliedReady=-1;int now=ba_lan::lobbyReady?1:0;
-            if(appliedReady!=now){appliedReady=now;ba_dedicated_deck::updateLobby(front,ba_lan::lobbyReady);}
         }
     }catch(const std::exception& e){ba_lan::fail("LAN front update",e);}
 }

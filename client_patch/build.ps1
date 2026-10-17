@@ -22,6 +22,10 @@ Push-Location $OutputDirectory
 try {
     $env:INCLUDE = "$CompilerRoot/include;$sdk/Include/$SdkVersion/ucrt;$sdk/Include/$SdkVersion/shared;$sdk/Include/$SdkVersion/um"
     $env:LIB = "$CompilerRoot/lib/x64;$sdk/Lib/$SdkVersion/ucrt/x64;$sdk/Lib/$SdkVersion/um/x64"
+    & (Join-Path $CompilerRoot 'bin/Hostx64/x64/cl.exe') /nologo /MT /EHsc /O2 /W4 /std:c++17 (Join-Path $PSScriptRoot 'src/command_line_tests.cpp') "/Fe:$OutputDirectory/command_line_tests.exe"
+    if ($LASTEXITCODE -ne 0) { throw 'Client argument-parser test build failed.' }
+    & (Join-Path $OutputDirectory 'command_line_tests.exe')
+    if ($LASTEXITCODE -ne 0) { throw 'Client argument-parser tests failed.' }
     & (Join-Path $CompilerRoot 'bin/Hostx64/x64/cl.exe') /nologo /LD /MT /EHsc /O2 /W4 /std:c++17 (Join-Path $PSScriptRoot 'src/offline_client.cpp') /link "/OUT:$OutputDirectory/BattleAcesOffline.dll" kernel32.lib ws2_32.lib bcrypt.lib
     if ($LASTEXITCODE -ne 0) { throw 'Client helper build failed.' }
 } finally {

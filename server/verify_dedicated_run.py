@@ -30,6 +30,7 @@ COUNT_MAP = {"army": "army_entities", "type": "type_entities", "health": "health
              "position": "position_entities", "resources": "resource_armies"}
 RECEIVED = re.compile(r"LAN received frame (\d+), actions=(\d+), sim=(-?\d+) sha256=([0-9a-f]{64})")
 BUILD_SMOKE = re.compile(r"LAN NORMAL BUILD smoke frame(\d+) slot(\d+) army(\d+) HQ(\d+) deckSlot(\d+) unitType(\d+) ability(\d+)")
+SESSION_JOIN = re.compile(r"Dedicated session \d+ joined match=([0-9a-f]{32}) assignedSeat=([01])")
 
 
 def read_events(path):
@@ -73,6 +74,25 @@ def digest_game_data(path):
     data = path.read_bytes()
     if data.startswith(b"\x1f\x8b"): data = gzip.decompress(data)
     return hashlib.sha256(data).hexdigest()
+
+
+def scope_match_log(lines, match_id, fallback_slot):
+    """Bind a process log to one native session, including its welcome/selection."""
+    joins = [(index, SESSION_JOIN.search(line)) for index, line in enumerate(lines) if SESSION_JOIN.search(line)]
+    if joins:
+        selected = [(index, match) for index, match in joins if match[1] == match_id]
+        if len(selected) != 1:
+            return [], fallback_slot, "missing or duplicate native match session marker"
+        index, match = selected[0]
+        starts = [i for i in range(index) if "Dedicated lobby welcome slot " in lines[i]]
+        start = starts[-1] if starts else index
+        end = next((i for i in range(index + 1, len(lines)) if "Dedicated session reset:" in lines[i] or SESSION_JOIN.search(lines[i])), len(lines))
+        return lines[start:end], int(match[2]), None
+    welcomes = [re.search(r"Dedicated lobby welcome slot ([01]);", line) for line in lines]
+    welcomes = [match for match in welcomes if match]
+    if len(welcomes) > 1:
+        return [], fallback_slot, "multiple welcomes without per-match session markers"
+    return lines, int(welcomes[0][1]) if welcomes else fallback_slot, None
 
 
 def production_evidence(match_dir, snapshots):
@@ -195,9 +215,15 @@ def verify(run_directory, runtime_directory, processes_path, match_id=None):
     mismatch_count += len(result_snapshot_mismatches) + sum(b["status"] == "effect_mismatch" for b in builds)
     if server_result and {row["viewer"] for row in complete_snapshots} != {0, 1}: sufficient = False
     for slot, pid in enumerate(pids):
-        audit_path = runtime_directory / f"lan-audit-{pid}.tsv"
-        resource_path = runtime_directory / f"lan-resources-{pid}.tsv"
-        log_path = runtime_directory / f"lan-native-{slot}.log"
+        per_match = any(runtime_directory.glob(f"lan-audit-{pid}-*.tsv"))
+        suffix = f"{pid}-{match_id}" if per_match else str(pid)
+        audit_path = runtime_directory / f"lan-audit-{suffix}.tsv"
+        resource_path = runtime_directory / f"lan-resources-{suffix}.tsv"
+        log_path = runtime_directory / f"dedicated-native-{pid}.log"
+        if not log_path.exists(): log_path = runtime_directory / f"lan-native-{slot}.log"
+        segment, log_warning = client_log_segment(log_path, pid)
+        segment, slot, scope_warning = scope_match_log(segment, match_id, slot)
+        log_warning = log_warning or scope_warning
         audit, duplicates = read_tsv(audit_path, ("frame", "viewer"))
         resources, resource_duplicates = read_tsv(resource_path, ("frame", "viewer", "army"))
         common = sorted(snapshots.keys() & audit.keys())
@@ -220,8 +246,15 @@ def verify(run_directory, runtime_directory, processes_path, match_id=None):
                 diff = {name: {"server": value, "client": int(resource_row[name])}
                         for name, value in values.items() if value != int(resource_row[name])}
                 if diff: resource_mismatches.append({"frame": frame, "viewer": viewer, "army": army, "values": diff})
-        segment, log_warning = client_log_segment(log_path, pid)
         client_results, smoke_builds = [], []
+        receipt_path = runtime_directory / f"dedicated-receipts-{pid}-{match_id}.tsv"
+        receipt_duplicates = []
+        receipt_lines = segment
+        if receipt_path.exists():
+            receipt_rows, receipt_duplicates = read_tsv(receipt_path, ("frame",))
+            if any(row['pid'] != str(pid) or row['match'] != match_id for row in receipt_rows.values()):
+                raise ValueError("receipt journal process/match identity mismatch")
+            receipt_lines = [f"LAN received frame {row['frame']}, actions={row['actions']}, sim={row['sim']} sha256={row['sha256']}" for row in receipt_rows.values()]
         for line in segment:
             if "Dedicated match ended: " in line:
                 receipt = json.loads(line.split("Dedicated match ended: ", 1)[1])
@@ -234,7 +267,7 @@ def verify(run_directory, runtime_directory, processes_path, match_id=None):
                     record[name] == b[name] for name in ("frame", "army", "deck_slot", "unit_type", "ability")) for b in builds)
                 smoke_builds.append(record)
         received, transport_mismatches, missing_server_frames = [], [], []
-        for line in segment:
+        for line in receipt_lines:
             match = RECEIVED.search(line)
             if not match: continue
             frame, action_count, sim_frame = (int(match[i]) for i in (1,2,3))
@@ -245,17 +278,21 @@ def verify(run_directory, runtime_directory, processes_path, match_id=None):
             if expected is None: missing_server_frames.append(frame)
             elif digest != expected.get("frame_payload_sha256"):
                 transport_mismatches.append(item | {"server_sha256": expected.get("frame_payload_sha256")})
-        client_bootstrap_path = runtime_directory / f"lan-bootstrap-{pid}.pb.gz"
+        missing_client_receipts = sorted(set(frame_events) - {row['frame'] for row in received}) if receipt_path.exists() else []
+        client_bootstrap_path = runtime_directory / f"dedicated-bootstrap-{pid}-{match_id}.pb.gz"
+        if not client_bootstrap_path.exists() and not per_match:
+            client_bootstrap_path = runtime_directory / f"lan-bootstrap-{pid}.pb.gz"
         client_bootstrap = digest_game_data(client_bootstrap_path) if client_bootstrap_path.exists() else None
         bootstrap_match = bool(server_bootstrap and client_bootstrap == server_bootstrap)
         result_mismatches = [receipt for receipt in client_results if server_result and receipt.get("result") != server_result]
         local_mismatches = len(canonical_mismatches)+len(count_mismatches)+len(resource_mismatches)+len(transport_mismatches)+len(result_mismatches)
         if server_bootstrap and client_bootstrap and not bootstrap_match: local_mismatches += 1
         mismatch_count += local_mismatches
-        invalid_count += len(duplicates)+len(resource_duplicates)
+        invalid_count += len(duplicates)+len(resource_duplicates)+len(receipt_duplicates)
         nonempty = [key for key in common if snapshots[key]["counts"]["position"] and snapshots[key]["counts"]["resources"]]
         client_sufficient = bool({v for f, v in nonempty} == {0, 1} and resource_comparisons and received
-                                 and bootstrap_match and not missing_server_frames and not missing_resources)
+                                 and bootstrap_match and not missing_server_frames and not missing_resources
+                                 and not missing_client_receipts and not log_warning)
         if server_result and not client_results: client_sufficient = False
         if any(not record["authoritative_effect_verified"] for record in smoke_builds): client_sufficient = False
         sufficient = sufficient and client_sufficient
@@ -269,6 +306,8 @@ def verify(run_directory, runtime_directory, processes_path, match_id=None):
             "missing_resource_rows": missing_resources, "conflicting_duplicate_audits": duplicates,
             "conflicting_duplicate_resources": resource_duplicates,
             "logged_received_frames": received, "transport_hash_mismatches": transport_mismatches,
+            "receipt_journal": str(receipt_path) if receipt_path.exists() else None,
+            "conflicting_duplicate_receipts": receipt_duplicates, "missing_client_receipts": missing_client_receipts,
             "logged_frames_missing_on_server": missing_server_frames,
             "build_smoke_commands": smoke_builds, "match_end_receipts": client_results,
             "match_result_mismatches": result_mismatches,
@@ -289,7 +328,7 @@ def verify(run_directory, runtime_directory, processes_path, match_id=None):
             "limits": ["Canonical hashes cover selected observable state, not all hidden native fields.",
                        "Client transport logs are sampled: normally every 200 frames and on action-bearing frames.",
                        "Only common server/client snapshot keys are compared; startup or live-tail gaps are reported.",
-                       "Per-PID audits must contain one match; conflicting repeated frame keys invalidate the comparison."]}
+                       "Per-match audits/receipts are used when present; legacy per-PID audits support one match only."]}
 
 
 def main():

@@ -27,6 +27,7 @@ static void submitDeck(Obj deck) {
     ba_lan::send(22,ids);ba::log("Dedicated selected deck submitted for validation");
 }
 static void ready(Obj front,int mode) {
+    if(ba_dedicated_session::retryFromPlay(front,mode))return;
     if(!ba_lan::welcomed || !initialized)throw std::runtime_error("dedicated lobby not ready yet");
     if(!ba_lan::bootstrap.empty())return;
     if(!ba_dedicated_deck::canReady(front))return;
