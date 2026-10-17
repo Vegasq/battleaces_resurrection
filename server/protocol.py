@@ -1,4 +1,4 @@
-"""Versioned local dedicated adapter wire format (see dedicated/PROTOCOL.txt)."""
+"""Versioned dedicated adapter wire format (see docs/protocol-v3.txt)."""
 from __future__ import annotations
 
 import asyncio
@@ -10,13 +10,13 @@ LOADED, INPUT = 3, 4
 WELCOME, BOOTSTRAP, START, FRAME = 31, 12, 13, 14
 MATCH_INFO = 32
 LOBBY, MATCH_END, NOTICE, ERROR = 35, 36, 37, 255
-VERSION = 2
+VERSION = 3
 AUTO_SEAT = 255
 BUILD_SHA = "e59d08c01479b27404778048d7e13546dbf3771f6b3912744c7c2bdf80c4e758"
 SIM_SHA = "107bb83dc416a16492277392c50104660e34c48911345ae2e0d5afe3929a07fb"
 MAX_BODY = 2 * 1024 * 1024
 MAX_INPUT = 65536
-MAX_AHEAD = 4
+MIN_INPUT_WINDOW, MAX_INPUT_WINDOW, DEFAULT_INPUT_WINDOW = 2, 12, 6
 KEY = re.compile(r"[A-Za-z0-9_-]{1,48}\Z")
 
 
@@ -55,7 +55,8 @@ def hello(slot, profile_id, name, room="local"):
 def decode_hello(payload):
     require(len(payload) >= 73, "short hello")
     version, slot = struct.unpack_from("<HB", payload)
-    require(version == VERSION and slot in (0, 1, AUTO_SEAT), "unsupported protocol version or slot")
+    require(version == VERSION, "unsupported game protocol; update client and server together")
+    require(slot in (0, 1, AUTO_SEAT), "unsupported slot")
     require(payload[3:35] == bytes.fromhex(BUILD_SHA), "client original build mismatch")
     require(payload[35:67] == bytes.fromhex(SIM_SHA), "client simulation build mismatch")
     cursor, values = 67, []
@@ -85,3 +86,19 @@ def deck_bytes(deck):
 def decode_deck(payload):
     require(len(payload) == 32, "deck must contain8 IDs")
     return list(struct.unpack("<8I", payload))
+
+
+def validate_input_window(value):
+    require(type(value) is int and MIN_INPUT_WINDOW <= value <= MAX_INPUT_WINDOW,
+            "input window must be an integer in2..12 frames")
+    return value
+
+
+def welcome(slot, input_window, deck):
+    require(type(slot) is int and slot in (0, 1), "invalid assigned seat")
+    return bytes([slot, validate_input_window(input_window)]) + deck_bytes(deck)
+
+
+def decode_welcome(payload):
+    require(len(payload) == 34 and payload[0] in (0, 1), "invalid protocol3 welcome")
+    return payload[0], validate_input_window(payload[1]), decode_deck(payload[2:])

@@ -86,9 +86,13 @@ def verify_game(root):
                     helper = stream.read(8 * 1024 * 1024 + 1)
                     if len(helper) > 8 * 1024 * 1024 or b'BA_RESURRECTION_TLS_BRIDGE_V1' not in helper:
                         raise LaunchError('Install a helper supporting secure transport ABI1')
+                    if b'BA_RESURRECTION_GAME_PROTOCOL_3' not in helper:
+                        raise LaunchError('Install the protocol3 client helper for configurable buffering')
                     actual = hashlib.sha256(helper).hexdigest()
                 else:
                     actual = hashlib.file_digest(stream, 'sha256').hexdigest()
+        except LaunchError:
+            raise
         except (OSError, ValueError):
             raise LaunchError('A patched component is unavailable') from None
         if actual != expected: raise LaunchError('Patched component differs from its manifest')

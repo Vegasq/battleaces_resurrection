@@ -242,6 +242,39 @@ teardown, then create a fresh lobby without auto-ready. The separate in-game ret
 also targets original JoinGame. Neither callback is patched yet; failure-button
 runtime acceptance remains open. Details are in client-session-lifecycle.txt.
 
+P3 BOUNDED INPUT BUFFERING / PROTOCOL3
+The coordinator now selects2..12 queued input frames (development default6) and
+freezes the setting per room. Both seats receive it in the versioned WELCOME;
+contiguous input beyond that window is rejected. The helper primes/replenishes
+that window and clears it on native menu reset. Simulation timestep stays50ms.
+Helper/server upgrades must be paired; old game protocol2 is rejected before
+lobby allocation. Authentication and private TLS bridge remain version1. See
+protocol-v3.txt; release default selection still needs loss/stall/physical-PC work.
+
+Helperbuffer01 built with native argument/wire checks passing. SHA256:
+fe95c9b52ca2ce21fe6beacac2825209ba1c4052badf5eea90fea7a2fb05d367.
+Only the isolated secure-client-runtime was updated; the pending root visible
+test and untouched recovery installation were preserved. The186-test suite ran
+in38.51s:184 pass,2 optional skips (real private Windows DACL and opt-in native
+worker test). Real inherited-socket bridge tests and original-byte telemetry
+checks were enabled. Source evidence:local/source-tests-buffer01.json/.txt.
+Tests cover v2 rejection,exact v3 layout/invalid windows,both seats' frozen value,
+bounded queues with a stalled peer,and progression at the minimum/maximum windows.
+
+p3-buffer6-200-01 completed two matching620-frame native TLS matches in the same
+clients27212/26992,including switched seats after menu reset. Each client/match
+had620 exact receipts,62 sampled views,zero mismatches/errors and a matching
+native result. Four TLS1.3 authenticated sessions succeeded. Both clients logged
+input_window6 in both lobbies and exact legacy-modal release/navigation0 after
+both results. Effective cadence19.508/19.892Hz with5/3 cadence resets,versus the
+earlier protocol2 three-input pipeline's13.110/12.215Hz and303/302 resets at200ms.
+Same-helper p3-buffer3-200-control01 reproduced the slower13.125/13.479Hz with
+279/294 resets. p3-buffer6-jitter200-20-01 added +/-20ms one-way jitter and passed
+at19.234/19.902Hz with7/3 resets. Both runs also passed the two-match receipt,
+sampled-state,result and TLS checks. Details,outliers and remaining default-
+selection gates are recorded in network-qualification.txt. This remains automated
+delayed-loopback evidence,not manual UI or actual internet acceptance.
+
 BASELINE EVIDENCE BEFORE SOURCE MIGRATION
 Original GameAssembly SHA256:
   e59d08c01479b27404778048d7e13546dbf3771f6b3912744c7c2bdf80c4e758

@@ -27,7 +27,8 @@ against128 bytes before reading the body. No credential is sent before verified
 TLS. No plaintext fallback exists. Admission errors have one public message;
 logs contain only a fixed internal category and an ordinary connection ID.
 
-HELLO remains game protocol2 and must claim the exact authenticated identity.
+HELLO uses game protocol3 and must claim the exact authenticated identity.
+Authentication remains version1; see protocol-v3.txt for the game wire upgrade.
 An arbitrary profile string cannot select another player's saved deck. Duplicate
 live profile sessions are rejected. Shutdown is rechecked before AUTH_OK and
 before room allocation, so a late authenticated HELLO cannot create a new room.

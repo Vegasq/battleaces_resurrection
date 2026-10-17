@@ -9,7 +9,7 @@ server-issued identity and an inherited handle; invite tokens stay in the parent
 
 Status:source implemented and built; native probe completed two authenticated
 sessions and rejected a wrong server certificate before authentication. Thirteen
-bridge tests and seven secure-launch tests pass. The full172-test suite passed170
+bridge tests and eight secure-launch tests pass. The current186-test suite passed184
 tests with2 optional skips. Two actual clients completed two encrypted matches
 and a changed-deck rematch in the same processes. This is automated loopback
 qualification, not observed UI, cross-PC play, real private-file deployment or
@@ -17,7 +17,8 @@ release packaging.
 
 Source/API
  client_patch/transport/launcher.py loads exact schema2,verifies installed
- component/helper hashes and the helper's BA_RESURRECTION_TLS_BRIDGE_V1 marker,
+ component/helper hashes and the helper's BA_RESURRECTION_TLS_BRIDGE_V1 and
+ BA_RESURRECTION_GAME_PROTOCOL_3 markers,
  reads a private invite with server.credentials.read_credential_file, and launches
  the game with one explicitly inherited socket. Old helpers are rejected before
  spawning, so an ignored new argument cannot fall back to plaintext networking.
@@ -79,8 +80,8 @@ against an administrator/debugger or a compromised same-user game process. The
 local traffic is game data only; internet traffic travels through verified TLS.
 
 Validation
- powershell -File client_patch/build.ps1 -OutputDirectory build/helper-secure03
- Set BA_NATIVE_BRIDGE_PROBE to build/helper-secure03/secure_bridge_probe.exe and:
+ powershell -File client_patch/build.ps1 -OutputDirectory build/helper-buffer01
+ Set BA_NATIVE_BRIDGE_PROBE to build/helper-buffer01/secure_bridge_probe.exe and:
  python -m unittest tests.test_client_bridge tests.test_secure_launcher -v
 The authored native executable contains no game code/data. It exercises real
 Windows handle inheritance and the exact header used by the helper. Asset-free

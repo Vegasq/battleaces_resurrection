@@ -99,6 +99,7 @@ class Peer:
 class Room:
     def __init__(self, server, name):
         self.server, self.name = server, name
+        self.input_window = server.input_window  # Frozen for this room and both seats.
         self.peers, self.decks = {}, {}
         self.ready, self.loaded = set(), set()
         self.revision, self.frame = 0, 0
@@ -143,7 +144,7 @@ class Room:
             deck = list(self.server.template.default_decks[slot])
             self.event("profile_load_fallback", profile=profile_id, reason=str(error))
         self.decks[slot] = deck
-        peer.send(p.WELCOME, bytes([slot]) + p.deck_bytes(deck))
+        peer.send(p.WELCOME, p.welcome(slot, self.input_window, deck))
         self.event("player_joined", slot=slot, profile=profile_id, name=name, deck=deck)
         self.last_progress = time.perf_counter()
         self.lobby_state()
@@ -241,7 +242,7 @@ class Room:
             (match_dir / "bootstrap.pb.gz").write_bytes(self.match.gzip_game_data)
             (match_dir / "match.json").write_text(json.dumps({
                 "schema": 1, "match_id": self.match_id, "room": self.name,
-                "seed": self.match.seed, "decks": self.decks,
+                "seed": self.match.seed, "decks": self.decks, "input_window": self.input_window,
                 "profiles": {slot: self.peers[slot].profile_id for slot in self.peers},
                 "original_sha256": p.BUILD_SHA, "simulation_sha256": p.SIM_SHA,
                 "bootstrap_sha256": hashlib.sha256(self.match.gzip_game_data).hexdigest()
@@ -252,7 +253,8 @@ class Room:
         self.event("match_created", seed=self.match.seed, decks=self.decks,
                    bootstrap_bytes=len(self.match.gzip_game_data),
                    bootstrap_sha256=hashlib.sha256(self.match.gzip_game_data).hexdigest(),
-                   authority="original Simulation.dll in isolated match worker", worker_pid=sim.pid)
+                   authority="original Simulation.dll in isolated match worker", worker_pid=sim.pid,
+                   input_window=self.input_window)
 
     async def on_message(self, peer, kind, payload):
         p.require(self.state != "closed", "room closed")
@@ -301,7 +303,7 @@ class Room:
             p.require(self.state == "running", "input outside running match")
             p.require(4 <= len(payload) <= 4 + p.MAX_INPUT, "input size limit")
             frame, = struct.unpack_from("<I", payload)
-            p.require(frame == peer.next_input and frame <= self.frame + p.MAX_AHEAD,
+            p.require(frame == peer.next_input and frame < self.frame + self.input_window,
                       "input frame must be contiguous and within lookahead")
             try:
                 body = self.validation.validate_player_input(peer.slot, payload[4:])
@@ -417,7 +419,8 @@ class Room:
 class DedicatedServer:
     def __init__(self, template, profiles, *, sim_factory=None, audit=None, data_dir=None,
                  input_timeout=10, audit_state=True, max_rooms=4, lobby_timeout=300,
-                 loading_timeout=120, completed_timeout=60, tls_context=None, admission=None):
+                 loading_timeout=120, completed_timeout=60, tls_context=None, admission=None,
+                 input_window=p.DEFAULT_INPUT_WINDOW):
         self.template, self.profiles = template, profiles
         if sim_factory is None:
             from .worker_client import SimulationWorker
@@ -426,6 +429,7 @@ class DedicatedServer:
         self.audit = audit or (lambda event, **fields: None)
         self.data_dir = Path(data_dir) if data_dir else None
         self.input_timeout = input_timeout
+        self.input_window = p.validate_input_window(input_window)
         self.audit_state = audit_state
         if type(max_rooms) is not int or not 1 <= max_rooms <= 64:
             raise ValueError("max_rooms must be in 1..64")
@@ -458,7 +462,8 @@ class DedicatedServer:
         address = self.listener.sockets[0].getsockname()
         self.audit("server_started", host=address[0], port=address[1], original_sha256=p.BUILD_SHA,
                    simulation_sha256=p.SIM_SHA, protocol=p.VERSION,
-                   transport="tls-auth" if self.admission else "loopback-development")
+                   transport="tls-auth" if self.admission else "loopback-development",
+                   input_window=self.input_window)
         return address
 
     async def handle(self, reader, writer):
@@ -471,7 +476,7 @@ class DedicatedServer:
             self.peers.add(peer)
             authenticated_id = await self.admission.authenticate(reader, writer) if self.admission else None
             kind, payload = await asyncio.wait_for(p.receive(reader), 5)
-            p.require(kind == p.HELLO, "dedicated protocol2 hello required")
+            p.require(kind == p.HELLO, "dedicated protocol3 hello required")
             slot, profile_id, name, room_name = p.decode_hello(payload)
             p.require(not self.closing, "server stopped")
             if authenticated_id is not None and profile_id != authenticated_id:
@@ -548,6 +553,7 @@ async def main(args):
     profiles = ProfileStore(args.data / "profiles", template)
     server = DedicatedServer(template, profiles, audit=audit, data_dir=args.data, audit_state=args.audit_state,
                              max_rooms=args.max_rooms, tls_context=context, admission=admission,
+                             input_window=args.input_window,
                              sim_factory=lambda data: SimulationWorker.create(data, args.dll or args.assets / "Simulation.dll"))
     try:
         address = await server.start(args.host, args.port)
@@ -565,6 +571,8 @@ if __name__ == "__main__":
     parser.add_argument("--assets", type=Path, default=ASSETS)
     parser.add_argument("--dll", type=Path, help="default: imported assets/Simulation.dll")
     parser.add_argument("--max-rooms", type=int, default=4)
+    parser.add_argument("--input-window", type=int, choices=range(p.MIN_INPUT_WINDOW,p.MAX_INPUT_WINDOW+1),
+                        default=p.DEFAULT_INPUT_WINDOW, help="server-selected queued input frames,2..12 (default6)")
     parser.add_argument("--template", type=Path, help="optional local map override")
     parser.add_argument("--data", type=Path, default=DATA)
     parser.add_argument("--audit-state", action="store_true", help="save native snapshots once per second for client/server comparison")

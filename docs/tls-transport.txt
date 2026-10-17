@@ -142,7 +142,7 @@ Authentication handoff and game protocol integration
 
 The coordinator's separately implemented prelude reserves AUTH20/AUTH_OK30,
 authentication version1. Its request payload is2-byte little-endian version plus
-47 ASCII token characters; authentication precedes game HELLO protocol2. The TLS
+47 ASCII token characters; authentication precedes game HELLO protocol3. The TLS
 module neither parses that payload nor logs application data. The actual client
 bridge/rematch evidence is documented separately in secure-client-transport.txt.
 Private-file enrollment and cross-network play remain open; passing these helper

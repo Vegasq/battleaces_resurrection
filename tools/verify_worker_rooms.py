@@ -135,7 +135,7 @@ class Verification:
         self.peers.append(peer)
         await peer.send(p.HELLO, p.hello(p.AUTO_SEAT, "verify_" + uuid.uuid4().hex,
                                        "Scripted native peer", name))
-        peer.slot = (await peer.receive(p.WELCOME))[0]
+        peer.slot, peer.input_window, peer.deck = p.decode_welcome(await peer.receive(p.WELCOME))
         return peer
 
     async def pair(self, name):

@@ -50,6 +50,8 @@ class TestPeer:
         self.incoming = asyncio.Queue()
         self.observed = []
         self.slot = None
+        self.input_window = None
+        self.deck = None
         self.bootstrap = None
         self.pump = asyncio.create_task(self.read_loop())
 
@@ -116,7 +118,7 @@ class DedicatedLifecycleTests(unittest.IsolatedAsyncioTestCase):
         await peer.send(p.HELLO, p.hello(slot, profile or "p_" + uuid.uuid4().hex, "Synthetic player", room))
         if welcome:
             response = await peer.receive(p.WELCOME)
-            peer.slot = response[0]
+            peer.slot, peer.input_window, peer.deck = p.decode_welcome(response)
         return peer
 
     async def pair(self, room, *, loaded=True):
@@ -180,6 +182,68 @@ class DedicatedLifecycleTests(unittest.IsolatedAsyncioTestCase):
         self.assertEqual(healthy.frame, 1)
         self.assertIsNotNone(failed.process.poll())
         self.assertNotIn("alpha", self.server.rooms)
+
+    async def test_welcome_freezes_same_window_for_both_seats(self):
+        await self.start(input_window=2)
+        first = await self.connect("frozen")
+        self.server.input_window = 12  # Only newly created rooms may observe a setting change.
+        second = await self.connect("frozen")
+        fresh = await self.connect("new_room")
+        self.assertEqual((first.input_window, second.input_window, fresh.input_window), (2, 2, 12))
+        self.assertEqual(first.deck, list(self.template.default_decks[0]))
+        self.assertEqual(second.deck, list(self.template.default_decks[1]))
+        self.assertEqual(self.server.rooms["frozen"].input_window, 2)
+
+    async def test_stalled_peer_cannot_accumulate_more_than_negotiated_window(self):
+        await self.start()
+        for window in (2, 6, 12):
+            with self.subTest(window=window):
+                self.server.input_window = window
+                name = "bounded_" + str(window)
+                peers = await self.pair(name)
+                room = self.server.rooms[name]
+                for frame in range(window):
+                    await peers[0].send(p.INPUT, struct.pack('<I', frame))
+                await wait_until(lambda: len(room.pending) == window)
+                self.assertEqual(room.frame, 0)
+                self.assertEqual(set(room.pending), set(range(window)))
+                self.assertTrue(all(set(inputs) == {0} for inputs in room.pending.values()))
+                await peers[0].send(p.INPUT, struct.pack('<I', window))
+                self.assertIn(b'within lookahead', await peers[0].receive(p.ERROR))
+                await wait_until(lambda: name not in self.server.rooms)
+                self.assertFalse(any(kind == p.FRAME for peer in peers for kind, _ in peer.observed))
+
+    async def test_negotiated_minimum_and_maximum_windows_progress_contiguously(self):
+        await self.start()
+        for window in (2, 12):
+            with self.subTest(window=window):
+                self.server.input_window = window
+                peers = await self.pair("progress_" + str(window))
+                for frame in range(window):
+                    await asyncio.gather(*(peer.send(p.INPUT, struct.pack('<I', frame)) for peer in peers))
+                for frame in range(window):
+                    received = await asyncio.gather(*(peer.receive(p.FRAME) for peer in peers))
+                    self.assertEqual(received[0], received[1])
+                    self.assertEqual(struct.unpack_from('<I', received[0])[0], frame)
+                await self.advance(peers, window)
+                await asyncio.gather(*(peer.close() for peer in peers))
+
+    async def test_old_protocol_rejected_before_room_allocation(self):
+        await self.start()
+        reader, writer = await asyncio.open_connection(*self.address[:2])
+        peer = TestPeer(reader, writer)
+        self.clients.append(peer)
+        old = struct.pack('<H', 2) + p.hello(p.AUTO_SEAT, 'old_client', 'Old client')[2:]
+        await peer.send(p.HELLO, old)
+        self.assertIn(b'update client and server together', await peer.receive(p.ERROR))
+        self.assertEqual(self.server.rooms, {})
+        self.assertEqual(self.workers, [])
+
+    async def test_invalid_window_configuration_rejected_before_listen(self):
+        for value in (False, True, 0, 1, 13, -1, 6.0, '6', None):
+            with self.subTest(value=value), self.assertRaises(p.ProtocolError):
+                await self.start(input_window=value)
+        self.assertIsNone(self.server)
 
     async def test_lobby_expiry_releases_name_and_connections(self):
         await self.start(lobby_timeout=0.12)

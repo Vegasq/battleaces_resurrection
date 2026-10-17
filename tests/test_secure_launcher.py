@@ -31,11 +31,12 @@ class SecureLauncherTests(unittest.TestCase):
         self.path.write_text(json.dumps(self.config), encoding='utf-8')
         return launch.load_config(self.path)
 
-    def install(self, *, secure=True):
+    def install(self, *, secure=True, protocol3=True):
         root = self.folder / 'working-game'
         state = root / '.battleaces-resurrection'
         state.mkdir(parents=True)
         helper = b'authored helper fixture ' + (b'BA_RESURRECTION_TLS_BRIDGE_V1' if secure else b'old helper')
+        if protocol3: helper += b' BA_RESURRECTION_GAME_PROTOCOL_3'
         component = b'authored component fixture'
         (root / 'BattleAcesOffline.dll').write_bytes(helper)
         (root / 'GameAssembly.dll').write_bytes(component)
@@ -72,6 +73,11 @@ class SecureLauncherTests(unittest.TestCase):
     def test_helper_without_bridge_cannot_fall_back_to_plaintext(self):
         root, _, _ = self.install(secure=False)
         with self.assertRaises(launch.LaunchError): launch.verify_game(root)
+
+    def test_secure_helper_with_old_game_protocol_rejected_before_spawn(self):
+        root, _, _ = self.install(protocol3=False)
+        with self.assertRaisesRegex(launch.LaunchError, 'protocol3'):
+            launch.verify_game(root)
 
     def test_component_hash_restore_and_path_escape_fail_before_spawn(self):
         root, path, manifest = self.install()

@@ -1,14 +1,20 @@
 NETWORK DELAY QUALIFICATION
 Updated:2026-10-17
 
-The current protocol2 client queues three input batches and replenishes one after
+Current source uses protocol3 and a server-selected input window2..12,default6.
+The window is frozen per room and advertised to both seats. See protocol-v3.txt
+for bounds,version compatibility and the command-delay tradeoff. Qualification
+of this change is recorded below; the following baseline used the earlier helper.
+
+The baseline protocol2 client queues three input batches and replenishes one after
 each authoritative frame. The coordinator allows bounded contiguous lookahead
 (MAX_AHEAD4), waits for both peers, and advances Simulation.dll by exactly50ms.
 Its input-stall limit is10s. This is a small local pipeline, not a measured choice
-for internet players. Configurable buffering and friend-facing connection status
+for internet players. Friend-facing connection status and real network tests
 remain P3 work. A match can stay deterministic while running slower than20Hz.
 
-tools/run_secure_match.py accepts --rtt-ms0..500, --jitter-ms0..100 and a repeatable
+tools/run_secure_match.py accepts --input-window2..12,--rtt-ms0..500,
+--jitter-ms0..100 and a repeatable
 --network-seed. For example append --rtt-ms100 --jitter-ms10 to the documented
 secure two-client qualification command. Keep every run name unique. The optional
 relay binds and forwards only IPv4 loopback; normal client/server code is unchanged.
@@ -66,3 +72,44 @@ match had a2.433s maximum interframe gap, while the rematch maximum was344.447ms
 It reached the240s harness deadline about10s after its second result. Both clients
 still logged native result delivery and exact legacy-modal release/navigation0
 before termination. This does not substitute for manual failure/reconnect UX.
+
+PROTOCOL 3 BUFFER COMPARISON (2026-10-17)
+The same helperbuffer01 and coordinator source were used for all three runs:
+ Run                           Window  RTT/jitter       Hz1/Hz2       Resets1/2
+ p3-buffer3-200-control01          3    200ms/none    13.125/13.479     279/294
+ p3-buffer6-200-01                 6    200ms/none    19.508/19.892       5/3
+ p3-buffer6-jitter200-20-01        6    200ms/+/-20ms  19.234/19.902       7/3
+Jitter is per direction, with seed17. The control changes only the server's
+advertised window; both clients use that value without rebuilding the helper.
+This supports increasing the pipeline for this delayed-stream scenario. It does
+not attribute every scheduler gap to networking or measure input responsiveness.
+
+All six matches completed620 frames. Every client/match had620 exact receipts,
+62 sampled state/view comparisons,zero mismatches/errors and a matching native
+result/checksum. Each pair reused its client processes for the changed-deck
+rematch and authenticated four TLS1.3 sessions. The first window6 pair swapped
+seats between matches. Both native logs recorded the negotiated setting again
+after menu reset. All six results logged exact legacy-modal release/navigation0.
+This is native-state/automated Continue evidence,not manual mouse/UI validation.
+
+The six-window runs' rematch p95 intervals were63.185/62.878ms and maximum gaps
+125.825/127.261ms without/with jitter. Their first-match maxima358.353/693.421ms
+remain visible in the metrics; their cause was not isolated. The three-window
+control p95 gaps110.378/111.499ms and279/294 cadence resets reproduced the slow
+pipeline behavior without reverting the protocol upgrade. Relay queues peaked
+at2/2/3 chunks (control/plain/jitter),with zero relay failures or rejections.
+
+Evidence: local/matches/<run>/summary.json,per-match verification,patch-manifest,
+transport-test,processes and source-sha256 JSON. Helper SHA256:
+fe95c9b52ca2ce21fe6beacac2825209ba1c4052badf5eea90fea7a2fb05d367.
+PIDs:control40992/24076,window6 plain27212/26992,jitter43840/46752.
+All harness-owned games,workers and coordinators exited and ephemeral PKI was
+removed. The separate root visible-test server/helper were not replaced.
+
+Six frames is a provisional development default,with nominal250ms queued-frame
+lead versus100ms at three. The release choice still needs physical-PC/internet,
+packet loss/retransmission,stalls,click-to-display latency,and fresh50/100ms runs
+using protocol3. The earlier50/100ms measurements above used protocol2. Do not
+simulate TCP packet loss by dropping encrypted stream bytes: that corrupts the
+application stream rather than modeling TCP retransmission. Status UI and genuine
+failure recovery remain separate unfinished work.

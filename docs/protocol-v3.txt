@@ -1,0 +1,82 @@
+DEDICATED ADAPTER PROTOCOL v3 (authored adapter, not original gRPC)
+Updated:2026-10-17
+
+Compatibility
+The client helper and coordinator must both use game protocol 3. Protocol 2 HELLO
+is rejected before a room/worker is allocated, with an update-both-components
+message. A v3 helper rejects the old 33-byte WELCOME. The secure launcher verifies
+BA_RESURRECTION_GAME_PROTOCOL_3 as well as the TLS bridge ABI1 marker and installed
+hashes before spawning. The local patch manifest's dedicated-prototype-v2 state
+is a legacy installer recipe label, not the negotiated network version.
+The root visible test and retained pre-change evidence use protocol 2; do not
+restart that server with v3 source while leaving its old helper installed.
+
+Framing and transport
+All packets: u32 little-endian body length, u8 type, payload. Maximum 2 MiB body.
+All integers below are little-endian; strings are u16 byte length plus strict
+UTF8. Type 255 UTF8 errors close the connection. Type 37 notices preserve a lobby.
+Plaintext is restricted to numeric loopback development listeners. Remote clients
+require verified TLS and authentication version 1 before game HELLO:
+ C20 AUTH: u16 auth version 1, 47 ASCII invite-token characters.
+ S30 AUTH_OK: u16 auth version 1, player_id string (p_ plus 32 hex characters).
+No authentication/credential format changed. Admission bounds, deadlines and
+generic authentication failures remain as documented in admission.txt and
+tls-transport.txt. Game profile_id must equal the authenticated identity.
+
+Messages
+C21 HELLO: u16 version 3, u8 requested seat 0/1 or 255 (auto), original
+ GameAssembly SHA256 (32 bytes), original Simulation.dll SHA256 (32 bytes), then
+ profile_id, display_name and room strings. Profile/room keys use [A-Za-z0-9_-],
+ 1..48 characters. Names have 1..32 printable characters. Duplicate live profiles
+ across rooms fail. Normal clients request seat 255.
+S31 WELCOME: u8 assigned seat,u8 input_window,u32[8] saved/validated deck.
+ Exactly 34 bytes. Seat is 0/1 and input_window is 2..12. This is the only changed
+ game payload layout relative to v2; versioning prevents shifted deck decoding.
+C22 SET_DECK: u32[8] entity IDs. Validate,persist,clear that player's ready flag.
+C23 LOBBY_READY: u8 bool. Both connected players ready freeze the match roster.
+S35 LOBBY: u8 connected mask,u8 ready mask,u32 revision,u32[8] deck0,u32[8] deck1.
+S32 MATCH_INFO:32 lowercase ASCII hex match ID,immediately preceding bootstrap.
+S12 BOOTSTRAP: server-generated gzip GameData. Clients cannot publish GameData.
+C3 LOADED:32-byte SHA256 of exact bootstrap,after native world/identity readiness.
+S13 START: empty; sent only after both loaded acknowledgements match.
+C4 INPUT: u32 contiguous frame,InputActionsByPlayer protobuf (at most64KiB).
+ Server validates identity/allowed actions before native simulation receives it.
+S14 FRAME: u32 frame,u32 first input length,player0 bytes,player1 bytes.
+ Server executes original Simulation.dll before forwarding the accepted frame.
+S36 MATCH_END: UTF8 JSON result/reason. Stop submitting; reconnect for next match.
+C24 LEAVE: empty; detach player and abort an active match.
+S37 NOTICE: UTF8 recoverable deck/lobby feedback,logged by the native adapter.
+
+Input buffering
+Server option --input-window accepts integers 2..12; development default 6. It is
+captured when the room is created, advertised identically to both seats, and cannot be selected
+by a client or changed during that room's lifetime. A new lobby may advertise a
+different value. Match metadata and server audit records retain the setting.
+
+After START the client submits frames 0..N-1. After accepting frame F it submits
+F+N. Inputs must be contiguous for that peer and less than server_next_frame+N.
+Thus a stalled peer cannot make the other queue more than N future frames. The
+server waits for both inputs, uses the existing 10s stall limit, and always advances
+native simulation by 50ms per frame. No speed, dt, ownership or result checks change.
+The helper bounds its received-frame queue to N+4 (at most 16), and clears N during
+safe native menu/world reset before negotiating the next session. The earlier
+non-dedicated v1 loopback relay retains its three-input pipeline/eight-frame cap.
+
+A larger N trades more command scheduling delay for room to absorb round-trip
+delay and Unity scheduling. Nominal queued-frame lead is (N-1)*50ms: 50ms at 2,
+100ms at 3, 250ms at 6, 550ms at 12. These are pipeline quantities, not measured
+click-to-display latency; network, rendering and scheduling add their own delay.
+See network-qualification.txt for measured cadence and remaining network limits.
+The release default is provisional until the planned loss/stall and physical-PC
+qualification passes. A loopback delay measurement does not replace those gates.
+
+Lifecycle
+Lobby -> preparing worker -> loading -> running -> completed/aborted. Completed
+rooms release their public name immediately and retain result sockets until
+disconnect or60-second expiry. Native menu/world teardown must finish before a
+fresh HELLO,which renegotiates seat and window. Server persists between matches;
+each supervised worker owns one native world. A failed worker never publishes
+its incomplete frame. Default active room capacity4 (--max-rooms1..64); lobby,
+loading and input timeouts300/120/10 seconds. Each room has exactly two players.
+No active-match resumption is provided. Manual failure recovery,physical-PC/
+internet qualification and exhaustive hostile-action auditing remain open.

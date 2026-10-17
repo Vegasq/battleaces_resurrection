@@ -164,7 +164,7 @@ static void resetAtMenu(Obj front,Obj server,bool completed) {
     ba_lan::bootstrap.clear();ba_lan::dedicatedDeck.clear();ba_lan::dedicatedMatchId.clear();
     ba_lan::welcomed=false;ba_lan::stopped=false;ba_lan::worldReady=false;ba_lan::running=false;
     ba_lan::peerClosed=false;ba_lan::submittedFirst=false;ba_lan::matchEnded=false;ba_lan::lobbyReady=false;
-    ba_lan::nextFrame=0;ba_lan::bootstrapHash=0;ba_lan::connectStarted=0;ba_lan::failureReason.clear();
+    ba_lan::nextFrame=0;ba_lan::inputWindow=0;ba_lan::bootstrapHash=0;ba_lan::connectStarted=0;ba_lan::failureReason.clear();
     ba_dedicated::installing=false;ba_dedicated::initialized=false;
     ba_dedicated_deck::initialized=false;ba_dedicated_deck::suppress=false;
     releaseRoot(ba_dedicated_deck::accountRoot);

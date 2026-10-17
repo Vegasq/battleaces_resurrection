@@ -1,5 +1,8 @@
 DEDICATED ADAPTER PROTOCOL v2 (local implementation, not original gRPC)
 
+Historical protocol for retained runs and the pending root visible test. Current
+source uses protocol3; see protocol-v3.txt. Upgrade helper and server together.
+
 All packets: u32 little-endian body length, u8 type, payload. Max2MiB body.
 All integers below little-endian. Strings are u16 byte length then strict UTF8.
 Protocol errors type255 UTF8 close connection. Recoverable selection feedback

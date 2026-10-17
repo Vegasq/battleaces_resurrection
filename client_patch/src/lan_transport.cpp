@@ -1,5 +1,6 @@
 #pragma once
 #include "secure_bridge.hpp"
+#include "dedicated_wire.hpp"
 // Experimental loopback transport. All IL2CPP work stays on Unity's main thread.
 namespace ba_lan {
 using ba::Obj; using ba_local::Root;
@@ -23,6 +24,7 @@ static std::string dedicatedMatchId;
 static size_t txPosition=0;
 static std::deque<Bytes> frames;
 static int nextFrame=0;
+static unsigned inputWindow=0;
 static uint64_t bootstrapHash=0;
 static FILE* receipts=nullptr;
 static void closeReceipts() {if(receipts){fclose(receipts);receipts=nullptr;}}
@@ -148,7 +150,7 @@ static void connect() {
     }
     static const char* hex="e59d08c01479b27404778048d7e13546dbf3771f6b3912744c7c2bdf80c4e758";
     const int requestedSlot=ba::requestedLanSlot();
-    Bytes hello;if(ba::dedicated()){hello.push_back(2);hello.push_back(0);}hello.push_back(static_cast<unsigned char>(requestedSlot));
+    Bytes hello;if(ba::dedicated()){hello.push_back(ba_wire::protocol);hello.push_back(0);}hello.push_back(static_cast<unsigned char>(requestedSlot));
     for(int i=0;i<32;++i){unsigned value=0;sscanf_s(hex+2*i,"%2x",&value);hello.push_back(static_cast<unsigned char>(value));}
     if(ba::dedicated()) {
         const char* sim="107bb83dc416a16492277392c50104660e34c48911345ae2e0d5afe3929a07fb";
@@ -158,7 +160,8 @@ static void connect() {
         std::string values[]={profile,ba::argument(L"-player-name=",requestedSlot==1?"Player2":"Player1"),ba::argument(L"-room=","local")};
         for(const auto& value:values){if(value.size()>128)throw std::runtime_error("dedicated hello value too long");hello.push_back(static_cast<unsigned char>(value.size()));hello.push_back(0);hello.insert(hello.end(),value.begin(),value.end());}
     }
-    send(ba::dedicated()?21:1,hello);ba::log("LAN connecting to %s requested slot %d protocol=%d transport=%s",endpoint.c_str(),requestedSlot,ba::dedicated()?2:1,secureMode()?"private-TLS-bridge":"development-TCP");
+    send(ba::dedicated()?21:1,hello);ba::log("LAN connecting to %s requested slot %d protocol=%d transport=%s",endpoint.c_str(),requestedSlot,ba::dedicated()?ba_wire::protocol:1,secureMode()?"private-TLS-bridge":"development-TCP");
+    if(ba::dedicated())ba::log("Dedicated wire ABI BA_RESURRECTION_GAME_PROTOCOL_3");
 }
 static void poll() {
     if(stopped || peerClosed)return;
@@ -194,14 +197,20 @@ static void poll() {
         if(rx.size()-consumed<length+4)break;
         unsigned char type=rx[consumed+4];Bytes payload(rx.begin()+consumed+5,rx.begin()+consumed+4+length);consumed+=4+length;
         if(type==11){if(payload.size()!=1 || payload[0]!=ba::lanSlot())throw std::runtime_error("LAN slot mismatch");welcomed=true;ba::log("LAN welcome slot %d",payload[0]);}
-        else if(type==31){if(!ba::dedicated() || welcomed || payload.size()!=33 || payload[0]>1 || (ba::requestedLanSlot()!=255 && payload[0]!=ba::requestedLanSlot()))throw std::runtime_error("dedicated slot mismatch");ba::dedicatedAssignedSlot=payload[0];dedicatedDeck=Bytes(payload.begin()+1,payload.end());welcomed=true;ba::log("Dedicated lobby welcome slot %d; saved deck received",payload[0]);}
+        else if(type==31){
+            if(!ba::dedicated() || welcomed)throw std::runtime_error("unexpected dedicated welcome");
+            const auto settings=ba_wire::parseWelcome(payload,ba::requestedLanSlot());
+            ba::dedicatedAssignedSlot=settings.slot;inputWindow=settings.inputWindow;
+            dedicatedDeck=Bytes(payload.begin()+2,payload.end());welcomed=true;
+            ba::log("Dedicated lobby welcome slot %d; saved deck received; input_window=%u tick_ms=50",payload[0],inputWindow);
+        }
         else if(type==32){if(payload.size()!=32 || !dedicatedMatchId.empty())throw std::runtime_error("dedicated match ID invalid");for(unsigned char c:payload)if(!((c>='0'&&c<='9')||(c>='a'&&c<='f')))throw std::runtime_error("dedicated match ID malformed");dedicatedMatchId=std::string(payload.begin(),payload.end());}
         else if(type==35){if(!welcomed || payload.size()!=70)throw std::runtime_error("dedicated lobby payload invalid");lobbyReady=(payload[1]&(1<<ba::lanSlot()))!=0;ba::log("Dedicated lobby connected_mask=%u ready_mask=%u revision=%u",payload[0],payload[1],u32(payload,2));}
         else if(type==37){std::string notice(payload.begin(),payload.end());ba::log("Dedicated server notice: %s",notice.c_str());}
         else if(type==36){std::string result(payload.begin(),payload.end());ba::log("Dedicated match ended: %s",result.c_str());ba_dedicated_results::receive(result);matchEnded=true;}
         else if(type==12){if(!bootstrap.empty() || payload.empty())throw std::runtime_error("duplicate or empty bootstrap");bootstrap=std::move(payload);if(ba::dedicated())saveReceivedBootstrap(bootstrap);auto h=sha(bootstrap);memcpy(&bootstrapHash,h.data(),8);ba::log("LAN canonical GameData received: %llu bytes hash-prefix=%016llx",static_cast<unsigned long long>(bootstrap.size()),bootstrapHash);}
         else if(type==13){if(!worldReady || !payload.empty() || running)throw std::runtime_error("unexpected LAN start");running=true;nextFrame=0;ba::log("LAN both players ready; synchronized start");}
-        else if(type==14){if(!running || frames.size()>=8)throw std::runtime_error("unexpected LAN frame");frames.push_back(std::move(payload));}
+        else if(type==14){if(!running || frames.size()>=(ba::dedicated()?inputWindow+4:8))throw std::runtime_error("unexpected LAN frame");frames.push_back(std::move(payload));}
         else if(type==255){std::string message(payload.begin(),payload.end());throw std::runtime_error(message.c_str());}
         else throw std::runtime_error("unknown LAN message type");
     }
@@ -245,9 +254,11 @@ static void submit(Obj server,int frame) {
 }
 static void tick(Obj server) {
     if(!running || stopped || !ba_local::isTarget(server))return;
-    // Three queued batches absorb Unity scheduling without lowering the relay's
-    // 20Hz cadence; this prototype intentionally adds roughly100ms input delay.
-    if(!submittedFirst){for(int f=0;f<3;++f)submit(server,f);submittedFirst=true;}
+    // The server freezes the bounded pipeline for both seats. Replenish after
+    // each accepted frame; native simulation still advances exactly50ms per tick.
+    const int window=ba::dedicated()?static_cast<int>(inputWindow):3;
+    if(window<2 || window>12)throw std::runtime_error("input window was not negotiated");
+    if(!submittedFirst){for(int f=0;f<window;++f)submit(server,f);submittedFirst=true;}
     Obj sim=ba::read<Obj>(server,0x140);
     while(!frames.empty() && nextFrame-ba::read<int>(sim,0xa8)<4) {
         Bytes frame=std::move(frames.front());frames.pop_front();
@@ -269,7 +280,7 @@ static void tick(Obj server) {
             recordReceipt(nextFrame,total,ba::read<int>(sim,0xa8),hex);
             if(nextFrame%200==0 || total)ba::log("LAN received frame %d, actions=%d, sim=%d sha256=%s match=%s",nextFrame,total,ba::read<int>(sim,0xa8),hex,dedicatedMatchId.c_str());
         }
-        ++nextFrame;submit(server,nextFrame+2);
+        ++nextFrame;submit(server,nextFrame+window-1);
     }
     if(matchEnded && frames.empty())running=false;
 }

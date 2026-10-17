@@ -11,6 +11,11 @@ now pass; broader manual/failure flows, complete telemetry removal, private inte
 hosting and release packaging remain under development.
 Do not treat this development baseline as the finished release.
 
+Current game wire protocol3 requires updating both helper and server. The server
+selects a bounded input window with --input-window (2..12, default6); both players
+receive the same setting. See docs/protocol-v3.txt and docs/network-qualification.txt
+for compatibility,command-delay tradeoffs and measured network tests.
+
 SOURCE LAYOUT
   server/                 Python server, protocol and native simulation adapter
   client_patch/src/       our C++ helper source

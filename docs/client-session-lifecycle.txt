@@ -1,8 +1,8 @@
 DEDICATED CLIENT SESSION LIFETIME
-Updated: 2026-10-17. Build 37822, Windows x64, transport version 2.
-Status: first reset helper compiled and argument tests passed under coordinator
-control. The subsequently added automated rematch/audit changes require a new
-build and two-session runtime test. Manual UI acceptance remains open.
+Updated: 2026-10-17. Build 37822, Windows x64, game protocol3.
+Status: automated native reset,changed-deck rematches and encrypted sessions are
+verified in the recorded runs below. Manual UI acceptance and genuine disconnect
+recovery remain open. Protocol3 adds a negotiated per-room input window.
 
 CONTRACT
 
@@ -10,11 +10,13 @@ A TCP connection represents one lobby and at most one match. The Unity process,
 local profile and native menu/deck editor survive across connections. This is
 lobby re-entry, not reconnect/catch-up to a running native world.
 
-The client sends HELLO21 with the unchanged version-2 layout: version u16le,
+The client sends HELLO21 with the existing layout and version3 in its u16 field:
 preferred seat u8, original GameAssembly SHA256, Simulation SHA256, then three
 u16le-length UTF-8 strings (profile, display name, room). Preferred seat 255 asks
 the server for the first free seat; explicit -lan-slot=0/1 remains available for
-controlled probes. S_WELCOME31 contains the assigned seat0/1 and 32 deck bytes.
+controlled probes. Protocol3 S_WELCOME31 contains the assigned seat0/1,a server-
+selected2..12-frame input window,and32 deck bytes. Both seats use the same frozen
+window; native menu reset clears it before a new WELCOME. See protocol-v3.txt.
 An auto-seat connection requires a stable explicit -player-id. Profile identity
 must not derive from the assigned seat. Without an explicit seat, native logs
 are dedicated-native-PID.log rather than a shared slot filename.
