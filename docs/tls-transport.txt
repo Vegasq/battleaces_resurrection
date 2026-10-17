@@ -1,0 +1,146 @@
+VERIFIED TLS TRANSPORT SUPPORT
+
+Scope
+server/tls_transport.py wraps maintained Python ssl/asyncio primitives. It loads
+owner-supplied certificate/key and CA files read-only. It does not create production
+certificates, alter OS trust stores, change file permissions, implement a cipher,
+or modify the game client. Player authentication is the following application
+layer, separate from TLS server identity verification.
+
+This module was exercised with Python3.12.10/OpenSSL3.0.16 on Windows. Seventeen
+focused tests passed, including actual loopback TLS; no test was skipped. Installed
+OpenSSL3.5.7 generated temporary authored certificates solely under ignored local/
+directories, which were removed afterward. No PEM/key/credential fixture is
+embedded in source. Current official Python ssl documentation and the deployed
+Python3.12 ssl/asyncio documentation were checked during implementation.
+
+API
+  server_context = load_server_context(cert_file, key_file,
+      password_provider=None)
+  client_tls = load_client_context(ca_bundle, server_name)
+  reader, writer = await open_verified_connection(host, port, client_tls,
+      connect_timeout=10, handshake_timeout=5, shutdown_timeout=2,
+      stream_limit=65536)
+  listener = await start_tls_server(callback, host, port, server_context,
+      handshake_timeout=5, shutdown_timeout=2, stream_limit=65536,
+      backlog=128)
+  graceful = await close_tls_stream(writer, timeout=2)
+
+ClientTLS is a frozen pair of context and normalized server_hostname. The factory
+keeps the expected certificate identity together with its CA trust configuration;
+the connection helper always supplies it for hostname/IP verification and SNI
+where appropriate. host selects the TCP route. It can be an IP while server_name
+remains the enrolled DNS identity; never derive that identity from an untrusted
+certificate or server response. Port is supplied separately, not inside the name.
+
+Expected names accept DNS (normalized through Python IDNA) or an unbracketed IP.
+URLs, wildcard expected names, ports, whitespace, IPv6 zones and malformed labels
+are rejected. DNS/IP subjectAltName is required on the certificate; matching a
+legacy commonName alone is not accepted. The private-host v1 deployment should
+prefer a simple explicit DNS name or IPv4 SAN for straightforward enrollment.
+
+Both contexts require minimumTLS1.2 and retain the library's cipher defaults and
+supported upper protocol version. TLS1.2 and TLS1.3 were observed working in the
+tests. The client requires a trusted certificate chain, certificate validity and
+matching subjectAltName. No certificate-verification or hostname-check bypass,
+plaintext retry, or weaker protocol fallback exists.
+
+The client loads only its explicit CA bundle. System trust is not implicitly added.
+SSLContext(PROTOCOL_TLS_CLIENT) is used rather than create_default_context because
+the latter automatically honors SSLKEYLOGFILE. These factories do not enable key
+logging from that environment variable; the connection/listener helpers also
+reject an explicitly key-logging context. Context role, minimum version and client
+verification invariants are checked before use. Treat returned contexts as
+immutable configuration after construction; the SSLContext object itself remains
+mutable in Python even though the ClientTLS wrapper is frozen.
+
+PEM inputs must be existing bounded nonempty regular files: certificate chain at
+most1 MiB, key64 KiB, CA bundle4 MiB. Missing, malformed or mismatched cert/key files
+fail with TLSConfigurationError and no input/private-key/password content in the
+message. An encrypted key requires an explicit zero-argument password provider
+returning bytes or text from a protected source. The default callback fails rather
+than allowing OpenSSL to open an interactive password prompt. This module has no
+CLI option for private-key content, key passwords or bearer credentials.
+
+Runtime verification failures remain ssl.SSLCertVerificationError so integration
+can map safe categories such as wrong identity, untrusted issuer or expiry. Do not
+retry with weaker verification. Connection errors and timeouts propagate normally.
+close_tls_stream bounds shutdown, aborts an unresponsive transport and returns
+False; cancellation also aborts the transport and continues to propagate.
+
+Bounds and remaining admission responsibilities
+The total client connect deadline includes resolution, TCP connection and TLS
+handshake. Defaults are10 seconds total,5 seconds handshake and2 seconds shutdown.
+Configuration accepts finite positive total deadlines up to60 seconds, handshakes
+up to30 seconds and shutdown/close up to10 seconds. Server kernel backlog is
+bounded to1..1024, default128; stream buffer limit is1024..2097152 bytes.
+
+Stream buffering is not an application-message size limit. Preserve the protocol's
+length checks before reading a body. The TLS server callback runs after a completed
+TLS handshake, so an application admission counter cannot by itself bound raw
+already-accepted handshakes. This helper limits their duration and the kernel
+backlog, not their active count or source-IP rate. Apply explicit connection and
+handshake admission policy before public exposure; retain bounded AUTH deadlines,
+pending verifications, HELLO/readiness limits and per-player queues afterward.
+
+Private-host certificate enrollment
+The owner provisions a server leaf certificate with serverAuth usage and the
+expected DNS/IP subjectAltName, its private key and any intermediate chain. A
+private CA can issue that leaf. The client receives the CA's public certificate
+and expected server name through a trusted enrollment channel. Confirm the CA
+fingerprint with the owner through that trusted channel before saving it as the
+client's explicit CA bundle. Do not fetch and blindly trust the certificate from
+the very connection whose identity has not yet been verified.
+
+This requires no machine-wide trust import and grants no trust to unrelated CAs.
+Keep the owner private key and CA signing key in protected local storage. The
+loader does not change their permissions or prove their deployment account ACLs.
+Normal chain/name/expiry checks happen locally; automatic online OCSP/CRL fetching
+is not implemented here. Certificate/CA rotation and re-enrollment are explicit
+owner operations, not silent acceptance of a changed server identity.
+
+Authentication handoff and game protocol integration
+1. Load an explicitly enrolled CA/name configuration and establish verified TLS.
+2. Only after open_verified_connection returns, load/read the private credential
+   handoff and send the bounded application AUTH exchange inside that stream.
+   Do not put the token in process arguments, environment variables, URLs, public
+   display/profile names, diagnostics, exception messages or packet logs.
+3. The server verifies the credential and returns its server-issued player ID.
+   Bind the session and saved-profile key to that result, not a claimed client ID.
+4. Send the existing game HELLO only after AUTH_OK. Keep its build compatibility,
+   room/deck readiness and game-message validation. A valid TLS session alone is
+   not evidence that a player has an invite.
+
+The coordinator's separately implemented prelude reserves AUTH20/AUTH_OK30,
+authentication version1. Its request payload is2-byte little-endian version plus
+47 ASCII token characters; authentication precedes game HELLO protocol2. The TLS
+module neither parses that payload nor logs application data. Original graphical
+client TLS bridging/enrollment and cross-network play remain separate integration
+work; passing these helper tests does not establish end-to-end internet play.
+See admission.txt for the implemented coordinator prelude, identity binding,
+private verification executor, resource bounds and shutdown behavior.
+
+Tests and reusable ephemeral fixture
+  python -m unittest tests.test_tls_transport -v
+  from tests.test_tls_transport import generate_test_pki, remove_test_pki
+  fixtures = generate_test_pki(fresh_path_under_local)
+  # caller owns cleanup: remove_test_pki(fresh_path_under_local)
+
+Fixture keys are ca/cert/key/expired_cert/unrelated_ca/unrelated_key/cn_only_cert/
+encrypted_key/password_file. Files are generated only by an already installed
+OpenSSL executable, without downloads or trust-store changes. If none exists,
+the real-certificate test class reports a skip and no TLS success is claimed.
+
+Coverage: verified DNS/IP connections; TLS1.2 negotiation; wrong-host, unrelated-CA,
+expired-leaf and CN-only rejection before application data; missing/malformed/
+mismatched PEM inputs; encrypted key no-prompt and explicit provider; no ambient
+session-key log; bounded stalled client/server handshakes; role/deadline guards;
+name parsing; bounded shutdown and cancellation. The tests exercise a local
+listener with scripted peers, not the installed graphical game or internet paths.
+
+Official references
+  https://docs.python.org/3/library/ssl.html
+  https://docs.python.org/3.12/library/ssl.html#ssl.SSLContext.load_cert_chain
+  https://docs.python.org/3.12/library/ssl.html#ssl.SSLContext.hostname_checks_common_name
+  https://docs.python.org/3.12/library/asyncio-stream.html
+  https://docs.python.org/3.12/library/asyncio-eventloop.html#asyncio.loop.create_connection

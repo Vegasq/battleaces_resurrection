@@ -1,0 +1,68 @@
+AUTHENTICATED SERVER ADMISSION
+Updated:2026-10-17
+
+The coordinator optionally accepts TLS plus owner-issued credentials. Scripted
+peers have verified real TLS -> AUTH -> identity-bound HELLO -> lobby. The installed
+graphical game helper still uses plaintext loopback; this is not internet-play
+completion. See tls-transport.txt for trust enrollment and credentials.txt for
+private issuance/revocation/storage.
+
+Listener modes
+  Development: --host 127.0.0.1 (default), no TLS/credential options.
+  Secured: --tls-cert <chain.pem> --tls-key <private-key.pem>
+           --credentials <private-store-directory>
+All three security paths are required together. Plaintext non-loopback binds are
+rejected. These arguments carry paths only, never tokens, key contents or passwords.
+The owner must provision certificate/key/trust and the credential store separately;
+the server does not change OS trust or weaken private file permissions. The CLI
+does not yet provide an encrypted-key password provider.
+
+Wire contract
+Normal framing is u32 little-endian body length then u8 kind and payload. Before
+game HELLO, a secure client sends kind20, authentication version1 (u16), and its
+47-character ASCII invite token. The server returns kind30,version1,then its
+u16-length-prefixed34-character p_ identity. Authentication body size is checked
+against128 bytes before reading the body. No credential is sent before verified
+TLS. No plaintext fallback exists. Admission errors have one public message;
+logs contain only a fixed internal category and an ordinary connection ID.
+
+HELLO remains game protocol2 and must claim the exact authenticated identity.
+An arbitrary profile string cannot select another player's saved deck. Duplicate
+live profile sessions are rejected. Shutdown is rechecked before AUTH_OK and
+before room allocation, so a late authenticated HELLO cannot create a new room.
+Revocation is checked on each new authentication; established matches are not
+automatically evicted by this implementation.
+
+Resource bounds
+Default AUTH deadline5s,16 pending attempts,8-attempt IP burst replenishing at1/s,
+and at most4096 source-address buckets. Rejected attempts retain fractional refill;
+clients sharing a NAT share the IP budget. Inactive buckets expire after at least
+60s. Bounded capacity includes filesystem verification after a client times out.
+A private ThreadPoolExecutor isolates up to max_pending verification calls from
+the shared executor used for process/worker cleanup. Store exceptions are mapped
+to safe categories without logging their arbitrary text.
+
+Cancellation cannot stop an already-running filesystem call. Its reservation is
+held until the call completes. Shutdown stops admissions and waits up to3s for
+verification; an unfinished call is reported without cancelling its awaiter or
+pretending it finished. Python may still wait for those threads at interpreter
+exit. Deployment storage must be local/reliable; hard process-exit bounds for
+stuck native file I/O are not established by this mechanism.
+
+TLS handshake deadlines and kernel backlog are bounded, but the application
+counter begins AFTER TLS. A global/source limit on already-accepted pre-TLS
+handshakes is still required before public exposure. The coordinator's peer cap,
+HELLO deadline, room limits and game-message validation remain additional bounds.
+
+Validation
+  python -m unittest tests.test_admission -v
+Seventeen tests passed on Windows with actual loopback TLS. They cover bound
+identity/lobby admission, impersonation, revoked/invalid/oversized requests,
+HELLO bypass, read and verification deadlines, capacity retained by timed-out
+threads, rate/refill, generic errors, refusal to send credentials over plaintext
+or key-logging/legacy-name contexts, shared-executor availability, and shutdown
+between authentication and HELLO. TLS certificate failures have17 separate tests.
+Controlled in-memory stores make timing/revocation deterministic; persistence
+and real Windows protected ACLs are separate credential-store acceptance checks.
+The real ACL issuance test remains unresolved under the restricted execution
+token. No graphical-client, cross-PC or internet claim follows from these tests.

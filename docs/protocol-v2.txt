@@ -5,13 +5,23 @@ All integers below little-endian. Strings are u16 byte length then strict UTF8.
 Protocol errors type255 UTF8 close connection. Recoverable selection feedback
 type37 UTF8 keeps connection/lobby alive. Binary framing reused from prototype.
 
+Transport: plaintext is permitted only on numeric loopback development listeners.
+Secured listeners require verified TLS followed by authentication version1:
+ C20 AUTH: u16 auth version1,47 ASCII invite-token characters (49-byte payload).
+ S30 AUTH_OK: u16 auth version1,player_id string (34 ASCII chars,p_ plus32 hex).
+ AUTH bodies including type are bounded to128 bytes before allocation. Tokens
+ never appear in logs, CLI arguments or public errors. All admission failures
+ use generic type255 authentication failed. See admission.txt for rate/deadline
+ limits and remaining pre-TLS handshake bounds. Game HELLO follows AUTH_OK;
+ its protocol version remains2. The current graphical helper uses loopback only.
+
 C21 HELLO: u16 version2, u8 requested slot0/1 or255 for automatic assignment, original GameAssembly SHA25632,
   original Simulation.dll SHA25632, profile_id string, display_name string,
   room string. Local server profile keys are simple [A-Za-z0-9_-], max48 chars.
   Explicit0/1 remains for development probes; normal clients request255 and must
   use distinct persistent profile IDs. Duplicate live profiles across rooms fail.
-  Default room 'local', probe profiles 'player0' and 'player1'. No remote authentication;
-  server defaults loopback. Addresses other than loopback are for trusted LANs.
+  Default room 'local', probe profiles 'player0' and 'player1'. On the secure
+  listener, profile_id must exactly equal the identity returned by AUTH_OK.
 S31 WELCOME: u8 assigned slot, u32[8] saved/validated deck.
 C22 SET_DECK: u32[8] entity IDs. Server validates, persists, resets own ready.
 C23 LOBBY_READY: u8 bool. Both connected peers ready triggers server bootstrap.
@@ -43,4 +53,5 @@ Rooms support2 peers and distinct local profile IDs. No client is a host.
 Frames wait for both input submissions with bounded lookahead and stall timeout.
 Original native simulation processes commands, enforces resources/prerequisites,
 and advances world; server cannot claim exhaustive hostile-client protection until
-every action ownership rule has been audited. This protocol targets trusted LAN.
+every action ownership rule has been audited. Private internet qualification is
+incomplete; the current game-client integration is restricted to loopback tests.

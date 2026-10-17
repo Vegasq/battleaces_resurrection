@@ -6,8 +6,9 @@ for the requested outcome and docs/STATUS.txt for evidence and remaining work.
 
 The coordinator runs each original simulation in an isolated worker, validates
 decks/actions and serves multiple private rooms. Twenty successive native matches
-and worker crash containment are verified. Client rematches, complete telemetry
-removal, private internet hosting and release packaging remain under development.
+and worker crash containment are verified. Two client matches in the same processes
+now pass; broader manual/failure flows, complete telemetry removal, private internet
+hosting and release packaging remain under development.
 Do not treat this development baseline as the finished release.
 
 SOURCE LAYOUT
@@ -41,8 +42,9 @@ The installer verifies original component SHA256s, preserves originals locally u
 .battleaces-resurrection/original/, and refuses unknown modifications. For an
 existing compatible prototype patch, --original may identify a verified original
 DLL. Do not target the untouched recovery installation.
-Current guards modify GameAssembly.dll and UnityPlayer.dll; the manifest records
-both hashes. Reviewed telemetry guards are included, but complete reporting
+Current guards modify GameAssembly.dll, UnityPlayer.dll and the bundled nested
+chrome_elf.dll; the manifest records all three hashes. Reviewed telemetry guards
+are included, but complete reporting
 removal remains unverified. See docs/telemetry.txt for the exact scope.
 
 RESTORE
@@ -72,8 +74,8 @@ Create a personal editable config once:
 Edit client_patch/launcher/client-config.json: set server_host to the server's IP
 or DNS name and server_port to its TCP port (default 47623). Then launch with:
   powershell -File client_patch/launcher/Launch-Client.ps1
-See docs/client-configuration.txt for room/player settings and private-network
-hosting. Personal configs are ignored by Git; the example is included in source.
+See docs/client-configuration.txt for room/player settings and current transport
+limits. Personal configs are ignored by Git; the example is included in source.
 
 Automated graphical two-client baseline (local diagnostics, normal game commands):
   powershell -File tools/Run-LocalMatch.ps1 -GameDirectory "<game>" -RunName unique-name -AutoReady -Smoke -DeckSmoke -SurrenderSmoke -DurationSeconds 100
@@ -84,9 +86,11 @@ Runtime environment overrides:
   BA_SIMULATION_DLL   matching Windows x64 Simulation.dll
   BA_DATA_DIR         profiles, match history and local diagnostics
 
-Default listener: 127.0.0.1:47623. Protocol v2 currently uses self-reported
-identities and no TLS. Keep this baseline on loopback or
-a trusted private network while the internet-hosting milestone is implemented.
+Default listener:127.0.0.1:47623, plaintext development mode with self-reported
+identities. Plaintext non-loopback binds are rejected. The server's optional TLS
+listener binds profiles to revocable credentials; see docs/admission.txt and
+docs/tls-transport.txt. Real TLS tests reach a lobby, but graphical-client TLS and
+public handshake admission limits remain pending. Internet play is not ready.
 
 Original-game assets remain local. Release artifacts will contain our executable
 helper and tooling, not the original or patched full game binaries.

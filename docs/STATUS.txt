@@ -129,24 +129,54 @@ Evidence local/matches/p2-postgame01/summary.json and per-match verification JSO
 Manual click/deck/rematch validation, broader failure UX and repeated soak remain
 required before P2/release completion.
 
-Real installer restore/reapply check passed while all game processes were closed:
-both GameAssembly.dll and UnityPlayer.dll restored to pinned pristine hashes,
-then the patch reapplied. No restored/unpatched game process was launched.
+Visible follow-up p2-visible02 now also completed two matches in unchanged
+user-launched client PIDs45808/46816:779fc10475fe4bdf8b2964ccf853b05e and
+2ca583a6d2af4b76ae1bd8e67350ac0c. Each has620 server frames,620 receipts/client,
+62 sampled views/client,zero mismatches/errors and matching native results.
+This launcher has no automated Continue or second-round ready flag; native menu
+reset and a second Play/ready therefore provide evidence of user-driven rematch.
+User confirmation of the visual outcome is still pending. Deck changes in this
+run were automated initial selections, not a manually verified changed deck.
+Evidence local/matches/p2-visible02/summary.json and per-match verification JSON.
+
+Expanded telemetry recipe2 now installs59 guards across GameAssembly.dll,
+UnityPlayer.dll and nested chrome_elf.dll. Graphical p2-telemetry02 completed two
+620-frame matches in the same clients with complete receipts,62 sampled views
+per client per match,zero mismatches/errors and matching native results. Six
+read-only native snapshots/client showed retained but disabled analytics/session/
+performance objects,zero inspected registration flags/hooks and empty pre-init
+queues through post-game. This is bounded field evidence, not network proof.
+Normal quit, cached reports/reconnect, error paths and CEF descendants remain
+open. See telemetry.txt and telemetry-runtime-audit.txt for scope and hashes.
+
+Real three-component installer restore/reapply passed with all games closed:
+GameAssembly.dll,UnityPlayer.dll and nested chrome_elf.dll restored to pinned
+pristine hashes, then recipe2 reapplied. No unpatched game process was launched.
+Evidence local/telemetry02-restore.json and telemetry02-reapply.json. The untouched
+recovery installation was read only. The previous user-desktop test clients were
+closed normally before this update; no test server/client is left running.
 
 Manual reusable-client sessions, complete telemetry removal,
 authenticated TLS transport, distributable packages and full release validation
 remain open. See the plan for the complete acceptance gates. P6 is optional future
 work after the requested first release, not a claim of current support.
 
-P3 standalone credential-store support is authored in server/credentials.py;
-it is not yet connected to server admission or client transport. It provides
-owner-issued private handoff files, hash-only storage, stable identities and
-revocation. Sixteen logic tests pass; the real Windows private-file test remains
-unverified because the restricted execution token received access denied before
-token generation. No permission fallback was added. See credentials.txt.
-The combined source suite on2026-10-17 ran100 tests in32.0s:97 pass,3 skip
-(optional original game bytes, optional native worker, actual private Windows
-file check). Evidence local/source-tests-p2-visible01.txt.
+P3 server admission now integrates the credential store with maintained TLS:
+verified TLS -> bounded AUTH -> server-issued identity -> matching HELLO -> lobby.
+Seventeen TLS tests and17 admission tests passed, including actual certificates,
+wrong/expired/untrusted identity rejection, credential revocation, rate/capacity,
+thread timeout accounting and shutdown races. Plaintext binds are limited to
+numeric loopback. The graphical helper has not yet integrated TLS/enrollment.
+Already-accepted pre-TLS handshake counts/rates still need explicit limits before
+public exposure. See admission.txt and tls-transport.txt.
+
+Credential persistence has16 passing logic tests. Real Windows private-file
+issuance remains unverified: the restricted execution token received access denied
+before token generation. No permission fallback was added. See credentials.txt.
+The combined suite on2026-10-17 ran139 tests in31.77s:137 pass,2 skip (optional
+native-worker check and actual private Windows-file check). All16 telemetry byte
+tests passed against the read-only untouched originals. Evidence:
+local/source-tests-telemetry-tls.json and source-tests-telemetry-tls.txt.
 
 BASELINE EVIDENCE BEFORE SOURCE MIGRATION
 Original GameAssembly SHA256:

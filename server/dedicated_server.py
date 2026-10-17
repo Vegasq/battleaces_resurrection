@@ -4,6 +4,7 @@ from __future__ import annotations
 import argparse
 import asyncio
 import hashlib
+import ipaddress
 import json
 import secrets
 import struct
@@ -25,6 +26,7 @@ except ImportError:
 
 ROOT = Path(__file__).resolve().parent.parent
 from .paths import ASSETS, DATA, SIMULATION_DLL
+from .admission import AdmissionController, AdmissionError
 TICK = 0.05
 
 
@@ -415,7 +417,7 @@ class Room:
 class DedicatedServer:
     def __init__(self, template, profiles, *, sim_factory=None, audit=None, data_dir=None,
                  input_timeout=10, audit_state=True, max_rooms=4, lobby_timeout=300,
-                 loading_timeout=120, completed_timeout=60):
+                 loading_timeout=120, completed_timeout=60, tls_context=None, admission=None):
         self.template, self.profiles = template, profiles
         if sim_factory is None:
             from .worker_client import SimulationWorker
@@ -436,12 +438,27 @@ class DedicatedServer:
         self.closing = False
         self.peers, self.tasks = set(), set()
         self.worker_cleanup = set()
+        if (tls_context is None) != (admission is None):
+            raise ValueError("TLS and authenticated admission must be configured together")
+        self.tls_context, self.admission = tls_context, admission
 
     async def start(self, host="127.0.0.1", port=47623):
-        self.listener = await asyncio.start_server(self.handle, host, port, limit=p.MAX_BODY + 4)
+        if self.tls_context is not None:
+            from .tls_transport import start_tls_server
+            self.listener = await start_tls_server(self.handle, host, port, self.tls_context,
+                                                  stream_limit=p.MAX_BODY, backlog=64)
+        else:
+            try:
+                loopback = ipaddress.ip_address(host).is_loopback
+            except ValueError:
+                loopback = False
+            if not loopback:
+                raise ValueError("Plaintext development listeners require a numeric loopback address; configure TLS and credentials for remote hosts")
+            self.listener = await asyncio.start_server(self.handle, host, port, limit=p.MAX_BODY + 4)
         address = self.listener.sockets[0].getsockname()
         self.audit("server_started", host=address[0], port=address[1], original_sha256=p.BUILD_SHA,
-                   simulation_sha256=p.SIM_SHA, protocol=p.VERSION)
+                   simulation_sha256=p.SIM_SHA, protocol=p.VERSION,
+                   transport="tls-auth" if self.admission else "loopback-development")
         return address
 
     async def handle(self, reader, writer):
@@ -452,9 +469,13 @@ class DedicatedServer:
         try:
             p.require(not self.closing and len(self.peers) < self.max_rooms * 2 + 8, "connection limit")
             self.peers.add(peer)
+            authenticated_id = await self.admission.authenticate(reader, writer) if self.admission else None
             kind, payload = await asyncio.wait_for(p.receive(reader), 5)
             p.require(kind == p.HELLO, "dedicated protocol2 hello required")
             slot, profile_id, name, room_name = p.decode_hello(payload)
+            p.require(not self.closing, "server stopped")
+            if authenticated_id is not None and profile_id != authenticated_id:
+                raise AdmissionError("identity_mismatch")
             p.require(all(other is peer or other.closed or other.profile_id != profile_id for other in self.peers),
                       "profile already connected")
             room = self.rooms.get(room_name)
@@ -465,6 +486,9 @@ class DedicatedServer:
             while not peer.closed:
                 kind, payload = await p.receive(reader)
                 await peer.room.on_message(peer, kind, payload)
+        except AdmissionError as error:
+            self.audit("authentication_failed", connection=peer.connection, category=error.category)
+            peer.close("authentication failed")
         except (ValueError, KeyError) as error:
             self.audit("protocol_error", connection=peer.connection, slot=peer.slot, reason=str(error))
             peer.close(str(error))
@@ -483,6 +507,8 @@ class DedicatedServer:
 
     async def close(self):
         self.closing = True
+        if self.admission:
+            self.admission.stop_accepting()
         if self.listener:
             self.listener.close()
         rooms = list(set(self.rooms.values()) | self.retired)
@@ -494,12 +520,23 @@ class DedicatedServer:
             task.cancel()
         await asyncio.gather(*list(self.tasks), return_exceptions=True)
         await asyncio.gather(*list(self.worker_cleanup), return_exceptions=True)
+        if self.admission and not await self.admission.close():
+            self.audit("authentication_shutdown_incomplete", remaining=len(self.admission.verifications))
         if self.listener:
             await self.listener.wait_closed()
         self.audit("server_stopped")
 
 
 async def main(args):
+    secure = (args.tls_cert, args.tls_key, args.credentials)
+    if any(value is not None for value in secure) and not all(value is not None for value in secure):
+        raise ValueError("Supply --tls-cert, --tls-key and --credentials together")
+    context = admission = None
+    if all(value is not None for value in secure):
+        from .credentials import CredentialStore
+        from .tls_transport import load_server_context
+        context = load_server_context(args.tls_cert, args.tls_key)
+        admission = AdmissionController(CredentialStore(args.credentials))
     from .assets import verify_assets
     verify_assets(args.assets)
     template = GameTemplate.load(args.template or args.assets / "map-1v1.pb.gz",
@@ -510,7 +547,7 @@ async def main(args):
     audit = Audit(args.data)
     profiles = ProfileStore(args.data / "profiles", template)
     server = DedicatedServer(template, profiles, audit=audit, data_dir=args.data, audit_state=args.audit_state,
-                             max_rooms=args.max_rooms,
+                             max_rooms=args.max_rooms, tls_context=context, admission=admission,
                              sim_factory=lambda data: SimulationWorker.create(data, args.dll or args.assets / "Simulation.dll"))
     try:
         address = await server.start(args.host, args.port)
@@ -531,6 +568,9 @@ if __name__ == "__main__":
     parser.add_argument("--template", type=Path, help="optional local map override")
     parser.add_argument("--data", type=Path, default=DATA)
     parser.add_argument("--audit-state", action="store_true", help="save native snapshots once per second for client/server comparison")
+    parser.add_argument("--tls-cert", type=Path, help="owner-supplied server certificate chain PEM")
+    parser.add_argument("--tls-key", type=Path, help="owner-supplied server private key PEM; never pass key material")
+    parser.add_argument("--credentials", type=Path, help="private owner-issued credential store directory")
     args = parser.parse_args()
     try:
         asyncio.run(main(args))
