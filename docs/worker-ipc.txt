@@ -1,0 +1,170 @@
+ISOLATED SIMULATION WORKER / IPC VERSION 1
+Implemented and tested on Windows x64, 2026-10-17.
+
+Purpose
+Each match owns one Python subprocess containing one NativeSimulation world.
+Native crashes, stuck calls, and process-wide SDK state are confined to that
+process. The coordinator retains room/player/input validation and ordered frame
+ownership. No network listener is created for worker transport; communication
+uses private inherited anonymous stdin/stdout pipes.
+
+Parent API (server.worker_client)
+  worker = await SimulationWorker.create(raw_game_data, dll_path=path,
+      startup_timeout=120, request_timeout=3, close_timeout=2)
+  result = await worker.process_frame(input_actions, dt_ms=50)
+  result.frame                  last successfully completed frame
+  result.game_time_seconds      native whole seconds, not milliseconds
+  result.state                  authoritative viewer31 state including entities
+  state = await worker.state(viewer=31, include_entities=True)
+  raw_flatbuffer = await worker.snapshot(viewer=0)
+  await worker.close()
+
+Properties: pid, frame, game_time_seconds, last_state, game_data_sha256,
+dll_sha256, closed, failure, stderr_tail. Async context-manager cleanup is
+supported after creation. FrameResult is a frozen record containing a decoded
+state dictionary. Resource dictionary keys are restored to integer army IDs.
+The parent never loads Simulation.dll; importing the pure native parser is safe.
+
+Ordering and commit boundary
+Exactly one CREATE and one native world are permitted per child process. Worker
+request IDs start at1 and must be consecutive. Last-completed frame starts at-1;
+the first STEP is0, followed by consecutive frames. The raw InputActions frame
+and time-step must agree with the request header/metadata. Input bytes are never
+re-encoded or mutated while crossing IPC. Response digests confirm the received
+GameData/InputActions bytes.
+
+A STEP succeeds only after SimProcessMsg, SimStep, and authoritative state export
+all succeed. The parent updates frame/last_state only after validating that reply.
+The coordinator must await process_frame before committing or broadcasting its
+accepted public FRAME. A failure after a partially applied native call is terminal;
+never retry that frame against the same worker.
+
+Initial native snapshot frame is uint32 0xFFFFFFFF, while IPC completed-frame is
+signed-1. state() explicitly accepts this native pre-frame sentinel so initial
+entity ownership lookup works. It preserves the native snapshot value. After
+STEP0 the native and IPC frame values agree normally.
+
+Binary envelope, little endian (24 bytes)
+  magic             4 bytes ASCII BAWK
+  version           uint8, currently1
+  operation         uint8; response has bit0x80 set
+  flags             uint16;0 success/request,1 error response
+  request_id        uint32, strictly consecutive and nonzero
+  metadata_length   uint32,1..8 MiB
+  frame             int32,-1..INT32_MAX
+  payload_length    uint32,0..32 MiB
+Immediately follows UTF-8 JSON metadata object, then exact binary payload.
+Python struct format: <4sBBHIIiI. No newline delimiters/base64 conversion.
+Operation codes:1 CREATE,2 STEP,3 STATE,4 SNAPSHOT,5 CLOSE,6 TEST_CONTROL.
+Raw snapshot responses have a stricter16 MiB cap. Unknown magic/version/op,
+oversize messages, malformed JSON, mismatched request/frame replies and truncated
+pipes fail closed. The protocol is private local IPC, not an authenticated public
+protocol or a general untrusted-file service.
+
+CREATE request payload: full uncompressed GameData; optional metadata dll_path.
+CREATE reply: owned PID, GameData SHA256, simulation DLL SHA256, test-backend flag.
+STEP request payload: complete InputActions; metadata dt_ms.
+STEP reply: whole game_time_seconds, viewer31 state, exact input SHA256.
+STATE metadata: viewer0..31 and include_entities boolean; reply contains state.
+SNAPSHOT metadata: viewer0..31; response payload is copied native FlatBuffer with
+SHA256 metadata. Queries echo the last-completed frame, never advance simulation.
+CLOSE reply is sent only after native cleanup; child then exits.
+
+Supervision and lifetime
+Windows children use CREATE_NO_WINDOW. Each worker belongs to an unnamed Windows
+Job Object with KILL_ON_JOB_CLOSE; abrupt coordinator exit kills its owned worker.
+The job handle is not inherited. Assignment failure aborts startup; protection
+is not silently omitted. No unrelated process is terminated.
+
+One private I/O thread serializes each worker's blocking anonymous-pipe exchange;
+one reader drains its stderr. Async callers await bounded operations while the
+coordinator event loop remains responsive. This avoids Proactor/named-pipe policy
+requirements: Windows overlapped named pipes failed with WinError5 in the local
+restricted environment; ordinary private anonymous pipes worked.
+
+Native stdout is redirected to stderr (CRT fd and Windows standard handle) before
+DLL load. A duplicate original stdout pipe is retained privately for framed IPC.
+stderr is continuously drained; at most32 KiB of recent raw bytes are retained.
+Native logs cannot be mistaken for IPC headers or fill an undrained stderr pipe.
+
+Timeout, child exit, cancellation, invalid reply or explicit native error marks
+the worker terminal, terminates/reaps it, closes its job/pipes and joins I/O
+threads. close() is idempotent, bounds graceful cleanup, then forces shutdown.
+Closing while a request is stuck does not wait its full request timeout. A hung
+SimDestroy cannot hold the room indefinitely. Local frame/order/dt errors found
+before sending do not poison an otherwise healthy world.
+
+Test-only backend
+SyntheticSimulation is explicitly labelled in every synthetic state. It is never
+a fallback for missing assets or native failures. Child selection requires both
+--test-backend and BA_ENABLE_SYNTHETIC_WORKER_TESTS=1. Only the test API's explicit
+_test_backend=True enables those gates. Production creation removes the test
+environment flag, and TEST_CONTROL is rejected by native workers.
+
+Validation
+  python -m unittest tests.test_simulation_worker -v
+Fourteen asset-free checks passed on Windows; the real-DLL test was separately
+opted in. Coverage: binary fidelity/version/bounds, malformed messages, backend
+gates, independent subprocess worlds, crash containment, hung step deadline with
+event-loop heartbeat, terminal step exceptions, ordering/dt, cancellation,
+destructor hang, close during a stuck step, bounded stderr, and abrupt parent
+death causing its worker Job Object to exit.
+
+Native opt-in, PowerShell:
+  $env:BA_RUN_NATIVE_WORKER_TESTS='1'
+  python -m unittest tests.test_simulation_worker.NativeWorkerSmokeTests -v
+  Remove-Item Env:BA_RUN_NATIVE_WORKER_TESTS
+BA_WORKER_TEST_ASSETS can select an imported local asset directory; default is
+local/assets/p0-export03. Missing local inputs report a skip, never a native pass.
+No captured fixtures are included in tests or tracked paths.
+
+Real-DLL smoke passed: two independently owned native workers shared exact match
+input, matching canonical state atframes0,100,199. Only the second received a
+validated normal HQ build at200: it created the selected Crab and spent100 primary.
+Native snapshots exported correctly; closing the first did not prevent the second
+advancing to221. Both exited0 and Simulation.dll was absent from the coordinator.
+Local evidence: local/worker-native-smoke.json. This is focused runtime evidence,
+not a capacity/long-soak or exhaustive hidden-state determinism claim.
+
+Coordinator lifecycle checks
+  python -m unittest tests.test_dedicated_server -v
+Ten checks passed using actual explicitly synthetic worker subprocesses and TCP
+peers. The authored minimal descriptor schema accepts canonical identities and
+empty actions, so production input validation executes without extracted assets.
+Coverage includes two rooms/crash/no failed FRAME publication, automatic seats,
+room/profile capacity, lobby/load/input/result expiry, shutdown during native
+creation, result-screen room reuse and twenty sequential completed worker lives.
+Only the synthetic sequential-match test reduces the test tick duration.
+
+A regression holds native close at a barrier, disconnects both result peers and
+creates a fresh same-name lobby before releasing the destructor. This reproduced
+the initial completed-room registry race. The coordinator now retires the public
+name and emits results before cleanup, supervising worker release independently
+of a room task cancelled by departing peers. The regression verifies the fresh
+room survives and the old worker is reaped after the barrier is released.
+
+Optional real-native coordinator verification
+  python tools/verify_worker_rooms.py --assets local/assets/p0-export03
+Uses the verified local DLL/config/descriptors and real scripted TCP peers. It
+keeps the production50 ms tick, creates two simultaneous native rooms, kills only
+its own first worker, checks that frame3 never publishes for that room, advances
+the healthy room and opens a new lobby on the same listener. The surviving match
+and twenty subsequent same-name matches use ordinary JoinArmy and native
+SelfDestruct commands (configured ability, owned entity, no debug mutations).
+Surrender is submitted atframe140; each match completes through native game-over
+and public MATCH_END, then separately awaits supervised worker cleanup.
+
+Generated evidence is restricted to an ignored local/ directory. It includes
+server bootstrap/journal/snapshots, both peers' received bootstrap/frame bytes,
+submitted-input hashes, exact reconstructed native-input journal comparison,
+native final results, owned process exits, and source hashes at start and finish.
+--matches and --surrender-frame allow a shorter explicit pilot. These scripted
+native/network runs are distinct from graphical clients and manual P2 play.
+
+Remaining boundaries
+This module does not supply public authentication, rematch client UX, IPC resume,
+native world recovery, admission/capacity policy, or command authorization. Those
+remain coordinator/client responsibilities. Each worker uses two private I/O
+threads plus its native simulation threads; capacity and sustained20 Hz budget
+must be measured. No claims are made for another DLL build or non-Windows native
+hosting. Synthetic tests may run on other CI platforms without a native DLL.

@@ -48,6 +48,21 @@ P0 COMPLETE
   its signal pipe; the actual SSH clone succeeded without changing host policy.
 
 P1 IN PROGRESS; P2-P5 INCOMPLETE
+Implemented supervised per-match Windows workers, bounded private IPC, automatic
+seats and a bounded room registry. Ten coordinator lifecycle tests include two
+network rooms, worker crash containment, loading/input/lobby expiry, shutdown
+during startup,20 completed synthetic worker lives, and the slow-destructor /
+departing-results-peer race. Native workers remain outside the coordinator DLL
+address space. Worker-level real-DLL isolation/production checks also pass.
+
+Graphical p1-worker01: match b96befa944cb468aa757725e491a6f07,620 frames,
+62 sampled same-frame/views per client,zero mismatches,production/result match;
+worker43508 released after completion. Evidence local/matches/p1-worker01.
+Full native multi-room/crash/20-successive-match qualification is running.
+
+P2 work in progress includes editable client server-address configuration,
+native-menu session cleanup/reconnect, and partial telemetry guards. These are
+separate from the P1 server changes; see their component documents for validation.
 Worker isolation/multiple-room integration, reusable client sessions, telemetry removal,
 authenticated TLS transport, distributable packages and full release validation
 remain open. See the plan for the complete acceptance gates. P6 is optional future

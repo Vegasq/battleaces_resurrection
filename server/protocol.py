@@ -11,6 +11,7 @@ WELCOME, BOOTSTRAP, START, FRAME = 31, 12, 13, 14
 MATCH_INFO = 32
 LOBBY, MATCH_END, NOTICE, ERROR = 35, 36, 37, 255
 VERSION = 2
+AUTO_SEAT = 255
 BUILD_SHA = "e59d08c01479b27404778048d7e13546dbf3771f6b3912744c7c2bdf80c4e758"
 SIM_SHA = "107bb83dc416a16492277392c50104660e34c48911345ae2e0d5afe3929a07fb"
 MAX_BODY = 2 * 1024 * 1024
@@ -54,7 +55,7 @@ def hello(slot, profile_id, name, room="local"):
 def decode_hello(payload):
     require(len(payload) >= 73, "short hello")
     version, slot = struct.unpack_from("<HB", payload)
-    require(version == VERSION and slot in (0, 1), "unsupported protocol version or slot")
+    require(version == VERSION and slot in (0, 1, AUTO_SEAT), "unsupported protocol version or slot")
     require(payload[3:35] == bytes.fromhex(BUILD_SHA), "client original build mismatch")
     require(payload[35:67] == bytes.fromhex(SIM_SHA), "client simulation build mismatch")
     cursor, values = 67, []

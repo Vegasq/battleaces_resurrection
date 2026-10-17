@@ -5,10 +5,12 @@ All integers below little-endian. Strings are u16 byte length then strict UTF8.
 Protocol errors type255 UTF8 close connection. Recoverable selection feedback
 type37 UTF8 keeps connection/lobby alive. Binary framing reused from prototype.
 
-C21 HELLO: u16 version2, u8 requested slot0/1, original GameAssembly SHA25632,
+C21 HELLO: u16 version2, u8 requested slot0/1 or255 for automatic assignment, original GameAssembly SHA25632,
   original Simulation.dll SHA25632, profile_id string, display_name string,
   room string. Local server profile keys are simple [A-Za-z0-9_-], max48 chars.
-  Default room 'local', profiles 'player0' and 'player1'. No remote authentication;
+  Explicit0/1 remains for development probes; normal clients request255 and must
+  use distinct persistent profile IDs. Duplicate live profiles across rooms fail.
+  Default room 'local', probe profiles 'player0' and 'player1'. No remote authentication;
   server defaults loopback. Addresses other than loopback are for trusted LANs.
 S31 WELCOME: u8 assigned slot, u32[8] saved/validated deck.
 C22 SET_DECK: u32[8] entity IDs. Server validates, persists, resets own ready.
@@ -28,9 +30,15 @@ S36 MATCH_END: UTF8 JSON result/reason. Match inputs stop; reconnect for next ma
 C24 LEAVE: empty. Returns no game data; detaches peer and aborts active match.
 S37 NOTICE: UTF8 recoverable deck/lobby validation feedback, logged by bridge.
 
-Lifecycle: connected lobby -> loading (frozen decks + unique seed/name) -> running
- -> completed/aborted -> room freed. Server listener persists and accepts another
- room/match. Current bridge loads one match/process; relaunch client for next one.
+Lifecycle: connected lobby -> preparing worker (freeze decks/roster/seed/name)
+ -> loading -> running -> completed/aborted. A completed room releases its public
+ name immediately, retaining its old result sockets until disconnect or60-second
+ expiry. Fresh HELLO can create the next lobby while the other client reads its
+ old results. The native client closes/reconnects after original menu/world cleanup.
+ The listener persists. Native match workers are separate supervised processes;
+ a failed or hung worker aborts its room without publishing the incomplete frame.
+ Default capacity is4 active rooms (--max-rooms1..64), plus bounded result sockets
+ and pending handshakes. Idle lobby/load/input limits are300/120/10 seconds.
 Rooms support2 peers and distinct local profile IDs. No client is a host.
 Frames wait for both input submissions with bounded lookahead and stall timeout.
 Original native simulation processes commands, enforces resources/prerequisites,
