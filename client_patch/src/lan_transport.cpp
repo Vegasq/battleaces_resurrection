@@ -149,7 +149,7 @@ static void connect() {
     connecting=r==SOCKET_ERROR;
     }
     static const char* hex="e59d08c01479b27404778048d7e13546dbf3771f6b3912744c7c2bdf80c4e758";
-    const int requestedSlot=ba::requestedLanSlot();
+    const int requestedSlot=ba::community()?255:ba::requestedLanSlot();
     Bytes hello;if(ba::dedicated()){hello.push_back(ba_wire::protocol);hello.push_back(0);}hello.push_back(static_cast<unsigned char>(requestedSlot));
     for(int i=0;i<32;++i){unsigned value=0;sscanf_s(hex+2*i,"%2x",&value);hello.push_back(static_cast<unsigned char>(value));}
     if(ba::dedicated()) {
@@ -157,16 +157,17 @@ static void connect() {
         for(int i=0;i<32;++i){unsigned value=0;sscanf_s(sim+2*i,"%2x",&value);hello.push_back(static_cast<unsigned char>(value));}
         std::string profile=ba::argument(L"-player-id=",requestedSlot==255?"":(requestedSlot?"player1":"player0"));
         if(profile.empty())throw std::runtime_error("server-assigned seat requires a stable -player-id");
-        std::string values[]={profile,ba::argument(L"-player-name=",requestedSlot==1?"Player2":"Player1"),ba::argument(L"-room=","local")};
+        std::string values[]={profile,ba::argument(L"-player-name=",requestedSlot==1?"Player2":"Player1"),ba::community()?"community":ba::argument(L"-room=","local")};
         for(const auto& value:values){if(value.size()>128)throw std::runtime_error("dedicated hello value too long");hello.push_back(static_cast<unsigned char>(value.size()));hello.push_back(0);hello.insert(hello.end(),value.begin(),value.end());}
     }
-    send(ba::dedicated()?21:1,hello);ba::log("LAN connecting to %s requested slot %d protocol=%d transport=%s",endpoint.c_str(),requestedSlot,ba::dedicated()?ba_wire::protocol:1,secureMode()?"private-TLS-bridge":"development-TCP");
+    if(ba::community())hello.insert(hello.begin(),{1,0});
+    send(ba::community()?40:ba::dedicated()?21:1,hello);ba::log("LAN connecting to %s requested slot %d protocol=%d transport=%s",endpoint.c_str(),requestedSlot,ba::dedicated()?ba_wire::protocol:1,secureMode()?"private-TLS-bridge":"development-TCP");
     if(ba::dedicated())ba::log("Dedicated wire ABI BA_RESURRECTION_GAME_PROTOCOL_3");
 }
 static void poll() {
     if(stopped || peerClosed)return;
     if(socketValue==INVALID_SOCKET && (!secureMode() || !secureChannel().active()))connect();
-    if(!welcomed && GetTickCount64()-connectStarted>(secureMode()?30000u:15000u))throw std::runtime_error("match server welcome timed out");
+    if(!(ba::community()?ba_community::online:welcomed) && GetTickCount64()-connectStarted>(secureMode()?30000u:15000u))throw std::runtime_error("match server welcome timed out");
     if(connecting) {
         fd_set writeSet,errorSet;FD_ZERO(&writeSet);FD_ZERO(&errorSet);FD_SET(socketValue,&writeSet);FD_SET(socketValue,&errorSet);timeval time{};
         if(select(0,nullptr,&writeSet,&errorSet,&time)==SOCKET_ERROR)throw std::runtime_error("LAN select failed");
@@ -196,7 +197,8 @@ static void poll() {
         uint32_t length=u32(rx,consumed);if(length<1 || length>1024*1024+1)throw std::runtime_error("LAN message length invalid");
         if(rx.size()-consumed<length+4)break;
         unsigned char type=rx[consumed+4];Bytes payload(rx.begin()+consumed+5,rx.begin()+consumed+4+length);consumed+=4+length;
-        if(type==11){if(payload.size()!=1 || payload[0]!=ba::lanSlot())throw std::runtime_error("LAN slot mismatch");welcomed=true;ba::log("LAN welcome slot %d",payload[0]);}
+        if(ba::community() && (type==41 || type==42 || type==44 || type==53 || type==54 || type==56))ba_community::receive(type,payload);
+        else if(type==11){if(payload.size()!=1 || payload[0]!=ba::lanSlot())throw std::runtime_error("LAN slot mismatch");welcomed=true;ba::log("LAN welcome slot %d",payload[0]);}
         else if(type==31){
             if(!ba::dedicated() || welcomed)throw std::runtime_error("unexpected dedicated welcome");
             const auto settings=ba_wire::parseWelcome(payload,ba::requestedLanSlot());
@@ -218,7 +220,7 @@ static void poll() {
     if(reachedEof) {
         if(!rx.empty())throw std::runtime_error("match server disconnected mid-message");
         closeSocket();peerClosed=true;
-        if(!ba::dedicated() || !matchEnded)throw std::runtime_error("match server disconnected before a result");
+        if(ba::community() || !ba::dedicated() || !matchEnded)throw std::runtime_error("match server disconnected before a result");
         tx.clear();txPosition=0;
         ba::log("Dedicated result connection closed; preserving native result/Continue flow");
     }

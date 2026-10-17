@@ -39,9 +39,19 @@ Try Deck vs AI and Custom Game -> Invite Friend using this server's connected
 players are explicit P2 TODOs with acceptance gates in SERVER_REPLACEMENT_PLAN.txt.
 The server community protocol now implements presence, targeted invitations,
 host Start/guest acknowledgement, validated decks and reusable custom lobbies.
-The graphical custom picker still depends on Steam friends; its native adapter
-and Try Deck vs AI remain unimplemented. See community-lobby.txt and
-community-protocol.txt. Neither end-to-end user flow is claimed complete.
+An opt-in native Create/Leave adapter now passes two ordinary cycles plus a
+deliberately delayed Create ACK / early Leave / immediate re-enter per client.
+Both presence connections survive; no match seats/workers are allocated. Source
+and runtime boundaries are in community-client.txt. The normal patch recipe and
+user's normal-play installation remain unchanged. The graphical custom picker
+still depends on Steam friends; Invite/Start/result-return and Try Deck vs AI
+remain unimplemented. See community-lobby.txt and community-protocol.txt.
+Neither end-to-end requested user flow is claimed complete.
+Client integration checks: custom-create-native03 passed eight native/server
+create/departure transactions with delayed-ACK cancellation; custom-legacy-idle01
+passed the ordinary idle-lobby/real-error regression using the same helper without
+the community flag. Full source suite214:212 pass,2 opt-in skips; C++ build/wire/
+request-state checks pass. Evidence paths and exact bounds: community-client.txt.
 
 Server verification:213 source tests,211 pass and2 opt-in skips. The real Windows
 simulation run community-native01 completed two160-frame matches on the same

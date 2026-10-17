@@ -173,8 +173,10 @@ DATA/STATE NEEDED FROM REPLACEMENT SERVER
 CommonPb.LobbyState: status, host handle, repeated members, gameMode, region,
 try-start expiry. Member: named player handle, front handle, isHost, role,
 roleSlot, cosmetics/rating. LobbyPermissions contains repeated role permissions
-and hostPermissions; RolePermissions contains role and allowedActions. Native
-prediction uses them, so an empty/default permission object is not sufficient.
+and hostPermissions; RolePermissions contains role and allowedActions. Follow-up
+tracing corrects the earlier permission claim: the reviewed prediction and UI
+gates use member/host identity and accept null permissions. Permission tables do
+not hide unsupported actions. See custom-lobby-responses.txt for evidence/bounds.
 Action oneof IDs:10 change mode,11 move member,12 promote host,13 kick member,
 14 leave,15 try start,16 ready to start,17 cosmetics. Lobby status values:
 0 None,1 Open,2 Full,3 Closed,4 GameReadyToStart,5 GameStarting.

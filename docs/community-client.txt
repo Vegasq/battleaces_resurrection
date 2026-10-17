@@ -1,0 +1,104 @@
+EXPERIMENTAL NATIVE COMMUNITY CLIENT
+Updated:2026-10-17. Windows build37822; source-only adapter.
+
+IMPLEMENTED BOUNDARY
+The helper can join community control v1 independently of simulation seats,
+receive bounded directory/lobby events, and drive original CustomGameLobbyManager
+Create/Leave callbacks. No Steam identity is needed for these lobby operations.
+Canonical named handles use profile-derived lobby aliases, matching display and
+filtered names; temporary simulation handles1/2 are not used for presence.
+The normal dedicated protocol3 path and patch image remain unchanged by default.
+
+The separate patcher option --community-experimental adds three exact request
+enqueue callsite guards. It requires helper marker BA_RESURRECTION_COMMUNITY_V1.
+The experimental process also requires -dedicated-community; use an isolated
+working copy. Do not enable this for ordinary play: Invite/Start and most custom
+updates are not translated yet. Unsupported native operations stop this prototype
+session rather than being reported as successful. Normal launchers do not enable
+the flag, and the user's working secure-client-runtime was not replaced.
+
+SOURCE AND OWNERSHIP
+- community_wire.hpp: bounded versioned LE codec, strict UTF8, identity/enum/
+  collection checks, positive request IDs and exact payload consumption.
+- community_transport.cpp: welcome identity, directory/lobby revision and
+  membership checks, bounded pending/event queues, ACK correlation and timeout.
+  The socket decoder creates no managed objects. Presence and match WELCOME
+  are separate states; community presence leaves assignedSeat=-1.
+- community_native.cpp: Unity-thread object construction, canonical managed
+  named handles, native manager discovery, deferred rooted request FIFO and
+  original native Create/State/Closed handlers. CLR field barriers/constructors
+  preserve native object ownership. Roots release only on an owned reset;
+  process shutdown does not call IL2CPP from a CRT/DllMain destructor.
+
+All native lobby sends and responses are deferred until the originating native
+call has stored its pending request. Snapshot payloads are applied in event
+order, not by consulting only the latest eagerly decoded global snapshot.
+Leave immediately releases the native manager. If Create is still pending,
+its eventual ACK is consumed without calling the released manager, and queued
+Leave reclaims the admitted server lobby. An unsent cancelled Create is dropped.
+Another Create waits until departure ACK. Native state notifications are held
+while a departure is queued. Ordinary Create responses check the retained native
+request pointer, remove the adapter entry before native reentrant callbacks,
+and keep the owner/response rooted until the callback returns.
+
+STATIC EVIDENCE
+See custom-lobby-responses.txt and custom-lobby-roster.txt. REA-guided analysis
+used original-byte disassembly and recovered metadata; native REA engines were
+unavailable. The authored reviews are not live REA engine evidence. Native
+permission tables do not implement the reviewed UI/prediction gates; exact
+named identity and role/host flags do. Separate read-only review checked the
+Create/Leave ABI, fields, rooted lifetimes, FIFO cancellation and normal fallback.
+
+RUNTIME QUALIFICATION
+local/custom-create-native01:150s startup timeout before helper entry/community
+HELLO; no Create/Leave conclusion. Its unused diagnostic copy initially lacked
+the runtime log directory. The probe now creates it before launch. Unity logs
+also stopped at asset-table/localization initialization; cause was not isolated.
+Both owned clients were reaped. Do not attribute that timeout to a lobby callback.
+
+local/custom-create-native02: initial native single-cycle success in clients
+26668/33304, after approximately72s asset startup. Original EnterLobbyScreen
+initializes manager callbacks before Create. Both Create responses cleared
+pending, created native Party/state, and Leave/Closed cleared Party while keeping
+presence. This earlier probe did not cover early cancellation.
+
+local/custom-create-native03: clients43348/42648 completed two ordinary native
+Create/Leave cycles, then Create with a deliberately350ms-delayed ACK, immediate
+Leave and re-enter, then final Leave. Each created four server lobbies; three
+native Create callbacks succeeded and the cancelled callback was suppressed.
+Eight total server creates/departures; both presence connections retained, no
+simulation seat/worker, no native adapter failures. Source hashes stayed unchanged;
+owned clients were reaped by the harness. Helper SHA256:
+508f741a343da87c66f62f841f807ded2c35449356ab1b70b699e20c3297c7e7
+Experimental GameAssembly SHA256:
+55d16e72ce8d40818b270783e1c54ece5eb96a6df0b55983e6a8fd69ce9ddfbc
+Default build_patch(original) was also checked against the previous normal hash:
+3474b2e360c59464814f9d9b03e09f84ea0a0087fc53e13173c75807c74992cd
+
+Reproduce with python -m tools.verify_custom_lobby, explicit --game/--assets/
+--output paths, output beneath ignored local/. It runs native entry points and
+inspects logs/server state, not manual UI clicks or observed screenshots. Its
+test-owned process termination does not qualify native Quit. Retained evidence
+contains manifests, source hashes, arguments and native/Unity/server logs.
+
+REGRESSION CHECKS
+Native custom-legacy-idle01 used the same experimental image/helper with the
+community flag absent. Both clients47688/43876 remained unready in an unblocked
+ordinary lobby for six5-second samples. A real injected connection error showed
+the native failure dialog only on its affected client. The other stayed connected;
+source hashes unchanged, owned processes reaped. Duration53.25s. The custom race
+probe above completed in32.843s after startup was warm.
+Build passes argument, game wire, community wire and session-tracker C++ tests.
+Full source suite:214 tests in48.828s,212 passed and2 opt-in skips (real Windows
+private-DACL creation and the separate native-worker fixture). Real inherited-
+socket bridge and original-byte telemetry checks were enabled. Evidence:
+local/source-tests-community-client01.json/.txt. Earlier real simulation worker
+and multiplayer tests remain separate from this control-only native probe.
+
+REMAINING GATES
+Server roster rows, pooled Steam-free rendering, incoming invitation popup,
+deferred Invite/Reply semantics, unsupported-action UI, host Start/guest Ready,
+native bootstrap bridge, original result/RETURN/rematch, broader failures and
+manual graphical acceptance remain required. Try Deck vs AI remains separate.
+Do not enable the experimental client by default or claim Custom Game complete
+from Create/Leave or the earlier scripted server match tests alone.

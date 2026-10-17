@@ -1,0 +1,504 @@
+CUSTOM INVITE DIRECTORY ROWS AND RECIPIENT POPUP: NATIVE BOUNDARIES
+2026-10-17, build37822. Authored read-only REA-guided notes.
+
+PROVENANCE / LIMITS
+Original GameAssembly.dll, image base180000000, SHA256
+e59d08c01479b27404778048d7e13546dbf3771f6b3912744c7c2bdf80c4e758.
+Native REA engines unavailable; evidence is original-byte disassembly, recovered
+IL2CPP metadata and existing protobuf descriptors. Source helpers:
+investigation/network/{original_disasm,metadata_types}.py,
+investigation/native-map.json, descriptors/front_pb.proto.json and related files.
+All addresses below are RVAs; offsets are hex and include managed headers.
+No source/binary/process/UI changes or runtime validation during this review.
+Current implementation/runtime status is recorded separately in STATUS.txt.
+Do not mistake proposed renderer/binding policies for observed native behavior.
+
+The first implementation should remain opt-in and qualify native Create/Leave
+before adding any roster renderer. See final section for that narrow slice.
+
+CORRECTIONS TO PREVIOUS RESPONSE NOTE
+Original metadata confirms CommonPb.PlayerGameHandle#6775 field
+playerHandleWithName_+18, property PlayerHandleWithName; aiProfileId_+20.
+The prior playerHandle_ spelling was an author transcription error.
+Outgoing enqueue argument is FrontServerConsumer, not FrontClientConsumer.
+Both corrections were also made in custom-lobby-responses.txt.
+
+IMPLEMENTATION BOUNDARY
+The invite screen has a native pool, ordinary FriendModel-backed row, and a child
+FriendVM renderer. It is possible to keep pool/lifecycle/invite actions while
+replacing the directory source and selected presentation calls. Do not put
+synthetic profiles into UncappedSteamFriends globally, force its initialized flag
+true, or let synthetic models enter original Steam name/status/avatar code.
+
+There are TWO distinct renderer strategies, not interchangeable assumptions:
+A. Narrow callers: intercept the row/popup child FriendVM.set_Model calls and
+   render FriendVM public properties without binding the child to FriendModel.
+   The OUTER row still uses original model binding for InviteToGame and pending
+   refresh. This avoids shared FriendVM entry changes. It deliberately makes the
+   child presentation-only; IsModelSet/serialized visibility, clearing the popup
+   when no invite remains, and disabled child actions need qualification. It is
+   a promising bounded experiment, not a proven drop-in normal binding.
+B. Preserve full native child model binding, but conditionally replace
+   FriendVM.RefreshViewModel for exact owned server models. This covers virtual
+   model-change callbacks as well as initial set_Model. An ENTRY patch needs a
+   genuine original-prologue trampoline for all non-owned models. Calling the
+   same patched original RVA recurses. An exact simple prologue is provided
+   below, but no gateway was implemented or tested in this review.
+
+AliasedVersion=true is NOT a third safe option. Original FriendVM.Refresh always
+reaches SteamFriends.GetInternal/status calls after its name branch, and later
+avatar logic. In its ordinary display-name branch both alias variants call
+Steamworks.Friend.get_Name, with one appending an alias suffix.
+
+NATIVE SCREEN AND POOL OWNERSHIP
+Uncapped.UI.CustomGameInvitePlayerVM#3282:
+  _pool50:IUIObjectPool, _frontServer58:FrontServerIntegration,
+  _steamFriends60:UncappedSteamFriends, _customLobbyManager68,
+  _inviteItems70:List<CustomGameInvitePlayerItemVM>, _root78:Transform,
+  _hasInvitableFriends80:bool.
+It derives ViewModel: bindings40, model48; UIObject.IsInitialized20, Owner28.
+Native set_HasInvitableFriends RVA3ca9010 updates its binding.
+
+Initialize3ca92e0 marks initialized, initializes bindings, calls
+UncappedSteamFriends.ForceFriendUpdate at3ca93b9, clears the manager's pending
+invitation list, subscribes FriendsChanged and PredictedLobbyChanged, then tails
+PopulateInvitableFriendsList at3ca95cd. Scoped dedicated mode can skip only the
+ForceFriendUpdate call and replace the Populate tail. Keep subscriptions and
+binding/lifecycle code. ForceFriendUpdate's is-initialized guard is not a reason
+to turn Steam initialization back on.
+OnFriendsChanged3ca9820 calls ClearInvitableFriendsList then tails Populate at
+3ca983a. OnPredictedLobbyChanged3ca9840 checks prediction/current state:
+  state Open1 -> ClearInvitableFriendsList, tail Populate at3ca989f;
+  no prediction or non-Open state -> releases its own native owner/container
+  through IUIObjectPool.Release. The invite dialog closes when the lobby fills
+  or leaves Open. Do not rebuild its rows after it has been returned to the pool.
+Release3ca95f0 clears rows, removes the two event subscriptions and tails original
+ViewModel.Release at3ca97f9. No custom global model/descriptor rewrite is needed.
+
+PopulateInvitableFriendsList3ca9b30 ORIGINAL flow:
+  enumerate _steamFriends._sortedFriends;
+  exclude members already in predicted lobby;
+  call Steamworks.Friend.IsPlayingThisGame at3ca9e36;
+  require nonnull FriendExtension.Environment and optionally matching region;
+  IUIObjectPool.Take<CustomGameInvitePlayerItemVM>(_root) at3ca9eab;
+  row virtual set_Model(friendModel) at3ca9ed3;
+  append row to _inviteItems; set HasInvitableFriends = list.Count>0.
+Adding synthetic entries to the Steam list still invokes Steam and is unsuitable.
+The dedicated Populate replacement should enumerate the authenticated directory
+directly and keep self, missing, busy and already-member entries non-invitable.
+Server validation remains authoritative even when native display is stale.
+
+The concrete pool is normally Uncapped.UI.UIPoolManager#3634:
+  _uiPrefabTypeCache18:Dictionary<Type,IntKey<UIPrefabType>>,
+  _pools20, _gameDeps28, _menuDeps30.
+The smallest NON-GENERIC allocation route is available:
+  - Obtain reflected System.Type for CustomGameInvitePlayerItemVM through
+    il2cpp_class_get_type + il2cpp_type_get_object (already used by helper code).
+  - Call UIPoolManager.GetPool(System.Type), RVA3d5d030. It resolves the exact
+    registered prefab type from _uiPrefabTypeCache and GetPool(key)3d5d130.
+    Missing registration throws; do not guess a prefab key or create a bare VM.
+  - Call UIPoolManager.Take(UIObjectPool pool, Transform parent), RVA3d5cf30.
+    This invokes native UIObjectPool.Take<UIObject>(parent), method spec296744,
+    and returns the actual instance. Validate its exact/assignable row type.
+    Instance ABI RCX manager, RDX pool, R8 parent, R9 metadata; return RAX object.
+  - Root locals, register row/model/child ownership BEFORE original row set_Model,
+    then bind its FriendModel through the original virtual setter and append it
+    to the native list using managed Add. Original order is Take -> Bind -> Add.
+    A guard requiring list membership during that first Bind would fail because
+    the item is not in the list yet! Use a scoped construction/ownership record.
+  - On a binding failure, release a taken but not-listed row exactly once. Never
+    append a half-bound row and later release it twice.
+
+GetPool has overloaded one-argument forms (System.Type and IntKey); select by
+parameter type, not only method name/count. The ordinary Take(pool,parent) has
+two managed arguments and does not need generic reflection. Private methods can
+be invoked with the existing checked IL2CPP runtime_invoke machinery.
+Alternative original generic stub4e7f80 is IUIObjectPool.Take<Row>, method spec
+295217 at usage slot186b3c4a0. It assumes metadata initialization of that slot;
+do not call it with an encoded unresolved usage token. The non-generic route
+above avoids that requirement.
+
+ClearInvitableFriendsList3ca98e0 loops _inviteItems, calls IUIObjectPool.Release
+for each, then clears the list. Prefer this native method for rebuild/teardown.
+UIPoolManager.IUIObjectPool.Release3d5cf90 finds the pool from row.Owner and
+releases through its original virtual method. UIObjectPool.OnReturnedToPool
+3d5bb70 calls UILifecycleOwner.Release3c8e9b0 when initialized and deactivates the
+GameObject when the container does not handle that itself. OnTakeFromPool
+3d5bc10 calls UILifecycleOwner.Initialize3c8e8a0 (at3d5be92) and performs its
+original transform/activation work. Reuse it; no Instantiate/Destroy substitute.
+
+ROW MODEL, ACTION AND REFRESH
+CustomGameInvitePlayerItemVM#3280 inherits ViewModel<FriendModel>:
+  _canInvite58 bool, _cannotInviteReason5c enum, _friendVM60:FriendVM,
+  _signalRouter68, _frontServer70, _gameSettingsController78,
+  _customGameLobbyManager80.
+ViewModel base _model is48; generic IsModelSet backing is50 in this concrete type.
+set_CanInvite3ca8320 and set_CannotInviteReason3ca83c0 are native binding setters.
+Initialize3ca8670 initializes bindings and subscribes the row's virtual Refresh
+to manager.InvitesChanged+48. Release3ca87d0 removes the same delegate, clears
+IsModelSet/unobserves its model if set, and tails base ViewModel.Release.
+
+RefreshViewModel3ca8960:
+  1. Reads own model using ViewModel<FriendModel>.get_Model (spec292414), then
+     invokes the child FriendVM's VIRTUAL set_Model at3ca89eb.
+  2. Requires nonnull own model/extension/front and compares extension.Region
+     with the current region from VariableRegister.Instance. Region mismatch
+     gives reason2. This row check is unconditional, unlike some list filtering.
+  3. Requires nonnull extension.Environment and a case-insensitive suffix match
+     against front's environment string at+b8; absent/mismatch gives reason1.
+  4. Extension.GameConnectionInfo nonnull OR PartyStatus1 gives reason3;
+     PartyStatus2 gives reason5.
+  5. Uses manager.HasPendingInvite for extension.PlayerHandle (inlined here);
+     a matching pending invitation gives reason4.
+  6. PartyStatus0 gives reason6, otherwise reason0.
+  7. Calls set_CannotInviteReason at3ca8e21, then INLINES set_CanInvite through
+     shared ViewModel.Set<bool> at3ca8e9d with CanInvite=(reason==0).
+
+CannotInviteReasonEnum#3279:
+  None0, Environment1, Region2, InMatch3, PendingInvite4, FeatureLocked5,
+  MissingPartyStatus6. These values were checked from compressed enum defaults.
+PlayerPartyStatus values used by this flow are None0, InParty1, FeatureLocked2,
+Invitable3. There is no native reason specifically for "you" or generic busy.
+Do not mislabel self as a network/environment failure just to disable a button.
+For the dedicated display, use a clear fixed status in child PlayerStatus and
+override the final bool availability according to self/host/open/server directory
+and owned pending invite state. A scoped reason wrapper can map actual matching
+cases without changing shared localized descriptors.
+
+The narrow final bool CALL wrapper is possible without replacing the row entry:
+  bool ViewModel.Set<bool>(this RCX, bool* backing RDX, bool value R8B,
+    string property R9, string[] alsoUpdate stack5, MethodInfo* stack6).
+  Original callee RVA2366d0; call3ca8e9d. Return bool must be preserved.
+  Check exact row type, active owned session/model and RDX == &row._canInvite.
+  Replace only value, then forward all six original arguments to the untouched
+  generic callee. The caller has completed all predicate validation already.
+  The fifth/sixth arguments are caller [rsp+20]/[rsp+28], or callee-entry
+  [rsp+28]/[rsp+30]; do not drop them in a three-argument wrapper.
+Alternatively a whole-row Refresh detour needs its own real trampoline. An
+after-Bind adjustment alone would miss the manager InvitesChanged delegate.
+
+InviteToGame3ca8f20 reads own model's extension.PlayerHandle (named) and
+FrontHandle, then tails manager.InviteToCustomGame3cabe80 at3ca8fb9.
+It does NOT recheck _canInvite first. The send/translation boundary must validate
+availability/ownership again; a stale button or programmatic call can still run.
+Manager checks native predicted Open1, constructs custom partyType3/current mode,
+appends a native pending request BEFORE its inlined Front enqueue, then raises
+InvitesChanged AFTER enqueue. Keep real deferred ACKs and native pending state.
+The manager enqueue site3cac066 is required; hooking only named Front invite
+methods misses it.
+
+FRIENDMODEL CONSTRUCTION: WHAT IS SAFE TO ASSUME
+FriendModel#3382 is a managed model object, not a Unity GameObject/component:
+  _friend10:Steamworks.Friend (one uint64 SteamId value),
+  _friendExtension18:FriendExtension, _isImageDirty20 bool,
+  _image28:Texture2D, _modelChanged30:Action.
+It has NO noarg constructor. The actual ctor3cff510 is
+  .ctor(ref Steamworks.Friend friend, bool aliased)
+  ABI RCX allocated this, RDX pointer to the 8-byte value, R8B bool, R9 metadata.
+Do not pass a boxed Friend object as the ref value. The constructor allocates a
+FriendExtension, marks image dirty, writes extension.AliasedVersion, copies the
+Friend value, then calls UpdateFriendExtension3cff600 at3cff5bf. This call reads
+Steam rich presence (GetAliased, GetRichPresence etc). It is unsafe unmodified
+for synthetic non-Steam identities, regardless of aliased=true.
+set_Friend3cff3e0 also updates native extension; do not use it for these models.
+get_DisplayName3cff420 calls Steam name, get_OnlineStatus3d00580 queries Steam,
+EnsureSteamAvatarUpdated3cfff10 can start an async Steam avatar request. Avoid all
+three. Observe3d00240/Unobserve3d003e0 manage the modelChanged delegate.
+
+FriendExtension#3380 has trivial noarg ctor6af170 and fields:
+  AliasedVersion10 bool, AliasedFriendModel18:FriendModel, IsAliased20 bool,
+  PartyStatus24 enum, Region28 enum, PlayerHandle30:named handle,
+  FrontHandle38:ServiceHandle, Environment40 string,
+  SteamDisplayRichPresence48 string, GameConnectionInfo50,
+  BannerId58:IntKey<CosmeticItem>, PortraitId5c:IntKey<CosmeticItem>,
+  GameMode60 enum, ExternalRating64 int, League68 enum.
+Keep canonical named handles exactly consistent with the lobby identity map.
+The underlying Friend uint64 is only an adapter lookup key, not Steam identity
+or evidence of Steam friendship. Synthetic models must stay in owned caches,
+not _lookupFriends/_sortedFriends or Steam event subscriptions.
+
+Two concrete construction choices, each needing qualification:
+  - Native ctor with the exact internal UpdateFriendExtension call wrapped.
+    Use a strictly scoped Unity-thread construction record rooted to this exact
+    object; populate its newly allocated extension from directory data and skip
+    only that Steam update. On all other models call original3cff600. Constructor
+    then completes normally; its modelChanged is initially null. Set image dirty
+    false/empty image for owned models and never run the avatar method.
+  - Checked object_new(FriendModel) plus object_new/ctor(FriendExtension), then
+    set the fully evidenced fields with IL2CPP field barriers. This deliberately
+    reconstructs the simple owned model constructor while omitting Steam work;
+    do not call a nonexistent noarg ctor. It is feasible from the traced body,
+    but remains a new adapter constructor, not an existing game-supported API.
+Both choices require the rendering route to keep native Steam refresh away from
+owned models. Do not recommend raw object allocation by itself as a complete fix.
+
+FRIENDVM PRESENTATION AND LIFETIME
+FriendVM#3384 derives ViewModel<FriendModel>. Exact fields and native setters:
+  _playerName60 string       set_PlayerName3d00b70
+  _online68 bool             set_Online3d00c10
+  _inGame69 bool             set_InGame3d00cb0
+  _onlineStatus6c enum       set_OnlineStatus3d00d50
+  _isBusy70 bool             set_IsBusy3d00de0
+  _playerStatus78 string     set_PlayerStatus3d00e80
+  _gameMode80 enum           set_GameMode3d00f20
+  _league84 enum             set_League3d00fc0
+  _externalRating88 int      set_ExternalRating3d01060
+  _cosmeticBannerAvailable8c set_CosmeticBannerAvailable3d01100
+  _cosmeticPortraitAvailable8d set_CosmeticPortraitAvailable3d011b0
+  _portrait90 Texture2D      set_Portrait3d01250
+  _canInvite2v2 98           set_CanInvite2v2 3d012f0
+  _canInvite2vAI 99          set_CanInvite2vAI 3d01390
+  _canInvite1v1CustomGame9a   set_CanInvite1v1CustomGame3d01440
+  _canSpectate9b             set_CanSpectate3d014f0
+  _canViewProfile9c          set_CanViewProfile3d01590
+  _shouldShowFriend9d        set_ShouldShowFriend3d01640
+  _bannerVMsa0, _portraitVMsa8, _frontServerIntegrationb0,
+  _gameServerIntegrationb8, _accountServicec0, _gameSettingsControllerc8,
+  _staticGameDataProviderd0, _deckSelectord8, _signalRoutere0, _featureTogglese8.
+FriendOnlineStatus#3383: OnlineInGame0, Online1, OnlineAway2, Offline3.
+Ordinary setter ABI is void(this RCX, value RDX/EDX/DL, MethodInfo* R8).
+Use runtime_invoke and native setters to notify the bindings, not field writes.
+
+For owned rows/popup use directory display name, Online=true for connected rows,
+fixed local status text for available/in lobby/in match/you, and explicit busy
+state. Clear portrait, both cosmetic flags, ratings/mode as applicable; disable
+all child invite/spectate/profile actions. The outer row's InviteToGame is the
+only initial action. Recycled VMs can retain property values; assign every
+relevant presentation/action property rather than relying on zero defaults.
+Use safe text treatment for player names if the destination TMP accepts rich
+text; the directory's lack of C0 controls does not itself neutralize markup.
+
+ViewModel<FriendModel>.set_Model is virtual class slot+238 (method at+240).
+The same slot is used by the row and both popup child bindings. Preserve native
+metadata when forwarding non-owned models through that original slot.
+If applying strategy A, do NOT forward owned bindings to the original setter and
+then overwrite the name: the setter can synchronously invoke Steam Refresh.
+Require the child to be initialized and not actively observing a previous model;
+use the original ClearModel first when necessary, without routing through the
+original FriendVM refresh. ClearModel clears IsModelSet and unobserves; it does
+NOT necessarily clear base _model. Native Release also leaves ordinary property
+backing values. Do not assume _model==null means released or vice versa.
+Do not set IsModelSet=true or forge an observed model without an explicit model
+lifetime design. Presentation-only visibility must be tested before choosing A.
+
+If strategy B is selected, original model setters/observers/lifecycle can remain
+intact and owned Refresh renders the properties above. The native FriendVM entry
+RVA3d027b0/raw3d00db0 begins eight whole bytes:
+  40 55 56 48 8d 6c 24 e8
+  push rbp; push rsi; lea rbp,[rsp-18h]
+Continuation is RVA3d027b8 (sub rsp,118h). These displaced instructions contain
+no RIP-relative operand. An 8-byte guarded entry replacement can use a 5-byte
+jump and padding, but non-owned forwarding needs an executable stub which
+executes those exact eight bytes then jumps to module+3d027b8, preserving RCX/RDX,
+stack, nonvolatile registers and Windows x64 unwind behavior. A statically
+assembled helper stub may avoid runtime executable allocation, but its unwind
+and relocation design still needs review. Never simply call module+3d027b0 or
+module+3d027b8 as an ordinary C++ function after entry patching.
+
+RECIPIENT INVITATION PANEL
+MatchmakingStatusPanelVM#3493 fields:
+  _serverManager58, _mapManager60, _signalRouter68,
+  _gameSettingController70, _uncappedSteamFriends78,
+  _frontServerIntegration80, _provingGrounds88,
+  _playerInviteFriendVM90, _partyMemberFriendVM98,
+  _inQueuea0 bool,_gameModea4,_isFakePracticeVSAIa8 bool,
+  _showPlayerInvitePanela9 bool,_hasPartyaa bool,_matchmakingStatusac,
+  _receivedInviteCountb0,_inviteExpirationTimeb4,_currentSecondsInQueueb8,
+  _externalTeamRatingbc.
+Its bound MatchmakingStateModel#3492 has _matchmakingFrontEnd10,
+_signalRouter18, _modelChanged20; spec292486 is its typed get_Model.
+RefreshViewModel3d24dc0 derives native queue/party/invite/count presentation from
+that model. It obtains FirstPartyInvite, otherwise a party/member candidate,
+then uses the candidate named handle's nested PlayerHandle.steamId as a ulong.
+The lookup is INLINED from UncappedSteamFriends.TryGetFriendModel:
+  dictionary = panel._uncappedSteamFriends._lookupFriends(+18)
+  Dictionary<ulong,FriendModel>.TryGetValue at3d25a10, callee4ef130.
+  method spec281679 at usage slot186ae4400 confirms key/value types.
+It checks _uncappedSteamFriends and dictionary nonnull BEFORE the callsite.
+The original UncappedSteamFriends ctor3e74270 allocates its dictionary/list;
+validate they exist even though Steam Initialize is disabled.
+If lookup succeeds, the SAME FriendModel is virtually bound to both
+_partyMemberFriendVM at3d25a38 and _playerInviteFriendVM at3d25a5d. If no candidate
+or lookup failure it clears both child models. The original ClearModel is
+inlined at3d25a68..3d25aee and only runs unobserve when IsModelSet was true.
+
+Narrow lookup wrapper ABI:
+  bool lookup(dictionary RCX, uint64 key RDX, FriendModel** out R8).
+For an owned panel/dictionary and a canonical known invite/party profile, return
+the rooted owned model and true. On any non-owned lookup forward to original
+4ef130 unchanged. The original stub supplies its generic metadata internally.
+Do not key ownership solely by a small uint64 that could collide with Steam.
+Require the active community generation and expected directory/profile/actual
+native invite identity. A no-match owned key should fail closed, not query Steam.
+The lookup's out reference points to a caller stack local; keep the object rooted
+in the adapter through the deferred presentation call, then native ownership or
+the adapter cache must keep it alive. Do not cache unrooted object addresses.
+
+With strategy A, the two bind wrappers render direct properties and do not bind
+the child. Native no-invite ClearModel will then see IsModelSet=false and may not
+reset those direct properties. Explicit owned presentation reset on no-invite,
+screen release or next refresh is therefore part of A, NOT automatically solved
+by wrapping only successful binds. Panel/container visibility may already hide
+them, but this was not verified from serialized bindings. Strategy B avoids this
+model-lifetime divergence and still requires ordinary property reset behavior.
+
+ProcessPartyInviteRequestNotification3e47f60 builds PartyInvite#2010, adds it to
+front._partyInvites and updates matchmaking status. Notification#6106 exact
+fields: playerHandle_18 named sender, expiryTimeUnixMilliseconds_20 int64,
+frontReceiver_28 raw local handle, partyType_30, gameMode_34.
+PartyInvite.ctor3e4c7b0 consumes expiry with DateTimeOffset.FromUnixTimeMilliseconds
+at3e4c869; this is an absolute Unix-millisecond deadline, not remaining duration.
+Convert community remaining_ms using the same current-time basis the native
+front uses; qualify expiry rather than assuming disconnected front clock works.
+Do not repeatedly feed the same pending invitation notification: it adds another
+native list item. Deduplicate by connection generation + community invitation id.
+
+OnAccept3d24700 uses the CURRENT FirstPartyInvite; if in queue, it first leaves
+queue. It calls Front.PartyInviteReplyRequest3e46890 at3d248fa with sender's raw
+PlayerHandle, accepted=true, PartyType and GameMode from that native invite.
+OnDecline3d24910 uses accepted=false. Use the shared reply enqueue hook to map
+the actual native invite to its community id, and retain native pending-counter
+ordering. Clicks after expiry/cancel must not accept a different invitation by
+stale row identity. OnAccept has a no-invite party-queue fallback, so test only
+with a current native invite and intercept/disable unsupported party queue work.
+OnCancelClicked3d25bf0 is a matchmaking-queue cancel, not a generic invitation
+cancel. Do not map that button to community CANCEL by its name alone.
+
+HOST INVITE RESPONSE: NEW IMPORTANT SIDE EFFECT
+Front.InvitePlayerToPartyRequest#6090 fields:
+  playerHandle_18 RAW PlayerHandle, frontHandle_20 ServiceHandle,
+  frontSender_28 NAMED handle, richPresenceJoinRequest_30 bool,
+  automaticAcceptance_31 bool, region_34, customGameData_38,
+  senderDeck_40,gameMode_48,gameConfigParameters_50,partyType_58,
+  rating_60,experiments_68,biCommonFields_70.
+Manager constructs playerHandle from the selected FriendExtension named handle's
+nested raw handle. Do not treat request.playerHandle as another named object.
+ProtocolUtil.CreateInvitePlayerToPartyRequest3dd14f0 sets target/front/mode/type
+and richPresenceJoinRequest; the manager supplies custom3 and richPresence=false.
+
+InvitePlayerToPartyResponse#6098 fields:
+  playerHandle_18 NAMED, expiryTimeUnixMilliseconds_20,
+  automatedAcceptance_28 bool, partyType_2c.
+ProcessInvitePlayerToPartyResponse3e477f0 ABI void(front,msg,error,MethodInfo).
+On success with automatedAcceptance=false, it UNCONDITIONALLY constructs a new
+Party(true,response.playerHandle,response.partyType), replaces front._party,
+sets PendingPlayerInvite/PartyType/expiry, then updates status and raises
+InvitePlayerToPartyResponse(message,error). Thus blindly feeding an ordinary
+successful response is not guaranteed to preserve the custom host Party.
+With automatedAcceptance=true it skips that party mutation and still updates
+status/raises the response event. This flag does not itself send an acceptance
+for the recipient. Using true to preserve the custom host Party is a possible
+explicit adapter response policy, not evidence of the retired server's behavior;
+qualify it together with pending UI/expiry and guest accept. Alternatively use
+a deliberately scoped callback path while preserving current Party, but do not
+pretend the full original handler was called if it was bypassed.
+
+Manager.OnInvitePlayerToPartyResponse3cac2c0 only removes matching pending
+requests when response.partyType==3 AND error!=0, then raises InvitesChanged if
+anything was removed. Success deliberately retains its native pending request
+for the row's PendingInvite reason. Do not assume an OK ACK clears it. Successful
+invite termination/decline/cancel/expiry must be reconciled; opening the invite
+screen clears pending state in Initialize, but that alone does not provide live
+termination updates. This is a real remaining integration gate.
+
+EXACT CONSUMER DISCRIMINATORS
+Names are from front_pb.proto.json and the manager's original case write.
+Outgoing FrontServerConsumer:
+ 23 InvitePlayerToPartyRequest,24 CancelInviteToPartyRequest,
+ 25 PartyInviteReplyRequest,33 CreateLobbyRequest,34 UpdateLobbyStateRequest.
+Incoming FrontClientConsumer:
+ 21 InvitePlayerToPartyResponse,22 CancelInviteToPartyResponse,
+ 23 PartyInviteUpdateNotification,24 PartyInviteRequestNotification,
+ 25 PartyInviteReplyResponse,28 CustomGameCreatedNotification,
+ 29 CreateLobbyResponse,30 UpdateLobbyStateResponse,
+ 31 LobbyStateNotification,32 LobbyClosedNotification.
+Outgoing FrontServerConsumer fields: messageContext_18,
+frontServerMessages_20,frontServerMessagesCase_28.
+These are native protobuf cases, NOT community wire message types.
+
+GUARDED CALLSITE CANDIDATES / ORIGINAL FALLBACK
+All bytes below were read from the verified original and raw offsets computed
+from the PE section mapping. Original shared functions remain untouched if only
+these callers are replaced. No entry trampoline is required for these callers.
+
+ Purpose                            RVA       raw        preimage
+ Initialize ForceFriendUpdate       3ca93b9   3ca79b9    e8e2a41c00
+ Initialize tail Populate           3ca95cd   3ca7bcd    e95e050000
+ OnFriendsChanged tail Populate     3ca983a   3ca7e3a    e9f1020000
+ OnPredictedLobbyChanged Populate   3ca989f   3ca7e9f    e98c020000
+ Row virtual child set_Model        3ca89eb   3ca6feb    41ff9138020000
+ Row set_CannotInviteReason          3ca8e21   3ca7421    e89af5ffff
+ Row inlined Set<bool>(CanInvite)    3ca8e9d   3ca749d    e82ed858fc
+ Panel dictionary lookup            3d25a10   3d24010    e81b977cfc
+ Panel party-child set_Model         3d25a38   3d24038    ff9038020000
+ Panel invite-child set_Model        3d25a5d   3d2405d    ff9038020000
+ FriendModel ctor UpdateExtension   3cff5bf   3cfdbbf    e83c000000
+
+ForceFriendUpdate: void(steamFriends RCX,uint64 steamId RDX,MethodInfo R8),
+original callee3e738a0. Skip only within the owned custom screen/session.
+Populate tail: void(screen RCX,MethodInfo RDX); original3ca9b30 remains callable
+for non-owned mode. Preserve JMP/tail semantics in the patch, not a CALL with an
+unbalanced caller return. These are the three observed native caller routes;
+not a proof against reflection invoking Populate elsewhere.
+Child virtual set_Model: void(FriendVM RCX,FriendModel RDX,MethodInfo R8).
+Replace each complete 7/6-byte instruction with call rel32 plus padding. The
+original method pointer is class+238; metadata class+240 was already loaded into
+R8. Non-owned fallback should resolve/validate that unchanged slot and invoke it
+with all original args. Do not call FriendVM.Refresh as a substitute for binding.
+Reason setter: void(row RCX,enum EDX,MethodInfo R8), original3ca83c0.
+Set<bool> and dictionary lookup signatures are explained above.
+Constructor call: void(FriendModel RCX,MethodInfo RDX), original3cff600. The ctor
+passes null metadata. A guard must distinguish deliberate owned construction
+from any real Steam model constructor that happens during community mode.
+
+Existing request guards, original callee256df90 EnqueueMessage:
+  manager invite RVA3cac066/raw3caa666/e8251f8cfe
+  accept/decline reply RVA3e46968/raw3e44f68/e8237672fe
+ABI void(front RCX,FrontServerConsumer RDX,generic MethodInfo R8).
+Manager invite has already appended its pending list, but InvitesChanged fires
+after enqueue. Reply counter increments after enqueue at3e4696d. Never feed
+responses synchronously from either wrapper. Use owned generation/request roots
+and deferred Unity-thread completion, exactly once.
+
+SMALLEST NEXT RUNTIME SLICE
+Recommended immediate slice is the parent's opt-in native Create/Leave probe;
+no directory row, FriendModel, avatar, popup or original FriendVM hook is needed.
+Additional known gates:
+  - The manager obtained from Front.LobbyStateUpdated listeners has had lifecycle
+    Create, but may NOT have Initialize. CreateLobby3cac420 alone does not call
+    Initialize. Use original EnterLobbyScreen3cab7b0 with no current prediction,
+    or Initialize exactly once before CreateLobby. Initialize registers
+    LobbyCreated/UpdateResponse/LobbyClosed callbacks. Without it the create
+    callback can leave _pendingCreateLobbyRequest stuck forever.
+  - Start from healthy native menu/world idle, no previous native custom lobby,
+    no pending manager work, initialized account/rating and canonical own named
+    handle. CreateCustomGameLobby uses AccountService.GetHighestMatchmakingRating.
+    Original CreateLobby also DeclineAllPartyInvites; begin with no pending
+    incoming invite or cover their decline requests explicitly.
+  - Defer confirmed CreateLobbyResponse until original CreateLobby returned and
+    stored _pendingCreateLobbyRequest. Require valid state/host/member wrapper,
+    then check original callback clears pending and prediction is authoritative.
+  - Original LeaveLobby sends oneof14 and immediately Release; it ignores the
+    returned update request rather than tracking it as ordinary pending update.
+    Do not feed an unsolicited ProcessUpdateLobbyStateResponse ACK after release.
+    Use authoritative departure -> ProcessLobbyClosedNotification to clear front
+    Party/current state, with lifecycle generation guards on late snapshots.
+  - Run a second create/leave on the same connection, verify no accumulated event
+    subscription/pending request and no accidental native world/original network
+    launch. Retain existing dedicated Steam guards on Release's menu-presence path.
+
+After that, the smallest meaningful Invite/Start qualification is one host and
+one available guest, mode1 only, original custom screen -> one server-backed row
+-> original InviteToGame -> one native recipient popup -> explicit Accept ->
+authoritative native two-member state -> host original Start -> guest native
+Ready -> exactly one validated bootstrap. Add only the rendering strategy chosen
+after its binding/pool gate is tested, plus deferred correlated invite callbacks.
+Keep unsupported inner FriendVM actions disabled and reject all unsupported
+requests on the server. This is a proposed test boundary, not already qualified.
+
+Before claiming community UI support, also qualify decline, deadline expiry,
+duplicate/missing invitation, close/reopen roster, directory removal while open,
+self/busy non-invitable rows, pooled row reuse, stale invite click and host party
+preservation. Then native result/Continue -> RETURN -> reopened lobby/rematch
+uses custom-lobby-responses.txt's separate lifecycle gates. None of this note
+claims live custom-menu, popup, invitation or Start success.

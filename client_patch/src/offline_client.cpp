@@ -25,6 +25,7 @@ namespace ba_dedicated_session {
 static void update(void* front);
 static bool retryFromPlay(void* front,int mode);
 }
+namespace ba_community_native { static void update(void* front);static void reset(); }
 namespace ba_export {
 static void poll(void* front);
 static void consume(void* gameData,void* encoded);
@@ -43,6 +44,7 @@ static const std::vector<std::wstring>& arguments() {
 static bool flag(const wchar_t* name){return ba_command_line::has(arguments(),name);}
 static bool exportServerAssets() {return flag(L"-export-server-assets");}
 static bool dedicated() {std::wstring value;return !exportServerAssets() && ba_command_line::value(arguments(),L"-dedicated-server=",value);}
+static bool community() {return dedicated() && flag(L"-dedicated-community");}
 static bool lan() { return !exportServerAssets() && (dedicated() || flag(L"-offline-lan")); }
 static int dedicatedAssignedSlot=-1;
 static int requestedLanSlot() {
@@ -232,12 +234,14 @@ extern "C" __declspec(dllexport) void OfflineFrontUpdate(void* front,void*) {
 #include "local_loop.cpp"
 #include "catalog_export.cpp"
 #include "lan_smoke.cpp"
+#include "community_transport.cpp"
 #include "lan_transport.cpp"
 #include "dedicated_transport.cpp"
 #include "dedicated_deck.cpp"
 #include "dedicated_results.cpp"
 #include "local_bootstrap.cpp"
 #include "dedicated_adapter.cpp"
+#include "community_native.cpp"
 #include "server_assets_export.cpp"
 #include "lan_audit.cpp"
 #include "telemetry_audit.cpp"

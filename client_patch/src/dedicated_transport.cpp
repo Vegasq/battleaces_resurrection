@@ -20,14 +20,19 @@ static Obj deckFromIds(const Bytes& ids) {
     return deck.get();
 }
 static void submitDeck(Obj deck) {
-    if(!ba::dedicated() || installing || !initialized || !ba_lan::welcomed || !ba_lan::bootstrap.empty())return;
+    if(!ba::dedicated() || installing || !initialized || !(ba::community()?ba_community::online:ba_lan::welcomed) || !ba_lan::bootstrap.empty())return;
     Obj units=ba::get<Obj>(deck,"units_");int count=ba_local::count(units);
     if(count!=8){ba::log("Dedicated deck incomplete (%d slots); waiting for8",count);return;}
     Bytes ids;for(int index=0;index<8;++index){void* args[]={&index};Root value(ba::call(units,"get_Item",1,args));uint32_t id=*ba::api<uint32_t*(*)(Obj)>("il2cpp_object_unbox")(value.get());ba_lan::append32(ids,id);}
-    ba_lan::send(22,ids);ba::log("Dedicated selected deck submitted for validation");
+    if(ba::community()) {
+        ba_community_wire::Deck values{};for(size_t i=0;i<8;++i)values[i]=ba_lan::u32(ids,4*i);
+        ba_community::send(ba_community_wire::setDeck(ba_community::nextRequest(),values));
+    } else ba_lan::send(22,ids);
+    ba::log("Dedicated selected deck submitted for validation");
 }
 static void ready(Obj front,int mode) {
     if(ba_dedicated_session::retryFromPlay(front,mode))return;
+    if(ba::community()){ba::log("Community prototype: use Custom Game; ordinary queue/AI adapter remains pending (mode=%d)",mode);return;}
     if(!ba_lan::welcomed || !initialized)throw std::runtime_error("dedicated lobby not ready yet");
     if(!ba_lan::bootstrap.empty())return;
     if(!ba_dedicated_deck::canReady(front))return;
@@ -35,6 +40,7 @@ static void ready(Obj front,int mode) {
     ba_lan::send(23,Bytes{1});ba::log("Dedicated ready requested from native Play (mode=%d); waiting for other player",mode);
 }
 static void cancelReady(Obj) {
+    if(ba::community())return;
     if(ba::dedicated() && ba_lan::welcomed && ba_lan::bootstrap.empty()) {
         ba_lan::send(23,Bytes{0});ba::log("Dedicated lobby readiness cancelled from native UI");
     }

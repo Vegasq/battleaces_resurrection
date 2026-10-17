@@ -181,7 +181,7 @@ static void releaseHealthyLobbyLegacyDisconnect(Obj front,Obj server) {
     // must not leave that unrelated modal blocking the ordinary Play button.
     // Poll the replacement transport first; real errors enter recover() instead.
     if(!lobbyInstalled || joined || sawWorld || !inMenu() || !worldIdle(server) ||
-       !ba_lan::welcomed || ba_lan::stopped || ba_lan::peerClosed ||
+       !(ba::community()?ba_community::online:ba_lan::welcomed) || ba_lan::stopped || ba_lan::peerClosed ||
        !ba_lan::failureReason.empty() || ba_local::failed.load() ||
        !ba_lan::bootstrap.empty() || ba::read<bool>(ba::owner,0x280))return;
     const ULONGLONG now=GetTickCount64();
@@ -306,6 +306,7 @@ static void resetAtMenu(Obj front,Obj server,bool completed) {
     ba_bootstrap::awaitingWorld=false;ba_bootstrap::creating=false;
     releaseRoot(ba_bootstrap::frontRoot);ba_bootstrap::bootstrapThread=0;
     ba_lan::closeSocket();
+    if(ba::community()){ba_community_native::reset();ba_community::reset();}
     ba_lan::closeReceipts();
     ba_lan::rx.clear();ba_lan::tx.clear();ba_lan::txPosition=0;ba_lan::frames.clear();
     ba_lan::bootstrap.clear();ba_lan::dedicatedDeck.clear();ba_lan::dedicatedMatchId.clear();
@@ -473,6 +474,11 @@ static void update(Obj front) {
         if(joined && ba_local::failed.load())throw std::runtime_error("dedicated local input capture failed");
         if(GetTickCount64()<retryAt)return;
         ba_lan::poll();
+        if(ba::community()) {
+            ba_community_native::update(front);
+            releaseHealthyLobbyLegacyDisconnect(front,server);
+            return;
+        }
         // Poll first: a real coordinator ERROR/invalid packet must be observed
         // before considering the obsolete original-front success-path modal.
         releaseCompletedLegacyDisconnect(front,server);

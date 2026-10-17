@@ -38,14 +38,22 @@ CALL_HOOKS = [
     {'name': 'OfflineAuditReadSimFrame', 'rva': 0x3e61faf, 'offset': 0x3e605af, 'before': 'e8dc600000'},
     {'name': 'OfflineAuditReadSimFrame', 'rva': 0x3e62160, 'offset': 0x3e60760, 'before': 'e82b5f0000'},
 ]
+COMMUNITY_CALL_HOOKS = [
+    # Exact request enqueue callers; the shared generic entry remains original.
+    # Experimental native Create/Leave slice only; not the normal-play recipe.
+    {'name': 'OfflineCommunityEnqueue', 'rva': 0x3e46f3e, 'offset': 0x3e4553e, 'before': 'e84d7072fe'},
+    {'name': 'OfflineCommunityEnqueue', 'rva': 0x3e472ce, 'offset': 0x3e458ce, 'before': 'e8bd6c72fe'},
+    {'name': 'OfflineCommunityEnqueue', 'rva': 0x3e474e6, 'offset': 0x3e45ae6, 'before': 'e8a56a72fe'},
+]
 def digest(b): return hashlib.sha256(b).hexdigest()
-def build_patch(original, *, include_telemetry=True):
+def build_patch(original, *, include_telemetry=True, community=False):
     """Pure transformation; only a matching original may enter this routine."""
     if digest(original) != ORIGINAL_SHA256:
         raise ValueError('Original build SHA256 does not match.')
     patched = bytearray(telemetry.patch_component('GameAssembly.dll', original) if include_telemetry else original)
+    call_hooks = CALL_HOOKS + (COMMUNITY_CALL_HOOKS if community else [])
     # Reject a future telemetry recipe that touches an existing startup hook.
-    for site in PATCHES + HOOKS + TAIL_HOOKS + CALL_HOOKS:
+    for site in PATCHES + HOOKS + TAIL_HOOKS + call_hooks:
         offset, size = site['offset'], len(bytes.fromhex(site['before']))
         if patched[offset:offset + size] != original[offset:offset + size]:
             raise ValueError('Telemetry/startup patch overlap: ' + site['name'])
@@ -57,8 +65,8 @@ def build_patch(original, *, include_telemetry=True):
         patched[o:o+len(after)]=after
     patched, iat, thunks = extend_imports_with_thunks(
         bytes(patched), 'BattleAcesOffline.dll',
-        list(dict.fromkeys(h['name'] for h in HOOKS + TAIL_HOOKS + CALL_HOOKS)),
-        thunk_exports=list(dict.fromkeys(h['name'] for h in TAIL_HOOKS + CALL_HOOKS)))
+        list(dict.fromkeys(h['name'] for h in HOOKS + TAIL_HOOKS + call_hooks)),
+        thunk_exports=list(dict.fromkeys(h['name'] for h in TAIL_HOOKS + call_hooks)))
     patched=bytearray(patched)
     for hook in HOOKS:
         before=bytes.fromhex(hook['before']);o=hook['offset']
@@ -69,7 +77,7 @@ def build_patch(original, *, include_telemetry=True):
         before=bytes.fromhex(hook['before']);o=hook['offset']
         if len(before)!=5 or original[o:o+5]!=before: raise SystemExit('Tail original mismatch: '+hook['name'])
         patched[o:o+5]=b'\xe9'+struct.pack('<i',thunks[hook['name']]-(hook['rva']+5))
-    for hook in CALL_HOOKS:
+    for hook in call_hooks:
         before=bytes.fromhex(hook['before']);o=hook['offset']
         if len(before)!=5 or original[o:o+5]!=before: raise SystemExit('Call original mismatch: '+hook['name'])
         patched[o:o+5]=b'\xe8'+struct.pack('<i',thunks[hook['name']]-(hook['rva']+5))
@@ -106,7 +114,7 @@ def contained_path(game_dir, relative):
     return resolved
 
 
-def install(game_dir, *, helper=None, original_path=None, restore=False, dry_run=False):
+def install(game_dir, *, helper=None, original_path=None, restore=False, dry_run=False, community=False):
     game_dir = Path(game_dir).resolve()
     if game_dir.name.lower() == 'battleacesbeta_untouched':
         raise ValueError('The untouched recovery copy is read-only; choose a working game copy.')
@@ -124,7 +132,7 @@ def install(game_dir, *, helper=None, original_path=None, restore=False, dry_run
         current, original = target.read_bytes(), source.read_bytes()
         if digest(original) != recipe.original_sha256:
             raise ValueError('Original build SHA256 does not match: ' + name)
-        patched = build_patch(original) if name == 'GameAssembly.dll' else update_checksum(telemetry.patch_component(name, original))
+        patched = build_patch(original, community=community) if name == 'GameAssembly.dll' else update_checksum(telemetry.patch_component(name, original))
         known = {recipe.original_sha256, digest(patched)}
         if name == 'GameAssembly.dll':
             known.add(digest(build_patch(original, include_telemetry=False)))
@@ -147,10 +155,14 @@ def install(game_dir, *, helper=None, original_path=None, restore=False, dry_run
         raise ValueError('Helper is not a PE DLL; build client_patch first.')
     if helper_bytes is not None and b'BA_RESURRECTION_RECOVERY_V1' not in helper_bytes:
         raise ValueError('Build the current helper supporting recovery ABI1 before installing this patch.')
+    if community and helper_bytes is not None and b'BA_RESURRECTION_COMMUNITY_V1' not in helper_bytes:
+        raise ValueError('Build a helper supporting experimental community ABI1 before installing this patch.')
     manifest = {'schema': 2, 'game_build': 37822, 'patch_version': '0.2.0-dev',
                 'original_sha256': ORIGINAL_SHA256, 'patched_sha256': components['GameAssembly.dll']['patched_sha256'],
                 'helper_sha256': digest(helper_bytes) if helper_bytes is not None else None,
-                'patches': PATCHES, 'hooks': HOOKS, 'tail_hooks': TAIL_HOOKS, 'call_hooks': CALL_HOOKS,
+                'patches': PATCHES, 'hooks': HOOKS, 'tail_hooks': TAIL_HOOKS,
+                'call_hooks': CALL_HOOKS + (COMMUNITY_CALL_HOOKS if community else []),
+                'community': {'experimental': community, 'native_scope': 'create-leave-prototype' if community else None},
                 'components': components,
                 'telemetry': {'recipe_version': telemetry.RECIPE_VERSION, 'runtime_validated': telemetry.RUNTIME_VALIDATED,
                               'unresolved_components': telemetry.UNRESOLVED_COMPONENTS},
@@ -192,9 +204,10 @@ def main():
     parser.add_argument('--original', type=Path, help='verified recovery DLL for an already-patched installation')
     parser.add_argument('--restore', action='store_true')
     parser.add_argument('--dry-run', action='store_true')
+    parser.add_argument('--community-experimental', action='store_true', help='isolated native Create/Leave research; not normal play')
     args = parser.parse_args()
     result = install(args.game_dir, helper=args.helper, original_path=args.original,
-                     restore=args.restore, dry_run=args.dry_run)
+                     restore=args.restore, dry_run=args.dry_run, community=args.community_experimental)
     print(json.dumps(result, indent=2))
 
 

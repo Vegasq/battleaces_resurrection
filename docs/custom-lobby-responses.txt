@@ -1,0 +1,481 @@
+NATIVE CUSTOM LOBBY RESPONSE ADAPTER: STATIC IMPLEMENTATION BOUNDARIES
+Read-only REA-guided review, 2026-10-17, client build 37822
+
+STATUS / PROVENANCE
+This is authored analysis of the existing original DLL, IL2CPP metadata, and
+local protobuf descriptors. Native REA engines were unavailable. There was no
+game process/UI action, binary patch, or native runtime test in this review.
+Only the original authored note was written during that review. The protocol's server/native-worker
+tests do not prove this graphical/native menu integration.
+
+Original: investigation/original/GameAssembly.dll
+Image base: 0x180000000
+SHA256: e59d08c01479b27404778048d7e13546dbf3771f6b3912744c7c2bdf80c4e758
+Sources: investigation/network/{original_disasm,metadata_types}.py;
+investigation/native-map.json; original metadata files; descriptors under
+investigation/network/descriptors/{front_party_pb,common_party_pb,common_pb,
+common_errors_pb}.proto.json. RVAs and offsets below are hexadecimal. Type
+indices are metadata definition indices, not IL2CPP type-pointer table indices.
+Offsets include the ordinary managed object header. Reproduce disassembly with
+original_disasm.py and image-base-plus-RVA; shared native-map labels alone are
+not enough to identify a generic instantiation.
+
+PRINCIPAL FINDINGS
+1. Host creation must feed ProcessCreateLobbyResponse; it always constructs an
+   IsCreator=true custom Party. Guest acceptance needs its actual native
+   PartyInviteReplyResponse followed by LobbyStateNotification. Notification
+   alone never constructs Party; Update response is ignored when Party is null.
+2. Native pending state is installed AFTER the enqueue hook returns. Queue all
+   synthetic responses for the observed Unity update thread and correlate them
+   with an owned native request, connection generation, lobby, and server ACK.
+   A community LOBBY snapshot can precede ACK. Keep it as authority; do not turn
+   it into an early native create acknowledgement from inside the hook.
+3. An authoritative rejected update should normally use Error.GeneralFailure2
+   plus the current valid snapshot. Error.Timeout1 retains and resends pending
+   actions. Using timeout for a rejected START can create a retry loop.
+4. Correction to the earlier custom-lobby-native.txt permission assertion:
+   reviewed prediction and UI gates DO NOT consult LobbyPermissions. Host/local
+   membership identity and role flags are the actual gates. Null permissions
+   are explicitly accepted during prediction initialization, and native local
+   create prediction itself leaves permissions null. A nonempty permission table
+   is not an established requirement here. This is a bounded finding about the
+   traced paths, not proof that no other code ever reads permissions.
+5. Native player equality in manager prediction compares the complete named
+   handle, including strings and unknown fields. Build a canonical named handle
+   per community profile and use matching values everywhere. Existing per-match
+   aliased seat identities must not silently replace stable lobby identities.
+6. Native GameStart closure clears Party/current lobby/prediction. A durable
+   server community room must survive separately in the adapter. Once native
+   results/world cleanup finishes and the server room reopens, a state
+   notification can reconstruct prediction and travel to the custom screen,
+   provided Party and canonical identity have first been restored. That
+   integration remains to be qualified.
+
+MINIMAL NATIVE MESSAGE GRAPH
+Names below are actual generated backing-field names, useful for checked
+reflection access; prefer property setters or IL2CPP field_set_value barriers
+over raw writes. Numbers in parentheses are protobuf field numbers.
+
+FrontPb.CreateLobbyResponse #6131
+  lobbyState_ +18 (1): FrontPb.LobbyStateNotification
+FrontPb.UpdateLobbyStateResponse #6139
+  currentState_ +18 (1): FrontPb.LobbyStateNotification
+FrontPb.LobbyStateNotification #6135
+  lobbyState_ +18 (1): CommonPb.LobbyState
+  permissions_ +20 (2): CommonPb.LobbyPermissions
+  frontReceiver_ +28 (3): CommonPb.PlayerHandle
+CommonPb.LobbyState #6726
+  lobbyStatus_ +18 (1), hostHandle_ +20 (2, PlayerHandleWithName),
+  members_ +28 (3, RepeatedField<LobbyMember>), gameMode_ +30 (4),
+  region_ +34 (5), gameTryStartExpiryTimeUnixMilliseconds_ +38 (6, int64).
+CommonPb.LobbyMember #6720
+  playerHandle_ +18 (1, PlayerHandleWithName),
+  playerFrontHandle_ +20 (2, ServiceHandle), isHost_ +28 (3, bool),
+  lobbyRole_ +2c (4), roleSlot_ +30 (5), bannerId_ +34 (6),
+  portraitId_ +38 (7), externalRating_ +3c (8), league_ +40 (9).
+CommonPb.LobbyPermissions #6722
+  permissions_ +18 (1, RepeatedField<RolePermissions>),
+  hostPermissions_ +20 (2, RolePermissions).
+CommonPb.RolePermissions #6724
+  role_ +18 (1), allowedActions_ +20 (2, RepeatedField<PermissionType>).
+FrontPb.LobbyClosedNotification #6141
+  frontReceiver_ +18 (2, PlayerHandle), closureType_ +20 (3).
+FrontPb.CustomGameCreatedNotification #6160
+  createdGame_ +18 (1, GameConnectionInfo),
+  playerHandle_ +20 (2, PlayerHandle).
+CommonPb.GameConnectionInfo #6682
+  address_ +18 (string), port_ +20 (int), gameHandle_ +28,
+  spectateTargetHandle_ +30 (PlayerHandle), gameCreationTimeUnixS_ +38 (int64),
+  isSpectator_ +40 (bool).
+
+Native LobbyStatus: None0, Open1, Full2, Closed3, GameReadyToStart4,
+GameStarting5. LobbyCloseType: None0, Disbanded1, Kicked2, GameStart3.
+LobbyRole: None0, Player1, Spectator2. PartyType custom is3.
+CommonPb.Error relevant values: OK0, Timeout1, GeneralFailure2.
+PermissionType: ChangeMode0, UpdateMember1, PromoteHost2, KickMember3,
+LeaveLobby4, StartGame5, InvitePlayer6. There is no separate Ready permission.
+
+For v1 custom1v1, construct one or two unique Player-role members, slots0 and1,
+exactly one host flag, and hostHandle with exactly the host member's named value.
+The adapter should publish mode1 only. Read native capacity through GetConfig;
+this review does not recover or endorse a spectator-capacity default.
+Region, cosmetics, external rating and league may be represented by known local
+values/defaults, but their entire UI presentation has not been runtime qualified.
+Both nested response wrappers and CurrentState must be nonnull on successful
+create/update. Repeated collections must be initialized by their constructors.
+
+A conservative explicit permission object could contain Player -> LeaveLobby,
+and host Player -> LeaveLobby, StartGame, InvitePlayer. This is adapter policy,
+NOT a recovered original permission table or a proven runtime minimum. Empty
+or null permissions are accepted in the reviewed flow. These tables WILL NOT
+hide native ChangeMode/Move/Kick/Promote controls: those controls use hardcoded
+host flags and native mode lists. Unsupported actions need scoped client gates
+and server rejection. Never treat this display metadata as server authority.
+
+IDENTITIES AND REQUEST CONTENT AT THE ENQUEUE BOUNDARY
+CommonPb.PlayerHandle #6769: steamId_ +18 uint64, isAliased_ +20 bool.
+CommonPb.ServiceHandle #6771: handle_ +18 string.
+CommonPb.PlayerHandleWithName #6773: playerHandle_ +18, playerName_ +20 string,
+  playerNameLocKeyId_ +28 int64, filteredName_ +30 string.
+CommonPb.PlayerGameHandle #6775: playerHandleWithName_ +18, aiProfileId_ +20.
+  Property: PlayerHandleWithName. The earlier playerHandle_ spelling was an
+  author transcription error; original metadata confirms the working helper.
+CommonPb.PlayerSessionHandle #6779: sessionId_ +18 string.
+CommonPb.MessageContext #6765: id_ +18 uint64, metadata_ +20 map.
+
+PlayerHandleWithName.Equals RVA39321e0 compares nested PlayerHandle, playerName,
+localization-key id, filteredName and protobuf unknown fields. The host check in
+TryPredictLobbyStateAction and local/member lookup use this value equality.
+Front's party-null notification membership guard is weaker: its predicate
+RVA3e494a0 compares just raw steamId/isAliased via ProtocolUtil at3e49559.
+Therefore a notification may install a lobby that later fails native host/local
+checks if names differ. Use generated constructors so strings default to empty,
+canonical named values, no foreign unknown fields, and exact own identity.
+
+Relevant FrontServerIntegration instance ownership:
+  _frontHandle +b0 (ServiceHandle), _gameServerIntegration +d8,
+  _currentPlayerName +e0, _playerGameHandle +f0,
+  FrontSessionHandle backing +f8 (PlayerSessionHandle),
+  _pendingInviteResponseRequests +13c, _party +178, _partyInvites +180,
+  _matchmakingStatus +188, CustomGameLobby backing +190,
+  _lastCustomGameMode +198, _signalRouter +210, AccountService +258.
+
+CreateCustomGameLobby RVA3e46d70 returns FrontPb.CreateLobbyRequest #6129:
+  hostPlayer_18, hostFrontHandle_20, gameMode_28, region_2c,
+  gameConfigParams_30, bannerId_38, portraitId_3c, rating_40.
+Observed builder sets gameMode and a converted account rating; it does NOT fill
+hostPlayer/hostFront/region/cosmetics/config before its enqueue call. It requires
+the existing AccountService rating path, not merely a connected socket.
+UpdateLobbyRequest returns FrontPb.UpdateLobbyStateRequest #6137:
+  updateActions_18 repeated, playerHandle_20 named.
+Observed builder adds actions but leaves playerHandle unset at enqueue.
+TryStartLobbyGame #6125 and ReadyToStartLobbyGame #6127 have deck_18,
+bannerId_20, portraitId_24, but native UI builders allocate empty instances.
+The replacement adapter must obtain the selected local deck independently;
+empty Start/Ready payloads at this boundary are not proof of an empty loadout.
+
+The existing lan_bootstrap.cpp playerLan/identityLan routines use per-match
+aliased ids seat+1 and replace Front._playerGameHandle/_currentPlayerName. A
+community profile is neither a seat nor a Steam identity. Maintain a stable,
+collision-free adapter profile -> aliased handle mapping, and canonical display
+names. Decide how to restore it only after native world/result teardown, before
+applying the reopened lobby. Do not conflate ServiceHandle.handle, native session
+id, community profile/lobby keys, and per-match handles. These mapping choices
+are proposed adapter policy and still need implementation/runtime checks.
+
+CREATION, UPDATES, AND NATIVE CALLBACK SEMANTICS
+ProcessCreateLobbyResponse RVA3e48360:
+  void(front, CreateLobbyResponse message, Error error, MethodInfo*).
+  Windows x64: RCX front, RDX message, R8D error, R9 metadata.
+  Success allocates CustomGameLobby, installs message.lobbyState.lobbyState and
+  permissions, writes front.CustomGameLobby and last custom mode, constructs
+  Party(true, state.hostHandle, Custom3), updates matchmaking status, then raises
+  Front.LobbyCreated(error). Failure raises LobbyCreated(error) without building
+  a successful lobby. This is a HOST acknowledgement, never a guest shortcut.
+  It does not independently raise Front.LobbyStateUpdated.
+
+ProcessUpdateLobbyStateResponse RVA3e485f0:
+  void(front, UpdateLobbyStateResponse message, Error error, MethodInfo*), same
+  argument ABI. If front.Party or CustomGameLobby is null, it ignores the response
+  and does NOT raise the response event. With an active party/lobby, message must
+  exist. If its CurrentState wrapper exists, error0 installs the nested state;
+  a nonzero error can also install a nonnull state whose status is greater than0.
+  A success wrapper with a null nested state is invalid (dereferenced for mode).
+  Permissions replace the previous value only when nonnull. It raises
+  Front.UpdateLobbyStateResponse(error), then UpdateActiveLobbyStatus(error).
+  It does not raise LobbyStateUpdated or update matchmaking status itself.
+
+ProcessLobbyStateNotification RVA3e48820:
+  void(front, LobbyStateNotification message, MethodInfo*), RCX/RDX/R8.
+  With no Party, accepts only a state containing the raw local player handle;
+  otherwise rejects as out-of-order. It never creates Party. It creates a
+  CustomGameLobby wrapper if necessary, installs state/mode and nonnull
+  permissions, raises LobbyStateUpdated, logs active status and updates
+  matchmaking status. Direct handler does not use frontReceiver to route/check
+  ownership; the adapter must validate it and deliver to the correct front.
+
+CustomGameLobby #2009 has CurrentState +10, Permissions +18, LobbyCloseType +20.
+Use actual properties get_/set_CurrentState, get_/set_Permissions and
+get_/set_LobbyCloseType; setter RVAs717fb0,70f390,6db160 respectively. Shared
+native-map labels at those addresses are not a different object layout.
+
+CustomGameLobbyManager #3288 owns:
+  PredictedCustomGameLobby +20; PredictedLobbyChanged +28;
+  _gameServerIntegration +50, _frontServer +58, _signalRouter +60,
+  _menuFlowController +68, _pendingLobbyUpdateRequest +70,
+  _deferredLobbyUpdateActions +78, _pendingLobbyPlayerInvites +80,
+  _pendingCreateLobbyRequest +88, _checkForGameJoined +90.
+CreateLobby RVA3cac420 calls front.CreateCustomGameLobby(mode1) at3cac4bb and
+stores the returned request at3cac4ce, THEN creates local prediction (Open1,
+mode1, own host/player slot0). Native prediction leaves Permissions null and
+does not fill state.hostHandle here; FindHost uses the member's host flag.
+OnLobbyCreated RVA3cac770 clears the pending create pointer, then sends deferred
+actions on success; on failure it raises failure/release behavior.
+CheckPendingCreateLobbyRequest RVA3cac940 makes state/update/closure callbacks
+discard updates while a create is pending. A premature state notification can
+install front state but leave manager prediction unchanged. Use the confirmed
+snapshot inside the create response before delivering later notifications.
+
+SendUpdateAction RVA3cac870 predicts before sending. If invalid, it returns
+without queueing/event. With no pending create/update it calls single-action
+Front.UpdateLobbyRequest and stores the returned native request at3cac8e4;
+otherwise it appends to deferred actions. It then raises prediction changed.
+SendUpdateActions RVA3cad560 rebuilds valid actions from pending/deferred against
+the front authoritative state, clears old queues, sends one list request and
+stores it at3cad6db (or re-defers if the front refuses to build a request).
+OnUpdateLobbyStateResponse RVA3cad090 clears pending on error0 and error2;
+error1/other errors retain it. All branches then SendUpdateActions, so retained
+actions are retried. For a negative community ACK use general failure plus the
+current valid state and complete exactly the corresponding still-owned request.
+The response objects themselves have no request id: correlation belongs to the
+adapter. Do not invent context ids or feed unsolicited response callbacks.
+
+ValidateActionsAndPredictNewState RVA3cad7c0 clones front.CurrentState and replays
+pending/deferred actions; it does not copy/read a permission table here. If an
+old prediction was status4/5 but authority is back at1/2, it emits the prediction
+joining-failed signal. TryPredictLobbyStateAction RVA3cadcd0 finds an actual host
+member, handles Ready specially, and otherwise requires full named equality
+with that host. Start requires enough player-role members and predicts status5.
+MainScreenVM.CanStartGame RVA3cb01a0 is count==capacity AND local-host flag;
+CanInvitePlayer RVA3cb01c0 requires status1. Member CanKick/CanPromote RVA3cd6830
+uses local-host && !member-host; CanMove RVA3cd6870 uses local-host && !empty.
+None of these traced gates uses LobbyPermissions.
+
+GUEST INVITATION ACKNOWLEDGEMENT
+FrontPb.PartyInviteReplyRequest #6094 has leader raw handle +18, named sender at
++20, accepted +28, deck +30, banner +38, portrait +3c, partyType +40, rating +48,
+experiments +50, gameMode +58, BI +60. These are the native request object; the
+community invitation id and authenticated profile must be correlated separately.
+FrontPb.PartyInviteReplyResponse #6096:
+  inParty_ +18 bool (1), members_ +20 repeated named (2),
+  inviter_ +28 named (3), partyType_ +30 (4), externalTeamRating_ +34 (5).
+ProcessPartyInviteReplyResponse RVA3e48050 has NO Error argument:
+  void(front, message, MethodInfo*) with RCX/RDX/R8.
+It finds the existing invite by inviter, captures its game mode, unconditionally
+decrements front._pendingInviteResponseRequests, removes the invitation, and if
+inParty builds Party(false, members, partyType), then updates matchmaking state.
+Call it exactly once for a real pending native reply after the original call
+has returned and incremented that counter (increment at3e4696d). A synthesized
+reply on reconnect/rematch would underflow or consume unrelated pending work.
+For accept success, native accepted reply first, then authoritative state. For
+decline/rejection, correlate the real request and preserve exact inviter identity;
+the detailed rejection presentation still requires runtime qualification.
+
+Incoming invitation metadata, if the roster/invite adapter uses original UI:
+PartyInviteRequestNotification #6106: named sender18, expiry20 int64,
+frontReceiver28 raw, partyType30, gameMode34.
+PartyInviteUpdateNotification #6102: namedplayer18,inviteState20,receiver28,
+partyLeader30,partyType38,externalTeamRating3c,gameMode40.
+InvitePlayerToPartyResponse #6098: namedplayer18,expiry20,
+automatedAcceptance28 bool,partyType2c.
+This review does not validate the separate Steam-free roster/avatar renderer;
+custom-lobby-native.txt describes those inlined Steam dependencies.
+
+START / READY / BOOTSTRAP BRIDGE
+LobbyStateUpdateAction #6113 has updateActions_ +18 object and
+updateActionsCase_ +20 discriminator. Native oneof cases:
+10 ChangeMode,11 UpdateMember,12 PromoteHost,13 KickMember,14 LeaveLobby,
+15 TryStartLobbyGame,16 ReadyToStartLobbyGame,17 UpdatePlayerCosmetics.
+The visible MainScreenVM.StartGame RVA3cb1080 inlines manager TryStartGame;
+hooking only manager.TryStartGame misses that path. Both reach request enqueue.
+
+OnLobbyStateUpdated RVA3cac9c0 validates/rebuilds prediction. In its EXISTING
+prediction branch, state5 + exact local member + !host + Player role triggers
+automatic native Ready case16 unless the current pending update request already
+contains case16. It does not retain a separate acknowledged-ready epoch flag.
+The NEW prediction branch initializes/clones state, tolerates null Permissions
+at3cacf01..15, installs prediction and travels to the custom screen; it does NOT
+run the Ready branch in the same call. Consequences for a scoped adapter:
+  - If guest acceptance first observes an already-starting snapshot, schedule a
+    later owned state update after initial prediction exists so native Ready runs.
+  - After a Ready ACK clears pending, a repeated native state5 notification can
+    generate Ready again. Track one ready decision per server start epoch and
+    handle duplicate native requests without re-sending an invalid server command
+    or stranding native pending state.
+  - Do not project every community LOADING/RUNNING/RESULTS snapshot as a fresh
+    native GameStarting notification. Maintain adapter authority separately.
+  - Do not fake success for a START that the authoritative server rejected.
+
+Suggested mapping, NOT runtime-qualified: server OPEN -> native Open1 with one
+member or Full2 with two; server STARTING -> native GameStarting5 (host starts,
+guest original Ready action acknowledges); loading uses the owned start state
+until a fully validated bootstrap is ready. Runtime success must demonstrate
+failure rollback and the late-guest/duplicate-snapshot cases above.
+
+ProcessCustomGameCreatedNotification RVA3e40410:
+  void(front, CustomGameCreatedNotification message, Error error, MethodInfo*).
+On error it logs and ultimately raises CustomGameCreated(error). On success it
+requires nonnull createdGame, determines spectator flag, chooses loading mode6
+for spectator or InferGameModeFromCustomGameMode(last mode), posts loading signal
+when a router exists, calls GameServerIntegration.JoinGame, updates matchmaking
+status and raises CustomGameCreated(error). It does not construct GameData and
+does not close CustomGameLobby. Its playerHandle field is not an ownership gate.
+
+Narrow exact original callsite available for a dedicated bootstrap wrapper:
+  RVA03e405e3, raw03e3ebe3, preimage e8 58 33 01 00
+  original callee RVA03e53940, GameServerIntegration.JoinGame
+  signature void(gameServer RCX, GameConnectionInfo RDX, bool spectator R8B,
+                 MethodInfo* R9), caller passes null metadata.
+No gateway/trampoline is needed for a 5-byte call replacement; normal/non-owned
+calls can forward to the exact original callee with all original arguments.
+Only consume the owned community accepted-start/epoch with its validated frozen
+bootstrap and expected non-spectator mode; enqueue existing dedicated bootstrap
+work exactly once. Preserve the notification's original signals/events. This is
+a candidate hook, not a verified native lifecycle implementation. Do not use a
+dummy connection and accidentally call original transport. Do not let a foreign
+notification or repeated epoch launch another native world.
+
+LEAVE, CLOSURE, RESULTS, AND RETURN
+ProcessLobbyClosedNotification RVA3e48ad0:
+  void(front, LobbyClosedNotification message, MethodInfo*), RCX/RDX/R8.
+Clears front._party first. If CustomGameLobby/CurrentState exist, sets state
+Closed3 and closure reason, raises LobbyClosed(reason), logs/updates matchmaking,
+then clears CurrentState and Permissions and resets stored close reason to0.
+The CustomGameLobby WRAPPER remains nonnull. If already no current state it logs
+and returns after clearing Party. A NONE snapshot is not an adequate substitute:
+native listeners need the closure event and reasons.
+
+Manager.OnLobbyClosed RVA3cacf90 checks pending create; with prediction, emits
+PredictJoiningGameFailed except for GameStart3, then Release, then its own closed
+event. OnCustomGameCreated RVA3cad040 only signals failure for nonzero error.
+Manager.Release RVA3caab80 removes Initialize subscriptions, clears prediction,
+pending create/update/deferred/invites and raises prediction changed. It does not
+clear the front objects itself. Its Steam main-menu presence path depends on
+active game connection state; preserve the established dedicated Steam guards.
+Manager.ExitLobbyScreen RVA3cab800 only reports not-in-screen; it is not Leave.
+
+Manager.LeaveLobby RVA3cab820, when not already closed, builds case14 and directly
+calls Front.UpdateLobbyRequest(single) at3cab945, ignoring its returned request.
+It then signals failed-enter-game unless the close reason is GameStart and calls
+Release immediately, before any ACK. This leave request is not the manager's
+ordinary pending-update response flow. Complete server departure/closure without
+feeding an unrelated response callback after Release. Guard late snapshots/ACKs
+by generation/membership so they cannot recreate a voluntarily left lobby.
+Front.UpdateLobbyRequest(list) requires CustomGameLobby and status!=0, but assumes
+CurrentState is nonnull when the wrapper exists. After native closure its state
+is null, so a stale managed list request can dereference null. Original manager
+Release normally prevents this; the adapter must not resurrect stale requests.
+
+Native permanent subscription:
+Manager lifecycle Create RVA3caa3a0 subscribes Front.LobbyStateUpdated to manager
+OnLobbyStateUpdated. Ordinary Release does NOT remove this. Lifecycle Destroy
+RVA3cab350 removes it, then calls LeaveLobby(false). Thus a later accepted open
+state can reinitialize native prediction without pressing Create again.
+The new-prediction tail at3cacf48 is exactly:
+  IMenuFlowController.TravelToScreen<CustomGameMainScreenVM>
+  method spec295198 = method17138, method generic-inst19709.
+Resolved through original metadata registration186198290, method-specs185864110,
+generic-inst table18582dea0. This is not guessed from a shared dispatcher label.
+Related signal specs270702/270703 resolve to PostSignal<
+PredictJoiningGameFailedSignal>/PostSignal<PredictJoiningGameSignal> respectively.
+
+Front.LeftGame RVA3e3e5d0 enqueues UpdateInGameStatus(false) at3e3e658, resets
+trying-to-enter-game, updates rich presence/status. It does not restore Party or
+the custom lobby and does not know community RETURN. UpdateActiveLobbyStatus
+RVA3e36330 only logs; it is not a hidden repair/rejoin method.
+Original MatchResultVM.OnContinue RVA3d610c0 / PostGameFlowEnd RVA3def0a0 and the
+existing documented world-idle/menu gates remain the result teardown boundary.
+
+Proposed return strategy to qualify (original wire ordering was not captured):
+  1. Keep durable community membership independently. Native GameStart3 closure
+     should occur only for a committed, validated owned match transition, not
+     merely host Start. Ensure original bootstrap/connection and closure event
+     ordering cooperate before declaring it the final ordering.
+  2. After native result/abort handling and actual world teardown/menu, send
+     community RETURN for the exact completed/aborted match. A phase RESULTS
+     snapshot alone must not bring the UI back while a native world is alive.
+  3. Wait for authoritative OPEN, restore canonical lobby identity, build an
+     appropriate custom Party from current membership/host, then deliver the
+     state notification. It can rebuild prediction and travel to the custom UI.
+  4. Guest restoration MUST NOT call ProcessPartyInviteReplyResponse again;
+     there is no pending native invite reply and its counter would decrement.
+     Host ProcessCreateLobbyResponse likewise forces creator semantics and
+     creates a response event for a request that is not pending. Use controlled
+     native Party construction plus notification if this strategy is selected.
+  5. Qualify one player still in results, survivor after abort/disconnect,
+     host transfer, setup failure before bootstrap, and fresh rematch epoch.
+
+Native Party #2008 fields: IsCreator10 bool, Members18 List<named>,
+PendingPlayerInvite20, PartyType28, PendingInviteExpiry30 DateTime,
+ExternalTeamRating38, HasPlayedMatch3c bool.
+Its constructors are known original methods:
+  RVA3e4c320 .ctor(bool isCreator, PlayerHandleWithName host, PartyType)
+  RVA3e4c470 .ctor(bool isCreator, IEnumerable<PlayerHandleWithName> members,
+                   PartyType)
+They allocate a fresh Members list and Add(host)/AddRange(members).
+Direct ABI: RCX allocated this, EDX bool, R8 object, R9D PartyType,
+MethodInfo is fifth argument at caller [rsp+20]/callee entry [rsp+28].
+Use reflection selection by the second managed argument type: name+argc alone
+cannot distinguish these two three-argument constructors. Restoring front._party
+with the managed barrier is proposed reconstruction, not yet runtime-proven.
+
+EXACT REQUEST CALLSITE GUARDS
+All following are original 5-byte CALL rel32 to generic EnqueueMessage RVA256df90.
+ABI: void(front RCX, FrontServerConsumer RDX, generic MethodInfo R8).
+The earlier FrontClientConsumer argument label was an author transcription
+error: outgoing requests are wrapped in FrontServerConsumer.
+Generic method spec291075 is ServiceIntegration`3.EnqueueMessage with class args
+FrontPb.FrontClientConsumer, FrontPb.FrontServerConsumer, FrontServiceClient.
+Scope to owned community mode and expected consumer/request case; otherwise
+forward once to that native callee with all arguments. No executable prologue
+gateway is necessary. Match original DLL hash plus each exact byte preimage.
+
+  Purpose          RVA          Raw offset   Original bytes
+  manager invite   03cac066     03caa666     e8 25 1f 8c fe
+  create           03e46f3e     03e4553e     e8 4d 70 72 fe
+  update list      03e472ce     03e458ce     e8 bd 6c 72 fe
+  update single    03e474e6     03e45ae6     e8 a5 6a 72 fe
+  invite reply     03e46968     03e44f68     e8 23 76 72 fe
+
+Create uses consumer case33; updates use34. Store the actual request object's
+managed root until its deferred completion/cancellation; never retain an
+unrooted pointer across updates. A scope token needs connection generation,
+native request identity and expected kind, community request id and lobby/start
+epoch. Update snapshots monotonically by revision, but do not drop ACK ownership
+just because a newer snapshot exists. Canceled native requests must not be
+resurrected by late server replies. Public fields/offsets here do not replace
+runtime type, ownership and lifetime validation.
+
+CONSTRUCTING MANAGED OBJECTS WITHOUT A NEW BINARY GATEWAY
+Noarg .ctor RVAs:
+  CreateLobbyResponse, LobbyStateNotification, UpdateLobbyStateResponse,
+  LobbyClosedNotification, CustomGameCreatedNotification, LobbyMember,
+  PlayerHandle and CustomGameLobby: trivial shared RVA6af170.
+  LobbyState391d710, LobbyPermissions391b470, RolePermissions391c680,
+  UpdateLobbyStateRequest3aa0120, ServiceHandle3930f70,
+  PlayerHandleWithName3931bf0.
+The nontrivial constructors initialize repeated collections/strings. Do not skip
+them because object_new zeroes fields. Distinguish noarg constructors from clone
+constructors sharing the same method name in native-map.json.
+
+Existing ba::make/ba::call machinery can class-initialize, allocate, invoke
+noarg constructors and property setters, root local objects, and runtime_invoke
+the native Process* handlers. Runtime invocation supplies MethodInfo properly;
+it also avoids direct shared-method metadata assumptions. Reference assignments
+must use managed write barriers. All managed operations belong on the known
+Unity integration thread, not the socket receive thread; this static review
+does not establish that arbitrary thread attachment makes UI callbacks safe.
+Existing ba_local::addItem targets reference-type Add, so it is not suitable
+unchanged for RepeatedField<PermissionType>. Resolve the enum Add overload and
+pass an int32 value address, or reuse a small authored protobuf encoder with
+MessageExtensions.MergeFrom(IMessage, byte[]) for these owned message instances.
+lan_transport.cpp's parse currently hardcodes GamePb; expand namespace/type
+selection deliberately if using that construction route. Do not commit copied
+descriptor/data tables, or raw client/metadata bytes to obtain these few shapes.
+
+REMAINING IMPLEMENTATION / ACCEPTANCE GATES
+- Native custom roster and invite row construction without inlined Steam calls;
+  correct pending invite bookkeeping and native acceptance/decline presentation.
+- Exact request-to-server command batching, selected deck synchronization, stale
+  revision failure completion, unsupported mode/kick/move/promote handling.
+- Stable lobby named identity across current seat-based bootstrap and teardown.
+- Epoch deduplication, new-prediction Ready edge, rollback on timeout/rejection,
+  duplicate callbacks, and late callbacks after Leave/Release/reconnect.
+- Committed-start closure vs GameCreated/bootstrap order; never two worlds or
+  fallback original network joins. Instrument native state before selecting
+  the final order; static evidence does not settle the original wire schedule.
+- Real graphical host-create -> invite -> guest accept -> host Start -> native
+  results/Continue -> same room rematch, including guest-first/host-first returns,
+  host departure, setup failure, disconnected peer and a third bystander.
+
+No native custom-menu success is claimed by this review.

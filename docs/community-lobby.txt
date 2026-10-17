@@ -1,7 +1,11 @@
 COMMUNITY PLAYER DIRECTORY, CUSTOM GAMES AND AI PRACTICE
-Updated:2026-10-17. Server control implemented; native UI and AI adapters unfinished.
+Updated:2026-10-17. Server control and native Create/Leave implemented;
+native roster/Invite/Start/result-return and AI adapters unfinished.
 Scope: Windows build37822, existing native UI, authored server/patch source only.
 Detailed authored static trace and guarded hook candidates: custom-lobby-native.txt.
+Callback/identity evidence: custom-lobby-responses.txt. Roster/popup/pooling and
+invitation side effects: custom-lobby-roster.txt. Opt-in implementation/runtime
+qualification: community-client.txt. Normal play does not enable this experiment.
 
 REQUESTED USER FLOW
 Connect to the configured community server. Custom Game -> Invite Friend lists
@@ -27,6 +31,8 @@ Fifteen community lifecycle tests and two added TLS identity tests pass. The rea
 simulation probe completed two custom matches with a changed deck and a third
 uninvolved connected player. These scripted clients do not establish native Invite
 Friend/Start UI operation; that translation and manual acceptance remain to do.
+An isolated native adapter has since qualified Create/Leave and pending-create
+cancellation/re-entry against the real coordinator, separately from those games.
 
 NATIVE CLIENT FINDINGS (STATIC, NOT A WORKING UI IMPLEMENTATION)
 The existing CustomGameLobbyManager and custom menu have lobby creation/update,

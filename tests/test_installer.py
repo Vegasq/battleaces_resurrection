@@ -72,6 +72,20 @@ class InstallerTests(unittest.TestCase):
             self.assertEqual((self.root / name).read_bytes(), original)
         self.assertFalse((self.root / '.battleaces-resurrection').exists())
 
+    def test_experimental_community_requires_matching_helper_before_writes(self):
+        with self.assertRaisesRegex(ValueError, 'community ABI1'):
+            installer.install(self.root, helper=self.helper, community=True)
+        for name, original in self.originals.items():
+            self.assertEqual((self.root / name).read_bytes(), original)
+        self.assertFalse((self.root / '.battleaces-resurrection').exists())
+        self.helper.write_bytes(self.helper.read_bytes() + b' BA_RESURRECTION_COMMUNITY_V1')
+        manifest = installer.install(self.root, helper=self.helper, community=True)
+        self.assertTrue(manifest['community']['experimental'])
+        self.assertTrue(any(h['name'] == 'OfflineCommunityEnqueue' for h in manifest['call_hooks']))
+        normal = installer.install(self.root, helper=self.helper)
+        self.assertFalse(normal['community']['experimental'])
+        self.assertFalse(any(h['name'] == 'OfflineCommunityEnqueue' for h in normal['call_hooks']))
+
     def test_file_replacement_failure_rolls_back_earlier_components_and_helper(self):
         old_helper = b'MZ previous authored helper'
         (self.root / 'BattleAcesOffline.dll').write_bytes(old_helper)
