@@ -1,0 +1,253 @@
+NATIVE CUSTOM INVITATION LIFECYCLE: STATIC ADAPTER EVIDENCE
+Read-only REA-guided review, 2026-10-17, client build 37822
+
+PROVENANCE AND LIMITS
+The original DLL was read and its SHA256 independently checked in this review:
+  investigation/original/GameAssembly.dll
+  e59d08c01479b27404778048d7e13546dbf3771f6b3912744c7c2bdf80c4e758
+Image base 0x180000000. All RVAs and managed field offsets below are hex.
+Evidence is original-byte disassembly through investigation/network/
+original_disasm.py, recovered IL2CPP metadata through metadata_types.py, and
+local front_party_pb/common_party_pb/common_pb descriptors. Native REA engine
+availability remains unavailable; no engine result or runtime observation is
+claimed. No game process, UI action, binary patch, or tracked source edit was
+performed. This authored local note is the only intended output.
+
+Read docs/custom-lobby-responses.txt and docs/custom-lobby-roster.txt first.
+The terminal cleanup procedure below is proposed adapter policy based on the
+recovered native behavior; it has not yet been runtime qualified.
+
+KEY RESULT
+Three different pieces of native invitation state require separate treatment:
+  1. Front._partyInvites is a linked list of RECEIVED PartyInvite objects.
+  2. Front._party is a Party, with members and an optional outgoing pending invite.
+  3. CustomGameLobbyManager._pendingLobbyPlayerInvites is a List of SENT native
+     InvitePlayerToPartyRequest objects. Successful invite ACKs leave this list.
+Neither ProcessPartyInviteUpdateNotification nor ProcessCancelInviteToPartyResponse
+cleans item 3. Clearing Front.Party to clear an invite would destroy the custom
+host's existing party. ClearPendingInvites clears ALL pending manager requests.
+For one terminal server invitation, remove exactly its retained native request
+from the owned manager list, then notify InvitesChanged once if it was removed.
+
+GENERATED MESSAGE TYPES / ENUMS
+FrontPb.PartyInviteState #6087 has only:
+  Accepted=0, Declined=1, Canceled=2.
+There are no native Pending, Expired or Busy enum values. Community status values
+must not be copied directly into this enum: community Accepted=1 is native
+Declined=1, and community Pending=0 is native Accepted=0.
+
+FrontPb.PartyInviteUpdateNotification #6102:
+  playerHandle_18 CommonPb.PlayerHandleWithName;
+  inviteState_20 FrontPb.PartyInviteState;
+  frontReceiver_28 CommonPb.PlayerHandle;
+  partyLeader_30 CommonPb.PlayerHandleWithName;
+  partyType_38 CommonPb.PartyType;
+  externalTeamRating_3c int;
+  gameMode_40 CommonPb.GameMode.
+FrontPb.CancelInviteToPartyResponse #6100:
+  playerHandle_18 CommonPb.PlayerHandle (RAW handle, not named).
+FrontPb.CancelInviteToPartyRequest #6092:
+  playerHandle_18 raw, frontSender_20 named (original builder fills only target).
+Use its fully qualified class name for reflection; metadata type indices are not
+the IL2CPP type-pointer table indices.
+
+CommonPb.PartyType: None0, Group1, Challenge1v1=2, CustomLobby=3, Debug2vAI=4.
+CommonPb.GameMode: None0, 1v1=1, 2v2=2, FTUE3, 1vAI4, 2vAI5,
+TempFTUETutorial2=100. The mode1 invitation and mode1 LobbyState use the same enum.
+
+Native object fields:
+  FrontServerIntegration._pendingInviteResponseRequests +13c int
+    _party +178 Party; _partyInvites +180 LinkedList<PartyInvite>
+    _matchmakingStatus +188 enum; InvitePlayerToPartyResponse +1b8 Action<msg,error>
+    MatchmakingStateChange +1e8 Action; _signalRouter +210;
+    _lastPartyInviteRequestGameMode +280 GameMode.
+  Party #2008: IsCreator10 bool; Members18 List<PlayerHandleWithName>;
+    PendingPlayerInvite20 named; PartyType28; PendingInviteExpiry30 DateTime;
+    ExternalTeamRating38 int; HasPlayedMatch3c bool.
+  PartyInvite #2010: Sender10 named; InviteExpiry18 DateTime;
+    PartyType20; GameMode24.
+  CustomGameLobbyManager #3288: InvitesChanged48 Action; _frontServer58;
+    _pendingLobbyPlayerInvites80 List<InvitePlayerToPartyRequest>.
+
+PROCESS PARTY INVITE UPDATE NOTIFICATION
+RVA3e47c40; ABI void(front RCX, message RDX, MethodInfo* R8).
+The handler is not a route validator: it does not inspect frontReceiver. The
+adapter must validate authenticated target, session/generation and native owner.
+
+Recovered sequence:
+  - Requires nonnull message, calls front.RemovePartyInvite(message.playerHandle)
+    at3e47cb3 for EVERY state, including Accepted.
+  - At3e47cb8, any nonzero inviteState skips all Party mutation and goes to the
+    final UpdateMatchmakingStatus(OK). Declined1 and Canceled2 behave alike here.
+  - Accepted0 additionally skips Party mutation for partyType2 or4. The exact
+    gate at3e47cc5..cd tests ((partyType-2) & ~2)==0. Custom3 continues.
+  - If front.Party is null, constructs Party(local raw identity equals
+    message.partyLeader raw identity, message.partyLeader, message.partyType).
+    Raw equality here compares steamId/isAliased. Existing Party is preserved.
+  - Sets front._lastPartyInviteRequestGameMode = message.gameMode at3e47de3.
+  - Appends message.playerHandle to Party.Members at3e47e18..74. This is an
+    unconditional List.Add, with NO duplicate/Contains check.
+  - Clears Party.PendingPlayerInvite at3e47e7f and PendingInviteExpiry at3e47ec3.
+    It does not change an already-existing Party.IsCreator or Party.PartyType.
+  - Uses message.externalTeamRating only when IsPartyGameMode(gameMode) AND
+    IsShowRatingAndLeagueGameMode(gameMode); otherwise writes rating0.
+  - Tail calls UpdateMatchmakingStatus(front,OK,null) at3e47f4d.
+
+For successful custom guest acceptance on the HOST, use the canonical guest as
+playerHandle, canonical host as partyLeader, host raw frontReceiver, custom3 and
+mode1. The existing host Party(true,[host],3) is retained and gets the guest.
+Call once per owned invitation acceptance only, after authority confirms the
+guest belongs to the same lobby. Duplicate Accepted notifications append duplicate
+Party members. Do not send the same Accepted update to the GUEST: its real reply
+response already constructs the complete Party, and another update could append
+the host a second time.
+
+INCOMING INVITE REMOVAL / EQUALITY
+RemovePartyInvite RVA3e396a0; ABI void(front RCX,namedPlayer RDX,MethodInfo* R8).
+Constructs a temporary PartyInvite(namedPlayer,partyType0,mode0,expiry0), then
+LinkedList<PartyInvite>.Remove(value), spec285114, tail3e39738/callee198f800.
+This removes at most one matching list element and DOES NOT refresh UI itself.
+
+PartyInvite.IEquatable.Equals RVA3e4c8e0 compares only Sender.PlayerHandle value
+equality: steamId, isAliased and protobuf unknown fields. It does not compare
+names, expiry, PartyType or GameMode. By contrast FindExistingPartyInvite
+RVA3e39750 iterates and uses full PlayerHandleWithName.Equals39321e0. Thus removal
+can find a sender that a reply's full named lookup misses after a name change.
+Keep canonical names and handles stable through the invitation lifetime.
+
+The helper must guard community invitation id/generation BEFORE calling this
+identity-based removal. A late terminal event for invitation A must not remove
+a newer native invitation B from the same sender. Preserve the actual native
+PartyInvite association, or prove there is exactly the still-owned invite for
+that sender. Never use names or the current FirstPartyInvite alone as event IDs.
+
+GUEST REPLY, DECLINE, CANCEL AND EXPIRY
+ProcessPartyInviteReplyResponse RVA3e48050:
+  void(front RCX,message RDX,MethodInfo* R8); NO Error argument.
+It looks up existing invitation by response.inviter using full named equality,
+captures its GameMode (defaults0 if missing), unconditionally decrements
+front._pendingInviteResponseRequests at3e480ce, removes invitation at3e480de,
+and, only if response.inParty=true, replaces Party with
+Party(false,response.members,response.partyType). Then UpdateMatchmakingStatus(OK).
+False does NOT destroy an existing Party. It only removes the received invite
+and resolves the real native request counter.
+
+Every actual native accept/decline request must receive exactly one correlated
+reply completion after original PartyInviteReplyRequest returned/incremented
+the counter. Its enqueue hook returns BEFORE increment3e4696d. On accept success,
+provide all authoritative canonical members and inviter, custom3, then deliver
+LobbyStateNotification. Preserve the native invite until this reply handler has
+captured its GameMode; do not first feed Accepted/Declined/Canceled update for it.
+
+For decline/rejected/expired/canceled while a genuine reply is pending, defer a
+false reply for that request; do not additionally decrement via a second reply.
+If no native reply is pending, terminal incoming removal can use
+ProcessPartyInviteUpdateNotification with stateDeclined1 or Canceled2. Expired
+and Busy have no native equivalents: mapping them to Canceled2 for removal is
+adapter policy. Retain the actual terminal reason separately if presenting it.
+A terminal event arriving before ACK does not prove a pending Accept succeeded;
+accept success also needs authoritative lobby membership and correlated ACK.
+
+ProcessCancelInviteToPartyResponse RVA3e47b40:
+  void(front RCX,message RDX,error R8D,MethodInfo* R9).
+Message is unused. Nonzero error logs a warning; every path tail-calls
+UpdateMatchmakingStatus(front,OK,null). It clears NO Party, incoming invitation,
+manager request or counter. Do not rely on it to implement cancellation.
+
+NATIVE SENT-INVITE TRACKING / TARGETED CLEANUP
+InviteToCustomGame3cabe80 appends the new request to manager list before enqueue
+at3cac066, then raises InvitesChanged after enqueue returns (3cac06b..7c).
+OnInvitePlayerToPartyResponse3cac2c0:
+  void(manager RCX,response RDX,error R8D,MethodInfo* R9).
+Only response.partyType==3 AND error!=0 removes entries. It calls List.RemoveAll
+using predicate3caf880, which compares response.playerHandle.PlayerHandle to
+request.playerHandle, then raises manager.InvitesChanged if removed count>0.
+It does not mutate front.Party itself. Success retains the requests intentionally.
+Predicate compares raw handles including unknown fields; it is NOT exact request
+identity or invitation id. Feeding a fabricated error here can remove newer
+requests to the same target as well as the intended old request.
+
+ClearPendingInvites3cac240 empties the ENTIRE list, increments its version,
+Array.Clear's old entries and invokes InvitesChanged even if list was empty.
+Do not use it for one invitation's terminal event.
+
+Proposed exact cleanup, on the observed Unity thread:
+  - Retain the original native request with an IL2CPP GC handle after the owned
+    enqueue hook. Associate request, manager, connection generation, community
+    request id, eventual invitation id, lobby id and target profile/alias.
+  - On terminal invitation status, validate all those associations and the
+    currently owned manager/front. Scan the actual generic List Count/get_Item
+    with a bound; match the retained request by OBJECT POINTER, not Equals.
+  - Invoke native List.RemoveAt(index) through its actual class/method metadata.
+    Do not raw-write size/version or manually move managed reference elements.
+  - If an item was removed, load current manager.InvitesChanged and invoke its
+    native Action.Invoke once. This reproduces the ordinary live refresh event
+    without reporting a false failed invitation through front's response path.
+  - If already removed by Release/Initialize/real rejection, record completion
+    and free the root without touching unrelated entries. A duplicate terminal
+    event must be a no-op. If manager has been released/replaced, do not revive it.
+  - Retain successful INVITE native state after its ACK until terminal status;
+    do not free the only request association just because the server accepted
+    creation of the invitation. Initial rejection may use the real failure
+    response path once, still with correlation and same-target race guards.
+This procedure is new adapter behavior. It requires runtime qualification of
+pooled row refresh and native list method invocation; no new patch is required
+merely to invoke List.RemoveAt/Action.Invoke via existing IL2CPP APIs.
+
+The previously proposed InvitePlayerToPartyResponse automatedAcceptance=true
+remains an explicit custom adapter policy. Original handler3e477f0 skips replacing
+host Party when true; it still calls UpdateMatchmakingStatus(OK) and fires the
+response delegate. It does not clear manager pending requests or set a host
+PendingPlayerInvite/expiry. Preserve custom host party and use manager rows for
+the outgoing invitation's pending state.
+
+COUNTDOWN IS NOT AN EXPIRY STATE MACHINE
+MatchmakingNotification.OnPartyInviteExpiryUpdate3d599f0 chooses Party's pending
+expiry if available, otherwise FirstPartyInvite.InviteExpiry; subtracts
+front.GetCurrentServerTime, converts to integer seconds, clamps to0 and calls
+panel.set_InviteExpirationTime3d24110. It does NOT remove/decline at0.
+GetCurrentServerTime3e39590 returns DateTime _serverTimeAtLogin(+160) plus
+Unity.Time.realtimeSinceStartup()-_realtimeAtServerLogin(+168 float). The resolved
+internal-call string at original VA1856f50b0 is
+UnityEngine.Time::get_realtimeSinceStartup(). It does NOT directly read OS UTC.
+Native PartyInvite ctor3e4c7b0 converts Unix milliseconds to DateTimeOffset then
+ClockDateTime. Match the native clock basis when converting community remaining_ms
+to absolute expiry, or deliberately anchor the owned session's two clock fields.
+Do not assume the disabled original login initialized that clock. Native countdown
+still requires the server terminal event to remove the invitation.
+
+UpdateMatchmakingStatus3e35cd0 returns immediately if pending reply counter>0,
+before recalculating status or raising callbacks. Otherwise it derives status
+from linked-list invitations, Party, custom lobby, queue and game state, then
+invokes MatchmakingStateChange, raises MatchmakingStatusSignal and calls
+UpdateInvitableSteamRichPresence. Keep existing dedicated Steam guards intact.
+For an unqueued partyless recipient whose first invite is custom3, the derived
+status is12. Active custom lobby state derives status11. These are observed path
+results, not a replacement for the native full status calculation.
+
+CANCEL REQUEST CALLSITE CANDIDATES
+All bytes independently read from the SHA-checked original. Original callee is
+EnqueueMessage RVA256df90, ABI void(front RCX,FrontServerConsumer RDX,
+generic MethodInfo* R8). Preserve ordinary original fallback and tail semantics.
+  manager invite: RVA3cac066 raw3caa666 e8251f8cfe CALL (case23)
+  native reply:   RVA3e46968 raw3e44f68 e8237672fe CALL (case25)
+  native cancel:  RVA3e46b1d raw3e4511d e96e7472fe JMP  (case24)
+  panel decline: RVA3d24dad raw3d233ad e8de9184fe CALL (case24 OR case27)
+The last site is the INLINED CancelInviteToPartyRequest/DisbandParty path in
+MatchmakingStatusPanelVM.OnDecline3d24910. When Party exists and PendingPlayerInvite
+exists, it constructs cancel24; when Party exists without pending invite it
+constructs DisbandPartyNotification27. Partyless guest decline uses the shared
+PartyInviteReplyRequest and thus the existing reply hook. A cancel method entry
+or tail patch alone will miss the panel's inlined construction.
+Do not map panel OnCancelClicked to invitation cancel: that is queue cancellation.
+
+REQUIRED RUNTIME CHECKS BEFORE CLAIMING SUPPORT
+Successful native host invite ACK preserves exact Party object/creator/member.
+Pending row becomes pending and remains so after success ACK. Recipient popup
+names the intended canonical sender and count/deadline are sensible. Accept gives
+host exactly one added guest and guest exactly two members; both custom states
+agree; native reply counter returns0. Decline, cancel, expiry and busy remove only
+the affected incoming/outgoing state and refresh the native UI. Retry/reinvite,
+late terminal events, duplicate events, multiple senders, roster close/reopen and
+manager Release must not remove another invite, append duplicates, leak roots or
+strand the reply counter. These checks were not run by this static review.

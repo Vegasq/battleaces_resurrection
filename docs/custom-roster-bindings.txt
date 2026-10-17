@@ -1,0 +1,376 @@
+﻿CUSTOM INVITE ROW / POPUP BINDINGS AND NATIVE PICKER ENTRY
+2026-10-17, client build37822. Authored static REA-guided investigation.
+
+VERDICT AND BOUNDARY
+Presentation-only FriendVM children (strategy A) are supported by the inspected
+prefab bindings for the custom invite row and recipient custom-invite popup.
+Neither IsModelSet nor ShouldShowFriend controls visibility in these prefabs.
+Native setters can render the children while IsModelSet remains false, without
+calling FriendModel/Steam. Keep ORIGINAL outer row binding and native popup model.
+Do not forward owned child bindings to the original FriendVM.set_Model first.
+
+This is a bounded implementation recommendation, not graphical runtime proof.
+Every owned bind must repaint all relevant properties and call UpdateAllBindings.
+For a freshly acquired popup this may require a deferred flush: root Initialize
+can bind before its child BindingCollections initialize. See the order below.
+The native no-candidate/lookup-failure branch does not erase old presentation;
+clear BOTH owned popup children explicitly when an owned lookup fails. Preserve
+the native outer notification lifecycle: None0 and InCustomLobby11 release the
+popup. Dropping only the child model does not hide its GameObject or clear text.
+Keep unsupported child invite/profile/spectate actions disabled. No global Steam
+friend cache, shared localization descriptor, or prefab mutation is needed.
+
+PROVENANCE / REPRODUCTION
+Original DLL investigation/original/GameAssembly.dll, image base180000000,
+SHA256 e59d08c01479b27404778048d7e13546dbf3771f6b3912744c7c2bdf80c4e758.
+Native evidence uses original_disasm.py, metadata_types.py and native-map.json.
+All code addresses below are RVAs; raw offsets refer to the pinned original.
+Native REA engines remain unavailable; no setup was retried and no runtime/UI/
+process/binary action was taken. No tracked source was edited.
+
+Asset evidence: Battle Aces_Data/StreamingAssets/aa/StandaloneWindows64/
+2fa2b6e70fed51f3d26c422052c7443a.bundle, Unity2022.3.40f1, serialized node
+CAB-9416a50a9c91113ec26dc63b1c7fc309, node length149196632 bytes,
+metadata7828319 bytes. The local authored helper local/roster_asset_probe.py
+reads bounded UnityFS/LZ4 blocks and serialized type trees in memory. No extracted
+client bytes/assets were written. The four selected prefab hierarchies contained
+1794 GameObjects/components in total; their serialized _bindings arrays and
+persistent actions were examined. The decoder explicitly stops at unparsed
+managed-reference payloads where applicable; no conclusion relies on treating
+such a payload as a complete decoded model. The invite descriptor fields and
+null reference id precede that payload. Serialized PathIDs below are provenance,
+NEVER addresses usable in a running game.
+
+Related native-only findings: local/p2-native-picker-opening.txt. Existing
+construction/pool/request hazards remain in docs/custom-lobby-roster.txt.
+
+EXACT PREFABS AND COMPONENTS
+AssetBundle container keys/root GameObject PathIDs:
+ CustomGame_InvitePlayerItem.prefab    -6550972110665776450
+ CustomGame_InvitePlayerDialog.prefab   3071040521551086388
+ MatchmakingStatusPanel.prefab         5287230134224934442
+ CustomGameMainScreen.prefab          -5209374673204572563
+
+Component PathID / serialized-node byte offset / size:
+ CustomGameInvitePlayerItemVM 6661958043554965490 /128722232 /384
+ its FriendVM                8790568534683729529 /141047840 /852
+ CustomGameInvitePlayerVM     4880153814914677118 /115772920 /152
+ MatchmakingStatusPanelVM    8398922390206134746 /139870128 /1060
+ recipient FriendVM           835724213803196562 /89593472 /760
+ queue-party FriendVM         331474590336854358 /88456936 /760
+ CustomGameMainScreenVM     -5796183573175628627 /32868984 /844
+ invite UIButton               751440462471231521 /89412160 /776
+ picker ShowUIObjectComponent -653016051896905153 /73982992 /100
+
+ROW BINDINGS AND ACTIONS
+Outer row has _friendVM referencing the exact child above. Outer CanInvite feeds
+UIButton4642362606312941945.interactable. That button's persistent click targets
+the OUTER CustomGameInvitePlayerItemVM.InviteToGame. Keep its native model binding
+and native request validation; its method itself does not recheck CanInvite.
+
+CannotInviteReason drives ordinary/pending containers, reason tooltip text, and
+hover enablement. Reason4 switches to pending UI. The native reason renderer is
+independent of the child presentation. Do not use an unrelated reason to label a
+self/busy directory row; enforce availability at the actual send boundary too.
+The FriendItem child has an interactable UIButton but NO persistent action.
+No other serialized persistent callback in the inspected row/popups targets the
+child FriendVM action methods. Name-hover tooltips are text previews, not profile
+or Steam friend actions.
+
+Child FriendVM source bindings (all are native Property senders):
+ PlayerName -> TMP-7956271810814656489.text
+ PlayerStatus -> TMP-1206900692786921786.text
+ Portrait -> RawImage5510980794240299112.texture
+ CosmeticBannerAvailable -> PlayerBannerItem1933790940136652412.active
+ CosmeticPortraitAvailable -> Avatar-3775802207511299882.active and the
+   negated SteamPortrait-3987288406372408324.active
+ ExternalRating -> rating TMP2781352775600168361.text plus rank-container active
+ League -> Image5928893339988951436.sprite through the native league transformer.
+No binding uses IsModelSet, ShouldShowFriend, Online, InGame or action flags.
+The row root and FriendItem GameObjects are initially active. Banner/avatar are
+initially inactive; SteamPortrait initially active with a null RawImage texture.
+The rank visibility transformer is keyed from ExternalRating versus zero.
+Assign ExternalRating=0 and refresh bindings to hide unused rank/rating metadata.
+
+RECIPIENT / QUEUE-PARTY CHILD BINDINGS
+The panel references its recipient child through _playerInviteFriendVM and its
+queue-party child through _partyMemberFriendVM. Both bind PlayerName, Portrait,
+CosmeticBannerAvailable, CosmeticPortraitAvailable, ExternalRating and League.
+Neither has a PlayerStatus binding. Their PlayerName receivers are respectively
+TMP2593887188197512423 and TMP2214849129905377847. No IsModelSet/ShouldShowFriend
+binding was found anywhere in these prefab trees.
+
+Visibility ancestors are controlled by the OUTER panel:
+ ShowPlayerInvitePanel -> PlayerInvitePanel4882062659270888499.active
+ HasParty -> TeamInfo-7580315976805699198.active
+ InQueue -> InQueueContainer-3173339901013915686.active.
+All three parent GameObjects are initially inactive; both child item GameObjects
+are active. These are not per-child model visibility bindings. No ReceivedInviteCount
+binding or hidden inner sender-visibility binding was present.
+Panel MatchmakingStatus additionally drives invite text, accept-button active,
+decline text and timer visibility. ValidateDeckVM drives accept interactability.
+Accept/Decline buttons target original panel.OnAccept/OnDecline. They do not call
+FriendVM actions and do not need a child FriendVM model to identify the invite.
+
+The native formula at3d25334..3d253d2 is:
+ ShowPlayerInvitePanel = !InQueue || (!HasParty && ReceivedInviteCount >= 1).
+HasParty reads front._partyMembers(+120).Count > 1; ReceivedInviteCount reads
+front._partyInvites(+180).Count. Thus ShowPlayerInvitePanel alone is NOT proof of
+an actual invitation. Idle would evaluate true if the popup instance remained.
+
+The missing outer lifetime is MatchmakingNotification.OnMatchmakingSignal3d59650:
+ - ReceivedInviteCustomLobby12 initializes/shows the native popup and invite timer.
+ - None0, LeavingQueue6, MatchFound7, Error8 and InCustomLobby11 take its release
+   block3d59709..3d59865. It emits dismissal, releases its panel through the pool,
+   stops timers and clears its _viewModel field.
+So scoped no-invite/no-party/no-queue -> None, and accepted custom invite ->
+InCustomLobby, dismiss the whole popup. Keep these original signals rather than
+leaving an orphaned manually created panel visible. A missing owned friend lookup
+while another native candidate/status keeps the popup alive MUST clear the two
+children; native ClearModel cannot substitute for this.
+
+MODEL / SETTER / POOL LIFETIME
+Exact model namespaces: Uncapped.UI.FriendModel#3382 and
+Uncapped.UI.FriendExtension#3380. FriendModel has NO noarg ctor. Its original
+ctor takes ref Steamworks.Friend,bool and calls Steam-dependent extension update;
+use the separately reviewed owned constructor strategy, not ba::make with .ctor0.
+FriendExtension has an ordinary noarg ctor. The row model stays rooted and uses
+canonical PlayerHandleWithName values. The presentation child remains unbound.
+
+FriendVM public setters do not call Steam or require IsModelSet. Normal setters
+call binding-aware ViewModel.Set -> ViewModel.UpdateBindings3d6a240 ->
+BindingCollection.Update3af89e0. The collection's own _initialized flag gates
+notification. Native pool Initialize initializes those bindings even if no child
+model is set. Same-value setters may not notify: call UpdateAllBindings3d699d0
+AFTER repainting the owned child, not just for the first field that changes.
+
+Initialization ordering is different for the row and popup. Pool OnTakeFromPool
+calls Owner.Initialize at3d5be92; it completes all initialize handlers before
+GameObject.SetActive(true) at3d5befd and returns. The roster row's later outer
+model bind is therefore after child binding initialization. Popup root Initialize
+3d24610 calls set_Model/Refresh at3d246c4 while Owner is still walking its handler
+array. Its child FriendVM may not be initialized yet. The generic native
+get_UpdateBindingsPostInitialize resolves to6d5ba0 (false), so the child's later
+Initialize does NOT guarantee UpdateAllBindings. A first setter write can be
+stored but never rendered. Keep an owned pending presentation/flush, re-resolve
+the same owner/session/children on the next Unity update, require both child
+BindingCollection.get_Initialized, repaint then call UpdateAllBindings. Drop the
+pending record on release. Do not rely on a later native Refresh, same-value
+setters, or forged IsModelSet/initialization flags. Actual handler array ordering
+was not observed; the guard handles that uncertainty.
+
+Do not forge IsModelSet=true. Require the exact child and active owner/session,
+initialized child and binding collection. If previously model-bound, original
+ClearModel performs observer detachment without calling FriendVM.Refresh; confirm
+IsModelSet=false before taking presentation-only ownership. ClearModel may leave
+base _model nonnull. That is not an active observer or a safe ownership token.
+
+No-invite branch3d25a68..3d25aee directly clears IsModelSet and unobserves only
+when the flag was true. It does not clear _model, text, portrait, action flags or
+ShouldShowFriend. FriendVM has no own Release override. Base ViewModel.Release
+3d69a50 releases bindings/localization handlers and clears _isInitialized; it
+leaves presentation backing values. Repaint every reused child. Do not trust old
+property values because the pool returned the same object address.
+
+Row picker Release3ca95f0 first ClearInvitableFriendsList3ca98e0 (ordinary pool
+release of each row), then unsubscribes FriendsChanged and PredictedLobbyChanged,
+then tails ViewModel.Release. Pool OnReturnedToPool3d5bb70 calls the owner's
+lifecycle release and deactivates the row GameObject when the container does not.
+The dialog uses UIContainer with DisableCanvasWhenHidden=1 and
+DisableGraphicRaycasterWhenHidden=1; Cancel targets UINavigationBack.Back.
+Thus Escape/Cancel should use native owner/pool release, not an adapter Destroy.
+
+TEXT SAFETY AND SECOND RECEIVERS
+The row name/status and both popup names use TextMeshProUGUI with m_isRichText=1.
+Each name also has TextMeshProVM.Text -> a truncation-tooltip TMP.text binding;
+those tooltip TMPs also have rich text enabled. Disabling only main-label richText
+would leave the tooltip interpreting markup. The chosen narrow policy can
+normalize ASCII angle brackets in PRESENTATION ONLY; leave canonical named
+handle fields unchanged for native identity equality. Fixed local status text
+should contain no markup. Do not mutate shared localization data.
+The dynamic labels' LocalizeStringEvent components have EMPTY table/key refs,
+and their persistent setter targets are the same TMPs; the FriendVM bindings
+feed TMP directly. No localized-name key replacement is required.
+
+GUARDED CALL SITES / RELEASE OWNERSHIP
+All bytes below were reread from the pinned original.
+Row child bind:
+ RVA3ca89eb raw3ca6feb bytes41ff9138020000 (7-byte virtual CALL).
+Popup party-child bind:
+ RVA3d25a38 raw3d24038 bytesff9038020000 (6-byte virtual CALL).
+Popup invite-child bind:
+ RVA3d25a5d raw3d2405d bytesff9038020000 (6-byte virtual CALL).
+ABI for each: void(FriendVM RCX,FriendModel RDX,MethodInfo R8). Original vtable
+method is class+238 and MethodInfo class+240. Caller has already loaded metadata.
+Owned wrapper skips this call and paints; non-owned wrapper forwards through
+that unchanged original slot with ALL args. Calling original Refresh instead
+would lose binding/observer semantics and invoke Steam. An entry detour is not
+required for these exact callers.
+
+Picker Release tail:
+ RVA3ca97f9 raw3ca7df9 bytese952020c00, JMP ViewModel.Release3d69a50.
+ABI void(screen RCX,MethodInfo RDX); original zeros EDX and restores its frame
+before this tail. A wrapper can call untouched base Release, then drop screen/
+row ownership after native row Clear and event unsubscribe have completed.
+Keep JMP/tail patch semantics; do not insert a CALL with an extra native return.
+A row released during a directory rebuild does NOT necessarily release the screen;
+its per-row ownership must also be replaced/checked as that native list is rebuilt.
+
+Popup has NO dedicated Release override. Two narrow ordinary notification
+release call sites use an interface invocation thunk, NOT direct(pool,object):
+ OnMatchmakingSignal: RVA3d59831 raw3d57e31 bytese8caa52bfc
+ Dismiss: RVA3d5920c raw3d5780c bytese8efab2bfc
+Both call original RVA13e00 with FOUR args:
+ void(uint16 slot in CX,interfaceClass RDX,pool R8,uiObject R9), slot4.
+The thunk resolves IUIObjectPool.Release then tails its native implementation.
+No trailing MethodInfo parameter is supplied to the thunk. Preserve all four
+arguments on fallback. An exact-owned panel wrapper can clear presentation BEFORE
+forwarding (while bindings initialized), forward original release once, then drop
+adapter ownership. These two sites cover the reviewed notification release paths,
+not every possible shutdown or direct pool-cleanup path in the entire game.
+
+A correctly constructed owned UILifecycleOwner.ReleaseEvent observer is a broader
+ownership-drop boundary. Owner.Release3c8e9b0 calls all IReleaseHandler entries
+first; ReleaseEvent is invoked at3c8eabc and owner.IsInitialized becomes false at
+3c8eace. During that event the OWNER initialized flag is still true but VM binding
+release has already happened. Only drop ownership/roots there; do not call setters
+expecting bindings to update. Re-resolve/validate owner, child initialization and
+session generation before every use regardless of which boundary is selected.
+
+ACTUAL PICKER BUTTON AND PROBE RESOLVER
+There is no CustomGameMainScreenVM.InvitePlayer method in this build. The actual
+button at MiddleContent/TopSettingsBar/InvitePlayerButton is UIButton751440462471231521.
+Its persistent click calls Show on ShowUIObjectComponent-653016051896905153.
+Descriptor _showUIObject has _prefabKey._id101, _model rid-2(null), no parent or
+canvas override; ShownEvent/HiddenEvent contain no persistent calls. Native
+CanInvitePlayer binds that exact UIButton.interactable.
+
+ShowUIObjectComponent.Show3d62c40 ABI void(component RCX,MethodInfo RDX).
+It checks get_IsShown3d62a60, invokes descriptor.Show3d628c0 using _pool, stores the
+returned UIObject, emits ShownEvent and subscribes its owner ReleaseEvent.
+Relevant component fields: _showUIObject20, _pool38, _uiObject40.
+Descriptor fields: _prefabKey10, _model18, _overrideCanvasLayer20,_canvasLayer24,
+_parent28. Invoke the native component.Show, not a fabricated raw prefab or
+manual CustomGameInvitePlayerVM.Initialize. Show does not test CanInvitePlayer.
+
+Find current CustomGameMainScreenVM via exact targets of manager.PredictedLobbyChanged.
+Its Initialize3cb0560 subscribes the virtual Refresh; Release3cb0b20 removes it.
+Require exact class, child _isInitialized true, _frontServer(+c8)==observed front,
+_customGameLobbyManager(+d0)==observed manager, and CanInvitePlayer==true. That
+property is simply lobbyStatus Open1; server/adapter must separately require host
+when appropriate. Reject zero/multiple live screen candidates. Check active graph
+if visibility rather than initialized ownership must be established.
+
+Simple resolver: from that exact screen call Component.get_gameObject6ec1a0,
+then non-generic GameObject.GetComponentsInChildren(System.Type,bool)5089c40
+with includeInactive=true, filter
+exact Uncapped.UI.ShowUIObjectComponent, and require UNIQUE descriptor key101,
+null model, nonnull pool. This scoped hierarchy query is supported by the actual
+asset; do not search all scenes or choose the first generic Show component.
+The binding-based resolver below corroborates the exact button without names.
+Exact native ABI: array*(gameObject RCX,System.Type RDX,bool R8B,MethodInfo R9).
+Component has no non-generic Type,bool overload in this build; its Type-only
+method50858f0 passes includeInactive=false. GameObject has a generic two-parameter
+bool,List<T> overload too: verify nongeneric plus parameter types, not only name
+and arity. The verified5089c40 body does not read MethodInfo.
+
+ViewModel get_Bindings / _bindings+40 returns
+Uncapped.UI.Doozy.Runtime.Bindy.BindingCollection#21867:
+ _initialized+10 (NOT _isInitialized), get_Initialized;
+ _bindings+18 List<Binding>; GetMutableBindingList exists.
+FindSourceBinding(variableName,variableTarget,VariableType) RVA3af8680 accepts
+('CanInvitePlayer',exactScreen,Property2). ABI pointer return RCX collection,
+RDX string,R8 screen,R9D enum,MethodInfo as fifth arg; runtime_invoke is simpler.
+Or bounded-enumerate _bindings with native list Count/get_Item.
+Binding#21865: get_Source / _source+10, get_Targets / _targets+18.
+Doozy.Runtime.Bindy.Bindable#10384:
+ get_connectionType / ConnectionType+30,
+ get_bindyValue / BindyValue+38, get_transformer / Transformer+40.
+BindyValue#10390 fields: Target+18,VariableName+20,VariableType+28;
+getters get_target/get_variableName/get_variableType.
+Validate source Target==exactScreen, VariableName CanInvitePlayer, Property2,
+Sender0, no transformer; exactly one target Receiver2/Property2/interactable,
+exact Doozy.Runtime.UIManager.Components.UIButton, no transformer.
+On that component's GameObject obtain the exact ShowUIObjectComponent through
+Component.GetComponent(System.Type), selecting overload by parameter type.
+Original get_gameObject is6ec1a0; GetComponent(Type)50856a0. Validate descriptor101
+as above, then call Show. Its live _uiObject should be CustomGameInvitePlayerVM;
+use that actual VM's _inviteItems/_root and lifecycle, not a guessed scene pointer.
+
+Alternate current screen graph: singleton.<UIMenuController>k__BackingField
+-> _menuFlowGraph -> concrete MenuFlowController._flowGraph -> FlowGraph.ActiveNode
+(and bounded activeSubGraph descent) -> exact ShowUIObjectNode._uiObject array.
+Do not treat UIMenuController._mainMenu or MenuFlowController._travelToNode as the
+current CustomGameMainScreenVM. Full field details are in the native-only note.
+
+ENTER THE REAL CUSTOM GAME SCREEN BEFORE LOOKING FOR IT
+The roster probe exposed a distinction already visible in the native body:
+manager.EnterLobbyScreen3cab7b0 is admission/manager state only. It does not
+navigate the menu. CreateLobby establishes predicted state before its response,
+so the response's existing-prediction branch need not navigate either. The
+PredictedLobbyChanged listener resolver cannot find a screen never acquired.
+
+The supported nongeneric native route is MenuFlowController's explicit
+IMenuFlowController.TravelToScreen(UILink), RVA3d52440. ABI:
+ void(controller RCX,Uncapped.UI.UILink RDX,MethodInfo R8).
+This non-generic body does not use incoming MethodInfo; null is acceptable.
+Resolve the exact manager._menuFlowController+68 (concrete class
+Uncapped.UI.MenuFlowController), require a live _flowGraph+10. Create ordinary
+Uncapped.UI.UILink#3619 through its trivial noarg ctor6af170, set PrefabKey+10
+(IntKey<UIPrefabType>, 4-byte value) to97. Root locals. The method searches
+_flowGraph.Nodes for ShowUIObjectNode descriptors matching the link and calls
+original TravelToNode3d528d0 at3d52703. It uses native graph/pool/navigation;
+do not manually Initialize a screen. The captured lambda DisplayClass11_0#3611
+stores UILink, confirming this is the non-model overload. The other non-generic
+TravelToScreen RVA3d520d0 accepts UILinkWithModel and is not interchangeable.
+
+Asset confirmation in the same bundle: GlobalMenuFlowGraph.asset has
+ShowUIObjectNode PathID3335764201241485423, NodeName CustomGameScreen,
+NodeId0cfd8393-0113-4e5e-9860-b3826742f83e, descriptor key97/null model.
+MainMenu.prefab CustomGameButton GO8314385923027014685, UIButton5075773062048238470,
+emits button id MainMenu/CustomGameScreen. Global graph MainMenu output port
+930a2a05-4b99-4d0a-bc3a-dffbb1658b99 leads through CustomGameSound then that screen.
+Button availability combines feature unlock, valid selected deck and
+GameActivityVM.CanViewCustomGameLobby. Direct native travel is an explicitly
+automated probe action, not evidence that a manual button was enabled or clicked.
+
+CustomGameMainScreenVM.Initialize3cb0560 INLINES EnterLobbyScreen at3cb0672..
+3cb06a0: if prediction absent, manager.Initialize/Create, then InLobbyScreenChanged.
+Only afterward it binds its manager and subscribes PredictedLobbyChanged.
+For the revised smoke call native TravelToScreen FIRST and let this Initialize
+own admission; do not also call manager.EnterLobbyScreen. Await actual initialized
+screen and acknowledged native lobby before invoking its picker component.Show.
+
+OUTER ROW FALSE INVITE GUARD (SOURCE REVIEW FOLLOW-UP)
+The roster-only adapter's false CanInvite value reaches the native button on
+normal first bind/reuse. Shared generic ModelUpdated29b93a0 takes IsModelSet=false
+path, stores model and true flag, ensures bindings, then UpdateAll at29b9476 BEFORE
+OnModelSourceChanged/row Refresh. Thus default backing false is pushed even if
+the later same-false setter suppresses a change. If a pooled row retained true,
+the initial flush sends true and guarded setter changes it false before bind
+returns. Native row Release clears IsModelSet at3ca890e. There is no post-Refresh
+UpdateAll and no need to invent one for this normal Take->Bind path. Actual
+UIButton.interactable still belongs in smoke evidence; skipped Release or
+out-of-band receiver mutation is outside this guarantee.
+
+SOURCE REVIEW FINDING / RESOLUTION
+An initial population catch released a failed unlisted native row after adding
+its ownership record, leaving a stale rooted record able to claim pool reuse.
+The parent subsequently removed that record before release and added native
+Clear of the successfully listed prefix on outer failure. Reviewed read-only.
+No other concrete call/tail ABI or non-community fallback defect was found in
+the roster-only slice. The wrapper is at a post-Clear screen release tail, so
+its presentation reset writes retained backing values after child bindings have
+released; the initialized guard prevents its explicit UpdateAll. Normal next
+acquire fully repaints. A hypothetical duplicated live screen/listener remains
+an untested ambiguity: mainScreen currently chooses the first exact live target;
+reject multiple distinct candidates if this resolver is promoted beyond smoke.
+
+REMAINING RUNTIME GATES
+Static evidence establishes the binding and lifetime route, not a working picker.
+Qualify initial row creation, pooled close/reopen/rebuild, two different senders,
+lookup miss clearing, cancel/expiry/decline/accept dismissal, and exact selected
+row -> original native invite request. Confirm no Steam name/status/avatar path
+is reached for owned children. Keep dictionary/row/model roots and per-generation
+ownership separate from simulation seats. This note does not claim Invite, Accept,
+Start, a match, or friend-facing UI is complete.

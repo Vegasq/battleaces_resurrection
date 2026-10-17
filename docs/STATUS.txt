@@ -43,15 +43,34 @@ An opt-in native Create/Leave adapter now passes two ordinary cycles plus a
 deliberately delayed Create ACK / early Leave / immediate re-enter per client.
 Both presence connections survive; no match seats/workers are allocated. Source
 and runtime boundaries are in community-client.txt. The normal patch recipe and
-user's normal-play installation remain unchanged. The graphical custom picker
-still depends on Steam friends; Invite/Start/result-return and Try Deck vs AI
-remain unimplemented. See community-lobby.txt and community-protocol.txt.
+user's normal-play installation remain unchanged. The opt-in custom picker now
+renders connected server players through native pooled rows with no Steam friend
+lookups. Invite/Start/result-return and Try Deck vs AI remain unimplemented.
+See community-lobby.txt and community-protocol.txt.
 Neither end-to-end requested user flow is claimed complete.
 Client integration checks: custom-create-native03 passed eight native/server
 create/departure transactions with delayed-ACK cancellation; custom-legacy-idle01
 passed the ordinary idle-lobby/real-error regression using the same helper without
 the community flag. Full source suite214:212 pass,2 opt-in skips; C++ build/wire/
 request-state checks pass. Evidence paths and exact bounds: community-client.txt.
+
+Native roster probe custom-roster-native02 passed in31.750s with clients41696/40344.
+Both actual Custom Game screens created their lobbies. Each picker completed
+three pooled open/close cycles; a third connected peer joined/departed live,
+changing both lists2->3->2. Actual TMP name text and active hierarchy were checked,
+including Unicode/markup-shaped names. Outer rows bind normally; child FriendVMs
+stay unbound; all invitation actions remain disabled pending their translation.
+Both final Leaves cleared Party and kept presence; no seats/workers; all test
+processes reaped and source hashes unchanged. First attempt only created manager
+state without navigating the screen; its timeout is retained separately. Native
+bindings/navigation and the upcoming invitation lifecycle are documented in
+custom-roster-bindings.txt and custom-invite-lifecycle.txt. No manual visual or
+invitation/acceptance success is implied by this roster-only probe.
+The same roster helper/image passed ordinary idle-lobby and genuine error-dialog
+regression with its community flag absent (roster-legacy-idle01,53.516s). Full
+source suite remains214 tests,212 passed and2 opt-in skips; the retained log is
+source-tests-roster01.txt. Four C++ helper build checks pass. The normal-play
+helper/image hashes and default patch recipe were independently checked unchanged.
 
 Server verification:213 source tests,211 pass and2 opt-in skips. The real Windows
 simulation run community-native01 completed two160-frame matches on the same

@@ -40,10 +40,20 @@ CALL_HOOKS = [
 ]
 COMMUNITY_CALL_HOOKS = [
     # Exact request enqueue callers; the shared generic entry remains original.
-    # Experimental native Create/Leave slice only; not the normal-play recipe.
+    # Experimental native Create/Leave and roster; not the normal-play recipe.
     {'name': 'OfflineCommunityEnqueue', 'rva': 0x3e46f3e, 'offset': 0x3e4553e, 'before': 'e84d7072fe'},
     {'name': 'OfflineCommunityEnqueue', 'rva': 0x3e472ce, 'offset': 0x3e458ce, 'before': 'e8bd6c72fe'},
     {'name': 'OfflineCommunityEnqueue', 'rva': 0x3e474e6, 'offset': 0x3e45ae6, 'before': 'e8a56a72fe'},
+    {'name': 'OfflineCommunityForceFriends', 'rva': 0x3ca93b9, 'offset': 0x3ca79b9, 'before': 'e8e2a41c00'},
+    {'name': 'OfflineCommunityFriendPresentation', 'rva': 0x3ca89eb, 'offset': 0x3ca6feb, 'before': '41ff9138020000'},
+    {'name': 'OfflineCommunityInviteReason', 'rva': 0x3ca8e21, 'offset': 0x3ca7421, 'before': 'e89af5ffff'},
+    {'name': 'OfflineCommunityCanInvite', 'rva': 0x3ca8e9d, 'offset': 0x3ca749d, 'before': 'e82ed858fc'},
+]
+COMMUNITY_TAIL_HOOKS = [
+    {'name': 'OfflineCommunityPopulate', 'rva': 0x3ca95cd, 'offset': 0x3ca7bcd, 'before': 'e95e050000'},
+    {'name': 'OfflineCommunityPopulate', 'rva': 0x3ca983a, 'offset': 0x3ca7e3a, 'before': 'e9f1020000'},
+    {'name': 'OfflineCommunityPopulate', 'rva': 0x3ca989f, 'offset': 0x3ca7e9f, 'before': 'e98c020000'},
+    {'name': 'OfflineCommunityRosterRelease', 'rva': 0x3ca97f9, 'offset': 0x3ca7df9, 'before': 'e952020c00'},
 ]
 def digest(b): return hashlib.sha256(b).hexdigest()
 def build_patch(original, *, include_telemetry=True, community=False):
@@ -52,8 +62,9 @@ def build_patch(original, *, include_telemetry=True, community=False):
         raise ValueError('Original build SHA256 does not match.')
     patched = bytearray(telemetry.patch_component('GameAssembly.dll', original) if include_telemetry else original)
     call_hooks = CALL_HOOKS + (COMMUNITY_CALL_HOOKS if community else [])
+    tail_hooks = TAIL_HOOKS + (COMMUNITY_TAIL_HOOKS if community else [])
     # Reject a future telemetry recipe that touches an existing startup hook.
-    for site in PATCHES + HOOKS + TAIL_HOOKS + call_hooks:
+    for site in PATCHES + HOOKS + tail_hooks + call_hooks:
         offset, size = site['offset'], len(bytes.fromhex(site['before']))
         if patched[offset:offset + size] != original[offset:offset + size]:
             raise ValueError('Telemetry/startup patch overlap: ' + site['name'])
@@ -65,22 +76,22 @@ def build_patch(original, *, include_telemetry=True, community=False):
         patched[o:o+len(after)]=after
     patched, iat, thunks = extend_imports_with_thunks(
         bytes(patched), 'BattleAcesOffline.dll',
-        list(dict.fromkeys(h['name'] for h in HOOKS + TAIL_HOOKS + call_hooks)),
-        thunk_exports=list(dict.fromkeys(h['name'] for h in TAIL_HOOKS + call_hooks)))
+        list(dict.fromkeys(h['name'] for h in HOOKS + tail_hooks + call_hooks)),
+        thunk_exports=list(dict.fromkeys(h['name'] for h in tail_hooks + call_hooks)))
     patched=bytearray(patched)
     for hook in HOOKS:
         before=bytes.fromhex(hook['before']);o=hook['offset']
         if original[o:o+len(before)] != before: raise SystemExit('Hook original mismatch: '+hook['name'])
         if len(before)<6: raise SystemExit('Hook site too short: '+hook['name'])
         patched[o:o+len(before)]=b'\xff\x25'+struct.pack('<i',iat[hook['name']]-(hook['rva']+6))+b'\x90'*(len(before)-6)
-    for hook in TAIL_HOOKS:
+    for hook in tail_hooks:
         before=bytes.fromhex(hook['before']);o=hook['offset']
         if len(before)!=5 or original[o:o+5]!=before: raise SystemExit('Tail original mismatch: '+hook['name'])
         patched[o:o+5]=b'\xe9'+struct.pack('<i',thunks[hook['name']]-(hook['rva']+5))
     for hook in call_hooks:
         before=bytes.fromhex(hook['before']);o=hook['offset']
-        if len(before)!=5 or original[o:o+5]!=before: raise SystemExit('Call original mismatch: '+hook['name'])
-        patched[o:o+5]=b'\xe8'+struct.pack('<i',thunks[hook['name']]-(hook['rva']+5))
+        if len(before)<5 or original[o:o+len(before)]!=before: raise SystemExit('Call original mismatch: '+hook['name'])
+        patched[o:o+len(before)]=b'\xe8'+struct.pack('<i',thunks[hook['name']]-(hook['rva']+5))+b'\x90'*(len(before)-5)
     return update_checksum(patched)
 
 
@@ -157,12 +168,14 @@ def install(game_dir, *, helper=None, original_path=None, restore=False, dry_run
         raise ValueError('Build the current helper supporting recovery ABI1 before installing this patch.')
     if community and helper_bytes is not None and b'BA_RESURRECTION_COMMUNITY_V1' not in helper_bytes:
         raise ValueError('Build a helper supporting experimental community ABI1 before installing this patch.')
+    if community and helper_bytes is not None and b'BA_RESURRECTION_COMMUNITY_ROSTER_V1' not in helper_bytes:
+        raise ValueError('Build a helper supporting experimental community roster ABI1 before installing this patch.')
     manifest = {'schema': 2, 'game_build': 37822, 'patch_version': '0.2.0-dev',
                 'original_sha256': ORIGINAL_SHA256, 'patched_sha256': components['GameAssembly.dll']['patched_sha256'],
                 'helper_sha256': digest(helper_bytes) if helper_bytes is not None else None,
-                'patches': PATCHES, 'hooks': HOOKS, 'tail_hooks': TAIL_HOOKS,
+                'patches': PATCHES, 'hooks': HOOKS, 'tail_hooks': TAIL_HOOKS + (COMMUNITY_TAIL_HOOKS if community else []),
                 'call_hooks': CALL_HOOKS + (COMMUNITY_CALL_HOOKS if community else []),
-                'community': {'experimental': community, 'native_scope': 'create-leave-prototype' if community else None},
+                'community': {'experimental': community, 'native_scope': 'create-leave-roster-prototype' if community else None},
                 'components': components,
                 'telemetry': {'recipe_version': telemetry.RECIPE_VERSION, 'runtime_validated': telemetry.RUNTIME_VALIDATED,
                               'unresolved_components': telemetry.UNRESOLVED_COMPONENTS},
@@ -204,7 +217,7 @@ def main():
     parser.add_argument('--original', type=Path, help='verified recovery DLL for an already-patched installation')
     parser.add_argument('--restore', action='store_true')
     parser.add_argument('--dry-run', action='store_true')
-    parser.add_argument('--community-experimental', action='store_true', help='isolated native Create/Leave research; not normal play')
+    parser.add_argument('--community-experimental', action='store_true', help='isolated native Create/Leave/roster research; not normal play')
     args = parser.parse_args()
     result = install(args.game_dir, helper=args.helper, original_path=args.original,
                      restore=args.restore, dry_run=args.dry_run, community=args.community_experimental)

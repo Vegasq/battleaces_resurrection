@@ -26,6 +26,7 @@ static void update(void* front);
 static bool retryFromPlay(void* front,int mode);
 }
 namespace ba_community_native { static void update(void* front);static void reset(); }
+namespace ba_community_roster { static void reset();static void changed();static void update();static void smoke(void* front); }
 namespace ba_export {
 static void poll(void* front);
 static void consume(void* gameData,void* encoded);
@@ -242,6 +243,7 @@ extern "C" __declspec(dllexport) void OfflineFrontUpdate(void* front,void*) {
 #include "local_bootstrap.cpp"
 #include "dedicated_adapter.cpp"
 #include "community_native.cpp"
+#include "community_roster.cpp"
 #include "server_assets_export.cpp"
 #include "lan_audit.cpp"
 #include "telemetry_audit.cpp"

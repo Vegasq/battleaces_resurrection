@@ -4,17 +4,21 @@ Updated:2026-10-17. Windows build37822; source-only adapter.
 IMPLEMENTED BOUNDARY
 The helper can join community control v1 independently of simulation seats,
 receive bounded directory/lobby events, and drive original CustomGameLobbyManager
-Create/Leave callbacks. No Steam identity is needed for these lobby operations.
+Create/Leave callbacks. The native Invite Friend picker can now render that
+directory through its original pooled rows and update live on join/departure.
+No Steam identity is needed for these lobby operations or row presentation.
 Canonical named handles use profile-derived lobby aliases, matching display and
 filtered names; temporary simulation handles1/2 are not used for presence.
 The normal dedicated protocol3 path and patch image remain unchanged by default.
 
-The separate patcher option --community-experimental adds three exact request
-enqueue callsite guards. It requires helper marker BA_RESURRECTION_COMMUNITY_V1.
+The separate patcher option --community-experimental adds exact request enqueue,
+picker population/release and child presentation guards. It requires helper
+markers BA_RESURRECTION_COMMUNITY_V1 and BA_RESURRECTION_COMMUNITY_ROSTER_V1.
 The experimental process also requires -dedicated-community; use an isolated
-working copy. Do not enable this for ordinary play: Invite/Start and most custom
-updates are not translated yet. Unsupported native operations stop this prototype
-session rather than being reported as successful. Normal launchers do not enable
+working copy. Do not enable this for ordinary play: row invite buttons stay
+disabled until Invite/Reply are translated; Start and most custom updates are
+not translated yet. Unsupported operations at the guarded enqueue sites stop
+the prototype session. Normal launchers do not enable
 the flag, and the user's working secure-client-runtime was not replaced.
 
 SOURCE AND OWNERSHIP
@@ -27,8 +31,23 @@ SOURCE AND OWNERSHIP
 - community_native.cpp: Unity-thread object construction, canonical managed
   named handles, native manager discovery, deferred rooted request FIFO and
   original native Create/State/Closed handlers. CLR field barriers/constructors
-  preserve native object ownership. Roots release only on an owned reset;
+  preserve native object ownership. Roots release only on the owned Unity thread;
   process shutdown does not call IL2CPP from a CRT/DllMain destructor.
+- community_roster.cpp: native pool Take/Bind/Add and Clear/Release, with scoped
+  outer row/model/child roots. FriendModel's evidenced small constructor is
+  reconstructed without Steam presence/avatar work. The outer row observes
+  its owned model normally; the child FriendVM remains unbound and receives
+  binding setters plus UpdateAllBindings. All child actions/cosmetics and stale
+  text are explicitly reset. Ordinary non-community callsites forward unchanged.
+
+Directory rows include self and busy players. The displayed status is fixed local
+text; ASCII angle brackets in display names become fullwidth brackets because
+both the native name label and its tooltip accept rich text. The canonical named
+protobuf identity is unchanged. Native directory names are not inserted into a
+global Steam list. Row/model ownership is registered before native binding and
+removed on release; a failed unlisted row is released exactly once. Directory
+rebuilds prune unused canonical cache roots, avoiding lifetime-long growth as
+different profiles connect. Native lobby state retains the few needed identities.
 
 All native lobby sends and responses are deferred until the originating native
 call has stored its pending request. Snapshot payloads are applied in event
@@ -42,7 +61,9 @@ request pointer, remove the adapter entry before native reentrant callbacks,
 and keep the owner/response rooted until the callback returns.
 
 STATIC EVIDENCE
-See custom-lobby-responses.txt and custom-lobby-roster.txt. REA-guided analysis
+See custom-lobby-responses.txt, custom-lobby-roster.txt, custom-roster-bindings.txt
+and custom-invite-lifecycle.txt. The latter documents the next invitation adapter;
+its proposed cleanup and response policy are not implemented yet. REA-guided analysis
 used original-byte disassembly and recovered metadata; native REA engines were
 unavailable. The authored reviews are not live REA engine evidence. Native
 permission tables do not implement the reviewed UI/prediction gates; exact
@@ -95,8 +116,51 @@ socket bridge and original-byte telemetry checks were enabled. Evidence:
 local/source-tests-community-client01.json/.txt. Earlier real simulation worker
 and multiplayer tests remain separate from this control-only native probe.
 
+NATIVE ROSTER QUALIFICATION
+local/custom-roster-native01 reached successful Create/state delivery on both
+clients but timed out at150.547s without opening the Custom Game screen. The
+probe called manager.EnterLobbyScreen, which admits a lobby but does not itself
+travel the menu graph. This is not a renderer failure/success. Source hashes
+stayed unchanged and owned clients were reaped. The probe now calls the original
+nongeneric MenuFlowController.TravelToScreen with the evidenced UILink97; the
+actual CustomGameMainScreenVM.Initialize then owns Create. The native Invite
+button's ShowUIObjectComponent descriptor101 owns picker allocation/visibility.
+
+local/custom-roster-native02 passed in31.750s, clients41696/40344:
+- Both original custom screens created lobbies; each picker opened/closed three
+  times using its normal Show/Hide and pool lifecycle.
+- A third scripted community peer connected and departed while both pickers
+  remained open. Each rendered row counts2->3->2 from live directory revisions.
+- The helper checked actual TMP receiver text and activeInHierarchy for each
+  name binding, including Unicode and angle-bracket normalization. It also
+  checked outer IsModelSet=true, child IsModelSet=false and disabled row actions.
+- Every close released all adapter rows; final native Leave cleared Party and
+  kept both presence connections. No simulation seat or worker was allocated.
+- Source hashes stayed unchanged; all owned test clients were reaped.
+This is native object/binding evidence, not a screenshot/manual visual verdict,
+an invitation/acceptance test, or a native Quit test.
+Helper SHA256:
+f4258dc2cadad461daa709302b9f14d9ab6031cb82dda46e24bfaa560becc733
+Experimental GameAssembly SHA256:
+2c8a8e37b9ab2aadab2f134a879671cf512874b6284f2ce1e6d87efd5dd32444
+The default patch hash and the normal-play helper/image were checked unchanged.
+Reproduce with tools.verify_custom_lobby --roster and explicit local paths.
+
+Rosters' normal-mode regression roster-legacy-idle01 passed in53.516s using the
+same helper/image with -dedicated-community absent. Clients50808/49720 stayed
+unready and unblocked for six5-second samples; a real injected server error
+displayed the original failure dialog only on its affected client. Both were
+reaped and source hashes stayed unchanged. No match was created.
+Full source suite after the roster change:214 tests in61.036s,212 passed and
+2 opt-in skips (private Windows DACL and separate native-worker fixture). The
+real inherited-socket bridge and original-byte telemetry checks were enabled.
+The retained unittest log is local/source-tests-roster01.txt. Its JSON summary
+was reconstructed from that completed log after the reporting script could not
+serialize skipped test objects; the tests themselves passed and were not rerun.
+Four C++ build checks and installer helper-marker checks also pass.
+
 REMAINING GATES
-Server roster rows, pooled Steam-free rendering, incoming invitation popup,
+Manual roster acceptance, incoming invitation popup,
 deferred Invite/Reply semantics, unsupported-action UI, host Start/guest Ready,
 native bootstrap bridge, original result/RETURN/rematch, broader failures and
 manual graphical acceptance remain required. Try Deck vs AI remains separate.

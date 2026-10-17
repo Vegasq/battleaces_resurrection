@@ -15,6 +15,9 @@ Server community control v1 adds a connected-player directory, targeted invites,
 host-controlled custom starts and same-connection rematches. Scripted clients pass
 two matches using the real simulation, with a third player kept outside both games.
 The native Invite Friend/Start UI adapter and Try Deck vs AI are still unfinished.
+The opt-in custom picker now renders the connected-player list and passes native
+binding/pool-lifecycle tests; its invitation actions remain disabled. Details and
+reproduction commands are in docs/community-client.txt.
 See docs/community-protocol.txt and docs/community-lobby.txt for scope and evidence.
 
 Current game wire protocol3 requires updating both helper and server. The server
