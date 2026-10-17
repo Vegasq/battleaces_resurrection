@@ -306,7 +306,7 @@ static void update(Obj front) {
             ba_community_roster::changed();
         }
         else if(const auto* invite=std::get_if<wire::Invitation>(&event))ba_community_invites::receive(front,*invite);
-        else if(std::holds_alternative<wire::Aborted>(event))throw std::runtime_error("community match aborted");
+        else if(const auto* abort=std::get_if<wire::Aborted>(&event))ba_community_match::aborted(front,*abort);
     }
     smoke(front);
     dispatch(front);

@@ -106,6 +106,7 @@ static void fail(const char* where,const std::exception& error) {
     ba_local::fail(where,error);
 }
 static void poll(Obj server) {
+    if(ba::community() && ba_community::abortPending)return;
     if(!awaitingWorld || !ba_local::isTarget(server))return;
     if(GetCurrentThreadId()!=bootstrapThread)throw std::runtime_error("bootstrap update on unexpected thread");
     Obj sim=ba::read<Obj>(server,0x140);

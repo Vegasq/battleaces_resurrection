@@ -18,7 +18,9 @@ The opt-in custom picker now lists connected players and sends targeted invites.
 Two real clients pass native popup decline, cancel, expiry, duplicate Accept and
 lobby departure checks. Native Start/Ready, results/Continue and same-lobby rematch
 now pass automated two-client tests, including duplicate requests and a changed
-deck. Failure/manual acceptance and Try Deck vs AI remain in progress. Details and
+deck. Match-only abort recovery retains the same lobby; targeted native setup,
+loading and stale-result tests are recorded separately. Broader failure/manual
+acceptance and Try Deck vs AI remain in progress. Details and
 reproduction commands: docs/community-client.txt, docs/native-custom-invitations.txt
 and docs/native-custom-matches.txt.
 See docs/community-protocol.txt and docs/community-lobby.txt for scope and evidence.

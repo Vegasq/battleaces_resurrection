@@ -27,7 +27,7 @@ static bool retryFromPlay(void* front,int mode);
 }
 namespace ba_community_native { static void update(void* front);static void reset(); }
 namespace ba_community_roster { static void reset();static void changed();static void update();static void smoke(void* front); }
-namespace ba_community_wire {struct Ack;struct Invitation;}
+namespace ba_community_wire {struct Ack;struct Invitation;struct Aborted;}
 namespace ba_community_invites {
 static void reset(void*);static void enqueue(void*,void*,int);static bool acknowledge(void*,const ba_community_wire::Ack&);
 static void receive(void*,const ba_community_wire::Invitation&);static void flush(void*);static void dispatch(void*);
@@ -38,6 +38,7 @@ namespace ba_community_popup {static void reset();static void update();}
 namespace ba_community_match {
 static void reset();static void enqueue(void*,void*,void*);
 static bool acknowledge(void*,const ba_community_wire::Ack&);
+static void aborted(void*,const ba_community_wire::Aborted&);
 static void snapshot(void*);static void update(void*);static void returned(void*,void*);static void smoke(void*);
 }
 namespace ba_export {

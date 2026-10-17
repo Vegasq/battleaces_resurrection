@@ -52,6 +52,8 @@ SOURCE AND OWNERSHIP
 - community_match.cpp: exact pending Start/Ready ownership and attempt epochs,
   selected/frozen deck checks, narrow native Created/Join handoff, GameStart
   closure and same-connection match teardown/RETURN/restored native lobby.
+  Match aborts use separate owned recovery, preserving the durable connection;
+  native setup/loading/active/result boundaries are in native-custom-matches.txt.
 
 Directory rows include self and busy players. The displayed status is fixed local
 text; ASCII angle brackets in display names become fullwidth brackets because
@@ -191,9 +193,10 @@ The ordinary idle-lobby/error-modal regression passed with the preceding helper
 and the community flag absent (invites-legacy-idle01,53.469s).
 
 REMAINING GATES
-Manual roster/invitation acceptance, multi-sender/busy races,
-unsupported-action UI, host Start/guest Ready,
-native bootstrap bridge, original result/RETURN/rematch, broader failures and
-manual graphical acceptance remain required. Try Deck vs AI remains separate.
+Manual roster/invitation/match acceptance, multi-sender/busy races,
+unsupported-action UI, player-visible abort notices and broader failure cases
+remain required. Start/Ready/bootstrap/result/RETURN/rematch now have separate
+automated native qualification in native-custom-matches.txt. Try Deck vs AI
+remains separate.
 Do not enable the experimental client by default or claim Custom Game complete
 from Create/Leave or the earlier scripted server match tests alone.

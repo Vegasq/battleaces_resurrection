@@ -36,8 +36,10 @@ int main() {
     Writer ack;ack.number(id,4);ack.number(Create,1);ack.number(1,1);ack.text("");ack.id("lobby");
     auto wrong=ack.bytes;wrong[4]=Leave;rejects([&]{c::receive(AckKind,wrong);});assert(c::pending.size()==1);
     c::receive(AckKind,ack.bytes);assert(c::pending.empty());rejects([&]{c::receive(AckKind,ack.bytes);});
+    Writer abort;abort.id("match");abort.text("worker stopped");
+    c::receive(AbortedKind,abort.bytes);assert(c::abortPending && c::online && c::lobby.id=="lobby");
     c::send(leave(c::nextRequest(),"lobby"));now+=15001;rejects([]{c::checkTimeouts();});
-    c::reset();assert(!c::online && c::pending.empty() && c::events.empty() && c::requestId==0);
+    c::reset();assert(!c::online && !c::abortPending && c::pending.empty() && c::events.empty() && c::requestId==0);
     c::receive(WelcomeKind,greeting().bytes);c::receive(DirectoryKind,listing().bytes);
     for(unsigned i=0;i<32;++i)c::send(refresh(c::nextRequest()));
     rejects([]{c::nextRequest();});c::reset();

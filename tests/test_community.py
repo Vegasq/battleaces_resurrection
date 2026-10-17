@@ -200,6 +200,13 @@ class CommunityTests(DedicatedFixture):
         await first.room.sim._test_control('crash_next_step')
         await asyncio.gather(*(peer.send(p.INPUT, struct.pack('<I', 0)) for peer in (a, b)))
         await asyncio.gather(*(peer.receive(c.ABORTED) for peer in (a, b)))
+        # Bytes already sent before the abort may arrive after its notification.
+        # The retired match must not turn these into a durable-session failure.
+        for peer in (a, b):
+            await peer.send(p.INPUT, struct.pack('<I', 1))
+            await peer.send(p.LOADED, hashlib.sha256(peer.bootstrap).digest())
+            await self.command(peer, c.REFRESH)
+        await self.command(a, c.RETURN, p.encode_string('stale_match'), ok=False)
         await self.advance((d, e), 0)
         await self.return_pair(first, (a, b), match)
         await self.command(a, c.REFRESH)

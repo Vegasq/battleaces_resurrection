@@ -1,6 +1,7 @@
 COMMUNITY PLAYER DIRECTORY, CUSTOM GAMES AND AI PRACTICE
-Updated:2026-10-17. Server control and native Create/Leave implemented;
-native roster/Invite/Start/result-return and AI adapters unfinished.
+Updated:2026-10-17. Server control and opt-in native Create/Leave, roster,
+Invite/Accept, Start/Ready and result/return implemented. Manual acceptance,
+broader failure qualification and Try Deck vs AI remain open.
 Scope: Windows build37822, existing native UI, authored server/patch source only.
 Detailed authored static trace and guarded hook candidates: custom-lobby-native.txt.
 Callback/identity evidence: custom-lobby-responses.txt. Roster/popup/pooling and
@@ -29,12 +30,14 @@ for exact framing, bounds, timeouts, compatibility and verification evidence.
 
 Fifteen community lifecycle tests and two added TLS identity tests pass. The real
 simulation probe completed two custom matches with a changed deck and a third
-uninvolved connected player. These scripted clients do not establish native Invite
-Friend/Start UI operation; that translation and manual acceptance remain to do.
-An isolated native adapter has since qualified Create/Leave and pending-create
-cancellation/re-entry against the real coordinator, separately from those games.
+uninvolved connected player. Those scripted clients are separate evidence from
+the later two-native-client Invite/Accept/Start/result/Continue/rematch probes.
+Create/Leave, pending-create cancellation, invitations and native match return
+have their own runtime qualification in community-client.txt,
+native-custom-invitations.txt and native-custom-matches.txt. Manual acceptance
+is still required.
 
-NATIVE CLIENT FINDINGS (STATIC, NOT A WORKING UI IMPLEMENTATION)
+ORIGINAL CLIENT FINDINGS (STATIC BASIS FOR THE OPT-IN ADAPTER)
 The existing CustomGameLobbyManager and custom menu have lobby creation/update,
 invitation and start plumbing. The friend picker currently enumerates
 UncappedSteamFriends and checks Steamworks.Friend.IsPlayingThisGame. Inserting a

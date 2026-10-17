@@ -245,7 +245,7 @@ static void normalizeAction(Obj action) {
     }
 }
 static void submit(Obj server,int frame) {
-    if(matchEnded)return;
+    if(matchEnded || (ba::community() && ba_community::abortPending))return;
     if(wcsstr(GetCommandLineW(),L"-lan-smoke"))ba_lan_smoke::enqueue(server,frame);
     Root player(ba::make("GamePb","InputActionsByPlayer"));ba::set<Obj>(player.get(),"playerHandle_",ba::read<Obj>(server,0x1a8));
     Obj output=ba::get<Obj>(player.get(),"actions_");int count=0;
@@ -255,6 +255,7 @@ static void submit(Obj server,int frame) {
     if(count)ba::log("LAN submitted frame %d with %d local actions",frame,count);
 }
 static void tick(Obj server) {
+    if(ba::community() && ba_community::abortPending)return;
     if(!running || stopped || !ba_local::isTarget(server))return;
     // The server freezes the bounded pipeline for both seats. Replenish after
     // each accepted frame; native simulation still advances exactly50ms per tick.

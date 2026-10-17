@@ -42,6 +42,14 @@ class RecoveryEvidenceTests(unittest.TestCase):
         self.assertFalse(recovery_evidence('\n'.join(lines),'old')['ordered'])
         self.assertFalse(recovery_evidence(self.trace().replace('requested=10','requested=9'),'old')['later_update'])
 
+    def test_reused_pid_is_empty_until_this_launch_writes_startup(self):
+        old = '[100] ' + self.trace()
+        self.assertEqual(current_native_log(old, since_tick=200), '')
+        fresh = old + '\n[201] Offline initial state reached after game initialization. PID=123\nnew run'
+        self.assertEqual(current_native_log(fresh, since_tick=200),
+                         'Offline initial state reached after game initialization. PID=123\nnew run')
+        self.assertEqual(current_native_log(self.trace(), since_tick=200), '')
+
     def test_wrong_match_or_automatic_play_cannot_pass(self):
         self.assertFalse(recovery_evidence(self.trace(),'different')['reset_old_match'])
         log = self.trace().replace('RECOVERY SMOKE fresh lobby', 'Dedicated session 2 joined match=new assignedSeat=0\nRECOVERY SMOKE fresh lobby')

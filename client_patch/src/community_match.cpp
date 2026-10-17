@@ -16,15 +16,25 @@ static uint32_t startEpoch=0,readyEpoch=0,activeEpoch=0,returnRequest=0;
 static std::string sentReadyLobby;
 static uint32_t sentReadyEpoch=0,probeReadyEpoch=0;
 static bool awaitingReturn=false,returnAccepted=false,capturing=false,captured=false;
+struct AbortRecovery {
+    std::string lobby,match,reason;uint32_t epoch=0;
+    bool confirmed=false,failedSignal=false,cleanup=false;
+    ULONGLONG began=0,lastLog=0;
+};
+static std::unique_ptr<AbortRecovery> abortRecovery;
+static auto& returnedMatches=*new std::deque<std::string>();
+static bool returnWasCompleted=false;
+static unsigned recoveredAborts=0;
 static Obj expectedConnection=nullptr;
-static unsigned probeStage=0,probeMatches=0;
+static unsigned probeStage=0,probeMatches=0,probeAborts=0;
 static ULONGLONG probeAt=0;
 static std::unique_ptr<Root> probeButton;
 static void reset() {
     operations.clear();acceptedLobby.clear();activeLobby.clear();activeMatch.clear();
     startEpoch=readyEpoch=activeEpoch=returnRequest=0;awaitingReturn=returnAccepted=capturing=captured=false;
     sentReadyLobby.clear();sentReadyEpoch=probeReadyEpoch=0;
-    expectedConnection=nullptr;probeStage=probeMatches=0;probeAt=0;probeButton.reset();
+    expectedConnection=nullptr;probeStage=probeMatches=probeAborts=0;probeAt=0;probeButton.reset();
+    abortRecovery.reset();returnedMatches.clear();returnWasCompleted=false;recoveredAborts=0;
 }
 static wire::Deck selected(Obj front) {
     Root deck(ba_dedicated_deck::selectedProto(front));wire::require(deck.get()!=nullptr,"community selected deck missing");
@@ -81,7 +91,8 @@ static bool acknowledge(Obj front,const wire::Ack& ack) {
         // departure or new epoch may already have superseded it in ordered
         // authority. Never replay that old success into the current prediction.
         bool success=ack.success && !op.cancelled && owned(op) && native::authority.id==op.lobby &&
-            native::authority.epoch==op.epoch && native::authority.phase>=wire::Starting;
+            native::authority.epoch==op.epoch && native::authority.phase>=wire::Starting &&
+            native::authority.phase<=wire::Running && !abortRecovery;
         if(success) {
             if(ack.kind==wire::Start)wire::require(ack.object==op.lobby,"community Start ACK changed lobby identity");
             acceptedLobby=op.lobby;
@@ -98,7 +109,42 @@ static bool acknowledge(Obj front,const wire::Ack& ack) {
     }
     return false;
 }
+static void aborted(Obj front,const wire::Aborted& message) {
+    // A result already validated for this exact match owns its normal Continue
+    // flow. A delayed duplicate from the previous returned match owns nothing.
+    bool returnedBefore=false;for(const auto& match:returnedMatches)returnedBefore|=message.match==match;
+    if(returnedBefore || (awaitingReturn && message.match==activeMatch) ||
+       (message.match==ba_dedicated_results::matchId && ba_lan::matchEnded)) {
+        ba::log("Community stale abort ignored: match=%s; validated result/return retained",message.match.c_str());
+        if(!abortRecovery)ba_community::abortPending=false;
+        return;
+    }
+    if(abortRecovery) {
+        wire::require(abortRecovery->match==message.match,"conflicting community abort");ba_community::abortPending=true;return;
+    }
+    const auto& lobby=native::authority;
+    wire::require(!awaitingReturn && ba_lan::welcomed && !lobby.id.empty() && lobby.epoch &&
+        (lobby.phase==wire::Loading || lobby.phase==wire::Running) &&
+        (lobby.match.empty() || lobby.match==message.match) &&
+        (ba_lan::dedicatedMatchId.empty() || ba_lan::dedicatedMatchId==message.match) &&
+        (activeMatch.empty() || activeMatch==message.match),"community abort does not own active attempt");
+    abortRecovery=std::make_unique<AbortRecovery>();auto& abort=*abortRecovery;
+    ba_community::abortPending=true;
+    abort.lobby=lobby.id;abort.match=message.match;abort.reason=message.reason;abort.epoch=lobby.epoch;
+    abort.began=GetTickCount64();
+    ba::log("Community abort pending Results: lobby=%s match=%s epoch=%u joined=%d mapLoading=%d reason=%s",
+        abort.lobby.c_str(),abort.match.c_str(),abort.epoch,ba_dedicated_session::joined?1:0,
+        ba::read<bool>(ba::read<Obj>(front,0xd8),0xd8)?1:0,abort.reason.c_str());
+}
 static void snapshot(Obj front) {
+    if(abortRecovery && !abortRecovery->confirmed) {
+        auto& abort=*abortRecovery;const auto& lobby=native::authority;
+        wire::require(lobby.id==abort.lobby && lobby.epoch==abort.epoch && lobby.phase==wire::Results &&
+            lobby.match==abort.match,"community abort Results identity mismatch");
+        abort.confirmed=true;activeLobby=abort.lobby;activeMatch=abort.match;activeEpoch=abort.epoch;
+        ba_lan::running=false;ba_lan::frames.clear();ba_local::ready.store(false);
+        ba::log("Community abort validated: match=%s epoch=%u; control connection retained",activeMatch.c_str(),activeEpoch);
+    }
     if(awaitingReturn && native::authority.phase==wire::Open && native::authority.id==activeLobby) {
         wire::require(ba_dedicated_session::inMenu() && !ba_dedicated_session::joined && ba::lanSlot()==-1,
             "community reopened before local world teardown");
@@ -106,10 +152,17 @@ static void snapshot(Obj front) {
         // No synthetic Create/Invite response: the existing LobbyStateUpdated
         // subscription initializes a new prediction from this authoritative state.
         ba_community_invites::reconcileParty(front);
-        Obj party=ba::get<Obj>(front,"_party");if(party)ba::set<bool>(party,"HasPlayedMatch",true);
+        Obj party=ba::get<Obj>(front,"_party");if(party && returnWasCompleted)ba::set<bool>(party,"HasPlayedMatch",true);
         ba::log("Community native lobby restored: lobby=%s epoch=%u members=%llu canonicalAlias=%llu seat=-1",
             activeLobby.c_str(),activeEpoch,static_cast<unsigned long long>(native::authority.members.size()),
             static_cast<unsigned long long>(ba_community::alias(ba_community::welcome.profile)));
+        if(abortRecovery) {
+            ++recoveredAborts;
+            ba::log("Community aborted match recovered: match=%s epoch=%u; same lobby/presence, seat=-1, no result fabricated",
+                activeMatch.c_str(),activeEpoch);
+        }
+        if(returnedMatches.size()==16)returnedMatches.pop_front();returnedMatches.push_back(activeMatch);
+        abortRecovery.reset();ba_community::abortPending=false;
         awaitingReturn=false;activeLobby.clear();activeMatch.clear();activeEpoch=0;
     }
 }
@@ -118,7 +171,7 @@ static void dispatch(Obj front) {
         auto& op=*operations.front();if(op.request)return;
         if(!owned(op)) {operations.pop_front();continue;}
         const auto& lobby=native::authority;
-        bool valid=op.valid && op.lobby==lobby.id && !op.lobby.empty() && !awaitingReturn && activeMatch.empty();
+        bool valid=op.valid && op.lobby==lobby.id && !op.lobby.empty() && !awaitingReturn && activeMatch.empty() && !abortRecovery;
         const bool duplicate=valid && acceptedLobby==op.lobby && lobby.epoch==op.epoch && lobby.phase>=wire::Starting &&
             (op.kind==15?startEpoch:readyEpoch)==op.epoch;
         if(duplicate) {
@@ -169,7 +222,7 @@ static void captureJoin(Obj server,Obj connection,bool spectator) {
 }
 static void begin(Obj front) {
     const auto& lobby=native::authority;
-    if(ba_dedicated_session::joined || awaitingReturn || !activeMatch.empty() || lobby.phase!=wire::Loading ||
+    if(ba_community::abortPending || abortRecovery || ba_dedicated_session::joined || awaitingReturn || !activeMatch.empty() || lobby.phase!=wire::Loading ||
         lobby.match.empty() || ba_lan::bootstrap.empty() || !operations.empty())return;
     const bool host=lobby.host==ba_community::welcome.profile;
     if(acceptedLobby!=lobby.id || (host?startEpoch:readyEpoch)!=lobby.epoch)return;
@@ -208,15 +261,77 @@ static void begin(Obj front) {
 static void returned(Obj front,Obj server) {
     wire::require(!activeMatch.empty() && activeMatch==ba_lan::dedicatedMatchId && !awaitingReturn &&
         ba_dedicated_results::delivered && !ba_lan::stopped && ba_community::online,"community return before valid result/teardown");
-    awaitingReturn=true;returnAccepted=false;
+    awaitingReturn=true;returnAccepted=false;returnWasCompleted=true;
     ba_dedicated_session::resetAtMenu(front,server,true,true);
     native::restoreIdentity(front);
     returnRequest=ba_community::send(wire::returned(ba_community::nextRequest(),activeMatch));
     ba::log("Community native match return: match=%s lobby=%s epoch=%u request=%u; native world idle, presence retained",
         activeMatch.c_str(),activeLobby.c_str(),activeEpoch,returnRequest);
 }
+static void recoverAbort(Obj front) {
+    if(!abortRecovery || awaitingReturn || ba::read<bool>(ba::owner,0x280))return;
+    auto& abort=*abortRecovery;
+    if(!abort.confirmed) {
+        wire::require(GetTickCount64()-abort.began<15000,"community abort missing authoritative Results");return;
+    }
+    Obj server=ba::read<Obj>(front,0xd8),sim=ba::read<Obj>(server,0x140);
+    if(ba_dedicated_session::joined) {
+        // Wait for the original async map callback; do not cancel or clear its
+        // flags. Cleanup owns simulation shutdown and the native menu signal.
+        if(!abort.cleanup && !ba::read<bool>(server,0xd8) && ba::read<bool>(sim,0x1a0) && ba::read<uint64_t>(sim,0x1a8)) {
+            abort.cleanup=true;ba_bootstrap::awaitingWorld=false;
+            int reason=1;bool stay=false;void* args[]={&reason,&stay};
+            ba::log("Community abort native CleanupGameState: match=%s mapLoading=0 active=1",abort.match.c_str());
+            ba::call(server,"CleanupGameState",2,args);
+        }
+    } else if(!abort.failedSignal && operations.empty()) {
+        Obj fsm=ba::read<Obj>(ba::owner,0x2b0),predict=ba::read<Obj>(ba::owner,0x2c8);
+        if(predict && fsm && ba::get<Obj>(fsm,"_currentState")==predict &&
+           // Predict uses UI GameMode7 (custom1v1), not CommonPb.GameMode1.
+           ba::read<Obj>(predict,0x18)==ba::owner && ba::read<int>(predict,0x20)==7 && !ba::read<bool>(predict,0x28)) {
+            Root owner(native::manager(front));
+            wire::require(native::installedLobby==abort.lobby && owner.get() &&
+                ba::call(owner.get(),"get_PredictedCustomGameLobby") && ba::get<Obj>(front,"_party") &&
+                !ba::get<Obj>(owner.get(),"_pendingLobbyUpdateRequest") && !ba::get<Obj>(owner.get(),"_pendingCreateLobbyRequest"),
+                "community setup failure lost native lobby ownership");
+            abort.failedSignal=true;
+            // MainMenu does not listen; wait for the actual Predict state.
+            // Retain its existing lobby/party so native ReturnToCustomGameLobby
+            // can navigate back without creating a new server lobby.
+            ba::native<void(*)(Obj,Obj,int,Obj)>(0x3e40410)(front,nullptr,2,nullptr);
+            wire::require(ba::read<bool>(predict,0x24),"native Predict did not consume setup failure");
+            ba::log("Community setup failure delivered to native Predict: match=%s; existing lobby retained",abort.match.c_str());
+        }
+    }
+    Obj menu=ba::read<Obj>(ba::owner,0x2c0);
+    if((abort.cleanup || abort.failedSignal) && operations.empty() &&
+       ba_dedicated_session::inMenu() && ba_dedicated_session::worldIdle(server) &&
+       !ba::read<bool>(menu,0x21) && !ba::read<bool>(menu,0x24) && !ba::read<bool>(menu,0x2c)) {
+        awaitingReturn=true;returnAccepted=false;returnWasCompleted=false;
+        ba_dedicated_session::resetAtMenu(front,server,false,true);
+        native::restoreIdentity(front);
+        returnRequest=ba_community::send(wire::returned(ba_community::nextRequest(),activeMatch));
+        ba::log("Community aborted match return: match=%s lobby=%s epoch=%u request=%u; native world idle, presence retained",
+            activeMatch.c_str(),activeLobby.c_str(),activeEpoch,returnRequest);
+        return;
+    }
+    const auto now=GetTickCount64();
+    if(now-abort.lastLog>10000) {
+        abort.lastLog=now;
+        ba::log("Community abort waiting for native teardown: match=%s elapsed=%llu menu=%d active=%d mapLoading=%d failedSignal=%d cleanup=%d operations=%llu",
+            abort.match.c_str(),static_cast<unsigned long long>(now-abort.began),ba_dedicated_session::inMenu()?1:0,
+            ba::read<bool>(sim,0x1a0)?1:0,ba::read<bool>(server,0xd8)?1:0,abort.failedSignal?1:0,abort.cleanup?1:0,
+            static_cast<unsigned long long>(operations.size()));
+    }
+}
 static void update(Obj front) {
     dispatch(front);
+    if(abortRecovery){recoverAbort(front);return;}
+    Obj server=ba::read<Obj>(front,0xd8);
+    if(ba_dedicated_session::joined && ba_dedicated_session::sawWorld &&
+       ba_dedicated_session::inMenu() && ba_dedicated_session::worldIdle(server)) {
+        returned(front,server);return;
+    }
     const auto& lobby=native::authority;
     if(lobby.phase==wire::Starting && lobby.id==native::installedLobby && lobby.host!=ba_community::welcome.profile &&
         (sentReadyLobby!=lobby.id || sentReadyEpoch!=lobby.epoch) && operations.empty()) {
@@ -244,6 +359,13 @@ static void smoke(Obj front) {
     if(!host && !guest)return;
     const auto now=GetTickCount64();if(!probeAt){probeAt=now+2500;return;}if(now<probeAt)return;
     Root owner(native::manager(front));wire::require(owner.get()!=nullptr,"community match smoke manager missing");
+    if(probeStage==4 && recoveredAborts>probeAborts && !awaitingReturn && returnAccepted &&
+       native::authority.phase==wire::Open && !ba_dedicated_session::joined) {
+        ba_community_invites::verifyParty(front,2,host);
+        wire::require(ba::lanSlot()==-1 && !ba::get<Obj>(owner.get(),"_pendingLobbyUpdateRequest"),"abort retained seat/request");
+        probeAborts=recoveredAborts;probeStage=3;probeAt=now+1500;
+        ba::log("COMMUNITY MATCH SMOKE recovered abort; starting two successful native matches on the same lobby");return;
+    }
     if(probeStage==0 && native::directory.players.size()>=2) {
         if(host) {
             Root controller(ba::get<Obj>(owner.get(),"_menuFlowController")),link(ba::make("Uncapped.UI","UILink"));

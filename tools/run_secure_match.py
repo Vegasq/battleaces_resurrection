@@ -38,15 +38,20 @@ from tools.stream_shaper import StreamShaper
 ROOT = Path(__file__).resolve().parents[1]
 
 
-def current_native_log(log):
+def current_native_log(log, *, since_tick=None):
     """Exclude append-only evidence from an earlier invocation with a reused PID."""
     start = log.rfind('Offline initial state reached after game initialization. PID=')
+    if start >= 0 and since_tick is not None:
+        line_start = log.rfind('\n', 0, start) + 1
+        timestamp = re.match(r'\[(\d+)\] ', log[line_start:start])
+        if timestamp is None or int(timestamp[1]) < since_tick:
+            return ''  # This process has not written its own startup marker yet.
     return log[start:] if start >= 0 else ''
 
 
-def read_native_log(game, pid):
+def read_native_log(game, pid, *, since_tick=None):
     path = game / 'investigation/runtime' / ('dedicated-native-' + str(pid) + '.log')
-    return current_native_log(path.read_text() if path.exists() else '')
+    return current_native_log(path.read_text() if path.exists() else '', since_tick=since_tick)
 
 
 def recovery_evidence(log, match, *, postgame=False):

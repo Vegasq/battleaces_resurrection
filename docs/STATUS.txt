@@ -2,6 +2,37 @@ IMPLEMENTATION LEDGER
 Updated: 2026-10-17
 Active objective: implement SERVER_REPLACEMENT_PLAN.txt, Windows only.
 
+CURRENT CUSTOM MATCH ABORT RECOVERY (2026-10-17)
+Match aborts now preserve the healthy community connection and custom lobby.
+Owned setup failure uses the actual native Predict failure signal; loading/active
+abort waits for map completion, uses original interrupt cleanup and returns only
+after the native world is idle. Exact match/lobby/epoch correlation precedes
+cleanup. Duplicate/delayed aborts and stale notices cannot replace a valid result,
+bypass Continue or interrupt a subsequent match. No aborted winner is fabricated.
+
+Final helper03 SHA256:
+9b0602557e69995fc5246585f8b411f4331786f11b655d31f0fb97a2ad657a3c.
+Two-client setup03 (80.015s), stale03 (78.813s), loading03 (89.407s) and graceful
+running04 (91.969s) pass. Each preserves two sessions/one lobby and completes
+two real180-frame matches with native result160. All successful-run workers exit0,
+all owned clients are reaped and source hashes stay unchanged. The complete
+216-test source suite passes (214 pass,2 opt-in skips); four C++ checks pass.
+
+The intermediate setup02 failure identified a wrong enum comparison: protocol
+mode1 maps to UI Predict mode7. Running03 recovered both clients and completed
+rematches but failed its strict exit0 check for the aborted worker (exit1); its
+precise cause was not captured. Worker-request cancellation can deliberately force
+termination. The final graceful test records an idle RPC gate and retains strict
+exit0 checks plus worker diagnostics. Both failed runs remain documented.
+
+Knowledge base: native-custom-matches.txt and retained local verification reports.
+Both user-facing installations are unchanged and hash-verified: Play Normal Match
+still uses the no-lag build; Play Custom Match remains on its offered tested build.
+The new helper is installed only in custom-abort-runtime for isolated qualification.
+Remaining work includes an accurate player-visible abort notice, native in-flight
+worker-cancellation qualification, broader departure/late-return races, manual
+Custom Game acceptance, Try Deck vs AI and internet/release qualification.
+
 CURRENT CUSTOM MATCH INTEGRATION (2026-10-17)
 The first full automated native Custom Game flow passes: picker Invite, popup
 Accept, host Start, guest Ready, real simulation, native results/Continue and a
@@ -24,7 +55,7 @@ Create/Leave/pending-ACK cancellation/re-entry regression (30.750s), with all ow
 processes reaped and hashed sources unchanged. The isolated visible manual entry
 is local/Play Custom Match.cmd; its two editable configs are under local/custom-play.
 No automated surrender/Start/Continue or diagnostic captures are enabled there.
-Manual Custom Game acceptance, native aborted-match recovery and AI remain open.
+Manual Custom Game acceptance, abort notices/remaining failure cases and AI remain open.
 
 CURRENT USER PLAYTEST FOLLOW-UP (2026-10-17)
 User confirms: "Play Normal Match worked with no lags!" The matching normal run

@@ -7,6 +7,10 @@ namespace ba_lan { static void send(unsigned char,const std::vector<unsigned cha
 namespace ba_community {
 namespace wire=ba_community_wire;
 static bool online=false;
+// Pause only match traffic as soon as ABORTED is decoded, even when its ordered
+// RESULTS snapshot arrives in a later socket read. Native ownership is checked
+// by the Unity-thread adapter before any world cleanup or RETURN.
+static bool abortPending=false;
 static wire::Welcome welcome;
 static wire::Directory directory{};
 static wire::Lobby lobby;
@@ -25,7 +29,7 @@ static const wire::Player* player(const std::string& profile) {
     return nullptr;
 }
 static void reset() {
-    online=false;welcome={};directory={};lobby={};events.clear();pending.clear();requestId=0;
+    online=false;abortPending=false;welcome={};directory={};lobby={};events.clear();pending.clear();requestId=0;
 }
 static uint32_t nextRequest() {
     wire::require(online && pending.size()<32 && requestId<UINT32_MAX,"community request capacity/state");
@@ -67,6 +71,8 @@ static void receive(unsigned char kind,const wire::Bytes& payload) {
             pending.erase(found);
         } else if(const auto* invitation=std::get_if<wire::Invitation>(&event)) {
             wire::require(invitation->sender==welcome.profile || invitation->target==welcome.profile,"foreign community invitation");
+        } else if(std::holds_alternative<wire::Aborted>(event)) {
+            abortPending=true;
         }
     }
     events.push_back(std::move(event));

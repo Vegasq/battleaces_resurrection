@@ -471,9 +471,9 @@ static void update(Obj front) {
         // Postgame failure qualification leaves the first result open until the
         // harness sends a real ERROR packet. Only Reconnect may advance it.
         if(!ba::flag(L"-dedicated-postgame-recovery-smoke"))rematchSmoke(server);
-        // User Continue (or native non-result exit), never a synthetic UI click.
-        if(joined && sawWorld && inMenu() && worldIdle(server)) {
-            if(ba::community()){ba_community_match::returned(front,server);return;}
+        // Community return runs after ordered control events, so an abort cannot
+        // enter completed-only return before its notice has been consumed.
+        if(!ba::community() && joined && sawWorld && inMenu() && worldIdle(server)) {
             const bool completed=ba_dedicated_results::delivered;
             resetAtMenu(front,server,completed);retryAt=GetTickCount64()+500;return;
         }

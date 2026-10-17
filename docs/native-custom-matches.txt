@@ -7,6 +7,8 @@ result/return prototype are implemented. The first automated two-native-client
 two-match flow passes, including duplicate requests, a changed deck, definitive
 Start rejection and an expired attempt with a late Ready ACK. The normal
 Play Normal Match installation remains independently qualified and unchanged.
+Abort recovery is implemented; its separate native evidence and remaining
+limits are recorded below.
 
 NATIVE EVIDENCE
 Original GameAssembly SHA256:
@@ -195,6 +197,147 @@ test flags concede at frame160 and permit two rounds. Start/Ready ACKs are delay
 and process ownership. It does not constitute manual mouse/visual acceptance,
 native Quit testing, internet qualification or full unit/combat coverage.
 
-Remaining qualification includes departure during start, setup failure,
-aborted match return, late-returning peers and unrelated players. Ordinary queue
+Remaining qualification includes departure during start, late-returning peers
+and unrelated players. Setup/abort recovery evidence follows. Ordinary queue
 and Try Deck vs AI remain separate work. This prototype is not the default patch.
+
+ABORT RECOVERY (2026-10-17)
+The separate custom-abort-runtime copy preserves both the tested manual Custom
+Game copy and the user-confirmed smooth normal-play copy. Initial helper01:
+47fbd9645ccff262e5fc215725f8a6fab352ca6cf6e76dad9ea9e3b858d18fa7.
+Four C++ checks and15 community socket tests pass. Native runs are recorded below.
+
+ABORTED56 is a match decision; it must not close the healthy community socket.
+The decoder pauses match bootstrap/input while the Unity adapter correlates the
+notice with the next ordered RESULTS snapshot for the same lobby/epoch/match.
+Worker initialization may fail after WELCOME31 but before MATCH_INFO32/bootstrap,
+so ABORTED may legitimately introduce the server's match ID. No result or winner
+is fabricated. An already validated result retains its original Continue flow.
+
+Before native bootstrap, use Created(error2) only in the actual owned Predict
+state with UI GameMode7 and no successful Joining pending. Retain the native lobby/prediction so
+its original failure navigation returns to the existing screen without Create.
+After bootstrap, wait for the original async map callback, then reuse native
+CleanupGameState(Interrupt1,false) once. Reset match roots only at native MainMenu
+with map loading false, simulation inactive and zero world. RETURN names the
+exact retained match ID; actual OPEN restores the lobby/canonical identity.
+Only a completed result sets HasPlayedMatch; setup failure preserves the existing
+Party value. A notice for a validated result, a match awaiting RETURN, or one of
+the last16 returned matches cannot clean up the current world or bypass Continue.
+Duplicate aborts are idempotent. A candidate without matching RESULTS for15s is
+a protocol failure; an unfinished native map load retains its state and roots.
+
+The server already discards in-flight INPUT/LOADED for closed/completed community
+matches in Community.handle. A preliminary suspicion based only on Room.on_message
+was corrected after tracing this caller; no server change was needed. The socket
+test now covers those late messages plus a rejected stale RETURN before recovery.
+
+Native evidence: original build hash above; retained local/p2-custom-abort-native.txt
+and p2-custom-abort-fsm.txt. These are original-byte disassembly/IL2CPP metadata,
+not REA provider evidence IDs or runtime proof. A correct player-visible abort
+notice remains a UX gap: Created(error2) alone logs/signals failure, while the
+existing lobby-creation-failed dialog has unverified, potentially misleading text.
+Do not repurpose shared pooled dialog fields or describe it as a generic toast.
+
+Additional static guard correction: CommonPb custom game mode1 and the native
+loading/Predict GameMode are different enums. UILoadingScreen's original
+InferGameModeFromCustomGameMode RVA3c90840 maps CommonPb1 -> UI7
+(Game_1v1Custom), and CommonPb2 -> UI8. An intermediate helper02 check comparing
+Predict.GameMode to1 prevented setup-failure recovery. Runtime qualification must
+include this gate; a successful C++ build/socket suite cannot establish its value.
+
+ABORT RUNTIME EVIDENCE
+Intermediate helper01 (hash above): custom-setup-abort01 passed in126.172s,
+clients50304/5156, workers49732/49172 exited0. An immediate worker-factory exception
+introduced the match ID through ABORTED before MATCH_INFO/bootstrap. Pending
+Start/Ready ACKs settled with native error2, both actual Predict states consumed
+Created(error2), RETURN retained the same lobby/connections, then two real matches
+completed. custom-running-abort01 passed in90.594s, clients40124/6684, deliberate
+abort at server frame42; workers43284/40760/44644 exited0. Both clients used native
+interrupt cleanup, returned and completed two subsequent matches. Every owned
+client was reaped; source hashes remained unchanged during each run.
+
+Intermediate helper02 SHA256:
+183b76df60afd29664d8e604e32acb38f1509ee925d7b252d490404694d6db41.
+custom-loading-abort02 passed in89.875s, clients40124/49252, workers41884/46584/46444
+exited0. Both clients observed mapLoading=1 when ABORTED arrived, waited for the
+actual map callback, then cleaned up once. Duplicate ABORTED and a600ms delayed
+ordered tail (including RESULTS) were injected. Same-lobby recovery plus two
+completed matches passed; sources unchanged and clients reaped.
+
+custom-setup-abort02 is retained as FAILED,180.531s, clients34916/43324. Its stricter
+Predict.GameMode==1 guard prevented the failure callback on both clients; neither
+created a native world or worker. Both remained in Predict until bounded harness
+cleanup. Sources unchanged, clients reaped. Static trace established the distinct
+UI7 enum above; helper03 corrects that check and also protects valid results while
+waiting for a peer's RETURN. No user's normal/manual helper was replaced.
+
+Final helper03 SHA256:
+9b0602557e69995fc5246585f8b411f4331786f11b655d31f0fb97a2ad657a3c.
+The experimental image hash remains08b11e51ea09a619b64b321212d69b77ac9da9d028f1b750d74cbe905f06f045.
+custom-setup-abort03: PASS 80.015s; clients46396/20116;
+workers11488/49824 exited0; same lobby/connections retained.
+custom-stale-abort03: PASS 78.813s; clients16028/48020;
+workers49408/6728 exited0; same lobby/connections retained.
+Setup03 repeats the duplicate/delayed abort case with the corrected native mode
+and ownership/pending-transition checks. Stale03 injects the old match's abort at
+three boundaries: native result UI, first client's RETURN before the other has
+returned, and frame40+ of the next running match. Each client ignores all three
+notices, uses both original Continue actions and never invokes abort cleanup.
+Both cases complete two authoritative180-frame matches with native result160.
+Sources unchanged; all test-owned clients reaped and workers exited0.
+
+Full final source suite216:214 passed,2 optional skips,69.997s runner time
+(70.093s wrapper time), with real native bridge and original-byte telemetry checks
+enabled. Protected-DACL creation and the separate opt-in native-worker fixture
+remain skipped; actual game/worker qualification is separate above. Four C++
+checks pass in helper03. Evidence: local/source-tests-customabort03.txt/.json.
+The preceding215-test run also passed; its report wrapper initially failed to
+JSON-serialize skipped unittest objects, then its summary was reconstructed from
+the retained successful text output. The final216-test wrapper has no such error.
+
+Windows reused PID40124 in loading02. The existing final log parser selected the
+latest startup marker correctly, but live monitoring could see the previous run
+before the new game initialized. The custom probe now also binds that marker to
+the process's pre-launch Windows tick count;9 focused evidence tests pass. Each
+report records these start ticks and hashes the shared log reader. An initial
+preflight attempt while helper01 was still installing was correctly rejected by
+manifest verification before any test clients launched; installation was awaited
+before starting the recorded setup01 run.
+
+custom-loading-abort03: PASS 89.407s; clients5264/45908;
+workers48644/35904/41788 exited0. Both native clients received
+ABORTED while mapLoading=1, waited for its callback, performed one interrupt
+cleanup/RETURN, then completed two matches. Duplicates and a600ms delayed ordered
+RESULTS tail were enabled. Sources unchanged, all owned clients reaped.
+
+custom-running-abort03 is retained as FAILED overall,91.266s, clients46504/45324.
+The server aborted at frame40; both clients recovered and completed two following
+matches, but aborted worker30408 exited1. Completed workers19804/49344 exited0;
+all clients were reaped and source hashes stayed unchanged. This run did not
+retain the worker failure string/stderr, so the precise exit cause is unproven.
+Source review shows an expected nonzero path: Room.finish cancels the room task,
+and Worker._exchange aborts/terminates its owned process if cancellation interrupts
+an RPC. The observed exit1 is consistent with that Windows termination path;
+it is not claimed as a verified graceful worker exit or a successful whole run.
+
+The graceful running-abort probe now injects only while the worker RPC lock is
+free (with no yield between that gate and finish). It keeps the exit0 requirement
+for every worker and records the RPC gate, worker failure and stderr tail. A
+separately controlled native in-flight-cancellation qualification remains open;
+the server/worker production implementation was not changed to hide this case.
+
+custom-running-abort04: PASS 91.969s; clients43804/47440;
+workers47916/50132/24892 exited0, no worker failure strings.
+Graceful abort at frame40, recorded worker_rpc_inflight=false; duplicate
+ABORTED and600ms delayed ordered RESULTS tail. Both original cleanups/RETURNs
+retained the two community sessions and one lobby, followed by two successful
+180-frame matches/results/Continue. Sources unchanged and all clients reaped.
+
+Reproduce final cases with tools.verify_custom_match --scenario setup-abort,
+stale-abort, loading-abort or running-abort; supply an isolated --game,
+verified --assets and a new ignored local/ --output. These are automated native
+callbacks and deliberately injected faults, not manual mouse acceptance or a
+private internet/TLS custom-game qualification. Helpers/original files/assets and
+all raw evidence stay local. The offered manual custom copy remains helper04
+from the preceding milestone; the normal no-lag copy remains unchanged.

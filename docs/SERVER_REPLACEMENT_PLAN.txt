@@ -199,8 +199,10 @@ Effort allowance: 4-7 days.
   cleanup qualified around interrupted replies (native-custom-invitations.txt).
   Native Start/Ready/result return and same-lobby rematch now pass two real clients,
   including duplicate native requests, changed-deck rematch, rejected Start and
-  timeout/late Ready ACK rollback. Broader races, aborted-match return and manual acceptance remain in qualification; see
-  native-custom-matches.txt.
+  timeout/late Ready ACK rollback. Setup failure and aborted-match return now
+  have automated native recovery qualification; stale aborts preserve validated
+  results and the next match. Broader departure/late-return races, an accurate
+  abort notice and manual acceptance remain open; see native-custom-matches.txt.
 - Retain the native deck builder and server deck validation/persistence.
 - TODO: Make Try Deck vs AI start a playable AI match with the currently selected
   eight-unit deck, without a second connected player or original service. Trace
