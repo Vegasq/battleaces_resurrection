@@ -31,6 +31,8 @@ HOOKS = [
 TAIL_HOOKS = [
     {'name': 'OfflineConsumeCreateRequest', 'rva': 0x3e4a00f,
      'offset': 0x3e4860f, 'before': 'e97c3f72fe'},
+    {'name': 'OfflineDedicatedRetryLogin', 'rva': 0x3d06ffd,
+     'offset': 0x3d055fd, 'before': 'e92e6a86fe'},
 ]
 CALL_HOOKS = [
     {'name': 'OfflineAuditReadSimFrame', 'rva': 0x3e61faf, 'offset': 0x3e605af, 'before': 'e8dc600000'},
@@ -143,6 +145,8 @@ def install(game_dir, *, helper=None, original_path=None, restore=False, dry_run
     helper_bytes = None if restore else Path(helper or ROOT / 'build/helper/BattleAcesOffline.dll').read_bytes()
     if helper_bytes is not None and not helper_bytes.startswith(b'MZ'):
         raise ValueError('Helper is not a PE DLL; build client_patch first.')
+    if helper_bytes is not None and b'BA_RESURRECTION_RECOVERY_V1' not in helper_bytes:
+        raise ValueError('Build the current helper supporting recovery ABI1 before installing this patch.')
     manifest = {'schema': 2, 'game_build': 37822, 'patch_version': '0.2.0-dev',
                 'original_sha256': ORIGINAL_SHA256, 'patched_sha256': components['GameAssembly.dll']['patched_sha256'],
                 'helper_sha256': digest(helper_bytes) if helper_bytes is not None else None,

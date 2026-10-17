@@ -108,8 +108,26 @@ removed. The separate root visible-test server/helper were not replaced.
 
 Six frames is a provisional development default,with nominal250ms queued-frame
 lead versus100ms at three. The release choice still needs physical-PC/internet,
-packet loss/retransmission,stalls,click-to-display latency,and fresh50/100ms runs
-using protocol3. The earlier50/100ms measurements above used protocol2. Do not
+packet loss/retransmission,stalls and click-to-display latency. The fresh protocol3
+50/100ms measurements below cover those ordered-delay cases. Do not
 simulate TCP packet loss by dropping encrypted stream bytes: that corrupts the
 application stream rather than modeling TCP retransmission. Status UI and genuine
 failure recovery remain separate unfinished work.
+
+ADDITIONAL PROTOCOL 3 DELAY RUNS (2026-10-17)
+Helperbuffer01, window6 and source commit0f4b0de were unchanged for these runs:
+ Run                  Added RTT   Hz1/Hz2       Resets1/2  Rematch max gap
+ p3-buffer6-50-01        50ms   19.744/20.002       3/1        69.420ms
+ p3-buffer6-100-01      100ms   19.719/20.000       3/1        92.802ms
+Each pair completed two620-frame matches in the same clients, with seats exchanged
+on rematch. Every client/match had620 exact receipts,62 sampled views,zero sampled
+mismatches or server errors,and a matching native result. Four TLS1.3 authenticated
+sessions per pair. Relay peak queues1/2 chunks respectively,with0 failures/rejections.
+First-match maximum gaps296.155/300.727ms remain in the evidence; their causes are
+not isolated. First/rematch p95 gaps were62.845/63.043ms and63.029/62.779ms.
+
+Evidence: local/matches/<run>/summary.json,per-match verification,source-sha256.json
+and patch-manifest.json. Clients13332/49748 (50ms) and40392/21852 (100ms).
+One "Secure transport ended" console message occurred in the50ms harness run;
+the native results passed, but the message's cause has not yet been attributed.
+Do not equate this automated evidence with manual postgame UI acceptance.

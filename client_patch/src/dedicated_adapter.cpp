@@ -7,9 +7,15 @@ using ba::Obj;using ba_local::Root;
 static bool lobbyInstalled=false,joined=false,sawWorld=false,abortRequested=false;
 static bool deferredPlay=false,blocked=false;
 static int appliedReady=-1;
-static unsigned startedSessions=0,retryAttempts=0;
+static unsigned startedSessions=0;
 static DWORD unityThread=0;
 static ULONGLONG retryAt=0,failedAt=0,lastWaitLog=0;
+static Obj observedFront=nullptr;
+static bool reconnectRequested=false,reconnectThenPlay=false,retryNeedsPlay=false;
+static bool failureNoticeShown=false,retryReleaseAttempted=false,retryModalReleased=false,retryContinueIssued=false;
+static uint64_t updateSequence=0,reconnectAfterUpdate=0;
+static ULONGLONG failureNoticeCheckAt=0,recoverySmokeAt=0;
+static unsigned failureNoticeChecks=0,recoverySmokeStage=0;
 static bool smokeContinueIssued=false,smokeDeckEdited=false,smokeFinished=false;
 static ULONGLONG smokePostgameAt=0;
 static ULONGLONG diagnosticAt=0;
@@ -29,6 +35,85 @@ static bool worldIdle(Obj server) {
 }
 static const char* className(Obj object) {
     return object?ba::api<const char*(*)(Obj)>("il2cpp_class_get_name")(ba::klass(object)):"null";
+}
+static Obj loginController(Obj front,Obj server) {
+    Root event(ba::get<Obj>(server,"GameStateCleanedUp"));if(!event.get())return nullptr;
+    Root listeners(ba::call(event.get(),"GetInvocationList"));
+    const size_t count=ba::api<uintptr_t(*)(Obj)>("il2cpp_array_length")(listeners.get());
+    if(count>128)throw std::runtime_error("unexpected native cleanup listener count");
+    Obj expected=ba::find_class("Uncapped.UI","UILoginFlowController");
+    for(size_t i=0;i<count;++i) {
+        Obj entry=ba::read<Obj>(listeners.get(),0x20+i*sizeof(Obj));
+        Root controller(ba::call(entry,"get_Target"));
+        if(controller.get() && ba::klass(controller.get())==expected &&
+           ba::get<Obj>(controller.get(),"_frontServer")==front &&
+           ba::get<Obj>(controller.get(),"_gameServer")==server)return controller.get();
+    }
+    return nullptr;
+}
+static void queueReconnect(Obj front,bool thenPlay=false) {
+    // The original RetryLogin tail arrives on the UI thread, still inside the
+    // modal's UnityEvent callback. Do not release the invoking VM here.
+    if(!unityThread || GetCurrentThreadId()!=unityThread || front!=observedFront) {
+        ba::log("Dedicated Reconnect ignored outside the observed Unity/front session");return;
+    }
+    if(!ba_lan::stopped || reconnectRequested)return;
+    ba::log("Dedicated recovery ABI BA_RESURRECTION_RECOVERY_V1");
+    reconnectRequested=true;reconnectThenPlay=thenPlay;reconnectAfterUpdate=updateSequence;
+    ba::log("Dedicated Reconnect callback queued: update=%llu originalChannel=%p pendingClosure=%d thenPlay=%d",
+        static_cast<unsigned long long>(updateSequence),ba::read<Obj>(front,0x20),ba::read<bool>(front,0x38)?1:0,thenPlay?1:0);
+}
+static void showFailureNotice(Obj front,Obj server) {
+    if(failureNoticeShown || failureNoticeChecks>=120 || ba::read<bool>(ba::owner,0x280))return;
+    const ULONGLONG now=GetTickCount64();if(now<failureNoticeCheckAt)return;
+    failureNoticeCheckAt=now+250;++failureNoticeChecks;
+    try {
+        Root controller(loginController(front,server));if(!controller.get())return;
+        Obj descriptor=ba::get<Obj>(controller.get(),"_disconnectedModal");
+        Obj active=ba::get<Obj>(controller.get(),"_activeModal");
+        if(!descriptor || (active && ba::get<Obj>(controller.get(),"_activeShowUIObject")!=descriptor))return;
+        if(!active){void* args[]={descriptor};ba::call(controller.get(),"ShowModal",1,args);}
+        if(ba::get<Obj>(controller.get(),"_activeShowUIObject")!=descriptor ||
+           !ba::get<Obj>(controller.get(),"_activeModal"))return;
+        failureNoticeShown=true;
+        ba::log("Dedicated failure dialog ready: menu=%d worldIdle=%d originalChannel=%p pendingClosure=%d; Reconnect opens a new lobby, Quit remains native. Reason: %s",
+            inMenu()?1:0,worldIdle(server)?1:0,ba::read<Obj>(front,0x20),ba::read<bool>(front,0x38)?1:0,ba_lan::failureReason.c_str());
+    } catch(const std::exception& e) {
+        failureNoticeChecks=120;
+        ba::log("Dedicated failure dialog unavailable; retaining stopped session: %s",e.what());
+    }
+}
+static bool releaseRetryModal(Obj front,Obj server) {
+    if(retryModalReleased)return true;
+    if(retryReleaseAttempted)return false;
+    Root controller(loginController(front,server));if(!controller.get())return false;
+    Obj descriptor=ba::get<Obj>(controller.get(),"_disconnectedModal");
+    Obj active=ba::get<Obj>(controller.get(),"_activeModal");
+    if(active && (!descriptor || ba::get<Obj>(controller.get(),"_activeShowUIObject")!=descriptor))return false;
+    retryReleaseAttempted=true; // A release failure is never retried in a loop.
+    // Also cancel the controller's delayed disconnect coroutine when its modal
+    // has not appeared yet. HideReconnectUI's empty-modal path is native-owned.
+    ba::call(controller.get(),"HideReconnectUI");
+    if(ba::get<Obj>(controller.get(),"_activeModal"))return false;
+    retryModalReleased=true;
+    ba::log("Dedicated retry modal released on later update: requested=%llu current=%llu nativeRelease=1 hadModal=%d menu=%d worldIdle=%d",
+        static_cast<unsigned long long>(reconnectAfterUpdate),static_cast<unsigned long long>(updateSequence),active?1:0,inMenu()?1:0,worldIdle(server)?1:0);
+    return true;
+}
+static void recoverySmokeConfirm(Obj front,Obj server) {
+    if(!ba::flag(L"-dedicated-recovery-smoke") || recoverySmokeStage || !failureNoticeShown)return;
+    if(!recoverySmokeAt){recoverySmokeAt=GetTickCount64();return;}
+    if(GetTickCount64()-recoverySmokeAt<1500)return;
+    Root controller(loginController(front,server));if(!controller.get())return;
+    Obj descriptor=ba::get<Obj>(controller.get(),"_disconnectedModal");
+    Root modal(ba::get<Obj>(controller.get(),"_activeModal"));
+    if(!descriptor || ba::get<Obj>(controller.get(),"_activeShowUIObject")!=descriptor ||
+       strcmp(className(modal.get()),"ModalConfirmVM"))return;
+    recoverySmokeStage=1;recoverySmokeAt=0;
+    ba::log("RECOVERY SMOKE invoking original disconnected modal OnConfirm (NOT manual UI input)");
+    ba::call(modal.get(),"OnConfirm");
+    ba::log("RECOVERY SMOKE original OnConfirm returned; modalStillOwned=%d queued=%d",
+        ba::get<Obj>(controller.get(),"_activeModal")==modal.get()?1:0,reconnectRequested?1:0);
 }
 static void releaseCompletedLegacyDisconnect(Obj front,Obj server) {
     // The shipped login controller rechecks the retired front service during
@@ -179,49 +264,84 @@ static void resetAtMenu(Obj front,Obj server,bool completed) {
     failedAt=0;lastWaitLog=0;blocked=false;
     diagnosticAt=0;diagnosticCount=0;
     legacyDisconnectReleaseAttempted=false;legacyDisconnectCheckAt=0;legacyDisconnectChecks=0;
-    if(completed){retryAttempts=0;deferredPlay=false;}
+    reconnectRequested=false;reconnectThenPlay=false;reconnectAfterUpdate=0;
+    failureNoticeShown=false;failureNoticeCheckAt=0;failureNoticeChecks=0;
+    retryReleaseAttempted=false;retryModalReleased=false;retryContinueIssued=false;
+    if(completed){deferredPlay=false;retryNeedsPlay=false;}
 }
 static bool retryFromPlay(Obj front,int) {
     if(!ba::dedicated() || !ba_lan::stopped)return false;
     Obj server=ba::read<Obj>(front,0xd8);
-    if(joined || !inMenu() || !worldIdle(server)) {
+    if(!inMenu() || !worldIdle(server) || (joined && !sawWorld && !abortRequested)) {
         ba::log("Dedicated Play waits for the old match's native teardown");return true;
     }
-    resetAtMenu(front,server,false);
-    retryAttempts=0;retryAt=GetTickCount64();deferredPlay=true;
+    queueReconnect(front,true);
     ba::log("Dedicated connection retry requested from native Play");return true;
+}
+static bool recoverCompletedPostgame(Obj front,Obj server) {
+    // A genuine failure can arrive after a valid result and native teardown,
+    // while the player is still reading results. Reconnect must first use the
+    // original Continue path; waiting for menu behind our modal would deadlock.
+    if(!joined || !sawWorld || !worldIdle(server) || ba_dedicated_results::updating ||
+       !ba_dedicated_results::delivered || ba_dedicated_results::pending ||
+       !ba_lan::matchEnded || ba_dedicated_results::matchId.empty() ||
+       ba_dedicated_results::matchId!=ba_lan::dedicatedMatchId || ba::read<bool>(ba::owner,0x280))return false;
+    Obj fsm=ba::read<Obj>(ba::owner,0x2b0);
+    if(!fsm || ba::get<Obj>(fsm,"_currentState")!=ba::read<Obj>(ba::owner,0x2f0))return false;
+    if(!reconnectRequested)showFailureNotice(front,server);
+    recoverySmokeConfirm(front,server);
+    if(!reconnectRequested || updateSequence<=reconnectAfterUpdate ||
+       !releaseRetryModal(front,server) || retryContinueIssued)return true;
+    Root controller(ba::get<Obj>(ba::owner,"<UIPostGameController>k__BackingField"));
+    if(!controller.get())return true;
+    Root state(ba::get<Obj>(controller.get(),"_matchResultState"));
+    Root postFsm(ba::get<Obj>(controller.get(),"_fsm"));
+    if(!state.get() || !postFsm.get() || ba::get<Obj>(postFsm.get(),"_currentState")!=state.get())return true;
+    Root view(ba::get<Obj>(state.get(),"_matchResultVM"));if(!view.get())return true;
+    Root navigation(ba::get<Obj>(view.get(),"_navigationStack"));if(!navigation.get())return true;
+    Root stack(ba::get<Obj>(navigation.get(),"_navigationStack"));
+    if(!stack.get() || ba_local::count(stack.get()))return true;
+    retryContinueIssued=true;
+    ba::log("Dedicated postgame Reconnect invokes original OnContinue: match=%s menu=0 worldIdle=1 navigation=0; waiting for native menu",
+        ba_lan::dedicatedMatchId.c_str());
+    ba::call(view.get(),"OnContinue");
+    return true;
 }
 static void recover(Obj front,Obj server) {
     const ULONGLONG now=GetTickCount64();
-    if(!failedAt){failedAt=now;ba_dedicated_deck::updateLobby(front,false);}
+    if(!failedAt){
+        failedAt=now;deferredPlay=false;retryNeedsPlay=true;
+        ba_dedicated_deck::updateLobby(front,false);
+        ba::log("Dedicated failed session retained until native cleanup and explicit Reconnect; match=%s",ba_lan::dedicatedMatchId.c_str());
+    }
     Obj sim=ba::read<Obj>(server,0x140);
     // Do not race the async map callback. Once it finishes, reuse the original
     // reason-1 cleanup, which joins the sim thread and emits native menu flow.
     if(joined && !abortRequested && sim && !ba::read<bool>(server,0xd8) &&
        ba::read<bool>(sim,0x1a0) && ba::read<uint64_t>(sim,0x1a8)) {
         abortRequested=true;ba_bootstrap::awaitingWorld=false;
-        int reason=1;bool skipShutdown=false;void* args[]={&reason,&skipShutdown};
+        int reason=1;bool stayInGame=false;void* args[]={&reason,&stayInGame};
         ba::log("Dedicated aborted match: requesting original CleanupGameState(reason=1)");
         try{ba::call(server,"CleanupGameState",2,args);}
         catch(const std::exception& e){ba::log("Dedicated native cleanup reported: %s",e.what());}
         // No direct field-clearing or alternate native destruction on failure.
     }
+    if(recoverCompletedPostgame(front,server))return;
     if(inMenu() && worldIdle(server) && (!joined || sawWorld || abortRequested)) {
-        const std::string reason=ba_lan::failureReason;
+        if(!reconnectRequested)showFailureNotice(front,server);
+        recoverySmokeConfirm(front,server);
+        if(!reconnectRequested || updateSequence<=reconnectAfterUpdate || !releaseRetryModal(front,server))return;
+        const bool thenPlay=reconnectThenPlay;
         resetAtMenu(front,server,false);
-        if(++retryAttempts<=3) {
-            retryAt=now+(1000u<<(retryAttempts-1));
-            ba::log("Dedicated connection retry %u/3 after: %s",retryAttempts,reason.c_str());
-        } else {
-            blocked=true;ba_lan::stopped=true;
-            ba::log("Dedicated connection unavailable; native Play retries. Last error: %s",reason.c_str());
-        }
+        retryAt=now+250;deferredPlay=thenPlay;retryNeedsPlay=!thenPlay;
+        ba::log("Dedicated explicit retry opening fresh lobby; readyIntent=%d",thenPlay?1:0);
         return;
     }
     // A stalled native map load cannot safely be reset by clearing our flags.
     // Keep the old roots and prohibit a new world; report a bounded diagnostic.
     if(now-failedAt>120000 && !blocked) {
         blocked=true;ba::log("Dedicated cleanup exceeded 120s; retaining native state, process restart required");
+        showFailureNotice(front,server);
     }
     if(!blocked && now-lastWaitLog>10000) {
         lastWaitLog=now;ba::log("Dedicated recovery waiting for native teardown: menu=%d active=%d mapLoading=%d",
@@ -248,29 +368,44 @@ static void installLobby(Obj front) {
     }
     ba::log("Dedicated lobby ready: assigned seat %d, completed/started sessions=%u; choose deck then Play",ba::lanSlot(),startedSessions);
     const bool smokeMayReady=!ba::flag(L"-dedicated-rematch-smoke") || startedSessions<2;
-    const bool autoReady=smokeMayReady && ba::flag(L"-dedicated-auto-ready") &&
+    const bool autoReady=!retryNeedsPlay && smokeMayReady && ba::flag(L"-dedicated-auto-ready") &&
         (!startedSessions || ba::flag(L"-dedicated-auto-rematch"));
     if(deferredPlay || autoReady) {
         deferredPlay=false;
         ba::native<void(*)(Obj,Obj,int,Obj)>(0x3e3c0d0)(front,ba::owner,1,nullptr);
     }
 }
+static void recoverySmokePlay(Obj front,Obj server) {
+    if(!ba::flag(L"-dedicated-recovery-smoke") || recoverySmokeStage!=1 ||
+       !retryNeedsPlay || !lobbyInstalled || joined || !inMenu() || !worldIdle(server) || appliedReady!=0)return;
+    if(ba_lan::lobbyReady)throw std::runtime_error("Reconnect must not automatically ready a player");
+    if(!recoverySmokeAt){recoverySmokeAt=GetTickCount64();return;}
+    if(GetTickCount64()-recoverySmokeAt<2000)return;
+    recoverySmokeStage=2;
+    ba::log("RECOVERY SMOKE fresh lobby is not ready; invoking native Play (NOT manual UI input)");
+    ba::native<void(*)(Obj,Obj,int,Obj)>(0x3e3c0d0)(front,ba::owner,1,nullptr);
+}
 static void update(Obj front) {
     if(!ba::dedicated())return;
     try {
         if(!unityThread)unityThread=GetCurrentThreadId();
         if(unityThread!=GetCurrentThreadId())throw std::runtime_error("dedicated lifecycle called off Unity thread");
+        observedFront=front;++updateSequence;
         Obj server=ba::read<Obj>(front,0xd8),sim=ba::read<Obj>(server,0x140);
         if(!server || !sim)return;
         if(joined && ba::read<bool>(sim,0x1a0) && ba::read<uint64_t>(sim,0x1a8))sawWorld=true;
+        // Handle failures before the ordinary menu reset, which would otherwise
+        // erase the failure and reconnect behind the still-owned native modal.
+        if(ba_lan::stopped){recover(front,server);return;}
         postgameDiagnostics(server);
-        rematchSmoke(server);
+        // Postgame failure qualification leaves the first result open until the
+        // harness sends a real ERROR packet. Only Reconnect may advance it.
+        if(!ba::flag(L"-dedicated-postgame-recovery-smoke"))rematchSmoke(server);
         // User Continue (or native non-result exit), never a synthetic UI click.
         if(joined && sawWorld && inMenu() && worldIdle(server)) {
             const bool completed=ba_dedicated_results::delivered;
             resetAtMenu(front,server,completed);retryAt=GetTickCount64()+500;return;
         }
-        if(ba_lan::stopped){if(!blocked)recover(front,server);return;}
         if(joined && ba_local::failed.load())throw std::runtime_error("dedicated local input capture failed");
         if(GetTickCount64()<retryAt)return;
         ba_lan::poll();
@@ -289,6 +424,19 @@ static void update(Obj front) {
             const int ready=ba_lan::lobbyReady?1:0;
             if(appliedReady!=ready){appliedReady=ready;ba_dedicated_deck::updateLobby(front,ready!=0);}
         }
+        recoverySmokePlay(front,server);
     } catch(const std::exception& e){ba_lan::fail("dedicated session update",e);}
 }
+}
+
+// Only RetryLogin's original tail jump is redirected. Its native stack/RBX
+// restoration and original generic MethodInfo remain intact. Shared Quit and
+// the generic connection routine itself are not patched.
+extern "C" __declspec(dllexport) void OfflineDedicatedRetryLogin(void* front,void* methodInfo) {
+    ba::init();
+    if(!ba::dedicated()) {
+        ba::native<void(*)(ba::Obj,ba::Obj)>(0x256da30)(front,methodInfo);return;
+    }
+    try{ba_dedicated_session::queueReconnect(front);}
+    catch(const std::exception& e){ba::log("Dedicated Reconnect callback failed: %s",e.what());}
 }

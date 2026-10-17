@@ -239,8 +239,9 @@ UILoginFlowController.RetryLogin and original gRPC connection code. Its serializ
 CloseOnConfirm isfalse, so it does not automatically close. A dedicated retry must
 queue intent, use original deferred modal release, wait for native menu/world
 teardown, then create a fresh lobby without auto-ready. The separate in-game retry
-also targets original JoinGame. Neither callback is patched yet; failure-button
-runtime acceptance remains open. Details are in client-session-lifecycle.txt.
+also targets original JoinGame. RetryLogin is now patched and has the native fault
+tests recorded below; the separate in-game retry remains unpatched. Manual button
+acceptance remains open. Details are in client-session-lifecycle.txt.
 
 P3 BOUNDED INPUT BUFFERING / PROTOCOL3
 The coordinator now selects2..12 queued input frames (development default6) and
@@ -274,6 +275,46 @@ at19.234/19.902Hz with7/3 resets. Both runs also passed the two-match receipt,
 sampled-state,result and TLS checks. Details,outliers and remaining default-
 selection gates are recorded in network-qualification.txt. This remains automated
 delayed-loopback evidence,not manual UI or actual internet acceptance.
+
+P2 EXPLICIT DISCONNECT RECOVERY
+RetryLogin's original tail now queues dedicated recovery intent. Original method
+arguments are forwarded unchanged outside dedicated mode. Shared Quit and separate
+in-game retry code are unchanged. A later Unity update releases only the exact
+owned disconnect modal through HideReconnectUI. Reset requires native menu and
+inactive/zero world; Reconnect opens an unready lobby and never implies Play.
+The old automatic retry loop is removed. For a failure after a validated result,
+Reconnect uses original OnContinue with exact result-state/empty-navigation gates,
+then waits for native menu. Stalled loading still retains state after120s.
+
+Negative baseline p2-drop-before01 auto-reentered with helperbuffer01 but correctly
+failed button-recovery acceptance. p2-recovery01 (helperrecovery01) abruptly cut
+one TLS stream at frame100; both clients used original OnConfirm,returned before
+deferred release,opened unready lobbies and completed a fresh matching620-frame
+match after separate Play. p2-recovery-postgame01 (helperrecovery02) injected ERROR
+only after both native result states; both used deferred release/original Continue
+and completed a matching second match with switched seats. Every completed match
+had620 receipts/62 sampled views per client,zero sampled mismatches/server errors,
+and matching native results. Four TLS1.3 AUTH sessions per pair. These are automated
+native callbacks,not manual mouse/UI acceptance. Detailed hashes,update counters,
+source manifests and remaining failure cases are in client-session-lifecycle.txt.
+
+Protocol3/window6 delayed runs p3-buffer6-50-01 and p3-buffer6-100-01 also passed
+two matches each at19.744/20.002Hz and19.719/20.000Hz;3/1 cadence resets in both.
+Full timings and limitations are in network-qualification.txt. The original root
+visible-test setup remains unchanged; the user's connection-dialog report is not
+claimed resolved without a matching fresh manual run. Current runtime testing uses
+only the isolated secure-client-runtime copy. Publication contains authored source
+and documentation; game files,captures and private test material stay local.
+
+Healthy regression p2-recovery-healthy01 passed with the same helperrecovery02:
+two620-frame matches in clients32932/13856,original Continue,native validated deck
+edits,seat exchange,620 receipts/62 samples per client/match,zero mismatches/errors,
+matching results,and four TLS1.3 authenticated sessions. Every completed result's
+exact legacy-modal release reached navigation0. Full suite192 tests in39.32s:
+190 pass,2 optional skips (private Windows DACL/native-worker fixture). Real native
+bridge and original-byte telemetry checks enabled; actual worker/game runs passed
+separately. Evidence local/source-tests-recovery02.json/.txt. No manual UI or clean-
+host release acceptance is implied. Root manual server/helper remain unchanged.
 
 BASELINE EVIDENCE BEFORE SOURCE MIGRATION
 Original GameAssembly SHA256:

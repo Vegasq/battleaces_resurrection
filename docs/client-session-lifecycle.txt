@@ -1,8 +1,9 @@
 DEDICATED CLIENT SESSION LIFETIME
 Updated: 2026-10-17. Build 37822, Windows x64, game protocol3.
 Status: automated native reset,changed-deck rematches and encrypted sessions are
-verified in the recorded runs below. Manual UI acceptance and genuine disconnect
-recovery remain open. Protocol3 adds a negotiated per-room input window.
+verified in the recorded runs below. Mid-match disconnect/explicit Reconnect has
+an automated native pass; broader failure and manual UI acceptance remain open.
+Protocol3 adds a negotiated per-room input window.
 
 CONTRACT
 
@@ -35,7 +36,7 @@ exercises those cases, Unicode, escaped quotes/backslashes and absent options.
 
 Each new match requires a new S_MATCH_INFO32 ID, canonical S_BOOTSTRAP12,
 SHA256 C_LOADED3 barrier and S_START13. Input and frame sequences restart at0;
-the first three input batches are submitted again. Frozen decks, JoinArmy at
+the negotiated initial input window is submitted again. Frozen decks, JoinArmy at
 frame0 and identity validation remain enforced by the server. No client publish
 message or new reset/epoch message is introduced.
 
@@ -89,7 +90,7 @@ ERROR AND RETRY BOUNDARIES
 Connection/WELCOME timeout is15 seconds in development TCP mode and30 seconds
 through the secure bridge. A transport/bootstrap/input error stops
 helper input and closes the connection. After a finished map load with an active
-world, the adapter calls original CleanupGameState(reason1,skipShutdown=false)
+world, the adapter calls original CleanupGameState(reason1,stayInGame=false)
 once. Its native shutdown path returns to menu, stops/joins the simulation and
 destroys the world. This is an abort, never a synthesized winner or S36 result.
 
@@ -99,11 +100,23 @@ finishes or safe native teardown is not observed within120 seconds, it retains
 the old state and logs that a process restart is needed. This limitation remains
 a failed-load UX/lifecycle gap, not a claim that every loading failure recovers.
 
-Once safely at menu, connection errors have at most three automatic retries,
-with1/2/4-second delays. Native Play can request another retry after exhaustion.
-A failed attempt does not automatically ready the room unless Play requested it.
-The current error presentation is local logging/native queue cancellation;
-friend-facing inline error text and retry controls are still separate P2 work.
+Once safely at menu, the adapter presents the exact original disconnected modal.
+Reconnect queues intent; it never releases the invoking view model from inside
+its UnityEvent callback. A later Unity update uses original HideReconnectUI once,
+then resets and opens a fresh lobby after250ms. The new lobby is unready, including
+when auto-ready test flags are present. A separate Play action is required.
+There are no automatic retry loops. Explicit Play on a stopped menu session can
+queue retry with a ready intent; this is distinct from the Reconnect button.
+The native modal currently has its generic disconnected message. Detailed causes
+remain in local logs; reason-specific friend-facing text is still unfinished.
+
+A failure after a validated result and native teardown can leave the client in
+postgame. The adapter requires matching delivered result/session IDs, no pending
+result update, the exact native postgame state and an idle world. After explicit
+Reconnect and deferred modal release, it resolves the actual MatchResultVM and
+requires the result substate plus empty navigation, then calls original OnContinue
+once. Reset still waits for actual MainMenu/world-idle. No native FSM transition
+is forced and no result is invented. The recorded postgame fault test below passes.
 
 Test flags remain opt-in. -dedicated-auto-ready readies the first match only.
 Add -dedicated-auto-rematch to also ready after each manual Continue. Neither
@@ -156,7 +169,7 @@ Simulation.StopSimulation 0x3e67f30 checks active, calls StopSimThread
 Simulation.SimulationShutdown 0x3e68030 calls StopSimulation, destroys a nonzero
 world, resets SimPlayersBuffer and disposes presented frames.
 GameServerIntegration.CleanupGameState 0x3e51ba0 clears input queues, connection
-and join state, calls SimulationShutdown unless skipShutdown, then LeftGame and
+and join state, calls SimulationShutdown unless stayInGame, then LeftGame and
 its native cleanup event. The original completion coroutine 0x3c88bc0 uses the
 same cleanup after its victory/defeat wait and EndOfGameResponse receipt.
 RGameInGameState.Simulation_SimulationShutdownUIFlow 0x3deeb20 selects post-game
@@ -223,10 +236,9 @@ HideExistingModal RVA0x3d078c0, which releases that object through the original
 IUIObjectPool. Normal UI release handlers own navigation removal. The helper does
 not clear/pop the navigation stack, change a connection-status field, fabricate
 an input event, replace any cleanup subscriber, or force a postgame transition.
-Other dialogs and all unsuccessful dedicated match paths are untouched. A later
-real coordinator ERROR still stops the helper and enters ordinary error recovery;
-there is no repeated modal suppression. Current dedicated failure presentation
-remains the separately documented logging/native cancellation UX limitation.
+Other dialogs are untouched. A later real coordinator ERROR still stops the helper
+and enters the explicit failure recovery path described above; there is no repeated
+success-path modal suppression.
 
 Runtime proof requires the exact controller and matching descriptor, navigation
 count before/after original release, and a second match in the same processes.
@@ -283,7 +295,7 @@ release. Manual mouse/keyboard Continue, deck editing, changed seats, and broade
 failure/soak acceptance remain required. It does not claim graphical visibility
 for tool-launched windows or P2 completion.
 
-DISCONNECTED BUTTON OWNERSHIP / RECOVERY RESEARCH (2026-10-17; NOT PATCHED)
+DISCONNECTED BUTTON OWNERSHIP / RECOVERY (2026-10-17)
 
 Read-only original-byte and serialized-asset analysis resolved the exact login
 modal button. Addressable key RGameManagers,catalog entry16878,uses bundle
@@ -314,23 +326,133 @@ Original native routes, RVAs in the pinned pristine GameAssembly:
  path into original GameServerIntegration.JoinGame3e53940 using saved connection
  info. It does not enter the dedicated adapter either.
 
-Runtime ownership chain for a future scoped check:
+Native ownership chain:
  controller._disconnectedModal(+98) -> ShowUIObject._model(+18) ->
  ModalConfirmModel.Meta(+30) -> InvokeUnityEvent.ConfirmEvent(+10)/CancelEvent(+18).
 Offsets in this paragraph are hexadecimal. Persistent callback targets retain
 the owning controller; do not replace shared VM handlers or clear navigation.
 
-Proposed dedicated-only callback behavior (not implemented/tested): enqueue retry
-intent, then invoke original HideReconnectUI on a later Unity update. For an
-interrupted match, existing CleanupGameState3e51ba0 must finish and inMenu plus
+The patch redirects only RetryLogin's existing tail jump at RVA3d06ffd,file3d055fd,
+exact preimagee92e6a86fe,through the existing RX-thunk/IAT mechanism. Original stack
+and RBX restoration remain in place. Export OfflineDedicatedRetryLogin takes
+front in RCX and the unchanged generic MethodInfo in RDX. Non-dedicated calls
+forward to original ConnectToService256da30 outside the dedicated exception catch.
+The retained native guard requires front._channel(+20)==null or
+front._pendingConnectionClosure(+38)==true. The first runtime pass observed a null
+channel and false pendingClosure on both clients,so the tail was reachable.
+
+Dedicated mode queues intent only on the observed Unity thread/front pair and
+only for a stopped session. It stores no modal pointer across updates. Each later
+operation resolves the exact event-owned login controller and roots it locally.
+Release refuses to replace an unrelated modal and marks its one-shot guard BEFORE
+calling native code. HideReconnectUI is also called when no modal is active: it
+cancels the original delayed disconnect coroutine,which could otherwise reopen
+the old-service dialog in a new lobby. Native pool/navigation handlers own release.
+
+For an interrupted match, CleanupGameState3e51ba0 must finish and both inMenu and
 worldIdle must hold before a fresh HELLO. This is a new lobby,not active-match
-resumption. Existing retryFromPlay sets deferredPlay=true,so reusing it unchanged
-would wrongly auto-ready from RECONNECT. If the private transport parent is dead,
-its inherited stream cannot be repaired by a new remote session; relaunch is needed.
-Preserve non-dedicated behavior and the independent Quit callback.
+resumption. Reconnect has no ready intent; native Play may request one explicitly.
+The original cleanup bool is named stayInGame; false requests shutdown. Its UI
+event fires before world destruction,so menu alone is not a sufficient reset gate.
+If the private transport parent dies,its inherited stream cannot be repaired by
+a new remote session; relaunch is needed. Separate in-game retry remains unpatched.
+Shared Quit is unchanged. The installer rejects a helper missing recovery ABI1
+before writing components,preventing installation of a DLL lacking the new hook.
 
 Local retained sources: investigation/dedicated/disconnect-ui-types.json,
 legacy-login-disconnect.asm,investigation/native-map.json and the pristine DLL.
 Focused callback ranges were rechecked with investigation/network/original_disasm.py;
-the bundle was decoded in memory and not extracted/published. No live failure-button
-click, callback replacement, or runtime recovery success is claimed by this trace.
+the bundle was decoded in memory and not extracted/published. These static findings
+do not themselves establish runtime or manual UI success.
+
+MID-MATCH RECOVERY QUALIFICATION
+Negative control p2-drop-before01 used helperbuffer01: an abrupt server-side TLS
+abort at frame100 caused normal coordinator match abort at next_frame101 with
+result=null. Automatic test flags started a new matching620-frame game,but no
+Reconnect/deferred-release/unready-lobby evidence existed. Harness success=false
+correctly distinguishes transport re-entry from the required button behavior.
+
+p2-recovery01 used helperrecovery01 in the isolated secure-client-runtime copy:
+SHA25626af98e8447a526db0bcce59d3d3dc0db068ea9ac77cdabc285ea7325aa12ef4.
+Clients27308/40760 interrupted matchf5ab39c2275d45598fac0411b2063e50 at frame100.
+The ordinary coordinator detach path aborted it with no fabricated result.
+Both clients reached native menu/world-idle,displayed the exact failure modal and
+invoked its original OnConfirm via the opt-in smoke. The real serialized UnityEvent
+hit the patched RetryLogin tail. OnConfirm returned with modalStillOwned=1 and
+queued=1; native release occurred on update823->824 and821->822 respectively.
+Both reopened with readyIntent=0; only a separate native Play after the unready
+lobby wait started the new match9ab566c46acc4091897b9f16af4189f1.
+
+The fresh match completed620 frames,620 exact receipts and62 sampled views per
+client,zero sampled mismatches/server errors,and matching native results. Four
+TLS1.3 AUTH sessions prove fresh remote authentication in the same processes.
+Evidence: local/matches/p2-recovery01/{summary,source-sha256,patch-manifest}.json,
+per-match verification and isolated-runtime dedicated-native-PID.log. The process
+startup took about174s before helper networking; its cause remains unisolated.
+Harness teardown printed transport-ended notices; no cause is asserted from those
+console lines alone. This is automated native-callback evidence,not a manual click.
+
+Test harness --disconnect-frame (20..499) cuts one real TLS stream without an error
+packet to that peer; normal detach notifies the other. --postgame-error instead
+waits for both native continue-handler-ready states,then sends ERROR to both result
+sockets. Modes are mutually exclusive. The opt-in postgame smoke suppresses normal
+auto-Continue so only Reconnect can advance that test. Evidence checks require the
+ordered callback/return/later-update release/reset/unready/Play chain and reject
+old appended PID runs or a new match before Play. Test flags are not release behavior.
+
+POSTGAME FAILURE QUALIFICATION
+p2-recovery-postgame01 used helperrecovery02 SHA256
+b608cda4ec21ea3f578fb83ffba165b4c283177877b26736463a0a05f64c6e7e.
+Clients38844/45420 completed match6c829b03984d4639827e66a8514a5317. The harness
+waited for both native result states with inactive/zero worlds and navigation0,
+then sent a real ERROR packet to both completed-match sockets. Both helpers
+reported a failure and displayed the exact native disconnected modal in postgame.
+
+Original OnConfirm returned while still owning the modal; native release followed
+on updates2937->2938 and2893->2894. Both logged menu=0/worldIdle=1/navigation0,
+then invoked original OnContinue once. Actual menu/world-idle reset followed63ms
+later. Fresh lobbies had readyIntent=0 and waited roughly2.3s for the separate
+smoke Play action. Seats switched; matchd92fb30576704690a2772363636bded0 completed.
+Both620-frame matches passed620 receipts/62 sampled views per client,zero sampled
+mismatches/server errors,and matching native results. Four TLS1.3 AUTH sessions;
+all ordered recovery checks passed. The second result remained continue-ready
+with navigation0. Evidence: local/matches/p2-recovery-postgame01,its source/binary
+manifests,and the isolated native logs. All owned processes exited; test PKI removed.
+
+Read-only byte checks confirm the installed GameAssembly retains RetryLogin's
+original guard/prologue,shared Quit body and separate in-game retry unchanged.
+Its tail now reaches RX thunk RVA7670010. Patched GameAssembly SHA256:
+3474b2e360c59464814f9d9b03e09f84ea0a0087fc53e13173c75807c74992cd.
+Evidence: local/recovery02-original-byte-verification.json. This is static byte
+preservation,not a runtime claim about normal Quit or original-service login.
+
+Still unqualified: manual Reconnect/Continue and normal Quit,initial connection
+refusal/authentication failure,lobby failure,async map-load failure,private-parent
+death,20 rematches/soak and separate-PC/network failure behavior. Generic error
+text remains a UX limitation. An unvalidated result never authorizes auto-Continue.
+
+HEALTHY REMATCH REGRESSION / SOURCE VALIDATION
+The same helperrecovery02 passed p2-recovery-healthy01 without any injected fault
+or recovery smoke. Clients32932/13856 completed matchc2d090ef340146f7920d3b910e10cfe6,
+used original Continue,changed native-validated deck slots75->74 and74->75,switched
+seats and completed match515bea4f151045fb82a66f9b655f22a3. Each match620 frames;
+each client620 receipts/62 sampled views,zero mismatches/server errors,matching
+native results. Both clients released the exact obsolete modal to navigation0
+after both results. Four TLS1.3 AUTH sessions; all owned processes exited and PKI
+was removed. Evidence: local/matches/p2-recovery-healthy01 and native PID logs.
+
+The full source suite ran192 tests in39.32s:190 passed,2 opt-in skips (real Windows
+private-DACL creation and a separate native-worker fixture). Real inherited-socket
+bridge probes and read-only original-byte telemetry checks were enabled. Native
+workers were exercised independently by the actual game runs above. Evidence:
+local/source-tests-recovery02.json/.txt. Native argument and protocol3 parser checks
+passed during the helper build. This does not cover the remaining manual/deployment
+gates listed above. All new helper installation/testing used the isolated copy.
+
+Real restore/reapply verification restored GameAssembly,UnityPlayer and CEF's
+chrome_elf to their pinned original hashes,then reapplied byte-identical tested
+components and helperrecovery02. The restore operation retains the unreferenced
+helper DLL and verified backups; it restores the original components,not a full
+directory uninstall. Evidence: local/recovery02-rollback-reapply.json. An initial
+probe incorrectly expected helper deletion; that assertion was corrected to match
+the existing installer contract. No installer source change was needed.
