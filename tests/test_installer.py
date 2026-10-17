@@ -18,9 +18,13 @@ class InstallerTests(unittest.TestCase):
         self.root = self.test_root / uuid.uuid4().hex
         self.root.mkdir(parents=True)
         self.addCleanup(self.remove_fixture)
-        self.originals = {'GameAssembly.dll': b'authored game fixture', 'UnityPlayer.dll': b'authored engine fixture'}
+        self.nested = 'Battle Aces_Data/Plugins/x86_64/VuplexWebViewChromium/chrome_elf.dll'
+        self.originals = {'GameAssembly.dll': b'authored game fixture',
+                          'UnityPlayer.dll': b'authored engine fixture',
+                          self.nested: b'authored browser fixture'}
         self.patched = {name: content + b' private patch' for name, content in self.originals.items()}
         for name, content in self.originals.items():
+            (self.root / name).parent.mkdir(parents=True, exist_ok=True)
             (self.root / name).write_bytes(content)
         self.helper = self.root / 'synthetic-helper.dll'
         self.helper.write_bytes(b'MZ authored helper test fixture')
@@ -53,7 +57,7 @@ class InstallerTests(unittest.TestCase):
             self.assertEqual(restored['components'][name]['installed_sha256'], installer.digest(content))
 
     def test_last_component_validation_failure_leaves_installation_untouched(self):
-        (self.root / 'UnityPlayer.dll').write_bytes(b'unrecognized engine')
+        (self.root / self.nested).write_bytes(b'unrecognized browser')
         with self.assertRaisesRegex(ValueError, 'SHA256'):
             installer.install(self.root, helper=self.helper)
         self.assertEqual((self.root / 'GameAssembly.dll').read_bytes(), self.originals['GameAssembly.dll'])
@@ -65,8 +69,8 @@ class InstallerTests(unittest.TestCase):
         (self.root / 'BattleAcesOffline.dll').write_bytes(old_helper)
         write = installer.atomic_write
         def fail_engine(path, data):
-            if path == self.root / 'UnityPlayer.dll':
-                raise PermissionError('test: engine is mapped by a running process')
+            if path == self.root / self.nested:
+                raise PermissionError('test: browser is mapped by a running process')
             return write(path, data)
         with patch.object(installer, 'atomic_write', side_effect=fail_engine):
             with self.assertRaises(PermissionError):
@@ -93,3 +97,29 @@ class InstallerTests(unittest.TestCase):
         self.assertFalse((self.root / 'BattleAcesOffline.dll').exists())
         for name, content in self.originals.items():
             self.assertEqual((self.root / name).read_bytes(), content)
+
+    def test_component_path_cannot_escape_or_target_backup_state(self):
+        component = Component(installer.digest(b'authored path fixture'), ())
+        for name in ('../escape.dll', str(self.root.parent / 'escape.dll'),
+                     '.battleaces-resurrection/original/escape.dll'):
+            with self.subTest(name=name), patch.object(installer.telemetry, 'COMPONENTS', {name: component}):
+                with self.assertRaises(ValueError):
+                    installer.install(self.root, helper=self.helper)
+            self.assertFalse((self.root / '.battleaces-resurrection').exists())
+            self.assertFalse((self.root / 'BattleAcesOffline.dll').exists())
+
+    def test_resolved_external_target_or_backup_is_rejected_before_writes(self):
+        original_resolve = Path.resolve
+        # Exercise path resolution's result; this does not claim a real Windows
+        # junction was created in the test environment.
+        for relative in ('UnityPlayer.dll', '.battleaces-resurrection',
+                         '.battleaces-resurrection/original/UnityPlayer.dll'):
+            def external(path, *args, **kwargs):
+                if path == self.root / relative:
+                    return self.root.parent / 'outside-fixture' / path.name
+                return original_resolve(path, *args, **kwargs)
+            with self.subTest(relative=relative), patch.object(Path, 'resolve', external):
+                with self.assertRaisesRegex(ValueError, 'outside'):
+                    installer.install(self.root, helper=self.helper)
+            self.assertFalse((self.root / '.battleaces-resurrection').exists())
+            self.assertFalse((self.root / 'BattleAcesOffline.dll').exists())

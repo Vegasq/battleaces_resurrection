@@ -20,6 +20,7 @@
 namespace ba_catalog { static void exportOnce(); }
 namespace ba_dedicated_results { static void receive(const std::string&); }
 namespace ba_audit { static void beginMatch(const std::string&); }
+namespace ba_telemetry_audit { static void startup();static void state(void* current); }
 namespace ba_dedicated_session {
 static void update(void* front);
 static bool retryFromPlay(void* front,int mode);
@@ -186,6 +187,7 @@ extern "C" __declspec(dllexport) int OfflineInitialUpdate(void* state,void*) {
         init();owner=read<Obj>(state,0x18);
         if(!owner_root)owner_root=api<uint32_t(*)(Obj,bool)>("il2cpp_gchandle_new")(owner,false);
         log("Offline initial state reached after game initialization. PID=%lu",GetCurrentProcessId());
+        ba_telemetry_audit::startup();
         Obj services=read<Obj>(owner,0x38);
         local_profile(read<Obj>(services,0x40));
         local_version(read<Obj>(services,0x10));
@@ -217,6 +219,7 @@ extern "C" __declspec(dllexport) void OfflineFrontUpdate(void* front,void*) {
         if(GetTickCount64()-last<10000)return;
         last=GetTickCount64();
         Obj fsm=read<Obj>(owner,0x2b0), state=get<Obj>(fsm,"_currentState");
+        ba_telemetry_audit::state(state);
         log("Offline state: %s",state ? api<const char*(*)(Obj)>("il2cpp_class_get_name")(klass(state)) : "none");
         Obj services=read<Obj>(owner,0x38), server=read<Obj>(services,0x18);
         Obj sim=read<Obj>(server,0x140), player=read<Obj>(sim,0x90);
@@ -237,3 +240,4 @@ extern "C" __declspec(dllexport) void OfflineFrontUpdate(void* front,void*) {
 #include "dedicated_adapter.cpp"
 #include "server_assets_export.cpp"
 #include "lan_audit.cpp"
+#include "telemetry_audit.cpp"

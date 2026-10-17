@@ -12,6 +12,7 @@ param(
     [switch]$DeckSmoke,
     [switch]$SurrenderSmoke,
     [switch]$RematchSmoke,
+    [switch]$TelemetryAudit,
     [ValidateRange(200,10000)][int]$SurrenderFrame = 600,
     [switch]$Batch,
     [switch]$ExportCatalog,
@@ -60,6 +61,7 @@ if ($Smoke) { $gameArgs += '-lan-smoke' }
 if ($DeckSmoke) { $gameArgs += '-dedicated-deck-smoke' }
 if ($SurrenderSmoke) { $gameArgs += @('-dedicated-surrender-smoke',"-dedicated-surrender-frame=$SurrenderFrame") }
 if ($RematchSmoke) { $gameArgs += @('-dedicated-rematch-smoke','-dedicated-auto-rematch') }
+if ($TelemetryAudit) { $gameArgs += '-telemetry-audit' }
 if ($ExportCatalog) { $gameArgs += '-export-unit-catalog' }
 if ($Batch) { $gameArgs += @('-batchmode','-nographics') }
 $style = if ($Batch) { 'Hidden' } else { 'Normal' }

@@ -1,0 +1,141 @@
+NATIVE UNITY TELEMETRY AUDIT
+Updated: 2026-10-17
+
+Status: built, installed and exercised with all59 telemetry guards in run
+p2-telemetry02. This is an opt-in observation tool, not a patch group or complete
+telemetry removal/network qualification claim.
+All19 narrow signatures were checked against the pristine local DLL. A separate
+Python mirror passed21 normalization/rejection checks: original, each individual
+candidate, all candidates with a changed checksum, the installed disk file, and
+rejection of unrecognized signature/unrelated-byte changes. This validates source
+constants and mirrored logic; it is not a test execution of the C++ implementation.
+Local record: investigation/dedicated/telemetry-audit-static-checks.json.
+
+Runtime evidence:local/matches/p2-telemetry02/telemetry-audit.json. Six snapshots
+per client covered startup, menus and two results in the same processes. Both
+clients passed the build gate (crash3/3,core10/10,performance3/3); all three native
+objects remained present, inspected flags/hooks/gates stayed zero, pre-init queue
+counts were zero and singleton rechecks stayed stable. No disabled/unavailable
+audit rows appeared. Two620-frame matches also passed gameplay verification.
+These observations do not cover normal shutdown, CEF children or network traffic.
+
+Add -telemetry-audit to a supported client's existing command line. Output uses
+the helper's normal local runtime log and begins with "Telemetry audit". Without
+that exact flag, no module file is opened and no audit object reads occur.
+The first sample is taken when OfflineInitialUpdate reaches initialized game
+systems, before the helper enters the menu. Existing ten-second status updates
+then sample native MainMenu and PostGame states at most twice per observed state
+entry, with a hard cap of17 snapshots for the entire process, including startup.
+An unobserved transition between ten-second updates can omit a new entry. No
+shutdown hook is added: observations during object destruction require a separate
+safe lifecycle point. This audit does not access or control other game processes.
+
+READ-ONLY BOUNDARY
+
+telemetry_audit.cpp uses ReadProcessMemory on its own process for bounded scalar
+and vector-header copies. Null singletons are logged and never dereferenced.
+Failed reads are reported as unavailable, never converted into a zero/pass.
+It invokes no Unity telemetry getter/setter, collection routine, queue drain,
+flush, callback, native lock or engine initialization. No process memory or game
+file is written; only the normal local helper log is appended. File hashing and
+temporary buffer normalization use helper-owned memory and Windows SHA-256.
+
+No object addresses, event bodies, identifiers, URLs, keys, paths, user names,
+session numbers or queue contents are emitted. Pointer/handle-like values become
+presence flags. The session object's unclassified numeric fields are reduced to
+zero/nonzero. The module hash and source-supported enum/boolean values are logged.
+
+BUILD GATE
+
+The only supported original UnityPlayer.dll is30902464 bytes, AMD64 PE32+,
+timestamp0x66a03c5f, eight sections, SizeOfImage0x1e58000, SHA-256:
+ ac144d56d53f07904d52ed27a1539de90bc3290038fe52d73d2f6b268c85d6bc
+
+Before reading native objects, the audit checks the loaded PE identity, reads the
+loaded module's disk file, and checks19 narrow memory/file instruction signatures.
+Three signatures guard the retained main/session/performance initializers. The
+other16 recognize exactly the pristine bytes or their individually reviewed
+current crash guards and proposed core/performance replacements. A LOCAL file
+buffer restores recognized ranges and the original PE checksum for full SHA-256
+comparison. All unrelated bytes must match the pinned original. The log records
+the actual file hash and how many candidate signatures each group contains.
+Recognizing a candidate or partial group does not approve installing it.
+
+An unsupported file, unexpected instruction, loaded/file disagreement, read
+failure, or normalization/hash mismatch disables the audit with one diagnostic.
+There is no fallback to guessed offsets and no automatic retry. Main and session
+object reads additionally require their exact expected native vtable pointers.
+This is a wrong-build guard, not a whole-process integrity/anti-tamper mechanism:
+only the listed loaded instructions are compared, not every relocated code byte.
+Independent runtime tampering or disk replacement after this one-time check is
+outside the audited assumptions. The installer remains responsible for exact
+supported GameAssembly/helper builds; this probe uses their existing stage hooks.
+
+OBSERVED FIELDS AND EVIDENCE
+
+Offsets are hexadecimal and relative to the supported native object's start.
+Global RVAs are relative to loaded UnityPlayer, so ASLR is accounted for.
+
+Main analytics: global1d0eb28, expected vtable1a2c538.
+  +8 uint32 state value; +e10 uint32 initialization gate (zero/nonzero).
+  +480 uint32 archived-flush gate (zero/nonzero), +4e0 worker presence.
+  +15c0 base callbacks registered, +1650 derived callbacks registered,
+  +1651 analytics enabled, +15c3 device statistics enabled: one-byte flags.
+  +1458/+1460/+1468 are begin/end/capacity pointers for the pre-init event queue.
+    The audit copies only the three pointers twice, never the event elements.
+    Count=(end-begin)/8 is logged only if both copies agree, pointers are ordered,
+    size is aligned and count<=50; otherwise it logs-1 (unavailable/inconsistent).
+    This is the particular bounded pre-init queue, not every telemetry queue.
+
+Session: global1d0eb40, expected vtable1a2b078.
+  +8 one-byte callback registration flag; +c uint32 and +10/+20 uint64 are logged
+  only as zero/nonzero because their full semantic/identity interpretation is
+  unnecessary to establish retained constructor defaults.
+
+Performance: global1d0eca8.
+  +0 one-byte callback registration flag; +9 one-byte enabled flag.
+
+Two native callback-hook globals1ce04a0 and1ce0588 are logged only as present/absent.
+Their writers are established, but complete generic callback-table consumer
+coverage is still unresolved. A null hook does not prove all collectors absent.
+
+Static evidence from the user's supplied original (retained locally, not shipped):
+  c33210 allocates main and installs its derived vtable; c33530 initializes the
+  state, pre-init queue header, worker pointer and archived-flush defaults.
+  c66c20/c2f570 set registered flags and main callback hook. c8c510 allocates the
+  session and initializes its fields before setting its registration byte.
+  d84de0 allocates performance, initializes enabled at+9 and registers callbacks
+  before storing its hook. d85060 and c8c6d0 respect registration during cleanup.
+  c381d0 atc38682 computes the pre-init queue length from+1458/+1460, limits it
+  to50 and appends pointer-sized items under the native critical section.
+  FlushArchivedEvents207a80 checks DWORD +e10 and+480 before using worker+4e0.
+
+Local sources: investigation/offline/telemetry_unity_core_candidate.json,
+telemetry_performance_proposal.json and investigation/dedicated/telemetry-evidence/
+unity-next-base-storage-init.asm, unity-pristine-c33210.asm,
+unity-next-analytics-derived-start.asm, unity-performance-init.asm,
+unity-pristine-c8c6d0.asm, unity-followup-c381d0.asm. Flush gate and session
+constructor were rechecked directly against the original during this change.
+
+INTERPRETATION AND REMAINING GAPS
+
+The installed unstarted configuration expects all three objects retained, callback
+registration/enabled flags zero, main state/init/worker/archived-flush defaults
+zero, empty pre-init queue and null observed callback hooks. The earlier smaller
+crash-only patch did not establish those expectations; nonzero flags remain useful
+observations rather than hidden audit failures. IsInitialized in the public API merely
+tests object presence and can remain true when collection is unstarted.
+
+These unlocked reads are samples, not an atomic cross-thread snapshot. The audit
+rechecks singleton pointers afterward; changed/unreadable pointers invalidate
+that snapshot. An unchanged pointer does not exclude a field changing during the
+copy or an allocation being reused. Queue-header agreement reduces torn readings
+but does not replace its original lock. The audit deliberately does not acquire
+that lock or interfere with collector/worker execution.
+
+The archived-flush gate is NOT a cached-report count. Actual cache files, deferred
+retries, independent queues, managed SDKs, CEF/child processes, OS crash reporting,
+DNS and outbound network attempts are not measured. Zero flags/queues cannot
+prove zero collection or delivery. Broader qualification in telemetry.txt remains
+required, including clean/existing profiles, gameplay, rematch, controlled errors,
+cached retries, reconnection and shutdown with process-attributed network evidence.

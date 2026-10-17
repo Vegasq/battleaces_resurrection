@@ -2,11 +2,13 @@
 from dataclasses import replace
 import hashlib
 import os
-from pathlib import Path
+from pathlib import Path, PurePosixPath
+import struct
 import unittest
 
 from client_patch.patcher.telemetry import (
-    COMPONENTS, RUNTIME_VALIDATED, Component, Patch, _apply_recipe, patch_component,
+    CEF_COMPONENT_PATH, COMPONENTS, RECIPE_VERSION, RUNTIME_VALIDATED,
+    Component, Patch, _apply_recipe, patch_component,
 )
 
 
@@ -85,20 +87,79 @@ class TelemetryPatchSafetyTests(unittest.TestCase):
             with self.subTest(name=name), self.assertRaisesRegex(ValueError, "SHA256"):
                 patch_component(name, b"MZ" + bytes(64))
 
-    def test_unknown_component_and_paths_are_rejected(self):
-        for name in ("unknown.dll", "other/GameAssembly.dll", None):
+    def test_unknown_components_and_path_aliases_are_rejected(self):
+        for name in ("unknown.dll", "other/GameAssembly.dll", "chrome_elf.dll",
+                     "./" + CEF_COMPONENT_PATH, "../" + CEF_COMPONENT_PATH,
+                     "/" + CEF_COMPONENT_PATH, CEF_COMPONENT_PATH.replace("/", "\\"), None):
             with self.subTest(name=name), self.assertRaisesRegex(ValueError, "Unsupported"):
                 patch_component(name, self.original)
 
     def test_only_reviewed_recipes_are_present(self):
         self.assertFalse(RUNTIME_VALIDATED)
+        self.assertEqual(RECIPE_VERSION, 2)
         self.assertEqual(len(COMPONENTS["GameAssembly.dll"].patches), 42)
         self.assertEqual({p.rva for p in COMPONENTS["UnityPlayer.dll"].patches},
-                         {0xC90C2A, 0x80366F, 0xC93D10})
-        for component in COMPONENTS.values():
+                         {0xC90C2A, 0x80366F, 0xC93D10, 0xD84EC6, 0xD84E3E,
+                          0x292110, 0xC8C5F3, 0xC66C20, 0xC2F570, 0xC333DA,
+                          0x2078B0, 0xC2F3FC, 0x207A60, 0xC381D0, 0xC37400,
+                          0xC33440})
+        self.assertEqual(len(COMPONENTS), 3)
+        self.assertEqual([p.rva for p in COMPONENTS[CEF_COMPONENT_PATH].patches], [0x323A0])
+        for name, component in COMPONENTS.items():
+            path = PurePosixPath(name)
+            self.assertFalse(path.is_absolute())
+            self.assertNotIn("..", path.parts)
+            self.assertEqual(str(path), name)
             self.assertEqual(len(component.original_sha256), 64)
-            for patch in component.patches:
-                self.assertEqual(len(patch.guard), 16)
+            end = 0
+            for patch in sorted(component.patches, key=lambda item: item.offset):
+                self.assertIn(len(patch.guard), (15, 16))
+                self.assertLessEqual(len(patch.replacement), len(patch.guard))
+                self.assertGreaterEqual(patch.offset, end)
+                end = patch.offset + len(patch.guard)
+
+    def test_registration_skips_keep_existing_branch_destinations(self):
+        patches = {p.rva: p for p in COMPONENTS["UnityPlayer.dll"].patches}
+        for rva in (0x80366F, 0xD84EC6, 0xC8C5F3):
+            with self.subTest(rva=hex(rva)):
+                patch = patches[rva]
+                self.assertEqual(patch.guard[:2], b"\x0f\x85")
+                self.assertEqual(patch.replacement[:1], b"\xe9")
+                self.assertEqual(patch.replacement[5:], b"\x90")
+                before = rva + 6 + struct.unpack_from("<i", patch.guard, 2)[0]
+                after = rva + 5 + struct.unpack_from("<i", patch.replacement, 1)[0]
+                self.assertEqual(after, before)
+
+    def test_disabled_defaults_preserve_constructor_instructions(self):
+        patches = {p.rva: p for p in COMPONENTS["UnityPlayer.dll"].patches}
+        # Only the true immediate changes; object addresses and other defaults stay.
+        for rva, changed_index in ((0xD84E3E, 4), (0xC333DA, 7), (0xC2F3FC, 6)):
+            with self.subTest(rva=hex(rva)):
+                patch = patches[rva]
+                before = patch.guard[:len(patch.replacement)]
+                changes = [(i, a, b) for i, (a, b) in
+                           enumerate(zip(before, patch.replacement)) if a != b]
+                self.assertEqual(changes, [(changed_index, 1, 0)])
+
+    def test_every_release_guard_is_checked_before_mutation(self):
+        # Compact synthetic image tests every shipped guard, including bytes after
+        # short RET/XOR replacements, without needing or bundling game files.
+        for name, component in COMPONENTS.items():
+            image = bytearray(32 * len(component.patches))
+            patches = []
+            for i, patch in enumerate(component.patches):
+                offset = 32 * i
+                image[offset:offset + len(patch.guard)] = patch.guard
+                patches.append(replace(patch, offset=offset))
+            for patch in patches:
+                with self.subTest(component=name, patch=patch.label):
+                    corrupted = bytearray(image)
+                    corrupted[patch.offset + len(patch.guard) - 1] ^= 1
+                    original = bytes(corrupted)
+                    recipe = Component(hashlib.sha256(original).hexdigest(), tuple(patches))
+                    with self.assertRaisesRegex(ValueError, "Original bytes mismatch"):
+                        _apply_recipe(original, recipe)
+                    self.assertEqual(bytes(corrupted), original)
 
 
 @unittest.skipUnless(os.environ.get("BA_TELEMETRY_ORIGINAL_DIR"),

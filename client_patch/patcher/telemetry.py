@@ -1,6 +1,7 @@
 """Exact-build telemetry patch transformations; no file or process operations.
 
-These 45 recipes have static source/control-flow review, not runtime validation.
+These 59 recipes have static source/control-flow review. The complete recipe
+set has not been runtime validated; the earlier 45 had a bounded compatibility run.
 They do not establish complete telemetry removal; see docs/telemetry.txt.
 Only brief patch safety signatures are included, never original game payloads.
 """
@@ -9,13 +10,16 @@ import hashlib
 from types import MappingProxyType
 
 GAME_BUILD = 37822
-RECIPE_VERSION = 1
+RECIPE_VERSION = 2
 RUNTIME_VALIDATED = False
 VALIDATION_STATUS = "Static review and original-byte validation only"
 UNRESOLVED_COMPONENTS = (
-    "Native Unity analytics lifecycle",
-    "Native Unity performance collection and delivery",
-    "CEF/crashpad and analytics in remote web content",
+    "Native Unity indirect callback consumers and explicit configuration setters",
+    "Deferred/cached delivery and error-path process/network qualification",
+    "CEF descendant initialization and analytics in remote web content",
+)
+CEF_COMPONENT_PATH = (
+    "Battle Aces_Data/Plugins/x86_64/VuplexWebViewChromium/chrome_elf.dll"
 )
 
 
@@ -135,6 +139,48 @@ COMPONENTS = MappingProxyType({
                   bytes.fromhex('0f85a40500004c39b424200800000f84'), bytes.fromhex('e9a505000090')),
             Patch('native in-process report uploader defense', 0xc93d10, 0xc93110,
                   bytes.fromhex('488bc44889480855488da868ffffff48'), bytes.fromhex('c3')),
+            # Keep initialized performance storage; its getters are not null-safe.
+            # The existing exit and destructor both handle registered=false.
+            Patch('skip performance callbacks after object initialization', 0xd84ec6, 0xd842c6,
+                  bytes.fromhex('0f857d0100004c8bcbc603014c8d0587'), bytes.fromhex('e97e01000090')),
+            Patch('performance default disabled', 0xd84e3e, 0xd8423e,
+                  bytes.fromhex('c740080001000048897810c6401901e8'), bytes.fromhex('c7400800000000')),
+            Patch('performance setter remains disabled', 0x292110, 0x291510,
+                  bytes.fromhex('84c9488b0d8fcba7010f95c24883c108'), bytes.fromhex('31c9')),
+            # Preserve main/interface/session allocations. Do not RET c8c510:
+            # public getters and performance notifications require these objects.
+            Patch('skip session callbacks after object initialization', 0xc8c5f3, 0xc8b9f3,
+                  bytes.fromhex('0f85b80000004c8bcbc64308014c8d'), bytes.fromhex('e9b900000090')),
+            Patch('suppress main analytics Start registration', 0xc66c20, 0xc66020,
+                  bytes.fromhex('40574883ec7080b9c015000000488b'), bytes.fromhex('c3')),
+            Patch('suppress base analytics Start registration', 0xc2f570, 0xc2e970,
+                  bytes.fromhex('40534883ec2080b9c015000000488b'), bytes.fromhex('c3')),
+            Patch('analytics default disabled', 0xc333da, 0xc327da,
+                  bytes.fromhex('41c6865116000001e8c93f03004c89'), bytes.fromhex('41c6865116000000')),
+            # XOR forces the following SETNE false while retaining its notifier.
+            Patch('analytics setter remains disabled', 0x2078b0, 0x206cb0,
+                  bytes.fromhex('84c9488b0d6f72b0010f95c0388151'), bytes.fromhex('31c9')),
+            Patch('device statistics default disabled', 0xc2f3fc, 0xc2e7fc,
+                  bytes.fromhex('c687c315000001e878340000488bc7'), bytes.fromhex('c687c315000000')),
+            Patch('device statistics setter remains disabled', 0x207a60, 0x206e60,
+                  bytes.fromhex('84c9488b0dbf70b0010f95c03881c3'), bytes.fromhex('31c9')),
+            # Before worker initialization, common submission bypasses the
+            # enabled-reporter check. Both event routes therefore have guards.
+            Patch('common native event submission returns false', 0xc381d0, 0xc375d0,
+                  bytes.fromhex('44894c24204c894424184889542410'), bytes.fromhex('31c0c3')),
+            Patch('limited native event submission returns disabled status', 0xc37400, 0xc36800,
+                  bytes.fromhex('48895c2408488974241848897c2420'), bytes.fromhex('b802000000c3')),
+            Patch('native reporter gate returns false before collector registration', 0xc33440, 0xc32840,
+                  bytes.fromhex('4883ec288b81c815000085c0488b15'), bytes.fromhex('31c0c3')),
+        ),
+    ),
+    CEF_COMPONENT_PATH: Component(
+        '080e409112b33a0e4cc763cba6d3c206fd640dd9006cb60f2f05ab7e73279563',
+        (
+            # Normal absent-config branch preserves a disabled reporter object
+            # and returns before Crashpad bootstrap/database initialization.
+            Patch('CEF crash reporter config returns false before startup', 0x323a0, 0x317a0,
+                  bytes.fromhex('4157415641554154565755534881ecf8'), bytes.fromhex('31c0c3')),
         ),
     ),
 })
@@ -177,7 +223,9 @@ def _apply_recipe(original: bytes, component: Component) -> bytes:
 def patch_component(name: str, original: bytes) -> bytes:
     """Patch a supported pristine component; reject unknown or modified input.
 
-    ``name`` is exactly GameAssembly.dll or UnityPlayer.dll, not a file path.
+    ``name`` is an exact allow-listed game-relative path from COMPONENTS:
+    GameAssembly.dll, UnityPlayer.dll, or CEF_COMPONENT_PATH. There is no path
+    normalization, basename fallback or file lookup; aliases are rejected.
     This function performs no I/O, never mutates its input, preserves file size
     and all bytes outside the recipe replacements, and does not update the PE
     checksum. An integrating installer must recompute its final checksum after

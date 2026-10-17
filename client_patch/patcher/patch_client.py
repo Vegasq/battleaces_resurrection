@@ -93,17 +93,31 @@ def atomic_write(path, data):
         temporary.unlink(missing_ok=True)
 
 
+def contained_path(game_dir, relative):
+    """Keep component, backup and state writes inside the selected installation."""
+    relative = Path(relative)
+    if relative.anchor or not relative.parts or '..' in relative.parts:
+        raise ValueError('Patch paths must be relative children of the game directory.')
+    resolved = (game_dir / relative).resolve()
+    if resolved == game_dir or not resolved.is_relative_to(game_dir):
+        raise ValueError('Patch path resolves outside the selected game directory.')
+    return resolved
+
+
 def install(game_dir, *, helper=None, original_path=None, restore=False, dry_run=False):
     game_dir = Path(game_dir).resolve()
     if game_dir.name.lower() == 'battleacesbeta_untouched':
         raise ValueError('The untouched recovery copy is read-only; choose a working game copy.')
-    state_dir = game_dir / '.battleaces-resurrection'
-    manifest_path = state_dir / 'patch-manifest.json'
+    state_dir = contained_path(game_dir, '.battleaces-resurrection')
+    manifest_path = contained_path(game_dir, '.battleaces-resurrection/patch-manifest.json')
     previous = json.loads(manifest_path.read_text()) if manifest_path.exists() else None
     components, replacements, originals = {}, {}, {}
     # Validate every input and backup before changing any installed file.
     for name, recipe in telemetry.COMPONENTS.items():
-        target, backup = game_dir / name, state_dir / 'original' / name
+        target = contained_path(game_dir, name)
+        backup = contained_path(game_dir, Path('.battleaces-resurrection/original') / name)
+        if target.is_relative_to(state_dir) or not backup.is_relative_to(state_dir):
+            raise ValueError('Installed components and original backups must be separate.')
         source = backup if backup.exists() else Path(original_path) if name == 'GameAssembly.dll' and original_path else target
         current, original = target.read_bytes(), source.read_bytes()
         if digest(original) != recipe.original_sha256:
@@ -125,7 +139,7 @@ def install(game_dir, *, helper=None, original_path=None, restore=False, dry_run
         components[name] = {'original_sha256': recipe.original_sha256, 'patched_sha256': digest(patched),
                             'installed_sha256': digest(original if restore else patched),
                             'telemetry_guards': len(recipe.patches)}
-    helper_path = game_dir / 'BattleAcesOffline.dll'
+    helper_path = contained_path(game_dir, 'BattleAcesOffline.dll')
     helper_bytes = None if restore else Path(helper or ROOT / 'build/helper/BattleAcesOffline.dll').read_bytes()
     if helper_bytes is not None and not helper_bytes.startswith(b'MZ'):
         raise ValueError('Helper is not a PE DLL; build client_patch first.')
