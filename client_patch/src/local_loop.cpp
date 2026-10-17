@@ -11,6 +11,9 @@
 namespace ba_local {
 using ba::Obj;
 static uint32_t serverRoot = 0;
+// Optional local AI has its own integration/queues and shares the human world.
+// Only the practice coordinator may register it and release it after shutdown.
+static uint32_t peerRoot = 0;
 static std::atomic<bool> accepting{false}, ready{false}, failed{false};
 static DWORD updateThread = 0;
 static ULONGLONG previousTime = 0;
@@ -38,6 +41,25 @@ static Obj server() {
 }
 static bool isTarget(Obj candidate) {
     return accepting.load() && !failed.load() && candidate && candidate == server();
+}
+static Obj peer() {
+    return peerRoot ? ba::api<Obj(*)(uint32_t)>("il2cpp_gchandle_get_target")(peerRoot) : nullptr;
+}
+static bool isProducer(Obj candidate) {
+    return accepting.load() && !failed.load() && candidate && (candidate==server() || candidate==peer());
+}
+static void attachPeer(Obj candidate) {
+    if(GetCurrentThreadId()!=updateThread || !isTarget(server()) || peerRoot ||
+       !candidate || candidate==server() || ba::read<Obj>(candidate,0x140) ||
+       !ba::read<Obj>(candidate,0x180) || !ba::read<Obj>(candidate,0x188))
+        throw std::runtime_error("local AI input ownership mismatch");
+    peerRoot=ba::api<uint32_t(*)(Obj,bool)>("il2cpp_gchandle_new")(candidate,false);
+}
+static void detachPeer() {
+    if(GetCurrentThreadId()!=updateThread || accepting.load() || ready.load())
+        throw std::runtime_error("local AI input still active during release");
+    if(peerRoot)ba::api<void(*)(uint32_t)>("il2cpp_gchandle_free")(peerRoot);
+    peerRoot=0;
 }
 static void fail(const char* where,const std::exception& exception) {
     ready.store(false); accepting.store(false); failed.store(true);
@@ -99,15 +121,7 @@ static Obj toProto(Obj command) {
     method=ba::api<Obj(*)(Obj,Obj)>("il2cpp_object_get_virtual_method")(command,method);
     return invokeMethod(method,command,nullptr);
 }
-static void tick(Obj gameServer,Obj simulation) {
-    if(lastSubmittedFrame == 0x7fffffff) throw std::runtime_error("offline frame counter exhausted");
-    const int nextFrame=lastSubmittedFrame+1;
-    Root message(ba::make("GamePb","InputActions"));
-    ba::set<int>(message.get(),"gameFrame_",nextFrame);
-    ba::set<int>(message.get(),"debugFramesPerSecond_",20);
-    ba::set<int>(message.get(),"debugGameTimeStepMs_",50);
-    ba::set<float>(message.get(),"debugGameSpeed_",1.0f);
-    ba::set<int>(message.get(),"spectatorCount_",0);
+static int collect(Obj gameServer,Obj message) {
     Root player(ba::make("GamePb","InputActionsByPlayer"));
     Obj identity=ba::read<Obj>(gameServer,0x1a8);
     if(!identity) throw std::runtime_error("offline PlayerGameHandle missing");
@@ -121,22 +135,52 @@ static void tick(Obj gameServer,Obj simulation) {
         Root command(dequeue(commands)); if(!command.get()) break;
         Root action(toProto(command.get()));
         if(!action.get()) throw std::runtime_error("ICommand.ToProto returned null");
+        if(ba_practice::active())ba_practice::input(gameServer,action.get());
         addItem(playerActions,action.get()); ++actionCount;
     }
     while(actionCount < 256) {
         Root action(dequeue(actions)); if(!action.get()) break;
+        if(ba_practice::active())ba_practice::input(gameServer,action.get());
+        if(gameServer==peer() && ba::flag(L"-practice-ai-smoke")) {
+            Obj payload=ba::get<Obj>(action.get(),"action_");
+            ba::log("Practice AI action: case=%d type=%s",ba::get<int>(action.get(),"actionCase_"),
+                payload?ba::api<const char*(*)(Obj)>("il2cpp_class_get_name")(ba::klass(payload)):"null");
+            if(payload && ba::klass(payload)==ba::find_class("GamePb","ExecuteCommand")) {
+                Obj data=ba::get<Obj>(payload,"commandData_");Obj command=data?ba::get<Obj>(data,"commandData_"):nullptr;
+                ba::log("Practice AI command: case=%d type=%s",data?ba::get<int>(data,"commandDataCase_"):-1,
+                    command?ba::api<const char*(*)(Obj)>("il2cpp_class_get_name")(ba::klass(command)):"null");
+            }
+            const auto json=ba_catalog::utf8(ba::call(action.get(),"ToString"));
+            ba::log("Practice AI protobuf: %s",json.substr(0,8192).c_str());
+        }
         addItem(playerActions,action.get()); ++actionCount;
     }
-    if(actionCount) addItem(ba::get<Obj>(message.get(),"playerInputActions_"),player.get());
+    if(actionCount) addItem(ba::get<Obj>(message,"playerInputActions_"),player.get());
+    return actionCount;
+}
+static void tick(Obj gameServer,Obj simulation) {
+    if(lastSubmittedFrame == 0x7fffffff) throw std::runtime_error("offline frame counter exhausted");
+    const int nextFrame=lastSubmittedFrame+1;
+    Root message(ba::make("GamePb","InputActions"));
+    ba::set<int>(message.get(),"gameFrame_",nextFrame);
+    ba::set<int>(message.get(),"debugFramesPerSecond_",20);
+    ba::set<int>(message.get(),"debugGameTimeStepMs_",50);
+    ba::set<float>(message.get(),"debugGameSpeed_",1.0f);
+    ba::set<int>(message.get(),"spectatorCount_",0);
+    const int humanActions=collect(gameServer,message.get());
+    const int aiActions=peer()?collect(peer(),message.get()):0;
+    const int actionCount=humanActions+aiActions;
     bool catchingUp=false;
     void* processArgs[]={message.get(),&catchingUp};
     ba::call(gameServer,"ProcessInputActions",2,processArgs);
+    if(peer())ba::call(peer(),"ProcessInputActions",2,processArgs);
     void* pushArgs[]={message.get()};
     ba::call(simulation,"PushSimMessage",1,pushArgs);
     lastSubmittedFrame=nextFrame;
     ++submittedTicks;
     if(submittedTicks==1 || submittedTicks%200==0 || actionCount)
         ba::log("Offline frame %d submitted; sim=%d actions=%d",nextFrame,ba::read<int>(simulation,0xa8),actionCount);
+    if(aiActions)ba::log("Practice AI input frame=%d actions=%d separateIdentity=1",nextFrame,aiActions);
 }
 }
 
@@ -145,6 +189,7 @@ extern "C" __declspec(dllexport) void OfflinePrepareLocalGame(void* gameServer) 
     try {
         ba::init(); accepting.store(false); ready.store(false);
         if(!gameServer) throw std::runtime_error("offline server missing");
+        if(peerRoot)throw std::runtime_error("previous local AI service has not shut down");
         // Invoke only while the prior local game/input producers are stopped.
         if(serverRoot) ba::api<void(*)(uint32_t)>("il2cpp_gchandle_free")(serverRoot);
         serverRoot=0;
@@ -201,12 +246,12 @@ extern "C" __declspec(dllexport) void OfflineGameUpdate(void* gameServer,void*) 
 
 extern "C" __declspec(dllexport) void OfflineEnqueueCommand(void* gameServer,void* command,void*) {
     using namespace ba_local;
-    try { ba::init(); if(isTarget(gameServer)) enqueue(ba::read<Obj>(gameServer,0x180),command); }
+    try { ba::init(); if(isProducer(gameServer)) enqueue(ba::read<Obj>(gameServer,0x180),command); }
     catch(const std::exception& e) { fail("enqueue command",e); }
 }
 
 extern "C" __declspec(dllexport) void OfflineEnqueueAction(void* gameServer,void* action,void*) {
     using namespace ba_local;
-    try { ba::init(); if(isTarget(gameServer)) enqueue(ba::read<Obj>(gameServer,0x188),action); }
+    try { ba::init(); if(isProducer(gameServer)) enqueue(ba::read<Obj>(gameServer,0x188),action); }
     catch(const std::exception& e) { fail("enqueue action",e); }
 }

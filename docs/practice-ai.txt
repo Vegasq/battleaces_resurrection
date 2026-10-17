@@ -1,0 +1,454 @@
+TRY DECK VS AI IMPLEMENTATION AND QUALIFICATION
+2026-10-17. Windows only. Experimental; not enabled by the normal launcher.
+
+This continues the original-build evidence in try-deck-ai-native.txt. REA native
+engines are unavailable; the analysis uses retained IL2CPP metadata, original
+disassembly and isolated runtime probes. Original GameAssembly SHA256:
+e59d08c01479b27404778048d7e13546dbf3771f6b3912744c7c2bdf80c4e758.
+The user's successful no-lag normal-match installation remains unchanged.
+
+IMPLEMENTED DESIGN UNDER TEST
+The mode4 queue hook retains the native button's controller and routes to a
+separate practice coordinator. It snapshots the current valid eight-unit deck
+and four abilities, selects the primary shipped mode4 map and an intact AI profile, and
+copies the profile's first shipped character deck. Selecting the first choice
+is our policy; the retired server's map/deck randomness is not recovered.
+No extracted decks, maps, tuning assets or original binaries belong in Git.
+
+The first prototype used Easy17; the standalone launcher now defaults to Normal18
+after the movement qualification below. The selected profile supplies native
+bot behavior/fuzzy tuning. The prototype preserves
+the static army modifiers and applies no extra server-selected AI cheats. The
+client exports all rating/difficulty modifier choices but no proven client-side
+selection/army-mapping algorithm was found. A fresh zero-valued ArmyModifiers
+object is not a neutral multiplier and must not be fabricated.
+
+The human and AI retain separate GameServerIntegration instances and identities.
+The local loop combines their queues into one ordered 20Hz input stream for one
+human-owned simulation. The exact AI coroutine JoinGame callsite is wrapped;
+unrelated AI calls retain the original function. The owned request receives its
+current connection before the coroutine resumes, then JoinedGame only after
+process membership/shared-world ownership has been checked. GameStarted resets
+the service frame, so it is delivered once before that service's frames.
+Frames must begin before waiting for AI Playing status: native AI first needs
+its JoinArmy command processed and its simulated player/AI world available.
+
+Normal completion retains mode4 and native winner/MatchData. Mode4 itself skips
+reward UI. Response delivery uses the existing exact AccountService listener
+exclusion; that listener still touches Steam inventory even for empty rewards.
+Progression is unchanged; there are no fabricated currency/XP/rating awards.
+Native shutdown owns AI disposal and world destruction. Only after the main
+menu, idle human world, empty AI process list and zero AI world may roots go.
+Returning to the deck editor automatically is not established by static evidence.
+
+COMMUNITY RESERVATION
+Additive community command57 PRACTICE carries uint32 request ID and bool active.
+The server accepts it only without a multiplayer lobby/room. Active practice
+publishes existing status3 Unavailable, cancels pending invitations as Busy and
+rejects new invitations or lobby creation/acceptance. Returning clears the flag.
+It allocates neither a seat nor a worker. Native practice waits for its exact ACK
+before map creation. Old normal-play clients do not send this opt-in command.
+Two focused socket/protocol tests pass, including repeated reservation,
+pending-invite cancellation, rejection while busy and subsequent acceptance.
+
+RUNTIME EVIDENCE (IN PROGRESS)
+practice-ai01, helper-practice02 SHA256:
+98d0ca375c1a9d9f07619c4b6e60c113fef899a25e571b3209adb8e02be08da2.
+Client47584 reserved presence and located profile17, but original AIDeck.GetDeck
+threw ArgumentNullException before world creation. Run failed; source hashes
+were unchanged and its owned process was reaped. The failing path uses the
+element-to-table runtime-type cache. Its absence is a hypothesis, not yet a
+measured root cause. The next helper reads the same AICharacterTable entry via
+the non-generic table/interface accessor and copies the same definition deck.
+
+practice-ai02, helper-practice03 SHA256:
+43fb9564509f29475a0db567a6178a2a66ad84e1b8d17983aa2d2dc55bba99c1.
+Client2392 again resolved profile17, but direct AICharacterTable lookup returned
+null. Run failed before world creation in17.016s, with unchanged source hashes
+and the owned client reaped. RGameRequiredTables metadata lists AIProfileTable
+but no AICharacterTable; that table is a separately packaged asset. This narrows
+the problem to explicit character-table loading/registration. Generic GetDeck's
+ArgumentNullException alone did not establish that cause.
+All17 community socket/protocol tests pass after the reservation changes.
+
+practice-ai03, helper-practice04 SHA256:
+d70fd847dacc7ede42ba90fb320ca3982ef45ecce4afa119ddf64e1e1db867a2.
+The original reflected StaticTables.LoadTableAsync<AICharacter,AICharacterTable>
+loaded packaged GUID524d3ead68bbbbc48bdbc8a383e4c934 and registered the element
+mapping. Profile17 character9 supplied its copied deck; the original builder
+produced mode4/two-army GameData (322387 bytes, gzip14803). Client46444 failed
+before StartJoiningGame because the diagnostic audit requires a32-hex match ID.
+That check now receives a cryptographically generated16-byte ID. Failed run:
+17.140s, unchanged source hashes, owned client reaped.
+
+practice-ai04, helper-practice05 SHA256:
+676badc95e7ef730c7964d37395fd5ec6a1419465a4074914dbae77378a4ad13.
+Client34284 created a real native mode4 world, then failed our premature human
+ready assertion. World creation and mapLoading=false do not imply asset readiness.
+Original ProcessJoinedGame closure0x3e557d0 queues JoinArmy at0x3e5592e, then
+for mode4 unconditionally schedules SignalReadyToPlay through
+AssetMemoryManager.CheckDone(bucket1) at0x3e559dd. Unit asset prewarming can
+finish later. Bootstrap must retain awaitingWorld/queued commands and wait for
+that genuine signal before GameStarted, with a bounded loading deadline.
+Failed run:24.781s, unchanged sources and owned client reaped. MainMenu during
+loading is not evidence of a missing matchmaking notification: original
+Simulation_GamePresentationStartedUIFlow0x3ded260 drives its loading UI state.
+Retained static evidence: local/p2-practice-ai-lifecycle.txt.
+
+practice-ai05, helper-practice06 SHA256:
+c7575ea11b4c603e88eb7367758bc5f5190aaa7616cdd705936a3e53f915b339.
+Client49388 received the native asset-ready callback, then created human/AI
+worlds and requested one native bot. Its coroutine threw ArgumentNullException
+while assigning GameConnectionInfo.Address. The probe was deliberately stopped
+after that logged failure (55.063s); the report says client exited early, and
+owned processes were reaped with unchanged source hashes. Original OnAddAI
+0x3b98730 reads address/port from the disconnected GameServer transport fields,
+not its synthesized GameConnectionInfo. The local coordinator now invokes its
+same AddLocalAI callee0x3b99170 with explicit local address/port/match, the owned
+human simulation, DLL AI type3 and profile17 identity. It does not populate an
+obsolete network channel. The harness now detects managed exceptions promptly.
+
+practice-ai06, helper-practice07 SHA256:
+a2f49f152731495711a660fbaef41b8983fe9d0b51c44583ae98eaad5ca23cfe.
+Client42476 completed native mode4 loading, both validated JoinArmy commands,
+1200 frames, surrender, EndOfGameResponse, Continue and return with zero native
+AI processes/world and retained available community presence. However, the run
+FAILED its sustained-activity assertion: only one raw AI ExecuteCommand arrived
+(frame135). Native army1 resource samples show400/400 spent and later income,
+but no supply increase within60 seconds. This is not a playable-bot acceptance.
+Elapsed96.562s; unchanged sources, owned process reaped. The next probe retains
+profile17, logs actual cadence/timestep and tests120 seconds through the real
+owned Edit Deck callback, without forcing native button availability.
+
+practice-ai07, helper-practice08 SHA256:
+d3c9b4db8d354e4e48bc45aadfa70aa808515f23959bca190a26a902cccefe3b.
+Client23316 passed the then-current native callback/lifecycle/input-count checks
+in155.172s: available owned EditDeck callback,2400 frames,20 autonomous commands,
+surrender/results/Continue, zero AI world/processes, retained community presence
+and no match seat/worker. Source hashes unchanged; owned process reaped. Cadence
+shows actual sim/AI updates advancing, DLL AI enabled, no pause/catch-up and both
+time steps0.05. Full218-test suite:216 pass,2 optional skips; four C++ checks pass.
+
+Important acceptance gap discovered by reviewing its native resource samples:
+bot supply remains0 at frame2400. Two400/400 expenditures are observed, but the
+later repeated InstantCommandData inputs do not consume further resources.
+This run proves the listed lifecycle checks, not production/movement/combat.
+The harness now requires positive native bot supply and records full bounded
+command protobufs in ignored local logs. Profile17/decks/tuning remain unchanged.
+Native ToProtoRuntime adds only cosmetic entitlements; no AI-only permission
+field exists in the bounded CommonPb.Deck/JoinArmy inspection. Original AI
+entering registers its own alliance simulation view at0x37bdc82. Do not add a
+second TryReadSimView diagnostic reader, since it consumes that outbox.
+
+practice-ai08, helper-practice09 SHA256:
+b51eb2caa24e8c798c3890ec1ea135ebf815143ae0acfe33af722a89957e0812.
+Client49076 failed the added native-supply requirement (max0), with lifecycle
+complete in154.969s, unchanged sources and owned process reaped. Bounded action
+protobufs identify expansion first, then Foundry research and repeated queued
+research requests. Local asset inspection resolves these names and the research
+duration. Since research began at1581, frame2400 ended before completion.
+
+practice-ai09 used the same helper with3600 frames. Client14920 failed supply0
+again despite passing that research completion boundary and issuing another
+expansion. Lifecycle complete in215.203s; unchanged sources and owned process
+reaped. Research timing alone does not explain the missing unit production.
+
+practice-ai10, helper-practice10 SHA256:
+984d4fce0edfd796c968ff8e2cbb411e05228c707ce3d84ce7399aa69d2e512e.
+Client46204 confirms effective AIProfileTable entry17 after native joining, with
+the shipped Try Deck tuning. Before the coroutine applies its override, profile4
+is temporarily the native default. Passive copied-buffer inspection confirms
+current alliance1 frames (e.g. sim196/frame195,sim394/frame394). It reads the
+AI's already-copied buffer without consuming another outbox. The DLL path leaves
+managed FrameNumber/UtilizedSize stale, so use the native allocator length.
+The60-second diagnostic run still failed production/action acceptance, returned
+normally in95.312s, and reaped its client with unchanged source hashes.
+No missing separate production-config argument or early selected-deck snapshot
+was found in the bounded original AICreateWorld/AIInit/AddLocalAI inspection.
+
+Original result update ordering completes presentation/GameCompleted dispatch
+before the following GameServer update; no happy-path race was demonstrated.
+Readiness hardening nevertheless requires the exact initialized owned
+UIGameCompletedContent.HandleEndOfGameResponse subscriber (0x3c88620), matching
+simulation/services/MatchData, responseReceived=false and shutdownReason0.
+Its Release clears initialized but does not remove this response delegate; the
+handler self-removes on delivery. Revalidate on a later update and preserve the
+existing restoration onto the CURRENT listener list. Waiting for PostGame would
+deadlock because this response allows that transition. Static evidence is retained
+in local/p2-practice-ai-result-barrier.txt.
+
+The revised harness automates native menu travel to key3 (EditDeckVM), resolves
+the current ShowUIObjectNode's acquired root and its unique mode4 child, checks
+ownership/initialization/visibility/effective UIButton interactability, then
+calls original OnMatch1VSAIDeckEditScreenButtonClicked0x3d25e20. It preserves
+the actual button preamble. This is not mouse hit-testing or manual acceptance.
+It also automates surrender and native Continue, not victory/internet/native
+Quit qualification. Inputs alone do not prove all gameplay effects.
+
+practice-ai11, helper-practice11 SHA256:
+0231b6e6c1a82e88c530c3d7bc827c10f9e1eb632d048c3faf45ad923f3d2995.
+Client46468 PASSED the tightened bounded probe in215.859s with3600 frames,
+48 autonomous action records and maximum native bot supply2. The only added
+human action was one ordinary deck-slot0 build at frame300 through the existing
+AIUtility.BuildUnit helper: human HQ0, ability34. The separate bot queue produced
+HQ5, ability35 at frame301. Thus this is a distinct bot build, not a reflected
+human command. Original JoinArmy decks were checked against their frozen copies.
+Native surrender/result/Continue restored one available community connection,
+without allocating a match seat/worker; AI processes/world were released.
+Source hashes unchanged and owned client reaped. This proves production and
+the listed lifecycle, not unit movement/combat or manual pointer acceptance.
+
+Static reconciliation: profile17's shipped tuning includes an unconditional
+"match spyed enemy army size" rule using HQDecisionOutputs value21,
+BuildAnyUnitMatchingSpyedPercent, weight1.0 and Arithmetic.Add. It also has a
+BuildAnyUnit rule; their complete native combination/priority is untraced.
+The earlier inference that the latter must build against an idle human was too
+strong. Idle-human runs with zero supply and the responsive build in11 are
+consistent with this matching rule. Bounded asset/native evidence is retained
+in local/p2-practice-ai-behavior.txt. No AI tuning or deck was changed to obtain
+the successful production result; no additional native deck probe is needed now.
+
+MANUAL AI TEST: MOVEMENT FAILURE
+The user clarified that their offer to play concerns AI production. The ignored
+local/Play AI Match.cmd invokes tools/Run-PracticeMatch.ps1 with the editable
+local/practice-play/player.json. It starts one visible client on loopback47632,
+using the hash-verified helper-practice11 in custom-abort-runtime, and records
+its server/process/patch metadata under local/matches/manual-practice-*.
+The user opens Edit Deck -> Try Deck vs AI, builds an army, observes bot
+production/fighting, finishes by victory or surrender, then presses Continue.
+No smoke actions, automatic surrender/Continue, state captures or audit flag are
+enabled. Script syntax, settings, installed components and assets are verified;
+the manual launch/play outcome is recorded below. Both other user-facing copies
+remain unchanged.
+
+manual-practice-20261017-165227 used client36852/server49640 and helper-practice11.
+Native match31a3d099a392081bf47f8d5dcc495fa7 completed with winner0/local-won1.
+Continue returned to MainMenu, released AI/world and restored available presence
+(completed1, seat-1). The user then opened/left a custom lobby in the same process
+and exited. Server events confirm practice true/false and subsequent lobby creation;
+no simulation worker was allocated for practice. Retained manual-review.json is
+explicitly a native-log review, not a substitute for the user's observation.
+
+User report: "Bot never moves its units. Something is broken." They also remember
+progressively harder onboarding bots and ask whether difficulty settings exist.
+Therefore production/lifecycle proof does NOT qualify a playable AI opponent:
+movement/combat has failed manual acceptance. Investigate profile17's rules versus
+progression profiles and the original non-HQ command path before another playtest.
+Do not dismiss the failure as intended difficulty or switch profiles blindly.
+
+Full source suite rerun with helper-practice11 bridge probe and preserved original
+telemetry inputs:218 tests,216 pass,2 optional skips,52.962s. Source content audit
+found no forbidden payloads among the20 then-changed/new source paths.
+
+KNOWN FAILURE LIFECYCLE GAP
+Static review also found that presence loss calls ba_lan::fail -> ba_local::fail
+and freezes the local loop; Reserving/Returning can retain an ACK wait forever.
+This was not injected into the manual game. A future change must separate network
+failure from native integration errors, preserve an already accepted local match,
+and defer reconnect until native cleanup. Cancellation cannot use worldIdle alone:
+CreateDebugAIGame's final request and human AssetMemoryManager.CheckDone ready
+callback can arrive later. Retain their generation until drained. Native
+CleanupGameState0x3e51ba0 owns simulation/AI teardown; never double-dispose AI.
+Detailed bounded evidence: local/p2-practice-ai-failures.txt. This work remains
+open after the movement/profile investigation.
+
+DIFFICULTY AND MOVEMENT INVESTIGATION
+The shipped mode4 table contains Easy17, Normal18 and Hard19. The original
+mode4 management configuration selects17. All three use first-choice Type1,
+character9, allowing a profile-only comparison with the same authored deck.
+Profile17 has20 enabled HQ rules, one unit rule, two unit-ability rules and zero
+tactical-group rules. Normal18/Hard19 and the five progression profiles have
+32 enabled unit and71 tactical-group rule assets. These are unique referenced
+asset counts, not a claim about serialized array lengths.
+
+Easy17 still selects a tactical attack-style output. The native tactical
+evaluator (aiprogram.dll RVA0xbe128..0xbe141) skips all rule evaluation when its
+rule vector is empty, after tactical outputs were reset. No fallback tactical
+rules are inserted there. Together with the manual failure this is a concrete
+lead, not proof of the retired server's intended bot behavior.
+
+The native Proving Grounds controller maps qualifying wins to profiles7,10,11,
+57 and61. Shipped progression cohorts contain completion criteria of5 or7 wins;
+the historical server cohort/counting policy and the user's remembered total
+match count are not established. Separate rating/difficulty modifier tables and
+consecutive-win/loss adjustments exist. Changing only profile does not reconstruct
+all those server-selected stat modifiers. Retained analysis:
+local/p2-practice-ai-difficulty.txt and local/p2-practice-ai-movement.txt.
+
+The diagnostic -practice-ai-profile=17|18|19 chooses intact installed profile
+tuning/deck; an absent flag retains17. Helper-practice12
+SHA256 ba68f4d0475e8bc5fd0bffebbc334ca3b3e401b408b81095402bcce1d30b0846
+adds this selector and passive per-entity position/health observations to the
+existing smoke-only copied-view probe. It performs no extra outbox read.
+practice-ai12 compares Normal18 with the same one human build at300 and3600-frame
+limit. Client16164 completed in211.547s with150 autonomous action records,
+maximum native supply131 and40 deck-unit IDs that both received original
+Move12/Attack88 orders and changed position in their own alliance view.
+Original ability definitions distinguish Move12 and Attack88 from RallyPoint9.
+The bot achieved native winner1 before the scripted surrender threshold; no
+ConcedeGame smoke marker exists. Native Continue/return succeeded, practice
+reservation was released, no multiplayer worker was created, source hashes were
+unchanged during execution and the owned client was reaped.
+
+The initial verification.json remains FAILED because the new movement validator
+incorrectly required entityType in each unit-order protobuf. The original DLL
+omits that default0 field. Fixed validation correlates Move12/Attack88 entity IDs
+against the observed owned deck units. Retained verification-review.json passes
+all13 stated checks on the same unchanged native evidence; it is explicitly not
+a new runtime. Four focused tests cover omitted type, actual position changes,
+rally/unobserved IDs and non-deck/HQ exclusion. This supports a configuration
+cause; profile18 changes several rule families, so the empty tactical list alone
+is not claimed to be the only possible movement prerequisite.
+
+EARLIER COMMUNITY NORMAL MANUAL TEST OFFERED
+The same local/Play AI Match.cmd used optional practice_ai_profile18 in
+local/practice-play/player.json. The schema1 development launcher validates
+integer17/18/19 and passes the corresponding flag only with experimental AI.
+This selects original profile tuning, not all retired-server stat modifiers.
+Script parsing, settings, installed helper/component hashes and a mocked
+Start-Process argument check pass: visible window, profile18, no smoke/automatic
+play/surrender/audit flags. The helper was unchanged from runtime12. The user was
+asked to repeat normal play and report movement/fighting. That offer was superseded
+by the standalone requirement; the user is waiting for the new launcher to be ready.
+Final source suite for this snapshot:222 tests,220 pass,2 optional skips,47.408s;
+four C++ build checks pass. Source content audit covers23 changed/new paths with
+no forbidden payloads. These source checks do not replace the pending native
+ordinary/custom regression or manual Normal-profile acceptance.
+
+REMAINING ACCEPTANCE
+Manual Normal-profile combat acceptance; local deck persistence across process
+restart; AI followed by ordinary multiplayer in
+the same connected process; invalid deck/double click; load cancel;
+connection loss while practicing; shutdown during AI creation. Retain both
+user-facing client copies while testing this work in practice-auto-runtime.
+
+STANDALONE REQUIREMENT AND FIRST RUNTIME (2026-10-17)
+The user explicitly removed the replacement-server requirement for deck testing.
+New -offline-practice selects a separate menu update and cannot enter dedicated
+or legacy LAN dispatch. It initializes the existing native local profile/deck
+editor, enters Building directly, and returns locally after native world/AI
+shutdown. No PRACTICE reservation/return or transport poll runs in this mode.
+Default standalone profile is Normal18. Other launch modes keep their existing
+server configuration and selected-deck behavior.
+
+Native ClientDeckSelector/LocalDeckStorage already exist after singleton Init.
+GetSelectedDeck0x3cd0190 uses saved selection, otherwise a shipped premade deck;
+OnDeckContentsChanged0x3cd03e0 calls Save0x3dac4b0 before the account callback.
+Save serializes the deck through persistent VariableRegister storage, writerID2,
+to gameconfig-localuser.toml under Application.persistentDataPath. All game copies
+for one Windows user can share that file. The adapter retains these objects and
+updates only the profile cache in its offline save hook; it does not construct
+another selector/storage or overwrite the selection from a server welcome.
+MenuStaticGameDataProvider.GetStaticGameData(true) supplies local data; its
+HasStaticData property is server-only and is not an offline readiness gate.
+Evidence: local/p2-offline-practice-decks.txt and p2-offline-practice-routing.txt.
+
+Helper13 SHA256639eed9645c7e0017685094ff24c46e7055470e94a9a1c65db9597645ad101ad
+ran practice-offline13 with --offline, no --assets, no server/address argument,
+and one normal human build. Native local deck selection was valid; both original
+JoinArmy snapshots matched frozen decks. The bot produced native supply14.
+The1200-frame smoke limit surrendered at60s; original result, Continue and local
+release completed. Source hashes stayed unchanged and owned client49632 was
+reaped in96.110s. Overall verification FAILED because no autonomous Move12 or
+Attack88 orders occurred before the limit. Position changes and HQ rally alone
+are not counted as combat movement. Retain this failure; a longer test is needed.
+
+The launcher's schema1 offline config needs game_directory and display_name,
+with optional practice_ai_profile17/18/19 (default18). No server settings are
+required. Run-PracticeMatch.ps1 now launches only the visible game and records
+ServerPid:null. Two actual PowerShell-launcher tests use authored fixtures and
+mock only Start-Process: one visible game, Normal18, no network/automation flags;
+an older helper lacking the standalone capability is rejected before launch.
+
+Original network isolation is separate from simulation ownership. The scoped
+GameServerIntegration.ConnectionRequirementsMet codegen method-pointer entry is
+raw0x6d42508/RVA0x6d44f08, method9613, token0x060010d4, virtual slot9. Its original
+VA0x1806e1550 true getter is replaced by existing VA0x1806ebf80 false getter,
+analogous to the Front entry; shared getters and adjacent delayed-message entry
+are untouched. Existing DIR64 relocation covers it. ConnectToService tests this
+virtual result at0x256dad6 and returns before Channel construction0x256dbec.
+The replacement transport and local simulation deliver JoinedGame/GameStarted
+directly. Offline RetryLogin also skips the obsolete Connect tail. This prevents
+original-channel creation; it does not establish native Leave/ForceRetry UI
+completion or resolve asynchronous cancellation. Qualify multiplayer after this
+common recipe change. The standalone verifier will sample per-PID TCP/UDP rows;
+snapshots are not a continuous packet capture.
+
+STANDALONE COMBAT AND CHANGED-DECK REPEAT PASS
+Helper14 SHA2565406cfb5b0ba8a21159b09c858d17e5a1f9ff4028145ba981e58dd45a9626c99.
+practice-offline14 passes two matches in process38860, elapsed405.812s, using
+--offline --frames 3600 --human-build --profile 18 --require-ai-movement --matches 2
+--edit-deck-between. No assets/server/address argument is supplied.
+Round1 match2700bd93fa6d1a0b099a7177d09c68ea uses locally selected Wasp2 in slot0;
+36 bot deck-unit IDs receive Move12/Attack88 orders AND change observed position.
+Maximum native supply118 and118 autonomous action records are observed. Unit
+orders start aroundframe2605, after the short failed probe's limit.
+Original setters/save callback then change slot0 to Crab75; the next frozen deck
+and native JoinArmy both contain75. Round2 match44fda9a6e09a91ed592c61cd995d77ec
+observes40 ordered moving bot deck units, maximum supply129 and117 action records.
+Both rounds end in natural bot wins before the3600-frame surrender threshold;
+neither has an automated ConcedeGame marker. Native results/Continue/local release
+complete twice. Source hashes stay unchanged and the owned client is reaped.
+No server starts or community session exists. All79 periodic netstat snapshots
+have zero game-owned TCP/UDP rows; this is not continuous packet capture.
+
+Attack timing varies with the human army and native fuzzy rules. Wasp2 has
+authored GroundPower0.5 and SupplyOverrideForBuilding0.5; Crab75 has no such
+overrides. Both are Ground/ThreatToGround/Small/CoreUnit. Normal production and
+tactics inspect observed army supply, group power and other conditions. These
+differences are an explanation candidate, not proof of which predicate fired or
+of a fixed enemy-army matching ratio. See local/p2-practice-ai-normal-predicates.txt.
+
+IDLE MENU REVIEW AND QUALIFICATION
+The default three-second smoke navigation did not prove that an idle manual menu
+remains free of the original delayed Connection Issue modal. Helper15 uses the
+exact owned UILoginFlowController only after local profile/deck initialization,
+MainMenu and idle-world checks, with no active practice or application shutdown.
+The original front must be disconnected, channel-null and not connecting; the
+controller must not track a game. It calls original HideReconnectUI only for
+the disconnected descriptor or when both active descriptor/modal are empty, to
+cancel the pending native coroutine. Unrelated UI is retained. The attempt is
+marked before the call and is never repeated within the same idle generation.
+Smoke-only observations sample the idle UI six times at five-second intervals;
+--idle-seconds 35 delays automated navigation long enough to check all six.
+
+Helper15 SHA256 b06dec28201bef8109813b903f3ad9019415eb6e2fbdb5879c5ff7269423fabc.
+Patched GameAssembly SHA256:
+1326feb2ac059185eaa5658d8d6b089717abb29b29b4b8a0e706804a22047c05.
+practice-offline15 passes with that35-second idle delay, one3600-frame Normal18
+match and required observed bot movement. Client41320 observes six clear idle
+samples after one original modal release,43 ordered moving bot deck-unit IDs,
+maximum supply123 and88 autonomous action records. The test DOES invoke native
+ConcedeGame at its frame limit; this run is not a natural bot-win claim. Original
+result/Continue/local return complete. On return, generation1 cancels the empty
+pending reconnect UI once. Elapsed246.344s; no server; all48 per-PID network
+snapshots empty; frozen sources unchanged; owned client reaped.
+Four helper build checks and six focused evidence/launcher tests pass. The full
+224-test suite for the preceding source snapshot passed222 with2 optional skips
+in64.425s.
+
+The restricted native test processes log denied writes to gameconfig-localuser.toml
+and Steam storage backup files under Application.persistentDataPath. Original
+deck setters and the Save callback execute, but these runs do NOT establish
+successful disk persistence across process restart. Same-process changed-deck
+selection and JoinArmy remain verified. Do not bypass the filesystem restriction;
+the user-launched visible test must separately qualify persistence.
+
+MULTIPLAYER REGRESSION AND MANUAL HANDOFF
+The exact helper15 passes practice-custom-regression15: clients45580/49556,
+lobby259345ccc1c5468cb762fcad2dc35d13,80.094s. Native picker Invite/Accept and
+two actual Start/Ready/result/Continue cycles use the same lobby/connections.
+Matches ca3d38781d7b495b84b8471d327d7378 and5c8584dfedbc425e905dc2eadd986f1b
+both complete180 frames with native surrender result160. Workers43160/50520
+exit0; all owned processes are reaped; source hashes remain unchanged. This
+qualifies the common original-game-channel gate for the tested replacement
+Custom Game path; it does not establish every legacy mode or failure path.
+
+Installed the exact tested helper15 and GameAssembly in custom-abort-runtime,
+with component/hash validation. local/Play AI Match.cmd uses the standalone
+Run-PracticeMatch.ps1 launcher and local/practice-play/player.json, profile18.
+It has no server/address/assets argument and no smoke, automatic surrender,
+automatic Continue or heavy audit flags. The no-lag normal and manual Custom
+Game copies retain their prior hashes. Keep this offered AI installation frozen
+while the user tests movement/fighting, Continue and a changed-deck repeat.
+Local deck persistence across restart and manual visual acceptance remain open.

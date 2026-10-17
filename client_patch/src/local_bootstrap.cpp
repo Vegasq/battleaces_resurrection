@@ -8,7 +8,7 @@ using ba_local::Root;
 static bool awaitingWorld=false, creating=false;
 static uint32_t frontRoot=0;
 static DWORD bootstrapThread=0;
-static void beginJoined(Obj front,Obj encoded,Obj player,bool lan);
+static void beginJoined(Obj front,Obj encoded,Obj player,bool lan,const char* localMatch=nullptr);
 
 static Obj item(Obj list,int index) {
     void* args[]={&index};return ba::call(list,"get_Item",1,args);
@@ -101,17 +101,21 @@ static Obj encodeGameData(Obj gameData) {
 }
 static void fail(const char* where,const std::exception& error) {
     awaitingWorld=false;creating=false;
+    if(ba_practice::active()){ba_practice::fail(where,error);return;}
     if(ba::exportServerAssets()){ba_export::failed(error.what());return;}
     if(ba::dedicated()){ba_lan::fail(where,error);return;}
     ba_local::fail(where,error);
 }
 static void poll(Obj server) {
-    if(ba::community() && ba_community::abortPending)return;
+    if(ba::community() && ba_community::abortPending && !ba_practice::active())return;
     if(!awaitingWorld || !ba_local::isTarget(server))return;
     if(GetCurrentThreadId()!=bootstrapThread)throw std::runtime_error("bootstrap update on unexpected thread");
     Obj sim=ba::read<Obj>(server,0x140);
     if(!sim || !ba::read<bool>(sim,0x1a0) || !ba::read<Obj>(sim,0x1a8)
         || ba::read<bool>(server,0xd8))return;
+    // Mode4 schedules human readiness through AssetMemoryManager.CheckDone(1)
+    // after CreateGame. World existence alone does not prove asset prewarming.
+    if(ba_practice::active() && !ba_practice::assetsReady(server))return;
     // Reuse original state transition, which writes Simulating and frame -1.
     Root started(ba::make("GamePb","GameStarted"));
     Obj conn=ba::get<Obj>(server,"_currentConnectionInfo");
@@ -119,7 +123,8 @@ static void poll(Obj server) {
     ba::set<int>(started.get(),"serverState_",1);
     void* args[]={started.get()};ba::call(server,"ProcessGameStarted",1,args);
     awaitingWorld=false;creating=false;
-    if(ba::lan()) {
+    if(ba_practice::active())ba_practice::worldReady(server);
+    else if(ba::lan()) {
         Obj localPlayer=ba::read<Obj>(sim,0x90);
         int army=localPlayer ? ba::read<int>(localPlayer,0x38) : -1;
         ba::log("LAN local simulation player army=%d expected=%d",army,ba::lanSlot());
@@ -175,6 +180,7 @@ extern "C" __declspec(dllexport) void OfflineConsumeCreateRequest(void* front,vo
         Root request(ba::get<Obj>(checked(consumer,"create consumer missing"),"frontServerMessages_"));
         if(ba::klass(request.get())!=ba::find_class("GamePb","CreateGameRequest"))throw std::runtime_error("unexpected local request type");
         Root data(ba::get<Obj>(request.get(),"gameData_"));checked(data.get(),"debug builder supplied no GameData");
+        if(ba_practice::active()){ba_practice::consume(front,request.get(),data.get());return;}
         if(ba::lan() || ba::exportServerAssets())ba_lan_bootstrap::overlayLan(data.get(),ba::get<Obj>(request.get(),"dynamicGameData_"));
         else overlayTutorial(data.get(),ba::get<Obj>(request.get(),"dynamicGameData_"));
         Obj server=checked(ba::read<Obj>(front,0xd8),"game server integration missing");
@@ -200,7 +206,7 @@ extern "C" __declspec(dllexport) void OfflineConsumeCreateRequest(void* front,vo
 }
 
 namespace ba_bootstrap {
-static void beginJoined(Obj front,Obj encoded,Obj player,bool lan) {
+static void beginJoined(Obj front,Obj encoded,Obj player,bool lan,const char* localMatch) {
         Obj server=checked(ba::read<Obj>(front,0xd8),"game server integration missing");
         if(lan) {
             Root data(ba_lan_bootstrap::decodeGameDataLan(encoded));
@@ -210,10 +216,10 @@ static void beginJoined(Obj front,Obj encoded,Obj player,bool lan) {
             ba::set<Obj>(server,"<ClientConfig>k__BackingField",checked(ba::get<Obj>(front,"<ClientConfig>k__BackingField"),"local ClientConfig missing"));
         bootstrapThread=GetCurrentThreadId();
         Root handle(ba::make("CommonPb","GameHandle"));
-        ba::set<Obj>(handle.get(),"gameName_",ba::str(ba::dedicated() ? ba_lan::dedicatedMatchId.c_str() : (lan ? "loopback-1v1" : "offline-tutorial01")));
+        ba::set<Obj>(handle.get(),"gameName_",ba::str(localMatch ? localMatch : ba::dedicated() ? ba_lan::dedicatedMatchId.c_str() : (lan ? "loopback-1v1" : "offline-tutorial01")));
         Root connection(ba::make("CommonPb","GameConnectionInfo"));
         ba::set<Obj>(connection.get(),"gameHandle_",handle.get());
-        ba::set<Obj>(connection.get(),"address_",ba::str(ba::dedicated() ? ba::argument(L"-dedicated-server=").c_str() : "offline"));
+        ba::set<Obj>(connection.get(),"address_",ba::str(localMatch ? "offline" : ba::dedicated() ? ba::argument(L"-dedicated-server=").c_str() : "offline"));
         ba::set<bool>(connection.get(),"isSpectator_",false);
         ba::set<Obj>(server,"_currentConnectionInfo",connection.get());
         ba::set<Obj>(server,"_playerGameHandle",player);
@@ -228,7 +234,8 @@ static void beginJoined(Obj front,Obj encoded,Obj player,bool lan) {
         // JoinedGame ctor initializes inputActionsEncoded_ to ByteString.Empty.
         OfflinePrepareLocalGame(server);
         if(!ba_local::isTarget(server))throw std::runtime_error("local input preparation failed");
-        if(ba::dedicated())ba_audit::beginMatch(ba_lan::dedicatedMatchId);
+        if(localMatch)ba_audit::beginMatch(localMatch);
+        else if(ba::dedicated())ba_audit::beginMatch(ba_lan::dedicatedMatchId);
         Obj joining=ba::get<Obj>(server,"StartJoiningGame");
         if(joining)ba::call(joining,"Invoke");
         int success=0;void* args[]={&success,joined.get()};
@@ -275,11 +282,12 @@ void lanFrontUpdate(Obj front) {
 }
 
 extern "C" __declspec(dllexport) void OfflineSignalReadyToPlay(void* server,void*) {
-    try {ba::init();if(ba_local::isTarget(server))ba::log("Offline ready-to-play received; waiting for completed world initialization.");}
+    try {ba::init();if(ba_practice::signalReady(server))return;if(ba_local::isTarget(server))ba::log("Offline ready-to-play received; waiting for completed world initialization.");}
     catch(const std::exception& error){ba_bootstrap::fail("signal ready",error);}
 }
 
 extern "C" __declspec(dllexport) void OfflineBootstrapGameUpdate(void* server,void* method) {
+    if(ba_practice::gameUpdate(server,method))return;
     try {ba::init();ba_bootstrap::poll(server);}
     catch(const std::exception& error){ba_bootstrap::fail("bootstrap update",error);}
     if(ba::lan()) {

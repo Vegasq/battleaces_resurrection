@@ -17,9 +17,9 @@
 #include <share.h>
 #include "command_line.h"
 
-namespace ba_catalog { static void exportOnce(); }
+namespace ba_catalog { static void exportOnce();static std::string utf8(void*); }
 namespace ba_dedicated_results { static void receive(const std::string&); }
-namespace ba_audit { static void beginMatch(const std::string&); }
+namespace ba_audit { static void beginMatch(const std::string&);static void practiceAIView(void*,int); }
 namespace ba_telemetry_audit { static void startup();static void state(void* current); }
 namespace ba_dedicated_session {
 static void update(void* front);
@@ -28,6 +28,13 @@ static bool retryFromPlay(void* front,int mode);
 namespace ba_community_native { static void update(void* front);static void reset(); }
 namespace ba_community_roster { static void reset();static void changed();static void update();static void smoke(void* front); }
 namespace ba_community_wire {struct Ack;struct Invitation;struct Aborted;}
+namespace ba_practice {
+static bool active();static void start(void*,void*);static void consume(void*,void*,void*);
+static void offlineUpdate(void*);
+static bool assetsReady(void*);static void worldReady(void*);static bool gameUpdate(void*,void*);static bool frontUpdate(void*);
+static bool acknowledge(void*,const ba_community_wire::Ack&);static void smoke(void*);
+static void input(void*,void*);static bool signalReady(void*);static void fail(const char*,const std::exception&);
+}
 namespace ba_community_invites {
 static void reset(void*);static void enqueue(void*,void*,int);static bool acknowledge(void*,const ba_community_wire::Ack&);
 static void receive(void*,const ba_community_wire::Invitation&);static void flush(void*);static void dispatch(void*);
@@ -58,9 +65,10 @@ static const std::vector<std::wstring>& arguments() {
 }
 static bool flag(const wchar_t* name){return ba_command_line::has(arguments(),name);}
 static bool exportServerAssets() {return flag(L"-export-server-assets");}
-static bool dedicated() {std::wstring value;return !exportServerAssets() && ba_command_line::value(arguments(),L"-dedicated-server=",value);}
+static bool offlinePractice() {return !exportServerAssets() && flag(L"-offline-practice");}
+static bool dedicated() {std::wstring value;return !offlinePractice() && !exportServerAssets() && ba_command_line::value(arguments(),L"-dedicated-server=",value);}
 static bool community() {return dedicated() && flag(L"-dedicated-community");}
-static bool lan() { return !exportServerAssets() && (dedicated() || flag(L"-offline-lan")); }
+static bool lan() { return !offlinePractice() && !exportServerAssets() && (dedicated() || flag(L"-offline-lan")); }
 static int dedicatedAssignedSlot=-1;
 static int requestedLanSlot() {
     std::wstring value;
@@ -71,7 +79,7 @@ static int requestedLanSlot() {
     return dedicated()?255:0;
 }
 // A dedicated army identity does not exist until S_WELCOME assigns its seat.
-static int lanSlot() { return dedicated()?dedicatedAssignedSlot:requestedLanSlot(); }
+static int lanSlot() { return offlinePractice()?-1:dedicated()?dedicatedAssignedSlot:requestedLanSlot(); }
 static std::string argument(const wchar_t* key,const char* fallback="") {
     std::wstring value;if(!ba_command_line::value(arguments(),key,value))return fallback;
     int count=WideCharToMultiByte(CP_UTF8,WC_ERR_INVALID_CHARS,value.data(),static_cast<int>(value.size()),nullptr,0,nullptr,nullptr);
@@ -90,7 +98,7 @@ void log(const char* format, ...) {
     if(!logfile) {
         wchar_t path[32768]; GetModuleFileNameW(module,path,32768);
         wchar_t* slash=wcsrchr(path,L'\\'); if(slash) *(slash+1)=0;
-        if(dedicated() && requestedLanSlot()==255) {
+        if(offlinePractice() || (dedicated() && requestedLanSlot()==255)) {
             wchar_t suffix[128];swprintf_s(suffix,L"investigation\\runtime\\dedicated-native-%lu.log",GetCurrentProcessId());wcscat_s(path,suffix);
         } else wcscat_s(path,lan() ? (requestedLanSlot()==1 ? L"investigation\\runtime\\lan-native-1.log" : L"investigation\\runtime\\lan-native-0.log") : L"investigation\\runtime\\offline-native.log");
         logfile=_wfsopen(path,L"a",_SH_DENYNO);
@@ -232,7 +240,8 @@ extern "C" __declspec(dllexport) void OfflineFrontUpdate(void* front,void*) {
         if(!get<bool>(front,"_isLoggedIn"))set(front,"_isLoggedIn",true);
         if(exportServerAssets()){ba_export::poll(front);return;}
         ba_catalog::exportOnce();
-        if(lan())lanFrontUpdate(front);
+        if(offlinePractice())ba_practice::offlineUpdate(front);
+        else if(lan())lanFrontUpdate(front);
         if(GetTickCount64()-last<10000)return;
         last=GetTickCount64();
         Obj fsm=read<Obj>(owner,0x2b0), state=get<Obj>(fsm,"_currentState");
@@ -261,6 +270,7 @@ extern "C" __declspec(dllexport) void OfflineFrontUpdate(void* front,void*) {
 #include "community_invites.cpp"
 #include "community_popup.cpp"
 #include "community_match.cpp"
+#include "practice_ai.cpp"
 #include "server_assets_export.cpp"
 #include "lan_audit.cpp"
 #include "telemetry_audit.cpp"

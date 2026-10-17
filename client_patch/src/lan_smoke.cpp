@@ -19,7 +19,7 @@ static uint32_t unitAt(Obj list,int index) {
 }
 static void prepare(Obj gameData,int slot) {
     plan=Plan{};
-    if(!ba::lan() || !wcsstr(GetCommandLineW(),L"-lan-smoke"))return;
+    if((!ba::lan() && !ba::offlinePractice()) || !wcsstr(GetCommandLineW(),L"-lan-smoke"))return;
     try {
         if(slot<0 || slot>1)throw std::runtime_error("smoke slot must be 0 or 1");
         Obj config=require(ba::get<Obj>(gameData,"gameConfig_"),"smoke GameConfig missing");

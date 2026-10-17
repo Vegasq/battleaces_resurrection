@@ -10,6 +10,11 @@ PATCHES = [
      'offset': 0x3def547, 'before': 'e8d41952ff', 'after': '0f57c09090'},
     {'name': 'Front connection requirements false for this method only',
      'offset': 0x6d41cf0, 'before': '50156e8001000000', 'after': '80bf6e8001000000'},
+    # Per-method codegen pointer for GameServerIntegration's virtual slot9.
+    # Keep the shared true/false getters intact. Local AI and the replacement
+    # transport do not need an original game-service gRPC channel.
+    {'name': 'Game service connection requirements false for this method only',
+     'offset': 0x6d42508, 'before': '50156e8001000000', 'after': '80bf6e8001000000'},
     {'name': 'Skip Steam restart and initialization in SubsystemRegistration',
      'offset': 0x3dfa9d7, 'before': '488b0d2272d102', 'after': 'e9880300009090'},
     {'name': 'Start initial state after assets load, without intro UI input',
@@ -35,6 +40,8 @@ TAIL_HOOKS = [
      'offset': 0x3d055fd, 'before': 'e92e6a86fe'},
 ]
 CALL_HOOKS = [
+    # AI entering-game coroutine only; all non-practice calls retain original JoinGame.
+    {'name': 'OfflinePracticeAIJoin', 'rva': 0x37bdaee, 'offset': 0x37bc0ee, 'before': 'e84d5e6900'},
     {'name': 'OfflineAuditReadSimFrame', 'rva': 0x3e61faf, 'offset': 0x3e605af, 'before': 'e8dc600000'},
     {'name': 'OfflineAuditReadSimFrame', 'rva': 0x3e62160, 'offset': 0x3e60760, 'before': 'e82b5f0000'},
 ]
@@ -191,6 +198,7 @@ def install(game_dir, *, helper=None, original_path=None, restore=False, dry_run
                 'patches': PATCHES, 'hooks': HOOKS, 'tail_hooks': TAIL_HOOKS + (COMMUNITY_TAIL_HOOKS if community else []),
                 'call_hooks': CALL_HOOKS + (COMMUNITY_CALL_HOOKS if community else []),
                 'community': {'experimental': community, 'native_scope': 'custom-match-prototype' if community else None},
+                'practice': {'standalone': helper_bytes is not None and b'BA_RESURRECTION_OFFLINE_PRACTICE_V1' in helper_bytes},
                 'components': components,
                 'telemetry': {'recipe_version': telemetry.RECIPE_VERSION, 'runtime_validated': telemetry.RUNTIME_VALIDATED,
                               'unresolved_components': telemetry.UNRESOLVED_COMPONENTS},

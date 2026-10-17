@@ -463,6 +463,7 @@ static void update(Obj front) {
         observedFront=front;++updateSequence;
         Obj server=ba::read<Obj>(front,0xd8),sim=ba::read<Obj>(server,0x140);
         if(!server || !sim)return;
+        if(ba_practice::frontUpdate(front))return;
         if(joined && ba::read<bool>(sim,0x1a0) && ba::read<uint64_t>(sim,0x1a8))sawWorld=true;
         // Handle failures before the ordinary menu reset, which would otherwise
         // erase the failure and reconnect behind the still-owned native modal.
@@ -484,6 +485,7 @@ static void update(Obj front) {
             ba_community_native::update(front);
             releaseCompletedLegacyDisconnect(front,server);
             releaseHealthyLobbyLegacyDisconnect(front,server);
+            ba_practice::smoke(front);
             return;
         }
         // Poll first: a real coordinator ERROR/invalid packet must be observed
@@ -512,6 +514,7 @@ static void update(Obj front) {
 // the generic connection routine itself are not patched.
 extern "C" __declspec(dllexport) void OfflineDedicatedRetryLogin(void* front,void* methodInfo) {
     ba::init();
+    if(ba::offlinePractice()){ba::log("Offline practice ignores obsolete service reconnect");return;}
     if(!ba::dedicated()) {
         ba::native<void(*)(ba::Obj,ba::Obj)>(0x256da30)(front,methodInfo);return;
     }

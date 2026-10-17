@@ -6,6 +6,7 @@
 // ../network/audit-getters.asm. No native pointers/padding enter canonical hashes.
 #include <algorithm>
 #include <vector>
+#include <map>
 
 namespace ba_audit {
 using ba::Obj;
@@ -65,6 +66,48 @@ struct Buffer {
     }
 };
 struct Record { uint32_t id;size_t index; };
+static void practiceAIView(Obj process,int simulationFrame) {
+    // Observe the AI's already-copied main-thread buffer. TryReadSimView is a
+    // consuming operation and must not be called by an additional diagnostic.
+    // DLL AI skips managed Update, so UtilizedSize/FrameNumber are stale here.
+    if(simulationFrame<10 || ba::get<int>(process,"_joiningStatus")!=4)return;
+    Obj temporary=ba::get<Obj>(process,"_simFrameTempBuffers");if(!temporary)return;
+    Obj allocator=ba::get<Obj>(temporary,"_byteAllocator");if(!allocator)return;
+    const auto data=ba::read<const unsigned char*>(allocator,0x28);
+    const int length=ba::read<int>(allocator,0x20);
+    if(!data || !length)return;
+    if(length<8 || static_cast<uint32_t>(length)>MaxFrameBytes)throw std::runtime_error("practice AI copied frame bounds");
+    std::vector<unsigned char> snapshot(data,data+length);Buffer buffer{snapshot};
+    const size_t root=buffer.read<uint32_t>(0);buffer.bounds(root,4);
+    const size_t frameField=buffer.field(root,0),allianceField=buffer.field(root,1);
+    ba::log("Practice AI copied view: sim=%d frame=%u alliance=%u bytes=%d nonConsuming=1",simulationFrame,
+        frameField?buffer.read<uint32_t>(frameField):0,allianceField?buffer.read<uint32_t>(allianceField):0,length);
+    // Decode existing observable components only. These are the same verified
+    // field layouts used by summarize; no additional simulation/outbox read.
+    struct Entity {uint32_t army=UINT32_MAX,type=0,health=0;std::array<uint32_t,3> position{};bool located=false;};
+    std::map<uint32_t,Entity> entities;
+    for(unsigned field:{2u,3u,5u,7u}) {
+        const size_t component=buffer.table(root,field);const unsigned words=field==7?3:1;
+        uint32_t idsCount=0,valuesCount=0;
+        const size_t ids=buffer.vector(component,0,idsCount,4),values=buffer.vector(component,1,valuesCount,words*4);
+        if(idsCount!=valuesCount || idsCount>32768)throw std::runtime_error("practice AI entity component bounds");
+        for(uint32_t i=0;i<idsCount;++i) {
+            auto& entity=entities[buffer.read<uint32_t>(ids+4*i)];const size_t value=values+4*words*i;
+            if(field==2)entity.army=buffer.read<uint32_t>(value);
+            else if(field==3)entity.type=buffer.read<uint32_t>(value);
+            else if(field==5)entity.health=buffer.read<uint32_t>(value);
+            else {entity.located=true;for(unsigned word=0;word<3;++word)entity.position[word]=buffer.read<uint32_t>(value+4*word);}
+        }
+    }
+    unsigned count=0;
+    for(const auto& row:entities) {
+        const auto& entity=row.second;if(entity.army!=1 || !entity.type || !entity.located)continue;
+        if(++count>128)break;
+        ba::log("Practice AI entity: frame=%u army=1 id=%u type=%u position=(%u,%u,%u) health=%u",
+            frameField?buffer.read<uint32_t>(frameField):0,row.first,entity.type,
+            entity.position[0],entity.position[1],entity.position[2],entity.health);
+    }
+}
 static uint32_t component(Hash& hash,const Buffer& buffer,size_t root,unsigned rootField,unsigned valueWords,bool health=false) {
     hash.u32(rootField);
     const size_t t=buffer.table(root,rootField);

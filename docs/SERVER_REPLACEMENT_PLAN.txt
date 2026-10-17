@@ -205,9 +205,23 @@ Effort allowance: 4-7 days.
   abort notice and manual acceptance remain open; see native-custom-matches.txt.
 - Retain the native deck builder and server deck validation/persistence.
 - TODO: Make Try Deck vs AI start a playable AI match with the currently selected
-  eight-unit deck, without a second connected player or original service. Trace
+  eight-unit deck, without any server, second connected player or original service.
+  User decision2026-10-17: standalone deck testing must work without starting or
+  contacting the replacement server. Reuse native local deck storage/profile;
+  server presence is optional only when using an already connected community client. Trace
   the native mode/AI setup separately from multiplayer ready; support finish/exit
   back to the deck/menu and another AI or multiplayer match in the same process.
+  In progress: opt-in mode4 world/AI join, surrender/results/return and community
+  busy reservation are implemented. A bounded native probe confirms responsive
+  bot unit production after an ordinary human build. Manual AI win/Continue works,
+  but Easy17 failed manual movement acceptance. Intact Normal18 subsequently
+  produced40 ordered moving units and a natural bot win in an isolated test.
+  Standalone repeat play then passed two natural bot wins,36/40 ordered moving
+  bot units, native Continue/local cleanup and a changed selected deck between
+  matches, with no server. Six idle-menu observations remain clear after the scoped
+  legacy disconnect fix. Manual Normal acceptance, deck persistence after restart
+  and failure cleanup remain open. See practice-ai.txt.
+  The normal no-lag installation is unchanged.
 - Reset all match-specific transport queues, frame counters, managed references,
   result flags and Unity states on exit, then return to lobby for rematch.
 - Define clear UX for server unavailable, incompatible version, room full,

@@ -43,18 +43,20 @@ static void receive(const std::string& json) {
     checksum=number(object.get(),"result.game_over_checksum");matchId=incoming;pending=true;receivedAt=GetTickCount64();
     ba::log("Dedicated authoritative result pending: frame=%d winner=%u conceded=%u checksum=%llu",gameOverFrame,winningAlliance,concededMask,static_cast<unsigned long long>(checksum));
 }
-static void endResponse(Obj server,Obj matchInfo) {
+static void endResponse(Obj server,Obj matchInfo,int localArmy=ba::lanSlot(),uint64_t localId=0,
+                        uint32_t winner=winningAlliance,bool custom=true) {
+    if(!localId)localId=static_cast<uint64_t>(localArmy+1);
     Obj front=ba::read<Obj>(server,0x118);
     Obj account=require(ba::get<Obj>(require(front,"dedicated results front missing"),"_accountService"),"dedicated results account missing");
     Obj profile=require(ba::get<Obj>(account,"<ProfileCache>k__BackingField"),"dedicated results profile missing");
     Obj sim=require(ba::read<Obj>(server,0x140),"dedicated result simulation missing");
     Obj localPlayer=require(ba::get<Obj>(sim,"_localPlayer"),"dedicated result local player missing");
-    if(ba::get<uint32_t>(localPlayer,"ArmyID")!=static_cast<uint32_t>(ba::lanSlot()))
+    if(ba::get<uint32_t>(localPlayer,"ArmyID")!=static_cast<uint32_t>(localArmy))
         throw std::runtime_error("dedicated result local army identity mismatch");
     // The original result VM identifies the local record using ProfileCache's
     // SteamId and the static aliased-ID flag. These are the same private IDs
     // already assigned by identityLan, not authenticated Steam identities.
-    ba::set<uint64_t>(profile,"steamId_",static_cast<uint64_t>(ba::lanSlot()+1));
+    ba::set<uint64_t>(profile,"steamId_",localId);
     ba::set<bool>(profile,"isAlias_",true);
     Obj presence=ba::find_class("Uncapped","SteamRichPresence");
     ba::api<void(*)(Obj)>("il2cpp_runtime_class_init")(presence);
@@ -62,18 +64,18 @@ static void endResponse(Obj server,Obj matchInfo) {
     bool aliased=true;ba::api<void(*)(Obj,void*)>("il2cpp_field_static_set_value")(aliasField,&aliased);
     Obj matchData=require(ba::call(ba::owner,"get_MatchDataManager"),"dedicated match data missing");
     Obj localCache=require(ba::get<Obj>(matchData,"_localPlayerCache"),"dedicated result local cache missing");
-    const bool localWon=ba::get<uint32_t>(localPlayer,"AllianceID")==winningAlliance;
+    const bool localWon=ba::get<uint32_t>(localPlayer,"AllianceID")==winner;
     ba::set<bool>(localCache,"WonMatch",localWon);
     // This is a private dedicated match, not a ranked service match. Preserve
     // MODE_1V1 and native win/loss data while the shipped custom-game flag
     // suppresses progression, quests, battlepass and rating reward flows.
-    ba::set<bool>(matchInfo,"IsCustomGame",true);
+    if(custom)ba::set<bool>(matchInfo,"IsCustomGame",true);
     Root response(ba::make("CommonPb","EndOfGameResponse"));
     Root progression(ba::call(require(ba::get<Obj>(profile,"progression_"),"dedicated results progression missing"),"Clone"));
     ba::set<Obj>(response.get(),"progression_",progression.get());
     ba::set<uint64_t>(response.get(),"featureFlags_",ba::get<uint64_t>(ba::get<Obj>(profile,"accountData_"),"featureFlags_"));
     ba::set<int32_t>(response.get(),"gameMode_",ba::get<int32_t>(matchInfo,"GameMode"));
-    ba::set<uint32_t>(response.get(),"winningAllianceId_",winningAlliance);
+    ba::set<uint32_t>(response.get(),"winningAllianceId_",winner);
     // Keep newRewards/playerRatings empty: no invented XP, currency or ratings.
     // AccountService's original listener also touches login-only survey and
     // progression services. Temporarily omit that listener for this local result
@@ -101,8 +103,8 @@ static void endResponse(Obj server,Obj matchInfo) {
     try {int32_t error=0;void* args[]={response.get(),&error};ba::call(server,"ProcessEndOfGameResponse",2,args);}
     catch(...){restore();throw;}
     restore();
-    ba::log("Dedicated native EndOfGameResponse delivered; winner=%u native-complete=%d listeners=%llu account-listeners-preserved=%llu rewards=0 ratings=0 progression unchanged custom=1 local-id=%d aliased=1 local-won=%d",
-        winningAlliance,ba::get<bool>(matchInfo,"MatchCompleted")?1:0,static_cast<unsigned long long>(count),static_cast<unsigned long long>(excluded.size()),ba::lanSlot()+1,localWon?1:0);
+    ba::log("%s native EndOfGameResponse delivered; winner=%u native-complete=%d listeners=%llu account-listeners-preserved=%llu rewards=0 ratings=0 progression unchanged custom=%d local-id=%llu aliased=1 local-won=%d",
+        custom?"Dedicated":"Practice",winner,ba::get<bool>(matchInfo,"MatchCompleted")?1:0,static_cast<unsigned long long>(count),static_cast<unsigned long long>(excluded.size()),custom?1:0,static_cast<unsigned long long>(localId),localWon?1:0);
 }
 static void update(Obj server) {
     if(!ba::dedicated() || !pending || delivered || updating || !server)return;

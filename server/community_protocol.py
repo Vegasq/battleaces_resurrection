@@ -11,7 +11,8 @@ from . import protocol as p
 VERSION = 1
 HELLO, WELCOME, DIRECTORY, CREATE, LOBBY = range(40, 45)
 INVITE, REPLY, CANCEL, START, READY, LEAVE, SET_DECK, RETURN, ACK, INVITATION, REFRESH, ABORTED = range(45, 57)
-COMMANDS = {CREATE, INVITE, REPLY, CANCEL, START, READY, LEAVE, SET_DECK, RETURN, REFRESH}
+PRACTICE = 57
+COMMANDS = {CREATE, INVITE, REPLY, CANCEL, START, READY, LEAVE, SET_DECK, RETURN, REFRESH, PRACTICE}
 MAX_COMMAND = 256
 MAX_PLAYERS = 136  # Existing coordinator's maximum connection capacity:64*2+8.
 NONE, OPEN, STARTING, LOADING, RUNNING, RESULTS = range(6)
@@ -102,6 +103,8 @@ def decode_command(kind, payload):
         result['deck'] = r.deck()
     elif kind == RETURN:
         result['match'] = r.key()
+    elif kind == PRACTICE:
+        result['active'] = r.flag()
     r.end()
     return result
 

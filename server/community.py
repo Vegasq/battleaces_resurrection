@@ -23,6 +23,7 @@ class Session:
     peer: object
     deck: list[int]
     lobby: str | None = None
+    practicing: bool = False
     last_request: int = 0
     tokens: float = 16.0
     rate_at: float = field(default_factory=time.monotonic)
@@ -86,8 +87,8 @@ class Community:
                 continue
             lobby = self.lobbies.get(session.lobby) if session else None
             if session:
-                status = c.AVAILABLE if not lobby else c.IN_LOBBY if lobby.phase < c.LOADING else c.IN_MATCH
-                invitable = lobby is None
+                status = c.UNAVAILABLE if session.practicing else c.AVAILABLE if not lobby else c.IN_LOBBY if lobby.phase < c.LOADING else c.IN_MATCH
+                invitable = lobby is None and not session.practicing
             else:
                 status = c.IN_MATCH if peer.room and peer.room.state not in ('lobby', 'completed', 'closed') else c.IN_LOBBY
                 invitable = False  # Legacy clients cannot receive invitation messages.
@@ -216,7 +217,16 @@ class Community:
 
     async def apply(self, session, kind, command, now):
         profile = session.peer.profile_id
+        if kind == c.PRACTICE:
+            require(session.lobby is None and session.peer.room is None, 'leave the multiplayer lobby before practice')
+            session.practicing = command['active']
+            if session.practicing:
+                self.cancel_invites(lambda i: i.target == profile or i.sender == profile, c.BUSY)
+            self.publish_presence()
+            self.server.audit('community_practice', profile=profile, active=session.practicing)
+            return
         if kind == c.CREATE:
+            require(not session.practicing, 'finish practice before creating a lobby')
             require(command['mode'] == 1, 'only custom 1v1 is supported')
             require(session.lobby is None, 'already in a custom lobby')
             require(self.server.room_count() < self.server.max_rooms, 'room capacity reached')
@@ -255,6 +265,7 @@ class Community:
                 self.resolve_invite(invite, c.CANCELLED if kind == c.CANCEL else c.DECLINED)
                 return invite.id
             lobby = self.lobbies.get(invite.lobby)
+            require(not session.practicing, 'finish practice before accepting an invitation')
             require(session.lobby is None, 'already in a custom lobby')
             require(lobby and lobby.host == invite.sender and lobby.phase == c.OPEN and len(lobby.members) < 2,
                     'invited lobby is unavailable')
@@ -287,7 +298,7 @@ class Community:
                     'only the host of an open lobby can invite')
             target = self.sessions.get(command['target'])
             require(command['target'] != profile, 'cannot invite yourself')
-            require(target is not None and not target.peer.closed and target.lobby is None, 'player is not available')
+            require(target is not None and not target.peer.closed and target.lobby is None and not target.practicing, 'player is not available')
             require(not any(i.sender == profile and i.target == command['target'] for i in self.invites.values()),
                     'invitation already pending')
             require(len(self.invites) < 128 and sum(i.sender == profile or i.target == profile for i in self.invites.values()) < 8

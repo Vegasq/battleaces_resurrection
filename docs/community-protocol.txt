@@ -2,8 +2,9 @@ COMMUNITY SESSION CONTROL V1
 Updated: 2026-10-17. Server implementation: community.py/community_protocol.py.
 
 STATUS AND COMPATIBILITY
-The server implements this extension. The current graphical client helper still
-uses the ordinary protocol3 handshake; its custom-menu adapter is unfinished.
+The server implements this extension. The opt-in graphical community helper uses
+this handshake for the native custom-menu adapter; normal launchers retain the
+ordinary protocol3 handshake. See native-custom-matches.txt for qualification.
 Selecting this extension requires a new first HELLO. Ordinary protocol3 clients
 retain their existing behavior and cannot enter a custom room by guessing its ID.
 Game frames, worker IPC and the simulation ABI are unchanged. On a TLS listener,
@@ -46,6 +47,7 @@ Client types and fields AFTER the request ID:
   51 SET_DECK  deck
   52 RETURN    text completed/aborted match key
   55 REFRESH   no additional fields
+  57 PRACTICE  u8 active (0/1)
 
 Server types:
   42 DIRECTORY u64 revision, u16 row count; each row:
@@ -125,16 +127,28 @@ without requiring RETURN for an empty ID. Once a match ID exists, an abort follo
 the normal RESULTS/RETURN cleanup contract even if no bootstrap was delivered.
 Disconnect cancels invitations and removes membership, aborts only that active
 match and permits a survivor to return. Worker shutdown/creation remains supervised.
-Presence while local AI practice is running is a future adapter/protocol requirement;
-v1 does not yet provide an independent practice-busy command.
+
+LOCAL PRACTICE PRESENCE
+PRACTICE57 is additive to community v1. It is allowed only outside a custom lobby
+and multiplayer room, and never allocates a seat/worker. active=true publishes
+Unavailable with invitable=false, resolves pending invitations involving this
+player as Busy, and rejects new invitations, lobby creation and acceptance.
+Repeated requests with fresh request IDs are idempotent. active=false restores
+Available. Connection teardown removes the session and its practice reservation.
+The experimental local AI adapter waits for the matching successful ACK before
+creating its native world and clears the reservation only after native teardown.
+AI inputs and simulation remain local; this command carries no gameplay state.
+Older community servers do not recognize57, so pair the experimental AI helper
+with an updated server. Normal/older clients never send it.
 
 VERIFICATION AND LIMITS
-213 source tests:211 pass,2 opt-in skips (protected Windows credential DACL and
-optional native worker fixture). Includes15 community lifecycle cases,19 actual-TLS
+Current222 source tests:220 pass,2 optional skips,47.408s. Includes17 community
+lifecycle cases (including busy reservation and malformed practice flags),19 actual-TLS
 admission cases and existing ordinary room/client bridge checks. Coverage includes
 invite races, invalid/stale requests, start timeout, leave/host transfer, capacity,
 isolation, failed/delayed worker creation, mid-game loss and same-socket rematch.
-Local reports: local/source-tests-community01.{json,txt}.
+Historical pre-practice reports: local/source-tests-community01.{json,txt}.
+Native AI qualification and limitations: practice-ai.txt.
 
 Opt-in actual Windows simulation proof:
   python -m tools.verify_community_native --assets "<imported asset directory>" --output local/community-native-test

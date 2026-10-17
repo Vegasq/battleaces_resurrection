@@ -70,11 +70,11 @@ static void saveSelected(Obj ownerAccount) {
         Root result(proto(selected(ownerAccount)));
         Obj profile=require(ba::get<Obj>(ownerAccount,"<ProfileCache>k__BackingField"),"dedicated profile missing");
         Root cached(ba::call(result.get(),"Clone"));ba::set<Obj>(profile,"selectedDeck_",cached.get());
-        // LocalDeckStorage.Save already runs in OnDeckContentsChanged. The
-        // dedicated server owns persistent profile selection and ready reset.
-        ba_dedicated::submitDeck(result.get());
+        // LocalDeckStorage.Save already runs in OnDeckContentsChanged.
+        // Standalone practice keeps the native saved deck without a server.
+        if(!ba::offlinePractice())ba_dedicated::submitDeck(result.get());
         ++savedChanges;
-        ba::log("Dedicated native deck picker submitted current eight-slot selection");
+        ba::log("Native deck picker saved current eight-slot selection; standalone=%d",ba::offlinePractice()?1:0);
     } catch(const std::exception& e){ba::log("Dedicated deck save failed: %s",e.what());}
 }
 static void initialize(Obj front,Obj savedDeck) {
@@ -107,16 +107,17 @@ static void initialize(Obj front,Obj savedDeck) {
     Root trackingFile(ba::invoke(ba::find_class("Uncapped","UncappedSteamRemoteStorageSync"),nullptr,"get_TailoredUXTrackingFile",0));
     if(!trackingFile.get() || !ba::read<Obj>(trackingFile.get(),0x10))throw std::runtime_error("dedicated local UI tracking missing");
     Root data(staticData(ownerAccount));
-    require(savedDeck,"dedicated server supplied no saved deck");void* fromArgs[]={savedDeck};
-    Root runtime(ba::invoke(ba::find_class("Uncapped","Deck"),nullptr,"FromProto",1,fromArgs));
+    if(!ba::offlinePractice())require(savedDeck,"dedicated server supplied no saved deck");void* fromArgs[]={savedDeck};
+    Root runtime(savedDeck?ba::invoke(ba::find_class("Uncapped","Deck"),nullptr,"FromProto",1,fromArgs):selected(ownerAccount));
     void* abilityArgs[]={data.get(),ownerAccount};ba::call(runtime.get(),"AutoAssignAbilities",2,abilityArgs);
     Obj selector=require(ba::get<Obj>(front,"_deckSelector"),"dedicated front deck selector missing");
-    void* selectArgs[]={runtime.get()};ba::call(selector,"SetDeck",1,selectArgs);
+    if(savedDeck){void* selectArgs[]={runtime.get()};ba::call(selector,"SetDeck",1,selectArgs);}
     Root cached(proto(selected(ownerAccount)));ba::set<Obj>(profile,"selectedDeck_",cached.get());
     if(accountRoot)ba::api<void(*)(uint32_t)>("il2cpp_gchandle_free")(accountRoot);
     accountRoot=ba::api<uint32_t(*)(Obj,bool)>("il2cpp_gchandle_new")(ownerAccount,false);
     initialized=true;
-    ba::log("Dedicated native deck editor initialized from server selection; local featureFlags=0x%llx, full/valid=%d",static_cast<unsigned long long>(newFlags),canReady(front)?1:0);
+    ba::log("Native deck editor initialized from %s selection; local featureFlags=0x%llx, full/valid=%d",
+        savedDeck?"server":"local storage",static_cast<unsigned long long>(newFlags),canReady(front)?1:0);
 }
 static void updateLobby(Obj front,bool ready) {
     // Call only on the Unity thread and after the server confirms C_READY.
@@ -176,12 +177,13 @@ static bool smokeSelection(Obj front) {
 static void rematchSmokeSelection(Obj front) {
     // Test-only second-match edit. Exercise the same native setters, Changed
     // event, AccountService hook and server persistence as a user's deck edit.
-    if(!ba::flag(L"-dedicated-rematch-smoke") && !ba::flag(L"-community-match-deck-smoke"))return;
+    if(!ba::flag(L"-dedicated-rematch-smoke") && !ba::flag(L"-community-match-deck-smoke") &&
+       !(ba::flag(L"-practice-ai-smoke") && ba::flag(L"-practice-ai-deck-smoke")))return;
     if(!initialized || suppress)throw std::runtime_error("rematch deck editor not initialized");
     Obj ownerAccount=require(ba::get<Obj>(front,"_accountService"),"rematch account missing");
     Obj value=selected(ownerAccount);Root data(staticData(ownerAccount));
     Obj units=require(ba::get<Obj>(value,"_units"),"rematch unit array missing");
-    int index=ba::community()?(ba::flag(L"-community-match-host-smoke")?0:1):(ba::lanSlot()?1:0);
+    int index=ba::offlinePractice()?0:ba::community()?(ba::flag(L"-community-match-host-smoke")?0:1):(ba::lanSlot()?1:0);
     const uint32_t old=ba::read<uint32_t>(units,0x20+4*index);
     uint32_t replacement=0;
     for(uint32_t candidate:{75u,74u,1u,6u}) {
@@ -205,8 +207,11 @@ static void rematchSmokeSelection(Obj front) {
 extern "C" __declspec(dllexport) void OfflineDedicatedSaveSelectedDeck(void* account,void*) {
     ba_dedicated_deck::saveSelected(account);
 }
-extern "C" __declspec(dllexport) void OfflineDedicatedJoinQueue(void* front,void*,int mode,void*) {
-    try {if(ba::dedicated())ba_dedicated::ready(front,mode);}
+extern "C" __declspec(dllexport) void OfflineDedicatedJoinQueue(void* front,void* controller,int mode,void*) {
+    try {
+        if(mode==4){ba_practice::start(front,controller);return;}
+        if(ba::dedicated() && !ba_practice::active())ba_dedicated::ready(front,mode);
+    }
     catch(const std::exception& e){ba::log("Dedicated native Play could not ready lobby: %s",e.what());}
 }
 extern "C" __declspec(dllexport) void OfflineDedicatedLeaveQueue(void* front,bool,void*) {

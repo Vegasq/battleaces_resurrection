@@ -1,19 +1,30 @@
 # Shared by the launcher and config checks. Loading never starts the game.
 function Read-ClientConfig {
-    param([Parameter(Mandatory=$true)][string]$Path)
+    param([Parameter(Mandatory=$true)][string]$Path,[switch]$OfflinePractice)
     $configuration = Get-Content -LiteralPath $Path -Raw -ErrorAction Stop | ConvertFrom-Json -ErrorAction Stop
     if ($configuration.schema -ne 1) { throw 'Unsupported client config schema; expected 1.' }
-    $allowed = @('schema','game_directory','server_host','server_port','player_id','display_name','room')
+    $allowed = @('schema','game_directory','server_host','server_port','player_id','display_name','room','practice_ai_profile')
     foreach ($property in $configuration.PSObject.Properties) {
         if ($property.Name -notin $allowed) { throw "Unknown client config setting: $($property.Name)" }
     }
-    foreach ($key in @('game_directory','server_host','player_id','display_name','room')) {
+    $requiredStrings = if ($OfflinePractice) { @('game_directory','display_name') } else { @('game_directory','server_host','player_id','display_name','room') }
+    foreach ($key in $requiredStrings) {
         if ($configuration.$key -isnot [string]) { throw "Client config $key must be a string." }
     }
-    if ($configuration.server_port -isnot [int] -and $configuration.server_port -isnot [long]) { throw 'server_port must be an integer.' }
-    if ($configuration.server_port -lt 1 -or $configuration.server_port -gt 65535) { throw 'server_port must be in 1..65535.' }
+    if (-not $OfflinePractice) {
+        if ($configuration.server_port -isnot [int] -and $configuration.server_port -isnot [long]) { throw 'server_port must be an integer.' }
+        if ($configuration.server_port -lt 1 -or $configuration.server_port -gt 65535) { throw 'server_port must be in 1..65535.' }
+        Assert-ServerHost $configuration.server_host
+    } else {
+        if (-not $configuration.player_id) { $configuration | Add-Member -NotePropertyName player_id -NotePropertyValue 'offline_player' -Force }
+        if (-not $configuration.room) { $configuration | Add-Member -NotePropertyName room -NotePropertyValue 'local' -Force }
+    }
+    if ($configuration.PSObject.Properties.Name -contains 'practice_ai_profile') {
+        if (($configuration.practice_ai_profile -isnot [int] -and $configuration.practice_ai_profile -isnot [long]) -or $configuration.practice_ai_profile -notin @(17,18,19)) {
+            throw 'practice_ai_profile must be an integer: 17, 18 or 19.'
+        }
+    }
     if ($configuration.game_directory -match '["\x00-\x1f]') { throw 'Invalid game_directory in client config.' }
-    Assert-ServerHost $configuration.server_host
     Assert-PlayerSettings $configuration.player_id $configuration.display_name $configuration.room
     return $configuration
 }

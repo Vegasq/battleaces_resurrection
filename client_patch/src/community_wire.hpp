@@ -12,14 +12,14 @@ namespace ba_community_wire {
 using Bytes=std::vector<unsigned char>;
 using Deck=std::array<uint32_t,8>;
 enum Kind : unsigned char { Hello=40,WelcomeKind,DirectoryKind,Create,LobbyKind,Invite,
-    Reply,Cancel,Start,Ready,Leave,SetDeck,Return,AckKind,InvitationKind,Refresh,AbortedKind };
+    Reply,Cancel,Start,Ready,Leave,SetDeck,Return,AckKind,InvitationKind,Refresh,AbortedKind,Practice };
 enum Phase : unsigned char { None,Open,Starting,Loading,Running,Results };
 constexpr unsigned version=1,gameVersion=3,maxPlayers=136;
 inline void require(bool condition,const char* message) {
     if(!condition)throw std::runtime_error(message);
 }
 inline bool command(unsigned char kind) {
-    return kind==Create || (kind>=Invite && kind<=Return) || kind==Refresh;
+    return kind==Create || (kind>=Invite && kind<=Return) || kind==Refresh || kind==Practice;
 }
 inline void key(const std::string& text,bool empty=false) {
     require((empty || !text.empty()) && text.size()<=48,"invalid community key size");
@@ -153,4 +153,5 @@ inline Packet leave(uint32_t id,const std::string& lobby){auto w=request(id);w.i
 inline Packet setDeck(uint32_t id,const Deck& deck){auto w=request(id);w.deck(deck);return {SetDeck,std::move(w.bytes)};}
 inline Packet returned(uint32_t id,const std::string& match){auto w=request(id);w.id(match);return {Return,std::move(w.bytes)};}
 inline Packet refresh(uint32_t id){auto w=request(id);return {Refresh,std::move(w.bytes)};}
+inline Packet practice(uint32_t id,bool active){auto w=request(id);w.number(active,1);return {Practice,std::move(w.bytes)};}
 }

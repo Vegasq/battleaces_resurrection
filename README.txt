@@ -25,6 +25,16 @@ reproduction commands: docs/community-client.txt, docs/native-custom-invitations
 and docs/native-custom-matches.txt.
 See docs/community-protocol.txt and docs/community-lobby.txt for scope and evidence.
 
+Experimental standalone Try Deck vs AI uses the game's local deck storage,
+simulation and AI. It does not require a replacement server or imported server
+assets. After building/installing a current helper, copy
+client_patch/launcher/offline-practice.example.json to a personal config, set
+game_directory and display_name, then run:
+  powershell -File client_patch/launcher/Launch-Client.ps1 -OfflinePractice -Config "<personal config>"
+Open Edit Deck -> Try Deck vs AI. Normal profile18 is the default. The manual
+launcher has no automatic play or surrender. See docs/practice-ai.txt for runtime
+evidence, the remaining acceptance checks and the experimental scope.
+
 Current game wire protocol3 requires updating both helper and server. The server
 selects a bounded input window with --input-window (2..12, default6); both players
 receive the same setting. See docs/protocol-v3.txt and docs/network-qualification.txt

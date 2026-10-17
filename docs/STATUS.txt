@@ -2,6 +2,70 @@ IMPLEMENTATION LEDGER
 Updated: 2026-10-17
 Active objective: implement SERVER_REPLACEMENT_PLAN.txt, Windows only.
 
+STANDALONE DECK TESTING (2026-10-17, manual acceptance pending)
+The user removed the server requirement for Try Deck vs AI. The new offline
+launcher has no server process, imported server assets, address or DNS lookup.
+It reuses the native local deck selector/storage and initializes local editor
+prerequisites, then starts mode4 directly without community reservation/return.
+Native practice-offline14 passes two matches in one process with Normal18,
+36 then40 bot units both receiving Move/Attack orders and changing position.
+Both bot wins are natural, before the smoke surrender limit; native Continue
+returns locally. Original deck setters change slot0 from Wasp2 to Crab75 between
+matches, and the next native JoinArmy carries the changed deck. No server starts;
+79 periodic netstat snapshots show no game-owned TCP/UDP rows (not packet capture).
+Client38860 is reaped, frozen source hashes are unchanged, elapsed405.812s.
+Earlier practice-offline13 remains a failed60-second movement probe; its lifecycle
+passed, but no combat order occurred before surrender. A subsequent review found
+that immediate smoke navigation could mask the original delayed disconnect UI.
+Helper15 now cancels only that owned legacy UI once per idle generation, including
+its pending coroutine. practice-offline15 passes six clear idle observations,
+43 ordered moving bot units, scripted surrender and native Continue/local return
+in246.344s. All48 network snapshots are empty; source hashes are unchanged and
+client41320 is reaped. Native practice-custom-regression15 then passes two actual
+Custom Game Start/result/Continue cycles in the same lobby in80.094s. Clients
+45580/49556 and workers43160/50520 are reaped, workers exit0, sources unchanged.
+The exact tested helper15 and GameAssembly are installed in custom-abort-runtime
+for local/Play AI Match.cmd. This launcher starts one visible offline game with
+Normal18, no server process, no automatic surrender/Continue and no heavy audit.
+The no-lag normal and manual Custom Game installations remain hash-identical.
+Cross-process local deck persistence still needs
+manual acceptance: the restricted test process cannot write the native user-data
+directory, although same-process changed-deck repeat is proven.
+Latest full source suite:224 tests,222 passed and2 optional skips in64.425s.
+Helper15's four C++ checks and six focused evidence/launcher tests pass.
+See practice-ai.txt for exact provenance and native connection isolation.
+
+EARLIER COMMUNITY AI QUALIFICATION (2026-10-17, experimental)
+The opt-in local mode4 coordinator now snapshots the selected deck, loads the
+shipped AI character table through the original asset loader and creates native
+human/AI worlds. Community presence reserves Unavailable without allocating a
+multiplayer seat or worker. All17 community tests pass. Native qualification is
+still in progress: failed probes exposed missing table registration, an audit
+ID format check, premature asset readiness and an obsolete AI transport address.
+The latest bounded probe confirms responsive bot production: one ordinary human
+build is followed by a distinct bot build command and positive native bot supply.
+It also completes surrender/results/Continue and restores available presence.
+The manual test then completed a native human win and Continue, but the user
+reported that the bot never moves its units. Easy17 FAILED manual acceptance.
+Profile comparison found its empty tactical rule set. With intact Normal18,
+practice-ai12 observes40 bot units both receiving Move/Attack orders and changing
+position, maximum supply131 and a natural bot win before scripted surrender.
+Native Continue/cleanup succeeds. Its initial movement-validator failure was
+corrected against saved evidence; the original report is preserved beside the
+passing review. Four focused validator tests pass. Manual Normal feedback and
+failure cleanup remain unqualified; standalone repeat play is recorded above. See
+practice-ai.txt for exact evidence and remaining acceptance. Helper-practice12 in
+custom-abort-runtime was frozen for the earlier Normal-profile manual test;
+the standalone helper15 offer above now supersedes it.
+local/practice-play/player.json selects practice_ai_profile18; there is no
+automatic surrender/Continue or heavy diagnostic capture in the manual launcher.
+That snapshot's full source suite:222 tests,220 passed and2 optional skips in47.408s.
+Four C++ build checks pass; all23 changed/new source paths pass content audit.
+Native helper12 regression practice-custom-regression12 passed two actual Custom
+Game Start/result/Continue cycles in one lobby, in177.625s, with both clients and
+workers reaped and source hashes unchanged. Later standalone changes passed
+their separate helper15 native multiplayer regression above.
+
 CURRENT CUSTOM MATCH ABORT RECOVERY (2026-10-17)
 Match aborts now preserve the healthy community connection and custom lobby.
 Owned setup failure uses the actual native Predict failure signal; loading/active
@@ -102,7 +166,7 @@ user's normal-play installation remain unchanged. The opt-in custom picker now
 renders connected server players through native pooled rows with no Steam friend
 lookups. Native Invite/Accept/Decline, cancel, expiry and duplicate Accept now pass
 two-client qualification. The subsequent native Start/result-return milestone
-is recorded above; Try Deck vs AI remains unimplemented. See
+is recorded above; experimental Try Deck vs AI progress is recorded at the top. See
 native-custom-invitations.txt for the invitation-specific boundary.
 See community-lobby.txt and community-protocol.txt.
 Neither end-to-end requested user flow is claimed complete.

@@ -17,6 +17,35 @@ def roster(payload):
 
 
 class CommunityTests(DedicatedFixture):
+    async def test_practice_reserves_presence_and_cancels_pending_invites(self):
+        await self.start()
+        host, player = await self.online('practice_host'), await self.online('practice_player')
+        lobby_id = await self.command(host, c.CREATE, b'\x01')
+        invite = await self.command(host, c.INVITE, p.encode_string(player.profile))
+        await self.command(player, c.PRACTICE, b'\x01')
+        session = self.server.community.sessions[player.profile]
+        self.assertTrue(session.practicing)
+        self.assertIsNone(session.lobby)
+        self.assertNotIn(invite, self.server.community.invites)
+        row = next(row for row in self.server.community.directory_rows if row[0] == player.profile)
+        self.assertEqual(row[2:], (c.UNAVAILABLE, False))
+        await self.command(host, c.INVITE, p.encode_string(player.profile), ok=False)
+        await self.command(player, c.REPLY, p.encode_string(invite) + b'\x01', ok=False)
+        await self.command(player, c.CREATE, b'\x01', ok=False)
+        await self.command(player, c.PRACTICE, b'\x01')  # Retry cannot create a room/worker.
+        self.assertEqual(len(self.server.community.lobbies), 1)
+        await self.command(player, c.PRACTICE, b'\x00')
+        self.assertFalse(session.practicing)
+        invite = await self.command(host, c.INVITE, p.encode_string(player.profile))
+        self.assertEqual(await self.command(player, c.REPLY, p.encode_string(invite) + b'\x01'), lobby_id)
+        await self.command(player, c.PRACTICE, b'\x01', ok=False)
+        self.assertFalse(session.practicing)
+
+    async def test_practice_flag_is_bounded(self):
+        for body in (b'', b'\x02', b'\x01\x00'):
+            with self.assertRaises(p.ProtocolError):
+                c.decode_command(c.PRACTICE, struct.pack('<I', 1) + body)
+
     async def online(self, profile=None, name=None):
         profile = profile or 'p_' + uuid.uuid4().hex
         reader, writer = await asyncio.open_connection(*self.address[:2])
