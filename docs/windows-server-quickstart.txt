@@ -67,6 +67,18 @@ fatal; do not grant broad access to work around it. Give the individual invite
 to its intended player through a private channel. It does not belong in Git,
 screenshots, public chat, logs or command-line token arguments.
 
+Give each player the server address, port, certificate DNS/IP name, public CA file
+and that file's SHA256 through a trusted channel. In PowerShell:
+
+  Get-FileHash -LiteralPath "<public CA file>" -Algorithm SHA256
+
+This is a hash of the entire file, not a certificate thumbprint. Preserve the
+exact bytes during transfer. Players use their package's Connection Setup to
+confirm this hash, import their downloaded invite into a protected local copy,
+and test TLS/authentication before playing. The host's file ACL does not transfer
+between different Windows accounts; players should import, not weaken the
+runtime credential check. No server private key is needed by a player.
+
   BattleAces-Server.cmd check
   BattleAces-Server.cmd start
 

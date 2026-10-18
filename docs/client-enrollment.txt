@@ -1,0 +1,153 @@
+COMMUNITY CLIENT CONNECTION SETUP AND INVITE ENROLLMENT
+Updated:2026-10-17
+
+Scope
+The Windows client preview now has Connection Setup, opened by double-clicking
+BattleAces-Client.cmd or using its configure command. It installs the supported
+patch through the existing reversible installer, saves editable server/name/room
+settings, imports an individual invite, tests verified TLS/AUTH, and starts the
+game with the existing secure transport parent. No game binary changed for this
+work. The loading-preview helper remains frozen.
+
+Implementation is source-tested and the authored form has been rendered without
+opening/capturing a desktop window. Ordinary-account protected-DACL, interactive
+packaged launch, and physical-PC enrollment/play are distinct acceptance gates.
+Do not count mocked privacy-boundary tests as Windows permissions qualification.
+
+Why explicit import is needed
+An invite issued by the host has a protected owner/SYSTEM-only DACL. Downloading
+or copying it to another account does not transfer that useful access policy.
+The runtime reader must continue rejecting broadly readable files. The explicit
+importer instead treats the selected transfer file as bounded untrusted input,
+validates its format, and creates a separate protected local copy. It never
+changes the source's permissions or deletes it. Users can remove their original
+transfer file after confirming the new connection; they must keep it private
+until then. Enrollment is not proof the server issued/accepts the invite; AUTH
+provides that check.
+
+Host handoff and trust
+The player needs the address, TCP port, expected certificate DNS/IP name, public
+CA PEM file, its exact whole-file SHA256, and an individual invite JSON file.
+The host can obtain the hash with Get-FileHash -Algorithm SHA256. It is not a
+certificate thumbprint; whitespace/line-ending changes change this file hash.
+The expected hash must come through a trusted exchange with the host. Read
+fingerprint displays only the selected file's hash and never fills/accepts the
+separate host-confirmation field. No server private key is transferred.
+
+CA input accepts1..16 PEM certificate blocks and whitespace only, bounded to4MiB.
+Private keys or other appended content are rejected. OpenSSL validates the PEM
+certificates before use. Saving requires an exact hash match. Only the enrolled
+bundle is loaded into the connection's SSLContext; Windows trust is untouched.
+Actual connection still requires TLS certificate/SAN verification with the
+configured server name. No insecure fallback or first-connection trust prompt.
+
+Transaction and data boundaries
+client_patch/transport/enrollment.py validates the exact schema1 setup request
+and reuses launcher.validate_config for schema2 public connection settings.
+Request JSON is bounded to32KiB and contains only public settings/input paths:
+ schema,game_directory,server_host,server_port,server_name,display_name,room,
+ ca_source,invite_source,expected_ca_sha256,expected_config_sha256.
+The last value is null for a new config, otherwise its current whole-file SHA256.
+No token/key contents are accepted as a public config setting or CLI argument.
+
+server.credentials.parse_credential_handoff validates strict duplicate-free JSON,
+the exact schema1 keys, fixed player/invite identifiers and canonical256-bit
+token encoding. Import is bounded to4KiB and checks the selected source digest
+again before creating the copy. Paths must be local regular files, not a leaf
+link/reparse point. Source-tree inputs/outputs must use ignored runtime roots;
+bundled config/private files must remain outside program/.
+
+The importer uses the existing protected current-user/SYSTEM DACL creation API,
+exclusive file creation, flush/fsync, and strict read_credential_file readback.
+Existing destinations are never overwritten. Runtime read_credential_file still
+requires the same protected DACL; there is no permissive runtime option.
+
+Setup serializes its own writers with private/configuration.lock and uses an
+optimistic hash to reject stale edits. It creates a unique protected
+private/enrollment-<random>/ containing owner-ca.pem and private-invite.json,
+then validates trust and the copied invite. A protected temporary JSON config is
+flushed and atomically replaces the destination only after a final stale check.
+Unknown existing config formats are refused. Failed transactions remove only
+their own newly created files when permitted. They never relax ACLs for cleanup;
+an inaccessible private remainder may stay. Prior successful profiles/config
+and incoming files are preserved. Re-saving retains prior protected profiles;
+automatic deletion of older credentials is intentionally not part of setup.
+
+The config contains relative paths to its protected copies plus public settings;
+the token is absent. Existing valid settings can reopen even if their CA was
+removed: trust confirmation is left empty until a replacement is selected.
+The public expected-config hash prevents quietly overwriting another edit.
+
+UI and checks
+client_patch/launcher/Configure-Client.ps1 uses Windows PowerShell/WinForms,
+its known system executable, -NoProfile and -STA. It does not change script
+policy. Background Python work uses the bundled isolated interpreter with
+CreateNoWindow, independently drained stdout/stderr and a90s deadline. CLI
+arguments are quoted as native argv, never evaluated as shell text. The request
+file contains only public settings/paths and is removed after the backend exits.
+
+Unsaved fields disable Test/Play. Saved-config hashes are checked again before
+either action; external changes require reopening. Duplicate game launches and
+patching through this window while its own game runs are disabled. Setup
+reloads the new protected input paths after saving, so later edits no
+longer depend on the downloaded transfer file. The transport
+process is independent of the setup window; closing setup after launch leaves
+the game connected. Nonzero transport/game exit shows a fixed readable error
+while the window remains open. No raw credential/native exception is displayed.
+
+check_connection opens a bounded verified TLS connection, performs AUTH, compares
+the returned identity with the local handoff and closes the session. It never
+sends HELLO/game bytes, joins a room or creates a native worker. Its JSON result
+contains authenticated status, public player ID and TLS version only. The check
+does not reserve the server or guarantee future connectivity. Invalid/revoked
+invites, wrong CA/name, unavailable host and identity mismatch fail closed.
+
+Evidence and remaining acceptance
+local/enrollment-focused01-tests.txt:50 tests in10.113s,48 pass and2 explicit
+real-DACL opt-in skips. Includes credential persistence, secure launcher and
+package regressions plus11 enrollment logic cases and3 real TLS cases. OS private
+creation/inspection is mocked only for logic; locks, parsing, fsync, replace and
+TLS are real. Wrong CA/name cause zero invite verification calls at the server.
+Successful checks authenticate and leave zero peers/rooms; revoked/mismatched
+identities fail. Concurrent saves permit only one commit; failed replacement
+preserves old config/profile and removes its newly created transaction files.
+
+local/enrollment-gui01-tests.txt:6 checks pass in0.914s. Actual Windows argv
+roundtrips preserve spaces, quotes, trailing backslashes, Unicode and shell
+metacharacters. Configure uses the known shell/bundled runtime without an
+execution-policy override. local/client-setup-preview03.png renders the actual
+authored controls for layout review, not a screenshot or proof of interaction.
+The first Form.DrawToBitmap preview omitted hidden children; the preview renderer
+now draws the owned controls individually without showing a desktop window.
+
+local/enrollment-restricted01-tests.txt:the opt-in real Windows enrollment test
+cannot create the first private credential file (Windows error5) in the tool's
+restricted token. It is explicitly SKIPPED/NOT PASSED; no ACL was weakened.
+local/Check Private Enrollment.cmd is prepared for a normal user double-click.
+It uses installed Python3.14.8 and fresh authored test PKI/invites, then exercises
+real issuance, transfer import, exact DACL inspection, strict readback and TLS
+authentication on loopback. It patches/starts no game and uses no real invite.
+The runner rejects skips as acceptance and writes a public-only result JSON.
+Normal-account results remain pending; graphical setup and two physical PCs
+still require separate testing.
+
+local/enrollment-full314-01-tests.txt:260 tests in59.459s,257 pass and3 explicit
+optional skips (two real-DACL tests, one native-worker fixture). Native inherited
+bridge and original-byte telemetry checks are enabled. Python3.12.10 focused
+regression local/enrollment-focused312-01-tests.txt:52 tests in12.787s,50 pass
+and2 private-DACL skips. No original game/helper code changed for enrollment.
+
+dist/p4-enrollment-preview01 passes local/p4-enrollment-portable01 in48.760s:
+actual bundled3.14.8 imports, native asset import/health, equal two-peer loading
+bootstrap, worker36332 exit0, closed listener, sim.log0 bytes, three-component
+dry-run/install/idempotent reinstall/restore. Program/source inputs are unchanged.
+The retained local/p4-enrollment-cli01.json also verifies CMD setup-data plus
+structured missing-config/CA failures from an unrelated cwd with Python removed
+from PATH. This is packaged command evidence, not graphical or private-DACL
+acceptance. Exact archives are recorded in windows-packaging.txt.
+
+After the full suite/package run, a final UI-only change reloads protected input
+paths after saving and tolerates a backend exiting at its timeout boundary.
+local/enrollment-gui02-tests.txt reruns all6 UI/dispatch checks successfully in
+0.761s. The clean archive comparison records this script change separately;
+runtime, server, patcher, enrollment backend and helper payloads are unchanged.

@@ -7,7 +7,7 @@ local listener stays open. Each rematch opens a new authenticated remote session
 over that same private parent/game connection. The game receives only its public
 server-issued identity and an inherited handle; invite tokens stay in the parent.
 
-Status:source implemented and built; native probe completed two authenticated
+Initial transport qualification:source implemented and built; native probe completed two authenticated
 sessions and rejected a wrong server certificate before authentication. Thirteen
 bridge tests and eight secure-launch tests pass. The current186-test suite passed184
 tests with2 optional skips. Two actual clients completed two encrypted matches
@@ -42,9 +42,13 @@ machine-wide trust installed. See tls-transport.txt for certificate requirements
 credential_file points to an owner-issued private handoff. Its server-issued ID
 selects the saved profile; schema2 accepts no self-reported player_id or token
 setting. Existing strict private-file checks apply and are never relaxed by this
-launcher. That actual protected-DACL issuance/transfer path still requires normal
-Windows owner-account qualification. These source instructions assume Python3.12;
-the eventual release must bundle its runtime and provide friend-facing enrollment.
+launcher. The portable preview now bundles Python3.14.8 and a Connection Setup
+window. Its explicit importer validates a transferred invite, creates a new
+protected copy, and retains strict runtime reads. Exact public CA file SHA256
+confirmation precedes enrollment; Test connection performs verified TLS/AUTH
+without game/room allocation. See client-enrollment.txt and
+windows-client-quickstart.txt. Actual protected-DACL transfer still requires
+normal Windows owner-account qualification; the logic tests mock that boundary.
 
 Run from the source checkout:
  powershell -File client_patch/launcher/Launch-SecureClient.ps1 -Config <personal-config>

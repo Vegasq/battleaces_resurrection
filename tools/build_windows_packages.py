@@ -41,7 +41,9 @@ CLIENT = COMMON + (
     'client_patch/patcher/patch_client.py', 'client_patch/patcher/pe_imports.py',
     'client_patch/patcher/telemetry.py', 'client_patch/transport/__init__.py',
     'client_patch/transport/bridge.py', 'client_patch/transport/launcher.py',
+    'client_patch/transport/enrollment.py',
     'client_patch/launcher/ClientConfig.ps1', 'client_patch/launcher/Launch-Client.ps1',
+    'client_patch/launcher/Configure-Client.ps1',
     'tools/package_client.py',
 )
 MARKERS = (
@@ -119,6 +121,13 @@ def source_revision():
 def wrapper(product):
     # The quoted executable/module root are independent of the user's cwd. The
     # sole forwarded values are the user's own command arguments, never secrets.
+    if product == 'client':
+        return ('@echo off\r\nsetlocal\r\n'
+            'if "%~1"=="" (\r\n'
+            '  "%~dp0program\\runtime\\python.exe" -I -B -m tools.package_client configure\r\n'
+            '  exit /b\r\n)\r\n'
+            '"%~dp0program\\runtime\\python.exe" -I -B -m tools.package_client %*\r\n'
+            'exit /b %errorlevel%\r\n').encode('ascii')
     return ('@echo off\r\nsetlocal\r\n'
         'if "%~1"=="" (\r\n'
         f'  "%~dp0program\\runtime\\python.exe" -I -B -m tools.package_{product} --help\r\n'

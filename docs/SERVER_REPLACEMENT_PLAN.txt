@@ -178,6 +178,12 @@ Depends on P1's lifecycle and protocol contract.
 Effort allowance: 4-7 days.
 - Add a simple launcher/configuration screen for server address, display name and
   invite credential. Support DNS names and IPv4; defer IPv6 if it delays v1.
+  Implemented in the portable preview: Connection Setup installs the patch,
+  imports a transferred invite into protected local storage, confirms the host's
+  exact CA file hash, saves editable schema2 settings and checks TLS/AUTH before
+  launching. Unsaved/stale edits cannot silently launch previous settings.
+  Logic/TLS and authored form-render tests are separate from ordinary-account
+  DACL, interactive and cross-PC acceptance. See client-enrollment.txt.
 - Separate authenticated profile identity from per-match seat and native army ID.
 - Expose create/join room, player presence, ready/cancel and useful connection
   errors, using existing game UI where practical. No manual slot assignment.
@@ -279,6 +285,9 @@ Depends on P1/P2. Effort allowance: 4-7 days.
 - Protect the TCP connection with TLS using maintained TLS implementations.
   Document certificate trust/enrollment in the launcher, including a private-host
   option. Never solve certificate errors by disabling certificate validation.
+  Friend-facing explicit CA/invite enrollment is implemented; see
+  client-enrollment.txt. It makes no machine-wide trust changes and never sends
+  a token before certificate validation. Normal-account/cross-PC tests remain.
 - Keep secrets out of command lines and logs. Limit handshake rates, message size,
   pending joins and per-player queues; preserve existing command bounds.
 - Add ping/connection status and configurable, bounded input buffering. Measure

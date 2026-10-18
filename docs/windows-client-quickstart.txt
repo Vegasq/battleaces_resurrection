@@ -5,7 +5,9 @@ No original game files are included. Clean-PC and outside-network acceptance are
 still pending. Extract this archive to a separate ordinary local folder. The
 bundled Python runtime needs no installation; its license is under
 program/runtime/LICENSE.txt. Run commands in a terminal in the extracted folder.
-Double-click BattleAces-Client.cmd to read help.
+Double-click BattleAces-Client.cmd to open Connection Setup. Use --help in a
+terminal for commands. Windows PowerShell supplies this setup window; the package
+does not change your script execution policy.
 
   BattleAces-Client.cmd verify
 
@@ -53,8 +55,34 @@ open. Startup can take longer on a cold game installation.
 
 3. CONNECT TO YOUR FRIEND'S SERVER
 
-Ask the host for its address, port, certificate name, trusted CA and your private
-invite file. Copy config/client.example.json to config/client.json. Set:
+Ask the host for its address, port, certificate name, public CA file and your
+private invite file. Also get the SHA256 of that exact CA file through a trusted
+channel. This is the whole-file SHA256, not a certificate thumbprint.
+
+Double-click BattleAces-Client.cmd (or run its configure command). Choose your
+working game folder; Install patch uses the same reversible installer above.
+Enter your display name, the host's address/port and certificate name, then
+browse to the CA and downloaded invite. Read fingerprint displays the selected
+CA's file hash. Paste the host-supplied hash into its separate confirmation field.
+Save connection validates the match, creates protected local copies under
+config/private/, then writes config/client.json. It preserves the original
+downloaded invite and prior settings if saving fails. It never changes Windows
+certificate trust or weakens an existing file's permissions.
+
+Test connection verifies TLS and authenticates your invite without launching a
+game or joining a room. If it succeeds, Play multiplayer starts the patched game.
+Unsaved changes must be saved before Test/Play. You may close the setup window
+after launching; its separate transport process remains with the game. If the
+window reports settings changed externally, close and reopen it before editing.
+
+Keep the downloaded invite private. Once import and connectivity succeed, you
+can remove that transfer file yourself. No token belongs in command arguments,
+screenshots or public chat. A revoked invite requires a new file from the host.
+Changing servers requires that host's CA/hash and invite; configure does not
+download or silently accept certificates. Normal-account Windows private-file
+qualification remains a release gate; see the source knowledge base.
+
+The saved schema2 JSON remains editable. Fields are:
   game_directory   Full path to your patched working copy.
   server_host      The host's IPv4 address or DNS name.
   server_port      The host's TCP port, default47623.
@@ -64,20 +92,25 @@ invite file. Copy config/client.example.json to config/client.json. Set:
   display_name     The name shown to other connected players.
   room             A shared normal-match room label, such as friends.
 
-Relative file paths follow the config file's directory. Keep invite contents
-private and their Windows file permissions owner/SYSTEM-only; permission failures
-are not bypassed. Do not paste tokens in command arguments. Trust the host's CA
-through a known private exchange, not an unexpected connection dialog.
+Relative file paths follow the config file's directory. Imported invite copies
+must keep their protected owner/SYSTEM permissions. The example is a format
+reference; for downloaded invitations, use setup to create the private copy.
+
+Equivalent checks/launch from a terminal:
+
+  BattleAces-Client.cmd check
 
   BattleAces-Client.cmd launch
 
-Keep its console open while playing: it owns the secure transport. In the game,
+When using the launch command directly, keep that console open while playing:
+it owns the secure transport. In the game,
 Custom Game -> Invite Friend lists connected players. Invite the intended friend;
 after acceptance, use the native Start/Ready flow. Normal Play uses the configured
 room. A finished match should return through Continue. In-match reconnection is
 not supported; a lost session requires returning to the menu/relaunching.
 
-Use --config "<personal file>" after launch or practice to choose another config.
+Use --config "<personal file>" after configure, check, launch or practice to choose
+another config. The selected config's parent directory must already exist.
 No automatic ready/surrender, heavy capture or telemetry audit is enabled in these
 commands. Known telemetry entry points are patched; complete clean-profile and
 error/reporter-path qualification is still pending. This preview is not a claim

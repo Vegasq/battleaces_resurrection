@@ -110,6 +110,18 @@ class WindowsPackageTests(unittest.TestCase):
 
 
 class PackageDispatchTests(unittest.TestCase):
+    def test_configure_uses_bundled_python_and_known_system_shell_without_policy_change(self):
+        with (mock.patch.object(package_client, 'verify'), mock.patch.object(package_client.subprocess, 'run') as run):
+            run.return_value.returncode = 17
+            self.assertEqual(package_client.main(['configure', '--config', 'personal config.json']), 17)
+            argv = run.call_args.args[0]
+            self.assertEqual(Path(argv[0]).name, 'powershell.exe')
+            self.assertEqual(argv[1:4], ['-NoProfile', '-STA', '-File'])
+            self.assertEqual(argv[5:7], ['-PythonExecutable', package_client.sys.executable])
+            self.assertEqual(argv[-2:], ['-ConfigPath', str(Path('personal config.json').resolve())])
+            self.assertNotIn('-ExecutionPolicy', argv)
+            self.assertFalse(run.call_args.kwargs.get('shell', False))
+
     def test_install_restore_keep_existing_patcher_transaction_and_no_game_copy(self):
         with mock.patch.object(package_client, 'verify'), mock.patch('client_patch.patcher.patch_client.install', return_value={}) as install, redirect_stdout(io.StringIO()):
             self.assertEqual(package_client.main(['install', '--game', 'working copy', '--dry-run']), 0)

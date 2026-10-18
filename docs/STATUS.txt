@@ -2,6 +2,37 @@ IMPLEMENTATION LEDGER
 Updated: 2026-10-17
 Active objective: implement SERVER_REPLACEMENT_PLAN.txt, Windows only.
 
+FRIEND CONNECTION SETUP (2026-10-17; source/package checks pass)
+The portable client now opens a Windows setup window with server address/port,
+display name, room, explicit CA file-hash confirmation, transferred invite import,
+patch installation, TLS/AUTH test and launch. The downloaded invite is preserved;
+new copies/config are protected at creation. Runtime credential permissions are
+unchanged. Private copies validate before an atomic config commit; stale edits,
+failed replacement and simultaneous saves preserve existing settings. Unsaved
+edits disable Test/Play. Test connection never creates a game or joins a room.
+Details, exact trust policy and test boundaries: client-enrollment.txt.
+
+The260-test Python3.14.8 suite passes in59.459s:257 pass,3 optional skips (two
+real-DACL tests and the native-worker opt-in). Native bridge/original-byte checks
+are enabled. Python3.12.10 focused regression:52 tests in12.787s,50 pass and2
+real-DACL opt-in skips. Actual native argv roundtrips preserve quoting/Unicode;
+the authored form is rendered for layout inspection without showing a window.
+Real loopback TLS rejects wrong CA/name before sending an invite and rejects
+revoked/mismatched identities without room allocation. Normal-account private
+enrollment remains pending: the restricted tool token gets Windows error5 before
+private credential creation. local/Check Private Enrollment.cmd is prepared for
+the user; a skip is explicitly not a pass. No ACL was weakened.
+
+dist/p4-enrollment-preview01 packages pass relocated bundled-runtime qualification
+in48.760s (local/p4-enrollment-portable01): native asset import/health, two loading
+peers with identical bootstrap, worker36332 exit0, listener shutdown, zero-byte
+sim.log and three-component dry-run/install/idempotent reinstall/original restore.
+Original inputs and program files remain unchanged. The new CMD setup-data and
+structured missing-config/CA errors also pass from an unrelated cwd with Python
+removed from PATH (local/p4-enrollment-cli01.json). The game helper was unchanged.
+Interactive setup, real protected permissions, clean PCs and internet play remain
+separate release gates; no original game or runtime binaries enter Git.
+
 PORTABLE WINDOWS PREVIEWS (2026-10-17; P4 progress, release gate open)
 Separate server/client archives bundle pinned Python3.14.8 and include only
 allowlisted authored source plus our helper. Local assets, config and writable

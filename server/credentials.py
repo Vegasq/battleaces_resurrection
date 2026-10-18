@@ -243,19 +243,60 @@ def _public(record):
     return {key: value for key, value in record.items() if key != "token_sha256"}
 
 
+def parse_credential_handoff(raw):
+    """Validate transfer bytes without authorizing them or relaxing runtime ACLs."""
+    if not isinstance(raw, bytes) or not 1 <= len(raw) <= MAX_CREDENTIAL_BYTES:
+        raise CredentialError("invalid credential handoff size")
+    value = _json(raw)
+    if (not isinstance(value, dict) or set(value) != {"schema", "player_id", "invite_id", "token"}
+            or type(value["schema"]) is not int or value["schema"] != 1
+            or not isinstance(value["player_id"], str) or not PLAYER_ID.fullmatch(value["player_id"])
+            or not isinstance(value["invite_id"], str) or not INVITE_ID.fullmatch(value["invite_id"])):
+        raise CredentialError("invalid credential handoff")
+    _token_hash(value["token"])
+    return value
+
+
 def read_credential_file(path):
     """Read a bounded private handoff; callers must never log the returned token."""
     try:
-        value = _json(_read_file(_local_path(path), MAX_CREDENTIAL_BYTES))
-        if (not isinstance(value, dict) or set(value) != {"schema", "player_id", "invite_id", "token"}
-                or type(value["schema"]) is not int or value["schema"] != 1
-                or not isinstance(value["player_id"], str) or not PLAYER_ID.fullmatch(value["player_id"])
-                or not isinstance(value["invite_id"], str) or not INVITE_ID.fullmatch(value["invite_id"])):
-            raise CredentialError("invalid credential handoff")
-        _token_hash(value["token"])
-        return value
+        return parse_credential_handoff(_read_file(_local_path(path), MAX_CREDENTIAL_BYTES))
     except OSError:
         raise CredentialError("cannot read private credential handoff") from None
+
+
+def import_credential_file(source_path, output_path, *, expected_sha256=None):
+    """Enroll a user-selected transferred invite into a new protected local file.
+
+    Transfer files are untrusted input and may have download-folder permissions.
+    Only this explicit import reads them without the runtime reader's DACL check.
+    The original is never changed/deleted, existing output is never overwritten,
+    and the copy must pass the ordinary strict reader before it is usable.
+    """
+    source, output = _local_path(source_path), _local_path(output_path)
+    if source == output: raise CredentialError('Choose a new private invite destination')
+    created = False
+    try:
+        information = source.lstat()
+        if not stat.S_ISREG(information.st_mode) or not 0 < information.st_size <= MAX_CREDENTIAL_BYTES:
+            raise CredentialError('Transferred invite must be a bounded regular local file')
+        with source.open('rb') as stream: raw = stream.read(MAX_CREDENTIAL_BYTES+1)
+        if expected_sha256 is not None and hashlib.sha256(raw).hexdigest() != expected_sha256:
+            raise CredentialError('Transferred invite changed during setup')
+        value = parse_credential_handoff(raw)
+        _ensure_private_directory(output.parent)
+        with _private_create(output) as stream:
+            created = True
+            stream.write((json.dumps(value, separators=(',', ':'))+'\n').encode('utf-8'))
+            stream.flush(); os.fsync(stream.fileno())
+        copied = read_credential_file(output)
+        if copied != value: raise CredentialError('Private invite readback did not match')
+        return dict(player_id=value['player_id'], invite_id=value['invite_id'])
+    except (OSError, CredentialError):
+        if created:
+            try: output.unlink()
+            except OSError: raise CredentialError('Invite import failed; a protected partial copy remains') from None
+        raise CredentialError('Invite import failed; check the transfer format and private destination permissions') from None
 
 
 class CredentialStore:

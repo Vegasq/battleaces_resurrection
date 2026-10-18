@@ -20,7 +20,7 @@ lobby departure checks. Native Start/Ready, results/Continue and same-lobby rema
 now pass automated two-client tests, including duplicate requests and a changed
 deck. Match-only abort recovery retains the same lobby; targeted native setup,
 loading and stale-result tests are recorded separately. Broader failure/manual
-acceptance and Try Deck vs AI remain in progress. Details and
+acceptance remains open; standalone AI evidence is described below. Details and
 reproduction commands: docs/community-client.txt, docs/native-custom-invitations.txt
 and docs/native-custom-matches.txt.
 See docs/community-protocol.txt and docs/community-lobby.txt for scope and evidence.
@@ -49,6 +49,9 @@ for compatibility,command-delay tradeoffs and measured network tests.
 
 Portable Windows preview packages now have separate server/client archives,
 bundled Python, editable host/player configs and a native startup health check.
+Double-clicking the client package opens Connection Setup for server address,
+name, CA fingerprint confirmation, protected invite import and a TLS connection
+test. See docs/client-enrollment.txt for transaction and qualification details.
 The builder includes only allowlisted project source and our helper; game assets
 are imported locally. See docs/windows-packaging.txt for build/test evidence and
 docs/windows-server-quickstart.txt / docs/windows-client-quickstart.txt for setup.
@@ -146,7 +149,8 @@ listener binds profiles to revocable credentials; see docs/admission.txt and
 docs/tls-transport.txt. Raw TLS handshakes have global/source limits and real TLS
 tests reach a lobby. Two actual clients completed two matching TLS1.3 matches in
 the same processes with changed decks; see docs/secure-client-transport.txt.
-Private-file enrollment, manual UI and cross-network qualification remain pending.
+Ordinary-account private-file permissions, manual UI and cross-network
+qualification remain pending; explicit friend enrollment is implemented.
 Internet play is not ready.
 
 Original-game assets remain local. Release artifacts will contain our executable

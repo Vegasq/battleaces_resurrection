@@ -22,6 +22,10 @@ commands copied verbatim into the packages. No firewall changes, dependency
 installer, global PATH changes or game downloads are performed by these tools.
 Manual practice retains no automatic Play/surrender/capture flags. Secure launch
 keeps private invite contents out of the command line.
+The client CMD now opens Connection Setup when double-clicked. It confirms the
+host's exact public CA file hash, imports transferred invites into protected local
+copies, saves schema2 config and checks TLS/AUTH before launch. Runtime private
+read checks remain strict; see client-enrollment.txt for scope and acceptance.
 
 RUNTIME AND BUILD INPUTS
 
@@ -164,6 +168,21 @@ ZipInfo normalizing a backslash before validation; raw orig_filename validation
 now rejects it. Earlier nonsecret host fixture setup failed under the restricted
 token's tempfile DACL behavior; normal owned test directories fixed the fixture,
 without changing production credential permissions or weakening a DACL.
+
+ENROLLMENT PREVIEW UPDATE
+
+dist/p4-enrollment-preview01 uses source617afb6 plus the recorded enrollment
+changes. Server69 files,12378264 bytes, SHA256
+e84516c317a56cf5e1cbec96b402815154b5cdab450b56bd72c147c9e5c6306c.
+Client64 files,12773589 bytes, SHA256
+5515d70dd9419e6f1c6031c0eaa41f617489f20651b9294de1bb19b03960f113.
+The runtime pin/helper are unchanged. local/p4-enrollment-portable01 passes in
+48.760s: packaged imports, native import/health, loading-room bootstrap/shutdown,
+worker36332 exit0, sim.log0 bytes and three-component patch/restore. Program files
+and original game inputs stay unchanged. local/p4-enrollment-cli01.json checks
+new setup-data and structured error commands through the CMD from an unrelated
+cwd with no Python on PATH. See client-enrollment.txt for source/TLS/UI-render
+checks and the separate normal-account protected-file test still pending.
 
 REMAINING RELEASE GATES
 

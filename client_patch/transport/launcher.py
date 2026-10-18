@@ -38,12 +38,18 @@ def read_json(path, maximum):
 
 def load_config(path):
     path = Path(path).resolve()
-    value = read_json(path, 32768)
+    return validate_config(read_json(path, 32768), path)
+
+
+def validate_config(value, path):
+    """Validate authored settings before writing them as well as during launch."""
+    path = Path(path).resolve()
     keys = {'schema', 'game_directory', 'server_host', 'server_port', 'server_name',
             'ca_bundle', 'credential_file', 'display_name', 'room'}
     if (not isinstance(value, dict) or set(value) != keys or type(value['schema']) is not int
             or value['schema'] != 2):
         raise LaunchError('Secure client requires the exact schema2 settings')
+    value = value.copy()
     if any(not isinstance(value[key], str) or not value[key] or '\0' in value[key]
            for key in keys - {'schema', 'server_port'}):
         raise LaunchError('Invalid secure client text setting')
