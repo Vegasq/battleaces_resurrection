@@ -56,6 +56,20 @@ path. JoinArmyAction banner/portrait fields are3/4; ArmyConfig fields are5/6.
 Keep selection consistent in loading,UI,join,simulation and results; preserve
 the current snapshot during mid-match local edits.
 
+Runtime result-binding check exposed an additional dependency: setting standalone
+ArmyConfig/JoinArmy portrait/banner IDs does not populate native SimPlayer's
+equipped cosmetics. JoinedPlayer.Deck.Entitlements become SimDeck.CosmeticItemKeys;
+SimPlayer.Init uses CosmeticsUtils.LoadFromFlatBuffer, then derives its portrait
+and banner from equipped slots. Missing categories fall back to slot defaults.
+The result and in-game profile models copy those retained SimPlayer values, not
+the standalone protobuf fields or a front-account cosmetic profile. The loader
+takes the first compatible unused item for each slot, so appending a replacement
+after an existing category item is insufficient. Replace category choices or
+serialize one validated complete snapshot. Public bot prototype now includes its
+selected portrait/banner in the cloned deck's cosmetic entitlement record.
+Failed native evidence:local/public-native03 (name/IsAI matched; cosmetics did not).
+Read-only follow-up:local/public-bot-runtime02/identity-population.txt.
+
 Required qualification
 Exercise visibility/equip/reset for all installed categories, native swap rules,
 loadout changes and restart persistence including announcers. Verify default or

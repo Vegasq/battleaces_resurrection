@@ -5,7 +5,7 @@
 
 namespace ba_match_loading {
 using Ticket=uint64_t;
-enum class Source {Practice,Dedicated,Custom};
+enum class Source {Practice,Dedicated,Custom,Public};
 enum class Stage {Preparing,Waiting,Loading,Starting};
 
 // Presentation has no authority to create, cancel or finish a game. Tickets

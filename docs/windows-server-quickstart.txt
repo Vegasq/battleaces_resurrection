@@ -37,7 +37,9 @@ verified original backup in the import command:
 
 The importer checks exact original DLL/metadata/simulation hashes and the export
 manifest. It creates assets/build-37822 with the simulation, map, catalog and
-generated descriptors. It refuses to overwrite a nonempty destination. You can
+generated descriptors. Current exports also include the original AI DLL and
+validated local rule profiles for the headless AI work; public/team bot allocation
+is still under development. It refuses to overwrite a nonempty destination. You can
 perform the import on your gaming PC, then privately copy only the resulting
 assets/build-37822 directory to the host. A full graphical game installation on
 the host is unnecessary. Never upload imported assets as project releases.

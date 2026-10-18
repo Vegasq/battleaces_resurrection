@@ -144,6 +144,7 @@ class PlayerSpec:
     player_id: int
     name: str
     army_id: int
+    ai_profile_id: int = 0
 
 
 @dataclass(frozen=True)
@@ -322,7 +323,8 @@ class GameTemplate:
                 _require(isinstance(entry, Mapping), "roster entry must be PlayerSpec or mapping")
                 slot = entry.get("slot", index)
                 player = PlayerSpec(slot, entry.get("player_id", slot + 1),
-                                    entry.get("name", f"LAN Player {slot + 1}"), entry.get("army_id", slot))
+                                    entry.get("name", f"LAN Player {slot + 1}"), entry.get("army_id", slot),
+                                    entry.get("ai_profile_id", 0))
             _require(type(player.slot) is int and player.slot in (0, 1)
                      and type(player.army_id) is int and player.army_id in self.armies, "invalid player slot/army")
             players.append(player)
@@ -341,7 +343,7 @@ class GameTemplate:
             slot = player.slot
             units = self.validate_deck(selected[slot])
             groups = self.active_groups_for_deck(units)
-            identity = encode_identity(player.player_id, player.name)
+            identity = encode_identity(player.player_id, player.name, ai_profile_id=player.ai_profile_id)
             deck_message = encode_deck(units, groups)
             army = replace_fields(self.armies[player.army_id], {
                 2: [field_bytes(2, identity)], 3: [field_bytes(3, deck_message)],

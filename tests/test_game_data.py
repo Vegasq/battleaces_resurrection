@@ -28,6 +28,15 @@ class MatchConstructionTests(unittest.TestCase):
             with self.subTest(deck=deck), self.assertRaises(GameDataError):
                 self.template.validate_deck(deck)
 
+    def test_server_bot_profile_is_preserved_in_config_and_input_identity(self):
+        roster = [self.roster[0], dict(self.roster[1], ai_profile_id=18)]
+        match = self.template.build_match(roster, self.template.default_decks)
+        for slot, army in enumerate(get_repeated_bytes(match.game_config, 2)):
+            self.assertEqual(decode_identity(get_repeated_bytes(army, 2)[0])['ai_profile_id'], 18 if slot else 0)
+            self.assertEqual(decode_identity(match.identities_by_slot[slot])['ai_profile_id'], 18 if slot else 0)
+        with self.assertRaises(ValueError):
+            self.template.build_match([self.roster[0], dict(self.roster[1], ai_profile_id=-1)], self.template.default_decks)
+
     def test_roster_duplicate_ids_and_invalid_slots_rejected(self):
         for changed in ({'slot': 0}, {'player_id': 101}, {'army_id': 0}):
             roster = [self.roster[0], dict(self.roster[1], **changed)]

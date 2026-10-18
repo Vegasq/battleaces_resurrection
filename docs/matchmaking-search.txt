@@ -1,0 +1,87 @@
+ORIGINAL PUBLIC MATCHMAKING PRESENTATION - BUILD37822
+Updated2026-10-18. Original-code/asset trace complete; implementation and visible
+fidelity/cancellation qualification remain open. This is a release requirement.
+
+Required behavior
+Use the existing public1v1 Play button and native matchmaking notification.
+The button displays localized Searching... and becomes non-interactable.
+A nonmodal top-center panel shows the selected mode, elapsed seconds and its
+original Cancel button. Found/cancel/failure dismiss that panel and stop timers.
+Accepted matches enter the original joining/loading presentation. Public2v2/2vAI
+should use the same supported native flow; Try Deck retains its separate mode.
+One ordinary Start Client entry point must expose all of these paths.
+
+Original native contract
+MatchmakingButtonVM.OnMapSelected RVA3d23220 invokes Front.JoinMatchmakingQueue
+3e3c0d0. After asynchronous MapMeta loading, closure3e4a510 sets local queue
+state/mode, snapshots queue-entry DateTime, sends the original request, increments
+pending requests and calls UpdateMatchmakingStatus3e35cd0. Thus the old indication
+precedes server acknowledgement but follows map preload. Our immediate-feedback
+requirement starts that same presentation when the community queue ticket is
+accepted, before long preparation. This timing improvement is separate from
+reproducing the original appearance.
+
+Front's effective state uses pending requests to select optimistic local state
+or confirmed server state. Relevant exact-build fields:
+ confirmed queue+128; pending requests+140; local mode+148/local queue+14c;
+ confirmed mode+150; queue-entry DateTime+158; matchmaking status+188;
+ MatchmakingStateChange event+1e8; selected matchmaking game+138.
+UpdateMatchmakingStatus updates both the event-observed button model and routed
+MatchmakingStatusSignal. Reconcile all optimistic/confirmed fields under the
+current queue generation; setting just one VM flag or posting one signal is
+incomplete. Keep existing original-transport/Steam/analytics suppression when
+using native presentation; do not restore the retired request path.
+
+Status InQueue5 opens the pooled MatchmakingStatusPanel through
+MatchmakingNotification.OnMatchmakingSignal3d59650. None0,LeavingQueue6,
+MatchFound7,Error8 dismiss the notification, release its VM and stop timers.
+Invitation/party statuses share this machinery; preserve their ownership.
+The panel is UIPrefabTable17, GUIDce35fe1514e5f534782641a2cbe281e6, nonmodal.
+Reuse its pool/controller rather than allocating a duplicate overlay.
+
+Exact original bindings
+PlayMainScreen/MiddleContent/GameButtons/1v1Button binds IsMatching to the
+QueueSearchingText child's active state and Interactable to UIButton.
+PlayMain.Searching localization key370201198592 resolves to Searching... in
+the installed English assets. Ordinary public1v1 must keep the proving-grounds
+fake-practice flag false; native button matching otherwise changes behavior.
+MatchmakingStatusPanel binds CurrentSecondsInQueue to PlayMain.TimeElapsed
+key466271731712. The existing localization uses bold white integer seconds;
+retain its font/color/localization instead of inventing mm:ss or an estimate.
+OnMatchmakingTimerUpdate3d59d00 derives elapsed time from the stored DateTime;
+UINotificationTimer initializes immediately and updates once a second. Keep one
+entry timestamp and a consistent front clock. This elapsed display is distinct
+from the replacement server's30-second AI-fallback deadline.
+
+MatchmakingStatusPanelVM.OnCancelClicked3d25bf0 invokes
+Front.LeaveMatchmakingQueue(true)3e3e760. The original method immediately clears
+optimistic queue state then sends leave. The replacement must retire the matching
+generation, dismiss native search state and reject any later start for that
+generation. The disabled Play button is not the supported Cancel target.
+
+ProcessMatchmakingGameFound3e38f70 posts JoiningGameSignal and updates found
+state. RGameJoiningGameState then posts ShowLoadingScreenSignal. Original assets
+contain Loading . . . and Waiting for Players ... presentation. A Match Found!
+localization entry exists, but this bounded trace does not establish a displayed
+toast/animation; do not invent one from a string alone.
+
+Acceptance
+- Actual visible original button/panel/layout/font/localization; immediate search
+  response, updating elapsed seconds and one panel/timer per queue generation.
+- Original Cancel action with empty server, pending acknowledgement, retry,
+  simultaneous match-found, timeout/fallback and late/stale server response.
+- Native search-to-loading handoff for human match and AI fallback; no stale
+  search panel, duplicate start, reset timer, stuck disabled button or second world.
+- Clean results/rematch/menu and mode switches; Custom remains human-only and
+  Try Deck remains local. Maintain analytics/outbound suppression throughout.
+- Check through Start Client with no server and with the configured server;
+  source state assertions alone do not prove visible fidelity.
+
+Evidence
+Ignored local/matchmaking-ui01/FINDINGS.txt SHA256
+1a210c42d046e53e0a4d46bbc963c974627b34ca117cb33bd935349285ffaf3a.
+Original GameAssembly e59d08c01479b27404778048d7e13546dbf3771f6b3912744c7c2bdf80c4e758;
+metadata b760be9190309b14174cd272e1f83b730181b299bc7a0cdca66985c69dcdc57d.
+REA native providers unavailable: original PE/LLVM,IL2CPP and Unity asset parsing
+were used. No native execution or screenshots in this UI trace. Detailed local
+notes retain method/asset/binding evidence; no original prefab/assets enter Git.

@@ -18,6 +18,7 @@ from collections import deque
 
 SUPPORTED_DLL_SHA256 = "107bb83dc416a16492277392c50104660e34c48911345ae2e0d5afe3929a07fb"
 from .paths import SIMULATION_DLL
+from .protobuf_wire import get_bytes
 DEFAULT_DLL = SIMULATION_DLL
 MAX_MESSAGE_BYTES = 32 * 1024 * 1024
 MAX_SNAPSHOT_BYTES = 16 * 1024 * 1024
@@ -218,6 +219,10 @@ class _Runtime:
             "SimStep": [C.c_uint64, C.c_uint32, C.POINTER(C.c_int32)],
             "SimMakeSimFrame": [C.c_uint64, C.c_uint32, C.POINTER(C.c_uint32)],
             "SimGetSimFrameBuffer": [C.c_uint64, C.c_void_p],
+            "SimGetMapFrameSize": [C.c_uint64, C.POINTER(C.c_int32)],
+            "SimGetMapFrame": [C.c_uint64, C.c_void_p],
+            "SimGetLabelsFrameBufferSize": [C.c_uint64, C.c_uint32, C.POINTER(C.c_uint32)],
+            "SimGetLabelsFrameBuffer": [C.c_uint64, C.c_uint32, C.c_void_p],
         }
         for name, arguments in signatures.items():
             f = getattr(self.dll, name); f.argtypes = arguments; f.restype = C.c_int
@@ -272,6 +277,7 @@ class NativeSimulation:
         self.frame = -1
         self.game_time_seconds = 0
         self.game_data_sha256 = hashlib.sha256(game_data).hexdigest()
+        self.game_config_sha256 = hashlib.sha256(get_bytes(game_data, 1, required=True)).hexdigest()
         path = pathlib.Path(dll_path or DEFAULT_DLL).resolve()
         with _runtime_lock:
             if _runtime and _runtime.path != path:
@@ -347,6 +353,34 @@ class NativeSimulation:
     def snapshot(self, viewer: int = 31) -> bytes:
         """Return the raw native FlatBuffer; use canonical_snapshot to decode it."""
         return self.snapshot_bytes(viewer)
+
+    def map_bytes(self) -> bytes:
+        """Copy the original MapFrame for the separate AI decision world."""
+        with _runtime_lock:
+            runtime = self._require()
+            size = C.c_int32()
+            runtime.call("SimGetMapFrameSize", self._world, C.byref(size))
+            if not 8 <= size.value <= MAX_SNAPSHOT_BYTES:
+                raise NativeSimulationError(f"map size outside bounds: {size.value}")
+            output = C.create_string_buffer(size.value)
+            runtime.call("SimGetMapFrame", self._world, output)
+            return output.raw
+
+    def label_bytes(self, registry: int) -> bytes:
+        """Copy an available Unit(1) or Presentation(3) label registry update."""
+        if type(registry) is not int or registry not in (1, 3):
+            raise ValueError("AI label registry must be1 or3")
+        with _runtime_lock:
+            runtime = self._require()
+            size = C.c_uint32()
+            runtime.call("SimGetLabelsFrameBufferSize", self._world, registry, C.byref(size))
+            if not size.value:
+                return b""
+            if not 8 <= size.value <= MAX_SNAPSHOT_BYTES:
+                raise NativeSimulationError(f"label size outside bounds: {size.value}")
+            output = C.create_string_buffer(size.value)
+            runtime.call("SimGetLabelsFrameBuffer", self._world, registry, output)
+            return output.raw
 
     def state(self, viewer: int = 31, *, include_entities: bool = False) -> dict:
         return decode_snapshot(self.snapshot_bytes(viewer), viewer, include_entities=include_entities)

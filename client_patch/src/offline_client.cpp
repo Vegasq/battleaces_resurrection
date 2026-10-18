@@ -43,7 +43,7 @@ namespace ba_community_native { static void update(void* front);static void rese
 namespace ba_community_roster { static void reset();static void changed();static void update();static void smoke(void* front); }
 namespace ba_community_wire {struct Ack;struct Invitation;struct Aborted;}
 namespace ba_practice {
-static bool active();static void start(void*,void*);static void consume(void*,void*,void*);
+static bool active();static void start(void*,void*);static void startPublic(void*,void*,int);static void consume(void*,void*,void*);
 static void offlineUpdate(void*);
 static bool assetsReady(void*);static void worldReady(void*);static bool gameUpdate(void*,void*);static bool frontUpdate(void*);
 static bool acknowledge(void*,const ba_community_wire::Ack&);static void smoke(void*);
@@ -297,6 +297,8 @@ extern "C" __declspec(dllexport) void OfflineFrontUpdate(void* front,void*) {
 #include "community_match.cpp"
 #include "practice_settings.cpp"
 #include "local_menu.cpp"
+#include "native_tables.cpp"
+#include "public_bots.cpp"
 #include "practice_ai.cpp"
 #include "practice_settings_ui.cpp"
 #include "client_lifecycle.cpp"

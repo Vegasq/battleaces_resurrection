@@ -71,6 +71,20 @@ are planned behavior, not a claim that all modes or fallback already work.
 - Custom Game is the only path that guarantees all participants are human.
   Never add AI or apply the public-queue timeout there. Keep unavailable-server
   and insufficient-player states visible and allow cancellation/retry.
+- Original matchmaking presentation (user clarification2026-10-18): pressing
+  public1v1 must immediately show the shipped game's search indication. Trace
+  the original matchmaking view models, assets, text/timer, button state and
+  cancellation callbacks; reuse their presentation and transitions so it looks
+  and behaves like the original. Apply the same native flow where supported to
+  2v2/2vAI. Search is distinct from preparing/loading an accepted match. The
+  existing replacement loading status strip does not satisfy this requirement.
+  Keep search visible during the real queue wait, reflect the30-second fallback
+  without a stuck/duplicate overlay, and settle on cancel, failure, found match
+  or local AI start. Verify original-style appearance on visible clients and
+  search/cancel/retry/timeout/stale-response behavior from Start Client.
+  Original trace is complete: Searching... on the disabled Play button plus a
+  top-center elapsed-seconds/Cancel panel, followed by native joining/loading.
+  See matchmaking-search.txt for exact hooks, timer and ownership constraints.
 - Research the shipped game's original bot roster generation with REA: deck,
   name, avatar, difficulty and mode-specific rules, especially normal 1v1 bot
   opponents. Reuse the supported local data/selection behavior where possible;
@@ -106,11 +120,19 @@ Current implementation sequence for these additions (2026-10-18):
    public-bot-roster.txt. Define random difficulty separately from profile tactics;
    do not claim the retired backend's RNG was recovered. Verify native identities
    and all bot command/readiness/result paths in actual matches.
+   Experimental local mode1 now loads the original assets and passes two profile58
+   matches with combat/results/Continue and a changed-deck rematch. It remains
+   opt-in: all four profiles and result identity bindings now pass; online queue
+   arbitration and visible presentation remain open. Original matchmaking search
+   UI recovery/reuse is an explicit prerequisite for enabling ordinary public play.
 3. Export/import the actual team map and support four participants,three local
    bot processes and authored alliances0/2 versus1/3. Extend server/client wire,
    input ownership and mode projection together. Mixed human groups require one
    server-authoritative match with qualified AI execution/assignment. See
-   team-modes.txt; native team gameplay and AI teammate policy remain open.
+   team-modes.txt and server-ai-runtime.txt. Complete native tuning export/import
+   and two-army standalone AI combat now pass. Wire this into worker IPC/rooms,
+   preserve authored profile/deck pairing, and extend to four armies. Team play and the
+   mode5 missing-teammate policy remain open.
 4. Implement generation-bound public queues/fallback and human-only Custom,
    then qualify cancellation,late starts,partial groups,results and repeated
    mode switches. Complete local cosmetic inventory/equip/persistence and unified

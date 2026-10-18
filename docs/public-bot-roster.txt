@@ -1,5 +1,5 @@
 PUBLIC BOT ROSTER - BUILD 37822
-Updated:2026-10-18. Static evidence; new public bot gameplay is not qualified.
+Updated:2026-10-18. Static contract plus experimental implementation below.
 
 Purpose
 Public1v1 fallback must use varied original-style decks/names/portraits and a
@@ -109,3 +109,96 @@ unlock/persistence requirement.
 Local evidence:local/public-bot-roster01/FINDINGS.txt,summary.json,
 catalog-keys.json,evidence-manifest.json. Detailed note SHA256:
  7e666b9fe6161018fd94e9595e31bca8558063e1be5aa2b7288881522306e344
+
+Runtime access contract (2026-10-18)
+AIManagementConfigDefinition is a normal Addressables asset, not a StaticTables
+table. The original AssetReference.LoadAssetAsync<System.Object> instantiation
+exists in the AOT image and has no generic constraints. Keep its AssetReference
+and returned operation rooted; poll reference.IsDone, then reference.Asset and
+validate the class. Management._nameConfig and _randomizeCosmeticOptions directly
+reference the installed name/cosmetic objects. AIProfileTable is normally already
+loaded; AIDeckPresetTable needs original LoadTableAsync registration. Do not call
+the editor/service configuration ToProto export graph to select a runtime roster.
+Management mode rows and profile/weight rows are object arrays; cosmetic IntKey
+arrays contain four-byte inline values. Generic AsyncOperationHandle methods,
+if used, require the unboxed value instance rather than its object header.
+
+The real public button is MatchmakingButtonVM.OnMapSelected, RVA3d23220.
+Its get_Model().<GameMode>k__BackingField selects mode1; the VM dependency is
+_serverManager, not practice's _serviceManager. Preserve its native matching/lock
+guards and the UpdateProvingGroundsBotGameSetting(empty,false) preamble. The latter
+matters because IsFakePracticeVSAIGame is progression/tailored-UX based, not simply
+a GameMode4 check. Passing mode1 alone does not prove visible identity behavior.
+Detailed read-only note:local/public-bot-runtime02/FINDINGS.txt SHA256
+ 95ca2119eea8389dfae946d931ff52d4354a91c633c73ef3c5af2b279420a73d.
+
+Experimental local public1v1 implementation (not default public matchmaking)
+native_tables.cpp and public_bots.cpp load the installed inputs asynchronously.
+The replacement policy chooses an enabled opponent profile by authored weight,
+then one of its Type2 presets uniformly. It clones the shared deck and chooses an
+English installed name plus allowed portrait/banner. Names exclude the human and
+the immediately preceding bot. English-only selection is a documented current
+policy, not a reconstruction of the retired server's region/language RNG.
+Public difficulty independently chooses Easy/Normal/Hard uniformly and applies
+the already supported practice strength modifiers; tactics remain the selected
+public profile. Try Deck's saved difficulty remains unchanged. BCrypt rejection
+sampling avoids modulo bias. No recovered roster contents are embedded in source.
+The frozen bot identity/portrait/banner is carried in ArmyConfig and JoinArmy;
+the original JoinArmy serializer omits the latter two fields without this step.
+
+The shared local AI lifecycle accepts mode1 through -public-ai-experimental.
+Normal package launch does not set that flag: server queue/30-second arbitration,
+partial human groups, team modes and their race cases remain separate unfinished
+requirements. Custom does not use this path. -public-ai-smoke is also opt-in and
+invokes the real active mode1 button; a bounded profile override is test-only.
+tools.verify_public_ai runs the real unified launcher with no server/CA/invite,
+records native combat and results, and forcibly reaps its owned hidden process.
+This harness does not establish mouse input, visible name/avatar rendering,
+normal Quit, process-wide traffic absence or public online queue correctness.
+
+Native evidence so far
+public-native01 failed before starting a match: the smoke driver used practice's
+_serviceManager field on the public VM. Original metadata identified the correct
+_serverManager field. The failed evidence remains and its owned process is reaped.
+public-native02 passes two profile58 matches in414.869s in PID41720 using helper
+ e676e2f52bd49bdc586982cf0c6b4ff90e592dbb60a9d6a892ac212f1cc1f587.
+Normal/Easy are independently selected; bots reach121/122 supply and67/15 produced
+units both receive Move/Attack orders and change position. Native results,
+Continue, world release and changed-human-deck rematch all pass. Names, presets,
+portraits and banners vary; zero remote-connection and invite-read calls occur.
+Sources stay unchanged during the run and its hidden owned process is reaped.
+This run predates the stronger result-VM binding assertion and does not establish
+rendered names/artwork or behavior of the other three public profiles.
+
+The added smoke-only identity observation reads current active profile VM models,
+final get_PlayerName, result get_IsAI and live child CosmeticItemModel.Item keys.
+It matches current bot SteamId/mode/alliance and native ownership, never forces
+SetModel/RefreshViewModel. Match/results may append the original ' (Alias)' suffix;
+the generic practice-AI override is not accepted. In-game VM presence is recorded
+separately; an inactive/absent panel is not claimed as a verified binding. Native
+binding checks still do not prove asynchronous artwork rendering. Read-only
+contract:local/public-bot-runtime02/identity-display.txt SHA256
+ 24fd8832988191d4322956cf16eb00e2e34fbf42249c6fc3361c40d36c2d2da9.
+
+public-native03 deliberately used the stronger binding gate and FAILED at the
+profile62 result screen: native name/AI identity matched but cosmetics differed.
+Combat and result delivery occurred; this is not a passing lifecycle test. The
+owned process was reaped and source hashes stayed unchanged. Native tracing found
+that SimPlayer and result models derive equipped cosmetics from flattened deck
+entitlements, not standalone portrait/banner fields. The prototype now includes
+the selected IDs in its initially empty cloned-deck entitlement list, avoiding
+the original loader's first-category-match/default behavior. See cosmetics.txt.
+
+The corrected helper18f0d8becc1f4703aa26062728040a39ce0cf03b4ccf0d5b24eb949ba3735836
+passes profiles62/63/64 in public-native04/05/06 (216.885/163.837/185.701s).
+Bots reach122/94/80 supply with39/60/42 produced units receiving Move/Attack
+orders and changing position. All three verify the current result VM name,
+AI flag, portrait and banner, including a non-default banner in profile63.
+public-native07 passes two profile58 matches with the same helper in416.847s:
+Hard/Easy,136/122 supply,44/15 ordered moving units, correct result bindings,
+changed human deck and distinct installed bot names. These tests finish native
+results, Continue and world release with no remote connection/invite-read calls.
+Each owned hidden process is reaped and each run keeps source hashes unchanged.
+In-game profile panel binding is unobserved; artwork rendering is still a manual
+gate. public-practice-regression01 also passes standalone Try Deck Normal with
+122 bot supply,99 autonomous action records and observed unit movement in220.618s.

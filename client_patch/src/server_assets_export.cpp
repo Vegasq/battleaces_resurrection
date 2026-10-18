@@ -90,6 +90,80 @@ static Bytes arrayBytes(Obj array,size_t maximum) {
     const auto data=static_cast<const unsigned char*>(array)+0x20;
     return Bytes(data,data+length);
 }
+static auto& aiProfiles=*new ba_tables::Table("AIProfile","AIProfileTable","35290f27a7e495444bf634c20a53d056");
+static Bytes serializeAIRule(Obj manager,Obj tuning) {
+    ba_tables::require(tuning!=nullptr,"AI export tuning missing");
+    Obj cls=ba::find_class("FlatBuffers","FlatBufferBuilder");
+    ba::api<void(*)(Obj)>("il2cpp_runtime_class_init")(cls);
+    Root builder(ba::api<Obj(*)(Obj)>("il2cpp_object_new")(cls));
+    Obj selected=nullptr;void* iterator=nullptr;
+    while(Obj method=ba::api<Obj(*)(Obj,void**)>("il2cpp_class_get_methods")(cls,&iterator)) {
+        if(strcmp(ba::api<const char*(*)(Obj)>("il2cpp_method_get_name")(method),".ctor") ||
+           ba::api<uint32_t(*)(Obj)>("il2cpp_method_get_param_count")(method)!=1)continue;
+        Obj type=ba::api<Obj(*)(Obj,uint32_t)>("il2cpp_method_get_param")(method,0);
+        if(ba::api<int(*)(Obj)>("il2cpp_type_get_type")(type)==8){selected=method;break;}
+    }
+    ba_tables::require(selected!=nullptr,"AI export Int32 builder constructor missing");
+    int capacity=10000;void* ctorArgs[]={&capacity};ba_local::invokeMethod(selected,builder.get(),ctorArgs);
+    void* args[]={builder.get(),tuning};ba::call(manager,"BuildFlatBuffer",2,args);
+    Root buffer(ba::call(builder.get(),"get_DataBuffer"));
+    Root array(ba::call(buffer.get(),"ToSizedArray"));
+    return arrayBytes(array.get(),8*1024*1024);
+}
+static std::vector<uint32_t> aiSelection(Obj manager,const char* field) {
+    Obj array=ba::get<Obj>(manager,field);const size_t count=ba_catalog::length(array);
+    ba_tables::require(count<=4,"AI export selection capacity invalid");
+    std::vector<uint32_t> result;
+    for(size_t i=0;i<count;++i)result.push_back(ba::read<uint32_t>(array,0x20+i*4));
+    return result;
+}
+static Bytes exportAIRules() {
+    Root manager(ba::get<Obj>(ba::owner,"<AIManager>k__BackingField"));
+    ba_tables::require(manager.get() && aiProfiles.get(),"AI export manager/table missing");
+    const uint32_t defaultId=ba::get<uint32_t>(manager.get(),"_defaultAI");
+    const uint64_t world=ba::get<uint64_t>(manager.get(),"_aiWorld");
+    const int lastFrame=ba::get<int>(manager.get(),"_lastUpdatedFrame");
+    const auto selected=aiSelection(manager.get(),"_armyAISelection"),debug=aiSelection(manager.get(),"_debugArmyAISelection");
+    const Obj simulation=ba::get<Obj>(manager.get(),"_playerSimulation");
+    const int players=ba_local::count(ba::get<Obj>(manager.get(),"_aiPlayers"));
+    ba_tables::require(!world && !players,"AI export requires an idle manager");
+    Root table(aiProfiles.get()),elements(ba::call(table.get(),"get_Elements"));
+    const size_t count=ba_catalog::length(elements.get());
+    ba_tables::require(count>0 && count<=256,"AI export profile count invalid");
+    std::string rows;std::vector<uint32_t> ids;size_t totalBytes=0;bool foundDefault=false;
+    for(size_t index=0;index<count;++index) {
+        Obj profile=ba_catalog::arrayAt(elements.get(),index);
+        ba_tables::require(profile!=nullptr,"AI export null profile");
+        Root idObject(ba::call(profile,"get_ID"));const uint32_t id=ba_catalog::unbox<uint32_t>(idObject.get());
+        const int mode=ba::get<int>(profile,"GameMode");const bool enabled=ba::get<bool>(profile,"Enable");
+        if(id!=defaultId && (!enabled || (mode!=1 && mode!=2 && mode!=4 && mode!=5)))continue;
+        ba_tables::require(id && std::find(ids.begin(),ids.end(),id)==ids.end(),"AI export duplicate/zero profile");
+        Root tuning(ba::get<Obj>(profile,"AIFuzzyTuning"));Bytes bytes=serializeAIRule(manager.get(),tuning.get());
+        ba_tables::require(bytes==serializeAIRule(manager.get(),tuning.get()),"AI rule serialization is not repeatable");
+        totalBytes+=bytes.size();ba_tables::require(totalBytes<=32*1024*1024,"AI export aggregate size limit");
+        const std::string filename="ai-rules-"+std::to_string(id)+".fb";
+        const std::wstring wide(filename.begin(),filename.end());atomicWrite(path(wide.c_str()),bytes.data(),bytes.size());
+        if(!rows.empty())rows+=',';
+        rows+="{\"profile\":"+std::to_string(id)+",\"mode\":"+std::to_string(mode)+",\"enabled\":"+(enabled?"true":"false")+
+            ",\"file\":"+ba_catalog::quote(filename)+",\"bytes\":"+std::to_string(bytes.size())+",\"sha256\":"+ba_catalog::quote(hash(bytes))+"}";
+        ids.push_back(id);foundDefault|=id==defaultId;
+        ba::log("AI rule exported: profile=%u mode=%d bytes=%zu repeatable=1",id,mode,bytes.size());
+    }
+    ba_tables::require(foundDefault && !ids.empty(),"AI export default profile missing");
+    ba_tables::require(ba::get<uint64_t>(manager.get(),"_aiWorld")==world &&
+        ba::get<int>(manager.get(),"_lastUpdatedFrame")==lastFrame &&
+        ba::get<uint32_t>(manager.get(),"_defaultAI")==defaultId &&
+        ba::get<Obj>(manager.get(),"_playerSimulation")==simulation &&
+        ba_local::count(ba::get<Obj>(manager.get(),"_aiPlayers"))==players &&
+        aiSelection(manager.get(),"_armyAISelection")==selected && aiSelection(manager.get(),"_debugArmyAISelection")==debug,
+        "AI rule export changed manager/world state");
+    const std::string manifest="{\"schema\":1,\"build\":37822,\"format\":\"Uncapped.Flatbuffers.Fuzzy\",\"default_profile\":"+
+        std::to_string(defaultId)+",\"ai_dll_sha256\":\"14b504d4946fe60d0d62e1e8b8a641b4c1bbd07277d1bbca09e0151512ff19ca\","
+        "\"repeatable\":true,\"repeatability_scope\":\"same_loaded_process\",\"manager_unchanged\":true,\"profiles\":["+rows+"]}\n";
+    Bytes result(manifest.begin(),manifest.end());atomicWrite(path(L"ai-rules.json"),result.data(),result.size());
+    note("AI rules exported through original serializer; repeated bytes match and manager/world state is unchanged.");
+    return result;
+}
 static uint32_t root(Obj value) {
     return value?ba::api<uint32_t(*)(Obj,bool)>("il2cpp_gchandle_new")(value,false):0;
 }
@@ -125,6 +199,7 @@ static void consume(Obj gameData,Obj encoded) {
     Bytes raw=arrayBytes(rawArray.get(),16*1024*1024);
     ba_catalog::exportFile(path(L"unit-catalog.json").c_str());
     Bytes catalog=readFile(path(L"unit-catalog.json"));
+    Bytes aiRules=exportAIRules();
     atomicWrite(path(L"map-1v1.pb.gz"),compressed.data(),compressed.size());
     std::string manifest="{\"schema\":1,\"asset_format\":1,\"complete\":true,\"build\":37822,\"pid\":"+std::to_string(GetCurrentProcessId())+
         ",\"source\":\"loaded original normal 1v1 GameData builder and runtime unit tables\","
@@ -132,11 +207,12 @@ static void consume(Obj gameData,Obj encoded) {
         "\"simulation_sha256\":\"107bb83dc416a16492277392c50104660e34c48911345ae2e0d5afe3929a07fb\","
         "\"files\":{\"map-1v1.pb.gz\":{\"bytes\":"+std::to_string(compressed.size())+",\"sha256\":\""+hash(compressed)+
         "\"},\"unit-catalog.json\":{\"bytes\":"+std::to_string(catalog.size())+",\"sha256\":\""+hash(catalog)+
+        "\"},\"ai-rules.json\":{\"bytes\":"+std::to_string(aiRules.size())+",\"sha256\":\""+hash(aiRules)+
         "\"}},\"raw_game_data\":{\"bytes\":"+std::to_string(raw.size())+",\"sha256\":\""+hash(raw)+"\"}}\n";
     restoreIdentity();
     atomicWrite(path(L"export.json"),reinterpret_cast<const unsigned char*>(manifest.data()),manifest.size());
     phase=Phase::Complete;releaseLock();
-    note("COMPLETE: map-1v1.pb.gz, unit-catalog.json and export.json written; no match started. You may close the game.");
+    note("COMPLETE: map, unit catalog, AI rules and export.json written; no match started. You may close the game.");
 }
 static void poll(Obj front) {
     if(!ba::exportServerAssets() || phase==Phase::Complete || phase==Phase::Failed)return;
@@ -154,6 +230,7 @@ static void poll(Obj front) {
         if(phase!=Phase::Waiting)return;
         Obj fsm=ba::read<Obj>(ba::owner,0x2b0);
         if(!fsm || ba::get<Obj>(fsm,"_currentState")!=ba::read<Obj>(ba::owner,0x2c0) || !ba_catalog::available())return;
+        if(!aiProfiles.ready())return;
         int mode=1;void* modeArgs[]={&mode};Root config(ba::call(ba::owner,"GetConfigForMode",1,modeArgs));
         if(!config.get() || !ba::get<Obj>(config.get(),"GameDataProvider"))return;
         savedFront=root(front);savedPlayer=root(ba::get<Obj>(front,"_playerGameHandle"));savedName=root(ba::get<Obj>(front,"_currentPlayerName"));

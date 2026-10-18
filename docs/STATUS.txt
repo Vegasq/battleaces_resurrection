@@ -2,6 +2,39 @@ IMPLEMENTATION LEDGER
 Updated: 2026-10-18 UTC
 Active objective: implement SERVER_REPLACEMENT_PLAN.txt, Windows only.
 
+HEADLESS AI RULE EXPORT / COMBAT (2026-10-18 UTC)
+The client exporter now writes59 complete native AI rule blobs, validates
+within-process repeatability and unchanged AIManager/world state. A strict
+FlatBuffer/domain validator and local asset importer admit the exact AI DLL,
+rules and manifest. Two bots now build/move/fight to natural native completion
+beside one authoritative simulation in an isolated headless Python worker.
+Compatible original decks are required; the failed generic-deck run is retained.
+Fresh-process exports differ in Unity rule instance IDs; their headless sampled
+state and results agree. Actual worker/room/public/team wiring remains open.
+46 focused Python3.14 tests pass including the opt-in real native worker;
+Python3.12 passes18 rule/import/match tests. See server-ai-runtime.txt.
+
+ORIGINAL PUBLIC SEARCH UI (user clarification2026-10-18)
+Public1v1 must immediately use the original matchmaking search panel, timer,
+button/cancel state and transitions. The existing custom preparation/loading
+strip does not satisfy that requirement. Original-code/asset tracing identifies
+the Searching... button, top-center elapsed-seconds/Cancel panel and original
+loading handoff. Reuse implementation, visible fidelity and queue race checks
+remain open. See matchmaking-search.txt and SERVER_REPLACEMENT_PLAN.txt.
+
+PUBLIC BOT IDENTITY / LOCAL COMBAT CHECKPOINT (2026-10-18 UTC)
+The opt-in unified public1v1 path now chooses installed profile/deck/name/avatar
+data and random supported difficulty, independently of Try Deck preferences.
+All four public opponent profiles pass native combat/results/Continue with
+correct result VM identity and cosmetic bindings. Profile58 additionally passes
+a changed-deck two-match run. An entitlement omission found by the stronger UI
+check was fixed; failed evidence is retained. Try Deck regression also passes.
+See public-bot-roster.txt for exact evidence, helper hash and display limits.
+This remains experimental: ordinary Start Client does not yet enable public
+queue/fallback. One client entry point remains the final requirement; developer
+AI shortcuts are temporary. Server-owned AI, teams, queue races, cosmetics and
+the other release gates remain unfinished.
+
 FINAL PRODUCT REQUIREMENTS ADDED (2026-10-18; implementation TODO)
 The user requires separate Start Server/Start Client executables or scripts.
 The client always launches without a server; Try Deck remains local. Public1v1,

@@ -8,6 +8,8 @@ from server.game_data import canonical_gzip
 from server.protocol import BUILD_SHA, SIM_SHA
 from tests.synthetic import template
 from tools.import_assets import import_assets, verify_export
+from server.ai_rules import SUPPORTED_AI_SHA256
+from tests.test_ai_rules import synthetic_rules
 
 
 class AssetImportTests(unittest.TestCase):
@@ -56,3 +58,20 @@ class AssetImportTests(unittest.TestCase):
         source = Path(__file__).resolve().parents[1] / 'server'
         with self.assertRaisesRegex(ValueError, 'ignored local'):
             import_assets('unused-game', self.directory, source)
+
+    def test_ai_export_requires_both_envelope_hash_and_valid_inner_rules(self):
+        rules, _ = synthetic_rules()
+        entry = dict(profile=4, mode=1, enabled=True, file='ai-rules-4.fb', bytes=len(rules), sha256=hashlib.sha256(rules).hexdigest())
+        metadata = dict(schema=1, build=37822, format='Uncapped.Flatbuffers.Fuzzy', ai_dll_sha256=SUPPORTED_AI_SHA256,
+                        default_profile=4, profiles=[entry])
+        def update():
+            data = json.dumps(metadata).encode()
+            (self.directory/'ai-rules.json').write_bytes(data)
+            self.manifest['files']['ai-rules.json'] = dict(bytes=len(data), sha256=hashlib.sha256(data).hexdigest())
+            self.write_manifest()
+        (self.directory/entry['file']).write_bytes(rules); update()
+        self.assertEqual(verify_export(self.directory)[entry['file']], rules)
+        (self.directory/entry['file']).write_bytes(b'\0'*len(rules))
+        with self.assertRaisesRegex(ValueError, 'hash mismatch'): verify_export(self.directory)
+        entry['sha256'] = hashlib.sha256(b'\0'*len(rules)).hexdigest(); update()
+        with self.assertRaisesRegex(ValueError, 'offset'): verify_export(self.directory)

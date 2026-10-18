@@ -79,7 +79,8 @@ Client lan_bootstrap/lan_transport/dedicated_wire must project the authoritative
 roster/mode/alliance and accept explicitly assigned AI batches. Current deck,
 Custom/invite and loading paths contain mode1/two-seat assumptions. Original
 Custom2v2 roleSlot placement still needs native UI qualification.
-practice_ai.cpp currently owns one bot/deck/process and mode4. local_loop.cpp
+practice_ai.cpp owns one bot/deck/process for mode4 and experimental public1v1.
+local_loop.cpp
 has one peerRoot. Generalize to a bounded participant/producer list with all
 native AI readiness and teardown gates; do not drop a bot's lifecycle checks.
 server_assets_export/import/assets/backup currently pin one map. Export/import/
@@ -95,7 +96,9 @@ Server simulation authority and bot command execution are separate. A mixed
 match needs qualified server-side bot execution or explicit single-owner AI
 delegation with authenticated assignment,input checks,ordered frames and owner-
 loss behavior. Independent local fallback worlds for each human are invalid.
-This decision remains open pending standalone AI ABI evidence and integration.
+The standalone AI world now has two-army runtime proof with original rule export,
+production, movement, combat and results. See server-ai-runtime.txt. Actual worker
+IPC/room integration, shared human/bot input and four-army maps remain required.
 
 Required qualification
 First export/build the real mode2 and5 world and inspect all four armies, initial

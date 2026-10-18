@@ -29,6 +29,7 @@ COMMON = (
     'tools/__init__.py', 'tools/package_integrity.py',
 )
 SERVER = COMMON + (
+    'server/ai_rules.py', 'server/native_ai.py',
     'server/assets.py', 'server/community.py', 'server/community_protocol.py',
     'server/configuration.py', 'server/dedicated_server.py', 'server/game_data.py',
     'server/host.py', 'server/host_audit.py', 'server/native_simulation.py',

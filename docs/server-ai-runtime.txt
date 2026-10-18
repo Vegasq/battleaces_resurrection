@@ -1,0 +1,158 @@
+STANDALONE SERVER AI CONTRACT - BUILD37822 / WINDOWS X64
+Updated:2026-10-18. Two-army headless combat is verified; online/team integration
+is unfinished. No graphical game is required by the standalone AI runner.
+
+Architecture
+The shipped aiprogram.dll has14 exports and supports four army contexts. Static
+evidence and two-army execution support one authoritative Simulation.dll world
+plus one separate AI decision world in an isolated worker. Multiple bots can
+emit ordinary commands into that one match. This is the candidate for preserving
+partial human groups when public queues fill remaining seats with AI. Separate
+local matches for those humans would not satisfy the product requirement.
+
+The AI world is not a second combat simulation. AIInit is process-global; call it
+once per worker, retain distinct AI/Simulation handles, serialize native calls,
+and destroy bot registrations/worlds before process teardown. The alternative
+fuzzylogicai.dll has only seven exports and is not this interface. Static imports
+are KERNEL32-only. Headless execution passes on this PC from locally imported
+assets; clean-PC deployment and actual service-account qualification remain open.
+Required locally imported DLL hash:
+ aiprogram.dll 14b504d4946fe60d0d62e1e8b8a641b4c1bbd07277d1bbca09e0151512ff19ca
+Original DLLs, tuning blobs and recovered data remain outside source control.
+
+Inputs and ownership
+SimCreateWorld consumes raw GamePb.GameData, as the existing server already does.
+AICreateWorld consumes raw GamePb.GameConfig and a native MapFrame FlatBuffer.
+Use the final mode/roster/alliance/deck/seed configuration, not gzip or a MapConfig
+protobuf. Simulation exposes SimGetMapFrameSize/SimGetMapFrame for the map bytes.
+The AI config importer reads four army contexts and eight deck slots; an invalid
+deck can silently zero its deck even when the call returns success. Verify actual
+production, and never assume a later JoinArmy repairs the AI's initial snapshot.
+
+AIUpdateRule requires a fully materialized Uncapped.Flatbuffers.Fuzzy root. Its
+nine vectors contain unit/HQ/ability/tactical rules, fuzzy sets, unit AI floats,
+unit tags, crisp weights and allowed units. The original BuildFlatBuffer also
+uses global UnitTable AI metadata and overrides. A profile ID or partially decoded
+tuning asset is insufficient. The native wrapper ignores its length argument;
+only validated exact-build blobs may cross this boundary. Preserve the original
+default rules for all armies followed by selected bot-profile rules. Empty
+tactical vectors replace previous rules; they do not inherit working tactics.
+
+The client server-assets exporter now calls the original BuildFlatBuffer /
+ToSizedArray path for every enabled mode1/2/4/5 profile plus the real default.
+It exports59 complete blobs and a local ai-rules.json manifest; default profile4.
+Every blob is serialized twice within the same loaded process, and manager world,
+frame, player count, simulation reference and profile selections are unchanged.
+Repeatability is explicitly scoped to that process. FuzzyRules.id comes from
+UnityEngine.Object.GetInstanceID, so bytes/hashes differ across client launches.
+Preserve each local manifest's actual hashes rather than pinning one universal
+profile hash. Cross-process semantics and native execution are compared below.
+
+Managed export contract (local/server-ai-export02/FINDINGS.txt)
+Use the live AIManager and registered AIProfileTable/UnitTable after the original
+assets load. Default rules come from manager._defaultAI -> profile.AIFuzzyTuning.
+Create a fresh FlatBuffers.FlatBufferBuilder with its Int32 constructor(10000),
+selected by parameter type: the ByteBuffer constructor has the same arity.
+Invoke the non-generic private AIManager.BuildFlatBuffer(builder,tuning), then
+builder.get_DataBuffer().ToSizedArray(). BuildFlatBuffer already finishes the
+plain Fuzzy root; add neither another Finish nor a size prefix. Preserve the
+complete tuning references and global unit AI metadata. Do not call
+UpdateAIRuleData, which changes manager state and applies native rules, or invoke
+the shared generic BuildFuzzyRules body without its closed MethodInfo. Copy the
+rooted byte array and record profile/build/content identity. Static verification
+passed original hashes,10 bounded slices and exact overloads. Runtime export and
+unchanged-world checks pass in ai-export-native01/02 (15.919/17.169s), all59
+profiles8,248..19,340 bytes. Each owned hidden client is reaped. The imported
+bundle contains115 files/50 descriptors/52 playable units, including the original
+AI DLL and validated rules; no original input is committed to Git.
+ai-export-native03 passes the current exporter plus integrated rule admission in
+15.774s, with explicit same_loaded_process repeatability scope and helper hash
+c28f423a16e2771c4e78638f90edb61fcc56478ce7c030e255b7dbdedec2db71.
+All six C++ checks and the helper build pass; only the disposable native-test
+client was updated. Manual/frozen clients and untouched recovery files remain.
+
+Admission and import
+server.ai_rules walks every table/vector, requires native-dereferenced vectors,
+checks object spans/overlap, signed vtables, offsets/alignment, bounded aggregate
+counts, category-specific input/output domains and native enum array indices.
+Floats must be finite and strictly between-2^31 and2^31 for native Q32.32
+conversion. Fuzzy/crisp IDs are unique and non-Custom fuzzy references must
+resolve. Valid empty vectors and shared/negative-offset vtables are preserved.
+RuleBook checks exact build/DLL identity, filenames, lengths, hashes, unique
+profiles and default membership. Import verifies every rule entity against the
+same full GameConfig. These checks do not authenticate arbitrary supplied rules
+or establish useful tactics: admit locally exported exact-build content.
+The source tests use authored synthetic data; real rule blobs remain ignored.
+Static schema/corruption evidence:local/server-ai-validation01 (59 valid exports,
+44 corruptions rejected). No copied rule/asset content enters source fixtures.
+
+Frame and command contract
+The native client updates AI every five simulation frames. It feeds Presentation
+label registry3, Unit registry1, enemy spy views and each bot's own view, then
+AIStep(50) at a normal50ms simulation step. The argument remains50, not250.
+Simulation frame generation takes an ALLIANCE; AIUpdateSimFrame/AISpyOnSimFrame
+take an ARMY. Preserve the authoritative army-to-alliance mapping and original
+view/spy permissions. Adding an AI army does not replace its normal JoinArmy.
+
+GetAIInputAction returns a status, not a byte count. Its output is a varint body
+length followed by one GamePb.InputActionQueue (repeated InputAction field1).
+Parse only that bounded body, preserve commands, and wrap them in the bot's own
+InputActionsByPlayer identity before committing canonical simulation input.
+The native reader consumes queued commands even if the buffer is too small;
+there is no size-query export and retrying a small read loses commands. Worse,
+its size comparison excludes the varint prefix. Allocate prefix guard space,
+use a deliberately bounded sufficient capacity and qualify heavy-army output.
+Status0 alone does not prove complete command delivery. The original managed
+bridge uses4096 bytes; this is an observed choice, not a proven safe upper bound.
+
+The implemented wrapper uses1MiB body capacity plus ten prefix bytes and a
+16-byte canary. It detects unwritten, malformed or oversized queues and retains
+every InputAction in the bounded body. Map/label copies are serialized with
+simulation mutation. AI initialization requires the exact configuration hash of
+the still-unstarted simulation; armies/alliances/profile rules are validated.
+
+Headless evidence
+tools.verify_native_ai starts an owned isolated Python worker with only imported
+Simulation.dll/aiprogram.dll and data. Both bots receive normal JoinArmy commands
+and their own identities; the AI runs every five frames with50ms, original label
+registries, own alliance views and first-opposing-army spy views. There is one
+combat simulation, no Unity process, scripted production or forced surrender.
+headless-ai01 FAILED the two-bot gate: profile62 on the generic Starter deck
+never produced units, while58 fought. This evidence is retained. The profile
+requires a compatible authored deck, not arbitrary validated human deck slots.
+headless-ai02 passes58/58 on Starter:54/69 produced units both move and receive
+Move/Attack orders; both armies take combat damage and a native result completes.
+headless-ai03/04 pass58/62 using their decks from passing original client matches.
+The stronger04 run completes in17.622s at frame6300 (native end frame6291):
+2328/1231 actions,100/199 maximum supply,162/124 produced ordered moving units,
+combat damage on both armies and clean destruction of both native runtimes.
+Largest observed queue body303 bytes; massive/team queues remain unqualified.
+headless-ai05 repeats against a fresh client export/import in16.019s. Despite
+different process-local rule IDs, full GameData, sampled state streams and native
+results are byte/field-identical to04. All owned workers exit0 and sources stay
+unchanged during each passing run. This is bounded deterministic evidence, not
+a general proof for every profile/deck/map/team combination.
+
+local/server-ai-export-diff01 verifies all59 export pairs differ only in the
+FuzzyRules.id bytes:8,224 occurrences/172 unique Unity instance IDs. Layout,
+padding, scalar bits, order and multiplicity are otherwise identical. Original
+IRuleId getters share RVA3da6ea0 and tail-call Object.GetInstanceID508fa50;
+BuildFuzzyRules copies that value into the output. Retain original IDs in native
+payloads; rewriting/canonicalizing them has not been qualified. Raw hashes stay
+per-export identities, and ordered decoded comparison excludes only those IDs.
+
+Remaining qualification
+Wire the AI coordinator into the actual worker IPC/room lifecycle and broadcast
+canonical bot commands alongside human input. Export/import the authored public
+profile deck/name/cosmetic pools for server selection; include public difficulty
+modifiers. Export real team maps and qualify four-army2v2/2vAI and mixed human
+groups, disconnects, cancellation/late-start races, results and cleanup.
+These findings do not complete any public/team gameplay or release gate.
+
+Evidence
+REA native providers are unavailable; this used the established original-byte
+LLVM/IL2CPP/schema fallback, not native REA decompilation. Ignored evidence:
+ local/server-ai-abi01/FINDINGS.txt, ABI.h.txt, verification.json, slices.json.
+Verification passed five original hashes,51 bounded disassembly slices and schema
+invariants. That static investigation performed no DLL execution; the distinct
+native export/headless runs above do. Original files remain unmodified.

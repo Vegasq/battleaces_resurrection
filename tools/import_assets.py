@@ -8,6 +8,7 @@ import shutil
 
 from server.game_data import GameTemplate, decompress_game_data
 from server.native_simulation import SUPPORTED_DLL_SHA256
+from server.ai_rules import RuleBook, SUPPORTED_AI_SHA256
 from server.paths import ASSETS, ROOT
 from server.protocol import BUILD_SHA
 from tools.extract_descriptors import extract, GAME_ASSEMBLY_SHA256, validate_output_directory
@@ -21,7 +22,9 @@ def verify_export(directory):
     if manifest.get('original_gameassembly_sha256') != BUILD_SHA or manifest.get('simulation_sha256') != SUPPORTED_DLL_SHA256:
         raise ValueError('Export game build mismatch')
     result = {}
-    for name in ('map-1v1.pb.gz', 'unit-catalog.json'):
+    names = ['map-1v1.pb.gz', 'unit-catalog.json']
+    if 'ai-rules.json' in manifest['files']: names.append('ai-rules.json')
+    for name in names:
         data = (directory / name).read_bytes()
         expected = manifest['files'][name]
         if len(data) != expected['bytes'] or hashlib.sha256(data).hexdigest() != expected['sha256']:
@@ -30,6 +33,11 @@ def verify_export(directory):
     raw = decompress_game_data(result['map-1v1.pb.gz'])
     if len(raw) != manifest['raw_game_data']['bytes'] or hashlib.sha256(raw).hexdigest() != manifest['raw_game_data']['sha256']:
         raise ValueError('Export uncompressed map hash mismatch')
+    if 'ai-rules.json' in result:
+        rules = RuleBook(directory)
+        if rules.files['ai-rules.json'] != result['ai-rules.json']:
+            raise ValueError('AI manifest changed during export verification')
+        result.update(rules.files)
     return result
 
 
@@ -47,6 +55,11 @@ def import_assets(game_dir, export_dir, destination=ASSETS, original=None):
     if hashlib.sha256(sim_data).hexdigest() != SUPPORTED_DLL_SHA256:
         raise ValueError('Simulation DLL hash mismatch')
     exported = verify_export(export_dir)
+    ai_data = None
+    if 'ai-rules.json' in exported:
+        ai_data = (game_dir / 'Battle Aces_Data/Plugins/x86_64/aiprogram.dll').read_bytes()
+        if hashlib.sha256(ai_data).hexdigest() != SUPPORTED_AI_SHA256:
+            raise ValueError('AI DLL hash mismatch')
     metadata = game_dir / 'Battle Aces_Data/il2cpp_data/Metadata/global-metadata.dat'
     destination.mkdir(parents=True, exist_ok=True)
     # Completion manifest is written last. A failed import remains incomplete;
@@ -55,6 +68,7 @@ def import_assets(game_dir, export_dir, destination=ASSETS, original=None):
     for name, data in exported.items():
         (destination / name).write_bytes(data)
     shutil.copyfile(simulation, destination / 'Simulation.dll')
+    if ai_data is not None: (destination / 'aiprogram.dll').write_bytes(ai_data)
     template = GameTemplate.load(destination / 'map-1v1.pb.gz',
                                  catalog_path=destination / 'unit-catalog.json',
                                  descriptors_path=destination / 'descriptors')
@@ -66,6 +80,12 @@ def import_assets(game_dir, export_dir, destination=ASSETS, original=None):
                 'original_gameassembly_sha256': BUILD_SHA, 'simulation_sha256': SUPPORTED_DLL_SHA256,
                 'descriptor_count': extraction['descriptor_count'],
                 'playable_units': len(template.catalog_serializable()), 'files': files}
+    if ai_data is not None:
+        rules = RuleBook(destination)
+        if any(not set(summary['entity_ids']) <= template.catalog.keys() for summary in rules.summaries.values()):
+            raise ValueError('AI rule entity is absent from exported GameConfig')
+        manifest['ai_profiles'] = len(rules.rules)
+        manifest['ai_dll_sha256'] = SUPPORTED_AI_SHA256
     (destination / 'asset-manifest.json').write_text(json.dumps(manifest, indent=2) + '\n', encoding='utf-8')
     return manifest
 

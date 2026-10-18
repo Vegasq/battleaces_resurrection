@@ -214,6 +214,11 @@ extern "C" __declspec(dllexport) void OfflineDedicatedSaveSelectedDeck(void* acc
 extern "C" __declspec(dllexport) void OfflineDedicatedJoinQueue(void* front,void* controller,int mode,void*) {
     try {
         if(mode==4){ba_practice::start(front,controller);return;}
+        // Public queue arbitration is integrated separately. Keep the local
+        // public path opt-in until online timeout/cancellation are qualified.
+        if(ba::unified() && mode==1 && ba::flag(L"-public-ai-experimental")) {
+            ba_practice::startPublic(front,controller,mode);return;
+        }
         if(ba::dedicated() && !ba_practice::active())ba_dedicated::ready(front,mode);
     }
     catch(const std::exception& e){ba::log("Dedicated native Play could not ready lobby: %s",e.what());}

@@ -3,6 +3,7 @@ import hashlib
 import json
 from pathlib import Path, PurePosixPath
 from .protocol import BUILD_SHA, SIM_SHA
+from .ai_rules import RuleBook, SUPPORTED_AI_SHA256
 
 
 def verify_assets(directory):
@@ -27,4 +28,12 @@ def verify_assets(directory):
             raise ValueError('Asset content mismatch: ' + name)
     if files['Simulation.dll'] != SIM_SHA:
         raise ValueError('Simulation DLL mismatch')
+    if 'ai-rules.json' in files or 'ai_dll_sha256' in manifest or 'aiprogram.dll' in files:
+        if files.get('aiprogram.dll') != SUPPORTED_AI_SHA256 or manifest.get('ai_dll_sha256') != SUPPORTED_AI_SHA256:
+            raise ValueError('AI DLL mismatch or incomplete AI assets')
+        rules = RuleBook(directory)
+        if manifest.get('ai_profiles') != len(rules.rules) or not rules.files.keys() <= files.keys():
+            raise ValueError('Incomplete AI rule inventory')
+        if any(hashlib.sha256(data).hexdigest() != files[name] for name, data in rules.files.items()):
+            raise ValueError('AI files changed during asset verification')
     return manifest

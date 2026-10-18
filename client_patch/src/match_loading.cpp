@@ -25,7 +25,7 @@ static bool unityThread() {
     return false;
 }
 static const char* sourceName(Source source) {
-    switch(source){case Source::Practice:return "practice";case Source::Dedicated:return "dedicated";case Source::Custom:return "custom";}
+    switch(source){case Source::Practice:return "practice";case Source::Dedicated:return "dedicated";case Source::Custom:return "custom";case Source::Public:return "public";}
     return "unknown";
 }
 static const char* stageName(Stage stage) {

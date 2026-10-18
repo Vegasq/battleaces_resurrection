@@ -2,6 +2,17 @@ MATCH START FEEDBACK
 Updated: 2026-10-17
 Status: native qualification in progress; visual acceptance remains open.
 
+Additional requirement2026-10-18: public1v1 search must use the original game's
+matchmaking presentation, including its original text/timer/button/cancel flow
+as established by native/asset evidence. The custom status strip below is a
+preparing/loading prototype, not completion of that search UI requirement.
+Recover and reuse the dedicated matchmaking UI; qualify visible appearance,
+immediate response,30-second fallback, cancellation/retry and stale callbacks.
+Record the new read-only trace under local/matchmaking-ui01 and reconcile the
+integration design with its actual findings before implementation.
+That trace is now complete: see matchmaking-search.txt for the native Searching
+button, top-center elapsed-time/Cancel panel and original loading handoff.
+
 User requirement
 Immediately show feedback after starting Try Deck vs AI or a player match. The
 user currently sees an unchanged menu for5-10 seconds before gameplay appears.
