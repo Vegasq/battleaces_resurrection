@@ -1,7 +1,7 @@
 """Exact-build telemetry patch transformations; no file or process operations.
 
-These 59 recipes have static source/control-flow review. The complete recipe
-set has not been runtime validated; the earlier 45 had a bounded compatibility run.
+These 61 recipes have static source/control-flow review. The complete recipe
+set has not been runtime validated; recipe2's 59 had a bounded compatibility run.
 They do not establish complete telemetry removal; see docs/telemetry.txt.
 Only brief patch safety signatures are included, never original game payloads.
 """
@@ -10,11 +10,12 @@ import hashlib
 from types import MappingProxyType
 
 GAME_BUILD = 37822
-RECIPE_VERSION = 2
+RECIPE_VERSION = 3
 RUNTIME_VALIDATED = False
 VALIDATION_STATUS = "Static review and original-byte validation only"
 UNRESOLVED_COMPONENTS = (
-    "Native Unity indirect callback consumers and explicit configuration setters",
+    "Native Unity indirect callback consumers and independent reporter entry points",
+    "Explicit configuration/device-info guard runtime qualification",
     "Deferred/cached delivery and error-path process/network qualification",
     "CEF descendant initialization and analytics in remote web content",
 )
@@ -172,6 +173,15 @@ COMPONENTS = MappingProxyType({
                   bytes.fromhex('48895c2408488974241848897c2420'), bytes.fromhex('b802000000c3')),
             Patch('native reporter gate returns false before collector registration', 0xc33440, 0xc32840,
                   bytes.fromhex('4883ec288b81c815000085c0488b15'), bytes.fromhex('31c0c3')),
+            # These explicit APIs bypass the disabled Start/enabled gates and
+            # use separate configuration storage at main+1470. Return their
+            # existing false result before argument conversion/device collection.
+            # Registration fd42d0 pairs each name/function in the same iteration;
+            # both native bodies return boolean AL (no output buffer/ownership).
+            Patch('RemoteConfigSettings QueueConfig returns false before serialization', 0x1fd3a0, 0x1fc7a0,
+                  bytes.fromhex('4055535657415441554157488d6c24f0'), bytes.fromhex('31c0c3')),
+            Patch('RemoteConfigSettings SendDeviceInfo returns false before collection', 0x1fda50, 0x1fce50,
+                  bytes.fromhex('40534881ec50060000488b1dc810b101'), bytes.fromhex('31c0c3')),
         ),
     ),
     CEF_COMPONENT_PATH: Component(

@@ -1,14 +1,19 @@
 TELEMETRY PATCH STATUS
-Updated: 2026-10-17
+Updated: 2026-10-18 UTC
 Supported input: Battle Aces build 37822, Windows x64.
-Recipe version: 2. Guards: 59. Complete-set runtime_validated: false.
+Recipe version: 3. Guards: 61. Complete-set runtime_validated: false.
 
 The recipes have static control-flow review and exact original-byte validation.
-All 59 guards were installed and exercised in p2-telemetry02. Two matches and a
-rematch completed in the same clients with matching sampled state/results. The
+Recipe2's 59 guards were installed during p2-telemetry02. Two matches, including
+a rematch, completed in the same clients with matching sampled state/results. The
 read-only native audit observed retained, disabled analytics/performance objects
-and an empty inspected pre-init queue at startup, menus and both results. This is
+and an empty inspected pre-init queue at startup, menus and the final result. This is
 bounded compatibility/field evidence; full collection/network qualification is OPEN.
+Recipe3 adds early false returns for explicit QueueConfig and
+SendDeviceInfoInConfigRequest calls. Their native bodies bypass startup/enabled
+gates and use separate configuration storage. The new guards have static and
+original-byte validation only; they have not been installed or run in a game.
+See telemetry-explicit-config.txt for the evidence and remaining scope.
 
 The earlier 45-guard version had a bounded compatibility observation:
 p2-telemetry01 completed 620 native frames, selected-unit production and native
@@ -29,7 +34,7 @@ performs no I/O, changes no input bytes and preserves all unrelated bytes.
 Exact component keys, guard counts and pristine SHA-256:
  GameAssembly.dll (42)
  e59d08c01479b27404778048d7e13546dbf3771f6b3912744c7c2bdf80c4e758
- UnityPlayer.dll (16: previous crash 3 + performance 3 + analytics 10)
+ UnityPlayer.dll (18: crash 3 + performance 3 + analytics 12)
  ac144d56d53f07904d52ed27a1539de90bc3290038fe52d73d2f6b268c85d6bc
  Battle Aces_Data/Plugins/x86_64/VuplexWebViewChromium/chrome_elf.dll (1)
  080e409112b33a0e4cc763cba6d3c206fd640dd9006cb60f2f05ab7e73279563
@@ -51,7 +56,9 @@ RUNTIME EVIDENCE, 2026-10-17
 Run p2-telemetry02: clients47072/33180, server45372. Matches
 42e579026bfe43cf8c96dff68243577d and bb39283cd017425aab3ae293dc3d052e each completed
 620 frames,620 receipts/client,62 sampled views/client,zero mismatches/errors.
-Each client recorded six valid native snapshots spanning startup/menu/post-game;
+Each client recorded six valid native snapshots: startup, three menu samples and
+two samples after the second match. The first result screen was missed by the
+old ten-second observer schedule; both results were NOT sampled. In these samples,
 all three objects were retained, inspected hooks/flags/gates zero and pre-init
 queue empty. See telemetry-runtime-audit.txt for the exact read scope.
 Helper:2b951d54e9850417f651b9bc9f2a51a442afe5b5b507dfa611edcefdc60c3128.
@@ -62,6 +69,11 @@ per-match verification files and patch-manifest.json; local/telemetry02-restore.
 and telemetry02-reapply.json. The runner stopped its owned processes at the test
 deadline; normal quit, CEF initialization/children and network traffic were not
 qualified by this run. runtime_validated remains false for complete removal.
+The client logs also contain UnauthorizedAccessException failures for config,
+storage backup and replay saves. This run does not qualify telemetry persistence
+or retry behavior with writable clean/existing profiles. No permissions were
+relaxed. The current transition-aware observer has source/build tests only;
+gameplay observations above still describe the earlier helper.
 
 INCLUDED SOURCE GUARDS AND EVIDENCE CHAIN
 
@@ -78,7 +90,7 @@ Unity crash reporting, 3 unchanged guards:
 - Guard the in-process report uploader, preserving surrounding queue cleanup.
   Local dump behavior is untested and may change without the crash-handler child.
 
-Unity performance, 3 new guards:
+Unity performance, 3 guards retained from recipe2:
 - Initializer d84de0 allocates and stores a valid object before the d84ec6 branch.
   The replacement jumps to the same d85049 exit while registered remains false.
   Its destructor d85060 tests that flag before unregistering and still destroys
@@ -88,7 +100,7 @@ Unity performance, 3 new guards:
   The notifier also needs the analytics object, so omitting its allocation is
   unsafe. No whole-initializer RET is used.
 
-Unity analytics, 10 new guards:
+Unity analytics, 10 guards retained from recipe2:
 - Keep the main/interface/session objects. Skip session callback registration at
   c8c5f3 after allocation, using its existing c8c6b1 exit. Shutdown checks the
   registered flag before unregistering. Session timestamp/ID callbacks are not
@@ -112,7 +124,22 @@ Unity analytics, 10 new guards:
   APIs require nonzero main +e10; the unstarted object's normal defaults take
   their early return. This is a static path argument, not an observed retry test.
 
-CEF native crash reporting, 1 new guard:
+Unity explicit configuration APIs, 2 new guards:
+- QueueConfig1fd3a0 returns false before converting arguments. Its lower helper
+  c392c0 serializes a payload and appends to separate main+1470 storage without
+  consulting main+e10 or analytics/device-stats enabled flags.
+- SendDeviceInfoInConfigRequest1fda50 returns false before payload construction
+  or device collection. The original c49dc0 path queries memory and CPU details;
+  c2e240 serializes into the same configuration storage and the caller sets+1490.
+- Registration function fd42d0 loads corresponding function/name entries from
+  arrays192ff50/1930280 in the same loop, establishing these API associations.
+  Native return paths establish boolean AL, including an existing false return;
+  the replacement runs before any stack allocation or ownership acquisition.
+  Their managed methods are absent from this build's metadata, so no managed API
+  invocation was used to qualify them. Independent internal entry points and
+  transient serialization in other event adapters remain outside this change.
+
+CEF native crash reporting, 1 guard retained from recipe2:
 - SignalInitializeCrashReporting -> 26950 -> 34960 constructs a reporter with
   enabled byte +8 false. Config loader 323a0 now returns false; its caller takes
   the normal absent-config return before reporter setup and Crashpad bootstrap.
@@ -126,14 +153,16 @@ CEF native crash reporting, 1 new guard:
 All addresses above are RVAs in the relevant exact-hash component. Original
 bytes were checked against the supplied untouched installation. The evidence
 ledger and full local slices are retained outside the source repository at
-investigation/dedicated/telemetry-removal.txt, dated 2026-10-17. Semantic roles
+investigation/dedicated/telemetry-removal.txt and ignored local/telemetry-explicit01/.
+The latter retains the original hashes, complete bounded disassembly slices and
+registration/import evidence for recipe3. Semantic roles
 come from control flow and paired internal-call tables; stripped native names
 and unobserved runtime behavior are not presented as recovered source code.
 
 UNRESOLVED SCOPE AND REQUIRED RUNTIME CHECKS
 
-Generic player-loop callback-table consumers, explicit configuration queue and
-set-device-info paths, independent reporter entry points, CEF descendant startup,
+Generic player-loop callback-table consumers, runtime behavior of the new explicit
+configuration guards, independent reporter entry points, CEF descendant startup,
 cached/retry/error delivery, remote web scripts and OS reporting handoffs still
 need qualification. Transient event-adapter serialization before a guarded sink
 is not claimed absent. A quiet run or an endpoint block proves neither complete
@@ -183,6 +212,8 @@ CEF path, to run that optional test. Without the variable it reports SKIP.
 Static validation on 2026-10-17: 15 asset-free tests passed, with the optional
 original test explicitly skipped by default. Enabling it against the untouched
 game root passed all 16 tests, including all three full hashes, guards and every
-unchanged byte span. Neither run is a runtime or network pass.
+unchanged byte span. Recipe3 repeated these16 tests plus installer/package tests:
+37 passed in5.316s on2026-10-18 UTC (local/telemetry-explicit01-tests.txt).
+These checks do not execute the game or qualify network behavior.
 No original files, full disassembly, metadata, SDK keys, assets,
 runtime logs or captures belong in this repository; recipes use narrow guards.

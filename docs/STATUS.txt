@@ -1,6 +1,46 @@
 IMPLEMENTATION LEDGER
-Updated: 2026-10-17
+Updated: 2026-10-18 UTC
 Active objective: implement SERVER_REPLACEMENT_PLAN.txt, Windows only.
+
+TELEMETRY CONFIGURATION GUARDS / OBSERVATION COVERAGE (2026-10-18 UTC)
+Recipe3 adds two exact-build false-return guards, bringing the source total to61:
+QueueConfig and SendDeviceInfoInConfigRequest are stopped before serialization
+or device collection. Static tracing located their shared name/function-array
+reader atfd42d0 and established separate configuration storage at main+1470.
+These calls bypass the disabled startup/enabled gates. Device collection includes
+memory/CPU queries. REA native engines were unavailable; evidence uses the pinned
+untouched files, bounded LLVM slices and read-only PE/metadata parsing. No game
+file or provider configuration changed. See telemetry-explicit-config.txt.
+
+Review corrected recipe2's runtime scope: all six snapshots per client were
+startup, three menu observations and two observations of the FINAL result. The
+first result was not sampled. Denied config/storage/replay writes also prevent
+that run from qualifying writable-profile cache/persistence behavior. Historical
+gameplay and sampled-field evidence remain valid within their documented bounds.
+
+The opt-in observer now polls before frontend automation/status throttling, takes
+an immediate sample on observed menu/in-game/result/tutorial entry and one repeat
+after10s, with the same17-snapshot cap. Normal play returns on a cached flag before
+FSM reads. New tools.verify_telemetry_audit rejects partial guards, missing or
+unavailable rows, nondefault fields, unstable pointers and missing ordered stage
+coverage; two final-result samples cannot stand for two completed match cycles.
+It emits no raw log lines and is not a network/removal qualification tool.
+
+Validation:37 Python3.14.8 patch/installer/package tests pass in5.316s, including
+all untouched-original hashes/guards/unrelated-byte spans. Ten new verifier tests
+pass in0.004s. Python3.12 runs26 verifier/patch tests:25 pass,1 explicit optional
+original-file skip. Retained historical helper rows correctly fail recipe3 and
+ordered-rematch coverage; the first attempted input was the engine log, which
+also correctly failed for missing audit rows. All six C++ test programs and the
+fresh helper build pass in build/helper-telemetry-explicit01. Helper SHA256:
+8c8feace89b3f2d1bd08716c407bdcb19ddf389cb5c56444714ca64d8c913a04.
+All21 C++ recognition constants agree with the originals/18 Unity patch entries;
+a Python normalization mirror passes23 checks, without executing the C++ gate.
+Logs:local/telemetry-explicit01-tests.txt,telemetry-audit-verifier01-tests.txt,
+telemetry-audit-verifier312-01-tests.txt,telemetry-explicit01-build.txt; local/
+telemetry-explicit01/historical-rows-rejection.json. The helper/recipe were not
+installed or exercised in a game. Frozen packages/manual runtimes are unchanged;
+complete telemetry removal remains OPEN and runtime_validated remains false.
 
 SUSTAINED MULTI-ROOM QUALIFICATION (2026-10-17; eight-hour gate not yet passed)
 tools/soak_server.py adds bounded opt-in native soak evidence for persistent
@@ -683,7 +723,11 @@ UnityPlayer.dll and nested chrome_elf.dll. Graphical p2-telemetry02 completed tw
 per client per match,zero mismatches/errors and matching native results. Six
 read-only native snapshots/client showed retained but disabled analytics/session/
 performance objects,zero inspected registration flags/hooks and empty pre-init
-queues through post-game. This is bounded field evidence, not network proof.
+queues at startup/menu and the final post-game. Review on2026-10-18 UTC confirmed
+that both post-game samples followed the second match; the first result was missed
+by the old ten-second observer. Config/storage backup/replay writes were denied,
+so writable-profile cache/persistence behavior is also unqualified. This is
+bounded field evidence, not network proof.
 Normal quit, cached reports/reconnect, error paths and CEF descendants remain
 open. See telemetry.txt and telemetry-runtime-audit.txt for scope and hashes.
 

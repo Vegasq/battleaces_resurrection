@@ -1,4 +1,5 @@
 #pragma once
+#include "telemetry_sampling.hpp"
 // Read-only, opt-in observation of the supported UnityPlayer native layout.
 // Include after lan_transport.cpp for its local SHA-256 utility. No Unity API,
 // telemetry getter/setter, collector, flush routine, lock or callback is invoked.
@@ -25,6 +26,8 @@ static const Signature signatures[]={
     {0xc381d0,0xc375d0,"44894c24204c894424184889542410","31c0c3",1},
     {0xc37400,0xc36800,"48895c2408488974241848897c2420","b802000000c3",1},
     {0xc33440,0xc32840,"4883ec288b81c815000085c0488b15","31c0c3",1},
+    {0x1fd3a0,0x1fc7a0,"4055535657415441554157488d6c24f0","31c0c3",1},
+    {0x1fda50,0x1fce50,"40534881ec50060000488b1dc810b101","31c0c3",1},
     {0xd84ec6,0xd842c6,"0f857d0100004c8bcbc603014c8d0587","e97e01000090",2},
     {0xd84e3e,0xd8423e,"c740080001000048897810c6401901e8","c7400800000000",2},
     {0x292110,0x291510,"84c9488b0d8fcba7010f95c24883c108","31c9",2},
@@ -34,8 +37,13 @@ static const Signature signatures[]={
 };
 static uintptr_t unity=0;
 static bool checked=false,disabled=false,startupLogged=false;
-static unsigned snapshots=0,lastStage=0,stageSamples=0;
+static unsigned snapshots=0;
+static ba_telemetry_sampling::Schedule schedule;
 static DWORD auditThread=0;
+static bool requested() {
+    static const bool enabled=ba::flag(L"-telemetry-audit");
+    return enabled;
+}
 static bool copy(uintptr_t address,void* destination,size_t size) {
     if(!address || size>UINTPTR_MAX-address)return false;
     SIZE_T copied=0;
@@ -97,13 +105,13 @@ static bool verifyModule() {
         memcpy(bytes.data()+peOffset+24+64,&originalChecksum,sizeof(originalChecksum));
         if(digest(bytes)!=originalHash)throw std::runtime_error("unsupported UnityPlayer normalized SHA256");
         disabled=false;
-        ba::log("Telemetry audit build verified: UnityPlayer sha256=%s normalized=%s crashSignatures=%u/3 coreCandidateSignatures=%u/10 performanceCandidateSignatures=%u/3; READ ONLY, no qualification claim",
+        ba::log("Telemetry audit build verified: UnityPlayer sha256=%s normalized=%s crashSignatures=%u/3 coreCandidateSignatures=%u/12 performanceCandidateSignatures=%u/3; READ ONLY, no qualification claim",
             actualHash.c_str(),originalHash,groups[0],groups[1],groups[2]);
     } catch(const std::exception& e) {ba::log("Telemetry audit disabled: %s; no object reads attempted",e.what());}
     return !disabled;
 }
 static void sample(const char* stage) {
-    if(disabled || snapshots>=17 || !ba::flag(L"-telemetry-audit") || !verifyModule())return;
+    if(disabled || snapshots>=ba_telemetry_sampling::maxSnapshots || !requested() || !verifyModule())return;
     if(!auditThread)auditThread=GetCurrentThreadId();
     if(auditThread!=GetCurrentThreadId()) {disabled=true;ba::log("Telemetry audit disabled: thread changed");return;}
     const unsigned sequence=++snapshots;
@@ -151,15 +159,33 @@ static void sample(const char* stage) {
     ba::log("Telemetry audit %u snapshotEnd singletonPointersStable=%d; scalar observations are not atomic or network evidence",sequence,stable?1:0);
 }
 static void startup() {
-    if(startupLogged || !ba::flag(L"-telemetry-audit"))return;
+    if(startupLogged || !requested())return;
     startupLogged=true;sample("startup-after-engine-init");
 }
-static void state(ba::Obj current) {
-    if(disabled || !ba::flag(L"-telemetry-audit") || snapshots>=17)return;
-    const unsigned stage=current==ba::read<ba::Obj>(ba::owner,0x2c0)?1:
-        current==ba::read<ba::Obj>(ba::owner,0x2f0)?2:0;
-    if(stage!=lastStage){lastStage=stage;stageSamples=0;}
-    if(!stage || stageSamples>=2)return;
-    ++stageSamples;sample(stage==1?"menu":"postgame");
+static void update() {
+    if(!requested() || disabled || !startupLogged || !ba::owner ||
+       snapshots>=ba_telemetry_sampling::maxSnapshots)return;
+    if(!auditThread || auditThread!=GetCurrentThreadId()) {
+        disabled=true;ba::log("Telemetry audit disabled: state observation thread changed");return;
+    }
+    try {
+        using ba::Obj;using ba_telemetry_sampling::Stage;
+        Obj fsm=ba::read<Obj>(ba::owner,0x2b0);
+        Obj current=fsm?ba::get<Obj>(fsm,"_currentState"):nullptr;
+        Stage stage=Stage::Other;
+        const char* label=nullptr;
+        if(current) {
+            if(current==ba::read<Obj>(ba::owner,0x2c0)){stage=Stage::Menu;label="menu";}
+            else if(current==ba::read<Obj>(ba::owner,0x2f0)){stage=Stage::PostGame;label="postgame";}
+            // These owner fields already select the helper's established native
+            // InGame readiness and offline-tutorial startup states. No new native
+            // layout or transition is inferred by this observer.
+            else if(current==ba::read<Obj>(ba::owner,0x2e8)){stage=Stage::InGame;label="ingame";}
+            else if(current==ba::read<Obj>(ba::owner,0x2f8)){stage=Stage::Tutorial;label="tutorial";}
+        }
+        if(schedule.due(stage,GetTickCount64(),snapshots))sample(label);
+    } catch(const std::exception&) {
+        disabled=true;ba::log("Telemetry audit disabled: state observation failed");
+    }
 }
 }

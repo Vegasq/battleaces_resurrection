@@ -1,32 +1,50 @@
 NATIVE UNITY TELEMETRY AUDIT
-Updated: 2026-10-17
+Updated: 2026-10-18 UTC
 
-Status: built, installed and exercised with all59 telemetry guards in run
-p2-telemetry02. This is an opt-in observation tool, not a patch group or complete
+Status: the earlier observer was built, installed and exercised with recipe2's
+59 telemetry guards in run p2-telemetry02. The current observer recognizes recipe3
+and uses transition-aware scheduling; it has source/build tests only. This is
+an opt-in observation tool, not a patch group or complete
 telemetry removal/network qualification claim.
-All19 narrow signatures were checked against the pristine local DLL. A separate
+The previous19 narrow signatures were checked against the pristine local DLL. A separate
 Python mirror passed21 normalization/rejection checks: original, each individual
 candidate, all candidates with a changed checksum, the installed disk file, and
 rejection of unrecognized signature/unrelated-byte changes. This validates source
 constants and mirrored logic; it is not a test execution of the C++ implementation.
 Local record: investigation/dedicated/telemetry-audit-static-checks.json.
+Recipe3's21 C++ signature constants also match the pristine file and every18
+patcher entry. A fresh Python normalization mirror passes23 checks (pristine,
+each replacement, all replacements, changed checksum and two rejection cases).
+Local record:local/telemetry-explicit01/audit-constants-check.json. This remains
+a static constants/mirror check, not execution of the C++ gate in a game.
 
 Runtime evidence:local/matches/p2-telemetry02/telemetry-audit.json. Six snapshots
-per client covered startup, menus and two results in the same processes. Both
+per client covered startup, three menu samples and two samples after the second
+match in the same processes. The first result was missed by the old ten-second
+schedule; this is not evidence of both result transitions. Both
 clients passed the build gate (crash3/3,core10/10,performance3/3); all three native
 objects remained present, inspected flags/hooks/gates stayed zero, pre-init queue
 counts were zero and singleton rechecks stayed stable. No disabled/unavailable
 audit rows appeared. Two620-frame matches also passed gameplay verification.
 These observations do not cover normal shutdown, CEF children or network traffic.
+The logs also contain denied config, storage backup and replay writes, so this
+run cannot qualify telemetry cache/persistence behavior with writable profiles.
 
 Add -telemetry-audit to a supported client's existing command line. Output uses
 the helper's normal local runtime log and begins with "Telemetry audit". Without
 that exact flag, no module file is opened and no audit object reads occur.
 The first sample is taken when OfflineInitialUpdate reaches initialized game
-systems, before the helper enters the menu. Existing ten-second status updates
-then sample native MainMenu and PostGame states at most twice per observed state
-entry, with a hard cap of17 snapshots for the entire process, including startup.
-An unobserved transition between ten-second updates can omit a new entry. No
+systems, before the helper enters the menu. The current observer polls on the
+same initialized thread before frontend automation and the ten-second status
+throttle. It samples each observed MainMenu, InGame, PostGame or tutorial entry
+immediately, with one repeat after ten seconds and a hard cap of17 snapshots for
+the entire process, including startup. The disabled path checks a cached flag
+before accessing the FSM. A state that enters and leaves between frontend updates
+can still be missed. Source tests cover quick rematches, same-timestamp entries,
+intermediate unknown states, tutorial, delayed repeats, clock regression and the
+hard cap. Fresh helper build/helper-telemetry-scheduling01 passed all six C++ test
+programs. The combined recipe3 build/helper-telemetry-explicit01 also passed them
+and compiled the helper; neither was installed or exercised in a game. No
 shutdown hook is added: observations during object destruction require a separate
 safe lifecycle point. This audit does not access or control other game processes.
 
@@ -52,10 +70,11 @@ timestamp0x66a03c5f, eight sections, SizeOfImage0x1e58000, SHA-256:
  ac144d56d53f07904d52ed27a1539de90bc3290038fe52d73d2f6b268c85d6bc
 
 Before reading native objects, the audit checks the loaded PE identity, reads the
-loaded module's disk file, and checks19 narrow memory/file instruction signatures.
+loaded module's disk file, and checks21 narrow memory/file instruction signatures.
 Three signatures guard the retained main/session/performance initializers. The
-other16 recognize exactly the pristine bytes or their individually reviewed
-current crash guards and proposed core/performance replacements. A LOCAL file
+other18 recognize exactly the pristine bytes or their individually reviewed
+crash/core/performance replacements, including both recipe3 configuration APIs.
+The current core group has12 signatures; earlier runtime logs contain10. A LOCAL file
 buffer restores recognized ranges and the original PE checksum for full SHA-256
 comparison. All unrelated bytes must match the pinned original. The log records
 the actual file hash and how many candidate signatures each group contains.
@@ -139,3 +158,38 @@ DNS and outbound network attempts are not measured. Zero flags/queues cannot
 prove zero collection or delivery. Broader qualification in telemetry.txt remains
 required, including clean/existing profiles, gameplay, rematch, controlled errors,
 cached retries, reconnection and shutdown with process-attributed network evidence.
+In particular, the newly traced configuration container at main+1470 is distinct
+from the inspected pre-init queue at+1458 and is not read by this observer. The
+device-info marker at+1490 is also not sampled. See telemetry-explicit-config.txt.
+
+STRICT REPORT VERIFICATION
+
+Use the native helper log for ONE process from a fresh completed run, not Unity's
+Player.log. The helper log is investigation/runtime/dedicated-native-<pid>.log
+under that runtime's game directory. Supply the installed UnityPlayer SHA256
+from that run's patch manifest:
+
+ python -m tools.verify_telemetry_audit --log "<helper log>" --expected-unity-sha256 <hash> --output "<new report.json>"
+
+The default required entry sequence is startup -> menu -> ingame -> postgame ->
+menu -> ingame -> postgame. Consecutive repeated samples count as one entry.
+--stages can supply another explicit bounded sequence, beginning with
+startup-after-engine-init, for a tutorial or other narrower lifecycle check.
+Each declared stage must actually occur in order; a narrow policy is not full
+rematch coverage. No shutdown stage exists until a safe hook is established.
+
+Recipe3 requires the pinned normalized original hash, the supplied installed hash
+and complete3/12/3 crash/core/performance groups. Every numbered sample must have
+all objects, all component rows with the exact disabled/default fields, an empty
+inspected pre-init queue and a stable-pointer end marker. Missing/duplicate/
+unknown/unavailable rows, nondefault values, ordering/cap violations or disabled
+audit diagnostics fail. The report contains stages and error codes/line numbers,
+never raw log lines. Existing reports are not overwritten. Exit0 means this
+declared sampled-field/coverage check passed; it does not validate game exit,
+continuous collection absence, configuration storage, cache or network traffic.
+
+Ten asset-free verifier tests pass on Python3.14.8 and3.12. Retained recipe2
+helper rows produce six complete snapshots per client but correctly fail the
+new recipe requirement and ordered lifecycle coverage. They are a historical
+negative case, not a runtime run of the new helper. Local evidence:
+local/telemetry-explicit01/historical-rows-rejection.json.

@@ -1,0 +1,117 @@
+EXPLICIT UNITY CONFIGURATION / DEVICE-INFO PATHS
+Updated: 2026-10-18 UTC
+Scope: build37822 Windows x64; telemetry recipe3 source, not runtime qualification.
+
+RESULT
+
+Disabling analytics startup and event submission does not cover every explicit
+native API. QueueConfig and SendDeviceInfoInConfigRequest can serialize into
+separate configuration storage while the main object is retained but unstarted.
+Recipe3 adds two exact-build early false returns before those bodies execute.
+Existing allocations, getters, default flags and shutdown behavior are preserved.
+
+Both APIs already return boolean false when the main object is absent. The new
+XOR EAX,EAX; RET replacements run at entry, before stack changes or acquisition
+of temporary storage. They do not free an uninitialized object, skip cleanup
+after allocation, invoke a collector, or redirect a request to another server.
+They prevent these two entry paths; this is not proof of all telemetry removal.
+
+PROVENANCE AND METHOD
+
+Input was read directly from the untouched recovery copy. SHA-256:
+ UnityPlayer.dll
+ ac144d56d53f07904d52ed27a1539de90bc3290038fe52d73d2f6b268c85d6bc
+ GameAssembly.dll
+ e59d08c01479b27404778048d7e13546dbf3771f6b3912744c7c2bdf80c4e758
+ global-metadata.dat
+ b760be9190309b14174cd272e1f83b730181b299bc7a0cdca66985c69dcdc57d
+
+REA reported no available configured native provider in this session. Research
+used the installed LLVM disassembler and a bounded read-only PE/metadata parser.
+These ordinary outputs are not REA Evidence. No provider configuration changed.
+Local, ignored evidence: local/telemetry-explicit01/slices.json and its named
+complete function slices; binding-evidence.json, registration-evidence.json and
+array-displacement-refs.json. Each slice records the input hash, RVA, file offset,
+unwind-derived function bounds, short original guard and output SHA-256.
+No raw disassembly, extracted metadata or game component belongs in Git.
+
+API ASSOCIATION
+
+Earlier research paired contiguous function/name arrays, but lacked their reader.
+The reader is now located: fd42d0 loads the image base, then iterates102 entries.
+At fd4300 it loads a function from192ff50+index*8, and at fd4311 the name from
+1930280+index*8. It passes that name/function pair to registration callbacks,
+including fd4348 through global1d0d5c8, then advances both using the same index.
+The references use image-base displacements, explaining why a RIP-relative LEA
+search alone did not locate them. Association is established by this reader;
+the ultimate callback implementation and runtime dispatch were not invoked.
+
+Index16: UnityEngine.RemoteConfigSettings::QueueConfig -> RVA1fd3a0.
+Index17: UnityEngine.RemoteConfigSettings::SendDeviceInfoInConfigRequest ->1fda50.
+The original metadata contains only RemoteConfigSettingsUpdated on that type;
+these two managed methods are absent. No guessed managed signature or reflective
+invocation is treated as validation. Boolean AL return behavior comes from the
+native bodies and their ordinary false branches.
+
+CONTROL FLOW
+
+QueueConfig1fd3a0 (file1fc7a0, end1fda42): converts supplied arguments before
+checking the main singleton. A present object calls c392c0 at1fd530, retaining
+its boolean AL result through temporary cleanup. The missing-object branch sets
+the result false. There is no initialized/enabled gate before the lower helper.
+
+c392c0 constructs a payload, adds timing/session-related values via c43760 and
+c39c50, serializes it through c65160, and appends a native string to main+1470.
+The count at container+10 is incremented atc39454. This path does not consult
+main+e10 or the analytics/device-stats enabled bytes before serialization/storage.
+It returns true after cleanup. Configuration storage differs from the pre-init
+event vector at+1458 that the existing read-only observer samples.
+
+SendDeviceInfoInConfigRequest1fda50 (file1fce50, end1fdb86): checks the main
+singleton and marker+1490. Unless that marker is already1, it constructs a payload
+with c49110, fills it with c49dc0 and passes it to c2e240. c49dc0 includes an IAT
+call to KERNEL32!GlobalMemoryStatusEx atc4a7d2 and a call to9e4c60, whose imports
+include GetLogicalProcessorInformationEx. This establishes hardware collection
+on the inspected path without relying solely on the API name.
+
+c2e240 obtains a configuration-storage slot through154920(main+1470), adds
+payload fields, serializes with c65160, then returns true after cleanup. The
+outer caller sets main+1490=1. Neither outer API nor this helper checks main+e10
+or the disabled analytics/device-stats flags before collection/serialization.
+c65160 builds a serialization object, invokes the payload virtual serializer
+and writes the result to its output argument. This trace does not establish an
+immediate network send; collection and in-memory storage already justify the
+early guard under the user's request to remove analytics.
+
+RECIPE AND VALIDATION
+
+The source recipe has61 guards: GameAssembly42, UnityPlayer18, chrome_elf1.
+Both additions use a16-byte original guard and3-byte false-return replacement.
+The pure patcher verifies the entire original hash and all guards before making
+an equal-length copy. Unknown or modified input is rejected. Installer atomic
+backup/rollback and checksum handling remain unchanged.
+
+The read-only observer recognizes both original/replaced sites while retaining
+its full normalized-file hash check. It permits pristine/partial groups for
+observation; such recognition is not permission for an active API probe. Any
+future active probe must independently require the complete relevant guards,
+known runtime targets/signatures and initialized main-thread object state.
+
+Validation log: local/telemetry-explicit01-tests.txt;37 patch, installer and
+package tests passed, including untouched-original verification and every byte
+outside the replacements. Helper build validation is recorded in STATUS.txt.
+The two new guards have not been installed or runtime tested. RUNTIME_VALIDATED
+remains false. Existing recipe2 gameplay evidence must not be attributed to3.
+
+OPEN WORK
+
+- Exercise the new helper/recipe in a disposable client and verify gameplay,
+  all intended audit lifecycle entries, normal quit and rollback.
+- Qualify explicit API behavior using validated signatures and meaningful
+  synthetic arguments; do not mistake a null-argument validation return for a
+  disabled collection sink. The stripped managed methods constrain the approach.
+- Determine other writers/callers of the configuration storage and collector;
+  early API guards do not establish that no internal caller bypasses them.
+- Complete writable clean/existing-profile, cached-report, reconnect, controlled
+  error/crash, CEF-descendant and continuous process/network/file qualification.
+  The recipe2 run had denied config/backup/replay writes and did not cover these.
