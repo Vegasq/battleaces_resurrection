@@ -1,0 +1,107 @@
+BATTLE ACES RESURRECTION - WINDOWS HOST PREVIEW
+
+This is a development preview for Windows x64 and game build37822. It has not
+passed clean-PC or outside-network release acceptance. Do not expose an
+unauthenticated listener. The included Python runtime needs no installation.
+No game files, server certificate, private key or player invites are included.
+
+Extract the complete archive into an ordinary local folder. Keep program/,
+assets/, config/ and data/ separate. Run the following commands from a terminal
+in that folder. A double-click prints help. Existing files are not upgraded in
+place: extract future versions to a separate folder and retain your local data.
+
+  BattleAces-Server.cmd verify
+
+The integrity manifest detects missing/changed files. It is not a digital
+signature: obtain the archive and its SHA256 from a trusted project release.
+The Python license is program/runtime/LICENSE.txt. Program files are read-only
+inputs during operation; config and data need the host account's appropriate
+permissions. Avoid network shares and paths with links/junctions.
+
+1. IMPORT YOUR LOCALLY OWNED GAME ASSETS
+
+Use the matching client patch package on a working copy of build37822. Close the
+game before installation; preserve your untouched recovery copy. After patching,
+run the following in the working game directory and wait for the export manifest
+to contain complete:true, then close the game:
+
+  "Battle Aces.exe" -offline-practice -export-server-assets
+
+The helper writes server-assets/export.json and its declared files relative to
+the game directory. If export fails or never completes, stop here; do not invent
+or reuse an incomplete map/catalog. For an already patched copy, supply its
+verified original backup in the import command:
+
+  BattleAces-Server.cmd import-assets --game-dir "<working game>" --export-dir "<working game>/server-assets" --original "<working game>/.battleaces-resurrection/original/GameAssembly.dll"
+
+The importer checks exact original DLL/metadata/simulation hashes and the export
+manifest. It creates assets/build-37822 with the simulation, map, catalog and
+generated descriptors. It refuses to overwrite a nonempty destination. You can
+perform the import on your gaming PC, then privately copy only the resulting
+assets/build-37822 directory to the host. A full graphical game installation on
+the host is unnecessary. Never upload imported assets as project releases.
+
+2. CONFIGURE THE HOST AND PRIVATE PLAYER ACCESS
+
+Copy config/host.example.json to config/host.json. Paths in this file are relative
+to the config directory, regardless of the terminal's current directory.
+Set listen_host (numeric IPv4 bind address), listen_port, asset/data directories,
+certificate_file, private_key_file and credential_directory. Default port:47623.
+The server certificate must be valid for the DNS name/IP used by your players.
+Provision a server certificate/key and trusted CA using your normal certificate
+tools; share only the CA/public certificate with players, never the private key.
+The host requires certificate verification on clients. There is no insecure
+internet fallback or automatic firewall/port-forwarding change.
+
+Issue one invite per player. Create the output's parent directory first. Invite
+contents are stored with a protected owner/SYSTEM DACL, never printed as tokens:
+
+  BattleAces-Server.cmd credentials issue --out "<private local folder>/friend.json" --label "Friend"
+  BattleAces-Server.cmd credentials list
+  BattleAces-Server.cmd credentials revoke <invite-id>
+
+If credential_directory differs from the default, use credentials --store
+"<configured directory>" before the issue/list/revoke command. Run issuance and
+hosting under the same intended Windows account. A private-permission error is
+fatal; do not grant broad access to work around it. Give the individual invite
+to its intended player through a private channel. It does not belong in Git,
+screenshots, public chat, logs or command-line token arguments.
+
+  BattleAces-Server.cmd check
+  BattleAces-Server.cmd start
+
+Check verifies local configuration, asset hashes, private credential access and a
+native worker's create/step/shutdown cycle without opening a public listener.
+Start repeats this check, then listens. Success proves local readiness only;
+test connectivity from a second PC before setting up remote access. For private
+internet hosting, separately configure TLS, a narrowly scoped TCP firewall rule
+and router forwarding for your chosen port. Those changes are not made by this
+package. Actual cross-PC/internet acceptance remains open.
+
+3. OPERATION AND DATA
+
+Use Ctrl+C in the host console for orderly room/worker shutdown. Do not use a
+plain Windows service registration for this console program: it does not yet
+implement the Service Control Manager protocol. Service/reboot qualification is
+pending; keep this preview in its console under the same Windows account.
+
+Normal local diagnostics omit per-frame events. diagnostic_audit:true enables
+additional local event/state records; no uploader is configured. Event logs rotate at
+log_max_bytes (default8 MiB), retaining log_backups (default4) plus the active
+file. Raw packets, maps and snapshots are not written by this host entry point.
+Profiles are in data/profiles; native workers use data/workers. The native DLL may
+create an empty sim.log there; its independent file/console sinks are disabled
+before SimInit. Native callback history is kept in a bounded in-memory deque.
+High-detail
+diagnostics can affect timing and are unnecessary for ordinary play.
+
+Stop the host before backing up config/, data/profiles and the private credential
+store. Preserve its Windows permissions and protect the server key separately.
+Do not copy a private credential store across accounts and weaken its DACL to
+make it work. Restore into a separate location, keep path settings consistent,
+then run check before start. Automated backup/restore and service-restart
+qualification are still pending; these instructions are not an acceptance claim.
+
+Development-only plaintext requires allow_insecure_loopback:true, numeric
+127.0.0.1 and all three TLS/credential fields set to null. It cannot bind a LAN
+or internet address and is not used by the secure client launcher.

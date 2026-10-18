@@ -298,6 +298,10 @@ do not create silent divergence or leave clients stuck in a match.
 
 P4 - PACKAGE THE WINDOWS SERVER AND CLIENT PATCH
 Depends on P1-P3. Effort allowance: 2-4 days.
+Implementation has started alongside outstanding P3 acceptance: portable preview
+builder, separate layouts, host config/health, bounded local diagnostics and
+patch/import commands are implemented. Same-PC relocated-runtime qualification
+is documented in windows-packaging.txt. This does not meet the P4 completion gate.
 - Produce a Windows server archive with bundled runtime, launch/config helpers
   and an optional documented background-service setup.
 - Select and record the tested Windows versions, required runtime components and

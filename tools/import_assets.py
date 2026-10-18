@@ -10,7 +10,7 @@ from server.game_data import GameTemplate, decompress_game_data
 from server.native_simulation import SUPPORTED_DLL_SHA256
 from server.paths import ASSETS, ROOT
 from server.protocol import BUILD_SHA
-from tools.extract_descriptors import extract, GAME_ASSEMBLY_SHA256
+from tools.extract_descriptors import extract, GAME_ASSEMBLY_SHA256, validate_output_directory
 
 
 def verify_export(directory):
@@ -34,9 +34,7 @@ def verify_export(directory):
 
 
 def import_assets(game_dir, export_dir, destination=ASSETS, original=None):
-    game_dir, destination = Path(game_dir).resolve(), Path(destination).resolve()
-    if destination.is_relative_to(ROOT) and not destination.is_relative_to(ROOT / 'local'):
-        raise ValueError('Imported game data inside this checkout must stay under ignored local/')
+    game_dir, destination = Path(game_dir).resolve(), validate_output_directory(destination)
     if destination == game_dir or game_dir.is_relative_to(destination):
         raise ValueError('Choose a separate asset directory, not the game installation or its parent')
     if destination.exists() and any(destination.iterdir()):
@@ -72,13 +70,13 @@ def import_assets(game_dir, export_dir, destination=ASSETS, original=None):
     return manifest
 
 
-def main():
+def main(argv=None):
     parser = argparse.ArgumentParser(description=__doc__)
     parser.add_argument('--game-dir', type=Path, required=True)
     parser.add_argument('--export-dir', type=Path, required=True)
     parser.add_argument('--destination', type=Path, default=ASSETS)
     parser.add_argument('--original', type=Path)
-    args = parser.parse_args()
+    args = parser.parse_args(argv)
     result = import_assets(args.game_dir, args.export_dir, args.destination, args.original)
     print(json.dumps({'output': str(args.destination.resolve()), 'descriptors': result['descriptor_count'],
                       'playable_units': result['playable_units'], 'files': len(result['files'])}))

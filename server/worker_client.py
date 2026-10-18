@@ -114,7 +114,7 @@ class SimulationWorker:
 
     @classmethod
     async def create(cls, game_data, dll_path=None, *, startup_timeout=120.0, request_timeout=3.0,
-                     close_timeout=2.0, _test_backend=False):
+                     close_timeout=2.0, working_directory=None, _test_backend=False):
         if not isinstance(game_data, bytes) or not 1 <= len(game_data) <= ipc.MAX_PAYLOAD:
             raise ValueError("GameData must contain 1..32 MiB of raw bytes")
         if any(not isinstance(value, (int, float)) or not 0 < value <= 600
@@ -122,7 +122,13 @@ class SimulationWorker:
             raise ValueError("worker timeouts must be in (0,600] seconds")
         if os.name != "nt" and not _test_backend:
             raise WorkerError("production simulation workers require Windows x64")
-        args = [sys.executable, "-u", "-m", "server.simulation_worker", "--stdio"]
+        # Keep native output in the caller's writable data directory while loading
+        # only our module tree. Neither cwd, PYTHONPATH nor user site packages may
+        # select a different worker. Works with a relocated embeddable runtime too.
+        bootstrap = "import runpy,sys;sys.path.insert(0,sys.argv.pop(1));runpy.run_module('server.simulation_worker',run_name='__main__')"
+        args = [sys.executable, "-I", "-S", "-B", "-u", "-c", bootstrap, str(ROOT), "--stdio"]
+        working_directory = Path(working_directory).resolve() if working_directory is not None else ROOT
+        if not working_directory.is_dir(): raise ValueError('worker working directory must already exist')
         environment = os.environ.copy()
         if _test_backend:
             args.append("--test-backend")
@@ -131,7 +137,7 @@ class SimulationWorker:
             environment.pop("BA_ENABLE_SYNTHETIC_WORKER_TESTS", None)
         # Anonymous pipes avoid Windows Proactor's named-pipe requirements. Only
         # private I/O threads block on them; the coordinator event loop does not.
-        process = subprocess.Popen(args, cwd=ROOT, env=environment,
+        process = subprocess.Popen(args, cwd=working_directory, env=environment,
             stdin=subprocess.PIPE, stdout=subprocess.PIPE, stderr=subprocess.PIPE,
             creationflags=subprocess.CREATE_NO_WINDOW if os.name == "nt" else 0,
             bufsize=0, close_fds=True)

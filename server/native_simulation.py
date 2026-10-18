@@ -227,6 +227,11 @@ class _Runtime:
             try: self.logs.append({"type": kind, "message": (text or b"").decode("utf-8", "replace")[:16384]})
             except Exception: pass
         self.callback = callback  # Keep the unmanaged callback alive for the entire DLL lifetime.
+        # Exact-build log flags1/2 select native console/file sinks; callbacks
+        # are independent. Disable those unbounded sinks before initialization.
+        # DLL loading can still create an empty sim.log in the worker cwd.
+        # Native callback history remains bounded above. See windows-packaging.txt.
+        self.call("SimSetLogFlags", 0)
         self.call("SimInit", False)
         try:
             self.call("SimSetLogCallBack", C.cast(self.callback, C.c_void_p))

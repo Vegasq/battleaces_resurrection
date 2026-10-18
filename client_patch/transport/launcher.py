@@ -183,14 +183,14 @@ async def launch(config, remote, args):
             parent.close()
 
 
-def main():
+def main(argv=None):
     parser = argparse.ArgumentParser(description=__doc__)
     parser.add_argument('--config', type=Path, required=True)
     parser.add_argument('--run-name', default='secure-client')
     parser.add_argument('--community-experimental', action='store_true', help='use native Custom Game on an experimental patched copy')
     for flag in ('auto-ready', 'smoke', 'deck-smoke', 'surrender-smoke', 'rematch-smoke', 'recovery-smoke', 'postgame-recovery-smoke', 'quit-smoke', 'telemetry-audit', 'audit'):
         parser.add_argument('--' + flag, action='store_true', help='optional development diagnostic')
-    args = parser.parse_args()
+    args = parser.parse_args(argv)
     try:
         config = load_config(args.config)
         context = tls.load_client_context(config['ca_bundle'], config['server_name'])

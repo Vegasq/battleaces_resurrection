@@ -1,0 +1,16 @@
+{
+  "schema": 1,
+  "listen_host": "0.0.0.0",
+  "listen_port": 47623,
+  "assets_directory": "../assets/build-37822",
+  "data_directory": "../data",
+  "certificate_file": "server-cert.pem",
+  "private_key_file": "server-key.pem",
+  "credential_directory": "../data/private/credentials",
+  "max_rooms": 4,
+  "input_window": 6,
+  "diagnostic_audit": false,
+  "log_max_bytes": 8388608,
+  "log_backups": 4,
+  "allow_insecure_loopback": false
+}

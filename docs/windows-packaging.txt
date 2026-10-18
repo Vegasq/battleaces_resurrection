@@ -1,0 +1,166 @@
+WINDOWS PORTABLE PACKAGING - DEVELOPMENT PREVIEW
+Updated: 2026-10-17
+
+SCOPE AND LAYOUT
+
+P4 implementation can proceed alongside unresolved P3 acceptance. These archives
+are development previews, not a completed friend-play release. The server and
+client are separate packages; neither includes original game files. The client
+includes only our helper DLL, patch recipes, transport and launch commands.
+Game build37822 / protocol3 / community protocol1 / asset format1 / patch schema2
+are distinct compatibility fields. Package version remains0.2.0-dev.
+
+Each archive has program/runtime (bundled Python), program/app (explicit source
+allowlist), config and QUICKSTART.txt. Server assets and writable data live beside
+program/. The client helper is program/client-helper/BattleAcesOffline.dll.
+Program paths are immutable during operation; host config rejects asset/data/TLS
+paths inside either the bundled application or Python runtime. Relative host and
+client config paths resolve from the config file, not the terminal directory.
+
+Use docs/windows-server-quickstart.txt and windows-client-quickstart.txt for the
+commands copied verbatim into the packages. No firewall changes, dependency
+installer, global PATH changes or game downloads are performed by these tools.
+Manual practice retains no automatic Play/surrender/capture flags. Secure launch
+keeps private invite contents out of the command line.
+
+RUNTIME AND BUILD INPUTS
+
+Pinned runtime: Python3.14.8 Windows AMD64 embeddable ZIP, official release
+2026-09-30, verified locally after user download. The separately installed
+Python3.14.8 is not used by the portable packages.
+https://www.python.org/downloads/release/python-3148/
+https://www.python.org/ftp/python/3.14.8/python-3.14.8-embed-amd64.zip
+SHA256 a93abe456ab01bd96d7a085b3cdb6566b3063f4241360d114142fbdb07f0a310
+https://docs.python.org/3.14/using/windows.html#the-embeddable-package
+
+The upstream runtime license stays in program/runtime/LICENSE.txt. Its contents
+are preserved except python314._pth, containing python314.zip, . and ../app.
+No import site line is enabled. Launchers use -I -B. Worker bootstrap additionally
+uses -S, a private explicit module path and the configured writable worker cwd;
+foreign cwd/PYTHONPATH/sitecustomize cannot choose the worker module.
+
+Build locally after compiling our helper:
+  python -m tools.build_windows_packages --python-zip "<official ZIP>" --helper "<our BattleAcesOffline.dll>" --output dist/preview-unique
+Committed source is required by default. --allow-dirty explicitly creates a local
+preview with dirty:true, source revision and per-file content hashes. It is not
+evidence that a particular commit contains every packaged byte.
+
+The builder verifies the runtime's complete pinned SHA256 before extraction.
+Archive path/type/size bounds reject traversal, device names, alternate streams,
+normalized names, links and case-folded duplicates. Only reviewed source paths
+are copied, and they also pass the source-content audit. The helper must be an
+AMD64 PE DLL with the current protocol, practice, difficulty and loading markers.
+Those markers are compatibility checks, not proof of a compiler/source match.
+Only the supplied authored helper is included; no game installation is traversed.
+
+Output must be fresh/empty. Failed builds remain for inspection. Fixed timestamps
+and sorted entries make identical inputs/source state under the same build
+toolchain produce identical ZIPs.
+build-report.json records archive SHA256s; each package contains compatibility
+and per-file integrity manifests. Verification detects missing/changed files and
+unlisted program files, while allowing personal config/assets/data. These local
+hashes are not code signing or an authenticity boundary against a hostile package.
+Archives/runtime/helper binaries stay ignored and are not committed or pushed.
+
+HOST STARTUP AND DIAGNOSTICS
+
+server.host loads the strict16 KiB host schema, verifies imported assets, loads
+TLS/private credentials unless numeric loopback development is explicit, probes
+data-directory write/fsync/delete, then creates/steps/closes a native worker.
+--check performs this before any public listener. Normal start repeats the check.
+Its JSON reports Python/OpenSSL/Windows/build/protocol and the native worker exit.
+It proves local readiness only, not internet reachability or clean-host support.
+
+The packaged host defaults to TLS, owner-issued credentials, four rooms and a
+six-frame input window. data_dir=None deliberately disables the developer raw
+bootstrap/input/rejected-packet/snapshot captures. HostAudit retains local JSONL
+event logs with configurable byte/file caps, no uploader and high-frequency
+events omitted unless diagnostic_audit:true. Native callbacks remain bounded to
+256 messages of at most16384 decoded characters each. The existing developer CLI
+keeps its separate detailed capture workflow.
+
+NATIVE FILE-LOG FINDING
+
+The initial packaged lifecycle test observed sim.log growing in data/workers.
+The native logger is independent of HostAudit. REA6.5.0 was connected but had no
+configured native engine; Ghidra's GHIDRA_INSTALL_DIR was absent. No REA setup,
+provider installation, policy change or original-DLL patch was performed.
+The following are ordinary local LLVM22 disassembly/runtime observations, not
+REA decompiler evidence. Raw assembly/probes remain under local/p4-sim-logging.
+Target Simulation.dll SHA256:
+107bb83dc416a16492277392c50104660e34c48911345ae2e0d5afe3929a07fb
+
+Static anchors: SimSetLogFlags export RVA0x14100 invokes the callable at
+RVA0x105e0 through its captured vtable. That leaf writes the supplied flags to
+RVA0x4521c8. Logger object RVA0x452050 has those flags at+0x178. Log flushing at
+RVA0xb5f0 tests bits1 and2 for the console/file sinks; callback dispatch at+0x1b8
+is separate from either test. This establishes a supported exported control;
+there is no reason to edit native code or guess a logging enum.
+
+Fresh-process runtime probes retained flags-0/1/2/3.json. DLL load creates an
+empty sim.log. Init/destroy with flags3 or2 grows it to117 then284 bytes; flags0
+or1 leaves it at0. Flags1/3 emit console text; flags0/2 do not. All four probes
+receive five callback messages. The wrapper now calls SimSetLogFlags(0) before
+SimInit. Packaged create/step/shutdown and loading-room cancellation subsequently
+verify that this file remains0 bytes. Existing user logs are not deleted.
+
+QUALIFICATION EVIDENCE
+
+  python -m tools.verify_windows_packages --packages "<builder output>" --game-dir "<pristine local build37822>" --export-dir "<complete native export>" --output local/package-check-unique
+
+This developer harness reads the archive digests, extracts fresh folders with
+spaces, strips Python from PATH, supplies hostile cwd/sitecustomize modules, and
+executes only each package's own embedded interpreter/application. It imports
+every shipped Python module, imports real local assets, checks the native worker,
+opens a loopback host with two scripted peers, observes a real loading worker,
+then cancels/stops/reaps it. It installs/reinstalls/restores the actual patch in a
+new component-only working copy. No graphical client is launched by this test.
+The original game and package program files are checked for unchanged hashes.
+
+local/p4-portable02 failed import because descriptor extraction still required a
+checkout-relative local/ path. The fix allows external deployment asset folders
+while preserving the ignored-local restriction in source checkouts and rejecting
+both program/app and program/runtime as imported-asset destinations.
+local/p4-portable03 then passed import/health/three-component patch roundtrip in
+36.260s. local/p4-portable04 added a live loading-room shutdown probe and failed
+only its empty-worker-directory assertion: shutdown was clean, but sim.log grew.
+After the exported log-control fix, local/p4-portable05 passed in43.008s. Both
+scripted clients received identical bootstrap bytes; worker40272 exited0, the
+listener closed, sim.log stayed0 bytes, patch dry-run wrote nothing, reinstall was
+idempotent and all three patched components restored to original hashes.
+Original game inputs and immutable package program hashes stayed unchanged.
+
+Tested development archives: dist/p4-preview04, source96eb48f plus recorded dirty
+changes. Server:69 files,12388830 bytes, SHA256
+14f1d4c24d9f7d01dcb76350b42996bb3ba3557ab400ed1876b822c1cd792494.
+Client:62 files,12774518 bytes, SHA256
+86dffd4cb38930cd3e4ce9fb101b7d1ea3d593275c4f4cc4f20ca4e2668a5c45.
+Runtime observed in both: Python3.14.8/OpenSSL3.5.9, Windows10 build19045 x64.
+The harness used explicit loopback development config; it did not exercise real
+private credential DACLs or TLS against a remote machine.
+
+The243-test suite passes on installed Python3.14.8 (241 pass,2 optional skips,
+52.300s) and3.12.10 (242 pass,1 optional private-DACL skip,58.424s). Native bridge
+and original-byte checks are enabled in both;3.12 also enables its native-worker
+opt-in test. Python3.14.8 separately passes p4-worker314-01 in26.249s: deliberate
+crash isolation plus two complete subsequent native matches, matching journals,
+all workers reaped and unchanged source hashes. Final source-publication results
+are recorded in STATUS.txt.
+Synthetic packaging tests pin only authored dummy ZIPs inside the test; the
+production CLI has no runtime-digest bypass. An initial test exposed Windows
+ZipInfo normalizing a backslash before validation; raw orig_filename validation
+now rejects it. Earlier nonsecret host fixture setup failed under the restricted
+token's tempfile DACL behavior; normal owned test directories fixed the fixture,
+without changing production credential permissions or weakening a DACL.
+
+REMAINING RELEASE GATES
+
+Real second-PC/private internet play, real private-credential permissions under
+the intended host/player accounts, Windows11/clean-PC acceptance, read-only program
+ACL qualification, graphical packaged install/play/update/restore, service/reboot
+support, backup/restore and disk-failure qualification remain open. Logs written
+with older retention settings should be archived before lowering limits; unrelated
+or older files outside the active fixed rotation set are not pruned automatically.
+Complete telemetry/error-path qualification, manual loading/difficulty visual
+acceptance, catalog coverage and the eight-hour multi-room soak also remain open.
+Keep P3-P5 incomplete; these local package tests do not satisfy those release gates.

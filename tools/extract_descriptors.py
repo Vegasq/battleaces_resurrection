@@ -2,8 +2,9 @@
 
 Standard library only. No game data, native-method dump, disassembler, Unity, or
 running client is bundled or required. Input hashes deliberately restrict this
-small IL2CPP/x64 reader to the researched build. Generated files must stay in the
-repository's ignored local/ directory. This is static extraction, not execution.
+small IL2CPP/x64 reader to the researched build. Checkout outputs stay under
+ignored local/; deployment outputs stay outside program files. This is static
+extraction, not execution.
 """
 from __future__ import annotations
 
@@ -319,10 +320,18 @@ def decode_descriptor(data, schema="file", depth=0):
     return result
 
 
-def extract(game_assembly, metadata_path, output):
+def validate_output_directory(output):
     output = pathlib.Path(output).resolve()
     local = (ROOT / "local").resolve()
-    require(output != local and output.is_relative_to(local), "generated descriptors must be under the ignored local/ directory")
+    if ROOT.name == 'app' and ROOT.parent.name == 'program':
+        require(not output.is_relative_to(ROOT.parent), 'generated assets must be outside bundled program files')
+    elif output.is_relative_to(ROOT):
+        require(output != local and output.is_relative_to(local), 'generated assets in this checkout must be under the ignored local/ directory')
+    return output
+
+
+def extract(game_assembly, metadata_path, output):
+    output = validate_output_directory(output)
     pe = PE(checked_input(game_assembly, GAME_ASSEMBLY_SHA256))
     metadata = Metadata(checked_input(metadata_path, METADATA_SHA256))
     constructors, concat = metadata.selected_native_methods(pe)

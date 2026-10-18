@@ -47,6 +47,13 @@ selects a bounded input window with --input-window (2..12, default6); both playe
 receive the same setting. See docs/protocol-v3.txt and docs/network-qualification.txt
 for compatibility,command-delay tradeoffs and measured network tests.
 
+Portable Windows preview packages now have separate server/client archives,
+bundled Python, editable host/player configs and a native startup health check.
+The builder includes only allowlisted project source and our helper; game assets
+are imported locally. See docs/windows-packaging.txt for build/test evidence and
+docs/windows-server-quickstart.txt / docs/windows-client-quickstart.txt for setup.
+Clean-machine and outside-network release acceptance remain open.
+
 SOURCE LAYOUT
   server/                 Python server, protocol and native simulation adapter
   client_patch/src/       our C++ helper source
@@ -61,7 +68,7 @@ No game binaries, maps, catalogs, descriptors or captured game fixtures are
 distributed here. Supply a compatible game installation locally. Generated assets,
 build output and test evidence belong under ignored local/, build/ or dist/.
 
-SOURCE CHECKS (Python 3.12)
+SOURCE CHECKS (Python 3.12 and 3.14.8)
   python -m unittest discover -s tests -v
   python -m tools.audit_repository --history
 

@@ -1,0 +1,84 @@
+BATTLE ACES RESURRECTION - WINDOWS CLIENT PATCH PREVIEW
+
+Development preview for your own Windows x64 copy of Battle Aces build37822.
+No original game files are included. Clean-PC and outside-network acceptance are
+still pending. Extract this archive to a separate ordinary local folder. The
+bundled Python runtime needs no installation; its license is under
+program/runtime/LICENSE.txt. Run commands in a terminal in the extracted folder.
+Double-click BattleAces-Client.cmd to read help.
+
+  BattleAces-Client.cmd verify
+
+This checks file hashes for accidental corruption; it is not a digital signature.
+Get the archive and SHA256 from a trusted project release. Keep program files
+unchanged and put personal settings in config/.
+
+1. INSTALL OR RESTORE
+
+Close the game. Keep an untouched recovery copy and patch a separate working copy.
+The patcher accepts only supported original hashes, preserves originals under
+.battleaces-resurrection/original, and rolls back replaced files on failure.
+
+  BattleAces-Client.cmd install --game "<working game directory>" --dry-run
+  BattleAces-Client.cmd install --game "<working game directory>"
+
+If that working copy was patched before a managed original backup existed, add
+--original "<verified original GameAssembly.dll>". Other unknown modifications
+are refused. Never point install at your untouched recovery copy. Upgrades use
+the new package's install command after closing the game and verifying originals.
+
+To restore the original patched components:
+
+  BattleAces-Client.cmd restore --game "<working game directory>"
+
+The manifest and original backups stay available for inspection/reinstallation.
+Restore does not erase your decks, personal configuration or saved preferences.
+
+2. PLAY STANDALONE AI
+
+Copy config/practice.example.json to config/practice.json. Set game_directory to
+the full path of your working patched copy and choose display_name. JSON paths
+use doubled backslashes or forward slashes. Then run:
+
+  BattleAces-Client.cmd practice
+
+Windows PowerShell starts the game in a visible window. If local policy blocks
+the script, inspect the downloaded package and use your normal approved script
+policy; this package does not change execution policy. Open Edit Deck -> Try Deck
+vs AI. No server, invite or server assets are needed. Settings -> General -> AI
+Difficulty offers Easy/Normal/Hard. The saved choice applies to the next match.
+Normal is the first default. Manual launch has no automatic play or surrender.
+Match-start feedback has passed native state checks; visual acceptance remains
+open. Startup can take longer on a cold game installation.
+
+3. CONNECT TO YOUR FRIEND'S SERVER
+
+Ask the host for its address, port, certificate name, trusted CA and your private
+invite file. Copy config/client.example.json to config/client.json. Set:
+  game_directory   Full path to your patched working copy.
+  server_host      The host's IPv4 address or DNS name.
+  server_port      The host's TCP port, default47623.
+  server_name      The DNS name or IP covered by the server certificate.
+  ca_bundle        Local path to the trusted CA/public certificate.
+  credential_file Local path to your private invite file.
+  display_name     The name shown to other connected players.
+  room             A shared normal-match room label, such as friends.
+
+Relative file paths follow the config file's directory. Keep invite contents
+private and their Windows file permissions owner/SYSTEM-only; permission failures
+are not bypassed. Do not paste tokens in command arguments. Trust the host's CA
+through a known private exchange, not an unexpected connection dialog.
+
+  BattleAces-Client.cmd launch
+
+Keep its console open while playing: it owns the secure transport. In the game,
+Custom Game -> Invite Friend lists connected players. Invite the intended friend;
+after acceptance, use the native Start/Ready flow. Normal Play uses the configured
+room. A finished match should return through Continue. In-match reconnection is
+not supported; a lost session requires returning to the menu/relaunching.
+
+Use --config "<personal file>" after launch or practice to choose another config.
+No automatic ready/surrender, heavy capture or telemetry audit is enabled in these
+commands. Known telemetry entry points are patched; complete clean-profile and
+error/reporter-path qualification is still pending. This preview is not a claim
+that every analytics path has been eliminated.

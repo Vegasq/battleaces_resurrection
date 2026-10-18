@@ -2,6 +2,36 @@ IMPLEMENTATION LEDGER
 Updated: 2026-10-17
 Active objective: implement SERVER_REPLACEMENT_PLAN.txt, Windows only.
 
+PORTABLE WINDOWS PREVIEWS (2026-10-17; P4 progress, release gate open)
+Separate server/client archives bundle pinned Python3.14.8 and include only
+allowlisted authored source plus our helper. Local assets, config and writable
+data are separate from program files. Host check validates config/assets/storage
+and actual native create/step/close before listening. TLS is the default; plaintext
+is restricted to explicit numeric loopback development. Event logs have bounded
+rotation, detailed records are opt-in, and raw developer captures are disabled.
+The exact simulation's exported log flags disable its independent console/file
+sinks while preserving bounded callbacks; a zero-byte sim.log can still be created.
+local/p4-portable05 passes in43.008s with the actual bundled runtime and no Python
+on PATH: all packaged modules, native local import/health, two scripted peers'
+identical bootstrap, clean loading-worker/listener shutdown, and actual dry-run /
+install / idempotent reinstall / original-hash restore for three components.
+Worker40272 exits0; sim.log remains0 bytes; sources/program files stay unchanged.
+Failed import02 and native-log04 probes are retained with their fixes documented
+in windows-packaging.txt. The latest tested dirty archives are dist/p4-preview04.
+The host/player quickstarts ship in the archives. No game/runtime/helper binaries
+are added to Git. Cross-PC/TLS/private DACL, clean Windows, graphical packaged
+play/update/restore, service/reboot, backup and long-soak acceptance remain open.
+The full243-test suite passes on Python3.14.8 (241 pass,2 optional skips,52.300s)
+and3.12.10 (242 pass,1 protected-DACL opt-in skip,58.424s). Both enable native
+bridge/original-byte checks; the3.12 run also enables the native worker test.
+Native worker regression p4-worker314-01 passes in26.249s: a deliberately killed
+worker cannot disturb the healthy concurrent room, then two sequential matches
+complete with identical native/public journals. Healthy workers all exit0,
+the deliberately killed worker exits1, all are reaped and source hashes unchanged.
+Evidence: local/p4-full314-01-tests.txt and local/p4-full312-01-tests.txt.
+The23 changed/new authored files pass the prepublication content audit;
+397 distinct staged/history paths/objects have zero failures. P3-P5 remain incomplete.
+
 MATCH START FEEDBACK (2026-10-17, native state checks passed; visual check open)
 An owned nonblocking status strip follows AI, normal multiplayer and Custom Game
 startup with ticket ownership and actual native InGame/readiness gates. Duplicate
