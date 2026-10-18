@@ -1,0 +1,24 @@
+LOCAL NATIVE ANALYSIS TOOLS
+Updated2026-10-18. Workstation knowledge; paths are not release dependencies.
+
+User-installed Ghidra12.1.4 PUBLIC (folder ghidra_12.1.4_PUBLIC).
+Application properties, support/analyzeHeadless.bat and the Windows x64 native
+decompiler are present. Full Temurin JDK25.0.4.1 is also installed.
+Direct java.exe -version succeeds; javac.exe is present.
+Exact workstation paths are recorded privately in ignored local/analysis-toolchain.txt.
+For another workstation, GHIDRA_INSTALL_DIR selects the extracted release root;
+JAVA_HOME selects the full JDK root, not its bin directory.
+
+The connected REA6.5.0 server currently has no GHIDRA_INSTALL_DIR and reports the
+provider unconfigured. A separate, process-scoped CLI doctor with that directory
+and JAVA_HOME recognizes Ghidra12.1.4, its headless launcher and native decompiler.
+Its Java child-process probe fails. A bounded Node spawnSync reproduction reports
+EPERM, not a missing Java binary. Do not reinstall Ghidra/Java based only on the
+doctor's runtime_missing summary. No user-wide environment or Codex configuration
+was changed; a connected-server restart alone would not establish provider health.
+
+Evidence: ignored local/rea-ghidra-doctor01.json. No Ghidra decompilation is claimed
+for the preceding matchmaking traces; those used original PE/LLVM, IL2CPP metadata
+and Unity asset evidence. Keep future projects/decompilation output private under
+ignored local/, with exact source hashes. Never publish original client binaries,
+metadata, prefabs, assets or private analysis databases in the source repository.

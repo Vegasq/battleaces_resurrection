@@ -85,6 +85,13 @@ are planned behavior, not a claim that all modes or fallback already work.
   Original trace is complete: Searching... on the disabled Play button plus a
   top-center elapsed-seconds/Cancel panel, followed by native joining/loading.
   See matchmaking-search.txt for exact hooks, timer and ownership constraints.
+  Local prototype now reuses those native elements in opt-in public1v1. Visible
+  captures confirm the original panel/X control, Searching... button and1v1
+  loading artwork. Before-build cancellation, cancellation at map completion
+  and stale presentation tickets are exercised. Keep the remaining work explicit:
+  integrate real server queue tickets/30-second fallback, cancellation around
+  replies and disconnects, then qualify all modes through ordinary Start Client.
+  Search failure/recovery and actual mouse interaction remain acceptance gates.
 - Research the shipped game's original bot roster generation with REA: deck,
   name, avatar, difficulty and mode-specific rules, especially normal 1v1 bot
   opponents. Reuse the supported local data/selection behavior where possible;

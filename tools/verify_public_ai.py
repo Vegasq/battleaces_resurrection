@@ -1,8 +1,10 @@
 """Opt-in native public1v1 AI button/combat/results/rematch verification.
 
 Runs the real unified launcher with no server/CA/invite and explicit diagnostic
-flags. Native Play, build, surrender and Continue are automated; window is hidden.
+flags. Native Play, build, surrender and Continue are automated; hidden by default.
 Forced owned teardown does not qualify native Quit, visible UI or online queues.
+Optional --search-smoke cancels before building and at the original map callback,
+then retries successfully. It retains original Unity UI screenshots for review.
 """
 from __future__ import annotations
 
@@ -37,6 +39,43 @@ def source_hashes():
     return core_hashes() | {p.relative_to(ROOT).as_posix(): hashlib.sha256(p.read_bytes()).hexdigest() for p in paths}
 
 
+def search_evidence(log, game, output, pid, matches):
+    starts = list(re.finditer(r'Native search began: ticket=(\d+) mode=1 nativeStatus=5 originalPanel=1', log))
+    tickets = [int(row[1]) for row in starts]
+    require(len(tickets) == matches+2 and tickets == sorted(set(tickets)), 'search generation count/order')
+    cancelled = [int(row[1]) for row in re.finditer(r'Public search cancelled: ticket=(\d+) builderReturned=[01] nativeWorld=0', log)]
+    found = [int(row[1]) for row in re.finditer(r'Native search match accepted: ticket=(\d+) status=7', log)]
+    joined = [int(row[1]) for row in re.finditer(r'Native search joining signal: ticket=(\d+) mode=1 activeConnection=1 originalRouter=1', log)]
+    require(cancelled == tickets[:2] and found == joined == tickets[2:], 'cancelled or stale search started a world')
+    require(log.count('Public map callback discarded: ') == 1, 'pending builder cancellation not exercised')
+    require(log.count('Native search original Cancel invoked: ') == 2, 'original Cancel callback count')
+    require(log.count('Native search button: ') == len(tickets), 'original Searching button not observed')
+    require(log.count('Native search stale ticket rejected: ') == len(tickets)-1, 'stale generation guard not exercised')
+    require('Match loading UI created:' not in log, 'public search used the replacement overlay')
+    timers = {}
+    for ticket in tickets:
+        seconds = [int(row[1]) for row in re.finditer(rf'Native search timer: ticket={ticket} seconds=(\d+)', log)]
+        require(seconds and seconds[0] == 0 and seconds[-1] >= 1 and seconds == sorted(set(seconds)), 'native elapsed timer did not advance')
+        timers[str(ticket)] = seconds
+    captures = []
+    for row in re.finditer(r'Native search capture requested: file=(match-search-\d+-\d+-\d+-\w+\.png) ticket=(\d+) event=(\w+) frame=(\d+)', log):
+        filename, ticket, event, frame = row.groups()
+        require(filename.startswith(f'match-search-{pid}-') and int(ticket) in tickets, 'foreign search screenshot')
+        source = game/'investigation/runtime'/filename
+        require(source.is_file() and source.stat().st_size > 1024, 'missing native search screenshot: '+filename)
+        data = source.read_bytes()
+        require(data.startswith(b'\x89PNG\r\n\x1a\n'), 'search screenshot is not PNG')
+        shutil.copyfile(source, output/filename)
+        captures.append(dict(file=filename, ticket=int(ticket), event=event, frame=int(frame), sha256=hashlib.sha256(data).hexdigest()))
+    for ticket in tickets:
+        require(any(row['ticket'] == ticket and row['event'] == 'searching' for row in captures), 'missing search-state capture')
+    require(any(row['event'] == 'joining' for row in captures), 'missing joining-state capture')
+    return dict(tickets=tickets, cancelled=cancelled, accepted=found, elapsed_seconds=timers,
+        screenshots=captures, native_cancel='automated callback, not mouse input',
+        visual_review='pending pixel inspection; hidden Unity windows may produce black captures',
+        limits='local 1v1 only; no online queue, timeout or remote late-response qualification')
+
+
 def run(args):
     require(os.name == 'nt' and 120 <= args.timeout <= 900, 'bounded Windows probe required')
     require(args.matches in (1, 2) and 1200 <= args.frames <= 3600, 'bounded match/frame count required')
@@ -60,7 +99,8 @@ def run(args):
                 require(not any(marker in log for marker in ('Client lifecycle invariant failed:',
                     'Local menu initialization failed:', 'Offline initialization failed:',
                     'Practice stopped in ', 'Dedicated native Play could not ready lobby:',
-                    'Offline loop stopped in ')), 'native public AI failed; see logs')
+                    'Offline loop stopped in ', 'Offline status: native search',
+                    'Native search failure cleanup:')), 'native public AI failed; see logs')
                 if f'Practice returned: completed={args.matches} mode=1 seat=-1 presenceRetained=0 standalone=1' in log:
                     report['native_lifecycle_complete'] = True
                     break
@@ -81,9 +121,10 @@ def run(args):
                     '-lan-smoke', '-lan-audit']
         if args.matches == 2: command.append('-practice-ai-deck-smoke')
         if args.profile: command.append(f'-public-ai-smoke-profile={args.profile}')
+        if args.search_smoke: command.append('-match-search-smoke')
         startup = subprocess.STARTUPINFO()
         startup.dwFlags |= subprocess.STARTF_USESHOWWINDOW
-        startup.wShowWindow = 0
+        startup.wShowWindow = 5 if args.visible else 0
         startup.lpAttributeList = {'handle_list': [child.fileno()]}
         clock = ctypes.WinDLL('kernel32').GetTickCount64; clock.restype = ctypes.c_ulonglong
         tick = clock()
@@ -95,7 +136,7 @@ def run(args):
         job = _WindowsJob(process.pid)
         manifest = json.loads((game/'.battleaces-resurrection/patch-manifest.json').read_text())
         report.update(game_pid=process.pid, launch_tick=tick, client_arguments=command,
-                      helper_sha256=manifest['helper_sha256'])
+                      helper_sha256=manifest['helper_sha256'], visible_window=args.visible)
         (output/'process.json').write_text(json.dumps(report, indent=2), encoding='utf-8')
         monitor = threading.Thread(target=watch, name='public-ai-monitor')
         monitor.start()
@@ -110,10 +151,16 @@ def run(args):
             require(report.get('native_lifecycle_complete') and 'error' not in report, report.get('error', 'public AI lifecycle incomplete'))
             require(connect.call_count == invite.call_count == 0, 'offline public AI required remote connection/invite')
         starts = list(re.finditer(r'Practice requested: match=([0-9a-f]{32}) mode=1 ', log))
-        require(len(starts) == args.matches and len({s[1] for s in starts}) == args.matches, 'public match identities/count incorrect')
+        attempts = args.matches + (2 if args.search_smoke else 0)
+        require(len(starts) == attempts and len({s[1] for s in starts}) == attempts, 'public match identities/count incorrect')
         for marker in ('PUBLIC AI SMOKE original mode1 OnMapSelected: owned=1 visible=1 interactable=1 preamble=1',
-                       'Practice AI JoinedGame delivered:', 'Practice native EndOfGameResponse delivered;',
-                       'PRACTICE SMOKE native Continue (automated)', 'owner=local-practice nativeIdle=1'):
+                       'owner=local-practice nativeIdle=1'):
+            require(log.count(marker) == attempts, 'native intent count mismatch: ' + marker)
+        if args.search_smoke:
+            report['native_search'] = search_evidence(log, game, output, process.pid, args.matches)
+            starts = starts[2:]
+        for marker in ('Practice AI JoinedGame delivered:', 'Practice native EndOfGameResponse delivered;',
+                       'PRACTICE SMOKE native Continue (automated)'):
             require(log.count(marker) == args.matches, 'native lifecycle count mismatch: ' + marker)
         report['matches'] = evidence = []
         for index, start in enumerate(starts):
@@ -174,4 +221,6 @@ if __name__ == '__main__':
     parser.add_argument('--frames', type=int, default=3600)
     parser.add_argument('--matches', type=int, choices=(1, 2), default=2)
     parser.add_argument('--profile', type=int, choices=(58, 62, 63, 64))
+    parser.add_argument('--search-smoke', action='store_true')
+    parser.add_argument('--visible', action='store_true', help='show the owned window for native UI capture/review')
     run(parser.parse_args())

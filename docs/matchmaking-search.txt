@@ -1,6 +1,7 @@
 ORIGINAL PUBLIC MATCHMAKING PRESENTATION - BUILD37822
-Updated2026-10-18. Original-code/asset trace complete; implementation and visible
-fidelity/cancellation qualification remain open. This is a release requirement.
+Updated2026-10-18. Original-code/asset trace complete. Native presentation is now
+implemented in the opt-in local public1v1 path; online queues, ordinary-launcher
+integration and broader cancellation qualification remain release requirements.
 
 Required behavior
 Use the existing public1v1 Play button and native matchmaking notification.
@@ -25,7 +26,7 @@ Front's effective state uses pending requests to select optimistic local state
 or confirmed server state. Relevant exact-build fields:
  confirmed queue+128; pending requests+140; local mode+148/local queue+14c;
  confirmed mode+150; queue-entry DateTime+158; matchmaking status+188;
- MatchmakingStateChange event+1e8; selected matchmaking game+138.
+ MatchmakingStateChange event+1e8; match-found bool+138 (not an object pointer).
 UpdateMatchmakingStatus updates both the event-observed button model and routed
 MatchmakingStatusSignal. Reconcile all optimistic/confirmed fields under the
 current queue generation; setting just one VM flag or posting one signal is
@@ -65,6 +66,36 @@ contain Loading . . . and Waiting for Players ... presentation. A Match Found!
 localization entry exists, but this bounded trace does not establish a displayed
 toast/animation; do not invent one from a string alone.
 
+Current integration
+match_search.cpp owns one monotonic presentation ticket. It publishes the native
+front state once per transition, allowing the original event observers, pooled
+panel and one-second timer to work. It rejects overlapping invite/pending-request
+ownership and requires the existing Steam initialization suppression. Clearing
+search preserves the last local mode and resets confirmed mode to0. It does not
+invoke the original networked Join/Found/Leave handlers.
+
+The existing LeaveMatchmakingQueue hook now routes local public Cancel into that
+owner. The callback only records intent; a later Unity update dismisses the
+panel. A pending original map builder retains its roots/world lease until its
+callback is discarded, so another search cannot reuse that native builder while
+it is still completing. A pooled panel address is not a generation identifier.
+Late found/release calls for a retired presentation ticket leave its successor
+untouched. This does not yet qualify remote server response races.
+
+Found dismisses native search before installing the accepted match connection.
+After connection installation, an exact boxed JoiningGameSignal is posted through
+the original nongeneric SignalRouter.PostSignal(object). Mode1 maps to loading
+mode1; no forced FSM mutation is used. Posting earlier makes the original joining
+state return to the menu because it has no active connection. The existing
+StartJoiningGame delegate alone does not select the native loading presentation.
+
+tools.verify_public_ai --search-smoke exercises two cancellations then a match:
+before map build, at the original map callback, and a successful retry. It checks
+the original button/timer, stale presentation tickets, gameplay/results/Continue
+and retains Unity screenshots. The diagnostic four-second preparation hold and
+automated Cancel/Play/surrender/Continue require explicit smoke flags. Normal
+launchers add none of these diagnostics.
+
 Acceptance
 - Actual visible original button/panel/layout/font/localization; immediate search
   response, updating elapsed seconds and one panel/timer per queue generation.
@@ -85,3 +116,53 @@ metadata b760be9190309b14174cd272e1f83b730181b299bc7a0cdca66985c69dcdc57d.
 REA native providers unavailable: original PE/LLVM,IL2CPP and Unity asset parsing
 were used. No native execution or screenshots in this UI trace. Detailed local
 notes retain method/asset/binding evidence; no original prefab/assets enter Git.
+
+Follow-up original-code notes: local/matchmaking-publish02/FINDINGS.txt SHA256
+193b7337a13bbe4a1cc9e67caec2a7806f9f924ae7260edaf7874dbff0e834f0;
+local/matchmaking-lifecycle02 contains exact panel/timer ownership and a hashed
+26-slice verifier contract; FINDINGS.txt SHA256
+c1484367f697acaac4b51b082b3816d1a7b1f3dd9d6225ed251e7a555c86e5d9.
+The native queue timer Stop marks expired and kills
+its coroutine but retains its handle value; a nonzero handle is not a leak.
+local/matchmaking-ai-profile03 confirms the exact mode1 loading mapping. The
+AI's early pre-JoinArmy default profile sample is not its active combat profile;
+later samples must match the frozen selected public profile.
+
+Runtime search-native01 completed both cancellations, combat/results/Continue and
+owned teardown in117.940s, but the qualification FAILED: hidden-window screenshot
+output was blank and one requested capture did not meet the file-size check.
+The failed report is retained. It is not visible-UI acceptance. See STATUS.txt for
+the subsequent visible-window run and the remaining online/launcher gates.
+
+Runtime search-native02 used a visible window and the same successful local
+lifecycle in113.193s. All search assertions and7 PNGs passed, with untouched
+source hashes and reaped owned process. Pixel review confirms original search
+text, top-center1v1/Time Elapsed/X control, other modes locked while searching,
+cleared panel/buttons after Cancel and the full original1v1 loading artwork.
+The overall probe FAILED its separate combat requirement: the shortened1200-frame
+run observed no produced bot unit both moving and receiving Move/Attack orders.
+Retain that failure and repeat with the established3600-frame combat window;
+do not weaken the combat condition or call the entire run a pass.
+
+Runtime search-native03 PASSED in232.419s with the established3600-frame bound,
+helper30deb35c92760f628396b79660802d14f330031becaa0fb3d08f4edbd7186f46.
+Tickets1/2 cancel without a world, including discarded pending map completion;
+retired tickets cannot accept/release ticket3. Ticket3 uses native search and
+joining, runs selected profile58 (random Normal strength), reaches results and
+returns through original Continue.44 produced units both move and receive native
+orders; max bot supply136. Configured human match name and bot result name/avatar
+bindings pass. In-game identity binding is not established by this run.
+
+Seven PNGs are retained. Separate visual-review.txt records pixel inspection of
+the successful run's native Searching.../elapsed-seconds/X panel, restored menu
+after cancellation and original1v1 map/loading artwork. This is real rendered
+960x540 English UI; other resolutions/locales and manual mouse input remain open.
+Covered source hashes are unchanged and owned PID48352 is reaped. No server/CA/
+invite was required. The helper build's existing C++ checks and18 focused Python
+patcher/package/client-evidence regressions also pass.
+verification.json SHA256
+30f266d76302aac80c69a90b0854a8208149c514a2240991bed8fafba956b377;
+visual-review.txt SHA256
+163575142fbc6cd3e14bc83a94333f106dd1f946e4f4216f0bd99eb0bfe4ef1d.
+This does not qualify online queue races,30-second fallback, all modes, search
+error recovery, normal Start Client exposure, native Quit or final release.

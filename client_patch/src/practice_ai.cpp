@@ -8,6 +8,7 @@ enum class Phase {Idle,Reserving,Building,Loading,Running,Result,Returning,Faile
 struct State {
     Phase phase=Phase::Idle;
     ba_match_loading::Ticket loadingTicket=0;
+    ba_match_search::Ticket searchTicket=0;
     std::unique_ptr<Root> front,controller,human,bot,humanDeck,botDeck,encoded,ai,process,completionInfo,completionUI;
     std::string match;
     uint32_t request=0,aiProfile=18,difficultyProfile=18;
@@ -16,6 +17,7 @@ struct State {
     std::string botName="Practice AI";
     uint64_t worldLease=0;
     bool reserved=false,buildStarted=false,adding=false,joinPending=false,aiStarted=false,result=false;
+    bool cancelRequested=false,builderReturned=false;
     bool conceded=false,continued=false,modalReleased=false;
     bool humanReady=false,botReady=false,humanJoined=false,botJoined=false;
     bool inGameIdentity=false,resultIdentity=false;
@@ -28,7 +30,7 @@ static auto& state=*new State();
 static auto& characterReference=*new std::unique_ptr<Root>();
 static auto& characterTask=*new std::unique_ptr<Root>();
 static bool characterLoaded=false;
-static unsigned generations=0,completed=0;
+static unsigned generations=0,completed=0,cancelledSearches=0;
 static bool active(){return state.phase!=Phase::Idle;}
 static Obj need(Obj value,const char* message){if(!value)throw std::runtime_error(message);return value;}
 static void require(bool value,const char* message){if(!value)throw std::runtime_error(message);}
@@ -170,6 +172,7 @@ static Obj aiDeck() {
 static void fail(const char* where,const std::exception& error) {
     ba_local::ready.store(false);ba_local::accepting.store(false);
     state.phase=Phase::Failed;
+    try{ba_match_search::release(state.searchTicket,"local match failed");}catch(const std::exception& e){ba::log("Native search failure cleanup: %s",e.what());}
     ba_match_loading::error(state.loadingTicket,state.mode==4?"Practice could not start.":"AI match could not start.");
     state.loadingTicket=0;
     ba::log("Practice stopped in %s: %s; retaining native objects until safe cleanup",where,error.what());
@@ -210,7 +213,11 @@ static void startMode(Obj front,Obj controller,int mode) {
         state.phase=Phase::Reserving;
         state.request=ba_community::send(wire::practice(ba_community::nextRequest(),true));
     }
-    state.loadingTicket=ba_match_loading::begin(mode==4?ba_match_loading::Source::Practice:ba_match_loading::Source::Public,state.match,ba_match_loading::Stage::Preparing);
+    if(mode==4)state.loadingTicket=ba_match_loading::begin(ba_match_loading::Source::Practice,state.match,ba_match_loading::Stage::Preparing);
+    else {
+        try{state.searchTicket=ba_match_search::begin(front,mode);}
+        catch(...){state.cancelRequested=true;throw;}
+    }
     ba::log("Practice requested: match=%s mode=%d selectedDeckSnapshot=1 standalone=%d",state.match.c_str(),state.mode,ba::localMenu()?1:0);
     if(mode==4)ba::log("Practice difficulty snapshot: selected=%s modifierProfile=%u tuningProfile=%u",ba_practice_settings::name(state.difficultyProfile),state.difficultyProfile,state.aiProfile);
     else ba::log("Public AI difficulty snapshot: selected=%s modifierProfile=%u practiceSelectionUnchanged=1 authoredTacticsPending=1",
@@ -218,6 +225,13 @@ static void startMode(Obj front,Obj controller,int mode) {
 }
 static void start(Obj front,Obj controller){startMode(front,controller,4);}
 static void startPublic(Obj front,Obj controller,int mode){startMode(front,controller,mode);}
+static bool cancelPublic(Obj front) {
+    if(!active() || state.mode==4 || !state.front || state.front->get()!=front)return false;
+    // The UI callback only retires intent. Native objects and panel are released
+    // on a later front update, after the original callback has returned.
+    if(state.phase==Phase::Building && ba_match_search::requestCancel(front))state.cancelRequested=true;
+    return true; // A late public Cancel must never reach legacy lobby readiness.
+}
 static bool acknowledge(Obj front,const wire::Ack& ack) {
     if(ack.kind!=wire::Practice)return false;
     require(active() && state.front && state.front->get()==front && ack.request==state.request,"unexpected practice acknowledgement");
@@ -270,6 +284,13 @@ static void build() {
 static void consume(Obj front,Obj request,Obj data) {
     require(state.phase==Phase::Building && state.buildStarted && front==state.front->get(),"practice create callback ownership");
     require(ba::get<Obj>(request,"gameData_")==data,"practice request data changed");
+    state.builderReturned=true;
+    if(state.mode==1 && ba_match_search::diagnostic() && cancelledSearches==1)
+        ba_match_search::clickCancel(state.searchTicket);
+    if(state.cancelRequested || ba_match_search::cancelled(state.searchTicket)) {
+        state.cancelRequested=true;
+        ba::log("Public map callback discarded: ticket=%llu cancelled=1 worldCreated=0",static_cast<unsigned long long>(state.searchTicket));return;
+    }
     Obj config=need(ba::get<Obj>(data,"gameConfig_"),"practice static config missing");
     require(ba::get<int>(config,"gameMode_")==state.mode,"local AI builder changed mode");
     applyDifficultyModifiers(config);
@@ -293,6 +314,7 @@ static void consume(Obj front,Obj request,Obj data) {
     ba::set<Obj>(server(),"<ClientConfig>k__BackingField",local);
     if(ba::flag(L"-practice-ai-smoke"))ba_lan_smoke::prepare(data,0);
     root(state.encoded,ba_bootstrap::encodeGameData(data));state.phase=Phase::Loading;
+    if(state.searchTicket)require(ba_match_search::found(state.searchTicket),"stale public start after cancellation");
     ba_match_loading::advance(state.loadingTicket,ba_match_loading::Stage::Loading);
     ba::log("Practice map ready: mode=%d armies=2 humanProfile=0 aiProfile=%u selectedHumanDeck=1 primaryMap=1",state.mode,profileId());
     ba_bootstrap::beginJoined(front,state.encoded->get(),state.human->get(),false,state.match.c_str());
@@ -304,6 +326,7 @@ static bool assetsReady(Obj gameServer) {
 static void worldReady(Obj gameServer) {
     require(state.phase==Phase::Loading && gameServer==server(),"practice world readiness ownership");
     require(state.humanReady,"practice human ready signal missing");state.phase=Phase::Running;
+    ba_match_search::release(state.searchTicket,"native world ready");
     ba_match_loading::advance(state.loadingTicket,ba_match_loading::Stage::Starting);
     ba::log("Practice world ready: humanWorld=%llu aiWorld=%llu",ba::read<uint64_t>(ba::read<Obj>(gameServer,0x140),0x1a8),ba::get<uint64_t>(manager(),"_aiWorld"));
 }
@@ -591,7 +614,29 @@ static bool frontUpdate(Obj front) {
             catch(const std::exception& e){ba_lan::fail("practice presence",e);}
         }
         if(!active())return true;
-        if(state.phase==Phase::Building && !state.buildStarted)build();
+        if(state.mode==1 && ba_match_search::diagnostic() && cancelledSearches==0 &&
+            state.phase==Phase::Building && !state.buildStarted && GetTickCount64()-state.began>=2500)
+            ba_match_search::clickCancel(state.searchTicket);
+        if(state.cancelRequested) {
+            ba_match_search::release(state.searchTicket,"cancelled");
+            if(state.buildStarted && !state.builderReturned)return true;
+            require(state.mode!=4 && ba::unified() && ba_dedicated_session::inMenu() &&
+                ba_dedicated_session::worldIdle(server()) && !ba_bootstrap::awaitingWorld,
+                "public cancellation before native builder finished");
+            if(state.buildStarted) {
+                require(ba_bootstrap::creating && ba_bootstrap::frontRoot &&
+                    ba::api<Obj(*)(uint32_t)>("il2cpp_gchandle_get_target")(ba_bootstrap::frontRoot)==front,
+                    "cancelled public builder owner mismatch");
+                ba_bootstrap::creating=false;ba_bootstrap::bootstrapThread=0;
+                ba_dedicated_session::releaseRoot(ba_bootstrap::frontRoot);
+            }
+            ba_client::releaseLocal(front,state.worldLease);++cancelledSearches;
+            ba::log("Public search cancelled: ticket=%llu builderReturned=%d nativeWorld=0 cancelled=%u",
+                static_cast<unsigned long long>(state.searchTicket),state.builderReturned?1:0,cancelledSearches);
+            state=State{};return true;
+        }
+        if(state.phase==Phase::Building && !state.buildStarted &&
+           !(state.mode==1 && ba_match_search::diagnostic() && GetTickCount64()-state.began<4000))build();
         if((state.phase==Phase::Running || state.phase==Phase::Failed) && !ba_bootstrap::creating &&
            !ba_bootstrap::awaitingWorld && ba_dedicated_session::inMenu() && ba_dedicated_session::worldIdle(server()) &&
            !ba::get<uint64_t>(manager(),"_aiWorld") && !ba_local::count(ba::get<Obj>(manager(),"_aiPlayers"))) {
@@ -649,6 +694,7 @@ static bool publicSmoke(Obj front) {
     if(!selected)return false;
     ba::native<void(*)(Obj,Obj)>(0x3d23220)(selected,nullptr);
     require(active() && state.mode==1 && state.front->get()==front,"public original button did not start local AI match");
+    ba_match_search::observeButton(selected);
     ba::log("PUBLIC AI SMOKE original mode1 OnMapSelected: owned=1 visible=1 interactable=1 preamble=1 (automated; not mouse input)");
     return true;
 }
@@ -657,7 +703,8 @@ static void smoke(Obj front) {
     if(!ba::flag(L"-practice-ai-smoke") || active() || completed>=matches ||
        !(ba::localMenu()?ba_local_menu::ready(front):ba_community_native::installed))return;
     if(ba::unified() && !ba_client::allowPracticeSmoke())return;
-    static ULONGLONG at=0;static bool opened=false,clicked=false;static unsigned round=0;
+    static ULONGLONG at=0;static bool opened=false,clicked=false;static unsigned round=0,cancelRound=0;
+    if(cancelRound!=cancelledSearches){cancelRound=cancelledSearches;at=0;opened=false;clicked=false;}
     if(round!=completed) {
         round=completed;at=0;opened=false;clicked=false;
         if(ba::flag(L"-practice-ai-deck-smoke"))ba_dedicated_deck::rematchSmokeSelection(front);

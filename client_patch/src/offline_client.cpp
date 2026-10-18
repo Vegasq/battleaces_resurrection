@@ -22,6 +22,7 @@ namespace ba_catalog { static void exportOnce();static std::string utf8(void*); 
 namespace ba_dedicated_results { static void receive(const std::string&); }
 namespace ba_audit { static void beginMatch(const std::string&);static void practiceAIView(void*,int); }
 namespace ba_telemetry_audit { static void startup();static void update(); }
+namespace ba_match_search {static void update(void*);static void joining(void*);}
 namespace ba_practice_settings_ui { static void update(void* front);static bool smokeComplete(); }
 namespace ba_community_wire {struct Ack;}
 namespace ba_local_menu {
@@ -44,6 +45,7 @@ namespace ba_community_roster { static void reset();static void changed();static
 namespace ba_community_wire {struct Ack;struct Invitation;struct Aborted;}
 namespace ba_practice {
 static bool active();static void start(void*,void*);static void startPublic(void*,void*,int);static void consume(void*,void*,void*);
+static bool cancelPublic(void*);
 static void offlineUpdate(void*);
 static bool assetsReady(void*);static void worldReady(void*);static bool gameUpdate(void*,void*);static bool frontUpdate(void*);
 static bool acknowledge(void*,const ba_community_wire::Ack&);static void smoke(void*);
@@ -267,6 +269,7 @@ extern "C" __declspec(dllexport) void OfflineFrontUpdate(void* front,void*) {
         if(unified())ba_client::update(front);
         else if(offlinePractice())ba_practice::offlineUpdate(front);
         else if(lan())lanFrontUpdate(front);
+        ba_match_search::update(front);
         ba_match_loading::update(front);
         ba_match_loading_smoke::update(front);
         if(GetTickCount64()-last<10000)return;
@@ -300,6 +303,7 @@ extern "C" __declspec(dllexport) void OfflineFrontUpdate(void* front,void*) {
 #include "local_menu.cpp"
 #include "native_tables.cpp"
 #include "public_bots.cpp"
+#include "match_search.cpp"
 #include "practice_ai.cpp"
 #include "practice_settings_ui.cpp"
 #include "client_lifecycle.cpp"

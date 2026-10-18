@@ -240,6 +240,7 @@ static void beginJoined(Obj front,Obj encoded,Obj player,bool lan,const char* lo
         else if(ba::dedicated())ba_audit::beginMatch(ba_lan::dedicatedMatchId);
         Obj joining=ba::get<Obj>(server,"StartJoiningGame");
         if(joining)ba::call(joining,"Invoke");
+        ba_match_search::joining(front);
         int success=0;void* args[]={&success,joined.get()};
         ba::log("Offline delivering synthesized JoinedGame to original simulation/map bootstrap.");
         // Front.JoinedGame only publishes network/Steam presence. The ordinary

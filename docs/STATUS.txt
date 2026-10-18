@@ -13,8 +13,8 @@ Native all-bot2v2 and2vAI checks both build/move/fight to natural team results;
 new four-army native worker test pass;Python3.12 passes22 source/import tests.
 Failed null-list export evidence is retained; the corrected exporter initializes
 the original entitlement list and owns async name references. See
-server-bot-catalog.txt. Public queues, four-player client transport, native search
-UI, visible human team play and all release gates remain open. No new release
+server-bot-catalog.txt. Public queues, four-player client transport, search UI
+integration with those queues, visible human team play and release gates remain open. No new release
 packages were created; original assets remain private and ignored.
 
 AUTHORITATIVE MIXED HUMAN/BOT ROOM (2026-10-18 UTC)
@@ -48,8 +48,27 @@ Public1v1 must immediately use the original matchmaking search panel, timer,
 button/cancel state and transitions. The existing custom preparation/loading
 strip does not satisfy that requirement. Original-code/asset tracing identifies
 the Searching... button, top-center elapsed-seconds/Cancel panel and original
-loading handoff. Reuse implementation, visible fidelity and queue race checks
-remain open. See matchmaking-search.txt and SERVER_REPLACEMENT_PLAN.txt.
+loading handoff. The opt-in local public1v1 implementation now drives that native
+state and posts the original joining signal after installing the connection.
+Visible search-native03 passes in232.419s: two cancellations, stale presentation
+ticket rejection, original search/timer/button state, native joining, bot combat,
+results/Continue and cleanup.44 produced bot units move under autonomous orders;
+maximum bot supply136. Seven PNGs are retained; pixel review confirms native
+search/X control, cleared panel/buttons after Cancel and full1v1 loading artwork.
+Owned process is reaped and covered source hashes are unchanged. Helper build
+and18 focused regressions pass. Earlier hidden-window capture and shortened-combat
+failures are retained in search-native01/02. This is an opt-in local checkpoint,
+with no new release package. Real server queue/timeout/disconnect races, error recovery, mouse
+interaction and ordinary Start Client integration remain open. See
+matchmaking-search.txt and SERVER_REPLACEMENT_PLAN.txt.
+
+ANALYSIS TOOL INSTALLATION (user update2026-10-18)
+Ghidra12.1.4 and a full Temurin JDK25.0.4.1 are present at the user-provided/local
+paths recorded privately through analysis-tools.txt. The current REA server lacks GHIDRA_INSTALL_DIR. A
+process-scoped CLI doctor recognizes Ghidra but its Java spawn is denied EPERM;
+this is not evidence that the installed JDK is missing. No configuration changes
+or Ghidra decompilation are claimed. Existing original-code evidence remains
+valid and the native UI/runtime work continues independently.
 
 PUBLIC BOT IDENTITY / LOCAL COMBAT CHECKPOINT (2026-10-18 UTC)
 The opt-in unified public1v1 path now chooses installed profile/deck/name/avatar
