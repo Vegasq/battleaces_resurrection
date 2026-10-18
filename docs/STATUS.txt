@@ -31,6 +31,10 @@ the deliberately killed worker exits1, all are reaped and source hashes unchange
 Evidence: local/p4-full314-01-tests.txt and local/p4-full312-01-tests.txt.
 The23 changed/new authored files pass the prepublication content audit;
 397 distinct staged/history paths/objects have zero failures. P3-P5 remain incomplete.
+Source commit f741813 is pushed to main. Clean-source archives are now under
+dist/p4-f741813; only source-revision manifest bytes differ from native-tested
+preview04. local/p4-clean-payload-comparison.json and both CMD verify commands pass.
+Exact archive hashes and qualification boundaries are in windows-packaging.txt.
 
 MATCH START FEEDBACK (2026-10-17, native state checks passed; visual check open)
 An owned nonblocking status strip follows AI, normal multiplayer and Custom Game

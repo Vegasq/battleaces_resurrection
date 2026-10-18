@@ -139,6 +139,18 @@ Runtime observed in both: Python3.14.8/OpenSSL3.5.9, Windows10 build19045 x64.
 The harness used explicit loopback development config; it did not exercise real
 private credential DACLs or TLS against a remote machine.
 
+Published source commit f74181368466a84c64d21329f96ec661452359f1 builds the clean
+local previews in dist/p4-f741813 (dirty:false):
+  Server ZIP12388832 bytes SHA256
+  a8cd6a63e2b4bbbef81fe13a625e7b29ccc0ca37cc92b812d7e8eb583c80fb6a
+  Client ZIP12774521 bytes SHA256
+  5f4b4590194a7cf93e2e7906405099710637a344ae8aa9f3aec2f21ba6d68eab
+local/p4-clean-payload-comparison.json verifies every archive entry against the
+native-tested preview04. Only compatibility.json/package-manifest.json change to
+record the clean source revision; all runtime/application/helper/guide/launcher
+bytes are identical. Both clean CMD entry points also pass verify from an unrelated
+working directory. The archives are local artifacts, not uploaded release assets.
+
 The243-test suite passes on installed Python3.14.8 (241 pass,2 optional skips,
 52.300s) and3.12.10 (242 pass,1 optional private-DACL skip,58.424s). Native bridge
 and original-byte checks are enabled in both;3.12 also enables its native-worker
