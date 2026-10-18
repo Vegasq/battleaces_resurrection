@@ -32,6 +32,13 @@ structured missing-config/CA errors also pass from an unrelated cwd with Python
 removed from PATH (local/p4-enrollment-cli01.json). The game helper was unchanged.
 Interactive setup, real protected permissions, clean PCs and internet play remain
 separate release gates; no original game or runtime binaries enter Git.
+Source8ab4ac5 builds clean local archives under dist/p4-8ab4ac5. Exact hashes are
+in windows-packaging.txt. Full archive comparison preserves all native-tested
+payloads except the final setup script, whose6 follow-up checks pass in0.761s.
+The final script reloads private paths after save, removing later dependency on
+the downloaded transfer file. Both clean CMD verify commands and setup-data pass.
+The17-file source publication audit covered416 distinct staged/history objects,
+with0 failures. No normal-account private test result has yet been received.
 
 PORTABLE WINDOWS PREVIEWS (2026-10-17; P4 progress, release gate open)
 Separate server/client archives bundle pinned Python3.14.8 and include only

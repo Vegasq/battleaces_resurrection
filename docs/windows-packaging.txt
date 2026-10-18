@@ -184,6 +184,20 @@ new setup-data and structured error commands through the CMD from an unrelated
 cwd with no Python on PATH. See client-enrollment.txt for source/TLS/UI-render
 checks and the separate normal-account protected-file test still pending.
 
+Source commit8ab4ac57bf96cdff27e211cbb11e122df225c0cf builds the clean previews
+under dist/p4-8ab4ac5 (dirty:false):
+  Server ZIP12378265 bytes SHA256
+  9bfaa282d73f02050aed71128ba102e195fbc9fce13c459b7a13142feffce9a9
+  Client ZIP12773676 bytes SHA256
+  ac3d57210f3a27693b7753ae49266ac4e94d2d257d42ad1dcdb8229bf097e713
+local/p4-enrollment-clean-comparison.json checks every archive entry against
+preview01. Only manifests and the final reviewed setup script differ; all server,
+runtime, patcher, enrollment backend, helper and guide bytes are unchanged. The
+script reloads its protected paths after a save and tolerates a process exiting
+at the timeout boundary; its6 follow-up checks pass (enrollment-gui02-tests.txt).
+Both clean CMD verify commands and client setup-data pass from an unrelated cwd
+with Python removed from PATH. These archives remain local preview artifacts.
+
 REMAINING RELEASE GATES
 
 Real second-PC/private internet play, real private-credential permissions under
