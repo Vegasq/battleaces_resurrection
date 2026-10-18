@@ -331,6 +331,7 @@ static void begin(Obj front) {
     ba::set<bool>(connection.get(),"isSpectator_",false);
     ba::set<Obj>(message.get(),"createdGame_",connection.get());ba::set<Obj>(message.get(),"playerHandle_",native::localRaw());
     wire::require(ba::get<int>(front,"_lastCustomGameMode")==1,"community custom mode changed");
+    if(ba::unified())ba_client::acquireRemote(front,lobby.match);
     activeLobby=lobby.id;activeMatch=lobby.match;activeEpoch=lobby.epoch;
     if(loading.pending && loading.lobby==activeLobby && loading.epoch==activeEpoch)
         ba_match_loading::advance(loading.ticket,ba_match_loading::Stage::Loading);

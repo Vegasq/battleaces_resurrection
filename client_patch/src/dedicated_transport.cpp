@@ -59,7 +59,8 @@ static bool submitDeck(Obj deck,bool initialReady=false) {
     Bytes ids;for(int index=0;index<8;++index){void* args[]={&index};Root value(ba::call(units,"get_Item",1,args));uint32_t id=*ba::api<uint32_t*(*)(Obj)>("il2cpp_object_unbox")(value.get());ba_lan::append32(ids,id);}
     if(ba::community()) {
         ba_community_wire::Deck values{};for(size_t i=0;i<8;++i)values[i]=ba_lan::u32(ids,4*i);
-        ba_community::send(ba_community_wire::setDeck(ba_community::nextRequest(),values));
+        const auto request=ba_community::send(ba_community_wire::setDeck(ba_community::nextRequest(),values));
+        ba_client::deckSubmitted(request);
     } else {
         ba_lan::send(22,ids);
         if(!initialReady)loadingCancel("selected deck changed");

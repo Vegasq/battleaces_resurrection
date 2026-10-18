@@ -133,7 +133,7 @@ async def run(args):
                 last_network = time.monotonic()
             log = read_native_log(game, process.pid, since_tick=launch_tick)
             require(not any(marker in log for marker in ('Practice stopped in ', 'Offline loop stopped in ',
-                'Offline practice initialization failed:', 'Practice settings UI failed in ',
+                'Offline practice initialization failed:', 'Local menu initialization failed:', 'Practice settings UI failed in ',
                 'PRACTICE SETTINGS SMOKE failed')), 'native practice failure; see logs')
             unity_log = output / 'game.log'
             if unity_log.exists():

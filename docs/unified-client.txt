@@ -1,6 +1,59 @@
 UNIFIED CLIENT LIFECYCLE
 Updated:2026-10-18. Architecture work in progress; public fallback is not shipped.
 
+Source integration checkpoint (bounded native lifecycle qualified)
+An opt-in --unified-experimental launcher now selects ABI2 and the new native
+application coordinator. The helper marker is required before launch. Existing
+release-preview/manual launchers are unchanged. The source path still consumes
+schema2 settings; a no-settings final Start Client/package remains required.
+local_menu.cpp owns the front,local identity,native selector/storage and profile
+for application lifetime. Explicit local versus server-deck initialization
+replaces the former launch-flag test. Unified presence preserves the local deck
+and submits it; native Create waits for its exact validation ACK. Failed deck
+validation completes the retained native request instead of leaving it pending.
+
+client_lifecycle.cpp gives local practice and remote matches exclusive world
+leases. Actual native idle/teardown gates precede identity restoration/release;
+generation/match checks reject stale releases. Optional connection failure closes
+only control transport and defers native presence cleanup to an idle menu.
+Try Deck retires optional presence before constructing its local world; it needs
+no reservation or server response. Its original AI readiness/result/Continue
+gates remain. The difficulty UI also uses the shared local menu capability.
+Custom can retain its original Create request before authentication; callback
+completion remains deferred until the native pending pointer is installed.
+The old process-wide offlinePractice flag is not toggled at runtime.
+
+Six C++ checks and build/helper-unified01 compile successfully. The focused
+Python3.14.8 run passes66 tests with one optional real-DACL enrollment skip.
+New tools.verify_unified_client exercises one hidden owned game and real local
+TLS/admission with in-memory invites. It starts unavailable, runs local practice,
+authenticates for deferred native Custom Create/Leave/cancel/re-enter, then runs
+changed-deck local practice. A distinct server deck fixture tests local selection
+retention; native army snapshots,unit orders/positions/supply and result/Continue
+are inspected. local/unified-native01 completed both local worlds and four Custom
+Create/Leave cycles in207.296s, with distinct local/server decks and configured
+name retained. Its strict combat check FAILED: the1200-frame surrender limit
+ended both matches before any Move12/Attack88 order. Each bot reached14 supply;
+production/position changes alone do not prove autonomous combat. Evidence and
+failure are retained; the helper is unchanged for the next run. The harness now
+allows up to3600 frames per match, matching the previously qualified Normal AI
+combat window. The owned process was
+reaped and source hashes remained unchanged. Forced cleanup is not native Quit.
+
+local/unified-native02 PASSES in426.064s with that3600-frame limit. One PID4776
+completes local practice -> TLS Custom Create/Leave -> changed-deck local practice.
+Both bots reach121 supply and43 produced units each have correlated autonomous
+Move/Attack orders and position changes. Both native results/Continue and world
+lease releases complete. Four Custom lobbies use the selected local deck, despite
+a different saved server deck. Two connection attempts include one unavailable
+attempt and one authenticated session; no multiplayer worker is created. Presence
+and all rooms/lobbies are gone during the second local match. Configured native
+name is retained in both army snapshots. Source hashes are unchanged; the owned
+game is forcibly reaped. Cross-process persistence, native Quit, actual unified
+remote match worlds, visual acceptance, public fallback and final packaging remain
+unqualified. Python3.12 adds40/40 focused passing tests with the native IPC probe.
+Helper SHA256:0ff0fd35219df3f742c1b388a8ccd2f570cefa5aa465a454ea4b6259fc6e05d1.
+
 Required behavior
 One Start Client entry point must initialize a usable native local menu without
 server settings,CA or invite. Try Deck is local. Optional authenticated presence

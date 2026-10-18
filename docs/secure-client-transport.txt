@@ -1,6 +1,13 @@
 SECURE CLIENT TRANSPORT
 Updated:2026-10-18
 
+Unified lifecycle checkpoint:the opt-in ABI2 helper now completes local practice,
+authenticated native Custom Create/Leave and another local practice match in one
+game process. Optional connection failure leaves the local menu usable. Native
+runtime evidence is unified-native02; see unified-client.txt for scope and hashes.
+This does not qualify actual unified remote match worlds or final startup without
+settings. Focused Python3.14.8:66/67 with one optional real-DACL skip;3.12:40/40.
+
 The new helper can use a Python transport parent for verified TLS and invite
 authentication. Its sole local link is an inherited connected socket pair. No
 local listener stays open. Each rematch opens a new authenticated remote session

@@ -91,6 +91,7 @@ static void send(unsigned char type,const Bytes& payload={}) {
     append32(tx,static_cast<uint32_t>(payload.size()+1));tx.push_back(type);tx.insert(tx.end(),payload.begin(),payload.end());
 }
 static void fail(const char* where,const std::exception& e) {
+    if(ba_client::optionalFailure(where,e))return;
     failureReason=e.what();
     stopped=true;running=false;closeSocket();
     ba_local::fail(where,e);

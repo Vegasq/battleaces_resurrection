@@ -99,11 +99,19 @@ static void restoreIdentity(Obj front) {
 }
 static void installPresence(Obj front) {
     restoreIdentity(front);
-    ba_lan::Bytes ids;for(auto id:ba_community::welcome.deck)ba_lan::append32(ids,id);
-    Root deck(ba_dedicated::deckFromIds(ids));ba_dedicated::installing=true;
-    try{ba_dedicated_deck::initialize(front,deck.get());}
-    catch(...){ba_dedicated::installing=false;throw;}
-    ba_dedicated::installing=false;ba_dedicated::initialized=true;
+    if(ba::unified()) {
+        wire::require(ba_local_menu::ready(front) && ba_dedicated_deck::initialized,"community presence before local menu");
+        ba_dedicated::initialized=true;
+        Root selected(ba_dedicated_deck::selectedProto(front));
+        ba_dedicated::submitDeck(selected.get());
+        ba::log("Community presence preserves native local deck; waiting for its validation ACK");
+    } else {
+        ba_lan::Bytes ids;for(auto id:ba_community::welcome.deck)ba_lan::append32(ids,id);
+        Root deck(ba_dedicated::deckFromIds(ids));ba_dedicated::installing=true;
+        try{ba_dedicated_deck::initialize(front,deck.get());}
+        catch(...){ba_dedicated::installing=false;throw;}
+        ba_dedicated::installing=false;ba_dedicated::initialized=true;
+    }
     ba_community_invites::anchorClock(front);
     ba_dedicated_session::lobbyInstalled=true;installed=true;
     ba::log("Community presence installed: profile=%s alias=%llu assignedSeat=%d BA_RESURRECTION_COMMUNITY_V1",
@@ -175,12 +183,12 @@ static void acknowledge(Obj front,const wire::Ack& ack) {
     ba::log("Community control ACK: request=%u kind=%u success=%d reason=%s",ack.request,ack.kind,ack.success?1:0,ack.reason.c_str());
 }
 static void enqueue(Obj front,Obj consumer) {
-    wire::require(owns(front) && installed,"community request outside owned session");
+    wire::require(owns(front) && (installed || (ba::unified() && ba_local_menu::ready(front))),"community request outside owned session");
     const int kind=ba::get<int>(consumer,"frontServerMessagesCase_");
     // A click already inside the original Reply caller will increment its
     // counter even after connection failure. Retain that credit for reset.
     if(kind==23 || kind==24 || kind==25){ba_community_invites::enqueue(front,consumer,kind);return;}
-    wire::require(ba_community::online && !ba_lan::stopped && requests.size()<16,"community control request unavailable/capacity");
+    wire::require((ba::unified() || (ba_community::online && !ba_lan::stopped)) && requests.size()<16,"community control request unavailable/capacity");
     Obj message=ba::get<Obj>(consumer,"frontServerMessages_");Root owner(manager(front));
     wire::require(message && owner.get(),"community request/manager unavailable");
     unsigned operation=static_cast<unsigned>(kind);
@@ -199,6 +207,7 @@ static void enqueue(Obj front,Obj consumer) {
         // deliver that now-cancelled Create callback into the released manager.
         for(auto& pending:requests)if(pending->kind==33)pending->cancelled=true;
     } else throw std::runtime_error("unsupported community native request");
+    if(ba::unified())ba_client::requestConnect();
     requests.push_back(std::make_unique<Pending>(operation,message,owner.get()));
     ba::log("Community native request queued: operation=%u native=%p; send and callback deferred",operation,message);
 }
@@ -208,6 +217,13 @@ static void dispatch(Obj front) {
     while(!requests.empty() && !requests.front()->request) {
         Pending& pending=*requests.front();
         if(pending.kind==33 && pending.cancelled){requests.pop_front();continue;}
+        if(pending.kind==33 && !ba_client::deckReady()) {
+            if(ba_client::deckPending())return;
+            Root message(pending.message.get()),owner(pending.manager.get());requests.pop_front();
+            if(ba::get<Obj>(owner.get(),"_pendingCreateLobbyRequest")==message.get())
+                ba::native<void(*)(Obj,Obj,int,Obj)>(0x3e48360)(front,nullptr,2,nullptr);
+            ba::log("Community native Create rejected: selected local deck has not been accepted");continue;
+        }
         if(pending.kind==33 && authority.phase!=wire::None) {
             Root message(pending.message.get()),owner(pending.manager.get());requests.pop_front();
             if(ba::get<Obj>(owner.get(),"_pendingCreateLobbyRequest")==message.get())
@@ -246,6 +262,7 @@ static void project(Obj front) {
 }
 static void smoke(Obj front) {
     if(!ba::flag(L"-community-create-smoke"))return;
+    if(ba::unified() && !ba_client::allowCustomSmoke())return;
     const ULONGLONG now=GetTickCount64();if(!smokeAt){smokeAt=now+2500;return;}if(now<smokeAt)return;
     Root owner(manager(front));wire::require(owner.get()!=nullptr,"community smoke manager unavailable");
     if(smokeStage==0) {
@@ -295,7 +312,7 @@ static void update(Obj front) {
     while(!ba_community::events.empty()) {
         auto event=std::move(ba_community::events.front());ba_community::events.pop_front();
         if(const auto* ack=std::get_if<wire::Ack>(&event)) {
-            if(!ba_practice::acknowledge(front,*ack) && !ba_community_match::acknowledge(front,*ack) && !ba_community_invites::acknowledge(front,*ack))acknowledge(front,*ack);
+            if(!ba_client::acknowledge(*ack) && !ba_practice::acknowledge(front,*ack) && !ba_community_match::acknowledge(front,*ack) && !ba_community_invites::acknowledge(front,*ack))acknowledge(front,*ack);
             ba_community_invites::flush(front);project(front);
         }
         else if(const auto* snapshot=std::get_if<wire::Lobby>(&event)){authority=*snapshot;ba_community_match::snapshot(front);ba_community_invites::flush(front);project(front);}

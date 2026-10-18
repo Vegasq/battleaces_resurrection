@@ -23,6 +23,18 @@ namespace ba_dedicated_results { static void receive(const std::string&); }
 namespace ba_audit { static void beginMatch(const std::string&);static void practiceAIView(void*,int); }
 namespace ba_telemetry_audit { static void startup();static void update(); }
 namespace ba_practice_settings_ui { static void update(void* front);static bool smokeComplete(); }
+namespace ba_community_wire {struct Ack;}
+namespace ba_local_menu {
+static bool ensure(void*);static bool ready(void*);static void restoreIdentity(void*);
+}
+namespace ba_client {
+static void update(void*);static bool optionalFailure(const char*,const std::exception&);
+static void requestConnect();static bool deckReady();static bool deckPending();static void deckSubmitted(uint32_t);
+static bool acknowledge(const ba_community_wire::Ack&);
+static void prepareLocal(void*);static uint64_t acquireLocal(void*);static void releaseLocal(void*,uint64_t);
+static void acquireRemote(void*,const std::string&);static void releaseRemote(void*,const std::string&);
+static bool remoteWorld();static bool allowPracticeSmoke();static bool allowCustomSmoke();
+}
 namespace ba_dedicated_session {
 static void update(void* front);
 static bool retryFromPlay(void* front,int mode);
@@ -69,8 +81,10 @@ static const std::vector<std::wstring>& arguments() {
 static bool flag(const wchar_t* name){return ba_command_line::has(arguments(),name);}
 static bool exportServerAssets() {return flag(L"-export-server-assets");}
 static bool offlinePractice() {return !exportServerAssets() && flag(L"-offline-practice");}
-static bool dedicated() {std::wstring value;return !offlinePractice() && !exportServerAssets() && ba_command_line::value(arguments(),L"-dedicated-server=",value);}
-static bool community() {return dedicated() && flag(L"-dedicated-community");}
+static bool unified() {return !exportServerAssets() && flag(L"-unified-client");}
+static bool localMenu() {return offlinePractice() || unified();}
+static bool dedicated() {std::wstring value;return !offlinePractice() && !exportServerAssets() && (unified() || ba_command_line::value(arguments(),L"-dedicated-server=",value));}
+static bool community() {return dedicated() && (unified() || flag(L"-dedicated-community"));}
 static bool lan() { return !offlinePractice() && !exportServerAssets() && (dedicated() || flag(L"-offline-lan")); }
 static int dedicatedAssignedSlot=-1;
 static int requestedLanSlot() {
@@ -249,7 +263,8 @@ extern "C" __declspec(dllexport) void OfflineFrontUpdate(void* front,void*) {
         // flag check and performs no FSM, UnityPlayer or native-object reads.
         ba_telemetry_audit::update();
         ba_catalog::exportOnce();
-        if(offlinePractice())ba_practice::offlineUpdate(front);
+        if(unified())ba_client::update(front);
+        else if(offlinePractice())ba_practice::offlineUpdate(front);
         else if(lan())lanFrontUpdate(front);
         ba_match_loading::update(front);
         ba_match_loading_smoke::update(front);
@@ -281,8 +296,10 @@ extern "C" __declspec(dllexport) void OfflineFrontUpdate(void* front,void*) {
 #include "community_popup.cpp"
 #include "community_match.cpp"
 #include "practice_settings.cpp"
+#include "local_menu.cpp"
 #include "practice_ai.cpp"
 #include "practice_settings_ui.cpp"
+#include "client_lifecycle.cpp"
 #include "match_loading.cpp"
 #include "match_loading_smoke.cpp"
 #include "server_assets_export.cpp"

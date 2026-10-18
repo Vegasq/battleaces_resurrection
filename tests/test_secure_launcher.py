@@ -101,6 +101,25 @@ class SecureLauncherTests(unittest.TestCase):
         self.assertNotIn(str(config['credential_file']), argv)
         self.assertNotIn(str(config['ca_bundle']), argv)
 
+    def test_unified_launch_requires_new_helper_and_selects_both_adapters(self):
+        root, path, manifest = self.install()
+        manifest['community'] = dict(native_scope='custom-match-prototype')
+        helper = root / 'BattleAcesOffline.dll'
+        helper.write_bytes(helper.read_bytes() + b' BA_RESURRECTION_TLS_BRIDGE_V2 BA_RESURRECTION_COMMUNITY_MATCH_V1')
+        manifest['helper_sha256'] = hashlib.sha256(helper.read_bytes()).hexdigest()
+        path.write_text(json.dumps(manifest))
+        with self.assertRaisesRegex(launch.LaunchError, 'unified client lifecycle'):
+            launch.verify_game(root, community=True, bridge_version=2, unified=True)
+        helper.write_bytes(helper.read_bytes() + b' BA_RESURRECTION_UNIFIED_CLIENT_V1')
+        manifest['helper_sha256'] = hashlib.sha256(helper.read_bytes()).hexdigest()
+        path.write_text(json.dumps(manifest))
+        launch.verify_game(root, community=True, bridge_version=2, unified=True)
+        argv = launch.game_arguments(self.load(), None, 1234, argparse.Namespace(run_name='test', unified_experimental=True))
+        for flag in ('-unified-client', '-secure-transport-version=2', '-dedicated-community'):
+            self.assertIn(flag, argv)
+        self.assertNotIn('-offline-practice', argv)
+        self.assertFalse(any(argument.startswith('-player-id=') for argument in argv))
+
     def test_component_hash_restore_and_path_escape_fail_before_spawn(self):
         root, path, manifest = self.install()
         launch.verify_game(root)

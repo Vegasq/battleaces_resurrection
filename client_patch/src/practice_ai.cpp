@@ -11,14 +11,13 @@ struct State {
     std::unique_ptr<Root> front,controller,human,bot,humanDeck,botDeck,encoded,ai,process,completionInfo,completionUI;
     std::string match;
     uint32_t request=0,aiProfile=18,difficultyProfile=18;
+    uint64_t worldLease=0;
     bool reserved=false,buildStarted=false,adding=false,joinPending=false,aiStarted=false,result=false;
     bool conceded=false,continued=false,modalReleased=false;
     bool humanReady=false,botReady=false,humanJoined=false,botJoined=false;
     ULONGLONG began=0,diagnostic=0,aiRequestedAt=0,completionAt=0;
 };
 static auto& state=*new State();
-static auto& offlineFront=*new std::unique_ptr<Root>();
-static bool offlineInitialized=false,offlineFailed=false;
 // The original table loader retains its asset for application lifetime, matching
 // the other StaticTables preloads. Do not unload it between practice matches.
 static auto& characterReference=*new std::unique_ptr<Root>();
@@ -89,7 +88,7 @@ static uint32_t profileId() {
     return state.aiProfile; // Frozen at match creation, including through results.
 }
 static void applyDifficultyModifiers(Obj config) {
-    if(!ba::offlinePractice())return;
+    if(!ba::localMenu())return;
     Root profile(tableElement("AIProfileTable",state.difficultyProfile));
     require(profile.get() && ba::get<bool>(profile.get(),"Enable") && ba::get<int>(profile.get(),"GameMode")==4,"difficulty modifier profile mismatch");
     Root definition(need(ba::get<Obj>(profile.get(),"AIConfigDefinition"),"difficulty definition missing"));
@@ -160,7 +159,7 @@ static Obj aiDeck() {
     Obj definition=need(ba::get<Obj>(need(character.get(),"practice AI character missing"),"AICharacterDefinition"),"practice AI character definition missing");
     Root shared(ba::get<Obj>(definition,"Deck"));Root copy(ba::make("Uncapped","Deck"));
     void* copyArgs[]={need(shared.get(),"practice authored AI deck missing")};ba::call(copy.get(),"CopyFromDeck",1,copyArgs);
-    ba::log("Practice AI policy: profile=%u first shipped character=%u; shared definition copied; offlineDifficulty=%d",profileId(),characterId,ba::offlinePractice()?1:0);
+    ba::log("Practice AI policy: profile=%u first shipped character=%u; shared definition copied; offlineDifficulty=%d",profileId(),characterId,ba::localMenu()?1:0);
     return ba_dedicated_deck::proto(copy.get());
 }
 static void fail(const char* where,const std::exception& error) {
@@ -174,10 +173,10 @@ static uint64_t humanId() {
     return ba::get<uint64_t>(ba::get<Obj>(ba::get<Obj>(state.human->get(),"playerHandleWithName_"),"playerHandle_"),"steamId_");
 }
 static void start(Obj front,Obj controller) {
-    if(!ba::offlinePractice() && !ba::flag(L"-practice-ai-experimental")) {ba::log("Try Deck vs AI is not enabled in this build's normal launcher");return;}
+    if(!ba::localMenu() && !ba::flag(L"-practice-ai-experimental")) {ba::log("Try Deck vs AI is not enabled in this build's normal launcher");return;}
     if(active()){ba::log("Practice already pending or active; duplicate start ignored");return;}
-    if(ba::offlinePractice())
-        require(offlineInitialized && !offlineFailed && offlineFront && offlineFront->get()==front,"offline practice menu is not ready");
+    if(ba::localMenu())
+        require(ba_local_menu::ready(front),"local practice menu is not ready");
     else require(ba::community() && ba_community_native::owns(front) && ba_community_native::installed &&
         ba_community::online && !ba_lan::stopped,"practice requires a healthy community presence");
     require(ba_dedicated_session::inMenu() && ba_dedicated_session::worldIdle(ba::read<Obj>(front,0xd8)) &&
@@ -185,11 +184,12 @@ static void start(Obj front,Obj controller) {
         ba_community_native::requests.empty() && ba_community_invites::operations.empty() &&
         !ba::get<Obj>(front,"_party") && ba_lan::bootstrap.empty(),"leave multiplayer before starting practice");
     require(ba_dedicated_deck::canReady(front),"practice selected deck is not valid");
-    state.difficultyProfile=ba::offlinePractice()?ba_practice_settings::selection():
+    if(ba::unified())ba_client::prepareLocal(front);
+    state.difficultyProfile=ba::localMenu()?ba_practice_settings::selection():
         ba_practice_settings::profile(ba::argument(L"-practice-ai-profile=","17"));
     // Shipped Easy17 has no tactical group rules and failed movement acceptance.
     // Offline Easy uses the working Normal tactics plus Easy's authored strength.
-    state.aiProfile=ba::offlinePractice() && state.difficultyProfile==17?18:state.difficultyProfile;
+    state.aiProfile=ba::localMenu() && state.difficultyProfile==17?18:state.difficultyProfile;
     root(state.front,front);root(state.controller,controller);
     root(state.human,ba::get<Obj>(front,"_playerGameHandle"));
     root(state.humanDeck,ba_dedicated_deck::selectedProto(front));
@@ -197,13 +197,14 @@ static void start(Obj front,Obj controller) {
     static const char hex[]="0123456789abcdef";state.match.clear();
     for(unsigned char byte:random){state.match+=hex[byte>>4];state.match+=hex[byte&15];}++generations;
     state.began=GetTickCount64();
-    if(ba::offlinePractice())state.phase=Phase::Building;
+    if(ba::unified())state.worldLease=ba_client::acquireLocal(front);
+    if(ba::localMenu())state.phase=Phase::Building;
     else {
         state.phase=Phase::Reserving;
         state.request=ba_community::send(wire::practice(ba_community::nextRequest(),true));
     }
     state.loadingTicket=ba_match_loading::begin(ba_match_loading::Source::Practice,state.match,ba_match_loading::Stage::Preparing);
-    ba::log("Practice requested: match=%s mode=4 selectedDeckSnapshot=1 standalone=%d",state.match.c_str(),ba::offlinePractice()?1:0);
+    ba::log("Practice requested: match=%s mode=4 selectedDeckSnapshot=1 standalone=%d",state.match.c_str(),ba::localMenu()?1:0);
     ba::log("Practice difficulty snapshot: selected=%s modifierProfile=%u tuningProfile=%u",ba_practice_settings::name(state.difficultyProfile),state.difficultyProfile,state.aiProfile);
 }
 static bool acknowledge(Obj front,const wire::Ack& ack) {
@@ -225,7 +226,7 @@ static bool acknowledge(Obj front,const wire::Ack& ack) {
 }
 static void build() {
     require(state.phase==Phase::Building && !state.buildStarted,"practice duplicate map builder");
-    require(ba::offlinePractice() || !ba_lan::stopped,"practice presence lost before creation");
+    require(ba::localMenu() || !ba_lan::stopped,"practice presence lost before creation");
     if(!characterTableReady())return;
     state.buildStarted=true;
     Obj method=ba::api<Obj(*)(Obj,const char*,int)>("il2cpp_class_get_method_from_name")(ba::find_class("Uncapped.UI","IGameSettingController"),"GetConfigForMode",1);
@@ -486,7 +487,8 @@ static void release() {
     // This boundary proves actual native shutdown; requesting a menu transition
     // alone must not pretend that an outstanding async load has been cancelled.
     ba_match_loading::cancel(state.loadingTicket,"practice returned to menu");state.loadingTicket=0;
-    if(ba::offlinePractice()) {
+    if(ba::localMenu()) {
+        if(ba::unified())ba_client::releaseLocal(state.front->get(),state.worldLease);
         ++completed;ba::log("Practice returned: completed=%u mode=4 seat=-1 presenceRetained=0 standalone=1",completed);
         state=State{};return;
     }
@@ -501,7 +503,7 @@ static bool frontUpdate(Obj front) {
     if(!active())return false;
     try {
         require(state.front && state.front->get()==front,"practice front ownership");
-        if(!ba::offlinePractice() && !ba_lan::stopped) {
+        if(!ba::localMenu() && !ba_lan::stopped) {
             try{ba_lan::poll();ba_community_native::update(front);}
             catch(const std::exception& e){ba_lan::fail("practice presence",e);}
         }
@@ -538,7 +540,8 @@ static bool frontUpdate(Obj front) {
 static void smoke(Obj front) {
     const unsigned matches=ba::argument(L"-practice-ai-smoke-matches=","1")=="2"?2u:1u;
     if(!ba::flag(L"-practice-ai-smoke") || active() || completed>=matches ||
-       !(ba::offlinePractice()?offlineInitialized:ba_community_native::installed))return;
+       !(ba::localMenu()?ba_local_menu::ready(front):ba_community_native::installed))return;
+    if(ba::unified() && !ba_client::allowPracticeSmoke())return;
     static ULONGLONG at=0;static bool opened=false,clicked=false;static unsigned round=0;
     if(round!=completed) {
         round=completed;at=0;opened=false;clicked=false;
@@ -613,7 +616,7 @@ static void releaseOfflineIdleDisconnect(Obj front) {
     // service. Cancel only its owned legacy disconnect UI, once per idle return.
     // In particular, cancel its delayed coroutine even before a modal appears.
     Obj game=ba::read<Obj>(front,0xd8);
-    if(!offlineInitialized || active() || !ba_dedicated_session::inMenu() ||
+    if(!ba_local_menu::ready(front) || active() || !ba_dedicated_session::inMenu() ||
        !ba_dedicated_session::worldIdle(game) || ba::read<bool>(ba::owner,0x280))return;
     static unsigned generation=0,checks=0,observations=0;
     static bool attempted=false;
@@ -649,41 +652,17 @@ static void releaseOfflineIdleDisconnect(Obj front) {
     observationAt=now+5000;
 }
 static void offlineUpdate(Obj front) {
-    if(!ba::offlinePractice() || offlineFailed)return;
+    if(!ba::offlinePractice() || !ba_local_menu::ensure(front))return;
     try {
-        Obj services=ba::get<Obj>(ba::owner,"<ServiceManager>k__BackingField");
-        require(services && ba::read<Obj>(services,0x10)==front &&
-            ba::read<Obj>(services,0x18)==ba::read<Obj>(front,0xd8),"offline practice service ownership");
-        if(!ba_dedicated_session::unityThread)ba_dedicated_session::unityThread=GetCurrentThreadId();
-        require(ba_dedicated_session::unityThread==GetCurrentThreadId(),"offline practice called off Unity thread");
-        ba_dedicated_session::observedFront=front;
-        if(!offlineInitialized) {
-            if(!ba_dedicated_session::inMenu() || !ba_dedicated_session::worldIdle(ba::read<Obj>(front,0xd8)))return;
-            root(offlineFront,front);Root player(ba_lan_bootstrap::identityLan(front,0));
-            Root name(ba::str(ba::argument(L"-player-name=","Offline Player").c_str()));
-            Obj named=ba::get<Obj>(player.get(),"playerHandleWithName_");
-            ba::set<Obj>(named,"playerName_",name.get());ba::set<Obj>(named,"filteredName_",name.get());
-            ba::set<Obj>(front,"_currentPlayerName",name.get());
-            Obj account=ba::get<Obj>(front,"_accountService");ba::local_profile(account);
-            Obj selector=ba::get<Obj>(front,"_deckSelector"),storage=ba::read<Obj>(ba::owner,0x110);
-            require(selector && storage && selector==ba::read<Obj>(ba::owner,0x108) &&
-                selector==ba::get<Obj>(account,"_deckSelector") &&
-                storage==ba::read<Obj>(selector,0x10) && storage==ba::get<Obj>(account,"_localDeckStorage"),
-                "offline practice native deck storage ownership");
-            Obj profile=ba::get<Obj>(account,"<ProfileCache>k__BackingField");
-            ba::set<Obj>(profile,"name_",name.get());ba::set<bool>(profile,"isAlias_",true);
-            ba_dedicated_deck::initialize(front,nullptr);ba_practice_settings::selection();offlineInitialized=true;
-            ba::log("Offline practice menu ready: native local deck storage; no community or LAN transport; BA_RESURRECTION_OFFLINE_PRACTICE_V1");
-        }
-        require(offlineFront->get()==front,"offline practice front changed");
+        static bool logged=false;
+        if(!logged){logged=true;ba::log("Offline practice menu ready: native local deck storage; no community or LAN transport; BA_RESURRECTION_OFFLINE_PRACTICE_V1");}
         if(frontUpdate(front))return;
         releaseOfflineIdleDisconnect(front);
         ba_practice_settings_ui::update(front);
         if(!ba::flag(L"-practice-settings-smoke") || ba_practice_settings_ui::smokeComplete())smoke(front);
     }catch(const std::exception& e){
-        offlineFailed=true;
         if(active())fail("offline menu",e);
-        else ba::log("Offline practice initialization failed: %s",e.what());
+        else ba::log("Offline practice menu failed: %s",e.what());
     }
 }
 }

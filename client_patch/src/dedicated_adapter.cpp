@@ -290,6 +290,7 @@ static void releaseRoot(uint32_t& root) {
 static void resetAtMenu(Obj front,Obj server,bool completed,bool keepCommunity=false) {
     if(!inMenu() || !worldIdle(server) || ba_dedicated_results::updating)
         throw std::runtime_error("dedicated reset requires idle native world and main menu");
+    const std::string releaseMatch=ba_lan::dedicatedMatchId;
     ba::log("Dedicated session reset: match=%s sessions=%u completed=%d nextFrame=%d; native world inactive/zero",
         ba_lan::dedicatedMatchId.c_str(),startedSessions,completed?1:0,ba_lan::nextFrame);
     ba_dedicated::loadingCancel("native match returned to menu");
@@ -320,8 +321,10 @@ static void resetAtMenu(Obj front,Obj server,bool completed,bool keepCommunity=f
     ba_lan::nextFrame=0;ba_lan::inputWindow=0;ba_lan::bootstrapHash=0;ba_lan::connectStarted=0;ba_lan::failureReason.clear();
     if(!keepCommunity) {
         ba_dedicated::installing=false;ba_dedicated::initialized=false;
-        ba_dedicated_deck::initialized=false;ba_dedicated_deck::suppress=false;
-        releaseRoot(ba_dedicated_deck::accountRoot);
+        if(!ba::unified()) {
+            ba_dedicated_deck::initialized=false;ba_dedicated_deck::suppress=false;
+            releaseRoot(ba_dedicated_deck::accountRoot);
+        }
     }
     ba_dedicated_results::pending=false;ba_dedicated_results::delivered=false;
     ba_dedicated_results::gameOverFrame=-1;ba_dedicated_results::winningAlliance=31;
@@ -340,6 +343,7 @@ static void resetAtMenu(Obj front,Obj server,bool completed,bool keepCommunity=f
     failureNoticeShown=false;failureNoticeCheckAt=0;failureNoticeChecks=0;
     retryReleaseAttempted=false;retryModalReleased=false;retryContinueIssued=false;
     if(completed){deferredPlay=false;retryNeedsPlay=false;}
+    if(ba_client::remoteWorld())ba_client::releaseRemote(front,releaseMatch);
 }
 static bool retryFromPlay(Obj front,int) {
     if(!ba::dedicated() || !ba_lan::stopped)return false;
@@ -523,6 +527,10 @@ static void update(Obj front) {
 // the generic connection routine itself are not patched.
 extern "C" __declspec(dllexport) void OfflineDedicatedRetryLogin(void* front,void* methodInfo) {
     ba::init();
+    if(ba::unified() && !ba_client::remoteWorld()) {
+        try{ba_client::requestConnect();}catch(const std::exception& e){ba::log("Client connection retry: %s",e.what());}
+        return;
+    }
     if(ba::offlinePractice()){ba::log("Offline practice ignores obsolete service reconnect");return;}
     if(!ba::dedicated()) {
         ba::native<void(*)(ba::Obj,ba::Obj)>(0x256da30)(front,methodInfo);return;

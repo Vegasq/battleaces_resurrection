@@ -102,10 +102,12 @@ class RemoteConfigResolver:
         return await asyncio.to_thread(self.read)
 
 
-def verify_game(root, *, community=False, bridge_version=1):
+def verify_game(root, *, community=False, bridge_version=1, unified=False):
     from client_patch.patcher.patch_client import contained_path
     if type(bridge_version) is not int or bridge_version not in (1, 2):
         raise LaunchError('Unsupported private transport version')
+    if unified and (not community or bridge_version != 2):
+        raise LaunchError('Unified client requires community integration and private transport ABI2')
     root = Path(root).resolve()
     manifest = read_json(root / '.battleaces-resurrection/patch-manifest.json', 131072)
     if not isinstance(manifest, dict) or manifest.get('state') == 'restored':
@@ -130,6 +132,8 @@ def verify_game(root, *, community=False, bridge_version=1):
                         raise LaunchError('Install a helper supporting secure transport ABI1')
                     if bridge_version == 2 and b'BA_RESURRECTION_TLS_BRIDGE_V2' not in helper:
                         raise LaunchError('Install a helper supporting secure transport ABI2')
+                    if unified and b'BA_RESURRECTION_UNIFIED_CLIENT_V1' not in helper:
+                        raise LaunchError('Install a helper supporting the unified client lifecycle')
                     if b'BA_RESURRECTION_GAME_PROTOCOL_3' not in helper:
                         raise LaunchError('Install the protocol3 client helper for configurable buffering')
                     if community and b'BA_RESURRECTION_COMMUNITY_MATCH_V1' not in helper:
@@ -151,7 +155,8 @@ def game_arguments(config, player_id, handle, args):
     root = config['game_directory']
     runtime = root / 'investigation/runtime'
     runtime.mkdir(parents=True, exist_ok=True)
-    dynamic = getattr(args, 'dynamic_identity_experimental', False)
+    unified = getattr(args, 'unified_experimental', False)
+    dynamic = unified or getattr(args, 'dynamic_identity_experimental', False)
     log_identity = f'session-{os.getpid()}-{handle}' if dynamic else player_id
     result = [str(root / 'Battle Aces.exe'), '-offline-lan',
         f"-dedicated-server={config['server_host']}:{config['server_port']}",
@@ -161,11 +166,12 @@ def game_arguments(config, player_id, handle, args):
         '-logFile', str(runtime / (run_name + '-' + log_identity + '.log'))]
     if dynamic: result.append('-secure-transport-version=2')
     else: result.append(f'-player-id={player_id}')
+    if unified: result.append('-unified-client')
     switches = dict(auto_ready='-dedicated-auto-ready', smoke='-lan-smoke', deck_smoke='-dedicated-deck-smoke',
                     surrender_smoke='-dedicated-surrender-smoke', telemetry_audit='-telemetry-audit', audit='-lan-audit')
     for option, flag in switches.items():
         if getattr(args, option, False): result.append(flag)
-    if getattr(args, 'community_experimental', False):
+    if unified or getattr(args, 'community_experimental', False):
         if getattr(args, 'auto_ready', False) or getattr(args, 'rematch_smoke', False):
             raise LaunchError('Use native Custom Game Invite/Start instead of automatic queue readiness')
         result.append('-dedicated-community')
@@ -182,7 +188,8 @@ def spawn_game(config, remote, args, child_socket):
     startup.dwFlags |= subprocess.STARTF_USESHOWWINDOW
     startup.wShowWindow = 1  # Normal interactive game window.
     startup.lpAttributeList = {'handle_list': [child_socket.fileno()]}
-    player_id = None if getattr(args, 'dynamic_identity_experimental', False) else remote.player_id
+    dynamic = getattr(args, 'unified_experimental', False) or getattr(args, 'dynamic_identity_experimental', False)
+    player_id = None if dynamic else remote.player_id
     argv = game_arguments(config, player_id, child_socket.fileno(), args)
     try:
         child_socket.set_inheritable(True)
@@ -199,8 +206,10 @@ async def launch(config, remote, args):
     This API also permits controlled in-memory credentials in integration tests;
     there is no public bypass flag or token argument.
     """
-    version = 2 if getattr(args, 'dynamic_identity_experimental', False) else 1
-    verify_game(config['game_directory'], community=getattr(args, 'community_experimental', False), bridge_version=version)
+    unified = getattr(args, 'unified_experimental', False)
+    version = 2 if unified or getattr(args, 'dynamic_identity_experimental', False) else 1
+    verify_game(config['game_directory'], community=unified or getattr(args, 'community_experimental', False),
+                bridge_version=version, unified=unified)
     parent, child = socket.socketpair(socket.AF_INET)
     parent.setblocking(False)
     writer = task = None
@@ -239,12 +248,14 @@ def main(argv=None):
     parser.add_argument('--community-experimental', action='store_true', help='use native Custom Game on an experimental patched copy')
     parser.add_argument('--dynamic-identity-experimental', action='store_true',
                         help='reload connection settings per session with private bridge ABI2')
+    parser.add_argument('--unified-experimental', action='store_true',
+                        help='use local menu/practice with optional authenticated Custom presence')
     for flag in ('auto-ready', 'smoke', 'deck-smoke', 'surrender-smoke', 'rematch-smoke', 'recovery-smoke', 'postgame-recovery-smoke', 'quit-smoke', 'telemetry-audit', 'audit'):
         parser.add_argument('--' + flag, action='store_true', help='optional development diagnostic')
     args = parser.parse_args(argv)
     try:
         config = load_config(args.config)
-        if args.dynamic_identity_experimental:
+        if args.unified_experimental or args.dynamic_identity_experimental:
             remote = RemoteConfigResolver(args.config, config['game_directory'])
         else:
             context = tls.load_client_context(config['ca_bundle'], config['server_name'])

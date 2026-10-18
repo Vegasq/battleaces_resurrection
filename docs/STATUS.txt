@@ -14,6 +14,24 @@ The plan now includes these final requirements, team-mode research and late-star
 race tests; the old1v1-only release default/team-mode deferral is superseded.
 These additions are planned, not implemented or qualified by the1v1 evidence.
 
+UNIFIED LOCAL MENU / OPTIONAL CUSTOM LIFECYCLE (2026-10-18 UTC)
+An opt-in application coordinator now retains local menu/deck/profile ownership
+across optional authenticated presence and tracks exclusive local/remote world
+leases. Local Try Deck retires presence and needs no server reservation. Custom
+Create waits for the server to accept the local selection rather than replacing
+it with the saved server deck. Native local -> authenticated Custom Create/Leave
+-> changed-deck local play PASSES in one PID in426.064s (unified-native02).
+Each of two bots reaches121 supply with43 ordered moving produced units; native
+result/Continue and world cleanup complete twice. Four Custom lobbies, one TLS
+authentication, no server workers, native configured name and deck retention are
+verified. The earlier60-second combat check failure remains in unified-native01.
+Six C++ checks/helper build pass; Python3.14.8 passes66/67 with one real-DACL
+enrollment skip, and3.12 passes40/40 focused cases. Source hashes stay unchanged
+during native runs and owned games are reaped. Manual/frozen runtimes unchanged.
+Source prototype still needs settings; unified remote match worlds, persistence,
+public/team AI fallback, native Quit and final release remain open. See
+unified-client.txt for exact scope, evidence and helper hash.
+
 UNIFIED CLIENT FOUNDATION / BOT AND TEAM CONTRACTS (2026-10-18 UTC)
 Private bridge ABI2 supports deferred local connection settings and a fresh
 authenticated identity per OPEN. The native helper builds HELLO only after READY;
@@ -37,9 +55,9 @@ roles; mode5 has opponent60 but no teammate pool. Four-army source/protocol/worl
 work and runtime proof remain open; see team-modes.txt. REA native providers were
 unavailable; evidence uses pinned metadata/LLVM/bundle decoding. No extracted
 tables/assets enter Git and no game was launched for this research.
-unified-client.txt records the next lifecycle slice:durable local menu/deck,
-explicit world ownership,optional presence and local practice->Custom->practice
-in one PID. Do not toggle offlinePractice at runtime or let optional online
+unified-client.txt records durable local menu/deck, explicit world ownership,
+optional presence and the qualified local practice->Custom Create/Leave->practice
+slice in one PID. Do not toggle offlinePractice at runtime or let optional online
 failure stop a local world. Existing manual/frozen game runtimes remain unchanged.
 
 TELEMETRY CONFIGURATION GUARDS / OBSERVATION COVERAGE (2026-10-18 UTC)

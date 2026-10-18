@@ -237,14 +237,14 @@ static bool smokeComplete() {return smokePassed;}
 
 extern "C" __declspec(dllexport) void* OfflinePracticeSettingsModel(void* object,void* method) {
     ba::init();ba_local::Root original(ba::native<ba::Obj(*)(ba::Obj,ba::Obj)>(0x29b92d0)(object,method));
-    if(!ba::offlinePractice() || !original.get())return original.get();
+    if(!ba::localMenu() || !original.get())return original.get();
     try {if(auto* row=ba_practice_settings_ui::acquire(object,original.get()))return row->projection.get();}
     catch(const std::exception& e){ba_practice_settings_ui::disableRow();ba_practice_settings_ui::report("model projection",e);}
     return original.get();
 }
 extern "C" __declspec(dllexport) void OfflinePracticeSettingsApply(void* model,int value,void* vm) {
     ba::init();using namespace ba_practice_settings_ui;
-    if(ba::offlinePractice() && blockedRow && blockedRow->get()==vm) {
+    if(ba::localMenu() && blockedRow && blockedRow->get()==vm) {
         try {
             require(unityThread() && blockedModel && blockedModel->get()==model && row && row->model.get()==model && !row->releasing && !row->failed,"practice selection owner unavailable");
             require(value>=17 && value<=19,"practice selection value outside difficulty range");
@@ -265,13 +265,13 @@ extern "C" __declspec(dllexport) void OfflinePracticeSettingsApply(void* model,i
 }
 extern "C" __declspec(dllexport) void OfflinePracticeSettingsOptions(void* receiver,int selected,int* index,void* method) {
     ba::init();using namespace ba_practice_settings_ui;
-    if(ba::offlinePractice() && row && row->receiver.get()==receiver && !row->releasing) {
+    if(ba::localMenu() && row && row->receiver.get()==receiver && !row->releasing) {
         try{populate(*row,selected,index);}catch(const std::exception& e){if(index)*index=0;disableRow();report("options",e);}return;
     }
     ba::native<void(*)(Obj,int,int*,Obj)>(0x3c92340)(receiver,selected,index,method);
 }
 extern "C" __declspec(dllexport) void OfflinePracticeSettingsRelease(void* object,void* method) {
-    ba::init();if(ba::offlinePractice())try{ba_practice_settings_ui::released(object);}
+    ba::init();if(ba::localMenu())try{ba_practice_settings_ui::released(object);}
     catch(const std::exception& e){ba_practice_settings_ui::report("release",e);}
     // Also executed on a restoration error; retaining roots then prevents the
     // helper from treating a partially restored pooled row as newly owned.
@@ -410,10 +410,10 @@ static bool closeSettings() {
 }
 static void next(unsigned stage,ULONGLONG now) {smokeStage=stage;smokeDue=now+350;smokeDeadline=now+30000;}
 static void update(Obj front) {
-    if(!ba::offlinePractice() || !ba::flag(L"-practice-settings-smoke") || smokePassed || smokeFailed)return;
+    if(!ba::localMenu() || !ba::flag(L"-practice-settings-smoke") || smokePassed || smokeFailed)return;
     try {
         require(unityThread(),"practice settings smoke outside Unity thread");
-        if(!ba_practice::offlineInitialized || ba_practice::active())return;
+        if(!ba_local_menu::initialized || ba_practice::active())return;
         require(ba_dedicated_session::inMenu() && ba_dedicated_session::worldIdle(ba::read<Obj>(front,0xd8)),"practice settings smoke requires idle menu");
         const auto now=GetTickCount64();
         if(!smokeDeadline){smokeDue=now+2500;smokeDeadline=now+30000;return;}

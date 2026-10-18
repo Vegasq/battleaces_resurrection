@@ -77,7 +77,7 @@ static void saveSelected(Obj ownerAccount) {
         ba::log("Native deck picker saved current eight-slot selection; standalone=%d",ba::offlinePractice()?1:0);
     } catch(const std::exception& e){ba::log("Dedicated deck save failed: %s",e.what());}
 }
-static void initialize(Obj front,Obj savedDeck) {
+static void initializeSelection(Obj front,Obj savedDeck) {
     initialized=false;
     struct Guard {Guard(){suppress=true;}~Guard(){suppress=false;}} guard;
     Obj ownerAccount=require(ba::get<Obj>(front,"_accountService"),"dedicated account missing");
@@ -107,7 +107,7 @@ static void initialize(Obj front,Obj savedDeck) {
     Root trackingFile(ba::invoke(ba::find_class("Uncapped","UncappedSteamRemoteStorageSync"),nullptr,"get_TailoredUXTrackingFile",0));
     if(!trackingFile.get() || !ba::read<Obj>(trackingFile.get(),0x10))throw std::runtime_error("dedicated local UI tracking missing");
     Root data(staticData(ownerAccount));
-    if(!ba::offlinePractice())require(savedDeck,"dedicated server supplied no saved deck");void* fromArgs[]={savedDeck};
+    void* fromArgs[]={savedDeck};
     Root runtime(savedDeck?ba::invoke(ba::find_class("Uncapped","Deck"),nullptr,"FromProto",1,fromArgs):selected(ownerAccount));
     void* abilityArgs[]={data.get(),ownerAccount};ba::call(runtime.get(),"AutoAssignAbilities",2,abilityArgs);
     Obj selector=require(ba::get<Obj>(front,"_deckSelector"),"dedicated front deck selector missing");
@@ -119,6 +119,10 @@ static void initialize(Obj front,Obj savedDeck) {
     ba::log("Native deck editor initialized from %s selection; local featureFlags=0x%llx, full/valid=%d",
         savedDeck?"server":"local storage",static_cast<unsigned long long>(newFlags),canReady(front)?1:0);
 }
+static void initialize(Obj front,Obj savedDeck) {
+    initializeSelection(front,require(savedDeck,"dedicated server supplied no saved deck"));
+}
+static void initializeLocal(Obj front) {initializeSelection(front,nullptr);}
 static void updateLobby(Obj front,bool ready) {
     // Call only on the Unity thread and after the server confirms C_READY.
     // Clear with false before installing a match. Keep the original status

@@ -95,10 +95,11 @@ are planned behavior, not a claim that all modes or fallback already work.
 
 Current implementation sequence for these additions (2026-10-18):
 1. Bridge ABI2 supplies identity after authentication and reloads connection
-   settings per attempt; source/native socket tests pass. Integrate independent
-   local menu initialization and explicit per-world ownership next. Qualify one
-   PID through offline practice,authenticated Custom Create/Leave and practice
-   again,without replacing the selected local deck. See unified-client.txt.
+   settings per attempt; source/native socket tests pass. Independent local menu
+   initialization and explicit per-world ownership are integrated. One PID passes
+   offline practice,authenticated Custom Create/Leave and changed-deck practice
+   again without replacing local selection. Qualify actual unified remote worlds
+   and deliver no-server-settings startup next. See unified-client.txt.
 2. Use installed public bot profile/preset/name/cosmetic inputs, documented in
    public-bot-roster.txt. Define random difficulty separately from profile tactics;
    do not claim the retired backend's RNG was recovered. Verify native identities
