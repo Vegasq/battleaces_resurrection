@@ -1,6 +1,7 @@
 TEAM MODES - BUILD 37822 CONTRACT
 Updated:2026-10-18. Static contract plus headless four-army qualification below.
-Graphical team play and partial human groups remain unqualified.
+Graphical team play remains unqualified. Scripted public partial-group server
+proof is recorded below and in public-matchmaking.txt.
 
 The final product requires public2v2 and2vAI even with one offline human. Multiple
 1v1 rooms do not satisfy this. A partial online human group must stay in one
@@ -70,12 +71,12 @@ frame assembly, preserving authored alliances and selected mode. Frozen bot
 profile/name/deck/cosmetics and strength come from the local installed catalog.
 Worker IPC owns and validates assigned bot input. Public InputValidation must
 continue to authenticate human producers separately from server bot assignments.
-server/dedicated_server.py and protocol.py: ready/loaded connections differ from
-all participants; replace the two-body FRAME format with a bounded versioned
-participant format. Bind each participant to the authoritative roster and frame.
-community.py/community_protocol.py: mode,capacity,team placement and compatible
-client negotiation are needed. Preserve human-only Custom and generation-bound
-public queue cancellation; never accept a stale start after local fallback.
+server/dedicated_server.py now separates ready/loaded human connections from all
+participants. public_protocol.py adds explicit bounded two/four-body frames and
+ticketed assignment while retaining legacy Custom packets. community.py and
+public_matchmaking.py implement modes,capacity,team placement and all-human
+proposal acknowledgement. Native graphical negotiation and stale-start rejection
+after local fallback remain pending. See public-matchmaking.txt.
 
 Client lan_bootstrap/lan_transport/dedicated_wire must project the authoritative
 roster/mode/alliance and accept explicitly assigned AI batches. Current deck,
@@ -87,7 +88,8 @@ has one peerRoot. Generalize to a bounded participant/producer list with all
 native AI readiness and teardown gates; do not drop a bot's lifecycle checks.
 Server asset export/import now hashes all three original mode maps and the bot
 catalog, retaining them locally. The AI DLL/rules are also imported and validated.
-Host/lobby selection still starts from1v1; generalize actual match allocation.
+The packaged host loads the imported team maps/catalog when present; public
+allocation selects the requested map/mode. Custom allocation remains1v1.
 
 Do not expand every two-element loop to four. There are still two alliances:
 observer views0/1 and result winner0/1/31 remain meaningful. Verify commands,
@@ -103,13 +105,27 @@ original team maps, bot catalog and all-bot four-army native worlds also pass:
 mode2 and5 produce/move/fight to natural results with alliances0/2 versus1/3.
 A601-frame four-army worker replay is exact. See server-ai-runtime.txt and
 server-bot-catalog.txt. These checks do not qualify human team menu/transport.
+The public-native-2v2-01 queue proof additionally places two scripted humans and
+two native bots in one committed authoritative room. Both bots build/move/fight
+to a natural team result; all7,539 delivered frames replay identically. Both
+humans release their result tickets, and both owned workers exit0. This is
+accelerated,loopback,scripted evidence, not visible or real-time human team play.
+public-native-2vai-solo01 adds one scripted human and three bots, including the
+mode2/profile59 AI ally beside mode5/profile60 opponents. All bots produce and
+autonomously move units;4,185 frames replay exactly to a natural team result.
+public-native-2vai-coop02 places two human allies0/2 against bots1/3;4,005 frames
+replay exactly through a natural result and independent returns. An earlier
+overstrict damage-taken check is retained with its replay diagnosis; see
+public-matchmaking.txt. Room diagnostics now explicitly request alliance0/1,
+with an original native snapshot test; army IDs2/3 are not extra observer teams.
 
 Required qualification
 Original mode2/5 export, four-army match construction and headless all-bot combat
-now pass (server-bot-catalog.txt). Next run one human with three bots, prove every AI
-reaches Playing and builds/moves/fights, and verify correct team results, surrender
-behavior, full cleanup and rematch. Repeat mode switches with Try Deck/Custom.
+now pass (server-bot-catalog.txt). Scripted server queue tests also cover one human
+with three bots and two allied humans with two bots. Next qualify native graphical
+AI ownership/readiness, team results, surrender, full cleanup and rematch.
+Repeat mode switches with Try Deck/Custom.
 Extend server/client together and test four humans, allied humans against bots,
 other partial groups, timeout/cancel/late responses and any bot-owner disconnect.
-Retired allocation/host election, team elimination semantics, all new AI runtime
+Retired allocation/host election, team elimination semantics, new graphical AI runtime
 paths, performance and cross-PC behavior remain unqualified.

@@ -2,6 +2,32 @@ IMPLEMENTATION LEDGER
 Updated: 2026-10-18 UTC
 Active objective: implement SERVER_REPLACEMENT_PLAN.txt, Windows only.
 
+PUBLIC QUEUE / FOUR-PARTICIPANT SERVER (2026-10-18 UTC)
+The coordinator implements public1v1/2v2/2vAI ticketed queues and explicit shared
+proposals. All selected humans acknowledge before one worker is committed;
+partial groups preserve their original deadline and share server-owned bots.
+Mode5 places humans in allied seats0/2, with AI opponents1/3. New opt-in packet
+types58..64 carry queue state, assignment and bounded two/four-participant frames;
+legacy human-only Custom remains unchanged. C++ packet checks and helper build
+pass. Python3.14 passes70/72 focused tests with two optional native skips;
+Python3.12 passes41/41 queue/host/package tests. Tests cover deadline boundaries,
+stale offers/tickets, capacity, partial teams, result return, worker failures,
+disconnect during setup and rejection of bot writes to human input slots.
+Real AI/shared-room replay passes for two humans plus two bots in2v2, solo2vAI
+with three bots, and two allied humans versus two bots. These natural matches
+replay7,539/4,185/4,005 frames exactly, release all result tickets and reap workers
+with exit0. An earlier2vAI check incorrectly required every bot to TAKE damage;
+the failed record and replay diagnosis are retained, and a fresh corrected run
+passes. Native diagnostic snapshot coverage confirms two alliance views for four
+armies. Final coordinator/Custom/public checks pass56/56 including that native
+snapshot test and early/partial assignment failures. The final source also passes
+a public1v1 server fallback:37 produced/ordered/moving bot units,4,493 exact replay
+frames, natural result/RETURN and two worker exits0. Failed setup and overstrict
+combat-check evidence remain retained. No new release package or manual-client
+patch is installed. This checkpoint does not establish graphical team play. Native client
+queue/fallback/world binding, offline multiple bots, visible all-mode searches
+and final release gates remain open. See public-matchmaking.txt.
+
 SERVER BOT CATALOG / FOUR-ARMY FOUNDATION (2026-10-18 UTC)
 Sequential original mode1/2/5 export and local import now pass:3 maps,59 AI rule
 profiles,7 referenced bot profiles,36 compatible decks,localized character

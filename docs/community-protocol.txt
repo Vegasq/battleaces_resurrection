@@ -1,5 +1,5 @@
 COMMUNITY SESSION CONTROL V1
-Updated: 2026-10-17. Server implementation: community.py/community_protocol.py.
+Updated: 2026-10-18. Server implementation: community.py/community_protocol.py.
 
 STATUS AND COMPATIBILITY
 The server implements this extension. The opt-in graphical community helper uses
@@ -7,7 +7,8 @@ this handshake for the native custom-menu adapter; normal launchers retain the
 ordinary protocol3 handshake. See native-custom-matches.txt for qualification.
 Selecting this extension requires a new first HELLO. Ordinary protocol3 clients
 retain their existing behavior and cannot enter a custom room by guessing its ID.
-Game frames, worker IPC and the simulation ABI are unchanged. On a TLS listener,
+Custom game frames, worker IPC and the simulation ABI are unchanged. The optional
+public queue extension adds types58..64; see public-matchmaking.txt. On a TLS listener,
 existing authenticated admission must finish before either kind of HELLO. Profile
 identity must match the credential and cannot be connected twice. Plaintext remains
 loopback-only development with self-reported identity, as in protocol-v3.txt.
@@ -77,8 +78,8 @@ Do not synthesize immediate CreateLobby/PartyInviteReply responses from inside
 their enqueue hooks; see custom-lobby-native.txt for the observed native ordering.
 
 DIRECTORY AND LOBBY LIFETIME
-The sorted directory contains at most136 rows, the existing maximum connection
-capacity (64 rooms *2 +8). It publishes full snapshots only when visible state
+The sorted directory contains at most136 rows. Connection capacity is now
+min(136, max_rooms*4+8), preserving this bound with team rooms. It publishes full snapshots only when visible state
 changes or a client requests REFRESH. Include legacy clients as non-invitable
 busy entries. Only an available community session is invitable; the UI must also
 disable self. The server independently rejects self/busy/missing targets.

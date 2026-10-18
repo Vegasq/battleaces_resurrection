@@ -14,7 +14,7 @@ INVITE, REPLY, CANCEL, START, READY, LEAVE, SET_DECK, RETURN, ACK, INVITATION, R
 PRACTICE = 57
 COMMANDS = {CREATE, INVITE, REPLY, CANCEL, START, READY, LEAVE, SET_DECK, RETURN, REFRESH, PRACTICE}
 MAX_COMMAND = 256
-MAX_PLAYERS = 136  # Existing coordinator's maximum connection capacity:64*2+8.
+MAX_PLAYERS = 136  # Preserve the community v1 directory bound, including team queues.
 NONE, OPEN, STARTING, LOADING, RUNNING, RESULTS = range(6)
 AVAILABLE, IN_LOBBY, IN_MATCH, UNAVAILABLE = range(4)
 PENDING, ACCEPTED, DECLINED, CANCELLED, EXPIRED, BUSY = range(6)
@@ -80,6 +80,9 @@ def welcome(profile_id, deck):
 
 
 def decode_command(kind, payload):
+    from . import public_protocol as public
+    if kind in public.COMMANDS:
+        return public.decode_command(kind, payload)
     p.require(kind in COMMANDS and 4 <= len(payload) <= MAX_COMMAND, 'invalid community command')
     r = Reader(payload)
     request = r.number('I')

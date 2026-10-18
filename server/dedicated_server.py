@@ -31,6 +31,7 @@ from .paths import ASSETS, DATA, SIMULATION_DLL
 from .admission import AdmissionController, AdmissionError
 from . import community_protocol as community_wire
 from .community import Community
+from . import public_protocol as public_wire
 TICK = 0.05
 
 
@@ -107,34 +108,49 @@ class BotSeat:
     profile_id: int
     name: str
     deck: tuple[int, ...]
+    choice: object = None
 
     def __post_init__(self):
-        p.require(type(self.slot) is int and self.slot in (0, 1) and type(self.profile_id) is int and
+        p.require(type(self.slot) is int and self.slot in range(4) and type(self.profile_id) is int and
                   0 < self.profile_id <= 0xffffffff, 'invalid bot seat/profile')
         p.require(isinstance(self.name, str) and 0 < len(self.name.encode('utf-8')) <= 64 and
                   not any(ord(c) < 32 for c in self.name), 'invalid bot name')
         object.__setattr__(self, 'deck', tuple(self.deck))
+        if self.choice is not None:
+            from .bot_catalog import BotChoice
+            p.require(isinstance(self.choice, BotChoice) and self.choice.profile == self.profile_id and
+                      self.choice.name == self.name and self.choice.deck.units == self.deck, 'bot choice differs from seat')
 
 
 class Room:
-    def __init__(self, server, name, *, community_lobby=None, bots=()):
+    def __init__(self, server, name, *, community_lobby=None, bots=(), mode=1, public_match=None):
+        p.require(mode in server.templates, 'match mode assets unavailable')
+        self.template, self.mode = server.templates[mode], mode
+        self.slots = frozenset(range(self.template.player_count))
+        p.require(mode == 1 or public_match is not None, 'team rooms require explicit public assignment')
+        p.require(public_match is None or (p.KEY.fullmatch(public_match) and community_lobby is None),
+                  'public match identity or ownership invalid')
         bots = tuple(bots)
-        p.require(len(bots) <= 1 and all(isinstance(bot, BotSeat) for bot in bots),
-                  'two-seat room requires at least one human')
+        p.require(len(bots) < len(self.slots) and all(isinstance(bot, BotSeat) and bot.slot in self.slots for bot in bots)
+                  and len({bot.slot for bot in bots}) == len(bots), 'room requires distinct bot seats and at least one human')
         p.require(not bots or (community_lobby is None and server.ai_factory is not None),
                   'bots require an AI factory and cannot enter Custom')
+        p.require(public_match is None or all(bot.choice is not None for bot in bots), 'public bots require frozen catalog choices')
+        p.require(mode != 5 or {1, 3} <= {bot.slot for bot in bots}, '2vAI opponents must be server-owned bots')
         self.server, self.name = server, name
-        self.community_lobby = community_lobby
+        self.community_lobby, self.public_match = community_lobby, public_match
+        self.queue_tickets = {}
         self.bots = MappingProxyType({bot.slot: bot for bot in bots})
-        self.input_window = server.input_window  # Frozen for this room and both seats.
+        self.input_window = server.input_window  # Frozen for every participant in this room.
         self.peers = {}
-        self.decks = {bot.slot: server.template.validate_deck(bot.deck) for bot in bots}
+        self.decks = {bot.slot: self.template.validate_deck(bot.deck) for bot in bots}
         self.ready, self.loaded = set(self.bots), set()
         self.revision, self.frame = 0, 0
         self.state = "lobby"
         self.pending = {}
         self.match = self.validation = self.sim = None
         self.match_id = None
+        self.assignment_started = False
         self.next_tick = None
         self.input_wait_started = None
         self.last_progress = time.perf_counter()
@@ -153,6 +169,9 @@ class Room:
 
     def lobby_state(self):
         self.revision += 1
+        if self.public_match is not None:
+            self.server.community.publish_presence()
+            return
         deck0 = self.decks.get(0, self.server.template.default_decks[0])
         deck1 = self.decks.get(1, self.server.template.default_decks[1])
         self.broadcast(p.LOBBY, struct.pack("<BBI", sum(1 << x for x in self.peers.keys() | self.bots.keys()),
@@ -160,21 +179,28 @@ class Room:
                        + p.deck_bytes(deck0) + p.deck_bytes(deck1))
         self.server.community.publish_presence()
 
-    def join(self, peer, slot, profile_id, name):
+    def join(self, peer, slot, profile_id, name, *, deck=None, ticket=None):
         if slot == p.AUTO_SEAT:
-            slot = next((seat for seat in (0, 1) if seat not in self.peers and seat not in self.bots), None)
-        p.require(slot in (0, 1), "room full")
+            slot = next((seat for seat in sorted(self.slots) if seat not in self.peers and seat not in self.bots), None)
+        p.require(slot in self.slots, "room full")
         p.require(self.state == "lobby" and slot not in self.peers and slot not in self.bots, "room slot unavailable")
         p.require(all(x.profile_id != profile_id for x in self.peers.values()), "profile already connected")
+        if self.public_match is not None:
+            public_wire.ticket(ticket)
+            deck = self.template.validate_deck(deck)
+            self.queue_tickets[slot] = ticket
+        else:
+            p.require(deck is None and ticket is None, 'legacy room does not accept public intent')
+            try:
+                deck = self.server.profiles.load(profile_id, self.template.default_decks[slot])
+            except (ValueError, KeyError, OSError) as error:
+                deck = list(self.template.default_decks[slot])
+                self.event("profile_load_fallback", profile=profile_id, reason=str(error))
         peer.room, peer.slot, peer.profile_id, peer.name = self, slot, profile_id, name
         self.peers[slot] = peer
-        try:
-            deck = self.server.profiles.load(profile_id, self.server.template.default_decks[slot])
-        except (ValueError, KeyError, OSError) as error:
-            deck = list(self.server.template.default_decks[slot])
-            self.event("profile_load_fallback", profile=profile_id, reason=str(error))
         self.decks[slot] = deck
-        peer.send(p.WELCOME, p.welcome(slot, self.input_window, deck))
+        if self.public_match is None:
+            peer.send(p.WELCOME, p.welcome(slot, self.input_window, deck))
         self.event("player_joined", slot=slot, profile=profile_id, name=name, deck=deck)
         self.last_progress = time.perf_counter()
         self.lobby_state()
@@ -213,7 +239,7 @@ class Room:
             self.history = None
         self.pending.clear()
         self.input_wait_started = None
-        if aborted and self.community_lobby is None:
+        if aborted and self.community_lobby is None and self.public_match is None:
             for peer in list(self.peers.values()):
                 peer.close(None if previous_state == "completed" else reason)
         elif not aborted:
@@ -234,6 +260,8 @@ class Room:
                 self.task.cancel()
         if self.community_lobby is not None:
             self.server.community.match_finished(self, aborted, reason)
+        elif self.public_match is not None:
+            self.server.community.public.match_finished(self, aborted, reason)
         else:
             self.server.community.publish_presence()
         if self.sim is not None:
@@ -251,14 +279,17 @@ class Room:
 
     async def prepare_match(self):
         # Freeze lobby mutations before awaiting slow native initialization.
+        p.require(self.state == 'lobby' and self.peers.keys() | self.bots.keys() == self.slots,
+                  'complete room roster required before preparation')
         self.state = "preparing"
         self.server.community.publish_presence()
-        self.match_id = uuid.uuid4().hex
+        self.match_id = self.public_match or uuid.uuid4().hex
         roster = [{"slot": slot, "player_id": slot + 1, "army_id": slot,
                    "name": self.bots[slot].name if slot in self.bots else self.peers[slot].name,
-                   "ai_profile_id": self.bots[slot].profile_id if slot in self.bots else 0} for slot in (0, 1)]
-        self.match = self.server.template.build_match(roster, self.decks,
-                                                      secrets.randbits(63), self.match_id)
+                   "ai_profile_id": self.bots[slot].profile_id if slot in self.bots else 0} for slot in sorted(self.slots)]
+        choices = {slot: bot.choice for slot, bot in self.bots.items()} if self.public_match is not None else None
+        self.match = self.template.build_match(roster, self.decks, secrets.randbits(63), self.match_id,
+                                               game_mode=self.mode, bot_choices=choices)
         if self.bots:
             sim = await self.server.ai_factory(self.match.raw_game_data,
                                               {slot: bot.profile_id for slot, bot in self.bots.items()})
@@ -273,7 +304,7 @@ class Room:
         if self.state != "preparing":
             return
         self.refresh_native_state(state)
-        self.validation = InputValidation(self.match, self.server.template,
+        self.validation = InputValidation(self.match, self.template,
                                            entity_lookup=self.entity_history.get)
         self.state = "loading"
         self.last_progress = time.perf_counter()
@@ -283,20 +314,29 @@ class Room:
             (match_dir / "bootstrap.pb.gz").write_bytes(self.match.gzip_game_data)
             (match_dir / "match.json").write_text(json.dumps({
                 "schema": 1, "match_id": self.match_id, "room": self.name,
-                "seed": self.match.seed, "decks": self.decks, "input_window": self.input_window,
+                "seed": self.match.seed, "decks": self.decks, "input_window": self.input_window, "mode": self.mode,
                 "profiles": {slot: self.peers[slot].profile_id for slot in self.peers},
                 "bots": {slot: bot.profile_id for slot, bot in self.bots.items()},
                 "original_sha256": p.BUILD_SHA, "simulation_sha256": p.SIM_SHA,
                 "bootstrap_sha256": hashlib.sha256(self.match.gzip_game_data).hexdigest()
             }, indent=2) + "\n", encoding="utf-8")
             self.history = (match_dir / "frames.bin").open("wb")
-        self.broadcast(p.MATCH_INFO, self.match_id.encode("ascii"))
+        if self.public_match is None:
+            self.broadcast(p.MATCH_INFO, self.match_id.encode("ascii"))
+        else:
+            human_mask = sum(1 << slot for slot in self.peers)
+            # From here a client may have accepted the match identity even if a
+            # later send fails. Keep that identity until explicit abort/RETURN.
+            self.assignment_started = True
+            for slot, peer in self.peers.items():
+                peer.send(public_wire.MATCH, public_wire.assignment(self.queue_tickets[slot], self.match_id, self.mode,
+                          slot, human_mask, self.input_window, self.decks[slot]))
         self.broadcast(p.BOOTSTRAP, self.match.gzip_game_data)
         self.event("match_created", seed=self.match.seed, decks=self.decks,
                    bootstrap_bytes=len(self.match.gzip_game_data),
                    bootstrap_sha256=hashlib.sha256(self.match.gzip_game_data).hexdigest(),
                    authority="original Simulation.dll in isolated match worker", worker_pid=sim.pid,
-                   input_window=self.input_window)
+                   input_window=self.input_window, mode=self.mode, participants=len(self.slots))
 
     async def on_message(self, peer, kind, payload):
         p.require(self.state != "closed", "room closed")
@@ -309,7 +349,7 @@ class Room:
             try:
                 if kind == p.SET_DECK:
                     deck = p.decode_deck(payload)
-                    self.server.template.validate_deck(deck)
+                    self.template.validate_deck(deck)
                     self.server.profiles.save(peer.profile_id, deck)
                     self.decks[peer.slot] = deck
                     self.ready.discard(peer.slot)
@@ -328,7 +368,7 @@ class Room:
                 peer.send(p.NOTICE, str(error).encode("utf-8")[:1024])
                 self.lobby_state()
                 return
-            if (self.peers.keys() | self.bots.keys()) == self.ready == {0, 1}:
+            if (self.peers.keys() | self.bots.keys()) == self.ready == self.slots:
                 await self.prepare_match()
         elif kind == p.LOADED:
             p.require(self.state == "loading" and peer.slot not in self.loaded, "unexpected loaded acknowledgement")
@@ -343,6 +383,8 @@ class Room:
                 self.event("match_started", frame=0, tick_ms=50)
                 if self.community_lobby is not None:
                     self.server.community.match_running(self)
+                elif self.public_match is not None:
+                    self.server.community.public.match_running(self)
         elif kind == p.INPUT:
             p.require(self.state == "running", "input outside running match")
             p.require(4 <= len(payload) <= 4 + p.MAX_INPUT, "input size limit")
@@ -402,9 +444,11 @@ class Room:
                     # input to the same canonical frame as validated human input.
                     # The worker independently rejects missing/altered bot bytes.
                     inputs = {slot: self.validation.validate_player_input(slot, body) for slot, body in inputs.items()}
-                    inputs.update(await self.sim.bot_inputs(self.frame))
+                    bot_inputs = await self.sim.bot_inputs(self.frame)
                     if self.state != 'running': continue
-                    p.require(set(inputs) == {0, 1}, 'worker bot input roster differs')
+                    p.require(set(bot_inputs) == set(self.bots), 'worker bot input ownership differs')
+                    inputs.update(bot_inputs)
+                    p.require(set(inputs) == self.slots, 'worker bot input roster differs')
                     actions = encode_frame(self.frame, inputs)
                 else:
                     actions = self.validation.encode_frame(self.frame, inputs)
@@ -415,7 +459,8 @@ class Room:
                 p.require(step.frame == self.frame, "worker returned wrong completed frame")
                 native_state = self.refresh_native_state(step.state)
                 first, second = inputs[0], inputs[1]
-                payload = struct.pack("<II", self.frame, len(first)) + first + second
+                payload = (public_wire.frame(self.frame, inputs) if self.public_match is not None else
+                           struct.pack("<II", self.frame, len(first)) + first + second)
                 if self.history:
                     self.history.write(struct.pack("<I", len(actions)) + actions)
                 snapshot_ms = 0.0
@@ -425,7 +470,7 @@ class Room:
                     snapshot_ms = (time.perf_counter() - snapshot_started) * 1000
                 if self.state != "running":
                     continue
-                self.broadcast(p.FRAME, payload)
+                self.broadcast(public_wire.FRAME if self.public_match is not None else p.FRAME, payload)
                 self.event("frame_queued", frame=self.frame, interval_ms=(now - self.last_progress)*1000,
                            input_wait_ms=input_wait_ms,
                            tick_late_ms=max(0.0, now - self.next_tick) * 1000,
@@ -433,6 +478,7 @@ class Room:
                            frame_work_ms=(time.perf_counter() - now) * 1000,
                            slot0_sha256=hashlib.sha256(first).hexdigest(),
                            slot1_sha256=hashlib.sha256(second).hexdigest(),
+                           participant_sha256={slot: hashlib.sha256(body).hexdigest() for slot, body in inputs.items()},
                            frame_payload_sha256=hashlib.sha256(payload).hexdigest())
                 del self.pending[self.frame]
                 self.frame += 1
@@ -457,7 +503,8 @@ class Room:
 
     async def record_snapshot(self):
         from .native_simulation import canonical_snapshot
-        for viewer in (0, 1):
+        # SimMakeSimFrame takes an alliance, not a participant/army ID.
+        for viewer in sorted(set(self.template.alliances.values())):
             sim = self.sim
             if sim is None:
                 return
@@ -487,8 +534,13 @@ class DedicatedServer:
     def __init__(self, template, profiles, *, sim_factory=None, ai_factory=None, audit=None, data_dir=None,
                  input_timeout=10, audit_state=True, max_rooms=4, lobby_timeout=300,
                  loading_timeout=120, completed_timeout=60, tls_context=None, admission=None,
-                 input_window=p.DEFAULT_INPUT_WINDOW):
+                 input_window=p.DEFAULT_INPUT_WINDOW, templates=None, bot_catalog=None):
         self.template, self.profiles = template, profiles
+        self.templates = dict(templates or {1: template})
+        p.require(self.templates.get(1) is template and all(mode in public_wire.MODES and
+                  item.game_mode == mode and item.player_count == public_wire.MODES[mode][0]
+                  for mode, item in self.templates.items()), 'server mode/template contract')
+        self.bot_catalog = bot_catalog
         if sim_factory is None:
             from .worker_client import SimulationWorker
             sim_factory = SimulationWorker.create
@@ -517,7 +569,11 @@ class DedicatedServer:
 
     def room_count(self):
         # A custom lobby reserves its capacity before it owns a match worker.
-        return len(self.community.lobbies) + sum(room.community_lobby is None for room in self.rooms.values())
+        # Public offers reserve one shared match before a worker exists; count
+        # the offer once even after its room is installed. Finished worlds free
+        # capacity while their players independently return from results.
+        return (len(self.community.lobbies) + sum(offer.phase < public_wire.RESULTS for offer in self.community.public.offers.values())
+                + sum(room.community_lobby is None and room.public_match is None for room in self.rooms.values()))
 
     async def start_custom_match(self, lobby):
         room = None
@@ -579,7 +635,7 @@ class DedicatedServer:
         peer = Peer(self, reader, writer)
         sender = asyncio.create_task(peer.write_loop())
         try:
-            p.require(not self.closing and len(self.peers) < self.max_rooms * 2 + 8, "connection limit")
+            p.require(not self.closing and len(self.peers) < min(community_wire.MAX_PLAYERS, self.max_rooms * 4 + 8), "connection limit")
             self.peers.add(peer)
             authenticated_id = await self.admission.authenticate(reader, writer) if self.admission else None
             kind, payload = await asyncio.wait_for(p.receive(reader), 5)
@@ -601,7 +657,8 @@ class DedicatedServer:
                 if room is None:
                     p.require(self.room_count() < self.max_rooms, "room capacity reached")
                     room = self.rooms[room_name] = Room(self, room_name)
-                p.require(room.community_lobby is None, 'custom rooms require an accepted invitation')
+                p.require(room.community_lobby is None and room.public_match is None,
+                          'managed rooms require an accepted invitation or public ticket')
                 room.join(peer, slot, profile_id, name)
             while not peer.closed:
                 kind, payload = await p.receive(reader)

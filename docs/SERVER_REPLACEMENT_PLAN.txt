@@ -61,8 +61,10 @@ are planned behavior, not a claim that all modes or fallback already work.
   and the practice difficulty setting. Starting a server is never a prerequisite.
 - Public 1v1, 2v2 and 2vAI: attempt the configured server when available. If it is
   unavailable, start a local AI match; if the required human participants for the
-  selected mode have not matched within 30 seconds of queue entry, retire that
-  queue intent and start an AI match. Preserve the mode's team rules:2vAI still
+  selected mode have not matched within 30 seconds of queue entry, fill vacant
+  seats with AI. A reachable server keeps the available human group together in
+  one authoritative room; local fallback retires its remote intent first.
+  Preserve the mode's team rules:2vAI still
   faces AI when a human teammate is available. Preserve any matched human group
   when filling vacant seats; all participants must share one authoritative match.
   Use a random supported difficulty for these fallback opponents, independent of
@@ -146,11 +148,21 @@ Current implementation sequence for these additions (2026-10-18):
    Headless2v2/2vAI natural matches and601 exact four-army worker replay frames
    pass. Mode5 vacant allied seats explicitly use the mode2 teammate pool; this
    replacement policy is exercised with all bots. See server-bot-catalog.txt.
-   Human team play, public client wire/local multi-bot ownership and partial
-   online groups remain open; do not enable team menu paths from these tests alone.
+   The public coordinator now supports generation-bound offers, frozen human/bot
+   rosters and four-seat frames. Server protocol/arbitration tests and the C++
+   packet codec pass. Scripted original-native room checks also pass public1v1,
+   two-human/two-bot2v2, solo2vAI and two-human2vAI, with natural results and exact
+   independent frame replay; see public-matchmaking.txt. Native graphical transport,
+   human team play and local multi-bot ownership remain open; do not enable team
+   menu paths from these component tests alone.
 4. Implement generation-bound public queues/fallback and human-only Custom,
    then qualify cancellation,late starts,partial groups,results and repeated
-   mode switches. Complete local cosmetic inventory/equip/persistence and unified
+   mode switches. Server-side proposals reserve capacity and require every human
+   READY before worker creation; exact deadlines, stale tickets/proposals,
+   partial groups, setup failure/disconnect and return are covered. Next bind
+   these events to native search/loading/world leases and qualify ambiguous
+   post-READY connection loss before allowing local fallback. Complete local
+   cosmetic inventory/equip/persistence and unified
    release entry points. Static cosmetic inventory/ownership/persistence/wire
    contracts are now in cosmetics.txt; live unlock/equip implementation remains.
    The final requirements and release gates remain intact.

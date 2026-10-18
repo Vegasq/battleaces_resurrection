@@ -89,9 +89,17 @@ async def _run_owned(config, *, check_only=False, on_progress=None, on_ready=Non
     server = None
     try:
         from .worker_ai import AISetup
+        templates, catalog = {1: template}, None
+        if 'bot-catalog.json' in manifest['files']:
+            from .ai_rules import RuleBook
+            from .bot_catalog import BotCatalog
+            for mode, filename in ((2, 'map-2v2.pb.gz'), (5, 'map-2vai.pb.gz')):
+                templates[mode] = GameTemplate.load(config.assets_directory/filename,
+                    catalog_path=config.assets_directory/'unit-catalog.json', descriptors_path=config.assets_directory/'descriptors')
+            catalog = BotCatalog(config.assets_directory, template=template, rules=RuleBook(config.assets_directory))
         server = DedicatedServer(template, ProfileStore(config.data_directory / 'profiles', template),
             audit=audit, data_dir=None, audit_state=config.diagnostic_audit,
-            max_rooms=config.max_rooms, input_window=config.input_window,
+            max_rooms=config.max_rooms, input_window=config.input_window, templates=templates, bot_catalog=catalog,
             tls_context=context, admission=AdmissionController(store) if store else None,
             sim_factory=lambda data: SimulationWorker.create(data, config.assets_directory / 'Simulation.dll',
                 working_directory=config.data_directory / 'workers'),

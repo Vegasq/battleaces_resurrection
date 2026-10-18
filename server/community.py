@@ -25,6 +25,7 @@ class Session:
     lobby: str | None = None
     practicing: bool = False
     last_request: int = 0
+    last_public_ticket: int = 0
     tokens: float = 16.0
     rate_at: float = field(default_factory=time.monotonic)
 
@@ -63,6 +64,8 @@ class Community:
         self.maintenance = None
         self.launches = set()
         self.closing = False
+        from .public_matchmaking import PublicMatchmaking
+        self.public = PublicMatchmaking(self)
 
     def start(self):
         self.maintenance = asyncio.create_task(self.maintain())
@@ -87,8 +90,10 @@ class Community:
                 continue
             lobby = self.lobbies.get(session.lobby) if session else None
             if session:
-                status = c.UNAVAILABLE if session.practicing else c.AVAILABLE if not lobby else c.IN_LOBBY if lobby.phase < c.LOADING else c.IN_MATCH
-                invitable = lobby is None and not session.practicing
+                public = self.public.busy(peer.profile_id)
+                status = (self.public.status(peer.profile_id) if public else c.UNAVAILABLE if session.practicing
+                          else c.AVAILABLE if not lobby else c.IN_LOBBY if lobby.phase < c.LOADING else c.IN_MATCH)
+                invitable = lobby is None and not session.practicing and not public
             else:
                 status = c.IN_MATCH if peer.room and peer.room.state not in ('lobby', 'completed', 'closed') else c.IN_LOBBY
                 invitable = False  # Legacy clients cannot receive invitation messages.
@@ -179,6 +184,7 @@ class Community:
         session = self.sessions.get(profile)
         if session is None or session.peer is not peer:
             return
+        await self.public.disconnect(session)
         lobby = self.lobbies.get(session.lobby)
         self.cancel_invites(lambda i: profile in (i.sender, i.target))
         if lobby:
@@ -194,7 +200,7 @@ class Community:
 
     async def handle(self, peer, kind, payload):
         if kind in (p.INPUT, p.LOADED):
-            p.require(peer.room is not None, 'match message without a custom match')
+            p.require(peer.room is not None, 'match message without an assigned match')
             if peer.room.state in ('completed', 'closed'):
                 return  # Discard already-in-flight input/loaded packets after a result/abort.
             await peer.room.on_message(peer, kind, payload)
@@ -217,6 +223,10 @@ class Community:
 
     async def apply(self, session, kind, command, now):
         profile = session.peer.profile_id
+        from . import public_protocol as public
+        if kind in public.COMMANDS:
+            return await self.public.apply(session, kind, command, now)
+        require(not self.public.busy(profile) or kind == c.REFRESH, 'finish or cancel public matchmaking first')
         if kind == c.PRACTICE:
             require(session.lobby is None and session.peer.room is None, 'leave the multiplayer lobby before practice')
             session.practicing = command['active']
@@ -298,7 +308,8 @@ class Community:
                     'only the host of an open lobby can invite')
             target = self.sessions.get(command['target'])
             require(command['target'] != profile, 'cannot invite yourself')
-            require(target is not None and not target.peer.closed and target.lobby is None and not target.practicing, 'player is not available')
+            require(target is not None and not target.peer.closed and target.lobby is None and not target.practicing
+                    and not self.public.busy(command['target']), 'player is not available')
             require(not any(i.sender == profile and i.target == command['target'] for i in self.invites.values()),
                     'invitation already pending')
             require(len(self.invites) < 128 and sum(i.sender == profile or i.target == profile for i in self.invites.values()) < 8
@@ -380,6 +391,7 @@ class Community:
             while not self.closing:
                 await asyncio.sleep(0.1)
                 now = time.monotonic()
+                self.public.maintain()
                 for invite in list(self.invites.values()):
                     if now >= invite.expires:
                         self.resolve_invite(invite, c.EXPIRED)

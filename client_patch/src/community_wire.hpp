@@ -19,7 +19,9 @@ inline void require(bool condition,const char* message) {
     if(!condition)throw std::runtime_error(message);
 }
 inline bool command(unsigned char kind) {
-    return kind==Create || (kind>=Invite && kind<=Return) || kind==Refresh || kind==Practice;
+    // The separately versioned public queue (58..61) uses this shared ACK.
+    return kind==Create || (kind>=Invite && kind<=Return) || kind==Refresh || kind==Practice ||
+        (kind>=58 && kind<=61);
 }
 inline void key(const std::string& text,bool empty=false) {
     require((empty || !text.empty()) && text.size()<=48,"invalid community key size");

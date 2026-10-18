@@ -1,0 +1,206 @@
+PUBLIC QUEUE EXTENSION V1
+Updated: 2026-10-18 UTC
+
+SCOPE
+The coordinator implements public1v1,2v2 and2vAI queues on community sessions.
+server/public_matchmaking.py owns tickets/proposals; public_protocol.py and
+client_patch/src/public_wire.hpp define the new packets. The C++ codec is tested,
+but the native graphical client does not yet route public menu requests through
+this protocol. Ordinary Start Client public/team enablement remains unfinished.
+Custom remains human-only and keeps its existing protocol and lifecycle.
+
+ADMISSION AND IDENTITY
+Use the community v1 HELLO after the existing TLS admission. A queue ticket is a
+nonzero u64, strictly increasing per authenticated session. Reconnecting creates
+a new session; the graphical adapter must also reject callbacks from the old
+connection generation. Names come from the admitted community session, never from
+another player's queue packet. The selected eight-unit deck is validated and
+frozen at ENTER; another deck mutation cannot alter that search's eventual match.
+All commands share community request IDs, rate limiting and ACK53. Valid stale
+state requests receive a negative ACK; malformed wire/request IDs close the peer.
+The existing community directory cap remains136. The connection limit is now
+min(136, max_rooms*4+8), allowing four humans per active room within that cap.
+
+WIRE
+Outer framing is unchanged: u32 body length, u8 message type, payload;2 MiB cap.
+Integers are little-endian. Text is u16 byte length plus strict UTF8; keys use the
+existing1..48 ASCII letter/digit/underscore/hyphen rules. Deck is8*u32 unit IDs.
+Every queue command starts with u32 request, u16 queueVersion=1, u64 ticket:
+  58 ENTER   u8 mode, u32 remainingWaitMs, deck
+  59 CANCEL  no additional fields
+  60 READY   text proposal key
+  61 RETURN  text completed/aborted match key
+Command payloads are14..256 bytes; ENTER is51 bytes. remainingWaitMs is0..30000,
+including time already spent establishing the optional connection. The client
+must measure that original search deadline monotonically and must not reset it
+on connection success or reoffer. Supported modes are1,2,5; practice mode4 does
+not enter a public queue.
+
+Server packets:
+  62 STATE   u16 version, u64 ticket, u8 phase, u8 mode, u32 elapsedMs,
+             text proposal/match key or empty, text reason (at most128 bytes)
+  63 MATCH   u16 version, u64 ticket, u8 mode, u8 participantCount, u8 slot,
+             u8 humanMask, u8 inputWindow, text match key, deck
+  64 FRAME   u32 frame, u8 participantCount; for every slot in ascending order:
+             u32 inputLength, inputLength canonical PlayerInputActions bytes
+STATE phases:0 waiting,1 offered,2 preparing,3 loading,4 running,5 results,6 retired.
+MATCH inputWindow remains2..12. Mode1 has2 participants and human seats0/1.
+Mode2 has4 participants and human seats0/1/2/3. Mode5 has4 participants and human
+seats0/2; humanMask must contain the assigned seat and no prohibited seat.
+FRAME count must match MATCH; each input is1..65536 bytes. Every seat has an
+explicit length, with no implicit final remainder. Frame numbers are0..2^31-1.
+The largest four-seat frame payload is262165 bytes. Reject count mismatch,
+truncation, zero/oversized inputs and trailing bytes before constructing objects.
+
+Legacy WELCOME/MATCH_INFO/FRAME packets are not emitted for a public match. A
+public assignment precedes the existing BOOTSTRAP12; LOADED3, INPUT4, START13
+and MATCH_END36 retain their existing formats (see protocol-v3.txt). Only opted-in
+queue clients receive types62..64. Old community clients can still use Custom.
+Snapshots and assignments can precede their command ACK; do not assume lockstep.
+
+ARBITRATION AND TEAM ASSIGNMENT
+Waiting is ordered by original search entry time, then profile key. A full human
+roster is offered immediately. At the oldest waiting player's30-second deadline,
+the coordinator offers the available group and fills vacancies with bots after
+commit. Mode2 assigns humans0,1,2,3 in order; allies remain0/2 versus1/3. Mode5
+assigns humans0,2 and always reserves opponents1,3 for bots. A solo mode5 player
+gets an AI ally in2 using the documented original mode2 teammate pool.
+
+Every selected human must READY the exact proposal before its10-second offer
+deadline. A proposal reserves one room-capacity unit but creates no worker yet.
+The final READY is the single commit point: phase becomes PREPARING before the
+launch task is scheduled. Duplicate/old READY cannot start another worker. Bot
+deck, name, portrait, banner, profile and supported random difficulty are frozen
+once at commit by BotCatalog; practice difficulty never controls this choice.
+All humans and bots then share one GameData, one authoritative worker, one input
+stream and one result. The worker cannot replace a human slot with bot input.
+
+CANCEL is allowed while WAITING/OFFERED. Cancelling an offered player dissolves
+that proposal and requeues surviving players with their original deadlines.
+On offer expiry, nonresponders retire; acknowledged survivors requeue without a
+fresh30-second wait. READY itself checks expiry, even before maintenance runs.
+No acknowledgement means no worker/bootstrap. Custom/practice/invitations and
+deck changes cannot overlap an active public ticket.
+
+After commit, cancellation is rejected. The client must show accepted-match
+preparation and retain ownership through loading/results or explicit failure.
+Setup failure before assignment publication retires tickets and releases seats,
+including evidence-file failure after the native worker has initialized. Once
+assignment delivery begins, a later error retains the match ID through aborted
+RESULTS/RETURN, even if some players never receive assignment or BOOTSTRAP.
+Clients must settle that proposal without requiring a native world to exist.
+Disconnect during delayed creation closes a worker even if creation returns
+after retirement. A disconnect from an active shared match aborts it; surviving
+community sockets stay available for explicit recovery/RETURN. Results free
+global room capacity immediately; each participant releases its ticket and old
+peer slot independently with RETURN before queueing again.
+
+At room-capacity exhaustion, expired waiting tickets retire with an explicit
+reason; no worker is silently overcommitted. Client handling of that retirement
+is part of the pending availability/fallback integration, not a completed UX.
+
+CLIENT OWNERSHIP STILL TO IMPLEMENT
+Bind each menu intent to both a local monotonic generation and its server ticket.
+Reject state/assignment from old connection, ticket or proposal generations.
+Immediate original native search presentation, timer and Cancel must remain tied
+to that intent; accepted assignment hands off to original joining/loading.
+Before READY/commit, unavailable server handling may retire the remote intent
+and start one local world. After sending READY, a lost reply can be ambiguous:
+never assume a timeout proves the server did not commit. Explicit cancellation,
+connection retirement and native world ownership must settle that case before
+local fallback. Recheck partial-human grouping and no duplicate-world behavior.
+The server tests do not establish these client invariants or distributed
+exactly-once execution during a network partition.
+
+QUALIFICATION
+tests/test_public_protocol.py covers authored layouts, tickets, topology and
+bounded two/four-seat frames. tests/test_public_matchmaking.py exercises actual
+loopback coordinator sessions and supervised synthetic workers: all modes,
+partial groups, exact deadline, cancellation/stale proposal, missing readiness,
+capacity, activity exclusion, results/return, worker failure, delayed creation
+disconnect and rejection of worker attempts to overwrite a human input.
+public_wire_tests.cpp checks the corresponding C++ control/frame parsing and
+shared ACK acceptance. client_patch/build.ps1 runs it with the existing checks.
+tools.verify_public_queue provides a separate opt-in original AI/Simulation proof:
+scripted human community sessions, accelerated queue/delivery, native50ms steps,
+per-bot production/autonomous movement, shared combat, natural result and exact
+independent native replay.
+Retain its verification.json, observations and frame journal privately. This is
+not a graphical, TLS, real-time pacing or Internet qualification.
+
+Native run public-native-2v2-01 PASSED in253.516s: two scripted human sessions
+occupy0/1; bots2/3 use installed mode2/profile59 with separately frozen hard/easy
+strengths. Both bots produce and autonomously order/move172/254 units, with
+2,080/2,555 command actions and recorded combat damage. Native game-over is7519,
+final delivered frame7538, winning alliance0, conceded flag0. All7,539 frames
+replay to identical observable native state and the accepted/delivered journals
+match. Both humans RETURN; all tickets/capacity release. Both workers exit0;
+covered sources remain unchanged. The native-state digest is an observable-view
+comparison, not a complete hidden-world hash; the natural result checksum is
+also retained. This proof uses accelerated delivery and a virtual30-second queue.
+  report SHA256:1320f7824d3e516bcefbdf433f115218bdc0ef0ef0d8c35cf37625058efc93bb
+  journal SHA256:6ed815c0b72a8acf6256e6037c4c90ea76ba444626b537809e8b4b99d2522f9e
+
+Native run public-native-2vai-solo01 PASSED in124.567s: human0, bots1/2/3.
+Opponents use the original mode5/profile60; ally2 uses mode2/profile59. Produced
+units36/146/94 include36/145/94 autonomously ordered moving units. All three bots
+have command activity and combat damage. Natural game-over4165/final4184,
+winning alliance1, conceded flag0; all4,185 delivered frames replay exactly.
+RETURN releases tickets/capacity, workers exit0 and covered sources are unchanged.
+  report SHA256:64cde67e12d0a61dfddaf0d67d284ff87c3d4b0550dfdbcb4a16992946bbc597
+  journal SHA256:8ec3c4164f9ddc1a478e698ffb8794747d003c97c129c293f3c91a44e34e6ae9
+
+public-native-2vai-coop01 remains FAILED under its original verification: the
+test required damage TAKEN by every bot, although its human fixtures do not
+attack. Separate full-journal replay in public-native-2vai-coop01-inspection
+matches all39 retained observations. Bots produced143/46 units, ordered/moved
+142/1, issued285/51 commands, took zero damage, and won naturally at3855. That
+failure was a test-oracle mistake, not evidence of inactive native AI. Neither
+the failed report nor its journal was overwritten. The verifier now retains
+activity metrics before assertions, requires autonomous production/movement for
+every bot, and requires observed damage somewhere in the shared match. A bot
+attacking an undefended base is not required to suffer damage itself.
+  failed report SHA256:b4aa5729d031e1608b9d6c9310bcdc2185b106253700756baaca782e4040bddf
+  inspection SHA256:a901536bfe968339775a4b691566cf2e3961edb3ecbaa5890ac9d0c2cad9e6a0
+
+Fresh public-native-2vai-coop02 PASSED in109.316s: human allies0/2, bots1/3.
+Bots produce/order/move54/91 units and issue174/326 commands. Human armies each
+show20,000 maximum observed damage; neither bot takes damage. Natural game-over
+3985/final4004, winning alliance1, no surrender. All4,005 received frames replay
+identically and journal hashes match. Both humans RETURN, both workers exit0,
+covered sources are unchanged. This confirms the corrected activity/combat
+criterion without rewriting the previous failed evidence.
+  report SHA256:c47a5e38824c4bc3b53ac7cb24a0176a0969d286feea885777a843e15d989525
+  journal SHA256:7274b83b87eef931308ec795bf4387e82d3d778dc3be53b5a15f6fe3c63f084d
+
+Diagnostic review corrected Room.record_snapshot to use the map's distinct
+ALLIANCES0/1, not all four army IDs. An opt-in native test creates a four-army
+world, invokes the production room diagnostic path and checks both returned
+local_alliance values and event viewers. All21 queue/protocol/native-snapshot
+tests pass in public-queue05-native-snapshot.txt. Later setup-error tests expose
+and fix early journal creation failure: a prepared validator alone cannot mean
+assignment was published. Explicit assignment_started records that boundary;
+partial delivery instead requires aborted RESULTS/RETURN from every human.
+These lifecycle changes are covered by synthetic coordinator tests separately
+from the accelerated natural-match evidence above.
+
+Final public-queue06-final.txt passes56 coordinator/Custom/public tests including
+the native alliance-view test and both publication-failure boundaries. Earlier
+public-queue03-regressions.txt passes70/72 tests (two opt-in native skips), and
+public-queue04-py312.txt passes41/41 queue/host/package tests on Python3.12.
+The C++ helper build and all seven component test programs also pass.
+
+After the publication-boundary fix, public-native-1v1-01 PASSED in72.746s using
+one scripted human and an installed mode1/profile58 Normal bot. The30-second
+virtual deadline leads to one worker; the bot produces/orders/moves37 units and
+issues109 commands. Human army damage reaches20,000; game-over4473/final4492,
+winning alliance1, no surrender. All4,493 frames replay identically, accepted and
+delivered journals match, RETURN clears the ticket, both workers exit0 and
+covered sources stay unchanged. This exercises the final server source through
+ordinary public assignment publication after the synthetic failure tests.
+  report SHA256:e8e39cd4c64d67d35bde872af02b97e3b9e46644187c60422ff693dd21f69553
+  journal SHA256:9723314733f9de70f4d423c401cdc5928fff48a92290b0b1a098f4dd6a19e2f8
+
+Remaining: native menu/transport binding, offline three-bot ownership, ambiguous
+connection/commit recovery, visible all-mode searches, real30-second fallback,
+human team play, repeated mode switches and the final release acceptance matrix.

@@ -334,5 +334,5 @@ class CommunityTests(DedicatedFixture):
         self.assertIn(b'unsupported community', await peer.receive(p.ERROR))
         other = await self.online()
         await other.send(p.INPUT, struct.pack('<I', 0))
-        self.assertIn(b'without a custom match', await other.receive(p.ERROR))
+        self.assertIn(b'without an assigned match', await other.receive(p.ERROR))
         self.assertEqual(self.server.rooms, {})
