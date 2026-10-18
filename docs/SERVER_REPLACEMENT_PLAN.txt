@@ -352,6 +352,10 @@ Depends on P4. Effort allowance: 2-5 days, including fixes found by playtests.
   Bounded native/community soak tooling and packaged-runtime pilots are now
   implemented; see soak-qualification.txt. These pilots do not establish eight
   hours, graphical rematches or session0/SCM operation. Keep those gates explicit.
+  The first long attempt failed its predeclared publication-gap limit and was
+  stopped with all workers reaped. A revised monitor removes synchronous test
+  evidence writes from the coordinator loop. The revised12-match native pilot
+  passes all original criteria; the full eight-hour run remains required.
 - Compare exact bootstrap/input histories and sampled same-frame state across
   clients and server. Include native end checksum/results where available.
 - Cover crash, malformed/oversized packets, version mismatch, slow load, lost

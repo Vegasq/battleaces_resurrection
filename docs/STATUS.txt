@@ -35,10 +35,26 @@ Runner sourcef8129e0 is committed. The actual eight-hour run started at
 2026-10-18T02:57:23.5846267Z (local2026-10-17), evidence
 local/p5-soak-frozen02/local/eight-hour01. The launch JSON records PID5660 and
 creation FILETIME134367658435846267; both and the packaged executable path were
-verified against the live process. The initial30.822s sample has6 live native
-worlds and clean stderr. No terminal verification is present; this remains a
-live pending gate. See soak-qualification.txt for identity and completion checks.
-Source/history audit:5 authored files,456 distinct objects,0 failures. All native
+verified against the live process. It subsequently failed the predeclared1000ms
+publication-gap limit with a1233.287ms gap. stop.request ended the run at459.657s;
+the terminal report is failed/eight_hour_gate:false, all24 workers are reaped,
+and the runner is no longer live. Six matches completed before interruption of
+the next two rooms; source and assets remain unchanged. Failure evidence stays.
+The old monitor wrote/fsynced status synchronously on the coordinator loop; that
+is a plausible source of observer-induced stalls, not a proved explanation for
+the specific outlier. The revised harness moves evidence I/O to one awaited
+thread, retains cancellation/write-error guarantees and records bounded disk,
+audit/snapshot and loop-delay timings. It stops early on an unrecoverable maximum
+gap failure using the same limits. Twelve focused tests pass on 3.14.8/3.12.10;
+the revised frozen pilot06 now passes all14 criteria at686.044s:12 matches,
+36 worker exits0,26,446 frames and52,892 matching replay comparisons. Publication
+mean50.000667ms,max66.909ms; worker max7.084ms with no call over50ms. Evidence I/O
+still reaches1203.913ms without blocking frames. Idle handles177/177 and private
+commit30,928,896 ->34,217,984 bytes; source/assets remain unchanged. The pilot
+explicitly does not pass the eight-hour gate. See soak-qualification.txt.
+The revised native stop-probe02 also passes: expected interrupted exit1, all6
+live worlds reaped, unchanged source/assets and no forced process cleanup.
+Initial source/history audit:5 authored files,456 distinct objects,0 failures. All native
 assets, frozen copies, runtime output and captures stay outside Git publication.
 
 WINDOWS SERVICE ADAPTER (2026-10-17; real SCM/account/reboot acceptance open)

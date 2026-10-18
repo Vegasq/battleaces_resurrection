@@ -64,6 +64,20 @@ capacity. Ordinary local server logs rotate at1MiB with2 backups; raw native fil
 logging stays disabled. samples.jsonl and matches.jsonl are bounded by the CLI's
 duration/round limits and contain summaries only. Detailed binary captures are off.
 
+The revised runner serializes evidence writes through one awaited background
+thread. Only one operation can be submitted; up to the fixed room/observer task
+count can wait for the lock. Cancellation drains an already-running write before
+the next write or stream close, including repeated cancellation. Disk errors fail
+qualification. Atomic status replacement still flushes/fsyncs before publication.
+This removes test-only disk waits from the coordinator loop without changing the
+production host's logging or saved-profile behavior.
+
+Separate fixed histograms measure actual evidence I/O time, lock waiting, on-loop
+snapshot work, ordinary host audit calls and 100 ms event-loop probe lateness. The
+eight slowest evidence operations and eight largest publication gaps over 100 ms
+retain bounded timestamps/context for diagnosis. Worker await time also includes
+event-loop scheduling; it is not an isolated measurement of native CPU time.
+
 ACCEPTANCE DEFINED BEFORE THE LONG RUN
 
 The run must finish normally and prove every individual match invariant above.
@@ -112,12 +126,16 @@ the run's final cleanup and contains explicit passed/eight_hour_gate booleans.
 Check the actual process exit too; an old progress file never proves liveness.
 
 To cancel only this owned test, create an empty stop.request inside its output
-directory. The next heartbeat (within10 seconds) cancels the match tasks, closes
-all owned native worlds/peers/listener and records a failed, interrupted run.
+directory. The next heartbeat (ten seconds plus any pending evidence write)
+cancels the match tasks, closes all owned native worlds/peers/listener and records
+a failed, interrupted run.
 Nothing is deleted and unrelated game/server processes are left alone. A bounded
 whole-run watchdog exits the runner abnormally if ordinary cancellation/cleanup
 hangs; its existing kill-on-close jobs end its native children. Missing final
 verification after such termination is failure, never evidence of a successful run.
+The revised monitor also stops automatically once a publication gap exceeds the
+predeclared1000ms limit: a recorded maximum cannot recover later in the run. All
+original acceptance thresholds remain unchanged.
 
 PILOT EVIDENCE
 
@@ -159,7 +177,7 @@ worker mean2.116ms,p99<=4ms,max63.755ms with2/3,360 calls over50ms. Idle handles
 186/186; private commit29,192,192 ->32,182,272. The short run explicitly records
 eight_hour_gate:false. Core/package and imported asset hashes stay unchanged.
 
-EIGHT-HOUR RUN IN PROGRESS
+FIRST EIGHT-HOUR ATTEMPT FAILED THE TIMING GATE
 
 Runner source f8129e04553880f14f40125c8ab2fbec42b08660 is committed. The frozen
 runner above was started at2026-10-18T02:57:23.5846267Z against clean server source
@@ -172,11 +190,58 @@ at least21 rounds; complete the final round after the duration is reached.
 Initial authoritative process check: PID5660, creation FILETIME
 134367658435846267, matching the launch record and packaged executable path.
 At30.822s it has6 live native workers,2 running rooms, publication mean50.160ms
-and worker mean2.366ms; no stderr and no final verification exists. This is launch
-evidence only. Recheck the actual process identity/handle before treating later
-progress as live. Earliest duration completion is2026-10-18T10:57:24Z, followed
-by the current round and cleanup. Do not mark this eight-hour gate passed until
-the terminal process and final report, including resource/timing evidence, agree.
+and worker mean2.366ms. Later samples show a1233.287ms publication gap, exceeding
+the declared1000ms maximum. An owner stop.request ended the test at459.657s;
+verification.json is failed, passed:false, eight_hour_gate:false, with all24
+workers reaped and no active worlds. The runner process is no longer live.
+Six matches/three rounds completed before interruption of the next two rooms;
+17,486 authoritative frames were checked before stop. Source and assets match.
+Mean publication gap50.881ms, worker mean3.282ms, max1189.486ms;18/17,486 worker
+calls exceeded50ms. This is retained failed evidence, not a shortened pass.
+
+The original heartbeat synchronously wrote and fsynced progress.json on the same
+event loop as all rooms. This can inflate both publication gaps and worker-await
+timing. The failed run did not time those writes, so its specific1233ms outlier
+cannot be attributed conclusively. The off-loop evidence change above and its
+new diagnostics address that test-induced risk without hiding future stalls.
+
+REVISED RUNNER PILOT PASSED
+
+Frozen runner SHA256:
+9748a64c2b2412f6a1ea1114b9796d81a47de02b9561364a2544457bea110afd.
+Twelve focused checks pass on 3.14.8 (0.225s) and 3.12.10 (0.276s), including
+continued frame processing during a deliberately blocked evidence operation,
+ordered cleanup after repeated cancellation, error propagation, bounded timing
+retention and fail-fast behavior without changing the timing criteria.
+The final test also injects a disk error while the finished run cancels/drains its
+monitor: cleanup completes, but the report must fail even if all other checks
+would pass. Its initial fixture omitted a counter; that test-only setup error is
+retained in local/soak-async03-tests.txt. Passing final checks are in
+local/soak-async04-tests.txt and local/soak-async312-02-tests.txt.
+local/p5-soak-frozen03/local/pilot06 requests 600s, two rooms, frame3600 and at
+least four rounds using the unchanged7fccb08 package. It finishes the last round
+at686.044s and exits0 with all14 checks true: 12 matches, four enduring sockets,
+36 worker exits0, 26,446 authoritative frames and52,892 matching replay views.
+Both rooms run concurrently for646.444s. No cadence reset is recorded.
+Publication mean50.000667ms, p95<=63ms, p99<=65ms, max66.909ms; worker mean2.701ms,
+p99<=5ms, max7.084ms, with no call over50ms. No publication gap exceeds100ms.
+Idle handles177 ->177; private commit30,928,896 ->34,217,984 bytes. All worker,
+source and asset checks pass, and the runner process has exited.
+
+The slowest evidence write takes1203.913ms while frame gaps remain below67ms;
+the disk work no longer blocks frame processing in this workload. Audit calls
+max0.318ms, snapshot work max4.068ms. The loop probe still records a103.836ms
+outlier across all phases, including room transitions; this is retained rather
+than claiming all scheduling delays were eliminated. Old-run attribution remains
+limited by its missing write timings. The pilot explicitly records
+eight_hour_gate:false and does not establish long-run or graphical acceptance.
+
+local/p5-soak-frozen03/local/stop-probe02 then cancels the same frozen runner
+after observing six live worlds. The owned process exits1 with the expected
+owner-stop error, failed/eight_hour_gate:false, all6 workers reaped, no active
+worlds and unchanged source/assets. stop-probe02-control.json records the owned
+process creation identity and actual exit status; its controller exits0 only
+when those cancellation checks pass. No forced cleanup was needed.
 
 PRIMARY METRIC REFERENCES
 https://learn.microsoft.com/en-us/windows/win32/api/psapi/ns-psapi-process_memory_counters_ex

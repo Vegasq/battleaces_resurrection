@@ -9,6 +9,7 @@ from __future__ import annotations
 import argparse
 import asyncio
 from collections import Counter, deque
+from concurrent.futures import ThreadPoolExecutor
 import ctypes as C
 from datetime import datetime, timezone
 import hashlib
@@ -98,6 +99,58 @@ class Distribution:
             return None
         return dict(count=self.count, mean_ms=self.total/self.count if self.count else None,
                     max_ms=self.maximum, p95_ms_upper=quantile(.95), p99_ms_upper=quantile(.99), over50ms=self.over50)
+
+
+class EvidenceWrites:
+    """One awaited disk operation at a time, outside the measured event loop."""
+    def __init__(self):
+        self.lock = asyncio.Lock()
+        self.executor = ThreadPoolExecutor(max_workers=1, thread_name_prefix='soak-evidence')
+        self.io_ms, self.wait_ms = Distribution(), Distribution()
+        self.active = None
+        self.slowest = []
+
+    async def call(self, name, operation, *args):
+        queued = time.perf_counter()
+        async with self.lock:
+            self.wait_ms.add((time.perf_counter()-queued)*1000)
+            timing = dict(operation=name, started=time.perf_counter())
+            self.active = timing
+            def perform():
+                started = time.perf_counter()
+                try: return operation(*args)
+                finally:
+                    timing['finished'] = time.perf_counter()
+                    timing['io_ms'] = (timing['finished']-started)*1000
+            pending = asyncio.get_running_loop().run_in_executor(self.executor,perform)
+            cancelled = None
+            try:
+                while True:
+                    try:
+                        result = await asyncio.shield(pending)
+                        break
+                    except asyncio.CancelledError as error:
+                        # A running fsync cannot be cancelled. Retain the lock and
+                        # drain it before any later status write or stream close.
+                        if pending.cancelled(): raise
+                        cancelled = error
+            finally:
+                if 'io_ms' in timing:
+                    self.io_ms.add(timing['io_ms'])
+                    self.slowest.append(dict(timing))
+                    self.slowest.sort(key=lambda value:value['io_ms'],reverse=True)
+                    del self.slowest[8:]
+                self.active = None
+            if cancelled is not None: raise cancelled
+            return result
+
+    def summary(self):
+        return dict(io_ms=self.io_ms.summary(), wait_ms=self.wait_ms.summary(),
+                    slowest=[dict(value) for value in self.slowest])
+
+    def close(self):
+        require(not self.lock.locked(), 'Evidence writer closed before pending write drained')
+        self.executor.shutdown(wait=True)
 
 
 class ProcessSampler:
@@ -220,6 +273,9 @@ class Soak:
         self.audit = HostAudit(self.output/'logs', max_bytes=1024*1024, backups=2)
         self.samples = (self.output/'samples.jsonl').open('x', encoding='utf-8', buffering=1)
         self.matches = (self.output/'matches.jsonl').open('x', encoding='utf-8', buffering=1)
+        self.evidence = EvidenceWrites()
+        self.diagnostics = {key:Distribution() for key in ('snapshot_ms','loop_delay_ms','audit_ms')}
+        self.worst_gaps = []
         self.sampler = ProcessSampler()
         self.peers, self.active_workers = [], set()
         self.created = self.reaped = self.finished = self.rounds = 0
@@ -270,12 +326,24 @@ class Soak:
         if event == 'frame_queued':
             now = time.perf_counter()
             previous = self.last_published.get(fields['match'])
-            if previous is not None: self.timings['publish_interval_ms'].add((now-previous)*1000)
+            if previous is not None:
+                gap = (now-previous)*1000
+                self.timings['publish_interval_ms'].add(gap)
+                if gap > 100:
+                    self.worst_gaps.append(dict(elapsed_seconds=time.monotonic()-self.started,
+                        match=fields['match'],frame=fields['frame'],gap_ms=gap,perf_counter=now,
+                        worker_ms=fields.get('worker_ms'),
+                        evidence_operation=self.evidence.active['operation'] if self.evidence.active else None))
+                    self.worst_gaps.sort(key=lambda value:value['gap_ms'],reverse=True)
+                    del self.worst_gaps[8:]
             self.last_published[fields['match']] = now
             for key, distribution in self.timings.items():
                 if key == 'publish_interval_ms': continue
                 if key != 'interval_ms' or fields['frame'] > 0: distribution.add(fields[key])
-        self.audit(event, **fields)
+        if event not in HostAudit.HIGH_FREQUENCY:
+            started = time.perf_counter()
+            try: self.audit(event, **fields)
+            finally: self.diagnostics['audit_ms'].add((time.perf_counter()-started)*1000)
 
     async def factory(self, data):
         worker = ObservedWorker(await SimulationWorker.create(data, self.args.assets/'Simulation.dll', working_directory=self.workdir))
@@ -421,7 +489,7 @@ class Soak:
                 require(reference.process.poll() == 0, 'Reference worker did not exit cleanly')
                 self.reaped += 1; self.active_workers.discard(reference)
         summary['worker_exit_codes'] = [worker.process.poll(),*[r.process.poll() for r in references]]
-        self.matches.write(json.dumps(summary,separators=(',',':'))+'\n')
+        await self.evidence.call('match',self.matches.write,json.dumps(summary,separators=(',',':'))+'\n')
 
     def status(self):
         now = time.monotonic()
@@ -431,10 +499,23 @@ class Soak:
         return dict(utc=utc(),pid=os.getpid(),state='running',elapsed_seconds=now-self.started,rounds=self.rounds,
             matches=self.finished,created_workers=self.created,reaped_workers=self.reaped,
             concurrent_room_seconds=coverage,active_workers=len(self.active_workers),
-            coordinator=self.sampler.sample(os.getpid()),timings={key:value.summary() for key,value in self.timings.items()})
+            coordinator=self.sampler.sample(os.getpid()),timings={key:value.summary() for key,value in self.timings.items()},
+            diagnostics=dict(**{key:value.summary() for key,value in self.diagnostics.items()},
+                             evidence=self.evidence.summary()),worst_publication_gaps=list(self.worst_gaps))
+
+    async def loop_probe(self):
+        while True:
+            started = time.perf_counter()
+            await asyncio.sleep(.1)
+            self.diagnostics['loop_delay_ms'].add(max(0,(time.perf_counter()-started-.1)*1000))
+
+    def write_sample(self, sample):
+        self.samples.write(json.dumps(sample,separators=(',',':'))+'\n')
+        write_json(self.output/'progress.json',sample)
 
     async def heartbeat(self):
         while True:
+            started = time.perf_counter()
             sample = self.status()
             sample['workers'] = []
             for worker in tuple(self.active_workers):
@@ -442,13 +523,15 @@ class Soak:
                 try: sample['workers'].append(self.sampler.sample(worker.pid))
                 except OSError:
                     if worker.process.poll() is None: raise
-            self.samples.write(json.dumps(sample,separators=(',',':'))+'\n')
-            write_json(self.output/'progress.json',sample)
+            self.diagnostics['snapshot_ms'].add((time.perf_counter()-started)*1000)
+            await self.evidence.call('sample',self.write_sample,sample)
             if (self.output/'stop.request').exists(): raise RuntimeError('Owner requested soak stop')
+            if self.timings['publish_interval_ms'].maximum > 1000:
+                raise RuntimeError('Publication gap exceeded the predeclared 1000ms limit')
             await asyncio.sleep(10)
 
     async def run(self):
-        monitor = batch = None
+        monitor = batch = probe = None
         try:
             self.server = dedicated_server.DedicatedServer(self.template,ProfileStore(self.output/'profiles',self.template),
                 sim_factory=self.factory,audit=self.event,data_dir=None,audit_state=False,max_rooms=self.args.rooms)
@@ -456,22 +539,26 @@ class Soak:
             self.report['address'] = list(self.address[:2])
             pairs = [await self.pair(index) for index in range(self.args.rooms)]
             monitor = asyncio.create_task(self.heartbeat())
+            probe = asyncio.create_task(self.loop_probe())
             while time.monotonic()-self.started < self.args.seconds or self.rounds < self.args.minimum_rounds:
                 async def play_round():
                     async with asyncio.TaskGroup() as group:
                         for pair in pairs: group.create_task(self.match(pair,self.rounds))
                 batch = asyncio.create_task(play_round())
-                done,_ = await asyncio.wait((batch,monitor),return_when=asyncio.FIRST_COMPLETED)
+                done,_ = await asyncio.wait((batch,monitor,probe),return_when=asyncio.FIRST_COMPLETED)
                 if monitor in done:
                     batch.cancel(); await asyncio.gather(batch,return_exceptions=True)
                     await monitor
                     raise RuntimeError('Heartbeat stopped unexpectedly')
+                if probe in done:
+                    await probe
+                    raise RuntimeError('Event-loop probe stopped unexpectedly')
                 await batch
                 self.rounds += 1
                 require(not self.active_workers and not self.server.rooms and not self.server.retired, 'Round left active match resources')
                 self.final_idle = self.sampler.sample(os.getpid())
                 if self.rounds == 3: self.baseline = self.final_idle
-                write_json(self.output/'progress.json',self.status())
+                await self.evidence.call('round',write_json,self.output/'progress.json',self.status())
                 print(json.dumps(dict(utc=utc(),round=self.rounds,matches=self.finished,elapsed_seconds=time.monotonic()-self.started)),flush=True)
             self.report['passed'] = True
         except BaseException as error:
@@ -480,8 +567,15 @@ class Soak:
         finally:
             if batch and not batch.done():
                 batch.cancel(); await asyncio.gather(batch,return_exceptions=True)
-            if monitor:
-                monitor.cancel(); await asyncio.gather(monitor,return_exceptions=True)
+            for observer in (monitor,probe):
+                if observer:
+                    observer.cancel()
+                    outcome, = await asyncio.gather(observer,return_exceptions=True)
+                    if isinstance(outcome,BaseException) and not isinstance(outcome,asyncio.CancelledError):
+                        self.report['passed'] = False
+                        if 'error' not in self.report:
+                            self.report.update(error=type(outcome).__name__+': '+str(outcome),
+                                               traceback=''.join(traceback.format_exception(outcome)))
             if self.server: await self.server.close()
             await asyncio.gather(*(peer.close() for peer in self.peers),return_exceptions=True)
             for worker in list(self.active_workers):
@@ -501,8 +595,10 @@ class Soak:
             self.report['passed'] = self.report['passed'] and all(checks.values())
             self.report['eight_hour_gate'] = self.report['passed'] and self.args.seconds >= 28800 and self.rounds >= 21
             if not self.report['passed']: self.report['state'] = 'failed'
-            write_json(self.output/'verification.json',self.report)
-            self.samples.close(); self.matches.close(); self.audit.close()
+            try: await self.evidence.call('verification',write_json,self.output/'verification.json',self.report)
+            finally:
+                self.evidence.close()
+                self.samples.close(); self.matches.close(); self.audit.close()
 
 
 def arguments(argv=None):
