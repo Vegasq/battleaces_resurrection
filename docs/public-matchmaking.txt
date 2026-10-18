@@ -4,9 +4,12 @@ Updated: 2026-10-18 UTC
 SCOPE
 The coordinator implements public1v1,2v2 and2vAI queues on community sessions.
 server/public_matchmaking.py owns tickets/proposals; public_protocol.py and
-client_patch/src/public_wire.hpp define the new packets. The C++ codec is tested,
-but the native graphical client does not yet route public menu requests through
-this protocol. Ordinary Start Client public/team enablement remains unfinished.
+client_patch/src/public_wire.hpp define the new packets. The experimental native
+adapter now routes original public buttons through these packets and consumes
+two/four-seat frames. Real-time graphical1v1 and solo2v2/2vAI TLS checkpoints
+pass below, alongside bounded native cancellation/connection-loss tests.
+Actual human team play and offline team/failure qualification remain unfinished.
+Ordinary Start Client public/team enablement remains unfinished.
 Custom remains human-only and keeps its existing protocol and lifecycle.
 
 ADMISSION AND IDENTITY
@@ -201,6 +204,158 @@ ordinary public assignment publication after the synthetic failure tests.
   report SHA256:e8e39cd4c64d67d35bde872af02b97e3b9e46644187c60422ff693dd21f69553
   journal SHA256:9723314733f9de70f4d423c401cdc5928fff48a92290b0b1a098f4dd6a19e2f8
 
-Remaining: native menu/transport binding, offline three-bot ownership, ambiguous
-connection/commit recovery, visible all-mode searches, real30-second fallback,
-human team play, repeated mode switches and the final release acceptance matrix.
+GRAPHICAL CLIENT ADAPTER (2026-10-18 UTC, EXPERIMENTAL)
+public_attempt.hpp owns the monotonic search ticket, original30-second deadline,
+connection generation, frozen deck and exact READY proposal. Waiting/requeue
+never resets that deadline. Late connection/ticket events cannot start another
+world; after READY, a lost reply is ambiguous and cannot trigger local fallback
+without explicit pre-assignment retirement. public_client.cpp binds these states
+to original search/Cancel/joining, one remote world lease, authoritative results
+and independent RETURN. Canonical bootstrap identities, human/bot seat mask,
+authored alliances and human deck are checked before loading; every frame's full
+player identity must match that bootstrap. Custom keeps its separate ownership.
+
+public-client-native01 PASSED in125.768s using helper SHA256
+6d1497712d9fc335650861247ddf333fb5a100ee3a7a6e2dd09048e706ba1e40.
+The original1v1 button entered one authenticated TLS queue; the server waited
+29.802 real seconds after ENTER (the remaining deadline already includes client
+connection time), then selected one original bot and created one worker. Native
+search/joining,1200-frame diagnostic surrender, original results/Continue and
+RETURN completed. All1,220 client frame receipts match the server journal;
+tickets/offers release, the worker exits0 and covered sources stay unchanged.
+  report SHA256:dde9d846d7502ac4a696a0dad0400415f9e8bd784346a2a53443ef071ffcb4da
+This hidden-window probe uses automated original callbacks. It does not qualify
+pixels, manual input, natural combat, native Quit or Internet play. Owned game
+teardown is forced and recorded. Diagnostics are opt-in; ordinary launchers do
+not surrender automatically. No manual/frozen client or release package changed.
+
+Follow-up review found that native elapsed seconds stayed0 in this first online
+run. Presence calls anchorClock after search captured the previous clock epoch;
+the original timer's DateTime difference then exceeds its integer range. The
+match/frame/return proof above stands, but it is NOT online timer qualification.
+Keep one application clock across optional presence/reconnect, then add elapsed
+progression assertions and repeat the visible search test before enablement.
+
+public-client-unavailable01 PASSED in91.842s with the same helper. One failed
+optional bridge attempt starts local public1v1 using the inherited search ticket,
+configured name and a random authored bot. Authentication count0, server workers0,
+only one local world lease, native result/Continue and released world. Sources
+stay unchanged and the owned process is reaped. Diagnostic surrender1200 is
+explicit. This is unavailable-server routing/lifecycle, not natural-combat proof.
+  report SHA256:284f7ccba5dec90854973029aae8eac18c373f52a91f5e71ac83d613e481c922
+
+public-client-2vai01 PASSED in234.531s with the same helper and a visible window.
+Human0 shares the server worker with allied bot2 and opposing bots1/3. One
+authentication and29.760 real seconds after ENTER lead to the four-army bootstrap,
+native loading and a NATURAL game-over3379/final3398 (winner1,conceded0).
+All3,399 received frames match the server journal. Native results/Continue,
+RETURN and ticket release pass; worker exit0, sources unchanged, owned PID reaped.
+Pixel inspection of the retained joining image confirms the original2vAI
+CENTRAL MINING: Mars loading artwork; the released image shows the native base
+intro. This still has the discovered zero-second search timer. It does not
+qualify actual human team input, offline three-bot ownership or all team UI.
+  report SHA256:8eb3cb28c938856a79e2e67ed5c67e95f5eb7d70c64c03846d192bdc3d0cbe9d
+
+Follow-up source fixes initialize the unified application clock before search
+and preserve it at presence installation/reconnect. Negative READY replies only
+affect a proposal still marked ready; a requeued offer cannot inherit the previous
+proposal's negative reply. Connection loss is handled before waiting for RETURN
+ACK, preventing a lost final acknowledgement from retaining an idle intent.
+tools.verify_public_client now has bounded original Cancel/retry, delayed ENTER
+ACK and READY/RETURN disconnect injections. Full online passes must include a
+monotonically advancing native elapsed timer reaching at least25 seconds.
+The clock and delayed-reply retry qualify below; additional disconnect cases
+remain under test. The helper build and all eight C++ programs pass;64 focused Python cases run with57 passes
+and7 optional native skips (public-client04-regressions.txt).
+Pixel review during the corrected visible search also exposed a separate cached
+menu name: the top-left profile label still shows the previous local name rather
+than this probe's configured display_name. Match/presence configuration is not
+proof of menu-profile projection. This is retained in the final name/persistence
+acceptance work, not silently marked complete by a queue pass.
+
+public-client-cancel-retry01 PASSED in129.229s with visible native1v1 search.
+Ticket1 cancels via original OnCancelClicked while its ENTER ACK is delayed5s.
+Ticket2 starts on the same authenticated connection; the old acknowledgement
+arrives during its search without changing ownership or elapsed time. Original
+elapsed seconds advance0..30; the server offers after30.006 real seconds. Exactly
+one native world and one worker,1,220 exact receipts, diagnostic surrender1200,
+native result/Continue/RETURN, worker exit0, covered sources unchanged and owned
+PID reaped. Pixel review confirms original search/timer/X, Searching.../locked
+other modes and1v1 PLATFORM17: Earth loading. The rapid retry's release image is
+not claimed as a visibly idle menu; native release ownership is checked separately.
+  helper SHA256:a94c5cec9caafdcbaeaf8a142a9db692e6037c732eebc3724d4cf151c9d3d3ee
+  report SHA256:7531f606d95b0cd728971c367d47b5fe44d4b5036f88401e4b0ccbc9420710b3
+Subsequent test-only retry pacing allows one second for a clear-menu capture.
+A production ownership guard also rejects Try Deck while a public intent owns
+search; fallback explicitly transfers that ownership before starting local AI.
+
+Four hidden native retirement probes PASS with helper SHA256
+b4f2f751260f0827d22c0fa9c99fa6efd004ad02e18230e0586075c982da17f0:
+- public-client-cancel-before01:13.722s, original Cancel before ENTER. Also calls
+  the actual practice start entry during public search; it preserves the queue,
+  connection generation and no-world ownership. No worker or world is created.
+  report:ed36f0c8dca3baf96f7249b636b3770e94ba8d58f82fa729402eaf393c9b0a7a
+- public-client-cancel-offer01:43.841s, original Cancel after OFFERED and before
+  READY. Ticket/offer release without a worker or client world.
+  report:4179257a992f6e71ecb59fffb2643a82ae472a8f26bdec377bd62d2bdb76019b
+- public-client-cancel-ready01:43.562s, original Cancel immediately after READY.
+  PREPARING and the successful READY ACK precede the negative CANCEL ACK. The
+  client retires its connection without joining or starting local fallback;
+  the committed server ticket releases before worker construction in this run.
+  report:631b57cf95407b6bd7323db444d79a5096a45ee71c79ba6dcbf38d1f564f2a63
+- public-client-drop-ready01:43.742s, server connection closes just after READY
+  commits. The client retires to idle with an error notice, never local fallback
+  or another world. Ticket/offer release before worker construction in this run.
+  report:d36abd116f6cb07f5d1685e136410414fcb60970f7971dc78fabb747b14cdb4e
+Each authenticates once, preserves covered source hashes and reaps its owned
+game. These do not prove mid-load/mid-match disconnect or manual mouse behavior.
+The already-built late-worker case remains covered by server coordinator tests.
+
+public-client-2v2-01 PASSED in275.104s with the same helper and a visible window.
+One human seat and three server AI seats share the original four-army map. Native
+elapsed seconds advance0..29; offer occurs29.847s after ENTER. Original2v2
+search/timer/X and CENTRAL MINING: Mars loading pixels are reviewed. Natural
+game-over4186/final4205 has winner1,conceded0. All4,206 client receipts match the
+server journal; result/Continue/RETURN and ticket release pass, worker exit0,
+covered sources unchanged and owned PID reaped. The practice-overlap guard is
+also exercised without losing search or connection. This is one graphical human
+seat plus server bots, not actual multi-human team acceptance.
+  report SHA256:6b690b371e6d80ec3e4e10ad18f7089674dbe2224a3517b8ff9b7cea96fa6e72
+
+public-client-unavailable02 PASSED in105.248s with the same helper after adding
+the practice/public ownership guard. Fallback explicitly transfers the search
+ticket and starts one local world with no authentication or server worker;
+native result/Continue and cleanup pass. Covered sources remain unchanged.
+  report SHA256:41682911b63a147720f409e96d7842fc873695c0d0525ab517bbe24060e9f50f
+
+public-client-drop-return01 PASSED its lifecycle assertions in124.121s: after
+1,220 exact receipts and native results/Continue, the server drops the RETURN
+ACK. The idle client retires its intent without another world; worker exit0 and
+sources unchanged. Review found that its generic start-failure notice was wrong
+for an already-finished match. That report is retained as a bounded lifecycle
+pass, not error-presentation acceptance. A completed native return now retires
+quietly on final-ACK loss; the strengthened verifier rejects that erroneous
+notice and requires the specific after-return retirement marker.
+  report SHA256:4e77eecad8c93e2e18b9e56eacb262a033f910e7c644491efd83d5df03695d18
+Final helper build and all eight component programs pass;25 patcher/evidence/
+package/unified-launcher regressions pass (public-client05-regressions.txt).
+
+public-client-drop-return02 PASSED the strengthened check in149.412s:1,220 exact
+receipts, native results/Continue, and final-ACK loss followed by idle retirement
+without a public-error notice or another world. Original elapsed timer advances,
+worker exits0, covered sources stay unchanged and the owned game is reaped.
+  helper SHA256:5c16f688d2aa7b4f2a8a656fdb27ad44235adbc0cad8a774858894931baa7aad
+  report SHA256:4961a20ad71d338fe226c6ff9a8e88ef99642ea06e9f6414633e62316c11118e
+
+public-client-2vai-cancel01 PASSED in44.949s with that final helper and a visible
+window. Native2vAI elapsed seconds advance0..29, then original Cancel at OFFERED
+retires ticket/offer without a worker or client world. Pixel review confirms
+native Searching.../timer/X and, after Cancel, the cleared panel/text/mode locks.
+Sources stay unchanged and the owned game is reaped. Together with the separate
+1v1/2v2 search and2vAI natural-match evidence, this qualifies the bounded native
+presentation paths; actual mouse input and all-mode release acceptance remain.
+  report SHA256:6299487085a0c7ea08de2e5f963c3eda9d5c86081a2c50d98948be3fe237e69c
+
+Remaining: offline three-bot ownership, post-assignment/mid-load/mid-match loss,
+requeue/late-proposal stress, actual human team play, repeated mode switches,
+ordinary entry-point enablement, manual UI and final release acceptance.

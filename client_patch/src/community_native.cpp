@@ -112,7 +112,7 @@ static void installPresence(Obj front) {
         catch(...){ba_dedicated::installing=false;throw;}
         ba_dedicated::installing=false;ba_dedicated::initialized=true;
     }
-    ba_community_invites::anchorClock(front);
+    if(!ba::unified())ba_community_invites::anchorClock(front);
     ba_dedicated_session::lobbyInstalled=true;installed=true;
     ba::log("Community presence installed: profile=%s alias=%llu assignedSeat=%d BA_RESURRECTION_COMMUNITY_V1",
         ba_community::welcome.profile.c_str(),static_cast<unsigned long long>(ba_community::alias(ba_community::welcome.profile)),ba::lanSlot());
@@ -312,7 +312,7 @@ static void update(Obj front) {
     while(!ba_community::events.empty()) {
         auto event=std::move(ba_community::events.front());ba_community::events.pop_front();
         if(const auto* ack=std::get_if<wire::Ack>(&event)) {
-            if(!ba_client::acknowledge(*ack) && !ba_practice::acknowledge(front,*ack) && !ba_community_match::acknowledge(front,*ack) && !ba_community_invites::acknowledge(front,*ack))acknowledge(front,*ack);
+            if(!ba_public::acknowledge(front,*ack) && !ba_client::acknowledge(*ack) && !ba_practice::acknowledge(front,*ack) && !ba_community_match::acknowledge(front,*ack) && !ba_community_invites::acknowledge(front,*ack))acknowledge(front,*ack);
             ba_community_invites::flush(front);project(front);
         }
         else if(const auto* snapshot=std::get_if<wire::Lobby>(&event)){authority=*snapshot;ba_community_match::snapshot(front);ba_community_invites::flush(front);project(front);}
@@ -323,12 +323,12 @@ static void update(Obj front) {
             ba_community_roster::changed();
         }
         else if(const auto* invite=std::get_if<wire::Invitation>(&event))ba_community_invites::receive(front,*invite);
-        else if(const auto* abort=std::get_if<wire::Aborted>(&event))ba_community_match::aborted(front,*abort);
+        else if(const auto* abort=std::get_if<wire::Aborted>(&event)){if(!ba_public::aborted(*abort))ba_community_match::aborted(front,*abort);}
     }
     smoke(front);
     dispatch(front);
     ba_community_invites::dispatch(front);ba_community_invites::flush(front);
-    ba_community_match::update(front);
+    if(!ba_public::active())ba_community_match::update(front);
     ba_community_roster::update();
     ba_community_popup::update();
     ba_community_roster::smoke(front);

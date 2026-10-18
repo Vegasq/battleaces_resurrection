@@ -160,3 +160,17 @@ Design evidence:ignored local/p2-unified-client-lifecycle-design.txt. Its review
 identifies exact routing/cleanup callsites in offline_client,practice_ai,
 local_bootstrap,dedicated_deck,dedicated_adapter and community_native. It is a
 source architecture review, not new native runtime qualification.
+
+Menu-name projection follow-up (2026-10-18)
+Visible public queue screenshots show a menu-profile name different from the
+configured match/presence name. restoreIdentity updates front handles and
+ProfileCache.name_, but that does not prove the menu model was refreshed.
+Original MenuPlayerVM.RefreshViewModel RVA3d28b70 reads its model's named handle
+and calls CommonPbExtensions.GetDisplayName3da6360; MenuPlayerModel stores that
+handle at+0x10. The exact producer of the observed live label still needs tracing.
+Avoid updating every player row or relabelling other players to fix the local
+label. Qualify local startup, presence/reconnect, result return and mode switches.
+Ignored local/profile-name01/FINDINGS.txt SHA256
+d29d0f369c576784399404a792686920b9156c4ac76f439bd91e5190ced3c834.
+This is original PE/LLVM plus prior IL2CPP evidence, not native REA execution or
+a runtime fix. The pinned original hash matches the supported baseline.

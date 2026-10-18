@@ -120,6 +120,6 @@ static void update(Obj server) {
         }return;
     }
     if(ba::get<uint32_t>(matchInfo,"WinningAllianceId")!=winningAlliance)throw std::runtime_error("dedicated authoritative result disagrees with local presented winner");
-    endResponse(server,matchInfo);delivered=true;pending=false;
+    endResponse(server,matchInfo,ba::lanSlot(),0,winningAlliance,!ba_public::active());delivered=true;pending=false;
 }
 }

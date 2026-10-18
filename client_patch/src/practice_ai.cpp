@@ -180,10 +180,11 @@ static void fail(const char* where,const std::exception& error) {
 static uint64_t humanId() {
     return ba::get<uint64_t>(ba::get<Obj>(ba::get<Obj>(state.human->get(),"playerHandleWithName_"),"playerHandle_"),"steamId_");
 }
-static void startMode(Obj front,Obj controller,int mode) {
+static void startMode(Obj front,Obj controller,int mode,ba_match_search::Ticket inheritedSearch=0) {
     require(mode==4 || (mode==1 && ba::unified()),"unsupported local AI mode");
     if(!ba::localMenu() && !ba::flag(L"-practice-ai-experimental")) {ba::log("Try Deck vs AI is not enabled in this build's normal launcher");return;}
     if(active()){ba::log("Practice already pending or active; duplicate start ignored");return;}
+    if(ba_public::active()){ba::log("Practice start ignored while public search owns the intent; cancel search first");return;}
     if(ba::localMenu())
         require(ba_local_menu::ready(front),"local practice menu is not ready");
     else require(ba::community() && ba_community_native::owns(front) && ba_community_native::installed &&
@@ -215,7 +216,7 @@ static void startMode(Obj front,Obj controller,int mode) {
     }
     if(mode==4)state.loadingTicket=ba_match_loading::begin(ba_match_loading::Source::Practice,state.match,ba_match_loading::Stage::Preparing);
     else {
-        try{state.searchTicket=ba_match_search::begin(front,mode);}
+        try{state.searchTicket=inheritedSearch?inheritedSearch:ba_match_search::begin(front,mode);}
         catch(...){state.cancelRequested=true;throw;}
     }
     ba::log("Practice requested: match=%s mode=%d selectedDeckSnapshot=1 standalone=%d",state.match.c_str(),state.mode,ba::localMenu()?1:0);
@@ -699,6 +700,7 @@ static bool publicSmoke(Obj front) {
     return true;
 }
 static void smoke(Obj front) {
+    if(ba::flag(L"-public-queue-smoke"))return; // That probe owns the original public button.
     const unsigned matches=ba::argument(L"-practice-ai-smoke-matches=","1")=="2"?2u:1u;
     if(!ba::flag(L"-practice-ai-smoke") || active() || completed>=matches ||
        !(ba::localMenu()?ba_local_menu::ready(front):ba_community_native::installed))return;

@@ -37,7 +37,8 @@ static void retireControl(Obj front,const char* reason) {
     ba::log("Client control retired: reason=%s localMenu=1 nativeDeckRetained=1",reason);
 }
 static void prepareLocal(Obj front) {
-    require(ba::unified() && worldOwner==Owner::None && ba_local_menu::ready(front),"local match application ownership");
+    require(ba::unified() && worldOwner==Owner::None && !ba_public::active() && ba_local_menu::ready(front),
+        "local match application ownership");
     connectRequested=false;
     retireControl(front,"local practice requested");
 }
@@ -58,6 +59,7 @@ static void releaseRemote(Obj front,const std::string& match) {
 }
 static bool optionalFailure(const char* where,const std::exception& error) {
     if(!ba::unified() || worldOwner==Owner::Remote)return false;
+    ba_public::connectionFailed(error.what());
     if(!controlFailed)ba::log("Client optional connection unavailable in %s: %s; localWorldUnaffected=1",where,error.what());
     connectRequested=false;controlFailed=true;selectedDeckAccepted=false;
     ba_lan::closeSocket();return true;
@@ -115,10 +117,12 @@ static void update(Obj front) {
         }
         smoke();
         if(worldOwner==Owner::Remote || connectRequested)ba_dedicated_session::update(front);
+        ba_public::update(front);
         if(worldOwner==Owner::None && !ba_practice::active()) {
             ba_practice::releaseOfflineIdleDisconnect(front);
             ba_practice_settings_ui::update(front);
             if(!ba::flag(L"-practice-settings-smoke") || ba_practice_settings_ui::smokeComplete())ba_practice::smoke(front);
+            ba_public::smoke(front);
         }
     } catch(const std::exception& error) {
         failed=true;ba::log("Client lifecycle invariant failed: %s; retaining native owners",error.what());

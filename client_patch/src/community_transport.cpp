@@ -10,6 +10,7 @@ static std::string authenticatedProfile();
 namespace ba_community {
 namespace wire=ba_community_wire;
 static bool online=false;
+static uint64_t generation=1;
 // Pause only match traffic as soon as ABORTED is decoded, even when its ordered
 // RESULTS snapshot arrives in a later socket read. Native ownership is checked
 // by the Unity-thread adapter before any world cleanup or RETURN.
@@ -32,6 +33,8 @@ static const wire::Player* player(const std::string& profile) {
     return nullptr;
 }
 static void reset() {
+    wire::require(generation!=UINT64_MAX,"community connection generation exhausted");
+    ++generation;ba_public::controlReset();
     online=false;abortPending=false;welcome={};directory={};lobby={};events.clear();pending.clear();requestId=0;
 }
 static uint32_t nextRequest() {

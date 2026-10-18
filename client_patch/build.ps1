@@ -38,6 +38,10 @@ try {
     if ($LASTEXITCODE -ne 0) { throw 'Public queue wire test build failed.' }
     & (Join-Path $OutputDirectory 'public_wire_tests.exe')
     if ($LASTEXITCODE -ne 0) { throw 'Public queue wire tests failed.' }
+    & (Join-Path $CompilerRoot 'bin/Hostx64/x64/cl.exe') /nologo /MT /EHsc /O2 /W4 /std:c++17 (Join-Path $PSScriptRoot 'src/public_attempt_tests.cpp') "/Fe:$OutputDirectory/public_attempt_tests.exe"
+    if ($LASTEXITCODE -ne 0) { throw 'Public attempt test build failed.' }
+    & (Join-Path $OutputDirectory 'public_attempt_tests.exe')
+    if ($LASTEXITCODE -ne 0) { throw 'Public attempt tests failed.' }
     & (Join-Path $CompilerRoot 'bin/Hostx64/x64/cl.exe') /nologo /MT /EHsc /O2 /W4 /std:c++17 (Join-Path $PSScriptRoot 'src/community_transport_tests.cpp') "/Fe:$OutputDirectory/community_transport_tests.exe"
     if ($LASTEXITCODE -ne 0) { throw 'Community session test build failed.' }
     & (Join-Path $OutputDirectory 'community_transport_tests.exe')

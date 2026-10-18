@@ -6,6 +6,7 @@
 using ULONGLONG=unsigned long long;
 static ULONGLONG now=100;
 static ULONGLONG GetTickCount64(){return now;}
+namespace ba_public {static void controlReset() {}}
 namespace ba_lan {
 static ba_community_wire::Packet last{};
 static std::string currentProfile="me";

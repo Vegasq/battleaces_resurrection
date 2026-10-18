@@ -180,9 +180,11 @@ static void overlayLan(Obj gameData,Obj dynamic) {
         ba_local::count(ba::get<Obj>(gameData,"initialActions_")));
 }
 static void installDeckLan(Obj front,Obj gameData,int slot) {
-    if(slot<0 || slot>1)throw std::runtime_error("LAN deck slot must be 0 or 1");
+    if(slot<0 || slot>3)throw std::runtime_error("LAN deck slot outside supported roster");
     Obj config=required(ba::get<Obj>(gameData,"gameConfig_"),"LAN install GameConfig missing");
     Obj armies=ba::get<Obj>(config,"armies_");
+    const int count=ba_local::count(armies);
+    if((count!=2 && count!=4) || slot>=count)throw std::runtime_error("LAN deck slot missing from roster");
     Obj proto=required(ba::get<Obj>(at(armies,slot),"deck_"),"LAN assigned deck missing");
     if(!validDeck(proto,config))throw std::runtime_error("LAN assigned test deck has invalid opening units or map unit IDs");
     void* fromArgs[]={proto};

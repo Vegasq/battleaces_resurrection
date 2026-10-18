@@ -1,6 +1,7 @@
 #pragma once
 #include "secure_bridge.hpp"
 #include "dedicated_wire.hpp"
+#include "public_wire.hpp"
 // Experimental loopback transport. All IL2CPP work stays on Unity's main thread.
 namespace ba_lan {
 using ba::Obj; using ba_local::Root;
@@ -27,6 +28,8 @@ static Bytes rx,tx,bootstrap;
 static Bytes dedicatedDeck;
 static bool lobbyReady=false;
 static bool matchEnded=false;
+static bool publicMatch=false;
+static std::vector<Bytes> publicIdentities;
 static std::string dedicatedMatchId;
 static size_t txPosition=0;
 static std::deque<Bytes> frames;
@@ -218,7 +221,9 @@ static void poll() {
         uint32_t length=u32(rx,consumed);if(length<1 || length>1024*1024+1)throw std::runtime_error("LAN message length invalid");
         if(rx.size()-consumed<length+4)break;
         unsigned char type=rx[consumed+4];Bytes payload(rx.begin()+consumed+5,rx.begin()+consumed+4+length);consumed+=4+length;
-        if(ba::community() && (type==41 || type==42 || type==44 || type==53 || type==54 || type==56))ba_community::receive(type,payload);
+        if(ba::community() && (type==62 || type==63))ba_public::receive(type,payload);
+        else if(ba::community() && ba_public::ignoreMatchData() && (type==12 || type==13 || type==14 || type==36 || type==64))continue;
+        else if(ba::community() && (type==41 || type==42 || type==44 || type==53 || type==54 || type==56))ba_community::receive(type,payload);
         else if(type==11){if(payload.size()!=1 || payload[0]!=ba::lanSlot())throw std::runtime_error("LAN slot mismatch");welcomed=true;ba::log("LAN welcome slot %d",payload[0]);}
         else if(type==31){
             if(!ba::dedicated() || welcomed)throw std::runtime_error("unexpected dedicated welcome");
@@ -234,6 +239,7 @@ static void poll() {
         else if(type==12){if(!bootstrap.empty() || payload.empty())throw std::runtime_error("duplicate or empty bootstrap");bootstrap=std::move(payload);if(ba::dedicated())saveReceivedBootstrap(bootstrap);auto h=sha(bootstrap);memcpy(&bootstrapHash,h.data(),8);ba::log("LAN canonical GameData received: %llu bytes hash-prefix=%016llx",static_cast<unsigned long long>(bootstrap.size()),bootstrapHash);}
         else if(type==13){if(!worldReady || !payload.empty() || running)throw std::runtime_error("unexpected LAN start");running=true;nextFrame=0;ba::log("LAN both players ready; synchronized start");}
         else if(type==14){if(!running || frames.size()>=(ba::dedicated()?inputWindow+4:8))throw std::runtime_error("unexpected LAN frame");frames.push_back(std::move(payload));}
+        else if(type==64){if(!publicMatch || !running || frames.size()>=inputWindow+4)throw std::runtime_error("unexpected public frame");ba_public_wire::frame(payload,static_cast<unsigned>(publicIdentities.size()));frames.push_back(std::move(payload));}
         else if(type==255){std::string message(payload.begin(),payload.end());throw std::runtime_error(message.c_str());}
         else throw std::runtime_error("unknown LAN message type");
     }
@@ -287,14 +293,20 @@ static void tick(Obj server) {
     while(!frames.empty() && nextFrame-ba::read<int>(sim,0xa8)<4) {
         Bytes frame=std::move(frames.front());frames.pop_front();
         if(u32(frame,0)!=static_cast<uint32_t>(nextFrame))throw std::runtime_error("noncontiguous LAN frame");
-        uint32_t length=u32(frame,4);if(length>frame.size()-8)throw std::runtime_error("invalid LAN player payload");
+        std::vector<Bytes> inputs;
+        if(publicMatch)inputs=ba_public_wire::frame(frame,static_cast<unsigned>(publicIdentities.size())).inputs;
+        else {
+            uint32_t length=u32(frame,4);if(frame.size()<8 || length>frame.size()-8)throw std::runtime_error("invalid LAN player payload");
+            inputs.emplace_back(frame.begin()+8,frame.begin()+8+length);inputs.emplace_back(frame.begin()+8+length,frame.end());
+        }
         Root message(ba::make("GamePb","InputActions"));ba::set<int>(message.get(),"gameFrame_",nextFrame);ba::set<int>(message.get(),"debugFramesPerSecond_",20);ba::set<int>(message.get(),"debugGameTimeStepMs_",50);ba::set<float>(message.get(),"debugGameSpeed_",1.0f);
         int total=0;
-        for(int slot=0;slot<2;++slot) {
-            Bytes body(slot==0 ? frame.begin()+8 : frame.begin()+8+length,slot==0 ? frame.begin()+8+length : frame.end());
+        for(size_t slot=0;slot<inputs.size();++slot) {
+            const auto& body=inputs[slot];
             Root player(parse("InputActionsByPlayer",body));
             Obj handle=ba::get<Obj>(player.get(),"playerHandle_");Obj name=ba::get<Obj>(handle,"playerHandleWithName_");Obj id=ba::get<Obj>(name,"playerHandle_");
-            if(ba::get<uint64_t>(id,"steamId_")!=static_cast<uint64_t>(slot+1) || !ba::get<bool>(id,"isAliased_") || ba::get<uint32_t>(handle,"aiProfileId_"))throw std::runtime_error("LAN input identity mismatch");
+            if(ba::get<uint64_t>(id,"steamId_")!=static_cast<uint64_t>(slot+1) || !ba::get<bool>(id,"isAliased_") ||
+                (publicMatch?serialize(handle)!=publicIdentities[slot]:ba::get<uint32_t>(handle,"aiProfileId_")!=0))throw std::runtime_error("LAN input identity mismatch");
             int actions=ba_local::count(ba::get<Obj>(player.get(),"actions_"));total+=actions;
             if(actions)ba_local::addItem(ba::get<Obj>(message.get(),"playerInputActions_"),player.get());
         }

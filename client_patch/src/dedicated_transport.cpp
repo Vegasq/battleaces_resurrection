@@ -53,6 +53,7 @@ static Obj deckFromIds(const Bytes& ids) {
     return deck.get();
 }
 static bool submitDeck(Obj deck,bool initialReady=false) {
+    if(ba_public::deckLocked())return false;
     if(!ba::dedicated() || installing || !initialized || !(ba::community()?ba_community::online:ba_lan::welcomed) || !ba_lan::bootstrap.empty())return false;
     Obj units=ba::get<Obj>(deck,"units_");int count=ba_local::count(units);
     if(count!=8){ba::log("Dedicated deck incomplete (%d slots); waiting for8",count);return false;}

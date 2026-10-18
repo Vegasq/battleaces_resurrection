@@ -315,6 +315,7 @@ static void resetAtMenu(Obj front,Obj server,bool completed,bool keepCommunity=f
     }
     ba_lan::closeReceipts();
     ba_lan::frames.clear();
+    ba_lan::publicMatch=false;ba_lan::publicIdentities.clear();
     ba_lan::bootstrap.clear();ba_lan::dedicatedDeck.clear();ba_lan::dedicatedMatchId.clear();
     ba_lan::welcomed=false;ba_lan::stopped=false;ba_lan::worldReady=false;ba_lan::running=false;
     ba_lan::peerClosed=false;ba_lan::submittedFirst=false;ba_lan::matchEnded=false;ba_lan::lobbyReady=false;

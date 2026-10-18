@@ -43,7 +43,10 @@ static bool ensure(Obj front) {
             selector==ba::get<Obj>(account,"_deckSelector") && storage==ba::read<Obj>(selector,0x10) &&
             storage==ba::get<Obj>(account,"_localDeckStorage"),"local menu native deck storage ownership");
         restoreIdentity(front);
-        ba_dedicated_deck::initializeLocal(front);ba_practice_settings::selection();initialized=true;
+        ba_dedicated_deck::initializeLocal(front);ba_practice_settings::selection();
+        // Search can begin before optional presence. One application clock keeps
+        // its DateTime epoch stable across authentication and reconnection.
+        ba_community_invites::anchorClock(front);initialized=true;
         ba::log("Local menu ready: native local deck storage; configured name; transportIndependent=1 BA_RESURRECTION_LOCAL_MENU_V1");
         return true;
     } catch(const std::exception& error) {

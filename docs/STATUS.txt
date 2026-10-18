@@ -2,6 +2,32 @@ IMPLEMENTATION LEDGER
 Updated: 2026-10-18 UTC
 Active objective: implement SERVER_REPLACEMENT_PLAN.txt, Windows only.
 
+GRAPHICAL PUBLIC QUEUE CHECKPOINT (2026-10-18 UTC, EXPERIMENTAL)
+The native adapter now connects original public buttons/search to authenticated
+server proposals, canonical two/four-seat input, remote world ownership and
+results/RETURN. Visible 1v1 Cancel/retry passes with a delayed old ENTER ACK,
+elapsed seconds advancing from 0 to 30, one match and 1,220 exact frame receipts.
+A presence-clock reset initially froze the timer; that defect is corrected and
+the earlier bounded match proofs are retained. Original search/X/button and
+loading artwork are pixel-reviewed. Solo 2v2 and 2vAI against three server bots
+finish naturally, return through Continue and release their tickets; 4,206 and
+3,399 received frames respectively match the server journals. Workers exit0.
+The final visible 2vAI offer/Cancel test also advances its timer from 0 to 29;
+pixel review confirms that Cancel removes the panel and restores mode buttons.
+Cancel before ENTER, at OFFERED, racing READY, and connection loss after READY
+all retire without a client world or local fallback. A lost RETURN ACK releases
+the completed match without an incorrect start-failure notice. The practice
+entry cannot preempt public search. Unavailable-server 1v1 still passes with
+one local world, random authored bot, results/Continue and zero authentication
+or server workers. Covered sources remain unchanged and owned games are reaped.
+Eight C++ component programs/helper build and 25 final focused Python tests pass;
+an earlier 64-case regression run has 57 passes and seven optional native skips.
+These are automated original callbacks on one PC, not mouse or multi-human team
+acceptance. Native Quit, offline three-bot play, mode switches, mid-load/match
+recovery, ordinary Start Client enablement and release gates remain open. A
+menu-profile name mismatch is recorded for the profile work. No new release
+package or manual/frozen client patch is installed. See public-matchmaking.txt.
+
 PUBLIC QUEUE / FOUR-PARTICIPANT SERVER (2026-10-18 UTC)
 The coordinator implements public1v1/2v2/2vAI ticketed queues and explicit shared
 proposals. All selected humans acknowledge before one worker is committed;

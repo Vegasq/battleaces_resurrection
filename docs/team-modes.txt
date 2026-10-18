@@ -86,6 +86,24 @@ practice_ai.cpp owns one bot/deck/process for mode4 and experimental public1v1.
 local_loop.cpp
 has one peerRoot. Generalize to a bounded participant/producer list with all
 native AI readiness and teardown gates; do not drop a bot's lifecycle checks.
+The next local implementation must cover the complete ownership chain:
+- Freeze one identity/deck/profile/strength per bot seat before the map callback.
+  public_bots.cpp currently accepts preset choices only; team profiles can use
+  character choices. Reuse the catalog export's original character/deck evidence,
+  preserve their cosmetics, and enforce unique names across the whole roster.
+- Create three separate native AddLocalAI integrations/processes sharing the
+  existing human simulation and AIManager world. Correlate captureAIJoin and
+  readiness by exact identity/army, not one global bot pointer or latest callback.
+- local_loop must recognize all registered producers, drain each bounded queue
+  into the same frame and deliver that frame to all integrations. Keep the
+  preparation thread and stop/readiness guards, plus contiguous frame numbering.
+- Gate startup and validate JoinArmy/deck for every seat, including aliased IDs3/4.
+  Preserve authored alliances0,1,0,1 and choose the mode2 teammate pool for the
+  vacant mode5 ally, matching the already-qualified server policy.
+- Release all bot roots/queues only after native AIManager players and AI world
+  are empty and the human world is idle. Recheck practice/public mode switches,
+  failed/cancelled async creation, natural team results, Continue and rematch.
+These are implementation requirements, not claims that local team play works.
 Server asset export/import now hashes all three original mode maps and the bot
 catalog, retaining them locally. The AI DLL/rules are also imported and validated.
 The packaged host loads the imported team maps/catalog when present; public
@@ -118,6 +136,18 @@ replay exactly through a natural result and independent returns. An earlier
 overstrict damage-taken check is retained with its replay diagnosis; see
 public-matchmaking.txt. Room diagnostics now explicitly request alliance0/1,
 with an original native snapshot test; army IDs2/3 are not extra observer teams.
+
+The experimental graphical public adapter now passes a visible solo2vAI/TLS
+match: native mode5 loading, human0 plus three server bots,3,399 exact client
+frame receipts, natural game-over3379, result/Continue and independent RETURN.
+The worker exits0 and covered sources stay unchanged. Original2vAI loading/base
+intro images were inspected. The online search timer remained0 due to a separate
+clock-reanchor defect, now being corrected; this does not qualify the full search
+presentation. See public-matchmaking.txt for evidence hash and boundaries.
+The subsequent visible solo2v2/TLS check passes with an advancing0..29-second
+timer, original2v2 search/loading,4,206 exact received frames, natural result,
+Continue/RETURN and worker exit0. Actual allied/enemy human client seats2/3,
+offline three-bot ownership and all-mode switching remain separate gates.
 
 Required qualification
 Original mode2/5 export, four-army match construction and headless all-bot combat

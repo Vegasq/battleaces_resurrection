@@ -23,6 +23,14 @@ namespace ba_dedicated_results { static void receive(const std::string&); }
 namespace ba_audit { static void beginMatch(const std::string&);static void practiceAIView(void*,int); }
 namespace ba_telemetry_audit { static void startup();static void update(); }
 namespace ba_match_search {static void update(void*);static void joining(void*);}
+namespace ba_community_wire {struct Ack;struct Aborted;}
+namespace ba_public {
+static bool active();static bool deckLocked();static void start(void*,void*,int);static bool cancel(void*);
+static void update(void*);static void smoke(void*);static void controlReset();static void connectionFailed(const char*);
+static bool receive(unsigned char,const std::vector<unsigned char>&);static bool ignoreMatchData();
+static bool acknowledge(void*,const ba_community_wire::Ack&);
+static bool aborted(const ba_community_wire::Aborted&);
+}
 namespace ba_practice_settings_ui { static void update(void* front);static bool smokeComplete(); }
 namespace ba_community_wire {struct Ack;}
 namespace ba_local_menu {
@@ -307,6 +315,7 @@ extern "C" __declspec(dllexport) void OfflineFrontUpdate(void* front,void*) {
 #include "practice_ai.cpp"
 #include "practice_settings_ui.cpp"
 #include "client_lifecycle.cpp"
+#include "public_client.cpp"
 #include "match_loading.cpp"
 #include "match_loading_smoke.cpp"
 #include "server_assets_export.cpp"

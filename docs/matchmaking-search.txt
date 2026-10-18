@@ -1,7 +1,8 @@
 ORIGINAL PUBLIC MATCHMAKING PRESENTATION - BUILD37822
 Updated2026-10-18. Original-code/asset trace complete. Native presentation is now
-implemented in the opt-in local public1v1 path; online queues, ordinary-launcher
-integration and broader cancellation qualification remain release requirements.
+implemented in opt-in local and server public paths. A visible online1v1
+cancel/retry checkpoint now passes; ordinary-launcher integration and broader
+cancellation/all-mode qualification remain release requirements.
 
 Required behavior
 Use the existing public1v1 Play button and native matchmaking notification.
@@ -107,6 +108,23 @@ Acceptance
   Try Deck remains local. Maintain analytics/outbound suppression throughout.
 - Check through Start Client with no server and with the configured server;
   source state assertions alone do not prove visible fidelity.
+
+Online follow-up: the first graphical queue matches passed but their timer stayed
+at0. Optional community presence reanchored the front clock after the search-entry
+timestamp had been captured. Unified initialization now anchors once before any
+search; later presence/reconnect preserves that epoch. The visible
+public-client-cancel-retry01 run passes with original elapsed seconds0..30,
+one Cancel/new ticket and a delayed old ENTER ACK during the new search. One
+server match, exact input receipts, results/Continue and ticket release pass.
+Pixel review confirms native1v1 Searching.../timer/X and loading artwork.
+See public-matchmaking.txt for hashes, automation boundaries and open cases.
+Visible2v2 also passes an advancing0..29-second search and original loading,
+then a natural team result/Continue. The final visible2vAI offer/Cancel probe
+passes its0..29-second timer, with pixels confirming the native panel/Searching...
+and their removal plus restored mode buttons after cancellation. All three
+public presentations now have bounded rendered evidence, not manual input or
+ordinary-launcher acceptance. The earlier2vAI natural match separately proves
+four-seat loading/results/RETURN while retaining its pre-fix timer limitation.
 
 Evidence
 Ignored local/matchmaking-ui01/FINDINGS.txt SHA256

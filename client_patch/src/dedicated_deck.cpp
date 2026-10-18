@@ -214,6 +214,7 @@ extern "C" __declspec(dllexport) void OfflineDedicatedSaveSelectedDeck(void* acc
 extern "C" __declspec(dllexport) void OfflineDedicatedJoinQueue(void* front,void* controller,int mode,void*) {
     try {
         if(mode==4){ba_practice::start(front,controller);return;}
+        if(ba::unified() && ba::flag(L"-public-queue-experimental")) {ba_public::start(front,controller,mode);return;}
         // Public queue arbitration is integrated separately. Keep the local
         // public path opt-in until online timeout/cancellation are qualified.
         if(ba::unified() && mode==1 && ba::flag(L"-public-ai-experimental")) {
@@ -224,6 +225,6 @@ extern "C" __declspec(dllexport) void OfflineDedicatedJoinQueue(void* front,void
     catch(const std::exception& e){ba::log("Dedicated native Play could not ready lobby: %s",e.what());}
 }
 extern "C" __declspec(dllexport) void OfflineDedicatedLeaveQueue(void* front,bool,void*) {
-    try {if(ba_practice::cancelPublic(front))return;if(ba::dedicated())ba_dedicated::cancelReady(front);}
+    try {if(ba_public::cancel(front) || ba_practice::cancelPublic(front))return;if(ba::dedicated())ba_dedicated::cancelReady(front);}
     catch(const std::exception& e){ba::log("Dedicated native Cancel could not leave lobby queue: %s",e.what());}
 }
