@@ -160,3 +160,13 @@ The already prepared local/Check Private Enrollment.cmd now runs both this test
 and WindowsEnrollmentPrivacyTests. It uses only fresh test files/credentials and
 reports PASSED only when both run without skips. No normal-account result has
 yet been received; a previous one-test restricted-token report is not acceptance.
+
+Source de73d16 builds clean local archives in dist/p4-de73d16. The retained
+local/p4-state-clean-qualification.json proves that the final output guard is the
+only changed executable source compared with native-tested preview02. Packaged
+backup/restore refuse both program subdirectories, create no output there and
+retain every immutable package hash. Both package verifiers and client setup-data
+pass with no Python on PATH. The first qualifier expected the new guard's message
+for program/app too, but that path is already blocked by the older credential
+path rule; its strict expected-message correction is retained separately.
+Exact archive digests and that evidence are in windows-packaging.txt.

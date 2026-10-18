@@ -29,6 +29,14 @@ The normal Windows check already requested now covers both private invite/TLS
 enrollment and private server snapshot/restore. The local runner rejects skips
 as acceptance; no new normal-account result has arrived. Real protected storage,
 restored-host play, clean-PC deployment and service/reboot remain open gates.
+Source de73d16 builds clean previews in dist/p4-de73d16. Whole-archive comparison
+preserves every native-tested executable payload except the final output guard.
+Four actual packaged backup/restore commands refuse both program subdirectories;
+no output is created and all package hashes remain valid. Both package verifiers
+and client setup-data pass from an unrelated cwd with Python removed from PATH.
+See p4-state-clean-qualification.json and windows-packaging.txt for exact hashes.
+The16-file source/history publication audit covers434 distinct objects with0
+failures. Local archives, captures, private state and all game assets stay out of Git.
 
 FRIEND CONNECTION SETUP (2026-10-17; source/package checks pass)
 The portable client now opens a Windows setup window with server address/port,

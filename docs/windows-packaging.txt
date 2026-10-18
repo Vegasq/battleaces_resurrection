@@ -215,6 +215,23 @@ an additional tested guard rejecting state outputs under either bundled program
 subdirectory. Clean archives/guard checks are recorded after building them.
 See state-backup.txt for full/focused tests and the private-permission boundary.
 
+Clean source de73d1605d0645545325d16893f031f33cf9bf70 builds dist/p4-de73d16:
+  Server ZIP12385784 bytes SHA256
+  492a97a9abffc2e1c28594a117631440b3fdbe29c7968cf91c4070a3568df415
+  Client ZIP12773981 bytes SHA256
+  3544d9319132f0e98d92e892de2e722b45521495d45fd63933b04fb08fd39a0f
+local/p4-state-clean-qualification.json compares every entry with preview02.
+Only manifests and the final state_backup.py output guard differ. All native-
+tested runtime, host/worker/profile/lock, helper, patcher and guide bytes match.
+Both clean packages verify, client setup-data works, and all four real packaged
+backup/restore attempts targeting program/app or program/runtime are refused
+without creating output. Program inventories/hashes remain unchanged. These
+checks run with Python removed from PATH and an unrelated hostile import cwd.
+The original qualifier expected one guard message for both program subdirectories;
+program/app is already rejected by the earlier credential-path rule. The verifier
+now requires the corresponding exact guard for each. No permission was changed;
+local/state-clean-probe01.txt records that test expectation correction.
+
 REMAINING RELEASE GATES
 
 Real second-PC/private internet play, real private-credential permissions under
