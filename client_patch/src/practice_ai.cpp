@@ -7,6 +7,7 @@ namespace wire=ba_community_wire;
 enum class Phase {Idle,Reserving,Building,Loading,Running,Result,Returning,Failed};
 struct State {
     Phase phase=Phase::Idle;
+    ba_match_loading::Ticket loadingTicket=0;
     std::unique_ptr<Root> front,controller,human,bot,humanDeck,botDeck,encoded,ai,process,completionInfo,completionUI;
     std::string match;
     uint32_t request=0,aiProfile=18,difficultyProfile=18;
@@ -165,6 +166,8 @@ static Obj aiDeck() {
 static void fail(const char* where,const std::exception& error) {
     ba_local::ready.store(false);ba_local::accepting.store(false);
     state.phase=Phase::Failed;
+    ba_match_loading::error(state.loadingTicket,"Practice could not start.");
+    state.loadingTicket=0;
     ba::log("Practice stopped in %s: %s; retaining native objects until safe cleanup",where,error.what());
 }
 static uint64_t humanId() {
@@ -199,6 +202,7 @@ static void start(Obj front,Obj controller) {
         state.phase=Phase::Reserving;
         state.request=ba_community::send(wire::practice(ba_community::nextRequest(),true));
     }
+    state.loadingTicket=ba_match_loading::begin(ba_match_loading::Source::Practice,state.match,ba_match_loading::Stage::Preparing);
     ba::log("Practice requested: match=%s mode=4 selectedDeckSnapshot=1 standalone=%d",state.match.c_str(),ba::offlinePractice()?1:0);
     ba::log("Practice difficulty snapshot: selected=%s modifierProfile=%u tuningProfile=%u",ba_practice_settings::name(state.difficultyProfile),state.difficultyProfile,state.aiProfile);
 }
@@ -207,7 +211,10 @@ static bool acknowledge(Obj front,const wire::Ack& ack) {
     require(active() && state.front && state.front->get()==front && ack.request==state.request,"unexpected practice acknowledgement");
     state.request=0;
     if(state.phase==Phase::Reserving) {
-        if(!ack.success){ba::log("Practice reservation rejected: %s",ack.reason.c_str());state=State{};return true;}
+        if(!ack.success){
+            ba_match_loading::error(state.loadingTicket,"Practice is unavailable. Leave multiplayer and try again.");
+            ba::log("Practice reservation rejected: %s",ack.reason.c_str());state=State{};return true;
+        }
         state.reserved=true;state.phase=Phase::Building;
     } else {
         require(state.phase==Phase::Returning && ack.success,"practice availability return rejected");
@@ -265,6 +272,7 @@ static void consume(Obj front,Obj request,Obj data) {
     ba::set<Obj>(server(),"<ClientConfig>k__BackingField",local);
     if(ba::flag(L"-practice-ai-smoke"))ba_lan_smoke::prepare(data,0);
     root(state.encoded,ba_bootstrap::encodeGameData(data));state.phase=Phase::Loading;
+    ba_match_loading::advance(state.loadingTicket,ba_match_loading::Stage::Loading);
     ba::log("Practice map ready: mode=4 armies=2 humanProfile=0 aiProfile=%u selectedHumanDeck=1 primaryMap=1",profileId());
     ba_bootstrap::beginJoined(front,state.encoded->get(),state.human->get(),false,state.match.c_str());
 }
@@ -275,6 +283,7 @@ static bool assetsReady(Obj gameServer) {
 static void worldReady(Obj gameServer) {
     require(state.phase==Phase::Loading && gameServer==server(),"practice world readiness ownership");
     require(state.humanReady,"practice human ready signal missing");state.phase=Phase::Running;
+    ba_match_loading::advance(state.loadingTicket,ba_match_loading::Stage::Starting);
     ba::log("Practice world ready: humanWorld=%llu aiWorld=%llu",ba::read<uint64_t>(ba::read<Obj>(gameServer,0x140),0x1a8),ba::get<uint64_t>(manager(),"_aiWorld"));
 }
 static void captureAIJoin(Obj ai,Obj connection,bool spectator) {
@@ -410,6 +419,14 @@ static bool gameUpdate(Obj gameServer,Obj method) {
                 ba_lan_smoke::enqueue(gameServer,ba_local::lastSubmittedFrame+1);
             OfflineGameUpdate(gameServer,method);
             if(ba_local::failed.load())throw std::runtime_error("practice input loop failed");
+            // World creation precedes the AI join and native UI loading. Keep
+            // feedback until both players can run and the original FSM is InGame.
+            if(state.loadingTicket && state.humanReady && state.botReady && state.humanJoined &&
+               state.botJoined && !state.joinPending && ba_local::ready.load() && ba_dedicated::loadingInGame()) {
+                ba::log("Match loading readiness: source=practice ticket=%llu nativeInGame=1 botReady=1 joinDelivered=1 localReady=1 humanJoined=1 botJoined=1 match=%s",
+                    static_cast<unsigned long long>(state.loadingTicket),state.match.c_str());
+                ba_match_loading::success(state.loadingTicket);state.loadingTicket=0;
+            }
             Obj sim=ba::read<Obj>(gameServer,0x140);
             if(ba::flag(L"-practice-ai-smoke") && state.process && GetTickCount64()-state.diagnostic>=10000) {
                 state.diagnostic=GetTickCount64();Root paused(ba::call(manager(),"GetAnyAIPaused"));
@@ -466,6 +483,9 @@ static void release() {
     ba_local::submittedTicks=0;ba_local::lastSubmittedFrame=-1;ba_local::accumulatedMs=0;
     ba_bootstrap::awaitingWorld=false;ba_bootstrap::creating=false;
     ba_dedicated_session::releaseRoot(ba_bootstrap::frontRoot);ba_bootstrap::bootstrapThread=0;
+    // This boundary proves actual native shutdown; requesting a menu transition
+    // alone must not pretend that an outstanding async load has been cancelled.
+    ba_match_loading::cancel(state.loadingTicket,"practice returned to menu");state.loadingTicket=0;
     if(ba::offlinePractice()) {
         ++completed;ba::log("Practice returned: completed=%u mode=4 seat=-1 presenceRetained=0 standalone=1",completed);
         state=State{};return;

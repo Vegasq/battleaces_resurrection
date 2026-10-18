@@ -37,6 +37,11 @@ the saved choice applies to the next match and survives restart. The manual
 launcher has no automatic play or surrender. See docs/practice-ai.txt and
 docs/practice-difficulty.txt for runtime evidence and remaining acceptance.
 
+The current helper adds match-start feedback for AI, normal multiplayer and
+Custom Game. It follows real preparation/readiness and clears on Cancel or
+startup failure. Native lifecycle checks and remaining visual acceptance are
+documented in docs/match-loading.txt; this remains a development preview.
+
 Current game wire protocol3 requires updating both helper and server. The server
 selects a bounded input window with --input-window (2..12, default6); both players
 receive the same setting. See docs/protocol-v3.txt and docs/network-qualification.txt

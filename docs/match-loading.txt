@@ -1,0 +1,160 @@
+MATCH START FEEDBACK
+Updated: 2026-10-17
+Status: native qualification in progress; visual acceptance remains open.
+
+User requirement
+Immediately show feedback after starting Try Deck vs AI or a player match. The
+user currently sees an unchanged menu for5-10 seconds before gameplay appears.
+Use real preparation/loading/ready states, prevent duplicate starts, and clear
+the indicator on readiness, explicit cancellation or startup failure. No fake
+percentage. Cold application startup is a separate issue (client-startup.txt).
+
+Presentation
+The helper owns a small nonblocking Unity Canvas and TextMeshPro status strip.
+Stages read Preparing match, Waiting for the other player, Loading match and
+Starting match, with animated dots. A failed attempt replaces the pending text
+with a fixed readable error for10 seconds. Error text never embeds server text.
+The strip does not own any game state or initiate/cancel operations. Its native
+CanvasGroup and Graphics do not block raycasts. Renderer exceptions disable only
+the strip and are logged; they must not stop gameplay or network cleanup.
+
+The Model issues a monotonically increasing ticket for each accepted attempt.
+Only its pending ticket can advance, succeed, cancel or fail. Duplicate begins
+for the same pending source/key retain the ticket and do not rewind its stage.
+A real retry after rejection gets a new ticket even if its lobby epoch is the
+same. Settlement is idempotent; old callbacks cannot clear a newer attempt.
+
+Native evidence and choice
+Target: original build37822 GameAssembly.dll SHA256
+e59d08c01479b27404778048d7e13546dbf3771f6b3912744c7c2bdf80c4e758.
+Retained metadata, original-byte disassembly and local package inventory:
+local/p2-match-loading-ui.txt, local/p2-match-loading-assets.txt,
+local/p2-match-loading-lifecycle.txt and local/match-loading-renderer-types.json.
+These are ignored local research outputs, not redistributable game assets.
+
+The original SpinnerDialog asset107 is modal; its Cancel button parent is
+inactive and no Cancel callback is bound. PopupController also owns a shared,
+untokened spinner. Original LoadingScreen asset79 is modal and shared too.
+OverlayCanvasController.ShowLoadingScreen RVA3b55880 takes a value-type signal;
+it is not rejected because of an invented GameConnection dependency. Shared
+ownership, raycast blocking and lack of useful Cancel behavior make both native
+dialogs unsuitable for this small persistent status.
+
+Verified retained APIs: GameObject(string) RVA508aba0, AddComponent(Type)
+508a170; Canvas renderMode5382d50/sortingOrder53833e0; Transform.SetParent
+509dc10; RectTransform setters509a110/1e0/2b0/380/450; TMP default font4db88b0;
+TMP text/font/fontSize/alignment/richText4d8f5a0/4d8f6f0/4d90970/4d90f20/4d916a0;
+Graphic.raycastTarget51a1670; CanvasGroup blocksRaycasts/interactable537e9b0/
+537e900. ScreenSpaceOverlay=0, ScaleWithScreenSize=1, MatchWidthOrHeight=0,
+TextAlignmentOptions.Center=514 are confirmed from retained enum literals.
+MonoBehaviour components are created using AddComponent, never object_new.
+Vector/color setters use runtime_invoke to avoid guessing native struct ABI.
+The private inactive hierarchy is configured before display, rooted using
+existing GC handles, and preserved across scenes using DontDestroyOnLoad.
+
+Readiness boundaries
+Native main FSM holds its InGame state at+0x2e8. LoadingGameUIState.Update
+RVA3dee6b0 waits for game UI loaded and Simulation.IsCatchingUp=false before
+entering that state. Local map completion alone is not presentation readiness.
+Practice Running is entered before local AI setup: the indicator must also wait
+for bot readiness, both validated JoinArmy payloads, JoinedGame delivery and
+the local simulation latch. LAN uses worldReady plus server START/running and
+native InGame. Normal S35 ready=false can be an intermediate SET_DECK reply,
+so it cannot cancel local start intent; explicit Cancel/deck editing can.
+Custom start ownership is lobby+epoch, with operation tickets captured before
+native callbacks that may reenter. Normal GameStart lobby closure must not hide
+loading. Authoritative rollback/abort owns failure handling, including when a
+rejected request leaves the lobby epoch unchanged or advances it.
+
+Qualification plan and boundary
+build/helper-loadingNN and investigation/loading-auto-runtime are isolated from
+the manually accepted builds. Do not overwrite practice-auto-runtime (difficulty
+helper06), custom-abort-runtime (accepted baseline AI), shutdown-client-runtime
+(Custom), or secure-client-runtime (normal multiplayer).
+Five authored C++ checks include ticket/notice ownership. Native AI and Custom
+harnesses opt into --loading-ui. They retain actual Unity PNG captures, component
+text/visibility/raycast readbacks, readiness gate logs, source hashes and process
+cleanup evidence. -match-loading-smoke only requests captures after two frames;
+it does not alter normal readiness or delay gameplay. Production never captures.
+PNG inspection is required for rendered appearance; component readbacks alone
+do not prove rendering. Automated callbacks do not prove physical mouse input.
+
+Current evidence
+build/helper-loading01 compiles without reported warnings. All five authored
+C++ checks pass. AddComponent(Type) uses runtime_invoke exception-out conversion
+so a managed creation error remains contained by the renderer. Retained metadata
+confirms it is the only one-argument AddComponent overload (generic form has0).
+Helper SHA25605c6e52056c9286b39846a000780857d050650dacb46f962579cdf1ca5974858.
+GameAssembly remains the difficulty build's
+da8abfdcc054111e869987c8f198fdef031c77e6fd826042fcba02757d72383a;
+this feature adds no new binary instruction patches.
+
+local/loading-ai01 runs two standalone Normal18 matches with a native deck edit
+between them. Both original result/Continue cycles return; the indicator is
+active from accepted start through native InGame and AI readiness. Durations are
+9.328s and8.532s. The private canvas is created once and reused; both tickets
+settle once. Process46912 is reaped; sources remain unchanged in179.781s.
+The original verification report is FAILED solely because required screenshot
+files were missing, and is preserved unchanged. Retained native state evidence
+passes loading-state-recheck.json with the corrected separation of rendering
+proof from component-state/readiness checks.
+
+Visual limitation: this hidden Unity run produces two entirely black960x540
+PNGs; later requests fail with an active render target of256x256. Neither black
+files nor native property readbacks establish the rendered indicator. Capture
+files are now best-effort evidence, with missing files explicitly reported;
+strict file verification remains available in the shared verifier. Captures
+still require pixel inspection. Production code never requests screenshots.
+This is not a claim that the indicator is visually correct or manually accepted.
+
+local/loading-custom01 passes the reject scenario in78.344s. Host41100 receives
+one actual rejected Start and a nonblocking error notice, then retries the same
+epoch with a fresh ticket. Guest22676 starts normally. Both native clients
+complete two matches/Continue cycles in the same lobby and connections. Status
+is hidden exactly twice per client at the real readiness gates. Workers43348/
+15992 exit0, all owned processes are reaped, and source hashes remain unchanged.
+
+local/loading-normal01 passes in61.594s. Client28292 exercises original patched
+Front Play, duplicate Play, Cancel, then Play again. Duplicate Play sends no
+second SET_DECK/READY; only READY true,false,true reaches the server. A deliberately
+replayed old S35 ready=true arrives after Cancel and does not reopen the status.
+Client48528 then joins and submits Play; both complete one authoritative match
+and reach native results. Worker48656 exits0. All owned processes are reaped,
+source hashes remain unchanged, and pending indicators are settled. The replay
+is an explicit application-message duplicate, not a claim of network reordering.
+
+local/loading-abort01 passes in90.641s. A server-declared abort reaches native
+clients11584/43816 while each is loading its first map. Both show exactly one
+startup failure notice, keep it through genuine native cleanup, and expire it
+after10 seconds. Both retain the same lobby and complete two subsequent matches.
+Workers50328/45324/38844 all exit0. Owned processes are reaped and sources remain
+unchanged. No ready event is emitted for the aborted attempt. Existing native
+cleanup and authoritative Results/Return handling remain in control.
+
+Final source suite:226 tests,224 pass and2 optional skips in48.253s. Native secure
+bridge and local original-byte checks are enabled. Retained output:
+local/loading01-tests.txt. The build and runtime helper remain identical across
+AI/Custom/normal/abort probes. Hash comparison in local/loading-preserved-runtimes.json
+confirms all four previous manual runtime helpers and GameAssembly files unchanged.
+
+Reproduce on an isolated compatible Windows copy with current helper installed:
+  python -m tools.verify_practice_ai --game "<game>" --output local/loading-ai-check --offline --profile 18 --frames 1200 --matches 2 --human-build --edit-deck-between --loading-ui --timeout 420
+  python -m tools.verify_custom_match --game "<game>" --assets "<local assets>" --output local/loading-reject-check --scenario reject --loading-ui --timeout 240
+  python -m tools.verify_custom_match --game "<game>" --assets "<local assets>" --output local/loading-abort-check --scenario loading-abort --loading-ui --timeout 240
+  python -m tools.verify_match_loading_normal --game "<game>" --assets "<local assets>" --output local/loading-normal-check --timeout 360
+
+Open: visual and manual acceptance.
+Existing post-builder AI failure-drainage/deadline
+work is not silently solved by a presentation indicator. Errors after an actual
+InGame success use the existing active-match error handling; a settled startup
+ticket cannot emit another startup notice.
+
+Manual preview
+local/Play AI Loading Preview.cmd uses local/loading-preview/player.json and
+the isolated loading-auto-runtime. Open Edit Deck -> Try Deck vs AI and check
+that a readable status appears promptly and disappears when gameplay is ready.
+It uses the existing launcher and saved difficulty support, with no automatic
+play/surrender, diagnostic audit or capture flag. Actual config/manifest checks
+and intercepted process creation verify one visible standalone game without
+starting one. The usual Play AI Match.cmd and previous accepted builds are
+unchanged pending this visual acceptance.

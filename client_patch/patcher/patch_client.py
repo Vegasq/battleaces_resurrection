@@ -215,6 +215,7 @@ def install(game_dir, *, helper=None, original_path=None, restore=False, dry_run
                 'community': {'experimental': community, 'native_scope': 'custom-match-prototype' if community else None},
                 'practice': {'standalone': helper_bytes is not None and b'BA_RESURRECTION_OFFLINE_PRACTICE_V1' in helper_bytes,
                              'difficulty_settings': helper_bytes is not None and b'BA_RESURRECTION_PRACTICE_SETTINGS_V1' in helper_bytes},
+                'ui': {'match_loading': helper_bytes is not None and b'BA_RESURRECTION_MATCH_LOADING_V1' in helper_bytes},
                 'components': components,
                 'telemetry': {'recipe_version': telemetry.RECIPE_VERSION, 'runtime_validated': telemetry.RUNTIME_VALIDATED,
                               'unresolved_components': telemetry.UNRESOLVED_COMPONENTS},

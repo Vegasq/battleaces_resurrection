@@ -28,6 +28,7 @@ from server import community_protocol as wire
 from server.community import Rejected
 from tools.run_secure_match import read_native_log
 from tools.verify_custom_lobby import require, source_hashes as core_hashes
+from tools import match_loading_evidence
 
 ROOT = Path(__file__).resolve().parents[1]
 PASSED = 'COMMUNITY MATCH SMOKE passed: two native Start/result/Continue cycles; same lobby, presence retained, seat=-1'
@@ -37,6 +38,7 @@ def source_hashes():
     result = core_hashes()
     result['tools/verify_custom_match.py'] = hashlib.sha256(Path(__file__).read_bytes()).hexdigest()
     result['tools/run_secure_match.py'] = hashlib.sha256((ROOT / 'tools/run_secure_match.py').read_bytes()).hexdigest()
+    result['tools/match_loading_evidence.py'] = hashlib.sha256(Path(match_loading_evidence.__file__).read_bytes()).hexdigest()
     return result
 
 
@@ -48,6 +50,7 @@ async def run(args):
     manifest = json.loads((game / '.battleaces-resurrection/patch-manifest.json').read_text())
     require(manifest.get('community', {}).get('native_scope') == 'custom-match-prototype',
             'install current experimental match patch into an isolated copy')
+    if args.loading_ui: require(manifest.get('ui', {}).get('match_loading'), 'loading UI helper required')
     output.mkdir(parents=True, exist_ok=False)
     (game / 'investigation/runtime').mkdir(parents=True, exist_ok=True)
     template = GameTemplate.load(assets / 'map-1v1.pb.gz', catalog_path=assets / 'unit-catalog.json',
@@ -137,6 +140,7 @@ async def run(args):
                 '-logFile', str(output / f'game-{index}.log')]
             if args.scenario == 'duplicates-deck':
                 command.extend(['-community-match-duplicate-smoke', '-community-match-deck-smoke'])
+            if args.loading_ui: command.append('-match-loading-smoke')
             startup = subprocess.STARTUPINFO(); startup.dwFlags |= subprocess.STARTF_USESHOWWINDOW; startup.wShowWindow = 0
             launch_tick = clock()
             processes.append(subprocess.Popen(command, cwd=game, startupinfo=startup,
@@ -228,6 +232,12 @@ async def run(args):
             created = [e for e in events if e['event'] == 'match_created']
             require(len(created) == 2 and created[0]['decks'][0] != created[1]['decks'][0] and
                     'automated native deck edit:' in logs[0], 'changed native deck did not reach rematch bootstrap')
+        if args.loading_ui:
+            report['loading_ui'] = [match_loading_evidence.check(log, game, output, process.pid,
+                source='custom', ready=2 + int(args.scenario == 'running-abort'),
+                minimum_errors=int(args.scenario in ('timeout', 'setup-abort', 'loading-abort') or
+                                   (args.scenario == 'reject' and index == 0)))
+                for index, (log, process) in enumerate(zip(logs, processes))]
         report.update(passed=True, lobby=lobby.id, epochs=expected_epochs, completed_matches=completed, commands=commands,
             scenario=args.scenario,
             abort_results_delay_seconds=.6 if aborted_scenario else 0,
@@ -267,6 +277,7 @@ def main():
     for name in ('game', 'assets', 'output'):
         parser.add_argument('--' + name, required=True, type=Path)
     parser.add_argument('--timeout', type=int, default=180)
+    parser.add_argument('--loading-ui', action='store_true', help='verify native loading status and retain Unity screenshots')
     parser.add_argument('--scenario', choices=('normal', 'duplicates-deck', 'reject', 'timeout',
                                               'setup-abort', 'running-abort', 'loading-abort', 'stale-abort'), default='normal')
     args = parser.parse_args()

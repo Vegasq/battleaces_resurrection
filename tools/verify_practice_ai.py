@@ -27,6 +27,7 @@ from server.game_data import GameTemplate
 from server.profiles import ProfileStore
 from tools.run_secure_match import read_native_log
 from tools.verify_custom_lobby import require, source_hashes as core_hashes
+from tools import match_loading_evidence
 
 ROOT = Path(__file__).resolve().parents[1]
 PASSED = 'Practice returned: completed=1 mode=4 seat=-1 presenceRetained=1'
@@ -38,6 +39,7 @@ def source_hashes():
     result = core_hashes()
     result['tools/verify_practice_ai.py'] = hashlib.sha256(Path(__file__).read_bytes()).hexdigest()
     result['tools/run_secure_match.py'] = hashlib.sha256((ROOT / 'tools/run_secure_match.py').read_bytes()).hexdigest()
+    result['tools/match_loading_evidence.py'] = hashlib.sha256(Path(match_loading_evidence.__file__).read_bytes()).hexdigest()
     return result
 
 
@@ -93,6 +95,7 @@ async def run(args):
         (output / 'patch-manifest.json').write_text(json.dumps(manifest, indent=2))
         if args.offline: require(manifest.get('practice', {}).get('standalone'), 'helper does not support offline practice')
         if args.settings_first: require(manifest.get('practice', {}).get('difficulty_settings'), 'difficulty settings helper required')
+        if args.loading_ui: require(manifest.get('ui', {}).get('match_loading'), 'loading UI helper required')
         command = [str(game / 'Battle Aces.exe'),
             '-practice-ai-experimental', '-practice-ai-smoke', '-lan-audit',
             f'-practice-ai-profile={args.profile}',
@@ -107,6 +110,7 @@ async def run(args):
         if args.human_build: command.append('-lan-smoke')
         if args.edit_deck_between: command.append('-practice-ai-deck-smoke')
         if args.settings_first: command.append('-practice-settings-smoke')
+        if args.loading_ui: command.append('-match-loading-smoke')
         startup = subprocess.STARTUPINFO(); startup.dwFlags |= subprocess.STARTF_USESHOWWINDOW; startup.wShowWindow = 0
         clock = ctypes.WinDLL('kernel32').GetTickCount64; clock.restype = ctypes.c_ulonglong
         launch_tick = clock()
@@ -212,6 +216,9 @@ async def run(args):
                     'offline startup disconnect was not released exactly once')
                 report['idle_menu_clear_samples'] = len(idle_samples)
         require(not any(e['event'] == 'match_created' for e in events), 'practice created a multiplayer worker')
+        if args.loading_ui:
+            report['loading_ui'] = match_loading_evidence.check(log, game, output, process.pid,
+                source='practice', ready=args.matches)
         report.update(passed=True, autonomous_action_records=log.count('Practice AI action:'),
             standalone=args.offline, community_connections=0 if args.offline else 1,
             server_started=server is not None)
@@ -249,6 +256,7 @@ def main():
     parser.add_argument('--matches', type=int, choices=(1, 2), default=1)
     parser.add_argument('--edit-deck-between', action='store_true', help='use original native setters to change the deck before match2')
     parser.add_argument('--settings-first', action='store_true', help='cycle actual offline Settings and return with Normal18 before playing')
+    parser.add_argument('--loading-ui', action='store_true', help='verify native loading status and retain Unity screenshots')
     parser.add_argument('--profile', type=int, choices=(17, 18, 19), default=17,
                         help='offline difficulty Easy17/Normal18/Hard19; community mode retains raw shipped profile selection')
     parser.add_argument('--require-ai-movement', action='store_true')

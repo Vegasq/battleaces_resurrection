@@ -7,6 +7,7 @@ namespace wire=ba_community_wire;
 namespace native=ba_community_native;
 struct Operation {
     Root message,manager;std::string lobby;uint32_t epoch=0,request=0;
+    ba_match_loading::Ticket loadingTicket=0;
     unsigned kind=0,wireKind=0;bool valid=true,cancelled=false;
     Operation(Obj value,Obj owner):message(value),manager(owner){}
 };
@@ -29,7 +30,74 @@ static Obj expectedConnection=nullptr;
 static unsigned probeStage=0,probeMatches=0,probeAborts=0;
 static ULONGLONG probeAt=0;
 static std::unique_ptr<Root> probeButton;
+struct LoadingAttempt {
+    ba_match_loading::Ticket ticket=0;
+    std::string lobby;uint32_t epoch=0;unsigned kind=0;
+    bool pending=false,accepted=false,seenStarting=false,cancelRequested=false;
+};
+static LoadingAttempt loading;
+static bool loadingOwns(const Operation& op) {
+    return loading.pending && op.loadingTicket && op.loadingTicket==loading.ticket &&
+        op.lobby==loading.lobby && op.epoch==loading.epoch;
+}
+static void loadingCancel(const char* reason) {
+    ba_match_loading::cancel(loading.ticket,reason);loading.pending=false;
+}
+static void loadingError(const char* message) {
+    ba_match_loading::error(loading.ticket,message);loading.pending=false;
+}
+static void loadingFailure() {loadingError("Connection lost while starting the match.");}
+static void loadingQueued(Operation& op) {
+    if(!op.valid)return;
+    const auto& lobby=native::authority;
+    const bool same=loading.lobby==op.lobby && loading.epoch==op.epoch;
+    const bool readySent=op.kind==16 && sentReadyLobby==op.lobby && sentReadyEpoch==op.epoch;
+    if(same && (loading.pending || loading.accepted || readySent)) {
+        op.loadingTicket=loading.ticket;return;
+    }
+    // Enqueue precedes the native manager's pending-pointer assignment. Do not
+    // call back here; qualify the click/automatic Ready against current authority.
+    if(op.lobby.empty() || awaitingReturn || !activeMatch.empty() || abortRecovery || readySent)return;
+    const bool valid=op.kind==15?(lobby.phase==wire::Open && lobby.host==ba_community::welcome.profile &&
+        lobby.members.size()==2 && op.epoch==lobby.epoch+1):
+        (lobby.phase==wire::Starting && lobby.host!=ba_community::welcome.profile && op.epoch==lobby.epoch);
+    if(!valid)return;
+    loading=LoadingAttempt{};loading.lobby=op.lobby;loading.epoch=op.epoch;loading.kind=op.kind;loading.pending=true;
+    loading.ticket=ba_match_loading::begin(ba_match_loading::Source::Custom,
+        "custom:"+op.lobby+":"+std::to_string(op.epoch),ba_match_loading::Stage::Preparing);
+    op.loadingTicket=loading.ticket;
+}
+static void loadingUpdate() {
+    if(!loading.pending)return;
+    const auto& lobby=native::authority;
+    if(lobby.phase==wire::None || lobby.id!=loading.lobby) {loadingCancel("left custom lobby");return;}
+    if(lobby.epoch>loading.epoch || (lobby.epoch==loading.epoch && lobby.phase==wire::Open && loading.seenStarting)) {
+        if(loading.cancelRequested && lobby.phase==wire::Open && lobby.reason=="player cancelled start")
+            loadingCancel("native Ready cancelled after deck change");
+        else loadingError("Match start was cancelled. Please try again.");
+        return;
+    }
+    // Initial Open at epoch-1 is the host's legitimate deck/Start preparation.
+    if(lobby.epoch!=loading.epoch)return;
+    if(lobby.phase==wire::Starting) {
+        loading.seenStarting=true;
+        if(loading.kind==15)loading.accepted=true;
+        ba_match_loading::advance(loading.ticket,ba_match_loading::Stage::Waiting);
+    } else if(lobby.phase==wire::Loading || lobby.phase==wire::Running) {
+        loading.seenStarting=true;loading.accepted=true;
+        if(activeLobby==loading.lobby && activeEpoch==loading.epoch && !activeMatch.empty() &&
+           activeMatch==ba_lan::dedicatedMatchId && ba_dedicated_session::joined && ba_lan::running &&
+           ba_lan::worldReady && ba_dedicated::loadingInGame()) {
+            ba::log("Match loading readiness: source=custom ticket=%llu nativeInGame=1 running=1 localReady=1 worldReady=1 lobby=%s epoch=%u match=%s",
+                static_cast<unsigned long long>(loading.ticket),loading.lobby.c_str(),loading.epoch,activeMatch.c_str());
+            ba_match_loading::success(loading.ticket);loading.pending=false;return;
+        }
+        ba_match_loading::advance(loading.ticket,!ba_lan::worldReady?ba_match_loading::Stage::Loading:
+            !ba_lan::running?ba_match_loading::Stage::Waiting:ba_match_loading::Stage::Starting);
+    } else if(lobby.phase==wire::Results)loadingError("The match could not start.");
+}
 static void reset() {
+    loadingCancel("community session reset");loading=LoadingAttempt{};
     operations.clear();acceptedLobby.clear();activeLobby.clear();activeMatch.clear();
     startEpoch=readyEpoch=activeEpoch=returnRequest=0;awaitingReturn=returnAccepted=capturing=captured=false;
     sentReadyLobby.clear();sentReadyEpoch=probeReadyEpoch=0;
@@ -57,6 +125,7 @@ static void enqueue(Obj,Obj message,Obj owner) {
         op->valid&=(kind==15 || kind==16) && kind==op->kind;
     }
     op->epoch=native::authority.epoch+(op->kind==15 && native::authority.phase==wire::Open?1:0);
+    loadingQueued(*op);
     ba::log("Community native start queued: kind=%u actions=%d epoch=%u native=%p; deferred callback",op->kind,count,op->epoch,message);
     operations.push_back(std::move(op));
 }
@@ -64,7 +133,7 @@ static bool owned(const Operation& op) {
     return op.manager.get() && ba::get<Obj>(op.manager.get(),"_frontServer")==ba_dedicated_session::observedFront &&
         ba::get<Obj>(op.manager.get(),"_pendingLobbyUpdateRequest")==op.message.get();
 }
-static void complete(Obj front,std::unique_ptr<Operation> op,bool success) {
+static void complete(Obj front,std::unique_ptr<Operation> op,bool success,const char* rejection=nullptr) {
     if(!owned(*op)) {
         ba::log("Community native start completion discarded after manager release: kind=%u epoch=%u",op->kind,op->epoch);return;
     }
@@ -72,6 +141,9 @@ static void complete(Obj front,std::unique_ptr<Operation> op,bool success) {
         ba::get<Obj>(front,"_party"),"native community update lost active lobby");
     Root response(ba::make("FrontPb","UpdateLobbyStateResponse")),state(native::notification());
     ba::set<Obj>(response.get(),"currentState_",state.get());
+    // Settle this ticket before the native callback: it may enqueue a new
+    // attempt, including a valid retry at the same not-yet-accepted epoch.
+    if(!success && rejection && loadingOwns(*op) && !loading.accepted)loadingError(rejection);
     ba::native<void(*)(Obj,Obj,int,Obj)>(0x3e485f0)(front,response.get(),success?0:2,nullptr);
     // SendUpdateActions may replace this pointer reentrantly with a NEW request.
     wire::require(!owned(*op),"native start response retained old pending request");
@@ -97,10 +169,13 @@ static bool acknowledge(Obj front,const wire::Ack& ack) {
             if(ack.kind==wire::Start)wire::require(ack.object==op.lobby,"community Start ACK changed lobby identity");
             acceptedLobby=op.lobby;
             (op.kind==15?startEpoch:readyEpoch)=op.epoch;
+            if(loadingOwns(op))loading.accepted=true;
         }
+        if(ack.success && op.cancelled && loadingOwns(op))loadingCancel("native Ready cancellation accepted");
         const bool duplicateProbe=success && op.kind==16 && ba::flag(L"-community-match-duplicate-smoke") && probeReadyEpoch!=op.epoch;
         if(duplicateProbe)probeReadyEpoch=op.epoch;
-        auto done=std::move(*it);operations.erase(it);complete(front,std::move(done),success);
+        auto done=std::move(*it);operations.erase(it);
+        complete(front,std::move(done),success,ack.success?nullptr:"The server could not start this match. Please try again.");
         if(duplicateProbe) {
             Root state(native::notification());ba::native<void(*)(Obj,Obj,Obj)>(0x3e48820)(front,state.get(),nullptr);
             ba::log("COMMUNITY MATCH SMOKE replayed native Starting after Ready ACK; duplicate must not reach wire");
@@ -132,11 +207,14 @@ static void aborted(Obj front,const wire::Aborted& message) {
     ba_community::abortPending=true;
     abort.lobby=lobby.id;abort.match=message.match;abort.reason=message.reason;abort.epoch=lobby.epoch;
     abort.began=GetTickCount64();
+    if(loading.pending && loading.lobby==abort.lobby && loading.epoch==abort.epoch)
+        loadingError("The match could not start.");
     ba::log("Community abort pending Results: lobby=%s match=%s epoch=%u joined=%d mapLoading=%d reason=%s",
         abort.lobby.c_str(),abort.match.c_str(),abort.epoch,ba_dedicated_session::joined?1:0,
         ba::read<bool>(ba::read<Obj>(front,0xd8),0xd8)?1:0,abort.reason.c_str());
 }
 static void snapshot(Obj front) {
+    loadingUpdate();
     if(abortRecovery && !abortRecovery->confirmed) {
         auto& abort=*abortRecovery;const auto& lobby=native::authority;
         wire::require(lobby.id==abort.lobby && lobby.epoch==abort.epoch && lobby.phase==wire::Results &&
@@ -181,12 +259,17 @@ static void dispatch(Obj front) {
         }
         // A definitive rejected Ready is not retried for the same attempt.
         // A newer epoch can still need Ready after an old request's late ACK.
-        if(valid && op.kind==16 && sentReadyLobby==op.lobby && sentReadyEpoch==op.epoch)valid=false;
+        const bool duplicateReady=valid && op.kind==16 && sentReadyLobby==op.lobby && sentReadyEpoch==op.epoch;
+        if(duplicateReady)valid=false;
         valid&=op.kind==15?(lobby.phase==wire::Open && lobby.host==ba_community::welcome.profile &&
             lobby.members.size()==2 && op.epoch==lobby.epoch+1):
             (lobby.phase==wire::Starting && lobby.host!=ba_community::welcome.profile && op.epoch==lobby.epoch);
         if(!valid) {
-            auto done=std::move(operations.front());operations.pop_front();complete(front,std::move(done),false);continue;
+            const bool rejected=!duplicateReady && op.lobby==lobby.id &&
+                (op.kind==15?(lobby.phase==wire::Open && op.epoch==lobby.epoch+1):
+                    (lobby.phase==wire::Starting && op.epoch==lobby.epoch));
+            auto done=std::move(operations.front());operations.pop_front();
+            complete(front,std::move(done),false,rejected?"Unable to start this match. Please try again.":nullptr);continue;
         }
         // Finish earlier native deck edits first. Poll's ordered ACK events are
         // drained before this dispatch, so authority now includes their revision.
@@ -195,7 +278,8 @@ static void dispatch(Obj front) {
         const auto* local=member();wire::require(local!=nullptr,"community local member missing");
         const bool canReady=ba_dedicated_deck::canReady(front);
         if(op.kind==15 && !canReady) {
-            auto done=std::move(operations.front());operations.pop_front();complete(front,std::move(done),false);continue;
+            auto done=std::move(operations.front());operations.pop_front();
+            complete(front,std::move(done),false,"Choose a valid deck before starting the match.");continue;
         }
         const auto deck=selected(front);
         const auto id=ba_community::nextRequest();
@@ -209,6 +293,11 @@ static void dispatch(Obj front) {
             op.cancelled=!canReady || deck!=local->deck;
             sentReadyLobby=op.lobby;sentReadyEpoch=op.epoch;
             op.wireKind=wire::Ready;op.request=ba_community::send(wire::ready(id,lobby,!op.cancelled));
+        }
+        if(loadingOwns(op)) {
+            loading.cancelRequested=op.cancelled;
+            ba_match_loading::advance(op.loadingTicket,op.wireKind==wire::SetDeck?
+                ba_match_loading::Stage::Preparing:ba_match_loading::Stage::Waiting);
         }
         ba::log("Community start transaction dispatched: nativeKind=%u wireKind=%u request=%u epoch=%u cancel=%d",
             op.kind,op.wireKind,op.request,op.epoch,op.cancelled?1:0);return;
@@ -243,6 +332,8 @@ static void begin(Obj front) {
     ba::set<Obj>(message.get(),"createdGame_",connection.get());ba::set<Obj>(message.get(),"playerHandle_",native::localRaw());
     wire::require(ba::get<int>(front,"_lastCustomGameMode")==1,"community custom mode changed");
     activeLobby=lobby.id;activeMatch=lobby.match;activeEpoch=lobby.epoch;
+    if(loading.pending && loading.lobby==activeLobby && loading.epoch==activeEpoch)
+        ba_match_loading::advance(loading.ticket,ba_match_loading::Stage::Loading);
     capturing=true;captured=false;expectedConnection=connection.get();
     try {ba::native<void(*)(Obj,Obj,int,Obj)>(0x3e40410)(front,message.get(),0,nullptr);}
     catch(...){capturing=false;expectedConnection=nullptr;throw;}
@@ -262,6 +353,7 @@ static void returned(Obj front,Obj server) {
     wire::require(!activeMatch.empty() && activeMatch==ba_lan::dedicatedMatchId && !awaitingReturn &&
         ba_dedicated_results::delivered && !ba_lan::stopped && ba_community::online,"community return before valid result/teardown");
     awaitingReturn=true;returnAccepted=false;returnWasCompleted=true;
+    loadingCancel("native custom match returned to menu");
     ba_dedicated_session::resetAtMenu(front,server,true,true);
     native::restoreIdentity(front);
     returnRequest=ba_community::send(wire::returned(ba_community::nextRequest(),activeMatch));
@@ -342,6 +434,7 @@ static void update(Obj front) {
         }
     }
     begin(front);
+    loadingUpdate();
 }
 static void smoke(Obj front); // Original UI actions below, opt-in only.
 }

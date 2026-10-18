@@ -2,6 +2,24 @@ IMPLEMENTATION LEDGER
 Updated: 2026-10-17
 Active objective: implement SERVER_REPLACEMENT_PLAN.txt, Windows only.
 
+MATCH START FEEDBACK (2026-10-17, native state checks passed; visual check open)
+An owned nonblocking status strip follows AI, normal multiplayer and Custom Game
+startup with ticket ownership and actual native InGame/readiness gates. Duplicate
+Play is ignored; Cancel settles its intent, and a late readiness message cannot
+reopen it. Fixed startup errors remain for10 seconds without blocking input.
+Five C++ checks pass. Native Normal18 AI completes two matches with a deck edit;
+its original report failed only the missing screenshot gate, and retained native
+state evidence passes a separate recheck. Custom reject/rematch (78.344s), normal
+Play/Cancel/retry with stale S35 (61.594s), and loading abort/recovery followed by
+two matches (90.641s) pass. All owned processes are reaped and sources unchanged.
+Hidden-window screenshots are black or missing; component readbacks do not prove
+rendered appearance. local/Play AI Loading Preview.cmd points to the separately
+tested loading-auto-runtime for visual acceptance. The usual launchers and all
+four prior manual runtimes remain frozen. See match-loading.txt for exact hashes,
+failed capture evidence, native gates, reproduction and remaining limits.
+Final source suite passes226 tests (224 pass,2 optional skips) in48.253s with
+native bridge/original-byte checks enabled; local/loading01-tests.txt is retained.
+
 OFFLINE AI DIFFICULTY (2026-10-17, native checks passed)
 Settings -> General now reuses the offline Region row for Easy/Normal/Hard.
 The choice saves per installation and is snapshotted for the next match.
@@ -22,8 +40,8 @@ bridge/original-byte checks. An earlier timing threshold failure and its isolate
 passing recheck are retained. Four C++ checks pass. local/Play AI Match.cmd now
 uses frozen practice-auto-runtime; Play AI Match (Previous Build).cmd preserves
 the manually accepted helper15. Normal and Custom Game copies are unchanged.
-Manual dropdown/visual acceptance remains open. Immediate match loading feedback
-for both AI and multiplayer is recorded in the plan as the user's next UX TODO.
+Manual dropdown/visual acceptance remains open. The later match-loading preview
+is recorded separately above and does not replace this frozen difficulty build.
 
 STANDALONE DECK TESTING (2026-10-17, manual Normal combat accepted)
 The user played standalone Normal18 and reported that the game was very fun.

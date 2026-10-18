@@ -242,6 +242,11 @@ Effort allowance: 4-7 days.
   until the actual match is ready, prevent duplicate starts, and clear it on
   success or failure with an appropriate retry/error message. Use the real local
   build/load and multiplayer start/ready states, not a fabricated percentage.
+  Implementation2026-10-17: a private nonblocking Canvas status strip now follows
+  accepted starts and exact readiness gates. AI replay, normal Play/Cancel/retry
+  with a stale readiness response, and Custom rejection/rematch/loading-abort pass native
+  state checks. Visual/manual acceptance remains open: hidden-window captures
+  are black or missing. See match-loading.txt for isolated builds and evidence.
 - Keep offline tutorial launch working; keep test-only commands opt-in.
 - Inventory analytics/telemetry initialization, event collection, batching,
   background retries and upload paths in the client and bundled components.

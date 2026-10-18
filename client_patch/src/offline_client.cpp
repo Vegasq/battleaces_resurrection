@@ -16,6 +16,7 @@
 #include <stdexcept>
 #include <share.h>
 #include "command_line.h"
+#include "match_loading.h"
 
 namespace ba_catalog { static void exportOnce();static std::string utf8(void*); }
 namespace ba_dedicated_results { static void receive(const std::string&); }
@@ -246,6 +247,8 @@ extern "C" __declspec(dllexport) void OfflineFrontUpdate(void* front,void*) {
         ba_catalog::exportOnce();
         if(offlinePractice())ba_practice::offlineUpdate(front);
         else if(lan())lanFrontUpdate(front);
+        ba_match_loading::update(front);
+        ba_match_loading_smoke::update(front);
         if(GetTickCount64()-last<10000)return;
         last=GetTickCount64();
         Obj fsm=read<Obj>(owner,0x2b0), state=get<Obj>(fsm,"_currentState");
@@ -277,6 +280,8 @@ extern "C" __declspec(dllexport) void OfflineFrontUpdate(void* front,void*) {
 #include "practice_settings.cpp"
 #include "practice_ai.cpp"
 #include "practice_settings_ui.cpp"
+#include "match_loading.cpp"
+#include "match_loading_smoke.cpp"
 #include "server_assets_export.cpp"
 #include "lan_audit.cpp"
 #include "telemetry_audit.cpp"

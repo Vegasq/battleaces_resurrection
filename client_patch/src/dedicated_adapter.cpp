@@ -2,6 +2,7 @@
 // Include after local_bootstrap.cpp. All entry points run on the Unity thread.
 // Native evidence and the protocol/lifetime contract are documented in
 // docs/client-session-lifecycle.txt. No native world or UI object is freed here.
+namespace ba_community_match { static void loadingFailure(); }
 namespace ba_dedicated_session {
 using ba::Obj;using ba_local::Root;
 static bool lobbyInstalled=false,joined=false,sawWorld=false,abortRequested=false;
@@ -291,6 +292,7 @@ static void resetAtMenu(Obj front,Obj server,bool completed,bool keepCommunity=f
         throw std::runtime_error("dedicated reset requires idle native world and main menu");
     ba::log("Dedicated session reset: match=%s sessions=%u completed=%d nextFrame=%d; native world inactive/zero",
         ba_lan::dedicatedMatchId.c_str(),startedSessions,completed?1:0,ba_lan::nextFrame);
+    ba_dedicated::loadingCancel("native match returned to menu");
     // Native Shutdown has already stopped/joined the simulation thread. Disable
     // helper command capture before dropping its roots and clearing its queues.
     ba_local::accepting.store(false);ba_local::ready.store(false);
@@ -381,6 +383,8 @@ static void recover(Obj front,Obj server) {
     const ULONGLONG now=GetTickCount64();
     if(!failedAt){
         failedAt=now;deferredPlay=false;retryNeedsPlay=true;
+        ba_dedicated::loadingFailure();
+        if(ba::community())ba_community_match::loadingFailure();
         ba_dedicated_deck::updateLobby(front,false);
         ba::log("Dedicated failed session retained until native cleanup and explicit Reconnect; match=%s",ba_lan::dedicatedMatchId.c_str());
     }
@@ -505,7 +509,12 @@ static void update(Obj front) {
             if(appliedReady!=ready){appliedReady=ready;ba_dedicated_deck::updateLobby(front,ready!=0);}
         }
         recoverySmokePlay(front,server);
-    } catch(const std::exception& e){ba_lan::fail("dedicated session update",e);}
+        ba_dedicated::loadingUpdate();
+    } catch(const std::exception& e){
+        ba_lan::fail("dedicated session update",e);
+        ba_dedicated::loadingFailure();
+        if(ba::community())ba_community_match::loadingFailure();
+    }
 }
 }
 
