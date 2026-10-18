@@ -2,6 +2,19 @@ IMPLEMENTATION LEDGER
 Updated: 2026-10-18 UTC
 Active objective: implement SERVER_REPLACEMENT_PLAN.txt, Windows only.
 
+AUTHORITATIVE MIXED HUMAN/BOT ROOM (2026-10-18 UTC)
+Private IPC2 now prepares server-owned bot inputs and requires those exact bytes
+in the simulation frame before the coordinator broadcasts it. Two-seat rooms
+reserve bot seats, wait only for human loading/input, and keep Custom human-only.
+The accelerated scripted native check worker-ai-room01 passes:72 produced bot
+units,71 moving under native orders,307 commands, native finish5068/final5087.
+All5,088 delivered frames replay to matching authoritative state; received and
+accepted journals match. Both workers exit0, source hashes remain unchanged.
+73 focused Python3.14 tests pass, including real AI/native workers and existing
+human/Custom/package regressions. This is internal room integration; public
+queue selection, four-army teams, original search UI and release gates remain
+open. See worker-ipc.txt and server-ai-runtime.txt.
+
 HEADLESS AI RULE EXPORT / COMBAT (2026-10-18 UTC)
 The client exporter now writes59 complete native AI rule blobs, validates
 within-process repeatability and unchanged AIManager/world state. A strict
@@ -10,7 +23,8 @@ rules and manifest. Two bots now build/move/fight to natural native completion
 beside one authoritative simulation in an isolated headless Python worker.
 Compatible original decks are required; the failed generic-deck run is retained.
 Fresh-process exports differ in Unity rule instance IDs; their headless sampled
-state and results agree. Actual worker/room/public/team wiring remains open.
+state and results agree. Worker/room integration is qualified above; public/team
+wiring remains open.
 46 focused Python3.14 tests pass including the opt-in real native worker;
 Python3.12 passes18 rule/import/match tests. See server-ai-runtime.txt.
 

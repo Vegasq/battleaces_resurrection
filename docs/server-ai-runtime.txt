@@ -141,9 +141,42 @@ BuildFuzzyRules copies that value into the output. Retain original IDs in native
 payloads; rewriting/canonicalizing them has not been qualified. Raw hashes stay
 per-export identities, and ordered decoded comparison excludes only those IDs.
 
+Worker and room integration
+Private worker IPC2 now accepts explicit AISetup assignments that must agree with
+the frozen GameData. BOT_INPUT prepares the next frame's complete bot player
+inputs; both parent and child enforce those bytes at STEP. This keeps the same
+canonical human/bot stream in native simulation, client FRAME and match journal.
+Normal human-only workers do not load the AI DLL. The optional AI world is cleaned
+before its simulation, with the existing worker timeout/crash/job isolation.
+Two-seat rooms accept a server-owned BotSeat and wait only for the human peer's
+loading/input acknowledgements; the reserved bot seat cannot be claimed by a
+client. Custom rejects bot seats. Host wiring supplies the imported asset directory
+and per-match bot assignments, but no public queue yet creates these rooms.
+See worker-ipc.txt for the exact preparation/commit and cleanup contract.
+
+Qualification: local/worker-ai-room01/verification.json passes in84.762s with
+one scripted TCP human and one native profile58 bot using its compatible Starter
+deck. The human submits ordinary HQ build commands; the bot builds72 units,71
+both move and receive native Move/Attack orders. It emits307 Execute commands,
+reaches170 supply and receives combat damage. Native game-over5068 is delivered
+through final frame5087 and MATCH_END, without forced surrender. Replaying every
+one of5,088 received frames in a second isolated simulation matches authoritative
+canonical state. The received-input journal equals the coordinator's accepted
+journal, SHA256be4aa1780849419e57f9132b13c8a5fd705c19bbabbddd6012d32792557e123b.
+Both workers exit0, sources stay unchanged, and no graphical client is launched.
+This run accelerates only the coordinator's wall clock; native frames remain50ms.
+It does not qualify normal20Hz performance, public UI/queues or real human play.
+
+Python3.14 focused qualification:73/73 tests pass, including601 exact AI/replica
+frames, DLL absence in the parent, malformed/duplicate/missing preparation,
+changed/omitted bot input, cleanup order, bot seat reservation, Custom exclusion,
+no FRAME on bot preparation failure and existing worker/room/community/package
+regressions. Log:local/worker-ai-focused03.txt. Earlier01/02 logs retain two test
+expectation errors (tuple/list and a nonexistent synthetic state field), corrected
+before this passing run; no native failure was hidden by those corrections.
+
 Remaining qualification
-Wire the AI coordinator into the actual worker IPC/room lifecycle and broadcast
-canonical bot commands alongside human input. Export/import the authored public
+Export/import the authored public
 profile deck/name/cosmetic pools for server selection; include public difficulty
 modifiers. Export real team maps and qualify four-army2v2/2vAI and mixed human
 groups, disconnects, cancellation/late-start races, results and cleanup.

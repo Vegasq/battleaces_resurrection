@@ -15,14 +15,14 @@ import sys
 import threading
 
 MAGIC = b"BAWK"
-VERSION = 1
+VERSION = 2
 HEADER = struct.Struct("<4sBBHIIiI")
 MAX_METADATA = 8 * 1024 * 1024
 MAX_PAYLOAD = 32 * 1024 * 1024
-CREATE, STEP, STATE, SNAPSHOT, CLOSE, TEST_CONTROL = range(1, 7)
+CREATE, STEP, STATE, SNAPSHOT, CLOSE, TEST_CONTROL, BOT_INPUT = range(1, 8)
 RESPONSE = 0x80
 ERROR = 1
-OPERATIONS = frozenset((CREATE, STEP, STATE, SNAPSHOT, CLOSE, TEST_CONTROL))
+OPERATIONS = frozenset((CREATE, STEP, STATE, SNAPSHOT, CLOSE, TEST_CONTROL, BOT_INPUT))
 
 
 class ProtocolError(ValueError):
@@ -161,7 +161,7 @@ class SyntheticSimulation:
 
 
 def serve(source, sink, *, test_backend=False):
-    simulation, last_request = None, 0
+    simulation, ai, last_request = None, None, 0
     try:
         while True:
             message = read_message(source)
@@ -176,13 +176,18 @@ def serve(source, sink, *, test_backend=False):
                 if operation == CREATE:
                     require(simulation is None and request_id == 1 and frame == -1, "exactly one CREATE is permitted")
                     require(bool(payload), "CREATE requires GameData")
+                    require(not test_backend or 'ai' not in metadata, 'synthetic workers cannot enable native AI')
                     if test_backend:
                         simulation = SyntheticSimulation(payload)
                     else:
                         from .native_simulation import NativeSimulation
                         simulation = NativeSimulation(payload, metadata.get("dll_path"))
+                    if 'ai' in metadata:
+                        from .worker_ai import AISetup, WorkerAI
+                        ai = WorkerAI(simulation, payload, AISetup.from_wire(metadata['ai']))
                     response = {"pid": os.getpid(), "game_data_sha256": simulation.game_data_sha256,
-                                "dll_sha256": simulation.dll_sha256, "synthetic_test_backend": test_backend}
+                                "dll_sha256": simulation.dll_sha256, "synthetic_test_backend": test_backend,
+                                "ai": ai.info if ai is not None else None}
                 else:
                     require(simulation is not None, "CREATE is required first")
                     if operation == STEP:
@@ -190,12 +195,20 @@ def serve(source, sink, *, test_backend=False):
                         from .native_simulation import _protobuf_header
                         input_frame, input_dt = _protobuf_header(payload)
                         require(input_frame == frame and metadata.get("dt_ms") == input_dt, "STEP header/wire timing differs")
+                        if ai is not None: ai.before_step(frame, payload)
                         seconds = simulation.process_frame(payload, dt_ms=input_dt)
                         # No ACK is emitted until step AND authoritative state retrieval succeed.
                         state = simulation.state(31, include_entities=True)
                         require(state["frame"] == frame, "native snapshot frame differs from completed step")
+                        if ai is not None: ai.after_step()
                         response = {"game_time_seconds": seconds, "state": state,
                                     "input_sha256": hashlib.sha256(payload).hexdigest()}
+                    elif operation == BOT_INPUT:
+                        require(ai is not None and frame == simulation.frame + 1 and not payload and not metadata,
+                                'invalid bot input request')
+                        from .worker_ai import pack_inputs
+                        response_payload = pack_inputs(ai.prepare(frame))
+                        response = {'sha256': hashlib.sha256(response_payload).hexdigest()}
                     else:
                         require(frame == simulation.frame and not payload, "query frame/payload mismatch")
                         viewer = metadata.get("viewer", 31)
@@ -209,6 +222,9 @@ def serve(source, sink, *, test_backend=False):
                             require(len(response_payload) <= 16 * 1024 * 1024, "snapshot exceeds limit")
                             response = {"sha256": hashlib.sha256(response_payload).hexdigest()}
                         elif operation == CLOSE:
+                            if ai is not None:
+                                ai.close()
+                                ai = None
                             simulation.close()
                             simulation = None
                             write_packet(sink, encode_message(operation | RESPONSE, request_id, frame, {"closed": True}))
@@ -232,8 +248,10 @@ def serve(source, sink, *, test_backend=False):
                                                  {"error": type(error).__name__, "message": str(error)[:4096]}, flags=ERROR))
                 return 2
     finally:
-        if simulation is not None:
-            simulation.close()
+        try:
+            if ai is not None: ai.close()
+        finally:
+            if simulation is not None: simulation.close()
 
 
 def main(argv=None):

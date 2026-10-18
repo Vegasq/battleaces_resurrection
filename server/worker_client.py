@@ -106,6 +106,7 @@ class SimulationWorker:
         self.failure = None
         self.game_data_sha256 = None
         self.dll_sha256 = None
+        self.ai_info = self._bot_roster = self._prepared_bots = None
         self._stderr = deque(maxlen=8)  # At most eight 4096-byte chunks retained.
         self._stderr_lock = threading.Lock()
         self._io = ThreadPoolExecutor(max_workers=1, thread_name_prefix=f"ba-worker-{process.pid}")
@@ -114,7 +115,7 @@ class SimulationWorker:
 
     @classmethod
     async def create(cls, game_data, dll_path=None, *, startup_timeout=120.0, request_timeout=3.0,
-                     close_timeout=2.0, working_directory=None, _test_backend=False):
+                     close_timeout=2.0, working_directory=None, ai=None, _test_backend=False):
         if not isinstance(game_data, bytes) or not 1 <= len(game_data) <= ipc.MAX_PAYLOAD:
             raise ValueError("GameData must contain 1..32 MiB of raw bytes")
         if any(not isinstance(value, (int, float)) or not 0 < value <= 600
@@ -122,6 +123,12 @@ class SimulationWorker:
             raise ValueError("worker timeouts must be in (0,600] seconds")
         if os.name != "nt" and not _test_backend:
             raise WorkerError("production simulation workers require Windows x64")
+        roster = None
+        if ai is not None:
+            from .worker_ai import AISetup, BotRoster
+            if not isinstance(ai, AISetup) or _test_backend:
+                raise ValueError('native AI requires an explicit AISetup and native worker')
+            roster = BotRoster(game_data, ai.bots)
         # Keep native output in the caller's writable data directory while loading
         # only our module tree. Neither cwd, PYTHONPATH nor user site packages may
         # select a different worker. Works with a relocated embeddable runtime too.
@@ -146,12 +153,23 @@ class SimulationWorker:
             worker._job = _WindowsJob(process.pid)
             async with worker._lock:
                 metadata = {"dll_path": str(Path(dll_path).resolve())} if dll_path is not None else {}
+                if ai is not None: metadata['ai'] = ai.wire()
                 response, payload = await worker._exchange(ipc.CREATE, -1, metadata, game_data, timeout=startup_timeout)
                 expected = hashlib.sha256(game_data).hexdigest()
                 if payload or response.get("pid") != process.pid or response.get("game_data_sha256") != expected:
                     raise WorkerError("worker CREATE identity/digest mismatch")
                 if response.get("synthetic_test_backend") is not bool(_test_backend):
                     raise WorkerError("unexpected worker backend")
+                ai_info = response.get('ai')
+                if ai is None:
+                    if ai_info is not None: raise WorkerError('unexpected worker AI')
+                else:
+                    from .ai_rules import SUPPORTED_AI_SHA256
+                    if not (isinstance(ai_info, dict) and ai_info.get('bots') == ai.wire()['bots'] and
+                            ai_info.get('dll_sha256') == SUPPORTED_AI_SHA256 and
+                            isinstance(ai_info.get('manifest_sha256'), str) and len(ai_info['manifest_sha256']) == 64):
+                        raise WorkerError('worker AI assignment/digest mismatch')
+                worker.ai_info, worker._bot_roster = ai_info, roster
                 worker.game_data_sha256 = expected
                 worker.dll_sha256 = response.get("dll_sha256")
             return worker
@@ -211,6 +229,24 @@ class SimulationWorker:
             if isinstance(error, WorkerError): raise
             raise WorkerError(f"simulation worker failed on operation {operation}: {error}") from error
 
+    async def bot_inputs(self, frame):
+        from .worker_ai import unpack_inputs
+        async with self._lock:
+            if self._bot_roster is None or type(frame) is not int or frame != self.frame + 1 or self._prepared_bots is not None:
+                raise ValueError('bot inputs require one request before the next AI frame')
+            response, payload = await self._exchange(ipc.BOT_INPUT, frame)
+            try:
+                if response.get('sha256') != hashlib.sha256(payload).hexdigest():
+                    raise ValueError('bot input digest mismatch')
+                inputs = unpack_inputs(payload)
+                self._bot_roster.check_inputs(inputs)
+            except (ValueError, KeyError, TypeError) as error:
+                self.failure = str(error)
+                await self._abort()
+                raise WorkerError('invalid prepared bot inputs') from error
+            self._prepared_bots = dict(inputs)
+            return inputs
+
     async def process_frame(self, actions, dt_ms=None):
         from .native_simulation import _protobuf_header
         if not isinstance(actions, bytes) or not 1 <= len(actions) <= ipc.MAX_PAYLOAD:
@@ -221,6 +257,9 @@ class SimulationWorker:
         async with self._lock:
             if frame != self.frame + 1:
                 raise ValueError(f"expected frame {self.frame + 1}, received {frame}")
+            if self._bot_roster is not None:
+                if self._prepared_bots is None: raise ValueError('prepare bot inputs before STEP')
+                self._bot_roster.check_frame(actions, self._prepared_bots)
             response, payload = await self._exchange(ipc.STEP, frame, {"dt_ms": step}, actions)
             try:
                 state = normalize_state(response["state"])
@@ -232,6 +271,7 @@ class SimulationWorker:
                 await self._abort()
                 raise WorkerError("invalid completed-step response") from error
             self.frame, self.game_time_seconds, self.last_state = frame, seconds, state
+            self._prepared_bots = None
             return FrameResult(frame, seconds, state)
 
     async def state(self, viewer=31, *, include_entities=False):

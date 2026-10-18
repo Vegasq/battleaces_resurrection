@@ -1,5 +1,5 @@
-ISOLATED SIMULATION WORKER / IPC VERSION 1
-Implemented and tested on Windows x64, 2026-10-17.
+ISOLATED SIMULATION WORKER / IPC VERSION 2
+Updated for optional server-owned AI on Windows x64, 2026-10-18.
 
 Purpose
 Each match owns one Python subprocess containing one NativeSimulation world.
@@ -19,14 +19,24 @@ Parent API (server.worker_client)
   raw_flatbuffer = await worker.snapshot(viewer=0)
   await worker.close()
 
+For a server-assigned bot roster, pass ai=AISetup(imported_assets, {army:profile})
+at creation. Before every STEP, call inputs=await worker.bot_inputs(next_frame),
+combine those exact InputActionsByPlayer bodies with validated human inputs, and
+encode one canonical frame. Both the parent and child reject changed, missing,
+duplicate or wrong-identity bot bodies. Empty-action players retain the existing
+omission convention in InputActions. A missing/duplicate preparation is rejected;
+there is no silent second decision or lost consumed command queue.
+
 Properties: pid, frame, game_time_seconds, last_state, game_data_sha256,
-dll_sha256, closed, failure, stderr_tail. Async context-manager cleanup is
+dll_sha256, ai_info, closed, failure, stderr_tail. Async context-manager cleanup is
 supported after creation. FrameResult is a frozen record containing a decoded
 state dictionary. Resource dictionary keys are restored to integer army IDs.
 The parent never loads Simulation.dll; importing the pure native parser is safe.
 
 Ordering and commit boundary
-Exactly one CREATE and one native world are permitted per child process. Worker
+Exactly one CREATE and one simulation world are permitted per child process.
+An AI-enabled worker also owns one distinct native AI decision world, sharing the
+same frozen simulation configuration. It is not a second combat simulation. Worker
 request IDs start at1 and must be consecutive. Last-completed frame starts at-1;
 the first STEP is0, followed by consecutive frames. The raw InputActions frame
 and time-step must agree with the request header/metadata. Input bytes are never
@@ -46,7 +56,7 @@ STEP0 the native and IPC frame values agree normally.
 
 Binary envelope, little endian (24 bytes)
   magic             4 bytes ASCII BAWK
-  version           uint8, currently1
+  version           uint8, currently2
   operation         uint8; response has bit0x80 set
   flags             uint16;0 success/request,1 error response
   request_id        uint32, strictly consecutive and nonzero
@@ -55,20 +65,37 @@ Binary envelope, little endian (24 bytes)
   payload_length    uint32,0..32 MiB
 Immediately follows UTF-8 JSON metadata object, then exact binary payload.
 Python struct format: <4sBBHIIiI. No newline delimiters/base64 conversion.
-Operation codes:1 CREATE,2 STEP,3 STATE,4 SNAPSHOT,5 CLOSE,6 TEST_CONTROL.
+Operation codes:1 CREATE,2 STEP,3 STATE,4 SNAPSHOT,5 CLOSE,6 TEST_CONTROL,7 BOT_INPUT.
 Raw snapshot responses have a stricter16 MiB cap. Unknown magic/version/op,
 oversize messages, malformed JSON, mismatched request/frame replies and truncated
 pipes fail closed. The protocol is private local IPC, not an authenticated public
 protocol or a general untrusted-file service.
 
 CREATE request payload: full uncompressed GameData; optional metadata dll_path.
-CREATE reply: owned PID, GameData SHA256, simulation DLL SHA256, test-backend flag.
+Optional ai metadata contains only an absolute imported-asset directory and a
+map of canonical army-ID strings to native profile IDs. These must exactly match
+all nonzero AI profile identities in GameData. The child loads and validates the
+local RuleBook and pinned AI DLL before replying. Synthetic workers reject AI.
+CREATE reply: owned PID, GameData SHA256, simulation DLL SHA256, test-backend flag,
+and ai=null or the frozen assignments, AI DLL hash and actual rule manifest hash.
 STEP request payload: complete InputActions; metadata dt_ms.
 STEP reply: whole game_time_seconds, viewer31 state, exact input SHA256.
 STATE metadata: viewer0..31 and include_entities boolean; reply contains state.
 SNAPSHOT metadata: viewer0..31; response payload is copied native FlatBuffer with
 SHA256 metadata. Queries echo the last-completed frame, never advance simulation.
 CLOSE reply is sent only after native cleanup; child then exits.
+
+BOT_INPUT uses next-frame numbering, empty metadata and no request payload. It
+advances the AI decision cadence when due, never the simulation. Response metadata
+contains the exact payload SHA256. Binary payload: one uint8 count(1..4), followed
+by count records of uint8 army, uint32 little-endian byte length, and the exact
+InputActionsByPlayer bytes. Each body is1..65536 bytes; duplicate armies, truncated
+records and trailing bytes are rejected. Frame0 includes the bot's normal JoinArmy
+from the frozen deck/cosmetics; subsequent commands come from the native AI and
+can only be Execute/UI action cases. Each bot body keeps its assigned identity.
+The child retains these inputs until the immediately following simulation frame
+is successfully accepted. STATE/SNAPSHOT queries do not consume them. No decision
+world/configuration is ever created from a public client message.
 
 Supervision and lifetime
 Windows children use CREATE_NO_WINDOW. Each worker belongs to an unnamed Windows
@@ -93,6 +120,8 @@ threads. close() is idempotent, bounds graceful cleanup, then forces shutdown.
 Closing while a request is stuck does not wait its full request timeout. A hung
 SimDestroy cannot hold the room indefinitely. Local frame/order/dt errors found
 before sending do not poison an otherwise healthy world.
+AI registrations/world are destroyed before the simulation. AI initialization,
+decision or teardown failures use the same terminal-error/deadline/job cleanup.
 
 Test-only backend
 SyntheticSimulation is explicitly labelled in every synthetic state. It is never
@@ -102,6 +131,17 @@ _test_backend=True enables those gates. Production creation removes the test
 environment flag, and TEST_CONTROL is rejected by native workers.
 
 Validation
+AI integration: python -m unittest tests.test_worker_ai -v. Authored fixtures
+exercise exact roster/JoinArmy ownership, bounded packet parsing, one preparation
+per frame, unchanged bot input, terminal failures and AI-before-simulation cleanup.
+Mixed loopback tests use real synthetic worker subprocesses and explicitly fake
+bot decisions; they do not claim native combat. The separate opt-in native test
+replays601 frames from a real AI worker through an independent simulation and
+checks every canonical state, both DLLs absent from the parent and exit0 cleanup.
+Full mixed native room/result evidence is in server-ai-runtime.txt and the
+opt-in tools.verify_worker_ai verifier. Private IPC1 workers must be replaced
+together with their parent; the public game protocol remains version3.
+
   python -m unittest tests.test_simulation_worker -v
 Fourteen asset-free checks passed on Windows; the real-DLL test was separately
 opted in. Coverage: binary fidelity/version/bounds, malformed messages, backend
@@ -162,6 +202,12 @@ native final results, owned process exits, and source hashes at start and finish
 native/network runs are distinct from graphical clients and manual P2 play.
 
 Remaining boundaries
+The two-seat Room accepts an internal frozen BotSeat only when an explicit AI
+factory exists. It reserves that seat, waits only for human LOAD/INPUT, and sends
+both humans' and bots' accepted actions through the existing FRAME and journal.
+Custom rejects bot seats. This internal integration does not expose public queues,
+select authored bot decks/names/difficulty, or extend the two-seat wire to teams.
+
 This module does not supply public authentication, rematch client UX, IPC resume,
 native world recovery, admission/capacity policy, or command authorization. Those
 remain coordinator/client responsibilities. Each worker uses two private I/O

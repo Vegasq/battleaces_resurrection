@@ -88,12 +88,15 @@ async def _run_owned(config, *, check_only=False, on_progress=None, on_ready=Non
                       backups=config.log_backups, diagnostics=config.diagnostic_audit)
     server = None
     try:
+        from .worker_ai import AISetup
         server = DedicatedServer(template, ProfileStore(config.data_directory / 'profiles', template),
             audit=audit, data_dir=None, audit_state=config.diagnostic_audit,
             max_rooms=config.max_rooms, input_window=config.input_window,
             tls_context=context, admission=AdmissionController(store) if store else None,
             sim_factory=lambda data: SimulationWorker.create(data, config.assets_directory / 'Simulation.dll',
-                working_directory=config.data_directory / 'workers'))
+                working_directory=config.data_directory / 'workers'),
+            ai_factory=lambda data, bots: SimulationWorker.create(data, config.assets_directory / 'Simulation.dll',
+                working_directory=config.data_directory / 'workers', ai=AISetup(config.assets_directory, bots)))
         address = await server.start(config.listen_host, config.listen_port)
         if on_ready: on_ready(address)
         print(f'Battle Aces server listening on {address[0]}:{address[1]}; Ctrl+C stops it cleanly.', flush=True)

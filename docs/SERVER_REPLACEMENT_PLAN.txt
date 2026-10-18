@@ -130,8 +130,11 @@ Current implementation sequence for these additions (2026-10-18):
    input ownership and mode projection together. Mixed human groups require one
    server-authoritative match with qualified AI execution/assignment. See
    team-modes.txt and server-ai-runtime.txt. Complete native tuning export/import
-   and two-army standalone AI combat now pass. Wire this into worker IPC/rooms,
-   preserve authored profile/deck pairing, and extend to four armies. Team play and the
+   and two-army standalone AI combat now pass. Private worker IPC/rooms now carry
+   canonical bot input alongside human input; an accelerated scripted native room
+   finishes naturally and all5,088 received frames replay to matching state.
+   Export/import authored profile/deck/name/cosmetic pools for server assignment,
+   preserve the compatible pairings, and extend to four armies. Team play and the
    mode5 missing-teammate policy remain open.
 4. Implement generation-bound public queues/fallback and human-only Custom,
    then qualify cancellation,late starts,partial groups,results and repeated
