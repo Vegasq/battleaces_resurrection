@@ -22,7 +22,7 @@ import time
 import traceback
 
 from client_patch.transport import bridge, launcher
-from server import admission, tls_transport as tls, community_protocol as c, public_protocol as q
+from server import admission, tls_transport as tls, community_protocol as c, public_protocol as q, protocol as p
 from server.ai_rules import RuleBook
 from server.assets import verify_assets
 from server.bot_catalog import BotCatalog
@@ -72,10 +72,12 @@ async def run(args):
         tls_context=tls.load_server_context(pki['cert'],pki['key']),admission=admission.AdmissionController(credentials))
     process=job=writer=parent=child=bridge_task=None
     delayed=[];delayed_enter=False;dropped_ready=False;dropped_return=False
+    fault=None;assignment_peer=None;withheld_bootstrap=False
     log='';launch_tick=None;attempts=0;started=time.monotonic()
     report=dict(passed=False,scope=__doc__,mode=args.mode,unavailable=args.unavailable,visible=args.visible,
                 cancel=args.cancel,retry=args.retry,delay_enter_ack=args.delay_enter_ack,
                 drop_on_ready=args.drop_on_ready,drop_return_ack=args.drop_return_ack,practice_overlap=args.practice_overlap,
+                disconnect=args.disconnect,
                 helper_sha256=hashlib.sha256((game/'BattleAcesOffline.dll').read_bytes()).hexdigest(),
                 source_sha256_at_start=source_hashes())
     try:
@@ -124,6 +126,7 @@ async def run(args):
         if not args.unavailable: command+=['-match-search-smoke']
         if args.cancel: command+=['-public-queue-smoke-cancel='+args.cancel]
         if args.retry: command+=['-public-queue-smoke-retry']
+        if args.disconnect in ('loading','running'): command+=['-dedicated-recovery-smoke']
         if args.practice_overlap: command+=['-public-queue-smoke-practice-overlap']
         if args.mode==1:
             command+=['-dedicated-surrender-smoke','-dedicated-surrender-frame=1200']
@@ -140,17 +143,64 @@ async def run(args):
         report.update(game_pid=process.pid,launch_tick=launch_tick,client_arguments=command)
         (output/'processes.json').write_text(json.dumps(report,indent=2)+'\n')
         shutil.copyfile(game/'.battleaces-resurrection/patch-manifest.json',output/'patch-manifest.json')
-        preworld=(bool(args.cancel) or args.drop_on_ready) and not args.retry
+        preworld=(bool(args.cancel) or args.drop_on_ready or args.disconnect=='assignment') and not args.retry
+        disconnected_only=bool(args.disconnect) and not args.retry
         marker=(f'Practice returned: completed=1 mode={args.mode}' if args.unavailable else
-                'Public intent retired: ticket=1' if preworld or args.drop_return_ack else 'PUBLIC QUEUE completed return:')
+                'Public intent retired: ticket=1' if preworld or disconnected_only or args.drop_return_ack else 'PUBLIC QUEUE completed return:')
         while True:
             require(process.poll() is None,'owned game exited before native return')
             log=read_native_log(game,process.pid,since_tick=launch_tick)
-            for failure in ('Public client failure:', 'Client lifecycle invariant failed:', 'Offline loop stopped in ', 'Practice stopped in '):
+            for failure in ('Public client failure:', 'Client lifecycle invariant failed:', 'Practice stopped in '):
                 require(failure not in log,'native public failure: '+failure)
+            for failure in re.findall(r'Offline loop stopped in [^\n]*',log):
+                require(fault is not None and args.disconnect in ('loading','running') and re.fullmatch(
+                    r'Offline loop stopped in (?:LAN update|LAN front update|dedicated session update): '
+                    r'(?:match server disconnected before a result|Secure session is closed)',failure.rstrip('\r')),
+                    'unexpected native stop: '+failure)
+            if args.disconnect and fault is None:
+                entries=list(server.community.public.entries.values())
+                if args.disconnect=='assignment' and assignment_peer is None and entries:
+                    # Hold only this first peer's bootstrap. Its assignment must
+                    # reach the native reader before a world can be constructed.
+                    require(len(entries)==1,'fault probe has unexpected public peers')
+                    assignment_peer=entries[0].session.peer
+                    send_packet=assignment_peer.send
+                    def hold_bootstrap(kind,payload=b''):
+                        nonlocal withheld_bootstrap
+                        if kind==p.BOOTSTRAP:
+                            require(not withheld_bootstrap,'duplicate withheld bootstrap')
+                            withheld_bootstrap=True
+                            observe('probe_withheld_bootstrap',bytes=len(payload))
+                            return
+                        send_packet(kind,payload)
+                    assignment_peer.send=hold_bootstrap
+                assigned=re.search(r'Public match assignment: ticket=1 match=([0-9a-f]{32}) ',log)
+                joined=re.search(r'Public native match joined: ticket=1 match=([0-9a-f]{32}) ',log)
+                received=[int(frame) for frame in re.findall(r'LAN received frame (\d+),',log)]
+                reached=(args.disconnect=='assignment' and assigned is not None or
+                         args.disconnect=='loading' and joined is not None or
+                         args.disconnect=='running' and bool(received) and max(received)>=200)
+                if reached:
+                    require(len(entries)==1 and assigned is not None,'disconnect target missing or ambiguous')
+                    peer=entries[0].session.peer;room=peer.room
+                    require(room is not None and room.match_id==assigned[1] and not peer.closed,'disconnect room changed')
+                    if args.disconnect=='assignment':
+                        require(withheld_bootstrap and joined is None and 'Client world acquired:' not in log,
+                                'assignment probe reached native world too early')
+                    elif args.disconnect=='loading':
+                        require(room.state=='loading' and peer.slot not in room.loaded and 'Offline world ready;' not in log,
+                                'loading disconnect missed the asynchronous map-load window')
+                    else:
+                        require(room.state=='running' and peer.slot in room.loaded and 'Offline world ready;' in log,
+                                'running disconnect did not reach a loaded native world')
+                    fault=dict(stage=args.disconnect,match=room.match_id,last_native_frame=max(received,default=-1),
+                               room_state=room.state,native_joined=joined is not None,withheld_bootstrap=withheld_bootstrap,
+                               log_offset=len(log))
+                    observe('probe_disconnect',**fault);peer.close()
+                    report['injected_disconnect']=fault
             if marker in log: break
             require(time.monotonic()-started<args.timeout,'native public queue/match/Continue timed out')
-            await asyncio.sleep(.2)
+            await asyncio.sleep(.02 if args.disconnect and fault is None else .2)
         require('PUBLIC QUEUE SMOKE original OnMapSelected:' in log,'original public button missing')
         if not preworld: require('Native search joining signal:' in log,'original native loading handoff missing')
         if args.cancel:
@@ -169,6 +219,55 @@ async def run(args):
         if args.retry:
             require(log.count('Public search intent:')==2 and 'Native search stale ticket rejected:' in log,
                     'retry did not use a new native search generation')
+        if args.disconnect:
+            require(fault is not None,'connection loss was not injected')
+            require('Public fallback accepted:' not in log and 'owner=local-practice' not in log,
+                    'committed remote match incorrectly fell back to a local world')
+            retired=re.search(r'Public intent retired: ticket=1 reason=connection lost after (?:READY|match acceptance) nativeIdle=1 disconnect=1',log)
+            require(retired is not None and retired.start()>fault['log_offset'],'failed public intent did not retire after disconnect')
+            if args.disconnect!='assignment':
+                markers=('RECOVERY SMOKE invoking original disconnected modal OnConfirm',
+                         'Dedicated Reconnect callback queued:',
+                         'RECOVERY SMOKE original OnConfirm returned; modalStillOwned=1 queued=1',
+                         'Dedicated retry modal released on later update:',
+                         'Dedicated session reset: match='+fault['match'],
+                         'Client world released: generation=1 owner=remote nativeIdle=1')
+                positions=[log.find(value,fault['log_offset']) for value in markers]+[retired.start()]
+                require(all(left>=0 and right>left for left,right in zip(positions,positions[1:])),
+                        'native disconnect cleanup/modal/world release order incorrect')
+                deferred=re.search(r'Dedicated retry modal released on later update: requested=(\d+) current=(\d+)',log)
+                require(deferred is not None and int(deferred[1])<int(deferred[2]),'Reconnect released its invoking modal inline')
+                require('Dedicated aborted match: requesting original CleanupGameState(reason=1)' in log,
+                        'failed native world bypassed original cleanup')
+            if args.retry:
+                retry=re.search(r'Public search intent: ticket=2 ',log)
+                require(retry is not None and retry.start()>retired.end(),'retry started before failed intent/world retired')
+                dismissed=re.search(r'Match loading event=notice-dismissed [^\r\n]*identity=public-error:1 [^\r\n]*reason=public search restarted',log)
+                require(dismissed is not None and retired.end()<dismissed.start()<retry.start(),
+                        'retry retained its old public failure banner')
+                require(len(workers)==2 and credentials.calls==attempts==2,'disconnect/retry did not use exactly two sessions/workers')
+            deadline=time.monotonic()+5
+            while any(entry.ticket==1 for entry in server.community.public.entries.values()) or fault['match'] in server.community.public.offers:
+                require(time.monotonic()<deadline,'disconnected public ticket/offer retained capacity')
+                await asyncio.sleep(.05)
+            aborted=[row for row in events if row['event']=='match_aborted' and row['match']==fault['match']]
+            require(len(aborted)==1,'server did not abort exactly the disconnected match')
+            entered=next(row for row in events if row['event']=='public_queue_entered' and row['ticket']==1)
+            offered=next(row for row in events if row['event']=='public_match_offered' and row['match']==fault['match'])
+            require(29<=offered['observed_at']-entered['observed_at']<=33,'faulted match skipped the real queue wait')
+            report['faulted_queue_seconds']=offered['observed_at']-entered['observed_at']
+            report['faulted_native_elapsed_seconds']=elapsed_seconds(log,1)
+            if args.disconnect=='running':
+                receipts=game/'investigation/runtime'/f'dedicated-receipts-{process.pid}-{fault["match"]}.tsv'
+                rows=list(csv.DictReader(receipts.read_text(encoding='utf-8').splitlines(),delimiter='\t'))
+                authoritative={row['frame']:row['frame_payload_sha256'] for row in events
+                               if row['event']=='frame_queued' and row['match']==fault['match']}
+                require(len(rows)>=201 and [int(row['frame']) for row in rows]==list(range(len(rows))),
+                        'disconnected native frame prefix missing/out of order')
+                require(all(row['sha256']==authoritative.get(int(row['frame'])) for row in rows),
+                        'disconnected native frames differ from authoritative prefix')
+                shutil.copyfile(receipts,output/receipts.name)
+                report['aborted_match_received_frames']=len(rows)
         if args.unavailable:
             require(not workers and not credentials.calls and 'Public fallback accepted:' in log,'unavailable route contacted/started server match')
             require(log.count('Client world acquired:')==1 and 'owner=local-practice' in log and 'owner=remote' not in log,
@@ -191,6 +290,13 @@ async def run(args):
                         'fallback bot result identity missing')
                 bots.append(dict(seat=seat,profile=army['players'][0]['aiProfileId'],ordered_moving_units=sorted(moved & ordered)))
             report.update(local_fallback=True,local_bots=bots)
+        elif disconnected_only:
+            require(len(workers)==1 and credentials.calls==1 and attempts==1,'disconnect-only probe created extra session/worker')
+            expected=0 if args.disconnect=='assignment' else 1
+            require(log.count('Client world acquired:')==expected and log.count('owner=remote nativeIdle=1')==expected,
+                    'disconnect-only probe retained or duplicated a native world')
+            require(not server.community.public.entries and not server.community.public.offers,'disconnected server state retained')
+            report.update(disconnected_match_retired=True)
         elif preworld:
             # Disconnect retirement is asynchronous on the server. Wait for it
             # before claiming capacity release, without closing the server first.
@@ -207,7 +313,7 @@ async def run(args):
             if args.cancel in ('offered','after-ready') or args.drop_on_ready:
                 report['native_elapsed_seconds']=elapsed_seconds(log,1)
         else:
-            maximum=2 if args.retry and (args.cancel=='after-ready' or args.drop_on_ready) else 1
+            maximum=2 if args.retry and (args.cancel=='after-ready' or args.drop_on_ready or args.disconnect) else 1
             require(1<=len(workers)<=maximum and 1<=credentials.calls<=(2 if args.retry else 1),
                     'unexpected authenticated match/worker count')
             finished=[row for row in events if row['event']=='match_completed'];require(len(finished)==1,'duplicate/missing completed match')
@@ -217,8 +323,10 @@ async def run(args):
             entered=next(row for row in events if row['event']=='public_queue_entered' and row['ticket']==ticket)
             require(29<=offered['observed_at']-entered['observed_at']<=33,'server fallback did not use real30-second queue wait')
             require(not server.community.public.entries and not server.community.public.offers,'native RETURN retained ticket/offer')
+            expected_worlds=2 if args.retry and args.disconnect in ('loading','running') else 1
             require('Public native match joined:' in log and 'Public native return:' in log and 'owner=remote' in log and
-                    'owner=local-practice' not in log and log.count('Client world acquired:')==1,
+                    'owner=local-practice' not in log and log.count('Client world acquired:')==expected_worlds and
+                    log.count('owner=remote nativeIdle=1')==expected_worlds,
                     'remote native lifecycle missing/overlapped')
             receipts=game/'investigation/runtime'/f'dedicated-receipts-{process.pid}-{match}.tsv'
             rows=list(csv.DictReader(receipts.read_text(encoding='utf-8').splitlines(),delimiter='\t'))
@@ -232,15 +340,18 @@ async def run(args):
                           native_elapsed_seconds=seconds)
         report.update(passed=True,remote_attempts=attempts,authentications=credentials.calls)
     except BaseException as error:
-        report.update(error=repr(error),traceback=traceback.format_exc())
+        report.update(passed=False,error=f'{type(error).__name__}: {error}',traceback=traceback.format_exc())
     finally:
         for callback in delayed: callback.cancel()
         if child is not None: child.close()
         if process is not None:
-            log=read_native_log(game,process.pid,since_tick=launch_tick)
-            (output/f'native-{process.pid}.log').write_text(log,encoding='utf-8')
             if process.poll() is None: process.terminate()
             await asyncio.to_thread(process.wait,timeout=15)
+            try:
+                log=read_native_log(game,process.pid,since_tick=launch_tick)
+                (output/f'native-{process.pid}.log').write_text(log,encoding='utf-8')
+            except Exception as error:
+                report.update(passed=False,evidence_error=f'{type(error).__name__}: {error}')
             for name in re.findall(r'file=(match-search-\d+-\d+-\d+-\w+\.png)',log):
                 source=game/'investigation/runtime'/name
                 if source.is_file(): shutil.copyfile(source,output/name)
@@ -253,11 +364,28 @@ async def run(args):
         elif parent is not None: parent.close()
         await server.close();await asyncio.gather(*(worker.close() for worker in workers))
         remove_test_pki(pki_folder);audit.close()
+        cleanup=[]
+        for worker in workers:
+            match=next((row['match'] for row in events if row['event']=='worker_started' and row['worker_pid']==worker.pid),None)
+            released=any(row['event']=='worker_released' and row['worker_pid']==worker.pid and row['match']==match for row in events)
+            reaped=worker.process.poll() is not None and worker._cleanup_task is not None and worker._cleanup_task.done() and not worker._stderr_thread.is_alive()
+            # Room cancellation can interrupt a native IPC request. Its existing
+            # contract kills/reaps that worker instead of reusing unknown state.
+            # Only the injected aborted match may take that identified path;
+            # ordinary results and unknown nonzero exits still fail this probe.
+            cancelled=bool(fault and args.disconnect=='running' and match==fault['match'] and released and
+                           worker.process.poll()==1 and (worker.failure or '').startswith('CancelledError:'))
+            okay=reaped and ((worker.process.poll()==0 and not worker.failure) or cancelled)
+            cleanup.append(dict(pid=worker.pid,match=match,exit_code=worker.process.poll(),failure=worker.failure,
+                                stderr_tail=worker.stderr_tail[-4096:],owned_resources_reaped=reaped,
+                                expected_cancelled_request=cancelled,passed=okay))
         report.update(elapsed_seconds=time.monotonic()-started,owned_process_reaped=process is None or process.poll() is not None,
             worker_exit_codes=[worker.process.poll() for worker in workers],cleanup='forced owned termination, not native Quit',
-            source_sha256_at_finish=source_hashes())
+            worker_cleanup=cleanup,source_sha256_at_finish=source_hashes())
         report['source_files_unchanged']=report['source_sha256_at_start']==report['source_sha256_at_finish']
-        report['passed'] &= report['source_files_unchanged'] and report['owned_process_reaped'] and all(code==0 for code in report['worker_exit_codes'])
+        workers_ok=all(row['passed'] for row in cleanup)
+        if not workers_ok: report.setdefault('error','worker cleanup failed; see worker_cleanup evidence')
+        report['passed'] &= report['source_files_unchanged'] and report['owned_process_reaped'] and workers_ok
         (output/'verification.json').write_text(json.dumps(report,indent=2)+'\n',encoding='utf-8')
     print(json.dumps({key:report[key] for key in ('passed','error','elapsed_seconds','received_frames','worker_exit_codes') if key in report}))
     return 0 if report['passed'] else 1
@@ -275,11 +403,13 @@ def main():
     parser.add_argument('--delay-enter-ack',type=float,default=0)
     parser.add_argument('--drop-on-ready',action='store_true')
     parser.add_argument('--drop-return-ack',action='store_true')
+    parser.add_argument('--disconnect',choices=('assignment','loading','running'),
+                        help='close first owned TLS peer at a native-observed stage; test cleanup and optional explicit retry')
     parser.add_argument('--practice-overlap',action='store_true')
     args=parser.parse_args()
     require(os.name=='nt' and args.output.resolve().is_relative_to(ROOT/'local') and 120<=args.timeout<=900,'bounded Windows/ignored probe required')
-    require(0<=args.delay_enter_ack<=8 and (not args.retry or args.cancel or args.drop_on_ready),'bounded delay/retry point required')
-    require(sum(map(bool,(args.unavailable,args.cancel,args.drop_on_ready,args.drop_return_ack)))<=1,
+    require(0<=args.delay_enter_ack<=8 and (not args.retry or args.cancel or args.drop_on_ready or args.disconnect),'bounded delay/retry point required')
+    require(sum(map(bool,(args.unavailable,args.cancel,args.drop_on_ready,args.drop_return_ack,args.disconnect)))<=1,
             'choose one unavailable/cancel/disconnect scenario')
     return asyncio.run(run(args))
 

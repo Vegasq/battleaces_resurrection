@@ -1,7 +1,10 @@
 import argparse
+from pathlib import Path
+import shutil
 import unittest
+import uuid
 
-from tools.run_secure_match import current_native_log, native_result_ready, recovery_evidence, scenario_expectations
+from tools.run_secure_match import current_native_log, native_result_ready, read_native_log, recovery_evidence, scenario_expectations
 
 
 class NativeResultEvidenceTests(unittest.TestCase):
@@ -22,6 +25,35 @@ class NativeResultEvidenceTests(unittest.TestCase):
         self.assertFalse(native_result_ready(log + '\n' + self.START, 'final'))
         self.assertFalse(native_result_ready(self.READY, 'final'))
         self.assertFalse(native_result_ready(log.replace('ready sessions', 'ready-wait sessions'), 'final'))
+
+
+class NativeLogEncodingTests(unittest.TestCase):
+    def setUp(self):
+        self.base = Path(__file__).resolve().parents[1]/'local/test-native-log'
+        self.game = self.base/uuid.uuid4().hex
+        self.game.mkdir(parents=True)
+
+    def tearDown(self):
+        target = self.game.resolve()
+        self.assertEqual(target.parent, self.base.resolve())
+        self.assertEqual(len(target.name), 32)
+        shutil.rmtree(target)
+
+    def test_utf8_names_and_partial_writes_do_not_corrupt_evidence(self):
+        path = self.game/'investigation/runtime/dedicated-native-123.log'
+        path.parent.mkdir(parents=True)
+        start = '[201] Offline initial state reached after game initialization. PID=123\n'
+        name = 'Public bot name=Fixture\u25cfBot\u2468\n'
+        encoded = name.encode('utf-8')
+        partial = encoded[:encoded.index(b'\xe2') + 2]
+        path.write_bytes(start.encode('utf-8') + partial)
+        self.assertEqual(read_native_log(self.game,123,since_tick=200), start.split('] ',1)[1])
+        path.write_bytes((start + name).encode('utf-8'))
+        self.assertEqual(read_native_log(self.game,123,since_tick=200), start.split('] ',1)[1] + name)
+        self.assertEqual(read_native_log(self.game,123,since_tick=202), '')
+        path.write_bytes(start.encode('utf-8') + b'invalid=\xff\n')
+        with self.assertRaises(UnicodeDecodeError):
+            read_native_log(self.game,123,since_tick=200)
 
 
 class RecoveryEvidenceTests(unittest.TestCase):

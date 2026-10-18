@@ -252,3 +252,37 @@ or server worker. All bot joins/decks/result identities and owned movement pass
 is rejected. Source hashes remain unchanged and the owned game is reaped. This
 has the same injected-unavailability, automated-input and native-Quit boundaries
 as the mode5 fallback test above. Normal routing remains opt-in.
+
+Mixed offline mode qualification (2026-10-18)
+tools.verify_public_ai now accepts --modes 4,1,2,5,4. The explicit diagnostic
+sequence uses original Edit Deck/public Play
+callbacks, edits the human deck at every transition, validates every bot's exact
+join/owned movement/result identity, and compares practice difficulty before and
+after public modes. Normal launchers never set these smoke flags.
+
+local/local-modes01 FAILED in the evidence reader after completing mode4 and
+starting mode1. The helper's original UTF-8 bot name was decoded as Windows1252;
+the monitor terminated its owned process. Cleanup repeated the decode error, so
+verification.json was recovered afterward and explicitly marked as such. Its
+SHA256 is07c5322aa8fd782aaee509e4dbd36800619f14ae16633c4a5f477a9ee53299d6.
+Source hashes stayed unchanged. This is not a failed native gameplay claim or
+a completed mode-switch qualification. The shared reader now decodes complete
+UTF-8 lines, defers partial live writes and rejects invalid completed bytes.
+The probe preserves a failed report even if final log extraction fails. Focused
+encoding/recovery/movement checks pass; the replacement native run is tracked
+separately under local/local-modes02.
+
+local/local-modes02/verification.json PASS; SHA256
+82badefa039ae7bc19d09f9a39c67bba72fd9128a7ea6f58591c46ffd8ac6842.
+Helper6009992564b35475c0bbd40e2d4b7ef9adecac8c6409cbd783d9692edd344083,
+PID40840, elapsed1013.235s. One process completes4 ->1 ->2 ->5 ->4 with a
+different human deck at each transition. Exact army/deck joins, all-bot readiness,
+production, owned Move/Attack movement and native results/Continue pass for all
+five matches. Qualified moving-unit counts by bot are38;76;39/13/44;74/9/130;50.
+Public results bind all bot identities/avatars. Each match releases its native
+world and AIManager before the next acquires a lease. Both practice snapshots
+remain Normal/modifier18/tactics18. No server connection or invite is used.
+Covered source hashes are unchanged; owned process is reaped. This is a visible
+automated-callback run with explicit diagnostic surrender at3600, not natural
+results, manual mouse acceptance, native Quit or online/local mode switching.
+Ordinary Start Client/public routing remains a separate release gate.

@@ -175,6 +175,21 @@ d29d0f369c576784399404a792686920b9156c4ac76f439bd91e5190ced3c834.
 This is original PE/LLVM plus prior IL2CPP evidence, not native REA execution or
 a runtime fix. The pinned original hash matches the supported baseline.
 
+Offline mode-switch qualification (2026-10-18)
+The same-process sequence Try Deck4 ->public1 ->public2 ->public5 ->Try Deck4
+passes in local/local-modes02, with native callbacks, a human deck edit between
+each match, exact bot joins, production/owned movement, results and Continue.
+Every native world/AIManager is released before the next mode; both practice
+difficulty snapshots remain Normal18. Server/invite calls are zero. Exact report
+and helper hashes, the preceding UTF-8 reader failure, and scope limits are in
+team-modes.txt. This qualifies isolated offline transitions, not remote-to-local
+switching or ordinary Start Client enablement.
+
+The later public-drop-running01/02 screenshots both show the configured menu
+name after native recovery. This narrows the earlier name finding: it still
+requires cold local startup and all ownership transitions to be qualified;
+these post-recovery observations do not establish a general name-binding fix.
+
 Local team coordinator regression (2026-10-18)
 local/local-team-practice-custom01/verification.json PASS; SHA256
 7b9aa04aa8561362de56af90b2e47eb2c13a8975a1489d913bfc0daf6a61e032.

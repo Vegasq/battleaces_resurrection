@@ -184,3 +184,15 @@ visual-review.txt SHA256
 163575142fbc6cd3e14bc83a94333f106dd1f946e4f4216f0bd99eb0bfe4ef1d.
 This does not qualify online queue races,30-second fallback, all modes, search
 error recovery, normal Start Client exposure, native Quit or final release.
+
+Public retry presentation follow-up (2026-10-18)
+Later authenticated queue/cancel/timeout checks are in public-matchmaking.txt.
+The running01 disconnect/retry capture exposed a ten-second old failure banner
+over a fresh native search. Public start now dismisses its exact retired notice
+after acquiring the new intent; ticket checks prevent dismissal of another
+producer's current loading/error state. The model's pending/error/stale-ticket
+cases pass the C++ checks. A fresh running02 native disconnect/retry/result run
+passes and direct pixel review confirms Searching... and the elapsed-seconds/X
+panel without the stale banner. Public-matchmaking.txt pins report, helper,
+screenshot and review hashes, including the failed first report. Ordinary client
+enablement, manual mouse input and broader resolution/locale acceptance remain.

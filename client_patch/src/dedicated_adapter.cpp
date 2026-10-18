@@ -266,11 +266,17 @@ static void rematchSmoke(Obj server) {
        !ba_dedicated_results::delivered || !worldIdle(server))return;
     Obj fsm=ba::read<Obj>(ba::owner,0x2b0);
     if(ba::get<Obj>(fsm,"_currentState")!=ba::read<Obj>(ba::owner,0x2f0))return;
-    if(startedSessions>=2) {
+    // The public recovery probe aborts its first joined world before any result.
+    // Continue the second session's first valid result only under explicit test
+    // flags and an observed native Reconnect. Normal play has no automation.
+    const bool publicRecovery=startedSessions==2 && recoverySmokeStage==1 &&
+        ba::flag(L"-public-queue-smoke") && ba::flag(L"-public-queue-smoke-retry") &&
+        ba::flag(L"-dedicated-recovery-smoke");
+    if(startedSessions>=2 && !publicRecovery) {
         if(!smokeFinished){smokeFinished=true;ba::log("DEDICATED REMATCH SMOKE automated two-match flow finished; leaving second native result screen open");}
         return;
     }
-    if(startedSessions!=1 || smokeContinueIssued)return;
+    if((startedSessions!=1 && !publicRecovery) || smokeContinueIssued)return;
     Obj controller=ba::get<Obj>(ba::owner,"<UIPostGameController>k__BackingField");
     if(!controller)return;
     Obj resultState=ba::get<Obj>(controller,"_matchResultState"),postFsm=ba::get<Obj>(controller,"_fsm");

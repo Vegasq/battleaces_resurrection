@@ -38,6 +38,10 @@ struct Model {
         if(message.empty() || message.size()>160)message="Unable to start match.";
         pending=false;visible=notice=true;expires=now+10000;return true;
     }
+    bool dismissNotice(Ticket value) {
+        if(pending || !notice || !value || value!=ticket)return false;
+        visible=notice=false;expires=0;message.clear();return true;
+    }
     bool expire(uint64_t now) {
         if(!notice || now<expires)return false;visible=notice=false;expires=0;return true;
     }

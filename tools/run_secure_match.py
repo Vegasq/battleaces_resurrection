@@ -51,7 +51,12 @@ def current_native_log(log, *, since_tick=None):
 
 def read_native_log(game, pid, *, since_tick=None):
     path = game / 'investigation/runtime' / ('dedicated-native-' + str(pid) + '.log')
-    return current_native_log(path.read_text() if path.exists() else '', since_tick=since_tick)
+    raw = path.read_bytes() if path.exists() else b''
+    # The helper emits UTF-8 (including original bot names), regardless of the
+    # Windows locale. A live read can end within a write or multibyte character;
+    # only complete lines are evidence. Reject invalid bytes in completed lines.
+    complete = raw[:raw.rfind(b'\n') + 1].decode('utf-8')
+    return current_native_log(complete, since_tick=since_tick)
 
 
 def native_result_ready(log, match):

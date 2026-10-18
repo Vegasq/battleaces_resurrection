@@ -16,6 +16,7 @@ struct Current {
 };
 static auto& current=*new std::unique_ptr<Current>();
 static uint64_t lastTicket=0;
+static ba_match_loading::Ticket errorNotice=0;
 static unsigned completed=0,smokeStarted=0;
 static bool smokeCancelled=false;
 static uint64_t smokeRetryAt=0;
@@ -47,8 +48,8 @@ static void finishMenu(Obj front,const char* reason,bool disconnect,bool error=f
     if(ba::flag(L"-public-queue-smoke-retry") && smokeStarted==1)smokeRetryAt=GetTickCount64()+1000;
     forget();
     if(error) {
-        auto notice=ba_match_loading::begin(ba_match_loading::Source::Dedicated,"public-error:"+std::to_string(ticket),ba_match_loading::Stage::Preparing);
-        ba_match_loading::error(notice,"Match could not start. Please try again.");
+        errorNotice=ba_match_loading::begin(ba_match_loading::Source::Dedicated,"public-error:"+std::to_string(ticket),ba_match_loading::Stage::Preparing);
+        ba_match_loading::error(errorNotice,"Match could not start. Please try again.");
     }
 }
 static void fallback(Obj front) {
@@ -75,6 +76,9 @@ static void start(Obj front,Obj controller,int mode) {
     const auto ticket=ba_match_search::begin(front,mode);
     try {current=std::make_unique<Current>(ticket,mode,deck,front,controller);lastTicket=ticket;ba_client::requestConnect();}
     catch(...) {ba_match_search::release(ticket,"public start failed");current.reset();throw;}
+    // Only the retired public attempt's error may be dismissed. A stale notice
+    // handle must never hide another producer's current loading/error state.
+    ba_match_loading::dismissNotice(errorNotice,"public search restarted");errorNotice=0;
     ba::log("Public search intent: ticket=%llu mode=%d originalSearch=1 deadlineMs=30000 BA_RESURRECTION_PUBLIC_QUEUE_V1",
         static_cast<unsigned long long>(ticket),mode);
 }

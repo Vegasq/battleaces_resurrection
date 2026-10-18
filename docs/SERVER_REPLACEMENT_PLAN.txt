@@ -96,9 +96,11 @@ are planned behavior, not a claim that all modes or fallback already work.
   exact frame receipts and native results/Continue pass. Visible1v1 Cancel/retry
   with a delayed old acknowledgement and the corrected0..30-second native timer
   pass; early Cancel/READY disconnect races and lost final RETURN ACK also pass.
-  Next qualify actual human teams, mid-load/match recovery and all modes through
-  ordinary Start Client, including offline team fallback.
-  Search failure/recovery and actual mouse interaction remain acceptance gates.
+  Isolated1v1 assignment loss, mid-load cleanup and mid-game loss/fresh-match
+  recovery now pass; a stale failure banner on retry is fixed and pixel-checked.
+  Next qualify actual human teams, remote/local transitions and all modes through
+  ordinary Start Client, including offline team fallback. Team failure/recovery
+  and actual mouse interaction remain acceptance gates.
 - Research the shipped game's original bot roster generation with REA: deck,
   name, avatar, difficulty and mode-specific rules, especially normal 1v1 bot
   opponents. Reuse the supported local data/selection behavior where possible;
@@ -139,9 +141,10 @@ Current implementation sequence for these additions (2026-10-18):
    and all bot command/readiness/result paths in actual matches.
    Experimental local mode1 now loads the original assets and passes two profile58
    matches with combat/results/Continue and a changed-deck rematch. It remains
-   opt-in: all four profiles and result identity bindings now pass; online queue
-   arbitration and visible presentation remain open. Original matchmaking search
-   UI recovery/reuse is an explicit prerequisite for enabling ordinary public play.
+   opt-in: all four profiles and result identity bindings now pass, alongside
+   real online queue arbitration and visible original search/timer/Cancel captures.
+   Qualify the remaining failure/team matrix and ordinary Start Client integration
+   before enabling public play by default.
 3. Export/import the actual team map and support four participants,three local
    bot processes and authored alliances0/2 versus1/3. Extend server/client wire,
    input ownership and mode projection together. Mixed human groups require one
@@ -162,8 +165,9 @@ Current implementation sequence for these additions (2026-10-18):
    two-human/two-bot2v2, solo2vAI and two-human2vAI, with natural results and exact
    independent frame replay; see public-matchmaking.txt. Native graphical1v1/TLS
    and solo2v2/2vAI with three server bots now pass through results/Continue.
-   Actual human team play and local multi-bot ownership remain open; do not enable team
-   menu paths from these component tests alone.
+   Local three-bot ownership/combat/results also pass as detailed below. Actual
+   graphical human teams and failure/mode-switch release gates remain open; do not
+   enable ordinary team menu paths from these component tests alone.
 4. Implement generation-bound public queues/fallback and human-only Custom,
    then qualify cancellation,late starts,partial groups,results and repeated
    mode switches. Server-side proposals reserve capacity and require every human
@@ -171,14 +175,19 @@ Current implementation sequence for these additions (2026-10-18):
    partial groups, setup failure/disconnect and return are covered. The native
    adapter binds events to search/loading/world leases. Native cancellation,
    delayed-ACK retry, immediate post-READY loss and lost RETURN ACK now pass;
-   mid-load/match failure and repeated mode-switch recovery remain open. Local1v1
+   isolated1v1 assignment/mid-load/mid-match loss also retires safely, with fresh
+   match retries and native result/Continue where requested. Team failures and
+   remote/local mode-switch recovery remain open. Local1v1
    fallback passes without authentication or a server worker. Experimental local
    three-bot2v2 now passes exact joins, every bot's production/ordered movement,
    result bindings and native Continue/cleanup. Offline2vAI now passes two natural
    matches with an exact changed-deck rematch, original character opponents and
    ally, every bot moving and native result/return. Injected unavailable-server2v2
-   and2vAI searches also transfer to one local world and complete cleanly. Remaining
-   all-mode switches and ordinary enablement remain acceptance gates. The presence-clock reset is corrected and
+   and2vAI searches also transfer to one local world and complete cleanly.
+   Offline mode switches4 ->1 ->2 ->5 ->4 now pass in one process, preserving
+   changed decks, native world cleanup and the selected practice difficulty.
+   Remote/local transitions, failure recovery and ordinary enablement remain
+   acceptance gates. The presence-clock reset is corrected and
    advancing native elapsed seconds are verified online. Complete local
    cosmetic inventory/equip/persistence and unified
    release entry points. Static cosmetic inventory/ownership/persistence/wire

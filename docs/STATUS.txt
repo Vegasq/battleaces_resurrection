@@ -2,6 +2,30 @@ IMPLEMENTATION LEDGER
 Updated: 2026-10-18 UTC
 Active objective: implement SERVER_REPLACEMENT_PLAN.txt, Windows only.
 
+OFFLINE MODE SWITCH CHECKPOINT (2026-10-18 UTC, EXPERIMENTAL)
+One isolated process now passes Try Deck ->1v1 ->2v2 ->2vAI ->Try Deck, editing
+the human deck between every match. All bots produce and autonomously move owned
+units; exact joins, public result identities, native Continue and complete world/
+AIManager release pass. Practice difficulty is unchanged before/after public play.
+No server connection or invite is used. The first run exposed a UTF-8 log-reader
+failure, retained separately; the corrected reader and fresh native run pass.
+See team-modes.txt for report/helper hashes and diagnostic/manual-play limits.
+Remote/local transitions and ordinary launcher enablement remain required.
+No manual game copy or frozen package changed.
+
+PUBLIC RECOVERY AND RETRY UI CHECKPOINT (2026-10-18 UTC, EXPERIMENTAL)
+Isolated graphical1v1 probes now cover assignment-before-bootstrap loss,
+asynchronous-loading loss and mid-game loss. Native cleanup/deferred Reconnect,
+world/ticket release, no committed-match local fallback and fresh-ticket retries
+through a new match/result/Continue pass. Failed attempts are retained. The first
+running probe lacked a worker cancellation reason and failed its exit-code check;
+the fresh probe records deliberate cancellation/reaping separately from the
+replacement worker's normal exit. Original retry-search captures exposed and
+then verify removal of a stale failure banner. Exact hashes, frame counts and
+forced-teardown boundaries are in public-matchmaking.txt and matchmaking-search.txt.
+Eight C++ test programs/helper build and19 focused Python checks pass. Actual
+human teams, remote/local transitions and ordinary launcher/release gates remain.
+
 LOCAL TEAM AI CHECKPOINT (2026-10-18 UTC, EXPERIMENTAL)
 The isolated offline2v2 native probe now passes with one human and three local
 DLL AI integrations in a single simulation. Every bot validates its frozen deck,
@@ -14,8 +38,9 @@ Offline2vAI also passes two natural matches in one process, with exact deck
 changes on rematch, every bot producing/moving, all result identity bindings and
 clean native returns. No server connection/invite is used. Public unavailable-server
 2v2 and 2vAI fallback also pass: one failed attempt, one four-army local world, all bots
-moving/result-bound, zero authentication/workers and clean Continue. Ordinary entry points, all-mode
-switching/failure recovery and release qualification remain open. The refactored
+moving/result-bound, zero authentication/workers and clean Continue. Ordinary entry points,
+remaining remote/local transitions, team failure recovery and release qualification
+remain open. The refactored
 single-bot coordinator also passes mode4 -> four authenticated Custom Create/Leave
 cycles -> changed-deck mode4, preserving local deck/name and native bot movement
 and returns. It creates no server worker; see unified-client.txt.

@@ -330,7 +330,7 @@ static void consume(Obj front,Obj request,Obj data) {
     Obj armies=ba::get<Obj>(config,"armies_");
     require(ba_local::count(armies)==static_cast<int>(participants()),"local AI primary map army count mismatch");
     for(size_t index=0;index<participants();++index) {
-        Obj army=ba_bootstrap::item(armies,index);
+        Obj army=ba_bootstrap::item(armies,static_cast<int>(index));
         require(ba::get<uint32_t>(army,"armyId_")==static_cast<uint32_t>(index),"practice army order mismatch");
         require(ba::get<uint32_t>(army,"allianceId_")==index%2,"local AI authored alliance mismatch");
         const Bot* bot=index?&state.bots[index-1]:nullptr;
@@ -595,7 +595,7 @@ static bool gameUpdate(Obj gameServer,Obj method) {
                     }
                     ba_audit::practiceAIView(bot.process->get(),ba::read<int>(sim,0xa8));
                 }
-                if(ba::flag(L"-public-ai-smoke") && !state.inGameIdentity)state.inGameIdentity=publicIdentity(false);
+                if(state.mode!=4 && ba::flag(L"-public-ai-smoke") && !state.inGameIdentity)state.inGameIdentity=publicIdentity(false);
             }
             if(ba::flag(L"-practice-ai-smoke") && !ba::flag(L"-practice-ai-smoke-natural") && !state.conceded && ba::read<int>(sim,0xa8)>=smokeFrames()) {
                 state.conceded=true;ba::call(sim,"ConcedeGame");ba::log("PRACTICE SMOKE native ConcedeGame (automated)");
@@ -704,7 +704,7 @@ static bool frontUpdate(Obj front) {
                 if(result && fsm && ba::get<Obj>(fsm,"_currentState")==result) {
                     Obj vm=ba::get<Obj>(result,"_matchResultVM"),nav=vm?ba::get<Obj>(vm,"_navigationStack"):nullptr;
                     if(nav && !ba_local::count(ba::get<Obj>(nav,"_navigationStack"))) {
-                        if(ba::flag(L"-public-ai-smoke") && !state.resultIdentity) {
+                        if(state.mode!=4 && ba::flag(L"-public-ai-smoke") && !state.resultIdentity) {
                             if(!state.identityWait)state.identityWait=GetTickCount64();
                             require(GetTickCount64()-state.identityWait<10000,"public result identity binding deadline");
                             state.resultIdentity=publicIdentity(true);if(!state.resultIdentity)return true;
@@ -717,11 +717,31 @@ static bool frontUpdate(Obj front) {
     }catch(const std::exception& e){fail("front update",e);}
     return true;
 }
-static bool publicSmoke(Obj front) {
-    require(ba::unified() && ba::flag(L"-public-ai-experimental"),"public AI smoke requires unified experimental path");
+static const std::vector<int>& smokeModes() {
+    static const auto modes=[]() {
+        std::vector<int> result;const auto value=ba::argument(L"-practice-ai-smoke-modes=");
+        if(value.empty())return result;
+        require(ba::unified() && ba::flag(L"-practice-ai-smoke") && ba::flag(L"-public-ai-smoke"),"mode sequence requires explicit unified diagnostic flags");
+        require(value.size()<=15 && value.size()%2==1,"local mode sequence length invalid");
+        for(size_t i=0;i<value.size();i+=2) {
+            const char digit=value[i];require(digit=='1' || digit=='2' || digit=='4' || digit=='5',"local mode sequence contains unsupported mode");
+            if(i+1<value.size())require(value[i+1]==',',"local mode sequence separator invalid");
+            result.push_back(digit-'0');
+        }
+        return result;
+    }();return modes;
+}
+static int smokeMode() {
+    const auto& modes=smokeModes();
+    if(!modes.empty()){require(completed<modes.size(),"local mode sequence exhausted");return modes[completed];}
+    if(!ba::flag(L"-public-ai-smoke"))return 4;
     const auto requested=ba::argument(L"-public-ai-smoke-mode=","1");
     require(requested=="1" || requested=="2" || requested=="5","public AI smoke mode unsupported");
-    const int mode=requested=="1"?1:requested=="2"?2:5;
+    return requested=="1"?1:requested=="2"?2:5;
+}
+static bool publicSmoke(Obj front,int mode) {
+    require(ba::unified() && ba::flag(L"-public-ai-experimental"),"public AI smoke requires unified experimental path");
+    require(mode==1 || mode==2 || mode==5,"public AI diagnostic button mode invalid");
     Root type(ba_tables::reflectedType("MatchmakingButtonVM","Uncapped.UI"));void* args[]={type.get()};
     Root buttons(ba::invoke(ba::find_class("UnityEngine","Resources"),nullptr,"FindObjectsOfTypeAll",1,args));
     require(buttons.get()!=nullptr,"public matchmaking buttons unavailable");
@@ -750,8 +770,10 @@ static bool publicSmoke(Obj front) {
 }
 static void smoke(Obj front) {
     if(ba::flag(L"-public-queue-smoke"))return; // That probe owns the original public button.
-    const unsigned matches=ba::argument(L"-practice-ai-smoke-matches=","1")=="2"?2u:1u;
-    if(!ba::flag(L"-practice-ai-smoke") || active() || completed>=matches ||
+    if(!ba::flag(L"-practice-ai-smoke"))return;
+    const auto& modes=smokeModes();
+    const size_t matches=modes.empty()?(ba::argument(L"-practice-ai-smoke-matches=","1")=="2"?2u:1u):modes.size();
+    if(active() || completed>=matches ||
        !(ba::localMenu()?ba_local_menu::ready(front):ba_community_native::installed))return;
     if(ba::unified() && !ba_client::allowPracticeSmoke())return;
     static ULONGLONG at=0;static bool opened=false,clicked=false;static unsigned round=0,cancelRound=0;
@@ -768,7 +790,8 @@ static void smoke(Obj front) {
     if(GetTickCount64()<at || clicked)return;
     require(GetTickCount64()-at<30000,"practice native Edit Deck availability deadline");
     require(ba_dedicated_session::inMenu() && ba_dedicated_session::worldIdle(ba::read<Obj>(front,0xd8)),"practice smoke requires idle menu");
-    if(ba::flag(L"-public-ai-smoke")){clicked=publicSmoke(front);return;}
+    const int mode=smokeMode();
+    if(mode!=4){clicked=publicSmoke(front,mode);return;}
     Root menu(ba::get<Obj>(ba::owner,"<UIMenuController>k__BackingField"));
     Root flow(ba::get<Obj>(need(menu.get(),"practice menu controller missing"),"_menuFlowGraph"));
     require(flow.get() && ba::klass(flow.get())==ba::find_class("Uncapped.UI","MenuFlowController") &&
@@ -822,7 +845,7 @@ static void smoke(Obj front) {
         !ba::native<bool(*)(Obj,Obj)>(0x53af310)(control.get(),nullptr))return;
     require(ba::get<Obj>(graph.get(),"ActiveNode")==node.get(),"practice editor changed before callback");
     ba::native<void(*)(Obj,Obj)>(0x3d25e20)(vm.get(),nullptr);clicked=true;
-    require(active(),"practice original button did not start local reservation");
+    require(active() && state.mode==4,"practice original button did not start local reservation");
     ba::log("PRACTICE SMOKE original EditDeck mode4 callback: owned=1 visible=1 interactable=1 preamble=1 (automated; not mouse input)");
 }
 static void releaseOfflineIdleDisconnect(Obj front) {

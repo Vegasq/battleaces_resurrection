@@ -36,5 +36,16 @@ int main() {
     assert(model.advance(practice,Stage::Starting));
     assert(model.finish(practice) && !model.visible);
     assert(!model.finish(practice));
+    const auto rejected=model.begin(Source::Public,"public-error:1",Stage::Preparing);
+    assert(!model.dismissNotice(rejected) && model.owns(rejected));
+    assert(model.error(rejected,"Retry this match.",20000));
+    assert(!model.dismissNotice(0) && !model.dismissNotice(practice) && model.visible);
+    assert(model.dismissNotice(rejected) && !model.visible && !model.notice && model.message.empty());
+    assert(!model.dismissNotice(rejected) && !model.expire(99999));
+    const auto next=model.begin(Source::Custom,"lobby:2",Stage::Loading);
+    assert(!model.dismissNotice(rejected) && model.owns(next));
+    assert(model.error(next,"A different failure.",21000));
+    assert(!model.dismissNotice(rejected) && model.visible && model.message=="A different failure.");
+    assert(model.expire(31000));
     std::cout << "Match loading ownership and notice checks passed\n";
 }

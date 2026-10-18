@@ -159,6 +159,7 @@ static void advance(Ticket ticket,Stage stage) {if(unityThread() && model.advanc
 static void success(Ticket ticket) {if(unityThread() && model.finish(ticket))changed("ready");}
 static void cancel(Ticket ticket,const char* reason) {if(unityThread() && model.finish(ticket))changed("cancel",reason);}
 static void error(Ticket ticket,const char* message) {if(unityThread() && model.error(ticket,message,GetTickCount64()))changed("error",message);}
+static void dismissNotice(Ticket ticket,const char* reason) {if(unityThread() && model.dismissNotice(ticket))changed("notice-dismissed",reason);}
 static void update(void* front) {
     if(!front || (!model.visible && !view && !capture))return;
     if(!unityThread())return;

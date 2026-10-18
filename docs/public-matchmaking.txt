@@ -1,4 +1,87 @@
 PUBLIC QUEUE EXTENSION V1
+
+NATIVE DISCONNECT QUALIFICATION (2026-10-18 UTC, EXPERIMENTAL)
+tools.verify_public_client --disconnect assignment|loading|running closes only
+its owned TLS peer after the corresponding native log marker. Assignment mode
+withholds only that peer's first bootstrap to establish the pre-world boundary;
+loading requires an unacknowledged map load, and running requires a native frame
+receipt at/after200. The harness checks exact ticket/world retirement, no local
+fallback after commitment, original deferred Reconnect cleanup where a world
+exists, server capacity release and an optional fresh-ticket retry/result/Continue.
+These diagnostics are never normal launcher flags.
+
+local/public-drop-loading02/verification.json PASS; SHA256
+15fa05127b43029910e3b1f489088b8478cf2d92941c9665bcdd1f7dd170dc81.
+Helper6009992564b35475c0bbd40e2d4b7ef9adecac8c6409cbd783d9692edd344083,
+PID18760, elapsed56.223s. Original1v1 search waits29.833s after ENTER and the
+native timer advances0..29. The stream closes after native join but before the
+async map load is acknowledged. The client waits for native loading, invokes
+CleanupGameState(reason1), shows the original disconnected modal, invokes its
+OnConfirm, releases that modal on a later update, then resets/releases its exact
+remote world and retires ticket1. One authentication/worker, worker exit0, no
+local AI fallback, sources unchanged and owned process reaped. No replacement
+match is requested in this run. A preceding public-drop-loading01 invocation
+failed asset-directory preflight before launching any game; its log is retained.
+This is loopback automated callback evidence, not manual input, native Quit,
+second-PC loss, recovery of an interrupted match or Internet qualification.
+
+local/public-drop-running01/verification.json FAILED; SHA256
+ccb46e1a7cf9052d9504a8c4d555b2b6f89be4fea1194df2754468758ab7882d.
+Helperf112af903807fe367659e1c6f74df8063617e3656760b27f558b14496fca9dc9,
+PID29208, elapsed176.968s. Native frame200 triggers the first peer disconnect.
+Its201 received frames match the server prefix; native Reconnect/cleanup, ticket2,
+a replacement1220-frame match/result/Continue, both world releases and capacity
+release pass. Covered sources are unchanged and the game is reaped. Overall
+qualification fails because worker exits are1/0; the first run did not retain
+the worker's failure reason, so do not relabel it as a passing shutdown proof.
+The existing worker contract deliberately kills/reaps a native IPC request on
+task cancellation; tests.test_simulation_worker exercises that boundary. The
+verifier now retains each worker's reason, match, exit, stderr tail and completed
+cleanup. Only an explicitly injected running-match worker with recorded
+CancelledError, matching release event and all resources reaped may use exit1.
+Ordinary results, unknown nonzero exits and incomplete cleanup still fail.
+
+The same run's second-search screenshot also exposes the old ten-second public
+failure banner over the new native search. Public start now dismisses only its
+retired error notice after successfully acquiring a fresh search intent. The
+presentation model has a separate ticket-bound notice dismissal, preserving
+current pending loads and other producers' notices. Native retry qualification
+now requires that dismissal before the second public intent is announced.
+
+local/public-drop-running02/verification.json PASS; SHA256
+f2eab616ca104c9627247944ce441bb5cc59ee0a0b6c1b79694f60adbf4c75f5.
+Helper65985a36796ffcdfb34ec5a086217e88cbefa386792e08889bb1148ca99759f3,
+PID552, elapsed180.076s. The first201 native frames and the replacement match's
+1220 frames match their separate server journals. Original Reconnect/deferred
+modal release, exact world release, ticket2 with another real30-second queue,
+fresh native world, diagnostic surrender/result/Continue/RETURN and capacity
+release all pass. Two authentications and workers; the first records
+CancelledError and deliberate exit1 with its process/I/O resources reaped, while
+the completed replacement worker exits0 with no failure. Source hashes remain
+unchanged and the owned game is reaped. This proves an interrupted match is
+retired before a new one, not resumption of the old match's simulation.
+
+Direct pixel review of the second-search PNG confirms the old error banner is
+gone and original Searching.../elapsed-seconds/X presentation remains. The new
+PNG SHA256 is a1ba76617876471e6344dba8629abbc72939ddfd323baea4dad29b4cd452283b.
+Private visual-review.txt SHA256:
+5b77d768f61da7f8c20901ac1f71ba1c59b209c3ef66552ba509e9a51e4c36c0.
+The old screenshot remains with running01; no failed evidence was overwritten.
+These are visible960x540 English automated callbacks. Multi-human/team losses,
+other locales/resolutions, manual input and Internet/ordinary-launcher acceptance
+remain open. All native/source/helper evidence stays local except authored notes.
+
+local/public-drop-assignment01/verification.json PASS; SHA256
+1e17290e62916a534acd5cd4dca3554ebc36ca19203c54dd3e04acfd367c3d0c.
+Same helper65985a above, PID1236, elapsed156.947s. The first bootstrap is withheld;
+the original client receives assignment1 and then loses TLS before acquiring any
+world. That committed ticket retires without local fallback. A fresh native Play
+uses ticket2, clears the old error notice, waits another real queue interval,
+creates exactly one world and completes1220 matching frames/result/Continue.
+Queue waits are29.830/29.804s after their ENTER messages. Both server workers exit0
+without recorded failure; two authentications, both workers' resources and the
+owned game are reaped, and covered sources remain unchanged. Withheld-bootstrap
+injection establishes this boundary; it is not evidence of arbitrary packet loss.
 Updated: 2026-10-18 UTC
 
 SCOPE
@@ -358,8 +441,8 @@ Sources stay unchanged and the owned game is reaped. Together with the separate
 presentation paths; actual mouse input and all-mode release acceptance remain.
   report SHA256:6299487085a0c7ea08de2e5f963c3eda9d5c86081a2c50d98948be3fe237e69c
 
-Remaining: offline team mode-switch/failure coverage, post-assignment/mid-load/mid-match loss,
-requeue/late-proposal stress, actual human team play, repeated mode switches,
+Remaining: team failure coverage, remote/local transitions,
+requeue/late-proposal stress, actual human team play,
 ordinary entry-point enablement, manual UI and final release acceptance.
 
 Offline team follow-up: helper-local-team02 extends the fallback producer to

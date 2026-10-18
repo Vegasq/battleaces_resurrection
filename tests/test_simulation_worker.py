@@ -134,6 +134,9 @@ class WorkerIsolationTests(unittest.IsolatedAsyncioTestCase):
         self.assertIsNotNone(worker.process.poll())
         self.assertEqual(worker.frame, -1)
 
+        self.assertTrue(worker.failure.startswith('CancelledError:'))
+        self.assertTrue(worker._cleanup_task.done())
+
     async def test_stuck_native_destructor_is_forced_closed(self):
         worker = await self.make(close_timeout=0.15)
         await worker._test_control("hang_close")
