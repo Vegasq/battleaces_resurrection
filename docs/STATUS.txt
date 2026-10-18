@@ -42,6 +42,15 @@ Service-account logon, protected-file access, session0, automatic boot/reboot an
 clean Windows/internet play remain acceptance gates. The existing normal-account
 private-enrollment/backup and loading-preview questions remain unanswered.
 No system service was installed and no game/runtime/helper bytes enter Git.
+Clean source7fccb08394587aa294dfc51486bdce4223040c97 builds dist/p4-7fccb08.
+All archive entries match native-tested preview02 except source-revision manifests;
+service/host/runtime/helper/patcher and guide bytes are identical. Both verifiers,
+client setup-data and read-only service-command pass with no Python on PATH.
+Executing the generated quoted ImagePath directly also returns the expected SCM
+console refusal, without starting a host. Exact hashes are in windows-packaging.txt;
+local/p4-service-clean-qualification/verification.json retains the comparison.
+The12-file source/history publication audit covered449 distinct objects with0
+failures. Archives, private data and native test captures remain local only.
 
 SERVER STATE BACKUP/RESTORE (2026-10-17; normal-account acceptance open)
 The host package adds backup/verify-backup/restore for saved decks and hash-only

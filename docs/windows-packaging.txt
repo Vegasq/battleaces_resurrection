@@ -286,6 +286,20 @@ The added fault test hangs cleanup after an internal runtime error: deadline exi
 occurs without a Stop request or successful STOPPED report. Another test confirms
 a late Stop cannot cancel that cleanup, reset its timer or hide its original error.
 
+Clean source7fccb08394587aa294dfc51486bdce4223040c97 builds dist/p4-7fccb08:
+  Server ZIP12395134 bytes, SHA256
+  f4d9e79561596001d2697df40f78c6ff243c8df40b95b386b6b6af1b26c14a31
+  Client ZIP12773979 bytes, SHA256
+  c98b4e11fede82c5786a2b07ece96f8459af5d82811e2559c1d08c9fc650ab14
+local/p4-service-clean-qualification/verification.json compares every archive
+member against preview02: only compatibility/package-manifest source revision
+metadata differs. All executable and guide bytes are identical. Clean package
+verification, client setup-data and service-command pass with an unrelated hostile
+cwd and Python absent from PATH. The generated native Windows ImagePath executes
+with spaces preserved and returns the expected console/SCM refusal; it never
+registers or starts a service. Both program inventories remain intact. These
+archives are local development previews, not uploaded project release assets.
+
 REMAINING RELEASE GATES
 
 Real second-PC/private internet play, real private-credential permissions under
