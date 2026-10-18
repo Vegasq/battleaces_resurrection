@@ -1,7 +1,27 @@
 import argparse
 import unittest
 
-from tools.run_secure_match import current_native_log, recovery_evidence, scenario_expectations
+from tools.run_secure_match import current_native_log, native_result_ready, recovery_evidence, scenario_expectations
+
+
+class NativeResultEvidenceTests(unittest.TestCase):
+    START = 'Offline initial state reached after game initialization. PID=123\n'
+    READY = '[100] Dedicated postgame gates 3/24: match=final gate=continue-handler-ready sessions=2'
+
+    def test_actual_result_required_after_server_completion(self):
+        self.assertFalse(native_result_ready(self.START + 'Dedicated match ended: final', 'final'))
+        waiting = self.READY.replace('continue-handler-ready', 'world-not-idle')
+        self.assertFalse(native_result_ready(self.START + waiting, 'final'))
+        self.assertTrue(native_result_ready(self.START + waiting + '\n' + self.READY, 'final'))
+
+    def test_other_match_and_stale_process_evidence_rejected(self):
+        log = self.START + self.READY
+        for match in ('other', 'fin', '', None):
+            with self.subTest(match=match):
+                self.assertFalse(native_result_ready(log, match))
+        self.assertFalse(native_result_ready(log + '\n' + self.START, 'final'))
+        self.assertFalse(native_result_ready(self.READY, 'final'))
+        self.assertFalse(native_result_ready(log.replace('ready sessions', 'ready-wait sessions'), 'final'))
 
 
 class RecoveryEvidenceTests(unittest.TestCase):

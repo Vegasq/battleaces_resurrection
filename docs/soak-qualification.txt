@@ -243,7 +243,7 @@ worlds and unchanged source/assets. stop-probe02-control.json records the owned
 process creation identity and actual exit status; its controller exits0 only
 when those cancellation checks pass. No forced cleanup was needed.
 
-SECOND EIGHT-HOUR RUN IN PROGRESS
+SECOND EIGHT-HOUR RUN PASSED
 
 Revised runner source e2c4da9825f5709a1acbcc7d3ad7b96e1723e0e9 passed the
 source/history audit (463 distinct objects, zero failures). The frozen9748a64c...
@@ -253,18 +253,41 @@ and at least21 rounds. Evidence: local/p5-soak-frozen03/local/eight-hour02.
 Launch record: local/p5-soak-frozen03/eight-hour02-launch.json.
 
 PID44440, creation FILETIME134367675136306621 and packaged executable path were
-checked against the live process. At31.187s it has six live native worlds,
-publication mean50.001ms/max64.898ms and worker max5.081ms; stderr is empty.
-This is launch evidence only, not an eight-hour completion. Earliest duration
-completion is2026-10-18T11:25:14Z, followed by the final round and cleanup.
+checked while live. The terminal report is dated2026-10-18T11:25:51.997637Z and
+the supervisor's retained process handle records exit0 at11:25:52.4085326Z in
+local/p5-soak-frozen03/eight-hour02-exit.json. This exit-code path was separately
+checked using an owned child exiting3. The runner is now absent; stderr is empty.
 
-The owned hidden-process launcher retains its process handle and will record the
-actual exit code in local/p5-soak-frozen03/eight-hour02-exit.json. This exit-code
-observation path was separately checked with an owned child exiting3. Require
-both exit0 and a passing terminal verification.json with eight_hour_gate:true;
-missing/stale progress, a live run or a failed/interrupted run cannot qualify.
-Recheck the PID plus creation identity before any monitoring or stop action.
-Do not start another run while this one is active. Source/asset bytes are frozen.
+verification.json reports passed:true, eight_hour_gate:true, state:finished and
+all14 unchanged acceptance checks true. Recomputing assess() and reconciling all
+matches.jsonl records independently confirms:
+- Duration28838.101s;257 rounds/514 distinct matches, four persistent sockets.
+- 1,118,146 authoritative frames and2,236,292 matching replay comparisons.
+- Every match finishes naturally, with normal production, movement and damage;
+  none reaches the configured test-only surrender ceiling.
+- All1542 worker exits are0, all are reaped, zero active workers at finish.
+- Both rooms active for27500.453s,95.36percent of actual elapsed time.
+- Publication mean50.000304ms,p95<=63ms,p99<=65ms,max570.771ms. Two cadence
+  resets are retained. Worker mean2.617ms,p99<=5ms,max372.043ms; just one of
+  1,118,146 worker calls exceeds50ms, within the predeclared1percent ceiling.
+- Post-warmup idle handles177->185 (+8, limit+16); private commit
+  31,203,328->40,091,648 (+8,888,320 bytes, limit64MiB).
+- Source and asset manifest hashes at finish equal their starting hashes.
+Terminal verification SHA256:
+98edbbc4c83d0329226d53f028f865ed97196131586570e0b5d44c91d402543d.
+
+Evidence writes peak at2173.277ms; the separate all-phase loop-delay probe reaches
+1582.525ms and audit sampling reaches535.384ms. These retained phase diagnostics
+must not be described as sub-second at all times. The predetermined active-match
+publication limit remains satisfied at570.771ms; no thresholds were relaxed.
+An isolated client copy and two diagnostic game clients ran concurrently during
+part of this test. No specific timing outlier is causally attributed to them.
+
+This passes the eight-hour scripted community/native-worker gate, including256
+rematches per room. It does not establish20 graphical client rematches, real
+SCM/session0/reboot, TLS or physical-PC/internet play, full catalog coverage or
+the expanded public team-mode/AI-fallback requirements. The failed earlier run
+and its evidence remain preserved. P3-P5 and overall release acceptance stay open.
 
 PRIMARY METRIC REFERENCES
 https://learn.microsoft.com/en-us/windows/win32/api/psapi/ns-psapi-process_memory_counters_ex

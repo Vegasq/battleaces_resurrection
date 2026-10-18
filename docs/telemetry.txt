@@ -11,9 +11,14 @@ and an empty inspected pre-init queue at startup, menus and the final result. Th
 bounded compatibility/field evidence; full collection/network qualification is OPEN.
 Recipe3 adds early false returns for explicit QueueConfig and
 SendDeviceInfoInConfigRequest calls. Their native bodies bypass startup/enabled
-gates and use separate configuration storage. The new guards have static and
-original-byte validation only; they have not been installed or run in a game.
-See telemetry-explicit-config.txt for the evidence and remaining scope.
+gates and use separate configuration storage. The new guards now have an isolated
+two-match compatibility run (p2-telemetry03) and exact restore/reapply evidence.
+That first run fails strict lifecycle coverage when its deadline cuts off the
+second result transition. The corrected bounded p2-telemetry04 run passes all
+required stage/field checks, with10 complete samples per client and both native
+result states observed. No collection/network qualification follows from those
+samples. See telemetry-runtime-audit.txt for the retained failure and passing rerun, and
+telemetry-explicit-config.txt for static evidence and the remaining scope.
 
 The earlier 45-guard version had a bounded compatibility observation:
 p2-telemetry01 completed 620 native frames, selected-unit production and native
@@ -72,8 +77,9 @@ qualified by this run. runtime_validated remains false for complete removal.
 The client logs also contain UnauthorizedAccessException failures for config,
 storage backup and replay saves. This run does not qualify telemetry persistence
 or retry behavior with writable clean/existing profiles. No permissions were
-relaxed. The current transition-aware observer has source/build tests only;
-gameplay observations above still describe the earlier helper.
+relaxed. These historical gameplay observations still describe the earlier
+helper. Recipe3's separate runtime/field evidence is described at the top and
+in telemetry-runtime-audit.txt; its full-removal status also remains unqualified.
 
 INCLUDED SOURCE GUARDS AND EVIDENCE CHAIN
 

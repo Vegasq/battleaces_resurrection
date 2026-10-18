@@ -54,6 +54,15 @@ def read_native_log(game, pid, *, since_tick=None):
     return current_native_log(path.read_text() if path.exists() else '', since_tick=since_tick)
 
 
+def native_result_ready(log, match):
+    """Require this run's exact match in the native, idle result/Continue state."""
+    if not match:
+        return False
+    pattern = re.compile(r'Dedicated postgame gates \d+/24: match=' + re.escape(match)
+                         + r' gate=continue-handler-ready(?:\s|$)')
+    return any(pattern.search(line) for line in current_native_log(log).splitlines())
+
+
 def recovery_evidence(log, match, *, postgame=False):
     log = current_native_log(log)
     markers = dict(
@@ -125,6 +134,7 @@ async def run(args):
     pki = generate_test_pki(destination / 'ephemeral-test-pki')
     audit = Audit(destination)
     processes, tasks, records, completions, faults, forced_terminations = [], [], [], [], [], []
+    stop_reason = 'duration_limit'
     relay = None
     reserved = extra_listener = None
     players = [('p_' + secrets.token_hex(16), 'ba1_' + secrets.token_urlsafe(32)) for _ in range(2)]
@@ -227,14 +237,20 @@ async def run(args):
             final_result_at = quit_requested_at = None
             while time.monotonic() < deadline:
                 if args.quit_on_failure:
-                    if len(processes)==2 and all(process.poll() is not None for process in processes): break
+                    if len(processes)==2 and all(process.poll() is not None for process in processes):
+                        stop_reason = 'clients_exited'
+                        break
                     if len(processes)==2 and all('QUIT SMOKE invoking original disconnected modal OnCancel'
                             in read_native_log(game,process.pid) for process in processes):
                         if quit_requested_at is None: quit_requested_at=time.monotonic()
                         # A shutdown hang is a failed test, not a successful
                         # forced exit. Bound it independently of cold startup.
-                        if time.monotonic()-quit_requested_at>=60: break
-                elif any(task.done() for task in tasks): break
+                        if time.monotonic()-quit_requested_at>=60:
+                            stop_reason = 'quit_grace_expired'
+                            break
+                elif any(task.done() for task in tasks):
+                    stop_reason = 'client_task_ended'
+                    break
                 if args.pre_match_failure and not faults and len(processes)==2:
                     log=read_native_log(game,processes[0].pid)
                     if args.pre_match_failure=='lobby':
@@ -255,11 +271,9 @@ async def run(args):
                             audit('qualification_refused_endpoint_restored',port=failure_port)
                 if args.postgame_error and completions and not faults and len(processes)==2:
                     match = completions[0]
-                    marker = 'gate=continue-handler-ready'
                     # Wait for both actual native result states, inactive worlds
                     # and empty navigation; never inject merely on server finish.
-                    if all(any(marker in line and ('match=' + match) in line
-                               for line in read_native_log(game,process.pid).splitlines()) for process in processes):
+                    if all(native_result_ready(read_native_log(game,process.pid), match) for process in processes):
                         room = next((room for room in coordinator.retired if room.match_id == match), None)
                         if room is not None and len(room.peers)==2:
                             fault = dict(match=match, phase='native-postgame', slots=sorted(room.peers))
@@ -269,7 +283,13 @@ async def run(args):
                                 peer.send(p.ERROR,b'Qualification: connection failed after completed result')
                 if not args.quit_on_failure and len(completions) >= expected_matches:
                     if final_result_at is None: final_result_at = time.monotonic()
-                    if time.monotonic() - final_result_at >= 15: break
+                    # Server completion precedes native animation/world teardown.
+                    # An elapsed grace period alone cannot prove the result UI.
+                    if (time.monotonic() - final_result_at >= 15 and len(processes)==2
+                            and all(native_result_ready(read_native_log(game,process.pid), completions[-1])
+                                    for process in processes)):
+                        stop_reason = 'native_results_ready'
+                        break
                 await asyncio.sleep(.5)
     finally:
         # These exact Popen handles own only this harness's two test clients.
@@ -320,13 +340,18 @@ async def run(args):
                 native_quit='QUIT SMOKE invoking original disconnected modal OnCancel' in read_native_log(game,process.pid)) for process in processes]
     quit_ok=(not args.quit_on_failure or fault_ok and len(exits)==2 and
         all(row['exit_code']==0 and not row['forced'] and row['native_quit'] for row in exits))
+    final_postgame = [dict(pid=process.pid, match=completions[-1],
+        ready=native_result_ready(read_native_log(game,process.pid), completions[-1]))
+        for process in processes] if completions else []
+    result_ui_ok = args.quit_on_failure or (len(final_postgame)==2 and all(row['ready'] for row in final_postgame))
     summary = dict(matches=results, authenticated_sessions=records, faults=faults, recovery=recovery,
                    exits=exits,pre_match_failure=args.pre_match_failure,quit_on_failure=args.quit_on_failure,
+                   stop_reason=stop_reason, final_native_results=final_postgame,
                    game_protocol=p.VERSION, input_window=args.input_window,
                    stream_delay=dict(rtt_ms=args.rtt_ms, jitter_ms=args.jitter_ms, seed=args.network_seed,
                                      relay_stats=relay.stats if relay else None),
                    success=len(results) >= expected_matches
-                       and len(records) >= expected_auth and recovery_ok and quit_ok
+                       and len(records) >= expected_auth and recovery_ok and quit_ok and result_ui_ok
                        and all(row['status']=='matching_sampled_server_and_clients' for row in results))
     (destination / 'summary.json').write_text(json.dumps(summary, indent=2), encoding='utf-8')
     print(json.dumps(summary), flush=True)

@@ -100,13 +100,22 @@ known runtime targets/signatures and initialized main-thread object state.
 Validation log: local/telemetry-explicit01-tests.txt;37 patch, installer and
 package tests passed, including untouched-original verification and every byte
 outside the replacements. Helper build validation is recorded in STATUS.txt.
-The two new guards have not been installed or runtime tested. RUNTIME_VALIDATED
-remains false. Existing recipe2 gameplay evidence must not be attributed to3.
+The two new guards were subsequently installed in a full independent disposable
+copy, local/telemetry-client03. p2-telemetry03 completes two matching620-frame
+native matches; all captured fields/guards meet the verifier's expectations, but
+the test deadline prevents second-result coverage. The overall strict report
+therefore fails. Three-component restore/reapply returns exactly to original and
+tested patched hashes, with the untouched recovery source unchanged. See
+telemetry-runtime-audit.txt for the passing bounded p2-telemetry04 rerun: both
+native final result gates and10 complete field snapshots per client cover the
+required two-match lifecycle. These sampled fields do not cover all collection.
+RUNTIME_VALIDATED remains false; recipe2 evidence is not attributed to recipe3.
 
 OPEN WORK
 
-- Exercise the new helper/recipe in a disposable client and verify gameplay,
-  all intended audit lifecycle entries, normal quit and rollback.
+- Complete normal Quit and the wider lifecycle/error/profile coverage for the
+  new helper/recipe. Disposable two-match sampled-stage coverage, gameplay and
+  rollback have the scoped evidence above; no shutdown sample is implemented.
 - Qualify explicit API behavior using validated signatures and meaningful
   synthetic arguments; do not mistake a null-argument validation return for a
   disabled collection sink. The stripped managed methods constrain the approach.

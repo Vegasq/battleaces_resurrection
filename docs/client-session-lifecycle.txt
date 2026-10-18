@@ -635,3 +635,17 @@ no auto-Continue,deck-edit or auto-rematch flag. User action must check both res
 screens,Continue,change a deck,then Play again. The user was asked to launch it;
 manual acceptance is pending. This local convenience launcher is ignored by Git;
 it is not the packaged/TLS friend installer and does not qualify internet play.
+
+NATIVE RESULT QUALIFICATION GATE (2026-10-18)
+p2-telemetry03 showed why server completion cannot stand for a finished client
+screen: slow cold startup consumed most of the360s limit; the second match ended
+7.7s before cleanup, while both worlds were still active. Sampled gameplay matched,
+but the strict stage verifier correctly rejected the missing final results.
+The secure-match harness now additionally requires the exact final match's native
+continue-handler-ready gate on both clients and records the reason observation
+stopped. Missing result evidence fails non-Quit runs even when server frames and
+checksums match. The existing bounded duration and separate60s native-Quit grace
+remain; forced cleanup does not count as normal shutdown. See
+telemetry-runtime-audit.txt for evidence and the passing p2-telemetry04 repeat:
+both clients reach the exact second native result state before owned cleanup,
+and both620-frame matches plus ordered audit-stage coverage pass.

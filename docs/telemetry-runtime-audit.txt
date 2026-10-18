@@ -3,7 +3,8 @@ Updated: 2026-10-18 UTC
 
 Status: the earlier observer was built, installed and exercised with recipe2's
 59 telemetry guards in run p2-telemetry02. The current observer recognizes recipe3
-and uses transition-aware scheduling; it has source/build tests only. This is
+and uses transition-aware scheduling. Its p2-telemetry04 runtime passes the strict
+two-match stage/field checks after a retained deadline-limited failed run. This is
 an opt-in observation tool, not a patch group or complete
 telemetry removal/network qualification claim.
 The previous19 narrow signatures were checked against the pristine local DLL. A separate
@@ -193,3 +194,85 @@ helper rows produce six complete snapshots per client but correctly fail the
 new recipe requirement and ordered lifecycle coverage. They are a historical
 negative case, not a runtime run of the new helper. Local evidence:
 local/telemetry-explicit01/historical-rows-rejection.json.
+
+RECIPE3 DISPOSABLE RUNTIME - FIRST STRICT CHECK FAILED (2026-10-18)
+
+local/telemetry-client03 is an independent247-file copy of the untouched game,
+not hardlinks. Installed helper8c8feace...913a04 and all61 recipe3 guards are
+identified by local/telemetry-client03-install.json and the run patch manifest.
+UnityPlayer SHA256 is9e814074e71939b15b1b6d36b5753f797c68b75d536a50a863f535b9252d7f22.
+Working manual launchers and frozen release previews are not upgraded by this run.
+
+The initial wrapper was started before the asynchronous installer finished. It
+failed on the absent manifest before any game launched; local/telemetry03.stdout.txt
+retains that orchestration error. After installer exit0, p2-telemetry03 launched
+owned hidden clients48232/50548 with the actual recipe3 helper. Both complete
+matches d9aa77ed87c64be5a743f7afe8ac6777 ande766087bcdd64910a8c541e2b42ba61e:
+620 frames/620 receipts/62 sampled views per client per match, zero mismatches or
+server errors and matching native results. Four TLS1.3 authentications succeed.
+
+Strict telemetry-verification.json is passed:false. Clients record8/9 complete
+snapshots respectively; both cover startup -> menu -> ingame -> postgame -> menu
+-> ingame, but omit the SECOND postgame. The only verifier error per client is
+missing_ordered_stage_coverage; captured hashes, complete3/12/3 guard groups,
+objects, scalar defaults and stable-pointer checks pass. Unlike recipe2, the first
+result entry was sampled immediately. Server completion of the second match is
+04:03:33.080556Z; cleanup begins at the360s overall deadline around04:03:40.8Z,
+only7.7s later. Final helper lines still report world-not-idle. This proves missing
+coverage and premature test termination, not an established native transition bug.
+
+tools/run_secure_match now requires this run's exact final match to reach
+continue-handler-ready in both native logs, in addition to the existing15s grace.
+Its report records stop_reason/final_native_results and cannot pass a non-Quit
+scenario from server completion alone. Wrong matches, stale appended PID logs,
+missing startup and partial gate names are rejected. Thirty focused recovery,
+telemetry-verifier and launcher tests pass on Python3.14.8 in0.141s and3.12 in0.309s.
+The new reader also accepts the first result and rejects the missing final result
+in both retained p2-telemetry03 logs (local/result-gate-retained-evidence.json).
+The new600s bounded p2-telemetry04 run passes as detailed below; the failed run is
+preserved, including its older gameplay-only summary.success:true.
+
+After all owned processes exited, local/telemetry03-rollback-reapply.json verifies
+all three installed components restored to pinned original hashes and reapplied
+to the exact tested hashes/helper. The recovery source hashes are unchanged; the
+restored original client was never launched. The unreferenced helper is retained
+by restore, consistent with the existing installer contract.
+
+The runtime still has denied LocalLow config/StorageSyncBackup writes. It does
+not qualify a normally writable user profile, file-cache behavior, network
+absence or normal Quit: the harness forcibly terminates its owned clients after
+observation. RUNTIME_VALIDATED remains false. Process/network/descendant coverage,
+configuration storage+1470/marker+1490 and safe shutdown observations remain open.
+
+RECIPE3 BOUNDED RERUN PASSED (2026-10-18)
+
+p2-telemetry04 uses the same restored/reapplied helper and component hashes in
+the same disposable copy. The wrapper holds kill-on-close jobs for each owned
+game and preserves private inherited TLS streams; neither credentials nor game
+assets enter publication. Wrapper SHA256:
+2628f5881cdbffeb88242cb879a37aabe7d6b4c4897fdc91b6fe663c18eb5473.
+
+Clients40616/42256 complete7fc3b04bd9fd45cc98d409f6f838b775 and
+d6e8f36e15774981af5263f6be2a0570, each620 frames/620 receipts/62 sampled views per
+client, zero sampled mismatches or server errors and matching native results.
+Four TLS1.3 authentications succeed. Publication means50.149/49.996ms and maxima
+126.449/70.009ms are retained, with2/0 cadence resets. Both final native logs show
+the exact second match with world inactive/zero, RGamePostGameState, matching
+result state and empty navigation. The harness stops with native_results_ready;
+server cleanup completes at14:03:58.276409Z, about350s after launch, within600s.
+
+telemetry-verification.json passes:10 complete snapshots per client, ordered
+entries startup -> menu -> ingame -> postgame -> menu -> ingame -> postgame,
+no verifier errors, complete3/12/3 guards, expected installed/normalized hashes,
+all retained objects and sampled disabled/default fields, empty inspected queue,
+stable-pointer endings. The wrapper exits0 and reports gameplay_exit_code:0.
+This qualifies the declared read-only field/lifecycle sampling only. It does not
+actively invoke the two newly guarded APIs or measure their separate storage.
+
+The owned coordinator/game processes are gone, jobs closed and ephemeral test
+PKI removed. Game exits remain forced test cleanup, not normal Quit. Each Unity
+log records25 UnauthorizedAccessException lines for profile writes and zero
+NullReferenceException/IndexOutOfRangeException/InvalidOperationException lines;
+this is a bounded log check, not a claim of globally error-free operation. Normal
+writable profiles, full collection/network/child-process absence and shutdown
+remain unqualified. Complete-set RUNTIME_VALIDATED stays false.

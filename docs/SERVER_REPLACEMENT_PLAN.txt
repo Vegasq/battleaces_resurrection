@@ -1,5 +1,5 @@
 BATTLE ACES PRIVATE SERVER AND CLIENT PATCH - IMPLEMENTATION PLAN
-Updated: 2026-10-17
+Updated: 2026-10-18
 Target: Battle Aces build 37822, Windows x64 server and clients.
 Status: IMPLEMENTATION ACTIVE. See STATUS.txt; incomplete phases remain future work.
 
@@ -10,6 +10,9 @@ plus a reversible patch and launcher that friends install into their existing
 Windows game installation. Friends connect, create/join a private 1v1 room, select
 their eight-unit decks, play a complete match, see the correct result, and play
 again without restarting the game. The server remains available between matches.
+The final client also starts and plays without any server. Public play can fall
+back to local AI; Custom games guarantee human participants. The final-product
+requirements below extend the initial 1v1 integration milestone.
 
 Explicit requirements and decisions:
 - Windows x64 server hosting; a patch for the Windows game client.
@@ -37,25 +40,72 @@ Explicit requirements and decisions:
 
 Planning defaults:
 - Friends may connect over the internet, not just the same LAN.
-- First release supports the verified build, existing 1v1 map and unit catalog.
-- Each match has two players. Multiple independent rooms can serve more friends;
-  this does not imply a team mode or more than two players in a match.
+- Target the verified build and locally imported assets. The initial integration
+  milestone is two-player 1v1; the final product also requires 2v2 and 2vAI.
+  Trace their original maps, team/seat rules and AI setup before extending the
+  current two-seat protocol. Multiple 1v1 rooms do not establish team-mode support.
 - Windows x64 is the supported platform for both hosting and playing.
-- Private profiles retain decks; original account progression/store/ranked
-  matchmaking are separate projects. No production account is required.
+- Local and private profiles retain decks and cosmetic selections. Original
+  account progression, commerce and ranked rating services remain separate work;
+  public matchmaking with AI fallback is now in scope. No original account is
+  required, and offline play must not require server enrollment or credentials.
 - In-match reconnect is a later milestone. The first release must handle a
   disconnect clearly and return surviving clients to a usable lobby.
+
+FINAL PRODUCT TODO - USER REQUIREMENTS ADDED 2026-10-18 (OPEN)
+These requirements supersede the earlier 1v1-only final-release default. They
+are planned behavior, not a claim that all modes or fallback already work.
+- Ship two clear executables or scripts: Start Server and Start Client. The
+  client entry point launches the game even when no replacement server exists.
+- Keep Edit Deck -> Try Deck vs AI entirely local, with the selected player deck
+  and the practice difficulty setting. Starting a server is never a prerequisite.
+- Public 1v1, 2v2 and 2vAI: attempt the configured server when available. If it is
+  unavailable, start a local AI match; if the required human participants for the
+  selected mode have not matched within 30 seconds of queue entry, retire that
+  queue intent and start an AI match. Preserve the mode's team rules:2vAI still
+  faces AI when a human teammate is available. Preserve any matched human group
+  when filling vacant seats; all participants must share one authoritative match.
+  Use a random supported difficulty for these fallback opponents, independent of
+  the explicitly selected Try Deck difficulty. Fill missing team seats with AI
+  as required so a single offline client can play each supported mode.
+- Custom Game is the only path that guarantees all participants are human.
+  Never add AI or apply the public-queue timeout there. Keep unavailable-server
+  and insufficient-player states visible and allow cancellation/retry.
+- Research the shipped game's original bot roster generation with REA: deck,
+  name, avatar, difficulty and mode-specific rules, especially normal 1v1 bot
+  opponents. Reuse the supported local data/selection behavior where possible;
+  fallback opponents must not all reuse the practice bot's name/deck/avatar.
+  Keep each chosen identity and deck stable from loading through the result.
+- Make the player's display name editable in the client config file and use it
+  in local play, online presence/lobbies and match/results. Keep display names
+  separate from authenticated identity; validate them consistently. Preview
+  offline/secure configs already expose display_name; carry it into the unified
+  entry point and verify it in all required modes.
+- Unlock all cosmetics present in this supported client build. Inventory the
+  native catalog/ownership/equip paths, expose selection and persist it locally;
+  carry selections into community matches. No original store/account service is
+  required, and game cosmetic assets remain local rather than entering Git.
+- Acceptance: launch with no server/credentials; try a changed deck; play every
+  public mode offline; test an empty live server, an available human match before
+  30 seconds, partial team availability, timeout/cancel/retry and late server
+  responses. A queue may create only one match: retire its pending server intent
+  before fallback, reject stale starts and never switch an active AI match to a
+  late human match. Verify variable bot identities/difficulties, result/rematch,
+  configured name and cosmetic persistence. Custom must remain human-only.
 
 Release acceptance, in user terms:
 An owner installs the server package on a clean Windows host, imports the required
 assets from their game installation, starts the service, and gives friends its
 address and an invite. Two friends patch their own game copies, connect from
 separate PCs, choose different decks, finish a match and rematch. The server runs
-without the original services or a graphical server client.
+without the original services or a graphical server client. The same client
+package passes the offline/public-fallback/Custom requirements above without
+separate diagnostic launchers. Current automated evidence is tracked in STATUS.txt.
 
 2. VERIFIED STARTING POINT
 
-Already demonstrated on this Windows PC:
+Historical baseline when this plan was created; STATUS.txt records later work.
+Already demonstrated at that baseline on this Windows PC:
 - An independent Python server loads the shipped Simulation.dll and runs the
   actual simulation without UnityPlayer, GameAssembly or Steam in its process.
 - The server owns the map/config, seed, roster, validated decks, ordered 20 Hz
@@ -254,6 +304,11 @@ Effort allowance: 4-7 days.
   state checks. Visual/manual acceptance remains open: hidden-window captures
   are black or missing. See match-loading.txt for isolated builds and evidence.
 - Keep offline tutorial launch working; keep test-only commands opt-in.
+- Implement the final-product TODO above: public 1v1/2v2/2vAI routing, bounded
+  human matchmaking and local AI fallback; native bot identities/decks; config
+  display names and all local cosmetics. Preserve human-only Custom invitations
+  and the independent Try Deck difficulty. Team-mode support needs native
+  roster/map/AI verification and protocol validation before claiming completion.
 - Inventory analytics/telemetry initialization, event collection, batching,
   background retries and upload paths in the client and bundled components.
   Include automatic crash/error reports, usage/performance reports and any
@@ -272,6 +327,8 @@ Also required: one client can use Try Deck vs AI with a changed deck and return;
 two clients can discover each other through Invite Friend, accept an invitation,
 start from the custom menu, finish and rematch. Exercise decline/expiry/busy/leave
 cases and confirm an unrelated online player is not silently joined or started.
+Also required: every final-product offline/fallback/name/cosmetic acceptance
+case in section1 passes, including the 30-second boundary and late-start races.
 Also required: static call-path review and process-scoped network observation
 confirm no analytics/telemetry/report uploads during startup, idle menus, deck
 editing, gameplay, post-game, rematch, error handling or shutdown. Exercise offline
@@ -313,6 +370,10 @@ patch/import commands are implemented. Same-PC relocated-runtime qualification
 is documented in windows-packaging.txt. This does not meet the P4 completion gate.
 - Produce a Windows server archive with bundled runtime, launch/config helpers
   and an optional documented background-service setup.
+  Provide separate ordinary Start Server and Start Client entry points. Client
+  startup must not require a live server, invite, TLS enrollment or network probe
+  to reach local play. Ship editable server-address and player-name settings;
+  online trust/authentication still applies when actually connecting.
   The SCM adapter and read-only service-command are implemented; the package
   includes SERVICE.txt for explicit account/registration/start/stop setup.
   Callback/lifecycle and native package tests are separate from actual Windows
@@ -350,12 +411,15 @@ Depends on P4. Effort allowance: 2-5 days, including fixes found by playtests.
   Windows; inspect worker cleanup, resource growth and frame timing. Measure the
   sustained 20 Hz simulation budget and operation without a desktop session/GPU.
   Bounded native/community soak tooling and packaged-runtime pilots are now
-  implemented; see soak-qualification.txt. These pilots do not establish eight
-  hours, graphical rematches or session0/SCM operation. Keep those gates explicit.
+  implemented; see soak-qualification.txt. The revised eight-hour02 run passes
+  all14 criteria: 514 matches/257 rounds across two rooms in28838.101s, four
+  persistent peers and all1542 workers reaped; the owned runner exits0.
+  This qualifies the native/community eight-hour gate and repeated scripted
+  matches, not graphical20-rematch, session0/SCM, TLS or internet acceptance.
   The first long attempt failed its predeclared publication-gap limit and was
   stopped with all workers reaped. A revised monitor removes synchronous test
-  evidence writes from the coordinator loop. The revised12-match native pilot
-  passes all original criteria; the full eight-hour run remains required.
+  evidence writes from the coordinator loop. The revised12-match pilot and full
+  eight-hour run pass the unchanged criteria. Retain the original failure report.
 - Compare exact bootstrap/input histories and sampled same-frame state across
   clients and server. Include native end checksum/results where available.
 - Cover crash, malformed/oversized packets, version mismatch, slow load, lost
@@ -367,6 +431,9 @@ Depends on P4. Effort allowance: 2-5 days, including fixes found by playtests.
 - Have friends follow the packaged instructions on their own PCs and record
   problems. A real second Windows PC and outside-network peer are required;
   loopback automation does not substitute for those checks.
+- Qualify both final launchers and all modes with the server absent, empty and
+  populated; the 30-second fallback, varied bots, configured names and unlocked
+  cosmetics must pass the section1 matrix. Keep Custom strictly human-only.
 Done when: the server and client release artifacts pass the acceptance scenario in
 section 1, no known match-blocking failure remains, and any lesser limitations
 are explicit in release notes. Record measured capacity instead of guessing it.
@@ -375,16 +442,20 @@ P6 - FOLLOW-UP FEATURES (AFTER THE FIRST FRIEND-PLAY RELEASE)
 - Reconnect to an active match: authenticate the returning identity, prove a
   supported state-restore or deterministic replay/catch-up path, bound its cost,
   then verify matching current state. Lobby reconnect alone is a separate feature.
-- More maps, spectator/replay UX, team modes and a server browser if wanted.
+- Additional maps/modes beyond required 1v1/2v2/2vAI, spectator/replay UX and a
+  server browser if wanted. Required team modes are no longer deferred to P6.
 
 5. ESTIMATE AND PRIORITY
 
-Planning estimate for one experienced engineer: roughly 3-6 focused engineering
+Original planning estimate, before the 2026-10-18 mode/fallback/cosmetic expansion,
+for one experienced engineer: roughly 3-6 focused engineering
 weeks from the current prototype to a packaged, private Windows server and client
 patch release. This is an estimate, not a measured delivery date. It assumes
 testing PCs/friends are available. Substantial client lifecycle discoveries or
 networking issues require re-estimation. The narrower platform scope removes the
 compatibility spike, second deployment package and duplicate platform validation.
+Re-estimate after tracing team-mode/AI roster and cosmetic dependencies; the old
+range is not an estimate for the expanded final-product requirements.
 
 The earlier estimate of days to a couple of weeks concerned a smaller Windows
 local/LAN milestone. Internet transport, repeatable client

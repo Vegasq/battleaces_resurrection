@@ -2,6 +2,18 @@ IMPLEMENTATION LEDGER
 Updated: 2026-10-18 UTC
 Active objective: implement SERVER_REPLACEMENT_PLAN.txt, Windows only.
 
+FINAL PRODUCT REQUIREMENTS ADDED (2026-10-18; implementation TODO)
+The user requires separate Start Server/Start Client executables or scripts.
+The client always launches without a server; Try Deck remains local. Public1v1,
+2v2 and2vAI use AI when the configured server is unavailable or no eligible human
+match forms within30s. Fallback difficulty is random; the original bot deck/name/
+avatar selection needs tracing, especially1v1. Custom alone guarantees all-human
+matches and never inserts AI. Player name must be editable in client config;
+unlock all cosmetics in the supported build and persist selections locally.
+The plan now includes these final requirements, team-mode research and late-start
+race tests; the old1v1-only release default/team-mode deferral is superseded.
+These additions are planned, not implemented or qualified by the1v1 evidence.
+
 TELEMETRY CONFIGURATION GUARDS / OBSERVATION COVERAGE (2026-10-18 UTC)
 Recipe3 adds two exact-build false-return guards, bringing the source total to61:
 QueueConfig and SendDeviceInfoInConfigRequest are stopped before serialization
@@ -38,11 +50,25 @@ All21 C++ recognition constants agree with the originals/18 Unity patch entries;
 a Python normalization mirror passes23 checks, without executing the C++ gate.
 Logs:local/telemetry-explicit01-tests.txt,telemetry-audit-verifier01-tests.txt,
 telemetry-audit-verifier312-01-tests.txt,telemetry-explicit01-build.txt; local/
-telemetry-explicit01/historical-rows-rejection.json. The helper/recipe were not
-installed or exercised in a game. Frozen packages/manual runtimes are unchanged;
-complete telemetry removal remains OPEN and runtime_validated remains false.
+telemetry-explicit01/historical-rows-rejection.json. The helper/recipe subsequently
+ran in disposable local/telemetry-client03. p2-telemetry03 completed two matching
+620-frame matches but failed strict coverage: both clients missed the second
+postgame sample when the360s test deadline expired7.7s after server completion.
+All observed sampled fields/guards passed; this is not full lifecycle acceptance.
+The harness now also requires the actual final native result/idle-world gate,
+records its stop reason and fails if that evidence is missing. Thirty focused
+recovery/telemetry/launcher tests pass on3.14.8 and3.12. The bounded600s rerun,
+p2-telemetry04, passes and exits0 after observing both native final result states.
+Each client records10 complete snapshots and the required startup/menu/game/
+result/menu/game/result sequence. Both620-frame matches again have zero sampled
+mismatches/errors and matching native results; four TLS1.3 sessions succeed.
+The failed earlier run is preserved. Three-component restore/reapply passes with exact original/patched
+hashes and the untouched source unchanged. See telemetry-runtime-audit.txt.
+Frozen packages/manual runtimes are unchanged; complete telemetry removal remains
+OPEN and runtime_validated remains false. Writable-profile/network/normal Quit
+qualification is still required.
 
-SUSTAINED MULTI-ROOM QUALIFICATION (2026-10-17; eight-hour gate not yet passed)
+SUSTAINED MULTI-ROOM QUALIFICATION (eight-hour native/community gate passed2026-10-18)
 tools/soak_server.py adds bounded opt-in native soak evidence for persistent
 community Create/Invite/Accept/Start/Ready/Return sessions. Two rooms keep the
 same four sockets, alternate validated saved decks, build/move/fight with ordinary
@@ -97,11 +123,19 @@ live worlds reaped, unchanged source/assets and no forced process cleanup.
 The monitor fix is source e2c4da9; its463-object source/history audit has zero
 failures. A fresh frozen eight-hour02 began2026-10-18T03:25:13.6306621Z under
 local/p5-soak-frozen03/local/eight-hour02. PID44440/creation FILETIME
-134367675136306621 and executable path were verified live. At31.187s six native
-worlds are active with publication max64.898ms and clean stderr. This remains
-pending; the hidden launcher will separately record actual process exit status.
-Earliest duration completion2026-10-18T11:25:14Z plus the current round/cleanup.
-See soak-qualification.txt; no long-run completion is claimed here.
+134367675136306621 and executable path were verified live. The owned supervisor
+records actual exit0 at2026-10-18T11:25:52.4085326Z. Final verification is passed
+with eight_hour_gate:true and all14 unchanged criteria true:28838.101s,257 rounds,
+514 distinct matches, four enduring sockets,1,118,146 authoritative frames and
+2,236,292 matching native replay comparisons. All514 matches finish naturally;
+all1542 worker exits are0, none remain active, and source/assets are unchanged.
+Publication mean50.000304ms,p99<=65ms,max570.771ms; one worker call over50ms out
+of1,118,146. Idle handles177->185 and private commit31,203,328->40,091,648 bytes.
+Both rooms run concurrently95.36percent of the elapsed time. Independent report
+assessment and per-match counts/worker exits agree. Stderr is empty; runner gone.
+This establishes the scripted native/community long-run gate, not graphical
+20-rematch, actual SCM/session0, TLS/internet or full release acceptance. Details,
+retained earlier failure and phase diagnostics are in soak-qualification.txt.
 Initial source/history audit:5 authored files,456 distinct objects,0 failures. All native
 assets, frozen copies, runtime output and captures stay outside Git publication.
 
