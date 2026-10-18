@@ -1,0 +1,166 @@
+BATTLE ACES RESURRECTION - OPTIONAL WINDOWS SERVICE PREVIEW
+Updated: 2026-10-17
+
+STATUS AND ACCOUNT
+
+The packaged host has a native Windows Service Control Manager (SCM) entry point.
+It uses the bundled Python runtime and the same configuration/assets/data as the
+console host. No additional service wrapper or Python installation is required.
+Source and same-PC lifecycle tests do not qualify SCM installation, service logon,
+boot startup or a clean Windows host. Those acceptance checks remain open.
+
+First complete QUICKSTART.txt and verify console hosting under the intended
+Windows account. Prefer a dedicated ordinary local account for an unattended
+host. It must own the private credential files it provisions and be able to read
+program/assets/config/TLS files and write its data directory. Keep the deployment
+on a local fixed disk in a stable path accessible at boot. Mapped drives and
+network shares are unsupported. Do not relocate a registered package.
+
+Credential storage requires the exact protected current-user/SYSTEM permissions.
+Running as a different user or LocalSystem does not substitute for the original
+account, even if it can read the files. Do not weaken permissions or disable the
+check. To migrate identities to a different account, use a validated snapshot and
+fresh-location restore under that intended account; see QUICKSTART.txt. Provision
+and protect its TLS private key separately. Do not use an administrator account
+merely to work around private-file errors.
+
+Windows must permit the chosen account to log on as a service. Have the machine
+administrator grant that specific account the Log on as a service right using
+the machine/domain's normal policy, and ensure no deny policy overrides it.
+The setup commands do not change policy, ACLs, firewall rules or passwords. The
+account needs its Windows password, not a Windows Hello PIN. Update the service
+Log On settings if that password changes. Runtime hosting needs no interactive
+desktop and does not launch the graphical game.
+
+REGISTER AND TEST (EXPLICIT ADMINISTRATOR ACTION)
+
+Stop the console host first. From PowerShell in the extracted server package,
+obtain and review the exact registration data:
+
+  $baService = .\BattleAces-Server.cmd service-command | ConvertFrom-Json
+  if ($LASTEXITCODE -ne 0) { throw 'Service command validation failed' }
+  $baService | Format-List name, binary_path, config, startup, account
+
+An alternate --config or --name can be supplied to service-command. It verifies
+the package and config but does not run native health, validate the future
+service account, register, start, or change a service. The generated ImagePath
+quotes paths with spaces and calls program/runtime/python.exe directly with
+isolated module imports. It contains paths/settings only, never a password,
+bearer invite, certificate contents or private key. Do not execute its text with
+Invoke-Expression, and do not use BattleAces-Server.cmd start as an SCM binary.
+
+In an administrator PowerShell, run the same review commands above from the
+package. Obtain the intended hosting account's credential using a password prompt
+(substitute its machine/account name), then create a MANUAL service:
+
+  $baAccount = Get-Credential -UserName 'YOURPC\YourHostAccount' -Message 'Account that provisioned the host private files'
+  if ($null -eq $baAccount) { throw 'No hosting credential supplied' }
+  New-Service -Name $baService.name -BinaryPathName $baService.binary_path -DisplayName 'Battle Aces Resurrection' -Description 'Community dedicated match host' -StartupType Manual -Credential $baAccount -ErrorAction Stop
+  Remove-Variable baAccount
+  Start-Service -Name $baService.name -ErrorAction Stop
+  Get-Service -Name $baService.name
+
+New-Service refuses an existing service name. Do not delete or overwrite an
+unrelated service to make these commands work. Passwords stay in the credential
+prompt/API; never put one in a script, source file or native command argument.
+
+Running status is published only after package/config/assets/private storage
+checks, native create/step/close and listener creation succeed. Check local event
+logs in the configured data/logs directory. Verify a player's TLS connection and
+complete a match, then test Stop and Start with a live match and a saved deck:
+
+  Stop-Service -Name $baService.name -ErrorAction Stop
+  (Get-Service -Name $baService.name).WaitForStatus('Stopped', [TimeSpan]::FromSeconds(25))
+  Start-Service -Name $baService.name -ErrorAction Stop
+
+Active matches are ended on stop; reconnect/resume across a host restart is not
+implemented. Saved decks and invitation identities/revocations are retained.
+After the manual service checks succeed, opt into boot startup:
+
+  Set-Service -Name $baService.name -StartupType Automatic -ErrorAction Stop
+
+Reboot during an agreed test window. Confirm service Running without an
+interactive login, successful TLS/player admission, saved deck/revocation
+retention, native match completion and no remaining worker from the prior run.
+Record the Windows version, account type and results. Boot/reboot testing has not
+been performed by the automated qualification. A changed host IP or unavailable
+bind address at boot may prevent startup; correct the host configuration and
+test again. Automatic crash-restart/recovery rules are not installed.
+
+STOP, REMOVE, UPDATE AND RESTORE
+
+Stop-Service uses the same host shutdown path as console Ctrl+C. Wait for Stopped
+before backing up. Run credential and snapshot maintenance as the hosting account,
+not an unrelated administrator. Existing host state locks still exclude a second
+host or live backup, including console/service combinations.
+
+To remove only a service you installed, stop it, verify the displayed registration
+name, and use the known Windows sc.exe (PowerShell's sc alias is a different tool):
+
+  Stop-Service -Name $baService.name -ErrorAction Stop
+  (Get-Service -Name $baService.name).WaitForStatus('Stopped', [TimeSpan]::FromSeconds(25))
+  & "$env:SystemRoot\System32\sc.exe" delete $baService.name
+  if ($LASTEXITCODE -ne 0) { throw 'Service removal failed' }
+
+This removes the registration, not program/assets/config/data files. Close Services
+windows if Windows reports the entry is marked for deletion. For a package update
+or fresh-location restore, stop and retain the current deployment, review the new
+config, run check under the intended account, then re-register using the new
+package/config path. Preserve the old registration details for rollback. Do not
+replace program files while that service is running. Do not start two hosts against
+the same data. An existing registration does not follow a restored host.json.
+
+SHUTDOWN AND FAILURE BEHAVIOR
+
+The main thread connects to SCM before loading game assets. ServiceMain registers
+the control handler and reports START_PENDING with no accepted controls. Actual
+initialization milestones advance the checkpoint. No periodic thread claims
+startup progress. A fixed60-second startup deadline remains absolute.
+
+RUNNING accepts Stop and Shutdown. The handler reports STOP_PENDING and schedules
+one thread-safe cancellation of the host task. Repeated controls cannot cancel
+cleanup again. Cleanup after an internal runtime error also reports STOP_PENDING
+and starts the same deadline; a later Stop does not cancel cleanup or reset it.
+The host closes admission/listener/rooms, flushes normal profile
+operations, reaps owned match workers, closes logs and releases its data lock.
+STOPPED with success is reported once, after asyncio/executor cleanup returns.
+
+A fixed15-second shutdown deadline ends a stuck service process with failure;
+its existing kill-on-close worker jobs terminate its native children. This is
+abnormal termination, never a successful STOPPED report. Earlier profile files
+remain protected by atomic save/replace; active matches cannot be recovered.
+Windows shutdown policy can impose its own shorter limit. The application does
+not change system timeouts or delay the OS with a preshutdown handler.
+
+Startup/runtime exceptions report Win32 error1066 with service-specific code1,
+without logging arbitrary exception text or secret values. The SCM may record
+the failure in the Windows System event log. A forced deadline exit has process
+exit1 and may be reported as unexpected termination instead. Run the normal
+check command as the hosting account after the service stops for readable local
+configuration/asset/storage diagnostics. Do not run a second check on live data.
+The service has no console; ordinary gameplay events remain in bounded local
+data/logs/events.jsonl. Calling the service entry directly from a console returns
+a safe error; it does not silently fall back to starting a host.
+
+QUALIFICATION
+
+The automated test harness can exercise the controller and actual native host in
+an owned process without registering a system service. This proves callback
+ordering, worker cleanup and package imports; it does not prove the SCM launch,
+account policy or reboot paths. Keep those results distinct. See STATUS.txt and
+windows-packaging.txt in the source repository for recorded runs/artifact hashes.
+
+PRIMARY REFERENCES
+
+SCM connection and initialization timing:
+https://learn.microsoft.com/en-us/windows/win32/api/winsvc/nf-winsvc-startservicectrldispatcherw
+Handler registration and native prototypes:
+https://learn.microsoft.com/en-us/windows/win32/api/winsvc/nf-winsvc-registerservicectrlhandlerexw
+Status transitions, real checkpoints and final cleanup:
+https://learn.microsoft.com/en-us/windows/win32/api/winsvc/nf-winsvc-setservicestatus
+Short control handlers and OS shutdown limits:
+https://learn.microsoft.com/en-us/windows/win32/services/service-control-handler-function
+Registration, quoting and explicit service account credentials:
+https://learn.microsoft.com/en-us/powershell/module/microsoft.powershell.management/new-service
+Windows service accounts and logon permissions:
+https://learn.microsoft.com/en-us/windows/win32/services/service-user-accounts

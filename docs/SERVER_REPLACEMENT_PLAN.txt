@@ -313,6 +313,10 @@ patch/import commands are implemented. Same-PC relocated-runtime qualification
 is documented in windows-packaging.txt. This does not meet the P4 completion gate.
 - Produce a Windows server archive with bundled runtime, launch/config helpers
   and an optional documented background-service setup.
+  The SCM adapter and read-only service-command are implemented; the package
+  includes SERVICE.txt for explicit account/registration/start/stop setup.
+  Callback/lifecycle and native package tests are separate from actual Windows
+  service installation, account logon and reboot acceptance; see windows-service.txt.
 - Select and record the tested Windows versions, required runtime components and
   service account/data-directory setup. Include a startup health check.
 - Separate program files, imported game assets, configuration and writable data.

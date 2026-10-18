@@ -153,6 +153,14 @@ class PackageDispatchTests(unittest.TestCase):
             self.assertEqual(maintenance.call_args.args[0], ['restore', '--config', str(package_server.PACKAGE/'config/host.json'),
                 '--input', str(Path('snapshot.json').resolve()), '--destination', str(Path('new data').resolve())])
 
+    def test_service_command_only_generates_reviewable_registration(self):
+        with (mock.patch.object(package_server, 'verify'),
+              mock.patch('server.windows_service.registration', return_value={'startup':'Manual'}) as registration,
+              redirect_stdout(io.StringIO()) as output):
+            self.assertEqual(package_server.main(['service-command', '--name', 'FriendsHost', '--config', 'host.json']), 0)
+            registration.assert_called_once_with(package_server.PACKAGE, Path('host.json'), 'FriendsHost')
+            self.assertEqual(json.loads(output.getvalue()), {'startup':'Manual'})
+
     def test_bad_cli_arguments_and_integrity_failure_do_not_launch_or_echo_values(self):
         for entry in (package_client.main, package_server.main):
             output = io.StringIO()

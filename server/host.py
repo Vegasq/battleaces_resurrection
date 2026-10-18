@@ -65,16 +65,18 @@ async def check_native(config, template):
     return report
 
 
-async def run(config, *, check_only=False):
+async def run(config, *, check_only=False, on_progress=None, on_ready=None):
     # Claim data before checking storage, starting a worker or opening logs.
     # Check/backup/another host must never race this deployment's mutations.
     with exclusive_state(config.data_directory):
-        return await _run_owned(config, check_only=check_only)
+        return await _run_owned(config, check_only=check_only, on_progress=on_progress, on_ready=on_ready)
 
 
-async def _run_owned(config, *, check_only=False):
+async def _run_owned(config, *, check_only=False, on_progress=None, on_ready=None):
     template, context, store, manifest = prepare(config)
+    if on_progress: on_progress('assets_and_storage_checked')
     native = await check_native(config, template)
+    if on_progress: on_progress('native_checked')
     health = dict(passed=True, python=platform.python_version(), openssl=ssl.OPENSSL_VERSION,
         platform=platform.platform(), pointer_bits=ctypes.sizeof(ctypes.c_void_p)*8,
         game_build=manifest['game_build'], game_protocol=protocol.VERSION, asset_format=manifest['asset_format'],
@@ -93,11 +95,15 @@ async def _run_owned(config, *, check_only=False):
             sim_factory=lambda data: SimulationWorker.create(data, config.assets_directory / 'Simulation.dll',
                 working_directory=config.data_directory / 'workers'))
         address = await server.start(config.listen_host, config.listen_port)
+        if on_ready: on_ready(address)
         print(f'Battle Aces server listening on {address[0]}:{address[1]}; Ctrl+C stops it cleanly.', flush=True)
         await server.listener.serve_forever()
     finally:
-        if server is not None: await server.close()
-        audit.close()
+        try:
+            if on_progress: on_progress('stopping')
+            if server is not None: await server.close()
+        finally:
+            audit.close()
 
 
 def main(argv=None):

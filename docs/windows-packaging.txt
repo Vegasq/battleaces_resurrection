@@ -232,12 +232,66 @@ program/app is already rejected by the earlier credential-path rule. The verifie
 now requires the corresponding exact guard for each. No permission was changed;
 local/state-clean-probe01.txt records that test expectation correction.
 
+SERVICE ADAPTER PREVIEW UPDATE
+
+The server now bundles the SCM adapter and SERVICE.txt. service-command returns
+registration JSON (quoted direct bundled Python ImagePath), without registration
+or startup. The optional documented administrator procedure explicitly selects
+the private-file account, begins with Manual startup and enables Automatic only
+after service acceptance. No service/policy/ACL/firewall changes are made by the
+packaging tools. Details and primary API references are in windows-service.txt.
+
+Native-tested development artifact dist/p4-service-preview01 uses d69cbe7 plus
+the service source changes. Server72 files,12390337 bytes, SHA256
+f7c327c072acaa85699ce5511a2439088ed792a92cbe6bf1b357b93e754d64a1.
+Client64 files,12773977 bytes, SHA256
+e6e10f478b51391972300d23b8c812b01e78570073f455a4beeaf1bc87fa8164.
+This test archive predates the final guide; do not use its obsolete console-only
+quickstart for service setup. Final guide inclusion passes the follow-up package
+tests. Review then added a deadline for cleanup entered by an internal runtime
+failure before an external Stop. The final tested preview is recorded below.
+
+local/p4-service-portable01 passes in56.824s. Native console, controller Stop and
+controller Shutdown each bootstrap two peers and cleanly reap one match worker
+(19408,31720,20976 respectively; all exit0). The service controller uses a separate
+event loop and independent control thread. Duplicate controls preserve cleanup;
+the shutdown case restarts against the same data after the stop case. Listener
+closure, released lock, live-backup/duplicate-host refusal and zero-byte sim.log
+pass. Real bundled service-command and expected console-entry refusal pass.
+Native asset import/health, transfer-snapshot checks, three-component patch round
+trip, unchanged program inventory and original game hashes all pass. None of
+these controller tests register a service or exercise SCM-managed account logon.
+
+Source suite286 tests:282 pass/4 optional skips in66.945s on3.14.8. Final focused
+checks24/24 pass in3.872s; an added native-callback marshalling test and final guide
+inclusion are covered. Focused3.12 regression45 tests:44 pass/1 DACL skip in9.770s.
+Evidence: local/service-full314-01-tests.txt, service-final-focused314-01-tests.txt,
+service-focused312-01-tests.txt and p4-service-portable01/verification.json.
+Watchdog tests use owned authored processes/workers; the forced stop kills both
+without a false successful STOPPED. They neither stop unrelated processes nor
+register/change any Windows service. Real SCM install/start/stop/reboot and
+service-account/private-storage/session0 qualification remain separate gates.
+
+Final dist/p4-service-preview02 includes the runtime-error cleanup fix and guide:
+  Server73 files, ZIP12395129 bytes, SHA256
+  7c203eade488c80282e2865b55c283c012e6394af6df396749aba13066fedd91
+  Client64 files, ZIP12773977 bytes, SHA256
+  e6e10f478b51391972300d23b8c812b01e78570073f455a4beeaf1bc87fa8164
+local/p4-service-portable02 repeats the complete portable qualification in73.902s.
+Console worker29584, Stop worker48228 and Shutdown worker51960 all exit0; every
+bootstrap/listener/lock/backup/quiet-log/patch/immutable-input check passes.
+Final service-full314-02-tests.txt:289 tests in86.732s,285 pass/4 optional skips.
+Final service-focused312-02-tests.txt:47 tests in12.846s,46 pass/1 DACL skip.
+The added fault test hangs cleanup after an internal runtime error: deadline exit1
+occurs without a Stop request or successful STOPPED report. Another test confirms
+a late Stop cannot cancel that cleanup, reset its timer or hide its original error.
+
 REMAINING RELEASE GATES
 
 Real second-PC/private internet play, real private-credential permissions under
 the intended host/player accounts, Windows11/clean-PC acceptance, read-only program
-ACL qualification, graphical packaged install/play/update/restore, service/reboot
-support, normal-account restored-host play and broader disk-failure qualification
+ACL qualification, graphical packaged install/play/update/restore, actual SCM and
+service-account/reboot acceptance, normal-account restored-host play and broader disk-failure qualification
 remain open. Logs written
 with older retention settings should be archived before lowering limits; unrelated
 or older files outside the active fixed rotation set are not pruned automatically.

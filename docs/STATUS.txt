@@ -2,6 +2,47 @@ IMPLEMENTATION LEDGER
 Updated: 2026-10-17
 Active objective: implement SERVER_REPLACEMENT_PLAN.txt, Windows only.
 
+WINDOWS SERVICE ADAPTER (2026-10-17; real SCM/account/reboot acceptance open)
+The server package now includes server.windows_service and SERVICE.txt. The
+read-only service-command verifies package/config and prints an exact quoted
+bundled-runtime registration. It never installs, starts or changes a service.
+Explicit administrator setup selects the same account that provisioned private
+files; no password arguments, permission relaxation, policy/firewall changes or
+automatic reboot are introduced. Console hosting remains available.
+
+The adapter connects to SCM before asset work, reports real startup milestones,
+and reports RUNNING only after native health and listener creation. Stop/Shutdown
+schedule one cancellation; repeats do not interrupt cleanup. Successful STOPPED
+is emitted once after cleanup/executor drain. Cleanup following a runtime error
+also starts the shutdown deadline; a later Stop cannot interrupt or extend it.
+Absolute60s startup and15s shutdown deadlines fail a stuck process; its kill-on-
+close jobs terminate owned workers.
+No fake progress heartbeat, system timeout edit or service recovery rule is used.
+
+Final Python3.14.8 suite:289 tests in86.732s,285 pass and4 optional skips (three
+real-private-DACL cases and the native-worker opt-in); native bridge/original-byte
+checks enabled. This includes actual WINFUNCTYPE callback/28-byte status/pointer-
+sized handle checks, runtime-error cleanup deadlines and service-guide inclusion.
+Final Python3.12 focused47 tests in12.846s:46 pass,1 DACL skip.
+Real child-process tests prove blocked startup termination and stuck shutdown
+termination of both host and owned synthetic worker without successful STOPPED.
+The actual Windows dispatcher rejects a console invocation without running a host.
+
+local/p4-service-portable02 passes in73.902s with the bundled3.14.8 runtime,
+Python removed from PATH and hostile cwd. Console/native loading worker29584,
+service Stop worker48228 and service Shutdown worker51960 all exit0. Each native
+room has two identical bootstraps, closes its listener, releases the state lock,
+rejects live backup/second host and leaves sim.log0 bytes. Stop/Shutdown run on an
+independent control thread; the latter starts again against the same data after
+Stop. Package command generation/console refusal, snapshot checks and full
+three-component patch/restore pass. Program and original game inputs stay intact.
+
+These service controller runs deliberately do not install a Windows service.
+Service-account logon, protected-file access, session0, automatic boot/reboot and
+clean Windows/internet play remain acceptance gates. The existing normal-account
+private-enrollment/backup and loading-preview questions remain unanswered.
+No system service was installed and no game/runtime/helper bytes enter Git.
+
 SERVER STATE BACKUP/RESTORE (2026-10-17; normal-account acceptance open)
 The host package adds backup/verify-backup/restore for saved decks and hash-only
 invitation state, preserving IDs and revocations. Restore creates a fresh data

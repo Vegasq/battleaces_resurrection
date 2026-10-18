@@ -20,12 +20,13 @@ ROOT = Path(__file__).resolve().parents[1]
 # filename is an argument. It opens a numeric-loopback test listener and owns all
 # peers/workers; cancellation exercises the host's actual finally/close path.
 HOST_LIFECYCLE = r'''
-import asyncio, ctypes, dataclasses, json, socket, sys
+import asyncio, ctypes, dataclasses, json, socket, sys, threading
 from ctypes import wintypes
 from server import host, protocol as p
 from server.configuration import load_config
 from server.state_lock import exclusive_state, StateBusyError
 from server.state_backup import backup
+from server.windows_service import ServiceController, STOP, SHUTDOWN, START_PENDING, RUNNING, STOP_PENDING, STOPPED
 
 async def probe():
     config = load_config(sys.argv[1])
@@ -33,7 +34,16 @@ async def probe():
         reservation.bind(('127.0.0.1', 0))
         port = reservation.getsockname()[1]
     config = dataclasses.replace(config, listen_port=port)
-    running = asyncio.create_task(host.run(config))
+    service_mode = sys.argv[2] if len(sys.argv) > 2 else None
+    statuses = []
+    controller = ServiceController(statuses.append) if service_mode else None
+    log_path = config.data_directory/'logs/events.jsonl'
+    prior_rows = len(log_path.read_text().splitlines()) if log_path.exists() else 0
+    if controller:
+        running = asyncio.create_task(asyncio.to_thread(controller.execute,
+            lambda ready, progress: host.run(config, on_ready=ready, on_progress=progress)))
+    else:
+        running = asyncio.create_task(host.run(config))
     peers, handles, workers = [], [], []
     kernel = ctypes.WinDLL('kernel32', use_last_error=True)
     kernel.OpenProcess.argtypes = [wintypes.DWORD, wintypes.BOOL, wintypes.DWORD]
@@ -53,7 +63,9 @@ async def probe():
     try:
         async with asyncio.timeout(45):
             while not peers:
-                if running.done(): await running
+                if running.done():
+                    await running
+                    raise RuntimeError('Host ended before opening its listener')
                 try: peers.append(await asyncio.open_connection('127.0.0.1', port))
                 except OSError: await asyncio.sleep(.05)
         peers.append(await asyncio.open_connection('127.0.0.1', port))
@@ -63,7 +75,7 @@ async def probe():
         await asyncio.gather(*(send(peer, p.LOBBY_READY, b'\x01') for peer in peers))
         bootstraps = await asyncio.gather(*(receive(peer, p.BOOTSTRAP) for peer in peers))
         if bootstraps[0] != bootstraps[1]: raise RuntimeError('Bootstrap mismatch')
-        records = [json.loads(line) for line in (config.data_directory/'logs/events.jsonl').read_text().splitlines()]
+        records = [json.loads(line) for line in log_path.read_text().splitlines()[prior_rows:]]
         workers = [row['worker_pid'] for row in records if row['event'] == 'worker_started']
         if len(workers) != 1: raise RuntimeError('Expected one match worker')
         for pid in workers:
@@ -79,12 +91,22 @@ async def probe():
         else: raise RuntimeError('A backup acquired live host data')
         if attempted_backup.exists(): raise RuntimeError('Refused live backup wrote output')
     finally:
+        if controller:
+            # An independent thread models SCM's callback thread, not the host
+            # event loop. Stop while a native loading worker is still alive.
+            control = SHUTDOWN if service_mode == 'shutdown' else STOP
+            sender = threading.Thread(target=lambda: (controller.control(control), controller.control(control)))
+            sender.start(); await asyncio.to_thread(sender.join, 2)
+            if sender.is_alive(): raise RuntimeError('Service control handler blocked')
+            if await asyncio.wait_for(asyncio.shield(running), 20) != 0:
+                raise RuntimeError('Service controller reported failure')
         for _, writer in peers: writer.close()
         for _, writer in peers:
             try: await asyncio.wait_for(writer.wait_closed(), 2)
             except OSError: pass
-        running.cancel()
-        await asyncio.wait_for(asyncio.gather(running, return_exceptions=True), 15)
+        if not controller:
+            running.cancel()
+            await asyncio.wait_for(asyncio.gather(running, return_exceptions=True), 15)
     try:
         exits = []
         for handle in handles:
@@ -100,9 +122,16 @@ async def probe():
         with socket.socket() as test:
             if test.connect_ex(('127.0.0.1', port)) == 0: raise RuntimeError('Listener survived shutdown')
         with exclusive_state(config.data_directory): pass
+        if controller:
+            states = [status.state for status in statuses]
+            if states[-3:] != [RUNNING, STOP_PENDING, STOPPED] or statuses[-1].win32_exit:
+                raise RuntimeError('Unexpected service status transitions')
+            if any(status.controls for status in statuses if status.state != RUNNING):
+                raise RuntimeError('Service accepted controls while pending/stopped')
         print(json.dumps(dict(port=port, peers=2, bootstrap_equal=True, worker_pids=workers,
             worker_exit_codes=exits, listener_closed=True, stopped=True, native_files=native_files,
-            second_host_blocked=second_host_blocked, live_backup_blocked=live_backup_blocked, state_lock_released=True)))
+            second_host_blocked=second_host_blocked, live_backup_blocked=live_backup_blocked, state_lock_released=True,
+            service_control=service_mode, service_states=[status.state for status in statuses], scm_registration_tested=False)))
     finally:
         for handle in handles: kernel.CloseHandle(handle)
 
@@ -199,6 +228,17 @@ def run(args):
         require(report['health']['passed'] and report['health']['native']['reaped'], 'Native health failed')
         lifecycle = command('server', 'host-lifecycle', ['-c', HOST_LIFECYCLE, str(host/'config/host.json')])
         report['lifecycle'] = json.loads(lifecycle.splitlines()[-1])
+        registration = json.loads(command('server', 'service-command', ['-m', 'tools.package_server', 'service-command']))
+        require(registration['argv'][0] == str(host/'program/runtime/python.exe'), 'Service command uses a different runtime')
+        require(registration['startup'] == 'Manual', 'Service registration must be deliberate')
+        report['service_registration'] = registration
+        command('server', 'service-console-refused', ['-m', 'server.windows_service', '--config', str(host/'config/host.json')], success=False)
+        require('Windows Services' in (output/'service-console-refused.stderr.txt').read_text(), 'Expected SCM console refusal')
+        report['service_lifecycles'] = []
+        for mode in ('stop', 'shutdown'):
+            lifecycle = command('server', 'host-service-'+mode,
+                ['-c', HOST_LIFECYCLE, str(host/'config/host.json'), mode])
+            report['service_lifecycles'].append(json.loads(lifecycle.splitlines()[-1]))
 
         # Verify the transfer format against real imported assets in the bundled
         # runtime. This authored development snapshot contains no credentials;

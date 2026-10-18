@@ -92,10 +92,17 @@ package. Actual cross-PC/internet acceptance remains open.
 
 3. OPERATION AND DATA
 
-Use Ctrl+C in the host console for orderly room/worker shutdown. Do not use a
-plain Windows service registration for this console program: it does not yet
-implement the Service Control Manager protocol. Service/reboot qualification is
-pending; keep this preview in its console under the same Windows account.
+Use Ctrl+C in the host console for orderly room/worker shutdown. Optional Windows
+service setup is in SERVICE.txt. The service adapter uses the bundled runtime,
+checks native readiness before reporting RUNNING, and drains rooms/workers on
+Stop or Windows Shutdown. It must run under the account that provisioned its
+private files. Service registration is a separate administrator action; actual
+SCM/account/reboot qualification remains pending. service-command prints the
+exact registration settings without installing or starting anything:
+
+  BattleAces-Server.cmd service-command
+
+Do not register the console start command or the CMD wrapper as a service.
 Start/check/backup exclusively lock the configured data directory. A second
 host or maintenance command cannot use it while the first host is running.
 The one-byte .host.lock remains after shutdown; its presence is normal. OS locks
@@ -114,7 +121,8 @@ diagnostics can affect timing and are unnecessary for ordinary play.
 
 4. BACK UP AND RESTORE PLAYER STATE
 
-Stop the host with Ctrl+C, then create a new snapshot:
+Stop the host with Ctrl+C (or Stop-Service for an installed service), wait for it
+to stop, then create a new snapshot under the same Windows account:
 
   BattleAces-Server.cmd backup --out "backups/weekly.backup.json"
   BattleAces-Server.cmd verify-backup --input "backups/weekly.backup.json"

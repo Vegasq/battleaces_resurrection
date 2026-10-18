@@ -32,7 +32,7 @@ SERVER = COMMON + (
     'server/assets.py', 'server/community.py', 'server/community_protocol.py',
     'server/configuration.py', 'server/dedicated_server.py', 'server/game_data.py',
     'server/host.py', 'server/host_audit.py', 'server/native_simulation.py',
-    'server/state_lock.py', 'server/state_backup.py',
+    'server/state_lock.py', 'server/state_backup.py', 'server/windows_service.py',
     'server/paths.py', 'server/profiles.py', 'server/protobuf_wire.py',
     'server/simulation_worker.py', 'server/tls_listener.py', 'server/worker_client.py',
     'tools/extract_descriptors.py', 'tools/import_assets.py', 'tools/package_server.py',
@@ -173,6 +173,7 @@ def build(runtime_zip, helper, output, *, allow_dirty=False):
             game_files_included=False)
         files['compatibility.json'] = json_bytes(compatibility)
         if product == 'server':
+            files['SERVICE.txt'] = source_file('docs/windows-service.txt')
             files['config/host.example.json'] = source_file('server/host-config.example.json')
             files['assets/IMPORT.txt'] = b'Import your local build37822 assets here; see QUICKSTART.txt. No game files are included.\n'
             files['data/README.txt'] = b'Writable host data belongs here. Stop the host before backup; keep credentials private.\n'

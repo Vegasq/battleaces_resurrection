@@ -1,5 +1,6 @@
 """Portable host entry points, always resolving defaults from the package."""
 import argparse
+import json
 from pathlib import Path
 import sys
 
@@ -12,6 +13,9 @@ def main(argv=None):
     parser = SafeParser(description=__doc__)
     commands = parser.add_subparsers(dest='command', required=True)
     commands.add_parser('verify', help='verify immutable bundled files, not imported game assets')
+    sub = commands.add_parser('service-command', help='print registration settings; does not install or start a service')
+    sub.add_argument('--config', type=Path, default=PACKAGE / 'config/host.json')
+    sub.add_argument('--name', default='BattleAcesResurrection')
     for action in ('start', 'check'):
         sub = commands.add_parser(action)
         sub.add_argument('--config', type=Path, default=PACKAGE / 'config/host.json')
@@ -34,6 +38,10 @@ def main(argv=None):
         verify(PACKAGE, 'server')
         if args.command == 'verify':
             print('Server package files verified. Imported assets are checked by the check/start commands.')
+            return 0
+        if args.command == 'service-command':
+            from server.windows_service import registration
+            print(json.dumps(registration(PACKAGE, args.config, args.name), indent=2))
             return 0
         if args.command in ('start', 'check'):
             from server.host import main as host
