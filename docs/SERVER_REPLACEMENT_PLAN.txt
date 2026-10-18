@@ -98,8 +98,10 @@ Current implementation sequence for these additions (2026-10-18):
    settings per attempt; source/native socket tests pass. Independent local menu
    initialization and explicit per-world ownership are integrated. One PID passes
    offline practice,authenticated Custom Create/Leave and changed-deck practice
-   again without replacing local selection. Qualify actual unified remote worlds
-   and deliver no-server-settings startup next. See unified-client.txt.
+   again without replacing local selection. Actual unified TLS Custom matches and
+   changed-deck rematch now pass. No-server-settings startup and Start Client/
+   Start Server source/package commands are implemented; release acceptance and
+   the mode/fallback matrix remain open. See unified-client.txt.
 2. Use installed public bot profile/preset/name/cosmetic inputs, documented in
    public-bot-roster.txt. Define random difficulty separately from profile tactics;
    do not claim the retired backend's RNG was recovered. Verify native identities
@@ -112,7 +114,9 @@ Current implementation sequence for these additions (2026-10-18):
 4. Implement generation-bound public queues/fallback and human-only Custom,
    then qualify cancellation,late starts,partial groups,results and repeated
    mode switches. Complete local cosmetic inventory/equip/persistence and unified
-   release entry points. The final requirements and release gates remain intact.
+   release entry points. Static cosmetic inventory/ownership/persistence/wire
+   contracts are now in cosmetics.txt; live unlock/equip implementation remains.
+   The final requirements and release gates remain intact.
 
 Release acceptance, in user terms:
 An owner installs the server package on a clean Windows host, imports the required

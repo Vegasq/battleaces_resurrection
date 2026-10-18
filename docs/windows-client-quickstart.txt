@@ -5,8 +5,9 @@ No original game files are included. Clean-PC and outside-network acceptance are
 still pending. Extract this archive to a separate ordinary local folder. The
 bundled Python runtime needs no installation; its license is under
 program/runtime/LICENSE.txt. Run commands in a terminal in the extracted folder.
-Double-click BattleAces-Client.cmd to open Connection Setup. Use --help in a
-terminal for commands. Windows PowerShell supplies this setup window; the package
+Use Start Client.cmd for local play and optional multiplayer. Double-click
+BattleAces-Client.cmd to open Connection Setup. Use --help in a terminal for
+commands. Windows PowerShell supplies this setup window; the package
 does not change your script execution policy.
 
   BattleAces-Client.cmd verify
@@ -36,22 +37,32 @@ To restore the original patched components:
 The manifest and original backups stay available for inspection/reinstallation.
 Restore does not erase your decks, personal configuration or saved preferences.
 
-2. PLAY STANDALONE AI
+2. START THE CLIENT / PLAY LOCAL AI
 
-Copy config/practice.example.json to config/practice.json. Set game_directory to
-the full path of your working patched copy and choose display_name. JSON paths
-use doubled backslashes or forward slashes. Then run:
+After installing the patch, select the game once:
 
-  BattleAces-Client.cmd practice
+  "Start Client.cmd" --game "<working game directory>"
 
-Windows PowerShell starts the game in a visible window. If local policy blocks
-the script, inspect the downloaded package and use your normal approved script
-policy; this package does not change execution policy. Open Edit Deck -> Try Deck
-vs AI. No server, invite or server assets are needed. Settings -> General -> AI
+This creates config/client.json with local defaults. Subsequent launches only
+need a double-click on Start Client.cmd. If the package folder is directly inside
+the patched game folder, its parent can be detected on first launch without
+--game. Existing configuration is preserved. Edit display_name there to change
+your player name for the next launch; JSON paths use doubled backslashes or
+forward slashes. Keep the launcher console open while playing.
+
+Open Edit Deck -> Try Deck vs AI. No server, CA, invite or server assets are needed.
+Missing or invalid online settings leave local play available. Settings -> General -> AI
 Difficulty offers Easy/Normal/Hard. The saved choice applies to the next match.
 Normal is the first default. Manual launch has no automatic play or surrender.
 Match-start feedback has passed native state checks; visual acceptance remains
-open. Startup can take longer on a cold game installation.
+open. Startup can take longer on a cold game installation. Ordinary launch enables
+no scripted production, surrender, Continue or heavy diagnostic captures.
+This preview supports local Try Deck and authenticated Custom; public1v1/2v2/2vAI
+fallback and all-cosmetics work are still pending, not release claims.
+
+The older practice command and config/practice.example.json remain available for
+the separately qualified standalone path. The normal Start Client uses one game
+process for local practice and optional Custom presence.
 
 3. CONNECT TO YOUR FRIEND'S SERVER
 
@@ -82,7 +93,10 @@ Changing servers requires that host's CA/hash and invite; configure does not
 download or silently accept certificates. Normal-account Windows private-file
 qualification remains a release gate; see the source knowledge base.
 
-The saved schema2 JSON remains editable. Fields are:
+Connection Setup accepts local schema3 defaults and saves enrolled schema2 JSON.
+Start Client accepts both. The same file remains editable. Online fields may be
+left blank for local play; actual connections still require verified trust and a
+private invite. Fields are:
   game_directory   Full path to your patched working copy.
   server_host      The host's IPv4 address or DNS name.
   server_port      The host's TCP port, default47623.

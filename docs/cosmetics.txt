@@ -1,0 +1,65 @@
+INSTALLED COSMETICS - BUILD37822 CONTRACT
+Updated:2026-10-18. Static research; complete unlock/persistence is not implemented.
+
+Evidence boundary
+REA native providers remain unavailable. Findings use original-byte LLVM/PE
+slices, recovered IL2CPP metadata and installed Addressables tables. No game was
+launched or attached for this research. Pinned original hashes and authored
+evidence are in ignored local/cosmetic-contract01/FINDINGS.txt,contract-summary.json,
+source-identities.json and evidence-manifest.json. All extracted content stays
+local. Findings note SHA256:
+84bfa057acd408549466d2f430d3a257def1f096f0773f9b41315585da819a12.
+Native addresses below are RVAs in the supported original GameAssembly.
+
+Catalog and persistence scope
+The installed catalog has107 entries and17 slots. All107 definition references
+resolve. Counts:16 army colors,13 portraits,9 banners,6 sprays,46 emotes,4 core
+skins,5 expansion skins,4 worker skins,2 fatalities and one announcer each for
+game/menu. There are three sticker slots but no installed sticker items.
+The bot-only allowed cosmetics subset is not the player's full catalog.
+Managed-reference tails are partly undecoded; resolved definitions do not prove
+rendering,preview or audio success for every item.
+
+CommonPb.CosmeticLoadout serializes only12 slots: fatality,color,core,expansion,
+worker,portrait,banner,four emotes and spray. LoadFromProto clears the saved list
+before restoring those12 fields; announcer slots do not round-trip. Persist the
+full validated slot/item selection locally instead of relying solely on this
+message. Retain native slot filtering, equivalent-slot swapping and defaults.
+CosmeticItemTable GUIDc0a3ae0b3a257c04482d362032ce18c4 and CosmeticSlotTable
+GUID80afad8f743498b4881dccafa8ebb850 supply installed IDs/category/default rules.
+
+Unlock boundaries
+SelectCosmeticVM.RefreshViewModel3ca4ad0 inlines visibility checks: nonzero
+entitlement keys need a cache entry at3ca50cc. Patching IsOwned alone misses this.
+OnEquipSelectedItem checks ownership at3ca48d8; invalid-loadout reset checks it
+at3cbf80a. Item-model ownership and filters also need consistent local projection.
+Apply only the supported local cosmetic behavior; no Steam inventory grant or
+purchase API is required. Profile loading can overwrite army color when tutorial
+flag0x4 is absent, so restoring local choices must follow profile initialization.
+
+Cosmetics._savedItems+10 is a list of8-byte slot/item values; boxed field offsets
+must not be used on unboxed entries. EquipCosmeticAsset3cbfcb0 updates it and
+invokes Changed. Original save notifications target the retired Front service;
+intercept them for local persistence and optional community profile updates.
+
+Match propagation
+CommonPb.Deck.entitlements is field3. Entitlement.inventoryServiceId is field1;
+cosmeticAssetKeys is repeated field3, not2. Native runtime deck conversion uses
+these item IDs, while current dedicated_deck::proto omits cosmetic entitlements.
+Server _join replaces the received deck with its frozen selection, so both paths
+must change together. Cosmetic IDs must be validated against imported catalog
+metadata and frozen with each participant's selected deck before match start.
+
+JoinArmyCommand.ToProto37aee20 reads portrait/banner but does not write their
+IDs into JoinArmyAction. Set the validated frozen values explicitly if using this
+path. JoinArmyAction banner/portrait fields are3/4; ArmyConfig fields are5/6.
+Keep selection consistent in loading,UI,join,simulation and results; preserve
+the current snapshot during mid-match local edits.
+
+Required qualification
+Exercise visibility/equip/reset for all installed categories, native swap rules,
+loadout changes and restart persistence including announcers. Verify default or
+rejected behavior for corrupt/unknown/wrong-slot IDs. Check selected portraits,
+banners and deck cosmetic entitlements in local AI and remote matches and rematch.
+Compare native rendered/effect behavior and authoritative snapshots; static tables
+alone cannot qualify cosmetics. Preserve source-only packaging/publication.

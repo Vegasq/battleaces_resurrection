@@ -14,6 +14,29 @@ The plan now includes these final requirements, team-mode research and late-star
 race tests; the old1v1-only release default/team-mode deferral is superseded.
 These additions are planned, not implemented or qualified by the1v1 evidence.
 
+START CLIENT / SERVER AND UNIFIED REMOTE WORLDS (2026-10-18 UTC)
+The package builder now supplies Start Client.cmd and Start Server.cmd. Local
+schema3 config is created on first client use; game/name are independent of
+optional server/CA/invite settings. Existing schema2 setup remains usable and
+enrollment can promote the local config. Start and setup Play use the unified
+path. Runtime startup from no config/server/CA/invite passes in13.463s with no
+transport connection or invite-read calls (unified-startup01). This warm hidden
+window check is not process-wide packet capture or a cold-start timing guarantee.
+Two unified native clients also pass real TLS Custom play and changed-deck rematch
+in78.015s, including duplicate requests, both remote world lease releases and two
+worker exits0 (unified-custom01). Sources are unchanged and games are reaped.
+Python3.14.8:76/77 pass,one optional real-DACL skip;3.12:48/48 focused pass.
+A local dirty-source package build verifies both bundled runtimes and unified
+imports/settings. Existing frozen packages/manual runtimes remain unchanged.
+See unified-client.txt. Public/team fallback,cosmetic implementation,persistence,
+native Quit,manual/cross-PC and final release requirements remain open.
+
+Read-only cosmetic research finds107 installed items and17 slots, while the
+original loadout persists only12. Visibility is inlined separately from ownership;
+equip/reset and match snapshot/JoinArmy serialization require coordinated changes.
+All definition references resolve; complete rendering/equip/persistence is untested.
+See cosmetics.txt and ignored local/cosmetic-contract01 for the full evidence.
+
 UNIFIED LOCAL MENU / OPTIONAL CUSTOM LIFECYCLE (2026-10-18 UTC)
 An opt-in application coordinator now retains local menu/deck/profile ownership
 across optional authenticated presence and tracks exclusive local/remote world
@@ -28,7 +51,8 @@ verified. The earlier60-second combat check failure remains in unified-native01.
 Six C++ checks/helper build pass; Python3.14.8 passes66/67 with one real-DACL
 enrollment skip, and3.12 passes40/40 focused cases. Source hashes stay unchanged
 during native runs and owned games are reaped. Manual/frozen runtimes unchanged.
-Source prototype still needs settings; unified remote match worlds, persistence,
+At this checkpoint the source prototype still needed settings and unified remote
+world tests; the later entry above records those additions. Persistence,
 public/team AI fallback, native Quit and final release remain open. See
 unified-client.txt for exact scope, evidence and helper hash.
 

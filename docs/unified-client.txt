@@ -2,10 +2,17 @@ UNIFIED CLIENT LIFECYCLE
 Updated:2026-10-18. Architecture work in progress; public fallback is not shipped.
 
 Source integration checkpoint (bounded native lifecycle qualified)
-An opt-in --unified-experimental launcher now selects ABI2 and the new native
-application coordinator. The helper marker is required before launch. Existing
-release-preview/manual launchers are unchanged. The source path still consumes
-schema2 settings; a no-settings final Start Client/package remains required.
+client_patch.transport.client starts the unified ABI2 application. Local schema3
+settings require only game_directory and display_name; first launch with --game
+creates editable defaults. Optional server settings may be blank or invalid
+without preventing local startup. Existing schema2 enrollment is accepted and
+preserved. RemoteConfigResolver reads settings on each OPEN, pins the launched
+game and keeps the existing TLS/name/private-file/identity checks. Tokens never
+enter game arguments. Missing settings cannot fall back to plaintext transport.
+Start Client.cmd and Start Server.cmd are included by the package builder. Both
+the package start and setup's launch command select the same client path. Existing
+frozen packages/manual game runtimes are unchanged. This is a development preview;
+public fallback, team modes, cosmetics and final release gates remain incomplete.
 local_menu.cpp owns the front,local identity,native selector/storage and profile
 for application lifetime. Explicit local versus server-deck initialization
 replaces the former launch-flag test. Unified presence preserves the local deck
@@ -49,10 +56,34 @@ a different saved server deck. Two connection attempts include one unavailable
 attempt and one authenticated session; no multiplayer worker is created. Presence
 and all rooms/lobbies are gone during the second local match. Configured native
 name is retained in both army snapshots. Source hashes are unchanged; the owned
-game is forcibly reaped. Cross-process persistence, native Quit, actual unified
-remote match worlds, visual acceptance, public fallback and final packaging remain
-unqualified. Python3.12 adds40/40 focused passing tests with the native IPC probe.
+game is forcibly reaped. Cross-process persistence, native Quit, visual acceptance,
+public fallback and final release packaging remain unqualified. Python3.12 adds
+40/40 focused passing tests at this lifecycle checkpoint with the native IPC probe.
 Helper SHA256:0ff0fd35219df3f742c1b388a8ccd2f570cefa5aa465a454ea4b6259fc6e05d1.
+
+Launcher and actual remote worlds (2026-10-18)
+unified-custom01 PASSES in78.015s: two real TLS-authenticated native clients,
+two same-lobby matches/results/Continue, duplicate Start/Ready suppression and a
+changed-deck rematch. Each client acquires/releases two remote world leases.
+Both simulation workers exit0; source hashes are unchanged and both owned games
+are reaped. The harness uses ephemeral PKI/in-memory invites, not real enrollment.
+
+unified-startup01 PASSES in13.463s. The actual client.main configuration/patch/
+bridge/native path creates defaults from an absent config and reaches its local
+menu with zero transport connection calls and zero invite reads. No server is
+started. Only the test's spawn seam hides the window/redirects its local log;
+ordinary arguments contain no smoke/audit/automatic actions. Source hashes remain
+unchanged and the owned process is reaped. This warm run is not a cold-start
+performance guarantee, process-wide packet capture, visible UI or native Quit test.
+
+The expanded Python3.14.8 suite passes76/77 with only the optional real-DACL
+enrollment test skipped;3.12 passes48/48 focused cases. Tests cover first-run
+defaults,read-only config destination,existing config preservation,invalid online
+settings,game binding,schema3-to-enrolled setup and a real TLS retry on the same
+private stream. Wrong certificate names and changed game bindings are rejected.
+local/unified-packages01 is a dirty-source development package build: both bundled
+runtime integrity checks,client start help and isolated unified imports/settings
+pass. It is not a published release or clean-PC installation qualification.
 
 Required behavior
 One Start Client entry point must initialize a usable native local menu without

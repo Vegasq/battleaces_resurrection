@@ -1,5 +1,17 @@
 WINDOWS PORTABLE PACKAGING - DEVELOPMENT PREVIEW
-Updated: 2026-10-17
+Updated: 2026-10-18
+
+Current source adds Start Server.cmd and Start Client.cmd. The client command
+uses the unified ABI2 helper, creates public schema3 local settings on first use,
+and accepts existing enrolled schema2 settings. Server/CA/invite checks occur on
+connection attempts, not as local startup prerequisites. Setup can enroll the
+same local config and retains its configured game/name. Source tests and actual
+unified TLS Custom/rematch and no-config startup pass. local/unified-packages01
+builds74 server/67 client payload files using the pinned runtime and helper. Both
+bundled integrity commands,client start help and isolated imports/settings pass.
+This local dirty-source development build is not a release; packaging on a clean
+host and the full final mode matrix remain unqualified.
+Previously frozen preview packages remain unchanged. See unified-client.txt.
 
 SCOPE AND LAYOUT
 

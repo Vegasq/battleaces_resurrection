@@ -24,6 +24,9 @@ def main(argv=None):
     sub.add_argument('--request', type=Path, required=True, help='JSON with public settings and local input paths; never token contents')
     sub = commands.add_parser('ca-fingerprint')
     sub.add_argument('--file', type=Path, required=True)
+    sub = commands.add_parser('start', help='start local play with optional server connectivity')
+    sub.add_argument('--config', type=Path, default=PACKAGE / 'config/client.json')
+    sub.add_argument('--game', type=Path, help='working game folder for first launch')
     for action in ('install', 'restore'):
         sub = commands.add_parser(action)
         sub.add_argument('--game', type=Path, required=True)
@@ -38,6 +41,11 @@ def main(argv=None):
         if args.command == 'verify':
             print('Client package files verified. This does not verify the game or network.')
             return 0
+        if args.command in ('start', 'launch'):
+            from client_patch.transport.client import main as start
+            arguments = ['--config', str(args.config.resolve())]
+            if getattr(args, 'game', None) is not None: arguments.extend(['--game', str(args.game.resolve())])
+            return start(arguments, default_game=PACKAGE.parent)
         if args.command in ('setup-data', 'enroll', 'check', 'ca-fingerprint'):
             from client_patch.transport import enrollment
             from client_patch.transport.launcher import read_json, LaunchError
@@ -67,9 +75,6 @@ def main(argv=None):
                 original_path=args.original, restore=args.command == 'restore', dry_run=args.dry_run, community=True)
             print(json.dumps(result, indent=2))
             return 0
-        if args.command == 'launch':
-            from client_patch.transport.launcher import main as launch
-            return launch(['--config', str(args.config.resolve()), '--community-experimental'])
         # Windows PowerShell is part of the OS. Use its known system path rather
         # than a PATH executable; no profile, policy change or global Python.
         shell = Path(os.environ.get('SystemRoot', r'C:\Windows')) / 'System32/WindowsPowerShell/v1.0/powershell.exe'

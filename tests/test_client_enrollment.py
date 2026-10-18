@@ -185,6 +185,20 @@ class EnrollmentTests(unittest.TestCase):
         self.assertEqual(values['expected_config_sha256'], hashlib.sha256(self.config.read_bytes()).hexdigest())
         self.assertEqual(values['invite_source'], str(loaded['credential_file']))
 
+    def test_local_only_settings_can_be_enrolled_without_losing_the_game_or_name(self):
+        from client_patch.transport import client
+        value = client.defaults(self.folder/'working game')
+        value['display_name'] = 'Local Name'
+        self.config.write_text(json.dumps(value))
+        exposed = e.setup_data(self.config)
+        self.assertEqual(exposed['display_name'], 'Local Name')
+        self.assertEqual(exposed['invite_source'], '')
+        self.request.update(display_name=exposed['display_name'], expected_config_sha256=exposed['expected_config_sha256'])
+        e.enroll(self.request, self.config)
+        selected = launcher.load_config(self.config)
+        self.assertEqual(selected['display_name'], 'Local Name')
+        self.assertEqual(selected['game_directory'], self.folder/'working game')
+
     def test_packaged_enrollment_and_errors_do_not_echo_secrets(self):
         request_file = self.folder/'request.json'; request_file.write_text(json.dumps(self.request))
         output, errors = io.StringIO(), io.StringIO()

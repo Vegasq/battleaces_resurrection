@@ -13,22 +13,29 @@ import hashlib
 import json
 import os
 from pathlib import Path
+import secrets
+import socket
 import subprocess
 import time
 import traceback
 import uuid
 
 from client_patch.transport.launcher import verify_game
+from client_patch.transport import bridge, client, launcher
+from server.admission import AdmissionController
+from server.credentials import AuthenticationError
+from server import tls_transport as tls
 from server.assets import verify_assets
 from server.dedicated_server import Audit, DedicatedServer
 from server.game_data import GameTemplate
 from server.profiles import ProfileStore
-from server.worker_client import SimulationWorker
+from server.worker_client import SimulationWorker, _WindowsJob
 from server import community_protocol as wire
 from server.community import Rejected
 from tools.run_secure_match import read_native_log
 from tools.verify_custom_lobby import require, source_hashes as core_hashes
 from tools import match_loading_evidence
+from tests.test_tls_transport import generate_test_pki, remove_test_pki
 
 ROOT = Path(__file__).resolve().parents[1]
 PASSED = 'COMMUNITY MATCH SMOKE passed: two native Start/result/Continue cycles; same lobby, presence retained, seat=-1'
@@ -39,6 +46,8 @@ def source_hashes():
     result['tools/verify_custom_match.py'] = hashlib.sha256(Path(__file__).read_bytes()).hexdigest()
     result['tools/run_secure_match.py'] = hashlib.sha256((ROOT / 'tools/run_secure_match.py').read_bytes()).hexdigest()
     result['tools/match_loading_evidence.py'] = hashlib.sha256(Path(match_loading_evidence.__file__).read_bytes()).hexdigest()
+    for path in (ROOT / 'client_patch/transport').glob('*.py'):
+        result[path.relative_to(ROOT).as_posix()] = hashlib.sha256(path.read_bytes()).hexdigest()
     return result
 
 
@@ -46,7 +55,7 @@ async def run(args):
     require(os.name == 'nt', 'Windows game runtime required')
     game, assets, output = args.game.resolve(), args.assets.resolve(), args.output.resolve()
     require(output.is_relative_to(ROOT / 'local'), 'evidence must be under ignored local/')
-    verify_game(game, community=True); verify_assets(assets)
+    verify_game(game, community=True, bridge_version=2 if args.unified else 1, unified=args.unified); verify_assets(assets)
     manifest = json.loads((game / '.battleaces-resurrection/patch-manifest.json').read_text())
     require(manifest.get('community', {}).get('native_scope') == 'custom-match-prototype',
             'install current experimental match patch into an isolated copy')
@@ -56,6 +65,19 @@ async def run(args):
     template = GameTemplate.load(assets / 'map-1v1.pb.gz', catalog_path=assets / 'unit-catalog.json',
                                  descriptors_path=assets / 'descriptors')
     audit, events, processes, timers, workers, commands = Audit(output), [], [], [], [], []
+    bridges, writers, jobs, authenticated = [], [], [], []
+    test_players = [('p_' + secrets.token_hex(16), 'ba1_' + secrets.token_urlsafe(32)) for _ in range(2)]
+    class Store:
+        def authenticate(self, token):
+            for player, expected in test_players:
+                if secrets.compare_digest(token, expected):
+                    authenticated.append(player)
+                    return player
+            raise AuthenticationError()
+    pki_folder = output / 'ephemeral-pki'
+    pki = generate_test_pki(pki_folder) if args.unified else None
+    secure = dict(tls_context=tls.load_server_context(pki['cert'], pki['key']),
+                  admission=AdmissionController(Store())) if pki else {}
     process_ticks = {}
     clock = ctypes.WinDLL('kernel32').GetTickCount64
     clock.restype = ctypes.c_ulonglong
@@ -80,7 +102,7 @@ async def run(args):
         return worker
 
     server = DedicatedServer(template, ProfileStore(output / 'profiles', template), audit=observe,
-        sim_factory=factory, data_dir=output, lobby_timeout=300)
+        sim_factory=factory, data_dir=output, lobby_timeout=300, **secure)
     original_send = server.community.send
     held = {}
 
@@ -138,13 +160,39 @@ async def run(args):
                 '-lan-smoke', '-dedicated-surrender-smoke', '-dedicated-surrender-frame=160',
                 '-screen-fullscreen', '0', '-screen-width', '960', '-screen-height', '540',
                 '-logFile', str(output / f'game-{index}.log')]
+            child = None
+            if args.unified:
+                settings = output / f'client-{index}.json'
+                local = client.defaults(game)
+                local['display_name'] = ('Custom Host', 'Custom Guest')[index]
+                settings.write_text(json.dumps(local), encoding='utf-8')
+                config = client.prepare_settings(settings)
+                parent, child = socket.socketpair(socket.AF_INET)
+                parent.setblocking(False)
+                reader, writer = await asyncio.open_connection(sock=parent)
+                writers.append(writer)
+                remote = bridge.Remote('127.0.0.1', address[1], tls.load_client_context(pki['ca'], 'localhost'),
+                                       *test_players[index])
+                bridges.append(asyncio.create_task(bridge.Bridge(reader, writer, remote, version=2).run()))
+                command = launcher.game_arguments(config, None, child.fileno(),
+                    argparse.Namespace(run_name=f'unified-custom-{index}', unified_experimental=True))
+                command[command.index('-logFile')+1] = str(output / f'game-{index}.log')
+                command += [f'-community-match-{role}-smoke', '-lan-smoke',
+                            '-dedicated-surrender-smoke', '-dedicated-surrender-frame=160']
             if args.scenario == 'duplicates-deck':
                 command.extend(['-community-match-duplicate-smoke', '-community-match-deck-smoke'])
             if args.loading_ui: command.append('-match-loading-smoke')
             startup = subprocess.STARTUPINFO(); startup.dwFlags |= subprocess.STARTF_USESHOWWINDOW; startup.wShowWindow = 0
+            if child is not None:
+                startup.lpAttributeList = {'handle_list': [child.fileno()]}
+                child.set_inheritable(True)
             launch_tick = clock()
-            processes.append(subprocess.Popen(command, cwd=game, startupinfo=startup,
-                creationflags=subprocess.CREATE_NO_WINDOW, close_fds=True))
+            try:
+                processes.append(subprocess.Popen(command, cwd=game, startupinfo=startup,
+                    creationflags=subprocess.CREATE_NO_WINDOW, close_fds=True))
+            finally:
+                if child is not None: child.set_inheritable(False);child.close()
+            jobs.append(_WindowsJob(processes[-1].pid))
             process_ticks[processes[-1].pid] = launch_tick
             report['client_start_ticks'].append(launch_tick)
             report['game_pids'].append(processes[-1].pid); report['client_arguments'].append(command)
@@ -152,8 +200,12 @@ async def run(args):
         deadline = time.monotonic() + args.timeout
         while True:
             require(all(p.poll() is None for p in processes), 'native client exited before custom match verification')
+            require(not any(task.done() for task in bridges), 'private bridge exited before native completion')
             logs = [read_native_log(game, p.pid, since_tick=process_ticks[p.pid]) for p in processes]
             require(not any('Offline loop stopped in ' in log for log in logs), 'native custom match adapter failed; inspect retained logs')
+            require(not any(marker in log for log in logs for marker in
+                ('Client lifecycle invariant failed:', 'Local menu initialization failed:')),
+                'unified lifecycle failed; inspect retained logs')
             if args.scenario == 'stale-abort':
                 if not injected and all('COMMUNITY MATCH SMOKE native result ready;' in log for log in logs):
                     injected = True
@@ -203,6 +255,11 @@ async def run(args):
         require(sum(e['event'] == 'custom_match_setup_error' for e in events) == (1 if args.scenario == 'setup-abort' else 0),
                 'unexpected custom setup error count')
         for log in logs:
+            if args.unified:
+                acquired = sum('Client world acquired:' in line and 'owner=remote' in line for line in log.splitlines())
+                released = sum('Client world released:' in line and 'owner=remote' in line for line in log.splitlines())
+                require(acquired == expected_workers and released == expected_workers,
+                        'unified remote world leases did not complete')
             require(log.count('Community native custom match joined:') == expected_workers and
                     log.count('Community native lobby restored:') == (3 if aborted_scenario else 2) and log.count('Community native match return:') == 2,
                     'native start/return lifecycle count mismatch')
@@ -238,7 +295,9 @@ async def run(args):
                 minimum_errors=int(args.scenario in ('timeout', 'setup-abort', 'loading-abort') or
                                    (args.scenario == 'reject' and index == 0)))
                 for index, (log, process) in enumerate(zip(logs, processes))]
+        if args.unified: require(sorted(authenticated) == sorted(player for player, _ in test_players), 'expected two authenticated sessions')
         report.update(passed=True, lobby=lobby.id, epochs=expected_epochs, completed_matches=completed, commands=commands,
+            unified=args.unified, tls_authentications=len(authenticated),
             scenario=args.scenario,
             abort_results_delay_seconds=.6 if aborted_scenario else 0,
             duplicate_abort=aborted_scenario, stale_result_and_next_match_abort=old_abort_sent,
@@ -256,10 +315,18 @@ async def run(args):
                 process.terminate()
         for process in processes:
             process.wait(timeout=15)
+        for job in jobs: job.close()
+        for task in bridges: task.cancel()
+        await asyncio.gather(*bridges, return_exceptions=True)
+        for writer in writers:
+            writer.close()
+            try: await asyncio.wait_for(writer.wait_closed(), 2)
+            except (OSError, TimeoutError): writer.transport.abort()
         for timer in timers:
             timer.cancel()
         await server.close()
         await asyncio.gather(*(w.close() for w in workers), return_exceptions=True)
+        if pki is not None: remove_test_pki(pki_folder)
         report.update(elapsed_seconds=time.monotonic()-started, owned_processes_reaped=all(p.poll() is not None for p in processes),
             scenario=args.scenario, commands=commands,
             workers=[dict(pid=w.pid, exit_code=w.process.poll(), closed=w.closed,
@@ -277,6 +344,7 @@ def main():
     for name in ('game', 'assets', 'output'):
         parser.add_argument('--' + name, required=True, type=Path)
     parser.add_argument('--timeout', type=int, default=180)
+    parser.add_argument('--unified', action='store_true', help='qualify unified native ownership over real TLS with in-memory test invites')
     parser.add_argument('--loading-ui', action='store_true', help='verify native loading status and retain Unity screenshots')
     parser.add_argument('--scenario', choices=('normal', 'duplicates-deck', 'reject', 'timeout',
                                               'setup-abort', 'running-abort', 'loading-abort', 'stale-abort'), default='normal')

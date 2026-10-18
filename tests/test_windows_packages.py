@@ -77,6 +77,9 @@ class WindowsPackageTests(unittest.TestCase):
             self.assertEqual(modules, set(sources))
             self.assertFalse(any(Path(name).name.casefold() in ('gameassembly.dll', 'simulation.dll', 'ai.dll', 'global-metadata.dat') for name in inventory['files']))
             self.assertEqual((folder/'program/runtime/python314._pth').read_bytes(), builder.RUNTIME_PTH)
+            start = (folder / ('Start ' + product.title() + '.cmd')).read_text()
+            self.assertIn('tools.package_' + product + ' start %*', start)
+            self.assertNotIn('smoke', start)
             compatibility = json.loads((folder/'compatibility.json').read_bytes())
             self.assertFalse(compatibility['game_files_included'])
             self.assertFalse(compatibility['clean_windows_qualified'])
@@ -131,10 +134,17 @@ class PackageDispatchTests(unittest.TestCase):
             self.assertEqual(package_client.main(['restore', '--game', 'working copy']), 0)
             self.assertTrue(install.call_args.kwargs['restore'])
 
-    def test_secure_launch_receives_config_path_and_no_diagnostic_flags(self):
-        with mock.patch.object(package_client, 'verify'), mock.patch('client_patch.transport.launcher.main', return_value=0) as launch:
+    def test_setup_play_uses_the_same_unified_launcher_without_diagnostic_flags(self):
+        with mock.patch.object(package_client, 'verify'), mock.patch('client_patch.transport.client.main', return_value=0) as launch:
             self.assertEqual(package_client.main(['launch', '--config', 'personal.json']), 0)
-            self.assertEqual(launch.call_args.args[0], ['--config', str(Path('personal.json').resolve()), '--community-experimental'])
+            self.assertEqual(launch.call_args.args[0], ['--config', str(Path('personal.json').resolve())])
+
+    def test_start_client_keeps_game_selection_separate_from_online_enrollment(self):
+        with mock.patch.object(package_client, 'verify'), mock.patch('client_patch.transport.client.main', return_value=0) as start:
+            self.assertEqual(package_client.main(['start', '--game', 'working copy', '--config', 'local.json']), 0)
+            self.assertEqual(start.call_args.args[0], ['--config', str(Path('local.json').resolve()),
+                                                     '--game', str(Path('working copy').resolve())])
+            self.assertEqual(start.call_args.kwargs['default_game'], package_client.PACKAGE.parent)
 
     def test_server_check_and_credentials_keep_private_defaults(self):
         with mock.patch.object(package_server, 'verify'), mock.patch('server.host.main', return_value=0) as host:

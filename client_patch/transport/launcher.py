@@ -76,14 +76,15 @@ class RemoteConfigResolver:
     File access stays in the parent. Cancelling the awaiting session discards a
     pending read result; no network connection is made in the reader thread.
     """
-    def __init__(self, path, game_directory):
+    def __init__(self, path, game_directory, *, config_loader=None):
         self.path = Path(path).resolve()
         self.game_directory = Path(game_directory).resolve()
+        self.config_loader = config_loader or load_config
 
     def read(self):
         try:
             if not self.path.is_file(): raise RemoteUnavailable()
-            config = load_config(self.path)
+            config = self.config_loader(self.path)
             if config['game_directory'] != self.game_directory:
                 raise RemoteUnavailable(CONFIG_FAILURE)
             if not config['ca_bundle'].is_file() or not config['credential_file'].is_file():
@@ -217,7 +218,8 @@ async def launch(config, remote, args):
         reader, writer = await asyncio.open_connection(sock=parent)
         game = spawn_game(config, remote, args, child)
         child.close()
-        print(f'Secure client started (PID {game.pid}); transport owns the private invite', flush=True)
+        print(f'Client started (PID {game.pid}).' if unified else
+              f'Secure client started (PID {game.pid}); transport owns the private invite', flush=True)
         task = asyncio.create_task(Bridge(reader, writer, remote, version=version).run())
         reported = False
         # Poll without occupying a shared executor thread that could block

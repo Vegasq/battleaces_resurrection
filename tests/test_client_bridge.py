@@ -361,6 +361,38 @@ class ClientBridgeTests(unittest.IsolatedAsyncioTestCase):
         self.assertEqual(self.store.calls, 2)
 
 
+    async def test_unified_settings_can_enable_verified_online_play_after_local_start(self):
+        from client_patch.transport import client
+        path = self.folder / (uuid.uuid4().hex + '.json')
+        game = self.folder / 'working-game'
+        invite = self.folder / (uuid.uuid4().hex + '-private-invite.json')
+        config = client.defaults(game)
+        path.write_text(json.dumps(config))
+        resolver = launch.RemoteConfigResolver(path, game, config_loader=client.load_connection)
+        await self.start_bridge(version=2, resolver=resolver)
+        await self.send(b.OPEN, 1)
+        self.assertEqual(await self.frame(), (b.FAILURE, 1, bytes([b.UNCONFIGURED_FAILURE])))
+        config.update(server_host='127.0.0.1', server_port=self.port, server_name='localhost',
+                      ca_bundle=str(self.pki['ca']), credential_file=str(invite))
+        path.write_text(json.dumps(config))
+        invite.write_text('authored private-file boundary fixture')
+        with mock.patch.object(launch, 'read_credential_file', return_value=dict(player_id=self.store.player, token=self.store.token)) as read:
+            await self.hello(2)
+            await self.send(b.CLOSE, 2)
+            while (await self.frame())[:2] != (b.CLOSE, 2): pass
+            config['server_name'] = 'wrong.invalid'
+            path.write_text(json.dumps(config))
+            await self.send(b.OPEN, 3)
+            self.assertEqual(await self.frame(), (b.FAILURE, 3, bytes([b.TLS_FAILURE])))
+            config['game_directory'] = str(self.folder / 'different-game')
+            path.write_text(json.dumps(config))
+            await self.send(b.OPEN, 4)
+            self.assertEqual(await self.frame(), (b.FAILURE, 4, bytes([b.CONFIG_FAILURE])))
+            self.assertEqual(read.call_count, 2)
+        self.assertEqual(self.store.calls, 1)
+        self.assertFalse(self.bridge_task.done())
+
+
 @unittest.skipUnless(os.name == 'nt' and os.environ.get('BA_NATIVE_BRIDGE_PROBE'),
                      'set BA_NATIVE_BRIDGE_PROBE to the authored Windows probe executable')
 class NativeClientBridgeTests(unittest.IsolatedAsyncioTestCase):

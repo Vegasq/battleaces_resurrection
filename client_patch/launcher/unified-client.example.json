@@ -1,0 +1,11 @@
+{
+  "schema": 3,
+  "game_directory": "..",
+  "display_name": "Player",
+  "server_host": "",
+  "server_port": 47623,
+  "server_name": "",
+  "ca_bundle": "",
+  "credential_file": "",
+  "room": "community"
+}

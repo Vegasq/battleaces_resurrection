@@ -13,7 +13,7 @@ import time
 
 from server import credentials as private
 from server import tls_transport as tls
-from . import launcher
+from . import launcher, client
 
 ROOT = Path(__file__).resolve().parents[2]
 MAX_REQUEST = 32768
@@ -61,7 +61,11 @@ def config_destination(path):
 def configuration_digest(path):
     if not path.exists(): return None
     raw = local_input(path, MAX_REQUEST)
-    launcher.load_config(path)  # Unknown existing JSON is never silently replaced.
+    value = launcher.read_json(path, MAX_REQUEST)
+    if isinstance(value, dict) and value.get('schema') == 3:
+        client.local_settings(value, path)
+    else:
+        launcher.validate_config(value, path)  # Unknown JSON is never silently replaced.
     return hashlib.sha256(raw).hexdigest()
 
 
@@ -174,7 +178,7 @@ def enroll(request, config_path):
 async def check_connection(config_path):
     """Authenticate one verified TLS session, then close it without a game/room."""
     from server.admission import authenticate_client
-    config = launcher.load_config(config_path)
+    config = client.load_connection(config_path)
     trust = tls.load_client_context(config['ca_bundle'], config['server_name'])
     credential = private.read_credential_file(config['credential_file'])
     reader, writer = await tls.open_verified_connection(config['server_host'], config['server_port'], trust)
@@ -194,7 +198,27 @@ def setup_data(config_path):
         return dict(game_directory='', server_host='', server_port=47623, server_name='',
             display_name='Player', room='friends', ca_source='', invite_source='', expected_ca_sha256='',
             expected_config_sha256=None)
-    config = launcher.load_config(path)
+    value = launcher.read_json(path, MAX_REQUEST)
+    if value.get('schema') == 3:
+        local = client.local_settings(value, path)
+        # Incomplete online settings remain editable, without reading an invite.
+        result = dict(game_directory=str(local['game_directory']), display_name=local['display_name'],
+            server_host='', server_name='', server_port=47623, room=local['room'],
+            ca_source='', invite_source='', expected_ca_sha256='', expected_config_sha256=expected)
+        for key in ('server_host', 'server_name'):
+            if isinstance(value.get(key), str): result[key] = value[key]
+        if type(value.get('server_port')) is int and 1 <= value['server_port'] <= 65535:
+            result['server_port'] = value['server_port']
+        for source, target in (('ca_bundle', 'ca_source'), ('credential_file', 'invite_source')):
+            selected = value.get(source, '')
+            if isinstance(selected, str) and selected and not any(ord(c) < 32 for c in selected):
+                selected = Path(selected).expanduser()
+                result[target] = str((selected if selected.is_absolute() else path.parent / selected).resolve())
+        if result['ca_source']:
+            try: result['expected_ca_sha256'] = ca_fingerprint(result['ca_source'])[1]
+            except (EnrollmentError, private.CredentialError, OSError): pass
+        return result
+    config = launcher.validate_config(value, path)
     # A removed/relocated CA must not trap the player in an uneditable profile.
     # Leave trust confirmation empty until they select and confirm a replacement.
     try: _, fingerprint = ca_fingerprint(config['ca_bundle'])

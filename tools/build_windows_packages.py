@@ -42,7 +42,7 @@ CLIENT = COMMON + (
     'client_patch/patcher/patch_client.py', 'client_patch/patcher/pe_imports.py',
     'client_patch/patcher/telemetry.py', 'client_patch/transport/__init__.py',
     'client_patch/transport/bridge.py', 'client_patch/transport/launcher.py',
-    'client_patch/transport/enrollment.py',
+    'client_patch/transport/enrollment.py', 'client_patch/transport/client.py',
     'client_patch/launcher/ClientConfig.ps1', 'client_patch/launcher/Launch-Client.ps1',
     'client_patch/launcher/Configure-Client.ps1',
     'tools/package_client.py',
@@ -53,6 +53,7 @@ MARKERS = (
     b'BA_RESURRECTION_COMMUNITY_ROSTER_V1', b'BA_RESURRECTION_COMMUNITY_INVITES_V1',
     b'BA_RESURRECTION_COMMUNITY_MATCH_V1', b'BA_RESURRECTION_OFFLINE_PRACTICE_V1',
     b'BA_RESURRECTION_PRACTICE_SETTINGS_V1', b'BA_RESURRECTION_MATCH_LOADING_V1',
+    b'BA_RESURRECTION_TLS_BRIDGE_V2', b'BA_RESURRECTION_UNIFIED_CLIENT_V1',
 )
 
 
@@ -137,6 +138,12 @@ def wrapper(product):
         'exit /b %errorlevel%\r\n').encode('ascii')
 
 
+def start_wrapper(product):
+    return ('@echo off\r\nsetlocal\r\n'
+        f'"%~dp0program\\runtime\\python.exe" -I -B -m tools.package_{product} start %*\r\n'
+        'exit /b %errorlevel%\r\n').encode('ascii')
+
+
 def write_zip(path, files, prefix):
     with zipfile.ZipFile(path, 'x', compression=zipfile.ZIP_DEFLATED, compresslevel=9) as archive:
         for name, data in sorted(files.items()):
@@ -165,6 +172,7 @@ def build(runtime_zip, helper, output, *, allow_dirty=False):
         files = dict(runtime)
         for name in sources: files['program/app/' + name] = source_file(name)
         files['BattleAces-' + product.title() + '.cmd'] = wrapper(product)
+        files['Start ' + product.title() + '.cmd'] = start_wrapper(product)
         files['QUICKSTART.txt'] = source_file('docs/windows-' + product + '-quickstart.txt')
         compatibility = dict(schema=1, product=product, versions=versions, source=source,
             maturity='development-preview', clean_windows_qualified=False,
@@ -180,6 +188,7 @@ def build(runtime_zip, helper, output, *, allow_dirty=False):
         else:
             files['program/client-helper/BattleAcesOffline.dll'] = helper_data
             files['config/client.example.json'] = source_file('client_patch/launcher/secure-client-config.example.json')
+            files['config/unified-client.example.json'] = source_file('client_patch/launcher/unified-client.example.json')
             files['config/practice.example.json'] = source_file('client_patch/launcher/offline-practice.example.json')
         manifest = dict(schema=1, product=product, versions=versions, source=source,
             files={name: dict(bytes=len(data), sha256=sha(data)) for name, data in sorted(files.items())})

@@ -7,7 +7,8 @@ No game files, server certificate, private key or player invites are included.
 
 Extract the complete archive into an ordinary local folder. Keep program/,
 assets/, config/ and data/ separate. Run the following commands from a terminal
-in that folder. A double-click prints help. Existing files are not upgraded in
+in that folder. After configuring/importing the server as below, Start Server.cmd
+starts it directly. BattleAces-Server.cmd without arguments prints help. Existing files are not upgraded in
 place: extract future versions to a separate folder and retain your local data.
 
   BattleAces-Server.cmd verify
