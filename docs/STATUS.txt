@@ -31,6 +31,15 @@ Idle handles186/186; private memory29,192,192 ->32,182,272. All game/package inp
 remain unchanged. Frozen runner22ec3016...73906682 imports the clean7fccb08 server
 package through its bundled isolated3.14.8 runtime, independent of checkout edits.
 No eight-hour completion is claimed from these pilots; P3-P5 remain incomplete.
+Runner sourcef8129e0 is committed. The actual eight-hour run started at
+2026-10-18T02:57:23.5846267Z (local2026-10-17), evidence
+local/p5-soak-frozen02/local/eight-hour01. The launch JSON records PID5660 and
+creation FILETIME134367658435846267; both and the packaged executable path were
+verified against the live process. The initial30.822s sample has6 live native
+worlds and clean stderr. No terminal verification is present; this remains a
+live pending gate. See soak-qualification.txt for identity and completion checks.
+Source/history audit:5 authored files,456 distinct objects,0 failures. All native
+assets, frozen copies, runtime output and captures stay outside Git publication.
 
 WINDOWS SERVICE ADAPTER (2026-10-17; real SCM/account/reboot acceptance open)
 The server package now includes server.windows_service and SERVICE.txt. The

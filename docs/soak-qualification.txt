@@ -159,6 +159,25 @@ worker mean2.116ms,p99<=4ms,max63.755ms with2/3,360 calls over50ms. Idle handles
 186/186; private commit29,192,192 ->32,182,272. The short run explicitly records
 eight_hour_gate:false. Core/package and imported asset hashes stay unchanged.
 
+EIGHT-HOUR RUN IN PROGRESS
+
+Runner source f8129e04553880f14f40125c8ab2fbec42b08660 is committed. The frozen
+runner above was started at2026-10-18T02:57:23.5846267Z against clean server source
+7fccb08394587aa294dfc51486bdce4223040c97, using its verified isolated Python3.14.8.
+Evidence directory: local/p5-soak-frozen02/local/eight-hour01.
+Launch/identity record: local/p5-soak-frozen02/eight-hour01-launch.json.
+The requested workload is28800 seconds,2 rooms,frame3600 surrender ceiling and
+at least21 rounds; complete the final round after the duration is reached.
+
+Initial authoritative process check: PID5660, creation FILETIME
+134367658435846267, matching the launch record and packaged executable path.
+At30.822s it has6 live native workers,2 running rooms, publication mean50.160ms
+and worker mean2.366ms; no stderr and no final verification exists. This is launch
+evidence only. Recheck the actual process identity/handle before treating later
+progress as live. Earliest duration completion is2026-10-18T10:57:24Z, followed
+by the current round and cleanup. Do not mark this eight-hour gate passed until
+the terminal process and final report, including resource/timing evidence, agree.
+
 PRIMARY METRIC REFERENCES
 https://learn.microsoft.com/en-us/windows/win32/api/psapi/ns-psapi-process_memory_counters_ex
 https://learn.microsoft.com/en-us/windows/win32/api/processthreadsapi/nf-processthreadsapi-getprocesshandlecount
