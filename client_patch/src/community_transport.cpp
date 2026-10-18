@@ -3,7 +3,10 @@
 #include <map>
 // Session control is separate from a match seat. No managed objects are created
 // in the decoder; the native adapter consumes events after poll() returns.
-namespace ba_lan { static void send(unsigned char,const std::vector<unsigned char>&); }
+namespace ba_lan {
+static void send(unsigned char,const std::vector<unsigned char>&);
+static std::string authenticatedProfile();
+}
 namespace ba_community {
 namespace wire=ba_community_wire;
 static bool online=false;
@@ -46,7 +49,7 @@ static void receive(unsigned char kind,const wire::Bytes& payload) {
     wire::require(events.size()<256,"community event queue capacity");
     auto event=wire::decode(kind,payload);
     if(const auto* greeting=std::get_if<wire::Welcome>(&event)) {
-        wire::require(!online && greeting->profile==ba::argument(L"-player-id="),"unexpected community identity/welcome");
+        wire::require(!online && greeting->profile==ba_lan::authenticatedProfile(),"unexpected community identity/welcome");
         welcome=*greeting;online=true;
     } else {
         wire::require(online,"community event before welcome");

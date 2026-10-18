@@ -6,9 +6,10 @@
 using ULONGLONG=unsigned long long;
 static ULONGLONG now=100;
 static ULONGLONG GetTickCount64(){return now;}
-namespace ba {static std::string argument(const wchar_t*){return "me";}}
 namespace ba_lan {
 static ba_community_wire::Packet last{};
+static std::string currentProfile="me";
+static std::string authenticatedProfile(){return currentProfile;}
 static void send(unsigned char kind,const std::vector<unsigned char>& bytes){last={kind,bytes};}
 }
 #include "community_transport.cpp"
@@ -40,6 +41,10 @@ int main() {
     c::receive(AbortedKind,abort.bytes);assert(c::abortPending && c::online && c::lobby.id=="lobby");
     c::send(leave(c::nextRequest(),"lobby"));now+=15001;rejects([]{c::checkTimeouts();});
     c::reset();assert(!c::online && !c::abortPending && c::pending.empty() && c::events.empty() && c::requestId==0);
+    ba_lan::currentProfile="new_identity";
+    rejects([]{c::receive(WelcomeKind,greeting().bytes);});
+    c::receive(WelcomeKind,greeting("new_identity").bytes);assert(c::welcome.profile=="new_identity");
+    c::reset();ba_lan::currentProfile="me";
     c::receive(WelcomeKind,greeting().bytes);c::receive(DirectoryKind,listing().bytes);
     for(unsigned i=0;i<32;++i)c::send(refresh(c::nextRequest()));
     rejects([]{c::nextRequest();});c::reset();

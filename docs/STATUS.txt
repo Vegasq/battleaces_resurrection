@@ -14,6 +14,34 @@ The plan now includes these final requirements, team-mode research and late-star
 race tests; the old1v1-only release default/team-mode deferral is superseded.
 These additions are planned, not implemented or qualified by the1v1 evidence.
 
+UNIFIED CLIENT FOUNDATION / BOT AND TEAM CONTRACTS (2026-10-18 UTC)
+Private bridge ABI2 supports deferred local connection settings and a fresh
+authenticated identity per OPEN. The native helper builds HELLO only after READY;
+missing/invalid configuration has bounded availability codes and can be retried
+through the same inherited socket. Existing ABI1 remains the default. Strict
+TLS/private invite/server identity checks remain in place. The source launcher
+has an explicit opt-in; it is not yet the final offline-first launcher.
+All six C++ test programs and a fresh helper build pass. Python3.14.8:65/66 pass,
+with only real private-file DACL enrollment skipped. Python3.12:39/39 focused
+tests pass. Both run the actual Windows native probe, including config recovery,
+changed identities,stale frames and malformed/pre-authentication traffic. See
+secure-client-transport.txt for hashes/logs and the unqualified game/menu scope.
+
+Read-only native/asset research establishes distinct public1v1 Type2 deck pools
+for profiles58/62/63/64 plus27,287 installed names,six portraits/four banners.
+Practice's first Type1 character and generic name are not the public roster.
+Original backend RNG/live overrides remain unknown. See public-bot-roster.txt.
+Team modes2/5 use the real RGame2v2 map:allies0/2 and1/3. Native AI supports
+separate processes/services sharing one simulation. Mode2 has profile59 for both
+roles; mode5 has opponent60 but no teammate pool. Four-army source/protocol/world
+work and runtime proof remain open; see team-modes.txt. REA native providers were
+unavailable; evidence uses pinned metadata/LLVM/bundle decoding. No extracted
+tables/assets enter Git and no game was launched for this research.
+unified-client.txt records the next lifecycle slice:durable local menu/deck,
+explicit world ownership,optional presence and local practice->Custom->practice
+in one PID. Do not toggle offlinePractice at runtime or let optional online
+failure stop a local world. Existing manual/frozen game runtimes remain unchanged.
+
 TELEMETRY CONFIGURATION GUARDS / OBSERVATION COVERAGE (2026-10-18 UTC)
 Recipe3 adds two exact-build false-return guards, bringing the source total to61:
 QueueConfig and SendDeviceInfoInConfigRequest are stopped before serialization

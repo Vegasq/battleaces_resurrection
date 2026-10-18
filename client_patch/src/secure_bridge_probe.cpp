@@ -4,13 +4,37 @@
 #include <cstdlib>
 
 int main(int argc,char** argv) {
-    if(argc!=2)return 2;
+    if(argc!=2 && argc!=5)return 2;
     try {
         char* end=nullptr;const unsigned long long handle=_strtoui64(argv[1],&end,10);
         if(!end || *end || !handle)return 3;
-        ba_secure::Channel channel;channel.attach(static_cast<uintptr_t>(handle));
+        const bool dynamic=argc==5;
+        const bool recover=dynamic && !strcmp(argv[2],"2-recover");
+        if(dynamic && !recover && strcmp(argv[2],"2"))return 2;
+        ba_secure::Channel channel;channel.attach(static_cast<uintptr_t>(handle),dynamic?2:1);
+        auto noIdentity=[&]() {
+            bool rejected=false;try{channel.profile();}catch(const std::runtime_error&){rejected=true;}
+            if(!rejected)throw std::runtime_error("probe retained an unauthenticated identity");
+        };
+        if(recover) {
+            channel.begin();bool unavailable=false;const ULONGLONG deadline=GetTickCount64()+5000;
+            try {
+                while(GetTickCount64()<deadline) {
+                    if(channel.ready())throw std::runtime_error("probe unexpected availability");
+                    Sleep(1);
+                }
+            } catch(const ba_secure::RemoteFailure& error) {if(error.code()!=8)throw;unavailable=true;}
+            if(!unavailable)throw std::runtime_error("probe missing availability failure");
+            noIdentity();channel.end();
+        }
+        unsigned index=0;
         for(const char* expected:{"test","more"}) {
             channel.begin();
+            if(dynamic) {
+                noIdentity();const ULONGLONG deadline=GetTickCount64()+5000;
+                while(!channel.ready() && GetTickCount64()<deadline)Sleep(1);
+                if(channel.profile()!=argv[3+index])throw std::runtime_error("probe authenticated identity mismatch");
+            }
             if(channel.send(expected,4)!=4)throw std::runtime_error("probe send backpressure");
             char received[4]={};size_t count=0;const ULONGLONG deadline=GetTickCount64()+5000;
             while(count<4 && GetTickCount64()<deadline) {
@@ -19,7 +43,7 @@ int main(int argc,char** argv) {
                 if(n>0)count+=n;else Sleep(1);
             }
             if(count!=4 || memcmp(received,expected,4))throw std::runtime_error("probe reply mismatch");
-            channel.end();
+            channel.end();if(dynamic)noIdentity();++index;
         }
         puts("Native private bridge completed two authenticated sessions");
         return 0;

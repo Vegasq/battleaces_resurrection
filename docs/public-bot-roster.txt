@@ -1,0 +1,111 @@
+PUBLIC BOT ROSTER - BUILD 37822
+Updated:2026-10-18. Static evidence; new public bot gameplay is not qualified.
+
+Purpose
+Public1v1 fallback must use varied original-style decks/names/portraits and a
+random supported difficulty. Try Deck retains its explicit practice difficulty.
+The shipped data supplies these inputs, but the retired server's complete random
+selection algorithm is not present in this investigation. A replacement selection
+policy must be identified as new behavior and tested in the actual game.
+
+Evidence boundary
+REA was attempted; no native provider bound. Ghidra/IDA are unconfigured and
+Hopper is unsupported here. Findings use pinned original bytes, LLVM disassembly,
+IL2CPP metadata and bounded UnityFS/type-tree decoding. No game was launched,
+attached or modified for this investigation. Recovered tables, names and assets
+stay in ignored local/public-bot-roster01; only these conclusions enter Git.
+GameAssembly SHA256:
+ e59d08c01479b27404778048d7e13546dbf3771f6b3912744c7c2bdf80c4e758
+Metadata SHA256:
+ b760be9190309b14174cd272e1f83b730181b299bc7a0cdca66985c69dcdc57d
+Configuration bundle SHA256:
+ 033aff4f1f92f3204c252494719ff11c7239d91e07be4baf50aeeaba0850081a
+All native addresses below are RVAs, image base0x180000000.
+
+Mode-specific selection inputs
+AIManagementConfigDefinition links profile lists by CommonPb.GameMode, a name
+configuration, character presets and an allowed random cosmetics collection.
+Ordinary mode1 has enabled profiles58/62/63/64 with serialized weights800/100/71/
+800. They use Type2 AIDeckPreset choices: respectively1..7;8/9;10..12;13/15..18.
+All17 distinct referenced presets resolve to8 unit slots,4 ability slots and two
+nonzero opening slots. This is table validation, not tactical/gameplay testing.
+The four profiles have16 rating-modifier rows and no difficulty-level rows.
+Profile choice, tactical style, rating modifiers and practice difficulty are
+separate inputs; randomly choosing58/62/63/64 alone does not prove difficulty.
+
+The original Proving Grounds path is separate: wins0..5 select profiles7/10/11/
+57/61/61. This supports the user's recollection of onboarding bot progression,
+but does not establish live-service overrides or the exact historical schedule.
+Try Deck mode4's management choice is17, using Type1 character data. The current
+practice implementation takes the first character deck and labels it Practice AI.
+That practice policy must not become the default for every public opponent.
+Team mode2 selects profile59 for opponents and teammates. Mode5 selects profile60
+for opponents and has no teammate pool. See team-modes.txt for the four-army rules.
+
+Installed identity pools
+The referenced name configuration has27,287 names across9 language arrays. Counts:
+English13646,Chinese1920,Korean1817,German1874,Japanese2012,Russian1752,
+Spanish1511,French1962,Thai793. It also contains region/category weights. These
+are selection inputs, not proof of the backend RNG or language fallback policy.
+The linked allowed-cosmetics collection supplies6 portraits,4 banners,6 army
+colors,3 sprays and one choice for each remaining category. Type2 deck presets
+have no character identity; choose name and portrait/banner separately.
+Type1 characters carry a localized name, deck and cosmetics. AICharacter.GetName
+also appends the deck name in parentheses; that editor description is unsuitable
+as the ordinary opponent's display-name source.
+
+Native integration boundaries
+Uncapped.AIProfile fields: id+14,Enable+18,GameMode+1c,AIConfigDefinition+28,
+AIFuzzyTuning+30. AIConfigDefinition._decks is+40. AIDeck.Type+10 selects inline
+deck+18, character ID+20 or preset ID+24. AIDeck.GetDeck RVA37b6ba0 and its
+character/preset resolvers37b6d80/37b6ea0 return shared data. Clone the selected
+deck before mutation, cosmetic assignment or per-match serialization.
+Load the native tables asynchronously and retain their GC roots; the missing-table
+generic accessor and build-time ToProto helpers are not safe substitutes.
+
+Addressables GUIDs:
+ AIManagementConfigDefinition 26805241a24f37c429496a6a8b55fcb1
+ AIPlayerNameManagementConfigDefinition e7bf1d4db3df8ef45bf8e1365a8412bc
+ AIProfileTable 35290f27a7e495444bf634c20a53d056
+ AICharacterTable 524d3ead68bbbbc48bdbc8a383e4c934
+ AIDeckPresetTable 3bd57d6a122bd49479f5530caa5e81b7
+Use the original Addressables loader: their dependency bucket contains88 entries,
+not a single bundle path. New table loading/registration still needs runtime proof.
+
+Per-match fields:
+ CommonPb.PlayerHandleWithName: playerHandle_+18,playerName_+20,
+ playerNameLocKeyId_+28,filteredName_+30.
+ CommonPb.PlayerGameHandle: playerHandleWithName_+18,aiProfileId_+20.
+ GamePb.ArmyConfig: armyId_+18,players_+20,deck_+28,allianceId_+30,
+ bannerId_+34,portraitId_+38,modifiers_+40.
+ MatchPlayerProfileModel: PlayerName+10,AllianceId+18,GameMode+28,
+ Portrait+34,Banner+38,PlayerDeck+40,IsAlias+48,IsAi+49.
+Portrait/banner ordering differs between the protobuf and UI model.
+
+InGamePlayerProfileVM.RefreshViewModel3c84ec0 and
+MatchPlayerProfileVM.RefreshViewModel3d5e4a0 normally use the model name, but
+IsFakePracticeVSAIGame3dd4f60 can replace an opponent name with the global generic
+AI label. Public bot matches must use their correct mode/path and preserve the
+chosen identity through loading, in-game and results. Keep aiProfileId/IsAi so
+the roster represents bots honestly; Custom remains human-only.
+
+ServiceDataConfigDefinition.ToProto3e14c20 calls AIManagementConfigDefinition.
+ToProto3e0c640 and serializes the profile/name/character/cosmetic inputs. This is
+an authored service-configuration export graph. It does not establish a working
+client-side production matchmaking selector; do not call editor/build-time
+export helpers as a runtime roster builder.
+
+Implementation and remaining proof
+Load installed mode-specific inputs, select a profile-compatible deck and clone
+it; snapshot a distinct bot handle, name and cosmetics once per match. Keep that
+snapshot stable through results. Apply a separately defined random difficulty
+policy for public fallback; retain the user's chosen practice level for Try Deck.
+Original RNG/seed, duplicate-name handling, rating interpolation, A/B cohorts and
+live overrides remain unknown. Native filtering/localization, portraits/banners,
+all four public1v1 profiles and result/rematch propagation need runtime testing.
+Bot cosmetics selection does not implement the separate all-player-cosmetics
+unlock/persistence requirement.
+
+Local evidence:local/public-bot-roster01/FINDINGS.txt,summary.json,
+catalog-keys.json,evidence-manifest.json. Detailed note SHA256:
+ 7e666b9fe6161018fd94e9595e31bca8558063e1be5aa2b7288881522306e344

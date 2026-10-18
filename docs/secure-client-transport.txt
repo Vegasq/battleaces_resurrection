@@ -1,5 +1,5 @@
 SECURE CLIENT TRANSPORT
-Updated:2026-10-17
+Updated:2026-10-18
 
 The new helper can use a Python transport parent for verified TLS and invite
 authentication. Its sole local link is an inherited connected socket pair. No
@@ -67,6 +67,56 @@ Private IPC version1
  closed. The game never sends FAILURE. Failure codes1..7 mean certificate/TLS,
  connection,authentication,identity,queue,internal or timeout failure.
  No invitation,certificate,key or token is carried in this protocol.
+
+Private IPC version2 (implemented opt-in foundation,2026-10-18)
+The source launcher accepts --dynamic-identity-experimental. It requires the
+helper's BA_RESURRECTION_TLS_BRIDGE_V2 marker before spawn, passes
+-secure-transport-version=2 and omits startup -player-id. ABI1 remains the default
+for existing launchers/frozen packages; there is no protocol auto-downgrade.
+Version2 keeps the same bounded frame layout and monotonic session IDs. It adds
+READY5 containing exactly34 ASCII bytes:p_ followed by32 lowercase hexadecimal
+digits. Only the parent may send READY, after verified TLS and AUTH_OK matching
+the private invite's identity. The native helper waits before constructing HELLO
+and checks community welcome against this session's authenticated identity.
+READY must occur once for the active session. DATA before READY,duplicate or
+malformed identity,future sessions and version mismatch fail closed. Valid retired
+frames cannot change a current identity. End/begin clears the previous identity.
+
+The v2 Bridge accepts an async Remote resolver. It runs on each OPEN with a5s
+deadline; cancelled requests do not progress into TLS/AUTH. RemoteConfigResolver
+reads schema2/CA/private invite in the parent on each attempt, validates all
+settings and pins game_directory to the launched installation. Local file reads
+run off the event loop and perform no network operations; cancellation discards
+their eventual result. Missing config/CA/invite emits fixed availability code8;
+invalid local settings emit9. Existing codes1..7 retain their meanings. Raw local
+paths,parser errors and credentials are never sent over the inherited channel.
+Failed attempts leave that channel usable for a later OPEN. TLS hostname/CA,
+strict private-file loading,AUTH and server identity checks are unchanged.
+
+The experimental source launcher still needs an initial schema2 game/settings
+file and uses the existing dedicated menu/recovery flow. It is not the final
+offline-first Start Client. Optional connection failures still need separation
+from match-world failure; see unified-client.txt. No public fallback/team mode
+or new graphical lifecycle qualification is claimed by the bridge tests.
+
+ABI2 validation:
+ build/helper-dynamic-bridge01:all six C++ test executables and helper build pass.
+ Helper SHA256:34eae595b36bdff8051e74a0b2b453f94df7906522beeed7e472661d821f45dd.
+ Native probe SHA256:fea1c7adb39aa6f18396f8a1aa75a7ed8eda4ae6a147fafba022fa9b0a861115.
+ Python3.14.8:66 bridge/launcher/enrollment/package tests,65pass/1optional skip.
+ The skip is the explicit real private-file DACL transfer test, not a native
+ bridge test. Python3.12:all39 focused bridge/launcher tests pass. Both runs enable
+ BA_NATIVE_BRIDGE_PROBE and execute the actual new Windows channel header.
+ Native probe covers two authenticated identities/sessions,unconfigured recovery
+ on the same handle,stale READY/DATA rejection,certificate failure and malformed/
+ duplicate/pre-authentication messages. Actual TLS/coordinator tests cover config
+ reload,cancel-before-TLS,revocation,identity mismatch and legacy behavior. A
+ held-output-lock test rejects DATA after AUTH but before READY is queued; the
+ gate is set after write and before drain yields to avoid a fast-reply race. Private
+ credential storage is substituted; real DACL and full-game v2 remain open.
+ Logs:local/dynamic-bridge01-build.txt,dynamic-bridge04-python314.txt,
+ dynamic-bridge04-python312.txt. Initial Python run failed one incorrect expected
+ CLOSE tuple; corrected before the passing reruns. No runtime threshold changed.
 
 Native wire/input queues are capped at2 MiB. The parent holds at most64 pending
 game chunks and2 MiB payload per session, plus bounded in-flight/stream buffers.

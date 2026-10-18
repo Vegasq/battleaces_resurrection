@@ -1,5 +1,6 @@
 """Actual private socketpair -> verified TLS -> AUTH -> coordinator lobby tests."""
 import asyncio
+import json
 from pathlib import Path
 import socket
 import os
@@ -10,6 +11,7 @@ import uuid
 from unittest import mock
 
 from client_patch.transport import bridge as b
+from client_patch.transport import launcher as launch
 from server import admission as a, protocol as p, tls_transport as tls
 from server.dedicated_server import DedicatedServer
 from server.profiles import ProfileStore
@@ -34,6 +36,20 @@ class BridgeFramingTests(unittest.IsolatedAsyncioTestCase):
         for kind, identity, payload in ((b.OPEN, 0, b''), (b.OPEN, 1, b'extra'),
                 (b.DATA, 1, b''), (b.DATA, 1, b'x' * (b.CHUNK + 1)), (b.FAILURE, 1, b'unknown')):
             with self.assertRaises(b.BridgeProtocolError): b.encode(kind, identity, payload)
+
+    async def test_v2_ready_is_bounded_canonical_and_version_specific(self):
+        profile = ('p_' + '1a' * 16).encode()
+        reader = asyncio.StreamReader()
+        reader.feed_data(b.encode(b.READY, 1, profile, version=2))
+        self.assertEqual(await b.receive(reader, version=2), (b.READY, 1, profile))
+        for invalid in (b'', profile[:-1], profile.upper(), b'p_' + b'g' * 32, b'p_' + b'\xff' * 32):
+            with self.assertRaises(b.BridgeProtocolError): b.encode(b.READY, 1, invalid, version=2)
+        with self.assertRaises(b.BridgeProtocolError): b.encode(b.READY, 1, profile)
+        for code in (8, 9):
+            b.encode(b.FAILURE, 1, bytes([code]), version=2)
+            with self.assertRaises(b.BridgeProtocolError): b.encode(b.FAILURE, 1, bytes([code]))
+        for version in (True, 0, 3):
+            with self.assertRaises(b.BridgeProtocolError): b.encode(b.OPEN, 1, version=version)
 
 
 class ClientBridgeTests(unittest.IsolatedAsyncioTestCase):
@@ -74,27 +90,33 @@ class ClientBridgeTests(unittest.IsolatedAsyncioTestCase):
         self.loop.set_exception_handler(self.previous_handler)
         self.assertEqual(self.loop_errors, [])
 
-    async def start_bridge(self, *, expected='localhost', player=None, token=None):
+    def remote(self, *, expected='localhost', player=None, token=None):
+        return b.Remote('127.0.0.1', self.port, tls.load_client_context(self.pki['ca'], expected),
+                        player or self.store.player, token or self.store.token)
+
+    async def start_bridge(self, *, expected='localhost', player=None, token=None, version=1, resolver=None):
         parent, child = socket.socketpair()
         parent.setblocking(False); child.setblocking(False)
         server_reader, server_writer = await asyncio.open_connection(sock=parent)
         self.reader, self.writer = await asyncio.open_connection(sock=child)
-        remote = b.Remote('127.0.0.1', self.port, tls.load_client_context(self.pki['ca'], expected),
-                          player or self.store.player, token or self.store.token)
+        remote = self.remote(expected=expected, player=player, token=token)
         self.assertNotIn(self.store.token, repr(remote))
-        self.bridge = b.Bridge(server_reader, server_writer, remote)
+        self.version = version
+        self.bridge = b.Bridge(server_reader, server_writer, remote if resolver is None else resolver, version=version)
         self.bridge_task = asyncio.create_task(self.bridge.run())
         return self.bridge
 
     async def send(self, kind, identity, data=b''):
-        self.writer.write(b.encode(kind, identity, data))
+        self.writer.write(b.encode(kind, identity, data, version=self.version))
         await self.writer.drain()
 
     async def frame(self):
-        return await asyncio.wait_for(b.receive(self.reader), 3)
+        return await asyncio.wait_for(b.receive(self.reader, version=self.version), 3)
 
     async def hello(self, identity):
         await self.send(b.OPEN, identity)
+        if self.version == 2:
+            self.assertEqual(await self.frame(), (b.READY, identity, self.store.player.encode()))
         hello = p.encode(p.HELLO, p.hello(255, self.store.player, 'Invited Player', 'friends'))
         # Game stream fragmentation must be independent of IPC/TLS boundaries.
         await self.send(b.DATA, identity, hello[:3])
@@ -192,6 +214,152 @@ class ClientBridgeTests(unittest.IsolatedAsyncioTestCase):
             self.assertEqual(kind, b.DATA)
         self.assertFalse(self.bridge_task.done())
 
+    async def test_v2_unconfigured_then_reload_and_new_identity_on_same_stream(self):
+        resolutions = 0
+        async def resolve():
+            nonlocal resolutions
+            resolutions += 1
+            if resolutions == 1: raise b.RemoteUnavailable()
+            return self.remote()
+        await self.start_bridge(version=2, resolver=resolve)
+        self.assertEqual(resolutions, 0)  # No remote or credentials required at spawn.
+        await self.send(b.OPEN, 1)
+        self.assertEqual(await self.frame(), (b.FAILURE, 1, bytes([b.UNCONFIGURED_FAILURE])))
+        self.assertEqual(self.store.calls, 0)
+        await self.hello(2)
+        first_identity = self.store.player
+        await self.send(b.CLOSE, 2)
+        while (await self.frame())[:2] != (b.CLOSE, 2): pass
+        self.store.player = 'p_' + uuid.uuid4().hex
+        self.assertNotEqual(self.store.player, first_identity)
+        await self.hello(3)
+        await self.send(b.DATA, 2, b'retired identity bytes')
+        self.assertEqual((resolutions, self.store.calls), (3, 2))
+        self.assertEqual([peer.profile_id for peer in self.server.peers], [self.store.player])
+
+    async def test_v2_retiring_pending_resolver_cancels_before_tls(self):
+        entered, cancelled = asyncio.Event(), asyncio.Event()
+        resolutions = 0
+        async def resolve():
+            nonlocal resolutions
+            resolutions += 1
+            if resolutions == 1:
+                entered.set()
+                try: await asyncio.Event().wait()
+                finally: cancelled.set()
+            return self.remote()
+        await self.start_bridge(version=2, resolver=resolve)
+        await self.send(b.OPEN, 1)
+        await asyncio.wait_for(entered.wait(), 1)
+        await self.send(b.CLOSE, 1)
+        self.assertEqual(await self.frame(), (b.CLOSE, 1, b''))
+        self.assertTrue(cancelled.is_set())
+        self.assertEqual(self.store.calls, 0)
+        await self.hello(2)
+        self.assertEqual(self.store.calls, 1)
+
+    async def test_v2_data_before_authentication_closes_private_stream(self):
+        entered = asyncio.Event()
+        async def resolve():
+            entered.set()
+            await asyncio.Event().wait()
+        await self.start_bridge(version=2, resolver=resolve)
+        await self.send(b.OPEN, 1)
+        await asyncio.wait_for(entered.wait(), 1)
+        await self.send(b.DATA, 1, b'premature hello')
+        self.assertEqual(await asyncio.wait_for(self.reader.read(1), 1), b'')
+        self.assertEqual(self.store.calls, 0)
+
+    async def test_v2_client_cannot_supply_ready_identity(self):
+        await self.start_bridge(version=2)
+        await self.send(b.READY, 1, self.store.player.encode())
+        self.assertEqual(await asyncio.wait_for(self.reader.read(1), 1), b'')
+        self.assertEqual(self.store.calls, 0)
+
+    async def test_v2_authenticated_but_ready_not_queued_rejects_data(self):
+        await self.start_bridge(version=2)
+        async with self.bridge.send_lock:
+            await self.send(b.OPEN, 1)
+            async def authenticated():
+                while self.bridge.session is None or not self.bridge.session.authenticated:
+                    await asyncio.sleep(.001)
+            await asyncio.wait_for(authenticated(), 3)
+            self.assertFalse(self.bridge.session.ready_sent)
+            await self.send(b.DATA, 1, b'hello before READY publication')
+            self.assertEqual(await asyncio.wait_for(self.reader.read(1), 3), b'')
+        self.assertEqual(self.store.calls, 1)
+        self.assertEqual(self.server.rooms, {})
+
+    async def test_v2_invalid_local_config_is_recoverable_and_never_authenticates(self):
+        async def resolve(): return object()
+        await self.start_bridge(version=2, resolver=resolve)
+        for identity in (1, 2):
+            await self.send(b.OPEN, identity)
+            self.assertEqual(await self.frame(), (b.FAILURE, identity, bytes([b.CONFIG_FAILURE])))
+        self.assertEqual(self.store.calls, 0)
+        self.assertFalse(self.bridge_task.done())
+
+    async def test_v2_wrong_certificate_has_no_ready_or_authentication(self):
+        await self.start_bridge(version=2, expected='wrong.invalid')
+        await self.send(b.OPEN, 1)
+        self.assertEqual(await self.frame(), (b.FAILURE, 1, bytes([b.TLS_FAILURE])))
+        self.assertEqual(self.store.calls, 0)
+
+    async def test_v2_identity_mismatch_has_no_ready_or_lobby(self):
+        await self.start_bridge(version=2, player='p_' + '0' * 32)
+        await self.send(b.OPEN, 1)
+        self.assertEqual(await self.frame(), (b.FAILURE, 1, bytes([b.IDENTITY_FAILURE])))
+        self.assertEqual(self.server.rooms, {})
+
+    async def test_v2_revocation_rechecked_before_next_ready(self):
+        await self.start_bridge(version=2)
+        await self.hello(1)
+        await self.send(b.CLOSE, 1)
+        while (await self.frame())[:2] != (b.CLOSE, 1): pass
+        self.store.revoked = True
+        await self.send(b.OPEN, 2)
+        self.assertEqual(await self.frame(), (b.FAILURE, 2, bytes([b.AUTH_FAILURE])))
+        self.assertEqual(self.store.calls, 2)
+
+    async def test_v2_config_resolver_reloads_without_relaxing_trust_or_game_binding(self):
+        path = self.folder / (uuid.uuid4().hex + '.json')
+        invite = self.folder / (uuid.uuid4().hex + '-private-invite.json')
+        game = self.folder / 'working-game'
+        resolver = launch.RemoteConfigResolver(path, game)
+        await self.start_bridge(version=2, resolver=resolver)
+        await self.send(b.OPEN, 1)
+        self.assertEqual(await self.frame(), (b.FAILURE, 1, bytes([b.UNCONFIGURED_FAILURE])))
+        config = dict(schema=2, game_directory=str(game), server_host='127.0.0.1', server_port=self.port,
+            server_name='localhost', ca_bundle=str(self.pki['ca']), credential_file=str(invite),
+            display_name='Configured Player', room='friends')
+        path.write_text(json.dumps(config), encoding='utf-8')
+        await self.send(b.OPEN, 2)
+        self.assertEqual(await self.frame(), (b.FAILURE, 2, bytes([b.UNCONFIGURED_FAILURE])))
+        invite.write_text('authored private-file boundary fixture', encoding='utf-8')
+        # Windows private-file permissions are qualified separately. TLS/name and
+        # real server admission/identity binding are exercised here without mocks.
+        def credential(selected):
+            self.assertEqual(selected, invite)
+            return dict(player_id=self.store.player, token=self.store.token)
+        with mock.patch.object(launch, 'read_credential_file', side_effect=credential) as read:
+            await self.hello(3)
+            await self.send(b.CLOSE, 3)
+            while (await self.frame())[:2] != (b.CLOSE, 3): pass
+            self.store.player = 'p_' + uuid.uuid4().hex
+            await self.hello(4)
+            await self.send(b.CLOSE, 4)
+            while (await self.frame())[:2] != (b.CLOSE, 4): pass
+            config['server_name'] = 'wrong.invalid'
+            path.write_text(json.dumps(config), encoding='utf-8')
+            await self.send(b.OPEN, 5)
+            self.assertEqual(await self.frame(), (b.FAILURE, 5, bytes([b.TLS_FAILURE])))
+            config['game_directory'] = str(self.folder / 'different-game')
+            path.write_text(json.dumps(config), encoding='utf-8')
+            await self.send(b.OPEN, 6)
+            self.assertEqual(await self.frame(), (b.FAILURE, 6, bytes([b.CONFIG_FAILURE])))
+            self.assertEqual(read.call_count, 3)
+        self.assertEqual(self.store.calls, 2)
+
 
 @unittest.skipUnless(os.name == 'nt' and os.environ.get('BA_NATIVE_BRIDGE_PROBE'),
                      'set BA_NATIVE_BRIDGE_PROBE to the authored Windows probe executable')
@@ -207,8 +375,9 @@ class NativeClientBridgeTests(unittest.IsolatedAsyncioTestCase):
     def tearDownClass(cls):
         remove_test_pki(cls.folder)
 
-    async def exercise(self, expected, returncode):
+    async def exercise(self, expected, returncode, *, version=1, recover=False):
         store = Store()
+        identities = [store.player, 'p_' + uuid.uuid4().hex]
         gate = a.AdmissionController(store)
         handlers, received = set(), []
         async def authenticated_echo(reader, writer):
@@ -228,15 +397,33 @@ class NativeClientBridgeTests(unittest.IsolatedAsyncioTestCase):
         parent, child = socket.socketpair(socket.AF_INET)
         parent.setblocking(False)
         reader, writer = await asyncio.open_connection(sock=parent)
-        remote = b.Remote('127.0.0.1', listener.sockets[0].getsockname()[1],
-                          tls.load_client_context(self.pki['ca'], expected), store.player, store.token)
-        bridge_task = asyncio.create_task(b.Bridge(reader, writer, remote).run())
+        def remote():
+            return b.Remote('127.0.0.1', listener.sockets[0].getsockname()[1],
+                            tls.load_client_context(self.pki['ca'], expected), store.player, store.token)
+        resolutions = 0
+        async def resolve():
+            nonlocal resolutions
+            resolutions += 1
+            if recover and resolutions == 1: raise b.RemoteUnavailable()
+            store.player = identities[resolutions - 1 - int(recover)]
+            return remote()
+        class StaleIdentityBridge(b.Bridge):
+            async def send(self, kind, identity, data=b''):
+                if kind == b.READY and identity == 2 + int(recover):
+                    # A valid retired identity/data packet must not affect session2.
+                    await super().send(b.READY, 1, identities[0].encode())
+                    await super().send(b.DATA, 1, b'discard retired bytes')
+                await super().send(kind, identity, data)
+        bridge_task = asyncio.create_task(StaleIdentityBridge(reader, writer,
+            resolve if version == 2 else remote(), version=version).run())
         process = None
         try:
             child.set_inheritable(True)
             startup = subprocess.STARTUPINFO()
             startup.lpAttributeList = {'handle_list': [child.fileno()]}
-            process = subprocess.Popen([str(self.probe), str(child.fileno())], close_fds=True,
+            command = [str(self.probe), str(child.fileno())]
+            if version == 2: command += ['2-recover' if recover else '2', *identities]
+            process = subprocess.Popen(command, close_fds=True,
                 startupinfo=startup, creationflags=subprocess.CREATE_NO_WINDOW,
                 stdout=subprocess.PIPE, stderr=subprocess.PIPE)
             child.set_inheritable(False)
@@ -272,6 +459,61 @@ class NativeClientBridgeTests(unittest.IsolatedAsyncioTestCase):
         received, calls, output, errors = await self.exercise('wrong.invalid', 1)
         self.assertEqual((received, calls), ([], 0))
         self.assertIn(b'Server certificate verification failed', errors)
+
+    async def test_native_v2_reauthenticates_changed_identity_and_discards_retired_ready(self):
+        received, calls, output, errors = await self.exercise('localhost', 0, version=2)
+        self.assertEqual((received, calls), ([b'test', b'more'], 2))
+        self.assertIn(b'two authenticated sessions', output)
+        self.assertEqual(errors, b'')
+
+    async def test_native_v2_unconfigured_recovers_on_same_inherited_handle(self):
+        received, calls, output, errors = await self.exercise('localhost', 0, version=2, recover=True)
+        self.assertEqual((received, calls), ([b'test', b'more'], 2))
+        self.assertEqual(errors, b'')
+
+    async def test_native_v2_certificate_failure_before_ready_or_game_bytes(self):
+        received, calls, output, errors = await self.exercise('wrong.invalid', 1, version=2)
+        self.assertEqual((received, calls), ([], 0))
+        self.assertIn(b'Server certificate verification failed', errors)
+
+    async def test_native_v2_rejects_malformed_identity_duplicate_ready_and_pre_auth_data(self):
+        profile = ('p_' + 'a' * 32).encode()
+        ready = b.encode(b.READY, 1, profile, version=2)
+        cases = (
+            (struct.pack('<IBBI', 40, 2, b.READY, 1) + b'p_' + b'Z' * 32, b'Invalid secure transport message'),
+            (ready + ready, b'Unexpected secure transport identity'),
+            (b.encode(b.DATA, 1, b'premature', version=2), b'Secure transport receive queue invalid'),
+            (b.encode(b.DATA, 1, b'wrong version'), b'Invalid secure transport message'),
+        )
+        for packet, expected in cases:
+            with self.subTest(expected=expected):
+                parent, child = socket.socketpair(socket.AF_INET)
+                parent.setblocking(False)
+                reader, writer = await asyncio.open_connection(sock=parent)
+                process = None
+                try:
+                    child.set_inheritable(True)
+                    startup = subprocess.STARTUPINFO()
+                    startup.lpAttributeList = {'handle_list': [child.fileno()]}
+                    process = subprocess.Popen([str(self.probe), str(child.fileno()), '2', profile.decode(), profile.decode()],
+                        close_fds=True, startupinfo=startup, creationflags=subprocess.CREATE_NO_WINDOW,
+                        stdout=subprocess.PIPE, stderr=subprocess.PIPE)
+                    child.set_inheritable(False)
+                    child.close()
+                    self.assertEqual(await asyncio.wait_for(b.receive(reader, version=2), 3), (b.OPEN, 1, b''))
+                    writer.write(packet)
+                    await writer.drain()
+                    output, errors = await asyncio.to_thread(process.communicate, timeout=7)
+                    self.assertEqual(process.returncode, 1)
+                    self.assertIn(expected, errors)
+                finally:
+                    child.close()
+                    if process is not None and process.poll() is None:
+                        process.kill()
+                        await asyncio.to_thread(process.communicate, timeout=3)
+                    writer.close()
+                    try: await writer.wait_closed()
+                    except OSError: pass
 
 
 if __name__ == '__main__': unittest.main()

@@ -79,6 +79,28 @@ class SecureLauncherTests(unittest.TestCase):
         with self.assertRaisesRegex(launch.LaunchError, 'protocol3'):
             launch.verify_game(root)
 
+    def test_dynamic_identity_requires_v2_helper_before_spawn(self):
+        root, path, manifest = self.install()
+        with self.assertRaisesRegex(launch.LaunchError, 'ABI2'):
+            launch.verify_game(root, bridge_version=2)
+        helper = root / 'BattleAcesOffline.dll'
+        helper.write_bytes(helper.read_bytes() + b' BA_RESURRECTION_TLS_BRIDGE_V2')
+        manifest['helper_sha256'] = hashlib.sha256(helper.read_bytes()).hexdigest()
+        path.write_text(json.dumps(manifest))
+        launch.verify_game(root, bridge_version=2)
+        for version in (True, 0, 3):
+            with self.assertRaises(launch.LaunchError): launch.verify_game(root, bridge_version=version)
+
+    def test_dynamic_arguments_have_no_startup_identity_or_private_settings(self):
+        config = self.load()
+        argv = launch.game_arguments(config, None, 1234,
+            argparse.Namespace(run_name='test', dynamic_identity_experimental=True))
+        self.assertIn('-secure-transport-version=2', argv)
+        self.assertFalse(any(argument.startswith('-player-id=') for argument in argv))
+        self.assertIn('-player-name=Player With Spaces', argv)
+        self.assertNotIn(str(config['credential_file']), argv)
+        self.assertNotIn(str(config['ca_bundle']), argv)
+
     def test_component_hash_restore_and_path_escape_fail_before_spawn(self):
         root, path, manifest = self.install()
         launch.verify_game(root)

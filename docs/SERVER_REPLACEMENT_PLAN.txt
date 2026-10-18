@@ -93,6 +93,26 @@ are planned behavior, not a claim that all modes or fallback already work.
   late human match. Verify variable bot identities/difficulties, result/rematch,
   configured name and cosmetic persistence. Custom must remain human-only.
 
+Current implementation sequence for these additions (2026-10-18):
+1. Bridge ABI2 supplies identity after authentication and reloads connection
+   settings per attempt; source/native socket tests pass. Integrate independent
+   local menu initialization and explicit per-world ownership next. Qualify one
+   PID through offline practice,authenticated Custom Create/Leave and practice
+   again,without replacing the selected local deck. See unified-client.txt.
+2. Use installed public bot profile/preset/name/cosmetic inputs, documented in
+   public-bot-roster.txt. Define random difficulty separately from profile tactics;
+   do not claim the retired backend's RNG was recovered. Verify native identities
+   and all bot command/readiness/result paths in actual matches.
+3. Export/import the actual team map and support four participants,three local
+   bot processes and authored alliances0/2 versus1/3. Extend server/client wire,
+   input ownership and mode projection together. Mixed human groups require one
+   server-authoritative match with qualified AI execution/assignment. See
+   team-modes.txt; native team gameplay and AI teammate policy remain open.
+4. Implement generation-bound public queues/fallback and human-only Custom,
+   then qualify cancellation,late starts,partial groups,results and repeated
+   mode switches. Complete local cosmetic inventory/equip/persistence and unified
+   release entry points. The final requirements and release gates remain intact.
+
 Release acceptance, in user terms:
 An owner installs the server package on a clean Windows host, imports the required
 assets from their game installation, starts the service, and gives friends its

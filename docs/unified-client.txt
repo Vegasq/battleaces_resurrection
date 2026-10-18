@@ -1,0 +1,78 @@
+UNIFIED CLIENT LIFECYCLE
+Updated:2026-10-18. Architecture work in progress; public fallback is not shipped.
+
+Required behavior
+One Start Client entry point must initialize a usable native local menu without
+server settings,CA or invite. Try Deck is local. Optional authenticated presence
+enables Custom and public queues; a server failure must not disable local play.
+Public queues fall back after unavailability/30s and preserve any matched human
+group in one authority. Full requirements remain in SERVER_REPLACEMENT_PLAN.txt.
+
+Application, control session and match world have different lifetimes
+Do not toggle offlinePractice() at runtime. It is a process-wide launch predicate
+that forces dedicated/community/lan false and controls deck/menu/settings/world
+routing. Merely switching the frontend dispatcher would leave contradictory
+owners and could send calls back to retired original services.
+Extract durable local menu initialization from practice_ai.cpp::offlineUpdate:
+verify the front/service thread and native local account/selector/storage owners,
+set the configured name,initialize the selected local deck and practice settings.
+This state must survive online connect/disconnect and every match cleanup.
+
+Use an explicit world owner/lease for local practice,local public AI or remote
+authoritative play. Acquire only from a confirmed idle world; release after all
+native simulation,AI service/coroutine and result cleanup gates complete. A new
+online attempt cannot change an active local world's identity or owner.
+The existing practice implementation is mode4/two armies/one AI. It does not yet
+implement general public1v1/team fallback; see public-bot-roster.txt/team-modes.txt.
+
+Optional control session
+The inherited private bridge remains for application lifetime. OPEN retires the
+previous remote session and authenticates again. Bridge ABI2 now resolves local
+connection settings lazily and delivers a canonical authenticated public identity
+in READY before the native helper constructs HELLO. No invite/key/CA enters the
+game. The server's HELLO==authenticated identity check remains unchanged.
+See secure-client-transport.txt for implemented protocol and tests. Existing
+launchers default to ABI1; an opt-in source launcher selects ABI2. This alone
+does not provide a unified offline menu or automatic fallback.
+
+An optional availability failure must retire only the control session, report
+availability to the menu and leave a local world intact. Do not route it through
+ba_lan::fail, which currently calls ba_local::fail and stops local simulation.
+lan_transport::poll currently auto-connects when inactive; call it only for a
+live explicit connection/queue intent in the unified coordinator. Preserve the
+existing recovery flow for failure of an actual remote-owned match.
+Retire old native presence roots before clearing its welcome identity. A new
+authenticated identity must not inherit requests,invitations,aliases or old decks.
+
+Local deck ownership
+community_native::installPresence currently imports welcome.deck, replacing the
+native local selection. The unified flow must retain edits made offline and
+submit that exact deck after authentication; defer Custom/public readiness until
+the submission is acknowledged. Keep an explicit server-deck import separate.
+dedicated_deck initialization must accept explicit local initialization without
+relying on the offline launch flag. Local save must work regardless of network;
+optional publication depends on an eligible live session.
+
+Native menu routing
+Keep intercepting Custom requests while offline; never fall through to original
+enqueue/login paths. Show unavailable/retry and allow other local menu actions.
+Complete an owned native async request after its original pending pointer exists,
+rather than fabricating a synchronous ACK inside enqueue. Preserve the existing
+deferred Custom request discipline.
+Route Try Deck and all public modes through the world owner and correct loading
+mode. Public queue intents need generation IDs,one committed outcome and explicit
+retirement before fallback. Cancellation/late responses may not create a second
+world or replace a running AI match. Partial groups require server AI filling.
+
+Next native acceptance slice
+One process: start without invite -> local menu -> changed-deck Try Deck ->
+result/Continue -> configure/authenticate -> Custom Create/Leave -> local Try
+Deck again. Preserve deck/name across every transition; server loss during local
+AI must leave that match playable. Test missing/invalid trust separately from
+game/profile state. This slice establishes ownership; all final public modes,
+random difficulty/identity,cosmetics and queue races remain required afterward.
+
+Design evidence:ignored local/p2-unified-client-lifecycle-design.txt. Its review
+identifies exact routing/cleanup callsites in offline_client,practice_ai,
+local_bootstrap,dedicated_deck,dedicated_adapter and community_native. It is a
+source architecture review, not new native runtime qualification.

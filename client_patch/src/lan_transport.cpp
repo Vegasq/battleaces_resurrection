@@ -7,13 +7,20 @@ using ba::Obj; using ba_local::Root;
 using Bytes=std::vector<unsigned char>;
 static SOCKET socketValue=INVALID_SOCKET;
 static bool secureMode() {static const bool enabled=!ba::argument(L"-secure-transport-socket=","").empty();return enabled;}
+static unsigned secureVersion() {
+    static const unsigned version=[]() {
+        const auto value=ba::argument(L"-secure-transport-version=","1");
+        if(value!="1" && value!="2")throw std::runtime_error("Unsupported private transport version");
+        return value=="2"?2u:1u;
+    }();return version;
+}
 static ba_secure::Channel& secureChannel() {
     // Process-lifetime owner: do not invoke Winsock teardown under DllMain's
     // loader lock. Session closes are explicit and the OS reaps the final handle.
     static auto* channel=new ba_secure::Channel();return *channel;
 }
 static bool connecting=false, welcomed=false, stopped=false, worldReady=false, running=false;
-static bool winsockStarted=false,peerClosed=false,submittedFirst=false;
+static bool winsockStarted=false,peerClosed=false,submittedFirst=false,helloSent=false;
 static ULONGLONG connectStarted=0;
 static std::string failureReason;
 static Bytes rx,tx,bootstrap;
@@ -43,7 +50,7 @@ static void recordReceipt(int frame,int actions,int sim,const char* digest) {
 static void closeSocket() {
     if(secureMode())secureChannel().end();
     if(socketValue!=INVALID_SOCKET){closesocket(socketValue);socketValue=INVALID_SOCKET;}
-    connecting=false;
+    connecting=false;helloSent=false;
     if(winsockStarted){WSACleanup();winsockStarted=false;}
 }
 static void saveReceivedBootstrap(const Bytes& data) {
@@ -119,8 +126,13 @@ static Obj parse(const char* type,const Bytes& bytes) {
     if(!selected)throw std::runtime_error("MergeFrom(IMessage,byte[]) unavailable");
     void* args[]={output.get(),array.get()};ba_local::invokeMethod(selected,nullptr,args);return output.get();
 }
+static std::string authenticatedProfile() {
+    if(secureMode() && secureVersion()==2)return secureChannel().profile();
+    const int slot=ba::community()?255:ba::requestedLanSlot();
+    return ba::argument(L"-player-id=",slot==255?"":(slot?"player1":"player0"));
+}
 static void connect() {
-    connectStarted=GetTickCount64();
+    connectStarted=GetTickCount64();helloSent=false;
     std::string endpoint=ba::argument(L"-dedicated-server=","127.0.0.1:47622");
     if(secureMode()) {
         if(!ba::dedicated())throw std::runtime_error("Secure transport requires the dedicated adapter");
@@ -131,10 +143,11 @@ static void connect() {
                 throw std::runtime_error("Invalid secure transport handle argument");
             char* end=nullptr;const unsigned long long handle=_strtoui64(value.c_str(),&end,10);
             if(!end || *end)throw std::runtime_error("Invalid secure transport handle argument");
-            channel.attach(static_cast<uintptr_t>(handle));
+            channel.attach(static_cast<uintptr_t>(handle),secureVersion());
         }
         channel.begin();connecting=false;
-        ba::log("Secure transport ABI BA_RESURRECTION_TLS_BRIDGE_V1; invite remains in parent process");
+        ba::log("Secure transport ABI %s; invite remains in parent process",secureVersion()==2?
+            "BA_RESURRECTION_TLS_BRIDGE_V2":"BA_RESURRECTION_TLS_BRIDGE_V1");
     } else {
     WSADATA data{};if(WSAStartup(MAKEWORD(2,2),&data))throw std::runtime_error("WSAStartup failed");winsockStarted=true;
     socketValue=socket(AF_INET,SOCK_STREAM,IPPROTO_TCP);if(socketValue==INVALID_SOCKET)throw std::runtime_error("LAN socket failed");
@@ -148,6 +161,8 @@ static void connect() {
     if(r==SOCKET_ERROR && WSAGetLastError()!=WSAEWOULDBLOCK)throw std::runtime_error("loopback relay connection failed");
     connecting=r==SOCKET_ERROR;
     }
+}
+static void sendHello() {
     static const char* hex="e59d08c01479b27404778048d7e13546dbf3771f6b3912744c7c2bdf80c4e758";
     const int requestedSlot=ba::community()?255:ba::requestedLanSlot();
     Bytes hello;if(ba::dedicated()){hello.push_back(ba_wire::protocol);hello.push_back(0);}hello.push_back(static_cast<unsigned char>(requestedSlot));
@@ -155,13 +170,14 @@ static void connect() {
     if(ba::dedicated()) {
         const char* sim="107bb83dc416a16492277392c50104660e34c48911345ae2e0d5afe3929a07fb";
         for(int i=0;i<32;++i){unsigned value=0;sscanf_s(sim+2*i,"%2x",&value);hello.push_back(static_cast<unsigned char>(value));}
-        std::string profile=ba::argument(L"-player-id=",requestedSlot==255?"":(requestedSlot?"player1":"player0"));
-        if(profile.empty())throw std::runtime_error("server-assigned seat requires a stable -player-id");
+        std::string profile=authenticatedProfile();
+        if(profile.empty())throw std::runtime_error("server-assigned seat requires a stable player identity");
         std::string values[]={profile,ba::argument(L"-player-name=",requestedSlot==1?"Player2":"Player1"),ba::community()?"community":ba::argument(L"-room=","local")};
         for(const auto& value:values){if(value.size()>128)throw std::runtime_error("dedicated hello value too long");hello.push_back(static_cast<unsigned char>(value.size()));hello.push_back(0);hello.insert(hello.end(),value.begin(),value.end());}
     }
     if(ba::community())hello.insert(hello.begin(),{1,0});
-    send(ba::community()?40:ba::dedicated()?21:1,hello);ba::log("LAN connecting to %s requested slot %d protocol=%d transport=%s",endpoint.c_str(),requestedSlot,ba::dedicated()?ba_wire::protocol:1,secureMode()?"private-TLS-bridge":"development-TCP");
+    send(ba::community()?40:ba::dedicated()?21:1,hello);helloSent=true;
+    ba::log("LAN connecting to %s requested slot %d protocol=%d transport=%s",ba::argument(L"-dedicated-server=","127.0.0.1:47622").c_str(),requestedSlot,ba::dedicated()?ba_wire::protocol:1,secureMode()?"private-TLS-bridge":"development-TCP");
     if(ba::dedicated())ba::log("Dedicated wire ABI BA_RESURRECTION_GAME_PROTOCOL_3");
 }
 static void poll() {
@@ -174,6 +190,10 @@ static void poll() {
         if(FD_ISSET(socketValue,&errorSet))throw std::runtime_error("configured match server unavailable");
         if(!FD_ISSET(socketValue,&writeSet))return;
         int error=0,errorSize=sizeof(error);if(getsockopt(socketValue,SOL_SOCKET,SO_ERROR,reinterpret_cast<char*>(&error),&errorSize)||error)throw std::runtime_error("LAN connection failed");connecting=false;
+    }
+    if(!helloSent) {
+        if(secureMode() && secureVersion()==2 && !secureChannel().ready())return;
+        sendHello();
     }
     while(txPosition<tx.size()) {
         int n=secureMode()?secureChannel().send(reinterpret_cast<const char*>(tx.data()+txPosition),static_cast<int>(tx.size()-txPosition)):

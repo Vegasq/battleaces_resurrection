@@ -1,0 +1,108 @@
+TEAM MODES - BUILD 37822 CONTRACT
+Updated:2026-10-18. Static native/asset findings; no four-army gameplay claim.
+
+The final product requires public2v2 and2vAI even with one offline human. Multiple
+1v1 rooms do not satisfy this. A partial online human group must stay in one
+authoritative match when vacant seats are filled. Custom never inserts bots.
+
+Evidence and enums
+Read-only LLVM/PE, IL2CPP metadata and UnityFS decoding of the untouched build;
+REA native providers were unavailable. Original GameAssembly/metadata hashes are
+listed in public-bot-roster.txt. Five original input hashes remain unchanged.
+Detailed evidence stays in ignored local/team-mode-contract01/FINDINGS.txt,
+verification.json,types.json,slices.json,map2v2.json. No original bytes, map or
+asset tables are published. No game was launched or attached for this research.
+
+CommonPb.GameMode values:1v1=1,2v2=2,1vAI=4,2vAI=5.
+LoadingScreenModel.GameMode uses public2v2=2,2vAI=5,Custom1v1=7,Custom2v2=8,
+TryDeck=10. UI queue/rating selectors are a third enum:Q1v1=0,Q2v2=1,
+Q2v2Arranged=2. Never reuse these values interchangeably.
+UILoadingScreen inference RVAs3c90760/3c90840 confirm public versus Custom mapping.
+
+Map, army and alliance contract
+Both shipped team mode configs use the MatchMaking Mode provider and RGame2v2
+scene, without alternate scenes. This is distinct from the developer smoke mode.
+Scene GUID:d36e4da273c88ea4c96ef677a25a6e79.
+MapMeta GUID:89ec0e1449998684f90e068f9c28c5ae.
+The catalog resolves it to e0a99b96045b55207b75fdb73bdb29d9.bundle, asset
+pathID573020366060400206. Map bundle SHA256:
+ 0cc1a79a13f0fe37e4b2ccacae5ebb4f267fc3c45c2a6d584f435f02012b4eaa
+Actual ArmiesSetup:
+ army0:alliance0,flipped position1
+ army1:alliance1,flipped position0
+ army2:alliance0,flipped position3
+ army3:alliance1,flipped position2
+Teammates are0/2 and1/3. Initial state includes every army. Export the complete
+shipped team map/provider; adding two armies to the1v1 template is insufficient.
+
+MapMeta.GameMode is2 even for selected match mode5. Front.BuildGameData3e3c980
+passes the selected mode through ProtocolUtil.BuildStaticGameData3dc91e0 to
+BuildStaticGameConfig3dc9840, which writes GameConfig.gameMode_+8c. Keep topology
+separate from match mode. ArmyToProto3dafda0 copies the authored army/alliance;
+AISmokeTestTwoVsTwoArmyToProto3db1b60 independently uses alliance=(army&1).
+The latter corroborates native semantics without proving production matchmaking.
+
+AI profiles and ownership
+Mode2 supplies profile59 for both opponent and teammate pools. Mode5 supplies
+profile60 only for opponents; its teammate pool is empty. Choosing an offline
+mode5 AI teammate requires explicit replacement policy and gameplay proof.
+Profile59 uses Type2 presets1..7; profile60 uses Type1 characters1..7. Public
+random difficulty must preserve compatible deck/tactic data and correct mode.
+
+Native AIManager supports multiple processes: RequestAIWithProfile3b98580 checks
+existing _aiPlayers by requested army before adding; AddLocalAI3b99170 constructs
+a fresh LocalAIDeckSelector,LocalAIGameInstance and AIPlayerProcess. Each local AI
+game instance owns its ServiceManager and references the supplied simulation;
+get_IsOwnerOfSimulation6d5ba0 returns false. Create distinct bot services/processes
+and route each assigned army's input into one shared world. Dispose every bot's
+service/coroutines before releasing shared simulation roots.
+AI assignment notifications carry a player handle,army ID and sequence ID;
+connection info separately identifies the host client. InputActions has a
+repeated player_input_actions field, rather than a native two-player limit.
+These definitions do not recover the original server's bot-host election policy.
+
+Required implementation changes
+Separate authenticated profile, network connection owner, participant seat,
+army ID and alliance ID. The current server/client often conflates them.
+server/game_data.py: extend validated templates/PlayerSpec/roster and frame
+assembly beyond exactly0/1; preserve authored alliances and selected mode. Add
+stable bot profile/name/deck/cosmetics plus an explicit input owner. InputValidation
+must authenticate the input producer and validate the assigned bot's army/deck.
+server/dedicated_server.py and protocol.py: ready/loaded connections differ from
+all participants; replace the two-body FRAME format with a bounded versioned
+participant format. Bind each participant to the authoritative roster and frame.
+community.py/community_protocol.py: mode,capacity,team placement and compatible
+client negotiation are needed. Preserve human-only Custom and generation-bound
+public queue cancellation; never accept a stale start after local fallback.
+
+Client lan_bootstrap/lan_transport/dedicated_wire must project the authoritative
+roster/mode/alliance and accept explicitly assigned AI batches. Current deck,
+Custom/invite and loading paths contain mode1/two-seat assumptions. Original
+Custom2v2 roleSlot placement still needs native UI qualification.
+practice_ai.cpp currently owns one bot/deck/process and mode4. local_loop.cpp
+has one peerRoot. Generalize to a bounded participant/producer list with all
+native AI readiness and teardown gates; do not drop a bot's lifecycle checks.
+server_assets_export/import/assets/backup currently pin one map. Export/import/
+hash the team map locally without committing it. Standalone server-side AI may
+also require verified local AI DLL/rule imports and their native ABI work.
+
+Do not expand every two-element loop to four. There are still two alliances:
+observer views0/1 and result winner0/1/31 remain meaningful. Verify commands,
+resources and participant identity for armies0..3 separately from alliance views.
+
+Mixed humans and AI
+Server simulation authority and bot command execution are separate. A mixed
+match needs qualified server-side bot execution or explicit single-owner AI
+delegation with authenticated assignment,input checks,ordered frames and owner-
+loss behavior. Independent local fallback worlds for each human are invalid.
+This decision remains open pending standalone AI ABI evidence and integration.
+
+Required qualification
+First export/build the real mode2 and5 world and inspect all four armies, initial
+actions,decks and alliances. Then run one human with three bots, prove every AI
+reaches Playing and builds/moves/fights, and verify correct team results, surrender
+behavior, full cleanup and rematch. Repeat mode switches with Try Deck/Custom.
+Extend server/client together and test four humans, allied humans against bots,
+other partial groups, timeout/cancel/late responses and any bot-owner disconnect.
+Retired allocation/host election, team elimination semantics, all new AI runtime
+paths, performance and cross-PC behavior remain unqualified.

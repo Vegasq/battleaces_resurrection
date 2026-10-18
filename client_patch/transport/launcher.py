@@ -11,7 +11,7 @@ import re
 import socket
 import subprocess
 
-from .bridge import Bridge, Remote
+from .bridge import Bridge, Remote, RemoteUnavailable, CONFIG_FAILURE
 from server.credentials import CredentialError, read_credential_file
 from server import tls_transport as tls
 
@@ -70,8 +70,42 @@ def validate_config(value, path):
     return value
 
 
-def verify_game(root, *, community=False):
+class RemoteConfigResolver:
+    """Reload validated connection settings on OPEN, without changing the game.
+
+    File access stays in the parent. Cancelling the awaiting session discards a
+    pending read result; no network connection is made in the reader thread.
+    """
+    def __init__(self, path, game_directory):
+        self.path = Path(path).resolve()
+        self.game_directory = Path(game_directory).resolve()
+
+    def read(self):
+        try:
+            if not self.path.is_file(): raise RemoteUnavailable()
+            config = load_config(self.path)
+            if config['game_directory'] != self.game_directory:
+                raise RemoteUnavailable(CONFIG_FAILURE)
+            if not config['ca_bundle'].is_file() or not config['credential_file'].is_file():
+                raise RemoteUnavailable()
+            context = tls.load_client_context(config['ca_bundle'], config['server_name'])
+            credential = read_credential_file(config['credential_file'])
+            return Remote(config['server_host'], config['server_port'], context,
+                          credential['player_id'], credential['token'])
+        except RemoteUnavailable:
+            raise
+        except (OSError, ValueError):
+            # Never send file paths, credential contents or parser errors to IPC.
+            raise RemoteUnavailable(CONFIG_FAILURE) from None
+
+    async def __call__(self):
+        return await asyncio.to_thread(self.read)
+
+
+def verify_game(root, *, community=False, bridge_version=1):
     from client_patch.patcher.patch_client import contained_path
+    if type(bridge_version) is not int or bridge_version not in (1, 2):
+        raise LaunchError('Unsupported private transport version')
     root = Path(root).resolve()
     manifest = read_json(root / '.battleaces-resurrection/patch-manifest.json', 131072)
     if not isinstance(manifest, dict) or manifest.get('state') == 'restored':
@@ -94,6 +128,8 @@ def verify_game(root, *, community=False):
                     helper = stream.read(8 * 1024 * 1024 + 1)
                     if len(helper) > 8 * 1024 * 1024 or b'BA_RESURRECTION_TLS_BRIDGE_V1' not in helper:
                         raise LaunchError('Install a helper supporting secure transport ABI1')
+                    if bridge_version == 2 and b'BA_RESURRECTION_TLS_BRIDGE_V2' not in helper:
+                        raise LaunchError('Install a helper supporting secure transport ABI2')
                     if b'BA_RESURRECTION_GAME_PROTOCOL_3' not in helper:
                         raise LaunchError('Install the protocol3 client helper for configurable buffering')
                     if community and b'BA_RESURRECTION_COMMUNITY_MATCH_V1' not in helper:
@@ -115,12 +151,16 @@ def game_arguments(config, player_id, handle, args):
     root = config['game_directory']
     runtime = root / 'investigation/runtime'
     runtime.mkdir(parents=True, exist_ok=True)
+    dynamic = getattr(args, 'dynamic_identity_experimental', False)
+    log_identity = f'session-{os.getpid()}-{handle}' if dynamic else player_id
     result = [str(root / 'Battle Aces.exe'), '-offline-lan',
         f"-dedicated-server={config['server_host']}:{config['server_port']}",
-        f'-secure-transport-socket={handle}', f'-player-id={player_id}',
+        f'-secure-transport-socket={handle}',
         '-player-name=' + config['display_name'], '-room=' + config['room'],
         '-screen-fullscreen', '0', '-screen-width', '960', '-screen-height', '540',
-        '-logFile', str(runtime / (run_name + '-' + player_id + '.log'))]
+        '-logFile', str(runtime / (run_name + '-' + log_identity + '.log'))]
+    if dynamic: result.append('-secure-transport-version=2')
+    else: result.append(f'-player-id={player_id}')
     switches = dict(auto_ready='-dedicated-auto-ready', smoke='-lan-smoke', deck_smoke='-dedicated-deck-smoke',
                     surrender_smoke='-dedicated-surrender-smoke', telemetry_audit='-telemetry-audit', audit='-lan-audit')
     for option, flag in switches.items():
@@ -142,7 +182,8 @@ def spawn_game(config, remote, args, child_socket):
     startup.dwFlags |= subprocess.STARTF_USESHOWWINDOW
     startup.wShowWindow = 1  # Normal interactive game window.
     startup.lpAttributeList = {'handle_list': [child_socket.fileno()]}
-    argv = game_arguments(config, remote.player_id, child_socket.fileno(), args)
+    player_id = None if getattr(args, 'dynamic_identity_experimental', False) else remote.player_id
+    argv = game_arguments(config, player_id, child_socket.fileno(), args)
     try:
         child_socket.set_inheritable(True)
         return subprocess.Popen(argv, cwd=config['game_directory'], close_fds=True, startupinfo=startup)
@@ -153,11 +194,13 @@ def spawn_game(config, remote, args, child_socket):
 async def launch(config, remote, args):
     """Own the private stream for the game's lifetime; remote sessions authenticate.
 
-    remote is already constructed from verified local settings/private handoff.
+    Version1 uses a Remote from verified local settings/private handoff. The
+    opt-in version2 also accepts an async resolver and receives identity per OPEN.
     This API also permits controlled in-memory credentials in integration tests;
     there is no public bypass flag or token argument.
     """
-    verify_game(config['game_directory'], community=getattr(args, 'community_experimental', False))
+    version = 2 if getattr(args, 'dynamic_identity_experimental', False) else 1
+    verify_game(config['game_directory'], community=getattr(args, 'community_experimental', False), bridge_version=version)
     parent, child = socket.socketpair(socket.AF_INET)
     parent.setblocking(False)
     writer = task = None
@@ -166,7 +209,7 @@ async def launch(config, remote, args):
         game = spawn_game(config, remote, args, child)
         child.close()
         print(f'Secure client started (PID {game.pid}); transport owns the private invite', flush=True)
-        task = asyncio.create_task(Bridge(reader, writer, remote).run())
+        task = asyncio.create_task(Bridge(reader, writer, remote, version=version).run())
         reported = False
         # Poll without occupying a shared executor thread that could block
         # interpreter shutdown after an interrupted launcher.
@@ -194,14 +237,19 @@ def main(argv=None):
     parser.add_argument('--config', type=Path, required=True)
     parser.add_argument('--run-name', default='secure-client')
     parser.add_argument('--community-experimental', action='store_true', help='use native Custom Game on an experimental patched copy')
+    parser.add_argument('--dynamic-identity-experimental', action='store_true',
+                        help='reload connection settings per session with private bridge ABI2')
     for flag in ('auto-ready', 'smoke', 'deck-smoke', 'surrender-smoke', 'rematch-smoke', 'recovery-smoke', 'postgame-recovery-smoke', 'quit-smoke', 'telemetry-audit', 'audit'):
         parser.add_argument('--' + flag, action='store_true', help='optional development diagnostic')
     args = parser.parse_args(argv)
     try:
         config = load_config(args.config)
-        context = tls.load_client_context(config['ca_bundle'], config['server_name'])
-        credential = read_credential_file(config['credential_file'])
-        remote = Remote(config['server_host'], config['server_port'], context, credential['player_id'], credential['token'])
+        if args.dynamic_identity_experimental:
+            remote = RemoteConfigResolver(args.config, config['game_directory'])
+        else:
+            context = tls.load_client_context(config['ca_bundle'], config['server_name'])
+            credential = read_credential_file(config['credential_file'])
+            remote = Remote(config['server_host'], config['server_port'], context, credential['player_id'], credential['token'])
         return asyncio.run(launch(config, remote, args))
     except (LaunchError, CredentialError, tls.TLSConfigurationError):
         # These application exceptions carry only explicitly safe messages.
