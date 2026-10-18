@@ -172,8 +172,13 @@ Current implementation sequence for these additions (2026-10-18):
    adapter binds events to search/loading/world leases. Native cancellation,
    delayed-ACK retry, immediate post-READY loss and lost RETURN ACK now pass;
    mid-load/match failure and repeated mode-switch recovery remain open. Local1v1
-   fallback passes without authentication or a server worker; local team fallback
-   still needs three-bot ownership. The presence-clock reset is corrected and
+   fallback passes without authentication or a server worker. Experimental local
+   three-bot2v2 now passes exact joins, every bot's production/ordered movement,
+   result bindings and native Continue/cleanup. Offline2vAI now passes two natural
+   matches with an exact changed-deck rematch, original character opponents and
+   ally, every bot moving and native result/return. Injected unavailable-server2v2
+   and2vAI searches also transfer to one local world and complete cleanly. Remaining
+   all-mode switches and ordinary enablement remain acceptance gates. The presence-clock reset is corrected and
    advancing native elapsed seconds are verified online. Complete local
    cosmetic inventory/equip/persistence and unified
    release entry points. Static cosmetic inventory/ownership/persistence/wire

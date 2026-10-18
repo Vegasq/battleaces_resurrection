@@ -8,7 +8,9 @@ client_patch/src/public_wire.hpp define the new packets. The experimental native
 adapter now routes original public buttons through these packets and consumes
 two/four-seat frames. Real-time graphical1v1 and solo2v2/2vAI TLS checkpoints
 pass below, alongside bounded native cancellation/connection-loss tests.
-Actual human team play and offline team/failure qualification remain unfinished.
+Offline three-bot2v2 and natural2vAI/rematch now pass, plus an injected
+unavailable-server2v2/2vAI handoff; see team-modes.txt. Actual human team play,
+all-mode switching and failure qualification remain unfinished.
 Ordinary Start Client public/team enablement remains unfinished.
 Custom remains human-only and keeps its existing protocol and lifecycle.
 
@@ -356,6 +358,14 @@ Sources stay unchanged and the owned game is reaped. Together with the separate
 presentation paths; actual mouse input and all-mode release acceptance remain.
   report SHA256:6299487085a0c7ea08de2e5f963c3eda9d5c86081a2c50d98948be3fe237e69c
 
-Remaining: offline three-bot ownership, post-assignment/mid-load/mid-match loss,
+Remaining: offline team mode-switch/failure coverage, post-assignment/mid-load/mid-match loss,
 requeue/late-proposal stress, actual human team play, repeated mode switches,
 ordinary entry-point enablement, manual UI and final release acceptance.
+
+Offline team follow-up: helper-local-team02 extends the fallback producer to
+three independently owned local AI integrations. Both unavailable2v2/2vAI native
+search tests pass with one rejected control attempt, no authentication/worker,
+one local world, three exact bot joins and owned movement/result bindings,
+and native Continue. Practice cannot overlap its search. This does not permit
+fallback after an ambiguous READY/commit; the original attempt guards remain.
+Full hashes, natural local team/rematch evidence and limits: team-modes.txt.

@@ -217,7 +217,7 @@ extern "C" __declspec(dllexport) void OfflineDedicatedJoinQueue(void* front,void
         if(ba::unified() && ba::flag(L"-public-queue-experimental")) {ba_public::start(front,controller,mode);return;}
         // Public queue arbitration is integrated separately. Keep the local
         // public path opt-in until online timeout/cancellation are qualified.
-        if(ba::unified() && mode==1 && ba::flag(L"-public-ai-experimental")) {
+        if(ba::unified() && (mode==1 || mode==2 || mode==5) && ba::flag(L"-public-ai-experimental")) {
             ba_practice::startPublic(front,controller,mode);return;
         }
         if(ba::dedicated() && !ba_practice::active())ba_dedicated::ready(front,mode);

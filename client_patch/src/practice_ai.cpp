@@ -5,24 +5,30 @@ namespace ba_practice {
 using ba::Obj;using ba_local::Root;
 namespace wire=ba_community_wire;
 enum class Phase {Idle,Reserving,Building,Loading,Running,Result,Returning,Failed};
+struct Bot {
+    uint32_t army=1,profile=18,difficulty=18,portrait=0,banner=0;
+    std::string name="Practice AI";
+    std::unique_ptr<Root> identity,deck,ai,process;
+    bool requested=false,joinPending=false,ready=false,joined=false;
+    ULONGLONG requestedAt=0;
+};
 struct State {
     Phase phase=Phase::Idle;
     ba_match_loading::Ticket loadingTicket=0;
     ba_match_search::Ticket searchTicket=0;
-    std::unique_ptr<Root> front,controller,human,bot,humanDeck,botDeck,encoded,ai,process,completionInfo,completionUI;
+    std::unique_ptr<Root> front,controller,human,humanDeck,encoded,completionInfo,completionUI;
+    std::vector<Bot> bots;
     std::string match;
-    uint32_t request=0,aiProfile=18,difficultyProfile=18;
+    uint32_t request=0;
     int mode=4;
-    uint32_t botPortrait=0,botBanner=0;
-    std::string botName="Practice AI";
     uint64_t worldLease=0;
-    bool reserved=false,buildStarted=false,adding=false,joinPending=false,aiStarted=false,result=false;
+    bool reserved=false,buildStarted=false,aiStarted=false,loopStarted=false,result=false;
     bool cancelRequested=false,builderReturned=false;
     bool conceded=false,continued=false,modalReleased=false;
-    bool humanReady=false,botReady=false,humanJoined=false,botJoined=false;
+    bool humanReady=false,humanJoined=false;
     bool inGameIdentity=false,resultIdentity=false;
     ULONGLONG identityWait=0;
-    ULONGLONG began=0,diagnostic=0,aiRequestedAt=0,completionAt=0;
+    ULONGLONG began=0,diagnostic=0,completionAt=0;
 };
 static auto& state=*new State();
 // The original table loader retains its asset for application lifetime, matching
@@ -35,6 +41,22 @@ static bool active(){return state.phase!=Phase::Idle;}
 static Obj need(Obj value,const char* message){if(!value)throw std::runtime_error(message);return value;}
 static void require(bool value,const char* message){if(!value)throw std::runtime_error(message);}
 static void root(std::unique_ptr<Root>& target,Obj value){target=std::make_unique<Root>(need(value,"practice root missing"));}
+static size_t participants(){return (state.mode==2 || state.mode==5)?4u:2u;}
+static Bot* botForService(Obj ai) {
+    if(!ai)return nullptr;
+    for(auto& bot:state.bots)if(bot.ai && bot.ai->get()==ai)return &bot;
+    return nullptr;
+}
+static Bot* botForIdentity(Obj identity) {
+    if(!identity)return nullptr;
+    for(auto& bot:state.bots)if(bot.identity && bot.identity->get()==identity)return &bot;
+    return nullptr;
+}
+static bool botsReady(bool joined) {
+    if(state.bots.size()!=participants()-1)return false;
+    for(const auto& bot:state.bots)if(!bot.requested || !bot.ai || !bot.process || !bot.ready || bot.joinPending || (joined && !bot.joined))return false;
+    return true;
+}
 static Obj server(){return state.front?ba::read<Obj>(state.front->get(),0xd8):nullptr;}
 static Obj manager(){return need(ba::get<Obj>(ba::owner,"<AIManager>k__BackingField"),"practice AI manager missing");}
 static Obj table(const char* name) {
@@ -91,12 +113,9 @@ static Obj tableElement(const char* name,uint32_t id) {
     method=ba::api<Obj(*)(Obj,Obj)>("il2cpp_object_get_virtual_method")(loaded.get(),method);
     void* args[]={&id};return ba_local::invokeMethod(method,loaded.get(),args);
 }
-static uint32_t profileId() {
-    return state.aiProfile; // Frozen at match creation, including through results.
-}
-static void applyDifficultyModifiers(Obj config) {
+static void applyDifficultyModifiers(Obj config,const Bot& selectedBot) {
     if(!ba::localMenu())return;
-    Root profile(tableElement("AIProfileTable",state.difficultyProfile));
+    Root profile(tableElement("AIProfileTable",selectedBot.difficulty));
     require(profile.get() && ba::get<bool>(profile.get(),"Enable") && ba::get<int>(profile.get(),"GameMode")==4,"difficulty modifier profile mismatch");
     Root definition(need(ba::get<Obj>(profile.get(),"AIConfigDefinition"),"difficulty definition missing"));
     Root rows(need(ba::get<Obj>(definition.get(),"_cheatModifiersByRating"),"difficulty rating row missing"));
@@ -110,12 +129,12 @@ static void applyDifficultyModifiers(Obj config) {
     const int64_t health=ba::get<int64_t>(strength.get(),"armyHealthMultiplier_");
     for(int64_t value:{resources,damage,health})require(value>0 && value<=4*unity,"difficulty strength outside supported bounds");
     Root armies(ba::get<Obj>(config,"armies_"));
-    require(ba_local::count(armies.get())==2,"difficulty army count changed");
-    Root bot(ba_bootstrap::item(armies.get(),1));
-    require(ba::get<uint32_t>(bot.get(),"armyId_")==1,"difficulty bot army mismatch");
+    require(ba_local::count(armies.get())==static_cast<int>(participants()),"difficulty army count changed");
+    Root bot(ba_bootstrap::item(armies.get(),selectedBot.army));
+    require(ba::get<uint32_t>(bot.get(),"armyId_")==selectedBot.army,"difficulty bot army mismatch");
     if(resources==unity && damage==unity && health==unity) {
         ba::log("Practice difficulty modifiers: selected=%s resourceQ=%lld damageQ=%lld healthQ=%lld baselineUnchanged=1 humanUnchanged=1",
-            ba_practice_settings::name(state.difficultyProfile),resources,damage,health);return;
+            ba_practice_settings::name(selectedBot.difficulty),resources,damage,health);return;
     }
     Root existing(ba::get<Obj>(bot.get(),"modifiers_"));
     Root modifiers(existing.get()?ba::call(existing.get(),"Clone"):ba::make("GamePb","ArmyModifiers"));
@@ -132,7 +151,7 @@ static void applyDifficultyModifiers(Obj config) {
         for(int i=0;i<count;++i)used.push_back(ba::get<uint32_t>(ba_bootstrap::item(list,i),"key_"));
     };
     collect(ba::get<Obj>(config,"modifiers_"));
-    for(int i=0;i<2;++i) {
+    for(int i=0;i<ba_local::count(armies.get());++i) {
         Obj original=ba::get<Obj>(ba_bootstrap::item(armies.get(),i),"modifiers_");
         if(original)collect(ba::get<Obj>(original,"armyBuffs_"));
     }
@@ -150,11 +169,13 @@ static void applyDifficultyModifiers(Obj config) {
     ba_local::addItem(ba::get<Obj>(modifiers.get(),"armyBuffs_"),buff.get());
     ba::set<Obj>(bot.get(),"modifiers_",modifiers.get());
     ba::log("Practice difficulty modifiers: selected=%s resourceQ=%lld damageQ=%lld healthQ=%lld effectiveResourceQ=%llu buffKey=%u humanUnchanged=1",
-        ba_practice_settings::name(state.difficultyProfile),resources,damage,health,product,key);
+        ba_practice_settings::name(selectedBot.difficulty),resources,damage,health,product,key);
+    ba::log("Local AI strength applied: army=%u profile=%u resourceQ=%lld damageQ=%lld healthQ=%lld",selectedBot.army,selectedBot.difficulty,resources,damage,health);
     if(ba::flag(L"-practice-ai-smoke"))ba::log("Practice bot army modifiers: %s",ba_catalog::utf8(ba::call(modifiers.get(),"ToString")).c_str());
 }
 static Obj aiDeck() {
-    Root profile(tableElement("AIProfileTable",profileId()));
+    const auto profileId=state.bots.front().profile;
+    Root profile(tableElement("AIProfileTable",profileId));
     require(profile.get() && ba::get<bool>(profile.get(),"Enable") && ba::get<int>(profile.get(),"GameMode")==4,"practice shipped AI profile mismatch");
     Obj config=need(ba::get<Obj>(profile.get(),"AIConfigDefinition"),"practice AI config missing");
     Obj decks=need(ba::get<Obj>(config,"_decks"),"practice authored AI decks missing");
@@ -166,7 +187,7 @@ static Obj aiDeck() {
     Obj definition=need(ba::get<Obj>(need(character.get(),"practice AI character missing"),"AICharacterDefinition"),"practice AI character definition missing");
     Root shared(ba::get<Obj>(definition,"Deck"));Root copy(ba::make("Uncapped","Deck"));
     void* copyArgs[]={need(shared.get(),"practice authored AI deck missing")};ba::call(copy.get(),"CopyFromDeck",1,copyArgs);
-    ba::log("Practice AI policy: profile=%u first shipped character=%u; shared definition copied; offlineDifficulty=%d",profileId(),characterId,ba::localMenu()?1:0);
+    ba::log("Practice AI policy: profile=%u first shipped character=%u; shared definition copied; offlineDifficulty=%d",profileId,characterId,ba::localMenu()?1:0);
     return ba_dedicated_deck::proto(copy.get());
 }
 static void fail(const char* where,const std::exception& error) {
@@ -181,7 +202,7 @@ static uint64_t humanId() {
     return ba::get<uint64_t>(ba::get<Obj>(ba::get<Obj>(state.human->get(),"playerHandleWithName_"),"playerHandle_"),"steamId_");
 }
 static void startMode(Obj front,Obj controller,int mode,ba_match_search::Ticket inheritedSearch=0) {
-    require(mode==4 || (mode==1 && ba::unified()),"unsupported local AI mode");
+    require(mode==4 || ((mode==1 || mode==2 || mode==5) && ba::unified()),"unsupported local AI mode");
     if(!ba::localMenu() && !ba::flag(L"-practice-ai-experimental")) {ba::log("Try Deck vs AI is not enabled in this build's normal launcher");return;}
     if(active()){ba::log("Practice already pending or active; duplicate start ignored");return;}
     if(ba_public::active()){ba::log("Practice start ignored while public search owns the intent; cancel search first");return;}
@@ -196,11 +217,15 @@ static void startMode(Obj front,Obj controller,int mode,ba_match_search::Ticket 
     require(ba_dedicated_deck::canReady(front),"practice selected deck is not valid");
     if(ba::unified())ba_client::prepareLocal(front);
     state.mode=mode;
-    state.difficultyProfile=mode!=4?17+ba_public_bots::random(3):ba::localMenu()?ba_practice_settings::selection():
-        ba_practice_settings::profile(ba::argument(L"-practice-ai-profile=","17"));
-    // Shipped Easy17 has no tactical group rules and failed movement acceptance.
-    // Offline Easy uses the working Normal tactics plus Easy's authored strength.
-    state.aiProfile=ba::localMenu() && state.difficultyProfile==17?18:state.difficultyProfile;
+    state.bots.reserve(participants()-1);
+    for(uint32_t army=1;army<participants();++army) {
+        Bot bot;bot.army=army;
+        bot.difficulty=mode!=4?17+ba_public_bots::random(3):ba::localMenu()?ba_practice_settings::selection():
+            ba_practice_settings::profile(ba::argument(L"-practice-ai-profile=","17"));
+        // Easy uses working Normal tactics plus Easy's authored strength.
+        bot.profile=ba::localMenu() && bot.difficulty==17?18:bot.difficulty;
+        state.bots.push_back(std::move(bot));
+    }
     root(state.front,front);root(state.controller,controller);
     root(state.human,ba::get<Obj>(front,"_playerGameHandle"));
     root(state.humanDeck,ba_dedicated_deck::selectedProto(front));
@@ -220,9 +245,10 @@ static void startMode(Obj front,Obj controller,int mode,ba_match_search::Ticket 
         catch(...){state.cancelRequested=true;throw;}
     }
     ba::log("Practice requested: match=%s mode=%d selectedDeckSnapshot=1 standalone=%d",state.match.c_str(),state.mode,ba::localMenu()?1:0);
-    if(mode==4)ba::log("Practice difficulty snapshot: selected=%s modifierProfile=%u tuningProfile=%u",ba_practice_settings::name(state.difficultyProfile),state.difficultyProfile,state.aiProfile);
+    const auto& first=state.bots.front();
+    if(mode==4)ba::log("Practice difficulty snapshot: selected=%s modifierProfile=%u tuningProfile=%u",ba_practice_settings::name(first.difficulty),first.difficulty,first.profile);
     else ba::log("Public AI difficulty snapshot: selected=%s modifierProfile=%u practiceSelectionUnchanged=1 authoredTacticsPending=1",
-        ba_practice_settings::name(state.difficultyProfile),state.difficultyProfile);
+        ba_practice_settings::name(first.difficulty),first.difficulty);
 }
 static void start(Obj front,Obj controller){startMode(front,controller,4);}
 static void startPublic(Obj front,Obj controller,int mode){startMode(front,controller,mode);}
@@ -255,27 +281,33 @@ static void build() {
     require(ba::localMenu() || !ba_lan::stopped,"practice presence lost before creation");
     if(state.mode==4) {if(!characterTableReady())return;}
     else {
-        if(!ba_public_bots::ready())return;
+        if(!ba_public_bots::ready(state.mode))return;
         const auto humanName=ba_catalog::utf8(ba::get<Obj>(ba::get<Obj>(state.human->get(),"playerHandleWithName_"),"playerName_"));
-        auto selected=ba_public_bots::choose(state.mode,humanName);
-        state.aiProfile=selected.profile;state.botPortrait=selected.portrait;state.botBanner=selected.banner;
-        state.botName=std::move(selected.name);state.botDeck=std::move(selected.deck);
+        std::vector<std::string> names{humanName};
+        for(auto& bot:state.bots) {
+            auto selected=ba_public_bots::choose(state.mode,names,bot.army%2==0);
+            bot.profile=selected.profile;bot.portrait=selected.portrait;bot.banner=selected.banner;
+            bot.name=std::move(selected.name);bot.deck=std::move(selected.deck);names.push_back(bot.name);
+            ba::log("Local AI roster frozen: army=%u alliance=%u profile=%u difficulty=%u name=%s",bot.army,bot.army%2,bot.profile,bot.difficulty,bot.name.c_str());
+        }
     }
     state.buildStarted=true;
     Obj method=ba::api<Obj(*)(Obj,const char*,int)>("il2cpp_class_get_method_from_name")(ba::find_class("Uncapped.UI","IGameSettingController"),"GetConfigForMode",1);
     method=ba::api<Obj(*)(Obj,Obj)>("il2cpp_object_get_virtual_method")(state.controller->get(),method);
     int mode=state.mode;void* modeArgs[]={&mode};Root config(ba_local::invokeMethod(method,state.controller->get(),modeArgs));
     need(config.get(),"practice mode config unavailable");
-    if(state.mode==4)root(state.botDeck,aiDeck());
-    Root bot(ba_lan_bootstrap::playerLan(1));ba::set<uint32_t>(bot.get(),"aiProfileId_",profileId());
-    Obj named=ba::get<Obj>(bot.get(),"playerHandleWithName_");
-    ba::set<Obj>(named,"playerName_",ba::str(state.botName.c_str()));ba::set<Obj>(named,"filteredName_",ba::str(state.botName.c_str()));
-    root(state.bot,bot.get());require(humanId()!=2,"practice human and AI identity collision");
-    Root army(ba::make("GamePb","ArmyConfig"));ba::set<uint32_t>(army.get(),"armyId_",1);ba::set<uint32_t>(army.get(),"allianceId_",1);
-    ba::set<Obj>(army.get(),"deck_",state.botDeck->get());ba_local::addItem(ba::get<Obj>(army.get(),"players_"),state.bot->get());
-    if(state.mode!=4){ba::set<uint32_t>(army.get(),"portraitId_",state.botPortrait);ba::set<uint32_t>(army.get(),"bannerId_",state.botBanner);}
-    Root list(ba::api<Obj(*)(Obj,uintptr_t)>("il2cpp_array_new")(ba::find_class("GamePb","ArmyConfig"),1));
-    ba::api<void(*)(Obj,void**,Obj)>("il2cpp_gc_wbarrier_set_field")(list.get(),reinterpret_cast<void**>(static_cast<char*>(list.get())+0x20),army.get());
+    if(state.mode==4)root(state.bots.front().deck,aiDeck());
+    Root list(ba::api<Obj(*)(Obj,uintptr_t)>("il2cpp_array_new")(ba::find_class("GamePb","ArmyConfig"),state.bots.size()));
+    for(auto& bot:state.bots) {
+        root(bot.identity,ba_lan_bootstrap::playerLan(bot.army));ba::set<uint32_t>(bot.identity->get(),"aiProfileId_",bot.profile);
+        Obj named=ba::get<Obj>(bot.identity->get(),"playerHandleWithName_");
+        ba::set<Obj>(named,"playerName_",ba::str(bot.name.c_str()));ba::set<Obj>(named,"filteredName_",ba::str(bot.name.c_str()));
+        require(humanId()!=bot.army+1,"practice human and AI identity collision");
+        Root army(ba::make("GamePb","ArmyConfig"));ba::set<uint32_t>(army.get(),"armyId_",bot.army);ba::set<uint32_t>(army.get(),"allianceId_",bot.army%2);
+        ba::set<Obj>(army.get(),"deck_",bot.deck->get());ba_local::addItem(ba::get<Obj>(army.get(),"players_"),bot.identity->get());
+        if(state.mode!=4){ba::set<uint32_t>(army.get(),"portraitId_",bot.portrait);ba::set<uint32_t>(army.get(),"bannerId_",bot.banner);}
+        arraySet(list.get(),bot.army-1,army.get());
+    }
     if(ba_bootstrap::frontRoot)ba::api<void(*)(uint32_t)>("il2cpp_gchandle_free")(ba_bootstrap::frontRoot);
     ba_bootstrap::frontRoot=ba::api<uint32_t(*)(Obj,bool)>("il2cpp_gchandle_new")(state.front->get(),false);
     ba_bootstrap::bootstrapThread=GetCurrentThreadId();ba_bootstrap::creating=true;ba_bootstrap::awaitingWorld=false;
@@ -294,17 +326,18 @@ static void consume(Obj front,Obj request,Obj data) {
     }
     Obj config=need(ba::get<Obj>(data,"gameConfig_"),"practice static config missing");
     require(ba::get<int>(config,"gameMode_")==state.mode,"local AI builder changed mode");
-    applyDifficultyModifiers(config);
+    for(const auto& bot:state.bots)applyDifficultyModifiers(config,bot);
     Obj armies=ba::get<Obj>(config,"armies_");
-    require(ba_local::count(armies)==2,"practice primary map must have two armies");
-    for(int index=0;index<2;++index) {
+    require(ba_local::count(armies)==static_cast<int>(participants()),"local AI primary map army count mismatch");
+    for(size_t index=0;index<participants();++index) {
         Obj army=ba_bootstrap::item(armies,index);
         require(ba::get<uint32_t>(army,"armyId_")==static_cast<uint32_t>(index),"practice army order mismatch");
+        require(ba::get<uint32_t>(army,"allianceId_")==index%2,"local AI authored alliance mismatch");
+        const Bot* bot=index?&state.bots[index-1]:nullptr;
         Obj players=ba::get<Obj>(army,"players_");ba::call(players,"Clear");
-        ba_local::addItem(players,index?state.bot->get():state.human->get());
-        ba::set<uint32_t>(army,"allianceId_",index);
-        ba::set<Obj>(army,"deck_",index?state.botDeck->get():state.humanDeck->get());
-        if(index && state.mode!=4){ba::set<uint32_t>(army,"portraitId_",state.botPortrait);ba::set<uint32_t>(army,"bannerId_",state.botBanner);}
+        ba_local::addItem(players,bot?bot->identity->get():state.human->get());
+        ba::set<Obj>(army,"deck_",bot?bot->deck->get():state.humanDeck->get());
+        if(bot && state.mode!=4){ba::set<uint32_t>(army,"portraitId_",bot->portrait);ba::set<uint32_t>(army,"bannerId_",bot->banner);}
         if(ba::flag(L"-practice-ai-smoke"))
             ba::log("Practice army snapshot: %s",ba_catalog::utf8(ba::call(army,"ToString")).substr(0,16384).c_str());
     }
@@ -317,7 +350,7 @@ static void consume(Obj front,Obj request,Obj data) {
     root(state.encoded,ba_bootstrap::encodeGameData(data));state.phase=Phase::Loading;
     if(state.searchTicket)require(ba_match_search::found(state.searchTicket),"stale public start after cancellation");
     ba_match_loading::advance(state.loadingTicket,ba_match_loading::Stage::Loading);
-    ba::log("Practice map ready: mode=%d armies=2 humanProfile=0 aiProfile=%u selectedHumanDeck=1 primaryMap=1",state.mode,profileId());
+    ba::log("Practice map ready: mode=%d armies=%zu humanProfile=0 aiProfile=%u selectedHumanDeck=1 primaryMap=1",state.mode,participants(),state.bots.front().profile);
     ba_bootstrap::beginJoined(front,state.encoded->get(),state.human->get(),false,state.match.c_str());
 }
 static bool assetsReady(Obj gameServer) {
@@ -332,18 +365,20 @@ static void worldReady(Obj gameServer) {
     ba::log("Practice world ready: humanWorld=%llu aiWorld=%llu",ba::read<uint64_t>(ba::read<Obj>(gameServer,0x140),0x1a8),ba::get<uint64_t>(manager(),"_aiWorld"));
 }
 static void captureAIJoin(Obj ai,Obj connection,bool spectator) {
-    require(state.aiStarted && state.phase==Phase::Running && !state.ai && !spectator &&
+    Bot* found=botForIdentity(ba::get<Obj>(ai,"_playerGameHandle"));
+    require(found && found->requested && state.aiStarted && state.phase==Phase::Running && !found->ai && !spectator &&
         GetCurrentThreadId()==ba_dedicated_session::unityThread && ai!=server() &&
-        ba::get<Obj>(ai,"_playerGameHandle")==state.bot->get() && !ba::read<Obj>(ai,0x140),"practice AI join ownership");
+        !ba::read<Obj>(ai,0x140),"practice AI join ownership");
+    auto& bot=*found;
     require(ba_catalog::utf8(ba::get<Obj>(ba::get<Obj>(connection,"gameHandle_"),"gameName_"))==state.match,"practice AI join identity");
-    root(state.ai,ai);Root cloned(ba::call(connection,"Clone"));
+    root(bot.ai,ai);Root cloned(ba::call(connection,"Clone"));
     ba::set<Obj>(ai,"_currentConnectionInfo",cloned.get());
     Obj selector=need(ba::get<Obj>(ai,"_deckSelector"),"practice AI selector missing");
     require(ba::klass(selector)==ba::find_class("Uncapped","LocalAIDeckSelector"),"practice AI selector ownership mismatch");
-    void* fromArgs[]={state.botDeck->get()};Root deck(ba::invoke(ba::find_class("Uncapped","Deck"),nullptr,"FromProto",1,fromArgs));
+    void* fromArgs[]={bot.deck->get()};Root deck(ba::invoke(ba::find_class("Uncapped","Deck"),nullptr,"FromProto",1,fromArgs));
     void* selectArgs[]={deck.get()};ba::call(selector,"set_SelectedDeck",1,selectArgs);
-    ba_local::attachPeer(ai);state.joinPending=true;
-    ba::log("Practice AI join captured: separateService=1 sharedWorld=1 networkJoin=0");
+    ba_local::attachPeer(ai);bot.joinPending=true;
+    ba::log("Practice AI join captured: separateService=1 sharedWorld=1 networkJoin=0 army=%u",bot.army);
 }
 static void addAI() {
     require(!state.aiStarted,"practice AI already requested");state.aiStarted=true;
@@ -354,41 +389,40 @@ static void addAI() {
     // and port. Its AddLocalAI callee accepts the connection explicitly.
     // Preserve the original DLL type3/profile identity and native AI lifecycle.
     Root address(ba::str("offline")),port(ba::str("0")),name(ba::str(state.match.c_str()));
-    uint32_t army=1,sequence=1;int type=3;
-    void* args[]={state.bot->get(),address.get(),port.get(),name.get(),sim,nullptr,nullptr,&type,&army,&sequence};
-    state.aiRequestedAt=GetTickCount64();
-    state.adding=true;
-    try {Root process(ba::call(manager(),"AddLocalAI",10,args));need(process.get(),"practice native AI process not created");}
-    catch(...){state.adding=false;throw;}
-    state.adding=false;
-    ba::log("Practice native AI requested: profile=%u army=1 processes=%d",profileId(),ba_local::count(ba::get<Obj>(manager(),"_aiPlayers")));
+    for(auto& bot:state.bots) {
+        uint32_t army=bot.army,sequence=bot.army;int type=3;
+        void* args[]={bot.identity->get(),address.get(),port.get(),name.get(),sim,nullptr,nullptr,&type,&army,&sequence};
+        require(!bot.requested,"local AI duplicate request");bot.requested=true;bot.requestedAt=GetTickCount64();
+        Root process(ba::call(manager(),"AddLocalAI",10,args));need(process.get(),"practice native AI process not created");
+        root(bot.process,process.get());
+        ba::log("Practice native AI requested: profile=%u army=%u processes=%d",bot.profile,army,ba_local::count(ba::get<Obj>(manager(),"_aiPlayers")));
+    }
 }
-static void deliverAIJoin() {
-    require(state.ai && state.joinPending,"practice AI response without request");
+static void deliverAIJoin(Bot& bot) {
+    require(bot.ai && bot.joinPending && bot.process,"practice AI response without request");
     Obj players=ba::get<Obj>(manager(),"_aiPlayers");Obj selected=nullptr;
     for(int index=0;index<ba_local::count(players);++index) {
         Obj process=ba_bootstrap::item(players,index),game=ba::get<Obj>(process,"_game");
         Obj services=game?ba::get<Obj>(game,"_serverManager"):nullptr;
-        if(services && ba::get<Obj>(services,"<GameServer>k__BackingField")==state.ai->get()) {
+        if(services && ba::get<Obj>(services,"<GameServer>k__BackingField")==bot.ai->get()) {
             require(!selected && ba::get<Obj>(game,"_playerSimReference")==ba::read<Obj>(server(),0x140) &&
-                ba::get<uint32_t>(process,"_requestedAsArmyId")==1,"practice AI process membership mismatch");selected=process;
+                ba::get<uint32_t>(process,"_requestedAsArmyId")==bot.army,"practice AI process membership mismatch");selected=process;
         }
     }
-    root(state.process,need(selected,"practice AI joining process disappeared"));
-    Obj ai=state.ai->get();require(!ba::read<Obj>(ai,0x140),"practice AI tried to own simulation");
+    require(selected && selected==bot.process->get(),"practice AI joining process disappeared or changed");
+    Obj ai=bot.ai->get();require(!ba::read<Obj>(ai,0x140),"practice AI tried to own simulation");
     ba::set<Obj>(ai,"<ClientConfig>k__BackingField",ba::get<Obj>(server(),"<ClientConfig>k__BackingField"));
     Obj conn=ba::get<Obj>(ai,"_currentConnectionInfo"),handle=ba::get<Obj>(conn,"gameHandle_");
     Root response(ba::make("GamePb","JoinedGame"));
-    ba::set<Obj>(response.get(),"gameHandle_",handle);ba::set<Obj>(response.get(),"playerHandle_",state.bot->get());
+    ba::set<Obj>(response.get(),"gameHandle_",handle);ba::set<Obj>(response.get(),"playerHandle_",bot.identity->get());
     ba::set<Obj>(response.get(),"gameDataEncoded_",state.encoded->get());ba::set<Obj>(response.get(),"gameConnectionInfo_",conn);
     ba::set<int>(response.get(),"serverState_",0);
     int error=0;void* args[]={&error,response.get()};ba::call(ai,"ProcessJoinedGame",2,args);
-    require(state.botReady,"practice AI ready signal missing");
+    require(bot.ready,"practice AI ready signal missing");
     Root started(ba::make("GamePb","GameStarted"));ba::set<Obj>(started.get(),"gameHandle_",handle);
     ba::set<int>(started.get(),"serverState_",1);void* startArgs[]={started.get()};ba::call(ai,"ProcessGameStarted",1,startArgs);
-    state.joinPending=false;
-    OfflineSetLocalReady(true);
-    ba::log("Practice AI JoinedGame delivered: nativeJoinArmy=1 simulationOwner=0");
+    bot.joinPending=false;
+    ba::log("Practice AI JoinedGame delivered: nativeJoinArmy=1 simulationOwner=0 army=%u",bot.army);
 }
 static bool signalReady(Obj gameServer) {
     if(!active())return false;
@@ -396,22 +430,22 @@ static bool signalReady(Obj gameServer) {
         require(!state.humanReady,"practice duplicate human readiness");state.humanReady=true;
         ba::log("Practice native human asset-ready callback received");return true;
     }
-    if(state.ai && gameServer==state.ai->get()) {
-        require(!state.botReady,"practice duplicate AI readiness");state.botReady=true;
-        ba::log("Practice native AI ready callback received");return true;
+    if(auto* bot=botForService(gameServer)) {
+        require(!bot->ready,"practice duplicate AI readiness");bot->ready=true;
+        ba::log("Practice native AI ready callback received army=%u",bot->army);return true;
     }
     return false;
 }
 static void input(Obj gameServer,Obj action) {
-    const bool bot=state.ai && gameServer==state.ai->get();
+    Bot* bot=botForService(gameServer);
     require(bot || gameServer==server(),"practice input from unrelated service");
     Root join(ba::call(action,"get_JoinArmy"));if(!join.get())return;
-    bool& joined=bot?state.botJoined:state.humanJoined;
+    bool& joined=bot?bot->joined:state.humanJoined;
     require(!joined,"practice duplicate JoinArmy");
-    const uint32_t army=ba::get<uint32_t>(join.get(),"armyId_"),expected=bot?1:0;
+    const uint32_t army=ba::get<uint32_t>(join.get(),"armyId_"),expected=bot?bot->army:0;
     require(army==31 || army==expected,"practice JoinArmy assigned wrong army");
     Obj deck=need(ba::get<Obj>(join.get(),"deck_"),"practice native JoinArmy deck missing");
-    Obj frozen=bot?state.botDeck->get():state.humanDeck->get();
+    Obj frozen=bot?bot->deck->get():state.humanDeck->get();
     if(ba::flag(L"-practice-ai-smoke"))
         ba::log("Practice original JoinArmy: %s",ba_catalog::utf8(ba::call(join.get(),"ToString")).substr(0,16384).c_str());
     for(const char* field:{"units_","activeAbilityGroups_"}) {
@@ -423,7 +457,7 @@ static void input(Obj gameServer,Obj action) {
     ba::set<uint32_t>(join.get(),"armyId_",expected);ba::set<Obj>(join.get(),"deck_",frozen);joined=true;
     // The shipped JoinArmy serializer omits these fields. Carry the immutable
     // public bot identity through the actual simulation input as well as config.
-    if(bot && state.mode!=4){ba::set<uint32_t>(join.get(),"portraitId_",state.botPortrait);ba::set<uint32_t>(join.get(),"bannerId_",state.botBanner);}
+    if(bot && state.mode!=4){ba::set<uint32_t>(join.get(),"portraitId_",bot->portrait);ba::set<uint32_t>(join.get(),"bannerId_",bot->banner);}
     if(bot && ba::flag(L"-public-ai-smoke"))ba::log("Public AI frozen JoinArmy: %s",ba_catalog::utf8(ba::call(join.get(),"ToString")).c_str());
     ba::log("Practice native JoinArmy validated: army=%u selectedUnits=8 abilities=4 exactSnapshot=1",expected);
 }
@@ -465,7 +499,7 @@ static bool publicIdentity(bool result) {
     void* args[]={type.get()};Root views(ba::invoke(ba::find_class("UnityEngine","Resources"),nullptr,"FindObjectsOfTypeAll",1,args));
     require(views.get()!=nullptr,"public identity view inventory missing");
     const auto count=ba::api<uintptr_t(*)(Obj)>("il2cpp_array_length")(views.get());
-    require(count<=1024,"public identity view capacity");unsigned matched=0;
+    require(count<=1024,"public identity view capacity");std::vector<uint32_t> matched;
     auto child=[&](Obj vm,uint32_t expected) {
         if(!visibleProfile(vm))return 0u;
         Root set(ba::call(vm,"get_IsModelSet"));if(!boolean(set.get()))return 0u;
@@ -477,19 +511,22 @@ static bool publicIdentity(bool result) {
         Obj vm=ba::read<Obj>(views.get(),0x20+i*sizeof(Obj));if(!visibleProfile(vm))continue;
         Root set(ba::call(vm,"get_IsModelSet"));if(!boolean(set.get()))continue;
         Root model(ba::call(vm,"get_Model"));if(!model.get())continue;
-        if(ba::get<uint64_t>(model.get(),"SteamId")!=2 || ba::get<int>(model.get(),"GameMode")!=state.mode ||
-           ba::get<uint32_t>(model.get(),"AllianceId")!=1)continue;
+        const auto id=ba::get<uint64_t>(model.get(),"SteamId");Bot* selected=nullptr;
+        for(auto& bot:state.bots)if(id==bot.army+1)selected=&bot;
+        if(!selected || ba::get<int>(model.get(),"GameMode")!=state.mode ||
+           ba::get<uint32_t>(model.get(),"AllianceId")!=selected->army%2)continue;
+        const auto& bot=*selected;
         if(result)require(ba::get<Obj>(vm,"_frontServer")==state.front->get(),"public result view belongs to another front");
         else require(ba::get<Obj>(vm,"_simulation")==ba::read<Obj>(server(),0x140),"public in-game view belongs to another world");
         const bool alias=ba::get<bool>(model.get(),"IsAlias");
-        const auto expected=state.botName+(result && alias?" (Alias)":"");
-        require(ba::get<bool>(model.get(),"IsAi") && ba_catalog::utf8(ba::get<Obj>(model.get(),"PlayerName"))==state.botName &&
+        const auto expected=bot.name+(result && alias?" (Alias)":"");
+        require(ba::get<bool>(model.get(),"IsAi") && ba_catalog::utf8(ba::get<Obj>(model.get(),"PlayerName"))==bot.name &&
             ba_catalog::utf8(ba::call(vm,"get_PlayerName"))==expected,"public native UI name/AI binding mismatch");
         const auto portrait=ba::get<uint32_t>(model.get(),"Portrait"),banner=ba::get<uint32_t>(model.get(),"Banner");
-        if(portrait!=state.botPortrait || banner!=state.botBanner)
+        if(portrait!=bot.portrait || banner!=bot.banner)
             ba::log("Public AI cosmetic mismatch: phase=%s actualPortrait=%u expectedPortrait=%u actualBanner=%u expectedBanner=%u",
-                result?"result":"in-game",portrait,state.botPortrait,banner,state.botBanner);
-        require(portrait==state.botPortrait && banner==state.botBanner,"public native profile cosmetic mismatch");
+                result?"result":"in-game",portrait,bot.portrait,banner,bot.banner);
+        require(portrait==bot.portrait && banner==bot.banner,"public native profile cosmetic mismatch");
         unsigned portraits=0,banners=0;
         if(result) {
             Root ai(ba::call(vm,"get_IsAI"));require(boolean(ai.get()),"public result VM lost AI flag");
@@ -498,61 +535,69 @@ static bool publicIdentity(bool result) {
                 const auto n=ba::api<uintptr_t(*)(Obj)>("il2cpp_array_length")(array);require(n<=32,"public result cosmetic child capacity");
                 for(size_t j=0;j<n;++j) {
                     Obj value=ba::read<Obj>(array,0x20+j*sizeof(Obj));
-                    if(field[1]=='p')portraits+=child(value,state.botPortrait);else banners+=child(value,state.botBanner);
+                    if(field[1]=='p')portraits+=child(value,bot.portrait);else banners+=child(value,bot.banner);
                 }
             }
         } else {
-            portraits=child(ba::get<Obj>(vm,"_portraitCosmeticVM"),state.botPortrait);
-            banners=child(ba::get<Obj>(vm,"_bannerCosmeticVM"),state.botBanner);
+            portraits=child(ba::get<Obj>(vm,"_portraitCosmeticVM"),bot.portrait);
+            banners=child(ba::get<Obj>(vm,"_bannerCosmeticVM"),bot.banner);
         }
         if(!portraits || !banners)continue;
-        ++matched;ba::log("Public AI identity binding: phase=%s name=%s modelAi=1 portrait=%u banner=%u portraitChildren=%u bannerChildren=%u live=1 currentMatch=1",
-            result?"result":"in-game",expected.c_str(),state.botPortrait,state.botBanner,portraits,banners);
+        if(std::find(matched.begin(),matched.end(),bot.army)==matched.end())matched.push_back(bot.army);
+        ba::log("Public AI identity binding: phase=%s name=%s modelAi=1 portrait=%u banner=%u portraitChildren=%u bannerChildren=%u live=1 currentMatch=1 army=%u",
+            result?"result":"in-game",expected.c_str(),bot.portrait,bot.banner,portraits,banners,bot.army);
     }
-    return matched>0;
+    return matched.size()==state.bots.size();
 }
 static bool gameUpdate(Obj gameServer,Obj method) {
     if(!active())return false;
-    if(gameServer!=server())return state.ai && gameServer==state.ai->get();
+    if(gameServer!=server())return botForService(gameServer)!=nullptr;
     if(state.phase==Phase::Failed)return true;
     try {
         if(state.phase==Phase::Loading)require(GetTickCount64()-state.began<60000,"practice world/assets readiness deadline");
         ba_bootstrap::poll(gameServer);
         if(state.phase==Phase::Running) {
             if(!state.aiStarted)addAI();
-            else if(state.joinPending)deliverAIJoin();
-            if(!state.botJoined)require(GetTickCount64()-state.aiRequestedAt<30000,"practice AI joining deadline");
+            else for(auto& bot:state.bots)if(bot.joinPending)deliverAIJoin(bot);
+            for(const auto& bot:state.bots)if(!bot.joined)require(GetTickCount64()-bot.requestedAt<30000,"practice AI joining deadline");
+            if(!state.loopStarted && botsReady(false)) {
+                require(ba_local::peerCount==state.bots.size(),"local AI producer count mismatch");
+                OfflineSetLocalReady(true);require(ba_local::ready.load(),"local AI readiness failed");state.loopStarted=true;
+                ba::log("Local AI all ready: bots=%zu sharedSimulation=1 producers=%zu",state.bots.size(),ba_local::peerCount+1);
+            }
             if(ba::flag(L"-practice-ai-smoke") && ba::flag(L"-lan-smoke"))
                 ba_lan_smoke::enqueue(gameServer,ba_local::lastSubmittedFrame+1);
             OfflineGameUpdate(gameServer,method);
             if(ba_local::failed.load())throw std::runtime_error("practice input loop failed");
             // World creation precedes the AI join and native UI loading. Keep
             // feedback until both players can run and the original FSM is InGame.
-            if(state.loadingTicket && state.humanReady && state.botReady && state.humanJoined &&
-               state.botJoined && !state.joinPending && ba_local::ready.load() && ba_dedicated::loadingInGame()) {
+            if(state.loadingTicket && state.humanReady && state.humanJoined && botsReady(true) &&
+               ba_local::ready.load() && ba_dedicated::loadingInGame()) {
                 ba::log("Match loading readiness: source=%s ticket=%llu nativeInGame=1 botReady=1 joinDelivered=1 localReady=1 humanJoined=1 botJoined=1 match=%s",
                     state.mode==4?"practice":"public",static_cast<unsigned long long>(state.loadingTicket),state.match.c_str());
                 ba_match_loading::success(state.loadingTicket);state.loadingTicket=0;
             }
             Obj sim=ba::read<Obj>(gameServer,0x140);
-            if(ba::flag(L"-practice-ai-smoke") && state.process && GetTickCount64()-state.diagnostic>=10000) {
+            if(ba::flag(L"-practice-ai-smoke") && botsReady(false) && GetTickCount64()-state.diagnostic>=10000) {
                 state.diagnostic=GetTickCount64();Root paused(ba::call(manager(),"GetAnyAIPaused"));
-                ba::log("Practice AI cadence: sim=%d aiUpdated=%d hasDll=%d anyPaused=%d simFlag1b0=%d joining=%d humanStep=%.6f aiStep=%.6f",
-                    ba::read<int>(sim,0xa8),ba::get<int>(manager(),"_lastUpdatedFrame"),ba::get<bool>(manager(),"_hasDllAI")?1:0,
-                    boolean(paused.get())?1:0,ba::read<bool>(sim,0x1b0)?1:0,ba::get<int>(state.process->get(),"_joiningStatus"),
-                    ba::native<float(*)(Obj,Obj)>(0x3e4fa20)(gameServer,nullptr),ba::native<float(*)(Obj,Obj)>(0x3e4fa20)(state.ai->get(),nullptr));
-                uint32_t army=1;void* profileArgs[]={&army};Root effective(ba::call(manager(),"ActiveAIProfile",1,profileArgs));
-                if(effective.get()) {
-                    Root tuning(ba::get<Obj>(effective.get(),"AIFuzzyTuning"));
-                    ba::log("Practice effective AI profile: id=%u expectedTableEntry=%d name=%s tuning=%s",
-                        ba::get<uint32_t>(effective.get(),"_id"),effective.get()==tableElement("AIProfileTable",profileId())?1:0,
-                        ba_catalog::utf8(ba::get<Obj>(effective.get(),"Name")).c_str(),
-                        tuning.get()?ba_catalog::utf8(ba::call(tuning.get(),"get_name")).c_str():"null");
+                for(const auto& bot:state.bots) {
+                    ba::log("Practice AI cadence: sim=%d aiUpdated=%d hasDll=%d anyPaused=%d simFlag1b0=%d joining=%d humanStep=%.6f aiStep=%.6f",
+                        ba::read<int>(sim,0xa8),ba::get<int>(manager(),"_lastUpdatedFrame"),ba::get<bool>(manager(),"_hasDllAI")?1:0,
+                        boolean(paused.get())?1:0,ba::read<bool>(sim,0x1b0)?1:0,ba::get<int>(bot.process->get(),"_joiningStatus"),
+                        ba::native<float(*)(Obj,Obj)>(0x3e4fa20)(gameServer,nullptr),ba::native<float(*)(Obj,Obj)>(0x3e4fa20)(bot.ai->get(),nullptr));
+                    uint32_t army=bot.army;void* profileArgs[]={&army};Root effective(ba::call(manager(),"ActiveAIProfile",1,profileArgs));
+                    if(effective.get()) {
+                        Root tuning(ba::get<Obj>(effective.get(),"AIFuzzyTuning"));
+                        ba::log("Practice effective AI profile: id=%u expectedTableEntry=%d name=%s tuning=%s",
+                            ba::get<uint32_t>(effective.get(),"_id"),effective.get()==tableElement("AIProfileTable",bot.profile)?1:0,
+                            ba_catalog::utf8(ba::get<Obj>(effective.get(),"Name")).c_str(),
+                            tuning.get()?ba_catalog::utf8(ba::call(tuning.get(),"get_name")).c_str():"null");
+                    }
+                    ba_audit::practiceAIView(bot.process->get(),ba::read<int>(sim,0xa8));
                 }
-                ba_audit::practiceAIView(state.process->get(),ba::read<int>(sim,0xa8));
                 if(ba::flag(L"-public-ai-smoke") && !state.inGameIdentity)state.inGameIdentity=publicIdentity(false);
             }
-            if(ba::flag(L"-practice-ai-smoke") && !state.conceded && ba::read<int>(sim,0xa8)>=smokeFrames()) {
+            if(ba::flag(L"-practice-ai-smoke") && !ba::flag(L"-practice-ai-smoke-natural") && !state.conceded && ba::read<int>(sim,0xa8)>=smokeFrames()) {
                 state.conceded=true;ba::call(sim,"ConcedeGame");ba::log("PRACTICE SMOKE native ConcedeGame (automated)");
             }
             Obj data=ba::call(ba::owner,"get_MatchDataManager"),info=ba::get<Obj>(data,"_matchInfo");
@@ -579,13 +624,14 @@ static void release() {
     ba_local::ready.store(false);ba_local::accepting.store(false);
     {
         ba_local::QueueLock lock;
-        for(Obj producer:{server(),state.ai?state.ai->get():nullptr})if(producer)
+        std::vector<Obj> producers{server()};for(const auto& bot:state.bots)if(bot.ai)producers.push_back(bot.ai->get());
+        for(Obj producer:producers)if(producer)
             for(size_t offset:{size_t(0x180),size_t(0x188)}) {
                 Obj queue=ba::read<Obj>(producer,offset);if(queue)ba::call(queue,"Clear");
             }
     }
-    if(ba_local::peerRoot)ba_local::detachPeer();
-    state.process.reset();state.ai.reset();
+    if(ba_local::peerCount)ba_local::detachPeers();
+    for(auto& bot:state.bots){bot.process.reset();bot.ai.reset();}
     ba_dedicated_session::releaseRoot(ba_local::serverRoot);
     ba_local::failed.store(false);ba_local::updateThread=0;ba_local::previousTime=0;
     ba_local::submittedTicks=0;ba_local::lastSubmittedFrame=-1;ba_local::accumulatedMs=0;
@@ -673,6 +719,9 @@ static bool frontUpdate(Obj front) {
 }
 static bool publicSmoke(Obj front) {
     require(ba::unified() && ba::flag(L"-public-ai-experimental"),"public AI smoke requires unified experimental path");
+    const auto requested=ba::argument(L"-public-ai-smoke-mode=","1");
+    require(requested=="1" || requested=="2" || requested=="5","public AI smoke mode unsupported");
+    const int mode=requested=="1"?1:requested=="2"?2:5;
     Root type(ba_tables::reflectedType("MatchmakingButtonVM","Uncapped.UI"));void* args[]={type.get()};
     Root buttons(ba::invoke(ba::find_class("UnityEngine","Resources"),nullptr,"FindObjectsOfTypeAll",1,args));
     require(buttons.get()!=nullptr,"public matchmaking buttons unavailable");
@@ -684,19 +733,19 @@ static bool publicSmoke(Obj front) {
         Root go(ba::native<Obj(*)(Obj,Obj)>(0x6ec1a0)(button,nullptr));
         if(!go.get() || !ba::native<bool(*)(Obj,Obj)>(0x508a650)(go.get(),nullptr))continue;
         Root model(ba::call(button,"get_Model"));
-        if(!model.get() || ba::get<int>(model.get(),"<GameMode>k__BackingField")!=1)continue;
+        if(!model.get() || ba::get<int>(model.get(),"<GameMode>k__BackingField")!=mode)continue;
         if(ba::get<bool>(button,"_isMatching") || ba::get<int>(button,"_lockedReason")!=0)continue;
         Root interactable(ba::call(button,"get_Interactable"));if(!boolean(interactable.get()))continue;
         require(ba::get<Obj>(button,"_gameSettingController")==ba::owner &&
             ba::get<Obj>(button,"_serverManager")==ba::get<Obj>(ba::owner,"<ServiceManager>k__BackingField"),
             "public matchmaking button dependency mismatch");
-        require(!selected,"multiple available public1v1 buttons");selected=button;
+        require(!selected,"multiple available public mode buttons");selected=button;
     }
     if(!selected)return false;
     ba::native<void(*)(Obj,Obj)>(0x3d23220)(selected,nullptr);
-    require(active() && state.mode==1 && state.front->get()==front,"public original button did not start local AI match");
+    require(active() && state.mode==mode && state.front->get()==front,"public original button did not start local AI match");
     ba_match_search::observeButton(selected);
-    ba::log("PUBLIC AI SMOKE original mode1 OnMapSelected: owned=1 visible=1 interactable=1 preamble=1 (automated; not mouse input)");
+    ba::log("PUBLIC AI SMOKE original mode%d OnMapSelected: owned=1 visible=1 interactable=1 preamble=1 (automated; not mouse input)",mode);
     return true;
 }
 static void smoke(Obj front) {
@@ -833,8 +882,7 @@ static void offlineUpdate(Obj front) {
 }
 extern "C" __declspec(dllexport) void OfflinePracticeAIJoin(void* ai,void* connection,bool spectator,void* method) {
     ba::init();
-    if(!ba_practice::active() || !ba_practice::state.bot || !ai ||
-       ba::get<ba::Obj>(ai,"_playerGameHandle")!=ba_practice::state.bot->get()) {
+    if(!ba_practice::active() || !ai || !ba_practice::botForIdentity(ba::get<ba::Obj>(ai,"_playerGameHandle"))) {
         ba::native<void(*)(void*,void*,bool,void*)>(0x3e53940)(ai,connection,spectator,method);return;
     }
     try{ba_practice::captureAIJoin(ai,connection,spectator);}

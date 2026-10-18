@@ -2,6 +2,26 @@ IMPLEMENTATION LEDGER
 Updated: 2026-10-18 UTC
 Active objective: implement SERVER_REPLACEMENT_PLAN.txt, Windows only.
 
+LOCAL TEAM AI CHECKPOINT (2026-10-18 UTC, EXPERIMENTAL)
+The isolated offline2v2 native probe now passes with one human and three local
+DLL AI integrations in a single simulation. Every bot validates its frozen deck,
+builds units and autonomously moves owned units. All three result names, portraits
+and banners bind correctly; diagnostic surrender and native Continue return to
+an empty local menu/world with no connection or invite read. This is automated
+callback evidence, not manual acceptance or a natural team result. The first
+hidden attempt stopped before the initial menu callback; a visible retry passed.
+Offline2vAI also passes two natural matches in one process, with exact deck
+changes on rematch, every bot producing/moving, all result identity bindings and
+clean native returns. No server connection/invite is used. Public unavailable-server
+2v2 and 2vAI fallback also pass: one failed attempt, one four-army local world, all bots
+moving/result-bound, zero authentication/workers and clean Continue. Ordinary entry points, all-mode
+switching/failure recovery and release qualification remain open. The refactored
+single-bot coordinator also passes mode4 -> four authenticated Custom Create/Leave
+cycles -> changed-deck mode4, preserving local deck/name and native bot movement
+and returns. It creates no server worker; see unified-client.txt.
+See team-modes.txt for exact hashes and limits. Prior public queue work is pushed
+as1cfbfd74adc4a416312c91bb033a04ec6585d7d2;658 source paths/objects audited,0 failures.
+
 GRAPHICAL PUBLIC QUEUE CHECKPOINT (2026-10-18 UTC, EXPERIMENTAL)
 The native adapter now connects original public buttons/search to authenticated
 server proposals, canonical two/four-seat input, remote world ownership and

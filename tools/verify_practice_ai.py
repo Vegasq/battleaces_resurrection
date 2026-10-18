@@ -43,7 +43,7 @@ def source_hashes():
     return result
 
 
-def movement_evidence(log, bot_units):
+def movement_evidence(log, bot_units, army=1):
     """Correlate native owned units with original Move12/Attack88 orders.
 
     The DLL's unit orders omit protobuf entityType (default0). Resolve the
@@ -51,14 +51,19 @@ def movement_evidence(log, bot_units):
     """
     positions, moved, ordered = {}, set(), set()
     for _, entity, unit, x, y, z in re.findall(
-            r'Practice AI entity: frame=(\d+) army=1 id=(\d+) type=(\d+) position=\((\d+),(\d+),(\d+)\)', log):
+            rf'Practice AI entity: frame=(\d+) army={army} id=(\d+) type=(\d+) position=\((\d+),(\d+),(\d+)\)', log):
         if int(unit) not in bot_units: continue
         entity, point = int(entity), (int(x), int(y), int(z))
         if entity in positions and positions[entity] != point: moved.add(entity)
         positions[entity] = point
+    owned = 'Local AI owned action: ' in log
     for line in log.splitlines():
-        if 'Practice AI protobuf: ' not in line: continue
-        action = json.loads(line.split('Practice AI protobuf: ', 1)[1])
+        if owned:
+            if f'Local AI owned action: identity={army+1} ' not in line: continue
+            action = json.loads(line.split(' protobuf=', 1)[1])
+        else:
+            if army != 1 or 'Practice AI protobuf: ' not in line: continue
+            action = json.loads(line.split('Practice AI protobuf: ', 1)[1])
         command = action.get('executeCommand', {})
         if not set(command.get('commandData', {})) & {'targetGroundCommandData', 'targetUnitCommandData'}: continue
         for group in command.get('entityTypeData', []):

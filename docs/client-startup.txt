@@ -46,3 +46,9 @@ owned process reaped. These warm runs do not explain or fix the105.85s delay.
 Next diagnostic if needed: bounded per-table start/terminal timing and task status
 for the known12 pre-menu references. Never bypass _loadingFinish on a timer or
 force synchronous Addressables completion. User helper15 remains unchanged.
+
+The later isolated local-team-2v2-02 visible retry records original RGameInit.Start
+time114.192s before its successful offline team match. Its preceding hidden run
+was stopped after more than165s without an initial native menu callback. Both
+are retained under ignored local/; team-modes.txt pins the passing report. No
+per-table timing, network timeout cause or startup performance fix is established.

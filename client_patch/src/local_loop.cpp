@@ -11,9 +11,10 @@
 namespace ba_local {
 using ba::Obj;
 static uint32_t serverRoot = 0;
-// Optional local AI has its own integration/queues and shares the human world.
-// Only the practice coordinator may register it and release it after shutdown.
-static uint32_t peerRoot = 0;
+// Up to three local AI integrations share the human world. Only the local
+// match coordinator may register them, before ticking, and release after shutdown.
+static std::array<uint32_t,3> peerRoots{};
+static size_t peerCount=0;
 static std::atomic<bool> accepting{false}, ready{false}, failed{false};
 static DWORD updateThread = 0;
 static ULONGLONG previousTime = 0;
@@ -42,24 +43,31 @@ static Obj server() {
 static bool isTarget(Obj candidate) {
     return accepting.load() && !failed.load() && candidate && candidate == server();
 }
-static Obj peer() {
-    return peerRoot ? ba::api<Obj(*)(uint32_t)>("il2cpp_gchandle_get_target")(peerRoot) : nullptr;
+static Obj peer(size_t index) {
+    return index<peerCount ? ba::api<Obj(*)(uint32_t)>("il2cpp_gchandle_get_target")(peerRoots[index]) : nullptr;
+}
+static bool isPeer(Obj candidate) {
+    if(!candidate)return false;
+    for(size_t i=0;i<peerCount;++i)if(candidate==peer(i))return true;
+    return false;
 }
 static bool isProducer(Obj candidate) {
-    return accepting.load() && !failed.load() && candidate && (candidate==server() || candidate==peer());
+    return accepting.load() && !failed.load() && candidate && (candidate==server() || isPeer(candidate));
 }
 static void attachPeer(Obj candidate) {
-    if(GetCurrentThreadId()!=updateThread || !isTarget(server()) || peerRoot ||
+    if(GetCurrentThreadId()!=updateThread || !isTarget(server()) || ready.load() || peerCount>=peerRoots.size() || isPeer(candidate) ||
        !candidate || candidate==server() || ba::read<Obj>(candidate,0x140) ||
        !ba::read<Obj>(candidate,0x180) || !ba::read<Obj>(candidate,0x188))
         throw std::runtime_error("local AI input ownership mismatch");
-    peerRoot=ba::api<uint32_t(*)(Obj,bool)>("il2cpp_gchandle_new")(candidate,false);
+    const auto handle=ba::api<uint32_t(*)(Obj,bool)>("il2cpp_gchandle_new")(candidate,false);
+    if(!handle)throw std::runtime_error("local AI root allocation failed");
+    peerRoots[peerCount++]=handle;
 }
-static void detachPeer() {
+static void detachPeers() {
     if(GetCurrentThreadId()!=updateThread || accepting.load() || ready.load())
         throw std::runtime_error("local AI input still active during release");
-    if(peerRoot)ba::api<void(*)(uint32_t)>("il2cpp_gchandle_free")(peerRoot);
-    peerRoot=0;
+    for(size_t i=0;i<peerCount;++i){ba::api<void(*)(uint32_t)>("il2cpp_gchandle_free")(peerRoots[i]);peerRoots[i]=0;}
+    peerCount=0;
 }
 static void fail(const char* where,const std::exception& exception) {
     ready.store(false); accepting.store(false); failed.store(true);
@@ -141,7 +149,7 @@ static int collect(Obj gameServer,Obj message) {
     while(actionCount < 256) {
         Root action(dequeue(actions)); if(!action.get()) break;
         if(ba_practice::active())ba_practice::input(gameServer,action.get());
-        if(gameServer==peer() && ba::flag(L"-practice-ai-smoke")) {
+        if(isPeer(gameServer) && ba::flag(L"-practice-ai-smoke")) {
             Obj payload=ba::get<Obj>(action.get(),"action_");
             ba::log("Practice AI action: case=%d type=%s",ba::get<int>(action.get(),"actionCase_"),
                 payload?ba::api<const char*(*)(Obj)>("il2cpp_class_get_name")(ba::klass(payload)):"null");
@@ -151,7 +159,9 @@ static int collect(Obj gameServer,Obj message) {
                     command?ba::api<const char*(*)(Obj)>("il2cpp_class_get_name")(ba::klass(command)):"null");
             }
             const auto json=ba_catalog::utf8(ba::call(action.get(),"ToString"));
+            const auto id=ba::get<uint64_t>(ba::get<Obj>(ba::get<Obj>(identity,"playerHandleWithName_"),"playerHandle_"),"steamId_");
             ba::log("Practice AI protobuf: %s",json.substr(0,8192).c_str());
+            ba::log("Local AI owned action: identity=%llu frame=%d protobuf=%s",static_cast<unsigned long long>(id),ba::get<int>(message,"gameFrame_"),json.substr(0,8192).c_str());
         }
         addItem(playerActions,action.get()); ++actionCount;
     }
@@ -168,12 +178,13 @@ static void tick(Obj gameServer,Obj simulation) {
     ba::set<float>(message.get(),"debugGameSpeed_",1.0f);
     ba::set<int>(message.get(),"spectatorCount_",0);
     const int humanActions=collect(gameServer,message.get());
-    const int aiActions=peer()?collect(peer(),message.get()):0;
+    int aiActions=0;
+    for(size_t i=0;i<peerCount;++i)aiActions+=collect(peer(i),message.get());
     const int actionCount=humanActions+aiActions;
     bool catchingUp=false;
     void* processArgs[]={message.get(),&catchingUp};
     ba::call(gameServer,"ProcessInputActions",2,processArgs);
-    if(peer())ba::call(peer(),"ProcessInputActions",2,processArgs);
+    for(size_t i=0;i<peerCount;++i)ba::call(peer(i),"ProcessInputActions",2,processArgs);
     void* pushArgs[]={message.get()};
     ba::call(simulation,"PushSimMessage",1,pushArgs);
     lastSubmittedFrame=nextFrame;
@@ -189,7 +200,7 @@ extern "C" __declspec(dllexport) void OfflinePrepareLocalGame(void* gameServer) 
     try {
         ba::init(); accepting.store(false); ready.store(false);
         if(!gameServer) throw std::runtime_error("offline server missing");
-        if(peerRoot)throw std::runtime_error("previous local AI service has not shut down");
+        if(peerCount)throw std::runtime_error("previous local AI services have not shut down");
         // Invoke only while the prior local game/input producers are stopped.
         if(serverRoot) ba::api<void(*)(uint32_t)>("il2cpp_gchandle_free")(serverRoot);
         serverRoot=0;

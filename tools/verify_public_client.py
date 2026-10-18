@@ -40,7 +40,7 @@ ROOT = Path(__file__).resolve().parents[1]
 
 
 def source_hashes():
-    paths = [Path(__file__), ROOT/'tools/run_secure_match.py'] + list((ROOT/'client_patch/transport').glob('*.py'))
+    paths = [Path(__file__), ROOT/'tools/run_secure_match.py', ROOT/'tools/verify_practice_ai.py'] + list((ROOT/'client_patch/transport').glob('*.py'))
     return core_hashes() | {p.relative_to(ROOT).as_posix(): hashlib.sha256(p.read_bytes()).hexdigest() for p in paths}
 
 
@@ -128,7 +128,7 @@ async def run(args):
         if args.mode==1:
             command+=['-dedicated-surrender-smoke','-dedicated-surrender-frame=1200']
         if args.unavailable:
-            command+=['-practice-ai-smoke','-practice-ai-smoke-matches=1','-practice-ai-smoke-frames=1200']
+            command+=['-practice-ai-smoke','-public-ai-smoke','-practice-ai-smoke-matches=1','-practice-ai-smoke-frames=1200']
         startup=subprocess.STARTUPINFO();startup.dwFlags|=subprocess.STARTF_USESHOWWINDOW;startup.wShowWindow=1 if args.visible else 0
         startup.lpAttributeList={'handle_list':[child.fileno()]}
         clock=ctypes.WinDLL('kernel32').GetTickCount64;clock.restype=ctypes.c_ulonglong;launch_tick=clock()
@@ -141,12 +141,12 @@ async def run(args):
         (output/'processes.json').write_text(json.dumps(report,indent=2)+'\n')
         shutil.copyfile(game/'.battleaces-resurrection/patch-manifest.json',output/'patch-manifest.json')
         preworld=(bool(args.cancel) or args.drop_on_ready) and not args.retry
-        marker=('Practice returned: completed=1 mode=1' if args.unavailable else
+        marker=(f'Practice returned: completed=1 mode={args.mode}' if args.unavailable else
                 'Public intent retired: ticket=1' if preworld or args.drop_return_ack else 'PUBLIC QUEUE completed return:')
         while True:
             require(process.poll() is None,'owned game exited before native return')
             log=read_native_log(game,process.pid,since_tick=launch_tick)
-            for failure in ('Public client failure:', 'Client lifecycle invariant failed:', 'Offline loop stopped in '):
+            for failure in ('Public client failure:', 'Client lifecycle invariant failed:', 'Offline loop stopped in ', 'Practice stopped in '):
                 require(failure not in log,'native public failure: '+failure)
             if marker in log: break
             require(time.monotonic()-started<args.timeout,'native public queue/match/Continue timed out')
@@ -173,7 +173,24 @@ async def run(args):
             require(not workers and not credentials.calls and 'Public fallback accepted:' in log,'unavailable route contacted/started server match')
             require(log.count('Client world acquired:')==1 and 'owner=local-practice' in log and 'owner=remote' not in log,
                     'fallback world ownership differs')
-            report.update(local_fallback=True)
+            require(attempts==1,'unavailable public intent attempted multiple connections')
+            from tools.verify_practice_ai import movement_evidence
+            armies=[json.loads(line.split('Practice army snapshot: ',1)[1]) for line in log.splitlines() if 'Practice army snapshot: ' in line]
+            participants=2 if args.mode==1 else 4
+            require(len(armies)==participants,'fallback roster size mismatch')
+            require([army.get('armyId',0) for army in armies]==list(range(participants)) and
+                    [army.get('allianceId',0) for army in armies]==[seat%2 for seat in range(participants)],'fallback topology changed')
+            require(f'Local AI all ready: bots={participants-1} sharedSimulation=1 producers={participants}' in log,
+                    'fallback did not wait for every local bot')
+            bots=[]
+            for seat,army in enumerate(armies[1:],1):
+                moved,ordered=movement_evidence(log,set(army['deck']['units']),seat)
+                require(moved & ordered,'fallback bot did not autonomously move produced units: '+str(seat))
+                require(log.count(f'Practice native JoinArmy validated: army={seat} ')==1,'fallback bot duplicate/missing exact deck join')
+                require(any('Public AI identity binding: phase=result ' in line and line.endswith(f'army={seat}') for line in log.splitlines()),
+                        'fallback bot result identity missing')
+                bots.append(dict(seat=seat,profile=army['players'][0]['aiProfileId'],ordered_moving_units=sorted(moved & ordered)))
+            report.update(local_fallback=True,local_bots=bots)
         elif preworld:
             # Disconnect retirement is asynchronous on the server. Wait for it
             # before claiming capacity release, without closing the server first.
@@ -264,7 +281,6 @@ def main():
     require(0<=args.delay_enter_ack<=8 and (not args.retry or args.cancel or args.drop_on_ready),'bounded delay/retry point required')
     require(sum(map(bool,(args.unavailable,args.cancel,args.drop_on_ready,args.drop_return_ack)))<=1,
             'choose one unavailable/cancel/disconnect scenario')
-    require(not args.unavailable or args.mode==1,'offline public team adapter is not implemented yet')
     return asyncio.run(run(args))
 
 

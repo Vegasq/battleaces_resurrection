@@ -2,7 +2,7 @@
 // Include after ba helpers and local_loop.cpp; does not patch or launch anything.
 // Exact-build evidence: ../network/protocol.txt, deckselector-selected.asm,
 // Deck.ToProtoBuildtime RVA0x3cd43c0, Deck.FromProto RVA0x3cd4630.
-// Slot convention is zero based: 0/1 => aliased SteamId1/2.
+// Participant slots are zero based: 0..3 => aliased SteamId1..4.
 namespace ba_lan_bootstrap {
 using ba::Obj;
 using ba_local::Root;
@@ -13,13 +13,13 @@ static Obj at(Obj list,int index) {
     void* args[]={&index};return ba::call(required(list,"LAN list missing"),"get_Item",1,args);
 }
 static Obj playerLan(int slot) {
-    if(slot<0 || slot>1)throw std::runtime_error("LAN slot must be zero based 0 or 1");
+    if(slot<0 || slot>3)throw std::runtime_error("participant slot must be zero based 0..3");
     Root id(ba::make("CommonPb","PlayerHandle"));
     ba::set<uint64_t>(id.get(),"steamId_",static_cast<uint64_t>(slot+1));
     ba::set<bool>(id.get(),"isAliased_",true);
     Root named(ba::make("CommonPb","PlayerHandleWithName"));
     ba::set<Obj>(named.get(),"playerHandle_",id.get());
-    Obj text=ba::str(slot==0 ? "LAN Player 1" : "LAN Player 2");
+    Obj text=ba::str(("LAN Player "+std::to_string(slot+1)).c_str());
     ba::set<Obj>(named.get(),"playerName_",text);
     ba::set<Obj>(named.get(),"filteredName_",text);
     Root result(ba::make("CommonPb","PlayerGameHandle"));
@@ -28,6 +28,7 @@ static Obj playerLan(int slot) {
     return result.get();
 }
 static Obj identityLan(Obj front,int slot) {
+    if(slot<0 || slot>1)throw std::runtime_error("legacy LAN identity requires slot 0 or 1");
     Root result(playerLan(slot));
     ba::set<Obj>(required(front,"LAN front missing"),"_playerGameHandle",result.get());
     ba::set<Obj>(front,"_currentPlayerName",ba::str(slot==0 ? "LAN Player 1" : "LAN Player 2"));

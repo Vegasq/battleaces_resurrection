@@ -174,3 +174,19 @@ Ignored local/profile-name01/FINDINGS.txt SHA256
 d29d0f369c576784399404a792686920b9156c4ac76f439bd91e5190ced3c834.
 This is original PE/LLVM plus prior IL2CPP evidence, not native REA execution or
 a runtime fix. The pinned original hash matches the supported baseline.
+
+Local team coordinator regression (2026-10-18)
+local/local-team-practice-custom01/verification.json PASS; SHA256
+7b9aa04aa8561362de56af90b2e47eb2c13a8975a1489d913bfc0daf6a61e032.
+Helper343f32a9c079ad7fd1dbae62121a58b5c2d9bbdb0206a3c69bc98bc86d95189d,
+PID31540, elapsed421.649s. The refactored per-bot coordinator completes mode4 ->
+authenticated Custom Create/Leave (four lobby cycles) -> changed-deck mode4 in
+one process. Two remote attempts include the initial unavailable check, with
+one authentication and zero server workers. A deliberately different server
+default deck does not replace the selected local deck. The configured name and
+both exact human deck snapshots are retained. Bots reach129/136 supply;40/46
+owned produced units both move and receive autonomous Move/Attack commands.
+Diagnostic surrender at3600, result/Continue and empty AIManager/world release
+pass twice. Sources stay unchanged; owned process is forcibly reaped. Native
+Quit, actual public/Custom match switching, cross-process persistence and mouse
+interaction are not qualified by this regression. Team evidence: team-modes.txt.

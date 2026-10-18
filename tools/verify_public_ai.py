@@ -1,4 +1,4 @@
-"""Opt-in native public1v1 AI button/combat/results/rematch verification.
+"""Opt-in native local public1v1/2v2/2vAI button/combat/results/rematch verification.
 
 Runs the real unified launcher with no server/CA/invite and explicit diagnostic
 flags. Native Play, build, surrender and Continue are automated; hidden by default.
@@ -79,6 +79,8 @@ def search_evidence(log, game, output, pid, matches):
 def run(args):
     require(os.name == 'nt' and 120 <= args.timeout <= 900, 'bounded Windows probe required')
     require(args.matches in (1, 2) and 1200 <= args.frames <= 3600, 'bounded match/frame count required')
+    require(not args.search_smoke or args.mode == 1, 'cancellation probe currently covers mode1')
+    require(not args.profile or args.mode == 1, 'profile override currently covers mode1')
     game, output = args.game.resolve(), args.output.resolve()
     require(output.is_relative_to(ROOT/'local'), 'evidence must remain under ignored local/')
     output.mkdir(parents=True, exist_ok=False)
@@ -101,7 +103,7 @@ def run(args):
                     'Practice stopped in ', 'Dedicated native Play could not ready lobby:',
                     'Offline loop stopped in ', 'Offline status: native search',
                     'Native search failure cleanup:')), 'native public AI failed; see logs')
-                if f'Practice returned: completed={args.matches} mode=1 seat=-1 presenceRetained=0 standalone=1' in log:
+                if f'Practice returned: completed={args.matches} mode={args.mode} seat=-1 presenceRetained=0 standalone=1' in log:
                     report['native_lifecycle_complete'] = True
                     break
                 require(time.monotonic()-started < args.timeout, 'native public AI deadline reached')
@@ -117,10 +119,12 @@ def run(args):
         require(not any('smoke' in value or 'audit' in value for value in command), 'normal launcher added diagnostics')
         command[command.index('-logFile')+1] = str(output/'game.log')
         command += ['-public-ai-experimental', '-public-ai-smoke', '-practice-ai-smoke',
+                    f'-public-ai-smoke-mode={args.mode}',
                     f'-practice-ai-smoke-matches={args.matches}', f'-practice-ai-smoke-frames={args.frames}',
                     '-lan-smoke', '-lan-audit']
         if args.matches == 2: command.append('-practice-ai-deck-smoke')
         if args.profile: command.append(f'-public-ai-smoke-profile={args.profile}')
+        if args.natural: command.append('-practice-ai-smoke-natural')
         if args.search_smoke: command.append('-match-search-smoke')
         startup = subprocess.STARTUPINFO()
         startup.dwFlags |= subprocess.STARTF_USESHOWWINDOW
@@ -150,16 +154,18 @@ def run(args):
             if monitor is not None: monitor.join(timeout=15)
             require(report.get('native_lifecycle_complete') and 'error' not in report, report.get('error', 'public AI lifecycle incomplete'))
             require(connect.call_count == invite.call_count == 0, 'offline public AI required remote connection/invite')
-        starts = list(re.finditer(r'Practice requested: match=([0-9a-f]{32}) mode=1 ', log))
+        starts = list(re.finditer(rf'Practice requested: match=([0-9a-f]{{32}}) mode={args.mode} ', log))
         attempts = args.matches + (2 if args.search_smoke else 0)
         require(len(starts) == attempts and len({s[1] for s in starts}) == attempts, 'public match identities/count incorrect')
-        for marker in ('PUBLIC AI SMOKE original mode1 OnMapSelected: owned=1 visible=1 interactable=1 preamble=1',
+        for marker in (f'PUBLIC AI SMOKE original mode{args.mode} OnMapSelected: owned=1 visible=1 interactable=1 preamble=1',
                        'owner=local-practice nativeIdle=1'):
             require(log.count(marker) == attempts, 'native intent count mismatch: ' + marker)
         if args.search_smoke:
             report['native_search'] = search_evidence(log, game, output, process.pid, args.matches)
             starts = starts[2:]
-        for marker in ('Practice AI JoinedGame delivered:', 'Practice native EndOfGameResponse delivered;',
+        bots_per_match = 1 if args.mode == 1 else 3
+        require(log.count('Practice AI JoinedGame delivered:') == args.matches*bots_per_match, 'not every bot joined exactly once')
+        for marker in ('Practice native EndOfGameResponse delivered;',
                        'PRACTICE SMOKE native Continue (automated)'):
             require(log.count(marker) == args.matches, 'native lifecycle count mismatch: ' + marker)
         report['matches'] = evidence = []
@@ -167,33 +173,45 @@ def run(args):
             segment = log[start.start():starts[index+1].start() if index+1 < len(starts) else len(log)]
             armies = [json.loads(line.split('Practice army snapshot: ', 1)[1])
                       for line in segment.splitlines() if 'Practice army snapshot: ' in line]
-            require(len(armies) == 2, 'expected one human and one bot army')
-            human, bot = armies
+            require(len(armies) == bots_per_match+1, 'local roster size mismatch')
+            require([army.get('armyId', 0) for army in armies] == list(range(len(armies))), 'local army order mismatch')
+            require([army.get('allianceId', 0) for army in armies] == [index%2 for index in range(len(armies))], 'authored team alliances changed')
+            human = armies[0]
             require(human['players'][0]['playerHandleWithName']['playerName'] == settings['display_name'], 'configured human name lost')
-            bot_name = bot['players'][0]['playerHandleWithName']['playerName']
-            profile = bot['players'][0]['aiProfileId']
-            require(bot_name != 'Practice AI' and profile in (58, 62, 63, 64), 'public roster was replaced by practice opponent')
-            if args.profile: require(profile == args.profile, 'forced qualification profile not used')
-            require(bot.get('portraitId') and bot.get('bannerId'), 'public bot avatar missing')
-            require(f'Practice effective AI profile: id={profile} expectedTableEntry=1' in segment, 'native AI did not use frozen public profile')
-            require('Public AI identity binding: phase=result ' in segment, 'native result name/AI/cosmetic bindings not observed')
-            moved, ordered = movement_evidence(segment, set(bot['deck']['units']))
-            require(bool(moved & ordered), 'no produced bot unit both moved and received autonomous Move/Attack orders')
             resource_path = game/'investigation/runtime'/f'lan-resources-{process.pid}-{start[1]}.tsv'
             shutil.copy2(resource_path, output/resource_path.name)
             with resource_path.open(encoding='utf-8') as source:
-                rows = [row for row in csv.DictReader(source, delimiter='\t') if row['viewer'] == '1' and row['army'] == '1']
-            supply = max((int(row['current_supply']) for row in rows), default=0)
-            require(supply > 0, 'bot produced no native unit supply')
+                rows = list(csv.DictReader(source, delimiter='\t'))
+            bot_evidence = []
+            names = {settings['display_name']}
+            for seat, bot in enumerate(armies[1:], 1):
+                bot_name = bot['players'][0]['playerHandleWithName']['playerName']
+                profile = bot['players'][0]['aiProfileId']
+                expected_profiles = (58, 62, 63, 64) if args.mode == 1 else (59,) if args.mode == 2 or seat == 2 else (60,)
+                require(bot_name != 'Practice AI' and bot_name not in names and profile in expected_profiles, 'public roster identity/pool mismatch')
+                names.add(bot_name)
+                if args.profile: require(profile == args.profile, 'forced qualification profile not used')
+                require(bot.get('portraitId') and bot.get('bannerId'), 'public bot avatar missing')
+                require(f'Practice effective AI profile: id={profile} expectedTableEntry=1' in segment, 'native AI did not use frozen public profile')
+                bindings = [line for line in segment.splitlines() if 'Public AI identity binding: phase=result ' in line and line.endswith(f'army={seat}')]
+                require(bindings, 'native result name/AI/cosmetic bindings not observed for seat '+str(seat))
+                moved, ordered = movement_evidence(segment, set(bot['deck']['units']), seat)
+                require(bool(moved & ordered), 'bot did not produce and autonomously move units: '+str(seat))
+                supply = max((int(row['current_supply']) for row in rows if row['viewer'] == str(seat%2) and row['army'] == str(seat)), default=0)
+                require(supply > 0, 'bot produced no native unit supply: '+str(seat))
+                require(segment.count(f'Practice native JoinArmy validated: army={seat} ') == 1, 'bot deck/army join not validated exactly once')
+                bot_evidence.append(dict(seat=seat, profile=profile, bot_name=bot_name, portrait=bot['portraitId'], banner=bot['bannerId'],
+                    bot_deck=bot['deck']['units'], bot_max_supply=supply, ordered_moving_units=sorted(moved & ordered), result_identity_binding=True))
             difficulty = re.search(r'Public AI difficulty snapshot: selected=(\w+) modifierProfile=(17|18|19) practiceSelectionUnchanged=1', segment)
             require(difficulty is not None, 'separate random public difficulty snapshot missing')
-            evidence.append(dict(match=start[1], profile=profile, bot_name=bot_name, portrait=bot['portraitId'],
-                banner=bot['bannerId'], human_deck=human['deck']['units'], bot_deck=bot['deck']['units'],
-                difficulty=difficulty[1], bot_max_supply=supply, ordered_moving_units=sorted(moved & ordered),
-                result_identity_binding=True, in_game_identity_binding='Public AI identity binding: phase=in-game ' in segment))
+            require(f'Local AI all ready: bots={bots_per_match} sharedSimulation=1 producers={bots_per_match+1}' in segment, 'all-bot readiness gate not observed')
+            evidence.append(dict(match=start[1], mode=args.mode, human_deck=human['deck']['units'], bots=bot_evidence,
+                difficulty=difficulty[1], **bot_evidence[0],
+                in_game_identity_binding='Public AI identity binding: phase=in-game ' in segment))
+        if args.natural: require('PRACTICE SMOKE native ConcedeGame' not in log, 'natural probe surrendered')
         if args.matches == 2:
             require(evidence[0]['human_deck'] != evidence[1]['human_deck'], 'edited human deck did not reach rematch')
-            require(evidence[0]['bot_name'] != evidence[1]['bot_name'], 'public bot name did not vary')
+            if args.mode == 1: require(evidence[0]['bot_name'] != evidence[1]['bot_name'], 'public1v1 bot name did not vary')
         report.update(passed=True, remote_connections=0, invite_reads=0)
     except BaseException as error:
         report.update(passed=False, error=report.get('error', repr(error)))
@@ -221,6 +239,8 @@ if __name__ == '__main__':
     parser.add_argument('--frames', type=int, default=3600)
     parser.add_argument('--matches', type=int, choices=(1, 2), default=2)
     parser.add_argument('--profile', type=int, choices=(58, 62, 63, 64))
+    parser.add_argument('--mode', type=int, choices=(1, 2, 5), default=1)
+    parser.add_argument('--natural', action='store_true', help='wait for a natural result; never surrender automatically')
     parser.add_argument('--search-smoke', action='store_true')
     parser.add_argument('--visible', action='store_true', help='show the owned window for native UI capture/review')
     run(parser.parse_args())

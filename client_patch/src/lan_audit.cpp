@@ -101,12 +101,14 @@ static void practiceAIView(Obj process,int simulationFrame) {
             else {entity.located=true;for(unsigned word=0;word<3;++word)entity.position[word]=buffer.read<uint32_t>(value+4*word);}
         }
     }
+    const uint32_t ownedArmy=ba::get<uint32_t>(process,"_requestedAsArmyId");
+    if(ownedArmy<1 || ownedArmy>3)throw std::runtime_error("local AI diagnostic army invalid");
     unsigned count=0;
     for(const auto& row:entities) {
-        const auto& entity=row.second;if(entity.army!=1 || !entity.type || !entity.located)continue;
+        const auto& entity=row.second;if(entity.army!=ownedArmy || !entity.type || !entity.located)continue;
         if(++count>128)break;
-        ba::log("Practice AI entity: frame=%u army=1 id=%u type=%u position=(%u,%u,%u) health=%d",
-            frameField?buffer.read<uint32_t>(frameField):0,row.first,entity.type,
+        ba::log("Practice AI entity: frame=%u army=%u id=%u type=%u position=(%u,%u,%u) health=%d",
+            frameField?buffer.read<uint32_t>(frameField):0,ownedArmy,row.first,entity.type,
             entity.position[0],entity.position[1],entity.position[2],entity.health);
     }
 }

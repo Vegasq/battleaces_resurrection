@@ -1,7 +1,7 @@
 TEAM MODES - BUILD 37822 CONTRACT
 Updated:2026-10-18. Static contract plus headless four-army qualification below.
-Graphical team play remains unqualified. Scripted public partial-group server
-proof is recorded below and in public-matchmaking.txt.
+Graphical human team play remains unqualified. Single-client graphical public
+and scripted partial-group proofs are recorded below and in public-matchmaking.txt.
 
 The final product requires public2v2 and2vAI even with one offline human. Multiple
 1v1 rooms do not satisfy this. A partial online human group must stay in one
@@ -75,21 +75,21 @@ server/dedicated_server.py now separates ready/loaded human connections from all
 participants. public_protocol.py adds explicit bounded two/four-body frames and
 ticketed assignment while retaining legacy Custom packets. community.py and
 public_matchmaking.py implement modes,capacity,team placement and all-human
-proposal acknowledgement. Native graphical negotiation and stale-start rejection
-after local fallback remain pending. See public-matchmaking.txt.
+proposal acknowledgement. Native graphical negotiation and bounded stale-start/cancel rejection now pass;
+actual human team and broader failure qualification remain. See public-matchmaking.txt.
 
-Client lan_bootstrap/lan_transport/dedicated_wire must project the authoritative
-roster/mode/alliance and accept explicitly assigned AI batches. Current deck,
-Custom/invite and loading paths contain mode1/two-seat assumptions. Original
-Custom2v2 roleSlot placement still needs native UI qualification.
-practice_ai.cpp owns one bot/deck/process for mode4 and experimental public1v1.
-local_loop.cpp
-has one peerRoot. Generalize to a bounded participant/producer list with all
-native AI readiness and teardown gates; do not drop a bot's lifecycle checks.
-The next local implementation must cover the complete ownership chain:
+The public client now projects authoritative roster/mode/alliance and consumes
+explicit four-seat frames. Legacy Custom/invite/deck paths retain two-seat
+limits. Original Custom2v2 roleSlot placement still needs native UI qualification.
+The original practice_ai.cpp path owned one bot for mode4/experimental public1v1.
+The next local implementation generalizes that ownership chain. The working
+source now has one Bot record per nonhuman seat and up to three local producer
+roots; native team qualification is in progress, not release enabled.
+The implementation and its qualification must cover the complete chain:
 - Freeze one identity/deck/profile/strength per bot seat before the map callback.
-  public_bots.cpp currently accepts preset choices only; team profiles can use
-  character choices. Reuse the catalog export's original character/deck evidence,
+  public_bots.cpp now accepts preset and character choices. The character reader
+  is shared with the catalog exporter (bot_characters.cpp), using its qualified
+  original localization/deck/cosmetic calls. Reuse that evidence,
   preserve their cosmetics, and enforce unique names across the whole roster.
 - Create three separate native AddLocalAI integrations/processes sharing the
   existing human simulation and AIManager world. Correlate captureAIJoin and
@@ -103,7 +103,7 @@ The next local implementation must cover the complete ownership chain:
 - Release all bot roots/queues only after native AIManager players and AI world
   are empty and the human world is idle. Recheck practice/public mode switches,
   failed/cancelled async creation, natural team results, Continue and rematch.
-These are implementation requirements, not claims that local team play works.
+These remain acceptance requirements, not claims that local team play works.
 Server asset export/import now hashes all three original mode maps and the bot
 catalog, retaining them locally. The AI DLL/rules are also imported and validated.
 The packaged host loads the imported team maps/catalog when present; public
@@ -152,10 +152,103 @@ offline three-bot ownership and all-mode switching remain separate gates.
 Required qualification
 Original mode2/5 export, four-army match construction and headless all-bot combat
 now pass (server-bot-catalog.txt). Scripted server queue tests also cover one human
-with three bots and two allied humans with two bots. Next qualify native graphical
-AI ownership/readiness, team results, surrender, full cleanup and rematch.
-Repeat mode switches with Try Deck/Custom.
+with three bots and two allied humans with two bots. Local ownership/readiness,
+team results, surrender, cleanup and2vAI rematch now have bounded native proofs
+below. Remaining work includes all public mode switches with Try Deck/Custom.
 Extend server/client together and test four humans, allied humans against bots,
 other partial groups, timeout/cancel/late responses and any bot-owner disconnect.
 Retired allocation/host election, team elimination semantics, new graphical AI runtime
 paths, performance and cross-PC behavior remain unqualified.
+
+Local team ownership implementation (2026-10-18, qualification in progress)
+The opt-in local public route now accepts modes1/2/5. Each Bot record freezes
+its army/profile/strength/name/deck/cosmetics, separate native integration and
+AddLocalAI process. The human and all bots share one simulation. The local loop
+waits for every native JoinedGame/readiness callback before ticking, drains each
+bounded command queue into one frame, and delivers that frame to all producers.
+JoinArmy validates the exact frozen deck for every seat. Teardown releases all
+producer roots only after the native human world and AIManager are empty.
+
+Mode5 uses the original mode2 teammate pool for its vacant ally and the mode5
+opponent pool. Character choices retain original localized names and the complete
+cosmetic entitlement list; preset choices use the original random-name/avatar
+pools. Names are distinct within the roster. Supported strength is sampled per
+bot independently of the player's practice setting. The shared character reader
+is factored from the already-qualified catalog exporter, with acquired/released
+async localization handles and cloned decks; no original roster bytes are in Git.
+
+helper-local-team02 compiles and passes all eight C++ component programs. Fourteen
+focused patcher/client-evidence/catalog tests and six movement-evidence tests pass.
+The latter reject another bot's commands or positions as proof of owned movement.
+Native verifier additions cover2/5, three exact joins, every bot's production and
+ordered movement, original result identity bindings, cleanup and optional natural
+end. The first native offline2v2 pass is recorded below.
+
+The first hidden attempt local/local-team-2v2-01 was stopped after more than165s
+without reaching the initial helper/menu callback. Unity stopped logging in the
+pre-menu asset/localization stage; no match code ran. The failed report and owned
+cleanup are retained. The visible retry passed. This is the previously observed
+startup boundary; neither attempt identifies its cause or establishes a startup
+fix. Normal launchers and the user's frozen game copies are unchanged.
+
+Native offline2v2: local/local-team-2v2-02/verification.json PASS
+SHA2562ae7fa0b901e985fcbe49bc97ca4e75418608df304612d23668639f509610de8.
+Helper02 SHA256343f32a9c079ad7fd1dbae62121a58b5c2d9bbdb0206a3c69bc98bc86d95189d.
+PID29892; elapsed204.162s including a long pre-menu asset stage. Mode2, human0,
+bots1/2/3, alliances0/1/0/1. Three distinct original-profile59 decks/names/avatars;
+random strength17/17/18. One native shared world, four exact JoinArmy snapshots,
+three captured/delivered joins and an all-bot readiness gate before ticking.
+Each bot produces supply (max12/12/14) and owned units with both changing native
+positions and its own Move/Attack commands (5/2/6 IDs). All three result bindings
+show the frozen names/portraits/banners. Native ConcedeGame at diagnostic frame1200,
+result/Continue, empty AIManager/world, lease release and owned process reaping
+pass. Sources stay unchanged; remote_connections=0,invite_reads=0. No server worker
+exists. In-game identity panels were not all observed; results bindings were.
+The visible window uses automated callbacks, not manual mouse input. No natural
+result, rematch,2vAI character roster or normal Quit is established by this run.
+
+Native offline2vAI: local/local-team-2vai-01/verification.json PASS
+SHA25694d4ec70a45cf46ce710d8ef1a8e63364fbf2a6216fc49c93e3ad5b43c2bac38.
+Same helper02 above, PID50040, elapsed548.538s. Two matches in one process, with
+one native human deck edit between them. Both finish naturally (no ConcedeGame),
+last submitted frames4771/5024, winner alliance1, native result/Continue and full
+local world/AIManager release. Each match has human0, original character-profile60
+opponents1/3 and original teammate-profile59 ally2. Character names and complete
+cosmetic entitlements resolve through the shared installed-data reader; names
+are unique within each roster. Every bot produces supply and autonomously moves
+its own units. Peak supply is112/62/189 then113/20/172; qualified owned moving
+unit counts102/75/176 then179/26/50. Both results validate all three names,
+portraits,banners and original AI flags. The changed human deck reaches the
+second exact JoinArmy/config snapshot. Sources remain unchanged, owned process
+is reaped, remote_connections=0,invite_reads=0. These are automated visible-window
+callbacks, not manual play, normal Quit or unavailable-server queue handoff.
+
+Unavailable-server public2vAI handoff: local/local-team-fallback5-01/verification.json
+PASS; SHA256d5baa0725feac58a2a429fa65f50537b0a887784b079958e75cb5079002c230e.
+Same helper02; PID27244; elapsed93.559s. The original mode5 button begins native
+search; one unavailable control-connection attempt transfers the same search
+intent to one local four-army world. All three bots join exactly, produce/move
+owned units, expose their frozen result identities, then return through native
+Continue. No authentication or server worker is created. The practice overlap
+probe cannot preempt the public search. Source hashes stay unchanged and the
+owned process is reaped. This injects RemoteUnavailable in the private bridge;
+it is not a second-PC network outage or a post-READY/mid-match migration test.
+Normal Start Client still does not enable the experimental public routing flag.
+
+Single-bot/control regression also passes with the same helper: mode4 practice ->
+four authenticated Custom Create/Leave cycles -> changed-deck mode4 practice.
+Both bots produce and move (40/46 owned units), both native results return,
+local deck/name survive a different server default, and no server worker starts.
+Exact report/hash and boundaries are recorded in unified-client.txt and
+practice-ai.txt. This covers control/menu ownership, not a remote Custom match
+or all public team mode switches.
+
+Unavailable-server public2v2 handoff: local/local-team-fallback2-01/verification.json
+PASS; SHA25688af6f140c55757b989ce1b4d3bd916d9a9e2ac09b808cc8fe75dccb8ac17935.
+Same helper02; PID50856; elapsed94.562s. Original mode2 search transfers after
+one unavailable control attempt to exactly one local world, with no authentication
+or server worker. All bot joins/decks/result identities and owned movement pass
+(12/5/11 units), then native Continue releases the world. Practice/search overlap
+is rejected. Source hashes remain unchanged and the owned game is reaped. This
+has the same injected-unavailability, automated-input and native-Quit boundaries
+as the mode5 fallback test above. Normal routing remains opt-in.

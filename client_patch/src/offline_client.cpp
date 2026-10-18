@@ -310,6 +310,7 @@ extern "C" __declspec(dllexport) void OfflineFrontUpdate(void* front,void*) {
 #include "practice_settings.cpp"
 #include "local_menu.cpp"
 #include "native_tables.cpp"
+#include "bot_characters.cpp"
 #include "public_bots.cpp"
 #include "match_search.cpp"
 #include "practice_ai.cpp"
