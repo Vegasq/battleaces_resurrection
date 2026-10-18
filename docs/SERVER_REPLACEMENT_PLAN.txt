@@ -349,6 +349,9 @@ Depends on P4. Effort allowance: 2-5 days, including fixes found by playtests.
 - Complete at least 20 sequential rematches and an eight-hour multi-room soak on
   Windows; inspect worker cleanup, resource growth and frame timing. Measure the
   sustained 20 Hz simulation budget and operation without a desktop session/GPU.
+  Bounded native/community soak tooling and packaged-runtime pilots are now
+  implemented; see soak-qualification.txt. These pilots do not establish eight
+  hours, graphical rematches or session0/SCM operation. Keep those gates explicit.
 - Compare exact bootstrap/input histories and sampled same-frame state across
   clients and server. Include native end checksum/results where available.
 - Cover crash, malformed/oversized packets, version mismatch, slow load, lost

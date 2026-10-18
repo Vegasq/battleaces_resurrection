@@ -1,0 +1,165 @@
+WINDOWS MULTI-ROOM SOAK QUALIFICATION
+Updated: 2026-10-17
+
+PURPOSE AND SCOPE
+
+tools/soak_server.py exercises sustained native server operation, two or more
+concurrent custom rooms, changed-deck rematches on the same community sockets,
+input/result agreement, worker cleanup, timing and resource growth. A full run
+requests28800 seconds (eight hours). Short pilots cannot pass the eight_hour_gate.
+This is one P5 qualification component. Graphical client rematches, TLS/admission,
+physical PCs, internet conditions, all catalog/ability combinations, Windows SCM
+logon/reboot and clean installations remain separate requirements.
+
+Use a fresh ignored local output directory and exact locally imported build37822
+assets. There are no game assets, captured inputs or credentials in the runner.
+It listens only on numeric127.0.0.1 with an ephemeral port. Its authored profile
+names are development identities; plaintext is not internet/private-auth testing.
+No normal game copy or manual launcher is changed. Surrender/build/attack commands
+exist only in this explicit test runner and are never enabled in normal play.
+
+WORKLOAD AND EVIDENCE
+
+The runner creates two durable community peers per room, uses Create/Invite/Accept,
+and alternates two validated decks with distinct basic units. Each rematch saves
+and reads back the selected decks, sends host Start and guest Ready, checks seats
+and bootstraps, and loads three separate native worlds: one authoritative worker
+and one independent replay worker for each scripted peer.
+
+Normal JoinArmy uses the exact frozen deck/cosmetics. Basic-unit production uses
+the imported build-slot ability and an owned native builder. Configured Attack88
+orders target the opponent's builder, exercising movement, damage and deaths.
+No debug world edits or fabricated simulation time are used. A match ends naturally
+or uses ordinary owned SelfDestruct at the requested frame. After a natural result,
+the20-frame result tail contains no new workload commands to destroyed bases.
+Both peers acknowledge Return, the custom lobby reopens, all three workers exit0,
+and the same sockets repeat with changed decks. No socket replacement is permitted.
+
+Every public frame is checked for contiguous order and equality between peers.
+Length-delimited SHA256 journals independently compare the actual successful
+native input bytes against reconstruction from both peers' received frame bytes.
+Each replay world applies those received inputs and compares the canonical
+observable-state hash and native result/checksum on every frame. This is stronger
+than a sparse snapshot check but still does not hash every hidden native field.
+It also does not test Unity rendering, the client patch or real mouse input.
+
+All50ms native steps remain unchanged. Statistics distinguish:
+  publish_interval_ms - actual monotonic gap between frame publication events,
+                        separately tracked for each match;
+  interval_ms         - existing coordinator interval, which excludes some work
+                        and is not by itself a full cadence measurement;
+  worker_ms           - native worker/IPC await duration;
+  frame_work_ms       - server tick work through enqueue, excluding final audit;
+  input_wait_ms and tick_late_ms - existing coordinator scheduling observations.
+Histograms use fixed1ms bins through5000ms and an overflow bucket. Quantiles are
+bin upper bounds; raw maximum and mean remain available. The runner holds no
+unbounded per-frame history and does not write frame packets or raw snapshots.
+Only the last8 frame hashes per peer remain in memory for immediate diagnostics.
+
+Every10 seconds samples.jsonl records coordinator/owned-worker private committed
+memory, resident working set, handle count, CPU seconds and process creation time.
+The coordinator metrics include this test harness and its scripted peers/replay
+scheduling. These results measure the stated workload, not maximum production
+capacity. Ordinary local server logs rotate at1MiB with2 backups; raw native file
+logging stays disabled. samples.jsonl and matches.jsonl are bounded by the CLI's
+duration/round limits and contain summaries only. Detailed binary captures are off.
+
+ACCEPTANCE DEFINED BEFORE THE LONG RUN
+
+The run must finish normally and prove every individual match invariant above.
+It must reach the requested duration and rounds, exactly rooms*rounds matches,
+three reaped native worker lives per match, and exactly two enduring connections
+per room. Source bytes and imported assets must remain unchanged.
+
+All requested rooms must be simultaneously running for at least90 percent of the
+requested wall duration; the allowance covers native world load/result/rematch
+transitions. Mean complete publication cadence must be at least19.5Hz against
+the fixed20Hz target, with no publication gap exceeding1000ms. At most1 percent
+of authoritative worker calls may exceed50ms. Maximum and percentile outliers
+must still be reported; a pass does not mean no visible latency in a real client.
+
+Resource checks compare idle boundaries after round3 and after the final round,
+with peers connected and match/reference workers gone. Coordinator handles may
+grow by at most16 and private committed memory by at most64MiB. Ten-second samples
+retain the intermediate trend. These bounds do not prove indefinite leak freedom.
+The eight_hour_gate additionally requires at least28800 requested seconds and
+21 completed rounds: the initial match plus at least20 rematches per custom lobby.
+A failed, interrupted, short, stalled or still-running run cannot satisfy it.
+
+RUNNING AND STOPPING
+
+From the source checkout, a short native pilot is:
+  python -m tools.soak_server --assets local/assets/p0-export03 --output local/soak-pilot-new --seconds 40 --match-frames 400 --minimum-rounds 4
+
+The full workload uses --seconds 28800 --match-frames 3600 --minimum-rounds 21
+and --rooms 2. Natural combat may finish a match before frame3600;
+the outer run still continues until eight hours have actually elapsed. Allow the
+last active round to finish. Do not suspend/reboot the PC during qualification;
+large timing gaps fail the recorded criteria. No Windows power policy is changed.
+
+For release evidence, freeze a copy of the authored runner beneath a fresh
+local/<run>/tools directory, record its SHA256 and run that file directly with the
+clean server package's program/runtime/python.exe -I -B. That interpreter imports
+server modules from its isolated bundled app path, not the checkout. The frozen
+runner writes only beneath local/<run>/local/. Keep those package/runner bytes
+unchanged until completion. Imported assets remain outside Git and are hash-
+checked again at the end. Record package and source commit identities separately.
+
+progress.json is an atomic status snapshot, not a completion signal. Confirm the
+specific process handle/PID and creation time are live when monitoring. Do not
+restart a run because a status read times out. verification.json exists only after
+the run's final cleanup and contains explicit passed/eight_hour_gate booleans.
+Check the actual process exit too; an old progress file never proves liveness.
+
+To cancel only this owned test, create an empty stop.request inside its output
+directory. The next heartbeat (within10 seconds) cancels the match tasks, closes
+all owned native worlds/peers/listener and records a failed, interrupted run.
+Nothing is deleted and unrelated game/server processes are left alone. A bounded
+whole-run watchdog exits the runner abnormally if ordinary cancellation/cleanup
+hangs; its existing kill-on-close jobs end its native children. Missing final
+verification after such termination is failure, never evidence of a successful run.
+
+PILOT EVIDENCE
+
+Initial pilot01 failed before native work because the harness used manifest.json
+instead of asset-manifest.json. Pilot02 exposed an unset worker last_state before
+frame0; JoinArmy does not need that state. Both failures are retained. Neither
+changed production server behavior or relaxed asset validation.
+
+local/p5-soak-pilot03 completes8 matches/24 native lives in90.985s with all input,
+state/result and cleanup checks passing. This pilot predates the complete frame
+publication metric and does not qualify the later cadence criterion by itself.
+
+The first frozen runner SHA256 is
+25d554eecaf1e74e670dc041a6319399a5a5c01daac448579a01644b5202a127.
+local/p5-soak-frozen01/local/pilot04 uses the clean7fccb08 server package's pinned
+Python3.14.8. Eight1200-frame matches plus result tails complete in252.798s;
+24 native workers exit0 and9,760 frames yield19,520 native replay comparisons.
+Each army produces16 or26 basic units; movement and damage are observed on both.
+Peak live basic units are11..16 per army. Mean full publication gap50.371ms,
+p95<=63ms, p99<=65ms, max789.931ms; worker mean2.864ms,p99<=5ms,max730.424ms.
+The single worker outlier is retained; this is not a zero-lag claim. Handles at
+the two idle boundaries are178/178; private commit grows30,793,728 ->32,821,248.
+
+The same frozen runner's stop-probe01 is deliberately interrupted with six live
+native worlds. Exit1/failed status is expected; all6 workers are reaped, no
+eight-hour acceptance is claimed. Source/core/assets remain unchanged. The final
+source additionally exposes explicit assessment checks for connection/worker
+counts, complete cadence/gap bounds and natural-result-tail suppression.
+Seven asset-free checks pass on Python3.14.8 (0.017s) and3.12.10 (0.018s), including
+actual Windows process metrics and rejection of short/single-room/slow/leaking/
+unreaped evidence. Full-run status and subsequent qualification are recorded below.
+
+Final frozen runner SHA256:
+22ec30168903dffe3e0b60f7006cd8d87aa1c17156d5b0719098d2ac73906682.
+local/p5-soak-frozen02/local/pilot05 passes all14 final assessment checks in90.409s:
+four enduring TCP connections, eight matches,24 reaped workers and3,360 frames /
+6,720 replay comparisons. Full publication gap mean50.108ms,p99<=65ms,max110.916ms;
+worker mean2.116ms,p99<=4ms,max63.755ms with2/3,360 calls over50ms. Idle handles
+186/186; private commit29,192,192 ->32,182,272. The short run explicitly records
+eight_hour_gate:false. Core/package and imported asset hashes stay unchanged.
+
+PRIMARY METRIC REFERENCES
+https://learn.microsoft.com/en-us/windows/win32/api/psapi/ns-psapi-process_memory_counters_ex
+https://learn.microsoft.com/en-us/windows/win32/api/processthreadsapi/nf-processthreadsapi-getprocesshandlecount
+https://learn.microsoft.com/en-us/windows/win32/api/processthreadsapi/nf-processthreadsapi-getprocesstimes

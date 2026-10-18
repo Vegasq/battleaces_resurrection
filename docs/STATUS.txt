@@ -2,6 +2,36 @@ IMPLEMENTATION LEDGER
 Updated: 2026-10-17
 Active objective: implement SERVER_REPLACEMENT_PLAN.txt, Windows only.
 
+SUSTAINED MULTI-ROOM QUALIFICATION (2026-10-17; eight-hour gate not yet passed)
+tools/soak_server.py adds bounded opt-in native soak evidence for persistent
+community Create/Invite/Accept/Start/Ready/Return sessions. Two rooms keep the
+same four sockets, alternate validated saved decks, build/move/fight with ordinary
+commands and finish naturally or through test-only surrender. Each public frame
+is compared with actual native input history and two independent replay worlds;
+native result checksums and all owned process exits are checked. It does not
+exercise Unity/client UI, TLS/admission, separate PCs, full catalog or SCM boot.
+
+The final runner uses complete per-match publication intervals, fixed histograms,
+ten-second owned-process resource samples, bounded ordinary logs and no raw frame
+or snapshot writes. Predetermined checks include duration/concurrent activity,
+19.5Hz minimum average against fixed20Hz steps, <=1s maximum publication gap,
+99percent of worker calls <=50ms and bounded post-warmup handle/private growth.
+The eight-hour gate also needs21 rounds (initial match plus20 rematches per lobby).
+Short, interrupted or live runs cannot pass it. Full policy: soak-qualification.txt.
+
+Seven focused tests pass on3.14.8 and3.12.10. Native pilot03:8 matches/24 workers
+in90.985s; later frozen packaged pilot04:8 longer matches,9,760 frames and19,520
+replay comparisons in252.798s. Both armies build/move/take damage; a730ms worker
+outlier is retained. Owner stop-probe01 ends all6 live workers and correctly
+records failure/exit1. Earlier harness manifest/frame0 mistakes remain documented.
+Final frozen pilot05 passes all14 checks in90.409s, with4 persistent connections,
+8 matches/24 worker exits0,3,360 frames and6,720 replay comparisons. Publication
+mean50.108ms,p99<=65ms,max110.916ms; worker mean2.116ms,p99<=4ms,max63.755ms.
+Idle handles186/186; private memory29,192,192 ->32,182,272. All game/package inputs
+remain unchanged. Frozen runner22ec3016...73906682 imports the clean7fccb08 server
+package through its bundled isolated3.14.8 runtime, independent of checkout edits.
+No eight-hour completion is claimed from these pilots; P3-P5 remain incomplete.
+
 WINDOWS SERVICE ADAPTER (2026-10-17; real SCM/account/reboot acceptance open)
 The server package now includes server.windows_service and SERVICE.txt. The
 read-only service-command verifies package/config and prints an exact quoted
