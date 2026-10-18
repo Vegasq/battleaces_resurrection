@@ -21,6 +21,7 @@ from .profiles import ProfileStore
 from .dedicated_server import DedicatedServer
 from .admission import AdmissionController
 from .host_audit import HostAudit
+from .state_lock import exclusive_state, StateBusyError
 from .protobuf_wire import field_uint
 from . import protocol
 
@@ -65,6 +66,13 @@ async def check_native(config, template):
 
 
 async def run(config, *, check_only=False):
+    # Claim data before checking storage, starting a worker or opening logs.
+    # Check/backup/another host must never race this deployment's mutations.
+    with exclusive_state(config.data_directory):
+        return await _run_owned(config, check_only=check_only)
+
+
+async def _run_owned(config, *, check_only=False):
     template, context, store, manifest = prepare(config)
     native = await check_native(config, template)
     health = dict(passed=True, python=platform.python_version(), openssl=ssl.OPENSSL_VERSION,
@@ -102,7 +110,7 @@ def main(argv=None):
         return 0
     except KeyboardInterrupt:
         return 0
-    except (ConfigurationError, CredentialError, TLSConfigurationError) as error:
+    except (ConfigurationError, CredentialError, TLSConfigurationError, StateBusyError) as error:
         print('Host configuration failed: ' + str(error), file=sys.stderr)
     except (OSError, ValueError, WorkerError) as error:
         print('Host startup/runtime check failed (' + type(error).__name__ + '): verify local assets, writable data, certificate and native runtime.', file=sys.stderr)

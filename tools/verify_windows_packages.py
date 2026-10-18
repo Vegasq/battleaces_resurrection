@@ -24,6 +24,8 @@ import asyncio, ctypes, dataclasses, json, socket, sys
 from ctypes import wintypes
 from server import host, protocol as p
 from server.configuration import load_config
+from server.state_lock import exclusive_state, StateBusyError
+from server.state_backup import backup
 
 async def probe():
     config = load_config(sys.argv[1])
@@ -68,6 +70,14 @@ async def probe():
             handle = kernel.OpenProcess(0x100000 | 0x1000, False, pid)
             if not handle: raise RuntimeError('Cannot observe owned match worker')
             handles.append(handle)
+        try: await host.run(config, check_only=True)
+        except StateBusyError: second_host_blocked = True
+        else: raise RuntimeError('A second host/check acquired live data')
+        attempted_backup = config.source.parent/'blocked-snapshots/live.json'
+        try: backup(config, attempted_backup)
+        except StateBusyError: live_backup_blocked = True
+        else: raise RuntimeError('A backup acquired live host data')
+        if attempted_backup.exists(): raise RuntimeError('Refused live backup wrote output')
     finally:
         for _, writer in peers: writer.close()
         for _, writer in peers:
@@ -89,8 +99,10 @@ async def probe():
         if (config.data_directory/'matches').exists(): raise RuntimeError('Host wrote unbounded raw capture files')
         with socket.socket() as test:
             if test.connect_ex(('127.0.0.1', port)) == 0: raise RuntimeError('Listener survived shutdown')
+        with exclusive_state(config.data_directory): pass
         print(json.dumps(dict(port=port, peers=2, bootstrap_equal=True, worker_pids=workers,
-            worker_exit_codes=exits, listener_closed=True, stopped=True, native_files=native_files)))
+            worker_exit_codes=exits, listener_closed=True, stopped=True, native_files=native_files,
+            second_host_blocked=second_host_blocked, live_backup_blocked=live_backup_blocked, state_lock_released=True)))
     finally:
         for handle in handles: kernel.CloseHandle(handle)
 
@@ -179,11 +191,39 @@ def run(args):
         config.update(listen_host='127.0.0.1', allow_insecure_loopback=True,
                       certificate_file=None, private_key_file=None, credential_directory=None)
         (host/'config/host.json').write_text(json.dumps(config))
+        # An interrupted first start may leave an empty lock file. Actual
+        # packaged health must recover it under the OS lock, without deletion.
+        (host/'data/.host.lock').touch()
         health = command('server', 'host-check', ['-m', 'tools.package_server', 'check'])
         report['health'] = json.loads(health)
         require(report['health']['passed'] and report['health']['native']['reaped'], 'Native health failed')
         lifecycle = command('server', 'host-lifecycle', ['-c', HOST_LIFECYCLE, str(host/'config/host.json')])
         report['lifecycle'] = json.loads(lifecycle.splitlines()[-1])
+
+        # Verify the transfer format against real imported assets in the bundled
+        # runtime. This authored development snapshot contains no credentials;
+        # it does not claim protected backup creation/restore under this token.
+        transferred = output/'authored-transfer.backup.json'
+        snapshot_script = ('import json,sys,time;from pathlib import Path;'
+            'from server.configuration import load_config;from server import state_backup as b;'
+            'template,identity=b.load_inputs(load_config(sys.argv[1]));'
+            'payload=dict(created_at=int(time.time()),compatibility=identity,'
+            'profiles={"package_probe_0":list(template.default_decks[0])},credentials=None);'
+            'raw=b.canonical(dict(schema=1,payload=payload,sha256=b.digest(b.canonical(payload))));'
+            'stream=Path(sys.argv[2]).open("xb");stream.write(raw);stream.close();'
+            'print(json.dumps(dict(bytes=len(raw),authored_development_snapshot=True)))')
+        command('server', 'authored-transfer-snapshot', ['-c', snapshot_script, str(host/'config/host.json'), str(transferred)])
+        report['transfer_snapshot'] = json.loads(command('server', 'verify-transfer-snapshot',
+            ['-m', 'tools.package_server', 'verify-backup', '--input', str(transferred)]))
+        require(report['transfer_snapshot']['verified'] and report['transfer_snapshot']['profiles'] == 1,
+                'Bundled snapshot verification failed')
+        preserve = output/'existing restore destination'; preserve.mkdir()
+        (preserve/'owner.txt').write_bytes(b'preserve')
+        command('server', 'restore-existing-rejected', ['-m', 'tools.package_server', 'restore',
+            '--input', str(transferred), '--destination', str(preserve)], success=False)
+        require((preserve/'owner.txt').read_bytes() == b'preserve' and len(list(preserve.iterdir())) == 1,
+                'Refused restore changed existing destination')
+        report['existing_restore_destination_preserved'] = True
 
         # A separate component-only working copy qualifies file transactions.
         # It has no graphical assets and is never launched as a game.

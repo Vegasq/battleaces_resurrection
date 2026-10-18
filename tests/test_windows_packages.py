@@ -144,6 +144,15 @@ class PackageDispatchTests(unittest.TestCase):
             self.assertEqual(package_server.main(['credentials', '--store', 'private', 'issue', '--out', 'private/invite.json']), 0)
             self.assertEqual(credentials.call_args.args[0], ['--store', str(Path('private').resolve()), 'issue', '--out', 'private/invite.json'])
 
+    def test_state_commands_forward_only_explicit_paths_to_maintenance(self):
+        with mock.patch.object(package_server, 'verify'), mock.patch('server.state_backup.main', return_value=0) as maintenance:
+            self.assertEqual(package_server.main(['backup', '--out', 'private snapshot.json']), 0)
+            self.assertEqual(maintenance.call_args.args[0], ['backup', '--config', str(package_server.PACKAGE/'config/host.json'),
+                '--out', str(Path('private snapshot.json').resolve())])
+            self.assertEqual(package_server.main(['restore', '--input', 'snapshot.json', '--destination', 'new data']), 0)
+            self.assertEqual(maintenance.call_args.args[0], ['restore', '--config', str(package_server.PACKAGE/'config/host.json'),
+                '--input', str(Path('snapshot.json').resolve()), '--destination', str(Path('new data').resolve())])
+
     def test_bad_cli_arguments_and_integrity_failure_do_not_launch_or_echo_values(self):
         for entry in (package_client.main, package_server.main):
             output = io.StringIO()

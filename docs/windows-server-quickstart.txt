@@ -96,6 +96,11 @@ Use Ctrl+C in the host console for orderly room/worker shutdown. Do not use a
 plain Windows service registration for this console program: it does not yet
 implement the Service Control Manager protocol. Service/reboot qualification is
 pending; keep this preview in its console under the same Windows account.
+Start/check/backup exclusively lock the configured data directory. A second
+host or maintenance command cannot use it while the first host is running.
+The one-byte .host.lock remains after shutdown; its presence is normal. OS locks
+release after process exit/crash. Do not delete or replace it to bypass an active
+host. These guarantees apply to the packaged host, not unrelated developer tools.
 
 Normal local diagnostics omit per-frame events. diagnostic_audit:true enables
 additional local event/state records; no uploader is configured. Event logs rotate at
@@ -107,12 +112,42 @@ before SimInit. Native callback history is kept in a bounded in-memory deque.
 High-detail
 diagnostics can affect timing and are unnecessary for ordinary play.
 
-Stop the host before backing up config/, data/profiles and the private credential
-store. Preserve its Windows permissions and protect the server key separately.
-Do not copy a private credential store across accounts and weaken its DACL to
-make it work. Restore into a separate location, keep path settings consistent,
-then run check before start. Automated backup/restore and service-restart
-qualification are still pending; these instructions are not an acceptance claim.
+4. BACK UP AND RESTORE PLAYER STATE
+
+Stop the host with Ctrl+C, then create a new snapshot:
+
+  BattleAces-Server.cmd backup --out "backups/weekly.backup.json"
+  BattleAces-Server.cmd verify-backup --input "backups/weekly.backup.json"
+
+The snapshot stores saved decks and the hash-only invitation database, including
+stable player identities and revocations. It contains no bearer invite files,
+game assets, logs, host settings or TLS private key. Its output directory/file
+is created with protected owner/SYSTEM permissions; existing output is refused.
+Keep snapshots private. The checksum detects accidental changes, not a malicious
+replacement from an untrusted source. Keep your host config and server TLS key
+separately in protected storage, and retain or re-import matching game assets.
+
+Restore into a NEW directory; even an existing empty destination is refused:
+
+  BattleAces-Server.cmd restore --input "backups/weekly.backup.json" --destination "restored-server"
+  BattleAces-Server.cmd check --config "restored-server/host.json"
+  BattleAces-Server.cmd start --config "restored-server/host.json"
+
+The current --config supplies host settings and trusted asset/TLS paths. Restore
+validates snapshot integrity, exact asset compatibility, decks and credentials
+before writing. It creates new data/private storage for the current Windows
+account, then writes the new host.json last. The existing config, profiles and
+credential store stay unchanged. A failed restore retains its incomplete new
+folder for inspection without a runnable host.json; retry with a new destination.
+It does not edit Windows ACLs or turn off runtime credential checks.
+
+On another host, first supply matching assets and configure your TLS paths, then
+pass that configuration with --config to restore. Paths in the new host.json are
+absolute; review them when moving it. No automatic start or switch is performed.
+Restoring rolls invitation validity/revocations back to the snapshot time. Review
+credentials list and reapply later revocations before accepting connections.
+Normal-account Windows permissions and clean-host restored play are separate
+qualification gates still open for this preview. Service restart remains pending.
 
 Development-only plaintext requires allow_insecure_loopback:true, numeric
 127.0.0.1 and all three TLS/credential fields set to null. It cannot bind a LAN

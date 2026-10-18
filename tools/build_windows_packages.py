@@ -32,6 +32,7 @@ SERVER = COMMON + (
     'server/assets.py', 'server/community.py', 'server/community_protocol.py',
     'server/configuration.py', 'server/dedicated_server.py', 'server/game_data.py',
     'server/host.py', 'server/host_audit.py', 'server/native_simulation.py',
+    'server/state_lock.py', 'server/state_backup.py',
     'server/paths.py', 'server/profiles.py', 'server/protobuf_wire.py',
     'server/simulation_worker.py', 'server/tls_listener.py', 'server/worker_client.py',
     'tools/extract_descriptors.py', 'tools/import_assets.py', 'tools/package_server.py',

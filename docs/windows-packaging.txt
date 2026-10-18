@@ -198,12 +198,30 @@ at the timeout boundary; its6 follow-up checks pass (enrollment-gui02-tests.txt)
 Both clean CMD verify commands and client setup-data pass from an unrelated cwd
 with Python removed from PATH. These archives remain local preview artifacts.
 
+STATE BACKUP PREVIEW UPDATE
+
+State backup update (development evidence before final source commit):
+dist/p4-state-preview02 uses sourcecb54eae plus the recorded state-management
+changes. Server71 files,12385684 bytes, SHA256
+001f5b7f4c6cc8a189b2715ca650342e72c55691b1f74c0d6aefef5eb60746ea.
+Client64 files,12773979 bytes, SHA256
+ebdc636dfcf35e0401a7e35650a6c51748a393791fa4dbe82983255110ab9059.
+p4-state-portable02 passes in43.440s, including empty-lock recovery, actual native
+loading-worker ownership, refusal of concurrent host/backup and orderly release.
+The bundled CLI verifies a transferred development snapshot against real imported
+assets and preserves an existing destination on refused restore. Patch/restore,
+source/program hash preservation and sim.log0-byte checks pass. Final source has
+an additional tested guard rejecting state outputs under either bundled program
+subdirectory. Clean archives/guard checks are recorded after building them.
+See state-backup.txt for full/focused tests and the private-permission boundary.
+
 REMAINING RELEASE GATES
 
 Real second-PC/private internet play, real private-credential permissions under
 the intended host/player accounts, Windows11/clean-PC acceptance, read-only program
 ACL qualification, graphical packaged install/play/update/restore, service/reboot
-support, backup/restore and disk-failure qualification remain open. Logs written
+support, normal-account restored-host play and broader disk-failure qualification
+remain open. Logs written
 with older retention settings should be archived before lowering limits; unrelated
 or older files outside the active fixed rotation set are not pruned automatically.
 Complete telemetry/error-path qualification, manual loading/difficulty visual

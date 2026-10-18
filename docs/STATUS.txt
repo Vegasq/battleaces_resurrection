@@ -2,6 +2,34 @@ IMPLEMENTATION LEDGER
 Updated: 2026-10-17
 Active objective: implement SERVER_REPLACEMENT_PLAN.txt, Windows only.
 
+SERVER STATE BACKUP/RESTORE (2026-10-17; normal-account acceptance open)
+The host package adds backup/verify-backup/restore for saved decks and hash-only
+invitation state, preserving IDs and revocations. Restore creates a fresh data
+location and commits its new host.json last, leaving the current server unchanged.
+Snapshot/file size, schema, checksum, asset binding, deck validity, private output
+and destination restrictions are enforced. No bearer invites, TLS keys, logs or
+original assets enter the snapshot. See state-backup.txt and the server quickstart.
+Host/check/backup take a real process-held data lock; duplicate hosts and live
+backups fail. OS locks release after a deliberate child crash. Interrupted empty
+lock creation recovers under the lock. Deck saves flush before atomic replacement;
+failed writes retain the previous saved deck. Existing restore destinations fail.
+
+Final source suite274 tests in58.687s:270 pass,4 optional skips (three real-DACL
+cases and the native-worker opt-in), native bridge/original-byte checks enabled.
+Python3.12 focused regression48 tests in12.668s:46 pass,2 real-DACL skips; follow-up
+3.14 lock/import/program-output checks pass. Real packaged native qualification
+p4-state-portable02 passes in43.440s: empty-lock startup recovery, identical
+two-peer loading bootstrap, second-host/live-backup refusal, worker52196 exit0,
+closed listener, released lock and sim.log0 bytes. Actual snapshot-format/asset
+verification, refused existing restore and three-component patch/restore pass.
+Original game and immutable program inputs remain unchanged. The final program
+destination guard follows preview02; its clean-package check is recorded separately.
+
+The normal Windows check already requested now covers both private invite/TLS
+enrollment and private server snapshot/restore. The local runner rejects skips
+as acceptance; no new normal-account result has arrived. Real protected storage,
+restored-host play, clean-PC deployment and service/reboot remain open gates.
+
 FRIEND CONNECTION SETUP (2026-10-17; source/package checks pass)
 The portable client now opens a Windows setup window with server address/port,
 display name, room, explicit CA file-hash confirmation, transferred invite import,

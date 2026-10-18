@@ -326,6 +326,12 @@ is documented in windows-packaging.txt. This does not meet the P4 completion gat
 - Ship sample configuration, compatibility manifest, readable diagnostics and
   host/player quick-start guides. Keep detailed audits opt-in with retention caps.
 - Support clean shutdown, reboot/service restart, profile backup and restore.
+  Implemented snapshot commands preserve saved decks, server-issued identities
+  and invitation revocations, and restore into a fresh location without changing
+  the existing server. A process-held data lock excludes backup/another host from
+  live state. Profile saves flush before atomic replacement. See state-backup.txt
+  for validation, failure tests and scope. Normal-account protected permissions,
+  actual restored-host play, reboot and service restart remain acceptance gates.
 Done when: follow the documentation on a clean Windows host without the
 development workspace or manually installed developer tools. A clean Windows
 client can install, play, update and restore with original hashes verified.

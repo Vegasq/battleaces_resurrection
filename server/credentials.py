@@ -299,6 +299,31 @@ def import_credential_file(source_path, output_path, *, expected_sha256=None):
         raise CredentialError('Invite import failed; check the transfer format and private destination permissions') from None
 
 
+def parse_store_snapshot(raw):
+    """Validate hash-only persisted invitation state before any restore writes."""
+    if not isinstance(raw, bytes) or not 0 < len(raw) <= MAX_STORE_BYTES:
+        raise CredentialError('credential store size limit')
+    value = _json(raw)
+    if (not isinstance(value, dict) or set(value) != {'schema', 'invites'}
+            or type(value['schema']) is not int or value['schema'] != 1
+            or not isinstance(value['invites'], list) or len(value['invites']) > MAX_INVITES):
+        raise CredentialError('invalid credential store schema')
+    ids, hashes = set(), set()
+    for row in value['invites']:
+        if (not isinstance(row, dict) or set(row) != {'invite_id', 'player_id', 'label', 'token_sha256', 'created_at', 'revoked_at'}
+                or not isinstance(row['invite_id'], str) or not INVITE_ID.fullmatch(row['invite_id'])
+                or not isinstance(row['player_id'], str) or not PLAYER_ID.fullmatch(row['player_id'])
+                or not isinstance(row['token_sha256'], str) or not HASH.fullmatch(row['token_sha256'])
+                or not CredentialStore._label_valid(row['label'])
+                or type(row['created_at']) is not int or not 0 <= row['created_at'] < 1 << 63
+                or (row['revoked_at'] is not None and (type(row['revoked_at']) is not int
+                    or not 0 <= row['revoked_at'] < 1 << 63))
+                or row['invite_id'] in ids or row['token_sha256'] in hashes):
+            raise CredentialError('invalid credential store record')
+        ids.add(row['invite_id']); hashes.add(row['token_sha256'])
+    return value['invites']
+
+
 class CredentialStore:
     def __init__(self, directory=DEFAULT_DIRECTORY, *, lock_timeout=2.0):
         if not isinstance(lock_timeout, (int, float)) or not 0 < lock_timeout <= 30:
@@ -352,25 +377,24 @@ class CredentialStore:
             return []
         except OSError:
             raise CredentialError("cannot read private credential store") from None
-        value = _json(raw)
-        if (not isinstance(value, dict) or set(value) != {"schema", "invites"}
-                or type(value["schema"]) is not int or value["schema"] != 1
-                or not isinstance(value["invites"], list) or len(value["invites"]) > MAX_INVITES):
-            raise CredentialError("invalid credential store schema")
-        ids, hashes = set(), set()
-        for row in value["invites"]:
-            if (not isinstance(row, dict) or set(row) != {"invite_id", "player_id", "label", "token_sha256", "created_at", "revoked_at"}
-                    or not isinstance(row["invite_id"], str) or not INVITE_ID.fullmatch(row["invite_id"])
-                    or not isinstance(row["player_id"], str) or not PLAYER_ID.fullmatch(row["player_id"])
-                    or not isinstance(row["token_sha256"], str) or not HASH.fullmatch(row["token_sha256"])
-                    or not self._label_valid(row["label"])
-                    or type(row["created_at"]) is not int or not 0 <= row["created_at"] < 1 << 63
-                    or (row["revoked_at"] is not None and (type(row["revoked_at"]) is not int
-                        or not 0 <= row["revoked_at"] < 1 << 63))
-                    or row["invite_id"] in ids or row["token_sha256"] in hashes):
-                raise CredentialError("invalid credential store record")
-            ids.add(row["invite_id"]); hashes.add(row["token_sha256"])
-        return value["invites"]
+        return parse_store_snapshot(raw)
+
+    def export_snapshot(self):
+        """Return a coherent hash-only snapshot; caller must keep storage private."""
+        with self._locked():
+            return (json.dumps(dict(schema=1, invites=self._load()), separators=(',', ':'))+'\n').encode('utf-8')
+
+    def import_snapshot(self, raw):
+        """Populate a new empty store only, retaining identities and revocations."""
+        records = parse_store_snapshot(raw)
+        with self._locked():
+            try: self.path.lstat()
+            except FileNotFoundError: pass
+            else: raise CredentialError('Credential restore requires a new empty store')
+            self._save(records)
+            if self._load() != records: raise CredentialError('Credential restore readback failed')
+        return dict(invites=len(records), players=len({row['player_id'] for row in records}),
+                    revoked=sum(row['revoked_at'] is not None for row in records))
 
     @staticmethod
     def _label_valid(label):

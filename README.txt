@@ -57,6 +57,12 @@ are imported locally. See docs/windows-packaging.txt for build/test evidence and
 docs/windows-server-quickstart.txt / docs/windows-client-quickstart.txt for setup.
 Clean-machine and outside-network release acceptance remain open.
 
+The server package adds backup, verify-backup and restore commands for saved
+decks and invitation state. Restore creates a new server data location and keeps
+existing state unchanged. A running packaged host excludes concurrent backup or
+another host using the same data. See docs/state-backup.txt and the server guide
+for scope, recovery commands and remaining Windows permissions/restore acceptance.
+
 SOURCE LAYOUT
   server/                 Python server, protocol and native simulation adapter
   client_patch/src/       our C++ helper source

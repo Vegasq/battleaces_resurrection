@@ -15,6 +15,12 @@ def main(argv=None):
     for action in ('start', 'check'):
         sub = commands.add_parser(action)
         sub.add_argument('--config', type=Path, default=PACKAGE / 'config/host.json')
+    for action in ('backup', 'verify-backup', 'restore'):
+        sub = commands.add_parser(action)
+        sub.add_argument('--config', type=Path, default=PACKAGE / 'config/host.json')
+        if action == 'backup': sub.add_argument('--out', type=Path, required=True)
+        else: sub.add_argument('--input', type=Path, required=True)
+        if action == 'restore': sub.add_argument('--destination', type=Path, required=True)
     sub = commands.add_parser('import-assets')
     sub.add_argument('--game-dir', type=Path, required=True)
     sub.add_argument('--export-dir', type=Path, required=True)
@@ -35,6 +41,13 @@ def main(argv=None):
         if args.command == 'credentials':
             from server.credentials import main as credentials
             return credentials(['--store', str(args.store.resolve()), *args.arguments])
+        if args.command in ('backup', 'verify-backup', 'restore'):
+            from server.state_backup import main as maintenance
+            arguments = [args.command, '--config', str(args.config.resolve())]
+            if args.command == 'backup': arguments.extend(['--out', str(args.out.resolve())])
+            else: arguments.extend(['--input', str(args.input.resolve())])
+            if args.command == 'restore': arguments.extend(['--destination', str(args.destination.resolve())])
+            return maintenance(arguments)
         from tools.import_assets import import_assets
         result = import_assets(args.game_dir, args.export_dir, args.destination, args.original)
         print(f"Imported build{result['game_build']}: {result['playable_units']} playable units; local files only.")
