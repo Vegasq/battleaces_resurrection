@@ -120,10 +120,11 @@ def encode_frame(frame: int, inputs_by_slot: Mapping[int, bytes] | Sequence[byte
     """Serialize InputActions; omit empty players exactly as the native bridge does."""
     _require(type(frame) is int and 0 <= frame <= 0x7FFFFFFF, "frame outside int32 range")
     inputs = dict(enumerate(inputs_by_slot)) if not isinstance(inputs_by_slot, Mapping) else inputs_by_slot
-    _require(set(inputs) == {0, 1}, "a frame requires both player slots")
+    _require(len(inputs) in (2, 4) and all(type(slot) is int for slot in inputs) and
+             set(inputs) == set(range(len(inputs))), "a frame requires all two or four player slots")
     # Protobuf C# omits default GameFrame0 and SpectatorCount0 on serialization.
     result = (field_uint(1, frame) if frame else b"") + field_uint(2, 20) + field_uint(3, 50) + field_float(4, 1.0)
-    for slot in (0, 1):
+    for slot in range(len(inputs)):
         if inputs[slot] and get_repeated_bytes(inputs[slot], 2):
             result += field_bytes(6, inputs[slot])
     return result
@@ -188,7 +189,14 @@ class GameTemplate:
         _require(len(self.slot_flags) == 8 and all(self.slot_flags), "template requires eight nonzero slot masks")
         army_messages = get_repeated_bytes(self.game_config, 2)
         self.armies = {get_uint(army, 1): army for army in army_messages}
-        _require(len(army_messages) == 2 and set(self.armies) == {0, 1}, "template requires exactly armies0 and1")
+        self.game_mode = get_uint(self.game_config, 36) or 1
+        _require(self.game_mode in (1, 2, 4, 5), "unsupported template game mode")
+        self.player_count = 4 if self.game_mode in (2, 5) else 2
+        _require(len(army_messages) == self.player_count and set(self.armies) == set(range(self.player_count)),
+                 "template army count/IDs differ from game mode")
+        self.alliances = {army: get_uint(data, 4) for army, data in self.armies.items()}
+        _require(all(alliance == army % 2 for army, alliance in self.alliances.items()),
+                 "template requires original alternating two-alliance topology")
         self.template_decks = {army: decode_deck(get_bytes(data, 3, required=True))["units"] for army, data in self.armies.items()}
         self.catalog = {}
         self.entity_abilities = {}
@@ -253,7 +261,7 @@ class GameTemplate:
             default = starter["units"]
         else:
             default = self._complete_template_deck(self.template_decks[0])
-        self.default_decks = {0: default, 1: default}
+        self.default_decks = {army: default for army in self.armies}
         self.descriptors_path = Path(descriptors_path)
 
     def _complete_template_deck(self, deck):
@@ -313,8 +321,12 @@ class GameTemplate:
         # Retain template groups instead of inventing a unit-to-group mapping.
         return decode_deck(get_bytes(self.armies[0], 3))["active_ability_groups"]
 
-    def build_match(self, roster, decks, seed=None, game_name=None) -> MatchData:
-        _require(isinstance(roster, (tuple, list)) and len(roster) == 2, "two roster entries required")
+    def build_match(self, roster, decks, seed=None, game_name=None, *, game_mode=None, bot_choices=None) -> MatchData:
+        _require(isinstance(roster, (tuple, list)) and len(roster) == self.player_count, "complete roster required")
+        mode = self.game_mode if game_mode is None else game_mode
+        _require(type(mode) is int and mode in ((2, 5) if self.player_count == 4 else (1, 4)),
+                 "selected mode differs from template topology")
+        slots = set(range(self.player_count))
         players = []
         for index, entry in enumerate(roster):
             if isinstance(entry, PlayerSpec):
@@ -325,15 +337,22 @@ class GameTemplate:
                 player = PlayerSpec(slot, entry.get("player_id", slot + 1),
                                     entry.get("name", f"LAN Player {slot + 1}"), entry.get("army_id", slot),
                                     entry.get("ai_profile_id", 0))
-            _require(type(player.slot) is int and player.slot in (0, 1)
+            _require(type(player.slot) is int and player.slot in slots
                      and type(player.army_id) is int and player.army_id in self.armies, "invalid player slot/army")
             players.append(player)
         players.sort(key=lambda player: player.slot)
-        _require({player.slot for player in players} == {0, 1} and len({player.army_id for player in players}) == 2,
+        _require({player.slot for player in players} == slots and len({player.army_id for player in players}) == self.player_count,
                  "roster needs distinct slots and armies")
-        _require(len({player.player_id for player in players}) == 2, "roster needs distinct player IDs")
+        _require(len({player.player_id for player in players}) == self.player_count, "roster needs distinct player IDs")
         selected = dict(enumerate(decks)) if not isinstance(decks, Mapping) else decks
-        _require(set(selected) == {0, 1}, "decks required for both slots")
+        _require(set(selected) == slots, "decks required for all slots")
+        choices = {} if bot_choices is None else dict(bot_choices)
+        if bot_choices is not None:
+            _require(set(choices) == {player.slot for player in players if player.ai_profile_id},
+                     "frozen bot choices must match the complete AI roster")
+        used_modifier_keys = {get_uint(buff, 1) for buff in get_repeated_bytes(self.game_config, 5)}
+        for army in self.armies.values():
+            used_modifier_keys.update(get_uint(buff, 1) for buff in get_repeated_bytes(get_bytes(army, 7), 2))
         seed = secrets.randbits(64) if seed is None else _uint(seed, 64)
         game_name = game_name or f"dedicated-{uuid.uuid4().hex}"
         _require(isinstance(game_name, str) and 0 < len(game_name.encode("utf-8")) <= 128
@@ -345,16 +364,29 @@ class GameTemplate:
             groups = self.active_groups_for_deck(units)
             identity = encode_identity(player.player_id, player.name, ai_profile_id=player.ai_profile_id)
             deck_message = encode_deck(units, groups)
+            bot = choices.get(slot)
+            if bot is not None:
+                from .bot_catalog import BotChoice
+                _require(isinstance(bot, BotChoice) and bot.profile == player.ai_profile_id and bot.name == player.name
+                         and bot.deck.units == units and bot.source_mode in ((2, 5) if mode == 5 else (mode,)),
+                         "frozen bot identity/deck/mode differs from roster")
+                deck_message = bot.deck_message
+                decoded = decode_deck(deck_message)
+                _require(decoded['units'] == units, "frozen bot deck message differs from selected units")
+                groups = decoded['active_ability_groups']
             army = replace_fields(self.armies[player.army_id], {
-                2: [field_bytes(2, identity)], 3: [field_bytes(3, deck_message)],
-                4: [field_uint(4, player.army_id)] if player.army_id else []})
+                2: [field_bytes(2, identity)], 3: [field_bytes(3, deck_message)]})
+            if bot is not None:
+                army = replace_fields(army, {5: [field_uint(5, _uint(bot.banner))],
+                                             6: [field_uint(6, _uint(bot.portrait))]})
+                army = self._bot_strength(army, bot.strength, used_modifier_keys)
             identities[slot], deck_ids[slot], groups_by_slot[slot] = identity, units, groups
             deck_messages[slot], armies_by_slot[slot] = deck_message, army
         global_config = replace_fields(self.global_config, {number: [] for number in (34, 35, 38, 39, 40, 41, 42, 49)})
         by_army = {player.army_id: armies_by_slot[player.slot] for player in players}
         config = replace_fields(self.game_config, {
             2: [field_bytes(2, by_army[army_id]) for army_id in sorted(by_army)],
-            3: [field_bytes(3, global_config)], 35: [], 36: [field_uint(36, 1)],
+            3: [field_bytes(3, global_config)], 35: [], 36: [field_uint(36, mode)],
             38: [field_uint(38, seed)] if seed else []})
         raw = replace_fields(self.raw_game_data, {1: [field_bytes(1, config)]})
         compressed = canonical_gzip(raw)
@@ -362,6 +394,28 @@ class GameTemplate:
                          hashlib.sha256(raw).hexdigest(), game_name, field_bytes(1, game_name.encode("utf-8")), seed,
                          tuple(players), MappingProxyType(identities), MappingProxyType(deck_ids),
                          MappingProxyType(groups_by_slot), MappingProxyType(deck_messages), MappingProxyType(armies_by_slot))
+
+    @staticmethod
+    def _bot_strength(army, strength, used_keys):
+        unity = 1 << 32
+        _require(isinstance(strength, tuple) and len(strength) == 3 and
+                 all(type(value) is int and 0 < value <= 4*unity for value in strength), "invalid bot strength")
+        if strength == (unity, unity, unity):
+            return army  # Preserve the complete authored Normal baseline.
+        resources, damage, health = strength
+        modifiers = get_bytes(army, 7)
+        baseline = signed64(get_uint(modifiers, 1)) if modifiers else unity
+        _require(0 < baseline <= 4*unity, "unsupported authored resourcing multiplier")
+        product = (baseline * resources) >> 32
+        _require(0 < product < (1 << 63), "bot resourcing multiplier overflow")
+        key = max(used_keys, default=0) + 1
+        _uint(key); used_keys.add(key)
+        buff = field_uint(1, key)
+        for kind, value in ((1, damage), (4, health)):
+            attribute = field_uint(1, kind) + field_uint(2, value)
+            buff += field_bytes(2, field_uint(1, 1) + field_bytes(2, attribute))
+        modifiers = replace_fields(modifiers, {1: [field_uint(1, product)]}) + field_bytes(2, buff)
+        return replace_fields(army, {7: [field_bytes(7, modifiers)]})
 
 
 class _Descriptors:
@@ -533,4 +587,6 @@ class InputValidation:
 
     def encode_frame(self, frame, inputs_by_slot):
         inputs = dict(enumerate(inputs_by_slot)) if not isinstance(inputs_by_slot, Mapping) else inputs_by_slot
-        return encode_frame(frame, {slot: self.validate_player_input(slot, inputs[slot]) for slot in (0, 1)})
+        if set(inputs) != set(self.players):
+            raise InputError("frame inputs differ from assigned player slots")
+        return encode_frame(frame, {slot: self.validate_player_input(slot, inputs[slot]) for slot in sorted(self.players)})

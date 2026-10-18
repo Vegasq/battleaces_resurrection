@@ -4,15 +4,15 @@ from server.game_data import GameTemplate, encode_deck
 from server.protobuf_wire import field_bytes, field_packed_uint, field_uint
 
 
-def template():
+def template(mode=1):
     flags = tuple(1 << index for index in range(8))
     deck = tuple(range(100, 108))
     global_config = field_bytes(24, field_packed_uint(1, flags))
     entities = b''.join(field_bytes(1, field_uint(1, entity) + field_uint(21, mask))
                         for entity, mask in zip(deck, flags))
-    armies = b''.join(field_bytes(2, field_uint(1, army) + field_bytes(3, encode_deck(deck)))
-                      for army in (0, 1))
-    raw = field_bytes(1, entities + armies + field_bytes(3, global_config))
+    armies = b''.join(field_bytes(2, field_uint(1, army) + field_bytes(3, encode_deck(deck)) + field_uint(4, army % 2))
+                      for army in range(4 if mode in (2, 5) else 2))
+    raw = field_bytes(1, entities + armies + field_bytes(3, global_config) + field_uint(36, mode))
     return GameTemplate(raw, catalog_path=None, descriptors_path='unused-synthetic-descriptors')
 
 

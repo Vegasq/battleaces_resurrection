@@ -16,6 +16,8 @@ import time
 import traceback
 
 from server.worker_client import _WindowsJob
+from server.bot_catalog import BotCatalog
+from server.game_data import GameTemplate
 from tools.import_assets import verify_export
 from tools.run_secure_match import read_native_log
 from tools.verify_custom_lobby import require, source_hashes as core_hashes
@@ -70,6 +72,18 @@ def run(game, output):
                     'rule size/hash mismatch')
         report.update(passed=True, default_profile=rules['default_profile'], profile_count=len(ids),
                       profiles=profiles, repeatable=True, manager_unchanged=True)
+        templates = {}
+        for name, mode in (('map-1v1.pb.gz', 1), ('map-2v2.pb.gz', 2), ('map-2vai.pb.gz', 5)):
+            template = GameTemplate.load(exported/name, catalog_path=exported/'unit-catalog.json')
+            require(template.game_mode == mode, 'original builder mode mismatch')
+            templates[mode] = template
+        bots = BotCatalog(exported, template=templates[1])
+        report['maps'] = {mode: dict(armies=template.player_count, alliances=template.alliances,
+                                    raw_sha256=template.raw_sha256) for mode, template in templates.items()}
+        report['bot_catalog'] = dict(profiles=len(bots.profiles), names=len(bots.names), cosmetic_ids=len(bots.cosmetic_ids),
+                                    decks=sum(len(decks) for _, decks in bots.profiles.values()),
+                                    character_decks=sum(deck.kind == 1 for _, decks in bots.profiles.values() for deck in decks),
+                                    strengths=dict(bots.strengths))
     except BaseException as error:
         report.update(error=repr(error), traceback=traceback.format_exc())
     finally:

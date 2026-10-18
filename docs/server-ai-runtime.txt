@@ -176,10 +176,11 @@ expectation errors (tuple/list and a nonexistent synthetic state field), correct
 before this passing run; no native failure was hidden by those corrections.
 
 Remaining qualification
-Export/import the authored public
-profile deck/name/cosmetic pools for server selection; include public difficulty
-modifiers. Export real team maps and qualify four-army2v2/2vAI and mixed human
-groups, disconnects, cancellation/late-start races, results and cleanup.
+Original team map export/import, authored bot catalog selection/strength and
+headless four-army2v2/2vAI natural combat now pass;601 worker frames replay
+identically. See server-bot-catalog.txt for evidence and exact scope. Qualify
+graphical human team play, mixed human groups, disconnects,cancellation/late-start
+races, native search UI, results and cleanup through ordinary client paths.
 These findings do not complete any public/team gameplay or release gate.
 
 Evidence

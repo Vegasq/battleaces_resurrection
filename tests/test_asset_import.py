@@ -10,6 +10,7 @@ from tests.synthetic import template
 from tools.import_assets import import_assets, verify_export
 from server.ai_rules import SUPPORTED_AI_SHA256
 from tests.test_ai_rules import synthetic_rules
+from tests.test_bot_catalog import catalog_fixture
 
 
 class AssetImportTests(unittest.TestCase):
@@ -75,3 +76,48 @@ class AssetImportTests(unittest.TestCase):
         with self.assertRaisesRegex(ValueError, 'hash mismatch'): verify_export(self.directory)
         entry['sha256'] = hashlib.sha256(b'\0'*len(rules)).hexdigest(); update()
         with self.assertRaisesRegex(ValueError, 'offset'): verify_export(self.directory)
+
+    def add_bot_bundle(self):
+        source, bots = template(), catalog_fixture()
+        catalog = dict(slot_flags=list(source.slot_flags), units=[dict(id=key, menu_slot_flags=row['deck_slot_flags'],
+                       release_deck_playable=True, menu_entity_present=True, active_ability_groups=[])
+                       for key, row in source.catalog.items()])
+        self.data['unit-catalog.json'] = json.dumps(catalog).encode()
+        self.data['bot-catalog.json'] = json.dumps(bots).encode()
+        self.manifest['raw_maps'] = {'map-1v1.pb.gz': self.manifest['raw_game_data']}
+        for name, mode in (('map-2v2.pb.gz', 2), ('map-2vai.pb.gz', 5)):
+            raw = template(mode).raw_game_data
+            self.data[name] = canonical_gzip(raw)
+            self.manifest['raw_maps'][name] = dict(bytes=len(raw), sha256=hashlib.sha256(raw).hexdigest())
+        rules, _ = synthetic_rules()
+        entries = []
+        for row in bots['profiles']:
+            name = f"ai-rules-{row['profile']}.fb"
+            (self.directory/name).write_bytes(rules)
+            entries.append(dict(profile=row['profile'], mode=row['mode'], enabled=True, file=name,
+                                bytes=len(rules), sha256=hashlib.sha256(rules).hexdigest()))
+        self.data['ai-rules.json'] = json.dumps(dict(schema=1, build=37822, format='Uncapped.Flatbuffers.Fuzzy',
+                   ai_dll_sha256=SUPPORTED_AI_SHA256, default_profile=501, profiles=entries)).encode()
+        for name, data in self.data.items():
+            (self.directory/name).write_bytes(data)
+            self.manifest['files'][name] = dict(bytes=len(data), sha256=hashlib.sha256(data).hexdigest())
+        self.write_manifest()
+
+    def test_complete_team_bot_bundle_and_inner_catalog_are_verified(self):
+        self.add_bot_bundle()
+        verified = verify_export(self.directory)
+        self.assertTrue({'map-2v2.pb.gz', 'map-2vai.pb.gz', 'bot-catalog.json', 'ai-rules-505.fb'} <= verified.keys())
+        bots = catalog_fixture(); bots['profiles'][0]['decks'][0]['deck_hex'] = '00'
+        changed = json.dumps(bots).encode()
+        (self.directory/'bot-catalog.json').write_bytes(changed)
+        self.manifest['files']['bot-catalog.json'] = dict(bytes=len(changed), sha256=hashlib.sha256(changed).hexdigest())
+        self.write_manifest()
+        with self.assertRaises(ValueError): verify_export(self.directory)
+
+    def test_missing_team_map_or_uncompressed_hash_cannot_be_accepted(self):
+        self.add_bot_bundle()
+        saved = self.manifest['files'].pop('map-2vai.pb.gz'); self.write_manifest()
+        with self.assertRaisesRegex(ValueError, 'Incomplete team'): verify_export(self.directory)
+        self.manifest['files']['map-2vai.pb.gz'] = saved
+        self.manifest['raw_maps']['map-2vai.pb.gz']['sha256'] = '0'*64; self.write_manifest()
+        with self.assertRaisesRegex(ValueError, 'uncompressed map hash'): verify_export(self.directory)

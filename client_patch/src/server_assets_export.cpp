@@ -10,6 +10,10 @@ static ULONGLONG startedAt=0;
 static std::wstring directory;
 static HANDLE outputLock=INVALID_HANDLE_VALUE;
 static uint32_t savedFront=0,savedPlayer=0,savedName=0;
+static size_t mapIndex=0;
+static const int mapModes[]={1,2,5};
+static const wchar_t* mapFiles[]={L"map-1v1.pb.gz",L"map-2v2.pb.gz",L"map-2vai.pb.gz"};
+static std::string mapRows,rawMapRows,rawOne;
 
 static std::wstring moduleDirectory() {
     wchar_t path[32768];DWORD count=GetModuleFileNameW(ba::module,path,32768);
@@ -164,6 +168,7 @@ static Bytes exportAIRules() {
     note("AI rules exported through original serializer; repeated bytes match and manager/world state is unchanged.");
     return result;
 }
+#include "server_bot_catalog.cpp"
 static uint32_t root(Obj value) {
     return value?ba::api<uint32_t(*)(Obj,bool)>("il2cpp_gchandle_new")(value,false):0;
 }
@@ -182,6 +187,7 @@ static void releaseLock() {if(outputLock!=INVALID_HANDLE_VALUE){CloseHandle(outp
 static void failed(const char* reason) {
     if(phase==Phase::Complete || phase==Phase::Failed)return;
     phase=Phase::Failed;
+    bot_catalog::cleanup();
     try{restoreIdentity();}catch(const std::exception& error){ba::log("Export identity restoration: %s",error.what());}
     note(reason);
     if(!directory.empty() && outputLock!=INVALID_HANDLE_VALUE) {
@@ -192,27 +198,58 @@ static void failed(const char* reason) {
     }
     releaseLock();
 }
+static void overlay(Obj gameData,Obj dynamic) {
+    const int mode=mapModes[mapIndex];
+    if(mode==1){ba_lan_bootstrap::overlayLan(gameData,dynamic);return;}
+    Obj config=ba::get<Obj>(gameData,"gameConfig_"),armies=ba::get<Obj>(config,"armies_");
+    ba_tables::require(ba::get<int>(config,"gameMode_")==mode && ba_local::count(armies)==4,"team export mode/army count mismatch");
+    Root deck(ba_lan_bootstrap::shippedDeck(config,dynamic));
+    for(int slot=0;slot<4;++slot) {
+        Obj army=ba_bootstrap::item(armies,slot);
+        ba_tables::require(ba::get<uint32_t>(army,"armyId_")==static_cast<uint32_t>(slot) &&
+            ba::get<uint32_t>(army,"allianceId_")==static_cast<uint32_t>(slot&1),"team export authored army/alliance mismatch");
+        Root player(ba_lan_bootstrap::playerLan(0));Obj named=ba::get<Obj>(player.get(),"playerHandleWithName_");
+        ba::set<uint64_t>(ba::get<Obj>(named,"playerHandle_"),"steamId_",static_cast<uint64_t>(slot+1));
+        Root name(ba::str(("Export Army "+std::to_string(slot)).c_str()));
+        ba::set<Obj>(named,"playerName_",name.get());ba::set<Obj>(named,"filteredName_",name.get());
+        Obj players=ba::get<Obj>(army,"players_");ba::call(players,"Clear");ba_local::addItem(players,player.get());
+        Root ownDeck(ba::call(deck.get(),"Clone"));ba::set<Obj>(army,"deck_",ownDeck.get());
+    }
+    ba::set<uint64_t>(config,"rngSeedValue_",UINT64_C(0x42414c414e303031));
+    ba::log("Team export: mode=%d armies=4 authored alliances=0/1/0/1 initialActions=%d unchanged",mode,
+        ba_local::count(ba::get<Obj>(gameData,"initialActions_")));
+}
 static void consume(Obj gameData,Obj encoded) {
     if(phase!=Phase::Building || outputLock==INVALID_HANDLE_VALUE)throw std::runtime_error("unexpected export builder callback");
     Root encodedArray(ba::call(encoded,"ToByteArray"));Bytes compressed=arrayBytes(encodedArray.get(),2*1024*1024);
     void* args[]={gameData};Root rawArray(ba::invoke(ba::find_class("Google.Protobuf","MessageExtensions"),nullptr,"ToByteArray",1,args));
     Bytes raw=arrayBytes(rawArray.get(),16*1024*1024);
+    const std::wstring filename=mapFiles[mapIndex];const std::string narrow(filename.begin(),filename.end());
+    atomicWrite(path(filename.c_str()),compressed.data(),compressed.size());
+    const std::string rawRow="{\"bytes\":"+std::to_string(raw.size())+",\"sha256\":\""+hash(raw)+"\"}";
+    if(mapIndex==0)rawOne=rawRow;
+    if(!mapRows.empty()){mapRows+=',';rawMapRows+=',';}
+    mapRows+=ba_catalog::quote(narrow)+":{\"bytes\":"+std::to_string(compressed.size())+",\"sha256\":\""+hash(compressed)+"\"}";
+    rawMapRows+=ba_catalog::quote(narrow)+":"+rawRow;
+    restoreIdentity();
+    if(++mapIndex<3) {
+        phase=Phase::Waiting;note("Map export saved; next original mode builder will start on a later menu poll.");return;
+    }
     ba_catalog::exportFile(path(L"unit-catalog.json").c_str());
     Bytes catalog=readFile(path(L"unit-catalog.json"));
     Bytes aiRules=exportAIRules();
-    atomicWrite(path(L"map-1v1.pb.gz"),compressed.data(),compressed.size());
+    Bytes botCatalog=bot_catalog::exportFile();
     std::string manifest="{\"schema\":1,\"asset_format\":1,\"complete\":true,\"build\":37822,\"pid\":"+std::to_string(GetCurrentProcessId())+
-        ",\"source\":\"loaded original normal 1v1 GameData builder and runtime unit tables\","
+        ",\"source\":\"loaded original mode1/2/5 GameData builders and runtime tables\","
         "\"original_gameassembly_sha256\":\"e59d08c01479b27404778048d7e13546dbf3771f6b3912744c7c2bdf80c4e758\","
         "\"simulation_sha256\":\"107bb83dc416a16492277392c50104660e34c48911345ae2e0d5afe3929a07fb\","
-        "\"files\":{\"map-1v1.pb.gz\":{\"bytes\":"+std::to_string(compressed.size())+",\"sha256\":\""+hash(compressed)+
-        "\"},\"unit-catalog.json\":{\"bytes\":"+std::to_string(catalog.size())+",\"sha256\":\""+hash(catalog)+
+        "\"files\":{"+mapRows+",\"unit-catalog.json\":{\"bytes\":"+std::to_string(catalog.size())+",\"sha256\":\""+hash(catalog)+
         "\"},\"ai-rules.json\":{\"bytes\":"+std::to_string(aiRules.size())+",\"sha256\":\""+hash(aiRules)+
-        "\"}},\"raw_game_data\":{\"bytes\":"+std::to_string(raw.size())+",\"sha256\":\""+hash(raw)+"\"}}\n";
-    restoreIdentity();
+        "\"},\"bot-catalog.json\":{\"bytes\":"+std::to_string(botCatalog.size())+",\"sha256\":\""+hash(botCatalog)+
+        "\"}},\"raw_game_data\":"+rawOne+",\"raw_maps\":{"+rawMapRows+"}}\n";
     atomicWrite(path(L"export.json"),reinterpret_cast<const unsigned char*>(manifest.data()),manifest.size());
     phase=Phase::Complete;releaseLock();
-    note("COMPLETE: map, unit catalog, AI rules and export.json written; no match started. You may close the game.");
+    note("COMPLETE: three mode maps, unit/bot catalogs, AI rules and export.json written; no match started. You may close the game.");
 }
 static void poll(Obj front) {
     if(!ba::exportServerAssets() || phase==Phase::Complete || phase==Phase::Failed)return;
@@ -230,12 +267,13 @@ static void poll(Obj front) {
         if(phase!=Phase::Waiting)return;
         Obj fsm=ba::read<Obj>(ba::owner,0x2b0);
         if(!fsm || ba::get<Obj>(fsm,"_currentState")!=ba::read<Obj>(ba::owner,0x2c0) || !ba_catalog::available())return;
-        if(!aiProfiles.ready())return;
-        int mode=1;void* modeArgs[]={&mode};Root config(ba::call(ba::owner,"GetConfigForMode",1,modeArgs));
+        const bool rulesReady=aiProfiles.ready(),botsReady=bot_catalog::ready();
+        if(!rulesReady || !botsReady)return;
+        int mode=mapModes[mapIndex];void* modeArgs[]={&mode};Root config(ba::call(ba::owner,"GetConfigForMode",1,modeArgs));
         if(!config.get() || !ba::get<Obj>(config.get(),"GameDataProvider"))return;
         savedFront=root(front);savedPlayer=root(ba::get<Obj>(front,"_playerGameHandle"));savedName=root(ba::get<Obj>(front,"_currentPlayerName"));
-        phase=Phase::Building;note("Calling the original mode1 map/config builder; its create request will be exported locally.");
-        ba_bootstrap::create(front,ba::owner,1);
+        phase=Phase::Building;note("Calling the next original mode map/config builder; its create request will be exported locally.");
+        ba_bootstrap::create(front,ba::owner,mode);
     }catch(const std::exception& error){failed(error.what());}
 }
 }

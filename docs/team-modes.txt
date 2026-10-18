@@ -1,5 +1,6 @@
 TEAM MODES - BUILD 37822 CONTRACT
-Updated:2026-10-18. Static native/asset findings; no four-army gameplay claim.
+Updated:2026-10-18. Static contract plus headless four-army qualification below.
+Graphical team play and partial human groups remain unqualified.
 
 The final product requires public2v2 and2vAI even with one offline human. Multiple
 1v1 rooms do not satisfy this. A partial online human group must stay in one
@@ -64,10 +65,11 @@ These definitions do not recover the original server's bot-host election policy.
 Required implementation changes
 Separate authenticated profile, network connection owner, participant seat,
 army ID and alliance ID. The current server/client often conflates them.
-server/game_data.py: extend validated templates/PlayerSpec/roster and frame
-assembly beyond exactly0/1; preserve authored alliances and selected mode. Add
-stable bot profile/name/deck/cosmetics plus an explicit input owner. InputValidation
-must authenticate the input producer and validate the assigned bot's army/deck.
+server/game_data.py now validates two/four-army templates,rosters and canonical
+frame assembly, preserving authored alliances and selected mode. Frozen bot
+profile/name/deck/cosmetics and strength come from the local installed catalog.
+Worker IPC owns and validates assigned bot input. Public InputValidation must
+continue to authenticate human producers separately from server bot assignments.
 server/dedicated_server.py and protocol.py: ready/loaded connections differ from
 all participants; replace the two-body FRAME format with a bounded versioned
 participant format. Bind each participant to the authoritative roster and frame.
@@ -83,9 +85,9 @@ practice_ai.cpp owns one bot/deck/process for mode4 and experimental public1v1.
 local_loop.cpp
 has one peerRoot. Generalize to a bounded participant/producer list with all
 native AI readiness and teardown gates; do not drop a bot's lifecycle checks.
-server_assets_export/import/assets/backup currently pin one map. Export/import/
-hash the team map locally without committing it. Standalone server-side AI may
-also require verified local AI DLL/rule imports and their native ABI work.
+Server asset export/import now hashes all three original mode maps and the bot
+catalog, retaining them locally. The AI DLL/rules are also imported and validated.
+Host/lobby selection still starts from1v1; generalize actual match allocation.
 
 Do not expand every two-element loop to four. There are still two alliances:
 observer views0/1 and result winner0/1/31 remain meaningful. Verify commands,
@@ -96,13 +98,15 @@ Server simulation authority and bot command execution are separate. A mixed
 match needs qualified server-side bot execution or explicit single-owner AI
 delegation with authenticated assignment,input checks,ordered frames and owner-
 loss behavior. Independent local fallback worlds for each human are invalid.
-The standalone AI world now has two-army runtime proof with original rule export,
-production, movement, combat and results. See server-ai-runtime.txt. Actual worker
-IPC/room integration, shared human/bot input and four-army maps remain required.
+Two-seat mixed human/bot worker/room integration now passes exact replay. The
+original team maps, bot catalog and all-bot four-army native worlds also pass:
+mode2 and5 produce/move/fight to natural results with alliances0/2 versus1/3.
+A601-frame four-army worker replay is exact. See server-ai-runtime.txt and
+server-bot-catalog.txt. These checks do not qualify human team menu/transport.
 
 Required qualification
-First export/build the real mode2 and5 world and inspect all four armies, initial
-actions,decks and alliances. Then run one human with three bots, prove every AI
+Original mode2/5 export, four-army match construction and headless all-bot combat
+now pass (server-bot-catalog.txt). Next run one human with three bots, prove every AI
 reaches Playing and builds/moves/fights, and verify correct team results, surrender
 behavior, full cleanup and rematch. Repeat mode switches with Try Deck/Custom.
 Extend server/client together and test four humans, allied humans against bots,

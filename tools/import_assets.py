@@ -9,6 +9,7 @@ import shutil
 from server.game_data import GameTemplate, decompress_game_data
 from server.native_simulation import SUPPORTED_DLL_SHA256
 from server.ai_rules import RuleBook, SUPPORTED_AI_SHA256
+from server.bot_catalog import BotCatalog
 from server.paths import ASSETS, ROOT
 from server.protocol import BUILD_SHA
 from tools.extract_descriptors import extract, GAME_ASSEMBLY_SHA256, validate_output_directory
@@ -24,6 +25,12 @@ def verify_export(directory):
     result = {}
     names = ['map-1v1.pb.gz', 'unit-catalog.json']
     if 'ai-rules.json' in manifest['files']: names.append('ai-rules.json')
+    bot_files = {'map-2v2.pb.gz', 'map-2vai.pb.gz', 'bot-catalog.json'}
+    has_bots = bool(bot_files & manifest['files'].keys())
+    if has_bots:
+        if not bot_files | {'ai-rules.json'} <= manifest['files'].keys():
+            raise ValueError('Incomplete team map/bot export')
+        names.extend(sorted(bot_files))
     for name in names:
         data = (directory / name).read_bytes()
         expected = manifest['files'][name]
@@ -38,6 +45,24 @@ def verify_export(directory):
         if rules.files['ai-rules.json'] != result['ai-rules.json']:
             raise ValueError('AI manifest changed during export verification')
         result.update(rules.files)
+    if has_bots:
+        maps = {'map-1v1.pb.gz': 1, 'map-2v2.pb.gz': 2, 'map-2vai.pb.gz': 5}
+        if set(manifest.get('raw_maps', {})) != set(maps):
+            raise ValueError('Incomplete uncompressed map inventory')
+        templates = {}
+        for name, mode in maps.items():
+            raw = decompress_game_data(result[name]); expected = manifest['raw_maps'][name]
+            if len(raw) != expected['bytes'] or hashlib.sha256(raw).hexdigest() != expected['sha256']:
+                raise ValueError('Export uncompressed map hash mismatch: ' + name)
+            templates[mode] = GameTemplate(raw, catalog_path=directory/'unit-catalog.json')
+            if templates[mode].game_mode != mode:
+                raise ValueError('Exported map mode mismatch')
+        bots = BotCatalog(directory, template=templates[1], rules=rules)
+        if bots.raw != result['bot-catalog.json']:
+            raise ValueError('Bot catalog changed during export verification')
+        for template in templates.values():
+            for _, decks in bots.profiles.values():
+                for deck in decks: template.validate_deck(deck.units)
     return result
 
 
@@ -86,6 +111,10 @@ def import_assets(game_dir, export_dir, destination=ASSETS, original=None):
             raise ValueError('AI rule entity is absent from exported GameConfig')
         manifest['ai_profiles'] = len(rules.rules)
         manifest['ai_dll_sha256'] = SUPPORTED_AI_SHA256
+    if 'bot-catalog.json' in exported:
+        bots = BotCatalog(destination, template=template, rules=rules)
+        manifest['bot_profiles'] = len(bots.profiles)
+        manifest['map_modes'] = [1, 2, 5]
     (destination / 'asset-manifest.json').write_text(json.dumps(manifest, indent=2) + '\n', encoding='utf-8')
     return manifest
 

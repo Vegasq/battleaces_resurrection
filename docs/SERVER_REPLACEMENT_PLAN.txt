@@ -133,9 +133,14 @@ Current implementation sequence for these additions (2026-10-18):
    and two-army standalone AI combat now pass. Private worker IPC/rooms now carry
    canonical bot input alongside human input; an accelerated scripted native room
    finishes naturally and all5,088 received frames replay to matching state.
-   Export/import authored profile/deck/name/cosmetic pools for server assignment,
-   preserve the compatible pairings, and extend to four armies. Team play and the
-   mode5 missing-teammate policy remain open.
+   Original mode1/2/5 map export/import and authored bot catalog selection now
+   pass, including compatible decks,localized identities,full character cosmetics
+   and supported Q32 strength. Four-army GameData/frames preserve authored teams.
+   Headless2v2/2vAI natural matches and601 exact four-army worker replay frames
+   pass. Mode5 vacant allied seats explicitly use the mode2 teammate pool; this
+   replacement policy is exercised with all bots. See server-bot-catalog.txt.
+   Human team play, public client wire/local multi-bot ownership and partial
+   online groups remain open; do not enable team menu paths from these tests alone.
 4. Implement generation-bound public queues/fallback and human-only Custom,
    then qualify cancellation,late starts,partial groups,results and repeated
    mode switches. Complete local cosmetic inventory/equip/persistence and unified

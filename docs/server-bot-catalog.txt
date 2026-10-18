@@ -1,0 +1,133 @@
+SERVER BOT CATALOG AND TEAM MAP FOUNDATION - BUILD37822
+Updated2026-10-18. Export/import, match construction and headless team checks
+pass. Public queues, four-player client transport and graphical team play remain
+open. No game assets, names, decks or cosmetics are embedded in this repository.
+
+Local export and ownership
+server_assets_export.cpp invokes the original mode1,2,5 builders sequentially.
+The next mode starts on a later main-menu poll, after the previous intercepted
+create callback has cleared its creating/front-root state. All three requests
+are consumed locally; no match starts and no original server is contacted by
+this path. Front identity is restored after every saved map and on failure.
+The original team map has armies0,1,2,3 with alliances0,1,0,1. Its static builder
+does not populate players or decks, so the export adds placeholder rosters/decks
+while retaining the authored map, alliances and initial actions. Final server
+construction replaces placeholders with the frozen actual roster.
+
+The completion manifest is written last and declares map-1v1.pb.gz,
+map-2v2.pb.gz,map-2vai.pb.gz,unit-catalog.json,ai-rules.json and bot-catalog.json.
+raw_maps records each decompressed map's size/hash; legacy raw_game_data remains
+the1v1 hash. The AI manifest declares all native rule blobs. Import verifies
+inner/outer hashes, map modes/topology, profile/rule correspondence and playable
+decks. New team/bot members are all-or-nothing; old complete1v1 exports remain
+usable for their original scope. Imported files stay private and ignored.
+
+server_bot_catalog.cpp uses the original registered tables and deck serializer.
+Shared decks are copied before serialization; selected ability order is retained.
+Type1 character names come from CharacterName, without the editor GetName deck
+suffix. Localization handles auto-release next frame, so the exporter converts
+the boxed generic handle through its original implicit operator, acquires one
+ResourceManager reference immediately, polls, copies the string and releases
+exactly that reference. A managed GC root alone does not retain the operation.
+
+CosmeticsUtils.AddCosmeticsEntitlements is static with arguments
+(Cosmetics, ref List<CommonPb.Entitlement>, bool allowUnowned). The list MUST be
+constructed first, as the original Deck.ToProtoRuntime does. The exporter finds
+that exact closed list class through the reflected by-ref parameter, initializes
+and roots it, then invokes the helper. The helper allocates entitlement entries
+but does not create the list. allowUnowned=true avoids the ownership lookup; it
+does not grant inventory or alter the character's equipped loadout. Effective
+portrait/banner are identified from the emitted keys using original category
+labels, including native default handling. Keys are Entitlement field3, not2.
+
+Catalog schema1
+The local JSON contains weighted opponent/teammate profile pools for modes1,2,4,5;
+referenced profiles with original compatible decks; localized character identity
+and full cosmetic entitlement messages; the installed English random-name pool;
+allowed random portrait/banner IDs; all installed cosmetic IDs; and supported
+practice strength triples. Character names use the exporting client's locale.
+The validator rejects duplicate JSON keys, oversized inputs, unknown profile/
+mode pairs, invalid decks, unsupported wire fields, missing cosmetic references
+and invalid strengths. The file is bounded to4MiB; each deck to4KiB.
+
+Replacement selection policy
+server.bot_catalog.BotCatalog chooses a weighted enabled profile, then one of
+its compatible decks. Type1 retains the original character name/full appearance;
+other deck types use installed English names and allowed portrait/banner pools.
+Names already in the match are excluded. Public strength is uniformly selected
+from Easy,Normal,Hard independently of tactics and the saved Try Deck preference.
+Explicit difficulty is available for practice/engineering callers. This policy
+is new behavior; it does not claim recovery of the retired service's RNG.
+Mode5 has no original teammate pool. The explicit replacement policy uses mode2
+teammate profile59 for vacant allied seats and keeps mode5 character profile60
+for opponents. Headless all-bot evidence below exercises this combination;
+partial human groups and ordinary-client behavior still require qualification.
+
+Frozen match construction
+GameTemplate admits two armies for modes1/4 and four for2/5, requires contiguous
+army IDs and original alternating alliances, and preserves that topology.
+One GameData contains every participant. Frozen bot choices must agree with the
+roster's identity, mode, profile and selected units; original deck bytes carry
+active abilities/cosmetics, and army appearance agrees with the selection.
+Frame assembly supports exactly two or four contiguous participant slots in
+canonical order. This does not change the current two-body public FRAME protocol.
+
+Strength values are ordinary int64 protobuf varints carrying Q32, not floats or
+zigzag values. Normal leaves authored modifiers unchanged. Other strengths
+compose resourcing with exact integer multiplication shifted32bits, retain
+existing buffs and add multiplicative damage/health attributes. New modifier
+keys are unique across original global modifiers, every army and all new bots.
+Human modifiers are unchanged. Unit tests check sub-Q32 rounding and collisions.
+
+Qualification and retained failures
+local/team-bot-export01 failed: a null entitlement list caused an original
+NullReferenceException. There is no completion manifest. The corrected run is
+local/team-bot-export02/verification.json, PASS15.964s, helperSHA256
+a09b248ed6a1800e5f7b52082c21970da03584258ec1d96f9a2c41d959aa6cf8.
+It exports3 maps,59 rule profiles,7 referenced bot profiles,36 compatible deck
+rows (12 Type1),13,646 usable English names and107 cosmetic IDs. Async name
+ownership, reflected list construction and repeated catalog serialization pass.
+AI-rule repeatability/manager-state checks apply to the rule export operation;
+this is not a claim that every Unity cache stays unchanged during the full export.
+The owned hidden process is reaped and source hashes stay unchanged. Import into
+local/assets/team-bot-export02 passes with118 files,50 descriptors and52 playable
+units. The untouched recovery copy and manual/frozen runtimes are not modified.
+
+tools.verify_native_ai --catalog-bots now supports the original team maps:
+- team-native-ai01:mode2, profiles59/59/59/59, all Normal, PASS40.352s.
+  Native game-over8076, observed final8080, winning alliance1. Per-army produced
+  counts139/106/131/166; produced units both ordered and moving135/106/131/162.
+  All four armies take combat damage.
+- team-native-ai02:mode5, profiles59/60/59/60, Easy/Normal/Hard/Normal,
+  PASS50.867s. Native game-over8671, observed final8680, winning alliance1.
+  Produced162/99/543/351; produced units ordered and moving158/98/541/351.
+  All four armies take combat damage; original Type1 character decks are used.
+Both use one authoritative native simulation, original AI decisions and native
+50ms frames, with accelerated wall-clock execution. They finish naturally,
+release both native runtimes, reap their owned child and preserve source hashes.
+No client UI, remote humans or automatic surrender is involved.
+Verification JSON SHA256, respectively export02/team-native-ai01/team-native-ai02:
+6fd97f3af7f7236edc67a779c7017db635cd7eb23f1e683c895152e73dbc918b
+a3b26e0edfd094455d7eab37aa5823dbc5164a99c741be2525e69688336a2aab
+5695e99fad6efd08c46fce79ad369af62e61ecb387eb59cda30843d5c2f7eb86
+
+Python3.14 focused regressions:95 tests pass (team-bot-focused01.txt), including
+real AI/native workers and existing human/Custom/package paths. An additional
+four-army native worker test passes601 frames through BOT_INPUT/STEP and an
+independent replay with identical canonical state, commands beyond JoinArmy from
+every bot and both worker exits0 (team-worker-four-army01.txt). Python3.12 passes
+22 bot-catalog/match/import tests (team-catalog-py312.txt). New packages have not
+been built or released from this checkpoint.
+
+Next gates
+Extend server/client roster, public FRAME, lobby/mode negotiation and local
+multi-bot ownership together. Qualify one human with three bots, partial online
+groups, four humans, team results, disconnects, cleanup and rematches. Wire native
+Searching/timer/Cancel and generation-bound public queue/fallback before enabling
+ordinary public play. See matchmaking-search.txt and SERVER_REPLACEMENT_PLAN.txt.
+
+Static evidence
+Ignored local/team-export-contract01 and local/server-bot-catalog01 contain
+bounded original PE/LLVM/IL2CPP/asset evidence and the null-list correction.
+REA native providers were unavailable; no native-provider decompilation is
+claimed. Original bytes and extracted tables remain outside Git.

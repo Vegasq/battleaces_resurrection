@@ -140,7 +140,8 @@ static void poll(Obj server) {
 namespace ba_bootstrap {
 static void create(Obj front,Obj controller,int mode) {
         ba::init();
-        if(mode!=3 && !((ba::lan() || ba::exportServerAssets()) && mode==1))throw std::runtime_error("unsupported offline game mode");
+        if(mode!=3 && !(ba::lan() && mode==1) && !(ba::exportServerAssets() && (mode==1 || mode==2 || mode==5)))
+            throw std::runtime_error("unsupported offline game mode");
         if(creating)throw std::runtime_error("offline game creation already pending");
         checked(front,"front service missing");checked(controller,"game setting controller missing");
         if(ba::lan() || ba::exportServerAssets())ba_lan_bootstrap::identityLan(front,ba::exportServerAssets()?0:ba::lanSlot());else identity(front);
@@ -181,7 +182,8 @@ extern "C" __declspec(dllexport) void OfflineConsumeCreateRequest(void* front,vo
         if(ba::klass(request.get())!=ba::find_class("GamePb","CreateGameRequest"))throw std::runtime_error("unexpected local request type");
         Root data(ba::get<Obj>(request.get(),"gameData_"));checked(data.get(),"debug builder supplied no GameData");
         if(ba_practice::active()){ba_practice::consume(front,request.get(),data.get());return;}
-        if(ba::lan() || ba::exportServerAssets())ba_lan_bootstrap::overlayLan(data.get(),ba::get<Obj>(request.get(),"dynamicGameData_"));
+        if(ba::exportServerAssets())ba_export::overlay(data.get(),ba::get<Obj>(request.get(),"dynamicGameData_"));
+        else if(ba::lan())ba_lan_bootstrap::overlayLan(data.get(),ba::get<Obj>(request.get(),"dynamicGameData_"));
         else overlayTutorial(data.get(),ba::get<Obj>(request.get(),"dynamicGameData_"));
         Obj server=checked(ba::read<Obj>(front,0xd8),"game server integration missing");
         Obj config=checked(ba::get<Obj>(data.get(),"gameConfig_"),"game config missing");

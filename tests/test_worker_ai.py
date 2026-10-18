@@ -210,6 +210,42 @@ class MixedRoomTests(DedicatedFixture):
 @unittest.skipUnless(os.name == 'nt' and os.environ.get('BA_RUN_NATIVE_WORKER_TESTS') == '1',
                      'native AI IPC requires explicit Windows opt-in')
 class NativeAIWorkerTests(unittest.IsolatedAsyncioTestCase):
+    async def test_four_army_catalog_inputs_cross_ipc_and_replay_identically(self):
+        from server.bot_catalog import BotCatalog
+        from server.game_data import GameTemplate
+        from server.ai_rules import RuleBook
+        import random
+        assets = Path(os.environ.get('BA_WORKER_TEST_ASSETS', ROOT/'local/assets/team-bot-export02')).resolve()
+        if not (assets/'bot-catalog.json').is_file(): self.skipTest('imported team maps and bot catalog required')
+        template = GameTemplate.load(assets/'map-2vai.pb.gz', catalog_path=assets/'unit-catalog.json',
+                                     descriptors_path=assets/'descriptors')
+        catalog, generator = BotCatalog(assets, template=template, rules=RuleBook(assets)), random.Random(9812)
+        choices, names = {}, []
+        for army, difficulty in enumerate(('easy', 'normal', 'hard', 'normal')):
+            choices[army] = catalog.choose(5, role='opponents' if army % 2 else 'teammates', excluded_names=names,
+                                           difficulty=difficulty, randbelow=generator.randrange)
+            names.append(choices[army].name)
+        match = template.build_match([dict(slot=a, name=b.name, ai_profile_id=b.profile) for a, b in choices.items()],
+                    {a: b.deck.units for a, b in choices.items()}, seed=862431, bot_choices=choices)
+        ai = replay = None
+        commands = {army: 0 for army in choices}
+        try:
+            ai = await SimulationWorker.create(match.raw_game_data, assets/'Simulation.dll',
+                    ai=AISetup(assets, {a: b.profile for a, b in choices.items()}))
+            replay = await SimulationWorker.create(match.raw_game_data, assets/'Simulation.dll')
+            for frame in range(601):
+                inputs = await ai.bot_inputs(frame)
+                self.assertEqual(set(inputs), {0, 1, 2, 3})
+                for army, body in inputs.items(): commands[army] += len(get_repeated_bytes(body, 2))
+                payload = encode_frame(frame, inputs)
+                results = await asyncio.gather(ai.process_frame(payload), replay.process_frame(payload))
+                self.assertEqual(results[0].state['canonical_fnv1a64'], results[1].state['canonical_fnv1a64'])
+            self.assertTrue(all(count > 1 for count in commands.values()), 'each bot must send more than JoinArmy')
+            self.assertEqual({int(army) for army in results[0].state['resources']}, {0, 1, 2, 3})
+        finally:
+            await asyncio.gather(*(worker.close() for worker in (ai, replay) if worker is not None))
+        self.assertEqual([ai.process.poll(), replay.process.poll()], [0, 0])
+
     async def test_ai_decisions_replay_identically_and_remain_outside_parent(self):
         from server.game_data import GameTemplate
         import ctypes

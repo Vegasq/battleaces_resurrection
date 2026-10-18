@@ -4,6 +4,8 @@ import json
 from pathlib import Path, PurePosixPath
 from .protocol import BUILD_SHA, SIM_SHA
 from .ai_rules import RuleBook, SUPPORTED_AI_SHA256
+from .bot_catalog import BotCatalog
+from .game_data import GameTemplate
 
 
 def verify_assets(directory):
@@ -36,4 +38,20 @@ def verify_assets(directory):
             raise ValueError('Incomplete AI rule inventory')
         if any(hashlib.sha256(data).hexdigest() != files[name] for name, data in rules.files.items()):
             raise ValueError('AI files changed during asset verification')
+    bot_files = {'bot-catalog.json', 'map-2v2.pb.gz', 'map-2vai.pb.gz'}
+    if bot_files & files.keys() or 'bot_profiles' in manifest or 'map_modes' in manifest:
+        if not bot_files | {'ai-rules.json'} <= files.keys() or manifest.get('map_modes') != [1, 2, 5]:
+            raise ValueError('Incomplete bot/team asset inventory')
+        templates = {}
+        for name, mode in (('map-1v1.pb.gz', 1), ('map-2v2.pb.gz', 2), ('map-2vai.pb.gz', 5)):
+            templates[mode] = GameTemplate.load(directory/name, catalog_path=directory/'unit-catalog.json',
+                                                 descriptors_path=directory/'descriptors')
+            if templates[mode].game_mode != mode:
+                raise ValueError('Asset map mode mismatch')
+        bots = BotCatalog(directory, template=templates[1], rules=rules)
+        if manifest.get('bot_profiles') != len(bots.profiles) or hashlib.sha256(bots.raw).hexdigest() != files['bot-catalog.json']:
+            raise ValueError('Bot catalog count/hash mismatch')
+        for template in templates.values():
+            for _, decks in bots.profiles.values():
+                for deck in decks: template.validate_deck(deck.units)
     return manifest

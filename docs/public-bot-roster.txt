@@ -8,6 +8,13 @@ The shipped data supplies these inputs, but the retired server's complete random
 selection algorithm is not present in this investigation. A replacement selection
 policy must be identified as new behavior and tested in the actual game.
 
+Server catalog checkpoint2026-10-18: the local exporter now includes original
+mode pools,compatible decks,English names,localized Type1 character identities,
+full cosmetics and supported difficulty modifiers. Server validation/selection
+and all-bot four-army native mode2/5 checks pass. Mode5's empty teammate pool has
+an explicit mode2-ally replacement policy. See server-bot-catalog.txt for scope,
+the corrected entitlement-list ABI, native evidence and remaining client gates.
+
 Evidence boundary
 REA was attempted; no native provider bound. Ghidra/IDA are unconfigured and
 Hopper is unsupported here. Findings use pinned original bytes, LLVM disassembly,

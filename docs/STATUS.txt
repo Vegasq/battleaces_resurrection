@@ -2,6 +2,21 @@ IMPLEMENTATION LEDGER
 Updated: 2026-10-18 UTC
 Active objective: implement SERVER_REPLACEMENT_PLAN.txt, Windows only.
 
+SERVER BOT CATALOG / FOUR-ARMY FOUNDATION (2026-10-18 UTC)
+Sequential original mode1/2/5 export and local import now pass:3 maps,59 AI rule
+profiles,7 referenced bot profiles,36 compatible decks,localized character
+identities,13,646 usable English names and107 cosmetic IDs. Server selection
+freezes compatible decks/identity/appearance and applies supported Q32 strength.
+Four-army GameData/frame construction preserves original alliances0,1,0,1.
+Native all-bot2v2 and2vAI checks both build/move/fight to natural team results;
+601 four-army worker frames replay identically. 95 focused regressions plus the
+new four-army native worker test pass;Python3.12 passes22 source/import tests.
+Failed null-list export evidence is retained; the corrected exporter initializes
+the original entitlement list and owns async name references. See
+server-bot-catalog.txt. Public queues, four-player client transport, native search
+UI, visible human team play and all release gates remain open. No new release
+packages were created; original assets remain private and ignored.
+
 AUTHORITATIVE MIXED HUMAN/BOT ROOM (2026-10-18 UTC)
 Private IPC2 now prepares server-owned bot inputs and requires those exact bytes
 in the simulation frame before the coordinator broadcasts it. Two-seat rooms
@@ -12,7 +27,7 @@ All5,088 delivered frames replay to matching authoritative state; received and
 accepted journals match. Both workers exit0, source hashes remain unchanged.
 73 focused Python3.14 tests pass, including real AI/native workers and existing
 human/Custom/package regressions. This is internal room integration; public
-queue selection, four-army teams, original search UI and release gates remain
+queue selection, client team play, original search UI and release gates remain
 open. See worker-ipc.txt and server-ai-runtime.txt.
 
 HEADLESS AI RULE EXPORT / COMBAT (2026-10-18 UTC)

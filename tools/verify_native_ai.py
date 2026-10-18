@@ -1,7 +1,8 @@
 """Isolated headless original AI + Simulation proof; no Unity client or service.
 
-Uses locally imported assets and real native decisions. The initial two-army
-probe does not qualify four-player transport, public queues or online fallback.
+Uses locally imported assets and real native decisions, including the original
+four-army maps with --catalog-bots. Does not qualify graphical clients,
+four-player transport, public queues or online fallback.
 """
 from __future__ import annotations
 
@@ -10,6 +11,7 @@ import hashlib
 import json
 import os
 from pathlib import Path
+import random
 import subprocess
 import sys
 import time
@@ -17,6 +19,7 @@ import traceback
 
 from server.ai_rules import RuleBook
 from server.assets import verify_assets
+from server.bot_catalog import BotCatalog
 from server.game_data import GameTemplate, encode_frame, encode_player_input
 from server.native_ai import NativeAI
 from server.native_simulation import NativeSimulation
@@ -38,19 +41,45 @@ def child(args):
     try:
         verify_assets(assets)
         book = RuleBook(assets)
-        template = GameTemplate.load(assets/'map-1v1.pb.gz', catalog_path=assets/'unit-catalog.json',
+        map_name = {1: 'map-1v1.pb.gz', 2: 'map-2v2.pb.gz', 5: 'map-2vai.pb.gz'}[args.mode]
+        template = GameTemplate.load(assets/map_name, catalog_path=assets/'unit-catalog.json',
                                      descriptors_path=assets/'descriptors')
-        bots = {0: args.profile, 1: args.opponent_profile}
-        roster = [dict(slot=army, army_id=army, player_id=army+1, name=f'Headless AI {army+1}', ai_profile_id=profile)
-                  for army, profile in bots.items()]
-        decks = template.default_decks
-        if args.decks:
-            decks = {int(army): deck for army, deck in json.loads(args.decks.read_text()).items()}
-        match = template.build_match(roster, decks, seed=862431)
+        choices = None
+        if args.catalog_bots:
+            require(not args.decks, 'catalog bots must retain their original compatible decks')
+            catalog = BotCatalog(assets, template=template, rules=book)
+            generator = random.Random(args.selection_seed)  # Reproducible engineering selection only.
+            choices, names = {}, []
+            strengths = args.strengths.split(',')
+            if len(strengths) == 1: strengths *= template.player_count
+            require(len(strengths) == template.player_count and all(s in ('easy', 'normal', 'hard') for s in strengths),
+                    'one strength or one per army required')
+            for army in template.armies:
+                role = 'teammates' if args.mode in (2, 5) and army % 2 == 0 else 'opponents'
+                choices[army] = catalog.choose(args.mode, role=role, excluded_names=names,
+                                               difficulty=strengths[army], randbelow=generator.randrange)
+                names.append(choices[army].name)
+            bots = {army: choice.profile for army, choice in choices.items()}
+            roster = [dict(slot=army, army_id=army, player_id=army+1, name=choice.name, ai_profile_id=choice.profile)
+                      for army, choice in choices.items()]
+            decks = {army: choice.deck.units for army, choice in choices.items()}
+            report['catalog_selections'] = {army: dict(profile=choice.profile, source_mode=choice.source_mode,
+                name=choice.name, portrait=choice.portrait, banner=choice.banner, deck_kind=choice.deck.kind,
+                deck_reference=choice.deck.reference, difficulty=choice.difficulty, strength=choice.strength)
+                for army, choice in choices.items()}
+        else:
+            require(args.mode == 1, 'team probes require installed catalog selection')
+            bots = {0: args.profile, 1: args.opponent_profile}
+            roster = [dict(slot=army, army_id=army, player_id=army+1, name=f'Headless AI {army+1}', ai_profile_id=profile)
+                      for army, profile in bots.items()]
+            decks = template.default_decks
+            if args.decks:
+                decks = {int(army): deck for army, deck in json.loads(args.decks.read_text()).items()}
+        match = template.build_match(roster, decks, seed=862431, bot_choices=choices)
         report.update(profiles=bots, raw_game_data_sha256=match.raw_sha256,
                       imported_manifest_sha256=hashlib.sha256((assets/'asset-manifest.json').read_bytes()).hexdigest(),
                       ai_rule_sha256={p: hashlib.sha256(book.rules[p]).hexdigest() for p in set(bots.values())},
-                      decks=dict(match.decks_by_slot))
+                      decks=dict(match.decks_by_slot), mode=args.mode, alliances=template.alliances)
         actions_count = {army: 0 for army in bots}
         orders = {army: set() for army in bots}; moved = {army: set() for army in bots}
         positions, initial, produced = {}, set(), {army: set() for army in bots}
@@ -129,6 +158,10 @@ def main():
     parser.add_argument('--opponent-profile', type=int, default=62)
     parser.add_argument('--frames', type=int, default=12000)
     parser.add_argument('--decks', type=Path, help='local per-army deck JSON for native profile/deck qualification')
+    parser.add_argument('--mode', type=int, choices=(1, 2, 5), default=1)
+    parser.add_argument('--catalog-bots', action='store_true', help='select profile-compatible installed bot identities/decks')
+    parser.add_argument('--selection-seed', type=int, default=75191)
+    parser.add_argument('--strengths', default='normal', help='catalog probe strengths, single value or comma-separated per army')
     parser.add_argument('--child', action='store_true')
     args = parser.parse_args()
     args.assets, args.output = args.assets.resolve(), args.output.resolve()
@@ -140,6 +173,8 @@ def main():
     command = [sys.executable, '-m', 'tools.verify_native_ai', '--child', '--assets', str(args.assets),
                '--output', str(args.output), '--profile', str(args.profile), '--opponent-profile', str(args.opponent_profile),
                '--frames', str(args.frames)]
+    command += ['--mode', str(args.mode), '--selection-seed', str(args.selection_seed), '--strengths', args.strengths]
+    if args.catalog_bots: command += ['--catalog-bots']
     if args.decks: command += ['--decks', str(args.decks)]
     environment = dict(os.environ, PYTHONPATH=str(ROOT))
     process = job = None

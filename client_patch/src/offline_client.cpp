@@ -63,6 +63,7 @@ static void aborted(void*,const ba_community_wire::Aborted&);
 static void snapshot(void*);static void update(void*);static void returned(void*,void*);static void smoke(void*);
 }
 namespace ba_export {
+static void overlay(void* gameData,void* dynamic);
 static void poll(void* front);
 static void consume(void* gameData,void* encoded);
 static void failed(const char* reason);
@@ -115,7 +116,7 @@ void log(const char* format, ...) {
     if(!logfile) {
         wchar_t path[32768]; GetModuleFileNameW(module,path,32768);
         wchar_t* slash=wcsrchr(path,L'\\'); if(slash) *(slash+1)=0;
-        if(offlinePractice() || (dedicated() && requestedLanSlot()==255)) {
+        if(exportServerAssets() || offlinePractice() || (dedicated() && requestedLanSlot()==255)) {
             wchar_t suffix[128];swprintf_s(suffix,L"investigation\\runtime\\dedicated-native-%lu.log",GetCurrentProcessId());wcscat_s(path,suffix);
         } else wcscat_s(path,lan() ? (requestedLanSlot()==1 ? L"investigation\\runtime\\lan-native-1.log" : L"investigation\\runtime\\lan-native-0.log") : L"investigation\\runtime\\offline-native.log");
         logfile=_wfsopen(path,L"a",_SH_DENYNO);
