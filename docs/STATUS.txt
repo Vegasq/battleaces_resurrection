@@ -54,6 +54,14 @@ commit30,928,896 ->34,217,984 bytes; source/assets remain unchanged. The pilot
 explicitly does not pass the eight-hour gate. See soak-qualification.txt.
 The revised native stop-probe02 also passes: expected interrupted exit1, all6
 live worlds reaped, unchanged source/assets and no forced process cleanup.
+The monitor fix is source e2c4da9; its463-object source/history audit has zero
+failures. A fresh frozen eight-hour02 began2026-10-18T03:25:13.6306621Z under
+local/p5-soak-frozen03/local/eight-hour02. PID44440/creation FILETIME
+134367675136306621 and executable path were verified live. At31.187s six native
+worlds are active with publication max64.898ms and clean stderr. This remains
+pending; the hidden launcher will separately record actual process exit status.
+Earliest duration completion2026-10-18T11:25:14Z plus the current round/cleanup.
+See soak-qualification.txt; no long-run completion is claimed here.
 Initial source/history audit:5 authored files,456 distinct objects,0 failures. All native
 assets, frozen copies, runtime output and captures stay outside Git publication.
 

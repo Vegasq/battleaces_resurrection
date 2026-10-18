@@ -243,6 +243,29 @@ worlds and unchanged source/assets. stop-probe02-control.json records the owned
 process creation identity and actual exit status; its controller exits0 only
 when those cancellation checks pass. No forced cleanup was needed.
 
+SECOND EIGHT-HOUR RUN IN PROGRESS
+
+Revised runner source e2c4da9825f5709a1acbcc7d3ad7b96e1723e0e9 passed the
+source/history audit (463 distinct objects, zero failures). The frozen9748a64c...
+runner uses the same clean7fccb08 server package and isolated Python3.14.8.
+It started at2026-10-18T03:25:13.6306621Z for28800 seconds, two rooms, frame3600
+and at least21 rounds. Evidence: local/p5-soak-frozen03/local/eight-hour02.
+Launch record: local/p5-soak-frozen03/eight-hour02-launch.json.
+
+PID44440, creation FILETIME134367675136306621 and packaged executable path were
+checked against the live process. At31.187s it has six live native worlds,
+publication mean50.001ms/max64.898ms and worker max5.081ms; stderr is empty.
+This is launch evidence only, not an eight-hour completion. Earliest duration
+completion is2026-10-18T11:25:14Z, followed by the final round and cleanup.
+
+The owned hidden-process launcher retains its process handle and will record the
+actual exit code in local/p5-soak-frozen03/eight-hour02-exit.json. This exit-code
+observation path was separately checked with an owned child exiting3. Require
+both exit0 and a passing terminal verification.json with eight_hour_gate:true;
+missing/stale progress, a live run or a failed/interrupted run cannot qualify.
+Recheck the PID plus creation identity before any monitoring or stop action.
+Do not start another run while this one is active. Source/asset bytes are frozen.
+
 PRIMARY METRIC REFERENCES
 https://learn.microsoft.com/en-us/windows/win32/api/psapi/ns-psapi-process_memory_counters_ex
 https://learn.microsoft.com/en-us/windows/win32/api/processthreadsapi/nf-processthreadsapi-getprocesshandlecount
