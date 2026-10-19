@@ -2,6 +2,24 @@ IMPLEMENTATION LEDGER
 Updated: 2026-10-18 UTC
 Active objective: implement SERVER_REPLACEMENT_PLAN.txt, Windows only.
 
+COMMUNITY COSMETIC STORAGE / MATCH DATA (2026-10-19 UTC, EXPERIMENTAL)
+The server asset export now includes the installed full cosmetic catalog. Native
+export and fresh119-file import pass. Server schema2 profiles atomically retain
+deck and17-slot cosmetics;old deck-only saves preserve cosmetics and old profiles
+load defaults without rewriting. Full snapshot validation/restoration passes
+transaction tests. A real imported-assets profile probe passes storage,but actual
+protected backup file creation fails Windows error5 under this runner;deployment
+backup/restore remains unqualified. Custom/session and public-ticket selections
+are frozen independently of later disk/session changes. Native match construction
+sets explicit portrait/banner and ordered service0 entitlement;bots stay separate.
+Real native1v1/2v2/2vAI workers accept canonical joins and60 total frames,then each
+exits0. Nine C++ components/helper and157 of162 source checks pass;five optional
+checks skip. Ordinary no-config startup keeps cosmetic/export flags dormant.
+See cosmetic-community.txt for hashes,retained failed probes and scope limits.
+Client full-loadout submission/ACK,public assignment binding,graphical cosmetic
+matches/rematches,local AI propagation,main-menu bindings,drag/effects/audio,
+native Quit/shutdown flush and final ordinary packages remain open.
+
 FULL LOCAL COSMETIC SAVES (2026-10-19 UTC, EXPERIMENTAL)
 Original selection/Equip/confirm callbacks and a nondefault equivalent-slot swap
 now pass full17-slot readback,preview rendering and five atomic saves. The original
@@ -16,7 +34,8 @@ Nine C++ component programs/helper and the focused Python suites pass. See
 cosmetic-persistence.txt for exact hashes,counted skips,failed diagnostic guard
 and forced-teardown limits. Community profiles/backups,wire/match propagation,
 real drag gestures,all-item effects/audio,shutdown flush/native Quit and ordinary
-cosmetics enablement remain open. Manual/frozen/untouched copies are unchanged.
+cosmetics enablement remained open at that checkpoint;later server results are
+above. Manual/frozen/untouched copies are unchanged.
 
 EXPERIMENTAL COSMETIC PICKER (2026-10-19 UTC)
 Exact-byte guarded cosmetic-only hooks now expose the installed catalog through

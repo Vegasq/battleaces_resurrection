@@ -22,7 +22,8 @@ namespace ba_catalog { static void exportOnce();static std::string utf8(void*); 
 namespace ba_dedicated_results { static void receive(const std::string&); }
 namespace ba_audit { static void beginMatch(const std::string&);static void practiceAIView(void*,int); }
 namespace ba_telemetry_audit { static void startup();static void update(); }
-namespace ba_cosmetics { static void update(void*);static bool prepare(void*);static void observe(); }
+namespace ba_cosmetics { static void update(void*);static bool prepare(void*);static void observe();
+    static bool catalogReady();static std::string serialize(); }
 namespace ba_match_search {static void update(void*);static void joining(void*);}
 namespace ba_community_wire {struct Ack;struct Aborted;}
 namespace ba_public {

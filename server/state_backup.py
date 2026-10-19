@@ -17,11 +17,12 @@ from . import credentials as private, protocol
 from .assets import verify_assets
 from .configuration import load_config, ConfigurationError
 from .game_data import GameTemplate
-from .profiles import ProfileStore, profile_key, read_profile
+from .profiles import ProfileStore, profile_key, read_profile_state, parse_profile_state, profile_bytes
+from .cosmetics import CosmeticCatalog
 from .state_lock import exclusive_state, StateBusyError
 from .paths import ROOT
 
-MAX_BACKUP_BYTES = 4*1024*1024
+MAX_BACKUP_BYTES = 8*1024*1024
 MAX_PROFILES = 4096
 HASH = re.compile(r'[0-9a-f]{64}\Z')
 TEMP_PROFILE = re.compile(r'(?:\.profile-[0-9a-f]{32}|[A-Za-z0-9_-]{1,48}\.json)\.tmp\Z')
@@ -53,7 +54,17 @@ def load_inputs(config):
     identity = dict(game_build=manifest['game_build'], asset_format=manifest['asset_format'],
         game_protocol=protocol.VERSION, original_gameassembly_sha256=manifest['original_gameassembly_sha256'],
         simulation_sha256=manifest['simulation_sha256'], asset_files_sha256=digest(canonical(manifest['files'])))
+    if 'cosmetic-catalog.json' in manifest['files']:
+        identity['cosmetic_catalog_sha256'] = manifest['files']['cosmetic-catalog.json']
     return template, identity
+
+
+def load_cosmetics(config, identity):
+    expected = identity.get('cosmetic_catalog_sha256')
+    if expected is None: return None
+    catalog = CosmeticCatalog(config.assets_directory)
+    if catalog.sha256 != expected: raise BackupError('Cosmetic catalog changed after asset verification')
+    return catalog
 
 
 def regular_file(path, maximum):
@@ -66,7 +77,7 @@ def regular_file(path, maximum):
     return raw
 
 
-def saved_profiles(directory, template):
+def saved_profiles(directory, template, *, catalog=None):
     directory = Path(directory)
     if not directory.exists(): return {}
     information = directory.lstat()
@@ -86,20 +97,25 @@ def saved_profiles(directory, template):
         if key.casefold() in seen or len(profiles) >= MAX_PROFILES:
             raise BackupError('Duplicate profile identity or profile count limit')
         seen.add(key.casefold())
-        profiles[key] = read_profile(path, key, template)
+        state = read_profile_state(path, key, template, catalog=catalog)
+        profiles[key] = (json.loads(profile_bytes(key, state.deck, template, catalog=catalog, cosmetics=state.cosmetics))
+                         if catalog else list(state.deck))
     return profiles
 
 
-def validate_snapshot(raw, template, identity, *, secure):
+def validate_snapshot(raw, template, identity, *, secure, catalog=None):
     if not isinstance(raw, bytes) or not 0 < len(raw) <= MAX_BACKUP_BYTES:
         raise BackupError('Snapshot size limit')
     try:
         envelope = private._json(raw)
     except private.CredentialError: raise BackupError('Snapshot must be bounded duplicate-free JSON') from None
     if (not isinstance(envelope, dict) or set(envelope) != {'schema', 'payload', 'sha256'}
-            or type(envelope['schema']) is not int or envelope['schema'] != 1
+            or type(envelope['schema']) is not int or envelope['schema'] not in (1, 2)
             or not isinstance(envelope['sha256'], str) or not HASH.fullmatch(envelope['sha256'])):
         raise BackupError('Unsupported snapshot envelope')
+    if (envelope['schema'] == 2 or 'cosmetic_catalog_sha256' in identity) and (
+            catalog is None or catalog.sha256 != identity.get('cosmetic_catalog_sha256')):
+        raise BackupError('Snapshot requires its verified cosmetic catalog')
     payload = envelope['payload']
     if not isinstance(payload, dict) or set(payload) != {'created_at', 'compatibility', 'profiles', 'credentials'}:
         raise BackupError('Unsupported snapshot payload')
@@ -112,11 +128,16 @@ def validate_snapshot(raw, template, identity, *, secure):
     if not isinstance(profiles, dict) or len(profiles) > MAX_PROFILES:
         raise BackupError('Snapshot profile count limit')
     seen = set()
-    for key, deck in profiles.items():
+    for key, selected in profiles.items():
         profile_key(key)
         if key.casefold() in seen: raise BackupError('Snapshot contains duplicate Windows profile names')
         seen.add(key.casefold())
-        template.validate_deck(deck)
+        if envelope['schema'] == 1:
+            template.validate_deck(selected)
+        else:
+            if type(selected) is not dict or selected.get('schema') != 2:
+                raise BackupError('Snapshot requires complete cosmetic profile records')
+            parse_profile_state(canonical(selected), key, template, catalog=catalog)
     if secure != (payload['credentials'] is not None):
         raise BackupError('Snapshot and destination must use the same TLS/authentication mode')
     if secure: private.parse_store_snapshot(canonical(payload['credentials']))
@@ -136,14 +157,15 @@ def backup(config, output):
             or (config.credential_directory and output.is_relative_to(config.credential_directory))):
         raise BackupError('Store snapshots separately from live data and imported assets')
     template, identity = load_inputs(config)
+    catalog = load_cosmetics(config, identity)
     with exclusive_state(config.data_directory):
-        profiles = saved_profiles(config.data_directory/'profiles', template)
+        profiles = saved_profiles(config.data_directory/'profiles', template, catalog=catalog)
         credentials = None
         if not config.allow_insecure_loopback:
             credentials = json.loads(private.CredentialStore(config.credential_directory).export_snapshot())
         payload = dict(created_at=int(time.time()), compatibility=identity, profiles=profiles, credentials=credentials)
-        raw = canonical(dict(schema=1, payload=payload, sha256=digest(canonical(payload))))+b'\n'
-        validate_snapshot(raw, template, identity, secure=not config.allow_insecure_loopback)
+        raw = canonical(dict(schema=2 if catalog else 1, payload=payload, sha256=digest(canonical(payload))))+b'\n'
+        validate_snapshot(raw, template, identity, secure=not config.allow_insecure_loopback, catalog=catalog)
         private._ensure_private_directory(output.parent)
         created = False
         try:
@@ -162,8 +184,9 @@ def backup(config, output):
 
 def verify_snapshot(config, source):
     template, identity = load_inputs(config)
+    catalog = load_cosmetics(config, identity)
     raw = regular_file(private._local_path(source), MAX_BACKUP_BYTES)
-    payload = validate_snapshot(raw, template, identity, secure=not config.allow_insecure_loopback)
+    payload = validate_snapshot(raw, template, identity, secure=not config.allow_insecure_loopback, catalog=catalog)
     return dict(verified=True, sha256=digest(raw), **public_summary(payload))
 
 
@@ -175,8 +198,9 @@ def restore(config, source, destination):
     inspection without a runnable host.json; the caller chooses a new retry path.
     """
     template, identity = load_inputs(config)
+    catalog = load_cosmetics(config, identity)
     raw = regular_file(private._local_path(source), MAX_BACKUP_BYTES)
-    payload = validate_snapshot(raw, template, identity, secure=not config.allow_insecure_loopback)
+    payload = validate_snapshot(raw, template, identity, secure=not config.allow_insecure_loopback, catalog=catalog)
     destination = output_path(destination)
     forbidden = [config.data_directory, config.assets_directory]
     if config.credential_directory: forbidden.append(config.credential_directory)
@@ -189,10 +213,15 @@ def restore(config, source, destination):
     temporary, final = destination/'.host-config.tmp', destination/'host.json'
     try:
         data = destination/'data'
-        profiles = ProfileStore(data/'profiles', template)
-        for key, deck in payload['profiles'].items():
-            profiles.save(key, deck)
-            if profiles.load(key, []) != deck: raise BackupError('Restored profile readback failed')
+        profiles = ProfileStore(data/'profiles', template, catalog=catalog)
+        for key, selected in payload['profiles'].items():
+            if isinstance(selected, dict):
+                state = parse_profile_state(canonical(selected), key, template, catalog=catalog)
+                profiles.save(key, state.deck, cosmetics=state.cosmetics)
+                if profiles.load_state(key, []) != state: raise BackupError('Restored full profile readback failed')
+            else:
+                profiles.save(key, selected)
+                if profiles.load(key, []) != selected: raise BackupError('Restored profile readback failed')
         credential_dir = None
         if payload['credentials'] is not None:
             credential_dir = data/'private/credentials'

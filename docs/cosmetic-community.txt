@@ -1,0 +1,151 @@
+COMMUNITY COSMETIC PROFILES AND FROZEN MATCH DATA
+Updated:2026-10-19 UTC. Server path qualified within the boundaries below;
+client loadout submission and complete graphical match acceptance remain open.
+
+Authoritative storage
+Profile schema2 contains exactly schema,profile_id,deck,cosmetics. The cosmetics
+object contains catalog_sha256 and all17 native-ordered [slot,item] pairs. Both
+the deck and every cosmetic slot pass installed-catalog validation before one
+atomic profile replacement. Portrait,banner and entitlement bytes are rebuilt
+from validated slots; a caller cannot override them by forging derived fields
+in an otherwise valid snapshot. Returned ProfileState/CosmeticSnapshot objects
+and their selected tuples are immutable.
+
+Schema1 deck-only profiles remain readable. With a verified cosmetic catalog,
+they acquire installed defaults in memory without rewriting the input file.
+Their next save or full snapshot restoration writes schema2. Old deck-only save
+callers preserve the existing complete cosmetic selection. Corrupt,mismatched,
+incomplete or duplicate-slot records are rejected and retained on read and save.
+A reader without the catalog cannot load or overwrite a schema2 record.
+Profile identity remains the authenticated server ID,not display_name or the
+client's separate local_profile key. All profile input remains bounded to4KiB.
+
+Snapshot envelopes now support schema2 full profile records; catalog-less
+deployments keep the existing schema1 deck mapping. A complete snapshot is
+bounded to8MiB to accommodate4096 full profiles plus the existing1MiB hash-only
+invitation database. Compatibility includes the verified cosmetic catalog hash
+and the hash of the whole imported asset inventory. Every record is validated
+before a restore directory is created. Restored profiles are read back in full
+before host.json is published last. Old schema1 snapshots with exactly matching
+assets restore installed defaults when a catalog is available. Older snapshots
+whose asset inventory differs still require their matching bundle: restore first,
+then explicitly upgrade the assets/profile format. No unchecked compatibility
+relaxation or automatic catalog substitution is introduced.
+
+Selection ownership and match construction
+Registration retains a validated immutable cosmetic selection with the session's
+deck. A public queue Entry freezes both at entry,before waiting or proposals.
+Custom rejects selection changes during start/loading/running; room creation
+uses the connected session's chosen deck/cosmetics rather than reloading a later
+disk edit. Rematch takes a new snapshot of the connected selections. A new human
+join is fully validated before peer/seat/queue ownership is committed.
+
+GameTemplate.build_match requires a verified catalog and exact human-slot map
+when cosmetics are supplied. It revalidates each snapshot's complete slots and
+catalog identity. Every human army receives explicit portrait/banner fields and
+one service0 entitlement with item IDs in native slot order. Emote order is not
+sorted or deduplicated. Full17-slot immutable snapshots remain available in
+MatchData even though the native entitlement omits truly empty slots. Bot deck,
+identity and strength selections stay independent and retain original bytes.
+
+JoinArmy retains strict units,ability groups,army and portrait/banner validation.
+Structurally valid client entitlement metadata is replaced with the server's
+frozen deck before canonical frames reach native simulation or peers. Malformed
+protobuf is rejected before that step. Bot identities cannot enter this human
+input API; the server uses its existing BotRoster path for their inputs.
+
+Installed export/import
+The ordinary explicit server-assets export now waits for CosmeticSlot as well as
+the other loaded tables. It serializes the native17-slot compatibility matrix
+twice,requires byte-for-byte equality,and includes cosmetic-catalog.json in the
+completion manifest written last. This does not require experimental unlock or
+equip flags. Import verifies the enclosing size/hash and strict inner catalog.
+The host rechecks file hash/item count/slot count and consistency with bot item
+IDs and portrait/banner pools. Old complete bundles remain usable for their
+original scope. New bundles include the catalog automatically; no installed
+catalog rows,game assets or generated selections enter Git.
+
+Native export community-cosmetics-export01 PASSES,PID10208,in16.433 seconds.
+Three maps,59 native AI rule profiles,bot catalog and human cosmetic matrix are
+exported. Matrix107 items/17 slots/14 nonzero defaults,5919 bytes,SHA256:
+c218f15258c3e1192cc788c6fbcbc127d43f5fabb11d141be853c30000b7ae89
+Helper SHA256:
+00a3960943689a0f8258a7a84348b4aacc607a9317c8487c6082e9b79dfdff5b
+Report SHA256:
+fa5befda59bc71af935b9af8d9903fb4858ca47fa86bab87277d47236065f5ef
+Covered sources remain unchanged and the owned process is reaped. The export
+uses hidden/forced teardown; no native Quit,visual or network-absence claim.
+Fresh import local/assets/community-cosmetics01 validates119 files,50 descriptor
+definitions and52 playable units. Its asset-manifest SHA256:
+c1993ee2183ec3dd59e1dd420679cdd1bef3e0ac9b8282a7e992720c3fca41d3
+
+Real profiles and protected backup boundary
+community-cosmetics-profiles01 uses those actual imported assets and a changed
+native client's17-slot selection. Actual legacy defaults,atomic full save,
+deck-only preservation and independent profile storage pass. The real protected
+backup operation FAILS under this runner. A focused fresh-file probe confirms
+Windows error5 creating a protected file inside the correctly protected
+current-user/SYSTEM directory. Existing profile inputs remain unchanged. No
+permission relaxation or mock is used by this verifier. Protected backup creation
+and restore under the intended Windows deployment account remain unqualified.
+Report SHA256:
+c757f50f7625b781568bd7da0bb8e91f66c96e65f915b9dd4f4f28d181145f62
+The transaction/validation source tests explicitly mock only OS privacy creation
+and inspection,as documented in tests/test_state_backup.py. Those passes must not
+be presented as a real protected-DACL deployment pass.
+
+Native match evidence
+community-cosmetics-native-match03 PASSES with the real imported maps/descriptors
+and Simulation.dll. Native workers52828(mode1),36020(mode2) and45112(mode5) each
+accept canonical JoinArmy inputs and process frames0..19,then exit0 unforced.
+Every human army has the expected explicit portrait/banner and exact ordered
+entitlement,including the original selected nondefault/swap values. Mode5 keeps
+two original independently chosen bot deck messages unchanged. Forged valid client
+entitlement metadata is canonicalized to the frozen server deck; a wrong portrait
+is rejected. All60 native frames and every worker exit are recorded. Covered
+source hashes stay unchanged. Aggregate report SHA256:
+2ab763cb4d70ad8b8a061ab6536d89de4c9d280a02f66dde7796243370f75d6b
+This is native construction/input/short-frame qualification,not a full graphical
+match,network-client submission,AI combat test or all-item effects/audio check.
+
+Retained diagnostic failures: native-match01 supplied malformed synthetic bytes
+inside a forged entitlement and correctly failed descriptor validation before a
+worker started. Report2be5ee5ea9bd20ddc6fac21fadc292077f9d6df15484fdaa45a6edf68c4fe42e.
+native-match02 passed mode1/2 but incorrectly sent bot identities through the
+human validator; it correctly rejected them. Both workers exited0. Report
+bd560dcef968a443e9ed17e848d657e7655274b497feaa81406e63b2e7a3ff4f.
+The corrected probe uses the unchanged BotRoster path; no production validation
+was weakened to obtain the final pass.
+
+Regression checks
+Nine C++ component programs and the updated helper build pass. The final focused
+source suite runs162 checks:157 pass,five optional native/private-OS cases skip.
+It covers real loopback Custom rematch/public queues,partial2vAI,synthetic worker
+lifetimes,full storage/backup validation,host configuration,old client enrollment,
+unified settings and patcher behavior. Privacy mocks in transaction tests remain
+explicit. Earlier87- and6-check runs overlap this suite;do not add their counts.
+
+Ordinary no-config native startup with this helper PASSES:
+community-cosmetics-dormant01,PID45256,13.727 seconds. It adds no cosmetic activation,
+export or automation flags and performs zero TLS/credential attempts. Covered
+sources stay unchanged and the owned process is reaped. This is hidden/forced
+teardown,not native Quit or a graphical-match acceptance test. Report SHA256:
+66bd1607a092224f981d919ff4a3b04e06fa6ac52378288c70f3c1f0af96bb01
+
+Reproduction and remaining integration
+Install a current helper only in a disposable game copy. With fresh ignored
+output directories,run the existing tools.verify_ai_export and tools.import_assets
+commands. Then run:
+python -m tools.verify_cosmetic_match --assets local/<import> --output local/<fresh> --selection local/<native-run>/cosmetics-persistence.json
+python -m tools.verify_cosmetic_profiles --assets local/<import> --output local/<fresh> --selection local/<native-run>/cosmetics-persistence.json
+The second command intentionally exercises real protected backup/restore and
+fails if that OS boundary is unavailable; inspect its explicit evidence.
+
+Next implement atomic client full-loadout submission/ACK and an assignment that
+binds the same complete snapshot to public queue intent. Use current cosmetic
+state synchronously before human deck freeze,including offline/local AI. Preserve
+original bot serialization; qualify native ownership filters/ToProtoRuntime
+first. Then verify changed human cosmetics through graphical Custom/public/team
+matches,results/rematches and remote/local switching. Main-menu cached bindings,
+real drag gestures,all-item visuals/audio,native Quit/shutdown flush,protected
+deployment,ordinary enablement and final packaging remain separate release gates.

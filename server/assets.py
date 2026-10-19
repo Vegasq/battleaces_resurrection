@@ -6,6 +6,7 @@ from .protocol import BUILD_SHA, SIM_SHA
 from .ai_rules import RuleBook, SUPPORTED_AI_SHA256
 from .bot_catalog import BotCatalog
 from .game_data import GameTemplate
+from .cosmetics import CosmeticCatalog
 
 
 def verify_assets(directory):
@@ -30,6 +31,15 @@ def verify_assets(directory):
             raise ValueError('Asset content mismatch: ' + name)
     if files['Simulation.dll'] != SIM_SHA:
         raise ValueError('Simulation DLL mismatch')
+    cosmetics = None
+    if 'cosmetic-catalog.json' in files or 'cosmetic_items' in manifest or 'cosmetic_slots' in manifest:
+        if 'cosmetic-catalog.json' not in files:
+            raise ValueError('Incomplete cosmetic asset inventory')
+        cosmetics = CosmeticCatalog(directory)
+        if (cosmetics.sha256 != files['cosmetic-catalog.json'] or
+                type(manifest.get('cosmetic_items')) is not int or manifest['cosmetic_items'] != len(cosmetics.items) or
+                type(manifest.get('cosmetic_slots')) is not int or manifest['cosmetic_slots'] != len(cosmetics.slots)):
+            raise ValueError('Cosmetic catalog count/hash mismatch')
     if 'ai-rules.json' in files or 'ai_dll_sha256' in manifest or 'aiprogram.dll' in files:
         if files.get('aiprogram.dll') != SUPPORTED_AI_SHA256 or manifest.get('ai_dll_sha256') != SUPPORTED_AI_SHA256:
             raise ValueError('AI DLL mismatch or incomplete AI assets')
@@ -51,6 +61,10 @@ def verify_assets(directory):
         bots = BotCatalog(directory, template=templates[1], rules=rules)
         if manifest.get('bot_profiles') != len(bots.profiles) or hashlib.sha256(bots.raw).hexdigest() != files['bot-catalog.json']:
             raise ValueError('Bot catalog count/hash mismatch')
+        if cosmetics and (bots.cosmetic_ids != cosmetics.items.keys() or
+                not set(bots.portraits) <= cosmetics.slots[cosmetics.roles['portrait']].compatible_items or
+                not set(bots.banners) <= cosmetics.slots[cosmetics.roles['banner']].compatible_items):
+            raise ValueError('Bot and cosmetic catalogs disagree')
         for template in templates.values():
             for _, decks in bots.profiles.values():
                 for deck in decks: template.validate_deck(deck.units)

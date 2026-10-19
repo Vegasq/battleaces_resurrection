@@ -1,13 +1,15 @@
 SERVER STATE SNAPSHOTS AND FRESH-LOCATION RESTORE
-Updated:2026-10-17
+Updated:2026-10-19
 
 Scope
-P4 now has explicit backup, verify-backup and restore commands for saved decks
-and hash-only invitation state. Stable identities, invite hashes, creation dates
+P4 has explicit backup, verify-backup and restore commands for saved decks,
+full17-slot cosmetics when the verified catalog is present,and hash-only
+invitation state. Stable identities, invite hashes, creation dates
 and revocations survive restore. This is not a whole-machine backup: game assets,
 client bearer-invite files, TLS private keys, host configuration, event logs and
 native captures are excluded. Keep configuration/TLS keys separately protected;
-import matching game assets on a replacement host. No game/helper code changed.
+import matching game assets on a replacement host. The explicit native asset
+export now includes the cosmetic catalog; see cosmetic-community.txt.
 
 The snapshot/restore logic and real process-lock tests are automated. Real
 protected-DACL deployment under the intended account, native restored-host play,
@@ -46,15 +48,20 @@ reject duplicate keys and require the stored identity to match the filename.
 Decks pass the existing catalog/slot/ability validation. Profile keys use the
 existing bounded ASCII protocol keys with Windows device names additionally
 refused. Local profile files must be regular non-reparse files.
+With a verified cosmetic catalog,schema2 additionally contains cosmetics with
+catalog_sha256 and all17 native-ordered [slot,item] pairs. Every item/category,
+empty slot and nonzero uniqueness rule is validated. Legacy profiles load defaults
+without rewriting their file. Deck-only updates preserve full saved cosmetics;
+schema2 cannot be opened or overwritten without its matching catalog.
 
 Save uses an exclusive random temporary file, flush/fsync and os.replace. Failed
-write/flush/replace keeps the previous saved deck; only that operation's own
+write/flush/replace keeps the previous complete saved profile; only that operation's own
 temporary file is cleaned up when permitted. This improves crash durability but
 is not a claim about every storage controller's power-loss guarantees.
 
 Snapshot format and output
-The new file is bounded to4MiB and is ordinary JSON, not an archive to extract.
-Envelope schema1 has exactly schema,payload,sha256. SHA256 covers the canonical
+The file is bounded to8MiB and is ordinary JSON, not an archive to extract.
+Envelope schema1/2 has exactly schema,payload,sha256. SHA256 covers the canonical
 ASCII JSON payload (sorted keys, compact separators). It detects accidental
 semantic changes; it is not a signature and does not authenticate an untrusted
 replacement. Whole-file SHA256 is also returned for the owner's records.
@@ -64,7 +71,9 @@ binds game build, asset format, game protocol, original GameAssembly hash,
 simulation hash and a SHA256 of the verified asset-manifest file mapping. Current
 assets are verified and loaded for deck validation before backup/restore. A
 different asset export requires deliberate migration, not an unchecked restore.
-Profiles map bounded IDs to eight-unit decks, with at most4096 records and no
+Schema1 profiles map bounded IDs to eight-unit decks. Schema2 profiles map IDs
+to complete schema2 profile records,including all17 cosmetic slots. The latter
+requires the verified cosmetic catalog hash in compatibility. There are at most4096 records and no
 case-folded Windows name collisions. The credentials member is the exact existing
 schema1 hash-only database, or null for explicit loopback development. Secure and
 development snapshot/config modes cannot be mixed. Database validation retains
@@ -98,6 +107,10 @@ profile is read back and the private credential store re-parsed. A protected new
 host.json is then validated and published last, exclusively. It keeps the chosen
 config's host settings and absolute asset/TLS paths, with data/credential paths
 redirected to the new directory. It does not start a server or alter the old config.
+Schema2 restoration reads back both deck and complete cosmetics before publishing
+host.json. A schema1 snapshot with exactly matching assets can acquire installed
+defaults under a new catalog. An older snapshot with different asset inventory
+must first be restored with its matching bundle before an explicit asset upgrade.
 Failed restores retain their new incomplete directory for inspection with no
 runnable host.json, and never recursively delete original or unrelated data.
 

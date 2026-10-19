@@ -22,6 +22,7 @@ def require(condition, reason):
 class Session:
     peer: object
     deck: list[int]
+    cosmetics: object = None
     lobby: str | None = None
     practicing: bool = False
     last_request: int = 0
@@ -111,12 +112,14 @@ class Community:
 
     def register(self, peer, profile, name):
         try:
-            deck = self.server.profiles.load(profile, self.server.template.default_decks[0])
+            state = self.server.profiles.load_state(profile, self.server.template.default_decks[0])
+            deck, cosmetics = list(state.deck), state.cosmetics
         except (ValueError, KeyError, OSError) as error:
             deck = list(self.server.template.default_decks[0])
+            cosmetics = self.server.cosmetic_catalog.normalize_local() if self.server.cosmetic_catalog else None
             self.server.audit('profile_load_fallback', profile=profile, reason=str(error))
         peer.profile_id, peer.name, peer.community = profile, name, True
-        self.sessions[profile] = Session(peer, list(deck))
+        self.sessions[profile] = Session(peer, list(deck), cosmetics=cosmetics)
         self.send(peer, c.WELCOME, c.welcome(profile, deck))
         self.publish_presence(recipient=peer)
         self.server.audit('community_joined', profile=profile, name=name)
@@ -255,7 +258,7 @@ class Community:
             require(not lobby or lobby.phase == c.OPEN or
                     (lobby.phase == c.RESULTS and profile in lobby.returned), 'deck is frozen for this match')
             try:
-                self.server.profiles.save(profile, command['deck'])
+                self.server.profiles.save(profile, command['deck'], cosmetics=session.cosmetics)
             except ValueError as error:
                 raise Rejected(str(error)) from error
             session.deck = list(command['deck'])

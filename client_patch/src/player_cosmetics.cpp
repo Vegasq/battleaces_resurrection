@@ -4,6 +4,7 @@ namespace ba_cosmetics {
 using ba::Obj;using ba_local::Root;using ba_tables::require;
 static void unlockUpdate(Obj);
 static auto& slots=*new ba_tables::Table("CosmeticSlot","CosmeticSlotTable","80afad8f743498b4881dccafa8ebb850");
+static bool catalogReady() {const bool a=ba_public_bots::cosmetics.ready(),b=slots.ready();return a && b;}
 static bool finished=false;
 static std::vector<uint32_t> saved(Obj cosmetics) {
     Obj list=ba::get<Obj>(cosmetics,"_savedItems");require(list!=nullptr,"cosmetics saved list missing");

@@ -144,6 +144,7 @@ class Room:
         self.input_window = server.input_window  # Frozen for every participant in this room.
         self.peers = {}
         self.decks = {bot.slot: self.template.validate_deck(bot.deck) for bot in bots}
+        self.cosmetics = {}
         self.ready, self.loaded = set(self.bots), set()
         self.revision, self.frame = 0, 0
         self.state = "lobby"
@@ -179,7 +180,7 @@ class Room:
                        + p.deck_bytes(deck0) + p.deck_bytes(deck1))
         self.server.community.publish_presence()
 
-    def join(self, peer, slot, profile_id, name, *, deck=None, ticket=None):
+    def join(self, peer, slot, profile_id, name, *, deck=None, ticket=None, cosmetics=None):
         if slot == p.AUTO_SEAT:
             slot = next((seat for seat in sorted(self.slots) if seat not in self.peers and seat not in self.bots), None)
         p.require(slot in self.slots, "room full")
@@ -188,17 +189,30 @@ class Room:
         if self.public_match is not None:
             public_wire.ticket(ticket)
             deck = self.template.validate_deck(deck)
-            self.queue_tickets[slot] = ticket
+        elif self.community_lobby is not None:
+            p.require(ticket is None and deck is not None, 'custom room requires its frozen selected deck')
+            deck = list(self.template.validate_deck(deck))
         else:
-            p.require(deck is None and ticket is None, 'legacy room does not accept public intent')
+            p.require(deck is None and ticket is None and cosmetics is None, 'legacy room does not accept public intent')
             try:
-                deck = self.server.profiles.load(profile_id, self.template.default_decks[slot])
+                state = self.server.profiles.load_state(profile_id, self.template.default_decks[slot])
+                deck, cosmetics = list(state.deck), state.cosmetics
             except (ValueError, KeyError, OSError) as error:
                 deck = list(self.template.default_decks[slot])
+                cosmetics = self.server.cosmetic_catalog.normalize_local() if self.server.cosmetic_catalog else None
                 self.event("profile_load_fallback", profile=profile_id, reason=str(error))
+        frozen_cosmetics = None
+        if self.server.cosmetic_catalog is not None:
+            from .profiles import cosmetic_state
+            p.require(cosmetics is not None, 'complete frozen human cosmetics required')
+            frozen_cosmetics = cosmetic_state(self.server.cosmetic_catalog, cosmetics)
+        else:
+            p.require(cosmetics is None, 'match cosmetics require a verified server catalog')
         peer.room, peer.slot, peer.profile_id, peer.name = self, slot, profile_id, name
         self.peers[slot] = peer
         self.decks[slot] = deck
+        if self.public_match is not None: self.queue_tickets[slot] = ticket
+        if frozen_cosmetics is not None: self.cosmetics[slot] = frozen_cosmetics
         if self.public_match is None:
             peer.send(p.WELCOME, p.welcome(slot, self.input_window, deck))
         self.event("player_joined", slot=slot, profile=profile_id, name=name, deck=deck)
@@ -218,6 +232,7 @@ class Room:
             return
         del self.peers[peer.slot]
         self.decks.pop(peer.slot, None)
+        self.cosmetics.pop(peer.slot, None)
         self.ready.discard(peer.slot)
         self.event("player_left", slot=peer.slot, reason=reason)
         if self.peers:
@@ -289,7 +304,9 @@ class Room:
                    "ai_profile_id": self.bots[slot].profile_id if slot in self.bots else 0} for slot in sorted(self.slots)]
         choices = {slot: bot.choice for slot, bot in self.bots.items()} if self.public_match is not None else None
         self.match = self.template.build_match(roster, self.decks, secrets.randbits(63), self.match_id,
-                                               game_mode=self.mode, bot_choices=choices)
+                                               game_mode=self.mode, bot_choices=choices,
+                                               human_cosmetics=self.cosmetics if self.server.cosmetic_catalog else None,
+                                               cosmetic_catalog=self.server.cosmetic_catalog)
         if self.bots:
             sim = await self.server.ai_factory(self.match.raw_game_data,
                                               {slot: bot.profile_id for slot, bot in self.bots.items()})
@@ -350,7 +367,7 @@ class Room:
                 if kind == p.SET_DECK:
                     deck = p.decode_deck(payload)
                     self.template.validate_deck(deck)
-                    self.server.profiles.save(peer.profile_id, deck)
+                    self.server.profiles.save(peer.profile_id, deck, cosmetics=self.cosmetics.get(peer.slot))
                     self.decks[peer.slot] = deck
                     self.ready.discard(peer.slot)
                     self.event("deck_selected", slot=peer.slot, profile=peer.profile_id, deck=deck)
@@ -536,6 +553,7 @@ class DedicatedServer:
                  loading_timeout=120, completed_timeout=60, tls_context=None, admission=None,
                  input_window=p.DEFAULT_INPUT_WINDOW, templates=None, bot_catalog=None):
         self.template, self.profiles = template, profiles
+        self.cosmetic_catalog = profiles.catalog
         self.templates = dict(templates or {1: template})
         p.require(self.templates.get(1) is template and all(mode in public_wire.MODES and
                   item.game_mode == mode and item.player_count == public_wire.MODES[mode][0]
@@ -589,10 +607,11 @@ class DedicatedServer:
             self.rooms[name] = room
             lobby.room = room
             for slot, profile in enumerate(lobby.members):
-                peer = self.community.sessions[profile].peer
+                session = self.community.sessions[profile]
+                peer = session.peer
                 p.require(peer.room is None, 'previous match has not been released')
                 peer.next_input, peer.joined_army = 0, False
-                room.join(peer, slot, profile, peer.name)
+                room.join(peer, slot, profile, peer.name, deck=tuple(session.deck), cosmetics=session.cosmetics)
                 room.ready.add(slot)
             room.lobby_state()
             await room.prepare_match()

@@ -23,6 +23,7 @@ class Entry:
     deck: tuple[int, ...]
     entered: float
     deadline: float
+    cosmetics: object = None
     offer: str | None = None
 
     @property
@@ -94,12 +95,12 @@ class PublicMatchmaking:
                     self.server.ai_factory is not None, 'server public mode/bot assets unavailable')
             try:
                 deck = self.server.templates[command['mode']].validate_deck(command['deck'])
-                self.server.profiles.save(profile, deck)
+                self.server.profiles.save(profile, deck, cosmetics=session.cosmetics)
             except ValueError as error:
                 raise Rejected(str(error)) from error
             remaining = command['wait_ms']/1000
             entry = Entry(session, command['ticket'], command['mode'], tuple(deck),
-                          now-(q.FALLBACK_SECONDS-remaining), now+remaining)
+                          now-(q.FALLBACK_SECONDS-remaining), now+remaining, cosmetics=session.cosmetics)
             session.last_public_ticket, session.deck = entry.ticket, list(deck)
             self.entries[profile] = entry
             self.community.cancel_invites(lambda invite: profile in (invite.sender, invite.target), c.BUSY)
@@ -204,7 +205,7 @@ class PublicMatchmaking:
             for slot, entry in humans.items():
                 peer = entry.session.peer
                 peer.next_input, peer.joined_army = 0, False
-                room.join(peer, slot, entry.profile, peer.name, deck=entry.deck, ticket=entry.ticket)
+                room.join(peer, slot, entry.profile, peer.name, deck=entry.deck, ticket=entry.ticket, cosmetics=entry.cosmetics)
                 room.ready.add(slot)
             await room.prepare_match()
             if room.state == 'loading' and self.offers.get(offer.id) is offer:

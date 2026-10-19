@@ -97,6 +97,91 @@ class StateBackupTests(unittest.TestCase):
         self.assertFalse(self.output.exists())
         b.backup(self.config, self.output)  # Released lock is immediately usable.
 
+    def enable_cosmetics(self):
+        from server.cosmetics import CosmeticCatalog
+        from tests.test_cosmetics import catalog_fixture, encode
+        raw = encode(catalog_fixture())
+        self.config.assets_directory.mkdir(parents=True, exist_ok=True)
+        (self.config.assets_directory/'cosmetic-catalog.json').write_bytes(raw)
+        catalog = CosmeticCatalog.from_bytes(raw)
+        self.identity['cosmetic_catalog_sha256'] = catalog.sha256
+        self.profiles = ProfileStore(self.config.data_directory/'profiles', self.template, catalog=catalog)
+        pairs = list(catalog.normalize_local().slots)
+        for index in (4, 12, 13): pairs[index] = (pairs[index][0], pairs[index][1]+10000)
+        a, z = pairs[8], pairs[11];pairs[8], pairs[11] = (a[0], z[1]), (z[0], a[1])
+        return catalog, catalog.validate_selection(pairs)
+
+    def test_full_cosmetic_snapshot_restore_and_legacy_profile_migration(self):
+        legacy = (self.profiles.path/(self.first['player_id']+'.json')).read_bytes()
+        catalog, selection = self.enable_cosmetics()
+        self.assertEqual(self.profiles.load_state(self.first['player_id'], []).cosmetics, catalog.normalize_local())
+        self.assertEqual((self.profiles.path/(self.first['player_id']+'.json')).read_bytes(), legacy)
+        self.profiles.save(self.first['player_id'], self.deck, cosmetics=selection)
+        old = ProfileStore(self.profiles.path, self.template)
+        old.save(self.second['player_id'], self.deck)
+        legacy_second = (self.profiles.path/(self.second['player_id']+'.json')).read_bytes()
+        b.backup(self.config, self.output)
+        raw = self.output.read_bytes();saved = json.loads(raw)
+        self.assertEqual(saved['schema'], 2)
+        self.assertEqual(saved['payload']['profiles'][self.first['player_id']]['cosmetics']['slots'],
+                         [list(pair) for pair in selection.slots])
+        self.assertTrue(b.verify_snapshot(self.config, self.output)['verified'])
+        restored = load_config(b.restore(self.config, self.output, self.target)['config'])
+        copied = ProfileStore(restored.data_directory/'profiles', self.template, catalog=catalog)
+        self.assertEqual(copied.load_state(self.first['player_id'], []).cosmetics, selection)
+        self.assertEqual(copied.load_state(self.second['player_id'], []).cosmetics, catalog.normalize_local())
+        self.assertEqual((self.profiles.path/(self.second['player_id']+'.json')).read_bytes(), legacy_second)
+        self.assertEqual(self.output.read_bytes(), raw)
+        for token in self.tokens: self.assertNotIn(token.encode(), raw)
+        credentials = c.CredentialStore(restored.credential_directory)
+        self.assertEqual(credentials.authenticate(self.tokens[0]), self.first['player_id'])
+        with self.assertRaises(c.AuthenticationError): credentials.authenticate(self.tokens[1])
+
+    def test_bad_cosmetic_snapshot_is_rejected_before_creating_restore_directory(self):
+        catalog, selection = self.enable_cosmetics()
+        self.profiles.save(self.first['player_id'], self.deck, cosmetics=selection)
+        b.backup(self.config, self.output)
+        original = json.loads(self.output.read_bytes())
+        cases = []
+        value = copy.deepcopy(original['payload']);value['profiles'][self.first['player_id']]['cosmetics']['catalog_sha256'] = '0'*64;cases.append(value)
+        value = copy.deepcopy(original['payload']);value['profiles'][self.first['player_id']]['cosmetics']['slots'].pop();cases.append(value)
+        value = copy.deepcopy(original['payload']);rows = value['profiles'][self.first['player_id']]['cosmetics']['slots'];rows[1][0] = rows[0][0];cases.append(value)
+        value = copy.deepcopy(original['payload']);value['profiles'][self.first['player_id']]['cosmetics']['slots'][0][1] = 50002;cases.append(value)
+        value = copy.deepcopy(original['payload']);value['profiles'][self.first['player_id']]['schema'] = 1;cases.append(value)
+        value = copy.deepcopy(original['payload']);value['profiles'][self.first['player_id']] = self.deck;cases.append(value)
+        for value in cases:
+            self.output.write_bytes(b.canonical(dict(schema=2, payload=value, sha256=b.digest(b.canonical(value)))))
+            with self.assertRaises(ValueError): b.restore(self.config, self.output, self.target)
+            self.assertFalse(self.target.exists())
+        # Correctly hashed schema2 cannot be opened by a catalog-less target.
+        with self.assertRaisesRegex(b.BackupError, 'catalog'):
+            b.validate_snapshot(b.canonical(original), self.template, self.identity, secure=True)
+
+    def test_corrupt_full_profile_stops_backup_and_catalog_changes_stop_restore(self):
+        catalog, selection = self.enable_cosmetics()
+        self.profiles.save(self.first['player_id'], self.deck, cosmetics=selection)
+        b.backup(self.config, self.output)
+        path = self.profiles.path/(self.first['player_id']+'.json')
+        corrupt = path.read_bytes()[:-3];path.write_bytes(corrupt)
+        with self.assertRaises(ValueError): b.backup(self.config, self.folder/'snapshots/other.json')
+        self.assertEqual(path.read_bytes(), corrupt)
+        self.assertFalse((self.folder/'snapshots/other.json').exists())
+        selected = self.config.assets_directory/'cosmetic-catalog.json'
+        selected.write_bytes(selected.read_bytes()+b' ')
+        with self.assertRaisesRegex(b.BackupError, 'catalog changed'): b.restore(self.config, self.output, self.target)
+        self.assertFalse(self.target.exists())
+
+    def test_schema1_snapshot_with_matching_assets_restores_defaults_under_new_catalog(self):
+        catalog, selection = self.enable_cosmetics()
+        payload = dict(created_at=1, compatibility=self.identity, profiles={self.first['player_id']:self.deck},
+                       credentials=json.loads(self.store.export_snapshot()))
+        self.output.parent.mkdir(parents=True)
+        self.output.write_bytes(b.canonical(dict(schema=1, payload=payload, sha256=b.digest(b.canonical(payload)))))
+        restored = load_config(b.restore(self.config, self.output, self.target)['config'])
+        state = ProfileStore(restored.data_directory/'profiles', self.template, catalog=catalog).load_state(self.first['player_id'], [])
+        self.assertEqual(state.deck, tuple(self.deck))
+        self.assertEqual(state.cosmetics, catalog.normalize_local())
+
     def test_existing_outputs_and_live_data_are_never_overwritten(self):
         records = self.store.export_snapshot()
         with mock.patch.object(Path, 'exists', return_value=False):

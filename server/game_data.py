@@ -164,6 +164,7 @@ class MatchData:
     active_ability_groups_by_slot: Mapping[int, tuple[int, ...]]
     deck_messages_by_slot: Mapping[int, bytes]
     armies_by_slot: Mapping[int, bytes]
+    cosmetics_by_slot: Mapping[int, object]
 
 
 class GameTemplate:
@@ -321,7 +322,8 @@ class GameTemplate:
         # Retain template groups instead of inventing a unit-to-group mapping.
         return decode_deck(get_bytes(self.armies[0], 3))["active_ability_groups"]
 
-    def build_match(self, roster, decks, seed=None, game_name=None, *, game_mode=None, bot_choices=None) -> MatchData:
+    def build_match(self, roster, decks, seed=None, game_name=None, *, game_mode=None, bot_choices=None,
+                    human_cosmetics=None, cosmetic_catalog=None) -> MatchData:
         _require(isinstance(roster, (tuple, list)) and len(roster) == self.player_count, "complete roster required")
         mode = self.game_mode if game_mode is None else game_mode
         _require(type(mode) is int and mode in ((2, 5) if self.player_count == 4 else (1, 4)),
@@ -350,6 +352,19 @@ class GameTemplate:
         if bot_choices is not None:
             _require(set(choices) == {player.slot for player in players if player.ai_profile_id},
                      "frozen bot choices must match the complete AI roster")
+        cosmetic_selections = {}
+        if human_cosmetics is not None:
+            from .cosmetics import CosmeticCatalog, CosmeticSnapshot
+            _require(isinstance(cosmetic_catalog, CosmeticCatalog) and isinstance(human_cosmetics, Mapping) and
+                     set(human_cosmetics) == {player.slot for player in players if not player.ai_profile_id},
+                     "frozen human cosmetics must match the complete human roster")
+            for slot, snapshot in human_cosmetics.items():
+                _require(isinstance(snapshot, CosmeticSnapshot) and snapshot.catalog_sha256 == cosmetic_catalog.sha256,
+                         "frozen human cosmetic catalog differs from match assets")
+                # Rebuild all derived wire/identity fields from validated slots.
+                cosmetic_selections[slot] = cosmetic_catalog.validate_selection(snapshot.slots)
+        else:
+            _require(cosmetic_catalog is None, "cosmetic match catalog requires frozen human selections")
         used_modifier_keys = {get_uint(buff, 1) for buff in get_repeated_bytes(self.game_config, 5)}
         for army in self.armies.values():
             used_modifier_keys.update(get_uint(buff, 1) for buff in get_repeated_bytes(get_bytes(army, 7), 2))
@@ -364,6 +379,9 @@ class GameTemplate:
             groups = self.active_groups_for_deck(units)
             identity = encode_identity(player.player_id, player.name, ai_profile_id=player.ai_profile_id)
             deck_message = encode_deck(units, groups)
+            human = cosmetic_selections.get(slot)
+            if human is not None:
+                deck_message += human.deck_entitlement
             bot = choices.get(slot)
             if bot is not None:
                 from .bot_catalog import BotChoice
@@ -376,6 +394,8 @@ class GameTemplate:
                 groups = decoded['active_ability_groups']
             army = replace_fields(self.armies[player.army_id], {
                 2: [field_bytes(2, identity)], 3: [field_bytes(3, deck_message)]})
+            if human is not None:
+                army = replace_fields(army, {5: [field_uint(5, human.banner)], 6: [field_uint(6, human.portrait)]})
             if bot is not None:
                 army = replace_fields(army, {5: [field_uint(5, _uint(bot.banner))],
                                              6: [field_uint(6, _uint(bot.portrait))]})
@@ -393,7 +413,8 @@ class GameTemplate:
         return MatchData(raw, compressed, config, hashlib.sha256(compressed).hexdigest(),
                          hashlib.sha256(raw).hexdigest(), game_name, field_bytes(1, game_name.encode("utf-8")), seed,
                          tuple(players), MappingProxyType(identities), MappingProxyType(deck_ids),
-                         MappingProxyType(groups_by_slot), MappingProxyType(deck_messages), MappingProxyType(armies_by_slot))
+                         MappingProxyType(groups_by_slot), MappingProxyType(deck_messages), MappingProxyType(armies_by_slot),
+                         MappingProxyType(cosmetic_selections))
 
     @staticmethod
     def _bot_strength(army, strength, used_keys):

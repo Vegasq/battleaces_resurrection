@@ -17,6 +17,7 @@ import traceback
 
 from server.worker_client import _WindowsJob
 from server.bot_catalog import BotCatalog
+from server.cosmetics import CosmeticCatalog
 from server.game_data import GameTemplate
 from tools.import_assets import verify_export
 from tools.run_secure_match import read_native_log
@@ -78,6 +79,14 @@ def run(game, output):
             require(template.game_mode == mode, 'original builder mode mismatch')
             templates[mode] = template
         bots = BotCatalog(exported, template=templates[1])
+        cosmetics = CosmeticCatalog(exported)
+        require(bots.cosmetic_ids == cosmetics.items.keys() and
+                set(bots.portraits) <= cosmetics.slots[cosmetics.roles['portrait']].compatible_items and
+                set(bots.banners) <= cosmetics.slots[cosmetics.roles['banner']].compatible_items,
+                'exported bot and human cosmetic catalogs disagree')
+        cosmetic_raw = (exported/'cosmetic-catalog.json').read_bytes()
+        report['cosmetic_catalog'] = dict(items=len(cosmetics.items), slots=len(cosmetics.slots),
+            sha256=cosmetics.sha256, bytes=len(cosmetic_raw), defaults=len(cosmetics.normalize_local().keys))
         report['maps'] = {mode: dict(armies=template.player_count, alliances=template.alliances,
                                     raw_sha256=template.raw_sha256) for mode, template in templates.items()}
         report['bot_catalog'] = dict(profiles=len(bots.profiles), names=len(bots.names), cosmetic_ids=len(bots.cosmetic_ids),

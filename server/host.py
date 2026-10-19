@@ -18,6 +18,7 @@ from .tls_transport import load_server_context, TLSConfigurationError
 from .game_data import GameTemplate
 from .worker_client import SimulationWorker, WorkerError
 from .profiles import ProfileStore
+from .cosmetics import CosmeticCatalog
 from .dedicated_server import DedicatedServer
 from .admission import AdmissionController
 from .host_audit import HostAudit
@@ -97,7 +98,10 @@ async def _run_owned(config, *, check_only=False, on_progress=None, on_ready=Non
                 templates[mode] = GameTemplate.load(config.assets_directory/filename,
                     catalog_path=config.assets_directory/'unit-catalog.json', descriptors_path=config.assets_directory/'descriptors')
             catalog = BotCatalog(config.assets_directory, template=template, rules=RuleBook(config.assets_directory))
-        server = DedicatedServer(template, ProfileStore(config.data_directory / 'profiles', template),
+        cosmetics = CosmeticCatalog(config.assets_directory) if 'cosmetic-catalog.json' in manifest['files'] else None
+        if cosmetics and cosmetics.sha256 != manifest['files']['cosmetic-catalog.json']:
+            raise ValueError('Cosmetic catalog changed after asset verification')
+        server = DedicatedServer(template, ProfileStore(config.data_directory / 'profiles', template, catalog=cosmetics),
             audit=audit, data_dir=None, audit_state=config.diagnostic_audit,
             max_rooms=config.max_rooms, input_window=config.input_window, templates=templates, bot_catalog=catalog,
             tls_context=context, admission=AdmissionController(store) if store else None,

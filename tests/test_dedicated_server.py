@@ -104,7 +104,7 @@ class DedicatedFixture(unittest.IsolatedAsyncioTestCase):
         return worker
 
     async def start(self, **kwargs):
-        profiles = ProfileStore(self.folder / "profiles", self.template)
+        profiles = ProfileStore(self.folder / "profiles", self.template, catalog=kwargs.pop('cosmetic_catalog', None))
         self.server = coordinator.DedicatedServer(self.template, profiles,
             sim_factory=kwargs.pop("sim_factory", self.factory),
             audit=lambda event, **fields: self.events.append(dict(event=event, **fields)),

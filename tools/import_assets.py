@@ -10,6 +10,7 @@ from server.game_data import GameTemplate, decompress_game_data
 from server.native_simulation import SUPPORTED_DLL_SHA256
 from server.ai_rules import RuleBook, SUPPORTED_AI_SHA256
 from server.bot_catalog import BotCatalog
+from server.cosmetics import CosmeticCatalog
 from server.paths import ASSETS, ROOT
 from server.protocol import BUILD_SHA
 from tools.extract_descriptors import extract, GAME_ASSEMBLY_SHA256, validate_output_directory
@@ -25,6 +26,7 @@ def verify_export(directory):
     result = {}
     names = ['map-1v1.pb.gz', 'unit-catalog.json']
     if 'ai-rules.json' in manifest['files']: names.append('ai-rules.json')
+    if 'cosmetic-catalog.json' in manifest['files']: names.append('cosmetic-catalog.json')
     bot_files = {'map-2v2.pb.gz', 'map-2vai.pb.gz', 'bot-catalog.json'}
     has_bots = bool(bot_files & manifest['files'].keys())
     if has_bots:
@@ -37,6 +39,8 @@ def verify_export(directory):
         if len(data) != expected['bytes'] or hashlib.sha256(data).hexdigest() != expected['sha256']:
             raise ValueError('Export size/hash mismatch: ' + name)
         result[name] = data
+    if 'cosmetic-catalog.json' in result:
+        CosmeticCatalog.from_bytes(result['cosmetic-catalog.json'])
     raw = decompress_game_data(result['map-1v1.pb.gz'])
     if len(raw) != manifest['raw_game_data']['bytes'] or hashlib.sha256(raw).hexdigest() != manifest['raw_game_data']['sha256']:
         raise ValueError('Export uncompressed map hash mismatch')
@@ -115,6 +119,16 @@ def import_assets(game_dir, export_dir, destination=ASSETS, original=None):
         bots = BotCatalog(destination, template=template, rules=rules)
         manifest['bot_profiles'] = len(bots.profiles)
         manifest['map_modes'] = [1, 2, 5]
+    if 'cosmetic-catalog.json' in exported:
+        cosmetics = CosmeticCatalog(destination)
+        manifest.update(cosmetic_items=len(cosmetics.items), cosmetic_slots=len(cosmetics.slots))
+    # Validate the same complete inventory that the host will trust, before
+    # publishing its completion manifest. Imported game data stays local.
+    if 'cosmetic-catalog.json' in exported and 'bot-catalog.json' in exported:
+        if (bots.cosmetic_ids != cosmetics.items.keys() or
+                not set(bots.portraits) <= cosmetics.slots[cosmetics.roles['portrait']].compatible_items or
+                not set(bots.banners) <= cosmetics.slots[cosmetics.roles['banner']].compatible_items):
+            raise ValueError('Bot and cosmetic catalogs disagree')
     (destination / 'asset-manifest.json').write_text(json.dumps(manifest, indent=2) + '\n', encoding='utf-8')
     return manifest
 

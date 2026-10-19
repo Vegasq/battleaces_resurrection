@@ -15,7 +15,9 @@ while retaining the authored map, alliances and initial actions. Final server
 construction replaces placeholders with the frozen actual roster.
 
 The completion manifest is written last and declares map-1v1.pb.gz,
-map-2v2.pb.gz,map-2vai.pb.gz,unit-catalog.json,ai-rules.json and bot-catalog.json.
+map-2v2.pb.gz,map-2vai.pb.gz,unit-catalog.json,ai-rules.json,bot-catalog.json
+and cosmetic-catalog.json. The latter is the full17-slot compatibility matrix;
+see cosmetic-community.txt for native export/import and profile/match evidence.
 raw_maps records each decompressed map's size/hash; legacy raw_game_data remains
 the1v1 hash. The AI manifest declares all native rule blobs. Import verifies
 inner/outer hashes, map modes/topology, profile/rule correspondence and playable

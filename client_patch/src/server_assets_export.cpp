@@ -239,6 +239,10 @@ static void consume(Obj gameData,Obj encoded) {
     Bytes catalog=readFile(path(L"unit-catalog.json"));
     Bytes aiRules=exportAIRules();
     Bytes botCatalog=bot_catalog::exportFile();
+    const auto cosmeticText=ba_cosmetics::serialize();
+    ba_tables::require(cosmeticText==ba_cosmetics::serialize(),"cosmetic export catalog is not repeatable");
+    Bytes cosmeticCatalog(cosmeticText.begin(),cosmeticText.end());
+    atomicWrite(path(L"cosmetic-catalog.json"),cosmeticCatalog.data(),cosmeticCatalog.size());
     std::string manifest="{\"schema\":1,\"asset_format\":1,\"complete\":true,\"build\":37822,\"pid\":"+std::to_string(GetCurrentProcessId())+
         ",\"source\":\"loaded original mode1/2/5 GameData builders and runtime tables\","
         "\"original_gameassembly_sha256\":\"e59d08c01479b27404778048d7e13546dbf3771f6b3912744c7c2bdf80c4e758\","
@@ -246,10 +250,11 @@ static void consume(Obj gameData,Obj encoded) {
         "\"files\":{"+mapRows+",\"unit-catalog.json\":{\"bytes\":"+std::to_string(catalog.size())+",\"sha256\":\""+hash(catalog)+
         "\"},\"ai-rules.json\":{\"bytes\":"+std::to_string(aiRules.size())+",\"sha256\":\""+hash(aiRules)+
         "\"},\"bot-catalog.json\":{\"bytes\":"+std::to_string(botCatalog.size())+",\"sha256\":\""+hash(botCatalog)+
+        "\"},\"cosmetic-catalog.json\":{\"bytes\":"+std::to_string(cosmeticCatalog.size())+",\"sha256\":\""+hash(cosmeticCatalog)+
         "\"}},\"raw_game_data\":"+rawOne+",\"raw_maps\":{"+rawMapRows+"}}\n";
     atomicWrite(path(L"export.json"),reinterpret_cast<const unsigned char*>(manifest.data()),manifest.size());
     phase=Phase::Complete;releaseLock();
-    note("COMPLETE: three mode maps, unit/bot catalogs, AI rules and export.json written; no match started. You may close the game.");
+    note("COMPLETE: three mode maps, unit/bot/cosmetic catalogs, AI rules and export.json written; no match started. You may close the game.");
 }
 static void poll(Obj front) {
     if(!ba::exportServerAssets() || phase==Phase::Complete || phase==Phase::Failed)return;
@@ -267,8 +272,8 @@ static void poll(Obj front) {
         if(phase!=Phase::Waiting)return;
         Obj fsm=ba::read<Obj>(ba::owner,0x2b0);
         if(!fsm || ba::get<Obj>(fsm,"_currentState")!=ba::read<Obj>(ba::owner,0x2c0) || !ba_catalog::available())return;
-        const bool rulesReady=aiProfiles.ready(),botsReady=bot_catalog::ready();
-        if(!rulesReady || !botsReady)return;
+        const bool rulesReady=aiProfiles.ready(),botsReady=bot_catalog::ready(),cosmeticsReady=ba_cosmetics::catalogReady();
+        if(!rulesReady || !botsReady || !cosmeticsReady)return;
         int mode=mapModes[mapIndex];void* modeArgs[]={&mode};Root config(ba::call(ba::owner,"GetConfigForMode",1,modeArgs));
         if(!config.get() || !ba::get<Obj>(config.get(),"GameDataProvider"))return;
         savedFront=root(front);savedPlayer=root(ba::get<Obj>(front,"_playerGameHandle"));savedName=root(ba::get<Obj>(front,"_currentPlayerName"));

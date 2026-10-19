@@ -60,6 +60,20 @@ class AssetImportTests(unittest.TestCase):
         with self.assertRaisesRegex(ValueError, 'ignored local'):
             import_assets('unused-game', self.directory, source)
 
+    def test_cosmetic_export_requires_envelope_hash_and_strict_inner_matrix(self):
+        from tests.test_cosmetics import catalog_fixture as cosmetics_fixture, encode
+        name = 'cosmetic-catalog.json'
+        def update(raw):
+            (self.directory/name).write_bytes(raw)
+            self.manifest['files'][name] = dict(bytes=len(raw), sha256=hashlib.sha256(raw).hexdigest())
+            self.write_manifest()
+        data = cosmetics_fixture();raw = encode(data);update(raw)
+        self.assertEqual(verify_export(self.directory)[name], raw)
+        (self.directory/name).write_bytes(raw+b' ')
+        with self.assertRaisesRegex(ValueError, 'size/hash'): verify_export(self.directory)
+        data['slots'][0]['compatible_items'] = [0xffffffff];update(encode(data))
+        with self.assertRaises(ValueError): verify_export(self.directory)
+
     def test_ai_export_requires_both_envelope_hash_and_valid_inner_rules(self):
         rules, _ = synthetic_rules()
         entry = dict(profile=4, mode=1, enabled=True, file='ai-rules-4.fb', bytes=len(rules), sha256=hashlib.sha256(rules).hexdigest())

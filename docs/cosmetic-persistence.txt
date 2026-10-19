@@ -130,7 +130,9 @@ Read-only single-process checks may use verify_unified_startup with explicit
 The modifying --cosmetics-equip-smoke additionally requires cosmeticstest_ prefix.
 
 Remaining release gates
-Freeze and propagate validated full selections with decks through community profiles,
-backups,wire admission,match join,simulation and results. Qualify local AI and
+Community profile storage/snapshots and frozen server match/short native-frame
+propagation now pass their bounded gates;see cosmetic-community.txt,including
+the real protected-backup failure. Complete client wire admission,graphical
+match join and results propagation remain open. Qualify local AI and
 remote/rematch effects,all cosmetic visuals/audio,real drag gestures,shutdown
 flush and native Quit before ordinary enablement/final packaging.
