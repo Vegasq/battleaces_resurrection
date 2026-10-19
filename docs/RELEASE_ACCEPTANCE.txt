@@ -26,6 +26,9 @@ are used because protected DACL enrollment is not accessible to the restricted
 tool token. This does not qualify real credential deployment,actual Start Server/
 Start Client CMD mouse play,SCM,clean-PC or Internet play. Broader multiplayer
 recovery/Custom/rematch/team/manual gates remain open. See packaged-multiplayer.txt.
+Cleaneb5b0ff packages have identical production/runtime/helper bytes to the two
+tested30 controls. Actual ordinary CMD client startup also passes10.571s;forced
+readiness cleanup is separate from the native multiplayer Quit proof above.
 
 Packaged ordinary24 replay correction
 The new full packaged2v2 check catches a real legacy-path save failure despite

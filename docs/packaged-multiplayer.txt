@@ -158,3 +158,24 @@ c4b8b604ad0da704a448340bb107799299e2f949d42c106ebf66eab2f0b7c6ff
 These are development previews. Broader2vAI/full-team/Custom/rematch/disconnect/
 retry/manual/protected-deployment/clean-PC/Internet matrix stays open;do not
 promote same-PC credential-fixture controls to a final friend-hosted release.
+
+Clean30 package / ordinary startup follow-up
+Fresh packages from committedeb5b0ff3e2010a3e21fcb7dd1942dae57cf64cf2
+record dirty=false. Verified inventoried production/runtime/helper files are
+byte-identical to the native-tested preview;ONLY compatibility.json differs.
+Current C++ sources remain bound to the helper receipt. This is byte-equivalence
+evidence,not new multiplayer runs. Actual clean Start Client.cmd independently
+reaches the ordinary native menu10.571s/10.990s total without spawn seam,test
+actions or global Python on PATH. Package/config/source/shared TOML unchanged;
+owned readiness cleanup is forced and does not qualify another native Quit.
+local/packaged-network30-clean-startup01/verification.json SHA256
+7632f951329c94dd289bba2353460ba42e5bdf35c73befd83a7df9b5df6c91d9
+local/packaged-network30-clean-equivalence.json SHA256
+ab96daa333dd210abd333682400228e3538d3a7fb3afe0db3a9bb410f4eb8b80
+Clean client67 files,archive13086416bytes,ZIP SHA256
+b604cbdf826b40fda6bec67a55381e744daea1a038723c2bed05727f1dab24a8
+Clean server82 files,archive12427769bytes,ZIP SHA256
+9657318cec4bb2674bdb76b2ec4eba4d13edb23c6684577d8f5afdc4e9f62173
+Clean build-report.json SHA256
+a1b80f81a3ba863ad79dc08b2f938919e9a68baaef91645249c0fe82dd5723cf
+No original client binaries/assets/private captures/keys are published in Git.

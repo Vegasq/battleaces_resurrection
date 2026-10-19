@@ -23,6 +23,10 @@ boundaries and Python504 tests490pass/14skip,106.788s plus final five focused
 checks pass. Manual24/original/frozen copies unchanged. Actual CMD/physical/
 protected deployment/remaining multiplayer recovery/clean-PC/Internet acceptance
 remain open;see packaged-multiplayer.txt for scope and exact evidence.
+Cleaneb5b0ff packages are byte-equivalent in production/runtime/helper content
+to tested30. Actual ordinary clean Start Client.cmd opens menu10.571s/10.990s
+total,no spawn seam/test actions/global Python. Package/config/source/shared
+TOML unchanged;readiness cleanup is forced,not another native Quit proof.
 
 NATIVE REPLAY MALFORMED CODEC29 (2026-10-19 UTC, BOUNDED PASS)
 After one bundled public2v2/result/Continue and healthy native replay readback,
