@@ -14,7 +14,7 @@ from tools.package_integrity import verify
 request=json.loads(Path(sys.argv[1]).read_bytes());output=Path(request['output']);package=Path(request['package'])
 fixture=json.loads(sys.stdin.buffer.read(16385));assert len(fixture['identities'])==2
 verify(package,'server');report=dict(passed=False,production_modules={},fixture_store=True,workers=[],frozen_matches=[])
-workers=[];servers=[];authenticated=[];stores=[]
+workers=[];servers=[];authenticated=[];stores=[];old_sessions={}
 def publish(name,value):
     temporary=output/(name+'.tmp');temporary.write_text(json.dumps(value,indent=2)+'\n');temporary.replace(output/name)
 class MemoryStore:
@@ -39,12 +39,28 @@ def server(*args,**kwargs):
                 roster=[dict(slot=p.slot,name=p.name,ai_profile_id=p.ai_profile_id) for p in match.roster],
                 decks={slot:list(deck) for slot,deck in match.decks_by_slot.items()},
                 full_loadout_seats=sorted(room.full_loadout_seats)))
+            if request.get('recover_loading') and len(report['frozen_matches'])==2:
+                victim,survivor=(p['player_id'] for p in fixture['identities'])
+                report['recovery_sessions']=dict(survivor_retained=value.community.sessions[survivor] is old_sessions[survivor],
+                    victim_replaced=value.community.sessions[victim] is not old_sessions[victim])
     value.audit=observe;return value
 def view():
     if not servers:return {}
     value=servers[0]
     return dict(rooms=len(value.rooms),retired=len(value.retired),entries=len(value.community.public.entries),
                 offers=len(value.community.public.offers),cleanup=len(value.worker_cleanup),sessions=len(value.community.sessions))
+def inject_loading_disconnect():
+    command=output/'server-disconnect.json'
+    if not request.get('recover_loading') or report.get('fault') or not command.exists():return
+    victim,survivor=(p['player_id'] for p in fixture['identities'])
+    assert json.loads(command.read_bytes())==dict(player=victim)
+    value=servers[0];session=value.community.sessions[victim];peer=session.peer;room=peer.room
+    assert room and room.state=='loading' and not room.loaded and room.frame==0 and len(room.peers)==2
+    assert len(report['frozen_matches'])==1 and room.sim is not None
+    old_sessions.update({p:value.community.sessions[p] for p in (victim,survivor)})
+    report['fault']=dict(stage='loading',match=room.match_id,victim=victim,victim_seat=peer.slot,worker_pid=room.sim.pid,
+                        room_state=room.state,next_frame=room.frame,loaded=sorted(room.loaded))
+    publish('server-fault.json',report['fault']);peer.close()
 async def run():
     config=load_config(request['config']);assert config.listen_host=='127.0.0.1' and not config.allow_insecure_loopback
     ready=False
@@ -57,7 +73,7 @@ async def run():
         while not (output/'server-stop').exists():
             if running.done():await running;raise AssertionError('host ended before explicit stop')
             assert time.monotonic()-began<request['timeout'],'owned host deadline'
-            if ready:publish('server-live.json',view())
+            if ready:inject_loading_disconnect();publish('server-live.json',view())
             await asyncio.sleep(.1)
     finally:
         running.cancel()
@@ -69,8 +85,11 @@ async def run():
             reaped=worker.process.poll() is not None and worker._cleanup_task is not None and worker._cleanup_task.done() and not worker._stderr_thread.is_alive(),
             executable=worker.process.args[0],module_root=worker.process.args[7],game_data_sha256=worker.game_data_sha256,
             simulation_sha256=worker.dll_sha256,ai=worker.ai_info))
-    assert ready and len(servers)==1 and len(stores)==1 and len(authenticated)==2
-    assert len(workers)==2 and all(row['exit_code']==0 and not row['failure'] and row['reaped'] for row in report['workers'])
+    recovering=request.get('recover_loading',False)
+    expected=[p['player_id'] for p in fixture['identities']]+([fixture['identities'][0]['player_id']] if recovering else [])
+    assert ready and len(servers)==1 and len(stores)==1 and sorted(authenticated)==sorted(expected)
+    assert len(workers)==(3 if recovering else 2) and all(row['exit_code']==0 and not row['failure'] and row['reaped'] for row in report['workers'])
+    if recovering:assert report.get('fault') and report['recovery_sessions']==dict(survivor_retained=True,victim_replaced=True)
     assert all(Path(row['executable']).resolve()==(package/'program/runtime/python.exe').resolve() for row in report['workers'])
     assert all(Path(row['module_root']).resolve()==(package/'program/app').resolve() for row in report['workers'])
     with socket.socket() as probe:assert probe.connect_ex(('127.0.0.1',config.listen_port))!=0,'host listener survived stop'
@@ -121,6 +140,9 @@ def spawn(config,remote,options,child):
         '-lan-smoke','-lan-audit','-dedicated-rematch-smoke','-dedicated-surrender-smoke','-dedicated-surrender-frame=1200',
         '-public-team-surrender-smoke','-match-search-smoke','-native-quit-smoke','-native-quit-mode=confirm','-native-quit-gate-smoke']
     if request['index']==1:diagnostic.append('-public-queue-smoke-edit-deck')
+    if request.get('recover_loading'):
+        diagnostic.extend(['-public-queue-smoke-retry','-public-queue-smoke-retry-gate','-public-team-retry-smoke'])
+        if request['index']==0:diagnostic.append('-dedicated-recovery-smoke')
     command.extend(diagnostic)
     info=subprocess.STARTUPINFO();info.dwFlags|=subprocess.STARTF_USESHOWWINDOW;info.wShowWindow=1 if request['visible'] else 0
     info.lpAttributeList={'handle_list':[child.fileno()]}
@@ -142,7 +164,8 @@ try:
     report['launcher_exit_code']=client.main(['--config',request['config']])
     report['game_exit_code']=None if process is None else process.poll()
     assert report['launcher_exit_code']==report['game_exit_code']==0
-    assert report['invite_reads']==report['tls_connections']==1
+    expected=2 if request.get('recover_loading') and request['index']==0 else 1
+    assert report['invite_reads']==report['tls_connections']==expected
     report['passed']=True
 except BaseException as error:report.update(error=repr(error),traceback=traceback.format_exc())
 finally:(output/'client-driver.json').write_text(json.dumps(report,indent=2)+'\n')

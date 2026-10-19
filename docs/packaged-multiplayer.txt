@@ -1,5 +1,64 @@
 BUNDLED SERVER / NATIVE MULTIPLAYER QUALIFICATION -- 2026-10-19
 
+Native31 loading disconnect / same-process replacement (BOUNDED PASS)
+The existing clean30 packages/helper are unchanged. External verifier option
+--recover-loading closes the first client's actual accepted TLS peer only when
+the authoritative room is loading,loaded seats are empty,next frame is0,and both
+native clients have joined without a native ready witness. This is an explicit
+controlled network fault,not a shipped automatic action or fake server result.
+Original production host/client/resolver/bridge/worker code and clocks run.
+The stdin-only ephemeral credential fixtures and DACL limitation below apply.
+
+Victim original disconnected modal OnConfirm queues retry while still owned;
+release occurs on a strictly later update before session/world/intent cleanup.
+Survivor receives the authoritative abort and retains the identical Session
+object. The verifier requires zero rooms/retired/offers/entries/worker cleanup
+and only the survivor session before releasing a separate owned retry gate.
+Both original public Play callbacks then run in the SAME native processes.
+Only victim re-reads its fixture/reconnects;three total authentications,not four.
+Old match has no authoritative frames/receipts;its native worker exits0 and
+worker_released precedes replacement creation. There is no local AI fallback.
+
+Fresh corrected control passes126.803s. Native PIDs11468/10436 each acquire and
+release exactly two remote worlds. Replacement seats swap:configured names,
+independent native decks and full human loadouts remain tied to player identity.
+Both receive every one of1220 authoritative frames with matching payload hashes
+and122 common canonical observable-state samples each. Native search-to-offer
+is266ms each;server-entry wait0.165155s/0.000102s. Original diagnostic concession
+at1200,results/Continue and gated idle original Quit all pass. Health worker18936,
+aborted worker45308,replacement40332 exit0/reap without failure. Original host
+cleanup closes listener/releases state lock;all three outer jobs active0 and
+terminated0 BEFORE close,no forced cleanup. Package/config/assets/adapters/
+source and three shared channels remain unchanged;fixture tokens not logged.
+No product source/helper rebuild or package refresh was necessary for this test.
+local/packaged-recovery31-loading02/verification.json SHA256
+83860824b33d754073b4a6d6267f8d9b0e84a14bc9631f8e24f9a7fbf2c9dfa4
+
+Original replay writer emits TWO files per profile:one zero-frame GameData-only
+loading-abort recording and one completed1220-frame recording. Both profiles
+produce identical bytes for each role. Abort SHA256
+ddcc451a68901d2769894a5c839c531e657abfb2a736ed50de876051161b93a1
+and completed SHA256
+4d872370aefc0c3197795638e917319a09f7f63a2470ebff95d13bbe986b3de2.
+Each GameData hash must equal its own frozen authoritative native worker data;
+completed frame numbers are contiguous from0. Structural abort readback requires
+explicit allow_empty_actions=True and is NOT native playback qualification.
+Default replay_evidence still rejects a zero-action recording;original output
+is preserved without suppressing autosave or modifying native writer behavior.
+
+First loading01 remains FAILED:the old verifier incorrectly required exactly
+one replay after two attempts. Game sequence and natural cleanup completed,but
+that report is not promoted to pass. A retained independent replay readback
+identified zero-frame abort and1220-frame completed files and motivated only
+the verifier correction. Its characterization report SHA256
+133ad99c00b490e905313e8c714502606d203c80abd341850c4de738958f6cda.
+Fresh loading02 above reruns the whole corrected control. Thirteen focused
+checks pass;full Python509 tests495pass/14skip,102.408s,exit0 pass. Eleven C++
+programs/six atomic boundaries from unchanged helper30 remain the build evidence.
+Running disconnect/retry,packaged2vAI/full-team/Custom/rematch,actual CMD/manual,
+protected deployment/SCM/clean-PC/Internet/capacity gates remain open. Existing
+manual24/frozen/original copies and ordinary launch behavior are unchanged.
+
 Scope
 This closes the gap between separate source multiplayer controls and bundled
 local gameplay. tools.verify_packaged_multiplayer launches a bundled Windows

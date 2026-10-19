@@ -1,6 +1,9 @@
 import copy
+import hashlib
 import unittest
-from tools.packaged_network_evidence import validate
+import zlib
+from server.protobuf_wire import field_bytes,field_uint
+from tools.packaged_network_evidence import validate,validate_loading_recovery,validate_replays
 from tools import packaged_network_drivers as drivers
 
 
@@ -67,3 +70,69 @@ class PackagedNetworkEvidenceTests(unittest.TestCase):
 
     def test_external_driver_sources_compile(self):
         for name in ('SERVER','CLIENT'):compile(getattr(drivers,name),'<owned '+name+' adapter>','exec')
+
+    def recovery_fixture(self):
+        events,clients=self.fixture();old='b'*32
+        for event in events:
+            if event['event']=='public_queue_entered':event['ticket']=2
+            if event['event']=='match_created':event['perf_counter_ns']=50
+        events=[dict(event='public_queue_entered',ticket=1),dict(event='public_queue_entered',ticket=1),
+                dict(event='public_match_offered',match=old),dict(event='match_created',match=old),
+                dict(event='match_aborted',match=old),dict(event='worker_released',match=old,worker_pid=50,perf_counter_ns=20)]+events
+        victim=('RECOVERY SMOKE invoking original disconnected modal OnConfirm\nDedicated Reconnect callback queued:\n'
+                'RECOVERY SMOKE original OnConfirm returned; modalStillOwned=1 queued=1\n'
+                'Dedicated retry modal released on later update: requested=10 current=11\n'
+                f'Dedicated session reset: match={old}\n'
+                'Client world released: generation=1 owner=remote nativeIdle=1\n'
+                'Public intent retired: ticket=1 reason=connection lost after match acceptance nativeIdle=1 disconnect=1\n')
+        survivor=(f'Public native return: ticket=1 match={old} aborted=1 nativeIdle=1\n'
+                  'Client world released: generation=1 owner=remote nativeIdle=1\nPUBLIC QUEUE completed return: initial\n')
+        for index,row in enumerate(clients):
+            row['log']=row['log'].replace('ticket=1','ticket=2').replace('generation=1','generation=2')+'Public search intent: ticket=2\n'
+            if index==0:row['log']+='Loading notice dismissed: identity=public-error:1 reason=public search restarted\n'
+            row['initial_log']=('Public search intent: ticket=1\nPublic native match joined: ticket=1\nClient world acquired: generation=1\n'+
+                                (victim if index==0 else survivor)+'PUBLIC QUEUE SMOKE waiting for retry gate: fixture\n')
+            row['initial_receipts']=[];row['full_log']=row['initial_log']+row['log']
+        fault=dict(stage='loading',room_state='loading',next_frame=0,loaded=[],match=old,worker_pid=50)
+        return events,clients,fault
+
+    def test_loading_abort_and_replacement_keep_separate_tickets(self):
+        events,clients,fault=self.recovery_fixture();result=validate_loading_recovery(events,clients,fault=fault)
+        self.assertEqual(result['aborted_authoritative_frames'],0);self.assertTrue(result['same_native_processes'])
+        replacement=[e for e in events if e.get('match')=='a'*32 or e['event']=='public_queue_entered' and e['ticket']==2]
+        self.assertEqual(validate(replacement,clients,mode=1,ticket=2)['frames'],600)
+        with self.assertRaises(AssertionError):validate(replacement,clients,mode=1)
+
+    def test_recovery_rejects_advanced_frames_reused_match_and_unreleased_worker(self):
+        events,clients,fault=self.recovery_fixture()
+        for extra in (dict(event='frame_queued',match=fault['match']),dict(event='match_completed',match=fault['match'])):
+            with self.subTest(extra=extra),self.assertRaises(AssertionError):validate_loading_recovery(events+[extra],clients,fault=fault)
+        changed=copy.deepcopy(events)
+        next(e for e in changed if e['event']=='worker_released' and e.get('match')==fault['match'])['perf_counter_ns']=60
+        with self.assertRaises(AssertionError):validate_loading_recovery(changed,clients,fault=fault)
+        with self.assertRaises(AssertionError):validate_loading_recovery(events,clients,fault=fault|dict(loaded=[0]))
+
+    def test_recovery_requires_deferred_native_modal_and_surviving_connection(self):
+        events,clients,fault=self.recovery_fixture()
+        for change in (lambda c:c[0].update(initial_log=c[0]['initial_log'].replace('current=11','current=10')),
+                       lambda c:c[0].update(initial_receipts=[dict(frame=0)]),
+                       lambda c:c[1].update(full_log=c[1]['full_log']+'Dedicated Reconnect callback queued:'),
+                       lambda c:c[0].update(log=c[0]['log'].replace('identity=public-error:1','identity=other'))):
+            changed=copy.deepcopy(clients);change(changed)
+            with self.subTest(change=change),self.assertRaises(AssertionError):validate_loading_recovery(events,changed,fault=fault)
+
+    def test_native_loading_abort_replay_is_distinct_from_completed_recording(self):
+        old=field_uint(1,10);new=field_uint(1,20)
+        def compress(raw):
+            stream=zlib.compressobj(wbits=-15);return stream.compress(raw)+stream.flush()
+        empty=compress(field_bytes(1,old));complete=compress(field_bytes(1,new)+field_bytes(2,field_uint(1,0)))
+        frozen=[dict(game_data_sha256=hashlib.sha256(game).hexdigest()) for game in (old,new)]
+        proof=validate_replays([complete,empty],frozen=frozen,frames=1,loading_abort=True)
+        self.assertEqual(proof['completed']['input_action_messages'],1)
+        self.assertEqual(proof['aborted_loading']['input_action_messages'],0)
+        self.assertFalse(proof['aborted_loading']['native_playback'])
+        for files in ([empty],[empty,empty],[complete,complete],[empty,complete,empty]):
+            with self.subTest(files=len(files)),self.assertRaises(AssertionError):validate_replays(files,frozen=frozen,frames=1,loading_abort=True)
+        with self.assertRaises(AssertionError):validate_replays([empty,complete],frozen=frozen[::-1],frames=1,loading_abort=True)
+        wrong=compress(field_bytes(1,new)+field_bytes(2,field_uint(1,7)))
+        with self.assertRaises(AssertionError):validate_replays([empty,wrong],frozen=frozen,frames=1,loading_abort=True)

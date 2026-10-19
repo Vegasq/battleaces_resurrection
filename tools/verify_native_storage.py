@@ -48,7 +48,7 @@ def snapshot(folder):
     return dict(exists=True,entries=rows)
 
 
-def replay_evidence(raw):
+def replay_evidence(raw,*,allow_empty_actions=False):
     require(isinstance(raw,bytes) and 0<len(raw)<=4*1024*1024,'replay compressed size unsupported')
     decoder = zlib.decompressobj(-zlib.MAX_WBITS)
     data = decoder.decompress(raw,16*1024*1024+1)
@@ -57,7 +57,7 @@ def replay_evidence(raw):
     fields = parse_fields(data,max_bytes=16*1024*1024,max_fields=16384)
     require(all(f.number in (1,2) and f.wire_type==2 for f in fields),'unexpected original replay wire fields')
     games = [f.value for f in fields if f.number==1];actions = [f.value for f in fields if f.number==2]
-    require(len(games)==1 and games[0] and actions,'replay lacks game data or recorded input actions')
+    require(len(games)==1 and games[0] and (actions or allow_empty_actions),'replay lacks game data or recorded input actions')
     require(parse_fields(games[0],max_bytes=16*1024*1024),'empty replay GameData')
     for action in actions: parse_fields(action)
     return dict(bytes=len(raw),sha256=hashlib.sha256(raw).hexdigest(),decoded_bytes=len(data),

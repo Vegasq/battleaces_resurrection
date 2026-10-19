@@ -15,6 +15,20 @@ actions. Current native settings saves use staged handle publication. See
 ordinary-player-client.txt for reports,retained failures and remaining matrix.
 These controls do not close the final/manual/clean-machine/Internet gates below.
 
+Bundled loading-disconnect31 qualification
+Clean30 host/two bundled clients pass actual accepted TLS loading disconnect,
+original modal/deferred cleanup,capacity release,and separate public replacement
+in the same native processes. Victim reconnects once;survivor retains its session.
+Replacement1220 exact authoritative frames/122 matching sampled states each;
+names/decks/loadouts survive seat swap. Original results/Continue/Quit,all worker/
+game/launcher exits0,listener/state lock release,jobs active0/terminated0,no forced
+cleanup pass126.803s. Original zero-frame abort plus completed replays are checked
+by role/hash without claiming aborted playback. Python509 tests495pass/14skip
+pass. No shipping code/package/helper change. This uses explicit stdin-only test
+credential fixtures,not protected enrollment acceptance. Running disconnect,
+remaining multiplayer/manual/deployment/clean-PC/Internet gates remain OPEN.
+See packaged-multiplayer.txt for retained first checker failure and fresh pass.
+
 Bundled multiplayer30 source qualification
 Verified bundled host.run plus two bundled client.main/TLS/bridge/native clients
 now pass full-human1v1 and real30-second partial2v2 with original native AI fill.

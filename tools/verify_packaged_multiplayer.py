@@ -13,6 +13,7 @@ import ctypes
 import hashlib
 import json
 import os
+import re
 from pathlib import Path
 import secrets
 import socket
@@ -26,12 +27,12 @@ from server.worker_client import _WindowsJob
 from tests.test_tls_transport import generate_test_pki,remove_test_pki
 from tools.package_integrity import verify
 from tools import packaged_network_drivers as drivers
-from tools.packaged_network_evidence import validate
+from tools.packaged_network_evidence import validate,validate_loading_recovery,validate_replays
 from tools.run_secure_match import read_native_log
 from tools.verify_packaged_play import job_accounting
 from tools import verify_native_quit as quit_probe
 from tools import verify_unified_startup as startup
-from tools.verify_native_storage import snapshot,replay_evidence
+from tools.verify_native_storage import snapshot
 from tools.replay_retention import api_path
 
 ROOT=Path(__file__).resolve().parents[1]
@@ -86,8 +87,10 @@ class Child:
 
 
 def run(args):
+    if not hasattr(args,'recover_loading'):args.recover_loading=False
     packages,game,assets,output=(p.resolve() for p in (args.packages,args.game,args.assets,args.output))
     require(os.name=='nt' and 120<=args.timeout<=600 and args.mode in (1,2,5),'bounded supported Windows match required')
+    require(not args.recover_loading or args.mode==1,'first packaged loading-recovery control requires two full-human1v1 attempts')
     require(all(p.is_relative_to(ROOT/'local') for p in (packages,game,assets,output)),'owned ignored paths required')
     server_package=packages/'battleaces-server-win64';client_package=packages/'battleaces-client-win64'
     inventories={kind:verify(path,kind) for kind,path in (('server',server_package),('client',client_package))}
@@ -105,11 +108,12 @@ def run(args):
     host_path=config_folder/'host.json';host_path.write_text(json.dumps(host_config,indent=2)+'\n')
     identities=[dict(schema=1,player_id='p_'+secrets.token_hex(16),invite_id='i_'+secrets.token_hex(16),token='ba1_'+secrets.token_urlsafe(32)) for _ in range(2)]
     gate=secrets.token_hex(16);gate_path=game/'investigation/runtime'/('public-queue-'+gate+'.ready')
-    require(not gate_path.exists(),'public start gate already exists')
-    configs=[host_path];children=[];records=[];server_child=None;gate_created=False;quit_released=False
+    retry_path=gate_path.with_name('public-queue-'+gate+'-retry.ready')
+    require(not gate_path.exists() and not retry_path.exists(),'public start/retry gate already exists')
+    configs=[host_path];children=[];records=[];server_child=None;gate_created=False;quit_released=False;fault_requested=False;retry_released=False
     shared=args.shared_settings.resolve()
     def channels():return dict(toml=startup.shared_state(shared),replays=snapshot(shared.parent/'AutoSaveReplays'),backup=snapshot(shared.parent/'StorageSyncBackup'))
-    report=dict(passed=False,scope=__doc__,mode=args.mode,helper_build=receipt,shared_before=channels(),source_sha256_at_start=sources(),forced_cleanup=False,
+    report=dict(passed=False,scope=__doc__,mode=args.mode,recover_loading=args.recover_loading,helper_build=receipt,shared_before=channels(),source_sha256_at_start=sources(),forced_cleanup=False,
                 packages=str(packages),assets_manifest_sha256=hashlib.sha256((assets/'asset-manifest.json').read_bytes()).hexdigest())
     kernel=ctypes.WinDLL('kernel32',use_last_error=True);kernel.GetTickCount64.restype=ctypes.c_ulonglong
     kernel.OpenProcess.argtypes=[ctypes.c_ulong,ctypes.c_int,ctypes.c_ulong];kernel.OpenProcess.restype=ctypes.c_void_p
@@ -119,7 +123,7 @@ def run(args):
     try:
         server_output=output/'server'
         request=dict(package=str(server_package),output=str(server_output),config=str(host_path),timeout=args.timeout,
-                     credential_directory=host_config['credential_directory'])
+                     credential_directory=host_config['credential_directory'],recover_loading=args.recover_loading)
         server_child=Child(server_package,server_output,drivers.SERVER,request,dict(identities=identities));children.append(server_child)
         while not (server_output/'server-ready.json').exists():
             require(server_child.process.poll() is None and time.monotonic()-started<60,'bundled host did not become ready');time.sleep(.05)
@@ -136,12 +140,12 @@ def run(args):
             config.write_text(json.dumps(settings,indent=2)+'\n');configs.extend((config,placeholder))
             for path in (config,placeholder):config_bytes[str(path)]=path.read_bytes()
             request=dict(package=str(client_package),game=str(game),output=str(client_output),config=str(config),profile=profile,
-                port=port,invite_placeholder=str(placeholder),mode=args.mode,index=index,gate=gate,visible=args.visible)
+                port=port,invite_placeholder=str(placeholder),mode=args.mode,index=index,gate=gate,visible=args.visible,recover_loading=args.recover_loading)
             child=Child(client_package,client_output,drivers.CLIENT,request,identity);children.append(child)
             records.append(dict(child=child,folder=folder,profile=profile,name=settings['display_name'],player=identity['player_id']))
         while True:
             require(server_child.process.poll() is None,'bundled host stopped during client gameplay')
-            for row in records:
+            for index,row in enumerate(records):
                 child=row['child'];process_path=child.output/'game-process.json'
                 if child.native is None and process_path.exists():
                     child.native=json.loads(process_path.read_bytes());child.handle=kernel.OpenProcess(0x100000|0x1000,False,child.native['pid'])
@@ -149,8 +153,13 @@ def run(args):
                 if child.native:
                     row['log']=read_native_log(game,child.native['pid'],since_tick=child.native['launch_tick'])
                     require(not any(marker in row['log'] for marker in ('Public client failure:','Client lifecycle invariant failed:','Public result Continue routing failed:',
-                        'Native Quit probe failed:','Offline initialization failed:','LAN normal-build smoke disabled','LAN normal-build smoke stopped','Offline loop stopped in ')),
+                        'Native Quit probe failed:','Offline initialization failed:','LAN normal-build smoke disabled','LAN normal-build smoke stopped')),
                         'native bundled multiplayer lifecycle failed')
+                    for failure in re.findall(r'Offline loop stopped in [^\n]*',row['log']):
+                        require(args.recover_loading and fault_requested and index==0 and re.fullmatch(
+                            r'Offline loop stopped in (?:LAN update|LAN front update|dedicated session update): '
+                            r'(?:match server disconnected before a result|Secure session is closed)',failure.rstrip('\r')),
+                            'unexpected native bundled multiplayer stop')
                     if (row['folder']/'quit-trace.jsonl').exists():
                         trace=quit_probe.current_trace_rows((row['folder']/'quit-trace.jsonl').read_bytes(),child.native['pid'],child.native['launch_tick'])
                         confirm=[r['tick'] for r in trace if r['event']=='OnConfirm.dispatch']
@@ -160,7 +169,23 @@ def run(args):
                 require(not any('Public search intent:' in row['log'] for row in records),'public search bypassed shared menu gate')
                 with gate_path.open('xb'):pass
                 gate_created=True
-            if not quit_released and all('PUBLIC QUEUE completed return:' in row.get('log','') for row in records):
+            if args.recover_loading and not fault_requested and all('Public native match joined: ticket=1 ' in row.get('log','') for row in records):
+                require(all('Offline world ready;' not in row['log'] for row in records),'loading disconnect missed the native map-load window')
+                command=server_output/'server-disconnect.tmp';command.write_text(json.dumps(dict(player=identities[0]['player_id']))+'\n');command.rename(server_output/'server-disconnect.json')
+                fault_requested=True
+            if args.recover_loading and fault_requested and not retry_released and all('PUBLIC QUEUE SMOKE waiting for retry gate: key='+gate in row.get('log','') for row in records):
+                live=json.loads((server_output/'server-live.json').read_bytes())
+                if all(live.get(key)==0 for key in ('rooms','retired','entries','offers','cleanup')):
+                    require((server_output/'server-fault.json').exists() and live['sessions']==1,'old room/session cleanup was not complete before retry')
+                    report['fault']=json.loads((server_output/'server-fault.json').read_bytes())
+                    for row in records:
+                        require(row['log'].count('Public search intent:')==1,'replacement Play bypassed the retry gate')
+                        row['retry_offset']=len(row['log'])
+                    with retry_path.open('xb'):pass
+                    retry_released=True
+            returned=(all('Public intent retired: ticket=2 reason=returned nativeIdle=1 disconnect=0' in row.get('log','') for row in records)
+                      if args.recover_loading else all('PUBLIC QUEUE completed return:' in row.get('log','') for row in records))
+            if not quit_released and returned:
                 live=json.loads((server_output/'server-live.json').read_bytes())
                 if all(live.get(key)==0 for key in ('rooms','retired','entries','offers','cleanup')):
                     for row in records:
@@ -171,8 +196,13 @@ def run(args):
         (server_output/'server-stop').write_bytes(b'owned qualification complete\n');server_child.process.wait(timeout=35)
         require(server_child.process.returncode==0,'bundled host did not stop through original cleanup')
         server_report=json.loads((server_output/'server-driver.json').read_bytes());imports(server_report,server_package,inventories['server'])
-        require(sorted(server_report['authenticated'])==sorted(row['player'] for row in records),'bundled TLS identity ownership differs')
-        frozen=server_report['frozen_matches'];require(len(frozen)==1,'bundled host did not freeze one native match')
+        expected_authenticated=[row['player'] for row in records]+([records[0]['player']] if args.recover_loading else [])
+        require(sorted(server_report['authenticated'])==sorted(expected_authenticated),'bundled TLS identity ownership differs')
+        frozen=server_report['frozen_matches'];require(len(frozen)==(2 if args.recover_loading else 1),'bundled host match count differs')
+        final=frozen[-1]
+        events=[]
+        for path in sorted((data/'logs').glob('events.jsonl*'),reverse=True):events.extend(json.loads(line) for line in path.read_text(encoding='utf-8').splitlines())
+        final_frames=sum(e['event']=='frame_queued' and e.get('match')==final['match'] for e in events)
         for row in records:
             child=row['child'];bundled=json.loads((child.output/'client-driver.json').read_bytes());imports(bundled,client_package,inventories['client'])
             require(kernel.WaitForSingleObject(child.handle,0)==0,'owned game still alive after launcher exit')
@@ -180,23 +210,34 @@ def run(args):
             row['pid']=child.native['pid'];row['log']=read_native_log(game,row['pid'],since_tick=child.native['launch_tick'])
             trace=quit_probe.current_trace_rows((row['folder']/'quit-trace.jsonl').read_bytes(),row['pid'],child.native['launch_tick'])
             require([r['event'] for r in trace]==['armed','Show.dispatch','Show.return','OnConfirm.dispatch','OnConfirm.return'],'original menu Quit trace invalid')
-            row['receipts']=rows(game/'investigation/runtime'/f'dedicated-receipts-{row["pid"]}-{frozen[0]["match"]}.tsv')
-            row['audit']=rows(game/'investigation/runtime'/f'lan-audit-{row["pid"]}-{frozen[0]["match"]}.tsv')
-            (child.output/'native.log').write_text(row['log'],encoding='utf-8')
+            row['full_log']=row['log'];(child.output/'native.log').write_text(row['log'],encoding='utf-8')
+            row['receipts']=rows(game/'investigation/runtime'/f'dedicated-receipts-{row["pid"]}-{final["match"]}.tsv')
+            row['audit']=rows(game/'investigation/runtime'/f'lan-audit-{row["pid"]}-{final["match"]}.tsv')
+            if args.recover_loading:
+                row['initial_log']=row['log'][:row['retry_offset']];row['log']=row['log'][row['retry_offset']:]
+                initial_receipts=game/'investigation/runtime'/f'dedicated-receipts-{row["pid"]}-{frozen[0]["match"]}.tsv'
+                row['initial_receipts']=rows(initial_receipts) if initial_receipts.exists() else []
             for kind in ('receipts','audit'):(child.output/(kind+'.json')).write_text(json.dumps(row[kind],indent=2)+'\n')
-            replays=list((row['folder']/'AutoSaveReplays').iterdir());require(len(replays)==1,'expected one native remote replay per client')
-            row['replay']=replay_evidence(api_path(replays[0]).read_bytes())
+            replays=list((row['folder']/'AutoSaveReplays').iterdir())
+            row['replay_set']=validate_replays([api_path(path).read_bytes() for path in replays],frozen=frozen,frames=final_frames,loading_abort=args.recover_loading)
+            row['replay']=row['replay_set']['completed']
             row['settings']=startup.native_settings_evidence(game,child.output,row['pid'],child.native['launch_tick'],row['profile'])
             row['trace']=trace;row['driver_report']=bundled
-        events=[]
-        for path in sorted((data/'logs').glob('events.jsonl*'),reverse=True):events.extend(json.loads(line) for line in path.read_text(encoding='utf-8').splitlines())
-        report['match']=validate(events,records,mode=args.mode)
-        require(frozen[0]['full_loadout_seats']==report['match']['human_seats'],'bundled native clients lost complete human loadouts')
+        selected=events
+        if args.recover_loading:
+            report['recovery']=validate_loading_recovery(events,records,fault=report['fault'])
+            selected=[e for e in events if e.get('match')==final['match'] or e['event']=='public_queue_entered' and e.get('ticket')==2]
+        report['match']=validate(selected,records,mode=args.mode,ticket=2 if args.recover_loading else 1)
+        require(final['full_loadout_seats']==report['match']['human_seats'],'bundled native clients lost complete human loadouts')
         for row in records:
-            human=[value for value in frozen[0]['humans'].values() if value['profile']==row['player']]
+            human=[value for value in final['humans'].values() if value['profile']==row['player']]
             require(len(human)==1 and human[0]['name']==row['name'],'configured name lost in authoritative native roster')
-        require(report['match']['worker_pid']==server_report['workers'][1]['pid'] and frozen[0]['game_data_sha256']==server_report['workers'][1]['game_data_sha256'],'bundled native worker ran a different game')
-        report.update(passed=True,server=server_report,clients=[{k:row[k] for k in ('pid','name','player','profile','replay','settings','trace','driver_report')} for row in records])
+            if args.recover_loading:
+                before=[deck for slot,deck in frozen[0]['decks'].items() if frozen[0]['humans'].get(slot,{}).get('profile')==row['player']]
+                after=[deck for slot,deck in final['decks'].items() if final['humans'].get(slot,{}).get('profile')==row['player']]
+                require(len(before)==len(after)==1 and before==after,'recovery lost the selected native human deck')
+        require(report['match']['worker_pid']==server_report['workers'][-1]['pid'] and final['game_data_sha256']==server_report['workers'][-1]['game_data_sha256'],'bundled native worker ran a different game')
+        report.update(passed=True,server=server_report,clients=[{k:row[k] for k in ('pid','name','player','profile','replay','replay_set','settings','trace','driver_report')} for row in records])
     except BaseException as error:report.update(passed=False,error=repr(error),traceback=traceback.format_exc())
     finally:
         if server_child and server_child.process.poll() is None:
@@ -220,6 +261,8 @@ def run(args):
         if gate_created:
             require(gate_path.resolve().parent==(game/'investigation/runtime').resolve() and not gate_path.is_symlink(),'owned public gate changed path')
             gate_path.unlink()
+        if retry_released:
+            require(retry_path.resolve().parent==(game/'investigation/runtime').resolve() and not retry_path.is_symlink(),'owned retry gate changed path');retry_path.unlink()
         report['adapters_unchanged']=all(child.unchanged() for child in children)
         report['config_unchanged']=all(Path(path).read_bytes()==raw for path,raw in config_bytes.items())
         try:report['package_files_unchanged']=all(verify(path,kind)==inventories[kind] for kind,path in (('server',server_package),('client',client_package)))
@@ -244,4 +287,5 @@ if __name__=='__main__':
     parser.add_argument('--mode',type=int,choices=(1,2,5),default=1)
     parser.add_argument('--timeout',type=int,default=420)
     parser.add_argument('--visible',action='store_true')
+    parser.add_argument('--recover-loading',action='store_true',help='disconnect first accepted loading match, then complete a new native match in the same processes')
     raise SystemExit(run(parser.parse_args()))

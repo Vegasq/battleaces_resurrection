@@ -14,7 +14,14 @@ Current release integration order (2026-10-19)
   descendants before close. Full human loadouts/independent decks are frozen;
   authoritative native rosters retain the configured human names.
   source/packages/assets/config/shared channels stay unchanged. Remaining
-  packaged2vAI/full-team/Custom/rematch/disconnect/retry,actual CMD/manual,
+  Loading disconnect/retry31 now passes in the same native game processes:
+  close real accepted TLS peer before loading readiness/frame0,original victim
+  Reconnect/deferred modal cleanup,survivor authoritative abort,old worker/capacity
+  release,then separately gated original Play/replacement/results/Continue/Quit.
+  Only victim reconnects;configured names/decks/full loadouts survive seat swap.
+  Original zero-frame abort replay is retained separately from completed replay;
+  no abort-playability claim. Shipping code/packages remain unchanged. Remaining
+  packaged2vAI/full-team/Custom/rematch/running disconnect/retry,actual CMD/manual,
   protected credential/SCM/clean-PC/Internet/capacity gates remain open. See
   packaged-multiplayer.txt;do not mistake credential fixtures for real enrollment.
 - Complete native replay format/playback compatibility. Diagnostic25 invokes

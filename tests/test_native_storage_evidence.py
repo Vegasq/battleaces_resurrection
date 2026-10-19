@@ -36,3 +36,10 @@ class ReplayEvidenceTests(unittest.TestCase):
                  field_bytes(1,self.game)+field_uint(2,42))
         for raw in cases:
             with self.subTest(raw=raw),self.assertRaises((AssertionError,ValueError)): replay_evidence(deflate(raw))
+
+    def test_explicit_abort_structure_mode_keeps_default_recording_requirement(self):
+        raw=deflate(field_bytes(1,self.game))
+        with self.assertRaises(AssertionError):replay_evidence(raw)
+        proof=replay_evidence(raw,allow_empty_actions=True)
+        self.assertEqual(proof['input_action_messages'],0);self.assertFalse(proof['native_playback'])
+        with self.assertRaises(AssertionError):replay_evidence(deflate(b''),allow_empty_actions=True)

@@ -2,6 +2,25 @@ IMPLEMENTATION LEDGER
 Updated: 2026-10-19 UTC
 Active objective: implement SERVER_REPLACEMENT_PLAN.txt, Windows only.
 
+BUNDLED LOADING RECOVERY31 (2026-10-19 UTC, BOUNDED PASS)
+Actual clean30 bundled host/two clients pass loading disconnect -> native menu
+cleanup -> new original public Play -> completed replacement -> original Quit,
+126.803s. Fault closes one real TLS peer before any native ready/authoritative
+frame. Same native PIDs11468/10436 acquire/release two worlds each;survivor keeps
+its original session,only victim reconnects. Old worker45308 exits0/releases
+before replacement creation. Replacement1220 exact receipt frames/122 matching
+observable-state samples each;seat swap preserves configured names,independent
+decks/full loadouts. All three workers exit0/reap,listener/state lock release,
+three outer jobs active0/terminated0 before close,no forced cleanup. Seven
+source/package/config/assets/adapters/shared/token checks pass. Original writer
+retains zero-frame abort plus completed replay per client;explicit structural
+abort readback does not qualify it as playable or weaken default replay checks.
+First run remains failed for obsolete one-replay verifier assumption;corrected
+fresh run passes. Python509 tests495pass/14skip,102.408s plus13 focused checks
+pass. Shipping code/helper/packages unchanged;ordinary launch/manual24 unchanged.
+Running disconnect,other multiplayer/deployment/manual/Internet gates remain
+open. Exact scope/reports/hashes in packaged-multiplayer.txt.
+
 BUNDLED MULTIPLAYER30 / ORIGINAL QUIT (2026-10-19 UTC, BOUNDED PASS)
 New external adapter qualifies bundled production host.run and two independent
 bundled client.main/resolver/TLS/bridge/native clients together. Protected DACL
