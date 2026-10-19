@@ -463,6 +463,50 @@ Final package/native playback/full-mode/cloud/network/permission/disk/manual/
 clean-PC/Internet acceptance remains open;this is a source candidate,not a
 completed community release or a universal zero-traffic guarantee.
 
+Clean helper21 package validation (2026-10-19)
+Source d1c5e226344951c4c8b0123d5906b4d8c3307dc7 is published after a full
+reachable-history/source audit1053 distinct paths/objects,0 failures:
+local/native-backup21-publication-audit.txt. Worktree was clean before build.
+Fresh local/native-backup21-packages01 uses that exact revision,dirty=false,
+the bound helper21 and the previously published-hash-verified official Python
+3.14.8 embeddable ZIP. This is a development preview;old archives are unchanged.
+Server82 files,12427769 bytes,archive SHA256
+45a5da2d600ecf134039fe722f84564ac0f43ad850de9bf74f5c08f910e5fe19
+Client67 files,13055996 bytes,archive SHA256
+1f6155298668fd48d4eb97a115805f1189b6933bea5075bad249fb2849249607
+
+Actual bundled Start Client.cmd runs without a spawn seam,global Python on PATH
+or injected diagnostic flags;foreign cwd/PYTHONPATH cannot shadow its imports.
+Native ordinary menu ready10.958s,total11.354s. Config,package inventory,covered
+sources and named shared TOML remain unchanged. Entire owned tree is forcibly
+reaped after readiness;this is not native Quit/physical input/gameplay.
+local/native-backup21-packaged-startup01/verification.json SHA256
+c7c634fb6f874735b4bef59f39e8ccbc8057e16e5ad8e4ec370f2fea79fe3b92
+
+Relocated package qualification passes94.798s:actual bundled production imports,
+locally imported complete assets,native host/controller lifecycle,three-component
+dryrun/install/reinstall/restore and an older NONCOSMETIC preview upgrade with
+personal/original-file checks. This uses the correct explicit older-preview
+fixture,not the invalid full-feature fixture from the earlier18 qualification01.
+local/native-backup21-package-qualification01/verification.json SHA256
+173db791478a260a0e5d6d39406acb980ebd4c49c004e99ee6a530fe209cf2f6
+
+Separate previous FULL-FEATURE storage18 -> protected-backup21 upgrade passes
+36.316s using both actual isolated bundled runtimes. New backup admission/
+publication manifest fields are checked. Reinstall is idempotent;personal
+markers and original backups survive;restore returns original component hashes.
+Both bundles and read-only untouched source stay unchanged. This fixture has
+only the three owned component copies,no executable/game assets;it does not
+establish graphical upgrade or native gameplay.
+local/native-backup21-full-upgrade01/verification.json SHA256
+fba34dec80d5956548d1be28a9742024937acaffe830da7208336f37ae138328
+
+Next release work remains actual packaged gameplay/results/Continue/native Quit,
+native replay playback,remaining ordinary modes/fault transitions,scoped final
+telemetry/cloud/network checks,protected/service deployment and manual/clean-PC/
+cross-PC/Internet acceptance. Do not collapse component/menu proofs into those
+unmeasured claims. No original/client assets or captures entered Git.
+
 Recovery policy for the candidate backup guard
 This channel contains menu progress/badges/tutorial/practice state;it is not
 the native TOML deck/options file or the separate cosmetic selection file.

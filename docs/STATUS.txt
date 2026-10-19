@@ -25,6 +25,18 @@ requires two natural exits. Final package/full-mode/cloud/network/manual and
 cross-PC gates remain open. See client-storage-isolation.txt for evidence and
 recovery instructions. Frozen/manual archives remain unchanged.
 
+Source d1c5e22 is published after a1053-object/path full-history source audit,
+0 failures. Fresh clean-commit helper21 development packages now pass actual
+bundled Start Client.cmd menu startup10.958s/11.354s total,with hostile cwd/
+PYTHONPATH,no global Python on PATH and no automatic actions or spawn seam.
+Relocated bundled imports/local assets/native host/controller/patch-roundtrip/
+old noncosmetic-preview upgrade checks pass94.798s. Separate previous full-feature
+helper18->21 bundled upgrade/reinstall/restore passes36.316s,preserving personal
+markers and original backups/components. Program packages and original source
+files stay unchanged in the scoped checks. These are development previews,
+not graphical upgrade/gameplay,native packaged Quit,SCM/permission deployment,
+clean-machine or Internet acceptance. Exact hashes in client-storage-isolation.txt.
+
 NATIVE REPLAY/FUNCTIONAL BACKUP STORAGE (2026-10-19 UTC, IN QUALIFICATION)
 Helper18 redirects native replay and functional UX backup roots into the same
 validated installation/profile as native TOML,retaining original serializers.
