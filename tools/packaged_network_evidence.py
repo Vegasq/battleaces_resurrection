@@ -16,9 +16,49 @@ def native_queue_timing(log,*,full,ticket=1):
     return dict(native_offer_elapsed_ms=elapsed,authoritative_offer_elapsed_ms=server_elapsed)
 
 
-def validate(events,clients,*,mode,ticket=1):
+def validate_native_selections(clients,frozen):
+    """Bind alternating fresh/default and original-edited choices across four profiles.
+
+    Two native edit probes each export the fresh baseline before editing and
+    their own saved selection afterward. Identical decks remain legal for two
+    independent players; each authoritative seat must keep its declared choice.
+    """
+    require(len(clients)==4 and len({r['player'] for r in clients})==len({r['pid'] for r in clients})==4 and
+            sum(row['deck_edited'] for row in clients)==2,'four independent profiles/processes with alternating deck setup required')
+    choices={};baselines=[]
+    for row in clients:
+        if not row['deck_edited']:continue
+        log=row.get('full_log',row['log'])
+        captures={}
+        for phase in ('before','after'):
+            matches=list(re.finditer(rf'Dedicated deck smoke rematch-{phase} units=\[([\d,]+)\] abilities=\[([\d,]+)\]',log))
+            require(len(matches)==1,'native selected deck export missing/duplicated')
+            value=matches[0];units=[int(x) for x in value[1].split(',')];abilities=[int(x) for x in value[2].split(',')]
+            require(len(units)==8 and all(units) and len(abilities)==4,'native selected deck export has wrong shape')
+            captures[phase]=(value.start(),dict(units=units,active_ability_groups=abilities))
+        intent=log.find('Public search intent:')
+        require(captures['before'][0]<captures['after'][0]<intent and
+                captures['before'][1]['units']!=captures['after'][1]['units'] and
+                len(re.findall(r'DEDICATED REMATCH SMOKE automated native deck edit:[^\n]*full-valid=1',log))==1,
+                'native deck selection was not saved before original public Play')
+        baselines.append(captures['before'][1]);choices[row['player']]=captures['after'][1]
+    require(baselines[0]==baselines[1],'fresh native default deck exports disagree')
+    for row in clients:
+        selected=choices.setdefault(row['player'],baselines[0])
+        seats=[seat for seat,human in frozen['humans'].items() if human['profile']==row['player'] and human['name']==row['name']]
+        require(len(seats)==1,'native selected deck lost its authenticated configured identity')
+        seat=seats[0]
+        require(frozen['decks'][seat]==selected['units'] and frozen['active_ability_groups'][seat]==selected['active_ability_groups'],
+                'authoritative human seat differs from its original native selection')
+    return choices
+
+
+def validate(events,clients,*,mode,ticket=1,expected_decks=None):
     from server.public_protocol import MODES
     total,slots=MODES[mode];humans=slots[:len(clients)]
+    if expected_decks is not None:
+        require(set(expected_decks)=={r['player'] for r in clients} and len({tuple(d['units']) for d in expected_decks.values()})>=2,
+                'declared independent human deck choices are missing or lack edited variation')
     offers=[e for e in events if e['event']=='public_match_offered']
     matches=[e for e in events if e['event']=='match_created']
     completed=[e for e in events if e['event']=='match_completed']
@@ -44,6 +84,8 @@ def validate(events,clients,*,mode,ticket=1):
         require(len(assignments_)==1,'native public assignment missing/duplicated')
         key,actual_mode,count,seat,mask=assignments_[0];seat=int(seat);assignments.append(seat)
         require(key==match and int(actual_mode)==mode and int(count)==total and seat in humans and int(mask)==sum(1<<s for s in humans),'native assigned topology differs')
+        if expected_decks is not None:
+            require(matches[0]['decks'][str(seat)]==expected_decks[row['player']]['units'],'native seat changed the independently declared selected deck')
         require(log.count('Public native match joined:')==log.count('PUBLIC QUEUE completed return:')==1 and
                 'Public fallback accepted:' not in log and 'owner=local-practice' not in log,'native match bypassed remote ownership')
         require(f'Public native return: ticket={ticket} match={match} aborted=0 nativeIdle=1' in log and
@@ -65,7 +107,8 @@ def validate(events,clients,*,mode,ticket=1):
         timing=native_queue_timing(log,full=full,ticket=ticket)
         comparisons.append(dict(seat=seat,name=row['name'],received_frames=len(receipt),common_state_samples=len(common),native_search_seconds=seconds,**timing))
     require(sorted(assignments)==sorted(humans),'duplicate/missing native human seat')
-    require(len({tuple(deck) for seat,deck in matches[0]['decks'].items() if int(seat) in humans})==len(clients),'independent native human deck selection was lost')
+    if expected_decks is None:
+        require(len({tuple(deck) for seat,deck in matches[0]['decks'].items() if int(seat) in humans})==len(clients),'independent native human deck selection was lost')
     return dict(match=match,mode=mode,human_seats=list(humans),bot_seats=sorted(set(range(total))-set(humans)),
                 full_human_group=full,real_queue_waits_seconds=waits,frames=len(frames),clients=comparisons,
                 result=completed[0]['result'],worker_pid=started[0]['worker_pid'],independent_full_state_proof=False)

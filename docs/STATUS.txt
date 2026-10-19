@@ -2,6 +2,24 @@ IMPLEMENTATION LEDGER
 Updated: 2026-10-19 UTC
 Active objective: implement SERVER_REPLACEMENT_PLAN.txt, Windows only.
 
+BUNDLED FOUR-HUMAN2v2-33 (2026-10-19 UTC, BOUNDED PASS)
+Unchanged clean30 host/four independent bundled clients pass129.370s with human
+seats0/1/2/3,all native AI profiles0,no bot worker. Every client receives1250
+exact authoritative frames and agrees on126 common observable-state samples.
+Two original native deck edits export baseline/changed selections before Play;
+all four declared choices and active ability groups match their authenticated
+authoritative seats,including legal identical-deck pairs. Configured names/full
+loadouts survive out-of-launch-order seating. Original builds at300/400/500/600,
+results/Continue/gated idle Quit and all four game/launcher exits0 pass. Health/
+match16828/27684 exit0/reap;host listener/state lock release,five outer jobs
+active0/terminated0 before close,no forced cleanup. All four identical1250-frame
+native recordings save/read back at306-character canonical paths. Seven
+unchanged/non-disclosure checks pass. Python517 tests503pass/14skip,128.448s
+plus21 focused checks pass;shipping/helper/package bytes unchanged,helper30 C++
+evidence remains applicable. Source/fixture scope does not close protected
+deployment/Custom/rematch/broader fault/manual/Internet/capacity gates. Exact
+report/path characterization/hashes in packaged-multiplayer.txt.
+
 BUNDLED RUNNING RECOVERY32 (2026-10-19 UTC, BOUNDED PASS)
 Unchanged clean30 host/two bundled clients pass154.033s:both original human
 build callbacks queue at300/400,then real TLS disconnect at authoritative603

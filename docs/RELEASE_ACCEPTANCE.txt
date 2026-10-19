@@ -15,6 +15,21 @@ actions. Current native settings saves use staged handle publication. See
 ordinary-player-client.txt for reports,retained failures and remaining matrix.
 These controls do not close the final/manual/clean-machine/Internet gates below.
 
+Bundled four-human2v2-33 qualification
+Clean30 host/four independent bundled clients pass129.370s with all four native
+human seats/profiles0,no bots. Each receives1250 exact authoritative frames and
+agrees on126 observable-state samples. Two native original-setter deck probes
+export fresh baseline/edited choices;all four configured identities/selections/
+active ability groups/full loadouts bind to their actual authoritative seats,
+including legal identical-deck pairs. Four original builds/results/Continue/
+gated idle Quits and all game/launcher/worker exits0 pass. Listener/state lock
+release,five outer jobs active0/terminated0,no forced cleanup. Identical native
+replays in all four profiles have1250 contiguous frames/exact GameData hash;
+306-character canonical paths save/read back. Python517 tests503pass/14skip
+pass;shipping/helper/packages unchanged. Same explicit credential fixture/DACL
+boundary applies. Packaged Custom/rematch,broader fault/manual/deployment/
+clean-PC/Internet/capacity matrix remains OPEN;see packaged-multiplayer.txt.
+
 Bundled running-disconnect32 qualification
 Clean30 host/two bundled clients pass154.033s after both original build callbacks
 queue. Real TLS fault at603 interrupts603 exact frames/62 matching sampled states

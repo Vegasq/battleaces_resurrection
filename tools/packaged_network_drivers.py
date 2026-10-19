@@ -12,7 +12,8 @@ from server.credentials import AuthenticationError
 from server.configuration import load_config
 from tools.package_integrity import verify
 request=json.loads(Path(sys.argv[1]).read_bytes());output=Path(request['output']);package=Path(request['package'])
-fixture=json.loads(sys.stdin.buffer.read(16385));assert len(fixture['identities'])==2
+fixture=json.loads(sys.stdin.buffer.read(16385));assert len(fixture['identities']) in (2,4)
+assert not request.get('recover_stage') or len(fixture['identities'])==2
 verify(package,'server');report=dict(passed=False,production_modules={},fixture_store=True,workers=[],frozen_matches=[])
 workers=[];servers=[];authenticated=[];stores=[];old_sessions={}
 def publish(name,value):
@@ -38,6 +39,7 @@ def server(*args,**kwargs):
                 humans={slot:dict(profile=peer.profile_id,name=peer.name) for slot,peer in room.peers.items()},
                 roster=[dict(slot=p.slot,name=p.name,ai_profile_id=p.ai_profile_id) for p in match.roster],
                 decks={slot:list(deck) for slot,deck in match.decks_by_slot.items()},
+                active_ability_groups={slot:list(groups) for slot,groups in match.active_ability_groups_by_slot.items()},
                 full_loadout_seats=sorted(room.full_loadout_seats)))
             if request.get('recover_stage') and len(report['frozen_matches'])==2:
                 victim,survivor=(p['player_id'] for p in fixture['identities'])
@@ -145,7 +147,7 @@ def spawn(config,remote,options,child):
     diagnostic=['-public-queue-smoke','-public-queue-smoke-mode='+str(request['mode']),'-public-queue-smoke-gate='+request['gate'],
         '-lan-smoke','-lan-audit','-dedicated-rematch-smoke','-dedicated-surrender-smoke','-dedicated-surrender-frame=1200',
         '-public-team-surrender-smoke','-match-search-smoke','-native-quit-smoke','-native-quit-mode=confirm','-native-quit-gate-smoke']
-    if request['index']==1:diagnostic.append('-public-queue-smoke-edit-deck')
+    if request['index']%2==1:diagnostic.append('-public-queue-smoke-edit-deck')
     if request.get('recover_stage'):
         diagnostic.extend(['-public-queue-smoke-retry','-public-queue-smoke-retry-gate','-public-team-retry-smoke'])
         if request['index']==0:diagnostic.append('-dedicated-recovery-smoke')

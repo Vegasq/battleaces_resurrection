@@ -3,7 +3,7 @@ import hashlib
 import unittest
 import zlib
 from server.protobuf_wire import field_bytes,field_uint
-from tools.packaged_network_evidence import validate,validate_loading_recovery,validate_running_recovery,validate_replays,validate_worker_shutdown
+from tools.packaged_network_evidence import validate,validate_loading_recovery,validate_running_recovery,validate_replays,validate_worker_shutdown,validate_native_selections
 from tools import packaged_network_drivers as drivers
 
 
@@ -70,6 +70,60 @@ class PackagedNetworkEvidenceTests(unittest.TestCase):
 
     def test_external_driver_sources_compile(self):
         for name in ('SERVER','CLIENT'):compile(getattr(drivers,name),'<owned '+name+' adapter>','exec')
+
+    def four_human_fixture(self):
+        events,base=self.fixture();clients=[]
+        for seat in range(4):
+            prior=seat%2;row=copy.deepcopy(base[prior]);row.update(player='human'+str(seat),pid=200+seat,name='Human '+str(seat),deck_edited=bool(prior))
+            row['log']=(row['log'].replace('mode=1','mode=2').replace('count=2','count=4').replace('humans=3','humans=15')
+                        .replace(f'seat={prior}',f'seat={seat}').replace(f'slot{prior} army{prior}',f'slot{seat} army{seat}')
+                        .replace(f'frame{300+100*prior}',f'frame{300+100*seat}'))
+            export=''
+            if prior:
+                export=('Dedicated deck smoke rematch-before units=[11,11,11,11,11,11,11,11] abilities=[1,0,0,0]\n'
+                        'Dedicated deck smoke rematch-after units=[22,22,22,22,22,22,22,22] abilities=[1,0,0,0]\n'
+                        'DEDICATED REMATCH SMOKE automated native deck edit: full-valid=1\n')
+            row['log']=export+'Public search intent: ticket=1\n'+row['log']
+            for receipt in row['receipts']:receipt['pid']=str(row['pid'])
+            clients.append(row)
+        decks={str(s):[11 if s%2==0 else 22]*8 for s in range(4)}
+        for event in events:
+            if event['event']=='public_match_offered':event['humans']=[r['player'] for r in clients]
+            if event['event']=='match_created':event.update(mode=2,participants=4,decks=copy.deepcopy(decks))
+        events += [dict(event='public_queue_entered',perf_counter_ns=t) for t in (1200000000,1300000000)]
+        frozen=dict(humans={str(s):dict(profile=r['player'],name=r['name']) for s,r in enumerate(clients)},
+                    decks=decks,active_ability_groups={str(s):[1,0,0,0] for s in range(4)})
+        return events,clients,frozen
+
+    def test_full_four_humans_keep_independent_native_choices_including_identical_decks(self):
+        events,clients,frozen=self.four_human_fixture();choices=validate_native_selections(clients,frozen)
+        result=validate(events,clients,mode=2,expected_decks=choices)
+        self.assertTrue(result['full_human_group']);self.assertEqual(result['human_seats'],[0,1,2,3]);self.assertEqual(result['bot_seats'],[])
+        self.assertEqual(len(choices),4);self.assertEqual(len({tuple(v['units']) for v in choices.values()}),2)
+        # Original two-player/distinct-choice proof remains the default contract.
+        with self.assertRaises(AssertionError):validate(events,clients,mode=2)
+
+    def test_four_human_binding_rejects_profile_deck_ability_or_identity_mixup(self):
+        events,clients,frozen=self.four_human_fixture()
+        for change in (lambda f:f['decks']['2'].__setitem__(0,22),
+                       lambda f:f['active_ability_groups']['2'].__setitem__(0,9),
+                       lambda f:f['humans']['2'].update(profile='human0'),
+                       lambda f:f['humans']['3'].update(name='wrong')):
+            changed=copy.deepcopy(frozen);change(changed)
+            with self.subTest(change=change),self.assertRaises(AssertionError):validate_native_selections(clients,changed)
+        choices=validate_native_selections(clients,frozen)
+        next(e for e in events if e['event']=='match_created')['decks']['0'][0]=22
+        with self.assertRaises(AssertionError):validate(events,clients,mode=2,expected_decks=choices)
+
+    def test_four_human_choices_require_original_saved_before_play_exports(self):
+        _,clients,frozen=self.four_human_fixture()
+        for change in (lambda c:c[3].update(pid=c[1]['pid']),
+                       lambda c:c[1].update(log=c[1]['log'].replace('full-valid=1','full-valid=0')),
+                       lambda c:c[3].update(log=c[3]['log'].replace('abilities=[1,0,0,0]','abilities=[0,0,0,0]',1)),
+                       lambda c:c[1].update(log='Public search intent: early\n'+c[1]['log']),
+                       lambda c:c[1].update(log=c[1]['log']+'Dedicated deck smoke rematch-after units=[22,22,22,22,22,22,22,22] abilities=[1,0,0,0]\n')):
+            changed=copy.deepcopy(clients);change(changed)
+            with self.subTest(change=change),self.assertRaises(AssertionError):validate_native_selections(changed,frozen)
 
     def recovery_fixture(self):
         events,clients=self.fixture();old='b'*32

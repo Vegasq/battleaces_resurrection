@@ -1,5 +1,66 @@
 BUNDLED SERVER / NATIVE MULTIPLAYER QUALIFICATION -- 2026-10-19
 
+Native33 four-human2v2 (BOUNDED PASS)
+Existing clean30 packages/helper are unchanged. Owned verifier --mode2 --humans4
+launches four distinct bundled client.main/resolver/TLS/bridge/native clients
+with fresh independent profiles/configured names and stdin-only credential
+fixtures. Existing shared menu gate releases original Play only after all four
+menus are ready. Native production simulation/queue clocks remain unchanged.
+Four humans require2v2;loading/running recovery remains a separate two-client
+control. The driver supports two or four fixture identities without changing
+any shipped admission/credential/launcher/worker logic.
+
+Identical selected decks are legal for independent human players. Clients1/3
+(zero-based) use the existing original-setter deck edit before original Play;
+each exports its fresh baseline,edited units/four active ability groups and
+successful native save/validation callback. Both baseline exports must agree.
+Unedited fresh clients declare that baseline;edited clients declare their own
+saved selection. Parent checks every configured profile/name against its frozen
+authoritative seat and exact units/active ability groups/full-loadout ownership.
+The four-client validator receives that explicitly verified choice map instead
+of incorrectly demanding four unique decks. Original two-client distinct-deck
+proof remains the default contract. Negative tests reject missing/duplicated/
+late/unsaved exports,PID reuse,profile/name/deck/ability mixing and mismatched
+authoritative seats. No native C++ diagnostic change was necessary.
+
+Actual control passes129.370s. Native PIDs10684/51128/52396/10640 occupy seats
+0/3/2/1 respectively,not launch order. All four roster AI profiles are0;actual
+worker AI metadata is null,no bot-controlled seats. Full human group launches
+promptly:server-entry waits0.348284/0.270086/0.191610/0.000132s;original native
+search-to-offer547/500/547/422ms in client launch order. Each native client gets
+every one of1250 authoritative frames with exact payload hashes and agrees on
+126 common canonical observable-state samples. All original build callbacks
+queue at300+100*seat. Explicit diagnostic concessions at1200/1230 complete
+alliance0,alliance1 wins at1230. Original results/Continue/idle-gated menu Quit
+and all four game/launcher exits0 pass. Health16828/match27684 workers exit0,
+no failure,reaped. Original host cancellation closes listener/releases state
+lock;five outer jobs active0/terminated0 before close,no forced cleanup.
+
+Each fresh profile retains native TOML and one identical original replay:
+26298bytes,1250 contiguous records,exact frozen native GameData hash. All four
+canonical replay paths are306 characters and save/read back unchanged through
+the existing scoped extended-path support. No shortened filename or waived
+presence check. Read-only path characterization pins the actual qualification
+report and each retained replay hash;it is not another native run. All seven
+source/package/assets/config/adapters/shared-channel/token non-disclosure checks
+pass;test PKI removed. Original/frozen/manual24 copies remain unchanged.
+local/packaged-fullteam33-mode2-01/verification.json SHA256
+c489ed41680e4f6ee8b507ca0afb0852a3a5c567de2cee432444e578b49ce0c8
+Replay SHA256 (identical in all four profiles)
+3a2fd7a9df42f1a745f5f67bbfd389fa0c65ea779d5dbafb7a3e569200e990b1
+local/packaged-fullteam33-replay-paths.json SHA256
+cc016dc7b6ab32e7bf1c28772fbcab10d2d42b7908709963f96dedf3b64fb750
+
+Twenty-one focused evidence/storage/adapter checks pass. Full Python517 tests
+503pass/14skip,128.448s,exit0 pass. Shipping source/helper/packages unchanged;
+helper30 eleven C++ programs/six atomic boundaries remain the build evidence.
+Same external credential-fixture/protected-DACL limitation below applies. This
+is same-PC packaged multiplayer/results/Quit and sampled observable-state
+qualification,not independent hidden-state determinism,rendered pixels/physical
+input,protected enrollment,clean-PC/Internet or measured capacity acceptance.
+Packaged human-only Custom/invite/rematch,broader fault/manual/deployment/SCM/
+cross-PC/capacity gates remain open.
+
 Native32 running disconnect / built-world replacement (BOUNDED PASS)
 Existing clean30 packages/helper remain unchanged. --recover-running now waits
 for BOTH clients to receive frame600;server additionally requires loaded seats
@@ -177,7 +238,7 @@ manual24/frozen/original copies and ordinary launch behavior are unchanged.
 Scope
 This closes the gap between separate source multiplayer controls and bundled
 local gameplay. tools.verify_packaged_multiplayer launches a bundled Windows
-host and two separately configured bundled production clients against one
+host and two or four separately configured bundled production clients against one
 numeric-loopback TLS listener. Actual worker/simulation/queue clocks are kept.
 The first control is full-human1v1;partial2v2 and2vAI are supported test modes.
 Protected credential deployment,actual CMD mouse play,clean-PC,physical input,

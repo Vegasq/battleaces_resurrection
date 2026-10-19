@@ -1,4 +1,4 @@
-"""Bundled TLS host + two bundled production clients + native result/Continue/Quit.
+"""Bundled TLS host + two or four production clients + native result/Continue/Quit.
 
 Explicit external adapters use stdin-only ephemeral credential fixtures because
 protected DACL enrollment is unqualified under the tool token. They never relax
@@ -27,7 +27,7 @@ from server.worker_client import _WindowsJob
 from tests.test_tls_transport import generate_test_pki,remove_test_pki
 from tools.package_integrity import verify
 from tools import packaged_network_drivers as drivers
-from tools.packaged_network_evidence import validate,validate_loading_recovery,validate_running_recovery,validate_replays,validate_worker_shutdown
+from tools.packaged_network_evidence import validate,validate_loading_recovery,validate_running_recovery,validate_replays,validate_worker_shutdown,validate_native_selections
 from tools.run_secure_match import read_native_log
 from tools.verify_packaged_play import job_accounting
 from tools import verify_native_quit as quit_probe
@@ -90,12 +90,14 @@ def run(args):
     if not hasattr(args,'recover_loading'):args.recover_loading=False
     if not hasattr(args,'recover_running'):args.recover_running=False
     if not hasattr(args,'disconnect_after_frame'):args.disconnect_after_frame=600
+    if not hasattr(args,'humans'):args.humans=2
     require(not (args.recover_loading and args.recover_running),'select one recovery stage')
     recovering=args.recover_loading or args.recover_running
     require(args.disconnect_after_frame in (200,600),'unsupported running disconnect threshold')
     recover_stage='running' if args.recover_running else 'loading' if args.recover_loading else None
     packages,game,assets,output=(p.resolve() for p in (args.packages,args.game,args.assets,args.output))
     require(os.name=='nt' and 120<=args.timeout<=600 and args.mode in (1,2,5),'bounded supported Windows match required')
+    require(args.humans in (2,4) and (args.humans==2 or args.mode==2),'four humans require public2v2')
     require(not recovering or args.mode==1,'packaged recovery control requires two full-human1v1 attempts')
     require(all(p.is_relative_to(ROOT/'local') for p in (packages,game,assets,output)),'owned ignored paths required')
     server_package=packages/'battleaces-server-win64';client_package=packages/'battleaces-client-win64'
@@ -112,14 +114,14 @@ def run(args):
                        certificate_file=str(pki['cert']),private_key_file=str(pki['key']),credential_directory=str(output/'authored-private-store'),
                        diagnostic_audit=True,log_max_bytes=8*1024*1024)
     host_path=config_folder/'host.json';host_path.write_text(json.dumps(host_config,indent=2)+'\n')
-    identities=[dict(schema=1,player_id='p_'+secrets.token_hex(16),invite_id='i_'+secrets.token_hex(16),token='ba1_'+secrets.token_urlsafe(32)) for _ in range(2)]
+    identities=[dict(schema=1,player_id='p_'+secrets.token_hex(16),invite_id='i_'+secrets.token_hex(16),token='ba1_'+secrets.token_urlsafe(32)) for _ in range(args.humans)]
     gate=secrets.token_hex(16);gate_path=game/'investigation/runtime'/('public-queue-'+gate+'.ready')
     retry_path=gate_path.with_name('public-queue-'+gate+'-retry.ready')
     require(not gate_path.exists() and not retry_path.exists(),'public start/retry gate already exists')
     configs=[host_path];children=[];records=[];server_child=None;gate_created=False;quit_released=False;fault_requested=False;retry_released=False
     shared=args.shared_settings.resolve()
     def channels():return dict(toml=startup.shared_state(shared),replays=snapshot(shared.parent/'AutoSaveReplays'),backup=snapshot(shared.parent/'StorageSyncBackup'))
-    report=dict(passed=False,scope=__doc__,mode=args.mode,recover_loading=args.recover_loading,recover_stage=recover_stage,helper_build=receipt,shared_before=channels(),source_sha256_at_start=sources(),forced_cleanup=False,
+    report=dict(passed=False,scope=__doc__,mode=args.mode,humans=args.humans,recover_loading=args.recover_loading,recover_stage=recover_stage,helper_build=receipt,shared_before=channels(),source_sha256_at_start=sources(),forced_cleanup=False,
                 packages=str(packages),assets_manifest_sha256=hashlib.sha256((assets/'asset-manifest.json').read_bytes()).hexdigest())
     kernel=ctypes.WinDLL('kernel32',use_last_error=True);kernel.GetTickCount64.restype=ctypes.c_ulonglong
     kernel.OpenProcess.argtypes=[ctypes.c_ulong,ctypes.c_int,ctypes.c_ulong];kernel.OpenProcess.restype=ctypes.c_void_p
@@ -148,7 +150,7 @@ def run(args):
             request=dict(package=str(client_package),game=str(game),output=str(client_output),config=str(config),profile=profile,
                 port=port,invite_placeholder=str(placeholder),mode=args.mode,index=index,gate=gate,visible=args.visible,recover_stage=recover_stage)
             child=Child(client_package,client_output,drivers.CLIENT,request,identity);children.append(child)
-            records.append(dict(child=child,folder=folder,profile=profile,name=settings['display_name'],player=identity['player_id']))
+            records.append(dict(child=child,folder=folder,profile=profile,name=settings['display_name'],player=identity['player_id'],deck_edited=index%2==1))
         while True:
             require(server_child.process.poll() is None,'bundled host stopped during client gameplay')
             for index,row in enumerate(records):
@@ -243,7 +245,9 @@ def run(args):
             validator=validate_running_recovery if args.recover_running else validate_loading_recovery
             report['recovery']=validator(events,records,fault=report['fault'])
             selected=[e for e in events if e.get('match')==final['match'] or e['event']=='public_queue_entered' and e.get('ticket')==2]
-        report['match']=validate(selected,records,mode=args.mode,ticket=2 if recovering else 1)
+        native_selections=validate_native_selections(records,final) if args.humans==4 else None
+        report['match']=validate(selected,records,mode=args.mode,ticket=2 if recovering else 1,expected_decks=native_selections)
+        if native_selections is not None:report['native_selections']=native_selections
         require(final['full_loadout_seats']==report['match']['human_seats'],'bundled native clients lost complete human loadouts')
         for row in records:
             human=[value for value in final['humans'].values() if value['profile']==row['player']]
@@ -301,6 +305,7 @@ if __name__=='__main__':
     parser=argparse.ArgumentParser(description=__doc__)
     for name in ('packages','game','assets','output','helper-build-receipt','shared-settings'):parser.add_argument('--'+name,type=Path,required=True)
     parser.add_argument('--mode',type=int,choices=(1,2,5),default=1)
+    parser.add_argument('--humans',type=int,choices=(2,4),default=2,help='four independent native clients are supported for full-human2v2')
     parser.add_argument('--timeout',type=int,default=420)
     parser.add_argument('--visible',action='store_true')
     recovery=parser.add_mutually_exclusive_group()
