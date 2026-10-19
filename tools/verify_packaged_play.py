@@ -9,6 +9,7 @@ No forced cleanup can qualify Quit. Shared storage is read/hash-only.
 """
 from __future__ import annotations
 import argparse
+import csv
 import ctypes
 import hashlib
 import json
@@ -26,6 +27,8 @@ from tools.run_secure_match import read_native_log
 from tools import verify_native_quit as quit_probe
 from tools import verify_unified_startup as startup
 from tools.verify_native_storage import snapshot,replay_evidence
+from tools.local_ai_evidence import public_match,public_search
+from tools import replay_retention
 
 ROOT=Path(__file__).resolve().parents[1]
 require=startup.require
@@ -63,6 +66,9 @@ def spawn(config,remote,options,child):
     diagnostic=['-native-quit-smoke','-native-quit-mode=confirm','-native-quit-after-practice',
         '-practice-ai-smoke','-practice-ai-smoke-matches=1','-practice-ai-smoke-frames=3600',
         '-practice-ai-smoke-delay-ms=3000','-lan-audit','-lan-smoke']
+    assert request['mode'] in (1,2,4,5)
+    if request['mode']!=4:
+        diagnostic.extend(['-public-queue-smoke','-public-queue-smoke-mode='+str(request['mode']),'-public-ai-smoke'])
     command.extend(diagnostic)
     info=subprocess.STARTUPINFO();info.dwFlags|=subprocess.STARTF_USESHOWWINDOW
     info.wShowWindow=1 if request['visible'] else 0
@@ -102,7 +108,7 @@ raise SystemExit(0 if report['passed'] else 1)
 
 
 def sources():
-    paths=[Path(__file__),ROOT/'tools/verify_native_storage.py']
+    paths=[Path(__file__),ROOT/'tools/verify_native_storage.py',ROOT/'tools/local_ai_evidence.py',ROOT/'tools/replay_retention.py']
     return quit_probe.sources()|{p.relative_to(ROOT).as_posix():hashlib.sha256(p.read_bytes()).hexdigest() for p in paths}
 
 
@@ -122,6 +128,7 @@ def job_accounting(handle):
 def run(args):
     package,game,output=(p.resolve() for p in (args.package,args.game,args.output))
     require(os.name=='nt' and 90<=args.timeout<=300,'bounded Windows play probe required')
+    require(args.mode in (1,2,4,5),'unsupported packaged local mode')
     require(all(p.is_relative_to(ROOT/'local') for p in (package,game,output)),'owned ignored paths required')
     inventory=verify(package,'client')
     launcher.verify_game(game,community=True,bridge_version=2,unified=True,player_features=True)
@@ -135,6 +142,7 @@ def run(args):
     output.mkdir(parents=True,exist_ok=False)
     profile='nativestest_packaged_'+secrets.token_hex(6)
     folder=game/'.battleaces-resurrection/profiles'/profile
+    retention_fixture=replay_retention.prepare(folder/'AutoSaveReplays',args.replay_retention,ROOT/'local') if args.replay_retention else None
     trace=folder/'quit-trace.jsonl';quit_probe.require_fresh_trace(trace)
     config=output/'client.json';settings=client.defaults(game)
     settings.update(local_profile=profile,display_name='Packaged Gameplay')
@@ -142,14 +150,16 @@ def run(args):
     driver=output/'owned-driver.py';driver.write_text(DRIVER,encoding='utf-8')
     request=output/'request.json'
     request.write_text(json.dumps(dict(package=str(package),game=str(game),output=str(output),config=str(config),
-                                     profile=profile,visible=args.visible),indent=2)+'\n')
+                                     profile=profile,visible=args.visible,mode=args.mode),indent=2)+'\n')
     cwd=output/'foreign cwd';cwd.mkdir()
     for name in ('sitecustomize.py','tools.py','client_patch.py'):
         (cwd/name).write_text('raise RuntimeError("foreign module must not run")\n')
     shared=args.shared_settings.resolve()
     def channels():return dict(toml=startup.shared_state(shared),replays=snapshot(shared.parent/'AutoSaveReplays'),
                                backup=snapshot(shared.parent/'StorageSyncBackup'))
-    report=dict(passed=False,scope=__doc__,profile=profile,helper_build=receipt,package=str(package),
+    report=dict(passed=False,scope=__doc__,mode=args.mode,expect_long_replay=args.expect_long_replay,
+        retention_fixture=retention_fixture,
+        profile=profile,helper_build=receipt,package=str(package),
         package_inventory_sha256=hashlib.sha256(json.dumps(inventory,sort_keys=True).encode()).hexdigest(),
         shared_before=channels(),source_sha256_at_start=sources(),forced_cleanup=False,natural_quit=False,
         driver_sha256=hashlib.sha256(driver.read_bytes()).hexdigest())
@@ -181,7 +191,8 @@ def run(args):
                 if native is not None:
                     text=read_native_log(game,native['pid'],since_tick=native['launch_tick'])
                     require(not any(marker in text for marker in ('Native Quit probe failed:','Local menu initialization failed:',
-                        'Practice stopped in ','Offline loop stopped in ','Client lifecycle invariant failed:','Cosmetics unlock failed:')),
+                        'Practice stopped in ','Offline loop stopped in ','Client lifecycle invariant failed:','Cosmetics unlock failed:',
+                        'Public client failure:','Dedicated native Play could not ready lobby:','Native search failure cleanup:')),
                         'native packaged lifecycle failed')
                     rows=quit_probe.current_trace_rows(trace.read_bytes() if trace.exists() else b'',native['pid'],native['launch_tick'])
                     dispatch=[r['tick'] for r in rows if r['event']=='OnConfirm.dispatch']
@@ -220,13 +231,34 @@ def run(args):
         for marker in ('Unified client ready:','BA_RESURRECTION_COSMETICS_UNLOCK_V1 ready:',
                        'BA_RESURRECTION_COSMETICS_PERSIST_V1 ready:','Online connection is not configured; localWorldUnaffected=1'):
             require(marker in text,'ordinary packaged feature marker missing: '+marker)
-        report['practice']=quit_probe.practice_evidence(game,output,native['pid'],text)
-        require('expectedTableEntry=1' in text,'native AI profile override was not applied')
-        require(report['practice']['produced_bot_units_with_orders_and_position_change'],
-                'packaged bot did not move native units with autonomous orders')
+        if args.mode==4:
+            report['practice']=quit_probe.practice_evidence(game,output,native['pid'],text)
+            require('expectedTableEntry=1' in text,'native AI profile override was not applied')
+            require(report['practice']['produced_bot_units_with_orders_and_position_change'],
+                    'packaged bot did not move native units with autonomous orders')
+        else:
+            import re
+            starts=re.findall(r'Practice requested: match=([0-9a-f]{32}) ',text)
+            require(len(starts)==1,'expected exactly one packaged public local match')
+            resource_path=game/'investigation/runtime'/f'lan-resources-{native["pid"]}-{starts[0]}.tsv'
+            (output/'public-resources.tsv').write_bytes(resource_path.read_bytes())
+            with resource_path.open(encoding='utf-8') as stream:resources=list(csv.DictReader(stream,delimiter='\t'))
+            report['public_match']=public_match(text,resources,mode=args.mode,display_name=settings['display_name'])
+            report['public_search']=public_search(text,mode=args.mode)
         report['local_settings']=startup.native_settings_evidence(game,output,native['pid'],native['launch_tick'],profile)
-        replays=list((folder/'AutoSaveReplays').iterdir());require(len(replays)==1,'expected one native profile replay')
-        report['replay']=replay_evidence(replays[0].read_bytes())
+        if retention_fixture:
+            replay_path,report['retention']=replay_retention.verify(folder/'AutoSaveReplays',retention_fixture)
+        else:
+            replays=list((folder/'AutoSaveReplays').iterdir());require(len(replays)==1,'expected one native profile replay')
+            replay_path=replays[0]
+        # Read the native file through the same Windows extended-path namespace;
+        # Python's caller-side path policy must not hide a successful native save.
+        readable=Path('\\\\?\\'+str(replay_path.absolute())) if os.name=='nt' else replay_path
+        report['replay']=dict(**replay_evidence(readable.read_bytes()),canonical_path_characters=len(str(replay_path)),
+                              native_filename=replay_path.name)
+        require('BA_RESURRECTION_NATIVE_REPLAY_LONG_PATH_V2' in text,'ordinary extended native replay path was not observed')
+        if args.expect_long_replay:
+            require(len(str(replay_path))>260,'native replay did not exercise a long full path')
         backup=folder/'StorageSyncBackup/A3079428-5DC5-4617-AF2D-0C8656DA760B'
         raw=backup.read_bytes();value=json.loads(raw)
         require(value['Id']==backup.name and isinstance(value['Data'],dict) and
@@ -272,5 +304,8 @@ if __name__=='__main__':
     parser=argparse.ArgumentParser(description=__doc__)
     for name in ('package','game','output','shared-settings','helper-build-receipt'):parser.add_argument('--'+name,type=Path,required=True)
     parser.add_argument('--timeout',type=int,default=300)
+    parser.add_argument('--mode',type=int,choices=(1,2,4,5),default=4,help='1v1,2v2,Try Deck,2vAI respectively')
+    parser.add_argument('--expect-long-replay',action='store_true',help='require the ordinary native replay path to exceed260 characters')
+    parser.add_argument('--replay-retention',type=int,choices=(0,100,101),default=0,help='seed authored long replay names for original native retention')
     parser.add_argument('--visible',action='store_true')
     raise SystemExit(run(parser.parse_args()))

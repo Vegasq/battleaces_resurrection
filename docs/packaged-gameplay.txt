@@ -122,3 +122,125 @@ Complete bundled public/team/server/fallback/search/loading/rematch/fault matrix
 final telemetry/cloud/CEF child/network coverage,native replay playback,
 protected/service deployment,manual/clean-PC/cross-PC/Internet acceptance. Do not
 label one mode's module adapter proof the full ordinary final release.
+
+Packaged public matrix extension (2026-10-19,in qualification)
+The bundled play verifier now accepts modes1/2/4/5. Public modes add explicit
+public-queue-smoke/public-ai-smoke observation and native callback flags;they
+do NOT add public-ai-experimental or call the local producer directly. Thus the
+original public button enters normal public arbitration and an unconfigured
+optional server must transfer that exact search ticket/frozen loadout to local
+AI. The one-match original Quit diagnostic remains the already-bound helper22;
+no production/native code or prepared manual-copy files change for this extension.
+
+tools.local_ai_evidence checks every separate bot's expected profile pool,
+unique native name,portrait/banner,exact frozen native join,positive native
+supply,and SAME owned units with autonomous Move/Attack orders plus changed
+positions. Actual in-game/result name,AI/avatar child bindings must match the
+frozen army. Topology/alliance parity/configured human name and original
+Play/result/Continue/idle menu/Quit order are checked separately. Public native
+search status5->7->0,fallback ticket and original joining router must be ordered.
+This phase does not add timer/Cancel screenshot diagnostics,so it cannot claim
+those readbacks or pixels. Existing original search diagnostics auto-cancel
+mode1 and require a separate bounded cancellation/retry control.
+
+Five authored per-army evidence tests plus existing job/Quit tests pass12 checks
+in0.055s. Missing one bot's movement/supply,foreign UI names/avatars/AI flags,
+wrong topology/mode/configured name and stale/reordered search tickets are
+rejected. Windows CRLF native logs are explicitly supported. Actual packaged
+public controls are pending;tool/unit checks alone do not close this matrix.
+
+Public controls22 results (2026-10-19)
+Mode1 PASSES179.126s. Original public search status5->7->0 and unconfigured-server
+fallback use one ticket. Native named Hard bot OrchidLand/profile63 reaches
+supply94;60 owned bot units have ordered movement. Original result/Continue/
+menu Quit and bundled launcher exit0 complete without forced cleanup;job total2,
+active0,terminated0 before close. One original21490-byte replay structurally
+decodes2183 input messages. Sources/package/config/three shared channels stay
+unchanged. This proves phase order,not search timer/Cancel pixels or online30s.
+local/packaged-public22-mode1-01/verification.json SHA256
+c07942d2fb952c1cff1153b3bc7501a3ab41739dbb826a07059b66b6e9f0def1
+
+Mode2 FAILS238.111s at strict replay-presence assertion;keep this failure.
+All three native bots independently build/move/attack with correct frozen native
+names/decks/avatars;results/Continue/menu Quit and launcher exit0 still complete.
+Job total2,active0,terminated0,forced cleanup false. Original game log reports
+DirectoryNotFoundException inside SaveReplayFile:canonical replay folder162 plus
+original117-character filename gives280 characters including separator. The
+four-player native filename exceeds the legacy Windows full-path limit. The
+original writer handles/logs the failure,so outer managedException0 is not a
+save-success claim. Replay folder is empty. Sources/shared channels unchanged.
+local/packaged-public22-mode2-01/verification.json SHA256
+ffff4fb9c41cfab82eee68a96882f784d04cc62cba3fbff352bf3464c69cb466
+
+Experimental23 adds an OWNED DIAGNOSTIC replay-folder API spelling only:
+-native-replay-long-path-smoke requires nativestest_ profile. Canonical directory
+validation/handles stay ordinary;existing two scoped native Concat replacements
+return a strongly rooted extended local-drive path. Backup paths are unchanged.
+No global Path/FileStream hook,filename shortening,serializer replacement or
+ordinary launch change. Retained original-byte analysis supports testing it;
+DirectoryInfo/retention/readback still require runtime evidence. Prototype package
+is explicitly dirty=true,not a clean release. A first attempted command selected
+nonexistent package subfolder client and failed before any process spawn;correct
+subfolder battleaces-client-win64 is used by the subsequent control.
+local/native-replay-longpath-contract02/FINDINGS.txt SHA256
+373d21440bbf6b8ccf2d240a97bee108c8f90471f7a54c26f2c304354a4a3c8e
+Current pre-prototype Python484 tests pass470/14skip,110.046s,explicit exit0.
+
+Extended replay prototype23 mode2 PASSES219.550s
+Corrected owned command uses exact prototype helper/package and diagnostic flag.
+Original writer now creates a291-character canonical path with unchanged native
+four-player naming. Native file79482 bytes structurally decodes611490 bytes and
+3608 recorded input messages. Every named bot builds and autonomously moves:
+TurboPanda supply60/37 ordered moving units,MemoryStream63/88,SweetAttack81/39.
+Original result/Continue/idle menu/Quit and both exits0 complete;game exits2.047s
+after Confirm,job total2/active0/terminated0 before close,forced cleanup false.
+Config/package/sources/three shared inventories unchanged. No native playback
+claim;this prototype flag is still not ordinary behavior.
+local/replay-path23-mode2-02/verification.json SHA256
+5f0cfdbb87a289a92605614f18f71bd01495bd720bc6f98de0a49ecd0955c64c
+
+Retention qualification now seeds100/101 authored .rep fixtures with long full
+paths and distinct Windows CREATION times starting2020-01-01 UTC. Original
+ascending CreationTime key is independently decoded;it is not LastWriteTime or
+filename. Expect count-99 oldest fixtures deleted,99 untouched survivors plus
+one real newly written replay,and unrelated.txt unchanged. Host checker compares
+exact surviving names and bytes;simply counting100 files cannot pass it. Dummy
+fixtures never claim to be actual playable replay messages. Three authored
+retention checks plus five public evidence checks pass8 tests2.040s. Earlier
+TemporaryDirectory-based fixture setup fails local access checks;corrected tests
+use uniquely named ordinary owned workspace directories,as existing tests do.
+No permissions are changed or retried. Native retention controls remain pending.
+local/native-replay-reader-contract03/FINDINGS.txt SHA256
+074e9f33c1223f5d05dbd1dc86a3b89822234fd160a339002481fe7c2f9138e4
+
+Prototype23 mode5/101 retention PASSES220.629s
+Original native2vAI uses ally profile59 and two opponent profile60 instances.
+Native names C1-14D,batross and "Super" Synapse bind in-game and result avatars;
+each builds/moves independently (supply88/30/83,ordered moving units25/28/42).
+Original writer sanitizes quotes in its filename as before;new real replay has
+canonical path286 characters,57177 bytes,507845 decoded bytes,3606 input messages.
+Exactly oldest creation-time fixtures000/001 are deleted;99 survivors retain
+original bytes;100 total .rep files plus unchanged unrelated.txt remain.
+Original result/Continue/Quit and bundled launcher exit0 complete;game exits
+2.047s after Confirm. Job total2/active0/terminated0 before close,no forced cleanup.
+Config/package/covered sources/all three shared channels stay unchanged.
+local/replay-path23-mode5-retention101/verification.json SHA256
+fc7fb12ff110586c9ac9a9ddbdeb735821d57d4cc82ee92e6c06b755aba7a54f
+
+Ordinary24 promotion (IN QUALIFICATION)
+Directory.apiPath now supplies the extended replay spelling by default after
+canonical handle validation;backup still uses the plain canonical path. The
+owned long-path flag is removed. Original filename/serializer/retention remain
+unchanged. New ordinary capability marker is V2 so diagnostic-only23 cannot
+qualify as production. Installer checks it before writes;manifest records
+replay_path_api=extended-local-drive (None on restore);ordinary launcher/package
+builder reject missing capability. C++ checks compare extended writes through
+the same pinned Unicode directory and unchanged backup/canonical paths.
+Sixty-four focused installer/launcher/package/job/Quit/evidence checks pass8.104s,
+including diagnostic-only helper rejection before any original file changes and
+missing/wrong API manifest refusal. Fresh helper24 eleven C++ programs/six atomic
+boundaries pass;Python488 tests pass474/14skip,91.650s,explicit exit0. Clean-package
+ordinary native100-file boundary is pending. Prepared manual22 stays unchanged.
+Native codec-only readback/playback is still not claimed by structural host
+decode. Retained reader-contract03 gives safe exact overloads for a future
+diagnostic;the high-level original reader mutates playback state.

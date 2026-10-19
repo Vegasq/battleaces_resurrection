@@ -90,7 +90,9 @@ static void nativeChildren() {
     {
         settings::Session alpha(first.path,"alpha"),beta(first.path,"beta"),other(second.path,"alpha");
         Directory a(alpha,Kind::Replays),b(beta,Kind::Replays),c(other,Kind::Replays),backup(alpha,Kind::Backup);
-        write(a.path()+L"\\authored-fixture","replay alpha");write(b.path()+L"\\authored-fixture","replay beta");
+        check(a.apiPath()==L"\\\\?\\"+a.path() && a.path().rfind(L"\\\\?\\",0)!=0 && backup.apiPath()==backup.path(),
+            "native replay API spelling changed canonical or backup paths");
+        write(a.apiPath()+L"\\authored-fixture","replay alpha");write(b.path()+L"\\authored-fixture","replay beta");
         write(c.path()+L"\\authored-fixture","replay other installation");write(backup.path()+L"\\authored-fixture","native functional backup");
         check(read(a.path()+L"\\authored-fixture")=="replay alpha" && read(b.path()+L"\\authored-fixture")=="replay beta" &&
             read(c.path()+L"\\authored-fixture")=="replay other installation","native child stores crossed profiles/installations");

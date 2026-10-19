@@ -309,6 +309,8 @@ def install(game_dir, *, helper=None, original_path=None, restore=False, dry_run
     if helper_bytes is not None and any(marker not in helper_bytes for marker in
             (b'BA_RESURRECTION_NATIVE_BACKUP_GUARD_V1', b'OfflineBackupInitialRead\0', b'OfflineBackupWriteText\0')):
         raise ValueError('Build the current helper with native backup input and publication protection before installing this patch.')
+    if helper_bytes is not None and b'BA_RESURRECTION_NATIVE_REPLAY_LONG_PATH_V2' not in helper_bytes:
+        raise ValueError('Build the current helper with ordinary extended replay paths before installing this patch.')
     if quit_diagnostics and helper_bytes is not None and any(marker not in helper_bytes for marker in
             (b'BA_RESURRECTION_NATIVE_QUIT_TRACE_V1',) + tuple(h['name'].encode()+b'\0' for h in QUIT_CALL_HOOKS+QUIT_POINTER_HOOKS)):
         raise ValueError('Build the owned native Quit diagnostic helper before installing this recipe.')
@@ -331,6 +333,7 @@ def install(game_dir, *, helper=None, original_path=None, restore=False, dry_run
                                   'steam_file_sync': 'original-restored' if restore else 'local-only',
                                   'autosave_exception_boundary': not restore, 'autosave_call_sites': 0 if restore else 4,
                                   'backup_input_guard': not restore,
+                                  'replay_path_api': 'extended-local-drive' if not restore else None,
                                   'backup_publication': 'original-json-text-flush-handle-rename' if not restore else None},
                 'local_settings': {'isolated': not restore, 'scope': 'installation-and-profile', 'format': 'native-toml',
                                    'error_hooks': not restore,

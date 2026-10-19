@@ -2,6 +2,22 @@ IMPLEMENTATION LEDGER
 Updated: 2026-10-19 UTC
 Active objective: implement SERVER_REPLACEMENT_PLAN.txt, Windows only.
 
+PACKAGED PUBLIC MATRIX / LONG REPLAY PATH (2026-10-19 UTC, IN QUALIFICATION)
+Bundled public1v1/helper22 passes179.126s:original search/fallback phases,
+named Hard bot supply94 and autonomous ordered movement,result/Continue/menu
+Quit and both natural exits0;owned job active0 before close. Full Python484
+tests pass470/14skip,110.046s. Public2v2 gameplay and natural Quit also complete,
+with three independently moving native bots,but strict overall verification
+FAILS because the original280-character replay path is not saved. Keep this
+negative result. Prototype23 passes2v2 long save/structural decode/normal Quit,
+and2vAI plus101-file original retention:exact oldest two deleted,99 survivors
+and unrelated file unchanged. Ordinary24 now uses the same replay API spelling
+without a diagnostic flag;installer/launcher/package require its distinct V2
+capability. Native100-file boundary in a clean package remains pending. C++
+eleven programs/six atomic boundaries and Python488 tests (474pass/14skip,
+91.650s) pass. Prepared manual22 stays unchanged. See packaged-gameplay.txt for
+exact evidence;native playback and broad final release gates remain open.
+
 BUNDLED UNIFIED GAMEPLAY / ORIGINAL QUIT (2026-10-19 UTC, CANDIDATE)
 Clean package30e666f/helper22 now passes bundled production client.main/bridge
 through actual Try Deck combat,results,Continue,original menu Quit and normal

@@ -4,11 +4,14 @@ namespace ba_native_storage {
 using ba_native_settings::require;
 struct Destination {
     Directory directory;
+    std::wstring apiPath;
     ba_local::Root text;
     explicit Destination(Kind kind):directory(ba_native_settings::prepareSession(),kind),
+        apiPath(directory.apiPath()),
         text(ba::api<ba::Obj(*)(const wchar_t*,int32_t)>("il2cpp_string_new_utf16")(
-            directory.path().data(),static_cast<int32_t>(directory.path().size()))) {
+            apiPath.data(),static_cast<int32_t>(apiPath.size()))) {
         require(text.get()!=nullptr,"native storage managed path root unavailable");
+        if(kind==Kind::Replays)ba::log("NATIVE STORAGE extended replay API path: ordinary=1 canonicalDirectoryPinned=1 originalFilenameAndSerializer=1 BA_RESURRECTION_NATIVE_REPLAY_LONG_PATH_V2");
     }
 };
 // Deliberately retain directories and managed roots through native teardown.

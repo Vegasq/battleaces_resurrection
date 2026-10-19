@@ -523,3 +523,57 @@ an explicit operator choice,never an automatic repair. Do not substitute the
 shared AppData file or a different person's/profile's data. For write-only
 failures,restore normal file/folder write access and retry a normal menu save;
 the prior successfully saved bytes remain intact until publication succeeds.
+
+Long native team replay path (2026-10-19,experimental23)
+The packaged2v2 control exposes an ordinary SaveReplayFile error:hidden by its
+original inner error handling,but detected by strict file-presence verification.
+Folder162 plus separator plus117-character four-player filename is280 characters.
+Native result/Continue/Quit0 still complete;no replay exists. The failed report
+is retained in local/packaged-public22-mode2-01,not reclassified as a pass.
+
+Retained original-byte follow-up local/native-replay-longpath-contract02 finds
+the exact native FileStream constructor3557960 -> Path.InsecureGetFullPath355f800
+-> MonoIO.Open -> direct CreateFileW import. The bounded path normalizer has no
+discovered hard260 rejection;its native full-path buffer can grow. Decoded original
+invalid-path character arrays allow the extended local-drive prefix. DirectoryInfo
+uses the same normalizer;native Find/Delete helpers already use original
+EnsureExtendedPrefixIfNeeded. Closed-generic enumerator coverage and actual OS
+acceptance remain runtime questions,not facts established by static evidence.
+
+The diagnostic23 candidate returns extended API spelling only from the two existing
+replay-folder Concat seams,after canonical directory validation/pinning. Strong GC
+roots live through teardown. Backup/TOML/cosmetic paths and global application
+data path stay unchanged. Original filename,sanitization,timestamp,Deflate/protobuf,
+100-file retention and handled-error behavior are preserved in source design.
+It currently requires explicit -native-replay-long-path-smoke and owned
+nativestest_ profile;ordinary22/manual candidate remains unchanged. Verify actual
+write/readback and retention before promoting this candidate. Extended full paths
+do not remove per-component filesystem limits or qualify arbitrarily deep roots.
+
+Decoder contract caution
+Original Replay.LoadReplayFromFile3dddab0 is STATEFUL:LoadFromStream calls Load
+and Play,and can clean up current GameServerIntegration state. It is unsuitable
+for a decoder-only probe on a dummy/active Replay. The retained codec-only chain
+is original FileStream -> DeflateStream -> CodedInputStream.ReadRawMessage into
+GamePb.Replay. Select exact overload signatures/pinned RVAs with managed
+exception-out capture and GC roots. Name+argument count alone confuses original
+FileStream/DeflateStream/CodedInputStream overloads. Structural host Deflate/
+protobuf readback is already available;it never qualifies native playback.
+See local/native-replay-storage-contract02/FINDINGS.txt and
+local/native-replay-longpath-contract02/FINDINGS.txt. Private evidence stays
+ignored;no disassembly,original bytes or runtime assets enter source Git.
+
+Ordinary24 candidate supersedes diagnostic23
+Prototype23 native2v2 saves/structurally decodes291-character replay and exits
+naturally0. Native2vAI with101 long authored fixtures deletes the two exact
+oldest CreationTime files,preserves99 survivors/unrelated marker and saves its
+new286-character native replay;result/Continue/Quit/launcher exit0,owned job
+active0 before close. Three shared channels/source/package/config stay unchanged.
+Ordinary24 moves the same API spelling into Directory.apiPath with no player
+flag. Canonical directories/backup paths stay plain. V2 capability prevents
+diagnostic-only helpers passing installer/launcher/package admission. Manifest
+replay_path_api=extended-local-drive,None on restore. C++ Unicode path mapping,
+storage and atomic checks pass;64 focused tests and full488 tests474pass/14skip
+pass. Clean-package ordinary100-file native boundary remains pending. Per-file
+component limits,deep directory limits,native codec/playback,permissions/faults
+and broader release gates remain explicit. See packaged-gameplay.txt for hashes.

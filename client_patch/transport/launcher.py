@@ -141,7 +141,7 @@ def verify_game(root, *, community=False, bridge_version=1, unified=False, playe
                         markers = (b'BA_RESURRECTION_PUBLIC_QUEUE_V1', b'BA_RESURRECTION_COSMETICS_UNLOCK_V1',
                                    b'BA_RESURRECTION_COSMETICS_PERSIST_V1', b'BA_RESURRECTION_NATIVE_DECK_INPUT_V1',
                                    b'BA_RESURRECTION_NATIVE_SETTINGS_ATOMIC_V1', b'BA_RESURRECTION_NATIVE_STORAGE_V1',
-                                   b'BA_RESURRECTION_NATIVE_BACKUP_GUARD_V1')
+                                   b'BA_RESURRECTION_NATIVE_BACKUP_GUARD_V1', b'BA_RESURRECTION_NATIVE_REPLAY_LONG_PATH_V2')
                         appearance = manifest.get('cosmetics', {})
                         settings = manifest.get('local_settings', {})
                         storage = manifest.get('local_storage', {})
@@ -153,6 +153,7 @@ def verify_game(root, *, community=False, bridge_version=1, unified=False, playe
                                 or storage.get('steam_file_sync') != 'local-only'
                                 or storage.get('autosave_exception_boundary') is not True
                                 or storage.get('backup_input_guard') is not True
+                                or storage.get('replay_path_api') != 'extended-local-drive'
                                 or storage.get('backup_publication') != 'original-json-text-flush-handle-rename'
                                 or type(storage.get('autosave_call_sites')) is not int or storage['autosave_call_sites'] != 4):
                             raise LaunchError('Install the current complete client patch with public play, cosmetics and protected settings')

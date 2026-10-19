@@ -28,6 +28,7 @@ class InstallerTests(unittest.TestCase):
             (self.root / name).write_bytes(content)
         self.helper = self.root / 'synthetic-helper.dll'
         self.helper.write_bytes(b'MZ authored helper test fixture BA_RESURRECTION_RECOVERY_V1 OfflineMatchResultContinue\0 BA_RESURRECTION_NATIVE_SETTINGS_V1 OfflineLocalUserConfigPath\0 BA_RESURRECTION_NATIVE_SETTINGS_ERRORS_V1 OfflineLocalUserLoadTable\0 OfflineLocalUserSaveTable\0 BA_RESURRECTION_NATIVE_DECK_INPUT_V1 OfflineLocalDeckStorageLoad\0 BA_RESURRECTION_NATIVE_SETTINGS_ATOMIC_V1 BA_RESURRECTION_NATIVE_BACKUP_GUARD_V1 OfflineBackupInitialRead\0 OfflineBackupWriteText\0 BA_RESURRECTION_NATIVE_STORAGE_V1 OfflineBackupStoragePath\0 OfflineReplayStoragePath\0 OfflineCleanupAutoSaveReplay\0')
+        self.helper.write_bytes(self.helper.read_bytes()+b' BA_RESURRECTION_NATIVE_REPLAY_LONG_PATH_V2')
         self.stack.enter_context(patch.object(installer, 'ORIGINAL_SHA256', installer.digest(self.originals['GameAssembly.dll'])))
         self.stack.enter_context(patch.object(installer.telemetry, 'COMPONENTS', {
             name: Component(installer.digest(content), ()) for name, content in self.originals.items()}))
@@ -47,10 +48,12 @@ class InstallerTests(unittest.TestCase):
         self.assertTrue(manifest['local_storage']['isolated'])
         self.assertEqual(manifest['local_storage']['autosave_call_sites'],4)
         self.assertEqual(manifest['local_storage']['steam_file_sync'],'local-only')
+        self.assertEqual(manifest['local_storage']['replay_path_api'],'extended-local-drive')
         for name, content in self.patched.items():
             self.assertEqual((self.root / name).read_bytes(), content)
             self.assertEqual((self.root / '.battleaces-resurrection/original' / name).read_bytes(), self.originals[name])
         self.helper.write_bytes(b'MZ authored helper update BA_RESURRECTION_RECOVERY_V1 OfflineMatchResultContinue\0 BA_RESURRECTION_NATIVE_SETTINGS_V1 OfflineLocalUserConfigPath\0 BA_RESURRECTION_NATIVE_SETTINGS_ERRORS_V1 OfflineLocalUserLoadTable\0 OfflineLocalUserSaveTable\0 BA_RESURRECTION_NATIVE_DECK_INPUT_V1 OfflineLocalDeckStorageLoad\0 BA_RESURRECTION_NATIVE_SETTINGS_ATOMIC_V1 BA_RESURRECTION_NATIVE_BACKUP_GUARD_V1 OfflineBackupInitialRead\0 OfflineBackupWriteText\0 BA_RESURRECTION_NATIVE_STORAGE_V1 OfflineBackupStoragePath\0 OfflineReplayStoragePath\0 OfflineCleanupAutoSaveReplay\0')
+        self.helper.write_bytes(self.helper.read_bytes()+b' BA_RESURRECTION_NATIVE_REPLAY_LONG_PATH_V2')
         installer.install(self.root, helper=self.helper)
         self.assertEqual((self.root / 'BattleAcesOffline.dll').read_bytes(), self.helper.read_bytes())
         restored = installer.install(self.root, restore=True)
@@ -59,6 +62,7 @@ class InstallerTests(unittest.TestCase):
         self.assertFalse(restored['local_storage']['autosave_exception_boundary'])
         self.assertEqual(restored['local_storage']['autosave_call_sites'],0)
         self.assertEqual(restored['local_storage']['steam_file_sync'],'original-restored')
+        self.assertIsNone(restored['local_storage']['replay_path_api'])
         for name, content in self.originals.items():
             self.assertEqual((self.root / name).read_bytes(), content)
             self.assertEqual(restored['components'][name]['installed_sha256'], installer.digest(content))
@@ -137,6 +141,14 @@ class InstallerTests(unittest.TestCase):
                 for name,original in self.originals.items():
                     self.assertEqual((self.root/name).read_bytes(),original)
                 self.assertFalse((self.root/'.battleaces-resurrection').exists())
+
+    def test_diagnostic_only_replay_helper_refused_before_writes(self):
+        self.helper.write_bytes(self.helper.read_bytes().replace(b'BA_RESURRECTION_NATIVE_REPLAY_LONG_PATH_V2',
+                                                               b'BA_RESURRECTION_NATIVE_REPLAY_LONG_PATH_V1'))
+        with self.assertRaisesRegex(ValueError,'ordinary extended replay paths'):
+            installer.install(self.root,helper=self.helper)
+        for name,original in self.originals.items():self.assertEqual((self.root/name).read_bytes(),original)
+        self.assertFalse((self.root/'.battleaces-resurrection').exists())
 
     def test_quit_recipe_is_opt_in_and_records_exact_disposal_call(self):
         default = installer.install(self.root, helper=self.helper, dry_run=True)
