@@ -1,0 +1,151 @@
+PUBLIC MATCH RESULTS AND REWARD-FREE CONTINUE
+Updated:2026-10-18. Experimental build37822 client integration.
+
+Failure exposed by four graphical clients
+local/public-humans-2v2-full01/verification.json FAILED; SHA256
+5e8b69e6fb55a60f3e416dc6023e08ed4865cb93ee4313c1d8529b2d87a9c72b.
+Helper129e61db4d05548e1b0fdcba4d7a9006ccfa0468d83d1e945a51ed532b729f5b;
+PIDs44044/21516/5232/51868; elapsed181.564s. All four authenticated humans joined
+one mode2 match0cdea3c7f9034f3698d2c8a27915c4a8 and submitted normal builds.
+Allied diagnostic concessions at1200/1230 produced game-over1230, winner1,
+conceded mask5. Losing seats0/2 returned; winning seats1/3 instead remained in
+ProvingGroundsState after the original Continue callback, with no active world.
+Nine/ten diagnostic samples recorded the stuck reward state. After identifying
+the problem, the operator terminated owned PID21516 after matching its executable
+path and probe manifest; the verifier then stopped and reaped the other clients.
+Thus its terminal error is private-bridge exit, not an unassisted game crash or
+full900-second timeout. The failed report is retained unchanged. Worker27796
+exited0; covered source hashes stayed unchanged. This run is not a full pass.
+
+Original contract and evidence boundary
+REA binary_session was queried: its live Ghidra provider reports not_configured,
+GHIDRA_INSTALL_DIR unset. The supplied Ghidra12.1.4 installation exists but was
+not visible to that provider environment. Its machine-specific path stays in
+the private availability record. No setup/config change or
+Ghidra decompilation is claimed. The following evidence is ordinary read-only
+IL2CPP metadata plus LLVM disassembly of the untouched build, retained under
+ignored local/public-results01. This distinguishes the actual REA availability
+observation from the fallback analysis.
+ Evidence manifest local/public-results01/evidence-hashes.json SHA256:
+ 51574a761b0c8f8a5a2f15e7af554ce4eb8d08d867cd8d6b635a674342a68f90
+ GameAssembly SHA256:e59d08c01479b27404778048d7e13546dbf3771f6b3912744c7c2bdf80c4e758
+ metadata SHA256:b760be9190309b14174cd272e1f83b730181b299bc7a0cdca66985c69dcdc57d
+
+MatchInformation has IsCustomGame+14, IsCompletedFTUE+15, reward-screen+18,
+MatchCompleted+1c and GameMode+28. MatchDataManager.ShouldShowPostGameRewardFlow
+RVA3db8cb0 and ProvingGroundsState.TransitionIn3b7b7f0 both require active,
+non-custom, non-completed-FTUE, non-practice mode. ProvingGroundsState then checks
+the local WonMatch flag and the retired progression controller/stat counters.
+No community progression reward or account advancement is issued by our result
+response. The retained four-client run demonstrates the winner-only stall under
+that combination; it does not establish every original account-service branch.
+
+MatchResultVM.OnContinue3d610c0 first checks the original navigation stack is
+empty, then call3d61142 dispatches UIPostGameFlowSignal through the original
+generic SignalRouter.Send at11f3a50. Its argument is always
+PostGameScreens.ProvingGroundsRewards2. Metadata defines End7; MatchResultState
+Update3b7a3e0 returns completion for that signal. BuildMatchResultModel3b7a630
+copies the actual game mode and custom flag into the native result model, so
+reclassifying public games as Custom would change their presentation.
+
+Replacement policy and implementation
+public_results.cpp wraps only that specific Continue call site. It preserves
+the original navigation check, router, MethodInfo and callback ordering. For a
+completed, owned public mode1/2/5 result in the actual native MatchResultState,
+it substitutes End7 for ProvingGroundsRewards2. Remote results must have their
+authoritative result delivered and match ended; local public AI must own a
+completed result. The outer postgame state, exact controller/router, completed
+match and non-custom flag are checked. Other calls forward unchanged, including
+Try Deck mode4 and human-only Custom.
+
+The original FSM releases the result screen and returns to the main menu. This
+does not automate Continue, alter winner/mode/identity, modify account progression,
+invent rewards, mark public games Custom, or force state/world destruction.
+The normal user still presses Continue. Only explicit probes automate that click.
+The public multi-client verifier now rejects the retired reward state and requires
+one scoped Continue routing marker per completed client. Eight C++ programs and
+helper build pass;43 focused Python checks pass, one optional native fixture skips.
+The fresh four-client rerun below passes; the earlier failure is not retroactively
+relabelled. Native Quit, manual appearance, Internet play and ordinary Start
+Client public enablement remain separate release gates.
+
+local/public-humans-2v2-full02/verification.json PASS; SHA256
+a382028fbfd492443ff45895db690915f33cb7f81cc98449001c58fd2e70de68.
+Helper8a4cb76594476d37161b6b4f995b9a359c8b3e5c3dec80d490f26af11e69e8e8;
+PIDs27240/31172/23140/45692; elapsed159.380s. All four authenticated humans
+share match2572cbe5ef2442acb6dc47cca5771dc1 in mode2, no bots. Full-group offer
+arrives0.308s after the oldest ENTER and immediately after the fourth. Each
+human's original build reaches its own canonical seat at300/400/500/600; every
+client receives1,250 contiguous frames exactly matching the authoritative hashes.
+Diagnostic allied concessions at1200/1230 yield winner1, conceded mask5. All
+four original Continue callbacks route once to End, preserve public mode2 and
+return to the menu; winners no longer enter ProvingGroundsState. Every world,
+ticket, offer and room releases. Worker24616 exits0 without failure/stderr, all
+owned resources are reaped, the gate is removed and covered sources are unchanged.
+This is four graphical processes with automated input on one PC; it does not
+qualify manual interaction, natural combat, Internet play or native Quit.
+
+Short offline check retained as a failure
+local/public-results-local01/verification.json FAILED; SHA256
+07d2f50be9bd519e525538bb74fdbe829dd441b918317a7fb3e8f3d9a882f103.
+Same helper8a4cb765..., PID26764, elapsed138.912s. One unavailable connection
+attempt hands original mode1 search to a single local AI world; no authentication
+or server worker. Random original profile64 produces18 owned AI input actions,
+but no autonomous unit movement is established before the diagnostic surrender
+at1200 frames. The strict movement assertion fails; this is not a gameplay pass.
+Result identity binding, the scoped source=local End signal, native Continue and
+world release are recorded. Covered sources stay unchanged and the owned process
+is reaped. A longer forced-profile64 run is tracked separately; different random
+rosters must not be claimed to reproduce that exact short-run opponent.
+
+local/public-results-local64-01/verification.json PASS; SHA256
+4a2de4589bc1b66fad3a388f4c3ee4bbb1d4e0aed0ed4c59e2ad6d09f9453961.
+Same helper8a4cb765..., PID11300, elapsed255.578s. A forced-profile64 local1v1
+uses a different authored roster/deck and allows up to3600 diagnostic frames.
+It ends naturally before the diagnostic concession. Bot supply reaches80;
+37 produced units have both native movement orders and observed movement.
+Exact join, result identity, one source=local End signal and native Continue/
+world release pass, with zero connections/invite reads and unchanged source
+hashes. This supports a longer qualification window for original bot build-up;
+it does not reproduce the first short run's exact bot/deck or erase that failure.
+The unavailable-server verifier now defaults to3600 local diagnostic frames
+(bounded --local-frames) and offers an explicit1v1-only --local-profile. Its
+movement assertion is unchanged; normal gameplay/selection has no such override.
+
+Unchanged Custom path regression
+local/public-results-custom01/verification.json PASS; SHA256
+03c956ef8fee068986477cfdb379c9888c11c370935881b91eabc25784bfbf74.
+Same helper8a4cb765..., PIDs50112/52500, elapsed109.398s. Unified TLS native
+Custom invite/accept/Start/result/Continue completes twice on the same sessions
+and lobby, with duplicate-action probes and distinct native deck edits. Both
+workers45164/40824 exit0 with no failure/stderr. Source hashes remain unchanged
+and owned clients are reaped. This exercises forwarding of original Continue
+for Custom, outside the scoped public End replacement. It uses explicit automated
+callbacks/diagnostic surrender and hidden windows; no manual or Quit claim.
+
+Helper compatibility at install
+The newly added call site requires OfflineMatchResultContinue in the helper.
+A dry run originally accepted the older helper129e61db... that lacks that symbol;
+no installed files were changed. patch_client now rejects a helper without its
+NUL-terminated hook name before any replacement. The actual old helper rejects
+and helper8a4cb765... accepts in dry runs; all installed component/helper/manifest
+hashes remain unchanged. Private report local/public-results01/helper-compatibility.json
+SHA256:1b4f929d7d68eda33e3b21e9ad5d55759fbfd699785c838b27817df2b47c29d1.
+The first private verification script hit an inspect.py/stdlib import collision
+before installation; the retained script now removes that investigation directory
+from its import path. Failed/successful console logs are retained separately.
+Final41 patcher/package/launcher/protocol/evidence regressions pass with no skips.
+This Python admission change does not change the qualified helper bytes.
+
+Full unavailable-server follow-up
+local/public-results-unavailable64-01/verification.json PASS; SHA256
+476e72bcc56985b24aa7b4617f876d9ef41fa61a8b3d5928f5502718d439b66c.
+Same helper8a4cb765..., PID47980, elapsed184.577s. Original public1v1 search
+hands off after one unavailable connection attempt to one local profile64 AI
+world. There are zero authentications/server workers. With3600 diagnostic frames
+allowed, this roster ends naturally before concession;40 produced units show
+both movement orders and movement. Exact joins/result identity, one scoped local
+End signal, native Continue/world release, unchanged covered sources and owned
+process cleanup pass. This is injected unavailability and automated input on one
+PC; it does not qualify Internet outages, manual play or native Quit. Its authored
+roster differs from the original short failure; that failure stays in the ledger.

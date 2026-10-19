@@ -1,5 +1,26 @@
 PUBLIC QUEUE EXTENSION V1
 
+MULTIPLE GRAPHICAL HUMANS (2026-10-18 UTC, EXPERIMENTAL)
+tools.verify_public_clients authenticates2..4 actual game processes and waits
+at a bounded diagnostic menu gate before invoking Play. Real queue timing is
+untouched. The2vAI pair joins allied seats0/2 against original server bots1/3;
+four-human2v2 uses every seat without bots. Both full groups match immediately.
+Native deck edits/builds, exact per-client frame receipts and results/Continue
+are checked against one authoritative match. The four-human case exposed a
+winner-only retired reward-flow stall; a scoped Continue fix and fresh passing
+run are documented in public-results.txt. Team topology/evidence: team-modes.txt.
+These are automated local game clients, not scripted wire-only players or manual
+Internet acceptance. A three-human2v2 group also passes29.992s to bot fill,
+one shared worker,1,250 exact frames per client and all native returns; full
+report/helper hashes are in team-modes.txt. Other partial rosters, failures and
+transitions remain open.
+The scoped Continue change also passes a full unavailable1v1/local profile64
+run with a longer diagnostic window,40 moving/ordered units, no authentication
+or worker and one local world/result/return. A short1200-frame random-profile64
+attempt failed movement despite completing its return; both are retained in
+public-results.txt. The verifier keeps its movement assertion and allows explicit
+bounded local duration/profile controls; normal public bots remain random.
+
 NATIVE DISCONNECT QUALIFICATION (2026-10-18 UTC, EXPERIMENTAL)
 tools.verify_public_client --disconnect assignment|loading|running closes only
 its owned TLS peer after the corresponding native log marker. Assignment mode
@@ -442,8 +463,8 @@ presentation paths; actual mouse input and all-mode release acceptance remain.
   report SHA256:6299487085a0c7ea08de2e5f963c3eda9d5c86081a2c50d98948be3fe237e69c
 
 Remaining: team failure coverage, remote/local transitions,
-requeue/late-proposal stress, actual human team play,
-ordinary entry-point enablement, manual UI and final release acceptance.
+requeue/late-proposal stress, other partial rosters, manual human team play,
+ordinary entry-point enablement, Internet play and final release acceptance.
 
 Offline team follow-up: helper-local-team02 extends the fallback producer to
 three independently owned local AI integrations. Both unavailable2v2/2vAI native

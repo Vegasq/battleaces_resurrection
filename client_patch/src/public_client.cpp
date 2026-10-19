@@ -268,10 +268,35 @@ static void update(Obj front) {
         if(current){current->lost=true;current->failure=error.what();current->intent.cancelled=true;}
     }
 }
+static bool smokeGate() {
+    const auto key=ba::argument(L"-public-queue-smoke-gate=");if(key.empty())return true;
+    require(key.size()==32 && std::all_of(key.begin(),key.end(),[](char c){return (c>='0' && c<='9') || (c>='a' && c<='f');}),
+        "public diagnostic gate must be a32-digit lowercase hex identifier");
+    static bool released=false;static ULONGLONG began=0;
+    if(released)return true;
+    if(!began){began=GetTickCount64();ba::log("PUBLIC QUEUE SMOKE waiting for shared gate: key=%s idleMenu=1",key.c_str());}
+    require(GetTickCount64()-began<180000,"public diagnostic start gate timed out");
+    wchar_t module[32768];const DWORD length=GetModuleFileNameW(ba::module,module,32768);
+    require(length && length<32768,"public diagnostic installation path unavailable");
+    wchar_t* slash=wcsrchr(module,L'\\');require(slash!=nullptr,"public diagnostic installation path invalid");*(slash+1)=0;
+    const std::wstring path=std::wstring(module)+L"investigation\\runtime\\public-queue-"+std::wstring(key.begin(),key.end())+L".ready";
+    const DWORD attributes=GetFileAttributesW(path.c_str());
+    if(attributes==INVALID_FILE_ATTRIBUTES) {
+        const DWORD error=GetLastError();require(error==ERROR_FILE_NOT_FOUND || error==ERROR_PATH_NOT_FOUND,"public diagnostic gate unreadable");return false;
+    }
+    require(!(attributes&(FILE_ATTRIBUTE_DIRECTORY|FILE_ATTRIBUTE_REPARSE_POINT)),"public diagnostic gate must be an ordinary file");
+    released=true;ba::log("PUBLIC QUEUE SMOKE shared gate released: key=%s",key.c_str());return true;
+}
 static void smoke(Obj front) {
     const unsigned attempts=ba::flag(L"-public-queue-smoke-retry")?2:1;
     if(!ba::flag(L"-public-queue-smoke") || !ba::flag(L"-public-queue-experimental") || active() || ba_practice::active() || smokeStarted>=attempts ||
         GetTickCount64()<smokeRetryAt || !ba_dedicated_session::inMenu() || !ba_client::nativeIdle(front))return;
+    if(!smokeGate())return;
+    static bool edited=false;
+    if(ba::flag(L"-public-queue-smoke-edit-deck") && !edited) {
+        require(ba::flag(L"-dedicated-rematch-smoke"),"public diagnostic deck edit requires explicit native edit support");
+        ba_dedicated_deck::rematchSmokeSelection(front);edited=true;return;
+    }
     const int mode=std::stoi(ba::argument(L"-public-queue-smoke-mode=","1"));
     Root type(ba_tables::reflectedType("MatchmakingButtonVM","Uncapped.UI"));void* args[]={type.get()};
     Root buttons(ba::invoke(ba::find_class("UnityEngine","Resources"),nullptr,"FindObjectsOfTypeAll",1,args));

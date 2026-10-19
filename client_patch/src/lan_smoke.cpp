@@ -8,7 +8,7 @@
 namespace ba_lan_smoke {
 using ba::Obj;
 using ba_local::Root;
-struct Plan { bool ready=false,attempted=false;int slot=-1;uint32_t key=0,unit=0; };
+struct Plan { bool ready=false,attempted=false;int slot=-1,deckSlot=-1;uint32_t key=0,unit=0; };
 static Plan plan;
 static Obj require(Obj object,const char* message) { if(!object)throw std::runtime_error(message);return object; }
 static Obj item(Obj list,int index) {
@@ -21,13 +21,17 @@ static void prepare(Obj gameData,int slot) {
     plan=Plan{};
     if((!ba::lan() && !ba::offlinePractice()) || !wcsstr(GetCommandLineW(),L"-lan-smoke"))return;
     try {
-        if(slot<0 || slot>1)throw std::runtime_error("smoke slot must be 0 or 1");
+        const bool publicTeam=ba::unified() && ba::flag(L"-public-queue-experimental");
+        if(slot<0 || slot>(publicTeam?3:1))throw std::runtime_error("smoke army slot outside supported roster");
+        // All four public seats use an ordinary opening unit. Army number is
+        // independent of its selected deck slot; slots2/3 are tech units.
+        const int deckSlot=slot%2;
         Obj config=require(ba::get<Obj>(gameData,"gameConfig_"),"smoke GameConfig missing");
         Obj armies=require(ba::get<Obj>(config,"armies_"),"smoke armies missing");
         Obj army=require(item(armies,slot),"smoke local army missing");
         if(ba::get<uint32_t>(army,"armyId_")!=static_cast<uint32_t>(slot))throw std::runtime_error("smoke army order differs");
         Obj deck=require(ba::get<Obj>(army,"deck_"),"smoke assigned deck missing");
-        const uint32_t unit=unitAt(ba::get<Obj>(deck,"units_"),slot);
+        const uint32_t unit=unitAt(ba::get<Obj>(deck,"units_"),deckSlot);
         if(!unit)throw std::runtime_error("smoke opening deck slot is empty");
         Obj abilities=require(ba::get<Obj>(config,"abilities_"),"smoke ability list missing");
         int matches=0;uint32_t key=0;
@@ -35,26 +39,32 @@ static void prepare(Obj gameData,int slot) {
             Obj ability=item(abilities,index);
             // Read the generated oneof getter, rather than assuming its case ID.
             Obj create=ba::call(ability,"get_CreateUnitFromDeckAbility");
-            if(create && ba::get<int>(create,"deckSlot_")==slot) {
+            if(create && ba::get<int>(create,"deckSlot_")==deckSlot) {
                 key=ba::get<uint32_t>(ability,"key_");++matches;
-                ba::log("LAN smoke candidate slot%d deckSlot%d ability=%u unitType=%u",slot,slot,key,unit);
+                ba::log("LAN smoke candidate slot%d deckSlot%d ability=%u unitType=%u",slot,deckSlot,key,unit);
             }
         }
         if(matches!=1)throw std::runtime_error("smoke requires exactly one normal build ability for selected deck slot");
-        plan.slot=slot;plan.key=key;plan.unit=unit;plan.ready=true;
-        ba::log("LAN smoke prepared: slot%d will request normal deckSlot%d unitType=%u ability=%u at input frame%d",slot,slot,unit,key,slot==0?300:400);
+        plan.slot=slot;plan.deckSlot=deckSlot;plan.key=key;plan.unit=unit;plan.ready=true;
+        ba::log("LAN smoke prepared: slot%d will request normal deckSlot%d unitType=%u ability=%u at input frame%d",slot,deckSlot,unit,key,300+100*slot);
     } catch(const std::exception& e) {ba::log("LAN normal-build smoke disabled during preparation: %s",e.what());}
 }
 static void enqueue(Obj server,int frame) {
     const int surrenderFrame=atoi(ba::argument(L"-dedicated-surrender-frame=","600").c_str());
-    if(ba::dedicated() && ba::lanSlot()==0 && frame==surrenderFrame && wcsstr(GetCommandLineW(),L"-dedicated-surrender-smoke")) {
+    // The second human ally must also concede to bound a four-human test. Keep
+    // the existing single-seat diagnostic unchanged unless all explicit public
+    // test flags are present. Ordinary launchers never enable these flags.
+    const bool alliedSmoke=ba::unified() && ba::lanSlot()==2 && ba::flag(L"-public-queue-experimental") &&
+        ba::flag(L"-public-queue-smoke") && ba::flag(L"-public-team-surrender-smoke");
+    if(ba::dedicated() && (ba::lanSlot()==0 || alliedSmoke) && frame==surrenderFrame+(alliedSmoke?30:0) &&
+       ba::flag(L"-dedicated-surrender-smoke")) {
         try {
             Obj sim=require(ba::read<Obj>(server,0x140),"surrender simulation missing");
             int before=ba_local::count(ba::read<Obj>(server,0x180));ba::call(sim,"ConcedeGame");
-            ba::log("DEDICATED SURRENDER smoke frame%d normal ConcedeGame commandQueueDelta=%d",frame,ba_local::count(ba::read<Obj>(server,0x180))-before);
+            ba::log("DEDICATED SURRENDER smoke frame%d normal ConcedeGame commandQueueDelta=%d army=%d",frame,ba_local::count(ba::read<Obj>(server,0x180))-before,ba::lanSlot());
         }catch(const std::exception& e){ba::log("Dedicated surrender smoke failed: %s",e.what());}
     }
-    if(!plan.ready || plan.attempted || frame!=(plan.slot==0?300:400))return;
+    if(!plan.ready || plan.attempted || frame!=300+100*plan.slot)return;
     plan.attempted=true;
     try {
         Obj simulation=require(ba::read<Obj>(server,0x140),"smoke simulation missing");
@@ -74,7 +84,7 @@ static void enqueue(Obj server,int frame) {
         Root ability(require(ba::native<Obj(*)(Obj,uint32_t,Obj)>(0x3e722d0)(staticData,plan.key,nullptr),"smoke runtime build ability missing"));
         if(strcmp(ba::api<const char*(*)(Obj)>("il2cpp_class_get_name")(ba::klass(ability.get())),"CreateUnitFromDeckAbilityConfig"))
             throw std::runtime_error("smoke resolved ability is not a deck build ability");
-        if(ba::get<int>(ability.get(),"<DeckSlot>k__BackingField")!=plan.slot)throw std::runtime_error("smoke runtime deck slot mismatch");
+        if(ba::get<int>(ability.get(),"<DeckSlot>k__BackingField")!=plan.deckSlot)throw std::runtime_error("smoke runtime deck slot mismatch");
         uint32_t armyArg=army;void* costArgs[]={&armyArg};
         Root cost(ba::call(ability.get(),"GetResourceCost",1,costArgs));
         const int primary=cost.get()?ba::get<int>(cost.get(),"_primaryResource"):-1;
@@ -93,7 +103,7 @@ static void enqueue(Obj server,int frame) {
             (game,player,ability.get(),&meetsPrerequisite,noResourceSnapshot,nullptr);
         const int after=ba_local::count(queue);
         ba::log("LAN NORMAL BUILD smoke frame%d slot%d army%u HQ%u deckSlot%d unitType%u ability%u cost=(%d,%d) prerequisite=%d queued=%d commandQueueDelta=%d presentedFrame=%d",
-            frame,plan.slot,army,headquarters,plan.slot,plan.unit,plan.key,primary,secondary,
+            frame,plan.slot,army,headquarters,plan.deckSlot,plan.unit,plan.key,primary,secondary,
             meetsPrerequisite?1:0,queued?1:0,after-before,ba::read<int>(simulation,0xac));
         if(queued && after!=before+1)ba::log("LAN smoke warning: original build helper returned true but command queue did not grow by one");
     } catch(const std::exception& e) {ba::log("LAN normal-build smoke stopped at frame%d: %s",frame,e.what());}

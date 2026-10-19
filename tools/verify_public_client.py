@@ -78,6 +78,7 @@ async def run(args):
                 cancel=args.cancel,retry=args.retry,delay_enter_ack=args.delay_enter_ack,
                 drop_on_ready=args.drop_on_ready,drop_return_ack=args.drop_return_ack,practice_overlap=args.practice_overlap,
                 disconnect=args.disconnect,
+                local_frames=args.local_frames if args.unavailable else None, local_profile=args.local_profile,
                 helper_sha256=hashlib.sha256((game/'BattleAcesOffline.dll').read_bytes()).hexdigest(),
                 source_sha256_at_start=source_hashes())
     try:
@@ -131,7 +132,8 @@ async def run(args):
         if args.mode==1:
             command+=['-dedicated-surrender-smoke','-dedicated-surrender-frame=1200']
         if args.unavailable:
-            command+=['-practice-ai-smoke','-public-ai-smoke','-practice-ai-smoke-matches=1','-practice-ai-smoke-frames=1200']
+            command+=['-practice-ai-smoke','-public-ai-smoke','-practice-ai-smoke-matches=1',f'-practice-ai-smoke-frames={args.local_frames}']
+            if args.local_profile: command += [f'-public-ai-smoke-profile={args.local_profile}']
         startup=subprocess.STARTUPINFO();startup.dwFlags|=subprocess.STARTF_USESHOWWINDOW;startup.wShowWindow=1 if args.visible else 0
         startup.lpAttributeList={'handle_list':[child.fileno()]}
         clock=ctypes.WinDLL('kernel32').GetTickCount64;clock.restype=ctypes.c_ulonglong;launch_tick=clock()
@@ -283,6 +285,7 @@ async def run(args):
                     'fallback did not wait for every local bot')
             bots=[]
             for seat,army in enumerate(armies[1:],1):
+                if args.local_profile: require(army['players'][0]['aiProfileId']==args.local_profile,'forced fallback qualification profile not used')
                 moved,ordered=movement_evidence(log,set(army['deck']['units']),seat)
                 require(moved & ordered,'fallback bot did not autonomously move produced units: '+str(seat))
                 require(log.count(f'Practice native JoinArmy validated: army={seat} ')==1,'fallback bot duplicate/missing exact deck join')
@@ -397,6 +400,10 @@ def main():
     parser.add_argument('--mode',type=int,choices=(1,2,5),default=1)
     parser.add_argument('--timeout',type=int,default=600)
     parser.add_argument('--unavailable',action='store_true')
+    parser.add_argument('--local-frames',type=int,default=3600,
+                        help='diagnostic fallback surrender frame; allow original bot build-up before requiring movement')
+    parser.add_argument('--local-profile',type=int,choices=(58,62,63,64),
+                        help='explicit unavailable1v1 qualification profile; ordinary public selection remains random')
     parser.add_argument('--visible',action='store_true')
     parser.add_argument('--cancel',choices=('before-enter','waiting','offered','after-ready'))
     parser.add_argument('--retry',action='store_true')
@@ -408,6 +415,8 @@ def main():
     parser.add_argument('--practice-overlap',action='store_true')
     args=parser.parse_args()
     require(os.name=='nt' and args.output.resolve().is_relative_to(ROOT/'local') and 120<=args.timeout<=900,'bounded Windows/ignored probe required')
+    require(1200<=args.local_frames<=7200 and (not args.local_profile or args.unavailable and args.mode==1),
+            'bounded local frames and unavailable1v1-only profile override required')
     require(0<=args.delay_enter_ack<=8 and (not args.retry or args.cancel or args.drop_on_ready or args.disconnect),'bounded delay/retry point required')
     require(sum(map(bool,(args.unavailable,args.cancel,args.drop_on_ready,args.drop_return_ack,args.disconnect)))<=1,
             'choose one unavailable/cancel/disconnect scenario')

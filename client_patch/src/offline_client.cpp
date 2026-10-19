@@ -317,6 +317,7 @@ extern "C" __declspec(dllexport) void OfflineFrontUpdate(void* front,void*) {
 #include "practice_settings_ui.cpp"
 #include "client_lifecycle.cpp"
 #include "public_client.cpp"
+#include "public_results.cpp"
 #include "match_loading.cpp"
 #include "match_loading_smoke.cpp"
 #include "server_assets_export.cpp"

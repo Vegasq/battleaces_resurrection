@@ -1,7 +1,8 @@
 TEAM MODES - BUILD 37822 CONTRACT
-Updated:2026-10-18. Static contract plus headless four-army qualification below.
-Graphical human team play remains unqualified. Single-client graphical public
-and scripted partial-group proofs are recorded below and in public-matchmaking.txt.
+Updated:2026-10-18. Static, headless and graphical qualification below.
+Two graphical human allies in2vAI and four graphical humans in2v2 now pass
+automated local integration. A three-human2v2 group also passes the real30-second
+wait and shared bot fill. Manual/Internet acceptance and team failures remain open.
 
 The final product requires public2v2 and2vAI even with one offline human. Multiple
 1v1 rooms do not satisfy this. A partial online human group must stay in one
@@ -286,3 +287,66 @@ Covered source hashes are unchanged; owned process is reaped. This is a visible
 automated-callback run with explicit diagnostic surrender at3600, not natural
 results, manual mouse acceptance, native Quit or online/local mode switching.
 Ordinary Start Client/public routing remains a separate release gate.
+
+Multiple graphical human clients (2026-10-18, experimental)
+tools.verify_public_clients runs2..4 actual game processes against one loopback
+TLS coordinator. Independent in-memory credentials authenticate each human; no
+tokens are written to evidence. A random, bounded diagnostic file gate waits
+until all native menus are idle before invoking original Play. It never changes
+the queue clock. Client1 changes its native deck before Play. The probe requires
+one shared offer/match/worker, correct human/bot seats, distinct human decks,
+native builds present in the authoritative input journal, every received frame
+hash, original search/loading/results/Continue and complete ticket/world release.
+lan_smoke now separates army seat from opening deck slot for public seats2/3.
+All gate/build/surrender/Continue flags are explicit diagnostics and are absent
+from normal launchers. Four-human tests additionally allow allied seat2 to call
+ConcedeGame30 frames after seat0; this is not normal gameplay behavior.
+
+local/public-humans-2vai01/verification.json PASS; SHA256
+894cabaca1317f9ca0b444e89f2e85d8867d82b22e103d07aa12ab97e82db72d.
+Helper31da19aa284134b3ad0fa56a002018ea0cc038bed76ffbd088e2be9adc4faa1f;
+PIDs6968/37896; elapsed248.038s; matchb6ae636fbf254aa3bd59752cb847d30c.
+The two independent graphical humans occupy allied seats2/0, with original
+profile60 bots1/3. Both preserve their names and different frozen decks; normal
+builds at frames500/300 reach the canonical input journal. The full human pair
+is offered after0.078/0.0002 seconds from ENTER, without waiting30 seconds.
+Both clients receive4,095 contiguous frames exactly matching authoritative hashes.
+Game-over4075, winning alliance1, conceded flag0; result/Continue/RETURN pass.
+One diagnostic ConcedeGame command at1200 did not end the team match; this run
+does not qualify a purely manual/natural-action match. Worker19272 exits0 with
+no failure or stderr, all owned resources reaped, gate removed and source hashes
+unchanged. All clients are forcibly reaped after success, not native Quit.
+The two released-search captures are visually reviewed: original team-map intro
+at each allied starting position, with the search panel absent. These are intro
+captures, not manual gameplay/UI acceptance:
+ match-search-6968-1-2-released.png
+ SHA256472526136908313337e824f9593e4f6db7634dd521c69f3d6e073eff1ade0935
+ match-search-37896-1-2-released.png
+ SHA256d8dd7f2971d7a827c115b2ab1e36f434fb9e11c663ab0d1807bebec69f047370.
+Four graphical humans, real30-second partial groups and team disconnects are
+tracked separately; this pair alone does not establish those cases or Internet
+play. No manual/frozen game copy or distributable was changed.
+
+Four-human follow-up: public-humans-2v2-full01 exposed a winner-only stall in the
+retired Proving Grounds reward flow after native Continue. It remains failed.
+The scoped public Continue fix preserves the native result mode and routes only
+owned completed public results to the original End signal. A fresh full02 run
+passes all four native builds,1,250 exact receipts per client, winning/losing
+results and complete Continue/world/ticket/worker cleanup. Full human matching
+takes0.308s from the oldest ENTER. Full hashes and native contract are documented
+in public-results.txt. This does not mark manual team play or team recovery done.
+
+local/public-humans-2v2-partial01/verification.json PASS; SHA256
+e177e077fee779a037fc04682455622d0bf7474082ad9b1c329dcec072d21c4a.
+Same helper8a4cb76594476d37161b6b4f995b9a359c8b3e5c3dec80d490f26af11e69e8e8;
+PIDs42256/51976/32652; elapsed177.573s. Three graphical humans share one mode2
+match93d6d87f751b42dd8b1d49c5065a978b in seats0/1/2; original profile59 fills
+seat3. The proposal follows29.992s from the oldest ENTER (29.572/29.495s for the
+others). Every original native search timer advances0..29. One worker owns the
+whole group; no client starts a separate local fallback. Distinct human decks,
+each human build,1,250 exact frames per client, public result/Continue/RETURN and
+all world/ticket/room releases pass. Diagnostic concessions at1200/1230 yield
+winner1,mask5. Worker49980 exits0, no failure/stderr, all owned resources reaped,
+gate removed and source hashes unchanged. Forced owned process teardown is not
+native Quit. This covers three-human/one-bot local integration; other partial
+rosters, team failure stress, manual and Internet qualification remain distinct.

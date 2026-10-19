@@ -49,6 +49,8 @@ TAIL_HOOKS = [
      'offset': 0x3d055fd, 'before': 'e92e6a86fe'},
 ]
 CALL_HOOKS = [
+    # Keep native Continue/navigation; public results have no service rewards.
+    {'name': 'OfflineMatchResultContinue', 'rva': 0x3d61142, 'offset': 0x3d5f742, 'before': 'e8092949fd'},
     {'name': 'OfflineStartupReady', 'rva': 0x3dff36f, 'offset': 0x3dfd96f, 'before': 'e80cdeffff'},
     # Scoped enum settings presentation/actions. All other rows/modes forward.
     {'name': 'OfflinePracticeSettingsModel', 'rva': 0x3d19579, 'offset': 0x3d17b79, 'before': 'e852fdc9fe'},
@@ -199,6 +201,8 @@ def install(game_dir, *, helper=None, original_path=None, restore=False, dry_run
         raise ValueError('Helper is not a PE DLL; build client_patch first.')
     if helper_bytes is not None and b'BA_RESURRECTION_RECOVERY_V1' not in helper_bytes:
         raise ValueError('Build the current helper supporting recovery ABI1 before installing this patch.')
+    if helper_bytes is not None and b'OfflineMatchResultContinue\0' not in helper_bytes:
+        raise ValueError('Build the current helper with the public result Continue hook before installing this patch.')
     if community and helper_bytes is not None and b'BA_RESURRECTION_COMMUNITY_V1' not in helper_bytes:
         raise ValueError('Build a helper supporting experimental community ABI1 before installing this patch.')
     if community and helper_bytes is not None and b'BA_RESURRECTION_COMMUNITY_ROSTER_V1' not in helper_bytes:

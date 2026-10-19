@@ -98,9 +98,15 @@ are planned behavior, not a claim that all modes or fallback already work.
   pass; early Cancel/READY disconnect races and lost final RETURN ACK also pass.
   Isolated1v1 assignment loss, mid-load cleanup and mid-game loss/fresh-match
   recovery now pass; a stale failure banner on retry is fixed and pixel-checked.
-  Next qualify actual human teams, remote/local transitions and all modes through
-  ordinary Start Client, including offline team fallback. Team failure/recovery
-  and actual mouse interaction remain acceptance gates.
+  Two graphical human allies in2vAI and four graphical humans in2v2 now pass
+  native builds, exact frames and results/Continue; full groups match immediately.
+  The four-human test exposed a winner reward-screen stall, now fixed with a
+  scoped original End signal. Failed/fresh evidence: public-results.txt.
+  A three-human2v2 group also waits29.992 real seconds, fills the missing seat
+  with a server bot and completes with exact frames and native returns. Next
+  qualify remaining partial rosters, team failure/recovery, remote/local
+  transitions and all modes through ordinary Start Client, including offline
+  team fallback. Actual mouse interaction remains an acceptance gate.
 - Research the shipped game's original bot roster generation with REA: deck,
   name, avatar, difficulty and mode-specific rules, especially normal 1v1 bot
   opponents. Reuse the supported local data/selection behavior where possible;
@@ -165,9 +171,13 @@ Current implementation sequence for these additions (2026-10-18):
    two-human/two-bot2v2, solo2vAI and two-human2vAI, with natural results and exact
    independent frame replay; see public-matchmaking.txt. Native graphical1v1/TLS
    and solo2v2/2vAI with three server bots now pass through results/Continue.
-   Local three-bot ownership/combat/results also pass as detailed below. Actual
-   graphical human teams and failure/mode-switch release gates remain open; do not
-   enable ordinary team menu paths from these component tests alone.
+   Local three-bot ownership/combat/results also pass as detailed below. Two
+   graphical human allies in2vAI and four graphical humans in2v2 now pass local
+   integration. Winners/losers return after the public reward-flow fix; see
+   public-results.txt. Three-human2v2 shared bot fill after a real30-second wait
+   also passes. Remaining partial rosters, team failures and mode-switch release
+   gates remain open; do not enable ordinary paths from component tests alone.
+   Manual and Internet team acceptance remain separate.
 4. Implement generation-bound public queues/fallback and human-only Custom,
    then qualify cancellation,late starts,partial groups,results and repeated
    mode switches. Server-side proposals reserve capacity and require every human

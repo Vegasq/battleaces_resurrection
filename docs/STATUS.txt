@@ -2,6 +2,32 @@ IMPLEMENTATION LEDGER
 Updated: 2026-10-18 UTC
 Active objective: implement SERVER_REPLACEMENT_PLAN.txt, Windows only.
 
+MULTIPLE GRAPHICAL HUMAN CLIENTS (2026-10-18 UTC, EXPERIMENTAL)
+Two independent game clients now complete2vAI as allies0/2 against server bots,
+with4,095 exact authoritative frame receipts each. A four-human2v2 run exposed
+and retained a winner-only Proving Grounds reward-screen stall. A scoped native
+Continue fix now sends the original End signal for completed public results;
+it preserves mode/winner and adds no progression rewards. The fresh four-human
+run passes1,250 exact frames per client, all four normal builds, independent
+decks, winning/losing results and complete world/ticket/worker release. Full
+human groups match immediately. Both successful reports retain unchanged source
+hashes, clean worker exits and owned process cleanup. Native Quit remains open.
+The three-human2v2 partial group also passes a real29.992-second wait, one server
+bot fill,1,250 exact frames each and all native returns. A short offline profile64
+check returns correctly but fails its movement assertion; the failure and longer
+profile64 follow-up remain explicit in public-results.txt. The longer local run
+passes with37 moving/ordered units and native Continue; two TLS Custom rematches
+also pass the unchanged forwarding path. The installer rejects older helpers
+missing the new Continue hook before writes; actual old/current dry runs preserve
+installed hashes. Final41 focused Python regressions pass.
+The full unavailable-server profile64 follow-up also passes: one unavailable
+attempt, zero authentication/workers,40 moving/ordered units, result/Continue and
+local world release. The original short-run movement failure stays recorded.
+See public-results.txt and team-modes.txt for failures, exact hashes and limits.
+These are automated local graphical tests, not manual/Internet acceptance.
+Further partial rosters, team failures, remote/local transitions, ordinary Start
+Client public enablement and final release qualification remain distinct.
+
 OFFLINE MODE SWITCH CHECKPOINT (2026-10-18 UTC, EXPERIMENTAL)
 One isolated process now passes Try Deck ->1v1 ->2v2 ->2vAI ->Try Deck, editing
 the human deck between every match. All bots produce and autonomously move owned
