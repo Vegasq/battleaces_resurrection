@@ -130,6 +130,39 @@ f008a5e9fc32c731ec28772d72e1f4b7968b1ab1c39bc9ff90744ef165f22660
 local/native-storage18-custom01-replays.json SHA256:
 ae043c9fb85253ab4638982fff91d10b0b4b2e485dcaf506c6a99704706008c7
 
+Clean development packages
+Source7200d463fefa6fe55a9f59947ece0de64dc90dda is published after a full-history
+audit of1033 distinct source paths/objects with0 failures. No game originals,
+private captures,replays,helpers or package binaries are pushed to Git.
+local/native-storage18-packages01 builds from that clean source (dirty:false)
+with helper18 and the pinned Python3.14.8 embeddable runtime. Existing frozen
+archives are unchanged. These are development previews,not a general release.
+Server82 files,12427769 bytes,archive SHA256:
+9aea2c0f3d682d85719bee37476fcf89268ceeabab7ad6cfe2c836ec0d25610b
+Client67 files,13048851 bytes,archive SHA256:
+f29d8bc62ba34c47526262cedebcdf5b07b53a34a1a2189ea4194bb525d3c20f
+
+The actual packaged Start Client.cmd reaches its ordinary native offline menu
+in10.139s (10.641s total),with bundled runtime,hostile cwd/PYTHONPATH and global
+Python absent from PATH. No spawn seam or automatic gameplay flags. Package,
+config,shared TOML and source baselines stay unchanged;owned tree cleanup is
+forced,not Quit. Report SHA256:
+local/native-storage18-packaged-startup01/verification.json
+71c766c86e04222c5a3b2137e56aafdcd35eb114371017d7928c2658ada9421d
+Relocated bundled imports,asset/native-host/controller checks,three-component
+install/reinstall/restore and older non-cosmetic preview upgrade pass100.035s.
+Original source/backups,personal markers and both bundles stay unchanged:
+local/native-storage18-package-qualification02/verification.json SHA256:
+b24c446ffd66cf16ad7c361ccc2eebf6016ce493800fbd89cacbaad16b282391
+The01 run remains failed because its selected previous full-cosmetic package
+does not satisfy that particular test's non-cosmetic-fixture requirement.
+Separate fresh component-only qualification of the last full-feature helper15
+package to helper18 passes44.773s,including current four-site storage capability,
+idempotent reinstall,original backups/components and personal marker preservation.
+No graphical upgrade startup claim:
+local/native-storage18-full-upgrade01/verification.json SHA256:
+b6eb834dc93607fa668d6e94def694a83b60f9e5a56d98d68ac4f02a7992e5f9
+
 Remaining controls include backup write/corrupt-input failures,full-mode/native
 playback/retention,restart/copy coverage,cloud-state/network and final packages.
 These reports are not release acceptance.

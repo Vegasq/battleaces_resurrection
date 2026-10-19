@@ -29,6 +29,16 @@ replays structurally decode from two separate profiles;all shared inventories
 remain unchanged. Graphical cleanup is forced for this Custom control,not Quit.
 Details
 and retained evidence in client-storage-isolation.txt. Frozen archives unchanged.
+Source7200d46 is published after1033-object/path full-history audit,0 failures.
+Clean helper18 development packages now pass bundled actual Start Client.cmd
+startup10.139s/10.641s total and relocated production imports/native host/
+controller/patch-roundtrip/older preview upgrade100.035s. Separate last
+full-feature helper15->18 upgrade/reinstall/restore passes44.773s,preserving
+personal markers and original backups/components. These component controls are
+not graphical upgrade,clean-machine,service deployment or Internet acceptance.
+The initial package01 test remains failed for its wrong older-preview fixture;
+the corrected02 and separate full-feature upgrade reports retain exact scope.
+Package hashes and remaining gates are in client-storage-isolation.txt.
 
 ORDINARY PLAYER FEATURE INTEGRATION (2026-10-19 UTC, CANDIDATE)
 The published launcher omitted public/cosmetic activation,while mode probes added

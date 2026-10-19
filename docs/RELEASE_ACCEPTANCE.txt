@@ -74,6 +74,10 @@ Required before a general release
 [ ] Build fresh source-only client patch/server archives with exactly one Start
     Client and one Start Server entry point. Validate install,upgrade,restore,
     config relocation,logs,missing/corrupt files and normal Quit/save persistence.
+    Clean source7200d46/helper18 development archives pass actual bundled Start
+    Client.cmd startup,relocated imports/native host/controller,three-component
+    roundtrip and both early/minimal and last/full-feature preview upgrades.
+    Final packaged gameplay/Quit,manual and remaining failure coverage stay open.
 [ ] Qualify protected deployment/backup permissions,SCM service start/stop/reboot,
     clean Windows machine without developer tools,and cross-PC/internet matches
     with friends. Record measured capacity and remaining limitations.
