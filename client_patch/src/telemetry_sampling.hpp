@@ -3,6 +3,7 @@
 
 namespace ba_telemetry_sampling {
 constexpr unsigned maxSnapshots=17;
+constexpr unsigned maxRegularSnapshots=maxSnapshots-1; // Reserve one original-Quit boundary sample.
 constexpr uint64_t repeatIntervalMs=10000;
 enum class Stage {Other,Menu,InGame,PostGame,Tutorial};
 
@@ -15,7 +16,7 @@ struct Schedule {
     uint64_t sampledAt=0;
 
     bool due(Stage stage,uint64_t now,unsigned snapshots) {
-        if(snapshots>=maxSnapshots)return false;
+        if(snapshots>=maxRegularSnapshots)return false;
         if(stage!=previous){previous=stage;entrySamples=0;}
         if(stage==Stage::Other || entrySamples>=2)return false;
         if(entrySamples && (now<sampledAt || now-sampledAt<repeatIntervalMs))return false;

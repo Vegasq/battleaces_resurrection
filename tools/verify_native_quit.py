@@ -28,7 +28,36 @@ ROOT = Path(__file__).resolve().parents[1]
 def sources():
     return startup.source_hashes() | {p.relative_to(ROOT).as_posix(): hashlib.sha256(p.read_bytes()).hexdigest()
                                      for p in (Path(__file__), ROOT/'client_patch/build.ps1',ROOT/'tools/verify_practice_ai.py',
-                                               ROOT/'tools/startup_task_evidence.py', ROOT/'client_patch/patcher/startup_tasks.py')}
+                                               ROOT/'tools/startup_task_evidence.py', ROOT/'client_patch/patcher/startup_tasks.py',
+                                               ROOT/'tools/verify_telemetry_audit.py')}
+
+
+def telemetry_evidence(text,rows,expected_sha256,*,after_practice=False,device_probe=False):
+    """Require complete fields before the original callback,then natural Quit separately."""
+    from tools.verify_telemetry_audit import verify_lines
+    required=('startup-after-engine-init','menu')
+    if after_practice:required+=('ingame','postgame','menu')
+    required+=('pre-quit-confirm',)
+    result=verify_lines(text.splitlines(),expected_sha256=expected_sha256,required_stages=required)
+    startup.require(result['passed'],'pre-Quit telemetry field/stage evidence incomplete')
+    boundary=list(re.finditer(r'^\[(\d+)\] TELEMETRY PREQUIT boundary: thread=(\d+) samplesBefore=(\d+) samplesAfter=(\d+) readOnly=1 originalConfirmNext=1$',text,re.M))
+    dispatch=[row for row in rows if row['event']=='OnConfirm.dispatch']
+    startup.require(len(boundary)==len(dispatch)==1,'one pre-Quit field/original confirmation boundary required')
+    item=boundary[0];tick,thread,before,after=map(int,item.groups())
+    ends=list(re.finditer(r'^\[(\d+)\] Telemetry audit '+str(after)+r' snapshotEnd singletonPointersStable=1; scalar observations are not atomic or network evidence$',text,re.M))
+    native=list(re.finditer(r'^\[(\d+)\] NATIVE QUIT original confirmation dispatch: thread=(\d+) worldIdle=1 assetLoadingCount=0 naturalExitDeadlineSeconds=60$',text,re.M))
+    startup.require(len(ends)==len(native)==1 and 1<=before<17 and after==before+1==result['complete_snapshots'] and
+        int(ends[0][1])<=tick<=dispatch[0]['tick']<=int(native[0][1]) and thread==dispatch[0]['thread']==int(native[0][2]) and
+        ends[0].end()<item.start()<item.end()<native[0].start(),
+        'pre-Quit observation did not precede the same-thread original confirmation')
+    if device_probe:
+        begin=list(re.finditer(r'^\[(\d+)\] Telemetry audit '+str(after)+r'/17 stage=pre-quit-confirm ',text,re.M))
+        calls=list(re.finditer(r'^\[(\d+)\] TELEMETRY DEVICE probe passed: version=1 thread=(\d+) calls=1 returned=0 mainStable=1 disabledFieldsUnchanged=1 rawHeaderUnchanged=1 markerBefore=0 markerAfter=0 configCount=0 payloadRead=0$',text,re.M))
+        startup.require(len(calls)==len(begin)==1 and int(calls[0][1])<=int(begin[0][1]) and int(calls[0][2])==thread and
+            calls[0].end()<begin[0].start() and 'TELEMETRY DEVICE probe failed:' not in text,
+            'guarded device API probe did not pass once before original Quit')
+        result['device_api_guarded_false_and_sampled_config_unchanged']=True
+    return dict(**result,same_original_quit_thread=True,pre_confirm_tick=tick,original_confirm_tick=dispatch[0]['tick'])
 
 
 def practice_evidence(game, output, pid, text):
@@ -98,6 +127,9 @@ def run(args):
             (not args.capture_dialog or args.mode!='inventory'), 'bounded timeout and visible dialog required')
     require(not args.after_practice or args.mode=='confirm','post-practice requires original Confirm/natural exit mode')
     require(not args.default_recipe or args.mode=='confirm','default recipe qualification requires original Confirm/natural exit')
+    require(not getattr(args,'telemetry_audit',False) or args.mode=='confirm','pre-Quit telemetry requires original Confirm/natural exit')
+    require(not getattr(args,'telemetry_device_probe',False) or getattr(args,'telemetry_audit',False),
+            'device API probe requires full telemetry/native-Quit evidence')
     require(args.profile is None or re.fullmatch(r'nativestest_[a-z0-9_-]{1,34}',args.profile),
             'explicit Quit profile must be an owned nativestest_ key')
     display_name = getattr(args,'display_name',None) or 'Native Quit Probe'
@@ -158,6 +190,8 @@ def run(args):
                    '-screen-fullscreen','0','-screen-width','960','-screen-height','540','-logFile',str(output/'game.log')]
         if args.capture_dialog: command.append('-native-quit-capture')
         if getattr(args,'startup_tasks_audit',False): command.append('-startup-tasks-audit')
+        if getattr(args,'telemetry_audit',False): command.append('-telemetry-audit')
+        if getattr(args,'telemetry_device_probe',False): command.append('-telemetry-device-probe')
         if getattr(args,'storage_directory_fault',False):
             require(profile.startswith('nativestest_storage_'),'storage directory fault requires an explicit owned profile')
             command.append('-native-storage-directory-failure-smoke')
@@ -231,6 +265,9 @@ def run(args):
             from tools.startup_task_evidence import evidence
             report['startup_tasks'] = evidence(log(),thread=rows[0]['thread'])
         if args.after_practice: report['practice'] = practice_evidence(game,output,process.pid,log())
+        if getattr(args,'telemetry_audit',False):
+            report['telemetry']=telemetry_evidence(log(),rows,hashlib.sha256((game/'UnityPlayer.dll').read_bytes()).hexdigest(),
+                after_practice=args.after_practice,device_probe=getattr(args,'telemetry_device_probe',False))
         report['trace'] = rows;report['passed'] = True
     except BaseException as error:
         report.update(error=repr(error),traceback=traceback.format_exc())
@@ -272,6 +309,8 @@ if __name__=='__main__':
     parser.add_argument('--backup-notice-smoke',action='store_true',help='explicit owned backup warning capture and original acknowledgment')
     parser.add_argument('--backup-write-smoke',action='store_true',help='explicit owned original writer Boolean-result probe')
     parser.add_argument('--startup-tasks-audit',action='store_true',help='opt-in original startup Task/pump observation; requires owned diagnostic patch')
+    parser.add_argument('--telemetry-audit',action='store_true',help='require read-only startup/lifecycle/pre-original-Quit field observations')
+    parser.add_argument('--telemetry-device-probe',action='store_true',help='one guarded no-argument device API call in an owned menu,never during teardown')
     parser.add_argument('--after-practice',action='store_true',help='explicit automated one-match result/Continue before original menu Quit')
     parser.add_argument('--default-recipe',action='store_true',help='qualify natural exit using the default patch without optional teardown hooks')
     parser.add_argument('--mode',choices=('inventory','cancel','confirm'),default='cancel')

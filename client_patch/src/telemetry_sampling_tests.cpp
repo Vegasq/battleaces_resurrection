@@ -53,7 +53,8 @@ int main() {
         const auto stage=i%2?Stage::PostGame:Stage::Menu;
         if(bounded.due(stage,i,total))++total;
     }
-    assert(total==maxSnapshots);
+    assert(total==maxRegularSnapshots);
+    assert(total+1==maxSnapshots); // Original Quit has one reserved slot.
     assert(!bounded.due(Stage::Other,50000,total));
     assert(!bounded.due(Stage::Tutorial,50001,total));
     assert(!bounded.due(Stage::InGame,60001,total));

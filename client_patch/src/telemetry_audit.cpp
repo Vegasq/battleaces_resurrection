@@ -1,8 +1,9 @@
 #pragma once
 #include "telemetry_sampling.hpp"
 // Read-only, opt-in observation of the supported UnityPlayer native layout.
-// Include after lan_transport.cpp for its local SHA-256 utility. No Unity API,
-// telemetry getter/setter, collector, flush routine, lock or callback is invoked.
+// Include after lan_transport.cpp for its local SHA-256 utility. Field sampling
+// invokes no Unity/telemetry API. A SEPARATE explicit owned menu diagnostic below
+// can call the verified guarded device-info entry;no collector/flush is invoked.
 namespace ba_telemetry_audit {
 using Bytes=std::vector<unsigned char>;
 static constexpr size_t fileSize=30902464;
@@ -36,7 +37,7 @@ static const Signature signatures[]={
     {0xd84de0,0xd841e0,"4883ec4848833dbc9ef800000f855c02","",3},
 };
 static uintptr_t unity=0;
-static bool checked=false,disabled=false,startupLogged=false;
+static bool checked=false,disabled=false,startupLogged=false,quitAttempted=false,completeRecipe3=false;
 static unsigned snapshots=0;
 static ba_telemetry_sampling::Schedule schedule;
 static DWORD auditThread=0;
@@ -104,6 +105,7 @@ static bool verifyModule() {
         }
         memcpy(bytes.data()+peOffset+24+64,&originalChecksum,sizeof(originalChecksum));
         if(digest(bytes)!=originalHash)throw std::runtime_error("unsupported UnityPlayer normalized SHA256");
+        completeRecipe3=groups[0]==3 && groups[1]==12 && groups[2]==3;
         disabled=false;
         ba::log("Telemetry audit build verified: UnityPlayer sha256=%s normalized=%s crashSignatures=%u/3 coreCandidateSignatures=%u/12 performanceCandidateSignatures=%u/3; READ ONLY, no qualification claim",
             actualHash.c_str(),originalHash,groups[0],groups[1],groups[2]);
@@ -162,9 +164,91 @@ static void startup() {
     if(startupLogged || !requested())return;
     startupLogged=true;sample("startup-after-engine-init");
 }
+static void beforeQuit() noexcept {
+    // Only the explicit owned native-Quit diagnostic calls this,immediately
+    // before the original OnConfirm dispatch. No telemetry API/Unity call,lock,
+    // teardown hook or object mutation. Observation failure must not block Quit.
+    if(!requested())return;
+    if(quitAttempted)return;
+    quitAttempted=true;
+    try {
+        if(!startupLogged || disabled || !auditThread || auditThread!=GetCurrentThreadId())return;
+        const unsigned before=snapshots;
+        sample("pre-quit-confirm");
+        ba::log("TELEMETRY PREQUIT boundary: thread=%lu samplesBefore=%u samplesAfter=%u readOnly=1 originalConfirmNext=1",
+            GetCurrentThreadId(),before,snapshots);
+    } catch(...) {
+        disabled=true;
+        // No exception from the observer may consume the original Quit callback.
+    }
+}
+static void deviceProbe() noexcept {
+    // Exact no-argument Windows x64 ABI established from the retained complete
+    // original body and paired internal-call registration. Never invoke an
+    // original/partial recipe or call collectors/flush/lower-level helpers.
+    static const bool enabled=ba::flag(L"-telemetry-device-probe");
+    static bool attempted=false;
+    if(!enabled || attempted)return;
+    attempted=true;
+    try {
+        auto require=[](bool value,const char* why){if(!value)throw std::runtime_error(why);};
+        require(requested() && checked && !disabled && completeRecipe3 && auditThread==GetCurrentThreadId() &&
+            ba::flag(L"-native-quit-smoke") && ba_native_settings::session &&
+            ba_native_settings::session->profile().compare(0,12,"nativestest_")==0,
+            "complete recipe3,initialized game thread and explicit owned diagnostic required");
+        struct Main {
+            uintptr_t pointer=0,vtable=0,worker=0;
+            uint64_t header[4]={};uint32_t marker=0,state=0,init=0,archive=0;
+            unsigned char registered=0,derived=0,enabled=0,deviceStats=0;
+        };
+        auto capture=[&](Main& s) {
+            uintptr_t confirm=0;
+            return read(unity,0x1d0eb28,s.pointer) && s.pointer && read(s.pointer,0,s.vtable) &&
+                s.vtable==unity+0x1a2c538 && read(s.pointer,0x1470,s.header) && read(s.pointer,0x1490,s.marker) &&
+                read(s.pointer,8,s.state) && read(s.pointer,0xe10,s.init) && read(s.pointer,0x480,s.archive) &&
+                read(s.pointer,0x4e0,s.worker) && read(s.pointer,0x15c0,s.registered) &&
+                read(s.pointer,0x1650,s.derived) && read(s.pointer,0x1651,s.enabled) && read(s.pointer,0x15c3,s.deviceStats) &&
+                read(unity,0x1d0eb28,confirm) && confirm==s.pointer;
+        };
+        auto same=[](const Main& a,const Main& b) {
+            return a.pointer==b.pointer && a.vtable==b.vtable && a.worker==b.worker &&
+                !memcmp(a.header,b.header,sizeof(a.header)) && a.marker==b.marker && a.state==b.state &&
+                a.init==b.init && a.archive==b.archive && a.registered==b.registered && a.derived==b.derived &&
+                a.enabled==b.enabled && a.deviceStats==b.deviceStats;
+        };
+        Main before,confirm,after,last;
+        require(capture(before) && capture(confirm) && same(before,confirm),"unstable pre-call analytics object");
+        ba::log("TELEMETRY DEVICE baseline: headerDataPresent=%d allocator=%u count=%llu encodedCapacity=%llu marker=%u; no payload traversal",
+            before.header[0]?1:0,static_cast<uint32_t>(before.header[1]),before.header[2],before.header[3],before.marker);
+        // This is the empty custom32-byte configuration container,NOT the
+        // three-pointer pre-init queue at+1458. Do not follow its data pointer.
+        // Upper32 bits of header[1] may be padding: compare raw equality only.
+        require(!before.header[0] && static_cast<uint32_t>(before.header[1])==0x4b && !before.header[2] &&
+            before.header[3]==1 && before.marker==0 && before.state==0 && before.init==0 && before.archive==0 &&
+            !before.worker && !before.registered && !before.derived && !before.enabled && !before.deviceStats,
+            "device probe requires retained disabled constructor state and marker0");
+        const auto* signature=static_cast<const Signature*>(nullptr);
+        for(const auto& item:signatures)if(item.rva==0x1fda50)signature=&item;
+        require(signature!=nullptr,"device API signature absent");
+        Bytes expected=hex(signature->original),replacement=hex(signature->candidate),loaded(expected.size());
+        memcpy(expected.data(),replacement.data(),replacement.size());
+        require(copy(unity+signature->rva,loaded.data(),loaded.size()) && loaded==expected &&
+            replacement==Bytes({0x31,0xc0,0xc3}),"loaded device API is not the complete guarded entry");
+        // Original returns AL,not a fully defined int. Guard returns false before
+        // singleton access or hardware collection. No yielding between snapshots.
+        const bool result=reinterpret_cast<bool(*)()>(unity+signature->rva)();
+        require(!result && capture(after) && capture(last) && same(before,after) && same(after,last),
+            "device API result or sampled configuration changed");
+        ba::log("TELEMETRY DEVICE probe passed: version=1 thread=%lu calls=1 returned=0 mainStable=1 disabledFieldsUnchanged=1 rawHeaderUnchanged=1 markerBefore=0 markerAfter=0 configCount=0 payloadRead=0",
+            GetCurrentThreadId());
+    } catch(...) {
+        // Diagnostic refusal never changes game state or blocks original Quit.
+        try {ba::log("TELEMETRY DEVICE probe failed: no success claim; original game flow retained");} catch(...) {}
+    }
+}
 static void update() {
-    if(!requested() || disabled || !startupLogged || !ba::owner ||
-       snapshots>=ba_telemetry_sampling::maxSnapshots)return;
+    if(!requested() || disabled || !startupLogged || !ba::owner || quitAttempted ||
+       snapshots>=ba_telemetry_sampling::maxRegularSnapshots)return;
     if(!auditThread || auditThread!=GetCurrentThreadId()) {
         disabled=true;ba::log("Telemetry audit disabled: state observation thread changed");return;
     }
@@ -184,6 +268,7 @@ static void update() {
             else if(current==ba::read<Obj>(ba::owner,0x2f8)){stage=Stage::Tutorial;label="tutorial";}
         }
         if(schedule.due(stage,GetTickCount64(),snapshots))sample(label);
+        if(stage==Stage::Menu)deviceProbe();
     } catch(const std::exception&) {
         disabled=true;ba::log("Telemetry audit disabled: state observation failed");
     }

@@ -200,6 +200,7 @@ static void update(Obj front) {
             if(mode=="cancel") {stage=2;mark("OnCancel.dispatch");ba::call(modal.get(),"OnCancel");mark("OnCancel.return");due=now+1000;return;}
             dispatch=modal.get();dispatchMethod=ba::api<Obj(*)(Obj,const char*,int)>("il2cpp_class_get_method_from_name")(ba::klass(dispatch),"OnConfirm",0);
             require(dispatchMethod!=nullptr,"native Quit original confirmation method missing");stage=4;
+            ba_telemetry_audit::beforeQuit();
             mark("OnConfirm.dispatch");ba::log("NATIVE QUIT original confirmation dispatch: thread=%lu worldIdle=1 assetLoadingCount=0 naturalExitDeadlineSeconds=60",GetCurrentThreadId());
         }else if(stage==2) {
             require(!ba::get<Obj>(probe->show.get(),"_uiObject") && !ba_catalog::unbox<bool>(ba::call(probe->show.get(),"get_IsShown")) &&

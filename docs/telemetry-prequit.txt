@@ -1,0 +1,140 @@
+TELEMETRY DEVICE ENTRY / PRE-QUIT QUALIFICATION41 -- 2026-10-19
+
+Scope
+Close two explicit gaps in recipe3's native analytics-removal evidence:one
+meaningful device-info API activation and a final read-only field sample before
+original menu Quit confirmation,followed by observed natural process exit.
+This does not prove complete collection/delivery removal. RUNTIME_VALIDATED
+remains false. QueueConfig/internal callers,cached reports,controlled errors/
+crashes,CEF descendants,continuous process/network/file attribution and clean/
+existing-profile/full-mode release qualification remain OPEN.
+
+Retained static contract
+Read-only REA-guided review reused existing original-byte LLVM slices;no provider
+repair/retry,analysis engine install or original API activation. Original
+UnityPlayer SHA256 ac144d56d53f07904d52ed27a1539de90bc3290038fe52d73d2f6b268c85d6bc
+was verified,and all ten slices in local/telemetry-explicit01/slices.json match
+their digests. Slice-manifest SHA256:
+86b5c3c5f472f8de70f301683904fe822b0df13f5fcdc9db6aeaeeef15a57381
+The paired same-index registration reader atfd42d0 binds index17/name
+UnityEngine.RemoteConfigSettings::SendDeviceInfoInConfigRequest to RVA1fda50.
+Complete body consumes no incoming arguments and returns AL;use bool(*)(),not
+an int return. Original singleton-present/marker0 route calls constructorc49110,
+hardware collectorc49dc0 and config serialization/storage helperc2e240;success
+sets main+1490=1. Marker1 already returns true without collecting. Recipe3's
+31c0c3 returns false before singleton access/allocation/collection.
+
+Sources:local/telemetry-explicit01/unity-1fda50.asm,unity-fd42d0.asm,
+registration-evidence.json,unity-c392c0.asm and retained original constructor/
+flush slices under investigation/dedicated/telemetry-evidence. These are static
+evidence paths,not fabricated REA Evidence IDs or proof of runtime absence.
+
+The config container at main+1470 is a custom32-byte header:data pointer,allocator
+DWORD/padding,countQWORD,encoded-capacityQWORD. Constructor is pointer0,allocator
+0x4b,count0,encodedcapacity1,marker1490=0. It is distinct from the three-pointer
+pre-init queue at+1458. Upper32 allocator-word bits can be padding:require raw
+before/after equality,not a fabricated semantic zero. No data pointer is followed.
+Internal flushc3a680 independently clears storage/advances marker1->2;the marker
+is not simply boolean. Incoming-call completeness for collectors/storage remains
+unproved. QueueConfig1fd3a0 routes RCX/RDX/R8D/R9 pointer-like inputs through an
+unclassified callback before singleton access;meaningful safe representations
+are still unknown. No guessed/null QueueConfig invocation is implemented.
+
+Implementation and diagnostic boundaries
+client_patch/src/telemetry_audit.cpp adds separately opted-in
+-telemetry-device-probe,requiring -telemetry-audit,-native-quit-smoke,an owned
+nativestest_ profile,the established initialized game/menu thread,and ALL3/12/3
+loaded/disk recipe3 guards with the normalized original-file hash. Recognition
+of original/partial guards alone never permits activation. Retained exact main
+vtable/singleton/disabled fields and raw header/marker are double-read before/
+after. Only disabled constructor state with marker0 qualifies. Analytics itself
+must remain unstarted;requiring main+e10 nonzero would contradict the patch.
+The exact loaded device entry is rechecked,then called once. Require false and
+unchanged sampled state. No queue clear,restoring globals,flush,collector or
+positive unpatched control. Failures are diagnostic refusals and preserve flow.
+
+The existing owned Quit smoke calls a separate noexcept read-only sample just
+BEFORE its original OnConfirm dispatch. No new native site,teardown hook or
+managed allocation/API call is added at that boundary. Sampling reserves one
+of17 slots for pre-quit-confirm and stops further FSM samples once it is taken.
+Observer failure cannot consume the original callback. Ordinary flags remain
+off;this is not an ordinary automatic Quit or match action.
+
+tools.verify_native_quit --telemetry-audit [--telemetry-device-probe] requires
+complete guards/default fields/ordered lifecycle and one final pre-confirm
+sample. It binds the sample to the SAME original Quit thread and trace,requires
+the device call precede that sample,and retains existing exact five-event
+original confirmation/natural exit0/under60s/source/shared-file gates. Original
+trace flush can advance the subsequent log timestamp;ordered timestamps,not
+false millisecond equality,are required. Capture/default-off behavior is retained.
+Generic verify_telemetry_audit accepts the new optional stage but rejects a
+duplicate or any subsequent telemetry sample. Historical required paths retain
+their original scope;they are not retroactively promoted to pre-Quit proof.
+
+Actual native evidence,helper41-01
+Build local/telemetry41-build01.txt passes all11 C++ programs and six owned atomic
+interruption boundaries. Helper SHA256:
+e342586816dbf173a798b7b1ce57e981bff59c7af788ee82487b07479331d610
+Build receipt d1e22f69212274805645e1cb7c38c63cb5403e546bae0bc7cf279b4e67bfbe6a
+Installed only in owned local/telemetry-client03 with ordinary community/cosmetic
+recipe,no optional teardown/startup hooks. GameAssembly remains ordinary
+fd67ed32e434838118c669112f4b6c32522b26ad1b2877696555bbdda6bf1728;
+UnityPlayer9e814074e71939b15b1b6d36b5753f797c68b75d536a50a863f535b9252d7f22.
+
+Idle01 passes18.557s,PID43420,thread26104:startup/menu/pre-confirm three complete
+samples;exactly one guarded API false/header unchanged. Constructor baseline is
+dataAbsent/allocator75/count0/encodedcapacity1/marker0. Native five-event Quit
+returns0 naturally1.391s after dispatch,no forced main-process cleanup;source/
+shared TOML unchanged. local/telemetry41-native-idle01/verification.json SHA256:
+47a77007b31affe1f7f7544c5cd3b882a4b99e0d3312d8d664b89d02ed03cfa8
+
+Practice01 passes101.245s,PID41748,thread31552:eight complete samples across
+startup/menu/ingame/postgame/menu/pre-confirm. One guarded device call again
+returns false/header unchanged. Original TryDeck match79631e220f41c808a4acad0f464be4d3
+finishes through result/Continue;bot supply14/nine action records. The retained
+movement-intersection list is empty;this run does NOT establish bot-unit movement.
+Original menu five-event Quit exits0 naturally3.125s after dispatch,no forced
+main-process cleanup;bound sources/shared TOML unchanged. Report SHA256:
+2c9b8c3dd2a37d7f5f45a2b82bb8354c283d50392a8f7149da44d0d1682a7987
+Neither report proves all descendant/job shutdown or continuous network absence.
+
+Twenty focused parser/trace rejection checks pass0.026s. Full Python563 tests
+547pass/16skip,111.064s,exit0 in local/telemetry41-python-tests01.txt. Asset-free
+tests remain separate from these native proofs. A subsequent source-comment-only
+clarification distinguishes read-only sampling from the opt-in active API call;
+helper41-02 rebuild/control evidence follows.
+
+Final comment clarification / same-code no-telemetry control
+Build02 again passes all11 C++ programs/six atomic boundaries. Final helper:
+456173c1ee94c2ead5c71e6963ab953d4c3684146eceb0d1c6b436234a72a342
+Receipt7cd87ff19b5282f86ecc50e89afedf707611e92313a17362d0279640b76d3cd6
+Ignored local/compare-telemetry41-builds.py reconstructs the one old comment and
+matches build01's source digest;all other bound inputs/compiler/SDK are identical.
+Its first COFF-only timestamp comparison fails:four differing
+bytes,including a debug timestamp outside its COFF-only range. Retained report
+telemetry41-build-equivalence-first-failed.json SHA256:
+a117b62ed36b9fe48df4cfb2c599453d66e41227da8e5a9acce3395cae01bf48
+This is not a passing comparison. Follow-up independently parses the optional
+header/section mapping/debug directory:one28-byte type13 directory entry whose
+timestamp equals its image COFF timestamp. Microsoft documents that field at
+debug-entry offset4,not as executable code:
+https://learn.microsoft.com/en-us/windows/win32/debug/pe-format#debug-directory-image-only
+All1612800 bytes agree except four byte differences INSIDE the two independently
+parsed timestamp fields at[272,276) and[1481876,1481880). Executable code,all
+other data,imports,unwind,relocations and export entries agree byte-for-byte;
+no general exclusion of debug or
+data sections. local/telemetry41-build-equivalence02.json SHA256:
+20d2359022e966ff089a8e2502f5e231cbb99e766f0f50b0d8bc22a1f5289c96
+Old runtime reports remain bound to build01's actual SHA;this is byte-equivalence
+evidence for the comment-only rebuild,not a relabelled native run.
+
+Build02 same ordinary recipe additionally runs with BOTH telemetry flags absent,
+using only the explicit native-Quit smoke. local/telemetry41-native-ordinary02
+passes18.483s,natural original five-event Quit0,no forced main-process cleanup,
+bound sources/shared TOML unchanged. Independent no-telemetry-control.json binds
+the report/native log/helper and requires absence of both flags and all telemetry
+sample/API/pre-confirm markers. This control is not an ordinary automatic-Quit
+feature or another graphical manual acceptance. Frozen manual35/packages remain
+unchanged;owned03 now uses this ordinary-recipe build02 helper.
+Ordinary02 verification SHA256:
+955f14d98ec5c72c548ca5113f19be5fbe53e488fc2edd90cdb1781f8b05b475

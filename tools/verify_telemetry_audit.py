@@ -12,7 +12,7 @@ import re
 
 from client_patch.patcher.telemetry import COMPONENTS
 
-STAGES = frozenset(('startup-after-engine-init', 'menu', 'ingame', 'postgame', 'tutorial'))
+STAGES = frozenset(('startup-after-engine-init', 'menu', 'ingame', 'postgame', 'tutorial','pre-quit-confirm'))
 DEFAULT_STAGES = ('startup-after-engine-init', 'menu', 'ingame', 'postgame',
                   'menu', 'ingame', 'postgame')
 FIELDS = {
@@ -118,6 +118,8 @@ def verify_lines(lines, *, expected_sha256, required_stages=DEFAULT_STAGES):
         fail('missing_or_multiple_builds')
     if active is not None:
         fail('incomplete_final_snapshot')
+    if 'pre-quit-confirm' in stages and (stages.count('pre-quit-confirm')!=1 or stages[-1]!='pre-quit-confirm'):
+        fail('duplicate_or_nonfinal_quit_boundary')
     # Repeated samples in one state must not count as distinct result entries.
     entries = [stage for i, stage in enumerate(stages) if not i or stage != stages[i - 1]]
     cursor = 0

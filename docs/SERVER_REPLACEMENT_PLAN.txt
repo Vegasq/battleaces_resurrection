@@ -4,6 +4,14 @@ Target: Battle Aces build 37822, Windows x64 server and clients.
 Status: IMPLEMENTATION ACTIVE. See STATUS.txt; incomplete phases remain future work.
 
 Current release integration order (2026-10-19)
+- Telemetry41 closes bounded device-entry and pre-original-Quit evidence gaps:
+  one fully guarded no-argument device API returns false with unchanged sampled
+  config,while final read-only fields precede same-thread original confirmation.
+  Idle and TryDeck/result/Continue/natural main-process Quit pass;no-telemetry
+  control and full regression pass. Diagnostics remain opt-in/owned/default-off.
+  Complete removal/internal callers/QueueConfig/cache/error/crash/CEF/continuous
+  network/descendant/full-mode gates stay OPEN and RUNTIME_VALIDATED stays false.
+  See telemetry-prequit.txt;no ordinary automatic game/Quit actions are added.
 - Active-match console40 development control now passes two original-native
   matches through the actual unchanged clean39 Start Server.exe:two scripted
   peers/40 identical frames each,Ctrl+C/natural worker0,EOF,port/state lock release,

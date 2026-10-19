@@ -276,3 +276,13 @@ NullReferenceException/IndexOutOfRangeException/InvalidOperationException lines;
 this is a bounded log check, not a claim of globally error-free operation. Normal
 writable profiles, full collection/network/child-process absence and shutdown
 remain unqualified. Complete-set RUNTIME_VALIDATED stays false.
+
+FOLLOW-UP41 (2026-10-19):new opt-in owned diagnostics now qualify one guarded
+no-argument device API false/unchanged sampled config and a read-only sample
+immediately before original Quit confirmation. Idle and practice/result/Continue
+both exit naturally0 with exact five-event original callbacks and bound sources/
+shared TOML unchanged. A same-code no-telemetry control also passes. These are
+separate new native reports,not an upgrade of p2-telemetry04's forced cleanup.
+See telemetry-prequit.txt for sources/hashes/constructor-state prerequisites and
+the retained comparison failure. Actual teardown objects,complete network/file/
+descendant/error/crash/CEF/full-mode coverage remain open;RUNTIME_VALIDATED=false.

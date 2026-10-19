@@ -113,12 +113,17 @@ RUNTIME_VALIDATED remains false; recipe2 evidence is not attributed to recipe3.
 
 OPEN WORK
 
-- Complete normal Quit and the wider lifecycle/error/profile coverage for the
-  new helper/recipe. Disposable two-match sampled-stage coverage, gameplay and
-  rollback have the scoped evidence above; no shutdown sample is implemented.
+- Complete wider lifecycle/error/profile/descendant/actual-teardown coverage.
+  Diagnostic41 now qualifies an owned read-only pre-original-Quit-confirm sample
+  with subsequent natural main-process exit,through idle and TryDeck/result/
+  Continue. It precedes teardown;it does not sample destroyed engine objects.
+  Earlier two-match/rollback evidence keeps its older exact helper/source scope.
 - Qualify explicit API behavior using validated signatures and meaningful
   synthetic arguments; do not mistake a null-argument validation return for a
   disabled collection sink. The stripped managed methods constrain the approach.
+  The exact no-argument device entry now has a bounded complete-recipe3 false/
+  unchanged sampled config probe with marker0. QueueConfig representations and
+  internal bypasses stay unresolved. See telemetry-prequit.txt for exact evidence.
 - Determine other writers/callers of the configuration storage and collector;
   early API guards do not establish that no internal caller bypasses them.
 - Complete writable clean/existing-profile, cached-report, reconnect, controlled

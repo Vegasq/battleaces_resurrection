@@ -2,6 +2,20 @@ IMPLEMENTATION LEDGER
 Updated: 2026-10-19 UTC
 Active objective: implement SERVER_REPLACEMENT_PLAN.txt, Windows only.
 
+TELEMETRY DEVICE / PRE-QUIT41 (2026-10-19 UTC, BOUNDED NATIVE PASS)
+Complete recipe3 now has a guarded no-argument device-info API probe in an owned
+initialized menu,plus a separate read-only pre-original-Quit-confirm sample.
+Idle18.557s and practice/result/Continue101.245s pass with3/8 complete samples,
+one guarded API false/unchanged sampled config each,original five-event Quit0
+and natural main-process exits,no forced main-process cleanup. Broader process/
+network/internal caller/QueueConfig/error/crash/CEF/full-mode scope stays OPEN;
+RUNTIME_VALIDATED remains false. Practice movement intersection is empty and is
+not promoted to movement proof. Final build02 differs only at parsed PE timestamp
+fields after one comment clarification;separate no-telemetry flag control passes
+18.483s. Full Python563 tests547pass/16skip,111.064s;all11 C++ programs/six atomic
+boundaries pass. Exact sources/reports/retained comparison failure and next gaps
+in telemetry-prequit.txt. Owned03 uses build02;manual35/frozen packages preserved.
+
 ACTIVE-MATCH CONSOLE40 (2026-10-19 UTC, DEVELOPMENT PASS / OWNER TLS PENDING)
 External --active-match verifier now starts the actual unchanged clean39 native
 entry twice with the same port/data/profiles. Each pair of scripted protocol3

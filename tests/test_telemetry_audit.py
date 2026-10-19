@@ -25,6 +25,14 @@ def fixture(stages=DEFAULT_STAGES):
 
 
 class TelemetryAuditTests(unittest.TestCase):
+    def test_pre_quit_must_be_a_single_final_snapshot(self):
+        path=DEFAULT_STAGES+('pre-quit-confirm',)
+        self.assertTrue(verify_lines(fixture(path),expected_sha256=SHA,required_stages=path)['passed'])
+        for stages in (path+('menu',),path+('pre-quit-confirm',)):
+            result=verify_lines(fixture(stages),expected_sha256=SHA,required_stages=path)
+            self.assertFalse(result['passed'])
+            self.assertIn('duplicate_or_nonfinal_quit_boundary',[error['code'] for error in result['errors']])
+
     def check(self, lines):
         return verify_lines(lines, expected_sha256=SHA)
 

@@ -11,6 +11,47 @@ from tools import verify_native_quit as quit_probe
 
 
 class NativeQuitVerifierTests(unittest.TestCase):
+    def telemetry_fixture(self,*,practice=False):
+        from tests.test_telemetry_audit import fixture,SHA
+        path=('startup-after-engine-init','menu')
+        if practice:path+=('ingame','postgame','menu')
+        path+=('pre-quit-confirm',)
+        count=len(path)
+        lines=fixture(path)+[
+            '[110] TELEMETRY PREQUIT boundary: thread=17 samplesBefore='+str(count-1)+' samplesAfter='+str(count)+' readOnly=1 originalConfirmNext=1',
+            '[111] NATIVE QUIT original confirmation dispatch: thread=17 worldIdle=1 assetLoadingCount=0 naturalExitDeadlineSeconds=60']
+        return '\n'.join(lines),[dict(event='OnConfirm.dispatch',tick=111,thread=17)],SHA
+
+    def test_telemetry_pre_quit_boundary_precedes_same_thread_original_confirmation(self):
+        text,rows,sha=self.telemetry_fixture()
+        self.assertTrue(quit_probe.telemetry_evidence(text,rows,sha)['same_original_quit_thread'])
+        self.assertTrue(quit_probe.telemetry_evidence(text.replace('[111] NATIVE QUIT','[112] NATIVE QUIT'),rows,sha)['passed'])
+        for changed in (text.replace('thread=17 samplesBefore','thread=18 samplesBefore'),
+                        text.replace('[110] TELEMETRY PREQUIT','[112] TELEMETRY PREQUIT'),
+                        text.replace('samplesBefore=2','samplesBefore=1')):
+            with self.subTest(changed=changed[-240:]),self.assertRaises(AssertionError):
+                quit_probe.telemetry_evidence(changed,rows,sha)
+
+    def test_practice_telemetry_needs_result_and_returned_menu_before_quit(self):
+        text,rows,sha=self.telemetry_fixture(practice=True)
+        self.assertTrue(quit_probe.telemetry_evidence(text,rows,sha,after_practice=True)['passed'])
+        text,rows,sha=self.telemetry_fixture()
+        with self.assertRaises(AssertionError):quit_probe.telemetry_evidence(text,rows,sha,after_practice=True)
+
+    def test_device_probe_requires_one_matching_guarded_call_before_quit(self):
+        text,rows,sha=self.telemetry_fixture()
+        call='[102] TELEMETRY DEVICE probe passed: version=1 thread=17 calls=1 returned=0 mainStable=1 disabledFieldsUnchanged=1 rawHeaderUnchanged=1 markerBefore=0 markerAfter=0 configCount=0 payloadRead=0'
+        # Place the active probe in the menu,not inside the final sample.
+        text=text.replace('[103] Telemetry audit',call+'\n[103] Telemetry audit',1)
+        self.assertTrue(quit_probe.telemetry_evidence(text,rows,sha,device_probe=True)['device_api_guarded_false_and_sampled_config_unchanged'])
+        for changed in (text.replace(call,''),text.replace(call,call+'\n'+call),
+                        text.replace('returned=0','returned=1'),text.replace('markerBefore=0','markerBefore=1'),
+                        text.replace('calls=1 returned','calls=2 returned'),
+                        text.replace(call,call.replace('[102]','[104]')),
+                        text.replace('thread=17 calls','thread=18 calls')):
+            with self.subTest(changed=changed[-240:]),self.assertRaises(AssertionError):
+                quit_probe.telemetry_evidence(changed,rows,sha,device_probe=True)
+
     def test_old_process_trace_cannot_start_current_quit_deadline(self):
         row=dict(pid=42,tick=1000,event='OnConfirm.dispatch',thread=9)
         raw=(json.dumps(row)+'\n').encode()

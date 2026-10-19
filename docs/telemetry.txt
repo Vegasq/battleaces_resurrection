@@ -233,3 +233,12 @@ unchanged byte span. Recipe3 repeated these16 tests plus installer/package tests
 These checks do not execute the game or qualify network behavior.
 No original files, full disassembly, metadata, SDK keys, assets,
 runtime logs or captures belong in this repository; recipes use narrow guards.
+
+Bounded native follow-up41:telemetry-prequit.txt records the fully guarded
+no-argument device entry's false return/unchanged sampled configuration state
+and separate read-only pre-original-Quit fields through idle and practice/result/
+Continue/natural main-process exit. These opt-in owned diagnostics leave the
+ordinary flow off. QueueConfig/internal callers and complete collection/network/
+cache/error/crash/CEF/descendant/release matrix remain unresolved;the complete-set
+RUNTIME_VALIDATED flag remains false. Do not promote these sampled controls to
+a statement that every analytics path has been removed.
