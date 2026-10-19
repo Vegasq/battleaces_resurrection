@@ -11,6 +11,26 @@ from tools import verify_native_quit as quit_probe
 
 
 class NativeQuitVerifierTests(unittest.TestCase):
+    def test_old_process_trace_cannot_start_current_quit_deadline(self):
+        row=dict(pid=42,tick=1000,event='OnConfirm.dispatch',thread=9)
+        raw=(json.dumps(row)+'\n').encode()
+        with self.assertRaisesRegex(AssertionError,'another process/run'):
+            quit_probe.current_trace_rows(raw,43,1001)
+        with self.assertRaisesRegex(AssertionError,'another process/run'):
+            quit_probe.current_trace_rows(raw,42,1001)
+        self.assertEqual(quit_probe.current_trace_rows(raw,42,999),[row])
+        self.assertEqual(quit_probe.current_trace_rows(raw[:-1],42,999),[])
+
+    def test_restart_refuses_existing_trace_before_launch(self):
+        root=Path(__file__).resolve().parents[1]/'local'/('quit-trace-'+uuid.uuid4().hex)
+        root.mkdir();self.addCleanup(shutil.rmtree,root)
+        target=root/'quit-trace.jsonl'
+        quit_probe.require_fresh_trace(target)
+        target.write_text('{"event":"OnConfirm.dispatch","pid":42,"tick":1000}\n')
+        with self.assertRaisesRegex(AssertionError,'fresh trace path'):
+            quit_probe.require_fresh_trace(target)
+        self.assertIn('OnConfirm.dispatch',target.read_text())
+
     def test_already_exited_process_cannot_pass_after_the_deadline(self):
         with self.assertRaisesRegex(AssertionError,'within60s'):
             quit_probe.observe_exit(Mock(poll=Mock(return_value=0)),1000,lambda:61000)

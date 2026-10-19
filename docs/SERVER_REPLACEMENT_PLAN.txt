@@ -25,6 +25,15 @@ Current release integration order (2026-10-19)
   Complete backup-failure,restart/full-mode,playback,cloud/network/package gates. See
   client-storage-isolation.txt. A separate diagnostic guest-observer timing race
   must not be misdiagnosed as a disabled native Continue button.
+  Full-match corrupt-backup characterization exposes a later overwrite despite
+  unchanged bytes at menu startup. Final candidate helper21 protects rejected
+  input,restores complete original temporary defaults and publishes original
+  JSON atomically. Malformed/locked/read-only and explicit repaired same-profile
+  native gameplay/restart/Continue/Quit now pass,including native Write Boolean
+  results and deferred original notices. Ordinary startup also passes. Null-list
+  input is native-accepted compatibility;it does not prove a partial Set fault.
+  Proceed to fresh packaged gameplay/upgrade and remaining full-mode,cloud,
+  network,manual and clean/cross-PC acceptance before final promotion.
 - Native original serialization now stages/flushes/publishes a complete isolated
   TOML by handle;eleven C++ programs and six owned process-interruption controls
   pass. Current native write-error/retry/restart,input compatibility and AI/

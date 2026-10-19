@@ -71,6 +71,13 @@ Required before a general release
     A controlled original directory exception preserves Continue/Quit,and one
     tutorial bit survives native JSON load/write. Backup failures,full readback/
     restart/mode/cloud/network/package controls remain open.
+    Helper21 additionally qualifies malformed/locked/read-only input and an
+    explicit repaired same-profile restart through AI/results/Continue/two
+    natural Quits. Original Write Boolean agrees with actual publication;
+    complete native defaults compare equal and prior bytes survive refusal.
+    Repaired seeded native progress survives read/write. Current ordinary
+    startup passes. Remaining full-mode/native-playback/directory/ACL/disk,
+    cloud/network/final-package/manual/cross-PC controls keep this gate open.
 [ ] Build fresh source-only client patch/server archives with exactly one Start
     Client and one Start Server entry point. Validate install,upgrade,restore,
     config relocation,logs,missing/corrupt files and normal Quit/save persistence.

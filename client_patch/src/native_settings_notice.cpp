@@ -7,6 +7,8 @@ namespace ui=ba_practice_settings_ui;
 static const char* title="Settings could not be saved";
 static const char* body="A settings save failed. Your changes may not survive a restart. Check that the game folder is writable, then try saving again.";
 static unsigned long long handled=0;
+static unsigned long long handledBackupRead=0;
+static bool backupSaveAcknowledged=false;
 struct Notice {
     Root controller,pool,dialog,lifetime,model,titleReference,bodyReference;
     std::unique_ptr<Root> titleLocalizer,bodyLocalizer,titleLabel,bodyLabel;
@@ -173,13 +175,26 @@ static void inspectBody() {
         ba_catalog::unbox<int>(sorting.get()),ba_catalog::unbox<bool>(overrideSorting.get()),labelCanvas.get()==canvas.get(),ba_catalog::unbox<bool>(rootEnabled.get()));
 }
 static void update(Obj front) {
+    if(ba::flag(L"-native-backup-write-smoke") && safe(front)) {
+        try {ba_native_backup::writeProbe();}
+        catch(const std::exception& error){ba_native_storage::fatal(error.what());}
+    }
     const auto failures=ba_native_settings::saveFailures.load();
-    if(!current && (ba_native_settings::lastSaveSucceeded.load() || failures==handled)){handled=failures;return;}
+    const auto rejected=ba_native_backup::readFailures.load();
+    if(ba_native_backup::lastSaveSucceeded.load())backupSaveAcknowledged=false;
+    const bool backupRead=rejected>handledBackupRead;
+    const bool backupSave=!rejected && !ba_native_backup::lastSaveSucceeded.load() && !backupSaveAcknowledged;
+    const bool settings=!ba_native_settings::lastSaveSucceeded.load() && failures!=handled;
+    if(!current && !backupRead && !backupSave && !settings){handled=failures;return;}
     if(!ba_native_settings::session || !safe(front))return;
-    const bool smoke=ba::flag(L"-native-settings-notice-smoke");
+    const bool settingsSmoke=ba::flag(L"-native-settings-notice-smoke");
+    const bool backupSmoke=ba::flag(L"-native-backup-notice-smoke");
+    const bool smoke=settingsSmoke || backupSmoke;
     try {
-        if(smoke)ui::require(ba::flag(L"-native-settings-write-smoke") &&
+        if(settingsSmoke)ui::require(ba::flag(L"-native-settings-write-smoke") &&
             ba_native_settings::session->profile().rfind("nativestest_",0)==0,"settings notice smoke requires an owned writer fixture");
+        if(backupSmoke)ui::require(ba_native_backup::state &&
+            ba_native_settings::session->profile().rfind("nativestest_",0)==0,"backup notice smoke requires an owned input fixture");
         if(!current) {
             Root controller(ba::get<Obj>(ba::owner,"<UIPopupController>k__BackingField")),menu(ba::get<Obj>(ba::owner,"<UIMenuController>k__BackingField"));
             ui::require(ui::exact(controller.get(),"Uncapped.UI","UIPopupController") && ba::read<Obj>(controller.get(),0x10) && ui::active(controller.get()),"settings notice controller unavailable");
@@ -189,10 +204,24 @@ static void update(Obj front) {
                 !ba::get<bool>(descriptor.get(),"_overrideCanvasLayer") && !ba::get<Obj>(descriptor.get(),"_parent"),"settings notice controller/pool mismatch");
             if(ba::get<Obj>(controller.get(),"_simpleDialogObject") || ba::get<Obj>(controller.get(),"_spinnerDialogObject"))return;
             Root navigation(ba::get<Obj>(ba::owner,"<NavigationStack>k__BackingField"));if(ba_native_quit::navCount(navigation.get()))return;
+            if(backupRead) {
+                title="Menu data could not be loaded";
+                body="Your menu data was kept unchanged. You can play with temporary menu progress. Close the game and restore this profile's menu backup before restarting to save menu progress again.";
+            }else if(backupSave) {
+                title="Menu data could not be saved";
+                body="Your last saved menu data was kept. New menu progress may not survive a restart. Check that the game folder is writable, then try again.";
+            }else {
+                title="Settings could not be saved";
+                body="A settings save failed. Your changes may not survive a restart. Check that the game folder is writable, then try saving again.";
+            }
             Root t(ba::make("UnityEngine.Localization","LocalizedString")),b(ba::make("UnityEngine.Localization","LocalizedString"));
             void* args[]={t.get(),b.get()};ba::call(controller.get(),"ShowSimpleDialog",2,args);
-            current=std::make_unique<Notice>(controller.get(),pool.get(),t.get(),b.get());handled=failures;
+            current=std::make_unique<Notice>(controller.get(),pool.get(),t.get(),b.get());
+            if(!backupRead && !backupSave)handled=failures;
+            if(backupRead)handledBackupRead=rejected;
+            if(backupSave)backupSaveAcknowledged=true;
             ui::require(current->dialog.get() && current->lifetime.get(),"settings notice original Show returned no dialog");
+            ba::log("NATIVE SETTINGS notice source: backupRead=%d backupSave=%d settings=%d",backupRead,backupSave,!backupRead && !backupSave);
             ba::log("NATIVE SETTINGS notice dispatched: failures=%llu writerCallback=0 unityThread=1 BA_RESURRECTION_NATIVE_SETTINGS_NOTICE_V1",failures);
             return;
         }

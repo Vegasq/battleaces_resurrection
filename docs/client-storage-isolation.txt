@@ -270,3 +270,212 @@ read-only/missing/corrupt owned paths,postgame Continue and native Quit. Shared
 original files must remain unchanged;do not import them silently. Check native
 UI/practice state and remaining analytics callbacks independently. Keep final
 package/manual/clean-machine/Internet acceptance open until these pass.
+
+Malformed backup preservation (2026-10-19, qualification in progress)
+The menu-only control is insufficient. Helper18 with a six-byte authored
+malformed JSON reaches the menu in10.753s without changing it. The same profile
+then completes AI/result/Continue/original Quit naturally0 in99.993s,but the
+original writer replaces those six bytes with394 bytes of default JSON.
+This is a real preservation failure,not a startup failure or a successful
+corruption acceptance test. Both controls leave all three shared inventories
+unchanged. Retain both reports:
+local/native-backup-input19-characterize01/characterization.json SHA256
+5fc5620c6d663db584c52c54bd74e662f1823bb035805e58e019bc70d10dfa2e
+local/native-backup-input19-after-match01/characterization.json SHA256
+e0d8b2db2366a0ba45e2a8ec1bb94d5b3c66dc3bdfea5c0b6557adde5d17b7e5
+
+Independent pinned-original contract03 establishes that Reset3e7ae60 does not
+reset quest lists. Fresh Tailored ctor3e7d520 -> original BuildSerializedData
+3e7b5a0 -> existing accessor SetFromSerializedData3e7af10 constructs complete
+temporary defaults while retaining accessor/account/DataChanged identity.
+None of ctor/Build needs an account/inventory dependency. Failed construction
+or application must stop initialization rather than retain partial input.
+Reference Init Read CALL26302be passes the actual inflated Read MethodInfo inR8.
+Only the concrete Tailored reference instantiation was recovered;the fully
+shared initializer is a different indirect call and is not patched here.
+Unknown writers are refused before publication,not forwarded to shared paths.
+Both original File.WriteAllText CALLs2631631/263362b receive already-native JSON.
+Decoded original MSVC FH4 tables place both calls in a region catching
+Il2CppExceptionWrapper,checking System.Exception,logging and returning false.
+Original il2cpp_raise_exception throws that same wrapper. This static contract
+is not runtime unwinding acceptance. No noexcept/catch-all may swallow it.
+local/native-tailored-storage-contract03/FINDINGS.txt SHA256
+c99e04e43296fee49ff3e131d42b4ad5e11bdf4725b163b952cc5ebefe4267fa
+local/native-tailored-storage-contract03/manifest.json SHA256
+e487e734996e4b36e228d1a0507799dfd06620eb591b220cbf8aee6792d67cdc
+
+Candidate helper19 pins an existing input through original read. Rejected,
+unreadable,empty,oversized or unsafe input remains refused for the session;
+removing an external lock cannot authorize writing unread data. Missing input
+permits original defaults and future saves. Native-accepted input releases its
+read pin. Complete original defaults restore rejected in-memory state before
+Init subscribes DataChanged. Native serializer output goes through original
+WriteAllText to a same-directory temporary,flush and handle rename. Failure
+raises a managed IOException into original Write's catch instead of faking a
+void-call success. No in-place fallback/import/orphan recovery. Deferred original
+prefab89 warns once per unreadable-input session or save-failure episode.
+Ordinary acknowledgment remains manual;only explicit owned smoke can capture
+and acknowledge. Installer/ordinary-launch/package capabilities require this
+protection. Eleven C++ programs including read-pin/locked-input/restart checks
+and48 focused Python checks pass;native/failure qualification is still pending.
+
+Helper19 runtime controls now pass:
+- Fresh original native JSON publication,AI/result/Continue/natural Quit0:
+  104.886s native,105.412s total. Same-directory atomic publication is observed;
+  one original replay structurally decodes. Shared three-channel inventories
+  and covered sources stay unchanged. This is a fresh/default control,not a
+  seeded input/restart test.
+  local/native-backup19-healthy01/verification.json SHA256
+  40eeb39f002f1953eb40f063b783a0fdb44bf5de9e805d30f91223d48bb29261
+- Malformed six-byte input survives AI/result/Continue/natural Quit0 unchanged:
+  99.805s native,100.008s total. Original ctor/builder/setter runs;later writes
+  raise managed IOException,which original writer catches/logs. No JSON
+  publication;one native replay still structurally decodes. One deferred
+  original prefab89 renders both labels,captures,acknowledges through original
+  OK,releases/restores/reuses its pool entry. PNG visually inspected:readable
+  title/body/OK,three body lines,one page. Shared three-channel inventories and
+  sources unchanged. This control does not directly sample original Write's
+  Boolean or compare every applied default field;subsequent helper21 diagnostics
+  add those checks. Ordinary launch never adds either diagnostic flag.
+  local/native-backup19-malformed01/verification.json SHA256
+  8d600c493315124d79b85a08a5db2495041e37c015999f9a85193abc3f095556
+Helper19 DLL SHA256
+8b7b6f667225486da96aa2f2f1a434a152f020b9da568e6b1e94f2221be9bd82
+receipt SHA256
+3bfdad402f58866a98eb68d6b1f139fe337f55af9fa7e5dcd58122557339ad21
+Full Python suite476 tests,462 pass/14 skip,95.451s,explicit exit0.
+Candidate21 also compares original JSON of fresh defaults with the live
+accessor's original Build output after reset. Its explicit owned writer probe
+invokes original Write(false) through its actual MethodInfo,checks the boxed
+Boolean against publication and requires no escaping managed exception. Read
+logs distinguish skipped preflight reads from actual original deserialization.
+Native21 partial/null data,read-only,locked,healthy/repaired restart and final
+package acceptance remain pending. Do not promote the preview based on19 alone.
+
+Null-list correction (preserve the failed expectation)
+local/native-backup21-partial01/verification.json remains FAILED,102.109s,
+SHA256 a74e66eabf220e7fa372ade2c5a7d941f0e2e1b2f9bc177cdb9dfc7606621d7f.
+Its nested native AI/result/Continue/natural Quit passes101.554s. The authored
+NewQuestsList=[1234567],CompletedQuestsList=null JSON is ACCEPTED by original
+Read;original Write returns true and publishes. The outer assertion wrongly
+expects a refused write. This is a fixture/expectation error,not evidence that
+a refused write reports success. Do not rewrite the failed report or invent a
+stricter JSON schema merely to make that expectation pass.
+Independent contract04 confirms a conditional actual typed-null array pointer
+can throw after earlier Set stores,but no disk JSON carrier for that pointer
+state is established. JsonUtility's engine coercion/normalization is unresolved.
+Actual Data=null/wrong managed type causes Set's early no-op;actual bot-setting
+null is copied rather than rejected there. Those are separate compatibility/
+later-state questions,not proof of a partial Set failure in this fixture.
+local/native-tailored-storage-contract04/FINDINGS.txt SHA256
+d273d84f33c01f1c2da5b8c01b5b7460b58558ecc94375fd90fc7d8a49f217fe
+manifest.json SHA256
+00c1d02a3f87faba6ba2bdbd37f5bbc073a82588dbaa1a646eef2845ab7bf298
+Helper21 full Python476 tests again passes462/14skip,96.793s,explicit exit0.
+
+Retained restart verifier failures (do not count as acceptance)
+local/native-backup21-malformed01/verification.json SHA256
+56dd3463d7131bf0e30052e1727b4fc9f32c64bf9d9da55ec4e5c59818ccfbfa
+has an INVALID outer passed=true alongside an error. First native malformed
+cycle actually passes100.431s with input unchanged,complete original default
+readback and original Write Boolean false. Its repaired process accepts the
+repaired input and writes successfully,but is forcibly stopped59.140s later
+by a stale PREVIOUS-PROCESS Quit dispatch timestamp. No current Quit callback
+had occurred. Native diagnostic trace uses CREATE_NEW;the same-profile restart
+must archive the completed prior diagnostic before starting a new one.
+The backup runner also set passed too early and failed to clear it on a later
+repair error. Both diagnostic bugs are now fixed:final success is recorded only
+after every requested phase;exceptions explicitly clear it. The Quit runner
+refuses any existing trace before launch and rejects another PID/run's rows
+before reading dispatch/deadline events. The repair harness archives only the
+exact trace of its completed,naturally exited,reaped prior owned process.
+Two regression tests and54 focused checks pass. The historical false-pass JSON
+is retained unchanged,explicitly invalidated here;corrected02 is a fresh run.
+The exposed partial case is replaced by null-list compatibility;no known-false
+partial-failure expectation remains offered by the current runner.
+
+Helper21 read-only native control passes103.876s/104.097s total,original Write
+Boolean false,managed exception-out0,one original save warning/pool reuse,
+unchanged prior backup and one structurally decoded native replay. AI/result/
+Continue/natural Quit0 work. Shared inventories and covered sources unchanged;
+authored read-only attributes restored. Save warning PNG visually inspected:
+readable original title/body/OK,two body lines. This is a file-attribute denial,
+not proof of all ACL/folder/disk-full failures or same-session retry.
+local/native-backup21-readonly01/verification.json SHA256
+6156ae73f68a87e28f5ccb578a76ba0a4b25410bee270f33dc5c49f4c2808fde
+
+Helper21 locked-input control also passes103.438s/103.653s total. The original
+read is correctly marked skipped after preflight denial,complete original
+defaults compare equal,the original writer returns false without escaping a
+managed exception,and one load warning is acknowledged/released/reused.
+AI/result/Continue/natural Quit0 work;locked backup stays byte-for-byte intact,
+the owned external handle is closed,and shared inventories/sources unchanged.
+Removing an external lock during a refused session stays unadmitted in the
+C++ regression;this runtime control holds its lock through native Quit.
+local/native-backup21-locked01/verification.json SHA256
+d140209fea91c05f37083724535cefd873bcd8de7465494eafb5826d00795c78
+
+Independent reanalysis of the retained null-list control passes compatibility
+checks without a new game run:exact authored carrier hash,original Read true,
+original Write true,final CompletedQuestsList serialized as an array,seeded
+tutorial bit retained,natural Quit and unchanged shared channels. The earlier
+outer failed expectation is still preserved. This does not establish engine
+normalization generally or simulate a typed-null/partial Set exception.
+local/native-backup21-null-compatibility01/verification.json SHA256
+1b32d66cfc809e671b12d120a05114cb618d9f853fac40e87607aeb284d18d2e
+Final candidate helper21 DLL SHA256
+01adfa4a9f62db67833cb4e8eec3ee725e8408e933933329961a9f97301ee0b0
+build receipt SHA256
+45cfb20b65bf410e7538eb1fdc7ad7250047ecdda0994e739a21701279c00560
+Same-profile repaired native gameplay/Quit and current ordinary startup are
+still being checked. Final package/full-mode/cloud/network/manual/clean-PC/
+Internet acceptance remain open. Old manual/frozen archives are unchanged.
+
+Corrected final helper21 acceptance (current source candidate)
+Fresh malformed02 passes204.323s total:initial AI/result/Continue/natural Quit0
+103.355s with rejected bytes unchanged,then explicit repair of OUR fixture,
+archive of OUR exact completed trace,and a new process in the SAME profile.
+Second AI/result/Continue/natural Quit0 passes100.552s. Original initial Read is
+true after repair;original Write returns true,changes native LastEditDateTime
+and retains seeded tutorial bit1048576. No stale warning or refused write in
+the repaired process. Both phases use original bot/combat/results/Continue/Quit;
+no forced cleanup. First rejected phase checks original Write=false without
+escaping managed exception and complete original default readback equality.
+All three shared inventories and covered sources unchanged.
+local/native-backup21-malformed02/verification.json SHA256
+9ce64fda0a82733d15ef534f42be7b8501535a699df59bddee66f637028719cb
+
+Ordinary actual unified client.main,no-config/no-server startup passes with
+the current helper/recipe14.072s total. Actual ordinary options contain no
+automated build/surrender/Continue/camera/capture or writer-probe flags. Menu
+reached with public/cosmetic features retained;covered sources and three shared
+inventories unchanged. Owned cleanup is forced,not native Quit or packaged
+Start Client.cmd acceptance.
+local/native-backup21-ordinary01/verification.json SHA256
+408bf6906892cccef5379ae1fe22e1ee03bb82bde916acf06cfbfea1d64cc252
+Full current Python478 tests,464 pass/14skip,101.120s,explicit exit0:
+local/native-backup21-final-suite.txt and final-suite-exit.json.
+Eleven C++ programs and six atomic publication process-interruption boundaries
+pass in the bound helper21 receipt. Fifty-four focused installer/launcher/
+packaging/Quit tests also pass9.300s after the verifier fixes. No subsequent
+covered source edit occurred during the accepted native controls.
+Final package/native playback/full-mode/cloud/network/permission/disk/manual/
+clean-PC/Internet acceptance remains open;this is a source candidate,not a
+completed community release or a universal zero-traffic guarantee.
+
+Recovery policy for the candidate backup guard
+This channel contains menu progress/badges/tutorial/practice state;it is not
+the native TOML deck/options file or the separate cosmetic selection file.
+The affected file is under the CLIENT installation:
+.battleaces-resurrection/profiles/<local_profile>/StorageSyncBackup/
+A3079428-5DC5-4617-AF2D-0C8656DA760B
+Keep a copy of rejected bytes. Close all clients using that profile before
+repairing/restoring this file from a known good backup. Restart the client to
+perform a new original read;acknowledging the warning does not authorize an
+overwrite or repair. Removing a file lock mid-session also does not admit
+unread input. A deliberately absent backup starts with original menu defaults
+and can save new progress;removal discards that channel's prior state and is
+an explicit operator choice,never an automatic repair. Do not substitute the
+shared AppData file or a different person's/profile's data. For write-only
+failures,restore normal file/folder write access and retry a normal menu save;
+the prior successfully saved bytes remain intact until publication succeeds.

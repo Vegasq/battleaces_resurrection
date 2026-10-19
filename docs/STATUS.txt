@@ -2,6 +2,29 @@ IMPLEMENTATION LEDGER
 Updated: 2026-10-19 UTC
 Active objective: implement SERVER_REPLACEMENT_PLAN.txt, Windows only.
 
+NATIVE BACKUP INPUT/PUBLICATION PROTECTION (2026-10-19 UTC, CANDIDATE)
+Full-match characterization exposes a real helper18 regression:malformed native
+menu backup survives startup but is overwritten after gameplay. Candidate19
+protects rejected bytes through AI/result/Continue/natural Quit0,100.008s,and
+healthy original JSON atomic publication also passes105.412s. Original native
+IOException handling and deferred acknowledgment/pool reuse are observed;the
+warning PNG is visually inspected. Final helper21 also passes read-only104.097s,
+locked-input103.653s and malformed->explicit fixture repair->same-profile new
+process gameplay/Quit204.323s. Complete native-default readback compares equal;
+original Write returns false for refusal and true after repair with no escaping
+managed exception. Original JSON retains a seeded tutorial bit after restart.
+Ordinary real unified/no-config/no-server menu passes14.072s,forced cleanup.
+All shared TOML/replay/backup inventories and covered sources stay unchanged.
+Eleven C++ programs plus six atomic process-interruption boundaries pass;current
+Python478 tests pass464/14skip,101.120s,explicit exit0. Null-list JSON is accepted
+by the original loader;retained compatibility reanalysis corrects a failed
+fixture expectation. A stale prior Quit trace and an early-passed backup report
+expose two verifier bugs;both are fixed,regression-tested and the historical
+false-pass report explicitly invalidated. Fresh corrected repair acceptance
+requires two natural exits. Final package/full-mode/cloud/network/manual and
+cross-PC gates remain open. See client-storage-isolation.txt for evidence and
+recovery instructions. Frozen/manual archives remain unchanged.
+
 NATIVE REPLAY/FUNCTIONAL BACKUP STORAGE (2026-10-19 UTC, IN QUALIFICATION)
 Helper18 redirects native replay and functional UX backup roots into the same
 validated installation/profile as native TOML,retaining original serializers.

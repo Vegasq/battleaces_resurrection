@@ -143,11 +143,11 @@ class SecureLauncherTests(unittest.TestCase):
         path.write_text(json.dumps(manifest))
         with self.assertRaisesRegex(launch.LaunchError, 'complete client patch'):
             launch.verify_game(root, community=True, bridge_version=2, unified=True, player_features=True)
-        helper.write_bytes(helper.read_bytes()+b' BA_RESURRECTION_PUBLIC_QUEUE_V1 BA_RESURRECTION_COSMETICS_UNLOCK_V1 BA_RESURRECTION_COSMETICS_PERSIST_V1 BA_RESURRECTION_NATIVE_DECK_INPUT_V1 BA_RESURRECTION_NATIVE_SETTINGS_ATOMIC_V1 BA_RESURRECTION_NATIVE_STORAGE_V1')
+        helper.write_bytes(helper.read_bytes()+b' BA_RESURRECTION_PUBLIC_QUEUE_V1 BA_RESURRECTION_COSMETICS_UNLOCK_V1 BA_RESURRECTION_COSMETICS_PERSIST_V1 BA_RESURRECTION_NATIVE_DECK_INPUT_V1 BA_RESURRECTION_NATIVE_SETTINGS_ATOMIC_V1 BA_RESURRECTION_NATIVE_STORAGE_V1 BA_RESURRECTION_NATIVE_BACKUP_GUARD_V1')
         manifest['helper_sha256'] = hashlib.sha256(helper.read_bytes()).hexdigest()
         manifest['cosmetics'] = dict(experimental=True, persistence=True)
         manifest['local_settings'].update(deck_input_guard=True, write_publication='original-serializer-flush-handle-rename')
-        manifest['local_storage'] = dict(isolated=True, steam_file_sync='local-only', autosave_exception_boundary=True, autosave_call_sites=4)
+        manifest['local_storage'] = dict(isolated=True, steam_file_sync='local-only', autosave_exception_boundary=True, autosave_call_sites=4, backup_input_guard=True, backup_publication='original-json-text-flush-handle-rename')
         path.write_text(json.dumps(manifest))
         launch.verify_game(root, community=True, bridge_version=2, unified=True, player_features=True)
         for storage in (None, {}, dict(isolated=False, steam_file_sync='local-only', autosave_exception_boundary=True),
@@ -157,7 +157,13 @@ class SecureLauncherTests(unittest.TestCase):
             manifest['local_storage'] = storage;path.write_text(json.dumps(manifest))
             with self.subTest(storage=storage), self.assertRaisesRegex(launch.LaunchError,'complete client patch'):
                 launch.verify_game(root, community=True, bridge_version=2, unified=True, player_features=True)
-        manifest['local_storage'] = dict(isolated=True, steam_file_sync='local-only', autosave_exception_boundary=True, autosave_call_sites=4)
+        manifest['local_storage'] = dict(isolated=True, steam_file_sync='local-only', autosave_exception_boundary=True, autosave_call_sites=4, backup_input_guard=True, backup_publication='original-json-text-flush-handle-rename')
+        complete_storage=dict(manifest['local_storage'])
+        for field,value in (('backup_input_guard',False),('backup_publication',None),('backup_publication','in-place')):
+            manifest['local_storage']=dict(complete_storage,**{field:value});path.write_text(json.dumps(manifest))
+            with self.subTest(field=field,value=value),self.assertRaisesRegex(launch.LaunchError,'complete client patch'):
+                launch.verify_game(root,community=True,bridge_version=2,unified=True,player_features=True)
+        manifest['local_storage']=complete_storage
         for changed in (dict(experimental=False, persistence=True), dict(experimental=True, persistence=False), None):
             manifest['cosmetics'] = changed;path.write_text(json.dumps(manifest))
             with self.subTest(recipe=changed), self.assertRaisesRegex(launch.LaunchError, 'complete client patch'):

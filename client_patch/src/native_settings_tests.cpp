@@ -1,5 +1,6 @@
 #define WIN32_LEAN_AND_MEAN
 #include "native_storage.hpp"
+#include "native_backup_store.hpp"
 #include <iostream>
 #include <functional>
 namespace settings=ba_native_settings;
@@ -110,5 +111,37 @@ static void nativeChildren() {
     check(read(folder+L"\\AutoSaveReplays")=="owned blocker","refused native replay destination changed blocker");
     Directory stillIndependent(owner,Kind::Backup);
 }
-int main(){try{arguments();storage();nativeChildren();std::cout<<"Native settings/storage Unicode paths, writer-lock, isolation, restart, pinned directories and failure checks passed\n";return 0;}
+static void backupAdmission() {
+    Folder first;settings::Session session(first.path,"alpha");
+    ba_native_storage::Directory folder(session,ba_native_storage::Kind::Backup);
+    const auto path=folder.path()+L"\\authored-fixture";
+    {
+        ba_native_backup::Input missing(path);check(missing.prepare(),"missing backup cannot use defaults");
+        check(!missing.writable(),"backup writer admitted before native read");missing.finish(false);
+        check(missing.writable(),"missing backup cannot be saved after defaults");
+    }
+    write(path,"authored native backup");
+    {
+        ba_native_backup::Input invalid(path);check(invalid.prepare(),"existing backup preflight failed");invalid.finish(false);
+        check(!invalid.writable() && read(path)=="authored native backup","rejected backup writable/changed");
+        settings::Handle writer(CreateFileW(path.c_str(),GENERIC_WRITE,FILE_SHARE_READ,nullptr,OPEN_EXISTING,0,nullptr));
+        check(writer.value==INVALID_HANDLE_VALUE && GetLastError()==ERROR_SHARING_VIOLATION,"rejected backup not pinned against later saves");
+        check(!DeleteFileW(path.c_str()),"rejected backup can be deleted during session");
+    }
+    {
+        ba_native_backup::Input accepted(path);check(accepted.prepare(),"restart did not reexamine input");accepted.finish(true);
+        check(accepted.writable(),"original accepted backup cannot be saved");
+        settings::Handle writer(CreateFileW(path.c_str(),GENERIC_WRITE,FILE_SHARE_READ,nullptr,OPEN_EXISTING,0,nullptr));
+        check(writer.value!=INVALID_HANDLE_VALUE,"accepted backup still pinned");
+    }
+    {
+        settings::Handle external(CreateFileW(path.c_str(),GENERIC_READ,0,nullptr,OPEN_EXISTING,0,nullptr));
+        check(external.value!=INVALID_HANDLE_VALUE,"external input lock fixture failed");
+        ba_native_backup::Input locked(path);check(!locked.prepare() && !locked.writable(),"locked input admitted");
+        CloseHandle(external.value);external.value=INVALID_HANDLE_VALUE;
+        check(!locked.writable(),"removing external lock silently admitted unread input");
+    }
+    check(read(path)=="authored native backup","admission checks changed original bytes");
+}
+int main(){try{arguments();storage();nativeChildren();backupAdmission();std::cout<<"Native settings/storage Unicode paths, writer-lock, isolation, restart, pinned directories, backup admission and failure checks passed\n";return 0;}
     catch(const std::exception& error){std::cerr<<error.what()<<'\n';return 1;}}

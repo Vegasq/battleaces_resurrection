@@ -27,7 +27,7 @@ class InstallerTests(unittest.TestCase):
             (self.root / name).parent.mkdir(parents=True, exist_ok=True)
             (self.root / name).write_bytes(content)
         self.helper = self.root / 'synthetic-helper.dll'
-        self.helper.write_bytes(b'MZ authored helper test fixture BA_RESURRECTION_RECOVERY_V1 OfflineMatchResultContinue\0 BA_RESURRECTION_NATIVE_SETTINGS_V1 OfflineLocalUserConfigPath\0 BA_RESURRECTION_NATIVE_SETTINGS_ERRORS_V1 OfflineLocalUserLoadTable\0 OfflineLocalUserSaveTable\0 BA_RESURRECTION_NATIVE_DECK_INPUT_V1 OfflineLocalDeckStorageLoad\0 BA_RESURRECTION_NATIVE_SETTINGS_ATOMIC_V1 BA_RESURRECTION_NATIVE_STORAGE_V1 OfflineBackupStoragePath\0 OfflineReplayStoragePath\0 OfflineCleanupAutoSaveReplay\0')
+        self.helper.write_bytes(b'MZ authored helper test fixture BA_RESURRECTION_RECOVERY_V1 OfflineMatchResultContinue\0 BA_RESURRECTION_NATIVE_SETTINGS_V1 OfflineLocalUserConfigPath\0 BA_RESURRECTION_NATIVE_SETTINGS_ERRORS_V1 OfflineLocalUserLoadTable\0 OfflineLocalUserSaveTable\0 BA_RESURRECTION_NATIVE_DECK_INPUT_V1 OfflineLocalDeckStorageLoad\0 BA_RESURRECTION_NATIVE_SETTINGS_ATOMIC_V1 BA_RESURRECTION_NATIVE_BACKUP_GUARD_V1 OfflineBackupInitialRead\0 OfflineBackupWriteText\0 BA_RESURRECTION_NATIVE_STORAGE_V1 OfflineBackupStoragePath\0 OfflineReplayStoragePath\0 OfflineCleanupAutoSaveReplay\0')
         self.stack.enter_context(patch.object(installer, 'ORIGINAL_SHA256', installer.digest(self.originals['GameAssembly.dll'])))
         self.stack.enter_context(patch.object(installer.telemetry, 'COMPONENTS', {
             name: Component(installer.digest(content), ()) for name, content in self.originals.items()}))
@@ -50,7 +50,7 @@ class InstallerTests(unittest.TestCase):
         for name, content in self.patched.items():
             self.assertEqual((self.root / name).read_bytes(), content)
             self.assertEqual((self.root / '.battleaces-resurrection/original' / name).read_bytes(), self.originals[name])
-        self.helper.write_bytes(b'MZ authored helper update BA_RESURRECTION_RECOVERY_V1 OfflineMatchResultContinue\0 BA_RESURRECTION_NATIVE_SETTINGS_V1 OfflineLocalUserConfigPath\0 BA_RESURRECTION_NATIVE_SETTINGS_ERRORS_V1 OfflineLocalUserLoadTable\0 OfflineLocalUserSaveTable\0 BA_RESURRECTION_NATIVE_DECK_INPUT_V1 OfflineLocalDeckStorageLoad\0 BA_RESURRECTION_NATIVE_SETTINGS_ATOMIC_V1 BA_RESURRECTION_NATIVE_STORAGE_V1 OfflineBackupStoragePath\0 OfflineReplayStoragePath\0 OfflineCleanupAutoSaveReplay\0')
+        self.helper.write_bytes(b'MZ authored helper update BA_RESURRECTION_RECOVERY_V1 OfflineMatchResultContinue\0 BA_RESURRECTION_NATIVE_SETTINGS_V1 OfflineLocalUserConfigPath\0 BA_RESURRECTION_NATIVE_SETTINGS_ERRORS_V1 OfflineLocalUserLoadTable\0 OfflineLocalUserSaveTable\0 BA_RESURRECTION_NATIVE_DECK_INPUT_V1 OfflineLocalDeckStorageLoad\0 BA_RESURRECTION_NATIVE_SETTINGS_ATOMIC_V1 BA_RESURRECTION_NATIVE_BACKUP_GUARD_V1 OfflineBackupInitialRead\0 OfflineBackupWriteText\0 BA_RESURRECTION_NATIVE_STORAGE_V1 OfflineBackupStoragePath\0 OfflineReplayStoragePath\0 OfflineCleanupAutoSaveReplay\0')
         installer.install(self.root, helper=self.helper)
         self.assertEqual((self.root / 'BattleAcesOffline.dll').read_bytes(), self.helper.read_bytes())
         restored = installer.install(self.root, restore=True)
@@ -148,6 +148,25 @@ class InstallerTests(unittest.TestCase):
         self.assertTrue(diagnostic['diagnostics']['native_quit'])
         self.assertEqual([h for h in diagnostic['call_hooks'] if h['name'].startswith('OfflineNativeQuit')], installer.QUIT_CALL_HOOKS)
         self.assertEqual(diagnostic['pointer_hooks'],installer.QUIT_POINTER_HOOKS)
+
+    def test_missing_backup_admission_or_publication_refused_before_writes(self):
+        original_helper=self.helper.read_bytes()
+        for marker in (b'BA_RESURRECTION_NATIVE_BACKUP_GUARD_V1',b'OfflineBackupInitialRead\0',b'OfflineBackupWriteText\0'):
+            with self.subTest(marker=marker):
+                self.helper.write_bytes(original_helper.replace(marker,b'authored_previous_helper'))
+                with self.assertRaisesRegex(ValueError,'native backup input and publication protection'):
+                    installer.install(self.root,helper=self.helper)
+                for name,original in self.originals.items():
+                    self.assertEqual((self.root/name).read_bytes(),original)
+                self.assertFalse((self.root/'.battleaces-resurrection').exists())
+
+    def test_backup_protection_manifest_and_restore(self):
+        installed=installer.install(self.root,helper=self.helper)
+        self.assertTrue(installed['local_storage']['backup_input_guard'])
+        self.assertEqual(installed['local_storage']['backup_publication'],'original-json-text-flush-handle-rename')
+        restored=installer.install(self.root,restore=True)
+        self.assertFalse(restored['local_storage']['backup_input_guard'])
+        self.assertIsNone(restored['local_storage']['backup_publication'])
 
     def test_default_blocks_dlss_vendor_init_and_original_comparison_is_explicit(self):
         default = installer.install(self.root, helper=self.helper, dry_run=True)

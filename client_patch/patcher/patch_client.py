@@ -54,6 +54,11 @@ TAIL_HOOKS = [
      'offset': 0x3d055fd, 'before': 'e92e6a86fe'},
 ]
 CALL_HOOKS = [
+    # Concrete Tailored reference initializer; keep original read/JSON semantics.
+    {'name': 'OfflineBackupInitialRead', 'rva': 0x26302be, 'offset': 0x262e8be, 'before': 'e83d0c0000'},
+    # Both reviewed generic local writers serialize JSON before these calls.
+    {'name': 'OfflineBackupWriteText', 'rva': 0x2631631, 'offset': 0x262fc31, 'before': 'e86a6cf100'},
+    {'name': 'OfflineBackupWriteText', 'rva': 0x263362b, 'offset': 0x2631c2b, 'before': 'e8704cf100'},
     {'name': 'OfflineBackupStoragePath', 'rva': 0x3e92e22, 'offset': 0x3e91422, 'before': 'e869b26cff'},
     {'name': 'OfflineReplayStoragePath', 'rva': 0x3ddde36, 'offset': 0x3ddc436, 'before': 'e8f5a45aff'},
     {'name': 'OfflineReplayStoragePath', 'rva': 0x3ddde99, 'offset': 0x3ddc499, 'before': 'e892a45aff'},
@@ -301,6 +306,9 @@ def install(game_dir, *, helper=None, original_path=None, restore=False, dry_run
             (b'BA_RESURRECTION_NATIVE_STORAGE_V1', b'OfflineBackupStoragePath\0',
              b'OfflineReplayStoragePath\0', b'OfflineCleanupAutoSaveReplay\0')):
         raise ValueError('Build the current helper with native replay and backup storage isolation before installing this patch.')
+    if helper_bytes is not None and any(marker not in helper_bytes for marker in
+            (b'BA_RESURRECTION_NATIVE_BACKUP_GUARD_V1', b'OfflineBackupInitialRead\0', b'OfflineBackupWriteText\0')):
+        raise ValueError('Build the current helper with native backup input and publication protection before installing this patch.')
     if quit_diagnostics and helper_bytes is not None and any(marker not in helper_bytes for marker in
             (b'BA_RESURRECTION_NATIVE_QUIT_TRACE_V1',) + tuple(h['name'].encode()+b'\0' for h in QUIT_CALL_HOOKS+QUIT_POINTER_HOOKS)):
         raise ValueError('Build the owned native Quit diagnostic helper before installing this recipe.')
@@ -321,7 +329,9 @@ def install(game_dir, *, helper=None, original_path=None, restore=False, dry_run
                 'local_storage': {'isolated': not restore, 'scope': 'installation-and-profile',
                                   'replay_format': 'native-protobuf-deflate', 'backup_format': 'native-json',
                                   'steam_file_sync': 'original-restored' if restore else 'local-only',
-                                  'autosave_exception_boundary': not restore, 'autosave_call_sites': 0 if restore else 4},
+                                  'autosave_exception_boundary': not restore, 'autosave_call_sites': 0 if restore else 4,
+                                  'backup_input_guard': not restore,
+                                  'backup_publication': 'original-json-text-flush-handle-rename' if not restore else None},
                 'local_settings': {'isolated': not restore, 'scope': 'installation-and-profile', 'format': 'native-toml',
                                    'error_hooks': not restore,
                                    'deck_input_guard': not restore,

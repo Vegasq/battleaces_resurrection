@@ -77,6 +77,18 @@ def observe_exit(process, quit_tick, clock):
     return observed
 
 
+def require_fresh_trace(path):
+    startup.require(not os.path.lexists(path),'native Quit diagnostic requires a fresh trace path; archive the prior completed owned run first')
+
+
+def current_trace_rows(raw,pid,launch_tick):
+    startup.require(len(raw)<=64*1024,'native Quit trace exceeds bound')
+    rows=[json.loads(line) for line in raw[:raw.rfind(b'\n')+1].splitlines()]
+    startup.require(all(isinstance(row,dict) and row.get('pid')==pid and type(row.get('tick')) is int and
+                        row['tick']>=launch_tick for row in rows),'native Quit trace belongs to another process/run')
+    return rows
+
+
 def run(args):
     require = startup.require
     game,output = args.game.resolve(),args.output.resolve()
@@ -110,6 +122,7 @@ def run(args):
     runtime = game/'investigation/runtime';runtime.mkdir(parents=True,exist_ok=True)
     profile = args.profile or 'nativestest_quit_'+secrets.token_hex(6)
     trace = game/'.battleaces-resurrection/profiles'/profile/'quit-trace.jsonl'
+    require_fresh_trace(trace)
     report = dict(passed=False,scope=__doc__,mode=args.mode,visible=args.visible,profile=profile,capture_requested=args.capture_dialog,
                   source_sha256_at_start=sources(),helper_sha256=hashlib.sha256((game/'BattleAcesOffline.dll').read_bytes()).hexdigest(),
                   helper_build=build_receipt,
@@ -129,8 +142,7 @@ def run(args):
 
     def trace_rows():
         raw = trace.read_bytes() if trace.exists() else b''
-        require(len(raw)<=64*1024,'native Quit trace exceeds bound')
-        return [json.loads(line) for line in raw[:raw.rfind(b'\n')+1].splitlines()]
+        return current_trace_rows(raw,process.pid,tick)
 
     try:
         report['shared_settings_before'] = startup.shared_state(args.shared_settings.resolve())
@@ -141,6 +153,12 @@ def run(args):
         if getattr(args,'storage_directory_fault',False):
             require(profile.startswith('nativestest_storage_'),'storage directory fault requires an explicit owned profile')
             command.append('-native-storage-directory-failure-smoke')
+        if getattr(args,'backup_notice_smoke',False):
+            require(profile.startswith('nativestest_'),'backup notice smoke requires an owned profile')
+            command.append('-native-backup-notice-smoke')
+        if getattr(args,'backup_write_smoke',False):
+            require(profile.startswith('nativestest_'),'backup writer probe requires an owned profile')
+            command.append('-native-backup-write-smoke')
         if args.after_practice:
             command.extend(['-native-quit-after-practice','-practice-ai-smoke','-practice-ai-smoke-matches=1',
                             '-practice-ai-smoke-frames=1200','-practice-ai-smoke-delay-ms=3000','-lan-audit','-lan-smoke'])
@@ -240,6 +258,8 @@ if __name__=='__main__':
     parser.add_argument('--profile',help='explicit owned nativestest_ profile for a seeded native-settings regression')
     parser.add_argument('--display-name',help='bounded diagnostic name for replay filename failure controls')
     parser.add_argument('--storage-directory-fault',action='store_true',help='owned original managed directory failure control')
+    parser.add_argument('--backup-notice-smoke',action='store_true',help='explicit owned backup warning capture and original acknowledgment')
+    parser.add_argument('--backup-write-smoke',action='store_true',help='explicit owned original writer Boolean-result probe')
     parser.add_argument('--after-practice',action='store_true',help='explicit automated one-match result/Continue before original menu Quit')
     parser.add_argument('--default-recipe',action='store_true',help='qualify natural exit using the default patch without optional teardown hooks')
     parser.add_argument('--mode',choices=('inventory','cancel','confirm'),default='cancel')
