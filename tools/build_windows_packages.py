@@ -42,6 +42,7 @@ SERVER = COMMON + (
 CLIENT = COMMON + (
     'client_patch/__init__.py', 'client_patch/patcher/__init__.py',
     'client_patch/patcher/patch_client.py', 'client_patch/patcher/pe_imports.py',
+    'client_patch/patcher/startup_tasks.py',
     'client_patch/patcher/telemetry.py', 'client_patch/transport/__init__.py',
     'client_patch/transport/bridge.py', 'client_patch/transport/launcher.py',
     'client_patch/transport/enrollment.py', 'client_patch/transport/client.py',

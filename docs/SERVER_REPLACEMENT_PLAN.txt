@@ -4,6 +4,12 @@ Target: Battle Aces build 37822, Windows x64 server and clients.
 Status: IMPLEMENTATION ACTIVE. See STATUS.txt; incomplete phases remain future work.
 
 Current release integration order (2026-10-19)
+- Startup task diagnostic38 is now opt-in and native-qualified:12 exact table
+  calls,37 other tasks,first aggregate and existing pump with53->0 retained roots.
+  Three fast controls (including concurrent pair) and ordinary no-observer Quit
+  pass;168s cause/fix remains OPEN. Next slow run needs captured pending/phase/
+  pump evidence. Do not bypass barriers or inflate timeouts. Manual35/packages34
+  unchanged;owned03 uses ordinary helper38. See client-startup.txt.
 - Real-credential native37 now passes267.999s under the normal owner:actual
   packaged client enroll commands,server maintenance CMD/native health,host.run
   with exact production CredentialStore and strict runtime readers. Keep existing
@@ -701,6 +707,8 @@ Effort allowance: 4-7 days.
   open. Policy and exact evidence are in practice-difficulty.txt.
   Investigate the approximately106-second cold startup and improve loading
   feedback; a network timeout is not established. See client-startup.txt.
+  Later native37 reaches168s. Passive original Task/pump diagnostic38 is now
+  runtime-qualified on fast launches;capture a real slow interval before fixing.
   The normal no-lag installation is unchanged.
 - Reset all match-specific transport queues, frame counters, managed references,
   result flags and Unity states on exit, then return to lobby for rematch.

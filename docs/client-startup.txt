@@ -1,4 +1,103 @@
-CLIENT STARTUP TIMING (2026-10-17)
+CLIENT STARTUP TIMING (updated 2026-10-19)
+
+2026-10-19 passive original task/pump diagnostic38 (INSTRUMENTATION PASS)
+The intermittent long initialization remains OPEN. Three observed startups are
+fast,including a concurrent two-client control;they do not reproduce or explain
+native37's168s delay. No performance fix or cold-cache result is claimed.
+
+Implementation:client_patch/src/startup_tasks.cpp plus patcher/startup_tasks.py.
+Installer --startup-diagnostics is restricted to ignored ROOT/local game copies.
+Runtime also requires -startup-tasks-audit,local mode and an owned nativestest_
+profile. Ordinary recipes contain none of these16 new sites;ordinary launchers
+gain no flag/action. The only common helper addition is a cached disabled check
+at the existing original completion hook. Frozen manual35/packages34 unchanged.
+
+Twelve exact E8 sites in LoadAllPreMenuTable forward the same AssetReference and
+original inflated MethodInfo to original121d0d0 once,returning its same Task.
+Three exact E8 wrappers retain the original12-task list,37-task list and first
+WhenAll aggregate;input list/required-tables identities are checked. Unity's
+original ExecuteTasks tail E9 remains a tail into a compiled helper that calls
+original Exec5093060 exactly once,outside observer catches/noexcept. It adds no
+thread,attachment,continuation,coroutine,timer,pump invocation,queue/monitor read,
+wait,task completion/cancel,exception observation or initialization bypass.
+Original calls/arguments/results/exceptions retain their original path.
+
+One diagnostic generation retains12+37+aggregate Task handles,two original lists
+and required tables:53 non-pinned strong handles maximum. Returned objects are
+rooted before managed inspection;original-return ticks precede handles/logging.
+List count/layout/capacity and Task flags layout are checked;original leaf
+get_Status3636750 provides the memory-barriered status read. Do not substitute
+get_IsCompleted,which can initialize metadata/classes. Samples read tasks in
+sequence;they are not atomic across50 tasks. First12 labels are exact table names;
+other indices12..48 are original LoadAll list order;index49 is first aggregate.
+
+Existing-thread pump entries/normal returns and snapshots are rate limited to
+one selected pair/second,with fixed buffers and1600 observer-event budget.
+Stop/release at original startup readiness,observer error or240s diagnostic end;
+deadline cleanup needs an eligible original callback and cannot fire while the
+pump is stalled. Disable all task reads before freeing handles. Never free from
+DllMain/detach. Roots/logging alter retention/timing;this is not zero overhead.
+An entry without return allows a stall,propagated exception or recording/process
+loss. Completed localization can occur before firstWhenAll;phase markers retain
+that distinction. A successful aggregate does not prove its continuation ran.
+
+Static authority:original GameAssembly and metadata hashes below reasserted;
+ignored startup-dispatch-review38/audit.py checks all12 call bytes/targets,
+inflated-method slots/tokens/specs and four outer seams against retained original
+LLVM/IL2CPP evidence. startup-pump-review38 independently confirms exact stack/
+tail/exception/status contracts. REA MCP was connected but its Ghidra provider
+reported GHIDRA_INSTALL_DIR unset. These reviews are shell fallback evidence,
+not provider decompilation. User supplied an installed Ghidra12.1.4 directory;
+application.properties says Java>=21. Existing64-bit Temurin25.0.4.1 executes;
+REA configuration/restart guidance supplied,provider repair not yet verified.
+
+Build/helper-startup38-01 passes all11 C++ programs and six atomic process
+boundaries;source receipt unchanged across build. Helper SHA256:
+04fc4accdaf8804d54bd296964fc63af91761361d7339506b9de7d80e5e4bb40
+Receipt ed9a79d0ea4a65d33544b0d76c7bce79b7e6b744f72b737c073ad806f9661412
+Pure original-byte recipe check proves ordinary GameAssembly byte-equal to the
+prior qualified34/37 recipe and explicit startup_diagnostics=False. Its SHA256:
+fd67ed32e434838118c669112f4b6c32522b26ad1b2877696555bbdda6bf1728
+Opt-in diagnostic f7d44daa146c2d75dc330a533092737e346a68784613ebe5ae3d9c171a98abe5
+All16 sites independently resolve E8/E9 to RX FF25 import thunks;no default site
+changes. local/startup-recipe38.json SHA256:
+e304800bf7eff82d3128f6a2af0f641a9559cb260963b445be2f9389062e8f97
+
+tools.verify_native_quit --default-recipe --startup-tasks-audit --mode confirm
+--visible qualifies same Unity/Quit Windows thread,all12 dispatch/return pairs,
+unchanged MethodInfo/input identities,50 completed tasks,53->0 handles,paired
+original pump calls,original five-event menu Quit,natural exit0/no forced cleanup,
+shared settings unchanged and bound sources unchanged. Actual owned03 reports:
+- startup-tasks38-native01:PID9264/thread9072,9.000s observed interval,
+  67 records/eight selected pump pairs,20.955s whole verifier. Report SHA256:
+  c27bc5df74a2112c3ad9e529963bde809716a3dacd55772edb193e21605a1f21
+- Concurrent startup-tasks38-pair01-a:PID46412/thread43252,9.844s,
+  63 records/seven pairs,21.284s whole verifier. Report SHA256:
+  11cdb29243d65ca4582b0485a051773d1fd46795eb95aa19ed68bfebaa058a6b
+- Concurrent startup-tasks38-pair01-b:PID38836/thread33904,11.078s,
+  67 records/eight pairs,22.247s whole verifier. Report SHA256:
+  5256e353bef30252e1e8689202e7e6aaaa7d3c14967655d74e757ae2b15fd954
+- Restore ordinary recipe,same helper,no observer flag:startup-tasks38-ordinary01
+  PID20484,natural Quit0,18.642s;no startup trace or optional sites. SHA256:
+  f982ecf6cb1ae7d372d390d111428ec16acf31cc2cb5c1ca964fd16e1b7ae31b
+Reports are local/<name>/verification.json;all four processes reaped. Owned03
+now uses helper38 with ordinary recipe;manual35 and archived helper34 stay intact.
+37 focused checks pass,including missing-helper/export refusal before writes,
+owned-path restriction,trace truncation/thread/ABI/pump/pending/fault/root-leak
+refusals and completion inside original Exec without post-release task reads.
+Capture a real slow run next;do not turn these warm controls into a timeout fix.
+First full Python run539 tests/one failure/16 skips is retained in
+local/startup-tasks38-python-tests01.txt:foreign-cwd client package import caught
+missing new patcher module in the source allowlist. Added that source module to
+tools/build_windows_packages.py;51 focused checks now pass7.737s,including actual
+isolated no-site-packages imports from synthetic client/server packages. This
+packaging fix changes no C++/native verifier-bound input;four native controls
+above remain bound to their tested bytes. No failed run is counted as acceptance.
+Final full Python run539 tests523pass/16skip,98.942s,exit0:
+local/startup-tasks38-python-tests02.txt. Source-only history/staged audit passes
+1216 distinct objects after removing a developer-specific documentation path;
+first rejected audit remains local/startup-tasks38-audit01.txt. No original
+client/helper binaries,private captures,credentials or packages enter Git.
 
 2026-10-19 real-credential two-client37 observation (UNRESOLVED)
 The actual normal-owner packaged multiplayer run passes267.999s,but early native
@@ -79,7 +178,7 @@ client36764, original Start9.755s, observed menu15.141s, elapsed15.516s,
 exactly one completion/initial callback, no match started, sources unchanged,
 owned process reaped. These warm runs do not explain or fix the105.85s delay.
 
-Next diagnostic if needed: bounded per-table start/terminal timing and task status
+Historical next diagnostic (implemented/qualified by38 above): per-table timing and task status
 for the known12 pre-menu references. Never bypass _loadingFinish on a timer or
 force synchronous Addressables completion. User helper15 remains unchanged.
 

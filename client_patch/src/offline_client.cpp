@@ -316,6 +316,7 @@ extern "C" __declspec(dllexport) void OfflineFrontUpdate(void* front,void*) {
 #include "native_settings.cpp"
 #include "native_quit_trace.cpp"
 #include "local_loop.cpp"
+#include "startup_tasks.cpp"
 #include "native_storage.cpp"
 #include "native_backup.cpp"
 #include "native_settings_atomic.cpp"
@@ -370,6 +371,7 @@ extern "C" __declspec(dllexport) void OfflineStartupReady(void* context,void* fr
     ba::init();
     ba_local::Root owner(initializer);
     ba::native<void(*)(void*,void*,void*,void*)>(0x3dfd180)(context,freshThreshold,reusedThreshold,nullptr);
+    ba_startup_tasks::ready();
     ba::log("Offline startup assets ready; original Start timing retained; releasing native intro gate");
     ba::native<void(*)(void*,void*)>(0x3dfced0)(owner.get(),nullptr);
 }

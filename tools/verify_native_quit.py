@@ -27,7 +27,8 @@ ROOT = Path(__file__).resolve().parents[1]
 
 def sources():
     return startup.source_hashes() | {p.relative_to(ROOT).as_posix(): hashlib.sha256(p.read_bytes()).hexdigest()
-                                     for p in (Path(__file__), ROOT/'client_patch/build.ps1',ROOT/'tools/verify_practice_ai.py')}
+                                     for p in (Path(__file__), ROOT/'client_patch/build.ps1',ROOT/'tools/verify_practice_ai.py',
+                                               ROOT/'tools/startup_task_evidence.py', ROOT/'client_patch/patcher/startup_tasks.py')}
 
 
 def practice_evidence(game, output, pid, text):
@@ -105,6 +106,12 @@ def run(args):
     launcher.verify_game(game,community=True,bridge_version=2,unified=True)
     build_receipt = verify_build_receipt(game,args.helper_build_receipt.resolve())
     manifest = json.loads((game/'.battleaces-resurrection/patch-manifest.json').read_bytes())
+    if getattr(args,'startup_tasks_audit',False):
+        from client_patch.patcher import startup_tasks
+        require(manifest.get('diagnostics',{}).get('startup_tasks') is True and
+                all(h in manifest['call_hooks'] for h in startup_tasks.CALL_HOOKS) and
+                all(h in manifest['tail_hooks'] for h in startup_tasks.TAIL_HOOKS),
+                'install exact owned startup diagnostic recipe')
     if args.default_recipe:
         require(manifest.get('diagnostics',{}).get('native_quit') is False and
                 manifest['diagnostics'].get('dlss_enabled') is False and not manifest.get('pointer_hooks') and
@@ -150,6 +157,7 @@ def run(args):
                    '-player-name='+display_name,'-native-quit-smoke','-native-quit-mode='+args.mode,
                    '-screen-fullscreen','0','-screen-width','960','-screen-height','540','-logFile',str(output/'game.log')]
         if args.capture_dialog: command.append('-native-quit-capture')
+        if getattr(args,'startup_tasks_audit',False): command.append('-startup-tasks-audit')
         if getattr(args,'storage_directory_fault',False):
             require(profile.startswith('nativestest_storage_'),'storage directory fault requires an explicit owned profile')
             command.append('-native-storage-directory-failure-smoke')
@@ -219,6 +227,9 @@ def run(args):
         else:
             require(not (runtime/('native-quit-'+profile+'.png')).exists(),'noncapture probe unexpectedly captured a frame')
         report['local_settings'] = startup.native_settings_evidence(game,output,process.pid,tick,profile)
+        if getattr(args,'startup_tasks_audit',False):
+            from tools.startup_task_evidence import evidence
+            report['startup_tasks'] = evidence(log(),thread=rows[0]['thread'])
         if args.after_practice: report['practice'] = practice_evidence(game,output,process.pid,log())
         report['trace'] = rows;report['passed'] = True
     except BaseException as error:
@@ -260,6 +271,7 @@ if __name__=='__main__':
     parser.add_argument('--storage-directory-fault',action='store_true',help='owned original managed directory failure control')
     parser.add_argument('--backup-notice-smoke',action='store_true',help='explicit owned backup warning capture and original acknowledgment')
     parser.add_argument('--backup-write-smoke',action='store_true',help='explicit owned original writer Boolean-result probe')
+    parser.add_argument('--startup-tasks-audit',action='store_true',help='opt-in original startup Task/pump observation; requires owned diagnostic patch')
     parser.add_argument('--after-practice',action='store_true',help='explicit automated one-match result/Continue before original menu Quit')
     parser.add_argument('--default-recipe',action='store_true',help='qualify natural exit using the default patch without optional teardown hooks')
     parser.add_argument('--mode',choices=('inventory','cancel','confirm'),default='cancel')

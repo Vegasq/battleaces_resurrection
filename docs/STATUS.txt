@@ -2,6 +2,25 @@ IMPLEMENTATION LEDGER
 Updated: 2026-10-19 UTC
 Active objective: implement SERVER_REPLACEMENT_PLAN.txt, Windows only.
 
+PASSIVE STARTUP TASK DIAGNOSTIC38 (2026-10-19 UTC, BOUNDED PASS)
+Owned opt-in16-site recipe observes12 exact table calls,two original lists,first
+aggregate and existing Unity pump. No loader/task/pump scheduling change;53-root
+cap,same original arguments/results,original-return timing,separate phases,
+bounded original get_Status samples,release before intro/menu. Three actual
+native runs,including simultaneous pair,qualify50 completed tasks,53->0 roots,
+same Unity/Quit thread and natural original Quit0/no forced cleanup. Intervals
+9.000/9.844/11.078s do not reproduce168s native37;cause/fix remain OPEN.
+Ordinary GameAssembly byte-equal to prior qualified recipe. Same-helper ordinary
+control passes18.642s with no startup trace/sites. All11 C++ programs/six atomic
+boundaries and37 focused checks pass. Owned03 now ordinary helper38;manual35 and
+frozen packages34 untouched. Ghidra path/working Java found;MCP provider repair
+awaits user configuration/restart and has not been asserted. See client-startup.txt
+for exact source/evidence bindings and observer limits.
+Final Python539 tests523pass/16skip,98.942s passes. Initial package import failure
+caught missing new source module;allowlist corrected,51 focused checks pass.
+Source-only staged/history audit1216 objects/zero failures;rejected initial
+developer-path audit retained locally. No client binaries/assets committed.
+
 REAL-CREDENTIAL NATIVE37 (2026-10-19 UTC, BOUNDED PASS)
 Normal-owner run passes267.999s:no forced cleanup. Actual packaged server check
 CMD/native health41408 exits0/reaps;two actual client enroll commands exit0.

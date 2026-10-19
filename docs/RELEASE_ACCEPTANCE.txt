@@ -6,6 +6,11 @@ defines the requested product. Existing frozen archives are not automatically
 upgraded when source changes. No original client binaries/assets belong in Git.
 
 Current ordinary source candidate
+Startup diagnostic38 qualifies instrumentation only:three fast original-startup/
+natural Quit runs (including concurrent pair),50 completed tasks,53->0 roots and
+same original Unity/Quit thread. Ordinary-recipe bytes remain equal;ordinary
+same-helper no-observer control passes. Slow168s startup cause/fix still OPEN.
+No cold-cache/exception-unwind fault/zero-overhead claim;see client-startup.txt.
 The shared player entry point now enables public queues and installed cosmetic
 selection/persistence;packaged install includes their native recipe. Actual
 no-server startup,local1v1/2v2/2vAI,real30-second fill,partial two-human2v2,waiting

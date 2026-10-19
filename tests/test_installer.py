@@ -114,6 +114,29 @@ class InstallerTests(unittest.TestCase):
             self.assertEqual((self.root / name).read_bytes(), original)
         self.assertFalse((self.root / '.battleaces-resurrection').exists())
 
+    def test_startup_recipe_requires_marker_and_all_exports_before_writes(self):
+        from client_patch.patcher import startup_tasks
+        original_helper = self.helper.read_bytes()
+        required = [b'BA_RESURRECTION_STARTUP_TASKS_V1'] + [
+            h['name'].encode()+b'\0' for h in startup_tasks.CALL_HOOKS+startup_tasks.TAIL_HOOKS]
+        for missing in required:
+            with self.subTest(missing=missing):
+                self.helper.write_bytes(original_helper+b' '.join(item for item in required if item != missing))
+                with self.assertRaisesRegex(ValueError, 'owned startup task diagnostic helper'):
+                    installer.install(self.root, helper=self.helper, startup_diagnostics=True)
+                for name, original in self.originals.items():
+                    self.assertEqual((self.root / name).read_bytes(), original)
+                self.assertFalse((self.root / '.battleaces-resurrection').exists())
+        self.helper.write_bytes(original_helper+b' '.join(required))
+        manifest = installer.install(self.root, helper=self.helper, startup_diagnostics=True)
+        self.assertTrue(manifest['diagnostics']['startup_tasks'])
+        self.assertTrue(all(h in manifest['call_hooks'] for h in startup_tasks.CALL_HOOKS))
+        self.assertTrue(all(h in manifest['tail_hooks'] for h in startup_tasks.TAIL_HOOKS))
+        ordinary = installer.install(self.root, helper=self.helper)
+        self.assertFalse(ordinary['diagnostics']['startup_tasks'])
+        self.assertFalse(any(h['name'].startswith('OfflineStartupTable') for h in ordinary['call_hooks']))
+        self.assertFalse(any(h['name'] == 'OfflineStartupPump' for h in ordinary['tail_hooks']))
+
     def test_helper_without_persisted_deck_guard_is_rejected_before_writes(self):
         self.helper.write_bytes(self.helper.read_bytes().replace(b'BA_RESURRECTION_NATIVE_DECK_INPUT_V1',b'authored_previous_helper'))
         with self.assertRaisesRegex(ValueError,'native persisted deck validation'):

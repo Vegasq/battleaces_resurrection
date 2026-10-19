@@ -3,6 +3,7 @@ from pathlib import Path
 import argparse, hashlib, json, os, struct, uuid
 from .pe_imports import extend_imports_with_thunks, pe_checksum
 from . import telemetry
+from . import startup_tasks
 ROOT = Path(__file__).resolve().parents[2]
 ORIGINAL_SHA256 = 'e59d08c01479b27404778048d7e13546dbf3771f6b3912744c7c2bdf80c4e758'
 PATCHES = [
@@ -170,7 +171,7 @@ def redirect_relocated_pointer(original, patched, hook, image_base, thunk_rva):
     struct.pack_into('<Q',patched,offset,image_base+thunk_rva)
 
 
-def build_patch(original, *, include_telemetry=True, community=False, cosmetics=False, quit_diagnostics=False, allow_dlss_diagnostics=False):
+def build_patch(original, *, include_telemetry=True, community=False, cosmetics=False, quit_diagnostics=False, allow_dlss_diagnostics=False, startup_diagnostics=False):
     """Pure transformation; only a matching original may enter this routine."""
     if digest(original) != ORIGINAL_SHA256:
         raise ValueError('Original build SHA256 does not match.')
@@ -179,6 +180,13 @@ def build_patch(original, *, include_telemetry=True, community=False, cosmetics=
     call_hooks = CALL_HOOKS + (COMMUNITY_CALL_HOOKS if community else []) + (COSMETIC_CALL_HOOKS if cosmetics else []) + (QUIT_CALL_HOOKS if quit_diagnostics else [])
     tail_hooks = TAIL_HOOKS + (COMMUNITY_TAIL_HOOKS if community else []) + (COSMETIC_TAIL_HOOKS if cosmetics else [])
     pointer_hooks = QUIT_POINTER_HOOKS if quit_diagnostics else []
+    if startup_diagnostics:
+        call_hooks += startup_tasks.CALL_HOOKS
+        tail_hooks += startup_tasks.TAIL_HOOKS
+    sites = sorted(patches + HOOKS + tail_hooks + call_hooks + pointer_hooks, key=lambda site: site['offset'])
+    for left, right in zip(sites, sites[1:]):
+        if left['offset'] + len(bytes.fromhex(left['before'])) > right['offset']:
+            raise ValueError('Patch site overlap: ' + left['name'] + '/' + right['name'])
     # Reject a future telemetry recipe that touches an existing startup hook.
     for site in patches + HOOKS + tail_hooks + call_hooks + pointer_hooks:
         offset, size = site['offset'], len(bytes.fromhex(site['before']))
@@ -246,9 +254,9 @@ def contained_path(game_dir, relative):
     return resolved
 
 
-def install(game_dir, *, helper=None, original_path=None, restore=False, dry_run=False, community=False, cosmetics=False, quit_diagnostics=False, allow_dlss_diagnostics=False):
+def install(game_dir, *, helper=None, original_path=None, restore=False, dry_run=False, community=False, cosmetics=False, quit_diagnostics=False, allow_dlss_diagnostics=False, startup_diagnostics=False):
     game_dir = Path(game_dir).resolve()
-    if (quit_diagnostics or allow_dlss_diagnostics) and not game_dir.is_relative_to(ROOT/'local'):
+    if (quit_diagnostics or allow_dlss_diagnostics or startup_diagnostics) and not game_dir.is_relative_to(ROOT/'local'):
         raise ValueError('Native diagnostics require an owned ignored local test installation.')
     if game_dir.name.lower() == 'battleacesbeta_untouched':
         raise ValueError('The untouched recovery copy is read-only; choose a working game copy.')
@@ -267,7 +275,7 @@ def install(game_dir, *, helper=None, original_path=None, restore=False, dry_run
         if digest(original) != recipe.original_sha256:
             raise ValueError('Original build SHA256 does not match: ' + name)
         patched = build_patch(original, community=community, cosmetics=cosmetics, quit_diagnostics=quit_diagnostics,
-                              allow_dlss_diagnostics=allow_dlss_diagnostics) if name == 'GameAssembly.dll' else update_checksum(telemetry.patch_component(name, original))
+                              allow_dlss_diagnostics=allow_dlss_diagnostics, startup_diagnostics=startup_diagnostics) if name == 'GameAssembly.dll' else update_checksum(telemetry.patch_component(name, original))
         known = {recipe.original_sha256, digest(patched)}
         if name == 'GameAssembly.dll':
             known.add(digest(build_patch(original, include_telemetry=False)))
@@ -314,6 +322,9 @@ def install(game_dir, *, helper=None, original_path=None, restore=False, dry_run
     if quit_diagnostics and helper_bytes is not None and any(marker not in helper_bytes for marker in
             (b'BA_RESURRECTION_NATIVE_QUIT_TRACE_V1',) + tuple(h['name'].encode()+b'\0' for h in QUIT_CALL_HOOKS+QUIT_POINTER_HOOKS)):
         raise ValueError('Build the owned native Quit diagnostic helper before installing this recipe.')
+    if startup_diagnostics and helper_bytes is not None and any(marker not in helper_bytes for marker in
+            (b'BA_RESURRECTION_STARTUP_TASKS_V1',) + tuple(h['name'].encode()+b'\0' for h in startup_tasks.CALL_HOOKS+startup_tasks.TAIL_HOOKS)):
+        raise ValueError('Build the owned startup task diagnostic helper before installing this recipe.')
     if cosmetics and helper_bytes is not None and any(hook['name'].encode()+b'\0' not in helper_bytes
             for hook in COSMETIC_CALL_HOOKS + COSMETIC_TAIL_HOOKS):
         raise ValueError('Build the current helper with experimental cosmetic hooks before installing this patch.')
@@ -341,9 +352,10 @@ def install(game_dir, *, helper=None, original_path=None, restore=False, dry_run
                                    'write_publication': 'original-serializer-flush-handle-rename' if not restore else None,
                                    'save_notice': bool(helper_bytes and b'BA_RESURRECTION_NATIVE_SETTINGS_NOTICE_V1' in helper_bytes and not restore)},
                 'patches': PATCHES + (COSMETIC_PATCHES if cosmetics else []) + ([] if allow_dlss_diagnostics else DLSS_PRIVACY_PATCHES), 'hooks': HOOKS,
-                'tail_hooks': TAIL_HOOKS + (COMMUNITY_TAIL_HOOKS if community else []) + (COSMETIC_TAIL_HOOKS if cosmetics else []),
-                'call_hooks': CALL_HOOKS + (COMMUNITY_CALL_HOOKS if community else []) + (COSMETIC_CALL_HOOKS if cosmetics else []) + (QUIT_CALL_HOOKS if quit_diagnostics else []),
+                'tail_hooks': TAIL_HOOKS + (COMMUNITY_TAIL_HOOKS if community else []) + (COSMETIC_TAIL_HOOKS if cosmetics else []) + (startup_tasks.TAIL_HOOKS if startup_diagnostics else []),
+                'call_hooks': CALL_HOOKS + (COMMUNITY_CALL_HOOKS if community else []) + (COSMETIC_CALL_HOOKS if cosmetics else []) + (QUIT_CALL_HOOKS if quit_diagnostics else []) + (startup_tasks.CALL_HOOKS if startup_diagnostics else []),
                 'diagnostics': {'native_quit': bool(quit_diagnostics and not restore),
+                                'startup_tasks': bool(startup_diagnostics and not restore),
                                 'dlss_enabled': bool(allow_dlss_diagnostics and not restore)},
                 'graphics': {'dlss_setup': 'original-restored' if restore else 'original-owned-diagnostic' if allow_dlss_diagnostics else 'unavailable-before-native-init',
                              'original_shutdown': True},
@@ -399,11 +411,13 @@ def main():
     parser.add_argument('--community-experimental', action='store_true', help='isolated experimental native Custom Game/invite/match adapter')
     parser.add_argument('--cosmetics-experimental', action='store_true', help='installed-catalog cosmetic unlock with isolated selection persistence')
     parser.add_argument('--quit-diagnostics', action='store_true', help='owned local-only original disposal trace; no cleanup changes')
+    parser.add_argument('--startup-diagnostics', action='store_true', help='owned local-only original startup Task and Unity pump observation; runtime flag also required')
     parser.add_argument('--allow-dlss-diagnostics', action='store_true', help='owned local-only original NGX initialization comparison; ordinary installs report DLSS unavailable')
     args = parser.parse_args()
     result = install(args.game_dir, helper=args.helper, original_path=args.original,
                      restore=args.restore, dry_run=args.dry_run, community=args.community_experimental, cosmetics=args.cosmetics_experimental,
-                     quit_diagnostics=args.quit_diagnostics, allow_dlss_diagnostics=args.allow_dlss_diagnostics)
+                     quit_diagnostics=args.quit_diagnostics, allow_dlss_diagnostics=args.allow_dlss_diagnostics,
+                     startup_diagnostics=args.startup_diagnostics)
     print(json.dumps(result, indent=2))
 
 
