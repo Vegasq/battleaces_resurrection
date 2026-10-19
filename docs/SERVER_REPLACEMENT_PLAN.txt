@@ -13,8 +13,10 @@ Current release integration order (2026-10-19)
   three disposed streams,same idle menu and both natural exits0. Native29 now
   additionally passes six authored malformed/limit/empty structural controls,
   all18 disposals/exclusive reopens,same idle menu and both natural exits0 in
- 221.675s. This is bounded codec cleanup,not exhaustive/stateful load recovery.
-  Prototype packages remain explicitly dirty=true until clean rebuild.
+  221.675s. This is bounded codec cleanup,not exhaustive/stateful load recovery.
+  Clean7ab3ef0 packages have identical production/runtime/helper bytes;actual
+  ordinary bundled CMD startup passes10.574s without test actions. Broader
+  packaged multiplayer/recovery and final release gates remain required.
   Original ReplayFiles startup batch28 now passes32.677s:original reflected
   setter/readback,FSM-owned context,matching full GameData/3607 batches,advancing
   simulation/presentation,exact original completion and both natural exits0.

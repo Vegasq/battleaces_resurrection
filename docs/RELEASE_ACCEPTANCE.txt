@@ -39,6 +39,10 @@ Latest28 cleanadc95dd packages additionally pass production-byte equivalence to
 native-playback-tested preview and actual ordinary CMD startup10.158s. Startup
 readiness cleanup is forced,not native Quit. Current Python495 tests481pass/
 14skip and final focused replay checks pass;see native-replay-validation.txt.
+Current29 clean7ab3ef0 package additionally passes byte equivalence to native
+six-fault-tested preview and actual ordinary CMD menu10.574s. Startup cleanup
+is forced and not counted as Quit. Python499 tests485pass/14skip pass. These
+codec and startup controls do not close the broader multiplayer release matrix.
 
 Qualified source checkpoint aa5a803
 - One ordinary unified launcher reaches a native local menu without configured

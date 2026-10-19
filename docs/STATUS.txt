@@ -17,6 +17,10 @@ exhaustive hostile-input guarantee. Stateful malformed playback recovery and
 broader release gates remain open. C++ eleven programs/six atomic boundaries and
 Python499 tests485pass/14skip,108.300s pass. Ordinary launch has no codec test
 actions;manual24 stays unchanged. See native-replay-validation.txt.
+Clean7ab3ef0 packages are production/runtime/helper byte-equivalent to tested29;
+actual ordinary bundled CMD opens native menu10.574s/10.975s total without test
+actions/spawn seam/global Python. Package/config/source/shared TOML unchanged.
+Owned readiness cleanup is forced and not counted as another native Quit pass.
 
 NATIVE REPLAY FULL PLAYBACK28 (2026-10-19 UTC, BOUNDED PASS)
 Explicit owned ReplayFiles startup diagnostic now passes original decode/Load/

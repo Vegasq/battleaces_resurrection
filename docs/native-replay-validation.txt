@@ -89,6 +89,27 @@ df57409893c9f655f538b1686040cb49bb8bc1e66276e64417f793cb3937747b
 Manual24/original/frozen copies remain unchanged;only ignored03 test copy receives
 the helper. No game binary,recording,asset,capture or disassembly enters Git.
 
+Clean29 package / ordinary startup follow-up
+Fresh packages built from committed7ab3ef0072452ef60ab7669b23e5962510908995
+record dirty=false. Verified production/runtime/helper inventories are identical
+to the native-tested29 preview;ONLY compatibility.json differs. Current source
+still matches the helper receipt. This is byte equivalence,not another native
+malformed-input run. Actual bundled ordinary Start Client.cmd reaches native
+menu10.574s/10.975s total,no spawn seam/diagnostic actions/global Python on PATH.
+Package/config/source/shared TOML remain unchanged. Readiness cleanup forcibly
+reaps the owned job;this is not another original Quit proof.
+local/replay-faults29-clean-startup01/verification.json SHA256
+a2552dc82e050bf8d50d67dfa76986d687493d726a0f811005b12a271cfc6e32
+local/replay-faults29-clean-equivalence.json SHA256
+79a98b5df97dc1625e6a8b5b59dda61a819168ceae610229715f07ec2760290a
+Clean client67 files,archive13086029bytes,ZIP SHA256
+b0cbe85af6e4010e03c0d65761920024225e2b0f80988d4734b667ac3b3c714a
+Clean server82 files,archive12427772bytes,ZIP SHA256
+ddd9c9eca78f2183a9b3b76487ff9a3eb0c96ed65b743c4a7d24b2762e286d54
+Clean build-report.json SHA256
+3b95d7ab2d0a8862b097d66fc4fd4c5dab5b4448fe18f2927a6b4d0ea81c7080
+Development-preview status and all broader release/manual gates remain open.
+
 Current native playback28 (BOUNDED POSITIVE PASS)
 Original-codec-accepted four-player recording25 also passes actual original
 ReplayFiles batch playback in32.677s. It opens an unchanged seeded281-character
