@@ -15,6 +15,20 @@ actions. Current native settings saves use staged handle publication. See
 ordinary-player-client.txt for reports,retained failures and remaining matrix.
 These controls do not close the final/manual/clean-machine/Internet gates below.
 
+Owner credential check35 / fresh manual candidate
+PASS under the user's normal desktop account using the clean34 bundled runtime
+and unchanged production credentials module:protected issue/read/import/auth,
+identity mismatch refusal,existing handoff/store preservation,persistent revoke,
+unprotected runtime refusal/explicit protected import,and disposable cleanup.
+The agent's separate token preflight attempted no protected operations. This
+qualifies the bounded owner credential lifecycle on THIS account only. Full
+Connection Setup with actual TLS,other accounts,SCM,clean PC and Internet stay
+OPEN;earlier packaged multiplayer identity adapters remain fixture evidence.
+Fresh independent manual35 ordinary CMD startup passes25.262s to menu with no
+automatic match/actions;owned readiness job cleanup is forced,not native Quit.
+Manual UI/rendering/deck/cosmetic persistence feedback is pending. See
+client-enrollment.txt;no private output or original game files enter Git.
+
 Bundled Custom invite/rematch34 qualification
 Bundled host/two production clients pass194.845s using ordinary patch settings:
 original live-directory Invite/Accept,two human Start/Ready/build/result/Continue

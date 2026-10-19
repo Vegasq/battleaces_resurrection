@@ -4,6 +4,15 @@ Target: Battle Aces build 37822, Windows x64 server and clients.
 Status: IMPLEMENTATION ACTIVE. See STATUS.txt; incomplete phases remain future work.
 
 Current release integration order (2026-10-19)
+- Owner credential lifecycle35 now passes under the user's normal desktop
+  account using verified bundled production modules and real protected DACLs.
+  All disposable invites are revoked/handoffs removed. This closes only the
+  bounded credential-permission gate on that account;full actual Connection
+  Setup/TLS,another account,SCM,clean PC and Internet remain to qualify. Agent
+  token preflight performs no protected operation. New independent manual35
+  ordinary CMD reaches menu;manual UI/deck/cosmetics/AI/Continue/Quit/restart
+  feedback is requested. Preserve manual35 while the user tests. See
+  client-enrollment.txt for report/source bindings and exact scope.
 - Qualify the bundled server and clients TOGETHER through multiplayer/recovery.
   New30 adapter uses verified bundled host.run/client.main/TLS/bridge/native
   workers with unchanged clocks. Restricted-token protected enrollment stays

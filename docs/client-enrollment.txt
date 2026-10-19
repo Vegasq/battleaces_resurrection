@@ -1,5 +1,72 @@
 COMMUNITY CLIENT CONNECTION SETUP AND INVITE ENROLLMENT
-Updated:2026-10-17
+Updated:2026-10-19
+
+Normal-owner credential acceptance35 (BOUNDED PASS)
+User double-clicked local/owner-check35/Owner Check.cmd from the normal desktop
+and reported PASS,stage=complete. The saved public report independently confirms
+all seven production checks below,elapsed0.958952s. External authored operator
+tools/verify_owner_credentials.py runs through the clean34 client package's
+isolated bundled Python. It verifies package inventory and exact imported
+server.credentials/tools.package_integrity locations and hashes. No production
+credential,ACL or authentication implementation changed for this acceptance.
+
+Checks:protected store issue/strict read/authentication with hash-only store;
+different player identity rejected;protected import/strict readback and unchanged
+source;existing handoff refusal with unchanged store/source;persistent revocation
+after reopen;ordinary unprotected transfer refused by runtime while explicit
+import creates a protected copy;finally all disposable records revoked and four
+owned bearer handoffs removed. The ordinary transfer uses an ALREADY REVOKED
+credential. Revoked hash-only store metadata remains local for inspection.
+No listener/server/game/SCM starts;no existing ACL/config/trust store is changed.
+Report contains fixed check Booleans/stages and module hashes,no bearer/token/
+credential ID/SID/raw exception text. Private run artifacts remain ignored.
+
+local/owner-check35/last-report.json SHA256
+a27ed430c3b46dffcfD09bdf12adbd8be99a0e4ccfdceb5e9eaa9b1851194ef9
+Operator source and executed local owner_check.py SHA256
+d5d1bb2adedfc76b069a34bc33b07133292b7d8ebcb551347619167a66862f06
+Actual bundled server.credentials SHA256
+19df11a8a46cf6cad37646ddfcc3136589b28dc1550b80a9963828012dec99c6
+Actual bundled tools.package_integrity SHA256
+55e69d8ff9c78b882a920044a334f9d886288cdae677d215db9eabe29d46ac19
+
+Operator report restricting_sids_present=false. The agent's separate
+--preflight-only run detects true and exits2/NOT QUALIFIED with
+private_api_attempted=false. There is no retry of denied protected operations.
+IsTokenRestricted tests the restricting-SID list only;false does not prove all
+other kinds of token restrictions absent. Actual production private creation
+and strict readback above,not that predicate,provide permission evidence.
+Primary API reference:
+https://learn.microsoft.com/en-us/windows/win32/api/securitybaseapi/nf-securitybaseapi-istokenrestricted
+
+This qualifies the bounded credential lifecycle on this Windows account. It
+does NOT qualify full Connection Setup/TLS/authenticated hosted game/SCM/another
+account/clean PC/Internet. Earlier packaged multiplayer MemoryStore identity
+adapters remain explicit fixtures,not retrospectively real protected enrollment.
+Old real-enrollment Windows5 evidence below remains unchanged. A complete normal
+owner enrollment/TLS check and graphical/physical-PC checks remain pending.
+
+tests/test_owner_credentials_operator.py:three lifecycle/failure-cleanup tests
+pass in1.114s using an EXPLICIT mocked OS privacy boundary,not DACL acceptance.
+local/playtest35-python-tests.txt:525 tests in92.991s,511pass/14skip,exit0.
+
+Independent manual35 candidate (READY; manual feedback pending)
+local/playtest35/client/Start Client.cmd is the single ordinary entry point.
+It uses the clean34 package documented in packaged-multiplayer.txt and a fresh
+player35 profile/display name Player,blank server settings. Local preparation
+copies250 regular owned game files/7771993956 bytes in120.038s,including the
+matching helper and reversible patch originals. The game/assets/package and
+private preparation report stay ignored;manual24/frozen copies/originals are
+untouched. Helper SHA256
+662a9797841d09e5d97dce2fb4f304915765440628536c0e3b125d96dc27610e
+Actual ordinary CMD startup reaches native menu25.262s,total25.814s,without a
+spawn seam/automatic match/diagnostics/global Python on PATH. Config/package/
+source/shared TOML remain unchanged;owned game/wrapper are reaped. This readiness
+check uses forced job cleanup and does not claim native Quit/physical controls.
+local/playtest35-startup01/verification.json SHA256
+f04801b953adbf92676ac0a335d98e9bc319b48863f34912904030f6f29624fc
+User is asked to change deck/cosmetics,play Try Deck vs AI,Continue/Quit/restart
+and check retention. Preserve this independent manual copy during their test.
 
 Scope
 The Windows client preview now has Connection Setup, opened by double-clicking

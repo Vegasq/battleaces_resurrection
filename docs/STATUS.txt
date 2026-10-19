@@ -2,6 +2,23 @@ IMPLEMENTATION LEDGER
 Updated: 2026-10-19 UTC
 Active objective: implement SERVER_REPLACEMENT_PLAN.txt, Windows only.
 
+OWNER CREDENTIALS / MANUAL CLIENT35 (2026-10-19 UTC, BOUNDED PASS)
+User ran the external bundled-runtime owner check from the normal desktop:
+all seven production credential checks pass in0.959s,including strict protected
+readback/import,identity binding,no overwrite,persistent revocation,rejection of
+an unprotected transfer and disposal of all bearer handoffs. No privacy API was
+mocked in this operator run. Tool preflight separately detects restricting SIDs
+and attempts NO private operation. This closes this account's bounded credential
+permission check,not full Connection Setup/TLS/SCM/another-account deployment.
+New independent ignored manual35 game/client uses clean34 package/helper bytes,
+ordinary player35 profile and blank server settings. Actual Start Client.cmd
+reaches menu25.262s,total25.814s;no automatic gameplay/diagnostics,source/package/
+config/shared TOML unchanged. Readiness cleanup is forced,not native Quit.
+Manual deck/cosmetics/AI/Continue/Quit/restart feedback is requested;manual24 and
+originals stay untouched. Three operator lifecycle tests pass with EXPLICIT
+mocked OS privacy boundary;full Python525 tests511pass/14skip,92.991s pass.
+See client-enrollment.txt for source/report hashes and exact remaining scope.
+
 BUNDLED CUSTOM INVITE/REMATCH34 (2026-10-19 UTC, BOUNDED PASS)
 Bundled production host/two client.main/TLS/bridge/native clients pass194.845s
 with ordinary installed patch settings:original live-directory Invite/Accept,
