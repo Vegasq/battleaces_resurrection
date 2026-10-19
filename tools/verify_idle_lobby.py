@@ -72,6 +72,7 @@ async def run(args):
         (output / 'patch-manifest.json').write_bytes((game / '.battleaces-resurrection/patch-manifest.json').read_bytes())
         for index, player in enumerate(players):
             arguments = [str(game / 'Battle Aces.exe'), '-offline-lan',
+                '-local-profile=nativeprobe_'+uuid.uuid4().hex[:16],
                 f'-dedicated-server=127.0.0.1:{address[1]}', '-player-id=' + player,
                 '-player-name=Idle probe ' + str(index + 1), '-room=idle-probe',
                 '-screen-fullscreen', '0', '-screen-width', '960', '-screen-height', '540',

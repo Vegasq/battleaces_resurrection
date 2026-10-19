@@ -50,6 +50,16 @@ the patched game folder, its parent can be detected on first launch without
 your player name for the next launch; JSON paths use doubled backslashes or
 forward slashes. Keep the launcher console open while playing.
 
+In a current source-built patch,optional local_profile defaults to "default".
+It keeps native unit decks/options under the game's
+.battleaces-resurrection/profiles/<key>/gameconfig-localuser.toml. Use different
+keys,such as player_one and player_two,for two clients on this PC. Keys accept
+1..48 lowercase letters,digits,underscores or hyphens,excluding reserved Windows
+device names. One process per installation/profile is allowed. The patch leaves
+the old Windows-user settings file untouched and does not automatically import
+it. Existing frozen preview archives are not upgraded by a source checkout;
+rebuild/install the matching helper before using this behavior.
+
 Open Edit Deck -> Try Deck vs AI. No server, CA, invite or server assets are needed.
 Missing or invalid online settings leave local play available. Settings -> General -> AI
 Difficulty offers Easy/Normal/Hard. The saved choice applies to the next match.

@@ -2,17 +2,32 @@ IMPLEMENTATION LEDGER
 Updated: 2026-10-19 UTC
 Active objective: implement SERVER_REPLACEMENT_PLAN.txt, Windows only.
 
-NEXT NATIVE GATE: LOCAL-USER SETTINGS ISOLATION (2026-10-19 UTC)
+NATIVE LOCAL-USER SETTINGS ISOLATION (2026-10-19 UTC, EXPERIMENTAL)
+The new early call hook preserves native TOML/JSON while selecting a validated
+installation/profile path and retaining a process-lifetime writer lock. Invalid
+or unwritable paths fail closed. Ten C++ component programs/helper build pass;
+the final Python suite passes435 tests with14 skips out of449.
+First real startup proves path selection before native load/static-field
+readback,an actual isolated TOML and unchanged shared-file baseline. Original
+native deck edits survive fresh processes;two profiles and two installations
+retain separate choices,including after an accented-path relocation. Eight
+invalid/locked destinations refuse startup before native initialization;two
+independent profiles reach menus concurrently. Two offline Try Deck matches and
+a two-human server2vAI match pass builds/results/Continue after the path change.
+The latter preserves full human loadouts through1250 canonical frames each.
+Malformed content,later writer failures,native Quit and release acceptance
+remain open. No manual/frozen client package is upgraded. See local-user-settings.txt.
+
+Original reason for this gate:
 Read-only tracing confirms native deck saves target the Windows user's shared
 persistentDataPath TOML,not the disposable installation/profile directory. The
-current local_profile setting isolates cosmetics only. A successful original
+previous local_profile setting isolated cosmetics only. A successful original
 write can affect settings shared with other copies;save callbacks alone do not
-prove disk success. Header-return probes are complete;isolate the early
-load/write path before more graphical launches. Preserve original data;
-do not infer a restorable baseline from later test state. Restart/profile
-unit-deck acceptance remains open. See local-user-settings.txt for the exact
-early cctor call seam. native-quit.txt separately pins the unresolved teardown
-contract and the next bounded diagnostic after settings isolation.
+prove disk success. The prototype now isolates the early load/write path;
+preserve original data and do not infer a restorable baseline from later test
+state. See local-user-settings.txt for the exact early cctor call seam and
+bounded native acceptance. native-quit.txt separately pins the unresolved
+teardown contract and the next bounded diagnostic after settings isolation.
 
 CONFIGURED MENU NAME (2026-10-19 UTC)
 The original main-menu header now receives the configured name through its

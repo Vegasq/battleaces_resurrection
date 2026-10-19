@@ -112,9 +112,10 @@ static bool ensure(Obj front) {
         if(!ba_dedicated_session::unityThread)ba_dedicated_session::unityThread=GetCurrentThreadId();
         require(ba_dedicated_session::unityThread==GetCurrentThreadId(),"local menu called off Unity thread");
         ba_dedicated_session::observedFront=front;
-        if(initialized) {require(ready(front),"local menu front changed");refreshHeaderName(front);return true;}
+        if(initialized) {require(ready(front),"local menu front changed");refreshHeaderName(front);ba_native_settings::observe(front);return true;}
         if(!ba_dedicated_session::inMenu() || !ba_dedicated_session::worldIdle(ba::read<Obj>(front,0xd8)))return false;
         if(!baseInitialized) {
+        ba_native_settings::verify();
         frontRoot=std::make_unique<Root>(front);
         identityRoot=std::make_unique<Root>(ba_lan_bootstrap::identityLan(front,0));
         Root name(ba::str(ba::argument(L"-player-name=","Offline Player").c_str()));

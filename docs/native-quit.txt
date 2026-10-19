@@ -6,6 +6,24 @@ body or manually invoke engine lifecycle callbacks. A menu callback test must
 identify the current active menu component and original event owner;the retained
 failure used the owned disconnected-modal Cancel event,not a physical menu click.
 
+The complete original menu path is now traced separately. MainMenu's exact
+QuitButtonParent/QuitButton PointerLeftClick event invokes its same-object
+ShowUIObjectComponent.Show. Its descriptor key52 resolves the shipped
+ModalConfirmVM prefab. The model's ConfirmEvent targets that menu object's
+UIQuitButton.Quit;the modal ConfirmButton invokes its own OnConfirm,which emits
+that event. A direct call to UIQuitButton.Quit bypasses this confirmation flow.
+Key67 is a different disconnected-modal prefab;class identity alone cannot
+identify the menu confirmation. This is static evidence,not a successful Quit.
+
+For the owned future probe,reacquire the current initialized active menu/root/
+pool and unique button components. Validate the existing PointerLeftClick event
+target and descriptor key/model before Show;wait for that component's actual
+_uiObject,current modal ownership and matching model before original OnConfirm.
+CloseOnConfirm=false makes the Quit event precede modal release;return normally
+without manually releasing it. A separate OnCancel rehearsal can validate normal
+release without quitting. Do not synthesize button signals or invoke the
+mutating get_onClickBehaviour getter merely to inspect an authored event.
+
 AsyncAssetTables registers wantsToQuit and quitting callbacks. Its wantsToQuit
 body3e933f0 sets WantsToQuit and returns false while static LoadingCount>0.
 Branch/return bytes establish this veto despite a misleading literal log string.
@@ -48,3 +66,12 @@ FINDINGS.txt SHA256:
 bae9d6f3d8cd56568582402fee2f27398829b83291d3257e655042b054876de3
 manifest.json SHA256:
 81268c83179e414a77d458dc516ea718935cfcc94d4bb4b8702b7c57b93541b1
+
+Complete menu-owner/confirmation follow-up:
+local/menu-quit-owner-contract01 verifies35 original prefab objects,the parent
+links,complete572-byte managed-reference model,actual confirm/cancel events
+and13 native ranges. No game execution or tracked source changes in that probe.
+FINDINGS.txt SHA256:
+8894fddfd52e5659e91837259f2072f81f105f9b5268c7f55c4cc92f17715b2f
+manifest.json SHA256:
+ca8de51b05113dd57c9812325c21dba4e173314427d6a4a263f467e13837a410

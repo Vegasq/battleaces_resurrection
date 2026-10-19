@@ -177,7 +177,9 @@ async def run(args):
         address = await server.start('127.0.0.1', 0)
         (output / 'patch-manifest.json').write_text(json.dumps(manifest, indent=2))
         for index, role in enumerate(('host', 'guest')):
+            native_profile = 'nativeprobe_'+uuid.uuid4().hex[:16]
             command = [str(game / 'Battle Aces.exe'), '-offline-lan',
+                '-local-profile='+native_profile,
                 f'-dedicated-server=127.0.0.1:{address[1]}', '-dedicated-community',
                 f'-community-match-{role}-smoke', '-player-id=custom_' + uuid.uuid4().hex,
                 '-player-name=' + ('Custom Host', 'Custom Guest')[index],
@@ -188,6 +190,7 @@ async def run(args):
             if args.unified:
                 settings = output / f'client-{index}.json'
                 local = client.defaults(game)
+                local['local_profile'] = native_profile
                 local['display_name'] = ('Custom Host', 'Custom Guest')[index]
                 if cosmetic_book: local['local_profile']=cosmetic_profiles[index]
                 settings.write_text(json.dumps(local), encoding='utf-8')

@@ -81,6 +81,7 @@ async def run(args):
 
     def launch(role, address):
         command = [str(game / 'Battle Aces.exe'), '-offline-lan', f'-dedicated-server=127.0.0.1:{address[1]}',
+            '-local-profile=nativeprobe_'+uuid.uuid4().hex[:16],
             '-player-id=loading_' + uuid.uuid4().hex, '-player-name=Loading ' + role, '-room=loading-test',
             '-match-loading-smoke', '-match-loading-normal-smoke', '-match-loading-role=' + role,
             '-lan-smoke', '-dedicated-surrender-smoke', '-dedicated-surrender-frame=160',

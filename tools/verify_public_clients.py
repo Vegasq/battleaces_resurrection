@@ -193,7 +193,7 @@ async def run(args):
         shutil.copyfile(game/'.battleaces-resurrection/patch-manifest.json', output/'patch-manifest.json')
         for index in range(args.humans):
             config = dict(game_directory=game, server_host='127.0.0.1', server_port=port,
-                          display_name=f'Human Client {index+1}', room='community')
+                          display_name=f'Human Client {index+1}', room='community', local_profile='nativeprobe_'+secrets.token_hex(8))
             if cosmetic_book:
                 config['local_profile'] = cosmetic_profiles[index]
             parent, child = socket.socketpair(socket.AF_INET)

@@ -1,18 +1,20 @@
 BATTLE ACES PRIVATE SERVER AND CLIENT PATCH - IMPLEMENTATION PLAN
-Updated: 2026-10-18
+Updated: 2026-10-19
 Target: Battle Aces build 37822, Windows x64 server and clients.
 Status: IMPLEMENTATION ACTIVE. See STATUS.txt; incomplete phases remain future work.
 
 Current cosmetic integration order (2026-10-19)
-- Before further graphical probes after the completed header-return tests,isolate
-  native local-user settings per installation/profile. Original deck storage
-  uses the Windows user's shared persistentDataPath TOML;the current profile
-  key isolates cosmetics only. A disposable install directory does not isolate
-  native deck saves. Confirm the early load/write seam before implementing;do
-  not restore shared settings from guesses or claim a successful write from a
-  swallowed native save attempt. Cross-process unit-deck isolation is open.
-  local-user-settings.txt pins the earliest scoped path-construction call.
-  native-quit.txt pins the separate unresolved shutdown path/next diagnostic.
+- Native local-user settings isolation now uses the original early path call,
+  installation/profile-native TOML and a process-lifetime writer lock. Fresh
+  process deck edits/restarts,two profiles,two installations,an accented path,
+  concurrent independent menus and eight early destination refusals pass.
+  Shared-file read-only baselines remain unchanged. Two standalone Try Deck
+  matches and a two-human server2vAI full-loadout regression also pass after
+  the path change. This is a source-built prototype;manual/frozen archives are
+  unchanged. Next qualify malformed TOML/deck JSON,later swallowed write errors
+  and original confirmed menu Quit/shutdown flush before final packaging.
+  Never guess a shared-file restore or treat a callback as disk persistence.
+  local-user-settings.txt and native-quit.txt retain exact seams and limits.
 - Correct the confirmed human-only local-AI deck replacement gap. Freeze the
   complete native17-slot selection at intent; preserve its ordered entitlement
   and portrait/banner through config,JoinArmy and decoded native simulation.

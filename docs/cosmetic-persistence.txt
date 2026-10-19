@@ -40,8 +40,10 @@ Optional client.json local_profile defaults to "default". It accepts1..48
 lowercase ASCII letters,digits,underscore or hyphen; Windows reserved device
 names are rejected. It is frozen when launching, independent of display_name,
 online credentials and server changes. The TLS schema never receives it, and
-enrollment preserves an explicitly selected key. This key currently isolates
-cosmetic state only; native local deck storage is a separate remaining gate.
+enrollment preserves an explicitly selected key. The current early native path
+hook also selects installation/profile-native TOML for unit decks/options.
+Cosmetic activation remains opt-in;see local-user-settings.txt for that separate
+native storage format,writer lock,evidence and remaining qualification gates.
 
 The working game's .battleaces-resurrection/profiles/<key>.cosmetics.json stores
 schema1,build37822,the profile key,the exact runtime catalog SHA256 and all17

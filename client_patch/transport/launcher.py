@@ -139,6 +139,12 @@ def verify_game(root, *, community=False, bridge_version=1, unified=False):
                         raise LaunchError('Install the protocol3 client helper for configurable buffering')
                     if community and b'BA_RESURRECTION_COMMUNITY_MATCH_V1' not in helper:
                         raise LaunchError('Install a helper supporting community match ABI1')
+                    local_settings, hooks = manifest.get('local_settings'), manifest.get('call_hooks')
+                    if (b'BA_RESURRECTION_NATIVE_SETTINGS_V1' not in helper or b'OfflineLocalUserConfigPath\0' not in helper
+                            or not isinstance(local_settings, dict) or local_settings.get('isolated') is not True
+                            or not isinstance(hooks, list)
+                            or not any(hook.get('name') == 'OfflineLocalUserConfigPath' for hook in hooks if isinstance(hook, dict))):
+                        raise LaunchError('Install the current patch with native local-user settings isolation')
                     actual = hashlib.sha256(helper).hexdigest()
                 else:
                     actual = hashlib.file_digest(stream, 'sha256').hexdigest()
@@ -167,9 +173,9 @@ def game_arguments(config, player_id, handle, args):
         '-logFile', str(runtime / (run_name + '-' + log_identity + '.log'))]
     if dynamic: result.append('-secure-transport-version=2')
     else: result.append(f'-player-id={player_id}')
-    if unified:
-        from .client import profile_key
-        result.extend(['-unified-client', '-local-profile=' + profile_key(config.get('local_profile', 'default'))])
+    from .client import profile_key
+    result.append('-local-profile=' + profile_key(config.get('local_profile', 'default')))
+    if unified: result.append('-unified-client')
     switches = dict(auto_ready='-dedicated-auto-ready', smoke='-lan-smoke', deck_smoke='-dedicated-deck-smoke',
                     surrender_smoke='-dedicated-surrender-smoke', telemetry_audit='-telemetry-audit', audit='-lan-audit')
     for option, flag in switches.items():

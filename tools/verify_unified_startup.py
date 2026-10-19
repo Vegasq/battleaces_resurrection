@@ -10,6 +10,8 @@ dictionary/ownership behavior. The separate picker smoke opens the original
 menu, changes only its slot/filter view and captures it. The separate equip smoke
 changes a disposable test profile through original callbacks, and the persistence
 proof reads the effective full loadout.
+Native settings proof compares the early isolated loader path and actual TOML;
+the optional native deck edit uses original setters in an owned test profile.
 """
 import argparse
 from datetime import datetime, timezone
@@ -17,11 +19,13 @@ import ctypes
 import hashlib
 import json
 import os
+import re
 from pathlib import Path
 import subprocess
 import threading
 import time
 import traceback
+import tomllib
 from unittest import mock
 
 from client_patch.transport import client, launcher
@@ -39,7 +43,49 @@ def source_hashes():
     return core_hashes() | {p.relative_to(ROOT).as_posix(): hashlib.sha256(p.read_bytes()).hexdigest() for p in paths}
 
 
+def shared_state(path):
+    if not path.exists(): return dict(exists=False)
+    raw = path.read_bytes()
+    return dict(exists=True, bytes=len(raw), sha256=hashlib.sha256(raw).hexdigest())
+
+
+def native_settings_evidence(game, output, pid, tick, profile):
+    raw = (game/'investigation/runtime'/f'dedicated-native-{pid}.log').read_bytes()
+    complete = raw[:raw.rfind(b'\n')+1].decode('utf-8').replace('\r\n', '\n')
+    rows = []
+    for line in complete.splitlines():
+        match = re.match(r'^\[(\d+)\] NATIVE SETTINGS path selected: (.+) BA_RESURRECTION_NATIVE_SETTINGS_V1$', line)
+        if match and int(match[1]) >= tick: rows.append((int(match[1]), json.loads(match[2])))
+    starts = [int(value) for value in re.findall(r'^\[(\d+)\] Offline initial state reached after game initialization\. PID='+str(pid), complete, re.M)
+              if int(value) >= tick]
+    require(len(rows) == len(starts) == 1 and rows[0][0] < starts[0], 'isolated path was not selected before this process initialized')
+    proof = rows[0][1]
+    expected = game/'.battleaces-resurrection/profiles'/profile/'gameconfig-localuser.toml'
+    require(proof['profile'] == profile and all(proof[key] is True for key in ('beforeNativeLoad', 'isolated', 'writerLock')) and
+            Path(proof['path']) == expected and expected.resolve() == expected, 'native settings destination differs from the configured installation/profile')
+    verified = [int(value) for value in re.findall(r'^\[(\d+)\] NATIVE SETTINGS path verified: profile='+re.escape(profile)+
+                r' staticField=1 getterCalled=0 isolated=1$', complete, re.M) if int(value) >= tick]
+    require(len(verified) == 1 and verified[0] >= starts[0],
+            'initialized native loader field was not checked')
+    data = expected.read_bytes();require(0 < len(data) <= 1024*1024, 'native TOML missing or oversized')
+    table = tomllib.loads(data.decode('utf-8-sig'))
+    deck = json.loads(table['account']['decks'])['SelectedDeck']
+    selected = dict(units=[item['_id'] for item in deck['_units']], activeAbilityGroups=[item['_id'] for item in deck['_activeAbilities']])
+    require(len(selected['units']) == 8 and len(selected['activeAbilityGroups']) == 4, 'isolated native deck has unexpected dimensions')
+    require(all(type(value) is int and 0 < value <= 0xffffffff for value in selected['units']) and
+            all(type(value) is int and 0 <= value <= 0xffffffff for value in selected['activeAbilityGroups']),
+            'isolated native deck has invalid identifier types/ranges')
+    (output/'isolated-localuser.toml').write_bytes(data)
+    return dict(path=str(expected), profile=profile, early_tick=rows[0][0], startup_tick=starts[0], static_field_verified=True,
+                native_toml_sha256=hashlib.sha256(data).hexdigest(), native_toml_bytes=len(data), selected_deck=selected)
+
+
 def run(args):
+    # Internal callers such as the cosmetic restart harness predate these
+    # optional probes; missing options retain ordinary, non-editing behavior.
+    for key, default in (('display_name', None), ('menu_profile_proof', False), ('native_deck_proof', False),
+                         ('edit_native_deck', False), ('shared_settings', None)):
+        if not hasattr(args, key): setattr(args, key, default)
     require(os.name == 'nt' and 60 <= args.timeout <= 300, 'bounded Windows probe required')
     game, output = args.game.resolve(), args.output.resolve()
     require(output.is_relative_to(ROOT/'local'), 'evidence must remain under ignored local/')
@@ -60,8 +106,13 @@ def run(args):
                   cosmetics_equip_smoke=args.cosmetics_equip_smoke, cosmetics_persistence_proof=args.cosmetics_persistence_proof,
                   visible_window_requested=args.visible,
                   menu_profile_proof=args.menu_profile_proof, requested_display_name=args.display_name,
+                  native_deck_proof=args.native_deck_proof, edit_native_deck=args.edit_native_deck,
                   helper_sha256=hashlib.sha256((game/'BattleAcesOffline.dll').read_bytes()).hexdigest())
     (output/'patch-manifest.json').write_bytes((game/'.battleaces-resurrection/patch-manifest.json').read_bytes())
+    if args.edit_native_deck:
+        require(args.native_deck_proof and args.local_profile and args.local_profile.startswith('nativestest_') and game.is_relative_to(ROOT/'local'),
+                'native deck edits require an explicit owned nativestest_ profile/install and proof')
+    if args.shared_settings: report['shared_settings_before'] = shared_state(args.shared_settings.resolve())
     cosmetic_flags = (args.cosmetics_unlock_smoke, args.cosmetics_ui_trace, args.cosmetics_picker_smoke,
                       args.cosmetics_equip_smoke, args.cosmetics_persistence_proof)
     if any(cosmetic_flags):
@@ -83,6 +134,7 @@ def run(args):
                     'Local menu initialization failed:', 'Offline initialization failed:',
                     'Cosmetics catalog export failed:', 'Cosmetics unlock failed:',
                     'Local menu header binding failed:')), 'native startup/export failed')
+                require('Native settings deck proof failed:' not in log, 'native deck persistence proof failed')
                 markers = ('Local menu ready:', 'Unified client ready:',
                            'Online connection is not configured; localWorldUnaffected=1',
                            'Client control retired: reason=optional connection failed')
@@ -93,7 +145,19 @@ def run(args):
                 equip_done = not args.cosmetics_equip_smoke or 'COSMETICS EQUIP SMOKE passed:' in log
                 persist_done = not args.cosmetics_persistence_proof or 'COSMETICS PERSISTENCE PROOF passed:' in log
                 profile_done = not args.menu_profile_proof or 'MENU PROFILE PROOF passed: ' in log
-                if all(marker in log for marker in markers) and catalog_done and unlock_done and trace_done and picker_done and equip_done and persist_done and profile_done:
+                deck_done = not args.native_deck_proof or 'NATIVE SETTINGS DECK proof: ' in log
+                if all(marker in log for marker in markers) and catalog_done and unlock_done and trace_done and picker_done and equip_done and persist_done and profile_done and deck_done:
+                    settings = native_settings_evidence(game, output, process.pid, tick, report['configured_local_profile'])
+                    report['local_settings'] = settings
+                    if args.native_deck_proof:
+                        rows = [json.loads(line.split('NATIVE SETTINGS DECK proof: ', 1)[1]) for line in log.splitlines()
+                                if 'NATIVE SETTINGS DECK proof: ' in line]
+                        require(len(rows) == 1 and rows[0]['profile'] == report['configured_local_profile'] and
+                                all(rows[0][key] is True for key in ('owned', 'pathVerified', 'worldIdle')) and
+                                rows[0]['edited'] == args.edit_native_deck and
+                                all(rows[0][key] == settings['selected_deck'][key] for key in ('units', 'activeAbilityGroups')),
+                                'current native selector and isolated on-disk deck differ')
+                        report['native_deck'] = rows[0]
                     require('Practice requested:' not in log, 'ordinary startup unexpectedly automated a match')
                     require('worldReady=1' not in log and 'Native world lease acquired:' not in log,
                             'startup/export unexpectedly created a match world')
@@ -182,12 +246,15 @@ def run(args):
         nonlocal process, job, monitor, tick
         command = launcher.game_arguments(config, None, child.fileno(), options)
         report['configured_display_name'] = config['display_name']
+        report['configured_local_profile'] = config.get('local_profile', 'default')
         require(not any('smoke' in value or 'audit' in value or 'auto-' in value for value in command),
                 'ordinary launcher added diagnostic actions')
         require('-player-cosmetics-catalog-export' not in command,
                 'ordinary launcher enabled cosmetic export')
         report['ordinary_arguments_contain_no_diagnostics'] = True
         if args.menu_profile_proof: command.append('-menu-profile-proof')
+        if args.native_deck_proof: command.append('-native-settings-deck-proof')
+        if args.edit_native_deck: command.append('-native-settings-deck-edit')
         if args.cosmetics_export:
             command.append('-player-cosmetics-catalog-export')
         if args.cosmetics_unlock_smoke:
@@ -246,12 +313,18 @@ def run(args):
             if process.poll() is None: process.terminate()
             process.wait(timeout=15)
             (output/f'native-{process.pid}.log').write_text(read_native_log(game, process.pid, since_tick=tick), encoding='utf-8')
+            raw = game/'investigation/runtime'/f'dedicated-native-{process.pid}.log'
+            if raw.exists(): (output/f'raw-native-{process.pid}.log').write_bytes(raw.read_bytes())
         if monitor is not None: monitor.join(timeout=15)
         if job is not None: job.close()
         report.update(elapsed_seconds=time.monotonic()-started, owned_process_reaped=process is None or process.poll() is not None,
                       source_sha256_at_finish=source_hashes())
         report['source_files_unchanged'] = report['source_sha256_at_start'] == report['source_sha256_at_finish']
         report['passed'] &= report['owned_process_reaped'] and report['source_files_unchanged']
+        if args.shared_settings:
+            report['shared_settings_after'] = shared_state(args.shared_settings.resolve())
+            report['shared_settings_unchanged'] = report['shared_settings_before'] == report['shared_settings_after']
+            report['passed'] &= report['shared_settings_unchanged']
         (output/'verification.json').write_text(json.dumps(report, indent=2), encoding='utf-8')
         print('Evidence: ' + str(output/'verification.json'))
     require(report['passed'], 'unified startup qualification failed')
@@ -264,6 +337,9 @@ if __name__ == '__main__':
     parser.add_argument('--visible', action='store_true', help='show the owned diagnostic game window')
     parser.add_argument('--display-name', help='seed an owned local-only config with this player name')
     parser.add_argument('--menu-profile-proof', action='store_true', help='read back the owned main-menu header model and bound TMP label')
+    parser.add_argument('--native-deck-proof', action='store_true', help='compare the original selected graph with the actual isolated native TOML')
+    parser.add_argument('--edit-native-deck', action='store_true', help='change one unit through native setters in an explicit nativestest_ profile')
+    parser.add_argument('--shared-settings', type=Path, help='read-only shared-file baseline; require its existence/content to remain unchanged')
     parser.add_argument('--cosmetics-export', action='store_true',
                         help='explicit read-only export and validation of installed cosmetic tables')
     parser.add_argument('--cosmetics-unlock-smoke', action='store_true',

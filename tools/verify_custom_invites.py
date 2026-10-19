@@ -79,6 +79,7 @@ async def run(args):
         (output / 'patch-manifest.json').write_text(json.dumps(manifest, indent=2))
         for index, role in enumerate(('host', 'guest')):
             command = [str(game / 'Battle Aces.exe'), '-offline-lan',
+                '-local-profile=nativeprobe_'+uuid.uuid4().hex[:16],
                 f'-dedicated-server=127.0.0.1:{address[1]}', '-dedicated-community',
                 f'-community-invite-{role}-smoke', '-player-id=invite_' + uuid.uuid4().hex,
                 '-player-name=' + ('<b>Host</b>', 'Guest \u2605')[index],

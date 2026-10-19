@@ -14,12 +14,15 @@ the package start and setup's launch command select the same client path. Existi
 frozen packages/manual game runtimes are unchanged. This is a development preview;
 public fallback, team modes, cosmetics and final release gates remain incomplete.
 The optional local_profile key defaults to "default" and is fixed at launch.
-It selects the experimental full cosmetic save independently of display_name
+It selects native unit-deck/options storage and the experimental full cosmetic save independently of display_name
 and online/server credentials; enrollment preserves it. It accepts1..48 lowercase
 ASCII letters,digits,underscore or hyphen,excluding Windows reserved device names.
 It is stripped before strict TLS config validation and never changes online
-authentication identity. Cosmetic activation remains opt-in; native deck storage
-has a separate remaining profile-isolation gate. See cosmetic-persistence.txt.
+authentication identity. The early native path hook is always active in the
+current patch;cosmetic activation remains opt-in. Only one process can write
+the same installation/profile at a time;use separate keys for two local clients.
+No shared-settings file is implicitly imported. See local-user-settings.txt for
+native restart/isolation/failure evidence and remaining qualification gates.
 local_menu.cpp owns the front,local identity,native selector/storage and profile
 for application lifetime. Explicit local versus server-deck initialization
 replaces the former launch-flag test. Unified presence preserves the local deck

@@ -1,10 +1,111 @@
 NATIVE LOCAL-USER SETTINGS ISOLATION -- 2026-10-19 UTC -- OPEN
 
-Confirmed gap
+Implementation in qualification
+An exact cctor call hook now selects an installation/profile-native TOML path
+before first load. It validates the key,destination and ordinary directory/file
+handles,rejects hard links,and keeps a per-profile writer lock through process
+exit. Invalid/unwritable destinations terminate this owned game before the
+shared path can be used. No implicit shared-settings import or new deck format.
+Launcher/installer/package checks require the new marker and early hook.
+
+Ten C++ component programs/helper02 and49 focused Python checks pass. A real
+unified startup on helper02 selects its isolated path before the original
+startup marker,verifies the initialized static field directly,and creates a
+1149-byte native TOML containing eight units/four abilities. The quiescent shared
+file's1151 bytes/hash remain unchanged;no server connection/invite read occurs.
+This first startup alone does not close native edit/restart/profile/concurrency/
+error or Quit acceptance. The following helper03 runs extend that scope.
+Private startup report:local/native-settings-startup01/verification.json SHA256:
+253ccd4a1e07cb74692c7ce63ca35238d5bc0270156222e8fbaf132f1f38ee84
+Helper02 SHA256:
+7ef715fc2f3c82cb3d53e6fff1161d9763984366618d8d14ce09a950712b1db7
+Private early log and isolated TOML are retained separately;the shared file is
+read/hashed only and never copied into publication inputs.
+
+Native edit/restart/profile qualification on helper03
+Five fresh processes read profile A,edit one unit through original native
+setters,restart A,load B,and return to A. Native graph/disk snapshots agree for
+all eight units/four ability groups. A changes core1 ->75;two later A processes
+retain75 while B retains its stock1. No server connections/invite reads,all
+shared-file baselines unchanged,sources unchanged,owned clients reaped.
+The actual final menu PNG is inspected:configured name,original mode/menu
+controls,no connection modal. It is not a manual click or Quit observation.
+Private aggregate:local/native-settings-decks01-summary.json SHA256:
+fb08c6feb87a4d3ff78f64206d05296fb303dd5f996352f72ee9d51003553f2f
+
+A fresh independent installation with the same A key starts at stock core1,
+changes1 ->75 ->74,then restarts with74. The first installation still retains75.
+The second copy was then moved within the owned local/area to a path containing
+an accented character;its native early path/static-field/disk proof still passes
+with74 and unchanged shared settings. Original format/ability groups survive.
+Private installation aggregate and Unicode verification SHA256,respectively:
+ed03c7b6dcd2791b52e8ca8f099c9c8d27ab314f505f58c2d6ed1b16fc07e9fb
+fe29e82dfc4aa0e451fbbd63bf6ce7c625a758f6f7385a826e2fbb4fa84b6b72
+
+Native rejection/concurrency qualification on helper03
+local/native-settings-failures01 passes in52.610s. An owned offline menu stays
+alive while eight attempted starts are rejected:the same locked profile,
+traversal,reserved name,duplicate option,parent-as-file,read-only target,hard
+link and junction. Each exits1610 before original startup/path selection,with
+the isolation failure logged. Active profile bytes and shared settings stay
+unchanged. A different profile reaches its own menu concurrently without
+changing the first. Sources unchanged;all ten owned processes reaped. Successful
+menus are forcibly cleaned up;expected startup refusal is not native Quit.
+Verification SHA256:
+137fcc61456601cef71b35064421d9cca588f5ffc75f76d70b4929661df72226
+Helper03 SHA256:
+c588903cb3009492d89e768167c01d1bb842dec7c5a55192b225420a4480979b
+
+Source suite:430 pass/14 skips out of444 in89.096s;49 focused launcher/installer/
+package checks pass after final profile forwarding changes. Ten C++ programs/
+helper03 build pass. Legacy multi-client probes now choose distinct native
+profile keys;native TOML locks do not permit test processes to share default.
+Original global data is never copied into the repository.
+
+Native gameplay regressions on helper03
+Two standalone Try Deck matches pass in176.407s,including a native core-unit
+edit before the second match. Both have human/bot production,native results/
+Continue and no owned sockets in35 snapshots. This short run does not renew
+tactical bot movement acceptance:its produced-unit autonomous-order intersection
+is empty. Earlier longer public/native movement proofs remain separate.
+Private local/native-settings-practice01/verification.json SHA256:
+86f73e4a160af72985de93c52c8eb64fa64b0546ed027184245a7ebb8fffa317
+
+Two simultaneous human profiles on one installation pass server-backed2vAI
+in103.863s:1250 exact authoritative frames each,two original builds,complete
+17-slot/units queue/server/native/final-save agreement and results/Continue.
+Worker exits0;owned processes reaped and covered sources unchanged. Actual
+search captures show the original2vAI loading/countdown and arena transition.
+They do not show the HUD or results and cannot qualify their visual appearance.
+Private local/native-settings-team01/verification.json is retained separately.
+SHA256:
+bb3b0ae321e8bb52697318dff3ff8e4df55d4518883c43f8a7bb15128fe33d05
+These are automated original callbacks;cleanup is forced,not native Quit.
+
+Final verifier follow-up
+The verifier now rejects prior-process static-field evidence after PID reuse
+and noninteger/out-of-range deck identifiers. Five focused evidence tests pass;
+one final fresh native menu passes in13.794s,with an actual1149-byte TOML,
+eight units/four groups,unchanged shared baseline and covered sources,and its
+owned process reaped. Source suite rerun on the final source passes435 tests
+with14 skips out of449 in95.765s. Ten C++ component programs/helper03 remain
+unchanged from the qualified build. Private final verification SHA256:
+3a68ff7e14643078c354b9bb7147b34d722ba33cbbda08b0821218e552989947
+
+Remaining gates
+Malformed native TOML/JSON and failures arising after startup need separate
+qualification. The original writer still uses its own non-atomic/swallows-error
+behavior;the new preflight lock/path guard is not proof of all later writes.
+Native Quit/shutdown flush and final packages/manual clean-PC acceptance remain
+open. Broader modes/faults/ordinary entry-point acceptance remain separate.
+This only redirects the native local-user TOML;
+unrelated Unity/Steam backup locations remain outside this isolation claim.
+
+Original gap (before this prototype)
 The original LocalDeckStorage serializes account.decks as JSON inside the native
 local-user TOML. The path is Application.persistentDataPath plus
 gameconfig-localuser.toml. Installation directory and the adapter's local_profile
-key do not participate. That key currently isolates cosmetics only. Native deck
+key do not participate. That key previously isolated cosmetics only. Native deck
 edits reach the original writer even from a disposable installation. A successful
 write can replace shared settings beyond decks. Save callbacks do not prove disk
 success:the native writer logs errors and returns false;its caller ignores it.
@@ -16,7 +117,7 @@ Its pre-test contents cannot be reconstructed from these observations. Do not
 perform a guessed restore. Same-process return/edits,server profile saves and
 cosmetic restart checks do not close local unit-deck persistence/isolation.
 
-Early scoped seam,static evidence only
+Early scoped seam,from retained original-byte evidence
 RGameLocalUserConfigTomlLoader..cctor,RGame.ConfigLoader.dll token0600002f,
 RVA379a240,constructs the path before native config load or selector setup.
 Its call at RVA379a38e,file offset379898e,bytes e89ddfbeff targets the exact
@@ -27,13 +128,14 @@ string result in RAX is stored by original code into ConfigFileLocation+8 at
 
 A single exact-byte-checked call hook can return a validated installation/profile
 path while retaining the original TOML/JSON format. Do not reenter this cctor,
-call its path getter or run managed initialization from DllMain. No path repair
-exists yet. Updating the path from local_menu/OfflineInitialUpdate is too late.
+call its path getter or run managed initialization from DllMain. Updating the
+path from local_menu/OfflineInitialUpdate is too late;the new prototype uses
+this early call instead.
 This redirects the entire local-user TOML,not all Unity/Steam persistence.
 Changing only the account.decks key in the shared file would still overwrite
 that shared file. Isolation failure must never fall back to the shared path.
 
-Next implementation/acceptance
+Qualification checklist (native results above are bounded to their stated scope)
 - Before another graphical launch,record a quiescent read-only baseline digest
   of the shared file if readable;record absent/unreadable honestly. Preserve it.
 - Validate the configured profile key,ordinary non-reparse destination and

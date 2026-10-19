@@ -236,7 +236,7 @@ async def run(args):
                     postgame_recovery_smoke=args.postgame_error, quit_smoke=args.quit_on_failure)
                 port=failure_port if index==0 and failure_port else route_port
                 config = dict(game_directory=game, server_host='127.0.0.1', server_port=port,
-                              display_name='TLS Player ' + str(index + 1), room='tls-rematch')
+                              display_name='TLS Player ' + str(index + 1), room='tls-rematch', local_profile='nativeprobe_'+player)
                 tasks.append(asyncio.create_task(launcher.launch(config, Remote('127.0.0.1', port, context, player, token), options)))
             deadline = time.monotonic() + args.duration
             final_result_at = quit_requested_at = None

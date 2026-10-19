@@ -36,16 +36,30 @@ class SecureLauncherTests(unittest.TestCase):
         state = root / '.battleaces-resurrection'
         state.mkdir(parents=True)
         helper = b'authored helper fixture ' + (b'BA_RESURRECTION_TLS_BRIDGE_V1' if secure else b'old helper')
+        helper += b' BA_RESURRECTION_NATIVE_SETTINGS_V1 OfflineLocalUserConfigPath\0'
         if protocol3: helper += b' BA_RESURRECTION_GAME_PROTOCOL_3'
         component = b'authored component fixture'
         (root / 'BattleAcesOffline.dll').write_bytes(helper)
         (root / 'GameAssembly.dll').write_bytes(component)
         (root / 'Battle Aces.exe').write_bytes(b'authored non-executable fixture')
         manifest = dict(schema=2, state='dedicated-prototype-v2', helper_sha256=hashlib.sha256(helper).hexdigest(),
+                        local_settings={'isolated': True}, call_hooks=[{'name': 'OfflineLocalUserConfigPath'}],
                         components={'GameAssembly.dll': {'installed_sha256': hashlib.sha256(component).hexdigest()}})
         path = state / 'patch-manifest.json'
         path.write_text(json.dumps(manifest), encoding='utf-8')
         return root, path, manifest
+
+    def test_native_settings_isolation_requires_manifest_and_early_hook(self):
+        root, path, manifest = self.install()
+        launch.verify_game(root)
+        for key, value in (('local_settings', None), ('local_settings', {'isolated': False}),
+                           ('call_hooks', []), ('call_hooks', None)):
+            previous = manifest[key]
+            manifest[key] = value
+            path.write_text(json.dumps(manifest))
+            with self.assertRaisesRegex(launch.LaunchError, 'native local-user settings isolation'):
+                launch.verify_game(root)
+            manifest[key] = previous
 
     def test_explicit_trust_identity_and_paths_resolve_from_config_directory(self):
         config = self.load()

@@ -24,8 +24,9 @@ class OfflinePracticeLauncherTests(unittest.TestCase):
         (self.game / 'BattleAcesOffline.dll').write_bytes(helper)
         (self.game / 'Battle Aces.exe').write_bytes(b'non-executable authored fixture')
         self.manifest = dict(state='dedicated-prototype-v2', practice={'standalone': True},
+            local_settings={'isolated': True},
             patched_sha256=hashlib.sha256(component).hexdigest(), helper_sha256=hashlib.sha256(helper).hexdigest(),
-            call_hooks=[{'name': 'OfflinePracticeAIJoin'}])
+            call_hooks=[{'name': 'OfflinePracticeAIJoin'}, {'name': 'OfflineLocalUserConfigPath'}])
         self.manifest_path = state / 'patch-manifest.json'
         self.manifest_path.write_text(json.dumps(self.manifest))
         self.config = self.folder / 'offline.json'

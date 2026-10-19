@@ -103,6 +103,7 @@ async def run(args):
         if args.settings_first: require(manifest.get('practice', {}).get('difficulty_settings'), 'difficulty settings helper required')
         if args.loading_ui: require(manifest.get('ui', {}).get('match_loading'), 'loading UI helper required')
         command = [str(game / 'Battle Aces.exe'),
+            '-local-profile='+(args.cosmetic_profile or 'nativeprobe_'+uuid.uuid4().hex[:16]),
             '-practice-ai-experimental', '-practice-ai-smoke', '-lan-audit',
             f'-practice-ai-profile={args.profile}',
             f'-practice-ai-smoke-matches={args.matches}',
@@ -127,7 +128,7 @@ async def run(args):
                     'test profile/catalog mismatch')
             expected_cosmetics = catalog.validate_selection(seeded['slots'])
             report['expected_cosmetics'] = seeded
-            command.extend(['-local-cosmetics-experimental', '-human-cosmetics-smoke', '-local-profile='+args.cosmetic_profile])
+            command.extend(['-local-cosmetics-experimental', '-human-cosmetics-smoke'])
         startup = subprocess.STARTUPINFO(); startup.dwFlags |= subprocess.STARTF_USESHOWWINDOW
         startup.wShowWindow = 4 if args.visible else 0 # SW_SHOWNOACTIVATE for explicit graphical qualification.
         clock = ctypes.WinDLL('kernel32').GetTickCount64; clock.restype = ctypes.c_ulonglong

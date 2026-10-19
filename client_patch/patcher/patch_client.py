@@ -49,6 +49,8 @@ TAIL_HOOKS = [
      'offset': 0x3d055fd, 'before': 'e92e6a86fe'},
 ]
 CALL_HOOKS = [
+    # Construct the native local-user TOML path before its first load/save.
+    {'name': 'OfflineLocalUserConfigPath', 'rva': 0x379a38e, 'offset': 0x379898e, 'before': 'e89ddfbeff'},
     # Keep native Continue/navigation; public results have no service rewards.
     {'name': 'OfflineMatchResultContinue', 'rva': 0x3d61142, 'offset': 0x3d5f742, 'before': 'e8092949fd'},
     {'name': 'OfflineStartupReady', 'rva': 0x3dff36f, 'offset': 0x3dfd96f, 'before': 'e80cdeffff'},
@@ -224,6 +226,8 @@ def install(game_dir, *, helper=None, original_path=None, restore=False, dry_run
         raise ValueError('Build the current helper supporting recovery ABI1 before installing this patch.')
     if helper_bytes is not None and b'OfflineMatchResultContinue\0' not in helper_bytes:
         raise ValueError('Build the current helper with the public result Continue hook before installing this patch.')
+    if helper_bytes is not None and (b'BA_RESURRECTION_NATIVE_SETTINGS_V1' not in helper_bytes or b'OfflineLocalUserConfigPath\0' not in helper_bytes):
+        raise ValueError('Build the current helper with native local-user settings isolation before installing this patch.')
     if cosmetics and helper_bytes is not None and any(hook['name'].encode()+b'\0' not in helper_bytes
             for hook in COSMETIC_CALL_HOOKS + COSMETIC_TAIL_HOOKS):
         raise ValueError('Build the current helper with experimental cosmetic hooks before installing this patch.')
@@ -238,6 +242,7 @@ def install(game_dir, *, helper=None, original_path=None, restore=False, dry_run
     manifest = {'schema': 2, 'game_build': 37822, 'patch_version': '0.2.0-dev',
                 'original_sha256': ORIGINAL_SHA256, 'patched_sha256': components['GameAssembly.dll']['patched_sha256'],
                 'helper_sha256': digest(helper_bytes) if helper_bytes is not None else None,
+                'local_settings': {'isolated': not restore, 'scope': 'installation-and-profile', 'format': 'native-toml'},
                 'patches': PATCHES + (COSMETIC_PATCHES if cosmetics else []), 'hooks': HOOKS,
                 'tail_hooks': TAIL_HOOKS + (COMMUNITY_TAIL_HOOKS if community else []) + (COSMETIC_TAIL_HOOKS if cosmetics else []),
                 'call_hooks': CALL_HOOKS + (COMMUNITY_CALL_HOOKS if community else []) + (COSMETIC_CALL_HOOKS if cosmetics else []),

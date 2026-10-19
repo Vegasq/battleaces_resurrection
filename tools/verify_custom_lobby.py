@@ -87,6 +87,7 @@ async def run(args):
         (output / 'patch-manifest.json').write_text(json.dumps(manifest, indent=2))
         for index, profile in enumerate(profiles):
             command = [str(game / 'Battle Aces.exe'), '-offline-lan', f'-dedicated-server=127.0.0.1:{address[1]}',
+                '-local-profile=nativeprobe_'+uuid.uuid4().hex[:16],
                 '-dedicated-community', '-community-roster-smoke' if args.roster else '-community-create-smoke', '-player-id=' + profile,
                 '-player-name=' + (('<b>Roster one</b>', 'Roster \u2605 two')[index] if args.roster else 'Custom probe ' + str(index + 1)), '-screen-fullscreen', '0',
                 '-screen-width', '960', '-screen-height', '540', '-logFile', str(output / f'game-{index}.log')]

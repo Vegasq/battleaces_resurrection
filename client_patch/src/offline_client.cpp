@@ -19,7 +19,7 @@
 #include "match_loading.h"
 #include "cosmetics_loadout.hpp"
 
-namespace ba_catalog { static void exportOnce();static std::string utf8(void*); }
+namespace ba_catalog { static void exportOnce();static std::string utf8(void*);static std::string quote(const std::string&); }
 namespace ba_dedicated_results { static void receive(const std::string&); }
 namespace ba_audit { static void beginMatch(const std::string&);static void practiceAIView(void*,int); }
 namespace ba_telemetry_audit { static void startup();static void update(); }
@@ -303,6 +303,7 @@ extern "C" __declspec(dllexport) void OfflineFrontUpdate(void* front,void*) {
     catch(const std::exception& e) { log("Offline status: %s",e.what()); }
 }
 
+#include "native_settings.cpp"
 #include "local_loop.cpp"
 #include "catalog_export.cpp"
 #include "lan_smoke.cpp"
@@ -320,6 +321,7 @@ extern "C" __declspec(dllexport) void OfflineFrontUpdate(void* front,void*) {
 #include "community_match.cpp"
 #include "practice_settings.cpp"
 #include "local_menu.cpp"
+#include "native_settings_deck_smoke.cpp"
 #include "native_tables.cpp"
 #include "bot_characters.cpp"
 #include "public_bots.cpp"

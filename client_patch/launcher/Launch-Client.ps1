@@ -5,6 +5,7 @@ param(
     [string]$Address = '',
     [string]$PlayerId = '',
     [string]$DisplayName = '',
+    [ValidatePattern('^[a-z0-9_-]{1,48}$')][string]$LocalProfile = 'default',
     [string]$Room = '',
     [string]$RunName = 'dedicated-client',
     [switch]$AutoReady,
@@ -54,7 +55,11 @@ if ((Split-Path -Leaf $root) -eq 'BattleAcesBeta_untouched') { throw 'Use a work
 foreach ($key in @($PlayerId,$Room,$RunName)) { if ($key -notmatch '^[A-Za-z0-9_-]{1,48}$') { throw 'Player, room and run names require1..48 letters, numbers, dashes or underscores.' } }
 $manifestPath = Join-Path $root '.battleaces-resurrection/patch-manifest.json'
 $manifest = Get-Content -LiteralPath $manifestPath -Raw | ConvertFrom-Json
+if (-not $PSBoundParameters.ContainsKey('LocalProfile') -and $Slot -ge 0) { $LocalProfile = 'lan-slot-' + $Slot }
 if ($manifest.state -eq 'restored') { throw 'Client is restored; install the patch before launching a private match.' }
+if (-not $manifest.local_settings.isolated -or 'OfflineLocalUserConfigPath' -notin @($manifest.call_hooks | ForEach-Object name)) {
+    throw 'Install the current patch with native local-user settings isolation.'
+}
 if ($CommunityExperimental -and $manifest.community.native_scope -ne 'custom-match-prototype') {
     throw 'Install the current experimental community match patch into an isolated copy first.'
 }
@@ -75,7 +80,7 @@ if ($manifest.components) {
 }
 $runtime = Join-Path $root 'investigation/runtime'
 New-Item -ItemType Directory -Force -Path $runtime | Out-Null
-$gameArgs = @("-player-id=$PlayerId", ('-player-name="'+$DisplayName+'"'), '-screen-fullscreen','0','-screen-width','960','-screen-height','540','-logFile',('"' + (Join-Path $runtime "$RunName-$PlayerId.log") + '"'))
+$gameArgs = @("-player-id=$PlayerId", ('-player-name="'+$DisplayName+'"'), "-local-profile=$LocalProfile", '-screen-fullscreen','0','-screen-width','960','-screen-height','540','-logFile',('"' + (Join-Path $runtime "$RunName-$PlayerId.log") + '"'))
 if ($OfflinePractice) { $gameArgs += '-offline-practice' }
 else { $gameArgs += @('-offline-lan',"-dedicated-server=$resolvedAddress","-room=$Room") }
 if ($DiagnosticAudit) { $gameArgs += '-lan-audit' }
