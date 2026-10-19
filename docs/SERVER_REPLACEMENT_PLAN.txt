@@ -4,15 +4,20 @@ Target: Battle Aces build 37822, Windows x64 server and clients.
 Status: IMPLEMENTATION ACTIVE. See STATUS.txt; incomplete phases remain future work.
 
 Current release integration order (2026-10-19)
-- Resolve the packaged2v2 replay regression before promoting the public matrix.
+- Packaged2v2 replay path regression is fixed and bounded qualification passes.
   Bundled1v1 now passes all measured gameplay/result/Continue/natural-Quit gates.
   Bundled2v2 finishes gameplay and Quit,but the original four-player replay
   filename makes this installation's full path280 characters and no replay is
   saved. Do not waive file presence or shorten native names merely to pass.
-  Test extended API spelling through the already-scoped replay folder hooks,
-  preserving canonical directory pins,original filename/serializer and retention.
-  Qualify write/readback/100-file retention,then ordinary2v2/2vAI and full packaged
-  server/fallback/fault matrix. Prepared manual22 copy remains unchanged.
+  Ordinary24 uses extended API spelling through already-scoped replay folder
+  hooks,preserving canonical directory pins,original filename/serializer/retention.
+  Prototype2vAI101-file and clean-package ordinary2v2 100-file boundaries pass:
+  exact oldest files removed,99 survivors/unrelated marker unchanged,new long
+  native replay structurally decodes,results/Continue/Quit/launcher exit0. Actual
+  CMD startup also passes. Independent manual24 copy is ready;manual22 unchanged.
+  Next qualify native replay browsing/codec/playback and remaining full packaged
+  online/team/fallback/search-Cancel/fault/manual/clean-PC/Internet matrix. Static
+  browser-root review is underway;do not infer native playback from host decode.
 - Qualify bundled unified gameplay/results/Continue/original menu Quit together.
   Existing actual CMD startup and standalone native gameplay are separate proofs.
   The new explicit owned packaged-play adapter uses verified bundled production

@@ -574,6 +574,11 @@ flag. Canonical directories/backup paths stay plain. V2 capability prevents
 diagnostic-only helpers passing installer/launcher/package admission. Manifest
 replay_path_api=extended-local-drive,None on restore. C++ Unicode path mapping,
 storage and atomic checks pass;64 focused tests and full488 tests474pass/14skip
-pass. Clean-package ordinary100-file native boundary remains pending. Per-file
+pass. Clean4b5fa0b package ordinary2v2 now passes224.901s,including a290-character
+native replay,exact oldest one of100 fixtures removed,99 unchanged survivors,
+unrelated file preserved and natural game/launcher exits0. Job active0 before
+close;package/config/sources/three shared channels unchanged. Actual CMD startup
+passes;independent manual24 entry is local/playtest24/client/Start Client.cmd.
+Per-file
 component limits,deep directory limits,native codec/playback,permissions/faults
 and broader release gates remain explicit. See packaged-gameplay.txt for hashes.

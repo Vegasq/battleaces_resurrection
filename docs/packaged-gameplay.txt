@@ -244,3 +244,60 @@ ordinary native100-file boundary is pending. Prepared manual22 stays unchanged.
 Native codec-only readback/playback is still not claimed by structural host
 decode. Retained reader-contract03 gives safe exact overloads for a future
 diagnostic;the high-level original reader mutates playback state.
+
+Clean ordinary24 bundle and actual CMD startup
+local/replay-path24-packages01 is built from clean source
+4b5fa0b7f7553792fcc2c0557aaeccca936c6948,dirty=false. No original game/asset
+files are included. Exact helper24 SHA256
+6785cc58fbd4d1e78b7dd0e516a29a087caa5b8cfb28ab83ce0cfbef86e1de69
+Bound helper-build.json SHA256
+5ea82a1f333dc031c206bf23bc294bcf4842f038eb47137173439c54c4482114
+Client67 files,13057505 bytes,ZIP SHA256
+1fa4b1344d106fe9fb2cd5be5755bf0a4f40b6b1892583968bf74ccadb99cb3e
+Server82 files,12427770 bytes,ZIP SHA256
+1cc7767e18350caa1617660bce04553d5d148d7c7c4d31a81075c935c484f748
+build-report.json SHA256
+56c2e0542005445e1e204159d8c5c2182bcd7a941181523f764c4555566f7999
+
+Actual bundled Start Client.cmd reaches original menu11.147s,total11.549s.
+This uses isolated bundled Python,foreign cwd/PYTHONPATH,no global Python on PATH,
+no spawn seam and no automatic/diagnostic options. Config/package/covered source/
+named shared TOML stay unchanged. Owned job cleanup after readiness is forced;
+this is startup qualification,not native Quit/gameplay/manual input acceptance.
+local/replay-path24-startup01/verification.json SHA256
+b2d0591f9add397e68126ae46c3294357de7bcfa3ceeea92c02cd42a1cb660be
+
+Ordinary24 clean-package mode2/100 retention PASSES224.901s
+The clean4b5fa0b bundle executes actual production client.main/bridge with only
+the explicit gameplay/Quit observer adapter. No replay long-path game flag is
+present;--expect-long-replay is a HOST assertion only. Ordinary V2 path marker
+is observed. Three native profile59 bots build/move with supply107/18/121 and
+64/16/29 ordered moving units. Configured human name,complete frozen native joins,
+actual in-game/result avatar/name bindings and original public search phases pass.
+Original290-character native replay59189 bytes structurally decodes523840 bytes,
+3606 input messages. Exact oldest fixture000 is removed,99 survivors retain bytes,
+unrelated.txt unchanged;100 total replays remain. Original results/Continue/menu
+Quit and bundled launcher exit0 complete;game exits2.172s after Confirm,job total2,
+active0,terminated0 before close,no forced cleanup. Covered source/package/config/
+three shared inventories unchanged. The failed22 report remains intact.
+local/replay-path24-mode2-retention100/verification.json SHA256
+f13c71887669b560817a748cf696e77215385bdcb2409f639c3153513444f21c
+
+New independent manual24 candidate (PENDING PHYSICAL FEEDBACK)
+local/playtest24/client/Start Client.cmd starts local/playtest24/game with fresh
+player24 profile. Config/client.json has editable display_name and optional
+server host/settings;no server is configured. Ordinary startup contains no test,
+build,surrender,Continue,camera,capture or timed-explosion action. Game/assets are
+an independent private copy250 files7771922788 bytes (104.075s),no links or old
+profiles. Original recovery copy and manual22/frozen archives remain unchanged.
+Preparation SHA256 local/playtest24/preparation.json
+bb3d424a0300a916ff3233616c1fd38cba83f7dd9c355d51f39c3bc105bda4ff
+Its ACTUAL bundled Start Client.cmd separately reaches menu15.234s,total15.683s,
+no spawn seam/global Python on PATH/diagnostic actions;config/package/source/
+named shared TOML unchanged. Owned readiness cleanup is forced,not Quit proof.
+local/playtest24-startup01/verification.json SHA256
+121c35ad7a352329fc69f558a399b10a9fe738870ad0801d11f2bbba1e0af1cd
+No manual feedback has been inferred from these automated controls or the old
+pending manual22 question. Native playback,full final packaged matrix,manual
+input/audio/rendering/preferences,privacy/deployment/clean-PC/Internet gates stay
+open. Native replay browser/root static review continues independently.

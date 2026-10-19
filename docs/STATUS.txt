@@ -2,7 +2,7 @@ IMPLEMENTATION LEDGER
 Updated: 2026-10-19 UTC
 Active objective: implement SERVER_REPLACEMENT_PLAN.txt, Windows only.
 
-PACKAGED PUBLIC MATRIX / LONG REPLAY PATH (2026-10-19 UTC, IN QUALIFICATION)
+PACKAGED PUBLIC MATRIX / LONG REPLAY PATH (2026-10-19 UTC, BOUNDED PASS)
 Bundled public1v1/helper22 passes179.126s:original search/fallback phases,
 named Hard bot supply94 and autonomous ordered movement,result/Continue/menu
 Quit and both natural exits0;owned job active0 before close. Full Python484
@@ -13,9 +13,16 @@ negative result. Prototype23 passes2v2 long save/structural decode/normal Quit,
 and2vAI plus101-file original retention:exact oldest two deleted,99 survivors
 and unrelated file unchanged. Ordinary24 now uses the same replay API spelling
 without a diagnostic flag;installer/launcher/package require its distinct V2
-capability. Native100-file boundary in a clean package remains pending. C++
+capability. Clean4b5fa0b bundle/ordinary24 mode2 passes224.901s:290-character
+native replay structurally decodes;exact oldest one of100fixtures is deleted,
+99survivors/unrelated marker unchanged;results/Continue/Quit and launcher exit0,
+job active0 before close,no forced cleanup. Sources/package/config/shared three
+channels unchanged. Actual CMD menu11.147s;independent manual24 copy also passes
+actual CMD startup15.234s,with no automation. C++
 eleven programs/six atomic boundaries and Python488 tests (474pass/14skip,
-91.650s) pass. Prepared manual22 stays unchanged. See packaged-gameplay.txt for
+91.650s) pass. Manual entry:local/playtest24/client/Start Client.cmd;fresh player24,
+configurable display_name/server settings,no configured server. Manual22 stays
+unchanged. Physical mouse/audio/combat/preferences feedback is pending. See packaged-gameplay.txt for
 exact evidence;native playback and broad final release gates remain open.
 
 BUNDLED UNIFIED GAMEPLAY / ORIGINAL QUIT (2026-10-19 UTC, CANDIDATE)
