@@ -11,6 +11,10 @@ natural Quit runs (including concurrent pair),50 completed tasks,53->0 roots and
 same original Unity/Quit thread. Ordinary-recipe bytes remain equal;ordinary
 same-helper no-observer control passes. Slow168s startup cause/fix still OPEN.
 No cold-cache/exception-unwind fault/zero-overhead claim;see client-startup.txt.
+Clean08f8d10 previews with helper38 pass actual embedded runtime imports of all
+19 client/36 server modules,foreign cwd/empty PATH/no site-packages and unchanged
+package integrity. New packaged gameplay/owner/server controls remain separate;
+manual35/older qualified archives are preserved. See client-startup.txt.
 The shared player entry point now enables public queues and installed cosmetic
 selection/persistence;packaged install includes their native recipe. Actual
 no-server startup,local1v1/2v2/2vAI,real30-second fill,partial two-human2v2,waiting

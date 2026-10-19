@@ -99,6 +99,26 @@ local/startup-tasks38-python-tests02.txt. Source-only history/staged audit passe
 first rejected audit remains local/startup-tasks38-audit01.txt. No original
 client/helper binaries,private captures,credentials or packages enter Git.
 
+Clean-source38 Windows previews/import qualification
+local/startup-packages38-clean01 pins clean source
+08f8d1099ca368e30065d5cbc2b6f09e4e2dbc9f and the tested helper38 above.
+Actual verified official embedded Python3.14.8 builds both archives. Client
+68 files/13094190 archive bytes SHA256:
+e81e3bc140a46a87e424742deef3c4f6fdf3f2301ff1498c25c1906c749d7eb7
+Server82 files/12427765 bytes SHA256:
+23ee3cabf8828be2f85792a205a00a916bee614a1f29ae7b5e7ceb7b2d566d4d
+Build report SHA256:
+ee63e081d1f2cd5d6af50a3d32956cc81d85598be34c4977f16f184efeaf82b3
+Each actual bundled python.exe imports ALL bundled Python modules (19 client,
+36 server) from a foreign working directory,empty PATH,-I/-B and no site-packages.
+All loaded module paths/digests match packaged/source bytes;complete package
+inventory/hash verification passes before/after and every file remains unchanged.
+embedded-import-verification.json SHA256:
+7d98228885dd0307ac873331d4a90b5021afad1f7c088fc05a2c24a12b88e1ce
+This qualifies actual embedded imports/integrity,not a new packaged gameplay,
+protected enrollment,server-control,clean-PC or Internet run. Manual35 and older
+qualified34 packages are not replaced;these previews remain ignored local files.
+
 2026-10-19 real-credential two-client37 observation (UNRESOLVED)
 The actual normal-owner packaged multiplayer run passes267.999s,but early native
 settings selection->helper startup takes168.359s/168.500s for PIDs9728/30032.

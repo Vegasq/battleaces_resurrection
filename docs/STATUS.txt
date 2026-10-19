@@ -20,6 +20,11 @@ Final Python539 tests523pass/16skip,98.942s passes. Initial package import failu
 caught missing new source module;allowlist corrected,51 focused checks pass.
 Source-only staged/history audit1216 objects/zero failures;rejected initial
 developer-path audit retained locally. No client binaries/assets committed.
+Clean08f8d10 Windows previews built with tested helper38/verified embedded Python;
+actual isolated runtimes import all19 client/36 server modules from foreign cwd,
+empty PATH/no site-packages,with exact source digests and package files unchanged.
+This qualifies packaging/imports only,not new packaged gameplay or final release.
+Exact archive/report hashes in client-startup.txt;manual35/packages34 preserved.
 
 REAL-CREDENTIAL NATIVE37 (2026-10-19 UTC, BOUNDED PASS)
 Normal-owner run passes267.999s:no forced cleanup. Actual packaged server check
