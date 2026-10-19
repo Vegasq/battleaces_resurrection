@@ -96,7 +96,7 @@ game launch. It never substitutes authentication/privacy APIs. Under a restricte
 automation token it stops at read-only preflight BEFORE PKI,protected storage,
 console or worker. Actual owner preflight01 correctly reports normal_owner_required,
 controller_started=false/protected_operations_attempted=false. It is NOT a TLS pass.
-Use normal desktop operator qualification next,then active-room/multiclient stop,
+The normal-owner control below now closes bounded idle startup/stop,then leaves active-room/multiclient stop,
 SCM/other account/clean PC/Internet/capacity/manual final matrix. Existing native37
 real protected gameplay remains separate older-package evidence.
 
@@ -104,3 +104,68 @@ Final regression:543 tests527pass/16skip,99.288s,exit0 in
 local/server-launcher39-python-tests01.txt. Native launcher source/build/argument
 checks are separate above;CI now compiles/tests that component on its Windows
 primary-Python job. CI execution itself is not asserted by this local result.
+
+Clean39 previews and actual normal-owner TLS acceptance
+Clean production/package source0bc7d34cae6da1abe0a6ff0cf2f548a8acdf49a7,
+same tested launcher39-01/helper38. Ignored local/server-launcher39-clean01:
+server83 files/12497195 ZIP bytes SHA256:
+72ebd695a144a94c840e8ee150ede175c0eace7b87bd4c2116056cd72db7b0f5
+client68 files/13094202 bytes:
+85928f118d6e3016aca3a3599000ce801c9c1e742a954926e27360d24b548909
+Build report14d82129a363eccb5c00caa977660ce9958c2482823df5dd9f0863dc9fedafb9
+Actual embedded runtimes additionally import all19 client/36 server modules
+from foreign cwd/empty PATH/no site-packages with exact source bytes and complete
+package inventories unchanged. embedded-import-verification.json SHA256:
+9edb2b8705def739a4c778ef845a5c6b0c1395a0a8cb80270e2b5129e7acd446
+Actual clean-package development console passes4.599s in
+local/server-console39-clean-development01/verification.json:
+765986306bd7720a40b8ee8ab882630d264b95c0141a44f71929d97b224b9df8
+
+User ran local/owner-console39/Owner Console Check.cmd from the normal desktop.
+First run run_7410f7d44b0d083b fails the outer-job assertion despite successful
+protected production store/TLS1.3/native health/CLI0/1/2/Ctrl+C0/port/state-lock
+checks. It samples active1/terminated0 immediately after controller exit,then
+closes the owned job. Its old forced_cleanup=false flag alone is not proof that
+no remaining process was terminated;do NOT promote this report. PID of that
+remaining process was not retained. Failed report SHA256:
+a702ebbdd7f9fecf4285e7dd9dad287ebb037fcfeec8dae798e0cf0af0cf2e42
+
+Corrected external verifier (no package/host/launcher behavior change) observes
+the SAME owned job for up to5s before closing it. It records active PIDs/images
+only from that job,not a global process inventory. Live/forced processes never
+qualify;an additional immediate pre-close sample must remain active0/terminated0.
+On failure,closing a job with live processes now explicitly sets forced_cleanup.
+Four authored timing/termination controls reject persistent live,forced-zero and
+late-empty states;22 focused checks pass3.877s. Separate actual owned-process
+probe records Python23648,22 samples/1.067s,then natural job0/0;no protected API.
+Updated clean development02 passes5.390s with both final/pre-close job0/0:
+a435aaf93ef09fae543c5fdaf040c633e4d6f1b465de1f75595a43351eea0495
+
+Actual owner retry run_ee57dba5d2aa265c passes5.030s. User also answers PASS.
+Both its verification.json and public last-report.json SHA256:
+2b4d8d026f68b4b20cf9783c8ec2ffa87a4286fc4eea45ab3833a52cfa171aa7
+Controller25052/native launcher19048/actual bundled Python run the original host;
+production CredentialStore real private create/read/lock and verified TLS1.3
+handshake pass. No store/reader/auth replacement,invite issuance,game or system
+trust/firewall change. Original native health21464 creates/steps frame0/closes/
+reaps0. Original CLI0/1/2 and one Ctrl+C/natural launcher0 in0.040s pass. Listener
+port rebind and original data-state lock reacquisition pass. Before first outer
+job sample,only owned conhost47948 remains alive;next sample at50.724ms has0 live
+and0 job-terminated processes. This identifies the retry's console-host exit,
+not an unmeasured first-run PID. Final immediate pre-close job12 total/active0/
+terminated0,forced_cleanup=false. All bound production/launcher/driver/request/
+config inputs stay unchanged;test PKI removed. Independent public readback
+rechecks report-copy equality,current source digests,PKI absence and terminal
+known PIDs. No private store files are read by the restricted automation token.
+
+This closes actual ordinary executable idle startup/real protected storage/
+verified TLS/one console Ctrl+C on THIS owner account. It does not qualify
+authenticated gameplay in this new package,active-room drain,repeated controls,
+another account,SCM,Close/logoff/reboot,clean PC,Internet or capacity. Original
+native37 protected gameplay stays older-package evidence. Client/manual35 and
+all frozen earlier archives remain unchanged.
+Final external-observer follow-up:547 Python tests531pass/16skip,99.641s,exit0
+in local/server-launcher39-python-tests02.txt. Package/native launcher bytes did
+not change for this observer fix;clean source0bc7d34 remains their actual build
+revision. The later source commit contains the external drain verifier/tests
+and exact operator evidence,not an untested replacement launcher.

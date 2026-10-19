@@ -2,7 +2,15 @@ IMPLEMENTATION LEDGER
 Updated: 2026-10-19 UTC
 Active objective: implement SERVER_REPLACEMENT_PLAN.txt, Windows only.
 
-SERVER CONSOLE ENTRY39 (2026-10-19 UTC, BOUNDED DEVELOPMENT PASS)
+SERVER CONSOLE ENTRY39 (2026-10-19 UTC, BOUNDED OWNER/TLS PASS)
+Normal-owner protected TLS/idle Ctrl+C now additionally passes5.030s after a
+strict observer correction:owned conhost exits naturally51ms after controller;
+final/pre-close job12 active0/terminated0,no forced cleanup. Real protected store,
+TLS1.3,native health,CLI0/1/2,port/state lock and input/PKI invariants pass. First
+failed report is retained,not promoted. Clean0bc7d34 previews and all19/36 actual
+embedded imports/integrity pass. Active-room/SCM/clean-PC/Internet stay OPEN;
+exact report/retry/source bounds in server-console.txt. No game was launched.
+Final observer follow-up full Python547 tests531pass/16skip,99.641s,exit0.
 Actual Start Server.cmd Ctrl+C exposes a real extra batch-confirmation wait;
 start /b /wait does not fix it. New ordinary Start Server.exe directly owns and
 waits for bundled Python,forwards Unicode args/exit codes and consumes only its

@@ -59,3 +59,35 @@ class ServerConsolePreflightTests(TestCase):
         code,report=self.invoke(restricted=False,stale=True)
         self.assertEqual(code,1)
         self.assertEqual(report['error_type'],'AssertionError')
+
+
+class OwnedJobDrainTests(TestCase):
+    def exercise(self,sequence,*,late=False):
+        now=[0.0];seen=[];index=[0]
+        def query(handle):
+            seen.append(handle);value=sequence[min(index[0],len(sequence)-1)];index[0]+=1
+            if late and index[0]>1:now[0]=6.0
+            return dict(total_processes=3,active_processes=value[0],total_terminated_processes=value[1])
+        def sleep(seconds):now[0]+=seconds
+        result=probe.settle_job('authored-owned-handle',query=query,inspect=lambda h:[dict(pid=17,image='authored.exe')],
+                                clock=lambda:now[0],sleep=sleep)
+        self.assertTrue(all(handle=='authored-owned-handle' for handle in seen))
+        return result
+
+    def test_natural_delayed_job_accounting_is_observed_before_close(self):
+        result=self.exercise([(1,0),(1,0),(0,0)])
+        self.assertTrue(result['naturally_empty'])
+        self.assertEqual(len(result['samples']),3)
+        self.assertEqual(result['samples'][0]['processes'],[dict(pid=17,image='authored.exe')])
+
+    def test_persistent_owned_process_is_not_turned_into_a_success(self):
+        result=self.exercise([(1,0)])
+        self.assertFalse(result['naturally_empty'])
+        self.assertGreaterEqual(result['elapsed_seconds'],5)
+        self.assertEqual(result['final']['active_processes'],1)
+
+    def test_zero_after_forced_job_termination_cannot_qualify_natural_shutdown(self):
+        self.assertFalse(self.exercise([(0,1)])['naturally_empty'])
+
+    def test_empty_observed_after_deadline_cannot_qualify(self):
+        self.assertFalse(self.exercise([(1,0),(0,0)],late=True)['naturally_empty'])

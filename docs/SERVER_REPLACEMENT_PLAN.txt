@@ -7,8 +7,10 @@ Current release integration order (2026-10-19)
 - Ordinary server entry39 is now native Start Server.exe:actual CMD Ctrl+C left
   a second termination prompt. Actual development-loopback native entry passes
   CLI exit forwarding,real native health,one Ctrl+C/natural exit and zero owned
-  descendants/port/state-lock release. Protected TLS normal-owner and active-room
-  stop remain OPEN;read-only restricted-token preflight attempts no private APIs.
+  descendants/port/state-lock release. Actual normal-owner protected TLS/idle
+  Ctrl+C now passes5.030s with final/pre-close job0/0,observed natural conhost
+  exit and no forced cleanup. Active-room stop remains OPEN;restricted-token
+  preflight attempts no private APIs. Retain the first failed observer report.
   Keep one ordinary Start Server.exe and existing Start Client.cmd;no original
   client files enter Git. See server-console.txt for receipts/retained failures.
 - Startup task diagnostic38 is now opt-in and native-qualified:12 exact table

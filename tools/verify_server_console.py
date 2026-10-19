@@ -28,6 +28,49 @@ def require(value,message):
 def digest(path):return hashlib.sha256(Path(path).read_bytes()).hexdigest()
 
 
+def owned_job_processes(handle):
+    """Only PIDs currently returned by this owned job, never a system inventory."""
+    from ctypes import wintypes as w
+    class Ids(c.Structure):
+        _fields_=[('assigned',w.DWORD),('count',w.DWORD),('ids',c.c_size_t*128)]
+    kernel=c.WinDLL('kernel32',use_last_error=True)
+    kernel.QueryInformationJobObject.argtypes=[w.HANDLE,c.c_int,c.c_void_p,w.DWORD,c.POINTER(w.DWORD)]
+    value=Ids();length=w.DWORD()
+    require(kernel.QueryInformationJobObject(handle,3,c.byref(value),c.sizeof(value),c.byref(length)) and
+            value.count<=128,'owned job PID query failed')
+    kernel.OpenProcess.argtypes=[w.DWORD,w.BOOL,w.DWORD];kernel.OpenProcess.restype=w.HANDLE
+    kernel.WaitForSingleObject.argtypes=[w.HANDLE,w.DWORD];kernel.WaitForSingleObject.restype=w.DWORD
+    kernel.CloseHandle.argtypes=[w.HANDLE]
+    kernel.QueryFullProcessImageNameW.argtypes=[w.HANDLE,w.DWORD,w.LPWSTR,c.POINTER(w.DWORD)]
+    rows=[]
+    for pid in list(value.ids)[:value.count]:
+        row=dict(pid=pid);process=kernel.OpenProcess(0x1000|0x100000,False,pid)
+        if not process:row['query_error']=c.get_last_error()
+        else:
+            try:
+                row['signaled']=kernel.WaitForSingleObject(process,0)==0
+                path=c.create_unicode_buffer(32768);size=w.DWORD(len(path))
+                if kernel.QueryFullProcessImageNameW(process,0,path,c.byref(size)):row['image']=Path(path.value).name
+            finally:kernel.CloseHandle(process)
+        rows.append(row)
+    return rows
+
+
+def settle_job(handle,*,query,inspect=owned_job_processes,clock=time.monotonic,sleep=time.sleep,timeout=5):
+    """Observe natural job drain before closing it; never force a passing result."""
+    require(0<timeout<=5,'bounded job settle interval required')
+    started=clock();deadline=started+timeout;samples=[]
+    while True:
+        accounting=query(handle);observed=clock()
+        sample=dict(seconds=observed-started,**accounting)
+        if accounting['active_processes']:sample['processes']=inspect(handle)
+        samples.append(sample)
+        if (not accounting['active_processes'] or accounting['total_terminated_processes'] or clock()>=deadline):break
+        sleep(min(.05,max(0,deadline-clock())))
+    return dict(final=accounting,samples=samples,elapsed_seconds=clock()-started,
+                naturally_empty=not accounting['active_processes'] and not accounting['total_terminated_processes'] and observed<deadline)
+
+
 def console_ids(kernel):
     values=(c.c_uint*32)();kernel.GetConsoleProcessList.argtypes=[c.POINTER(c.c_uint),c.c_uint]
     count=kernel.GetConsoleProcessList(values,32)
@@ -175,9 +218,10 @@ def run(package,assets,output,*,development_loopback=False,preflight_only=False)
         report.update(controller_started=True,controller_pid=process.pid)
         job=_WindowsJob(process.pid);(output/'job-ready').write_bytes(b'owned job attached\n')
         report['controller_exit_code']=process.wait(timeout=100)
-        report['job']=job_accounting(job.handle)
+        report['job_settle']=settle_job(job.handle,query=job_accounting)
+        report['job']=report['job_settle']['final']
         report['console']=json.loads((output/'console-report.json').read_bytes())
-        require(process.returncode==0 and report['console']['passed'] and report['job']['active_processes']==0 and
+        require(process.returncode==0 and report['console']['passed'] and report['job_settle']['naturally_empty'] and report['job']['active_processes']==0 and
                 report['job']['total_terminated_processes']==0,'console/owned descendant qualification failed')
         require(verify_assets(assets)==asset_manifest,'assets changed')
         verify(package,'server')
@@ -186,7 +230,12 @@ def run(package,assets,output,*,development_loopback=False,preflight_only=False)
     finally:
         if process is not None and process.poll() is None:
             report['forced_cleanup']=True;process.terminate();process.wait(timeout=10)
-        if job is not None:job.close()
+        if job is not None:
+            try:
+                report['job_before_close']=job_accounting(job.handle)
+                if report['job_before_close']['active_processes']:report.update(forced_cleanup=True,passed=False)
+                if report['job_before_close']['total_terminated_processes']:report['passed']=False
+            finally:job.close()
         if (output/'pki').exists():
             try:remove_test_pki(output/'pki');report['authored_test_pki_removed']=True
             except OSError:report.update(authored_test_pki_removed=False,passed=False)
