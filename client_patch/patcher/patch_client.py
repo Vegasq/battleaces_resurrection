@@ -90,20 +90,41 @@ COMMUNITY_TAIL_HOOKS = [
     {'name': 'OfflineCommunityRosterRelease', 'rva': 0x3ca97f9, 'offset': 0x3ca7df9, 'before': 'e952020c00'},
     {'name': 'OfflineCommunityEnqueue', 'rva': 0x3e46b1d, 'offset': 0x3e4511d, 'before': 'e96e7472fe'},
 ]
+COSMETIC_PATCHES = [
+    {'name': 'Pass owning Front to scoped cosmetic presence hook', 'offset': 0x3e3d38f,
+     'before': '4533c0', 'after': '4989f0'},
+]
+COSMETIC_CALL_HOOKS = [
+    {'name': 'OfflineCosmeticVisibilityIndex', 'rva': 0x3ca50cc, 'offset': 0x3ca36cc, 'before': 'e80fe6fefe'},
+    {'name': 'OfflineCosmeticOwned', 'rva': 0x3ca48d8, 'offset': 0x3ca2ed8, 'before': 'e843201e00'},
+    {'name': 'OfflineCosmeticOwned', 'rva': 0x3ca5eb8, 'offset': 0x3ca44b8, 'before': 'e8630a1e00'},
+    {'name': 'OfflineCosmeticOwned', 'rva': 0x3ca5d90, 'offset': 0x3ca4390, 'before': 'e88b0b1e00'},
+    {'name': 'OfflineCosmeticOwned', 'rva': 0x3cbf80a, 'offset': 0x3cbde0a, 'before': 'e811711c00'},
+    {'name': 'OfflineCosmeticOwned', 'rva': 0x3cc1f0d, 'offset': 0x3cc050d, 'before': 'e80e4a1c00'},
+    {'name': 'OfflineCosmeticItemCache', 'rva': 0x3ca5166, 'offset': 0x3ca3766, 'before': 'e82546ecff'},
+    {'name': 'OfflineCosmeticSaveDeckDeferred', 'rva': 0x3e3ec8b, 'offset': 0x3e3d28b, 'before': 'e8b0f3feff'},
+    {'name': 'OfflineCosmeticPresence', 'rva': 0x3e3ed96, 'offset': 0x3e3d396, 'before': 'e835150500'},
+]
+COSMETIC_TAIL_HOOKS = [
+    {'name': 'OfflineCosmeticOwned', 'rva': 0x3ca5dc8, 'offset': 0x3ca43c8, 'before': 'e9530b1e00'},
+    {'name': 'OfflineCosmeticItemCache', 'rva': 0x3b69785, 'offset': 0x3b67d85, 'before': 'e906000000'},
+    {'name': 'OfflineCosmeticSaveRequest', 'rva': 0x3e40f1d, 'offset': 0x3e3f51d, 'before': 'e96ed072fe'},
+]
 def digest(b): return hashlib.sha256(b).hexdigest()
-def build_patch(original, *, include_telemetry=True, community=False):
+def build_patch(original, *, include_telemetry=True, community=False, cosmetics=False):
     """Pure transformation; only a matching original may enter this routine."""
     if digest(original) != ORIGINAL_SHA256:
         raise ValueError('Original build SHA256 does not match.')
     patched = bytearray(telemetry.patch_component('GameAssembly.dll', original) if include_telemetry else original)
-    call_hooks = CALL_HOOKS + (COMMUNITY_CALL_HOOKS if community else [])
-    tail_hooks = TAIL_HOOKS + (COMMUNITY_TAIL_HOOKS if community else [])
+    patches = PATCHES + (COSMETIC_PATCHES if cosmetics else [])
+    call_hooks = CALL_HOOKS + (COMMUNITY_CALL_HOOKS if community else []) + (COSMETIC_CALL_HOOKS if cosmetics else [])
+    tail_hooks = TAIL_HOOKS + (COMMUNITY_TAIL_HOOKS if community else []) + (COSMETIC_TAIL_HOOKS if cosmetics else [])
     # Reject a future telemetry recipe that touches an existing startup hook.
-    for site in PATCHES + HOOKS + tail_hooks + call_hooks:
+    for site in patches + HOOKS + tail_hooks + call_hooks:
         offset, size = site['offset'], len(bytes.fromhex(site['before']))
         if patched[offset:offset + size] != original[offset:offset + size]:
             raise ValueError('Telemetry/startup patch overlap: ' + site['name'])
-    for p in PATCHES:
+    for p in patches:
         before, after = bytes.fromhex(p['before']), bytes.fromhex(p['after'])
         o=p['offset']
         if len(before)!=len(after) or original[o:o+len(before)]!=before:
@@ -160,7 +181,7 @@ def contained_path(game_dir, relative):
     return resolved
 
 
-def install(game_dir, *, helper=None, original_path=None, restore=False, dry_run=False, community=False):
+def install(game_dir, *, helper=None, original_path=None, restore=False, dry_run=False, community=False, cosmetics=False):
     game_dir = Path(game_dir).resolve()
     if game_dir.name.lower() == 'battleacesbeta_untouched':
         raise ValueError('The untouched recovery copy is read-only; choose a working game copy.')
@@ -178,7 +199,7 @@ def install(game_dir, *, helper=None, original_path=None, restore=False, dry_run
         current, original = target.read_bytes(), source.read_bytes()
         if digest(original) != recipe.original_sha256:
             raise ValueError('Original build SHA256 does not match: ' + name)
-        patched = build_patch(original, community=community) if name == 'GameAssembly.dll' else update_checksum(telemetry.patch_component(name, original))
+        patched = build_patch(original, community=community, cosmetics=cosmetics) if name == 'GameAssembly.dll' else update_checksum(telemetry.patch_component(name, original))
         known = {recipe.original_sha256, digest(patched)}
         if name == 'GameAssembly.dll':
             known.add(digest(build_patch(original, include_telemetry=False)))
@@ -203,6 +224,9 @@ def install(game_dir, *, helper=None, original_path=None, restore=False, dry_run
         raise ValueError('Build the current helper supporting recovery ABI1 before installing this patch.')
     if helper_bytes is not None and b'OfflineMatchResultContinue\0' not in helper_bytes:
         raise ValueError('Build the current helper with the public result Continue hook before installing this patch.')
+    if cosmetics and helper_bytes is not None and any(hook['name'].encode()+b'\0' not in helper_bytes
+            for hook in COSMETIC_CALL_HOOKS + COSMETIC_TAIL_HOOKS):
+        raise ValueError('Build the current helper with experimental cosmetic hooks before installing this patch.')
     if community and helper_bytes is not None and b'BA_RESURRECTION_COMMUNITY_V1' not in helper_bytes:
         raise ValueError('Build a helper supporting experimental community ABI1 before installing this patch.')
     if community and helper_bytes is not None and b'BA_RESURRECTION_COMMUNITY_ROSTER_V1' not in helper_bytes:
@@ -214,8 +238,10 @@ def install(game_dir, *, helper=None, original_path=None, restore=False, dry_run
     manifest = {'schema': 2, 'game_build': 37822, 'patch_version': '0.2.0-dev',
                 'original_sha256': ORIGINAL_SHA256, 'patched_sha256': components['GameAssembly.dll']['patched_sha256'],
                 'helper_sha256': digest(helper_bytes) if helper_bytes is not None else None,
-                'patches': PATCHES, 'hooks': HOOKS, 'tail_hooks': TAIL_HOOKS + (COMMUNITY_TAIL_HOOKS if community else []),
-                'call_hooks': CALL_HOOKS + (COMMUNITY_CALL_HOOKS if community else []),
+                'patches': PATCHES + (COSMETIC_PATCHES if cosmetics else []), 'hooks': HOOKS,
+                'tail_hooks': TAIL_HOOKS + (COMMUNITY_TAIL_HOOKS if community else []) + (COSMETIC_TAIL_HOOKS if cosmetics else []),
+                'call_hooks': CALL_HOOKS + (COMMUNITY_CALL_HOOKS if community else []) + (COSMETIC_CALL_HOOKS if cosmetics else []),
+                'cosmetics': {'experimental': cosmetics, 'persistence': False, 'match_propagation': False},
                 'community': {'experimental': community, 'native_scope': 'custom-match-prototype' if community else None},
                 'practice': {'standalone': helper_bytes is not None and b'BA_RESURRECTION_OFFLINE_PRACTICE_V1' in helper_bytes,
                              'difficulty_settings': helper_bytes is not None and b'BA_RESURRECTION_PRACTICE_SETTINGS_V1' in helper_bytes},
@@ -262,9 +288,10 @@ def main():
     parser.add_argument('--restore', action='store_true')
     parser.add_argument('--dry-run', action='store_true')
     parser.add_argument('--community-experimental', action='store_true', help='isolated experimental native Custom Game/invite/match adapter')
+    parser.add_argument('--cosmetics-experimental', action='store_true', help='isolated catalog-scoped cosmetic unlock prototype; persistence not yet enabled')
     args = parser.parse_args()
     result = install(args.game_dir, helper=args.helper, original_path=args.original,
-                     restore=args.restore, dry_run=args.dry_run, community=args.community_experimental)
+                     restore=args.restore, dry_run=args.dry_run, community=args.community_experimental, cosmetics=args.cosmetics_experimental)
     print(json.dumps(result, indent=2))
 
 

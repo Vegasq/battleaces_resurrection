@@ -2,6 +2,7 @@
 // Explicit read-only catalog export. Installed IDs/assets remain outside source.
 namespace ba_cosmetics {
 using ba::Obj;using ba_local::Root;using ba_tables::require;
+static void unlockUpdate(Obj);
 static auto& slots=*new ba_tables::Table("CosmeticSlot","CosmeticSlotTable","80afad8f743498b4881dccafa8ebb850");
 static bool finished=false;
 static std::vector<uint32_t> saved(Obj cosmetics) {
@@ -55,6 +56,7 @@ static std::string serialize() {
         ",\"banner\":"+std::to_string(banner)+"},\"items\":["+itemRows+"],\"slots\":["+slotRows+"]}\n";
 }
 static void update(Obj front) {
+    unlockUpdate(front);
     if(finished || !ba::flag(L"-player-cosmetics-catalog-export") || !ba::localMenu() || !ba_local_menu::ready(front))return;
     try {
         require(ba_dedicated_session::unityThread==GetCurrentThreadId(),"cosmetics export off Unity thread");

@@ -2,6 +2,22 @@ IMPLEMENTATION LEDGER
 Updated: 2026-10-18 UTC
 Active objective: implement SERVER_REPLACEMENT_PLAN.txt, Windows only.
 
+EXPERIMENTAL COSMETIC PICKER (2026-10-19 UTC)
+Exact-byte guarded cosmetic-only hooks now expose the installed catalog through
+the original picker. Native item models report all107 items owned;74 otherwise
+missing cosmetic keys pass visibility without adding inventory entries. Actual
+slot/filter callbacks pass42 All/Owned/Unowned cases across14 populated slots,
+with245 item appearances and three empty sticker slots skipped. A windowed avatar
+grid/preview capture renders and was inspected. Original SaveAllCosmetics reaches
+one valid case37 request consumed before shared Enqueue. Unknown signed-index
+fallback,rarity,inventory and saved loadout remain unchanged. The final helper's
+ordinary no-config startup keeps unlock/export/automation disabled. Eight C++
+components/helper and59 of60 Python checks pass;one optional fixture skips.
+See cosmetic-unlock.txt for exact hashes,failed probe assumptions,black hidden
+capture and forced-teardown limits. Actual equip/swap/drag/confirm,persistence,
+profile/wire/match propagation,all-item rendering and normal enablement remain
+open. Only the disposable copy was changed; this is not final cosmetics delivery.
+
 COSMETIC CATALOG AND VALIDATION (2026-10-19 UTC, FOUNDATION ONLY)
 Two fresh native unified clients export the same installed107-item/17-slot
 compatibility matrix, using original definition filters and configured identity

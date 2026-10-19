@@ -1,0 +1,106 @@
+EXPERIMENTAL COSMETIC VISIBILITY AND OWNERSHIP
+Updated:2026-10-19 UTC. Picker/model qualification; equip/persistence remain open.
+
+Activation and boundaries
+The installer accepts --cosmetics-experimental only with a helper exporting all
+six scoped wrappers. It guards12 call/tail sites and one owner-argument change
+against exact supported original bytes, then records them in the patch manifest.
+The helper separately requires -local-cosmetics-experimental. Normal Start Client
+does not add that flag, diagnostics, captures or automated UI actions. Only the
+disposable test copy was patched; manual/frozen and untouched copies stay intact.
+
+The loaded item/slot tables remain authoritative. Initialization validates their
+category/default rules and roots the owned Front,account and Cosmetics. An atomic
+owner-thread gate prevents other native threads from inspecting Unity roots or
+mutable catalog data. Known cosmetic entitlement keys can pass the picker index
+check and cosmetic-only ownership checks. Unknown keys retain the original signed
+dictionary result/Steam semantics. Original shared dictionary,Steam inventory,
+unit ownership,category filters,equip and equivalent-slot swap bodies stay intact.
+Item-model projection calls original CacheEntitlementData first,sets Owned for
+known installed items,and preserves its resulting Rarity. No inventory entry is
+added or purchase/grant API called.
+
+Three scoped side-effect wrappers defer selected-deck publication,Steam presence
+and retired-front cosmetic save requests. They do not implement persistence yet.
+The final SaveCosmeticLoadout branch is a tail jump. The original SaveAllCosmetics
+serializer now reaches this wrapper with a valid case37 consumer,which is consumed
+without entering shared Enqueue. Unexpected owned request shapes fail closed.
+The two Changed-callback wrappers are installed/byte-checked but still need actual
+equip/swap qualification. Suppressing SetBannerAndPortrait does not remove the
+SteamRichPresence class constructor's Application.quitting subscription.
+
+Native qualification
+Final helper SHA256:
+65e536aef7308c24fe022a2a8dd2a4e846ed04848cde5ea0e1c84a1a533c74f5.
+Experimental GameAssembly SHA256:
+970a742f3c82ea1d7bfa6044b103202e6af72e14a7f2935d9bd2250918bbc978.
+local/cosmetics-picker-visible02/verification.json:
+cf6ea7dc9d67e06a2fc325c00e1f26b79f12228c994a829e65f88cde9a5da216.
+PID49156,20.782 seconds; visible-window requested; original Cosmetics button,
+slot and filter callbacks. All107 native item models report owned,all74 cosmetic
+entitlement keys absent from original cache pass visibility,unknown keys retain
+negative signed-index fallback,and original rarity/inventory/loadout are unchanged.
+Original SaveAllCosmetics generates exactly one contained valid case37 request.
+
+The actual picker passes42 All/Owned/Unowned cases across14 populated slots.
+All and Owned each contain every compatible item exactly once;Unowned is empty.
+There are245 appearances across slots because four emote slots share46 choices.
+The three empty sticker slots are skipped. Effective initial slot/filter is
+restored after browsing; no equip,match or profile file save is automated.
+The fresh catalog still has SHA256
+c218f15258c3e1192cc788c6fbcbc127d43f5fabb11d141be853c30000b7ae89.
+
+Retained windowed portrait capture was visually inspected: original Cosmetics
+layout,avatar grid and selected preview render. Capture SHA256:
+ab4aa2b4448bf0f1f5127cff9890c9156d85bc5b9d5c40bb8272f67a588728a2.
+This does not establish rendering/audio/effects for every item. Earlier hidden
+run cosmetics-picker-native03 passes the data checks but its PNG is black; it
+is not visual acceptance. The earlier visible01 also renders the grid/preview.
+
+Ordinary no-config startup with the final helper and experimental recipe installed
+but no activation flags passes: cosmetics-picker-dormant02,PID47500,14.072 seconds.
+Report SHA256:
+bf9f234b3507839c7a3d52abffdcc32c70795d585f61b156362bd39ce1efa0a8.
+No unlock/export marker appears. Both final runs attempt zero TLS connections or
+credential reads,retain unchanged covered sources and reap owned processes. Forced
+teardown after idle-menu proof is not native Quit or manual mouse acceptance.
+All8 C++ component programs/helper build pass;60 focused Python checks run:
+59 pass,one optional native snapshot fixture skips.
+
+Retained failures and corrected diagnostic assumptions
+cosmetics-picker-native01 failed the probe's initial slot assertion;report SHA256
+d30ddb8866d87acda03a818dd8d7dcf0f6c969ad65755f21fb1579d9bdcfe418.
+native02 recorded modelSlot0/effective VM slot1 and failed an overly strict model
+readback;report SHA256
+5265d8b3d6f2f394d3aad021a1844d0b965e1c1c621c913e59b478a2fc5e8575.
+Both fail closed and reap owned clients; neither is an unlock pass.
+Original-byte follow-up at3ca4910..3ca4ad0 confirms that selecting the already
+effective slot is a no-op. Model Slot0 is a native dynamic/default view; Refresh
+resolves it through previous/default selection. Compare the effective VM slot
+and native model filter without overwriting the original model. Private slice:
+local/cosmetics-picker-contract01/picker-selection-and-filter.asm;
+code-range SHA2565c3a606378ee7b7e2262c785ff8ed6bf15d442d93ba172d4707669de542e8848.
+These are original-byte/IL2CPP findings while REA native providers remain
+unavailable,not a new provider decompilation. Original hashes:cosmetics.txt.
+
+Pure recipe verification from the untouched original also passes: community
+installation without the cosmetic option still produces the prior
+de433f45ae0c90fb5f5e48b4b471f81ecf3fb6ada93fbdd8d63d0ffcd539b8e9
+GameAssembly byte-for-byte. The experimental option reproduces970a742f above.
+Private report:local/cosmetics-picker04-recipe-verification.json.
+
+Reproduction and remaining gates
+Install a current helper into a disposable copy with --community-experimental
+--cosmetics-experimental. With a fresh ignored output directory,run:
+python -m tools.verify_unified_startup --game local/<copy> --output local/<fresh-run> --timeout 240 --cosmetics-unlock-smoke --cosmetics-picker-smoke --cosmetics-export --visible
+Omit all cosmetic options for the normal no-config/dormant regression.
+--cosmetics-ui-trace separately inventories bounded menu buttons without clicks.
+All captures,catalogs,UI inventories and detailed reports remain ignored/local.
+
+Next: original select/confirm/drag/equip callbacks,nondefault equivalent-slot swap,
+reset/default behavior,and full17-slot atomic persistence/restart/profile isolation.
+Then synchronize profile projections and freeze selections with decks through
+community profiles/backups,wire submission,join,simulation and results. Qualify
+local AI,remote matches/rematches and actual visual/effect/audio behavior. Do not
+enable the prototype in ordinary launchers or call the cosmetics requirement
+complete before those gates pass.

@@ -327,6 +327,8 @@ extern "C" __declspec(dllexport) void OfflineFrontUpdate(void* front,void*) {
 #include "lan_audit.cpp"
 #include "telemetry_audit.cpp"
 #include "player_cosmetics.cpp"
+#include "cosmetics_unlock.cpp"
+#include "cosmetics_ui_smoke.cpp"
 
 extern "C" __declspec(dllexport) void OfflineStartupReady(void* context,void* freshThreshold,void* reusedThreshold,void* initializer) {
     // Exact RGameInit.Start completion callsite, after _loadingFinish=true.

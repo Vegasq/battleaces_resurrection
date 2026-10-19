@@ -224,8 +224,12 @@ Current implementation sequence for these additions (2026-10-18):
    release entry points. Static cosmetic inventory/ownership/persistence/wire
    contracts are now in cosmetics.txt; an opt-in loaded-table exporter and
    standalone server validator now pass native export/repeatability, exact
-   retained entitlement comparison and ordinary no-config startup. Live unlock/equip, local
-   persistence and profile/protocol/match propagation remain separate open gates.
+   retained entitlement comparison and ordinary no-config startup. Experimental
+   catalog-scoped visibility/ownership now passes107 item models,42 original
+   picker/filter cases and a rendered avatar grid/preview. Native SaveAllCosmetics
+   reaches a contained valid case37 request. See cosmetic-unlock.txt. Actual
+   equip/swap/confirm/drag,local persistence and profile/protocol/match propagation
+   remain separate open gates; normal entry points keep this prototype disabled.
    The final requirements and release gates remain intact.
 
 Release acceptance, in user terms:

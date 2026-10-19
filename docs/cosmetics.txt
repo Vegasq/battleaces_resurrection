@@ -1,5 +1,6 @@
 INSTALLED COSMETICS - BUILD37822 CONTRACT
-Updated:2026-10-19 UTC. Catalog/validation foundation; unlock/persistence remain open.
+Updated:2026-10-19 UTC. Catalog and experimental picker ownership qualified.
+Equip,persistence and match propagation remain open. See cosmetic-unlock.txt.
 
 Evidence boundary
 REA native providers remain unavailable. Findings use original-byte LLVM/PE
