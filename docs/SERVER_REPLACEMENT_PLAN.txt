@@ -4,6 +4,13 @@ Target: Battle Aces build 37822, Windows x64 server and clients.
 Status: IMPLEMENTATION ACTIVE. See STATUS.txt; incomplete phases remain future work.
 
 Current cosmetic integration order (2026-10-19)
+- Qualify/promote the process-local original DLSS-unavailable path: verified
+  NVIDIA NGX telemetry shutdown wait is avoided in isolated natural menu Quit
+  and post-AI-result/Continue Quit controls (exit0,1.329s/2.000s). Preserve normal
+  rendering and all original cleanup;DLSS upscaling will be unavailable. Finish
+  visible gameplay/results,server-backed match,default recipe and telemetry
+  regressions before packaging. No global NVIDIA configuration changes.
+  See nvidia-shutdown.txt;the diagnostic is not yet ordinary release behavior.
 - Native Quit remains a release gate. Owned original confirmation inventory and
   Cancel/release now pass;Confirm returns from RGameInstance.Dispose but fails
   natural OS exit within60s,including a no-screenshot control. Qualify the next

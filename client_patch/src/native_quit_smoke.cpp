@@ -108,6 +108,12 @@ static void update(Obj front) {
     if(!ba::flag(L"-native-quit-smoke") || stage>=4)return;
     Obj dispatch=nullptr,dispatchMethod=nullptr;
     try {
+        if(ba::flag(L"-native-quit-after-practice")) {
+            require(ba::offlinePractice() && ba::flag(L"-practice-ai-smoke") &&
+                ba::argument(L"-practice-ai-smoke-matches=","1")=="1" && ba_practice::completed<=1,
+                "native Quit post-practice requires exactly one owned standalone diagnostic match");
+            if(ba_practice::completed!=1 || ba_practice::active())return;
+        }
         const auto now=GetTickCount64();if(!deadline){deadline=now+60000;due=now+2500;return;}
         require(now<deadline,"native Quit menu diagnostic deadline");if(now<due)return;
         const auto mode=ba::argument(L"-native-quit-mode=","inventory");

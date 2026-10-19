@@ -2,6 +2,22 @@ IMPLEMENTATION LEDGER
 Updated: 2026-10-19 UTC
 Active objective: implement SERVER_REPLACEMENT_PLAN.txt, Windows only.
 
+NGX SHUTDOWN CONTROL (2026-10-19 UTC, LOCAL DIAGNOSTIC POSITIVE)
+The post-game-callback wait is now verified through12 unwind contexts into
+NVIDIA telemetry's infinite worker join during NGX shutdown. Reporting original
+DLSS feature setup unavailable BEFORE vendor initialization allows natural exit0
+after original menu Confirm (1.329s) and after one standalone AI result/Continue
+(2.000s). Original disposal remains intact;no forced cleanup/system change.
+Source-built helper08/49 focused checks pass. Default recipes/packages remain
+unchanged pending visible rendering,server-match and ordinary acceptance.
+DLSS would be unavailable;all normal renderer fallback must remain functional.
+See nvidia-shutdown.txt. This does not close unrelated telemetry coverage.
+The3600-frame Normal18 control now also passes38 ordered moving bot units,
+supply135,full17-slot cosmetics and original results/Continue (214.765s).
+The2400-frame tactical-cap failure and bad canonical-fixture failure remain
+recorded. Result rendering is inspected;centered arena/server/default acceptance
+remain open. The old baseline shares the off-arena in-game capture view.
+
 NATIVE MENU QUIT DIAGNOSTICS (2026-10-19 UTC, UNRESOLVED)
 An explicitly owned/local-only diagnostic follows original main-menu Show ->
 key52 confirmation -> OnCancel/OnConfirm persistent targets. Inventory and the

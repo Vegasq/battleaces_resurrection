@@ -1,5 +1,14 @@
 ORIGINAL QUIT / SHUTDOWN CONTRACT -- 2026-10-19 UTC -- UNRESOLVED
 
+New controlled positive;default/release acceptance still open
+The recorded wait is now qualified through12 unwind contexts to NVIDIA
+UninitializeTelemetry's infinite worker join during original NGX D3D11 shutdown.
+An owned optional DLSS-unavailable-before-init control passes natural menu Quit0
+in1.329s and post-AI-result/Continue Quit0 in2.000s,without forced cleanup or
+skipping original disposal. Visible rendering/server compatibility and default
+promotion remain pending. nvidia-shutdown.txt retains exact paths,seams,hashes
+and limits. Earlier failed controls below remain part of the evidence history.
+
 Owned diagnostic implementation in qualification
 An opt-in local-only installer recipe now wraps the exact original instance/AI
 Dispose calls below. Default recipes do not add these hooks. The helper prepares a bounded

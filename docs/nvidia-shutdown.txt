@@ -1,0 +1,136 @@
+NVIDIA NGX / TELEMETRY SHUTDOWN -- BUILD37822 -- 2026-10-19
+
+Observed boundary
+Original game RGameInstance.Dispose and RGameSingleton.OnDestroy both return,
+but the process remains alive60s after original menu confirmation. Three full
+recorded main-thread contexts now have a qualified12-frame offline unwind:
+UnityPlayer -> NVUnityPlugin graphics shutdown -> NVSDK_NGX_D3D11_Shutdown1 ->
+driver _nvngx -> NvTelemetryAPI64.UninitializeTelemetry -> internal worker join
+-> WaitForSingleObjectEx(INFINITE,FALSE) -> NtWaitForSingleObject.
+This replaces the earlier raw-stack-candidate hypothesis with a verified wait
+boundary. It does not identify why the waited-on worker fails to finish.
+
+The telemetry helper at RVA147448 calls imported WaitForSingleObjectEx at
+147461,then queries thread exit status and closes the handle. The destructor
+requests worker stop before that join. The observed CPU-active thread has
+NvTelemetryBridge executable-address candidates and Windows file-operation
+samples;its identity as the joined thread is NOT established.
+The first three4096-byte samples support12 contexts/11 exact call boundaries
+and two thunk checks. The final152-byte sample supports only the first two
+frames. This is a bounded PE pdata/xdata reconstruction,not a general debugger
+or a claim that all outer stack frames were recovered. No process/global system
+configuration or registers were changed;successful thread suspensions were
+balanced before results were inspected. Private raw stack bytes stay ignored.
+
+local/native-quit-nv-unwind01/FINDINGS.txt SHA256:
+ede54e84fc8b7e2667ba11979f8ec5e3884fa1658112a07d69c56416abd54b0f
+manifest.json SHA256:
+82123b50e158485be63d11d574127f702567d32d71cbd23de568f9b0275345c9
+qualified-prefix.json SHA256:
+d0368351049dae08a2f463d329a5edc62607f8198f420c4cbff2632c7a886980
+
+Original feature-unavailable path
+DLSSPass.SetupFeature entry RVA4b29be0/raw4b281e0 has exact first six bytes
+40534883ec50 (the40 prefix is part of the original push instruction).
+The owned diagnostic replaces those six bytes with31c0c3909090: false before
+any native support query,device creation or NGX initialization on that path.
+Returning from the public GraphicsDevice.Initialize wrapper alone would be
+insufficient because SetupFeature/InternalCreate inline wrappers.
+All three observed original callers handle false: SetupDLSSFeature returns
+without enabling capability;InitializePostProcess stores a null DLSS pass and
+returns normally;DLSSPass.Create returns null. The render helper has its own
+normal disabled branch. This is an optional feature-init refusal before startup,
+not a shutdown bypass or live reconfiguration. Original cleanup still runs.
+
+NVUnityPlugin loads/registers normally even in this control. Its NGX loader can
+locate the driver _nvngx.dll,which dynamically binds installed NVIDIA telemetry
+API/bridge components. No verified telemetry-only process opt-out was found in
+the bounded investigation. No service,driver,system DLL or global NVIDIA option
+has been removed or modified. Original plugin/shutdown functions are retained.
+local/native-quit-nvidia-dependencies01/FINDINGS.txt SHA256:
+1146a82a2c939f8a9463e184298f3324379bd860da7359170f1732c335abd0d5
+evidence-manifest.json SHA256:
+f295f76916e9564f2bdd2673800fdbd94aa3dcc494a6efc341f9af004a125919
+input manifest.json SHA256:
+e1f382d6e5bb5c38ed5d5fd1f3ec3ff47f64cc66094cc5a573a4e3092b5e8b65
+
+Controlled native results
+Fresh menu: owned disable-DLSS diagnostic,helper07,original Show/OnConfirm,
+instance Dispose and OnDestroy return,natural OS exit0 after1.329s (17.167s
+total),NO forced cleanup. Pre-Quit module snapshot includes NVUnityPlugin but
+no _nvngx,nvngx_dlss or NvTelemetry API/bridge DLL. This is one scoped module
+snapshot,not a process-lifetime network/driver telemetry audit. Sources and
+read-only shared-settings baseline remain unchanged.
+local/native-quit-dlss-unavailable01/verification.json SHA256:
+67c3ed8cb8ea1e46b2398932a40029e95eeb5344fd28cdad38e2e0ac0906ad86
+
+Post-match: helper08 explicit one-match diagnostic invokes original EditDeck
+Try Deck,builds/produces bot units (max observed supply14,nine autonomous action
+records),receives original result and invokes Continue. Only after completed=1
+and idle owned world/menu does it reacquire the current original Quit dialog.
+Original Confirm/instance Dispose/OnDestroy return,natural OS exit0 after2.000s
+(101.961s total),NO forced cleanup. All20 observed original native saves succeed.
+The report retains unchanged covered sources and shared settings. No produced
+bot unit has both order and movement evidence in this short run;do not renew
+tactical movement acceptance from it. Scripted callbacks are not mouse input.
+local/native-quit-dlss-after-practice01/verification.json SHA256:
+fd8cbd5c1b1b49346ef2d1a8f3689afa6dae85680afa2152a1e11a2fff2df2f1
+helper08 SHA256:
+3d9229e8c022cc77d42563bd21d784980e9fc67926de0135c7611b4d913a879e
+Ten C++ component programs/helper and49 focused Python checks pass for this
+post-practice checkpoint;the earlier full458-test result belongs to helper07.
+
+Release decision still pending
+The control is currently local-only opt-in --disable-dlss-diagnostics. Default
+client recipes/manual/frozen packages have not changed. Complete visible
+gameplay/results,ordinary launch,server-backed match and telemetry compatibility
+acceptance before promoting it. DLSS upscaling would be unavailable;normal
+renderer fallback must remain functional. This may prevent this NGX telemetry
+initialization path,not unrelated graphics-driver/overlay reporting. Keep the
+broader collection/CEF/child-process audit open in telemetry.txt.
+Native menu and post-match natural-exit controls pass here,but the final ordinary
+client/package Quit/save-flush gate is not yet complete. See native-quit.txt.
+
+Retained visual/tactical qualification failures
+The first fixture preparation used the asset-parent directory instead of the
+verified imported community-cosmetics01 bundle and refused before launch.
+visual01 then refuses its pretty-printed cosmetic fixture in9.582s;the format
+is deliberately application-generated canonical JSON. The saved input remains
+untouched,covered sources unchanged and owned client reaped. The seeding harness
+is corrected to canonical compact UTF8/LF in a fresh profile,not by weakening the
+native parser. visual01 verification SHA256:
+a07f24bf83cffa14734dcbd7763fe4b3eb670c2c149d4a7461c9f4a462022f78
+
+visual02 runs2400 frames of Normal18 with one scripted human build and full17
+cosmetic slots. Config/JoinArmy/native map and live/result child binding agree;
+bot max native supply40 and23 autonomous actions are observed. Original result,
+Continue and standalone return occur. Strict overall validation FAILS because
+no produced unit has both a combat order and position change before the cap.
+Thirty owned netstat snapshots are empty (not continuous/descendant coverage),
+covered sources unchanged,owned process reaped. Its report stays failed:
+287ed7a6a8787bce66c2fce00cbef9057a5f3e09908040dc2feb482834283965
+The existing practice-ai.txt records combat orders beginning around frame2605
+and established3600-frame qualification. visual03 therefore extends the window
+to3600 rather than treating position changes alone as tactical success.
+
+The result PNG was inspected: original Try Deck result,player/bot identity,
+deck portraits and Continue are rendered. The in-game PNG shows HUD/identity
+over sky with a partial structure at the edge;an OLD pre-control capture shows
+the same camera/view. This is not established as a new DLSS regression,and is
+not complete arena/mesh/effect visual acceptance. A useful centered arena view
+or manual play remains required. Do not describe mere PNG existence as visual
+qualification. Diagnostic captures/production/surrender stay opt-in only.
+
+Longer tactical control PASS
+visual03 uses the same source-built helper08/disabled-DLSS recipe,canonical fresh
+17-slot fixture,Normal18 and one human build,but extends to3600 frames. It
+passes in214.765s with38 produced bot units both receiving autonomous combat
+orders AND changing position,peak native supply135 and79 autonomous action
+records. Complete config/JoinArmy/native cosmetics,live/result child bindings,
+original results/Continue and standalone return pass. Forty-two owned netstat
+snapshots are empty;covered sources unchanged and owned client reaped. Forced
+cleanup here is expected and is not an additional Quit test. The earlier two
+strict failures remain failed. This closes the short tactical-window gap,not
+the centered arena/effects/audio/manual or server/default acceptance gates.
+local/native-quit-dlss-visual03/verification.json SHA256:
+971da01e7143fc6a0191e06c7b3ad414f41293cec5dac6eb1c52bfd769098f1f

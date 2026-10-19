@@ -77,6 +77,10 @@ QUIT_POINTER_HOOKS = [
      'relocation_block_offset': 0x736cf50, 'relocation_block_before': '0010d40600040000',
      'relocation_entry_offset': 0x736d1d6, 'relocation_entry_before': '18aa'},
 ]
+DLSS_DIAGNOSTIC_PATCHES = [
+    {'name': 'Owned diagnostic: original DLSS feature-unavailable result before vendor initialization',
+     'offset': 0x4b281e0, 'before': '40534883ec50', 'after': '31c0c3909090'},
+]
 COMMUNITY_CALL_HOOKS = [
     {'name': 'OfflineCommunityJoinGame', 'rva': 0x3e405e3, 'offset': 0x3e3ebe3, 'before': 'e858330100'},
     # Exact request enqueue callers; the shared generic entry remains original.
@@ -146,12 +150,12 @@ def redirect_relocated_pointer(original, patched, hook, image_base, thunk_rva):
     struct.pack_into('<Q',patched,offset,image_base+thunk_rva)
 
 
-def build_patch(original, *, include_telemetry=True, community=False, cosmetics=False, quit_diagnostics=False):
+def build_patch(original, *, include_telemetry=True, community=False, cosmetics=False, quit_diagnostics=False, disable_dlss_diagnostics=False):
     """Pure transformation; only a matching original may enter this routine."""
     if digest(original) != ORIGINAL_SHA256:
         raise ValueError('Original build SHA256 does not match.')
     patched = bytearray(telemetry.patch_component('GameAssembly.dll', original) if include_telemetry else original)
-    patches = PATCHES + (COSMETIC_PATCHES if cosmetics else [])
+    patches = PATCHES + (COSMETIC_PATCHES if cosmetics else []) + (DLSS_DIAGNOSTIC_PATCHES if disable_dlss_diagnostics else [])
     call_hooks = CALL_HOOKS + (COMMUNITY_CALL_HOOKS if community else []) + (COSMETIC_CALL_HOOKS if cosmetics else []) + (QUIT_CALL_HOOKS if quit_diagnostics else [])
     tail_hooks = TAIL_HOOKS + (COMMUNITY_TAIL_HOOKS if community else []) + (COSMETIC_TAIL_HOOKS if cosmetics else [])
     pointer_hooks = QUIT_POINTER_HOOKS if quit_diagnostics else []
@@ -222,10 +226,10 @@ def contained_path(game_dir, relative):
     return resolved
 
 
-def install(game_dir, *, helper=None, original_path=None, restore=False, dry_run=False, community=False, cosmetics=False, quit_diagnostics=False):
+def install(game_dir, *, helper=None, original_path=None, restore=False, dry_run=False, community=False, cosmetics=False, quit_diagnostics=False, disable_dlss_diagnostics=False):
     game_dir = Path(game_dir).resolve()
-    if quit_diagnostics and not game_dir.is_relative_to(ROOT/'local'):
-        raise ValueError('Native Quit diagnostics require an owned ignored local test installation.')
+    if (quit_diagnostics or disable_dlss_diagnostics) and not game_dir.is_relative_to(ROOT/'local'):
+        raise ValueError('Native diagnostics require an owned ignored local test installation.')
     if game_dir.name.lower() == 'battleacesbeta_untouched':
         raise ValueError('The untouched recovery copy is read-only; choose a working game copy.')
     state_dir = contained_path(game_dir, '.battleaces-resurrection')
@@ -242,7 +246,8 @@ def install(game_dir, *, helper=None, original_path=None, restore=False, dry_run
         current, original = target.read_bytes(), source.read_bytes()
         if digest(original) != recipe.original_sha256:
             raise ValueError('Original build SHA256 does not match: ' + name)
-        patched = build_patch(original, community=community, cosmetics=cosmetics, quit_diagnostics=quit_diagnostics) if name == 'GameAssembly.dll' else update_checksum(telemetry.patch_component(name, original))
+        patched = build_patch(original, community=community, cosmetics=cosmetics, quit_diagnostics=quit_diagnostics,
+                              disable_dlss_diagnostics=disable_dlss_diagnostics) if name == 'GameAssembly.dll' else update_checksum(telemetry.patch_component(name, original))
         known = {recipe.original_sha256, digest(patched)}
         if name == 'GameAssembly.dll':
             known.add(digest(build_patch(original, include_telemetry=False)))
@@ -291,10 +296,11 @@ def install(game_dir, *, helper=None, original_path=None, restore=False, dry_run
                 'helper_sha256': digest(helper_bytes) if helper_bytes is not None else None,
                 'local_settings': {'isolated': not restore, 'scope': 'installation-and-profile', 'format': 'native-toml',
                                    'error_hooks': not restore},
-                'patches': PATCHES + (COSMETIC_PATCHES if cosmetics else []), 'hooks': HOOKS,
+                'patches': PATCHES + (COSMETIC_PATCHES if cosmetics else []) + (DLSS_DIAGNOSTIC_PATCHES if disable_dlss_diagnostics else []), 'hooks': HOOKS,
                 'tail_hooks': TAIL_HOOKS + (COMMUNITY_TAIL_HOOKS if community else []) + (COSMETIC_TAIL_HOOKS if cosmetics else []),
                 'call_hooks': CALL_HOOKS + (COMMUNITY_CALL_HOOKS if community else []) + (COSMETIC_CALL_HOOKS if cosmetics else []) + (QUIT_CALL_HOOKS if quit_diagnostics else []),
-                'diagnostics': {'native_quit': bool(quit_diagnostics and not restore)},
+                'diagnostics': {'native_quit': bool(quit_diagnostics and not restore),
+                                'dlss_unavailable': bool(disable_dlss_diagnostics and not restore)},
                 'pointer_hooks': QUIT_POINTER_HOOKS if quit_diagnostics else [],
                 'cosmetics': {'experimental': cosmetics,
                               'persistence': bool(cosmetics and helper_bytes is not None and b'BA_RESURRECTION_COSMETICS_PERSIST_V1' in helper_bytes),
@@ -347,10 +353,11 @@ def main():
     parser.add_argument('--community-experimental', action='store_true', help='isolated experimental native Custom Game/invite/match adapter')
     parser.add_argument('--cosmetics-experimental', action='store_true', help='isolated catalog-scoped cosmetic unlock prototype; persistence not yet enabled')
     parser.add_argument('--quit-diagnostics', action='store_true', help='owned local-only original disposal trace; no cleanup changes')
+    parser.add_argument('--disable-dlss-diagnostics', action='store_true', help='owned local-only DLSS unavailable control before vendor initialization')
     args = parser.parse_args()
     result = install(args.game_dir, helper=args.helper, original_path=args.original,
                      restore=args.restore, dry_run=args.dry_run, community=args.community_experimental, cosmetics=args.cosmetics_experimental,
-                     quit_diagnostics=args.quit_diagnostics)
+                     quit_diagnostics=args.quit_diagnostics, disable_dlss_diagnostics=args.disable_dlss_diagnostics)
     print(json.dumps(result, indent=2))
 
 

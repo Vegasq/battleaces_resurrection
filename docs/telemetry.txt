@@ -3,6 +3,15 @@ Updated: 2026-10-18 UTC
 Supported input: Battle Aces build 37822, Windows x64.
 Recipe version: 3. Guards: 61. Complete-set runtime_validated: false.
 
+2026-10-19 NVIDIA dependency follow-up (not part of recipe3 yet)
+Recorded NGX D3D11 shutdown waits inside installed NVIDIA telemetry's worker
+join after all observed game OnDestroy work returns. A local-only diagnostic
+uses the original DLSS-unavailable path before vendor initialization. Menu and
+post-AI-match original Quit then exit naturally;visible rendering/default
+promotion remain pending. No vendor shutdown is skipped and no system driver/
+service configuration changes. This is not a zero-traffic or process-lifetime
+vendor/overlay coverage claim. See nvidia-shutdown.txt for exact evidence.
+
 The recipes have static control-flow review and exact original-byte validation.
 Recipe2's 59 guards were installed during p2-telemetry02. Two matches, including
 a rematch, completed in the same clients with matching sampled state/results. The
