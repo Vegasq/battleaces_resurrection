@@ -37,8 +37,88 @@ ownership uses one Windows job and retained native exit-observation handle.
 Old PID/trace timestamps cannot start current Quit deadlines. The existing
 profile lock and default NGX-free recipe remain in effect.
 
-Current state
+Initial state
 Helper22 compiles and all eleven C++ programs plus six owned atomic interruption
 boundaries pass. Generated driver syntax and actual JSON newline suffixes are
 checked. Native bundled runtime acceptance is pending;do not count a new tool or
 this description as completion. Old manual/frozen packages remain unchanged.
+
+Retained short control01 (overall FAILED)
+local/packaged-play22-practice01/verification.json SHA256
+4ba4991497be2b31b004fef83479a406e912dbe848326dc79407944a2d2209da
+The native five-event Quit trace completes and both game and bundled launcher
+return0 naturally,but the1200-frame control fails the NEW ordered-moving-unit
+requirement. Native supply14 and action records alone do not prove movement.
+The initial profile4 is only temporary;later original effective profile18
+matches the intended installed Normal profile. No difficulty override/tuning
+change is justified by the early snapshot or this short observation. Preserve
+the failed outer report;do not count it as complete packaged gameplay.
+
+Stronger control02 PASSES (2026-10-19)
+Use3600 simulation frames,the previously qualified combat duration. No tactical
+profile,difficulty,deck or native simulation behavior is changed for this test.
+The sole production-helper change is still the opt-in post-practice Quit guard.
+Add an explicit parent-job-ready handshake before the bundled driver can spawn
+the game. Query actual owned job accounting after driver exit and BEFORE job
+close;otherwise kill-on-close could conceal a leaked child. A real owned
+non-game process regression verifies active->natural-exit->zero before close.
+
+Native02 passes238.973s:bot maximum supply137,76 autonomous action records,
+40 bot deck units with both Move/Attack orders and changed observed positions.
+Original Edit Deck/Try Deck callback,result,Continue and owned idle menu occur
+in order. Original Confirm returns,native game exits0 in6.359s,then production
+bundled launcher exits0. Job accounting reports total2,active0,terminated0 after
+launcher exit and again before close. No forced cleanup. The game/profile,
+driver,config,package inventory and covered source hashes stay consistent.
+Native TOML,one original structurally decoded replay and native functional JSON
+publication are present. All three named shared inventories remain unchanged;
+unconfigured play makes zero observed TLS opens/invite reads in the bridge.
+This does not prove absence of all game/CEF/driver network traffic.
+local/packaged-play22-practice02/verification.json SHA256
+24d8d53794629fd1d5043296b774121518681dad142f015d99860fd5aa2ccbdf
+Helper22 SHA256
+9461caa9f0e033caa55ce95404f6f3facfc831d2c58ee5f2007573e7bd212c0b
+helper-build.json SHA256
+4d6b231598fd35418c867643758a08b90d144995faf55e74975129f773657dc5
+Full current Python479 tests pass465/14skip,96.114s,explicit exit0.
+Fifty-four focused checks pass7.176s;the added real owned job regression and
+Quit checks pass7 tests0.050s. Eleven C++ programs/six atomic boundaries pass.
+
+Exact package / scope
+local/packaged-play22-packages01 is built from clean source
+30e666ffc0ca5b3a1c4e28cca86a6275a88446ed,dirty=false. The stronger external
+test driver/host checker are separate from the package allowlist;their final
+source hashes are bound in02. All actual imported production-module hashes
+match the clean package inventory. Original game assets/components are absent
+from these source-allowlisted distributable archives.
+Client67 files,13056147 bytes,ZIP SHA256
+eb0ae5e35a47403dca7572e44cb1fc7eaf30588760adee7e0591b2d0c972816a
+Server82 files,12427769 bytes,ZIP SHA256
+1de40b658d22a39f106e26a8ca86aba2e939fa283f729dac0bf993280227d125
+This is a bundled MODULE gameplay/Quit control with an explicit spawn adapter,
+not seamless CMD/mouse/audio/visual or natural-victory acceptance. The game is
+deliberately conceded at the explicit diagnostic frame threshold. Ordinary
+player options and the manual candidate contain no such flag.
+
+Concrete manual candidate (PENDING USER OBSERVATION)
+local/playtest22/client/Start Client.cmd is configured for the independent
+local/playtest22/game and fresh profile player22. No server is configured.
+It has a full independent private copy of the installed game/assets plus managed
+original backups;none enter Git. There are no shared-asset links or inherited
+old profiles. Config/client.json contains the editable display_name and optional
+server settings. This preparation does not mutate the recovery copy or earlier
+manual/frozen versions. The current actual Start Client.cmd in that copy passes
+menu readiness13.865s/14.337s total,with no spawn seam or diagnostic flags and
+unchanged package/config/covered source/named shared TOML. Its test-only profile
+is separate from player22. Owned cleanup is forced,not another Quit proof.
+local/playtest22-startup01/verification.json SHA256
+c146bd337fd05e7f81d9359c61f5461ec7123d5194956d7e494ef4db3c6c3900
+The user has been asked to test deck/cosmetic selection,Try Deck combat,
+Continue,original Quit/restart persistence and mouse/window/audio behavior.
+No availability answer or elapsed wait qualifies those physical/manual gates.
+
+Next
+Complete bundled public/team/server/fallback/search/loading/rematch/fault matrix,
+final telemetry/cloud/CEF child/network coverage,native replay playback,
+protected/service deployment,manual/clean-PC/cross-PC/Internet acceptance. Do not
+label one mode's module adapter proof the full ordinary final release.

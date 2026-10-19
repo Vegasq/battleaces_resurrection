@@ -33,7 +33,7 @@ require=startup.require
 # Authored test driver only. Never installed into the product/package or
 # imported from the source checkout by its isolated bundled interpreter.
 DRIVER=r'''
-import ctypes,hashlib,json,os,subprocess,sys,traceback
+import ctypes,hashlib,json,os,subprocess,sys,time,traceback
 from pathlib import Path
 from client_patch.transport import client,launcher
 from tools.package_integrity import verify
@@ -61,7 +61,7 @@ def spawn(config,remote,options,child):
     ordinary=list(command)
     command[command.index('-logFile')+1]=str(output/'game.log')
     diagnostic=['-native-quit-smoke','-native-quit-mode=confirm','-native-quit-after-practice',
-        '-practice-ai-smoke','-practice-ai-smoke-matches=1','-practice-ai-smoke-frames=1200',
+        '-practice-ai-smoke','-practice-ai-smoke-matches=1','-practice-ai-smoke-frames=3600',
         '-practice-ai-smoke-delay-ms=3000','-lan-audit','-lan-smoke']
     command.extend(diagnostic)
     info=subprocess.STARTUPINFO();info.dwFlags|=subprocess.STARTF_USESHOWWINDOW
@@ -81,6 +81,11 @@ try:
         path=Path(module.__file__).resolve()
         assert path.is_relative_to(package/'program/app')
         report['production_modules'][module.__name__]=dict(path=str(path),sha256=hashlib.sha256(path.read_bytes()).hexdigest())
+    deadline=time.monotonic()+10
+    while not (output/'job-ready').exists():
+        assert time.monotonic()<deadline,'parent did not establish owned job before gameplay'
+        time.sleep(.02)
+    assert (output/'job-ready').read_bytes()==b'owned job attached\n'
     launcher.spawn_game=spawn;launcher.tls.open_verified_connection=forbid_connection;launcher.read_credential_file=forbid_invite
     report['launcher_exit_code']=client.main(['--config',request['config']])
     report['game_exit_code']=None if process is None else process.poll()
@@ -99,6 +104,19 @@ raise SystemExit(0 if report['passed'] else 1)
 def sources():
     paths=[Path(__file__),ROOT/'tools/verify_native_storage.py']
     return quit_probe.sources()|{p.relative_to(ROOT).as_posix():hashlib.sha256(p.read_bytes()).hexdigest() for p in paths}
+
+
+def job_accounting(handle):
+    """Read the owned job before closing it; a close may otherwise hide children."""
+    class Accounting(ctypes.Structure):
+        _fields_=[(name,ctypes.c_longlong) for name in ('user_time','kernel_time','period_user_time','period_kernel_time')]+[
+            (name,ctypes.c_uint32) for name in ('page_faults','total_processes','active_processes','total_terminated_processes')]
+    kernel=ctypes.WinDLL('kernel32',use_last_error=True)
+    kernel.QueryInformationJobObject.argtypes=[ctypes.c_void_p,ctypes.c_int,ctypes.c_void_p,ctypes.c_ulong,ctypes.c_void_p]
+    value=Accounting();length=ctypes.c_ulong()
+    require(ctypes.sizeof(value)==48 and kernel.QueryInformationJobObject(handle,1,ctypes.byref(value),ctypes.sizeof(value),ctypes.byref(length)) and
+            length.value==ctypes.sizeof(value),'owned job process accounting unavailable')
+    return {name:getattr(value,name) for name in ('total_processes','active_processes','total_terminated_processes')}
 
 
 def run(args):
@@ -150,6 +168,7 @@ def run(args):
             info=subprocess.STARTUPINFO();info.dwFlags|=subprocess.STARTF_USESHOWWINDOW;info.wShowWindow=0
             parent=subprocess.Popen(command,cwd=cwd,env=environment,stdout=stdout,stderr=stderr,startupinfo=info,close_fds=True)
             job=_WindowsJob(parent.pid);report['driver_pid']=parent.pid
+            ready=output/'job-ready.tmp';ready.write_bytes(b'owned job attached\n');ready.rename(output/'job-ready')
             while parent.poll() is None:
                 if native is None and (output/'game-process.json').exists():
                     try:native=json.loads((output/'game-process.json').read_bytes())
@@ -174,6 +193,12 @@ def run(args):
                 require(time.monotonic()-started<args.timeout,'bundled native play deadline reached')
                 time.sleep(.15)
         require(parent.returncode==0 and native is not None and game_handle,'bundled launcher did not exit naturally0')
+        drain_deadline=time.monotonic()+5
+        while True:
+            report['job_after_driver_exit']=job_accounting(job.handle)
+            if report['job_after_driver_exit']['active_processes']==0:break
+            require(time.monotonic()<drain_deadline,'owned descendants remained alive after normal launcher exit')
+            time.sleep(.05)
         require(kernel.WaitForSingleObject(game_handle,0)==0,'bundled driver exited while game remained alive')
         exit_code=ctypes.c_ulong();require(kernel.GetExitCodeProcess(game_handle,ctypes.byref(exit_code)) and exit_code.value==0,
                                         'native game exit code is not0')
@@ -186,6 +211,7 @@ def run(args):
         bundled=json.loads((output/'bundled-driver.json').read_bytes())
         require(bundled['passed'] and bundled['launcher_exit_code']==bundled['game_exit_code']==0 and
                 bundled['remote_connections']==bundled['invite_reads']==0,'bundled production launcher/transport proof incomplete')
+        report.update(natural_quit=True,exit_code=exit_code.value,exit_seconds_after_confirm=(exit_tick-rows[3]['tick'])/1000)
         for module in bundled['production_modules'].values():
             path=Path(module['path']).resolve()
             require(path.is_relative_to(package/'program/app') and
@@ -195,6 +221,7 @@ def run(args):
                        'BA_RESURRECTION_COSMETICS_PERSIST_V1 ready:','Online connection is not configured; localWorldUnaffected=1'):
             require(marker in text,'ordinary packaged feature marker missing: '+marker)
         report['practice']=quit_probe.practice_evidence(game,output,native['pid'],text)
+        require('expectedTableEntry=1' in text,'native AI profile override was not applied')
         require(report['practice']['produced_bot_units_with_orders_and_position_change'],
                 'packaged bot did not move native units with autonomous orders')
         report['local_settings']=startup.native_settings_evidence(game,output,native['pid'],native['launch_tick'],profile)
@@ -212,6 +239,11 @@ def run(args):
     finally:
         if (parent is not None and parent.poll() is None) or (game_handle and kernel.WaitForSingleObject(game_handle,0)!=0):
             report['forced_cleanup']=True
+        if job is not None:
+            try:
+                report['job_before_close']=job_accounting(job.handle)
+                if report['job_before_close']['active_processes']:report['forced_cleanup']=True
+            except BaseException as error:report.update(passed=False,forced_cleanup=True,job_accounting_error=repr(error))
         if job is not None:job.close()
         if parent is not None:
             try:parent.wait(timeout=15)
@@ -239,6 +271,6 @@ def run(args):
 if __name__=='__main__':
     parser=argparse.ArgumentParser(description=__doc__)
     for name in ('package','game','output','shared-settings','helper-build-receipt'):parser.add_argument('--'+name,type=Path,required=True)
-    parser.add_argument('--timeout',type=int,default=240)
+    parser.add_argument('--timeout',type=int,default=300)
     parser.add_argument('--visible',action='store_true')
     raise SystemExit(run(parser.parse_args()))

@@ -9,7 +9,12 @@ Current release integration order (2026-10-19)
   The new explicit owned packaged-play adapter uses verified bundled production
   imports and ordinary player options before adding test-only actions. Native
   Quit's post-practice diagnostic accepts unified local menus with existing
-  one-match/owned/idle guards. Acceptance is pending;see packaged-gameplay.txt.
+  one-match/owned/idle guards. Bundled Try Deck/AI movement/results/Continue/
+  original Quit/normal launcher exit now passes238.973s,with zero active owned
+  job processes before close. Actual CMD startup in the independent manual
+  candidate also passes;physical input/audio/retention feedback is pending.
+  Complete the broader packaged public/team/server/fault matrix and remaining
+  release gates. See packaged-gameplay.txt for exact adapter scope and evidence.
 - Integrate public/cosmetic activation into actual Start Client and packaged
   install;the previous ordinary launcher omitted it. Source options/compatibility
   checks are now implemented and actual no-config/no-server native startup passes.

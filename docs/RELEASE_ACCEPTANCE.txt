@@ -85,6 +85,13 @@ Required before a general release
     Client.cmd startup,relocated imports/native host/controller,three-component
     roundtrip and both early/minimal and last/full-feature preview upgrades.
     Final packaged gameplay/Quit,manual and remaining failure coverage stay open.
+    Clean30e666f/helper22 now additionally passes bundled MODULE unified Try Deck
+    combat/results/Continue/original Quit/normal launcher exit238.973s,with an
+    explicit external spawn adapter and zero active owned job processes before
+    close. Ordinary arguments remain free of automatic actions. Actual separate
+    CMD startup in a prepared independent manual copy passes14.337s. Broader
+    packaged mode/server/fault/manual/cross-PC coverage remains open;see
+    packaged-gameplay.txt. Do not equate the adapter with seamless CMD mouse play.
 [ ] Qualify protected deployment/backup permissions,SCM service start/stop/reboot,
     clean Windows machine without developer tools,and cross-PC/internet matches
     with friends. Record measured capacity and remaining limitations.

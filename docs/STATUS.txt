@@ -2,6 +2,22 @@ IMPLEMENTATION LEDGER
 Updated: 2026-10-19 UTC
 Active objective: implement SERVER_REPLACEMENT_PLAN.txt, Windows only.
 
+BUNDLED UNIFIED GAMEPLAY / ORIGINAL QUIT (2026-10-19 UTC, CANDIDATE)
+Clean package30e666f/helper22 now passes bundled production client.main/bridge
+through actual Try Deck combat,results,Continue,original menu Quit and normal
+launcher exit. Native238.973s:bot supply137,76 autonomous actions,40 ordered moving
+units;game exit0 in6.359s after Confirm. Owned job total2/active0/terminated0
+before close,no forced cleanup. Native isolated TOML/replay/functional JSON and
+unchanged shared three-channel inventories/package/config/sources are verified.
+This uses an explicit external spawn adapter;ordinary arguments contain no
+automation. Short1200-frame01 remains failed for missing movement;3600-frame02
+retains default Normal and passes. Actual separate Start Client.cmd menu readiness
+also passes in an independent prepared manual copy14.337s. User manual
+mouse/window/audio,deck/cosmetic retention and combat feedback is pending.
+Python479 tests pass465/14skip,96.114s;eleven C++ programs/six atomic boundaries
+pass. Broader packaged public/team/server/fault/native-playback/privacy/deployment/
+manual/clean-PC/Internet gates remain open. See packaged-gameplay.txt.
+
 NATIVE BACKUP INPUT/PUBLICATION PROTECTION (2026-10-19 UTC, CANDIDATE)
 Full-match characterization exposes a real helper18 regression:malformed native
 menu backup survives startup but is overwritten after gameplay. Candidate19
