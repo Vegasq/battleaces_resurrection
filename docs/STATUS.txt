@@ -2,6 +2,22 @@ IMPLEMENTATION LEDGER
 Updated: 2026-10-19 UTC
 Active objective: implement SERVER_REPLACEMENT_PLAN.txt, Windows only.
 
+NATIVE REPLAY MALFORMED CODEC29 (2026-10-19 UTC, BOUNDED PASS)
+After one bundled public2v2/result/Continue and healthy native replay readback,
+six authored codec cases now reject at expected phases:corrupt Deflate IOException;
+invalid wire/truncated field/recursion/size InvalidProtocolBufferException;
+empty complete Deflate parses then fails structural GameData validation. Fresh
+original objects per case;all18 native stream disposals succeed,zero cleanup
+errors,exclusive read reopen witnesses released handles. Same idle menu validates
+and original Quit/game+launcher exit0,2.562s after Confirm. Full run221.675s,
+owned job active0/terminated0 before close,no forced cleanup. Fixture/source/
+package/config/driver/shared three channels remain unchanged. Size enforcement
+may refill4KiB beyond threshold;not a strict decompression/allocation quota or
+exhaustive hostile-input guarantee. Stateful malformed playback recovery and
+broader release gates remain open. C++ eleven programs/six atomic boundaries and
+Python499 tests485pass/14skip,108.300s pass. Ordinary launch has no codec test
+actions;manual24 stays unchanged. See native-replay-validation.txt.
+
 NATIVE REPLAY FULL PLAYBACK28 (2026-10-19 UTC, BOUNDED PASS)
 Explicit owned ReplayFiles startup diagnostic now passes original decode/Load/
 Play,simulation/presentation to recording end and original batch Quit0 in32.677s.

@@ -7,6 +7,88 @@ is independently verified,but it is not native parsing or simulation playback.
 This work closes those different evidence gaps without adding ordinary test
 actions or inventing a new replay browser requirement.
 
+Malformed-codec controls29 (BOUNDED NATIVE PASS)
+An additional explicit -native-replay-faults-smoke diagnostic runs after the
+healthy saved-replay readback and before SAME idle menu revalidation/original
+Quit. Its authored fixture files use .case,not .rep,so original replay retention
+and native filename selection do not treat them as recordings. No game bytes
+are embedded in source. The ordinary launch never supplies either codec flag.
+
+Each case creates NEW original FileStream,DeflateStream,CodedInputStream and
+GamePb.Replay. Parser state may be partially advanced after an exception;do not
+reuse it. Exact read-only file identity and original16MiB/64 limit getters are
+checked before ReadRawMessage. Primary parse/structural error and cleanup error
+counts are recorded separately. All three original Dispose calls must succeed;
+after the pin closes,exclusive read reopen verifies managed file-handle release.
+The caller always continues to original Quit after a diagnostic refusal;that
+normal exit alone must never classify a failed fault suite as passing.
+
+Six fixed authored inputs:
+- Invalid Deflate final block type3 (07):original System.IO.IOException expected.
+- Complete Deflate containing protobuf0f:invalid wire type7,original
+  Google.Protobuf.InvalidProtocolBufferException expected during ReadRawMessage.
+- Complete Deflate containing0a01:GameData length1 with absent payload;original
+  InvalidProtocolBufferException expected during ReadRawMessage.
+- Complete Deflate containing66 nested unknown field15 groups and matching ends:
+  original InvalidProtocolBufferException expected under recursion limit64.
+- Complete Deflate containing one unknown field15 byte string of16MiB+1 zeros:
+  wire length16,777,222;original InvalidProtocolBufferException expected under
+  parser size limit16MiB. The original refill may read a4096-byte buffer beyond
+  the threshold before checking. This is not a byte-perfect decompression quota.
+- Complete Deflate with empty inflated content:generated parser may accept an
+  empty Replay;authored structural GameData validation must reject it afterward.
+
+Bundled play verifier seeds only a fresh owned packaged profile,records fixture
+hashes,checks exact expected native rejection phase/type/cleanup/ordering,and
+hashes fixture bytes again after native exit. Positive match results/Continue,
+healthy native readback,three named shared channel inventories and normal owned
+Quit remain required. Four new focused tests plus seven existing replay checks
+pass;full Python499 tests pass485/14skip,108.300s,explicit exit0. Final helper29
+build passes eleven C++ programs/six atomic boundaries. Physical/manual/clean-PC/
+Internet and stateful malformed playback remain separate open gates.
+Retained original-byte contract09 independently checks the native IOException
+mapping,protobuf exception factories,unknown-group recursion path,limit transfer
+to ParseContext,and refill size comparison. It verifies that empty complete
+Deflate is a structural-control case rather than a required parser exception.
+local/native-replay-codec-fault-contract09/FINDINGS.txt SHA256
+e1084048bfd711fda5133b750ff558d4969808c098c5645a811dba0f8ab5e824
+manifest SHA256
+d0b1b9e530eddceac59cd2bcdecf3e03121ed9e71b3490ab5084307a44c7e8d3
+
+Actual bundled29 mode2 native run PASSES221.675s. Four-player public AI match,
+native results/Continue,healthy original codec readback and all six authored
+fault cases complete. Healthy recording has3607 contiguous batches/30 setup
+actions/build37822,293-character canonical filename,697 player-batch frames.
+Invalid Deflate reports IOException;invalid wire/truncated field/recursion/size
+inputs report InvalidProtocolBufferException in ReadRawMessage. Original native
+messages specifically report nesting and size limits for their respective cases.
+Empty complete Deflate parses then fails authored GameData validation,as designed.
+All18 original stream Dispose calls across the six cases return normally,zero
+cleanup errors;each file exclusively reopens after its pin/managed streams close.
+Six fixture hashes remain unchanged. Same idle menu validates afterward,and
+original menu Quit plus bundled launcher both exit0,2.562s after Confirm.
+Owned job total2/active0/terminated0 before close,no forced cleanup. Source,
+package,config,driver and all three shared channel inventories remain unchanged.
+This qualifies these exact codec/limit/structural refusal and cleanup cases;
+it is not exhaustive malformed-input safety,an OS allocation/decompression quota,
+or stateful high-level replay-load recovery. No gameplay state was loaded by the
+codec probes. Existing healthy native playback28 remains a separate proof.
+local/replay-faults29-mode2-01/verification.json SHA256
+e3a5818893dab2ac80c01bf99e03c7d2160fd00d15dad1bde6b5ec1c47c9096b
+Helper29 SHA256
+d021c569ff2b65764a00a9a7f2d27538fbdc495143f47418c18f8d07203806b7
+Source-bound helper receipt SHA256
+a3b07d2432eac5718640ed26d911564331a82bfd50b8d2efb35857688d9e2f28
+Prototype29 packages are from7d9929d plus bound uncommitted source,dirty=true.
+Client67 files13086026bytes,ZIP SHA256
+2d031c32f6b7a79c6f0283e51f5a09b46c8d511dfdd5e388c75eee865182c26a
+Server82 files12427766bytes,ZIP SHA256
+2a7c777454c5b36f89dbeb025f1820526156779cabb3888fa7589c405f05b50e
+build-report.json SHA256
+df57409893c9f655f538b1686040cb49bb8bc1e66276e64417f793cb3937747b
+Manual24/original/frozen copies remain unchanged;only ignored03 test copy receives
+the helper. No game binary,recording,asset,capture or disassembly enters Git.
+
 Current native playback28 (BOUNDED POSITIVE PASS)
 Original-codec-accepted four-player recording25 also passes actual original
 ReplayFiles batch playback in32.677s. It opens an unchanged seeded281-character

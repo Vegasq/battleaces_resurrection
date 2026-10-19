@@ -30,6 +30,7 @@ from tools.verify_native_storage import snapshot,replay_evidence
 from tools.local_ai_evidence import public_match,public_search
 from tools import replay_retention
 from tools import native_replay_evidence
+from tools import replay_codec_fixtures
 
 ROOT=Path(__file__).resolve().parents[1]
 require=startup.require
@@ -71,6 +72,7 @@ def spawn(config,remote,options,child):
     if request['mode']!=4:
         diagnostic.extend(['-public-queue-smoke','-public-queue-smoke-mode='+str(request['mode']),'-public-ai-smoke'])
     if request['native_replay_readback']:diagnostic.append('-native-replay-readback-smoke')
+    if request['native_replay_faults']:diagnostic.append('-native-replay-faults-smoke')
     command.extend(diagnostic)
     info=subprocess.STARTUPINFO();info.dwFlags|=subprocess.STARTF_USESHOWWINDOW
     info.wShowWindow=1 if request['visible'] else 0
@@ -110,7 +112,7 @@ raise SystemExit(0 if report['passed'] else 1)
 
 
 def sources():
-    paths=[Path(__file__),ROOT/'tools/verify_native_storage.py',ROOT/'tools/local_ai_evidence.py',ROOT/'tools/replay_retention.py',ROOT/'tools/native_replay_evidence.py']
+    paths=[Path(__file__),ROOT/'tools/verify_native_storage.py',ROOT/'tools/local_ai_evidence.py',ROOT/'tools/replay_retention.py',ROOT/'tools/native_replay_evidence.py',ROOT/'tools/replay_codec_fixtures.py']
     return quit_probe.sources()|{p.relative_to(ROOT).as_posix():hashlib.sha256(p.read_bytes()).hexdigest() for p in paths}
 
 
@@ -128,6 +130,7 @@ def job_accounting(handle):
 
 
 def run(args):
+    if not hasattr(args,'native_replay_faults'):args.native_replay_faults=False
     package,game,output=(p.resolve() for p in (args.package,args.game,args.output))
     require(os.name=='nt' and 90<=args.timeout<=300,'bounded Windows play probe required')
     require(args.mode in (1,2,4,5),'unsupported packaged local mode')
@@ -138,6 +141,9 @@ def run(args):
             'install the exact packaged helper in the owned copy')
     receipt=quit_probe.verify_build_receipt(game,args.helper_build_receipt.resolve())
     if args.native_replay_readback:require(b'BA_RESURRECTION_NATIVE_REPLAY_READER_V1' in (game/'BattleAcesOffline.dll').read_bytes(),'install the owned native replay codec diagnostic helper')
+    if args.native_replay_faults:
+        require(args.native_replay_readback and not args.replay_retention and b'BA_RESURRECTION_NATIVE_REPLAY_FAULTS_V1' in (game/'BattleAcesOffline.dll').read_bytes(),
+                'fault suite requires native readback, current helper and separate non-retention profile')
     manifest=json.loads((game/'.battleaces-resurrection/patch-manifest.json').read_bytes())
     require(manifest['diagnostics']['native_quit'] is False and manifest['diagnostics']['dlss_enabled'] is False and
             not manifest.get('pointer_hooks') and not any(h['name'].startswith('OfflineNativeQuit') for h in manifest['call_hooks']),
@@ -146,6 +152,7 @@ def run(args):
     profile='nativestest_packaged_'+secrets.token_hex(6)
     folder=game/'.battleaces-resurrection/profiles'/profile
     retention_fixture=replay_retention.prepare(folder/'AutoSaveReplays',args.replay_retention,ROOT/'local') if args.replay_retention else None
+    codec_fixture=replay_codec_fixtures.prepare(folder/'AutoSaveReplays',ROOT/'local') if args.native_replay_faults else None
     trace=folder/'quit-trace.jsonl';quit_probe.require_fresh_trace(trace)
     config=output/'client.json';settings=client.defaults(game)
     settings.update(local_profile=profile,display_name='Packaged Gameplay')
@@ -153,7 +160,8 @@ def run(args):
     driver=output/'owned-driver.py';driver.write_text(DRIVER,encoding='utf-8')
     request=output/'request.json'
     request.write_text(json.dumps(dict(package=str(package),game=str(game),output=str(output),config=str(config),
-                                     profile=profile,visible=args.visible,mode=args.mode,native_replay_readback=args.native_replay_readback),indent=2)+'\n')
+                                     profile=profile,visible=args.visible,mode=args.mode,native_replay_readback=args.native_replay_readback,
+                                     native_replay_faults=args.native_replay_faults),indent=2)+'\n')
     cwd=output/'foreign cwd';cwd.mkdir()
     for name in ('sitecustomize.py','tools.py','client_patch.py'):
         (cwd/name).write_text('raise RuntimeError("foreign module must not run")\n')
@@ -162,6 +170,7 @@ def run(args):
                                backup=snapshot(shared.parent/'StorageSyncBackup'))
     report=dict(passed=False,scope=__doc__,mode=args.mode,expect_long_replay=args.expect_long_replay,
         native_replay_readback=args.native_replay_readback,
+        native_replay_faults=args.native_replay_faults,codec_fixture=codec_fixture,
         retention_fixture=retention_fixture,
         profile=profile,helper_build=receipt,package=str(package),
         package_inventory_sha256=hashlib.sha256(json.dumps(inventory,sort_keys=True).encode()).hexdigest(),
@@ -253,7 +262,8 @@ def run(args):
         if retention_fixture:
             replay_path,report['retention']=replay_retention.verify(folder/'AutoSaveReplays',retention_fixture)
         else:
-            replays=list((folder/'AutoSaveReplays').iterdir());require(len(replays)==1,'expected one native profile replay')
+            replays=[p for p in (folder/'AutoSaveReplays').iterdir() if codec_fixture is None or p.name not in codec_fixture['files']]
+            require(len(replays)==1,'expected one native profile replay')
             replay_path=replays[0]
         # Read the native file through the same Windows extended-path namespace;
         # Python's caller-side path policy must not hide a successful native save.
@@ -264,6 +274,7 @@ def run(args):
         if args.expect_long_replay:
             require(len(str(replay_path))>260,'native replay did not exercise a long full path')
         if args.native_replay_readback:report['native_codec']=native_replay_evidence.validate(text,report['replay'])
+        if codec_fixture:report['native_codec_faults']=native_replay_evidence.validate_faults(text)
         backup=folder/'StorageSyncBackup/A3079428-5DC5-4617-AF2D-0C8656DA760B'
         raw=backup.read_bytes();value=json.loads(raw)
         require(value['Id']==backup.name and isinstance(value['Data'],dict) and
@@ -295,6 +306,9 @@ def run(args):
         except BaseException as error:report.update(package_files_unchanged=False,package_error=repr(error))
         report['config_unchanged']=config.read_bytes()==config_before
         report['driver_unchanged']=hashlib.sha256(driver.read_bytes()).hexdigest()==report['driver_sha256']
+        if codec_fixture:
+            try:report['codec_fixture_after']=replay_codec_fixtures.verify(folder/'AutoSaveReplays',codec_fixture)
+            except BaseException as error:report.update(passed=False,codec_fixture_error=repr(error))
         report.update(shared_after=channels(),source_sha256_at_finish=sources(),elapsed_seconds=time.monotonic()-started)
         report['shared_channels_unchanged']=report['shared_before']==report['shared_after']
         report['source_files_unchanged']=report['source_sha256_at_start']==report['source_sha256_at_finish']
@@ -312,6 +326,7 @@ if __name__=='__main__':
     parser.add_argument('--mode',type=int,choices=(1,2,4,5),default=4,help='1v1,2v2,Try Deck,2vAI respectively')
     parser.add_argument('--expect-long-replay',action='store_true',help='require the ordinary native replay path to exceed260 characters')
     parser.add_argument('--native-replay-readback',action='store_true',help='explicit owned original-codec probe before native menu Quit; not playback')
+    parser.add_argument('--native-replay-faults',action='store_true',help='authored malformed codec inputs after healthy readback, before same idle Quit')
     parser.add_argument('--replay-retention',type=int,choices=(0,100,101),default=0,help='seed authored long replay names for original native retention')
     parser.add_argument('--visible',action='store_true')
     raise SystemExit(run(parser.parse_args()))

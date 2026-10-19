@@ -10,13 +10,17 @@ Current release integration order (2026-10-19)
   It does not call stateful Replay.Load/Play;original Quit continues even after
   diagnostic failure. Native positive control passes248.147s:3607 original
   contiguous frame batches agree with host decode;30 setup actions/build37822,
-  three disposed streams,same idle menu and both natural exits0. Negative parser
-  controls remain pending;prototype package is explicitly dirty=true.
+  three disposed streams,same idle menu and both natural exits0. Native29 now
+  additionally passes six authored malformed/limit/empty structural controls,
+  all18 disposals/exclusive reopens,same idle menu and both natural exits0 in
+ 221.675s. This is bounded codec cleanup,not exhaustive/stateful load recovery.
+  Prototype packages remain explicitly dirty=true until clean rebuild.
   Original ReplayFiles startup batch28 now passes32.677s:original reflected
   setter/readback,FSM-owned context,matching full GameData/3607 batches,advancing
   simulation/presentation,exact original completion and both natural exits0.
   No helper tick/context write/forced cleanup;job active0 before close. Retain
-  early adapter/context-guard failures. Native negative/fault controls remain.
+  early adapter/context-guard failures. Stateful playback/fault controls remain;
+  six codec refusal/cleanup controls now pass separately on29.
   Do not enable batch test actions in ordinary Start Client or invent a browser.
   See native-replay-validation.txt. Existing manual24/frozen copies unchanged.
   Static06 identifies existing original Set<object>,typed getter readback and

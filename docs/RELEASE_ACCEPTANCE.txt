@@ -26,8 +26,11 @@ same idle menu and both natural exits0. Native batch28 playback also passes32.67
 with matching full GameData/3607 batches,original FSM ownership,advancing native
 simulation/presentation and exact original completion/both exits0,job active0,
 no forced cleanup. No reported desync is not independent determinism or pixel
-acceptance. Negative codec/playback/fault controls remain OPEN;this does not
-require inventing a new browser feature.
+acceptance. Six exact malformed codec/limit/structural cases29 additionally
+pass expected refusals,all18 disposals/exclusive reopens,same idle menu and both
+exits0,job active0/no forced cleanup. Stateful playback/fault controls remain
+OPEN;this does not require inventing a new browser feature or claim exhaustive
+hostile-input safety. Size checking can refill4KiB past its threshold.
 Actual Start Client.cmd startup passes in clean package and independent manual24
 copy;physical input/audio/preferences feedback remains pending. Python488 tests
 pass474/14skip;eleven C++ programs/six atomic boundaries pass. See
