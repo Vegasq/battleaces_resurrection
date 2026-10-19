@@ -104,10 +104,27 @@ static void capture(const wchar_t* suffix=L"") {
         ba_export::atomicWrite(path,static_cast<const unsigned char*>(png.get())+0x20,length);
     }catch(...){destroy();throw;}destroy();
 }
+static bool gateReady() {
+    if(!ba::flag(L"-native-quit-gate-smoke"))return true;
+    require(ba_native_settings::session && ba_native_settings::session->profile().rfind("nativestest_",0)==0,
+        "native Quit gate requires an owned profile");
+    const auto& settings=ba_native_settings::session->path();
+    const auto path=settings.substr(0,settings.find_last_of(L'\\')+1)+L"native-quit.ready";
+    ba_native_settings::Handle file(CreateFileW(path.c_str(),GENERIC_READ,FILE_SHARE_READ,nullptr,OPEN_EXISTING,
+        FILE_FLAG_OPEN_REPARSE_POINT,nullptr));
+    if(file.value==INVALID_HANDLE_VALUE) {
+        require(GetLastError()==ERROR_FILE_NOT_FOUND,"native Quit gate is unavailable");return false;
+    }
+    ba_native_settings::ordinary(file.value);LARGE_INTEGER size{};
+    require(GetFileSizeEx(file.value,&size) && size.QuadPart==0,"native Quit gate must be an empty ordinary file");
+    static bool reported=false;if(!reported){reported=true;ba::log("NATIVE QUIT owned gate released: profile=%s BA_RESURRECTION_NATIVE_QUIT_GATE_V1",
+        ba_native_settings::session->profile().c_str());}return true;
+}
 static void update(Obj front) {
     if(!ba::flag(L"-native-quit-smoke") || stage>=4)return;
     Obj dispatch=nullptr,dispatchMethod=nullptr;
     try {
+        if(!gateReady())return; // Explicit external qualification gate only.
         if(ba::flag(L"-native-quit-after-practice")) {
             require(ba::localMenu() && ba::flag(L"-practice-ai-smoke") &&
                 ba::argument(L"-practice-ai-smoke-matches=","1")=="1" && ba_practice::completed<=1,

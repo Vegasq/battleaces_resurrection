@@ -15,6 +15,18 @@ actions. Current native settings saves use staged handle publication. See
 ordinary-player-client.txt for reports,retained failures and remaining matrix.
 These controls do not close the final/manual/clean-machine/Internet gates below.
 
+Bundled multiplayer30 source qualification
+Verified bundled host.run plus two bundled client.main/TLS/bridge/native clients
+now pass full-human1v1 and real30-second partial2v2 with original native AI fill.
+Exact authoritative frame streams,sampled observable-state agreement,independent
+decks/full loadouts/names,original results/Continue/gated native Quit and all
+normal exits0/zero active owned descendants pass. Same source/package/assets/
+config/shared channels remain unchanged. External stdin-only identity fixtures
+are used because protected DACL enrollment is not accessible to the restricted
+tool token. This does not qualify real credential deployment,actual Start Server/
+Start Client CMD mouse play,SCM,clean-PC or Internet play. Broader multiplayer
+recovery/Custom/rematch/team/manual gates remain open. See packaged-multiplayer.txt.
+
 Packaged ordinary24 replay correction
 The new full packaged2v2 check catches a real legacy-path save failure despite
 successful gameplay/Quit. Ordinary24 fixes the scoped replay API spelling and

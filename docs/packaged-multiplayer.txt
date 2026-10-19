@@ -1,0 +1,160 @@
+BUNDLED SERVER / NATIVE MULTIPLAYER QUALIFICATION -- 2026-10-19
+
+Scope
+This closes the gap between separate source multiplayer controls and bundled
+local gameplay. tools.verify_packaged_multiplayer launches a bundled Windows
+host and two separately configured bundled production clients against one
+numeric-loopback TLS listener. Actual worker/simulation/queue clocks are kept.
+The first control is full-human1v1;partial2v2 and2vAI are supported test modes.
+Protected credential deployment,actual CMD mouse play,clean-PC,physical input,
+audio/visuals and Internet/cross-PC acceptance remain separate requirements.
+
+External adapters and credential boundary
+tools.packaged_network_drivers is authored qualification code,not shipped in
+either product package. Each child uses isolated bundled Python,foreign cwd/
+PYTHONPATH and a PATH containing System32 only. Imported production modules
+are inventoried and hash-checked. No source-checkout module substitutes for
+host/client/bridge/TLS/native-worker production logic.
+
+The restricted tool token's earlier Windows-error5 protected-enrollment blocker
+is already documented;do not retry it or weaken the owner/SYSTEM DACL. This
+control explicitly uses stdin-only ephemeral test identities. Host CredentialStore
+is replaced ONLY inside the external driver by an in-memory fixture;the client
+adapter supplies the same fixture when its production resolver reads its fixed
+nonsecret placeholder invite path. Both still use actual TLS verification and
+production admission/authentication/private bridge logic. No token is passed on
+CLI,written to config/invite files,or intentionally logged. Retained public
+outputs are checked for accidental fixture-token disclosure. TLS test keys are
+generated under this ignored owned output and removed after the run;no host
+trust store is changed.
+
+Production host health prints credential_store_checked=true when list_public
+returns. UNDER THIS ADAPTER that Boolean refers to the in-memory fixture check;
+it does not qualify protected filesystem credentials or their DACL. Report scope
+and fixture_store make that limitation explicit. Final real enrollment remains
+required before release;this adapter is not a product fallback or setup option.
+
+The host executes original server.host.run,configuration/assets/storage/native
+startup checks,and default TLS coordinator with its native match worker. A
+constructor observer keeps the original constructor and audit callback,recording
+the frozen public roster/decks/loadout seats. A worker-create observer forwards
+unchanged arguments to the original factory and records actual bundled worker
+identity/backend/cleanup. Neither observer accelerates or replaces simulation.
+Host stop cancels its original run task and awaits normal finally/worker/listener
+cleanup;forced process termination cannot qualify a passing run.
+
+The client executes production client.main,optional-settings resolver,verified
+TLS transport and inherited bridge. An external spawn adapter first checks the
+ordinary player arguments contain no automation,then adds explicit original
+Play/build/surrender/Continue/search/Quit diagnostics. A shared owned gate starts
+Play only after both native menus are ready. The second client's original deck
+edit verifies independent human selection. Public full groups must launch
+promptly;partial groups must retain the real30-second deadline and timer.
+
+Owned original Quit gate
+The helper adds -native-quit-gate-smoke ONLY for this explicit native Quit probe.
+It waits for fixed native-quit.ready under the validated owned nativestest_
+profile. The gate must be an empty ordinary single-link file. Ordinary Start
+Client never supplies the flag or creates/releases the gate. The verifier writes
+it only after BOTH public returns and server queue/room/worker cleanup. Original
+menu/model/ownership/navigation/asset checks then run unchanged,followed by the
+original Show/Confirm callbacks. The original60-second Confirm exit bound remains.
+The gate does not bypass active-world/idle-menu validation or force Quit.
+
+Required native evidence
+- One offer,match,completed result and released native match worker;both
+  authenticated identities share it with expected human/bot seats and frozen
+  full loadouts/configured names/independent decks. Full/partial queue timing
+  must match policy using original real performance timestamps.
+- Both actual clients receive the complete contiguous authoritative frame
+  stream;every recorded receipt hash matches the bundled host's frame hash.
+- At least20 common observable-state samples per client agree with original
+  server simulation. This is sampled canonical visible-state agreement,not an
+  independent full hidden-state/determinism proof.
+- Original build callback queues normally,original public results/Continue
+  return each remote world exactly once;no local-AI fallback may satisfy this
+  multiplayer control. Native elapsed search samples must agree with wait mode.
+- Completed return precedes the explicit gate and original idle Quit. Exact
+  native five-event Quit trace,game+launcher exits0,and zero active owned job
+  descendants BEFORE close are required. The host listener must close,its state
+  lock must release,and health/match workers must exit0 without failure.
+- Profile-local native TOML and structurally valid replay are retained. Three
+  named shared TOML/replay/backup inventories,config,adapters,packages,assets and
+  bound source remain unchanged. Source/game assets/keys/private captures never
+  enter Git. Existing manual24 and original/frozen copies remain unchanged.
+
+Native30 full-human1v1 (BOUNDED PASS)
+Actual bundled host+two bundled production clients pass113.024s. Two verified
+TLS/authenticated identities share one original authoritative match and distinct
+native-selected decks/full loadouts/configured names. Real offer waits0.199s and
+0.000117s:full human group launches promptly with no local fallback or AI seats.
+Both clients receive all1220 authoritative frames in order;every payload hash
+matches the host. Each agrees on122 common native observable-state samples.
+Original build callbacks queue;native result is complete at frame1200 with
+alliance1 winning after explicit diagnostic ConcedeGame. Both public Continue
+paths release their remote world once,then original menu Quit traces and both
+game/launcher exits0 complete. Server health worker50824 and match worker9648
+exit0,reaped/no failure. Original host cancellation closes listener and releases
+the state lock. Three outer owned jobs have active0/terminated0 BEFORE close;
+no forced cleanup. Native TOML and valid replay files in both fresh profiles
+are retained;the three named shared channel inventories remain unchanged.
+Package/assets/config/adapters/source remain unchanged and fixture tokens are
+absent from retained public outputs. PKI is removed. This remains an adapter-based
+same-PC TLS/multiplayer/native-Quit proof,not protected enrollment or CMD mouse/
+Internet/manual rendering acceptance. Raw health's credential Boolean is scoped
+to the fixture as explained above. Original manual24 is unchanged.
+local/packaged-network30-mode1-01/verification.json SHA256
+1b693c9150e245bb1233f4542bf677772a9d6e1a111dd34962aed208d439d48d
+Helper30 SHA256
+8e4bae6bbffc86791df71b186d497ae2750b84eabc79160777ada669d30d1294
+Source-bound helper receipt SHA256
+be0e8d6d5b45acbb87731cddfea3f2ebd403bf03370222975360bf71dda5919f
+Eleven C++ programs/six atomic boundaries pass. Five focused evidence/adapter
+compilation tests pass;full Python504 tests490pass/14skip,106.788s,exit0 pass.
+Prototype package is from0e0830e plus exact bound uncommitted source,dirty=true.
+local/packaged-network30-packages01/build-report.json SHA256
+f599eb6d6180c45d6a9d4f3325c0d4dc290dc29f76e56e06110e1df1112a9f84
+
+Native30 partial-human2v2 (BOUNDED PASS)
+The same packaged production host/client/helper bytes pass141.969s with two
+human seats0/1 and server-owned AI seats2/3. Native worker metadata independently
+identifies original AI DLL/rules and actual profiles59/59;frozen native roster
+has distinct names and human profiles0. Both humans retain independent decks,
+configured names and full loadouts. Every one of1221 native frame receipts per
+client matches the host;each client agrees on124 common observable-state samples.
+Native result completes at1201,alliance1 wins after explicit diagnostic concession.
+Both original Continue/idle-gated Quit/game+launcher exits0 pass. Host health
+worker25100 and AI match worker12948 exit0/reap without failure;listener closes,
+state lock releases,all three owned jobs active0/terminated0 before close,no
+forced cleanup. Native TOML/replay and unchanged source/package/assets/config/
+adapters/three shared channels/fixture-token non-disclosure checks also pass.
+local/packaged-network30-mode2-partial01/verification.json SHA256
+a4c50b4c6599733d57caa16c9ab576c0316fe9bc2b370a453b549a73dd30dd14
+
+Queue timing is measured from the ORIGINAL native search,not just server entry.
+Client sends intent.remaining(now),so connection/setup time is deducted from the
+remaining backend wait. Here server-entry-to-offer is29.971s/29.805s;original
+native search-to-offer is30.125s/30.078s and authoritative elapsedMs is30099/
+30056. Native original timer samples cover0..29 before found/joining. Do not
+round server-entry time up to30 or require an extra whole30 seconds after setup.
+
+Stronger native timing checks were added AFTER the two live runs. Five focused
+tests pass again,including an explicitly premature authoritative timer rejection.
+A read-only revalidation pins both original report hashes and retained native
+logs/receipt/audit files,reruns the strengthened validator,and verifies frozen
+human/bot/name ownership against actual worker AI metadata. All original match
+results remain identical;new timing fields provide the values above. This is
+additional evidence validation,not additional native launches or modified reports.
+Conservative Confirm-to-final-report upper bounds are7.868s/8.305s for1v1 and
+8.501s/8.485s for2v2:run starts before each native spawn and report is written
+after its observed exit,so these also corroborate the original60-second bound.
+local/packaged-network30-evidence-revalidation.json SHA256
+8fb9f339a00ddf26243fe988dba2807b72c57aed0dd5372fcf25476fc23af7ab
+
+Prototype client67 files,archive13086409bytes,ZIP SHA256
+80048882bb6ed89984f98fad621c416d410ff06d28f3d79cec6353a0d6c6075a
+Prototype server82 files,archive12427766bytes,ZIP SHA256
+c4b8b604ad0da704a448340bb107799299e2f949d42c106ebf66eab2f0b7c6ff
+These are development previews. Broader2vAI/full-team/Custom/rematch/disconnect/
+retry/manual/protected-deployment/clean-PC/Internet matrix stays open;do not
+promote same-PC credential-fixture controls to a final friend-hosted release.

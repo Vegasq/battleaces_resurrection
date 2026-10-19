@@ -2,6 +2,28 @@ IMPLEMENTATION LEDGER
 Updated: 2026-10-19 UTC
 Active objective: implement SERVER_REPLACEMENT_PLAN.txt, Windows only.
 
+BUNDLED MULTIPLAYER30 / ORIGINAL QUIT (2026-10-19 UTC, BOUNDED PASS)
+New external adapter qualifies bundled production host.run and two independent
+bundled client.main/resolver/TLS/bridge/native clients together. Protected DACL
+enrollment remains blocked by the known restricted-token condition;stdin-only
+ephemeral identity fixtures are explicit test adapters,never product fallbacks
+or relaxed ACL rules. Actual private credential deployment is NOT qualified.
+Native1v1 passes113.024s:full human group,1220 exact authoritative receipt frames
+per client,122 matching observable-state samples each,independent decks/full
+loadouts/configured names. Native partial2v2 passes141.969s:two humans plus two
+original native AI profiles59,1221 exact frames/124 matching samples per client,
+original native searches wait30.125s/30.078s before offer. Original build/result/
+Continue and new explicitly gated original menu Quit pass on both clients;
+games/launchers/workers exit0,host original cancellation closes listener/releases
+state lock,all outer jobs active0/terminated0 before close,no forced cleanup.
+Native TOML/replay checks pass;source/packages/assets/config/adapters/shared
+three channels remain unchanged and fixture-token non-disclosure checks pass. Stronger read-only native
+timing/frozen-roster revalidation also passes. C++ eleven programs/six atomic
+boundaries and Python504 tests490pass/14skip,106.788s plus final five focused
+checks pass. Manual24/original/frozen copies unchanged. Actual CMD/physical/
+protected deployment/remaining multiplayer recovery/clean-PC/Internet acceptance
+remain open;see packaged-multiplayer.txt for scope and exact evidence.
+
 NATIVE REPLAY MALFORMED CODEC29 (2026-10-19 UTC, BOUNDED PASS)
 After one bundled public2v2/result/Continue and healthy native replay readback,
 six authored codec cases now reject at expected phases:corrupt Deflate IOException;

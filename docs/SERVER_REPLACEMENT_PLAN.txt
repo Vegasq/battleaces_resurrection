@@ -4,6 +4,19 @@ Target: Battle Aces build 37822, Windows x64 server and clients.
 Status: IMPLEMENTATION ACTIVE. See STATUS.txt; incomplete phases remain future work.
 
 Current release integration order (2026-10-19)
+- Qualify the bundled server and clients TOGETHER through multiplayer/recovery.
+  New30 adapter uses verified bundled host.run/client.main/TLS/bridge/native
+  workers with unchanged clocks. Restricted-token protected enrollment stays
+  unqualified;stdin-only ephemeral identity adapters are explicit and never
+  shipped as relaxed product ACL/authentication paths. Full-human1v1 and real
+  30-second partial2v2 now pass exact frame streams/observable-state agreement,
+  original results/Continue/gated menu Quit,all exits0 and zero live owned job
+  descendants before close. Full human loadouts/independent decks are frozen;
+  authoritative native rosters retain the configured human names.
+  source/packages/assets/config/shared channels stay unchanged. Remaining
+  packaged2vAI/full-team/Custom/rematch/disconnect/retry,actual CMD/manual,
+  protected credential/SCM/clean-PC/Internet/capacity gates remain open. See
+  packaged-multiplayer.txt;do not mistake credential fixtures for real enrollment.
 - Complete native replay format/playback compatibility. Diagnostic25 invokes
   original codec methods against the pinned just-saved owned replay,after an
   idle-menu check,and compares recorded-frame count to independent host decode.
