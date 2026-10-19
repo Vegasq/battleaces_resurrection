@@ -6,6 +6,14 @@ defines the requested product. Existing frozen archives are not automatically
 upgraded when source changes. No original client binaries/assets belong in Git.
 
 Current ordinary source candidate
+Console40 adds an external active-match/restart verifier without changing the
+production host/launcher/package. Actual development-loopback control passes
+two pairs of scripted peers/40 original-native frames per match,observed worker
+exit0/EOF/port/data lock release and same saved profiles after restart;final and
+pre-close outer job23 active0/terminated0,no forced cleanup. Protected TLS/real
+disposable invite active-match run is prepared for the normal owner and remains
+PENDING. This is not graphical-client/matchmaking/SCM/Internet acceptance. See
+server-console.txt for the retained failed controls and exact current source.
 Server entry39 replaces the batch Start Server with Start Server.exe after an
 actual Ctrl+C confirmation hang. Development and actual normal-owner protected
 TLS1.3/native health/CLI0/1/2/one Ctrl+C/natural0/port/state-lock/job cleanup pass.

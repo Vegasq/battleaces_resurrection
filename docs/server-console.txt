@@ -169,3 +169,89 @@ in local/server-launcher39-python-tests02.txt. Package/native launcher bytes did
 not change for this observer fix;clean source0bc7d34 remains their actual build
 revision. The later source commit contains the external drain verifier/tests
 and exact operator evidence,not an untested replacement launcher.
+
+Active-match shutdown and restart diagnostic40
+tools.verify_server_console --active-match loads one hash-bound external helper,
+tools/server_console_match.py,under the actual isolated packaged runtime without
+changing sys.path or importing checkout production modules. Exact server modules,
+native launcher receipt,assets,request/config and both diagnostic source files
+are bound before/after. Clean39 production bytes/source0bc7d34 and launcher39-01
+are unchanged. No installer/helper/game patch or timeout change was needed.
+
+The private console still exercises actual CLI exit0/1/2,then starts the same
+Start Server.exe twice with the same port,data,profile identities and decks.
+Two blocking scripted protocol3 peers form a legacy 1v1 room,receive the same
+original bootstrap,send original JoinArmy data and deliver40 contiguous native
+frames per match. Every received packet SHA agrees with the real host audit.
+Both native viewers at frames0/20 have nonempty,incomplete worlds. Before sending
+Ctrl+C,both sockets remain open and no abort/release/stop is present. A read-only
+handle to the audit-authored live worker PID verifies the exact bundled Python
+image and retains its identity through exit;the diagnostic never kills workers.
+
+After the original Win32 console Ctrl+C,the real launcher must exit0 within15s,
+the retained match worker must be signaled/exit0,both peers must receive EOF,and
+audit abort must follow Ctrl+C and precede same-worker release/server_stopped.
+Port rebinding and original exclusive state-lock acquisition must pass after
+each cycle. Restart must form a new match with identical persisted profile bytes
+and selected decks. Outer-job natural drain and immediate pre-close samples must
+both be active0/job-terminated0;forced cleanup anywhere fails,including a helper
+that force-terminated the native entry even if outer job accounting is later0.
+
+Important original-runtime behavior: locally inspected CPython3.14.8
+asyncio.base_events.Server.serve_forever cancels by close(),close_clients(),then
+wait_closed(). Its plaintext clients therefore detach before host.finally and
+audit "player disconnected". The separate production BoundedTLSServer stops
+accepts first and leaves established sockets to DedicatedServer.close. The checker
+permits either abort reason ONLY after the original Ctrl+C timestamp,requiring
+the same complete worker/connection lifecycle. It does not relabel production
+events,replace signal handling,skip cleanup checks or assert TLS from plaintext.
+
+Retained failed development controls:
+development01:deck tuple/list comparison bug before inputs;child forced cleanup
+was true but old parent did not propagate it. Parent forced_cleanup=false there
+is not clean acceptance. Corrected parent now propagates the child's flag.
+local/server-console40-development01/verification.json SHA256:
+2a3a3c437cb2d9c852bc247bace802386ea8fbf38d649d37ea914b11b7a50a1d
+development02:incorrect expected nonempty START;original START is empty and
+MATCH_INFO holds the identity. Forced cleanup true;not a native product failure.
+dfcd8db62e84c78753afcbd1973ebfa45201e500db118f4ea50dba1284fb617e
+development03:real40 frames,worker52884/launcher0/EOF,but the overly narrow abort
+reason assertion above fails. No forced cleanup. Retained SHA256:
+89c633635f25b4e69ae1071196f68502ac45e45e58ca28180ab25ae4f5881e45
+Corrected development04 passes11.757s,two cycles,job23/0/0;SHA256:
+442998ec460447ceb12049faabbbaa43b6710c5b8f017d2dfe4a90e6fe86b718
+
+Final stricter development05 also requires per-packet host/peer hashes and exact
+snapshot frame/viewer coverage. It passes12.771s,launcher40824/12312,match worker
+21940/22244 observed live then natural0. Each match delivers40 identical frames
+per peer and stops0 in0.034s. All four sockets EOF,profiles unchanged across actual
+restart,same port/data lock available,final/pre-close outer job23 active0 and
+job-terminated0,no forced cleanup. No bound request/config/package/asset/source mutation.
+local/server-console40-development05/verification.json SHA256:
+b411a7e84e3ac31864be7cd1d280b7947d1b66f6643b81fd7c2ca5164ca1f6e6
+This is explicit unprotected development loopback,not authentication acceptance.
+
+Default owner version issues TWO real disposable invites through the original
+CredentialStore,strictly reads protected handoffs under bundled Python,verifies
+TLS hostname/CA and actual AUTH_OK identity binding on all four connections.
+Only paths/player IDs enter the public request;tokens remain in protected files
+or memory. Finally revokes all issued invites/removes handoffs and checks every
+known public report/stdout/audit leaf for exact bearer bytes,without publishing
+protected data. No fixture credentials,privacy replacement,ACL/trust/firewall
+relaxation or graphical game launch. Read-only restricted-token preflight precedes
+ALL issuance/PKI/process work;actual owner-preflight01 confirms false protected
+operations/controller_started and normal_owner_required,NOT a pass. SHA256:
+2c68659dfe81d7c32210fe006906513084c9a465389cebb042c69038833eac0b
+local/owner-console40/Owner Active Match Check.cmd is the narrow normal-desktop
+operator check. Actual protected active-match/restart result remains PENDING.
+
+Nineteen focused checks pass0.129s,including no private API/process work during
+restricted active preflight,partial/oversize/error packet rejection and rejection
+of early abort,missing/wrong/late worker release,frame mismatch,native completed/
+empty world and authentication failures. Authored tests do not qualify native or
+permission behavior. The actual runs above are separate. Graphical client loss/
+Reconnect,Custom/public UI,SCM,another account,reboot,Internet and capacity remain
+open release gates;native37/manual35 remain their exact older-package evidence.
+Full regression:559 Python tests543pass/16skip,102.026s,exit0 in
+local/server-console40-python-tests01.txt. No additional native/package rebuild:
+this change extends only the external verifier,its rejection tests and the KB.

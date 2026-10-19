@@ -26,7 +26,7 @@ class ServerConsolePreflightTests(TestCase):
 
     def tearDown(self):remove_test_folder(self.root)
 
-    def invoke(self,*,restricted,preflight=False,stale=False):
+    def invoke(self,*,restricted,preflight=False,stale=False,active=False):
         inventory=dict(files={'program/app/'+name:dict(sha256='0'*64 if stale else probe.digest(probe.ROOT/name))
                               for name in self.production})
         with (mock.patch.object(builder,'SERVER',self.production),mock.patch.object(builder,'LAUNCHER_SOURCES',self.launcher),
@@ -34,10 +34,11 @@ class ServerConsolePreflightTests(TestCase):
               mock.patch('server.assets.verify_assets',return_value={'authored':True}),
               mock.patch('tools.verify_owner_credentials.restricting_sids_present',return_value=restricted),
               mock.patch('tests.test_tls_transport.generate_test_pki',side_effect=AssertionError('PKI forbidden')) as pki,
+              mock.patch('tools.packaged_owner_credentials.OwnerCredentials',side_effect=AssertionError('issuance forbidden')) as owner,
               mock.patch.object(probe.subprocess,'Popen',side_effect=AssertionError('process forbidden')) as process,
               redirect_stdout(io.StringIO())):
-            code=probe.run(self.package,self.assets,self.root/'output',preflight_only=preflight)
-            pki.assert_not_called();process.assert_not_called()
+            code=probe.run(self.package,self.assets,self.root/'output',preflight_only=preflight,active_match=active)
+            pki.assert_not_called();process.assert_not_called();owner.assert_not_called()
         report=json.loads((self.root/'output/verification.json').read_bytes())
         self.assertFalse(report['passed'])
         self.assertFalse(report['protected_operations_attempted'])
@@ -54,6 +55,12 @@ class ServerConsolePreflightTests(TestCase):
         code,report=self.invoke(restricted=False,preflight=True)
         self.assertEqual(code,0)
         self.assertEqual(report['stage'],'preflight_ready')
+
+    def test_active_match_restricted_preflight_cannot_issue_invites_or_start_processes(self):
+        code,report=self.invoke(restricted=True,active=True)
+        self.assertEqual(code,2)
+        self.assertEqual(report['stage'],'normal_owner_required')
+        self.assertTrue(report['active_match'])
 
     def test_different_bundled_production_code_is_refused_before_private_or_process_work(self):
         code,report=self.invoke(restricted=False,stale=True)

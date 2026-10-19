@@ -2,6 +2,23 @@ IMPLEMENTATION LEDGER
 Updated: 2026-10-19 UTC
 Active objective: implement SERVER_REPLACEMENT_PLAN.txt, Windows only.
 
+ACTIVE-MATCH CONSOLE40 (2026-10-19 UTC, DEVELOPMENT PASS / OWNER TLS PENDING)
+External --active-match verifier now starts the actual unchanged clean39 native
+entry twice with the same port/data/profiles. Each pair of scripted protocol3
+peers joins the original Simulation.dll world,receives40 identical ordered frames,
+and stays connected until a private-console Ctrl+C. Native snapshots remain
+incomplete/nonempty;host and received payload hashes agree. Both match workers
+are live before stop,then independently observed exited0;all four sockets EOF.
+Both stops return0 in34ms;port/state lock/profile persistence/restart pass with
+final/pre-close job23 active0/terminated0 and no forced cleanup. Development05
+12.771s is plaintext loopback only,NOT protected authentication or graphical-game
+acceptance. No production/launcher/game change was needed. Exact reports and
+retained checker failures are in server-console.txt. Normal-owner TLS/real
+disposable invites version is prepared under local/owner-console40;its actual
+pass remains pending. Restricted preflight never issues invites or starts a
+server. Keep real native37 gameplay/manual35 separate and frozen.
+Regression559 tests543pass/16skip,102.026s,exit0;no production package rebuild.
+
 SERVER CONSOLE ENTRY39 (2026-10-19 UTC, BOUNDED OWNER/TLS PASS)
 Normal-owner protected TLS/idle Ctrl+C now additionally passes5.030s after a
 strict observer correction:owned conhost exits naturally51ms after controller;

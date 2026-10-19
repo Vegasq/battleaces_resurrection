@@ -4,6 +4,14 @@ Target: Battle Aces build 37822, Windows x64 server and clients.
 Status: IMPLEMENTATION ACTIVE. See STATUS.txt; incomplete phases remain future work.
 
 Current release integration order (2026-10-19)
+- Active-match console40 development control now passes two original-native
+  matches through the actual unchanged clean39 Start Server.exe:two scripted
+  peers/40 identical frames each,Ctrl+C/natural worker0,EOF,port/state lock release,
+  same profile/data/port restart,final/pre-close job0/0 and no forced cleanup.
+  Actual protected TLS/authenticated active-match stop is the NEXT owner gate;
+  local/owner-console40/Owner Active Match Check.cmd is prepared. No graphical
+  game,SCM,Internet or clean-PC claim;all remain separate release gates. Preserve
+  failed checker reports and manual35. See server-console.txt for exact evidence.
 - Ordinary server entry39 is now native Start Server.exe:actual CMD Ctrl+C left
   a second termination prompt. Actual development-loopback native entry passes
   CLI exit forwarding,real native health,one Ctrl+C/natural exit and zero owned

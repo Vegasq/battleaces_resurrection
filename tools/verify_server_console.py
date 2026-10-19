@@ -2,7 +2,9 @@
 
 Default TLS mode requires the normal Windows owner; restricted-token preflight
 never creates protected storage. Explicit development loopback is a separate
-console-control qualification, never private/TLS/auth/SCM/active-match proof.
+console-control qualification, never private/TLS/auth/SCM proof. Optional
+--active-match adds two scripted peers/native-worker stop and restart evidence;
+it is not graphical-client acceptance.
 No game launches or production module/permission substitutions.
 """
 from __future__ import annotations
@@ -112,6 +114,16 @@ def child(request_path):
             report['exit_controls'].append(dict(case=label,exit_code=result.returncode,
                 stdout_sha256=hashlib.sha256(result.stdout).hexdigest(),stderr_sha256=hashlib.sha256(result.stderr).hexdigest()))
         require(console_ids(kernel)==[os.getpid()],'CLI controls left a console process')
+        if request.get('active_match'):
+            import importlib.util
+            helper=ROOT/'tools/server_console_match.py'
+            require(digest(helper)==request['match_driver_sha256'],'match driver source changed')
+            spec=importlib.util.spec_from_file_location('external_console_match',helper)
+            module=importlib.util.module_from_spec(spec);spec.loader.exec_module(module)
+            module.exercise(request,report,kernel,received,console_ids)
+            report['match_driver_source_unchanged']=digest(helper)==request['match_driver_sha256']
+            report['passed'] &= report['match_driver_source_unchanged']
+            return 0 if report['passed'] else 1
         command=[str(package/'Start Server.exe'),'--config',str(output/'config/host.json')]
         with (output/'host-stdout.txt').open('xb') as stdout,(output/'host-stderr.txt').open('xb') as stderr:
             process=subprocess.Popen(command,cwd=output/'foreign cwd',stdin=subprocess.DEVNULL,stdout=stdout,stderr=stderr)
@@ -150,7 +162,10 @@ def child(request_path):
             probe.bind(('127.0.0.1',request['port']))
         with exclusive_state(Path(request['data'])):pass
         report.update(listener_port_released=True,state_lock_released=True,passed=True)
-    except BaseException as error:report.update(error_type=type(error).__name__)
+    except BaseException as error:
+        import traceback
+        report.update(error_type=type(error).__name__,error_locations=[dict(file=Path(frame.filename).name,line=frame.lineno)
+            for frame in traceback.extract_tb(error.__traceback__)])
     finally:
         if process is not None and process.poll() is None:
             report['forced_cleanup']=True;process.terminate();process.wait(timeout=10)
@@ -160,7 +175,7 @@ def child(request_path):
     return 0 if report['passed'] else 1
 
 
-def run(package,assets,output,*,development_loopback=False,preflight_only=False):
+def run(package,assets,output,*,development_loopback=False,preflight_only=False,active_match=False):
     from tools.package_integrity import verify
     from tools.build_windows_packages import SERVER,LAUNCHER_SOURCES
     from server.assets import verify_assets
@@ -172,9 +187,9 @@ def run(package,assets,output,*,development_loopback=False,preflight_only=False)
     require(os.name=='nt' and all(p.is_relative_to(ROOT/'local') for p in (package,assets,output)), 'owned ignored Windows paths required')
     require(not output.is_relative_to(package) and not output.is_relative_to(assets),'separate acceptance output required')
     output.mkdir(parents=True,exist_ok=False)
-    report=dict(passed=False,scope=__doc__,development_loopback=development_loopback,preflight_only=preflight_only,
+    report=dict(passed=False,scope=__doc__,development_loopback=development_loopback,preflight_only=preflight_only,active_match=active_match,
                 protected_operations_attempted=False,controller_started=False,forced_cleanup=False)
-    process=job=None;started=time.monotonic();pki=None
+    process=job=None;started=time.monotonic();pki=None;owner=None;identities=[]
     try:
         inventory=verify(package,'server');asset_manifest=verify_assets(assets)
         report['production_sources']={name:digest(ROOT/name) for name in SERVER if name.endswith('.py')}
@@ -186,6 +201,7 @@ def run(package,assets,output,*,development_loopback=False,preflight_only=False)
                 receipt['launcher_sha256']==digest(package/'Start Server.exe'),'launcher source/build receipt differs')
         report.update(package_manifest_sha256=digest(package/'package-manifest.json'),
                       asset_manifest_sha256=digest(assets/'asset-manifest.json'),driver_sha256=digest(__file__))
+        if active_match:report['match_driver_sha256']=digest(ROOT/'tools/server_console_match.py')
         if not development_loopback:
             report['restricting_sids_present']=restricting_sids_present()
             if report['restricting_sids_present'] or preflight_only:
@@ -200,14 +216,22 @@ def run(package,assets,output,*,development_loopback=False,preflight_only=False)
         with socket.socket() as reserve:reserve.bind(('127.0.0.1',0));port=reserve.getsockname()[1]
         config.update(listen_host='127.0.0.1',listen_port=port,assets_directory=str(assets),data_directory=str(output/'data'),
                       certificate_file=None,private_key_file=None,credential_directory=None,allow_insecure_loopback=development_loopback)
+        if active_match:config['diagnostic_audit']=True
         if not development_loopback:
             report['protected_operations_attempted']=True
             pki=generate_test_pki(output/'pki')
             config.update(certificate_file=str(pki['cert']),private_key_file=str(pki['key']),
                           credential_directory=str(output/'data/private/credentials'))
+            if active_match:
+                from tools.packaged_owner_credentials import OwnerCredentials
+                owner=OwnerCredentials(output);identities=owner.issue(2)
+                config['credential_directory']=str(output/'authored-private-store')
         (output/'config/host.json').write_text(json.dumps(config,indent=2)+'\n')
         request=dict(package=str(package),output=str(output),tls=not development_loopback,port=port,data=str(output/'data'),
                      ca=str(pki['ca']) if pki else None,driver_sha256=report['driver_sha256'])
+        if active_match:
+            request.update(active_match=True,match_driver_sha256=report['match_driver_sha256'],
+                credentials=[dict(path=str(path),player_id=value['player_id']) for path,value in zip(owner.handoffs,identities)] if owner else [])
         request_path=output/'request.json';request_path.write_text(json.dumps(request)+'\n')
         report['input_sha256']={name:digest(output/name) for name in ('request.json','config/host.json')}
         info=subprocess.STARTUPINFO();info.dwFlags|=subprocess.STARTF_USESHOWWINDOW;info.wShowWindow=0
@@ -217,10 +241,11 @@ def run(package,assets,output,*,development_loopback=False,preflight_only=False)
             creationflags=subprocess.CREATE_NEW_CONSOLE,startupinfo=info)
         report.update(controller_started=True,controller_pid=process.pid)
         job=_WindowsJob(process.pid);(output/'job-ready').write_bytes(b'owned job attached\n')
-        report['controller_exit_code']=process.wait(timeout=100)
+        report['controller_exit_code']=process.wait(timeout=160 if active_match else 100)
         report['job_settle']=settle_job(job.handle,query=job_accounting)
         report['job']=report['job_settle']['final']
         report['console']=json.loads((output/'console-report.json').read_bytes())
+        report['forced_cleanup'] |= report['console'].get('forced_cleanup',False)
         require(process.returncode==0 and report['console']['passed'] and report['job_settle']['naturally_empty'] and report['job']['active_processes']==0 and
                 report['job']['total_terminated_processes']==0,'console/owned descendant qualification failed')
         require(verify_assets(assets)==asset_manifest,'assets changed')
@@ -239,6 +264,22 @@ def run(package,assets,output,*,development_loopback=False,preflight_only=False)
         if (output/'pki').exists():
             try:remove_test_pki(output/'pki');report['authored_test_pki_removed']=True
             except OSError:report.update(authored_test_pki_removed=False,passed=False)
+        if owner is not None:
+            report.update(owner.dispose())
+            report['passed'] &= report['disposable_invites_revoked_and_handoffs_removed']
+        if active_match:
+            report['match_driver_source_unchanged']=report.get('match_driver_sha256')==digest(ROOT/'tools/server_console_match.py')
+            report['passed'] &= report['match_driver_source_unchanged']
+        if identities:
+            # Only bounded, explicitly public leaves; never read protected stores
+            # back into a public artifact. Do not include secret bytes in errors.
+            public=[path for path in output.iterdir() if path.is_file() and path.suffix in ('.txt','.json')]
+            public += list((output/'data/logs').glob('events.jsonl*'))
+            encoded=json.dumps(report).encode()
+            report['bearer_tokens_absent_from_public_output']=all(
+                value['token'].encode() not in encoded and all(value['token'].encode() not in path.read_bytes() for path in public)
+                for value in identities)
+            report['passed'] &= report['bearer_tokens_absent_from_public_output']
         report['driver_source_unchanged']=report.get('driver_sha256')==digest(__file__)
         report['launcher_source_unchanged']=report.get('launcher_sources')=={name:digest(ROOT/name) for name in LAUNCHER_SOURCES}
         report['production_source_unchanged']=report.get('production_sources')=={name:digest(ROOT/name) for name in SERVER if name.endswith('.py')}
@@ -258,10 +299,11 @@ def main():
     for name in ('package','assets','output'):parser.add_argument('--'+name,type=Path)
     parser.add_argument('--development-loopback',action='store_true',help='separate explicit non-TLS console control')
     parser.add_argument('--preflight-only',action='store_true')
+    parser.add_argument('--active-match',action='store_true',help='two scripted peers, native worker stop and same-state restart')
     args=parser.parse_args()
     if args.child_request:return child(args.child_request)
     require(all((args.package,args.assets,args.output)),'package/assets/output required')
-    return run(args.package,args.assets,args.output,development_loopback=args.development_loopback,preflight_only=args.preflight_only)
+    return run(args.package,args.assets,args.output,development_loopback=args.development_loopback,preflight_only=args.preflight_only,active_match=args.active_match)
 
 
 if __name__=='__main__':raise SystemExit(main())
