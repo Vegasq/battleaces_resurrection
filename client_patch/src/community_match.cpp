@@ -9,10 +9,17 @@ struct Operation {
     Root message,manager;std::string lobby;uint32_t epoch=0,request=0;
     ba_match_loading::Ticket loadingTicket=0;
     unsigned kind=0,wireKind=0;bool valid=true,cancelled=false;
+    bool selectionValid=false;
+    wire::Loadout selection;
+    ba_cosmetics::FrozenLoadout appearance;
+    std::unique_ptr<Root> deckSnapshot;
     Operation(Obj value,Obj owner):message(value),manager(owner){}
 };
 static auto& operations=*new std::deque<std::unique_ptr<Operation>>();
 static std::string acceptedLobby,activeLobby,activeMatch;
+static std::unique_ptr<Root> acceptedDeck;
+static ba_cosmetics::FrozenLoadout acceptedAppearance;
+static wire::Loadout acceptedSelection;
 static uint32_t startEpoch=0,readyEpoch=0,activeEpoch=0,returnRequest=0;
 static std::string sentReadyLobby;
 static uint32_t sentReadyEpoch=0,probeReadyEpoch=0;
@@ -99,21 +106,23 @@ static void loadingUpdate() {
 static void reset() {
     loadingCancel("community session reset");loading=LoadingAttempt{};
     operations.clear();acceptedLobby.clear();activeLobby.clear();activeMatch.clear();
+    acceptedDeck.reset();acceptedAppearance={};acceptedSelection={};
     startEpoch=readyEpoch=activeEpoch=returnRequest=0;awaitingReturn=returnAccepted=capturing=captured=false;
     sentReadyLobby.clear();sentReadyEpoch=probeReadyEpoch=0;
     expectedConnection=nullptr;probeStage=probeMatches=probeAborts=0;probeAt=0;probeButton.reset();
     abortRecovery.reset();returnedMatches.clear();returnWasCompleted=false;recoveredAborts=0;
 }
-static wire::Deck selected(Obj front) {
-    Root deck(ba_dedicated_deck::selectedProto(front));wire::require(deck.get()!=nullptr,"community selected deck missing");
-    Obj units=ba::get<Obj>(deck.get(),"units_");wire::require(ba_local::count(units)==8,"community selected deck incomplete");
-    wire::Deck result{};for(int i=0;i<8;++i)result[i]=ba_lan_bootstrap::uintAt(units,i);return result;
+static wire::Loadout selectedLoadout(Obj front) {
+    Root deck(ba_dedicated_deck::selectedProto(front));return ba_cosmetics::wireLoadout(deck.get(),ba_cosmetics::currentSelection(front));
+}
+static wire::Loadout memberLoadout(const wire::Member& member) {
+    wire::Loadout value;value.deck=member.deck;value.full=member.full;value.cosmetics=member.cosmetics;return value;
 }
 static const wire::Member* member() {
     for(const auto& row:native::authority.members)if(row.profile==ba_community::welcome.profile)return &row;
     return nullptr;
 }
-static void enqueue(Obj,Obj message,Obj owner) {
+static void enqueue(Obj front,Obj message,Obj owner) {
     wire::require(operations.size()<32,"native community start queue capacity");
     auto op=std::make_unique<Operation>(message,owner);op->lobby=native::authority.id;
     Obj actions=ba::get<Obj>(message,"updateActions_");const int count=ba_local::count(actions);
@@ -125,6 +134,14 @@ static void enqueue(Obj,Obj message,Obj owner) {
         op->valid&=(kind==15 || kind==16) && kind==op->kind;
     }
     op->epoch=native::authority.epoch+(op->kind==15 && native::authority.phase==wire::Open?1:0);
+    if(op->valid) {
+        op->selectionValid=ba_dedicated_deck::canReady(front);
+        if(op->selectionValid) {
+            op->deckSnapshot=std::make_unique<Root>(ba_dedicated_deck::selectedProto(front));
+            op->appearance=ba_cosmetics::freezeHuman(front,op->deckSnapshot->get());
+            op->selection=ba_cosmetics::wireLoadout(op->deckSnapshot->get(),op->appearance);
+        }
+    }
     loadingQueued(*op);
     ba::log("Community native start queued: kind=%u actions=%d epoch=%u native=%p; deferred callback",op->kind,count,op->epoch,message);
     operations.push_back(std::move(op));
@@ -158,7 +175,7 @@ static bool acknowledge(Obj front,const wire::Ack& ack) {
     for(auto it=operations.begin();it!=operations.end();++it) {
         auto& op=**it;if(!op.request || op.request!=ack.request)continue;
         wire::require(ack.kind==op.wireKind,"community start acknowledgement kind mismatch");
-        if(op.wireKind==wire::SetDeck && ack.success){op.request=0;op.wireKind=0;return true;}
+        if((op.wireKind==wire::SetDeck || op.wireKind==wire::SetLoadout) && ack.success){op.request=0;op.wireKind=0;return true;}
         // A successful wire ACK describes the decision then. A later rollback,
         // departure or new epoch may already have superseded it in ordered
         // authority. Never replay that old success into the current prediction.
@@ -168,6 +185,8 @@ static bool acknowledge(Obj front,const wire::Ack& ack) {
         if(success) {
             if(ack.kind==wire::Start)wire::require(ack.object==op.lobby,"community Start ACK changed lobby identity");
             acceptedLobby=op.lobby;
+            wire::require(op.selectionValid && op.deckSnapshot,"custom acceptance has no frozen human intent");
+            acceptedDeck=std::move(op.deckSnapshot);acceptedAppearance=op.appearance;acceptedSelection=op.selection;
             (op.kind==15?startEpoch:readyEpoch)=op.epoch;
             if(loadingOwns(op))loading.accepted=true;
         }
@@ -273,30 +292,37 @@ static void dispatch(Obj front) {
         }
         // Finish earlier native deck edits first. Poll's ordered ACK events are
         // drained before this dispatch, so authority now includes their revision.
-        bool pendingDeck=false;for(const auto& item:ba_community::pending)pendingDeck|=item.second.kind==wire::SetDeck;
+        bool pendingDeck=false;for(const auto& item:ba_community::pending)pendingDeck|=item.second.kind==wire::SetDeck || item.second.kind==wire::SetLoadout;
         if(pendingDeck)return;
         const auto* local=member();wire::require(local!=nullptr,"community local member missing");
-        const bool canReady=ba_dedicated_deck::canReady(front);
+        const bool canReady=op.selectionValid && ba_dedicated_deck::canReady(front);
         if(op.kind==15 && !canReady) {
             auto done=std::move(operations.front());operations.pop_front();
             complete(front,std::move(done),false,"Choose a valid deck before starting the match.");continue;
         }
-        const auto deck=selected(front);
+        const auto current=selectedLoadout(front);
+        const bool changed=!canReady || current!=op.selection;
+        if(op.kind==15 && changed) {
+            auto done=std::move(operations.front());operations.pop_front();
+            complete(front,std::move(done),false,"Your loadout changed. Please start again.");continue;
+        }
         const auto id=ba_community::nextRequest();
-        if(op.kind==15 && deck!=local->deck) {
-            op.wireKind=wire::SetDeck;op.request=ba_community::send(wire::setDeck(id,deck));
+        if(op.kind==15 && op.selection!=memberLoadout(*local)) {
+            op.wireKind=op.selection.full?wire::SetLoadout:wire::SetDeck;
+            op.request=ba_community::send(op.selection.full?wire::setLoadout(id,op.selection):wire::setDeck(id,op.selection.deck));
+            ba_client::deckSubmitted(op.request,op.selection);
         } else if(op.kind==15) {
             op.wireKind=wire::Start;op.request=ba_community::send(wire::start(id,lobby));
         } else {
             // A deck edit racing the remote host must cancel the attempt instead
             // of silently loading a different frozen deck.
-            op.cancelled=!canReady || deck!=local->deck;
+            op.cancelled=changed || op.selection!=memberLoadout(*local);
             sentReadyLobby=op.lobby;sentReadyEpoch=op.epoch;
             op.wireKind=wire::Ready;op.request=ba_community::send(wire::ready(id,lobby,!op.cancelled));
         }
         if(loadingOwns(op)) {
             loading.cancelRequested=op.cancelled;
-            ba_match_loading::advance(op.loadingTicket,op.wireKind==wire::SetDeck?
+            ba_match_loading::advance(op.loadingTicket,(op.wireKind==wire::SetDeck || op.wireKind==wire::SetLoadout)?
                 ba_match_loading::Stage::Preparing:ba_match_loading::Stage::Waiting);
         }
         ba::log("Community start transaction dispatched: nativeKind=%u wireKind=%u request=%u epoch=%u cancel=%d",
@@ -323,7 +349,19 @@ static void begin(Obj front) {
         lobby.members[slot].profile==ba_community::welcome.profile && ba_lan::dedicatedDeck.size()==32,
         "community frozen seat mismatch");
     for(size_t i=0;i<8;++i)wire::require(ba_lan::u32(ba_lan::dedicatedDeck,4*i)==lobby.members[slot].deck[i],"community frozen deck mismatch");
-    wire::require(selected(front)==lobby.members[slot].deck,"selected deck changed after custom start");
+    wire::require(acceptedDeck && acceptedSelection==memberLoadout(lobby.members[slot]),"custom full intent differs from authoritative selection");
+    if(acceptedSelection.full) {
+        Root encoded(ba_lan::byteString(ba_lan::bootstrap)),data(ba_lan_bootstrap::decodeGameDataLan(encoded.get()));
+        Obj config=ba::get<Obj>(data.get(),"gameConfig_"),armies=ba::get<Obj>(config,"armies_");
+        wire::require(ba_local::count(armies)==2,"custom cosmetic bootstrap army count");
+        Obj army=ba_lan_bootstrap::at(armies,slot),deck=ba::get<Obj>(army,"deck_");
+        Obj units=ba::get<Obj>(deck,"units_");wire::require(ba_local::count(units)==8,"custom cosmetic bootstrap units missing");
+        for(int i=0;i<8;++i)wire::require(ba_lan_bootstrap::uintAt(units,i)==acceptedSelection.deck[i],"custom cosmetic bootstrap units differ");
+        ba_cosmetics::validateHumanDeck(deck,acceptedAppearance);
+        wire::require(ba::get<uint32_t>(army,"armyId_")==static_cast<uint32_t>(slot) &&
+            ba::get<uint32_t>(army,"portraitId_")==acceptedAppearance.portrait &&
+            ba::get<uint32_t>(army,"bannerId_")==acceptedAppearance.banner,"custom cosmetic bootstrap roles differ");
+    }
     Root message(ba::make("FrontPb","CustomGameCreatedNotification")),connection(ba::make("CommonPb","GameConnectionInfo")),handle(ba::make("CommonPb","GameHandle"));
     ba::set<Obj>(handle.get(),"gameName_",ba::str(lobby.match.c_str()));
     ba::set<Obj>(connection.get(),"gameHandle_",handle.get());
@@ -349,6 +387,10 @@ static void begin(Obj front) {
     ba_bootstrap::beginJoined(front,encoded.get(),identity.get(),true);
     ba::log("Community native custom match joined: lobby=%s match=%s epoch=%u seat=%d session=%u BA_RESURRECTION_COMMUNITY_MATCH_V1",
         activeLobby.c_str(),activeMatch.c_str(),activeEpoch,slot,ba_dedicated_session::startedSessions);
+}
+static void normalizeJoin(Obj action) {
+    wire::require(!activeMatch.empty() && acceptedDeck,"custom JoinArmy has no owned frozen intent");
+    ba_cosmetics::applyFrozenJoin(action,acceptedDeck->get(),acceptedAppearance);
 }
 static void returned(Obj front,Obj server) {
     wire::require(!activeMatch.empty() && activeMatch==ba_lan::dedicatedMatchId && !awaitingReturn &&
@@ -485,6 +527,7 @@ static void smoke(Obj front) {
         ba_community_invites::verifyParty(front,2,host);
         if(host) {
             Root main(ba_community_roster::mainScreen());if(!main.get())return;
+            if(probeMatches==1 && ba::flag(L"-community-cosmetics-smoke"))ba_cosmetics::practiceRematchSmoke(front);
             probeStage=4;ba::native<void(*)(Obj,Obj)>(0x3cb1080)(main.get(),nullptr);
             wire::require(ba::get<Obj>(owner.get(),"_pendingLobbyUpdateRequest") && !operations.empty(),"native Start did not retain pending request");
             if(ba::flag(L"-community-match-duplicate-smoke")) {

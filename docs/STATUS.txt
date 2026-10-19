@@ -2,6 +2,21 @@ IMPLEMENTATION LEDGER
 Updated: 2026-10-19 UTC
 Active objective: implement SERVER_REPLACEMENT_PLAN.txt, Windows only.
 
+COMPLETE LOADOUT WIRE (2026-10-19 UTC, EXPERIMENTAL)
+Distinct commands65..68 now carry catalog-bound full17-slot selections alongside
+units;legacy packet shapes remain exact. Atomic server publication,capability,
+correlated ACKs,Custom Start/Ready and public assignment validation are implemented.
+Real TLS two-client Custom matches/rematch and public1v1 through1220 canonical
+frames/results/Continue pass. Unavailable-server native fallback also passes
+with original Play-intent units/cosmetics and moving bots. The corrected bot
+observer follows current native owner/model/army references. A manual follow-up
+found remote join overwrites post-Play menu unit edits;the fix passes a second
+native public run with stronger units+cosmetics post-return assertions. Final
+helper Custom/public/dormant regressions pass. Full source suite:428 pass,14 skips;
+nine C++ component programs/helper build pass. See loadout-protocol.txt
+for retained evidence and limits. Full modes/races,visual remote acceptance,
+ordinary cosmetic enablement and final release gates remain open.
+
 HUMAN TRY DECK COSMETICS (2026-10-19 UTC, EXPERIMENTAL)
 The local adapter now freezes the effective17-slot human selection at intent,
 attaches ordered service0 keys to a fresh human deck,and applies matching roles

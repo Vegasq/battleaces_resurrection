@@ -1,5 +1,6 @@
 // The actual session decoder/request tracker with an authored clock/wire sink.
 #include "community_wire.hpp"
+#include "loadout_publication.hpp"
 #include <cassert>
 #include <deque>
 #include <iostream>
@@ -7,6 +8,7 @@ using ULONGLONG=unsigned long long;
 static ULONGLONG now=100;
 static ULONGLONG GetTickCount64(){return now;}
 namespace ba_public {static void controlReset() {}}
+namespace ba_client {static void controlReset() {}}
 namespace ba_lan {
 static ba_community_wire::Packet last{};
 static std::string currentProfile="me";
@@ -52,5 +54,13 @@ int main() {
     c::receive(WelcomeKind,greeting().bytes);
     for(unsigned i=1;i<256;++i)c::receive(DirectoryKind,listing().bytes);
     rejects([]{c::receive(DirectoryKind,listing().bytes);});c::reset();
+    ba_loadout_publication::State publication;
+    publication.submit(3,SetDeck);publication.submit(5,SetLoadout);
+    assert(publication.acknowledge(3,SetDeck,true) && !publication.accepted && publication.pending);
+    rejects([&]{publication.acknowledge(5,SetDeck,true);});assert(publication.pending);
+    assert(publication.acknowledge(5,SetLoadout,true) && publication.accepted && !publication.pending);
+    assert(!publication.acknowledge(6,SetDeck,true)); // A Custom operation owns a different ACK.
+    publication.submit(7,SetLoadout);assert(publication.acknowledge(7,SetLoadout,false) && !publication.accepted);
+    publication.reset();assert(!publication.acknowledge(5,SetLoadout,true));publication.submit(1,SetLoadout);
     std::cout << "community presence, deferred ACK correlation, revision, timeout and queue bounds passed\n";
 }

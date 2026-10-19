@@ -41,14 +41,14 @@ static void validateHumanDeck(Obj deck,const FrozenLoadout& frozen) {
     for(size_t i=0;i<wanted.size();++i)
         require(ba_lan_bootstrap::uintAt(keys.get(),static_cast<int>(i))==wanted[i],"human cosmetic native order mismatch");
 }
-static FrozenLoadout freezeHuman(Obj front,Obj freshDeck) {
+static bool readyForLoadout(Obj front) {return persistenceReady && ownsFront(front);}
+static FrozenLoadout currentSelection(Obj front) {
     FrozenLoadout result;
     // Ordinary launch and a failed experimental setup retain existing gameplay.
     if(!unlockEnabled() || unlockFailed)return result;
-    require(ownsFront(front) && persistenceReady,"human cosmetic freeze owner unavailable");
-    require(ba_dedicated_session::inMenu() && ba_dedicated_session::worldIdle(ba::read<Obj>(front,0xd8)),"human cosmetic freeze requires idle menu");
-    Root deck(freshDeck),entries(ba::get<Obj>(deck.get(),"entitlements_"));
-    require(entries.get() && ba_local::count(entries.get())==0,"human cosmetic destination is not fresh");
+    require(unlockActive() && persistenceReady,"human cosmetic snapshot owner unavailable");
+    if(!front)front=ownedFront->get();
+    require(ownsFront(front) && ba_dedicated_session::worldIdle(ba::read<Obj>(front,0xd8)),"human cosmetic snapshot requires owned idle world");
     result.slots=normalize(rawSnapshot().first);result.catalog=catalogHash;
     require(ba_cosmetics_state::digest(result.catalog),"human cosmetic catalog digest missing");
     Root config(ba::get<Obj>(ba::owner,"_clientGlobalConfig"));
@@ -59,10 +59,29 @@ static FrozenLoadout freezeHuman(Obj front,Obj freshDeck) {
         require(found!=result.slots.end() && found->second,"human cosmetic role missing");return found->second;
     };
     result.portrait=role("PortraitCosmeticSlot");result.banner=role("BannerCosmeticSlot");
+    result.active=true;return result;
+}
+static ba_community_wire::Loadout wireLoadout(Obj deck,const FrozenLoadout& frozen) {
+    ba_community_wire::Loadout value;Root units(ba::get<Obj>(deck,"units_"));
+    require(ba_local::count(units.get())==8,"complete loadout requires eight units");
+    for(int i=0;i<8;++i)value.deck[i]=ba_lan_bootstrap::uintAt(units.get(),i);
+    value.full=frozen.active;
+    if(value.full) {
+        require(ba_cosmetics_state::digest(frozen.catalog) && frozen.slots.size()==17,"complete cosmetic snapshot unavailable");
+        auto nibble=[](char c){return c<='9'?c-'0':c-'a'+10;};
+        for(size_t i=0;i<32;++i)value.cosmetics.catalog[i]=static_cast<unsigned char>((nibble(frozen.catalog[2*i])<<4)|nibble(frozen.catalog[2*i+1]));
+        std::copy(frozen.slots.begin(),frozen.slots.end(),value.cosmetics.slots.begin());value.cosmetics.validate();
+    }
+    return value;
+}
+static FrozenLoadout freezeHuman(Obj front,Obj freshDeck) {
+    auto result=currentSelection(front);if(!result.active)return result;
+    Root deck(freshDeck),entries(ba::get<Obj>(deck.get(),"entitlements_"));
+    require(entries.get() && ba_local::count(entries.get())==0,"human cosmetic destination is not fresh");
     Root entitlement(ba::make("CommonPb","Entitlement"));ba::set<uint32_t>(entitlement.get(),"inventoryServiceId_",0);
     Root keys(ba::get<Obj>(entitlement.get(),"cosmeticAssetKeys_"));
     for(uint32_t item:orderedItems(result))ba_dedicated_deck::addUint(keys.get(),item);
-    ba_local::addItem(entries.get(),entitlement.get());result.active=true;validateHumanDeck(deck.get(),result);
+    ba_local::addItem(entries.get(),entitlement.get());validateHumanDeck(deck.get(),result);
     ba::log("Human cosmetic intent frozen: slots=%zu items=%zu portrait=%u banner=%u catalog=%s synchronous=1",
         result.slots.size(),orderedItems(result).size(),result.portrait,result.banner,result.catalog.c_str());
     return result;
@@ -74,10 +93,15 @@ static void applyHumanRoles(Obj message,const FrozenLoadout& frozen) {
     if(ba::flag(L"-human-cosmetics-smoke"))
         ba::log("HUMAN COSMETICS frozen message: %s",ba_catalog::utf8(ba::call(message,"ToString")).c_str());
 }
-static void practiceHumanProof(Obj server,const FrozenLoadout& frozen) {
+static void applyFrozenJoin(Obj action,Obj deck,const FrozenLoadout& frozen) {
+    Root join(ba::call(action,"get_JoinArmy"));if(!join.get())return;
+    validateHumanDeck(deck,frozen);ba::set<Obj>(join.get(),"deck_",deck);applyHumanRoles(join.get(),frozen);
+    ba::log("Human frozen remote JoinArmy applied: full=%d portrait=%u banner=%u",frozen.active?1:0,frozen.portrait,frozen.banner);
+}
+static void simulationProof(Obj server,const FrozenLoadout& frozen,uint32_t army) {
     require(frozen.active && ownsFront(ownedFront->get()),"human cosmetic proof requires active scoped loadout");
     Root sim(ba::read<Obj>(server,0x140)),player(ba::get<Obj>(sim.get(),"_localPlayer"));
-    require(player.get() && ba::get<uint32_t>(player.get(),"ArmyID")==0,"human cosmetic proof local army mismatch");
+    require(player.get() && ba::get<uint32_t>(player.get(),"ArmyID")==army,"human cosmetic proof local army mismatch");
     require(ba::get<uint32_t>(player.get(),"Portrait")==frozen.portrait && ba::get<uint32_t>(player.get(),"Banner")==frozen.banner,"human SimPlayer cosmetic roles mismatch");
     Root deck(ba::get<Obj>(player.get(),"Deck")),keys(ba::get<Obj>(deck.get(),"CosmeticItemKeys"));const auto wanted=orderedItems(frozen);
     require(keys.get() && ba_catalog::length(keys.get())==wanted.size(),"human SimDeck cosmetic count mismatch");
@@ -85,7 +109,34 @@ static void practiceHumanProof(Obj server,const FrozenLoadout& frozen) {
     Root cosmetics(ba::get<Obj>(player.get(),"Cosmetics"));const auto flat=saved(cosmetics.get());Pairs decoded;
     for(size_t i=0;i<flat.size();i+=2)decoded.emplace_back(flat[i],flat[i+1]);
     require(normalize(decoded)==frozen.slots,"human SimPlayer complete cosmetic map mismatch");
+}
+static void simulationUnits(Obj server,Obj expected) {
+    Root simulation(ba::read<Obj>(server,0x140)),player(ba::get<Obj>(simulation.get(),"_localPlayer"));
+    Root deck(ba::get<Obj>(player.get(),"Deck")),units(ba::get<Obj>(deck.get(),"UnitIDs")),wanted(ba::get<Obj>(expected,"units_"));
+    require(ba_catalog::length(units.get())==8 && ba_local::count(wanted.get())==8,"frozen native simulation unit count mismatch");
+    for(int i=0;i<8;++i)require(ba::read<uint32_t>(units.get(),0x20+4*i)==ba_lan_bootstrap::uintAt(wanted.get(),i),"native simulation differs from frozen human units");
+}
+static void practiceHumanProof(Obj server,const FrozenLoadout& frozen,Obj deck) {
+    simulationProof(server,frozen,0);
+    simulationUnits(server,deck);
     ba::log("HUMAN COSMETICS SimPlayer passed: portrait=%u banner=%u army=0 frozenSlots=17 orderedDeck=1 completeMap=1",frozen.portrait,frozen.banner);
+}
+static void remoteProof(Obj front) {
+    if(!ba::flag(L"-community-cosmetics-smoke") || !ba_client::remoteWorld() || !ba_lan::running ||
+       !ba_lan::worldReady || ba_lan::nextFrame<2 || !ba_dedicated::loadingInGame())return;
+    static std::string previous;
+    const FrozenLoadout* selected=nullptr;
+    Obj deck=nullptr;
+    if(ba_public::current && ba_public::current->joining){selected=&ba_public::current->appearance;deck=ba_public::current->deckSnapshot.get();}
+    else if(!ba_community_match::activeMatch.empty() && ba_community_match::acceptedDeck){selected=&ba_community_match::acceptedAppearance;deck=ba_community_match::acceptedDeck->get();}
+    require(selected && selected->active && !ba_lan::dedicatedMatchId.empty(),"remote cosmetic proof ownership missing");
+    if(previous==ba_lan::dedicatedMatchId)return;
+    const auto army=static_cast<uint32_t>(ba::lanSlot());require(army<4,"remote cosmetic proof seat invalid");
+    simulationProof(ba::read<Obj>(front,0xd8),*selected,army);previous=ba_lan::dedicatedMatchId;
+    simulationUnits(ba::read<Obj>(front,0xd8),deck);
+    ba::log("REMOTE COSMETICS SimPlayer passed: match=%s army=%u portrait=%u banner=%u slots=17 orderedDeck=1 completeMap=1",
+        previous.c_str(),army,selected->portrait,selected->banner);
+    ba::log("REMOTE COSMETICS frozen snapshot: %s",ba_cosmetics_state::encode({profileKey,selected->catalog,selected->slots}).c_str());
 }
 static void practiceRematchSmoke(Obj front) {
     require(ba::flag(L"-human-cosmetics-smoke") && ownsFront(front) && persistenceReady && profileKey.rfind("cosmeticstest_",0)==0,

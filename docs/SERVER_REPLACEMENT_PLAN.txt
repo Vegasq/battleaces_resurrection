@@ -9,12 +9,15 @@ Current cosmetic integration order (2026-10-19)
   and portrait/banner through config,JoinArmy and decoded native simulation.
   Native Try Deck/results/Continue and changed rematch choices now pass a real
   two-match offline probe with four visually inspected game/result captures.
-  Public local fallback qualification remains open,including transferring the
-  original queue-intent loadout after waiting. In-game profile identification
+  Public unavailable-server local fallback now passes with the original frozen
+  queue-intent units/cosmetics despite later edits,and with moving native bots.
+  Other fallback modes/transitions remain open. In-game profile identification
   uses native owner/model references;SteamId is unpopulated in those models.
-- Publish complete deck+cosmetics atomically from the client with a correlated
-  ACK. Bind public assignments and Custom readiness to the same full snapshot;
-  reject stale/mismatched state. Backend storage/freeze is already implemented.
+- Complete deck+cosmetics publication/ACK and full assignment/readiness binding
+  are implemented in distinct protocol kinds65..68. Native TLS Custom rematch
+  and public1v1 pass. Newer menu unit choices now survive remote return in a
+  strengthened native public test;extend to all modes,partial groups and race/fault
+  cases. See loadout-protocol.txt for exact qualified boundaries.
 - Complete graphical remote/team/rematch acceptance,main-menu bindings,real drag,
   effects/audio,shutdown flush/native Quit,protected deployment and ordinary
   release packaging. Prior server-only/native-short-frame passes do not close

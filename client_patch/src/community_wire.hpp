@@ -7,12 +7,36 @@
 #include <string>
 #include <variant>
 #include <vector>
+#include <utility>
 
 namespace ba_community_wire {
 using Bytes=std::vector<unsigned char>;
 using Deck=std::array<uint32_t,8>;
 enum Kind : unsigned char { Hello=40,WelcomeKind,DirectoryKind,Create,LobbyKind,Invite,
     Reply,Cancel,Start,Ready,Leave,SetDeck,Return,AckKind,InvitationKind,Refresh,AbortedKind,Practice };
+constexpr unsigned char SetLoadout=65,EnterLoadout=66,MatchLoadout=67,LobbyLoadout=68;
+constexpr unsigned loadoutVersion=1;
+struct Selection {
+    std::array<unsigned char,32> catalog{};
+    std::array<std::pair<uint32_t,uint32_t>,17> slots{};
+    void validate()const {
+        std::vector<uint32_t> ids,items;
+        for(const auto& pair:slots) {
+            requireValid(pair.first && std::find(ids.begin(),ids.end(),pair.first)==ids.end(),"duplicate/zero full loadout slot");
+            requireValid(!pair.second || std::find(items.begin(),items.end(),pair.second)==items.end(),"duplicate full loadout item");
+            ids.push_back(pair.first);if(pair.second)items.push_back(pair.second);
+        }
+    }
+    bool operator==(const Selection& other)const{return catalog==other.catalog && slots==other.slots;}
+    bool operator!=(const Selection& other)const{return !(*this==other);}
+private:
+    static void requireValid(bool value,const char* why){if(!value)throw std::runtime_error(why);}
+};
+struct Loadout {
+    Deck deck{};bool full=false;Selection cosmetics;
+    bool operator==(const Loadout& other)const{return deck==other.deck && full==other.full && (!full || cosmetics==other.cosmetics);}
+    bool operator!=(const Loadout& other)const{return !(*this==other);}
+};
 enum Phase : unsigned char { None,Open,Starting,Loading,Running,Results };
 constexpr unsigned version=1,gameVersion=3,maxPlayers=136;
 inline void require(bool condition,const char* message) {
@@ -21,7 +45,7 @@ inline void require(bool condition,const char* message) {
 inline bool command(unsigned char kind) {
     // The separately versioned public queue (58..61) uses this shared ACK.
     return kind==Create || (kind>=Invite && kind<=Return) || kind==Refresh || kind==Practice ||
-        (kind>=58 && kind<=61);
+        (kind>=58 && kind<=61) || kind==SetLoadout || kind==EnterLoadout;
 }
 inline void key(const std::string& text,bool empty=false) {
     require((empty || !text.empty()) && text.size()<=48,"invalid community key size");
@@ -72,6 +96,10 @@ struct Reader {
     }
     std::string id(bool empty=false){auto value=text(48);key(value,empty);return value;}
     Deck deck(){Deck value{};for(auto& item:value)item=u32();return value;}
+    Selection selection() {
+        Selection value;for(auto& byte:value.catalog)byte=u8();
+        for(auto& pair:value.slots){pair.first=u32();pair.second=u32();}value.validate();return value;
+    }
     void end(){require(offset==bytes.size(),"extra community fields");}
 };
 struct Writer {
@@ -80,14 +108,19 @@ struct Writer {
     void text(const std::string& value){require(value.size()<=128,"community string too long");utf8(value);number(value.size(),2);bytes.insert(bytes.end(),value.begin(),value.end());}
     void id(const std::string& value){key(value);text(value);}
     void deck(const Deck& value){for(auto item:value)number(item,4);}
+    void selection(const Selection& value) {
+        value.validate();bytes.insert(bytes.end(),value.catalog.begin(),value.catalog.end());
+        for(const auto& pair:value.slots){number(pair.first,4);number(pair.second,4);}
+    }
 };
 struct Welcome {std::string profile;Deck deck;};
 struct Player {std::string profile,name;unsigned char status;bool invitable;};
 struct Directory {uint64_t revision;std::vector<Player> players;};
-struct Member {std::string profile;Deck deck;bool ready,returned;};
+struct Member {std::string profile;Deck deck;bool ready,returned;bool full=false;Selection cosmetics;};
 struct Lobby {
     uint64_t revision=0;unsigned char phase=None;uint32_t epoch=0;
     std::string id,host,match,reason;std::vector<Member> members;
+    bool full=false;
 };
 struct Ack {uint32_t request;unsigned char kind;bool success;std::string reason,object;};
 struct Invitation {unsigned char status;uint32_t milliseconds;std::string id,lobby,sender,target;};
@@ -112,14 +145,17 @@ inline Event decode(unsigned char kind,const Bytes& bytes) {
         }
         result=std::move(value);break;
     }
-    case LobbyKind: {
-        Lobby value;value.revision=r.u64();value.phase=r.u8();value.epoch=r.u32();
+    case LobbyKind: case LobbyLoadout: {
+        Lobby value;value.full=kind==LobbyLoadout;
+        if(value.full)require(r.u16()==loadoutVersion,"unsupported full lobby version");
+        value.revision=r.u64();value.phase=r.u8();value.epoch=r.u32();
         require(value.phase<=Results,"invalid community lobby phase");
         value.id=r.id(true);value.host=r.id(true);value.match=r.id(true);value.reason=r.text(1024);
         const auto count=r.u8();require(count<=2,"community lobby member capacity");
         bool foundHost=false;
         for(unsigned i=0;i<count;++i) {
-            Member member;member.profile=r.id();member.deck=r.deck();member.ready=r.flag();member.returned=r.flag();
+            Member member;member.profile=r.id();member.deck=r.deck();member.full=value.full;
+            if(member.full)member.cosmetics=r.selection();member.ready=r.flag();member.returned=r.flag();
             for(const auto& previous:value.members)require(previous.profile!=member.profile,"duplicate community member");
             foundHost|=member.profile==value.host;value.members.push_back(std::move(member));
         }
@@ -153,6 +189,10 @@ inline Packet start(uint32_t id,const Lobby& lobby){auto w=request(id);w.id(lobb
 inline Packet ready(uint32_t id,const Lobby& lobby,bool value){auto w=request(id);w.id(lobby.id);w.number(lobby.epoch,4);w.number(value,1);return {Ready,std::move(w.bytes)};}
 inline Packet leave(uint32_t id,const std::string& lobby){auto w=request(id);w.id(lobby);return {Leave,std::move(w.bytes)};}
 inline Packet setDeck(uint32_t id,const Deck& deck){auto w=request(id);w.deck(deck);return {SetDeck,std::move(w.bytes)};}
+inline Packet setLoadout(uint32_t id,const Loadout& value) {
+    require(value.full,"complete loadout required");auto w=request(id);w.number(loadoutVersion,2);w.deck(value.deck);w.selection(value.cosmetics);
+    return {SetLoadout,std::move(w.bytes)};
+}
 inline Packet returned(uint32_t id,const std::string& match){auto w=request(id);w.id(match);return {Return,std::move(w.bytes)};}
 inline Packet refresh(uint32_t id){auto w=request(id);return {Refresh,std::move(w.bytes)};}
 inline Packet practice(uint32_t id,bool active){auto w=request(id);w.number(active,1);return {Practice,std::move(w.bytes)};}

@@ -15,6 +15,7 @@ import json
 import os
 from pathlib import Path
 import re
+import secrets
 import shutil
 import socket
 import subprocess
@@ -29,6 +30,8 @@ from server.bot_catalog import BotCatalog
 from server.dedicated_server import Audit, DedicatedServer
 from server.game_data import GameTemplate
 from server.profiles import ProfileStore
+from server.cosmetics import CosmeticCatalog
+from server import loadout_protocol
 from server.worker_ai import AISetup
 from server.worker_client import SimulationWorker, _WindowsJob
 from tests.test_admission import Store
@@ -62,12 +65,28 @@ async def run(args):
     templates={mode: GameTemplate.load(assets/name, catalog_path=assets/'unit-catalog.json', descriptors_path=assets/'descriptors')
                for mode,name in ((1,'map-1v1.pb.gz'),(2,'map-2v2.pb.gz'),(5,'map-2vai.pb.gz'))}
     catalog=BotCatalog(assets, template=templates[1], rules=RuleBook(assets))
+    cosmetic_book=CosmeticCatalog(assets) if args.cosmetics_selection else None
+    cosmetic_seed=None;cosmetic_profile=None;queue_selections=[];frozen_matches=[]
+    if cosmetic_book:
+        require(game.is_relative_to(ROOT/'local'),'cosmetic probe requires a disposable copy')
+        seed=json.loads(args.cosmetics_selection.read_bytes());seed=seed.get('state',seed)
+        require(seed['catalog_sha256']==cosmetic_book.sha256,'native seed/catalog mismatch')
+        cosmetic_seed=cosmetic_book.validate_selection(seed['slots'])
+        cosmetic_profile='cosmeticstest_'+secrets.token_hex(6)+'_public'
+        folder=game/'.battleaces-resurrection/profiles';folder.mkdir(parents=True,exist_ok=True)
+        value=dict(schema=1,build=37822,profile=cosmetic_profile,catalog_sha256=cosmetic_seed.catalog_sha256,slots=cosmetic_seed.slots)
+        with (folder/(cosmetic_profile+'.cosmetics.json')).open('xb') as stream:
+            stream.write((json.dumps(value,separators=(',',':'))+'\n').encode('ascii'))
     def observe(event, **fields):
         events.append(dict(event=event, observed_at=time.monotonic(), **fields));audit(event, **fields)
+        if event=='match_created' and cosmetic_book:
+            match=server.rooms[fields['room']].match
+            frozen_matches.append(dict(match=fields['match'],cosmetics={slot:dict(catalog_sha256=value.catalog_sha256,slots=value.slots)
+                                   for slot,value in match.cosmetics_by_slot.items()}))
     async def factory(data,bots):
         worker=await SimulationWorker.create(data,assets/'Simulation.dll',working_directory=output,ai=AISetup(assets,bots))
         workers.append(worker);return worker
-    server=DedicatedServer(templates[1],ProfileStore(output/'profiles',templates[1]),templates=templates,bot_catalog=catalog,
+    server=DedicatedServer(templates[1],ProfileStore(output/'profiles',templates[1],catalog=cosmetic_book),templates=templates,bot_catalog=catalog,
         ai_factory=factory,audit=observe,data_dir=output,audit_state=False,input_timeout=30,
         tls_context=tls.load_server_context(pki['cert'],pki['key']),admission=admission.AdmissionController(credentials))
     process=job=writer=parent=child=bridge_task=None
@@ -88,7 +107,7 @@ async def run(args):
             nonlocal delayed_enter,dropped_return
             if kind==c.ACK:
                 reader=c.Reader(payload);request=reader.number('I');command=reader.number('B')
-                if args.delay_enter_ack and not delayed_enter and command==q.ENTER:
+                if args.delay_enter_ack and not delayed_enter and command in (q.ENTER,loadout_protocol.ENTER_LOADOUT):
                     delayed_enter=True
                     def deliver():
                         observe('probe_delayed_enter_ack_delivered',request=request)
@@ -105,6 +124,9 @@ async def run(args):
         async def controlled_apply(session,kind,command,now):
             nonlocal dropped_ready
             result=await apply(session,kind,command,now)
+            if cosmetic_book and kind==loadout_protocol.ENTER_LOADOUT:
+                entry=server.community.public.entries[session.peer.profile_id]
+                queue_selections.append(dict(ticket=entry.ticket,deck=entry.deck,catalog_sha256=entry.cosmetics.catalog_sha256,slots=entry.cosmetics.slots))
             if args.drop_on_ready and not dropped_ready and kind==q.READY:
                 dropped_ready=True;observe('probe_drop_after_ready',ticket=command['ticket'])
                 session.peer.close('probe connection lost after READY commit')
@@ -117,6 +139,7 @@ async def run(args):
             if args.unavailable: raise bridge.RemoteUnavailable()
             return bridge.Remote('127.0.0.1',port,context,credentials.player,credentials.token)
         config=dict(game_directory=game,server_host='127.0.0.1',server_port=port,display_name='Public Config Player',room='community')
+        if cosmetic_book:config['local_profile']=cosmetic_profile
         options=argparse.Namespace(run_name='public-queue-probe',unified_experimental=True)
         parent,child=socket.socketpair(socket.AF_INET);parent.setblocking(False)
         reader,writer=await asyncio.open_connection(sock=parent)
@@ -131,6 +154,8 @@ async def run(args):
         if args.practice_overlap: command+=['-public-queue-smoke-practice-overlap']
         if args.mode==1:
             command+=['-dedicated-surrender-smoke','-dedicated-surrender-frame=1200']
+        if cosmetic_book:command+=['-local-cosmetics-experimental','-community-cosmetics-smoke','-human-cosmetics-smoke']
+        if args.edit_loadout_after_play:command+=['-public-loadout-edit-smoke']
         if args.unavailable:
             command+=['-practice-ai-smoke','-public-ai-smoke','-practice-ai-smoke-matches=1',f'-practice-ai-smoke-frames={args.local_frames}']
             if args.local_profile: command += [f'-public-ai-smoke-profile={args.local_profile}']
@@ -341,6 +366,52 @@ async def run(args):
             result=finished[0]['result']
             report.update(match=match,received_frames=len(rows),result=result,real_queue_seconds=offered['observed_at']-entered['observed_at'],
                           native_elapsed_seconds=seconds)
+        if cosmetic_book:
+            prefix='HUMAN COSMETICS frozen message: ' if args.unavailable else 'REMOTE COSMETICS frozen snapshot: '
+            snapshots=[json.loads(line.split(prefix,1)[1]) for line in log.splitlines() if prefix in line]
+            if args.unavailable:
+                require('HUMAN COSMETICS SimPlayer passed:' in log and len(snapshots)==2,'local full native map/unit proof missing')
+                human=next(army for army in armies if army.get('armyId',0)==0)
+                require(human['deck']==snapshots[0]['deck'] and snapshots[0]['deck']==snapshots[1]['deck'],'local config/join frozen deck mismatch')
+                expected_items=list(cosmetic_seed.keys)
+                require(human['deck']['entitlements']==[dict(cosmeticAssetKeys=expected_items)],'local fallback lost original cosmetic intent')
+            else:
+                observed_matches=re.findall(r'REMOTE COSMETICS SimPlayer passed: match=([0-9a-f]{32}) ',log)
+                require(len(observed_matches)==len(snapshots) and len(set(observed_matches))==len(observed_matches),
+                        'duplicate/missing correlated native full-map proof')
+                require(all(cosmetic_book.validate_selection(value['slots'])==cosmetic_seed for value in snapshots),
+                        'remote native appearance differs from Play intent')
+                require(all(cosmetic_book.validate_selection(value['slots'])==cosmetic_seed for value in queue_selections),
+                        'server entry lost original full intent')
+                require(all(cosmetic_book.validate_selection(value['slots'])==cosmetic_seed
+                            for match in frozen_matches for value in match['cosmetics'].values()),
+                        'server match did not freeze original human appearance')
+                require(set(observed_matches)<={match['match'] for match in frozen_matches},'native proof refers to an unowned match')
+                if report.get('match'):require(report['match'] in observed_matches,'completed remote match lacks native full map/unit proof')
+            if args.edit_loadout_after_play:
+                original=[json.loads(line.split('PUBLIC LOADOUT original frozen deck: ',1)[1]) for line in log.splitlines() if 'PUBLIC LOADOUT original frozen deck: ' in line]
+                require(len(original)==1 and 'PUBLIC LOADOUT edited after freeze: originalIntentRetained=1' in log,'post-Play native edit not exercised')
+                changes=[json.loads(line.split('HUMAN COSMETICS rematch equipped: ',1)[1]) for line in log.splitlines() if 'HUMAN COSMETICS rematch equipped: ' in line]
+                require(len(changes)==1,'post-Play cosmetic edit missing')
+                changed=cosmetic_book.validate_selection(changes[0]['slots']);require(changed!=cosmetic_seed,'post-Play cosmetic edit had no effect')
+                edited=[json.loads(line.split('PUBLIC LOADOUT edited menu deck: ',1)[1]) for line in log.splitlines() if 'PUBLIC LOADOUT edited menu deck: ' in line]
+                require(len(edited)==1 and edited[0]['units']!=original[0]['units'],'post-Play unit edit missing')
+                if args.unavailable:
+                    require(human['deck']==original[0],'local fallback replaced its original deck after waiting')
+                    original_joins=[json.loads(line.split('Practice original JoinArmy: ',1)[1]) for line in log.splitlines() if 'Practice original JoinArmy: ' in line]
+                    require(original_joins[0]['deck']['units']!=original[0]['units'],'native selected deck was not actually changed before fallback JoinArmy')
+                else:
+                    require(len(queue_selections)==len(frozen_matches)==1,'post-Play single-intent queue/match proof missing')
+                    require(list(queue_selections[0]['deck'])==original[0]['units'],'server queue accepted a later deck instead of Play intent')
+                    deadline=time.monotonic()+8
+                    while True:
+                        saved=server.profiles.load_state(credentials.player,[])
+                        if saved.cosmetics==changed and list(saved.deck)==edited[0]['units']:break
+                        require(time.monotonic()<deadline,'changed menu units and appearance were not republished after public return')
+                        await asyncio.sleep(.1)
+                    report['post_return_menu_loadout']=dict(deck=list(saved.deck),cosmetics=list(changed.slots))
+            report['full_loadouts']=dict(catalog=cosmetic_book.sha256,local_profile=cosmetic_profile,queue=queue_selections,
+                server_matches=frozen_matches,native_snapshots=snapshots,post_play_edit=args.edit_loadout_after_play)
         report.update(passed=True,remote_attempts=attempts,authentications=credentials.calls)
     except BaseException as error:
         report.update(passed=False,error=f'{type(error).__name__}: {error}',traceback=traceback.format_exc())
@@ -413,6 +484,8 @@ def main():
     parser.add_argument('--disconnect',choices=('assignment','loading','running'),
                         help='close first owned TLS peer at a native-observed stage; test cleanup and optional explicit retry')
     parser.add_argument('--practice-overlap',action='store_true')
+    parser.add_argument('--cosmetics-selection',type=Path,help='accepted native full-map proof; enables complete public protocol')
+    parser.add_argument('--edit-loadout-after-play',action='store_true',help='change native units/cosmetics after freeze to verify original intent survives')
     args=parser.parse_args()
     require(os.name=='nt' and args.output.resolve().is_relative_to(ROOT/'local') and 120<=args.timeout<=900,'bounded Windows/ignored probe required')
     require(1200<=args.local_frames<=7200 and (not args.local_profile or args.unavailable and args.mode==1),
@@ -420,6 +493,8 @@ def main():
     require(0<=args.delay_enter_ack<=8 and (not args.retry or args.cancel or args.drop_on_ready or args.disconnect),'bounded delay/retry point required')
     require(sum(map(bool,(args.unavailable,args.cancel,args.drop_on_ready,args.drop_return_ack,args.disconnect)))<=1,
             'choose one unavailable/cancel/disconnect scenario')
+    require(not args.edit_loadout_after_play or (args.cosmetics_selection and not any((args.cancel,args.retry,args.drop_on_ready,args.drop_return_ack,args.disconnect))),
+            'post-Play edit requires a full single-intent remote/unavailable probe')
     return asyncio.run(run(args))
 
 

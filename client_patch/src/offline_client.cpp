@@ -28,7 +28,7 @@ namespace ba_cosmetics { static void update(void*);static bool prepare(void*);st
 namespace ba_match_search {static void update(void*);static void joining(void*);}
 namespace ba_community_wire {struct Ack;struct Aborted;}
 namespace ba_public {
-static bool active();static bool deckLocked();static void start(void*,void*,int);static bool cancel(void*);
+static bool active();static bool deckLocked();static void start(void*,void*,int);static bool cancel(void*);static void normalizeJoin(void*);
 static void update(void*);static void smoke(void*);static void controlReset();static void connectionFailed(const char*);
 static bool receive(unsigned char,const std::vector<unsigned char>&);static bool ignoreMatchData();
 static bool acknowledge(void*,const ba_community_wire::Ack&);
@@ -42,7 +42,9 @@ static bool ensure(void*);static bool ready(void*);static void restoreIdentity(v
 }
 namespace ba_client {
 static void update(void*);static bool optionalFailure(const char*,const std::exception&);
-static void requestConnect();static bool deckReady();static bool deckPending();static void deckSubmitted(uint32_t);
+static void controlReset();
+static void queueLoadoutAccepted(const ba_community_wire::Loadout&);
+static void requestConnect();static bool deckReady();static bool deckPending();static void deckSubmitted(uint32_t,const ba_community_wire::Loadout&);
 static bool acknowledge(const ba_community_wire::Ack&);
 static void prepareLocal(void*);static uint64_t acquireLocal(void*);static void releaseLocal(void*,uint64_t);
 static void acquireRemote(void*,const std::string&);static void releaseRemote(void*,const std::string&);
@@ -71,6 +73,7 @@ static void reconcileParty(void*);static void anchorClock(void*);static void smo
 }
 namespace ba_community_popup {static void reset();static void update();}
 namespace ba_community_match {
+static void normalizeJoin(void*);
 static void reset();static void enqueue(void*,void*,void*);
 static bool acknowledge(void*,const ba_community_wire::Ack&);
 static void aborted(void*,const ba_community_wire::Aborted&);

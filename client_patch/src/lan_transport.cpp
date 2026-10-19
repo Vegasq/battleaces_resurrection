@@ -221,9 +221,9 @@ static void poll() {
         uint32_t length=u32(rx,consumed);if(length<1 || length>1024*1024+1)throw std::runtime_error("LAN message length invalid");
         if(rx.size()-consumed<length+4)break;
         unsigned char type=rx[consumed+4];Bytes payload(rx.begin()+consumed+5,rx.begin()+consumed+4+length);consumed+=4+length;
-        if(ba::community() && (type==62 || type==63))ba_public::receive(type,payload);
+        if(ba::community() && (type==62 || type==63 || type==67))ba_public::receive(type,payload);
         else if(ba::community() && ba_public::ignoreMatchData() && (type==12 || type==13 || type==14 || type==36 || type==64))continue;
-        else if(ba::community() && (type==41 || type==42 || type==44 || type==53 || type==54 || type==56))ba_community::receive(type,payload);
+        else if(ba::community() && (type==41 || type==42 || type==44 || type==53 || type==54 || type==56 || type==68))ba_community::receive(type,payload);
         else if(type==11){if(payload.size()!=1 || payload[0]!=ba::lanSlot())throw std::runtime_error("LAN slot mismatch");welcomed=true;ba::log("LAN welcome slot %d",payload[0]);}
         else if(type==31){
             if(!ba::dedicated() || welcomed)throw std::runtime_error("unexpected dedicated welcome");
@@ -269,6 +269,10 @@ static void normalizeAction(Obj action) {
             ba::set<uint32_t>(join.get(),"armyId_",ba::lanSlot());
             ba::log("LAN resolved JoinArmy auto-assignment 31 to fixed army%d",ba::lanSlot());
         } else if(army!=static_cast<uint32_t>(ba::lanSlot()))throw std::runtime_error("LAN JoinArmy must match fixed slot");
+        if(ba::community()) {
+            if(ba_public::active())ba_public::normalizeJoin(action);
+            else ba_community_match::normalizeJoin(action);
+        }
     }
 }
 static void submit(Obj server,int frame) {

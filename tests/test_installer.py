@@ -27,7 +27,7 @@ class InstallerTests(unittest.TestCase):
             (self.root / name).parent.mkdir(parents=True, exist_ok=True)
             (self.root / name).write_bytes(content)
         self.helper = self.root / 'synthetic-helper.dll'
-        self.helper.write_bytes(b'MZ authored helper test fixture BA_RESURRECTION_RECOVERY_V1')
+        self.helper.write_bytes(b'MZ authored helper test fixture BA_RESURRECTION_RECOVERY_V1 OfflineMatchResultContinue\0')
         self.stack.enter_context(patch.object(installer, 'ORIGINAL_SHA256', installer.digest(self.originals['GameAssembly.dll'])))
         self.stack.enter_context(patch.object(installer.telemetry, 'COMPONENTS', {
             name: Component(installer.digest(content), ()) for name, content in self.originals.items()}))
@@ -47,7 +47,7 @@ class InstallerTests(unittest.TestCase):
         for name, content in self.patched.items():
             self.assertEqual((self.root / name).read_bytes(), content)
             self.assertEqual((self.root / '.battleaces-resurrection/original' / name).read_bytes(), self.originals[name])
-        self.helper.write_bytes(b'MZ authored helper update BA_RESURRECTION_RECOVERY_V1')
+        self.helper.write_bytes(b'MZ authored helper update BA_RESURRECTION_RECOVERY_V1 OfflineMatchResultContinue\0')
         installer.install(self.root, helper=self.helper)
         self.assertEqual((self.root / 'BattleAcesOffline.dll').read_bytes(), self.helper.read_bytes())
         restored = installer.install(self.root, restore=True)
@@ -67,6 +67,14 @@ class InstallerTests(unittest.TestCase):
     def test_helper_without_new_recovery_abi_rejected_before_component_writes(self):
         self.helper.write_bytes(b'MZ older authored helper fixture')
         with self.assertRaisesRegex(ValueError, 'recovery ABI1'):
+            installer.install(self.root, helper=self.helper)
+        for name, original in self.originals.items():
+            self.assertEqual((self.root / name).read_bytes(), original)
+        self.assertFalse((self.root / '.battleaces-resurrection').exists())
+
+    def test_helper_without_result_continue_export_rejected_before_writes(self):
+        self.helper.write_bytes(b'MZ authored older helper BA_RESURRECTION_RECOVERY_V1')
+        with self.assertRaisesRegex(ValueError, 'public result Continue hook'):
             installer.install(self.root, helper=self.helper)
         for name, original in self.originals.items():
             self.assertEqual((self.root / name).read_bytes(), original)

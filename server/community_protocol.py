@@ -7,12 +7,13 @@ from __future__ import annotations
 
 import struct
 from . import protocol as p
+from . import loadout_protocol as loadout
 
 VERSION = 1
 HELLO, WELCOME, DIRECTORY, CREATE, LOBBY = range(40, 45)
 INVITE, REPLY, CANCEL, START, READY, LEAVE, SET_DECK, RETURN, ACK, INVITATION, REFRESH, ABORTED = range(45, 57)
 PRACTICE = 57
-COMMANDS = {CREATE, INVITE, REPLY, CANCEL, START, READY, LEAVE, SET_DECK, RETURN, REFRESH, PRACTICE}
+COMMANDS = {CREATE, INVITE, REPLY, CANCEL, START, READY, LEAVE, SET_DECK, RETURN, REFRESH, PRACTICE, loadout.SET_LOADOUT}
 MAX_COMMAND = 256
 MAX_PLAYERS = 136  # Preserve the community v1 directory bound, including team queues.
 NONE, OPEN, STARTING, LOADING, RUNNING, RESULTS = range(6)
@@ -104,6 +105,9 @@ def decode_command(kind, payload):
             result['epoch'], result['ready'] = r.number('I'), r.flag()
     elif kind == SET_DECK:
         result['deck'] = r.deck()
+    elif kind == loadout.SET_LOADOUT:
+        p.require(r.number('H') == loadout.VERSION, 'unsupported complete loadout version')
+        result['deck'], result['cosmetics'] = r.deck(), loadout.decode(r)
     elif kind == RETURN:
         result['match'] = r.key()
     elif kind == PRACTICE:
@@ -123,13 +127,15 @@ def directory(revision, rows):
         for profile, name, status, invitable in rows)
 
 
-def lobby_state(lobby, sessions, reason=''):
+def lobby_state(lobby, sessions, reason='', *, complete=False):
+    prefix = struct.pack('<H', loadout.VERSION) if complete else b''
     if lobby is None:
-        return struct.pack('<QBI', 0, NONE, 0) + b'\0\0' * 3 + p.encode_string(reason) + b'\0'
+        return prefix + struct.pack('<QBI', 0, NONE, 0) + b'\0\0' * 3 + p.encode_string(reason) + b'\0'
     header = struct.pack('<QBI', lobby.revision, lobby.phase, lobby.epoch)
     header += b''.join(p.encode_string(value) for value in (lobby.id, lobby.host, lobby.match_id or '', reason))
-    return header + bytes((len(lobby.members),)) + b''.join(
+    return prefix + header + bytes((len(lobby.members),)) + b''.join(
         p.encode_string(profile) + p.deck_bytes(sessions[profile].deck) +
+        (loadout.encode(sessions[profile].cosmetics) if complete else b'') +
         bytes((profile in lobby.ready, profile in lobby.returned)) for profile in lobby.members)
 
 

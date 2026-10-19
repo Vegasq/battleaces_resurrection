@@ -140,6 +140,7 @@ class Room:
         self.server, self.name = server, name
         self.community_lobby, self.public_match = community_lobby, public_match
         self.queue_tickets = {}
+        self.full_loadout_seats = set()
         self.bots = MappingProxyType({bot.slot: bot for bot in bots})
         self.input_window = server.input_window  # Frozen for every participant in this room.
         self.peers = {}
@@ -180,7 +181,7 @@ class Room:
                        + p.deck_bytes(deck0) + p.deck_bytes(deck1))
         self.server.community.publish_presence()
 
-    def join(self, peer, slot, profile_id, name, *, deck=None, ticket=None, cosmetics=None):
+    def join(self, peer, slot, profile_id, name, *, deck=None, ticket=None, cosmetics=None, full_loadout=False):
         if slot == p.AUTO_SEAT:
             slot = next((seat for seat in sorted(self.slots) if seat not in self.peers and seat not in self.bots), None)
         p.require(slot in self.slots, "room full")
@@ -208,10 +209,13 @@ class Room:
             frozen_cosmetics = cosmetic_state(self.server.cosmetic_catalog, cosmetics)
         else:
             p.require(cosmetics is None, 'match cosmetics require a verified server catalog')
+        p.require(type(full_loadout) is bool and (not full_loadout or
+                  (self.public_match is not None and frozen_cosmetics is not None)), 'invalid full public assignment')
         peer.room, peer.slot, peer.profile_id, peer.name = self, slot, profile_id, name
         self.peers[slot] = peer
         self.decks[slot] = deck
         if self.public_match is not None: self.queue_tickets[slot] = ticket
+        if full_loadout: self.full_loadout_seats.add(slot)
         if frozen_cosmetics is not None: self.cosmetics[slot] = frozen_cosmetics
         if self.public_match is None:
             peer.send(p.WELCOME, p.welcome(slot, self.input_window, deck))
@@ -233,6 +237,7 @@ class Room:
         del self.peers[peer.slot]
         self.decks.pop(peer.slot, None)
         self.cosmetics.pop(peer.slot, None)
+        self.full_loadout_seats.discard(peer.slot)
         self.ready.discard(peer.slot)
         self.event("player_left", slot=peer.slot, reason=reason)
         if self.peers:
@@ -346,8 +351,12 @@ class Room:
             # later send fails. Keep that identity until explicit abort/RETURN.
             self.assignment_started = True
             for slot, peer in self.peers.items():
-                peer.send(public_wire.MATCH, public_wire.assignment(self.queue_tickets[slot], self.match_id, self.mode,
-                          slot, human_mask, self.input_window, self.decks[slot]))
+                from . import loadout_protocol as loadout
+                complete = slot in self.full_loadout_seats
+                peer.send(loadout.MATCH_LOADOUT if complete else public_wire.MATCH,
+                          public_wire.assignment(self.queue_tickets[slot], self.match_id, self.mode,
+                          slot, human_mask, self.input_window, self.decks[slot],
+                          cosmetics=self.cosmetics[slot] if complete else None))
         self.broadcast(p.BOOTSTRAP, self.match.gzip_game_data)
         self.event("match_created", seed=self.match.seed, decks=self.decks,
                    bootstrap_bytes=len(self.match.gzip_game_data),

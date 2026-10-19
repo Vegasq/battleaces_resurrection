@@ -26,6 +26,8 @@ from server.admission import AdmissionController
 from server.credentials import AuthenticationError
 from server import tls_transport as tls
 from server.assets import verify_assets
+from server.cosmetics import CosmeticCatalog
+from server import loadout_protocol
 from server.dedicated_server import Audit, DedicatedServer
 from server.game_data import GameTemplate
 from server.profiles import ProfileStore
@@ -64,6 +66,21 @@ async def run(args):
     (game / 'investigation/runtime').mkdir(parents=True, exist_ok=True)
     template = GameTemplate.load(assets / 'map-1v1.pb.gz', catalog_path=assets / 'unit-catalog.json',
                                  descriptors_path=assets / 'descriptors')
+    cosmetic_book = CosmeticCatalog(assets) if args.cosmetics_selection else None
+    cosmetic_seeds, cosmetic_profiles, frozen_matches = [], [], []
+    if cosmetic_book:
+        require(args.unified and game.is_relative_to(ROOT/'local'), 'full cosmetic proof requires a disposable unified client')
+        seed=json.loads(args.cosmetics_selection.read_bytes())
+        seed=seed.get('state', seed)
+        require(seed['catalog_sha256']==cosmetic_book.sha256, 'native seed/catalog mismatch')
+        cosmetic_seeds=[cosmetic_book.validate_selection(seed['slots']), cosmetic_book.normalize_local()]
+        folder=game/'.battleaces-resurrection/profiles';folder.mkdir(parents=True,exist_ok=True)
+        prefix='cosmeticstest_'+secrets.token_hex(6)
+        for index, selected in enumerate(cosmetic_seeds):
+            key=prefix+'_'+str(index);cosmetic_profiles.append(key)
+            value=dict(schema=1,build=37822,profile=key,catalog_sha256=selected.catalog_sha256,slots=selected.slots)
+            with (folder/(key+'.cosmetics.json')).open('xb') as stream:
+                stream.write((json.dumps(value,separators=(',',':'))+'\n').encode('ascii'))
     audit, events, processes, timers, workers, commands = Audit(output), [], [], [], [], []
     bridges, writers, jobs, authenticated = [], [], [], []
     test_players = [('p_' + secrets.token_hex(16), 'ba1_' + secrets.token_urlsafe(32)) for _ in range(2)]
@@ -91,6 +108,10 @@ async def run(args):
 
     def observe(event, **fields):
         events.append(dict(event=event, **fields)); audit(event, **fields)
+        if event=='match_created' and cosmetic_book:
+            match=server.rooms[fields['room']].match
+            frozen_matches.append(dict(match=fields['match'],cosmetics={slot:dict(catalog_sha256=value.catalog_sha256,slots=value.slots)
+                                   for slot,value in match.cosmetics_by_slot.items()}))
 
     async def factory(data):
         nonlocal injected
@@ -101,7 +122,7 @@ async def run(args):
         workers.append(worker)
         return worker
 
-    server = DedicatedServer(template, ProfileStore(output / 'profiles', template), audit=observe,
+    server = DedicatedServer(template, ProfileStore(output / 'profiles', template, catalog=cosmetic_book), audit=observe,
         sim_factory=factory, data_dir=output, lobby_timeout=300, **secure)
     original_send = server.community.send
     held = {}
@@ -131,7 +152,10 @@ async def run(args):
 
     async def apply(session, kind, command, now):
         nonlocal injected, return_abort_sent
-        commands.append(dict(profile=session.peer.profile_id, kind=kind, **command))
+        record=dict(command)
+        if 'cosmetics' in record:
+            value=record['cosmetics'];record['cosmetics']=dict(catalog_sha256=value.catalog_sha256,slots=value.slots)
+        commands.append(dict(profile=session.peer.profile_id, kind=kind, **record))
         if not injected and ((args.scenario == 'reject' and kind == wire.START) or
                              (args.scenario == 'timeout' and kind == wire.READY)):
             injected = True
@@ -165,6 +189,7 @@ async def run(args):
                 settings = output / f'client-{index}.json'
                 local = client.defaults(game)
                 local['display_name'] = ('Custom Host', 'Custom Guest')[index]
+                if cosmetic_book: local['local_profile']=cosmetic_profiles[index]
                 settings.write_text(json.dumps(local), encoding='utf-8')
                 config = client.prepare_settings(settings)
                 parent, child = socket.socketpair(socket.AF_INET)
@@ -182,7 +207,8 @@ async def run(args):
             if args.scenario == 'duplicates-deck':
                 command.extend(['-community-match-duplicate-smoke', '-community-match-deck-smoke'])
             if args.loading_ui: command.append('-match-loading-smoke')
-            startup = subprocess.STARTUPINFO(); startup.dwFlags |= subprocess.STARTF_USESHOWWINDOW; startup.wShowWindow = 0
+            if cosmetic_book: command.extend(['-local-cosmetics-experimental','-community-cosmetics-smoke','-human-cosmetics-smoke'])
+            startup = subprocess.STARTUPINFO(); startup.dwFlags |= subprocess.STARTF_USESHOWWINDOW; startup.wShowWindow = 4 if args.visible else 0
             if child is not None:
                 startup.lpAttributeList = {'handle_list': [child.fileno()]}
                 child.set_inheritable(True)
@@ -296,6 +322,29 @@ async def run(args):
                                    (args.scenario == 'reject' and index == 0)))
                 for index, (log, process) in enumerate(zip(logs, processes))]
         if args.unified: require(sorted(authenticated) == sorted(player for player, _ in test_players), 'expected two authenticated sessions')
+        if cosmetic_book:
+            require(len(frozen_matches)==2 and all(session.full_loadout for session in server.community.sessions.values()),
+                    'two full-loadout server snapshots/capabilities missing')
+            selected={}
+            for index,log in enumerate(logs):
+                snapshots=[json.loads(line.split('REMOTE COSMETICS frozen snapshot: ',1)[1]) for line in log.splitlines()
+                           if 'REMOTE COSMETICS frozen snapshot: ' in line]
+                require(len(snapshots)==2 and log.count('REMOTE COSMETICS SimPlayer passed:')==2,
+                        'native full-map readback missing for both matches')
+                parsed=[cosmetic_book.validate_selection(value['slots']) for value in snapshots]
+                require(parsed[0]==cosmetic_seeds[index], 'first native match differs from seeded complete profile')
+                require((parsed[1]!=parsed[0]) if index==0 else (parsed[1]==parsed[0]), 'rematch changed/stable profile isolation failed')
+                selected[index]=parsed
+                for ordinal,appearance in enumerate(parsed):
+                    require(frozen_matches[ordinal]['cosmetics'][index]['slots']==appearance.slots,
+                            'native decoded map differs from authoritative server frozen map')
+                stored=server.profiles.load_state(test_players[index][0], [])
+                require(stored.cosmetics==parsed[-1], 'server stored profile differs from final native match selection')
+            require(sum(command['kind']==loadout_protocol.SET_LOADOUT for command in commands)>=3,
+                    'complete initial publication/rematch publication missing')
+            report['full_loadouts']=dict(catalog=cosmetic_book.sha256,local_profiles=cosmetic_profiles,server_matches=frozen_matches,
+                native_selections={index:[dict(slots=value.slots,catalog_sha256=value.catalog_sha256) for value in values]
+                                   for index,values in selected.items()},native_full_map_each_match=True)
         report.update(passed=True, lobby=lobby.id, epochs=expected_epochs, completed_matches=completed, commands=commands,
             unified=args.unified, tls_authentications=len(authenticated),
             scenario=args.scenario,
@@ -346,6 +395,8 @@ def main():
     parser.add_argument('--timeout', type=int, default=180)
     parser.add_argument('--unified', action='store_true', help='qualify unified native ownership over real TLS with in-memory test invites')
     parser.add_argument('--loading-ui', action='store_true', help='verify native loading status and retain Unity screenshots')
+    parser.add_argument('--cosmetics-selection',type=Path,help='accepted native full-map proof; enable full protocol and a fresh cosmetic rematch edit')
+    parser.add_argument('--visible',action='store_true',help='show both diagnostic windows without taking focus')
     parser.add_argument('--scenario', choices=('normal', 'duplicates-deck', 'reject', 'timeout',
                                               'setup-abort', 'running-abort', 'loading-abort', 'stale-abort'), default='normal')
     args = parser.parse_args()

@@ -24,6 +24,10 @@ inline Packet enter(uint32_t id,uint64_t ticket,unsigned mode,uint32_t waitMs,co
     participants(mode);require(waitMs<=maxWaitMs,"public deadline exceeds limit");
     auto w=request(id,ticket);w.number(mode,1);w.number(waitMs,4);w.deck(deck);return {Enter,std::move(w.bytes)};
 }
+inline Packet enterLoadout(uint32_t id,uint64_t ticket,unsigned mode,uint32_t waitMs,const ba_community_wire::Loadout& value) {
+    require(value.full,"complete public intent required");auto packet=enter(id,ticket,mode,waitMs,value.deck);
+    Writer w;w.bytes=std::move(packet.payload);w.selection(value.cosmetics);return {ba_community_wire::EnterLoadout,std::move(w.bytes)};
+}
 inline Packet cancel(uint32_t id,uint64_t ticket) {
     auto w=request(id,ticket);return {Cancel,std::move(w.bytes)};
 }
@@ -49,10 +53,12 @@ inline State state(const Bytes& bytes) {
 struct Assignment {
     uint64_t ticket=0;unsigned char mode=0,count=0,slot=0,humanMask=0,inputWindow=0;
     std::string match;Deck deck{};
+    bool full=false;ba_community_wire::Selection cosmetics;
 };
-inline Assignment assignment(const Bytes& bytes) {
+inline Assignment assignment(const Bytes& bytes,bool complete=false) {
     Reader r(bytes);Assignment value;value.ticket=header(r);value.mode=r.u8();value.count=r.u8();
-    value.slot=r.u8();value.humanMask=r.u8();value.inputWindow=r.u8();value.match=r.id();value.deck=r.deck();r.end();
+    value.slot=r.u8();value.humanMask=r.u8();value.inputWindow=r.u8();value.match=r.id();value.deck=r.deck();value.full=complete;
+    if(complete)value.cosmetics=r.selection();r.end();
     require(value.count==participants(value.mode) && value.slot<value.count,"public assignment topology differs");
     const unsigned allowed=value.mode==5 ? 5 : ((1u<<value.count)-1);
     require((value.humanMask&(1u<<value.slot))!=0 && (value.humanMask&~allowed)==0,"invalid public human assignment");

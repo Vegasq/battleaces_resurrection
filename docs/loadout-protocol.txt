@@ -1,0 +1,118 @@
+COMPLETE HUMAN LOADOUT EXTENSION - VERSION1
+Updated:2026-10-19 UTC. Experimental;bounded native qualification below.
+
+The existing community1/public1 packets retain their exact old shapes. TLS and
+authenticated profile identity are unchanged. Complete selections use distinct
+message kinds,not trailing fields appended to an old message. Command payloads
+remain bounded to256 bytes;request IDs remain positive,increasing per connection.
+
+65 SET_LOADOUT: request:u32,version:u16=1,units:8*u32,selection:168 bytes.
+66 ENTER_LOADOUT: existing ENTER58 payload followed by selection:168 bytes;
+  the version in its existing public header remains1. Total219 bytes.
+67 MATCH_LOADOUT: existing MATCH63 payload followed by the same168-byte selection.
+68 LOBBY_LOADOUT: version:u16=1,existing LOBBY44 header;each member's selection is
+  inserted after its eight units and before ready/returned flags. Empty lobby
+  snapshots also retain this explicit version prefix. Maximum two Custom humans.
+
+Selection:32 raw catalog SHA256 bytes,then exactly17 [slot:u32,item:u32] pairs.
+All integers are little endian. Slot IDs are positive/distinct;nonzero item IDs
+are distinct. Zero is reserved for genuinely empty installed slots. Complete
+selections require exact native slot order and matching installed compatibility
+matrix/catalog before storage or match mutation. Unknown/wrong-slot items fail.
+No caller-supplied entitlement,portrait or banner fields are trusted;the server
+rebuilds these from the validated selection and installed role configuration.
+
+SET_LOADOUT atomically saves units and full selection before updating session
+state or advertising full-protocol capability. Invalid catalogs/items and failed
+file replacement retain prior file/session/capability state and return a negative
+ACK. Old SET_DECK51 preserves complete cosmetics and does not downgrade a full
+session. LOBBY68 is sent only to sessions that successfully published a complete
+selection or entered through66;other recipients retain LOBBY44.
+
+ENTER66 validates and freezes its own complete intent before waiting/proposals.
+The resulting Entry and Room retain the full-protocol assignment decision even
+if a later session/disk value changes. Each full participant receives MATCH67
+with that exact frozen selection;legacy entries receive MATCH63. Bot selections,
+frame64,READY60,CANCEL59,RETURN61 and shared ACK53 retain existing formats.
+
+The client freezes a fresh native human deck/17-slot selection at Play and Custom
+Start/Ready intent. Background publication and Custom operations correlate both
+request and command kind;an older ACK cannot accept a newer selection. Custom
+start handlers also receive their own publication ACK rather than having it
+consumed by a background handler. Member comparison includes catalog and all slots.
+Host edits before dispatch require a new Start;guest edits racing a start cancel
+Ready. Accepted joins use the owned frozen human deck rather than re-reading a
+later mutable picker/ProfileCache. Public assignment checks bind the same complete
+snapshot to ticket,connection generation,mode and proposal. Local fallback receives
+the original frozen intent too;it must not reread later selections after waiting.
+
+Current source checks:real socket publication/invalid catalog/category/disk-fault
+retention,full member snapshots,and frozen public assignment pass. C++ bounds,
+wrong-kind/stale ACK and altered cosmetic assignment cases pass in the component
+programs. Latest combined focused run:55 tests,54 pass,one optional skip.
+
+Retained native evidence (ignored local output;no shipped assets in Git):
+- local/loadout-custom-native01:79.222s,two TLS clients,two Custom matches with
+  normal results/Continue/rematch,full17-slot server/native agreement,host changes
+  portrait and units for rematch while guest selection remains stable. Workers
+  exit0 without force;clients reaped and covered sources unchanged.
+- local/loadout-public-native01:125.246s,public1v1,29.701s queue,1220 canonical
+  authoritative frames,normal results/Continue/RETURN. Intent uses the original
+  units and portrait87 despite deliberate post-Play edits. New menu portrait66
+  republishes after return. Manual follow-up found the old LAN join adapter had
+  overwritten the menu unit deck with the match deck;the first report did not
+  assert post-return unit preservation;do not treat this first report as passing
+  that requirement.
+- local/loadout-public-native02:125.265s,1220 canonical frames,worker exit0.
+  Keeping the application-owned menu selector intact fixes the overwrite;the
+  owned match JoinArmy still uses its original frozen snapshot. The strengthened
+  native probe passes original match units/map and post-return saved newer menu
+  units/map. Helper06 SHA256:
+  40e3eac3c9712650d08150f125e47c57ecf5c45796ff6de8befca7b6248902b8
+  Covered sources unchanged,client reaped;forced cleanup is not native Quit.
+  This qualifies same-process menu retention/server saving,not local unit-deck
+  persistence across process restarts or isolation between local profiles.
+  Verification SHA256:
+  bab27efd2a1408823e952b69ce60a8fe5fda230cfb3d05756430b8022f105d65
+- local/loadout-fallback-native01:211.068s,unavailable-server public1v1 falls
+  back to native local AI with the original complete Play intent. Post-Play
+  unit/cosmetic edits do not replace it. Bot movement and native/result identity
+  checks pass. No server workers;owned client reaped,sources unchanged.
+  This uses the corrected in-game owner/model/army observer,not empty SteamId
+  fields. Native result models still require the actual AI identity fields.
+  Verification SHA256:
+  27e9aee246367716e8a2b6e538cb940414abeded58185ce37812a063e429386d
+
+The full source suite first ran441 checks with six failures and14 skips. Five
+installer failures used synthetic helper bytes missing the now-required Continue
+export,and one host readiness fixture omitted verified-manifest files. Fixtures
+now model the current contract;the production guards remain unchanged. A new
+negative installer case verifies missing Continue export fails before writes.
+The focused24 installer/service cases pass. Full rerun:442 checks in103.471s,
+428 pass,14 optional/environment-specific skips. No production guard was relaxed.
+The final helper07 restores explicit diagnostic-only normal-build preparation
+before the early community return;this does not alter ordinary launcher behavior.
+All nine C++ components/helper build pass. Helper07 SHA256:
+b9132d9589ce9e37fc1683c5c58ac4deb04a405703a95e8c5412133174fd30ca
+
+Final helper regressions:
+- local/loadout-public-native03:124.947s,1220 canonical frames,normal native
+  build reaches the input queue at frame300,worker exits0,normal results/Continue
+  and complete newer menu units/cosmetics republish pass. Covers helper07 with
+  explicit build preparation retained. Sources unchanged,owned PID12604 reaped.
+  Verification SHA256:
+  3d619f288d0e2e7498818787ad4e57b68c187ae82bab0f31ef6a95c77c7d1fad
+- local/loadout-custom-native02:81.317s,two TLS clients,two Start/results/Continue
+  cycles,full native/server snapshots,changed host units/portrait on rematch,
+  unchanged guest selection,both workers exit0 without force. Sources unchanged,
+  clients reaped. Verification SHA256:
+  589c33bdc0cde466411f81e9aee79df54c600e41996446cb20484fbc74e9fcb8
+- local/loadout-dormant-native01:14.393s,ordinary no-config launcher passes with
+  experimental activation/automation absent. No server/CA/invite is required.
+  Sources unchanged,owned PID36984 reaped;not native Quit qualification.
+  Verification SHA256:
+  af1f0e9c3b3124173e1fea01a7eb0d137726b5c4e6e12492d71d0dbc10b0d41b
+
+These proofs do not qualify all modes,partial groups,fault/cancel/retry races,
+actual remote cosmetic rendering,effects/audio,native Quit or final ordinary
+release enablement. Test-only edits/automatic results remain explicit flags.

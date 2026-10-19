@@ -12,6 +12,7 @@ import time
 import uuid
 
 from . import community_protocol as c, public_protocol as q
+from . import loadout_protocol as loadout
 from .community import Rejected, require
 
 
@@ -24,6 +25,7 @@ class Entry:
     entered: float
     deadline: float
     cosmetics: object = None
+    full_loadout: bool = False
     offer: str | None = None
 
     @property
@@ -87,7 +89,7 @@ class PublicMatchmaking:
         now = self.clock()
         profile = session.peer.profile_id
         require(not self.server.closing and not self.community.closing, 'server is stopping')
-        if kind == q.ENTER:
+        if kind in (q.ENTER, loadout.ENTER_LOADOUT):
             require(not self.busy(profile) and session.lobby is None and not session.practicing and session.peer.room is None,
                     'leave the current activity before public matchmaking')
             require(command['ticket'] > session.last_public_ticket, 'public queue ticket was already used')
@@ -95,13 +97,20 @@ class PublicMatchmaking:
                     self.server.ai_factory is not None, 'server public mode/bot assets unavailable')
             try:
                 deck = self.server.templates[command['mode']].validate_deck(command['deck'])
-                self.server.profiles.save(profile, deck, cosmetics=session.cosmetics)
+                cosmetics = (command['cosmetics'].validate(self.server.cosmetic_catalog)
+                             if kind == loadout.ENTER_LOADOUT else session.cosmetics)
+                self.server.profiles.save(profile, deck, cosmetics=cosmetics)
             except ValueError as error:
                 raise Rejected(str(error)) from error
+            except OSError as error:
+                self.server.audit('profile_save_failed', profile=profile, reason=repr(error))
+                raise Rejected('profile save unavailable') from error
             remaining = command['wait_ms']/1000
             entry = Entry(session, command['ticket'], command['mode'], tuple(deck),
-                          now-(q.FALLBACK_SECONDS-remaining), now+remaining, cosmetics=session.cosmetics)
-            session.last_public_ticket, session.deck = entry.ticket, list(deck)
+                          now-(q.FALLBACK_SECONDS-remaining), now+remaining, cosmetics=cosmetics,
+                          full_loadout=kind == loadout.ENTER_LOADOUT)
+            session.last_public_ticket, session.deck, session.cosmetics = entry.ticket, list(deck), cosmetics
+            if entry.full_loadout: session.full_loadout = True
             self.entries[profile] = entry
             self.community.cancel_invites(lambda invite: profile in (invite.sender, invite.target), c.BUSY)
             self.publish(entry, q.WAITING, now=now)
@@ -205,7 +214,8 @@ class PublicMatchmaking:
             for slot, entry in humans.items():
                 peer = entry.session.peer
                 peer.next_input, peer.joined_army = 0, False
-                room.join(peer, slot, entry.profile, peer.name, deck=entry.deck, ticket=entry.ticket, cosmetics=entry.cosmetics)
+                room.join(peer, slot, entry.profile, peer.name, deck=entry.deck, ticket=entry.ticket,
+                          cosmetics=entry.cosmetics, full_loadout=entry.full_loadout)
                 room.ready.add(slot)
             await room.prepare_match()
             if room.state == 'loading' and self.offers.get(offer.id) is offer:

@@ -188,6 +188,15 @@ static void installDeckLan(Obj front,Obj gameData,int slot) {
     if((count!=2 && count!=4) || slot>=count)throw std::runtime_error("LAN deck slot missing from roster");
     Obj proto=required(ba::get<Obj>(at(armies,slot),"deck_"),"LAN assigned deck missing");
     if(!validDeck(proto,config))throw std::runtime_error("LAN assigned test deck has invalid opening units or map unit IDs");
+    // Community joins use their owned Start/Ready/Play snapshot in normalizeJoin.
+    // Installing that snapshot in the menu selector would discard edits made
+    // after Play. Keep validation here, but leave the application-owned picker
+    // and its native local storage intact across the remote world.
+    if(ba::community()) {
+        if(ba::flag(L"-lan-smoke"))ba_lan_smoke::prepare(gameData,slot);
+        ba::log("Community assigned army%d validated; menu deck retained, frozen JoinArmy owns match selection",slot);
+        return;
+    }
     void* fromArgs[]={proto};
     Root runtime(ba::invoke(ba::find_class("Uncapped","Deck"),nullptr,"FromProto",1,fromArgs));
     Obj selector=required(ba::get<Obj>(front,"_deckSelector"),"LAN deck selector missing");

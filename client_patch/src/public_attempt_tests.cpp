@@ -34,5 +34,13 @@ int main() {
     Attempt failure(11,2,deck,0);failure.enter(5);failure.state(5,state(11,q::Offered));failure.ready();
     failure.state(5,state(11,q::Preparing));assert(!failure.mayFallback());
     failure.state(5,state(11,q::Retired));assert(failure.mayFallback());
+    ba_community_wire::Loadout selection;selection.deck=deck;selection.full=true;
+    for(size_t i=0;i<17;++i)selection.cosmetics.slots[i]={static_cast<uint32_t>(i+1),static_cast<uint32_t>(100+i)};
+    Attempt appearance(12,2,selection,0);appearance.enter(6);appearance.state(6,state(12,q::Offered));appearance.ready();appearance.state(6,state(12,q::Preparing));
+    assigned.ticket=12;assigned.match="offer";rejects([&]{appearance.assignment(6,assigned);});
+    assigned.full=true;assigned.cosmetics=selection.cosmetics;assigned.cosmetics.slots[0].second=999;
+    rejects([&]{appearance.assignment(6,assigned);});assigned.cosmetics=selection.cosmetics;
+    auto other=assigned;other.cosmetics.catalog[0]=1;rejects([&]{appearance.assignment(6,other);});
+    assert(appearance.assignment(6,assigned));
     std::cout << "public client ticket/connection, deadline, stale proposal, cancel and ambiguous READY tests passed\n";
 }

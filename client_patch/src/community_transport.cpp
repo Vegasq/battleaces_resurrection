@@ -34,7 +34,7 @@ static const wire::Player* player(const std::string& profile) {
 }
 static void reset() {
     wire::require(generation!=UINT64_MAX,"community connection generation exhausted");
-    ++generation;ba_public::controlReset();
+    ++generation;ba_public::controlReset();ba_client::controlReset();
     online=false;abortPending=false;welcome={};directory={};lobby={};events.clear();pending.clear();requestId=0;
 }
 static uint32_t nextRequest() {

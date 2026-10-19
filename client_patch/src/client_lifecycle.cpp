@@ -1,4 +1,5 @@
 #pragma once
+#include "loadout_publication.hpp"
 // One application owns its local menu; optional presence never owns a local world.
 namespace ba_client {
 using ba::Obj;using ba_local::Root;
@@ -8,8 +9,16 @@ static Owner worldOwner=Owner::None;
 static uint64_t generation=0,worldLease=0;
 static std::string worldMatch;
 static bool connectRequested=true,controlFailed=false,failed=false;
-static bool selectedDeckAccepted=false,selectedDeckPending=false;
-static uint32_t selectedDeckRequest=0;
+static ba_loadout_publication::State publication;
+static auto& selectedDeckAccepted=publication.accepted;
+static auto& selectedDeckPending=publication.pending;
+static ba_community_wire::Loadout selectedSubmitted;
+static void controlReset(){publication.reset();selectedSubmitted={};}
+static void queueLoadoutAccepted(const wire::Loadout& selection) {
+    if(!ba::unified())return;
+    wire::require(!selectedDeckPending,"queue accepted before prior loadout publication completed");
+    selectedSubmitted=selection;selectedDeckAccepted=true;
+}
 static unsigned smokeStage=0;
 static void require(bool condition,const char* message) {if(!condition)throw std::runtime_error(message);}
 static bool remoteWorld() {return ba::unified() && worldOwner==Owner::Remote;}
@@ -32,7 +41,7 @@ static void retireControl(Obj front,const char* reason) {
     // their identity. Unified resets retain the application-owned deck cache.
     ba_dedicated_session::resetAtMenu(front,ba::read<Obj>(front,0xd8),false);
     ba_dedicated::initialized=false;
-    selectedDeckAccepted=false;selectedDeckPending=false;selectedDeckRequest=0;controlFailed=false;
+    publication.reset();selectedSubmitted={};controlFailed=false;
     ba_local_menu::restoreIdentity(front);
     ba::log("Client control retired: reason=%s localMenu=1 nativeDeckRetained=1",reason);
 }
@@ -71,17 +80,28 @@ static void requestConnect() {
 }
 static bool deckReady() {return !ba::unified() || selectedDeckAccepted;}
 static bool deckPending() {return ba::unified() && selectedDeckPending;}
-static void deckSubmitted(uint32_t id) {
+static void deckSubmitted(uint32_t id,const wire::Loadout& selected) {
     if(!ba::unified())return;
-    selectedDeckRequest=id;selectedDeckAccepted=false;selectedDeckPending=true;
+    publication.submit(id,selected.full?wire::SetLoadout:wire::SetDeck);selectedSubmitted=selected;
 }
 static bool acknowledge(const wire::Ack& ack) {
-    if(!ba::unified() || ack.kind!=wire::SetDeck)return false;
-    if(ack.request==selectedDeckRequest) {
-        selectedDeckAccepted=ack.success;selectedDeckPending=false;
+    if(!ba::unified() || (ack.kind!=wire::SetDeck && ack.kind!=wire::SetLoadout))return false;
+    const bool owned=publication.acknowledge(ack.request,ack.kind,ack.success);
+    if(owned && ack.request==publication.latest) {
         ba::log("Client local deck acknowledgement: request=%u accepted=%d",ack.request,ack.success?1:0);
+        if(!ack.success)ba_public::connectionFailed(ack.reason.c_str());
     }
-    return true;
+    return owned;
+}
+static void synchronizeLoadout(Obj front) {
+    static ULONGLONG next=0;const auto now=GetTickCount64();
+    if(now<next || worldOwner!=Owner::None || ba_public::active() || !ba_community::online || !ba_dedicated::initialized ||
+       !ba_dedicated_session::inMenu() || !nativeIdle(front) || selectedDeckPending ||
+       (ba_community_native::authority.phase!=wire::None && ba_community_native::authority.phase!=wire::Open) ||
+       !ba_cosmetics::readyForLoadout(front))return;
+    next=now+500;Root deck(ba_dedicated_deck::selectedProto(front));
+    const auto selection=ba_cosmetics::wireLoadout(deck.get(),ba_cosmetics::currentSelection(front));
+    if(selection!=selectedSubmitted)ba_dedicated::submitDeck(deck.get());
 }
 static bool allowPracticeSmoke() {
     return !ba::flag(L"-unified-smoke") || ba_practice::completed==0 || smokeStage>=2;
@@ -117,6 +137,8 @@ static void update(Obj front) {
         }
         smoke();
         if(worldOwner==Owner::Remote || connectRequested)ba_dedicated_session::update(front);
+        ba_cosmetics::remoteProof(front);
+        synchronizeLoadout(front);
         ba_public::update(front);
         if(worldOwner==Owner::None && !ba_practice::active()) {
             ba_practice::releaseOfflineIdleDisconnect(front);

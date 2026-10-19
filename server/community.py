@@ -7,6 +7,7 @@ import time
 import uuid
 
 from . import community_protocol as c, protocol as p
+from . import loadout_protocol as loadout
 
 
 class Rejected(ValueError):
@@ -23,6 +24,7 @@ class Session:
     peer: object
     deck: list[int]
     cosmetics: object = None
+    full_loadout: bool = False
     lobby: str | None = None
     practicing: bool = False
     last_request: int = 0
@@ -126,9 +128,12 @@ class Community:
 
     def publish_lobby(self, lobby, reason=''):
         lobby.revision += 1
-        packet = c.lobby_state(lobby, self.sessions, reason)
+        packets = {}
         for profile in lobby.members:
-            self.send(self.sessions[profile].peer, c.LOBBY, packet)
+            session = self.sessions[profile]
+            if session.full_loadout not in packets:
+                packets[session.full_loadout] = c.lobby_state(lobby, self.sessions, reason, complete=session.full_loadout)
+            self.send(session.peer, loadout.LOBBY_LOADOUT if session.full_loadout else c.LOBBY, packets[session.full_loadout])
         self.publish_presence()
 
     def resolve_invite(self, invite, status):
@@ -162,7 +167,8 @@ class Community:
         lobby.ready.discard(profile)
         lobby.returned.discard(profile)
         session.lobby = None
-        self.send(session.peer, c.LOBBY, c.lobby_state(None, self.sessions))
+        self.send(session.peer, loadout.LOBBY_LOADOUT if session.full_loadout else c.LOBBY,
+                  c.lobby_state(None, self.sessions, complete=session.full_loadout))
         if not lobby.members:
             self.lobbies.pop(lobby.id, None)
         else:
@@ -253,15 +259,23 @@ class Community:
         if kind == c.REFRESH:
             self.publish_presence(recipient=session.peer)
             return
-        if kind == c.SET_DECK:
+        if kind in (c.SET_DECK, loadout.SET_LOADOUT):
             lobby = self.lobbies.get(session.lobby)
             require(not lobby or lobby.phase == c.OPEN or
                     (lobby.phase == c.RESULTS and profile in lobby.returned), 'deck is frozen for this match')
             try:
-                self.server.profiles.save(profile, command['deck'], cosmetics=session.cosmetics)
+                cosmetics = (command['cosmetics'].validate(self.server.cosmetic_catalog)
+                             if kind == loadout.SET_LOADOUT else session.cosmetics)
+                self.server.profiles.save(profile, command['deck'], cosmetics=cosmetics)
             except ValueError as error:
                 raise Rejected(str(error)) from error
-            session.deck = list(command['deck'])
+            except OSError as error:
+                self.server.audit('profile_save_failed', profile=profile, reason=repr(error))
+                raise Rejected('profile save unavailable') from error
+            session.deck, session.cosmetics = list(command['deck']), cosmetics
+            if kind == loadout.SET_LOADOUT: session.full_loadout = True
+            self.server.audit('community_loadout_saved', profile=profile, complete=kind == loadout.SET_LOADOUT,
+                              catalog=cosmetics.catalog_sha256 if cosmetics else None, slots=len(cosmetics.slots) if cosmetics else 0)
             if lobby:
                 lobby.ready.clear()
                 lobby.activity = now

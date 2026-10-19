@@ -7,12 +7,13 @@ namespace q=ba_public_wire;
 namespace c=ba_community_wire;
 using q::require;
 struct Current {
-    ba_public_attempt::Attempt intent;Root front,controller;
+    ba_public_attempt::Attempt intent;Root front,controller,deckSnapshot;
+    ba_cosmetics::FrozenLoadout appearance;
     uint32_t enterRequest=0,readyRequest=0,cancelRequest=0,returnRequest=0;
     bool lost=false,cancelAck=false,cancelRejected=false,returnAck=false,joining=false,aborting=false,cleanup=false;
     bool found=false,returning=false;std::string failure;
-    Current(uint64_t ticket,int mode,const q::Deck& deck,Obj f,Obj owner):
-        intent(ticket,mode,deck,GetTickCount64()),front(f),controller(owner){}
+    Current(uint64_t ticket,int mode,const c::Loadout& selected,Obj f,Obj owner,Obj deck,const ba_cosmetics::FrozenLoadout& frozen):
+        intent(ticket,mode,selected,GetTickCount64()),front(f),controller(owner),deckSnapshot(deck),appearance(frozen){}
 };
 static auto& current=*new std::unique_ptr<Current>();
 static uint64_t lastTicket=0;
@@ -61,10 +62,11 @@ static void fallback(Obj front) {
     require(current && current->intent.mayFallback() && !current->joining,"ambiguous public fallback after READY");
     const auto ticket=current->intent.ticket;const int mode=static_cast<int>(current->intent.mode);
     Root controller(current->controller.get());
+    Root deck(current->deckSnapshot.get());const auto appearance=current->appearance;
     ba::log("Public fallback accepted: ticket=%llu mode=%d beforeAmbiguousCommit=1 elapsedMs=%llu reason=%s",
         static_cast<unsigned long long>(ticket),mode,static_cast<unsigned long long>(GetTickCount64()-current->intent.started),current->failure.c_str());
     forget(); // Transfer the native search ticket to the local match producer.
-    try {ba_practice::startMode(front,controller.get(),mode,ticket);}
+    try {ba_practice::startMode(front,controller.get(),mode,ticket,deck.get(),&appearance);}
     catch(...) {ba_match_search::release(ticket,"local fallback failed");throw;}
 }
 static void start(Obj front,Obj controller,int mode) {
@@ -77,9 +79,22 @@ static void start(Obj front,Obj controller,int mode) {
         ba_community_invites::operations.empty() && !ba::get<Obj>(front,"_party") && ba_lan::bootstrap.empty(),
         "public search requires an idle menu outside Custom");
     require(ba_dedicated_deck::canReady(front),"public selected deck invalid");
-    const auto deck=ba_community_match::selected(front);
+    Root deck(ba_dedicated_deck::selectedProto(front));const auto appearance=ba_cosmetics::freezeHuman(front,deck.get());
+    const auto selected=ba_cosmetics::wireLoadout(deck.get(),appearance);
     const auto ticket=ba_match_search::begin(front,mode);
-    try {current=std::make_unique<Current>(ticket,mode,deck,front,controller);lastTicket=ticket;ba_client::requestConnect();}
+    try {
+        current=std::make_unique<Current>(ticket,mode,selected,front,controller,deck.get(),appearance);lastTicket=ticket;
+        if(ba::flag(L"-public-loadout-edit-smoke")) {
+            require(ba::flag(L"-public-queue-smoke") && selected.full,"public loadout edit requires explicit full diagnostic");
+            ba::log("PUBLIC LOADOUT original frozen deck: %s",ba_catalog::utf8(ba::call(deck.get(),"ToString")).c_str());
+            ba_dedicated_deck::rematchSmokeSelection(front);ba_cosmetics::practiceRematchSmoke(front);
+            Root changed(ba_dedicated_deck::selectedProto(front));const auto currentSelection=ba_cosmetics::wireLoadout(changed.get(),ba_cosmetics::currentSelection(front));
+            require(currentSelection.deck!=selected.deck && currentSelection.cosmetics!=selected.cosmetics,"public post-intent edit did not change units and cosmetics");
+            ba::log("PUBLIC LOADOUT edited menu deck: %s",ba_catalog::utf8(ba::call(changed.get(),"ToString")).c_str());
+            ba::log("PUBLIC LOADOUT edited after freeze: originalIntentRetained=1");
+        }
+        ba_client::requestConnect();
+    }
     catch(...) {ba_match_search::release(ticket,"public start failed");current.reset();throw;}
     // Only the retired public attempt's error may be dismissed. A stale notice
     // handle must never hide another producer's current loading/error state.
@@ -102,8 +117,8 @@ static bool receive(unsigned char kind,const q::Bytes& bytes) {
             static_cast<unsigned long long>(value.ticket),value.phase,value.mode,value.match.c_str(),value.elapsedMs);
         return true;
     }
-    require(kind==q::MatchKind,"unknown public assignment event");
-    const auto value=q::assignment(bytes);
+    require(kind==q::MatchKind || kind==c::MatchLoadout,"unknown public assignment event");
+    const auto value=q::assignment(bytes,kind==c::MatchLoadout);
     if(!current){require(value.ticket<=lastTicket,"unsolicited public assignment");return false;}
     if(!current->intent.assignment(ba_community::generation,value))return false;
     require(!ba_lan::welcomed && ba_lan::bootstrap.empty() && ba_lan::dedicatedMatchId.empty(),"public assignment overlaps existing match");
@@ -115,12 +130,16 @@ static bool receive(unsigned char kind,const q::Bytes& bytes) {
     return true;
 }
 static bool acknowledge(Obj,const c::Ack& ack) {
-    if(ack.kind<q::Enter || ack.kind>q::Return)return false;
+    if((ack.kind<q::Enter || ack.kind>q::Return) && ack.kind!=c::EnterLoadout)return false;
     if(!current)return true;
     auto& s=*current;
     if(ack.request==s.cancelRequest){s.cancelAck=ack.success;s.cancelRejected=!ack.success;}
     else if(ack.request==s.returnRequest){require(ack.success,"public RETURN rejected");s.returnAck=true;}
     else if(ack.request==s.enterRequest && !ack.success){s.lost=true;s.failure=ack.reason;}
+    else if(ack.request==s.enterRequest && ack.success) {
+        c::Loadout selected;selected.deck=s.intent.deck;selected.full=s.intent.full;selected.cosmetics=s.intent.cosmetics;
+        ba_client::queueLoadoutAccepted(selected);
+    }
     else if(ack.request==s.readyRequest && !ack.success && s.intent.readySent && !s.intent.retired && !s.intent.cancelled) {
         // WAITING may already have replaced this proposal before its delayed
         // negative ACK. Until the new READY is sent, readySent stays false.
@@ -161,8 +180,17 @@ static Obj validateBootstrap(Obj front) {
             local=std::make_unique<Root>(ba::call(identity,"Clone"));
         }
     }
-    require(local && local->get() && ba_community_match::selected(front)==s.deck,"public local identity/selected deck changed");
+    require(local && local->get(),"public local identity missing");
+    if(s.full) {
+        ba_cosmetics::validateHumanDeck(ba::get<Obj>(ba_lan_bootstrap::at(armies,seat.slot),"deck_"),current->appearance);
+        require(ba::get<uint32_t>(ba_lan_bootstrap::at(armies,seat.slot),"portraitId_")==current->appearance.portrait &&
+                ba::get<uint32_t>(ba_lan_bootstrap::at(armies,seat.slot),"bannerId_")==current->appearance.banner,"public bootstrap cosmetic roles differ");
+    }
     return local->get();
+}
+static void normalizeJoin(Obj action) {
+    require(current && current->joining && current->intent.assigned,"public JoinArmy without owned assignment");
+    ba_cosmetics::applyFrozenJoin(action,current->deckSnapshot.get(),current->appearance);
 }
 static void begin(Obj front) {
     auto& s=*current;
@@ -257,9 +285,11 @@ static void update(Obj front) {
             begin(front);return;
         }
         if(!intent.entered && ba_community::online && ba_community_native::installed && ba_client::deckReady()) {
-            require(ba_community_match::selected(front)==intent.deck,"public deck changed while connecting");
             intent.enter(ba_community::generation);
-            s.enterRequest=ba_community::send(q::enter(ba_community::nextRequest(),intent.ticket,intent.mode,intent.remaining(now),intent.deck));
+            c::Loadout selected;selected.deck=intent.deck;selected.full=intent.full;selected.cosmetics=intent.cosmetics;
+            const auto request=ba_community::nextRequest();
+            s.enterRequest=ba_community::send(intent.full?q::enterLoadout(request,intent.ticket,intent.mode,intent.remaining(now),selected):
+                q::enter(request,intent.ticket,intent.mode,intent.remaining(now),intent.deck));
         }
         if(intent.phase==q::Offered && !intent.readySent) {
             intent.ready();s.readyRequest=ba_community::send(q::ready(ba_community::nextRequest(),intent.ticket,intent.match));

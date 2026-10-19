@@ -32,5 +32,18 @@ int main() {
     Writer ack;ack.number(34,4);ack.number(Start,1);ack.number(0,1);ack.text("stale revision");ack.text("");
     const auto rejected=std::get<Ack>(decode(AckKind,ack.bytes));assert(!rejected.success && rejected.request==34 && rejected.reason=="stale revision");
     rejects([]{decode(255,{});});rejects([]{decode(WelcomeKind,Bytes(32769));});
+    Loadout full;full.deck={1,2,3,4,5,6,7,8};full.full=true;
+    for(size_t i=0;i<32;++i)full.cosmetics.catalog[i]=static_cast<unsigned char>(i);
+    for(size_t i=0;i<17;++i)full.cosmetics.slots[i]={static_cast<uint32_t>(100+i),static_cast<uint32_t>(1000+i)};
+    auto publication=setLoadout(36,full);assert(publication.kind==65 && publication.payload.size()==206);
+    Reader fullReader(publication.payload);assert(fullReader.u32()==36 && fullReader.u16()==1 && fullReader.deck()==full.deck && fullReader.selection()==full.cosmetics);fullReader.end();
+    for(size_t n=0;n<168;++n)rejects([&]{auto bytes=Bytes(publication.payload.begin()+38,publication.payload.begin()+38+n);Reader partial(bytes);partial.selection();});
+    auto wrong=full;wrong.cosmetics.slots[1].first=wrong.cosmetics.slots[0].first;rejects([&]{setLoadout(37,wrong);});
+    wrong=full;wrong.cosmetics.slots[1].second=wrong.cosmetics.slots[0].second;rejects([&]{setLoadout(37,wrong);});
+    Writer complete;complete.number(1,2);complete.number(10,8);complete.number(Open,1);complete.number(0,4);
+    complete.id("lobby");complete.id("a");complete.text("");complete.text("");complete.number(1,1);
+    complete.id("a");complete.deck(full.deck);complete.selection(full.cosmetics);complete.number(0,1);complete.number(0,1);
+    auto extended=std::get<Lobby>(decode(LobbyLoadout,complete.bytes));assert(extended.full && extended.members[0].full && extended.members[0].cosmetics==full.cosmetics);
+    rejects([&]{decode(LobbyKind,complete.bytes);});rejects([&]{decode(LobbyLoadout,state.bytes);});
     std::cout << "community v1 bounds, Unicode, identity, epoch and ACK tests passed\n";
 }

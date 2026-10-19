@@ -136,7 +136,7 @@ class HostReadinessTests(unittest.IsolatedAsyncioTestCase):
             server.start.assert_awaited_once()
             self.assertTrue(native_release.is_set())
             ready_event.set()
-        with (mock.patch.object(host, 'prepare', return_value=(template, None, None, {'game_build':37822, 'asset_format':1})),
+        with (mock.patch.object(host, 'prepare', return_value=(template, None, None, {'game_build':37822, 'asset_format':1, 'files':{}})),
               mock.patch.object(host, 'check_native', side_effect=check),
               mock.patch.object(host, 'HostAudit', return_value=audit),
               mock.patch.object(host, 'DedicatedServer', return_value=server),

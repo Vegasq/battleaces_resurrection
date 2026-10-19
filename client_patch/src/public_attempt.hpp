@@ -8,6 +8,7 @@ using wire::require;
 struct Attempt {
     uint64_t ticket,started,connection=0;
     unsigned mode;wire::Deck deck;
+    bool full=false;ba_community_wire::Selection cosmetics;
     int phase=-1;
     bool entered=false,readySent=false,committed=false,assigned=false,cancelled=false,retired=false;
     std::string match,reason;
@@ -16,6 +17,8 @@ struct Attempt {
         ticket(generation),started(now),mode(gameMode),deck(selected) {
         require(ticket!=0,"public attempt ticket missing");wire::participants(mode);
     }
+    Attempt(uint64_t generation,unsigned gameMode,const ba_community_wire::Loadout& selected,uint64_t now):
+        Attempt(generation,gameMode,selected.deck,now) {full=selected.full;cosmetics=selected.cosmetics;if(full)cosmetics.validate();}
     uint32_t remaining(uint64_t now) const {
         require(now>=started,"public monotonic clock regressed");
         return now-started>=wire::maxWaitMs?0:wire::maxWaitMs-static_cast<uint32_t>(now-started);
@@ -54,7 +57,8 @@ struct Attempt {
     bool assignment(uint64_t epoch,const wire::Assignment& value) {
         if(!owns(epoch,value.ticket) || retired)return false;
         require(committed && phase>=wire::Preparing && phase<=wire::Loading && !assigned &&
-            value.mode==mode && value.match==match && value.deck==deck,"public assignment ownership/deck");
+            value.mode==mode && value.match==match && value.deck==deck && value.full==full &&
+            (!full || value.cosmetics==cosmetics),"public assignment ownership/full loadout");
         seat=value;assigned=true;return !cancelled;
     }
     bool mayFallback() const {

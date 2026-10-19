@@ -284,30 +284,29 @@ python -m tools.verify_cosmetic_profiles --assets local/<import> --output local/
 The second command intentionally exercises real protected backup/restore and
 fails if that OS boundary is unavailable; inspect its explicit evidence.
 
-Next implement atomic client full-loadout submission/ACK and an assignment that
-binds the same complete snapshot to public queue intent. Use current cosmetic
-state synchronously before human deck freeze,including offline/local AI. Preserve
-original bot serialization; qualify native ownership filters/ToProtoRuntime
-first. Then verify changed human cosmetics through graphical Custom/public/team
+Atomic client full-loadout submission/ACK and assignment binding are now
+implemented;see loadout-protocol.txt for kinds65..68 and bounded native proofs.
+Current native state is read synchronously at intent and carried through local
+fallback. Original bot serialization remains separate. Next verify the remote
+menu unit-preservation fix and changed human cosmetics through graphical Custom/public/team
 matches,results/rematches and remote/local switching. Main-menu cached bindings,
 real drag gestures,all-item visuals/audio,native Quit/shutdown flush,protected
 deployment,ordinary enablement and final packaging remain separate release gates.
 
-Wire integration constraints from current source review
+Wire integration constraints (implemented;qualification remains bounded)
 Keep the existing strict deck-only version1 packet shapes separate from new full
 loadout commands. One complete loadout is32 bytes of catalog digest,136 bytes of
 17 [slot,item] pairs,and32 bytes of units before headers;it fits the existing256
-byte client command bound. This is a size calculation,not an implemented protocol
-or reserved command-number assignment. Validate exact counts,duplicates,catalog
+byte client command bound. Distinct kinds65..68 implement the extension,as
+specified in loadout-protocol.txt. Validate exact counts,duplicates,catalog
 identity and native order before any profile/session/queue mutation.
 Correlate request AND command kind for publication ACKs;carry full selections in
 Custom authority and public assignments so equal units cannot hide changed
 cosmetics. Extend Custom Ready cancellation/start-race checks to this same full
 snapshot. Preserve older deck-only callers according to the current backend
 profile policy instead of silently appending bytes to their existing packets.
-Public Play must freeze before connecting/waiting. Current fallback startMode
-reads a new selectedProto after the30-second wait;the eventual full intent must
-instead transfer its original frozen deck/cosmetics into the local producer.
+Public Play freezes before connecting/waiting. Fallback startMode now accepts
+the original frozen deck/cosmetics instead of reading a later menu selection.
 Cosmetic edits during search must not substitute a later selection or rely on
 the deck-only lock. Exercise unavailable-server/timeout/cancel/retry/partial-human
 cases and stale assignments before enabling the ordinary public entry point.

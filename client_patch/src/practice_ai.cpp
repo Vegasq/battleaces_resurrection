@@ -18,6 +18,7 @@ struct State {
     ba_match_search::Ticket searchTicket=0;
     std::unique_ptr<Root> front,controller,human,humanDeck,encoded,completionInfo,completionUI;
     ba_cosmetics::FrozenLoadout humanCosmetics;
+    bool inheritedHumanDeck=false;
     bool humanCosmeticsProven=false;
     bool humanInGameIdentity=false,humanResultIdentity=false,humanResultCaptured=false;
     std::vector<Bot> bots;
@@ -205,7 +206,8 @@ static void fail(const char* where,const std::exception& error) {
 static uint64_t humanId() {
     return ba::get<uint64_t>(ba::get<Obj>(ba::get<Obj>(state.human->get(),"playerHandleWithName_"),"playerHandle_"),"steamId_");
 }
-static void startMode(Obj front,Obj controller,int mode,ba_match_search::Ticket inheritedSearch=0) {
+static void startMode(Obj front,Obj controller,int mode,ba_match_search::Ticket inheritedSearch=0,
+                      Obj frozenDeck=nullptr,const ba_cosmetics::FrozenLoadout* frozenAppearance=nullptr) {
     require(mode==4 || ((mode==1 || mode==2 || mode==5) && ba::unified()),"unsupported local AI mode");
     if(!ba::localMenu() && !ba::flag(L"-practice-ai-experimental")) {ba::log("Try Deck vs AI is not enabled in this build's normal launcher");return;}
     if(active()){ba::log("Practice already pending or active; duplicate start ignored");return;}
@@ -218,7 +220,8 @@ static void startMode(Obj front,Obj controller,int mode,ba_match_search::Ticket 
         !ba_dedicated_session::joined && ba_community_native::authority.phase==wire::None &&
         ba_community_native::requests.empty() && ba_community_invites::operations.empty() &&
         !ba::get<Obj>(front,"_party") && ba_lan::bootstrap.empty(),"leave multiplayer before starting practice");
-    require(ba_dedicated_deck::canReady(front),"practice selected deck is not valid");
+    require(static_cast<bool>(frozenDeck)==static_cast<bool>(frozenAppearance),"local public frozen intent incomplete");
+    require(frozenDeck || ba_dedicated_deck::canReady(front),"practice selected deck is not valid");
     if(ba::unified())ba_client::prepareLocal(front);
     state.mode=mode;
     state.bots.reserve(participants()-1);
@@ -232,9 +235,14 @@ static void startMode(Obj front,Obj controller,int mode,ba_match_search::Ticket 
     }
     root(state.front,front);root(state.controller,controller);
     root(state.human,ba::get<Obj>(front,"_playerGameHandle"));
-    if(completed && ba::flag(L"-human-cosmetics-smoke"))ba_cosmetics::practiceRematchSmoke(front);
-    root(state.humanDeck,ba_dedicated_deck::selectedProto(front));
-    try {state.humanCosmetics=ba_cosmetics::freezeHuman(front,state.humanDeck->get());}
+    state.inheritedHumanDeck=frozenDeck!=nullptr;
+    if(!frozenDeck && completed && ba::flag(L"-human-cosmetics-smoke"))ba_cosmetics::practiceRematchSmoke(front);
+    root(state.humanDeck,frozenDeck?ba::call(frozenDeck,"Clone"):ba_dedicated_deck::selectedProto(front));
+    try {
+        state.humanCosmetics=frozenAppearance?*frozenAppearance:ba_cosmetics::freezeHuman(front,state.humanDeck->get());
+        ba_cosmetics::validateHumanDeck(state.humanDeck->get(),state.humanCosmetics);
+        ba_cosmetics::wireLoadout(state.humanDeck->get(),state.humanCosmetics);
+    }
     catch(...) {state=State{};throw;} // No world/lease exists yet; a rejected freeze must allow retry.
     unsigned char random[16];require(BCryptGenRandom(nullptr,random,sizeof(random),BCRYPT_USE_SYSTEM_PREFERRED_RNG)>=0,"practice match identity generation failed");
     static const char hex[]="0123456789abcdef";state.match.clear();
@@ -457,6 +465,7 @@ static void input(Obj gameServer,Obj action) {
     if(ba::flag(L"-practice-ai-smoke"))
         ba::log("Practice original JoinArmy: %s",ba_catalog::utf8(ba::call(join.get(),"ToString")).substr(0,16384).c_str());
     for(const char* field:{"units_","activeAbilityGroups_"}) {
+        if(!bot && state.inheritedHumanDeck)continue; // Validated at the original public Play intent.
         Obj actual=ba::get<Obj>(deck,field),wanted=ba::get<Obj>(frozen,field);
         require(ba_local::count(actual)==ba_local::count(wanted),"practice native deck length differs from snapshot");
         for(int i=0;i<ba_local::count(wanted);++i)
@@ -502,27 +511,30 @@ static bool visibleProfile(Obj component) {
     Root go(ba::native<Obj(*)(Obj,Obj)>(0x6ec1a0)(component,nullptr));
     return go.get() && ba::native<bool(*)(Obj,Obj)>(0x508a650)(go.get(),nullptr);
 }
-static bool localProfileView(Obj view,Obj model) {
+static bool armyProfileView(Obj view,Obj model,uint32_t army) {
     // The original in-game model does not populate SteamId/IsAi/IsAlias. Bind
     // through the live owner and its local-army model and first allied child.
     Root type(ba_tables::reflectedType("InGamePlayerProfileDataVM","Uncapped.UI"));void* args[]={type.get()};
     Root owners(ba::invoke(ba::find_class("UnityEngine","Resources"),nullptr,"FindObjectsOfTypeAll",1,args));
     const auto count=ba_catalog::length(owners.get());require(count<=128,"human profile owner capacity");
     Root simulation(ba::read<Obj>(server(),0x140)),player(ba::get<Obj>(simulation.get(),"_localPlayer"));
-    const auto army=ba::get<uint32_t>(player.get(),"ArmyID");require(army==0,"human profile local army changed");
+    const auto localArmy=ba::get<uint32_t>(player.get(),"ArmyID");require(localArmy==0,"local AI profile local army changed");
     Root buffer(ba::get<Obj>(simulation.get(),"_simPlayers")),players(ba::get<Obj>(buffer.get(),"_players"));
     const auto playerCount=ba_local::count(players.get());
     require(playerCount>0 && playerCount<=4 && army<static_cast<uint32_t>(playerCount) &&
-        ba_bootstrap::item(players.get(),army)==player.get(),"human profile source army-index invariant changed");
+        ba_bootstrap::item(players.get(),localArmy)==player.get() &&
+        ba::get<uint32_t>(ba_bootstrap::item(players.get(),army),"ArmyID")==army,"profile source army-index invariant changed");
     for(size_t i=0;i<count;++i) {
         Obj owner=ba_catalog::arrayAt(owners.get(),i);
         if(!visibleProfile(owner) || ba::get<Obj>(owner,"_simulation")!=simulation.get())continue;
         Root set(ba::call(owner,"get_IsModelSet"));if(!boolean(set.get()))continue;
         Root data(ba::call(owner,"get_Model")),models(ba::get<Obj>(data.get(),"_matchPlayerProfileModels"));
-        Root allied(ba::read<Obj>(owner,0x58));
+        Root allied(ba::read<Obj>(owner,army%2?0x60:0x58));
         require(models.get() && ba_catalog::length(models.get())==static_cast<size_t>(playerCount) &&
             allied.get() && ba_catalog::length(allied.get())>=1 && ba_catalog::length(allied.get())<=2,"human profile owner arrays invalid");
-        if(ba_catalog::arrayAt(allied.get(),0)==view && ba_catalog::arrayAt(models.get(),army)==model)return true;
+        if(ba_catalog::arrayAt(models.get(),army)!=model)continue;
+        if(army==localArmy)return ba_catalog::arrayAt(allied.get(),0)==view;
+        for(size_t j=0;j<ba_catalog::length(allied.get());++j)if(ba_catalog::arrayAt(allied.get(),j)==view)return true;
     }
     return false;
 }
@@ -549,10 +561,10 @@ static bool publicIdentity(bool result,bool human=false) {
         Root model(ba::call(vm,"get_Model"));if(!model.get())continue;
         const auto id=ba::get<uint64_t>(model.get(),"SteamId");Bot* selected=nullptr;Bot humanView;
         if(human) {
-            if(result?id!=humanId():!localProfileView(vm,model.get()))continue;
+            if(result?id!=humanId():!armyProfileView(vm,model.get(),0))continue;
             humanView.army=0;humanView.portrait=state.humanCosmetics.portrait;humanView.banner=state.humanCosmetics.banner;
             humanView.name=ba_catalog::utf8(ba::get<Obj>(ba::get<Obj>(state.human->get(),"playerHandleWithName_"),"playerName_"));selected=&humanView;
-        } else for(auto& bot:state.bots)if(id==bot.army+1)selected=&bot;
+        } else for(auto& bot:state.bots)if(result?id==bot.army+1:armyProfileView(vm,model.get(),bot.army))selected=&bot;
         if(!selected || ba::get<int>(model.get(),"GameMode")!=state.mode ||
            ba::get<uint32_t>(model.get(),"AllianceId")!=selected->army%2)continue;
         const auto& bot=*selected;
@@ -560,7 +572,7 @@ static bool publicIdentity(bool result,bool human=false) {
         else require(ba::get<Obj>(vm,"_simulation")==ba::read<Obj>(server(),0x140),"public in-game view belongs to another world");
         const bool alias=ba::get<bool>(model.get(),"IsAlias");
         const auto expected=bot.name+(result && alias?" (Alias)":"");
-        require(ba::get<bool>(model.get(),"IsAi")==!human && ba_catalog::utf8(ba::get<Obj>(model.get(),"PlayerName"))==bot.name &&
+        require((!result || ba::get<bool>(model.get(),"IsAi")==!human) && ba_catalog::utf8(ba::get<Obj>(model.get(),"PlayerName"))==bot.name &&
             ba_catalog::utf8(ba::call(vm,"get_PlayerName"))==expected,"public native UI name/AI binding mismatch");
         const auto portrait=ba::get<uint32_t>(model.get(),"Portrait"),banner=ba::get<uint32_t>(model.get(),"Banner");
         if(portrait!=bot.portrait || banner!=bot.banner)
@@ -586,7 +598,7 @@ static bool publicIdentity(bool result,bool human=false) {
         if(std::find(matched.begin(),matched.end(),bot.army)==matched.end())matched.push_back(bot.army);
         if(human && !result)humanProfileCapture(false);
         ba::log("%s identity binding: phase=%s name=%s modelAi=%d portrait=%u banner=%u portraitChildren=%u bannerChildren=%u live=1 currentMatch=1 army=%u",
-            human?"HUMAN COSMETICS":"Public AI",result?"result":"in-game",expected.c_str(),human?0:1,bot.portrait,bot.banner,portraits,banners,bot.army);
+            human?"HUMAN COSMETICS":"Public AI",result?"result":"in-game",expected.c_str(),ba::get<bool>(model.get(),"IsAi")?1:0,bot.portrait,bot.banner,portraits,banners,bot.army);
     }
     return matched.size()==(human?1u:state.bots.size());
 }
@@ -620,7 +632,7 @@ static bool gameUpdate(Obj gameServer,Obj method) {
             }
             Obj sim=ba::read<Obj>(gameServer,0x140);
             if(ba::flag(L"-human-cosmetics-smoke") && !state.humanCosmeticsProven && state.humanJoined && botsReady(true)) {
-                ba_cosmetics::practiceHumanProof(gameServer,state.humanCosmetics);state.humanCosmeticsProven=true;
+                ba_cosmetics::practiceHumanProof(gameServer,state.humanCosmetics,state.humanDeck->get());state.humanCosmeticsProven=true;
             }
             if(ba::flag(L"-practice-ai-smoke") && botsReady(false) && GetTickCount64()-state.diagnostic>=10000) {
                 state.diagnostic=GetTickCount64();Root paused(ba::call(manager(),"GetAnyAIPaused"));

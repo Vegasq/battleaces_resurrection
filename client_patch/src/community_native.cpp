@@ -312,7 +312,8 @@ static void update(Obj front) {
     while(!ba_community::events.empty()) {
         auto event=std::move(ba_community::events.front());ba_community::events.pop_front();
         if(const auto* ack=std::get_if<wire::Ack>(&event)) {
-            if(!ba_public::acknowledge(front,*ack) && !ba_client::acknowledge(*ack) && !ba_practice::acknowledge(front,*ack) && !ba_community_match::acknowledge(front,*ack) && !ba_community_invites::acknowledge(front,*ack))acknowledge(front,*ack);
+            const bool publication=ba_client::acknowledge(*ack);
+            if(!ba_public::acknowledge(front,*ack) && !ba_practice::acknowledge(front,*ack) && !ba_community_match::acknowledge(front,*ack) && !ba_community_invites::acknowledge(front,*ack) && !publication)acknowledge(front,*ack);
             ba_community_invites::flush(front);project(front);
         }
         else if(const auto* snapshot=std::get_if<wire::Lobby>(&event)){authority=*snapshot;ba_community_match::snapshot(front);ba_community_invites::flush(front);project(front);}
