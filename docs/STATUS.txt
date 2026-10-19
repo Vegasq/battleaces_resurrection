@@ -2,6 +2,28 @@ IMPLEMENTATION LEDGER
 Updated: 2026-10-19 UTC
 Active objective: implement SERVER_REPLACEMENT_PLAN.txt, Windows only.
 
+BUNDLED RUNNING RECOVERY32 (2026-10-19 UTC, BOUNDED PASS)
+Unchanged clean30 host/two bundled clients pass154.033s:both original human
+build callbacks queue at300/400,then real TLS disconnect at authoritative603
+after both receive600. Each interrupted prefix has603 exact receipt frames/
+62 matching observable-state samples. Native victim modal/deferred cleanup,
+survivor authoritative abort,capacity/worker release and separate original Play
+produce a replacement in the same PIDs47524/17656. Survivor keeps its session;
+victim reconnects once. Seat swap preserves names/decks/full loadouts;replacement
+1220 exact frames/122 matching samples each,build/results/Continue/original Quit,
+both game/launcher exits0 pass. Aborted worker45564 exits1 with exact expected
+CancelledError after an in-flight request is cancelled;original audited abort/
+worker release and reaping qualify ONLY that injected running worker. Health/
+replacement33612/11256 exit0. Host listener/state lock release,three outer jobs
+active0/terminated0,no forced harness/native-game cleanup. Both profiles retain
+identical603-frame aborted and1220-frame completed native recordings;structural
+readback does not claim abort playback. Seven unchanged/non-disclosure checks
+pass. First202-frame run remains failed for overly strict worker-exit checker;
+fresh deeper run passes after exact cancellation admission. Python514 tests
+500pass/14skip,101.114s plus18 focused checks pass. No shipping/helper/package
+changes;protected deployment/full-team/Custom/rematch/manual/Internet gates
+remain open. Exact evidence and cancellation boundary in packaged-multiplayer.txt.
+
 BUNDLED TWO-HUMAN2vAI31 (2026-10-19 UTC, BOUNDED PASS)
 Unchanged clean30 bundled host/two clients pass native mode5 in112.839s:human
 seats0/2,server-owned bot seats1/3 with original native profiles60/60,distinct

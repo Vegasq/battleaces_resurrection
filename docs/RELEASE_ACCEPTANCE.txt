@@ -15,6 +15,22 @@ actions. Current native settings saves use staged handle publication. See
 ordinary-player-client.txt for reports,retained failures and remaining matrix.
 These controls do not close the final/manual/clean-machine/Internet gates below.
 
+Bundled running-disconnect32 qualification
+Clean30 host/two bundled clients pass154.033s after both original build callbacks
+queue. Real TLS fault at603 interrupts603 exact frames/62 matching sampled states
+per client;native cleanup/worker-capacity release precede separately gated original
+Play and same-process replacement1220 exact frames/122 matching samples each.
+Survivor keeps session,only victim reconnects;seat swap preserves names/decks/full
+loadouts. Original results/Continue/Quit and both game/launcher exits0 pass. Exact
+CancelledError/exit1 qualifies ONLY the deliberately aborted running worker with
+matching authoritative abort/release/reaping;health/replacement workers exit0.
+Host listener/state lock release,jobs active0/terminated0,no forced native-game/
+harness cleanup. Aborted603-frame and completed1220-frame native recordings are
+retained/structurally checked;no aborted playback claim. Python514 tests500pass/
+14skip pass. Shipping/helper/package bytes unchanged;credential fixtures remain
+explicit,not protected deployment. Full-team/Custom/rematch/broader fault/manual/
+clean-PC/Internet gates stay OPEN;see packaged-multiplayer.txt.
+
 Bundled two-human2vAI31 qualification
 Clean30 host/two bundled clients pass mode5 in112.839s:human seats0/2 and two
 original native AI profiles60/60 in seats1/3 with distinct names/decks. Configured

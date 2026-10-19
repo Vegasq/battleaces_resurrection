@@ -25,9 +25,16 @@ Current release integration order (2026-10-19)
   original native bot profiles60/60 in seats1/3 with distinct names/decks,1250
   exact frames/126 matching samples per client,results/Continue/original Quit,
   all exits0/jobs active0/no forced cleanup. Completed native replays agree.
-  Next packaged fault control is RUNNING disconnect/retry,including recorded
-  authoritative prefixes and completed replacement in the same native processes.
-  Remaining packaged full-team/Custom/rematch/running disconnect/retry,CMD/manual,
+  Running disconnect/retry32 now passes after original builds on both clients:
+  interrupted603 exact frames/62 matching samples each,old worker/capacity release,
+  then same-process replacement1220 exact frames/122 matching samples each and
+  original results/Continue/Quit. Only victim reconnects;seat swap preserves human
+  names/decks/full loadouts. Aborted worker's exact CancelledError/exit1 is allowed
+  only with matching authoritative abort/release and completed resource reaping;
+  health/replacement workers and games/launchers exit0. This is intentional
+  running-request cancellation,not a claim of graceful exit0 for aborted workers.
+  Next qualify packaged full-team and human-only Custom/invite/rematch paths.
+  Remaining packaged full-team/Custom/rematch,broader fault matrix,CMD/manual,
   protected credential/SCM/clean-PC/Internet/capacity gates remain open. See
   packaged-multiplayer.txt;do not mistake credential fixtures for real enrollment.
 - Complete native replay format/playback compatibility. Diagnostic25 invokes

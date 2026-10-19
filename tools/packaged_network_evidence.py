@@ -72,13 +72,47 @@ def validate(events,clients,*,mode,ticket=1):
 
 
 def validate_loading_recovery(events,clients,*,fault):
-    require(fault['stage']==fault['room_state']=='loading' and fault['next_frame']==0 and fault['loaded']==[],
-            'fault did not occur before loading finished/frames began')
+    return _validate_recovery(events,clients,fault=fault,stage='loading')
+
+
+def validate_running_recovery(events,clients,*,fault):
+    return _validate_recovery(events,clients,fault=fault,stage='running')
+
+
+def validate_worker_shutdown(workers,events,*,fault=None):
+    """Allow only a reaped, audited cancellation of the deliberately aborted worker."""
+    result=[]
+    for worker in workers:
+        normal=worker['exit_code']==0 and worker['failure'] is None
+        aborted=[e for e in events if e['event']=='match_aborted' and fault and e.get('match')==fault['match']]
+        released=[e for e in events if e['event']=='worker_released' and fault and
+                  e.get('match')==fault['match'] and e.get('worker_pid')==worker['pid']]
+        cancelled=bool(fault and fault['stage']=='running' and worker['pid']==fault['worker_pid'] and
+                       worker['exit_code']==1 and worker['failure']=='CancelledError: ' and len(aborted)==len(released)==1 and
+                       not any(e['event']=='match_completed' and e.get('match')==fault['match'] for e in events))
+        require(worker['reaped'] and (normal or cancelled),'native worker failed outside the exact owned running-abort cancellation')
+        result.append(dict(pid=worker['pid'],exit_code=worker['exit_code'],expected_cancelled_request=cancelled,reaped=True))
+    return result
+
+
+def _validate_recovery(events,clients,*,fault,stage):
+    require(fault['stage']==fault['room_state']==stage,'fault occurred in the wrong match stage')
+    if stage=='loading':
+        require(fault['next_frame']==0 and fault['loaded']==[],'fault did not occur before loading finished/frames began')
+    else:
+        minimum=fault.get('after_frame',200)
+        require(minimum in (200,600) and fault['next_frame']>=minimum+1 and len(fault['loaded'])==2 and fault['loaded']==fault['peer_seats'],
+                'running fault preceded both loaded native clients/authoritative progress')
     old=fault['match'];created=[e for e in events if e['event']=='match_created']
     aborted=[e for e in events if e['event']=='match_aborted'];completed=[e for e in events if e['event']=='match_completed']
     require(len(created)==2 and len(aborted)==len(completed)==1 and created[0]['match']==aborted[0]['match']==old and
             created[1]['match']==completed[0]['match']!=old,'expected one aborted match and one distinct completed replacement')
-    require(not any(e['event']=='frame_queued' and e.get('match')==old for e in events),'loading abort advanced authoritative simulation')
+    frames=[e for e in events if e['event']=='frame_queued' and e.get('match')==old]
+    if stage=='loading':require(not frames,'loading abort advanced authoritative simulation')
+    else:
+        require(len(frames)>=fault['next_frame'] and [e['frame'] for e in frames]==list(range(len(frames))),
+                'running abort authoritative prefix missing/out of order')
+    prefix_proofs=[]
     offers=[e for e in events if e['event']=='public_match_offered'];entries=[e for e in events if e['event']=='public_queue_entered']
     require(len(offers)==2 and len(entries)==4 and sorted(e['ticket'] for e in entries)==[1,1,2,2],'recovery duplicated or bypassed public queue tickets')
     released=[e for e in events if e['event']=='worker_released' and e.get('match')==old]
@@ -86,7 +120,26 @@ def validate_loading_recovery(events,clients,*,fault):
             released[0]['perf_counter_ns']<created[1]['perf_counter_ns'],'replacement began before the old worker released')
     for index,row in enumerate(clients):
         log=row['initial_log'].replace('\r','');whole=row['full_log'].replace('\r','')
-        require(not row['initial_receipts'],'aborted loading match delivered authoritative frames')
+        if stage=='loading':require(not row['initial_receipts'],'aborted loading match delivered authoritative frames')
+        else:
+            receipt=row['initial_receipts'];hashes={e['frame']:e['frame_payload_sha256'] for e in frames}
+            require('Offline world ready;' in log and minimum+1<=len(receipt)<=len(frames) and
+                    [int(r['frame']) for r in receipt]==list(range(len(receipt))),
+                    'running native client did not play a complete authoritative prefix')
+            require(all(r['pid']==str(row['pid']) and r['match']==old and r['sha256']==hashes[int(r['frame'])] for r in receipt),
+                    'running native receipt prefix differs from authoritative host')
+            expected={(e['frame'],e['viewer']):e for e in events if e['event']=='native_snapshot' and e.get('match')==old}
+            sample={(int(r['frame']),int(r['viewer'])):r for r in row['initial_audit']}
+            common=sample.keys()&expected.keys()
+            require(len(common)>=5 and all(sample[k]['canonical_fnv1a64'].lower()==expected[k]['canonical_fnv1a64'] for k in common),
+                    'running native prefix lacks matching observable-state samples')
+            prefix_proofs.append(dict(pid=row['pid'],received_frames=len(receipt),common_state_samples=len(common)))
+            if minimum>=600:
+                builds=re.findall(r'LAN NORMAL BUILD smoke frame(\d+) slot(\d+)[^\n]*queued=1 commandQueueDelta=1',log)
+                assignment=re.findall(r'Public match assignment: ticket=1 [^\n]*seat=(\d+) ',log)
+                require(len(builds)==len(assignment)==1 and int(builds[0][1])==int(assignment[0]) and
+                        int(builds[0][0])==300+100*int(assignment[0]),'running disconnect preceded original native human build')
+                prefix_proofs[-1]['native_build_frame']=int(builds[0][0])
         require(log.count('Client world acquired:')==log.count('owner=remote nativeIdle=1')==1 and
                 whole.count('Client world acquired:')==whole.count('owner=remote nativeIdle=1')==2,'recovery leaked or duplicated a native world')
         require(log.count('Public search intent:')==1 and whole.count('Public search intent:')==2 and
@@ -108,16 +161,22 @@ def validate_loading_recovery(events,clients,*,fault):
             require(f'Public native return: ticket=1 match={old} aborted=1 nativeIdle=1' in log and
                     whole.count('PUBLIC QUEUE completed return:')==2 and 'Dedicated Reconnect callback queued:' not in whole,
                     'survivor failed authoritative abort or reconnected unnecessarily')
-    return dict(aborted_match=old,replacement_match=completed[0]['match'],aborted_authoritative_frames=0,
+    result=dict(aborted_match=old,replacement_match=completed[0]['match'],aborted_authoritative_frames=len(frames),
                 retired_worker_pid=fault['worker_pid'],native_worlds_per_client=2,same_native_processes=True)
+    if stage=='running':result['aborted_clients']=prefix_proofs
+    return result
 
 
-def validate_replays(files,*,frozen,frames,loading_abort=False):
-    """Keep original zero-frame abort output distinct from completed gameplay."""
+def validate_replays(files,*,frozen,frames,loading_abort=False,running_abort_frames=None):
+    """Keep original aborted recordings distinct from completed gameplay."""
     import zlib
     from server.protobuf_wire import parse_fields,get_uint
     from tools.verify_native_storage import replay_evidence
-    require(len(files)==(2 if loading_abort else 1),'native replay file count differs from completed/aborted attempts')
+    running=running_abort_frames is not None
+    require(not running or not loading_abort and type(running_abort_frames) is int and running_abort_frames>=201,
+            'running replay prefix bound invalid or incompatible with loading abort')
+    recovering=loading_abort or running
+    require(len(files)==(2 if recovering else 1),'native replay file count differs from completed/aborted attempts')
     completed=[];aborted=[]
     for raw in files:
         proof=replay_evidence(raw,allow_empty_actions=loading_abort)
@@ -125,12 +184,18 @@ def validate_replays(files,*,frozen,frames,loading_abort=False):
             require(loading_abort and proof['game_data_sha256']==frozen[0]['game_data_sha256'],
                     'zero-frame replay does not belong to the original loading-aborted match')
             aborted.append(proof);continue
-        require(proof['input_action_messages']==frames and proof['game_data_sha256']==frozen[-1]['game_data_sha256'],
-                'completed replay differs from the authoritative replacement recording')
+        initial=running and proof['game_data_sha256']==frozen[0]['game_data_sha256']
+        if initial:
+            require(1<=proof['input_action_messages']<=running_abort_frames,'aborted replay exceeds received native frame prefix')
+        else:
+            require(proof['input_action_messages']==frames and proof['game_data_sha256']==frozen[-1]['game_data_sha256'],
+                    'completed replay differs from the authoritative replacement recording')
         # The bounded structural reader above already admits this exact stream.
         data=zlib.decompress(raw,-zlib.MAX_WBITS)
         actions=[f.value for f in parse_fields(data,max_bytes=16*1024*1024,max_fields=16384) if f.number==2]
-        require(all(get_uint(action,1)==index for index,action in enumerate(actions)),'completed native replay frames are not contiguous')
-        completed.append(proof)
-    require(len(completed)==1 and len(aborted)==int(loading_abort),'native replay roles are missing or duplicated')
-    return dict(completed=completed[0],aborted_loading=aborted[0] if aborted else None,files=len(files))
+        require(all(get_uint(action,1)==index for index,action in enumerate(actions)),'native replay frames are not contiguous')
+        (aborted if initial else completed).append(proof)
+    require(len(completed)==1 and len(aborted)==int(recovering),'native replay roles are missing or duplicated')
+    result=dict(completed=completed[0],aborted_loading=aborted[0] if loading_abort else None,files=len(files))
+    if running:result['aborted_running']=aborted[0]
+    return result

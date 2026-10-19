@@ -1,5 +1,83 @@
 BUNDLED SERVER / NATIVE MULTIPLAYER QUALIFICATION -- 2026-10-19
 
+Native32 running disconnect / built-world replacement (BOUNDED PASS)
+Existing clean30 packages/helper remain unchanged. --recover-running now waits
+for BOTH clients to receive frame600;server additionally requires loaded seats
+equal the two live peer seats and room.state=running,next frame>=601. Each native
+initial log must contain its exact original human build at300+100*seat with
+queued=1/commandQueueDelta=1. Optional owned --disconnect-after-frame=200 retains
+the smaller early-running diagnostic;default600 qualifies the built-world case.
+Ordinary player launch never adds these diagnostics or automatic retry gates.
+
+Actual control passes154.033s. Both clients receive600 before parent requests
+the real victim TLS peer close;server injects at603. Both native PIDs47524/17656
+receive all603 interrupted authoritative frames with exact payload hashes and
+62 matching canonical observable-state samples each. Original build callbacks
+queue at300/400. Victim original modal OnConfirm stays owned during callback,
+releases on a later update and resets its session/world/intent. Survivor receives
+authoritative abort without reconnecting. Old worker_released precedes creation
+of replacement;parent waits for zero queue/room/retired/worker cleanup capacity
+and only the survivor session before releasing separate original Play. Same two
+native processes acquire/release exactly two worlds;only victim re-reads its
+fixture/reconnects. Survivor Session object identity remains unchanged.
+
+Replacement swaps human seats and retains configured names,independent selected
+decks/full loadouts. Both original build callbacks queue again at their new seat
+frames. Both clients receive all1220 authoritative frames with exact hashes and
+122 matching observable-state samples each. Native search-to-offer313ms each,
+server-entry waits0.220275s/0.000104s. Original diagnostic concession at1200,
+results/Continue/gated idle menu Quit and both game/launcher exits0 pass. Host
+original cancellation cleanup closes listener/releases state lock. Three outer
+jobs active0/terminated0 before close,no forced harness/native-game cleanup.
+All seven unchanged/non-disclosure checks pass;test PKI removed. Existing
+original/frozen/manual24 copies and ordinary launch remain unchanged.
+local/packaged-recovery32-running02/verification.json SHA256
+15ce2f606f025843362c8c6bf357fa5e614762fa5fea31bc4730019c9a3e85c5
+
+Worker cancellation admission is precise. Production SimulationWorker._exchange
+catches cancellation of an in-flight IPC request,records 'CancelledError: ',
+calls its original abort path and re-raises. Room cleanup reaps/releases that
+worker. It is not a graceful worker exit0. Here aborted45564 exits1 with exactly
+that failure;health33612 and replacement11256 exit0/no failure. Parent admits
+exit1 ONLY for fault.stage=running,the exact injected worker PID,exact cancellation
+text,one matching authoritative match_aborted/worker_released,no completed result
+for that aborted match,and fully reaped resources. All other failures/unreaped
+children reject. External server driver records reaping;parent qualifies exits
+against the original host audit journal. This preserves production cancellation
+semantics rather than relabeling every nonzero exit as successful shutdown.
+
+Both profiles retain two identical native recordings:603-frame interrupted and
+1220-frame completed. Each structural GameData hash matches its own authoritative
+frozen worker. Both frame-number sequences are contiguous;interrupted recording
+must be nonempty and cannot exceed that client's received prefix. Buffered frames
+need not all have reached the original native writer before abort. This is
+structural compatibility/readback,not aborted native playback qualification.
+Interrupted replay SHA256
+a727a4c5340f8b439e74dec84c095ce6a82bde465e56606b8b85ba0dc7571adb
+Completed replay SHA256
+6bbbd2432693d1c9de461ad10115fbe306c11b23c8d9eee04461ad34582891a6
+
+Retained running01 remains FAILED132.324s,not reclassified. It dropped at202 and
+completed replacement/native Quits,but old driver incorrectly required aborted
+worker42612 to exit0. Actual original cancellation records exact CancelledError,
+exit1,reaped;all outer jobs active0/terminated0,no forced harness cleanup. The
+master's broad 'host did not stop through original cleanup' message reflects
+driver assertion failure AFTER original host cancellation returned,not proof
+that host cleanup hung. Exact running cancellation admission above and negative
+tests fix the checker;fresh running02 additionally raises the fault to600 and
+requires original builds in both worlds. First report SHA256
+5434580aa184ab8bfa033dc4ea8641d5cf10fd3a7e55debbe1c92a7b64bbb9a3
+First server-driver report SHA256
+9a8277a0229ee5b2e37a3172b8a0ec323a8be025c594fd7e2865ae7eb1b37ac8
+
+Eighteen focused evidence/adapter/storage checks pass. Full Python514 tests
+500pass/14skip,101.114s,exit0 pass. Shipping source/helper/packages unchanged;
+helper30 eleven C++ programs/six atomic boundaries remain its build evidence.
+Same stdin-only fixture/DACL boundary below applies. Full-team/Custom/rematch,
+broader fault matrix,actual CMD/manual/protected deployment/SCM/clean-PC/Internet/
+capacity gates remain open. Sampled observable state is not independent full
+hidden-state determinism,rendered pixels,physical input or combat measurement.
+
 Native31 two-human2vAI (BOUNDED PASS)
 Existing clean30 packaged host/two independent bundled clients/helper pass
 mode5 in112.839s. Human seats0/2 retain configured names,independent native decks
@@ -173,7 +251,9 @@ Required native evidence
 - Completed return precedes the explicit gate and original idle Quit. Exact
   native five-event Quit trace,game+launcher exits0,and zero active owned job
   descendants BEFORE close are required. The host listener must close,its state
-  lock must release,and health/match workers must exit0 without failure.
+  lock must release,and health/completed-match workers must exit0 without failure.
+  Injected running-abort cancellation has ONLY the exact audited exception
+  described in Native32 above;no other worker failure qualifies.
 - Profile-local native TOML and structurally valid replay are retained. Three
   named shared TOML/replay/backup inventories,config,adapters,packages,assets and
   bound source remain unchanged. Source/game assets/keys/private captures never

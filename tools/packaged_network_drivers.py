@@ -39,7 +39,7 @@ def server(*args,**kwargs):
                 roster=[dict(slot=p.slot,name=p.name,ai_profile_id=p.ai_profile_id) for p in match.roster],
                 decks={slot:list(deck) for slot,deck in match.decks_by_slot.items()},
                 full_loadout_seats=sorted(room.full_loadout_seats)))
-            if request.get('recover_loading') and len(report['frozen_matches'])==2:
+            if request.get('recover_stage') and len(report['frozen_matches'])==2:
                 victim,survivor=(p['player_id'] for p in fixture['identities'])
                 report['recovery_sessions']=dict(survivor_retained=value.community.sessions[survivor] is old_sessions[survivor],
                     victim_replaced=value.community.sessions[victim] is not old_sessions[victim])
@@ -49,17 +49,21 @@ def view():
     value=servers[0]
     return dict(rooms=len(value.rooms),retired=len(value.retired),entries=len(value.community.public.entries),
                 offers=len(value.community.public.offers),cleanup=len(value.worker_cleanup),sessions=len(value.community.sessions))
-def inject_loading_disconnect():
+def inject_disconnect():
     command=output/'server-disconnect.json'
-    if not request.get('recover_loading') or report.get('fault') or not command.exists():return
+    stage=request.get('recover_stage')
+    if not stage or report.get('fault') or not command.exists():return
     victim,survivor=(p['player_id'] for p in fixture['identities'])
     assert json.loads(command.read_bytes())==dict(player=victim)
     value=servers[0];session=value.community.sessions[victim];peer=session.peer;room=peer.room
-    assert room and room.state=='loading' and not room.loaded and room.frame==0 and len(room.peers)==2
+    assert room and len(room.peers)==2 and not peer.closed
+    if stage=='loading':assert room.state=='loading' and not room.loaded and room.frame==0
+    else:assert stage=='running' and room.state=='running' and room.loaded==set(room.peers) and room.frame>=request['disconnect_after_frame']+1
     assert len(report['frozen_matches'])==1 and room.sim is not None
     old_sessions.update({p:value.community.sessions[p] for p in (victim,survivor)})
-    report['fault']=dict(stage='loading',match=room.match_id,victim=victim,victim_seat=peer.slot,worker_pid=room.sim.pid,
-                        room_state=room.state,next_frame=room.frame,loaded=sorted(room.loaded))
+    report['fault']=dict(stage=stage,match=room.match_id,victim=victim,victim_seat=peer.slot,worker_pid=room.sim.pid,
+                        room_state=room.state,next_frame=room.frame,loaded=sorted(room.loaded),peer_seats=sorted(room.peers))
+    if stage=='running':report['fault']['after_frame']=request['disconnect_after_frame']
     publish('server-fault.json',report['fault']);peer.close()
 async def run():
     config=load_config(request['config']);assert config.listen_host=='127.0.0.1' and not config.allow_insecure_loopback
@@ -73,7 +77,7 @@ async def run():
         while not (output/'server-stop').exists():
             if running.done():await running;raise AssertionError('host ended before explicit stop')
             assert time.monotonic()-began<request['timeout'],'owned host deadline'
-            if ready:inject_loading_disconnect();publish('server-live.json',view())
+            if ready:inject_disconnect();publish('server-live.json',view())
             await asyncio.sleep(.1)
     finally:
         running.cancel()
@@ -85,10 +89,12 @@ async def run():
             reaped=worker.process.poll() is not None and worker._cleanup_task is not None and worker._cleanup_task.done() and not worker._stderr_thread.is_alive(),
             executable=worker.process.args[0],module_root=worker.process.args[7],game_data_sha256=worker.game_data_sha256,
             simulation_sha256=worker.dll_sha256,ai=worker.ai_info))
-    recovering=request.get('recover_loading',False)
+    recovering=bool(request.get('recover_stage'))
     expected=[p['player_id'] for p in fixture['identities']]+([fixture['identities'][0]['player_id']] if recovering else [])
     assert ready and len(servers)==1 and len(stores)==1 and sorted(authenticated)==sorted(expected)
-    assert len(workers)==(3 if recovering else 2) and all(row['exit_code']==0 and not row['failure'] and row['reaped'] for row in report['workers'])
+    # Parent qualifies exact native worker exit/cancellation against the original
+    # host audit journal. This driver only claims every child has been reaped.
+    assert len(workers)==(3 if recovering else 2) and all(row['reaped'] for row in report['workers'])
     if recovering:assert report.get('fault') and report['recovery_sessions']==dict(survivor_retained=True,victim_replaced=True)
     assert all(Path(row['executable']).resolve()==(package/'program/runtime/python.exe').resolve() for row in report['workers'])
     assert all(Path(row['module_root']).resolve()==(package/'program/app').resolve() for row in report['workers'])
@@ -140,7 +146,7 @@ def spawn(config,remote,options,child):
         '-lan-smoke','-lan-audit','-dedicated-rematch-smoke','-dedicated-surrender-smoke','-dedicated-surrender-frame=1200',
         '-public-team-surrender-smoke','-match-search-smoke','-native-quit-smoke','-native-quit-mode=confirm','-native-quit-gate-smoke']
     if request['index']==1:diagnostic.append('-public-queue-smoke-edit-deck')
-    if request.get('recover_loading'):
+    if request.get('recover_stage'):
         diagnostic.extend(['-public-queue-smoke-retry','-public-queue-smoke-retry-gate','-public-team-retry-smoke'])
         if request['index']==0:diagnostic.append('-dedicated-recovery-smoke')
     command.extend(diagnostic)
@@ -164,7 +170,7 @@ try:
     report['launcher_exit_code']=client.main(['--config',request['config']])
     report['game_exit_code']=None if process is None else process.poll()
     assert report['launcher_exit_code']==report['game_exit_code']==0
-    expected=2 if request.get('recover_loading') and request['index']==0 else 1
+    expected=2 if request.get('recover_stage') and request['index']==0 else 1
     assert report['invite_reads']==report['tls_connections']==expected
     report['passed']=True
 except BaseException as error:report.update(error=repr(error),traceback=traceback.format_exc())

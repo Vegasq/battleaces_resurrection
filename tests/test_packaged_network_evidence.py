@@ -3,7 +3,7 @@ import hashlib
 import unittest
 import zlib
 from server.protobuf_wire import field_bytes,field_uint
-from tools.packaged_network_evidence import validate,validate_loading_recovery,validate_replays
+from tools.packaged_network_evidence import validate,validate_loading_recovery,validate_running_recovery,validate_replays,validate_worker_shutdown
 from tools import packaged_network_drivers as drivers
 
 
@@ -136,3 +136,71 @@ class PackagedNetworkEvidenceTests(unittest.TestCase):
         with self.assertRaises(AssertionError):validate_replays([empty,complete],frozen=frozen[::-1],frames=1,loading_abort=True)
         wrong=compress(field_bytes(1,new)+field_bytes(2,field_uint(1,7)))
         with self.assertRaises(AssertionError):validate_replays([empty,wrong],frozen=frozen,frames=1,loading_abort=True)
+
+    def running_fixture(self,after_frame=200):
+        events,clients,fault=self.recovery_fixture();old=fault['match']
+        fault.update(stage='running',room_state='running',next_frame=after_frame+1,loaded=[0,1],peer_seats=[0,1],after_frame=after_frame)
+        events += [dict(event='frame_queued',match=old,frame=f,frame_payload_sha256=f'{f:064x}') for f in range(after_frame+20)]
+        events += [dict(event='native_snapshot',match=old,frame=f,viewer=s,canonical_fnv1a64=f'{f:016x}') for f in range(0,after_frame+1,20) for s in (0,1)]
+        for seat,row in enumerate(clients):
+            build=(f'Public match assignment: ticket=1 match={old} mode=1 count=2 seat={seat} humans=3 \n'
+                   f'LAN NORMAL BUILD smoke frame{300+100*seat} slot{seat} queued=1 commandQueueDelta=1\n') if after_frame>=600 else ''
+            row['initial_log']='Offline world ready; native fixture\n'+build+row['initial_log']
+            row['full_log']=row['initial_log']+row['log']
+            row['initial_receipts']=[dict(frame=str(f),sha256=f'{f:064x}',pid=str(row['pid']),match=old) for f in range(after_frame+1)]
+            row['initial_audit']=[dict(frame=str(f),viewer=str(seat),canonical_fnv1a64=f'{f:016x}') for f in range(0,after_frame+1,20)]
+        return events,clients,fault
+
+    def test_later_running_fault_requires_both_original_builds(self):
+        events,clients,fault=self.running_fixture(600)
+        proof=validate_running_recovery(events,clients,fault=fault)
+        self.assertEqual([r['native_build_frame'] for r in proof['aborted_clients']],[300,400])
+        clients[1]['initial_log']=clients[1]['initial_log'].replace('queued=1','queued=0')
+        with self.assertRaises(AssertionError):validate_running_recovery(events,clients,fault=fault)
+
+    def test_worker_exit_admission_requires_exact_audited_cancelled_fault(self):
+        events,_,fault=self.running_fixture()
+        worker=dict(pid=50,exit_code=1,failure='CancelledError: ',reaped=True)
+        self.assertTrue(validate_worker_shutdown([worker],events,fault=fault)[0]['expected_cancelled_request'])
+        self.assertFalse(validate_worker_shutdown([worker|dict(exit_code=0,failure=None)],events)[0]['expected_cancelled_request'])
+        for changed in (worker|dict(pid=51),worker|dict(failure='WorkerError: lost'),worker|dict(exit_code=2),worker|dict(reaped=False)):
+            with self.subTest(worker=changed),self.assertRaises(AssertionError):validate_worker_shutdown([changed],events,fault=fault)
+        for selected,case in ((events,None),(events,fault|dict(stage='loading')),
+                              ([e for e in events if e['event']!='worker_released'],fault),
+                              (events+[dict(event='match_completed',match=fault['match'])],fault)):
+            with self.subTest(fault=case),self.assertRaises(AssertionError):validate_worker_shutdown([worker],selected,fault=case)
+
+    def test_running_abort_requires_verified_authoritative_and_native_prefixes(self):
+        events,clients,fault=self.running_fixture();result=validate_running_recovery(events,clients,fault=fault)
+        self.assertEqual(result['aborted_authoritative_frames'],220)
+        self.assertEqual([r['received_frames'] for r in result['aborted_clients']],[201,201])
+        for change in (lambda c:c[0]['initial_receipts'][20].update(sha256='bad'),
+                       lambda c:c[0]['initial_receipts'][20].update(pid='bad'),
+                       lambda c:c[0]['initial_receipts'].pop(5),
+                       lambda c:c[1]['initial_audit'][0].update(canonical_fnv1a64='bad'),
+                       lambda c:c[0].update(initial_audit=[]),
+                       lambda c:c[0].update(initial_log=c[0]['initial_log'].replace('Offline world ready;','absent'))):
+            changed=copy.deepcopy(clients);change(changed)
+            with self.subTest(change=change),self.assertRaises(AssertionError):validate_running_recovery(events,changed,fault=fault)
+
+    def test_running_abort_rejects_wrong_stage_unloaded_roster_and_frame_gaps(self):
+        events,clients,fault=self.running_fixture()
+        for changed in (fault|dict(stage='loading'),fault|dict(next_frame=200),fault|dict(loaded=[0]),fault|dict(peer_seats=[0,2])):
+            with self.subTest(fault=changed),self.assertRaises(AssertionError):validate_running_recovery(events,clients,fault=changed)
+        changed=[e for e in events if not (e['event']=='frame_queued' and e.get('match')==fault['match'] and e['frame']==20)]
+        with self.assertRaises(AssertionError):validate_running_recovery(changed,clients,fault=fault)
+
+    def test_running_abort_replay_requires_nonempty_bounded_contiguous_prefix(self):
+        old=field_uint(1,10);new=field_uint(1,20)
+        def recording(game,frames):
+            raw=field_bytes(1,game)+b''.join(field_bytes(2,field_uint(1,f)) for f in frames)
+            stream=zlib.compressobj(wbits=-15);return stream.compress(raw)+stream.flush()
+        frozen=[dict(game_data_sha256=hashlib.sha256(game).hexdigest()) for game in (old,new)]
+        final=recording(new,range(600));initial=recording(old,range(195))
+        proof=validate_replays([initial,final],frozen=frozen,frames=600,running_abort_frames=201)
+        self.assertEqual(proof['aborted_running']['input_action_messages'],195)
+        self.assertIsNone(proof['aborted_loading']);self.assertFalse(proof['aborted_running']['native_playback'])
+        for initial in (recording(old,[]),recording(old,range(202)),recording(old,[0,2]),final):
+            with self.subTest(initial=len(initial)),self.assertRaises(AssertionError):
+                validate_replays([initial,final],frozen=frozen,frames=600,running_abort_frames=201)
+        with self.assertRaises(AssertionError):validate_replays([initial,final],frozen=frozen,frames=600,loading_abort=True,running_abort_frames=201)
