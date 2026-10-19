@@ -20,7 +20,10 @@ The new full packaged2v2 check catches a real legacy-path save failure despite
 successful gameplay/Quit. Ordinary24 fixes the scoped replay API spelling and
 clean-package2v2 now passes long replay save/structural decode,original100-file
 retention,results/Continue/native Quit/launcher exit0. Prototype2vAI101-file
-retention also passes. Native replay browsing/codec/playback is STILL OPEN.
+retention also passes. Native original-codec control25 additionally passes with
+3607 contiguous batches/build37822/read-only file identity/three stream disposals,
+same idle menu and both natural exits0. Negative codec controls and full native
+playback remain OPEN;this does not require inventing a new browser feature.
 Actual Start Client.cmd startup passes in clean package and independent manual24
 copy;physical input/audio/preferences feedback remains pending. Python488 tests
 pass474/14skip;eleven C++ programs/six atomic boundaries pass. See

@@ -4,6 +4,22 @@ Target: Battle Aces build 37822, Windows x64 server and clients.
 Status: IMPLEMENTATION ACTIVE. See STATUS.txt; incomplete phases remain future work.
 
 Current release integration order (2026-10-19)
+- Complete native replay format/playback compatibility. Diagnostic25 invokes
+  original codec methods against the pinned just-saved owned replay,after an
+  idle-menu check,and compares recorded-frame count to independent host decode.
+  It does not call stateful Replay.Load/Play;original Quit continues even after
+  diagnostic failure. Native positive control passes248.147s:3607 original
+  contiguous frame batches agree with host decode;30 setup actions/build37822,
+  three disposed streams,same idle menu and both natural exits0. Negative parser
+  controls remain pending;prototype package is explicitly dirty=true.
+  Separately qualify original ReplayFiles startup batch playback,including
+  setter/initialization/ticking and explicit batch Quit0. Do not enable batch
+  test actions in ordinary Start Client or invent a new replay browser scope.
+  See native-replay-validation.txt. Existing manual24/frozen copies unchanged.
+  Static06 identifies existing original Set<object>,typed getter readback and
+  existing initial-state seam;batch self-ticks at default16x/full LastFrame.
+  Implement guarded owned arming and verify actual playback;no new ordinary UI
+  or duplicated integration tick is justified by the retained evidence.
 - Packaged2v2 replay path regression is fixed and bounded qualification passes.
   Bundled1v1 now passes all measured gameplay/result/Continue/natural-Quit gates.
   Bundled2v2 finishes gameplay and Quit,but the original four-player replay

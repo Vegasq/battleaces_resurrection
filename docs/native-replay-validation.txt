@@ -1,0 +1,149 @@
+NATIVE REPLAY FORMAT / PLAYBACK QUALIFICATION -- 2026-10-19
+
+Scope
+Ordinary24 saves profile-local original Deflate/protobuf replays and preserves
+native100-file retention,including long Windows paths. Host structural decoding
+is independently verified,but it is not native parsing or simulation playback.
+This work closes those different evidence gaps without adding ordinary test
+actions or inventing a new replay browser requirement.
+
+Original-codec diagnostic25 (BOUNDED POSITIVE PASS)
+Explicit -native-replay-readback-smoke runs only inside the owned native Quit
+diagnostic,after one completed local test match and a validated idle menu. It
+selects the single newly saved replay under the pinned installation/profile;
+authored retention fixtures are excluded. A non-reparse,single-link,read-only
+file handle pins the exact leaf and canonical destination. Native FileStream's
+borrowed SafeHandle identity must match that pin;authored code never closes the
+borrowed handle. The normal original stream Dispose owns its lifecycle.
+
+Exact declaring class,assembly(where established),method token,argument count
+and original methodPointer select the original operations. This avoids choosing
+the wrong FileStream/DeflateStream overload with the same argument count.
+All managed objects crossing allocations/invocations are strongly rooted.
+Original runtime_invoke captures managed exceptions;void constructors and
+ReadRawMessage normally return null and do not imply failure.
+
+Original FileStream -> DeflateStream -> CodedInputStream.ReadRawMessage decodes
+into generated GamePb.Replay. This never calls Uncapped.Replay.Load or Play.
+The original CodedInputStream.CreateWithLimits factory supplies diagnostic
+16MiB/64 policy values;actual original getters must agree. These are diagnostic
+bounds,not a change to the ordinary replay format or a universal resource limit
+guarantee. Compressed input is separately bounded4MiB. Exact factory evidence
+confirms positive checks and ownership,not every limit-enforcement branch.
+
+The generated graph must include GameData/GameConfig/build37822 and nonempty
+setup actions. Recorded batches must be nonempty/bounded and each original
+GameFrame getter must equal its zero-based index. At least one frame has recorded
+player batches. Native logical count must equal the independently decoded saved
+file's message count;native canonical path length must match the actual file.
+Closed repeated-field getters are invoked on their runtime class;open-generic
+metadata offsets0 are not used. Reverse original disposal must complete for
+coded/deflate/file streams;repeated/cascading Dispose is runtime qualification.
+On diagnostic failure,report it and continue the original Quit check. Revalidate
+the same idle menu before/after reading. A parsing failure cannot qualify the
+readback simply because Quit succeeds.
+
+Ordinary launches never add the flag. Current helper25 production gameplay and
+storage behavior otherwise match24. Existing manual24/frozen/original copies
+are unchanged. The initial prototype package is explicitly dirty=true and is a
+test artifact;it is not a newly promoted community release.
+
+Three authored validator tests plus existing native-Quit/job tests pass10 checks,
+0.061s. Wrong counts/frame endpoints/path/build/disposal/identity flags,duplicates,
+failure markers and reordered lifecycle witnesses are rejected. Required native
+negative readback and playback controls remain pending.
+
+Native positive control25 PASSES248.147s
+The bundled unified client plays one public2v2 local fallback using normal player
+options before an explicit authored gameplay/Quit/readback adapter adds its test
+flags. Original public search,three independently moving bots,result,Continue
+and validated idle menu complete. Original codec reads the SAME original file:
+289-character canonical path with a non-ASCII native player name,67033 compressed
+bytes,548192 independent decoded bytes. Both decoders agree on3607 recorded
+batches;native GameFrame getters are contiguous0..3606. Native setup has30 actions,
+697 frames have player batches,build37822. Actual original parser getters report
+16MiB/64. All three original stream Dispose calls return normally,including
+cascading/repeated Close;exact borrowed FileStream identity matches the read pin.
+The SAME idle menu validates again after decode. Original menu Quit and bundled
+launcher both exit0;game exits1.671s after Confirm,owned job total2/active0/
+terminated0 before close,no forced cleanup. Config/package/source/three named
+shared inventories are unchanged. No high-level Load/Play call occurs.
+This is native CODEC acceptance only;native playback/desync is still unproved.
+local/replay-reader25-mode2-01/verification.json SHA256
+cbaf0017fc3a017dd7dfdea50ba2f06bc7eda7e79634cf0ea1d1b3fa7006bfca
+Native saved replay SHA256
+04607f1cbc6f9343b465d729502af2bfb06f49d4dd053862d4a39015657ec36d
+Helper25 SHA256
+1d482f32a4233e7e93bc1c8322bfc08df02f3d20b88d52fef74e2108909d6eb5
+Source-bound build receipt SHA256
+9101a50823ecb7409bff5d45bb0ad03aa562b3aa43029787b835985660ec19f4
+Eleven C++ programs/six atomic boundaries pass. Full Python491 tests pass477/
+14skip,106.855s,explicit exit0. Private prototype package is built from
+e8e5f4b plus exact recorded uncommitted source,dirty=true. Its actual imported
+production modules and helper are hash/inventory-bound;this does not qualify
+an unbuilt clean archive or replace the current independent manual24 candidate.
+Client67 files13068578 bytes,archive SHA256
+230f9448ead0c87782a7eff67c2d1d6f622415930986b497405674e7564f97ff
+Server82 files12427771 bytes,archive SHA256
+fe987a8ee761be19b2a0d7265042b9bfca61675b2ffb845b6446c4c9fb89f507
+build-report.json SHA256
+ae0d15af9cc8d4e0b5b1e2075fe39ba81186a11a3936720dc052c64d35824f74
+
+Retained original-code evidence (private,ignored)
+local/native-replay-reader-contract03/FINDINGS.txt SHA256
+074e9f33c1223f5d05dbd1dc86a3b89822234fd160a339002481fe7c2f9138e4
+local/native-replay-codec-limits05/FINDINGS.txt SHA256
+c68fca54ed12bc71fc11cd2e785c1542d0c30b9456d545cd3ca0b2b296bb9949
+local/native-replay-browser-contract04/FINDINGS.txt SHA256
+c5d5945eea8c38c48980d1b34a9fd31dd93d679155f03fe55881beffd4f4a4af
+Original primary GameAssembly SHA256
+e59d08c01479b27404778048d7e13546dbf3771f6b3912744c7c2bdf80c4e758
+Metadata SHA256
+b760be9190309b14174cd272e1f83b730181b299bc7a0cdca66985c69dcdc57d
+The available retained IL2CPP/LLVM original-byte fallback is used;the previously
+diagnosed unavailable native REA provider is not repeatedly reconfigured.
+
+Native playback next
+The original high-level LoadReplayFromFile/LoadFromStream intentionally changes
+playback/world state,so it is unsuitable for the decoder-only diagnostic above.
+Static browser review finds startup ReplayFiles and ReplaySmokeTest routes
+sharing a batch coroutine. That coroutine performs original decode/Load/Play and
+quits after the batch. Existing in-game replay controls manage an already loaded
+replay;no ordinary disk browser has been established by this bounded scan.
+Explicit ReplayFiles paths combine with Application.streamingAssetsPath(),not
+shared AppData;original Path.Combine returns an absolute second path unchanged.
+Do not replace the global application path or enable batch actions in Start
+Client. A guarded explicit startup diagnostic may use this original route once
+the exact native variable setter/initialization seam is qualified. It must keep
+the batch's Quit semantics explicit and capture owned logs/outputs only.
+Runtime full playback/desync/rendering and malformed-input cleanup remain open.
+Absence of a discovered original browser does not require authoring a new
+player-facing feature beyond the user's roadmap.
+
+Startup arming contract06 (STATIC ONLY)
+Existing original Variable.Set<object> is already AOT-compiled (spec277631,
+native1279a80),unlike an unobserved Set<string[]> instantiation. Reflect the
+original generic definition into that existing closed method,verify method
+identity,then pass a strongly rooted string[] and persistent=false. Original
+setter retains GC barriers/callbacks,preserves _varToSave,and typed Get<string[]>
+must read back the array. OnChanged may throw AFTER live mutation;exception-out
+does not prove rollback. Require fresh owned startup scope and fail closed rather
+than continue ordinary startup after partial diagnostic arming.
+
+The existing authored OfflineInitialUpdate hook already receives the initialized
+singleton before its first state transition. An explicit diagnostic may select
+the original existing owner._rgameReplayFileState(+308) through the same native
+FSM transition after validated variable setup;do not create an unrelated state
+or change it after the menu has begun. Absolute extended profile filename is
+returned unchanged by original Path.Combine. Preserve owned consoleLogPath.
+
+Require original default ReplayStartFrame/EndFrame=-1;ReplaySmokeTest,AISmokeTest,
+PerfTest,ProfilingOutput,PlayModeTest,DPSTest,forceCrashGame false;marker string
+empty. In that noncapture branch original batch drives its own replay FSM and
+uses full LastFrame at16x when ProfilingOutput=false,then native Quit0. Do not add
+another tick because authored code replaced integration ProcessUpdate:batch
+already self-ticks. Integration field+1a0 is _isSpectator,not a replay flag.
+These static corrections prevent unqualified field/ticking guesses from entering
+source. Reflection/callback/startup/full playback/exit still need runtime proof.
+local/native-replay-arming-contract06/FINDINGS.txt SHA256
+15884126766716bc9605dee2a2b82db12185789816dc3facfd45586afa64bcfb

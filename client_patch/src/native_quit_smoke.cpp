@@ -133,6 +133,10 @@ static void update(Obj front) {
             probe=std::make_unique<Probe>(menu.get(),main.get(),pool.get(),owner.get(),show.get(),quit.get(),model.get(),navigation.get());
             validateMain(front);clickTarget(button.get(),show.get(),"Show");
             require(navCount(navigation.get())==0 && !ba_catalog::unbox<bool>(ba::call(show.get(),"get_IsShown")),"native Quit requires empty navigation and no prior dialog");
+            // Optional codec failure must not suppress the original Quit check.
+            try{ba_native_replay_reader::probe();}
+            catch(const std::exception& error){ba::log("NATIVE REPLAY codec readback failed: %s; originalQuitContinues=1",error.what());}
+            validateMain(front);
             arm();ba::log("NATIVE QUIT owned menu verified: profile=%s mode=%s navigationCount=0 assetLoadingCount=0 worldIdle=1 persistentTargets=1",
                 ba_native_settings::session->profile().c_str(),mode.c_str());
             if(mode=="inventory"){stage=4;ba::log("NATIVE QUIT inventory passed: callbacks=0");return;}

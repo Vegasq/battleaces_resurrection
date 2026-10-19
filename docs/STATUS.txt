@@ -2,6 +2,28 @@ IMPLEMENTATION LEDGER
 Updated: 2026-10-19 UTC
 Active objective: implement SERVER_REPLACEMENT_PLAN.txt, Windows only.
 
+NATIVE REPLAY CODEC / PLAYBACK (2026-10-19 UTC, PARTIAL PASS)
+Opt-in25 codec diagnostic uses original FileStream/Deflate/CodedInputStream and
+generated GamePb.Replay on the validated idle menu after one owned local match.
+Pinned read-only file identity,exact method tokens/entries,strong GC roots,
+original parser limit readback,contiguous frame records and reverse disposal
+are checked;no high-level Load/Play call is made. Failure is recorded separately
+and must not suppress original Quit. Native control PASSES248.147s:original and
+independent decoders agree on3607 contiguous recorded batches,30 setup actions,
+build37822,289-character Unicode file path;all three native stream disposals
+complete. Same idle menu validates afterward;game/launcher exit0,job active0
+before close,no forced cleanup,source/package/config/shared three channels
+unchanged. Prototype package is dirty=true and remains an explicit test artifact.
+Eleven C++
+programs/six atomic boundaries and Python491 tests477pass/14skip,106.855s pass.
+Original startup ReplayFiles batch route is being traced separately for actual
+playback compatibility. It ends with batch Quit and is not an ordinary browser.
+Its coroutine self-ticks the replay runner;do not add a second tick merely
+because the ordinary integration ProcessUpdate is replaced. Setter/readback/
+initialization arming and actual playback remain open,as do negative codec cases.
+No new player-facing browser is required by this bounded finding. Manual24 is
+unchanged. See native-replay-validation.txt for exact scope and retained evidence.
+
 PACKAGED PUBLIC MATRIX / LONG REPLAY PATH (2026-10-19 UTC, BOUNDED PASS)
 Bundled public1v1/helper22 passes179.126s:original search/fallback phases,
 named Hard bot supply94 and autonomous ordered movement,result/Continue/menu

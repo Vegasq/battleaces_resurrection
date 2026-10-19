@@ -29,6 +29,7 @@ from tools import verify_unified_startup as startup
 from tools.verify_native_storage import snapshot,replay_evidence
 from tools.local_ai_evidence import public_match,public_search
 from tools import replay_retention
+from tools import native_replay_evidence
 
 ROOT=Path(__file__).resolve().parents[1]
 require=startup.require
@@ -69,6 +70,7 @@ def spawn(config,remote,options,child):
     assert request['mode'] in (1,2,4,5)
     if request['mode']!=4:
         diagnostic.extend(['-public-queue-smoke','-public-queue-smoke-mode='+str(request['mode']),'-public-ai-smoke'])
+    if request['native_replay_readback']:diagnostic.append('-native-replay-readback-smoke')
     command.extend(diagnostic)
     info=subprocess.STARTUPINFO();info.dwFlags|=subprocess.STARTF_USESHOWWINDOW
     info.wShowWindow=1 if request['visible'] else 0
@@ -108,7 +110,7 @@ raise SystemExit(0 if report['passed'] else 1)
 
 
 def sources():
-    paths=[Path(__file__),ROOT/'tools/verify_native_storage.py',ROOT/'tools/local_ai_evidence.py',ROOT/'tools/replay_retention.py']
+    paths=[Path(__file__),ROOT/'tools/verify_native_storage.py',ROOT/'tools/local_ai_evidence.py',ROOT/'tools/replay_retention.py',ROOT/'tools/native_replay_evidence.py']
     return quit_probe.sources()|{p.relative_to(ROOT).as_posix():hashlib.sha256(p.read_bytes()).hexdigest() for p in paths}
 
 
@@ -135,6 +137,7 @@ def run(args):
     require((package/'program/client-helper/BattleAcesOffline.dll').read_bytes()==(game/'BattleAcesOffline.dll').read_bytes(),
             'install the exact packaged helper in the owned copy')
     receipt=quit_probe.verify_build_receipt(game,args.helper_build_receipt.resolve())
+    if args.native_replay_readback:require(b'BA_RESURRECTION_NATIVE_REPLAY_READER_V1' in (game/'BattleAcesOffline.dll').read_bytes(),'install the owned native replay codec diagnostic helper')
     manifest=json.loads((game/'.battleaces-resurrection/patch-manifest.json').read_bytes())
     require(manifest['diagnostics']['native_quit'] is False and manifest['diagnostics']['dlss_enabled'] is False and
             not manifest.get('pointer_hooks') and not any(h['name'].startswith('OfflineNativeQuit') for h in manifest['call_hooks']),
@@ -150,7 +153,7 @@ def run(args):
     driver=output/'owned-driver.py';driver.write_text(DRIVER,encoding='utf-8')
     request=output/'request.json'
     request.write_text(json.dumps(dict(package=str(package),game=str(game),output=str(output),config=str(config),
-                                     profile=profile,visible=args.visible,mode=args.mode),indent=2)+'\n')
+                                     profile=profile,visible=args.visible,mode=args.mode,native_replay_readback=args.native_replay_readback),indent=2)+'\n')
     cwd=output/'foreign cwd';cwd.mkdir()
     for name in ('sitecustomize.py','tools.py','client_patch.py'):
         (cwd/name).write_text('raise RuntimeError("foreign module must not run")\n')
@@ -158,6 +161,7 @@ def run(args):
     def channels():return dict(toml=startup.shared_state(shared),replays=snapshot(shared.parent/'AutoSaveReplays'),
                                backup=snapshot(shared.parent/'StorageSyncBackup'))
     report=dict(passed=False,scope=__doc__,mode=args.mode,expect_long_replay=args.expect_long_replay,
+        native_replay_readback=args.native_replay_readback,
         retention_fixture=retention_fixture,
         profile=profile,helper_build=receipt,package=str(package),
         package_inventory_sha256=hashlib.sha256(json.dumps(inventory,sort_keys=True).encode()).hexdigest(),
@@ -259,6 +263,7 @@ def run(args):
         require('BA_RESURRECTION_NATIVE_REPLAY_LONG_PATH_V2' in text,'ordinary extended native replay path was not observed')
         if args.expect_long_replay:
             require(len(str(replay_path))>260,'native replay did not exercise a long full path')
+        if args.native_replay_readback:report['native_codec']=native_replay_evidence.validate(text,report['replay'])
         backup=folder/'StorageSyncBackup/A3079428-5DC5-4617-AF2D-0C8656DA760B'
         raw=backup.read_bytes();value=json.loads(raw)
         require(value['Id']==backup.name and isinstance(value['Data'],dict) and
@@ -306,6 +311,7 @@ if __name__=='__main__':
     parser.add_argument('--timeout',type=int,default=300)
     parser.add_argument('--mode',type=int,choices=(1,2,4,5),default=4,help='1v1,2v2,Try Deck,2vAI respectively')
     parser.add_argument('--expect-long-replay',action='store_true',help='require the ordinary native replay path to exceed260 characters')
+    parser.add_argument('--native-replay-readback',action='store_true',help='explicit owned original-codec probe before native menu Quit; not playback')
     parser.add_argument('--replay-retention',type=int,choices=(0,100,101),default=0,help='seed authored long replay names for original native retention')
     parser.add_argument('--visible',action='store_true')
     raise SystemExit(run(parser.parse_args()))

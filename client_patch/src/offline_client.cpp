@@ -335,6 +335,7 @@ extern "C" __declspec(dllexport) void OfflineFrontUpdate(void* front,void*) {
 #include "practice_ai.cpp"
 #include "practice_settings_ui.cpp"
 #include "client_lifecycle.cpp"
+#include "native_replay_reader.cpp"
 #include "native_quit_smoke.cpp"
 #include "native_settings_notice.cpp"
 #include "public_client.cpp"
