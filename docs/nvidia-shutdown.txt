@@ -32,7 +32,7 @@ d0368351049dae08a2f463d329a5edc62607f8198f420c4cbff2632c7a886980
 Original feature-unavailable path
 DLSSPass.SetupFeature entry RVA4b29be0/raw4b281e0 has exact first six bytes
 40534883ec50 (the40 prefix is part of the original push instruction).
-The owned diagnostic replaces those six bytes with31c0c3909090: false before
+The source default patch replaces those six bytes with31c0c3909090: false before
 any native support query,device creation or NGX initialization on that path.
 Returning from the public GraphicsDevice.Initialize wrapper alone would be
 insufficient because SetupFeature/InternalCreate inline wrappers.
@@ -80,16 +80,21 @@ helper08 SHA256:
 Ten C++ component programs/helper and49 focused Python checks pass for this
 post-practice checkpoint;the earlier full458-test result belongs to helper07.
 
-Release decision still pending
-The control is currently local-only opt-in --disable-dlss-diagnostics. Default
-client recipes/manual/frozen packages have not changed. Complete visible
-gameplay/results,ordinary launch,server-backed match and telemetry compatibility
-acceptance before promoting it. DLSS upscaling would be unavailable;normal
-renderer fallback must remain functional. This may prevent this NGX telemetry
+Source default;final release acceptance still pending
+The source patch now uses this early feature-unavailable result by default.
+Historical controls below used --disable-dlss-diagnostics at commit fc81cd0;
+that flag is replaced by local-only --allow-dlss-diagnostics for comparing the
+original vendor-init path. Ordinary installation adds no disposal tracing hooks.
+Existing manual/frozen packages have not changed. Visible arena/results,native
+bot movement and server-backed2vAI compatibility controls pass as detailed here
+and in camera-diagnostics.txt. Complete default ordinary/client/package acceptance
+before releasing. DLSS upscaling is unavailable;normal renderer fallback is used.
+This prevents this NGX telemetry
 initialization path,not unrelated graphics-driver/overlay reporting. Keep the
 broader collection/CEF/child-process audit open in telemetry.txt.
-Native menu and post-match natural-exit controls pass here,but the final ordinary
-client/package Quit/save-flush gate is not yet complete. See native-quit.txt.
+Default native menu/post-match natural-exit and two-client connection-error Quit
+now pass;ordinary unified startup also passes without automation. Final package/
+manual/save-error acceptance is not yet complete. See native-quit.txt.
 
 Retained visual/tactical qualification failures
 The first fixture preparation used the asset-parent directory instead of the
@@ -131,6 +136,17 @@ original results/Continue and standalone return pass. Forty-two owned netstat
 snapshots are empty;covered sources unchanged and owned client reaped. Forced
 cleanup here is expected and is not an additional Quit test. The earlier two
 strict failures remain failed. This closes the short tactical-window gap,not
-the centered arena/effects/audio/manual or server/default acceptance gates.
+all-item/effects/audio/manual or final default/package acceptance gates.
 local/native-quit-dlss-visual03/verification.json SHA256:
 971da01e7143fc6a0191e06c7b3ad414f41293cec5dac6eb1c52bfd769098f1f
+
+Server-backed compatibility PASS
+helper08 also passes two simultaneous graphical human profiles in one server
+2vAI match in98.846s:1250 authoritative frames per client,complete human group,
+full ordered loadouts/portraits and original results/Continue. Native worker49784
+exits0 without failure;owned resources/clients are reaped and covered sources
+unchanged. Client cleanup is forced and does not qualify remote-menu Quit.
+local/native-quit-dlss-team01/verification.json SHA256:
+c4d375eeb45771caba39c4f96314339442a01ec2ebf55ca0ea783ae2dfb852da
+Camera capture qualification is tracked in camera-diagnostics.txt separately;
+no automatic camera action is added to normal play.

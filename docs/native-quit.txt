@@ -1,13 +1,50 @@
-ORIGINAL QUIT / SHUTDOWN CONTRACT -- 2026-10-19 UTC -- UNRESOLVED
+ORIGINAL QUIT / SHUTDOWN CONTRACT -- 2026-10-19 UTC -- SOURCE DEFAULT QUALIFICATION
 
-New controlled positive;default/release acceptance still open
+Controlled positives;final release acceptance still open
 The recorded wait is now qualified through12 unwind contexts to NVIDIA
 UninitializeTelemetry's infinite worker join during original NGX D3D11 shutdown.
 An owned optional DLSS-unavailable-before-init control passes natural menu Quit0
 in1.329s and post-AI-result/Continue Quit0 in2.000s,without forced cleanup or
-skipping original disposal. Visible rendering/server compatibility and default
-promotion remain pending. nvidia-shutdown.txt retains exact paths,seams,hashes
+skipping original disposal. Visible arena rendering and server2vAI compatibility
+also pass. The source default now refuses optional DLSS before NGX initialization;
+ordinary installs retain original disposal without tracing hooks. Current default
+fresh-menu Confirm exits naturally0 in0.844s. Final post-match/ordinary/package
+acceptance is being completed. nvidia-shutdown.txt retains exact paths,seams,hashes
 and limits. Earlier failed controls below remain part of the evidence history.
+
+Current default recipe qualification (helper10)
+No optional Quit call/pointer hooks are installed. Fresh-menu original Show/
+Confirm exits naturally0 in0.844s (16.825s total). One standalone original Try
+Deck match/result/Continue followed by original menu Confirm exits naturally0
+in1.938s (99.615s total). Neither process is forcibly terminated. Both retain
+source and shared-file baselines and verify the early isolated native TOML.
+The short practice run produces supply14/nine autonomous actions;it does not
+renew tactical movement acceptance. The separate3600-frame control does that.
+These tests trace only Show/Confirm;original disposal is not traced in the
+default recipe. Earlier opt-in controls establish those returns separately.
+local/native-quit-default-menu01/verification.json SHA256:
+327cc3a25ccf038e5c776f4a8d9e68d45689094797a62bac72c845b7fe8e0bc8
+local/native-quit-default-after-practice01/verification.json SHA256:
+bab8a97a860b1cfbe1ae601ce5a562cc8bd9289eef11de66b6691e057157d4a6
+helper10 SHA256:
+5921e1c6c7461d671e981e6a279cea249164c719d870f0aef5226ffe457a9650
+Ten C++ component programs/helper and68 focused Python checks pass. Full suite:
+460 tests in120.042s,446 pass/14 skip.
+
+Default remote error-Quit and ordinary startup
+Two authenticated TLS1.3 clients start a real match;the harness deliberately
+cuts one peer at authoritative frame300. Both invoke the original disconnected
+modal Quit (OnCancel) and exit naturally0 without forced termination. This is
+connection-error Quit,not main-menu Confirm or a completed-match result test.
+local/matches/ngx-default-remote-quit01/summary.json SHA256:
+f86c3550f7f7b345c4373c741e375d35da55f877aae4cf8d7089bf07b0c3aaa9
+The real unified launcher with no config/server/CA/invite reaches the native menu
+in10.198s. Its initial arguments contain no smoke,audit,auto-play,capture or HQ
+focus flags. Covered sources and shared file stay unchanged;owned process reaped.
+This startup harness uses forced cleanup and does NOT add another Quit pass.
+local/ngx-default-ordinary-startup01/verification.json SHA256:
+c396a93d82a791aa23f6d37fa688b2b57b83445bf56e60c81d98eea610464cbf
+Final package/manual/native-save-error acceptance remains separate.
 
 Owned diagnostic implementation in qualification
 An opt-in local-only installer recipe now wraps the exact original instance/AI

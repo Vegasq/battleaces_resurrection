@@ -1,14 +1,15 @@
 TELEMETRY PATCH STATUS
-Updated: 2026-10-18 UTC
+Updated: 2026-10-19 UTC
 Supported input: Battle Aces build 37822, Windows x64.
 Recipe version: 3. Guards: 61. Complete-set runtime_validated: false.
 
-2026-10-19 NVIDIA dependency follow-up (not part of recipe3 yet)
+2026-10-19 NVIDIA dependency follow-up (separate core client guard)
 Recorded NGX D3D11 shutdown waits inside installed NVIDIA telemetry's worker
-join after all observed game OnDestroy work returns. A local-only diagnostic
-uses the original DLSS-unavailable path before vendor initialization. Menu and
-post-AI-match original Quit then exit naturally;visible rendering/default
-promotion remain pending. No vendor shutdown is skipped and no system driver/
+join after all observed game OnDestroy work returns. The core source patch now
+uses the original DLSS-unavailable path before vendor initialization by default.
+This is separate from the61 recipe3 guards above. Menu and post-AI-match original
+Quit controls exit naturally;arena rendering and server2vAI compatibility pass.
+Final ordinary/package acceptance remains open. No vendor shutdown is skipped and no system driver/
 service configuration changes. This is not a zero-traffic or process-lifetime
 vendor/overlay coverage claim. See nvidia-shutdown.txt for exact evidence.
 

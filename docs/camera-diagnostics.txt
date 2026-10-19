@@ -1,0 +1,78 @@
+OWNED GAMEPLAY CAMERA CAPTURES -- 2026-10-19 -- NOT A NORMAL-PLAY FEATURE
+
+Why this diagnostic exists
+The current human-cosmetic in-game PNGs show HUD/identity over sky with part of
+a structure at the top-right. An OLD pre-DLSS-control PNG has the same view.
+The result PNG renders correctly. This is not established as a new renderer
+regression,and cannot count as full arena/mesh visual acceptance. The goal is
+one useful camera view for that acceptance,without changing normal input.
+
+Original action and ownership
+UnitSelector.OnFocusOnHQ has a true zero-managed-argument overload,sharing RVA
+3bf2f30 with an input-callback overload. Resolve the exact zero-argument method.
+It gets the real local army,looks up the current presented headquarters,then
+calls CameraController.FocusOnUnit3e9e310 ->FocusOnPosition3e9e410. The original
+CanUserMoveCamera3e9b8a0 gate and map clamp remain. It changes the camera target,
+not unit selection or gameplay/network commands. It does not reset zoom/rotation
+or prevent later native panning. A successful callback does not prove framing.
+
+The existing owner has PlayerGameInstance+30,UnitSelector+58,CameraController+a8.
+The game has Simulation+10,UnitManager+20. Required actual reference equalities:
+selector.sim+138 ==controller.sim+b0 ==units.sim+40 ==game.Simulation;
+selector.units+40 ==controller.units+b8 ==game.UnitManager;
+selector.cameraController+20 ==controller;controller.unitSelector+e0 ==selector;
+selector.camera+c0 ==controller.Camera+20. Owner.UICamera+b8 is a different camera.
+The simulation's local player+90 has ArmyID+38,expected0 in this owned practice.
+
+TryGetArmyHeadQuarters3c06810 is bool(manager,uint army,Unit* out,MethodInfo),
+with output initially null. Validate the UnitSet/list/simulation/presented-frame
+dependencies;this routine can throw for invalid internals. The authored helper
+uses normal runtime_invoke/error propagation through the true managed method,
+roots the real returned HQ and invokes original OnFocusOnHQ once. It waits for
+ordinary camera update frames,not a direct transform write or permission bypass.
+The explicit --focus-local-hq tool switch requires a visible,owned offline
+cosmetic diagnostic. With no new flag,the normal path performs no camera action.
+
+Static REA fallback evidence
+No provider setup or target execution was performed by the static investigation.
+local/native-camera-focus01/FINDINGS.txt SHA256:
+305908bd67e4871f1137136eef3e6ef1154410ad75fd43f9bf9981c4dd4e5cd5
+input-manifest.json SHA256:
+b5747a8c86431c15eed15983063493f57c82e633955255cc2ab1d1b95f5ce1aa
+evidence-manifest.json SHA256:
+f01a4cd46e18a23d3864c29f972abe57fc26894641809f907b37a14f0907104e
+Original GameAssembly SHA256:
+e59d08c01479b27404778048d7e13546dbf3771f6b3912744c7c2bdf80c4e758
+
+First runtime attempt: lifecycle PASS,visual framing NOT QUALIFIED
+helper09 builds/ten C++ component programs pass;34 focused Python checks pass.
+center01 passes the native1200-frame practice/cosmetic/result/Continue checks in
+95.567s and records exactly one permitted original HQ-focus callback with the
+current presented HQ and matching owner graph. Covered sources remain unchanged;
+owned client is reaped. Its in-game PNG was inspected and STILL shows sky,so
+the report's automated pass is not a centered-arena visual pass.
+local/native-quit-dlss-center01/verification.json SHA256:
+150cc45a873418242b14241bb7b428dc96733599e3f9a8158d4631345ab80a6d
+
+The original profile inventory was called on a10-second diagnostic cadence.
+The first focus occurs at tick768812687 and capture at768823265,despite the
+requested200ms minimum. Subsequent panning is a hypothesis,not yet observed.
+helper10 samples the separately gated readiness every game update and requires
+the same real HQ to project within the camera viewport before capturing. It
+checks runtime Vector3 types/actual Screen dimensions,retains original camera
+permissions,and does not refocus repeatedly. This follow-up now passes below.
+Do not infer a useful view from callbacks or projection alone;inspect the PNG.
+
+Corrected runtime attempt: lifecycle AND inspected arena PASS
+helper10 passes ten C++ component programs/helper build. center02 passes the
+1200-frame practice/cosmetic/result/Continue checks in94.604s. Exactly one original
+focus callback runs;the same HQ projects at x669.31,y397.03,z405.48 on960x540,
+219ms after focus. The actual in-game PNG is inspected and shows useful arena
+terrain,HQ,worker units,bright effects,HUD and cosmetic identities. This is a
+bounded renderer check,not all cosmetics/audio or mouse-input acceptance.
+Covered sources remain unchanged and the owned client is reaped. Forced cleanup
+is expected here and does not count as native Quit. No normal-play camera action.
+local/native-quit-dlss-center02/verification.json SHA256:
+3f81a64e9e7650a1e08b1d34a80ccd884815d3c059380fcb763774c8c36b62eb
+helper10 SHA256:
+5921e1c6c7461d671e981e6a279cea249164c719d870f0aef5226ffe457a9650

@@ -4,25 +4,22 @@ Target: Battle Aces build 37822, Windows x64 server and clients.
 Status: IMPLEMENTATION ACTIVE. See STATUS.txt; incomplete phases remain future work.
 
 Current cosmetic integration order (2026-10-19)
-- Qualify/promote the process-local original DLSS-unavailable path: verified
-  NVIDIA NGX telemetry shutdown wait is avoided in isolated natural menu Quit
-  and post-AI-result/Continue Quit controls (exit0,1.329s/2.000s). Preserve normal
-  rendering and all original cleanup;DLSS upscaling will be unavailable. Finish
-  visible gameplay/results,server-backed match,default recipe and telemetry
-  regressions before packaging. No global NVIDIA configuration changes.
-  See nvidia-shutdown.txt;the diagnostic is not yet ordinary release behavior.
-- Native Quit remains a release gate. Owned original confirmation inventory and
-  Cancel/release now pass;Confirm returns from RGameInstance.Dispose but fails
-  natural OS exit within60s,including a no-screenshot control. Qualify the next
-  exact shutdown boundary,preserving all original cleanup. The next trace now
-  proves original OnDestroy returns and legitimately skips conditional AI
-  disposal. Verify the external NVIDIA DLL wait/call chain suggested by bounded
-  raw stack candidates and a process-local control;no global driver/service
-  changes or disposal bypass. Helper07 Cancel and ordinary-startup controls pass,
-  with444 source checks passed/14 skipped and ten C++ component programs/helper.
-  Then repeat fresh-menu and post-match natural-exit/save-flush acceptance.
-  Diagnostics are local-only opt-in,not part of the ordinary client recipe.
-  See native-quit.txt;forced process reaping never satisfies this gate.
+- The source default now reports optional DLSS unavailable before NGX starts.
+  A qualified12-context unwind locates the old shutdown wait in NVIDIA telemetry's
+  worker join. Original renderer fallback and shutdown remain intact;no global
+  driver/service settings change. Arena/results rendering,moving native bots and
+  two-human server2vAI compatibility controls pass. DLSS upscaling is unavailable.
+  Existing manual/frozen archives remain unchanged. See nvidia-shutdown.txt.
+- Default recipe native Quit passes from a fresh menu and after original AI
+  results/Continue:exit0 in0.844s/1.938s after Confirm,no forced cleanup. These
+  tests use no optional disposal hooks;earlier opt-in traces separately establish
+  original Dispose/OnDestroy return. Full source suite446 passes/14 skips out
+  of460;ten C++ component programs/helper pass. Both clients also pass original
+  connection-error Quit after a deliberate frame300 disconnect. Ordinary unified
+  startup passes10.198s without automation. Complete final package/manual/save-
+  error acceptance next.
+  Diagnostics remain opt-in;forced process reaping never satisfies native Quit.
+  See native-quit.txt for exact contracts,retained failures and report hashes.
 - Native local-user settings isolation now uses the original early path call,
   installation/profile-native TOML and a process-lifetime writer lock. Fresh
   process deck edits/restarts,two profiles,two installations,an accented path,

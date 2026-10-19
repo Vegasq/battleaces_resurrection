@@ -17,9 +17,9 @@ class PatcherSafetyTests(unittest.TestCase):
         with self.assertRaisesRegex(ValueError, 'owned ignored local test'):
             install('nonlocal-authored-placeholder', quit_diagnostics=True)
 
-    def test_dlss_diagnostic_cannot_target_a_nonlocal_installation(self):
+    def test_enabling_dlss_diagnostic_cannot_target_a_nonlocal_installation(self):
         with self.assertRaisesRegex(ValueError, 'owned ignored local test'):
-            install('nonlocal-authored-placeholder', disable_dlss_diagnostics=True)
+            install('nonlocal-authored-placeholder', allow_dlss_diagnostics=True)
 
     def test_pointer_redirect_preserves_existing_aslr_relocation(self):
         original = bytearray(128)

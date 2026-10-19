@@ -2,37 +2,56 @@ IMPLEMENTATION LEDGER
 Updated: 2026-10-19 UTC
 Active objective: implement SERVER_REPLACEMENT_PLAN.txt, Windows only.
 
-NGX SHUTDOWN CONTROL (2026-10-19 UTC, LOCAL DIAGNOSTIC POSITIVE)
+NGX SHUTDOWN FIX (2026-10-19 UTC, SOURCE DEFAULT IN QUALIFICATION)
 The post-game-callback wait is now verified through12 unwind contexts into
 NVIDIA telemetry's infinite worker join during NGX shutdown. Reporting original
 DLSS feature setup unavailable BEFORE vendor initialization allows natural exit0
 after original menu Confirm (1.329s) and after one standalone AI result/Continue
 (2.000s). Original disposal remains intact;no forced cleanup/system change.
-Source-built helper08/49 focused checks pass. Default recipes/packages remain
-unchanged pending visible rendering,server-match and ordinary acceptance.
-DLSS would be unavailable;all normal renderer fallback must remain functional.
+The source patch now reports optional DLSS unavailable before vendor initialization
+by default. Original renderer fallback and all original shutdown remain intact.
+Existing manual/frozen packages remain unchanged. Default recipe acceptance is
+being completed before packaging. DLSS upscaling is unavailable in this recipe.
 See nvidia-shutdown.txt. This does not close unrelated telemetry coverage.
 The3600-frame Normal18 control now also passes38 ordered moving bot units,
 supply135,full17-slot cosmetics and original results/Continue (214.765s).
 The2400-frame tactical-cap failure and bad canonical-fixture failure remain
-recorded. Result rendering is inspected;centered arena/server/default acceptance
-remain open. The old baseline shares the off-arena in-game capture view.
+recorded. Result rendering is inspected. The old baseline shares the off-arena
+in-game capture view;that diagnostic view alone never qualified arena rendering.
+Server-backed two-human2vAI also passes1250 authoritative frames/loadouts/results/
+Continue with worker exit0 (98.846s). Client cleanup is forced,not remote Quit.
+The corrected helper10 camera diagnostic passes and its PNG is inspected:arena,
+HQ,terrain,workers,effects,HUD and cosmetic identities render. The first attempt's
+off-arena capture remains recorded. This is not all-item/audio/manual acceptance.
+See camera-diagnostics.txt;normal play receives no automatic camera action.
 
-NATIVE MENU QUIT DIAGNOSTICS (2026-10-19 UTC, UNRESOLVED)
+NATIVE MENU QUIT (2026-10-19 UTC, DEFAULT SOURCE CANDIDATE)
 An explicitly owned/local-only diagnostic follows original main-menu Show ->
 key52 confirmation -> OnCancel/OnConfirm persistent targets. Inventory and the
 corrected original Cancel/release rehearsal pass. Confirm enters AND returns
 from RGameInstance.Dispose,but the process stays alive beyond60s. A no-capture
 control also fails;forced cleanup never counts as Quit. A codegen-pointer wrapper
 now also proves original OnDestroy RETURN;its conditional AI call is not taken.
-Private bounded external samples point to system NVIDIA telemetry DLL address
-candidates,not yet an unwound caller/root cause. Source-bound helper07 Cancel
-passes20.385s;default recipe/ordinary startup passes13.687s. Full suite444 passes/
-14 skips,ten C++ component programs/helper pass. No production disposal is
+Those failures used the original NGX initialization path. The qualified unwind
+and positive controls above resolve that wait boundary. Current default recipe
+without optional disposal hooks exits naturally0 in0.844s after original Confirm
+(16.825s total),with no forced cleanup or source/shared-settings change.
+The full current suite passes446 tests/14 skips out of460;ten C++ component
+programs/helper pass. Original disposal is retained. No production disposal is
 skipped,no ordinary launch invokes this probe,and no manual package is upgraded.
 Original plain-graphics ownership corrects the initial false visibility wait;
 the early startup deadline and capture limitations remain recorded separately.
 See native-quit.txt for exact calls,failed/passing evidence and remaining gates.
+
+Default recipe post-AI-match original result/Continue/menu Quit also passes:
+natural exit0 in1.938s after Confirm,99.615s total,no forced cleanup. Source and
+shared settings remain unchanged;native isolated TOML is read back. Both current
+default tests trace only the original confirmation;disposal boundaries are
+established separately by earlier opt-in tests. Two TLS clients also pass original
+connection-error Quit after a deliberate frame300 disconnect:both natural0,no
+forced cleanup. Ordinary unified startup passes10.198s with no automation flags,
+unchanged sources/shared settings. Its forced cleanup is not a Quit test.
+Final package/manual/save-error gates remain open. See native-quit.txt.
 
 NATIVE SETTINGS ERROR RESULTS (2026-10-19 UTC, EXPERIMENTAL)
 Exact scoped hooks preserve original TOML parse/write results. A null parsed

@@ -118,6 +118,7 @@ async def run(args):
         if args.edit_deck_between: command.append('-practice-ai-deck-smoke')
         if args.settings_first: command.append('-practice-settings-smoke')
         if args.loading_ui: command.append('-match-loading-smoke')
+        if args.focus_local_hq: command.append('-human-cosmetics-focus-hq')
         if args.cosmetic_profile:
             require(args.offline and game.is_relative_to(ROOT / 'local'), 'cosmetic probe requires an offline disposable copy')
             require(re.fullmatch(r'cosmeticstest_[a-z0-9_-]{1,34}', args.cosmetic_profile), 'use an owned cosmetic test profile')
@@ -271,6 +272,12 @@ async def run(args):
         if args.loading_ui:
             report['loading_ui'] = match_loading_evidence.check(log, game, output, process.pid,
                 source='practice', ready=args.matches)
+        if args.focus_local_hq:
+            require(log.count('HUMAN COSMETICS original HQ focus:')==args.matches and
+                    log.count('ownedGraph=1 presentedHQ=1 cameraPermission=1 callbacks=1')==args.matches and
+                    log.count('HUMAN COSMETICS HQ projected for capture:')==args.matches,
+                    'original local HQ focus did not run once per owned match')
+            report['original_local_hq_focus_callbacks'] = args.matches
         report.update(passed=True, autonomous_action_records=log.count('Practice AI action:'),
             standalone=args.offline, community_connections=0 if args.offline else 1,
             server_started=server is not None)
@@ -309,6 +316,7 @@ def main():
     parser.add_argument('--edit-deck-between', action='store_true', help='use original native setters to change the deck before match2')
     parser.add_argument('--settings-first', action='store_true', help='cycle actual offline Settings and return with Normal18 before playing')
     parser.add_argument('--loading-ui', action='store_true', help='verify native loading status and retain Unity screenshots')
+    parser.add_argument('--focus-local-hq',action='store_true',help='explicit original HQ camera action before owned offline cosmetic capture')
     parser.add_argument('--profile', type=int, choices=(17, 18, 19), default=17,
                         help='offline difficulty Easy17/Normal18/Hard19; community mode retains raw shipped profile selection')
     parser.add_argument('--require-ai-movement', action='store_true')
@@ -317,6 +325,8 @@ def main():
     args = parser.parse_args(); require(60 <= args.timeout <= 600, 'timeout must be60..600 seconds')
     require(not args.edit_deck_between or args.matches == 2, 'deck edit requires two matches')
     require(not args.settings_first or args.offline, 'settings-first requires standalone offline mode')
+    require(not args.focus_local_hq or args.offline and args.visible and args.cosmetic_profile,
+            'local HQ focus requires an explicit visible owned offline cosmetic diagnostic')
     require(1200 <= args.frames <= 3600, 'frames must be1200..3600')
     require(0 <= args.idle_seconds <= 60, 'idle seconds must be0..60')
     asyncio.run(run(args))

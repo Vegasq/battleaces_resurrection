@@ -538,6 +538,60 @@ static bool armyProfileView(Obj view,Obj model,uint32_t army) {
     }
     return false;
 }
+static bool humanCameraReady() {
+    if(!ba::flag(L"-human-cosmetics-focus-hq"))return true;
+    require(ba::offlinePractice() && ba::flag(L"-practice-ai-smoke") && ba::flag(L"-human-cosmetics-smoke") &&
+        ba_native_settings::session && ba_native_settings::session->profile().rfind("cosmeticstest_",0)==0 &&
+        ba_dedicated_session::unityThread==GetCurrentThreadId(),"camera focus requires an owned offline Unity-thread cosmetic diagnostic");
+    static std::string match;static ULONGLONG deadline=0,due=0;
+    static auto& focusedHQ=*new std::unique_ptr<Root>();
+    const auto now=GetTickCount64();
+    if(match!=state.match){match=state.match;deadline=now+15000;due=0;focusedHQ.reset();}
+    require(now<deadline,"owned local HQ focus/capture deadline");
+    Root game(ba::get<Obj>(ba::owner,"<PlayerGameInstance>k__BackingField"));
+    Root selector(ba::get<Obj>(ba::owner,"<UnitSelector>k__BackingField")),controller(ba::get<Obj>(ba::owner,"<CameraController>k__BackingField"));
+    Root simulation(ba::get<Obj>(game.get(),"<Simulation>k__BackingField")),units(ba::get<Obj>(game.get(),"<UnitManager>k__BackingField"));
+    require(selector.get() && controller.get() && ba::read<Obj>(selector.get(),0x10) && ba::read<Obj>(controller.get(),0x10) && simulation.get() && units.get() &&
+        ba::klass(selector.get())==ba::find_class("Uncapped","UnitSelector") &&
+        ba::klass(controller.get())==ba::find_class("Uncapped","CameraController") &&
+        ba::klass(units.get())==ba::find_class("Uncapped","UnitManager") &&
+        simulation.get()==ba::read<Obj>(server(),0x140),"local HQ focus world/class owner mismatch");
+    Root camera(ba::get<Obj>(controller.get(),"Camera"));
+    require(camera.get() && ba::read<Obj>(camera.get(),0x10) &&
+        ba::read<Obj>(selector.get(),0x138)==simulation.get() && ba::read<Obj>(controller.get(),0xb0)==simulation.get() &&
+        ba::read<Obj>(units.get(),0x40)==simulation.get() && ba::read<Obj>(selector.get(),0x40)==units.get() &&
+        ba::read<Obj>(controller.get(),0xb8)==units.get() && ba::read<Obj>(selector.get(),0x20)==controller.get() &&
+        ba::read<Obj>(controller.get(),0xe0)==selector.get() && ba::read<Obj>(selector.get(),0xc0)==camera.get(),
+        "local HQ focus camera/selector graph mismatch");
+    Root player(ba::read<Obj>(simulation.get(),0x90)),set(ba::read<Obj>(units.get(),0x10));
+    require(player.get() && ba::read<uint32_t>(player.get(),0x38)==0,"local HQ focus army changed");
+    if(!set.get() || !ba::read<Obj>(set.get(),0x18) || !ba::read<Obj>(simulation.get(),0x148) ||
+        !ba::native<bool(*)(Obj,Obj)>(0x3e9b8a0)(controller.get(),nullptr))return false;
+    uint32_t army=0;Obj headquarters=nullptr;void* arguments[]={&army,&headquarters};
+    Root found(ba::call(units.get(),"TryGetArmyHeadQuarters",2,arguments)),hq(headquarters);
+    if(!boolean(found.get()) || !hq.get() || !ba::read<Obj>(hq.get(),0x10))return false;
+    if(!due) {
+        focusedHQ=std::make_unique<Root>(hq.get());
+        ba::call(selector.get(),"OnFocusOnHQ"); // Resolve the true zero-argument original overload.
+        due=now+200;ba::log("HUMAN COSMETICS original HQ focus: match=%s army=0 ownedGraph=1 presentedHQ=1 cameraPermission=1 callbacks=1",match.c_str());
+        return false;
+    }
+    require(focusedHQ && focusedHQ->get()==hq.get(),"local HQ changed before the diagnostic capture");
+    if(now<due)return false;
+    Root transform(ba::call(hq.get(),"get_transform")),position(ba::call(transform.get(),"get_position"));
+    require(ba::klass(position.get())==ba::find_class("UnityEngine","Vector3"),"local HQ position type changed");
+    void* projectArgs[]={ba::api<void*(*)(Obj)>("il2cpp_object_unbox")(position.get())};
+    Root projected(ba::call(camera.get(),"WorldToScreenPoint",1,projectArgs));
+    require(ba::klass(projected.get())==ba::find_class("UnityEngine","Vector3"),"local HQ projection type changed");
+    struct Point{float x,y,z;};const auto point=ba_catalog::unbox<Point>(projected.get());
+    Root width(ba::invoke(ba::find_class("UnityEngine","Screen"),nullptr,"get_width",0));
+    Root height(ba::invoke(ba::find_class("UnityEngine","Screen"),nullptr,"get_height",0));
+    const auto w=ba_catalog::unbox<int>(width.get()),h=ba_catalog::unbox<int>(height.get());
+    require(w>0 && h>0,"local HQ capture dimensions unavailable");
+    if(!(point.z>0 && point.x>=w*.1f && point.x<=w*.9f && point.y>=h*.1f && point.y<=h*.9f))return false;
+    ba::log("HUMAN COSMETICS HQ projected for capture: match=%s x=%.2f y=%.2f z=%.2f width=%d height=%d",match.c_str(),point.x,point.y,point.z,w,h);
+    return true;
+}
 static void humanProfileCapture(bool result) {
     ba_cosmetics::captureHumanProfile(state.match,result);
 }
@@ -596,7 +650,7 @@ static bool publicIdentity(bool result,bool human=false) {
         }
         if(!portraits || !banners)continue;
         if(std::find(matched.begin(),matched.end(),bot.army)==matched.end())matched.push_back(bot.army);
-        if(human && !result)humanProfileCapture(false);
+        if(human && !result){if(!humanCameraReady())return false;humanProfileCapture(false);}
         ba::log("%s identity binding: phase=%s name=%s modelAi=%d portrait=%u banner=%u portraitChildren=%u bannerChildren=%u live=1 currentMatch=1 army=%u",
             human?"HUMAN COSMETICS":"Public AI",result?"result":"in-game",expected.c_str(),ba::get<bool>(model.get(),"IsAi")?1:0,bot.portrait,bot.banner,portraits,banners,bot.army);
     }
@@ -634,6 +688,10 @@ static bool gameUpdate(Obj gameServer,Obj method) {
             if(ba::flag(L"-human-cosmetics-smoke") && !state.humanCosmeticsProven && state.humanJoined && botsReady(true)) {
                 ba_cosmetics::practiceHumanProof(gameServer,state.humanCosmetics,state.humanDeck->get());state.humanCosmeticsProven=true;
             }
+            // The usual inventory cadence is10s. A separately requested HQ
+            // focus needs its later-frame capture before ordinary input pans again.
+            if(ba::flag(L"-human-cosmetics-focus-hq") && ba::flag(L"-human-cosmetics-smoke") &&
+                !state.humanInGameIdentity && botsReady(true))state.humanInGameIdentity=publicIdentity(false,true);
             if(ba::flag(L"-practice-ai-smoke") && botsReady(false) && GetTickCount64()-state.diagnostic>=10000) {
                 state.diagnostic=GetTickCount64();Root paused(ba::call(manager(),"GetAnyAIPaused"));
                 for(const auto& bot:state.bots) {

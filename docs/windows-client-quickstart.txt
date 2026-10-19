@@ -60,6 +60,11 @@ the old Windows-user settings file untouched and does not automatically import
 it. Existing frozen preview archives are not upgraded by a source checkout;
 rebuild/install the matching helper before using this behavior.
 
+The current source patch reports optional DLSS upscaling unavailable before
+NVIDIA NGX initializes. The original renderer fallback and shutdown remain active;
+this avoids a verified NVIDIA telemetry cleanup hang on the test machine. It
+does not change system NVIDIA settings. Existing frozen archives are unchanged.
+
 Open Edit Deck -> Try Deck vs AI. No server, CA, invite or server assets are needed.
 Missing or invalid online settings leave local play available. Settings -> General -> AI
 Difficulty offers Easy/Normal/Hard. The saved choice applies to the next match.

@@ -114,13 +114,16 @@ class InstallerTests(unittest.TestCase):
         self.assertEqual([h for h in diagnostic['call_hooks'] if h['name'].startswith('OfflineNativeQuit')], installer.QUIT_CALL_HOOKS)
         self.assertEqual(diagnostic['pointer_hooks'],installer.QUIT_POINTER_HOOKS)
 
-    def test_dlss_unavailable_control_is_opt_in_and_recorded(self):
+    def test_default_blocks_dlss_vendor_init_and_original_comparison_is_explicit(self):
         default = installer.install(self.root, helper=self.helper, dry_run=True)
-        self.assertFalse(default['diagnostics']['dlss_unavailable'])
-        self.assertFalse(any(p['offset']==0x4b281e0 for p in default['patches']))
-        control = installer.install(self.root, helper=self.helper, disable_dlss_diagnostics=True, dry_run=True)
-        self.assertTrue(control['diagnostics']['dlss_unavailable'])
-        self.assertEqual([p for p in control['patches'] if p['offset']==0x4b281e0],installer.DLSS_DIAGNOSTIC_PATCHES)
+        self.assertFalse(default['diagnostics']['dlss_enabled'])
+        self.assertEqual(default['graphics']['dlss_setup'],'unavailable-before-native-init')
+        self.assertTrue(default['graphics']['original_shutdown'])
+        self.assertEqual([p for p in default['patches'] if p['offset']==0x4b281e0],installer.DLSS_PRIVACY_PATCHES)
+        control = installer.install(self.root, helper=self.helper, allow_dlss_diagnostics=True, dry_run=True)
+        self.assertTrue(control['diagnostics']['dlss_enabled'])
+        self.assertEqual(control['graphics']['dlss_setup'],'original-owned-diagnostic')
+        self.assertFalse(any(p['offset']==0x4b281e0 for p in control['patches']))
 
     def test_experimental_community_requires_matching_helper_before_writes(self):
         with self.assertRaisesRegex(ValueError, 'community ABI1'):

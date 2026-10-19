@@ -1,7 +1,8 @@
 """Owned original menu Quit diagnostics: inventory,Cancel,or natural exit.
 
 Uses original persistent payloads on the Unity thread. Confirm must exit0 within
-60s of its native dispatch marker and return from original instance/AI disposal.
+60s of its native dispatch marker. The optional teardown recipe also traces
+original instance/AI/OnDestroy return;default-recipe tests claim no disposal trace.
 Forced cleanup never qualifies Quit. Shared settings are read/hashed only.
 """
 import argparse
@@ -83,10 +84,17 @@ def run(args):
     require(60<=args.timeout<=300 and (args.mode=='inventory' or args.visible) and
             (not args.capture_dialog or args.mode!='inventory'), 'bounded timeout and visible dialog required')
     require(not args.after_practice or args.mode=='confirm','post-practice requires original Confirm/natural exit mode')
+    require(not args.default_recipe or args.mode=='confirm','default recipe qualification requires original Confirm/natural exit')
     launcher.verify_game(game,community=True,bridge_version=2,unified=True)
     build_receipt = verify_build_receipt(game,args.helper_build_receipt.resolve())
     manifest = json.loads((game/'.battleaces-resurrection/patch-manifest.json').read_bytes())
-    require(manifest.get('diagnostics',{}).get('native_quit') is True and
+    if args.default_recipe:
+        require(manifest.get('diagnostics',{}).get('native_quit') is False and
+                manifest['diagnostics'].get('dlss_enabled') is False and not manifest.get('pointer_hooks') and
+                not any(h['name'].startswith('OfflineNativeQuit') for h in manifest['call_hooks']) and
+                manifest.get('graphics',{}).get('dlss_setup')=='unavailable-before-native-init',
+                'install the default NGX-free recipe without optional Quit hooks')
+    else: require(manifest.get('diagnostics',{}).get('native_quit') is True and
             all(any(h['name']==name and h['rva']==rva and h['before']==before for h in manifest['call_hooks'])
                 for name,rva,before in (('OfflineNativeQuitDispose',0x3de4968,'e8c3e0ffff'),
                                         ('OfflineNativeQuitAIDispose',0x3de4a0f,'e89c39dbff'))) and
@@ -103,6 +111,7 @@ def run(args):
                   installed_diagnostics=manifest['diagnostics'],
                   patch_manifest_sha256=hashlib.sha256((game/'.battleaces-resurrection/patch-manifest.json').read_bytes()).hexdigest(),
                   after_practice=args.after_practice,
+                  default_recipe=args.default_recipe,
                   natural_exit=False,forced_cleanup=False)
     process = job = None;started = time.monotonic();tick = None
     clock = ctypes.WinDLL('kernel32').GetTickCount64;clock.restype = ctypes.c_ulonglong
@@ -159,15 +168,17 @@ def run(args):
                 all(a['tick']<=b['tick'] for a,b in zip(rows,rows[1:])) and events[0]=='armed','native Quit trace identity/order invalid')
         require('NATIVE QUIT owned menu verified:' in log(),'owned menu proof missing')
         if args.mode=='confirm':
-            expected = ['armed','Show.dispatch','Show.return','OnConfirm.dispatch','OnConfirm.return',
-                        'RGameSingleton.OnDestroy.enter','RGameInstance.Dispose.enter','RGameInstance.Dispose.return']
+            prelude = ['armed','Show.dispatch','Show.return','OnConfirm.dispatch','OnConfirm.return']
+            expected = prelude+['RGameSingleton.OnDestroy.enter','RGameInstance.Dispose.enter','RGameInstance.Dispose.return']
             ai_events = ['AIManager.Dispose.enter','AIManager.Dispose.return']
             end = ['RGameSingleton.OnDestroy.return']
-            require(events in (expected+end,expected+ai_events+end) and process.returncode==0 and quit_tick is not None and
+            allowed = (prelude,) if args.default_recipe else (expected+end,expected+ai_events+end)
+            require(events in allowed and process.returncode==0 and quit_tick is not None and
                     report['observed_exit_tick']-quit_tick<60000,
                     'natural original Quit/disposal proof incomplete')
             report.update(natural_exit=True,native_quit_passed=True,exit_code=process.returncode,
-                          instance_disposal_boundary_seconds=(rows[7]['tick']-rows[6]['tick'])/1000,
+                          original_disposal_traced=not args.default_recipe,
+                          instance_disposal_boundary_seconds=(rows[7]['tick']-rows[6]['tick'])/1000 if not args.default_recipe else None,
                           ai_disposal_observed=events==expected+ai_events+end,
                           ai_disposal_boundary_seconds=(rows[9]['tick']-rows[8]['tick'])/1000 if events==expected+ai_events+end else None,
                           observed_exit_seconds_after_dispatch=(report['observed_exit_tick']-quit_tick)/1000)
@@ -219,6 +230,7 @@ if __name__=='__main__':
     for key in ('game','output','shared-settings'): parser.add_argument('--'+key,type=Path,required=True)
     parser.add_argument('--helper-build-receipt',type=Path,required=True)
     parser.add_argument('--after-practice',action='store_true',help='explicit automated one-match result/Continue before original menu Quit')
+    parser.add_argument('--default-recipe',action='store_true',help='qualify natural exit using the default patch without optional teardown hooks')
     parser.add_argument('--mode',choices=('inventory','cancel','confirm'),default='cancel')
     parser.add_argument('--visible',action='store_true')
     parser.add_argument('--capture-dialog',action='store_true',help='explicit GPU capture; omit to avoid capture work during the exit test')
