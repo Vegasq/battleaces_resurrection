@@ -92,10 +92,56 @@ with14 skips out of449 in95.765s. Ten C++ component programs/helper03 remain
 unchanged from the qualified build. Private final verification SHA256:
 3a68ff7e14643078c354b9bb7147b34d722ba33cbbda08b0821218e552989947
 
+Native load/write error follow-up
+Two additional exact-call hooks now preserve original parsing/serialization
+results. LoadTable at379650c/file3794b0c,bytes e86f1a0000,target3797f80 returns
+the parsed table. A null result for the exact prepared profile path stops this
+process with1610 before original false-success/fallback writes. Save(path,table)
+at3796a84/file3795084,bytes e8d7f5ffff,target3796060 returns bool in AL;the hook
+records it and returns it unchanged. Other config paths remain outside this
+profile observer. No managed allocation after receiving the unrooted table,
+no mutating path getter,no managed/UI calls inside the writer/teardown observer.
+Installer/package checks require both exports and the error marker. Original
+serialization and exceptions remain in use. This does not make writes atomic.
+
+On helper-errors01,a healthy menu passes in14.257s. Three authored invalid TOMLs
+(broken header,unterminated string,duplicate key) each refuse before startup/
+native save and preserve their exact input. Explicitly replacing one owned
+fixture with valid native TOML restores the menu. This four-process probe passes
+in22.720s;no automatic product reset or shared-file repair is implemented.
+Private startup and malformed reports,respectively,SHA256:
+e85ea1c3c692447d06c788c99cf13d43000133111bdde1c8e89b9970859df307
+995238110e0c9caaa0c6b749964a0a87c955607bb8e3a8c41b09a99d2906c344
+
+Helper-errors02 repeats those cases and adds a real post-startup writer failure,
+retry and fresh-process readback. An owned OS reader denies writes only after
+menu readiness. Original native unit setters change core1 ->75 and reach one
+original save attempt;the returned bool is false and disk stays byte-identical.
+After releasing that handle,the original storage Save returns true and persists
+the same live eight units/four groups. A new process loads that exact native
+deck and file. Six cases/five processes pass in36.627s,shared baseline and
+covered sources unchanged,all owned clients reaped. Gates/actions are explicitly
+opt-in and require a test-profile key;ordinary launch does not invoke them.
+Private local/native-settings-errors02/verification.json SHA256:
+4e1fbe1cc0a48279cbfd86aefb01f217f60806324cfd10b781f4225810a7a1b0
+Helper-errors02 SHA256:
+efbcbdb4eb5a04c0ead89b3f6215619ab83606dab1d0a1d1864e9af53b6b247e
+Ten C++ programs/helper build and57 focused Python checks pass. The full449-test
+suite above belongs to the earlier isolation checkpoint;it is not relabelled
+as a new full run after these error hooks. No manual/frozen package is changed.
+One final standalone Try Deck match on helper-errors02 also passes in93.980s:
+original human production,bot supply12,eight autonomous action records,native
+results/Continue,19 empty owned-socket snapshots,no server started,sources
+unchanged and owned PID reaped. Its produced-unit order intersection remains
+empty,so it does not renew full tactical bot-movement acceptance. The final
+shared-file rehash still matches the baseline. Private verification SHA256:
+ceb4fbb7c4e6237f6231b3ca23de1c152c8359066e9aed9a905e92dd4079b599
+
 Remaining gates
-Malformed native TOML/JSON and failures arising after startup need separate
-qualification. The original writer still uses its own non-atomic/swallows-error
-behavior;the new preflight lock/path guard is not proof of all later writes.
+Malformed deck JSON,wrong TOML node types,shape/ID validation and visible in-game
+save-error/recovery feedback need separate qualification. The original writer
+still uses its own non-atomic behavior;observing its bool is not protection
+against device failures,partial writes or process interruption.
 Native Quit/shutdown flush and final packages/manual clean-PC acceptance remain
 open. Broader modes/faults/ordinary entry-point acceptance remain separate.
 This only redirects the native local-user TOML;
@@ -149,6 +195,19 @@ Qualification checklist (native results above are bounded to their stated scope)
 - Cover malformed/unwritable paths and swallowed native writer failures,then
   recheck offline Try Deck,public/server/unavailable returns and header bindings.
 Make settings isolation a prerequisite for further graphical probes.
+
+Original error contract
+Retained original-byte/IL2CPP analysis confirms outer Load can return true after
+LoadTable returns null. Empty managed JSON strings and thrown JSON errors take
+different native routes. Deck.IsEmpty does not validate dimensions,IDs or ability
+groups. ResetAllUserSettings changes broad settings and saves;never use it as
+a diagnostic or automatic repair. Native handled write failures log warnings.
+local/native-settings-errors-contract01/FINDINGS.txt SHA256:
+db4f007a0073b7ecb9436841b77cb3b303f127ad91dd57fb140a66e8bd42a713
+manifest.json SHA256:
+79f1cf948fb42adf688d2c99835c97d83783354be400ada4cc501616b82982f4
+error-seams.json SHA256:
+1a05a8c52919ce16461abd06a8c6838cfaece51f70e045ce5ad6b40c8a349dfb
 
 Evidence
 REA native providers were unavailable. This is read-only original-byte LLVM/

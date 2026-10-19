@@ -49,6 +49,7 @@ CLIENT = COMMON + (
     'tools/package_client.py',
 )
 MARKERS = (
+    b'BA_RESURRECTION_NATIVE_SETTINGS_ERRORS_V1', b'OfflineLocalUserLoadTable\0', b'OfflineLocalUserSaveTable\0',
     b'BA_RESURRECTION_NATIVE_SETTINGS_V1', b'OfflineLocalUserConfigPath\0',
     b'BA_RESURRECTION_RECOVERY_V1', b'BA_RESURRECTION_TLS_BRIDGE_V1',
     b'BA_RESURRECTION_GAME_PROTOCOL_3', b'BA_RESURRECTION_COMMUNITY_V1',

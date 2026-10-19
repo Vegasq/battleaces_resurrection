@@ -11,8 +11,12 @@ Current cosmetic integration order (2026-10-19)
   Shared-file read-only baselines remain unchanged. Two standalone Try Deck
   matches and a two-human server2vAI full-loadout regression also pass after
   the path change. This is a source-built prototype;manual/frozen archives are
-  unchanged. Next qualify malformed TOML/deck JSON,later swallowed write errors
-  and original confirmed menu Quit/shutdown flush before final packaging.
+  unchanged. Exact native load/write result hooks now additionally pass three
+  malformed TOML refusals with input preservation,explicit fixture repair,and
+  post-startup write denial -> original Save retry -> fresh deck readback.
+  Next qualify malformed deck JSON/shape/IDs,visible save-error feedback,write
+  interruption policy and original confirmed menu Quit/shutdown flush before
+  final packaging. The original writer is still non-atomic.
   Never guess a shared-file restore or treat a callback as disk persistence.
   local-user-settings.txt and native-quit.txt retain exact seams and limits.
 - Correct the confirmed human-only local-AI deck replacement gap. Freeze the

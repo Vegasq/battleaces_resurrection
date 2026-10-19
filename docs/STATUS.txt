@@ -2,6 +2,21 @@ IMPLEMENTATION LEDGER
 Updated: 2026-10-19 UTC
 Active objective: implement SERVER_REPLACEMENT_PLAN.txt, Windows only.
 
+NATIVE SETTINGS ERROR RESULTS (2026-10-19 UTC, EXPERIMENTAL)
+Exact scoped hooks preserve original TOML parse/write results. A null parsed
+profile table stops startup before native fallback can overwrite the input.
+Three malformed TOMLs now refuse with bytes preserved;explicit owned-fixture
+repair restores the menu. A post-startup sharing denial proves native unit
+callbacks can change live state while Save returns false and disk is unchanged.
+Releasing the fixture and retrying original Save persists the same deck;fresh
+process readback passes. Six cases/five processes pass in36.627s,shared file and
+covered sources unchanged,owned clients reaped. Ten C++ programs/helper and57
+focused Python checks pass. Visible save-error feedback,malformed JSON/native
+shape validation,atomic writes and native Quit remain open. No manual/frozen
+package upgrade. A final standalone AI match also passes production/results/
+Continue with19 empty owned-socket snapshots and unchanged covered sources.
+See local-user-settings.txt for exact contracts and hashes.
+
 NATIVE LOCAL-USER SETTINGS ISOLATION (2026-10-19 UTC, EXPERIMENTAL)
 The new early call hook preserves native TOML/JSON while selecting a validated
 installation/profile path and retaining a process-lifetime writer lock. Invalid

@@ -1,11 +1,20 @@
 #pragma once
 #include <memory>
+#include <atomic>
 #include "native_settings.hpp"
 namespace ba_native_settings {
 static void observe(ba::Obj);
 // Held through engine teardown. OS process exit releases the handles; CRT
 // destruction must not unlock a profile while native shutdown can still save.
 static auto& session=*new std::unique_ptr<Session>();
+static std::atomic<unsigned long long> loads{0},saves{0},saveFailures{0};
+static std::atomic<bool> lastSaveSucceeded{true};
+static bool matches(ba::Obj path) noexcept {
+    // Exact known System.String ABI; no getter, managed allocation or cctor.
+    // Other config writers use this same base. Leave their results unchanged.
+    return session && path && ba::read<int32_t>(path,0x10)==static_cast<int32_t>(session->path().size()) &&
+        memcmp(static_cast<const char*>(path)+0x14,session->path().data(),session->path().size()*sizeof(wchar_t))==0;
+}
 static std::wstring wide(ba::Obj text) {
     require(text!=nullptr,"native settings hook string missing");
     const int count=ba::api<int(*)(ba::Obj)>("il2cpp_string_length")(text);
@@ -29,6 +38,37 @@ static void verify() {
     require(wide(actual)==session->path(),"native settings initialized path differs from isolated destination");
     verified=true;ba::log("NATIVE SETTINGS path verified: profile=%s staticField=1 getterCalled=0 isolated=1",session->profile().c_str());
 }
+}
+extern "C" __declspec(dllexport) void* OfflineLocalUserLoadTable(void* loader,void* path,void* method) {
+    ba::init();const bool isolated=ba_native_settings::matches(path);
+    // No managed allocation after this return: RAX is not yet rooted by caller.
+    auto table=ba::native<void*(*)(void*,void*,void*)>(0x3797f80)(loader,path,method);
+    if(isolated) {
+        const auto sequence=++ba_native_settings::loads;
+        ba::log("NATIVE SETTINGS load result: profile=%s sequence=%llu parsed=%d BA_RESURRECTION_NATIVE_SETTINGS_ERRORS_V1",
+            ba_native_settings::session->profile().c_str(),sequence,table!=nullptr);
+        if(!table) {
+            // Original outer Load falsely reports success here,then may save
+            // defaults over the input. Preserve it by stopping before fallback.
+            ba::log("NATIVE SETTINGS load refused: parsedTable=0 inputPreserved=1 sharedPathUnused=1");
+            TerminateProcess(GetCurrentProcess(),ERROR_BAD_CONFIGURATION);ExitProcess(ERROR_BAD_CONFIGURATION);
+        }
+    }
+    return table;
+}
+extern "C" __declspec(dllexport) bool OfflineLocalUserSaveTable(void* loader,void* path,void* table,void* method) {
+    ba::init();const bool isolated=ba_native_settings::matches(path);
+    // Preserve original exceptions and AL result. Do not convert failure to
+    // success or call any UI/managed code from this writer/teardown callback.
+    const bool okay=ba::native<bool(*)(void*,void*,void*,void*)>(0x3796060)(loader,path,table,method);
+    if(isolated) {
+        const auto sequence=++ba_native_settings::saves;
+        ba_native_settings::lastSaveSucceeded=okay;
+        if(!okay)++ba_native_settings::saveFailures;
+        ba::log("NATIVE SETTINGS save result: profile=%s sequence=%llu succeeded=%d failures=%llu BA_RESURRECTION_NATIVE_SETTINGS_ERRORS_V1",
+            ba_native_settings::session->profile().c_str(),sequence,okay,ba_native_settings::saveFailures.load());
+    }
+    return okay;
 }
 extern "C" __declspec(dllexport) void* OfflineLocalUserConfigPath(void*,void*,void* filename,void*) {
     try {
