@@ -14,7 +14,7 @@ from tools.package_integrity import verify
 request=json.loads(Path(sys.argv[1]).read_bytes());output=Path(request['output']);package=Path(request['package'])
 fixture=json.loads(sys.stdin.buffer.read(16385));assert len(fixture['identities']) in (2,4)
 assert not request.get('recover_stage') or len(fixture['identities'])==2
-verify(package,'server');report=dict(passed=False,production_modules={},fixture_store=True,workers=[],frozen_matches=[])
+verify(package,'server');report=dict(passed=False,production_modules={},fixture_store=True,workers=[],frozen_matches=[],custom_commands=[])
 workers=[];servers=[];authenticated=[];stores=[];old_sessions={}
 def publish(name,value):
     temporary=output/(name+'.tmp');temporary.write_text(json.dumps(value,indent=2)+'\n');temporary.replace(output/name)
@@ -36,7 +36,10 @@ def server(*args,**kwargs):
         if event=='match_created':
             room=value.rooms[fields['room']];match=room.match
             report['frozen_matches'].append(dict(match=fields['match'],game_data_sha256=match.raw_sha256,
+                lobby=room.community_lobby,epoch=value.community.lobbies[room.community_lobby].epoch if room.community_lobby else None,
                 humans={slot:dict(profile=peer.profile_id,name=peer.name) for slot,peer in room.peers.items()},
+                complete_profiles=sorted(peer.profile_id for peer in room.peers.values() if value.community.sessions[peer.profile_id].full_loadout),
+                cosmetics={slot:dict(catalog_sha256=appearance.catalog_sha256,slots=appearance.slots) for slot,appearance in match.cosmetics_by_slot.items()},
                 roster=[dict(slot=p.slot,name=p.name,ai_profile_id=p.ai_profile_id) for p in match.roster],
                 decks={slot:list(deck) for slot,deck in match.decks_by_slot.items()},
                 active_ability_groups={slot:list(groups) for slot,groups in match.active_ability_groups_by_slot.items()},
@@ -45,12 +48,20 @@ def server(*args,**kwargs):
                 victim,survivor=(p['player_id'] for p in fixture['identities'])
                 report['recovery_sessions']=dict(survivor_retained=value.community.sessions[survivor] is old_sessions[survivor],
                     victim_replaced=value.community.sessions[victim] is not old_sessions[victim])
-    value.audit=observe;return value
+    value.audit=observe
+    if request.get('custom_rematch'):
+        original_apply=value.community.apply
+        async def apply(session,kind,command,now):
+            report['custom_commands'].append(dict(profile=session.peer.profile_id,kind=kind,lobby=command.get('lobby'),epoch=command.get('epoch'),perf_counter_ns=time.perf_counter_ns()))
+            return await original_apply(session,kind,command,now)
+        value.community.apply=apply
+    return value
 def view():
     if not servers:return {}
     value=servers[0]
     return dict(rooms=len(value.rooms),retired=len(value.retired),entries=len(value.community.public.entries),
-                offers=len(value.community.public.offers),cleanup=len(value.worker_cleanup),sessions=len(value.community.sessions))
+                offers=len(value.community.public.offers),cleanup=len(value.worker_cleanup),sessions=len(value.community.sessions),
+                lobbies=[dict(id=l.id,phase=l.phase,epoch=l.epoch,members=sorted(l.members)) for l in value.community.lobbies.values()])
 def inject_disconnect():
     command=output/'server-disconnect.json'
     stage=request.get('recover_stage')
@@ -96,7 +107,7 @@ async def run():
     assert ready and len(servers)==1 and len(stores)==1 and sorted(authenticated)==sorted(expected)
     # Parent qualifies exact native worker exit/cancellation against the original
     # host audit journal. This driver only claims every child has been reaped.
-    assert len(workers)==(3 if recovering else 2) and all(row['reaped'] for row in report['workers'])
+    assert len(workers)==(3 if recovering or request.get('custom_rematch') else 2) and all(row['reaped'] for row in report['workers'])
     if recovering:assert report.get('fault') and report['recovery_sessions']==dict(survivor_retained=True,victim_replaced=True)
     assert all(Path(row['executable']).resolve()==(package/'program/runtime/python.exe').resolve() for row in report['workers'])
     assert all(Path(row['module_root']).resolve()==(package/'program/app').resolve() for row in report['workers'])
@@ -144,10 +155,15 @@ def spawn(config,remote,options,child):
     assert '-unified-client' in command and '-public-queue-experimental' in command and '-local-cosmetics-experimental' in command
     assert not any(any(word in value.partition('=')[0].casefold() for word in ('smoke','audit','capture','proof','export','auto-')) for value in command if value.startswith('-'))
     ordinary=list(command);command[command.index('-logFile')+1]=str(output/'game.log')
-    diagnostic=['-public-queue-smoke','-public-queue-smoke-mode='+str(request['mode']),'-public-queue-smoke-gate='+request['gate'],
-        '-lan-smoke','-lan-audit','-dedicated-rematch-smoke','-dedicated-surrender-smoke','-dedicated-surrender-frame=1200',
-        '-public-team-surrender-smoke','-match-search-smoke','-native-quit-smoke','-native-quit-mode=confirm','-native-quit-gate-smoke']
-    if request['index']%2==1:diagnostic.append('-public-queue-smoke-edit-deck')
+    diagnostic=['-lan-smoke','-lan-audit','-dedicated-surrender-smoke','-dedicated-surrender-frame=1200',
+        '-native-quit-smoke','-native-quit-mode=confirm','-native-quit-gate-smoke']
+    if request.get('custom_rematch'):
+        diagnostic.extend(['-community-match-'+('host' if request['index']==0 else 'guest')+'-smoke',
+            '-community-match-deck-smoke','-community-match-duplicate-smoke','-community-match-leave-quit-smoke'])
+    else:
+        diagnostic.extend(['-public-queue-smoke','-public-queue-smoke-mode='+str(request['mode']),'-public-queue-smoke-gate='+request['gate'],
+            '-dedicated-rematch-smoke','-public-team-surrender-smoke','-match-search-smoke'])
+        if request['index']%2==1:diagnostic.append('-public-queue-smoke-edit-deck')
     if request.get('recover_stage'):
         diagnostic.extend(['-public-queue-smoke-retry','-public-queue-smoke-retry-gate','-public-team-retry-smoke'])
         if request['index']==0:diagnostic.append('-dedicated-recovery-smoke')

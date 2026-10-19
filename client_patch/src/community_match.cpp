@@ -1,4 +1,5 @@
 #pragma once
+namespace ba_client { static bool nativeIdle(ba::Obj front); } // Defined later in client_lifecycle.cpp.
 // Native Start/Ready requests are not wire transactions: callbacks carry only
 // Error and may synchronously enqueue another request. Retain exact ownership.
 namespace ba_community_match {
@@ -490,11 +491,48 @@ extern "C" __declspec(dllexport) void OfflineCommunityJoinGame(void* server,void
 }
 
 namespace ba_community_match {
+// External packaged qualification only. Ordinary clients never request or
+// create this gate; original Leave is dispatched after BOTH result cycles.
+static bool leaveGateReady() {
+    if(!ba::flag(L"-community-match-leave-quit-smoke"))return false;
+    wire::require(ba::unified() && ba::flag(L"-native-quit-smoke") && ba::flag(L"-native-quit-gate-smoke") &&
+        ba_native_settings::session && ba_native_settings::session->profile().rfind("nativestest_",0)==0,
+        "Custom leave gate requires an owned unified Quit diagnostic");
+    const auto& settings=ba_native_settings::session->path();
+    const auto path=settings.substr(0,settings.find_last_of(L'\\')+1)+L"custom-match-leave.ready";
+    ba_native_settings::Handle file(CreateFileW(path.c_str(),GENERIC_READ,FILE_SHARE_READ,nullptr,OPEN_EXISTING,
+        FILE_FLAG_OPEN_REPARSE_POINT,nullptr));
+    if(file.value==INVALID_HANDLE_VALUE) {
+        wire::require(GetLastError()==ERROR_FILE_NOT_FOUND,"Custom leave gate is unavailable");return false;
+    }
+    ba_native_settings::ordinary(file.value);LARGE_INTEGER size{};
+    wire::require(GetFileSizeEx(file.value,&size) && size.QuadPart==0,"Custom leave gate must be an empty ordinary file");
+    return true;
+}
 static void smoke(Obj front) {
     const bool host=ba::flag(L"-community-match-host-smoke"),guest=ba::flag(L"-community-match-guest-smoke");
     if(!host && !guest)return;
     const auto now=GetTickCount64();if(!probeAt){probeAt=now+2500;return;}if(now<probeAt)return;
     Root owner(native::manager(front));wire::require(owner.get()!=nullptr,"community match smoke manager missing");
+    if(probeStage==7 && leaveGateReady()) {
+        wire::require(host!=guest && probeMatches==2 && !awaitingReturn && returnAccepted && operations.empty() &&
+            native::authority.phase==wire::Open && !native::installedLobby.empty() && native::requests.empty() &&
+            ba_community_invites::operations.empty() && !ba_dedicated_session::joined && ba_client::nativeIdle(front) &&
+            !ba::get<Obj>(owner.get(),"_pendingLobbyUpdateRequest"),"Custom post-match Leave requires an idle owned lobby");
+        probeStage=8;
+        ba::native<void(*)(Obj,bool,Obj)>(0x3cab820)(owner.get(),false,nullptr);
+        ba::log("COMMUNITY MATCH SMOKE original post-match Leave dispatched: role=%s BA_RESURRECTION_CUSTOM_LEAVE_GATE_V1",host?"host":"guest");
+        return;
+    }
+    if(probeStage==8 && native::authority.phase==wire::None && native::installedLobby.empty() && native::requests.empty()) {
+        wire::require(!ba::get<Obj>(front,"_party") && !ba::get<Obj>(owner.get(),"_pendingCreateLobbyRequest") &&
+            !ba::get<Obj>(owner.get(),"_pendingLobbyUpdateRequest") && operations.empty() &&
+            ba_community_invites::operations.empty() && !ba_dedicated_session::joined && ba_client::nativeIdle(front),
+            "Custom post-match Leave retained party/request/world");
+        probeStage=9;
+        ba::log("COMMUNITY MATCH SMOKE post-match leave passed: role=%s party=0 pending=0 nativeIdle=1",host?"host":"guest");
+        return;
+    }
     if(probeStage==4 && recoveredAborts>probeAborts && !awaitingReturn && returnAccepted &&
        native::authority.phase==wire::Open && !ba_dedicated_session::joined) {
         ba_community_invites::verifyParty(front,2,host);

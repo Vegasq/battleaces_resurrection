@@ -15,6 +15,24 @@ actions. Current native settings saves use staged handle publication. See
 ordinary-player-client.txt for reports,retained failures and remaining matrix.
 These controls do not close the final/manual/clean-machine/Internet gates below.
 
+Bundled Custom invite/rematch34 qualification
+Bundled host/two production clients pass194.845s using ordinary patch settings:
+original live-directory Invite/Accept,two human Start/Ready/build/result/Continue
+cycles on one lobby/two connections,changed host deck/stable guest. Each client
+receives1220 exact authoritative frames/122 matching observable-state samples
+in EACH round. Native duplicate callbacks settle without duplicate wire actions.
+Test-only gate then dispatches original guest Leave/host Leave;party/request/
+world/lobby release precedes original five-event menu Quit and both game/launcher
+exits0. Three workers exit0/reap,listener/state lock release,outer jobs active0/
+terminated0,no forced cleanup. Two completed native replays per profile match
+frozen GameData/1220 contiguous records and agree across clients. Eleven C++
+programs/six atomic boundaries and Python522 tests508pass/14skip pass. First
+optional-disposal-trace mismatch remains failed;strict ordinary-recipe rerun
+passes. Preview dirty=true;clean archive/equivalence/actual CMD follow-up remains.
+Same external credential-fixture/DACL limitation applies;broader fault/manual/
+protected deployment/SCM/clean-PC/Internet/capacity/telemetry gates remain OPEN.
+See packaged-multiplayer.txt;ordinary launcher has no automatic Leave/test flags.
+
 Bundled four-human2v2-33 qualification
 Clean30 host/four independent bundled clients pass129.370s with all four native
 human seats/profiles0,no bots. Each receives1250 exact authoritative frames and

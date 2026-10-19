@@ -39,8 +39,16 @@ Current release integration order (2026-10-19)
   baseline/edited choices and active ability groups bind to all four actual
   human seats;identical decks remain legal. Four native replay saves at306-
   character canonical paths decode/agree;five outer jobs active0/terminated0,
-  no forced cleanup. Next qualify human-only packaged Custom/invite/rematch.
-  Remaining packaged Custom/rematch,broader fault matrix,CMD/manual,
+  no forced cleanup. Packaged Custom/invite/rematch34 now passes194.845s:
+  original directory Invite/Accept,two Start/Ready/build/result/Continue cycles,
+  same lobby/connections,changed host deck/stable guest,1220 exact frames/122
+  matching samples per client in EACH round. Original sequential guest/host
+  Leave and menu Quit pass;all games/launchers/workers exit0,jobs active0/no
+  forced cleanup. New Leave gate is an explicit owned diagnostic,never ordinary
+  automatic behavior. First optional-disposal-trace checker failure is retained;
+  ordinary patch recipe rerun keeps exact five-event menu Quit contract.
+  Fresh clean34 archive/equivalence/actual ordinary CMD follow-up remains next.
+  Remaining broader packaged fault matrix,CMD/manual,
   protected credential/SCM/clean-PC/Internet/capacity gates remain open. See
   packaged-multiplayer.txt;do not mistake credential fixtures for real enrollment.
 - Complete native replay format/playback compatibility. Diagnostic25 invokes

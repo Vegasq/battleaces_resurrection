@@ -2,6 +2,30 @@ IMPLEMENTATION LEDGER
 Updated: 2026-10-19 UTC
 Active objective: implement SERVER_REPLACEMENT_PLAN.txt, Windows only.
 
+BUNDLED CUSTOM INVITE/REMATCH34 (2026-10-19 UTC, BOUNDED PASS)
+Bundled production host/two client.main/TLS/bridge/native clients pass194.845s
+with ordinary installed patch settings:original live-directory Invite/Accept,
+two human-only Start/Ready/build/result/Continue cycles on the same lobby and
+two retained connections,host native changed-deck rematch/guest unchanged.
+Both clients receive1220 exact authoritative frames and agree on122 common
+observable-state samples in EACH round. Configured identity/full profile/frozen
+cosmetics bind to the two human seats;no public queue/local AI. Duplicate native
+callbacks settle without duplicate wire Start/Ready. New explicit test-only
+profile gate invokes original guest Leave then host Leave after BOTH second
+returns;party/request/world/lobby cleanup precedes the existing gated Quit.
+Both original five-event menu Quit traces/game+launcher exits0 pass;three workers
+49460/29012/21280 exit0/reap,listener/state lock release,three outer jobs active0/
+terminated0 before close,no forced cleanup. Two identical-per-round native
+recordings per profile decode1220 contiguous frames/exact frozen GameData hash.
+All seven unchanged/non-disclosure checks pass. First run remains failed for
+extra optional disposal trace events;ordinary recipe rerun preserves strict
+five-event check. Eleven C++ programs/six atomic boundaries,Python522 tests
+508pass/14skip,131.413s plus26 focused checks pass. Preview is dirty=true;
+fresh clean archive/equivalence/actual ordinary CMD follow-up still required.
+Helper34 changes only explicit diagnostics;ordinary launch/manual24 untouched.
+Credential fixtures are not protected deployment;manual/clean-PC/Internet/SCM/
+broader fault/capacity/telemetry gates remain open. See packaged-multiplayer.txt.
+
 BUNDLED FOUR-HUMAN2v2-33 (2026-10-19 UTC, BOUNDED PASS)
 Unchanged clean30 host/four independent bundled clients pass129.370s with human
 seats0/1/2/3,all native AI profiles0,no bot worker. Every client receives1250

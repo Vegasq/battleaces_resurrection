@@ -1,5 +1,94 @@
 BUNDLED SERVER / NATIVE MULTIPLAYER QUALIFICATION -- 2026-10-19
 
+Native34 Custom directory invite / same-lobby changed-deck rematch (BOUNDED PASS)
+--custom-rematch uses bundled production host.run and two actual bundled
+client.main/resolver/TLS/bridge/native clients with the same explicit stdin-only
+credential fixture boundary below. Existing ordinary arguments are checked free
+of automation before adding original Custom host/guest/duplicate/deck/build/
+concession/Quit diagnostics. Public Play/search/fallback diagnostics are absent.
+Native simulation/queue clocks and host command implementations are unchanged.
+The external host observer forwards every original Community.apply call and
+records command identity/epoch/performance timestamp;no ACK latency is injected.
+Frozen native match metadata additionally records lobby/epoch,complete session
+profiles and actual catalog-qualified human cosmetics. Public full_loadout_seats
+is a public-assignment capability,not a Custom capability;do not confuse them.
+
+Helper34 adds ONLY an explicit -community-match-leave-quit-smoke diagnostic.
+After two original result/Continue returns,it waits for fixed empty ordinary
+single-link custom-match-leave.ready under its validated nativestest_ profile.
+Parent requires both completed probes and reopened epoch2 lobby with released
+room/worker capacity,then releases GUEST's gate. After guest native Leave/ACK/
+party/request/world cleanup and host-only Open lobby,parent releases HOST's gate.
+Only after host cleanup/server lobby removal does it write native-quit.ready.
+Original LeaveLobby and original owned menu Show/Confirm callbacks execute;
+idle/navigation/asset checks and60-second Confirm exit bound stay unchanged.
+Ordinary launch does not set these flags or create gates. No automatic Leave,
+gameplay actions,new network protocol or cleanup bypass is shipped to players.
+
+Actual ordinary-recipe control passes194.845s. Native PIDs21956/24920 remain the
+same across two distinct human-only matches,one lobby,epochs1/2 and one verified
+TLS connection per client. Original directory picker Invite/guest Accept,host
+Start/guest Ready and native duplicate callback settlement all pass. Exactly
+two wire Starts/two Readies/four Returns;one created lobby/accepted invitation.
+Both original normal builds queue at300/400 in BOTH rounds. Every one of1220
+frame receipts per round/client matches the authoritative payload hash;each
+round/client agrees on122 common canonical observable-state samples. Host's
+original native setter/save changes first selected unit1->75 before rematch;
+guest's selected deck remains unchanged. Configured names,complete native
+profile publication and frozen cosmetics retain authoritative human ownership;
+both roster AI profiles0,actual worker AI metadata null,no public/local AI path.
+
+Original guest Leave precedes host Leave;both release party/pending/world state,
+then original five-event menu Quit traces and both game/launcher exits0 pass.
+Health49460/match29012/rematch21280 workers exit0/no failure/reaped. Original
+host cancellation closes listener/releases state lock;three outer jobs active0/
+terminated0 before close,no forced cleanup. Each profile retains two completed
+native recordings:1220 contiguous records and exact per-match frozen GameData
+hash;each round's bytes agree across clients. Native TOML and all seven source/
+package/config/assets/adapters/three shared-channel/token non-disclosure checks
+pass;test PKI removed. Original/frozen/manual24 copies remain unchanged.
+local/packaged-custom34-rematch02/verification.json SHA256
+c0c9282acf830e8023e77d0901e2b587cd2ba40e66814eda1a60d6d4e6276bc0
+First completed replay SHA256
+24649d4a1c73a8be4714fb91aa4e01757ce1af19cad1e71ce0d666ef634d8b0a
+Rematch completed replay SHA256
+d7a2b5419e4c7845c7354b10909ca8b2089ba4b67c4da548011e1ab19942b131
+Helper34 SHA256
+662a9797841d09e5d97dce2fb4f304915765440628536c0e3b125d96dc27610e
+Source-bound helper receipt SHA256
+b2ab25dfa825e299c4353ebfbca4e32fcbb697313618550e1229d62628df7390
+
+Retain first rematch01 as FAILED313.391s. Installation accidentally enabled
+optional original disposal tracing;both menu traces contain expected five
+events followed by RGameSingleton.OnDestroy.enter,RGameInstance.Dispose.enter/
+return,RGameSingleton.OnDestroy.return. Both games/launchers and three workers
+exit0,all jobs active0/terminated0,no forced cleanup,but exact five-event checker
+correctly rejects the additional events. Read-only Custom/frame/state/deck/
+replay validation passes on retained files;this does not reclassify that report.
+Restoring ordinary installed patch settings removes the extra disposal hooks;
+fresh rematch02 reruns the full flow without changing the checker or helper.
+Initial asset loading was slow while the full source suite ran concurrently;
+it eventually completed. This is not standalone cold-start performance evidence.
+First report SHA256
+090888749c86137efdcd0f2a4ce1bc938b84d0cc6fc4b7faa95a1e91d8154b08
+
+Helper compile01 failed because nativeIdle's later definition needed a forward
+declaration;compile02 passes all eleven C++ programs/six atomic boundaries.
+Python522 tests508pass/14skip,131.413s,exit0 and26 focused checks pass. No original
+game files/captures/credentials belong in Git. Preview built fromc517e50 plus
+bound uncommitted sources,dirty=true,not a final friend-hosted release.
+local/packaged-custom34-packages01/build-report.json SHA256
+a9a2a9f0d32d81c340b5f5f2e743ec71839b12df060b91990057ec881e9ff222
+Preview client67files,13087534bytes,ZIP SHA256
+c107dfafd9a1cac96170db34a5bb6b737515a7780ff5177fecec27f73a9d2ba7
+Preview server82files,12427768bytes,ZIP SHA256
+ff71161032de0567cccce63a8ee85a6a98fe6f9a6921993578e4779482f6243e
+Clean archive/equivalence/actual ordinary CMD follow-up remains. Manual visuals/
+physical input/protected deployment/SCM/clean-PC/Internet/capacity/broader faults/
+telemetry coverage remain open. Sampled state agreement is not an independent
+hidden-state determinism or rendered-pixel proof. Structural replay readback
+does not additionally qualify these new recordings for native playback.
+
 Native33 four-human2v2 (BOUNDED PASS)
 Existing clean30 packages/helper are unchanged. Owned verifier --mode2 --humans4
 launches four distinct bundled client.main/resolver/TLS/bridge/native clients
