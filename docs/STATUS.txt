@@ -14,6 +14,9 @@ build37822,289-character Unicode file path;all three native stream disposals
 complete. Same idle menu validates afterward;game/launcher exit0,job active0
 before close,no forced cleanup,source/package/config/shared three channels
 unchanged. Prototype package is dirty=true and remains an explicit test artifact.
+Fresh clean8f0cc98 package has identical production/runtime/helper bytes;only
+compatibility metadata differs. Its actual ordinary CMD startup passes10.759s
+menu/11.136s total,no automatic actions. Readiness cleanup is forced,not Quit.
 Eleven C++
 programs/six atomic boundaries and Python491 tests477pass/14skip,106.855s pass.
 Original startup ReplayFiles batch route is being traced separately for actual

@@ -89,6 +89,30 @@ fe987a8ee761be19b2a0d7265042b9bfca61675b2ffb845b6446c4c9fb89f507
 build-report.json SHA256
 ae0d15af9cc8d4e0b5b1e2075fe39ba81186a11a3936720dc052c64d35824f74
 
+Clean25 package startup / byte equivalence
+After committing8f0cc98ebc17c832eb1b8e93c2fc876f2ae001ce,build fresh
+local/replay-reader25-clean-packages01 with dirty=false and exact same helper25.
+Verified inventories show ONLY compatibility.json differs from the runtime-tested
+prototype:all production modules,helper,runtime and other inventoried files are
+byte-identical. Current C++ sources still match the bound build receipt. This is
+explicit byte-equivalence evidence,not a second full native gameplay run.
+local/replay-reader25-clean-equivalence.json SHA256
+91ee54fbbdccfbbe7d65cdbe47d85de88bfc307db1e4297af0db45e50b45fe04
+Actual clean bundled Start Client.cmd separately reaches native menu10.759s,
+total11.136s,without spawn seam/global Python on PATH/diagnostic actions.
+Config/package/source/named shared TOML unchanged. Owned cleanup is forced after
+readiness;not another Quit or physical-input acceptance claim.
+local/replay-reader25-clean-startup01/verification.json SHA256
+f435ca503df347f92979eb6b9507d0624d0abb7c6afc2855ea97de6e621391e4
+Clean client67 files13068579 bytes,ZIP SHA256
+58c5d32465ccbfd33fbb0f0437f1b1e076e6816f28c3e00d3e1aabbfafeb753d
+Clean server82 files12427769 bytes,ZIP SHA256
+3462a24ff7b946d6f4e0f494bce225f8be25f5a756533b22ad0b87f198a2dadd
+Clean build-report.json SHA256
+78ce41011cee4ed8252c4ac6e459aef0a4892550c3d6050e9c038406b7c9ec35
+These remain development previews. Manual24 and all original/frozen copies stay
+unchanged. No game binaries,assets,private captures or disassembly enter Git.
+
 Retained original-code evidence (private,ignored)
 local/native-replay-reader-contract03/FINDINGS.txt SHA256
 074e9f33c1223f5d05dbd1dc86a3b89822234fd160a339002481fe7c2f9138e4
