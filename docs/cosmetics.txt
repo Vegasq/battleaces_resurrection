@@ -1,6 +1,8 @@
 INSTALLED COSMETICS - BUILD37822 CONTRACT
 Updated:2026-10-19 UTC. Catalog and experimental picker ownership qualified.
-Equip,persistence and match propagation remain open. See cosmetic-unlock.txt.
+Local select/Equip/confirm/swap and full17-slot persistence now pass bounded
+native qualification; see cosmetic-persistence.txt. Real gestures,all-item effects
+and community match propagation remain open. See cosmetic-unlock.txt.
 
 Evidence boundary
 REA native providers remain unavailable. Findings use original-byte LLVM/PE

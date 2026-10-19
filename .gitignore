@@ -2,6 +2,7 @@
 /build/
 /dist/
 /investigation/
+**/.battleaces-resurrection/
 /server/assets/
 /server/data/
 /server/test-data/

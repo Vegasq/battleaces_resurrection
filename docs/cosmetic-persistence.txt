@@ -1,0 +1,136 @@
+LOCAL COSMETIC STATE - IMPLEMENTATION AND QUALIFICATION
+Updated:2026-10-19 UTC. Experimental; final cosmetics delivery remains open.
+
+Native contract
+The full CosmeticsUtils.ToProto(Cosmetics,ClientGlobalConfigDefinition) overload
+is RVA3cc0940, token0600053d. Its other two-argument overload accepts a raw
+CosmeticChangedEvent and produces a delta. The implementation resolves the exact
+Cosmetics parameter class and verifies the original code pointer before invoking
+the full overload through runtime_invoke. It derives a twelve-field ProfileCache
+view; it never feeds that view through LoadFromProto, which clears the full list
+and cannot preserve all seventeen slots.
+
+The native account's existing Cosmetics object/subscribers remain authoritative
+for the UI. Initial restoration runs before the local-menu ready marker. Later
+observations run on the Unity thread before the client transport update and after
+explicit diagnostic callbacks. The list identity,array,count and version bound a
+complete copy; original installed FilterItem validates every selected item. The
+observer sees both writes of an equivalent-slot swap after the callback returns.
+Missing or zero local selections resolve to installed defaults. Complete saved
+state must include every slot, with zero permitted only in genuinely empty slots.
+
+Selection callbacks are four-byte item-key values, not boxed object references.
+OnSelectItem updates the preview without equipping. OnEquipSelectedItem uses that
+preview. OnSelectAndConfirm reaches the native equip/swap path. Equivalent-slot
+swaps preserve the target's previous item. The existing picker must be reacquired
+after each equip because its configured UI events may navigate or refresh it.
+TryResetInvalidCosmeticsToDefault validates/repairs invalid items; it is not a
+reset-all API. Native mouse/drag gestures are separate qualification gates.
+
+Read-only original-byte/IL2CPP research retained in ignored folders:
+local/cosmetics-equip-contract01/FINDINGS.txt SHA256
+a382cefdb84012c04e18ef23ae7326bc544949cb161a22ce604621f0859ad3ae
+local/cosmetics-persistence-contract01/FINDINGS.txt SHA256
+c669671ea78f9bf439e56c552dc5af896b3aaf9661050821777c43d01fb3427b
+REA providers remain unavailable; these are not new provider decompilations.
+Original binary/metadata identities remain pinned in cosmetics.txt.
+
+Local configuration and storage
+Optional client.json local_profile defaults to "default". It accepts1..48
+lowercase ASCII letters,digits,underscore or hyphen; Windows reserved device
+names are rejected. It is frozen when launching, independent of display_name,
+online credentials and server changes. The TLS schema never receives it, and
+enrollment preserves an explicitly selected key. This key currently isolates
+cosmetic state only; native local deck storage is a separate remaining gate.
+
+The working game's .battleaces-resurrection/profiles/<key>.cosmetics.json stores
+schema1,build37822,the profile key,the exact runtime catalog SHA256 and all17
+native-ordered [slot,item] pairs. No catalog rows or game assets enter source.
+This is bounded canonical application JSON, not a general editing/import format:
+reordered/escaped keys,duplicate fields,unknown versions,overflow,truncation,
+wrong catalog,wrong slot,duplicate nonzero item and incomplete maps are rejected.
+The twelve-field protobuf is a derived view, never the persistence format.
+
+An ordinary local directory and profile writer lock are held while active.
+Writes use a unique same-directory temporary file,FlushFileBuffers and atomic
+MoveFileEx replacement with write-through. A failed save keeps the last file
+and in-memory selection. Observed external changes are not silently overwritten.
+Corrupt/mismatched/unavailable state disables writes for that session and retains
+the input file; local play can still start with its current/default loadout.
+No reparse-point destination is followed. Generated state is ignored by Git.
+
+Qualification
+Nine C++ component programs and the native helper build. Synthetic storage
+checks cover complete maps,empty slots,swap ordering,truncated/bad inputs,
+restart,separate profiles,competing writers/handle cleanup,failed replacement,
+external edits and oversize files.
+
+The first native run,cosmetics-persist-equip01,PID42784,reached writable local
+persistence and an idle menu without server credentials. The diagnostic then
+rejected its own valid disposable profile because its guard used an incorrect
+prefix length. No equip was performed. The check was corrected; failed evidence
+is retained. This is not a cosmetics qualification pass.
+
+cosmetics-persist-equip02 PASSES,PID29860,in20.531 seconds. Original picker
+selection leaves the complete map unchanged and updates the preview. Separate
+Equip and confirm each equip alternate portraits. Two nondefault equivalent-slot
+items are equipped and swapped; the prior item is preserved. All17 effective
+slots match after every callback, and the original invalid-item validator keeps
+the valid nondefault choices. Five atomic saves complete; the twelve-field
+ProfileCache projection matches the effective native map. No match starts.
+Windowed capture was inspected: original avatar grid and preview render.
+Report SHA256:
+efc98de462065a9294712694aa20734f6b6a2f6588c342618c167ec01c68d3bb
+Capture SHA256:
+6b0be4071741b8d3f1ad327b8cad36ed454fcf52f0a5cf49b9b1a405c6eb2fb0
+Helper SHA256:
+131fca12ff5191c493dd80ff81d31adbcad1e41e3f7343a2d09933a4de22a487
+Catalog remains c218f15258c3e1192cc788c6fbcbc127d43f5fabb11d141be853c30000b7ae89.
+Zero TLS/credential attempts,unchanged covered source hashes and an owned reaped
+process are required. These are original callback tests,not mouse gestures.
+The client is forcibly terminated after the proof; native Quit is not qualified.
+
+Complete ten-process sequence cosmetics-persistence-native01 PASSES:
+  equip:PID42596,20.545s; restart A:PID31540,14.933s;
+  alternate B:PID51712,14.786s; restart A after B:PID50660,14.785s;
+  wrong catalog:PID3748,15.394s; wrong category:PID13372,14.989s;
+  duplicate item:PID18944,15.197s; truncated file:PID37868,14.800s;
+  held writer lock:PID27492,15.795s; ordinary startup:PID13216,12.364s.
+The second profile restores12 alternate categories. Both announcer slots have
+only one compatible installed item,so their defaults and the three empty sticker
+slots are retained in every full17-slot restore; no nondefault announcer exists
+in this installed catalog. Profile A reopens unchanged before and after B.
+Every invalid/locked profile retains its exact input bytes,starts with defaults,
+keeps writes disabled for the session,and reaches the local menu. The wrong-slot
+case uses a unique installed item from another category,not a duplicate-item
+failure. Ordinary startup adds no activation/export/smoke flags. All processes
+are reaped;every phase makes zero TLS/credential attempts and covered sources
+stay unchanged across the whole sequence. Native Quit remains unqualified.
+Aggregate report SHA256:
+b5f039c2d37c82d9d0457a6e36af31ae8196b7aa6a529cf18f37f61a61098375
+The final sequence's inspected windowed capture SHA256:
+355a11ff4eb9bedf3640171b0c6e34ebdd21f28c5642b9f527c72964a30e262a
+Per-phase report hashes and complete selections stay in the ignored aggregate.
+The installed helper is131fca12 above; optional GameAssembly remains
+970a742f3c82ea1d7bfa6044b103202e6af72e14a7f2935d9bd2250918bbc978.
+
+Focused source suites:77 checks,75 passed/two optional skips; then68 launcher,
+bridge,setup,enrollment and patcher checks,61 passed/seven optional skips.
+Those suites overlap; do not add their counts as independent cases. No checks
+failed. Optional native fixture and opt-in private Windows boundary cases are
+separate from the real inherited bridge used by the ten graphical processes.
+
+Reproduce with a fresh ignored evidence directory and current experimental
+helper/recipe installed in a disposable local game copy:
+python -m tools.verify_cosmetic_persistence --game local/<copy> --output local/<fresh> --timeout 240 --visible
+The harness creates fresh cosmeticstest_ profiles and keeps all generated files
+for review. Do not use it against a personal/manual or untouched game copy.
+Read-only single-process checks may use verify_unified_startup with explicit
+--local-profile <disposable-key> --cosmetics-persistence-proof --cosmetics-export.
+The modifying --cosmetics-equip-smoke additionally requires cosmeticstest_ prefix.
+
+Remaining release gates
+Freeze and propagate validated full selections with decks through community profiles,
+backups,wire admission,match join,simulation and results. Qualify local AI and
+remote/rematch effects,all cosmetic visuals/audio,real drag gestures,shutdown
+flush and native Quit before ordinary enablement/final packaging.

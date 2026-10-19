@@ -228,8 +228,12 @@ Current implementation sequence for these additions (2026-10-18):
    catalog-scoped visibility/ownership now passes107 item models,42 original
    picker/filter cases and a rendered avatar grid/preview. Native SaveAllCosmetics
    reaches a contained valid case37 request. See cosmetic-unlock.txt. Actual
-   equip/swap/confirm/drag,local persistence and profile/protocol/match propagation
-   remain separate open gates; normal entry points keep this prototype disabled.
+   select/Equip/confirm and nondefault equivalent-slot swap now pass complete-map
+   readback and inspected rendering. Full17-slot atomic saves,restart,separate
+   profiles,invalid-file retention and writer-lock refusal pass a ten-process
+   native sequence. See cosmetic-persistence.txt. Community profiles/backups,
+   protocol/match propagation,real drag gestures,all-item effects/audio and
+   shutdown flush remain open; normal entry points keep this prototype disabled.
    The final requirements and release gates remain intact.
 
 Release acceptance, in user terms:

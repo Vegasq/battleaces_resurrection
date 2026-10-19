@@ -84,6 +84,23 @@ class UnifiedLauncherTests(unittest.TestCase):
         with self.assertRaises(launcher.LaunchError): client.prepare_settings(missing, self.folder / 'missing game')
         self.assertFalse(missing.exists())
 
+    def test_profile_key_is_independent_of_display_name_and_online_schema(self):
+        config = client.defaults(self.game)
+        config.update(local_profile='friends_02', display_name='First Name', server_host='127.0.0.1',
+                      server_name='localhost', ca_bundle='ca.pem', credential_file='invite.json')
+        for schema in (2, 3):
+            config['schema'] = schema
+            self.save(config)
+            self.assertEqual(client.prepare_settings(self.path)['local_profile'], 'friends_02')
+            self.assertNotIn('local_profile', client.load_connection(self.path))
+            config['display_name'] = 'Renamed Player'
+            self.assertEqual(client.local_settings(config, self.path)['local_profile'], 'friends_02')
+        config.pop('local_profile')
+        self.assertEqual(client.local_settings(config, self.path)['local_profile'], 'default')
+        for key in ('', 'UPPER', '../escape', 'a/b', 'a\\b', 'a b', 'a' * 49, 'con', 'lpt9', True, None):
+            with self.subTest(key=key), self.assertRaises(launcher.LaunchError):
+                client.local_settings(dict(config, local_profile=key), self.path)
+
     def test_unwritable_new_config_keeps_local_launch_available(self):
         original = Path.open
         def open_file(path, *args, **kwargs):
@@ -98,6 +115,7 @@ class UnifiedLauncherTests(unittest.TestCase):
             argv = launcher.game_arguments(config, None, 1234, args)
             self.assertIn('-unified-client', argv)
             self.assertIn('-secure-transport-version=2', argv)
+            self.assertIn('-local-profile=default', argv)
             self.assertFalse(any('smoke' in value or 'audit' in value or 'auto-' in value for value in argv))
             with self.assertRaises(bridge.RemoteUnavailable): await remote()
             return 17

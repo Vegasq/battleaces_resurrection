@@ -22,7 +22,7 @@ namespace ba_catalog { static void exportOnce();static std::string utf8(void*); 
 namespace ba_dedicated_results { static void receive(const std::string&); }
 namespace ba_audit { static void beginMatch(const std::string&);static void practiceAIView(void*,int); }
 namespace ba_telemetry_audit { static void startup();static void update(); }
-namespace ba_cosmetics { static void update(void*); }
+namespace ba_cosmetics { static void update(void*);static bool prepare(void*);static void observe(); }
 namespace ba_match_search {static void update(void*);static void joining(void*);}
 namespace ba_community_wire {struct Ack;struct Aborted;}
 namespace ba_public {
@@ -276,6 +276,7 @@ extern "C" __declspec(dllexport) void OfflineFrontUpdate(void* front,void*) {
         // flag check and performs no FSM, UnityPlayer or native-object reads.
         ba_telemetry_audit::update();
         ba_catalog::exportOnce();
+        ba_cosmetics::observe();
         if(unified())ba_client::update(front);
         else if(offlinePractice())ba_practice::offlineUpdate(front);
         else if(lan())lanFrontUpdate(front);
@@ -328,7 +329,9 @@ extern "C" __declspec(dllexport) void OfflineFrontUpdate(void* front,void*) {
 #include "telemetry_audit.cpp"
 #include "player_cosmetics.cpp"
 #include "cosmetics_unlock.cpp"
+#include "cosmetics_persistence.cpp"
 #include "cosmetics_ui_smoke.cpp"
+#include "cosmetics_equip_smoke.cpp"
 
 extern "C" __declspec(dllexport) void OfflineStartupReady(void* context,void* freshThreshold,void* reusedThreshold,void* initializer) {
     // Exact RGameInit.Start completion callsite, after _loadingFinish=true.

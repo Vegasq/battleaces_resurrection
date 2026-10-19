@@ -11,12 +11,20 @@ from . import launcher
 from .bridge import RemoteUnavailable
 
 KEYS = frozenset(('schema', 'game_directory', 'display_name', 'server_host',
-                 'server_port', 'server_name', 'ca_bundle', 'credential_file', 'room'))
+                 'server_port', 'server_name', 'ca_bundle', 'credential_file', 'room', 'local_profile'))
 LOCAL_KEYS = frozenset(('schema', 'game_directory', 'display_name'))
+REMOTE_KEYS = KEYS - {'local_profile'}
+
+
+def profile_key(value):
+    reserved = {'con', 'prn', 'aux', 'nul'} | {f'{prefix}{i}' for prefix in ('com', 'lpt') for i in range(1, 10)}
+    if not isinstance(value, str) or not re.fullmatch(r'[a-z0-9_-]{1,48}', value) or value in reserved:
+        raise launcher.LaunchError('Local profile must contain 1..48 lowercase letters, digits, underscores or hyphens')
+    return value
 
 
 def defaults(game):
-    return dict(schema=3, game_directory=str(Path(game).resolve()), display_name='Player',
+    return dict(schema=3, game_directory=str(Path(game).resolve()), display_name='Player', local_profile='default',
                 server_host='', server_port=47623, server_name='', ca_bundle='',
                 credential_file='', room='community')
 
@@ -29,7 +37,7 @@ def local_settings(value, path):
     """
     if (not isinstance(value, dict) or type(value.get('schema')) is not int
             or value['schema'] not in (2, 3) or not LOCAL_KEYS <= value.keys()
-            or not value.keys() <= KEYS or (value['schema'] == 2 and value.keys() != KEYS)):
+            or not value.keys() <= KEYS or (value['schema'] == 2 and not REMOTE_KEYS <= value.keys())):
         raise launcher.LaunchError('Client settings require schema3 local fields or an existing schema2 configuration')
     name, game = value['display_name'], value['game_directory']
     if (not isinstance(name, str) or not 1 <= len(name) <= 32
@@ -45,19 +53,26 @@ def local_settings(value, path):
     # satisfy the legacy argv shape; secure transport never opens a plaintext link.
     room = value.get('room', 'community')
     if not isinstance(room, str) or not re.fullmatch(r'[A-Za-z0-9_-]{1,48}', room): room = 'community'
-    return dict(game_directory=root, display_name=name, room=room,
+    return dict(game_directory=root, display_name=name, room=room, local_profile=profile_key(value.get('local_profile', 'default')),
                 server_host='127.0.0.1', server_port=47623)
+
+
+def connection_settings(value, path):
+    """Keep the launch-frozen local identity out of the strict online schema."""
+    local_settings(value, path)
+    candidate = defaults(Path(path).parent)
+    candidate.update(value)
+    candidate.pop('local_profile')
+    candidate['schema'] = 2
+    return candidate
 
 
 def load_connection(path):
     """Adapt optional settings to the existing strict TLS/identity validator."""
     value = launcher.read_json(path, 32768)
-    local_settings(value, path)
-    candidate = defaults(Path(path).parent)
-    candidate.update(value)
+    candidate = connection_settings(value, path)
     if any(candidate[key] == '' for key in ('server_host', 'server_name', 'ca_bundle', 'credential_file')):
         raise RemoteUnavailable()
-    candidate['schema'] = 2
     return launcher.validate_config(candidate, path)
 
 

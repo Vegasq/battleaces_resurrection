@@ -4,7 +4,7 @@ namespace ba_local_menu {
 using ba::Obj;using ba_local::Root;
 static auto& frontRoot=*new std::unique_ptr<Root>();
 static auto& identityRoot=*new std::unique_ptr<Root>();
-static bool initialized=false,failed=false;
+static bool initialized=false,baseInitialized=false,failed=false;
 static void require(bool condition,const char* message) {if(!condition)throw std::runtime_error(message);}
 static bool ready(Obj front) {return initialized && !failed && frontRoot && frontRoot->get()==front;}
 static void restoreIdentity(Obj front) {
@@ -32,6 +32,7 @@ static bool ensure(Obj front) {
         ba_dedicated_session::observedFront=front;
         if(initialized) {require(ready(front),"local menu front changed");return true;}
         if(!ba_dedicated_session::inMenu() || !ba_dedicated_session::worldIdle(ba::read<Obj>(front,0xd8)))return false;
+        if(!baseInitialized) {
         frontRoot=std::make_unique<Root>(front);
         identityRoot=std::make_unique<Root>(ba_lan_bootstrap::identityLan(front,0));
         Root name(ba::str(ba::argument(L"-player-name=","Offline Player").c_str()));
@@ -44,6 +45,10 @@ static bool ensure(Obj front) {
             storage==ba::get<Obj>(account,"_localDeckStorage"),"local menu native deck storage ownership");
         restoreIdentity(front);
         ba_dedicated_deck::initializeLocal(front);ba_practice_settings::selection();
+        baseInitialized=true;
+        }
+        require(frontRoot && frontRoot->get()==front,"local menu initialization owner changed");
+        if(!ba_cosmetics::prepare(front))return false;
         // Search can begin before optional presence. One application clock keeps
         // its DateTime epoch stable across authentication and reconnection.
         ba_community_invites::anchorClock(front);initialized=true;

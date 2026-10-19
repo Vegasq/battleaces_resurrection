@@ -167,7 +167,9 @@ def game_arguments(config, player_id, handle, args):
         '-logFile', str(runtime / (run_name + '-' + log_identity + '.log'))]
     if dynamic: result.append('-secure-transport-version=2')
     else: result.append(f'-player-id={player_id}')
-    if unified: result.append('-unified-client')
+    if unified:
+        from .client import profile_key
+        result.extend(['-unified-client', '-local-profile=' + profile_key(config.get('local_profile', 'default'))])
     switches = dict(auto_ready='-dedicated-auto-ready', smoke='-lan-smoke', deck_smoke='-dedicated-deck-smoke',
                     surrender_smoke='-dedicated-surrender-smoke', telemetry_audit='-telemetry-audit', audit='-lan-audit')
     for option, flag in switches.items():

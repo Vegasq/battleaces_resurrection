@@ -92,14 +92,15 @@ Private report:local/cosmetics-picker04-recipe-verification.json.
 Reproduction and remaining gates
 Install a current helper into a disposable copy with --community-experimental
 --cosmetics-experimental. With a fresh ignored output directory,run:
-python -m tools.verify_unified_startup --game local/<copy> --output local/<fresh-run> --timeout 240 --cosmetics-unlock-smoke --cosmetics-picker-smoke --cosmetics-export --visible
+python -m tools.verify_unified_startup --game local/<copy> --output local/<fresh-run> --timeout 240 --local-profile <disposable-key> --cosmetics-unlock-smoke --cosmetics-picker-smoke --cosmetics-export --visible
 Omit all cosmetic options for the normal no-config/dormant regression.
 --cosmetics-ui-trace separately inventories bounded menu buttons without clicks.
 All captures,catalogs,UI inventories and detailed reports remain ignored/local.
 
-Next: original select/confirm/drag/equip callbacks,nondefault equivalent-slot swap,
-reset/default behavior,and full17-slot atomic persistence/restart/profile isolation.
-Then synchronize profile projections and freeze selections with decks through
+Original select/Equip/confirm,nondefault equivalent-slot swap,the invalid-item
+validator,full17-slot atomic persistence/restart/profile isolation and twelve-field
+profile projections now pass. See cosmetic-persistence.txt for exact evidence.
+Next qualify real drag gestures and freeze selections with decks through
 community profiles/backups,wire submission,join,simulation and results. Qualify
 local AI,remote matches/rematches and actual visual/effect/audio behavior. Do not
 enable the prototype in ordinary launchers or call the cosmetics requirement

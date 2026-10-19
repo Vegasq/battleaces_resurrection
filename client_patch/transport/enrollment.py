@@ -65,7 +65,7 @@ def configuration_digest(path):
     if isinstance(value, dict) and value.get('schema') == 3:
         client.local_settings(value, path)
     else:
-        launcher.validate_config(value, path)  # Unknown JSON is never silently replaced.
+        launcher.validate_config(client.connection_settings(value, path), path)  # Unknown JSON is never silently replaced.
     return hashlib.sha256(raw).hexdigest()
 
 
@@ -154,6 +154,12 @@ def enroll(request, config_path):
             candidate.update(game_directory=str(validated['game_directory']), server_name=validated['server_name'],
                 ca_bundle=ca.relative_to(destination.parent).as_posix(), credential_file=invite.relative_to(destination.parent).as_posix())
             launcher.validate_config(candidate, destination)
+            # Enrollment changes only online identity/trust. Keep an explicitly
+            # selected local cosmetic profile across server/name changes.
+            if destination.exists():
+                previous = launcher.read_json(destination, MAX_REQUEST)
+                if 'local_profile' in previous:
+                    candidate['local_profile'] = client.profile_key(previous['local_profile'])
             with private._private_create(temporary) as stream:
                 created.append(temporary)
                 stream.write((json.dumps(candidate, indent=2)+'\n').encode('utf-8'))
@@ -218,7 +224,7 @@ def setup_data(config_path):
             try: result['expected_ca_sha256'] = ca_fingerprint(result['ca_source'])[1]
             except (EnrollmentError, private.CredentialError, OSError): pass
         return result
-    config = launcher.validate_config(value, path)
+    config = launcher.validate_config(client.connection_settings(value, path), path)
     # A removed/relocated CA must not trap the player in an uneditable profile.
     # Leave trust confirmation empty until they select and confirm a replacement.
     try: _, fingerprint = ca_fingerprint(config['ca_bundle'])

@@ -189,15 +189,21 @@ class EnrollmentTests(unittest.TestCase):
         from client_patch.transport import client
         value = client.defaults(self.folder/'working game')
         value['display_name'] = 'Local Name'
+        value['local_profile'] = 'friends_02'
         self.config.write_text(json.dumps(value))
         exposed = e.setup_data(self.config)
         self.assertEqual(exposed['display_name'], 'Local Name')
         self.assertEqual(exposed['invite_source'], '')
         self.request.update(display_name=exposed['display_name'], expected_config_sha256=exposed['expected_config_sha256'])
         e.enroll(self.request, self.config)
-        selected = launcher.load_config(self.config)
+        selected = client.load_connection(self.config)
         self.assertEqual(selected['display_name'], 'Local Name')
         self.assertEqual(selected['game_directory'], self.folder/'working game')
+        self.assertEqual(client.prepare_settings(self.config)['local_profile'], 'friends_02')
+        self.assertEqual(e.setup_data(self.config)['display_name'], 'Local Name')
+        self.request.update(display_name='New Online Name', expected_config_sha256=e.configuration_digest(self.config))
+        e.enroll(self.request, self.config)
+        self.assertEqual(client.prepare_settings(self.config)['local_profile'], 'friends_02')
 
     def test_packaged_enrollment_and_errors_do_not_echo_secrets(self):
         request_file = self.folder/'request.json'; request_file.write_text(json.dumps(self.request))

@@ -6,6 +6,10 @@ extern "C" __declspec(dllexport) void OfflineCosmeticItemCache(void*,void*);
 namespace ba_cosmetics {
 static void uiTrace();
 static void pickerSmoke();
+static void equipSmoke();
+static void persistenceProof();
+static void persistenceInitialize(const std::string&);
+static void observe();
 static bool unlockReady=false,unlockFailed=false,unlockSmokeDone=false,saveDeferred=false;
 static volatile LONG unlockOwnerThread=0;
 static unsigned requestsDeferred=0,requestsRejected=0,presenceDeferred=0,decksDeferred=0;
@@ -28,7 +32,7 @@ static bool unlockActive() {
 }
 static bool ownsFront(Obj front) {return unlockActive() && ownedFront->get()==front;}
 static void deferred(const char* operation) {
-    if(!saveDeferred)ba::log("Experimental cosmetics changed: operation=%s localSavePending=1 persistenceImplemented=0",operation);
+    if(!saveDeferred)ba::log("Experimental cosmetics changed: operation=%s localSavePending=1",operation);
     saveDeferred=true;
 }
 static void unlockSmoke(Obj front) {
@@ -82,13 +86,13 @@ static void unlockSmoke(Obj front) {
     ba::log("COSMETICS UNLOCK SMOKE passed: items=%u keys=%zu missingBefore=%u rarityPreserved=1 unknownSignedFallback=1 inventoryUnchanged=1 loadoutUnchanged=1 worldIdle=1 nativeSaveCase37Suppressed=1",
         ownedModels,entitlementIds.size(),missingBefore);
 }
-static void unlockUpdate(Obj front) {
-    if(!unlockEnabled() || unlockFailed || !ba_local_menu::ready(front))return;
+static bool prepare(Obj front) {
+    if(!unlockEnabled() || unlockFailed)return true;
     try {
         require(ba_dedicated_session::unityThread==GetCurrentThreadId(),"cosmetic unlock off Unity thread");
         if(!unlockReady) {
-            if(!ba_dedicated_session::inMenu() || !ba_dedicated_session::worldIdle(ba::read<Obj>(front,0xd8)))return;
-            const bool a=ba_public_bots::cosmetics.ready(),b=slots.ready();if(!a || !b)return;
+            if(!ba_dedicated_session::inMenu() || !ba_dedicated_session::worldIdle(ba::read<Obj>(front,0xd8)))return false;
+            const bool a=ba_public_bots::cosmetics.ready(),b=slots.ready();if(!a || !b)return false;
             const auto text=serialize();require(text==serialize(),"cosmetic unlock catalog changed");
             ownedFront=std::make_unique<Root>(front);ownedAccount=std::make_unique<Root>(ba::get<Obj>(front,"_accountService"));
             ownedCosmetics=std::make_unique<Root>(ba::get<Obj>(ownedAccount->get(),"_cosmetics"));
@@ -102,14 +106,19 @@ static void unlockUpdate(Obj front) {
             }
             unlockReady=true;InterlockedExchange(&unlockOwnerThread,static_cast<LONG>(GetCurrentThreadId()));
             require(unlockActive(),"cosmetic unlock local owner mismatch");
-            ba::log("BA_RESURRECTION_COSMETICS_UNLOCK_V1 ready: items=%zu entitlementKeys=%zu cosmeticCallSitesOnly=1 persistenceImplemented=0",itemIds.size(),entitlementIds.size());
+            persistenceInitialize(text);
+            ba::log("BA_RESURRECTION_COSMETICS_UNLOCK_V1 ready: items=%zu entitlementKeys=%zu cosmeticCallSitesOnly=1",itemIds.size(),entitlementIds.size());
         }
-        unlockSmoke(front);
-        uiTrace();
-        pickerSmoke();
+        return true;
     } catch(const std::exception& error) {
         InterlockedExchange(&unlockOwnerThread,0);unlockFailed=true;unlockReady=false;ba::log("Cosmetics unlock failed: %s",error.what());
+        return true; // Local play remains available even if cosmetic setup fails.
     }
+}
+static void unlockUpdate(Obj front) {
+    if(!unlockEnabled() || unlockFailed || !ba_local_menu::ready(front) || !prepare(front))return;
+    try {observe();unlockSmoke(front);uiTrace();pickerSmoke();equipSmoke();observe();persistenceProof();}
+    catch(const std::exception& error) {InterlockedExchange(&unlockOwnerThread,0);unlockFailed=true;unlockReady=false;ba::log("Cosmetics unlock failed: %s",error.what());}
 }
 }
 extern "C" __declspec(dllexport) int32_t OfflineCosmeticVisibilityIndex(void* dictionary,uint32_t key,void* method) {

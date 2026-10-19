@@ -2,6 +2,22 @@ IMPLEMENTATION LEDGER
 Updated: 2026-10-18 UTC
 Active objective: implement SERVER_REPLACEMENT_PLAN.txt, Windows only.
 
+FULL LOCAL COSMETIC SAVES (2026-10-19 UTC, EXPERIMENTAL)
+Original selection/Equip/confirm callbacks and a nondefault equivalent-slot swap
+now pass full17-slot readback,preview rendering and five atomic saves. The original
+invalid-item validator preserves valid choices. A ten-process native sequence
+passes restart,isolated profiles with12 alternate categories,catalog/category/
+duplicate/truncation rejection,writer-lock refusal and ordinary dormant startup.
+The twelve-field ProfileCache projection matches the effective full map,without
+discarding announcers/stickers. Every phase reaches a local menu with zero TLS
+or credential attempts,unchanged covered sources and reaped owned processes.
+Optional local_profile config is independent of display_name/server enrollment.
+Nine C++ component programs/helper and the focused Python suites pass. See
+cosmetic-persistence.txt for exact hashes,counted skips,failed diagnostic guard
+and forced-teardown limits. Community profiles/backups,wire/match propagation,
+real drag gestures,all-item effects/audio,shutdown flush/native Quit and ordinary
+cosmetics enablement remain open. Manual/frozen/untouched copies are unchanged.
+
 EXPERIMENTAL COSMETIC PICKER (2026-10-19 UTC)
 Exact-byte guarded cosmetic-only hooks now expose the installed catalog through
 the original picker. Native item models report all107 items owned;74 otherwise
@@ -16,7 +32,8 @@ components/helper and59 of60 Python checks pass;one optional fixture skips.
 See cosmetic-unlock.txt for exact hashes,failed probe assumptions,black hidden
 capture and forced-teardown limits. Actual equip/swap/drag/confirm,persistence,
 profile/wire/match propagation,all-item rendering and normal enablement remain
-open. Only the disposable copy was changed; this is not final cosmetics delivery.
+open at that checkpoint. Later local callback/persistence results are above.
+Only the disposable copy was changed; this is not final cosmetics delivery.
 
 COSMETIC CATALOG AND VALIDATION (2026-10-19 UTC, FOUNDATION ONLY)
 Two fresh native unified clients export the same installed107-item/17-slot

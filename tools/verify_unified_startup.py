@@ -7,7 +7,9 @@ The optional cosmetic export adds one read-only diagnostic after checking that
 the ordinary launcher arguments contain no automation/capture flags. The separate
 unlock smoke constructs native cosmetic item models and compares original
 dictionary/ownership behavior. The separate picker smoke opens the original
-menu, changes only its slot/filter view and captures it; neither equips items.
+menu, changes only its slot/filter view and captures it. The separate equip smoke
+changes a disposable test profile through original callbacks, and the persistence
+proof reads the effective full loadout.
 """
 import argparse
 from datetime import datetime, timezone
@@ -44,15 +46,26 @@ def run(args):
     output.mkdir(parents=True, exist_ok=False)
     (game/'investigation/runtime').mkdir(parents=True, exist_ok=True)
     path = output/'client.json'
+    if args.local_profile:
+        settings = client.defaults(game)
+        settings['local_profile'] = client.profile_key(args.local_profile)
+        path.write_text(json.dumps(settings, indent=2)+'\n', encoding='utf-8')
     report = dict(passed=False, utc=datetime.now(timezone.utc).isoformat(), scope=__doc__,
                   settings_absent_at_start=not path.exists(), source_sha256_at_start=source_hashes(),
+                  local_profile=args.local_profile,
                   cosmetics_export=args.cosmetics_export,
                   cosmetics_unlock_smoke=args.cosmetics_unlock_smoke,
                   cosmetics_ui_trace=args.cosmetics_ui_trace, cosmetics_picker_smoke=args.cosmetics_picker_smoke,
+                  cosmetics_equip_smoke=args.cosmetics_equip_smoke, cosmetics_persistence_proof=args.cosmetics_persistence_proof,
                   visible_window_requested=args.visible,
                   helper_sha256=hashlib.sha256((game/'BattleAcesOffline.dll').read_bytes()).hexdigest())
     (output/'patch-manifest.json').write_bytes((game/'.battleaces-resurrection/patch-manifest.json').read_bytes())
-    if args.cosmetics_unlock_smoke or args.cosmetics_ui_trace or args.cosmetics_picker_smoke:
+    cosmetic_flags = (args.cosmetics_unlock_smoke, args.cosmetics_ui_trace, args.cosmetics_picker_smoke,
+                      args.cosmetics_equip_smoke, args.cosmetics_persistence_proof)
+    if any(cosmetic_flags):
+        require(args.local_profile, 'cosmetic probes require an explicit disposable profile key')
+        require(not (args.cosmetics_equip_smoke and args.cosmetics_picker_smoke), 'equip and read-only picker probes run separately')
+        require(not args.cosmetics_equip_smoke or args.cosmetics_export, 'equip probe requires independent exported catalog validation')
         require(json.loads((output/'patch-manifest.json').read_bytes()).get('cosmetics', {}).get('experimental'),
                 'install the experimental cosmetic recipe in the disposable copy first')
     process = job = monitor = None
@@ -74,7 +87,9 @@ def run(args):
                 unlock_done = not args.cosmetics_unlock_smoke or 'COSMETICS UNLOCK SMOKE passed:' in log
                 trace_done = not args.cosmetics_ui_trace or 'COSMETICS UI TRACE complete:' in log
                 picker_done = not args.cosmetics_picker_smoke or 'COSMETICS PICKER SMOKE passed:' in log
-                if all(marker in log for marker in markers) and catalog_done and unlock_done and trace_done and picker_done:
+                equip_done = not args.cosmetics_equip_smoke or 'COSMETICS EQUIP SMOKE passed:' in log
+                persist_done = not args.cosmetics_persistence_proof or 'COSMETICS PERSISTENCE PROOF passed:' in log
+                if all(marker in log for marker in markers) and catalog_done and unlock_done and trace_done and picker_done and equip_done and persist_done:
                     require('Practice requested:' not in log, 'ordinary startup unexpectedly automated a match')
                     require('worldReady=1' not in log and 'Native world lease acquired:' not in log,
                             'startup/export unexpectedly created a match world')
@@ -98,7 +113,7 @@ def run(args):
                         (output/'cosmetics-unlock.json').write_bytes(raw)
                         report['cosmetics_unlock_proof'] = proof
                     else:
-                        require(args.cosmetics_ui_trace or args.cosmetics_picker_smoke or 'BA_RESURRECTION_COSMETICS_UNLOCK_V1' not in log,
+                        require(any(cosmetic_flags) or 'BA_RESURRECTION_COSMETICS_UNLOCK_V1' not in log,
                                 'ordinary startup unexpectedly enabled cosmetic unlock')
                     if args.cosmetics_ui_trace:
                         raw = (game/'investigation/runtime'/f'cosmetics-ui-trace-{process.pid}.json').read_bytes()
@@ -117,6 +132,27 @@ def run(args):
                         require(capture.startswith(b'\x89PNG\r\n\x1a\n'), 'cosmetic picker capture missing/invalid')
                         (output/'cosmetics-picker.png').write_bytes(capture)
                         report.update(cosmetics_picker_proof=proof, picker_capture_sha256=hashlib.sha256(capture).hexdigest())
+                    if args.cosmetics_equip_smoke:
+                        base = game/'investigation/runtime'/f'cosmetics-equip-{process.pid}'
+                        raw = base.with_suffix('.json').read_bytes();proof = json.loads(raw)
+                        require(proof['passed'] and proof['writes'] > 0 and all(proof[key] is True for key in
+                            ('selection_callback', 'equip_callback', 'confirm_callback', 'swap_prior_item',
+                             'valid_reset_preserved', 'projection12', 'world_idle')), 'cosmetic equip proof incomplete')
+                        catalog = CosmeticCatalog.from_bytes((game/'investigation/runtime'/f'player-cosmetics-catalog-{process.pid}.json').read_bytes())
+                        for phase in ('before', 'after'):
+                            catalog.validate_selection(proof[phase]['slots'])
+                        (output/'cosmetics-equip.json').write_bytes(raw)
+                        capture = base.with_suffix('.png').read_bytes()
+                        require(capture.startswith(b'\x89PNG\r\n\x1a\n'), 'cosmetic equip capture missing')
+                        (output/'cosmetics-equip.png').write_bytes(capture)
+                        report.update(cosmetics_equip_proof=proof, equip_capture_sha256=hashlib.sha256(capture).hexdigest())
+                    if args.cosmetics_persistence_proof:
+                        raw = (game/'investigation/runtime'/f'cosmetics-persistence-{process.pid}.json').read_bytes()
+                        proof = json.loads(raw)
+                        require(proof['passed'] and proof['projection12'] and proof['state']['profile'] == args.local_profile and
+                                len(proof['state']['slots']) == 17, 'cosmetic persistence proof incomplete')
+                        (output/'cosmetics-persistence.json').write_bytes(raw)
+                        report['cosmetics_persistence_proof'] = proof
                     report.update(menu_ready=True, observed_menu_seconds=time.monotonic()-started)
                     break
                 require(time.monotonic()-started < args.timeout, 'native startup deadline reached')
@@ -146,6 +182,13 @@ def run(args):
             if '-local-cosmetics-experimental' not in command:
                 command.append('-local-cosmetics-experimental')
             command.append('-cosmetics-picker-smoke')
+        if args.cosmetics_equip_smoke or args.cosmetics_persistence_proof:
+            if '-local-cosmetics-experimental' not in command:
+                command.append('-local-cosmetics-experimental')
+            if args.cosmetics_equip_smoke:
+                command.append('-cosmetics-equip-smoke')
+            if args.cosmetics_persistence_proof:
+                command.append('-cosmetics-persistence-proof')
         command[command.index('-logFile')+1] = str(output/'game.log')
         startup = subprocess.STARTUPINFO()
         startup.dwFlags |= subprocess.STARTF_USESHOWWINDOW
@@ -176,7 +219,7 @@ def run(args):
         saved = json.loads(path.read_text())
         require(saved['schema'] == 3 and all(saved[key] == '' for key in
             ('server_host', 'server_name', 'ca_bundle', 'credential_file')), 'unexpected online default configuration')
-        report.update(passed=True, default_settings_created=True, remote_connections=0, invite_reads=0)
+        report.update(passed=True, default_settings_created=args.local_profile is None, remote_connections=0, invite_reads=0)
     except BaseException as error:
         report.update(passed=False, error=report.get('error', repr(error)))
         raise
@@ -207,4 +250,7 @@ if __name__ == '__main__':
                         help='explicit catalog-scoped ownership/model check; no equip or gameplay')
     parser.add_argument('--cosmetics-ui-trace', action='store_true', help='explicit read-only native menu button inventory')
     parser.add_argument('--cosmetics-picker-smoke', action='store_true', help='explicit original picker/filter callbacks and capture; no equip or gameplay')
+    parser.add_argument('--local-profile', help='explicit disposable profile for cosmetic probes')
+    parser.add_argument('--cosmetics-equip-smoke', action='store_true', help='original select/equip/confirm/swap callbacks; requires cosmeticstest_ profile')
+    parser.add_argument('--cosmetics-persistence-proof', action='store_true', help='read back all 17 effective cosmetic slots and 12-field native profile projection')
     run(parser.parse_args())

@@ -13,6 +13,13 @@ Start Client.cmd and Start Server.cmd are included by the package builder. Both
 the package start and setup's launch command select the same client path. Existing
 frozen packages/manual game runtimes are unchanged. This is a development preview;
 public fallback, team modes, cosmetics and final release gates remain incomplete.
+The optional local_profile key defaults to "default" and is fixed at launch.
+It selects the experimental full cosmetic save independently of display_name
+and online/server credentials; enrollment preserves it. It accepts1..48 lowercase
+ASCII letters,digits,underscore or hyphen,excluding Windows reserved device names.
+It is stripped before strict TLS config validation and never changes online
+authentication identity. Cosmetic activation remains opt-in; native deck storage
+has a separate remaining profile-isolation gate. See cosmetic-persistence.txt.
 local_menu.cpp owns the front,local identity,native selector/storage and profile
 for application lifetime. Explicit local versus server-deck initialization
 replaces the former launch-flag test. Unified presence preserves the local deck

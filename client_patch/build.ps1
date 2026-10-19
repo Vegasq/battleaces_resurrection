@@ -54,6 +54,10 @@ try {
     if ($LASTEXITCODE -ne 0) { throw 'Telemetry sampling test build failed.' }
     & (Join-Path $OutputDirectory 'telemetry_sampling_tests.exe')
     if ($LASTEXITCODE -ne 0) { throw 'Telemetry sampling tests failed.' }
+    & (Join-Path $CompilerRoot 'bin/Hostx64/x64/cl.exe') /nologo /MT /EHsc /O2 /W4 /std:c++17 (Join-Path $PSScriptRoot 'src/cosmetics_state_tests.cpp') "/Fe:$OutputDirectory/cosmetics_state_tests.exe"
+    if ($LASTEXITCODE -ne 0) { throw 'Cosmetic state test build failed.' }
+    & (Join-Path $OutputDirectory 'cosmetics_state_tests.exe')
+    if ($LASTEXITCODE -ne 0) { throw 'Cosmetic state tests failed.' }
     & (Join-Path $CompilerRoot 'bin/Hostx64/x64/cl.exe') /nologo /MT /EHsc /O2 /W4 /std:c++17 (Join-Path $PSScriptRoot 'src/secure_bridge_probe.cpp') "/Fe:$OutputDirectory/secure_bridge_probe.exe" /link ws2_32.lib
     if ($LASTEXITCODE -ne 0) { throw 'Native secure transport probe build failed.' }
     & (Join-Path $CompilerRoot 'bin/Hostx64/x64/cl.exe') /nologo /LD /MT /EHsc /O2 /W4 /std:c++17 (Join-Path $PSScriptRoot 'src/offline_client.cpp') /link "/OUT:$OutputDirectory/BattleAcesOffline.dll" kernel32.lib ws2_32.lib bcrypt.lib
