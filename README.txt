@@ -4,6 +4,11 @@ Development project for private Battle Aces build 37822 matches. Windows x64
 server and clients are the current target. See docs/SERVER_REPLACEMENT_PLAN.txt
 for the requested outcome and docs/STATUS.txt for evidence and remaining work.
 docs/RELEASE_ACCEPTANCE.txt collects the remaining final release/playtest gates.
+Current source builds provide Start Client.cmd for ordinary play and Start
+Server.cmd for hosting. Install the patch into a working game copy first;see
+docs/windows-client-quickstart.txt. Start Client keeps local play available
+without server setup and enables public queues plus installed cosmetic choices.
+Ordinary-feature qualification and exact limitations:docs/ordinary-player-client.txt.
 
 The coordinator runs each original simulation in an isolated worker, validates
 decks/actions and serves multiple private rooms. Twenty successive native matches
@@ -26,12 +31,14 @@ reproduction commands: docs/community-client.txt, docs/native-custom-invitations
 and docs/native-custom-matches.txt.
 See docs/community-protocol.txt and docs/community-lobby.txt for scope and evidence.
 
-Experimental standalone Try Deck vs AI uses the game's local deck storage,
-simulation and AI. It does not require a replacement server or imported server
-assets. After building/installing a current helper, copy
-client_patch/launcher/offline-practice.example.json to a personal config, set
-game_directory and display_name, then run:
-  powershell -File client_patch/launcher/Launch-Client.ps1 -OfflinePractice -Config "<personal config>"
+Start Client uses the game's local deck storage,simulation and AI for Try Deck.
+It does not require a replacement server,CA,invite or imported server assets.
+Public1v1/2v2/2vAI use local AI when no server is available;configured online queues
+fill open seats after30 seconds while retaining connected humans. Custom games
+remain human-only. Name,server route and isolated local profile are configurable.
+After installing the current patch,select the game once:
+  "Start Client.cmd" --game "<working game directory>"
+Subsequent launches use the same Start Client.cmd and saved config/client.json.
 Open Edit Deck -> Try Deck vs AI. Settings -> General -> AI Difficulty offers
 Easy, Normal and Hard in the offline Region row. Normal is the initial default;
 the saved choice applies to the next match and survives restart. The manual
@@ -50,9 +57,10 @@ for compatibility,command-delay tradeoffs and measured network tests.
 
 Portable Windows preview packages now have separate server/client archives,
 bundled Python, editable host/player configs and a native startup health check.
-Double-clicking the client package opens Connection Setup for server address,
-name, CA fingerprint confirmation, protected invite import and a TLS connection
-test. See docs/client-enrollment.txt for transaction and qualification details.
+Start Client.cmd starts local play with optional multiplayer. The separate
+BattleAces-Client.cmd administration command opens Connection Setup for server
+address,name,CA fingerprint confirmation,protected invite import and a TLS test.
+See docs/client-enrollment.txt for transaction and qualification details.
 The builder includes only allowlisted project source and our helper; game assets
 are imported locally. See docs/windows-packaging.txt for build/test evidence and
 docs/windows-server-quickstart.txt / docs/windows-client-quickstart.txt for setup.

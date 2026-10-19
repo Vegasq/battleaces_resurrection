@@ -1,0 +1,302 @@
+ORDINARY START CLIENT INTEGRATION -- 2026-10-19 UTC -- CANDIDATE QUALIFICATION
+
+Requested player path
+One Start Client entry point must retain local play with no server. Try Deck is
+local. Public1v1/2v2/2vAI use an available configured server and fill with varied
+native AI after30s without opponents;unavailable/unconfigured routes use local
+AI. Partial human groups stay together. Custom is human-only. Name/server route
+remain configurable. Installed cosmetics and deck/settings persist. Ordinary
+launch must never build,surrender,Continue,capture or move the camera for tests.
+
+Gap found in the published2334676 baseline
+The unified application was selected by Start Client,but its options omitted
+public-queue and local-cosmetic activation. Native mode/cosmetic tests added those
+flags themselves. Package install also selected community=true,cosmetics=false.
+This is not the final requested ordinary path,even though separate prototypes
+have substantial positive evidence. Historical reports retain their own scope.
+
+Source candidate
+client.player_options() now defines the ordinary capability set,used by the same
+Start Client/setup launch path. It selects unified ABI2,public queues and local
+catalog-scoped cosmetics. No automatic actions/audit/export/capture are added.
+Legacy diagnostic launchers retain their explicit options. Packaged install now
+includes the cosmetic call-site recipe. Existing frozen archives are unchanged.
+
+Before creating the game process,the ordinary path requires matching component
+hashes plus public queue,cosmetic unlock/persistence,native deck-input and staged
+settings-write capabilities. The manifest must report the installed cosmetic
+recipe/persistence and protected settings. An incomplete old install is refused
+with an update instruction instead of exposing a partially enabled player menu.
+No new private settings are placed in arguments. Optional TLS/authentication is
+still resolved lazily by the parent;blank/bad online fields do not block local
+configuration. No connection security or Custom human-only rule is relaxed.
+
+Qualification
+Thirty-six focused launcher/package checks pass. The actual client.main path
+creates absent schema3 config and reaches its native menu in9.808s/10.361s total
+on helper-native-atomic13. Public/cosmetic ordinary arguments are present;native
+unlock and isolated persistence initialize. No match,diagnostic actions,remote
+connection or invite read occurs. Shared original settings and covered sources
+are unchanged;the owned client is forcibly reaped,not native Quit. This is a
+warm disposable-copy startup control,not a cold-start/performance/manual claim.
+local/ordinary-player-startup01/verification.json SHA256:
+b892ae0962af7b1c75ac2ba47e6f4805946c69673cb057d3fc168edca8021b4c
+
+The public native harness has an explicit ordinary-player mode. It uses the same
+player options before adding owned original button/build/result test actions,
+requires a full native cosmetic selection and shared-settings baseline,and keeps
+the original base argv separately. In unavailable mode it now starts no server
+listener;the server/catalog objects are reference validators only. No native
+server worker/authentication is permitted. This is an automated integration
+control,not a manual mouse/drag or ordinary no-automation gameplay observation.
+
+The first public1v1 attempt fails in the harness before any native launch because
+an imported startup module name collides with a local STARTUPINFO variable. The
+alias is corrected;its failed console is retained. The next native1v1 run passes
+in182.009s with no server listener,worker or authentication. The original public
+button reaches local fallback,one randomized named/profile64 bot with its own
+deck/avatar produces ordered moving units,and original results/Continue returns
+to menu with the complete frozen human loadout. This is one sampled random bot,
+not proof of every difficulty. Shared/source baselines stay unchanged;the owned
+game is forcibly reaped,not Quit.
+local/ordinary-player-public-local1v1-02/verification.json SHA256:
+b4a38b50a900c88c827577b28ffb5595ba8f1f2104c3e244a8791d43626ec323
+
+Native edited-deck/restart with cosmetic activation also passes:original core
+unit1 changes to75 and a new process retains all eight units/four ability groups.
+Both shared/source baselines stay unchanged and owned clients are reaped. The
+edit/restart phases take11.011s/11.835s;forced cleanup is not Quit. This closes the
+specific ordinary-feature persistence combination,not manual drag/equip scope.
+Current Python suite456 pass/14 skip out of470 in103.490s,explicit exit0. Remaining
+matrix includes human team/practice transitions,Custom,rematches,cancel/fault
+return,final package and physical-input/visual/audio checks.
+local/ordinary-player-deck-edit01/verification.json SHA256:
+ca98156e91a53984b701cd0ffa954ae784ca8191577d3c1977f7daf25ba4c2e5
+local/ordinary-player-deck-restart01/verification.json SHA256:
+1838e534b6d144d616ca945c66204fd8f13b2912329937b025c981501120c0ea
+
+Ordinary-option configured-server1v1 passes121.269s using actual TLS/authentication
+and one native worker. Queue time29.849s is within the29..33s arrival tolerance;
+original native elapsed values progress0..29 before the AI-filled assignment.
+The complete frozen human choices survive1220 canonical frames,original builds,
+results and Continue. Worker exits0;shared/covered sources remain unchanged.
+The owned game is forcibly reaped,not Quit. This is same-PC,not friend/Internet
+acceptance,and one-human fill does not renew partial-human team proof.
+local/ordinary-player-public-queued1v1-01/verification.json SHA256:
+97543c2ab873cd1bd6d4844c881405c64f5520334fc22dd79a5b56c5ab71e590
+
+Ordinary-option unavailable-server2v2 passes213.059s with no server listener,
+worker or authentication. All three native bots receive actions;original results
+and Continue return to menu with the frozen human choices. Shared/covered source
+baselines remain unchanged;owned game is forcibly reaped,not Quit.
+local/ordinary-player-public-local2v2-01/verification.json SHA256:
+5d560a5ae9fb5589aa1fe0f24164d4a911cbb210c72939966d0a910a53b3bc0d
+
+Ordinary-option unavailable-server2vAI also passes212.805s with no listener,
+worker or authentication,original results/Continue and complete frozen human
+choices. Native bots act;shared/covered sources remain unchanged and the owned
+game is reaped. This local fallback includes an AI ally;two real humans against
+AI and partial-human server fill have separate qualification requirements.
+local/ordinary-player-public-local2vai-01/verification.json SHA256:
+bc2c9e7b05ef1eb89be34863e27ced1ad8375115e16285a1af2340aac9f6b0a1
+
+Two ordinary-option human clients also pass partial server2v2 in128.048s. Both
+remain in one TLS-authenticated authoritative match,with two remaining seats
+filled by native bots after29.901s/29.813s of queue residence. Independent human
+unit decks and full cosmetic maps survive the frozen assignment,1221 matching
+canonical frames,original builds/results/Continue. Worker exits0 and all owned
+resources/gates are reaped. Shared/source baselines stay unchanged;forced game
+cleanup is not native Quit or cross-PC proof.
+local/ordinary-player-public-partial2v2-01/verification.json SHA256:
+7c81ae66f9a47ce7d886cae252b3cf47d2905cf155aeb3ed7d7615491c80143c
+
+Ordinary-option TLS public Cancel-while-waiting passes15.288s,with no native
+world or server worker. Original cancellation releases the search and retires
+the intent idle. Both actual retained PNGs are visually inspected:the searching
+frame shows the original top1v1 elapsed-time bar/X,Searching label and locked
+other modes;the released frame removes the bar/locks/Searching state. The
+configured name/portrait and existing menu remain visible. This qualifies these
+two frames,not a physical click,all timing frames,animation or all modes.
+Shared/covered sources remain unchanged;owned forced cleanup is not Quit.
+local/ordinary-player-public-cancel-waiting01/verification.json SHA256:
+75d5999353c7757ff16bbfd0c14c36365bc5b27054fc370610ee8b65229aa297
+
+Ordinary-option human-only Custom invite/Start/results/Continue/same-lobby rematch
+passes83.033s over actual TLS with in-memory test invites. Two original native
+match/result cycles complete;both native workers exit0. Full human unit/cosmetic
+selections,including a fresh rematch edit,are validated against authoritative
+frozen choices. Shared/covered source baselines stay unchanged and owned clients
+are reaped. Buttons/Continue are automated;captures are not blanket manual visual
+or native Quit acceptance. Loading-fault recovery is a separate pending control.
+local/ordinary-player-custom-rematch01/verification.json SHA256:
+8b62b5ea09130f28447ab1a4833131e570174abcf110732ff3e330a013c94a6f
+
+Two ordinary-option clients pass server2vAI -> separate local Try Deck matches ->
+server2vAI again in429.808s,without restarting either process. Complete human
+names,decks and cosmetic selections are validated through both remote freezes,
+the intermediate independent local worlds,and fresh remote assignments. The
+first remote match supplies1250 canonical frames;both native workers exit0.
+Native local bots receive orders and have correlated moving-unit evidence.
+Shared/covered sources stay unchanged;both owned games/gates are reaped. This
+uses explicit diagnostic Play/build/surrender/Continue gates,not ordinary player
+automation or manual performance acceptance. Two other owned clients overlap
+part of the run;no timing/capacity claim follows.
+local/ordinary-player-public-2vai-practice-rematch01/verification.json SHA256:
+351a26e3b4f90f3e391f7655089c071910c4f835bee0d27e715a6df043776d5b
+
+Packaging dependency regression
+An isolated production-import check reproduced a second integration gap:the
+server source allowlist omitted cosmetics,loadout_protocol,public_protocol and
+public_matchmaking. All four are now included. The new regression imports real
+production entries outside the checkout under -I -S;it passed after the fix.
+The focused launcher/package suite now has36 passes. The earlier failing import
+console is retained;it is not native/server gameplay evidence.
+local/ordinary-packages-import01-stderr.txt SHA256:
+6154a78d6e20681abd91a6bc6c3608277c31617eae9dc86a4ec8980b389433c6
+local/ordinary-packages-import02-stderr.txt SHA256:
+5289e13c2243017964cbc636c31766c0c7117025b36a62a088da002598dd394f
+
+Fresh local development packages use pinned official embedded Python3.14.8 and
+helper-native-atomic13;source base2334676 with dirty:true is explicit. Payloads
+have82 server/67 client files. Bundled-runtime integrity and production imports
+pass for both without borrowing checkout/global Python modules. These are
+development previews,not final clean-commit archives or graphical/package
+installation/upgrade/restore/clean-PC acceptance. Frozen archives are unchanged.
+local/ordinary-player-packages01/battleaces-server-win64.zip SHA256:
+9c0571b3ec4351c519662c0811147918a2ffda4e374e4d88e16531711e6f737f
+local/ordinary-player-packages01/battleaces-client-win64.zip SHA256:
+aed64dadc6b7e3a3b2f47024e959f8a837e178c1dde29b23268a04d70859fcd6
+local/ordinary-player-packages01-import-check.json SHA256:
+754ed957ada6b3dd463263056cd1ac075cc20e5d0a079306cfa7dba6d9d4cad0
+
+Relocated preview qualification also passes68.767s. Both archives are extracted
+into paths with spaces;PATH lacks global Python and hostile cwd/PYTHONPATH modules
+cannot replace package imports. The bundled server imports original local assets,
+creates/steps/closes native simulation,and starts/closes a two-peer loading room.
+Workers exit0,listener closes,state lock releases and native sim.log remains0.
+Service STOP/SHUTDOWN controller controls pass,without registering with real SCM.
+A component-only disposable copy passes dry-run/no writes,install,idempotent
+reinstall and restore of all three original components,retaining an owner file.
+Program/source-game hashes stay unchanged. This does not launch a graphical
+packaged client,qualify upgrade from every old recipe,private ACLs,real SCM,
+clean-PC or Internet play.
+local/ordinary-player-packages01-qualification/verification.json SHA256:
+62a59f5456cca9d07946d6ac7f150dcf72609bbde5a31e0d20663eaaa771f55c
+
+The actual extracted Start Client.cmd now also passes a graphical menu control
+in12.013s (12.458s including forced cleanup). This executes the shipped CMD,
+embedded Python/package integrity/ordinary launcher without a spawn seam from
+a hostile unrelated cwd,with Python absent from PATH and a relocated config.
+The engine's actual command line confirms configured name/profile,ABI2 and both
+public/cosmetic flags,with no automatic test/audit/capture/export flags. Native
+menu,unlock/persistence and isolated native TOML initialize without configured
+server,CA or invite. Package/config/covered sources/shared settings stay unchanged;
+the owned CMD/runtime/game tree is forcibly reaped,not native Quit. Two separate
+team clients were running concurrently;this is readiness,not a cold-start or
+performance benchmark. Complete packaged game/mode/upgrade acceptance stays open.
+local/ordinary-player-packaged-startup01/verification.json SHA256:
+9f2e2eb34acabad778bb0b3f09f137be4e7d02fb9512922e15001e5d4398bd96
+
+The first optional upgrade control retains a harness failure after successfully
+installing the old preview and applying the new patch:it calls the full launch
+validator on the intentionally component-only copy and treats its correct missing
+game-executable refusal as an error. The corrected control requires that exact
+refusal after feature/component validation,and still never launches this copy.
+It must additionally complete idempotent reinstall/restore and byte-preservation
+checks before a pass;the first report remains failed,not promoted.
+local/ordinary-player-packages01-upgrade/verification.json retains this failure.
+SHA256:b43b82aaee00920977dae50dc05b9301a4502a75288f982b74ee1dc816238886
+
+The corrected upgrade control passes135.753s,including all relocated package/
+server checks. The retained older unified preview installs without cosmetic
+activation;the new bundled installer upgrades it to helper-native-atomic13 and
+the full protected player recipe. Original backups,an unrelated owner note and
+an authored personal-file marker stay byte-identical;reinstall is idempotent and
+restore recovers all three original hashes without erasing the personal files.
+Both old/current package inventories stay unchanged. The missing-executable
+refusal is required for this intentionally component-only copy,which is never
+launched;graphical startup is the separate actual-CMD control above. This covers
+one older preview,not every possible modified installation or filesystem.
+local/ordinary-player-packages01-upgrade02/verification.json SHA256:
+758bbede1e370025402be4e48c1063b85d1b0498be316e4b4f0c0a34cacd12d8
+
+The first ordinary loading-abort control hits its300s native-flow deadline.
+It has injected the loading abort and progressed into the third native world,
+but has not finished both required result/Continue cycles. All three workers
+exit0;owned clients are reaped and shared/source baselines stay unchanged. Four
+graphical clients overlap part of this run. No product cause is established;
+the same source/helper/deadline is being checked with only its two clients.
+Do not turn this failed run into a pass or infer capacity from it.
+local/ordinary-player-custom-loading-abort01/verification.json SHA256:
+1b8b0cd74863a8ae2e60f961d1be2346f86ff28922c0dfdd38f89269986bd7d0
+
+The separate two-client02 control completes native loading-abort recovery and
+two subsequent match/results/Continue cycles,but fails a pre-existing cosmetic
+harness assumption after134.886s:it expects exactly two server snapshots even
+though the aborted assignment correctly creates a third. Its original workers
+exit0 and shared/source baselines stay unchanged;the report remains failed.
+The corrected validator retains every created assignment,checks its full frozen
+map,and binds each native snapshot to the preceding match-ID/army/portrait/banner
+proof rather than row number. Loading-aborted assignments require no SimPlayer
+readback;running-aborted assignments require it. Both completed matches still
+require complete native maps,correct rematch change/isolation and stored final
+choices. Two authored parser regression tests pass,including duplicate,missing,
+wrong-seat/profile and mismatched identity refusal. A new native run is required.
+local/ordinary-player-custom-loading-abort02/verification.json SHA256:
+657a94d59bdb5d10a0e429a5c0c86c1b232e902d792575b55305dbc3700c2021
+
+The next03 run times out300.642s after one recovered completed match. Native
+guest postgame diagnostics repeatedly show continue-handler-ready,world idle,
+MatchResultState and empty navigation;host Continue has already returned. The
+guest's explicit smoke observer misses a transient Open lobby after abort:host
+starts at tick777427750 while the guest's1500ms diagnostic wait does not expire
+until777427843. Its stage3 waits for Open forever although its match is accepted.
+This is a test-observer race,not evidence that the native Continue is disabled.
+Replay-save exceptions occur in both passing and failing runs;they do not prove
+this timeout's cause. Shared storage is a separate remaining contract review.
+local/ordinary-player-custom-loading-abort03/verification.json SHA256:
+7da11b7fac581600cc7ebeb105d15ac498115db5bcee2eb84e2229aed64ad7c8
+
+The observer candidate arms from the actual accepted guest match/session instead
+of requiring a transient projected lobby. A separate opt-in late-guest flag waits
+4000ms after recovery to force the timing gap;it delays only the diagnostic
+observer,not native gameplay/Ready. An initial14 guard incorrectly compares the
+rendered installedLobby,which is deliberately cleared during match handoff.
+That04 control is deliberately stopped after verifying owned process paths;its
+report remains failed. The corrected15 guard uses accepted active match identity
+and the dedicated session. These additions are behind the existing smoke flags;
+ordinary launch still adds no automatic action or diagnostic delay.
+
+Helper14 actual client.main menu startup separately passes12.286s/12.815s total,
+with native features and unchanged shared/source baselines;forced cleanup is not
+Quit. Current15 build/eleven C++ programs pass,including the six owned settings
+interrupt controls. The forced-late guest native outcome is recorded below.
+helper-ordinary15 DLL SHA256:
+4c3f86ffcaa797bb340e4db6d57f0fff82775acd95bf73b2e2ca2e4f86ecfb58
+helper-ordinary15/helper-build.json SHA256:
+2f0c90f080884425ed6dff0c7a419b76e1f5b22743d1fb4102f922c4e2714364
+local/ordinary-player-helper14-startup01/verification.json SHA256:
+a01c71c4055ad85fca235b8cd8e86724d2808e3d8654012bc7a2cf86703061ce
+
+The corrected15 forced-late guest/loading-abort05 control passes85.413s. It
+observes three server-frozen assignments,one actual loading abort and two
+completed original result/Continue cycles in the same lobby/connections. The
+delayed guest explicitly arms from accepted epoch2 match identity,then both
+clients complete epochs2/3. The full-map validator binds native readbacks to
+both completed IDs;the loading-aborted assignment correctly has no SimPlayer
+readback and its full frozen server selection is still checked. Original
+loading/error/ready evidence passes. All three workers exit0;owned clients are
+reaped and shared/covered sources stay unchanged. Forced cleanup is not Quit;
+the delay/automatic actions belong only to this requested diagnostic control.
+The prior failed/stopped reports retain their status. This does not resolve the
+separate shared-storage paths or establish unrestricted multi-instance capacity.
+local/ordinary-player-custom-loading-abort05/verification.json SHA256:
+4c5a31bd52771ad0447036337ca2dde5d6185a682fa1ec4d58ed83cb8f9a6f1d
+
+Read-only follow-up traces find additional original replay and functional UX
+storage outside the two isolated native stores. No such storage patch is
+implemented by this entry-point candidate. See client-storage-isolation.txt for
+exact seams,retained evidence,cloud/local distinctions and the next qualification.
+
+Do not call the final release complete because source options or isolated mode
+tests pass. Follow RELEASE_ACCEPTANCE.txt and retain previous failure evidence.

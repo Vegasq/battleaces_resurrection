@@ -71,6 +71,7 @@ def run(args):
         value = json.loads((output/label/'verification.json').read_bytes())
         require(value['passed'] and value['remote_connections'] == value['invite_reads'] == 0 and
                 value['source_files_unchanged'] and value['owned_process_reaped'], 'native phase incomplete')
+        require(all(value['ordinary_player_features'].values()),'ordinary startup omitted player features')
         proof = value.get('cosmetics_persistence_proof')
         if proof:
             catalog = CosmeticCatalog.from_bytes((output/label/'player-cosmetics-catalog.json').read_bytes())
@@ -152,7 +153,7 @@ def run(args):
         phase('ordinary-startup')
         require(state_path(a).read_bytes() == saved_a and state_path(b).read_bytes() == saved_b, 'later probes changed saved profiles')
         report.update(passed=True, restart=True, retained_invalid_inputs=True, writer_lock=True,
-                      ordinary_cosmetics_dormant=True, remote_connections=0, invite_reads=0)
+                      ordinary_player_features_enabled=True, remote_connections=0, invite_reads=0)
     finally:
         report['source_sha256_at_finish'] = sources()
         report['source_files_unchanged'] = report['source_sha256_at_start'] == report['source_sha256_at_finish']

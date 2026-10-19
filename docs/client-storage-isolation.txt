@@ -1,0 +1,96 @@
+CLIENT STORAGE BOUNDARIES -- 2026-10-19 -- CONTRACT REVIEW, NOT IMPLEMENTED
+
+Current isolation is narrower than all client data
+Native local-user TOML and the authored full cosmetic store are isolated by
+installation/local_profile. Their shared-TOML hash checks do not qualify every
+other original storage channel. Ordinary full-feature tests still observe the
+original AutoSaveReplays and Steam StorageSyncBackup paths under Unity's shared
+persistentDataPath. Preserve their originals;do not change global permissions.
+
+Replay contract
+Pinned original GameAssembly SHA256:
+e59d08c01479b27404778048d7e13546dbf3771f6b3912744c7c2bdf80c4e758
+Original-byte LLVM/IL2CPP fallback review,not REA native-engine pseudocode.
+No engine setup/reconfiguration,target execution or tracked implementation was
+performed for these contract reviews. Retained original artifacts stay local.
+
+Replay.AutoSaveReplay bool(this,name,MethodInfo) RVA3dddc10 constructs its folder
+twice from Application.persistentDataPath and AutoSaveReplays. The static Concat
+call at3ddde36 (e8f5a45aff,target3388330) supplies actual directory/create/list/
+retention/save operations. The second at3ddde99 (e892a45aff,same target) supplies
+the folder log. Replay.SaveReplayFile3dde500 uses serializer3ddd5b0. Original
+name generation,100-file retention,protobuf/Deflate serialization and the
+_autoSave flag should remain intact. ReplayFolder/MaxAutoSaveReplays are literal
+metadata fields;offset0 is not mutable storage to patch.
+
+CleanupGameState invokes GameServerIntegration.AutoSaveReplay3e4fe70 through
+call3e51d94 (e8d7e0ffff),before the remaining cleanup delegate. A managed exception
+escaping here can interrupt cleanup. A future narrow wrapper should invoke the
+original through il2cpp_runtime_invoke and handle its exception output;C++
+std::exception handling alone does not establish safe managed-exception handling.
+The original clears _autoSave before filesystem operations;preserve its lack of
+automatic retry. Redirect both folder-return seams to one strongly rooted,
+validated profile-local directory instead of modifying Unity's global getter.
+
+Native errors are observed in both passing and failing Custom runs. They are an
+independent robustness issue,not proof of the loading-abort03 timeout's cause.
+The latter has a separate diagnostic guest-observer timing race:the native
+result is already Continue-ready while the observer still waits for a transient
+Open lobby. Do not rewrite the native results FSM to conceal a test race.
+Exception-filter reconstruction is incomplete;runtime fault controls remain
+required before changing the replay path or catch boundary.
+
+local/native-replay-storage-contract01/FINDINGS.txt SHA256:
+d0b7c8a896edd360342675cc57908b4fa33755ab3429a00e760307a6bf7afe2b
+local/native-replay-storage-contract01/contract.json SHA256:
+dc63223c99c5fecdb611a6a0bb78945d55d6a50ddeeb6cc6417b6f9a9c8477b2
+local/native-replay-storage-contract01/manifest.json SHA256:
+e0e838c54ef5234a3e63b23224c8ae796d46afc3f20ba3fce0cd5789f2e15fd8
+
+Tailored UX is not exclusively analytics
+The original channel stores functional quest/tutorial/unit-badge/reward/survey
+and practice-bot state. Keep native in-memory state and functional local
+persistence. Whole-manager RET guards or discarding every write would remove
+functionality. Startup and postgame reach this channel beyond the61 telemetry
+guards. Quest cleanup contains an inlined write;guarding one named cleanup
+method alone does not cover it.
+
+Shared reference-type SteamRemoteFile.Write26313c0 and Read2630f00 use
+RCX=this,DL=onlyWriteIfDirty (write) or onlyAcceptIfNewer (read),R8=MethodInfo,
+AL=bool.
+ReadJsonText2630870 uses RCX=this,RDX=managed-string output pointer,R8=MethodInfo.
+These are generic shared bodies;one bounded method-spec scan is not a global
+proof that all present/future callers are the same channel. Preserve identity
+scope and review alternate generic paths before adding a blanket guard.
+
+Candidate local-only policy:redirect the cctor3e92ce0 Path.Combine return at
+3e92e22 to a validated installation/profile StorageSyncBackup root before first
+access. The original stores BackupRemoteSyncRoot at static+8. This covers both
+reviewed EstablishBackupPath forms,2631ec0 and optimized272420. Paired reviewed
+EvaluateIsCloudEnabled callsites2630a69 (read) and263157c (write) can select the
+original backup-only branches instead of Steam FileTime/FileRead/FileWrite.
+Exact guards and ABI are retained in seams.json. Cloud-off alone still permits
+shared local reads/writes,so it is not enough without path isolation.
+
+Preserve original backup-only semantics:Write returns true after local success
+without clearing dirty state or firing WrittenToSteam. Do not invent a Steam
+success callback. A startup 'read successful' log can also mean the missing-file
+default '{}' path;it does not establish that shared bytes were imported.
+Actual cross-profile byte import/network transmission has not been observed.
+Native WriteAllText atomicity,malformed input,initialization ordering,generic
+identity scope and bounded runtime/network checks remain unqualified.
+
+local/native-tailored-storage-contract01/FINDINGS.txt SHA256:
+311c2465332facd912bb5852ee986fd8d129a62865bf61c597f4344a98314bea
+local/native-tailored-storage-contract01/seams.json SHA256:
+0e600e09f2ae08d4a914613df0d583e5d7783911a55ff8b378179b3e2ee9bbd9
+local/native-tailored-storage-contract01/manifest.json SHA256:
+1967768e40e9389a6f2b66e6984ad6c1bf24af87eecedb39f5d0772d62971f4d
+
+Next qualification
+Implement scoped path/cloud seams with exact original guards and original
+serialization retained. Verify fresh/existing separate profiles/copies,restart,
+read-only/missing/corrupt owned paths,postgame Continue and native Quit. Shared
+original files must remain unchanged;do not import them silently. Check native
+UI/practice state and remaining analytics callbacks independently. Keep final
+package/manual/clean-machine/Internet acceptance open until these pass.

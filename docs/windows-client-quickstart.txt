@@ -72,12 +72,16 @@ Normal is the first default. Manual launch has no automatic play or surrender.
 Match-start feedback has passed native state checks; visual acceptance remains
 open. Startup can take longer on a cold game installation. Ordinary launch enables
 no scripted production, surrender, Continue or heavy diagnostic captures.
-This preview supports local Try Deck and authenticated Custom; public1v1/2v2/2vAI
-fallback and all-cosmetics work are still pending, not release claims.
+Current source candidates enable public1v1/2v2/2vAI and installed cosmetic
+selection through Start Client. Public play uses local AI when no server is
+configured/available,and server queues fill missing opponents after30s. Custom
+is human-only. Ordinary-feature mode/team/fault and final package/manual checks
+are still in qualification;see ordinary-player-client.txt in the source checkout.
+Older frozen previews retain their own compatibility.json source/feature scope.
 
 The older practice command and config/practice.example.json remain available for
 the separately qualified standalone path. The normal Start Client uses one game
-process for local practice and optional Custom presence.
+process for local practice,public play and optional Custom presence.
 
 3. CONNECT TO YOUR FRIEND'S SERVER
 

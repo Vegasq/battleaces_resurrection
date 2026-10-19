@@ -499,8 +499,18 @@ static void smoke(Obj front) {
        native::authority.phase==wire::Open && !ba_dedicated_session::joined) {
         ba_community_invites::verifyParty(front,2,host);
         wire::require(ba::lanSlot()==-1 && !ba::get<Obj>(owner.get(),"_pendingLobbyUpdateRequest"),"abort retained seat/request");
-        probeAborts=recoveredAborts;probeStage=3;probeAt=now+1500;
+        probeAborts=recoveredAborts;probeStage=3;
+        probeAt=now+(guest && ba::flag(L"-community-match-late-guest-smoke")?4000:1500);
         ba::log("COMMUNITY MATCH SMOKE recovered abort; starting two successful native matches on the same lobby");return;
+    }
+    // The host may start while the guest's diagnostic delay is still active.
+    // Accepting the actual next match is stronger evidence than observing a
+    // transient Open lobby. Never leave the result observer waiting for Open
+    // after this process has already joined that match.
+    if(guest && probeStage==3 && ba_dedicated_session::joined && !activeLobby.empty() && activeEpoch &&
+       !activeMatch.empty() && activeMatch==ba_lan::dedicatedMatchId) {
+        probeStage=4;
+        ba::log("COMMUNITY MATCH SMOKE guest result observer armed from accepted match: match=%s epoch=%u",activeMatch.c_str(),activeEpoch);
     }
     if(probeStage==0 && native::directory.players.size()>=2) {
         if(host) {

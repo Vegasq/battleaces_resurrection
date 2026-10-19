@@ -13,6 +13,7 @@ import hashlib
 import json
 import os
 from pathlib import Path
+import re
 import secrets
 import socket
 import subprocess
@@ -37,6 +38,7 @@ from server.community import Rejected
 from tools.run_secure_match import read_native_log
 from tools.verify_custom_lobby import require, source_hashes as core_hashes
 from tools import match_loading_evidence
+from tools import verify_unified_startup as startup_probe
 from tests.test_tls_transport import generate_test_pki, remove_test_pki
 
 ROOT = Path(__file__).resolve().parents[1]
@@ -48,16 +50,46 @@ def source_hashes():
     result['tools/verify_custom_match.py'] = hashlib.sha256(Path(__file__).read_bytes()).hexdigest()
     result['tools/run_secure_match.py'] = hashlib.sha256((ROOT / 'tools/run_secure_match.py').read_bytes()).hexdigest()
     result['tools/match_loading_evidence.py'] = hashlib.sha256(Path(match_loading_evidence.__file__).read_bytes()).hexdigest()
+    result['tools/verify_unified_startup.py'] = hashlib.sha256(Path(startup_probe.__file__).read_bytes()).hexdigest()
     for path in (ROOT / 'client_patch/transport').glob('*.py'):
         result[path.relative_to(ROOT).as_posix()] = hashlib.sha256(path.read_bytes()).hexdigest()
     return result
+
+
+def remote_cosmetic_snapshots(log, catalog, profile, army):
+    """Bind each native full-map readback to its preceding match/army proof."""
+    rows, pending, seen = [], None, set()
+    for line in log.splitlines():
+        marker = 'REMOTE COSMETICS SimPlayer passed: '
+        if marker in line:
+            match = re.search(r'REMOTE COSMETICS SimPlayer passed: match=([0-9a-f]{32}) army=(\d+) '
+                              r'portrait=(\d+) banner=(\d+) slots=17 orderedDeck=1 completeMap=1$', line)
+            require(match and pending is None, 'native cosmetic match proof is malformed or lacks its snapshot')
+            match_id, seat, portrait, banner = match.groups()
+            require(int(seat) == army and match_id not in seen, 'native cosmetic match/army identity repeats or differs')
+            pending = (match_id, int(portrait), int(banner))
+        elif 'REMOTE COSMETICS frozen snapshot: ' in line:
+            require(pending is not None, 'native cosmetic snapshot lacks its match proof')
+            value = json.loads(line.split('REMOTE COSMETICS frozen snapshot: ', 1)[1])
+            require(isinstance(value, dict) and value.get('schema') == 1 and value.get('build') == 37822 and
+                    value.get('profile') == profile and value.get('catalog_sha256') == catalog.sha256,
+                    'native cosmetic snapshot belongs to another profile/catalog/build')
+            selection = catalog.validate_selection(value['slots'])
+            require((selection.portrait, selection.banner) == pending[1:], 'native cosmetic proof and snapshot identity differ')
+            rows.append((pending[0], selection));seen.add(pending[0]);pending = None
+    require(pending is None, 'native cosmetic match proof lacks its final snapshot')
+    return rows
 
 
 async def run(args):
     require(os.name == 'nt', 'Windows game runtime required')
     game, assets, output = args.game.resolve(), args.assets.resolve(), args.output.resolve()
     require(output.is_relative_to(ROOT / 'local'), 'evidence must be under ignored local/')
-    verify_game(game, community=True, bridge_version=2 if args.unified else 1, unified=args.unified); verify_assets(assets)
+    require(not args.ordinary_player or (args.unified and game.is_relative_to(ROOT/'local') and
+            args.cosmetics_selection and args.shared_settings),
+            'ordinary Custom qualification requires owned unified game, complete cosmetic seed and shared-settings baseline')
+    verify_game(game, community=True, bridge_version=2 if args.unified else 1, unified=args.unified,
+                player_features=args.ordinary_player); verify_assets(assets)
     manifest = json.loads((game / '.battleaces-resurrection/patch-manifest.json').read_text())
     require(manifest.get('community', {}).get('native_scope') == 'custom-match-prototype',
             'install current experimental match patch into an isolated copy')
@@ -100,9 +132,16 @@ async def run(args):
     clock.restype = ctypes.c_ulonglong
     report = dict(passed=False, utc=datetime.now(timezone.utc).isoformat(),
         scope='Automated original native UI actions; real simulation; two same-lobby matches; no manual visual/native Quit qualification',
-        source_sha256_at_start=source_hashes(), game_pids=[], client_arguments=[], client_start_ticks=[])
+        source_sha256_at_start=source_hashes(), game_pids=[], client_arguments=[], client_start_ticks=[],
+        ordinary_player=args.ordinary_player, ordinary_player_base_arguments=[])
+    if args.shared_settings:
+        report['shared_settings_before'] = startup_probe.shared_state(args.shared_settings.resolve())
     started = time.monotonic()
     aborted_scenario = args.scenario in ('setup-abort', 'running-abort', 'loading-abort')
+    require(not args.late_guest_probe or aborted_scenario, 'late guest probe requires an abort/recovery scenario')
+    if args.late_guest_probe:
+        require(b'COMMUNITY MATCH SMOKE guest result observer armed from accepted match:' in (game/'BattleAcesOffline.dll').read_bytes(),
+                'late guest probe requires the current diagnostic observer helper')
     injected = False
     stale_match, old_abort_sent, return_abort_sent = None, False, False
 
@@ -202,15 +241,24 @@ async def run(args):
                 remote = bridge.Remote('127.0.0.1', address[1], tls.load_client_context(pki['ca'], 'localhost'),
                                        *test_players[index])
                 bridges.append(asyncio.create_task(bridge.Bridge(reader, writer, remote, version=2).run()))
-                command = launcher.game_arguments(config, None, child.fileno(),
-                    argparse.Namespace(run_name=f'unified-custom-{index}', unified_experimental=True))
+                options = client.player_options() if args.ordinary_player else argparse.Namespace(
+                    run_name=f'unified-custom-{index}', unified_experimental=True)
+                command = launcher.game_arguments(config, None, child.fileno(), options)
+                if args.ordinary_player:
+                    require('-public-queue-experimental' in command and '-local-cosmetics-experimental' in command and
+                            not any('smoke' in value or 'audit' in value or 'auto-' in value for value in command),
+                            'ordinary Custom arguments omit features or contain diagnostics')
+                    report['ordinary_player_base_arguments'].append(list(command))
                 command[command.index('-logFile')+1] = str(output / f'game-{index}.log')
                 command += [f'-community-match-{role}-smoke', '-lan-smoke',
                             '-dedicated-surrender-smoke', '-dedicated-surrender-frame=160']
             if args.scenario == 'duplicates-deck':
                 command.extend(['-community-match-duplicate-smoke', '-community-match-deck-smoke'])
             if args.loading_ui: command.append('-match-loading-smoke')
-            if cosmetic_book: command.extend(['-local-cosmetics-experimental','-community-cosmetics-smoke','-human-cosmetics-smoke'])
+            if args.late_guest_probe and role == 'guest': command.append('-community-match-late-guest-smoke')
+            if cosmetic_book:
+                if '-local-cosmetics-experimental' not in command: command.append('-local-cosmetics-experimental')
+                command.extend(['-community-cosmetics-smoke','-human-cosmetics-smoke'])
             startup = subprocess.STARTUPINFO(); startup.dwFlags |= subprocess.STARTF_USESHOWWINDOW; startup.wShowWindow = 4 if args.visible else 0
             if child is not None:
                 startup.lpAttributeList = {'handle_list': [child.fileno()]}
@@ -306,6 +354,9 @@ async def run(args):
                 require(injected and old_abort_sent and return_abort_sent and log.count('Community stale abort ignored:') == 3 and
                         'Community abort native CleanupGameState:' not in log and log.count('COMMUNITY MATCH SMOKE native Continue') == 2,
                         'stale abort disrupted native result/next-match flow')
+        if args.late_guest_probe:
+            require('COMMUNITY MATCH SMOKE guest result observer armed from accepted match:' in logs[1],
+                    'delayed guest did not arm its result observer from an accepted match')
         expected_starts = 3 if args.scenario in ('reject', 'timeout') or aborted_scenario else 2
         expected_readies = 3 if args.scenario == 'timeout' or aborted_scenario else 2
         require(sum(c['kind'] == wire.START for c in commands) == expected_starts and
@@ -326,31 +377,49 @@ async def run(args):
                 for index, (log, process) in enumerate(zip(logs, processes))]
         if args.unified: require(sorted(authenticated) == sorted(player for player, _ in test_players), 'expected two authenticated sessions')
         if cosmetic_book:
-            require(len(frozen_matches)==2 and all(session.full_loadout for session in server.community.sessions.values()),
-                    'two full-loadout server snapshots/capabilities missing')
-            selected={}
+            created_ids = [event['match'] for event in events if event['event'] == 'match_created']
+            completed_ids = [event['match'] for event in completed]
+            require(len(frozen_matches) == expected_workers and
+                    [value['match'] for value in frozen_matches] == created_ids and len(set(created_ids)) == expected_workers and
+                    all(session.full_loadout for session in server.community.sessions.values()),
+                    'created-match full-loadout server snapshots/capabilities missing')
+            # A loading abort freezes server intent but never reaches SimPlayer.
+            # A running abort does reach it. Keep both distinct from the two
+            # completed matches rather than indexing a fixed two-row list.
+            expected_native_ids = created_ids if args.scenario == 'running-abort' else completed_ids
+            frozen_by_id = {value['match']: value for value in frozen_matches}
+            selected, native_rows = {}, {}
             for index,log in enumerate(logs):
-                snapshots=[json.loads(line.split('REMOTE COSMETICS frozen snapshot: ',1)[1]) for line in log.splitlines()
-                           if 'REMOTE COSMETICS frozen snapshot: ' in line]
-                require(len(snapshots)==2 and log.count('REMOTE COSMETICS SimPlayer passed:')==2,
-                        'native full-map readback missing for both matches')
-                parsed=[cosmetic_book.validate_selection(value['slots']) for value in snapshots]
+                rows = remote_cosmetic_snapshots(log, cosmetic_book, cosmetic_profiles[index], index)
+                require([match for match, _ in rows] == expected_native_ids,
+                        'native full-map readback match IDs differ from created/completed lifecycle')
+                native_rows[index] = rows
+                by_id = dict(rows)
+                parsed = [by_id[match] for match in completed_ids]
                 require(parsed[0]==cosmetic_seeds[index], 'first native match differs from seeded complete profile')
                 require((parsed[1]!=parsed[0]) if index==0 else (parsed[1]==parsed[0]), 'rematch changed/stable profile isolation failed')
                 selected[index]=parsed
-                for ordinal,appearance in enumerate(parsed):
-                    require(frozen_matches[ordinal]['cosmetics'][index]['slots']==appearance.slots,
+                for match, appearance in rows:
+                    require(frozen_by_id[match]['cosmetics'][index]['slots']==appearance.slots,
                             'native decoded map differs from authoritative server frozen map')
+                for frozen in frozen_matches:
+                    appearance = cosmetic_book.validate_selection(frozen['cosmetics'][index]['slots'])
+                    require(frozen['cosmetics'][index]['catalog_sha256'] == cosmetic_book.sha256 and
+                            appearance == (parsed[-1] if frozen['match'] == completed_ids[-1] else cosmetic_seeds[index]),
+                            'server aborted/first/rematch selection differs from its frozen lifecycle intent')
                 stored=server.profiles.load_state(test_players[index][0], [])
                 require(stored.cosmetics==parsed[-1], 'server stored profile differs from final native match selection')
             require(sum(command['kind']==loadout_protocol.SET_LOADOUT for command in commands)>=3,
                     'complete initial publication/rematch publication missing')
             report['full_loadouts']=dict(catalog=cosmetic_book.sha256,local_profiles=cosmetic_profiles,server_matches=frozen_matches,
-                native_selections={index:[dict(slots=value.slots,catalog_sha256=value.catalog_sha256) for value in values]
-                                   for index,values in selected.items()},native_full_map_each_match=True)
+                native_selections={index:[dict(match=match, slots=value.slots,catalog_sha256=value.catalog_sha256)
+                                          for match,value in values] for index,values in native_rows.items()},
+                native_full_map_each_completed_match=True, completed_matches=completed_ids,
+                server_frozen_without_native_readback=[match for match in created_ids if match not in expected_native_ids])
         report.update(passed=True, lobby=lobby.id, epochs=expected_epochs, completed_matches=completed, commands=commands,
             unified=args.unified, tls_authentications=len(authenticated),
             scenario=args.scenario,
+            late_guest_probe=args.late_guest_probe,
             abort_results_delay_seconds=.6 if aborted_scenario else 0,
             duplicate_abort=aborted_scenario, stale_result_and_next_match_abort=old_abort_sent,
             stale_abort_while_returning=return_abort_sent,
@@ -386,6 +455,10 @@ async def run(args):
             teardown='owned test termination; not native Quit validation', source_sha256_at_finish=source_hashes())
         report['source_files_unchanged'] = report['source_sha256_at_start'] == report['source_sha256_at_finish']
         report['passed'] &= report['source_files_unchanged'] and report['owned_processes_reaped'] and all(w.process.poll() == 0 for w in workers)
+        if args.shared_settings:
+            report['shared_settings_after'] = startup_probe.shared_state(args.shared_settings.resolve())
+            report['shared_settings_unchanged'] = report['shared_settings_before'] == report['shared_settings_after']
+            report['passed'] &= report['shared_settings_unchanged']
         (output / 'verification.json').write_text(json.dumps(report, indent=2), encoding='utf-8')
         audit.close()
         print('Evidence: ' + str(output / 'verification.json'), flush=True)
@@ -397,9 +470,12 @@ def main():
         parser.add_argument('--' + name, required=True, type=Path)
     parser.add_argument('--timeout', type=int, default=180)
     parser.add_argument('--unified', action='store_true', help='qualify unified native ownership over real TLS with in-memory test invites')
+    parser.add_argument('--ordinary-player', action='store_true', help='use ordinary Start Client options before owned automation')
+    parser.add_argument('--shared-settings', type=Path, help='read-only baseline for original shared native settings')
     parser.add_argument('--loading-ui', action='store_true', help='verify native loading status and retain Unity screenshots')
     parser.add_argument('--cosmetics-selection',type=Path,help='accepted native full-map proof; enable full protocol and a fresh cosmetic rematch edit')
     parser.add_argument('--visible',action='store_true',help='show both diagnostic windows without taking focus')
+    parser.add_argument('--late-guest-probe',action='store_true',help='delay only the opt-in guest observer after abort to force it to miss the Open-lobby interval')
     parser.add_argument('--scenario', choices=('normal', 'duplicates-deck', 'reject', 'timeout',
                                               'setup-abort', 'running-abort', 'loading-abort', 'stale-abort'), default='normal')
     args = parser.parse_args()

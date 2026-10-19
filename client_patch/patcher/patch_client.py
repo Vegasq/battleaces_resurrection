@@ -362,7 +362,7 @@ def main():
     parser.add_argument('--restore', action='store_true')
     parser.add_argument('--dry-run', action='store_true')
     parser.add_argument('--community-experimental', action='store_true', help='isolated experimental native Custom Game/invite/match adapter')
-    parser.add_argument('--cosmetics-experimental', action='store_true', help='isolated catalog-scoped cosmetic unlock prototype; persistence not yet enabled')
+    parser.add_argument('--cosmetics-experimental', action='store_true', help='installed-catalog cosmetic unlock with isolated selection persistence')
     parser.add_argument('--quit-diagnostics', action='store_true', help='owned local-only original disposal trace; no cleanup changes')
     parser.add_argument('--allow-dlss-diagnostics', action='store_true', help='owned local-only original NGX initialization comparison; ordinary installs report DLSS unavailable')
     args = parser.parse_args()

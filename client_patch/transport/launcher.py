@@ -103,12 +103,14 @@ class RemoteConfigResolver:
         return await asyncio.to_thread(self.read)
 
 
-def verify_game(root, *, community=False, bridge_version=1, unified=False):
+def verify_game(root, *, community=False, bridge_version=1, unified=False, player_features=False):
     from client_patch.patcher.patch_client import contained_path
     if type(bridge_version) is not int or bridge_version not in (1, 2):
         raise LaunchError('Unsupported private transport version')
     if unified and (not community or bridge_version != 2):
         raise LaunchError('Unified client requires community integration and private transport ABI2')
+    if player_features and not unified:
+        raise LaunchError('Player features require the unified client')
     root = Path(root).resolve()
     manifest = read_json(root / '.battleaces-resurrection/patch-manifest.json', 131072)
     if not isinstance(manifest, dict) or manifest.get('state') == 'restored':
@@ -135,6 +137,17 @@ def verify_game(root, *, community=False, bridge_version=1, unified=False):
                         raise LaunchError('Install a helper supporting secure transport ABI2')
                     if unified and b'BA_RESURRECTION_UNIFIED_CLIENT_V1' not in helper:
                         raise LaunchError('Install a helper supporting the unified client lifecycle')
+                    if player_features:
+                        markers = (b'BA_RESURRECTION_PUBLIC_QUEUE_V1', b'BA_RESURRECTION_COSMETICS_UNLOCK_V1',
+                                   b'BA_RESURRECTION_COSMETICS_PERSIST_V1', b'BA_RESURRECTION_NATIVE_DECK_INPUT_V1',
+                                   b'BA_RESURRECTION_NATIVE_SETTINGS_ATOMIC_V1')
+                        appearance = manifest.get('cosmetics', {})
+                        settings = manifest.get('local_settings', {})
+                        if (any(marker not in helper for marker in markers) or not isinstance(appearance, dict)
+                                or appearance.get('experimental') is not True or appearance.get('persistence') is not True
+                                or not isinstance(settings, dict) or settings.get('deck_input_guard') is not True
+                                or settings.get('write_publication') != 'original-serializer-flush-handle-rename'):
+                            raise LaunchError('Install the current complete client patch with public play, cosmetics and protected settings')
                     if b'BA_RESURRECTION_GAME_PROTOCOL_3' not in helper:
                         raise LaunchError('Install the protocol3 client helper for configurable buffering')
                     if community and b'BA_RESURRECTION_COMMUNITY_MATCH_V1' not in helper:
@@ -176,6 +189,9 @@ def game_arguments(config, player_id, handle, args):
     from .client import profile_key
     result.append('-local-profile=' + profile_key(config.get('local_profile', 'default')))
     if unified: result.append('-unified-client')
+    if getattr(args, 'player_features', False):
+        if not unified: raise LaunchError('Player features require the unified client')
+        result.extend(('-public-queue-experimental', '-local-cosmetics-experimental'))
     switches = dict(auto_ready='-dedicated-auto-ready', smoke='-lan-smoke', deck_smoke='-dedicated-deck-smoke',
                     surrender_smoke='-dedicated-surrender-smoke', telemetry_audit='-telemetry-audit', audit='-lan-audit')
     for option, flag in switches.items():
@@ -218,7 +234,7 @@ async def launch(config, remote, args):
     unified = getattr(args, 'unified_experimental', False)
     version = 2 if unified or getattr(args, 'dynamic_identity_experimental', False) else 1
     verify_game(config['game_directory'], community=unified or getattr(args, 'community_experimental', False),
-                bridge_version=version, unified=unified)
+                bridge_version=version, unified=unified, player_features=getattr(args, 'player_features', False))
     parent, child = socket.socketpair(socket.AF_INET)
     parent.setblocking(False)
     writer = task = None

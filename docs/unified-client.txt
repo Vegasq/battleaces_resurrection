@@ -1,5 +1,14 @@
 UNIFIED CLIENT LIFECYCLE
-Updated:2026-10-18. Architecture work in progress; public fallback is not shipped.
+Updated:2026-10-19. Final ordinary integration is in qualification;frozen packages remain unchanged.
+
+Current ordinary player integration
+Start Client's shared player_options now activates public queues and local
+cosmetic unlock/persistence,with manifest/helper checks before spawn. Packaged
+install includes the cosmetic recipe. The prior default omitted these despite
+their separate native prototype tests. Actual no-config/no-server menu startup
+passes without automatic actions. Mode/persistence/team/Custom/fault/package
+acceptance is ongoing;see ordinary-player-client.txt. Historical checkpoints
+below retain their original opt-in/default scope rather than being relabeled.
 
 Source integration checkpoint (bounded native lifecycle qualified)
 client_patch.transport.client starts the unified ABI2 application. Local schema3

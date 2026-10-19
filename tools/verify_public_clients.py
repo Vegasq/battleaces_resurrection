@@ -23,7 +23,7 @@ import subprocess
 import time
 import traceback
 
-from client_patch.transport import bridge, launcher
+from client_patch.transport import bridge, client, launcher
 from server import admission, loadout_protocol, public_protocol as q, tls_transport as tls
 from server.ai_rules import RuleBook
 from server.assets import verify_assets
@@ -38,12 +38,14 @@ from server.worker_client import SimulationWorker, _WindowsJob
 from tests.test_tls_transport import generate_test_pki, remove_test_pki
 from tools.run_secure_match import read_native_log
 from tools.verify_custom_lobby import require, source_hashes as core_hashes
+from tools import verify_unified_startup as startup_probe
 
 ROOT = Path(__file__).resolve().parents[1]
 
 
 def source_hashes():
-    paths = [Path(__file__), ROOT/'tools/run_secure_match.py', ROOT/'tools/verify_practice_ai.py'] + list((ROOT/'client_patch/transport').glob('*.py'))
+    paths = [Path(__file__), ROOT/'tools/run_secure_match.py', ROOT/'tools/verify_practice_ai.py',
+             ROOT/'tools/verify_unified_startup.py'] + list((ROOT/'client_patch/transport').glob('*.py'))
     return core_hashes() | {p.relative_to(ROOT).as_posix(): hashlib.sha256(p.read_bytes()).hexdigest() for p in paths}
 
 
@@ -76,7 +78,10 @@ def journal_builds(path, clients, frames):
 
 async def run(args):
     game, assets, output = args.game.resolve(), args.assets.resolve(), args.output.resolve()
-    launcher.verify_game(game, community=True, bridge_version=2, unified=True)
+    require(not args.ordinary_player or (game.is_relative_to(ROOT/'local') and
+            args.cosmetics_selection and args.shared_settings),
+            'ordinary team qualification requires an owned game, complete native cosmetic seed and shared-settings baseline')
+    launcher.verify_game(game, community=True, bridge_version=2, unified=True, player_features=args.ordinary_player)
     verify_assets(assets)
     output.mkdir(parents=True, exist_ok=False)
     cosmetic_book = CosmeticCatalog(assets) if args.cosmetics_selection else None
@@ -158,7 +163,10 @@ async def run(args):
     report = dict(passed=False, scope=__doc__, mode=args.mode, humans=args.humans, visible=args.visible,
         helper_sha256=hashlib.sha256((game/'BattleAcesOffline.dll').read_bytes()).hexdigest(),
         source_sha256_at_start=source_hashes(), disconnect=args.disconnect, retry=args.retry, practice_between=args.practice_between,
-        game_pids=[], client_arguments=[], launch_ticks=[])
+        game_pids=[], client_arguments=[], launch_ticks=[], ordinary_player=args.ordinary_player,
+        ordinary_player_base_arguments=[])
+    if args.shared_settings:
+        report['shared_settings_before'] = startup_probe.shared_state(args.shared_settings.resolve())
     clock = ctypes.WinDLL('kernel32').GetTickCount64
     clock.restype = ctypes.c_ulonglong
 
@@ -206,15 +214,25 @@ async def run(args):
             record = dict(name=config['display_name'], writer=writer, log='',
                           task=asyncio.create_task(bridge.Bridge(reader, writer, resolve, version=2).run()))
             clients.append(record)
-            command = launcher.game_arguments(config, None, child.fileno(),
-                argparse.Namespace(run_name=f'public-clients-{index}', unified_experimental=True))
+            options = client.player_options() if args.ordinary_player else argparse.Namespace(
+                run_name=f'public-clients-{index}', unified_experimental=True)
+            command = launcher.game_arguments(config, None, child.fileno(), options)
+            if args.ordinary_player:
+                require('-public-queue-experimental' in command and '-local-cosmetics-experimental' in command and
+                        not any('smoke' in value or 'audit' in value or 'auto-' in value for value in command),
+                        'ordinary player arguments differ or contain automatic diagnostics')
+                report['ordinary_player_base_arguments'].append(list(command))
             command[command.index('-logFile')+1] = str(output/f'game-{index}.log')
-            command += ['-public-queue-experimental', '-public-queue-smoke', f'-public-queue-smoke-mode={args.mode}',
+            if '-public-queue-experimental' not in command:
+                command.append('-public-queue-experimental')
+            command += ['-public-queue-smoke', f'-public-queue-smoke-mode={args.mode}',
                         '-public-queue-smoke-gate='+gate_key, '-lan-smoke', '-lan-audit', '-dedicated-rematch-smoke',
                         '-dedicated-surrender-smoke', '-dedicated-surrender-frame=1200', '-public-team-surrender-smoke',
                         '-match-search-smoke']
             if cosmetic_book:
-                command += ['-local-cosmetics-experimental', '-community-cosmetics-smoke', '-human-cosmetics-smoke']
+                if '-local-cosmetics-experimental' not in command:
+                    command.append('-local-cosmetics-experimental')
+                command += ['-community-cosmetics-smoke', '-human-cosmetics-smoke']
             if index == 1:
                 command.append('-public-queue-smoke-edit-deck')
             if args.disconnect and index == 0:
@@ -644,6 +662,10 @@ async def run(args):
         if not clean:
             report.setdefault('error', 'worker cleanup failed; see worker_cleanup')
         report['passed'] &= clean and report['owned_processes_reaped'] and report['gate_removed'] and report['source_files_unchanged']
+        if args.shared_settings:
+            report['shared_settings_after'] = startup_probe.shared_state(args.shared_settings.resolve())
+            report['shared_settings_unchanged'] = report['shared_settings_before'] == report['shared_settings_after']
+            report['passed'] &= report['shared_settings_unchanged']
         (output/'verification.json').write_text(json.dumps(report, indent=2)+'\n', encoding='utf-8')
     print(json.dumps({key: report[key] for key in ('passed', 'error', 'elapsed_seconds', 'received_frames', 'full_human_group') if key in report}))
     return 0 if report['passed'] else 1
@@ -657,6 +679,8 @@ def main():
     parser.add_argument('--humans', type=int, choices=(2, 3, 4), default=2)
     parser.add_argument('--timeout', type=int, default=600)
     parser.add_argument('--visible', action='store_true')
+    parser.add_argument('--ordinary-player', action='store_true', help='use ordinary Start Client options before owned automation')
+    parser.add_argument('--shared-settings', type=Path, help='read-only baseline for original shared native settings')
     parser.add_argument('--cosmetics-selection', type=Path, help='accepted native seed; qualifies full loadouts with distinct installed portraits')
     parser.add_argument('--disconnect', choices=('loading', 'running'),
                         help='explicitly close the first owned client TLS peer; qualify native abort cleanup, not a completed match')

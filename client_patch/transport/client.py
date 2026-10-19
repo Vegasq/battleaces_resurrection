@@ -102,6 +102,11 @@ def prepare_settings(path, game=None, *, default_game=None):
     return config
 
 
+def player_options():
+    """The single ordinary entry point enables the complete player capability set."""
+    return argparse.Namespace(run_name='client', unified_experimental=True, player_features=True)
+
+
 def main(argv=None, *, default_game=None):
     parser = argparse.ArgumentParser(description=__doc__)
     parser.add_argument('--config', type=Path, default=Path.cwd() / 'client.json')
@@ -110,8 +115,7 @@ def main(argv=None, *, default_game=None):
     try:
         config = prepare_settings(args.config, args.game, default_game=default_game)
         remote = launcher.RemoteConfigResolver(args.config, config['game_directory'], config_loader=load_connection)
-        options = argparse.Namespace(run_name='client', unified_experimental=True)
-        return asyncio.run(launcher.launch(config, remote, options))
+        return asyncio.run(launcher.launch(config, remote, player_options()))
     except launcher.LaunchError as error:
         print('Client could not start: ' + str(error))
         return 1

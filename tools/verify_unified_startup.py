@@ -88,6 +88,7 @@ def run(args):
         if not hasattr(args, key): setattr(args, key, default)
     require(os.name == 'nt' and 60 <= args.timeout <= 300, 'bounded Windows probe required')
     game, output = args.game.resolve(), args.output.resolve()
+    require(game.is_relative_to(ROOT/'local'), 'ordinary player qualification requires an owned disposable game copy')
     require(output.is_relative_to(ROOT/'local'), 'evidence must remain under ignored local/')
     output.mkdir(parents=True, exist_ok=False)
     (game/'investigation/runtime').mkdir(parents=True, exist_ok=True)
@@ -146,7 +147,8 @@ def run(args):
                 persist_done = not args.cosmetics_persistence_proof or 'COSMETICS PERSISTENCE PROOF passed:' in log
                 profile_done = not args.menu_profile_proof or 'MENU PROFILE PROOF passed: ' in log
                 deck_done = not args.native_deck_proof or 'NATIVE SETTINGS DECK proof: ' in log
-                if all(marker in log for marker in markers) and catalog_done and unlock_done and trace_done and picker_done and equip_done and persist_done and profile_done and deck_done:
+                features_done = 'BA_RESURRECTION_COSMETICS_UNLOCK_V1 ready:' in log and 'BA_RESURRECTION_COSMETICS_PERSIST_V1 ready:' in log
+                if all(marker in log for marker in markers) and features_done and catalog_done and unlock_done and trace_done and picker_done and equip_done and persist_done and profile_done and deck_done:
                     settings = native_settings_evidence(game, output, process.pid, tick, report['configured_local_profile'])
                     report['local_settings'] = settings
                     if args.native_deck_proof:
@@ -181,8 +183,7 @@ def run(args):
                         (output/'cosmetics-unlock.json').write_bytes(raw)
                         report['cosmetics_unlock_proof'] = proof
                     else:
-                        require(any(cosmetic_flags) or 'BA_RESURRECTION_COSMETICS_UNLOCK_V1' not in log,
-                                'ordinary startup unexpectedly enabled cosmetic unlock')
+                        require('COSMETICS UNLOCK SMOKE passed:' not in log, 'ordinary startup unexpectedly automated cosmetic model checks')
                     if args.cosmetics_ui_trace:
                         raw = (game/'investigation/runtime'/f'cosmetics-ui-trace-{process.pid}.json').read_bytes()
                         (output/'cosmetics-ui-trace.json').write_bytes(raw)
@@ -251,6 +252,9 @@ def run(args):
                 'ordinary launcher added diagnostic actions')
         require('-player-cosmetics-catalog-export' not in command,
                 'ordinary launcher enabled cosmetic export')
+        require('-public-queue-experimental' in command and '-local-cosmetics-experimental' in command,
+                'ordinary player features were omitted')
+        report['ordinary_player_features'] = dict(public_queues=True, cosmetics=True, isolated_persistence=True)
         report['ordinary_arguments_contain_no_diagnostics'] = True
         if args.menu_profile_proof: command.append('-menu-profile-proof')
         if args.native_deck_proof: command.append('-native-settings-deck-proof')

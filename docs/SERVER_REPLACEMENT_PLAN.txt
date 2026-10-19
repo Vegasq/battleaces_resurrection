@@ -4,6 +4,24 @@ Target: Battle Aces build 37822, Windows x64 server and clients.
 Status: IMPLEMENTATION ACTIVE. See STATUS.txt; incomplete phases remain future work.
 
 Current release integration order (2026-10-19)
+- Integrate public/cosmetic activation into actual Start Client and packaged
+  install;the previous ordinary launcher omitted it. Source options/compatibility
+  checks are now implemented and actual no-config/no-server native startup passes.
+  Complete ordinary-feature mode/persistence/team/Custom/rematch/fault acceptance
+  before rebuilding a final candidate. See ordinary-player-client.txt. Existing
+  isolated prototype reports and frozen archives retain their prior scope.
+  Ordinary-option local1v1/2v2/2vAI,real30-second server fill,partial two-human2v2,
+  waiting-Cancel and human-only Custom/rematch now pass. Actual extracted
+  Start Client.cmd also reaches the native menu with no automation/spawn seam.
+  Final ordinary transition/fault,clean package/manual and cross-PC acceptance
+  still remain;do not label these same-PC controls a completed release.
+- Complete original replay/functional UX storage isolation before final package
+  promotion. Current TOML/cosmetic isolation does not cover shared AutoSaveReplays
+  or Steam StorageSyncBackup. Preserve native functional UX and replay formats,
+  scope reviewed cloud gates and keep handled write failure from interrupting
+  cleanup. Read-only contracts are retained;no implementation claim yet. See
+  client-storage-isolation.txt. A separate diagnostic guest-observer timing race
+  must not be misdiagnosed as a disabled native Continue button.
 - Native original serialization now stages/flushes/publishes a complete isolated
   TOML by handle;eleven C++ programs and six owned process-interruption controls
   pass. Current native write-error/retry/restart,input compatibility and AI/

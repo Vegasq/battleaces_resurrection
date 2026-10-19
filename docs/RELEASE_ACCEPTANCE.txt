@@ -5,6 +5,16 @@ release. STATUS.txt retains implementation history;SERVER_REPLACEMENT_PLAN.txt
 defines the requested product. Existing frozen archives are not automatically
 upgraded when source changes. No original client binaries/assets belong in Git.
 
+Current ordinary source candidate
+The shared player entry point now enables public queues and installed cosmetic
+selection/persistence;packaged install includes their native recipe. Actual
+no-server startup,local1v1/2v2/2vAI,real30-second fill,partial two-human2v2,waiting
+Cancel and human-only Custom/rematch have bounded native controls. The actual
+extracted Start Client.cmd reaches its menu without a spawn seam or automatic
+actions. Current native settings saves use staged handle publication. See
+ordinary-player-client.txt for reports,retained failures and remaining matrix.
+These controls do not close the final/manual/clean-machine/Internet gates below.
+
 Qualified source checkpoint aa5a803
 - One ordinary unified launcher reaches a native local menu without configured
   server,CA or invite and without gameplay automation.
@@ -38,8 +48,8 @@ Required before a general release
     metadata/security policies and other filesystems remain explicit limits.
     See native-settings-atomic.txt. Final installed-package regression is required;
     do not equate a callback or flush with universal durability.
-[ ] Enable final public/cosmetic features through the ordinary entry point only
-    after end-to-end acceptance. Verify actual mouse selection/drag/equip,all
+[ ] Qualify the enabled public/cosmetic features through the ordinary entry point
+    across the complete final matrix. Verify actual mouse selection/drag/equip,all
     installed cosmetic categories,ability/effect/audio rendering,persistence and
     complete match choices across public/Custom/local/team/rematch/fault paths.
 [ ] Test the final ordinary offline path:Try Deck,1v1,2v2 and2vAI remain playable
@@ -50,6 +60,11 @@ Required before a general release
     coverage and bounded network-capture checks on the final installed build.
     Current61 guards and the separate NGX guard are not a universal zero-traffic
     or graphics-driver/overlay reporting guarantee. See telemetry.txt.
+[ ] Isolate original replay and functional UX read/write paths by installation/
+    profile;preserve their native formats and functional UI state while scoping
+    reviewed cloud sinks. Exercise missing/corrupt/denied owned paths and native
+    results/Continue/Quit. TOML-only hash checks do not cover these channels;
+    see client-storage-isolation.txt. Do not remove functional UX as analytics.
 [ ] Build fresh source-only client patch/server archives with exactly one Start
     Client and one Start Server entry point. Validate install,upgrade,restore,
     config relocation,logs,missing/corrupt files and normal Quit/save persistence.

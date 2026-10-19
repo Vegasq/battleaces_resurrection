@@ -134,6 +134,26 @@ class SecureLauncherTests(unittest.TestCase):
         self.assertNotIn('-offline-practice', argv)
         self.assertFalse(any(argument.startswith('-player-id=') for argument in argv))
 
+    def test_ordinary_player_requires_complete_helper_and_installed_feature_recipe(self):
+        root, path, manifest = self.install()
+        helper = root / 'BattleAcesOffline.dll'
+        helper.write_bytes(helper.read_bytes()+b' BA_RESURRECTION_TLS_BRIDGE_V2 BA_RESURRECTION_UNIFIED_CLIENT_V1 BA_RESURRECTION_COMMUNITY_MATCH_V1')
+        manifest['community'] = dict(native_scope='custom-match-prototype')
+        manifest['helper_sha256'] = hashlib.sha256(helper.read_bytes()).hexdigest()
+        path.write_text(json.dumps(manifest))
+        with self.assertRaisesRegex(launch.LaunchError, 'complete client patch'):
+            launch.verify_game(root, community=True, bridge_version=2, unified=True, player_features=True)
+        helper.write_bytes(helper.read_bytes()+b' BA_RESURRECTION_PUBLIC_QUEUE_V1 BA_RESURRECTION_COSMETICS_UNLOCK_V1 BA_RESURRECTION_COSMETICS_PERSIST_V1 BA_RESURRECTION_NATIVE_DECK_INPUT_V1 BA_RESURRECTION_NATIVE_SETTINGS_ATOMIC_V1')
+        manifest['helper_sha256'] = hashlib.sha256(helper.read_bytes()).hexdigest()
+        manifest['cosmetics'] = dict(experimental=True, persistence=True)
+        manifest['local_settings'].update(deck_input_guard=True, write_publication='original-serializer-flush-handle-rename')
+        path.write_text(json.dumps(manifest))
+        launch.verify_game(root, community=True, bridge_version=2, unified=True, player_features=True)
+        for changed in (dict(experimental=False, persistence=True), dict(experimental=True, persistence=False), None):
+            manifest['cosmetics'] = changed;path.write_text(json.dumps(manifest))
+            with self.subTest(recipe=changed), self.assertRaisesRegex(launch.LaunchError, 'complete client patch'):
+                launch.verify_game(root, community=True, bridge_version=2, unified=True, player_features=True)
+
     def test_component_hash_restore_and_path_escape_fail_before_spawn(self):
         root, path, manifest = self.install()
         launch.verify_game(root)

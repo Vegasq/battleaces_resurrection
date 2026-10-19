@@ -116,6 +116,8 @@ class UnifiedLauncherTests(unittest.TestCase):
             self.assertIn('-unified-client', argv)
             self.assertIn('-secure-transport-version=2', argv)
             self.assertIn('-local-profile=default', argv)
+            self.assertIn('-public-queue-experimental', argv)
+            self.assertIn('-local-cosmetics-experimental', argv)
             self.assertFalse(any('smoke' in value or 'audit' in value or 'auto-' in value for value in argv))
             with self.assertRaises(bridge.RemoteUnavailable): await remote()
             return 17

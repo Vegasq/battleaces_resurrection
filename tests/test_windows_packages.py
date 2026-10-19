@@ -5,6 +5,8 @@ import io
 import json
 from pathlib import Path
 import struct
+import subprocess
+import sys
 import unittest
 from unittest import mock
 import zipfile
@@ -91,6 +93,22 @@ class WindowsPackageTests(unittest.TestCase):
             target.write_bytes(target.read_bytes() + b'\n# changed\n')
             with self.assertRaises(PackageError): verify(folder, product)
 
+    def test_packaged_entry_points_import_outside_checkout_without_site_packages(self):
+        self.build()
+        foreign = self.root/'foreign-cwd';foreign.mkdir()
+        script = ('import importlib,pathlib,sys; root=pathlib.Path(sys.argv[1]).resolve(); '
+                  'sys.path.insert(0,str(root)); modules=[importlib.import_module(name) for name in sys.argv[2:]]; '
+                  'assert all(pathlib.Path(module.__file__).resolve().is_relative_to(root) for module in modules)')
+        for product, modules in (
+                ('server', ('tools.package_server','server.host','server.windows_service','server.state_backup',
+                            'server.public_matchmaking','server.loadout_protocol','tools.import_assets')),
+                ('client', ('tools.package_client','client_patch.transport.client','client_patch.transport.enrollment',
+                            'client_patch.patcher.patch_client'))):
+            app = self.root/'out'/('battleaces-'+product+'-win64')/'program/app'
+            result = subprocess.run([sys.executable,'-I','-S','-B','-c',script,str(app),*modules],
+                                    cwd=foreign,capture_output=True,text=True,timeout=30)
+            with self.subTest(product=product):self.assertEqual(result.returncode,0,result.stderr[-4000:])
+
     def test_refuses_dirty_source_existing_outputs_and_unlisted_program_files(self):
         with mock.patch.object(builder, 'source_revision', return_value={'revision': 'test', 'dirty': True}):
             with self.assertRaisesRegex(PackageError, 'Commit'): self.build()
@@ -128,6 +146,7 @@ class PackageDispatchTests(unittest.TestCase):
     def test_install_restore_keep_existing_patcher_transaction_and_no_game_copy(self):
         with mock.patch.object(package_client, 'verify'), mock.patch('client_patch.patcher.patch_client.install', return_value={}) as install, redirect_stdout(io.StringIO()):
             self.assertEqual(package_client.main(['install', '--game', 'working copy', '--dry-run']), 0)
+            self.assertIs(install.call_args.kwargs['cosmetics'], True)
             self.assertTrue(install.call_args.kwargs['community'])
             self.assertTrue(install.call_args.kwargs['dry_run'])
             self.assertFalse(install.call_args.kwargs['restore'])

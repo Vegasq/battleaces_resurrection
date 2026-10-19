@@ -22,7 +22,7 @@ import subprocess
 import time
 import traceback
 
-from client_patch.transport import bridge, launcher
+from client_patch.transport import bridge, launcher, client
 from server import admission, tls_transport as tls, community_protocol as c, public_protocol as q, protocol as p
 from server.ai_rules import RuleBook
 from server.assets import verify_assets
@@ -38,12 +38,13 @@ from tests.test_admission import Store
 from tests.test_tls_transport import generate_test_pki, remove_test_pki
 from tools.run_secure_match import read_native_log
 from tools.verify_custom_lobby import require, source_hashes as core_hashes
+from tools import verify_unified_startup as startup_probe
 
 ROOT = Path(__file__).resolve().parents[1]
 
 
 def source_hashes():
-    paths = [Path(__file__), ROOT/'tools/run_secure_match.py', ROOT/'tools/verify_practice_ai.py'] + list((ROOT/'client_patch/transport').glob('*.py'))
+    paths = [Path(__file__), ROOT/'tools/run_secure_match.py', ROOT/'tools/verify_practice_ai.py', ROOT/'tools/verify_unified_startup.py'] + list((ROOT/'client_patch/transport').glob('*.py'))
     return core_hashes() | {p.relative_to(ROOT).as_posix(): hashlib.sha256(p.read_bytes()).hexdigest() for p in paths}
 
 
@@ -57,7 +58,7 @@ def elapsed_seconds(log,ticket):
 
 async def run(args):
     game, assets, output = args.game.resolve(), args.assets.resolve(), args.output.resolve()
-    launcher.verify_game(game, community=True, bridge_version=2, unified=True)
+    launcher.verify_game(game, community=True, bridge_version=2, unified=True, player_features=args.ordinary_player)
     verify_assets(assets);output.mkdir(parents=True, exist_ok=False)
     pki_folder=output/'ephemeral-pki';pki=generate_test_pki(pki_folder)
     credentials, workers, events = Store(), [], []
@@ -100,8 +101,10 @@ async def run(args):
                 local_frames=args.local_frames if args.unavailable else None, local_profile=args.local_profile,
                 helper_sha256=hashlib.sha256((game/'BattleAcesOffline.dll').read_bytes()).hexdigest(),
                 source_sha256_at_start=source_hashes())
+    if args.shared_settings: report['shared_settings_before']=startup_probe.shared_state(args.shared_settings.resolve())
     try:
-        port=(await server.start('127.0.0.1',0))[1]
+        port=47623 if args.unavailable else (await server.start('127.0.0.1',0))[1]
+        report['server_listener_started']=not args.unavailable
         send=server.community.send
         def controlled_send(peer,kind,payload):
             nonlocal delayed_enter,dropped_return
@@ -145,12 +148,18 @@ async def run(args):
             return bridge.Remote('127.0.0.1',port,context,credentials.player,credentials.token)
         config=dict(game_directory=game,server_host='127.0.0.1',server_port=port,display_name='Public Config Player',room='community')
         if cosmetic_book:config['local_profile']=cosmetic_profile
-        options=argparse.Namespace(run_name='public-queue-probe',unified_experimental=True)
+        options=client.player_options() if args.ordinary_player else argparse.Namespace(run_name='public-queue-probe',unified_experimental=True)
         parent,child=socket.socketpair(socket.AF_INET);parent.setblocking(False)
         reader,writer=await asyncio.open_connection(sock=parent)
         command=launcher.game_arguments(config,None,child.fileno(),options)
+        if args.ordinary_player:
+            require('-public-queue-experimental' in command and '-local-cosmetics-experimental' in command and
+                    not any('smoke' in value or 'audit' in value or 'auto-' in value for value in command),
+                    'ordinary player options omit features or include automation')
+            report['ordinary_player_base_arguments']=list(command)
         command[command.index('-logFile')+1]=str(output/'game.log')
-        command+=['-public-queue-experimental','-public-queue-smoke',f'-public-queue-smoke-mode={args.mode}',
+        if not args.ordinary_player: command.append('-public-queue-experimental')
+        command+=['-public-queue-smoke',f'-public-queue-smoke-mode={args.mode}',
                   '-lan-smoke','-lan-audit','-dedicated-rematch-smoke']
         if not args.unavailable: command+=['-match-search-smoke']
         if args.cancel: command+=['-public-queue-smoke-cancel='+args.cancel]
@@ -159,7 +168,9 @@ async def run(args):
         if args.practice_overlap: command+=['-public-queue-smoke-practice-overlap']
         if args.mode==1:
             command+=['-dedicated-surrender-smoke','-dedicated-surrender-frame=1200']
-        if cosmetic_book:command+=['-local-cosmetics-experimental','-community-cosmetics-smoke','-human-cosmetics-smoke']
+        if cosmetic_book:
+            if not args.ordinary_player: command.append('-local-cosmetics-experimental')
+            command+=['-community-cosmetics-smoke','-human-cosmetics-smoke']
         if args.edit_loadout_after_play:command+=['-public-loadout-edit-smoke']
         if args.menu_profile_proof:
             key=secrets.token_hex(16)
@@ -499,6 +510,10 @@ async def run(args):
         workers_ok=all(row['passed'] for row in cleanup)
         if not workers_ok: report.setdefault('error','worker cleanup failed; see worker_cleanup evidence')
         report['passed'] &= report['source_files_unchanged'] and report['owned_process_reaped'] and workers_ok
+        if args.shared_settings:
+            report['shared_settings_after']=startup_probe.shared_state(args.shared_settings.resolve())
+            report['shared_settings_unchanged']=report['shared_settings_before']==report['shared_settings_after']
+            report['passed'] &= report['shared_settings_unchanged']
         (output/'verification.json').write_text(json.dumps(report,indent=2)+'\n',encoding='utf-8')
     print(json.dumps({key:report[key] for key in ('passed','error','elapsed_seconds','received_frames','worker_exit_codes') if key in report}))
     return 0 if report['passed'] else 1
@@ -515,6 +530,8 @@ def main():
     parser.add_argument('--local-profile',type=int,choices=(58,62,63,64),
                         help='explicit unavailable1v1 qualification profile; ordinary public selection remains random')
     parser.add_argument('--visible',action='store_true')
+    parser.add_argument('--ordinary-player',action='store_true',help='use the ordinary Start Client feature options before adding owned automation')
+    parser.add_argument('--shared-settings',type=Path,help='read-only baseline; require original shared native settings to stay unchanged')
     parser.add_argument('--cancel',choices=('before-enter','waiting','offered','after-ready'))
     parser.add_argument('--retry',action='store_true')
     parser.add_argument('--delay-enter-ack',type=float,default=0)
@@ -527,6 +544,8 @@ def main():
     parser.add_argument('--edit-loadout-after-play',action='store_true',help='change native units/cosmetics after freeze to verify original intent survives')
     parser.add_argument('--menu-profile-proof',action='store_true',help='read and capture the configured header before and after a complete match')
     args=parser.parse_args()
+    require(not args.ordinary_player or (args.cosmetics_selection and args.shared_settings),
+            'ordinary player qualification requires a full native cosmetic selection/catalog and shared-settings baseline')
     require(os.name=='nt' and args.output.resolve().is_relative_to(ROOT/'local') and 120<=args.timeout<=900,'bounded Windows/ignored probe required')
     require(1200<=args.local_frames<=7200 and (not args.local_profile or args.unavailable and args.mode==1),
             'bounded local frames and unavailable1v1-only profile override required')

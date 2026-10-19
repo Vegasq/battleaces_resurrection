@@ -1,5 +1,36 @@
 WINDOWS PORTABLE PACKAGING - DEVELOPMENT PREVIEW
-Updated: 2026-10-18
+Updated: 2026-10-19
+
+Current ordinary player candidate
+Packaged install now selects community and cosmetic recipes together. Start
+Client enables public queues and installed cosmetic selection/persistence,and
+checks those helper/manifest capabilities before creating the game process.
+Builder helper markers include public/cosmetic support. Actual no-config local
+startup and native unit-deck edit/restart with both features pass;the full
+ordinary mode/return/fault/package matrix is still in qualification. Existing
+frozen archives remain unchanged. See ordinary-player-client.txt. Historical
+package counts and tests below describe their own build rather than this candidate.
+An isolated import regression also found four missing server modules;the source
+allowlist now includes cosmetics,loadout_protocol,public_protocol and
+public_matchmaking. Fresh local/ordinary-player-packages01 previews have82 server
+and67 client payload files. Both bundled-runtime integrity/production import
+checks pass;dirty:true/source2334676 prevents treating these as a clean release.
+The relocated-package native host/controller lifecycle and three-component patch
+roundtrip also pass68.767s. Actual extracted Start Client.cmd reaches the native
+menu in12.013s with a relocated config,embedded runtime and no spawn seam or
+automatic actions. Owned forced cleanup is not native Quit. Exact scope/digests
+are in ordinary-player-client.txt;final clean-build/manual acceptance is open.
+The optional --previous-client-package control in tools.verify_windows_packages
+also qualifies one retained earlier preview through real component-only install,
+upgrade,repeat install and restore. Personal markers/original backups survive;
+old/new packages remain unchanged. Corrected control passes135.753s;the initial
+missing-executable fixture expectation remains a retained failed report.
+
+The separate graphical ordinary-CMD control is reproducible with:
+  python -m tools.verify_packaged_startup --package "<owned extracted client package under local/>" --game "<owned patched game under local/>" --output local/package-start-unique --shared-settings "<read-only original local-user TOML>"
+It runs the real wrapper from a hostile unrelated cwd and verifies native menu,
+actual ordinary game arguments,isolated settings and unchanged package/config/
+shared/source baselines. It forcibly reaps its owned process tree,not native Quit.
 
 Current source adds Start Server.cmd and Start Client.cmd. The client command
 uses the unified ABI2 helper, creates public schema3 local settings on first use,

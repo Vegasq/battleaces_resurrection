@@ -31,6 +31,7 @@ COMMON = (
 SERVER = COMMON + (
     'server/ai_rules.py', 'server/native_ai.py', 'server/worker_ai.py', 'server/bot_catalog.py',
     'server/assets.py', 'server/community.py', 'server/community_protocol.py',
+    'server/cosmetics.py', 'server/loadout_protocol.py', 'server/public_protocol.py', 'server/public_matchmaking.py',
     'server/configuration.py', 'server/dedicated_server.py', 'server/game_data.py',
     'server/host.py', 'server/host_audit.py', 'server/native_simulation.py',
     'server/state_lock.py', 'server/state_backup.py', 'server/windows_service.py',
@@ -49,6 +50,7 @@ CLIENT = COMMON + (
     'tools/package_client.py',
 )
 MARKERS = (
+    b'BA_RESURRECTION_PUBLIC_QUEUE_V1', b'BA_RESURRECTION_COSMETICS_UNLOCK_V1', b'BA_RESURRECTION_COSMETICS_PERSIST_V1',
     b'BA_RESURRECTION_NATIVE_SETTINGS_ATOMIC_V1',
     b'BA_RESURRECTION_NATIVE_SETTINGS_NOTICE_V1',
     b'BA_RESURRECTION_NATIVE_DECK_INPUT_V1',b'OfflineLocalDeckStorageLoad\0',

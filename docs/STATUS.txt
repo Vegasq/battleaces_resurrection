@@ -2,6 +2,58 @@ IMPLEMENTATION LEDGER
 Updated: 2026-10-19 UTC
 Active objective: implement SERVER_REPLACEMENT_PLAN.txt, Windows only.
 
+ORDINARY PLAYER FEATURE INTEGRATION (2026-10-19 UTC, CANDIDATE)
+The published launcher omitted public/cosmetic activation,while mode probes added
+it separately. Start Client's shared options now enable both;packaged install
+includes cosmetic hooks and launch refuses incomplete old feature recipes/helpers.
+Thirty-six focused checks pass. Actual no-config/no-server client.main startup
+passes10.361s with native cosmetic unlock/persistence and no automated actions,
+match,connection or invite read. Shared/source baselines stay unchanged;cleanup
+is forced,not Quit. Native edited-deck/restart with cosmetics enabled now also
+passes11.011s/11.835s:core1->75 and the same complete deck in a new process.
+Current Python suite456 pass/14 skip out of470,explicit exit0. Ordinary-option
+local1v1 passes182.009s without a server listener/worker/authentication:random
+profile64 bot,ordered moving units,frozen full human loadout and results/Continue.
+Shared/source baselines stay unchanged;cleanup is forced,not Quit. Actual TLS
+queue1v1 passes121.269s,including29.849s AI fill,results/Continue and worker exit0.
+No-listener local2v2 passes213.059s with all three bots acting;local2vAI also
+passes212.805s with results/Continue and unchanged baselines. An isolated import
+regression finds/fixes four missing server package modules. Fresh dirty
+development packages pass bundled-runtime integrity/import checks and relocated
+asset/native host/controller lifecycle/three-component patch roundtrip in68.767s.
+Full ordinary mode/team/graphical-package promotion remains in qualification.
+Frozen archives unchanged.
+Two-human partial server2v2 passes128.048s:one shared match,real30-second fill,
+independent full choices,1221 canonical frames/results/Continue,worker exit0.
+Actual extracted Start Client.cmd also reaches the native menu with its bundled
+runtime and no spawn seam in12.013s,without diagnostics/network prerequisites;
+owned process-tree cleanup is forced,not Quit. Package/config/shared/source
+baselines stay unchanged. See ordinary-player-client.txt for evidence bounds.
+Ordinary TLS waiting-Cancel passes15.288s without a match/worker;the actual
+searching/released PNGs are inspected with original timer/X/Searching/locks and
+their release visible. Human-only TLS Custom invite/Start/two results/Continue/
+same-lobby rematch also passes83.033s,including a new full-choice rematch edit.
+Workers exit0;baselines unchanged;forced cleanup is not native Quit/manual play.
+Two-human server2vAI -> independent local Try Deck -> server2vAI also passes
+429.808s in the same processes,with complete choices and moving local bot units.
+Both server workers exit0. Upgrade from the retained older non-cosmetic preview
+passes135.753s after correcting a component-only fixture expectation;original
+backups/personal markers survive upgrade,reinstall and restore. The first
+loading-abort run times out at300s with four graphical clients overlapping;
+it reaches its third world but not both result cycles. Resources/baselines are
+preserved;cause unproven. The same bounded two-client control is being repeated
+without other games. These are not final manual/clean-PC/Internet acceptance.
+The02 control completes both cycles but exposes a fixed-two-row cosmetic test
+assumption;the corrected validator binds all snapshots to match IDs. The03
+timeout exposes a separate explicit guest-observer race despite native Continue
+being ready. Helper15/eleven C++ programs fix the observer's accepted-match arming
+and force a late guest for regression;the05 native control passes85.413s:one
+loading abort,two complete result/Continue cycles,all three workers exit0,
+complete maps bound by actual match IDs and unchanged baselines. Ordinary
+launch still has no automated actions. Original replay/functional UX shared
+storage is independently traced,not yet patched;see client-storage-isolation.txt.
+See ordinary-player-client.txt for the gap,changes,exact scope and matrix.
+
 NATIVE SETTINGS WRITE PUBLICATION (2026-10-19 UTC, IN QUALIFICATION)
 The source candidate retains original native TOML serialization but stages each
 accepted save into a pinned ordinary sibling,flushes it and publishes by handle.

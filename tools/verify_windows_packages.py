@@ -12,6 +12,7 @@ import traceback
 import zipfile
 
 from client_patch.patcher.telemetry import COMPONENTS
+from client_patch.transport.launcher import LaunchError, verify_game
 from .package_integrity import safe_name, verify
 
 ROOT = Path(__file__).resolve().parents[1]
@@ -184,8 +185,8 @@ def run(args):
     environment = os.environ.copy()
     environment.update(PATH=str(Path(os.environ.get('SystemRoot', r'C:\Windows'))/'System32'), PYTHONPATH=str(cwd))
 
-    def command(product, label, arguments, *, success=True):
-        executable = folders[product]/'program/runtime/python.exe'
+    def command(product, label, arguments, *, success=True, package=None):
+        executable = (package or folders[product])/'program/runtime/python.exe'
         result = subprocess.run([str(executable), '-I', '-B', *arguments], cwd=cwd, env=environment,
             capture_output=True, timeout=180, creationflags=subprocess.CREATE_NO_WINDOW if os.name == 'nt' else 0)
         (output/(label+'.stdout.txt')).write_bytes(result.stdout)
@@ -288,6 +289,42 @@ def run(args):
         require(owner_note.read_text() == 'keep unchanged', 'Unrelated owner file changed')
         report['patch_roundtrip'] = dict(components=len(COMPONENTS), dry_run_no_writes=True, idempotent=True, original_hashes_restored=True)
 
+        if args.previous_client_package:
+            previous = args.previous_client_package.resolve()
+            require(previous.is_relative_to(ROOT/'local') and previous != folders['client'],
+                    'previous package must be a separate owned local preview')
+            previous_inventory = verify(previous, 'client')
+            legacy = json.loads(command('client', 'patch-previous-install', action, package=previous))
+            require(legacy.get('cosmetics', {}).get('experimental') is not True,
+                    'upgrade control requires an old preview without the cosmetic recipe')
+            saved = working/'.battleaces-resurrection/profiles/upgrade_probe/gameconfig-localuser.toml'
+            saved.parent.mkdir(parents=True)
+            saved.write_bytes(b'# owned preservation marker; not a native startup fixture\n')
+            saved_bytes = saved.read_bytes()
+            upgraded = json.loads(command('client', 'patch-upgrade', action))
+            try:
+                verify_game(working, community=True, bridge_version=2, unified=True, player_features=True)
+            except LaunchError as error:
+                require(str(error) == 'Game executable is missing',
+                        'upgraded feature/component validation failed before the expected missing executable')
+            else:
+                raise AssertionError('component-only copy must not be accepted as a playable game')
+            require(saved.read_bytes() == saved_bytes and owner_note.read_text() == 'keep unchanged' and
+                    all(digest(working/'.battleaces-resurrection/original'/name) == value for name,value in originals.items()),
+                    'upgrade changed personal files or original backups')
+            require(json.loads(command('client', 'patch-upgrade-reinstall', action)) == upgraded,
+                    'upgraded install is not idempotent')
+            command('client', 'patch-upgrade-restore', ['-m','tools.package_client','restore','--game',str(working)])
+            require(all(digest(working/name) == value for name,value in originals.items()) and
+                    saved.read_bytes() == saved_bytes and owner_note.read_text() == 'keep unchanged',
+                    'upgraded restore changed personal data or failed original hashes')
+            require(verify(previous,'client') == previous_inventory, 'old package changed during upgrade control')
+            report['previous_preview_upgrade'] = dict(previous=str(previous),
+                previous_helper_sha256=legacy['helper_sha256'], current_helper_sha256=upgraded['helper_sha256'],
+                old_cosmetic_recipe=False, full_player_recipe=True, originals_preserved=True,
+                personal_files_preserved=True, reinstall_idempotent=True, original_hashes_restored=True,
+                launcher_refuses_component_only_copy=True, graphical_startup_tested=False)
+
         # User data must not redirect worker/module imports or mutate the bundle.
         for product, folder in folders.items(): verify(folder, product)
         require(all(digest(game/name) == original for name, original in originals.items()), 'Original source changed')
@@ -307,6 +344,7 @@ def main(argv=None):
     parser.add_argument('--packages', type=Path, required=True)
     parser.add_argument('--game-dir', type=Path, required=True, help='read-only pristine build37822 input')
     parser.add_argument('--export-dir', type=Path, required=True, help='locally produced complete native export')
+    parser.add_argument('--previous-client-package', type=Path, help='optional owned old preview for component-only install/upgrade/restore qualification')
     parser.add_argument('--output', type=Path, required=True, help='fresh directory under local/')
     run(parser.parse_args(argv))
 
