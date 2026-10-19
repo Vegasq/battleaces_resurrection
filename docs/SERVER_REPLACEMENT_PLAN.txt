@@ -3,6 +3,23 @@ Updated: 2026-10-18
 Target: Battle Aces build 37822, Windows x64 server and clients.
 Status: IMPLEMENTATION ACTIVE. See STATUS.txt; incomplete phases remain future work.
 
+Current cosmetic integration order (2026-10-19)
+- Correct the confirmed human-only local-AI deck replacement gap. Freeze the
+  complete native17-slot selection at intent; preserve its ordered entitlement
+  and portrait/banner through config,JoinArmy and decoded native simulation.
+  Native Try Deck/results/Continue and changed rematch choices now pass a real
+  two-match offline probe with four visually inspected game/result captures.
+  Public local fallback qualification remains open,including transferring the
+  original queue-intent loadout after waiting. In-game profile identification
+  uses native owner/model references;SteamId is unpopulated in those models.
+- Publish complete deck+cosmetics atomically from the client with a correlated
+  ACK. Bind public assignments and Custom readiness to the same full snapshot;
+  reject stale/mismatched state. Backend storage/freeze is already implemented.
+- Complete graphical remote/team/rematch acceptance,main-menu bindings,real drag,
+  effects/audio,shutdown flush/native Quit,protected deployment and ordinary
+  release packaging. Prior server-only/native-short-frame passes do not close
+  these gates. See cosmetic-community.txt and STATUS.txt for bounded evidence.
+
 1. OUTCOME AND SCOPE
 
 Deliver a dedicated server that the owner can host on Windows x64,

@@ -1,6 +1,24 @@
 IMPLEMENTATION LEDGER
-Updated: 2026-10-18 UTC
+Updated: 2026-10-19 UTC
 Active objective: implement SERVER_REPLACEMENT_PLAN.txt, Windows only.
+
+HUMAN TRY DECK COSMETICS (2026-10-19 UTC, EXPERIMENTAL)
+The local adapter now freezes the effective17-slot human selection at intent,
+attaches ordered service0 keys to a fresh human deck,and applies matching roles
+to config/JoinArmy. A real two-match offline probe passes full SimDeck/SimPlayer
+readback,original starts/results/Continue and fresh same-frame portrait/deck edits
+before the rematch. All four actual game/result PNGs are visually inspected and
+show the changed selection without a connection-issue modal. Runtime181.575s,
+36 empty owned-socket snapshots,17 AI action records,12 maximum bot supply each
+match,covered sources unchanged and PID47648 reaped. Nine C++ component programs/
+helper and45 focused source checks pass. The native observer follows current
+owner/model/local-army references;in-game SteamId fields are intentionally empty.
+Failed captures/probes remain documented separately. See cosmetic-community.txt
+for exact hashes,reproduction and limits. Public local-mode/remote full-loadout
+binding,the analogous bot observer,effects/audio,native Quit and ordinary cosmetic
+enablement remain open. Ordinary no-config startup passes in14.023s with zero
+remote attempts/invite reads and no activation/automation flags. Its owned
+process is reaped;native Quit remains unqualified.
 
 COMMUNITY COSMETIC STORAGE / MATCH DATA (2026-10-19 UTC, EXPERIMENTAL)
 The server asset export now includes the installed full cosmetic catalog. Native

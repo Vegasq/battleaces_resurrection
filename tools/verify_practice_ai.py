@@ -22,6 +22,7 @@ import uuid
 
 from client_patch.transport.launcher import verify_game
 from server.assets import verify_assets
+from server.cosmetics import CosmeticCatalog
 from server.dedicated_server import Audit, DedicatedServer
 from server.game_data import GameTemplate
 from server.profiles import ProfileStore
@@ -116,7 +117,19 @@ async def run(args):
         if args.edit_deck_between: command.append('-practice-ai-deck-smoke')
         if args.settings_first: command.append('-practice-settings-smoke')
         if args.loading_ui: command.append('-match-loading-smoke')
-        startup = subprocess.STARTUPINFO(); startup.dwFlags |= subprocess.STARTF_USESHOWWINDOW; startup.wShowWindow = 0
+        if args.cosmetic_profile:
+            require(args.offline and game.is_relative_to(ROOT / 'local'), 'cosmetic probe requires an offline disposable copy')
+            require(re.fullmatch(r'cosmeticstest_[a-z0-9_-]{1,34}', args.cosmetic_profile), 'use an owned cosmetic test profile')
+            require(args.assets is not None, 'cosmetic proof requires the trusted imported catalog')
+            catalog = CosmeticCatalog(args.assets.resolve())
+            seeded = json.loads((game / '.battleaces-resurrection/profiles' / (args.cosmetic_profile+'.cosmetics.json')).read_text())
+            require(seeded['profile'] == args.cosmetic_profile and seeded['catalog_sha256'] == catalog.sha256,
+                    'test profile/catalog mismatch')
+            expected_cosmetics = catalog.validate_selection(seeded['slots'])
+            report['expected_cosmetics'] = seeded
+            command.extend(['-local-cosmetics-experimental', '-human-cosmetics-smoke', '-local-profile='+args.cosmetic_profile])
+        startup = subprocess.STARTUPINFO(); startup.dwFlags |= subprocess.STARTF_USESHOWWINDOW
+        startup.wShowWindow = 4 if args.visible else 0 # SW_SHOWNOACTIVATE for explicit graphical qualification.
         clock = ctypes.WinDLL('kernel32').GetTickCount64; clock.restype = ctypes.c_ulonglong
         launch_tick = clock()
         process = subprocess.Popen(command, cwd=game, startupinfo=startup, creationflags=subprocess.CREATE_NO_WINDOW, close_fds=True)
@@ -137,6 +150,8 @@ async def run(args):
                 require(not owned, 'standalone game owns network sockets; inspect evidence')
                 last_network = time.monotonic()
             log = read_native_log(game, process.pid, since_tick=launch_tick)
+            if args.cosmetic_profile and 'Cosmetic persistence unavailable:' in log:
+                raise AssertionError('seeded cosmetic profile was not accepted; inspect retained file and native log')
             require(not any(marker in log for marker in ('Practice stopped in ', 'Offline loop stopped in ',
                 'Offline practice initialization failed:', 'Local menu initialization failed:', 'Practice settings UI failed in ',
                 'PRACTICE SETTINGS SMOKE failed')), 'native practice failure; see logs')
@@ -180,6 +195,37 @@ async def run(args):
                 bot_units_with_observed_position_change=sorted(moved),
                 bot_deck_unit_ids_receiving_autonomous_orders=sorted(unit_orders),
                 autonomous_action_records=segment.count('Practice AI action:')))
+            if args.cosmetic_profile:
+                if index:
+                    changes = [json.loads(line.split('HUMAN COSMETICS rematch equipped: ', 1)[1])
+                               for line in log.splitlines() if 'HUMAN COSMETICS rematch equipped: ' in line]
+                    require(len(changes) == args.matches-1, 'missing fresh same-frame native cosmetic rematch edit')
+                    fresh = catalog.validate_selection(changes[index-1]['slots'])
+                    require(fresh.slots != expected_cosmetics.slots, 'rematch reused stale cosmetic map')
+                    expected_cosmetics = fresh
+                messages = [json.loads(line.split('HUMAN COSMETICS frozen message: ', 1)[1])
+                            for line in segment.splitlines() if 'HUMAN COSMETICS frozen message: ' in line]
+                require(len(messages) == 2, 'expected human config and JoinArmy cosmetic snapshots')
+                require(messages[0]['deck'] == messages[1]['deck'] and
+                        all(messages[0][key] == messages[1][key] for key in ('portraitId', 'bannerId')),
+                        'human config and join cosmetics differ')
+                actual = messages[0]
+                require(actual['portraitId'] == expected_cosmetics.portrait and actual['bannerId'] == expected_cosmetics.banner,
+                        'native human roles differ from seeded profile')
+                require(actual['deck']['entitlements'] == [dict(cosmeticAssetKeys=list(expected_cosmetics.keys))],
+                        'native human entitlement differs from seeded ordered full selection')
+                require(segment.count('HUMAN COSMETICS SimPlayer passed:') == 1 and
+                        all('HUMAN COSMETICS identity binding: phase='+phase in segment for phase in ('in-game', 'result')),
+                        'full native human cosmetic map/live/result bindings missing')
+                evidence[-1]['human_cosmetics'] = dict(config=messages[0], join=messages[1], native_full_map=True,
+                                                       live_and_result_children=True)
+                captures = []
+                for phase in ('in-game', 'result'):
+                    name = f'human-cosmetics-{process.pid}-{start[1]}-{phase}.png'
+                    path = game / 'investigation/runtime' / name
+                    require(path.is_file() and path.read_bytes().startswith(b'\x89PNG\r\n\x1a\n'), 'native human cosmetic capture missing')
+                    shutil.copyfile(path, output / name); captures.append(name)
+                evidence[-1]['human_cosmetics']['captures_requiring_visual_review'] = captures
             if args.offline and manifest.get('practice', {}).get('difficulty_settings'):
                 difficulty_profile = 18 if args.settings_first else args.profile
                 selected = {17: 'easy', 18: 'normal', 19: 'hard'}[difficulty_profile]
@@ -265,6 +311,8 @@ def main():
     parser.add_argument('--profile', type=int, choices=(17, 18, 19), default=17,
                         help='offline difficulty Easy17/Normal18/Hard19; community mode retains raw shipped profile selection')
     parser.add_argument('--require-ai-movement', action='store_true')
+    parser.add_argument('--cosmetic-profile', help='owned cosmeticstest_ profile; enables explicit offline human cosmetic diagnostics')
+    parser.add_argument('--visible', action='store_true', help='show the owned diagnostic window without taking focus')
     args = parser.parse_args(); require(60 <= args.timeout <= 600, 'timeout must be60..600 seconds')
     require(not args.edit_deck_between or args.matches == 2, 'deck edit requires two matches')
     require(not args.settings_first or args.offline, 'settings-first requires standalone offline mode')

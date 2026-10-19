@@ -17,6 +17,9 @@ struct State {
     ba_match_loading::Ticket loadingTicket=0;
     ba_match_search::Ticket searchTicket=0;
     std::unique_ptr<Root> front,controller,human,humanDeck,encoded,completionInfo,completionUI;
+    ba_cosmetics::FrozenLoadout humanCosmetics;
+    bool humanCosmeticsProven=false;
+    bool humanInGameIdentity=false,humanResultIdentity=false,humanResultCaptured=false;
     std::vector<Bot> bots;
     std::string match;
     uint32_t request=0;
@@ -28,6 +31,7 @@ struct State {
     bool humanReady=false,humanJoined=false;
     bool inGameIdentity=false,resultIdentity=false;
     ULONGLONG identityWait=0;
+    ULONGLONG humanResultCaptureAt=0;
     ULONGLONG began=0,diagnostic=0,completionAt=0;
 };
 static auto& state=*new State();
@@ -228,7 +232,10 @@ static void startMode(Obj front,Obj controller,int mode,ba_match_search::Ticket 
     }
     root(state.front,front);root(state.controller,controller);
     root(state.human,ba::get<Obj>(front,"_playerGameHandle"));
+    if(completed && ba::flag(L"-human-cosmetics-smoke"))ba_cosmetics::practiceRematchSmoke(front);
     root(state.humanDeck,ba_dedicated_deck::selectedProto(front));
+    try {state.humanCosmetics=ba_cosmetics::freezeHuman(front,state.humanDeck->get());}
+    catch(...) {state=State{};throw;} // No world/lease exists yet; a rejected freeze must allow retry.
     unsigned char random[16];require(BCryptGenRandom(nullptr,random,sizeof(random),BCRYPT_USE_SYSTEM_PREFERRED_RNG)>=0,"practice match identity generation failed");
     static const char hex[]="0123456789abcdef";state.match.clear();
     for(unsigned char byte:random){state.match+=hex[byte>>4];state.match+=hex[byte&15];}++generations;
@@ -337,6 +344,7 @@ static void consume(Obj front,Obj request,Obj data) {
         Obj players=ba::get<Obj>(army,"players_");ba::call(players,"Clear");
         ba_local::addItem(players,bot?bot->identity->get():state.human->get());
         ba::set<Obj>(army,"deck_",bot?bot->deck->get():state.humanDeck->get());
+        if(!bot)ba_cosmetics::applyHumanRoles(army,state.humanCosmetics);
         if(bot && state.mode!=4){ba::set<uint32_t>(army,"portraitId_",bot->portrait);ba::set<uint32_t>(army,"bannerId_",bot->banner);}
         if(ba::flag(L"-practice-ai-smoke"))
             ba::log("Practice army snapshot: %s",ba_catalog::utf8(ba::call(army,"ToString")).substr(0,16384).c_str());
@@ -455,6 +463,7 @@ static void input(Obj gameServer,Obj action) {
             require(ba_lan_bootstrap::uintAt(actual,i)==ba_lan_bootstrap::uintAt(wanted,i),"practice native deck differs from snapshot");
     }
     ba::set<uint32_t>(join.get(),"armyId_",expected);ba::set<Obj>(join.get(),"deck_",frozen);joined=true;
+    if(!bot)ba_cosmetics::applyHumanRoles(join.get(),state.humanCosmetics);
     // The shipped JoinArmy serializer omits these fields. Carry the immutable
     // public bot identity through the actual simulation input as well as config.
     if(bot && state.mode!=4){ba::set<uint32_t>(join.get(),"portraitId_",bot->portrait);ba::set<uint32_t>(join.get(),"bannerId_",bot->banner);}
@@ -493,7 +502,34 @@ static bool visibleProfile(Obj component) {
     Root go(ba::native<Obj(*)(Obj,Obj)>(0x6ec1a0)(component,nullptr));
     return go.get() && ba::native<bool(*)(Obj,Obj)>(0x508a650)(go.get(),nullptr);
 }
-static bool publicIdentity(bool result) {
+static bool localProfileView(Obj view,Obj model) {
+    // The original in-game model does not populate SteamId/IsAi/IsAlias. Bind
+    // through the live owner and its local-army model and first allied child.
+    Root type(ba_tables::reflectedType("InGamePlayerProfileDataVM","Uncapped.UI"));void* args[]={type.get()};
+    Root owners(ba::invoke(ba::find_class("UnityEngine","Resources"),nullptr,"FindObjectsOfTypeAll",1,args));
+    const auto count=ba_catalog::length(owners.get());require(count<=128,"human profile owner capacity");
+    Root simulation(ba::read<Obj>(server(),0x140)),player(ba::get<Obj>(simulation.get(),"_localPlayer"));
+    const auto army=ba::get<uint32_t>(player.get(),"ArmyID");require(army==0,"human profile local army changed");
+    Root buffer(ba::get<Obj>(simulation.get(),"_simPlayers")),players(ba::get<Obj>(buffer.get(),"_players"));
+    const auto playerCount=ba_local::count(players.get());
+    require(playerCount>0 && playerCount<=4 && army<static_cast<uint32_t>(playerCount) &&
+        ba_bootstrap::item(players.get(),army)==player.get(),"human profile source army-index invariant changed");
+    for(size_t i=0;i<count;++i) {
+        Obj owner=ba_catalog::arrayAt(owners.get(),i);
+        if(!visibleProfile(owner) || ba::get<Obj>(owner,"_simulation")!=simulation.get())continue;
+        Root set(ba::call(owner,"get_IsModelSet"));if(!boolean(set.get()))continue;
+        Root data(ba::call(owner,"get_Model")),models(ba::get<Obj>(data.get(),"_matchPlayerProfileModels"));
+        Root allied(ba::read<Obj>(owner,0x58));
+        require(models.get() && ba_catalog::length(models.get())==static_cast<size_t>(playerCount) &&
+            allied.get() && ba_catalog::length(allied.get())>=1 && ba_catalog::length(allied.get())<=2,"human profile owner arrays invalid");
+        if(ba_catalog::arrayAt(allied.get(),0)==view && ba_catalog::arrayAt(models.get(),army)==model)return true;
+    }
+    return false;
+}
+static void humanProfileCapture(bool result) {
+    ba_cosmetics::captureHumanProfile(state.match,result);
+}
+static bool publicIdentity(bool result,bool human=false) {
     // Observation only. Never refresh/change native models to make this pass.
     Root type(ba_tables::reflectedType(result?"MatchPlayerProfileVM":"InGamePlayerProfileVM","Uncapped.UI"));
     void* args[]={type.get()};Root views(ba::invoke(ba::find_class("UnityEngine","Resources"),nullptr,"FindObjectsOfTypeAll",1,args));
@@ -511,8 +547,12 @@ static bool publicIdentity(bool result) {
         Obj vm=ba::read<Obj>(views.get(),0x20+i*sizeof(Obj));if(!visibleProfile(vm))continue;
         Root set(ba::call(vm,"get_IsModelSet"));if(!boolean(set.get()))continue;
         Root model(ba::call(vm,"get_Model"));if(!model.get())continue;
-        const auto id=ba::get<uint64_t>(model.get(),"SteamId");Bot* selected=nullptr;
-        for(auto& bot:state.bots)if(id==bot.army+1)selected=&bot;
+        const auto id=ba::get<uint64_t>(model.get(),"SteamId");Bot* selected=nullptr;Bot humanView;
+        if(human) {
+            if(result?id!=humanId():!localProfileView(vm,model.get()))continue;
+            humanView.army=0;humanView.portrait=state.humanCosmetics.portrait;humanView.banner=state.humanCosmetics.banner;
+            humanView.name=ba_catalog::utf8(ba::get<Obj>(ba::get<Obj>(state.human->get(),"playerHandleWithName_"),"playerName_"));selected=&humanView;
+        } else for(auto& bot:state.bots)if(id==bot.army+1)selected=&bot;
         if(!selected || ba::get<int>(model.get(),"GameMode")!=state.mode ||
            ba::get<uint32_t>(model.get(),"AllianceId")!=selected->army%2)continue;
         const auto& bot=*selected;
@@ -520,7 +560,7 @@ static bool publicIdentity(bool result) {
         else require(ba::get<Obj>(vm,"_simulation")==ba::read<Obj>(server(),0x140),"public in-game view belongs to another world");
         const bool alias=ba::get<bool>(model.get(),"IsAlias");
         const auto expected=bot.name+(result && alias?" (Alias)":"");
-        require(ba::get<bool>(model.get(),"IsAi") && ba_catalog::utf8(ba::get<Obj>(model.get(),"PlayerName"))==bot.name &&
+        require(ba::get<bool>(model.get(),"IsAi")==!human && ba_catalog::utf8(ba::get<Obj>(model.get(),"PlayerName"))==bot.name &&
             ba_catalog::utf8(ba::call(vm,"get_PlayerName"))==expected,"public native UI name/AI binding mismatch");
         const auto portrait=ba::get<uint32_t>(model.get(),"Portrait"),banner=ba::get<uint32_t>(model.get(),"Banner");
         if(portrait!=bot.portrait || banner!=bot.banner)
@@ -529,7 +569,7 @@ static bool publicIdentity(bool result) {
         require(portrait==bot.portrait && banner==bot.banner,"public native profile cosmetic mismatch");
         unsigned portraits=0,banners=0;
         if(result) {
-            Root ai(ba::call(vm,"get_IsAI"));require(boolean(ai.get()),"public result VM lost AI flag");
+            Root ai(ba::call(vm,"get_IsAI"));require(boolean(ai.get())==!human,"native result VM AI flag mismatch");
             for(const char* field:{"_portraits","_banners"}) {
                 Obj array=ba::get<Obj>(vm,field);require(array!=nullptr,"public result cosmetic child array missing");
                 const auto n=ba::api<uintptr_t(*)(Obj)>("il2cpp_array_length")(array);require(n<=32,"public result cosmetic child capacity");
@@ -544,10 +584,11 @@ static bool publicIdentity(bool result) {
         }
         if(!portraits || !banners)continue;
         if(std::find(matched.begin(),matched.end(),bot.army)==matched.end())matched.push_back(bot.army);
-        ba::log("Public AI identity binding: phase=%s name=%s modelAi=1 portrait=%u banner=%u portraitChildren=%u bannerChildren=%u live=1 currentMatch=1 army=%u",
-            result?"result":"in-game",expected.c_str(),bot.portrait,bot.banner,portraits,banners,bot.army);
+        if(human && !result)humanProfileCapture(false);
+        ba::log("%s identity binding: phase=%s name=%s modelAi=%d portrait=%u banner=%u portraitChildren=%u bannerChildren=%u live=1 currentMatch=1 army=%u",
+            human?"HUMAN COSMETICS":"Public AI",result?"result":"in-game",expected.c_str(),human?0:1,bot.portrait,bot.banner,portraits,banners,bot.army);
     }
-    return matched.size()==state.bots.size();
+    return matched.size()==(human?1u:state.bots.size());
 }
 static bool gameUpdate(Obj gameServer,Obj method) {
     if(!active())return false;
@@ -578,6 +619,9 @@ static bool gameUpdate(Obj gameServer,Obj method) {
                 ba_match_loading::success(state.loadingTicket);state.loadingTicket=0;
             }
             Obj sim=ba::read<Obj>(gameServer,0x140);
+            if(ba::flag(L"-human-cosmetics-smoke") && !state.humanCosmeticsProven && state.humanJoined && botsReady(true)) {
+                ba_cosmetics::practiceHumanProof(gameServer,state.humanCosmetics);state.humanCosmeticsProven=true;
+            }
             if(ba::flag(L"-practice-ai-smoke") && botsReady(false) && GetTickCount64()-state.diagnostic>=10000) {
                 state.diagnostic=GetTickCount64();Root paused(ba::call(manager(),"GetAnyAIPaused"));
                 for(const auto& bot:state.bots) {
@@ -596,6 +640,7 @@ static bool gameUpdate(Obj gameServer,Obj method) {
                     ba_audit::practiceAIView(bot.process->get(),ba::read<int>(sim,0xa8));
                 }
                 if(state.mode!=4 && ba::flag(L"-public-ai-smoke") && !state.inGameIdentity)state.inGameIdentity=publicIdentity(false);
+                if(ba::flag(L"-human-cosmetics-smoke") && !state.humanInGameIdentity)state.humanInGameIdentity=publicIdentity(false,true);
             }
             if(ba::flag(L"-practice-ai-smoke") && !ba::flag(L"-practice-ai-smoke-natural") && !state.conceded && ba::read<int>(sim,0xa8)>=smokeFrames()) {
                 state.conceded=true;ba::call(sim,"ConcedeGame");ba::log("PRACTICE SMOKE native ConcedeGame (automated)");
@@ -704,6 +749,18 @@ static bool frontUpdate(Obj front) {
                 if(result && fsm && ba::get<Obj>(fsm,"_currentState")==result) {
                     Obj vm=ba::get<Obj>(result,"_matchResultVM"),nav=vm?ba::get<Obj>(vm,"_navigationStack"):nullptr;
                     if(nav && !ba_local::count(ba::get<Obj>(nav,"_navigationStack"))) {
+                        if(ba::flag(L"-human-cosmetics-smoke") && !state.humanResultIdentity) {
+                            require(state.humanCosmeticsProven && state.humanInGameIdentity,"human cosmetic live-world proof incomplete");
+                            if(!state.identityWait)state.identityWait=GetTickCount64();
+                            require(GetTickCount64()-state.identityWait<10000,"human result identity binding deadline");
+                            state.humanResultIdentity=publicIdentity(true,true);if(!state.humanResultIdentity)return true;
+                            state.humanResultCaptureAt=GetTickCount64();return true;
+                        }
+                        if(state.humanResultCaptureAt && !state.humanResultCaptured) {
+                            if(GetTickCount64()-state.humanResultCaptureAt<2500)return true;
+                            require(publicIdentity(true,true),"human result binding lost before settled capture");
+                            humanProfileCapture(true);state.humanResultCaptured=true;
+                        }
                         if(state.mode!=4 && ba::flag(L"-public-ai-smoke") && !state.resultIdentity) {
                             if(!state.identityWait)state.identityWait=GetTickCount64();
                             require(GetTickCount64()-state.identityWait<10000,"public result identity binding deadline");

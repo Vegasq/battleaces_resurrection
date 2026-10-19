@@ -1,6 +1,149 @@
 COMMUNITY COSMETIC PROFILES AND FROZEN MATCH DATA
-Updated:2026-10-19 UTC. Server path qualified within the boundaries below;
-client loadout submission and complete graphical match acceptance remain open.
+Updated:2026-10-19 UTC. Server backend and experimental human Try Deck paths
+qualify within the boundaries below;client/server full-loadout integration and
+graphical public/Custom/team acceptance remain open.
+
+Final native Try Deck proof
+human-cosmetics-native08 PASSES with helper
+fab9c51a38724c19a88fda37380f0eea87a6f8e2633f8621554eafdb36322abe,
+the existing optional-cosmetics GameAssembly970a742f3c82ea1d7bfa6044b103202e6af72e14a7f2935d9bd2250918bbc978,
+and catalogc218f15258c3e1192cc788c6fbcbc127d43f5fabb11d141be853c30000b7ae89.
+PID47648 completes two original Try Deck starts,results and Continue returns in
+181.575 seconds with no server/credentials/community connection. Thirty-six
+periodic netstat samples have zero owned sockets;this is not packet capture or
+a universal analytics-coverage claim. Both bots reach12 observed supply;17 native
+AI action records occur across the two matches. This probe does not independently
+require movement correlation or claim all AI combat/difficulty combinations.
+Human config and actual JoinArmy contain the exact ordered full-map entitlement
+and role IDs. Native SimDeck order and all17 decoded SimPlayer slots agree. A
+native portrait equip immediately before match2 freeze and a changed unit deck
+reach the new world rather than using the periodic observer's prior selection.
+The four retained in-game/result images are actually viewed:gold portrait87 in
+match1,blue portrait66 and changed deck in match2,matching original result panels,
+with no connection-issue modal. Banner/child-model readbacks agree in both phases.
+Source hashes remain unchanged and the owned process is reaped forcibly;native
+Quit is NOT qualified. Automated report SHA256:
+e7b5c7780c24a6aadb2f99c62f735a485f2980a1c5d34c0e9eb57c9e51c5ea2d
+Separate actual image-review record SHA256:
+4ac6bdaecf519ac4580d3196e40aab2f3a0ac71daf474bc2e10e1de4c3126e9a
+Nine C++ component programs/helper build pass;45 focused Python checks pass.
+Ordinary no-config unified startup also PASSES with this helper:PID19944 reaches
+the local menu in14.023 seconds,with no diagnostics/cosmetic activation added,
+zero remote connection attempts and zero invite reads. Covered sources remain
+unchanged and the owned process is reaped. This hidden/forced-teardown probe
+does not qualify visible startup or native Quit. Report SHA256:
+ffcea1b47de63dd5da2fc9fe6f02df0951c337780e602886f866538118221603
+Only disposable copies and fresh owned cosmeticstest_ profiles are modified.
+Normal launchers retain experimental gating and never enable these diagnostics.
+This closes the bounded local Try Deck gap. Public fallback must still transfer
+its original queue-intent loadout,not refreeze mutable cosmetics after waiting;
+Custom/public wire publication and graphical remote/team/rematch tests remain open.
+
+Human local-match contract (2026-10-19 UTC)
+The retained original-byte LLVM/IL2CPP review confirms that human JoinArmy calls
+Deck.ToProtoRuntime3cd4180 and the scoped cosmetic ownership site3cc1f0d. The
+practice adapter subsequently overwrites that deck with a units/abilities-only
+snapshot. This is the identified loss point for Try Deck and local public AI.
+The original JoinArmy serializer also leaves its standalone portrait/banner zero;
+native SimPlayer display identity comes from ordered deck entitlement item IDs.
+Do not null the human account to bypass ownership: that also changes unit checks.
+Do not decorate shared proto(runtimeDeck),which also serves bots and exports.
+The bounded review is retained under local/cosmetics-human-wire-contract01.
+FINDINGS.txt SHA256:
+712e8d9f6925fc3884fb99410570090a9333ce831c1210d2167e688c06f6c5e5
+This is original-byte fallback evidence,not a new successful REA provider run.
+
+The current human-only correction freezes the effective17-slot map synchronously
+at practice intent,including defaults and native equivalent-slot order. It writes
+one fresh service0 entitlement onto a fresh human deck and applies the same role
+IDs to ArmyConfig and JoinArmy. It preserves bot serialization and leaves ordinary
+launches dormant. The explicit human-cosmetics diagnostic checks config/join,
+SimDeck order,SimPlayer full decoded map,and visible in-game/result child models.
+The final native proof is above;the retained earlier attempts below show how
+the diagnostic and capture boundaries were qualified without rewriting failures.
+Retained first probe human-cosmetics-native01 fails its human visible-widget
+diagnostic before Continue. PID37416 nevertheless passes exact ordered SimDeck
+and complete decoded SimPlayer-map checks with defaults. Its deliberately owned
+seed was accidentally written through Windows text newline conversion;the strict
+canonical parser correctly rejects CRLF and retains that file. That run therefore
+does not qualify nondefault restoration. Its covered sources remain unchanged,
+the owned process is reaped,and report SHA256 is
+e3fea0200ef3766e485349de37cbac8091ffaf758c56afe27807b010206ee682.
+Future seeds must use binary canonical LF bytes. Forty-five focused source checks
+and nine C++ component programs/helper pass before the corrected runtime attempt.
+The read-only practice UI review identifies the original sparse in-game model:
+SteamId,IsAi and IsAlias stay zero/false;the result builder populates them. Human
+in-game diagnostics must compare the current owner model-array and local allied
+child by object identity,backed by Simulation._simPlayers._players[localArmyId]
+equal to Simulation._localPlayer. PlayerDeck is newly converted from SimDeck,
+so pointer equality across those two different representations is invalid.
+No practice hide branch is found in this bounded path. The analogous public-bot
+in-game observer needs the same ownership correction and fresh qualification;
+result SteamId/AI checks remain valid. Original-byte fallback findings are in
+local/cosmetics-practice-ui-contract01/FINDINGS.txt,SHA256
+07ed862b48bca09e89ca8789c32f8438edba4ac7be205d99a92bf4ba982d797b.
+human-cosmetics-native02 restores nondefault selections and passes SimDeck/full
+SimPlayer checks. Its inventory establishes the visible id0/mode4 portrait87
+model. Root stops that owned probe after the decisive inventory,and its overall
+report remains FAIL (early owned termination),not Continue/native Quit acceptance.
+Covered sources remain unchanged and PID28032 is reaped. Report SHA256:
+ff1de6606c25e3423d22eb125d35930813ff58e9a03a68b0422e3504ade23c3d.
+human-cosmetics-native03 completes two original practice starts,results and
+Continue returns with restored nondefault cosmetics. Config/join,ordered SimDeck,
+decoded17-slot map and visible in-game/result child models agree. Match2 uses
+a changed native deck and a portrait equipped in the same frame before freeze.
+Nevertheless the aggregate remains FAIL:Unity CaptureScreenshot reads the active
+256x256 portrait render target and cannot save the960x540 window. This is an
+observed capture defect,not a visual acceptance pass. The next diagnostic clears
+the active RenderTexture only around capture and restores its exact reference.
+Report2138ef465ca38b9dc45158ed77c4eb3af1190cf29f1744e2b57031b60140107f;
+178.133 seconds,covered sources unchanged,owned process reaped. Normal launchers
+do not enable this diagnostic or its render-state handling.
+human-cosmetics-native04 confirms that merely clearing/restoring the render
+target around CaptureScreenshot does not fix its deferred read. Root stops that
+owned probe after the same capture warning;its aggregate remains FAIL (early
+owned termination). Covered sources stay unchanged and PID16556 is reaped.
+Report798151f3c820b72db3c9acafb3db8c0ceacbd723ed791c54fffd4dc59e4850b4.
+The revised explicit-only capture uses synchronous CaptureScreenshotAsTexture,
+restores the exact active RenderTexture,encodes PNG and destroys the temporary
+texture. Its output still requires actual visual inspection before acceptance.
+human-cosmetics-native05 fails early because the guessed argc1 synchronous
+capture overload is absent. The exact shipped ScreenCapture method has argc0
+(RVA5134ee0),which supplies superSize1 and native stereo enum1 to the engine;
+argc2 also exists. EncodeToPNG(Texture2D) exists at50defe0. These signatures are
+confirmed from original image/token pointers and bytes,not an API-version guess.
+PID10420 is reaped,covered sources unchanged;report
+944ec0331e3b3f776b128fff4ae9bff387e9a91e23cc8fbbda75c69a7d7bfaf8.
+human-cosmetics-native06 writes a valid PNG with the corrected argc0 method,but
+root's actual image inspection finds a black hidden-window frame. It is not a
+visual pass. Root stops/reaps PID19024 after that observation;covered sources
+stay unchanged;report2c9fca5c8fce14d5a1a9fd1215704096a20370271632646df1acca9b3d1c8d3b.
+The verifier now has an explicit --visible option (SW_SHOWNOACTIVATE);normal
+launchers and the default diagnostic visibility remain unchanged. Native model
+readback,valid PNG encoding and actual visible image acceptance are separate.
+The exact available capture API contract and typed fallback are retained in
+local/cosmetics-capture-contract01/FINDINGS.txt,SHA256
+ece38efbf51aa69f1a1e17121ad2666dd43b0c5fee965a29d54063889681d6d1.
+human-cosmetics-native07 passes its automated two-match model/map/callback and
+PNG-existence checks:178.256 seconds,35 empty owned-socket snapshots,17 autonomous
+AI action records,12 maximum bot supply in each match. Covered sources stay
+unchanged and PID21952 is reaped. Report
+b97e43256a006252820151709fb62510aabfdb667a27427dbb955bffc1b48f2c.
+Root visually inspects both in-game captures and confirms the changed human
+portrait/deck in a rendered game. The first result PNG is black during transition,
+so complete visual acceptance remains OPEN despite the automated report passing.
+The subsequent diagnostic delays its result capture until2.5 seconds after the
+live binding check,rechecks the same current profile,then captures before Continue.
+
+Local proof reproduction
+Use a disposable patched copy under local/,an imported verified catalog,and a
+fresh cosmeticstest_ profile seeded from an accepted native persistence proof.
+Change only its profile key;write the canonical application JSON as binary ASCII
+with LF,not Windows text newline conversion. Keep existing/personal files intact.
+Then use a fresh output directory:
+python -m tools.verify_practice_ai --game local/<copy> --output local/<fresh> --assets local/<import> --offline --timeout 360 --frames 1200 --human-build --matches 2 --edit-deck-between --visible --cosmetic-profile cosmeticstest_<owned>
+Inspect every retained image as well as the automated JSON;PNG existence alone
+does not establish visible acceptance.
 
 Authoritative storage
 Profile schema2 contains exactly schema,profile_id,deck,cosmetics. The cosmetics
@@ -149,3 +292,22 @@ first. Then verify changed human cosmetics through graphical Custom/public/team
 matches,results/rematches and remote/local switching. Main-menu cached bindings,
 real drag gestures,all-item visuals/audio,native Quit/shutdown flush,protected
 deployment,ordinary enablement and final packaging remain separate release gates.
+
+Wire integration constraints from current source review
+Keep the existing strict deck-only version1 packet shapes separate from new full
+loadout commands. One complete loadout is32 bytes of catalog digest,136 bytes of
+17 [slot,item] pairs,and32 bytes of units before headers;it fits the existing256
+byte client command bound. This is a size calculation,not an implemented protocol
+or reserved command-number assignment. Validate exact counts,duplicates,catalog
+identity and native order before any profile/session/queue mutation.
+Correlate request AND command kind for publication ACKs;carry full selections in
+Custom authority and public assignments so equal units cannot hide changed
+cosmetics. Extend Custom Ready cancellation/start-race checks to this same full
+snapshot. Preserve older deck-only callers according to the current backend
+profile policy instead of silently appending bytes to their existing packets.
+Public Play must freeze before connecting/waiting. Current fallback startMode
+reads a new selectedProto after the30-second wait;the eventual full intent must
+instead transfer its original frozen deck/cosmetics into the local producer.
+Cosmetic edits during search must not substitute a later selection or rely on
+the deck-only lock. Exercise unavailable-server/timeout/cancel/retry/partial-human
+cases and stale assignments before enabling the ordinary public entry point.

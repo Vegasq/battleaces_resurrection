@@ -17,6 +17,7 @@
 #include <share.h>
 #include "command_line.h"
 #include "match_loading.h"
+#include "cosmetics_loadout.hpp"
 
 namespace ba_catalog { static void exportOnce();static std::string utf8(void*); }
 namespace ba_dedicated_results { static void receive(const std::string&); }
@@ -331,6 +332,7 @@ extern "C" __declspec(dllexport) void OfflineFrontUpdate(void* front,void*) {
 #include "player_cosmetics.cpp"
 #include "cosmetics_unlock.cpp"
 #include "cosmetics_persistence.cpp"
+#include "cosmetics_loadout.cpp"
 #include "cosmetics_ui_smoke.cpp"
 #include "cosmetics_equip_smoke.cpp"
 
