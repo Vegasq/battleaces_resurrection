@@ -1,13 +1,43 @@
 NATIVE SETTINGS SAVE-FAILURE NOTICE -- 2026-10-19 -- SOURCE QUALIFICATION
 
 Policy
-The original isolated settings writer retains its serializer,exceptions and bool
-result. Its callback records atomic success/failure state only. A later owned
+The original isolated settings serializer remains in use. Current publication
+stages/flushes/renames its output and records the aggregate result;unrelated and
+protected startup paths retain their original target/result. See
+native-settings-atomic.txt. Historical runs below retain their own source scope.
+A later owned
 Unity update may display one warning for an unresolved failure episode in an
 idle,unloaded menu with no current popup/spinner/navigation entry or Quit request.
 A successful save before display cancels a pending warning. Acknowledgment does
 not retry the write or claim persistence. Ordinary play gets no scripted input,
 capture or acknowledgment;these require an explicit owned diagnostic flag.
+
+Current capture qualification (atomic13)
+Missing-body10/11/12 PNGs are retained as failed visual observations.12 can show
+126 body characters,512 allocated vertices,normal rect/color/visible limits and
+an enabled matching nested Canvas while its PNG has no body. These getters do
+not establish a draw. AsTexture is called during Update,although Unity requires
+completed rendering. Waiting several frame counts before another Update does
+not establish that callback boundary. No actual displayed-UI defect is proven.
+Current owned smoke requests original CaptureScreenshot(string) and waits across
+updates for a closed bounded ordinary PNG with signature/IEND before rendering
+marker and acknowledgment. No RenderTexture state change,forced mesh rebuild or
+new UI setter is used by this correction. Two13 runs pass27.009s/26.339s and both
+actual PNGs are inspected with readable title/body. Native original acknowledgment,
+release,conditional restoration/pooled reuse,Save retry/fresh readback pass with
+unchanged source/shared baselines. Exact Windows native capture queue inside
+UnityPlayer is not traced;file completion and inspected results qualify these
+controls. Manual/all-error-path/ordinary package acceptance remains separate.
+Static body/capture FINDINGS.txt SHA256:
+4d64219a7704899c09950b7058c920623c16e4621c5c18830d3d16ae74eddb5b
+manifest.json SHA256:
+5dab64962f1b41947f221fbf873c63e196103b3e5fb485226cddaca96ab601df
+Official API constraints/examples:
+https://docs.unity3d.com/2022.3/Documentation/ScriptReference/ScreenCapture.CaptureScreenshotAsTexture.html
+https://docs.unity3d.com/2022.3/Documentation/ScriptReference/ScreenCapture.CaptureScreenshot.html
+Audit other diagnostic Update-phase texture captures before using missing pixels
+as evidence of a game rendering defect. Prior inspected positives remain bounded
+observations;capture existence alone has never qualified visual acceptance.
 
 Original native contract
 RGameSingleton.<UIPopupController>+e8 owns Uncapped.UI.UIPopupController. Require

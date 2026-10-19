@@ -6,6 +6,19 @@
 namespace ba_native_settings {
 using ba_cosmetics_state::Handle;
 inline void require(bool condition,const char* message){if(!condition)throw std::runtime_error(message);}
+// Publish completion by request order. A late older success must not hide a
+// newer refused/failed write (including same-thread reentry).
+class SaveOutcome {
+    std::atomic<unsigned long long> latest{1};
+public:
+    bool load() const{return (latest.load()&1)!=0;}
+    bool newerThan(unsigned long long sequence) const{return (latest.load()>>1)>sequence;}
+    void record(unsigned long long sequence,bool succeeded) noexcept {
+        if(!sequence || sequence>(~0ull>>1)){latest.store(~1ull);return;}
+        const auto replacement=(sequence<<1)|(succeeded?1ull:0ull);auto observed=latest.load();
+        while((observed>>1)<sequence && !latest.compare_exchange_weak(observed,replacement)){}
+    }
+};
 inline std::string profile(const std::vector<std::wstring>& args) {
     std::string result="default";unsigned count=0;
     for(size_t i=1;i<args.size();++i)if(args[i].compare(0,15,L"-local-profile=")==0) {

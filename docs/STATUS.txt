@@ -2,6 +2,31 @@ IMPLEMENTATION LEDGER
 Updated: 2026-10-19 UTC
 Active objective: implement SERVER_REPLACEMENT_PLAN.txt, Windows only.
 
+NATIVE SETTINGS WRITE PUBLICATION (2026-10-19 UTC, IN QUALIFICATION)
+The source candidate retains original native TOML serialization but stages each
+accepted save into a pinned ordinary sibling,flushes it and publishes by handle.
+Eleven C++ programs/helper and six owned process-kill controls pass:partial,
+serialized-before-publication and published,with/without an existing target.
+Failure preserves the previous complete file;new profiles never expose a partial
+canonical file. Atomic admission/request-ordered outcomes address reentry and
+older completion/publication races found by independent native-contract review.
+Current Python suite452 pass/14 skip out of466 in106.259s,explicit exit0.
+Native writer denial/retry/restart passes26.861s on atomic10;three invalid-input
+preservation and six healthy/new/unfinished/default controls pass92.466s.
+atomic11 also passes original AI/results/Continue and natural Confirm Quit0 in
+1.125s (103.959s total),without forced cleanup. Covered sources/shared settings
+stay unchanged. Its write-error/retry/restart passes27.974s,but10/11 and a12 repeat
+have missing-body PNGs despite correct text/geometry/Canvas state. The old capture
+calls AsTexture during Update,an unsupported rendering boundary. atomic13 uses
+the original engine file-capture request and waits for a complete closed PNG
+before acknowledgment. Two runs pass27.009s/26.339s;both actual PNGs are inspected
+with readable title/body. Current13 normal menu Quit also exits naturally0 in
+0.906s (16.644s total),without forced cleanup. These controls correct the capture
+test;they do not prove the old displayed UI was blank. Manual/all-error-path/
+package acceptance remains open. Existing manual/frozen archives are unchanged.
+See native-settings-atomic.txt for API/permission/interrupt bounds,retained failed
+component builds and current source evidence. This is not power-loss acceptance.
+
 PERSISTED NATIVE DECK INPUT GUARD (2026-10-19 UTC, SOURCE CANDIDATE)
 The early native TOML/JSON guard now passes40 real input cases in323.580s:
 31 malformed/wrong-type/shape/ID/slot cases exit1610 with exact input bytes

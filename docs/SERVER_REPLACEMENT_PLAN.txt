@@ -4,6 +4,16 @@ Target: Battle Aces build 37822, Windows x64 server and clients.
 Status: IMPLEMENTATION ACTIVE. See STATUS.txt; incomplete phases remain future work.
 
 Current release integration order (2026-10-19)
+- Native original serialization now stages/flushes/publishes a complete isolated
+  TOML by handle;eleven C++ programs and six owned process-interruption controls
+  pass. Current native write-error/retry/restart,input compatibility and AI/
+  results/Continue/natural Quit controls pass. Missing-body10/11/12 PNGs expose
+  an unsupported Update-phase AsTexture capture,not a proven displayed-UI bug.
+  Corrected13 engine file capture passes twice with inspected readable title/body;
+  current menu Quit exits naturally0 without forced cleanup. Proceed to final
+  ordinary public/cosmetic enablement and packaging acceptance. Power-loss/
+  storage/hostile external edits remain explicit limits;
+  see native-settings-atomic.txt. Python suite452 pass/14 skip out of466 exit0.
 - The early persisted-deck guard now passes40 native fixtures:31 byte-preserving
   refusals and nine healthy/new/unfinished/default controls. It retains original
   JSON deserialization and slot rules,with shipped Newtonsoft field-presence

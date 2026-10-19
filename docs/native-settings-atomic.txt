@@ -1,0 +1,177 @@
+NATIVE SETTINGS WRITE PUBLICATION -- 2026-10-19 UTC -- SOURCE QUALIFICATION
+
+Goal and contract
+Keep the last complete isolated local-user TOML when serialization fails or the
+game process is interrupted before publication. Retain the original game TOML
+serializer and reader. No new persistent deck format,no shared-file import,
+no guessed repair and no in-place fallback after staging failure.
+
+Read-only original-byte REA contract
+The exact caller at3796a84 passes loader/path/table/MethodInfo to bool Save at
+3796060. RDX is the actual path given to StreamWriter;the original method does
+not rewrite the loader's configured path. Its true return follows original
+serialization,Flush,Dispose and underlying FileStream CloseHandle. The caller
+ignores AL;the helper must observe combined serialization/publication status.
+Forward unrelated paths unchanged,and preserve the original protected-input
+startup branch. Redirecting that branch to a temp would bypass malformed-input
+preservation. Managed loader/path/table/temp require roots across allocation.
+Static evidence establishes an implementation seam,not runtime/crash behavior.
+Native REA providers remain unavailable;existing LLVM/IL2CPP fallback is reused.
+local/native-settings-atomic-contract01/FINDINGS.txt SHA256:
+c0313d8f21758f323911ca5b36da2d4d897f3bd745435883b61e33f29827f0e2
+manifest.json SHA256:
+c862aadeb17e490f15889723d7f849193fa368b0f4c09d2c62cffdeb17cc776a
+atomic-seam.json SHA256:
+f8a0c6e289c404372b7ab889d34fb6072c44b1dcafcf429d674d9c3ec3ac3697
+
+Current source candidate
+- Keep Session's existing process-lifetime profile writer lock and existing-input
+  guard. Protected startup saves still call the original target and fail normally
+  while validation owns its read-only handle. Unrelated paths are unchanged.
+- After input acceptance,a retained atomic-flag admission gate refuses overlapping or
+  reentrant saves rather than blocking the Unity thread recursively. Serialize
+  the same rooted native table with the original function to a unique sibling.
+  Request generations reject delayed older admission/publication and completion
+  results publish before releasing the gate. An older completion cannot clear a
+  newer failed/refused write's status. This does not make arbitrary live native
+  table mutation on other threads safe.
+- Reserve the sibling with CREATE_NEW and retain a read-access,non-delete-
+  sharing handle while the original StreamWriter writes. Its ordinary-file ID
+  is recorded. The original false result never publishes the temporary bytes.
+- Reopen the same identity with exclusive writer/delete access after the original
+  closes. Require an ordinary single-link file and nonzero output<=16MiB. This
+  output bound is a product bound,not an original-game schema claim.
+- Existing target must be writable,ordinary,single-link and have the same ID at
+  precommit. Verify owner/group/DACL/inheritance match the sibling's inherited
+  permissions. A customized mismatch refuses saving;no permission-edit rights
+  or automatic permission changes are needed. This does not preserve every
+  alternate stream,attribute,SACL or custom file metadata policy.
+- Flush the completed native output,release the old-target validation handle,
+  then publish through SetFileInformationByHandle(FileRenameInfo) on the pinned
+  source handle. The separate profile writer lock stays held. A previously
+  absent destination uses ReplaceIfExists=false. Never delete/truncate target
+  as a preliminary operation. Only the complete publication returns success.
+- On failure,close/delete only the owned temporary identity where possible;
+  cleanup failure or process termination can leave a ba-*.tmp sibling. Startup
+  ignores these files and never imports/deletes them automatically. Canonical
+  settings remain the only input;later saves choose a fresh temporary name.
+- Existing deferred native warning/retry uses the aggregate final result.
+  Ordinary play receives no automatic action,capture or acknowledgment.
+
+Windows API references
+https://learn.microsoft.com/en-us/windows/win32/api/fileapi/nf-fileapi-setfileinformationbyhandle
+https://learn.microsoft.com/en-us/windows/win32/api/winbase/ns-winbase-file_rename_info
+https://learn.microsoft.com/en-us/windows/win32/api/fileapi/nf-fileapi-flushfilebuffers
+These document the rename structure/handle API and flush operation;they do not
+establish a universal sudden-power-loss or filesystem/driver durability promise.
+ReplaceFileW's unsupported WRITE_THROUGH flag and documented partial-failure
+states are reasons not to equate that API with a complete transaction here.
+
+Retained qualification failures
+atomic01/02 component builds fail before a helper/game launch. Requesting
+WRITE_DAC on the owned output is denied Win32=5 by the current environment.
+A narrow owned-file access probe confirms read/write and DELETE opens succeed,
+but permission-edit opens fail. The source now verifies matching permissions
+instead of changing them;custom permission mismatch remains an explicit refusal.
+atomic03/04 components then reach first publication,but existing-target
+replacement fails Win32=5 while its validation handle is held. The source now
+releases that old-target handle immediately before publication. The profile
+lock stays held. No native runtime acceptance is claimed by these failed builds.
+Current component/native/source qualification is pending.
+atomic05/06 components expose a real temporary-pin gap:FILE_READ_ATTRIBUTES does
+not enforce the intended delete-sharing denial. An intruding DELETE handle opens
+successfully (06 logs refused=0/Win32=0). The candidate now retains GENERIC_READ,
+which is compatible with original StreamWriter's share-read open and participates
+in file sharing. atomic07 subsequently passes all eleven C++ programs and all six
+owned child-kill phases. Its corrected temp delete-open refusal is Win32=32.
+Independent source review then finds undefined plain-mutex same-thread try_lock
+and older completion masking newer failure. The atomic gate and request-ordered
+outcome fix those,with delayed-older-publication rejection under the same gate.
+An08 misplaced local declaration fails compilation;no08 helper/runtime is used.
+Frozen10 review finds no remaining concrete defect in that bounded contract.
+REVIEW-atomic10.txt SHA256:
+6b4fca95921e0e3b9c47bca3286382078e85f5df1eddb1ac34ed6d79e125a5aa
+review10-manifest.json SHA256:
+a13952ac7d73ce071909b38b2c7fe3443039905ce6cf21512a53d2c738d307af
+
+Native atomic10 qualification
+Eleven C++ programs/helper and six partial/precommit/postcommit owned process-kill
+controls pass. Native settings-error/retry/restart passes26.861s,with aggregate
+save result reflecting target refusal and successful later publication. Original
+warning release/restoration/reuse passes. Its PNG shows a title but missing body:
+this is NOT full visual warning acceptance despite native text/alpha readback.
+The candidate now waits for actual UI frames as well as elapsed time;cause is
+not established merely by that timing change. Native visual recheck is pending.
+Three bad-input byte-preserving refusals plus six healthy/new/unfinished/default/
+stored-deck controls pass92.466s on atomic10. Shared/source baselines stay
+unchanged and all owned processes are reaped;forced cleanup is not native Quit.
+Python suite466 total,452 pass/14 skip in106.259s,explicit process exit0.
+local/native-settings-atomic10-errors/verification.json SHA256:
+554d698e188b95982c15341d265d423333542cf480492f4d318c6fda72c472bd
+atomic10 helper SHA256:
+4c2937ea3641fa6db93437cf782f4f68db4de87aaf06b1133edb4ce9bb02875a
+helper-build.json SHA256:
+88c945c41e4dd9891bc704327595b70416fb3d4108ab2a52282eaaa25ea9ec4b
+local/native-settings-atomic10-inputs/verification.json SHA256:
+768d4a698da05a667013024fb76d1975bbe61659d6a31a7d633864e51d83f19a
+
+atomic11 frame-delay and native Quit controls
+Eleven C++ component programs and all six interruption cases pass again. Actual
+Unity frames after both visible-text readbacks are added to the warning capture
+gate,but the inspected warning still has no body. Native error/release/reuse/
+retry/restart passes27.974s;this is NOT a complete visual warning pass or evidence
+that the missing body is caused by timing. Original prefab/TMP layout and geometry
+are being investigated. Keep both failed visual observations in the ledger.
+local/native-settings-atomic11-errors/verification.json SHA256:
+1ce0b6f2db14b39754079e60810231b8f64b7f534afa338fdbc3083872932083
+
+An existing native saved profile passes original AI/results/Continue,return to
+menu and original Show/Confirm Quit:natural0 in1.125s after dispatch (103.959s
+total),without forced cleanup or optional disposal hooks. Covered source/shared
+baseline stays unchanged. This short game does not renew tactical movement proof.
+local/native-settings-atomic11-after-practice-quit/verification.json SHA256:
+1eb307e979fd5e637e0e5653c42b6bc5c08f502038470ce3a0698f04d9c53de0
+atomic11 helper SHA256:
+53475e2aa503788f0ad5a78fdea3609778f8b875543b028319972499bf3782e6
+helper-build.json SHA256:
+dcb4c06d7692df1cef0ec4ccc15fa38ac01a6b30de30972134d26441ae626959
+
+Final13 source checkpoint
+12 observation confirms normal body text/mesh/Canvas data but produces one
+readable PNG and one blank-body PNG with matching native values. The unsupported
+Update-phase AsTexture capture does not establish an actual displayed-UI fault.
+13 schedules original CaptureScreenshot(string) and waits for a bounded ordinary
+closed PNG with complete signature/IEND before diagnostic acknowledgment. Static
+metadata establishes the unique one-argument retained overload and defaults;
+UnityPlayer's exact native scheduling is not traced. Two13 native settings-error/
+retry/restart runs pass27.009s/26.339s;both actual title/body images are inspected.
+All source/shared baselines remain unchanged and owned clients are reaped.
+Eleven C++ programs/helper and six process-interruption controls pass on13.
+The current menu Confirm Quit also exits naturally0 in0.906s (16.644s total),
+without forced cleanup. Source qualification is bounded to these tests;final
+ordinary packaging,manual and exceptional-path acceptance remain open.
+local/native-settings-atomic13-errors/verification.json SHA256:
+41664dbeef842b39bc2cd5f91bc35100470c0f7854f4b21e6a7ca15fa9321006
+local/native-settings-atomic13-errors-repeat/verification.json SHA256:
+31d855a94901bbbd2a0daf928474fc6c960610428c001ddddab6e041bc86ecc5
+local/native-settings-atomic13-menu-quit/verification.json SHA256:
+66d748d6e02293be7d1ea9639ca48f1131ad2f05bace87ecbec3cfceedb731c1
+atomic13 helper SHA256:
+3001704ca25680ff4daf5475b26159bc16baee11b86784122b915e404203370b
+helper-build.json SHA256:
+e1fb4743253572963675394473efe6ebc25c92f8b78cdc18d9946b1a4f15adeb
+See native-settings-notice.txt for original body/capture evidence and API links.
+
+Remaining limits / release gate
+Passing controls above cover first/existing target,partial authored serializer
+failure,denied target writes,hard-link/read-only refusals,matching permissions,
+retry/restart,representative malformed input and natural native Quit. Child-kill
+controls distinguish partial,serialized-before-publication and published states,
+with/without old target. Explicit device flush faults,late rename/identity/custom
+permission mismatch and all native serialization exception paths still need
+separate qualification. Native output parsing/deck readback is not a universal
+byte-equivalence proof for every possible native setting value.
+Concurrent/reentrant state mutation,escaping managed faults,arbitrary power loss,
+storage-device failures,hostile same-user external edits and nonqualified
+filesystems are not covered merely by the process writer lock or flush call.
+Final package/upgrade/restore/manual acceptance remains open.

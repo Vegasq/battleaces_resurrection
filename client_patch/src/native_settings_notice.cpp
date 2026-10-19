@@ -1,6 +1,6 @@
 #pragma once
 // Original acknowledgment-only dialog, dispatched on a later idle Unity update.
-// The native writer only records its result; it never calls UI or managed code.
+// The native writer records its final result; it never calls UI.
 namespace ba_settings_notice {
 using ba::Obj;using ba_local::Root;
 namespace ui=ba_practice_settings_ui;
@@ -11,7 +11,8 @@ struct Notice {
     Root controller,pool,dialog,lifetime,model,titleReference,bodyReference;
     std::unique_ptr<Root> titleLocalizer,bodyLocalizer,titleLabel,bodyLabel;
     std::unique_ptr<Root> oldTitleReference,oldBodyReference,oldTitleText,oldBodyText;
-    unsigned stage=0;ULONGLONG deadline,due=0;
+    std::wstring capturePath;
+    unsigned stage=0;int afterFrame=0,stableFrame=0;ULONGLONG deadline,due=0;
     Notice(Obj c,Obj p,Obj t,Obj b):controller(c),pool(p),dialog(ba::get<Obj>(c,"_simpleDialogObject")),
         lifetime(ba::get<Obj>(dialog.get(),"<Owner>k__BackingField")),model(ba::get<Obj>(dialog.get(),"_model")),
         titleReference(t),bodyReference(b),deadline(GetTickCount64()+15000){}
@@ -120,17 +121,56 @@ static void capture() {
     const auto path=ba_export::moduleDirectory()+L"investigation\\runtime\\native-settings-notice-"+
         std::wstring(ba_native_settings::session->profile().begin(),ba_native_settings::session->profile().end())+L".png";
     ui::require(GetFileAttributesW(path.c_str())==INVALID_FILE_ATTRIBUTES && GetLastError()==ERROR_FILE_NOT_FOUND,"settings notice capture exists");
-    Obj render=ba::find_class("UnityEngine","RenderTexture");Root before(ba::invoke(render,nullptr,"get_active",0));
-    auto restore=[&](){void* args[]={before.get()};ba::invoke(render,nullptr,"set_active",1,args);};
-    void* clear[]={nullptr};ba::invoke(render,nullptr,"set_active",1,clear);std::unique_ptr<Root> texture;
-    try{texture=std::make_unique<Root>(ba::invoke(ba::find_class("UnityEngine","ScreenCapture"),nullptr,"CaptureScreenshotAsTexture",0));}
-    catch(...){restore();throw;}restore();Root actual(ba::invoke(render,nullptr,"get_active",0));
-    ui::require(actual.get()==before.get() && texture && texture->get(),"settings notice capture render state differs");
-    auto destroy=[&](){void* args[]={texture->get()};ba::invoke(ba::find_class("UnityEngine","Object"),nullptr,"Destroy",1,args);};
-    try{void* args[]={texture->get()};Root png(ba::invoke(ba::find_class("UnityEngine","ImageConversion"),nullptr,"EncodeToPNG",1,args));
-        const auto length=ba_catalog::length(png.get());ui::require(length>8 && length<16*1024*1024,"settings notice capture size bound");
-        ba_export::atomicWrite(path,static_cast<const unsigned char*>(png.get())+0x20,length);}
-    catch(...){destroy();throw;}destroy();
+    // AsTexture during Update can read a partially rendered frame. Let the
+    // engine schedule its file capture;acknowledge only after a complete PNG.
+    Root filename(ba::api<Obj(*)(const wchar_t*,int32_t)>("il2cpp_string_new_utf16")(path.data(),static_cast<int32_t>(path.size())));
+    void* args[]={filename.get()};ba::invoke(ba::find_class("UnityEngine","ScreenCapture"),nullptr,"CaptureScreenshot",1,args);
+    current->capturePath=path;ba::log("NATIVE SETTINGS notice capture scheduled: engineFile=1 updateReadback=0");
+}
+static bool captureReady() {
+    using ba_native_settings::Handle;
+    Handle file(CreateFileW(current->capturePath.c_str(),GENERIC_READ,FILE_SHARE_READ,nullptr,OPEN_EXISTING,
+        FILE_FLAG_OPEN_REPARSE_POINT,nullptr));
+    if(file.value==INVALID_HANDLE_VALUE) {
+        const auto error=GetLastError();ui::require(error==ERROR_FILE_NOT_FOUND || error==ERROR_SHARING_VIOLATION,
+            "settings notice scheduled capture unavailable");return false;
+    }
+    ba_native_settings::ordinary(file.value);LARGE_INTEGER size{};
+    ui::require(GetFileSizeEx(file.value,&size) && size.QuadPart<16*1024*1024,"settings notice scheduled capture size bound");
+    if(size.QuadPart<20)return false;
+    unsigned char header[8],tail[12];DWORD count=0;
+    if(!ReadFile(file.value,header,sizeof(header),&count,nullptr) || count!=sizeof(header))return false;
+    LARGE_INTEGER offset{};offset.QuadPart=-12;
+    if(!SetFilePointerEx(file.value,offset,nullptr,FILE_END) || !ReadFile(file.value,tail,sizeof(tail),&count,nullptr) || count!=sizeof(tail))return false;
+    static const unsigned char png[]={137,80,78,71,13,10,26,10},end[]={0,0,0,0,73,69,78,68,174,66,96,130};
+    return !memcmp(header,png,sizeof(png)) && !memcmp(tail,end,sizeof(end));
+}
+static void geometry(Obj label,const char* name) {
+    struct Color {float r,g,b,a;};struct Rect {float x,y,width,height;};struct Vec3 {float x,y,z;};
+    Root info(ba::call(label,"get_textInfo")),mesh(ba::call(label,"get_mesh"));
+    ui::require(info.get() && ba::get<Obj>(info.get(),"textComponent")==label && mesh.get(),"settings notice diagnostic text geometry unavailable");
+    Root vertices(ba::call(mesh.get(),"get_vertexCount")),transform(ba::call(label,"get_rectTransform"));
+    Root box(ba::call(transform.get(),"get_rect")),scale(ba::call(transform.get(),"get_lossyScale"));
+    const auto rect=ba_catalog::unbox<Rect>(box.get());const auto size=ba_catalog::unbox<Vec3>(scale.get());
+    const auto color=ba::get<Color>(label,"m_fontColor");
+    ba::log("NATIVE SETTINGS notice geometry: label=%s characters=%d lines=%d pages=%d vertices=%d rect=%g,%g,%g,%g scale=%g,%g,%g color=%g,%g,%g,%g face=%u renderMode=%d first=%d maxCharacters=%d maxLines=%d page=%d",
+        name,ba::get<int>(info.get(),"characterCount"),ba::get<int>(info.get(),"lineCount"),ba::get<int>(info.get(),"pageCount"),
+        ba_catalog::unbox<int>(vertices.get()),rect.x,rect.y,rect.width,rect.height,size.x,size.y,size.z,color.r,color.g,color.b,color.a,
+        ba::get<uint32_t>(label,"m_faceColor"),ba::get<int>(label,"m_renderMode"),ba::get<int>(label,"m_firstVisibleCharacter"),
+        ba::get<int>(label,"m_maxVisibleCharacters"),ba::get<int>(label,"m_maxVisibleLines"),ba::get<int>(label,"m_pageToDisplay"));
+}
+static void inspectBody() {
+    auto& n=*current;geometry(n.titleLabel->get(),"title");geometry(n.bodyLabel->get(),"body");
+    Root content(ui::findChild(n.dialog.get(),"GameObject/Dialog/DialogMain/Vertical/Content"));
+    Root canvas(ui::component(content.get(),"UnityEngine","Canvas")),labelCanvas(ba::call(n.bodyLabel->get(),"get_canvas"));
+    ui::require(canvas.get(),"settings notice content canvas missing");
+    Root enabled(ba::call(canvas.get(),"get_enabled")),active(ba::call(canvas.get(),"get_isActiveAndEnabled")),
+        mode(ba::call(canvas.get(),"get_renderMode")),sorting(ba::call(canvas.get(),"get_sortingOrder")),
+        overrideSorting(ba::call(canvas.get(),"get_overrideSorting")),root(ba::call(canvas.get(),"get_rootCanvas"));
+    Root rootEnabled(ba::call(root.get(),"get_enabled"));
+    ba::log("NATIVE SETTINGS notice body canvas: enabled=%d active=%d mode=%d sorting=%d override=%d labelCanvasSame=%d rootEnabled=%d",
+        ba_catalog::unbox<bool>(enabled.get()),ba_catalog::unbox<bool>(active.get()),ba_catalog::unbox<int>(mode.get()),
+        ba_catalog::unbox<int>(sorting.get()),ba_catalog::unbox<bool>(overrideSorting.get()),labelCanvas.get()==canvas.get(),ba_catalog::unbox<bool>(rootEnabled.get()));
 }
 static void update(Obj front) {
     const auto failures=ba_native_settings::saveFailures.load();
@@ -193,16 +233,27 @@ static void update(Obj front) {
             snapshotText();
             paint(n.titleLocalizer->get(),n.titleReference.get(),title);
             paint(n.bodyLocalizer->get(),n.bodyReference.get(),body);
-            n.stage=1;n.due=GetTickCount64()+300;return;
+            n.stage=1;n.due=GetTickCount64()+300;n.afterFrame=ba_match_search::frame()+3;return;
         }
         if(GetTickCount64()<n.due)return;
+        const int frame=ba_match_search::frame();if(frame<n.afterFrame)return;
         ui::require(ba::get<Obj>(n.titleLocalizer->get(),"m_StringReference")==n.titleReference.get() &&
             ba::get<Obj>(n.bodyLocalizer->get(),"m_StringReference")==n.bodyReference.get(),"settings notice localization generation changed");
         if(!labelVisible(n.titleLabel->get(),title) || !labelVisible(n.bodyLabel->get(),body))return;
+        // Wall-clock delay alone can elapse across a stalled Update. Allow
+        // actual rendered frames after both labels are visible before the
+        // diagnostic capture/acknowledgment qualification advances.
+        if(n.stage==1) {
+            if(!n.stableFrame){n.stableFrame=frame+2;return;}
+            if(frame<n.stableFrame)return;
+        }
         Root child(ui::findChild(n.dialog.get(),"GameObject/Dialog/DialogMain/Vertical/Buttons/OkButton"));
         Root button(ui::component(child.get(),"Doozy.Runtime.UIManager.Components","UIButton"));ba_native_quit::clickTarget(button.get(),n.dialog.get(),"OnButton1Click");
         if(n.stage==1) {
-            if(smoke)capture();
+            if(smoke) {
+                if(n.capturePath.empty()){inspectBody();capture();return;}
+                if(!captureReady())return;
+            }
             ba::log("NATIVE SETTINGS notice rendered: originalDialog=1 prefab=89 titleAndBody=1 emptyLocalization=1 captured=%d",smoke);
             n.stage=smoke?2:3;n.due=GetTickCount64()+1000;return;
         }

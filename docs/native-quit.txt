@@ -1,5 +1,18 @@
 ORIGINAL QUIT / SHUTDOWN CONTRACT -- 2026-10-19 UTC -- SOURCE DEFAULT QUALIFICATION
 
+Current staged-save regression (atomic13)
+The native serializer now stages/flushes/publishes complete settings by handle.
+Current fresh-menu original Show/Confirm exits naturally0 in0.906s (16.644s total),
+no forced cleanup or optional disposal hooks. Shared/covered sources unchanged.
+The same write-publication implementation on11 additionally passes an existing
+saved profile,one native AI match/results/Continue and original menu Quit0 in
+1.125s after dispatch (103.959s total).13 changes owned capture diagnostics only.
+These are owned probes,not final ordinary manual/package acceptance.
+local/native-settings-atomic13-menu-quit/verification.json SHA256:
+66d748d6e02293be7d1ea9639ca48f1131ad2f05bace87ecbec3cfceedb731c1
+local/native-settings-atomic11-after-practice-quit/verification.json SHA256:
+1eb307e979fd5e637e0e5653c42b6bc5c08f502038470ce3a0698f04d9c53de0
+
 Current persisted-deck guard regression (helper-input05)
 An existing owned native profile passes the new persisted=1/original slot-rule
 guard,one standalone AI match,original results/Continue and return to menu.

@@ -281,6 +281,8 @@ def install(game_dir, *, helper=None, original_path=None, restore=False, dry_run
     if helper_bytes is not None and any(marker not in helper_bytes for marker in
             (b'BA_RESURRECTION_NATIVE_DECK_INPUT_V1',b'OfflineLocalDeckStorageLoad\0')):
         raise ValueError('Build the current helper with native persisted deck validation before installing this patch.')
+    if helper_bytes is not None and b'BA_RESURRECTION_NATIVE_SETTINGS_ATOMIC_V1' not in helper_bytes:
+        raise ValueError('Build the current helper with native settings write publication before installing this patch.')
     if quit_diagnostics and helper_bytes is not None and any(marker not in helper_bytes for marker in
             (b'BA_RESURRECTION_NATIVE_QUIT_TRACE_V1',) + tuple(h['name'].encode()+b'\0' for h in QUIT_CALL_HOOKS+QUIT_POINTER_HOOKS)):
         raise ValueError('Build the owned native Quit diagnostic helper before installing this recipe.')
@@ -301,6 +303,7 @@ def install(game_dir, *, helper=None, original_path=None, restore=False, dry_run
                 'local_settings': {'isolated': not restore, 'scope': 'installation-and-profile', 'format': 'native-toml',
                                    'error_hooks': not restore,
                                    'deck_input_guard': not restore,
+                                   'write_publication': 'original-serializer-flush-handle-rename' if not restore else None,
                                    'save_notice': bool(helper_bytes and b'BA_RESURRECTION_NATIVE_SETTINGS_NOTICE_V1' in helper_bytes and not restore)},
                 'patches': PATCHES + (COSMETIC_PATCHES if cosmetics else []) + ([] if allow_dlss_diagnostics else DLSS_PRIVACY_PATCHES), 'hooks': HOOKS,
                 'tail_hooks': TAIL_HOOKS + (COMMUNITY_TAIL_HOOKS if community else []) + (COSMETIC_TAIL_HOOKS if cosmetics else []),

@@ -49,6 +49,7 @@ CLIENT = COMMON + (
     'tools/package_client.py',
 )
 MARKERS = (
+    b'BA_RESURRECTION_NATIVE_SETTINGS_ATOMIC_V1',
     b'BA_RESURRECTION_NATIVE_SETTINGS_NOTICE_V1',
     b'BA_RESURRECTION_NATIVE_DECK_INPUT_V1',b'OfflineLocalDeckStorageLoad\0',
     b'BA_RESURRECTION_NATIVE_SETTINGS_ERRORS_V1', b'OfflineLocalUserLoadTable\0', b'OfflineLocalUserSaveTable\0',

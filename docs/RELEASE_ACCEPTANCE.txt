@@ -30,8 +30,14 @@ Required before a general release
     acknowledgment,recovery and later successful save without UI reentry during
     writer callbacks or shutdown. Current helper-input05 regression passes with
     an inspected readable image;manual/all-exception-path acceptance stays open.
-[ ] Define and qualify interruption/atomic-write
-    behavior;do not equate a save callback with disk persistence.
+    Missing-body10/11/12 PNGs expose unsupported Update-phase capture;corrected13
+    engine file capture passes twice with readable inspected title/body.
+[x] Source qualification:define and test bounded process-interruption behavior.
+    Six owned child-kill boundaries retain complete old/new settings;native
+    retry/restart and normal Quit pass. Sudden power loss,device failure,custom
+    metadata/security policies and other filesystems remain explicit limits.
+    See native-settings-atomic.txt. Final installed-package regression is required;
+    do not equate a callback or flush with universal durability.
 [ ] Enable final public/cosmetic features through the ordinary entry point only
     after end-to-end acceptance. Verify actual mouse selection/drag/equip,all
     installed cosmetic categories,ability/effect/audio rendering,persistence and

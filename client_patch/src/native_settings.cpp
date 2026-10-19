@@ -5,12 +5,13 @@
 namespace ba_native_settings {
 static void observe(ba::Obj);
 static void inspectDeckTable(ba::Obj);
+static bool saveIsolated(ba::Obj,ba::Obj,ba::Obj,void*,unsigned long long);
 // Held through engine teardown. OS process exit releases the handles; CRT
 // destruction must not unlock a profile while native shutdown can still save.
 static auto& session=*new std::unique_ptr<Session>();
 static std::atomic<unsigned long long> loads{0},saves{0},saveFailures{0};
 static std::atomic<unsigned long long> validationSaveRefusals{0};
-static std::atomic<bool> lastSaveSucceeded{true};
+static SaveOutcome lastSaveSucceeded;
 static bool matches(ba::Obj path) noexcept {
     // Exact known System.String ABI; no getter, managed allocation or cctor.
     // Other config writers use this same base. Leave their results unchanged.
@@ -65,15 +66,16 @@ extern "C" __declspec(dllexport) void* OfflineLocalUserLoadTable(void* loader,vo
 }
 extern "C" __declspec(dllexport) bool OfflineLocalUserSaveTable(void* loader,void* path,void* table,void* method) {
     ba::init();const bool isolated=ba_native_settings::matches(path);
-    // Preserve original exceptions and AL result. Do not convert failure to
-    // success or call any UI/managed code from this writer/teardown callback.
-    const bool okay=ba::native<bool(*)(void*,void*,void*,void*)>(0x3796060)(loader,path,table,method);
+    const auto sequence=isolated?++ba_native_settings::saves:0;
+    // Unrelated/protected startup saves keep their original target/result.
+    // After input acceptance,serialize unchanged to a sibling and report success
+    // only after publication. No UI or retry inside writer/teardown callbacks.
+    const bool protectedInput=isolated && ba_native_settings::session->inputProtected();
+    const bool okay=isolated && !protectedInput ? ba_native_settings::saveIsolated(loader,path,table,method,sequence) :
+        ba::native<bool(*)(void*,void*,void*,void*)>(0x3796060)(loader,path,table,method);
     if(isolated) {
-        const auto sequence=++ba_native_settings::saves;
-        const bool protectedInput=ba_native_settings::session->inputProtected();
         if(protectedInput) {if(!okay)++ba_native_settings::validationSaveRefusals;}
         else {
-            ba_native_settings::lastSaveSucceeded=okay;
             if(!okay)++ba_native_settings::saveFailures;
         }
         ba::log("NATIVE SETTINGS save result: profile=%s sequence=%llu succeeded=%d failures=%llu validationProtected=%d validationRefusals=%llu BA_RESURRECTION_NATIVE_SETTINGS_ERRORS_V1",
