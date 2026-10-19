@@ -6,6 +6,11 @@ from . import telemetry
 ROOT = Path(__file__).resolve().parents[2]
 ORIGINAL_SHA256 = 'e59d08c01479b27404778048d7e13546dbf3771f6b3912744c7c2bdf80c4e758'
 PATCHES = [
+    # Entire original file-sync framework is local-only. This pure policy query
+    # covers reference/fully-shared generic readers/writers and quota caller;
+    # retain original functional objects, serialization and local bookkeeping.
+    {'name': 'Original Steam file-sync policy local-only; preserve native backup operations',
+     'offset': 0x3e91120, 'before': '4883ec28803df077fc0200754b488d0d', 'after': '31c0c390909090909090909090909090'},
     {'name': 'Tutorial proceeds after local setup without waiting for a backend channel',
      'offset': 0x3def547, 'before': 'e8d41952ff', 'after': '0f57c09090'},
     {'name': 'Front connection requirements false for this method only',
@@ -49,6 +54,15 @@ TAIL_HOOKS = [
      'offset': 0x3d055fd, 'before': 'e92e6a86fe'},
 ]
 CALL_HOOKS = [
+    {'name': 'OfflineBackupStoragePath', 'rva': 0x3e92e22, 'offset': 0x3e91422, 'before': 'e869b26cff'},
+    {'name': 'OfflineReplayStoragePath', 'rva': 0x3ddde36, 'offset': 0x3ddc436, 'before': 'e8f5a45aff'},
+    {'name': 'OfflineReplayStoragePath', 'rva': 0x3ddde99, 'offset': 0x3ddc499, 'before': 'e892a45aff'},
+    {'name': 'OfflineCleanupAutoSaveReplay', 'rva': 0x3e51d94, 'offset': 0x3e50394, 'before': 'e8d7e0ffff'},
+    # All other confirmed direct callers, including HandleApplicationQuit.
+    # Shutdown must share the nonfatal managed boundary.
+    {'name': 'OfflineCleanupAutoSaveReplay', 'rva': 0x3e4dfe9, 'offset': 0x3e4c5e9, 'before': 'e8821e0000'},
+    {'name': 'OfflineCleanupAutoSaveReplay', 'rva': 0x3e50db6, 'offset': 0x3e4f3b6, 'before': 'e8b5f0ffff'},
+    {'name': 'OfflineCleanupAutoSaveReplay', 'rva': 0x3e57bbf, 'offset': 0x3e561bf, 'before': 'e8ac82ffff'},
     # Construct the native local-user TOML path before its first load/save.
     {'name': 'OfflineLocalUserConfigPath', 'rva': 0x379a38e, 'offset': 0x379898e, 'before': 'e89ddfbeff'},
     # Observe original results; do not replace TOML parsing/serialization.
@@ -283,6 +297,10 @@ def install(game_dir, *, helper=None, original_path=None, restore=False, dry_run
         raise ValueError('Build the current helper with native persisted deck validation before installing this patch.')
     if helper_bytes is not None and b'BA_RESURRECTION_NATIVE_SETTINGS_ATOMIC_V1' not in helper_bytes:
         raise ValueError('Build the current helper with native settings write publication before installing this patch.')
+    if helper_bytes is not None and any(marker not in helper_bytes for marker in
+            (b'BA_RESURRECTION_NATIVE_STORAGE_V1', b'OfflineBackupStoragePath\0',
+             b'OfflineReplayStoragePath\0', b'OfflineCleanupAutoSaveReplay\0')):
+        raise ValueError('Build the current helper with native replay and backup storage isolation before installing this patch.')
     if quit_diagnostics and helper_bytes is not None and any(marker not in helper_bytes for marker in
             (b'BA_RESURRECTION_NATIVE_QUIT_TRACE_V1',) + tuple(h['name'].encode()+b'\0' for h in QUIT_CALL_HOOKS+QUIT_POINTER_HOOKS)):
         raise ValueError('Build the owned native Quit diagnostic helper before installing this recipe.')
@@ -300,6 +318,10 @@ def install(game_dir, *, helper=None, original_path=None, restore=False, dry_run
     manifest = {'schema': 2, 'game_build': 37822, 'patch_version': '0.2.0-dev',
                 'original_sha256': ORIGINAL_SHA256, 'patched_sha256': components['GameAssembly.dll']['patched_sha256'],
                 'helper_sha256': digest(helper_bytes) if helper_bytes is not None else None,
+                'local_storage': {'isolated': not restore, 'scope': 'installation-and-profile',
+                                  'replay_format': 'native-protobuf-deflate', 'backup_format': 'native-json',
+                                  'steam_file_sync': 'original-restored' if restore else 'local-only',
+                                  'autosave_exception_boundary': not restore, 'autosave_call_sites': 0 if restore else 4},
                 'local_settings': {'isolated': not restore, 'scope': 'installation-and-profile', 'format': 'native-toml',
                                    'error_hooks': not restore,
                                    'deck_input_guard': not restore,

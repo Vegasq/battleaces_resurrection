@@ -1,5 +1,5 @@
 #define WIN32_LEAN_AND_MEAN
-#include "native_settings.hpp"
+#include "native_storage.hpp"
 #include <iostream>
 #include <functional>
 namespace settings=ba_native_settings;
@@ -27,6 +27,10 @@ struct Folder {
         // Fixed owned fixtures only. No recursive/enumerated deletion.
         for(const auto key:{L"alpha",L"beta"}) {
             const auto folder=path+L".battleaces-resurrection\\profiles\\"+key;
+            for(const auto child:{L"AutoSaveReplays",L"StorageSyncBackup"}) {
+                const auto directory=folder+L"\\"+child;
+                DeleteFileW((directory+L"\\authored-fixture").c_str());RemoveDirectoryW(directory.c_str());DeleteFileW(directory.c_str());
+            }
             for(const auto suffix:{L"\\gameconfig-localuser.toml",L"\\gameconfig-localuser.toml.link",L"\\native-settings.lock"}) {
                 const auto file=folder+suffix;SetFileAttributesW(file.c_str(),FILE_ATTRIBUTE_NORMAL);DeleteFileW(file.c_str());
             }
@@ -80,5 +84,31 @@ static void storage() {
     rejects([&]{settings::Session noDirectory(blocked.path,"alpha");});
     check(read(parent)=="ordinary blocker" && DeleteFileW(parent.c_str()),"blocked parent was changed");
 }
-int main(){try{arguments();storage();std::cout<<"Native settings path, Unicode installation, writer-lock, isolation, restart and failure checks passed\n";return 0;}
+static void nativeChildren() {
+    using namespace ba_native_storage;Folder first,second;
+    {
+        settings::Session alpha(first.path,"alpha"),beta(first.path,"beta"),other(second.path,"alpha");
+        Directory a(alpha,Kind::Replays),b(beta,Kind::Replays),c(other,Kind::Replays),backup(alpha,Kind::Backup);
+        write(a.path()+L"\\authored-fixture","replay alpha");write(b.path()+L"\\authored-fixture","replay beta");
+        write(c.path()+L"\\authored-fixture","replay other installation");write(backup.path()+L"\\authored-fixture","native functional backup");
+        check(read(a.path()+L"\\authored-fixture")=="replay alpha" && read(b.path()+L"\\authored-fixture")=="replay beta" &&
+            read(c.path()+L"\\authored-fixture")=="replay other installation","native child stores crossed profiles/installations");
+        check(!MoveFileW(a.path().c_str(),(a.path()+L"-moved").c_str()),"held native storage directory could be renamed");
+        const auto parent=alpha.path().substr(0,alpha.path().find_last_of(L'\\'));
+        check(!MoveFileW(parent.c_str(),(parent+L"-moved").c_str()),"held native profile directory could be renamed");
+        rejects([&]{Directory invalid(alpha,static_cast<Kind>(99));});
+    }
+    {
+        settings::Session restart(first.path,"alpha");Directory a(restart,Kind::Replays),backup(restart,Kind::Backup);
+        check(read(a.path()+L"\\authored-fixture")=="replay alpha" && read(backup.path()+L"\\authored-fixture")=="native functional backup",
+            "native stores changed on profile restart");
+    }
+    Folder blocked;settings::Session owner(blocked.path,"alpha");
+    const auto folder=owner.path().substr(0,owner.path().find_last_of(L'\\'));
+    write(folder+L"\\AutoSaveReplays","owned blocker");
+    rejects([&]{Directory refused(owner,Kind::Replays);});
+    check(read(folder+L"\\AutoSaveReplays")=="owned blocker","refused native replay destination changed blocker");
+    Directory stillIndependent(owner,Kind::Backup);
+}
+int main(){try{arguments();storage();nativeChildren();std::cout<<"Native settings/storage Unicode paths, writer-lock, isolation, restart, pinned directories and failure checks passed\n";return 0;}
     catch(const std::exception& error){std::cerr<<error.what()<<'\n';return 1;}}

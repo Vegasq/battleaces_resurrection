@@ -2,6 +2,34 @@ IMPLEMENTATION LEDGER
 Updated: 2026-10-19 UTC
 Active objective: implement SERVER_REPLACEMENT_PLAN.txt, Windows only.
 
+NATIVE REPLAY/FUNCTIONAL BACKUP STORAGE (2026-10-19 UTC, IN QUALIFICATION)
+Helper18 redirects native replay and functional UX backup roots into the same
+validated installation/profile as native TOML,retaining original serializers.
+The original file-sync framework is local-only through its reviewed policy
+entry;functional Tailored objects/dirty/callback behavior remain intact. Scoped
+managed autosave invocation prevents escaping exceptions from blocking cleanup.
+A rename regression strengthens actual directory handles;eleven C++ checks pass.
+Ordinary full-feature startup passes. Owned Try Deck/combat/results/Continue/
+natural Quit also passes98.622s with a structurally decoded original replay,
+profile-local native JSON and unchanged shared TOML/replay/backup inventories.
+The blocked replay-folder control first exposes an unwrapped shutdown autosave
+and fails Quit1610 despite working Continue. All four confirmed native callers
+are now guarded;blocked02 passes98.997s with original blocker unchanged and
+natural Quit0. Helper18's explicit owned directory fault passes99.236s with an
+actual exception-out1 between native result and Continue,unchanged blocker and
+natural Quit0. A separate99.318s native read/write control retains a seeded
+tutorial bit with a changed native edit timestamp,saves an original replay and
+exits naturally0;all three shared inventories stay unchanged. Original handled
+file-error logs do not prove an escaping exception;failed expectation controls
+are retained and corrected in the KB. Python460 pass/14 skip out of474,102.052s,
+explicit exit0. Remaining mode/restart/playback/backup-fault/cloud/network/package
+gates are open. Ordinary full-feature two-human TLS Custom/rematch also passes
+71.342s with changed full cosmetic choices and both workers exit0. Four native
+replays structurally decode from two separate profiles;all shared inventories
+remain unchanged. Graphical cleanup is forced for this Custom control,not Quit.
+Details
+and retained evidence in client-storage-isolation.txt. Frozen archives unchanged.
+
 ORDINARY PLAYER FEATURE INTEGRATION (2026-10-19 UTC, CANDIDATE)
 The published launcher omitted public/cosmetic activation,while mode probes added
 it separately. Start Client's shared options now enable both;packaged install
@@ -51,7 +79,8 @@ and force a late guest for regression;the05 native control passes85.413s:one
 loading abort,two complete result/Continue cycles,all three workers exit0,
 complete maps bound by actual match IDs and unchanged baselines. Ordinary
 launch still has no automated actions. Original replay/functional UX shared
-storage is independently traced,not yet patched;see client-storage-isolation.txt.
+storage is independently traced and now has a qualified source candidate;
+see client-storage-isolation.txt for current bounds.
 Clean-source a00187e builds local/ordinary-player-packages02 (dirty:false),with
 helper15 and82 server/67 client payload files. Bundled checks/imports pass;actual
 Start Client.cmd reaches its native menu in9.761s/10.246s total with unchanged

@@ -1,9 +1,145 @@
-CLIENT STORAGE BOUNDARIES -- 2026-10-19 -- CONTRACT REVIEW, NOT IMPLEMENTED
+CLIENT STORAGE BOUNDARIES -- 2026-10-19 -- SOURCE CANDIDATE IN QUALIFICATION
 
-Current isolation is narrower than all client data
-Native local-user TOML and the authored full cosmetic store are isolated by
-installation/local_profile. Their shared-TOML hash checks do not qualify every
-other original storage channel. Ordinary full-feature tests still observe the
+Current implementation
+native_storage.cpp redirects the two scoped replay-folder Concat returns and
+the storage cctor's Path.Combine return into the existing validated local_profile.
+Native TOML and both storage cctors share one idempotent session/writer lock.
+Process-lifetime managed roots retain the two directory strings. Ordinary
+non-reparse handles pin the directories and profile ancestors. A real filesystem
+rename control found metadata-only handles were insufficient on this filesystem;
+requesting directory data access fixes the tested child and profile rename cases.
+All eleven C++ checks pass,including existing Unicode/isolation/restart controls.
+This does not harden every original path-based child-file operation against
+hostile same-directory hardlink/reparse races. Native JSON/replay writes are not
+covered by the TOML atomic publication implementation.
+
+The four confirmed native integration-autosave CALLs invoke the original method
+through the managed runtime's exception-out boundary. Unavailable destinations are refused without
+shared fallback;managed exceptions are recorded without escaping cleanup. No
+simulation/result FSM change,automatic retry or fake successful-save claim.
+The original serializer,name generation,autoSave flag and100-file retention remain.
+Correction to the historical contract01 interpretation:an exception stack printed
+by the game is not proof that the exception escaped SaveReplayFile. Runtime
+long-name DirectoryNotFoundException and read-only-target UnauthorizedAccessException
+controls both return normally from the original integration invocation. Their
+original inner save handler logs the error;Continue and natural Quit0 work.
+The outer evidence reports remain failed because they expected exception-out1.
+Do not use those reports as that boundary's qualification or rewrite them.
+The original Steam file-sync framework now selects its existing local-only
+branches through its pure EvaluateIsCloudEnabled policy entry. Reference and
+fully-shared generic read/write paths plus quota calculation are covered by
+this entry. Original functional objects,serialization,dirty state and local
+callback semantics remain;no whole TailoredUX manager is disabled.
+Installer/ordinary launcher/package builder require the new capability,exact
+exports and manifest policy,including all four guarded autosave callsites.
+Restore still restores verified original components.
+
+Helper17 SHA256:
+d20e59de60f461ba56dce086d02ec033b5256becbb8099e7846b9e2127625994
+build/helper-native-storage17/helper-build.json SHA256:
+fd8e406c8348431e02677f64a35ff2700540941893f1e382897f36212d3436a9
+Actual ordinary full-feature/no-server startup passes with native backup static
+root verified,unchanged shared TOML and forced owned cleanup. Report:
+local/native-storage17-startup01/verification.json SHA256:
+a1b93b28634ed61f81d6c082a6ec7cebffe241732efca31cb4b1690fdd4e7f69
+Owned Try Deck/combat/result/Continue/original menu Quit passes98.622s,natural
+exit0,no forced cleanup. It writes a18032-byte original .rep,which independently
+decodes as raw Deflate to339924 bytes with GameData and1202 input-action messages.
+This is structural readback,not original native playback. Native functional
+backup writes394 bytes of original JSON in the same profile. Shared TOML plus
+the existing replay and backup inventories/hashes remain unchanged. Report:
+local/native-storage17-healthy01/verification.json SHA256:
+d9ff0016b4180047d3cf234be081433214c3251b964e275f7b84577d5a385863
+The first blocked-folder control is retained as failed:Continue worked,but the
+unwrapped HandleApplicationQuit autosave call retried without a prepared replay
+root and exited1610. It is not native Quit acceptance. A complete executable
+E8/E9 candidate scan with LLVM instruction-boundary confirmation finds four
+integration-autosave callers:3e4dfe9,3e50db6,3e51d94,3e57bbf. The candidate now
+routes all four through the same boundary;method table and original method
+entry remain untouched for managed invocation. No universal indirect-call or
+inlined-equivalent completeness claim. Evidence stays under
+local/native-replay-storage-contract03/xrefs.json SHA256:
+757cfdadf35970ffe224e7f7ed79044e6f32d3ea619f1b9bc5930a69002d185b
+The corrected blocked02 control passes98.997s with the ordinary file blocker
+unchanged,autosave refusals at native triggers,result/Continue and natural Quit0.
+All three shared-channel inventories/hashes and source baselines stay unchanged.
+local/native-storage17-blocked02/verification.json SHA256:
+fb18012c4d79cd3aa7d1101e6b310693d1048394fdabd1905a6f569988298174
+The prior failed01 report is retained SHA256:
+0763750c772b0b2b8f52bb5812f8af53032cec7d24f197ef8ee1e2064c91bb6b
+A96-character name control completes result/Continue/natural Quit0,but its
+outer report remains failed because it incorrectly expected an escaping managed
+exception. Original SaveReplayFile catches/logs DirectoryNotFoundException on
+the long full path and writes no replay;the boundary correctly does not claim
+a save from its void return. Do not turn this retained failure into a PASS or
+claim long-path replay support. The read-only-target control also finds the
+original save handler catches its UnauthorizedAccessException;all48 authored
+file contents survive and their read-only attributes restore. Reports:
+local/native-storage17-longname02/verification.json SHA256:
+2c173dbf7ebe764b11d6bf3ace1aba579853ff8ccf3fe4ef8a0139d524acf704
+local/native-storage17-denied04/verification.json SHA256:
+7c5291b19f59c7d38a2bc1a1a032ea566d1f223525ac041ba95819b317b66f1b
+An initial owned ACL fixture fails before launch:Set-Acl reports an unauthorized
+operation,and read-back confirms its access ACL remains unchanged. The source
+test now uses ordinary read-only attributes on authored files below the100-file
+retention threshold;no ACL helper is shipped or permissions changed globally.
+
+Helper18 adds an explicit owned diagnostic only for the unqualified managed
+exception boundary. With -native-storage-directory-failure-smoke,an exact
+nativestest_storage_<12hex> profile and exact authored pinned file are required.
+Its rooted diagnostic folder string names that file inside the same profile.
+The ORIGINAL Directory.CreateDirectory error is then outside SaveReplayFile's
+inner handler and must reach runtime_invoke's exception output. No ordinary
+launcher adds this flag;no shared/system fault target or original entry patch.
+The18 managed control passes99.236s:exception-out1 occurs after the native
+result and before Continue. The authored blocker is unchanged,no replay is
+written,native functional JSON still writes,and original Quit exits0 without
+forced cleanup. All named shared-channel inventories and source baselines stay
+unchanged. It proves this controlled directory exception,not every disk fault.
+local/native-storage18-managed01/verification.json SHA256:
+a234b09a209aa94c9406e1f7d6c85efecd58fe11828dd4a5b740e5e232618924
+
+Current helper18 SHA256:
+fd5acb038ab8d4522436639950da9fd18b960c88b345c7159bc043642be08664
+build/helper-native-storage18/helper-build.json SHA256:
+5d780b8ea740c95314a25d195536d411ae5f33fb91335305944f53878f5f3ab9
+Eleven C++ checks and the six original atomic-save process-interruption controls
+pass. Python suite460 pass/14 skip out of474,102.052s,explicit exit0:
+local/native-storage18-suite-{stdout,stderr,exit}.txt/json.
+
+The18 functional control passes99.318s using a fresh native JSON fixture with
+one authored CompletedMainMenuTutorials bit1048576. Original native loading
+retains that bit through a later original write with changed LastEditDateTime.
+It also saves a18036-byte original replay,independently decoded to339938 bytes
+and1203 input-action messages,and completes result/Continue/natural Quit0.
+All three shared inventories and source baselines stay unchanged. This verifies
+that one functional bit,not every UX field or original native replay playback.
+local/native-storage18-functional01/verification.json SHA256:
+b0b3e3a896b7679e200a24cc72f448af2827e2ad4bca6d3bea21abd76fbdaaa0
+
+Ordinary full-feature two-client TLS Custom invite/Start/result/Continue/rematch
+passes71.342s with full choices,changed cosmetic rematch map and both workers
+exit0. Both owned profiles contain two original replays and one native JSON
+backup each. Four independent raw-Deflate/protobuf structure readbacks pass.
+All three named shared-channel inventories/hashes stay unchanged. Graphical
+teardown is forced;this control does not qualify native Quit/manual mouse play.
+local/native-storage18-custom01/verification.json SHA256:
+6a1ca6c5ac1c4de434a7ce90addf472248af0fd99866f4fcdfa8bc9dca04337c
+local/native-storage18-custom01-shared.json SHA256:
+f008a5e9fc32c731ec28772d72e1f4b7968b1ab1c39bc9ff90744ef165f22660
+local/native-storage18-custom01-replays.json SHA256:
+ae043c9fb85253ab4638982fff91d10b0b4b2e485dcaf506c6a99704706008c7
+
+Remaining controls include backup write/corrupt-input failures,full-mode/native
+playback/retention,restart/copy coverage,cloud-state/network and final packages.
+These reports are not release acceptance.
+
+Historical contract review below
+
+Previous isolation was narrower than all client data
+Native local-user TOML and the authored full cosmetic store were isolated by
+installation/local_profile. Their shared-TOML hash checks did not qualify every
+other original storage channel. Earlier ordinary full-feature tests observed the
 original AutoSaveReplays and Steam StorageSyncBackup paths under Unity's shared
 persistentDataPath. Preserve their originals;do not change global permissions.
 
@@ -63,13 +199,20 @@ These are generic shared bodies;one bounded method-spec scan is not a global
 proof that all present/future callers are the same channel. Preserve identity
 scope and review alternate generic paths before adding a blanket guard.
 
-Candidate local-only policy:redirect the cctor3e92ce0 Path.Combine return at
+Initial candidate local-only policy:redirect the cctor3e92ce0 Path.Combine return at
 3e92e22 to a validated installation/profile StorageSyncBackup root before first
 access. The original stores BackupRemoteSyncRoot at static+8. This covers both
 reviewed EstablishBackupPath forms,2631ec0 and optimized272420. Paired reviewed
 EvaluateIsCloudEnabled callsites2630a69 (read) and263157c (write) can select the
 original backup-only branches instead of Steam FileTime/FileRead/FileWrite.
-Exact guards and ABI are retained in seams.json. Cloud-off alone still permits
+Exact guards and ABI are retained in seams.json. Contract02 subsequently finds
+the two caller gates incomplete:fully-shared2632989 and2633530 also call the
+policy,as does quota3e92984. The implemented entry3e92b20 returns false with
+exact guard4883ec28803df077fc0200754b488d0d,replacement31c0c3 plus padding.
+Its bounded body queries Steam cloud state/logs;no functional data mutation.
+local/native-tailored-storage-contract02/FINDINGS.txt SHA256:
+84b69ce0800bc93adaac13a387d873808fb9d515132babc1230753a1c98040a3
+Cloud-off alone still permits
 shared local reads/writes,so it is not enough without path isolation.
 
 Preserve original backup-only semantics:Write returns true after local success
@@ -88,8 +231,8 @@ local/native-tailored-storage-contract01/manifest.json SHA256:
 1967768e40e9389a6f2b66e6984ad6c1bf24af87eecedb39f5d0772d62971f4d
 
 Next qualification
-Implement scoped path/cloud seams with exact original guards and original
-serialization retained. Verify fresh/existing separate profiles/copies,restart,
+Qualify the scoped path/cloud implementation with original serialization
+retained. Verify fresh/existing separate profiles/copies,restart,
 read-only/missing/corrupt owned paths,postgame Continue and native Quit. Shared
 original files must remain unchanged;do not import them silently. Check native
 UI/practice state and remaining analytics callbacks independently. Keep final

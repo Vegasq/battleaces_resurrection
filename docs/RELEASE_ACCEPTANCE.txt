@@ -65,6 +65,12 @@ Required before a general release
     reviewed cloud sinks. Exercise missing/corrupt/denied owned paths and native
     results/Continue/Quit. TOML-only hash checks do not cover these channels;
     see client-storage-isolation.txt. Do not remove functional UX as analytics.
+    Helper18 candidate passes ordinary startup and an owned practice/result/
+    Continue/natural Quit with profile-local native replay/JSON. Blocked-folder
+    shutdown regression also passes after covering all four native callers.
+    A controlled original directory exception preserves Continue/Quit,and one
+    tutorial bit survives native JSON load/write. Backup failures,full readback/
+    restart/mode/cloud/network/package controls remain open.
 [ ] Build fresh source-only client patch/server archives with exactly one Start
     Client and one Start Server entry point. Validate install,upgrade,restore,
     config relocation,logs,missing/corrupt files and normal Quit/save persistence.

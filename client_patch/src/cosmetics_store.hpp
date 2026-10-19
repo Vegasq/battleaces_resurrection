@@ -17,7 +17,9 @@ inline void regular(HANDLE handle,bool directory=false) {
 }
 inline HANDLE directory(const std::wstring& path) {
     require(CreateDirectoryW(path.c_str(),nullptr) || GetLastError()==ERROR_ALREADY_EXISTS,"cannot create cosmetic state directory");
-    Handle handle(CreateFileW(path.c_str(),FILE_READ_ATTRIBUTES,FILE_SHARE_READ|FILE_SHARE_WRITE,nullptr,OPEN_EXISTING,
+    // Metadata-only opens do not prevent directory rename on this Windows
+    // filesystem. Request directory data access so no-delete sharing pins it.
+    Handle handle(CreateFileW(path.c_str(),FILE_LIST_DIRECTORY|FILE_READ_ATTRIBUTES,FILE_SHARE_READ|FILE_SHARE_WRITE,nullptr,OPEN_EXISTING,
         FILE_FLAG_BACKUP_SEMANTICS|FILE_FLAG_OPEN_REPARSE_POINT,nullptr));regular(handle.value,true);
     const auto result=handle.value;handle.value=INVALID_HANDLE_VALUE;return result;
 }

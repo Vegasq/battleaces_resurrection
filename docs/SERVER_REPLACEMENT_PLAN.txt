@@ -16,10 +16,13 @@ Current release integration order (2026-10-19)
   Final ordinary transition/fault,clean package/manual and cross-PC acceptance
   still remain;do not label these same-PC controls a completed release.
 - Complete original replay/functional UX storage isolation before final package
-  promotion. Current TOML/cosmetic isolation does not cover shared AutoSaveReplays
-  or Steam StorageSyncBackup. Preserve native functional UX and replay formats,
-  scope reviewed cloud gates and keep handled write failure from interrupting
-  cleanup. Read-only contracts are retained;no implementation claim yet. See
+  promotion. Helper18 adds scoped AutoSaveReplays/StorageSyncBackup isolation,
+  the reviewed local-only framework policy and a managed autosave exception
+  boundary. Eleven C++ checks,ordinary startup and one owned practice/result/
+  Continue/natural Quit pass with native formats and unchanged shared inventories.
+  All four confirmed callers are guarded;the owned managed-directory exception
+  also preserves Continue/Quit,and a tutorial bit survives native JSON load/write.
+  Complete backup-failure,restart/full-mode,playback,cloud/network/package gates. See
   client-storage-isolation.txt. A separate diagnostic guest-observer timing race
   must not be misdiagnosed as a disabled native Continue button.
 - Native original serialization now stages/flushes/publishes a complete isolated

@@ -87,6 +87,9 @@ def run(args):
     require(not args.default_recipe or args.mode=='confirm','default recipe qualification requires original Confirm/natural exit')
     require(args.profile is None or re.fullmatch(r'nativestest_[a-z0-9_-]{1,34}',args.profile),
             'explicit Quit profile must be an owned nativestest_ key')
+    display_name = getattr(args,'display_name',None) or 'Native Quit Probe'
+    require(0<len(display_name.encode('utf-8'))<=96 and not any(ord(c)<32 for c in display_name),
+            'bounded diagnostic player name required')
     launcher.verify_game(game,community=True,bridge_version=2,unified=True)
     build_receipt = verify_build_receipt(game,args.helper_build_receipt.resolve())
     manifest = json.loads((game/'.battleaces-resurrection/patch-manifest.json').read_bytes())
@@ -132,9 +135,12 @@ def run(args):
     try:
         report['shared_settings_before'] = startup.shared_state(args.shared_settings.resolve())
         command = [str(game/'Battle Aces.exe'),'-offline-practice','-practice-ai-experimental','-local-profile='+profile,
-                   '-player-name=Native Quit Probe','-native-quit-smoke','-native-quit-mode='+args.mode,
+                   '-player-name='+display_name,'-native-quit-smoke','-native-quit-mode='+args.mode,
                    '-screen-fullscreen','0','-screen-width','960','-screen-height','540','-logFile',str(output/'game.log')]
         if args.capture_dialog: command.append('-native-quit-capture')
+        if getattr(args,'storage_directory_fault',False):
+            require(profile.startswith('nativestest_storage_'),'storage directory fault requires an explicit owned profile')
+            command.append('-native-storage-directory-failure-smoke')
         if args.after_practice:
             command.extend(['-native-quit-after-practice','-practice-ai-smoke','-practice-ai-smoke-matches=1',
                             '-practice-ai-smoke-frames=1200','-practice-ai-smoke-delay-ms=3000','-lan-audit','-lan-smoke'])
@@ -232,6 +238,8 @@ if __name__=='__main__':
     for key in ('game','output','shared-settings'): parser.add_argument('--'+key,type=Path,required=True)
     parser.add_argument('--helper-build-receipt',type=Path,required=True)
     parser.add_argument('--profile',help='explicit owned nativestest_ profile for a seeded native-settings regression')
+    parser.add_argument('--display-name',help='bounded diagnostic name for replay filename failure controls')
+    parser.add_argument('--storage-directory-fault',action='store_true',help='owned original managed directory failure control')
     parser.add_argument('--after-practice',action='store_true',help='explicit automated one-match result/Continue before original menu Quit')
     parser.add_argument('--default-recipe',action='store_true',help='qualify natural exit using the default patch without optional teardown hooks')
     parser.add_argument('--mode',choices=('inventory','cancel','confirm'),default='cancel')

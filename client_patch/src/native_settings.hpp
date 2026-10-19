@@ -51,7 +51,7 @@ public:
         wchar_t full[32768];const DWORD count=GetFullPathNameW(game.c_str(),32768,full,nullptr);
         require(count && count<32768 && game==full,"native settings installation is not canonical");
         const auto root=game.substr(0,game.size()-1);
-        gameHandle.value=CreateFileW(root.c_str(),FILE_READ_ATTRIBUTES,FILE_SHARE_READ|FILE_SHARE_WRITE,nullptr,OPEN_EXISTING,
+        gameHandle.value=CreateFileW(root.c_str(),FILE_LIST_DIRECTORY|FILE_READ_ATTRIBUTES,FILE_SHARE_READ|FILE_SHARE_WRITE,nullptr,OPEN_EXISTING,
             FILE_FLAG_BACKUP_SEMANTICS|FILE_FLAG_OPEN_REPARSE_POINT,nullptr);exactDirectory(gameHandle.value,root);
         const auto base=game+L".battleaces-resurrection";
         baseHandle.value=ba_cosmetics_state::directory(base);exactDirectory(baseHandle.value,base);

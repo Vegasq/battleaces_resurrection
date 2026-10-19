@@ -1,6 +1,7 @@
 #pragma once
 #include <memory>
 #include <atomic>
+#include <mutex>
 #include "native_settings.hpp"
 namespace ba_native_settings {
 static void observe(ba::Obj);
@@ -9,6 +10,18 @@ static bool saveIsolated(ba::Obj,ba::Obj,ba::Obj,void*,unsigned long long);
 // Held through engine teardown. OS process exit releases the handles; CRT
 // destruction must not unlock a profile while native shutdown can still save.
 static auto& session=*new std::unique_ptr<Session>();
+static Session& prepareSession() {
+    // Storage can initialize before the TOML loader. Both must acquire the
+    // same validated profile and writer lock, without reentering either cctor.
+    static auto& mutex=*new std::mutex();std::lock_guard<std::mutex> lock(mutex);
+    if(!session) {
+        wchar_t module[32768];const DWORD length=GetModuleFileNameW(ba::module,module,32768);
+        require(length && length<32768,"native settings installation path unavailable");
+        auto slash=wcsrchr(module,L'\\');require(slash!=nullptr,"native settings installation path invalid");*(slash+1)=0;
+        session=std::make_unique<Session>(module,profile(ba::arguments()));
+    }
+    return *session;
+}
 static std::atomic<unsigned long long> loads{0},saves{0},saveFailures{0};
 static std::atomic<unsigned long long> validationSaveRefusals{0};
 static SaveOutcome lastSaveSucceeded;
@@ -86,13 +99,10 @@ extern "C" __declspec(dllexport) bool OfflineLocalUserSaveTable(void* loader,voi
 }
 extern "C" __declspec(dllexport) void* OfflineLocalUserConfigPath(void*,void*,void* filename,void*) {
     try {
-        ba::init();ba_native_settings::require(!ba_native_settings::session,"native settings cctor repeated unexpectedly");
+        ba::init();static std::atomic<bool> selectedOnce{false};
+        ba_native_settings::require(!selectedOnce.exchange(true),"native settings cctor repeated unexpectedly");
         ba_native_settings::require(ba_native_settings::wide(filename)==L"gameconfig-localuser.toml","native settings callsite ABI mismatch");
-        wchar_t module[32768];const DWORD length=GetModuleFileNameW(ba::module,module,32768);
-        ba_native_settings::require(length && length<32768,"native settings installation path unavailable");
-        auto slash=wcsrchr(module,L'\\');ba_native_settings::require(slash!=nullptr,"native settings installation path invalid");*(slash+1)=0;
-        ba_native_settings::session=std::make_unique<ba_native_settings::Session>(module,ba_native_settings::profile(ba::arguments()));
-        const auto& selected=*ba_native_settings::session;
+        const auto& selected=ba_native_settings::prepareSession();
         ba::log("NATIVE SETTINGS path selected: {\"profile\":%s,\"path\":%s,\"beforeNativeLoad\":true,\"isolated\":true,\"writerLock\":true} BA_RESURRECTION_NATIVE_SETTINGS_V1",
             ba_catalog::quote(selected.profile()).c_str(),ba_catalog::quote(ba_native_settings::utf8(selected.path())).c_str());
         // Last managed operation: original code immediately stores/root-barriers

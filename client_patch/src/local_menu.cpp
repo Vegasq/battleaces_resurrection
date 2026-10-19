@@ -116,6 +116,7 @@ static bool ensure(Obj front) {
         if(!ba_dedicated_session::inMenu() || !ba_dedicated_session::worldIdle(ba::read<Obj>(front,0xd8)))return false;
         if(!baseInitialized) {
         ba_native_settings::verify();
+        ba_native_storage::verify();
         frontRoot=std::make_unique<Root>(front);
         identityRoot=std::make_unique<Root>(ba_lan_bootstrap::identityLan(front,0));
         Root name(ba::str(ba::argument(L"-player-name=","Offline Player").c_str()));
