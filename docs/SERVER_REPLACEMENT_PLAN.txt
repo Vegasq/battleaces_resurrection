@@ -18,6 +18,15 @@ Current cosmetic integration order (2026-10-19)
   and public1v1 pass. Newer menu unit choices now survive remote return in a
   strengthened native public test;extend to all modes,partial groups and race/fault
   cases. See loadout-protocol.txt for exact qualified boundaries.
+  Full-loadout two-human2vAI now passes distinct profiles/portraits,immediate
+  grouping,1250 canonical frames per client,native builds and results/Continue.
+  Four-human2v2 also passes all seats/independent loadouts and1250 exact frames
+  each through normal results/Continue. Three-human and two-human2v2 groups now
+  pass deadline AI fills and retain their complete selections through results/
+  Continue. Full-loadout2vAI running loss/retry also passes retained survivor
+  session,fresh shared match,complete selections and normal results/Continue.
+  Other failures/transitions and actual portrait/result
+  rendering,ordinary entry-point enablement and failure transitions remain open.
 - Complete graphical remote/team/rematch acceptance,main-menu bindings,real drag,
   effects/audio,shutdown flush/native Quit,protected deployment and ordinary
   release packaging. Prior server-only/native-short-frame passes do not close

@@ -116,3 +116,73 @@ Final helper regressions:
 These proofs do not qualify all modes,partial groups,fault/cancel/retry races,
 actual remote cosmetic rendering,effects/audio,native Quit or final ordinary
 release enablement. Test-only edits/automatic results remain explicit flags.
+
+Team qualification in progress
+tools.verify_public_clients now accepts --cosmetics-selection. It creates one
+fresh owned local profile per human,using compatible installed portraits that
+are distinct across the group. Existing shared-menu gate,real queue deadline,
+native builds,exact canonical frame receipts,results/Continue and worker cleanup
+checks remain. New checks correlate every human's full queue intent,server match
+snapshot,native local SimPlayer units/map,and final saved profile. Optional
+loading/running disconnect,retry and remote/local transition cases retain their
+original lifecycle assertions;they require separate native qualification.
+
+local/loadout-team-2vai-native01 passes on helper07:two graphical human allies,
+two server bots,1250 canonical frame receipts per client,normal human build
+commands present in the authoritative journal,normal results/Continue/RETURN.
+Distinct complete human profiles agree through queue,server snapshot,native
+SimPlayer and final saves. Full human group matches immediately (maximum wait
+0.100s). Runtime104.341s;worker exits0,owned processes reaped,covered sources
+unchanged. Verification SHA256:
+165aac812686e466538b52190e1d50694a438141ca75d37870c21edb7bf6134f
+The released-search PNG was inspected:it shows the rendered two-base map before
+HUD binding. It does not prove team portrait/result rendering. Those visual
+acceptance gates remain open. Focused source run:48 checks,47 pass,one skip.
+
+local/loadout-team-4human-native01 also passes on helper07:four graphical humans
+in2v2,all four assigned seats,distinct installed portraits and one independently
+edited unit deck. Each receives1250 exact canonical frames and contributes a
+native build to the journal. Complete snapshots/final saves and normal results/
+Continue pass. Full group matches immediately (maximum0.255s). Runtime131.391s;
+worker exits0,clients reaped,covered sources unchanged. Verification SHA256:
+cc35ff4d8b7cb6a99f42a2973ef74729168b8f49d9b6a4241d2c2c2883ad4783
+
+local/loadout-team-3human-native01 passes:three humans in one2v2 room,one server
+bot fills only the missing seat at the original Play deadline (maximum server
+queue wait29.829s;remaining wait accounts for connection time). All three retain
+distinct full selections and independent units through1250 exact canonical
+frames,native builds,normal results/Continue and final saves. Runtime155.225s;
+worker exits0,clients reaped,sources unchanged. Verification SHA256:
+89bb4a7804f4d940904c7107d561dcb36c20ceca98677e6d90b37753fb0e1629
+
+local/loadout-team-2human-partial-native01 passes:two humans in2v2,two server
+AI fills at the Play deadline (maximum server queue wait29.777s). Both retain
+complete selections/independent units through1221 exact canonical frames,native
+builds,normal results/Continue and final saves. Runtime133.313s;worker exits0,
+clients reaped,sources unchanged. Verification SHA256:
+55e9727f08ff999991239d8e1b3d8abd2c8aeff496c0a5644ee585483785436e
+
+local/loadout-team-recovery-native01 passes running-disconnect/retry in2vAI.
+The first shared match aborts at frame201 after one owned TLS peer is closed.
+Both old worlds retire through the native abort/modal/cleanup path. The survivor
+keeps its existing authenticated session;the victim reconnects. A gated ticket2
+creates a distinct shared match,which completes with normal builds,1250 exact receipts per client,
+results/Continue and both humans' complete selections/final saves preserved.
+Runtime129.039s,sources unchanged,clients reaped. The first worker exits1 with
+the specifically expected CancelledError after its in-flight request is cancelled;
+its owned resources are reaped. The completed replacement worker exits0. This
+does not qualify other error exits or native Quit. Verification SHA256:
+40a90cccb11d157dbfd7213567f47da89172441ebd832f0912ea1dbc85096f7d
+
+Reproduction:use a fresh ignored --output and the same current disposable
+--game/verified --assets as the other native probes. For the team harness,pass
+--cosmetics-selection <accepted native full-map proof>,--visible and:
+  --mode 5 --humans 2
+  --mode 2 --humans 4
+  --mode 2 --humans 3                (partial group;real deadline)
+  --mode 2 --humans 2                (partial group;real deadline)
+  --mode 5 --humans 2 --disconnect running --retry
+Normal launchers do not receive these diagnostic
+flags. Full local/offline team fallback,other partial/error transitions,remote/
+local switching,actual portrait/result rendering and ordinary releases remain
+open. No original game files or private native evidence are publication inputs.

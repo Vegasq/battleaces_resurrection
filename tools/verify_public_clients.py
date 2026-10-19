@@ -24,11 +24,12 @@ import time
 import traceback
 
 from client_patch.transport import bridge, launcher
-from server import admission, public_protocol as q, tls_transport as tls
+from server import admission, loadout_protocol, public_protocol as q, tls_transport as tls
 from server.ai_rules import RuleBook
 from server.assets import verify_assets
 from server.bot_catalog import BotCatalog
 from server.credentials import AuthenticationError
+from server.cosmetics import CosmeticCatalog
 from server.dedicated_server import Audit, DedicatedServer
 from server.game_data import GameTemplate, decode_frame, decode_player_input
 from server.profiles import ProfileStore
@@ -78,6 +79,32 @@ async def run(args):
     launcher.verify_game(game, community=True, bridge_version=2, unified=True)
     verify_assets(assets)
     output.mkdir(parents=True, exist_ok=False)
+    cosmetic_book = CosmeticCatalog(assets) if args.cosmetics_selection else None
+    cosmetic_seeds, cosmetic_profiles, queue_selections, frozen_matches = [], [], [], []
+    if cosmetic_book:
+        require(game.is_relative_to(ROOT/'local'), 'full cosmetic probe requires a disposable game copy')
+        seed = json.loads(args.cosmetics_selection.read_bytes())
+        seed = seed.get('state', seed)
+        require(seed['catalog_sha256'] == cosmetic_book.sha256, 'native seed/catalog mismatch')
+        native_seed = cosmetic_book.validate_selection(seed['slots'])
+        portrait_slot = cosmetic_book.roles['portrait']
+        portraits = sorted(cosmetic_book.slots[portrait_slot].compatible_items)
+        require(len(portraits) >= args.humans, 'not enough distinct installed human portraits')
+        folder = game/'.battleaces-resurrection/profiles'
+        folder.mkdir(parents=True, exist_ok=True)
+        prefix, used = 'cosmeticstest_'+secrets.token_hex(6)+'_team', set()
+        for index in range(args.humans):
+            pairs = dict((native_seed if index == 0 else cosmetic_book.normalize_local()).slots)
+            if pairs[portrait_slot] in used:
+                pairs[portrait_slot] = next(item for item in portraits if item not in used)
+            selected = cosmetic_book.validate_selection(pairs)
+            used.add(selected.portrait)
+            cosmetic_seeds.append(selected)
+            key = prefix+'_'+str(index)
+            cosmetic_profiles.append(key)
+            value = dict(schema=1, build=37822, profile=key, catalog_sha256=selected.catalog_sha256, slots=selected.slots)
+            with (folder/(key+'.cosmetics.json')).open('xb') as stream:
+                stream.write((json.dumps(value, separators=(',', ':'))+'\n').encode('ascii'))
     runtime = game/'investigation/runtime'
     runtime.mkdir(parents=True, exist_ok=True)
     gate_key = secrets.token_hex(16)
@@ -108,6 +135,11 @@ async def run(args):
     def observe(event, **fields):
         events.append(dict(event=event, observed_at=time.monotonic(), **fields))
         audit(event, **fields)
+        if event == 'match_created' and cosmetic_book:
+            room = server.rooms[fields['room']]
+            frozen_matches.append(dict(match=fields['match'], profiles={slot:peer.profile_id for slot, peer in room.peers.items()},
+                cosmetics={slot:dict(catalog_sha256=value.catalog_sha256, slots=value.slots)
+                           for slot, value in room.match.cosmetics_by_slot.items()}))
 
     async def factory(data, bots=None):
         worker = await SimulationWorker.create(data, assets/'Simulation.dll', working_directory=output,
@@ -118,7 +150,7 @@ async def run(args):
     templates = {mode: GameTemplate.load(assets/name, catalog_path=assets/'unit-catalog.json', descriptors_path=assets/'descriptors')
                  for mode, name in ((1, 'map-1v1.pb.gz'), (2, 'map-2v2.pb.gz'), (5, 'map-2vai.pb.gz'))}
     catalog = BotCatalog(assets, template=templates[1], rules=RuleBook(assets))
-    server = DedicatedServer(templates[1], ProfileStore(output/'profiles', templates[1]), templates=templates,
+    server = DedicatedServer(templates[1], ProfileStore(output/'profiles', templates[1], catalog=cosmetic_book), templates=templates,
         bot_catalog=catalog, sim_factory=factory, ai_factory=factory, audit=observe, data_dir=output,
         audit_state=False, input_timeout=30, tls_context=tls.load_server_context(pki['cert'], pki['key']),
         admission=admission.AdmissionController(Store()))
@@ -148,11 +180,22 @@ async def run(args):
 
     try:
         port = (await server.start('127.0.0.1', 0))[1]
+        apply = server.community.public.apply
+        async def capture_apply(session, kind, command, now):
+            result = await apply(session, kind, command, now)
+            if cosmetic_book and kind == loadout_protocol.ENTER_LOADOUT:
+                entry = server.community.public.entries[session.peer.profile_id]
+                queue_selections.append(dict(profile=entry.profile, ticket=entry.ticket, deck=entry.deck,
+                    catalog_sha256=entry.cosmetics.catalog_sha256, slots=entry.cosmetics.slots))
+            return result
+        server.community.public.apply = capture_apply
         context = tls.load_client_context(pki['ca'], 'localhost')
         shutil.copyfile(game/'.battleaces-resurrection/patch-manifest.json', output/'patch-manifest.json')
         for index in range(args.humans):
             config = dict(game_directory=game, server_host='127.0.0.1', server_port=port,
                           display_name=f'Human Client {index+1}', room='community')
+            if cosmetic_book:
+                config['local_profile'] = cosmetic_profiles[index]
             parent, child = socket.socketpair(socket.AF_INET)
             sockets.extend((parent, child))
             parent.setblocking(False)
@@ -170,6 +213,8 @@ async def run(args):
                         '-public-queue-smoke-gate='+gate_key, '-lan-smoke', '-lan-audit', '-dedicated-rematch-smoke',
                         '-dedicated-surrender-smoke', '-dedicated-surrender-frame=1200', '-public-team-surrender-smoke',
                         '-match-search-smoke']
+            if cosmetic_book:
+                command += ['-local-cosmetics-experimental', '-community-cosmetics-smoke', '-human-cosmetics-smoke']
             if index == 1:
                 command.append('-public-queue-smoke-edit-deck')
             if args.disconnect and index == 0:
@@ -483,6 +528,43 @@ async def run(args):
                 after_offline_practice=args.practice_between,
                 journal_human_builds=journal_builds(output/'matches'/fresh_match/'frames.bin', fresh_evidence, len(authoritative)))
             report.update(remote_attempts=attempts, authentications=len(authenticated))
+        if cosmetic_book:
+            expected_matches = 2 if args.retry else 1
+            require(len(frozen_matches) == expected_matches and len(queue_selections) == expected_matches*args.humans,
+                    'complete team entries/matches missing')
+            native = []
+            for index, record in enumerate(clients):
+                player, _ = identities[index]
+                selected = cosmetic_seeds[index]
+                own_entries = [value for value in queue_selections if value['profile'] == player]
+                require([value['ticket'] for value in own_entries] == list(range(1, expected_matches+1)) and
+                        all(value['catalog_sha256'] == cosmetic_book.sha256 and
+                            cosmetic_book.validate_selection(value['slots']) == selected for value in own_entries),
+                        'complete team queue intent changed or duplicated')
+                for frozen in frozen_matches:
+                    seats = [seat for seat, profile in frozen['profiles'].items() if profile == player]
+                    require(len(seats) == 1 and set(frozen['cosmetics']) == set(frozen['profiles']),
+                            'complete team server snapshot roster differs')
+                    value = frozen['cosmetics'][seats[0]]
+                    require(value['catalog_sha256'] == cosmetic_book.sha256 and
+                            cosmetic_book.validate_selection(value['slots']) == selected,
+                            'complete team server selection changed')
+                snapshots = [json.loads(line.split('REMOTE COSMETICS frozen snapshot: ', 1)[1])
+                             for line in record['log'].splitlines() if 'REMOTE COSMETICS frozen snapshot: ' in line]
+                matches = re.findall(r'REMOTE COSMETICS SimPlayer passed: match=([0-9a-f]{32}) ', record['log'])
+                expected_native = [value['match'] for value in frozen_matches]
+                if args.disconnect == 'loading':
+                    expected_native = expected_native[1:]
+                require(matches == expected_native and len(snapshots) == len(matches) and
+                        all(value['profile'] == cosmetic_profiles[index] and value['catalog_sha256'] == cosmetic_book.sha256 and
+                            cosmetic_book.validate_selection(value['slots']) == selected for value in snapshots),
+                        'native team full loadout/units proof missing or bound to another profile/match')
+                saved = server.profiles.load_state(player, [])
+                require(saved.cosmetics == selected and list(saved.deck) == list(own_entries[-1]['deck']),
+                        'team return lost the saved full human loadout')
+                native.append(dict(profile=player, local_profile=cosmetic_profiles[index], matches=matches, snapshots=snapshots))
+            report['full_loadouts'] = dict(catalog=cosmetic_book.sha256, queue=queue_selections,
+                server_matches=frozen_matches, native=native)
     except BaseException as error:
         report.update(passed=False, error=f'{type(error).__name__}: {error}', traceback=traceback.format_exc())
     finally:
@@ -561,6 +643,7 @@ def main():
     parser.add_argument('--humans', type=int, choices=(2, 3, 4), default=2)
     parser.add_argument('--timeout', type=int, default=600)
     parser.add_argument('--visible', action='store_true')
+    parser.add_argument('--cosmetics-selection', type=Path, help='accepted native seed; qualifies full loadouts with distinct installed portraits')
     parser.add_argument('--disconnect', choices=('loading', 'running'),
                         help='explicitly close the first owned client TLS peer; qualify native abort cleanup, not a completed match')
     parser.add_argument('--retry', action='store_true', help='after qualifying first-match cleanup, release a separate gate for a completed graphical replacement match')

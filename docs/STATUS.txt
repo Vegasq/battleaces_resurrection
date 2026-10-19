@@ -2,6 +2,24 @@ IMPLEMENTATION LEDGER
 Updated: 2026-10-19 UTC
 Active objective: implement SERVER_REPLACEMENT_PLAN.txt, Windows only.
 
+COMPLETE TEAM LOADOUT QUALIFICATION (2026-10-19 UTC, EXPERIMENTAL)
+The full-loadout team harness now uses distinct installed portraits and isolated
+owned profiles for each human. Two-human2vAI passes immediate grouping,two native
+human builds,1250 exact authoritative frames per client,full queue/server/native/
+saved-map agreement and normal results/Continue. Worker exits0;clients reaped,
+sources unchanged. Four-human2v2 also passes all four seats/distinct portraits,
+1250 exact frames each,independent units and normal results/Continue,with an
+immediate full-group match. This does not close ordinary launch,all partial groups,
+fault/retry/remote-local transitions or actual portrait/result visual acceptance.
+Three-human2v2 also passes one AI fill at the original deadline,1250 exact
+frames each,full selections/native builds/results/Continue/final saves. The
+two-human2v2 partial roster also passes two AI fills,1221 exact frames each and
+normal results/Continue with complete selections preserved. Full-loadout team
+running-disconnect/retry also passes2vAI:both old worlds retire,the survivor's
+session stays connected,and a new shared match completes with the same full
+selections. The cancelled first worker's exit1/CancelledError is explicitly
+accounted for and reaped;the replacement exits0. See loadout-protocol.txt.
+
 COMPLETE LOADOUT WIRE (2026-10-19 UTC, EXPERIMENTAL)
 Distinct commands65..68 now carry catalog-bound full17-slot selections alongside
 units;legacy packet shapes remain exact. Atomic server publication,capability,
