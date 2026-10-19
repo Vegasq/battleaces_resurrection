@@ -3,7 +3,15 @@ Updated: 2026-10-19
 Target: Battle Aces build 37822, Windows x64 server and clients.
 Status: IMPLEMENTATION ACTIVE. See STATUS.txt; incomplete phases remain future work.
 
-Current cosmetic integration order (2026-10-19)
+Current release integration order (2026-10-19)
+- Native settings write failures now reach an original in-game warning on a
+  later idle UI update. Visible notice06 passes acknowledgment/release,restored
+  pooled text and original reuse,Save retry/fresh readback with unchanged shared
+  settings. Ten C++ programs/helper,50 focused checks and446 passes/14 skips out
+  of460 pass. Final mouse/error-path/package acceptance remains open;see
+  native-settings-notice.txt. Implement the pinned early persisted deck JSON/
+  shape/ID guard next (native-deck-validation.txt),then interruption policy.
+  RELEASE_ACCEPTANCE.txt collects remaining final product gates.
 - The source default now reports optional DLSS unavailable before NGX starts.
   A qualified12-context unwind locates the old shutdown wait in NVIDIA telemetry's
   worker join. Original renderer fallback and shutdown remain intact;no global
@@ -30,7 +38,7 @@ Current cosmetic integration order (2026-10-19)
   unchanged. Exact native load/write result hooks now additionally pass three
   malformed TOML refusals with input preservation,explicit fixture repair,and
   post-startup write denial -> original Save retry -> fresh deck readback.
-  Next qualify malformed deck JSON/shape/IDs,visible save-error feedback,write
+  Next qualify malformed deck JSON/shape/IDs,manual save-error feedback,write
   interruption policy and original confirmed menu Quit/shutdown flush before
   final packaging. The original writer is still non-atomic.
   Never guess a shared-file restore or treat a callback as disk persistence.

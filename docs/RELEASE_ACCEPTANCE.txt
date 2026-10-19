@@ -1,0 +1,61 @@
+WINDOWS RELEASE ACCEPTANCE -- 2026-10-19
+
+This checklist distinguishes source-prototype evidence from a distributable
+release. STATUS.txt retains implementation history;SERVER_REPLACEMENT_PLAN.txt
+defines the requested product. Existing frozen archives are not automatically
+upgraded when source changes. No original client binaries/assets belong in Git.
+
+Qualified source checkpoint aa5a803
+- One ordinary unified launcher reaches a native local menu without configured
+  server,CA or invite and without gameplay automation.
+- Original fresh-menu and post-AI-result/Continue Quit exit naturally0 with the
+  default NGX-free recipe. Both clients also exit naturally0 from the original
+  connection-error Quit action after a deliberate remote disconnect.
+- The original non-DLSS renderer shows a useful arena,HQ,terrain,workers,effects,
+  HUD and cosmetic identities in an inspected diagnostic capture. Native bot
+  production,autonomous orders plus movement,and two-human server2vAI results/
+  Continue have separate passing controls. See nvidia-shutdown.txt/native-quit.txt.
+- Native local-user settings are isolated by installation/profile. Original
+  setters,restart,separate profiles/copies,Unicode paths,writer locking,malformed
+  TOML refusal and handled write failure/retry/readback have bounded passing
+  controls. The original writer is not atomic. See local-user-settings.txt.
+
+Required before a general release
+[ ] Preserve malformed persisted deck JSON/wrong node types/invalid dimensions
+    and IDs before original startup can replace them. Healthy new profiles and
+    incomplete but legitimate edited decks must remain supported.
+[ ] Show a useful native in-game warning after failed settings writes;verify
+    acknowledgment,recovery and later successful save without UI reentry during
+    writer callbacks or shutdown. Define and qualify interruption/atomic-write
+    behavior;do not equate a save callback with disk persistence.
+[ ] Enable final public/cosmetic features through the ordinary entry point only
+    after end-to-end acceptance. Verify actual mouse selection/drag/equip,all
+    installed cosmetic categories,ability/effect/audio rendering,persistence and
+    complete match choices across public/Custom/local/team/rematch/fault paths.
+[ ] Test the final ordinary offline path:Try Deck,1v1,2v2 and2vAI remain playable
+    with no server. Test configured but unavailable server and30-second queue AI
+    fill,including partial humans,original search/timer/Cancel/loading UX,varied
+    bot identities/decks and configured player name. Custom remains human-only.
+[ ] Complete telemetry collection/storage/indirect callback/reporter/CEF child
+    coverage and bounded network-capture checks on the final installed build.
+    Current61 guards and the separate NGX guard are not a universal zero-traffic
+    or graphics-driver/overlay reporting guarantee. See telemetry.txt.
+[ ] Build fresh source-only client patch/server archives with exactly one Start
+    Client and one Start Server entry point. Validate install,upgrade,restore,
+    config relocation,logs,missing/corrupt files and normal Quit/save persistence.
+[ ] Qualify protected deployment/backup permissions,SCM service start/stop/reboot,
+    clean Windows machine without developer tools,and cross-PC/internet matches
+    with friends. Record measured capacity and remaining limitations.
+
+Manual playtest after preparing a concrete current candidate
+1. Start Client,confirm name/settings,edit a deck and cosmetics,then Quit through
+   the original dialog. Restart and confirm retained choices.
+2. With no server,play Try Deck and each public mode. Check original search and
+   loading feedback,bot combat,results/Continue and return to the same menu.
+3. Start Server,connect independent profiles/copies,invite through Custom,and
+   complete a human match/rematch. Check late joins,Cancel,disconnect and recovery.
+4. Check actual visuals,sound,input responsiveness and window behavior. Record
+   build/config/mode and observed behavior;do not infer these from log markers.
+
+Do not count forced test cleanup as native Quit,PNG existence as inspected
+rendering,or a prototype mode pass as final installer/ordinary-path acceptance.

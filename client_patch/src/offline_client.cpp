@@ -72,6 +72,7 @@ static bool retain(const std::string&);static bool pending(const std::string&);s
 static void reconcileParty(void*);static void anchorClock(void*);static void smoke(void*);
 }
 namespace ba_community_popup {static void reset();static void update();}
+namespace ba_settings_notice {static void update(void*);}
 namespace ba_community_match {
 static void normalizeJoin(void*);
 static void reset();static void enqueue(void*,void*,void*);
@@ -331,6 +332,7 @@ extern "C" __declspec(dllexport) void OfflineFrontUpdate(void* front,void*) {
 #include "practice_settings_ui.cpp"
 #include "client_lifecycle.cpp"
 #include "native_quit_smoke.cpp"
+#include "native_settings_notice.cpp"
 #include "public_client.cpp"
 #include "public_results.cpp"
 #include "match_loading.cpp"

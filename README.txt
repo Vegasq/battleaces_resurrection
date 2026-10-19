@@ -3,6 +3,7 @@ BATTLE ACES RESURRECTION - WINDOWS SERVER AND CLIENT ADAPTER
 Development project for private Battle Aces build 37822 matches. Windows x64
 server and clients are the current target. See docs/SERVER_REPLACEMENT_PLAN.txt
 for the requested outcome and docs/STATUS.txt for evidence and remaining work.
+docs/RELEASE_ACCEPTANCE.txt collects the remaining final release/playtest gates.
 
 The coordinator runs each original simulation in an isolated worker, validates
 decks/actions and serves multiple private rooms. Twenty successive native matches

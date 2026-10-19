@@ -1,0 +1,48 @@
+EARLY PERSISTED DECK VALIDATION -- 2026-10-19 -- STATIC CONTRACT ONLY
+
+Problem
+Original LocalDeckStorage.Load can catch bad JSON and return empty storage.
+The later selector can then save a starter deck over the original invalid input.
+Deck.IsEmpty does not validate dimensions or installed IDs. A menu observer is
+too late to prevent this. Native malformed-TOML protection does not cover JSON.
+
+Implementation order retained for the next source change
+1. Root the exact isolated LoadTable result before managed allocations. Inspect
+   account/decks with original TryGetNode45612d0 and exact Tommy types. Check
+   table.children+28 before TryGetNode to avoid its lazy dictionary creation;
+   never use the inserting get_Item. Missing key permits original defaults.
+   Present decks must be a TomlString with retained exact UTF16 content;wrong
+   types/explicit empty are invalid persisted data,not absence.
+2. Wrap singleton Init's exact static Load call3de76a2/raw3de5ca2,
+   e8094dfcff ->3dac3b0. Read current VariableRegister.InstanceInternal._decks
+   Variable._var+28 string,not _varToSave+30. Compare persisted provenance before
+   forwarding unchanged. Stock default is '{}',so text alone cannot identify a
+   new profile versus an explicitly persisted empty object.
+3. Root the returned LocalDeckStorage before any managed inspection. Validate
+   persisted SelectedDeck class/arrays8 units+4 ability groups and any stored
+   Decks entries/list bounds before selector construction. Permit legitimate
+   unfinished decks;do not require IsFull or mutate/repair their selection.
+4. Obtain the already published singleton from its constructed generic parent's
+   static _instance;ba::owner is not assigned yet. Its existing local menu data
+   provider is initialized before this call. For populated unit IDs invoke
+   original IsValidSlot with null account/allowLocked=true;skip native empty
+   sentinels0/ffffffff. Validate populated ability IDs against installed tables.
+   Table absence is an unavailable dependency,not proof of bad user IDs.
+5. Refuse invalid persisted input before returning to the original selector;
+   preserve input bytes and shared settings. Healthy new profiles still receive
+   native starter defaults. Never call ResetAllUserSettings,Save,AutoAssignAbilities
+   or ValidateAndFixDeck as validation/automatic repair.
+
+Exact original-byte/IL2CPP fallback evidence (no game execution/changes):
+local/native-deck-validation-contract01/FINDINGS.txt SHA256:
+9cccf4cff2c3ee993ac57613215439eecc257ca2541f1449360be0040f216078
+contract.json SHA256:
+b592449a82d9d997f2519b14b7f071cc8668882f9bbdcb46cae9fe78a4b8b6ab
+manifest.json SHA256:
+5c28e8ddd1c36fd725660270bbc847457bfdd492ae8485def94f8b03cbbcaaf9
+
+Not implemented/runtime-qualified by this note. Native JsonUtility coercions,
+stronger selected-unit/ability membership,all-empty native starter fallback,
+malformed saved-list normalization and interruption/atomic writes need explicit
+owned fixtures and original-byte preservation checks. Do not replace these
+unknowns with Python JSON behavior. See local-user-settings.txt.

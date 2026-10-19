@@ -137,9 +137,19 @@ empty,so it does not renew full tactical bot-movement acceptance. The final
 shared-file rehash still matches the baseline. Private verification SHA256:
 ceb4fbb7c4e6237f6231b3ca23de1c152c8359066e9aed9a905e92dd4079b599
 
+Visible native save-failure warning
+The current helper adds a deferred,owned original SimpleDialog warning with
+no UI inside writer callbacks. Final visible notice07 passes original acknowledgment,
+release,conditional original text restoration/pooled reuse,original Save retry
+and fresh-process readback in26.494s. Its actual PNG is inspected;shared settings
+and covered sources are unchanged. See native-settings-notice.txt for hashes,
+retained failures,scope and the explicit diagnostic-only capture/acknowledgment.
+This does not qualify real mouse/error-path/final-package acceptance.
+
 Remaining gates
-Malformed deck JSON,wrong TOML node types,shape/ID validation and visible in-game
-save-error/recovery feedback need separate qualification. The original writer
+Malformed deck JSON,wrong TOML node types,shape/ID validation need implementation
+and runtime qualification;native-deck-validation.txt pins the early contract.
+Final manual save-error/recovery acceptance remains open. The original writer
 still uses its own non-atomic behavior;observing its bool is not protection
 against device failures,partial writes or process interruption.
 Native Quit/shutdown flush and final packages/manual clean-PC acceptance remain

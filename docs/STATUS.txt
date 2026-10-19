@@ -2,6 +2,25 @@ IMPLEMENTATION LEDGER
 Updated: 2026-10-19 UTC
 Active objective: implement SERVER_REPLACEMENT_PLAN.txt, Windows only.
 
+VISIBLE NATIVE SAVE-FAILURE WARNING (2026-10-19 UTC, SOURCE CANDIDATE)
+A later safe Unity update now shows the original one-button message dialog for
+an unresolved isolated settings write failure. The writer itself only records
+its original result;no UI/retry occurs inside it or shutdown. Final notice07
+passes26.494s:readable inspected warning,original acknowledgment/pool release,
+restored original text references,clean native pooled reuse,successful original
+Save retry and fresh-process deck readback. Shared settings/covered sources stay
+unchanged and owned clients are reaped. No forced cleanup counts as Quit.
+Earlier hidden-black capture and incorrect null-model cleanup failures remain
+recorded. Fifty focused checks,ten C++ component programs/helper and the full
+460-test suite pass (446 pass/14 skip,90.045s). Final manual/package/error-path
+and atomic-write acceptance remain open;existing frozen archives are unchanged.
+See native-settings-notice.txt. native-deck-validation.txt now pins the next
+early persisted-JSON/shape/ID guard;that guard is not implemented by this note.
+RELEASE_ACCEPTANCE.txt collects remaining final product gates in one place.
+The final helper also passes original fresh-menu Quit:exit0 in0.797s after
+Confirm,no forced cleanup (17.462s total). Previous helper06 additionally passes
+post-AI-result/Continue Quit0 in2.141s,100.321s total. See native-quit.txt.
+
 NGX SHUTDOWN FIX (2026-10-19 UTC, SOURCE DEFAULT IN QUALIFICATION)
 The post-game-callback wait is now verified through12 unwind contexts into
 NVIDIA telemetry's infinite worker join during NGX shutdown. Reporting original

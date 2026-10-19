@@ -46,6 +46,22 @@ local/ngx-default-ordinary-startup01/verification.json SHA256:
 c396a93d82a791aa23f6d37fa688b2b57b83445bf56e60c81d98eea610464cbf
 Final package/manual/native-save-error acceptance remains separate.
 
+Save-notice helper regressions
+The helper06 visible warning/restore/reuse/retry implementation also completes
+one original Try Deck result/Continue,then original menu Quit:natural exit0 in
+2.141s after Confirm,100.321s total,no forced cleanup. Covered sources/shared
+settings stay unchanged. This process does not contain an injected save failure;
+the warning/failure/retry probe is separate and uses forced cleanup.
+local/native-settings-notice06-after-practice-quit/verification.json SHA256:
+79d85aef4549357bfce7397919092c2a80606b75c59db60e040f42ea74d4fbed
+Final helper07 prevalidates both text routes before first mutation. Fresh-menu
+original Confirm also exits naturally0 in0.797s (17.462s total),no forced cleanup,
+covered sources/shared baseline unchanged. No optional disposal hooks installed.
+local/native-settings-notice07-menu-quit/verification.json SHA256:
+4b14b0bfbe6f63936689682c48f8ac2082ac770cdeb2a37d57b4a10d778e2711
+The final source suite is446 pass/14 skip out of460 in90.045s;ten C++ programs/
+helper pass. See native-settings-notice.txt for visible warning evidence/limits.
+
 Owned diagnostic implementation in qualification
 An opt-in local-only installer recipe now wraps the exact original instance/AI
 Dispose calls below. Default recipes do not add these hooks. The helper prepares a bounded

@@ -41,6 +41,7 @@ static void writeProbe(ba::Obj front) {
     }catch(const std::exception& error){phase=2;ba::log("Native settings write smoke failed: %s",error.what());}
 }
 static void observe(ba::Obj front) {
+    ba_settings_notice::update(front);
     if(!ba::flag(L"-native-settings-deck-proof") && !ba::flag(L"-native-settings-write-smoke"))return;
     static bool done=false;if(!ba_local_menu::ready(front) || !ba_dedicated_deck::initialized ||
         !ba_dedicated_session::inMenu() || !ba_dedicated_session::worldIdle(ba::read<ba::Obj>(front,0xd8)))return;

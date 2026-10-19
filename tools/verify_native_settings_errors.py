@@ -4,6 +4,8 @@ Never edits the shared file. Three authored invalid inputs must survive early
 native refusal byte-for-byte. A deliberately repaired owned fixture must then
 reach its offline menu. Deny writes after startup,distinguish live/disk choices,
 restore access,retry original Save and verify a new process retains that deck.
+Optional notice-smoke checks the original acknowledgment dialog while writes
+remain denied,retains its explicit capture,and invokes its original OK handler.
 Healthy cleanup is forced,not native Quit acceptance.
 """
 import argparse
@@ -21,6 +23,7 @@ import traceback
 from client_patch.transport import launcher
 from server.worker_client import _WindowsJob
 from tools import verify_unified_startup as startup
+from tools.verify_native_quit import verify_build_receipt
 
 ROOT = Path(__file__).resolve().parents[1]
 
@@ -34,9 +37,15 @@ def run(args):
     game, output = args.game.resolve(), args.output.resolve()
     require(os.name == 'nt' and game.is_relative_to(ROOT/'local') and output.is_relative_to(ROOT/'local'), 'owned ignored Windows paths required')
     require(60 <= args.timeout <= 300, 'bounded native phase timeout required')
+    require(not args.notice_smoke or args.visible,'save-notice capture requires an explicitly visible diagnostic')
     launcher.verify_game(game, community=True, bridge_version=2, unified=True)
     manifest = json.loads((game/'.battleaces-resurrection/patch-manifest.json').read_bytes())
     require(manifest.get('local_settings', {}).get('error_hooks') is True, 'install current native settings error hooks')
+    receipt = verify_build_receipt(game,args.helper_build_receipt.resolve())
+    if args.notice_smoke:
+        require(manifest['local_settings'].get('save_notice') is True and
+                b'BA_RESURRECTION_NATIVE_SETTINGS_NOTICE_V1' in (game/'BattleAcesOffline.dll').read_bytes(),
+                'install the current native save-notice helper')
     require(args.valid_fixture.resolve().is_relative_to(ROOT/'local'), 'owned valid native fixture required')
     good = args.valid_fixture.resolve().read_bytes()
     require(0 < len(good) <= 1024*1024, 'bounded valid native fixture required')
@@ -44,7 +53,7 @@ def run(args):
     runtime = game/'investigation/runtime';runtime.mkdir(parents=True, exist_ok=True)
     profiles = game/'.battleaces-resurrection/profiles'
     key = 'nativestest_'+secrets.token_hex(6)
-    report = dict(passed=False, scope=__doc__, cases=[], source_sha256_at_start=sources(),
+    report = dict(passed=False, scope=__doc__, visible=args.visible,notice_smoke=args.notice_smoke,helper_build=receipt,cases=[], source_sha256_at_start=sources(),
                   helper_sha256=hashlib.sha256((game/'BattleAcesOffline.dll').read_bytes()).hexdigest())
     processes = [];write_lock = None;started = time.monotonic()
     clock = ctypes.WinDLL('kernel32').GetTickCount64;clock.restype = ctypes.c_ulonglong
@@ -66,9 +75,12 @@ def run(args):
         command = [str(game/'Battle Aces.exe'), '-offline-practice', '-practice-ai-experimental', '-local-profile='+profile,
                    '-native-settings-deck-proof', '-player-name=Settings Error Probe', '-screen-fullscreen', '0',
                    '-screen-width', '960', '-screen-height', '540', '-logFile', str(output/(label+'-game.log'))]
-        if write_smoke: command.append('-native-settings-write-smoke')
-        info = subprocess.STARTUPINFO();info.dwFlags |= subprocess.STARTF_USESHOWWINDOW;info.wShowWindow = 0
-        tick = clock();process = subprocess.Popen(command, cwd=game, startupinfo=info, creationflags=subprocess.CREATE_NO_WINDOW, close_fds=True)
+        if write_smoke:
+            command.append('-native-settings-write-smoke')
+            if args.notice_smoke: command.append('-native-settings-notice-smoke')
+        info = subprocess.STARTUPINFO();info.dwFlags |= subprocess.STARTF_USESHOWWINDOW;info.wShowWindow = 5 if args.visible else 0
+        tick = clock();process = subprocess.Popen(command, cwd=game, startupinfo=info,
+            creationflags=0 if args.visible else subprocess.CREATE_NO_WINDOW, close_fds=True)
         row = dict(label=label, profile=profile, pid=process.pid, tick=tick, command=command, process=process, job=None)
         processes.append(row);row['job'] = _WindowsJob(process.pid)
         (output/'processes.json').write_text(json.dumps([{k:v for k,v in r.items() if k not in ('process','job')} for r in processes],indent=2)+'\n')
@@ -138,6 +150,31 @@ def run(args):
         failed = write_phase(row,1)
         require(failed['lastSucceeded'] is False and failed['failedWrites']>0 and target.read_bytes()==before and
                 failed['units']!=proof['selected_deck']['units'], 'post-startup failure did not distinguish live selection from disk')
+        if args.notice_smoke:
+            deadline = time.monotonic()+30
+            while True:
+                require(row['process'].poll() is None,'native notice process exited early')
+                text = log(row)
+                require('Native settings notice failed:' not in text,'native save-failure notice failed')
+                if 'NATIVE SETTINGS notice pooled reuse passed:' in text: break
+                require(time.monotonic()<deadline,'native save-failure notice deadline');time.sleep(.1)
+            markers = ['NATIVE SETTINGS notice dispatched:',
+                       'NATIVE SETTINGS notice rendered: originalDialog=1 prefab=89 titleAndBody=1 emptyLocalization=1 captured=1',
+                       'NATIVE SETTINGS notice smoke original acknowledgment (automated)',
+                       'NATIVE SETTINGS notice released: originalPoolRelease=1 controllerCleared=1',
+                       'NATIVE SETTINGS notice text cleanup: restored=1',
+                       'NATIVE SETTINGS notice pooled reuse passed: sameRoot=1 originalReferences=1 priorText=1 originalRelease=1']
+            positions = [text.find(marker) for marker in markers]
+            require(all(position>=0 and text.count(marker)==1 for marker,position in zip(markers,positions)) and
+                    positions==sorted(positions) and target.read_bytes()==before,
+                    'notice ordering/one-shot/input preservation proof differs')
+            capture = runtime/('native-settings-notice-'+profile+'.png');raw = capture.read_bytes()
+            require(raw.startswith(b'\x89PNG\r\n\x1a\n') and 8<len(raw)<16*1024*1024,'native notice capture missing/oversized')
+            (output/'save-failure-notice.png').write_bytes(raw)
+            report['save_failure_notice'] = dict(original_dialog=True,rendered_text_readback=True,
+                original_acknowledgment=True,original_pool_release=True,controller_cleared=True,
+                denied_file_unchanged=True,pooled_text_restored=True,original_pooled_reuse=True,
+                capture_sha256=hashlib.sha256(raw).hexdigest())
         shared_unchanged()
         require(close_file(write_lock), 'owned target read lock release failed');write_lock = None
         Path(str(target)+'.write-test-2.gate').write_text('owned original Save retry\n')
@@ -145,6 +182,8 @@ def run(args):
         require(retry['lastSucceeded'] is True and retry['failedWrites']==0 and retry['units']==failed['units'] and
                 retry['activeAbilityGroups']==failed['activeAbilityGroups'] and target.read_bytes()!=before,
                 'original Save retry did not persist the same live choice')
+        if args.notice_smoke:
+            require(log(row).count('NATIVE SETTINGS notice dispatched:')==1,'native notice repeated after recovery')
         retry_output = output/'retry';retry_output.mkdir()
         retried = startup.native_settings_evidence(game,retry_output,row['pid'],row['tick'],profile)
         require(all(retried['selected_deck'][k]==retry[k] for k in ('units','activeAbilityGroups')), 'retry disk differs from live native deck')
@@ -189,5 +228,8 @@ def run(args):
 if __name__ == '__main__':
     parser = argparse.ArgumentParser(description=__doc__)
     for key in ('game','output','shared-settings','valid-fixture'): parser.add_argument('--'+key,type=Path,required=True)
+    parser.add_argument('--helper-build-receipt',type=Path,required=True)
     parser.add_argument('--timeout',type=int,default=180)
+    parser.add_argument('--visible',action='store_true',help='show the owned diagnostic game window')
+    parser.add_argument('--notice-smoke',action='store_true',help='explicit original save-error dialog/capture/acknowledgment qualification')
     raise SystemExit(run(parser.parse_args()))

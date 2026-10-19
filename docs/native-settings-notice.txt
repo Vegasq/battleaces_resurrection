@@ -1,0 +1,139 @@
+NATIVE SETTINGS SAVE-FAILURE NOTICE -- 2026-10-19 -- SOURCE QUALIFICATION
+
+Policy
+The original isolated settings writer retains its serializer,exceptions and bool
+result. Its callback records atomic success/failure state only. A later owned
+Unity update may display one warning for an unresolved failure episode in an
+idle,unloaded menu with no current popup/spinner/navigation entry or Quit request.
+A successful save before display cancels a pending warning. Acknowledgment does
+not retry the write or claim persistence. Ordinary play gets no scripted input,
+capture or acknowledgment;these require an explicit owned diagnostic flag.
+
+Original native contract
+RGameSingleton.<UIPopupController>+e8 owns Uncapped.UI.UIPopupController. Require
+its real router and pool to match current front/UIMenuController. The controller
+is a MonoBehaviour,not UIObject;do not invent an initialization field for it.
+Original ShowSimpleDialog3d68300 takes TWO Unity.Localization.LocalizedString
+references,not raw strings. It refuses an existing live dialog,uses the original
+key89 SimpleDialog prefab and creates ButtonFlags1/null-callback model. Original
+OK SimpleDialogVM.OnButton1Click3c7cc80 releases via the original pool. Controller
+OnSimpleDialogRelease3d68870 clears its shown object. No new delegate is installed.
+
+The original title/body localizers have empty authored references and one retained
+UnityEventString -> same TMP_Text.set_text listener. Original set_StringReference
+47f5cb0 clears the old handler/loading operation;an empty replacement requests no
+table. Original UpdateString47f5f50 presents the explicit fixed warning. Verify
+exact owner/model/references,empty/idle localization,original event targets,live
+bindings/container,actual TMP text and graphics after later Unity updates.
+This dialog has no ModalConfirm navigation-add override;do not require item0.
+
+Private static evidence from hash-asserted original build37822 PE/IL2CPP/assets:
+local/native-save-error-ui-contract01/FINDINGS.txt SHA256:
+439a1f2dae21ac623beed8760febafff283726609be05c20ab80af62ed3c538b
+manifest.json SHA256:
+72b95384b7f32005f9678a86a321ee48052b379dfa693e043050a17238cad54f
+No provider setup retry,game execution,profile read or tracked change by that
+read-only investigation. Runtime qualification belongs to the authored helper.
+
+Initial runtime controls
+helper-notice02 passes three invalid-TOML refusals,explicit owned repair,post-menu
+write denial,original warning/acknowledgment/release,native Save retry and fresh
+process readback in26.800s. Disk stays unchanged while denied;shared settings and
+covered sources stay unchanged;owned clients reaped. Its automated text/lifecycle
+pass has a BLACK PNG because the harness hid the game window. It is not a visual
+pass. The harness now requires explicit --visible for notice captures.
+
+The separate visible03 repeat passes in26.915s. The PNG is actually inspected:
+readable settings-save title/body and original OK are displayed over the native
+menu. Recovery persists the same changed deck and a fresh process retains it.
+These runs do not qualify mouse acknowledgment or native Quit (cleanup forced).
+Same-generation pooled text restoration/reuse is qualified separately next.
+notice02 report SHA256:
+ea1087a446d8e54a918083afdd80261b7fa88c667a9e0f2e999245c1a0ed6cc8
+notice03 report SHA256:
+4d94281de5db633ace75537dd252d29ce1d152d385c1ed7e6e9083a63ce7ed4d
+
+Retained pooled-cleanup qualification failures
+notice04 FAILS in16.019s on an unproven null-model predicate after original OK
+release. notice05 FAILS in15.697s and records every cleanup predicate:root
+inactive,owner/root/controller/references/empty localization all match,but the
+released model is retained. The diagnostic's null assumption is wrong. The
+correction retains the actual shown model and requires exact identity before
+any restoration;it does not ignore new ownership or mutate a replaced model.
+Both failed reports retain unchanged sources/shared settings and reaped owned
+clients. They are not relabelled passes and do not qualify subsequent Save retry.
+notice04 report SHA256:
+9c5d3e03b1b948deb2a45b96abc3c5edbb80b950813c34678b32230fa1dc53a2
+notice05 report SHA256:
+9b9c47dce0a581ed210035245763f388adec454fdb2a6787b606f76113615e4b
+
+Pooled cleanup policy
+Capture both original component references and pre-paint strings before changing
+either text. Deferred restoration may run only on the same still-released inactive
+root/lifetime,with the exact retained model,no current controller dialog,loading or Quit,matching
+private references and empty/idle original/private localization. Restore through
+original setters/presenters. On ownership mismatch skip cleanup without changing
+a new owner. Pointer equality is not a universal pool-generation counter;retain
+this limitation. An explicit diagnostic reopens the original empty-reference
+dialog,checks restored original references/text,and releases via original OK.
+Do not restore from a writer,shutdown or partially completed release callback.
+
+Corrected source-built notice06 PASS
+The exact retained shown-model predicate passes along with every other ownership
+gate. Original references/pre-paint strings are restored after release. The
+explicit diagnostic reopens the original dialog on the SAME pooled root,checks
+original references/prior text,and releases normally again. The controlled file
+denial remains held throughout. Only then does the harness release it and retry
+the original Save;the same changed deck persists and a fresh process reads it.
+All six cases/five processes pass in26.440s. Actual final PNG is inspected and
+shows readable warning/title/OK over the native menu. Sources/shared baseline
+stay unchanged and owned clients are reaped. Healthy test cleanup is forced,
+not mouse acknowledgment or native Quit acceptance.
+notice06 verification.json SHA256:
+11a7aeef274cce24134f244e85de98eef6d173896db2aebd6cf62205b82fcf27
+Inspected save-failure-notice.png SHA256:
+37cb4411deb7ff54abc6d754e62c28cea56b40a0f1a185ef2c6313a80caa7f69
+helper-settings-notice06 SHA256:
+8060f945b431eedb6c643e1be1d6774f3ea219d1acb558690b9d1386f1345ef8
+helper-build.json SHA256:
+c40b2bef87a621dbc1834292431e1dd99776290e6a300e614cb3640c8628a3e9
+The verifier now requires matching installed-helper/source build receipt before
+launch. This is build consistency,not a signed/reproducible-build attestation.
+Ten C++ component programs/helper,50 focused Python checks and the complete460
+test suite pass (446 pass/14 skip,92.249s). New package builds require the notice
+marker;the installer manifest reports whether the supplied helper contains it.
+Existing frozen/manual packages are unchanged.
+
+Final prevalidation checkpoint notice07
+Both localizer/component/listener routes and both original text baselines are
+now validated before either field is changed. This reduces the partial-paint
+exception gap identified during review;arbitrary mid-presenter exceptions and
+all error paths are not qualified by the healthy route. notice07 repeats the
+complete visible failure/acknowledgment/restoration/reuse/retry/restart probe:
+PASS26.494s,inspected readable PNG,unchanged sources/shared settings,owned clients
+reaped. Ten C++ component programs/helper and full460 source checks pass (446
+pass/14 skip,90.045s). Original fresh-menu Quit also passes natural0 in0.797s
+after Confirm,17.462s total,no forced cleanup. See native-quit.txt.
+notice07 verification.json SHA256:
+be7a5592ef80a305e7c682648b3580530d29d76c81c16dd912e1fb5ea7d05d6e
+Inspected PNG SHA256:
+12187514cc981ff6b499b99b31c3703a0581f4160edfcc564e201ec32b4e08cc
+helper-settings-notice07 SHA256:
+730242503f64634d51d0a74817b7d79576da81235d06f53719d30adf459fd48c
+helper-build.json SHA256:
+83514f0473efa783c5a847e029ed976c35d193d339651ebd0e00f63acd446cf1
+
+Supplemental original release contract confirms the retained model:shared
+generic Release29b97a0/ClearModel29b9760 clear IsModelSet and unobserve,not the
+backing model reference. Pool return releases the lifecycle owner before root
+deactivation. Deferred inactive-root cleanup avoids partial-release reentry.
+local/native-save-error-release-contract01/FINDINGS.txt SHA256:
+65b442a8a4c6e85c14dfe99b2062c1d1a8f520e97e6b8f8290edf222541c752d
+manifest.json SHA256:
+cf124614c60bbd93d1211731c5a52cc1569df1ff772968c46409d5299b537b94
+This static supplement does not execute the target or change the frozen earlier
+contract. Pointer equality remains a bounded same-owner guard,not an engine-wide
+pool generation counter.
+
+Save interruption/atomicity,malformed deck JSON/IDs,final packages and manual
+acceptance remain separate. See local-user-settings.txt/RELEASE_ACCEPTANCE.txt.
