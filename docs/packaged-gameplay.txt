@@ -1,0 +1,44 @@
+PACKAGED UNIFIED GAMEPLAY / ORIGINAL QUIT -- 2026-10-19
+
+Scope
+The prior clean helper21 package proves actual Start Client.cmd menu startup,
+production imports and component upgrade/restore. Its native combat/Quit
+controls separately launch the game in standalone practice mode. Those are not
+the same as bundled unified-client gameplay followed by normal launcher exit.
+Keep final physical input,visual/audio,clean-PC and Internet acceptance open.
+
+Candidate22 test
+tools.verify_packaged_play launches the package's isolated bundled interpreter
+with an external authored diagnostic driver. The driver's production client.main,
+launcher,bridge and integrity modules must come from verified package paths and
+match inventory hashes. PATH excludes global Python;foreign cwd/PYTHONPATH cannot
+shadow imports. Ordinary generated game arguments must contain public/cosmetic
+features and no automatic/diagnostic flags. Only the explicit owned spawn adapter
+adds native Edit Deck/Try Deck,build/concede/Continue and original menu Quit
+diagnostics. This is explicitly a spawn-adapter gameplay check,not a seamless
+CMD/mouse/visual/audio gameplay check. Actual ordinary CMD startup has its own
+separate verifier and must remain free of automatic actions.
+
+The original post-practice Quit diagnostic previously required standalone
+offlinePractice even though Try Deck is also part of unified localMenu. Its
+explicit diagnostic guard now accepts localMenu while retaining one-match
+bounds,owned nativestest_ profile,original widget/model/event ownership and
+idle/unloaded menu checks. No flag is added to ordinary launch. No original
+Quit/disposal body changes or optional disposal hooks are introduced.
+
+Acceptance oracle
+Require native bot production plus autonomous orders and position changes,
+original result/Continue/menu order,exact current-PID/tick Quit trace,game exit0
+within60s after original Confirm,normal bundled launcher exit0 and no forced
+cleanup. Verify native TOML,original profile-local replay structural decoding
+and native functional JSON publication. Read/hash all three named shared
+channels;require unchanged config,package files and covered sources. Process
+ownership uses one Windows job and retained native exit-observation handle.
+Old PID/trace timestamps cannot start current Quit deadlines. The existing
+profile lock and default NGX-free recipe remain in effect.
+
+Current state
+Helper22 compiles and all eleven C++ programs plus six owned atomic interruption
+boundaries pass. Generated driver syntax and actual JSON newline suffixes are
+checked. Native bundled runtime acceptance is pending;do not count a new tool or
+this description as completion. Old manual/frozen packages remain unchanged.

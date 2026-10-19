@@ -109,9 +109,9 @@ static void update(Obj front) {
     Obj dispatch=nullptr,dispatchMethod=nullptr;
     try {
         if(ba::flag(L"-native-quit-after-practice")) {
-            require(ba::offlinePractice() && ba::flag(L"-practice-ai-smoke") &&
+            require(ba::localMenu() && ba::flag(L"-practice-ai-smoke") &&
                 ba::argument(L"-practice-ai-smoke-matches=","1")=="1" && ba_practice::completed<=1,
-                "native Quit post-practice requires exactly one owned standalone diagnostic match");
+                "native Quit post-practice requires exactly one owned local diagnostic match");
             if(ba_practice::completed!=1 || ba_practice::active())return;
         }
         const auto now=GetTickCount64();if(!deadline){deadline=now+60000;due=now+2500;return;}

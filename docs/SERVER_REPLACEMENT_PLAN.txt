@@ -4,6 +4,12 @@ Target: Battle Aces build 37822, Windows x64 server and clients.
 Status: IMPLEMENTATION ACTIVE. See STATUS.txt; incomplete phases remain future work.
 
 Current release integration order (2026-10-19)
+- Qualify bundled unified gameplay/results/Continue/original menu Quit together.
+  Existing actual CMD startup and standalone native gameplay are separate proofs.
+  The new explicit owned packaged-play adapter uses verified bundled production
+  imports and ordinary player options before adding test-only actions. Native
+  Quit's post-practice diagnostic accepts unified local menus with existing
+  one-match/owned/idle guards. Acceptance is pending;see packaged-gameplay.txt.
 - Integrate public/cosmetic activation into actual Start Client and packaged
   install;the previous ordinary launcher omitted it. Source options/compatibility
   checks are now implemented and actual no-config/no-server native startup passes.
