@@ -6,8 +6,9 @@ wait and shared bot fill. Two-human/two-bot2v2 also passes the real30-second
 wait,1,221 exact frames each and original result/Continue. Graphical2vAI
 loading/running loss and four-human2v2
 running loss now pass cleanup; surviving connections remain open. See
-team-recovery.txt. Graphical post-abort requeue and manual/Internet acceptance
-remain open, alongside further timing/partial-roster qualification.
+team-recovery.txt. Four graphical2v2 humans also complete a fresh replacement
+match after loading or running loss in the same processes, preserving all three surviving
+sessions. Additional timing/rosters and manual/Internet acceptance remain open.
 
 The final product requires public2v2 and2vAI even with one offline human. Multiple
 1v1 rooms do not satisfy this. A partial online human group must stay in one

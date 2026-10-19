@@ -179,7 +179,7 @@ Current implementation sequence for these additions (2026-10-18):
    exact frames/result/Continue. Two graphical2vAI allies now pass loading/running disconnect;
    four graphical2v2 humans pass running disconnect with all three surviving
    sessions retained. See team-recovery.txt. Further partial rosters, graphical
-   post-abort requeue and mode-switch release gates remain open; do not enable
+   retry rosters/timing and mode-switch release gates remain open; do not enable
    ordinary paths from component tests alone.
    Manual and Internet team acceptance remain separate.
 4. Implement generation-bound public queues/fallback and human-only Custom,
@@ -193,7 +193,10 @@ Current implementation sequence for these additions (2026-10-18):
    match retries and native result/Continue where requested. Graphical team
    loading/running loss now releases every world and preserves surviving sessions;
    a server socket regression completes a new match on the same surviving session.
-   Graphical team requeue and remote/local mode-switch recovery remain open. Local1v1
+   Four graphical2v2 humans also complete a ticket2 replacement match after
+   loading or running loss without restarting, preserving three survivor sessions and all
+   selected decks. Additional team retry rosters/timing and remote/local
+   mode-switch recovery remain open. Local1v1
    fallback passes without authentication or a server worker. Experimental local
    three-bot2v2 now passes exact joins, every bot's production/ordered movement,
    result bindings and native Continue/cleanup. Offline2vAI now passes two natural

@@ -83,7 +83,7 @@ second-match test. The focused public/recovery/launcher suite runs36 tests with
 one explicitly optional native snapshot fixture skipped; no failures.
 
 Remaining qualification
-Graphical team requeue/retry/rematches after abort, additional loss timing and
+Additional graphical team retry/rematch rosters, loss timing and
 partial rosters, remote/local mode switches, manual input/appearance, another PC,
 Internet and native Quit remain separate acceptance gates. An open surviving
 socket alone is not claimed to prove a completed graphical replacement match.
@@ -105,3 +105,71 @@ Covered sources stay unchanged and owned processes/gate are reaped/removed.
 This checks the verifier's ordinary completed-match branch after adding abort
 support and qualifies this two-human partial roster. It is not natural combat
 or manual play, and it does not establish all deck/AI combinations.
+
+Graphical replacement-match probe (four-human loading/running retry qualified)
+The explicit --retry diagnostic now holds the second public search at a separate
+ordinary-file gate until the first match's cleanup assertions pass for every
+client. It then calls original Play again in the same processes, retains the
+survivors' session objects, and permits only the victim to open a replacement
+connection. New ticket2 assignment, canonical frames/builds, selected decks,
+result/Continue and final capacity release must all pass. Merely reaching the
+second queue is not sufficient. No original queue deadline is shortened.
+
+public_client.cpp has independent bounded first/retry gates, enabled only by
+public smoke flags. dedicated_adapter.cpp permits the second result's automated
+Continue for the explicit public-team retry probe, including survivors which
+returned via authoritative abort without invoking Reconnect. Existing ordinary
+launchers do not enable these diagnostic flags. No production reconnect,
+fallback, result or ownership rule is relaxed.
+
+Eight C++ component programs and the helper build pass. The focused public,
+recovery, unified-launcher and patcher suite runs38 tests, one optional native
+fixture skipped, no failures. The current isolated helper SHA256 is:
+6fb882cfbe79c152a47e1b8a510344b2bf3f6eaabb64303b7022f7f6788978a2
+local/public-team-four-retry01/verification.json PASS; SHA256:
+164a106d540018e22229fd653242ed1b6af0d6ffc676a6f3b0d0d14c6c3a0283
+PIDs46908/11216/23572/43520;150.949s;mode2;four humans and no bots.
+Initial match85afce5d222a4d22aa37ce68cc605e1b aborts after all four clients
+receive201 canonical frames. Victim seat0 uses deferred original Reconnect;
+the three surviving clients use authoritative abort/RETURN. All first worlds
+and capacity release before the separate retry gate is opened.
+
+The same four processes call original Play on ticket2 and complete replacement
+match3f4bec7263bb4878a377e8eda58f6499. Only the victim reconnects: attempts
+are2/1/1/1, five total authentications, and all three survivor session objects
+remain identical. Every human retains its own selected deck across reassigned
+seats and issues its native build at canonical frame300/400/500/600. Each client
+receives1,250 contiguous frames matching the replacement journal. Diagnostic
+allied concessions1200/1230 yield result1230, winner1, conceded mask5.
+All four original Continue callbacks route once to End and return to idle
+menus. Exactly two worlds are acquired/released per process, one abort and one
+completed result; no fallback world is created. Both old/new search tickets
+release, and the victim's old failure notice is dismissed on its new search.
+
+First worker38976 exits1 with identified CancelledError: and full supervised
+reaping; replacement worker46744 exits0 without failure/stderr. All tickets,
+offers, rooms, worker capacity, owned processes and both gates release. Covered
+source hashes stay unchanged. Native Quit remains unqualified: probe teardown
+uses forced owned termination after menus are verified.
+
+Pixel review of match-search-46908-2-3-joining.png confirms the original2v2
+Central Mining (Mars) loading art and LOADING... display with no old error notice.
+Image SHA256:10d66ccd9a1a69bd07e8c3ffccc7907381448ea4e349d1b830f13d94011d91d4.
+This is one automated local running-loss retry roster, not mouse input, natural
+combat, every team combination, another PC or Internet acceptance.
+
+local/public-team-four-loading-retry01/verification.json PASS; SHA256:
+532a7e8cd71ffde23822beff3d596a08a2c04c472a0d25bdbf718ec2e04c5664
+Same helper;PIDs22012/9936/49508/32932;138.145s;four mode2 humans, no bots.
+Victim seat3 disconnects during match48021e077a8841d8b438b7ab32ebb1c0's
+asynchronous loading, before any loaded ACK/world-ready marker. Both native and
+server frame counts remain zero. All first worlds/capacity retire, then the
+separate retry gate opens. The same processes complete ticket2 replacement
+954cc5b5f2a34f6aab3b7c77551b47a7 with1,250 canonical receipts each, all four
+native builds at their assigned frames, retained human decks and original
+results/Continue/idle returns. Concessions1200/1230 yield winner1, mask5.
+Exactly five authentications and attempts2/1/1/1 preserve all three survivor
+session objects. Workers18740/14352 both exit0 without failure/stderr. All worlds,
+tickets, offers, rooms, workers, processes and both gates release; covered source
+hashes remain unchanged. This adds the loading timing branch and a victim on the
+other alliance; additional partial/team-bot retry rosters remain unqualified.

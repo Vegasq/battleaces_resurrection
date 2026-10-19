@@ -2,6 +2,23 @@ IMPLEMENTATION LEDGER
 Updated: 2026-10-18 UTC
 Active objective: implement SERVER_REPLACEMENT_PLAN.txt, Windows only.
 
+GRAPHICAL TEAM RETRY (2026-10-19 UTC, EXPERIMENTAL)
+Four graphical2v2 humans now pass loading/running-loss -> idle cleanup -> fresh ticket2
+-> complete replacement match -> result/Continue in the same processes. The
+three surviving session objects remain identical; only the lost connection
+reauthenticates. All clients receive201 exact aborted-prefix frames and1,250
+exact replacement frames, retain their own decks and issue canonical builds.
+The loading case runs zero aborted frames and also receives1,250 exact
+replacement frames per client; both workers exit normally.
+All eight world leases, both matches' tickets/rooms/workers and diagnostic gates
+release. The victim's old failure banner clears before the new original loading
+screen. New helper changes only explicit diagnostic gates/second Continue;
+ordinary launchers gain no automation. Eight C++ component programs/helper
+build and37 focused Python checks pass; one optional native fixture skips.
+See team-recovery.txt for exact report/helper hashes, worker cancellation and
+forced-teardown limits. Additional retry rosters/timing, remote/local switching,
+ordinary enablement, manual/Internet acceptance and native Quit remain open.
+
 PUBLIC TEAM RECOVERY (2026-10-19 UTC, EXPERIMENTAL)
 Two graphical human allies in2vAI now pass loading and frame200 connection-loss
 injection. Four graphical humans in2v2 also pass frame200 loss: all four worlds
@@ -16,7 +33,7 @@ fixture skipped, no failures. See team-recovery.txt for hashes and boundaries.
 The ordinary completed-match regression also passes two-human/two-bot2v2 after
 a real29.990-second wait: both timers0..29, distinct builds/decks,1,221 exact
 frames each, result/Continue and clean world/worker release.
-Graphical post-abort requeue, further timing/partial rosters, mode switches,
+Further post-abort retry timing/partial rosters, mode switches,
 manual/Internet acceptance and native Quit remain open.
 
 MULTIPLE GRAPHICAL HUMAN CLIENTS (2026-10-18 UTC, EXPERIMENTAL)

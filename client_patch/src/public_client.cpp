@@ -269,23 +269,29 @@ static void update(Obj front) {
     }
 }
 static bool smokeGate() {
-    const auto key=ba::argument(L"-public-queue-smoke-gate=");if(key.empty())return true;
+    const auto key=ba::argument(L"-public-queue-smoke-gate=");
+    const bool retry=smokeStarted==1 && ba::flag(L"-public-queue-smoke-retry-gate");
+    if(retry)require(!key.empty() && ba::flag(L"-public-queue-smoke-retry"),"public retry gate requires a keyed retry probe");
+    if(key.empty())return true;
     require(key.size()==32 && std::all_of(key.begin(),key.end(),[](char c){return (c>='0' && c<='9') || (c>='a' && c<='f');}),
         "public diagnostic gate must be a32-digit lowercase hex identifier");
-    static bool released=false;static ULONGLONG began=0;
+    static bool releases[2]={};static ULONGLONG beginnings[2]={};
+    bool& released=releases[retry?1:0];ULONGLONG& began=beginnings[retry?1:0];
     if(released)return true;
-    if(!began){began=GetTickCount64();ba::log("PUBLIC QUEUE SMOKE waiting for shared gate: key=%s idleMenu=1",key.c_str());}
+    if(!began){began=GetTickCount64();ba::log(retry?"PUBLIC QUEUE SMOKE waiting for retry gate: key=%s idleMenu=1":
+        "PUBLIC QUEUE SMOKE waiting for shared gate: key=%s idleMenu=1",key.c_str());}
     require(GetTickCount64()-began<180000,"public diagnostic start gate timed out");
     wchar_t module[32768];const DWORD length=GetModuleFileNameW(ba::module,module,32768);
     require(length && length<32768,"public diagnostic installation path unavailable");
     wchar_t* slash=wcsrchr(module,L'\\');require(slash!=nullptr,"public diagnostic installation path invalid");*(slash+1)=0;
-    const std::wstring path=std::wstring(module)+L"investigation\\runtime\\public-queue-"+std::wstring(key.begin(),key.end())+L".ready";
+    const std::wstring path=std::wstring(module)+L"investigation\\runtime\\public-queue-"+std::wstring(key.begin(),key.end())+(retry?L"-retry.ready":L".ready");
     const DWORD attributes=GetFileAttributesW(path.c_str());
     if(attributes==INVALID_FILE_ATTRIBUTES) {
         const DWORD error=GetLastError();require(error==ERROR_FILE_NOT_FOUND || error==ERROR_PATH_NOT_FOUND,"public diagnostic gate unreadable");return false;
     }
     require(!(attributes&(FILE_ATTRIBUTE_DIRECTORY|FILE_ATTRIBUTE_REPARSE_POINT)),"public diagnostic gate must be an ordinary file");
-    released=true;ba::log("PUBLIC QUEUE SMOKE shared gate released: key=%s",key.c_str());return true;
+    released=true;ba::log(retry?"PUBLIC QUEUE SMOKE retry gate released: key=%s":
+        "PUBLIC QUEUE SMOKE shared gate released: key=%s",key.c_str());return true;
 }
 static void smoke(Obj front) {
     const unsigned attempts=ba::flag(L"-public-queue-smoke-retry")?2:1;

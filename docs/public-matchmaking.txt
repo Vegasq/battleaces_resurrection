@@ -462,7 +462,7 @@ Sources stay unchanged and the owned game is reaped. Together with the separate
 presentation paths; actual mouse input and all-mode release acceptance remain.
   report SHA256:6299487085a0c7ea08de2e5f963c3eda9d5c86081a2c50d98948be3fe237e69c
 
-Remaining: team failure coverage, remote/local transitions,
+Remaining: further team failure coverage, remote/local transitions,
 requeue/late-proposal stress, other partial rosters, manual human team play,
 ordinary entry-point enablement, Internet play and final release acceptance.
 
@@ -473,3 +473,13 @@ one local world, three exact bot joins and owned movement/result bindings,
 and native Continue. Practice cannot overlap its search. This does not permit
 fallback after an ambiguous READY/commit; the original attempt guards remain.
 Full hashes, natural local team/rematch evidence and limits: team-modes.txt.
+
+Graphical team recovery follow-up (2026-10-19 UTC):2vAI loading/running loss and
+four-human2v2 running loss release every native world, preserving survivor
+connections. A four-human2v2 loading/running-loss retry then completes a fresh ticket2
+match in the same processes:201 exact aborted frames and1,250 exact replacement
+frames each, one victim reauthentication, three identical survivor sessions,
+preserved decks/native builds and all results/Continue/capacity release. The
+loading branch has zero aborted frames and1,250 exact replacement frames each;
+both workers exit0. See
+team-recovery.txt for full report/helper hashes and bounded acceptance limits.

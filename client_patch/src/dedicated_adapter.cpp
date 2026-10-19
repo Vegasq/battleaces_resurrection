@@ -268,10 +268,13 @@ static void rematchSmoke(Obj server) {
     if(ba::get<Obj>(fsm,"_currentState")!=ba::read<Obj>(ba::owner,0x2f0))return;
     // The public recovery probe aborts its first joined world before any result.
     // Continue the second session's first valid result only under explicit test
-    // flags and an observed native Reconnect. Normal play has no automation.
-    const bool publicRecovery=startedSessions==2 && recoverySmokeStage==1 &&
+    // flags and an observed native Reconnect. A team retry probe also includes
+    // survivors that returned through an authoritative abort without Reconnect.
+    // Both diagnostic paths are bounded to the second session's result.
+    const bool publicRecovery=startedSessions==2 &&
         ba::flag(L"-public-queue-smoke") && ba::flag(L"-public-queue-smoke-retry") &&
-        ba::flag(L"-dedicated-recovery-smoke");
+        ((recoverySmokeStage==1 && ba::flag(L"-dedicated-recovery-smoke")) ||
+         (ba::unified() && ba::flag(L"-public-queue-experimental") && ba::flag(L"-public-team-retry-smoke")));
     if(startedSessions>=2 && !publicRecovery) {
         if(!smokeFinished){smokeFinished=true;ba::log("DEDICATED REMATCH SMOKE automated two-match flow finished; leaving second native result screen open");}
         return;
