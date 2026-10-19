@@ -175,8 +175,12 @@ Current implementation sequence for these additions (2026-10-18):
    graphical human allies in2vAI and four graphical humans in2v2 now pass local
    integration. Winners/losers return after the public reward-flow fix; see
    public-results.txt. Three-human2v2 shared bot fill after a real30-second wait
-   also passes. Remaining partial rosters, team failures and mode-switch release
-   gates remain open; do not enable ordinary paths from component tests alone.
+   also passes, as does two-human/two-bot2v2 after the real30-second wait with
+   exact frames/result/Continue. Two graphical2vAI allies now pass loading/running disconnect;
+   four graphical2v2 humans pass running disconnect with all three surviving
+   sessions retained. See team-recovery.txt. Further partial rosters, graphical
+   post-abort requeue and mode-switch release gates remain open; do not enable
+   ordinary paths from component tests alone.
    Manual and Internet team acceptance remain separate.
 4. Implement generation-bound public queues/fallback and human-only Custom,
    then qualify cancellation,late starts,partial groups,results and repeated
@@ -186,8 +190,10 @@ Current implementation sequence for these additions (2026-10-18):
    adapter binds events to search/loading/world leases. Native cancellation,
    delayed-ACK retry, immediate post-READY loss and lost RETURN ACK now pass;
    isolated1v1 assignment/mid-load/mid-match loss also retires safely, with fresh
-   match retries and native result/Continue where requested. Team failures and
-   remote/local mode-switch recovery remain open. Local1v1
+   match retries and native result/Continue where requested. Graphical team
+   loading/running loss now releases every world and preserves surviving sessions;
+   a server socket regression completes a new match on the same surviving session.
+   Graphical team requeue and remote/local mode-switch recovery remain open. Local1v1
    fallback passes without authentication or a server worker. Experimental local
    three-bot2v2 now passes exact joins, every bot's production/ordered movement,
    result bindings and native Continue/cleanup. Offline2vAI now passes two natural

@@ -339,6 +339,56 @@ class PublicQueueTests(DedicatedFixture):
         self.assertEqual(self.server.room_count(), 0)
         await self.queue(peer, ticket=2)
 
+    async def test_team_disconnect_preserves_survivor_session_and_allows_fresh_match(self):
+        await self.start_public()
+        for running in (False, True):
+            with self.subTest(running=running):
+                victim = await self.online(f'drop_{running}')
+                survivor = await self.online(f'stay_{running}')
+                for peer in (victim, survivor):
+                    await self.queue(peer, mode=5)
+                room = await self.accept([victim, survivor])
+                original_session = self.server.community.sessions[survivor.profile]
+                worker = room.sim
+                if running:
+                    await self.play_frames(room, [victim, survivor], count=1)
+                self.assertEqual(room.state, 'running' if running else 'loading')
+                await victim.close()
+                await wait_until(lambda: victim.profile not in self.server.community.sessions)
+                notice = c.Reader(await survivor.receive(c.ABORTED))
+                self.assertEqual(notice.text(), room.match_id)
+                self.assertEqual(notice.text(), 'public player disconnected')
+                notice.end()
+                self.assertEqual(room.state, 'closed')
+                self.assertTrue(worker.closed)
+                self.assertIsNotNone(worker.process.poll())
+                self.assertEqual(self.server.room_count(), 0)
+                self.assertFalse(self.public.busy(victim.profile))
+                self.assertTrue(self.public.busy(survivor.profile))
+                self.assertIs(self.server.community.sessions[survivor.profile], original_session)
+                self.assertFalse(original_session.peer.closed)
+                await self.public_command(survivor, q.RETURN, match=room.match_id)
+                self.assertIsNone(original_session.peer.room)
+                self.assertIsNone(original_session.peer.slot)
+                self.assertFalse(self.public.entries)
+                self.assertFalse(self.public.offers)
+                self.assertEqual(sum(row['event'] == 'match_aborted' and row['match'] == room.match_id
+                                     for row in self.events), 1)
+
+                replacement = await self.online(f'new_{running}')
+                await self.queue(survivor, mode=5, ticket=2)
+                await self.queue(replacement, mode=5)
+                fresh = await self.accept([survivor, replacement])
+                self.assertNotEqual(fresh.match_id, room.match_id)
+                self.assertIsNot(fresh.sim, worker)
+                self.assertIs(self.server.community.sessions[survivor.profile], original_session)
+                await self.play_frames(fresh, [survivor, replacement], count=1)
+                await fresh.finish('authored replacement result', result={'complete': True})
+                for peer in (survivor, replacement):
+                    await self.public_command(peer, q.RETURN, match=fresh.match_id)
+                self.assertFalse(self.public.entries)
+                self.assertFalse(self.public.offers)
+
     async def test_disconnect_during_worker_creation_reaps_late_worker_and_never_publishes_start(self):
         entered, release = asyncio.Event(), asyncio.Event()
         async def delayed(data, bots):

@@ -2,7 +2,12 @@ TEAM MODES - BUILD 37822 CONTRACT
 Updated:2026-10-18. Static, headless and graphical qualification below.
 Two graphical human allies in2vAI and four graphical humans in2v2 now pass
 automated local integration. A three-human2v2 group also passes the real30-second
-wait and shared bot fill. Manual/Internet acceptance and team failures remain open.
+wait and shared bot fill. Two-human/two-bot2v2 also passes the real30-second
+wait,1,221 exact frames each and original result/Continue. Graphical2vAI
+loading/running loss and four-human2v2
+running loss now pass cleanup; surviving connections remain open. See
+team-recovery.txt. Graphical post-abort requeue and manual/Internet acceptance
+remain open, alongside further timing/partial-roster qualification.
 
 The final product requires public2v2 and2vAI even with one offline human. Multiple
 1v1 rooms do not satisfy this. A partial online human group must stay in one

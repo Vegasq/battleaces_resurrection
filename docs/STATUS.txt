@@ -2,6 +2,23 @@ IMPLEMENTATION LEDGER
 Updated: 2026-10-18 UTC
 Active objective: implement SERVER_REPLACEMENT_PLAN.txt, Windows only.
 
+PUBLIC TEAM RECOVERY (2026-10-19 UTC, EXPERIMENTAL)
+Two graphical human allies in2vAI now pass loading and frame200 connection-loss
+injection. Four graphical humans in2v2 also pass frame200 loss: all four worlds
+release, and all three surviving clients return through authoritative abort/
+RETURN while retaining their connections. Each running client has201 exact
+canonical frame receipts. One deliberately interrupted worker is killed/reaped
+with an identified CancelledError; the other two exit normally. Production
+helper/server behavior is unchanged. A real-socket synthetic regression also
+plays a fresh match on the survivor's same session after loading/running loss.
+The focused public/recovery/launcher suite runs36 tests, one optional native
+fixture skipped, no failures. See team-recovery.txt for hashes and boundaries.
+The ordinary completed-match regression also passes two-human/two-bot2v2 after
+a real29.990-second wait: both timers0..29, distinct builds/decks,1,221 exact
+frames each, result/Continue and clean world/worker release.
+Graphical post-abort requeue, further timing/partial rosters, mode switches,
+manual/Internet acceptance and native Quit remain open.
+
 MULTIPLE GRAPHICAL HUMAN CLIENTS (2026-10-18 UTC, EXPERIMENTAL)
 Two independent game clients now complete2vAI as allies0/2 against server bots,
 with4,095 exact authoritative frame receipts each. A four-human2v2 run exposed

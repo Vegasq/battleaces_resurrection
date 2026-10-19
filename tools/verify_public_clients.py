@@ -114,10 +114,11 @@ async def run(args):
         bot_catalog=catalog, sim_factory=factory, ai_factory=factory, audit=observe, data_dir=output,
         audit_state=False, input_timeout=30, tls_context=tls.load_server_context(pki['cert'], pki['key']),
         admission=admission.AdmissionController(Store()))
-    started, gate_created = time.monotonic(), False
+    started, gate_created, fault = time.monotonic(), False, None
     report = dict(passed=False, scope=__doc__, mode=args.mode, humans=args.humans, visible=args.visible,
         helper_sha256=hashlib.sha256((game/'BattleAcesOffline.dll').read_bytes()).hexdigest(),
-        source_sha256_at_start=source_hashes(), game_pids=[], client_arguments=[], launch_ticks=[])
+        source_sha256_at_start=source_hashes(), disconnect=args.disconnect,
+        game_pids=[], client_arguments=[], launch_ticks=[])
     clock = ctypes.WinDLL('kernel32').GetTickCount64
     clock.restype = ctypes.c_ulonglong
     try:
@@ -146,6 +147,8 @@ async def run(args):
                         '-match-search-smoke']
             if index == 1:
                 command.append('-public-queue-smoke-edit-deck')
+            if args.disconnect and index == 0:
+                command.append('-dedicated-recovery-smoke')
             startup = subprocess.STARTUPINFO()
             startup.dwFlags |= subprocess.STARTF_USESHOWWINDOW
             startup.wShowWindow = 1 if args.visible else 0
@@ -164,14 +167,19 @@ async def run(args):
             report['launch_ticks'].append(record['tick'])
             (output/'processes.json').write_text(json.dumps(report, indent=2)+'\n', encoding='utf-8')
         while True:
-            for record in clients:
+            for index, record in enumerate(clients):
                 require(record['process'].poll() is None, 'owned game exited before native return')
                 require(not record['task'].done(), 'private bridge exited before native completion')
                 record['log'] = read_native_log(game, record['process'].pid, since_tick=record['tick'])
                 for failure in ('Public client failure:', 'Client lifecycle invariant failed:', 'Practice stopped in ',
-                                'Offline loop stopped in ', 'LAN normal-build smoke disabled', 'LAN normal-build smoke stopped',
+                                'LAN normal-build smoke disabled', 'LAN normal-build smoke stopped',
                                 'Public result Continue routing failed:'):
                     require(failure not in record['log'], 'native failure: '+failure)
+                for failure in re.findall(r'Offline loop stopped in [^\n]*', record['log']):
+                    require(fault is not None and index == 0 and re.fullmatch(
+                        r'Offline loop stopped in (?:LAN update|LAN front update|dedicated session update): '
+                        r'(?:match server disconnected before a result|Secure session is closed)', failure.rstrip('\r')),
+                        'unexpected native stop: '+failure)
                 require('inner=ProvingGroundsState' not in record['log'], 'public result entered retired progression reward flow')
             if not gate_created and all('PUBLIC QUEUE SMOKE waiting for shared gate: key='+gate_key in row['log'] for row in clients):
                 require(not any('Public search intent:' in row['log'] for row in clients), 'Play started before every menu was ready')
@@ -179,20 +187,51 @@ async def run(args):
                     pass
                 gate_created = True
                 observe('probe_shared_gate_released', clients=len(clients))
-            if all('PUBLIC QUEUE completed return:' in row['log'] for row in clients):
+            if args.disconnect and fault is None:
+                joined = all('Public native match joined: ticket=1 ' in row['log'] for row in clients)
+                received = [[int(value) for value in re.findall(r'LAN received frame (\d+),', row['log'])] for row in clients]
+                reached = joined and (args.disconnect == 'loading' or all(values and max(values) >= 200 for values in received))
+                if reached:
+                    entry = server.community.public.entries.get(identities[0][0])
+                    require(entry is not None, 'disconnect target has no current public entry')
+                    peer, room = entry.session.peer, entry.session.peer.room
+                    require(room is not None and not peer.closed and len(room.peers) == args.humans,
+                            'disconnect target room missing or roster changed')
+                    if args.disconnect == 'loading':
+                        require(room.state == 'loading' and not room.loaded and
+                                all('Offline world ready;' not in row['log'] for row in clients),
+                                'team loading disconnect missed the asynchronous map-load window')
+                    else:
+                        require(room.state == 'running' and room.loaded == set(room.peers) and
+                                all('Offline world ready;' in row['log'] for row in clients),
+                                'team running disconnect did not reach every loaded native world')
+                    fault = dict(stage=args.disconnect, match=room.match_id, victim_index=0, victim_seat=peer.slot,
+                                 room_state=room.state, last_native_frames=[max(values, default=-1) for values in received],
+                                 log_offsets=[len(row['log']) for row in clients])
+                    observe('probe_disconnect', **fault)
+                    report['injected_disconnect'] = fault
+                    peer.close()
+            victim_retired = 'reason=connection lost after match acceptance nativeIdle=1 disconnect=1' in clients[0]['log']
+            if (fault and victim_retired and all('PUBLIC QUEUE completed return:' in row['log'] for row in clients[1:]) or
+                    not args.disconnect and all('PUBLIC QUEUE completed return:' in row['log'] for row in clients)):
                 break
             require(time.monotonic()-started < args.timeout, 'multi-client public match timed out')
-            await asyncio.sleep(.2)
+            await asyncio.sleep(.02 if args.disconnect and fault is None else .2)
         require(gate_created, 'shared start gate was bypassed')
         completed = [row for row in events if row['event'] == 'match_completed']
+        aborted = [row for row in events if row['event'] == 'match_aborted']
         offered = [row for row in events if row['event'] == 'public_match_offered']
         entered = [row for row in events if row['event'] == 'public_queue_entered']
-        require(len(completed) == len(offered) == len(workers) == 1 and len(entered) == args.humans,
-                'humans did not complete exactly one shared match/offer/worker')
-        require(not any(row['event'] == 'match_aborted' for row in events), 'shared match aborted')
+        require(len(offered) == len(workers) == 1 and len(entered) == args.humans,
+                'humans did not share exactly one offer/worker')
+        if args.disconnect:
+            require(fault is not None and len(aborted) == 1 and not completed and aborted[0]['match'] == fault['match'],
+                    'injected team disconnect did not abort exactly its shared match')
+        else:
+            require(len(completed) == 1 and not aborted, 'shared match did not complete normally')
         require(sorted(authenticated) == sorted(player for player, token in identities) and attempts == [1]*args.humans,
                 'authentication/connection ownership differs')
-        match, offer = completed[0]['match'], offered[0]
+        match, offer = (aborted if args.disconnect else completed)[0]['match'], offered[0]
         require(match == offer['match'] and set(offer['humans']) == set(authenticated), 'human group split across matches')
         total, available_seats = q.MODES[args.mode]
         expected_seats = set(available_seats[:args.humans])
@@ -220,37 +259,77 @@ async def run(args):
             require(key == match and int(mode) == args.mode and int(count) == total and seat in expected_seats and
                     int(mask) == sum(1 << value for value in expected_seats), 'native assigned topology differs')
             require(manifest['profiles'][str(seat)] == identities[index][0], 'human seat/profile binding differs')
-            require(log.count('Public native match joined:') == log.count('PUBLIC QUEUE completed return:') == 1 and
+            require(log.count('Public native match joined:') == 1 and
+                    log.count('PUBLIC QUEUE completed return:') == (0 if args.disconnect and index == 0 else 1) and
                     log.count('Client world acquired:') == log.count('owner=remote nativeIdle=1') == 1 and
                     'Public fallback accepted:' not in log and 'owner=local-practice' not in log,
                     'native match/world/return ownership differs')
             require('PUBLIC QUEUE SMOKE original OnMapSelected:' in log and 'Native search joining signal:' in log and
                     'Native search released:' in log, 'original search/loading lifecycle missing')
-            require(log.count(f'Public result Continue routed: mode={args.mode} source=remote next=End') == 1,
-                    'native public Continue did not finish its reward-free result flow')
+            require(log.count(f'Public result Continue routed: mode={args.mode} source=remote next=End') == (0 if args.disconnect else 1),
+                    'native result Continue count differs from completed/aborted flow')
             require(index != 1 or 'DEDICATED REMATCH SMOKE automated native deck edit:' in log, 'second native deck edit missing')
             frame = 300+100*seat
             build = re.search(rf'LAN NORMAL BUILD smoke frame{frame} slot{seat} army{seat} [^\r\n]+', log)
-            require(build is not None and 'queued=1 commandQueueDelta=1' in build[0], 'human normal build was not queued')
+            if not args.disconnect:
+                require(build is not None and 'queued=1 commandQueueDelta=1' in build[0], 'human normal build was not queued')
             receipts = runtime/f'dedicated-receipts-{pid}-{match}.tsv'
-            rows = list(csv.DictReader(receipts.read_text(encoding='utf-8').splitlines(), delimiter='\t'))
-            require(len(rows) == len(authoritative) >= 600 and [int(row['frame']) for row in rows] == list(range(len(rows))),
-                    'native receipt sequence/count differs from authoritative frames')
-            require(all(row['sha256'] == authoritative[int(row['frame'])] for row in rows), 'native frame differs from authoritative journal')
-            shutil.copyfile(receipts, output/receipts.name)
+            rows = list(csv.DictReader(receipts.read_text(encoding='utf-8').splitlines(), delimiter='\t')) if receipts.exists() else []
+            minimum = 0 if args.disconnect == 'loading' else 201 if args.disconnect else 600
+            require(len(rows) >= minimum and [int(row['frame']) for row in rows] == list(range(len(rows))),
+                    'native receipt prefix missing/out of order')
+            require(all(row['sha256'] == authoritative.get(int(row['frame'])) for row in rows), 'native frame differs from authoritative journal')
+            if not args.disconnect:
+                require(len(rows) == len(authoritative), 'native receipt count differs from authoritative frames')
+            elif args.disconnect == 'loading':
+                require(not rows and not authoritative, 'loading abort unexpectedly advanced the simulation')
+            if receipts.exists():
+                shutil.copyfile(receipts, output/receipts.name)
             seconds = [int(value) for ticket, value in re.findall(r'Native search timer: ticket=(\d+) seconds=(\d+)', log) if ticket == '1']
             require(seconds and seconds[0] == 0 and seconds == sorted(seconds), 'native search clock missing/nonmonotonic')
             if not full:
                 require(max(seconds) >= 25, 'partial group search timer did not advance through queue wait')
-            evidence.append(dict(pid=pid, seat=seat, name=record['name'], build_frame=frame, native_build=build[0],
+            if args.disconnect:
+                offset = fault['log_offsets'][index]
+                if index == 0:
+                    markers = ('RECOVERY SMOKE invoking original disconnected modal OnConfirm',
+                               'Dedicated Reconnect callback queued:',
+                               'RECOVERY SMOKE original OnConfirm returned; modalStillOwned=1 queued=1',
+                               'Dedicated retry modal released on later update:',
+                               'Dedicated session reset: match='+match,
+                               'Client world released: generation=1 owner=remote nativeIdle=1',
+                               'Public intent retired: ticket=1 reason=connection lost after match acceptance nativeIdle=1 disconnect=1')
+                    positions = [log.find(value, offset) for value in markers]
+                    require(all(left >= 0 and right > left for left, right in zip(positions, positions[1:])),
+                            'disconnected teammate cleanup/modal/world release order incorrect')
+                    deferred = re.search(r'Dedicated retry modal released on later update: requested=(\d+) current=(\d+)', log)
+                    require(deferred is not None and int(deferred[1]) < int(deferred[2]) and
+                            'Dedicated aborted match: requesting original CleanupGameState(reason=1)' in log,
+                            'disconnected teammate bypassed deferred native cleanup')
+                else:
+                    require(f'Public native return: ticket=1 match={match} aborted=1 nativeIdle=1' in log[offset:],
+                            'surviving teammate did not return through authoritative abort')
+                    session = server.community.sessions.get(identities[index][0])
+                    require(session is not None and not session.peer.closed and session.peer.room is None and
+                            'Dedicated Reconnect callback queued:' not in log,
+                            'surviving teammate lost its existing community connection')
+            evidence.append(dict(pid=pid, seat=seat, name=record['name'], build_frame=frame, native_build=build[0] if build else None,
                                  received_frames=len(rows), native_elapsed_seconds=seconds, deck=manifest['decks'][str(seat)]))
         require({row['seat'] for row in evidence} == expected_seats, 'duplicate/missing native human seat')
+        deadline = time.monotonic()+5
+        while server.community.public.entries or server.community.public.offers or server.rooms or server.worker_cleanup:
+            require(time.monotonic() < deadline, 'public match retained queue/room/worker capacity')
+            await asyncio.sleep(.05)
         require(not server.community.public.entries and not server.community.public.offers and not server.rooms and
                 not server.community.lobbies, 'completed public match retained queue/room/lobby capacity')
         report.update(passed=True, match=match, received_frames=len(authoritative), clients=evidence,
-            full_human_group=full, real_queue_seconds=waits, result=completed[0]['result'],
-            journal_human_builds=journal_builds(output/'matches'/match/'frames.bin', evidence, len(authoritative)),
+            full_human_group=full, real_queue_seconds=waits, result=completed[0]['result'] if completed else None,
             bots=manifest['bots'], remote_attempts=attempts, authentications=len(authenticated))
+        if not args.disconnect:
+            report['journal_human_builds'] = journal_builds(output/'matches'/match/'frames.bin', evidence, len(authoritative))
+        else:
+            report['aborted_match_retired'] = True
+            report['surviving_connections_preserved'] = args.humans-1
     except BaseException as error:
         report.update(passed=False, error=f'{type(error).__name__}: {error}', traceback=traceback.format_exc())
     finally:
@@ -290,14 +369,21 @@ async def run(args):
                     'owned diagnostic gate path changed')
             gate_path.unlink()
         audit.close()
-        cleanup = [dict(pid=worker.pid, exit_code=worker.process.poll(), failure=worker.failure,
-            stderr_tail=worker.stderr_tail[-4096:], owned_resources_reaped=worker.process.poll() is not None and
-            worker._cleanup_task is not None and worker._cleanup_task.done() and not worker._stderr_thread.is_alive()) for worker in workers]
+        cleanup = []
+        for worker in workers:
+            match = next((row['match'] for row in events if row['event'] == 'worker_started' and row['worker_pid'] == worker.pid), None)
+            released = any(row['event'] == 'worker_released' and row['match'] == match and row['worker_pid'] == worker.pid for row in events)
+            reaped = worker.process.poll() is not None and worker._cleanup_task is not None and worker._cleanup_task.done() and not worker._stderr_thread.is_alive()
+            cancelled = bool(fault and args.disconnect == 'running' and match == fault['match'] and released and
+                             worker.process.poll() == 1 and (worker.failure or '').startswith('CancelledError:'))
+            cleanup.append(dict(pid=worker.pid, match=match, exit_code=worker.process.poll(), failure=worker.failure,
+                stderr_tail=worker.stderr_tail[-4096:], owned_resources_reaped=reaped, expected_cancelled_request=cancelled,
+                passed=reaped and ((worker.process.poll() == 0 and not worker.failure) or cancelled)))
         report.update(elapsed_seconds=time.monotonic()-started, worker_cleanup=cleanup,
             owned_processes_reaped=all(record.get('process') is None or record['process'].poll() is not None for record in clients),
             cleanup='forced owned termination, not native Quit', gate_removed=not gate_path.exists(), source_sha256_at_finish=source_hashes())
         report['source_files_unchanged'] = report['source_sha256_at_start'] == report['source_sha256_at_finish']
-        clean = all(row['owned_resources_reaped'] and row['exit_code'] == 0 and not row['failure'] for row in cleanup)
+        clean = all(row['passed'] for row in cleanup)
         if not clean:
             report.setdefault('error', 'worker cleanup failed; see worker_cleanup')
         report['passed'] &= clean and report['owned_processes_reaped'] and report['gate_removed'] and report['source_files_unchanged']
@@ -314,6 +400,8 @@ def main():
     parser.add_argument('--humans', type=int, choices=(2, 3, 4), default=2)
     parser.add_argument('--timeout', type=int, default=600)
     parser.add_argument('--visible', action='store_true')
+    parser.add_argument('--disconnect', choices=('loading', 'running'),
+                        help='explicitly close the first owned client TLS peer; qualify native abort cleanup, not a completed match')
     args = parser.parse_args()
     require(os.name == 'nt' and args.output.resolve().is_relative_to(ROOT/'local') and 120 <= args.timeout <= 900,
             'bounded Windows/ignored probe required')

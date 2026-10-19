@@ -1,0 +1,107 @@
+PUBLIC TEAM DISCONNECT RECOVERY
+Updated:2026-10-19 UTC. Automated graphical clients on one Windows PC.
+
+Implementation and evidence boundary
+tools.verify_public_clients now accepts explicit --disconnect loading|running.
+It closes only the first owned client's current server TLS peer after every
+human has joined the same assigned match. Loading injection requires no loaded
+acknowledgements or native world-ready markers. Running injection requires every
+human's loaded acknowledgement and at least201 received frames. The actual queue
+clock and server timeout policies remain unchanged.
+
+The disconnected client must invoke the original modal OnConfirm, defer release
+of that invoking modal to a later update, run original CleanupGameState, release
+its world and retire its ticket at an idle menu. Surviving clients must process
+the authoritative abort, return at nativeIdle=1 and receive their RETURN ACK;
+their existing community sessions remain open with no assigned room. Exactly one
+offer/worker/match is allowed, with one abort and no completed result. Committed
+matches must not fall back to independent local worlds. All queue/offer/room/
+worker capacity must release. These checks retain normal completed-match checks.
+
+Running receipts must be contiguous prefixes matching the authoritative frame
+hash journal. Loading aborts must have zero native and authoritative frames.
+Only the injected victim may report the two known connection-loss stop reasons.
+Unknown native failures still fail the probe. An interrupted native IPC request
+may produce worker exit1/CancelledError: under the existing kill/reap policy;
+that exception is allowed only for the identified injected running match, with
+its worker_released event and complete process/thread/cleanup reaping. Other
+worker failures and normal completed-match nonzero exits still fail.
+
+No production helper/server behavior changed for this checkpoint. All three
+probes use helper SHA256:
+8a4cb76594476d37161b6b4f995b9a359c8b3e5c3dec80d490f26af11e69e8e8
+The installed disposable copy is isolated from the manual and frozen packages.
+
+Two human allies, loading loss, PASS
+local/public-team-loading01/verification.json SHA256:
+9c8ca3f9b022c7d83e0b603a00e459c1a97a1749e5511c8c188f87db2045cf83
+PIDs50656/18656;36.493s;mode5;match932514e0f81f4322884ed6451dd5ccb5.
+Human seats0/2 have independent decks; server bots occupy1/3 with profile60.
+The full human group is offered0.188s after the oldest ENTER. Peer0 closes while
+the room is loading and neither native world is ready. No frames run. The victim
+returns through deferred native Reconnect; the survivor returns through the
+server abort and retains its connection. Worker6560 exits0 without failure or
+stderr. All worlds/tickets/offers/rooms release and all owned processes reap.
+
+Two human allies, active-match loss, PASS
+local/public-team-running01/verification.json SHA256:
+a02bd5018a9c6bb4faebae63e23bb2af656344e2d8545887eda08ae13d0969ba
+PIDs44444/51688;43.820s;mode5;match71e4f6f3c4854137aac7aa85793cfe6a.
+Both human clients receive201 contiguous frames matching the canonical journal.
+Peer0 closes only after both loaded worlds reach frame200. The victim's deferred
+Reconnect and survivor's authoritative abort both return to idle menus. The
+survivor retains its community connection. Worker21636 exits0 with no failure
+or stderr; all capacity and owned resources release.
+
+Four humans, active-match loss, PASS
+local/public-team-four-running01/verification.json SHA256:
+69023f2b16b907beb3305bb38ed312908f74bc3016a894c3e1674e13c701b9b0
+PIDs46300/34648/27272/27156;69.089s;mode2;no bots;
+match3cf22c86a0a14fc19efb92ddc9ad8e62. Every client receives201 contiguous
+canonical frames. Victim seat1 closes after all four loaded worlds reach200.
+All four worlds release; the other three clients return through authoritative
+abort/RETURN and retain their existing connections, covering both alliances.
+Worker52216 exits1 with the explicitly recorded CancelledError: after its
+in-flight request is interrupted. Its matching worker_released event, completed
+cleanup task and stopped stderr thread establish full reaping. This is deliberate
+failed-worker disposal, not a normal worker exit or an unexplained game crash.
+
+Every report above retains unchanged covered source hashes, removes its shared
+menu gate and reaps owned processes. Game teardown is forced by the diagnostic
+owner after menu qualification; native Quit is not established. No build command
+or surrender occurs before these frame200 injections. Native Continue/result
+routing must remain absent for aborted matches.
+
+Server requeue regression
+test_team_disconnect_preserves_survivor_session_and_allows_fresh_match uses real
+loopback sockets and supervised synthetic workers. It covers loading and running
+loss in mode5, exact abort identity, worker disposal and survivor RETURN. That
+same surviving session then accepts a new teammate on ticket2, enters a distinct
+match/worker, exchanges canonical frames and returns from an authored result.
+This proves server-side reuse without reauthentication. It is not a graphical
+second-match test. The focused public/recovery/launcher suite runs36 tests with
+one explicitly optional native snapshot fixture skipped; no failures.
+
+Remaining qualification
+Graphical team requeue/retry/rematches after abort, additional loss timing and
+partial rosters, remote/local mode switches, manual input/appearance, another PC,
+Internet and native Quit remain separate acceptance gates. An open surviving
+socket alone is not claimed to prove a completed graphical replacement match.
+Diagnostic input/capture/automatic confirmation flags remain opt-in.
+
+Completed-match and partial-roster regression, PASS
+local/public-team-two-partial01/verification.json SHA256:
+2908f93d0363840cc12f26d1e8836d71d995d2621508ac5276b77f7a0af8416a
+Same helper;PIDs36896/11744;136.142s;mode2;
+match77b247996508459da67fe59a278710b7. Two graphical humans occupy seats1/0;
+one profile59 bot fills each alliance at2/3 after the real29.990-second wait.
+Both original search timers advance0..29. Each native build reaches its own
+canonical input frame400/300 with its distinct selected deck. Both clients
+receive1,221 contiguous frames exactly matching the authoritative journal.
+Diagnostic ConcedeGame at1200 produces result1201, winner1, conceded mask5.
+Both original Continue callbacks route once to End and return to menus. All
+worlds/tickets/offers/rooms release; worker21148 exits0 without failure/stderr.
+Covered sources stay unchanged and owned processes/gate are reaped/removed.
+This checks the verifier's ordinary completed-match branch after adding abort
+support and qualifies this two-human partial roster. It is not natural combat
+or manual play, and it does not establish all deck/AI combinations.
