@@ -195,8 +195,11 @@ Current implementation sequence for these additions (2026-10-18):
    a server socket regression completes a new match on the same surviving session.
    Four graphical2v2 humans also complete a ticket2 replacement match after
    loading or running loss without restarting, preserving three survivor sessions and all
-   selected decks. Additional team retry rosters/timing and remote/local
-   mode-switch recovery remain open. Local1v1
+   selected decks. Both failed and completed remote1v1 -> local Try Deck ->
+   fresh remote1v1 now pass in the same processes, retaining names/decks, native
+   bot combat, canonical frames and result/Continue/release. See
+   remote-local-transitions.txt. Additional team retry rosters/timing and
+   team/Custom remote/local mode-switch recovery remain open. Local1v1
    fallback passes without authentication or a server worker. Experimental local
    three-bot2v2 now passes exact joins, every bot's production/ordered movement,
    result bindings and native Continue/cleanup. Offline2vAI now passes two natural

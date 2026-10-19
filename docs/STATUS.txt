@@ -2,6 +2,23 @@ IMPLEMENTATION LEDGER
 Updated: 2026-10-18 UTC
 Active objective: implement SERVER_REPLACEMENT_PLAN.txt, Windows only.
 
+REMOTE / LOCAL TRANSITIONS (2026-10-19 UTC, EXPERIMENTAL)
+Two same-process graphical flows now pass: failed remote1v1 -> local Try Deck
+-> fresh remote1v1, and completed remote1v1 -> local Try Deck -> fresh remote1v1.
+Both clients preserve configured names and exact selected decks, with fully
+released remote/local/remote world leases. Local bots reach129..137 supply and
+37..48 produced combat units both receive orders and move; original local
+results/Continue release AIManager and all presence before fresh authentication.
+Each completed remote match delivers1,220 exact canonical frames per client,
+native builds, result/Continue and complete capacity/worker release. All workers
+exit0; covered sources stay unchanged and owned processes/gates reap. Changes
+only extend explicit diagnostic sequencing; ordinary launchers gain no automation.
+Eight C++ component programs/helper build and37 Python checks pass; one optional
+native snapshot fixture skips. See remote-local-transitions.txt for exact hashes,
+natural/concession boundaries and forced teardown. Team/Custom match switching,
+cross-process saves, manual/Internet play, ordinary enablement and native Quit
+remain open.
+
 GRAPHICAL TEAM RETRY (2026-10-19 UTC, EXPERIMENTAL)
 Four graphical2v2 humans now pass loading/running-loss -> idle cleanup -> fresh ticket2
 -> complete replacement match -> result/Continue in the same processes. The

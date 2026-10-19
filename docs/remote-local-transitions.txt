@@ -1,0 +1,117 @@
+REMOTE / LOCAL MATCH TRANSITIONS
+Updated:2026-10-19 UTC. Failed/completed1v1 transitions qualified; not release acceptance.
+
+Existing application contract
+client_lifecycle.prepareLocal requires no world owner and no active public intent,
+then retires community control at an idle menu and restores the application-local
+identity. Local Try Deck retains the native selected deck and runs its own AI
+world. practice_ai.release requires an idle native world, zero AIManager world
+and an empty AI-player collection before freeing roots and releasing the local
+world lease. A later public Play requests a fresh authenticated connection and
+submits the retained local deck. These are existing production ownership rules.
+
+Native diagnostic extension
+verify_public_clients --practice-between requires the separately gated remote
+retry flow. After the first remote match fully retires, a third ordinary-file
+gate permits the original Edit Deck / Try Deck callbacks in each same process.
+practice_ai smoke remains suppressed during public search or world ownership.
+Only explicit public/practice transition smoke flags allow this new sequencing;
+ordinary launcher/gameplay behavior is unchanged. The normal shared gate and
+practice gate each keep their180-second bound. Only this explicit probe's final
+retry gate allows600 seconds while local AI combat is being qualified. Server
+queue deadlines, input timeouts and readiness rules are unchanged.
+
+Before the final remote gate opens, each local match must produce owned bot
+supply and demonstrate both autonomous Move/Attack orders and changed positions
+for the same produced unit IDs. Native snapshots must retain the configured
+human name and the exact deck from the first remote assignment. The original
+local result/Continue must run once and release the local world/AIManager.
+No new remote connection, authentication, room or worker may occur during local
+practice. Community presence must be fully retired. Final remote Play must use
+new sessions, keep those same names/decks, deliver exact canonical frames and
+native builds, finish original result/Continue, and release all owned capacity.
+
+This differs from direct team retry: direct retry preserves survivor connections;
+entering offline practice intentionally retires them. These expectations are
+checked independently. Merely returning to an idle menu does not prove combat,
+mode switching or cross-process persistence.
+
+Failed-remote -> local Try Deck -> remote, PASS
+Isolated helper SHA256:
+d3fec368dcb19f41bb5431482c048860814c3be158cde51efbeb94870d03e3c3
+Eight C++ component programs and the helper build pass;37 focused Python checks
+pass and one optional native snapshot fixture skips.
+local/public-practice-transition01/verification.json SHA256:
+476795282b36ac97c51d47702911c5aee42b8230be251904141f53cefe1dae94
+PIDs21148/44528;329.510s;mode1/two humans. Initial match
+84980bdf926648f9a5618e0ecd78f085 aborts after both loaded clients reach200;
+each receives202 contiguous canonical frames before teardown. Victim seat0
+uses deferred original Reconnect; the survivor returns through authoritative
+abort/RETURN. The first remote worlds and capacity release before local practice.
+
+Local matches428441f607316a94d3c3bb2b08f9fd27 and
+3adfb1336c0e89f13bd3605ed3c6a3d0 retain each client's configured name and exact
+selected deck. Original AI reaches135/131 supply;37/40 owned produced combat
+units both receive autonomous orders and change position. The first local game
+uses diagnostic ConcedeGame at3600; the second finishes before that concession
+without an automated surrender marker. Both original results/Continue pass and
+release the AIManager/local world. No authentication, room or server worker is
+created during these local matches, and all community presence is retired.
+
+The same two processes then authenticate fresh sessions and complete remote
+match8a7f8b539b334782babb831d2a1507ee on ticket2. Attempts2/2 and four total
+authentications establish fresh connections after offline practice. Each client
+receives1,220 canonical frames and submits its original build at its reassigned
+seat's frame300/400, retaining its own name/deck. Diagnostic concession1200 gives
+winner1, conceded mask1. Both original public Continue callbacks route to End
+and return to menus. Each process acquires/releases remote -> local -> remote
+leases in order, without an overlapping or fallback world. Workers17848/10824
+both exit0 without failure/stderr. All rooms/tickets/offers/workers/processes and
+three gates release; covered source hashes remain unchanged.
+
+This establishes the running-failure transition for this two-human roster.
+The normally completed remote-result transition is qualified separately below.
+All callback,
+build, surrender and Continue automation is explicitly diagnostic. Forced owned
+teardown, another PC, Internet, ordinary launcher enablement, natural combat,
+manual appearance, cross-process save persistence and native Quit remain outside
+this probe's scope.
+
+Completed remote -> local Try Deck -> remote, PASS
+local/public-practice-transition-normal01/verification.json SHA256:
+adc099a33de8dbf1d2ba965114c967302cbd84ddf7eb9fe4d3287f89068d28f0
+Helper SHA256:
+20e5270af4c9931cee3989dbf53f8dbd4d95ee8f7c95bec2ff7e708ef40b7a04
+PIDs38828/42756;382.122s;two human1v1 clients, no injected disconnect.
+First remote match2fb32e8237104ff186529f33dc6e8ac3 and final remote
+be72e5f1b05f4a4fb0366dd68d484af2 each deliver1,220 contiguous canonical
+frames per client. Both remote result/Continue flows finish, preserving native
+public mode. Each client's public Continue hook runs exactly twice. Each human
+retains its selected deck/name through reassigned seats and submits canonical
+native builds in the final remote match.
+
+Between them, local matches5f05c9bcfd5c713e67935a9559fae797 and
+09e7cf8abe985625a3e09c4685f7aa6b preserve the same two selections and names.
+Original bots reach129/137 supply;41/48 produced combat units both receive
+autonomous orders and move. The first finishes before diagnostic concession;
+the second invokes original ConcedeGame at3600. Each local result/Continue and
+AIManager/world release passes. Offline practice creates no remote connection,
+authentication, room or worker, and retires all old community presence.
+
+Final remote Play creates fresh authenticated sessions: attempts2/2, four total
+authentications, no reused retired session. Both server workers37420/18620 exit0
+without failure/stderr. All six world leases, rooms, tickets, offers, workers,
+owned processes and three gates release. Covered source hashes stay unchanged.
+Eight component programs/helper build and37 Python checks pass, one optional
+native snapshot fixture skips. The additional helper change only rearms the
+second remote result's diagnostic Continue after the first result retires,
+under the full explicit public/practice transition flags. Ordinary gameplay
+receives no automatic Continue or other automation.
+
+Remaining boundaries
+These two same-process flows qualify mode1 remote play and local mode4 practice,
+including failed and normally completed first remote worlds. They do not qualify
+remote team -> local team switches, actual Custom-match switches, repeated long
+soaks, cross-process profile/cosmetic persistence, another PC, Internet, manual
+appearance, normal launcher enablement or native Quit. No manual/frozen game
+copy or package was updated by these tests.

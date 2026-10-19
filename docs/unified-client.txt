@@ -205,3 +205,14 @@ Diagnostic surrender at3600, result/Continue and empty AIManager/world release
 pass twice. Sources stay unchanged; owned process is forcibly reaped. Native
 Quit, actual public/Custom match switching, cross-process persistence and mouse
 interaction are not qualified by this regression. Team evidence: team-modes.txt.
+
+Actual remote1v1 / local practice transitions (2026-10-19 UTC)
+Failed remote1v1 -> local Try Deck -> fresh remote1v1 and completed remote1v1
+-> local Try Deck -> fresh remote1v1 now pass in the same two graphical processes.
+Names/decks persist, every local bot produces and autonomously moves owned combat
+units, original results/Continue release all worlds, and the final remote matches
+deliver1,220 canonical frames each. Offline practice retires community presence;
+new remote Play authenticates new sessions. These are distinct from direct team
+retry, which retains survivor connections. Exact hashes, concession/natural
+boundaries and remaining team/Custom/persistence/manual/Quit gates are in
+remote-local-transitions.txt. Only explicit diagnostic flags sequence the tests.

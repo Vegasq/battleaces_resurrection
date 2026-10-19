@@ -769,7 +769,9 @@ static bool publicSmoke(Obj front,int mode) {
     return true;
 }
 static void smoke(Obj front) {
-    if(ba::flag(L"-public-queue-smoke"))return; // That probe owns the original public button.
+    // A separately gated diagnostic may run one local Try Deck after the first
+    // public intent retires. Ordinary public probes continue to own the buttons.
+    if(ba::flag(L"-public-queue-smoke") && !ba_public::smokePracticeReady())return;
     if(!ba::flag(L"-practice-ai-smoke"))return;
     const auto& modes=smokeModes();
     const size_t matches=modes.empty()?(ba::argument(L"-practice-ai-smoke-matches=","1")=="2"?2u:1u):modes.size();

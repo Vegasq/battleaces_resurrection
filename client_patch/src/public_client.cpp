@@ -22,6 +22,11 @@ static bool smokeCancelled=false;
 static uint64_t smokeRetryAt=0;
 static auto& oldMatches=*new std::deque<std::string>();
 static bool active(){return static_cast<bool>(current);}
+static bool smokeGate(bool practice=false);
+static bool smokePracticeReady() {
+    return ba::flag(L"-public-practice-transition-smoke") && ba::flag(L"-public-queue-smoke") &&
+        ba::flag(L"-public-queue-smoke-retry-gate") && lastTicket==1 && !active() && smokeGate(true);
+}
 static bool deckLocked(){return current && current->intent.entered && !current->intent.retired;}
 static bool ignoreMatchData(){return current && (current->intent.cancelled || current->aborting);}
 static void controlReset(){if(current){current->lost=true;current->failure="community connection retired";}}
@@ -268,29 +273,33 @@ static void update(Obj front) {
         if(current){current->lost=true;current->failure=error.what();current->intent.cancelled=true;}
     }
 }
-static bool smokeGate() {
+static bool smokeGate(bool practice) {
     const auto key=ba::argument(L"-public-queue-smoke-gate=");
     const bool retry=smokeStarted==1 && ba::flag(L"-public-queue-smoke-retry-gate");
+    if(practice)require(ba::flag(L"-practice-ai-smoke") && ba::flag(L"-public-practice-transition-smoke"),
+        "public practice gate requires explicit local transition diagnostics");
     if(retry)require(!key.empty() && ba::flag(L"-public-queue-smoke-retry"),"public retry gate requires a keyed retry probe");
     if(key.empty())return true;
     require(key.size()==32 && std::all_of(key.begin(),key.end(),[](char c){return (c>='0' && c<='9') || (c>='a' && c<='f');}),
         "public diagnostic gate must be a32-digit lowercase hex identifier");
-    static bool releases[2]={};static ULONGLONG beginnings[2]={};
-    bool& released=releases[retry?1:0];ULONGLONG& began=beginnings[retry?1:0];
+    static bool releases[3]={};static ULONGLONG beginnings[3]={};
+    const size_t stage=practice?2:retry?1:0;
+    bool& released=releases[stage];ULONGLONG& began=beginnings[stage];
     if(released)return true;
-    if(!began){began=GetTickCount64();ba::log(retry?"PUBLIC QUEUE SMOKE waiting for retry gate: key=%s idleMenu=1":
+    if(!began){began=GetTickCount64();ba::log(practice?"PUBLIC QUEUE SMOKE waiting for practice gate: key=%s idleMenu=1":retry?"PUBLIC QUEUE SMOKE waiting for retry gate: key=%s idleMenu=1":
         "PUBLIC QUEUE SMOKE waiting for shared gate: key=%s idleMenu=1",key.c_str());}
-    require(GetTickCount64()-began<180000,"public diagnostic start gate timed out");
+    const ULONGLONG limit=stage==1 && ba::flag(L"-public-practice-transition-smoke")?600000:180000;
+    require(GetTickCount64()-began<limit,"public diagnostic start gate timed out");
     wchar_t module[32768];const DWORD length=GetModuleFileNameW(ba::module,module,32768);
     require(length && length<32768,"public diagnostic installation path unavailable");
     wchar_t* slash=wcsrchr(module,L'\\');require(slash!=nullptr,"public diagnostic installation path invalid");*(slash+1)=0;
-    const std::wstring path=std::wstring(module)+L"investigation\\runtime\\public-queue-"+std::wstring(key.begin(),key.end())+(retry?L"-retry.ready":L".ready");
+    const std::wstring path=std::wstring(module)+L"investigation\\runtime\\public-queue-"+std::wstring(key.begin(),key.end())+(practice?L"-practice.ready":retry?L"-retry.ready":L".ready");
     const DWORD attributes=GetFileAttributesW(path.c_str());
     if(attributes==INVALID_FILE_ATTRIBUTES) {
         const DWORD error=GetLastError();require(error==ERROR_FILE_NOT_FOUND || error==ERROR_PATH_NOT_FOUND,"public diagnostic gate unreadable");return false;
     }
     require(!(attributes&(FILE_ATTRIBUTE_DIRECTORY|FILE_ATTRIBUTE_REPARSE_POINT)),"public diagnostic gate must be an ordinary file");
-    released=true;ba::log(retry?"PUBLIC QUEUE SMOKE retry gate released: key=%s":
+    released=true;ba::log(practice?"PUBLIC QUEUE SMOKE practice gate released: key=%s":retry?"PUBLIC QUEUE SMOKE retry gate released: key=%s":
         "PUBLIC QUEUE SMOKE shared gate released: key=%s",key.c_str());return true;
 }
 static void smoke(Obj front) {

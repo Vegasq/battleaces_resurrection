@@ -30,6 +30,7 @@ static void update(void*);static void smoke(void*);static void controlReset();st
 static bool receive(unsigned char,const std::vector<unsigned char>&);static bool ignoreMatchData();
 static bool acknowledge(void*,const ba_community_wire::Ack&);
 static bool aborted(const ba_community_wire::Aborted&);
+static bool smokePracticeReady();
 }
 namespace ba_practice_settings_ui { static void update(void* front);static bool smokeComplete(); }
 namespace ba_community_wire {struct Ack;}

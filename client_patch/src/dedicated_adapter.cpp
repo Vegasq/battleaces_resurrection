@@ -353,6 +353,12 @@ static void resetAtMenu(Obj front,Obj server,bool completed,bool keepCommunity=f
     failureNoticeShown=false;failureNoticeCheckAt=0;failureNoticeChecks=0;
     retryReleaseAttempted=false;retryModalReleased=false;retryContinueIssued=false;
     if(completed){deferredPlay=false;retryNeedsPlay=false;}
+    if(completed && startedSessions==1 && ba::flag(L"-public-practice-transition-smoke") &&
+       ba::flag(L"-public-queue-smoke") && ba::flag(L"-public-queue-smoke-retry-gate") &&
+       ba::flag(L"-public-team-retry-smoke")) {
+        smokeContinueIssued=false;
+        ba::log("PUBLIC PRACTICE TRANSITION SMOKE first remote result retired; second Continue armed");
+    }
     if(ba_client::remoteWorld())ba_client::releaseRemote(front,releaseMatch);
 }
 static bool retryFromPlay(Obj front,int) {
