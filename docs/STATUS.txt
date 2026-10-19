@@ -18,6 +18,11 @@ explained. Final28 C++ eleven programs/six atomic boundaries pass;Python495
 tests481pass/14skip,88.240s plus final four focused checks pass. Native negative
 codec/playback/fault cases and broader release gates stay open. Ordinary client
 has no replay test flag/actions;manual24 unchanged. See native-replay-validation.txt.
+Fresh cleanadc95dd packages are byte-equivalent in production/runtime/helper
+content to tested28;only inventoried compatibility metadata differs. Actual
+ordinary clean Start Client.cmd reaches menu10.158s/10.544s total with no test
+actions/spawn seam/global Python. Package/config/source/shared TOML unchanged;
+owned readiness cleanup is forced,not another native Quit acceptance claim.
 
 NATIVE REPLAY CODEC / PLAYBACK (2026-10-19 UTC, PARTIAL PASS)
 Opt-in25 codec diagnostic uses original FileStream/Deflate/CodedInputStream and

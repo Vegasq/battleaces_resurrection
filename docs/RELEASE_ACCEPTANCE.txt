@@ -32,6 +32,10 @@ Actual Start Client.cmd startup passes in clean package and independent manual24
 copy;physical input/audio/preferences feedback remains pending. Python488 tests
 pass474/14skip;eleven C++ programs/six atomic boundaries pass. See
 packaged-gameplay.txt;older frozen/manual archives are unchanged.
+Latest28 cleanadc95dd packages additionally pass production-byte equivalence to
+native-playback-tested preview and actual ordinary CMD startup10.158s. Startup
+readiness cleanup is forced,not native Quit. Current Python495 tests481pass/
+14skip and final focused replay checks pass;see native-replay-validation.txt.
 
 Qualified source checkpoint aa5a803
 - One ordinary unified launcher reaches a native local menu without configured

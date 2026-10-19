@@ -44,6 +44,28 @@ bc61869481b02ffe7522ceee466ada52c9b07f639098573b0f1cafcc34de35b2
 Negative codec/playback inputs,fault cleanup,final packaged matrix/manual and
 clean-PC/Internet release gates remain open. Existing manual24 stays unchanged.
 
+Clean28 source/package check
+Fresh packages from committedadc95ddff2a1b18dbd74ae795d990909d1a62582
+record dirty=false. Verified inventories differ from runtime-tested preview28
+ONLY in compatibility.json;all production/runtime/helper bytes are identical.
+The helper receipt still binds current C++ sources. Byte equivalence is not a
+second full native replay run. Actual clean Start Client.cmd independently opens
+the ordinary native menu in10.158s/10.544s total,without diagnostic actions or
+spawn seam and with no global Python on PATH. Package/config/source/named shared
+TOML unchanged;owned processes are forcibly reaped after readiness. This startup
+cleanup does not qualify native Quit;native batch Quit is the separate28 proof.
+local/replay-playback28-clean-startup01/verification.json SHA256
+92655967d15d0a8bc177c57efc11e3f762fccf5678673218b8a0e9b1cd46cfc3
+local/replay-playback28-clean-equivalence.json SHA256
+43292ba59c30da12feb94d9204f01fecafc0f1fa9e29f11abc6f0eadfbd31b29
+Clean client67 files13083173bytes,ZIP SHA256
+63c58295d347e8f384887795e9321cda2ac2c26c340027be7bc27942325180e0
+Clean server82 files12427770bytes,ZIP SHA256
+dc9b16d2c7c30da85a21c8bf47f63550a65698558464c78e3f8a900fcc01b039
+Clean build-report.json SHA256
+6ca02b31452a32b37f6f1e6cac45da2cbcb28f6a8c37d1fd018f6948db970411
+These remain development previews;no original binaries/assets/captures enter Git.
+
 Original-codec diagnostic25 (BOUNDED POSITIVE PASS)
 Explicit -native-replay-readback-smoke runs only inside the owned native Quit
 diagnostic,after one completed local test match and a validated idle menu. It
