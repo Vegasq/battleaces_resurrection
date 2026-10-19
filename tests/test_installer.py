@@ -96,6 +96,24 @@ class InstallerTests(unittest.TestCase):
             self.assertEqual((self.root / name).read_bytes(), original)
         self.assertFalse((self.root / '.battleaces-resurrection').exists())
 
+    def test_optional_quit_recipe_requires_diagnostic_helper_before_writes(self):
+        with self.assertRaisesRegex(ValueError, 'owned native Quit diagnostic helper'):
+            installer.install(self.root, helper=self.helper, quit_diagnostics=True)
+        for name, original in self.originals.items():
+            self.assertEqual((self.root / name).read_bytes(), original)
+        self.assertFalse((self.root / '.battleaces-resurrection').exists())
+
+    def test_quit_recipe_is_opt_in_and_records_exact_disposal_call(self):
+        default = installer.install(self.root, helper=self.helper, dry_run=True)
+        self.assertFalse(default['diagnostics']['native_quit'])
+        self.assertNotIn('OfflineNativeQuitDispose', {h['name'] for h in default['call_hooks']})
+        self.assertEqual(default['pointer_hooks'], [])
+        self.helper.write_bytes(self.helper.read_bytes()+b' BA_RESURRECTION_NATIVE_QUIT_TRACE_V1 OfflineNativeQuitDispose\0 OfflineNativeQuitAIDispose\0 OfflineNativeQuitOnDestroy\0')
+        diagnostic = installer.install(self.root, helper=self.helper, quit_diagnostics=True, dry_run=True)
+        self.assertTrue(diagnostic['diagnostics']['native_quit'])
+        self.assertEqual([h for h in diagnostic['call_hooks'] if h['name'].startswith('OfflineNativeQuit')], installer.QUIT_CALL_HOOKS)
+        self.assertEqual(diagnostic['pointer_hooks'],installer.QUIT_POINTER_HOOKS)
+
     def test_experimental_community_requires_matching_helper_before_writes(self):
         with self.assertRaisesRegex(ValueError, 'community ABI1'):
             installer.install(self.root, helper=self.helper, community=True)

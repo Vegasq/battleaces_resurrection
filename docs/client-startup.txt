@@ -1,5 +1,23 @@
 CLIENT STARTUP TIMING (2026-10-17)
 
+2026-10-19 bounded follow-up (still unresolved)
+During native Quit qualification,one fresh process reaches its180s startup
+deadline before any menu/probe callback;another reaches the menu after roughly
+80s. A same-helper ordinary visible control reaches the menu in12.640s. These
+varying runs do not establish diagnostic flags or networking as the cause.
+Original Start launches12 pre-menu and37 overlapping other table tasks.
+"Completed Localization Initialization" describes that delegate only;it does
+not prove the first barrier completed or even that Task.WhenAll was reached.
+AsyncAssetTables.LoadingCount belongs to a separate loader and cannot identify
+the pending first-barrier task. A future passive diagnostic can retain those
+exact task references at their original calls and sample status on the original
+UnitySynchronizationContext.ExecuteTasks tail;no worker/coroutine/blocking wait
+or timeout bypass is justified. This candidate is not runtime-qualified.
+local/startup-asset-wait-contract01/FINDINGS.txt SHA256:
+bfec70486ff95fa494f6e9cf69dae1eb974bc2f6ebc182fc5675ee92ea8074ed
+manifest.json SHA256:
+8df6b4b694cfce6b9658d7fe5ca28f1bcf15568133b5f012ce348c09d2bdd9d5
+
 Manual standalone helper15 run24132 eventually reached the menu and a successful
 human AI win. Process start to first native log creation was approximately
 105.850729s; this is an approximate callback milestone, not per-stage profiling.

@@ -67,6 +67,16 @@ CALL_HOOKS = [
     {'name': 'OfflineAuditReadSimFrame', 'rva': 0x3e61faf, 'offset': 0x3e605af, 'before': 'e8dc600000'},
     {'name': 'OfflineAuditReadSimFrame', 'rva': 0x3e62160, 'offset': 0x3e60760, 'before': 'e82b5f0000'},
 ]
+QUIT_CALL_HOOKS = [
+    {'name': 'OfflineNativeQuitDispose', 'rva': 0x3de4968, 'offset': 0x3de2f68, 'before': 'e8c3e0ffff'},
+    {'name': 'OfflineNativeQuitAIDispose', 'rva': 0x3de4a0f, 'offset': 0x3de300f, 'before': 'e89c39dbff'},
+]
+QUIT_POINTER_HOOKS = [
+    {'name': 'OfflineNativeQuitOnDestroy', 'rva': 0x6d41a18, 'offset': 0x6d3f018,
+     'before': '2048de8301000000', 'target_rva': 0x3de4820,
+     'relocation_block_offset': 0x736cf50, 'relocation_block_before': '0010d40600040000',
+     'relocation_entry_offset': 0x736d1d6, 'relocation_entry_before': '18aa'},
+]
 COMMUNITY_CALL_HOOKS = [
     {'name': 'OfflineCommunityJoinGame', 'rva': 0x3e405e3, 'offset': 0x3e3ebe3, 'before': 'e858330100'},
     # Exact request enqueue callers; the shared generic entry remains original.
@@ -116,16 +126,37 @@ COSMETIC_TAIL_HOOKS = [
     {'name': 'OfflineCosmeticSaveRequest', 'rva': 0x3e40f1d, 'offset': 0x3e3f51d, 'before': 'e96ed072fe'},
 ]
 def digest(b): return hashlib.sha256(b).hexdigest()
-def build_patch(original, *, include_telemetry=True, community=False, cosmetics=False):
+
+
+def redirect_relocated_pointer(original, patched, hook, image_base, thunk_rva):
+    """Rewrite one pinned method slot, retaining its original DIR64 relocation."""
+    offset, block, entry = hook['offset'], hook['relocation_block_offset'], hook['relocation_entry_offset']
+    before = bytes.fromhex(hook['before'])
+    if len(before)!=8 or original[offset:offset+8]!=before or int.from_bytes(before,'little')!=image_base+hook['target_rva']:
+        raise ValueError('Pointer original mismatch: '+hook['name'])
+    for at, expected in ((block,hook['relocation_block_before']),(entry,hook['relocation_entry_before'])):
+        expected = bytes.fromhex(expected)
+        if original[at:at+len(expected)]!=expected or patched[at:at+len(expected)]!=expected:
+            raise ValueError('Pointer relocation bytes mismatch: '+hook['name'])
+    page, size = struct.unpack_from('<II',original,block)
+    relocation = struct.unpack_from('<H',original,entry)[0]
+    if not (size>=8 and size%2==0 and block+8<=entry<block+size and
+            (entry-block)%2==0 and relocation>>12==10 and page+(relocation&0xfff)==hook['rva']):
+        raise ValueError('Pointer DIR64 relocation mismatch: '+hook['name'])
+    struct.pack_into('<Q',patched,offset,image_base+thunk_rva)
+
+
+def build_patch(original, *, include_telemetry=True, community=False, cosmetics=False, quit_diagnostics=False):
     """Pure transformation; only a matching original may enter this routine."""
     if digest(original) != ORIGINAL_SHA256:
         raise ValueError('Original build SHA256 does not match.')
     patched = bytearray(telemetry.patch_component('GameAssembly.dll', original) if include_telemetry else original)
     patches = PATCHES + (COSMETIC_PATCHES if cosmetics else [])
-    call_hooks = CALL_HOOKS + (COMMUNITY_CALL_HOOKS if community else []) + (COSMETIC_CALL_HOOKS if cosmetics else [])
+    call_hooks = CALL_HOOKS + (COMMUNITY_CALL_HOOKS if community else []) + (COSMETIC_CALL_HOOKS if cosmetics else []) + (QUIT_CALL_HOOKS if quit_diagnostics else [])
     tail_hooks = TAIL_HOOKS + (COMMUNITY_TAIL_HOOKS if community else []) + (COSMETIC_TAIL_HOOKS if cosmetics else [])
+    pointer_hooks = QUIT_POINTER_HOOKS if quit_diagnostics else []
     # Reject a future telemetry recipe that touches an existing startup hook.
-    for site in patches + HOOKS + tail_hooks + call_hooks:
+    for site in patches + HOOKS + tail_hooks + call_hooks + pointer_hooks:
         offset, size = site['offset'], len(bytes.fromhex(site['before']))
         if patched[offset:offset + size] != original[offset:offset + size]:
             raise ValueError('Telemetry/startup patch overlap: ' + site['name'])
@@ -137,8 +168,8 @@ def build_patch(original, *, include_telemetry=True, community=False, cosmetics=
         patched[o:o+len(after)]=after
     patched, iat, thunks = extend_imports_with_thunks(
         bytes(patched), 'BattleAcesOffline.dll',
-        list(dict.fromkeys(h['name'] for h in HOOKS + tail_hooks + call_hooks)),
-        thunk_exports=list(dict.fromkeys(h['name'] for h in tail_hooks + call_hooks)))
+        list(dict.fromkeys(h['name'] for h in HOOKS + tail_hooks + call_hooks + pointer_hooks)),
+        thunk_exports=list(dict.fromkeys(h['name'] for h in tail_hooks + call_hooks + pointer_hooks)))
     patched=bytearray(patched)
     for hook in HOOKS:
         before=bytes.fromhex(hook['before']);o=hook['offset']
@@ -153,6 +184,11 @@ def build_patch(original, *, include_telemetry=True, community=False, cosmetics=
         before=bytes.fromhex(hook['before']);o=hook['offset']
         if len(before)<5 or original[o:o+len(before)]!=before: raise SystemExit('Call original mismatch: '+hook['name'])
         patched[o:o+len(before)]=b'\xe8'+struct.pack('<i',thunks[hook['name']]-(hook['rva']+5))+b'\x90'*(len(before)-5)
+    if pointer_hooks:
+        pe = struct.unpack_from('<I',original,60)[0]
+        image_base = struct.unpack_from('<Q',original,pe+24+24)[0]
+        for hook in pointer_hooks:
+            redirect_relocated_pointer(original,patched,hook,image_base,thunks[hook['name']])
     return update_checksum(patched)
 
 
@@ -186,8 +222,10 @@ def contained_path(game_dir, relative):
     return resolved
 
 
-def install(game_dir, *, helper=None, original_path=None, restore=False, dry_run=False, community=False, cosmetics=False):
+def install(game_dir, *, helper=None, original_path=None, restore=False, dry_run=False, community=False, cosmetics=False, quit_diagnostics=False):
     game_dir = Path(game_dir).resolve()
+    if quit_diagnostics and not game_dir.is_relative_to(ROOT/'local'):
+        raise ValueError('Native Quit diagnostics require an owned ignored local test installation.')
     if game_dir.name.lower() == 'battleacesbeta_untouched':
         raise ValueError('The untouched recovery copy is read-only; choose a working game copy.')
     state_dir = contained_path(game_dir, '.battleaces-resurrection')
@@ -204,7 +242,7 @@ def install(game_dir, *, helper=None, original_path=None, restore=False, dry_run
         current, original = target.read_bytes(), source.read_bytes()
         if digest(original) != recipe.original_sha256:
             raise ValueError('Original build SHA256 does not match: ' + name)
-        patched = build_patch(original, community=community, cosmetics=cosmetics) if name == 'GameAssembly.dll' else update_checksum(telemetry.patch_component(name, original))
+        patched = build_patch(original, community=community, cosmetics=cosmetics, quit_diagnostics=quit_diagnostics) if name == 'GameAssembly.dll' else update_checksum(telemetry.patch_component(name, original))
         known = {recipe.original_sha256, digest(patched)}
         if name == 'GameAssembly.dll':
             known.add(digest(build_patch(original, include_telemetry=False)))
@@ -234,6 +272,9 @@ def install(game_dir, *, helper=None, original_path=None, restore=False, dry_run
     if helper_bytes is not None and any(marker not in helper_bytes for marker in
             (b'BA_RESURRECTION_NATIVE_SETTINGS_ERRORS_V1', b'OfflineLocalUserLoadTable\0', b'OfflineLocalUserSaveTable\0')):
         raise ValueError('Build the current helper with native local-user settings error hooks before installing this patch.')
+    if quit_diagnostics and helper_bytes is not None and any(marker not in helper_bytes for marker in
+            (b'BA_RESURRECTION_NATIVE_QUIT_TRACE_V1',) + tuple(h['name'].encode()+b'\0' for h in QUIT_CALL_HOOKS+QUIT_POINTER_HOOKS)):
+        raise ValueError('Build the owned native Quit diagnostic helper before installing this recipe.')
     if cosmetics and helper_bytes is not None and any(hook['name'].encode()+b'\0' not in helper_bytes
             for hook in COSMETIC_CALL_HOOKS + COSMETIC_TAIL_HOOKS):
         raise ValueError('Build the current helper with experimental cosmetic hooks before installing this patch.')
@@ -252,7 +293,9 @@ def install(game_dir, *, helper=None, original_path=None, restore=False, dry_run
                                    'error_hooks': not restore},
                 'patches': PATCHES + (COSMETIC_PATCHES if cosmetics else []), 'hooks': HOOKS,
                 'tail_hooks': TAIL_HOOKS + (COMMUNITY_TAIL_HOOKS if community else []) + (COSMETIC_TAIL_HOOKS if cosmetics else []),
-                'call_hooks': CALL_HOOKS + (COMMUNITY_CALL_HOOKS if community else []) + (COSMETIC_CALL_HOOKS if cosmetics else []),
+                'call_hooks': CALL_HOOKS + (COMMUNITY_CALL_HOOKS if community else []) + (COSMETIC_CALL_HOOKS if cosmetics else []) + (QUIT_CALL_HOOKS if quit_diagnostics else []),
+                'diagnostics': {'native_quit': bool(quit_diagnostics and not restore)},
+                'pointer_hooks': QUIT_POINTER_HOOKS if quit_diagnostics else [],
                 'cosmetics': {'experimental': cosmetics,
                               'persistence': bool(cosmetics and helper_bytes is not None and b'BA_RESURRECTION_COSMETICS_PERSIST_V1' in helper_bytes),
                               'match_propagation': False},
@@ -303,9 +346,11 @@ def main():
     parser.add_argument('--dry-run', action='store_true')
     parser.add_argument('--community-experimental', action='store_true', help='isolated experimental native Custom Game/invite/match adapter')
     parser.add_argument('--cosmetics-experimental', action='store_true', help='isolated catalog-scoped cosmetic unlock prototype; persistence not yet enabled')
+    parser.add_argument('--quit-diagnostics', action='store_true', help='owned local-only original disposal trace; no cleanup changes')
     args = parser.parse_args()
     result = install(args.game_dir, helper=args.helper, original_path=args.original,
-                     restore=args.restore, dry_run=args.dry_run, community=args.community_experimental, cosmetics=args.cosmetics_experimental)
+                     restore=args.restore, dry_run=args.dry_run, community=args.community_experimental, cosmetics=args.cosmetics_experimental,
+                     quit_diagnostics=args.quit_diagnostics)
     print(json.dumps(result, indent=2))
 
 

@@ -1,5 +1,103 @@
 ORIGINAL QUIT / SHUTDOWN CONTRACT -- 2026-10-19 UTC -- UNRESOLVED
 
+Owned diagnostic implementation in qualification
+An opt-in local-only installer recipe now wraps the exact original instance/AI
+Dispose calls below. Default recipes do not add these hooks. The helper prepares a bounded
+native-only trace sink while the owned idle profile is live,then forwards
+Dispose unchanged and records entry/return without managed teardown work.
+The explicit native-quit smoke resolves current main/pool/owner and original
+PointerLeftClick targets,descriptor52/model,strict persistent event mode/state
+and zero dynamic confirm listeners. Ordinary launch never invokes this probe.
+Ten C++ component programs/helper and60 focused Python checks pass. The full
+suite reports444 passes/14 skips (458 total,89.942s). No manual/frozen package
+is upgraded by this checkpoint.
+
+Current helper07 qualification
+The stricter no-capture Cancel test passes in20.385s with no extra dynamic
+Cancel/Confirm listeners and original modal release/navigation restoration.
+local/native-quit-cancel07/verification.json SHA256:
+00df1eb2c7fc14626fdb43676bba988abea392756f137631b23289d85e51112b
+The ordinary visible unified launcher,after reinstalling the default recipe,
+reaches its menu in13.687s. Its manifest has native_quit=false,pointer_hooks=[],
+and the original OnDestroy registration bytes remain unchanged. No Quit probe,
+production,surrender,Continue or capture is launched by that ordinary control.
+It is forcibly reaped,not an exit test.
+local/native-quit-ordinary-control07/verification.json SHA256:
+bf6ed3bdbd7076656e322b822589975cc755b5a393452bafc87ab1459949f0cc
+
+build.ps1 now writes a helper-build.json receipt only after successful component
+checks/link and equal before/after source hashes. The new verifier requires its
+exact source map and installed-helper hash. This is local build consistency,
+not a signed/reproducible-build claim. Older runs have their original source/
+helper hashes but no retroactively established build binding. Helper07 SHA256:
+8664633a6456e1c31051ef7f89b14c68ab79b27e8444ec24f889f5fe6cce23a5
+Its receipt SHA256:
+c9ef1fe331fc43c0c6e01b35f3adadbdeecf835b8de6f13efad82b0ce4c9a16b
+The verifier now checks observed OS-exit time before accepting an exited child,
+including a poll that crosses60s. A final trace marker inside the bound cannot
+substitute for timely process exit. Late-exit/stale-source/helper regressions
+are covered by authored fixtures. The first new fixture used a Windows private
+TemporaryDirectory whose ACL blocked its own child paths;that harness failure
+is retained,then corrected with the established owned inherited-ACL fixture.
+
+A fresh native inventory passes in15.321s with callbacks=0,empty navigation,
+zero asset loads and the current owned main/model/event targets. It is forcibly
+cleaned up,not a successful Quit test. The first Cancel rehearsal reaches
+original Show/return but times out on an incorrect diagnostic visibility
+predicate. No Cancel/Quit is dispatched in that run. Another attempt hits a
+separate180s startup deadline before the menu/probe. These failures are retained;
+neither establishes a Quit defect. Sources/shared-file baselines are unchanged.
+Private inventory and first Cancel report SHA256,respectively:
+8c0e2ee106527ca47676d71f47c6f62c3a6064e7d0f1e133ae12fe983d82d659
+a76971f57fa75634c00b3793fdf9921ab92c9954b12a30a0d7c871c93f881d40
+The corrected Cancel rehearsal passes in20.803s: same current key52 modal,
+original OnCancel,normal release,empty navigation and active main menu retained.
+Its later forced cleanup is expected and is not a native Quit pass.
+local/native-quit-cancel04/verification.json SHA256:
+4c579f5c83bb870e15392475eba9d5a024a7087e80987dd12c000113ca33c96b
+
+Confirm01 invokes original OnConfirm once and observes both entry AND return
+from original RGameInstance.Dispose. The process remains alive beyond the
+separate60s post-dispatch bound and requires forced cleanup (79.710s total).
+Its report SHA256:
+7d7c9590d660e4dfa266a5a468f3ac7ad0502433f4db8bcfad08c5a188776549
+A controlled no-screenshot run also fails that bound (78.361s total),with the
+same instance Dispose entry/return and no ScreenCapture work requested.
+local/native-quit-confirm-no-capture01/verification.json SHA256:
+a6e3efc786e55f13e3bda9a9209e4dba86fba7d8eb49fa11bbad8ac97e60cf88
+Both reports retain unchanged covered sources/shared settings and owned process
+reaping. This locates completion of one cleanup call,not the surviving stall.
+Trace flush overhead is included in boundary intervals;these are not exact
+body-duration measurements. Confirm/natural OS exit remains FAILED.
+
+Plain graphics correction and capture limits
+The original key52 root has RectTransform,ModalConfirmVM,CanvasRenderer and a
+transparent raycast Image;no root Doozy UIContainer or CanvasGroup. A null
+owner._uiContainer is normal. The initial waiting snapshot visibly shows the
+full Quit dialog despite that null field. The corrected probe tests the actual
+TMP title's active/enabled/nonempty state,CanvasRenderer own/inherited alpha
+and cull state,plus both original selectable/event targets.
+The earlier two-capture probe's second PNG shows a black dialog bar without
+title/buttons. Do not claim that PNG is complete visual acceptance or that the
+game UI is defective. Mid-Update capture timing/perturbation remains unresolved.
+Capture is now explicit opt-in,one frame only,and omitted from exit controls.
+local/quit-canvas-contract01/FINDINGS.txt SHA256:
+4ee6d911b0089d688368972031141996d23ac81021048ed5281160c730406de6
+manifest.json SHA256:
+8289c390b2d003cca0dd5a3d24223c3d9816eb5155df096f4f619c9e83b1f145
+
+Navigation ownership follow-up
+Original metadata identifies navigation._navigationStack as the typed
+List<INavigationStackable>. ModalConfirmVM.Initialize adds this VM;the original
+NavigationStack.OnCancel calls LastOrDefault<INavigationStackable> (spec293999,
+body14149e0). Its list path selects count-1. The owned fresh dialog probe checks
+list count1 AND actual item0 equality with that show's acquired modal. This
+closes the prior static top-entry gap;the corrected live Cancel test passes it.
+local/quit-navigation-contract01/FINDINGS.txt SHA256:
+80ff092e897107635b0a771fcb8daed733d259686477d2d6a1fe5f998531817b
+manifest.json SHA256:
+4d7d4fe6d3c15a0968468f80f621b2de07d0519d24ece6825f3d74c7003f67e6
+
 The original UIQuitButton.Quit and disconnected-modal OnQuitApplication share
 RVA3d06f50,which calls Unity Application.Quit(0). Do not replace that shared
 body or manually invoke engine lifecycle callbacks. A menu callback test must
@@ -55,6 +153,68 @@ return,follow the retained inner disposal/job boundaries. If it returns,inspect
 the actual later state before attributing failure to engine/plugin/Steam exit.
 Natural OS process exit is required. Forced cleanup remains a failed Quit test;
 never skip job completion,disposal or native frees to produce an apparent pass.
+
+Next original boundary after observed instance Dispose return
+OnDestroy then checks the AIManager singleton/native object. Its conditional
+call RVA3de4a0f/raw3de300f,bytes e89c39dbff ->AIManager.Dispose3b983b0,
+void(this,original MethodInfo=null),returns to3de4a14 and the OnDestroy epilogue.
+The opt-in recipe forwards this exact call unchanged with native entry/return
+markers. A legitimate absent/destroyed AIManager skips it;missing trace alone
+would not prove a metadata-readiness stall. AIManager.Dispose enumerates players,
+clears player/spy lists and virtually disposes its temporary component buffers
+even with zero players. The declared buffer Dispose is378ae20;actual virtual
+target/MethodInfo must be preserved if a later inner trace becomes necessary.
+The outer AI trace run also fails natural exit in80.478s with instance Dispose
+return and no AI Dispose entry. The next whole-callback trace below resolves
+why absence alone was insufficient;no inner skip or fix is justified.
+local/native-quit-ai-boundary01/verification.json SHA256:
+ca75dbd14d2898aaec91b2f199f48f367ba94284c1d35335cd5c1bc2b02c6631
+local/native-quit-after-instance01/FINDINGS.txt SHA256:
+15945282a3f0774d32505b3c8a4b89bdf245afe6f8c51b2de14b6e07d6389658
+manifest.json SHA256:
+a3d3d63284702fa8c777846f6098a3939913c5613cb3bd643cd9d4d18f557804
+
+Complete OnDestroy return and external observation
+The unique original RGame.dll methodPointers entry for OnDestroy (token06000a36,
+index2613,virtual slot5) is RVA6d41a18/raw6d3f018,bytes2048de8301000000.
+Its existing DIR64 entry at raw736d1d6,bytes18aa,belongs to the page6d41000
+block at raw736cf50,header0010d40600040000. The opt-in recipe redirects only
+that pointer to an RX import thunk,retaining the relocation. The normal C++
+wrapper forwards original instance/MethodInfo directly to untouched3de4820.
+Authored fixtures verify relocation delta preservation and fail-before-write
+for wrong pointer/relocation bytes,type or page. Runtime wrapper enter/return
+proves Unity actually consumes this registration in the observed process.
+local/native-quit-methodptr01/FINDINGS.txt SHA256:
+acad6932d675fc655665d4b47e3df44bdc9770cebceaba3534a4d31ab32327f5
+manifest.json SHA256:
+c2ca05ea4f079575e0f307dd67cc8a26117e6b5574fe1c2273a24a9ec19b43c5
+
+local/native-quit-ondestroy-boundary01 observes OnDestroy enter,instance Dispose
+enter/return,and OnDestroy RETURN,without the conditional AI call. It still
+fails OS exit60s after Confirm (80.150s total). Its report SHA256:
+405c6d967dfa619484ca8604804e609c296af284eec329d3ea266e213d8b97b7
+That callback is completed;do not keep attributing this run to its disposal body.
+Two separately labelled external-observation runs also fail (79.648s/78.797s),
+with the same callback return and unchanged covered source/shared baselines.
+Their verification SHA256,respectively:
+0f6bf2b468768633ef8abecc167fc4bea0c52fb1b490f02f660a1b16f5469103
+8e1a2610d038db52fcbbf90939a557d972f3ea4c9e44acc673192a760336cf1e
+The first sample attempt ran after its owned process was reaped and refused
+before opening any thread. Later samples validate owned PID/executable/thread,
+balance every successful SuspendThread with ResumeThread (prior0/returned1),
+and retain CONTROL context plus,in the second run,bounded private stack bytes.
+Initial4096-byte reads cross the committed top on two stacks and fail299;the
+later page-bounded samples succeed. These are private diagnostics,not payloads
+for publication. No process registers or system configuration are written.
+
+The main Unity thread samples at ntdll NtWaitForSingleObject+14. A CPU-active
+thread samples NtOpenFile/NtClose/NtFsControlFile. Raw executable stack-word
+candidates include NvTelemetryAPI64 on the main thread and NvTelemetryBridge64
+on the busy worker. Both are installed system NVIDIA components;the game also
+loads NVUnityPlugin/nvngx_dlss. These raw words are NOT unwound call frames and
+do not yet prove the wait owner,init path,telemetry traffic or root cause.
+Next verify the actual unwind/call boundary and a process-local dependency
+control. No NVIDIA service,driver/global setting or native cleanup is disabled.
 
 Read-only REA evidence
 Native providers were unavailable;this uses pinned original-byte LLVM/IL2CPP and

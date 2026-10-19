@@ -4,6 +4,18 @@ Target: Battle Aces build 37822, Windows x64 server and clients.
 Status: IMPLEMENTATION ACTIVE. See STATUS.txt; incomplete phases remain future work.
 
 Current cosmetic integration order (2026-10-19)
+- Native Quit remains a release gate. Owned original confirmation inventory and
+  Cancel/release now pass;Confirm returns from RGameInstance.Dispose but fails
+  natural OS exit within60s,including a no-screenshot control. Qualify the next
+  exact shutdown boundary,preserving all original cleanup. The next trace now
+  proves original OnDestroy returns and legitimately skips conditional AI
+  disposal. Verify the external NVIDIA DLL wait/call chain suggested by bounded
+  raw stack candidates and a process-local control;no global driver/service
+  changes or disposal bypass. Helper07 Cancel and ordinary-startup controls pass,
+  with444 source checks passed/14 skipped and ten C++ component programs/helper.
+  Then repeat fresh-menu and post-match natural-exit/save-flush acceptance.
+  Diagnostics are local-only opt-in,not part of the ordinary client recipe.
+  See native-quit.txt;forced process reaping never satisfies this gate.
 - Native local-user settings isolation now uses the original early path call,
   installation/profile-native TOML and a process-lifetime writer lock. Fresh
   process deck edits/restarts,two profiles,two installations,an accented path,

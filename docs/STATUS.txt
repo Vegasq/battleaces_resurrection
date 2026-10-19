@@ -2,6 +2,22 @@ IMPLEMENTATION LEDGER
 Updated: 2026-10-19 UTC
 Active objective: implement SERVER_REPLACEMENT_PLAN.txt, Windows only.
 
+NATIVE MENU QUIT DIAGNOSTICS (2026-10-19 UTC, UNRESOLVED)
+An explicitly owned/local-only diagnostic follows original main-menu Show ->
+key52 confirmation -> OnCancel/OnConfirm persistent targets. Inventory and the
+corrected original Cancel/release rehearsal pass. Confirm enters AND returns
+from RGameInstance.Dispose,but the process stays alive beyond60s. A no-capture
+control also fails;forced cleanup never counts as Quit. A codegen-pointer wrapper
+now also proves original OnDestroy RETURN;its conditional AI call is not taken.
+Private bounded external samples point to system NVIDIA telemetry DLL address
+candidates,not yet an unwound caller/root cause. Source-bound helper07 Cancel
+passes20.385s;default recipe/ordinary startup passes13.687s. Full suite444 passes/
+14 skips,ten C++ component programs/helper pass. No production disposal is
+skipped,no ordinary launch invokes this probe,and no manual package is upgraded.
+Original plain-graphics ownership corrects the initial false visibility wait;
+the early startup deadline and capture limitations remain recorded separately.
+See native-quit.txt for exact calls,failed/passing evidence and remaining gates.
+
 NATIVE SETTINGS ERROR RESULTS (2026-10-19 UTC, EXPERIMENTAL)
 Exact scoped hooks preserve original TOML parse/write results. A null parsed
 profile table stops startup before native fallback can overwrite the input.

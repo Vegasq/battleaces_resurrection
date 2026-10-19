@@ -304,6 +304,7 @@ extern "C" __declspec(dllexport) void OfflineFrontUpdate(void* front,void*) {
 }
 
 #include "native_settings.cpp"
+#include "native_quit_trace.cpp"
 #include "local_loop.cpp"
 #include "catalog_export.cpp"
 #include "lan_smoke.cpp"
@@ -329,6 +330,7 @@ extern "C" __declspec(dllexport) void OfflineFrontUpdate(void* front,void*) {
 #include "practice_ai.cpp"
 #include "practice_settings_ui.cpp"
 #include "client_lifecycle.cpp"
+#include "native_quit_smoke.cpp"
 #include "public_client.cpp"
 #include "public_results.cpp"
 #include "match_loading.cpp"

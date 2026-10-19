@@ -1,6 +1,17 @@
 param([string]$OutputDirectory = '', [string]$CompilerRoot = '', [string]$SdkVersion = '')
 $ErrorActionPreference = 'Stop'
 $repo = Split-Path -Parent $PSScriptRoot
+$buildScriptPath = $PSCommandPath
+function Get-HelperBuildSources {
+    $result = [ordered]@{}
+    $paths = @($buildScriptPath) + @(Get-ChildItem -LiteralPath (Join-Path $PSScriptRoot 'src') -Recurse -File | Where-Object Extension -in @('.cpp','.h','.hpp') | Select-Object -ExpandProperty FullName)
+    foreach ($sourcePath in ($paths | Sort-Object)) {
+        $relative = $sourcePath.Substring($repo.Length + 1).Replace('\','/')
+        $result[$relative] = (Get-FileHash -LiteralPath $sourcePath -Algorithm SHA256).Hash.ToLowerInvariant()
+    }
+    return $result
+}
+$buildSourcesBefore = Get-HelperBuildSources
 if (-not $OutputDirectory) { $OutputDirectory = Join-Path $repo 'build/helper' }
 if (-not $CompilerRoot) {
     $vswhere = Join-Path ${env:ProgramFiles(x86)} 'Microsoft Visual Studio/Installer/vswhere.exe'
@@ -18,6 +29,8 @@ $savedInclude = $env:INCLUDE
 $savedLib = $env:LIB
 New-Item -ItemType Directory -Path $OutputDirectory -Force | Out-Null
 $OutputDirectory = (Resolve-Path -LiteralPath $OutputDirectory).Path
+$receiptPath = Join-Path $OutputDirectory 'helper-build.json'
+if (Test-Path -LiteralPath $receiptPath) { Remove-Item -LiteralPath $receiptPath }
 Push-Location $OutputDirectory
 try {
     $env:INCLUDE = "$CompilerRoot/include;$sdk/Include/$SdkVersion/ucrt;$sdk/Include/$SdkVersion/shared;$sdk/Include/$SdkVersion/um"
@@ -71,4 +84,19 @@ try {
     $env:LIB = $savedLib
     Pop-Location
 }
+$buildSourcesAfter = Get-HelperBuildSources
+if (($buildSourcesBefore | ConvertTo-Json -Compress) -cne ($buildSourcesAfter | ConvertTo-Json -Compress)) {
+    throw 'Helper sources changed during the build; no build receipt was written.'
+}
+$compilerPath = Join-Path $CompilerRoot 'bin/Hostx64/x64/cl.exe'
+$receipt = [ordered]@{
+    schema = 1
+    helper_sha256 = (Get-FileHash -LiteralPath (Join-Path $OutputDirectory 'BattleAcesOffline.dll') -Algorithm SHA256).Hash.ToLowerInvariant()
+    source_sha256 = $buildSourcesBefore
+    sources_unchanged_during_build = $true
+    compiler_path = $compilerPath
+    compiler_sha256 = (Get-FileHash -LiteralPath $compilerPath -Algorithm SHA256).Hash.ToLowerInvariant()
+    sdk_version = $SdkVersion
+}
+[IO.File]::WriteAllText($receiptPath, (($receipt | ConvertTo-Json -Depth 5) + [Environment]::NewLine), [Text.UTF8Encoding]::new($false))
 Write-Output (Join-Path $OutputDirectory 'BattleAcesOffline.dll')
