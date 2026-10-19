@@ -1,6 +1,86 @@
 COMMUNITY CLIENT CONNECTION SETUP AND INVITE ENROLLMENT
 Updated:2026-10-19
 
+Two-runtime normal-owner enrollment/TLS36 (BOUNDED PASS)
+User double-clicked local/owner-enrollment36/Owner Enrollment Check.cmd under
+the normal desktop account and reported PASS. Saved report independently passes
+all twelve checks in3.201476s,stage=complete,private_api_attempted=true with no
+mocked production API. External verify_owner_enrollment.py uses the actual clean34
+CLIENT bundled runtime;external owner_enrollment_host.py uses the actual clean34
+SERVER bundled runtime in a separate owned process. Each verifies its own full
+package inventory and imported module paths/hashes. The10 client/18 server module
+bindings and both executed diagnostic sources match retained source/package bytes.
+No modules are copied into packages or overlaid onto another product's sys.path.
+
+Production CredentialStore issues a fresh protected handoff;production enrollment
+commits a protected config/CA/invite with strict DACL readback,unchanged source,
+preserved configured name/local profile and no token in public config. Wrong CA
+fingerprint and stale save refuse without changing config/source. Production
+DedicatedServer/AdmissionController bind a random localhost-only port;the actual
+client check_connection verifies TLS and authenticates the real issued credential.
+Wrong CA/server name,authenticated identity mismatch and subsequent real store
+revocation all refuse. Connections settle with no rooms/community sessions/
+lobbies/profiles/native workers. Coordinator closes all listener/admission/session
+resources;the port can be rebound and the server child exits naturally0 without
+stderr or forced termination. All disposable credentials are revoked and bearer
+handoffs/configs removed. Both packages/assets/test PKI remain unchanged.
+
+Twelve passing fields:protected enrollment/profile preservation;wrong fingerprint/
+stale save preserve config;verified TLS authentication without game;wrong CA/name
+rejection;authenticated identity mismatch rejection;revoked TLS invite rejection;
+no room/profile/worker;listener/sessions/admission released;disposable cleanup;
+natural server exit;server package/assets unchanged;both packages/test PKI unchanged.
+No original game runs or private production certificate/credential is used.
+Authored localhost PKI is generated outside packages and read-only during the run;
+it expires after two days and is never a production provisioning recommendation.
+Public reports contain fixed flags/stages/module hashes,no tokens/raw exceptions.
+Revoked hash-only metadata and public CA copies remain ignored for inspection.
+
+local/owner-enrollment36/results/last-report.json SHA256
+09c522b7e1a313771436bb109edf4fc724d837462a631c9a8787c58f7097dbde
+tools/verify_owner_enrollment.py and executed owner_enrollment.py SHA256
+ca08fc59c6d108a8bb07d3ccea375be031a16fc10a9f67b7e7f3cea331ec00a9
+tools/owner_enrollment_host.py and executed local driver SHA256
+3cf45a5406a58946e3abdfdd919601fcf34b90efd2ba90f315ecfe44326bde6d
+Actual verified local asset manifest SHA256
+c1993ee2183ec3dd59e1dd420679cdd1bef3e0ac9b8282a7e992720c3fca41d3
+
+This closes bounded same-account,backend enrollment plus actual two-process TLS/
+AUTH acceptance. It does NOT qualify graphical Connection Setup,Start Server/
+host.run,an authenticated native game,another account/PC,SCM,clean PC or Internet.
+Earlier packaged multiplayer MemoryStore fixtures stay fixtures;this new real
+credential path does not retroactively qualify those gameplay runs.
+
+Retained development evidence:initial client-only diagnostic preflight fails at
+package/ModuleNotFoundError before private operations because server-only modules
+are intentionally absent from the client. Corrected separate server runtime
+read-only preflight verifies package/assets/PKI with no listener/private APIs.
+Corrected client preflight detects restricting SIDs and exits2/NOT QUALIFIED with
+private_api_attempted=false. No denied private operation is retried or ACL relaxed.
+Three actual loopback lifecycle/refusal/failure-cleanup tests pass with EXPLICIT
+mocked OS privacy boundary. Two real stdio fixture tests encounter Windows5 while
+creating the FIRST asyncio overlapped stdin pipe,before any child exists;retained
+focused03 remains failed. Focused04 reports3pass/2 explicit environment skips in
+2.719s,not pipe or DACL acceptance. The actual normal-owner check above separately
+qualifies the real two-process path including its pipes/natural exit.
+Final source suite local/owner-enrollment36-python-tests02.txt:530 tests in
+97.490s,514pass/16skip,exit0. Two new skips are the explicit pipe fixture limit;
+the real owner diagnostic is separate positive evidence,not a reclassified test.
+
+Manual35 physical UI feedback (BOUNDED PASS)
+User answered "Works and changes persist" to the exact prepared flow:change deck
+and cosmetics,Try Deck vs AI,Continue,Quit,restart and confirm saved choices.
+This is real user feedback for that flow and independent player35 copy;it is not
+inferred from logs or the forced-cleanup readiness check. Read-only inventory
+retains four local profile files,including native TOML/replay/backup artifacts;
+those bytes/private reports stay ignored. Original/frozen/manual24 unchanged.
+local/playtest35/manual-feedback.json SHA256
+06b8342999c02863718b3c204cf4f3bb8a47c691625f103c800ee61516277bcc
+Current player35 native TOML SHA256
+547e48cb7f416dcc1a65abb65c39dca357831e986e730e8f089a084f7bbbfcb8
+Do not expand this to all public modes,all cosmetic categories/effects,settings
+failure UX,Custom/two-PC/Internet or clean-machine acceptance. Those remain open.
+
 Normal-owner credential acceptance35 (BOUNDED PASS)
 User double-clicked local/owner-check35/Owner Check.cmd from the normal desktop
 and reported PASS,stage=complete. The saved public report independently confirms
@@ -22,7 +102,7 @@ Report contains fixed check Booleans/stages and module hashes,no bearer/token/
 credential ID/SID/raw exception text. Private run artifacts remain ignored.
 
 local/owner-check35/last-report.json SHA256
-a27ed430c3b46dffcfD09bdf12adbd8be99a0e4ccfdceb5e9eaa9b1851194ef9
+a27ed430c3b46dffcfd09bdf12adbd8be99a0e4ccfdceb5e9eaa9b1851194ef9
 Operator source and executed local owner_check.py SHA256
 d5d1bb2adedfc76b069a34bc33b07133292b7d8ebcb551347619167a66862f06
 Actual bundled server.credentials SHA256
@@ -50,7 +130,7 @@ tests/test_owner_credentials_operator.py:three lifecycle/failure-cleanup tests
 pass in1.114s using an EXPLICIT mocked OS privacy boundary,not DACL acceptance.
 local/playtest35-python-tests.txt:525 tests in92.991s,511pass/14skip,exit0.
 
-Independent manual35 candidate (READY; manual feedback pending)
+Independent manual35 candidate (startup evidence; manual feedback above)
 local/playtest35/client/Start Client.cmd is the single ordinary entry point.
 It uses the clean34 package documented in packaged-multiplayer.txt and a fresh
 player35 profile/display name Player,blank server settings. Local preparation
@@ -65,8 +145,8 @@ source/shared TOML remain unchanged;owned game/wrapper are reaped. This readines
 check uses forced job cleanup and does not claim native Quit/physical controls.
 local/playtest35-startup01/verification.json SHA256
 f04801b953adbf92676ac0a335d98e9bc319b48863f34912904030f6f29624fc
-User is asked to change deck/cosmetics,play Try Deck vs AI,Continue/Quit/restart
-and check retention. Preserve this independent manual copy during their test.
+User has now confirmed this requested flow;see bounded manual feedback above.
+Preserve this independent manual copy for further user testing.
 
 Scope
 The Windows client preview now has Connection Setup, opened by double-clicking

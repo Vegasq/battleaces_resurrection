@@ -15,6 +15,21 @@ actions. Current native settings saves use staged handle publication. See
 ordinary-player-client.txt for reports,retained failures and remaining matrix.
 These controls do not close the final/manual/clean-machine/Internet gates below.
 
+Real two-runtime enrollment36 / manual35 feedback
+PASS:normal desktop runs unchanged packaged client enrollment/check_connection
+and separate packaged production coordinator/real protected CredentialStore.
+Private transaction/profile preservation,wrong fingerprint/stale save refusal,
+verified TLS/AUTH,wrong CA/name/identity and revoked credential refusal pass.
+No game/worker/room/profile is created;all connections/admission/listener/port
+release and server child natural exit0 pass. Disposable credentials revoked,
+bearer handoffs/configs removed,both packages/assets/test PKI unchanged. This
+qualifies bounded same-account backend enrollment/TLS only. Graphical setup,
+host.run/Start Server/real-credential native gameplay,SCM/another account/clean
+PC/Internet remain OPEN;previous multiplayer fixture evidence stays fixture-based.
+User separately confirms the actual manual35 deck/cosmetics/AI/Continue/Quit/
+restart flow works and saved choices persist. All cosmetic category/mode/fault
+and physical-PC coverage remains OPEN. Exact evidence in client-enrollment.txt.
+
 Owner credential check35 / fresh manual candidate
 PASS under the user's normal desktop account using the clean34 bundled runtime
 and unchanged production credentials module:protected issue/read/import/auth,
@@ -26,7 +41,7 @@ Connection Setup with actual TLS,other accounts,SCM,clean PC and Internet stay
 OPEN;earlier packaged multiplayer identity adapters remain fixture evidence.
 Fresh independent manual35 ordinary CMD startup passes25.262s to menu with no
 automatic match/actions;owned readiness job cleanup is forced,not native Quit.
-Manual UI/rendering/deck/cosmetic persistence feedback is pending. See
+Manual deck/cosmetic persistence/AI/Continue/Quit/restart now passes above. See
 client-enrollment.txt;no private output or original game files enter Git.
 
 Bundled Custom invite/rematch34 qualification

@@ -2,6 +2,27 @@ IMPLEMENTATION LEDGER
 Updated: 2026-10-19 UTC
 Active objective: implement SERVER_REPLACEMENT_PLAN.txt, Windows only.
 
+REAL ENROLLMENT/TLS36 / MANUAL35 FEEDBACK (2026-10-19 UTC, BOUNDED PASS)
+User-run normal-owner diagnostic passes3.201s using separate clean34 client/server
+bundled runtimes and real protected production credential/enrollment/admission
+APIs. Twelve checks pass:private transaction/name/profile preservation,trust/stale
+save refusal,verified TLS/AUTH,wrong CA/name and identity refusal,real revocation,
+no game/worker/session remnants,port release/natural server child exit0 and input
+integrity. All bearer handoffs/configs are removed and disposable invites revoked.
+No package source overlay/permission weakening/trust edit/game launch. Source and
+10 client/18 server module hashes match actual retained bytes. Earlier client-only
+preflight failure and restricted overlapped-pipe fixture failures remain visible;
+corrected preflights attempt no private APIs. Three logic/TLS tests pass with
+explicit mocked privacy boundary;two pipe fixtures explicitly skip Windows5.
+Actual owner run separately qualifies its real process pipes/private boundary.
+Final full Python530 tests514pass/16skip,97.490s,exit0. Two new skips retain the
+explicit restricted-token process-fixture limit;they are not counted as passes.
+Manual35 user confirms deck/cosmetic edits persist through Try Deck vs AI,
+Continue/Quit/restart with real controls. This closes that bounded manual flow,
+not all cosmetic categories/public modes/graphical setup/host.run/native gameplay
+with real credentials/SCM/clean-PC/another account/Internet. See
+client-enrollment.txt for report/source bindings and retained evidence.
+
 OWNER CREDENTIALS / MANUAL CLIENT35 (2026-10-19 UTC, BOUNDED PASS)
 User ran the external bundled-runtime owner check from the normal desktop:
 all seven production credential checks pass in0.959s,including strict protected
@@ -14,7 +35,7 @@ New independent ignored manual35 game/client uses clean34 package/helper bytes,
 ordinary player35 profile and blank server settings. Actual Start Client.cmd
 reaches menu25.262s,total25.814s;no automatic gameplay/diagnostics,source/package/
 config/shared TOML unchanged. Readiness cleanup is forced,not native Quit.
-Manual deck/cosmetics/AI/Continue/Quit/restart feedback is requested;manual24 and
+Manual deck/cosmetics/AI/Continue/Quit/restart feedback now passes above;manual24 and
 originals stay untouched. Three operator lifecycle tests pass with EXPLICIT
 mocked OS privacy boundary;full Python525 tests511pass/14skip,92.991s pass.
 See client-enrollment.txt for source/report hashes and exact remaining scope.

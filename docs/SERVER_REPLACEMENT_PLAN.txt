@@ -4,6 +4,17 @@ Target: Battle Aces build 37822, Windows x64 server and clients.
 Status: IMPLEMENTATION ACTIVE. See STATUS.txt; incomplete phases remain future work.
 
 Current release integration order (2026-10-19)
+- Real normal-owner two-runtime enrollment/TLS36 now passes:production protected
+  transaction/profile preservation,verified TLS/AUTH,trust/name/identity/revocation
+  refusals,connection/listener/port release,natural server child exit0 and complete
+  disposable cleanup. No mocks/ACL changes/source overlays in actual operator run.
+  This closes bounded same-account BACKEND enrollment/TLS;qualify graphical setup,
+  actual Start Server/host.run and real-credential native gameplay,next accounts/
+  PCs/SCM/clean-PC/Internet separately. Old multiplayer identity fixtures remain
+  fixture evidence. User also confirms manual35 deck/cosmetics/AI/Continue/Quit/
+  restart persistence with actual controls. Preserve the copy;expand remaining
+  mode/cosmetic/rendering/fault matrix without promoting this one flow. Exact
+  reports/source bindings and retained failures in client-enrollment.txt.
 - Owner credential lifecycle35 now passes under the user's normal desktop
   account using verified bundled production modules and real protected DACLs.
   All disposable invites are revoked/handoffs removed. This closes only the
