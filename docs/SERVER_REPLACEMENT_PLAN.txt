@@ -4,6 +4,20 @@ Target: Battle Aces build 37822, Windows x64 server and clients.
 Status: IMPLEMENTATION ACTIVE. See STATUS.txt; incomplete phases remain future work.
 
 Current release integration order (2026-10-19)
+- Real-credential native37 now passes267.999s under the normal owner:actual
+  packaged client enroll commands,server maintenance CMD/native health,host.run
+  with exact production CredentialStore and strict runtime readers. Keep existing
+  authoritative/native gameplay/Continue/Quit/resource acceptance and require
+  disposable revoke/removal/no token logging. Read-only agent preflight attempts
+  no private API/server/game. Actual two-human1v1 has1220 exact frames/122 sampled
+  states per client,original results/Continue/five-event Quit,all exits0 and four
+  owned jobs active0/no forced cleanup. Disposable revoke/removal and real-token
+  scan pass. Slow168.359/168.500s initialization remains unresolved;retain it
+  separately. Source logic/dispatch tests with mocked privacy are not permission
+  acceptance;the actual owner report supplies bounded real-path evidence.
+  Preserve manual35;test owned03/fresh diagnostic profiles only. Start Server
+  Ctrl+C,graphical setup/SCM/clean-PC/Internet remain separate. See
+  client-enrollment.txt for operator path and exact scope.
 - Real normal-owner two-runtime enrollment/TLS36 now passes:production protected
   transaction/profile preservation,verified TLS/AUTH,trust/name/identity/revocation
   refusals,connection/listener/port release,natural server child exit0 and complete

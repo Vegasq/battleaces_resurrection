@@ -1,8 +1,42 @@
 """External qualification adapters only; never included in a player package.
 
-Restricted-token DACL enrollment stays unqualified. Ephemeral test identities
-arrive only over each owned child's stdin, never a command line or disk file.
+Default restricted-token controls use explicit stdin-only identity fixtures.
+Opt-in normal-owner controls use real protected credentials and production
+readers/store;stdin then carries public expected identities only. Never packaged.
 """
+
+SERVER_CHECK=r'''
+import hashlib,json,os,subprocess,sys,time
+from pathlib import Path
+from tools.package_integrity import verify
+request=json.loads(Path(sys.argv[1]).read_bytes());output=Path(request['output']);package=Path(request['package'])
+assert json.loads(sys.stdin.buffer.read(128))=={}
+report=dict(passed=False,scope='Actual packaged BattleAces-Server.cmd check, not Start Server/Ctrl+C or Internet acceptance')
+try:
+    verify(package,'server')
+    deadline=time.monotonic()+10
+    while not (output/'job-ready').exists():assert time.monotonic()<deadline;time.sleep(.02)
+    assert (output/'job-ready').read_bytes()==b'owned job attached\n'
+    entry=package/'BattleAces-Server.cmd';config=Path(request['config'])
+    shell=Path(os.environ.get('SystemRoot',r'C:\Windows'))/'System32/cmd.exe'
+    command='"'+str(shell)+'" /d /s /c ""'+str(entry)+'" check --config "'+str(config)+'""'
+    info=subprocess.STARTUPINFO();info.dwFlags|=subprocess.STARTF_USESHOWWINDOW;info.wShowWindow=0
+    result=subprocess.run(command,stdin=subprocess.DEVNULL,stdout=subprocess.PIPE,stderr=subprocess.PIPE,
+        timeout=60,startupinfo=info,close_fds=True)
+    (output/'command-stdout.txt').write_bytes(result.stdout);(output/'command-stderr.txt').write_bytes(result.stderr)
+    assert result.returncode==0 and not result.stderr
+    objects=[]
+    for line in result.stdout.decode('utf-8-sig').splitlines():
+        if line.startswith('{'):objects.append(json.loads(line))
+    assert len(objects)==1
+    health=objects[0];native=health['native']
+    assert health['passed'] and health['tls'] and health['credential_store_checked'] and health['pointer_bits']==64
+    assert native['created'] and native['stepped_frame']==0 and native['exit_code']==0 and native['reaped']
+    report.update(passed=True,health=health,command=command,entry_sha256=hashlib.sha256(entry.read_bytes()).hexdigest(),command_exit_code=0)
+except BaseException as error:report['error_type']=type(error).__name__
+finally:(output/'server-command-check.json').write_text(json.dumps(report,indent=2)+'\n')
+raise SystemExit(0 if report['passed'] else 1)
+'''
 
 SERVER=r'''
 import asyncio,hashlib,json,secrets,socket,sys,time,traceback
@@ -14,7 +48,8 @@ from tools.package_integrity import verify
 request=json.loads(Path(sys.argv[1]).read_bytes());output=Path(request['output']);package=Path(request['package'])
 fixture=json.loads(sys.stdin.buffer.read(16385));assert len(fixture['identities']) in (2,4)
 assert not request.get('recover_stage') or len(fixture['identities'])==2
-verify(package,'server');report=dict(passed=False,production_modules={},fixture_store=True,workers=[],frozen_matches=[],custom_commands=[])
+real_credentials=bool(request.get('real_credentials'))
+verify(package,'server');report=dict(passed=False,production_modules={},fixture_store=not real_credentials,workers=[],frozen_matches=[],custom_commands=[])
 workers=[];servers=[];authenticated=[];stores=[];old_sessions={}
 def publish(name,value):
     temporary=output/(name+'.tmp');temporary.write_text(json.dumps(value,indent=2)+'\n');temporary.replace(output/name)
@@ -31,6 +66,14 @@ async def create(*args,**kwargs):
     worker=await original_create(*args,**kwargs);workers.append(worker);return worker
 def server(*args,**kwargs):
     value=original_server(*args,**kwargs);servers.append(value);original_audit=value.audit
+    if real_credentials:
+        store=value.admission.store
+        assert type(store) is original_store and store.directory==Path(request['credential_directory'])
+        stores.append(store);actual_authenticate=value.admission.authenticate
+        async def observe_authentication(reader,writer):
+            player=await actual_authenticate(reader,writer);authenticated.append(player);return player
+        value.admission.authenticate=observe_authentication
+        report['production_store_type_verified']=True
     def observe(event,**fields):
         original_audit(event,**fields)
         if event=='match_created':
@@ -122,9 +165,13 @@ try:
     deadline=time.monotonic()+10
     while not (output/'job-ready').exists():assert time.monotonic()<deadline;time.sleep(.02)
     assert (output/'job-ready').read_bytes()==b'owned job attached\n'
-    host.CredentialStore=MemoryStore;host.DedicatedServer=server;worker_client.SimulationWorker.create=staticmethod(create)
+    if not real_credentials:host.CredentialStore=MemoryStore
+    else:assert host.CredentialStore is original_store
+    host.DedicatedServer=server;worker_client.SimulationWorker.create=staticmethod(create)
     asyncio.run(run());report['passed']=True
-except BaseException as error:report.update(error=repr(error),traceback=traceback.format_exc())
+except BaseException as error:
+    if real_credentials:report['error_type']=type(error).__name__
+    else:report.update(error=repr(error),traceback=traceback.format_exc())
 finally:
     host.CredentialStore=original_store;host.DedicatedServer=original_server
     publish('server-driver.json',report)
@@ -138,12 +185,21 @@ from client_patch.transport import client,launcher
 from server.credentials import parse_credential_handoff
 from tools.package_integrity import verify
 request=json.loads(Path(sys.argv[1]).read_bytes());output=Path(request['output']);package=Path(request['package']);game=Path(request['game'])
-fixture=parse_credential_handoff(sys.stdin.buffer.read(4097));verify(package,'client')
-report=dict(passed=False,production_modules={},invite_reads=0,tls_connections=0,credential_fixture=True);process=None
+real_credentials=bool(request.get('real_credentials'))
+raw=sys.stdin.buffer.read(4097)
+fixture=json.loads(raw) if real_credentials else parse_credential_handoff(raw)
+if real_credentials:assert set(fixture)=={'player_id'}
+verify(package,'client')
+report=dict(passed=False,production_modules={},invite_reads=0,tls_connections=0,credential_fixture=not real_credentials);process=None
 original_connect=launcher.tls.open_verified_connection
+original_invite=launcher.read_credential_file
 def invite(path):
     assert Path(path).resolve()==Path(request['invite_placeholder']).resolve()
-    report['invite_reads']+=1;return fixture
+    report['invite_reads']+=1
+    if real_credentials:
+        value=original_invite(path);assert value['player_id']==fixture['player_id']
+        report['production_private_reader_verified']=True;return value
+    return fixture
 async def connect(host,port,context,**kwargs):
     assert host=='127.0.0.1' and port==request['port']
     report['tls_connections']+=1
@@ -178,7 +234,7 @@ def spawn(config,remote,options,child):
     temporary=output/'game-process.tmp';temporary.write_text(json.dumps(row,indent=2)+'\n');temporary.rename(output/'game-process.json')
     return process
 try:
-    for module in (client,launcher,sys.modules['client_patch.transport.bridge'],sys.modules['tools.package_integrity']):
+    for module in (client,launcher,sys.modules['client_patch.transport.bridge'],sys.modules['server.credentials'],sys.modules['tools.package_integrity']):
         path=Path(module.__file__).resolve();assert path.is_relative_to(package/'program/app')
         report['production_modules'][module.__name__]=dict(path=str(path),sha256=hashlib.sha256(path.read_bytes()).hexdigest())
     deadline=time.monotonic()+10
@@ -191,7 +247,9 @@ try:
     expected=2 if request.get('recover_stage') and request['index']==0 else 1
     assert report['invite_reads']==report['tls_connections']==expected
     report['passed']=True
-except BaseException as error:report.update(error=repr(error),traceback=traceback.format_exc())
+except BaseException as error:
+    if real_credentials:report['error_type']=type(error).__name__
+    else:report.update(error=repr(error),traceback=traceback.format_exc())
 finally:(output/'client-driver.json').write_text(json.dumps(report,indent=2)+'\n')
 raise SystemExit(0 if report['passed'] else 1)
 '''

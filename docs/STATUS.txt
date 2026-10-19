@@ -2,6 +2,37 @@ IMPLEMENTATION LEDGER
 Updated: 2026-10-19 UTC
 Active objective: implement SERVER_REPLACEMENT_PLAN.txt, Windows only.
 
+REAL-CREDENTIAL NATIVE37 (2026-10-19 UTC, BOUNDED PASS)
+Normal-owner run passes267.999s:no forced cleanup. Actual packaged server check
+CMD/native health41408 exits0/reaps;two actual client enroll commands exit0.
+Production host.run/exact CredentialStore and strict original client readers
+authenticate the real protected identities without fixture auth. Both native
+humans receive1220 exact frames/122 matching sampled states,retain names/selected
+decks/full loadouts,build/finish/Continue/original five-event menu Quit and all
+game/launcher exits0. Health/match10464/52400 exit0/reap;listener/state lock release;
+four outer jobs active0/total_terminated0. All seven unchanged/non-disclosure
+checks plus real-token host-log/report scan and disposable revoke/removal pass;
+PKI removed. Identical1220-frame native replays decode exact frozen GameData.
+Early-settings->helper startup168.359/168.500s is retained as unresolved slow
+initialization,not hidden by the gameplay pass or attributed to a network timeout.
+See client-enrollment.txt/client-startup.txt for report bindings and scope.
+New opt-in packaged multiplayer mode uses protected issuance and actual bundled
+client enrollment commands,actual packaged server check CMD/native health and
+production host.run/real CredentialStore plus original strict client readers.
+No fixture auth substitution in this path;passthrough observers only add bounded
+evidence. Child stdin has public expected IDs only. Full existing native frame/
+state/identity/deck/loadout/results/Continue/Quit/replay/resource checks remain;
+add actual command receipts,public-output token scan and complete revoke/handoff
+cleanup. Read-only preflight passes readiness/source/helper/package/SDK equality
+checks then stops before private APIs under the known restricted token.26 focused
+checks pass,including partial/post-commit cleanup with explicit mocked privacy;
+final full Python534 tests518pass/16skip,98.551s pass. Actual owner/native run
+passes separately above. Prepared ignored launcher
+uses only owned03/fresh profiles;manual35 and ordinary launchers stay untouched.
+See client-enrollment.txt. Earlier fixture gameplay remains fixture evidence;
+this new same-PC run does not qualify all modes/graphical setup/Start Server
+Ctrl+C/SCM/clean-PC/Internet or complete the final telemetry/manual matrix.
+
 REAL ENROLLMENT/TLS36 / MANUAL35 FEEDBACK (2026-10-19 UTC, BOUNDED PASS)
 User-run normal-owner diagnostic passes3.201s using separate clean34 client/server
 bundled runtimes and real protected production credential/enrollment/admission

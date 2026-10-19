@@ -69,7 +69,7 @@ class PackagedNetworkEvidenceTests(unittest.TestCase):
         with self.assertRaises(AssertionError):validate(events+[dict(event='match_aborted')],clients,mode=1)
 
     def test_external_driver_sources_compile(self):
-        for name in ('SERVER','CLIENT'):compile(getattr(drivers,name),'<owned '+name+' adapter>','exec')
+        for name in ('SERVER_CHECK','SERVER','CLIENT'):compile(getattr(drivers,name),'<owned '+name+' adapter>','exec')
 
     def four_human_fixture(self):
         events,base=self.fixture();clients=[]

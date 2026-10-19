@@ -15,6 +15,29 @@ actions. Current native settings saves use staged handle publication. See
 ordinary-player-client.txt for reports,retained failures and remaining matrix.
 These controls do not close the final/manual/clean-machine/Internet gates below.
 
+Real-credential native37 qualification (BOUNDED PASS)
+Actual normal-owner run passes267.999s:no forced cleanup. Packaged server check
+CMD/native health and two actual client enrollment commands exit0. Production
+host.run/exact CredentialStore plus original strict runtime readers authenticate
+two real protected identities. Full-human1v1 receives1220 exact frames/122 matching
+sampled states per client with names/selected decks/full loadouts. Original build/
+result/Continue/five-event Quit and all game/launcher/worker exits0 pass;listener/
+state lock release,four outer jobs active0/total_terminated0. Two native replay
+structures agree. All input/shared-channel invariants,real-token non-disclosure
+and disposable revoke/handoff cleanup pass. Slow168.359/168.500s initialization
+remains OPEN,not a cold-cache/network-cause claim. Exact report in
+client-enrollment.txt;actual Start Server Ctrl+C,all-mode/fault/graphical setup/
+SCM/clean-PC/cross-PC/Internet/final telemetry/manual gates remain OPEN.
+New explicit normal-owner mode combines actual bundled client enroll commands,
+actual server maintenance check CMD/native health and host.run/native multiplayer
+with exact production credential store/strict readers. No auth fixture in this
+path. Existing full native/authoritative/Continue/Quit/replay/resource checks stay
+required,plus command receipts/real private reader/store proofs/revoke/removal/
+token non-disclosure. Read-only preflight attempts no private operations/server/
+game under the restricted token.26 focused logic/evidence checks pass with their
+explicit mocked privacy boundary;actual owner/native report passes separately.
+Manual35 unchanged;see client-enrollment.txt for ignored launcher and scope.
+
 Real two-runtime enrollment36 / manual35 feedback
 PASS:normal desktop runs unchanged packaged client enrollment/check_connection
 and separate packaged production coordinator/real protected CredentialStore.

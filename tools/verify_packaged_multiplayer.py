@@ -1,10 +1,10 @@
 """Bundled TLS host + two or four production clients + native result/Continue/Quit.
 
-Explicit external adapters use stdin-only ephemeral credential fixtures because
-protected DACL enrollment is unqualified under the tool token. They never relax
-production ACL rules. Original Play/build/surrender/Continue/Quit are automated;
-this is not actual CMD mouse play, protected deployment, clean-PC or Internet
-acceptance. Native worker and simulation clocks remain unchanged.
+Default external adapters use explicit stdin-only ephemeral identity fixtures.
+Opt-in --real-credentials requires the normal desktop account and uses protected
+issuance/enrollment and the actual production store/readers. No ACL relaxation.
+Original Play/build/surrender/Continue/Quit are automated;this is not CMD mouse
+play,SCM,clean-PC or Internet acceptance. Native simulation clocks are unchanged.
 """
 from __future__ import annotations
 import argparse
@@ -22,6 +22,8 @@ import time
 import traceback
 
 from client_patch.transport import client,launcher
+from client_patch.transport import enrollment
+from server import credentials as private
 from server.assets import verify_assets
 from server.worker_client import _WindowsJob
 from tests.test_tls_transport import generate_test_pki,remove_test_pki
@@ -35,6 +37,8 @@ from tools import verify_native_quit as quit_probe
 from tools import verify_unified_startup as startup
 from tools.verify_native_storage import snapshot
 from tools.replay_retention import api_path
+from tools.packaged_owner_credentials import OwnerCredentials
+from tools.verify_owner_credentials import restricting_sids_present
 
 ROOT=Path(__file__).resolve().parents[1]
 require=startup.require
@@ -42,7 +46,8 @@ require=startup.require
 
 def sources():
     paths=[Path(__file__),ROOT/'tools/packaged_network_drivers.py',ROOT/'tools/packaged_network_evidence.py',
-           ROOT/'tools/verify_packaged_play.py',ROOT/'tools/verify_native_storage.py',ROOT/'tools/packaged_custom_evidence.py']
+           ROOT/'tools/verify_packaged_play.py',ROOT/'tools/verify_native_storage.py',ROOT/'tools/packaged_custom_evidence.py',
+           ROOT/'tools/packaged_owner_credentials.py',ROOT/'tools/verify_owner_credentials.py']
     return quit_probe.sources()|{p.relative_to(ROOT).as_posix():hashlib.sha256(p.read_bytes()).hexdigest() for p in paths}
 
 
@@ -93,6 +98,9 @@ def run(args):
     if not hasattr(args,'disconnect_after_frame'):args.disconnect_after_frame=600
     if not hasattr(args,'humans'):args.humans=2
     if not hasattr(args,'custom_rematch'):args.custom_rematch=False
+    if not hasattr(args,'real_credentials'):args.real_credentials=False
+    if not hasattr(args,'preflight_only'):args.preflight_only=False
+    require(not args.preflight_only or args.real_credentials,'read-only owner preflight requires real-credential mode')
     require(not (args.recover_loading and args.recover_running),'select one recovery stage')
     recovering=args.recover_loading or args.recover_running
     require(args.disconnect_after_frame in (200,600),'unsupported running disconnect threshold')
@@ -110,6 +118,20 @@ def run(args):
     require(helper==(client_package/'program/client-helper/BattleAcesOffline.dll').read_bytes() and b'BA_RESURRECTION_NATIVE_QUIT_GATE_V1' in helper,'install the exact packaged gated-Quit diagnostic helper')
     require(not args.custom_rematch or b'BA_RESURRECTION_CUSTOM_LEAVE_GATE_V1' in helper,'Custom qualification requires the owned post-match Leave diagnostic')
     receipt=quit_probe.verify_build_receipt(game,args.helper_build_receipt.resolve());assets_before=verify_assets(assets)
+    if args.real_credentials:
+        for module in (client,enrollment,private):
+            path=Path(module.__file__).resolve();relative=path.relative_to(ROOT).as_posix()
+            require(hashlib.sha256(path.read_bytes()).hexdigest()==inventories['client']['files']['program/app/'+relative]['sha256'],
+                    'owner issuer/enrollment SDK differs from the actual client bundle')
+        restricted=restricting_sids_present()
+        if args.preflight_only or restricted:
+            output.mkdir(parents=True,exist_ok=False)
+            report=dict(passed=False,stage='preflight_only' if args.preflight_only else 'normal_desktop_required',
+                private_api_attempted=False,restricting_sids_present=restricted,preflight_only=args.preflight_only,
+                source_sha256=sources(),helper_build=receipt,package_files_verified=True,assets_verified=True)
+            (output/'verification.json').write_text(json.dumps(report,indent=2)+'\n',encoding='utf-8')
+            print(json.dumps({k:report[k] for k in ('passed','stage','private_api_attempted','restricting_sids_present')}))
+            return 2
     output.mkdir(parents=True,exist_ok=False);pki_folder=output/'ephemeral-pki';pki=generate_test_pki(pki_folder)
     with socket.socket() as reservation:reservation.bind(('127.0.0.1',0));port=reservation.getsockname()[1]
     config_folder=output/'config';config_folder.mkdir();data=output/'host-data'
@@ -118,14 +140,15 @@ def run(args):
                        certificate_file=str(pki['cert']),private_key_file=str(pki['key']),credential_directory=str(output/'authored-private-store'),
                        diagnostic_audit=True,log_max_bytes=8*1024*1024)
     host_path=config_folder/'host.json';host_path.write_text(json.dumps(host_config,indent=2)+'\n')
-    identities=[dict(schema=1,player_id='p_'+secrets.token_hex(16),invite_id='i_'+secrets.token_hex(16),token='ba1_'+secrets.token_urlsafe(32)) for _ in range(args.humans)]
+    identities=[] if args.real_credentials else [dict(schema=1,player_id='p_'+secrets.token_hex(16),invite_id='i_'+secrets.token_hex(16),token='ba1_'+secrets.token_urlsafe(32)) for _ in range(args.humans)]
+    owner=OwnerCredentials(output) if args.real_credentials else None
     gate=secrets.token_hex(16);gate_path=game/'investigation/runtime'/('public-queue-'+gate+'.ready')
     retry_path=gate_path.with_name('public-queue-'+gate+'-retry.ready')
     require(not gate_path.exists() and not retry_path.exists(),'public start/retry gate already exists')
     configs=[host_path];children=[];records=[];server_child=None;gate_created=False;quit_released=False;fault_requested=False;retry_released=False;leave_stage=0
     shared=args.shared_settings.resolve()
     def channels():return dict(toml=startup.shared_state(shared),replays=snapshot(shared.parent/'AutoSaveReplays'),backup=snapshot(shared.parent/'StorageSyncBackup'))
-    report=dict(passed=False,scope=__doc__,mode=args.mode,humans=args.humans,custom_rematch=args.custom_rematch,recover_loading=args.recover_loading,recover_stage=recover_stage,helper_build=receipt,shared_before=channels(),source_sha256_at_start=sources(),forced_cleanup=False,
+    report=dict(passed=False,scope=__doc__,mode=args.mode,humans=args.humans,real_credentials=args.real_credentials,custom_rematch=args.custom_rematch,recover_loading=args.recover_loading,recover_stage=recover_stage,helper_build=receipt,shared_before=channels(),source_sha256_at_start=sources(),forced_cleanup=False,
                 packages=str(packages),assets_manifest_sha256=hashlib.sha256((assets/'asset-manifest.json').read_bytes()).hexdigest())
     kernel=ctypes.WinDLL('kernel32',use_last_error=True);kernel.GetTickCount64.restype=ctypes.c_ulonglong
     kernel.OpenProcess.argtypes=[ctypes.c_ulong,ctypes.c_int,ctypes.c_ulong];kernel.OpenProcess.restype=ctypes.c_void_p
@@ -133,10 +156,21 @@ def run(args):
     kernel.GetExitCodeProcess.argtypes=[ctypes.c_void_p,ctypes.POINTER(ctypes.c_ulong)];kernel.CloseHandle.argtypes=[ctypes.c_void_p]
     started=time.monotonic();config_bytes={str(host_path):host_path.read_bytes()}
     try:
+        if owner:
+            report['private_api_attempted']=True;identities=owner.issue(args.humans)
+            check_output=output/'server-command-check'
+            check=Child(server_package,check_output,drivers.SERVER_CHECK,
+                dict(package=str(server_package),output=str(check_output),config=str(host_path)),{})
+            children.append(check);check.process.wait(timeout=75)
+            require(check.process.returncode==0,'actual packaged server check command failed')
+            command_report=json.loads((check_output/'server-command-check.json').read_bytes())
+            require(command_report['passed'],'actual packaged server check evidence failed')
+            report['server_command_check']=command_report
         server_output=output/'server'
         request=dict(package=str(server_package),output=str(server_output),config=str(host_path),timeout=args.timeout,
-                     credential_directory=host_config['credential_directory'],recover_stage=recover_stage,disconnect_after_frame=args.disconnect_after_frame,custom_rematch=args.custom_rematch)
-        server_child=Child(server_package,server_output,drivers.SERVER,request,dict(identities=identities));children.append(server_child)
+                     credential_directory=host_config['credential_directory'],recover_stage=recover_stage,disconnect_after_frame=args.disconnect_after_frame,custom_rematch=args.custom_rematch,real_credentials=args.real_credentials)
+        server_identities=[dict(player_id=value['player_id']) for value in identities] if owner else identities
+        server_child=Child(server_package,server_output,drivers.SERVER,request,dict(identities=server_identities));children.append(server_child)
         while not (server_output/'server-ready.json').exists():
             require(server_child.process.poll() is None and time.monotonic()-started<60,'bundled host did not become ready');time.sleep(.05)
         ready=json.loads((server_output/'server-ready.json').read_bytes());require(ready['address']==['127.0.0.1',port],'bundled host bound the wrong listener')
@@ -146,14 +180,18 @@ def run(args):
             folder=game/'.battleaces-resurrection/profiles'/profile
             require(not folder.exists(),'owned native profile already exists')
             config=config_folder/f'client-{index}.json';placeholder=config_folder/f'authored-invite-{index}.placeholder'
-            placeholder.write_bytes(b'authored nonsecret placeholder; stdin fixture only\n')
-            settings=client.defaults(game);settings.update(display_name=f'Packaged Human {index+1}',local_profile=profile,
-                server_host='127.0.0.1',server_port=port,server_name='localhost',ca_bundle=str(pki['ca']),credential_file=str(placeholder))
-            config.write_text(json.dumps(settings,indent=2)+'\n');configs.extend((config,placeholder))
+            settings=client.defaults(game);settings.update(display_name=f'Packaged Human {index+1}',local_profile=profile)
+            if owner:
+                placeholder=owner.enroll(index,config,settings,pki['ca'],port,client_package=client_package)
+            else:
+                placeholder.write_bytes(b'authored nonsecret placeholder; stdin fixture only\n')
+                settings.update(server_host='127.0.0.1',server_port=port,server_name='localhost',ca_bundle=str(pki['ca']),credential_file=str(placeholder))
+                config.write_text(json.dumps(settings,indent=2)+'\n')
+            configs.extend((config,placeholder))
             for path in (config,placeholder):config_bytes[str(path)]=path.read_bytes()
             request=dict(package=str(client_package),game=str(game),output=str(client_output),config=str(config),profile=profile,
-                port=port,invite_placeholder=str(placeholder),mode=args.mode,index=index,gate=gate,visible=args.visible,recover_stage=recover_stage,custom_rematch=args.custom_rematch)
-            child=Child(client_package,client_output,drivers.CLIENT,request,identity);children.append(child)
+                port=port,invite_placeholder=str(placeholder),mode=args.mode,index=index,gate=gate,visible=args.visible,recover_stage=recover_stage,custom_rematch=args.custom_rematch,real_credentials=args.real_credentials)
+            child=Child(client_package,client_output,drivers.CLIENT,request,dict(player_id=identity['player_id']) if owner else identity);children.append(child)
             records.append(dict(child=child,folder=folder,profile=profile,name=settings['display_name'],player=identity['player_id'],deck_edited=index%2==1))
         while True:
             require(server_child.process.poll() is None,'bundled host stopped during client gameplay')
@@ -227,6 +265,7 @@ def run(args):
         (server_output/'server-stop').write_bytes(b'owned qualification complete\n');server_child.process.wait(timeout=35)
         require(server_child.process.returncode==0,'bundled host did not stop through original cleanup')
         server_report=json.loads((server_output/'server-driver.json').read_bytes());imports(server_report,server_package,inventories['server'])
+        if owner:require(not server_report['fixture_store'] and server_report['production_store_type_verified'],'host did not use the production protected store')
         expected_authenticated=[row['player'] for row in records]+([records[0]['player']] if recovering else [])
         require(sorted(server_report['authenticated'])==sorted(expected_authenticated),'bundled TLS identity ownership differs')
         frozen=server_report['frozen_matches'];require(len(frozen)==(2 if recovering or args.custom_rematch else 1),'bundled host match count differs')
@@ -237,6 +276,7 @@ def run(args):
         final_frames=sum(e['event']=='frame_queued' and e.get('match')==final['match'] for e in events)
         for row in records:
             child=row['child'];bundled=json.loads((child.output/'client-driver.json').read_bytes());imports(bundled,client_package,inventories['client'])
+            if owner:require(not bundled['credential_fixture'] and bundled['production_private_reader_verified'],'client did not use the production private reader')
             require(kernel.WaitForSingleObject(child.handle,0)==0,'owned game still alive after launcher exit')
             code=ctypes.c_ulong();require(kernel.GetExitCodeProcess(child.handle,ctypes.byref(code)) and code.value==0,'native game exit is not0')
             row['pid']=child.native['pid'];row['log']=read_native_log(game,row['pid'],since_tick=child.native['launch_tick'])
@@ -291,7 +331,13 @@ def run(args):
         last_worker=report['custom']['worker_pids'][-1] if args.custom_rematch else report['match']['worker_pid']
         require(last_worker==server_report['workers'][-1]['pid'] and final['game_data_sha256']==server_report['workers'][-1]['game_data_sha256'],'bundled native worker ran a different game')
         report.update(passed=True,server=server_report,clients=[{k:row[k] for k in ('pid','name','player','profile','replay','replay_set','settings','trace','driver_report')} for row in records])
-    except BaseException as error:report.update(passed=False,error=repr(error),traceback=traceback.format_exc())
+        if owner:
+            require(len(owner.commands)==args.humans,'actual packaged client enrollment command evidence missing')
+            report['client_enrollment_commands']=owner.commands
+    except BaseException as error:
+        report['passed']=False
+        if owner:report['error_type']=type(error).__name__
+        else:report.update(error=repr(error),traceback=traceback.format_exc())
     finally:
         if server_child and server_child.process.poll() is None:
             try:(server_child.output/'server-stop').write_bytes(b'owned failure cleanup\n');server_child.process.wait(timeout=35)
@@ -329,9 +375,16 @@ def run(args):
         # Check actual public evidence files for accidental fixture-token disclosure.
         report['fixture_tokens_not_logged']=not any(identity['token'].encode() in path.read_bytes() for identity in identities for child in children
             for path in child.output.iterdir() if path.is_file() and path.suffix in ('.txt','.json','.log'))
+        if owner:
+            public=list((data/'logs').glob('events.jsonl*'))
+            report['real_tokens_not_logged']=report['fixture_tokens_not_logged'] and not any(
+                identity['token'].encode() in path.read_bytes() for identity in identities for path in public)
+            report['real_tokens_not_logged'] &= not any(identity['token'] in json.dumps(report) for identity in identities)
+            report.update(owner.dispose())
         remove_test_pki(pki_folder)
         checks=('adapters_unchanged','config_unchanged','package_files_unchanged','assets_unchanged','shared_channels_unchanged','source_files_unchanged','fixture_tokens_not_logged')
         report['passed'] &= all(report.get(k,False) for k in checks) and not report['forced_cleanup']
+        if owner:report['passed'] &= report.get('disposable_invites_revoked_and_handoffs_removed',False) and report['real_tokens_not_logged']
         (output/'verification.json').write_text(json.dumps(report,indent=2)+'\n',encoding='utf-8')
     print(json.dumps({k:report[k] for k in ('passed','forced_cleanup','elapsed_seconds','error') if k in report}))
     return 0 if report['passed'] else 1
@@ -345,6 +398,8 @@ if __name__=='__main__':
     parser.add_argument('--custom-rematch',action='store_true',help='original Custom invite, two human matches, changed-deck rematch, sequential Leave and Quit')
     parser.add_argument('--timeout',type=int,default=420)
     parser.add_argument('--visible',action='store_true')
+    parser.add_argument('--real-credentials',action='store_true',help='normal-owner protected issuance/enrollment, actual store/readers and server CMD check')
+    parser.add_argument('--preflight-only',action='store_true',help='with --real-credentials:read-only readiness/token check; never start a game/server or attempt protected files')
     recovery=parser.add_mutually_exclusive_group()
     recovery.add_argument('--recover-loading',action='store_true',help='disconnect first accepted loading match, then complete a new native match in the same processes')
     recovery.add_argument('--recover-running',action='store_true',help='disconnect after both clients play/build, then complete a new native match in the same processes')

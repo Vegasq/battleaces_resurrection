@@ -1,5 +1,23 @@
 CLIENT STARTUP TIMING (2026-10-17)
 
+2026-10-19 real-credential two-client37 observation (UNRESOLVED)
+The actual normal-owner packaged multiplayer run passes267.999s,but early native
+settings selection->helper startup takes168.359s/168.500s for PIDs9728/30032.
+Both initially pause after asset-table/localization initialization logs,continue
+using CPU and growing their working sets,then complete an authoritative1220-frame
+human1v1/results/Continue/original Quit without forced cleanup. Actual server CMD
+health/private store/TLS and packaged enroll commands pass before gameplay.
+One instantaneous TCP table sample has no entries for the native game PIDs;the
+Python transport parents own remote TLS,so this does NOT establish zero network
+traffic,a network timeout cause or process-wide telemetry acceptance.
+No per-task/loader/IO timing or controlled cache condition is measured. Do not
+label this a cold-cache benchmark or blame authentication,diagnostic flags,disk
+or networking from the visible pause. Keep the existing startup investigation
+open;no initialization barrier/timeout is bypassed and no helper change is made.
+Exact report/source/frame/job/cleanup bindings are in client-enrollment.txt:
+local/owner-multiplayer37/run_6315d57aa432dd14/verification.json SHA256
+24707ce2c04ae35bac6c468c827079ab57f637a7f6209d98f1723f3097d0c45a
+
 2026-10-19 bounded follow-up (still unresolved)
 During native Quit qualification,one fresh process reaches its180s startup
 deadline before any menu/probe callback;another reaches the menu after roughly

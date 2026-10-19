@@ -1,6 +1,97 @@
 COMMUNITY CLIENT CONNECTION SETUP AND INVITE ENROLLMENT
 Updated:2026-10-19
 
+Real-credential native multiplayer37 (BOUNDED PASS)
+Normal-owner operator run now passes267.999492s with no forced cleanup. The actual
+packaged server CMD check exits0:TLS/real private store checked,native worker41408
+creates/steps frame0/closes/reaps0. Two actual bundled client enroll commands exit0
+and publish strict protected copies. Production host.run keeps the exact original
+CredentialStore class/symbol;both clients call the original protected runtime
+reader and each make one real TLS authentication. External observers forward
+unchanged production admission/reader/worker calls;no MemoryStore/identity stub is
+selected. Child stdin contains public expected player IDs only.
+
+Native clients9728/30032 complete a full HUMAN1v1:1220 exact authoritative frame
+receipts each and122 common matching observable-state samples each. Configured
+names,independent native deck selections/active groups/full loadouts bind to the
+two real authenticated identities. Original native build/result/Continue and
+exact five-event gated menu Quit pass;both game and launcher exits0. Host health/
+match10464/52400 exit0/reap with no failure;listener/state lock release. All four
+outer owned jobs report active0/total_terminated0 before close. Source/packages/
+assets/config/shared TOML,replays and backup channels remain unchanged. Public
+child outputs/host logs/report have no issued bearer values;all disposable invites
+are revoked and issued/enrolled bearer handoffs removed. Test PKI is removed.
+Two identical17975-byte native replay files decode1220 contiguous frame records/
+exact frozen GameData hash;this is structural readback,not new native playback.
+
+local/owner-multiplayer37/run_6315d57aa432dd14/verification.json and
+local/owner-multiplayer37/last-report.json share SHA256
+24707ce2c04ae35bac6c468c827079ab57f637a7f6209d98f1723f3097d0c45a
+Native replay SHA256
+35a324f9955044149308f1fbb887671f67f6b26d29e3e1f73e837fe717258f5a
+Read-only follow-up rechecks both report copies,current bound sources,verified
+bundled module imports,commands,all exits/job counters and exact frame/sample
+counts. This is report validation,not another native run or relaxed checker.
+
+Slow initialization remains OPEN. Early native settings->helper startup takes
+168.359s/168.500s in these two concurrent processes. Asset-table initialization
+logs precede the delay and both later complete the real match. This is not a
+controlled cold-cache benchmark or proof of disk/network/diagnostic-flag cause.
+One instantaneous TCP table sample finds no native-PID sockets;that is neither
+process-wide telemetry coverage nor a network timeout diagnosis. See
+client-startup.txt. Preserve the passing long run;do not hide its startup cost.
+
+verify_packaged_multiplayer now has explicit --real-credentials and a read-only
+--preflight-only mode. Default stdin identity-fixture controls keep their explicit
+scope. The real mode requires the normal desktop token BEFORE any private API,
+listener or game. Preflight02 verifies current packages/assets/helper receipt/
+source bindings and matching source issuer/client/enrollment bytes against the
+actual client bundle;the agent token reports restricting SIDs,passed=false,
+private_api_attempted=false. No denied protected operation is retried.
+
+Fresh normal-owner runs issue protected disposable handoffs,then invoke the
+actual isolated bundled tools.package_client enroll CLI for each config. Strict
+readback and preserved configured profile/name are required. The actual packaged
+BattleAces-Server.cmd check command runs under an owned gated job and must report
+real private store/TLS plus native create/frame0/close/reap. This is the generic
+maintenance CMD check,not Start Server.cmd/Ctrl+C acceptance. The subsequent
+production host.run retains the EXACT CredentialStore class/symbol;an external
+passthrough observer records only identities returned by its actual admission
+method. Client observers likewise call the original protected runtime reader.
+No MemoryStore or credential-read stub is selected in this opt-in path. Child
+stdin carries public expected player IDs only,never issued bearer credentials.
+
+The existing full native evidence checks still require original Play/build/
+result/Continue/gated Quit,exact authoritative receipts/matching sampled states,
+full identities/decks/loadouts,original replay/settings and worker/listener/state
+lock/owned-job release. All automatic actions remain external test diagnostics;
+ordinary Start Client is unchanged. Real mode additionally requires both actual
+bundled enrollment command receipts,no fixture flags,actual store/reader proofs,
+token non-disclosure across child outputs/host logs/public report,and complete
+disposable revocation/handoff removal. Cleanup covers partial issuance and a
+backend that committed before a later readback failure. No original game files
+or private runtime artifacts are published.
+
+Prepared operator entry:local/owner-multiplayer37/Owner Multiplayer Check.cmd.
+It targets owned telemetry-client03 with fresh diagnostic profiles and clean34
+packages/helper;manual35/frozen/original copies are untouched. Two visible test
+clients play automatically;leave them to finish. Public results are copied to
+local/owner-multiplayer37/last-report.json;each fresh run retains verification.json
+under run_<random>. The first real1v1 run passes above. This remains same-PC/native
+integration,not graphical setup,physical input,SCM,clean-PC or Internet proof.
+
+Four credential/enrollment lifecycle tests use an EXPLICIT mocked OS privacy
+boundary;one also mocks execution of the packaged enrollment command while
+exercising its actual source backend. These are source logic/cleanup/dispatch
+checks,not Windows permission or real bundled command acceptance. All26 focused
+owner/network/Custom checks pass in3.368s. Final full suite
+local/owner-multiplayer37-python-tests02.txt:534 tests in98.551s,518pass/16skip,
+exit0. The earlier533-test snapshot also passed517/16skip before final packaged
+CLI enrollment dispatch refinement. Actual normal-owner/native evidence above
+separately qualifies its real privacy/command/authentication path. Remaining
+real-credential team/Custom/fault,graphical setup,actual Start Server Ctrl+C,
+SCM/clean-PC/cross-PC/Internet and final telemetry/manual matrix stay open.
+
 Two-runtime normal-owner enrollment/TLS36 (BOUNDED PASS)
 User double-clicked local/owner-enrollment36/Owner Enrollment Check.cmd under
 the normal desktop account and reported PASS. Saved report independently passes
