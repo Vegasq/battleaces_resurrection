@@ -52,6 +52,12 @@ loading abort,two complete result/Continue cycles,all three workers exit0,
 complete maps bound by actual match IDs and unchanged baselines. Ordinary
 launch still has no automated actions. Original replay/functional UX shared
 storage is independently traced,not yet patched;see client-storage-isolation.txt.
+Clean-source a00187e builds local/ordinary-player-packages02 (dirty:false),with
+helper15 and82 server/67 client payload files. Bundled checks/imports pass;actual
+Start Client.cmd reaches its native menu in9.761s/10.246s total with unchanged
+baselines and forced owned teardown. These remain development previews,not a
+general release;older/manual archives are unchanged. Exact hashes and program
+payload comparison are in ordinary-player-client.txt.
 See ordinary-player-client.txt for the gap,changes,exact scope and matrix.
 
 NATIVE SETTINGS WRITE PUBLICATION (2026-10-19 UTC, IN QUALIFICATION)

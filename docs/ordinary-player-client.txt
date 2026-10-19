@@ -300,3 +300,30 @@ exact seams,retained evidence,cloud/local distinctions and the next qualificatio
 
 Do not call the final release complete because source options or isolated mode
 tests pass. Follow RELEASE_ACCEPTANCE.txt and retain previous failure evidence.
+
+Clean source development packages
+Commit a00187ee7dc6861b2005f3514fa61b95ff3f64f4 builds fresh
+local/ordinary-player-packages02 with dirty:false and helper-ordinary15. These
+remain0.2.0-dev previews;the storage/manual/clean-machine/Internet gates are not
+closed. Both bundled integrity/production-import controls pass. Payload comparison
+against01 finds identical server program files and identical client program files
+except the authored helper DLL;compatibility metadata changes with provenance.
+Earlier host/installer13 reports retain their exact scope,not a new15 full-matrix
+or upgraded-old-preview claim.
+
+The clean package's actual Start Client.cmd also passes native menu readiness in
+9.761s (10.246s including forced cleanup),without spawn seams or automatic flags.
+Its actual engine command line confirms ordinary features and configured local
+name/profile. Package/config/covered sources/shared TOML stay unchanged;the owned
+process tree is reaped. This is another warm same-PC readiness control,not Quit
+or a universal performance measurement. The clean archives contain no original
+game components/assets and stay ignored,not in Git. Older/manual archives remain
+unchanged.
+local/ordinary-player-packages02/battleaces-server-win64.zip SHA256:
+b61df34a29c2114d1f52ef37637893749f09e407698e789842b810582b8141d2
+local/ordinary-player-packages02/battleaces-client-win64.zip SHA256:
+b5c8294edc59dee5a2873771899005fd63cb3acafa1b307cd05d1fe0377e86df
+local/ordinary-player-packaged-startup02/verification.json SHA256:
+9a857b98eff53dac192c5d3ff83cea2bb644fd0110a60f3f64401ff420c05716
+local/ordinary-player-packages02-payload-comparison.json SHA256:
+d8748056e5b402cebd9776a2b5d87edfac6feb1bb77fcc142651d70132d65fa0

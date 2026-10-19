@@ -1,6 +1,17 @@
 WINDOWS PORTABLE PACKAGING - DEVELOPMENT PREVIEW
 Updated: 2026-10-19
 
+Clean development checkpoint
+local/ordinary-player-packages02 is built from clean a00187e with helper15,not
+--allow-dirty. It has82 server/67 client payload files. Both bundled integrity/
+production imports pass;actual Start Client.cmd native startup passes9.761s,
+10.246s with forced cleanup. Server program bytes match the qualified01 preview;
+client program changes are limited to the authored helper,whose late-guest Custom
+recovery control passes separately. This does not renew every installer/host/
+mode acceptance on15. See ordinary-player-client.txt for exact archive/report
+hashes and client-storage-isolation.txt for remaining original shared storage.
+These0.2.0-dev previews are not a general release or a clean-PC/Internet claim.
+
 Current ordinary player candidate
 Packaged install now selects community and cosmetic recipes together. Start
 Client enables public queues and installed cosmetic selection/persistence,and
