@@ -46,9 +46,10 @@ def run(args):
     output.mkdir(parents=True, exist_ok=False)
     (game/'investigation/runtime').mkdir(parents=True, exist_ok=True)
     path = output/'client.json'
-    if args.local_profile:
+    if args.local_profile or args.display_name:
         settings = client.defaults(game)
-        settings['local_profile'] = client.profile_key(args.local_profile)
+        if args.local_profile: settings['local_profile'] = client.profile_key(args.local_profile)
+        if args.display_name: settings['display_name'] = args.display_name
         path.write_text(json.dumps(settings, indent=2)+'\n', encoding='utf-8')
     report = dict(passed=False, utc=datetime.now(timezone.utc).isoformat(), scope=__doc__,
                   settings_absent_at_start=not path.exists(), source_sha256_at_start=source_hashes(),
@@ -58,6 +59,7 @@ def run(args):
                   cosmetics_ui_trace=args.cosmetics_ui_trace, cosmetics_picker_smoke=args.cosmetics_picker_smoke,
                   cosmetics_equip_smoke=args.cosmetics_equip_smoke, cosmetics_persistence_proof=args.cosmetics_persistence_proof,
                   visible_window_requested=args.visible,
+                  menu_profile_proof=args.menu_profile_proof, requested_display_name=args.display_name,
                   helper_sha256=hashlib.sha256((game/'BattleAcesOffline.dll').read_bytes()).hexdigest())
     (output/'patch-manifest.json').write_bytes((game/'.battleaces-resurrection/patch-manifest.json').read_bytes())
     cosmetic_flags = (args.cosmetics_unlock_smoke, args.cosmetics_ui_trace, args.cosmetics_picker_smoke,
@@ -79,7 +81,8 @@ def run(args):
                 log = read_native_log(game, process.pid, since_tick=tick)
                 require(not any(marker in log for marker in ('Client lifecycle invariant failed:',
                     'Local menu initialization failed:', 'Offline initialization failed:',
-                    'Cosmetics catalog export failed:', 'Cosmetics unlock failed:')), 'native startup/export failed')
+                    'Cosmetics catalog export failed:', 'Cosmetics unlock failed:',
+                    'Local menu header binding failed:')), 'native startup/export failed')
                 markers = ('Local menu ready:', 'Unified client ready:',
                            'Online connection is not configured; localWorldUnaffected=1',
                            'Client control retired: reason=optional connection failed')
@@ -89,7 +92,8 @@ def run(args):
                 picker_done = not args.cosmetics_picker_smoke or 'COSMETICS PICKER SMOKE passed:' in log
                 equip_done = not args.cosmetics_equip_smoke or 'COSMETICS EQUIP SMOKE passed:' in log
                 persist_done = not args.cosmetics_persistence_proof or 'COSMETICS PERSISTENCE PROOF passed:' in log
-                if all(marker in log for marker in markers) and catalog_done and unlock_done and trace_done and picker_done and equip_done and persist_done:
+                profile_done = not args.menu_profile_proof or 'MENU PROFILE PROOF passed: ' in log
+                if all(marker in log for marker in markers) and catalog_done and unlock_done and trace_done and picker_done and equip_done and persist_done and profile_done:
                     require('Practice requested:' not in log, 'ordinary startup unexpectedly automated a match')
                     require('worldReady=1' not in log and 'Native world lease acquired:' not in log,
                             'startup/export unexpectedly created a match world')
@@ -153,6 +157,18 @@ def run(args):
                                 len(proof['state']['slots']) == 17, 'cosmetic persistence proof incomplete')
                         (output/'cosmetics-persistence.json').write_bytes(raw)
                         report['cosmetics_persistence_proof'] = proof
+                    if args.menu_profile_proof:
+                        rows = [json.loads(line.split('MENU PROFILE PROOF passed: ', 1)[1]) for line in log.splitlines()
+                                if 'MENU PROFILE PROOF passed: ' in line]
+                        require(len(rows) == 1 and rows[0]['owned'] and rows[0]['worldIdle'] and not rows[0]['networkRequest'] and
+                                rows[0]['capture'] and rows[0]['renderStateRestored'] and
+                                rows[0]['name'] == rows[0]['label'] == report['configured_display_name'],
+                                'native header model/rendered label differs from configured name')
+                        report['header_profile'] = rows[0]
+                        capture = (game/'investigation/runtime'/f'menu-profile-{process.pid}-1.png').read_bytes()
+                        require(capture.startswith(b'\x89PNG\r\n\x1a\n'), 'menu header capture missing/invalid')
+                        (output/'menu-profile.png').write_bytes(capture)
+                        report['header_capture_sha256'] = hashlib.sha256(capture).hexdigest()
                     report.update(menu_ready=True, observed_menu_seconds=time.monotonic()-started)
                     break
                 require(time.monotonic()-started < args.timeout, 'native startup deadline reached')
@@ -165,11 +181,13 @@ def run(args):
     def spawn(config, remote, options, child):
         nonlocal process, job, monitor, tick
         command = launcher.game_arguments(config, None, child.fileno(), options)
+        report['configured_display_name'] = config['display_name']
         require(not any('smoke' in value or 'audit' in value or 'auto-' in value for value in command),
                 'ordinary launcher added diagnostic actions')
         require('-player-cosmetics-catalog-export' not in command,
                 'ordinary launcher enabled cosmetic export')
         report['ordinary_arguments_contain_no_diagnostics'] = True
+        if args.menu_profile_proof: command.append('-menu-profile-proof')
         if args.cosmetics_export:
             command.append('-player-cosmetics-catalog-export')
         if args.cosmetics_unlock_smoke:
@@ -219,7 +237,7 @@ def run(args):
         saved = json.loads(path.read_text())
         require(saved['schema'] == 3 and all(saved[key] == '' for key in
             ('server_host', 'server_name', 'ca_bundle', 'credential_file')), 'unexpected online default configuration')
-        report.update(passed=True, default_settings_created=args.local_profile is None, remote_connections=0, invite_reads=0)
+        report.update(passed=True, default_settings_created=args.local_profile is None and args.display_name is None, remote_connections=0, invite_reads=0)
     except BaseException as error:
         report.update(passed=False, error=report.get('error', repr(error)))
         raise
@@ -244,6 +262,8 @@ if __name__ == '__main__':
     for key in ('game', 'output'): parser.add_argument('--'+key, type=Path, required=True)
     parser.add_argument('--timeout', type=int, default=180)
     parser.add_argument('--visible', action='store_true', help='show the owned diagnostic game window')
+    parser.add_argument('--display-name', help='seed an owned local-only config with this player name')
+    parser.add_argument('--menu-profile-proof', action='store_true', help='read back the owned main-menu header model and bound TMP label')
     parser.add_argument('--cosmetics-export', action='store_true',
                         help='explicit read-only export and validation of installed cosmetic tables')
     parser.add_argument('--cosmetics-unlock-smoke', action='store_true',

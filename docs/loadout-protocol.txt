@@ -186,3 +186,69 @@ Normal launchers do not receive these diagnostic
 flags. Full local/offline team fallback,other partial/error transitions,remote/
 local switching,actual portrait/result rendering and ordinary releases remain
 open. No original game files or private native evidence are publication inputs.
+
+Bounded offline team / remote-local qualification
+local/loadout-offline-2v2-native01 passes the unavailable-route single-client
+full-loadout2v2 probe on helper07. All three native AI producers(profile59) build
+and autonomously order/move produced units. Post-Play edits do not replace the
+original human units/map in config,JoinArmy or native simulation. Original local
+results/Continue and all human/bot role/name bindings pass. Runtime216.753s,
+zero server authentication/workers,one unavailable resolution attempt,sources
+unchanged,owned PID13460 reaped. This injects the unavailable resolver;ordinary
+Start Client/offline Internet behavior remains a separate release gate.
+Actual HUD and settled2v2 result PNGs are visually inspected:four distinct
+player cards,configured human name/portrait,bot names/portraits/banners/decks,
+original Continue and no connection-issue modal. Private images and authored
+review stay in the ignored evidence folder. Verification SHA256:
+ab1dc1cb1d765d26f7a9acd8584259d3d19ffdc58bca778f5341cd2103151464
+Private visual-review SHA256:
+2861bac968fa84cd6ee789e45ffc93958f11d108ac057f8fcd96f49c36eca55b
+
+local/loadout-offline-2vai-native01 also passes on helper07:one human and three
+moving native bots (enemy profiles60,ally59),original full Play intent survives
+post-Play edits,correct2vAI topology/results/Continue and all human/bot role/name
+bindings. Runtime221.790s,zero authentication/server workers,one unavailable
+resolution attempt,sources unchanged,owned PID52124 reaped. Verification SHA256:
+50a104cb6e4c415922dba5d12a841a96735e63906d03a3a279bdfc71f7b5187d
+Both actual HUD/result PNGs are inspected. Configured human and varied bot cards,
+correct2vAI heading and Continue render without a connection modal. An initial
+visual reading of a missing first human icon was wrong:lossless pixel inspection
+finds351 foreground pixels in the first-slot rectangle in both2v2/2vAI images,
+with identical bright-mask positions(zero differing pixels). An independent
+review corroborates all eight slot counts. Both native eight-unit checks pass.
+No rendering defect is established;the initial note is retained separately and
+the current review is corrected. All-item/effects acceptance remains separate.
+Corrected private visual-review SHA256:
+f72b1dbc645d2a6d52c8f8f41c2baac2c822384f7e645430e025e8404573862e
+
+The team transition harness additionally requires the full local human config/
+JoinArmy entitlement and roles,native SimPlayer map/units,and in-game/result
+profile bindings. Existing name/deck,autonomous bot movement,local network
+retirement and fresh remote-ticket/session checks remain mandatory.
+
+local/loadout-remote-local-native01 passes on helper07 in397.421s. Two human
+clients complete remote2vAI,independent local Try Deck,and fresh remote2vAI.
+Both remote matches deliver1250 exact canonical frames per client and normal
+build/result/Continue flows. Local practice creates zero extra server sessions/
+workers,retiring presence first;both clients reconnect with new sessions/ticket2
+afterwards (remote attempts[2,2],four total authentications,two workers exit0).
+Original configured names,independent human decks,full config/join entitlement/
+roles,native SimPlayer map/units,current local in-game/result profile bindings
+and final server saves agree. Each local bot autonomously moves produced units
+and reaches native supply131/136. Sources unchanged,owned clients reaped.
+All four local-phase HUD/result PNGs are visually inspected:distinct human
+portraits/names,all eight human result icons,original Try Deck/Continue,no
+connection modal. This does not qualify remote result art or all items/effects.
+Private images/review stay ignored. Verification SHA256:
+e2b624b92f9cfc1265e9c4e9a75cdd3663005c460191cf106720950213d9a65d
+Private transition visual-review SHA256:
+262c642420203b3f4507732d9bcd6cb1190d4387e34c0c2624be85fd8e62c89c
+
+The withdrawn first-icon claim also has a separate retained read-only native
+and prefab trace:local/result-unit-icon-contract01/FINDINGS.txt, SHA256:
+6fe74a29918679dc950d98d73e2c83f494ac53d5e410b008a89610f4ffd5db72
+The inspected MatchResultVM -> profile -> DeckVM -> UnitVM -> installed ability
+icon path includes slot0 and has no mode2/5 exclusion in that path. Lossless
+comparison independently finds identical bright silhouettes in all eight human
+slots across the two result PNGs. Static evidence is bounded to that path;
+neither a rendering bug nor its cause is established. No icon repair was added.

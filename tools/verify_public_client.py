@@ -92,11 +92,11 @@ async def run(args):
     process=job=writer=parent=child=bridge_task=None
     delayed=[];delayed_enter=False;dropped_ready=False;dropped_return=False
     fault=None;assignment_peer=None;withheld_bootstrap=False
-    log='';launch_tick=None;attempts=0;started=time.monotonic()
+    log='';launch_tick=None;attempts=0;connection_attempts=[];started=time.monotonic();header_gate=None
     report=dict(passed=False,scope=__doc__,mode=args.mode,unavailable=args.unavailable,visible=args.visible,
                 cancel=args.cancel,retry=args.retry,delay_enter_ack=args.delay_enter_ack,
                 drop_on_ready=args.drop_on_ready,drop_return_ack=args.drop_return_ack,practice_overlap=args.practice_overlap,
-                disconnect=args.disconnect,
+                disconnect=args.disconnect,menu_profile_proof=args.menu_profile_proof,
                 local_frames=args.local_frames if args.unavailable else None, local_profile=args.local_profile,
                 helper_sha256=hashlib.sha256((game/'BattleAcesOffline.dll').read_bytes()).hexdigest(),
                 source_sha256_at_start=source_hashes())
@@ -136,6 +136,11 @@ async def run(args):
         async def resolve():
             nonlocal attempts
             attempts+=1
+            observed=read_native_log(game,process.pid,since_tick=launch_tick)
+            attempt=dict(attempt=attempts,play_observed='PUBLIC QUEUE SMOKE original OnMapSelected:' in observed,
+                         header_gate_released=header_gate is not None and header_gate.exists(),
+                         world_acquired='Client world acquired:' in observed,log_offset=len(observed))
+            connection_attempts.append(attempt);observe('probe_resolve_attempt',**attempt)
             if args.unavailable: raise bridge.RemoteUnavailable()
             return bridge.Remote('127.0.0.1',port,context,credentials.player,credentials.token)
         config=dict(game_directory=game,server_host='127.0.0.1',server_port=port,display_name='Public Config Player',room='community')
@@ -156,6 +161,10 @@ async def run(args):
             command+=['-dedicated-surrender-smoke','-dedicated-surrender-frame=1200']
         if cosmetic_book:command+=['-local-cosmetics-experimental','-community-cosmetics-smoke','-human-cosmetics-smoke']
         if args.edit_loadout_after_play:command+=['-public-loadout-edit-smoke']
+        if args.menu_profile_proof:
+            key=secrets.token_hex(16)
+            header_gate=game/'investigation/runtime'/f'public-queue-{key}.ready'
+            command+=['-menu-profile-proof','-public-queue-smoke-gate='+key]
         if args.unavailable:
             command+=['-practice-ai-smoke','-public-ai-smoke','-practice-ai-smoke-matches=1',f'-practice-ai-smoke-frames={args.local_frames}']
             if args.local_profile: command += [f'-public-ai-smoke-profile={args.local_profile}']
@@ -177,7 +186,9 @@ async def run(args):
         while True:
             require(process.poll() is None,'owned game exited before native return')
             log=read_native_log(game,process.pid,since_tick=launch_tick)
-            for failure in ('Public client failure:', 'Client lifecycle invariant failed:', 'Practice stopped in '):
+            if header_gate is not None and 'MENU PROFILE PROOF passed: ' in log and not header_gate.exists():
+                with header_gate.open('xb') as stream:stream.write(b'owned initial header observed\n')
+            for failure in ('Public client failure:', 'Client lifecycle invariant failed:', 'Practice stopped in ', 'Local menu header binding failed:'):
                 require(failure not in log,'native public failure: '+failure)
             for failure in re.findall(r'Offline loop stopped in [^\n]*',log):
                 require(fault is not None and args.disconnect in ('loading','running') and re.fullmatch(
@@ -225,7 +236,11 @@ async def run(args):
                                log_offset=len(log))
                     observe('probe_disconnect',**fault);peer.close()
                     report['injected_disconnect']=fault
-            if marker in log: break
+            if marker in log:
+                # Re-read the current original binding after Continue, rather
+                # than accepting a header observed only before the match.
+                profile_rows=[line for line in log.splitlines() if 'MENU PROFILE PROOF passed: ' in line]
+                if not args.menu_profile_proof or len(profile_rows)>=2 and log.rfind('MENU PROFILE PROOF passed: ')>log.rfind(marker):break
             require(time.monotonic()-started<args.timeout,'native public queue/match/Continue timed out')
             await asyncio.sleep(.02 if args.disconnect and fault is None else .2)
         require('PUBLIC QUEUE SMOKE original OnMapSelected:' in log,'original public button missing')
@@ -299,7 +314,13 @@ async def run(args):
             require(not workers and not credentials.calls and 'Public fallback accepted:' in log,'unavailable route contacted/started server match')
             require(log.count('Client world acquired:')==1 and 'owner=local-practice' in log and 'owner=remote' not in log,
                     'fallback world ownership differs')
-            require(attempts==1,'unavailable public intent attempted multiple connections')
+            if args.menu_profile_proof:
+                require(attempts==2 and
+                        not connection_attempts[0]['play_observed'] and not connection_attempts[0]['header_gate_released'] and
+                        connection_attempts[1]['play_observed'] and connection_attempts[1]['header_gate_released'] and
+                        not any(row['world_acquired'] for row in connection_attempts),
+                        'gated unavailable route must have one startup and one Play attempt,none during the local world')
+            else:require(attempts==1,'unavailable public intent attempted multiple connections')
             from tools.verify_practice_ai import movement_evidence
             armies=[json.loads(line.split('Practice army snapshot: ',1)[1]) for line in log.splitlines() if 'Practice army snapshot: ' in line]
             participants=2 if args.mode==1 else 4
@@ -412,6 +433,22 @@ async def run(args):
                     report['post_return_menu_loadout']=dict(deck=list(saved.deck),cosmetics=list(changed.slots))
             report['full_loadouts']=dict(catalog=cosmetic_book.sha256,local_profile=cosmetic_profile,queue=queue_selections,
                 server_matches=frozen_matches,native_snapshots=snapshots,post_play_edit=args.edit_loadout_after_play)
+        if args.menu_profile_proof:
+            rows=[json.loads(line.split('MENU PROFILE PROOF passed: ',1)[1]) for line in log.splitlines()
+                  if 'MENU PROFILE PROOF passed: ' in line]
+            require(len(rows)>=2 and [row['sequence'] for row in rows]==list(range(1,len(rows)+1)),
+                    'missing initial/post-match header proof')
+            require(all(row['name']==row['label']==config['display_name'] and row['owned'] and row['worldIdle'] and
+                        not row['networkRequest'] and row['capture'] and row['renderStateRestored'] for row in rows),
+                    'configured header changed across the match')
+            captures=[]
+            for row in rows:
+                name=f'menu-profile-{process.pid}-{row["sequence"]}.png'
+                capture=(game/'investigation/runtime'/name).read_bytes()
+                require(capture.startswith(b'\x89PNG\r\n\x1a\n'),'header capture missing/invalid')
+                (output/name).write_bytes(capture)
+                captures.append(dict(file=name,sha256=hashlib.sha256(capture).hexdigest()))
+            report['menu_profile']=dict(proofs=rows,captures_requiring_visual_review=captures)
         report.update(passed=True,remote_attempts=attempts,authentications=credentials.calls)
     except BaseException as error:
         report.update(passed=False,error=f'{type(error).__name__}: {error}',traceback=traceback.format_exc())
@@ -430,6 +467,7 @@ async def run(args):
                 source=game/'investigation/runtime'/name
                 if source.is_file(): shutil.copyfile(source,output/name)
         if job is not None: job.close()
+        if header_gate is not None and header_gate.exists():header_gate.unlink()
         if bridge_task is not None: bridge_task.cancel();await asyncio.gather(bridge_task,return_exceptions=True)
         if writer is not None:
             writer.close()
@@ -454,6 +492,7 @@ async def run(args):
                                 stderr_tail=worker.stderr_tail[-4096:],owned_resources_reaped=reaped,
                                 expected_cancelled_request=cancelled,passed=okay))
         report.update(elapsed_seconds=time.monotonic()-started,owned_process_reaped=process is None or process.poll() is not None,
+            remote_attempts=attempts,authentications=credentials.calls,connection_attempts=connection_attempts,
             worker_exit_codes=[worker.process.poll() for worker in workers],cleanup='forced owned termination, not native Quit',
             worker_cleanup=cleanup,source_sha256_at_finish=source_hashes())
         report['source_files_unchanged']=report['source_sha256_at_start']==report['source_sha256_at_finish']
@@ -486,6 +525,7 @@ def main():
     parser.add_argument('--practice-overlap',action='store_true')
     parser.add_argument('--cosmetics-selection',type=Path,help='accepted native full-map proof; enables complete public protocol')
     parser.add_argument('--edit-loadout-after-play',action='store_true',help='change native units/cosmetics after freeze to verify original intent survives')
+    parser.add_argument('--menu-profile-proof',action='store_true',help='read and capture the configured header before and after a complete match')
     args=parser.parse_args()
     require(os.name=='nt' and args.output.resolve().is_relative_to(ROOT/'local') and 120<=args.timeout<=900,'bounded Windows/ignored probe required')
     require(1200<=args.local_frames<=7200 and (not args.local_profile or args.unavailable and args.mode==1),
@@ -495,6 +535,8 @@ def main():
             'choose one unavailable/cancel/disconnect scenario')
     require(not args.edit_loadout_after_play or (args.cosmetics_selection and not any((args.cancel,args.retry,args.drop_on_ready,args.drop_return_ack,args.disconnect))),
             'post-Play edit requires a full single-intent remote/unavailable probe')
+    require(not args.menu_profile_proof or not any((args.cancel,args.retry,args.drop_on_ready,args.drop_return_ack,args.disconnect)),
+            'header proof requires a complete single match')
     return asyncio.run(run(args))
 
 

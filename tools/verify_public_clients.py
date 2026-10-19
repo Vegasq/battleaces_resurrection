@@ -419,6 +419,20 @@ async def run(args):
                     require(len(snapshots) == 2 and snapshots[0]['deck']['units'] == evidence[index]['deck'] and
                             snapshots[0]['players'][0]['playerHandleWithName']['playerName'] == record['name'],
                             'local transition changed the configured human name/deck')
+                    if cosmetic_book:
+                        selected = cosmetic_seeds[index]
+                        frozen = [json.loads(line.split('HUMAN COSMETICS frozen message: ', 1)[1])
+                                  for line in tail.splitlines() if 'HUMAN COSMETICS frozen message: ' in line]
+                        require(len(frozen) == 2 and frozen[0]['deck'] == frozen[1]['deck'] == snapshots[0]['deck'] and
+                                frozen[0]['deck']['entitlements'] == [dict(cosmeticAssetKeys=list(selected.keys))] and
+                                all(value.get('portraitId', 0) == selected.portrait and value.get('bannerId', 0) == selected.banner
+                                    for value in frozen), 'local transition lost full config/join cosmetic intent')
+                        require(tail.count('HUMAN COSMETICS SimPlayer passed:') == 1,
+                                'local transition lacks full native simulation map/unit proof')
+                        for phase in ('in-game', 'result'):
+                            require(any(f'HUMAN COSMETICS identity binding: phase={phase} ' in line and
+                                        f'portrait={selected.portrait} banner={selected.banner} ' in line
+                                        for line in tail.splitlines()), 'local transition human UI binding missing: '+phase)
                     moved, ordered = movement_evidence(tail, set(snapshots[1]['deck']['units']))
                     require(bool(moved & ordered), 'transition bot did not autonomously order and move a produced unit')
                     resources = runtime/f'lan-resources-{record["process"].pid}-{starts[0]}.tsv'

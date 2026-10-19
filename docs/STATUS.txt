@@ -2,6 +2,47 @@ IMPLEMENTATION LEDGER
 Updated: 2026-10-19 UTC
 Active objective: implement SERVER_REPLACEMENT_PLAN.txt, Windows only.
 
+NEXT NATIVE GATE: LOCAL-USER SETTINGS ISOLATION (2026-10-19 UTC)
+Read-only tracing confirms native deck saves target the Windows user's shared
+persistentDataPath TOML,not the disposable installation/profile directory. The
+current local_profile setting isolates cosmetics only. A successful original
+write can affect settings shared with other copies;save callbacks alone do not
+prove disk success. Header-return probes are complete;isolate the early
+load/write path before more graphical launches. Preserve original data;
+do not infer a restorable baseline from later test state. Restart/profile
+unit-deck acceptance remains open. See local-user-settings.txt for the exact
+early cctor call seam. native-quit.txt separately pins the unresolved teardown
+contract and the next bounded diagnostic after settings isolation.
+
+CONFIGURED MENU NAME (2026-10-19 UTC)
+The original main-menu header now receives the configured name through its
+shipped binding setter, scoped to the current owned idle local application.
+Native model/TMP readback and an inspected menu capture pass with an accented
+name,zero remote connection/invite reads. Ordinary no-config startup passes
+without diagnostic/cosmetic flags. A full server-backed1v1 also passes1220 exact
+frames/results/Continue and fresh header proof/capture after return. Both menu
+images show the configured name and the changed local portrait. The separate
+unavailable-route1v1 also passes native bot movement/results/Continue and fresh
+header proofs/captures,zero server authentication/workers. Its observer records
+startup and Play attempts separately;the earlier over-broad count failure is
+retained. All-item/mode,ordinary offline and native Quit acceptance remain open.
+See menu-profile-binding.txt for the original-byte contract,hashes and limits.
+
+COMPLETE OFFLINE TEAM LOADOUTS (2026-10-19 UTC, EXPERIMENTAL)
+Unavailable-route2v2 and2vAI now pass one human/three native AI producers,all
+bots autonomously moving produced units,original Play-intent units/cosmetics
+despite later edits,and native results/Continue. No server authentication/worker
+is allocated. Actual HUD/result PNGs show configured human and varied bot cards
+without a connection modal. Lossless pixel checks corrected an initial missing-
+icon reading:the first unit silhouette is present in both result captures;no
+game defect is established. Complete all-item/effects acceptance remains open. Both clients reaped,sources
+unchanged. Ordinary Start Client/offline Internet behavior remains separate
+from the injected unavailable resolver. See loadout-protocol.txt for hashes.
+Two clients also pass remote2vAI -> independent local Try Deck -> fresh remote
+2vAI,with full human config/join/simulation/UI binding checks,moving local bots,
+1250 canonical frames each per remote match,new sessions and final saves. Both
+workers exit0;four actual local HUD/result PNGs are visually inspected.
+
 COMPLETE TEAM LOADOUT QUALIFICATION (2026-10-19 UTC, EXPERIMENTAL)
 The full-loadout team harness now uses distinct installed portraits and isolated
 owned profiles for each human. Two-human2vAI passes immediate grouping,two native

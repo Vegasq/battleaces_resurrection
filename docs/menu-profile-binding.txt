@@ -1,0 +1,132 @@
+BUILD37822 MAIN-MENU PLAYER NAME -- 2026-10-19 UTC
+
+Problem and behavior
+The configured local identity had the requested name, but the original menu
+header retained its cached label. The local application now updates the exact
+owned header through the shipped binding setter whenever its displayed name
+differs from the current identity. This runs only on the Unity thread, in the
+idle menu, at most twice per second. It does not call a name-change RPC.
+
+Original-byte and shipped-prefab contract
+MainMenu/LeftMenus/PlayerInfo owns UISelfPlayerProfile and PlayerProfileVM.
+Its PlayerName binding targets the child TMP PlayerName text. It is distinct
+from MenuPlayerVM used by Custom lobby rows. The header's stats/deck child
+references are null. Its portrait follows a separate Cosmetics.Changed binding;
+the header has no banner binding.
+
+PlayerProfileVM.RefreshViewModel RVA3d29930 reads the current front named
+handle and selects filteredName_ or playerName_ according to
+_nameRestrictedRegion. ProfileCache.name writes do not notify this cached
+binding. The scoped setter PlayerProfileVM.set_PlayerName RVA3d29560 performs
+the original binding-aware update. Front.get_DisplayName is not equivalent:it
+appends an alias suffix. Front.SetPlayerName RVA3e39120 starts an original
+connection and must not be used to repair a local UI label.
+
+Ownership checks cover the active initialized main menu, exact current child
+component and VM type, initialized model, shared current service manager/front
+and deck selector. An optional binding error disables only this header repair,
+not the local application. All original RVAs refer to the pinned build37822.
+This is retained original-byte LLVM/IL2CPP/prefab evidence, not native-provider
+decompilation; REA's native providers were unavailable in this session.
+Private contract:local/menu-profile-binding-contract01/FINDINGS.txt, SHA256:
+442a0edf5a05478be6508fa98a3ef5464c74489ba23d129bff7c0c6675730f90
+Its manifest pins the untouched DLL,metadata,bundle and native byte excerpts.
+
+Native observations
+local/menu-profile-native01 passed initial model/TMP readback for
+"Community Player" in12.880s without remote connections or invite reads.
+Helper-menu-profile01 SHA256:
+63000f263fea689eda050d64c6b18ab16e3a75c75047ee35ca7c401741b3c10d
+Verification SHA256:
+52e3f7a726c8a73bdd18ea5f98fd51bd827b80c6568a0f4ca5f87b0021845ca4
+
+local/menu-profile-visual01 passed with an accented configured name in16.316s.
+The original header model and TMP text both equal "Jos\u00e9 Community".
+The actual960x540 menu PNG was inspected and shows that name under the portrait,
+the original three mode buttons and normal menu controls without a connection
+modal. No remote connections/invite reads,source changes or surviving owned
+process. Helper-menu-profile03 SHA256:
+6a69705bb56a743129ae92824e207102d35adef416de32bf9122f7afbc4ec08c
+Verification SHA256:
+f6ae4008fc0c02434f360f5e83f6b28b4ec326fe7132be95e6e49baa533eb939
+Actual PNG SHA256:
+0ae08400937573ee29869fecd361fd342098b6079c5c6e97ffc07222224ba098
+Ordinary no-config startup on that helper also passes in13.764s,without added
+diagnostic/cosmetic flags or match automation. Teardown forcibly reaps each
+owned test client; these are not native Quit observations.
+
+Explicit diagnostic and remaining scope
+-menu-profile-proof reads the original VM and TMP label, waits for rendering,
+then captures the backbuffer synchronously while restoring RenderTexture.active
+and destroying the temporary texture. The proof is opt-in; ordinary launchers
+never add it. New proofs/captures use per-process sequences after a world returns.
+The public probe gates its first original Play callback on the initial proof,
+then requires a fresh settled header after result/Continue.
+
+local/menu-profile-remote01 passes that extended proof on helper-menu-profile04
+in129.909s. Original public1v1 reaches1220 exact canonical frame receipts,native
+build/result/Continue and a fresh settled menu. Full Play-intent units/cosmetics
+survive deliberate later picker edits;newer menu choices republish after return.
+One authentication/worker,worker exit0,sources unchanged,owned client reaped.
+Both actual menu PNGs are visually inspected:configured name before/after,
+original menu controls,no connection modal,and the changed local portrait after
+return. These two installed portrait choices are a bounded visual observation,
+not acceptance for every cosmetic or effects/audio.
+Helper-menu-profile04 SHA256:
+e630e29b65d5c8fff86d4549b73ec62cd68744dd2e72350479d61a07eec63ca8
+Verification SHA256:
+3c13f5f7d020bd5c7500f7471689dd2736d989711220e75c93f35f71e0d06734
+Initial/returned menu PNG SHA256,respectively:
+7b66d0bc8472a6ba32e294fbb063f5ad37fd9adba52c1a2f3c05017051207a18
+0d8a839edbf56ce56d610898914b2fb616f9281722d1cb43ddd0819a5c6ef949
+
+local/menu-profile-local02 also passes on helper04 in189.087s,with zero server
+authentications/workers,one owned local world,a building/ordering/moving native
+profile64 bot,complete frozen Play intent despite later edits,and original
+results/Continue. Initial/returned VM and TMP names agree with configuration.
+Both actual menu PNGs are inspected:configured name,changed local portrait,
+original controls and no connection modal. Exactly two unavailable resolutions
+are recorded:one before Play with the diagnostic gate closed,one after Play
+with it open;both precede world acquisition,none occur during the match.
+Covered sources unchanged,owned PID49144 reaped. Verification SHA256:
+84a5ad6f1a7cbfc896b5e856f3095f98568047419539cbf2d51d1fae4ac688cc
+Initial/returned menu PNG SHA256,respectively:
+729e07e99532119db275017e4686274ed27290d0d6bcff6a8c0e3ab1fedea020
+6ab59f565e53acff76f0c9aa5ef493cb273297fda5388ef1ea1b94fc1dd40ed8
+Private visual-review SHA256:
+a1dcb75e2f135a21abe675627dcdf2685256577a95a2c0dc16bd4499a9c617b8
+This injects route unavailability;ordinary offline Internet acceptance is still
+separate. No further graphical probe should run before the native local-user
+settings-path isolation gate in STATUS.txt is implemented.
+
+These bounded observations do not qualify every region/font/name,all
+mode/recovery returns,all main-header cosmetics,native Quit or final packaged
+entry points. All private images,original bytes and native evidence stay ignored.
+
+Retained failed observer run
+local/menu-profile-local01 remains FAIL,verification SHA256:
+8edb6d2158801e0090e76030516c7204b695796416887d753dadbb74e92090d8
+The local match/results/Continue and both name proofs completed,but the old
+assertion counted startup's unavailable route resolution plus the later Play
+resolution as multiple attempts by one public intent. Waiting at the diagnostic
+header gate gives startup time to finish its own attempt before Play. Native
+logs show the optional startup failure before gate release and a separate
+Play-intent attempt before the local world. The revised observer records each
+resolver call's Play marker,gate state and world state;it requires exactly one
+pre-Play startup attempt and exactly one post-Play attempt,with none during the
+local world. The original ungated one-attempt assertion remains unchanged.
+The replacement run is separate;the failed report is not rewritten as a pass.
+
+Reproduction and source checks
+Use the already verified disposable patched build and a fresh ignored output.
+python -m tools.verify_unified_startup --game <disposable> --output local/<fresh>
+  --visible --display-name <configured-name> --menu-profile-proof
+python -m tools.verify_public_client --game <disposable> --assets <local-assets>
+  --output local/<fresh> --mode 1 --visible --menu-profile-proof
+Add --unavailable for the separate local route;complete cosmetic intent/edit
+checks additionally use --cosmetics-selection <accepted-proof>
+--edit-loadout-after-play. Those are opt-in diagnostic callbacks/captures,not
+manual user interaction. Do not run them before settings isolation is fixed.
+Nine C++ component programs and helper04 build pass. The full Python source
+suite on the binding change passes428/442 with14 documented skips in100.789s;
+the later return-proof observer is qualified by the real remote/local runs.

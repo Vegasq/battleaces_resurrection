@@ -80,6 +80,8 @@ static void aborted(void*,const ba_community_wire::Aborted&);
 static void snapshot(void*);static void update(void*);static void returned(void*,void*);static void smoke(void*);
 }
 namespace ba_export {
+static std::wstring moduleDirectory();
+static void atomicWrite(const std::wstring&,const unsigned char*,size_t);
 static void overlay(void* gameData,void* dynamic);
 static void poll(void* front);
 static void consume(void* gameData,void* encoded);

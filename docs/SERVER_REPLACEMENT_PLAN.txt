@@ -4,6 +4,15 @@ Target: Battle Aces build 37822, Windows x64 server and clients.
 Status: IMPLEMENTATION ACTIVE. See STATUS.txt; incomplete phases remain future work.
 
 Current cosmetic integration order (2026-10-19)
+- Before further graphical probes after the completed header-return tests,isolate
+  native local-user settings per installation/profile. Original deck storage
+  uses the Windows user's shared persistentDataPath TOML;the current profile
+  key isolates cosmetics only. A disposable install directory does not isolate
+  native deck saves. Confirm the early load/write seam before implementing;do
+  not restore shared settings from guesses or claim a successful write from a
+  swallowed native save attempt. Cross-process unit-deck isolation is open.
+  local-user-settings.txt pins the earliest scoped path-construction call.
+  native-quit.txt pins the separate unresolved shutdown path/next diagnostic.
 - Correct the confirmed human-only local-AI deck replacement gap. Freeze the
   complete native17-slot selection at intent; preserve its ordered entitlement
   and portrait/banner through config,JoinArmy and decoded native simulation.
@@ -27,10 +36,25 @@ Current cosmetic integration order (2026-10-19)
   session,fresh shared match,complete selections and normal results/Continue.
   Other failures/transitions and actual portrait/result
   rendering,ordinary entry-point enablement and failure transitions remain open.
+  Unavailable-route single-client2v2/2vAI now pass all three native bots moving
+  produced units,original full Play intent,results/Continue and zero server
+  authentication/workers. HUD/result images are inspected;pixel checks correct
+  an initial missing-icon reading,no game defect established. Two clients also
+  pass remote2vAI -> local Try Deck -> fresh remote2vAI with complete choices,
+  current local UI bindings,moving bots,new sessions and canonical frames.
+  Ordinary offline entry and wider transition/visual acceptance remain open.
 - Complete graphical remote/team/rematch acceptance,main-menu bindings,real drag,
   effects/audio,shutdown flush/native Quit,protected deployment and ordinary
   release packaging. Prior server-only/native-short-frame passes do not close
   these gates. See cosmetic-community.txt and STATUS.txt for bounded evidence.
+  The cached main-menu name now uses the original owned binding setter;native
+  configured-name/TMP readback and an accented-name menu capture pass offline.
+  Ordinary startup remains free of diagnostic actions. Server-backed1v1 also
+  passes configured-name header proof before/after result/Continue;both menu
+  captures show the changed local portrait. Unavailable-route1v1 also passes
+  names/portraits after native results/Continue,with moving bots and no server
+  authentication/workers. Wider main-header appearance,other-mode returns and
+  ordinary offline acceptance remain open;see menu-profile-binding.txt.
 
 1. OUTCOME AND SCOPE
 

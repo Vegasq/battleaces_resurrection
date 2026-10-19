@@ -1,0 +1,61 @@
+NATIVE LOCAL-USER SETTINGS ISOLATION -- 2026-10-19 UTC -- OPEN
+
+Confirmed gap
+The original LocalDeckStorage serializes account.decks as JSON inside the native
+local-user TOML. The path is Application.persistentDataPath plus
+gameconfig-localuser.toml. Installation directory and the adapter's local_profile
+key do not participate. That key currently isolates cosmetics only. Native deck
+edits reach the original writer even from a disposable installation. A successful
+write can replace shared settings beyond decks. Save callbacks do not prove disk
+success:the native writer logs errors and returns false;its caller ignores it.
+
+This is a proven route to a shared writer,not proof of successful mutation by
+the current sandboxed tests. Historical restricted runs logged denied writes.
+The read-only investigation did not read or change the user's shared TOML.
+Its pre-test contents cannot be reconstructed from these observations. Do not
+perform a guessed restore. Same-process return/edits,server profile saves and
+cosmetic restart checks do not close local unit-deck persistence/isolation.
+
+Early scoped seam,static evidence only
+RGameLocalUserConfigTomlLoader..cctor,RGame.ConfigLoader.dll token0600002f,
+RVA379a240,constructs the path before native config load or selector setup.
+Its call at RVA379a38e,file offset379898e,bytes e89ddfbeff targets the exact
+System.String.Concat(string,string,string) at3388330. RCX is persistentDataPath,
+RDX the separator,R8 gameconfig-localuser.toml,R9 null MethodInfo. The managed
+string result in RAX is stored by original code into ConfigFileLocation+8 at
+379a3a1,followed by the original GC write barrier.
+
+A single exact-byte-checked call hook can return a validated installation/profile
+path while retaining the original TOML/JSON format. Do not reenter this cctor,
+call its path getter or run managed initialization from DllMain. No path repair
+exists yet. Updating the path from local_menu/OfflineInitialUpdate is too late.
+This redirects the entire local-user TOML,not all Unity/Steam persistence.
+Changing only the account.decks key in the shared file would still overwrite
+that shared file. Isolation failure must never fall back to the shared path.
+
+Next implementation/acceptance
+- Before another graphical launch,record a quiescent read-only baseline digest
+  of the shared file if readable;record absent/unreadable honestly. Preserve it.
+- Validate the configured profile key,ordinary non-reparse destination and
+  containment. Choose/log the path before native load;read back the initialized
+  static field without invoking the getter/cctor merely for diagnostics.
+- Edit through original native callbacks,inspect the actual isolated native
+  file,then launch a new process and compare all eight units/four ability groups.
+- Prove profile A/B and separate installations retain independent choices;
+  compare the shared baseline after every run. Qualify same-key concurrent
+  writers separately:the original writer is not an atomic replacement protocol.
+- Cover malformed/unwritable paths and swallowed native writer failures,then
+  recheck offline Try Deck,public/server/unavailable returns and header bindings.
+Make settings isolation a prerequisite for further graphical probes.
+
+Evidence
+REA native providers were unavailable. This is read-only original-byte LLVM/
+IL2CPP evidence,not native-provider decompilation or new game execution. Original
+build hashes match the baseline recorded in menu-profile-binding.txt's retained
+manifest. Private artifacts stay ignored under local/local-deck-storage-contract01.
+FINDINGS.txt SHA256:
+fbaa53d2515db944e0797766541dd991b1a6741512d83695b400df4228517568
+manifest.json SHA256:
+e2e7218201e1e5251960bb66b3c2607133c583c78bbf4fa6150cd444c6163136
+path-seam.json SHA256:
+62158d4d8d6f3ca8d345e3126f148c2093046c0f746283808da1a38d5ea592d5

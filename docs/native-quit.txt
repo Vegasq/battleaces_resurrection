@@ -1,0 +1,50 @@
+ORIGINAL QUIT / SHUTDOWN CONTRACT -- 2026-10-19 UTC -- UNRESOLVED
+
+The original UIQuitButton.Quit and disconnected-modal OnQuitApplication share
+RVA3d06f50,which calls Unity Application.Quit(0). Do not replace that shared
+body or manually invoke engine lifecycle callbacks. A menu callback test must
+identify the current active menu component and original event owner;the retained
+failure used the owned disconnected-modal Cancel event,not a physical menu click.
+
+AsyncAssetTables registers wantsToQuit and quitting callbacks. Its wantsToQuit
+body3e933f0 sets WantsToQuit and returns false while static LoadingCount>0.
+Branch/return bytes establish this veto despite a misleading literal log string.
+It can explain a request that never enters teardown while loading. It does not
+explain the retained p2-native-quit01 failure,which entered application cleanup.
+
+Original teardown includes simulation thread stop/join,world destruction,
+service/AI cleanup,plugin unload,Steam cleanup and object disposal/job completion.
+The SteamClient.Shutdown log precedes actual cleanup;it is not an exit marker.
+The retained failure reached ReplayFrameAllocator.Dispose entry diagnostics,
+without return tracing. A CPU-active thread without a sampled stack/IP does not
+locate the stall. Denied local-user writes were observed;their causal role is
+unknown. Both historical clients required forced termination at the overall
+480-second run deadline;that is not a measured480-second post-Quit duration.
+
+Next bounded probe,after local-user-settings.txt isolation
+Use a fresh owned never-played menu process first,a separate post-match process
+next. Record current component/callback/thread,asset LoadingCount,world/AI/
+channel state and profile hashes. Invoke the original callback once on the Unity
+thread and return normally;label automated callback evidence separately from a
+user's physical click. Observe a separate60-second bound after invocation.
+
+First trace OnDestroy's exact call to RGameInstance.Dispose:
+RVA3de4968,file offset3de2f68,bytes e8c3e0ffff ->3de2a30,
+void(this,MethodInfo=null),continuation3de496d. Use minimal native entry/return
+logs with a preopened bounded sink;do not allocate managed objects during
+teardown or change exception/cleanup behavior. If that call enters without
+return,follow the retained inner disposal/job boundaries. If it returns,inspect
+the actual later state before attributing failure to engine/plugin/Steam exit.
+Natural OS process exit is required. Forced cleanup remains a failed Quit test;
+never skip job completion,disposal or native frees to produce an apparent pass.
+
+Read-only REA evidence
+Native providers were unavailable;this uses pinned original-byte LLVM/IL2CPP and
+historical logs,not new runtime execution or native-provider decompilation.
+local/native-quit-contract01 records28 native ranges,eight direct calls,one
+virtual call,input hashes and line-numbered failure excerpts. No cause or fix
+is established by this pass. Private artifacts are not publication inputs.
+FINDINGS.txt SHA256:
+bae9d6f3d8cd56568582402fee2f27398829b83291d3257e655042b054876de3
+manifest.json SHA256:
+81268c83179e414a77d458dc516ea718935cfcc94d4bb4b8702b7c57b93541b1
