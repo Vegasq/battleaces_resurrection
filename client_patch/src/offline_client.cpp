@@ -26,6 +26,7 @@ namespace ba_telemetry_audit { static void startup();static void update(); }
 namespace ba_cosmetics { static void update(void*);static bool prepare(void*);static void observe();
     static bool catalogReady();static std::string serialize(); }
 namespace ba_match_search {static void update(void*);static void joining(void*);}
+namespace ba_native_replay_playback {static bool enabled();static void* prepare(void*,void*);static void observe();}
 namespace ba_community_wire {struct Ack;struct Aborted;}
 namespace ba_public {
 static bool active();static bool deckLocked();static void start(void*,void*,int);static bool cancel(void*);static void normalizeJoin(void*);
@@ -256,6 +257,10 @@ extern "C" __declspec(dllexport) int OfflineInitialUpdate(void* state,void*) {
         Obj services=read<Obj>(owner,0x38);
         local_profile(read<Obj>(services,0x40));
         local_version(read<Obj>(services,0x10));
+        if(ba_native_replay_playback::enabled()) {
+            Obj target=ba_native_replay_playback::prepare(state,owner);
+            return native<int(*)(Obj,Obj)>(0x4dd1d0)(state,target);
+        }
         if(lan()) {
             Obj background=invoke(find_class("UnityEngine","Application"),nullptr,"get_runInBackground",0);
             log("LAN Unity runInBackground=%d",*api<bool*(*)(Obj)>("il2cpp_object_unbox")(background));
@@ -265,7 +270,10 @@ extern "C" __declspec(dllexport) int OfflineInitialUpdate(void* state,void*) {
         if(!target)throw std::runtime_error("startup target state missing");
         log("Entering existing %s state %p",tutorial ? "tutorial01" : "main menu",target);
         return native<int(*)(Obj,Obj)>(0x4dd1d0)(state,target);
-    } catch(const std::exception& e) { log("Offline initialization failed: %s",e.what());failed=true;return 0; }
+    } catch(const std::exception& e) {
+        if(ba_native_replay_playback::enabled())log("Native replay startup refused: %s; ordinaryFallback=0",e.what());
+        log("Offline initialization failed: %s",e.what());failed=true;return 0;
+    }
 }
 
 extern "C" __declspec(dllexport) void OfflineFrontUpdate(void* front,void*) {
@@ -283,6 +291,7 @@ extern "C" __declspec(dllexport) void OfflineFrontUpdate(void* front,void*) {
         // before the normal ten-second status throttle. Disabled audit is a cached
         // flag check and performs no FSM, UnityPlayer or native-object reads.
         ba_telemetry_audit::update();
+        if(ba_native_replay_playback::enabled()){ba_native_replay_playback::observe();return;}
         ba_catalog::exportOnce();
         ba_cosmetics::observe();
         if(unified())ba_client::update(front);
@@ -336,6 +345,7 @@ extern "C" __declspec(dllexport) void OfflineFrontUpdate(void* front,void*) {
 #include "practice_settings_ui.cpp"
 #include "client_lifecycle.cpp"
 #include "native_replay_reader.cpp"
+#include "native_replay_playback.cpp"
 #include "native_quit_smoke.cpp"
 #include "native_settings_notice.cpp"
 #include "public_client.cpp"

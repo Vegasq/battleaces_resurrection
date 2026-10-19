@@ -2,6 +2,23 @@ IMPLEMENTATION LEDGER
 Updated: 2026-10-19 UTC
 Active objective: implement SERVER_REPLACEMENT_PLAN.txt, Windows only.
 
+NATIVE REPLAY FULL PLAYBACK28 (2026-10-19 UTC, BOUNDED PASS)
+Explicit owned ReplayFiles startup diagnostic now passes original decode/Load/
+Play,simulation/presentation to recording end and original batch Quit0 in32.677s.
+Original reflected variable setter/readback and native FSM context assignment
+are verified without context writes or added ticks. Native full GameData hash
+and3607 recorded batches/last3606 match unchanged codec-qualified recording25.
+Seventeen advancing samples in one nonzero world at native16x plus exact original
+Load/Completed messages qualify the pipeline;game and bundled launcher exit0,
+owned job active0/terminated0 before close,no forced cleanup. Source/package/
+config/driver/source and seeded replay/shared three channels remain unchanged.
+No reported exception/desync;no rendered-pixel or independent determinism claim.
+Early adapter01 and strict-before-entry-context02 failures remain retained and
+explained. Final28 C++ eleven programs/six atomic boundaries pass;Python495
+tests481pass/14skip,88.240s plus final four focused checks pass. Native negative
+codec/playback/fault cases and broader release gates stay open. Ordinary client
+has no replay test flag/actions;manual24 unchanged. See native-replay-validation.txt.
+
 NATIVE REPLAY CODEC / PLAYBACK (2026-10-19 UTC, PARTIAL PASS)
 Opt-in25 codec diagnostic uses original FileStream/Deflate/CodedInputStream and
 generated GamePb.Replay on the validated idle menu after one owned local match.
@@ -19,11 +36,10 @@ compatibility metadata differs. Its actual ordinary CMD startup passes10.759s
 menu/11.136s total,no automatic actions. Readiness cleanup is forced,not Quit.
 Eleven C++
 programs/six atomic boundaries and Python491 tests477pass/14skip,106.855s pass.
-Original startup ReplayFiles batch route is being traced separately for actual
-playback compatibility. It ends with batch Quit and is not an ordinary browser.
-Its coroutine self-ticks the replay runner;do not add a second tick merely
-because the ordinary integration ProcessUpdate is replaced. Setter/readback/
-initialization arming and actual playback remain open,as do negative codec cases.
+Original startup ReplayFiles batch route is qualified separately by28 above.
+It ends with batch Quit and is not an ordinary browser. Its coroutine self-ticks
+the replay runner;do not add a second tick merely because the ordinary integration
+ProcessUpdate is replaced. Negative codec/playback/fault cases remain open.
 No new player-facing browser is required by this bounded finding. Manual24 is
 unchanged. See native-replay-validation.txt for exact scope and retained evidence.
 

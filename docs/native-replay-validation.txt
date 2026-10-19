@@ -7,6 +7,43 @@ is independently verified,but it is not native parsing or simulation playback.
 This work closes those different evidence gaps without adding ordinary test
 actions or inventing a new replay browser requirement.
 
+Current native playback28 (BOUNDED POSITIVE PASS)
+Original-codec-accepted four-player recording25 also passes actual original
+ReplayFiles batch playback in32.677s. It opens an unchanged seeded281-character
+canonical path (extended API spelling285),loads3607 recorded batches/last3606,
+and original reserialization of the full GameData matches the source SHA256:
+01bc5d86c6ef3c522b342e559470e2ffca1eaa6555bfde72bfa0e0256c79486d
+Original reflected setters/getters return normally;nonpersistent selection and
+unchanged saved defaults are read back. Native FSM enters its existing replay
+state and supplies context;helper context writes/ticks are zero. Seventeen
+samples show one stable nonzero world,simulation14..3606 and presented-1..3429
+at original batch16x. The later EXACT original Completed replay branch supplies
+end-of-recording evidence;finalexactframe need not be front-loop sampled.
+Original game and bundled production launcher both exit0. Owned job total2/
+active0/terminated0 before close,no forced cleanup. Config/package/driver/source,
+source recording and selected seed are unchanged,as are all three named shared
+TOML/replay/backup inventories. Full raw Unity log has no reported exception or
+desync,including after completion/disposal. This is native decode/simulation/
+presentation-pipeline acceptance,not inspected rendered pixels or independently
+recomputed determinism. No ordinary replay browser/menu action is introduced.
+local/replay-playback28-mode2-01/verification.json SHA256
+0de0a1537e6fa262743df0ca60abae069c439a664d4a0ec2f427e774b20710d6
+Helper28 SHA256
+0ee34c1fe31aa88846becad2d13d6734d70b886f73c78a3c90661ad0cb34b925
+Source-bound helper receipt SHA256
+b9564aa78b4bc79e7c23a6e0327b7bc9ec4f1f69b0e6dcd6c8ffa75b2e721d09
+Final C++ build passes eleven programs/six atomic boundaries. Full Python495
+tests pass481/14skip,88.240s;the tightened FSM-entry/error evidence checks also
+pass four focused tests afterward. Preview28 package is from7330e80 plus bound
+uncommitted source,dirty=true. Client67 files13083172bytes,ZIP SHA256
+a19e3d3c09f16d24b3294b102444c7e273e1f0d838a20395c51670ddea0435f4
+Server82 files12427769bytes,ZIP SHA256
+f7c4acf9e868bf6e8c05ba44a646fbbffa2c19adf4cc55ba2a41bc0753ef0121
+build-report.json SHA256
+bc61869481b02ffe7522ceee466ada52c9b07f639098573b0f1cafcc34de35b2
+Negative codec/playback inputs,fault cleanup,final packaged matrix/manual and
+clean-PC/Internet release gates remain open. Existing manual24 stays unchanged.
+
 Original-codec diagnostic25 (BOUNDED POSITIVE PASS)
 Explicit -native-replay-readback-smoke runs only inside the owned native Quit
 diagnostic,after one completed local test match and a validated idle menu. It
@@ -171,3 +208,69 @@ These static corrections prevent unqualified field/ticking guesses from entering
 source. Reflection/callback/startup/full playback/exit still need runtime proof.
 local/native-replay-arming-contract06/FINDINGS.txt SHA256
 15884126766716bc9605dee2a2b82db12185789816dc3facfd45586afa64bcfb
+
+Playback observation contract07 (STATIC ONLY)
+Original batch logs 'Load replay: <path>' before decoding and 'Completed replay:
+<same path>' only after its presented-frame counter equals the selected target.
+With both frame variables=-1 that target is the recording's actual LastFrame.
+Completed precedes original FileStream disposal,so errors AFTER it also invalidate
+the run. The coroutine may complete and Quit in one callback before a front-loop
+observer can sample the final exact frame. Require advancing original simulation
+and presentation samples in one nonzero world,matching frame count/last and full
+native-reserialized GameData hash,the exact original load/completion pair and
+natural process/production-launcher exits0 with zero active owned descendants.
+Do not add ticks,seek calls or callback subscriptions to manufacture evidence.
+Presentation counter advancement follows original PresentFrame/UnitManager work;
+it is not proof of rendered pixels. Original 'Desync detected on frame:' reports
+recorded mismatch flags;no independent recomputed replay checksum contract is
+established here. Qualify absence of REPORTED desync,not determinism equivalence.
+local/native-replay-observation-contract07/FINDINGS.txt SHA256
+18f7af15eb6268f30d3a2763090db5ec2e3f0f12eebbf63a3e6b81f7e2827471
+
+Playback26 implementation / retained initial controls (superseded by28 above)
+Explicit -native-replay-playback-smoke uses a fresh nativestest_replay_ profile
+and fixed single-file selection in its pinned AutoSaveReplays. A read-only file
+pin remains open through batch teardown. Generic original Set<object>/Get<object>
+and typed Get<string[]> are reflected and identity-checked. Both live/persistent
+safe defaults,nonpersistent array readback and original ShouldCapture(-1,-1) are
+required before requesting the existing replay-file startup state. Ordinary
+client menu actions are bypassed only for this explicit diagnostic. Front-loop
+observations use original getters and serialization without ticking playback.
+The external verifier uses inventoried bundled production imports,foreign cwd,
+isolated runtime and parent-owned Job attachment BEFORE native spawn. It adds
+only this startup flag;no practice/build/surrender/Continue/menu-Quit automation.
+The source recording is the unchanged native-codec-accepted25 four-player file.
+
+Prototype01 stops in the authored adapter before spawning the game:the ordinary
+client uses a deferred RemoteConfigResolver even with no server,so asserting
+remote is None was incorrect. Remove that test-adapter assumption;retain bounded
+TLS/invite-call guards and unconfigured configuration. No runtime playback claim.
+Prototype02 reaches initial state then refuses 'existing target context differs'
+BEFORE replay-variable mutation. Owned job cleanup is forced and the run FAILS;
+shared named channels/source/package/config/source and seeded replay are unchanged.
+Do not waive the ownership guard or classify cleanup as native batch completion.
+Static follow-up distinguishes the original state TransitionTo REQUEST seam
+from actual FSM transition execution;destination context timing must be checked
+before correcting the guard. Reports remain under ignored local/:
+replay-playback26-mode2-01/verification.json
+replay-playback26-mode2-02/verification.json
+Their respective SHA256 values:
+d199fddc57c65e7cd1f76b66390efbb4c0c05d3d743ba4d904bc0b879e298849
+8cfa1fbc8be6aa1edf59a741ffd529bdc0b5503c3c5a6f48e691580bea37a640
+
+Context-contract08 correction (STATIC,then runtime-qualified28)
+State.TransitionTo at4dd1d0 only writes CURRENT.NextState+10 and returns2. It is
+a request,not the FSM executor. Actual shared-reference FSM.TransitionTo16eb180
+clears OLD.Context+18,sets currentState+18,then assigns destination.Context+18
+from FSM.Context+10 BEFORE calling original TransitioningFrom and TransitionIn.
+Fresh replay-file constructor does not initialize context. Thus requiring target
+context==owner BEFORE requesting first entry was incorrect. Final28 requires
+fresh null destination context,exact existing owner field/TransitionIn identity,
+current initial state and FSM owner;observer then requires native-entered target
+context/current state. It never writes a context or manually calls TransitionIn.
+Original initial TransitionIn already constructs Replay,stores singleton+40 and
+initializes its simulation;keep the nonnull/exact-type guard. Split replay/target
+failures because the combined26 failure did not identify which operand failed.
+Helper27 compiled but was never runtime-qualified;28 is the final guarded run.
+local/native-replay-state-context-contract08/FINDINGS.txt SHA256
+51882b003e2fa98dc2cfb6cea90456f146d70aabdd2a3eda5c843d9493120764

@@ -22,8 +22,12 @@ clean-package2v2 now passes long replay save/structural decode,original100-file
 retention,results/Continue/native Quit/launcher exit0. Prototype2vAI101-file
 retention also passes. Native original-codec control25 additionally passes with
 3607 contiguous batches/build37822/read-only file identity/three stream disposals,
-same idle menu and both natural exits0. Negative codec controls and full native
-playback remain OPEN;this does not require inventing a new browser feature.
+same idle menu and both natural exits0. Native batch28 playback also passes32.677s
+with matching full GameData/3607 batches,original FSM ownership,advancing native
+simulation/presentation and exact original completion/both exits0,job active0,
+no forced cleanup. No reported desync is not independent determinism or pixel
+acceptance. Negative codec/playback/fault controls remain OPEN;this does not
+require inventing a new browser feature.
 Actual Start Client.cmd startup passes in clean package and independent manual24
 copy;physical input/audio/preferences feedback remains pending. Python488 tests
 pass474/14skip;eleven C++ programs/six atomic boundaries pass. See

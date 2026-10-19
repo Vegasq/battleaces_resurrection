@@ -12,14 +12,17 @@ Current release integration order (2026-10-19)
   contiguous frame batches agree with host decode;30 setup actions/build37822,
   three disposed streams,same idle menu and both natural exits0. Negative parser
   controls remain pending;prototype package is explicitly dirty=true.
-  Separately qualify original ReplayFiles startup batch playback,including
-  setter/initialization/ticking and explicit batch Quit0. Do not enable batch
-  test actions in ordinary Start Client or invent a new replay browser scope.
+  Original ReplayFiles startup batch28 now passes32.677s:original reflected
+  setter/readback,FSM-owned context,matching full GameData/3607 batches,advancing
+  simulation/presentation,exact original completion and both natural exits0.
+  No helper tick/context write/forced cleanup;job active0 before close. Retain
+  early adapter/context-guard failures. Native negative/fault controls remain.
+  Do not enable batch test actions in ordinary Start Client or invent a browser.
   See native-replay-validation.txt. Existing manual24/frozen copies unchanged.
   Static06 identifies existing original Set<object>,typed getter readback and
   existing initial-state seam;batch self-ticks at default16x/full LastFrame.
-  Implement guarded owned arming and verify actual playback;no new ordinary UI
-  or duplicated integration tick is justified by the retained evidence.
+  Guarded owned arming/playback is now qualified;preserve its explicit diagnostic
+  scope and default-off behavior. No duplicated integration tick is justified.
 - Packaged2v2 replay path regression is fixed and bounded qualification passes.
   Bundled1v1 now passes all measured gameplay/result/Continue/natural-Quit gates.
   Bundled2v2 finishes gameplay and Quit,but the original four-player replay
