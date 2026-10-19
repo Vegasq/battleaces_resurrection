@@ -2,6 +2,22 @@ IMPLEMENTATION LEDGER
 Updated: 2026-10-19 UTC
 Active objective: implement SERVER_REPLACEMENT_PLAN.txt, Windows only.
 
+SERVER CONSOLE ENTRY39 (2026-10-19 UTC, BOUNDED DEVELOPMENT PASS)
+Actual Start Server.cmd Ctrl+C exposes a real extra batch-confirmation wait;
+start /b /wait does not fix it. New ordinary Start Server.exe directly owns and
+waits for bundled Python,forwards Unicode args/exit codes and consumes only its
+own Ctrl+C while Python retains its existing cleanup. Explicit inherited handles,
+suspended child/job ownership and zero-live/zero-job-terminated success check.
+Compiler /W4 /WX and independent Windows argv checks pass;source-bound receipt
+required by package builder. Actual isolated development-loopback check passes
+4.786s:CLI0/1/2,real native health0,one Ctrl+C/natural0/no prompt/input,port/state
+lock release,13 job processes active0/terminated0 and unchanged bound inputs.
+18 focused checks pass. TLS/private/active-room/SCM/clean-PC gates remain OPEN;
+protected preflight refuses correctly before any private API/console. Client
+entry/manual35 unchanged. Exact implementation/evidence in server-console.txt.
+Final full Python543 tests527pass/16skip,99.288s passes. CI now includes the
+native launcher build/Windows argv checks;actual hosted CI has not been observed.
+
 PASSIVE STARTUP TASK DIAGNOSTIC38 (2026-10-19 UTC, BOUNDED PASS)
 Owned opt-in16-site recipe observes12 exact table calls,two original lists,first
 aggregate and existing Unity pump. No loader/task/pump scheduling change;53-root

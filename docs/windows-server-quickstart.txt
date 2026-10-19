@@ -7,7 +7,7 @@ No game files, server certificate, private key or player invites are included.
 
 Extract the complete archive into an ordinary local folder. Keep program/,
 assets/, config/ and data/ separate. Run the following commands from a terminal
-in that folder. After configuring/importing the server as below, Start Server.cmd
+in that folder. After configuring/importing the server as below, Start Server.exe
 starts it directly. BattleAces-Server.cmd without arguments prints help. Existing files are not upgraded in
 place: extract future versions to a separate folder and retain your local data.
 
@@ -85,7 +85,7 @@ between different Windows accounts; players should import, not weaken the
 runtime credential check. No server private key is needed by a player.
 
   BattleAces-Server.cmd check
-  BattleAces-Server.cmd start
+  "Start Server.exe"
 
 Check verifies local configuration, asset hashes, private credential access and a
 native worker's create/step/shutdown cycle without opening a public listener.
@@ -97,7 +97,10 @@ package. Actual cross-PC/internet acceptance remains open.
 
 3. OPERATION AND DATA
 
-Use Ctrl+C in the host console for orderly room/worker shutdown. Optional Windows
+Use Start Server.exe and Ctrl+C in its console for orderly room/worker shutdown.
+The native launcher waits for the bundled Python host,passes its exit code and
+owns its descendants. There is no batch termination question after Python exits.
+Optional Windows
 service setup is in SERVICE.txt. The service adapter uses the bundled runtime,
 checks native readiness before reporting RUNNING, and drains rooms/workers on
 Stop or Windows Shutdown. It must run under the account that provisioned its

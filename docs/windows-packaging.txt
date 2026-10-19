@@ -43,7 +43,12 @@ It runs the real wrapper from a hostile unrelated cwd and verifies native menu,
 actual ordinary game arguments,isolated settings and unchanged package/config/
 shared/source baselines. It forcibly reaps its owned process tree,not native Quit.
 
-Current source adds Start Server.cmd and Start Client.cmd. The client command
+Current source uses Start Server.exe and Start Client.cmd. The native server
+launcher avoids CMD's Ctrl+C batch-confirmation prompt,waits for the bundled
+Python host and owns its descendants. Build it with server/build_launcher.ps1;
+package builds require --server-launcher pointing to Start Server.exe and its
+adjacent source-bound launcher-build.json (default build/server-launcher/).
+The client command
 uses the unified ABI2 helper, creates public schema3 local settings on first use,
 and accepts existing enrolled schema2 settings. Server/CA/invite checks occur on
 connection attempts, not as local startup prerequisites. Setup can enroll the
@@ -97,7 +102,8 @@ No import site line is enabled. Launchers use -I -B. Worker bootstrap additional
 uses -S, a private explicit module path and the configured writable worker cwd;
 foreign cwd/PYTHONPATH/sitecustomize cannot choose the worker module.
 
-Build locally after compiling our helper:
+Build locally after compiling our helper and server console launcher:
+  powershell -File server/build_launcher.ps1
   python -m tools.build_windows_packages --python-zip "<official ZIP>" --helper "<our BattleAcesOffline.dll>" --output dist/preview-unique
 Committed source is required by default. --allow-dirty explicitly creates a local
 preview with dirty:true, source revision and per-file content hashes. It is not

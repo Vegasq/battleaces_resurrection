@@ -6,6 +6,11 @@ defines the requested product. Existing frozen archives are not automatically
 upgraded when source changes. No original client binaries/assets belong in Git.
 
 Current ordinary source candidate
+Server entry39 replaces the batch Start Server with Start Server.exe after an
+actual Ctrl+C confirmation hang. Real native health and ordinary executable
+development-loopback Ctrl+C/exit-code/port/state-lock/job cleanup pass. This is
+explicitly NOT protected TLS/active-room/SCM/clean-PC acceptance;normal-owner
+production-mode run remains OPEN. See server-console.txt for exact boundaries.
 Startup diagnostic38 qualifies instrumentation only:three fast original-startup/
 natural Quit runs (including concurrent pair),50 completed tasks,53->0 roots and
 same original Unity/Quit thread. Ordinary-recipe bytes remain equal;ordinary

@@ -67,6 +67,8 @@ MARKERS = (
     b'BA_RESURRECTION_PRACTICE_SETTINGS_V1', b'BA_RESURRECTION_MATCH_LOADING_V1',
     b'BA_RESURRECTION_TLS_BRIDGE_V2', b'BA_RESURRECTION_UNIFIED_CLIENT_V1',
 )
+LAUNCHER_SOURCES = ('server/build_launcher.ps1', 'server/launcher/console_launcher.cpp',
+                    'server/launcher/launch_args.hpp', 'server/launcher/launch_args_tests.cpp')
 
 
 def sha(data): return hashlib.sha256(data).hexdigest()
@@ -118,6 +120,31 @@ def read_helper(path):
     return data
 
 
+def read_server_launcher(path):
+    path = Path(path)
+    if not 256 <= path.stat().st_size <= 2*1024*1024: raise PackageError('Unexpected server launcher size')
+    data = path.read_bytes()
+    try:
+        offset, = struct.unpack_from('<I', data, 0x3c)
+        signature, machine = struct.unpack_from('<4sH', data, offset)
+        flags, = struct.unpack_from('<H', data, offset+22)
+        magic, = struct.unpack_from('<H', data, offset+24)
+        subsystem, = struct.unpack_from('<H', data, offset+24+68)
+        if (data[:2] != b'MZ' or signature != b'PE\0\0' or machine != 0x8664 or magic != 0x20b or
+                flags & 0x2000 or not flags & 2 or subsystem != 3 or b'BA_RESURRECTION_SERVER_CONSOLE_V1' not in data):
+            raise ValueError()
+    except (ValueError, struct.error): raise PackageError('Expected our AMD64 console server launcher') from None
+    receipt_data = path.with_name('launcher-build.json').read_bytes()
+    try:
+        receipt = json.loads(receipt_data)
+        expected = {name: sha(source_file(name)) for name in LAUNCHER_SOURCES}
+        if (receipt.get('schema') != 1 or receipt.get('launcher_sha256') != sha(data) or
+                receipt.get('source_sha256') != expected or receipt.get('argument_tests_passed') is not True):
+            raise ValueError()
+    except (ValueError, TypeError, AttributeError): raise PackageError('Server launcher build receipt differs from current tested sources') from None
+    return data, receipt_data
+
+
 def source_file(name):
     path = ordinary_file(ROOT, name)
     data = path.read_bytes()
@@ -166,7 +193,7 @@ def write_zip(path, files, prefix):
             archive.writestr(info, data, compresslevel=9)
 
 
-def build(runtime_zip, helper, output, *, allow_dirty=False):
+def build(runtime_zip, helper, output, *, allow_dirty=False, server_launcher=None):
     output = Path(output).absolute()
     # Developer outputs stay in ignored roots; never write archives into source
     # or over an existing package. Failed builds remain for inspection.
@@ -176,6 +203,7 @@ def build(runtime_zip, helper, output, *, allow_dirty=False):
     if output.exists() and (not output.is_dir() or any(output.iterdir())):
         raise PackageError('Choose a fresh empty output directory')
     runtime, helper_data, source = read_runtime(runtime_zip), read_helper(helper), source_revision()
+    launcher_data, launcher_receipt = read_server_launcher(server_launcher or ROOT/'build/server-launcher/Start Server.exe')
     if source['dirty'] and not allow_dirty: raise PackageError('Commit source changes or explicitly use --allow-dirty for a local preview')
     versions = dict(package=PACKAGE_VERSION, game_build=37822, game_protocol=3, community_protocol=1,
                     asset_format=1, patch_schema=2, python=PYTHON_VERSION, platform='windows-amd64')
@@ -184,12 +212,16 @@ def build(runtime_zip, helper, output, *, allow_dirty=False):
         files = dict(runtime)
         for name in sources: files['program/app/' + name] = source_file(name)
         files['BattleAces-' + product.title() + '.cmd'] = wrapper(product)
-        files['Start ' + product.title() + '.cmd'] = start_wrapper(product)
+        if product == 'client': files['Start Client.cmd'] = start_wrapper(product)
+        else:
+            files['Start Server.exe'] = launcher_data
+            files['program/launcher/launcher-build.json'] = launcher_receipt
         files['QUICKSTART.txt'] = source_file('docs/windows-' + product + '-quickstart.txt')
         compatibility = dict(schema=1, product=product, versions=versions, source=source,
             maturity='development-preview', clean_windows_qualified=False,
             runtime=dict(url=PYTHON_URL, sha256=PYTHON_ZIP_SHA256, path_file_modified=True),
             helper_sha256=sha(helper_data) if product == 'client' else None,
+            server_launcher_sha256=sha(launcher_data) if product == 'server' else None,
             game_files_included=False)
         files['compatibility.json'] = json_bytes(compatibility)
         if product == 'server':
@@ -230,11 +262,12 @@ def main(argv=None):
     parser = argparse.ArgumentParser(description=__doc__)
     parser.add_argument('--python-zip', type=Path, required=True)
     parser.add_argument('--helper', type=Path, required=True, help='our compiled BattleAcesOffline.dll, never a game DLL')
+    parser.add_argument('--server-launcher', type=Path, help='our compiled Start Server.exe and adjacent source-bound launcher-build.json')
     parser.add_argument('--output', type=Path, required=True)
     parser.add_argument('--allow-dirty', action='store_true', help='local development preview with exact source hashes recorded')
     args = parser.parse_args(argv)
     try:
-        print(json.dumps(build(args.python_zip, args.helper, args.output, allow_dirty=args.allow_dirty), indent=2))
+        print(json.dumps(build(args.python_zip, args.helper, args.output, allow_dirty=args.allow_dirty, server_launcher=args.server_launcher), indent=2))
         return 0
     except (OSError, ValueError, zipfile.BadZipFile) as error:
         print('Package build failed: ' + str(error))

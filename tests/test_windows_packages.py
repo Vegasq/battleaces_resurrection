@@ -28,6 +28,16 @@ class WindowsPackageTests(unittest.TestCase):
         struct.pack_into('<H', helper, 0x80+22, 0x2000)
         struct.pack_into('<H', helper, 0x80+24, 0x20b)
         helper.extend(b'\0'.join(builder.MARKERS)); self.helper.write_bytes(helper)
+        self.server_launcher = self.root/'Start Server.exe'
+        executable = bytearray(helper[:512])
+        struct.pack_into('<H', executable, 0x80+22, 2)
+        struct.pack_into('<H', executable, 0x80+24+68, 3)
+        executable.extend(b'BA_RESURRECTION_SERVER_CONSOLE_V1')
+        self.server_launcher.write_bytes(executable)
+        self.launcher_receipt = self.root/'launcher-build.json'
+        self.launcher_receipt.write_text(json.dumps(dict(schema=1,launcher_sha256=builder.sha(executable),
+            source_sha256={name:builder.sha(builder.source_file(name)) for name in builder.LAUNCHER_SOURCES},
+            argument_tests_passed=True)))
         self.write_runtime()
         self.pins = mock.patch.object(builder, 'PYTHON_ZIP_SHA256', hashlib.sha256(self.runtime.read_bytes()).hexdigest())
         self.pins.start()
@@ -49,7 +59,24 @@ class WindowsPackageTests(unittest.TestCase):
                 archive.writestr(info, value)
 
     def build(self, name='out'):
-        return builder.build(self.runtime, self.helper, self.root / name)
+        return builder.build(self.runtime, self.helper, self.root / name, server_launcher=self.server_launcher)
+
+    def test_server_console_launcher_must_match_its_tested_current_source_receipt(self):
+        receipt = json.loads(self.launcher_receipt.read_text())
+        for change in ('digest', 'source', 'tests'):
+            altered = json.loads(json.dumps(receipt))
+            if change == 'digest': altered['launcher_sha256'] = '0'*64
+            elif change == 'source': altered['source_sha256'].pop('server/launcher/launch_args.hpp')
+            else: altered['argument_tests_passed'] = False
+            self.launcher_receipt.write_text(json.dumps(altered))
+            with self.subTest(change=change), self.assertRaisesRegex(PackageError, 'launcher build receipt'):
+                self.build()
+            self.assertFalse((self.root/'out').exists())
+        self.launcher_receipt.write_text(json.dumps(receipt))
+        self.build()
+        package = self.root/'out/battleaces-server-win64'
+        self.assertEqual((package/'Start Server.exe').read_bytes(), self.server_launcher.read_bytes())
+        self.assertFalse((package/'Start Server.cmd').exists())
 
     def test_wrong_runtime_pin_or_unrecognized_helper_creates_no_output(self):
         self.runtime.write_bytes(self.runtime.read_bytes() + b'changed')
@@ -79,9 +106,13 @@ class WindowsPackageTests(unittest.TestCase):
             self.assertEqual(modules, set(sources))
             self.assertFalse(any(Path(name).name.casefold() in ('gameassembly.dll', 'simulation.dll', 'ai.dll', 'global-metadata.dat') for name in inventory['files']))
             self.assertEqual((folder/'program/runtime/python314._pth').read_bytes(), builder.RUNTIME_PTH)
-            start = (folder / ('Start ' + product.title() + '.cmd')).read_text()
-            self.assertIn('tools.package_' + product + ' start %*', start)
-            self.assertNotIn('smoke', start)
+            if product == 'client':
+                start = (folder / 'Start Client.cmd').read_text()
+                self.assertIn('tools.package_client start %*', start)
+                self.assertNotIn('smoke', start)
+            else:
+                self.assertEqual((folder/'Start Server.exe').read_bytes(), self.server_launcher.read_bytes())
+                self.assertFalse((folder/'Start Server.cmd').exists())
             compatibility = json.loads((folder/'compatibility.json').read_bytes())
             self.assertFalse(compatibility['game_files_included'])
             self.assertFalse(compatibility['clean_windows_qualified'])

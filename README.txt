@@ -100,6 +100,12 @@ Review the staged diff as well; automated scans cannot establish provenance.
 BUILD THE CLIENT HELPER (Visual Studio x64 C++ tools and Windows SDK required)
   powershell -File client_patch/build.ps1
 
+BUILD THE WINDOWS SERVER CONSOLE LAUNCHER (same C++ tools/SDK)
+  powershell -File server/build_launcher.ps1
+This produces our Start Server.exe and a source-bound build receipt. Windows
+packages include this foreground entry point;Ctrl+C reaches Python's cleanup
+without a CMD batch-confirmation prompt. See docs/server-console.txt for scope.
+
 INSTALL INTO A WORKING GAME COPY (close that game's processes first)
   python -m client_patch.patcher.patch_client --game-dir "<game directory>" --dry-run
   python -m client_patch.patcher.patch_client --game-dir "<game directory>"

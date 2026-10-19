@@ -1,0 +1,106 @@
+WINDOWS SERVER CONSOLE LAUNCHER -- 2026-10-19
+
+Problem and ordinary entry point
+An actual packaged Start Server.cmd starts the production host/native health
+successfully,but Ctrl+C leaves CMD waiting for "Terminate batch job (Y/N)?".
+The Python host has already stopped;the foreground entry has not returned.
+An isolated start /b /wait variant with child Ctrl+C processing restored also
+waits for this confirmation. Both failures retain reports/output and need an
+explicit diagnostic cleanup answer;neither is counted as clean acceptance.
+
+Replace only the ordinary SERVER entry with Start Server.exe. The ordinary
+CLIENT remains Start Client.cmd. BattleAces-Server.cmd remains the maintenance
+interface;use the ordinary executable for foreground hosting. Existing archived
+packages/manual35 are not modified. No original game file enters Git/packages.
+
+Native implementation
+server/launcher/console_launcher.cpp is our small Windows x64 console launcher.
+It resolves program/runtime/python.exe from its own module path and launches
+that exact application without CMD,using -I -B -m tools.package_server start.
+Forwarded UTF-16 args use CRT quoting,not shell expansion. Current cwd is retained;
+default config still resolves from the package and explicit relative config keeps
+its normal meaning. No global Python/PATH dependency or setup/network behavior.
+Only three duplicated stdio handles enter the child through an explicit Win32
+handle list. The child starts suspended,joins an unnamed kill-on-close job,then
+resumes. Failure to assign terminates ONLY that just-created suspended child.
+No foreign process enumeration/attachment or process-wide signal is used.
+
+The parent consumes its own Ctrl+C with a custom process-local handler;it does
+not set the inheritable ignore flag. Python receives the same original console
+event and retains its SIGINT/asyncio/finally shutdown. Native launcher waits for
+the Python exit and forwards its code. A bounded3s accounting check requires
+zero live descendants/zero job-terminated children before returning success.
+Abnormal launcher exit closes its owned job;leftover descendants fail rather
+than being presented as a clean stop. This design does not qualify console Close,
+Ctrl+Break,logoff,reboot,SCM or active-room shutdown under load.
+
+Primary API behavior:
+https://learn.microsoft.com/en-us/windows/console/setconsolectrlhandler
+documents process-local custom handlers and inherited NULL-handler ignore state.
+https://learn.microsoft.com/en-us/windows-server/administration/windows-commands/start
+documents /wait and /b Ctrl+C handling. Those mechanisms alone did not fix CMD's
+batch confirmation in the actual isolated experiment.
+
+Build and packaging
+server/build_launcher.ps1 compiles /MT /EHsc /O2 /W4 /WX and runs an independent
+CommandLineToArgvW roundtrip across empty,Unicode,whitespace,quotes,trailing
+slashes and literal shell-like args. Its receipt binds all four source/build
+files and the argument-test result to the executable hash. Package builder
+requires AMD64 PE32+ console/non-DLL shape,our ABI marker and exact current
+source/test receipt before output. Source binaries/receipts are ignored build
+outputs;the delivered package includes Start Server.exe plus immutable
+program/launcher/launcher-build.json. No Start Server.cmd is generated.
+
+Current launcher39-01 SHA256:
+24a7ee10e94778b43b99fad06a02f7469a90a2916fc3111bf53e0f919cede931
+Receipt fa5cb58de85ffdfd5cd0c01d1207f22d047a371e8e46d61383129d125c1a4009
+Build/test output local/server-launcher39-build01.txt. Initial package test
+retains its obsolete .cmd assertion failure;corrected15 package/three console
+preflight controls pass18 checks4.066s. This is separate from actual native runs.
+
+Actual console evidence (bounded,development loopback)
+tools.verify_server_console launches an external script under the actual
+verified bundled runtime in a new hidden,otherwise empty console. The parent
+owns a job BEFORE the script may launch any server. Script binds all loaded
+production source hashes/launcher receipt,uses a hostile foreign cwd and calls
+the real Start Server.exe. It sends one Win32 CTRL_C_EVENT only to that private
+console. No stdin response,Python callback replacement,synthetic simulation,
+private-ACL relaxation or system trust/firewall change.
+
+local/server-console39-development03/verification.json passes4.786s:
+SHA25633e9e1816d212e28aa6d4adeac54c3e7aeadb2beafe5d6e902e23b0a03433cfd
+Actual packaged CLI help/configuration failure/invalid option propagate0/1/2.
+Launcher11936/Python27616/controller2320 share that private console;original
+native health18768 creates/frame0/closes/reaps0. Real host listens on loopback;
+one Ctrl+C returns naturally0 in0.018s,no batch prompt/no input/no forced cleanup.
+Port rebind and production state-lock reacquisition pass. Outer job13 total,
+active0/terminated0;package/assets/request/config/driver/production/launcher
+sources remain unchanged. Explicit development plaintext is used ONLY here;
+this does not qualify TLS,protected credentials,authentication or friends play.
+
+Retained original failures:
+local/console-probe39-01/verification.json (original CMD)
+b98e30f649b86ec3c2e2a04317388cfbc1187c9ae3f8dfe8498d7c69c54946b4
+local/console-probe39-02/verification.json (start /b /wait)
+420b8f991afcd766bd23e725b03ff148020cf30eabe48bc9bc80bd0080d8886e
+Both jobs active0/terminated0 AFTER the disclosed diagnostic confirmation answer.
+Prototype native entry passes separately in server-console39-native01;first
+formal development02 fails only its expected error-text assertion (SafeParser
+uses a fixed safe message,not ordinary argparse echo). Corrected03 above passes;
+that failed report is preserved and not promoted.
+
+Protected production-mode gate
+Default tools.verify_server_console uses fresh authored TLS,original production
+CredentialStore and verified certificate handshake,with no invite issuance or
+game launch. It never substitutes authentication/privacy APIs. Under a restricted
+automation token it stops at read-only preflight BEFORE PKI,protected storage,
+console or worker. Actual owner preflight01 correctly reports normal_owner_required,
+controller_started=false/protected_operations_attempted=false. It is NOT a TLS pass.
+Use normal desktop operator qualification next,then active-room/multiclient stop,
+SCM/other account/clean PC/Internet/capacity/manual final matrix. Existing native37
+real protected gameplay remains separate older-package evidence.
+
+Final regression:543 tests527pass/16skip,99.288s,exit0 in
+local/server-launcher39-python-tests01.txt. Native launcher source/build/argument
+checks are separate above;CI now compiles/tests that component on its Windows
+primary-Python job. CI execution itself is not asserted by this local result.
