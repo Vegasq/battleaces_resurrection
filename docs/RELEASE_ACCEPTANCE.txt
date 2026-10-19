@@ -15,6 +15,18 @@ actions. Current native settings saves use staged handle publication. See
 ordinary-player-client.txt for reports,retained failures and remaining matrix.
 These controls do not close the final/manual/clean-machine/Internet gates below.
 
+Bundled two-human2vAI31 qualification
+Clean30 host/two bundled clients pass mode5 in112.839s:human seats0/2 and two
+original native AI profiles60/60 in seats1/3 with distinct names/decks. Configured
+human names/independent decks/full loadouts agree with frozen authoritative data.
+Both clients receive1250 exact frames/126 matching observable-state samples;
+native result/Continue/original Quit and all exits0/worker reap/listener/state
+lock release/jobs active0/terminated0 pass,no forced cleanup. Identical native
+completed replay per profile has1250 contiguous frames/exact GameData hash.
+No shipping code/helper/package change or broader manual/Internet/credential
+deployment claim. Remaining full-team/Custom/rematch/running-disconnect and
+final release matrix stays OPEN;see packaged-multiplayer.txt.
+
 Bundled loading-disconnect31 qualification
 Clean30 host/two bundled clients pass actual accepted TLS loading disconnect,
 original modal/deferred cleanup,capacity release,and separate public replacement

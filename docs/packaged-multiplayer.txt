@@ -1,5 +1,42 @@
 BUNDLED SERVER / NATIVE MULTIPLAYER QUALIFICATION -- 2026-10-19
 
+Native31 two-human2vAI (BOUNDED PASS)
+Existing clean30 packaged host/two independent bundled clients/helper pass
+mode5 in112.839s. Human seats0/2 retain configured names,independent native decks
+and full loadouts. Server-owned bot seats1/3 have original native profiles60/60,
+distinct C1-14D/Jiji Cho names and decks. Actual worker AI metadata agrees with
+the frozen native roster and identifies the original AI DLL/rules;no client
+supplies bot actions. Full human group launches promptly:server-entry waits
+0.154713s/0.000106s,original native search-to-offer281ms/219ms.
+
+Both native clients receive all1250 contiguous authoritative frames with exact
+payload hashes and agree on126 common canonical observable-state samples each.
+Original human build callbacks queue normally;explicit diagnostic concessions
+finish both human armies at1200/1230,alliance1 wins at1230. Original result/
+Continue/idle-gated menu Quit and both game/launcher exits0 pass. Health52184
+and AI-match16376 workers exit0/reap without failure;original host cleanup closes
+listener/releases state lock. Three outer jobs active0/terminated0 before close,
+no forced cleanup. One identical completed native replay per profile contains
+1250 contiguous records and exact frozen GameData hash. Native TOML and all
+source/packages/assets/config/adapters/three shared channels remain unchanged;
+fixture tokens not logged,test PKI removed. Original/frozen/manual24 unchanged.
+local/packaged-network31-mode5-01/verification.json SHA256
+b24f2af51c33c79c15c1a8b2d15fca6efbd3459951a527b0bb16dc3c7ad670ad
+Completed replay SHA256
+ca8602e37712e552ee52e140e70749b4cf94b5255aff6204dc5137641040f040
+Native worker AI DLL SHA256
+14b504d4946fe60d0d62e1e8b8a641b4c1bbd07277d1bbca09e0151512ff19ca
+AI manifest SHA256
+46d740fa6e15b3876f7c8614cfe3513cadc78ef6c4112bdac21aa447c8071bf8
+
+This adds a packaged mode control without shipping-code/helper/package changes;
+existing509-test Python and helper30 C++ evidence remains applicable. It uses
+the same external stdin-only credential fixtures described below,not protected
+deployment acceptance. Sampled state agreement is not an independent hidden-
+state/determinism proof,rendered-pixel/physical-input or autonomous movement
+measurement. Running disconnect/retry,full-team/Custom/rematch,actual CMD/manual,
+protected deployment/SCM/clean-PC/Internet/capacity gates remain open.
+
 Native31 loading disconnect / same-process replacement (BOUNDED PASS)
 The existing clean30 packages/helper are unchanged. External verifier option
 --recover-loading closes the first client's actual accepted TLS peer only when

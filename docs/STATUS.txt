@@ -2,6 +2,21 @@ IMPLEMENTATION LEDGER
 Updated: 2026-10-19 UTC
 Active objective: implement SERVER_REPLACEMENT_PLAN.txt, Windows only.
 
+BUNDLED TWO-HUMAN2vAI31 (2026-10-19 UTC, BOUNDED PASS)
+Unchanged clean30 bundled host/two clients pass native mode5 in112.839s:human
+seats0/2,server-owned bot seats1/3 with original native profiles60/60,distinct
+C1-14D/Jiji Cho names and decks. Configured human names/independent decks/full
+loadouts persist. Both receive1250 exact authoritative frames and agree on126
+common observable-state samples each. Original result/Continue/gated idle Quit
+and game/launcher exits0 pass;health/match workers52184/16376 exit0/reap,host
+listener/state lock release,all three outer jobs active0/terminated0 before close,
+no forced cleanup. One identical completed1250-frame native replay per profile;
+all seven unchanged/non-disclosure checks pass. Same explicit credential fixture
+boundary applies;this is not protected enrollment/manual/Internet acceptance.
+Shipping code/helper/packages unchanged;existing509-test/C++ evidence remains
+applicable. Running disconnect/full-team/Custom/rematch and final release gates
+remain open. Exact report/hash/scope in packaged-multiplayer.txt.
+
 BUNDLED LOADING RECOVERY31 (2026-10-19 UTC, BOUNDED PASS)
 Actual clean30 bundled host/two clients pass loading disconnect -> native menu
 cleanup -> new original public Play -> completed replacement -> original Quit,
