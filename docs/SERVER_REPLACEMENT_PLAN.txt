@@ -12,6 +12,10 @@ Current release integration order (2026-10-19)
   Complete removal/internal callers/QueueConfig/cache/error/crash/CEF/continuous
   network/descendant/full-mode gates stay OPEN and RUNTIME_VALIDATED stays false.
   See telemetry-prequit.txt;no ordinary automatic game/Quit actions are added.
+  Clean9dca4d6 packages pass actual19/36 embedded imports,ordinary CMD menu10.153s
+  and actual development server archive active-match/restart11.479s. CMD readiness
+  cleanup remains forced;natural Quit evidence is separate. Protected40/graphical/
+  clean-PC/Internet and the complete release matrix remain OPEN.
 - Active-match console40 development control now passes two original-native
   matches through the actual unchanged clean39 Start Server.exe:two scripted
   peers/40 identical frames each,Ctrl+C/natural worker0,EOF,port/state lock release,

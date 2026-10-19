@@ -15,6 +15,11 @@ fields after one comment clarification;separate no-telemetry flag control passes
 18.483s. Full Python563 tests547pass/16skip,111.064s;all11 C++ programs/six atomic
 boundaries pass. Exact sources/reports/retained comparison failure and next gaps
 in telemetry-prequit.txt. Owned03 uses build02;manual35/frozen packages preserved.
+Clean9dca4d6 packages additionally pass actual19/36 bundled imports/integrity and
+ordinary Start Client.cmd menu10.153s with no server/diagnostics. Readiness cleanup
+is forced,not Quit. Actual clean server archive passes two native active matches/
+Ctrl+C/restart11.479s in explicit development loopback;protected40 gate remains
+pending. These previews are not a completed release;exact receipts in the KB.
 
 ACTIVE-MATCH CONSOLE40 (2026-10-19 UTC, DEVELOPMENT PASS / OWNER TLS PENDING)
 External --active-match verifier now starts the actual unchanged clean39 native

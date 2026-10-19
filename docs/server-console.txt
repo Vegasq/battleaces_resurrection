@@ -255,3 +255,21 @@ open release gates;native37/manual35 remain their exact older-package evidence.
 Full regression:559 Python tests543pass/16skip,102.026s,exit0 in
 local/server-console40-python-tests01.txt. No additional native/package rebuild:
 this change extends only the external verifier,its rejection tests and the KB.
+
+Clean41 archive follow-up (same production host/launcher code)
+Clean9dca4d6 source packages in local/telemetry41-clean-packages01 include the
+new opt-in client telemetry helper;server native entry/36 production Python
+modules remain their exact prior implementation. Both actual isolated bundled
+runtimes pass all19/36 imports/full before-after inventory;client CMD readiness
+passes separately10.153s with forced readiness cleanup,not native Quit. See
+telemetry-prequit.txt for archive/import/CMD hashes and source boundaries.
+The actual newly extracted server archive also passes --active-match development
+control11.479s,two native matches/40 equal frames per peer each,worker11104/43496
+independently live then exited0,launcher14416/33828 natural0 in31ms,all socketsEOF,
+same port/data/profiles/new match after restart. Final/pre-close outer job23
+active0/terminated0,no forced cleanup,all bound inputs unchanged. Report:
+local/telemetry41-clean-server-active01/verification.json SHA256:
+e5304cd7aeb13be4b0605d09406a7498f8a56174e4d3f213cebfd7eab27fc2f9
+This remains plaintext development evidence. The pending owner-console40 script
+still targets the unchanged clean39 archive originally requested;it is not
+silently repointed or promoted to a newer protected-mode report.

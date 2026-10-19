@@ -138,3 +138,24 @@ feature or another graphical manual acceptance. Frozen manual35/packages remain
 unchanged;owned03 now uses this ordinary-recipe build02 helper.
 Ordinary02 verification SHA256:
 955f14d98ec5c72c548ca5113f19be5fbe53e488fc2edd90cdb1781f8b05b475
+
+Clean41 package follow-up
+local/telemetry41-clean-packages01 is built from clean source
+9dca4d6f860ef894b1914c8fd2c99d6fecc2d23d with final helper41-02 and unchanged
+native launcher39-01,verified Python3.14.8 ZIP. Client68 files/13097617 ZIP bytes:
+0ecd06ed7709e1646574e7bf9f2d7a822c5b6a0c284b2dc5ec027d2a0a1f52a5
+Server83 files/12497199 bytes:
+86f4175827833e644edab94180dcf659f37c892abe13bb924cc641a51f967c1f
+Build-report SHA256d60ccc964120712d24deb8ec7ebeb1e43bc9f6bfc62b288124533cf1d0c5e55d
+Actual bundled Python imports all19 client/36 server production modules from
+foreign cwd/empty PATH/no site-packages;each module matches current source and
+the complete before/after package inventories are unchanged. Report SHA256:
+73e077c6fbe3e5cf7468fef06ecc0120dbea0874afc8fc463ac947c74cfea5f3
+Actual shipped Start Client.cmd reaches the owned03 ordinary unified menu in
+10.153s (10.568s whole check),using fresh relocated settings with server/CA/invite
+unset and no test/audit/API/capture flags. Public/cosmetic options are present. Package/config/
+sources/shared TOML unchanged;owned readiness cleanup is FORCED and is explicitly
+not native Quit. local/telemetry41-clean-cmd-startup01/verification.json SHA256:
+8e667cd6d39dd59f4b815989adadb4cbc8b0d3da58783b2a1a7cb34fe6558e52
+Separate same-helper native Quit evidence stays above;it is not inferred from
+CMD readiness. These are local development previews,not final release artifacts.
