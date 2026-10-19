@@ -4,13 +4,25 @@ Target: Battle Aces build 37822, Windows x64 server and clients.
 Status: IMPLEMENTATION ACTIVE. See STATUS.txt; incomplete phases remain future work.
 
 Current release integration order (2026-10-19)
+- The early persisted-deck guard now passes40 native fixtures:31 byte-preserving
+  refusals and nine healthy/new/unfinished/default controls. It retains original
+  JSON deserialization and slot rules,with shipped Newtonsoft field-presence
+  checks and an existing-input read guard before early startup saves. Current
+  source suite451 pass/14 skip out of465;ten C++ component programs/helper pass.
+  Current native save-warning/reuse/retry/restart regression passes25.504s.
+  An existing saved profile also passes AI/results/Continue and original menu
+  Quit:natural0 in0.984s after Confirm,without forced cleanup (99.586s total).
+  Next define and qualify interrupted-write recovery/atomic replacement,then
+  final ordinary public/cosmetic enablement and packaging. See
+  native-deck-validation.txt and RELEASE_ACCEPTANCE.txt. Frozen archives remain
+  unchanged;these checks do not qualify all JSON semantics or power-loss safety.
 - Native settings write failures now reach an original in-game warning on a
   later idle UI update. Visible notice06 passes acknowledgment/release,restored
   pooled text and original reuse,Save retry/fresh readback with unchanged shared
   settings. Ten C++ programs/helper,50 focused checks and446 passes/14 skips out
   of460 pass. Final mouse/error-path/package acceptance remains open;see
-  native-settings-notice.txt. Implement the pinned early persisted deck JSON/
-  shape/ID guard next (native-deck-validation.txt),then interruption policy.
+  native-settings-notice.txt. The newer guard qualification above advances the
+  pinned early JSON/shape/ID item;interruption policy remains open.
   RELEASE_ACCEPTANCE.txt collects remaining final product gates.
 - The source default now reports optional DLSS unavailable before NGX starts.
   A qualified12-context unwind locates the old shutdown wait in NVIDIA telemetry's

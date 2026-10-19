@@ -4,10 +4,12 @@
 #include "native_settings.hpp"
 namespace ba_native_settings {
 static void observe(ba::Obj);
+static void inspectDeckTable(ba::Obj);
 // Held through engine teardown. OS process exit releases the handles; CRT
 // destruction must not unlock a profile while native shutdown can still save.
 static auto& session=*new std::unique_ptr<Session>();
 static std::atomic<unsigned long long> loads{0},saves{0},saveFailures{0};
+static std::atomic<unsigned long long> validationSaveRefusals{0};
 static std::atomic<bool> lastSaveSucceeded{true};
 static bool matches(ba::Obj path) noexcept {
     // Exact known System.String ABI; no getter, managed allocation or cctor.
@@ -53,6 +55,11 @@ extern "C" __declspec(dllexport) void* OfflineLocalUserLoadTable(void* loader,vo
             ba::log("NATIVE SETTINGS load refused: parsedTable=0 inputPreserved=1 sharedPathUnused=1");
             TerminateProcess(GetCurrentProcess(),ERROR_BAD_CONFIGURATION);ExitProcess(ERROR_BAD_CONFIGURATION);
         }
+        try {ba_native_settings::inspectDeckTable(table);}
+        catch(const std::exception& error) {
+            ba::log("Native persisted deck load refused: %s; inputPreserved=1 selectorUnused=1",error.what());
+            TerminateProcess(GetCurrentProcess(),ERROR_BAD_CONFIGURATION);ExitProcess(ERROR_BAD_CONFIGURATION);
+        }
     }
     return table;
 }
@@ -63,10 +70,15 @@ extern "C" __declspec(dllexport) bool OfflineLocalUserSaveTable(void* loader,voi
     const bool okay=ba::native<bool(*)(void*,void*,void*,void*)>(0x3796060)(loader,path,table,method);
     if(isolated) {
         const auto sequence=++ba_native_settings::saves;
-        ba_native_settings::lastSaveSucceeded=okay;
-        if(!okay)++ba_native_settings::saveFailures;
-        ba::log("NATIVE SETTINGS save result: profile=%s sequence=%llu succeeded=%d failures=%llu BA_RESURRECTION_NATIVE_SETTINGS_ERRORS_V1",
-            ba_native_settings::session->profile().c_str(),sequence,okay,ba_native_settings::saveFailures.load());
+        const bool protectedInput=ba_native_settings::session->inputProtected();
+        if(protectedInput) {if(!okay)++ba_native_settings::validationSaveRefusals;}
+        else {
+            ba_native_settings::lastSaveSucceeded=okay;
+            if(!okay)++ba_native_settings::saveFailures;
+        }
+        ba::log("NATIVE SETTINGS save result: profile=%s sequence=%llu succeeded=%d failures=%llu validationProtected=%d validationRefusals=%llu BA_RESURRECTION_NATIVE_SETTINGS_ERRORS_V1",
+            ba_native_settings::session->profile().c_str(),sequence,okay,ba_native_settings::saveFailures.load(),
+            protectedInput,ba_native_settings::validationSaveRefusals.load());
     }
     return okay;
 }

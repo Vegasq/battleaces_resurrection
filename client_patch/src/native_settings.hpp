@@ -1,6 +1,7 @@
 #pragma once
 #include "command_line.h"
 #include "cosmetics_store.hpp"
+#include <atomic>
 // Prepare only the destination/lock. The original game owns TOML serialization.
 namespace ba_native_settings {
 using ba_cosmetics_state::Handle;
@@ -27,7 +28,9 @@ inline void exactDirectory(HANDLE file,const std::wstring& expected) {
 class Session {
     std::string key;
     std::wstring target;
-    Handle gameHandle,baseHandle,profilesHandle,profileHandle,lockHandle;
+    Handle gameHandle,baseHandle,profilesHandle,profileHandle,lockHandle,inputGuard;
+    bool hadInput=false;
+    std::atomic<bool> inputPending{false};
 public:
     Session(const std::wstring& game,const std::string& selected):key(selected) {
         require(ba_cosmetics_state::profileKey(key),"invalid native local profile key");
@@ -51,7 +54,19 @@ public:
         Handle existing(CreateFileW(target.c_str(),GENERIC_READ|GENERIC_WRITE,FILE_SHARE_READ,nullptr,OPEN_EXISTING,
             FILE_ATTRIBUTE_NORMAL|FILE_FLAG_OPEN_REPARSE_POINT,nullptr));
         if(existing.value==INVALID_HANDLE_VALUE)require(GetLastError()==ERROR_FILE_NOT_FOUND,"native settings file is unavailable or unwritable");
-        else ordinary(existing.value);
+        else {
+            ordinary(existing.value);BY_HANDLE_FILE_INFORMATION before{},after{};
+            require(GetFileInformationByHandle(existing.value,&before)!=0,"native settings input identity unavailable");
+            require(CloseHandle(existing.value)!=0,"native settings preflight handle release failed");existing.value=INVALID_HANDLE_VALUE;
+            // Native startup writes options before deserializing the deck. Keep
+            // an existing input readable but unwritable until the early guard
+            // accepts it; original StreamWriter failures/results stay intact.
+            inputGuard.value=CreateFileW(target.c_str(),GENERIC_READ,FILE_SHARE_READ,nullptr,OPEN_EXISTING,
+                FILE_ATTRIBUTE_NORMAL|FILE_FLAG_OPEN_REPARSE_POINT,nullptr);ordinary(inputGuard.value);
+            require(GetFileInformationByHandle(inputGuard.value,&after) && before.dwVolumeSerialNumber==after.dwVolumeSerialNumber &&
+                before.nFileIndexHigh==after.nFileIndexHigh && before.nFileIndexLow==after.nFileIndexLow,
+                "native settings input changed during preflight");hadInput=true;inputPending=true;
+        }
         const auto probe=folder+L"\\native-settings-write-"+std::to_wstring(GetCurrentProcessId())+L".tmp";
         Handle writable(CreateFileW(probe.c_str(),GENERIC_WRITE,0,nullptr,CREATE_NEW,FILE_ATTRIBUTE_NORMAL,nullptr));
         require(writable.value!=INVALID_HANDLE_VALUE,"native settings directory is not writable");
@@ -62,5 +77,11 @@ public:
     }
     const std::string& profile() const{return key;}
     const std::wstring& path() const{return target;}
+    bool inputProtected() const{return inputPending.load();}
+    bool hadExistingInput() const{return hadInput;}
+    void acceptInput() {
+        if(inputGuard.value==INVALID_HANDLE_VALUE)return;
+        require(CloseHandle(inputGuard.value)!=0,"validated native settings input handle release failed");inputGuard.value=INVALID_HANDLE_VALUE;inputPending=false;
+    }
 };
 }

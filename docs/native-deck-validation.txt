@@ -1,4 +1,4 @@
-EARLY PERSISTED DECK VALIDATION -- 2026-10-19 -- STATIC CONTRACT ONLY
+EARLY PERSISTED DECK VALIDATION -- 2026-10-19 -- SOURCE QUALIFICATION
 
 Problem
 Original LocalDeckStorage.Load can catch bad JSON and return empty storage.
@@ -6,7 +6,7 @@ The later selector can then save a starter deck over the original invalid input.
 Deck.IsEmpty does not validate dimensions or installed IDs. A menu observer is
 too late to prevent this. Native malformed-TOML protection does not cover JSON.
 
-Implementation order retained for the next source change
+Original implementation contract
 1. Root the exact isolated LoadTable result before managed allocations. Inspect
    account/decks with original TryGetNode45612d0 and exact Tommy types. Check
    table.children+28 before TryGetNode to avoid its lazy dictionary creation;
@@ -41,8 +41,158 @@ b592449a82d9d997f2519b14b7f071cc8668882f9bbdcb46cae9fe78a4b8b6ab
 manifest.json SHA256:
 5c28e8ddd1c36fd725660270bbc847457bfdd492ae8485def94f8b03cbbcaaf9
 
-Not implemented/runtime-qualified by this note. Native JsonUtility coercions,
+Native JsonUtility coercions,
 stronger selected-unit/ability membership,all-empty native starter fallback,
 malformed saved-list normalization and interruption/atomic writes need explicit
 owned fixtures and original-byte preservation checks. Do not replace these
 unknowns with Python JSON behavior. See local-user-settings.txt.
+
+Source implementation and first compatibility controls
+The exact outer Load call is now wrapped;the original parser/result are retained.
+The rooted TOML presence/type check and native graph/array/list/installed-ability
+ID/original populated-unit slot checks run before returning to the selector.
+Correctly shaped unfinished decks retain native empty0/ffffffff slots. No repair,
+IsFull requirement,account construction or new TOML/JSON serializer is introduced.
+The installer refuses a helper missing the new export/marker before writes;
+new package builds require it. Existing frozen/manual packages are unchanged.
+
+helper-input01 passes four native controls in41.526s:complete persisted deck,new
+profile,unfinished0 slot,and nativeffffffff empty sentinel. Existing choices
+survive;owned clients are reaped,covered sources/shared settings unchanged.
+local/native-deck-input01-healthy/verification.json SHA256:
+fc01db4ec2f9984c9dd21dce1efab804276b1e1a26ea520d420a80f94cf73e64
+
+Retained preservation failure and correction in qualification
+The first malformed-JSON preservation probe FAILS in8.529s. Original startup
+saves settings THREE times before the outer deck Load seam. The later guard
+refuses the bad graph,but its inputPreserved=1 marker is INCORRECT in this run:
+the928-byte fixture has already become929 bytes. The report remains failed and
+the original input sidecar is retained. No shared file is changed. Native graph
+validation before selector creation alone is insufficient for byte preservation.
+local/native-deck-input01-early-write/verification.json SHA256:
+aca6b5cefd23f02367cbb13ece523106978a512d9e02461b1497319a4c23cdcf
+
+The prepared Session now retains a read-only/share-read OS handle for an EXISTING
+input until native deck acceptance. It checks the same file identity across the
+preflight handle transition. The original StreamReader remains usable;the
+original early StreamWriter fails normally without changing bytes. Original bool
+results/serialization/exception handling remain intact. Those intentional
+validation-time save refusals have a separate counter and do not queue a user
+save warning. On acceptance the input handle closes;later native saves resume.
+Missing new-profile input still follows native defaults. Process exit releases
+the guard on refusal. This protects startup input,not later atomic writes or
+device/process-interruption durability. Subsequent runtime qualification below
+tests this startup preservation boundary.
+The C++ OS-handle fixture checks readable unchanged input,denied startup writer,
+and writable input after explicit acceptance. Thirty-eight focused Python checks
+pass;four authored fixture checks additionally ensure semantic cases are valid
+TOML and target their intended JSON fields rather than accidental syntax errors.
+
+Corrected read-guard smoke PASS
+helper-input04 passes malformed JSON and unknown unit refusal with exact input
+preservation,plus complete/unfinished native menu controls in38.663s. Both bad
+inputs observe THREE original early StreamWriter refusals with the protection
+active. The healthy path releases that protection after original JSON/slot
+acceptance,then original saves succeed with runtime failures0. Intentional
+validation refusals are tracked separately and do not queue the save-warning UI.
+Covered sources/shared settings remain unchanged and owned clients are reaped.
+The complete source suite passes451 tests/14 skips out of465 in91.829s.
+local/native-deck-input04-smoke/verification.json SHA256:
+e87c683739c7c22163abedf7d2d1ba4b9baa09162c00e1d23316f8c3f2b5e19b
+helper-deck-input04 SHA256:
+dd52aa617b212663af2d108fef2091e7f8bf183083f457e5312b14515b2c2e2e
+helper-build.json SHA256:
+dace71b6fff92bd72fe1a40c82a7199b8f15ffef48f57f22f9981b1d77f6bd71
+
+Retained full-set failure: absent JSON fields can look initialized
+input04-full FAILS in199.321s on the empty-object fixture. Its first three
+refusals preserve bytes,but explicit persisted '{}' passes the native graph
+checks,returns to the selector and reaches the menu. It is not a valid refusal
+and the native starter path can write afterward. The harness previously waited
+for its180s phase deadline;it now refuses an unexpected acceptance immediately
+and retains process manifests plus post-run TOML bytes. This is a semantic gate
+gap,not a startup hang. Original Unity deserializer behavior must be observed;
+the static constructor alone did not establish field-presence semantics.
+local/native-deck-input04-full/verification.json SHA256:
+4715346098414f89c279d43767d997f1673d92abe360584920a3cd338ae03920
+
+The next source candidate uses retained Newtonsoft.Json.Linq.JObject.Parse and
+original Property/get_Value/array traversal to check serialized field presence,
+array sizes and uint32 integer keys BEFORE forwarding to the original Unity
+loader. Accepted native arrays must agree with the parsed serialized keys. The
+original Unity deserialization/storage object/slot validation still run unchanged;
+no authored JSON grammar or new serializer is added. Missing/null SelectedDeck
+or missing arrays cannot silently become a valid-looking default graph. Valid
+explicit all-empty/unfinished decks remain separate healthy controls. The
+subsequent helper-input05 qualification below covers this candidate. Its parser API contract
+is retained under local/native-deck-json-presence-contract01.
+
+Retained parser contract and presence smoke PASS
+JObject.Parse(string)372c940/Property(string)372bc10 are unique by arity.
+JProperty.Value3730820,JContainer.First3723fd0/Count3727700,JToken.Next6ea1f0,
+and JValue.Value7295d0 provide the original traversal. Ordinary integer tokens
+are boxed Int64;require their real runtime type and0..UINT32_MAX. Parse's default
+duplicate-property policy remains Replace,not rejection. Ordered serialized/
+native key equality rejects differing graph interpretations;this is not proof
+of complete equivalence for every opaque Unity JSON behavior or extra field.
+Static FINDINGS.txt SHA256:
+2722cbe05287fbb2d0e49bc763f1d8084e43b5bdec24a9f333a8d3be13ddbedc
+manifest.json SHA256:
+52cb155cd50178e5072a4b7449960a49eaf9d196292416eb08ea62ab4bfdb1e2
+
+helper-input05 passes empty-object,null-selected and short-units refusal with
+exact preserved bytes,plus healthy complete/unfinished menu controls in48.162s.
+The input read guard stays held through the presence check and unchanged native
+parse/slot acceptance. Covered sources/shared baseline remain unchanged;owned
+clients are reaped. This closes the specific initialized-default-graph gap in
+the smoke,not the complete final release gate. Expanded qualification follows.
+local/native-deck-input05-smoke/verification.json SHA256:
+abbdad68829e890ee1e998fac2af7cc891e9cf4f10e7247f6a48717312ad6924
+helper-deck-input05 SHA256:
+f5a7c2a1b7c0558559f85686fc67ed9034a072e8f5a75f60f2a5ad41eb8b27dc
+helper-build.json SHA256:
+e1ca8152a399f6f38cb74ba2d5bc26148f038311bb26e74e23dec6c91a4c6298
+
+Expanded helper-input05 native qualification PASS
+All40 cases pass in323.580s. Thirty-one invalid TOML node/JSON presence/type/
+dimension/ID/duplicate/wrong-slot/saved-entry fixtures exit1610 before selector
+startup or any successful native Save,and every input remains byte-identical.
+Nine healthy controls reach the original menu:complete,missing file,missing key,
+unfinished0,nativeFFFFFFFF sentinel,all-empty native starter fallback,missing
+saved list,null saved list and one stored deck. Original populated choices are
+checked in memory and on disk;native starter fallback is explicitly permitted
+where applicable. Healthy clients are forcibly reaped;this is not Quit evidence.
+Covered source hashes/shared-file baseline remain unchanged;all owned clients
+are reaped. Per-case process manifests,input/after bytes and native logs remain
+private. Independent review of exact guard source found no concrete ABI,rooting,
+getter override or scalar-type defect;that is review,not extra runtime coverage.
+local/native-deck-input05-full/verification.json SHA256:
+2aa75163b964af2f0bea194839480dfa3a8951f60e388ab1af6bfb0235ff667e
+
+The final source suite passes451/14 skipped out of465 in96.517s. Current helper
+also passes six native settings-error phases in25.504s:malformed TOML refusal,
+explicit owned repair,post-menu write denial,readable inspected original warning,
+acknowledgment/release/restoration/native pooled reuse,successful original retry
+and fresh-process changed-deck readback. Shared/source baselines stay unchanged
+and owned processes are reaped;forced cleanup is not Quit.
+local/native-deck-input05-save-errors/verification.json SHA256:
+2c2b4300620956f49871d0afaf1e31e4394aede3a14448ccaf11577845b7d1a9
+
+An explicitly seeded existing native profile also passes original Try Deck AI,
+native results/Continue,return to menu and normal original Confirm Quit on the
+same helper. Acceptance logs persisted=1/originalSlotRules=1. Exit0 is natural
+in0.984s after dispatch (99.586s total),with no forced cleanup. Its1164-byte
+native file retains SHA256
+2eb4b46502c55a64002a663ae8d44773ed4da4435348242280d31c0b272fc7b2.
+Covered sources/shared settings remain unchanged. Bot supply14/nine autonomous
+action records do not renew the separate long-run tactical movement proof.
+local/native-deck-input05-after-practice-quit/verification.json SHA256:
+625a057b93f218a8f3dfb9594123258c205fae29db882f881789cf577ef89da6
+
+Remaining bounds
+This is not a new serializer/repair operation or complete JSON schema guarantee.
+Duplicate fields retain shipped Newtonsoft Replace policy;opaque extra-field/
+Unity semantic equivalence and stronger unit/ability-group association remain
+unproven. Input/list bounds are product bounds. Later native writes remain
+non-atomic;interruption/device failure and final manual/package acceptance are
+separate release gates. Original shared settings are never repaired or imported.

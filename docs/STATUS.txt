@@ -2,6 +2,26 @@ IMPLEMENTATION LEDGER
 Updated: 2026-10-19 UTC
 Active objective: implement SERVER_REPLACEMENT_PLAN.txt, Windows only.
 
+PERSISTED NATIVE DECK INPUT GUARD (2026-10-19 UTC, SOURCE CANDIDATE)
+The early native TOML/JSON guard now passes40 real input cases in323.580s:
+31 malformed/wrong-type/shape/ID/slot cases exit1610 with exact input bytes
+preserved,and nine healthy controls reach the original menu. New profiles,
+unfinished decks,native empty sentinels and original all-empty starter fallback
+remain supported. Existing input stays read-only until original parser/slot
+acceptance;three early native saves can otherwise replace invalid input.
+Retained original Newtonsoft presence checks prevent '{}' from appearing valid
+through Unity's initialized graph. Native serialization remains unchanged.
+Current source suite:465 total,451 pass/14 skip in96.517s;ten C++ programs/helper
+pass. Save-error warning/release/reuse/retry/fresh readback also pass25.504s on
+this helper,with its readable PNG inspected. Covered sources/shared settings
+remain unchanged and owned clients are reaped. Earlier failed preservation and
+empty-object runs remain failed in native-deck-validation.txt. General release,
+later-write interruption policy and final ordinary packaging remain open.
+The same helper also loads an existing saved profile (persisted=1),completes
+one native AI match/results/Continue,and exits naturally0 through original menu
+Confirm in0.984s (99.586s total),without forced cleanup. The saved native file
+remains byte-identical;this short match does not renew tactical movement proof.
+
 VISIBLE NATIVE SAVE-FAILURE WARNING (2026-10-19 UTC, SOURCE CANDIDATE)
 A later safe Unity update now shows the original one-button message dialog for
 an unresolved isolated settings write failure. The writer itself only records
@@ -14,8 +34,8 @@ Earlier hidden-black capture and incorrect null-model cleanup failures remain
 recorded. Fifty focused checks,ten C++ component programs/helper and the full
 460-test suite pass (446 pass/14 skip,90.045s). Final manual/package/error-path
 and atomic-write acceptance remain open;existing frozen archives are unchanged.
-See native-settings-notice.txt. native-deck-validation.txt now pins the next
-early persisted-JSON/shape/ID guard;that guard is not implemented by this note.
+See native-settings-notice.txt. The newer persisted-deck qualification above
+extends this checkpoint;native-deck-validation.txt retains its exact scope.
 RELEASE_ACCEPTANCE.txt collects remaining final product gates in one place.
 The final helper also passes original fresh-menu Quit:exit0 in0.797s after
 Confirm,no forced cleanup (17.462s total). Previous helper06 additionally passes

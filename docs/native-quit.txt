@@ -1,5 +1,16 @@
 ORIGINAL QUIT / SHUTDOWN CONTRACT -- 2026-10-19 UTC -- SOURCE DEFAULT QUALIFICATION
 
+Current persisted-deck guard regression (helper-input05)
+An existing owned native profile passes the new persisted=1/original slot-rule
+guard,one standalone AI match,original results/Continue and return to menu.
+Original Show/Confirm exits naturally0 in0.984s after dispatch (99.586s total),
+with no forced cleanup or optional disposal hooks. Its1164-byte saved native
+file is unchanged;covered source/shared baselines remain unchanged. Bot supply14
+and nine autonomous action records do not renew the longer tactical movement
+qualification. This is an owned scripted probe,not final ordinary manual play.
+local/native-deck-input05-after-practice-quit/verification.json SHA256:
+625a057b93f218a8f3dfb9594123258c205fae29db882f881789cf577ef89da6
+
 Controlled positives;final release acceptance still open
 The recorded wait is now qualified through12 unwind contexts to NVIDIA
 UninitializeTelemetry's infinite worker join during original NGX D3D11 shutdown.

@@ -85,6 +85,8 @@ def run(args):
             (not args.capture_dialog or args.mode!='inventory'), 'bounded timeout and visible dialog required')
     require(not args.after_practice or args.mode=='confirm','post-practice requires original Confirm/natural exit mode')
     require(not args.default_recipe or args.mode=='confirm','default recipe qualification requires original Confirm/natural exit')
+    require(args.profile is None or re.fullmatch(r'nativestest_[a-z0-9_-]{1,34}',args.profile),
+            'explicit Quit profile must be an owned nativestest_ key')
     launcher.verify_game(game,community=True,bridge_version=2,unified=True)
     build_receipt = verify_build_receipt(game,args.helper_build_receipt.resolve())
     manifest = json.loads((game/'.battleaces-resurrection/patch-manifest.json').read_bytes())
@@ -103,7 +105,7 @@ def run(args):
             'install exact owned native Quit diagnostic recipe')
     output.mkdir(parents=True,exist_ok=False)
     runtime = game/'investigation/runtime';runtime.mkdir(parents=True,exist_ok=True)
-    profile = 'nativestest_quit_'+secrets.token_hex(6)
+    profile = args.profile or 'nativestest_quit_'+secrets.token_hex(6)
     trace = game/'.battleaces-resurrection/profiles'/profile/'quit-trace.jsonl'
     report = dict(passed=False,scope=__doc__,mode=args.mode,visible=args.visible,profile=profile,capture_requested=args.capture_dialog,
                   source_sha256_at_start=sources(),helper_sha256=hashlib.sha256((game/'BattleAcesOffline.dll').read_bytes()).hexdigest(),
@@ -229,6 +231,7 @@ if __name__=='__main__':
     parser = argparse.ArgumentParser(description=__doc__)
     for key in ('game','output','shared-settings'): parser.add_argument('--'+key,type=Path,required=True)
     parser.add_argument('--helper-build-receipt',type=Path,required=True)
+    parser.add_argument('--profile',help='explicit owned nativestest_ profile for a seeded native-settings regression')
     parser.add_argument('--after-practice',action='store_true',help='explicit automated one-match result/Continue before original menu Quit')
     parser.add_argument('--default-recipe',action='store_true',help='qualify natural exit using the default patch without optional teardown hooks')
     parser.add_argument('--mode',choices=('inventory','cancel','confirm'),default='cancel')

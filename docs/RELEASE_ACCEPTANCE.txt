@@ -21,12 +21,16 @@ Qualified source checkpoint aa5a803
   controls. The original writer is not atomic. See local-user-settings.txt.
 
 Required before a general release
-[ ] Preserve malformed persisted deck JSON/wrong node types/invalid dimensions
+[x] Source qualification:preserve malformed persisted deck JSON/wrong node types/invalid dimensions
     and IDs before original startup can replace them. Healthy new profiles and
-    incomplete but legitimate edited decks must remain supported.
-[ ] Show a useful native in-game warning after failed settings writes;verify
+    incomplete but legitimate edited decks remain supported:40 native cases
+    pass on helper-input05. Final installer/ordinary release regression remains
+    required;see native-deck-validation.txt for bounds and retained failures.
+[x] Source qualification:show a useful native in-game warning after failed settings writes;verify
     acknowledgment,recovery and later successful save without UI reentry during
-    writer callbacks or shutdown. Define and qualify interruption/atomic-write
+    writer callbacks or shutdown. Current helper-input05 regression passes with
+    an inspected readable image;manual/all-exception-path acceptance stays open.
+[ ] Define and qualify interruption/atomic-write
     behavior;do not equate a save callback with disk persistence.
 [ ] Enable final public/cosmetic features through the ordinary entry point only
     after end-to-end acceptance. Verify actual mouse selection/drag/equip,all

@@ -59,7 +59,16 @@ static void storage() {
         check(read(target)=="[account]\ndecks = 'authored selection A'\n","another profile/installation changed state");
         check(read(beta.path())=="authored selection B" && read(other.path())=="authored other installation","profile state not independent");
     }
-    {settings::Session restart(first.path,"alpha");check(read(restart.path())=="[account]\ndecks = 'authored selection A'\n","restart changed native-format bytes");}
+    {
+        settings::Session restart(first.path,"alpha");
+        check(restart.hadExistingInput() && restart.inputProtected(),"existing input is not protected before native deck acceptance");
+        check(read(restart.path())=="[account]\ndecks = 'authored selection A'\n","protected input is not readable/unchanged");
+        settings::Handle blockedWrite(CreateFileW(target.c_str(),GENERIC_WRITE,FILE_SHARE_READ,nullptr,OPEN_EXISTING,FILE_ATTRIBUTE_NORMAL,nullptr));
+        check(blockedWrite.value==INVALID_HANDLE_VALUE && GetLastError()==ERROR_SHARING_VIOLATION,"startup writer can modify unvalidated input");
+        restart.acceptInput();check(!restart.inputProtected(),"accepted input guard was not released");
+        settings::Handle allowedWrite(CreateFileW(target.c_str(),GENERIC_WRITE,FILE_SHARE_READ,nullptr,OPEN_EXISTING,FILE_ATTRIBUTE_NORMAL,nullptr));
+        check(allowedWrite.value!=INVALID_HANDLE_VALUE,"accepted input is still unwritable");
+    }
     check(SetFileAttributesW(target.c_str(),FILE_ATTRIBUTE_READONLY)!=0,"readonly fixture failed");
     rejects([&]{settings::Session readonly(first.path,"alpha");});check(SetFileAttributesW(target.c_str(),FILE_ATTRIBUTE_NORMAL)!=0,"readonly reset failed");
     check(CreateHardLinkW((target+L".link").c_str(),target.c_str(),nullptr)!=0,"hard-link fixture unavailable");

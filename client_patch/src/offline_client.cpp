@@ -308,6 +308,7 @@ extern "C" __declspec(dllexport) void OfflineFrontUpdate(void* front,void*) {
 #include "native_quit_trace.cpp"
 #include "local_loop.cpp"
 #include "catalog_export.cpp"
+#include "native_settings_deck_guard.cpp"
 #include "lan_smoke.cpp"
 #include "community_transport.cpp"
 #include "lan_transport.cpp"

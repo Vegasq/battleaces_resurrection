@@ -1,5 +1,17 @@
 NATIVE LOCAL-USER SETTINGS ISOLATION -- 2026-10-19 UTC -- OPEN
 
+Current persisted-input qualification
+helper-input05 additionally passes40 native fixtures:31 byte-identical invalid
+input refusals and nine healthy/new/unfinished/native-default controls. An OS
+read guard prevents original pre-deck startup saves from replacing existing
+input before typed TOML,shipped JSON field-presence,native deserialization and
+original slot acceptance. The accepted native storage object is unchanged.
+The same helper passes actual native save-error warning,original release/reuse,
+successful Save retry and fresh-process readback in25.504s;its PNG is inspected.
+Source suite451 pass/14 skip out of465;ten C++ programs/helper pass. All covered
+source/shared-file baselines remain unchanged. This is startup preservation,
+not later atomic-write/interruption protection. See native-deck-validation.txt.
+
 Implementation in qualification
 An exact cctor call hook now selects an installation/profile-native TOML path
 before first load. It validates the key,destination and ordinary directory/file
