@@ -1,5 +1,5 @@
 INSTALLED COSMETICS - BUILD37822 CONTRACT
-Updated:2026-10-18. Static research; complete unlock/persistence is not implemented.
+Updated:2026-10-19 UTC. Catalog/validation foundation; unlock/persistence remain open.
 
 Evidence boundary
 REA native providers remain unavailable. Findings use original-byte LLVM/PE
@@ -10,6 +10,16 @@ source-identities.json and evidence-manifest.json. All extracted content stays
 local. Findings note SHA256:
 84bfa057acd408549466d2f430d3a257def1f096f0773f9b41315585da819a12.
 Native addresses below are RVAs in the supported original GameAssembly.
+
+Follow-up exact-byte/metadata review is retained in ignored
+local/cosmetics-native-review01/FINDINGS.txt, SHA256
+893ea9d138bc67b21929469ca63dc6144bbc6aca7e22d55f657f0331c6cb8ac6.
+This corrects two historical interpretations: the visibility lookup at3ca50cc
+returns a signed dictionary index, including-1 for missing entries; it is not a
+Boolean ABI. Equivalent-slot swapping at3ca6875 moves the target slot's previous
+item into the other slot, rather than substituting a default. Preserve both
+behaviors. Double-click/confirm also checks ownership separately at3ca5eb8.
+Original drag/drop equip at3ca65bd must remain intact.
 
 Catalog and persistence scope
 The installed catalog has107 entries and17 slots. All107 definition references
@@ -28,6 +38,15 @@ message. Retain native slot filtering, equivalent-slot swapping and defaults.
 CosmeticItemTable GUIDc0a3ae0b3a257c04482d362032ce18c4 and CosmeticSlotTable
 GUID80afad8f743498b4881dccafa8ebb850 supply installed IDs/category/default rules.
 
+The explicit -player-cosmetics-catalog-export diagnostic reads both loaded
+tables on the Unity thread at an idle local menu. It preserves native slot order
+and asks each original CosmeticSlot.FilterItem(CosmeticDefinition) for compatible
+items. Portrait/banner roles come from ClientGlobalConfigDefinition's slot keys;
+they are not guessed from numeric labels. It serializes twice, checks unchanged
+saved loadout/world, and atomically writes a PID-specific ignored runtime JSON.
+It does not unlock/equip anything or start a match. Normal launchers do not add
+this diagnostic flag. Catalogs, captures and item dumps never enter Git.
+
 Unlock boundaries
 SelectCosmeticVM.RefreshViewModel3ca4ad0 inlines visibility checks: nonzero
 entitlement keys need a cache entry at3ca50cc. Patching IsOwned alone misses this.
@@ -41,6 +60,13 @@ Cosmetics._savedItems+10 is a list of8-byte slot/item values; boxed field offset
 must not be used on unboxed entries. EquipCosmeticAsset3cbfcb0 updates it and
 invokes Changed. Original save notifications target the retired Front service;
 intercept them for local persistence and optional community profile updates.
+
+A bounded Unity-thread observer can capture the complete map after native swap
+callbacks finish, without constructing a Changed delegate. Do not assume the
+original LoadProfileData listener subscription ran for the local profile.
+Contain original save/presence side effects independently: the final enqueue
+at3e40f1d is a tail jump, not a call. Suppressing SetBannerAndPortrait alone does
+not remove SteamRichPresence's class-constructor Quit subscription.
 
 Match propagation
 CommonPb.Deck.entitlements is field3. Entitlement.inventoryServiceId is field1;
@@ -69,6 +95,69 @@ serialize one validated complete snapshot. Public bot prototype now includes its
 selected portrait/banner in the cloned deck's cosmetic entitlement record.
 Failed native evidence:local/public-native03 (name/IsAI matched; cosmetics did not).
 Read-only follow-up:local/public-bot-runtime02/identity-population.txt.
+
+Server validation foundation
+server/cosmetics.py consumes only a locally supplied bounded catalog. Its
+immutable full selections retain all17 slots in explicit native order. Network
+selection validation rejects partial maps, unknown/wrong-slot items, Boolean
+integers, duplicate slots and duplicate nonzero items. Empty zero values are
+valid only in truly empty default-zero slots. Local normalization fills omitted
+slots from defaults, then validates the effective complete map. It does not
+silently resolve collisions between retained items and missing-slot defaults.
+Nonzero item IDs encode into one default inventory-service-zero entitlement,
+packed field3; they are not definition EntitlementKey values. The four equivalent
+emote slots remain distinct and ordered. Synthetic tests use authored data only.
+Original imported Type1 bot entitlements confirm this encoding; private report:
+local/cosmetics-server-review01/imported-entitlement-conventions.json. Review
+FINDINGS SHA256:4656e6b9463f55121d2260d241e9e658dce07dfe2189138958481577610b0a27.
+
+This module is not yet connected to profile storage, protocol submission or
+match construction. Carry one validated frozen map through those paths; do not
+reread Custom profiles after readiness. Keep account selections outside shared
+dedicated_deck::proto(), which also builds bot decks requiring empty entitlements.
+
+Qualification checkpoint (2026-10-19 UTC)
+Helper8c67337d1e2a5356b3af81f47ea19bc0997bc0a2d9afe1f42a385155435877d5
+was built from authored source and installed only into the disposable test copy.
+Two fresh unified clients exported identical5,919-byte catalogs:107 items,
+17 slots,14 effective nonzero defaults. Both exports use original definition
+filters, serialize identically twice, and retain unchanged saved loadout/idle
+world. Catalog SHA256:
+c218f15258c3e1192cc788c6fbcbc127d43f5fabb11d141be853c30000b7ae89.
+player-cosmetics-export01 PID46872:14.858 seconds, report SHA256
+55f78eac182912f52223d1c6c69b8f2e555c468fa8d6b9fda624e2b6457d8369.
+player-cosmetics-export02 PID22852:13.731 seconds, report SHA256
+c38371310be7f5295c49c1ddfa41a640862a285dd2770c45e9e19db0694014f2.
+Normal startup with the same helper, without export/automation flags, also passes:
+player-cosmetics-normal-startup01 PID13644:14.050 seconds, report SHA256
+62f7ec22fd6eaab5db1a9dbfd8e49a6ce1413054844e97b97753e35c17cc91eb.
+All three run the actual no-config Start Client path with no server/CA/invite,
+zero attempted TLS connections/credential reads, unchanged covered source hashes
+and reaped owned processes. These are hidden diagnostic launches with forced
+teardown after menu readiness, not visible UI, native Quit or telemetry acceptance.
+
+The new compatibility matrix also decodes all12 retained native Type1 bot
+entitlements using first-compatible unused input positions. The validator matches
+their exact ordered service0/packed-field3 bytes and portrait/banner identities.
+No item position remains unused. Private comparison report:
+local/player-cosmetics-export01/imported-wire-verification.json, SHA256
+dc59d677bea28e3c79c39b921891058e05dc60c2bf80398768ba0a93e2657ebe.
+This compares earlier native serialization with a fresh table export; it does
+not qualify human selection, rendering or new gameplay.
+
+Checks: all8 C++ component programs and helper build pass;22 cosmetic/bot-catalog
+Python checks pass. Public matchmaking/recovery/launcher/patcher regression runs
+38 checks:37 pass,one optional native snapshot fixture skips. Evidence remains
+under ignored local/player-cosmetics-*; only authored implementation/tests and
+these conclusions are published.
+
+Reproduce with a patched disposable game copy and a fresh ignored output path:
+python -m tools.verify_unified_startup --game local/<test-copy>
+  --output local/<fresh-export-run> --timeout 240 --cosmetics-export
+Omit --cosmetics-export for the ordinary
+no-config regression. Run python -m unittest tests.test_cosmetics
+tests.test_bot_catalog for the asset-free validation checks. The directory
+loader expects cosmetic-catalog.json; from_bytes accepts the PID export bytes.
 
 Required qualification
 Exercise visibility/equip/reset for all installed categories, native swap rules,

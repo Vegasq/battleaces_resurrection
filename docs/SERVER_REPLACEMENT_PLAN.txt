@@ -124,6 +124,15 @@ are planned behavior, not a claim that all modes or fallback already work.
   native catalog/ownership/equip paths, expose selection and persist it locally;
   carry selections into community matches. No original store/account service is
   required, and game cosmetic assets remain local rather than entering Git.
+  Implementation order: qualify an installed-table compatibility export and
+  immutable full17-slot validator first; then add catalog-scoped picker/ownership
+  hooks and local full-map restore/atomic saves. Preserve original categories,
+  equivalent-slot swaps, double-click/confirm and drag/drop behavior. The original
+  12-field loadout message cannot preserve announcers. Next migrate community
+  profiles/backups and freeze validated cosmetics with selected decks at queue/
+  Custom readiness; propagate both deck entitlements and explicit identity fields.
+  Finally qualify native preview/effects, restart/profile isolation, local AI,
+  remote matches and rematches. A catalog export alone is not an unlock pass.
 - Acceptance: launch with no server/credentials; try a changed deck; play every
   public mode offline; test an empty live server, an available human match before
   30 seconds, partial team availability, timeout/cancel/retry and late server
@@ -213,7 +222,10 @@ Current implementation sequence for these additions (2026-10-18):
    advancing native elapsed seconds are verified online. Complete local
    cosmetic inventory/equip/persistence and unified
    release entry points. Static cosmetic inventory/ownership/persistence/wire
-   contracts are now in cosmetics.txt; live unlock/equip implementation remains.
+   contracts are now in cosmetics.txt; an opt-in loaded-table exporter and
+   standalone server validator now pass native export/repeatability, exact
+   retained entitlement comparison and ordinary no-config startup. Live unlock/equip, local
+   persistence and profile/protocol/match propagation remain separate open gates.
    The final requirements and release gates remain intact.
 
 Release acceptance, in user terms:

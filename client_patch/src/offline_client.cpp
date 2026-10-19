@@ -22,6 +22,7 @@ namespace ba_catalog { static void exportOnce();static std::string utf8(void*); 
 namespace ba_dedicated_results { static void receive(const std::string&); }
 namespace ba_audit { static void beginMatch(const std::string&);static void practiceAIView(void*,int); }
 namespace ba_telemetry_audit { static void startup();static void update(); }
+namespace ba_cosmetics { static void update(void*); }
 namespace ba_match_search {static void update(void*);static void joining(void*);}
 namespace ba_community_wire {struct Ack;struct Aborted;}
 namespace ba_public {
@@ -278,6 +279,7 @@ extern "C" __declspec(dllexport) void OfflineFrontUpdate(void* front,void*) {
         if(unified())ba_client::update(front);
         else if(offlinePractice())ba_practice::offlineUpdate(front);
         else if(lan())lanFrontUpdate(front);
+        ba_cosmetics::update(front);
         ba_match_search::update(front);
         ba_match_loading::update(front);
         ba_match_loading_smoke::update(front);
@@ -324,6 +326,7 @@ extern "C" __declspec(dllexport) void OfflineFrontUpdate(void* front,void*) {
 #include "server_assets_export.cpp"
 #include "lan_audit.cpp"
 #include "telemetry_audit.cpp"
+#include "player_cosmetics.cpp"
 
 extern "C" __declspec(dllexport) void OfflineStartupReady(void* context,void* freshThreshold,void* reusedThreshold,void* initializer) {
     // Exact RGameInit.Start completion callsite, after _loadingFinish=true.

@@ -3,6 +3,8 @@
 Only window visibility/log location are overridden in the spawn seam. The actual
 configuration, patch verification, inherited bridge and native menu run. Teardown
 forcibly reaps the owned game; this does not qualify visible UI or native Quit.
+The optional cosmetic export adds one read-only diagnostic after checking that
+the ordinary launcher arguments contain no automation/capture flags.
 """
 import argparse
 from datetime import datetime, timezone
@@ -19,6 +21,7 @@ from unittest import mock
 
 from client_patch.transport import client, launcher
 from server.worker_client import _WindowsJob
+from server.cosmetics import CosmeticCatalog
 from tools.run_secure_match import read_native_log
 from tools.verify_custom_lobby import require, source_hashes as core_hashes
 
@@ -36,9 +39,13 @@ def run(args):
     game, output = args.game.resolve(), args.output.resolve()
     require(output.is_relative_to(ROOT/'local'), 'evidence must remain under ignored local/')
     output.mkdir(parents=True, exist_ok=False)
+    (game/'investigation/runtime').mkdir(parents=True, exist_ok=True)
     path = output/'client.json'
     report = dict(passed=False, utc=datetime.now(timezone.utc).isoformat(), scope=__doc__,
-                  settings_absent_at_start=not path.exists(), source_sha256_at_start=source_hashes())
+                  settings_absent_at_start=not path.exists(), source_sha256_at_start=source_hashes(),
+                  cosmetics_export=args.cosmetics_export,
+                  helper_sha256=hashlib.sha256((game/'BattleAcesOffline.dll').read_bytes()).hexdigest())
+    (output/'patch-manifest.json').write_bytes((game/'.battleaces-resurrection/patch-manifest.json').read_bytes())
     process = job = monitor = None
     started = time.monotonic()
     tick = None
@@ -49,12 +56,27 @@ def run(args):
                 require(process.poll() is None, 'client exited before local menu readiness')
                 log = read_native_log(game, process.pid, since_tick=tick)
                 require(not any(marker in log for marker in ('Client lifecycle invariant failed:',
-                    'Local menu initialization failed:', 'Offline initialization failed:')), 'native startup failed')
+                    'Local menu initialization failed:', 'Offline initialization failed:',
+                    'Cosmetics catalog export failed:')), 'native startup/export failed')
                 markers = ('Local menu ready:', 'Unified client ready:',
                            'Online connection is not configured; localWorldUnaffected=1',
                            'Client control retired: reason=optional connection failed')
-                if all(marker in log for marker in markers):
+                catalog_done = not args.cosmetics_export or 'BA_RESURRECTION_COSMETIC_CATALOG_V1 exported:' in log
+                if all(marker in log for marker in markers) and catalog_done:
                     require('Practice requested:' not in log, 'ordinary startup unexpectedly automated a match')
+                    require('worldReady=1' not in log and 'Native world lease acquired:' not in log,
+                            'startup/export unexpectedly created a match world')
+                    if args.cosmetics_export:
+                        raw = (game/'investigation/runtime'/f'player-cosmetics-catalog-{process.pid}.json').read_bytes()
+                        catalog = CosmeticCatalog.from_bytes(raw)
+                        snapshot = catalog.normalize_local({})
+                        (output/'player-cosmetics-catalog.json').write_bytes(raw)
+                        report.update(catalog_sha256=hashlib.sha256(raw).hexdigest(),
+                                      catalog_items=len(catalog.items), catalog_slots=len(catalog.slots),
+                                      catalog_default_keys=len(snapshot.keys))
+                    else:
+                        require('BA_RESURRECTION_COSMETIC_CATALOG_V1' not in log,
+                                'ordinary startup unexpectedly exported cosmetic data')
                     report.update(menu_ready=True, observed_menu_seconds=time.monotonic()-started)
                     break
                 require(time.monotonic()-started < args.timeout, 'native startup deadline reached')
@@ -69,6 +91,11 @@ def run(args):
         command = launcher.game_arguments(config, None, child.fileno(), options)
         require(not any('smoke' in value or 'audit' in value or 'auto-' in value for value in command),
                 'ordinary launcher added diagnostic actions')
+        require('-player-cosmetics-catalog-export' not in command,
+                'ordinary launcher enabled cosmetic export')
+        report['ordinary_arguments_contain_no_diagnostics'] = True
+        if args.cosmetics_export:
+            command.append('-player-cosmetics-catalog-export')
         command[command.index('-logFile')+1] = str(output/'game.log')
         startup = subprocess.STARTUPINFO()
         startup.dwFlags |= subprocess.STARTF_USESHOWWINDOW
@@ -123,4 +150,6 @@ if __name__ == '__main__':
     parser = argparse.ArgumentParser(description=__doc__)
     for key in ('game', 'output'): parser.add_argument('--'+key, type=Path, required=True)
     parser.add_argument('--timeout', type=int, default=180)
+    parser.add_argument('--cosmetics-export', action='store_true',
+                        help='explicit read-only export and validation of installed cosmetic tables')
     run(parser.parse_args())

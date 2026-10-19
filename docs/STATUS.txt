@@ -2,6 +2,22 @@ IMPLEMENTATION LEDGER
 Updated: 2026-10-18 UTC
 Active objective: implement SERVER_REPLACEMENT_PLAN.txt, Windows only.
 
+COSMETIC CATALOG AND VALIDATION (2026-10-19 UTC, FOUNDATION ONLY)
+Two fresh native unified clients export the same installed107-item/17-slot
+compatibility matrix, using original definition filters and configured identity
+slot roles. Both retain their saved loadout and idle world;14 default item keys
+validate. A separate ordinary no-config Start Client run leaves export disabled.
+All three require no server/CA/invite, make zero TLS/credential attempts, preserve
+covered source hashes and reap owned processes. New immutable server validation
+retains all17 slots and serializes native-ordered service0 cosmetic entitlements.
+It also matches all12 retained native Type1 entitlement messages and identities
+byte-for-byte. Eight C++ components/helper and22 new/focused Python checks pass;
+the38-check public/recovery/launcher/patcher suite passes37 with one optional skip.
+Only the disposable client copy was patched. Hidden probes/forced teardown do
+not qualify native Quit or manual UI. See cosmetics.txt for hashes and commands.
+Actual cosmetic unlock/equip, full local persistence, community profiles/backups,
+protocol submission, frozen match propagation and rendering remain open.
+
 REMOTE / LOCAL TRANSITIONS (2026-10-19 UTC, EXPERIMENTAL)
 Two same-process graphical flows now pass: failed remote1v1 -> local Try Deck
 -> fresh remote1v1, and completed remote1v1 -> local Try Deck -> fresh remote1v1.
