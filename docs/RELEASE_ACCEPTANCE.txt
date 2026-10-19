@@ -32,6 +32,10 @@ passes. Preview dirty=true;clean archive/equivalence/actual CMD follow-up remain
 Same external credential-fixture/DACL limitation applies;broader fault/manual/
 protected deployment/SCM/clean-PC/Internet/capacity/telemetry gates remain OPEN.
 See packaged-multiplayer.txt;ordinary launcher has no automatic Leave/test flags.
+Clean06e65f8 packages additionally pass production/runtime/helper byte equivalence
+to native-tested preview and actual ordinary CMD startup10.014s/10.509s total.
+No spawn seam/test actions/global Python;config/package/source/shared TOML
+unchanged. Readiness cleanup is forced,not counted as another native Quit.
 
 Bundled four-human2v2-33 qualification
 Clean30 host/four independent bundled clients pass129.370s with all four native

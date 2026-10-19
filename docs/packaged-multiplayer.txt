@@ -89,6 +89,33 @@ telemetry coverage remain open. Sampled state agreement is not an independent
 hidden-state determinism or rendered-pixel proof. Structural replay readback
 does not additionally qualify these new recordings for native playback.
 
+Clean34 archive / ordinary startup follow-up
+Fresh packages from committed06e65f817fbd55821fc80f29e676bef1eef5ec0e record
+dirty=false. Both verified inventories have identical production/runtime/helper
+bytes to the native-tested34 preview;only inventoried compatibility.json differs.
+The integrity inventory is regenerated/verified for the new metadata. This is
+byte equivalence,not an extra native match/relabelled failed trace control.
+local/packaged-custom34-clean-equivalence.json SHA256
+0956033aa2b60c6290e260f3f4727e9af57f625cba68f12173801256e34e598e
+local/packaged-custom34-clean-packages01/build-report.json SHA256
+dd5adc5dc5c869d30e877ac8beb4f4ea36976f8b392cabf9f7a994d3ea937d87
+Clean client67files,13087534bytes,ZIP SHA256
+98dcccac1688affcf27b260c9a819276db1e85437106fd36474aad5affc352a5
+Clean server82files,12427769bytes,ZIP SHA256
+0812ea0a4b2efaf9345455ee583c7ccca9019bfbfbe5c4afbac5ad7d67bfbb79
+
+Actual ordinary extracted Start Client.cmd opens the native menu10.014s/10.509s
+total with isolated bundled Python,foreign cwd/PYTHONPATH and no global Python
+on PATH. No spawn seam or automatic match/Leave/Quit/capture actions. Installed
+helper matches clean package;config/package/covered source/named shared TOML
+remain unchanged. Both wrapper/game are reaped through bounded owned readiness
+cleanup;forced_cleanup=true,natural_quit=false. This startup proof is separate
+from the two original natural Custom Quit passes above. It does not qualify
+physical input/rendering,standalone cold-cache performance,protected deployment
+or Internet play. Existing manual24 remains unchanged.
+local/packaged-custom34-clean-startup01/verification.json SHA256
+78f1a8d6906ea0ee714eafcbfe40bb6622ca2c8ab954c86f9d6ddb1704aa6d81
+
 Native33 four-human2v2 (BOUNDED PASS)
 Existing clean30 packages/helper are unchanged. Owned verifier --mode2 --humans4
 launches four distinct bundled client.main/resolver/TLS/bridge/native clients

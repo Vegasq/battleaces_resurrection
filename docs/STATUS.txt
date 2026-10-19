@@ -25,6 +25,11 @@ fresh clean archive/equivalence/actual ordinary CMD follow-up still required.
 Helper34 changes only explicit diagnostics;ordinary launch/manual24 untouched.
 Credential fixtures are not protected deployment;manual/clean-PC/Internet/SCM/
 broader fault/capacity/telemetry gates remain open. See packaged-multiplayer.txt.
+Clean06e65f8 packages now pass inventoried production/runtime/helper byte
+equivalence to the native-tested preview;only compatibility.json differs.
+Actual clean Start Client.cmd reaches native menu10.014s/10.509s total without
+spawn seam,test actions or global Python. Package/config/source/shared TOML
+remain unchanged. Readiness cleanup is forced,not another native Quit proof.
 
 BUNDLED FOUR-HUMAN2v2-33 (2026-10-19 UTC, BOUNDED PASS)
 Unchanged clean30 host/four independent bundled clients pass129.370s with human
