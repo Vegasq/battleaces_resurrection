@@ -1,0 +1,108 @@
+NATIVE SAVE PATH PREFLIGHT / PACKAGE QUALIFICATION46 -- 2026-10-20
+
+Problem and fix
+A real relocated packaged client starts Unity,then terminates1610 because its
+profile-local native backup pathname exceeds the original supported limit.
+The Python launcher previously checked file hashes but did not catch that local
+path constraint before launching. Native protection correctly refuses a shared
+fallback;do not remove that guard or silently select a different profile.
+
+client_patch/transport/launcher.py now checks the selected profile and fixed
+native backup filename before game verification/IPC/spawn,and before direct
+argument construction creates a runtime directory. It reports a useful error:
+move the working game to a shorter folder and update game_directory in the
+client config. No game,credential or profile mutation occurs in that check.
+Absolute local-drive syntax is required as by the existing native session;
+UNC,extended-drive syntax and parent traversals are refused. Length is counted
+in UTF-16 code units,matching Windows wchar_t,not Python Unicode code points.
+The existing native requirement is less than260 units,including room for NUL.
+
+The fixed backup child is longer than the native settings/probe paths and the
+bounded publication temporaries;it supplies the limiting checked path. This
+does NOT limit full replay filenames:the reviewed replay API uses an extended
+path after pinning a supported ordinary profile directory. No C++/native recipe
+or supported storage limit changes. This is a pre-launch diagnostic,not broader
+filesystem/permission/long-path support.
+
+tools.verify_packaged_play --expect-long-replay now uses a fresh valid48-character
+profile. The old33-character generated profile yielded a247-character replay
+on owned03,so the strict long-path test failed despite successful gameplay/Quit.
+The corrected fixture exercises a long replay without making the game folder or
+native backup path unsupported. Ordinary player profile selection is unchanged.
+tests/test_native_path_preflight.py covers the259/260 UTF-16 boundary,astral
+characters,profile length,unsupported path forms,rejection before verification/
+IPC/spawn/runtime mkdir,and a valid long-replay fixture. All7 new tests plus22
+existing launcher tests pass29/29 in0.254s,actual subprocess0. Full Python
+regression591 tests575pass/16 explicit skips98.998s,actual subprocess0,wall100.776s;
+local/release46-python-tests01.txt. Skips are not native/private acceptance.
+Fresh corrected clean-package/all-mode qualification remains to be obtained.
+
+First clean archive/source checkpoint (before the fix)
+local/release46-packages01 built from clean c757c67b174b21620eaef2eb92de014d31fff5c4,
+verified pinned official Python3.14.8 embed ZIP,helper42 and native launcher39.
+No original game binary/asset/export/capture enters either package or Git.
+Server83files/12497197ZIP bytes:
+7fdb587850b3b1306456ceec6f936d0e229160dc23724ddd1d353e0b7aea4a34
+Client68files/13097985ZIP bytes:
+04c5a590cfc0a9a525383c8e77ce971adfc652396afa6c9e51a73b7df7e94ff2
+These previews do NOT contain the preflight fix;preserve rather than overwrite.
+
+Actual tools.verify_windows_packages extracts those ZIPs into separate folders
+with spaces. local/release46-package-qualification01 passes62.595s:all19 client/
+36 server bundled imports from foreign cwd,verified local asset import,native
+health,development host startup/stop/controller callbacks,authored transfer
+verification/restore refusal,and three-component dry-run/install/idempotent
+reinstall/exact restore with personal markers preserved. Original recovery source
+hashes/package program files unchanged. Explicit development-loopback and service
+controller callbacks are NOT real protected auth/SCM/clean-PC/Internet acceptance.
+
+Actual extracted bundled client install on owned03 passes with all three native
+components/helper byte-identical before/after and current helper source receipt.
+Its first authored precheck guessed the wrong CEF path and failed BEFORE invoking
+an installer/game. Corrected precheck uses reviewed COMPONENTS names,not a guard
+bypass. local/release46-owned-install-verification.json records the actual pass;
+release46-owned-precheck-failure01.json retains the rejected assumption. All61
+client and75 server program/ordinary-entry files equal frozen42 exactly;this is
+static equality,not another server runtime/owner40 result.
+
+Actual ordinary extracted Start Client.cmd,no spawn adapter or diagnostic flags,
+reaches menu10.750s,total11.136s with server/CA/invite unset. Relocated config,
+package/source/shared TOML unchanged. local/release46-ordinary-cmd-startup01.
+Owned readiness cleanup is FORCED and is not original Quit or mouse/audio proof.
+
+Retained failures and actual gameplay evidence
+local/release46-packaged-mode4-01 is STRICTLY FAILED:the replay is247chars rather
+than>260. Full3600-frame test,bot supply136/91autonomous records/produced units
+with orders+position change,native result/Continue/same menu/original Quit pass.
+Native3603-message replay independently decodes;no native-codec/playback claim.
+Main/launcher0,job2 active0/terminated0,total220.278s,no forced cleanup. Source,
+package/config/shared channels unchanged. Do not relabel the whole report PASS.
+
+After that job is terminal,a contained reversible relocation of owned03 to a
+longer ROOT/local folder preserves module bytes. mode4-02 fails EARLY1.783s:
+native log says 'native backup path exceeds supported native length',game1610,
+launcher1610,outer driver1. No match/menu/Quit;empty non-terminated owned job and
+reaped game/driver. This reproduces the real preflight gap above. Sources/package/
+config/shared channels unchanged. No retry bypasses the native guard.
+
+Actual source client with that SAME still-existing deep game/config now returns1
+with the useful preflight message;all owned profile files remain unchanged.
+local/release46-source-preflight-verification.json. After this diagnostic and
+terminal job proof,Move-Item restores owned03 to its original exact location and
+GameAssembly hash. Both relocation/restoration receipts are retained under local/.
+Recovery/manual35/frozen archives remain unchanged. No global permission,ACL,
+driver,network,service or system-path changes were made.
+
+The first focused-test wrapper selected a nonexistent test_packaging module and
+mocked socket.socketpair before asyncio could create its own Windows wakeup pipe.
+Retain release46-preflight-tests01.txt as FAILED. Corrected test creates the loop
+before intercepting only the launch body;tests02 is the29-pass result above.
+
+Remaining release scope
+Resume fresh corrected packaged Try Deck/1v1/2v2/2vAI with no server. Require full
+matches,per-bot production/movement/identity,original search/result/Continue/Quit,
+saved native files and zero live/terminated owned descendants. The offline-only
+probe does not qualify configured-unavailable/empty/populated server cases,
+physical controls/all cosmetics,protected active-match40,SCM/clean Windows or
+friends on a second PC/Internet. Full telemetry and slow-startup cause remain
+open. A passing local test never substitutes for these remaining requirements.

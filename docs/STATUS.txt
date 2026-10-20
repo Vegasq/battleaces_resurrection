@@ -2,6 +2,21 @@ IMPLEMENTATION LEDGER
 Updated: 2026-10-20 UTC
 Active objective: implement SERVER_REPLACEMENT_PLAN.txt, Windows only.
 
+NATIVE PATH PREFLIGHT46 (2026-10-20 UTC, SOURCE FIX / PACKAGED MODES OPEN)
+Fresh clean c757c67 archives pass relocated imports/native development host/
+component roundtrip62.595s and actual ordinary CMD menu10.750s. Full Try Deck
+movement/result/Continue/natural Quit0 passes,but strict report FAILS because
+replay247chars did not exercise>260. Deep-folder retry exposes actual native
+backup refusal/game1610 before menu. New launcher preflight catches that known
+UTF-16 path limit before game/IPC,with a useful shorten-folder/config error;
+native safety/limits remain intact. Corrected long-replay test uses a valid48-char
+profile instead of an unsupported deep game folder. Owned03 restored byte-exact;
+manual35/frozen packages/recovery untouched.29 focused tests/full Python591 tests
+575pass/16skip pass;actual reproduced source preflight refuses before native
+launch/profile changes. No C++ rebuild/change. Clean corrected archives and all
+four packaged modes remain pending. See native-path-preflight.txt for retained
+failures,actual scope and remaining release gates.
+
 GAME OBSERVATION45 (2026-10-20 UTC, BOUNDED NATIVE PASS / RELEASE OPEN)
 New canonical observer generator and read-only retained-record checker bind all
 four actual45 scripts,provider/session/PID/source/guards/modules/readiness and

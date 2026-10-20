@@ -129,6 +129,10 @@ Relative file paths follow the config file's directory. Imported invite copies
 must keep their protected owner/SYSTEM permissions. The example is a format
 reference; for downloaded invitations, use setup to create the private copy.
 
+If Start Client reports native save paths are too long,close the client,move the
+patched working copy to a shorter local folder,and update game_directory in your
+client config. Keep its .battleaces-resurrection folder to preserve saved profiles.
+
 Equivalent checks/launch from a terminal:
 
   BattleAces-Client.cmd check

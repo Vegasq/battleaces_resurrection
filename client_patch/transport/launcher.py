@@ -6,7 +6,7 @@ import asyncio
 import hashlib
 import json
 import os
-from pathlib import Path
+from pathlib import Path, PureWindowsPath
 import re
 import socket
 import subprocess
@@ -178,9 +178,33 @@ def verify_game(root, *, community=False, bridge_version=1, unified=False, playe
     if not (root / 'Battle Aces.exe').is_file(): raise LaunchError('Game executable is missing')
 
 
+def native_storage_preflight(config):
+    """Reject known native loader limits before starting the game or opening IPC.
+
+    The backup's fixed filename is longer than the native settings filename and
+    bounded save temporaries. Replay filenames use a separate extended-path API
+    and may exceed this limit; do not constrain them here.
+    """
+    from .client import profile_key
+    profile = profile_key(config.get('local_profile', 'default'))
+    root = PureWindowsPath(str(config['game_directory']))
+    if not root.is_absolute() or not re.fullmatch('[A-Za-z]:', root.drive) or '..' in root.parts:
+        raise LaunchError('Use an absolute local Windows drive path for the working game.')
+    backup = root / '.battleaces-resurrection' / 'profiles' / profile / 'StorageSyncBackup' / 'A3079428-5DC5-4617-AF2D-0C8656DA760B'
+    try:
+        units = len(str(backup).encode('utf-16-le')) // 2
+    except UnicodeError:
+        raise LaunchError('The game folder contains an invalid Windows path.') from None
+    if units >= 260:
+        raise LaunchError('The game folder and local profile make native save paths too long. '
+                          'Move the working game to a shorter folder and update game_directory in your client config.')
+    return profile
+
+
 def game_arguments(config, player_id, handle, args):
     run_name = args.run_name
     if not re.fullmatch('[A-Za-z0-9_-]{1,48}', run_name): raise LaunchError('Invalid run name')
+    profile = native_storage_preflight(config)
     root = config['game_directory']
     runtime = root / 'investigation/runtime'
     runtime.mkdir(parents=True, exist_ok=True)
@@ -195,8 +219,7 @@ def game_arguments(config, player_id, handle, args):
         '-logFile', str(runtime / (run_name + '-' + log_identity + '.log'))]
     if dynamic: result.append('-secure-transport-version=2')
     else: result.append(f'-player-id={player_id}')
-    from .client import profile_key
-    result.append('-local-profile=' + profile_key(config.get('local_profile', 'default')))
+    result.append('-local-profile=' + profile)
     if unified: result.append('-unified-client')
     if getattr(args, 'player_features', False):
         if not unified: raise LaunchError('Player features require the unified client')
@@ -242,6 +265,7 @@ async def launch(config, remote, args):
     """
     unified = getattr(args, 'unified_experimental', False)
     version = 2 if unified or getattr(args, 'dynamic_identity_experimental', False) else 1
+    native_storage_preflight(config)
     verify_game(config['game_directory'], community=unified or getattr(args, 'community_experimental', False),
                 bridge_version=version, unified=unified, player_features=getattr(args, 'player_features', False))
     parent, child = socket.socketpair(socket.AF_INET)

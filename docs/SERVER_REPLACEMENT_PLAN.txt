@@ -4,6 +4,14 @@ Target: Battle Aces build 37822, Windows x64 server and clients.
 Status: IMPLEMENTATION ACTIVE. See STATUS.txt; incomplete phases remain future work.
 
 Current release integration order (2026-10-20)
+- Path46 fixes a real relocated-client early exit:known native backup pathname
+  limits now produce a useful launcher error BEFORE game/IPC. Count UTF-16 units;
+  preserve native refusal/shared-fallback protection and separately extended
+  replay API. Strict247char replay fixture stays failed;use a valid48char profile
+  to exercise>260 without an unsupported game folder. Full Python591 tests pass
+  575/16skip;corrected clean-package/all-mode controls remain NEXT. First clean
+  archives/import/native-host/roundtrip and ordinary CMD startup pass separately.
+  See native-path-preflight.txt. Final release/owner40/second-PC gates stay open.
 - Observation45 adds canonical authored source/strict read-only retained-game
   checker and actual combined task/observer plus full1200-frame AI/results/
   Continue/natural Quit evidence. Source binds all four actual scripts;positive

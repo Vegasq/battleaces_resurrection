@@ -1,6 +1,17 @@
 WINDOWS PORTABLE PACKAGING - DEVELOPMENT PREVIEW
 Updated: 2026-10-19
 
+2026-10-20 path preflight46
+Fresh clean c757c67 archives pass actual relocated imports/development host/
+component install/reinstall/restore and ordinary CMD menu. Full Try Deck reaches
+movement/results/Continue/natural Quit but its strict long-path fixture fails at
+247chars. A longer game directory then reproduces early native backup refusal.
+Source now rejects that known UTF-16 path limit before game/IPC with an actionable
+message;native guards are unchanged. Corrected long-replay fixture uses a valid
+48char profile. Full Python591 tests pass575/16skip;corrected clean archive and
+all-mode gameplay qualification remain pending. See native-path-preflight.txt.
+Initial46 archives remain unchanged and do NOT contain the fix.
+
 Clean development checkpoint
 local/ordinary-player-packages02 is built from clean a00187e with helper15,not
 --allow-dirty. It has82 server/67 client payload files. Both bundled integrity/

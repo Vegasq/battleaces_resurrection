@@ -6,6 +6,14 @@ defines the requested product. Existing frozen archives are not automatically
 upgraded when source changes. No original client binaries/assets belong in Git.
 
 Current ordinary source candidate
+Path46 adds a pre-launch check for reproduced native save-path limits with a
+useful shorten-folder/config message. Native guards/limits unchanged.29 focused
+tests/full Python591 tests575pass/16skip pass. First clean46 archives/imports/
+native development host/component roundtrip and actual CMD menu pass. Full Try
+Deck movement/result/Continue/Quit passes but strict247char long-replay assertion
+fails;unsupported deep-folder retry exposes the fixed native1610 refusal. Keep
+both failures. Corrected clean archives/full four-mode regression remain open;
+see native-path-preflight.txt. No general-release/clean-PC/Internet claim.
 Observation45 adds canonical source and a read-only retained-game checker only.
 Actual combined startup task/observer17.716s and full1200-frame AI/results/
 Continue/natural Quit158.364s pass main0/owner job0active/0terminated. Positive

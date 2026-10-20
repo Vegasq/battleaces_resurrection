@@ -116,6 +116,11 @@ def sources():
     return quit_probe.sources()|{p.relative_to(ROOT).as_posix():hashlib.sha256(p.read_bytes()).hexdigest() for p in paths}
 
 
+def owned_profile(long_replay=False):
+    prefix='nativestest_packaged_'
+    return prefix+secrets.token_hex(24)[:48-len(prefix)] if long_replay else prefix+secrets.token_hex(6)
+
+
 def job_accounting(handle):
     """Read the owned job before closing it; a close may otherwise hide children."""
     class Accounting(ctypes.Structure):
@@ -149,7 +154,7 @@ def run(args):
             not manifest.get('pointer_hooks') and not any(h['name'].startswith('OfflineNativeQuit') for h in manifest['call_hooks']),
             'default recipe without optional teardown hooks required')
     output.mkdir(parents=True,exist_ok=False)
-    profile='nativestest_packaged_'+secrets.token_hex(6)
+    profile=owned_profile(args.expect_long_replay)
     folder=game/'.battleaces-resurrection/profiles'/profile
     retention_fixture=replay_retention.prepare(folder/'AutoSaveReplays',args.replay_retention,ROOT/'local') if args.replay_retention else None
     codec_fixture=replay_codec_fixtures.prepare(folder/'AutoSaveReplays',ROOT/'local') if args.native_replay_faults else None
