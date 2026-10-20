@@ -1,6 +1,7 @@
 PUBLIC TEAM DISCONNECT RECOVERY
 Updated:2026-10-20 UTC. Automated graphical clients on one Windows PC.
 Current packaged running-loss controls59 are recorded at the end of this file.
+Loading-loss controls60 follow them;both use the unchanged current package/helper.
 
 Implementation and evidence boundary
 tools.verify_public_clients now accepts explicit --disconnect loading|running.
@@ -275,3 +276,63 @@ Journals are1897rows/215151bytes and1371rows/155187bytes respectively,well below
 their caps. Raw captures/private outputs stay ignored;only authored source/docs
 enter Git. D4 remains open for remaining loading/full-human/other loss timings,
 storage/replay faults and physical recovery;D1 LAN and all release gates remain.
+
+CURRENT PACKAGED LOADING RECOVERY60 -- 2026-10-20
+No source/helper/patch/package changes. Unchanged control59 from5c570c9 uses
+clean53 packages/helper51/ordinary recipe4 and independent owned58 game copy.
+Two native clients per case,explicit --recover-loading in modes5 then2. Actual
+bundled production host/client/TLS/bridge/native workers retain the same explicit
+stdin identity/MemoryStore fixture scope. No protected owner,physical controls,
+LAN/Internet,SCM or pixel qualification is implied.
+
+Both original rooms are in authoritative loading,next_frame0,loaded=[] when
+victim seat0 disconnects. Parent sees fault_native_frames[-1,-1]. The same two
+native processes return via deferred original victim modal confirmation and
+survivor abort/RETURN,then complete a distinct ticket2 replacement. Only victim
+reauthenticates:TLS connections2/1;the exact survivor session object is retained.
+Old worker/room/tickets release BEFORE new worker/match creation. No local AI
+fallback world or invented completed result is allowed for the aborted match.
+
+Allied humans2vAI,PASS121.8610149s
+local/recovery60-allied2vai-loading01:human allies0/2,server bots1/3. First match
+has no canonical/native frames;both native aborted replays contain0 action
+messages and remain separate from completed recordings. Same PIDs47496/31064
+receive1250 exact authoritative frames and126 common observable-state samples
+EACH in the replacement. Immediate native offers203/219ms,authoritative ages
+140/151ms. Bot profiles60 issue24/20 recorded commands and reach14/14 supply.
+Results/Continue/original five-event menu Quit and game/launcher0 pass. All three
+native workers exit0/reaped;owned jobs9/2/2 active0/terminated0,no forced cleanup.
+Report SHA256
+791bd2fa898e440531c091381c6a93374f342ecc0456ff02c090b8b7f37f0c72
+
+Partial two-human2v2,PASS180.8668597s
+local/recovery60-partial2v2-loading01:human seats0/1,server bots2/3. First match
+also has0 authoritative/native frames and two separate0-action native aborted
+recordings. Replacement1221 exact receipts/124 common native state samples per
+client;native offers30094ms each,authoritative ages30087/30090ms. Both original
+queues retain their real30s policy. Bot profiles59 issue68/263 recorded commands
+and reach13/12 supply. Results/Continue/original Quit/game+launcher0 pass;all
+three workers0/reaped and jobs9/2/2 active0/terminated0,no forced cleanup.
+Report SHA256
+210cd789c276be06d06b6325decf528094e22105c985ff2b63442dd3221e1e53
+
+Both cases preserve names/decks/full loadouts,source/package/assets/config/
+adapter/shared native channels;host closes listener/releases state lock and
+ephemeral PKI is removed. Replacement surrender/build/Continue/Quit actions are
+explicit diagnostics,not natural victories or normal-launcher automation. Bot
+commands/supply and common state samples do not prove pixels,independent unit
+movement or hidden-state determinism. Empty native recording structure is not
+stateful replay-playback recovery;D4-RP1 remains open.
+
+Additional read-only review checks all captured source digests against current
+files,the raw native logs before retry-gate release,and both replay roles. In
+ALL four initial client prefixes,Offline world ready and received-frame markers
+are absent. Each initial assigned match is present and its native aborted replay
+has0 action messages. This corroborates the native loading window beyond the
+server's zero-frame/zero-loaded-ACK snapshot. It is no additional game run.
+local/recovery60-retained-review.json SHA256
+696dac0913fbf88a1b7bde816598a19bbcb609f75b61e4fae064591b8bb11e12
+No unchanged unit suite or previous native cases are rerun for this evidence-only
+step. Reuse controls59/60 for these two-human team branches. Current full-human/
+other loss timings,physical recovery/storage/replay failures,D1 LAN and remaining
+release gates stay open;do not repeat these successful branches by default.

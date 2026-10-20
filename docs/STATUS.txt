@@ -3,6 +3,19 @@ Updated: 2026-10-20 UTC
 Delivery plan: REMAINING_DELIVERY_PLAN.txt, Windows only.
 Original roadmap: CLOSED / SUPERSEDED;see PLAN_CLOSEOUT.txt.
 
+PACKAGED LOADING RECOVERY60 (2026-10-20 UTC, TWO NATIVE PASSES / D4 OPEN)
+Unchanged current59 tool/packages53/helper51/ordinary owned58:two-human2vAI and
+partial2v2 lose victim during loading,next_frame0/loaded[]. PASS121.861s/180.867s.
+Each same-process pair completes a replacement:1250/1221 exact receipts with
+126/124 common native state samples per client. Separate0-action aborted native
+recordings retained;old match has no completed result/frames. Survivor session
+retained,only victim reauthenticates;deferred modal/abort/Return/Continue/original
+Quit and all game/launcher/three worker exits0,reaped. Each jobs9/2/2 empty/
+non-terminated,no force. Read-only source/raw-prefix review confirms no first-
+match world-ready/received-frame markers in all four clients. No code/helper/
+package changes or redundant unit rerun. See team-recovery.txt for hashes/scope;
+D1 physical LAN and other D4/release gates remain open.
+
 PACKAGED TEAM RECOVERY59 (2026-10-20 UTC, TWO RUNNING-LOSS PASSES / D4 OPEN)
 Unchanged53/helper51 on independent owned58 copy:two-human partial2v2 and allied
 2vAI disconnect after builds/frame600,release old worlds/worker,then complete a
