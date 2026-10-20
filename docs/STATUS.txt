@@ -2,6 +2,23 @@ IMPLEMENTATION LEDGER
 Updated: 2026-10-20 UTC
 Active objective: implement SERVER_REPLACEMENT_PLAN.txt, Windows only.
 
+CUSTOM LEAVE51 (2026-10-20 UTC, CONTROLLED NATIVE PASS / RELEASE OPEN)
+Custom Leave diagnostic now reuses <=1000ms sharing32policy,strict owned/ordinary/
+empty-file checks intact.84source helper build and95Python checks94pass/1skip
+pass. Cleanf547003/helperf27311fe... installs only owned03 helper/manifest. Actual
+brief guest/host writer contention settles62ms each,two Custom rounds/results/
+Continue/Leave/Quit191.710s pass all game/launcher/worker0/empty jobs/no force.
+Retained native choices bind to authenticated seats. Preserve first stale-view
+failure;parent now waits<=5s for real empty lobby before publishing Quit. A first
+persistent control needs explicit owned stop because optional failure hid the
+diagnostic from old monitor;keep that boundary. Final native persistent control
+expires exactly1000ms,detected125ms later,dispatches no Leave/Quit even after
+release;expected negative forced cleanup is not player acceptance. Actual ordinary
+CMD menu11.155s passes separately with forced readiness cleanup. Scoped15owned
+PIDs absent. Both diagnostic readers addressed;no original/server/protocol/ordinary
+feature changes. Protected40/valid-credential refusal/remaining physical/fault/
+four-human/deployment/telemetry gates open;see custom-leave-gate-wait.txt.
+
 CURRENT COMMUNITY/GATE50 (2026-10-20 UTC, BOUNDED NATIVE PASS / RELEASE OPEN)
 Closed publisher49 alone still hits a native Quit-gate failure in human1v1;
 retain failed102.341s/forced cleanup. No-game1000rename control reproduces250

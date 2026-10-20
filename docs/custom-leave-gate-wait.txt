@@ -26,14 +26,156 @@ local/helper-leave51-build01.txt SHA256
 e035f71abd67f65da8c55f8459cd0c36815397fca4789ddfb37db298baefa6ca
 Same component policy tests cover transient/exact deadline/persistent busy,
 missing-after-busy,clock regression and immediate unexpected errors.
-91focused Python checks90pass/1explicit skip pass9.048s. Log SHA256:
+Initial91focused Python checks90pass/1explicit skip pass9.048s. Log SHA256:
 local/leave51-focused-tests01.txt
 d3ceac0b4c6c35f722778dedb9c6c9e57158c3618edee336cad4cd2f67d4f4c7
 
-Next
-Build clean archives/install only owned03. Exercise actual two-round Custom
-matches with deliberate brief gate writers for guest and host,then an expected
-persistent-writer/no-Leave/no-Quit refusal. A negative forced cleanup is not
-natural Quit or a successful player lifecycle. Keep source-bound reports,
-frozen50/manual35/recovery and original bytes preserved. Other release gates
-remain open,including protected40,physical/SCM/clean-PC/cross-PC/Internet/privacy.
+Clean candidate
+local/leave51-packages01 source is clean
+f547003444633cda36a9479b6a78b0b6c4e809fd. Server83/client68payload files including
+manifests. Archive SHA256:
+server97c72526e07275c42013e89825b3015bf3567e7dffe9cb5d164038aed1c44b8e
+client9de43f04b7fc7402b3f845223cabe2f82e2bd3defb13dd88d0e037ea83c988c5
+build-report.json SHA256
+669cdb644231c7d5fdc7a0d5db63b1737a22a8920e5e546da0ef07ef0dc65d17
+Fresh extraction/bundled installer changes only owned03's authored helper and
+manifest;GameAssembly/Unity/CEF bytes stay identical. Previous helper/manifest
+retained under local/leave51-extracted01/owned-before. No frozen/manual35/recovery
+copy changes. owned-install-verification.json SHA256
+2cff963314f252e5dc6765d05d624cf12e2910f259d1232d93c525053c1e521c
+
+Retained first controlled failure
+An explicit external publisher fixture holds final gate writers open to force
+native32. Both actual Custom rounds/results/Continue finish,guest and host each
+log busy32,then settle63ms/45attempts and62ms/59attempts respectively. Both
+original Leave callbacks and party/pending/world cleanup pass. However,the parent
+immediately fails "Custom lobby retained after both original Leaves" while its
+sampled server-live view can still show the just-removed lobby. Actual server
+observer sees both wire Leave commands and final state is empty. This is a
+readiness sampling failure,NOT accepted natural Quit. Overall transient01 stays
+failed184.381619s/forced cleanup;outer control exits1 and never starts persistent.
+local/leave51-native-controls01/transient/verification.json SHA256
+f3ff776b4fc6123c4f4b2e7023b2d319a90bd0e2894104b961e61549f8ce9fe6
+Outer verification.json SHA256
+33e2ce9d3342dfdb6f2d4d47bede9cd4267006d52fb789209ea0e594d64e3457
+Exact prior parent local/leave51-parent-before-drain.py SHA256
+aec36e0ec6160e3579eba42fbe51daec3c800a46074527438a2581925c48259c
+Exact prior controller local/run-leave51-controls01.py SHA256
+4a137b2c8327b55b18a54441ff26a61e4cc51cc29043bb960ee9fbac3316fa7c
+
+Bounded readiness correction
+After BOTH original native Leaves,require a valid sampled server view and wait
+up to5s for zero rooms/retired/entries/offers/cleanup AND no Custom lobbies before
+publishing Quit. A stale nonempty view waits;it cannot qualify. Missing/malformed/
+Boolean/negative counts or malformed lobby lists fail. Keep last five bounded
+readiness observations. The original empty-lobby assertion remains at publish,
+and final Custom command/lobby/worker checks remain. No host command/protocol/
+clock or actual lobby teardown changes. New tests prove stale-view rejection,
+fresh-view acceptance and malformed-view refusal. Intermediate93tests92pass/
+1explicit skip pass8.917s,not added to prior overlapping counts.
+local/leave51-focused-tests02.txt SHA256
+80739023984cd00c811fe9c2deea767bbeb3f41de03bcefd7de90a5aaccc63a3
+Intermediate tools/verify_packaged_multiplayer.py SHA256
+59420c1804688c1b8340ea6a38ee7adab8a3bee8981c874329e08cf9f39a3c30
+Intermediate tests/test_diagnostic_gates.py SHA256
+3901bd5725af11aeb0594a50aec8278688ff48c12b43a8e1be6526ce7d17859a
+The controlled persistent writer releases only AFTER actual native expiration,
+then lets the parent clean its owned gate. Publication blocks until that hold
+finishes,so cleanup cannot race a still-open fixture writer. No deadline is
+extended and late availability must not dispatch Leave or Quit.
+
+Brief contention positive control (terminal)
+controls02/transient passes191.710066200s. Actual two-human Custom Invite/Accept,
+Start/Ready,two original results/Continue rounds in one lobby/TLS connection pair,
+1220exact authoritative frames/122common native observable samples per client in
+EACH round. Deliberately held guest/host gate writers both cause native32,then
+settle62ms (46/44attempts respectively). Original guest Leave precedes host Leave;
+party/pending/world/lobby cleanup,original five-event menu Quit and all game/
+launcher/health/match-worker0 pass. Three jobs9/2/2active0/terminated0,no forced
+cleanup. Readiness sample has all counts0/lobbies0 before Quit. Package/assets/
+config/adapters/bound source/shared native channels unchanged;fixture-token scan
+passes. TLS uses explicit stdin/MemoryStore identity fixtures,not private ACLs.
+local/leave51-native-controls02/transient/verification.json SHA256
+5a45dd96c9148dca0c6139707236bfe1a792914c1626ad48baab0cd694c7249f
+
+A retained read-only review binds saved native units/ability groups to each
+authenticated frozen seat (changed host1->75/default guest),checks exact native
+TOML hashes and confirms the stricter final failure recognizer accepts both logs.
+Only external parent diagnostics differ from this positive source snapshot;
+all other bound sources still match. No additional native run is claimed.
+local/leave51-positive-review01/verification.json SHA256
+0bb353a9f5638331bc5f53724d484aaea1b10437f8ce66453d9a5de572db6c72
+Retained local/review-leave51-positive.py SHA256
+a83588654d7dfea0e3cc570dc8f19a4cffa06338a02016430799ebb84ec98349
+
+Persistent02 exposes missing diagnostic failure recognition
+Guest native32 expires exactly1000ms;releasing writer AFTER refusal dispatches
+neither original Leave nor Quit. The ordinary optional-connection failure path
+handles the exception,so the parent did not see its generic fatal marker and
+continued waiting. After observing the latched refusal/no callbacks,the agent
+requests the existing owned server-stop signal;no arbitrary PID is stopped.
+Inner report fails447.321572500s,forced cleanup. Outer control verifies refusal,
+but its aggregate passed flag does NOT establish automatic failure detection.
+The explicit stop observation stays part of this evidence;do not hide it or
+promote negative cleanup to a normal player lifecycle.
+local/leave51-native-controls02/verification.json SHA256
+454b12644e1c12fc3d95b455bc95a414295f4494a1224de6d8566f904bfb38be
+persistent/verification.json SHA256
+cbe9b162228b0a667b2f54850446c09cb34b6105c1cd9cd8ff4abe611c5dba60
+persistent/negative-stop-observation.json SHA256
+fd5fd49b70d5351393182aa9aaadf3d2da0afd4af0eb873c6d75fb0f9c6bd9ad
+Retained local/run-leave51-controls02.py SHA256
+e588967632ec7e9a2433de4824fa717dd18051b65f1731de79964867b0e71c04
+
+Final failure recognizer and automatic negative control
+Parent now recognizes explicit Custom Leave open-refused/late-success-expired
+diagnostic markers even when the optional connection recovers. Capture client,
+PID,marker and observed monotonic tick. Brief busy/settled and generic optional
+connection messages remain nonfatal. No ordinary networking behavior changes.
+Final focused95tests94pass/1explicit skip pass8.961s. Earlier overlapping test
+runs remain retained,not added to this count.
+local/leave51-focused-tests04.txt SHA256
+4e705e6e2820f3097e075f22354c8389e9c4f8cf24dcf0a45ec945bae2156119
+tools/verify_packaged_multiplayer.py SHA256
+c75c65dcd8a67c135c70cb9bc714665c6fefe359fa03b5778edd54fb56c7bc8d
+tests/test_diagnostic_gates.py SHA256
+cd36054c255502e2019927abb2ad0f5851fc17e7428184b1f2b59118022506f2
+
+Fresh controls03/persistent confirms TWO healthy Custom rounds before the held
+guest gate. Actual first busy868572500ms,expired868573500ms;parent recognizes the
+specific client1diagnostic at868573625ms (125ms later). It fails automatically,
+without an external server-stop request or waiting for the whole match deadline.
+Writer releases only after refusal;no original Leave/wire Leave/Quit trace or
+callback occurs afterward. Inner failed186.527715900s/forced cleanup is the exact
+expected negative result;outer control exits0. This is refusal acceptance only.
+Source/shared native channel hashes unchanged. Session83607 terminal0. Previous
+controls02 session52681 also terminal0;initial01 session44371 terminal1 retained.
+local/leave51-native-controls03/verification.json SHA256
+8b20f1d9f22df121919475d18d14a02482d389c10a9165eb5c9254b1cc3cf3a3
+persistent/verification.json SHA256
+ef963a8fab4506bacc92edc672d925ee202f0f9b2bf098ab78cc6e7f43b83de3
+Retained local/run-leave51-negative.py SHA256
+78f8f2afd8f0f2aafffcf36411cc42b1c8ff2dd63e7ebf6d21ad4e8fd660cd2b
+
+Ordinary entry/current artifacts
+Actual new Start Client.cmd reaches native menu11.155222100s,total11.547810800s,
+without a spawn seam or auto/gameplay/diagnostic flags. Separate owned readiness
+cleanup is forced,NOT native Quit. Package/config/source/shared TOML unchanged;
+owned driver/game reaped. Report SHA256:
+local/leave51-ordinary-startup01/verification.json
+c9e3c953ce34a9af08aa1565b3af2ccaba1bed9e0e994df8e584b83fb470ca7f
+Read-only scoped lookup of15retained owned launcher/game PIDs finds none present;
+no unrelated process is enumerated or stopped. Observation SHA256:
+local/leave51-owned-process-observation.json
+443b19253f2b86b6fa71d0fe532bfa8c772663e117cc5aa1492ad3187ef81aff
+Compared with clean50,server payload changes only compatibility.json;client only
+compatibility.json and authored helper. Other program/runtime/guide bytes match.
+local/leave51-payload-comparison.json SHA256
+7aee7ec6b015fd112429ebd8a590e89cfcb1e886fa3ba2fa9e80c7547d3bad08
+
+Remaining gates
+Both explicit diagnostic readers now use the bounded policy. No negative forced
+cleanup qualifies normal Quit. Preserve all failed/manual/frozen/recovery outputs.
+Current valid-credential refusal,protected40,remaining Cancel/fault/four-human/
+physical/all-cosmetic/visual paths,SCM/clean-PC/cross-PC/Internet/full telemetry/
+slow-startup cause remain open. No original game payload belongs in source Git.

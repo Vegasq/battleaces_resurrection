@@ -6,6 +6,15 @@ defines the requested product. Existing frozen archives are not automatically
 upgraded when source changes. No original client binaries/assets belong in Git.
 
 Current ordinary source candidate
+Custom Leave51 cleanf547003/helperf27311fe... adds the same opt-in <=1000ms32retry
+to the second diagnostic reader. Strict profile/file/empty checks stay.95tests
+94pass1skip and actual brief guest/host writer contention/two-round Custom/
+results/Continue/Leave/Quit pass191.710s/all exits0/empty jobs/no force. Retain
+stale-view failure;parent waits<=5s for actual empty-lobby readiness. Retain first
+explicit-stop negative;final monitor catches native1000ms refusal125ms later,
+no Leave/Quit after release,expected forced cleanup. Ordinary CMD menu11.155s
+is separate forced readiness cleanup. No ordinary/server/protocol changes;
+physical/permissions/deployment/telemetry matrix remains. See custom-leave-gate-wait.txt.
 Gate/community50's clean467c7bd helper candidate adds only bounded opt-in Quit
 gate sharing32retry. Exact file/profile/60s exit checks stay intact;86focused
 tests85pass1skip,new component/native transient and persistent-negative controls

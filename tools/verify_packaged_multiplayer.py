@@ -65,6 +65,23 @@ def publish_empty_gate(path):
     pending.rename(path)
 
 
+def quit_readiness(live,*,custom=False):
+    """A sampled server view can lag native Leave ACKs;wait for actual drain."""
+    counts=('rooms','retired','entries','offers','cleanup')
+    require(isinstance(live,dict) and all(type(live.get(key)) is int and live[key]>=0 for key in counts),
+            'invalid server drain snapshot')
+    require(not custom or type(live.get('lobbies')) is list,'invalid Custom lobby drain snapshot')
+    return all(live[key]==0 for key in counts) and (not custom or not live['lobbies'])
+
+
+def native_lifecycle_failure(text):
+    markers=('Public client failure:','Client lifecycle invariant failed:','Public result Continue routing failed:',
+             'Native Quit probe failed:','Offline initialization failed:','LAN normal-build smoke disabled',
+             'LAN normal-build smoke stopped','COMMUNITY LEAVE gate open refused:',
+             'Custom leave gate sharing retry exceeded 1000ms')
+    return next((marker for marker in markers if marker in text),None)
+
+
 def imports(report,package,inventory):
     require(report['passed'],'bundled driver reported failure')
     for module in report['production_modules'].values():
@@ -156,7 +173,7 @@ def run(args):
     gate=secrets.token_hex(16);gate_path=game/'investigation/runtime'/('public-queue-'+gate+'.ready')
     retry_path=gate_path.with_name('public-queue-'+gate+'-retry.ready')
     require(not gate_path.exists() and not retry_path.exists(),'public start/retry gate already exists')
-    configs=[host_path];children=[];records=[];server_child=None;gate_created=False;quit_released=False;fault_requested=False;retry_released=False;leave_stage=0
+    configs=[host_path];children=[];records=[];server_child=None;gate_created=False;quit_released=False;fault_requested=False;retry_released=False;leave_stage=0;quit_readiness_began=None
     shared=args.shared_settings.resolve()
     def channels():return dict(toml=startup.shared_state(shared),replays=snapshot(shared.parent/'AutoSaveReplays'),backup=snapshot(shared.parent/'StorageSyncBackup'))
     report=dict(passed=False,scope=__doc__,mode=args.mode,humans=args.humans,real_credentials=args.real_credentials,custom_rematch=args.custom_rematch,recover_loading=args.recover_loading,recover_stage=recover_stage,helper_build=receipt,shared_before=channels(),source_sha256_at_start=sources(),forced_cleanup=False,
@@ -213,9 +230,9 @@ def run(args):
                     require(child.handle,'cannot observe owned native game')
                 if child.native:
                     row['log']=read_native_log(game,child.native['pid'],since_tick=child.native['launch_tick'])
-                    require(not any(marker in row['log'] for marker in ('Public client failure:','Client lifecycle invariant failed:','Public result Continue routing failed:',
-                        'Native Quit probe failed:','Offline initialization failed:','LAN normal-build smoke disabled','LAN normal-build smoke stopped')),
-                        'native bundled multiplayer lifecycle failed')
+                    failure=native_lifecycle_failure(row['log'])
+                    if failure:report['native_failure']=dict(client=index,pid=child.native['pid'],marker=failure,observed_tick=kernel.GetTickCount64())
+                    require(failure is None,'native bundled multiplayer lifecycle failed')
                     for failure in re.findall(r'Offline loop stopped in [^\n]*',row['log']):
                         require(recovering and fault_requested and index==0 and re.fullmatch(
                             r'Offline loop stopped in (?:LAN update|LAN front update|dedicated session update): '
@@ -265,8 +282,17 @@ def run(args):
                 returned=(all('Public intent retired: ticket=2 reason=returned nativeIdle=1 disconnect=0' in row.get('log','') for row in records)
                           if recovering else all('PUBLIC QUEUE completed return:' in row.get('log','') for row in records))
             if not quit_released and returned:
+                if quit_readiness_began is None:quit_readiness_began=time.monotonic()
                 live=json.loads((server_output/'server-live.json').read_bytes())
-                if all(live.get(key)==0 for key in ('rooms','retired','entries','offers','cleanup')):
+                ready=quit_readiness(live,custom=args.custom_rematch)
+                if args.custom_rematch:
+                    elapsed=time.monotonic()-quit_readiness_began
+                    observations=report.setdefault('custom_quit_readiness',[])
+                    observations.append(dict(seconds=elapsed,ready=ready,lobbies=len(live['lobbies']),
+                        **{key:live[key] for key in ('rooms','retired','entries','offers','cleanup')}))
+                    del observations[:-5]
+                    require(elapsed<5,'Custom leave lobby cleanup did not settle within5s')
+                if ready:
                     require(not args.custom_rematch or not live['lobbies'],'Custom lobby retained after both original Leaves')
                     for row in records:
                         publish_empty_gate(row['folder']/'native-quit.ready')

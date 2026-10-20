@@ -1,5 +1,17 @@
 BUNDLED SERVER / NATIVE MULTIPLAYER QUALIFICATION -- 2026-10-19
 
+2026-10-20 Custom Leave51
+Second diagnostic reader now uses bounded sharing32policy with original file/
+profile checks. Actual brief guest/host writer holds settle62ms each and complete
+two native Custom rounds/Leave/Quit191.710s with all exits0/empty jobs/no force.
+Retain failed stale readiness sample;bounded5s monitor still requires empty
+lobby. Retain first explicit-stop negative;final native refusal at1000ms is
+detected125ms later with no Leave/Quit after release. Negative forced cleanup
+is not normal Quit.95tests94pass1skip;new cleanf547003/helperf27311fe... ordinary
+CMD menu11.155s passes separately (forced readiness cleanup). Other runtime/
+program payloads unchanged from50;physical/private/deployment gates remain.
+See custom-leave-gate-wait.txt for exact artifacts/scope and retained failures.
+
 2026-10-20 current gate/community50
 Closed publication alone still reproduces a strict native Quit-gate failure.
 New clean467c7bd/helper candidate bounds32retry to1000ms ONLY for opt-in Quit;

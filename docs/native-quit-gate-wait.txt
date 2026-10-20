@@ -90,8 +90,9 @@ game/launcher/worker0,empty jobs/no forced cleanup. Separate retained review bin
 saved native units/abilities to each authenticated frozen human seat. Actual
 ordinary CMD startup11.353s is separately forced readiness cleanup,not Quit.
 See current-community-matches.txt for exact reports and scope.
-The separate Custom Leave diagnostic reader has the same strict sharing pattern
-and needs the bounded policy too. It passes this run but that does not eliminate
-the reproduced class of I/O race. Keep this follow-up explicit. Do not count
+At checkpoint50,the separate Custom Leave reader still needed the bounded
+policy. Follow-up51 now qualifies it under deliberate brief/persistent native
+contention;see custom-leave-gate-wait.txt,including retained sampling/monitor
+failures and corrected guards. Do not count
 forced negative cleanup as Quit. Protected40,physical UI,SCM/clean-PC/cross-PC/
 Internet/full telemetry and other release gates remain open.

@@ -1,6 +1,17 @@
 WINDOWS PORTABLE PACKAGING - DEVELOPMENT PREVIEW
 Updated: 2026-10-20
 
+2026-10-20 Custom Leave51 candidate
+Cleanf547003 archives/helperf27311fe... add only the bounded opt-in Custom Leave
+reader. Exact original module/Unity/CEF bytes stay unchanged on owned install.
+Actual controlled brief contention/two-round Custom/Leave/Quit and persistent
+refusal pass their distinct positive/negative contracts;95tests94pass1skip.
+Actual ordinary CMD menu11.155s passes with separate forced readiness cleanup.
+Compared with50,server only compatibility metadata differs;client metadata and
+authored helper differ. Parent readiness/failure monitoring fixes are external
+test tools,not bundled runtime substitutions. Exact archive/report/source hashes
+and failed attempts are in custom-leave-gate-wait.txt. Not a general release.
+
 2026-10-20 documented setup47
 Cleanff61f6a archives correct quickstart shell/export-profile/import-folder text.
 Only QUICKSTART/compatibility payloads differ from corrected46;product program,

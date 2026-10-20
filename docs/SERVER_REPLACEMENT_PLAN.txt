@@ -4,6 +4,16 @@ Target: Battle Aces build 37822, Windows x64 server and clients.
 Status: IMPLEMENTATION ACTIVE. See STATUS.txt; incomplete phases remain future work.
 
 Current release integration order (2026-10-20)
+- Custom Leave51 completes the second bounded diagnostic reader with same strict
+  flags/profile/file guards.95tests94pass1skip and actual brief-writer two-round
+  Custom/result/Continue/Leave/Quit pass191.710s/all exits0/empty jobs/no force.
+  Preserve stale server-view failure;bounded5s readiness still requires empty
+  lobby. Preserve persistent control needing explicit stop;final new monitor
+  detects exact1000ms refusal125ms later,no Leave/Quit after release,expected
+  forced negative cleanup. Cleanf547003/helperf27311fe... ordinary CMD startup
+  passes separately11.155s. See custom-leave-gate-wait.txt. NEXT:current real-
+  credential server refusal/remaining Cancel/fault/four-human/physical/deployment/
+  full telemetry matrix. Protected40 remains open;no original game files in Git.
 - Gate/community50 finds publisher49 alone insufficient under native strict
   sharing. Bounded opt-in Quit32retry<=1000ms preserves file/profile/60s checks;
   build84sources/86tests85pass1skip and native transient/persistent-negative

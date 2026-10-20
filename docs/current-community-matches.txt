@@ -105,10 +105,9 @@ Initial populated50-native-1v1-01/helper42 remains FAILED with forced cleanup;
 see native-quit-gate-wait.txt. Retained client0/1failure-log SHA256:
 1d5fb306743c2e98f7e38c94d50bb2d86ef7f89ceb6bf56fe17af613963aec51
 33436f7c373ad7c52dd3553c37928bd48f7a883980e969f0fffabea5371038f3
-Custom passes this run,but its separate diagnostic Leave-gate reader still uses
-the same strict sharing pattern without the new bounded retry. Apply the common
-policy there with focused contention controls;do not claim all diagnostic gate
-consumers are fixed. Ordinary users never select these gates.
+At checkpoint50,Custom's separate Leave-gate reader still needed the bounded
+retry. Follow-up51 now qualifies that consumer under actual brief/persistent
+contention;see custom-leave-gate-wait.txt. Ordinary users never select these gates.
 Protected40/current valid-credential refusal,Cancel/fault/full-four-human final
 matrix,physical/all-cosmetic/visual controls,SCM/clean-PC/cross-PC/Internet/full
 telemetry and intermittent slow-startup cause remain open. Preserve manual35/
