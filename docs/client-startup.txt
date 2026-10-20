@@ -1,5 +1,119 @@
 CLIENT STARTUP TIMING (updated 2026-10-20)
 
+2026-10-20 actual SLOW task/pump capture64 / same-installation repeat65
+D6's missing slow instrumented launch is now retained,not another fast control.
+Fresh independent64 is a real copy of03 with profiles/runtime history excluded;
+existing16 diagnostic sites + unchanged helper51;no Frida attached. Original
+Start107.515s;launch->first hook7.125s;observed task window107.516s;launch->initial
+116.750s. PreMenu/Other/WhenAll wrappers return in16/31/0ms. All50 outer Tasks
+are sampled status1 from launch+7.172 through+109.906s. First sampled successes
+appear+110.906s;remaining indices4 and26..49 succeed by+111.906s. First sampled
+all-success->ready is2.735s. There are107 selected same-thread pump entry/return
+pairs,max recorded span0ms at this clock resolution;117790 total observed pump
+calls by ready. This locates the dominant observed wait before outer table
+completion;selected samples do not prove every dispatch short or locate the
+underlying loader/completion callback.
+
+Read-only OS query of this exact owned PID during10.016s of that interval adds
+263736071 process read bytes/7065 read operations and20.53125 CPU-seconds. These
+are process totals,NOT physical disk bytes,exclusive function timings or proof
+of a network/cache/CRC/driver cause. No debugger/observer attached to either run.
+local/startup64-capture01/os-counters.json SHA256
+afa644a25817e8c542fd2856ae701f9041815ec1c01c3cd1dd3d8660fafddbeb
+
+One follow-up65 uses the SAME installation/artifact hashes and a fresh owned
+profile. It is fast:original Start7.538s/task window7.531s/prehook1.969s/initial
+11.844s. PreMenu/Other/WhenAll15/31/0ms;seven selected pump pairs max0ms;first
+all-success sample->ready2.672s. This is an uncontrolled first/repeat contrast:
+new profile/process and elapsed machine/cache state differ. It does not prove
+caching is the cause or demonstrate a fix. No REA attach was made because the
+repeat had already passed the relevant loading interval when inspected;the
+prepared passive thread-sampling script was NOT executed.
+
+BOTH complete50tasks,release53->0 roots,pass strict startup evidence and original
+Quit with natural main exit0. Each external job1total/0active/0terminated/no force.
+Shared TOML/bound sources/helper receipt unchanged;restore owned64 ordinary
+GameAssembly/Unity/helper/CEF/manifest byte-exact after EACH job drains. Source03,
+LAN candidate,normal launchers,frozen packages and helper sources unchanged.
+64 client qualification124.702s/whole restore133.398s;65 is20.084s/28.835s.
+Preparation local/startup64-preparation.json SHA256
+ba03c2c68e73dfa3926cdbedb980712e0ee34872372466123b87552b74ec9948
+64 outer verification/client verification/timeline SHA256,respectively:
+504c9425c5d9bf0df8f595343e64cf0c4f23eeb300782ff8e9d2e6cbb23ee0ab
+a0828a9a77657c69ba3e7dd0f177414103c5f07a96a939ed54eba00a98ee2b6e
+513bab9571c07ae2707666efb029f4c4e3db8f2d210390ab2e63730d3968ba40
+65 outer verification/client verification/timeline SHA256,respectively:
+7f2a1ce625b582fa60bfff293fdde00200aa6fcbbbbb3ae088ce259863ae46f5
+1fca22d4caabb6a468805bb6675bffa0842cf1e989a386ca1b2ca17695ab8117
+b70566b712e09a6a2adccef90281f541d0aae975a4619e8e2e91fef5e0e5e838
+Compact read-only review local/startup64-65-readonly-review.json SHA256
+4a0ef32344723ac2f9a4451a1b6828df625c39b7bca6de72bf6dbcaa91f19863
+The review validates completed reports/trace digests/job cleanup and summarizes
+raw status/pump boundaries;it launches nothing and cause_proven remainsfalse.
+
+Next evidence boundary (independently reviewed original contract)
+Status1 is WaitingForActivation of the OUTER async-method promise. Original
+table MoveNext29f0350 dispatches its load at29f053f->789d0,stores a32-byte handle
+at unboxed state+28,gets the existing INNER Task at29f05c5->279e400,and awaits
+it at29f0c04->79570 with state0/awaiter+48. Resume29f0444 rejoins29f0667;after
+result/operation checks it registers/rebuilds the table,then completes the outer
+builder at29f0c38->3479350. Thus outer pending alone cannot distinguish loader
+pending,inner complete/continuation not yet run,or table rebuild work.
+Retained original slice local/startup-asset-wait-contract01/table-load-state.asm:
+106-163(load/inner Task),178-186(test),479-511(await/SetResult),64-72(resume).
+Generic ResourceManager metadata declares a separate deferred completion queue;
+its unresolved zero field offsets are NOT live layouts. Named original candidates
+Update4cd1c20/ExecuteDeferredCallbacks4cd1790/LoadLocalBundle4ce0d10 are not yet
+body-qualified or observed. Frequent Unity Exec is not evidence they progressed.
+
+Next:one bounded passive CPU/thread-context observation DURING a slow launch,
+correlated with existing tasks and file/operation boundaries. If that leaves the
+loader/continuation split unresolved,qualify the original inner-get_Task ABI/
+generic MethodInfo/table association before adding one capture seam. Root the
+already-created inner Task;do not request another Task,inspect arbitrary outer
+continuation objects,complete/wait/cancel tasks or drive an extra pump. No
+production fix is yet justified;D6 remains OPEN. Do not resume unrelated test
+batches or repeat fast launches as if they establish a loading cause.
+
+2026-10-20 D6 PRIORITY / ordinary slow reproduction63
+User explicitly prioritizes D6;defer new unrelated engineering test runs.
+The already-active two waiting Cancel/retry cases finish and clean up before
+any game/helper installation changes. One mode2 client,PID14768,has no attached
+observer and reproduces223.719s from launch to original initial state. Unity's
+original RGameInit:Start reports218.264s. Same helper51/ordinary feature recipe
+as the current candidate;no startup Task/pump hooks active in that run.
+
+Retained complete current-process prefix milestones,seconds since launch:
+settings path selected1.235;original TOML load returned parsed1.250;completed
+backup read4.188;first completed atomic settings publication215.172;original
+Start-completion hook222.438;original initial-state callback223.719.
+The210.984s between backup-read completion and save-publication completion is
+NOT an isolated save duration:there is no save-entry timestamp. Initial TOML
+parse has already returned,but that does not establish all settings work fast.
+nativeAccepted=0/writable=1 is accepted missing-backup/default behavior,not a
+rejected existing file. Original Start->initial gap is1.281s. No network/disk/
+cache/observer/task/pump cause is established by the silent interval.
+
+Read-only retention local/startup63-slow01/observation.json SHA256
+aaa203545e4818539162816dce5b04c3a55821dbbedd8128a05c51904e3a185d
+native-prefix.log SHA256
+89ce8e53da06570ac2fe1e9bf3b202601464ca75ad0bfe0a6f82faef9950daef
+game.log SHA256
+03c85062596fa419511944296d1520a6db582b719032265011391637e0ffba2f
+processes.json SHA256
+57fe042734c7f3d04d744afcee800923374bf339d7b035d7f682f8b4a41659d6
+Only source/this knowledge-base summary belongs in Git;raw originals stay local.
+
+Independent read-only reviews of original retained disassembly/metadata and the
+observer agree:use the existing16 sites first. PreMenu begins the observation,
+not process launch. WhenAll captures only the first12;the50-task vector includes
+37 other table tasks but omits later manager asset/scene/debug-UI gates. A large
+all-success-to-ready gap is therefore not one proven continuation duration.
+Pump samples are selected,not every Exec;an unsampled long call can appear as a
+sample gap. Localization may finish synchronously before the first WhenAll.
+No instrumentation change is justified before inspecting a captured slow trace.
+That next capture is now64 above;keep03 LAN source frozen.
+
 2026-10-20 bounded current-helper batch58 (FAST CONTROL;D6 STILL OPEN)
 One concurrent three-process original-task/pump batch uses a fresh independent
 owned game copy,not the03 LAN source. Copying excludes profiles/runtime history;
@@ -69,7 +183,7 @@ Finite next evidence:an actually slow launch WITH these original hooks active.
 Separate pre-hook delay,wrapped call delay,pending original tasks and post-success
 work from the captured sequence before proposing a production fix. Earlier slow
 ordinary launches have no task/pump trace and cannot be retroactively explained
-by these fast controls. D1 physical LAN remains first;its candidate is untouched.
+by these fast controls. D6 is now the engineering priority;D1's candidate is untouched.
 
 Combined observation45 adds a fast original task trace WITH an attached native
 observer in the same owned run:Start7.016s/task window7.000s/50completed/53->0

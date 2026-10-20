@@ -3,6 +3,31 @@ Updated: 2026-10-20 UTC
 Delivery plan: REMAINING_DELIVERY_PLAN.txt, Windows only.
 Original roadmap: CLOSED / SUPERSEDED;see PLAN_CLOSEOUT.txt.
 
+D6 IMMEDIATE PRIORITY / FIRST SLOW TASK TRACE64 (2026-10-20 UTC)
+User prioritizes D6;defer new unrelated engineering tests. D1's prepared physical
+LAN sequence remains available independently;candidate/owner steps unchanged.
+Ordinary63 reproduces223.719s launch->initial/218.264s original Start without
+attached observer. New independent64/current-helper51/unchanged16 diagnostic
+sites captures a SLOW107.515s original Start. Outer50 table Tasks stay sampled
+pending through launch+109.906s;107 selected pump pairs return at0ms resolution;
+first sampled all-success->ready2.735s. Original Quit0/no force,job1/0/0,all53
+roots released,shared TOML/bound sources unchanged,ordinary copy restored and
+03 LAN source unchanged. D6-C1 is checked off;D6 itself remains OPEN.
+Read-only10.016s OS sample adds263736071 process read bytes/20.53125 CPU-seconds;
+not physical disk or exclusive-function attribution. Same-installation fresh-
+profile repeat65 Start7.538s/natural Quit0 does NOT establish cache causality.
+Independent original async-contract review shows pending OUTER promise cannot
+split underlying load from completion/continuation/table rebuild. Next:bounded
+passive thread/CPU/file-operation observation during a slow launch,then qualify
+an inner-Task capture only if needed. No cause/fix/helper/package change yet.
+Exact report hashes,original RVAs/scope and limits:client-startup.txt.
+local/startup64-65-readonly-review.json SHA256
+4a0ef32344723ac2f9a4451a1b6828df625c39b7bca6de72bf6dbcaa91f19863
+The already-active waiting Cancel/retry cases63 finished before64 installation:
+mode2/5 PASS5477/3318 exact receipts,natural native results/Continue,worker0;
+forced final game cleanup is not Quit. Matrix R02-mode2/mode5 are now closed.
+All nine parent delivery items remain OPEN;D6 is the immediate engineering focus.
+
 D2 FINITE MATRIX62 (2026-10-20 UTC, TWO NEW TEAM TRANSITION PASSES)
 mode-acceptance-matrix.txt now maps every D2 bullet to named availability,
 roster, bot, Custom, cancel/stale-response, transition and physical cases.
@@ -22,7 +47,8 @@ Final native process cleanup is FORCED,not Quit;direct source bridge/server
 controls are not bundled host.run/client.main/protected/physical/LAN proofs.
 See remote-local-transitions.txt for exact reports/raw-log review and limits.
 No production/helper/recipe/package changes or redundant unit-suite rerun.
-Next autonomous D2 case:R02-mode2 waiting Cancel. D1 owner LAN setup and protected
+At this earlier62 checkpoint,next D2 case was R02-mode2 waiting Cancel;63 above
+has now completed it. D1 owner LAN setup and protected
 active40 reports still absent at review;all nine top-level items remain OPEN.
 
 DELIVERY CLOSURE CHECKLIST (2026-10-20 UTC, DOCUMENTATION ONLY)

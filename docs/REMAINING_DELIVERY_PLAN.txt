@@ -43,11 +43,12 @@ These results keep their documented scope; they do not prove the remaining
 ordinary/cross-PC/Internet/deployment matrix. See STATUS.txt and focused records.
 
 Delivery order
-D1 first. Then close D2-D4 with a planned batch of real playtests and targeted
-defect fixes. D5/D6 can progress independently. D7 precedes final D8/D9 acceptance.
-Do not postpone the first real friend match for another unrelated diagnostic pass.
-Closure priority: finish D1's bounded physical sequence first. For D2-D4, list
-the finite remaining cases against retained evidence before launching more tests;
+D6 is the immediate engineering priority at the user's explicit request on
+2026-10-20. Pause new unrelated D2-D5/D7-D8 investigations while tracing the slow
+startup. The already-prepared D1 physical LAN sequence can proceed independently;
+its candidate and pending owner steps remain unchanged. D7 precedes final D8/D9.
+After D6, resume D1 and close D2-D4 with planned playtests and targeted fixes.
+For D2-D4,list the finite remaining cases against retained evidence before more tests;
 each pass closes its named subcase, not the broader parent. D5-D8 retain their
 explicit independent gates; D9 closes only after those release gates pass.
 
@@ -69,9 +70,13 @@ This does not close Internet, clean-machine or four-human acceptance.
 [ ] D2 - Finish the final mode, matchmaking and transition matrix
 Use the same selected candidate and record missing combinations explicitly.
 Finite case inventory and requirement mapping: mode-acceptance-matrix.txt.
-All eight supported public roster sizes already have native PASS evidence;
-next autonomous case is original Cancel during a waiting2v2 queue (R02-mode2).
+All eight supported public roster sizes already have native PASS evidence.
+The waiting Cancel/retry tests already active when D6 was prioritized have
+finished;their scoped results are recorded below. New D2 runs are deferred
+while D6 is the immediate engineering priority.
 Completed subcases (same-PC automated controls; not physical LAN):
+[x] Original waiting Cancel/retry in modes2 and5 (cancel63 R02);one subsequent
+    authoritative AI-fill match each,results/Continue;forced final cleanup.
 [x] Packaged four-human2v2 through results/Continue/natural Quit (roster57 full-human01).
 [x] Packaged three-human/one-bot2v2 with real30-second fill, results/Continue/natural Quit
     (roster57 three-human03). See current-community-matches.txt for evidence.
@@ -173,13 +178,23 @@ References: telemetry.txt, telemetry-internal-config.txt,
 telemetry-persistent-observation.txt and nvidia-shutdown.txt.
 
 [ ] D6 - Resolve intermittent slow initialization
-Control58 qualifies the existing task/pump observer on three current-helper
-processes and adds tools.analyze_startup_trace. All are fast;no slow cause/fix.
-Reuse that control;do not repeat fast batches to count this item complete.
-- Capture a genuinely slow launch with simultaneous original task/pump timing and
-  bounded observation. Compare with retained fast launches using the same inputs.
-- Identify the stalled work, implement a justified fix if needed, and verify cold/
-  warm launches plus match/results/Continue/Quit. Retain truthful loading feedback.
+IMMEDIATE PRIORITY by user request,2026-10-20.
+Ordinary63 reproduces223.719s launch-to-initial-state without an observer.
+[x] D6-C1:actual slow original task/pump capture64. Start107.515s;outer50 tasks
+    sampled pending through launch+109.906s,selected pumps return promptly.
+    Normal Quit0/empty job/ordinary restore/source03 unchanged. Same-installation
+    repeat65 is7.538s;this uncontrolled contrast does not prove a cache cause.
+[ ] D6-C2:identify underlying loader versus completion/continuation work.
+    Next is bounded passive thread/CPU observation during a slow launch,correlated
+    with existing tasks/file-operation boundaries. Outer pending alone does not
+    split inner Addressables loading from continuation/rebuild work. Qualify an
+    inner-Task capture seam only if that boundary remains unresolved.
+[ ] D6-C3:justify and implement the fix,then cold/warm and match lifecycle
+    acceptance,including results/Continue/Quit and truthful loading feedback.
+    No production fix/cause is claimed by the new capture.
+Keep the LAN source/ordinary launchers untouched and follow the measured boundary.
+Reuse slow64/fast65 and the existing58 observer qualification;do not repeat fast
+batches as completion. Exact reports and reviewed original contract:client-startup.txt.
 Done: the observed106/168/225-second slow behavior has an evidenced cause and
 resolution, or an explicitly accepted measured limitation. Do not bypass the
 startup barrier or inflate an ordinary timeout to produce a passing result.

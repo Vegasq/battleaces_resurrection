@@ -483,3 +483,31 @@ preserved decks/native builds and all results/Continue/capacity release. The
 loading branch has zero aborted frames and1,250 exact replacement frames each;
 both workers exit0. See
 team-recovery.txt for full report/helper hashes and bounded acceptance limits.
+
+2026-10-20 waiting Cancel/retry63 (R02-mode2/mode5)
+These two cases were already active when the user prioritized D6. Let both
+finish/clean up before changing any game/helper files;no further D2 runs now.
+Unchanged tools.verify_public_client --ordinary-player --cancel waiting --retry,
+helper51/ordinary recipe,independent owned58 game. Direct source bridge/server,
+ephemeral in-memory credentials/TLS;not bundled entry/protected storage/physical
+controls or LAN acceptance. Hidden native windows;no attached observer. Normal
+base argument set has no automation;explicit diagnostic flags separately invoke
+original Play/Cancel/build/result/Continue and loadout-model checks.
+
+Mode2 local/cancel63-waiting-2v2-retry01/verification.json:
+PASS556.477s,5477 exact authoritative receipts;game-over5457,conceded0.
+SHA2568f48d71cf4a6d449583495fc0bf082b4bebef9608cee2074f897bac49dcd05a8
+Mode5 local/cancel63-waiting-2vai-retry01/verification.json:
+PASS233.267s,3318 exact receipts;game-over3298,conceded0.
+SHA256a8237fe8747b488353935d0cbaee45114c18ad80b0fab3bd35a1fa90029d0b84
+
+Each invokes original Cancel exactly once while waiting,then uses a new native
+search generation/stale-ticket rejection. Ticket2 waits29.998/30.062s respectively
+and creates one authoritative four-seat world with one human/three AI,one TLS
+authentication/session and one worker. Full17-slot frozen loadout/deck models
+are retained on both queue tickets. Native natural results/Continue pass;worker
+exits0/reaped,shared TOML/bound sources unchanged. Final game termination is
+FORCED owned cleanup,NOT original Quit. No delayed-ENTER-ACK injection here;
+do not close R05's distinct stale-ACK case with this ordinary retry proof.
+Mode2's223.719s slow initialization is retained separately for D6 in
+client-startup.txt;that delay is not matchmaking time or a networking cause.

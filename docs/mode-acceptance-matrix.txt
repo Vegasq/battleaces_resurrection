@@ -77,14 +77,17 @@ R. Public cancellation / stale control responses
 Each cell names native evidence only. All missing cells are explicit cases.
 ID / point                    Mode1                 Mode2   Mode5
 R01 before ENTER              P:cancel-before01      O       O
-R02 waiting                   P:ordinary-cancel01    O       O
+R02 waiting                   P:ordinary-cancel01    P:63-2  P:63-5
 R03 OFFERED before READY      P:cancel-offer01       O       P:2vai-cancel01
 R04 after READY committed     P:cancel-ready01       O       O
 R05 cancel/retry + old ENTER   P:cancel-retry01       O       O
 R06 assignment after local AI O                      O       O
 R07 dropped final RETURN ACK  P:drop-return02         O       O
-P cells refer to earlier ordinary/native candidates in public-matchmaking.txt
-and ordinary-player-client.txt, not new current-package or physical acceptance.
+63-2/63-5 are current-helper51 waiting Cancel/retry passes on the independent
+owned58 game:one human + three server bots,natural result/Continue,forced final
+game cleanup. See public-matchmaking.txt;not native Quit or physical/bundled/LAN
+acceptance. Other P cells refer to earlier ordinary/native candidates in
+public-matchmaking.txt and ordinary-player-client.txt.
 For R01-05 require the original Cancel action, correct pending/committed
 ownership, no second world and a usable next Play. A committed READY must not
 silently become local AI. R06 deliberately delays an owned server response
