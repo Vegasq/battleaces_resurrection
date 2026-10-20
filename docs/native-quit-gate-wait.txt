@@ -1,0 +1,52 @@
+BOUNDED DIAGNOSTIC QUIT GATE50 -- 2026-10-20
+
+Problem reproduced after49
+Current clean47/helper42 two-human1v1 reaches original results/Continue,but one
+client logs "native Quit gate is unavailable" even with closed-file publication.
+Other client reads its gate successfully. Controller stops before later team/
+Custom cases. This disproves treating publisher49 alone as sufficient under
+contention. Overall failed102.340995900s,forced cleanup of both client jobs2;
+host job7 drains naturally. Original logs do not record the precise Win32 code.
+local/populated50-native-1v1-01/verification.json SHA256
+ddfed057fab365230e4a6925f0d3ce3611c8227911546c0bd4b39d5f0f994eb6
+
+No-game contention control
+1000closed empty-file publications with a concurrent native-style CreateFileW
+reader reproduce250ERROR_SHARING_VIOLATION32 observations plus11828normal missing
+observations. All1000reads eventually succeed,1.2599553s. This is a Windows I/O
+control,not an actual game error-code witness or permission/UX acceptance.
+local/gate-contention50-report.json SHA256
+c7eb1e316508bd3283648c5982f7ff04437c74269cb33f77e072a476f8fe703c
+
+Narrow opt-in correction
+Keep closed-file publisher49 and native FILE_SHARE_READ/OPEN_REPARSE_POINT,
+ordinary-file/empty-file/owned-profile validation. Only the explicitly flagged
+native Quit diagnostic can defer ERROR_SHARING_VIOLATION32 for at most1000ms.
+Normal absent gate waits for the external parent as before. Once busy starts,
+missing observations cannot reset its budget;clock regression also expires it.
+Unknown/access/path errors fail immediately. Even a successful open at/after
+the busy deadline is refused. Log first busy/settled or refused actual Win32
+codes. Original60s Confirm exit bound remains. Ordinary launch never selects
+these test flags. No game network/storage/cosmetic/AI/telemetry behavior,original
+DLL recipe or optional teardown hooks change.
+
+Component/source validation
+New native_quit_gate.hpp policy has a component program covering normal absence,
+transient success,exact deadline/persistent busy,missing-after-busy,clock regression,
+reset and immediate unexpected errors. Build50-01 compiles/tests the helper with
+84bound source files unchanged during build. Helper SHA256
+ff36d3c0885224a4188894f702513c9b9d9bac8f04e985dd839afddcef5d61a5
+build/helper-gate50-01/helper-build.json SHA256
+c66dee18960f9895352a7a7cad4cf3cf55e5968e9e3588d0c9266c16e96637be
+local/helper-gate50-build01.txt SHA256
+a3f62a2a336285cf0dc13281f7b871121932f65b5476429f990fbcc5c1343959
+86focused Python checks85pass/1explicit skip,9.756s. No native test is claimed yet.
+local/gate50-focused-tests01.txt SHA256
+186707821fe3ec411436fb443cef90f552e2b97e5267947f558c59b1bbb71045
+
+Next
+Build clean new candidate archives,install only in owned03,then run native
+transient recovery and persistent-busy/no-Quit controls before repeating current
+two-human1v1/team/Custom matrix. Preserve old helper42/frozen archives/manual35/
+recovery and failed runs. Do not count forced negative cleanup as native Quit.
+Protected40,physical UI,SCM/clean-PC/cross-PC/Internet/full telemetry remain open.
