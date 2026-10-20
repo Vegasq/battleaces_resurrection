@@ -35,7 +35,7 @@ IPC/spawn/runtime mkdir,and a valid long-replay fixture. All7 new tests plus22
 existing launcher tests pass29/29 in0.254s,actual subprocess0. Full Python
 regression591 tests575pass/16 explicit skips98.998s,actual subprocess0,wall100.776s;
 local/release46-python-tests01.txt. Skips are not native/private acceptance.
-Fresh corrected clean-package/all-mode qualification remains to be obtained.
+Fresh corrected clean-package/all-mode qualification now passes below.
 
 First clean archive/source checkpoint (before the fix)
 local/release46-packages01 built from clean c757c67b174b21620eaef2eb92de014d31fff5c4,
@@ -98,10 +98,103 @@ mocked socket.socketpair before asyncio could create its own Windows wakeup pipe
 Retain release46-preflight-tests01.txt as FAILED. Corrected test creates the loop
 before intercepting only the launch body;tests02 is the29-pass result above.
 
+Corrected clean archives and actual four-mode qualification (BOUNDED PASS)
+Clean source8d974faebddfbeda4d42294030db572ef46e3d09,not --allow-dirty.
+local/release46-fixed-packages01 retains the same pinned runtime/helper42/native
+launcher39;the client payload changes only launcher.py and QUICKSTART.txt,plus
+source/integrity metadata. All server program/ordinary-entry bytes are unchanged.
+No C++ rebuild or game recipe change;no original game files/assets in archives.
+Server83files/12497196ZIP bytes:
+78fa2d9f1b6c22d2f635a6fc5eee4da2b4f2f95589e0c3ed652bf2565ef2be8d
+Client68files/13098515ZIP bytes:
+50520cab66905eea807708f741d006ea674386f3653eb883e7c6f21449909482
+build-report.json:
+7b186111e85f08bef837c9f7dc1459d0c58b44739f4faa1f0a697c420a72531f
+
+Fresh actual ZIP extraction local/release46-fixed-extracted01 qualifies all19
+client/36 server imports with empty PATH,hostile foreign cwd/PYTHONPATH,no site
+packages and bundled Python3.14.8. Every source path/hash matches the inventory.
+Actual bundled start command rejects the retained deep config with the useful
+error/exit1 before file verification/IPC/spawn;config unchanged. The game had
+already been restored to owned03,so this particular bundled refusal is not a
+second deep-folder game execution. Program files remain unchanged.
+verification.json SHA256:
+4721ba720b11e474fc2047f0e582ba3858932d8bdf34b18bbd39ad092930b688
+
+Actual corrected Start Client.cmd reaches menu10.570s,total10.944s,no spawn seam,
+automatic gameplay/capture/diagnostic flags or configured server/CA/invite. Its
+owned readiness cleanup is FORCED,not Quit. Source/config/package/shared TOML
+unchanged. local/release46-fixed-cmd-startup01/verification.json:
+8433bcd573c86f1ff4576b249bbe6c5744a77a5f2cc2a5b3c2dbe5b815345efb
+
+Separate tools.verify_packaged_play runs the actual extracted bundled client.main
+and bridge with an EXTERNAL explicit diagnostic spawn adapter. Ordinary generated
+arguments have no automation. Diagnostics add original native Play/build/Continue/
+Quit and a3600-frame Concede cap. All four runs use valid fresh48char profiles,
+default NGX-free recipe/no optional disposal/startup hooks,no Frida/captures.
+This is not seamless CMD mouse/visual/audio play or network-silence acceptance.
+
+Mode       Total s    Replay messages  Replay path chars  Confirm->exit s
+Try Deck   222.219    3603             262                1.578
+1v1        180.206    2860             263                1.484
+2v2        206.633    3357             308                1.391
+2vAI       218.287    3605             307                2.031
+Replay message counts include the native recording's result tail.1v1/2v2 reach
+native results before the configured3600-frame cap and have NO automated
+ConcedeGame marker;Try Deck/2vAI have that explicit diagnostic marker. Do not
+describe every result as a natural victory or all games as exactly3600 frames.
+
+All four report passed=true,natural_quit=true,game+launcher0,reaped game/driver,
+job2 active0/terminated0 and no forced cleanup. Every package/config/driver/source
+and the sampled shared TOML/replay/backup channels remain unchanged. Native
+profile-local TOML,original JSON backup publication and native replay save/
+independent structural decode pass. Try Deck bot supply136/91 autonomous action
+records/48 produced units with orders+position change. Public1v1/2v2/2vAI preserve
+configured name and native in-game/result bot name/avatar bindings,complete
+rosters,per-bot production+movement and original search status5->7->0/fallback/
+joining route. Public difficulty outcomes hard/normal/easy respectively;practice
+difficulty selection unchanged. Bot profiles64;59/59/59;60/59/60 match native
+mode pools. These are native component/model observations,not rendered pixels,
+physical input,original timer/Cancel or real online30-second-wait proof.
+
+1v1 additionally reads its unchanged recording through original native codec:
+2860 contiguous frames0..2859,full GameData identity,16MiB/64 limits,three stream
+disposals and pinned file identity. Six authored invalid-deflate/wire/truncated/
+recursion-limit/size-limit/empty-recording cases all refuse,each disposing all
+three streams and allowing exclusive reopen;then same idle menu/original Quit0.
+This is codec/failure cleanup,not native playback or exhaustive hostile-input
+safety. No original recording/fixture bytes enter Git.
+
+Actual mode report digests,local/release46-fixed-mode<N>-01/verification.json:
+4 f3ed1e9bbed1641aa89d1bd01fe8be9ef238e3057fd1b9868ae69ae758b67cf8
+1 0c76a6096fce43ddbe0e70df86c016602a67090c2cb9a5925f08973686225f45
+2 3976e23c36759481971cef05ce6260ce644d05bf55141d0d514de86cf92c8dd4
+5 ee0366237c186614114c01d1c59a50e803012a7b09c07fb14a04401116dfde47
+local/release46-fixed-mode-summary.json:
+a2184792485b14afaccb312b7c5563bdae2c73e61a6644fd72971353d8af5a02
+
+Additional source/evidence identities
+client_patch/transport/launcher.py:
+e2daf86e9ab44fe12eda85ea563b07187267b5c0347422165d514a979c90c201
+tools/verify_packaged_play.py:
+cc0d5661c6a4977fe830f62d86a35c44d66748ce52212236e311bd79577b06a3
+tests/test_native_path_preflight.py:
+e8ea9af3454a2bafece28b51b0212c0101438ea7f0b7ee5dd6f67eee21029305
+local/release46-package-qualification01/verification.json:
+75edc09739173c66db25572a4b9636735affffca1face298e563a91b3b8c369b
+local/release46-source-preflight-verification.json:
+336be8e7d81c88a39dfba85dc1774eeb17675f8356840d22f7887fed5085b8cb
+local/release46-owned-restoration.json:
+9afe685cd2d5a9c215d9460ceddbb4aa294fedd159b64e9fc8c45e22088f844a
+local/release46-python-tests01.txt:
+0ff1a113eae015ab0e8cb4cec6a6171b1b4c185aa1aa11c4cd9489c2420210e3
+Failed mode4-01/verification.json:
+522288c1b036a5d42b3328249d335d5b4f0977d88498701c72f4e764bf2d469d
+Failed mode4-02/verification.json:
+b0ca1febebd96edceb3f86c5fd80061beaa982dc3ca0edbf9548147b41e0f324
+
 Remaining release scope
-Resume fresh corrected packaged Try Deck/1v1/2v2/2vAI with no server. Require full
-matches,per-bot production/movement/identity,original search/result/Continue/Quit,
-saved native files and zero live/terminated owned descendants. The offline-only
+All four bounded packaged offline controls pass. The offline-only
 probe does not qualify configured-unavailable/empty/populated server cases,
 physical controls/all cosmetics,protected active-match40,SCM/clean Windows or
 friends on a second PC/Internet. Full telemetry and slow-startup cause remain

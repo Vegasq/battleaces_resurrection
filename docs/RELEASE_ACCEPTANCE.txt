@@ -6,14 +6,17 @@ defines the requested product. Existing frozen archives are not automatically
 upgraded when source changes. No original client binaries/assets belong in Git.
 
 Current ordinary source candidate
-Path46 adds a pre-launch check for reproduced native save-path limits with a
-useful shorten-folder/config message. Native guards/limits unchanged.29 focused
-tests/full Python591 tests575pass/16skip pass. First clean46 archives/imports/
-native development host/component roundtrip and actual CMD menu pass. Full Try
-Deck movement/result/Continue/Quit passes but strict247char long-replay assertion
-fails;unsupported deep-folder retry exposes the fixed native1610 refusal. Keep
-both failures. Corrected clean archives/full four-mode regression remain open;
-see native-path-preflight.txt. No general-release/clean-PC/Internet claim.
+Path46 fixes reproduced native save-path refusal with useful preflight before
+game/IPC;native guards/limits unchanged.29 focused/full Python591 tests575pass/
+16skip pass. Corrected clean8d974fa archives pass actual19/36 imports,bundled
+refusal,ordinary CMD menu10.570s and all four packaged offline AI/results/Continue/
+natural Quit controls with262..308char saved native replays. Per-bot movement/
+public identity/configured human name,main+launcher0/empty non-terminated jobs
+pass;1v1 adds original codec/six malformed refusals/cleanup. Preserve initial
+strict247char/deep-folder failures. External opted-in adapter/native models are
+not seamless CMD mouse/pixel/all-server-state acceptance;readiness cleanup is
+forced,separate from natural Quit. See native-path-preflight.txt. Remaining
+release/owner40/SCM/clean-PC/Internet/telemetry/slow-startup gates stay open.
 Observation45 adds canonical source and a read-only retained-game checker only.
 Actual combined startup task/observer17.716s and full1200-frame AI/results/
 Continue/natural Quit158.364s pass main0/owner job0active/0terminated. Positive
@@ -309,6 +312,10 @@ Required before a general release
     with no server. Test configured but unavailable server and30-second queue AI
     fill,including partial humans,original search/timer/Cancel/loading UX,varied
     bot identities/decks and configured player name. Custom remains human-only.
+    Corrected clean46 passes bounded bundled native versions of all four offline
+    modes with production/movement/identity/result/Continue/Quit and long saves.
+    Actual ordinary CMD startup passes separately. Physical UX/Cancel/timer and
+    configured-unavailable/empty/populated server matrix remain required.
 [ ] Complete telemetry collection/storage/indirect callback/reporter/CEF child
     coverage and bounded network-capture checks on the final installed build.
     Current63 guards and the separate NGX guard are not a universal zero-traffic

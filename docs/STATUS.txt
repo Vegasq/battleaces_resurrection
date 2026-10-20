@@ -2,20 +2,24 @@ IMPLEMENTATION LEDGER
 Updated: 2026-10-20 UTC
 Active objective: implement SERVER_REPLACEMENT_PLAN.txt, Windows only.
 
-NATIVE PATH PREFLIGHT46 (2026-10-20 UTC, SOURCE FIX / PACKAGED MODES OPEN)
-Fresh clean c757c67 archives pass relocated imports/native development host/
-component roundtrip62.595s and actual ordinary CMD menu10.750s. Full Try Deck
-movement/result/Continue/natural Quit0 passes,but strict report FAILS because
-replay247chars did not exercise>260. Deep-folder retry exposes actual native
-backup refusal/game1610 before menu. New launcher preflight catches that known
-UTF-16 path limit before game/IPC,with a useful shorten-folder/config error;
-native safety/limits remain intact. Corrected long-replay test uses a valid48-char
-profile instead of an unsupported deep game folder. Owned03 restored byte-exact;
-manual35/frozen packages/recovery untouched.29 focused tests/full Python591 tests
-575pass/16skip pass;actual reproduced source preflight refuses before native
-launch/profile changes. No C++ rebuild/change. Clean corrected archives and all
-four packaged modes remain pending. See native-path-preflight.txt for retained
-failures,actual scope and remaining release gates.
+CORRECTED PACKAGED OFFLINE46 (2026-10-20 UTC, BOUNDED PASS / RELEASE OPEN)
+Real deep-folder native backup refusal/game1610 now has a useful launcher
+UTF-16 preflight before game/IPC. Native protection/limits stay intact. Retained
+247char replay fixture and deep-folder failures are not promoted. Corrected
+valid48char profile fixture and clean8d974fa archives pass bundled imports19/36,
+actual bundled refusal,and real ordinary CMD menu10.570s (forced readiness
+cleanup,separate from Quit). All four full packaged offline controls pass:
+Try Deck222.219s,1v1180.206s,2v2206.633s,2vAI218.287s;per-bot production/movement/
+public name-avatar/configured human name/original results/Continue/Quit,saved
+native262/263/308/307char replays,main+launcher0,job2 active0/terminated0,no forced
+cleanup.1v1/2v2 result before3600 cap without scripted Concede marker;other two
+use explicit diagnostic Concede.1v1 additionally passes original codec readback/
+six malformed refusals/disposals/exclusive reopens/same idle Quit. These use an
+external opted-in adapter,not physical/seamless CMD gameplay or all server states.
+29 focused/full Python591 tests575pass/16skip pass. No C++/recipe change;manual35/
+recovery/frozen previews preserved,owned03 restored. See native-path-preflight.txt
+for exact source/archive/report hashes. Full manual/cosmetic/queue/owner40/SCM/
+clean-PC/Internet/telemetry/slow-startup gates remain OPEN.
 
 GAME OBSERVATION45 (2026-10-20 UTC, BOUNDED NATIVE PASS / RELEASE OPEN)
 New canonical observer generator and read-only retained-record checker bind all
