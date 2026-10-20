@@ -3,6 +3,14 @@ Updated: 2026-10-20 UTC
 Delivery plan: REMAINING_DELIVERY_PLAN.txt, Windows only.
 Original roadmap: CLOSED / SUPERSEDED;see PLAN_CLOSEOUT.txt.
 
+DELIVERY CLOSURE CHECKLIST (2026-10-20 UTC, DOCUMENTATION ONLY)
+Remaining plan now explicitly checks off two D2 roster subcases and four D4
+loading/running recovery subcases already proved in57/59/60. No new execution
+or broader claim;all nine parent gates remain open. D1's finite physical LAN
+sequence is the first closure priority. Both prepared owner LAN setup and
+owner-console40 last-report.json are still absent at this review. D2-D4 need
+finite remaining-case inventories using existing evidence before further tests.
+
 PACKAGED LOADING RECOVERY60 (2026-10-20 UTC, TWO NATIVE PASSES / D4 OPEN)
 Unchanged current59 tool/packages53/helper51/ordinary owned58:two-human2vAI and
 partial2v2 lose victim during loading,next_frame0/loaded[]. PASS121.861s/180.867s.

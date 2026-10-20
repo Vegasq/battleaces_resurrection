@@ -46,6 +46,10 @@ Delivery order
 D1 first. Then close D2-D4 with a planned batch of real playtests and targeted
 defect fixes. D5/D6 can progress independently. D7 precedes final D8/D9 acceptance.
 Do not postpone the first real friend match for another unrelated diagnostic pass.
+Closure priority: finish D1's bounded physical sequence first. For D2-D4, list
+the finite remaining cases against retained evidence before launching more tests;
+each pass closes its named subcase, not the broader parent. D5-D8 retain their
+explicit independent gates; D9 closes only after those release gates pass.
 
 [ ] D1 - Complete the prepared two-PC LAN milestone
 Next action: normal desktop run of local/friends53-owner-setup01/
@@ -64,8 +68,10 @@ This does not close Internet, clean-machine or four-human acceptance.
 
 [ ] D2 - Finish the final mode, matchmaking and transition matrix
 Use the same selected candidate and record missing combinations explicitly.
-Scoped57 results in current-community-matches.txt now cover same-PC packaged
-four-human2v2 and three-human/one-bot2v2,with results/Continue/natural Quit.
+Completed subcases (same-PC packaged automated controls; not physical LAN):
+[x] Four-human2v2 through results/Continue/natural Quit (roster57 full-human01).
+[x] Three-human/one-bot2v2 with real30-second fill, results/Continue/natural Quit
+    (roster57 three-human03). See current-community-matches.txt for evidence.
 Reuse those controls;physical ordinary/LAN and remaining cases below stay open.
 - Try Deck,1v1,2v2,2vAI: no server/config/credentials; configured valid-credential
   server unreachable/refusing; reachable empty server; partial/full human rosters.
@@ -106,8 +112,13 @@ References: practice-difficulty.txt, menu-profile-binding.txt, cosmetic-unlock.t
 cosmetic-persistence.txt, cosmetic-community.txt and manual35's retained feedback.
 
 [ ] D4 - Close lifecycle, storage, replay and failure coverage
-Scoped59/60 controls in team-recovery.txt cover packaged two-human partial2v2
-and allied2vAI loading/running disconnect,replacement,Continue and natural Quit.
+Completed subcases (same-PC packaged automated controls; two human clients):
+[x] Partial2v2 running disconnect and same-process replacement (recovery59 03).
+[x] Allied2vAI running disconnect and same-process replacement (recovery59 01).
+[x] Partial2v2 zero-frame loading disconnect and replacement (recovery60 01).
+[x] Allied2vAI zero-frame loading disconnect and replacement (recovery60 01).
+All four include results/Continue/natural Quit and owned-resource cleanup;
+team-recovery.txt binds the exact reports, scope and injected-worker outcomes.
 Reuse those proofs;remaining full-human/other timings/physical/fault cases stay open.
 Current replay follow-up:D4-RP1 in replay-failure-recovery.txt. Healthy batch
 passes;malformed developer-batch noncompletion is retained. Review56 confirms
