@@ -3,6 +3,15 @@ Updated: 2026-10-20 UTC
 Supported input: Battle Aces build 37822, Windows x64.
 Recipe version: 4. Guards: 63. Complete-set runtime_validated: false.
 
+Observation52 adds one persistent actual REA script from pre-practice menu
+through1200-frame AI/results/Continue/original OnDestroy return.41provider rows
+equal complete journal,max heartbeat5005ms,natural main0/empty job/no force.
+New read-only persistent checker and native owner timing anchors pass;55tests
+54pass1skip/16actual retained rejection controls. It covers this sequence's
+inter-window gap,not startup-before-attach/full collection/network/descendants.
+Bot movement intersection is empty;no new movement claim. Full-set validation
+stays false. See telemetry-persistent-observation.txt. No product/recipe change.
+
 Observation45 adds bounded actual game startup and full1200-frame AI/results/
 Continue/original Quit with canonical observer source and retained-owner checker.
 Original OnDestroy entry/return,main0 and empty non-terminated owned jobs pass;

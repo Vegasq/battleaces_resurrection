@@ -2,6 +2,19 @@ IMPLEMENTATION LEDGER
 Updated: 2026-10-20 UTC
 Active objective: implement SERVER_REPLACEMENT_PLAN.txt, Windows only.
 
+PERSISTENT OBSERVATION52 (2026-10-20 UTC, BOUNDED NATIVE PASS / RELEASE OPEN)
+One actual persistent REA script covers pre-practice menu/1200-frame AI/results/
+Continue/original OnDestroy entry+return.157.484s/natural main0/empty owned job/
+no forced cleanup;41provider rows equal journal,max heartbeat gap5005ms. New
+read-only checker binds real persistent Evidence,source/session/nonce/guards,
+native gate-before-practice and owner callback/thread/match.55tests54pass1skip,
+16actual retained-record rejection controls and old45retained reviews pass.
+Preserve initial movement-scope failure and candidate02 clock-binding false pass;
+final03corrects both. Bot supply/actions observed but movement intersection empty;
+no fresh movement claim. No shipping helper/recipe/package change. Full telemetry/
+startup/descendant/network/physical/deployment gates stay open;see
+telemetry-persistent-observation.txt. Owner39 repeat PASS does not satisfy40.
+
 CUSTOM LEAVE51 (2026-10-20 UTC, CONTROLLED NATIVE PASS / RELEASE OPEN)
 Custom Leave diagnostic now reuses <=1000ms sharing32policy,strict owned/ordinary/
 empty-file checks intact.84source helper build and95Python checks94pass/1skip

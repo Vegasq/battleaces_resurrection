@@ -123,6 +123,14 @@ def window(capture, journal, raw_source, config, *, pid, quit_thread):
             'script errors or mismatched messages')
     rows = [m['payload'] for m in messages]
     require(len(journal) >= len(rows) and journal[:len(rows)] == rows, 'provider/journal prefix differs')
+    return dict(evidence=evidence['evidence_id'], provider_state=observed['state'],
+                **journal_summary(journal, rows, config, pid=pid, quit_thread=quit_thread))
+
+
+def journal_summary(journal, rows, config, *, pid, quit_thread):
+    """Validate canonical rows shared by real one-shot and persistent adapters."""
+    validate_config(config)
+    require(journal and rows and journal[:len(rows)] == rows, 'provider/journal prefix differs')
     expected = {f'{name}:{label}': dict(rva=rva, guard=guard)
                 for name, entries in ENTRIES.items() for rva, label, guard in entries}
     before, installed_before, elapsed, ready_at = {}, {}, -1, None
@@ -160,10 +168,10 @@ def window(capture, journal, raw_source, config, *, pid, quit_thread):
     positive = ([r['kind'] for r in lifecycle] == ['lifecycle-enter:RGameSingleton.OnDestroy', 'lifecycle-return:RGameSingleton.OnDestroy'] and
                 all(r['nativeReady'] and r['thread'] == quit_thread and
                     r['counts']['gameassembly.dll:RGameSingleton.OnDestroy'] == 1 for r in lifecycle))
-    return dict(evidence=evidence['evidence_id'], pid=pid, run_id=config['runId'],
+    return dict(pid=pid, run_id=config['runId'],
                 provider_rows=len(rows), journal_rows=len(journal), trailing_journal_rows=len(journal)-len(rows),
                 native_ready_ms=ready_at, last_provider_ms=rows[-1]['elapsedMs'], last_journal_ms=journal[-1]['elapsedMs'],
-                provider_state=observed['state'], original_destroy_return_observed=positive,
+                original_destroy_return_observed=positive,
                 native_entry_lower_bounds={k: rows[-1]['counts'][k] for k in expected})
 
 

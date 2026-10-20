@@ -5,6 +5,16 @@ release. STATUS.txt retains implementation history;SERVER_REPLACEMENT_PLAN.txt
 defines the requested product. Existing frozen archives are not automatically
 upgraded when source changes. No original client binaries/assets belong in Git.
 
+Bounded persistent analytics observation52
+One actual script covers pre-practice menu/1200-frame AI/results/Continue/original
+OnDestroy return:41provider rows equal journal,max heartbeat5005ms,natural main0/
+empty owned job/no forced cleanup. New read-only checker binds real persistent
+Evidence and owner/native timing/match;55tests54pass1skip/16actual rejection
+controls pass. Preserve/correct initial movement-scope and clock-binding checker
+issues. No new movement claim or product/helper/recipe/package change. Full
+collection/network/CEF/startup/physical/deployment gates remain OPEN;see
+telemetry-persistent-observation.txt. Owner39 repeat PASS is not active-match40.
+
 Current ordinary source candidate
 Custom Leave51 cleanf547003/helperf27311fe... adds the same opt-in <=1000ms32retry
 to the second diagnostic reader. Strict profile/file/empty checks stay.95tests

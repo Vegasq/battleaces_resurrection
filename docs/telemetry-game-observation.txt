@@ -1,5 +1,13 @@
 OWNED GAME OBSERVATION45 -- 2026-10-20
 
+Follow-up52 (2026-10-20):one persistent script now covers a separate actual
+pre-practice-menu/AI/results/Continue/OnDestroy-return sequence with41provider
+rows equal journal,max heartbeat5005ms,natural0/empty job/no force. New checker
+retains real persistent operation IDs;55tests54pass1skip/16actual rejection
+controls pass. This does not retroactively fill45's gaps or cover pre-attachment
+startup/all collection/network/descendants. No new movement claim;see
+telemetry-persistent-observation.txt. Historical45evidence below is unchanged.
+
 Outcome and remaining scope
 Actual owned native startup and a separate full1200-frame AI/result/Continue/
 original Quit run complete naturally0 with all14 reviewed hooks attached. Original

@@ -1,0 +1,119 @@
+PERSISTENT OWNED GAME OBSERVATION52 -- 2026-10-20
+
+Result and boundary
+One actual REA attachment and one canonical script remain observed from a
+pre-practice menu through1200-frame AI/results/Continue/original OnDestroy return.
+The owned native run passes157.4842473s,natural main0,job total1/active0/terminated0,
+no forced cleanup. This addresses the inter-window gaps in45 for THIS bounded
+practice sequence. It does not cover startup before attachment,all entry points,
+collection/storage/network,descendants,crash/error/retry or every game mode.
+RUNTIME_VALIDATED remains false. No shipping helper/recipe/launcher/package changed.
+
+Actual retained inputs
+Run:local/observation52-practice-stream01
+Owner:local/run-observation52-owned.py
+SHA2566909e409ce0bb539ad747617fe6fa64f482eb649937667b408528adf623aa69e
+Fresh isolated profile nativestest_frida52_ba1cd0d46b;owned native PID50524.
+Explicit diagnostics invoke original Try Deck callback,build,surrender after1200
+frames,Continue and menu Quit. These actions are never added to normal launchers.
+Current51 helper f27311feca0f999c02988a43298490a8b6f232ce7d6b12d28aa693b88df4e858
+uses build/helper-leave51-01/helper-build.json and84bound build sources.
+GameAssembly fd67ed32e434838118c669112f4b6c32522b26ad1b2877696555bbdda6bf1728
+UnityPlayer 3cca44b518abc803882c8d8ae0fff44e89c3f66f85ae9b1239e460ff14874e48
+Selected files,owner/observer sources,bound source map and shared TOML unchanged.
+The retained owner verifier supplies OS/job/settings/gameplay observations;
+the new checker reads those records,it does not repeat OS observation.
+
+REA sequence and real Evidence
+Local attach session86e7edba-9b6b-4585-927e-4a653dc7b76f,script
+211e6710-62d4-4eca-a4fe-26d64ad70bab. Actual start/close responses contain no
+Evidence ID;close reports target_state=unknown. Natural termination comes from
+the separate retained owner proof,not the close response.
+load_frida_script Evidence:
+ev_74877270f62dc3d20b78d009bda75f60bf7d2391ac9074173457ff1e22c16999
+Final frida_session_status Evidence:
+ev_5d47a49b4f639434ae8f1cf1caec34621a5f58baaab67761342a276ebf9f228e
+Six actual cumulative status records retain their own IDs in rea-statuses.json.
+Earlier snapshots are prefixes,not independent rows to concatenate. Final state
+is detached;all41provider rows equal all41complete journal rows,with no errors,
+truncation or trailing journal-only return. No script replacement/reload occurs.
+Source is the unchanged tools/frida_game_source.py canonical generator;observed
+script SHA97f344bfca57ca4d58c2d1441ca74de28b05c46502c4d4e8e6279cbb39cafe93.
+Fourteen reviewed native entries pass loaded-prefix/path/size checks. All are
+ready by script254ms;final provider row140968ms. Maximum heartbeat gap5005ms.
+Original OnDestroy entry/return both occur on original Quit thread31596,count1.
+Thirteen Unity-entry counters remain0. This is bounded silence,not proof their
+paths executed,no collection or no traffic. Selected exported API counters are
+also not packet/endpoint/descendant coverage. Prefixes are not full instructions;
+Frida performs relocation and adds nonzero overhead. Whole-file hashes are
+external on-disk samples,not loaded-memory hashes. Provider subject/environment
+are null;script-reported identities and retained owner evidence remain distinct.
+
+Native timing anchor
+The reviewed owner creates a fresh unique zero-byte Quit gate only after parsing
+journal nativeReady=true. Its120s escape records false and cannot pass. The game
+validates that ordinary gate and logs release before original practice starts.
+One same-PID native log establishes menu869370968 < ready gate869377734 < original
+practice callback869431203,then result869501515/Continue869510046.
+Practice requested matchfadbb03ebf7c87ed57f18a33866a6df9 equals the owner report.
+Original confirmation dispatch trace869516828 <= log marker869517687 <= original
+confirmation return869517687 <= owner exit observation869519015;threads match.
+The marker is AFTER pre-Quit field sampling,so equating it with dispatch is wrong.
+No subtraction between script Date.now elapsed and native GetTickCount64 clocks.
+This proves readiness during the pre-practice menu,not before initial menu arrival.
+
+Gameplay scope
+Owner records bot supply14,nine autonomous action records,result and Continue.
+Its produced-unit movement/order intersection is EMPTY. No new bot movement,
+mouse/pixel/rendering or player acceptance claim follows from this run. Existing
+manual35 acceptance and earlier movement evidence keep their original scope.
+
+Reusable read-only checker
+tools/verify_game_stream.py validates actual start/load/status/close formats;
+it does not manufacture instrument_with_frida Evidence. It binds PID/session/
+script/canonical source/nonce,observed Evidence,envelope equality,cumulative
+prefixes,complete final journal,guards/modules/counters/readiness,heartbeats
+with<=10000ms gap bound,original same-thread OnDestroy and retained owner proof.
+Native anchors bind to owner launch/confirmation/exit ticks,thread,mode and match.
+It hashes retained requests/responses,journal,owner/native reports/log and sources.
+The old one-shot adapter shares journal_summary;its evidence semantics stay intact.
+Reports always keep continuous_lifecycle_coverage=false and
+analytics_removal_qualified=false. single_script_ready_through_destroy is narrower.
+
+Command (fresh report path required):
+python -m tools.verify_game_stream --run local/observation52-practice-stream01
+ --owner-source local/run-observation52-owned.py
+ --report local/observation52-practice-stream-review03.json
+Final report SHA c9a1d978f23caad4acc6732c17e666c702d6e581318941008abe9f5012a2ffb4
+Native owner report SHA
+4cb0e155fd78985e86c83fe079c4b17d5fa83894c84460feb029d00ace1a5715
+Harness report SHA
+507b8a0af41c5e7226f049bbec3c725a21fee2ef117206e69b930bfd560400ba
+
+Failures and validation retained
+Initial checker accidentally required nonempty movement evidence and failed;
+local/observation52-review01-failure.json and the pre-scope source remain. The
+correction explicitly withholds movement qualification;it does not rerun or
+upgrade the native result. Independent read-only review then finds a real
+false-pass gap:shifting all anchor clocks still passed candidate02. Preserve
+local/observation52-checker-before-anchor-binding.py and review02. Final03 binds
+the anchors to owner callback/exit bounds and match as described above.
+Sixteen in-memory mutations of ACTUAL retained records now reject wrong remote/
+source/inferred/session/truncation/script/prefix/early-detach/close/readiness/
+guard/journal-only return and shifted-anchor/match/thread/mode inputs.
+local/observation52-actual-rejection-controls.json SHA
+4ad2723664283b59a895403d7a015af9bf4755b5875a0a7dae1cb17ea684b5e0
+Independent final read-only review also accepts41rows/5005ms and rejects the
+original shifted-clock control;no further specific false pass found in scope.
+Focused Python55tests:54pass/one explicit original-binary opt-in skip,exit0.
+local/observation52-verification-01.txt SHA
+d3933aa7e71f58920d7a744b7f2e5e8c41101bb874c2aadd962407559be54c84
+Retained45startup/practice reviews04 still pass1/3windows after shared validator
+extraction;these are read-only reevaluations,not fresh native executions.
+
+Next required evidence
+Full collection/storage/indirect callbacks/reporters/CEF children/network and
+startup-before-attachment,error/cache/crash/retry/full-mode qualification remain
+open. The intermittent slow startup remains unexplained. REA MCP still lacks
+GHIDRA_INSTALL_DIR;the earlier scoped CLI had a Java child-process EPERM,so no
+unchanged retry/config/ACL modification or Ghidra decompilation is claimed here.

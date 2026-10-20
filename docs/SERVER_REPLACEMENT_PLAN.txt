@@ -4,6 +4,15 @@ Target: Battle Aces build 37822, Windows x64 server and clients.
 Status: IMPLEMENTATION ACTIVE. See STATUS.txt; incomplete phases remain future work.
 
 Current release integration order (2026-10-20)
+- Persistent observation52 replaces the45practice inter-window gaps with one
+  actual script from pre-practice menu through original OnDestroy return:
+  41provider/journal rows,max heartbeat5005ms,157.484s/natural0/empty job/no force.
+  New read-only checker/55tests54pass1skip/16actual rejection controls bind real
+  persistent Evidence and owner timing/match;initial clock-binding false pass
+  retained/corrected. No fresh movement/no-analytics claim or product change.
+  NEXT:full collection/storage/reporters/CEF/process-network/startup coverage,
+  plus remaining protected/physical/deployment gates. See
+  telemetry-persistent-observation.txt;RUNTIME_VALIDATED remains false.
 - Custom Leave51 completes the second bounded diagnostic reader with same strict
   flags/profile/file guards.95tests94pass1skip and actual brief-writer two-round
   Custom/result/Continue/Leave/Quit pass191.710s/all exits0/empty jobs/no force.
