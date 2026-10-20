@@ -1,4 +1,54 @@
-CLIENT STARTUP TIMING (updated 2026-10-19)
+CLIENT STARTUP TIMING (updated 2026-10-20)
+
+2026-10-20 reproduction44 and separate task-diagnostic control
+Owned native idle01 with two bounded REA observer windows reproduces original
+RGameInit:Start225.163s,total238.832s. Last retained startup progress before the
+long wait is Completed Localization Initialization;which task/pump/continuation
+was pending is UNKNOWN. This is no evidence of a network timeout or Frida cause.
+Do not bypass barriers,invent a cause,or inflate ordinary product timeouts.
+Exact two-window evidence and gaps are in telemetry-observation.txt.
+
+AFTER that owned game/job terminated normally,installed existing16-site startup
+diagnostic on owned03 with existing helper42;no rebuild/native source change.
+Helper receipt matches all82 sources;all16 exports exist. Independent in-memory
+review of15E8+1E9 sites/thunks agrees with historical diagnostic GameAssembly:
+f7d44daa146c2d75dc330a533092737e346a68784613ebe5ae3d9c171a98abe5
+Read-only review local/telemetry44-startup-review/seal.json:
+cbeb5a62e91edb7eb441647f21eea9a0294223044dc7b809b2a6286f0e091682
+
+Actual local/startup-tasks44-native01,PID9952,nativestest_startup44_01:
+tools.verify_native_quit --default-recipe --startup-tasks-audit --mode confirm
+--visible --timeout300,helper-telemetry42-01 receipt. No Frida attached. Original
+Start6.851s,diagnostic interval6.844s,63rows/50tasks final status5/53->0 roots/
+7 selected original pump pairs. Same Unity/Quit thread37056,natural main0,
+1.328s after original confirm,total17.999947s,no forced cleanup;bound sources
+and read-only shared settings unchanged. Strict existing startup validator PASS.
+These are instrumentation/fast-startup findings,not a fix or slow-cause result.
+
+verification.json SHA256:
+0c5c3fc679ae73606d405bfacd6153502f4034863222828d18ea6e5c5cef5134
+native.log:
+58ff1cd4157f89068a95cefbaec9b88b121f7753ab69389144597b731d77b208
+game.log:
+740007fd5c6a2b3e490ea6bc9a824d8569c073690099f22119461491f9ea16ff
+local/startup-tasks44-install.json:
+30ab0baa733392eec79a5f5c672c74ed6955c1bfd45732388613416f9528e87b
+local/startup-tasks44-ordinary-restored.json:
+162bd8fa539bbcd8bc404e22f80c20b8d71170c8d2cd94f3ce73e1d662d1b119
+
+Restored ordinary recipe AFTER diagnostic terminal natural exit. GameAssembly
+fd67ed32e434838118c669112f4b6c32522b26ad1b2877696555bbdda6bf1728
+UnityPlayer3cca44b518abc803882c8d8ae0fff44e89c3f66f85ae9b1239e460ff14874e48
+Helper183f1e726ee32c235a572006ad64f70750db381a80b566f21358bffed97895bd
+Ordinary launchers/manual35/frozen packages/shared settings remain unchanged.
+
+Next diagnostic requirements:begin sampling only at original PreMenu seam;
+earlier waits are unobserved. Index49 is only first12-task WhenAll.240s helper
+deadline begins at PreMenu,needs eligible original callback to release,and is
+not an independent watchdog. Use explicit300s owned harness limit,not default
+180s. On stalled/deadline/fault runs retain raw native/game logs as FAILED
+diagnostic evidence;strict structured startup evidence requires startup_ready
+and completed tasks. Do not force-complete/cancel tasks to produce a pass.
 
 2026-10-19 passive original task/pump diagnostic38 (INSTRUMENTATION PASS)
 The intermittent long initialization remains OPEN. Three observed startups are

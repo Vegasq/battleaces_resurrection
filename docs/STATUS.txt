@@ -2,6 +2,23 @@ IMPLEMENTATION LEDGER
 Updated: 2026-10-20 UTC
 Active objective: implement SERVER_REPLACEMENT_PLAN.txt, Windows only.
 
+OWNED GAME OBSERVATION44 (2026-10-20 UTC, BOUNDED OBSERVATION / STARTUP OPEN)
+REA actually attaches all13 reviewed Unity entries plus original OnDestroy in
+two windows of one owned native game. Late window observes original OnDestroy
+entry AND return on original Quit thread37164;natural process0/job1 active0/
+terminated0,no forced cleanup. Initialization225.163s reproduces the long wait;
+cause remains unknown. Initial and late windows have an explicit observation
+gap;zero entry counters do not establish traffic absence or analytics removal.
+Provider initial final-state is running,late detached;not continuous coverage.
+Read-only retained-journal review binds messages/source/guards/modules/thread.
+A separate existing startup-task diagnostic WITHOUT Frida is fast:6.851s game
+initialization,50 completed tasks,53->0 roots,7 original pump pairs,natural Quit0
+in18.000s total. It does not diagnose the225s wait. Ordinary owned03 restored
+byte-exact;no shipping/helper/recipe/package change. Full-game/process/network/
+cached/error/crash/CEF and owner40 gates stay OPEN. Owner39 repeat PASS reconfirmed
+by user. Details and exact retained hashes:telemetry-observation.txt and
+client-startup.txt. Source-only documentation update;no binary/capture in Git.
+
 REA OBSERVATION43 (2026-10-20 UTC, CONTROL PASS / GAME COVERAGE OPEN)
 Authored source preparation and strict REA single-call checker now qualify an
 actual localhost connect/send/recv positive control,independent PID/nonce4/2-byte

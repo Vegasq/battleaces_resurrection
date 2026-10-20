@@ -1,5 +1,11 @@
 WINDOWS SERVER CONSOLE LAUNCHER -- 2026-10-19
 
+2026-10-20 operator follow-up: user reports repeat owner-console39 PASS.
+Existing last-report.json remains passed=true,stage=complete,development_loopback
+false,forced_cleanup=false. This confirms the bounded protected TLS/idle-console
+qualification described below. The separate owner-console40 ACTIVE-match check
+has no report yet;39 PASS must not be substituted for that acceptance gate.
+
 Problem and ordinary entry point
 An actual packaged Start Server.cmd starts the production host/native health
 successfully,but Ctrl+C leaves CMD waiting for "Terminate batch job (Y/N)?".

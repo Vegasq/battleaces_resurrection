@@ -176,3 +176,95 @@ descendants,GameAssembly reporters,cached/error/crash/functional stores and real
 bounded process-attributed packet/file capture separately. Positive socket-hook
 functionality alone cannot close any of those gates. Protected active-match40,
 graphical/manual/SCM/clean-PC/cross-PC/Internet release gates remain OPEN.
+
+2026-10-20 actual owned-game observation44 (BOUNDED; FULL COVERAGE OPEN)
+This advances the previous43 static-only native candidates. No shipping source,
+helper,recipe or package changed. Ignored prototype local/run-telemetry44-owned.py
+SHA99627c9eed54dd36be7cc926404392b3935c5f8fd3f4d96df9da6c1f03e443af
+uses the43 template plus14 native guards,counters and original OnDestroy return
+observation. It never calls a game function or changes arguments/return values;
+Interceptor does patch entry code and adds observer timing/retention overhead.
+Read-only native static review seal local/telemetry44-entry-review/seal.json:
+4190b6c91651d7cade78c48c4bfa4b529bc0f9c0206797fa5580765062437c5f
+
+Original/current OnDestroy body3de4820..3de4a25 identical:
+dbb9936f64b900607ff24639c986f0b7844b09a6d0fd99e594b4e5ff2ba08776
+Entry guard48895c2408574883ec20803dd5550703 is16 bytes,not a complete stolen
+instruction block. RIP-relative instruction extends through byte17;Frida owns
+relocation. No optional native disposal hook was installed. Do not extrapolate
+this attach result to a hand-authored trampoline or other entry/ABI.
+
+One owned game local/telemetry-client03,PID44432,profile
+nativestest_frida44_11fc08fb1a;owned job assigned BEFORE request publication.
+Original native Quit verifier uses default recipe/helper42/telemetry read-only
+samples/visible960x540/no captures/no device probe,explicit300s limit and owned
+Quit gate. No automatic action added to ordinary launchers. Final original
+five-event Quit trace/thread37164,main exit0 in0.891s after original confirmation,
+total238.831688s;job total1/active0/terminated0,no forced cleanup. All bound source,
+selected installed modules and shared settings unchanged. Original startup
+225.163s is slow;cause is UNKNOWN,not established as Frida/network/asset-cache.
+
+Retained local/telemetry44-native-idle01/native/verification.json SHA256:
+4eeced34524c9461d20d525336b8062fb1111e66de2b4bb123981360f9778b65
+harness-verification.json:
+03427fd78b538c9c029dce4e6338a9d9fb4d0d413fd61523294874d5098d2633
+Harness passed only qualifies ownership/native Quit/source/input invariants;
+it alone does NOT require a positive observer callback/full coverage. Do not
+promote that Boolean into game-hook or analytics-removal acceptance.
+
+Initial30s window,REA Evidence
+ev_a6c5caccad172c430828dc25b827008d58079a54855d7d2c48f72a63619a761b
+run d8b9ae16668aae703e0d1f15fd58369a.16 emitted rows,all14 native hooks ready8ms,
+last emitted30015ms. No original OnDestroy positive in this startup window.
+Provider final state is running,NOT detached;later game exit is independently
+observed by the owner. Script10fd37a70d51147ef1d8f96136aedeedd650614daae6861a8ed77e5b0376dbe6
+journal e3f8c7e472217cea0da334b8975b4fe6cf6a3148a7f8f8ed550e6cc691daebc5.
+
+Segment02 request108906ms was REJECTED at input validation:duration_ms maximum
+60000. It never attached/executed a script;not a runtime/permission failure or
+zero-observation result. Retain segment02/rea-evidence.json. Subsequent attach
+uses SAME still-live PID confirmed by read-only SYNCHRONIZE,not a relaunched game.
+
+Late60s requested window,REA Evidence
+ev_0b1e5969394525214fb49d422f84757c205bf94a0734a7f66d49d56bd747f663
+run3d0db06df02294dc8d1b58abcea80dd3;attach request prepared215.672s after launch.
+17 emitted rows,all14 native hooks ready34ms,last emitted22592ms;provider detached
+without cleanup error. One original OnDestroy enter AND return on thread37164,
+same original native Quit thread. Reattach also observes the expected restored
+14 entry prefixes;this does not prove complete memory restoration. Other13
+Unity-entry counters are0 in these windows;no counter argument/payload is read.
+No script errors/truncation. Source/matched journal/REA capture hashes:
+segment03/observer.js
+8b5ca2ae2ac697ef8dea40aa7e3a0d8244d3f7eba63437017a45a00f5f0a0218
+segment03/events.jsonl
+aa14dcc33e8b8812c4c91573bcf13bfab6c3c2d0e20710253b5a4f6e8975c5ff
+segment03/rea-evidence.json
+53c08fd4811c178b67295eaf0af16600412f6ec0fe6a1f99aacf873779d92819
+
+Separate read-only retained-journal review local/audit-observation44.py checks
+actual provider messages equal flushed journal,PID/run/sequence/time/counter
+monotonicity,stable installed offsets/guards,all14 reviewed guards/readiness,
+loaded module paths/sizes,exact source SHA,positive enter/return/original thread,
+source/settings/native0/job boundaries. This is a bespoke review of immutable
+run44,NOT a generic qualified game instrumenter/checker or new target execution.
+Review source afa5844747bf93dd81215504b5c987be50f75351e95f3abb613c1253023aef4a
+local/telemetry44-journal-review.json:
+62cbe02e665e08212b3cd2a80f4c2b64cd254d0a549c7027a6e37d8d9911c4af
+
+Coverage has gaps BEFORE first attach,BETWEEN windows,and AFTER last emitted
+row. No claim continuous startup-to-exit capture,complete final counters,packet
+absence,full loaded-file hash,CEF/descendant observation or analytics removal.
+Provider subject/environment still null;module path/size/prefix come from script,
+whole on-disk hashes from external owner. No cached/error/crash/functional-store
+proof. Original OnDestroy positive proves these hooks can execute/return in this
+owned run,not that silent Unity paths were exercised or no collection occurred.
+
+Separate startup-task run WITHOUT Frida is fast6.851s,all50 tasks completed,
+roots53->0,natural Quit0;ordinary03 restored after terminal diagnostic. See
+client-startup.txt for exact evidence/limits. Next slow run needs concurrent task
+and bounded entry observations. Future practice must retain the original1200
+frames and explicit segmented<=60000ms windows/gaps;the prototype's optional
+practice request180000ms is invalid and MUST be corrected in a fresh candidate
+before use. Do not mutate this source/evidence binding or shorten the match to
+fit capture. Full native lifecycle/process/network/cache/error/crash/CEF/manual/
+protected active-match40/SCM/clean-PC/Internet release gates remain OPEN.

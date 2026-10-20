@@ -6,6 +6,14 @@ defines the requested product. Existing frozen archives are not automatically
 upgraded when source changes. No original client binaries/assets belong in Git.
 
 Current ordinary source candidate
+Observation44 adds bounded actual owned-game evidence only. Original OnDestroy
+entry/return and natural Quit0 are observed;initial/late attach windows have gaps
+and do not qualify full-lifecycle/descendant/network absence. Initialization
+225.163s reproduces a real delay;separate startup-task run without Frida6.851s
+does not explain it. All50tasks complete,53roots release,original Quit0,ordinary
+owned03 restored exactly. No shipping/helper/recipe/package change. Exact scope
+and hashes are in telemetry-observation.txt/client-startup.txt. Remaining gates
+stay open;owner39 repeat PASS is not protected active-match40 acceptance.
 Telemetry43 adds diagnostic preparation/checking tools only. Actual REA localhost
 socket-hook positive control and PID/nonce receipt pass;provider/request/session/
 source/readiness/monotonicity/cleanup validation and34 focused tests pass. This

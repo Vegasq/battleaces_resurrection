@@ -4,6 +4,17 @@ Target: Battle Aces build 37822, Windows x64 server and clients.
 Status: IMPLEMENTATION ACTIVE. See STATUS.txt; incomplete phases remain future work.
 
 Current release integration order (2026-10-20)
+- Observation44 reaches actual owned-game hooks and original OnDestroy return,
+  same original Quit thread,natural0 and empty non-terminated job. Two separate
+  windows leave gaps;do not promote zero counters to no analytics/network proof.
+  Startup225.163s is reproduced but unexplained. Subsequent opt-in startup-task
+  run without Frida is fast6.851s/all50completed/roots released/natural Quit0.
+  Next slow run needs simultaneous task/pump observation and bounded entry
+  windows,not a startup barrier bypass or ordinary timeout increase. Keep REA
+  one-shot requests<=60000ms;retain failed over-limit request without retrying
+  it as a target result. Ordinary03 restored,manual35/frozen packages unchanged.
+  See telemetry-observation.txt/client-startup.txt. Protected active-match40 and
+  all graphical/clean-PC/Internet/full telemetry release gates remain required.
 - Telemetry43 qualifies the reusable single-call REA socket-hook POSITIVE CONTROL
   only:actual localhost connect/send/recv plus PID/nonce-bound exchange,strict
   canonical provider/request/source/session/readiness validation and34 focused
