@@ -106,6 +106,9 @@ References: practice-difficulty.txt, menu-profile-binding.txt, cosmetic-unlock.t
 cosmetic-persistence.txt, cosmetic-community.txt and manual35's retained feedback.
 
 [ ] D4 - Close lifecycle, storage, replay and failure coverage
+Scoped59 controls in team-recovery.txt now cover packaged two-human partial2v2
+and allied2vAI running disconnect/replacement/results/Continue/natural Quit.
+Reuse those proofs;remaining loading/full-human/physical/fault cases stay open.
 Current replay follow-up:D4-RP1 in replay-failure-recovery.txt. Healthy batch
 passes;malformed developer-batch noncompletion is retained. Review56 confirms
 ordinary entry does not select that diagnostic,and Stop clears current state.

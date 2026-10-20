@@ -3,6 +3,21 @@ Updated: 2026-10-20 UTC
 Delivery plan: REMAINING_DELIVERY_PLAN.txt, Windows only.
 Original roadmap: CLOSED / SUPERSEDED;see PLAN_CLOSEOUT.txt.
 
+PACKAGED TEAM RECOVERY59 (2026-10-20 UTC, TWO RUNNING-LOSS PASSES / D4 OPEN)
+Unchanged53/helper51 on independent owned58 copy:two-human partial2v2 and allied
+2vAI disconnect after builds/frame600,release old worlds/worker,then complete a
+replacement in the SAME native clients. PASS212.668s/155.650s,no forced cleanup.
+Initial604/603 exact receipts with62 common native samples each;final1221/1250
+receipts with124/126 common samples. Names/decks/full loadouts/native replay roles/
+result/Continue/original Quit/game+launcher0 pass. Survivor session retained;
+victim alone reauthenticates. All jobs9/2/2 empty/non-terminated;old2v2 worker's
+exact audited CancelledError1 is expected/reaped,other workers0. External-only
+diagnostic gains mode/seat/victim guards,bounded append status journal and exact
+validated recording selection. Failed01 publication/02 wrong-replay proof remain
+failed.41focused tests pass;new journals receive separate source/schema/token
+review and future.jsonl token-scan coverage. No production/package/normal-launcher
+change. See team-recovery.txt. D1 physical LAN and remaining release gates open.
+
 STARTUP TIMELINE58 (2026-10-20 UTC, CURRENT INSTRUMENTATION PASS / D6 OPEN)
 One three-process task/pump batch on a fresh independent owned copy qualifies
 existing16 diagnostic sites with unchanged helper51. Each50tasks complete and

@@ -3,11 +3,20 @@ import hashlib
 import unittest
 import zlib
 from server.protobuf_wire import field_bytes,field_uint
-from tools.packaged_network_evidence import validate,validate_loading_recovery,validate_running_recovery,validate_replays,validate_worker_shutdown,validate_native_selections,validate_bot_fill
+from tools.packaged_network_evidence import validate,validate_loading_recovery,validate_running_recovery,validate_replays,validate_worker_shutdown,validate_native_selections,validate_bot_fill,recording_from_proof
 from tools import packaged_network_drivers as drivers
 
 
 class PackagedNetworkEvidenceTests(unittest.TestCase):
+    def test_recording_selection_binds_validated_bytes_not_directory_order(self):
+        aborted,completed=b'authored aborted bytes',b'authored completed bytes'
+        proof=dict(bytes=len(completed),sha256=hashlib.sha256(completed).hexdigest())
+        for files in ([aborted,completed],[completed,aborted]):
+            self.assertEqual(recording_from_proof(files,proof),completed)
+        for files in ([aborted],[completed,completed],[completed+b'changed']):
+            with self.subTest(files=files),self.assertRaises(AssertionError):recording_from_proof(files,proof)
+        with self.assertRaises(AssertionError):recording_from_proof([completed],proof|dict(bytes=len(completed)-1))
+
     def fixture(self):
         match='a'*32
         events=[dict(event='public_queue_entered',profile='human'+str(index),perf_counter_ns=t)
@@ -237,7 +246,7 @@ class PackagedNetworkEvidenceTests(unittest.TestCase):
             if event['event']=='public_queue_entered':event['ticket']=2
             if event['event']=='match_created':event['perf_counter_ns']=50
         events=[dict(event='public_queue_entered',ticket=1),dict(event='public_queue_entered',ticket=1),
-                dict(event='public_match_offered',match=old),dict(event='match_created',match=old),
+                dict(event='public_match_offered',match=old),dict(event='match_created',match=old,mode=1,participants=2),
                 dict(event='match_aborted',match=old),dict(event='worker_released',match=old,worker_pid=50,perf_counter_ns=20)]+events
         victim=('RECOVERY SMOKE invoking original disconnected modal OnConfirm\nDedicated Reconnect callback queued:\n'
                 'RECOVERY SMOKE original OnConfirm returned; modalStillOwned=1 queued=1\n'
@@ -250,10 +259,12 @@ class PackagedNetworkEvidenceTests(unittest.TestCase):
         for index,row in enumerate(clients):
             row['log']=row['log'].replace('ticket=1','ticket=2').replace('generation=1','generation=2')+'Public search intent: ticket=2\n'
             if index==0:row['log']+='Loading notice dismissed: identity=public-error:1 reason=public search restarted\n'
-            row['initial_log']=('Public search intent: ticket=1\nPublic native match joined: ticket=1\nClient world acquired: generation=1\n'+
+            row['initial_log']=(f'Public match assignment: ticket=1 match={old} mode=1 count=2 seat={index} humans=3 \n'
+                                'Public search intent: ticket=1\nPublic native match joined: ticket=1\nClient world acquired: generation=1\n'+
                                 (victim if index==0 else survivor)+'PUBLIC QUEUE SMOKE waiting for retry gate: fixture\n')
             row['initial_receipts']=[];row['full_log']=row['initial_log']+row['log']
-        fault=dict(stage='loading',room_state='loading',next_frame=0,loaded=[],match=old,worker_pid=50)
+        fault=dict(stage='loading',room_state='loading',next_frame=0,loaded=[],peer_seats=[0,1],
+                   victim='human0',victim_seat=0,match=old,worker_pid=50)
         return events,clients,fault
 
     def test_loading_abort_and_replacement_keep_separate_tickets(self):
@@ -303,13 +314,37 @@ class PackagedNetworkEvidenceTests(unittest.TestCase):
         events += [dict(event='frame_queued',match=old,frame=f,frame_payload_sha256=f'{f:064x}') for f in range(after_frame+20)]
         events += [dict(event='native_snapshot',match=old,frame=f,viewer=s,canonical_fnv1a64=f'{f:016x}') for f in range(0,after_frame+1,20) for s in (0,1)]
         for seat,row in enumerate(clients):
-            build=(f'Public match assignment: ticket=1 match={old} mode=1 count=2 seat={seat} humans=3 \n'
-                   f'LAN NORMAL BUILD smoke frame{300+100*seat} slot{seat} queued=1 commandQueueDelta=1\n') if after_frame>=600 else ''
+            build=(f'LAN NORMAL BUILD smoke frame{300+100*seat} slot{seat} queued=1 commandQueueDelta=1\n') if after_frame>=600 else ''
             row['initial_log']='Offline world ready; native fixture\n'+build+row['initial_log']
             row['full_log']=row['initial_log']+row['log']
             row['initial_receipts']=[dict(frame=str(f),sha256=f'{f:064x}',pid=str(row['pid']),match=old) for f in range(after_frame+1)]
             row['initial_audit']=[dict(frame=str(f),viewer=str(seat),canonical_fnv1a64=f'{f:016x}') for f in range(0,after_frame+1,20)]
         return events,clients,fault
+
+    def test_running_team_recovery_keeps_mode_alliance_and_exact_fault_identity(self):
+        for mode,seats in ((2,[0,1]),(5,[0,2])):
+            events,clients,fault=self.running_fixture(600)
+            fault.update(peer_seats=seats,loaded=seats)
+            for event in events:
+                if event['event']=='match_created':event.update(mode=mode,participants=4)
+            for index,row in enumerate(clients):
+                row['initial_log']=(row['initial_log'].replace('mode=1 count=2',f'mode={mode} count=4')
+                    .replace('humans=3',f'humans={sum(1<<seat for seat in seats)}')
+                    .replace(f'seat={index}',f'seat={seats[index]}').replace(f'slot{index}',f'slot{seats[index]}')
+                    .replace(f'frame{300+100*index}',f'frame{300+100*seats[index]}'))
+                row['full_log']=row['initial_log']+row['log']
+            proof=validate_running_recovery(events,clients,fault=fault,mode=mode)
+            self.assertEqual([value['native_build_frame'] for value in proof['aborted_clients']],
+                             [300+100*seat for seat in seats])
+            for changed in (fault|dict(victim='human1'),fault|dict(victim_seat=seats[1]),
+                            fault|dict(peer_seats=[1,3])):
+                with self.subTest(mode=mode,fault=changed),self.assertRaises(AssertionError):
+                    validate_running_recovery(events,clients,fault=changed,mode=mode)
+            wrong=copy.deepcopy(events)
+            next(event for event in wrong if event['event']=='match_created')['mode']=1
+            with self.assertRaises(AssertionError):validate_running_recovery(wrong,clients,fault=fault,mode=mode)
+            wrong=copy.deepcopy(clients);wrong[1]['initial_log']=wrong[1]['initial_log'].replace('count=4','count=2')
+            with self.assertRaises(AssertionError):validate_running_recovery(events,wrong,fault=fault,mode=mode)
 
     def test_later_running_fault_requires_both_original_builds(self):
         events,clients,fault=self.running_fixture(600)

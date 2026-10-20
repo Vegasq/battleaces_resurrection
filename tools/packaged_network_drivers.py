@@ -38,7 +38,10 @@ finally:(output/'server-command-check.json').write_text(json.dumps(report,indent
 raise SystemExit(0 if report['passed'] else 1)
 '''
 
-SERVER=r'''
+SNAPSHOT_MAX_BYTES=4*1024*1024
+SNAPSHOT_MAX_ROW_BYTES=65536
+
+SERVER=f'SNAPSHOT_MAX_BYTES={SNAPSHOT_MAX_BYTES}\nSNAPSHOT_MAX_ROW_BYTES={SNAPSHOT_MAX_ROW_BYTES}\n'+r'''
 import asyncio,hashlib,json,secrets,socket,sys,time,traceback
 from pathlib import Path
 from server import host,worker_client
@@ -50,8 +53,17 @@ fixture=json.loads(sys.stdin.buffer.read(16385));assert len(fixture['identities'
 assert not request.get('recover_stage') or len(fixture['identities'])==2
 real_credentials=bool(request.get('real_credentials'))
 verify(package,'server');report=dict(passed=False,production_modules={},fixture_store=not real_credentials,workers=[],frozen_matches=[],custom_commands=[])
-workers=[];servers=[];authenticated=[];stores=[];old_sessions={}
+workers=[];servers=[];authenticated=[];stores=[];old_sessions={};snapshot_sequence=0
 def publish(name,value):
+    global snapshot_sequence
+    if name=='server-live.jsonl':
+        snapshot_sequence+=1
+        raw=(json.dumps(dict(sequence=snapshot_sequence,snapshot=value),separators=(',',':'))+'\n').encode('ascii')
+        assert len(raw)<=SNAPSHOT_MAX_ROW_BYTES,'diagnostic snapshot row exceeds bound'
+        with (output/name).open('ab') as stream:
+            assert stream.tell()+len(raw)<=SNAPSHOT_MAX_BYTES,'diagnostic snapshot journal exceeds bound'
+            assert stream.write(raw)==len(raw)
+        return
     temporary=output/(name+'.tmp');temporary.write_text(json.dumps(value,indent=2)+'\n');temporary.replace(output/name)
 class MemoryStore:
     def __init__(self,path):
@@ -133,7 +145,7 @@ async def run():
         while not (output/'server-stop').exists():
             if running.done():await running;raise AssertionError('host ended before explicit stop')
             assert time.monotonic()-began<request['timeout'],'owned host deadline'
-            if ready:inject_disconnect();publish('server-live.json',view())
+            if ready:inject_disconnect();publish('server-live.jsonl',view())
             await asyncio.sleep(.1)
     finally:
         running.cancel()

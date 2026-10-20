@@ -1,9 +1,17 @@
 """Native public-match evidence for a bundled host and independently launched clients."""
+import hashlib
 import re
 
 
 def require(value,message):
     if not value:raise AssertionError(message)
+
+
+def recording_from_proof(files,proof):
+    """Select exact already-validated bytes;directory order does not identify a match."""
+    matches=[raw for raw in files if len(raw)==proof['bytes'] and hashlib.sha256(raw).hexdigest()==proof['sha256']]
+    require(len(matches)==1,'validated native recording is missing or duplicated')
+    return matches[0]
 
 
 def native_queue_timing(log,*,full,ticket=1):
@@ -173,12 +181,12 @@ def validate_bot_fill(events,frozen,worker_ai,replay,*,bot_seats):
     return dict(bots=result,scope='Native worker assignments,recorded AI commands and host supply;not independent bot movement or pixels.')
 
 
-def validate_loading_recovery(events,clients,*,fault):
-    return _validate_recovery(events,clients,fault=fault,stage='loading')
+def validate_loading_recovery(events,clients,*,fault,mode=1):
+    return _validate_recovery(events,clients,fault=fault,stage='loading',mode=mode)
 
 
-def validate_running_recovery(events,clients,*,fault):
-    return _validate_recovery(events,clients,fault=fault,stage='running')
+def validate_running_recovery(events,clients,*,fault,mode=1):
+    return _validate_recovery(events,clients,fault=fault,stage='running',mode=mode)
 
 
 def validate_worker_shutdown(workers,events,*,fault=None):
@@ -197,7 +205,14 @@ def validate_worker_shutdown(workers,events,*,fault=None):
     return result
 
 
-def _validate_recovery(events,clients,*,fault,stage):
+def _validate_recovery(events,clients,*,fault,stage,mode):
+    from server.public_protocol import MODES
+    require(mode in MODES and len(clients)==2 and
+            len({row['player'] for row in clients})==len({row['pid'] for row in clients})==2,
+            'two independent native recovery clients required')
+    total,seats=MODES[mode];human_seats=seats[:2]
+    require(fault['peer_seats']==list(human_seats) and fault['victim']==clients[0]['player'],
+            'recovery fault changed its human seats or disconnected identity')
     require(fault['stage']==fault['room_state']==stage,'fault occurred in the wrong match stage')
     if stage=='loading':
         require(fault['next_frame']==0 and fault['loaded']==[],'fault did not occur before loading finished/frames began')
@@ -209,6 +224,8 @@ def _validate_recovery(events,clients,*,fault,stage):
     aborted=[e for e in events if e['event']=='match_aborted'];completed=[e for e in events if e['event']=='match_completed']
     require(len(created)==2 and len(aborted)==len(completed)==1 and created[0]['match']==aborted[0]['match']==old and
             created[1]['match']==completed[0]['match']!=old,'expected one aborted match and one distinct completed replacement')
+    require(all(event.get('mode')==mode and event.get('participants')==total for event in created),
+            'recovery changed the public mode or participant topology')
     frames=[e for e in events if e['event']=='frame_queued' and e.get('match')==old]
     if stage=='loading':require(not frames,'loading abort advanced authoritative simulation')
     else:
@@ -220,8 +237,16 @@ def _validate_recovery(events,clients,*,fault,stage):
     released=[e for e in events if e['event']=='worker_released' and e.get('match')==old]
     require(len(released)==1 and released[0]['worker_pid']==fault['worker_pid'] and
             released[0]['perf_counter_ns']<created[1]['perf_counter_ns'],'replacement began before the old worker released')
+    assignments=[]
     for index,row in enumerate(clients):
         log=row['initial_log'].replace('\r','');whole=row['full_log'].replace('\r','')
+        assigned=re.findall(r'Public match assignment: ticket=1 match=([0-9a-f]{32}) mode=(\d+) count=(\d+) seat=(\d+) humans=(\d+) ',log)
+        require(len(assigned)==1,'initial native recovery assignment missing/duplicated')
+        key,assigned_mode,count,seat,mask=assigned[0];seat=int(seat);assignments.append(seat)
+        require(key==old and int(assigned_mode)==mode and int(count)==total and seat in human_seats and
+                int(mask)==sum(1<<value for value in human_seats),
+                'initial native recovery human/alliance topology differs')
+        if index==0:require(fault['victim_seat']==seat,'recovery fault disconnected a different native seat')
         if stage=='loading':require(not row['initial_receipts'],'aborted loading match delivered authoritative frames')
         else:
             receipt=row['initial_receipts'];hashes={e['frame']:e['frame_payload_sha256'] for e in frames}
@@ -263,6 +288,7 @@ def _validate_recovery(events,clients,*,fault,stage):
             require(f'Public native return: ticket=1 match={old} aborted=1 nativeIdle=1' in log and
                     whole.count('PUBLIC QUEUE completed return:')==2 and 'Dedicated Reconnect callback queued:' not in whole,
                     'survivor failed authoritative abort or reconnected unnecessarily')
+    require(sorted(assignments)==list(human_seats),'recovery duplicated or lost a native human seat')
     result=dict(aborted_match=old,replacement_match=completed[0]['match'],aborted_authoritative_frames=len(frames),
                 retired_worker_pid=fault['worker_pid'],native_worlds_per_client=2,same_native_processes=True)
     if stage=='running':result['aborted_clients']=prefix_proofs

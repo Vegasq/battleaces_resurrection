@@ -30,7 +30,7 @@ from tests.test_tls_transport import generate_test_pki,remove_test_pki
 from tools.package_integrity import verify
 from tools import packaged_network_drivers as drivers
 from tools import packaged_custom_evidence as custom_evidence
-from tools.packaged_network_evidence import validate,validate_loading_recovery,validate_running_recovery,validate_replays,validate_worker_shutdown,validate_native_selections,validate_bot_fill
+from tools.packaged_network_evidence import validate,validate_loading_recovery,validate_running_recovery,validate_replays,validate_worker_shutdown,validate_native_selections,validate_bot_fill,recording_from_proof
 from tools.run_secure_match import read_native_log
 from tools.verify_packaged_play import job_accounting
 from tools import verify_native_quit as quit_probe
@@ -63,6 +63,22 @@ def publish_empty_gate(path):
     pending=path.with_name(path.name+'.pending')
     with pending.open('xb'):pass
     pending.rename(path)
+
+
+def read_live_snapshot(path):
+    """Read the last complete bounded status record;never replace an open file."""
+    path=Path(path).resolve()
+    require(path.is_relative_to(ROOT/'local') and path.name=='server-live.jsonl',
+            'owned diagnostic snapshot journal required')
+    with path.open('rb') as stream:raw=stream.read(drivers.SNAPSHOT_MAX_BYTES+1)
+    require(len(raw)<=drivers.SNAPSHOT_MAX_BYTES,'diagnostic snapshot journal exceeds bound')
+    end=raw.rfind(b'\n');require(end>=0,'diagnostic snapshot has no complete record')
+    line=raw[raw.rfind(b'\n',0,end)+1:end]
+    require(0<len(line)+1<=drivers.SNAPSHOT_MAX_ROW_BYTES,'diagnostic snapshot row exceeds bound')
+    record=json.loads(line)
+    require(isinstance(record,dict) and type(record.get('sequence')) is int and record['sequence']>0 and
+            isinstance(record.get('snapshot'),dict),'invalid diagnostic snapshot record')
+    return record['snapshot']
 
 
 def quit_readiness(live,*,custom=False):
@@ -136,7 +152,7 @@ def run(args):
     require(os.name=='nt' and 120<=args.timeout<=600 and args.mode in (1,2,5),'bounded supported Windows match required')
     require(args.humans in (1,2,3,4) and (args.humans<=2 or args.mode==2),'three or four humans require public2v2')
     require(not args.real_credentials or args.humans in (2,4),'protected enrollment diagnostic supports two or four humans')
-    require(not recovering or args.mode==1 and args.humans==2,'packaged recovery control requires two full-human1v1 attempts')
+    require(not recovering or args.humans==2,'packaged recovery control requires two human clients')
     require(not args.custom_rematch or args.mode==1 and args.humans==2 and not recovering,'Custom rematch requires two humans and no public fault injection')
     require(all(p.is_relative_to(ROOT/'local') for p in (packages,game,assets,output)),'owned ignored paths required')
     server_package=packages/'battleaces-server-win64';client_package=packages/'battleaces-client-win64'
@@ -257,7 +273,7 @@ def run(args):
                     command=server_output/'server-disconnect.tmp';command.write_text(json.dumps(dict(player=identities[0]['player_id']))+'\n');command.rename(server_output/'server-disconnect.json')
                     fault_requested=True
             if recovering and fault_requested and not retry_released and all('PUBLIC QUEUE SMOKE waiting for retry gate: key='+gate in row.get('log','') for row in records):
-                live=json.loads((server_output/'server-live.json').read_bytes())
+                live=read_live_snapshot(server_output/'server-live.jsonl')
                 if all(live.get(key)==0 for key in ('rooms','retired','entries','offers','cleanup')):
                     require((server_output/'server-fault.json').exists() and live['sessions']==1,'old room/session cleanup was not complete before retry')
                     report['fault']=json.loads((server_output/'server-fault.json').read_bytes())
@@ -270,7 +286,7 @@ def run(args):
                 ready=(all('COMMUNITY MATCH SMOKE passed: two native Start/result/Continue cycles;' in row.get('log','') for row in records)
                        if leave_stage==0 else 'COMMUNITY MATCH SMOKE post-match leave passed: role=guest' in records[1].get('log',''))
                 if leave_stage<2 and ready:
-                    live=json.loads((server_output/'server-live.json').read_bytes());lobbies=live.get('lobbies',[])
+                    live=read_live_snapshot(server_output/'server-live.jsonl');lobbies=live.get('lobbies',[])
                     expected=sorted(row['player'] for row in records) if leave_stage==0 else [records[0]['player']]
                     if all(live.get(key)==0 for key in ('rooms','retired','entries','offers','cleanup')) and len(lobbies)==1 and lobbies[0]['members']==expected:
                         from server.community_protocol import OPEN
@@ -283,7 +299,7 @@ def run(args):
                           if recovering else all('PUBLIC QUEUE completed return:' in row.get('log','') for row in records))
             if not quit_released and returned:
                 if quit_readiness_began is None:quit_readiness_began=time.monotonic()
-                live=json.loads((server_output/'server-live.json').read_bytes())
+                live=read_live_snapshot(server_output/'server-live.jsonl')
                 ready=quit_readiness(live,custom=args.custom_rematch)
                 if args.custom_rematch:
                     elapsed=time.monotonic()-quit_readiness_began
@@ -349,7 +365,7 @@ def run(args):
         selected=events
         if recovering:
             validator=validate_running_recovery if args.recover_running else validate_loading_recovery
-            report['recovery']=validator(events,records,fault=report['fault'])
+            report['recovery']=validator(events,records,fault=report['fault'],mode=args.mode)
             selected=[e for e in events if e.get('match')==final['match'] or e['event']=='public_queue_entered' and e.get('ticket')==2]
         if args.custom_rematch:
             report['custom']=custom_evidence.validate(events,records,frozen=frozen,commands=server_report['custom_commands'])
@@ -360,7 +376,7 @@ def run(args):
             require(final['full_loadout_seats']==report['match']['human_seats'],'bundled native clients lost complete human loadouts')
             if report['match']['bot_seats']:
                 report['bot_fill']=validate_bot_fill(events,final,server_report['workers'][-1]['ai'],
-                    replay_bytes[0],bot_seats=report['match']['bot_seats'])
+                    recording_from_proof(replay_bytes,records[-1]['replay']),bot_seats=report['match']['bot_seats'])
         for row in records:
             human=[value for value in final['humans'].values() if value['profile']==row['player']]
             require(len(human)==1 and human[0]['name']==row['name'],'configured name lost in authoritative native roster')
@@ -414,7 +430,7 @@ def run(args):
         report['shared_channels_unchanged']=report['shared_before']==report['shared_after'];report['source_files_unchanged']=report['source_sha256_at_start']==report['source_sha256_at_finish']
         # Check actual public evidence files for accidental fixture-token disclosure.
         report['fixture_tokens_not_logged']=not any(identity['token'].encode() in path.read_bytes() for identity in identities for child in children
-            for path in child.output.iterdir() if path.is_file() and path.suffix in ('.txt','.json','.log'))
+            for path in child.output.iterdir() if path.is_file() and path.suffix in ('.txt','.json','.jsonl','.log'))
         if owner:
             public=list((data/'logs').glob('events.jsonl*'))
             report['real_tokens_not_logged']=report['fixture_tokens_not_logged'] and not any(

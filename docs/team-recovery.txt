@@ -1,5 +1,6 @@
 PUBLIC TEAM DISCONNECT RECOVERY
-Updated:2026-10-19 UTC. Automated graphical clients on one Windows PC.
+Updated:2026-10-20 UTC. Automated graphical clients on one Windows PC.
+Current packaged running-loss controls59 are recorded at the end of this file.
 
 Implementation and evidence boundary
 tools.verify_public_clients now accepts explicit --disconnect loading|running.
@@ -173,3 +174,104 @@ session objects. Workers18740/14352 both exit0 without failure/stderr. All world
 tickets, offers, rooms, workers, processes and both gates release; covered source
 hashes remain unchanged. This adds the loading timing branch and a victim on the
 other alliance; additional partial/team-bot retry rosters remain unqualified.
+
+CURRENT PACKAGED TEAM RECOVERY59 -- 2026-10-20
+Scoped current control:unchanged clean53 archives/helper51/ordinary recipe4 and
+imported53 assets. Independent owned startup58 game copy;LAN03/manual35/recovery
+and normal launchers are untouched. Actual bundled production host/client/
+resolver/TLS/bridge/native workers use explicit stdin identity/MemoryStore
+fixtures. These are same-PC scripted native controls,not protected enrollment,
+physical CMD/controls/pixels,another PC,Internet or normal-account deployment.
+No production/server protocol/native helper or archive changes for this step.
+
+The external packaged diagnostic now accepts two-human recovery in modes1/2/5.
+Recovery checks bind both initial assignments to the requested total/mode/human
+mask/seat set and exact authenticated victim. Both aborted and replacement
+match_created events must keep that topology. Every native build precedes the
+frame600 disconnect;receipt/state prefixes,old-worker release,one deferred victim
+modal callback,one survivor abort/RETURN and two distinct worlds/matches remain
+required. The survivor keeps its session;only the victim authenticates again.
+Original names/selected decks/full loadouts and separate native aborted/completed
+replays survive. No committed match becomes an independent local AI world.
+
+Retained failures and diagnostic corrections
+partial2v2-running01 fails70.3996703s because the EXTERNAL server adapter's
+temporary->server-live.json replacement raises WinError5. Host teardown and
+owned forced cleanup follow;this is not a completed recovery or natural Quit.
+local/recovery59-partial2v2-running01/verification.json SHA256
+33bbe43d9de7a682b5dcb58d8c0c20dc87bb41c70d59a8c3a6157ec07f5a8465
+A delete-sharing reader candidate also fails the held-reader replacement control
+in focused-tests02:37tests/one error. It is discarded,not an access/ACL workaround.
+Current diagnostics append server-live.jsonl instead. Bound4MiB journal/64KiB row,
+complete newline records and a positive sequence are required. Readers ignore an
+unfinished tail but reject a malformed completed record. Tests execute the ACTUAL
+external publisher with a real reader held open,partial writes,corruption and
+size caps;no access-denied retry,permission change or production-host IO change.
+Custom lobby/members/phase/epoch also round-trip;Quit remains blocked until drain.
+
+partial2v2-running02 completes abort/replacement/Continue/natural Quit but its
+overall report stays FAILED211.9717589s:bot proof wrongly chooses files[0],which
+is the old aborted replay in this folder. Both recordings are valid and distinct.
+Current recording_from_proof selects exact bytes/length/SHA from the completed
+role already established by validate_replays;missing/changed/duplicate recordings
+are refused and enumeration order never identifies a match. Failed02 is not
+promoted or overwritten;fresh03 below qualifies the corrected final diagnostic.
+local/recovery59-partial2v2-running02/verification.json SHA256
+14f3d7032b5c14708c52dc56643980750850a8be9b54ff904fab62abe3bbbdff
+
+Actual two-human partial2v2,running disconnect+replacement,PASS
+local/recovery59-partial2v2-running03 passes212.6675909s. Human seats0/1,server
+bots2/3. Victim seat0 closes at next_frame604 after each human receives604 exact
+authoritative frames/62 common observable-state samples and builds at300/400.
+The same native PIDs50980/31260 complete the replacement:1221 exact receipts/
+124 common state samples per client. Replacement native offer30032ms each,
+authoritative ages30028/30024ms. Both bot profiles59 issue258/68 recorded commands
+and reach12/25 native supply. Original result/Continue/five-event menu Quit and
+each game/launcher exit0 pass. Health/final workers exit0;the injected old worker
+20588 exits1 with its exact audited CancelledError/release and is reaped. This is
+expected failed-worker disposal,not a normal worker exit or unexplained crash.
+Report SHA256
+4ba936d0999a74fc792ace83b39580f03aa86b064041176daf1b8e12821c3dc5
+
+Actual allied two-human2vAI,running disconnect+replacement,PASS
+local/recovery59-allied2vai-running01 passes155.6498696s. Human allies0/2,bot
+opponents1/3. Victim seat0 closes at next_frame603 after603 exact receipts/
+62 common state samples per client and native builds300/500. Same native PIDs
+33772/21288 complete the replacement:1250 exact receipts/126 common state samples
+each. Native immediate offers234ms;authoritative ages155/148ms. Bot profiles60
+issue38/27 recorded commands and reach28/15 supply. Results/Continue/original
+five-event Quit/game+launcher0 pass;all three native workers exit0/reap.
+Report SHA256
+88c144e5ddc9bb8a4dfe320ede7a370e27f2ae569c42700faab7fb2c5ef477a9
+
+Both successes keep the survivor's exact session and replace the victim's:TLS
+connections2/1;old worker releases before replacement creation. Each has jobs
+9/2/2 total,all active0/terminated0 BEFORE close,no forced cleanup. The original
+host closes its listener/releases state lock;all workers reap. Successful runs
+preserve package/assets/config/adapter/bound source/shared native channels and
+remove ephemeral PKI. Surrender diagnostics bound completed matches;no naturally
+played victory,independent bot movement or full hidden-state determinism claim.
+
+Final41focused tests pass/0skips/0.427s. Includes mode/alliance/victim topology,
+frame/build/replay role/refusal,real append sharing and Custom snapshot checks.
+local/recovery59-focused-tests07.txt SHA256
+089dc3cb0d8ff0d705e0462119aab7684241e70adf491a438481b89ce1a73d41
+All earlier test/native failures remain retained,not added to passing counts.
+
+Post-run source/log review
+The ONLY controller change after both successful native runs adds.jsonl to its
+existing exact fixture-token output scan. Retained tested controller SHA256
+07a7b96a4fac0d6308433e3f4d57faa6ef806ec3fa69a7589facd4c7996ec6ee.
+Read-only review proves that exact one-literal extension,all other bound sources
+unchanged,successful jobs/exits/TLS ownership,and every new journal row. Journals
+contain only the expected public integer counters/empty lobby lists,contiguous
+sequences and no ba1_ prefix. The captured fixture constructor gives every token
+that literal prefix;the new journals therefore contain no full plaintext test
+token. This supplements the original covered-format scan;no new native run is
+claimed by the review or final suffix extension. Original reports stay unchanged.
+local/recovery59-retained-review.json SHA256
+b60c3b525b9fb84b5a1fad37c0f56de80d9dafd44392313ac89604b3a4cbc7c2
+Journals are1897rows/215151bytes and1371rows/155187bytes respectively,well below
+their caps. Raw captures/private outputs stay ignored;only authored source/docs
+enter Git. D4 remains open for remaining loading/full-human/other loss timings,
+storage/replay faults and physical recovery;D1 LAN and all release gates remain.
