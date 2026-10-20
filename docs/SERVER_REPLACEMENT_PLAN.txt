@@ -4,6 +4,15 @@ Target: Battle Aces build 37822, Windows x64 server and clients.
 Status: IMPLEMENTATION ACTIVE. See STATUS.txt; incomplete phases remain future work.
 
 Current release integration order (2026-10-19)
+- Telemetry42 adds two exact guarded inner configuration append false returns
+  while preserving drain/state progression/payload cleanup. Current recipe4/63
+  guards pass byte/upgrade/restore/reapply and bounded startup/practice/Continue/
+  natural main Quit plus no-telemetry control;full regression passes. No active
+  old-recipe bypass was demonstrated and no unsafe inner probe was attempted.
+  Older reports require explicit recipe3;no archive is silently upgraded. See
+  telemetry-internal-config.txt. Internal hardware/constructor/indirect routes,
+  full collection/network/cache/error/crash/CEF/descendant release gates stay
+  OPEN;RUNTIME_VALIDATED remains false. Preserve manual35/owner40 prepared check.
 - Telemetry41 closes bounded device-entry and pre-original-Quit evidence gaps:
   one fully guarded no-argument device API returns false with unchanged sampled
   config,while final read-only fields precede same-thread original confirmation.

@@ -6,6 +6,15 @@ defines the requested product. Existing frozen archives are not automatically
 upgraded when source changes. No original client binaries/assets belong in Git.
 
 Current ordinary source candidate
+Telemetry42's recipe4 adds two internal config append false-return guards,63
+total. Exact original bytes/installer roundtrip/current loaded signatures and
+bounded idle/practice/Continue/natural main Quit/no-telemetry control pass;full
+Python565 tests549pass/16skip and all11 C++ programs/six atomic boundaries pass.
+New inner entries are not actively probed,no active recipe3 bypass was shown,
+and hardware/earlier constructors/indirect/network/full-mode gates remain OPEN.
+RUNTIME_VALIDATED stays false. See telemetry-internal-config.txt;older reports
+and packages retain their exact versions. Owner39 PASS confirms existing bounded
+protected idle-console evidence;the separate protected active-match40 is pending.
 Telemetry41 adds explicit owned diagnostics,not a new ordinary game flow. One
 guarded device API call/unchanged sampled config and read-only pre-original-Quit
 fields pass through idle and practice/result/Continue/natural main-process exit.

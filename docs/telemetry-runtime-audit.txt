@@ -1,8 +1,13 @@
 NATIVE UNITY TELEMETRY AUDIT
 Updated: 2026-10-18 UTC
 
+Current42 update (2026-10-19):observer now recognizes complete recipe4 groups
+3/14/3;verifier defaults to4 and reads older3 only when explicitly selected.
+New bounded current-helper native evidence is in telemetry-internal-config.txt.
+Historical evidence below retains its exact recipe/build and is not promoted.
+
 Status: the earlier observer was built, installed and exercised with recipe2's
-59 telemetry guards in run p2-telemetry02. The current observer recognizes recipe3
+59 telemetry guards in run p2-telemetry02. The earlier observer recognized recipe3
 and uses transition-aware scheduling. Its p2-telemetry04 runtime passes the strict
 two-match stage/field checks after a retained deadline-limited failed run. This is
 an opt-in observation tool, not a patch group or complete

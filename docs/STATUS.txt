@@ -2,6 +2,22 @@ IMPLEMENTATION LEDGER
 Updated: 2026-10-19 UTC
 Active objective: implement SERVER_REPLACEMENT_PLAN.txt, Windows only.
 
+INTERNAL CONFIGURATION42 (2026-10-19 UTC, BOUNDED PASS)
+Recipe4 adds two reviewed native configuration append false-return guards before
+collection/serialization:63 total,loaded Unity groups3/14/3. Drain/state/payload
+cleanup and generic serializers remain intact. No active recipe3 bypass was
+demonstrated;internal hardware/earlier constructor/indirect/network paths remain
+OPEN and RUNTIME_VALIDATED stays false. Upgrade/all-three pristine restore/reapply,
+six-byte+checksum delta and actual legacy-log rejection controls pass. Native
+idle18.222s,practice/result/Continue102.131s and no-telemetry control17.090s all
+reach original Quit/natural main0 without forced main cleanup. New inner entries
+are not actively probed;movement intersection empty,not movement proof. Full
+Python565 tests549pass/16skip100.180s;all11 C++ programs/six atomic boundaries pass.
+Owned03 now uses helper42;manual35/frozen packages preserved. Exact contracts,
+retained reviewer correction and evidence in telemetry-internal-config.txt.
+Owner39 repeat PASS is confirmed by its existing public protected TLS/idle report;
+it does not close the separate active-match40 owner gate,which remains pending.
+
 TELEMETRY DEVICE / PRE-QUIT41 (2026-10-19 UTC, BOUNDED NATIVE PASS)
 Complete recipe3 now has a guarded no-argument device-info API probe in an owned
 initialized menu,plus a separate read-only pre-original-Quit-confirm sample.

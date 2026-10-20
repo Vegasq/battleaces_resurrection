@@ -1,0 +1,151 @@
+INTERNAL CONFIGURATION CONTAINMENT42 -- 2026-10-19
+
+Current scope
+Recipe4 has63 exact-build guards:GameAssembly42,UnityPlayer20,chrome_elf1.
+Two additional native configuration append entries return false before local
+collection/serialization. Static original-byte/caller review,exact installer
+upgrade/restore/reapply,loaded guards and bounded native compatibility pass.
+This does NOT demonstrate an active recipe3 bypass or complete analytics removal.
+Known automatic routes are downstream of existing startup suppression;sampled
+constructor defaults remain disabled. Indirect dispatch closure,hardware and
+earlier constructor collection,cache/error/crash/CEF/process/network/full-mode
+qualification remain OPEN. RUNTIME_VALIDATED stays false.
+
+Reviewed original contract
+Original UnityPlayer SHA256:
+ac144d56d53f07904d52ed27a1539de90bc3290038fe52d73d2f6b268c85d6bc
+Addresses below are RVAs,image base180000000. REA-guided independent read-only
+reviews used original-byte LLVM disassembly/unwind/reference evidence. The Ghidra
+provider was still unconfigured;no provider retry or invented REA Evidence IDs.
+No original API was activated by these reviews. Legacy retained slices live at
+../investigation/dedicated/telemetry-evidence relative to this REPOSITORY root,
+not under repository/investigation. New evidence is ignored local/ below.
+
+c392c0..c39c46 (file offsetc386c0):boolean config-event append. RCX is main,
+RDX a native string,R8 an optional representation invoking an unclassified
+callback,R9D an option,and a fifth stack string. Public QueueConfig contains the
+one verified direct caller at1fd530. The entry obtains time/session,serializes
+and appends a40-byte string to main+1470,increments+1480,cleans its local
+temporaries,then returns ALtrue. Public caller preserves AL through its own
+temporary cleanup;an existing no-main route returns false. Entry31c0c3 bypasses
+all these operations without skipping caller cleanup. Safe meaningful public
+QueueConfig inputs remain unknown;do not guess null/pointer representations.
+
+c2e240..c2e5a0 (file offsetc2d640):boolean config-payload append. RCX main,RDX
+borrowed caller-owned polymorphic payload. It allocates an append slot,writes
+time/session at payload+38/+40,serializes via c65160,cleans local strings,and
+returns ALtrue. Direct callers are public1fda92 (within1fda50) and internalc3021e
+(withinc300f0). Public caller DOES consume AL:TEST1fda97/JNE1fda99,true marker
+main+1490=1 at1fdb13;false path cleans/returns false. Internal caller overwrites
+EAX atc30223 and ignores AL. Both retain their payload cleanup on entryfalse.
+One initial review said neither caller consumed AL;original-byte recheck caught
+it. Initial findings/seal remain retained,and corrected findings/current seal plus
+correction42.json explicitly record the correction. Do not cite the old claim.
+
+Internalc300f0 checks/clears dirty main+1621,uses+15c1/+15c2 and virtualf0,and
+constructs/appends the payload BEFORE testing main+e10/state3 for virtualb0
+drain. Its known callers arec2f790,c300d0,c307c0. Secondary object at main+1498
+can mark dirty+1621;constructor zeros word+1620. This motivates lower containment
+if such a route executes;it is not evidence that a patched running client did so.
+
+Preserve c3a680..c3b1e7:virtualb0 in three constructor-installed vtables. It adds
+content,concatenates the queue,releases/resets storage via155710,advances marker
+1->2,sets request state/body and schedules a callback or continues directly.
+RET would skip release/state progress. Likewise preserve generic154920/155710/
+c65160 and payload constructorc49110. No broad serializer/lifecycle hook added.
+
+Separate unresolved hardware route:c49dc0 has public1fda85 and internalc490e6
+callers. Worker/state2->3 and virtual dispatch can reachc3b990,c300d0,c3c5d0,
+c40840,c48fa0,c49dc0. Existing Start suppression blocks a reviewed registration
+route,but indirect/worker completeness remains unproved. c49110 already gathers
+OS version through dynamically resolved RtlGetVersion BEFOREc49dc0. Guarding
+only that collector would miss earlier collection;returning from the constructor
+would leave fields that caller cleanup expects uninitialized. Neither is patched.
+
+main+e68 is NOT a safe borrowed payload for an active inner-entry probe. c33530
+constructs native strings there;c40840 passes this cache separately from its
+constructed stack payload. c2e240/c65160 need payload vtable serializer+8. Using
+the cache could dispatch string data as code. No guessed inner positive probe,
+collecting constructor,unpatched API control or other new activation is performed.
+
+Retained static evidence
+local/telemetry-config-review42/evidence.json (109 verified unwind slices):
+ee46b7141df40ca31ed8e218912c4ccc2885a90cef760011395ad47d58215dcd
+Corrected findings.txt:
+e836c17b0eff14a3dac82af778decd07f39820d86f3b92c71b5bae2d9356b966
+correction42.json:
+7e4a6f8890a7a56add7c94401052268e58fd939436bd36b4df69801e2f9c79b4
+seal.json (current):
+72a7ebd3d639cbfe218eb6fa70bf28dff1244df73af036a737e26e7d67814e83
+local/telemetry-collector-review42/report.txt:
+63d0a3118aabd51f117bea49a7278ac8529fe6778ed850984b9c659df8a24be4
+manifest.json:
+07efcb186d1c75ecb53439664bde6d44d93aa37093b52eb191cb3d786d8d1ecc
+payload-followup.txt:
+5a83b1846aaa49d78ac5e220529c2a9ba67e21ce9ec66d68553527389e2dd589
+payload-followup-manifest.json:
+ceed0cac292e3d70f7698675c34b85c2fcebf731d7c694ed386840deb994804e
+Instruction-bound direct E8/E9,exact VA64 and limited RIP MOV/LEA scans are
+bounded reference evidence,not proof that computed indirect calls do not exist.
+
+Implementation and verification
+telemetry.py increments recipe3->4 and adds only two three-byte false returns.
+telemetry_audit.cpp recognizes both and requires complete3/14/3 loaded/disk
+guard groups before the existing PUBLIC no-argument device probe. It does not
+call the new inner entries. verify_telemetry_audit defaults to current4;old3 is
+accepted only with explicit recipe_version=3/--recipe-version3. Prior samples
+cannot qualify current guards. Unknown/type-coerced versions and partial groups
+fail. Existing retained objects/field sampler/pre-Quit budget remain unchanged.
+
+Original-enabled patch tests17/17 pass1.251s,including every original full hash/
+guard and all unrelated bytes. Focused60 tests59pass/1 optional skip. Full Python
+565 tests549pass/16skip100.180s,exit0. Build passes all11 C++ programs and six
+atomic interruption boundaries. Local logs telemetry42-original-tests01.txt,
+telemetry42-python-tests01.txt,telemetry42-build01.txt.
+
+build/helper-telemetry42-01/BattleAcesOffline.dll SHA256:
+183f1e726ee32c235a572006ad64f70750db381a80b566f21358bffed97895bd
+helper-build.json SHA256:
+e3f56c4124b84699a2ec934595bc712b8cbd21792fa9a6dda154868ee832a7fe
+Installed owned03 UnityPlayer:
+3cca44b518abc803882c8d8ae0fff44e89c3f66f85ae9b1239e460ff14874e48
+GameAssembly/CEF unchanged from41. No optional startup/Quit site patches.
+
+local/telemetry42-roundtrip01/verification.json:
+7d7e80b653008517df3d37d6200e1fca2e84f044495461e8982a5e542b70f2cc
+Actual existingrecipe3->4 upgrade,all three exact pristine restores,and recipe4
+reapply produce identical hashes. Read-only recovery copy unchanged. No restored
+unpatched game is launched. local/telemetry42-recipe-delta01.json:
+cfe59f7d207778f8a6c9812ba9437e7b6215304a44f583cb4b66f28b1b16858f
+In-memory rollback of only six new guard bytes plus parsed PE checksum recovers
+the exact prior recipe3 hash9e814074e71939b15b1b6d36b5753f797c68b75d536a50a863f535b9252d7f22.
+No reconstructed derivative DLL is written. Actual retained41 log negative
+control rejects current4/accepts explicit3;telemetry42-legacy-rejection01.json:
+e269311ef83c24a897edc4101361d62c66a2a6c51c32cb1df4214c836daced95
+
+Native compatibility (actual current helper/recipe)
+local/telemetry42-native-idle01/verification.json:
+364ceebaa79234f06c8b83d77557bbb49dbe478d803effb7e08ae8185143f2db
+Idle18.222s,PID9592,three complete startup/menu/pre-confirm samples,original
+five-event Quit,main natural0 in1.125s after dispatch;no forced main cleanup.
+local/telemetry42-native-practice01/verification.json:
+60ea89b32dfbc1023eb8cb269a6cfd2125f794090b8745461661b0f69c173a53
+Practice102.131s,PID46796,eight complete samples including ingame/result/Continue/
+menu/pre-confirm. Original five-event Quit,natural main0 in1.438s,no forced main
+cleanup. Bot supply14/nine autonomous records;movement/order/position-change
+intersection EMPTY,so this run is not promoted to movement proof.
+Both verify current complete guards/normalized hash,one existing guarded PUBLIC
+device call returning false/unchanged sampled config,on original Quit thread;
+source/shared settings unchanged. New inner APIs were NOT actively invoked.
+No all-descendants or network-absence claim is inferred from main-process exit.
+
+Same-helper no-telemetry-flags control17.090s,PID13304,natural main0 in1.125s,
+no forced main cleanup,original five-event Quit,source/shared unchanged.
+local/telemetry42-native-ordinary01/verification.json:
+21f387c07e080f17595e1d89c15a83386d44ab48c7b4c9a01a9fca3647e497cf
+Separate no-telemetry-control.json:
+054df3c0fd68248d107cb387029c389d7dde902ecb2f1688491d3e7febca0287
+It checks exact helper,absent telemetry flags/markers. Owned Quit smoke is still
+explicitly enabled;ordinary player entry never automatically quits or plays.
+Frozen manual35/older packages preserved. Current clean package evidence will
+be recorded separately;source compatibility does not upgrade older archives.

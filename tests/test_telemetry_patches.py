@@ -96,13 +96,13 @@ class TelemetryPatchSafetyTests(unittest.TestCase):
 
     def test_only_reviewed_recipes_are_present(self):
         self.assertFalse(RUNTIME_VALIDATED)
-        self.assertEqual(RECIPE_VERSION, 3)
+        self.assertEqual(RECIPE_VERSION, 4)
         self.assertEqual(len(COMPONENTS["GameAssembly.dll"].patches), 42)
         self.assertEqual({p.rva for p in COMPONENTS["UnityPlayer.dll"].patches},
                          {0xC90C2A, 0x80366F, 0xC93D10, 0xD84EC6, 0xD84E3E,
                           0x292110, 0xC8C5F3, 0xC66C20, 0xC2F570, 0xC333DA,
                           0x2078B0, 0xC2F3FC, 0x207A60, 0xC381D0, 0xC37400,
-                          0xC33440, 0x1FD3A0, 0x1FDA50})
+                          0xC33440, 0x1FD3A0, 0x1FDA50, 0xC392C0, 0xC2E240})
         self.assertEqual(len(COMPONENTS), 3)
         self.assertEqual([p.rva for p in COMPONENTS[CEF_COMPONENT_PATH].patches], [0x323A0])
         for name, component in COMPONENTS.items():
@@ -117,6 +117,16 @@ class TelemetryPatchSafetyTests(unittest.TestCase):
                 self.assertLessEqual(len(patch.replacement), len(patch.guard))
                 self.assertGreaterEqual(patch.offset, end)
                 end = patch.offset + len(patch.guard)
+
+    def test_internal_append_guards_preserve_drain_and_payload_lifecycle(self):
+        patches={p.rva:p for p in COMPONENTS['UnityPlayer.dll'].patches}
+        for rva in (0xc392c0,0xc2e240):
+            self.assertEqual(patches[rva].replacement,b'\x31\xc0\xc3')
+        # Do not solve collection by skipping release/state progress or by
+        # returning from a constructor whose initialized fields callers destroy.
+        for first,last in ((0xc3a680,0xc3b1e7),(0xc49110,0xc49dc0)):
+            self.assertFalse(any(first<=rva<last for rva in patches))
+        for shared in (0x154920,0x155710,0xc65160):self.assertNotIn(shared,patches)
 
     def test_registration_skips_keep_existing_branch_destinations(self):
         patches = {p.rva: p for p in COMPONENTS["UnityPlayer.dll"].patches}

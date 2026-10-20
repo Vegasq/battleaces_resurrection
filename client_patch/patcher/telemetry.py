@@ -1,6 +1,6 @@
 """Exact-build telemetry patch transformations; no file or process operations.
 
-These 61 recipes have static source/control-flow review. The complete recipe
+These 63 recipes have static source/control-flow review. The complete recipe
 set has not been runtime validated; recipe2's 59 had a bounded compatibility run.
 They do not establish complete telemetry removal; see docs/telemetry.txt.
 Only brief patch safety signatures are included, never original game payloads.
@@ -10,12 +10,13 @@ import hashlib
 from types import MappingProxyType
 
 GAME_BUILD = 37822
-RECIPE_VERSION = 3
+RECIPE_VERSION = 4
 RUNTIME_VALIDATED = False
 VALIDATION_STATUS = "Static review and original-byte validation only"
 UNRESOLVED_COMPONENTS = (
     "Native Unity indirect callback consumers and independent reporter entry points",
     "Explicit configuration/device-info guard runtime qualification",
+    "Internal hardware collection/constructor paths and indirect configuration callers",
     "Deferred/cached delivery and error-path process/network qualification",
     "CEF descendant initialization and analytics in remote web content",
 )
@@ -182,6 +183,14 @@ COMPONENTS = MappingProxyType({
                   bytes.fromhex('4055535657415441554157488d6c24f0'), bytes.fromhex('31c0c3')),
             Patch('RemoteConfigSettings SendDeviceInfo returns false before collection', 0x1fda50, 0x1fce50,
                   bytes.fromhex('40534881ec50060000488b1dc810b101'), bytes.fromhex('31c0c3')),
+            # The shared append also has an internal c300f0 caller BEFORE its
+            # initialized-state check. These boolean sinks own only local
+            # temporaries;entry false preserves caller-owned payload cleanup.
+            # Retain the drain/lifecycle and all generic serialization helpers.
+            Patch('native configuration event append returns false before collection', 0xc392c0, 0xc386c0,
+                  bytes.fromhex('48895c24205556574154415541564157'), bytes.fromhex('31c0c3')),
+            Patch('native configuration payload append returns false before serialization', 0xc2e240, 0xc2d640,
+                  bytes.fromhex('405356574883ec60488bfac744245449'), bytes.fromhex('31c0c3')),
         ),
     ),
     CEF_COMPONENT_PATH: Component(

@@ -1,4 +1,4 @@
-"""Check complete recipe3 native-field samples and ordered lifecycle coverage.
+"""Check exact recipe3/4 native-field samples and ordered lifecycle coverage.
 
 This verifies the bounded read-only helper log, not collection/network absence.
 No game files or processes are accessed. Original log lines are never emitted.
@@ -10,7 +10,7 @@ import json
 from pathlib import Path
 import re
 
-from client_patch.patcher.telemetry import COMPONENTS
+from client_patch.patcher.telemetry import COMPONENTS,RECIPE_VERSION
 
 STAGES = frozenset(('startup-after-engine-init', 'menu', 'ingame', 'postgame', 'tutorial','pre-quit-confirm'))
 DEFAULT_STAGES = ('startup-after-engine-init', 'menu', 'ingame', 'postgame',
@@ -25,7 +25,7 @@ FIELDS = {
 LINE = re.compile(r'^\[(\d+)\] Telemetry audit (.*)$')
 BUILD = re.compile(r'build verified: UnityPlayer sha256=([0-9a-f]{64}) '
                    r'normalized=([0-9a-f]{64}) crashSignatures=(\d+)/3 '
-                   r'coreCandidateSignatures=(\d+)/12 performanceCandidateSignatures=(\d+)/3; '
+                   r'coreCandidateSignatures=(\d+)/(12|14) performanceCandidateSignatures=(\d+)/3; '
                    r'READ ONLY, no qualification claim')
 BEGIN = re.compile(r'(\d+)/17 stage=([a-z-]+) retained main=(\d+) session=(\d+) '
                    r'performance=(\d+) callbackHooks main=(\d+) performance=(\d+)')
@@ -34,10 +34,13 @@ END = re.compile(r'(\d+) snapshotEnd singletonPointersStable=(\d+); '
                  r'scalar observations are not atomic or network evidence')
 
 
-def verify_lines(lines, *, expected_sha256, required_stages=DEFAULT_STAGES):
+def verify_lines(lines, *, expected_sha256, required_stages=DEFAULT_STAGES,recipe_version=RECIPE_VERSION):
     """Fail on missing, partial, unavailable, changed or out-of-order evidence."""
     if not re.fullmatch('[0-9a-f]{64}', expected_sha256):
         raise ValueError('Expected UnityPlayer SHA256 must be 64 lowercase hexadecimal digits.')
+    if type(recipe_version) is not int or recipe_version not in (3,4):
+        raise ValueError('Only explicit telemetry recipes3/4 are supported.')
+    core_guards={3:12,4:14}[recipe_version]
     required_stages = tuple(required_stages)
     if (not required_stages or len(required_stages) > 17
             or required_stages[0] != 'startup-after-engine-init'
@@ -76,7 +79,7 @@ def verify_lines(lines, *, expected_sha256, required_stages=DEFAULT_STAGES):
                 fail('duplicate_or_late_build', number)
             if (match[1] != expected_sha256
                     or match[2] != COMPONENTS['UnityPlayer.dll'].original_sha256
-                    or match.groups()[2:] != ('3', '12', '3')):
+                    or match.groups()[2:] != ('3', str(core_guards),str(core_guards), '3')):
                 fail('unsupported_or_partial_build', number)
         elif match := BEGIN.fullmatch(body):
             if active is not None:
@@ -128,7 +131,7 @@ def verify_lines(lines, *, expected_sha256, required_stages=DEFAULT_STAGES):
             cursor += 1
     if cursor != len(required_stages):
         fail('missing_ordered_stage_coverage')
-    return {'schema': 1, 'passed': not errors, 'recipe_version': 3,
+    return {'schema': 1, 'passed': not errors, 'recipe_version': recipe_version,
             'scope': 'Read-only sampled native fields and stage coverage; not network/removal qualification.',
             'expected_unity_sha256': expected_sha256, 'complete_snapshots': snapshots,
             'observed_stages': stages, 'observed_entries': entries,
@@ -139,6 +142,7 @@ def main():
     parser = argparse.ArgumentParser(description=__doc__)
     parser.add_argument('--log', type=Path, required=True, help='One client process log from a fresh run.')
     parser.add_argument('--expected-unity-sha256', required=True, help='Installed UnityPlayer hash from that run manifest.')
+    parser.add_argument('--recipe-version',type=int,choices=(3,4),default=RECIPE_VERSION,help='older reports require explicit older recipe; never qualify current guards from legacy samples')
     parser.add_argument('--stages', nargs='+', choices=sorted(STAGES), default=DEFAULT_STAGES)
     parser.add_argument('--output', type=Path, help='Optional new JSON report; existing files are never overwritten.')
     args = parser.parse_args()
@@ -146,7 +150,7 @@ def main():
         if args.log.stat().st_size > 64 * 1024 * 1024:
             raise ValueError('Input log exceeds the 64 MiB review bound.')
         with args.log.open(encoding='utf-8-sig', errors='strict') as stream:
-            result = verify_lines(stream, expected_sha256=args.expected_unity_sha256, required_stages=args.stages)
+            result = verify_lines(stream, expected_sha256=args.expected_unity_sha256, required_stages=args.stages,recipe_version=args.recipe_version)
         encoded = json.dumps(result, indent=2) + '\n'
         if args.output:
             with args.output.open('x', encoding='utf-8') as stream:
