@@ -1,7 +1,12 @@
 TELEMETRY PATCH STATUS
-Updated: 2026-10-19 UTC
+Updated: 2026-10-20 UTC
 Supported input: Battle Aces build 37822, Windows x64.
 Recipe version: 4. Guards: 63. Complete-set runtime_validated: false.
+
+Control43:single-call REA localhost socket-hook positive control now passes with
+canonical source/request/provider/PID/nonce validation. This is not a game run,
+packet capture or removal claim;13 reviewed native entries remain unqualified.
+See telemetry-observation.txt for exact Evidence and remaining ownership/coverage.
 
 Current42 adds two inner configuration append false-return guards with reviewed
 caller cleanup,exact original-byte/upgrade/restore/reapply and bounded native

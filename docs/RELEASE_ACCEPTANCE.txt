@@ -1,4 +1,4 @@
-WINDOWS RELEASE ACCEPTANCE -- 2026-10-19
+WINDOWS RELEASE ACCEPTANCE -- 2026-10-20
 
 This checklist distinguishes source-prototype evidence from a distributable
 release. STATUS.txt retains implementation history;SERVER_REPLACEMENT_PLAN.txt
@@ -6,6 +6,12 @@ defines the requested product. Existing frozen archives are not automatically
 upgraded when source changes. No original client binaries/assets belong in Git.
 
 Current ordinary source candidate
+Telemetry43 adds diagnostic preparation/checking tools only. Actual REA localhost
+socket-hook positive control and PID/nonce receipt pass;provider/request/session/
+source/readiness/monotonicity/cleanup validation and34 focused tests pass. This
+does not qualify game/native13 candidates,packet capture,full-window/final-counter
+absence,loaded identities,exit0 or descendants. No shipping recipe/helper/package
+change;remaining release gates stay open. See telemetry-observation.txt.
 Telemetry42's recipe4 adds two internal config append false-return guards,63
 total. Exact original bytes/installer roundtrip/current loaded signatures and
 bounded idle/practice/Continue/natural main Quit/no-telemetry control pass;full
@@ -280,7 +286,7 @@ Required before a general release
     bot identities/decks and configured player name. Custom remains human-only.
 [ ] Complete telemetry collection/storage/indirect callback/reporter/CEF child
     coverage and bounded network-capture checks on the final installed build.
-    Current61 guards and the separate NGX guard are not a universal zero-traffic
+    Current63 guards and the separate NGX guard are not a universal zero-traffic
     or graphics-driver/overlay reporting guarantee. See telemetry.txt.
 [ ] Isolate original replay and functional UX read/write paths by installation/
     profile;preserve their native formats and functional UI state while scoping

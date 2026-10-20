@@ -1,9 +1,18 @@
 BATTLE ACES PRIVATE SERVER AND CLIENT PATCH - IMPLEMENTATION PLAN
-Updated: 2026-10-19
+Updated: 2026-10-20
 Target: Battle Aces build 37822, Windows x64 server and clients.
 Status: IMPLEMENTATION ACTIVE. See STATUS.txt; incomplete phases remain future work.
 
-Current release integration order (2026-10-19)
+Current release integration order (2026-10-20)
+- Telemetry43 qualifies the reusable single-call REA socket-hook POSITIVE CONTROL
+  only:actual localhost connect/send/recv plus PID/nonce-bound exchange,strict
+  canonical provider/request/source/session/readiness validation and34 focused
+  checks. Thirteen native entry sites remain static candidates. No shipping/
+  recipe/package/game change;no traffic absence/removal/final-game claim.
+  Next qualify owned game instrumentation lifecycle/loaded identities/readiness,
+  then native reporter paths and separate descendant/cache/error/crash/packet/
+  file coverage. Ownership/cross-call failures remain failed;do not bypass them.
+  See telemetry-observation.txt. All existing release gates remain required.
 - Telemetry42 adds two exact guarded inner configuration append false returns
   while preserving drain/state progression/payload cleanup. Current recipe4/63
   guards pass byte/upgrade/restore/reapply and bounded startup/practice/Continue/

@@ -1,0 +1,178 @@
+REA CALL-COUNTER CONTROL43 -- 2026-10-20
+
+Outcome and scope
+The reusable authored source generator/checker now qualifies REA's single-call
+Frida network-hook positive control on this Windows host. Actual localhost
+connect/send/recv calls are observed alongside an independent PID/fresh-run-bound
+four-byte/two-byte exchange receipt. This is NOT a game observation,packet
+capture,analytics-removal result,loaded-binary identity,exit0 or descendant proof.
+No game/production server was started and no shipping helper/recipe/launcher/
+package changed. Recipe4/63 guards and RUNTIME_VALIDATED=false remain unchanged.
+Manual35/frozen archives and the prepared owner40 check remain untouched.
+
+Native entry review for the next game observation
+Independent read-only review reused hash-checked original LLVM/unwind slices,
+with one fresh decode for c21b20. Original UnityPlayer SHA256:
+ac144d56d53f07904d52ed27a1539de90bc3290038fe52d73d2f6b268c85d6bc
+All13 candidate entries below are full unwind roots and unmodified throughout
+their bodies by current telemetry recipe4. These are STATIC candidates only;
+actual loaded identity/prefixes,successful attach/relocation,observer readiness
+and runtime harmlessness remain unqualified. No original API was invoked.
+Addresses are RVAs,not absolute runtime addresses:
+  c49110 device-payload constructor (including earlier OS/identity queries)
+  c49dc0 hardware-fill collector
+  c300f0 internal configuration processor
+  c3a680 configuration drain/release/state progress
+  c2e5a0 worker-state transition callback
+  c3b990 analytics-state transition dispatch
+  c40840 device-payload build/compare
+  c48fa0 device-identity cache comparison
+  c402d0 worker dispatch
+  c2f640 registered connection-state callback
+  c3b1f0 full request continuation,preferred over five-byte c2e680 thunk
+  c38c80 QueueEvent adapter before guarded sink/transient conversion
+  c21b20 continuous-event collector registration attempt
+An entry count would show entry only,not completed collection or upload. An
+unattached entry is UNKNOWN,not observed0. Do not attach original prologues to
+already-patched short return stubs or treat shared generic serializers/hardware
+APIs as analytics-only. Frida's counter intent does not mean zero instruction
+writes/timing impact. No native RVA hooks are enabled by the delivered generator.
+Exact first16/bounds/overlap/source identities in ignored
+local/telemetry43-entry-review/entries.json:
+8057daf794c662e7491b88178b9e7d2b8e4a9da1494a02fcfa31da4e4648114d
+findings.txt:
+4d742dbfe7dbbb31c9a53503437e54494549277163a312e464b4365ecb305810
+seal.json:
+ab5d75ed6d7c16a20874856bdf63b73c8f76f3b11d79585aaca23ffcef46c81c
+These ordinary native outputs are not fabricated REA Evidence IDs. Ghidra was
+not reconfigured/retried;no downloads/privilege or protected-store bypasses.
+
+Retained attempts and corrections
+Paused Frida Python preflight PID14896:external cleanup-job assignment returns
+Windows error5. No access-right/ACL/escalation retry. Session is closed/resumed/
+detached;selected PID is subsequently absent(error87). This does not identify
+the precise access/nesting cause or qualify game ownership. Report:
+local/telemetry43-frida-preflight01/verification.json:
+376752e49c3a65901ebd66f92c1dbbb00df040b27d10c58e7e1badbf8d8f2edb
+cleanup.json:
+02ea6306e739a7c336132bbab61d827ca1aa3eae3ae7345b883e31927f9decc6
+
+External-owned control01 PID49520 reaches its180s readiness-gate deadline before
+attach completes;REA reports target not found. Report remains failed/forced
+cleanup,not a provider-permission or observation pass. Control02 PID36064 has an
+actual successful attach response,but its600s gate expires and later script
+load reports no open session. It exits1,job active0/terminated0;no forced cleanup.
+Cause of the cross-call delay/session loss remains unknown. Do not restart from
+observation timeout alone;these retries followed actual terminal reports. Exact
+retained reports/control02 tool responses:
+  local/telemetry43-frida-control01/verification.json
+  4998ba00f0f0c54bc4fcdf439145c0f3f33d801d9f1430cd4b5839acdd03c38b
+  local/telemetry43-frida-control02/verification.json
+  557030c65f758b78b331b81a22f4e00759a4e018fe34b2b7589d492ab90d4335
+  local/telemetry43-frida-control02/rea-evidence.json
+  967ab1cf7fc24cc01f51e8b3aa273527b5100c8ef67d3959fe552a8d9430f6e7
+
+Single-call01 duplicates the executable inside argv. It observes process-exit
+entry but no socket calls/receipt;NOT a positive control. Correct API contract:
+program is separate;argv contains ONLY its arguments. Single-call02 corrects
+that and observes connect/send/recv plus exchange;its first receipt lacks PID/
+nonce binding,so it is not promoted to the final checker. Single03 adds those
+bindings;final04 additionally comes entirely from the authored source generator
+and pre-capture identity manifest. Earlier reports remain unchanged. Prototype
+buffer hashes were calculated before Windows newline translation;only actual
+on-disk script bytes are used in final qualification. No masked content region.
+
+Delivered source and validation
+tools/frida_control_source.py prepares source/request/input identities only:
+  python -m tools.frida_control_source --image <absolute-bundled-python.exe>
+    --control-dir local/<fresh-control-directory>
+This writes observer.js,request.json and inputs.json with a fresh32-hex run ID.
+Existing directories/files are refused. The generated bounded Python program
+binds localhost only,uses three-second socket timeouts,performs a4/2-byte exchange,
+writes its own PID/run receipt exclusively,and ends after two seconds. It starts
+no game/production server. The preparation command itself executes nothing.
+
+Invoke REA instrument_with_frida ONCE using exactly request.json's structured
+arguments. It installs counters before resuming its selected spawn and detaches
+when the window ends. Retain the complete returned object as result alongside
+arguments=request.json and inputs=inputs.json. Do not replace it with an inline
+preview or concatenate sessions. Persistent start/load/status calls were not
+qualified by the failed attempts above.
+Then run:
+  python -m tools.verify_frida_control --evidence <retained-wrapper.json>
+    --script <observer.js> --target <the-same-absolute-bundled-python.exe>
+    --positive <network-positive.json> --run-id <inputs-run-id>
+    --check-process-terminal --output <fresh-verification.json>
+This command only reads evidence/files and optionally opens the one recorded
+local PID for SYNCHRONIZE. It does not enumerate,attach,resume,kill or configure
+anything. An absent/signaled PID is separate from native Quit/exit0 proof.
+
+The checker binds pre/post selected-file hashes,exact canonical control body/
+nonce/folder,outer request/provider parameters/session,source path/actual hash,
+single nonempty script identity,all snapshot PIDs,readiness before positive calls,
+stable hook offsets/nondecreasing safe counters/nonnegative ordered timestamps,
+empty error lists,no truncation,detachment and independent PID/nonce receipt.
+Generated LF/CRLF sources are recognized,while the actual disk/REA/pre-capture
+SHA256 must match exactly. Empty/failed/unattached data cannot qualify as zero.
+Counters are emitted lower bounds,not complete final counters or packet totals.
+No arguments,payloads,headers,names,addresses or credential values are captured.
+
+Read-only review found false-pass gaps in the initial checker:ignored provider
+parameters/arbitrary control body,matching None script IDs,and initial time-1.
+These are fixed;stable offsets are checked too. The actual04 record already
+matched canonical request/provider/session/source/receipt. Final checker is
+re-evaluated against that immutable capture,not relabeled as a fresh target run.
+Twelve mutations of retained actual04 evidence are rejected,including those
+defects,changed source/target identity,truncation,missing positives and wrong run.
+34 focused tests pass0.037s,exit0 (10 new control tests plus existing telemetry,
+repository audit and native Quit verifier tests). No unchanged native code was
+rebuilt or shipping/full-mode runtime gate promoted. Test log:
+local/telemetry43-focused-tests02.txt.
+
+Read-only follow-up independently confirms those fixes:baseline and actual04
+pass,eight original/related mutations reject;no new target/process action.
+local/telemetry43-entry-review/control-review.txt:
+b4d4efbc938becd4fdbaf0d3998295c45ef5a0069b48e4cdd2409e3e901d0b4d
+control-review-checks.json:
+b64c932d6af6a2b84c86742a20edb2f1bb887e4dd754007ddad66b709f9041e7
+control-review-seal.json:
+dc466b10856122a2e72c11b2e1e0dd82df7b8c9a46d06870b62f6c35f263b9c8
+Generator source SHA256:
+7734fe31682d6d4e29d0b051e4709db3b388d4b0203a94cd63e383923618974a
+Verifier source SHA256:
+96a2eebcfa04652d6fb7cfbcf8e0c431a74080be47313bacb915d7852242f33b
+Capture precedes publication of these authored source files;exact bytes are
+bound above. This is not a clean-Git game/runtime build claim.
+
+Actual generated final04 control
+REA Evidence ev_b6bfe28504412f2ac27ec7a4dd6038e4b97aa334746a667fc147c2b8a5bc924f
+PID17084;run4484bce64b9d34e76b4f1b617c0297c9. Nine emitted snapshots,no script
+errors/message truncation/cleanup error,observed lower bounds connect1/send1/
+recv1. Nominal duration10000ms;LAST EMITTED snapshot39ms,not ten seconds of
+continuous coverage. Independent actual exchange receipt is4/2 bytes. Separate
+read-only OS check finds selected PID absent(error87). No exit-code or job/
+descendant assertion. Provider subject/environment are null;do not invent
+loaded-file/OS identity. The source asserts selected path/x64,while external
+pre/post bytes bind only selected on-disk files.
+Selected bundled runtime SHA256:
+434b361fe0c5960d404974feed493db47f2603a1ace2574312104fbed0182c6f
+Actual observer script SHA256:
+59f371c90adfbb61bfd6750c65f859433bfc0cba0925f65a9de7c3fdc76e4770
+local/telemetry43-frida-single04/inputs.json:
+b8e6428bfa197757b5a4f7496feb39fa78a460c36ca0f38c58b36d078c261de1
+rea-evidence.json:
+1731b071a57eb3f8602a02294b5e29d987d950ce46d8835bfeeb8711c16f5607
+verification-final.json (strict source96a2eebc...42f33b,unchanged during check):
+6fb953a9078536bf4b99afffc9d8262be1088debd03191a69dd86b911f83a1f9
+negative-controls-final.json:
+c4e9eaaacd369ee4d5e769f72eb9576cfe9ce1237984f84f90a13eb27666a499
+
+Next gates remain required
+Qualify an owned bounded game instrumentation lifecycle BEFORE using the13
+native candidates;do not use REA as an ownership/protected-storage bypass.
+Observe final installed startup/game/results/Continue/Quit with explicit attach
+readiness,actual loaded identities/error/drop/exit boundaries. Scope CEF/other
+descendants,GameAssembly reporters,cached/error/crash/functional stores and real
+bounded process-attributed packet/file capture separately. Positive socket-hook
+functionality alone cannot close any of those gates. Protected active-match40,
+graphical/manual/SCM/clean-PC/cross-PC/Internet release gates remain OPEN.

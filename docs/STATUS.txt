@@ -1,6 +1,19 @@
 IMPLEMENTATION LEDGER
-Updated: 2026-10-19 UTC
+Updated: 2026-10-20 UTC
 Active objective: implement SERVER_REPLACEMENT_PLAN.txt, Windows only.
+
+REA OBSERVATION43 (2026-10-20 UTC, CONTROL PASS / GAME COVERAGE OPEN)
+Authored source preparation and strict REA single-call checker now qualify an
+actual localhost connect/send/recv positive control,independent PID/nonce4/2-byte
+receipt,exact source/selected-file hashes and separate absent-PID check. Nine
+emitted snapshots,last39ms within nominal10s;counts are observed lower bounds,
+not packet/full-window/final-counter/game/removal/exit0/descendant proof. Native13
+entry candidates are statically reviewed only. Ownership/cross-call/argv failures
+are retained;no access/config retry. Provider/request/body/session/script/time
+rejection gaps fixed;12 actual-evidence negative controls and34 focused tests
+pass. No game/production server,shipping code/helper/recipe/package change. See
+telemetry-observation.txt for actual REA Evidence,contracts/source/report digests
+and next owned-game/process/network gates. Owner40 remains pending.
 
 INTERNAL CONFIGURATION42 (2026-10-19 UTC, BOUNDED PASS)
 Recipe4 adds two reviewed native configuration append false-return guards before
