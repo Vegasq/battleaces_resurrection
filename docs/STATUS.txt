@@ -3,6 +3,30 @@ Updated: 2026-10-20 UTC
 Delivery plan: REMAINING_DELIVERY_PLAN.txt, Windows only.
 Original roadmap: CLOSED / SUPERSEDED;see PLAN_CLOSEOUT.txt.
 
+D6 BUNDLE HYPOTHESIS69 (2026-10-20 UTC,PRIVATE COUNTERFACTUAL / NO RELEASE FIX)
+Original local provider passes catalog CRC into native bundle-load requests;
+read-only original-code review qualifies load/read/process/CRC and callback
+paths.133 literal catalog bundle options have nonzero CRC. Fresh private69
+changes only those catalog numbers to0 with offsets/other values preserved.
+No Frida:original Start14.757s/task14.750s/initial39.031s;strict startup/Quit
+PASS53.298s,whole restoration61.404s. Original catalog/ordinary game restore
+byte-exact,job1/0/0/no force,source03 including catalog unchanged. No product/
+helper/package/normal-launcher changes. Original-CRC reversal70 now returns
+Start213.249s/initial222.032s without Frida,strict startup/Quit0/ordinary restore/
+source unchanged. Identical program/source seals;exited process reads9076122175
+bytes (process totals,not physical disk). Code+counterfactual+reversal support
+validation as a strong actionable hypothesis;D6-C2 remains open,not an exclusive
+cause claim for all startup work. Next:reversible installer/catalog optimization with original
+bundle verification,then cold/warm FULL startup and practice lifecycle acceptance.
+Slow66 Start218.745s qualifies original tasks/Quit despite failed external
+stack script. Corrected OS query control67 passes. Guarded68 observes72 original
+bundle callback pairs throughout the wait;early loader calls are missed,actual
+CRC args remain unobserved. Selective CPU/backtraces cannot exclude waiting I/O.
+68 Start257.483s exceeds task observer240s;strict qualification correctly FAILS,
+no passing timeline. Roots release at deadline;Quit0/job empty/restore pass.
+Exact evidence,private report hashes,failed-scope distinctions and static RVAs:
+startup-bundle-loading.txt. D6 remains the immediate priority and OPEN.
+
 D6 IMMEDIATE PRIORITY / FIRST SLOW TASK TRACE64 (2026-10-20 UTC)
 User prioritizes D6;defer new unrelated engineering tests. D1's prepared physical
 LAN sequence remains available independently;candidate/owner steps unchanged.

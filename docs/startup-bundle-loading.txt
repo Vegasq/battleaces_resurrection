@@ -1,0 +1,182 @@
+STARTUP BUNDLE LOADING - D6 INVESTIGATION,2026-10-20
+
+Current finding
+Local bundle CRC validation is a concrete performance hypothesis. A private
+CRC-zero counterfactual69 completes original RGameInit:Start in14.757s with
+normal Quit and full restoration. Original-CRC reversal70 restores the long
+wait:Start213.249s/initial222.032s,also without Frida. This supports local full-
+bundle CRC validation as an actionable major contributor,not an exclusive cause
+of all startup work or a released fix. CRC-zero initial entry still takes39.031s.
+Do not change the ordinary launcher/packages or close D6 from one fast run.
+
+Qualified original local loader
+Original GameAssembly SHA256
+e59d08c01479b27404778048d7e13546dbf3771f6b3912744c7c2bdf80c4e758
+Original UnityPlayer SHA256
+ac144d56d53f07904d52ed27a1539de90bc3290038fe52d73d2f6b268c85d6bc
+Metadata SHA256
+b760be9190309b14174cd272e1f83b730181b299bc7a0cdca66985c69dcdc57d
+Independent read-only LLVM/metadata reviews;Ghidra provider is not claimed.
+
+GA AssetBundleResource.LoadLocalBundle4ce0d10 loads options=this+40,path=this+78.
+At4ce0d6c it takes uint32 CRC from options+18 (or0 for null options),then passes
+path/CRC/uint64 offset0 to its resolved original icall at4ce0d9f. This local
+body does NOT consult UseCrcForCachedBundles+48. UseUWRForLocalBundles+49=false
+selects this local route in GetLoadInfo4ce0400/BeginOperation.
+The exact resolver string names AssetBundle.LoadFromFileAsync_Internal(string,
+uint32,uint64). Shared cached icall slot GA6e616f8 resolves in live66 to
+UnityPlayer1c9f80. Hooking only managed wrapper5014fc0 can miss this inlined call.
+
+Original native icall1c9f80 stores expected CRC at native request+b8 and offset
+at+510,then dispatches callbacks b7a330 and b7a410. Processing b7a450 loops over
+at most0x20000-byte reads,feeds b86820,then finalizes through b86950/b87a00.
+The latter checks expected CRC+b8 (zero skips comparison) and has an explicit
+CRC-mismatch error. Inner reader/transform cost is not fully identified.
+Reviewed logical functions have chained unwind fragments;the first .pdata
+fragment end is not the full function boundary. Original/installed reviewed
+spans are byte-identical;installed Unity SHA3cca44b5...14874e48.
+
+GA LocalRequestOperationCompleted4ce1570 uses actual argument RDX,not a
+substitute read from this+18. It obtains the original AssetBundle and calls
+CompleteBundleLoad4ce1660,then generic ProvideHandle.Complete1583010. Separately,
+ResourceManager.Update4cd1c20 calls ExecuteDeferredCallbacks4cd1790,which invokes
+queued completion events. No inference that these ran is made from names alone.
+
+Catalog input
+Private original catalog SHA256
+f0ce6877709e811197d8b0264cbfca0cfb7ab793b3b86af0fab62acff4548f76
+133 literal UTF16 bundle-option JSON objects in m_ExtraDataString all specify
+nonzero m_Crc,UseCrcForCachedBundles=true,UseUWRForLocalBundles=false. Extraction
+does not resolve ResourceLocation dependencies or a bundle shared by all tables.
+local/startup66-catalog-inventory.json SHA256
+3d0bd2c339dada5d7398b5732b89cafa219acaaed62fb963f9618a408df35e58
+
+Unity's version-matched1.21.21 schema documentation explains that CRC validation
+can decompress the entire bundle and recommends considering download/install-
+time verification for local bundles instead of checking every load. That is
+background mechanism evidence,not a measurement of this game's bottleneck:
+https://docs.unity3d.com/Packages/com.unity.addressables@1.21/manual/ContentPackingAndLoadingSchema.html
+Native API parameter behavior is also documented for2022.3:
+https://docs.unity3d.com/2022.3/Documentation/ScriptReference/AssetBundle.LoadFromFileAsync.html
+
+Run66:qualified slow startup,FAILED stack probe
+Fresh owned66/current helper51/existing16 diagnostic sites reproduces original
+Start218.745s. All50 outer Tasks are sampled status1 from launch+8.219 through
++219.125s. Original readiness releases53->0 roots;strict qualification and
+natural Quit0/job1total/0active/0terminated pass;ordinary copy restored/source03
+unchanged. The attached first Frida script fails before any CPU samples because
+OpenThread's BOOL argument was supplied as a JS boolean. No stack/cause finding.
+Its positive cached-icall-slot read is separate from that failed observation.
+Client verification SHA256
+0d51014883af6b2bc95ce1e85494314040a32a26b32dc63e4b69959a2aad9ce8
+Outer verification SHA256
+4e71c34deb57b61896c0764cba6bb3e1523b40f12a2ea101aa96968e81a7aab3
+REA ev_6d0bba59fd3080aa0a0eb6ce72de08cd7e781c9b5db69abcd26ec3f72d8b0c9b
+
+Control67
+Corrected OS integer ABI runs four bounded CPU/context samples and emits end
+on a disposable Python process;no truncation/script errors. REA detaches before
+the requested child exit0,job1/0/0,no force. This qualifies those query calls,
+NOT accurate unwinding of every game thread or any game loading behavior.
+REA ev_8bc7006ffbb946b0419dc70ae80f4a5c714eb53e54e0aef22ba2ad371f75e1dd
+The control runner's observer_sha256 is its normalized LF string digest;
+REA's exact file-byte digest047f73b5...89d123 binds the actual CRLF source.
+
+Run68:bounded callbacks/CPU observation;FAILED task qualification
+Owned fresh68/helper51/16 sites;guarded Interceptors preserve original arguments/
+returns at Unity1c9f80 and GA4ce1570. Script03 SHA256
+e638440f517deb55d1d01ca42e055f3988ff2841955c3a684bf962bd0482c1ee
+It becomes ready launch+26.734s and automatically detaches2/2 at+256.734s,
+no errors/in-flight records. It observes72 unique original local callback
+enter/normal-return pairs from+27.078 to+254.594s,actual operation=request field.
+ZERO original loader-entry calls are captured:early requests were missed.
+Therefore no runtime CRC argument or request-creation latency is established.
+Callbacks arriving throughout the wait disprove only a complete absence of
+callback delivery;they do not identify the last dependency or table continuation.
+REA ev_18ce3fb315a5cc90ea4364c7d95fc1f0902ea2b1a769a8af56fa1e37029390c6
+
+Four selective top-CPU context samples show main-thread dictionary lookup,
+ConstantBuffer.PushGlobal and compute-shader property work at those instants.
+Some backtraces are empty/unmapped/unreliable;they cannot establish callers.
+Waiting workers may be excluded by CPU selection. One all-thread PC snapshot
+retains Loading.AsyncRead/Loading.PreloadManager and the other threads,without
+claiming an exclusive profile. Snapshot overhead is included;Frida timing is
+not treated as an uninstrumented performance baseline. A read-only10.016s
+process-counter window adds177918163 read bytes/19.421875 CPU-seconds;these are
+process totals,not physical disk activity or function timings.
+
+Original Start257.483s exceeds the existing240s task observer budget. All50
+outer Tasks remain sampled status1 through launch+245.109s;observer releases
+roots to0 at its deadline,not original readiness. Strict verifier correctly
+FAILS;no passing timeline is generated. Original Quit still exits0 naturally,
+job empty/non-terminated,ordinary copy restored/source unchanged. Neither
+observer nor ordinary startup timeouts were extended to pass this case.
+68 client verification SHA256
+ab195357187adccdb465c2430f8264b71f842bc3de8caa8eb30e929ea283e396
+Read-only combined66/68 review SHA256
+56ec03be49791af9fc87bcbc525431bc982f0c3cf05f3aa2a782bb705f41debf
+
+Private CRC-zero counterfactual69
+Independent fresh copy,no Frida/sampler. Only133 embedded CRC numeric values
+become zero plus JSON whitespace;UTF16 object lengths/base64 length/all other
+parsed values remain equal. Catalog byte length stays5458266. Private backups,
+exclusive outputs,checked atomic patch replacement,prelaunch-failure restoration,
+independently caught cleanup and handle-close finally keep this reversible.
+Catalog after-hash (EXPERIMENT ONLY):
+3fb522b05b83c24ed94995e58faa6cb182aa1560f5ab811db0648c29dbc8adf3
+Same unchanged helper51/16 hooks;original Start14.757s,task window14.750s,
+launch->first hook4.812s,first sampled all-success->ready4.422s. Initial state
+at39.031s,strict original startup/Quit PASS53.298s;whole restoration61.404s.
+All50Tasks finish/53roots release;original Quit0/no force/job1/0/0. Original
+catalog and ordinary game both restored byte-exact,source03 including catalog
+unchanged,no cleanup errors. No package/normal-launcher/production change.
+Outer verification SHA256
+1e681f1d6860e9021ec7abb9a6213027c14affb12472a2889443ec8c9716b9ce
+Client verification SHA256
+8c8b40d4d2042feedb0bc928efc9b2b114d82b79c7d80ef3b9385ed0dd62c7c6
+Timeline SHA256
+10e9e37f1f3de06bc84bf3e1c9af6ed2a4af63393f358b4ee2ccb72e2a539068
+Counterfactual receipt SHA256
+66e6788a2e116b0b76752e698fe71e5e72d2b283011e3ea50bae0ec5638c7856
+Execution/restoration receipt SHA256
+c0bf64dc419573e8c65fbdfb7622b79407215aa966806859f6bcdd6c2e60d9a8
+
+Next decision
+Fresh original-CRC reversal70 returns the long wait,without Frida/sampler.
+All installed program/recipe seals and bound source hashes equal69. Original
+catalog SHA is unchanged before/after. Start213.249s/task213.250s/prehook6.594s/
+initial222.032s;first sampled all-success->ready5.922s. Strict startup/Quit PASS
+230.306s,whole restore238.007s;all50Tasks finish/53roots release/natural exit0/
+job1/0/0/no force,source03 unchanged. Retained handle permits read-only OS
+counters AFTER exit:9076122175 process read bytes/156479 read operations,
+41.3125 kernel +419.796875 user CPU-seconds. Not physical disk attribution or
+an exclusive function profile. No comparable whole-process I/O total was
+captured in69;do not invent a read-volume reduction from these records.
+70 outer/client/timeline SHA256,respectively:
+8961f0b9ae191993fff6cf1bfb3fcdc7efd488e5f81bfa346fb42162d03df331
+10dd0762dfc232b7be6f1aa70332444c938ff5885d79c9c3bf644fa376af0c76
+8d0c6b948dea5b32c56559860bd8311da101d9884b84164d91f419b6a6af493d
+70 exited-process counter receipt SHA256
+9f5aa5147063dd802c86accf2f0078312436d991fbbc5e783034836ade02e9a5
+Read-only69/70 comparison SHA256
+ee8376ba0cb6ca2fc69e79e685450bcdf667e25fee40534111a81cab7c56bfcd
+
+Engineering inference:version-matched documented CRC behavior,qualified original
+argument/read/validation bodies,catalog-only counterfactual and the fresh-file
+original-CRC reversal justify addressing local validation cost. Cache/order/new-
+file placement are not randomized;the read-only timing analyzer's cause_proven
+staysfalse. This does not claim every historical slow run has one exclusive
+cause,or that the39-second full initial-state delay is already a finished UX.
+
+Next:implement the reversible local catalog optimization with verification of
+the original installed bundle bytes at install time. Bind the supported build/
+catalog/bundle hashes,keep original recovery data,refuse incompatible/changed
+inputs,and check cheap installed fingerprints on ordinary launch with targeted
+rehash on changes. Preserve genuine load Tasks and failure reporting. The
+shipping patch contains source/hash metadata,never original catalogs/bundles.
+Then qualify cold/warm FULL launch and practice/results/Continue/Quit. Do not
+repeat further unrelated profiling batches before that implementation. D6 stays
+OPEN until the production change and lifecycle/performance acceptance pass.
+
+All original binaries/catalogs/observations/private experiment artifacts remain
+under ignored local paths. This source knowledge base contains no client files.

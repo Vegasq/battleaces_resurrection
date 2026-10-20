@@ -1,5 +1,22 @@
 CLIENT STARTUP TIMING (updated 2026-10-20)
 
+2026-10-20 D6 follow-up66-69 / CRC counterfactual,NOT a production fix
+startup-bundle-loading.txt retains independently qualified original local-load/
+CRC/completion bodies,133 literal catalog option values,actual REA evidence and
+failed observations. Slow66 Start218.745s qualifies original tasks/Quit.68's
+Start257.483s exceeds the existing240s observer:strict task qualification FAILS,
+roots release at deadline;Quit0/ordinary restoration still pass.72 original
+bundle callbacks arrive over the wait,so callback delivery is not wholly absent.
+Selective CPU contexts/partial backtraces do not establish the bottleneck.
+Private fresh-copy catalogCRC-zero69,without Frida:Start14.757s/task14.750s,
+initial state39.031s,original Quit0/empty job. Both catalog and ordinary recipe
+restore byte-exact,source03 unchanged. This one fast counterfactual has cache/
+order/new-copy confounding. Original-CRC reversal70 now returns213.249s Start/
+222.032s initial with strict startup/Quit0,9076122175 process read bytes and
+identical program/source seals. This supports local full-bundle validation cost
+as an actionable contributor. Next is guarded installer/catalog implementation
+plus cold/warm/full lifecycle acceptance;D6 OPEN,no ordinary release change yet.
+
 2026-10-20 actual SLOW task/pump capture64 / same-installation repeat65
 D6's missing slow instrumented launch is now retained,not another fast control.
 Fresh independent64 is a real copy of03 with profiles/runtime history excluded;
