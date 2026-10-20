@@ -1,8 +1,9 @@
 WINDOWS RELEASE ACCEPTANCE -- 2026-10-20
 
 This checklist distinguishes source-prototype evidence from a distributable
-release. STATUS.txt retains implementation history;SERVER_REPLACEMENT_PLAN.txt
-defines the requested product. Existing frozen archives are not automatically
+release. STATUS.txt retains implementation history. REMAINING_DELIVERY_PLAN.txt
+is the current execution plan;PLAN_CLOSEOUT.txt maps the closed original roadmap
+and unfinished requirements. SERVER_REPLACEMENT_PLAN.txt preserves original scope. Existing frozen archives are not automatically
 upgraded when source changes. No original client binaries/assets belong in Git.
 
 Prepared two-PC LAN candidate53

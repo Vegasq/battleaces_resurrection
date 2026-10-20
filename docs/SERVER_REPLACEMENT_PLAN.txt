@@ -1,9 +1,13 @@
-BATTLE ACES PRIVATE SERVER AND CLIENT PATCH - IMPLEMENTATION PLAN
+BATTLE ACES PRIVATE SERVER AND CLIENT PATCH - ORIGINAL PLAN (ARCHIVED)
 Updated: 2026-10-20
 Target: Battle Aces build 37822, Windows x64 server and clients.
-Status: IMPLEMENTATION ACTIVE. See STATUS.txt; incomplete phases remain future work.
+Status: CLOSED / SUPERSEDED on 2026-10-20 at the user's request.
+Execution successor: REMAINING_DELIVERY_PLAN.txt. Closeout: PLAN_CLOSEOUT.txt.
+The original scope and history below are retained. Old TODO/next/estimate text
+is historical, not the current work queue. Unfinished requirements are transferred;
+the product has not been declared release-complete.
 
-Current release integration order (2026-10-20)
+Historical integration notes through 2026-10-20 (superseded task order)
 - LAN candidate53 is the next physical milestone:the user has a second Windows
   PC on the same LAN. Clean57120a2 packages pass relocated import/native host/
   install-restore and real ordinary CMD menu.54tests53pass1skip;new owner-run

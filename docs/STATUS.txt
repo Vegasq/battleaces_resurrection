@@ -1,6 +1,18 @@
 IMPLEMENTATION LEDGER
 Updated: 2026-10-20 UTC
-Active objective: implement SERVER_REPLACEMENT_PLAN.txt, Windows only.
+Delivery plan: REMAINING_DELIVERY_PLAN.txt, Windows only.
+Original roadmap: CLOSED / SUPERSEDED;see PLAN_CLOSEOUT.txt.
+
+ROADMAP CLOSEOUT54 (2026-10-20 UTC, PLANNING CYCLE CLOSED / PRODUCT OPEN)
+User requests a wrap-up and a fresh plan of unfinished work. Original roadmap is
+archived in place;its historical TODO/next/estimates are not the execution queue.
+REMAINING_DELIVERY_PLAN.txt now groups outstanding work into D1-D9 with explicit
+done criteria and evidence boundaries. PLAN_CLOSEOUT.txt maps old P0-P6 and all
+six unchecked release categories without relabeling them delivered. Completed
+implementation/native soak/manual/protected evidence is retained;no blanket
+rerun or feature rewrite is scheduled. Current next step remains prepared53
+normal-account LAN setup,then real two-PC Custom/rematch. Both53/owner40 public
+reports are still absent. No game/server/code/package change for this wrap-up.
 
 LAN CANDIDATE53 (2026-10-20 UTC, PREPARED / PHYSICAL LAN ACCEPTANCE OPEN)
 User confirms two PCs on same LAN. Clean57120a2 server/client archives contain no

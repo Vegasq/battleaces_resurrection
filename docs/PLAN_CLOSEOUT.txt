@@ -1,0 +1,66 @@
+ORIGINAL ROADMAP CLOSEOUT -- 2026-10-20
+Status: CLOSED / SUPERSEDED at the user's request.
+Successor: REMAINING_DELIVERY_PLAN.txt.
+This closes the planning cycle. The product is not yet release-complete.
+
+Snapshot
+Audited source baseline:5a8bdbb8b2fd8cee5ac25e6e3da2d27bf3864288.
+Latest prepared server/client packages:clean57120a2,local/friends53-packages01.
+Their program/runtime/helper/guide bytes equal51;only provenance metadata differs.
+The original roadmap stays at SERVER_REPLACEMENT_PLAN.txt for historical scope,
+decisions and evidence. Its old TODO/progress/estimate text is no longer the task
+queue. STATUS.txt and focused records retain failures and qualification limits.
+
+Delivered implementation/evidence retained
+- Source-only repository, local asset import and reversible exact-build patching.
+- Supervised native workers, room reuse, scoped crash containment and passed
+  native/community20-match/eight-hour soak.
+- Local Try Deck/public modes, original varied AI support/difficulty selection,
+  selected decks/names/cosmetics and installed catalog/persistence machinery.
+- Community presence/invitations, authoritative public/team AI fill, Custom
+  starts, changed-deck rematches, results/Continue and natural Quit in scoped runs.
+- Bundled Windows packages, ordinary client/server entry points, editable configs,
+  TLS/enrollment/revocation, console launcher and backup/service implementation.
+- Actual protected owner36/37/39 and frozen manual35 results with their stated
+  scopes. Current53 package roundtrip/import/native controls and ordinary startup.
+- Reviewed telemetry guards, NGX-before-init containment and bounded real native
+  observer52 sequence;complete analytics qualification remains false.
+These are preserved capabilities and scoped proofs,not blanket final acceptance.
+
+Unfinished-work transfer
+Original source repository phaseP0:retained as done;ongoing audit policy applies.
+P1 worker/room implementation and native soak:retained;remaining final failure/
+headless/packaged/capacity scope moves to D4,D7,D8.
+P2 client/friend/offline/public/Custom/AI/UI/cosmetic scope:D1-D4.
+P2 telemetry and cold-start discoveries:D5,D6.
+P3 secure external-network operation,stalls/status/input latency:D7,D8.
+P4 clean Windows packages,service,backup/restore and setup:D7,D9.
+P5 physical friends,full final matrix,catalog,graphical20-rematch and release:
+D1-D4,D7-D9;final telemetry repeats remain D5/D9.
+P6 existing after-release follow-ups:preserved separately;not promoted into v1.
+Linux/Wine remains excluded by the user's platform decision.
+
+All six currently unchecked RELEASE_ACCEPTANCE categories transfer:
+1. Ordinary public/cosmetic physical matrix -> D2,D3,D4.
+2. Offline/configured-unavailable/queue/search/Cancel/fallback matrix -> D2,D4.
+3. Complete telemetry collection/storage/reporters/CEF/network -> D5.
+4. Replay/functional UX profile storage and failure qualification -> D4,D5.
+5. Final source-only archives/install/update/restore/persistence -> D7,D9.
+6. Protected permissions/SCM/reboot/clean Windows/cross-PC/Internet/capacity
+   -> D1,D7,D8,D9.
+No unchecked category has been relabeled as a completed product requirement.
+
+Concrete handoff
+Second Windows PC and same LAN are confirmed by the user. Current operator step:
+local/friends53-owner-setup01/LAN Playtest Setup.cmd,then its LAN Playtest.txt.
+Both local/friends53-owner-setup01/last-report.json and
+local/owner-console40/last-report.json are absent at this closeout.
+The operator setup,real two-PC Custom match/rematch and active-match protected
+console check are pending. No new game/server is started for this wrap-up.
+See lan-playtest-candidate.txt for source/archive/report hashes and limitations.
+
+How to resume
+Use REMAINING_DELIVERY_PLAN.txt and begin at D1,using the prepared candidate.
+Update only the affected plan item and its evidence when work lands. Do not
+append new execution history to the closed original roadmap or repeat finished
+native investigations simply because their older notes still say 'next'.

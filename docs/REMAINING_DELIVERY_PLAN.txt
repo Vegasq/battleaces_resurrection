@@ -1,0 +1,221 @@
+BATTLE ACES RESURRECTION - REMAINING DELIVERY PLAN
+Created: 2026-10-20
+Status: READY. Replaces SERVER_REPLACEMENT_PLAN.txt as the execution plan.
+Source checkpoint: 5a8bdbb8b2fd8cee5ac25e6e3da2d27bf3864288.
+Closeout and transferred scope: PLAN_CLOSEOUT.txt.
+
+Outcome
+Finish the Windows x64 dedicated server and reversible client patch so friends
+can install, connect, play, finish and rematch on separate PCs. The same normal
+client must support local AI without a server. This plan contains unfinished
+delivery work; implemented features are inputs to acceptance, not new rewrites.
+
+Retained requirements
+- One normal Start Server.exe and one normal Start Client.cmd; editable server
+  address/port and display_name. No original services/account required.
+- Local Try Deck with the selected deck and saved practice difficulty. Public
+  1v1/2v2/2vAI always playable: local AI when unavailable, and a real30-second
+  queue limit with AI filling missing seats while keeping available humans in
+  one authoritative match. Original varied bot decks/names/avatars and random
+  supported public-fallback difficulty. Custom remains human-only.
+- Original search/timer/Cancel presentation, distinct immediate preparing/loading
+  feedback, correct results/Continue/rematch, and normal Quit.
+- All installed cosmetics selectable/persistent and propagated into matches;
+  preserve decks, options, useful local UX state, native replay formats/tutorial.
+- Remove game analytics/automatic report collection and delivery; retain required
+  gameplay networking and useful local diagnostics.
+- Verified TLS and revocable private invitations; isolated workers and persistent
+  host state, orderly shutdown, documented Windows service/backup/restore.
+- Keep source and knowledge base in the existing repository. Import game inputs
+  locally; no original client files, assets, captures, secrets or archives in Git.
+Linux/Wine, commerce/ranked progression and original backend reconstruction are
+outside scope. In-match reconnect, spectator/server-browser UX and extra maps/
+modes remain the old P6 follow-ups, not prerequisites for this release.
+
+Starting point (reuse; do not redo by default)
+Server/client implementation, all four local modes, two-human public play,
+partial-team AI fill, Custom invites/rematches, persistence, reversible install,
+bundled runtime, TLS/enrollment and console hosting have scoped passing evidence.
+The native/community20-match and eight-hour soak already passed. Manual35 covers
+physical AI/deck/cosmetic persistence/Continue/Quit on its frozen candidate.
+Latest53 packages retain51 program/helper bytes; only provenance metadata differs.
+These results keep their documented scope; they do not prove the remaining
+ordinary/cross-PC/Internet/deployment matrix. See STATUS.txt and focused records.
+
+Delivery order
+D1 first. Then close D2-D4 with a planned batch of real playtests and targeted
+defect fixes. D5/D6 can progress independently. D7 precedes final D8/D9 acceptance.
+Do not postpone the first real friend match for another unrelated diagnostic pass.
+
+[ ] D1 - Complete the prepared two-PC LAN milestone
+Next action: normal desktop run of local/friends53-owner-setup01/
+LAN Playtest Setup.cmd. Its last-report.json is absent at closeout.
+- Confirm protected certificate/invite creation, host enrollment and native health
+  with the real packaged code. Transfer only friend-handoff to the second PC.
+- On that PC, patch its own build37822 copy, confirm CA hash, enroll its own
+  invite and pass Test connection. Use distinct configured names.
+- Launch both ordinary clients, discover/invite/accept through Custom, Ready/
+  Start, finish a human match and changed-deck rematch in the same clients.
+- Check results/Continue, normal Quit/restart, saved choices, windows/audio and
+  responsiveness using physical controls. Fix observed blockers before advancing.
+Done: retained owner result plus both-PC observations prove the complete sequence.
+Evidence/start instructions: lan-playtest-candidate.txt and its local playtest guide.
+This does not close Internet, clean-machine or four-human acceptance.
+
+[ ] D2 - Finish the final mode, matchmaking and transition matrix
+Use the same selected candidate and record missing combinations explicitly.
+- Try Deck,1v1,2v2,2vAI: no server/config/credentials; configured valid-credential
+  server unreachable/refusing; reachable empty server; partial/full human rosters.
+  Existing invalid-trust/missing-file/empty-queue proofs need no blanket rerun.
+- Confirm real30-second queue timing, keeping existing humans together, correct
+  alliances, random supported public difficulty and stable original bot identity/
+  deck/avatar through loading/results. Try Deck uses its independent saved choice.
+- Exercise full four-human2v2 and remaining partial team rosters on the current
+  ordinary candidate. Custom never inserts bots or uses the public timeout.
+  Verify directory refresh/status,self/busy exclusion and invite accept/decline/
+  cancel/expiry without starting an unrelated online player.
+- Physically verify original Searching.../elapsed timer/Cancel, immediate accepted-
+  match preparation/loading and settlement on cancel, failure or match found.
+- Close remaining team/Custom/public/local mode switches, cancel/retry, late ACK/
+  assignment/Ready/Return and remote-intent retirement races. One request creates
+  one world; a late server response cannot replace an active local match.
+Done: a finite matrix names each case's PASS evidence or a fixed/retested defect;
+no stuck search/loading/result state and no unsupported success assumption.
+References: RELEASE_ACCEPTANCE.txt, public-results.txt, matchmaking-search.txt,
+match-loading.txt, client-availability.txt, empty-server-queue.txt,
+current-community-matches.txt, remote-local-transitions.txt.
+
+[ ] D3 - Finish visible player features and catalog acceptance
+- Verify configurable names in menu/profile, presence, lobby, loading and results
+  after restart/mode switches. Confirm the difficulty dropdown and effective
+  original rule selection, including quantitative rule differences where specified.
+- Verify all107 installed cosmetic items/17 slots through the original pickers,
+  equivalent-slot swaps, physical drag/double-click/equip/confirm, restart and
+  profile isolation. Confirm full frozen loadouts in local/public/Custom/team/
+  rematch results, including announcers, effects, abilities and audio.
+- Exercise the selectable unit/tech/ability catalog in actual battles: production,
+  upgrades, targeting, movement, damage and deaths. Check natural wins/losses as
+  well as surrender; retain an explicit coverage list.
+- Preserve existing standalone practice/tutorial and functional menu progress.
+Done: missing physical/catalog cases have inspected results and no unresolved
+feature or persistence defect. Catalog export/field equality alone is insufficient.
+References: practice-difficulty.txt, menu-profile-binding.txt, cosmetic-unlock.txt,
+cosmetic-persistence.txt, cosmetic-community.txt and manual35's retained feedback.
+
+[ ] D4 - Close lifecycle, storage, replay and failure coverage
+- Close remaining invitation departure/late-return/abort-notice and multiplayer
+  disconnect/restart/failure paths in every affected required mode. Survivors
+  return to a usable menu/lobby; first release does not restore an active match.
+  Show an explicit abort when the result is unknown; do not invent a winner.
+- Qualify final installed profile-local TOML, cosmetics, replay and functional UX
+  backup/JSON readback/restart. Check owned missing/corrupt/locked/denied paths,
+  interrupted or failed writes, recovery and useful native warning messages.
+- Finish stateful native replay playback negative/fault/cancel coverage and final
+  retention/path/readback checks. Reuse passed codec/six-malformed-input tests.
+- Preserve original/previous valid data on refusal, correct result delivery,
+  Continue and natural Quit, and worker/room/owned-process cleanup.
+- Cover remaining slow-load, incompatible-version/assets, malformed/oversized
+  traffic and worker crash/hang cases without disturbing unrelated rooms.
+Done: bounded reproductions of remaining faults yield the intended visible
+recovery, preserved data and released resources on the final relevant candidate.
+References: client-storage-isolation.txt, native-replay-validation.txt,
+native-settings-atomic.txt, native-deck-validation.txt, packaged-multiplayer.txt,
+native-custom-invitations.txt, native-custom-matches.txt.
+
+[ ] D5 - Complete game analytics/report removal and qualification
+- Finish indirect collector/storage/callback/reporter review, including constructor
+  work, cache/retry/error/crash paths, bundled CEF and child reporters. Preserve
+  functional UX/local saves while disabling the actual telemetry/cloud sinks.
+- Exercise fresh/existing profiles through startup, idle, deck/options edits,
+  tutorial, all required modes, postgame/rematch, offline/reconnect and shutdown.
+  Use controlled owned error/reporter/crash cases and pre-existing queued reports.
+- Attribute DNS/network/process and relevant queue/file activity across the game
+  and descendants. Distinguish real game-server traffic; correlate observations
+  with reviewed disabled paths. Endpoint blocking or quiet counters are insufficient.
+- Repeat affected checks against the final installed artifacts, retaining private
+  capture/source identities and a public tested-scope summary. Declare external
+  driver/overlay/OS limits explicitly; do not promise system-wide reporting control.
+Done: the full supported game-owned reporting/collection requirement is evidenced
+and gameplay/lifecycle compatibility passes. RUNTIME_VALIDATED stays false until
+that gate is actually met. Existing63 guards/NGX containment and observation52
+are scoped inputs, not a completion substitute.
+References: telemetry.txt, telemetry-internal-config.txt,
+telemetry-persistent-observation.txt and nvidia-shutdown.txt.
+
+[ ] D6 - Resolve intermittent slow initialization
+- Capture a genuinely slow launch with simultaneous original task/pump timing and
+  bounded observation. Compare with retained fast launches using the same inputs.
+- Identify the stalled work, implement a justified fix if needed, and verify cold/
+  warm launches plus match/results/Continue/Quit. Retain truthful loading feedback.
+Done: the observed106/168/225-second slow behavior has an evidenced cause and
+resolution, or an explicitly accepted measured limitation. Do not bypass the
+startup barrier or inflate an ordinary timeout to produce a passing result.
+References: client-startup.txt and telemetry-game-observation.txt.
+
+[ ] D7 - Complete protected Windows host deployment and recovery
+- Obtain pending owner-console40 active-match Ctrl+C/same-state restart evidence;
+  owner39's idle-console PASS does not replace it. Preserve real protected APIs.
+- Qualify host/player accounts, TLS/private-key and invitation lifecycle, invalid/
+  revoked credential refusal, quotas/handshake/message/queue bounds and safe logs.
+- Perform real SCM registration/account logon, start/stop/Windows shutdown/reboot,
+  state-lock release and active-room cleanup, including session0/headless operation.
+- Qualify protected backups/restores and a real match on the restored host under
+  the intended account. Retain identities/revocations/decks; preserve old state.
+- Test chosen clean Windows10/11 support targets without the developer workspace
+  or installed developer runtimes. Verify read-only program files plus permitted
+  separate config/data/assets and documented certificate/asset provisioning.
+Done: actual deployment/account/service/recovery records prove those operations;
+scripted controllers, loopback fixtures and successful imports retain narrower scope.
+References: server-console.txt, windows-service.txt, state-backup.txt,
+windows-packaging.txt, windows-server-quickstart.txt.
+
+[ ] D8 - Complete Internet, latency and final capacity evidence
+- Two physical Windows PCs on different networks connect, play and rematch with
+  the normal verified TLS/invite path. Document the chosen TCP port/firewall/NAT
+  setup; automatic NAT traversal is outside v1.
+- Measure50/100/200ms RTT, jitter, loss/retransmission and stalls on a controlled
+  real-network path. Record click-to-action delay as well as frame throughput,
+  measured ping/connection status and correct abort/recovery. Tune input buffering only
+  from evidence; preserve the50ms simulation step and gameplay correctness.
+- Measure final host capacity/resource growth and sustained20Hz operation for
+  supported concurrent rooms,including at least two independent1v1 rooms. Reuse
+  the passed native/community eight-hour and
+  20-match results; fill their missing packaged/TLS/Unity/session0/Internet scope.
+  Complete the remaining graphical20-rematch requirement with real client lifetime.
+Done: a documented supported capacity/network envelope and no unexplained
+match-blocking divergence, stalls or resource leaks in the required scenarios.
+References: network-qualification.txt, protocol-v3.txt, soak-qualification.txt.
+
+[ ] D9 - Freeze and deliver the final Windows release
+- Build fresh client/server archives from a clean source revision; bind helper/
+  launcher/runtime/asset compatibility and audited hashes. Supply a reproducible
+  local asset import; include no original game files or private runtime material.
+- On clean player/host machines follow the shipped guides: install, first launch,
+  local play, configure/enroll, online play, update, restore/uninstall, save
+  persistence, missing/corrupt file handling and ordinary shutdown.
+- Run the appropriate final source/native/packaging checks for actual changes,
+  recording skips and failures accurately. Preserve recovery/manual/frozen copies.
+- Produce concise host/player guides, support matrix, capacity, troubleshooting,
+  backup/revocation instructions, release notes and explicit lesser limitations.
+- Audit every original user requirement against exact final evidence. Complete
+  RELEASE_ACCEPTANCE.txt only where that evidence meets its scope; publish only
+  the agreed source and release files after source/history/private-content review.
+Done: D1-D8 and all first-release acceptance requirements are satisfied, with no
+known match-blocking failure and no prerequisite silently moved to optional work.
+
+Execution rules for this plan
+Keep this file a short open-work queue; detailed history belongs in STATUS.txt and
+focused evidence records. Close an item by citing its result, not by expanding it
+into an endless series of diagnostics. Start each investigation with one missing
+claim, a bounded check and a defined result. A failure produces a specific defect
+or external action. Reuse matching earlier evidence and run only affected
+regressions unless a new concern justifies more. Normal launchers stay free of
+automation, heavy captures and forced surrender/Continue/Quit. Forced cleanup,
+black screenshots, optional skips and mocked privacy never satisfy their broader
+acceptance gates. Never retry protected writes under the restricted token.
+
+Uncertainty and scheduling
+The old phase estimates are retired. Re-estimate from D1/D8 findings and a finite
+defect list, not the volume of historical notes or tests. There is no completion
+date commitment in this reset. Preserve the full product scope while keeping each
+next action concrete and reviewable.

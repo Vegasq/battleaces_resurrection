@@ -1,11 +1,12 @@
 BATTLE ACES RESURRECTION - WINDOWS SERVER AND CLIENT ADAPTER
 
 Development project for private Battle Aces build 37822 matches. Windows x64
-server and clients are the current target. See docs/SERVER_REPLACEMENT_PLAN.txt
-for the requested outcome and docs/STATUS.txt for evidence and remaining work.
+server and clients are the current target. See docs/REMAINING_DELIVERY_PLAN.txt
+for unfinished delivery work and docs/STATUS.txt for evidence. The original
+roadmap is closed/superseded;docs/PLAN_CLOSEOUT.txt records the handoff.
 docs/RELEASE_ACCEPTANCE.txt collects the remaining final release/playtest gates.
 Current source builds provide Start Client.cmd for ordinary play and Start
-Server.cmd for hosting. Install the patch into a working game copy first;see
+Server.exe for hosting. Install the patch into a working game copy first;see
 docs/windows-client-quickstart.txt. Start Client keeps local play available
 without server setup and enables public queues plus installed cosmetic choices.
 Ordinary-feature qualification and exact limitations:docs/ordinary-player-client.txt.
