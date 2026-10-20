@@ -1,4 +1,5 @@
 #pragma once
+#include "native_quit_gate.hpp"
 namespace ba_client { static bool nativeIdle(ba::Obj front); } // Defined later in client_lifecycle.cpp.
 // Native Start/Ready requests are not wire transactions: callbacks carry only
 // Error and may synchronously enqueue another request. Retain exact ownership.
@@ -500,13 +501,27 @@ static bool leaveGateReady() {
         "Custom leave gate requires an owned unified Quit diagnostic");
     const auto& settings=ba_native_settings::session->path();
     const auto path=settings.substr(0,settings.find_last_of(L'\\')+1)+L"custom-match-leave.ready";
+    static ba_native_quit_gate::Wait wait;
     ba_native_settings::Handle file(CreateFileW(path.c_str(),GENERIC_READ,FILE_SHARE_READ,nullptr,OPEN_EXISTING,
         FILE_FLAG_OPEN_REPARSE_POINT,nullptr));
     if(file.value==INVALID_HANDLE_VALUE) {
-        wire::require(GetLastError()==ERROR_FILE_NOT_FOUND,"Custom leave gate is unavailable");return false;
+        const DWORD error=GetLastError();const auto result=wait.failed(error,GetTickCount64());
+        if(result==ba_native_quit_gate::Result::Missing)return false;
+        if(result==ba_native_quit_gate::Result::Sharing) {
+            if(wait.attempts==1)ba::log("COMMUNITY LEAVE gate busy: win32=%lu retryBoundMs=%u BA_RESURRECTION_CUSTOM_LEAVE_GATE_WAIT_V1",
+                error,static_cast<unsigned>(wait.MaxWaitMs));
+            return false;
+        }
+        ba::log("COMMUNITY LEAVE gate open refused: win32=%lu retryExpired=%d retryBoundMs=%u",
+            error,result==ba_native_quit_gate::Result::Expired?1:0,static_cast<unsigned>(wait.MaxWaitMs));
+        throw std::runtime_error("Custom leave gate is unavailable; win32="+std::to_string(error));
     }
     ba_native_settings::ordinary(file.value);LARGE_INTEGER size{};
     wire::require(GetFileSizeEx(file.value,&size) && size.QuadPart==0,"Custom leave gate must be an empty ordinary file");
+    const auto now=GetTickCount64();wire::require(wait.ready(now),"Custom leave gate sharing retry exceeded 1000ms");
+    if(wait.active)ba::log("COMMUNITY LEAVE gate busy settled: attempts=%u elapsedMs=%llu strictReader=1 BA_RESURRECTION_CUSTOM_LEAVE_GATE_WAIT_V1",
+        static_cast<unsigned>(wait.attempts),static_cast<unsigned long long>(wait.elapsed(now)));
+    wait.clear();
     return true;
 }
 static void smoke(Obj front) {

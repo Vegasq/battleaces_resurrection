@@ -1,0 +1,39 @@
+BOUNDED CUSTOM LEAVE DIAGNOSTIC51 -- 2026-10-20
+
+Follow-up from50
+The Custom two-match/Leave test passed,but its separate gate reader still used
+the strict sharing pattern reproduced in gate50. Publisher close-before-rename
+cannot alone eliminate Windows rename-handle contention. Reuse the existing
+bounded policy for this second explicit diagnostic consumer;do not relax the
+ordinary file/profile/empty-file guards or call Leave before readiness.
+
+Change
+Only -community-match-leave-quit-smoke can enter this reader;it still requires
+unified owned nativestest_ profile and native Quit/gate diagnostics. Missing file
+waits for the parent;ERROR_SHARING_VIOLATION32 waits at most1000ms. Missing-after-
+busy cannot reset the deadline;unknown errors fail immediately;late success
+also fails. Log actual busy/settled/refused code. Keep FILE_SHARE_READ and
+OPEN_REPARSE_POINT,ordinary-file and zero-size validation. Original Leave/ACK/
+party cleanup/Quit ordering remains. Ordinary player launch never reads gates.
+No server,protocol,AI,cosmetic,storage,telemetry or original patch recipe change.
+
+Build/source checks
+build/helper-leave51-01 compiles/tests with84bound sources unchanged. Helper
+SHA256 f27311feca0f999c02988a43298490a8b6f232ce7d6b12d28aa693b88df4e858
+helper-build.json SHA256
+8442c5bffa4a8759d876a596319e121ebe23b4fda4375b4fe030e87ff7183ce1
+local/helper-leave51-build01.txt SHA256
+e035f71abd67f65da8c55f8459cd0c36815397fca4789ddfb37db298baefa6ca
+Same component policy tests cover transient/exact deadline/persistent busy,
+missing-after-busy,clock regression and immediate unexpected errors.
+91focused Python checks90pass/1explicit skip pass9.048s. Log SHA256:
+local/leave51-focused-tests01.txt
+d3ceac0b4c6c35f722778dedb9c6c9e57158c3618edee336cad4cd2f67d4f4c7
+
+Next
+Build clean archives/install only owned03. Exercise actual two-round Custom
+matches with deliberate brief gate writers for guest and host,then an expected
+persistent-writer/no-Leave/no-Quit refusal. A negative forced cleanup is not
+natural Quit or a successful player lifecycle. Keep source-bound reports,
+frozen50/manual35/recovery and original bytes preserved. Other release gates
+remain open,including protected40,physical/SCM/clean-PC/cross-PC/Internet/privacy.
