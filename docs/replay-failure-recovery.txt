@@ -88,13 +88,54 @@ eb04c34d4248da71842a1550b976424a1cb3f7919e58c0c484cd4ca6f7c911a4
 Original GameData SHA256
 01bc5d86c6ef3c522b342e559470e2ffca1eaa6555bfde72bfa0e0256c79486d
 
-Finite next action
-Before another replay run,identify the supported player-facing load/cancel/error
-contract and the original coroutine/FSM exception disposition. Decide whether
-this is an ordinary reachable recovery defect or a diagnostic-batch limitation;
-retain the full D4 malformed/playback failure requirement either way. Do not add
-a new replay browser or modify the original debug batch solely to satisfy a test.
-Then implement the justified recovery/control and run this one bad-file case plus
-the healthy control. Add other fault/cancel cases after that recovery contract is
-verified. Do not repeat the unchanged timeout-only probe. D4 remains open.
+Contract review56 -- static classification,not another runtime test
+Two independent read-only reviews checked the retained original batch/FSM and
+authored ordinary entry separately. Additional original-byte LLVM disassembly is
+retained in local/replay56-contract01 with source/tool/range identities. REA's
+Ghidra provider remains unconfigured;this is ordinary static evidence,not REA
+Evidence. No provider repair,game launch,helper/patch/package change or ACL change.
+New local manifest SHA256
+1cb3ecf62cf95f3ebb8c85928d9a621298017073dfd7c05467f7023251c6b6d5
+pins original GameAssembly e59d08c0...,metadata b760be91...,LLVM5e7a457b...,
+producer scripts and retained ranges/findings. Original bytes remain private.
+
+Original ReplayFileState.Update03df4b88..03df4b98 returns!IsRunning(handle).
+FSM.Update maps status1 to Stop016eb160;status2 follows NextState. Newly reviewed
+Stop016eb320..016eb3a6 checks current+18,kills the FSM's coroutine via its+24
+handle at016eb379,and calls shared TransitionTo with destination=null016eb392.
+That executor clears the departing Context016eb1d4 and assigns current=null at
+016eb233;null skips destination callbacks. Therefore a stopped replay coroutine
+leads to an empty stopped FSM,not an implicit menu successor. This is conditional
+static behavior,not a new observation of probe55's current state. Its observer
+error also admits null but did not log the actual destination.
+
+New MEC.RunCoroutineInternal032ffff0..03302930 contains the LogException tail
+0330236f..033023b7:Debug.LogException0330239f,saved handle reload033023a4,return
+through EAX033023d0. Actual55 Unity logs independently show MEC logging the error.
+The exception/unwind table mapping was not recovered;this does not prove the
+particular prewarm catch arm,handle removal/returned value or subsequent
+IsRunning result. The disassembly range also contains trailing data. Batch Quit0
+is success flow after all files,not a proven exception-finally. Quit2 handles
+an empty file list,not arbitrary malformed files.
+
+Ordinary source entry is Start Client -> package_client start -> player_options
+-> launcher. It adds no replay playback flag. Patched OfflineInitialUpdate
+displaces original initial Update's startup ReplayFiles/Smoke selection and
+chooses the existing menu/tutorial unless the explicit playback diagnostic is
+enabled. Codec fault readback explicitly has playbackCalls=0. Original UI Play/
+StartOver operate an already assigned Replay. The existing _leaveReplayButton/
+ReplayEndGame is a concrete candidate,but its binding and complete owner/menu
+return are not established. Retained47method/35field name scans and direct-branch
+scan do not cover every asset,CEF script,reflection or indirect callback.
+
+Decision and finite next action
+The demonstrated55 failure is opt-in original developer-batch noncompletion.
+No supported ordinary disk-selection path is established within reviewed scope;
+ordinary malformed-load recovery remains unproven. D4 stateful playback fault/
+cancel requirements remain open. Identify the existing leave button's event
+binding and owning return callback on a healthy replay before another fault
+launch. Require world disposal,usable menu,preserved data and natural Quit when
+that supported route is exercised. Do not invent a browser,force a menu jump or
+patch batch Quit solely to green a diagnostic. Do not repeat the unchanged
+timeout-only probe. This classification does not waive the remaining requirements.
 D1's prepared real LAN playtest is still the next user-facing milestone.

@@ -3,6 +3,19 @@ Updated: 2026-10-20 UTC
 Delivery plan: REMAINING_DELIVERY_PLAN.txt, Windows only.
 Original roadmap: CLOSED / SUPERSEDED;see PLAN_CLOSEOUT.txt.
 
+REPLAY CONTRACT56 (2026-10-20 UTC, STATIC CLASSIFICATION / D4 OPEN)
+Independent read-only batch/ordinary-route reviews plus fresh pinned original
+LLVM slices distinguish55's opt-in developer-batch noncompletion from ordinary
+play. FSM.Stop kills its coroutine and requests null destination,clearing current/
+departing Context;it does not select menu. New MEC exception-logging tail is
+retained;exact prewarm catch/handle disposition and55 runtime destination remain
+unobserved. Ordinary patched entry bypasses original startup replay selection;
+no complete ordinary disk-picker route is established. Existing ReplayEndGame
+binding/owning return is next bounded contract question before further probes.
+No launch,production/helper/package/permission change. Stateful fault/cancel
+scope remains open. See replay-failure-recovery.txt. D1 setup/owner40 reports
+remain absent;physical LAN milestone stays first.
+
 REPLAY FOLLOW-UP55 (2026-10-20 UTC, HEALTHY PASS / RECOVERY FINDING OPEN)
 New plan D4-RP1 now has a bounded original ReplayFiles malformed-input finding.
 One authored invalid-Deflate byte reaches original state/load/IOException. First

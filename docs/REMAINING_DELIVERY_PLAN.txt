@@ -103,9 +103,11 @@ References: practice-difficulty.txt, menu-profile-binding.txt, cosmetic-unlock.t
 cosmetic-persistence.txt, cosmetic-community.txt and manual35's retained feedback.
 
 [ ] D4 - Close lifecycle, storage, replay and failure coverage
-Current replay follow-up:D4-RP1 in replay-failure-recovery.txt. Current healthy
-batch control passes;malformed batch recovery remains unqualified. Establish the
-ordinary load/error/cancel contract before another fault run.
+Current replay follow-up:D4-RP1 in replay-failure-recovery.txt. Healthy batch
+passes;malformed developer-batch noncompletion is retained. Review56 confirms
+ordinary entry does not select that diagnostic,and Stop clears current state.
+Ordinary malformed-load recovery remains unproven. Trace existing replay Leave
+binding/owner return before another fault run;stateful fault/cancel scope stays open.
 - Close remaining invitation departure/late-return/abort-notice and multiplayer
   disconnect/restart/failure paths in every affected required mode. Survivors
   return to a usable menu/lobby; first release does not restore an active match.
