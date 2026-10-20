@@ -1,0 +1,164 @@
+D2 MODE, MATCHMAKING AND TRANSITION ACCEPTANCE
+Created: 2026-10-20. Parent: REMAINING_DELIVERY_PLAN.txt D2, still OPEN.
+
+Purpose and closure rule
+This is the finite inventory for D2, not another roadmap or a new feature list.
+PASS below always names its scope. Retained automated native passes do not mean
+physical input, protected enrollment, LAN, final artifacts or all visible UI
+have passed. Reuse unchanged applicable evidence. A changed implementation needs
+affected checks, not a blanket rerun of every historical case.
+OPEN cases may close through inspected existing evidence if it proves the claim;
+otherwise run the specified case, or fix and retest its concrete failure.
+Do not add scenarios indefinitely: additions require an identified uncovered D2
+requirement or reproducible defect. Other delivery gates stay in their own items.
+
+Notation
+Modes: 1=public1v1, 2=public2v2, 4=Try Deck, 5=public2vAI, C=Custom1v1.
+P=retained native PASS within its stated scope; O=OPEN for missing evidence.
+An explicit mode set expands into those named cases, not an unspecified matrix.
+Reports are ignored local files; hashes/raw details remain in focused records.
+
+A. Availability (client can always play local AI)
+ID       State / modes                                      Evidence / status
+A01-04   Blank online configuration / 1,2,4,5                 P:46 four-mode
+A05      Configured missing trust/invite files / 4           P:48 missing-files
+A06      Configured invalid public trust / 1                 P:48 invalid-trust
+A07-10   Valid protected settings, TCP refusal / 1,2,4,5     O:normal owner
+A11-14   Valid protected settings, connection/handshake
+         timeout / 1,2,4,5                                  O:normal owner
+A15      Healthy configured server while using Try Deck      O:local ownership
+For A07-14 use an owned refusing/controlled nonresponding endpoint; never a
+guessed public address. Require real resolver/private reader, useful failure,
+one local world, original results/Continue, saved deck/practice preference and
+normal Quit. These are not equivalent to invalid files/trust. For A15 require
+no match/worker/queue allocation; pre-existing optional presence may retire.
+A05/A06 are retained exact rejection exemplars. Shared resolver source/tests
+are inputs to their applicability; do not claim they simulate actual refusal.
+
+B. Public queues (all supported human roster sizes)
+ID    Mode/humans       Expected policy                    Retained native PASS
+B01   1 / 1            Real30s, one bot                   emptyqueue49 1v1-01
+B02   1 / 2            Immediate, humans0/1               populated50 1v1-02
+B03   2 / 1            Real30s, three bots                emptyqueue49 2v2-02
+B04   2 / 2            Real30s, humans0/1, bots2/3         populated50 partial01
+B05   2 / 3            Oldest ticket30s, only bot3         roster57 three-human03
+B06   2 / 4            Immediate, no bots                 roster57 full-human01
+B07   5 / 1            Real30s, AI ally and opponents      emptyqueue49 2vai-01
+B08   5 / 2            Immediate, human allies0/2          populated50 2vai-01
+All eight retain the entered human group in ONE authoritative match, frozen
+configured names/decks/full loadouts, original results/Continue and native Quit.
+No ordinary 30s timer or simulation step is shortened. They are same-PC native
+automated/TLS identity-fixture evidence. No further missing roster cardinality.
+B09   Original bot selection and difficulty applicability O:final review
+Bind source-supported random difficulty/mode pools and varied catalog identity/
+deck/avatar selection to the retained local/online runs. Inspect actual loading/
+result models and physical P03 below; Try Deck must use its separate saved
+difficulty. Do not require probabilistic sampling to produce every random value;
+selection/rule correctness needs direct source/native evidence, not a lucky draw.
+Quantitative health/damage/resource and catalog gameplay coverage belong to D3.
+
+C. Custom (always human-only)
+C01 P:51 actual Invite/Accept, Ready/Start, two matches, changed host deck,
+    same lobby/connections, results/Continue, both Leaves and native Quit.
+C02 O:current directory refresh/join/departure, self/busy disabled and eligible
+    players enabled. Retained invites-roster-regression01 covers2->3->2 with
+    earlier helper; inspect applicability before deciding whether to repeat.
+C03 O:current original popup decline/cancel/expiry/duplicate Accept and request
+    credit cleanup. Earlier four-cycle native invitation proofs are retained.
+C04 O:two simultaneous inviters to one available target; accept one, retire the
+    other invitation without starting or moving the unrelated player.
+C05 O:Custom never auto-fills: leave a lobby waiting beyond30s, then complete a
+    human match. Public matchmaking timers must not create an AI Custom world.
+Existing component/protocol rejection tests support these cases, but cannot
+replace a required native/model or physical observation. Accept/departure during
+an actual committed match remains D4; do not count it twice as an unbounded list.
+
+R. Public cancellation / stale control responses
+Each cell names native evidence only. All missing cells are explicit cases.
+ID / point                    Mode1                 Mode2   Mode5
+R01 before ENTER              P:cancel-before01      O       O
+R02 waiting                   P:ordinary-cancel01    O       O
+R03 OFFERED before READY      P:cancel-offer01       O       P:2vai-cancel01
+R04 after READY committed     P:cancel-ready01       O       O
+R05 cancel/retry + old ENTER   P:cancel-retry01       O       O
+R06 assignment after local AI O                      O       O
+R07 dropped final RETURN ACK  P:drop-return02         O       O
+P cells refer to earlier ordinary/native candidates in public-matchmaking.txt
+and ordinary-player-client.txt, not new current-package or physical acceptance.
+For R01-05 require the original Cancel action, correct pending/committed
+ownership, no second world and a usable next Play. A committed READY must not
+silently become local AI. R06 deliberately delays an owned server response
+until the client has entered fallback; it must retire/ignore that remote intent
+without replacing the local world. R07 preserves finished results, returns to
+idle quietly and allows another Play, without a false startup error.
+Late/duplicate READY is also covered by C01 and retained Custom start/expiry
+proofs; applicability of the earlier negative/stale native cases is OPEN.
+Retained Custom setup/loading/running/stale abort proofs remain D4 inputs.
+
+T. Same-process mode/world ownership transitions
+Each trace requires original result/Continue at every completed match; preserve
+configured identity/deck/practice preference, release old native world/AIManager
+and room/worker ownership, and prevent stale intent from replacing the new world.
+T01 P:completed remote1 -> local4 -> remote1 (earlier native helper).
+T02 P:aborted remote1 -> local4 -> remote1 (earlier native helper).
+T03 P:completed allied remote5 -> local4 -> remote5, same two humans; current
+    helper51/ordinary feature options, transition62. Final cleanup is forced.
+T04 P:completed full-human remote2 -> local4 -> remote2, same four humans;
+    current helper51/ordinary feature options, transition62. Forced final cleanup.
+T05 O:remote1 -> remote2 -> remote5 -> remote1, retaining available humans.
+T06 P:local4 -> offline1 -> offline2 -> offline5 -> local4, one five-match
+    native sequence (local-modes02, earlier helper). Saved practice difficulty
+    stays Normal; original results/Continue and all-bot movement pass. Final
+    owned process termination is not native Quit. See team-modes.txt.
+T07 O:C -> local4 -> C, using the original Custom invitation/menu path.
+T08 O:C -> remote1 -> C, with no stale lobby/prediction/public intent.
+T09-11 O:completed remote -> server unavailable/local fallback -> remote,
+       for public modes1,2,5. Distinguish a pre-commit unavailable search from
+       a committed-match disconnect, which must abort rather than invent AI play.
+T01/T02 source/native reports and their forced termination boundary are in
+remote-local-transitions.txt. They prove transition behavior, not native Quit,
+bundled entry, all-mode transitions or physical controls.
+
+P. Physical acceptance on the selected ordinary candidate
+P01 O:normal Start Client with no server, Try Deck and public1/2/5: immediate
+    feedback, responsive controls, original loading, results/Continue and Quit.
+P02 O:normal Start Client with server, public1/2/5: native Searching..., advancing
+    elapsed seconds, one mode panel/timer, original Cancel, locks cleared on
+    cancellation, accepted-match preparation/loading, no stale error/second world.
+    Observe waiting cancellation and match-found handoff in each public mode.
+P03 O:public1/2/5 local and online: varied bot name/avatar/deck through original
+    loading/results; human name/deck stays configured. Try Deck saved difficulty
+    remains independent. Do not call model equality a rendered or physical PASS.
+P04 O:Custom directory/invite/accept/Ready/Start, results/Continue, changed-deck
+    rematch, Quit/restart/persistence on two PCs; D1 supplies this observation.
+Manual35's physical local AI/persistence PASS and earlier reviewed search pixels
+are retained inputs. Neither confirms every current mode or the new LAN trace.
+
+Evidence index / authoritative report review
+46: native-path-preflight.txt; local/release46-fixed-mode<N>-01/verification.json
+48: client-availability.txt; local/availability48-missing-files-practice-01/ and
+    local/availability48-invalid-trust-1v1-02/verification.json
+49: empty-server-queue.txt; local/emptyqueue49-native-{1v1-01,2v2-02,2vai-01}/
+50: current-community-matches.txt; local/populated50-native-{1v1-02,
+    partial-2v2-01,2vai-01}/verification.json
+51: custom-leave-gate-wait.txt;
+    local/leave51-native-controls02/transient/verification.json
+57: current-community-matches.txt;
+    local/roster57-{full-human-2v2-01,three-human-2v2-03}/verification.json
+R: public-matchmaking.txt, ordinary-player-client.txt, matchmaking-search.txt
+C02/C03: native-custom-invitations.txt; C/Ready: native-custom-matches.txt
+T01/T02/T03/T04: remote-local-transitions.txt
+T06: team-modes.txt; local/local-modes02/verification.json
+Local mode-matrix62-retained-review02.json binds exact retained report bytes,
+passing values, scopes and this matrix; it is not another game execution or
+blanket validation. transition62-retained-review.json additionally checks both
+current team runs' raw leases, assignments, Continue counts and source identities.
+
+Requirement mapping and D2 exit
+Plan bullet1 -> A and B; bullet2 -> B09/P03 plus B's real deadlines/alliances;
+bullet3 -> B/C; bullet4 -> P01/P02 and R; bullet5 -> R/T and retained D4 cases.
+D2 closes when every required OPEN case has inspected matching evidence or a
+fixed/retested defect, physical P01-04 pass, and relevant final artifact identities
+are bound. A scoped pass can close its case without closing its broader scope.
+Next autonomous case: R02-mode2, original Cancel during a waiting2v2 queue.
+First top-level closure remains physical D1.

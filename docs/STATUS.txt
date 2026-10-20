@@ -3,6 +3,28 @@ Updated: 2026-10-20 UTC
 Delivery plan: REMAINING_DELIVERY_PLAN.txt, Windows only.
 Original roadmap: CLOSED / SUPERSEDED;see PLAN_CLOSEOUT.txt.
 
+D2 FINITE MATRIX62 (2026-10-20 UTC, TWO NEW TEAM TRANSITION PASSES)
+mode-acceptance-matrix.txt now maps every D2 bullet to named availability,
+roster, bot, Custom, cancel/stale-response, transition and physical cases.
+All eight supported public human roster sizes retain passing evidence; earlier
+offline4->1->2->5->4 is reused, not scheduled again. Final read-only review binds
+27 exact passing reports and their declared scopes;no new execution by review.
+local/mode-matrix62-retained-review02.json SHA256
+873f04eb914be9e4784de43762b50dd7e6e56d1ee024494f63be8dce0c12427d
+Actual unchanged helper51/ordinary-feature owned58 tests now pass allied2vAI ->
+offline Try Deck -> allied2vAI (380.903s) and four-human2v2 -> Try Deck ->2v2
+(393.695s). Each client has1250 exact receipts in BOTH remote matches;all six
+local practice bots produce and autonomously move ordered units. Names/decks/
+full loadouts survive;no new community connection/worker during practice,all
+sessions fresh afterward,each remote/local/remote world released in order.
+Both native server workers per run exit0/reaped;shared TOML/source unchanged.
+Final native process cleanup is FORCED,not Quit;direct source bridge/server
+controls are not bundled host.run/client.main/protected/physical/LAN proofs.
+See remote-local-transitions.txt for exact reports/raw-log review and limits.
+No production/helper/recipe/package changes or redundant unit-suite rerun.
+Next autonomous D2 case:R02-mode2 waiting Cancel. D1 owner LAN setup and protected
+active40 reports still absent at review;all nine top-level items remain OPEN.
+
 DELIVERY CLOSURE CHECKLIST (2026-10-20 UTC, DOCUMENTATION ONLY)
 Remaining plan now explicitly checks off two D2 roster subcases and four D4
 loading/running recovery subcases already proved in57/59/60. No new execution

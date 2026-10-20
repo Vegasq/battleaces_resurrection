@@ -68,10 +68,18 @@ This does not close Internet, clean-machine or four-human acceptance.
 
 [ ] D2 - Finish the final mode, matchmaking and transition matrix
 Use the same selected candidate and record missing combinations explicitly.
-Completed subcases (same-PC packaged automated controls; not physical LAN):
-[x] Four-human2v2 through results/Continue/natural Quit (roster57 full-human01).
-[x] Three-human/one-bot2v2 with real30-second fill, results/Continue/natural Quit
+Finite case inventory and requirement mapping: mode-acceptance-matrix.txt.
+All eight supported public roster sizes already have native PASS evidence;
+next autonomous case is original Cancel during a waiting2v2 queue (R02-mode2).
+Completed subcases (same-PC automated controls; not physical LAN):
+[x] Packaged four-human2v2 through results/Continue/natural Quit (roster57 full-human01).
+[x] Packaged three-human/one-bot2v2 with real30-second fill, results/Continue/natural Quit
     (roster57 three-human03). See current-community-matches.txt for evidence.
+[x] Same-process allied2vAI -> offline Try Deck -> allied2vAI, preserving full
+    selections/fresh sessions (transition62 T03; forced final cleanup, not Quit).
+[x] Same-process four-human2v2 -> offline Try Deck -> four-human2v2 with the same
+    preservation (transition62 T04; forced final cleanup, not Quit). Earlier
+    offline4 ->1 ->2 ->5 ->4 is retained as matrix T06, not scheduled again.
 Reuse those controls;physical ordinary/LAN and remaining cases below stay open.
 - Try Deck,1v1,2v2,2vAI: no server/config/credentials; configured valid-credential
   server unreachable/refusing; reachable empty server; partial/full human rosters.

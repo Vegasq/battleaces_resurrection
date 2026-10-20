@@ -1,5 +1,6 @@
 REMOTE / LOCAL MATCH TRANSITIONS
-Updated:2026-10-19 UTC. Failed/completed1v1 transitions qualified; not release acceptance.
+Updated:2026-10-20 UTC. Retained1v1 and current team transitions qualified;
+not release acceptance. Team follow-up62 below uses ordinary feature settings.
 
 Existing application contract
 client_lifecycle.prepareLocal requires no world owner and no active public intent,
@@ -115,3 +116,64 @@ remote team -> local team switches, actual Custom-match switches, repeated long
 soaks, cross-process profile/cosmetic persistence, another PC, Internet, manual
 appearance, normal launcher enablement or native Quit. No manual/frozen game
 copy or package was updated by these tests.
+
+CURRENT TEAM TRANSITIONS62 -- 2026-10-20 (T03/T04 SCOPED NATIVE PASSES)
+The finite D2 inventory in mode-acceptance-matrix.txt identifies the missing
+allied2vAI/full-human2v2 -> offline Try Deck -> same online mode sequences.
+Both now pass without changing production source, helper51, recipe or packages.
+Use independent owned58 game, imported53 assets and the earlier native cosmetic
+seed read-only. LAN source03, owner provisioning and manual35 are not modified.
+
+Actual tools.verify_public_clients uses client.player_options/ordinary argument
+builder, production bridge/DedicatedServer and verified loopback TLS with an
+explicit in-memory identity resolver/store. It does NOT run bundled host.run/
+client.main or protected enrollment. Extra original Play/build/Concede/Continue,
+practice/combat/cosmetic/audit actions require explicit diagnostic flags. The
+recorded ordinary base argv contains none. No automation enters normal launchers.
+
+T03: local/transition62-allied2vai-practice01/verification.json
+PASS380.9028952s, native PIDs18376/40276. Allied human seats0/2 receive1250 exact
+canonical frames each in BOTH remote matches; builds300/500 reach authoritative
+input journals. Each same process completes one independent local mode4 match,
+with bot max supply129/136 and40/49 produced units that both receive autonomous
+Move/Attack orders and change observed position. Original results/Continue,
+identity/unit deck/full17-slot frozen loadouts and local AIManager release pass.
+Report SHA256
+1fc7907c1a54447ec41f99cba6bb539d40493b7e5a3b6f39fafdd71897285c2b
+
+T04: local/transition62-fourhuman2v2-practice01/verification.json
+PASS393.6947323s, native PIDs47240/40896/36116/46512. Same four humans occupy
+all four remote seats, no remote bots, with1250 exact canonical receipts EACH
+per client in BOTH matches. Builds300/400/500/600 reach authoritative journals.
+The four independent local practice bots reach supply129/131/129/136 and40/40/
+40/48 produced ordered+moving units. Original results/Continue, full selections
+and AIManager release pass before the same native processes rematch remotely.
+Report SHA256
+d522f7259b33e2c8bda106004850a6151ea783df54a4edf1fb9c0bb22df694cb
+
+Both controls require no new community connection/authentication/room/worker
+during local practice and complete retirement of old community sessions. Each
+client resolves twice; total authenticated identities are4/8. The second remote
+match uses fresh sessions, retaining configured names/decks/full appearances.
+Every native process acquires/releases exactly remote generation1 -> local
+generation2 -> remote generation3, without overlapping or substituting worlds.
+Each run's two actual server workers exit0, no failure/stderr, fully reaped.
+Covered source hashes and the sampled shared TOML baseline remain unchanged;
+diagnostic gates and owned processes release. Helper SHA256 remains
+f27311feca0f999c02988a43298490a8b6f232ce7d6b12d28aa693b88df4e858.
+
+Read-only local/review-transitions62.py rehashes all captured source paths,
+actual helper, both reports and all six retained native logs, and compares the
+saved/current manifest bytes. It checks ordered lease/assignment sequences,
+original Continue counts, same PID/name/deck,
+remote attempts, worker outcomes and absence of Quit qualification. No new game
+is launched by this review. local/transition62-retained-review.json SHA256
+f9518cb64a33ec31312ec70cbbd95874f6d2641981451ccc516308ddb9241553
+
+Boundary: FINAL GAME TERMINATION IS FORCED OWNED CLEANUP, NOT NATIVE QUIT.
+Automated concessions bound remote/local combat; these are not natural-victory,
+physical/pixel, replay playback, protected/bundled launch, LAN or Internet proofs.
+No independent whole-state/native-state-sample agreement is claimed by this
+older transition verifier; its exact frame/input and native model checks keep
+their stated scope. D2's remaining cases/physical acceptance and D1 remain open.
+No source implementation change means no redundant source-unit-suite rerun.
