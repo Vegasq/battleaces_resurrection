@@ -1,0 +1,70 @@
+DOCUMENTED OWNER SETUP47 -- 2026-10-20
+
+Scope
+Continue release setup qualification after corrected offline46. This is same-PC
+development evidence,not clean-PC/outside-network/SCM/physical-input acceptance.
+User repeats owner-console39 PASS:its protected TLS/idle/Ctrl+C report remains
+passed=true,stage=complete,forced_cleanup=false. Separate active-match40 still
+has no report. Do not substitute39 for40. See server-console.txt.
+
+Guide corrections
+Both shipped quickstarts now identify Command Prompt (cmd.exe) for their command
+examples. The host guide explicitly returns to the server package for import,
+uses -local-profile=asset_export for the graphical export,and explains fresh
+export directories/replacement behavior. This avoids using normal player native
+settings/backup during export. The exporter already ships;no duplicate product
+exporter or new game hook is needed. Remove stale text saying public/team client
+allocation is unimplemented;bounded offline qualification is not final acceptance.
+
+Diagnostic contract
+tools.verify_ai_export now requires an ignored owned Windows game/evidence path,
+a current source-bound helper receipt,and an explicit shared-settings path. Each
+run selects fresh nativestest_export_<12hex> and checks native save-path limits
+before spawning. It checks exact early native settings/backup isolation plus
+export-control/completion markers and owned manifest PID. Full export maps/rules/
+bot/cosmetic validation remains required. Hash snapshots cover shared TOML,
+shared replay/backup channels,existing default profile/cosmetics and installed
+helper/components. Source inventory must stay unchanged. Current-process complete
+log lines are retained from BEFORE native initialization;match-oriented log
+slicing would incorrectly discard these early isolation records. Reused PID/
+partial-line evidence is excluded. Failed later validation cannot retain passed.
+
+The opt-in hidden exporter is deliberately terminated after complete validation.
+forced_cleanup=true is explicit and native_quit_qualified=false. This test does
+not qualify native Quit,rendered UI or process-wide network absence. Export mode
+suppresses the wrapper's Play/network adapters;this is control-marker evidence,
+not independent traffic observation. No match is requested.
+
+Tests and actual export
+42 focused tests pass4.539s:export evidence,asset import,secure launcher,Windows
+packages. The new five tests reject shared/wrong/unlocked/ambiguous settings,
+missing backup/completion,match requests/storage failures,stale PID/partial logs,
+unsafe profiles and native path-limit violations. An initial test caught the
+substring COMPLETE matching INCOMPLETE;completion now requires the exporter
+marker prefix. No guard was waived.
+local/setup47-focused-tests01.txt SHA256
+7f7a7dee6635f7630facb8217b30ce43d3fb9a924a2cbaf82c194c62e1c487c8
+tools/verify_ai_export.py SHA256
+57792c1dc302f321526c4644d8184105d6ba1450d5cb84f0eada05131309a9d9
+tests/test_ai_export_evidence.py SHA256
+7a47504399aa6989bf0c66c69a7c13437bf2579910b84a3f028319f2a31b66cf
+
+Actual helper42/ordinary recipe4 owned03 export02 passes11.838407700s. Fresh
+profile nativestest_export_ae0f955dc30b. Three original mode maps,59 AI profiles,
+7 bot profiles/36decks/13646names,107cosmetic items/17slots validate. Shared/
+default save channels,components and bound sources unchanged;owned process
+reaped,job1 active0/terminated0 AFTER explicit main termination. No Quit claim.
+local/setup47-export02/verification.json SHA256
+61552018497f9ba1335d132959fcc48491a4189019b6b9261f59ce01be8df33e
+local/setup47-export02/export/export.json SHA256
+2fd51a387c0631526a0254118bf40d3d8643a45c055cc6a9efb54ad0f448ba5f
+Export01 also passed11.078s before a diagnostic exception-path correction;retain
+it but use02 for current diagnostic source identity. Local outputs/catalogs and
+original files remain ignored;only authored source/docs enter Git.
+
+Next
+Build clean archives containing corrected guides;extract into folders with spaces
+and import this fresh export through actual packaged maintenance CMD. Verify
+native host health/lifecycle and immutable package inventory. Protected owner40,
+physical/manual/friend-PC/Internet/SCM/full telemetry and slow-startup cause remain
+separate release gates. Recovery/manual35/frozen earlier archives stay unchanged.

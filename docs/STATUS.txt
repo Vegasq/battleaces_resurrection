@@ -2,6 +2,15 @@ IMPLEMENTATION LEDGER
 Updated: 2026-10-20 UTC
 Active objective: implement SERVER_REPLACEMENT_PLAN.txt, Windows only.
 
+OWNER SETUP47 (2026-10-20 UTC, EXPORT PASS / HOST SETUP IN QUALIFICATION)
+Fresh helper42/ordinary03 asset export passes11.838s with three maps,59AI rules,
+bot/cosmetic catalogs;separate maintenance profile and shared/default save hashes
+prove bounded isolation. Explicit exporter termination is not native Quit or
+network absence.42 focused tests pass. Shipped quickstarts identify cmd.exe,
+isolate export profiles and correct stale allocation status. Clean archive/
+fresh packaged import/host follow-up next;owner39 repeat PASS does not close40.
+See owner-setup-qualification.txt. No native/product launcher change.
+
 CORRECTED PACKAGED OFFLINE46 (2026-10-20 UTC, BOUNDED PASS / RELEASE OPEN)
 Real deep-folder native backup refusal/game1610 now has a useful launcher
 UTF-16 preflight before game/IPC. Native protection/limits stay intact. Retained

@@ -6,8 +6,8 @@ unauthenticated listener. The included Python runtime needs no installation.
 No game files, server certificate, private key or player invites are included.
 
 Extract the complete archive into an ordinary local folder. Keep program/,
-assets/, config/ and data/ separate. Run the following commands from a terminal
-in that folder. After configuring/importing the server as below, Start Server.exe
+assets/, config/ and data/ separate. Run the following commands in Command Prompt
+(cmd.exe) in that folder. After configuring/importing the server as below, Start Server.exe
 starts it directly. BattleAces-Server.cmd without arguments prints help. Existing files are not upgraded in
 place: extract future versions to a separate folder and retain your local data.
 
@@ -26,7 +26,7 @@ game before installation; preserve your untouched recovery copy. After patching,
 run the following in the working game directory and wait for the export manifest
 to contain complete:true, then close the game:
 
-  "Battle Aces.exe" -offline-practice -export-server-assets
+  "Battle Aces.exe" -offline-practice -export-server-assets -local-profile=asset_export
 
 The helper writes server-assets/export.json and its declared files relative to
 the game directory. If export fails or never completes, stop here; do not invent
@@ -35,11 +35,19 @@ verified original backup in the import command:
 
   BattleAces-Server.cmd import-assets --game-dir "<working game>" --export-dir "<working game>/server-assets" --original "<working game>/.battleaces-resurrection/original/GameAssembly.dll"
 
+Run that import command from the extracted SERVER package folder. The export
+profile asset_export keeps the exporter's native settings and backup separate
+from your normal player profile. No match starts in export mode. Use a fresh
+export directory for each export: the exporter replaces its declared outputs.
+For example, add -server-assets-dir=server-assets-new and use that directory in
+--export-dir. Do not run another game instance from the working copy during export.
+
 The importer checks exact original DLL/metadata/simulation hashes and the export
 manifest. It creates assets/build-37822 with the simulation, original mode maps,
 catalogs and generated descriptors. Current source exports also include the
-original AI DLL,validated rule profiles and compatible bot identities/decks;
-public/team client allocation is still under development. Older preview packages
+original AI DLL,validated rule profiles and compatible bot identities/decks.
+Offline public/team modes have bounded native qualification;full multiplayer
+release acceptance remains open. Older preview packages
 only support their documented export format. Import refuses to overwrite a
 nonempty destination. You can
 perform the import on your gaming PC, then privately copy only the resulting

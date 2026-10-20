@@ -4,7 +4,8 @@ Development preview for your own Windows x64 copy of Battle Aces build37822.
 No original game files are included. Clean-PC and outside-network acceptance are
 still pending. Extract this archive to a separate ordinary local folder. The
 bundled Python runtime needs no installation; its license is under
-program/runtime/LICENSE.txt. Run commands in a terminal in the extracted folder.
+program/runtime/LICENSE.txt. Run the command examples in Command Prompt (cmd.exe)
+in the extracted folder.
 Use Start Client.cmd for local play and optional multiplayer. Double-click
 BattleAces-Client.cmd to open Connection Setup. Use --help in a terminal for
 commands. Windows PowerShell supplies this setup window; the package

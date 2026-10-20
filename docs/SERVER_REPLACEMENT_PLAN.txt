@@ -4,6 +4,13 @@ Target: Battle Aces build 37822, Windows x64 server and clients.
 Status: IMPLEMENTATION ACTIVE. See STATUS.txt; incomplete phases remain future work.
 
 Current release integration order (2026-10-20)
+- Setup47 verifies fresh asset export on current helper42 with an owned isolated
+  maintenance profile and unchanged shared/default native saves/components.
+  Three maps,59AI profiles and bot/cosmetic catalogs validate;forced exporter
+  teardown is not Quit/network proof.42 focused tests pass. Quickstarts now name
+  cmd.exe,return to server folder for import and isolate export profile. NEXT:
+  clean corrected-guide archives,fresh actual packaged CMD import/native host
+  health/lifecycle. See owner-setup-qualification.txt. Other release gates remain.
 - Path46 fixes real relocated-client early exit with a useful UTF-16 native-save
   path check BEFORE game/IPC,keeping native refusal/extended replay protections.
   Clean8d974fa corrected archives now pass actual bundled imports/ordinary CMD
