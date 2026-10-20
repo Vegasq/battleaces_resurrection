@@ -11,20 +11,25 @@ def native_queue_timing(log,*,full,ticket=1):
     offers=re.findall(rf'\[(\d+)\] Public authoritative state: ticket={ticket} phase=1 [^\n]*elapsedMs=(\d+)',log)
     require(len(starts)==1 and offers,'native search/offer clock witnesses missing')
     elapsed=int(offers[0][0])-int(starts[0]);server_elapsed=int(offers[0][1])
-    require(0<=elapsed<5000 if full else 29900<=elapsed<=35000 and server_elapsed>=30000,
+    # STATE elapsed belongs to this ticket; a later entrant joins the oldest
+    # ticket's offer before its own30s deadline. validate() binds that anchor.
+    require((0<=elapsed<5000 if full else 29900<=elapsed<=35000) and 0<=server_elapsed<=35000,
             'native original search did not retain its complete public wait budget')
     return dict(native_offer_elapsed_ms=elapsed,authoritative_offer_elapsed_ms=server_elapsed)
 
 
 def validate_native_selections(clients,frozen):
-    """Bind alternating fresh/default and original-edited choices across four profiles.
+    """Bind alternating fresh/default and original-edited choices across team profiles.
 
-    Two native edit probes each export the fresh baseline before editing and
+    Native edit probes each export the fresh baseline before editing and
     their own saved selection afterward. Identical decks remain legal for two
     independent players; each authoritative seat must keep its declared choice.
     """
-    require(len(clients)==4 and len({r['player'] for r in clients})==len({r['pid'] for r in clients})==4 and
-            sum(row['deck_edited'] for row in clients)==2,'four independent profiles/processes with alternating deck setup required')
+    count=len(clients)
+    require(count in (3,4) and len({r['player'] for r in clients})==len({r['pid'] for r in clients})==count and
+            len(frozen['humans'])==count and
+            all(type(row['deck_edited']) is bool and row['deck_edited']==bool(index%2) for index,row in enumerate(clients)),
+            'three or four independent profiles/processes with alternating deck setup required')
     choices={};baselines=[]
     for row in clients:
         if not row['deck_edited']:continue
@@ -42,7 +47,7 @@ def validate_native_selections(clients,frozen):
                 len(re.findall(r'DEDICATED REMATCH SMOKE automated native deck edit:[^\n]*full-valid=1',log))==1,
                 'native deck selection was not saved before original public Play')
         baselines.append(captures['before'][1]);choices[row['player']]=captures['after'][1]
-    require(baselines[0]==baselines[1],'fresh native default deck exports disagree')
+    require(all(value==baselines[0] for value in baselines),'fresh native default deck exports disagree')
     for row in clients:
         selected=choices.setdefault(row['player'],baselines[0])
         seats=[seat for seat,human in frozen['humans'].items() if human['profile']==row['player'] and human['name']==row['name']]
@@ -66,6 +71,8 @@ def validate(events,clients,*,mode,ticket=1,expected_decks=None):
     completed=[e for e in events if e['event']=='match_completed']
     entered=[e for e in events if e['event']=='public_queue_entered']
     require(len(offers)==len(matches)==len(completed)==1 and len(entered)==len(clients),'expected one bundled multiplayer match')
+    require({event['profile'] for event in entered}=={row['player'] for row in clients},
+            'queue timing identities differ from the authenticated human group')
     require(not any(e['event'] in ('match_aborted','worker_start_failed','worker_failed') for e in events),'bundled host reported a match failure')
     match=matches[0]['match'];offer=offers[0]
     require(match==offer['match']==completed[0]['match'] and matches[0]['mode']==mode and matches[0]['participants']==total,'bundled match identity/topology differs')
@@ -79,7 +86,7 @@ def validate(events,clients,*,mode,ticket=1,expected_decks=None):
     released=[e for e in events if e['event']=='worker_released' and e.get('match')==match]
     require(len(started)==len(released)==1 and started[0]['worker_pid']==released[0]['worker_pid'],'match worker did not release normally')
     native_states={(e['frame'],e['viewer']):e for e in events if e['event']=='native_snapshot' and e.get('match')==match}
-    assignments=[];comparisons=[]
+    assignments=[];comparisons=[];timings={}
     for row in clients:
         log=row['log'].replace('\r','')
         assignments_=re.findall(rf'Public match assignment: ticket={ticket} match=([0-9a-f]{{32}}) mode=(\d+) count=(\d+) seat=(\d+) humans=(\d+) ',log)
@@ -107,8 +114,13 @@ def validate(events,clients,*,mode,ticket=1,expected_decks=None):
         quit_=log.find('NATIVE QUIT owned menu verified:')
         require(end<gate<quit_,'native Quit bypassed completed match/idle gate')
         timing=native_queue_timing(log,full=full,ticket=ticket)
+        timings[row['player']]=timing
         comparisons.append(dict(seat=seat,name=row['name'],received_frames=len(receipt),common_state_samples=len(common),native_search_seconds=seconds,**timing))
     require(sorted(assignments)==sorted(humans),'duplicate/missing native human seat')
+    if not full:
+        oldest=min(entered,key=lambda event:event['perf_counter_ns'])['profile']
+        require(timings[oldest]['authoritative_offer_elapsed_ms']>=30000,
+                'oldest authenticated ticket did not retain its complete public wait budget')
     if expected_decks is None:
         require(len({tuple(deck) for seat,deck in matches[0]['decks'].items() if int(seat) in humans})==len(clients),'independent native human deck selection was lost')
     return dict(match=match,mode=mode,human_seats=list(humans),bot_seats=sorted(set(range(total))-set(humans)),

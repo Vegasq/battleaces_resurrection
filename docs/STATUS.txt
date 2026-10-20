@@ -3,6 +3,20 @@ Updated: 2026-10-20 UTC
 Delivery plan: REMAINING_DELIVERY_PLAN.txt, Windows only.
 Original roadmap: CLOSED / SUPERSEDED;see PLAN_CLOSEOUT.txt.
 
+TEAM ROSTERS57 (2026-10-20 UTC, TWO SCOPED NATIVE PASSES / RELEASE OPEN)
+Unchanged clean53/helper51:four actual human clients share one public2v2 match,
+pass134.497s;fresh three-human/one-bot2v2 passes154.916s. Each client has1250
+exact authoritative receipts/126 common native state samples,selected decks/full
+loadouts,native replay/results/Continue/original Quit;all jobs/worker exits0 and
+empty without forced cleanup. Bot59 records8 commands/12 supply. External-only
+diagnostic now supports three humans;33tests pass. Retained failed01 fixture
+guard and02 per-ticket timing assertion are not promoted. Corrected checker
+binds the30s requirement to the oldest authenticated ticket,retaining later
+humans;it also revalidates four-human saved evidence. No production/patch/
+package/normal-launcher changes. Uncontrolled206s vs24s initial-callback delays
+retain D6;no cause proof. See current-community-matches.txt for exact records.
+D1 physical LAN remains pending and first;full release gates stay open.
+
 REPLAY CONTRACT56 (2026-10-20 UTC, STATIC CLASSIFICATION / D4 OPEN)
 Independent read-only batch/ordinary-route reviews plus fresh pinned original
 LLVM slices distinguish55's opt-in developer-batch noncompletion from ordinary

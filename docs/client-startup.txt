@@ -178,6 +178,21 @@ This qualifies actual embedded imports/integrity,not a new packaged gameplay,
 protected enrollment,server-control,clean-PC or Internet run. Manual35 and older
 qualified34 packages are not replaced;these previews remain ignored local files.
 
+2026-10-20 three-human roster57 observation (UNRESOLVED)
+Same unchanged clean53 package/helper51/ordinary recipe,isolated owned03 game and
+fresh profiles. Attempt02's actual launch->first original initial-state callback
+takes206.032/206.110/206.188s. All three continue consuming CPU during the pause,
+then complete a shared native2v2/result/Continue/Quit naturally. Overall02 stays
+FAILED because its old evidence checker misclassifies a later queue entrant's
+29954ms age;that is separate from initialization. Fresh03 passes154.916s total
+with launch->callback24.406/24.516/24.359s. See current-community-matches.txt.
+local/roster57-startup-timing.json SHA256
+2ebcf67cd58cf70192724a3d12bfcb46b8093de11bb32cacfc33e5732a6e0944
+binds exact launch ticks/PIDs/callback lines and raw log/process-record hashes.
+These are uncontrolled callback milestones,not per-task/pump/cache benchmarks.
+No slow-run task references/pump timing were captured;no cause or fix is proven.
+No initialization barrier,ordinary timeout or production code changes were made.
+
 2026-10-19 real-credential two-client37 observation (UNRESOLVED)
 The actual normal-owner packaged multiplayer run passes267.999s,but early native
 settings selection->helper startup takes168.359s/168.500s for PIDs9728/30032.

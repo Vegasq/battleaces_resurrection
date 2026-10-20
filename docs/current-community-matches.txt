@@ -1,4 +1,5 @@
 CURRENT PACKAGED COMMUNITY MATCHES50 -- 2026-10-20
+Follow-up57 below adds current four-human and three-human2v2 native controls.
 
 Scope
 Continue the final current-package matrix with two actual native game processes
@@ -112,3 +113,87 @@ Protected40/current valid-credential refusal,Cancel/fault/full-four-human final
 matrix,physical/all-cosmetic/visual controls,SCM/clean-PC/cross-PC/Internet/full
 telemetry and intermittent slow-startup cause remain open. Preserve manual35/
 recovery/frozen earlier archives. No original game payload enters source Git.
+
+TEAM ROSTERS57 -- 2026-10-20 (SCOPED NATIVE PASS;PHYSICAL LAN STILL OPEN)
+The unchanged clean53 archives/helper51/ordinary recipe4 and imported53 assets
+run through bundled production host/client/resolver/TLS/bridge/native workers.
+Explicit external stdin-only identity/MemoryStore adapters remain fixtures,not
+protected enrollment/permissions or physical CMD/Internet acceptance. Normal
+launchers gain no automation. Recovery/manual35/LAN setup and packages are intact.
+The diagnostic now accepts three humans for public2v2 in addition to existing
+one/two/four controls;real protected diagnostic issuance stays two/four only.
+Alternating fresh/default and original-edited native choices are bound to each
+authenticated configured human,including legal identical decks on separate seats.
+
+Actual full four-human2v2
+local/roster57-full-human-2v2-01 passes134.4970161s. Human seats0/1/2/3,no bots,
+one offer/match;maximum audit entry-to-offer0.3094484s. Each native search offers
+after1359ms,original timers0. All four clients receive1250 exact authoritative
+frame receipts and126 common canonical observable-state samples each. Native
+saved replays/full loadouts/names/decks/results/Continue/original five-event Quit
+pass. All games/launchers/native health+match workers exit0/reaped. Owned jobs
+7/2/2/2/2 total,all active0/terminated0;no forced cleanup. Surrender diagnostics
+bound this match;it is not evidence of a naturally played victory.
+Report SHA256
+42bd39993beabd9f064c623f12b52c8377de092f459ff2d09ff6b5f5e5283541
+This run predates the three-player checker extension. Read-only current-checker
+revalidation of its captured complete logs/receipts/audits reproduces the exact
+match and selected-deck results. It verifies the only changed bound files are
+the three external diagnostic tools;no new native run is claimed by that review.
+local/roster57-four-retained-review.json SHA256
+5160a9d5205ba2fbf298a81a2c3c619f7465f306d88bd7f6fc0a519e439be0b2
+
+Retained three-human failures and corrected timing contract
+Attempt01 stops1.1283797s at the external server adapter's stale(1,2,4) fixture
+guard,before any game starts. The report remains false,no forced cleanup.
+local/roster57-three-human-2v2-01/verification.json SHA256
+24f2b45bb8f8a716ac6ddef46a9edb8a56b731053f1cdd167956b246c712569f
+Attempt02 completes three native games/Continue/Quit and normal worker cleanup,
+but overall validation remains FAILED338.1906391s. The old checker requires
+every participant's STATE elapsed>=30000. Actual native ages are30016/29954/30093
+ms;the29954ms later entrant is legitimate. Original production maintain() fills
+at the OLDEST ticket's deadline;publish() reports EACH ticket's own elapsed.
+Its oldest authenticated ticket has30093ms,all three native waits30110..30157ms.
+The audit's oldest entry-to-offer is30.0003994s. No production timer is changed.
+local/roster57-three-human-2v2-02/verification.json SHA256
+657018adbac7f9237bdf9d577e026c0b88d56575e48e5a2930a9c414db634786
+Current checker binds queue-entry profiles to actual human identities and checks
+the oldest authenticated ticket's STATE age>=30000. Each shared-gate native
+search still has the existing bounded wait/timer checks. Later ticket ages do
+not reset or independently gate the group's deadline. Tests reject early fill,
+missing/changed human masks,an unrelated queue identity,oldest age29999 even if
+another age is30000,and deck/profile/ability mixups. Both failed reports stay
+unchanged;neither is promoted to a passing native qualification.
+
+Fresh three-human/one-bot2v2 with corrected final diagnostic
+local/roster57-three-human-2v2-03 passes154.9162554s. Humans0/1/2,only bot seat3,
+one offer/match. Native offers30094/30000/30094ms;oldest authenticated STATE age
+30089ms. Later ages29989/29998ms are valid. All native timers begin0 and reach29.
+Audit entry-to-offer29.9897221/29.9123943/29.7691946s is sampled after the tickets
+were created;do not substitute those logging timestamps for the original deadline.
+Each client has1250 exact receipts/126 common native state samples. Original
+varied bot profile59 supplies8 recorded native commands,one initial join and
+12 max native supply. This is command/production proof,not pixels or independently
+tracked bot movement. Names/full loadouts/selected decks/native replay/results/
+Continue/original five-event Quit pass. All game/launcher/health/match workers0/
+reaped;owned jobs7/2/2/2 total,all active0/terminated0,no forced cleanup.
+Report SHA256
+4d9c8ce5ffd00024fcc89ef1e0a5e862962cea8b2121f9c30b9352a2a435e31b
+Both successful runs preserve package/config/adapter/assets/bound source/shared
+settings/replay/backup inventories and remove test PKI;fixture tokens not logged.
+
+Final focused tests:33pass,0skips,0.370s,exit0. Includes existing four-human,
+recovery/replay/bot/Custom checks and new three-human/oldest-ticket negatives.
+local/roster57-focused-tests03.txt SHA256
+1964e36d12d5dc14c0c7b2ae9454c39f8fe95ebe1783866aedc3ac8a20dcf718
+Earlier32test iterations01/02 are retained,not added to the final count.
+
+Startup/remaining scope
+Attempt02's three launch-to-original-initial-callback delays206.032/206.110/
+206.188s contrast with03's24.406/24.516/24.359s. Uncontrolled same-package launches
+are not cache benchmarks or task/pump/network-cause evidence;D6 remains open.
+See client-startup.txt and local/roster57-startup-timing.json,which pins the raw
+native logs/process records. No source,timeout or initialization barrier bypass.
+D1 physical two-PC LAN,protected active40/configured-valid refusal,visible
+controls/full cosmetics,remaining transitions/faults,SCM/clean Windows/Internet/
+capacity/telemetry and final release gates remain open. No test replaces those.

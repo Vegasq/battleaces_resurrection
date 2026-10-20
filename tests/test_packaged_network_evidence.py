@@ -10,7 +10,8 @@ from tools import packaged_network_drivers as drivers
 class PackagedNetworkEvidenceTests(unittest.TestCase):
     def fixture(self):
         match='a'*32
-        events=[dict(event='public_queue_entered',perf_counter_ns=t) for t in (1000000000,1100000000)]
+        events=[dict(event='public_queue_entered',profile='human'+str(index),perf_counter_ns=t)
+                for index,t in enumerate((1000000000,1100000000))]
         events += [dict(event='public_match_offered',match=match,humans=['human0','human1'],fallback=False,perf_counter_ns=2000000000),
                    dict(event='match_created',match=match,mode=1,participants=2,decks={'0':[11]*8,'1':[22]*8}),
                    dict(event='worker_started',match=match,worker_pid=100),
@@ -146,7 +147,8 @@ class PackagedNetworkEvidenceTests(unittest.TestCase):
         for event in events:
             if event['event']=='public_match_offered':event['humans']=[r['player'] for r in clients]
             if event['event']=='match_created':event.update(mode=2,participants=4,decks=copy.deepcopy(decks))
-        events += [dict(event='public_queue_entered',perf_counter_ns=t) for t in (1200000000,1300000000)]
+        events += [dict(event='public_queue_entered',profile='human'+str(index+2),perf_counter_ns=t)
+                   for index,t in enumerate((1200000000,1300000000))]
         frozen=dict(humans={str(s):dict(profile=r['player'],name=r['name']) for s,r in enumerate(clients)},
                     decks=decks,active_ability_groups={str(s):[1,0,0,0] for s in range(4)})
         return events,clients,frozen
@@ -158,6 +160,54 @@ class PackagedNetworkEvidenceTests(unittest.TestCase):
         self.assertEqual(len(choices),4);self.assertEqual(len({tuple(v['units']) for v in choices.values()}),2)
         # Original two-player/distinct-choice proof remains the default contract.
         with self.assertRaises(AssertionError):validate(events,clients,mode=2)
+
+    def three_human_fixture(self):
+        events,clients,frozen=self.four_human_fixture();clients=clients[:3]
+        events=[event for event in events if not(event['event']=='public_queue_entered' and event['perf_counter_ns']==1300000000)]
+        offer=next(event for event in events if event['event']=='public_match_offered')
+        offer.update(humans=[row['player'] for row in clients],fallback=True,perf_counter_ns=31000000000)
+        frozen['humans'].pop('3')
+        for row in clients:
+            row['log']=(row['log'].replace('humans=15','humans=7').replace('[2000]','[31000]')
+                        .replace('elapsedMs=1000','elapsedMs=30000')+'Native search timer: ticket=1 seconds=29\n')
+        return events,clients,frozen
+
+    def test_three_humans_keep_each_choice_and_fill_only_one_seat_after_real_wait(self):
+        events,clients,frozen=self.three_human_fixture()
+        choices=validate_native_selections(clients,frozen)
+        result=validate(events,clients,mode=2,expected_decks=choices)
+        self.assertEqual(result['human_seats'],[0,1,2]);self.assertEqual(result['bot_seats'],[3])
+        self.assertFalse(result['full_human_group']);self.assertEqual(len(choices),3)
+        self.assertEqual(choices['human0'],choices['human2'])
+
+    def test_later_entrant_uses_oldest_ticket_deadline_without_waiving_it(self):
+        events,clients,frozen=self.three_human_fixture()
+        choices=validate_native_selections(clients,frozen)
+        clients[1]['log']=clients[1]['log'].replace('elapsedMs=30000','elapsedMs=29954')
+        validate(events,clients,mode=2,expected_decks=choices)
+        # Another participant's age cannot stand in for the oldest identity.
+        changed=copy.deepcopy(clients)
+        changed[0]['log']=changed[0]['log'].replace('elapsedMs=30000','elapsedMs=29999')
+        with self.assertRaises(AssertionError):validate(events,changed,mode=2,expected_decks=choices)
+        changed_events=copy.deepcopy(events)
+        changed_events[0]['profile']='outsider'
+        with self.assertRaises(AssertionError):validate(changed_events,clients,mode=2,expected_decks=choices)
+
+    def test_three_human_proof_rejects_dropped_player_early_fill_and_changed_choice(self):
+        events,clients,frozen=self.three_human_fixture()
+        choices=validate_native_selections(clients,frozen)
+        for change in (lambda e:e[2].update(humans=['human0','human1']),
+                       lambda e:e[2].update(perf_counter_ns=2000000000),
+                       lambda e:e[2].update(fallback=False)):
+            changed=copy.deepcopy(events);change(changed)
+            with self.subTest(change=change),self.assertRaises(AssertionError):validate(changed,clients,mode=2,expected_decks=choices)
+        changed=copy.deepcopy(clients);changed[2]['log']=changed[2]['log'].replace('humans=7','humans=3')
+        with self.assertRaises(AssertionError):validate(events,changed,mode=2,expected_decks=choices)
+        for change in (lambda f:f['decks']['2'].__setitem__(0,22),
+                       lambda f:f['humans']['2'].update(profile='human0'),
+                       lambda f:f['humans'].update({'3':dict(profile='extra',name='Extra')})):
+            changed=copy.deepcopy(frozen);change(changed)
+            with self.subTest(change=change),self.assertRaises(AssertionError):validate_native_selections(clients,changed)
 
     def test_four_human_binding_rejects_profile_deck_ability_or_identity_mixup(self):
         events,clients,frozen=self.four_human_fixture()

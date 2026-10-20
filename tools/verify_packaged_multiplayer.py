@@ -1,4 +1,4 @@
-"""Bundled TLS host + one, two or four production clients + native result/Continue/Quit.
+"""Bundled TLS host + one to four production clients + native result/Continue/Quit.
 
 Default external adapters use explicit stdin-only ephemeral identity fixtures.
 Opt-in --real-credentials requires the normal desktop account and uses protected
@@ -134,7 +134,7 @@ def run(args):
     recover_stage='running' if args.recover_running else 'loading' if args.recover_loading else None
     packages,game,assets,output=(p.resolve() for p in (args.packages,args.game,args.assets,args.output))
     require(os.name=='nt' and 120<=args.timeout<=600 and args.mode in (1,2,5),'bounded supported Windows match required')
-    require(args.humans in (1,2,4) and (args.humans!=4 or args.mode==2),'four humans require public2v2')
+    require(args.humans in (1,2,3,4) and (args.humans<=2 or args.mode==2),'three or four humans require public2v2')
     require(not args.real_credentials or args.humans in (2,4),'protected enrollment diagnostic supports two or four humans')
     require(not recovering or args.mode==1 and args.humans==2,'packaged recovery control requires two full-human1v1 attempts')
     require(not args.custom_rematch or args.mode==1 and args.humans==2 and not recovering,'Custom rematch requires two humans and no public fault injection')
@@ -354,7 +354,7 @@ def run(args):
         if args.custom_rematch:
             report['custom']=custom_evidence.validate(events,records,frozen=frozen,commands=server_report['custom_commands'])
         else:
-            native_selections=validate_native_selections(records,final) if args.humans==4 else None
+            native_selections=validate_native_selections(records,final) if args.humans>=3 else None
             report['match']=validate(selected,records,mode=args.mode,ticket=2 if recovering else 1,expected_decks=native_selections)
             if native_selections is not None:report['native_selections']=native_selections
             require(final['full_loadout_seats']==report['match']['human_seats'],'bundled native clients lost complete human loadouts')
@@ -434,7 +434,7 @@ if __name__=='__main__':
     parser=argparse.ArgumentParser(description=__doc__)
     for name in ('packages','game','assets','output','helper-build-receipt','shared-settings'):parser.add_argument('--'+name,type=Path,required=True)
     parser.add_argument('--mode',type=int,choices=(1,2,5),default=1)
-    parser.add_argument('--humans',type=int,choices=(1,2,4),default=2,help='one client qualifies an empty queue;four clients require full-human2v2')
+    parser.add_argument('--humans',type=int,choices=(1,2,3,4),default=2,help='one client qualifies an empty queue;three or four clients require public2v2')
     parser.add_argument('--custom-rematch',action='store_true',help='original Custom invite, two human matches, changed-deck rematch, sequential Leave and Quit')
     parser.add_argument('--timeout',type=int,default=420)
     parser.add_argument('--visible',action='store_true')

@@ -64,6 +64,9 @@ This does not close Internet, clean-machine or four-human acceptance.
 
 [ ] D2 - Finish the final mode, matchmaking and transition matrix
 Use the same selected candidate and record missing combinations explicitly.
+Scoped57 results in current-community-matches.txt now cover same-PC packaged
+four-human2v2 and three-human/one-bot2v2,with results/Continue/natural Quit.
+Reuse those controls;physical ordinary/LAN and remaining cases below stay open.
 - Try Deck,1v1,2v2,2vAI: no server/config/credentials; configured valid-credential
   server unreachable/refusing; reachable empty server; partial/full human rosters.
   Existing invalid-trust/missing-file/empty-queue proofs need no blanket rerun.

@@ -46,7 +46,7 @@ from server.credentials import AuthenticationError
 from server.configuration import load_config
 from tools.package_integrity import verify
 request=json.loads(Path(sys.argv[1]).read_bytes());output=Path(request['output']);package=Path(request['package'])
-fixture=json.loads(sys.stdin.buffer.read(16385));assert len(fixture['identities']) in (1,2,4)
+fixture=json.loads(sys.stdin.buffer.read(16385));assert len(fixture['identities']) in (1,2,3,4)
 assert not request.get('recover_stage') or len(fixture['identities'])==2
 real_credentials=bool(request.get('real_credentials'))
 verify(package,'server');report=dict(passed=False,production_modules={},fixture_store=not real_credentials,workers=[],frozen_matches=[],custom_commands=[])
