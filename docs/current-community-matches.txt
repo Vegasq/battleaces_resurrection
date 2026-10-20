@@ -1,0 +1,115 @@
+CURRENT PACKAGED COMMUNITY MATCHES50 -- 2026-10-20
+
+Scope
+Continue the final current-package matrix with two actual native game processes
+on this PC. Use clean gate50 archives from467c7bd,new source-bound helper and
+ordinary recipe in isolated owned03 plus imported setup47 assets. No production
+server/protocol/queue/simulation changes. See native-quit-gate-wait.txt for the
+retained helper42 failure,new narrow diagnostic retry,clean archive identities,
+source tests and actual positive/persistent-negative gate controls.
+
+Actual isolated bundled client.main/resolver/TLS/bridge and host.run/native
+workers run from the ZIP extraction. Explicit stdin-only ephemeral identity/
+MemoryStore adapters remain test fixtures,NOT protected permission/enrollment
+acceptance. Original Play/build/Concede/results/Continue/Leave/Quit callbacks are
+automated in owned profiles;ordinary generated argv must remain automation-free.
+This is not seamless mouse/CMD/physical/rendering/SCM/Internet qualification.
+
+Planned current cases
+- Two-human public1v1:immediate pair,configured names and independent native deck
+  choices,no AI,no local fallback;complete authoritative/client frame agreement.
+- Two-human partial2v2:retain both actual humans,wait real30seconds,fill only
+  missing seats with original varied AI;verify each bot's commands/native supply.
+- Two-human2vAI:human allies occupy0/2 and native AI opponents1/3;immediate offer.
+- Custom:original connected-player picker Invite/Accept,Start/Ready,two matches
+  in the same lobby/TLS connections,changed host deck/stable guest between rounds,
+  original sequential guest/host Leave and original menu Quit. Human-only roster,
+  no public queue or AI fallback.
+
+All cases must pass immutable package/assets/config/adapters/bound source/shared
+native channel hashes,complete native saved replay identity/frame checks,
+configured identity/full loadout ownership,original result/Continue/five-event
+Quit,all actual game/launcher/worker exits0 and empty owned jobs without forced
+cleanup. Host state locks/listeners/room/worker capacity must release naturally.
+Forced cleanup and incomplete controls remain failures. Validate selected native
+unit/ability choices against each authenticated frozen seat in retained review.
+
+Terminal results
+Controller session74360 exits0 after all four cases;no game/server remains live.
+Every successful game/launcher/health/match worker exits0. Each public case's
+three jobs have7/2/2total processes and0active/0terminated before close;Custom
+has9/2/2 with0active/0terminated. No forced cleanup in these successful cases.
+All package/assets/config/adapter/source/shared native channel checks pass;
+ephemeral PKI removed and fixture-token scan passes. Original Concede at1200
+(plus allied human1230 in2vAI) bounds these diagnostics;not natural victories.
+
+Public1v1:107.293147s,humans0/1,bots none. Native offers235/172ms,authoritative
+elapsed156/109ms;both original timers show0.1220exact frame receipts and122common
+canonical observable-state samples per client. Configured names survive;fresh
+and original-edited decks remain independent. Native result/Continue/menu Quit.
+local/populated50-native-1v1-02/verification.json SHA256
+5e7159e7eff652a9258e62856b94dc381460e6907a40cd3004b6700382796a6b
+
+Partial2v2:140.579359s,humans0/1,bots2/3. Both native timers0..29;native offers
+30109/30031ms,authoritative elapsed30109/30027ms. Audit waits30.0133588/
+29.8589653s reflect the later second queue entry,not an accelerated clock.
+1221exact receipts/124common native state samples per client. Bot profiles59/59
+produce267/60native commands and13/13max supply. Both human identities/selections
+survive AI fill. Native result/Continue/menu Quit.
+local/populated50-native-partial-2v2-01/verification.json SHA256
+a66545d7d44b7d639777d49d819ce859dca6a13e6c5930b3d9539e44f0146515
+
+Two-human2vAI:111.120216s,human allies0/2,bots1/3 with profiles60/60. Immediate
+native offers235/188ms,authoritative165/109ms,original timers0.1250exact frame
+receipts/126common native state samples per client. Bots44/17native commands,
+31/14max supply. Native result/Continue/menu Quit;no local fallback or human split.
+local/populated50-native-2vai-01/verification.json SHA256
+8f10214a0a666c0f5032e489cfffe7086602d66106784b22d41939d95dbabcd0
+
+Custom invite/rematch:192.710037s. Same two native PIDs/TLS connections/lobby,
+epochs1/2,two distinct completed matches,1220exact frame receipts/122common native
+state samples per client in EACH round. Original picker Invite/Accept,host Start/
+guest Ready/duplicate callbacks settle;host's selected first unit1->75 for round2
+while guest stays unchanged. Human-only roster/worker AI null/no public search or
+local fallback. Original guest Leave precedes host Leave;native party/request/
+world/lobby cleanup then original menu Quit pass. Three native workers0/reaped.
+local/populated50-native-custom-rematch-01/verification.json SHA256
+a2486e466f485eb48f818059482f9d39f41b2e24e7d31c5871297c0ae0205f90
+
+Retained choice review
+A separate read-only review rehashes each actual native TOML against its captured
+native-settings proof,parses original SelectedDeck and ability IDs,and binds both
+to the final frozen seat by authenticated profile/configured name. Every match
+passes,including Custom's changed host/default guest. All source maps still
+match exactly;all successful jobs and workers are terminal. This is an additional
+retained-data check,not another game run or full hidden simulation-state proof.
+local/populated50-review01/verification.json SHA256
+dae4fe3b501890e37b66ac81de83970b190e9513631fc04b0fda531e550c45e3
+Retained local/review-populated50.py SHA256
+bafedd37ab388bbc2b1c4d0664ca95512a84798695d631dd84e313c969353efe
+local/populated50-summary02.json SHA256
+4907ba78b937a27adaa5eebbbc343a13791e23ebef608634b1e5b7ba43ff716d
+Retained local/run-populated50-candidate.py SHA256
+e4ae14d91aa743cdb0bc4243db6efd76e226d16f93b178ee473072854e56ecf3
+
+Actual ordinary entry point
+Fresh candidate actual Start Client.cmd reaches menu11.352609s,total11.736170s
+with bundled runtime/relocated config/foreign cwd. No spawn seam or automatic
+gameplay/diagnostic flags. Owned readiness cleanup is intentionally forced,not
+counted as Quit. Package/config/source/shared TOML unchanged and jobs reaped.
+local/gate50-ordinary-startup01/verification.json SHA256
+a35deb36b401b59e53efbd9134f7738408a55c9add0695b9457506ed3a9be8d0
+
+Retained failure and remaining work
+Initial populated50-native-1v1-01/helper42 remains FAILED with forced cleanup;
+see native-quit-gate-wait.txt. Retained client0/1failure-log SHA256:
+1d5fb306743c2e98f7e38c94d50bb2d86ef7f89ceb6bf56fe17af613963aec51
+33436f7c373ad7c52dd3553c37928bd48f7a883980e969f0fffabea5371038f3
+Custom passes this run,but its separate diagnostic Leave-gate reader still uses
+the same strict sharing pattern without the new bounded retry. Apply the common
+policy there with focused contention controls;do not claim all diagnostic gate
+consumers are fixed. Ordinary users never select these gates.
+Protected40/current valid-credential refusal,Cancel/fault/full-four-human final
+matrix,physical/all-cosmetic/visual controls,SCM/clean-PC/cross-PC/Internet/full
+telemetry and intermittent slow-startup cause remain open. Preserve manual35/
+recovery/frozen earlier archives. No original game payload enters source Git.

@@ -2,6 +2,24 @@ IMPLEMENTATION LEDGER
 Updated: 2026-10-20 UTC
 Active objective: implement SERVER_REPLACEMENT_PLAN.txt, Windows only.
 
+CURRENT COMMUNITY/GATE50 (2026-10-20 UTC, BOUNDED NATIVE PASS / RELEASE OPEN)
+Closed publisher49 alone still hits a native Quit-gate failure in human1v1;
+retain failed102.341s/forced cleanup. No-game1000rename control reproduces250
+sharing32observations. Opt-in Quit reader now retries ONLY32 for<=1000ms;strict
+file/profile checks and original60s Quit bound unchanged.84source helper build/
+component tests and86Python checks85pass/1skip pass. Clean467c7bd candidate,
+helperff36d3c0... installs only owned03 helper/manifest;game/Unity/CEF unchanged.
+Actual native transient32 settles62ms/3attempts and Quit0;held32expires1000ms
+without callbacks/trace,expected negative forced cleanup. Then human1v1107.293s,
+partial2v2140.579s,two-human2vAI111.120s,Custom invite/rematch/Leave192.710s pass
+exact frames/common native states/results/Continue/Quit,all game/launcher/worker0/
+empty jobs/no forced cleanup. Retained TOML review binds units/abilities to each
+authenticated seat. Actual ordinary CMD menu11.353s passes with separate forced
+readiness cleanup. Custom's separate Leave-gate reader needs the same bounded
+retry follow-up. Protected40/valid-credential refusal/Cancel/fault/full-four-human/
+physical/SCM/cross-PC/Internet/telemetry gates remain open. See
+native-quit-gate-wait.txt and current-community-matches.txt;frozen/manual35 preserved.
+
 EMPTY SERVER QUEUE49 (2026-10-20 UTC, THREE NATIVE MODES PASS / RELEASE OPEN)
 Actual clean47 ZIPs/helper42/ordinary03 with one authenticated fixture human now
 pass1v1/2v2/2vAI real30s server/native queue waits,original varied bot fill,native

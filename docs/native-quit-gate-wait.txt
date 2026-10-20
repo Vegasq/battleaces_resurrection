@@ -40,13 +40,58 @@ build/helper-gate50-01/helper-build.json SHA256
 c66dee18960f9895352a7a7cad4cf3cf55e5968e9e3588d0c9266c16e96637be
 local/helper-gate50-build01.txt SHA256
 a3f62a2a336285cf0dc13281f7b871121932f65b5476429f990fbcc5c1343959
-86focused Python checks85pass/1explicit skip,9.756s. No native test is claimed yet.
+86focused Python checks85pass/1explicit skip,9.756s. Native controls follow below.
 local/gate50-focused-tests01.txt SHA256
 186707821fe3ec411436fb443cef90f552e2b97e5267947f558c59b1bbb71045
 
-Next
-Build clean new candidate archives,install only in owned03,then run native
-transient recovery and persistent-busy/no-Quit controls before repeating current
-two-human1v1/team/Custom matrix. Preserve old helper42/frozen archives/manual35/
-recovery and failed runs. Do not count forced negative cleanup as native Quit.
-Protected40,physical UI,SCM/clean-PC/cross-PC/Internet/full telemetry remain open.
+Clean candidate and isolated install
+local/gate50-packages01 builds from clean
+467c7bd2e2dbab2bb5db927d3513c4a76d74115c. Server83/client68files,including their
+manifests. Archive SHA256:
+server5b13a00f46086d32e43cc6daeb96ae2fc5fa0970bcf96e00a7dad054294b7925
+client52f1b9d870c92bbe074da470614642764327d89ae2faed2deb6b02e58b44aabb
+build-report.json SHA256
+33b2526e9ce766513fd7db6cda7c74fe10cb4b59f49091486b25ae1938e6a5a1
+Fresh ZIP extraction under local/gate50-extracted01 and actual bundled install
+upgrade only owned03's authored helper plus manifest. GameAssembly/Unity/CEF
+bytes stay identical;prior helper/manifest retained under owned-before. Original
+recovery/manual35/frozen earlier archives stay unchanged.
+local/gate50-extracted01/owned-install-verification.json SHA256
+59baca6b19b848b813de21e768d6c1924867ebd99862de1e1a31a5884e7dce19
+
+Actual native controls (terminal)
+An external owned spawn adapter adds only explicit native Quit/gate diagnostics
+to the existing default-recipe native Quit verifier. It holds a zero-byte gate
+open for writing before launch. No match/server/packet capture is started. This
+is not seamless CMD/physical/network acceptance. Both fresh native profiles use
+the source-bound new helper and original callback/ordinary-file validations.
+Transient:actual win32=32 busy is observed;writer closes after50ms;native logs
+settled after62ms/3attempts. Original five-event Show/Confirm/natural process0
+passes20.909506300s with forced_cleanup=false. This is positive normal Quit.
+Persistent:writer remains open;actual win32=32 reaches retryExpired=1 exactly
+1000ms after first busy. No owned-menu verification or Quit trace/callback is
+created. Inner verifier correctly fails13.248011800s and force-cleans its owned
+game. That is an expected negative refusal,NOT natural Quit or release acceptance.
+Outer control checks both exact outcomes,source/driver identity,owned process
+reaping and unchanged shared TOML/replay/backup hashes. Session86241 terminal0.
+local/gate50-native-controls01/verification.json SHA256
+ba6bca9cdaf0df4198aa158864df560184875306309636cbabb590842d59b30e
+transient/verification.json SHA256
+5b361196c9b3aebf505cdd2fce360e31f8afa09ca49e6089afdfaf4d5e3bd1cd
+persistent/verification.json SHA256
+315d43bb0b6f6bd14e01f04d9da2df1e21dd893cca383c5a55379eff0a1aa76c
+Retained local/run-gate50-controls.py SHA256
+b84c96682141c84b2e3e14591697006427c27666144ee1927a3c98e6d1fcd86d
+
+Current multiplayer and next work
+Clean new candidate now passes actual two-human1v1107.293s,partial2v2140.579s,
+two-human2vAI111.120s and Custom invite/two-match rematch/Leave192.710s;all natural
+game/launcher/worker0,empty jobs/no forced cleanup. Separate retained review binds
+saved native units/abilities to each authenticated frozen human seat. Actual
+ordinary CMD startup11.353s is separately forced readiness cleanup,not Quit.
+See current-community-matches.txt for exact reports and scope.
+The separate Custom Leave diagnostic reader has the same strict sharing pattern
+and needs the bounded policy too. It passes this run but that does not eliminate
+the reproduced class of I/O race. Keep this follow-up explicit. Do not count
+forced negative cleanup as Quit. Protected40,physical UI,SCM/clean-PC/cross-PC/
+Internet/full telemetry and other release gates remain open.

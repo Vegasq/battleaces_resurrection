@@ -1,5 +1,19 @@
 BUNDLED SERVER / NATIVE MULTIPLAYER QUALIFICATION -- 2026-10-19
 
+2026-10-20 current gate/community50
+Closed publication alone still reproduces a strict native Quit-gate failure.
+New clean467c7bd/helper candidate bounds32retry to1000ms ONLY for opt-in Quit;
+native file/profile/60s checks unchanged. Native controlled transient succeeds /
+persistent busy refuses without Quit;negative cleanup is explicit. Actual current
+human1v1/partial2v2/two-human2vAI/Custom invite-two-round-rematch-Leave pass107.293/
+140.579/111.120/192.710s,authoritative frames/common states/results/Continue/Quit,
+all game/launcher/worker0/empty jobs/no forced cleanup. Saved units/abilities bind
+to authenticated frozen seats. Actual ordinary CMD menu11.353s is separate forced
+readiness cleanup. New compiled helper is isolated to owned03;frozen/manual35
+preserved. Custom Leave diagnostic still needs same bounded-reader follow-up.
+Exact scope/source/report/archive hashes in native-quit-gate-wait.txt and
+current-community-matches.txt;real permissions/physical/Internet gates stay open.
+
 2026-10-20 empty server queue49
 One human on an otherwise empty host now passes all three public modes on actual
 clean47 ZIPs/helper42:real30s native/server wait,original AI fill/commands/supply,

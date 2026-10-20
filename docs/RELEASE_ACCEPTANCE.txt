@@ -6,6 +6,16 @@ defines the requested product. Existing frozen archives are not automatically
 upgraded when source changes. No original client binaries/assets belong in Git.
 
 Current ordinary source candidate
+Gate/community50's clean467c7bd helper candidate adds only bounded opt-in Quit
+gate sharing32retry. Exact file/profile/60s exit checks stay intact;86focused
+tests85pass1skip,new component/native transient and persistent-negative controls
+pass. Current human1v1/partial2v2/2vAI/Custom invite-rematch-Leave pass authoritative
+frame/state/results/Continue/Quit/all game+launcher+worker0/empty jobs/no forced
+cleanup;retained native TOML choices bind to actual authenticated seats. Actual
+ordinary CMD startup11.353s passes separately (forced readiness cleanup). Preserve
+prior failed human run and negative no-Quit cleanup. Custom's separate Leave gate
+needs bounded-retry follow-up;protected/physical/fault/SCM/cross-PC/telemetry gates
+remain open. See native-quit-gate-wait.txt/current-community-matches.txt.
 Empty queue49 qualifies actual one-human public1v1/2v2/2vAI on current clean47
 archives/helper42. Real30s native/server wait,original bot fill/commands/native
 supply,1220/1221/1221exact frames and122/124/124common native state samples,

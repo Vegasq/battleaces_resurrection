@@ -4,6 +4,17 @@ Target: Battle Aces build 37822, Windows x64 server and clients.
 Status: IMPLEMENTATION ACTIVE. See STATUS.txt; incomplete phases remain future work.
 
 Current release integration order (2026-10-20)
+- Gate/community50 finds publisher49 alone insufficient under native strict
+  sharing. Bounded opt-in Quit32retry<=1000ms preserves file/profile/60s checks;
+  build84sources/86tests85pass1skip and native transient/persistent-negative
+  controls pass. Clean467c7bd candidate passes current human1v1/partial2v2/2vAI/
+  Custom invite-two-round-rematch-Leave,exact frame/state checks,retained saved
+  choice bindings,natural game/launcher/worker0/empty jobs. Ordinary CMD startup
+  passes separately with forced readiness cleanup. Preserve prior failed human
+  run;negative refusal is NOT natural Quit. NEXT:apply bounded policy to separate
+  Custom Leave diagnostic reader,then remaining real-credential refusal/Cancel/
+  fault/full-four-human/physical/deployment/telemetry matrix. Protected40 remains
+  open. See native-quit-gate-wait.txt/current-community-matches.txt.
 - Empty queue49 extends owned packaged diagnostics to one human. Actual1v1/2v2/
   2vAI wait real30s,fill original bot seats and pass commands/native supply,
   authoritative frames/states,results/Continue/normal Quit/empty non-terminated
