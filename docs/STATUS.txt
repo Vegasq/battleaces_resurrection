@@ -3,7 +3,7 @@ Updated: 2026-10-20 UTC
 Delivery plan: REMAINING_DELIVERY_PLAN.txt, Windows only.
 Original roadmap: CLOSED / SUPERSEDED;see PLAN_CLOSEOUT.txt.
 
-D6 PRODUCTION IMPLEMENTATION71 (2026-10-20 UTC,SAME-PC NATIVE PASS / NOT COLD)
+D6 PRODUCTION IMPLEMENTATION71 (2026-10-20 UTC,NATIVE/PACKAGED PASS / NOT COLD)
 Reversible installer now verifies133 supported bundles at install,patches only
 catalog CRC values,preserves exact original catalog and checks launch fingerprints
 with targeted rehash. Unknown/corrupt/linked/changing inputs refuse;late file
@@ -14,9 +14,17 @@ Third run original TryDeck/AI production/result/Continue/menu/Quit passes;
 this short default-profile run does NOT establish unit order+position movement.
 80focused tests reportOK,including setup. Installer progress preserves JSON;
 setup never kills the longer full-verification file transaction at90s.
+Clean ea541760 client package70files;isolated21imports/restore/reinstall pass,
+original components/catalog restored,profiles/backups preserved. Real ordinary
+Start Client.cmd menu7.739s (readiness-only forced cleanup,not Quit proof).
+Separate217.544s bundled TryDeck PASS:136bot supply/91autonomous actions/48bot
+entities with orders+position movement,result/Continue/menu/game+launcher
+natural0,job2/0/0,no force. Original installed game content/source03 unchanged.
 D6-C2 scoped actionable cause and C3 implementation are checked off. D6-C4
-fresh package recovery/entry/gameplay and physical restart-cold test remain;
-D6 parent is OPEN and priority. No original game files enter Git. See
+automated package recovery/entry/gameplay parts now pass;only physical restart-
+cold/repeat launch/visible controls remain,requested once and pending. Prepared
+ordinary offline entry:local/startup71-packages01/battleaces-client-win64/Start
+Client.cmd. D6 parent is OPEN and priority. No original game files enter Git. See
 startup-bundle-loading.txt for pinned hashes,scope and timing distinctions.
 
 D6 BUNDLE HYPOTHESIS69 (2026-10-20 UTC,PRIVATE COUNTERFACTUAL / NO RELEASE FIX)

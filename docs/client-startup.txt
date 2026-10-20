@@ -1,5 +1,28 @@
 CLIENT STARTUP TIMING (updated 2026-10-20)
 
+2026-10-20 production D6 implementation71 / post-install-warm native PASS
+Reversible installer verifies133 supported local bundles,changes only original
+catalog CRC values to0 and preserves the original catalog for restore. Ordinary
+launch checks fingerprints and rehashes changed bundles,with real Unity Tasks
+unchanged. Full production-recipe initial state10.968s/6.297s/6.266s;all3 original
+Quits exit0 naturally/job empty,including1200-frame TryDeck/result/Continue/menu.
+No optional startup/Quit patch sites,no Frida. This short AI test proves native
+unit production,not order+position movement. Longer packaged gameplay below
+separately establishes48moving bot entities with their original movement orders.
+Clean ea541760 packages now built. Isolated bundled21 client imports,real
+restore/reinstall and ordinary player-feature preflight PASS;catalog/components
+restore byte-exact,profiles/backups preserved. Real ordinary Start Client.cmd
+reaches menu7.739s;its readiness-only checker forcibly closes owned job afterward,
+so it is NOT Quit acceptance. Separate3600-frame bundled practice PASS217.544s:
+136bot supply/91actions/48moving ordered entities,native result/Continue/menu,
+game+launcher natural0/job2/0/0,no forced cleanup. Only physical restart-cold/
+repeat launch and visible controls remain for D6-C4. Ordinary offline Start
+Client is prepared under local/startup71-packages01/battleaces-client-win64/;
+owner test requested once,pending. Original source03/manual35/frozen53 remain
+unchanged. Details,
+exact report hashes,installation-versus-launch timing and limits:
+startup-bundle-loading.txt. D6-C2/C3 checked;D6 parent and C4 stay OPEN.
+
 2026-10-20 D6 follow-up66-69 / CRC counterfactual,NOT a production fix
 startup-bundle-loading.txt retains independently qualified original local-load/
 CRC/completion bodies,133 literal catalog option values,actual REA evidence and

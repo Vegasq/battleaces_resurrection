@@ -237,11 +237,59 @@ corruption/rollback/restore/installer/launcher/package/setup boundaries. Its
 PowerShell stderr redirection records NativeCommandError/outer1 despite unittest
 OK;preserve this wrapper distinction,not a failing test or an outer exit0 claim.
 
-Next:qualify recovery through a fresh package's bundled runtime and its actual
-ordinary entry/full practice lifecycle. Fresh-copy/install
-verification warms OS cache and is not a reboot/cache-flushed cold test. D6
-stays OPEN until performance/lifecycle/physical cold scope is satisfied or the
-remaining measured limit is explicitly accepted. Do not repeat unrelated tests.
+Clean package/recovery71 (ea541760e4916675c0ceb264e27c68f6a9739fb1)
+source.dirty=false;client70files ZIP13113428bytes SHA256
+7fdde6650c5999af236e82d81ed0b88add085918d170c2bbaf4cfe898f9ba03d
+No original game payload in package. Isolated Python3.14.8 imports21client
+modules from that package,then its actual tools.package_client restores all
+original components/catalog and reinstalls the same ordinary manifest/components.
+Original backups and all owned profile files remain byte-exact;source03 and
+package unchanged. Post-native fingerprint scan hashes0bundles. Bundled ordinary
+player-feature verification passes. Restore7.227s/reinstall11.674s on this warm
+run;whole qualification21.000s. These are install operations,not launch timing.
+local/startup71-package-roundtrip01/verification.json SHA256
+eff7cf8d00a8871e10d9e49353ccd3266c9e2d296f5324f8347487bf50da1e59
+
+Actual unmodified Start Client.cmd/bundled Python/package integrity/ordinary
+launcher reaches menu7.739s,whole8.107s,foreign cwd modules ignored,no test/game
+action flags injected. Its readiness-only checker FORCIBLY drains its owned
+process tree after menu:NOT Quit/gameplay/physical-input acceptance.
+local/startup71-packaged-startup01/verification.json SHA256
+e0d2972d7abd1f913650e68e90b8fbb57f295accd8014439451d5a3636a0a9d3
+Source-history audit after implementation commit:1461paths/objects,0failures.
+ea541760 is published to origin/main;no native build/source changes.
+
+Fresh packaged gameplay71 PASS (same clean ea541760 artifact)
+Actual isolated bundled client.main/resolver/bridge/native game,owned diagnostic
+spawn adapter;ordinary generated arguments contain no automatic gameplay flags.
+Unconfigured optional server,0remote connections/0invite reads.3600-frame mode4
+TryDeck uses original callback/native AI,136max bot supply/91autonomous action
+records/48bot entities with BOTH original movement orders and position changes.
+Native result/Continue/menu and original confirmed Quit complete;game and bundled
+launcher exit0 naturally. Job2total/0active/0terminated,no forced cleanup.
+Whole qualification217.544s;original Start3.805s. Shared storage/source/package/
+config unchanged. This is automated production-runtime gameplay,not physical
+controls,cold/clean-PC/LAN/Internet or exhaustive modes acceptance.
+local/startup71-packaged-play01/verification.json SHA256
+b0381eb0fef88aa05b8582d3e6828c0e83bc32a126d1cc7826d69d8182b3f1e1
+
+Read-only retained-evidence aggregation checks all7 input receipts,the installed
+program/catalog/source seals,package integrity and all133 bundle fingerprints
+after the native/package runs (0bundle rehashes). Server package execution files
+equal frozen53;only compatibility.json and package-manifest.json provenance
+differ. No frozen package,LAN candidate or original source content is changed.
+local/startup71-evidence-review.json SHA256
+8ba3e9c3d7ed5c65186d79d889f44cbf89bc0f8da1b3ef465bb984d18360840c
+
+Remaining D6-C4:physical first launch after Windows restart,repeat launch and
+visible original TryDeck/Continue/Quit. Fresh-copy/install verification warms OS
+cache and is not a reboot/cache-flushed cold test. Ready ordinary entry:
+local/startup71-packages01/battleaces-client-win64/Start Client.cmd
+Its public config/client.json selects startup71-game01 with offline defaults;
+display_name remains editable. It has no automated game actions/test flags and
+requires no server. No process is launched by preparing this configuration.
+Owner observation requested once;pending,not an assumed PASS. D6 stays OPEN
+until this scope passes or its remaining measured limit is explicitly accepted.
 
 All original binaries/catalogs/observations/private experiment artifacts remain
 under ignored local paths. This source knowledge base contains no client files.
