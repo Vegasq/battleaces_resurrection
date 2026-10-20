@@ -8,9 +8,14 @@ Current release integration order (2026-10-20)
   maintenance profile and unchanged shared/default native saves/components.
   Three maps,59AI profiles and bot/cosmetic catalogs validate;forced exporter
   teardown is not Quit/network proof.42 focused tests pass. Quickstarts now name
-  cmd.exe,return to server folder for import and isolate export profile. NEXT:
-  clean corrected-guide archives,fresh actual packaged CMD import/native host
-  health/lifecycle. See owner-setup-qualification.txt. Other release gates remain.
+  cmd.exe,return to server folder for import and isolate export profile. Clean
+  ff61f6a archives now pass actual relocated CMD verify/fresh119file import/native
+  health and development lifecycle13.045s;actual Start Server.exe two active
+  40frame Ctrl+C/same-state restart cycles11.524s/job23active0/terminated0/no forced
+  cleanup. This is explicit development loopback,not pending protected40. Only
+  guide/compatibility payload changes from46. NEXT:remaining final configured
+  server/queue/physical-client matrix;see owner-setup-qualification.txt. Other
+  release gates remain,including protected40/clean-PC/Internet/SCM/full telemetry.
 - Path46 fixes real relocated-client early exit with a useful UTF-16 native-save
   path check BEFORE game/IPC,keeping native refusal/extended replay protections.
   Clean8d974fa corrected archives now pass actual bundled imports/ordinary CMD

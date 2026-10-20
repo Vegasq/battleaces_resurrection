@@ -1,6 +1,16 @@
 WINDOWS PORTABLE PACKAGING - DEVELOPMENT PREVIEW
 Updated: 2026-10-20
 
+2026-10-20 documented setup47
+Cleanff61f6a archives correct quickstart shell/export-profile/import-folder text.
+Only QUICKSTART/compatibility payloads differ from corrected46;product program,
+runtime/helper/launcher unchanged. Fresh current native export,actual relocated
+maintenance CMD verify/119file import/native health/development lifecycle pass;
+actual Start Server.exe two active40frame Ctrl+C/same-state restart cycles pass
+11.524s/job23active0/terminated0/no forced cleanup. No protected40/clean-PC/Internet/
+SCM/graphical acceptance claim. Exact reports/archive hashes and retained parser
+failure in owner-setup-qualification.txt. Earlier frozen archives stay unchanged.
+
 2026-10-20 path preflight46
 Fresh clean c757c67 archives pass actual relocated imports/development host/
 component install/reinstall/restore and ordinary CMD menu. Full Try Deck reaches

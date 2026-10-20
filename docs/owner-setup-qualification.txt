@@ -62,9 +62,67 @@ Export01 also passed11.078s before a diagnostic exception-path correction;retain
 it but use02 for current diagnostic source identity. Local outputs/catalogs and
 original files remain ignored;only authored source/docs enter Git.
 
+Clean packages and documented maintenance path
+local/setup47-packages01 is built from clean
+ff61f6af0105bdd829e33985977b112ec26e54b1,not --allow-dirty. Server83 payload
+files/12497398bytes;client68/13098537bytes. SHA256:
+server cf37850605ba00b3f02866e6b03a82135285c44edd2e79ca8e3abba30ad27c3a
+client d10d2a8a73ee5d5a4b9559fd0ea1cfff8e7b83726b30ebf00b6c300a42a91a30
+build-report.json035c27d1368557fec4358890bf1ca6713f751abfe123d1fefd6dc25ad6d5b30b
+Compared to corrected46,each immutable inventory changes only QUICKSTART.txt and
+compatibility.json;production modules,helper/native launcher/runtime unchanged.
+local/setup47-payload-comparison.json SHA256
+1efefb8b313bf0d6a75e333d4a60df1aad89487c537d54fd8172c8b78f54746c
+This comparison is not a new four-mode graphical acceptance run.
+
+Actual ZIP extraction into separate folders with spaces,foreign cwd/PYTHONPATH
+and System32-only PATH passes both actual BattleAces-Client.cmd/Server.cmd verify.
+Actual Server CMD import-assets consumes fresh export02 and owned03's managed
+original GameAssembly backup:119 files,52playable units,59AI profiles,107cosmetic
+items/17slots,all three modes. No installed global Python is used by the CMDs.
+Actual Server CMD check creates/steps/reaps native worker exit0. A separately
+opted-in bundled native host lifecycle connects two scripted peers,checks equal
+bootstraps,refuses a second host/live backup,then cancels the host and observes
+worker0,closed listener,released state lock and only empty native sim.log.
+Immutable packages and diagnostic driver remain unchanged. Explicit development
+loopback only;no protected credential/TLS or gameplay UI claim.
+local/setup47-package-qualification02/verification.json passes13.045198100s SHA256
+f80db2372e4c5b4adf299ffd9384581a7f776171848022dfef80503d4326f4c6
+imported asset-manifest.json SHA256
+2a05917f288cf31672562cf081af7291d4aff00bf4a411ce14e8b6500777acf6
+Retained local/run-setup47-package.py SHA256
+69fb9fd19790ce6293d54d5dfdf407bba019ca9464adfac5b7212b37b6855442
+All five command jobs drain naturally before close;no forced cleanup. Source
+exporter termination is a separate explicit test contract described above.
+
+Retained qualification01 fails final report parsing,not product startup:
+13.417s,JSONDecodeError Extra data because the diagnostic tried to parse the
+entire lifecycle stdout,which includes health/banner before the final JSON.
+Import/health/lifecycle subprocesses actually exited0/empty owned jobs. Corrected
+02 parses the final diagnostic JSON and requires each lifecycle field;the failed
+report remains false. No product guard or required field was removed.
+local/setup47-package-qualification01/verification.json SHA256
+65f4b56ce3a6d5e0d37ec1b051423bc086e530957ac6f29ce359effb991a4367
+Retained original local/run-setup47-package01.py SHA256
+180250773b42aa45e4994f181e45ad35484d93a3f318080d962c5e18e8b2c460
+
+Actual console with the fresh imported assets
+Current clean47 extracted Start Server.exe passes explicit development-loopback
+active-match console test11.524098700s. Two scripted-peer matches40frames each
+have equal streams;Ctrl+C during each match exits launcher/controller0,then
+restarts with the same port/data/player identities. Both peers observe EOF,
+authoritative abort reason is player disconnected,listener/state lock release.
+This is interrupted-match shutdown,not normal match completion. Each console
+stop is0.031..0.032s;outer job23 active0/terminated0,no forced cleanup. No graphical
+game launches. Production sources/launcher/driver/inputs/package/assets unchanged.
+local/setup47-console-active01/verification.json SHA256
+98b5965dbbe48e08e1c759dcabe877cf33df236b222872784e422278d15f68e7
+This does NOT replace the pending protected owner40 acceptance;neither real TLS
+nor protected enrollment is exercised by this loopback run.
+
 Next
-Build clean archives containing corrected guides;extract into folders with spaces
-and import this fresh export through actual packaged maintenance CMD. Verify
-native host health/lifecycle and immutable package inventory. Protected owner40,
-physical/manual/friend-PC/Internet/SCM/full telemetry and slow-startup cause remain
-separate release gates. Recovery/manual35/frozen earlier archives stay unchanged.
+Qualify remaining final configured-server/queue and physical-client matrix on a
+concrete current candidate. Protected owner40,manual/friend-PC/Internet/SCM/full
+telemetry and slow-startup cause remain separate release gates. Certificate/key/
+invite provisioning is documented but not newly qualified by this run. Recovery,
+manual35,frozen earlier archives and shared saves stay unchanged.

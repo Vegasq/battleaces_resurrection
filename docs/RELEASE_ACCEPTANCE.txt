@@ -6,6 +6,15 @@ defines the requested product. Existing frozen archives are not automatically
 upgraded when source changes. No original client binaries/assets belong in Git.
 
 Current ordinary source candidate
+Setup47 cleanff61f6a archives change only guides/compatibility from corrected46.
+Fresh helper42 export11.838s validates maps/rules/bot/cosmetic catalogs with owned
+profile and unchanged shared/default saves;explicit termination is not Quit.
+42 focused tests pass. Actual relocated maintenance CMD verify/fresh119file asset
+import/native health/development lifecycle passes13.045s. Actual Start Server.exe
+two40frame active-match Ctrl+C/same-state restarts pass11.524s with job23active0/
+terminated0/no forced cleanup. Protected40 remains pending;this is loopback-only.
+Retain final-parser failure01 as failed;corrected02 checks final lifecycle JSON.
+See owner-setup-qualification.txt for exact hashes and remaining deployment gates.
 Path46 fixes reproduced native save-path refusal with useful preflight before
 game/IPC;native guards/limits unchanged.29 focused/full Python591 tests575pass/
 16skip pass. Corrected clean8d974fa archives pass actual19/36 imports,bundled
