@@ -3,6 +3,19 @@ Updated: 2026-10-20 UTC
 Delivery plan: REMAINING_DELIVERY_PLAN.txt, Windows only.
 Original roadmap: CLOSED / SUPERSEDED;see PLAN_CLOSEOUT.txt.
 
+STARTUP TIMELINE58 (2026-10-20 UTC, CURRENT INSTRUMENTATION PASS / D6 OPEN)
+One three-process task/pump batch on a fresh independent owned copy qualifies
+existing16 diagnostic sites with unchanged helper51. Each50tasks complete and
+53handles release;natural Quit0/no force,each recorded job1total/0active/0terminated.
+All fast26.3s,task windows11.4s;no206s reproduction or cause/fix claim. Independent
+copy restored ordinary byte-exact;03 LAN source/package/normal launchers untouched.
+New read-only tools.analyze_startup_trace binds completed raw traces/qualification/
+validator identity and separates pre-hook,wrapped calls,task/pump samples and
+sample-to-ready gap. Rejects incomplete/failed/contradictory data;17tests pass.
+Three actual final analyses bind raw/native report hashes;cause_proven staysfalse.
+See client-startup.txt. Do not repeat fast controls as completion;D6 needs actual
+slow task/pump capture. D1's prepared physical LAN result remains pending.
+
 TEAM ROSTERS57 (2026-10-20 UTC, TWO SCOPED NATIVE PASSES / RELEASE OPEN)
 Unchanged clean53/helper51:four actual human clients share one public2v2 match,
 pass134.497s;fresh three-human/one-bot2v2 passes154.916s. Each client has1250

@@ -151,6 +151,9 @@ References: telemetry.txt, telemetry-internal-config.txt,
 telemetry-persistent-observation.txt and nvidia-shutdown.txt.
 
 [ ] D6 - Resolve intermittent slow initialization
+Control58 qualifies the existing task/pump observer on three current-helper
+processes and adds tools.analyze_startup_trace. All are fast;no slow cause/fix.
+Reuse that control;do not repeat fast batches to count this item complete.
 - Capture a genuinely slow launch with simultaneous original task/pump timing and
   bounded observation. Compare with retained fast launches using the same inputs.
 - Identify the stalled work, implement a justified fix if needed, and verify cold/

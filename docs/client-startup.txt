@@ -1,5 +1,75 @@
 CLIENT STARTUP TIMING (updated 2026-10-20)
 
+2026-10-20 bounded current-helper batch58 (FAST CONTROL;D6 STILL OPEN)
+One concurrent three-process original-task/pump batch uses a fresh independent
+owned game copy,not the03 LAN source. Copying excludes profiles/runtime history;
+no hard links. Existing16-site startup diagnostic plus unchanged helper51,
+ordinary NGX-free recipe/no optional disposal hooks. Source03 is byte-identical
+before/after;after all jobs drain,the diagnostic copy is restored byte-exact to
+its starting ordinary GameAssembly/Unity/helper/CEF/manifest composition. No
+normal launcher/package/permission or production-code changes;no Frida attached.
+Preparation local/startup58-preparation.json SHA256
+3d2ff73c6f44ff57b4bb2050caca0d2c01875ac74f6b583e36fced9ce2164f6b
+
+Actual tools.verify_native_quit --default-recipe --startup-tasks-audit --mode
+confirm --visible --timeout300 runs concurrently for three owned profiles.
+Each original Quit main exits0 naturally/no force. External read-only job
+accounting records1total/0active/0terminated for EACH job before CloseHandle.
+Original same-thread observations complete50tasks/release53->0handles;strict
+startup checker,source/helper receipt/shared native settings checks all pass.
+Individual elapsed26.448/26.260/26.367s;whole batch including restoration35.401s.
+This does NOT reproduce206/225s,identify a cause,qualify performance caches or
+demonstrate a startup fix. Do not repeat the same fast batch as if it closed D6.
+local/startup58-batch01/verification.json SHA256
+47eddcd28fd6e30e84fa1c8f1cb50306649c7c2c40457c19748020665075c9b4
+Client0/1/2 verification.json SHA256,respectively:
+96b08c4727fb90dadce2d823e6bf5bd07e61460011353726946bb259bc5c89e2
+c8bd4235b1b2f481d456005f6b04fe9820c01e2c49a563f6e3c818803da2c110
+0de72094a6f176f648af9bcf0b007454b8ff9a71e51cd582a74cc3e8ae9ce2ac
+
+Reusable read-only timing analysis
+tools.analyze_startup_trace reads a completed verify_native_quit run and its raw
+native.log. It requires actual startup+natural Quit success,unchanged bound source/
+shared-settings flags,the exact original startup validator digest and equality
+with its recorded structured observation. It additionally rejects launch/clock
+contradictions,lost captured tasks and a changed terminal Task status. Existing
+outputs are refused. Failed/deadline/incomplete captures stay unqualified;retain
+their raw logs for investigation instead of converting them into passing timelines.
+It does not change the existing startup validator or any native instrumentation.
+
+Example,using a fresh output name:
+python -m tools.analyze_startup_trace --run local/startup58-batch01/client-0
+  --output local/startup58-batch01/client-0/startup-timeline-new.json
+(The two displayed lines form one command.)
+
+Outputs distinguish unobserved launch-to-first-hook time,wrapped call intervals,
+sequential per-task status samples,selected pump entry/return intervals,and the
+sample-to-ready gap. First12 labels are the exact pre-menu table names;other
+37 remain original LoadAll list indices,not invented table names. Index49 is
+firstPreMenu WhenAll. Wrapped calls include entry-observer work;selected pump
+samples are not every dispatch;task reads are not atomic. cause_proven staysfalse.
+
+Actual three final analyses:launch->first hook3156ms each;instrumented window
+11391/11391/11563ms. Wrapped PreMenu16ms each;Other16/31/16ms;WhenAll0/0/15ms;
+maximum selected pump span0ms at the recorded clock resolution. First sampled
+all-success vector->ready3656/3781/3610ms. These are measured boundaries,not an
+exclusive function profile or an explanation of the intermittent slow run.
+local/startup58-batch01/client-0/1/2/startup-timeline02.json SHA256,respectively:
+52a9c72459a3f52d6455bf86721155f91fab85ed534013f995c4e16d701e6a65
+26c2898b73ec47d3b701bd7b01b3acda5bb30b032951fab88baaab7e6f4f082f
+014d1b8d13c2ace6f165b098cf6da3e78f6419db1a42c023c106b6b5c3e60182
+Earlier timeline outputs remain retained;02 adds the explicit sample-to-ready gap.
+Focused17tests pass/0skips/0.040s,including launch clock,terminal-state regression,
+source/trace mismatch and failed/incomplete qualification refusals.
+local/startup58-focused-tests02.txt SHA256
+296cadf088f49e3503a60cfd50d5d09e2a6aa5d9595057ebe0a9cc05abfbb97e
+
+Finite next evidence:an actually slow launch WITH these original hooks active.
+Separate pre-hook delay,wrapped call delay,pending original tasks and post-success
+work from the captured sequence before proposing a production fix. Earlier slow
+ordinary launches have no task/pump trace and cannot be retroactively explained
+by these fast controls. D1 physical LAN remains first;its candidate is untouched.
+
 Combined observation45 adds a fast original task trace WITH an attached native
 observer in the same owned run:Start7.016s/task window7.000s/50completed/53->0
 roots/seven selected original pump pairs,natural Quit0/empty job,total17.716s.
