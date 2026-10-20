@@ -4,6 +4,15 @@ Target: Battle Aces build 37822, Windows x64 server and clients.
 Status: IMPLEMENTATION ACTIVE. See STATUS.txt; incomplete phases remain future work.
 
 Current release integration order (2026-10-20)
+- Availability48 adds actual bundled production local-settings rejection proofs:
+  invalid-trust1v1/code9 and missing-files Try Deck/code8 reach bot combat/results/
+  Continue/natural Quit with unchanged shared saves,game+launcher0/empty jobs/no
+  forced cleanup. Strict257char replay failure is retained;valid maxname/profile
+  fixture passes277char saves without changing random bots/native protection.
+  47 focused tests41pass/6skip pass;counter-name-only retained review is separate
+  from native runs. No product/helper/recipe/package change. NEXT:real valid-
+  credential connection refusal,remaining current server/queue/mode/physical
+  matrix. See client-availability.txt;owner40/deployment/telemetry gates remain.
 - Setup47 verifies fresh asset export on current helper42 with an owned isolated
   maintenance profile and unchanged shared/default native saves/components.
   Three maps,59AI profiles and bot/cosmetic catalogs validate;forced exporter

@@ -1,0 +1,137 @@
+PACKAGED CLIENT AVAILABILITY48 -- 2026-10-20
+
+Requirement
+The ordinary client must keep local Try Deck and public1v1/2v2/2vAI available
+without a server,including unusable online settings. Valid online queues use
+real30s fill;Custom remains human-only. Bad local trust/invite settings and an
+actually unreachable server are separate failure states. Proving one does not
+close the entire configured-server matrix.
+
+Diagnostic coverage
+tools.verify_packaged_play still runs actual isolated bundled client.main,
+launcher,resolver,bridge and ordinary recipe/helper42. The external explicit
+spawn adapter adds original Play/build/result/Continue/Quit diagnostics only;
+ordinary generated argv remains free of automation. No shipping code/helper/
+patch recipe changes. Existing frozen packages stay unchanged.
+
+New --connection-state selects:
+unconfigured  Existing blank remote fields;production resolver returns code8.
+missing-files All remote fields set but selected trust/invite files absent;
+              production resolver returns code8 before reading an invite.
+invalid-trust All fields set and both files present;public CA is an authored
+              invalid fixture,invite file is a noncredential sentinel. Actual
+              production trust loading rejects code9 before any invite read.
+
+The diagnostic wraps production RemoteConfigResolver.read only to count calls
+and record its existing RemoteUnavailable reason;it calls the original method
+without overriding its loader,private checks or result. Socket/invite functions
+are forbidden controls:invocation increments counters and fails qualification.
+The native failure message must match the selected code and localWorldUnaffected.
+Between1..2resolver requests cover startup/public retry;zero or extra requests
+fail. Fixture paths must be fresh and bytes/absence stay unchanged. No bearer
+invite or private store is created or read. No actual server connection refusal,
+TLS authentication/permission acceptance or30s queue wait is claimed here.
+
+Existing authoritative checks remain mandatory:exact package imports/helper build
+receipt/current source identities,original native result/Continue/menu/five-event
+Quit,game+launcher exit0,empty owned job before close,no forced cleanup,profile-
+local native TOML/backup/replay publication plus independent structural replay
+decode,shared TOML/replay/backup hashes unchanged. Public runs additionally need
+every bot's production/movement/native name-avatar bindings and original search
+phase transitions. Maximum3600frame cap may issue explicit diagnostic Concede;
+the report must not call that a naturally completed victory.
+
+Focused source validation
+Final focused run:47 tests total,41pass/6explicit opt-in native-bridge skips,
+2.744s. Tests exercise
+the real resolver against each public fixture,require exact8/9 failure before
+invite access,preserve original settings/fixture bytes,and reject mismatched
+native code,zero/Boolean/excessive resolver counts,socket/invite access and
+overwriting prior fixtures. A maximum-name/profile test also checks valid native
+backup preflight and a>260char replay even with a one-character bot name. Its
+logical Windows root is independent of checkout depth and creates no drive
+files. Existing launcher/AI/bridge checks run in the same
+suite. The six native bridge programs require BA_NATIVE_BRIDGE_PROBE;their skips
+are not counted as a new native pass.
+local/availability48-focused-tests04.txt SHA256
+1f6b99038e427463ed4036402f01c30bb916064a56518c239320942751e05f17
+tools/verify_packaged_play.py SHA256
+ca7153ce388d6a16cf67e05651a23d6c028cbf5c455b562747d3a22a9b29a839
+tests/test_packaged_play.py SHA256
+1d4be4a2be6fffa95af4d3ed368225daaa8a84e92c37fc283f633e3365fbfdc4
+Earlier46test/2.696s,47test/2.660s and47test/2.731s runs remain retained,
+not added to counts.
+
+Retained strict long-path fixture failure
+invalid-trust1v1-01 fails216.643816600s only because --expect-long-replay finds
+257characters. A valid48character profile alone does not guarantee a long native
+replay when original random bot names are short. Bot notree/profile58/normal has
+131supply/44ordered-moving produced units;original results/Continue/Quit and
+game+launcher0 pass,job2active0/terminated0,no forced cleanup. Actual resolver
+returns9 once,zero remote TLS-opener calls/invite reads;shared/source/fixture
+hashes unchanged. These counters do not inventory process-wide sockets/traffic.
+The overall report stays passed=false;do not promote it or remove its assertion.
+The corrected long-path fixture uses the valid32character configured name
+"Packaged Gameplay Long Path Test" plus the existing valid48character profile,
+while retaining original random bot selection and native save-path guards.
+local/availability48-invalid-trust-1v1-01/verification.json SHA256
+9b326bb5520bd5d2c621b925f8ab633a6d1941874f695ac93a3d2156a7a20447
+
+Terminal native qualification
+Both use cleanff61f6a client ZIP extracted during setup47,helper42/ordinary recipe4
+on owned03 and fresh48character profiles. No native/production/package change.
+Unchanged package/driver/config/fixture/bound sources/shared native channels are
+required and pass. Two-game sequence is sequential,not concurrent. Controller
+session2465 is terminal0;all per-run games/launchers0,each job2active0/terminated0,
+no forced cleanup. Recovery/manual35/frozen packages stay untouched.
+
+invalid-trust public1v1-02 passes189.386562300s. Actual production resolver returns
+code9 once;remote TLS-opener/invite-read counters0. Native optional failure and
+16ms public fallback precede original local search5/7/0 and joining. Configured
+32character human name survives;original random easy/profile64 bot produces
+74supply/40ordered-moving produced units with in-game/result name/avatar bindings.
+3025native replay messages decode;canonical path277characters. Original result
+arrives before3600cap without a scripted Concede marker. Continue returns idle
+and original five-event Quit exits0/2.297s after confirmation.
+local/availability48-invalid-trust-1v1-02/verification.json SHA256
+452071bb59f9a9a55ffe580f9f64ac76a21bcc1112b000144753239b23203314
+
+missing-files Try Deck-01 passes214.703382400s. Production resolver returns8 once,
+remote TLS-opener/invite-read counters0,selected files remain absent. Bot has
+131supply/128autonomous action records/40ordered-moving produced units.3516native
+replay messages decode;277character native save. Original result before3600cap
+with no scripted Concede marker,Continue/idle/menu/five-event Quit0/1.610s after
+confirmation. These results are not claims about which player won.
+local/availability48-missing-files-practice-01/verification.json SHA256
+2b5cea90429d75b6d1c888f44b29690d6ec511d8fb39cf08c768a595122d61a8
+local/availability48-run-summary.json SHA256
+7b48d278d6378331b9785c036f84a41a3d3efc833f8da5f9439af00f255d163a
+Retained local/run-availability48.py SHA256
+dd97b857ad1e36c9cabe0d5677ba59cfe1d694ebe44c96a42d044de864b3b949
+
+Counter-label correction after terminal runs
+Native runs used diagnostic SHA256
+69c94387bf868f61ecdb9b24a04c03082edbd260cfe18b505da89a0028e4d0e1,
+retained as local/availability48-driver-source-before-label.py. The legacy output
+key sockets_opened counts ONLY the instrumented remote TLS opener. The inherited
+private socketpair still exists;this is NOT a process-wide socket/traffic count.
+Current source renames the key remote_tls_open_calls. A read-only retained review
+asserts the complete diagnostic bytes differ by exactly that one rename,all other
+bound source identities still match,actual package inventories remain exact,and
+current availability_evidence revalidates both original logs/driver results.
+It preserves original reports/hashes and emits the accurate named counter in a
+new review. No new native run is claimed for this presentation-only change.
+local/availability48-retained-review.json SHA256
+4390453acf4b6fff45c4bc9318a6af398d3273b41a84ec68070161206f2b4a83
+Retained local/review-availability48.py SHA256
+2abe471afc884d06db4c12d757e63078e2c33eec66ba7c059d4998914b19ee25
+
+Remaining matrix
+These are actual production local-settings rejection paths,not actual network
+refusal with valid protected credentials. Complete that path under the normal
+owner,then current empty/partial/full server queues,real30s fill/Cancel/loading,
+all remaining mode/settings combinations and physical controls. Existing46
+four-mode blank-config/native results and historical online controls retain
+their own scope. Protected owner40 still has no report and remains independent.
+SCM/other accounts/clean-PC/friend-PC/Internet/full telemetry/slow-startup cause
+remain open. No normal-owner or external gate is waived by this diagnostic.

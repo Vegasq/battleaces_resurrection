@@ -2,6 +2,20 @@ IMPLEMENTATION LEDGER
 Updated: 2026-10-20 UTC
 Active objective: implement SERVER_REPLACEMENT_PLAN.txt, Windows only.
 
+CLIENT AVAILABILITY48 (2026-10-20 UTC, BOUNDED NATIVE PASS / RELEASE OPEN)
+New production-resolver diagnostics cover missing online files/code8 and invalid
+trust/code9 without socket-opener/invite access. Actual bundled invalid-trust1v1
+189.387s and missing-files Try Deck214.703s pass bot production/movement,original
+results/Continue/Quit,277char native saves,game+launcher0/job2active0/terminated0/
+no forced cleanup,unchanged package/config/fixture/shared saves/bound sources.
+Strict257char replay fixture failure stays false;corrected max32char configured
+name/profile48 fixture preserves original bot selection/native path protection.
+47 focused tests41pass/6explicit skips pass. Post-terminal counter-name-only
+correction rechecks retained evidence;it is not another native run or universal
+socket absence proof. No shipping/helper/recipe/package change. Next actual valid
+credential server-refusal/remaining current queue/mode/physical/deployment matrix.
+See client-availability.txt;protected40 and other release gates remain open.
+
 OWNER SETUP47 (2026-10-20 UTC, BOUNDED PACKAGED SETUP PASS / RELEASE OPEN)
 Fresh helper42/ordinary03 asset export passes11.838s with three maps,59AI rules,
 bot/cosmetic catalogs;separate maintenance profile and shared/default save hashes

@@ -46,17 +46,27 @@ from tools.package_integrity import verify
 request_path=Path(sys.argv[1]);request=json.loads(request_path.read_bytes())
 package=Path(request['package']);output=Path(request['output']);game=Path(request['game'])
 verify(package,'client')
-report={'passed':False,'remote_connections':0,'invite_reads':0,'production_modules':{}}
+report={'passed':False,'remote_connections':0,'invite_reads':0,'resolver_requests':0,'availability_reasons':[],'production_modules':{}}
 process=None
 original_spawn=launcher.spawn_game
 original_connect=launcher.tls.open_verified_connection
 original_invite=launcher.read_credential_file
+original_resolve=launcher.RemoteConfigResolver.read
 def forbid_connection(*args,**kwargs):
     report['remote_connections']+=1
-    raise AssertionError('unconfigured local play attempted a TLS connection')
+    raise AssertionError('locally unavailable settings attempted a TLS connection')
 def forbid_invite(*args,**kwargs):
     report['invite_reads']+=1
-    raise AssertionError('unconfigured local play attempted an invite read')
+    raise AssertionError('locally unavailable settings attempted an invite read')
+def resolve(self):
+    from client_patch.transport.bridge import RemoteUnavailable
+    report['resolver_requests']+=1
+    try:
+        original_resolve(self)
+    except RemoteUnavailable as error:
+        report['availability_reasons'].append(error.reason)
+        raise
+    raise AssertionError('unavailable-settings fixture unexpectedly resolved a remote')
 def spawn(config,remote,options,child):
     global process
     command=launcher.game_arguments(config,None,child.fileno(),options)
@@ -97,15 +107,20 @@ try:
         time.sleep(.02)
     assert (output/'job-ready').read_bytes()==b'owned job attached\n'
     launcher.spawn_game=spawn;launcher.tls.open_verified_connection=forbid_connection;launcher.read_credential_file=forbid_invite
+    launcher.RemoteConfigResolver.read=resolve
     report['launcher_exit_code']=client.main(['--config',request['config']])
     report['game_exit_code']=None if process is None else process.poll()
     assert report['launcher_exit_code']==report['game_exit_code']==0
     assert report['remote_connections']==report['invite_reads']==0
+    assert 1<=report['resolver_requests']<=2
+    expected=9 if request['connection_state']=='invalid-trust' else 8
+    assert report['availability_reasons']==[expected]*report['resolver_requests']
     report['passed']=True
 except BaseException as error:
     report.update(passed=False,error=repr(error),traceback=traceback.format_exc())
 finally:
     launcher.spawn_game=original_spawn;launcher.tls.open_verified_connection=original_connect;launcher.read_credential_file=original_invite
+    launcher.RemoteConfigResolver.read=original_resolve
     (output/'bundled-driver.json').write_text(json.dumps(report,indent=2)+'\n')
 raise SystemExit(0 if report['passed'] else 1)
 '''
@@ -119,6 +134,40 @@ def sources():
 def owned_profile(long_replay=False):
     prefix='nativestest_packaged_'
     return prefix+secrets.token_hex(24)[:48-len(prefix)] if long_replay else prefix+secrets.token_hex(6)
+
+
+def owned_display_name(long_replay=False):
+    # Keep random original bot identities. Their short names must not make the
+    # explicitly requested long-path fixture depend on a favorable draw.
+    return 'Packaged Gameplay Long Path Test' if long_replay else 'Packaged Gameplay'
+
+
+def availability_settings(settings,state,folder):
+    """Public authored fixtures; never create/read a bearer invite or private store."""
+    require(state in ('unconfigured','missing-files','invalid-trust'),'unsupported availability fixture')
+    value=dict(settings)
+    if state=='unconfigured':return value
+    require(not folder.exists(),'availability fixtures require a fresh directory')
+    value.update(server_host='127.0.0.1',server_port=9,server_name='localhost',
+                 ca_bundle=str(folder/'ca.pem'),credential_file=str(folder/'invite-must-not-be-read.json'))
+    if state=='invalid-trust':
+        folder.mkdir()
+        (folder/'ca.pem').write_bytes(b'authored invalid public trust bundle\n')
+        (folder/'invite-must-not-be-read.json').write_bytes(b'authored sentinel; no credential\n')
+    return value
+
+
+def availability_evidence(bundled,text,state):
+    require(state in ('unconfigured','missing-files','invalid-trust'),'unsupported availability evidence')
+    reason=9 if state=='invalid-trust' else 8
+    expected='Online connection settings are invalid' if reason==9 else 'Online connection is not configured'
+    count=bundled.get('resolver_requests')
+    require(type(count) is int and 1<=count<=2 and bundled.get('availability_reasons')==[reason]*count and
+            bundled.get('remote_connections')==bundled.get('invite_reads')==0,
+            'production resolver did not reject the intended local availability state')
+    require(expected+'; localWorldUnaffected=1' in text,'native availability failure differs')
+    return dict(state=state,resolver_requests=count,reasons=bundled['availability_reasons'],
+                remote_tls_open_calls=0,invite_reads=0,scope='Actual production local-settings rejection;not valid-credential connection refusal or online queue evidence.')
 
 
 def job_accounting(handle):
@@ -136,6 +185,7 @@ def job_accounting(handle):
 
 def run(args):
     if not hasattr(args,'native_replay_faults'):args.native_replay_faults=False
+    if not hasattr(args,'connection_state'):args.connection_state='unconfigured'
     package,game,output=(p.resolve() for p in (args.package,args.game,args.output))
     require(os.name=='nt' and 90<=args.timeout<=300,'bounded Windows play probe required')
     require(args.mode in (1,2,4,5),'unsupported packaged local mode')
@@ -160,13 +210,16 @@ def run(args):
     codec_fixture=replay_codec_fixtures.prepare(folder/'AutoSaveReplays',ROOT/'local') if args.native_replay_faults else None
     trace=folder/'quit-trace.jsonl';quit_probe.require_fresh_trace(trace)
     config=output/'client.json';settings=client.defaults(game)
-    settings.update(local_profile=profile,display_name='Packaged Gameplay')
+    settings.update(local_profile=profile,display_name=owned_display_name(args.expect_long_replay))
+    availability_folder=output/'availability-fixture'
+    settings=availability_settings(settings,args.connection_state,availability_folder)
+    availability_before=snapshot(availability_folder)
     config.write_text(json.dumps(settings,indent=2)+'\n');config_before=config.read_bytes()
     driver=output/'owned-driver.py';driver.write_text(DRIVER,encoding='utf-8')
     request=output/'request.json'
     request.write_text(json.dumps(dict(package=str(package),game=str(game),output=str(output),config=str(config),
                                      profile=profile,visible=args.visible,mode=args.mode,native_replay_readback=args.native_replay_readback,
-                                     native_replay_faults=args.native_replay_faults),indent=2)+'\n')
+                                     native_replay_faults=args.native_replay_faults,connection_state=args.connection_state),indent=2)+'\n')
     cwd=output/'foreign cwd';cwd.mkdir()
     for name in ('sitecustomize.py','tools.py','client_patch.py'):
         (cwd/name).write_text('raise RuntimeError("foreign module must not run")\n')
@@ -174,6 +227,7 @@ def run(args):
     def channels():return dict(toml=startup.shared_state(shared),replays=snapshot(shared.parent/'AutoSaveReplays'),
                                backup=snapshot(shared.parent/'StorageSyncBackup'))
     report=dict(passed=False,scope=__doc__,mode=args.mode,expect_long_replay=args.expect_long_replay,
+        connection_state=args.connection_state,availability_fixture_before=availability_before,
         native_replay_readback=args.native_replay_readback,
         native_replay_faults=args.native_replay_faults,codec_fixture=codec_fixture,
         retention_fixture=retention_fixture,
@@ -240,6 +294,7 @@ def run(args):
         bundled=json.loads((output/'bundled-driver.json').read_bytes())
         require(bundled['passed'] and bundled['launcher_exit_code']==bundled['game_exit_code']==0 and
                 bundled['remote_connections']==bundled['invite_reads']==0,'bundled production launcher/transport proof incomplete')
+        report['availability']=availability_evidence(bundled,text,args.connection_state)
         report.update(natural_quit=True,exit_code=exit_code.value,exit_seconds_after_confirm=(exit_tick-rows[3]['tick'])/1000)
         for module in bundled['production_modules'].values():
             path=Path(module['path']).resolve()
@@ -247,7 +302,7 @@ def run(args):
                     inventory['files'][path.relative_to(package).as_posix()]['sha256']==module['sha256'],
                     'bundled runtime imported an unverified production module')
         for marker in ('Unified client ready:','BA_RESURRECTION_COSMETICS_UNLOCK_V1 ready:',
-                       'BA_RESURRECTION_COSMETICS_PERSIST_V1 ready:','Online connection is not configured; localWorldUnaffected=1'):
+                       'BA_RESURRECTION_COSMETICS_PERSIST_V1 ready:'):
             require(marker in text,'ordinary packaged feature marker missing: '+marker)
         if args.mode==4:
             report['practice']=quit_probe.practice_evidence(game,output,native['pid'],text)
@@ -311,6 +366,8 @@ def run(args):
         except BaseException as error:report.update(package_files_unchanged=False,package_error=repr(error))
         report['config_unchanged']=config.read_bytes()==config_before
         report['driver_unchanged']=hashlib.sha256(driver.read_bytes()).hexdigest()==report['driver_sha256']
+        report['availability_fixture_after']=snapshot(availability_folder)
+        report['availability_fixture_unchanged']=availability_before==report['availability_fixture_after']
         if codec_fixture:
             try:report['codec_fixture_after']=replay_codec_fixtures.verify(folder/'AutoSaveReplays',codec_fixture)
             except BaseException as error:report.update(passed=False,codec_fixture_error=repr(error))
@@ -318,7 +375,8 @@ def run(args):
         report['shared_channels_unchanged']=report['shared_before']==report['shared_after']
         report['source_files_unchanged']=report['source_sha256_at_start']==report['source_sha256_at_finish']
         report['passed'] &= all(report.get(k,False) for k in ('driver_reaped','game_reaped','package_files_unchanged',
-                                                           'config_unchanged','driver_unchanged','shared_channels_unchanged','source_files_unchanged')) and not report['forced_cleanup']
+                                                           'config_unchanged','driver_unchanged','shared_channels_unchanged','source_files_unchanged',
+                                                           'availability_fixture_unchanged')) and not report['forced_cleanup']
         (output/'verification.json').write_text(json.dumps(report,indent=2)+'\n',encoding='utf-8')
     print(json.dumps({k:report[k] for k in ('passed','natural_quit','forced_cleanup','elapsed_seconds','error') if k in report}))
     return 0 if report['passed'] else 1
@@ -329,6 +387,8 @@ if __name__=='__main__':
     for name in ('package','game','output','shared-settings','helper-build-receipt'):parser.add_argument('--'+name,type=Path,required=True)
     parser.add_argument('--timeout',type=int,default=300)
     parser.add_argument('--mode',type=int,choices=(1,2,4,5),default=4,help='1v1,2v2,Try Deck,2vAI respectively')
+    parser.add_argument('--connection-state',choices=('unconfigured','missing-files','invalid-trust'),default='unconfigured',
+                        help='actual production resolver local rejection;no socket/private-store fixture bypass')
     parser.add_argument('--expect-long-replay',action='store_true',help='require the ordinary native replay path to exceed260 characters')
     parser.add_argument('--native-replay-readback',action='store_true',help='explicit owned original-codec probe before native menu Quit; not playback')
     parser.add_argument('--native-replay-faults',action='store_true',help='authored malformed codec inputs after healthy readback, before same idle Quit')
