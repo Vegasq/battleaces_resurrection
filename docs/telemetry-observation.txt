@@ -268,3 +268,15 @@ practice request180000ms is invalid and MUST be corrected in a fresh candidate
 before use. Do not mutate this source/evidence binding or shorten the match to
 fit capture. Full native lifecycle/process/network/cache/error/crash/CEF/manual/
 protected active-match40/SCM/clean-PC/Internet release gates remain OPEN.
+
+2026-10-20 follow-up45
+Canonical generator/read-only game checker now matches all four actual45 scripts.
+Combined original task/native observation and full1200-frame AI/result/Continue/
+original Quit runs pass bounded native checks with positive OnDestroy return and
+natural main0/empty non-terminated jobs. Practice has three60s requested windows
+with gaps. First window provider21/journal22 exposes a final journal-only heartbeat;
+checker reports that boundary instead of silently requiring/promoting equality.
+43 focused tests/16 actual-evidence rejection controls pass. No complete analytics
+removal/continuous/packet/descendant/movement claim. Slow225s remains unexplained;
+ordinary03 restored/no shipping change. See telemetry-game-observation.txt for
+exact identities,retained failures,commands and remaining gates.

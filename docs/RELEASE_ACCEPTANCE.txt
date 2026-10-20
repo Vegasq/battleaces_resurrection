@@ -6,6 +6,15 @@ defines the requested product. Existing frozen archives are not automatically
 upgraded when source changes. No original client binaries/assets belong in Git.
 
 Current ordinary source candidate
+Observation45 adds canonical source and a read-only retained-game checker only.
+Actual combined startup task/observer17.716s and full1200-frame AI/results/
+Continue/natural Quit158.364s pass main0/owner job0active/0terminated. Positive
+OnDestroy return observed on original Quit thread;43 focused tests/16 actual
+negative controls pass. First practice provider21/journal22 rows demonstrate an
+explicit trailing journal heartbeat;three windows leave gaps. No continuous/
+traffic absence/removal/movement proof;slow startup225s cause stays open. See
+telemetry-game-observation.txt. No shipping/helper/recipe/package change,ordinary
+owned03 restored;remaining release gates stay required.
 Observation44 adds bounded actual owned-game evidence only. Original OnDestroy
 entry/return and natural Quit0 are observed;initial/late attach windows have gaps
 and do not qualify full-lifecycle/descendant/network absence. Initialization

@@ -1,0 +1,154 @@
+OWNED GAME OBSERVATION45 -- 2026-10-20
+
+Outcome and remaining scope
+Actual owned native startup and a separate full1200-frame AI/result/Continue/
+original Quit run complete naturally0 with all14 reviewed hooks attached. Original
+OnDestroy entry/return is provider-observed on the original Quit thread in BOTH
+runs. The three practice windows leave gaps. Silent13 Unity counters do not prove
+their paths executed or no analytics/traffic occurred. No shipping helper/recipe/
+launcher/package changed. RUNTIME_VALIDATED remains false. Slow225s initialization
+from44 remains unexplained;the combined diagnostic is fast,not a performance fix.
+
+Reusable source and retained-record checker
+tools/frida_game_source.py generates the exact reviewed observer from strict
+build37822 paths,module sizes,13 Unity entries and original OnDestroy guard. It
+does not launch/attach a target. Source uses Interceptor entry patching/relocation,
+call counters and flushed public diagnostic rows;no NativeFunction/game API call,
+arguments/payload reads or argument/return-value changes. Prefix guards are not
+complete instruction blocks. Observer overhead/retention are not zero.
+tools/verify_game_observation.py is READ ONLY. It does not launch/attach/query/stop
+processes. It checks canonical actual source bytes (LF or CRLF),strict local attach
+request<=60000ms,provider/session/script/source identities,no error/truncation,
+journal sequence/nonce/PID/time/counter/guard stability,script-reported module path/size,
+readiness,and provider-observed original OnDestroy return on original Quit thread.
+The separate owner's retained natural Quit/main0/source/settings/module/job proof
+is cross-checked;this is not an independent fresh OS/process observation. Provider
+subject/environment remain null;whole-file hashes are external on-disk samples,
+not loaded-memory hashes.
+
+Provider messages must equal a journal PREFIX. Additional journal rows are
+validated but explicitly reported as trailing and are NOT provider evidence.
+Positive callback qualification never uses only a trailing journal return.
+Practice window1 actually demonstrates this boundary:provider21rows,last55018ms;
+journal22rows,last60018ms. A final heartbeat exists only in the journal. Do not
+assume identical channels or final counters,even with messages_truncated=false.
+The script writes/flushed journal before send;the precise provider boundary race
+was not independently diagnosed. Results always say continuous_lifecycle_coverage
+false and analytics_removal_qualified false.
+
+Checker commands (fresh report destination required):
+python -m tools.verify_game_observation --run local/observation45-startup-native01
+  --owner-source local/run-observation45-owned.py
+  --report local/observation45-startup-review03.json
+python -m tools.verify_game_observation --run local/observation45-practice-native01
+  --owner-source local/run-observation45-owned.py
+  --report local/observation45-practice-review03.json
+These reevaluate retained captures;they are not fresh game executions. Diagnostic
+tools are not added to production-package allowlists. Tests use synthetic records,
+never copied original game files. Nine new unit tests plus34 existing focused
+checks pass43/43 in0.056s,actual unittest subprocess0. First PowerShell stderr/
+Tee wrapper returned1 despite42OK;retain log01,do not report it as shell exit0.
+Final direct subprocess log local/observation45-focused-tests03.txt records0.
+Sixteen mutations of actual final practice evidence are rejected,including wrong
+PID/session/source/empty script/truncation/cleanup/over-limit/journal-only return/
+forced cleanup/live job/nonzero native exit,inferred/missing confidence and
+null/arbitrary Evidence identity. No target was rerun for these checks.
+
+Read-only review found real false-pass gaps in INITIAL checker02:inferred or
+anonymous Evidence and ten independent root preparation/owner metadata changes
+were accepted. Retain original source snapshots and mutation findings under
+local/observation45-review;do not promote02 as final qualification. Final03
+requires observed confidence/canonical ev_<64hex>,prepared root/final owner
+nonce/config/profile/observer hash/source hash/selected pre-image agreement,
+ready gate,each original request.json and segment script/parent receipt links.
+The explicit retained --owner-source file must match its recorded SHA. It remains
+retained-source/owner-report corroboration,not a fresh independent OS observation.
+Both actual captures are reevaluated unchanged after these fixes.
+local/observation45-review/owner-binding-mutations-before.json:
+b857dcbc69f9d05f69c0d0e04453d3a54e0da17e62054984c60b5f81f342e920
+Independent final read-only review confirms both immutable captures reproduce
+review03 exactly,and all14 original defects reject (four confidence/ID plus ten
+owner/preparation mutations). The four confidence/ID cases overlap the16 main
+negative controls;do not sum these as30 distinct cases. No target action/input
+change. local/observation45-review/fix-confirmation.json:
+721fcc07bb0ccc640333029d43a555a189affc1dbd04fe0f1862d314437d317f
+Retained reproducer confirm_fixes.py:
+3d5127a2e7073da4456298af2abd610278be4ff19ed872ffe8246c15cbb48f30
+
+Actual combined startup/task/native observation
+Fresh ignored prototype local/run-observation45-owned.py:
+d5eff5747439643e3fa2000c1d719aec7f4812c0dd7d8256c6eee33d82a68dbe
+It corrects44's invalid180000ms practice request to60000ms and accepts explicit
+startup-task diagnostics. Existing helper42/16-site startup recipe installed only
+AFTER44 game/job terminal. No new native code/build;same default NGX-free and no
+optional native Quit disposal hooks. Owned PID5868,profile
+nativestest_frida45_fb645b5486;job assigned before exposing attach request.
+Original Start7.016s,task window7.000s,50completed tasks/53->0 roots/seven original
+pump pairs/same Unity-Quit thread46124. Observer becomes ready9ms after attach,
+14provider/journal rows,last7873ms;original OnDestroy enters AND returns. Native
+Quit exits0 in1.000s,total17.716481s,job1 active0/terminated0,no forced cleanup.
+Three scalar telemetry samples include startup/menu/pre-confirm. Initial startup
+itself precedes attach;the original task diagnostic is its separate evidence.
+REA ev_3ac6737225a507a31f9fe1e688b5fd4d20e0fb9f63e92332c3258dd3be12edcf
+local/observation45-startup-native01/native/verification.json:
+a7883cbb15dae8cb37e99d54d04345b41613b73beaeeb77255227ed2d997f54b
+harness-verification.json:
+f027ad51b001205fed0e6c05b93cf83c3bda6e4d47a77bc036cc5bf2eb6d84df
+rea-evidence.json:
+1aaf825d87194f37fe77bdc904c10a8fab63ff8545c6c0e4ce37bf30396cb210
+
+Actual ordinary-recipe full practice lifecycle
+AFTER combined run terminal,restore ordinary owned03 GameAssembly
+fd67ed32e434838118c669112f4b6c32522b26ad1b2877696555bbdda6bf1728
+UnityPlayer3cca44b518abc803882c8d8ae0fff44e89c3f66f85ae9b1239e460ff14874e48
+Helper183f1e726ee32c235a572006ad64f70750db381a80b566f21358bffed97895bd
+Restore receipt local/observation45-ordinary-restored.json:
+162bd8fa539bbcd8bc404e22f80c20b8d71170c8d2cd94f3ce73e1d662d1b119
+Fresh owned PID37064,profile nativestest_frida45_96955af74d. Explicit diagnostic
+practice delay60000ms/full original1200frames,not a shortened match. Native match
+8b1eea173adb8a70e9c9dd10c832c629 produces bot supply14/11 autonomous action records,
+native result/Continue/returned menu,eight scalar telemetry samples including
+ingame/postgame/pre-original-confirm. Produced-unit/order/position intersection
+is EMPTY,so this run is not bot movement or pixel/manual gameplay proof.
+Original Start6.908s,natural Quit0 in1.391s,total158.363531s;job1 active0/terminated0,
+no forced cleanup. Original Quit/OnDestroy thread36560. Bound sources/module bytes/
+shared settings unchanged. Manual35/frozen packages untouched.
+
+Window   Provider/journal rows  Ready ms  Last provider/journal ms  Final state
+1        21/22                  9         55018/60018              running
+2        22/22                  8         60015/60015              running
+3        16/16                  7         16887/16887              detached
+All requests60000ms,each fresh nonce/source/journal;each reattach uses SAME live
+selected PID with read-only SYNCHRONIZE check. Same driver handle is polled;no
+restart after observation expiry. Five-second owned-driver polls and preparation
+leave explicit gaps. Original OnDestroy positive occurs in provider window3.
+13 Unity counters stay0 in these bounded windows;that is no absence/collection
+proof. REA Evidence in order:
+ev_e8c2616eaad976fa290f8d473157dcef355844407b4a6a27475f58dfa2321a3e
+ev_09f751e2a929139d2adb07a4d244a53deca0dbdb18ad8bc1e58380b30e3482bf
+ev_c7dd8d3cae90c2720b03d25fd6e05a95c46bedd300426962f122c7af68bf2aee
+local/observation45-practice-native01/native/verification.json:
+d4504626239821f05aaf551b013bb3eb880118179ac186200247967eaad28a9d
+harness-verification.json:
+e5823b278543d560e885f67b5fa5f64b06f2131f57dd0ff74fe9c1ed31b9286f
+
+Final source/report identities
+Generator e66ed1c932c2f14b874477c7bc4d53d12518536098ffe71ed931cafa5180df53
+Checker07d0d335140ba88f398cfc8ca329de575aa0d8a15b9a02767c3ab6647603b986
+Tests0abb12310f4247eb292c38c8683232beba5b7a94b35ebe8986835fe5be55a070
+local/observation45-startup-review03.json:
+e6fc14bc6e72a84b1cca943b6d15316d9b786a795a6d8f27e8ba189bedab2ba5
+local/observation45-practice-review03.json:
+d5ceb84f340ccf05e8cf0bfb4bbae61e73e4a615d3af4ede0ce2e1dad3d4f78b
+local/observation45-actual-negative-controls03.json:
+4e14c17aa744709ed618ba0b85967467fc336dd8f91dc0c2cb06477aab4ddf5f
+
+Remaining gates
+Canonical preparation/checking now exists and a full practice lifecycle has
+bounded observer evidence. Continuous startup/error/cache/crash/CEF/descendants/
+functional-store/packet attribution is still open. Entire analytics removal is
+not qualified. Slow startup cause needs a slow run WITH task/pump evidence;do not
+force-complete tasks or increase ordinary timeouts. Protected active-match40,
+all cosmetic categories/physical controls/final ordinary modes,SCM/clean Windows/
+second-PC/Internet release gates remain required. Existing protected idle39 PASS
+does not substitute for40. No private output/capture/game binary belongs in Git.

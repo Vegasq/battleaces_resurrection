@@ -4,6 +4,14 @@ Target: Battle Aces build 37822, Windows x64 server and clients.
 Status: IMPLEMENTATION ACTIVE. See STATUS.txt; incomplete phases remain future work.
 
 Current release integration order (2026-10-20)
+- Observation45 adds canonical authored source/strict read-only retained-game
+  checker and actual combined task/observer plus full1200-frame AI/results/
+  Continue/natural Quit evidence. Source binds all four actual scripts;positive
+  OnDestroy return and zero-live/zero-terminated owner jobs pass. Provider/journal
+  trailing rows are explicitly distinct;three practice windows have gaps. No
+  continuous/traffic absence/removal/movement claim. Slow225s cause stays open.
+  See telemetry-game-observation.txt. No shipping/helper/recipe/package change;
+  final ordinary-mode/cosmetic/fault/owner40/clean-PC/Internet gates stay required.
 - Observation44 reaches actual owned-game hooks and original OnDestroy return,
   same original Quit thread,natural0 and empty non-terminated job. Two separate
   windows leave gaps;do not promote zero counters to no analytics/network proof.

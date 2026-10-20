@@ -2,6 +2,20 @@ IMPLEMENTATION LEDGER
 Updated: 2026-10-20 UTC
 Active objective: implement SERVER_REPLACEMENT_PLAN.txt, Windows only.
 
+GAME OBSERVATION45 (2026-10-20 UTC, BOUNDED NATIVE PASS / RELEASE OPEN)
+New canonical observer generator and read-only retained-record checker bind all
+four actual45 scripts,provider/session/PID/source/guards/modules/readiness and
+positive original OnDestroy return to retained owner natural Quit/empty-job proof.
+Combined startup-task/observer17.716s and full original1200-frame AI/result/
+Continue/Quit158.364s both exit0 without forced cleanup. Task50completed/roots
+53->0;slow225s does not reproduce. Practice spans three bounded60s requests with
+explicit gaps;first provider21/journal22 rows have one uncorroborated trailing
+heartbeat. No full-counter/continuous/traffic absence/removal/movement claim.
+43 focused tests and16 actual-evidence rejection controls pass. Ordinary03 is
+restored byte-exact;no shipping/helper/recipe/package change. See
+telemetry-game-observation.txt for scope,exact evidence and remaining release
+gates. Protected active-match40 still has no report;manual35 remains preserved.
+
 OWNED GAME OBSERVATION44 (2026-10-20 UTC, BOUNDED OBSERVATION / STARTUP OPEN)
 REA actually attaches all13 reviewed Unity entries plus original OnDestroy in
 two windows of one owned native game. Late window observes original OnDestroy

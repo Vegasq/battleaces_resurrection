@@ -1,5 +1,14 @@
 CLIENT STARTUP TIMING (updated 2026-10-20)
 
+Combined observation45 adds a fast original task trace WITH an attached native
+observer in the same owned run:Start7.016s/task window7.000s/50completed/53->0
+roots/seven selected original pump pairs,natural Quit0/empty job,total17.716s.
+Attach readiness9ms,positive original OnDestroy enter/return on original Quit
+thread46124. Startup itself precedes attach;task trace is its separate evidence.
+No slow225s reproduction/cause/fix claim. Ordinary03 restored byte-exact before a
+separate full1200-frame practice/result/Continue/Quit observation. Full details,
+new read-only checker and exact reports in telemetry-game-observation.txt.
+
 2026-10-20 reproduction44 and separate task-diagnostic control
 Owned native idle01 with two bounded REA observer windows reproduces original
 RGameInit:Start225.163s,total238.832s. Last retained startup progress before the

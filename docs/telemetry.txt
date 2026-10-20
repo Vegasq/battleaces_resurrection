@@ -3,6 +3,14 @@ Updated: 2026-10-20 UTC
 Supported input: Battle Aces build 37822, Windows x64.
 Recipe version: 4. Guards: 63. Complete-set runtime_validated: false.
 
+Observation45 adds bounded actual game startup and full1200-frame AI/results/
+Continue/original Quit with canonical observer source and retained-owner checker.
+Original OnDestroy entry/return,main0 and empty non-terminated owned jobs pass;
+43 focused tests/16 actual rejection controls pass. Provider/journal boundaries
+and three practice-window gaps are explicit;no continuous/full collection/network/
+descendant/removal/movement claim. Slow225s startup cause stays open. See
+telemetry-game-observation.txt. No shipping/helper/recipe/package change.
+
 Control43:single-call REA localhost socket-hook positive control now passes with
 canonical source/request/provider/PID/nonce validation. This is not a game run,
 packet capture or removal claim;13 reviewed native entries remain unqualified.
