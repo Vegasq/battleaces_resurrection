@@ -10,7 +10,7 @@ existing16 diagnostic sites with unchanged helper51. Each50tasks complete and
 All fast26.3s,task windows11.4s;no206s reproduction or cause/fix claim. Independent
 copy restored ordinary byte-exact;03 LAN source/package/normal launchers untouched.
 New read-only tools.analyze_startup_trace binds completed raw traces/qualification/
-validator identity and separates pre-hook,wrapped calls,task/pump samples and
+validator/table-label identities and separates pre-hook,wrapped calls,task/pump samples and
 sample-to-ready gap. Rejects incomplete/failed/contradictory data;17tests pass.
 Three actual final analyses bind raw/native report hashes;cause_proven staysfalse.
 See client-startup.txt. Do not repeat fast controls as completion;D6 needs actual

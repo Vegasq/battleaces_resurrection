@@ -30,7 +30,7 @@ c8bd4235b1b2f481d456005f6b04fe9820c01e2c49a563f6e3c818803da2c110
 Reusable read-only timing analysis
 tools.analyze_startup_trace reads a completed verify_native_quit run and its raw
 native.log. It requires actual startup+natural Quit success,unchanged bound source/
-shared-settings flags,the exact original startup validator digest and equality
+shared-settings flags,the exact startup validator/table-label source digests and equality
 with its recorded structured observation. It additionally rejects launch/clock
 contradictions,lost captured tasks and a changed terminal Task status. Existing
 outputs are refused. Failed/deadline/incomplete captures stay unqualified;retain
@@ -54,15 +54,16 @@ Actual three final analyses:launch->first hook3156ms each;instrumented window
 maximum selected pump span0ms at the recorded clock resolution. First sampled
 all-success vector->ready3656/3781/3610ms. These are measured boundaries,not an
 exclusive function profile or an explanation of the intermittent slow run.
-local/startup58-batch01/client-0/1/2/startup-timeline02.json SHA256,respectively:
-52a9c72459a3f52d6455bf86721155f91fab85ed534013f995c4e16d701e6a65
-26c2898b73ec47d3b701bd7b01b3acda5bb30b032951fab88baaab7e6f4f082f
-014d1b8d13c2ace6f165b098cf6da3e78f6419db1a42c023c106b6b5c3e60182
-Earlier timeline outputs remain retained;02 adds the explicit sample-to-ready gap.
-Focused17tests pass/0skips/0.040s,including launch clock,terminal-state regression,
-source/trace mismatch and failed/incomplete qualification refusals.
-local/startup58-focused-tests02.txt SHA256
-296cadf088f49e3503a60cfd50d5d09e2a6aa5d9595057ebe0a9cc05abfbb97e
+local/startup58-batch01/client-0/1/2/startup-timeline03.json SHA256,respectively:
+c2ee6540e4302138e537ebfc95bf52ae825e1724eac9bd2d1cc22ae3dd9820bc
+f71677958cc82fcc7fc34311e29898ed41f5405825c36b99f0a386f359fc8f23
+d818a197e452aced35e3615a05b3669eef23b206c8a901b1cc55401da7b2a349
+Earlier timeline outputs remain retained;02 adds the explicit sample-to-ready gap,
+03 also binds the table-label module to its captured original source digest.
+Focused17tests pass/0skips/0.041s,including launch clock,terminal-state regression,
+validator/label/trace mismatch and failed/incomplete qualification refusals.
+local/startup58-focused-tests03.txt SHA256
+e766555a4219f41319b4986e384674bd345a872f7b2d6d0f58dd0228a13f3221
 
 Finite next evidence:an actually slow launch WITH these original hooks active.
 Separate pre-hook delay,wrapped call delay,pending original tasks and post-success

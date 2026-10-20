@@ -4,6 +4,7 @@ from pathlib import Path
 import unittest
 
 from tests.test_startup_tasks import render, trace
+from client_patch.patcher import startup_tasks as startup_hooks
 from tools import startup_task_evidence
 from tools.analyze_startup_trace import analyze, analyze_qualification
 
@@ -11,8 +12,9 @@ from tools.analyze_startup_trace import analyze, analyze_qualification
 class StartupTimelineTests(unittest.TestCase):
     def fixture(self):
         text = render(trace())
-        sources = {'tools/startup_task_evidence.py': hashlib.sha256(
-            Path(startup_task_evidence.__file__).read_bytes()).hexdigest()}
+        sources = {name: hashlib.sha256(Path(module.__file__).read_bytes()).hexdigest()
+                   for name, module in (('tools/startup_task_evidence.py', startup_task_evidence),
+                                        ('client_patch/patcher/startup_tasks.py', startup_hooks))}
         report = dict(passed=True, natural_exit=True, forced_cleanup=False, exit_code=0,
                       source_files_unchanged=True, shared_settings_unchanged=True, launch_tick=50,
                       installed_diagnostics=dict(startup_tasks=True),
@@ -67,10 +69,11 @@ class StartupTimelineTests(unittest.TestCase):
 
     def test_raw_trace_and_validator_identity_must_match_qualification(self):
         text, report = self.fixture()
-        changed = copy.deepcopy(report)
-        changed['source_sha256_at_finish']['tools/startup_task_evidence.py'] = '0'*64
-        with self.assertRaises(AssertionError):
-            analyze_qualification(text, changed)
+        for name in ('tools/startup_task_evidence.py', 'client_patch/patcher/startup_tasks.py'):
+            changed = copy.deepcopy(report)
+            changed['source_sha256_at_start'][name] = changed['source_sha256_at_finish'][name] = '0'*64
+            with self.subTest(source=name), self.assertRaises(AssertionError):
+                analyze_qualification(text, changed)
         changed = copy.deepcopy(report)
         changed['startup_tasks']['task_count'] = 1
         with self.assertRaises(AssertionError):

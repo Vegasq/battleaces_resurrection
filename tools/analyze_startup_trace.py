@@ -12,7 +12,7 @@ import json
 from pathlib import Path
 import re
 
-from client_patch.patcher.startup_tasks import TABLES
+from client_patch.patcher import startup_tasks as startup_hooks
 from tools import startup_task_evidence
 
 
@@ -23,7 +23,7 @@ def require(condition, message):
 
 def task_label(index):
     if index < 12:
-        return TABLES[index][0]
+        return startup_hooks.TABLES[index][0]
     return 'PreMenu WhenAll' if index == 49 else f'LoadAll[{index-12}]'
 
 
@@ -89,10 +89,13 @@ def analyze_qualification(text, report):
             report.get('forced_cleanup') is False and report.get('exit_code') == 0 and
             report.get('installed_diagnostics', {}).get('startup_tasks') is True,
             'completed original startup/Quit qualification required')
-    validator_sha = hashlib.sha256(Path(startup_task_evidence.__file__).read_bytes()).hexdigest()
+    expected = {name: hashlib.sha256(Path(module.__file__).read_bytes()).hexdigest()
+                for name, module in (('tools/startup_task_evidence.py', startup_task_evidence),
+                                     ('client_patch/patcher/startup_tasks.py', startup_hooks))}
     require(report.get('source_sha256_at_start') == report.get('source_sha256_at_finish') and
-            report.get('source_sha256_at_finish', {}).get('tools/startup_task_evidence.py') == validator_sha,
-            'startup validator differs from the actual qualification')
+            all(report.get('source_sha256_at_finish', {}).get(name) == digest
+                for name, digest in expected.items()),
+            'startup validator or table labels differ from the actual qualification')
     trace = report.get('trace')
     require(isinstance(trace, list) and trace and type(trace[0].get('thread')) is int,
             'qualified original thread is missing')
