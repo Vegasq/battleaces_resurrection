@@ -6,6 +6,15 @@ defines the requested product. Existing frozen archives are not automatically
 upgraded when source changes. No original client binaries/assets belong in Git.
 
 Current ordinary source candidate
+Empty queue49 qualifies actual one-human public1v1/2v2/2vAI on current clean47
+archives/helper42. Real30s native/server wait,original bot fill/commands/native
+supply,1220/1221/1221exact frames and122/124/124common native state samples,
+results/Continue/menu Quit and games/launchers/workers0/empty jobs/no forced
+cleanup pass. A retained2v2 diagnostic Quit-gate race is corrected by closing
+pending files before publishing;native guards unchanged.53 tests50pass/3skip.
+Actual TLS uses explicit stdin identity fixtures,not protected enrollment.
+Inspected hidden search PNG is black;physical/rendering/permissions/Internet
+gates stay open. See empty-server-queue.txt. No product/native/package change.
 Availability48 adds actual bundled invalid-trust1v1/code9 and missing-online-files
 Try Deck/code8 lifecycle proofs:189.387/214.703s,production resolver,bot production/
 movement/results/Continue/Quit,277char native replays,game+launcher0/empty jobs/no
@@ -337,6 +346,9 @@ Required before a general release
     Availability48 additionally passes actual invalid-trust1v1 and missing-files
     Try Deck with full bounded native lifecycle;valid-credential network refusal
     and the remaining combinations are still required. See client-availability.txt.
+    Empty queue49 passes one-human real30s wait/AI fill/results/Continue/Quit in
+    all three public modes with exact native/host frame agreement. Identity
+    fixtures and hidden black captures do not close protected/physical acceptance.
 [ ] Complete telemetry collection/storage/indirect callback/reporter/CEF child
     coverage and bounded network-capture checks on the final installed build.
     Current63 guards and the separate NGX guard are not a universal zero-traffic

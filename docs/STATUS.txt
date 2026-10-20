@@ -2,6 +2,21 @@ IMPLEMENTATION LEDGER
 Updated: 2026-10-20 UTC
 Active objective: implement SERVER_REPLACEMENT_PLAN.txt, Windows only.
 
+EMPTY SERVER QUEUE49 (2026-10-20 UTC, THREE NATIVE MODES PASS / RELEASE OPEN)
+Actual clean47 ZIPs/helper42/ordinary03 with one authenticated fixture human now
+pass1v1/2v2/2vAI real30s server/native queue waits,original varied bot fill,native
+bot commands and0->positive supply,1220/1221/1221exact frame receipts and122/124/
+124common observable-state samples,results/Continue/five-event menu Quit. All
+successful games/launchers/workers0,host/client jobs7/2active0/terminated0,no forced
+cleanup. Explicit human diagnostic Concede bounds each match. Retained2v2 Quit-
+gate failure forced cleanup;Win32 writer-sharing32 control explains a publisher
+race. Close pending files before publishing gates;native reader/guards unchanged.
+Corrected team reruns pass135.286/134.361s;initial1v1 pass135.558s.53 focused tests
+50pass/3skip;current retained-review revalidates bot assignments/commands/supply.
+Inspected hidden searching PNG is black,not visual acceptance. Actual protected
+credentials/physical/partial/full/fault/SCM/cross-PC/Internet/telemetry gates stay
+open;no product/helper/recipe/package change. See empty-server-queue.txt.
+
 CLIENT AVAILABILITY48 (2026-10-20 UTC, BOUNDED NATIVE PASS / RELEASE OPEN)
 New production-resolver diagnostics cover missing online files/code8 and invalid
 trust/code9 without socket-opener/invite access. Actual bundled invalid-trust1v1

@@ -56,6 +56,8 @@ def validate_native_selections(clients,frozen):
 def validate(events,clients,*,mode,ticket=1,expected_decks=None):
     from server.public_protocol import MODES
     total,slots=MODES[mode];humans=slots[:len(clients)]
+    require(1<=len(clients)<=len(slots) and len({row['player'] for row in clients})==
+            len({row['pid'] for row in clients})==len(clients),'independent public human clients required')
     if expected_decks is not None:
         require(set(expected_decks)=={r['player'] for r in clients} and len({tuple(d['units']) for d in expected_decks.values()})>=2,
                 'declared independent human deck choices are missing or lack edited variation')
@@ -112,6 +114,51 @@ def validate(events,clients,*,mode,ticket=1,expected_decks=None):
     return dict(match=match,mode=mode,human_seats=list(humans),bot_seats=sorted(set(range(total))-set(humans)),
                 full_human_group=full,real_queue_waits_seconds=waits,frames=len(frames),clients=comparisons,
                 result=completed[0]['result'],worker_pid=started[0]['worker_pid'],independent_full_state_proof=False)
+
+
+def validate_bot_fill(events,frozen,worker_ai,replay,*,bot_seats):
+    """Original bot identity/commands and supply; no entity-movement/render claim."""
+    import zlib
+    from server.ai_rules import SUPPORTED_AI_SHA256
+    from server.game_data import decode_frame,decode_player_input
+    from server.protobuf_wire import parse_fields
+    from tools.verify_native_storage import replay_evidence
+    proof=replay_evidence(replay)
+    require(proof['game_data_sha256']==frozen['game_data_sha256'],'bot replay belongs to another match')
+    roster=frozen['roster'];bots={row['slot']:row for row in roster if row['ai_profile_id']}
+    require(len(bots)==len(bot_seats) and set(bots)==set(bot_seats) and
+            len({row['player_id'] for row in roster})==len(roster),'bot roster identity/seat differs')
+    require(worker_ai and worker_ai['dll_sha256']==SUPPORTED_AI_SHA256 and
+            worker_ai['bots']=={str(seat):row['ai_profile_id'] for seat,row in bots.items()},
+            'worker AI differs from frozen bot roster')
+    identities={row['player_id']:seat for seat,row in bots.items()}
+    commands={seat:0 for seat in bots};joins={seat:0 for seat in bots}
+    raw=zlib.decompress(replay,-zlib.MAX_WBITS) # bounded structure admitted above
+    for row in parse_fields(raw,max_bytes=16*1024*1024,max_fields=16384):
+        if row.number!=2:continue
+        frame=decode_frame(row.value)
+        require(frame['frames_per_second']==20 and frame['timestep_ms']==50 and frame['speed']==1.0,
+                'bot replay changed native simulation clock')
+        for body in frame['players']:
+            player=decode_player_input(body);identity=player['identity']
+            if not identity['ai_profile_id']:continue
+            seat=identities.get(identity['player_id'])
+            require(seat is not None and identity['name']==bots[seat]['name'] and
+                    identity['ai_profile_id']==bots[seat]['ai_profile_id'],'bot input changed frozen identity')
+            for action in player['actions']:
+                fields=parse_fields(action)
+                require(len(fields)==1 and fields[0].wire_type==2 and fields[0].number in (1,3,5),'unexpected bot command kind')
+                if fields[0].number==3:
+                    require(frame['frame']==0,'bot joined after initial frame');joins[seat]+=1
+                else:commands[seat]+=1
+    result=[]
+    for seat,bot in sorted(bots.items()):
+        supply=max((event.get('resources',{}).get(str(seat),{}).get('current_supply',0) for event in events
+                    if event['event']=='native_snapshot' and event.get('match')==frozen['match'] and event.get('viewer')==seat%2),default=0)
+        require(joins[seat]==1 and commands[seat]>0 and supply>0,'filled AI seat did not join,issue commands and produce supply')
+        result.append(dict(seat=seat,name=bot['name'],profile=bot['ai_profile_id'],
+                           native_commands=commands[seat],native_max_supply=supply,join_commands=joins[seat]))
+    return dict(bots=result,scope='Native worker assignments,recorded AI commands and host supply;not independent bot movement or pixels.')
 
 
 def validate_loading_recovery(events,clients,*,fault):

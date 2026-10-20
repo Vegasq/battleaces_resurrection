@@ -3,7 +3,7 @@ import hashlib
 import unittest
 import zlib
 from server.protobuf_wire import field_bytes,field_uint
-from tools.packaged_network_evidence import validate,validate_loading_recovery,validate_running_recovery,validate_replays,validate_worker_shutdown,validate_native_selections
+from tools.packaged_network_evidence import validate,validate_loading_recovery,validate_running_recovery,validate_replays,validate_worker_shutdown,validate_native_selections,validate_bot_fill
 from tools import packaged_network_drivers as drivers
 
 
@@ -61,6 +61,62 @@ class PackagedNetworkEvidenceTests(unittest.TestCase):
         with self.assertRaises(AssertionError):validate(events,wrong,mode=2)
         next(e for e in events if e['event']=='public_match_offered')['perf_counter_ns']=2000000000
         with self.assertRaises(AssertionError):validate(events,clients,mode=2)
+
+    def test_single_human_requires_full_wait_in_each_public_mode(self):
+        for mode,total in ((1,2),(2,4),(5,4)):
+            events,clients=self.fixture();clients=clients[:1]
+            events=[e for e in events if not(e['event']=='public_queue_entered' and e['perf_counter_ns']==1100000000)]
+            for e in events:
+                if e['event']=='public_match_offered':e.update(humans=['human0'],fallback=True,perf_counter_ns=31000000000)
+                if e['event']=='match_created':e.update(mode=mode,participants=total)
+            clients[0]['log']=(clients[0]['log'].replace('mode=1',f'mode={mode}').replace('count=2',f'count={total}')
+                .replace('humans=3','humans=1').replace('[2000]','[31000]').replace('elapsedMs=1000','elapsedMs=30000')+
+                'Native search timer: ticket=1 seconds=29\n')
+            proof=validate(events,clients,mode=mode)
+            self.assertEqual(proof['bot_seats'],list(range(1,total)))
+            self.assertEqual(proof['real_queue_waits_seconds'],[30.0])
+            self.assertFalse(proof['full_human_group'])
+            wrong=copy.deepcopy(clients);wrong[0]['log']=wrong[0]['log'].replace('elapsedMs=30000','elapsedMs=29000')
+            with self.assertRaises(AssertionError):validate(events,wrong,mode=mode)
+
+    def bot_fixture(self,*,commands=True,timestep=50):
+        from server.ai_rules import SUPPORTED_AI_SHA256
+        from server.game_data import encode_identity,encode_frame,encode_player_input
+        from tests.synthetic import template
+        game=template().raw_game_data
+        identity=encode_identity(2,'Authored Bot',ai_profile_id=64)
+        frames=[]
+        for frame in range(2):
+            actions=[field_bytes(3,field_uint(1,1))] if frame==0 else ([field_bytes(1,field_uint(1,7))] if commands else [])
+            raw=encode_frame(frame,{0:b'',1:encode_player_input(identity,actions)})
+            if timestep!=50:raw=raw.replace(field_uint(3,50),field_uint(3,timestep),1)
+            frames.append(field_bytes(2,raw))
+        replay=zlib.compress(field_bytes(1,game)+b''.join(frames),wbits=-zlib.MAX_WBITS)
+        frozen=dict(match='a'*32,game_data_sha256=hashlib.sha256(game).hexdigest(),roster=[
+            dict(slot=0,player_id=1,name='Human',ai_profile_id=0),dict(slot=1,player_id=2,name='Authored Bot',ai_profile_id=64)])
+        worker=dict(dll_sha256=SUPPORTED_AI_SHA256,bots={'1':64})
+        events=[dict(event='native_snapshot',match='a'*32,viewer=1,resources={'1':{'current_supply':10}})]
+        return events,frozen,worker,replay
+
+    def test_bot_fill_requires_native_commands_and_own_supply(self):
+        events,frozen,worker,replay=self.bot_fixture()
+        proof=validate_bot_fill(events,frozen,worker,replay,bot_seats=[1])
+        self.assertEqual(proof['bots'][0]['native_commands'],1)
+        self.assertEqual(proof['bots'][0]['native_max_supply'],10)
+        for event_change in (dict(match='b'*32),dict(viewer=0),dict(resources={'0':{'current_supply':10}})):
+            changed=copy.deepcopy(events);changed[0].update(event_change)
+            with self.assertRaises(AssertionError):validate_bot_fill(changed,frozen,worker,replay,bot_seats=[1])
+        events,frozen,worker,replay=self.bot_fixture(commands=False)
+        with self.assertRaises(AssertionError):validate_bot_fill(events,frozen,worker,replay,bot_seats=[1])
+
+    def test_bot_fill_rejects_changed_identity_worker_or_clock(self):
+        events,frozen,worker,replay=self.bot_fixture()
+        for change in (dict(player_id=3),dict(name='Other'),dict(ai_profile_id=63),dict(player_id=1)):
+            changed=copy.deepcopy(frozen);changed['roster'][1].update(change)
+            with self.assertRaises(AssertionError):validate_bot_fill(events,changed,worker,replay,bot_seats=[1])
+        with self.assertRaises(AssertionError):validate_bot_fill(events,frozen,dict(worker,bots={'0':64}),replay,bot_seats=[1])
+        events,frozen,worker,replay=self.bot_fixture(timestep=100)
+        with self.assertRaises(AssertionError):validate_bot_fill(events,frozen,worker,replay,bot_seats=[1])
 
     def test_missing_or_failed_authoritative_lifecycle(self):
         events,clients=self.fixture()

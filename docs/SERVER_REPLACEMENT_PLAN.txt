@@ -4,6 +4,15 @@ Target: Battle Aces build 37822, Windows x64 server and clients.
 Status: IMPLEMENTATION ACTIVE. See STATUS.txt; incomplete phases remain future work.
 
 Current release integration order (2026-10-20)
+- Empty queue49 extends owned packaged diagnostics to one human. Actual1v1/2v2/
+  2vAI wait real30s,fill original bot seats and pass commands/native supply,
+  authoritative frames/states,results/Continue/normal Quit/empty non-terminated
+  jobs.53 focused tests50pass/3skip. A retained Quit-gate publication failure is
+  fixed in the external publisher after actual Win32 sharing32 reproduction;
+  native guards/product/helpers/packages unchanged. Inspected hidden PNG remains
+  black,not physical/visual acceptance. See empty-server-queue.txt. NEXT:actual
+  valid-credential refusal and remaining current partial/full queue,Cancel/fault/
+  physical/deployment/telemetry matrix. Protected40 remains independently open.
 - Availability48 adds actual bundled production local-settings rejection proofs:
   invalid-trust1v1/code9 and missing-files Try Deck/code8 reach bot combat/results/
   Continue/natural Quit with unchanged shared saves,game+launcher0/empty jobs/no

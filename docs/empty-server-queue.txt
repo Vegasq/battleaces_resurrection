@@ -1,0 +1,187 @@
+PACKAGED EMPTY SERVER QUEUE49 -- 2026-10-20
+
+Requirement and boundary
+Public1v1/2v2/2vAI must accept a single player on an otherwise empty community
+server,wait the real30seconds,and fill missing seats with original AI. Preserve
+the human's configured identity/deck/full loadout and original search/results/
+Continue/Quit. Custom stays human-only. This same-PC diagnostic is not physical
+input,Internet,SCM or real protected-credential acceptance.
+
+Diagnostic extension
+tools.verify_packaged_multiplayer now accepts --humans 1 in its explicit stdin-
+only identity-fixture mode. Existing two/four-client paths remain;four requires
+2v2. Recovery still requires two full-human1v1 peers;Custom requires two humans;
+normal-owner protected diagnostic still supports its existing two/four counts.
+No product server/client,helper,native recipe,queue or simulation clock changes.
+The actual isolated bundled client.main/resolver/TLS/bridge and host.run/native
+workers remain responsible for control/gameplay. Test adapters are not shipped.
+
+External server observer records public player IDs with the frozen roster. New
+read-only bot-fill evidence binds exact AI DLL/seat/profile assignments to that
+roster and completed native replay GameData. Decode original replay frames at
+20fps/50ms/speed1.0;require each bot's frozen name/ID/profile,one initial JoinArmy,
+subsequent Execute/UI commands,and its own positive unit supply in the host's
+matching native alliance snapshots. Other viewer/army/match supply cannot cover
+a missing bot. This proves assignments,commands and supply,not independent
+per-entity bot movement or rendered combat.
+
+Existing complete-match checks remain required:one authenticated configured
+identity per actual native process,full30s server/native clock witnesses,no local
+fallback,exact authoritative frame hashes and common canonical observable-state
+samples,native saved replay/choice publication,original results/Continue/idle
+five-event Quit,health/match worker exit0 and all owned jobs empty naturally.
+Audit timestamps may lag queue creation slightly;protocol elapsed>=30000ms and
+native original search clock independently constrain the real wait. Automated
+human build at frame300 and explicit Concede at1200 bound this test;do not call
+the resulting loss a naturally completed human victory.
+
+Source checks
+Final focused run:53 tests total,50pass/3explicit optional native skips,11.525s.
+Earlier50test/11.458s run is retained,not added to these counts. Added
+single-human fixtures cover real-deadline assertions in all three public modes;
+bot evidence rejects missing commands,another match/viewer/army's supply,changed
+identity/worker assignment and changed simulation dt. Existing two/four-human,
+recovery,replay,worker and public/AI logic checks stay active. These authored
+fixtures are not captured game data.
+local/emptyqueue49-focused-tests02.txt SHA256
+74133059913d83d3202a0401a3351eab73c85c6cf43905c5e8cc4fa6425c2e80
+Current diagnostic source SHA256:
+tools/verify_packaged_multiplayer.py
+aec36e0ec6160e3579eba42fbe51daec3c800a46074527438a2581925c48259c
+tools/packaged_network_drivers.py
+7d309e8ee12f8191d7f0440939752bdbd16ce81b41ff372e9d76753d322025d7
+tools/packaged_network_evidence.py
+c4b109ff0d3e68e5c212d8edacb9a4b5f29d5b66ad92305f27d22bc92453a364
+tests/test_packaged_network_evidence.py
+dd46e22bd1bd7b2d36fa11629380502d6655369ab5fd873037a9c1c3801d0d93
+tests/test_diagnostic_gates.py
+67fb6252c5e6017dbf68be134b58050867d810b691aec90e383b1c58d11c78fa
+Five separate Custom evidence regression tests also pass0.130s after the shared
+roster observer adds public player IDs. This is source validation only,not a
+renewed native Custom run. Log:local/emptyqueue49-custom-regression01.txt.
+
+Actual clean archives and1v1 result
+Fresh local/emptyqueue49-extracted01 verifies/extracts cleanff61f6a archives
+qualified during setup47. Server83files/client68files including their manifests;
+archive SHA256 respectively
+cf37850605ba00b3f02866e6b03a82135285c44edd2e79ca8e3abba30ad27c3a
+d10d2a8a73ee5d5a4b9559fd0ea1cfff8e7b83726b30ebf00b6c300a42a91a30
+Use helper42/ordinary recipe4 owned03 and the freshly imported setup47 assets.
+Private production storage is NOT exercised:the test uses explicit MemoryStore/
+stdin-only ephemeral invite adapters with verified TLS. Even if health's backend
+field credential_store_checked is true,it checks this fixture store,not real ACLs.
+Native clocks,commands,TLS verification and admission exchange remain original.
+
+Empty public1v1-01 passes135.558268100s. One human seat0,original bot seat1/profile64
+name Roy-up-arrow-TroyRoy. Audit wait29.9867585s,native offer30062ms,authoritative
+elapsed30051ms;original native timer0..29.1220exact frame receipts/122common native
+observable-state samples agree with the host. Bot has19recorded native commands,
+one JoinArmy and15max supply. Human original Concede at1200 gives winning alliance1;
+original result/Continue/five-event menu Quit/game+launcher0 pass. Health/match
+workers0/reaped;host job7 and client job2 active0/terminated0,no forced cleanup.
+Package/assets/config/adapters/bound sources/shared native channels unchanged;
+fixture-token scan passes,ephemeral PKI removed. No original files enter Git.
+local/emptyqueue49-native-1v1-01/verification.json SHA256
+d2a90724f1a6eaa6c59ea32c47b61394d4c3270e4eb4f81379cab6e7d12b3045
+This1v1 run used the pre-gate-publication diagnostic
+e7cb5ab0d588258b57cefaba3e9f7583a80633febcb13a027216bec7ddf5f0c2,
+retained byte-exact as local/emptyqueue49-before-gate-fix.py. Later diagnostics
+change external gate publication only;the package/native/product stay unchanged.
+
+Retained2v2 failure and diagnostic correction
+Empty2v2-01 reaches original result/Continue at1221frames after human Concede;
+server result is complete/frame1201/winner1/conceded5. The native probe then logs
+"native Quit gate is unavailable" before Quit,and the parent correctly fails
+127.230905900s. Server/health/match resources close normally,but client job2 is
+still active at failed cleanup and requires forced termination. Overall remains
+passed=false/forced_cleanup=true;not native Quit/release acceptance.
+local/emptyqueue49-native-2v2-01/verification.json SHA256
+cb37c2d202d4866c5c16ba690c08e955abf4608103b7931f15812616e5edefe4
+Retained current-process client-0/native-retained.log SHA256
+27cc03cbf2ffdc6de6b022672f0ed33b72027b27a2a66e0cc178be3b9eca7a69
+
+External publisher originally creates the final empty gate with an open writable
+handle while the native reader opens with FILE_SHARE_READ,denying active writes.
+A real Win32 positive control reproduces ERROR_SHARING_VIOLATION32 while that
+writer is open,then succeeds after close. This supports a publication race;the
+original native error text does not record its exact Win32 code. Fix the authored
+publisher to create/close a fresh same-directory .pending file BEFORE renaming
+it to the final gate. Existing final/pending paths are refused,preserved. Apply
+to start/retry/Custom Leave/Quit gates. Native strict reader,ordinary files,
+profile/empty-file checks stay intact;no native rebuild/recipe change. Three
+new tests cover publication visibility,collision preservation and actual Win32
+sharing behavior. Corrected native team reruns use fresh evidence/profiles.
+
+Inspected visual limit
+Actual searching capture match-search-24296-1-1-searching.png is black960x540
+under this hidden launcher. Its existence/native timer markers do not qualify
+visible original UX. Retain the failed visual evidence;do not alter production
+rendering based on this hidden screenshot. SHA256
+da3e4e903aa7d6a60b3b03726dc9ec6d10ae629918c8b15f12d6f00980d4ee20
+Native timer/wait and rendering/manual acceptance are separate gates.
+
+Corrected team runs (terminal)
+The fresh corrected2v2-02 passes135.286461s and2vAI-01 passes134.361001s. Their
+controller session8606 is terminal0;first team controller53273 stopped after
+the retained failed2v2-01 and never started2vAI. No native job remains live.
+Each successful team run has one human seat0 and bots1/2/3,1221exact authoritative
+frame receipts/124common native observable-state samples,original timer0..29,
+original results/Continue/five-event menu Quit/game+launcher0. Explicit human
+Concede at1200 results in complete/frame1201/winner1/conceded5. Health/match
+workers0/reaped;host job7/client job2 active0/terminated0,no forced cleanup.
+Package/assets/config/adapters/bound sources/shared native channels unchanged;
+fixture-token scan passes and ephemeral PKI is removed. Corrected native strict
+Quit reads now pass;no native/source protection was relaxed.
+
+2v2 audit wait29.9174557s,native offer30031ms,authoritative elapsed30008ms:
+bot seat/profile  native commands  first/max native supply
+1/59              71               0/15
+2/59              304              0/16
+3/59              299              0/12
+local/emptyqueue49-native-2v2-02/verification.json SHA256
+f89c085c8caca3c906a22f30ad10cf1ef3db3648435efdc11eb05d958e0788b5
+
+2vAI audit wait29.9472888s,native offer30093ms,authoritative elapsed30088ms:
+1/60              122              0/25
+2/59              128              0/16
+3/60              72               0/12
+Names are original varied catalog identities;every bot has one initial JoinArmy.
+This also verifies the missing human ally is filled as a bot,not an empty seat.
+local/emptyqueue49-native-2vai-01/verification.json SHA256
+d50c890021baf08b936f2a983b52fccdcae6922ddb2819a9f397e66764632f02
+local/emptyqueue49-team-summary02.json SHA256
+07dbebcc83ee9724f01470f3332ac21ddfa086d97ae7837941b9952f3a7cef2f
+Retained local/run-emptyqueue49-teams02.py SHA256
+34b40e189fd01012e67f96ecc0236802d8dcdea3f595cf861f747caff97a0f7c
+local/emptyqueue49-extracted01/extraction.json SHA256
+5e4361ba30af28b0efcb3ae2be82950b4284559d2abfb28af03726b13dadf022
+
+Retained review and limits
+Current read-only bot checker revalidates all three completed original native
+replays/AI metadata/host resources. It checks complete source maps and keeps the
+pre-publication1v1 diagnostic exception explicit:only its external publisher
+source differs;the exact old bytes are retained. All other bound sources match.
+It records actual first/max supply,confirming1v1 starts at0 and reaches15 too.
+The inspected black searching capture is copied into the new ignored review
+folder so a future reused native PID cannot obscure this failed visual witness.
+This is retained-evidence review,not another native run or pixel/permission pass.
+local/emptyqueue49-post-review02/verification.json SHA256
+4ea69fe9292fb80c74b787a5e6d3d9860b63f4685734879292f3fd3186750783
+Retained local/review-emptyqueue49.py SHA256
+9170f1b97ca6e6a3c2870c7959b56b412fab15941010b8bc036b9cf556dec506
+First review writes its validated report,then exits1 while printing a Unicode
+bot name to cp1252 stdout. Retain that failed invocation/report without counting
+it as successful completion. Corrected02 keeps UTF-8 evidence and ASCII-escaped
+console JSON,then exits0. No native/product source changes are involved.
+Initial local/emptyqueue49-post-review/verification.json SHA256
+2ab993df3a23ac4d3199ff4204094f5ff28ab7baeb9011017a920aa24ae4ae4b
+Original local/review-emptyqueue49-01.py SHA256
+4cb01bfcc8f0935337ca042ec2580e04a5cba4c30a4fdfb8b4f009bf81cc996a
+
+Remaining gates
+Actual valid-credential connection refusal,current partial/full queue/mode/
+Cancel/fault/physical matrix,protected40,SCM/other accounts/clean-PC/friend-PC/
+Internet/full telemetry/slow-startup cause remain open. Custom remains human-only
+and is not exercised by these public-queue runs. Never count these stdin identity
+fixtures as protected enrollment/permission acceptance. Recovery/manual35/frozen
+archives and original game files stay preserved;no proprietary payload in Git.

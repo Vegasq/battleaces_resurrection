@@ -1,5 +1,18 @@
 BUNDLED SERVER / NATIVE MULTIPLAYER QUALIFICATION -- 2026-10-19
 
+2026-10-20 empty server queue49
+One human on an otherwise empty host now passes all three public modes on actual
+clean47 ZIPs/helper42:real30s native/server wait,original AI fill/commands/supply,
+authoritative frame/state agreement,results/Continue/five-event menu Quit and
+natural game/launcher/worker0/empty jobs. Explicit diagnostic Concede bounds play.
+53 source tests50pass/3skip. Retained2v2 Quit-gate publication failure stays failed;
+external atomic closed-file publication fixes the reproduced Win32 sharing
+conflict without native/product changes. Corrected2v2/2vAI135.286/134.361s pass;
+initial1v1135.558s. Current read-only retained review rechecks all bot metadata/
+replays/supply. TLS identity fixtures are explicit;protected/SCM/clean-PC/Internet
+and physical UX stay separate. Inspected hidden search capture is black. See
+empty-server-queue.txt for exact source/report/archive hashes and remaining gates.
+
 Native34 Custom directory invite / same-lobby changed-deck rematch (BOUNDED PASS)
 --custom-rematch uses bundled production host.run and two actual bundled
 client.main/resolver/TLS/bridge/native clients with the same explicit stdin-only

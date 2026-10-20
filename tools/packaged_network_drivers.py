@@ -46,7 +46,7 @@ from server.credentials import AuthenticationError
 from server.configuration import load_config
 from tools.package_integrity import verify
 request=json.loads(Path(sys.argv[1]).read_bytes());output=Path(request['output']);package=Path(request['package'])
-fixture=json.loads(sys.stdin.buffer.read(16385));assert len(fixture['identities']) in (2,4)
+fixture=json.loads(sys.stdin.buffer.read(16385));assert len(fixture['identities']) in (1,2,4)
 assert not request.get('recover_stage') or len(fixture['identities'])==2
 real_credentials=bool(request.get('real_credentials'))
 verify(package,'server');report=dict(passed=False,production_modules={},fixture_store=not real_credentials,workers=[],frozen_matches=[],custom_commands=[])
@@ -83,7 +83,7 @@ def server(*args,**kwargs):
                 humans={slot:dict(profile=peer.profile_id,name=peer.name) for slot,peer in room.peers.items()},
                 complete_profiles=sorted(peer.profile_id for peer in room.peers.values() if value.community.sessions[peer.profile_id].full_loadout),
                 cosmetics={slot:dict(catalog_sha256=appearance.catalog_sha256,slots=appearance.slots) for slot,appearance in match.cosmetics_by_slot.items()},
-                roster=[dict(slot=p.slot,name=p.name,ai_profile_id=p.ai_profile_id) for p in match.roster],
+                roster=[dict(slot=p.slot,player_id=p.player_id,name=p.name,ai_profile_id=p.ai_profile_id) for p in match.roster],
                 decks={slot:list(deck) for slot,deck in match.decks_by_slot.items()},
                 active_ability_groups={slot:list(groups) for slot,groups in match.active_ability_groups_by_slot.items()},
                 full_loadout_seats=sorted(room.full_loadout_seats)))

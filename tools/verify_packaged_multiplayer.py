@@ -1,4 +1,4 @@
-"""Bundled TLS host + two or four production clients + native result/Continue/Quit.
+"""Bundled TLS host + one, two or four production clients + native result/Continue/Quit.
 
 Default external adapters use explicit stdin-only ephemeral identity fixtures.
 Opt-in --real-credentials requires the normal desktop account and uses protected
@@ -30,7 +30,7 @@ from tests.test_tls_transport import generate_test_pki,remove_test_pki
 from tools.package_integrity import verify
 from tools import packaged_network_drivers as drivers
 from tools import packaged_custom_evidence as custom_evidence
-from tools.packaged_network_evidence import validate,validate_loading_recovery,validate_running_recovery,validate_replays,validate_worker_shutdown,validate_native_selections
+from tools.packaged_network_evidence import validate,validate_loading_recovery,validate_running_recovery,validate_replays,validate_worker_shutdown,validate_native_selections,validate_bot_fill
 from tools.run_secure_match import read_native_log
 from tools.verify_packaged_play import job_accounting
 from tools import verify_native_quit as quit_probe
@@ -53,6 +53,16 @@ def sources():
 
 def rows(path):
     with path.open(encoding='utf-8-sig') as stream:return list(csv.DictReader(stream,delimiter='\t'))
+
+
+def publish_empty_gate(path):
+    """Expose a diagnostic gate only after its writer closes (native denies writes)."""
+    path=Path(path)
+    require(path.resolve().is_relative_to(ROOT/'local') and not os.path.lexists(path),
+            'fresh owned diagnostic gate required')
+    pending=path.with_name(path.name+'.pending')
+    with pending.open('xb'):pass
+    pending.rename(path)
 
 
 def imports(report,package,inventory):
@@ -107,8 +117,9 @@ def run(args):
     recover_stage='running' if args.recover_running else 'loading' if args.recover_loading else None
     packages,game,assets,output=(p.resolve() for p in (args.packages,args.game,args.assets,args.output))
     require(os.name=='nt' and 120<=args.timeout<=600 and args.mode in (1,2,5),'bounded supported Windows match required')
-    require(args.humans in (2,4) and (args.humans==2 or args.mode==2),'four humans require public2v2')
-    require(not recovering or args.mode==1,'packaged recovery control requires two full-human1v1 attempts')
+    require(args.humans in (1,2,4) and (args.humans!=4 or args.mode==2),'four humans require public2v2')
+    require(not args.real_credentials or args.humans in (2,4),'protected enrollment diagnostic supports two or four humans')
+    require(not recovering or args.mode==1 and args.humans==2,'packaged recovery control requires two full-human1v1 attempts')
     require(not args.custom_rematch or args.mode==1 and args.humans==2 and not recovering,'Custom rematch requires two humans and no public fault injection')
     require(all(p.is_relative_to(ROOT/'local') for p in (packages,game,assets,output)),'owned ignored paths required')
     server_package=packages/'battleaces-server-win64';client_package=packages/'battleaces-client-win64'
@@ -217,7 +228,7 @@ def run(args):
                 require(child.process.poll() is None or quit_released and child.process.returncode==0,'bundled client exited before accepted match/Quit')
             if not gate_created and all('PUBLIC QUEUE SMOKE waiting for shared gate: key='+gate in row.get('log','') for row in records):
                 require(not any('Public search intent:' in row['log'] for row in records),'public search bypassed shared menu gate')
-                with gate_path.open('xb'):pass
+                publish_empty_gate(gate_path)
                 gate_created=True
             if recovering and not fault_requested and all('Public native match joined: ticket=1 ' in row.get('log','') for row in records):
                 received=[[int(value) for value in re.findall(r'LAN received frame (\d+),',row['log'])] for row in records]
@@ -236,7 +247,7 @@ def run(args):
                     for row in records:
                         require(row['log'].count('Public search intent:')==1,'replacement Play bypassed the retry gate')
                         row['retry_offset']=len(row['log'])
-                    with retry_path.open('xb'):pass
+                    publish_empty_gate(retry_path)
                     retry_released=True
             if args.custom_rematch:
                 ready=(all('COMMUNITY MATCH SMOKE passed: two native Start/result/Continue cycles;' in row.get('log','') for row in records)
@@ -247,7 +258,7 @@ def run(args):
                     if all(live.get(key)==0 for key in ('rooms','retired','entries','offers','cleanup')) and len(lobbies)==1 and lobbies[0]['members']==expected:
                         from server.community_protocol import OPEN
                         require(lobbies[0]['phase']==OPEN and lobbies[0]['epoch']==2,'Custom lobby failed to reopen after two matches')
-                        with (records[1-leave_stage]['folder']/'custom-match-leave.ready').open('xb'):pass
+                        publish_empty_gate(records[1-leave_stage]['folder']/'custom-match-leave.ready')
                         leave_stage+=1
                 returned=leave_stage==2 and all('COMMUNITY MATCH SMOKE post-match leave passed:' in row.get('log','') for row in records)
             else:
@@ -258,7 +269,7 @@ def run(args):
                 if all(live.get(key)==0 for key in ('rooms','retired','entries','offers','cleanup')):
                     require(not args.custom_rematch or not live['lobbies'],'Custom lobby retained after both original Leaves')
                     for row in records:
-                        with (row['folder']/'native-quit.ready').open('xb'):pass
+                        publish_empty_gate(row['folder']/'native-quit.ready')
                     quit_released=True
             if quit_released and all(row['child'].process.poll()==0 for row in records):break
             require(time.monotonic()-started<args.timeout,'bundled multiplayer deadline reached');time.sleep(.1)
@@ -321,6 +332,9 @@ def run(args):
             report['match']=validate(selected,records,mode=args.mode,ticket=2 if recovering else 1,expected_decks=native_selections)
             if native_selections is not None:report['native_selections']=native_selections
             require(final['full_loadout_seats']==report['match']['human_seats'],'bundled native clients lost complete human loadouts')
+            if report['match']['bot_seats']:
+                report['bot_fill']=validate_bot_fill(events,final,server_report['workers'][-1]['ai'],
+                    replay_bytes[0],bot_seats=report['match']['bot_seats'])
         for row in records:
             human=[value for value in final['humans'].values() if value['profile']==row['player']]
             require(len(human)==1 and human[0]['name']==row['name'],'configured name lost in authoritative native roster')
@@ -394,7 +408,7 @@ if __name__=='__main__':
     parser=argparse.ArgumentParser(description=__doc__)
     for name in ('packages','game','assets','output','helper-build-receipt','shared-settings'):parser.add_argument('--'+name,type=Path,required=True)
     parser.add_argument('--mode',type=int,choices=(1,2,5),default=1)
-    parser.add_argument('--humans',type=int,choices=(2,4),default=2,help='four independent native clients are supported for full-human2v2')
+    parser.add_argument('--humans',type=int,choices=(1,2,4),default=2,help='one client qualifies an empty queue;four clients require full-human2v2')
     parser.add_argument('--custom-rematch',action='store_true',help='original Custom invite, two human matches, changed-deck rematch, sequential Leave and Quit')
     parser.add_argument('--timeout',type=int,default=420)
     parser.add_argument('--visible',action='store_true')
