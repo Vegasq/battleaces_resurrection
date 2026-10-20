@@ -3,6 +3,19 @@ Updated: 2026-10-20 UTC
 Delivery plan: REMAINING_DELIVERY_PLAN.txt, Windows only.
 Original roadmap: CLOSED / SUPERSEDED;see PLAN_CLOSEOUT.txt.
 
+REPLAY FOLLOW-UP55 (2026-10-20 UTC, HEALTHY PASS / RECOVERY FINDING OPEN)
+New plan D4-RP1 now has a bounded original ReplayFiles malformed-input finding.
+One authored invalid-Deflate byte reaches original state/load/IOException. First
+probe stops on positive observer guard10.673s;negative-only probe reaches60s
+bound without completion/natural exit. Both remain false/forced cleanup,owned
+parent/game reaped and shared/source/package/recording inputs preserved. No
+ordinary UI reachability,permanent hang or world application claim. Current
+healthy batch on same clean53/helper51 passes31.106s/3607batches/18progress
+samples/natural game+launcher0/job2active0/terminated0/no force. No code/helper/
+archive change. See replay-failure-recovery.txt for hashes and finite next step:
+resolve ordinary load/error/cancel contract before further fault probes. D4 open;
+D1 remains the prepared LAN milestone awaiting normal desktop/second-PC results.
+
 ROADMAP CLOSEOUT54 (2026-10-20 UTC, PLANNING CYCLE CLOSED / PRODUCT OPEN)
 User requests a wrap-up and a fresh plan of unfinished work. Original roadmap is
 archived in place;its historical TODO/next/estimates are not the execution queue.

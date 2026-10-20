@@ -1,0 +1,100 @@
+REPLAY RECOVERY FINDING55 -- 2026-10-20
+Plan item:D4-RP1. Status:OPEN;malformed batch recovery is NOT qualified.
+
+Question and result
+Does the existing original ReplayFiles startup batch reject a malformed replay
+and finish/exit naturally on the current package/helper? One authored invalid
+Deflate byte07 reaches the original loader and raises System.IO.IOException.
+The first probe stops on the positive observer's state guard. A second negative-
+only probe observes until its60s deadline without Completed replay or natural
+exit. Both reports stay false and explicitly use forced owned-process cleanup.
+The healthy replay control on the SAME package/helper passes31.106s,natural0,
+3607batches and empty non-terminated job. Valid playback compatibility passes;
+the corrupted-file batch recovery question has a concrete unresolved finding.
+
+Scope boundary
+The exercised route uses explicit -native-replay-playback-smoke to select the
+original ReplayFiles startup state. Normal Start Client never adds that flag.
+The original stack reaches RGameReplayFileState.TransitionIn,its coroutine and
+Replay.LoadFromStream before the decompressor/parser exception. No decoded replay
+metadata or playback progress is observed for the bad input. This does not prove
+that malformed game data was applied to a simulation world.
+The positive helper observer later reports 'replay observer startup transition
+differs'. It only logs/marks its own failure;its destination FSM state was not
+identified. No rendered UI,manual Cancel,ordinary replay-route reachability or
+permanent hang is established. Do not classify this as a demonstrated ordinary
+match defect or weaken the positive-playback verifier to accept it.
+
+Exact environment
+Clean53client package source57120a2,ZIP
+88e0923563ed9e979335d695aee4e6e44ef9590ecd0c576db128c1eeb99a0fbf
+Helper51 f27311feca0f999c02988a43298490a8b6f232ce7d6b12d28aa693b88df4e858
+build/helper-leave51-01/helper-build.json binds84 unchanged C++/build sources.
+Owned game03 uses the ordinary recipe4/NGX-unavailable-before-init composition.
+Each run has a fresh nativestest_replay_<12hex> native profile and a pinned long
+native-playback filename. Existing shared settings/replay/backup inventories,
+package/config/driver/source,valid source recording and selected seed are checked
+unchanged. No helper/patch/program/archive was modified during these runs.
+The local external adapter supplies the one replay flag. Its unconfigured online
+guards are not independent process-wide/descendant network evidence.
+
+Failed probes retained
+local/replay_fault55_probe.py derives from the existing positive verifier with
+an authored one-byte seed and an explicitly unqualified/false final result.
+Its first direct-file invocation fails import before launching anything;module
+invocation supplies the existing checkout import context and starts probe01.
+Probe01:local/replay-fault55-invalid-deflate01,PID43496,10.673s.
+Original state entry/load/IOException are observed. The unchanged positive-loop
+guard reacts to the helper's observer failure and triggers forced cleanup before
+automatic exit can be judged. Both owned game/driver are reaped. This is NOT
+evidence of a hang or successful recovery.
+Report SHA256
+332c76b8bd19167e84e39d9121467ac92ebfc6d3ff0c0f3b215469bcc6bf789e
+Probe source SHA256
+2de9d98c8df80c57d3584498a3fcf3010a419e253932d44a2a3f64e5ccbe01f4
+
+Probe02:local/replay-fault55-invalid-deflate02,PID12196,60.505s.
+local/replay_fault55_probe02.py removes ONLY the external positive observer-error
+early-stop condition for this negative-only observation. Startup/menu failure
+guards and the actual60s bound remain. The helper/guard itself is unchanged,
+the observer failure stays in the native log,and the report remains unqualified/
+false. Original state entry/load/IOException occur;no Completed replay,decoded
+metadata/progress or natural exit occurs before the bound. Parent/game remain
+active at pre-close job total2/active2/terminated0;owned forced cleanup then reaps
+both. Do not call this natural Quit or an empty naturally-drained job.
+Report SHA256
+baa452909f01bff48a5e8c6c2503976e006e36385b9c51dc48f2b426d2d3af58
+Probe source SHA256
+edc28f6d44c7eb7fbe50294f12bd37cb4773d52d7b7fc56265715602a70b7a85
+The file is authored byte07,SHA256
+ca358758f6d27e6cf45272937977a748fd88391db679ceda7dc7bf1f005ee879.
+Read-only consistency review local/replay-fault55-readonly-review.json SHA256
+25d9e7aaa5844fe7b22966466f1baa6c884502105506342d5fa67949406abf9c
+explicitly reports recovery_qualified=false and ordinary reachability unproven.
+
+Current healthy control
+Actual unchanged tools.verify_native_replay_playback,local/replay55-healthy-control01,
+passes31.1057421s on the same53package/51helper and separate fresh profile. The
+original batch loads/completes3607batches,last3606;original GameData hash matches
+the retained codec-accepted source. Eighteen samples show one stable world,
+advancing simulation/presentation at native16x,helper ticks0. Exact original
+Completed replay supplies the end boundary after the final sampled frame.
+Original main/production launcher both exit0,job total2/active0/terminated0,
+no forced cleanup. Config/package/driver/source/recordings/shared channels stay
+unchanged. This is a fresh current native batch compatibility control,not pixels,
+manual replay UI or independently recomputed determinism.
+Report SHA256
+eb04c34d4248da71842a1550b976424a1cb3f7919e58c0c484cd4ca6f7c911a4
+Original GameData SHA256
+01bc5d86c6ef3c522b342e559470e2ffca1eaa6555bfde72bfa0e0256c79486d
+
+Finite next action
+Before another replay run,identify the supported player-facing load/cancel/error
+contract and the original coroutine/FSM exception disposition. Decide whether
+this is an ordinary reachable recovery defect or a diagnostic-batch limitation;
+retain the full D4 malformed/playback failure requirement either way. Do not add
+a new replay browser or modify the original debug batch solely to satisfy a test.
+Then implement the justified recovery/control and run this one bad-file case plus
+the healthy control. Add other fault/cancel cases after that recovery contract is
+verified. Do not repeat the unchanged timeout-only probe. D4 remains open.
+D1's prepared real LAN playtest is still the next user-facing milestone.

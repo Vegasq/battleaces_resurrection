@@ -1,6 +1,6 @@
 BATTLE ACES RESURRECTION - REMAINING DELIVERY PLAN
 Created: 2026-10-20
-Status: READY. Replaces SERVER_REPLACEMENT_PLAN.txt as the execution plan.
+Status: ACTIVE. Replaces SERVER_REPLACEMENT_PLAN.txt as the execution plan.
 Source checkpoint: 5a8bdbb8b2fd8cee5ac25e6e3da2d27bf3864288.
 Closeout and transferred scope: PLAN_CLOSEOUT.txt.
 
@@ -103,6 +103,9 @@ References: practice-difficulty.txt, menu-profile-binding.txt, cosmetic-unlock.t
 cosmetic-persistence.txt, cosmetic-community.txt and manual35's retained feedback.
 
 [ ] D4 - Close lifecycle, storage, replay and failure coverage
+Current replay follow-up:D4-RP1 in replay-failure-recovery.txt. Current healthy
+batch control passes;malformed batch recovery remains unqualified. Establish the
+ordinary load/error/cancel contract before another fault run.
 - Close remaining invitation departure/late-return/abort-notice and multiplayer
   disconnect/restart/failure paths in every affected required mode. Survivors
   return to a usable menu/lobby; first release does not restore an active match.
