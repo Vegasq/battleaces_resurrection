@@ -12,6 +12,7 @@ import traceback
 import zipfile
 
 from client_patch.patcher.telemetry import COMPONENTS
+from client_patch.patcher import bundle_loading
 from client_patch.transport.launcher import LaunchError, verify_game
 from .package_integrity import safe_name, verify
 
@@ -266,12 +267,18 @@ def run(args):
                 'Refused restore changed existing destination')
         report['existing_restore_destination_preserved'] = True
 
-        # A separate component-only working copy qualifies file transactions.
+        # A private patch-input copy (without the executable) qualifies file
+        # transactions, including the supported catalog and full bundle hashes.
         # It has no graphical assets and is never launched as a game.
         working = output/'component only working copy'
         for name in COMPONENTS:
             target = working/name; target.parent.mkdir(parents=True, exist_ok=True)
             shutil.copyfile(game/name, target)
+        for name in (bundle_loading.CATALOG, *(bundle_loading.BUNDLE_DIR+'/'+name for name in bundle_loading.BUILD.BUNDLES)):
+            target = working/name
+            target.parent.mkdir(parents=True, exist_ok=True)
+            shutil.copyfile(game/name, target)
+        require(digest(game/bundle_loading.CATALOG) == bundle_loading.BUILD.CATALOG_SHA256, 'Expected pristine local catalog')
         owner_note = working/'owner-notes.txt'; owner_note.write_text('keep unchanged')
         action = ['-m', 'tools.package_client', 'install', '--game', str(working)]
         dry_run = json.loads(command('client', 'patch-dry-run', [*action, '--dry-run']))
@@ -283,11 +290,21 @@ def run(args):
             require(digest(working/name) == component['installed_sha256'], 'Installed hash mismatch')
             require(digest(working/'.battleaces-resurrection/original'/name) == originals[name], 'Original backup changed')
         require(digest(working/'BattleAcesOffline.dll') == installed['helper_sha256'], 'Helper hash mismatch')
+        require(installed['asset_loading'] == bundle_loading.descriptor() and
+                digest(working/bundle_loading.CATALOG) == bundle_loading.BUILD.CATALOG_PATCHED_SHA256,
+                'Verified bundle loading was not installed')
+        receipt = json.loads((working/bundle_loading.RECEIPT).read_bytes())
+        _, hashed = bundle_loading.verify_bundles(working, previous=receipt)
+        require(hashed == 0, 'Unchanged bundles were rehashed')
         require(json.loads(command('client', 'patch-reinstall', action)) == installed, 'Reinstall is not idempotent')
         restored = json.loads(command('client', 'patch-restore', ['-m', 'tools.package_client', 'restore', '--game', str(working)]))
         require(restored['state'] == 'restored' and all(digest(working/name) == original for name, original in originals.items()), 'Restore failed')
+        require(digest(working/bundle_loading.CATALOG) == bundle_loading.BUILD.CATALOG_SHA256 and
+                digest(working/bundle_loading.BACKUP) == bundle_loading.BUILD.CATALOG_SHA256,
+                'Original catalog was not restored/preserved')
         require(owner_note.read_text() == 'keep unchanged', 'Unrelated owner file changed')
-        report['patch_roundtrip'] = dict(components=len(COMPONENTS), dry_run_no_writes=True, idempotent=True, original_hashes_restored=True)
+        report['patch_roundtrip'] = dict(components=len(COMPONENTS), dry_run_no_writes=True, idempotent=True, original_hashes_restored=True,
+            bundles=len(receipt['files']), unchanged_launch_bundle_hashes=hashed, original_catalog_restored=True)
 
         if args.previous_client_package:
             previous = args.previous_client_package.resolve()

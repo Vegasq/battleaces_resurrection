@@ -71,8 +71,10 @@ def main(argv=None):
             return 1
         if args.command in ('install', 'restore'):
             from client_patch.patcher.patch_client import install
+            from client_patch.patcher.bundle_loading import console_progress
             result = install(args.game, helper=PACKAGE / 'program/client-helper/BattleAcesOffline.dll',
-                original_path=args.original, restore=args.command == 'restore', dry_run=args.dry_run, community=True, cosmetics=True)
+                original_path=args.original, restore=args.command == 'restore', dry_run=args.dry_run, community=True, cosmetics=True,
+                progress=console_progress)
             print(json.dumps(result, indent=2))
             return 0
         # Windows PowerShell is part of the OS. Use its known system path rather

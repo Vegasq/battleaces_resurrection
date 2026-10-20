@@ -74,7 +74,7 @@ function Start-Backend([string[]]$Arguments, [scriptblock]$Finished, [string]$Re
     $process.StartInfo = $info
     try {
         [void]$process.Start()
-        $script:pending = @{Process=$process; Output=$process.StandardOutput.ReadToEndAsync(); Error=$process.StandardError.ReadToEndAsync(); Finished=$Finished; Request=$RequestFile; Start=[DateTime]::UtcNow}
+        $script:pending = @{Process=$process; Output=$process.StandardOutput.ReadToEndAsync(); Error=$process.StandardError.ReadToEndAsync(); Finished=$Finished; Request=$RequestFile; Start=[DateTime]::UtcNow; Installing=($Arguments[0] -eq 'install'); SlowNotice=$false}
         Set-Busy $true
     } catch {
         $process.Dispose()
@@ -235,8 +235,17 @@ $timer.Add_Tick({
     $job = $script:pending
     if (-not $job.Process.HasExited) {
         if (([DateTime]::UtcNow-$job.Start).TotalSeconds -gt 90) {
-            try { $job.Process.Kill() } catch { } # It may have exited between ticks.
-            Set-Status 'Setup exceeded its time limit. Close and reopen setup to check saved settings before retrying.' $true
+            if ($job.Installing) {
+                # Full bundle verification can take longer on a slow drive.
+                # Never kill a patch transaction while it is replacing files.
+                if (-not $job.SlowNotice) {
+                    Set-Status 'Checking game content and installing the patch. Verification can take several minutes on a slow drive; please keep this window open.'
+                    $job.SlowNotice = $true
+                }
+            } else {
+                try { $job.Process.Kill() } catch { } # It may have exited between ticks.
+                Set-Status 'Setup exceeded its time limit. Close and reopen setup to check saved settings before retrying.' $true
+            }
         }
         return
     }

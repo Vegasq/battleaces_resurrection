@@ -8,6 +8,8 @@ from unittest.mock import patch
 
 from client_patch.patcher import patch_client as installer
 from client_patch.patcher.telemetry import Component
+from client_patch.patcher import bundle_loading
+from tests.bundle_support import AuthoredBundles
 
 
 class InstallerTests(unittest.TestCase):
@@ -29,6 +31,8 @@ class InstallerTests(unittest.TestCase):
         self.helper = self.root / 'synthetic-helper.dll'
         self.helper.write_bytes(b'MZ authored helper test fixture BA_RESURRECTION_RECOVERY_V1 OfflineMatchResultContinue\0 BA_RESURRECTION_NATIVE_SETTINGS_V1 OfflineLocalUserConfigPath\0 BA_RESURRECTION_NATIVE_SETTINGS_ERRORS_V1 OfflineLocalUserLoadTable\0 OfflineLocalUserSaveTable\0 BA_RESURRECTION_NATIVE_DECK_INPUT_V1 OfflineLocalDeckStorageLoad\0 BA_RESURRECTION_NATIVE_SETTINGS_ATOMIC_V1 BA_RESURRECTION_NATIVE_BACKUP_GUARD_V1 OfflineBackupInitialRead\0 OfflineBackupWriteText\0 BA_RESURRECTION_NATIVE_STORAGE_V1 OfflineBackupStoragePath\0 OfflineReplayStoragePath\0 OfflineCleanupAutoSaveReplay\0')
         self.helper.write_bytes(self.helper.read_bytes()+b' BA_RESURRECTION_NATIVE_REPLAY_LONG_PATH_V2')
+        self.bundles = AuthoredBundles(self.root)
+        self.stack.enter_context(patch.object(bundle_loading, 'BUILD', self.bundles.build))
         self.stack.enter_context(patch.object(installer, 'ORIGINAL_SHA256', installer.digest(self.originals['GameAssembly.dll'])))
         self.stack.enter_context(patch.object(installer.telemetry, 'COMPONENTS', {
             name: Component(installer.digest(content), ()) for name, content in self.originals.items()}))
@@ -74,6 +78,45 @@ class InstallerTests(unittest.TestCase):
         self.assertEqual((self.root / 'GameAssembly.dll').read_bytes(), self.originals['GameAssembly.dll'])
         self.assertFalse((self.root / '.battleaces-resurrection').exists())
         self.assertFalse((self.root / 'BattleAcesOffline.dll').exists())
+
+    def test_bad_bundle_is_rejected_before_installing_any_component(self):
+        name = sorted(self.bundles.content)[-1]
+        (self.root / bundle_loading.BUNDLE_DIR / name).write_bytes(b'X' * len(self.bundles.content[name]))
+        with self.assertRaisesRegex(ValueError, 'bundle hash differs'):
+            installer.install(self.root, helper=self.helper)
+        for name, content in self.originals.items():
+            self.assertEqual((self.root / name).read_bytes(), content)
+        self.assertEqual(self.bundles.catalog.read_bytes(), self.bundles.original)
+        self.assertFalse((self.root / '.battleaces-resurrection').exists())
+        self.assertFalse((self.root / 'BattleAcesOffline.dll').exists())
+
+    def test_catalog_receipt_and_dlls_roll_back_when_manifest_publication_fails(self):
+        write = installer.atomic_write
+        def fail_manifest(path, data):
+            if path == self.root / '.battleaces-resurrection/patch-manifest.json':
+                raise PermissionError('authored manifest publication failure')
+            return write(path, data)
+        with patch.object(installer, 'atomic_write', side_effect=fail_manifest):
+            with self.assertRaises(PermissionError):
+                installer.install(self.root, helper=self.helper)
+        for name, content in self.originals.items():
+            self.assertEqual((self.root / name).read_bytes(), content)
+        self.assertEqual(self.bundles.catalog.read_bytes(), self.bundles.original)
+        self.assertEqual((self.root / bundle_loading.BACKUP).read_bytes(), self.bundles.original)
+        self.assertFalse((self.root / bundle_loading.RECEIPT).exists())
+        self.assertFalse((self.root / '.battleaces-resurrection/patch-manifest.json').exists())
+        self.assertFalse((self.root / 'BattleAcesOffline.dll').exists())
+
+    def test_unrecognized_catalog_or_backup_refuses_restore_before_dll_writes(self):
+        installer.install(self.root, helper=self.helper)
+        for changed in (self.bundles.catalog, self.root / bundle_loading.BACKUP):
+            prior = changed.read_bytes()
+            changed.write_bytes(b'authored incompatible catalog')
+            with self.subTest(path=changed), self.assertRaises(ValueError):
+                installer.install(self.root, restore=True)
+            for name, content in self.patched.items():
+                self.assertEqual((self.root / name).read_bytes(), content)
+            changed.write_bytes(prior)
 
     def test_helper_without_new_recovery_abi_rejected_before_component_writes(self):
         self.helper.write_bytes(b'MZ older authored helper fixture')

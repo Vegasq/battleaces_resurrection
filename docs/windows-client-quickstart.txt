@@ -22,6 +22,15 @@ unchanged and put personal settings in config/.
 Close the game. Keep an untouched recovery copy and patch a separate working copy.
 The patcher accepts only supported original hashes, preserves originals under
 .battleaces-resurrection/original, and rolls back replaced files on failure.
+Installation also verifies all133 local AssetBundles (about6.7GB) against the
+supported build's SHA256 values. This may take several minutes on a slow drive;
+keep setup open while it finishes. No game assets are included in this package.
+After verification, the patch changes the local catalogue's CRC settings so
+Unity need not repeat full-bundle CRC validation at every load. Bundle files
+remain unchanged. Ordinary launches check their fingerprints and rehash any
+changed files; missing/corrupt content is refused. Reinstall to refresh the
+verification after repairing your supported game files. A dry-run verifies the
+same inputs without writing the catalogue, receipt or backups.
 
   BattleAces-Client.cmd install --game "<working game directory>" --dry-run
   BattleAces-Client.cmd install --game "<working game directory>"
@@ -37,6 +46,7 @@ To restore the original patched components:
 
 The manifest and original backups stay available for inspection/reinstallation.
 Restore does not erase your decks, personal configuration or saved preferences.
+It also restores the exact original catalogue; bundle files are never rewritten.
 
 2. START THE CLIENT / PLAY LOCAL AI
 

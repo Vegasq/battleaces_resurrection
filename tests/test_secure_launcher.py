@@ -6,6 +6,7 @@ from pathlib import Path
 import shutil
 import unittest
 import uuid
+from unittest.mock import patch
 
 from client_patch.transport import launcher as launch
 from tools.audit_repository import inspect_content
@@ -134,7 +135,8 @@ class SecureLauncherTests(unittest.TestCase):
         self.assertNotIn('-offline-practice', argv)
         self.assertFalse(any(argument.startswith('-player-id=') for argument in argv))
 
-    def test_ordinary_player_requires_complete_helper_and_installed_feature_recipe(self):
+    @patch('client_patch.patcher.bundle_loading.verify_installed')
+    def test_ordinary_player_requires_complete_helper_and_installed_feature_recipe(self, verify_bundles):
         root, path, manifest = self.install()
         helper = root / 'BattleAcesOffline.dll'
         helper.write_bytes(helper.read_bytes()+b' BA_RESURRECTION_TLS_BRIDGE_V2 BA_RESURRECTION_UNIFIED_CLIENT_V1 BA_RESURRECTION_COMMUNITY_MATCH_V1')
@@ -151,7 +153,13 @@ class SecureLauncherTests(unittest.TestCase):
         manifest['local_settings'].update(deck_input_guard=True, write_publication='original-serializer-flush-handle-rename')
         manifest['local_storage'] = dict(isolated=True, steam_file_sync='local-only', autosave_exception_boundary=True, autosave_call_sites=4, backup_input_guard=True, backup_publication='original-json-text-flush-handle-rename',replay_path_api='extended-local-drive')
         path.write_text(json.dumps(manifest))
+        with self.assertRaisesRegex(launch.LaunchError, 'verified local bundle loading'):
+            launch.verify_game(root, community=True, bridge_version=2, unified=True, player_features=True)
+        from client_patch.patcher import bundle_loading
+        manifest['asset_loading'] = bundle_loading.descriptor()
+        path.write_text(json.dumps(manifest))
         launch.verify_game(root, community=True, bridge_version=2, unified=True, player_features=True)
+        verify_bundles.assert_called_once_with(root, manifest['asset_loading'], progress=bundle_loading.console_progress)
         for storage in (None, {}, dict(isolated=False, steam_file_sync='local-only', autosave_exception_boundary=True),
                         dict(isolated=True, steam_file_sync='cloud', autosave_exception_boundary=True),
                         dict(isolated=True, steam_file_sync='local-only', autosave_exception_boundary=False),

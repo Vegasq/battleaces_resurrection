@@ -176,6 +176,14 @@ def verify_game(root, *, community=False, bridge_version=1, unified=False, playe
             raise LaunchError('A patched component is unavailable') from None
         if actual != expected: raise LaunchError('Patched component differs from its manifest')
     if not (root / 'Battle Aces.exe').is_file(): raise LaunchError('Game executable is missing')
+    if player_features and 'asset_loading' not in manifest:
+        raise LaunchError('Install the current client patch with verified local bundle loading')
+    if 'asset_loading' in manifest:
+        from client_patch.patcher import bundle_loading
+        try:
+            bundle_loading.verify_installed(root, manifest['asset_loading'], progress=bundle_loading.console_progress)
+        except (OSError, ValueError):
+            raise LaunchError('Game content verification failed. Repair the supported game files or reinstall the client patch.') from None
 
 
 def native_storage_preflight(config):

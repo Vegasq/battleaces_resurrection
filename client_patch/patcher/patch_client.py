@@ -4,6 +4,7 @@ import argparse, hashlib, json, os, struct, uuid
 from .pe_imports import extend_imports_with_thunks, pe_checksum
 from . import telemetry
 from . import startup_tasks
+from . import bundle_loading
 ROOT = Path(__file__).resolve().parents[2]
 ORIGINAL_SHA256 = 'e59d08c01479b27404778048d7e13546dbf3771f6b3912744c7c2bdf80c4e758'
 PATCHES = [
@@ -254,7 +255,7 @@ def contained_path(game_dir, relative):
     return resolved
 
 
-def install(game_dir, *, helper=None, original_path=None, restore=False, dry_run=False, community=False, cosmetics=False, quit_diagnostics=False, allow_dlss_diagnostics=False, startup_diagnostics=False):
+def install(game_dir, *, helper=None, original_path=None, restore=False, dry_run=False, community=False, cosmetics=False, quit_diagnostics=False, allow_dlss_diagnostics=False, startup_diagnostics=False, progress=None):
     game_dir = Path(game_dir).resolve()
     if (quit_diagnostics or allow_dlss_diagnostics or startup_diagnostics) and not game_dir.is_relative_to(ROOT/'local'):
         raise ValueError('Native diagnostics require an owned ignored local test installation.')
@@ -336,6 +337,12 @@ def install(game_dir, *, helper=None, original_path=None, restore=False, dry_run
         raise ValueError('Build a helper supporting experimental community invitation ABI1 before installing this patch.')
     if community and helper_bytes is not None and b'BA_RESURRECTION_COMMUNITY_MATCH_V1' not in helper_bytes:
         raise ValueError('Build a helper supporting experimental community match ABI1 before installing this patch.')
+    loading = bundle_loading.prepare_install(game_dir, previous=previous, restore=restore, progress=progress)
+    if loading is not None:
+        originals[loading.backup] = loading.original
+        replacements[loading.target] = (loading.current, loading.installed)
+        if loading.receipt_after is not None:
+            replacements[loading.receipt_path] = (loading.receipt_before, loading.receipt_after)
     manifest = {'schema': 2, 'game_build': 37822, 'patch_version': '0.2.0-dev',
                 'original_sha256': ORIGINAL_SHA256, 'patched_sha256': components['GameAssembly.dll']['patched_sha256'],
                 'helper_sha256': digest(helper_bytes) if helper_bytes is not None else None,
@@ -371,6 +378,8 @@ def install(game_dir, *, helper=None, original_path=None, restore=False, dry_run
                 'telemetry': {'recipe_version': telemetry.RECIPE_VERSION, 'runtime_validated': telemetry.RUNTIME_VALIDATED,
                               'unresolved_components': telemetry.UNRESOLVED_COMPONENTS},
                 'state': 'restored' if restore else 'dedicated-prototype-v2'}
+    if loading is not None:
+        manifest['asset_loading'] = bundle_loading.descriptor(restored=restore)
     if dry_run:
         return manifest
     for backup, original in originals.items():
@@ -417,7 +426,7 @@ def main():
     result = install(args.game_dir, helper=args.helper, original_path=args.original,
                      restore=args.restore, dry_run=args.dry_run, community=args.community_experimental, cosmetics=args.cosmetics_experimental,
                      quit_diagnostics=args.quit_diagnostics, allow_dlss_diagnostics=args.allow_dlss_diagnostics,
-                     startup_diagnostics=args.startup_diagnostics)
+                     startup_diagnostics=args.startup_diagnostics, progress=bundle_loading.console_progress)
     print(json.dumps(result, indent=2))
 
 

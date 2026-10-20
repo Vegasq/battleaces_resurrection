@@ -122,7 +122,7 @@ become zero plus JSON whitespace;UTF16 object lengths/base64 length/all other
 parsed values remain equal. Catalog byte length stays5458266. Private backups,
 exclusive outputs,checked atomic patch replacement,prelaunch-failure restoration,
 independently caught cleanup and handle-close finally keep this reversible.
-Catalog after-hash (EXPERIMENT ONLY):
+Catalog after-hash (private experiment69; later production transform71 below):
 3fb522b05b83c24ed94995e58faa6cb182aa1560f5ab811db0648c29dbc8adf3
 Same unchanged helper51/16 hooks;original Start14.757s,task window14.750s,
 launch->first hook4.812s,first sampled all-success->ready4.422s. Initial state
@@ -168,15 +168,80 @@ file placement are not randomized;the read-only timing analyzer's cause_proven
 staysfalse. This does not claim every historical slow run has one exclusive
 cause,or that the39-second full initial-state delay is already a finished UX.
 
-Next:implement the reversible local catalog optimization with verification of
-the original installed bundle bytes at install time. Bind the supported build/
-catalog/bundle hashes,keep original recovery data,refuse incompatible/changed
-inputs,and check cheap installed fingerprints on ordinary launch with targeted
-rehash on changes. Preserve genuine load Tasks and failure reporting. The
-shipping patch contains source/hash metadata,never original catalogs/bundles.
-Then qualify cold/warm FULL launch and practice/results/Continue/Quit. Do not
-repeat further unrelated profiling batches before that implementation. D6 stays
-OPEN until the production change and lifecycle/performance acceptance pass.
+Production implementation71 (qualification in progress)
+patcher/build37822_bundles.py contains only133 filenames/sizes/SHA256 plus the
+original/patched catalog digests. The user-designated pristine copy is read
+without modification;total bundle size6722831443bytes. Original catalog
+f0ce6877709e811197d8b0264cbfca0cfb7ab793b3b86af0fab62acff4548f76
+is5458266bytes. Production patch_catalog accepts it and produces3fb522b0...8adf3,
+the exact earlier CRC-only counterfactual. Every literal record is validated;
+unrelated parsed values and UTF16/binary offsets remain equal.
+
+Installer hashes every bundle before writing. Catalog/receipt/component/manifest
+replacement shares the existing atomic-file transaction and rollback. Original
+catalog backup stays under .battleaces-resurrection/original/. Restore validates
+that backup and restores original catalog bytes even if a bundle is missing;
+legacy restores without this catalog change remain supported. Unknown catalog,
+bad bundle,changed-during-verification or linked/reparse inputs are refused.
+Manifest asset_loading binds the inventory,enabled optimization and catalog.
+Receipt records verified hashes plus size/mtime/ctime/device/file-id. Ordinary
+launch checks catalog/descriptor/fingerprints and hashes changed files only;
+missing/malformed/stale receipt triggers full verification before replacement.
+The cache detects normal file changes;it is not a boundary against an owner
+editing both game files and receipt. Bundle bytes and original Unity Tasks stay
+unchanged;no extra native hooks,timeout changes or helper rebuild are needed.
+
+Both patcher modules are explicitly included in the client package allowlist.
+Progress goes to stderr so stdout remains one JSON result for setup/automation.
+Setup does not kill an installer at90s while full verification or a transaction
+is in progress;other setup operation deadlines remain unchanged. Package
+roundtrip checker now includes catalog/bundles,not just original DLLs.
+
+Production native qualification71 (same-PC post-install/warm,not cold)
+Independent private startup71-game01 has ordinary GAfd67...1728,helper51,
+Unity3cca...4e48/CEFf353...4d1a,NO optional startup/Quit diagnostic patch sites.
+Install hashes all133 bundles before changes (76.883s on this run). Unchanged
+ordinary player-feature verification succeeds and its bundle scan hashes0files.
+Copy216.049s/install verification warms OS cache;neither is game startup time.
+Preparation receipt SHA256
+a6aea3f8eae9613bfb601e10d02b7176ea815e239f726643d3c91e39723bd3d3
+Installed manifest SHA256
+fe92e9f3d9aaaabc9bcad7360f1655239c5b12911c9ed26bda134a2341c62e1f
+
+Run          PID   original Start   launch->initial   original Quit
+71-01      33772       4.209s           10.968s        natural0
+71-02      11036       3.996s            6.297s        natural0
+71-03       3596       3.620s            6.266s        natural0 after practice
+Each uses an explicit owned callback diagnostic,not a player launch flag.
+All three job accounting1total/0active/0terminated;no forced cleanup. Bound
+sources/shared TOML,installed components/catalog/manifest/receipt stay unchanged;
+source03 including original catalog stays unchanged. Ordinary launcher recipe
+and actual original initialization barriers remain intact. These are automated
+callback/lifecycle checks,not physical mouse/visual/cold acceptance.
+
+71-03 executes original EditDeck mode4 callback,1200frames,bot max supply14/
+9 autonomous action records,native result/Continue/menu and natural original
+Quit;96.136s qualification. Its order+position movement intersection is EMPTY;
+do not claim this short default-profile smoke establishes moving bot units.
+The packaged gameplay checker separately requires actual order+position proof.
+Outer run71-01/02/03 verification SHA256 respectively:
+be49d964bd78c2e2e7f62bf2752050f2453cc3febf8f152b1f3f5fece4116d75
+df7bdf096ef1e1b2f237aeba6d8a08fe06f957d2cad4eaab5ada8a8a2626d904
+c94e7b0a17f9d5ad022b8e5f474153e1c4a6e23c4e750d16a31650c1cf84993d
+Client lifecycle verification SHA256 respectively:
+ed901eccef75ffc805b5d0e1b023e1457bfbf99ac0fc3584e862ca3211150e16
+4306880c8b5aefb33dbf5699ec6d45db7c8f62d14c52b6d03e1e3cc46bb2b0d1
+0e0dd27fc7e1020080951b0dd7211ed75a413289b54bd1451f0fe289352f3aa6
+Focused unittest run80tests/81.814s reports OK,0skips;includes cache/change/
+corruption/rollback/restore/installer/launcher/package/setup boundaries. Its
+PowerShell stderr redirection records NativeCommandError/outer1 despite unittest
+OK;preserve this wrapper distinction,not a failing test or an outer exit0 claim.
+
+Next:qualify recovery through a fresh package's bundled runtime and its actual
+ordinary entry/full practice lifecycle. Fresh-copy/install
+verification warms OS cache and is not a reboot/cache-flushed cold test. D6
+stays OPEN until performance/lifecycle/physical cold scope is satisfied or the
+remaining measured limit is explicitly accepted. Do not repeat unrelated tests.
 
 All original binaries/catalogs/observations/private experiment artifacts remain
 under ignored local paths. This source knowledge base contains no client files.
