@@ -1,0 +1,119 @@
+TWO-PC LAN CANDIDATE53 -- 2026-10-20
+
+Next user milestone
+User confirms a second Windows PC is available on the same home/LAN network.
+Prepare a concrete current pair of packages and normal-account provisioning,
+then verify real Custom invite/match/rematch using both PCs' physical clients.
+This is an open acceptance task,not completed LAN/Internet/clean-PC qualification.
+Owner39 PASS remains its protected idle-console scope;owner40 is still separate.
+
+Current clean packages
+local/friends53-packages01 builds from clean
+57120a22ec2eb7b7793199b969cf470bccbb5520,without --allow-dirty.
+Server83payload files/12497396bytes,ZIP SHA256
+8c97fef8a8fd19e609c9d33b95256cdde078838f08817c83ebcdfaef83b48fab
+Client68payload files/13099375bytes,ZIP SHA256
+88e0923563ed9e979335d695aee4e6e44ef9590ecd0c576db128c1eeb99a0fbf
+Neither ZIP contains original game files,imported assets,credentials or keys.
+Every archive member compared with51:only compatibility.json and package-
+manifest.json differ. All program/runtime/helper/launcher/guide bytes match.
+Helper is51f27311fe...;original game/Unity/CEF patch identities remain unchanged.
+Separate diagnostic53 provisioning source is not bundled into either archive.
+
+Actual qualification before operator setup
+tools.verify_windows_packages performs real bundled-runtime verification/imports,
+local119file asset import,native frame0health,scripted two-peer native host
+lifecycle,controller Stop/Shutdown,live-backup/second-host refusal,transfer state
+checks and three-component dry-run/install/reinstall/restore. It passes59.808s;
+all native workers exit0,programs and pristine source DLLs stay unchanged.
+local/friends53-package-qualification01/verification.json SHA256
+924442d9c812729b49fb29cc700b55d7e59b7c7a2ce9161b8d8331cac20c7095
+These are explicit development-loopback/controller checks,not protected TLS,
+actual SCM registration,normal graphical play or a LAN match.
+
+Actual Start Client.cmd with bundled runtime/ordinary arguments/no spawn seam
+reaches the native menu14.378s,total14.776s. No autoplay/capture/diagnostic game
+flags are added. Owner reaps the process tree after readiness:forced cleanup is
+explicit and is not normal Quit. Package/config/bound source/shared saves stay
+unchanged. local/friends53-ordinary-startup01/verification.json is retained.
+Fresh source-validated assets are also imported into this candidate's server
+folder through its real packaged import-assets command. No original recovery or
+frozen/manual35 copy is modified. The owner's future host uses an isolated
+lan_playtest_host native profile,not the ordinary default/manual35 profile.
+
+Reviewed local provisioning
+tools/prepare_lan_playtest.py is an explicit owner-run diagnostic coordinator.
+It requires the selected bundled client Python;credential/client/launcher imports
+must resolve to that verified package. Both manifests and matching credential
+implementations,working helper/patches,exact friend archive hash/member bytes,
+fresh configs and its own pinned source digest are checked before private work.
+Only RFC1918 numeric IPv4 addresses are accepted. The ignored prepared command
+pins the observed host Ethernet IPv4 and port47623;no address guessing/DNS/overlay
+binding or automatic firewall/VPN/router changes occur.
+
+Under the normal desktop account it creates a NEW private host directory using
+the existing production owner/SYSTEM DACL primitives. It never changes an existing
+file's ACL. Existing configs/private data are refused. Fresh CA/server RSA3072
+keys are private at creation;OpenSSL writes the precreated keys and their exact
+DACLs are checked after each operation. Certificates use SHA256,critical CA/key
+usage constraints and the selected IP subjectAltName,with30day test validity.
+Actual stdlib TLS MemoryBIO handshake validates that chain/IP;wrong identity must
+fail. No socket is opened for this check and system certificate trust is untouched.
+OpenSSL is a known locally installed HOST tool for this development setup,not a
+new dependency on the friend's PC or completed clean-host certificate provisioning.
+
+Two real persistent invites are issued. The host invite,keys and credential
+database stay OUTSIDE friend-handoff. That directory contains only this friend's
+invite,public CA,exact verified client ZIP and generated CONNECTION.txt. Confirm
+the CA hash separately with the host through a trusted channel. Transfer that
+folder privately;never transfer the surrounding host private directory.
+Host client enrollment runs the actual bundled command,retaining its selected
+native profile. The actual packaged protected server check must pass TLS/store/
+native create-step-close/reap before setup reports ready. No graphical game or
+listening host starts. Normal Start Server.exe/Start Client.cmd are unchanged.
+Invites persist after success until explicitly revoked. Failure attempts to
+revoke every invite in ONLY its fresh owned store;failed revocation is reported
+as unknown/potentially persistent,never silently successful. Partial new outputs
+stay for inspection;they are not used as a runnable success or overwritten.
+
+Testing and intended restricted-token boundary
+Five new tests cover explicit LAN addresses,real generated TLS/IP and wrong-name
+rejection,archive-extra/private-file and changed-program refusal,restricted-token
+no-write/no-spawn behavior,and existing-config/source-digest refusal. TLS/key-file
+construction explicitly mocks the OS privacy boundary;it is not protected DACL
+qualification. Current focused54tests53pass/one explicit owner/private-file skip,
+exit0 in8.790s. local/friends53-focused-tests04.txt SHA256
+86f8eac628e9e2292d11c5b2e3b12932d11d7daa9bdc4341364035d6305b1bc1
+Initial test command named nonexistent tests.test_enrollment and fails;keep01.
+Correct module tests.test_client_enrollment passes in subsequent retained logs.
+
+Actual final-source bundled-runtime preflight exits2 at
+normal_desktop_account_required,protected_operations_attempted=false. Before/
+after observations confirm no private root,host config or client config created.
+This is an expected negative control,not owner provisioning success or a request
+to weaken permissions. local/friends53-owner-setup01/
+restricted-preflight-receipt02.json retains the direct subprocess exit/source/
+report hashes. First shell invocation returned wrapper1;its public report also
+records no private work. No ACL/escalation retry or production privacy substitute.
+
+Concrete operator handoff (pending)
+Ignored local/friends53-owner-setup01 contains LAN Playtest Setup.cmd,pinned
+prepared-command.json and LAN Playtest.txt. Run the CMD from File Explorer under
+the normal desktop account. It must report ready before copying any invite.
+If it fails,retain only its public last-report.json for diagnosis;do not transfer
+partial private output or rerun over existing state. No report exists yet.
+After ready,use the candidate's normal server/client entry points. The second PC
+uses its OWN build37822 copy and Connection Setup to patch/enroll/test trust and
+identity,then Start Client.cmd. No Python/developer tools need installation there.
+
+First physical acceptance
+1. Start the host,then both clients. Use distinct configurable names.
+2. Both players must appear in Custom Game -> Invite Friend. Invite/accept/Ready/
+   Start. Custom is human-only,so AI fallback cannot disguise missing connectivity.
+3. Finish a human match,Continue,change decks,rematch in the same clients.
+4. Quit normally/restart;check saved decks/cosmetics,windows/audio/responsiveness.
+5. Then qualify public1v1/team AI fill and offline fallback after orderly host stop.
+Record candidate revision,mode,which PC and actual observed result. No new LAN/
+physical/private-account completion claim until the operator evidence arrives.
+Remaining clean-PC/Internet/SCM/capacity/full cosmetics/storage/telemetry/startup/
+fault gates stay open;see RELEASE_ACCEPTANCE.txt and SERVER_REPLACEMENT_PLAN.txt.

@@ -4,6 +4,16 @@ Target: Battle Aces build 37822, Windows x64 server and clients.
 Status: IMPLEMENTATION ACTIVE. See STATUS.txt; incomplete phases remain future work.
 
 Current release integration order (2026-10-20)
+- LAN candidate53 is the next physical milestone:the user has a second Windows
+  PC on the same LAN. Clean57120a2 packages pass relocated import/native host/
+  install-restore and real ordinary CMD menu.54tests53pass1skip;new owner-run
+  coordinator prepares private TLS/invites/host enrollment/native health without
+  starting a game/listener or changing firewall/system trust/existing ACLs.
+  Host keys/invite/store remain outside friend handoff. Actual restricted-token
+  control creates no private/config files. NEXT:desktop-account setup,then
+  separate-PC Custom invite/match/changed-deck rematch/normal Quit and public/
+  offline checks. Protected provisioning and real LAN acceptance are PENDING;
+  see lan-playtest-candidate.txt. All remaining release requirements stay intact.
 - Persistent observation52 replaces the45practice inter-window gaps with one
   actual script from pre-practice menu through original OnDestroy return:
   41provider/journal rows,max heartbeat5005ms,157.484s/natural0/empty job/no force.

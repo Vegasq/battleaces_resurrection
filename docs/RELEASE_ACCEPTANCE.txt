@@ -5,6 +5,15 @@ release. STATUS.txt retains implementation history;SERVER_REPLACEMENT_PLAN.txt
 defines the requested product. Existing frozen archives are not automatically
 upgraded when source changes. No original client binaries/assets belong in Git.
 
+Prepared two-PC LAN candidate53
+User confirms same-LAN second PC. Clean57120a2 archives preserve51program/helper
+bytes;actual package import/native lifecycle/patch roundtrip59.808s and ordinary
+CMD menu14.378s pass. New owner-run private TLS/invite/enrollment coordinator,
+54tests53pass1skip and actual no-private-write restricted preflight qualify the
+preparation path only. Concrete setup CMD and Custom match/rematch guide await
+normal desktop provisioning and real second-PC feedback. No LAN/physical/
+clean-PC/SCM/Internet/full telemetry gate is closed;see lan-playtest-candidate.txt.
+
 Bounded persistent analytics observation52
 One actual script covers pre-practice menu/1200-frame AI/results/Continue/original
 OnDestroy return:41provider rows equal journal,max heartbeat5005ms,natural main0/

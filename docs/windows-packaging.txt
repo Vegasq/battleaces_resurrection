@@ -1,6 +1,16 @@
 WINDOWS PORTABLE PACKAGING - DEVELOPMENT PREVIEW
 Updated: 2026-10-20
 
+2026-10-20 LAN candidate53
+Clean57120a2 archives differ from51only in compatibility/manifests. Actual
+relocated import/native health/host-controller/three-component roundtrip passes
+59.808s;real ordinary CMD native menu14.378s uses no gameplay diagnostics and
+separate forced readiness cleanup. Source-only operator tooling prepares the
+same-LAN host/private invites/verified TLS/host enrollment;not shipped in the
+archives and not clean-host certificate provisioning. Normal-account setup and
+real friend-PC play remain pending. See lan-playtest-candidate.txt for exact ZIP/
+evidence hashes,scope and the concrete user handoff. Other release gates stay open.
+
 2026-10-20 Custom Leave51 candidate
 Cleanf547003 archives/helperf27311fe... add only the bounded opt-in Custom Leave
 reader. Exact original module/Unity/CEF bytes stay unchanged on owned install.

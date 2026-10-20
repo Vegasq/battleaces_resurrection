@@ -2,6 +2,20 @@ IMPLEMENTATION LEDGER
 Updated: 2026-10-20 UTC
 Active objective: implement SERVER_REPLACEMENT_PLAN.txt, Windows only.
 
+LAN CANDIDATE53 (2026-10-20 UTC, PREPARED / PHYSICAL LAN ACCEPTANCE OPEN)
+User confirms two PCs on same LAN. Clean57120a2 server/client archives contain no
+original game files;all payload bytes equal51 except compatibility/manifests.
+Actual relocated package/import/native lifecycle/controller/patch roundtrip
+passes59.808s;actual ordinary CMD menu14.378s passes with separate forced readiness
+cleanup. New owner-run LAN coordinator verifies exact packages/archive/helper,
+creates private30day TLS/two invites,enrolls host and requires protected native
+health;no listening server/game/firewall/trust/ACL changes. Host invite/keys/store
+stay outside friend-only handoff.54tests53pass1skip;actual final-source restricted
+preflight exits2 before any private/config creation. Concrete local setup CMD and
+two-PC Custom/rematch instructions ready;normal-account provisioning and real
+LAN/physical play still pending. Source/runtime/package scope and retained failed
+test command in lan-playtest-candidate.txt. Full release gates remain open.
+
 PERSISTENT OBSERVATION52 (2026-10-20 UTC, BOUNDED NATIVE PASS / RELEASE OPEN)
 One actual persistent REA script covers pre-practice menu/1200-frame AI/results/
 Continue/original OnDestroy entry+return.157.484s/natural main0/empty owned job/
