@@ -15,6 +15,11 @@ are not actively probed;movement intersection empty,not movement proof. Full
 Python565 tests549pass/16skip100.180s;all11 C++ programs/six atomic boundaries pass.
 Owned03 now uses helper42;manual35/frozen packages preserved. Exact contracts,
 retained reviewer correction and evidence in telemetry-internal-config.txt.
+Clean35969f0 Windows previews pass actual19/36 bundled imports/integrity and
+ordinary Start Client.cmd menu9.955s without server/automatic flags. Readiness
+cleanup is forced,not Quit. All74 server program files/native entry equal frozen
+clean41;no new42 server runtime claim. Exact package/report hashes are in the KB;
+protected40/graphical/all-mode/clean-PC/Internet/full telemetry gates remain OPEN.
 Owner39 repeat PASS is confirmed by its existing public protected TLS/idle report;
 it does not close the separate active-match40 owner gate,which remains pending.
 

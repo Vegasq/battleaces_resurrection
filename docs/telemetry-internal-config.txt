@@ -147,5 +147,36 @@ Separate no-telemetry-control.json:
 054df3c0fd68248d107cb387029c389d7dde902ecb2f1688491d3e7febca0287
 It checks exact helper,absent telemetry flags/markers. Owned Quit smoke is still
 explicitly enabled;ordinary player entry never automatically quits or plays.
-Frozen manual35/older packages preserved. Current clean package evidence will
-be recorded separately;source compatibility does not upgrade older archives.
+Frozen manual35/older packages preserved;source compatibility does not upgrade
+older archives.
+
+Clean committed-source package qualification
+Fresh local/telemetry42-clean-packages01 uses clean source35969f0f7579bd45285050a5c3b24cc9950c039d,
+helper42-01,unchanged native launcher39-01 and the previously verified embedded
+Python3.14.8 ZIP. Build-report.json:
+bca462c59b4c5d49f4c45749c515facc237d44ae7ac0e67f8505b8376d5c9e67
+Server83 files/12497199 ZIP bytes:
+1fda6aa7a519c7d5659cec689199d00f6ecabcc9ad1b084abfed887787c9146a
+Client68 files/13097982 ZIP bytes:
+43a8a1a519ddbd8ebb8d282223ed66a4ba3313b95315f0f237c0bfb6736b2186
+Actual19 client/36 server bundled imports from foreign cwd with empty PATH and
+no site-packages pass;all module hashes match source,package inventories remain
+unchanged and both integrity checks pass. embedded-import-verification.json:
+5c364faa9d71f1a86ad93bd972de1e2d5389196a40a1f34dea5338d82418243c
+
+Actual shipped Start Client.cmd,ordinary bundled runtime/launcher,no spawn seam,
+fresh relocated config with server/CA/invite unset:menu9.955s,total10.342s,
+PID52980. Actual command includes ordinary public/cosmetic features and no
+automatic play/capture/diagnostic flags. Source/config/package/shared TOML remain
+unchanged. The owned process tree is forcibly reaped AFTER readiness,so this
+report is NOT natural Quit,physical-input,clean-PC,Internet or packaged gameplay
+acceptance. local/telemetry42-clean-cmd-startup01/verification.json:
+9e547425f3373f9a7b54d630815b9114f0d1c5e50a73364d999be1e652e1e3b0
+
+Exact comparison with frozen clean41 finds all74 server program files and the
+ordinary Start Server.exe byte-identical;server-payload-comparison.json:
+0301a8da2c1c3d06a15e9499488ff07cf88e2a6f5e018f01b71a5453492a5c3a
+This is static payload equality,NOT a new42 server runtime report. Prior actual
+41 development active-match/Ctrl+C/restart and39 owner protected idle reports
+retain their exact artifact/scope. Protected active-match40 remains pending.
+These0.2.0-dev archives remain ignored local artifacts,not a completed release.

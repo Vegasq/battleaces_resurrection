@@ -15,6 +15,10 @@ and hardware/earlier constructors/indirect/network/full-mode gates remain OPEN.
 RUNTIME_VALIDATED stays false. See telemetry-internal-config.txt;older reports
 and packages retain their exact versions. Owner39 PASS confirms existing bounded
 protected idle-console evidence;the separate protected active-match40 is pending.
+Clean35969f0 previews pass19/36 actual bundled imports/integrity and ordinary
+Start Client.cmd menu9.955s without server/automatic flags. Forced readiness
+cleanup does not qualify Quit;exact server program/entry equality to41 does not
+constitute a new42 server runtime report. Full release gates below remain OPEN.
 Telemetry41 adds explicit owned diagnostics,not a new ordinary game flow. One
 guarded device API call/unchanged sampled config and read-only pre-original-Quit
 fields pass through idle and practice/result/Continue/natural main-process exit.

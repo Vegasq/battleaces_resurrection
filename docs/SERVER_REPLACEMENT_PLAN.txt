@@ -13,6 +13,10 @@ Current release integration order (2026-10-19)
   telemetry-internal-config.txt. Internal hardware/constructor/indirect routes,
   full collection/network/cache/error/crash/CEF/descendant release gates stay
   OPEN;RUNTIME_VALIDATED remains false. Preserve manual35/owner40 prepared check.
+  Clean35969f0 previews pass all19/36 actual bundled imports and ordinary CMD
+  menu9.955s without server/automatic flags;readiness cleanup remains forced.
+  Server program/native entry byte-equal41,not a new runtime claim. Broader
+  release gates remain OPEN;exact archive/report digests are in the42 KB.
 - Telemetry41 closes bounded device-entry and pre-original-Quit evidence gaps:
   one fully guarded no-argument device API returns false with unchanged sampled
   config,while final read-only fields precede same-thread original confirmation.
