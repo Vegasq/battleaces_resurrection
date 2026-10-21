@@ -558,6 +558,7 @@ static bool openHoldReady(Obj front) {
 static void smoke(Obj front) {
     const bool host=ba::flag(L"-community-match-host-smoke"),guest=ba::flag(L"-community-match-guest-smoke");
     if(!host && !guest)return;
+    if(ba_custom_transition::enabled() && !ba_custom_transition::allowCustom())return;
     const auto now=GetTickCount64();if(!probeAt){probeAt=now+2500;return;}if(now<probeAt)return;
     Root owner(native::manager(front));wire::require(owner.get()!=nullptr,"community match smoke manager missing");
     if(probeStage==7 && leaveGateReady()) {
@@ -622,7 +623,7 @@ static void smoke(Obj front) {
         ba_community_invites::verifyParty(front,2,host);
         if(host) {
             Root main(ba_community_roster::mainScreen());if(!main.get())return;
-            if(probeMatches==1 && ba::flag(L"-community-cosmetics-smoke"))ba_cosmetics::practiceRematchSmoke(front);
+            if(probeMatches==1 && ba::flag(L"-community-cosmetics-smoke") && !ba_custom_transition::enabled())ba_cosmetics::practiceRematchSmoke(front);
             probeStage=4;ba::native<void(*)(Obj,Obj)>(0x3cb1080)(main.get(),nullptr);
             wire::require(ba::get<Obj>(owner.get(),"_pendingLobbyUpdateRequest") && !operations.empty(),"native Start did not retain pending request");
             if(ba::flag(L"-community-match-duplicate-smoke")) {
@@ -658,6 +659,11 @@ static void smoke(Obj front) {
         ba_community_invites::verifyParty(front,2,host);
         wire::require(ba::lanSlot()==-1 && !ba::get<Obj>(owner.get(),"_pendingLobbyUpdateRequest"),"community returned seat/request retained");
         ++probeMatches;
+        if(ba_custom_transition::enabled()) {
+            probeStage=10;
+            ba::log("CUSTOM TRANSITION original Custom return observed: lobby=%s nativeIdle=1",native::authority.id.c_str());
+            return;
+        }
         if(probeMatches<2) {
             if(host && ba::flag(L"-community-match-deck-smoke"))ba_dedicated_deck::rematchSmokeSelection(front);
             probeStage=3;probeAt=now+1500;

@@ -1,4 +1,8 @@
 REMOTE / LOCAL MATCH TRANSITIONS
+Custom transitions85:T07/T08 retained native PASS in custom-mode-transitions.txt.
+Combined C/local4/C/public1/C uses the same two humans/processes,original invites/
+Leaves/Continue and all4worker0. End-reader label failure preserved;no native
+rerun. Diagnostic Concede/fixture TLS/forced-cleanup scope,not physical/native Quit.
 Current cross-public-mode follow-up84:T05 native PASS in public-mode-transitions.txt.
 Two same native humans complete remote1/2/5/1 with retained sessions/decks/17slots,
 8original Continue actions and4workers0. Diagnostic/forced-cleanup limits apply.

@@ -20,6 +20,7 @@ import socket
 import subprocess
 import time
 import traceback
+from types import SimpleNamespace
 
 from client_patch.transport import bridge, client, launcher
 from server import admission, loadout_protocol, public_protocol as q, tls_transport as tls
@@ -35,6 +36,7 @@ from server.worker_ai import AISetup
 from server.worker_client import SimulationWorker, _WindowsJob
 from tests.test_tls_transport import generate_test_pki, remove_test_pki
 from tools import public_sequence_evidence as evidence
+from tools import custom_transition_probe
 from tools.public_profile_evidence import expected_players
 from tools.run_secure_match import read_native_log
 from tools.verify_native_quit import verify_build_receipt
@@ -51,7 +53,8 @@ def sha(path):
 
 def source_hashes():
     paths = [Path(__file__), Path(evidence.__file__), ROOT/'tools/public_profile_evidence.py',
-             ROOT/'tools/verify_native_quit.py', ROOT/'tests/test_tls_transport.py']
+             ROOT/'tools/verify_native_quit.py', ROOT/'tests/test_tls_transport.py', Path(custom_transition_probe.__file__),
+             ROOT/'tools/custom_transition_evidence.py', ROOT/'tools/verify_practice_ai.py']
     return team_sources() | {p.relative_to(ROOT).as_posix(): sha(p) for p in paths}
 
 
@@ -65,10 +68,12 @@ def seals(preparation):
 
 async def run(args):
     game, assets, output = args.game.resolve(), args.assets.resolve(), args.output.resolve()
+    custom = args.custom_transitions
     require(game.is_relative_to(ROOT/'local') and output.is_relative_to(ROOT/'local'), 'owned ignored paths required')
     launcher.verify_game(game, community=True, bridge_version=2, unified=True, player_features=True)
     helper = verify_build_receipt(game, args.helper_build.resolve())
-    require(b'BA_RESURRECTION_PUBLIC_SEQUENCE_V1' in (game/'BattleAcesOffline.dll').read_bytes(), 'sequence helper required')
+    marker = b'BA_RESURRECTION_CUSTOM_TRANSITION_V1' if custom else b'BA_RESURRECTION_PUBLIC_SEQUENCE_V1'
+    require(marker in (game/'BattleAcesOffline.dll').read_bytes(), 'sequence helper required')
     preparation = json.loads(args.preparation.read_bytes())
     require(Path(preparation['game']).resolve() == game, 'preparation selects another game')
     require(preparation['source_sha256'] == source_hashes(), 'preparation does not bind current sequence sources')
@@ -79,6 +84,10 @@ async def run(args):
     runtime.mkdir(parents=True, exist_ok=True)
     gate_key = secrets.token_hex(16)
     gates = [runtime/f'public-queue-{gate_key}-sequence-{stage}.ready' for stage in range(1, 5)]
+    if custom:
+        gates = [runtime/f'custom-transition-{gate_key}-stage-{stage}.ready' for stage in range(1, 6)] + [
+            runtime/f'custom-transition-{gate_key}-leave-{stage}-{role}.ready' for stage in (1, 3, 5) for role in ('guest', 'host')] + [
+            runtime/f'custom-transition-{gate_key}-custom-start-{stage}.ready' for stage in (1, 3, 5)]
     require(not any(path.exists() for path in gates), 'sequence gate already exists')
     book = CosmeticCatalog(assets)
     seed = json.loads(args.cosmetics_selection.read_bytes())
@@ -132,7 +141,8 @@ async def run(args):
         audit=observe, data_dir=output, audit_state=False, input_timeout=30,
         tls_context=tls.load_server_context(pki['cert'], pki['key']), admission=admission.AdmissionController(Store()))
     started = time.monotonic()
-    report = dict(passed=False, scope=__doc__, modes=list(evidence.MODES), helper_sha256=sha(game/'BattleAcesOffline.dll'),
+    report = dict(passed=False, scope=custom_transition_probe.__doc__ if custom else __doc__,
+                  custom_transitions=custom, modes=['C', 4, 'C', 1, 'C'] if custom else list(evidence.MODES), helper_sha256=sha(game/'BattleAcesOffline.dll'),
                   helper_build_receipt_sha256=helper['sha256'], preparation_sha256=sha(args.preparation),
                   source_sha256_at_start=source_hashes(), shared_settings_before=startup.shared_state(args.shared_settings),
                   preference_before=preference_before, stages=[], game_pids=[], ordinary_player_base_arguments=[])
@@ -197,11 +207,18 @@ async def run(args):
             require(not any('smoke' in value or 'audit' in value or 'auto-' in value for value in command), 'ordinary arguments contain diagnostics')
             report['ordinary_player_base_arguments'].append(list(command))
             command[command.index('-logFile')+1] = str(output/f'game-{index}.log')
-            command += ['-public-queue-smoke', '-public-mode-sequence-smoke', '-public-queue-smoke-gate='+gate_key,
-                        '-lan-smoke', '-lan-audit', '-dedicated-rematch-smoke', '-dedicated-surrender-smoke',
+            command += ['-public-queue-smoke', '-lan-smoke', '-lan-audit', '-dedicated-surrender-smoke',
                         '-dedicated-surrender-frame=1200', '-public-team-surrender-smoke', '-match-search-smoke',
                         '-community-cosmetics-smoke', '-human-cosmetics-smoke']
-            if index == 1:
+            if custom:
+                command += ['-custom-transition-smoke', '-custom-transition-gate='+gate_key,
+                            '-community-match-'+('host' if index == 0 else 'guest')+'-smoke',
+                            '-practice-ai-smoke', '-practice-ai-smoke-frames=3600']
+                if index == 1:
+                    command.append('-community-match-deck-smoke')
+            else:
+                command += ['-public-mode-sequence-smoke', '-public-queue-smoke-gate='+gate_key, '-dedicated-rematch-smoke']
+            if index == 1 and not custom:
                 command.append('-public-queue-smoke-edit-deck')
             startup_info = subprocess.STARTUPINFO()
             startup_info.dwFlags |= subprocess.STARTF_USESHOWWINDOW
@@ -221,93 +238,99 @@ async def run(args):
             (output/'processes.json').write_text(json.dumps(dict(game_pids=report['game_pids'],
                 processes=[dict(pid=row['process'].pid, tick=row['tick'], arguments=row['arguments']) for row in clients]), indent=2)+'\n')
 
-        sessions, decks = None, {}
-        for ticket, mode in enumerate(evidence.MODES, 1):
-            marker = f'PUBLIC MODE SEQUENCE waiting for gate: key={gate_key} stage={ticket} idleMenu=1'
-            await wait_for(lambda: all(marker in row['log'] for row in clients), 'native mode gate not reached')
-            require(all(f'BA_RESURRECTION_COSMETICS_PERSIST_V1 ready: profile={key} slots=17 restored=1 writable=1' in row['log']
-                        for key, row in zip(keys, clients)), 'owned canonical cosmetic fixture was not restored')
-            await capacity_idle()
-            require(all(row['log'].count('Public search intent:') == ticket-1 for row in clients), 'next Play bypassed mode gate')
-            offsets = [len(row['log']) for row in clients]
-            with gates[ticket-1].open('xb'):
-                pass
-            observe('probe_mode_gate_released', ticket=ticket, mode=mode)
-            marker = f'Public intent retired: ticket={ticket} reason=returned nativeIdle=1 disconnect=0'
-            await wait_for(lambda: all(marker in row['log'][offset:] for row, offset in zip(clients, offsets)), 'mode match/result/Continue timed out')
-            await capacity_idle()
-            offers = [row for row in events if row['event'] == 'public_match_offered']
-            completed = [row for row in events if row['event'] == 'match_completed']
-            entered = [row for row in events if row['event'] == 'public_queue_entered' and row['ticket'] == ticket]
-            require(len(offers) == len(completed) == len(workers) == ticket and not any(row['event'] == 'match_aborted' for row in events), 'mode allocated duplicate/aborted match')
-            offer, result = offers[-1], completed[-1]
-            match = offer['match']
-            profiles = {profile for profile, _ in identities}
-            require(match == result['match'] and offer['mode'] == mode and set(offer['humans']) == profiles and
-                    len(entered) == 2 and {row['profile'] for row in entered} == profiles, 'available humans split/changed')
-            waits = [offer['observed_at']-row['observed_at'] for row in entered]
-            require(offer['fallback'] == (mode == 2) and
-                    (29 <= max(waits) <= 33 if mode == 2 else 0 <= max(waits) < 5), 'mode changed real queue policy')
-            current_sessions = {profile: server.community.sessions.get(profile) for profile in profiles}
-            require(attempts == [1, 1] and sorted(authenticated) == sorted(profiles) and
-                    all(value is not None and not value.peer.closed and value.peer.room is None for value in current_sessions.values()), 'mode changed authentication ownership')
-            if sessions is None:
-                sessions = current_sessions
-            require(all(current_sessions[profile] is value for profile, value in sessions.items()), 'mode replaced an available human session')
-            folder = output/'matches'/match
-            manifest = json.loads((folder/'match.json').read_bytes())
-            require(manifest['bootstrap_sha256'] == sha(folder/'bootstrap.pb.gz'), 'archived bootstrap differs from manifest')
-            native_players = expected_players((folder/'bootstrap.pb.gz').read_bytes(), match, mode)
-            total, seats = q.MODES[mode]
-            expected_seats = set(seats[:2])
-            require(set(map(int, manifest['profiles'])) == expected_seats and set(map(int, manifest['bots'])) == set(range(total))-expected_seats, 'mode human/bot topology differs')
-            authoritative = {row['frame']: row['frame_payload_sha256'] for row in events if row['event'] == 'frame_queued' and row['match'] == match}
-            stage_clients = []
-            for index, (record, offset) in enumerate(zip(clients, offsets)):
-                tail, pid = record['log'][offset:], record['process'].pid
-                own_seats = [int(seat) for seat, profile in manifest['profiles'].items() if profile == identities[index][0]]
-                require(len(own_seats) == 1, 'human assigned twice or missing')
-                seat = own_seats[0]
-                proof = evidence.stage(tail, ticket, mode, gate_key, match, seat, sum(1 << value for value in expected_seats))
-                seconds = [int(value) for old_ticket, value in re.findall(r'Native search timer: ticket=(\d+) seconds=(\d+)', tail)
-                           if int(old_ticket) == ticket]
-                require(seconds and seconds[0] == 0 and seconds == sorted(seconds) and
-                        (mode != 2 or max(seconds) >= 25), 'original search timer missing or not advancing')
-                native = native_players[seat]
-                require(native['name'] == record['name'] and native['profile'] == 0 and
-                        native['portrait'] == selected[index].portrait and native['banner'] == selected[index].banner, 'bootstrap changed configured human identity/avatar')
-                queued = [row for row in entries if row['profile'] == identities[index][0] and row['ticket'] == ticket]
-                require(len(queued) == 1 and queued[0]['mode'] == mode and queued[0]['cosmetics'] == selected[index] and
-                        queued[0]['deck'] == native['units'], 'queue changed human frozen deck/17slots')
-                deck = native['units']
-                if index not in decks:
-                    decks[index] = deck
-                require(deck == decks[index], 'mode changed selected human deck')
-                snapshots = [json.loads(line.split('REMOTE COSMETICS frozen snapshot: ', 1)[1]) for line in tail.splitlines()
-                             if 'REMOTE COSMETICS frozen snapshot: ' in line]
-                require(len(snapshots) == 1 and snapshots[0]['profile'] == keys[index] and
-                        snapshots[0]['catalog_sha256'] == book.sha256 and book.validate_selection(snapshots[0]['slots']) == selected[index] and
-                        f'REMOTE COSMETICS SimPlayer passed: match={match} army={seat} ' in tail, 'original full native appearance missing')
-                frame = 300+100*seat
-                build = re.search(rf'LAN NORMAL BUILD smoke frame{frame} slot{seat} army{seat} [^\r\n]+', tail)
-                require(build is not None and 'queued=1 commandQueueDelta=1' in build[0], 'native human build missing')
-                path = runtime/f'dedicated-receipts-{pid}-{match}.tsv'
-                raw = path.read_bytes()
-                rows = list(csv.DictReader(raw.decode('utf-8').splitlines(), delimiter='\t'))
-                require(len(rows) == len(authoritative) >= 600 and [int(row['frame']) for row in rows] == list(range(len(rows))) and
-                        all(row['sha256'] == authoritative.get(int(row['frame'])) for row in rows), 'native frames differ from authoritative journal')
-                (output/path.name).write_bytes(raw)
-                record['stages'].append(proof)
-                stage_clients.append(dict(**proof, pid=pid, name=record['name'], deck=deck, build_frame=frame,
-                    received_frames=len(rows), receipt_sha256=hashlib.sha256(raw).hexdigest(), complete_appearance=True))
-            require(decks[0] != decks[1], 'independent human deck edit missing')
-            report['stages'].append(dict(ticket=ticket, mode=mode, match=match, clients=stage_clients,
-                received_frames=len(authoritative), real_queue_seconds=waits, result=result['result'],
-                bootstrap_sha256=sha(folder/'bootstrap.pb.gz'), manifest_sha256=sha(folder/'match.json'),
-                journal_human_builds=journal_builds(folder/'frames.bin', stage_clients, len(authoritative)),
-                original_sessions_retained=True, capacity_idle=True))
-            (output/'progress.json').write_text(json.dumps(report['stages'], indent=2)+'\n')
-        report['native_sequences'] = [evidence.sequence(row['log'], row['stages']) for row in clients]
+        if custom:
+            await custom_transition_probe.run(SimpleNamespace(game=game, assets=assets, output=output, runtime=runtime,
+                server=server, clients=clients, events=events, workers=workers, entries=entries, identities=identities,
+                attempts=attempts, authenticated=authenticated, report=report, selected=selected, keys=keys,
+                gate_key=gate_key, wait_for=wait_for, capacity_idle=capacity_idle, observe=observe))
+        else:
+            sessions, decks = None, {}
+            for ticket, mode in enumerate(evidence.MODES, 1):
+                marker = f'PUBLIC MODE SEQUENCE waiting for gate: key={gate_key} stage={ticket} idleMenu=1'
+                await wait_for(lambda: all(marker in row['log'] for row in clients), 'native mode gate not reached')
+                require(all(f'BA_RESURRECTION_COSMETICS_PERSIST_V1 ready: profile={key} slots=17 restored=1 writable=1' in row['log']
+                            for key, row in zip(keys, clients)), 'owned canonical cosmetic fixture was not restored')
+                await capacity_idle()
+                require(all(row['log'].count('Public search intent:') == ticket-1 for row in clients), 'next Play bypassed mode gate')
+                offsets = [len(row['log']) for row in clients]
+                with gates[ticket-1].open('xb'):
+                    pass
+                observe('probe_mode_gate_released', ticket=ticket, mode=mode)
+                marker = f'Public intent retired: ticket={ticket} reason=returned nativeIdle=1 disconnect=0'
+                await wait_for(lambda: all(marker in row['log'][offset:] for row, offset in zip(clients, offsets)), 'mode match/result/Continue timed out')
+                await capacity_idle()
+                offers = [row for row in events if row['event'] == 'public_match_offered']
+                completed = [row for row in events if row['event'] == 'match_completed']
+                entered = [row for row in events if row['event'] == 'public_queue_entered' and row['ticket'] == ticket]
+                require(len(offers) == len(completed) == len(workers) == ticket and not any(row['event'] == 'match_aborted' for row in events), 'mode allocated duplicate/aborted match')
+                offer, result = offers[-1], completed[-1]
+                match = offer['match']
+                profiles = {profile for profile, _ in identities}
+                require(match == result['match'] and offer['mode'] == mode and set(offer['humans']) == profiles and
+                        len(entered) == 2 and {row['profile'] for row in entered} == profiles, 'available humans split/changed')
+                waits = [offer['observed_at']-row['observed_at'] for row in entered]
+                require(offer['fallback'] == (mode == 2) and
+                        (29 <= max(waits) <= 33 if mode == 2 else 0 <= max(waits) < 5), 'mode changed real queue policy')
+                current_sessions = {profile: server.community.sessions.get(profile) for profile in profiles}
+                require(attempts == [1, 1] and sorted(authenticated) == sorted(profiles) and
+                        all(value is not None and not value.peer.closed and value.peer.room is None for value in current_sessions.values()), 'mode changed authentication ownership')
+                if sessions is None:
+                    sessions = current_sessions
+                require(all(current_sessions[profile] is value for profile, value in sessions.items()), 'mode replaced an available human session')
+                folder = output/'matches'/match
+                manifest = json.loads((folder/'match.json').read_bytes())
+                require(manifest['bootstrap_sha256'] == sha(folder/'bootstrap.pb.gz'), 'archived bootstrap differs from manifest')
+                native_players = expected_players((folder/'bootstrap.pb.gz').read_bytes(), match, mode)
+                total, seats = q.MODES[mode]
+                expected_seats = set(seats[:2])
+                require(set(map(int, manifest['profiles'])) == expected_seats and set(map(int, manifest['bots'])) == set(range(total))-expected_seats, 'mode human/bot topology differs')
+                authoritative = {row['frame']: row['frame_payload_sha256'] for row in events if row['event'] == 'frame_queued' and row['match'] == match}
+                stage_clients = []
+                for index, (record, offset) in enumerate(zip(clients, offsets)):
+                    tail, pid = record['log'][offset:], record['process'].pid
+                    own_seats = [int(seat) for seat, profile in manifest['profiles'].items() if profile == identities[index][0]]
+                    require(len(own_seats) == 1, 'human assigned twice or missing')
+                    seat = own_seats[0]
+                    proof = evidence.stage(tail, ticket, mode, gate_key, match, seat, sum(1 << value for value in expected_seats))
+                    seconds = [int(value) for old_ticket, value in re.findall(r'Native search timer: ticket=(\d+) seconds=(\d+)', tail)
+                               if int(old_ticket) == ticket]
+                    require(seconds and seconds[0] == 0 and seconds == sorted(seconds) and
+                            (mode != 2 or max(seconds) >= 25), 'original search timer missing or not advancing')
+                    native = native_players[seat]
+                    require(native['name'] == record['name'] and native['profile'] == 0 and
+                            native['portrait'] == selected[index].portrait and native['banner'] == selected[index].banner, 'bootstrap changed configured human identity/avatar')
+                    queued = [row for row in entries if row['profile'] == identities[index][0] and row['ticket'] == ticket]
+                    require(len(queued) == 1 and queued[0]['mode'] == mode and queued[0]['cosmetics'] == selected[index] and
+                            queued[0]['deck'] == native['units'], 'queue changed human frozen deck/17slots')
+                    deck = native['units']
+                    if index not in decks:
+                        decks[index] = deck
+                    require(deck == decks[index], 'mode changed selected human deck')
+                    snapshots = [json.loads(line.split('REMOTE COSMETICS frozen snapshot: ', 1)[1]) for line in tail.splitlines()
+                                 if 'REMOTE COSMETICS frozen snapshot: ' in line]
+                    require(len(snapshots) == 1 and snapshots[0]['profile'] == keys[index] and
+                            snapshots[0]['catalog_sha256'] == book.sha256 and book.validate_selection(snapshots[0]['slots']) == selected[index] and
+                            f'REMOTE COSMETICS SimPlayer passed: match={match} army={seat} ' in tail, 'original full native appearance missing')
+                    frame = 300+100*seat
+                    build = re.search(rf'LAN NORMAL BUILD smoke frame{frame} slot{seat} army{seat} [^\r\n]+', tail)
+                    require(build is not None and 'queued=1 commandQueueDelta=1' in build[0], 'native human build missing')
+                    path = runtime/f'dedicated-receipts-{pid}-{match}.tsv'
+                    raw = path.read_bytes()
+                    rows = list(csv.DictReader(raw.decode('utf-8').splitlines(), delimiter='\t'))
+                    require(len(rows) == len(authoritative) >= 600 and [int(row['frame']) for row in rows] == list(range(len(rows))) and
+                            all(row['sha256'] == authoritative.get(int(row['frame'])) for row in rows), 'native frames differ from authoritative journal')
+                    (output/path.name).write_bytes(raw)
+                    record['stages'].append(proof)
+                    stage_clients.append(dict(**proof, pid=pid, name=record['name'], deck=deck, build_frame=frame,
+                        received_frames=len(rows), receipt_sha256=hashlib.sha256(raw).hexdigest(), complete_appearance=True))
+                require(decks[0] != decks[1], 'independent human deck edit missing')
+                report['stages'].append(dict(ticket=ticket, mode=mode, match=match, clients=stage_clients,
+                    received_frames=len(authoritative), real_queue_seconds=waits, result=result['result'],
+                    bootstrap_sha256=sha(folder/'bootstrap.pb.gz'), manifest_sha256=sha(folder/'match.json'),
+                    journal_human_builds=journal_builds(folder/'frames.bin', stage_clients, len(authoritative)),
+                    original_sessions_retained=True, capacity_idle=True))
+                (output/'progress.json').write_text(json.dumps(report['stages'], indent=2)+'\n')
+            report['native_sequences'] = [evidence.sequence(row['log'], row['stages']) for row in clients]
         report['passed'] = True
     except BaseException as error:
         report.update(passed=False, error=f'{type(error).__name__}: {error}', traceback=traceback.format_exc())
@@ -372,6 +395,7 @@ def main():
     for name in ('game', 'assets', 'output', 'helper-build', 'preparation', 'cosmetics-selection', 'shared-settings'):
         parser.add_argument('--'+name, type=Path, required=True)
     parser.add_argument('--timeout', type=int, default=900)
+    parser.add_argument('--custom-transitions', action='store_true', help='qualify Custom/local4/Custom/public1/Custom through original invites and Leave')
     args = parser.parse_args()
     require(os.name == 'nt' and 300 <= args.timeout <= 900, 'bounded Windows sequence required')
     return asyncio.run(run(args))

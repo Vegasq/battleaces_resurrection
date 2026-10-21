@@ -1,0 +1,141 @@
+CUSTOM MODE TRANSITIONS85 / D2 T07,T08
+Updated:2026-10-21 UTC. T07/T08 retained native PASS;parent D2/physical OPEN.
+
+Finite required sequence
+Use the same two native clients for Custom -> local Try Deck4 -> Custom ->
+public1v1 -> Custom. Three fresh original Custom Invite/Accept/Start/result/
+Continue/Leave cycles establish T07 and T08 together. Retain configured human
+names,distinct selected decks,full17-slot appearance and saved practice setting.
+No native world/party/prediction/pending invitation/public intent may survive
+its proper departure or be cleared artificially to manufacture readiness.
+
+Explicit diagnostic implementation
+custom_transition_smoke.cpp/.hpp requires its own -custom-transition-smoke,
+unified/public/practice/cosmetic smoke prerequisites,one host/guest role,an owned
+cosmeticstest_ profile and32hex-digit gate key. Ordinary entry never supplies it.
+Coordinator owns only diagnostic counters/gates;it never overwrites production
+party,prediction,request,world or AI state. Existing original callback paths do
+the gameplay and teardown. No original binary patch site or network policy changes.
+
+Five stage gates synchronize both native idle menus. Before each Custom Invite,
+a second gate waits for both actual native profiles and selected-deck ACKs. This
+avoids racing the guest's preparation with an incoming popup;the old probe's
+2500ms scheduling delay is not used as readiness evidence. After each Custom
+result/Continue,the driver verifies both two-human lobby returns and empty worker/
+room capacity,then releases original Leave guest first and host second. Native
+departure must have party=0,prediction=0,pending=0,worldIdle=1. The next stage gate
+stays closed until both complete. Only diagnostic smoke counters are rearmed.
+
+The local stage invokes original Edit Deck/Try Deck,uses the retained human deck
+and one original autonomous bot,then original result/Continue. During this window
+the server may observe old presence departures but no new authentication,queue,
+lobby,offer,match or worker. The next Custom stage requests fresh presence only
+after BOTH local worlds return and its external gate opens. Public1v1 must retain
+the same two humans,with one original Play/Continue each and no stale Custom state.
+The final Custom cycle must use a third original invitation and fresh lobby.
+
+tools.verify_public_sequence --custom-transitions reuses its actual isolated
+TLS/worker/bridge/native harness. tools.custom_transition_probe controls these
+gates and checks original callbacks,actual bootstraps,full native cosmetic/unit
+bindings,all frame receipts against the authoritative audit,and human build input
+journals. Local Try Deck additionally requires produced bot supply plus Move/
+Attack orders AND position changes for the same produced entities,original human
+in-game/result name/avatar bindings and complete frozen local appearance.
+tools.custom_transition_evidence requires the exact five ordered world leases,
+three Custom joins/returns/invites/Leaves,one local and one public match,all five
+original Continue actions per process and complete final departure. It rejects
+stale/duplicate worlds,missing Leave/prediction cleanup,wrong matches,fallbacks
+and replaced original invitation actions.21focused Python checks PASS0.012s/
+0skips;both helper builds pass12compiled checks. Build01 was installed for
+preparation only,never launched;build02 adds the explicit invitation-readiness
+gate before any native test. Only automated58 is upgraded. Manual71/LAN03 remain
+sealed;no release package or ordinary configuration is changed.
+
+Acceptance boundary
+The native driver retains a source/build/program/shared-storage/preference-bound
+report under ignored local/custom85-native02. All4remote workers must exit0/reap,
+both owned games must be drained and private fixture PKI/all14gates removed.
+Final game cleanup is forced,not native Quit. Test ConcedeGame bounds remote
+matches at1200frames and local Try Deck at3600frames;this is not natural-victory
+or physical/pixel,protected credential/bundled runtime/LAN/Internet acceptance.
+D6's physical restart-first/repeat observation remains the priority;its prepared
+candidate is unchanged. No new warm run is substituted for that pending gate.
+All raw game/bootstrap/native/capture bytes remain ignored. Git receives own
+source,authored fixtures and this knowledge record only.
+
+Final prepared helper02 SHA256:
+67ef5328932b0637e0b5a8bc154bbdf128cf9d596395b0cd56d4beb57c631631
+89-native/build-path receipt SHA256:
+99a844938606f25651379173dc10b12bc62eb050c9c8b28f17e53641203b048a
+147runtime source paths bind the native run. Both manual candidate seals and
+original practice-settings absence are checked before/after preparation.
+
+Preserved failed pilot01
+The first Custom match/result/Continue completes,but the verifier correctly
+refuses identical decks:the driver omitted the existing guest deck-edit helper's
+prerequisite flag. Calling that helper without its flag is intentionally a no-op;
+the coordinator's call marker alone was insufficient proof of an actual edit.
+No production deck persistence defect or T07/T08 PASS is claimed from this run.
+Native games are reaped;its sole worker exits0/reaped/empty stderr,source/shared/
+program/candidate seals hold. FAILED93.632s report SHA256:
+4ffb4fc22e5b7df186a2bc826b1b77909b8efa9e63a2d0312589019670bba293
+Own producer driver/probe retained SHA256,respectively:
+9abec9a2cef75c6532f801f9edc2e1404ab169716878aa6fcbc395d0563e76ac
+d5ffa27a73fe64bb2ecd0829d0d74fd521df0beff3916073fde498773f3feca7
+Corrected driver supplies -community-match-deck-smoke to the guest and requires
+the actual native edit/save marker BEFORE the first invitation gate. The original
+distinct-deck assertion remains. No helper/game code correction/rebuild needed.
+Preparation03 reseals the verifier-only change;pilot01 remains byte-exact FAILED.
+Complete native02 trace;preserved final-reader failure
+The unchanged native02 producer completes all5worlds per client in541.814s.
+Four remote matches each deliver1220exact canonical frames,result1200/conceded1;
+these are bounded normal-ConcedeGame endings,not natural-victory acceptance.
+All3Custom cycles use original picker Invite/Accept/Start/Continue;guest and host
+each original Leave settle before the next mode. Public1v1 retains both humans,
+then a third fresh Custom invitation/lobby works. Across both processes,10world
+leases and10original Continue actions release with no stale party/prediction/
+pending invitation/public intent. Selected distinct decks,configured names and
+17-slot native appearances remain exact through all remote bootstraps/native
+map/unit proofs and local config/JoinArmy/in-game/result identity bindings.
+
+Both local Try Deck worlds produce129/136max bot supply and40/49produced entities
+with BOTH original autonomous movement orders and changed native positions.
+Raw audit window between stage2/3gates has no new authentication,queue,lobby,
+offer,match or worker;old presence departures are allowed. Each client resolves/
+authenticates twice total,requesting fresh sessions only after both local returns.
+All4remote workers exit0/reap/empty stderr,private PKI/all14gates removed. Final
+game drain is forced.147producer sources/program/catalog/manual71/LAN03/shared
+TOML and original practice-settings absence stay unchanged during the full run.
+
+Original native02 report stays FAILED because its final pure reader expects
+Practice native EndOfGameResponse in a Custom segment;the actual Custom label
+is Dedicated native EndOfGameResponse,with custom=1. Local/public labels remain
+Practice/custom=0. This is a reader namespace mismatch,not missing native results.
+All five stages are retained;no report/log rewrite or native gameplay repeat.
+Correcting exactly that Custom marker produces22focused Python checks PASS
+0.011s/0skips,including rejection of the wrong Custom namespace.
+
+local/custom85-native02/verification.json FAILED label-check SHA256:
+1b4485955bb42d26c3652a58fee336d64c4f00629e9d8f0b75000dfdd6276082
+Raw events.jsonl SHA256:
+13780238d59e702fec214dd56c4df20c68debd5e14e7c3c2797665415b0b14a2
+Native51228/47656 log SHA256,respectively:
+c31155f5f41cc000fb6a7837221ba84e7d8b7a64410ce22ccfed8ff88e51dbb7
+1bb12f4951c168629d439919bd414e926b3aa5519cc6efa9cc49abc4aa26adb6
+Own pre-correction reader retained SHA256:
+a9437b77044fd96b0d674b461cb7a91f4d4906475483ebd5e595bcf5720a6bbb
+Independent local/review-custom85.py passes first invocation:requires the exact
+known FAILED reason and raw producer/preparation source equality,proves the
+only current source difference is that exact reader marker,then independently
+decodes actual bootstraps,all receipts/audits/input journals,local moving bots/
+full selection/model bindings,original callbacks/leases and preserved pilot01.
+Current native/build/program source bytes remain exact;the fixed reader is never
+misrepresented as its old producer. Reviewer SHA256:
+8cb68a428dd8b0e98b15b44bacac21f9e799d5251fb6ee0f5d7bfe551766a00d
+local/custom85-retained-review.json PASS SHA256:
+11adb8c3f40d4e7dae49da2449282a6522dcebcf3852ef85723057c424494ca7
+Producer preparation03 SHA256:
+88221bfe5f3af11609ca04c792bb9a45da13f8a076ab68b9332c2c3b73f51878
+Named T07/T08 cases close within this scope. D2 protected availability/physical
+acceptance and other parent delivery gates remain OPEN. D6's preserved physical
+reboot-first/repeat test stays priority;no archive/manual candidate is updated.

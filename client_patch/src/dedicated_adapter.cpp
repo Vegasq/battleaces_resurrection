@@ -280,7 +280,8 @@ static bool returnRetrySmoke() {
     return true;
 }
 static void rematchSmoke(Obj server) {
-    if(!ba::flag(L"-dedicated-rematch-smoke") || !joined || !sawWorld ||
+    const bool customTransition=ba_custom_transition::allowPublic();
+    if((!ba::flag(L"-dedicated-rematch-smoke") && !customTransition) || !joined || !sawWorld ||
        !ba_dedicated_results::delivered || !worldIdle(server))return;
     Obj fsm=ba::read<Obj>(ba::owner,0x2b0);
     if(ba::get<Obj>(fsm,"_currentState")!=ba::read<Obj>(ba::owner,0x2f0))return;
@@ -291,7 +292,7 @@ static void rematchSmoke(Obj server) {
     // Both diagnostic paths are bounded to the second session's result.
     // RETURN-ACK retry separately rearms Continue after its completed first result.
     const bool sequence=publicSequenceSmoke() && startedSessions>=1 && startedSessions<=4;
-    const bool publicRecovery=sequence || (startedSessions==2 &&
+    const bool publicRecovery=sequence || customTransition || (startedSessions==2 &&
         ba::flag(L"-public-queue-smoke") && ba::flag(L"-public-queue-smoke-retry") &&
         ((recoverySmokeStage==1 && ba::flag(L"-dedicated-recovery-smoke")) ||
          (ba::unified() && ba::flag(L"-public-queue-experimental") && ba::flag(L"-public-team-retry-smoke")) ||

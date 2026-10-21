@@ -104,9 +104,11 @@ static void synchronizeLoadout(Obj front) {
     if(selection!=selectedSubmitted)ba_dedicated::submitDeck(deck.get());
 }
 static bool allowPracticeSmoke() {
+    if(ba_custom_transition::enabled())return ba_custom_transition::allowPractice();
     return !ba::flag(L"-unified-smoke") || ba_practice::completed==0 || smokeStage>=2;
 }
 static bool allowCustomSmoke() {
+    if(ba_custom_transition::enabled())return ba_custom_transition::allowCustom();
     return !ba::flag(L"-unified-smoke") || (smokeStage==1 && selectedDeckAccepted);
 }
 static void smoke() {
@@ -135,6 +137,7 @@ static void update(Obj front) {
             if(!nativeIdle(front) || !ba_dedicated_session::inMenu())return;
             retireControl(front,"optional connection failed");
         }
+        ba_custom_transition::update(front);
         smoke();
         if(worldOwner==Owner::Remote || connectRequested)ba_dedicated_session::update(front);
         ba_cosmetics::remoteProof(front);

@@ -82,6 +82,13 @@ finished;their scoped results are recorded below. With D6's engineering fix and
 automated qualification complete,preserve its manual candidate and address the
 remaining named D2 cells without repeating covered queue/roster tests.
 Completed subcases (same-PC automated controls; not physical LAN):
+[x] Custom -> local4 -> Custom -> public1 -> Custom,T07/T08 (85 retained).
+    Same two native clients,3original invitations/6Leaves/10Continue actions,
+    4worker0,selected decks/full17slots and moving local bots pass. Original
+    final-reader label failure preserved;strict corrected retained qualification
+    passes without another native run. Fixture TLS/diagnostic Concede/forced
+    cleanup;physical/protected/bundled/native Quit/LAN remain separate.
+    Exact bindings:custom-mode-transitions.txt.
 [x] Same two native clients complete remote1 -> remote2 -> remote5 -> remote1,
     T05 (84). Selected names/decks/17slots and existing sessions retained;real30s
     partial2v2 queue,8original Continue actions,4workers0 and every native frame

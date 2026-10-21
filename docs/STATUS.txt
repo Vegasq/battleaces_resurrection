@@ -3,6 +3,22 @@ Updated: 2026-10-21 UTC
 Delivery plan: REMAINING_DELIVERY_PLAN.txt, Windows only.
 Original roadmap: CLOSED / SUPERSEDED;see PLAN_CLOSEOUT.txt.
 
+D2 CUSTOM MODE TRANSITIONS85 (T07/T08 RETAINED NATIVE PASS)
+Same native PIDs complete C -> local4 -> C -> public1 -> C in541.814s. Three
+original invitations/6Leaves/10original Continue actions,four exact1220-frame
+remote traces,4workers0 and same selected decks/17slots pass. Both local bots
+produce129/136max supply;40/49produced entities have original movement orders
+and position changes. No remote allocations/authentication during local practice;
+exactly one fresh session per human afterward. Final departure has party0/
+prediction0/pending0/worldIdle.147producer sources/program/manual71/LAN03/shared/
+practice-preference absence remain stable. Pilot01 stays FAILED for missing own
+guest deck-edit flag;corrected before next invitation,not a production fix.
+Full native02 report remains FAILED for final checker expecting Practice instead
+of actual Dedicated Custom result label. One-line reader-only fix/22Python checks
+and strict retained review PASS;no native repeat/report rewrite. Helper02/89-path
+receipt/12C++ checks unchanged. Scoped T07/T08 close,D2/physical gates stay OPEN.
+No archive updated;D6 reboot-first/repeat physical observation remains priority.
+Exact failure/report/reviewer/source applicability:custom-mode-transitions.txt.
 D2 PUBLIC MODE SEQUENCE84 (T05 NATIVE PASS,2026-10-21 UTC)
 The same two native PIDs complete remote1 -> remote2 -> remote5 -> remote1 in
 366.832s. Both humans/original community sessions/selected decks/17slots retained;

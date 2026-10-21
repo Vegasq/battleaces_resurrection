@@ -19,6 +19,7 @@
 #include "match_loading.h"
 #include "cosmetics_loadout.hpp"
 #include "remote_profile_smoke.hpp"
+#include "custom_transition_smoke.hpp"
 
 namespace ba_catalog { static void exportOnce();static std::string utf8(void*);static std::string quote(const std::string&); }
 namespace ba_dedicated_results { static void receive(const std::string&); }
@@ -352,6 +353,7 @@ extern "C" __declspec(dllexport) void OfflineFrontUpdate(void* front,void*) {
 #include "native_settings_notice.cpp"
 #include "public_client.cpp"
 #include "remote_profile_smoke.cpp"
+#include "custom_transition_smoke.cpp"
 #include "public_results.cpp"
 #include "match_loading.cpp"
 #include "match_loading_smoke.cpp"

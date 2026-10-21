@@ -25,6 +25,7 @@ static auto& oldMatches=*new std::deque<std::string>();
 static bool active(){return static_cast<bool>(current);}
 static bool smokeGate(bool practice=false);
 static bool smokePracticeReady() {
+    if(ba_custom_transition::enabled())return ba_custom_transition::allowPractice();
     return ba::flag(L"-public-practice-transition-smoke") && ba::flag(L"-public-queue-smoke") &&
         ba::flag(L"-public-queue-smoke-retry-gate") && lastTicket==1 && !active() && smokeGate(true);
 }
@@ -344,6 +345,7 @@ static bool smokeGate(bool practice) {
         "PUBLIC QUEUE SMOKE shared gate released: key=%s",key.c_str());return true;
 }
 static void smoke(Obj front) {
+    if(ba_custom_transition::enabled() && !ba_custom_transition::allowPublic())return;
     const bool late=ba::flag(L"-public-late-assignment-smoke");
     if(late) {
         require(ba_dedicated_session::returnRetrySmoke() && ba::flag(L"-practice-ai-smoke") && ba::flag(L"-public-ai-smoke"),

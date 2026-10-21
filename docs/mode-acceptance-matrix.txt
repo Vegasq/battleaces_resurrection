@@ -147,8 +147,15 @@ T06 P:local4 -> offline1 -> offline2 -> offline5 -> local4, one five-match
     native sequence (local-modes02, earlier helper). Saved practice difficulty
     stays Normal; original results/Continue and all-bot movement pass. Final
     owned process termination is not native Quit. See team-modes.txt.
-T07 O:C -> local4 -> C, using the original Custom invitation/menu path.
-T08 O:C -> remote1 -> C, with no stale lobby/prediction/public intent.
+T07 P:85-retained,C -> local4 -> C through original Custom invitation/menu path.
+T08 P:85-retained,C -> remote1 -> C,without stale lobby/prediction/public intent.
+    One combined same-two-client five-world sequence,3original invitations and
+    6Leaves,10Continue actions,4workers0,selected decks/17slots preserved. Local
+    bots build and40/49produced entities have orders+position changes. Original
+    final reader failure remains FAILED (Custom Dedicated vs Practice label);
+    strict corrected retained qualification passes,no native rerun. Fixture TLS/
+    diagnostic Concede/forced cleanup,not physical/native Quit/bundled/protected/
+    LAN. Details:custom-mode-transitions.txt.
 T09 P:81-retained,completed remote1 -> pre-READY unavailable/local1 -> remote1.
     Actual original3world/results/Continue sequence preserves selected identity/
     deck/17slots and saved Hard19 preference. Controlled resolver code8 fixture,
@@ -195,6 +202,7 @@ C02/C03: native-custom-invitations.txt; C/Ready: native-custom-matches.txt
 T01/T02/T03/T04: remote-local-transitions.txt
 T06: team-modes.txt; local/local-modes02/verification.json
 84 T05:public-mode-transitions.txt;local/sequence84-native02/verification.json.
+85 T07/T08:custom-mode-transitions.txt;local/custom85-retained-review.json.
 82 A15:client-availability.txt;B09:bot-selection-acceptance.txt.
 83 B09 original remote models:remote-bot-profile-models.txt.
 Local mode-matrix62-retained-review02.json binds exact retained report bytes,
