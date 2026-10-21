@@ -1,5 +1,12 @@
 WINDOWS RELEASE ACCEPTANCE -- 2026-10-20
 
+LAN98 owner readiness result reviewed
+Public report passed at ready;verified TLSv1.3/protected credentials/enrollment/
+native health all pass,worker0/reaped,no game/listening server. Nick's matching
+answer is preserved. Provisioning is COMPLETE;do not rerun setup. D1 still needs
+the actual two-PC match/rematch/physical observations. Evidence/hash is recorded
+in lan-playtest-candidate.txt;the preparation-only status below is historical.
+
 LAN retry98 preparation
 Owner93 fails a server-only coordinator import in the client runtime. Corrected98
 retains server-side production config validation;7tests and actual bundled-client

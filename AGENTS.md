@@ -24,8 +24,9 @@
 - D6 startup acceptance closed on owner-result review93: post-reboot menu20s,
   repeat2s and visible AI/results/Continue/Quit without issues. Preserve the
   accepted manual71 candidate; do not request that completed check again.
-  D1's corrected LAN setup98 is the next operator milestone. Preserve failed53
-  and failed93 configuration/private files and Nick's original answers.
+  D1's corrected LAN setup98 is COMPLETE:owner report passed at ready,verified
+  TLS/native health. Do not request setup again. Two-PC match/rematch observations
+  remain unrecorded. Preserve failed53/93 files and Nick's original answers.
 
 ## Delivery records
 

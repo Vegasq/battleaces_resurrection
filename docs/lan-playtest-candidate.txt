@@ -1,5 +1,20 @@
 TWO-PC LAN CANDIDATE53 -- 2026-10-20
 
+Owner setup98 READY - reviewed2026-10-21
+Nick's new DEV.txt answer reports passed=true,stage=ready. Public report
+local/friends98-owner-setup01/last-report.json SHA256
+b177e42924ada6f7c04e2b6932f97f0944b16009f339973d2b8cce71304b524a
+corroborates that answer. Coordinator SHA matches current source9156f154...;
+client archive SHA matches the prepared88e09235... candidate. Protected operations
+completed,TLSv1.3 memory handshake passed,credential store checked,packaged native
+world created/stepped/closed,worker exit0/reaped. No game or listening server was
+started;issued invites remain valid for the existing handoff. Do not rerun setup.
+This closes provisioning/readiness only. Two-PC Custom match/rematch/results/
+normal Quit observations remain blank;D1/LAN reachability are not yet qualified.
+Existing LAN Playtest.txt steps2-6 are the remaining operator path. Preserve
+Nick's literal date12/21/2026 without inferring report execution date from it.
+Codex remains paused. Prior pending98 preparation statements below are historical.
+
 Owner failure93 / fresh runtime-correct setup98,reviewed2026-10-21
 New public report local/friends93-owner-setup01/last-report.json SHA256
 4d6f09f47ecbf648211b207de62e966bc90638ea368475a70cb18c7603b05de7

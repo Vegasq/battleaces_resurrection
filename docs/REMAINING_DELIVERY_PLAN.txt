@@ -50,7 +50,8 @@ D1 is next:setup53 failed the TLS path rule;93 then failed a server-only import
 in the client runtime. Fresh98 removes that import,retains real server readiness
 validation and passes actual bundled-client import closure/bundled-server config
 checks without overwriting either failed setup's private/configuration files. DEV.txt
-N2 records the single pending retry;N1 and N3 have reviewed results. Protected
+N2 setup98 now has a reviewed READY result;do not rerun provisioning. Actual
+two-PC match/rematch observations are still unrecorded. N1 and N3 are reviewed. Protected
 active-console40 PASS closes that D7 subcase,not SCM/backup/clean-PC deployment.
 Check DEV.txt answers/public reports before repeating requests. D7 precedes D8/D9.
 Close D2-D4 with planned playtests and targeted fixes after the LAN milestone.
@@ -59,14 +60,12 @@ each pass closes its named subcase, not the broader parent. D5-D8 retain their
 explicit independent gates; D9 closes only after those release gates pass.
 
 [ ] D1 - Complete the prepared two-PC LAN milestone
-Next action: normal desktop run of local/friends98-owner-setup01/
-LAN Playtest Setup.cmd. Failed53/93 reports/config/private files retained;invites
-revoked.98 keeps private TLS in config/private and validates with the SERVER's
-runtime,not a missing client module. Seven tests,actual seven-client-module
-imports,actual server config checks,package/assets and restricted no-private-write
-preflight pass. Protected readiness/two-PC play remain pending.
-- Confirm protected certificate/invite creation, host enrollment and native health
-  with the real packaged code. Transfer only friend-handoff to the second PC.
+[x] Setup98 owner readiness:protected TLS/invites/host enrollment and packaged
+    native create/step/close PASS;TLSv1.3,worker0/reaped,no game/listening server.
+    Report/source/archive hashes match;lan-playtest-candidate.txt binds evidence.
+    Preserve issued invites/config;do not rerun setup. Failed53/93 remain retained.
+Next unrecorded action:LAN Playtest.txt steps2-6 in the existing setup98 folder.
+- Start the prepared host and transfer only friend-handoff to the second PC.
 - On that PC, patch its own build37822 copy, confirm CA hash, enroll its own
   invite and pass Test connection. Use distinct configured names.
 - Launch both ordinary clients, discover/invite/accept through Custom, Ready/

@@ -3,6 +3,16 @@ Updated: 2026-10-21 UTC
 Delivery plan: REMAINING_DELIVERY_PLAN.txt, Windows only.
 Original roadmap: CLOSED / SUPERSEDED;see PLAN_CLOSEOUT.txt.
 
+LAN98 OWNER SETUP READY - RESULT REVIEWED
+Nick's DEV.txt answer and public last-report.json agree:passed=true,stage=ready.
+Pinned coordinator/archive hashes match;protected credentials/enrollment and
+verified TLSv1.3 pass. Packaged native health creates/steps/closes its worker0,
+reaped;no game/listening server started. Issued invites persist for the playtest.
+Setup subcase CLOSED;do not rerun provisioning. D1 stays OPEN:actual two-PC
+Custom match/rematch/results/Quit observations remain blank. Codex remains paused.
+Exact report/hash and scope:lan-playtest-candidate.txt. Earlier pending98 entries
+below describe the state before this newly reviewed answer/report.
+
 REPLAY99 FAILURE REPRODUCED /100 DATA-SCOPED RECOVERY FIX PASS
 Original loader accepts GameConfig without VersionBuild,then initialization fails
 once before world creation.99 confirms helper failed=true also blocks a subsequent
