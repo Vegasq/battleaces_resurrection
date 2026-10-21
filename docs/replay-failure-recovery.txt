@@ -241,8 +241,9 @@ Its persistent/runtime/compiled/executing lists and action runners are empty.
 The UIButton Id is Category=Game,Name=Quit,Custom=false. Therefore the expected
 direct persistent ReplayEndGame call is ABSENT in this observed healthy-practice
 instance. This does not prove the button is inert or that another replay-time
-binding cannot exist. The original Click can emit the Game/Quit signal;actual
-receivers and the complete action route remain unqualified. Do not install a new
+binding cannot exist. Game/Quit is the BUTTON PAYLOAD ID;review88 below resolves
+the separate broadcast stream. Actual receivers were not observed in87,and the
+complete action route remains unqualified. Do not install a new
 direct callback or invoke ReplayEndGame as a substitute for this signal route.
 
 The same run completes one1200-frame practice result,original Continue/menu and
@@ -287,8 +288,83 @@ Helper87 SHA256
 All12 existing native build checks and15 focused Python checks pass,0skips.
 Raw game evidence remains ignored;no archive/manual candidate updated.
 
-Next finite action:trace the existing Game/Quit signal receivers from this
-observed button identity and establish an original supported replay entry. Then
+Next finite action at87:trace the receivers handling the observed Game/Quit
+button payload and establish an original supported replay entry. Then
 qualify the actual healthy bound exit before injecting a stateful fault. Reuse
 the successful passive inventory;do not repeat it expecting a direct binding.
 D4-RP1 remains OPEN;D6's pending physical acceptance remains the first priority.
+
+UIButton broadcast subscribers88 -- native PASS;exit action still unqualified
+Correction to87's shorthand:Game/Quit is UIButtonSignalData.buttonCategory/
+buttonName,not the SignalsService stream address. Original UIButton.Click0089fe40
+reads Id+1a0 into that value payload and calls get_stream0089f2c0. That getter
+reuses static UIButton.s_stream+8 or LAZILY CREATES UISelectable/UIButton through
+GetStream008fc310. Observer88 reads the existing static field directly;it never
+calls that getter,GetStream,FindStream,ConnectReceiver or SendSignal. The earlier
+button/binding snapshot remains unchanged and is extended only by an explicit
+-replay-signal-inventory owned diagnostic. No normal-launch arguments change.
+
+Native02/PID24752 PASS97.308s on automated58/helper88-02:two unchanged snapshots
+of the existing UISelectable/UIButton stream,signalsCounter0,no global OnSignal
+callback,three receiver-list members. Each is an original SignalReceiver with a
+resolved existing delegate target/method;no callback is invoked. They are:
+- BackButton's nested <>c.<Start>b__58_1,token06000377,DoozyRuntime.dll,
+  original RVA00880340. Runtime nested name alone is ambiguous;unique matching
+  original token/name/type identifies the outer BackButton in static metadata.
+- UIButtonNodyListener.ProcessSignal,token0600029c,DoozyRuntime.dll,00875d90.
+- UIBackListenerComponent.ProcessSignal,token06003417,RGame.dll,03d4e4f0.
+The two Back handlers compare buttonName with literal Back,so the observed Quit
+payload does not meet that static branch. Nody's ProcessSignal validates the
+UIButtonSignalData value and forwards its existing callback+28. That forwarded
+delegate/current graph/port is NOT captured yet;it is the concrete next target.
+No dispatch,physical click,rendered replay UI or healthy replay exit is qualified.
+
+All three receiver-list members have stored stream=null,isConnected=false,
+isDisconnecting=false,unchanged in both snapshots. This is recorded explicitly,
+not repaired or interpreted as a gameplay defect. Original SignalReceiver.
+OnSignal008fa8e0 directly forwards callback+40 without checking those fields;
+SignalStream.ConnectReceiver008fe080 adds membership without directly assigning
+receiver-owned bookkeeping (its optional notification callback is separate).
+Stored wrapper flags therefore were an unsupported inventory acceptance gate.
+
+Pilot01/PID30120 remains FAILED96.619s:the first observer required matching stream/
+connected flags and refused before emitting the complete inventory. Original
+practice/results/Continue/menu/Quit0 still finish naturally,no force,reaped.
+After terminal exit,the observer was changed to RECORD actual fields and the pure
+reader now reports mismatches explicitly;it never claims signal-route execution.
+Pilot source copies are retained. Only that C++ observer and signal reader differ
+between146-path producer maps;all other producer paths are equal. The fresh02
+run,not a rewritten pilot or relaxed recovery claim,qualifies this observation.
+
+02 also completes1200-frame practice/result/Continue/menu/original Quit0,owned
+process reaped,no force. Bot supply14/nine autonomous records,empty order+movement
+intersection:reuse prior bot movement proofs. All146 producer sources are stable
+across02;current90-path native build receipt and installed program/catalog seals
+match. Shared TOML,manual71/LAN03 and absent practice preference stay unchanged.
+No package/physical/replay-active/LAN/Internet/descendant job-accounting scope is
+inferred.12existing C++ build checks and20distinct focused Python checks pass.
+
+Native02 local/replay88-signal-native02/verification.json SHA256
+8afa7552acc75f9765772194977d1d4caee582f22be3d4efa8418f90e8184413.
+Failed01 local/replay88-signal-native01/verification.json SHA256
+0831fef0e3aeb9386f5b07637c1c4339a306a1dfd49dd66f20a39300503b0eb3.
+Strict retained review local/replay88-retained-review.json SHA256
+055566c25e41506c88cae6ad93f8c3bcb588c7fa6e9109ec59028e1572413f71;
+reviewer SHA256
+59b94a554c418042e0524dda33ed2ffb18e9b8240aa15104b0d35edc700372f7.
+Static original-byte/LLVM/IL2CPP manifest (not REA native Evidence):
+local/replay88-signal-contract/manifest.json SHA256
+ae633405539991e078d54ee06f5cd18cc9e0234324d5b8f12578aa816a3c5de5.
+Preparation02 SHA256
+f41e14284dbf5c12292d9481ee863e55022b544695803d3c57fbdbb3e5bffba2.
+Helper88-02 SHA256
+c71b426eee2d332423e322db6156de67ece2a9d0226f403c175c52dcc355d244;
+build receipt SHA256
+42ef3c31e90564c36cdd21f14c5ed5210707290e2e3b7ba95d4e28aacd4eb0cc.
+No original files or raw game observations are added to Git.
+
+Next:read UIButtonNodyListener's EXISTING forwarded callback/current graph/port
+and its Game/Quit payload conditions;establish supported original replay entry
+before exercising its bound exit. Do not manufacture a separate Game/Quit stream
+or a direct ReplayEndGame callback. D4-RP1 remains OPEN. D6's physical check stays
+first priority;its prepared candidate is unchanged and no repeat request is issued.

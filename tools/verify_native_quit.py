@@ -29,7 +29,8 @@ def sources():
     return startup.source_hashes() | {p.relative_to(ROOT).as_posix(): hashlib.sha256(p.read_bytes()).hexdigest()
                                      for p in (Path(__file__), ROOT/'client_patch/build.ps1',ROOT/'tools/verify_practice_ai.py',
                                                ROOT/'tools/startup_task_evidence.py', ROOT/'client_patch/patcher/startup_tasks.py',
-                                               ROOT/'tools/verify_telemetry_audit.py', ROOT/'tools/replay_binding_evidence.py')}
+                                               ROOT/'tools/verify_telemetry_audit.py', ROOT/'tools/replay_binding_evidence.py',
+                                               ROOT/'tools/replay_signal_evidence.py')}
 
 
 def telemetry_evidence(text,rows,expected_sha256,*,after_practice=False,device_probe=False):
@@ -128,6 +129,8 @@ def run(args):
     require(not args.after_practice or args.mode=='confirm','post-practice requires original Confirm/natural exit mode')
     require(not getattr(args,'replay_binding_inventory',False) or args.after_practice,
             'replay binding inventory requires a healthy owned practice match')
+    require(not getattr(args,'replay_signal_inventory',False) or getattr(args,'replay_binding_inventory',False),
+            'replay signal inventory requires the read-only button inventory')
     require(not args.default_recipe or args.mode=='confirm','default recipe qualification requires original Confirm/natural exit')
     require(not getattr(args,'telemetry_audit',False) or args.mode=='confirm','pre-Quit telemetry requires original Confirm/natural exit')
     require(not getattr(args,'telemetry_device_probe',False) or getattr(args,'telemetry_audit',False),
@@ -195,6 +198,7 @@ def run(args):
         if getattr(args,'telemetry_audit',False): command.append('-telemetry-audit')
         if getattr(args,'telemetry_device_probe',False): command.append('-telemetry-device-probe')
         if getattr(args,'replay_binding_inventory',False): command.append('-replay-binding-inventory')
+        if getattr(args,'replay_signal_inventory',False): command.append('-replay-signal-inventory')
         if getattr(args,'storage_directory_fault',False):
             require(profile.startswith('nativestest_storage_'),'storage directory fault requires an explicit owned profile')
             command.append('-native-storage-directory-failure-smoke')
@@ -271,6 +275,9 @@ def run(args):
         if getattr(args,'replay_binding_inventory',False):
             from tools.replay_binding_evidence import validate
             report['replay_binding_inventory'] = validate(log())
+        if getattr(args,'replay_signal_inventory',False):
+            from tools.replay_signal_evidence import validate
+            report['replay_signal_inventory'] = validate(log())
         if getattr(args,'telemetry_audit',False):
             report['telemetry']=telemetry_evidence(log(),rows,hashlib.sha256((game/'UnityPlayer.dll').read_bytes()).hexdigest(),
                 after_practice=args.after_practice,device_probe=getattr(args,'telemetry_device_probe',False))
@@ -319,6 +326,7 @@ if __name__=='__main__':
     parser.add_argument('--telemetry-device-probe',action='store_true',help='one guarded no-argument device API call in an owned menu,never during teardown')
     parser.add_argument('--after-practice',action='store_true',help='explicit automated one-match result/Continue before original menu Quit')
     parser.add_argument('--replay-binding-inventory',action='store_true',help='read existing hidden replay-button actions in healthy owned practice; no click')
+    parser.add_argument('--replay-signal-inventory',action='store_true',help='read existing UIButton broadcast subscribers; no signal dispatch')
     parser.add_argument('--default-recipe',action='store_true',help='qualify natural exit using the default patch without optional teardown hooks')
     parser.add_argument('--mode',choices=('inventory','cancel','confirm'),default='cancel')
     parser.add_argument('--visible',action='store_true')

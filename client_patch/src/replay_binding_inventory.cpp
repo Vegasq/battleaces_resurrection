@@ -96,6 +96,66 @@ static std::string behaviour(Obj value) {
         ",\"runners\":"+array(ba::get<Obj>(value,"Runners"),runner)+
         ",\"event\":"+event(ba::get<Obj>(value,"Event"))+"}";
 }
+static std::string callback(Obj value,unsigned depth=0) {
+    if(!value)return "null";
+    require(depth<4,"replay signal delegate depth");
+    Root target(ba::get<Obj>(value,"m_target")),children(ba::get<Obj>(value,"delegates"));
+    const auto address=ba::get<uintptr_t>(value,"method");
+    std::string method="",declaring="";uint32_t token=0;int parameters=-1;
+    // Do not dereference an arbitrary MethodInfo pointer. Resolve it only by
+    // equality to actual metadata methods on this already existing target.
+    unsigned parents=0;
+    for(Obj cls=target.get()?ba::klass(target.get()):nullptr;cls;cls=ba::api<Obj(*)(Obj)>("il2cpp_class_get_parent")(cls)) {
+        require(++parents<=32,"replay signal target inheritance bound");void* iterator=nullptr;unsigned methods=0;
+        while(Obj candidate=ba::api<Obj(*)(Obj,void**)>("il2cpp_class_get_methods")(cls,&iterator)) {
+            require(++methods<=4096,"replay signal method bound");
+            if(reinterpret_cast<uintptr_t>(candidate)!=address)continue;
+            method=ba::api<const char*(*)(Obj)>("il2cpp_method_get_name")(candidate);
+            declaring=std::string(ba::api<const char*(*)(Obj)>("il2cpp_class_get_namespace")(cls))+"."+
+                ba::api<const char*(*)(Obj)>("il2cpp_class_get_name")(cls);
+            token=ba::api<uint32_t(*)(Obj)>("il2cpp_method_get_token")(candidate);
+            parameters=static_cast<int>(ba::api<uint32_t(*)(Obj)>("il2cpp_method_get_param_count")(candidate));
+        }
+    }
+    std::string nested="[";
+    if(children.get()) {
+        const auto count=ui::arrayCount(children.get(),32);
+        for(size_t i=0;i<count;++i){if(i)nested+=",";Root child(ui::arrayItem(children.get(),i));
+            require(child.get()!=value,"replay signal cyclic delegate");nested+=callback(child.get(),depth+1);}
+    }
+    nested+="]";
+    return "{\"id\":"+identity(value)+",\"target\":"+reference(target.get())+
+        ",\"declaring_class\":"+quote(declaring)+",\"method\":"+quote(method)+
+        ",\"token\":"+std::to_string(token)+",\"parameters\":"+std::to_string(parameters)+
+        ",\"metadata_resolved\":"+(!method.empty()?"true":"false")+",\"delegates\":"+nested+"}";
+}
+static std::string receiver(Obj value,Obj stream) {
+    require(value!=nullptr,"replay signal null receiver");
+    if(!ui::exact(value,"Doozy.Runtime.Signals","SignalReceiver"))
+        return "{\"receiver\":"+reference(value)+",\"typed\":false,\"stream\":null,\"stream_matches\":null,\"connected\":null,\"disconnecting\":null,\"callback\":null}";
+    Root associated(ba::get<Obj>(value,"<stream>k__BackingField"));
+    return "{\"receiver\":"+reference(value)+",\"typed\":true,\"stream\":"+reference(associated.get())+
+        ",\"stream_matches\":"+(associated.get()==stream?"true":"false")+
+        ",\"connected\":"+(ba::get<bool>(value,"<isConnected>k__BackingField")?"true":"false")+
+        ",\"disconnecting\":"+(ba::get<bool>(value,"<isDisconnecting>k__BackingField")?"true":"false")+",\"callback\":"+
+        callback(ba::get<Obj>(value,"<onSignal>k__BackingField"))+"}";
+}
+static std::string signalStream() {
+    Obj cls=ba::find_class("Doozy.Runtime.UIManager.Components","UIButton");
+    Obj field=ba::api<Obj(*)(Obj,const char*)>("il2cpp_class_get_field_from_name")(cls,"s_stream");
+    require(field && (ba::api<unsigned(*)(Obj)>("il2cpp_field_get_flags")(field)&0x10),"replay signal original static stream field missing");
+    Obj existing=nullptr;ba::api<void(*)(Obj,void*)>("il2cpp_field_static_get_value")(field,&existing);
+    Root stream(existing);
+    require(ui::exact(stream.get(),"Doozy.Runtime.Signals","SignalStream") &&
+        text(ba::get<Obj>(stream.get(),"<category>k__BackingField"))=="UISelectable" &&
+        text(ba::get<Obj>(stream.get(),"<name>k__BackingField"))=="UIButton","replay signal existing UIButton stream missing/different");
+    Root receivers(ba::get<Obj>(stream.get(),"<receivers>k__BackingField"));List values(receivers.get());
+    std::string out="{\"stream\":"+reference(stream.get())+",\"category\":\"UISelectable\",\"name\":\"UIButton\""+
+        ",\"signals_counter\":"+std::to_string(ba::get<int>(stream.get(),"<signalsCounter>k__BackingField"))+
+        ",\"global_callback\":"+callback(ba::get<Obj>(stream.get(),"OnSignal"))+",\"receivers\":[";
+    for(int i=0;i<values.size;++i){Root entry(values.at(i));if(i)out+=",";out+=receiver(entry.get(),stream.get());}
+    values.unchanged();return out+"]}";
+}
 static std::string path(Obj value) {
     auto transform=std::make_unique<Root>(ba::call(value,"get_transform"));std::string out;
     for(unsigned depth=0;transform->get();++depth) {
@@ -114,7 +174,8 @@ static std::string snapshot(Obj controller,Obj button) {
         ",\"initialized\":"+(ba::get<bool>(button,"<selectableInitialized>k__BackingField")?"true":"false")+
         ",\"signal_category\":"+named(id.get(),"Category")+",\"signal_name\":"+named(id.get(),"Name")+
         ",\"signal_custom\":"+(ba::get<bool>(id.get(),"Custom")?"true":"false")+
-        ",\"behaviours\":"+array(ba::get<Obj>(container.get(),"Behaviours"),behaviour)+"}";
+        ",\"behaviours\":"+array(ba::get<Obj>(container.get(),"Behaviours"),behaviour)+
+        (ba::flag(L"-replay-signal-inventory")?",\"button_stream\":"+signalStream():"")+"}";
 }
 static void observe() {
     if(!ba::flag(L"-replay-binding-inventory") || finished || GetTickCount64()<due)return;
