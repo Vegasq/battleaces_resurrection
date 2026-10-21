@@ -60,6 +60,9 @@ def run(args):
                   source_verification=str(source_report), source_verification_sha256=sha(source_report),
                   source_replay=str(original), seed=str(seed), sources_before=sources())
     button_exit=getattr(args,'button_exit',False)
+    cancel_first=getattr(args,'cancel_first',False)
+    require(not cancel_first or button_exit,'--cancel-first requires --button-exit')
+    report['cancel_first']=cancel_first
     report['exit_route']='original-visible-button' if button_exit else 'original-exit-api'
     stop = threading.Event()
     process = thread = None
@@ -72,7 +75,7 @@ def run(args):
         try:
             while not stop.wait(.05) and process.poll() is None:
                 text = read_native_log(game, process.pid, since_tick=tick)
-                completed=evidence.BUTTON_COMPLETE if button_exit else evidence.COMPLETE
+                completed=evidence.CANCEL_COMPLETE if cancel_first else evidence.BUTTON_COMPLETE if button_exit else evidence.COMPLETE
                 failed_cleanup=(button_exit and 'Native replay menu control failed:' in text and
                     'NATIVE REPLAY BUTTON failure cleanup:' in text)
                 if completed not in text and not failed_cleanup:
@@ -100,6 +103,7 @@ def run(args):
         extras = ['-native-replay-menu-smoke', '-native-quit-gate-smoke', '-replay-binding-inventory',
                   '-replay-signal-inventory', '-replay-nody-inventory']
         if button_exit:extras.append('-native-replay-menu-button-smoke')
+        if cancel_first:extras.append('-native-replay-menu-cancel-smoke')
         require(not any(flag in command for flag in extras), 'replay control already injected')
         report['quit_control_arguments_before_adapter'] = list(command)
         command.extend(extras)
@@ -127,7 +131,7 @@ def run(args):
         require(native['passed'] is True and native['natural_exit'] is True and not native['forced_cleanup'] and
                 native['exit_code'] == 0 and report.get('quit_gate_released') is True and not gate_errors,
                 'original replay API cleanup/natural Quit incomplete')
-        report['entry'] = evidence.validate((output/'native-quit/native.log').read_text(), replay,button_exit=button_exit)
+        report['entry'] = evidence.validate((output/'native-quit/native.log').read_text(), replay,button_exit=button_exit,cancel_first=cancel_first)
         report['passed'] = True
     except BaseException as error:
         report.update(passed=False, error=repr(error), traceback=traceback.format_exc())
@@ -157,5 +161,6 @@ if __name__ == '__main__':
         parser.add_argument('--'+key, type=Path, required=True)
     parser.add_argument('--visible', action='store_true')
     parser.add_argument('--button-exit',action='store_true',help='invoke the existing leave input binding and original owned confirmation; no physical-input claim')
+    parser.add_argument('--cancel-first',action='store_true',help='Cancel the first confirmation, require same-world playback, then reopen and Confirm')
     parser.add_argument('--timeout', type=int, default=180)
     raise SystemExit(run(parser.parse_args()))

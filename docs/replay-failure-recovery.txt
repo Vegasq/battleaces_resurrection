@@ -1,6 +1,59 @@
 REPLAY RECOVERY FINDING55 -- 2026-10-20
 Plan item:D4-RP1. Status:OPEN;malformed batch recovery is NOT qualified.
 
+95 original replay confirmation Cancel/reopen/Confirm -- native PASS
+Explicit --button-exit --cancel-first adds only an owned diagnostic sequence;
+normal launchers and94's default authored-exit control stay unchanged. Before
+Cancel,the current modal/model/pool/navigation and existing CancelButton ->
+OnCancel binding must match. The original model requires CloseOnCancel=true
+and an empty persistent/runtime CancelEvent;no invented callback is installed.
+Original ModalConfirmVM.OnCancel must release its UI object,clear the original
+owner's initialized flag and navigation entry,and leave options/button hidden.
+The same rooted Replay must retain its decoded GameData and native world while
+presentation advances by at least3frames. Only then can original options/leave
+open a new owned confirmation and original OnConfirm execute the existing exit.
+No direct exit API,helper tick,forced FSM/menu transition or world replacement
+qualifies success. Native failure-only API cleanup remains strict failure.
+
+Native01/PID23608 PASS41.911168s,first95 runtime attempt. Original loader decodes
+3607frames,presented30. First authored leave opens the modal;original Cancel
+returns at frame130,the SAME world reaches134,modal owner releases/navigation0.
+Second options/leave/owned Confirm returns to menu/world idle,roots/file pin
+release,and original normal Quit0 exits/reaps naturally,no forced cleanup.
+Monitor stops;all156producer source hashes/recording/seed remain unchanged.
+Current95-source helper receipt and installed/manual71/LAN03 component/catalog
+seals reverify. Practice preference remains absent. No server/package rebuild or
+accepted startup/LAN candidate change. No physical input/disk-selector claim.
+
+13native build checks and37focused Python tests pass. New rejection controls
+cover replacement world,stalled presentation,nonempty Cancel event,missing native
+release/navigation cleanup,second leave before Cancel settlement and a single
+leave mislabeled as a Cancel/reopen sequence. Ordinary API/one-leave controls
+continue to reject Cancel evidence unless explicitly selected. Retained review
+passes against current exact producer set without another native run.
+
+local/replay95-cancel-native01/verification.json SHA256
+ce37d7d348b0645df9602e999a4289f6e2dd3aa28b8293d24888b41c9ea97562
+Inner native-quit/verification.json SHA256
+2c7d4defd1eecae6d3f9a15cd151142fd6dc73e2995f72753aad624985144b17
+local/replay95-retained-review.json SHA256
+955bff72a9e45dbb090108422937d5e3bb49d79ce905b90f5903de21cae45115
+Preparation local/replay95-preparation01.json SHA256
+456ac15c33de088d3c1fa93f0a68d0dcedadf301043a2e926c0cf14b491dcd98
+Helper95-01 SHA256
+747fb46bc57584492f912ff85bb3239c5cabbdd0a3cc99a16c01208cdde762bd
+Build receipt SHA256
+4823441987206b0a423f648a2de65b8a01b9496c1429fc8b2aff128177e57680
+
+This closes only confirmation Cancel during healthy playback. Loading/error
+Cancel,malformed stateful recovery,physical UI and D4 remain OPEN. Next:review
+original LoadReplayFromFile error/Stop contract,then one bounded owned malformed
+file through that ordinary high-level loader,verify actual cleared/usable owner
+state and subsequent healthy playback/exit in the SAME process. Reuse the six
+codec rejection cases and existing healthy/Cancel controls;do not repeat the
+known malformed developer-batch timeout or force menu state as recovery.
+DEV.txt N2 corrected LAN retry still has no new answer/report;no new request.
+
 94 authored replay leave/confirmation callback route -- native PASS
 The retained92 component inventory supplies the missing route:the visible leave
 button's existing BindUISelectableToInputAction.ClickEvent has two serialized

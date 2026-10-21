@@ -1,7 +1,7 @@
 #pragma once
 // Explicit healthy original replay API/lifecycle control. No ReplayFiles batch,
 // manual FSM transition, helper ticks, or new UI route. The separate button
-// mode invokes the existing visible UIButton, never the exit API for success.
+// mode invokes the existing input binding/confirmation, never the exit API for success.
 namespace ba_replay_menu {
 using ba::Obj;using ba_local::Root;using ba_native_settings::require;
 namespace codec=ba_native_replay_reader;
@@ -11,6 +11,8 @@ struct Probe {
     ba_native_settings::Handle file;
     std::unique_ptr<Root> controller,button,show,model,modal,modalOwner;
     bool optionsDispatched=false,buttonClicked=false;
+    bool cancelSent=false,cancelSettled=false;
+    unsigned leaveCalls=0;int cancelFrame=0;Obj gameData=nullptr;
     ULONGLONG optionsDeadline=0;
     uint64_t world=0;int frames=0;
     Probe(Obj a,Obj b,Obj c,Obj d):owner(a),front(b),replay(c),simulation(d){}
@@ -20,6 +22,7 @@ static unsigned stage=0;static ULONGLONG due=0,deadline=0;
 static std::string lastState;
 static bool canInspect(){return probe && (stage==1 || stage==2);}
 static bool buttonMode(){return ba::flag(L"-native-replay-menu-button-smoke");}
+static bool cancelMode(){return ba::flag(L"-native-replay-menu-cancel-smoke");}
 static void componentInventory(Obj button) {
     Root type(ui::reflectedType("UnityEngine","Component"));
     auto transform=std::make_unique<Root>(ba::call(button,"get_transform"));
@@ -39,6 +42,27 @@ static void componentInventory(Obj button) {
     }
 }
 static bool clickExit(Probe& value,Obj controller) {
+    if(value.cancelSent && !value.cancelSettled) {
+        require(value.show && value.modalOwner && GetTickCount64()<value.optionsDeadline &&
+            ba::read<uint64_t>(value.simulation.get(),0x1a8)==value.world &&
+            ba::read<bool>(value.simulation.get(),0x1a0) &&
+            ba::get<Obj>(value.replay.get(),"_gameData")==value.gameData,
+            "replay Cancel changed the replay/world or exceeded its deadline");
+        Root navigation(ba::get<Obj>(ba::owner,"<NavigationStack>k__BackingField"));
+        Root entries(ba::get<Obj>(navigation.get(),"_navigationStack"));
+        if(ba_local::count(entries.get()) || ba::get<Obj>(value.show->get(),"_uiObject") ||
+            ba_catalog::unbox<bool>(ba::call(value.show->get(),"get_IsShown")) ||
+            ba::get<bool>(value.modalOwner->get(),"<IsInitialized>k__BackingField"))return false;
+        const int frame=ba::read<int>(value.simulation.get(),0xac);
+        if(frame<value.cancelFrame+3)return false;
+        if(ui::active(value.button->get()))return false;
+        Root view(ba::get<Obj>(controller,"_optionsConcedeView"));
+        require(!ba::native<bool(*)(Obj,Obj)>(0x88a350)(view.get(),nullptr),"replay Cancel unexpectedly reopened options");
+        ba::log("NATIVE REPLAY BUTTON cancel settled: world=%llu presentedBefore=%d presentedAfter=%d sameReplay=1 nativeRelease=1 navigationCount=0 optionsHidden=1 fsmWrites=0 helperTicks=0",
+            static_cast<unsigned long long>(value.world),value.cancelFrame,frame);
+        value.cancelSettled=true;value.buttonClicked=false;value.optionsDispatched=false;
+        value.modal.reset();value.modalOwner.reset();value.model.reset();value.show.reset();return false;
+    }
     if(!value.optionsDispatched) {
         value.controller=std::make_unique<Root>(controller);
         value.button=std::make_unique<Root>(ba::get<Obj>(controller,"_leaveReplayButton"));
@@ -68,7 +92,8 @@ static bool clickExit(Probe& value,Obj controller) {
             ba::get<Obj>(modal.get(),"_navigationStack")==navigation.get() &&
             ba_local::count(entries.get())==1 && ui::item(entries.get(),0)==modal.get(),
             "replay confirmation is not the current owned modal");
-        Root child(ui::findChild(modal.get(),"ModalContainer/Buttons/ConfirmButton"));
+        const bool cancel=cancelMode() && !value.cancelSent;
+        Root child(ui::findChild(modal.get(),cancel?"ModalContainer/Buttons/CancelButton":"ModalContainer/Buttons/ConfirmButton"));
         Root button(ui::component(child.get(),"Doozy.Runtime.UIManager.Components","UIButton"));
         if(!ui::selectable(button.get()))return false;
         Root container(ba::get<Obj>(button.get(),"Behaviours"));
@@ -76,10 +101,25 @@ static bool clickExit(Probe& value,Obj controller) {
         for(int i=0;i<behaviours.size;++i) {
             Root item(behaviours.at(i));if(ba::get<int>(item.get(),"BehaviourName")!=7)continue;
             require(++found==1 && ba::get<Obj>(item.get(),"Selectable")==button.get(),"replay confirm button owner differs");
-            ui::persistentTarget(ba::get<Obj>(item.get(),"Event"),modal.get(),"OnConfirm");
+            ui::persistentTarget(ba::get<Obj>(item.get(),"Event"),modal.get(),cancel?"OnCancel":"OnConfirm");
         }
         behaviours.unchanged();require(found==1,"replay original confirm callback missing");
         value.modal=std::make_unique<Root>(modal.get());value.modalOwner=std::make_unique<Root>(owner.get());
+        if(cancel) {
+            require(ba::get<bool>(value.model->get(),"CloseOnCancel"),"replay Cancel model must close the modal");
+            Root meta(ba::get<Obj>(value.model->get(),"Meta")),event(ba::get<Obj>(meta.get(),"CancelEvent"));
+            Root group(ba::get<Obj>(event.get(),"m_PersistentCalls")),invoked(ba::get<Obj>(event.get(),"m_Calls"));
+            ba_replay_binding::List persistent(ba::get<Obj>(group.get(),"m_Calls"));
+            ba_replay_binding::List runtime(ba::get<Obj>(invoked.get(),"m_RuntimeCalls"));
+            require(persistent.size==0 && runtime.size==0,"replay Cancel has unqualified side effects");
+            persistent.unchanged();runtime.unchanged();
+            value.cancelFrame=ba::read<int>(value.simulation.get(),0xac);value.cancelSent=true;
+            value.optionsDeadline=GetTickCount64()+10000;
+            ba::log("NATIVE REPLAY BUTTON cancel dispatch: originalModalOnCancel=1 currentNavigation=1 emptyCancelEvent=1 closeOnCancel=1 world=%llu presented=%d originalExitApi=0 fsmWrites=0 helperTicks=0",
+                static_cast<unsigned long long>(value.world),value.cancelFrame);
+            ba::call(modal.get(),"OnCancel");
+            ba::log("NATIVE REPLAY BUTTON cancel returned: originalCallbackReturned=1");return false;
+        }
         ba::log("NATIVE REPLAY BUTTON confirmation dispatch: originalModalOnConfirm=1 currentNavigation=1 nativeModel=1 persistentReplayEndGame=1 originalExitApi=0 fsmWrites=0 helperTicks=0");
         ba::call(modal.get(),"OnConfirm");
         ba::log("NATIVE REPLAY BUTTON authored returned: originalCallbackReturned=1");return true;
@@ -134,7 +174,7 @@ static bool clickExit(Probe& value,Obj controller) {
         ba_replay_binding::reference(binder.get()).c_str(),ba_replay_binding::reference(show.get()).c_str(),
         ba_replay_binding::reference(view.get()).c_str(),clickBefore.c_str(),confirmBefore.c_str());
     value.show=std::make_unique<Root>(show.get());value.model=std::make_unique<Root>(model.get());
-    value.buttonClicked=true;
+    value.buttonClicked=true;++value.leaveCalls;
     ba::log("NATIVE REPLAY BUTTON authored dispatch: originalBindClickButton=1 active=1 interactable=1 originalExitApi=0 buttonClicks=1 fsmWrites=0 helperTicks=0");
     codec::invoke(codec::method(ba::klass(binder.get()),"ClickButton",0,0x3e9b630,0x060015bc),binder.get());
     return false;
@@ -148,6 +188,7 @@ static void update(Obj front) {
             ba::flag(L"-replay-binding-inventory") && ba::flag(L"-replay-signal-inventory") &&
             ba::flag(L"-replay-nody-inventory") && !ba::flag(L"-practice-ai-smoke") &&
             !ba::flag(L"-native-replay-playback-smoke"),"replay menu control requires one owned diagnostic API sequence");
+        require(!cancelMode() || buttonMode(),"replay Cancel control requires the original authored leave route");
         const auto& profile=ba_native_settings::session->profile();const std::string prefix="nativestest_replayui_";
         require(profile.size()==prefix.size()+12 && profile.rfind(prefix,0)==0 &&
             profile.find_first_not_of("0123456789abcdef",prefix.size())==std::string::npos,
@@ -184,6 +225,7 @@ static void update(Obj front) {
             Root frames(codec::get(replay.get(),"get_FrameCount",0x3ddb470,0x0600092a)),data(ba::get<Obj>(replay.get(),"_gameData"));
             probe->frames=ba_catalog::unbox<int>(frames.get());require(data.get() && probe->frames>30 && probe->frames<=65536,
                 "replay menu decoded data/frame bound");
+            probe->gameData=data.get();
             const auto digest=ba_lan::sha(ba_lan::serialize(data.get()));std::string hash;char byte[3];
             for(unsigned char value:digest){sprintf_s(byte,"%02x",value);hash+=byte;}
             ba::log("NATIVE REPLAY MENU loaded: frames=%d gameDataSha256=%s loadReturned=1 originalPlayInternal=1",probe->frames,hash.c_str());
@@ -229,8 +271,10 @@ static void update(Obj front) {
             require(!ba::read<uint64_t>(probe->simulation.get(),0x1a8) &&
                 !ba::read<bool>(probe->simulation.get(),0x1a0) && !ba_practice::active() &&
                 ba_client::worldOwner==ba_client::Owner::None,"replay menu exit did not release the original world");
+            if(cancelMode())require(probe->cancelSettled && probe->leaveCalls==2,"replay Cancel/reopen sequence incomplete");
             probe.reset();stage=4;
-            if(buttonMode())ba::log("NATIVE REPLAY MENU BUTTON control passed: mainMenu=1 worldIdle=1 originalExitApi=0 probeRootsReleased=1 filePinReleased=1 buttonClicks=1 fsmWrites=0 helperTicks=0 BA_RESURRECTION_REPLAY_MENU_BUTTON_V2");
+            if(cancelMode())ba::log("NATIVE REPLAY MENU CANCEL control passed: mainMenu=1 worldIdle=1 originalExitApi=0 probeRootsReleased=1 filePinReleased=1 buttonClicks=2 cancelCallbacks=1 fsmWrites=0 helperTicks=0 BA_RESURRECTION_REPLAY_MENU_CANCEL_V1");
+            else if(buttonMode())ba::log("NATIVE REPLAY MENU BUTTON control passed: mainMenu=1 worldIdle=1 originalExitApi=0 probeRootsReleased=1 filePinReleased=1 buttonClicks=1 fsmWrites=0 helperTicks=0 BA_RESURRECTION_REPLAY_MENU_BUTTON_V2");
             else ba::log("NATIVE REPLAY MENU API control passed: mainMenu=1 worldIdle=1 originalExitApi=1 probeRootsReleased=1 filePinReleased=1 buttonClicks=0 fsmWrites=0 helperTicks=0 BA_RESURRECTION_REPLAY_MENU_V1");
         }
     } catch(const std::exception& error) {

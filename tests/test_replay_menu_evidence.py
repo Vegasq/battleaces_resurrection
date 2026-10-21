@@ -3,7 +3,7 @@ import re
 import unittest
 
 from tests import test_replay_signal_evidence as fixture_module
-from tools.replay_menu_evidence import validate, COMPLETE, BUTTON_COMPLETE
+from tools.replay_menu_evidence import validate, COMPLETE, BUTTON_COMPLETE, CANCEL_COMPLETE
 from tools.replay_binding_evidence import validate as binding
 
 
@@ -116,6 +116,50 @@ class ReplayMenuEvidenceTests(unittest.TestCase):
             self.assertNotEqual(text,bad)
             with self.subTest(text=bad[-100:]), self.assertRaises(AssertionError):
                 validate(bad,self.replay,button_exit=True)
+
+    def cancel_text(self):
+        text=self.button_text()
+        start=text.index('[4] NATIVE REPLAY BUTTON options dispatch:')
+        confirm=text.index('[8] NATIVE REPLAY BUTTON confirmation dispatch:')
+        cycle=text[start:confirm]
+        cancel=('[8] NATIVE REPLAY BUTTON cancel dispatch: originalModalOnCancel=1 currentNavigation=1 '
+                'emptyCancelEvent=1 closeOnCancel=1 world=10 presented=36 originalExitApi=0 fsmWrites=0 helperTicks=0\n'
+                '[9] NATIVE REPLAY BUTTON cancel returned: originalCallbackReturned=1\n'
+                '[10] NATIVE REPLAY BUTTON cancel settled: world=10 presentedBefore=36 presentedAfter=40 '
+                'sameReplay=1 nativeRelease=1 navigationCount=0 optionsHidden=1 fsmWrites=0 helperTicks=0\n')
+        return text[:start]+cycle+cancel+cycle+text[confirm:].replace(BUTTON_COMPLETE,CANCEL_COMPLETE)
+
+    def test_cancel_requires_same_replay_progress_then_fresh_original_leave_confirm(self):
+        result=validate(self.cancel_text(),self.replay,button_exit=True,cancel_first=True)
+        self.assertTrue(result['confirmation_cancel_qualified'])
+        self.assertEqual(result['button_clicks'],2)
+        self.assertFalse(result['physical_ui_input_qualified'])
+        self.assertFalse(result['malformed_recovery_qualified'])
+        with self.assertRaises(AssertionError):validate(self.button_text(),self.replay,button_exit=True,cancel_first=True)
+        with self.assertRaises(AssertionError):validate(self.cancel_text(),self.replay,button_exit=True)
+
+    def test_cancel_rejects_world_replacement_stalled_playback_or_missing_release(self):
+        text=self.cancel_text()
+        for before,after in [('cancel settled: world=10','cancel settled: world=11'),
+                             ('presentedAfter=40','presentedAfter=36'),
+                             ('presentedBefore=36','presentedBefore=35'),
+                             ('nativeRelease=1','nativeRelease=0'),
+                             ('emptyCancelEvent=1','emptyCancelEvent=0'),
+                             ('originalModalOnCancel=1','originalModalOnCancel=0'),
+                             ('navigationCount=0','navigationCount=1')]:
+            with self.subTest(before=before),self.assertRaises(AssertionError):
+                validate(text.replace(before,after),self.replay,button_exit=True,cancel_first=True)
+
+    def test_cancel_cannot_follow_the_second_leave_or_use_only_one_leave(self):
+        text=self.cancel_text()
+        first=text.index('[4] NATIVE REPLAY BUTTON options dispatch:')
+        second=text.index('[4] NATIVE REPLAY BUTTON options dispatch:',first+1)
+        end=text.index('[8] NATIVE REPLAY BUTTON confirmation dispatch:')
+        cancel=text.index('[8] NATIVE REPLAY BUTTON cancel dispatch:')
+        late=text[:cancel]+text[second:end]+text[cancel:second]+text[end:]
+        with self.assertRaises(AssertionError):validate(late,self.replay,button_exit=True,cancel_first=True)
+        with self.assertRaises(AssertionError):
+            validate(text[:second]+text[end:],self.replay,button_exit=True,cancel_first=True)
 
 
 if __name__ == '__main__':

@@ -212,6 +212,11 @@ Completed subcases (same-PC packaged automated controls; two human clients):
 All four include results/Continue/natural Quit and owned-resource cleanup;
 team-recovery.txt binds the exact reports, scope and injected-worker outcomes.
 Additional scoped source/native qualification (not the same packaged controls):
+[x] Healthy replay confirmation Cancel/reopen/Confirm95:original OnCancel releases
+    the owned modal/navigation,same Replay/GameData/world advances130->134,then
+    fresh original options/leave/Confirm/menu/world idle/natural Quit0,no force.
+    Current helper/installed/manual/LAN seals hold. Not loading/error Cancel,
+    physical input,disk selection,malformed recovery or parent D4 closure.
 [x] Healthy replay original options/authored leave/owned confirmation callback
     route94:3607decoded frames,presented31,existing Show/Hide and ReplayEndGame
     bindings,current native modal,menu/world idle and natural Quit0/no force.
@@ -239,10 +244,12 @@ that context. Native90 now qualifies original normal-menu Load/Play,restored
 replay pump,advancing world/in-game owner and original exit API/menu/Quit0.
 Local AI/result/Continue/Quit and ordinary Custom/rematch shared-hook91
 regressions also pass.94 now qualifies the original options/authored input-binding
-and existing modal confirmation callbacks through menu/Quit0. Next is original
-Cancel preserving the advancing replay,then original leave/Confirm on that same
-world,before stateful malformed recovery. No physical pointer/user-exposed disk
-selector or Cancel/fault pass inferred. Exact reports:replay-failure-recovery.txt.
+and existing modal confirmation callbacks through menu/Quit0.95 now qualifies
+confirmation Cancel preserving an advancing replay,then original leave/Confirm
+on that same world. Next is original high-level malformed-file load/refusal,
+actual usable/cleared owner state and subsequent healthy playback/exit in the
+same process. No loading/error Cancel,physical pointer/user-exposed disk selector
+or malformed fault pass inferred. Exact reports:replay-failure-recovery.txt.
 No force-menu patch or repeated malformed developer-batch timeout test.
 - Close remaining invitation departure/late-return/abort-notice and multiplayer
   disconnect/restart/failure paths in every affected required mode. Survivors
