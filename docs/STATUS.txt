@@ -3,6 +3,19 @@ Updated: 2026-10-21 UTC
 Delivery plan: REMAINING_DELIVERY_PLAN.txt, Windows only.
 Original roadmap: CLOSED / SUPERSEDED;see PLAN_CLOSEOUT.txt.
 
+LAN98 CORRECTS PACKAGED-RUNTIME DEPENDENCY FAILURE
+New owner setup93 report fails player_invites/ModuleNotFoundError after TLS,
+revokes invites,no game/server start. The coordinator runs in the client package,
+which intentionally omits server.configuration. Remove its added import;the
+actual packaged SERVER readiness check retains production config validation.
+Seven tests pass,new full coordinator-import/client-recipe regression included.
+Fresh98 exact53 archives/local assets verify;actual bundled client imports all
+seven project modules,actual bundled server accepts generated config in its own
+module context. Restricted preflight refuses without private writes/configs or
+native/server start. Both failed53/93 files/reports and Nick's answers preserved.
+DEV.txt N2 has fresh98 launcher/answer fields;normal-owner READY and physical
+two-PC play remain pending. Exact evidence:lan-playtest-candidate.txt.
+
 REPLAY97 PARSED EMPTY/MISSING-CONFIG REFUSALS PASS
 Original Replay.Load null guards run before decoded-data storage/Pause/Reset.
 Two exact authored complete-Deflate inputs produce empty Replay/missing GameConfig;

@@ -1,5 +1,12 @@
 WINDOWS RELEASE ACCEPTANCE -- 2026-10-20
 
+LAN retry98 preparation
+Owner93 fails a server-only coordinator import in the client runtime. Corrected98
+retains server-side production config validation;7tests and actual bundled-client
+dependency/bundled-server config checks pass. Failed53/93 settings/private files/
+reports retained,invites revoked. DEV.txt N2 has the single fresh retry. No owner
+READY,LAN reachability/physical match or broader release gate is closed.
+
 Owner results93 reviewed2026-10-21
 D6 startup gate CLOSED:physical reboot-first~20s/repeat~2s,visible AI/results/
 Continue/Quit without issues,unchanged manual71 seals/package plus retained

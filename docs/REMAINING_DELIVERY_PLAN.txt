@@ -46,8 +46,10 @@ Delivery order
 D6 CLOSED on review93:Nick reports post-reboot menu20s,repeat2s,window/sound15s,
 Try Deck/results/Continue/Quit works,no issues. Manual71 seals/package still pass.
 Preserve that accepted candidate;do not repeat warm D6 batches as acceptance.
-D1 is next:old setup53 failed the production TLS path rule;corrected fresh93
-setup is prepared without overwriting old private/configuration files. DEV.txt
+D1 is next:setup53 failed the TLS path rule;93 then failed a server-only import
+in the client runtime. Fresh98 removes that import,retains real server readiness
+validation and passes actual bundled-client import closure/bundled-server config
+checks without overwriting either failed setup's private/configuration files. DEV.txt
 N2 records the single pending retry;N1 and N3 have reviewed results. Protected
 active-console40 PASS closes that D7 subcase,not SCM/backup/clean-PC deployment.
 Check DEV.txt answers/public reports before repeating requests. D7 precedes D8/D9.
@@ -57,10 +59,12 @@ each pass closes its named subcase, not the broader parent. D5-D8 retain their
 explicit independent gates; D9 closes only after those release gates pass.
 
 [ ] D1 - Complete the prepared two-PC LAN milestone
-Next action: normal desktop run of local/friends93-owner-setup01/
-LAN Playtest Setup.cmd. Failed53 report retained;invites revoked.93 moves private
-TLS into config/private,passes real production configuration regression,verified
-package/assets and restricted no-private-write preflight. Owner retry pending.
+Next action: normal desktop run of local/friends98-owner-setup01/
+LAN Playtest Setup.cmd. Failed53/93 reports/config/private files retained;invites
+revoked.98 keeps private TLS in config/private and validates with the SERVER's
+runtime,not a missing client module. Seven tests,actual seven-client-module
+imports,actual server config checks,package/assets and restricted no-private-write
+preflight pass. Protected readiness/two-PC play remain pending.
 - Confirm protected certificate/invite creation, host enrollment and native health
   with the real packaged code. Transfer only friend-handoff to the second PC.
 - On that PC, patch its own build37822 copy, confirm CA hash, enroll its own

@@ -223,8 +223,8 @@ def prepare(args):
             'This certificate expires after 30 days; this is a LAN test candidate.\n')
         with (handoff/'CONNECTION.txt').open('x', encoding='utf-8', newline='\n') as target: target.write(details)
         write_new(host_config, host)
-        from server.configuration import load_config
-        load_config(host_config)  # Real production path rules before enrollment/native work.
+        # The client runtime intentionally omits server.configuration. The
+        # packaged SERVER check below owns production configuration validation.
         report['stage'] = 'host_client_enrollment'
         settings = client.defaults(game)
         settings.update(display_name='LAN Host', local_profile='lan_playtest_host')

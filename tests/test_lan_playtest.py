@@ -4,6 +4,7 @@ Certificate construction explicitly mocks only file privacy; it proves neither
 Windows DACL access nor real protected provisioning. Actual owner setup is separate.
 """
 from contextlib import redirect_stdout
+import ast
 import io
 import json
 import hashlib
@@ -22,6 +23,23 @@ from tools import prepare_lan_playtest as lan
 
 
 class LANTests(unittest.TestCase):
+    def test_coordinator_project_imports_exist_in_client_package(self):
+        from tools.build_windows_packages import CLIENT
+        required=set()
+        for node in ast.walk(ast.parse(Path(lan.__file__).read_text())):
+            modules=[]
+            if isinstance(node,ast.Import):modules=[alias.name for alias in node.names]
+            elif isinstance(node,ast.ImportFrom) and node.module:
+                modules=[node.module]+[node.module+'.'+alias.name for alias in node.names]
+            for module in modules:
+                if not module.startswith(('server.','client_patch.','tools.')) and module not in ('server','client_patch','tools'):
+                    continue
+                base=module.replace('.','/')
+                for name in (base+'.py',base+'/__init__.py'):
+                    if (lan.ROOT/name).is_file():required.add(name)
+        self.assertTrue(required)
+        self.assertFalse(required-set(CLIENT),'Coordinator imports omitted from the client runtime: '+str(required-set(CLIENT)))
+
     def test_generated_host_paths_pass_real_config_and_tls_in_data_is_rejected(self):
         from server.configuration import load_config, ConfigurationError
         folder = private_test_folder('lan-config-')

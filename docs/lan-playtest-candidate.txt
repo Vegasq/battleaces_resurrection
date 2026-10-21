@@ -1,5 +1,44 @@
 TWO-PC LAN CANDIDATE53 -- 2026-10-20
 
+Owner failure93 / fresh runtime-correct setup98,reviewed2026-10-21
+New public report local/friends93-owner-setup01/last-report.json SHA256
+4d6f09f47ecbf648211b207de62e966bc90638ea368475a70cb18c7603b05de7
+fails player_invites with ModuleNotFoundError. TLS memory handshake passed,
+no game/listening server started,and failed-setup invites were revoked. Public
+host config exists while client config does not. Actual client manifest lacks
+server/configuration.py;actual server manifest contains it.93's new coordinator
+import of that module happens immediately after writing host config,before
+enrollment. This identifies a coordinator dependency defect,not a TLS/native fault.
+
+Remove that redundant client-side import. The existing actual packaged SERVER
+check still loads/validates production configuration/TLS/credentials/native
+health before READY. No production module substitution,import-path manipulation,
+client package expansion or relaxed private-file checks. Seven focused tests
+pass. The new regression scans coordinator project imports against the client
+package recipe,including branches restricted preflight cannot reach;93's import
+would fail that check. The real package runtime checks below close the earlier
+checkout-only validation gap;no full protected setup success is inferred.
+
+Fresh local/friends98-packages01 uses EXACT53 ZIPs and only verified local asset-
+manifest files. Both immutable packages/assets verify. The ACTUAL bundled client
+imports all seven coordinator project modules. The ACTUAL bundled SERVER runtime
+loads its own configuration module and accepts a generated public config with
+config/private TLS paths. Temporary validation config is removed. No private
+directory/key/invite/store/native worker/listener is created. Then actual client
+restricted preflight exits2 at normal_desktop_account_required,without private
+operations/host-client config creation. Failed53/93 reports/configs/private files
+are preserved. Host IPv4 remains192.168.68.66 by read-only interface inventory.
+
+Prepared action:local/friends98-owner-setup01/LAN Playtest Setup.cmd. Source SHA256
+9156f154009edee3f41e79faa2a30b476e898720c5c395a71737faf2914f47e1
+Preparation local/friends98-owner-setup01/preparation.json SHA256
+4bd1c02b720568f41225f329fbd878acf340afd717cdbd42f8fc73bc39a264cc
+retains exact wrapper/guide/preflight hashes and actual runtime checks. DEV.txt
+N2 now requests ONLY this fresh retry,with separate answer fields preserving
+Nick's53/93 text. READY and the actual protected/two-PC Custom match/rematch/
+ordinary-Quit path remain OPEN. Do not rerun or transfer either failed setup.
+Historical93 early config-import claim below is superseded by this correction.
+
 Owner failure53 / corrected fresh setup93,reviewed2026-10-21
 Nick reports failure at native_host_check,no two-PC steps. Public failed report
 SHA256 0d5824eabccf0d20e416e6df46256ed441a8aa58a5daddae28c3c0f616a304ed
