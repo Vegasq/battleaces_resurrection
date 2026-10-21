@@ -511,3 +511,61 @@ FORCED owned cleanup,NOT original Quit. No delayed-ENTER-ACK injection here;
 do not close R05's distinct stale-ACK case with this ordinary retry proof.
 Mode2's223.719s slow initialization is retained separately for D6 in
 client-startup.txt;that delay is not matchmaking time or a networking cause.
+
+2026-10-21 UTC delayed ENTER acknowledgement72 (D2 R05-mode2)
+After production D6 implementation/automated qualification71,the remaining
+physical cold-start observation is pending. Resume only independent finite D2
+cases;preserve manual71/LAN03. Owned automated58 is upgraded to the same verified
+catalog recipe,without changing helper51 or program patch sites. Preparation
+validates all133 bundles,original helper build receipt,and unchanged manual71/
+LAN03 program/catalog seals. No ordinary-launch automation or fixture networking
+is added to the product. Preparation receipt SHA256
+23f74bb457d2c36e9b22e60bcb2a8b34b5d8da698e925b1115731b5d756caea3
+
+Actual unchanged tools.verify_public_client --ordinary-player --mode2 --cancel
+waiting --retry --delay-enter-ack5 passes238.047s,PID37900. Original Cancel
+retires ticket1;ticket2 starts on the SAME authenticated connection. Its fresh
+ENTER_LOADOUT request4 ACK precedes the original request2 ACK,which is consumed
+1.188s into search2. Server audit independently retains5.0078492s delayed reply.
+One ticket2 offer,one remote world/worker,no local fallback,no other assignment.
+Authoritative OFFERED elapsed30062ms;native intent->accepted30.078s,timer0..29.
+Observed audit entry->offer29.800668s is logged AFTER ticket creation;do not use
+it to assert a shortened deadline. Real queue policy/50ms simulation unchanged.
+
+3451exact native receipts match authoritative input frame hashes. Original native
+result at3431/conceded0,Continue/RETURN/search/world/ticket/offer release pass.
+Complete17-slot frozen loadouts and selected unit deck survive both tickets and
+the joined original native models. One authentication/resolution,worker exits0/
+reaped,no failure/stderr. Bound source/shared TOML unchanged. Final game process
+termination is FORCED owned cleanup,NOT native Quit/physical/bundled/LAN or
+protected enrollment acceptance. This closes only R05-mode2's named native cell.
+local/cancel72-late-enter-2v2-retry01/verification.json SHA256
+cb386571ffb2ff79e5d950acd1b9bfc9f3f7993ae22379a1b7840e6fb3e95c54
+
+Read-only reviewer binds exact old/fresh request numbers,ACK native delivery/order
+within ticket2,before its sole assignment,all source hashes,result/Continue,
+one-world/worker cleanup and unchanged installed/manual/LAN program/catalog.
+All133 current fingerprints still match (0bundle rehashes). First review fails
+on its own missing observed_at field;native report remains PASS,not rerun. Audit
+stores perf_counter_ns;corrected reviewer uses that exact retained clock. Failed
+invocation and original authored reviewer are retained separately. No source,
+native/helper/timeout change was made to pass the underlying check.
+local/cancel72-2v2-review.json SHA256
+bd01c57de07b50c01f0c7af66e4ac12c27b1296734eb23c8cba7f1f41d05d8fc
+
+Mode5's matching R05 cell also PASS291.561s,PID26064. Same exact recipe/helper/
+diagnostic/source/seed,distinct owned profile/server/output. Request4 succeeds
+before old request2 arrives1.172s into search2;server-held delay5.003071s. Original
+OFFERED elapsed30050ms;native intent->accepted30.062s,timer0..29. Audit entry->
+offer29.982128s has the same post-creation logging boundary. One human/AI ally/
+two AI opponents,one remote world/worker,no local fallback.4588exact frames,
+original result at4568/conceded0,Continue/RETURN and every ownership release.
+Worker0/reaped,one authentication/resolution,full frozen selections and all
+covered source/shared settings preserved. Final client cleanup is forced,with
+the same explicit scope limits above. Both remaining R05 native cells now close.
+local/cancel72-late-enter-2vai-retry01/verification.json SHA256
+84634f1932fe97631d0a6c45da6ecd56495751e9984e59b4516dc202636c77b7
+local/cancel72-2vai-review.json SHA256
+74f80e29f21083dec84d0a9a43f239d1382420df6ad68eeecc3a3cb8c4eace42
+Both corrected retained reviewers exit0,without another native run or any source
+change. No redundant component suite:only roadmap/evidence documentation changes.

@@ -44,8 +44,11 @@ ordinary/cross-PC/Internet/deployment matrix. See STATUS.txt and focused records
 
 Delivery order
 D6 is the immediate engineering priority at the user's explicit request on
-2026-10-20. Pause new unrelated D2-D5/D7-D8 investigations while tracing the slow
-startup. The already-prepared D1 physical LAN sequence can proceed independently;
+2026-10-20. Production fix/native/package checks71 now pass;only D6's physical
+restart-cold/repeat-launch observation is pending. Preserve its prepared manual
+candidate and resume independent finite D2-D4 cases while awaiting that result;
+any reported D6 defect takes priority again. Do not repeat warm startup runs as
+cold acceptance. The already-prepared D1 physical LAN sequence can proceed independently;
 its candidate and pending owner steps remain unchanged. D7 precedes final D8/D9.
 After D6, resume D1 and close D2-D4 with planned playtests and targeted fixes.
 For D2-D4,list the finite remaining cases against retained evidence before more tests;
@@ -72,11 +75,15 @@ Use the same selected candidate and record missing combinations explicitly.
 Finite case inventory and requirement mapping: mode-acceptance-matrix.txt.
 All eight supported public roster sizes already have native PASS evidence.
 The waiting Cancel/retry tests already active when D6 was prioritized have
-finished;their scoped results are recorded below. New D2 runs are deferred
-while D6 is the immediate engineering priority.
+finished;their scoped results are recorded below. With D6's engineering fix and
+automated qualification complete,preserve its manual candidate and address the
+remaining named D2 cells without repeating covered queue/roster tests.
 Completed subcases (same-PC automated controls; not physical LAN):
 [x] Original waiting Cancel/retry in modes2 and5 (cancel63 R02);one subsequent
     authoritative AI-fill match each,results/Continue;forced final cleanup.
+[x] Delayed first ENTER ACK during modes2/5 Cancel/retry (cancel72 R05):
+    original second search survives the old reply,then one authoritative match/
+    results/Continue;3451/4588 exact frames,each worker0,forced final game cleanup.
 [x] Packaged four-human2v2 through results/Continue/natural Quit (roster57 full-human01).
 [x] Packaged three-human/one-bot2v2 with real30-second fill, results/Continue/natural Quit
     (roster57 three-human03). See current-community-matches.txt for evidence.

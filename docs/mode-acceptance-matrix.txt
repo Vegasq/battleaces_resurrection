@@ -80,7 +80,7 @@ R01 before ENTER              P:cancel-before01      O       O
 R02 waiting                   P:ordinary-cancel01    P:63-2  P:63-5
 R03 OFFERED before READY      P:cancel-offer01       O       P:2vai-cancel01
 R04 after READY committed     P:cancel-ready01       O       O
-R05 cancel/retry + old ENTER   P:cancel-retry01       O       O
+R05 cancel/retry + old ENTER   P:cancel-retry01       P:72-2  P:72-5
 R06 assignment after local AI O                      O       O
 R07 dropped final RETURN ACK  P:drop-return02         O       O
 63-2/63-5 are current-helper51 waiting Cancel/retry passes on the independent
@@ -163,5 +163,12 @@ bullet3 -> B/C; bullet4 -> P01/P02 and R; bullet5 -> R/T and retained D4 cases.
 D2 closes when every required OPEN case has inspected matching evidence or a
 fixed/retested defect, physical P01-04 pass, and relevant final artifact identities
 are bound. A scoped pass can close its case without closing its broader scope.
-Next autonomous case: R02-mode2, original Cancel during a waiting2v2 queue.
+R05-mode2/mode5 now pass72:old ENTER ACK delayed5s is consumed during ticket2,
+then one authoritative match/results/Continue completes. Forced final cleanup;
+not Quit/physical/LAN/protected qualification. Details:public-matchmaking.txt.
+Next autonomous case: R04-mode2/mode5,original Cancel just after READY commits,
+then usable next Play without starting local AI for the ambiguous commitment.
+R02-mode2 already passed63;do not repeat.
+Use only the owned automated58 copy with production D6 catalog verification;
+the prepared D6 manual71/LAN03 candidates remain unchanged. No physical gate is waived.
 First top-level closure remains physical D1.

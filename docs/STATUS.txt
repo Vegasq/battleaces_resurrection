@@ -1,7 +1,24 @@
 IMPLEMENTATION LEDGER
-Updated: 2026-10-20 UTC
+Updated: 2026-10-21 UTC
 Delivery plan: REMAINING_DELIVERY_PLAN.txt, Windows only.
 Original roadmap: CLOSED / SUPERSEDED;see PLAN_CLOSEOUT.txt.
+
+D2 LATE-ENTER CANCEL/RETRY72 (2026-10-21 UTC,R05-MODE2/MODE5 NATIVE PASS)
+Following D6's completed engineering/package checks,resume independent finite D2
+cells while its physical restart observation remains pending. Prepared manual71/
+LAN03 stay unchanged. Owned automated58 now has the same verified local catalog;
+no helper/production source or normal launcher behavior changes.
+Both original Cancel/retry searches receive the first ENTER ACK during the
+second search,after its fresh ACK. New ticket retains the original30-second
+policy,then one authoritative four-army match/results/Continue completes.
+Mode2:238.047s/3451exact frames;mode5:291.561s/4588exact frames. Both have one
+authenticated connection,one remote world/worker,no local fallback,worker0,
+full selections and source/shared settings preserved. Separate retained reviewers
+bind old/fresh request/tick order and unchanged candidate seals. Final client
+termination is FORCED owned cleanup,not Quit/physical/bundled/LAN acceptance.
+R05-mode2/mode5 are checked off in mode-acceptance-matrix.txt;D2 parent and all
+external gates stay open. Details/hashes:public-matchmaking.txt. Next R04-mode2/
+mode5 checks the READY commitment boundary,without repeating covered R02/R05.
 
 D6 PRODUCTION IMPLEMENTATION71 (2026-10-20 UTC,NATIVE/PACKAGED PASS / NOT COLD)
 Reversible installer now verifies133 supported bundles at install,patches only
