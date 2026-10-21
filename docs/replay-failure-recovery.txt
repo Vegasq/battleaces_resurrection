@@ -1,6 +1,86 @@
 REPLAY RECOVERY FINDING55 -- 2026-10-20
 Plan item:D4-RP1. Status:OPEN;malformed batch recovery is NOT qualified.
 
+99 reproduced permanent replay failure latch;100 fixes decoded-data replacement
+Original Simulation.CreateGame allows replay build-label mismatch with a warning;
+do not classify that label alone as malformed. Missing VersionBuild is different:
+Replay.Load accepts GameData with a nonnull empty GameConfig and stores it,then
+ReadyReplayState.Update -> Simulation.CreateGame raises a managed null reference
+before a world/map-load lock is created. StopSimulation is inactive at that point
+and cannot be treated as an automatic cleanup path. Original Replay.Pause calls
+the framework FSM.Stop016eb320;there is no Replay.Stop method. Original Load
+calls Pause/Reset before applying replacement data. Static original metadata/LLVM
+contracts below qualify those distinctions;no new Ghidra Evidence is claimed.
+
+Explicit --partial-first uses only a new owned profile's exact authored Deflate
+over0a020a00 (GameData with empty GameConfig). The ORIGINAL high-level loader
+returns true and applies that data. The diagnostic waits for exactly one original
+runner exception,keeps the same idle owner/data/world0 for250ms with no retries,
+checks exclusive file reopen,then calls the ORIGINAL loader on the valid recording.
+No helper/native-field clearing,StopSimulation/FSM.Stop or extra tick is used.
+It requires later original playback/Cancel/reopen/Confirm/menu/normal Quit.
+
+Baseline99/PID14308 FAILS as intended by the unchanged production latch. Original
+failure is observed once;replacement decodes3607valid frames but the helper's
+process-lifetime failed=true still disables the runner. After2s the diagnostic
+reports that actual flag condition,not a generic long startup timeout. Failure-
+only idle cleanup permits original Quit0/reap,33.462341s,no force. Outer report
+remains FAILED. Source/seed seals hold;archived producer bytes are retained.
+
+Production correction100 quarantines only the failed decoded record. Existing
+primary owner/replay/simulation,local/remote/bootstrap/batch exclusions remain.
+Same data is never retried each frame;only different nonnull data supplied by
+the original loader can release the latch. Failed owner/replay/simulation/data
+are rooted so collection/address reuse cannot release it falsely;replacement
+releases those roots. Original eligibility and UpdateReplayRunner remain the
+only path that advances playback. Pre-context infrastructure failures remain
+disabled. No whole networking update,new simulation step or native FSM write.
+
+Fixed100/PID25944 PASS43.077553s,first100 runtime attempt. Same authored data
+produces one contained original exception;original loader replaces it with the
+valid recording,helper admits new data on the same owner,original runner restores
+and creates an advancing world.3607frames decode,presented30,Cancel preserves
+132->137,original leave/Confirm/menu/world idle/Quit0/reap,no forced cleanup.
+Monitor stops;156producer hashes,bad/healthy seeds,original recording/shared
+settings remain unchanged. Current95-source helper receipt and installed/manual71/
+LAN03 program/catalog seals reverify;practice preference stays absent. No server
+or package rebuild/accepted-candidate change.13native checks include new null/
+same-data and every ownership-exclusion replacement rejection;46Python checks
+include missing/repeated/unrecovered errors and fake same-data/Stop recovery.
+
+Baseline local/replay99-partial-native01/verification.json SHA256
+aa64bb026970a8e88476e879bc9abc7c809c94244d86807f361fc0b269945966
+Baseline native-quit/verification.json SHA256
+91a53faa7c4358fde8713dda3dc6860df2cb3db04c9c53b9a7986c08229467a3
+Fixed local/replay100-partial-native01/verification.json SHA256
+3788052f9f08cd7147242a6497e5655545592cc7acde6a04980ea6cb43a9c572
+Fixed native-quit/verification.json SHA256
+cece1c53b4cfdfd3e00e00b966b16d5d6a7e8e7fcda65b7dd87fe4871fd9202d
+local/replay100-retained-review.json SHA256
+ce6f9ee13ffc339b98588fcf669c6c87e76e5e38cb02db82c0a3dcc30d544b9c
+local/replay99-init-contract/manifest.json SHA256
+794103a332fe2f691b656e3f4e73b61007346f43c4a68995cdbbe0c36ab8f942
+Baseline preparation99 SHA256
+3db590a9836578e3ca1dc9dfab06df7c26e0f5ad5131100ca0c26792f63ac64b
+Fixed preparation100 SHA256
+d38c3187210d2e2d2e7d0a6e2ca117e8511da45068f19f183669c73ceebb6333
+Helper99 SHA256 cf5899c432fea551d640d7843c5cbb9f0f2c9e6885e25127e215ded6a3dd2bf4
+Receipt99 SHA256 9289d5a643093952480d77730642166cef21d6fad73e55657620245bc41196f9
+Helper100 SHA256 3b848de5f66aab3304ac608da7e7c08a53b8420cf94bf261f52bcd2d0ee331c2
+Receipt100 SHA256 49866f783936b7f7edf021e6b2d0fbae420297bb7e8f91c0642b95c443ed1583
+
+The finite engine error classes enumerated96 now have scoped evidence:original
+codec/parser29,high-level invalid Deflate96,early parsed-null guards97,and
+late decoded-state failure/replacement100. Healthy confirmation Cancel95 remains
+qualified. Do not add another parse variant without a concrete missing claim.
+Remaining D4-RP1 release scope is the final relevant installed candidate and its
+ordinary reachable control/visible error behavior,plus the plan's separate
+storage/retention/physical gates. No new replay browser is implied. Current test
+does not make the invalid file return false or demonstrate automatic error UI;
+it proves another original file load can recover. partial_initialization_
+replacement_qualified=true stays separate from malformed_recovery_qualified=false.
+D4 stays OPEN. DEV.txt N2 setup98 still has no answer/report at100 closeout.
+
 97 parsed empty Replay / missing GameConfig refusal -- native PASS
 Original Replay.Load3ddbf50 first checks GameData and its GameConfig. Both null
 branches reach the original managed NullReference failure BEFORE writing decoded

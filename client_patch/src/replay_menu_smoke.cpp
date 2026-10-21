@@ -25,6 +25,55 @@ static bool buttonMode(){return ba::flag(L"-native-replay-menu-button-smoke");}
 static bool cancelMode(){return ba::flag(L"-native-replay-menu-cancel-smoke");}
 static bool invalidMode(){return ba::flag(L"-native-replay-menu-invalid-smoke");}
 static bool semanticMode(){return ba::flag(L"-native-replay-menu-semantic-smoke");}
+static bool partialMode(){return ba::flag(L"-native-replay-menu-partial-smoke");}
+static bool partialStarted=false,partialSettled=false;static unsigned partialFailuresBefore=0;
+static ULONGLONG partialFailureAt=0;
+static ULONGLONG partialReloadCheckAt=0;
+static bool partialFile(Obj front,Obj replay,Obj simulation) {
+    if(partialSettled)return true;
+    const auto path=ba_native_storage::destination(ba_native_storage::Kind::Replays).directory.apiPath()+
+        L"\\authored-retention-partial-menu.rep";
+    if(!partialStarted) {
+        require(!ba::get<Obj>(replay,"_gameData"),"partial replay control requires an empty owner");
+        probe=std::make_unique<Probe>(ba::owner,front,replay,simulation);
+        ba_native_settings::Handle pin(CreateFileW(path.c_str(),GENERIC_READ,FILE_SHARE_READ,nullptr,OPEN_EXISTING,
+            FILE_FLAG_OPEN_REPARSE_POINT,nullptr));ba_native_settings::ordinary(pin.value);
+        LARGE_INTEGER size{};unsigned char bytes[6]={};DWORD read=0;
+        static constexpr unsigned char expected[]={0xe3,0x62,0xe2,0x62,0,0};
+        require(GetFileSizeEx(pin.value,&size) && size.QuadPart==6 && ReadFile(pin.value,bytes,6,&read,nullptr) &&
+            read==6 && !memcmp(bytes,expected,6),"partial replay control requires its exact authored payload");
+        wchar_t final[32768];const auto count=GetFinalPathNameByHandleW(pin.value,final,32768,FILE_NAME_NORMALIZED|VOLUME_NAME_DOS);
+        require(count && count<32768 && !_wcsicmp(final,path.c_str()),"partial replay file escapes the owned directory");
+        Root selected(ba::api<Obj(*)(const wchar_t*,int32_t)>("il2cpp_string_new_utf16")(path.data(),static_cast<int32_t>(path.size())));
+        partialStarted=true;partialFailuresBefore=ba_replay_runtime::failures;
+        ba::log("NATIVE REPLAY PARTIAL dispatch: case=missing-version-build mainMenu=1 worldIdle=1 originalLoadReplayFromFile=1 fsmWrites=0 helperTicks=0");
+        void* args[]={selected.get()};
+        Root loaded(codec::invoke(codec::method(ba::klass(replay),"LoadReplayFromFile",1,0x3dddab0,0x06000952),replay,args));
+        Root data(ba::get<Obj>(replay,"_gameData")),config(data.get()?ba::read<Obj>(data.get(),0x18):nullptr);
+        require(loaded.get() && ba_catalog::unbox<bool>(loaded.get()) && config.get() &&
+            !ba::read<Obj>(config.get(),0x78),"partial replay did not reach the expected decoded state");
+        probe->gameData=data.get();
+        ba::log("NATIVE REPLAY PARTIAL accepted: originalLoadReturned=1 decodedDataApplied=1 missingVersionBuild=1 originalPlayInternal=1 fsmWrites=0 helperTicks=0");
+        return false;
+    }
+    require(probe && probe->owner.get()==ba::owner && probe->front.get()==front &&
+        probe->replay.get()==replay && probe->simulation.get()==simulation &&
+        ba::get<Obj>(replay,"_gameData")==probe->gameData && !ba::read<uint64_t>(simulation,0x1a8) &&
+        !ba::read<bool>(simulation,0x1a0),"partial replay changed owner/data or created an unexpected world");
+    if(ba_replay_runtime::failures==partialFailuresBefore)return false;
+    require(ba_replay_runtime::failures==partialFailuresBefore+1 && ba_replay_runtime::failed,
+        "partial replay failure was not contained once");
+    if(!partialFailureAt)partialFailureAt=GetTickCount64();
+    if(GetTickCount64()<partialFailureAt+250)return false;
+    Root navigation(ba::get<Obj>(ba::owner,"<NavigationStack>k__BackingField"));
+    Root entries(ba::get<Obj>(navigation.get(),"_navigationStack"));
+    require(ba_local::count(entries.get())==0,"partial replay changed menu navigation");
+    ba_native_settings::Handle exclusive(CreateFileW(path.c_str(),GENERIC_READ,0,nullptr,OPEN_EXISTING,
+        FILE_FLAG_OPEN_REPARSE_POINT,nullptr));ba_native_settings::ordinary(exclusive.value);
+    partialSettled=true;
+    ba::log("NATIVE REPLAY PARTIAL failure observed: sameOwner=1 mainMenu=1 worldIdle=1 decodedDataRetained=1 originalRunnerFailures=1 sameDataRetries=0 originalFileReleased=1 originalStopCalls=0 fsmWrites=0 helperTicks=0");
+    return true;
+}
 static bool invalidStarted=false,invalidSettled=false;
 static ULONGLONG invalidAfter=0;
 static bool invalidFile(Obj front,Obj replay,Obj simulation) {
@@ -273,6 +322,8 @@ static void update(Obj front) {
         require(!cancelMode() || buttonMode(),"replay Cancel control requires the original authored leave route");
         require(!invalidMode() || (buttonMode() && cancelMode()),"replay invalid-file control requires subsequent healthy Cancel/reopen/exit");
         require(!semanticMode() || invalidMode(),"replay semantic controls require invalid-file and subsequent healthy controls");
+        require(!partialMode() || (buttonMode() && cancelMode() && !invalidMode() && !semanticMode()),
+            "partial replay control requires its separate healthy Cancel/reopen/exit sequence");
         const auto& profile=ba_native_settings::session->profile();const std::string prefix="nativestest_replayui_";
         require(profile.size()==prefix.size()+12 && profile.rfind(prefix,0)==0 &&
             profile.find_first_not_of("0123456789abcdef",prefix.size())==std::string::npos,
@@ -292,7 +343,8 @@ static void update(Obj front) {
             Root replay(ba::get<Obj>(ba::owner,"<Replay>k__BackingField")),simulation(ba::get<Obj>(replay.get(),"_simulation"));
             require(replay.get() && codec::type("Uncapped","Replay","RGame.dll")==ba::klass(replay.get()) &&
                 simulation.get() && !ba::read<uint64_t>(simulation.get(),0x1a8) &&
-                !ba::get<Obj>(replay.get(),"_gameData"),"replay menu refuses preexisting replay/world data");
+                (partialMode() || !ba::get<Obj>(replay.get(),"_gameData")),"replay menu refuses preexisting replay/world data");
+            if(partialMode() && !partialFile(front,replay.get(),simulation.get()))return;
             if(invalidMode() && !invalidFile(front,replay.get(),simulation.get()))return;
             if(semanticMode() && !semanticFiles(front,replay.get(),simulation.get()))return;
             probe=std::make_unique<Probe>(ba::owner,front,replay.get(),simulation.get());
@@ -316,11 +368,14 @@ static void update(Obj front) {
             const auto digest=ba_lan::sha(ba_lan::serialize(data.get()));std::string hash;char byte[3];
             for(unsigned char value:digest){sprintf_s(byte,"%02x",value);hash+=byte;}
             ba::log("NATIVE REPLAY MENU loaded: frames=%d gameDataSha256=%s loadReturned=1 originalPlayInternal=1",probe->frames,hash.c_str());
+            if(partialMode())partialReloadCheckAt=GetTickCount64()+2000;
             return;
         }
         require(now<deadline && probe && probe->owner.get()==ba::owner && probe->front.get()==front &&
             ba::get<Obj>(probe->replay.get(),"_simulation")==probe->simulation.get(),"replay menu owner/deadline differs");
         if(stage==1) {
+            require(!partialMode() || GetTickCount64()<partialReloadCheckAt || !ba_replay_runtime::failed,
+                "replay runner remains disabled after replacing failed decoded data");
             if(state!=".RGameInGameState" || !ba::read<bool>(probe->simulation.get(),0x1a0) ||
                 ba::read<int>(probe->simulation.get(),0xac)<30)return;
             probe->world=ba::read<uint64_t>(probe->simulation.get(),0x1a8);
@@ -361,8 +416,10 @@ static void update(Obj front) {
             if(cancelMode())require(probe->cancelSettled && probe->leaveCalls==2,"replay Cancel/reopen sequence incomplete");
             if(invalidMode())require(invalidSettled,"malformed replay refusal was not qualified before healthy playback");
             if(semanticMode())require(semanticIndex==2,"semantic replay refusal controls incomplete");
+            if(partialMode())require(partialSettled,"partial replay recovery control incomplete");
             probe.reset();stage=4;
-            if(semanticMode())ba::log("NATIVE REPLAY MENU SEMANTIC control passed: originalBadFilesRefused=3 semanticCases=2 subsequentHealthyPlayback=1 mainMenu=1 worldIdle=1 originalExitApi=0 probeRootsReleased=1 filePinReleased=1 buttonClicks=2 cancelCallbacks=1 originalStopCalls=0 fsmWrites=0 helperTicks=0 BA_RESURRECTION_REPLAY_MENU_SEMANTIC_V1");
+            if(partialMode())ba::log("NATIVE REPLAY MENU PARTIAL control passed: originalRunnerFailureObserved=1 subsequentHealthyPlayback=1 mainMenu=1 worldIdle=1 originalExitApi=0 probeRootsReleased=1 filePinReleased=1 buttonClicks=2 cancelCallbacks=1 originalStopCalls=0 fsmWrites=0 helperTicks=0 BA_RESURRECTION_REPLAY_MENU_PARTIAL_V1");
+            else if(semanticMode())ba::log("NATIVE REPLAY MENU SEMANTIC control passed: originalBadFilesRefused=3 semanticCases=2 subsequentHealthyPlayback=1 mainMenu=1 worldIdle=1 originalExitApi=0 probeRootsReleased=1 filePinReleased=1 buttonClicks=2 cancelCallbacks=1 originalStopCalls=0 fsmWrites=0 helperTicks=0 BA_RESURRECTION_REPLAY_MENU_SEMANTIC_V1");
             else if(invalidMode())ba::log("NATIVE REPLAY MENU INVALID control passed: originalBadFileRefused=1 subsequentHealthyPlayback=1 mainMenu=1 worldIdle=1 originalExitApi=0 probeRootsReleased=1 filePinReleased=1 buttonClicks=2 cancelCallbacks=1 originalStopCalls=0 fsmWrites=0 helperTicks=0 BA_RESURRECTION_REPLAY_MENU_INVALID_V1");
             else if(cancelMode())ba::log("NATIVE REPLAY MENU CANCEL control passed: mainMenu=1 worldIdle=1 originalExitApi=0 probeRootsReleased=1 filePinReleased=1 buttonClicks=2 cancelCallbacks=1 fsmWrites=0 helperTicks=0 BA_RESURRECTION_REPLAY_MENU_CANCEL_V1");
             else if(buttonMode())ba::log("NATIVE REPLAY MENU BUTTON control passed: mainMenu=1 worldIdle=1 originalExitApi=0 probeRootsReleased=1 filePinReleased=1 buttonClicks=1 fsmWrites=0 helperTicks=0 BA_RESURRECTION_REPLAY_MENU_BUTTON_V2");

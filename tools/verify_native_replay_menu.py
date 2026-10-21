@@ -39,6 +39,9 @@ def sources():
 def run(args):
     invalid_first=getattr(args,'invalid_first',False)
     semantic_first=getattr(args,'semantic_first',False)
+    partial_first=getattr(args,'partial_first',False)
+    require(not partial_first or (getattr(args,'button_exit',False) and getattr(args,'cancel_first',False) and not invalid_first and not semantic_first),
+            '--partial-first requires separate --button-exit --cancel-first without early-refusal cases')
     require(not semantic_first or invalid_first,'--semantic-first requires --invalid-first')
     require(not invalid_first or (getattr(args,'button_exit',False) and getattr(args,'cancel_first',False)),
             '--invalid-first requires --button-exit and --cancel-first')
@@ -80,6 +83,14 @@ def run(args):
             with api_path(path).open('xb') as stream:stream.write(encoded)
             semantic_seeds.append(dict(case=name,path=str(path),bytes=len(encoded),sha256=sha(path),
                                        decoded_bytes=len(decoded),decoded_hex=decoded.hex()))
+    partial_seed=None
+    if partial_first:
+        compressor=zlib.compressobj(level=9,wbits=-zlib.MAX_WBITS)
+        encoded=compressor.compress(bytes.fromhex('0a020a00'))+compressor.flush()
+        require(encoded==bytes.fromhex('e362e2620000'),'partial fixture encoding differs from the native guard')
+        path=folder/'AutoSaveReplays/authored-retention-partial-menu.rep'
+        with api_path(path).open('xb') as stream:stream.write(encoded)
+        partial_seed=dict(path=str(path),sha256=sha(path),bytes=len(encoded),decoded_hex='0a020a00')
     report = dict(passed=False, scope=__doc__, profile=profile, replay=replay,
                   source_verification=str(source_report), source_verification_sha256=sha(source_report),
                   source_replay=str(original), seed=str(seed), sources_before=sources())
@@ -90,6 +101,8 @@ def run(args):
     report['invalid_first']=invalid_first
     report['semantic_first']=semantic_first
     report['semantic_seeds']=semantic_seeds
+    report['partial_first']=partial_first
+    report['partial_seed']=partial_seed
     if invalid_seed:report['invalid_seed']=dict(path=str(invalid_seed),bytes=1,sha256=sha(invalid_seed))
     report['exit_route']='original-visible-button' if button_exit else 'original-exit-api'
     stop = threading.Event()
@@ -103,7 +116,7 @@ def run(args):
         try:
             while not stop.wait(.05) and process.poll() is None:
                 text = read_native_log(game, process.pid, since_tick=tick)
-                completed=evidence.SEMANTIC_COMPLETE if semantic_first else evidence.INVALID_COMPLETE if invalid_first else evidence.CANCEL_COMPLETE if cancel_first else evidence.BUTTON_COMPLETE if button_exit else evidence.COMPLETE
+                completed=evidence.PARTIAL_COMPLETE if partial_first else evidence.SEMANTIC_COMPLETE if semantic_first else evidence.INVALID_COMPLETE if invalid_first else evidence.CANCEL_COMPLETE if cancel_first else evidence.BUTTON_COMPLETE if button_exit else evidence.COMPLETE
                 failed_cleanup=(button_exit and 'Native replay menu control failed:' in text and
                     'NATIVE REPLAY BUTTON failure cleanup:' in text)
                 if completed not in text and not failed_cleanup:
@@ -134,6 +147,7 @@ def run(args):
         if cancel_first:extras.append('-native-replay-menu-cancel-smoke')
         if invalid_first:extras.append('-native-replay-menu-invalid-smoke')
         if semantic_first:extras.append('-native-replay-menu-semantic-smoke')
+        if partial_first:extras.append('-native-replay-menu-partial-smoke')
         require(not any(flag in command for flag in extras), 'replay control already injected')
         report['quit_control_arguments_before_adapter'] = list(command)
         command.extend(extras)
@@ -161,7 +175,7 @@ def run(args):
         require(native['passed'] is True and native['natural_exit'] is True and not native['forced_cleanup'] and
                 native['exit_code'] == 0 and report.get('quit_gate_released') is True and not gate_errors,
                 'original replay API cleanup/natural Quit incomplete')
-        report['entry'] = evidence.validate((output/'native-quit/native.log').read_text(), replay,button_exit=button_exit,cancel_first=cancel_first,invalid_first=invalid_first,semantic_first=semantic_first)
+        report['entry'] = evidence.validate((output/'native-quit/native.log').read_text(), replay,button_exit=button_exit,cancel_first=cancel_first,invalid_first=invalid_first,semantic_first=semantic_first,partial_first=partial_first)
         report['passed'] = True
     except BaseException as error:
         report.update(passed=False, error=repr(error), traceback=traceback.format_exc())
@@ -179,9 +193,10 @@ def run(args):
             report['sources_unchanged'] = report['sources_before'] == report['sources_after']
             report['invalid_seed_unchanged']=invalid_seed is None or api_path(invalid_seed).read_bytes()==bytes([7])
             report['semantic_seeds_unchanged']=all(sha(Path(row['path']))==row['sha256'] for row in semantic_seeds)
+            report['partial_seed_unchanged']=partial_seed is None or sha(Path(partial_seed['path']))==partial_seed['sha256']
         except BaseException as error:
             report.update(passed=False, final_file_check_error=repr(error))
-        report['passed'] &= all(report.get(k,False) for k in ('monitor_stopped', 'seed_unchanged', 'source_unchanged', 'sources_unchanged','invalid_seed_unchanged','semantic_seeds_unchanged'))
+        report['passed'] &= all(report.get(k,False) for k in ('monitor_stopped', 'seed_unchanged', 'source_unchanged', 'sources_unchanged','invalid_seed_unchanged','semantic_seeds_unchanged','partial_seed_unchanged'))
         (output/'verification.json').write_text(json.dumps(report, indent=2)+'\n', encoding='utf-8')
     print(json.dumps({k: report[k] for k in ('passed', 'pid', 'natural_exit', 'forced_cleanup', 'error') if k in report}))
     return 0 if report['passed'] else 1
@@ -196,5 +211,6 @@ if __name__ == '__main__':
     parser.add_argument('--cancel-first',action='store_true',help='Cancel the first confirmation, require same-world playback, then reopen and Confirm')
     parser.add_argument('--invalid-first',action='store_true',help='first refuse an owned invalid Deflate file through the original high-level loader')
     parser.add_argument('--semantic-first',action='store_true',help='also refuse parsed empty Replay and missing GameConfig before healthy playback')
+    parser.add_argument('--partial-first',action='store_true',help='observe later initialization failure, replace data through the original loader, require healthy playback')
     parser.add_argument('--timeout', type=int, default=180)
     raise SystemExit(run(parser.parse_args()))

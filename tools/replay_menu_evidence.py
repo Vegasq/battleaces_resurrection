@@ -22,16 +22,21 @@ SEMANTIC_COMPLETE = ('NATIVE REPLAY MENU SEMANTIC control passed: originalBadFil
                      'subsequentHealthyPlayback=1 mainMenu=1 worldIdle=1 originalExitApi=0 probeRootsReleased=1 '
                      'filePinReleased=1 buttonClicks=2 cancelCallbacks=1 originalStopCalls=0 fsmWrites=0 helperTicks=0 '
                      'BA_RESURRECTION_REPLAY_MENU_SEMANTIC_V1')
+PARTIAL_COMPLETE = ('NATIVE REPLAY MENU PARTIAL control passed: originalRunnerFailureObserved=1 subsequentHealthyPlayback=1 '
+                    'mainMenu=1 worldIdle=1 originalExitApi=0 probeRootsReleased=1 filePinReleased=1 buttonClicks=2 '
+                    'cancelCallbacks=1 originalStopCalls=0 fsmWrites=0 helperTicks=0 BA_RESURRECTION_REPLAY_MENU_PARTIAL_V1')
 
 
-def validate(text, replay, *, button_exit=False, cancel_first=False, invalid_first=False, semantic_first=False):
+def validate(text, replay, *, button_exit=False, cancel_first=False, invalid_first=False, semantic_first=False, partial_first=False):
+    require(not partial_first or (button_exit and cancel_first and not invalid_first and not semantic_first),
+            'Partial initialization requires a separate healthy replacement sequence')
     require(not cancel_first or button_exit,'Cancel requires the authored leave route')
     require(not invalid_first or cancel_first,'Invalid-file control requires subsequent healthy Cancel/reopen/exit')
     require(not semantic_first or invalid_first,'Semantic controls require the invalid-file/healthy sequence')
     cycles=2 if cancel_first else 1
     require('Native replay menu control failed:' not in text, 'native menu/replay API control failed')
     require(text.count('Original replay runner update restored: primaryIntegration=1 originalPredicate=1 helperTicks=0') == 1 and
-            'Original replay runner update failed:' not in text, 'original production replay pump was not observed')
+            text.count('Original replay runner update failed:')==int(partial_first), 'original production replay pump was not observed')
     load = ('NATIVE REPLAY MENU load dispatch: profile=', 'mainMenu=1 worldIdle=1 '
             'originalLoadReplayFromFile=1 extraPlayCalls=0 fsmWrites=0 helperTicks=0')
     require(text.count(load[0]) == 1 and text.count(load[1]) == 1,
@@ -47,7 +52,21 @@ def validate(text, replay, *, button_exit=False, cancel_first=False, invalid_fir
             'original replay metadata/world/presentation differs')
     exit_api = 'NATIVE REPLAY MENU exit API dispatch: originalReplayEndGame=1 buttonClicks=0 fsmWrites=0 helperTicks=0'
     returned = 'NATIVE REPLAY MENU exit API returned: originalCallbackReturned=1'
-    completed=SEMANTIC_COMPLETE if semantic_first else INVALID_COMPLETE if invalid_first else CANCEL_COMPLETE if cancel_first else BUTTON_COMPLETE if button_exit else COMPLETE
+    completed=PARTIAL_COMPLETE if partial_first else SEMANTIC_COMPLETE if semantic_first else INVALID_COMPLETE if invalid_first else CANCEL_COMPLETE if cancel_first else BUTTON_COMPLETE if button_exit else COMPLETE
+    require(partial_first or 'NATIVE REPLAY PARTIAL ' not in text and PARTIAL_COMPLETE not in text,
+            'unexpected partial initialization evidence')
+    if partial_first:
+        partial_markers=[
+            'NATIVE REPLAY PARTIAL dispatch: case=missing-version-build mainMenu=1 worldIdle=1 originalLoadReplayFromFile=1 fsmWrites=0 helperTicks=0',
+            'NATIVE REPLAY PARTIAL accepted: originalLoadReturned=1 decodedDataApplied=1 missingVersionBuild=1 originalPlayInternal=1 fsmWrites=0 helperTicks=0',
+            'Original replay runner update failed:',
+            'NATIVE REPLAY PARTIAL failure observed: sameOwner=1 mainMenu=1 worldIdle=1 decodedDataRetained=1 originalRunnerFailures=1 sameDataRetries=0 originalFileReleased=1 originalStopCalls=0 fsmWrites=0 helperTicks=0',
+            load[0],
+            'Original replay runner recovery allowed: sameOwner=1 newDecodedData=1 fsmWrites=0 helperTicks=0',
+            'Original replay runner update restored: primaryIntegration=1 originalPredicate=1 helperTicks=0']
+        partial_positions=[text.find(m) for m in partial_markers]
+        require(all(text.count(m)==1 for m in partial_markers) and partial_positions==sorted(partial_positions),
+                'partial failure containment/replacement/original pump recovery order differs')
     require(cancel_first or 'NATIVE REPLAY BUTTON cancel ' not in text and CANCEL_COMPLETE not in text,
             'unexpected Cancel control evidence')
     require(invalid_first or 'NATIVE REPLAY INVALID ' not in text and INVALID_COMPLETE not in text,
@@ -150,4 +169,5 @@ def validate(text, replay, *, button_exit=False, cancel_first=False, invalid_fir
                 original_options_opened=button_exit,visible_button=visible,physical_ui_input_qualified=False,
                 confirmation_cancel_qualified=cancel_first,invalid_deflate_refusal_qualified=invalid_first,
                 semantic_refusal_cases=['empty-replay','missing-game-config'] if semantic_first else [],
+                partial_initialization_replacement_qualified=partial_first,
                 malformed_recovery_qualified=False)

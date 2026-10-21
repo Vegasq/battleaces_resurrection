@@ -4,9 +4,16 @@
 // original ProcessUpdate also does networking and must not be called wholesale.
 namespace ba_replay_runtime {
 using ba::Obj;using ba_local::Root;using ba_native_settings::require;
+static bool failed=false,logged=false;
+static unsigned failures=0;
+struct FailedData {
+    Root owner,replay,simulation,data;
+    FailedData(Obj a,Obj b,Obj c,Obj d):owner(a),replay(b),simulation(c),data(d){}
+};
+static auto& failedData=*new std::unique_ptr<FailedData>();
 static void update(Obj server) {
-    static bool failed=false,logged=false;
-    if(failed || !ba::owner || !server)return;
+    if(!ba::owner || !server || (failed && !failedData))return;
+    Obj attemptedOwner=nullptr,attemptedReplay=nullptr,attemptedSimulation=nullptr,attemptedData=nullptr;
     try {
         require(ba::initialThread && GetCurrentThreadId()==ba::initialThread,
             "replay update requires the original Unity thread");
@@ -24,6 +31,16 @@ static void update(Obj server) {
             ba_bootstrap::creating || ba_bootstrap::awaitingWorld,
             ba_native_replay_playback::enabled()};
         if(!ba_replay_update::ownsReplay(context))return;
+        Obj data=ba::read<Obj>(replay.get(),0x40);
+        if(failed) {
+            if(!ba_replay_update::replacementEligible(context,reinterpret_cast<uintptr_t>(failedData->data.get()),
+                reinterpret_cast<uintptr_t>(data)))return;
+            const bool sameOwner=failedData->owner.get()==ba::owner && failedData->replay.get()==replay.get() &&
+                failedData->simulation.get()==simulation;
+            ba::log("Original replay runner recovery allowed: sameOwner=%d newDecodedData=1 fsmWrites=0 helperTicks=0",sameOwner?1:0);
+            failed=false;failedData.reset();
+        }
+        attemptedOwner=ba::owner;attemptedReplay=replay.get();attemptedSimulation=simulation;attemptedData=data;
         Root simulationRoot(simulation);
         // The explicit original batch diagnostic has its own state/coroutine
         // pump. Preserve that independently qualified path without double steps.
@@ -48,8 +65,14 @@ static void update(Obj server) {
         codec::invoke(updateMethod,replay.get());
         if(!logged){logged=true;ba::log("Original replay runner update restored: primaryIntegration=1 originalPredicate=1 helperTicks=0");}
     } catch(const std::exception& error) {
+        // Quarantine this record without disabling later original file loads.
+        // Retain identities so a collected/reused address cannot release it.
+        if(attemptedOwner && attemptedReplay && attemptedSimulation && attemptedData) {
+            try{failedData=std::make_unique<FailedData>(attemptedOwner,attemptedReplay,attemptedSimulation,attemptedData);}
+            catch(...){failedData.reset();}
+        }
         // Replay failure must not disable local input production or its timer.
-        failed=true;ba::log("Original replay runner update failed: %s",error.what());
+        failed=true;++failures;ba::log("Original replay runner update failed: %s",error.what());
     }
 }
 }

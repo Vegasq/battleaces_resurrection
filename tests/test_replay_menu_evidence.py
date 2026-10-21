@@ -3,7 +3,7 @@ import re
 import unittest
 
 from tests import test_replay_signal_evidence as fixture_module
-from tools.replay_menu_evidence import validate, COMPLETE, BUTTON_COMPLETE, CANCEL_COMPLETE, INVALID_COMPLETE, SEMANTIC_COMPLETE
+from tools.replay_menu_evidence import validate, COMPLETE, BUTTON_COMPLETE, CANCEL_COMPLETE, INVALID_COMPLETE, SEMANTIC_COMPLETE, PARTIAL_COMPLETE
 from tools.replay_binding_evidence import validate as binding
 
 
@@ -230,6 +230,38 @@ class ReplayMenuEvidenceTests(unittest.TestCase):
             validate(reordered,self.replay,button_exit=True,cancel_first=True,invalid_first=True,semantic_first=True)
         with self.assertRaises(AssertionError):
             validate(text[:begin]+text[end:],self.replay,button_exit=True,cancel_first=True,invalid_first=True,semantic_first=True)
+
+    def partial_text(self):
+        partial=('[0] NATIVE REPLAY PARTIAL dispatch: case=missing-version-build mainMenu=1 worldIdle=1 originalLoadReplayFromFile=1 fsmWrites=0 helperTicks=0\n'
+                 '[1] NATIVE REPLAY PARTIAL accepted: originalLoadReturned=1 decodedDataApplied=1 missingVersionBuild=1 originalPlayInternal=1 fsmWrites=0 helperTicks=0\n'
+                 '[2] Original replay runner update failed: replay reader managed invocation failed\n'
+                 '[3] NATIVE REPLAY PARTIAL failure observed: sameOwner=1 mainMenu=1 worldIdle=1 decodedDataRetained=1 originalRunnerFailures=1 sameDataRetries=0 originalFileReleased=1 originalStopCalls=0 fsmWrites=0 helperTicks=0\n')
+        healthy=self.cancel_text().replace(CANCEL_COMPLETE,PARTIAL_COMPLETE)
+        healthy=healthy.replace('[2] Original replay runner update restored:',
+            '[2] Original replay runner recovery allowed: sameOwner=1 newDecodedData=1 fsmWrites=0 helperTicks=0\n[2] Original replay runner update restored:')
+        return partial+healthy
+
+    def test_partial_recovery_requires_one_actual_failure_then_healthy_replacement(self):
+        result=validate(self.partial_text(),self.replay,button_exit=True,cancel_first=True,partial_first=True)
+        self.assertTrue(result['partial_initialization_replacement_qualified'])
+        self.assertFalse(result['malformed_recovery_qualified'])
+        self.assertFalse(result['physical_ui_input_qualified'])
+        with self.assertRaises(AssertionError):validate(self.cancel_text(),self.replay,button_exit=True,cancel_first=True,partial_first=True)
+        with self.assertRaises(AssertionError):validate(self.partial_text(),self.replay,button_exit=True,cancel_first=True)
+
+    def test_partial_recovery_rejects_retrying_same_bad_data_or_helper_stop(self):
+        text=self.partial_text()
+        for before,after in [('newDecodedData=1','newDecodedData=0'),('sameDataRetries=0','sameDataRetries=1'),
+                             ('decodedDataRetained=1','decodedDataRetained=0'),('originalStopCalls=0','originalStopCalls=1')]:
+            with self.subTest(before=before),self.assertRaises(AssertionError):
+                validate(text.replace(before,after),self.replay,button_exit=True,cancel_first=True,partial_first=True)
+
+    def test_partial_recovery_cannot_hide_additional_or_unrecovered_pump_failures(self):
+        text=self.partial_text()
+        with self.assertRaises(AssertionError):
+            validate(text+'Original replay runner update failed: another\n',self.replay,button_exit=True,cancel_first=True,partial_first=True)
+        with self.assertRaises(AssertionError):
+            validate(text.replace('Original replay runner recovery allowed:','not recovery:'),self.replay,button_exit=True,cancel_first=True,partial_first=True)
 
 
 if __name__ == '__main__':
