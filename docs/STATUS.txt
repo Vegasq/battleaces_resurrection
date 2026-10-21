@@ -3,6 +3,19 @@ Updated: 2026-10-21 UTC
 Delivery plan: REMAINING_DELIVERY_PLAN.txt, Windows only.
 Original roadmap: CLOSED / SUPERSEDED;see PLAN_CLOSEOUT.txt.
 
+D2 READY-COMMIT CANCEL/RETRY73 (2026-10-21 UTC,R04-MODE2/MODE5 PASS)
+Current ordinary recipe/optimized58/helper51 handles original Cancel just after
+READY commitment in both team modes. Successful READY then negative committed
+CANCEL retires the connection,with no local fallback/first client world. Server
+abort is frame0/result=null. Fresh authenticated ticket2 completes one remote
+replacement/results/Continue:mode2 4035exact frames/293.533s,mode5 4397/310.672s.
+Each run creates one unpublished late worker plus its replacement worker;all4
+workers exit0/reaped,not just the2 worker_started audit rows. Frozen selections,
+sources/shared settings/installed and manual71/LAN03 program/catalog preserved.
+Both R04 native cells close;client final cleanup is forced,not Quit/physical/
+bundled/protected/LAN acceptance. Strict retained reviews and full report hashes:
+public-matchmaking.txt. D2 remains OPEN;D6's physical cold test is still pending.
+
 D2 LATE-ENTER CANCEL/RETRY72 (2026-10-21 UTC,R05-MODE2/MODE5 NATIVE PASS)
 Following D6's completed engineering/package checks,resume independent finite D2
 cells while its physical restart observation remains pending. Prepared manual71/

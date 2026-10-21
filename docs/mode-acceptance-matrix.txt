@@ -79,7 +79,7 @@ ID / point                    Mode1                 Mode2   Mode5
 R01 before ENTER              P:cancel-before01      O       O
 R02 waiting                   P:ordinary-cancel01    P:63-2  P:63-5
 R03 OFFERED before READY      P:cancel-offer01       O       P:2vai-cancel01
-R04 after READY committed     P:cancel-ready01       O       O
+R04 after READY committed     P:cancel-ready01       P:73-2  P:73-5
 R05 cancel/retry + old ENTER   P:cancel-retry01       P:72-2  P:72-5
 R06 assignment after local AI O                      O       O
 R07 dropped final RETURN ACK  P:drop-return02         O       O
@@ -166,8 +166,12 @@ are bound. A scoped pass can close its case without closing its broader scope.
 R05-mode2/mode5 now pass72:old ENTER ACK delayed5s is consumed during ticket2,
 then one authoritative match/results/Continue completes. Forced final cleanup;
 not Quit/physical/LAN/protected qualification. Details:public-matchmaking.txt.
-Next autonomous case: R04-mode2/mode5,original Cancel just after READY commits,
-then usable next Play without starting local AI for the ambiguous commitment.
+R04-mode2/mode5 also pass73:original Cancel after READY success gets the genuine
+committed rejection;connection retires,no fallback/client world for that intent.
+A new authenticated Play completes one replacement world/results/Continue.
+Both workers per run exit0,including a created-but-unpublished cancelled worker.
+Next autonomous cases:inspect current applicability of retained Custom C02/C03
+before deciding whether a fresh native directory/invitation check is needed.
 R02-mode2 already passed63;do not repeat.
 Use only the owned automated58 copy with production D6 catalog verification;
 the prepared D6 manual71/LAN03 candidates remain unchanged. No physical gate is waived.

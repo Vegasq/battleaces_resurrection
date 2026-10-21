@@ -569,3 +569,51 @@ local/cancel72-2vai-review.json SHA256
 74f80e29f21083dec84d0a9a43f239d1382420df6ad68eeecc3a3cb8c4eace42
 Both corrected retained reviewers exit0,without another native run or any source
 change. No redundant component suite:only roadmap/evidence documentation changes.
+
+2026-10-21 UTC Cancel after READY73 (D2 R04-mode2/mode5)
+Actual unchanged verify_public_client --ordinary-player --cancel after-ready
+--retry runs both required modes on owned optimized58,distinct profiles/TLS
+servers/output directories. Runs overlap;they share read-only installed program
+and imported assets,not rooms/control sockets/profile state. No helper/source/
+recipe or normal launcher changes. These are source bridge/server plus ephemeral
+identity fixtures,not bundled host/client entry/protected enrollment/LAN tests.
+
+Each first ticket reaches the real30-second offer,sends READY,invokes original
+Cancel immediately after that send and receives successful READY ACK. Negative
+CANCEL ACK explicitly says public match already committed. Client retires its
+connection with nativeIdle=1 rather than local fallback or a client world.
+Server aborts that match at frame0,result=null;no invented winner/finished result.
+Fresh ticket2 authenticates a second connection and waits the unchanged deadline.
+Exactly one ticket2 assignment/client world receives the replacement match.
+
+Mode2 PID29640:PASS293.533s,4035exact receipts;result4015/conceded0,original
+Continue/RETURN/world/ticket/offer cleanup. Authoritative offer elapsed30023/
+30037ms on first/second tickets. Mode5 PID6412:PASS310.672s,4397exact receipts;
+result4377/conceded0,the same full native return. Offers30070/30065ms. Full17-slot
+frozen appearances/unit deck survive both intents and native join/result models.
+
+Each creates TWO actual workers,not one:an asynchronous first construction
+finishes after cancellation without publication into a live room,and the second
+worker runs the replacement. Unpublished PIDs5172/49108 and published16876/16044
+all exit0,empty stderr/no failure,reaped IPC/stderr resources. Only replacement
+workers have worker_started/worker_released room events;do not equate that audit
+count with total OS/native worker creation. Both trials preserve bound sources,
+shared TOML,installed program/catalog and manual71/LAN03 candidate seals. All133
+bundle fingerprints remain valid (0rehashes). Client teardown is forced owned
+cleanup,NOT native Quit,physical UI,Internet or final artifact acceptance.
+
+local/cancel73-after-ready-2v2-retry01/verification.json SHA256
+a81984623834c9c6808f6655ea9c1711a17cb2f8db5caa3833a591556e492414
+local/cancel73-after-ready-2vai-retry01/verification.json SHA256
+9c736d03c21e7185689d013685c4b19ef5c22795bd66a47946f6043deafd9123
+Strict retained reviewers bind READY/Cancel/ACK/retirement/retry order,both true
+offer elapsed values,unknown abort result,single replacement assignment/world,
+both real worker outcomes and unchanged source/candidate identities. First
+review invocations fail on the authored regex omitting the trailing PUBLIC_QUEUE
+marker from the search line;native reports remain untouched PASS. Corrected
+exact marker readers exit0 without new native runs or weakened product checks.
+local/cancel73-2v2-review.json SHA256
+8d5f4433442d96c8afb12ddef5d8953ac67f5b7bda0efed2cd19d407a3d6dc9b
+local/cancel73-2vai-review.json SHA256
+89e6a4d6e078d8ec22fff39392db117dd5f59f121c9214196fae695db2f31896
+R04-mode2/mode5 now close within this exact native scope;D2 parent stays OPEN.

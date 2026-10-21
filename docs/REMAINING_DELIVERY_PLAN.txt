@@ -84,6 +84,9 @@ Completed subcases (same-PC automated controls; not physical LAN):
 [x] Delayed first ENTER ACK during modes2/5 Cancel/retry (cancel72 R05):
     original second search survives the old reply,then one authoritative match/
     results/Continue;3451/4588 exact frames,each worker0,forced final game cleanup.
+[x] Original Cancel after READY commitment in modes2/5 (cancel73 R04),then fresh
+    authenticated Play/results/Continue. No local fallback/first client world;
+    aborted result=null,4035/4397 exact replacement frames,all workers0/reaped.
 [x] Packaged four-human2v2 through results/Continue/natural Quit (roster57 full-human01).
 [x] Packaged three-human/one-bot2v2 with real30-second fill, results/Continue/natural Quit
     (roster57 three-human03). See current-community-matches.txt for evidence.
