@@ -730,3 +730,74 @@ quiet first retirement and distinct fresh intent/world/worker on the next Play.
 No production defect is inferred from missing evidence. D6 physical restart
 observation remains priority/pending. This change is documentation only;raw
 reports/logs/bootstrap/original files stay local and no component suite rerun.
+
+2026-10-21 UTC missing cancellation retries79 (D2 R01/R03/R04-mode1,R03-mode5)
+Four existing cases identified in78's scope review now supply the missing actual
+second Play. Unchanged tools.verify_public_client --ordinary-player --retry,
+helper76/optimized58,distinct profiles/in-memory TLS authorities/servers/outputs.
+At most two native runs overlap,sharing read-only program/imported assets only.
+No code/helper/recipe/package/ordinary launcher or timeout policy changes.136
+bound sources,85-native-path helper receipt,installed program/catalog/shared
+TOML/manual71/LAN03 seals verified unchanged;133cached fingerprints/0rehashes.
+Manual71 is not launched;D6 physical reboot-first/repeat observation stays pending.
+
+case                  PID    seconds  exact frames result frame conceded workers
+before-enter mode1    8780   118.984  1220         1200         1        1
+offered mode1         31064  149.525  1220         1200         1        1
+after-ready mode1     11736  150.174  1220         1200         1        2
+offered mode5         19244  366.404  5546         5526         0        1
+All four PASS,one actual replacement client world each,original result/Continue/
+RETURN and full search/world/ticket/offer release. Three1v1 replacements use the
+existing explicit diagnostic surrender1200,not natural combat victory. Mode5
+ends naturally with one human/three original-profile bots. All five OS/native
+workers exit0,empty stderr/no failure,reaped IPC/stderr resources.
+
+Before-ENTER ticket1 never enters a server queue;second Play authenticates afresh
+and ticket2 alone receives an offer after30025ms. Both OFFERED cancellations
+precede READY,receive successful CANCEL ACK and retire without disconnect/world/
+worker for the first proposal. Retry stays on one authenticated connection.
+Their original first/second offer elapsed values are30112/30028ms(mode1),
+30065/30034ms(mode5). After-READY emits READY then original Cancel;READY ACK
+succeeds,CANCEL ACK explicitly rejects already-committed match. Client retires
+its connection without fallback or a first world,then second Play authenticates
+afresh. First committed room aborts frame0/result=null;no invented winner. Its
+construction finishes unpublished and is closed/reaped;replacement is the only
+native client world. Both actual workers exit0. Offers30089/30082ms.
+
+Full selected unit deck and17-slot appearance agree across queued intents,
+frozen server/native join models and actual archived replacement bootstrap bytes.
+Bootstrap hashes match audits;decoded army IDs/player IDs/AI profiles preserve
+one human and1or3original-profile bots according to mode. Four strict retained
+readers verify original Play/Cancel/ACK/retirement/retry order,original native
+one-world ownership and definitive Continue/worker cleanup. All pass their first
+invocation;no corrective native rerun or modified production input.
+
+local/cancel79-before-enter-1v1-retry01/verification.json SHA256:
+437282927fb96d8b9a58715057faebcf3f0805d8f8e6fa1bcc6219f8f5fb1390
+local/cancel79-offered-1v1-retry01/verification.json SHA256:
+f5fd9dce560cc746c668b427b3f23261b39ba634efa280b3fd023a9c3e7e4fac
+local/cancel79-after-ready-1v1-retry01/verification.json SHA256:
+b1c3b0a196b571520d7318ed116509c1bf94216d859993c7d01d8eebb34d02d6
+local/cancel79-offered-2vai-retry01/verification.json SHA256:
+4808a330153874234fcbe4a33a731f8123dbf7ef7109daa6b0b59039453bd715
+Retained review receipts,respectively:
+local/cancel79-before-enter-1v1-review.json SHA256
+3eebb521d8b0df82fed9ba6374d2b8a21f0c23524adb0bf10c685408d8300089
+local/cancel79-offered-1v1-review.json SHA256
+f0aba16258109b4c8aeb7ae7800fe218b67d33dc6f18a322a2a14934f571630b
+local/cancel79-after-ready-1v1-review.json SHA256
+7525ce1f2239fbb5cd48eab147fe87901a005a6fe335f8bcbcb1f5662d0e1f3f
+local/cancel79-offered-2vai-review.json SHA256
+061ad3e7a113b69c24b8d517998ea70d4e649f4ede80c2e3e039a68d0b976283
+
+R01/R03/R04-mode1 and R03-mode5 now close within automated native callback/fixture
+TLS scope;R01-R05 have retained scoped native PASS inputs for all required modes.
+This is not physical controls/native Quit/protected enrollment/bundled ordinary
+entry/LAN/Internet qualification. Final game teardown is forced owned cleanup.
+R06/R07 and D2 parent remain OPEN. Next existing R07 cases require lost final
+RETURN ACK after completed results/Continue,quiet idle retirement and an actual
+second Play/completed match;current Python probe rejects that retry combination,
+so extend its diagnostic evidence/termination only. Native explicit retry hook
+already schedules the second Play. No new case or production defect inferred.
+No original files,raw logs/bootstraps/credentials or binaries in Git;source/
+component suite not repeated for documentation-only changes.

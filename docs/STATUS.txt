@@ -14,6 +14,24 @@ Readiness report SHA256 bb0efbd40c457e7f2e0fd025a4182d290f98490d7edde6030d91afd3
 Initial read-only checker used game_dir instead of game_directory and refused;
 corrected reader passes,no package/config/game edits or native rerun. D6 OPEN.
 
+D2 FOUR CANCELLATION RETRIES79 (2026-10-21 UTC,R01/R03/R04-MODE1,R03-MODE5 PASS)
+Existing verify_public_client --ordinary-player/--retry/helper76 on automated58
+completes the actual next Play missing from four older retirement-only probes.
+Mode1 before-ENTER118.984s,offered149.525s,after-READY150.174s:each one replacement
+world/1220exact frames/result1200/conceded1/Continue. Mode5 offered366.404s,
+5546exact frames/result5526/conceded0/Continue. All five created workers exit0/
+reaped,including unpublished first after-READY worker;that committed match aborts
+at frame0/result=null,no first client world/local fallback. Native source/136
+bound paths/helper85-path receipt/shared settings/installed/manual71/LAN03 seals
+unchanged;0bundle rehashes. Four strict retained readers pass first invocation,
+decoding actual bootstraps to selected units/one human and original-profile AI,
+checking17-slot frozen appearances,cancellation/ACK/retry order and cleanup.
+Original callbacks/fixture TLS/forced final game cleanup are not physical/native
+Quit/bundled/protected/LAN acceptance. No source/helper/normal entry/package edit.
+The four cancellation cells close;all scoped R01-R05 native cells now have PASS
+inputs. R06/R07 remain OPEN,as does D2;D6 physical reboot check still priority.
+Exact reports/hashes:public-matchmaking.txt.
+
 D2 ORIGINAL OFFERED CANCEL78 (2026-10-21 UTC,R03-MODE2 PASS)
 Unchanged ordinary-feature verify_public_client/helper76 on automated58:original
 Cancel after first30.099s OFFERED,BEFORE READY;successful CANCEL ACK/nativeIdle

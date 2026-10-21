@@ -83,18 +83,19 @@ an actual committed match remains D4; do not count it twice as an unbounded list
 R. Public cancellation / stale control responses
 Each cell names native evidence only. All missing cells are explicit cases.
 ID / point                    Mode1                 Mode2   Mode5
-R01 before ENTER              O:retirement-only      P:77-2  P:77-5
+R01 before ENTER              P:79-before            P:77-2  P:77-5
 R02 waiting                   P:cancel-retry01       P:63-2  P:63-5
-R03 OFFERED before READY      O:retirement-only      P:78-2  O:retirement-only
-R04 after READY committed     O:retirement-only      P:73-2  P:73-5
+R03 OFFERED before READY      P:79-offer             P:78-2  P:79-5
+R04 after READY committed     P:79-ready             P:73-2  P:73-5
 R05 cancel/retry + old ENTER   P:cancel-retry01       P:72-2  P:72-5
 R06 assignment after local AI O                      O       O
 R07 dropped final RETURN ACK  O:quiet-retirement     O       O
-Scope correction78:existing mode1 cancel-before/offer/ready reports and mode5
-2vai-cancel01 all say retry=false and create no subsequent match. They retain
-their original retirement PASS,but do not close this matrix's required next
-Play. Mode1 drop-return02 likewise says retry=false/one worker/1220frames;quiet
-return passes,but next Play is unproven. These are existing cases,not new ones.
+Scope correction78 found that existing mode1 cancel-before/offer/ready reports
+and mode5 2vai-cancel01 say retry=false/no subsequent match.79 now supplies the
+missing actual next Play for all four cancellation cells,not another retirement
+probe. Earlier retirement passes retain their scope. Mode1 drop-return02 still
+says retry=false/one worker/1220frames;quiet return passes,but next Play remains
+unproven. These are existing cases,not new ones.
 R02-mode1 reuses cancel-retry01's actual waiting Cancel and completed ticket2;
 ordinary-cancel01 remains its narrower original UI/search-release observation.
 63-2/63-5 are current-helper51 waiting Cancel/retry passes on the independent
@@ -189,6 +190,13 @@ Cancel ACK/retirement,no first proposal world/worker. Same authenticated session
 retries ticket2;one human/three bots finish4683exact frames/results/Continue,
 worker0/reaped. Full loadouts and actual serialized deck/roster agree. Forced
 cleanup;physical/native Quit/bundled/protected/LAN remain unqualified.
+79 closes R01/R03/R04-mode1 and R03-mode5 with actual completed retries. Each
+mode1 match has1220exact receipts/diagnostic surrender1200;mode5 has5546receipts/
+natural result5526. Five created workers across four tests all exit0/reaped;
+after-READY first match aborts at frame0/result=null,no first client world. Full
+selected decks/17slots/serialized replacement roster retained. No source/helper/
+ordinary launcher/package change. These are native fixture-TLS callbacks,forced
+final cleanup;not physical/native Quit/bundled/protected/LAN acceptance.
 R01-mode2/mode5 now pass77:original Cancel before ENTER retires first intent with
 no server queue/world. Fresh Play alone enters as ticket2,waits the full30s and
 finishes one authoritative match/results/Continue;4718/3986exact receipts,one
@@ -199,9 +207,8 @@ matches. Earlier76 full two-human lobby wait is narrower evidence only;failed
 CRLF reader attempt remains failed. All five scoped Custom C01-C05 cells pass;
 physical P04/D1 remains open. D6's physical restart-first/repeat launch stays
 the priority gate;check new feedback before further D2 scenarios. While awaiting
-that owner observation,the next finite D2 cases are existing R01/R03/R04-mode1
-and R03-mode5,adding the missing actual next Play using the existing diagnostic.
-Then R07-mode1/2/5 needs finished-match RETURN-ACK loss followed by original
+that owner observation,79 completes those four existing cancellation retry gaps.
+Next R07-mode1/2/5 needs finished-match RETURN-ACK loss followed by original
 Play and another completed match. Current Python harness rejects that retry
 combination;extend only its diagnostic termination/evidence checks. Existing
 native explicit retry hook already schedules the next Play after idle retirement.

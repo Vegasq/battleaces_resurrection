@@ -100,11 +100,15 @@ Completed subcases (same-PC automated controls; not physical LAN):
     proposal worker/world,successful cancellation;ticket2 on the same TLS session
     completes4683exact frames/results/Continue,worker0,full frozen selections.
     Real fixture TLS/native callbacks/forced cleanup,not physical/LAN/native Quit.
-Scope correction78:mode1 R01/R03/R04 and mode5 R03 retain retirement-only passes;
-their reports have retry=false,no subsequent match. R07-mode1 has quiet completed
-return but no next Play. Keep those existing cases OPEN for the required next
-Play. Mode1 R02 already has cancel-retry01's actual waiting Cancel/ticket2 match;
-reuse that scope. Do not add cases or repeat qualified team-mode combinations.
+[x] Four cancellation retry gaps identified78 now pass79:R01/R03/R04-mode1 and
+    R03-mode5. Actual second Play completes1220frames each mode1/5546mode5,original
+    results/Continue;all five created workers exit0/reaped. After-READY first
+    match aborts frame0/result=null,no first client world. Full frozen loadouts,
+    unchanged ordinary-feature/source/helper/candidate seals,forced final cleanup.
+Scope correction78's four cancellation gaps close79;R07-mode1 still has quiet
+completed return but no next Play and stays OPEN with modes2/5. Mode1 R02 already
+has cancel-retry01's actual waiting Cancel/ticket2 match;reuse that scope. Do not
+add cases or repeat qualified team-mode combinations.
 [x] Delayed first ENTER ACK during modes2/5 Cancel/retry (cancel72 R05):
     original second search survives the old reply,then one authoritative match/
     results/Continue;3451/4588 exact frames,each worker0,forced final game cleanup.
