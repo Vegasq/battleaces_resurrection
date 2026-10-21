@@ -230,7 +230,9 @@ static void verifyParty(Obj front,unsigned count,bool creator) {
     wire::require(ba::get<int>(front,"_pendingInviteResponseRequests")==0 &&
         ba_local::count(ba::get<Obj>(owner.get(),"_pendingLobbyPlayerInvites"))==0,"community invitation bookkeeping retained");
 }
+#include "community_multisender_smoke.cpp"
 static void smoke(Obj front) {
+    if(ba::flag(L"-community-multisender-smoke")){multisenderSmoke(front);return;}
     const bool host=ba::flag(L"-community-invite-host-smoke"),guest=ba::flag(L"-community-invite-guest-smoke");
     if(!host && !guest)return;
     wire::require(host!=guest,"ambiguous community invitation smoke role");

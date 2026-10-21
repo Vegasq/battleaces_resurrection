@@ -67,8 +67,10 @@ C03 P:74 current original popup decline/cancel/real30s expiry/duplicate Accept,
     Current source differs from the historical retained runs,so fresh checks
     were required. Both use helper51/optimized58 and loopback development peers;
     forced owned cleanup,not ordinary TLS/protected/LAN/physical/Quit acceptance.
-C04 O:two simultaneous inviters to one available target; accept one, retire the
-    other invitation without starting or moving the unrelated player.
+C04 P:75 three native actors,two simultaneous original picker invitations and
+    one original popup Accept. Selected pair shares one lobby;other inviter keeps
+    its exact one-member native Party/lobby. Other invite BUSY,credits/popup0,
+    no match/worker. Explicit loopback diagnostic,forced cleanup;not physical/TLS.
 C05 O:Custom never auto-fills: leave a lobby waiting beyond30s, then complete a
     human match. Public matchmaking timers must not create an AI Custom world.
 Existing component/protocol rejection tests support these cases, but cannot
@@ -172,10 +174,10 @@ R04-mode2/mode5 also pass73:original Cancel after READY success gets the genuine
 committed rejection;connection retires,no fallback/client world for that intent.
 A new authenticated Play completes one replacement world/results/Continue.
 Both workers per run exit0,including a created-but-unpublished cancelled worker.
-Next autonomous case:C04,two simultaneous native inviters to one target. Current
-two-client probe hardcodes one incoming popup/other player;extend only the owned
-diagnostic for three actors,with original UI callbacks and exact group/credit
-checks. Do not infer this case from successful sequential C03 invitations.
+Next autonomous case:C05,fully created human Custom lobby stays open beyond30s,
+then original Start completes a human match. Existing match probe starts as soon
+as both humans are ready;add only an explicit diagnostic hold before original
+Start,after real native Party/prediction/lobby readiness. No public timer changes.
 R02-mode2 already passed63;do not repeat.
 Use only the owned automated58 copy with production D6 catalog verification;
 the prepared D6 manual71/LAN03 candidates remain unchanged. No physical gate is waived.

@@ -3,6 +3,20 @@ Updated: 2026-10-21 UTC
 Delivery plan: REMAINING_DELIVERY_PLAN.txt, Windows only.
 Original roadmap: CLOSED / SUPERSEDED;see PLAN_CLOSEOUT.txt.
 
+D2 SIMULTANEOUS NATIVE INVITERS75 (2026-10-21 UTC,C04 PASS)
+Explicit owned diagnostic uses three native clients/two original picker Invites/
+one original popup Accept. Target waits for both native invitations,then joins
+one inviter;other inviter preserves its exact one-member Party object/lobby.
+Live native/server groups,distinct IDs,ACCEPTED/BUSY,counters/popup/request0 and
+no room/worker all agree. Final native02 PASS13.897s,three jobs1/0/0,forced main
+cleanup. All source/shared/helper/manifest and manual71/LAN03 seals unchanged.
+New code is diagnostic-only,not a production invitation policy/patch change;
+new helper75 cd889d93...bee5/source-bound85-file receipt resides on automated58
+only.12C++ programs/21Python checks pass;new-helper ordinary source startup
+control passes6.513s total without invitation automation. No release package
+updated. C04 closes;C05 waiting lobby/human match and physical/D1/D6 cold remain
+open. Exact limits/reports/hashes:native-custom-invitations.txt.
+
 D2 CURRENT CUSTOM DIRECTORY/INVITATIONS74 (2026-10-21 UTC,C02/C03 NATIVE PASS)
 Applicability inspection finds changed current invitation/native/transport/server
 paths versus historical native proofs. Fresh optimized58/helper51 controls pass:

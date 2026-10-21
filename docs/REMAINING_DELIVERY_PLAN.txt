@@ -82,6 +82,9 @@ Completed subcases (same-PC automated controls; not physical LAN):
 [x] Current Custom directory refresh/eligibility/pooling (custom74 C02),and
     original decline/cancel/expiry/duplicate Accept/counter cleanup (C03).
     Helper51/optimized58,loopback development transport;forced client teardown.
+[x] Three-native-client simultaneous inviters/one target (multisender75 C04):
+    original picker/Accept chooses one lobby,unselected Party/lobby stays exact,
+    both invitations retire/counters0/no match. Explicit diagnostic/forced cleanup.
 [x] Original waiting Cancel/retry in modes2 and5 (cancel63 R02);one subsequent
     authoritative AI-fill match each,results/Continue;forced final cleanup.
 [x] Delayed first ENTER ACK during modes2/5 Cancel/retry (cancel72 R05):

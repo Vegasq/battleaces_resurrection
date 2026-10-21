@@ -269,3 +269,79 @@ smoke requires one other directory player/one incoming popup;it cannot establish
 that case. Extend only the explicit diagnostic,then use original picker/Accept
 callbacks and verify native Party/prediction/request credits for all three actors.
 C05 waiting beyond30s followed by a human match,and physical P04/D1,remain open.
+
+SIMULTANEOUS NATIVE INVITERS75 -- 2026-10-21 UTC (D2 C04)
+New community_multisender_smoke.cpp is included after existing Party/popup
+validators;community_popup.cpp adds only an explicit diagnostic dispatch. It
+requires loopback127.0.0.1,nativeprobe_ local profiles,named diagnostic roles and
+target,and excludes existing invitation smoke roles. Ordinary arguments never
+enable it;ordinary flow gets no automatic actions/new allocations. No existing
+production invitation handler,patch site,simulation timer or original UI ABI is
+changed. Original Custom Travel/picker Invite/popup Accept calls reuse the exact
+already-qualified functions. Native checks require owned Unity menu,no bootstrap/
+assigned world,actual TMP/current popup,Party/prediction/member/reply state.
+
+tools.verify_custom_multisender runs three actual games,two native inviters and
+one native target,against separate owned loopback development state. Both hosts
+create their own native lobby and original picker Invite to that same target.
+Target waits for TWO native incoming invitations,checks current sender TMP,and
+invokes original Accept once with one deferred reply credit. It accepts whichever
+original popup is current;no retired-service RNG/selection order is claimed.
+Selected inviter/target must own the same two-member native/server lobby;losing
+inviter stays in its original one-member Party OBJECT and lobby. Native requests/
+incoming invites/popup/counters all settle. Live server authority must agree,
+with distinct invitation IDs,exact member counts and ACCEPTED/BUSY resolutions.
+One stable second of native/live-server consistency precedes owned teardown.
+
+Helper75-02 SHA256
+cd889d937e370f6a1eb7239cbb38092a47f57fbc844de21724ef133e647fbee5
+Source-bound85-file helper receipt SHA256
+f0a24f3762b622b9be1ed4ed89014edfb871783b9ab8e79d76158ad86356d42f
+All12 existing C++ check programs and secure-probe/helper compilation pass.
+21focused Python cases pass6.877s,including existing protocol arbitration and
+new checker negatives. Final checker-only recheck4tests/0.001s passes after an
+additional duplicate-member rejection. Tests admit either chosen inviter and
+reject wrong/duplicate/moved groups,unknown sender/IDs,pending credits/popup,
+wrong target,missing losing resolution and duplicate Accept evidence.
+
+Only automated58 is upgraded to this authored diagnostic helper. Ordinary
+GameAssembly fd67...1728,Unity/CEF and optimized catalog3fb522...8adf3 remain
+unchanged. Manual71/LAN03 keep helper51 and their original pinned program/catalog
+seals. Preparation re-verifies133bundles and the new helper receipt;no game is
+launched by installation. No archive or ordinary launcher is updated.
+local/multisender75-preparation.json SHA256
+2ee4ce9c6efc5b04559b778a70512fb7d851e5343c838b9b70d78bbc6b035527
+
+First native01 PASS14.863s. After tightening the controller's exact member-count/
+distinct-invitation checks,final native02 PASS13.897s. Helper/production/native
+flags remain unchanged between them;old controller/run are retained. Final run
+chooses second inviter;first remains in its exact one-person Party/lobby. Both
+invitations are created before any resolution,then selected ACCEPTED and other
+BUSY. All3 native counters/incoming/sent/popup settle,no simulation room/worker,
+all3 owned jobs total1/active0/job-terminated0. Main processes are forcibly
+terminated after evidence:job counters do NOT convert that into natural Quit.
+Bound sources/shared TOML/helper/manifest stay unchanged,cleanup errors0.
+local/multisender75-native01/verification.json SHA256
+04f7b0444806fb034c17246bccfa763714c0e063ea494ff859eb2f51478825d2
+local/multisender75-native02/verification.json SHA256
+31785638dbb1fe80e328d867add67450a0c322cb442bcb5bf918fd1b47e18002
+
+Retained final review binds raw logs/audit/source/helper85 receipt and candidate
+seals;all133 bundle fingerprints match (0rehashes). Checker replay uses its
+recorded live-authority conclusion,not an independent second observation of the
+now-stopped server. Original live controller did compare all native owners to
+actual live lobby objects before cleanup. Review SHA256
+8b632c999075adff8a566f3660bcf06990ba735a07dbb4b82cc45c8727ae24b3
+local/multisender75-retained-review02.json
+
+New-helper ordinary source client.main/resolver/bridge startup control PASS,
+6.513s whole qualification,menu ready,0remote connections/invite reads. No
+invitation diagnostic action flags. Readiness-only forced cleanup,not Quit/
+gameplay/physical/packaged entry or cold-performance acceptance.
+local/multisender75-ordinary-control01/verification.json SHA256
+55ffd2f43b99b23198101ba30d796f19abc7b6d883c6d636f254181362e45c11
+
+C04 now closes as an automated current native ownership case. Loopback legacy
+development transport and callback diagnostics do NOT qualify ordinary TLS/
+protected enrollment,physical controls/rendered appearance,LAN or Quit. C05's
+waiting-created-lobby then human match and physical P04/D1 remain open.
