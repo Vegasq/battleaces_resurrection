@@ -26,7 +26,7 @@ A06      Configured invalid public trust / 1                 P:48 invalid-trust
 A07-10   Valid protected settings, TCP refusal / 1,2,4,5     O:normal owner
 A11-14   Valid protected settings, connection/handshake
          timeout / 1,2,4,5                                  O:normal owner
-A15      Healthy configured server while using Try Deck      O:local ownership
+A15      Healthy configured server while using Try Deck      P:62/82 native
 For A07-14 use an owned refusing/controlled nonresponding endpoint; never a
 guessed public address. Require real resolver/private reader, useful failure,
 one local world, original results/Continue, saved deck/practice preference and
@@ -34,6 +34,11 @@ normal Quit. These are not equivalent to invalid files/trust. For A15 require
 no match/worker/queue allocation; pre-existing optional presence may retire.
 A05/A06 are retained exact rejection exemplars. Shared resolver source/tests
 are inputs to their applicability; do not claim they simulate actual refusal.
+A15 reuses six native62 clients and raw203.353/204.281s server-audit windows,
+no new queue/proposal/match/worker/connection during Try Deck;both real TLS
+matches around practice finish. Current relevant source applicability checked82,
+no new game launched. Fixture identity resolver/forced cleanup is not protected
+owner/bundled config/physical/native Quit/LAN. See client-availability.txt.
 
 B. Public queues (all supported human roster sizes)
 ID    Mode/humans       Expected policy                    Retained native PASS
@@ -50,6 +55,11 @@ configured names/decks/full loadouts, original results/Continue and native Quit.
 No ordinary 30s timer or simulation step is shortened. They are same-PC native
 automated/TLS identity-fixture evidence. No further missing roster cardinality.
 B09   Original bot selection and difficulty applicability O:final review
+82 selection/frozen-bootstrap/local-profile-model review PASS:186deterministic
+profile/deck/strength choices,7actual local in-game/result bot bindings and
+14actual remote serialized seats. Actual remote AI loading/result profile-model
+observation remains OPEN;do not substitute bootstrap equality or lucky sampling.
+Exact evidence/source/catalog hashes and remaining scope:bot-selection-acceptance.txt.
 Bind source-supported random difficulty/mode pools and varied catalog identity/
 deck/avatar selection to the retained local/online runs. Inspect actual loading/
 result models and physical P03 below; Try Deck must use its separate saved
@@ -177,6 +187,7 @@ R: public-matchmaking.txt, ordinary-player-client.txt, matchmaking-search.txt
 C02/C03: native-custom-invitations.txt; C/Ready: native-custom-matches.txt
 T01/T02/T03/T04: remote-local-transitions.txt
 T06: team-modes.txt; local/local-modes02/verification.json
+82 A15:client-availability.txt;B09 partial:bot-selection-acceptance.txt.
 Local mode-matrix62-retained-review02.json binds exact retained report bytes,
 passing values, scopes and this matrix; it is not another game execution or
 blanket validation. transition62-retained-review.json additionally checks both

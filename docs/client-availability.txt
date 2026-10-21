@@ -126,12 +126,45 @@ local/availability48-retained-review.json SHA256
 Retained local/review-availability48.py SHA256
 2abe471afc884d06db4c12d757e63078e2c33eec66ba7c059d4998914b19ee25
 
-Remaining matrix
+Remaining matrix (updated2026-10-21 UTC)
 These are actual production local-settings rejection paths,not actual network
 refusal with valid protected credentials. Complete that path under the normal
-owner,then current empty/partial/full server queues,real30s fill/Cancel/loading,
-all remaining mode/settings combinations and physical controls. Existing46
+owner. Existing empty/partial/full public roster,real30s fill and named Cancel/
+retry cases now have scoped native passes;reuse mode-acceptance-matrix.txt rather
+than repeating covered native runs. Remaining mode transitions and physical
+controls keep their named gates. Existing46
 four-mode blank-config/native results and historical online controls retain
 their own scope. Protected owner40 still has no report and remains independent.
-SCM/other accounts/clean-PC/friend-PC/Internet/full telemetry/slow-startup cause
-remain open. No normal-owner or external gate is waived by this diagnostic.
+SCM/other accounts/clean-PC/friend-PC/Internet/full telemetry and D6 physical
+restart-first/repeat startup remain open. D6 engineering/package checks pass71.
+No normal-owner or external gate is waived by this diagnostic.
+
+Healthy configured server / local ownership82 (A15 native PASS by retained62)
+Read-only review reuses the two finished remote -> Try Deck -> remote62 runs;
+no new game,helper build,configuration or package edit. Two/four clients have
+configured localhost TLS endpoints and real authenticated matches before/after
+practice. Exact prior report/native hashes are pinned by the existing62review.
+Raw server audit brackets each local practice interval using the actual shared
+practice/retry gate events:203.353s for the allied pair,204.281s for four humans.
+Only2/4old community departure events occur in those windows. No new community
+join/public queue/proposal/match/worker/practice reservation;the old worker is
+already released and the next starts strictly after the practice gate closes.
+
+All6native clients retire optional control before acquiring local lease2,invoke
+original mode4,retain configured human name/deck and Normal18 practice choice,
+produce bot supply129..136 with40/49/40/40/40/48ordered+moving entities,then
+deliver result/Continue/release before fresh remote lease3. Four workers across
+both sequences exit0/reaped;forced final client cleanup is not native Quit.
+Current lifecycle/local-menu/bridge/server/driver source hashes equal the producer.
+Reversing the single current mode1 diagnostic cancel exclusion reproduces the
+ENTIRE old practice_ai.cpp hash;mode4 ownership/production behavior is unchanged.
+Producer helper51 remains historical evidence,not a new execution of helper81.
+
+local/practice82-retained-review.json PASS SHA256:
+99e10a59650335432efe7aefa881171c188ebef1e8add04ad1733229b32a0662
+Reviewer SHA256:
+3204d6036480c4c08d2465be2bf1641680247fa612d6841cf009210dcb130f96
+The healthy endpoint uses explicit in-memory identity resolver/store/ephemeral
+PKI. It does not qualify protected owner/bundled configuration,physical controls,
+TCP refusal/timeouts or LAN. A15 local ownership closes in this scope;A07-A14 and
+physical P01-P04/D2 parent remain OPEN. Manual71/LAN03 and D6 cold gate unchanged.

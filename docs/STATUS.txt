@@ -14,6 +14,21 @@ Readiness report SHA256 bb0efbd40c457e7f2e0fd025a4182d290f98490d7edde6030d91afd3
 Initial read-only checker used game_dir instead of game_directory and refused;
 corrected reader passes,no package/config/game edits or native rerun. D6 OPEN.
 
+D2 RETAINED OWNERSHIP/POLICY82 (2026-10-21 UTC,A15 NATIVE PASS,B09 PARTIAL)
+No new native launch/build/code/package edit. Existing two/four-human62 traces
+close A15 local ownership:203.353/204.281s raw audit windows contain only old
+presence departures,no new connection/queue/proposal/match/worker. Six actual
+Try Deck worlds retain identity/deck/Normal18,result/Continue before fresh real
+TLS matches. Current relevant source applicability passes;helper51 evidence is
+historical,not a new helper81 execution. Protected owner/bundled/physical/native
+Quit/LAN gates unchanged. Exact hashes:client-availability.txt.
+B09 partial review passes186deterministic profile/deck/strength choices,all7
+local native bot in-game/result bindings and14actual remote serialized bot seats;
+19distinct names/all3strengths,authored character/random decks and correct team
+ally policy preserved,humans unmodified. Remote AI loading/result profile models
+are still unobserved;B09/P03/D2 remain OPEN. Hashes:bot-selection-acceptance.txt.
+D6 manual71/restart-first/repeat physical check remains priority and unchanged.
+
 D2 LATE ASSIGNMENT81 (2026-10-21 UTC,R06-MODES1/2/5,T09-T11 PASS)
 One native client completes remote1 -> pre-READY unavailable/local2 -> fresh
 remote3. Exact captured old-session assignment is replayed during active local

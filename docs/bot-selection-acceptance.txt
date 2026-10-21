@@ -1,0 +1,81 @@
+BOT SELECTION ACCEPTANCE82
+Updated:2026-10-21 UTC. D2 B09 remains OPEN for remote UI-model qualification.
+Sources:public_bots.cpp,practice_ai.cpp,practice_settings.cpp,server/bot_catalog.py,
+server/public_matchmaking.py,server/game_data.py. No implementation changed here.
+
+Policy reviewed
+Tactical AI profile and Easy/Normal/Hard strength are independent choices. Local
+public fallback uses unbiased BCrypt rejection sampling and installed weighted
+mode/role pools,then uniformly chooses an eligible compatible deck. Server public
+play uses secrets.randbelow,weighted profiles and uniform eligible decks. Both
+read installed/exported inputs;no recovered names/decks/assets embedded in source.
+Public strength is an independent uniform choice17/18/19;Try Deck uses its saved
+choice instead. Easy practice uses working Normal18 tactics plus Easy17 strength.
+Hard19 preference survived all81public transitions without being overwritten.
+
+Installed public mode1 opponents have profiles58/62/63/64. Mode2 uses59;mode5
+opponents use60. The shipped mode5 teammate pool is empty:the community policy
+explicitly uses the shipped mode2 teammate pool59 for a missing allied human.
+No claim reconstructs the retired server's matchmaking/rating or exact RNG.
+Type1 character decks retain authored name/avatar/full deck;Type2 decks select
+usable installed random names and allowed portrait/banner,freeze their IDs into
+deck entitlements as well as ArmyConfig. Human/bot names are distinct within a
+generated roster. Local/server validation rejects unsupported modes/profiles,
+disabled rules,unknown cosmetics,malformed decks and unbounded weighted pools.
+Custom contains no bot choices. Existing original tactical movement and authored
+strength findings remain in public-bot-roster.txt/server-bot-catalog.txt/
+practice-difficulty.txt;quantitative battle/catalog acceptance belongs to D3.
+
+Bounded retained review,no new native launches
+local/review-bot-policy82.py validates the installed catalog against current
+RuleBook and GameTemplate. It selects both ends of each profile weight interval,
+every compatible public deck and all3independent strengths across mode1 opponents,
+mode2 opponent/teammate and mode5 opponent/teammate policies:186deterministic
+cases pass. This is direct coverage,not probabilistic sampling to obtain a lucky
+profile/difficulty. It does not establish native execution of all186choices.
+
+The same reader pins the passing81 aggregate and its three exact qualification
+inputs,failed original mode1 report preserved. It compares actual native local
+army snapshots with the compatible installed profiles/decks/name/avatar pools,
+checks all7local bot modifier triples against exact authored Q32 strengths and
+matches the original in-game AND result profile observations for every seat.
+Results require actual original name/AI flag/portrait/banner getters and live
+child Item bindings,current match/army ownership;no forced model refresh.
+All7local bots bind correctly;the prior81reviews independently prove their
+produced autonomous ordered+moving units and original result/Continue.
+
+All6actual completed remote bootstrap hashes are rechecked and decoded. Every
+one of14serialized bot seats matches a compatible catalog deck and frozen name/
+avatar. Random decks carry the exact selected portrait/banner entitlement;
+character decks retain their full authored deck bytes. Mode5 ally59/opponents60
+are enforced. Bot strengths independently decode to supported Easy/Normal/Hard:
+baseline buffs preserved,new keys distinct,resource composition exact,damage/
+health multiplicative attributes correct. Human modifiers are byte-exact to the
+original map baseline. No actual damage/health/income experiment is claimed here.
+
+Combined native samples contain19distinct names,profiles58/59/60/64 and all3
+strength choices. Profiles62/63 need no new random draw:deterministic selection
+coverage and their already-retained original native movement/result bindings are
+separate inputs. This review never turns serialized remote values into a claim
+that a live remote profile VM or its asynchronously loaded artwork was observed.
+
+local/bot-policy82-review.json PASS SHA256:
+76e674c67e8e4d03039bc60f95ee81e5f9e86f383c1f9976db78613e805ef00f
+Reviewer SHA256:
+8fa8cf0c3fc2d14067488841f152ac4a3222cd932394f0e157b61f837762f88d
+Installed imported bot-catalog SHA256:
+60bd49229be6701acb43223ce1eb796f0eb063b6367725cafc184d2c3c72b986
+All six reviewed policy/native source hashes equal the81producer snapshot.
+No game/helper/config/package/manual71/LAN03 file changed;no game launched.
+
+Remaining B09 gate
+Observe actual remote AI loading/result profile models,using the existing
+read-only native ownership/name/avatar/child-binding pattern. Serialized remote
+bootstrap equality is insufficient. Keep original configured human name/deck and
+same original bot identity through result;do not force inactive panels to bind.
+Physical P03 must separately check visible names/avatar artwork/loading/results
+and independent Try Deck difficulty. D3 owns quantitative rules/catalog gameplay.
+Protected enrollment,physical inputs,final ordinary artifacts/native Quit/LAN/
+Internet remain their existing gates. D6's physical restart-first/repeat launch
+is still priority/pending;this read-only review leaves that candidate unchanged.
+Only authored knowledge goes in Git;all native/bootstrap/catalog bytes stay local.

@@ -79,6 +79,11 @@ finished;their scoped results are recorded below. With D6's engineering fix and
 automated qualification complete,preserve its manual candidate and address the
 remaining named D2 cells without repeating covered queue/roster tests.
 Completed subcases (same-PC automated controls; not physical LAN):
+[x] Healthy configured fixture TLS server while using Try Deck,A15 (retained62/
+    review82). Six native clients,no new remote allocations during203.353/204.281s
+    practice windows,real server matches before/after. No new game launch;current
+    ownership-path source applicability checked. Protected/bundled config and
+    physical/native Quit/LAN remain separate. See client-availability.txt.
 [x] Late valid old-session assignment during local fallback,R06-modes1/2/5,
     and remote -> pre-READY unavailable/local -> remote,T09-T11 (81). All9worlds/
     original Continue actions,6worker0,full selected loadouts/saved Hard19 pass.
@@ -142,6 +147,10 @@ Reuse those controls;physical ordinary/LAN and remaining cases below stay open.
 - Confirm real30-second queue timing, keeping existing humans together, correct
   alliances, random supported public difficulty and stable original bot identity/
   deck/avatar through loading/results. Try Deck uses its independent saved choice.
+  B09 policy/local-model/frozen remote identity review82 passes;actual remote AI
+  loading/result profile-model observation remains,plus physical P03. Reuse the
+  186deterministic selection checks;do not collect random draws indefinitely.
+  Exact remaining scope:bot-selection-acceptance.txt.
 - Exercise full four-human2v2 and remaining partial team rosters on the current
   ordinary candidate. Custom never inserts bots or uses the public timeout.
   Verify directory refresh/status,self/busy exclusion and invite accept/decline/
