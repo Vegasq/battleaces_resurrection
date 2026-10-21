@@ -1,0 +1,104 @@
+RC1 CANDIDATE101 - AUTOMATED QUALIFICATION / OPERATOR HANDOFF
+Reviewed2026-10-21. RC1_PLAN.txt is the finite acceptance contract.
+Candidate is prepared,not physically accepted or declared RC-ready.
+
+Immutable packages
+Source db114316f9a77fd19f78930adc3eca4a4df7e6ab,clean at build.
+Version0.3.0-rc1;Python3.14.8 pinned official embedded runtime;game37822/protocol3.
+Local root:local/rc101-packages01. Normal entries:client/Setup Client.cmd,
+client/Start Client.cmd,server/Start Server.exe inside their battleaces-*-win64 dirs.
+Client ZIP SHA256 97380d397b3d3b11adcbd62fcba12bdd42628ae854d5979517b10c6c309f9292
+Server ZIP SHA256 fd65daf6cc031e3313074e8357e2564f2edfc2baacb3f08336a68c0b858c7932
+Helper100 SHA256 3b848de5f66aab3304ac608da7e7c08a53b8420cf94bf261f52bcd2d0ee331c2
+Helper receipt SHA25649866f783936b7f7edf021e6b2d0fbae420297bb7e8f91c0642b95c443ed1583
+Source/history audit at db114316:1715distinct paths/objects,0failures.
+Original assets/keys/invites/configs are absent from the ZIPs. The LOCAL host folder
+separately imports119verified manifest-declared game assets for Nick's test;those
+files are not part of the distributable archive or Git. Failed53/93 and accepted
+98/manual71 configurations/programs remain unchanged. Automated game/startup58
+is now reserved for this candidate's physical test,not further unattended patches.
+
+Source checks
+129-case suite128pass/1opt-in owner-DACL skip. Additional49-case suite43pass/6skips;
+34affected checks and final48network/reporting checks pass. These overlap and are
+not a unique-test total. Actual Windows self-signed generation/TLS/open admission
+are tested;verified mode rejects wrong certificates and AUTH_RC,without downgrade.
+Renderer output local/rc101-installer.png is visually inspected. No physical click
+or keyboard acceptance is inferred from DrawToBitmap or these tests.
+
+Bundled runtime/network check
+local/rc101-bundled-probe01/verification.json SHA256
+dff10b86b788d5d203a12769b6ea176606e21b1904239996f3a5244c8fa1ab2c
+Two separate actual bundled runtimes import only their own application modules.
+Server uses built-in Windows certificate generation and production open admission.
+Client saves address-only schema4,connects with no CA/invite,renames and reconnects
+with the SAME identity;TLSv1.3/encryption with verificationfalse. Server exits0;
+temporary key removed. No native worker/game or protected first-start provisioning
+is claimed by this loopback probe.
+
+Packaged install/restore and ordinary entry
+local/rc101-install01/verification.json SHA256
+97bef6e616a1973e7b57bbb12723873b51c98e6bca1c9b367d4c0662745f14d8
+Actual bundled restore -> install -> update,all0,39.340s,567profile files unchanged,
+original backups/catalog checks pass;manual71/LAN03 seals unchanged. Same packaged
+helper100 installed in owned startup58. This is backend transaction acceptance;
+new form's physical buttons are still N4.
+local/rc101-startup01/verification.json SHA256
+774cf4ff916e76efa4c1e4a7721154a9b3dafb04bb7b44a24a26fd4045343423
+Actual ordinary Start Client.cmd/bundled runtime/no diagnostic game flags reaches
+menu8.351s,total8.781s. Readiness cleanup is forced and is NOT Quit proof.
+
+Packaged offline AI lifecycle
+local/rc101-offline-ai01/verification.json SHA256
+10c6e2691964f7f907869693c56d7832e318a4e6e793338c716f829e14a36487
+Actual production bundled client/bridge with schema4 blank server,owned spawn
+adapter/native gameplay actions,AI movement/results/Continue/original Quit0,
+217.768s,no forced cleanup;package/config/source/shared channels unchanged.
+Ordinary base arguments contain no diagnostics;the external adapter explicitly
+adds them. This is not seamless mouse/CMD/visible-audio/clean-PC acceptance.
+
+RC Custom matches and retained final qualification
+Earlier source-host/control local/rc101-custom01/verification.json SHA256
+eac9c87361662ac0110e74ddd1445fe967ffba16efa88e3baebe047c6e03aa12
+PASS74.587s,two same-lobby matches,two actual schema4 identities/TLS streams,
+two workers0. Diagnostic game cleanup is FORCED,not normal Quit.
+
+Stronger bundled run:local/rc101-packaged-custom01. Server and both client driver
+reports passed:actual packaged host.run/open AdmissionController,no MemoryStore,
+no invite reader fixture;schema4 resolver/persistent keys,one TLS stream/client.
+Both1220-frame rounds have each client's complete matching receipt sequence and
+122matching native state samples/round;original Start/Ready/Continue/changed deck/
+sequential guest-host Leave pass. Native original menu Quit traces have all5events;
+both game/launcher exits0. Health worker plus2match workers all0/reaped,listener/
+state lock/rooms/sessions/lobby drain. Shared settings/replays/backups unchanged.
+
+Original PARENT RUN FAILS after gameplay in its final disclosure scan:it expects
+an invite token inside RC's public identity-only record and raises KeyError('token').
+No final parent verification.json was written. Preserve terminal failure text,
+parent-before-report-fix.py and parent-failure.json;do not call that runner PASS.
+The source fix keeps private tokens separate from public records;new positive/
+negative disclosure tests pass. It does not change shipped application bytes.
+
+Independent READ-ONLY retained reviewer reuses the strict original Custom/replay/
+worker validators,binds all reported production module hashes to immutable package
+manifests,checks source/helper origin,actual normal-exit reports/5-event traces,
+complete matches/frames/decks/human names/replays/state samples and actual local
+identity-key absence from public logs. It starts no game/server. Retained files
+are sealed and unchanged by review. Parent job-accounting samples were not retained;
+no reconstructed job-count or source-start snapshot claim is made.
+local/rc101-custom-retained-review.json SHA256
+a9c4205c22599035e9ab275efc02aa067496834e80374bd5d0c97b563b05bf53
+Reviewer local/review-rc101-custom.py SHA256
+0ecfcbb486fad9525519325361559e57836da46ccc1266e1c618b4c760f92090
+Scoped native result/Continue/Leave/Quit and worker release qualify by this separate
+review;physical/SCM/Internet/complete observability acceptance remains independent.
+
+Next operator action
+DEV.txt N4:single-PC new setup/normal first Start Server.exe/connection test,
+visible Try Deck/results/Continue/Quit/restart and offline play after server stop.
+Guide local/rc101-packages01/RC1 Playtest.txt SHA256
+adba88755e05deabbd113957026ac9253501faecf47ad41407a63a1047496ab6
+Normal desktop account is needed for automatic private server-key creation;real
+buttons/keyboard/visible behavior need Nick's observations. No CA/invite handling
+or reboot is requested. N2 two-PC play remains ON HOLD until this installer check.
+No server,game or long-running test remains at handoff. RC1 is NOT yet accepted.

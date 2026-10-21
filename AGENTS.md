@@ -31,6 +31,12 @@
   defines address-only open access with TLS certificate verification disabled;
   no CA/invite requirement for RC1. Preserve explicit verified mode. Hold N2's
   physical action until new RC artifacts are ready;do not repeat old provisioning.
+  RC1 candidate101 is now prepared for DEV.txt N4 (single-PC installer/first host
+  start/local play);two-PC N2 stays held until its review. Preserve
+  local/rc101-packages01 and local/startup58-game01 while N4 is pending. Do not
+  patch or launch unattended acceptance tests in that reserved manual game.
+  RC1_EVIDENCE.txt distinguishes the failed parent summary from the separate
+  passing retained native review;do not rewrite the original failed result.
 
 ## Delivery records
 

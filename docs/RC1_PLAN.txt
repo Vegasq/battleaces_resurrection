@@ -27,19 +27,37 @@ Saving from the new RC setup explicitly selects schema4 and preserves local_prof
 No plaintext fallback,OS trust-store edit,firewall edit or router configuration.
 
 Finite RC1 gates,in order
-[ ] RC-I:address-only setup and install/update/restore from fresh clean packages;
+[x] RC-I automated:address-only setup and install/update/restore from clean packages;
     preserve decks/cosmetics/settings,show useful progress/failure,ordinary launch.
+    567profile files unchanged;rendered UI inspected;ordinary CMD menu8.351s.
+    Physical button/keyboard/visual behavior remains RC-P,not inferred here.
 [ ] RC-N:actual bundled runtime self-signed TLS/open identity/reconnect check;
     auto server initialization,stable identities,no CA/invite prompts.
-[ ] RC-L:packaged ordinary offline AI/results/Continue/Quit and restart/persistence.
-[ ] RC-M:same-PC two-client Custom match/changed-deck rematch with RC transport,
+    [x] Two actual bundled runtimes:certificate generation,TLS/open admission,
+        stable identity after rename/reconnect,no CA/invite,server exit0.
+    [ ] Normal-desktop first Start Server.exe provisioning:DEV.txt N4.
+[x] RC-L automated:packaged schema4 offline AI/results/Continue/natural Quit0,
+    no force217.768s;ordinary CMD startup separately passes. Physical restart/
+    persistence observation remains RC-P. Existing name/profile tests pass.
+[x] RC-M automated:same-PC bundled Custom match/changed-deck rematch with RC transport,
     results/Continue/natural Quit and worker cleanup. No diagnostic-only pass
     substitutes for the final ordinary entry check.
+    Retained strict review qualifies two1220-frame rounds,each client's122
+    matching state samples/round,matching native replays,original Leave/Quit0
+    and all3workers0/reaped. Original parent's summary fails KeyError and stays
+    FAILED;outer job accounting was not retained. See RC1_EVIDENCE.txt for scope.
 [ ] RC-P:Nick's physical installer/start/local check and two-PC LAN Custom playtest.
-    Request via DEV.txt only AFTER RC-I/N/L/M are ready. Keep setup98 accepted;
+    N4 is the first single-PC installer/first-host-start check,now prepared after
+    the automated parts above. N2 two-PC play stays ON HOLD until N4 review.
+    Request via DEV.txt only when actionable artifacts are ready. Keep setup98 accepted;
     do not ask Nick to provision its old CA/invite handoff again.
 [ ] RC-F:freeze exact clean source/archive/helper/runtime hashes,concise shipped
     guides,known limitations and no game/private files in public artifacts.
+    [x] Candidate101 clean source db114316,immutable client/server ZIP hashes,
+        helper100,runtime3.14.8,shipped guides and source/history audit pinned.
+    [ ] Physical gate review and final RC-ready declaration. Do not label RC1
+        accepted yet. Preserve local/rc101-packages01 and its manual test game
+        local/startup58-game01 while N4 is pending.
 Only these finite gates name RC1 ready. Record scoped automated subcases without
 closing a parent whose packaged/physical component is still missing. Remaining
 D2-D5/D7-D9 final-release work is retained,not silently dropped or called complete.

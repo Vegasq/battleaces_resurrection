@@ -54,7 +54,7 @@ is next;hold N2's physical LAN action until its replacement RC artifacts are rea
 D6 CLOSED on review93:Nick reports post-reboot menu20s,repeat2s,window/sound15s,
 Try Deck/results/Continue/Quit works,no issues. Manual71 seals/package still pass.
 Preserve that accepted candidate;do not repeat warm D6 batches as acceptance.
-D1 is next:setup53 failed the TLS path rule;93 then failed a server-only import
+D1 historical preparation:setup53 failed the TLS path rule;93 then failed a server-only import
 in the client runtime. Fresh98 removes that import,retains real server readiness
 validation and passes actual bundled-client import closure/bundled-server config
 checks without overwriting either failed setup's private/configuration files. DEV.txt
@@ -74,7 +74,8 @@ explicit independent gates; D9 closes only after those release gates pass.
     Preserve issued invites/config;do not rerun setup. Failed53/93 remain retained.
 Next physical action is ON HOLD for RC1 installer/package readiness. Historical
 setup98 remains accepted;do not rerun it or alter its private configuration.
-- Start the prepared host and transfer only friend-handoff to the second PC.
+- After RC1 installer approval,start the RC host and transfer the unconfigured
+  client patch ZIP to the second PC. No CA/invite/identity-key handoff is needed.
 - On that PC,use the RC1 installer on its own build37822 copy,enter only the
   server IP,and pass Test connection. Use distinct configured names. The older
   CA/invite handoff is retained as verified-mode evidence,not the RC1 user flow.
@@ -365,8 +366,10 @@ References: client-startup.txt and telemetry-game-observation.txt.
     two40-frame verified-TLS peer streams,workers0,port/lock released,identities/
     profiles retained,job20/0/0,no forced cleanup. Source hashes still agree.
     This closes active-console shutdown only,not physical graphical/SCM/reboot.
-- Qualify host/player accounts, TLS/private-key and invitation lifecycle, invalid/
-  revoked credential refusal, quotas/handshake/message/queue bounds and safe logs.
+- Qualify RC host/player accounts,automatic server-key/local player-identity
+  lifecycle,quotas/handshake/message/queue bounds and safe logs. The optional
+  verified/invite path retains its scoped regression evidence;manual CA/invite
+  provisioning is not an RC1 prerequisite.
 - Perform real SCM registration/account logon, start/stop/Windows shutdown/reboot,
   state-lock release and active-room cleanup, including session0/headless operation.
 - Qualify protected backups/restores and a real match on the restored host under
@@ -381,7 +384,8 @@ windows-packaging.txt, windows-server-quickstart.txt.
 
 [ ] D8 - Complete Internet, latency and final capacity evidence
 - Two physical Windows PCs on different networks connect, play and rematch with
-  the normal verified TLS/invite path. Document the chosen TCP port/firewall/NAT
+  the configured RC transport with its recorded certificate-verification policy.
+  No CA/invite requirement for RC1. Document the chosen TCP port/firewall/NAT
   setup; automatic NAT traversal is outside v1.
 - Measure50/100/200ms RTT, jitter, loss/retransmission and stalls on a controlled
   real-network path. Record click-to-action delay as well as frame throughput,

@@ -85,6 +85,17 @@ class RCSetupTests(unittest.TestCase):
             self.path.write_text(json.dumps(dict(value, **{key: invalid})))
             with self.assertRaises(ConfigurationError): load_config(self.path)
 
+    def test_rc_public_identity_records_need_no_token_field_for_disclosure_scan(self):
+        from tools.verify_packaged_multiplayer import tokens_not_logged
+        token='ba1_' + secrets.token_urlsafe(32)
+        public=dict(player_id=admission.rc_player_id(token))
+        evidence=self.root/'public-report.json'
+        evidence.write_text(json.dumps(public))
+        self.assertNotIn('token',public)
+        self.assertTrue(tokens_not_logged([token],[evidence]))
+        evidence.write_text(json.dumps(dict(public,accidental_disclosure=token)))
+        self.assertFalse(tokens_not_logged([token],[evidence]))
+
 
 @unittest.skipUnless(os.name == 'nt', 'RC host uses built-in Windows cryptography')
 class RCTLSIntegrationTests(unittest.IsolatedAsyncioTestCase):

@@ -52,7 +52,8 @@ request=json.loads(Path(sys.argv[1]).read_bytes());output=Path(request['output']
 fixture=json.loads(sys.stdin.buffer.read(16385));assert len(fixture['identities']) in (1,2,3,4)
 assert not request.get('recover_stage') or len(fixture['identities'])==2
 real_credentials=bool(request.get('real_credentials'))
-verify(package,'server');report=dict(passed=False,production_modules={},fixture_store=not real_credentials,workers=[],frozen_matches=[],custom_commands=[])
+rc_open=bool(request.get('rc_open'))
+verify(package,'server');report=dict(passed=False,production_modules={},fixture_store=not (real_credentials or rc_open),workers=[],frozen_matches=[],custom_commands=[])
 workers=[];servers=[];authenticated=[];stores=[];old_sessions={};snapshot_sequence=0
 def publish(name,value):
     global snapshot_sequence
@@ -78,14 +79,19 @@ async def create(*args,**kwargs):
     worker=await original_create(*args,**kwargs);workers.append(worker);return worker
 def server(*args,**kwargs):
     value=original_server(*args,**kwargs);servers.append(value);original_audit=value.audit
-    if real_credentials:
+    if real_credentials or rc_open:
         store=value.admission.store
-        assert type(store) is original_store and store.directory==Path(request['credential_directory'])
-        stores.append(store);actual_authenticate=value.admission.authenticate
+        if rc_open:
+            assert store is None and value.admission.rc_open
+            report['production_rc_admission_verified']=True
+        else:
+            assert type(store) is original_store and store.directory==Path(request['credential_directory'])
+            stores.append(store)
+        actual_authenticate=value.admission.authenticate
         async def observe_authentication(reader,writer):
             player=await actual_authenticate(reader,writer);authenticated.append(player);return player
         value.admission.authenticate=observe_authentication
-        report['production_store_type_verified']=True
+        report['production_store_type_verified']=not rc_open
     def observe(event,**fields):
         original_audit(event,**fields)
         if event=='match_created':
@@ -159,7 +165,7 @@ async def run():
             simulation_sha256=worker.dll_sha256,ai=worker.ai_info))
     recovering=bool(request.get('recover_stage'))
     expected=[p['player_id'] for p in fixture['identities']]+([fixture['identities'][0]['player_id']] if recovering else [])
-    assert ready and len(servers)==1 and len(stores)==1 and sorted(authenticated)==sorted(expected)
+    assert ready and len(servers)==1 and len(stores)==(0 if rc_open else 1) and sorted(authenticated)==sorted(expected)
     # Parent qualifies exact native worker exit/cancellation against the original
     # host audit journal. This driver only claims every child has been reaped.
     assert len(workers)==(3 if recovering or request.get('custom_rematch') else 2) and all(row['reaped'] for row in report['workers'])
@@ -177,7 +183,7 @@ try:
     deadline=time.monotonic()+10
     while not (output/'job-ready').exists():assert time.monotonic()<deadline;time.sleep(.02)
     assert (output/'job-ready').read_bytes()==b'owned job attached\n'
-    if not real_credentials:host.CredentialStore=MemoryStore
+    if not real_credentials and not rc_open:host.CredentialStore=MemoryStore
     else:assert host.CredentialStore is original_store
     host.DedicatedServer=server;worker_client.SimulationWorker.create=staticmethod(create)
     asyncio.run(run());report['passed']=True
@@ -193,16 +199,17 @@ raise SystemExit(0 if report['passed'] else 1)
 CLIENT=r'''
 import ctypes,hashlib,json,subprocess,sys,time,traceback
 from pathlib import Path
-from client_patch.transport import client,launcher
+from client_patch.transport import client,launcher,rc_setup
 from server.credentials import parse_credential_handoff
 from tools.package_integrity import verify
 request=json.loads(Path(sys.argv[1]).read_bytes());output=Path(request['output']);package=Path(request['package']);game=Path(request['game'])
 real_credentials=bool(request.get('real_credentials'))
+rc_open=bool(request.get('rc_open'))
 raw=sys.stdin.buffer.read(4097)
-fixture=json.loads(raw) if real_credentials else parse_credential_handoff(raw)
-if real_credentials:assert set(fixture)=={'player_id'}
+fixture=json.loads(raw) if real_credentials or rc_open else parse_credential_handoff(raw)
+if real_credentials or rc_open:assert set(fixture)=={'player_id'}
 verify(package,'client')
-report=dict(passed=False,production_modules={},invite_reads=0,tls_connections=0,credential_fixture=not real_credentials);process=None
+report=dict(passed=False,production_modules={},invite_reads=0,tls_connections=0,credential_fixture=not (real_credentials or rc_open));process=None
 original_connect=launcher.tls.open_verified_connection
 original_invite=launcher.read_credential_file
 def invite(path):
@@ -214,6 +221,7 @@ def invite(path):
     return fixture
 async def connect(host,port,context,**kwargs):
     assert host=='127.0.0.1' and port==request['port']
+    if rc_open:assert context.verify_certificate is False and not context.context.check_hostname
     report['tls_connections']+=1
     return await original_connect(host,port,context,**kwargs)
 def spawn(config,remote,options,child):
@@ -246,7 +254,7 @@ def spawn(config,remote,options,child):
     temporary=output/'game-process.tmp';temporary.write_text(json.dumps(row,indent=2)+'\n');temporary.rename(output/'game-process.json')
     return process
 try:
-    for module in (client,launcher,sys.modules['client_patch.transport.bridge'],sys.modules['server.credentials'],sys.modules['tools.package_integrity']):
+    for module in (client,launcher,rc_setup,sys.modules['client_patch.transport.bridge'],sys.modules['server.credentials'],sys.modules['tools.package_integrity']):
         path=Path(module.__file__).resolve();assert path.is_relative_to(package/'program/app')
         report['production_modules'][module.__name__]=dict(path=str(path),sha256=hashlib.sha256(path.read_bytes()).hexdigest())
     deadline=time.monotonic()+10
@@ -257,7 +265,7 @@ try:
     report['game_exit_code']=None if process is None else process.poll()
     assert report['launcher_exit_code']==report['game_exit_code']==0
     expected=2 if request.get('recover_stage') and request['index']==0 else 1
-    assert report['invite_reads']==report['tls_connections']==expected
+    assert report['tls_connections']==expected and report['invite_reads']==(0 if rc_open else expected)
     report['passed']=True
 except BaseException as error:
     if real_credentials:report['error_type']=type(error).__name__

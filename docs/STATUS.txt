@@ -3,6 +3,21 @@ Updated: 2026-10-21 UTC
 Delivery plan: REMAINING_DELIVERY_PLAN.txt, Windows only.
 Original roadmap: CLOSED / SUPERSEDED;see PLAN_CLOSEOUT.txt.
 
+RC1 CANDIDATE101 PREPARED / SINGLE-PC INSTALLER CHECK NEXT
+Clean db114316 packages,128/129focused checks+scoped regressions;new WinForms
+game/name/IP setup is rendered/inspected. No CA/invite for RC. Actual bundled
+self-signed/open admission/rename/reconnect pass. Actual restore/install/update
+preserves567profiles;ordinary CMD menu8.351s. Packaged schema4 offline AI/results/
+Continue/original Quit0 passes217.768s,no force. Accepted manual71/LAN98 preserved.
+Bundled two-human Custom/rematch1220frames/round,122state samples/client/round,
+matching replays,original Leave/Quit0 and3workers0 qualify by strict retained review.
+Parent's final-summary KeyError stays FAILED;missing outer job samples are not
+invented. Reporting-only fix/tests pass. No application payload changed afterward.
+RC-I/L/M automated subcases close;RC-N normal-owner first-start and RC-P physical
+observations stay OPEN. DEV.txt N4 has one ready single-PC installer/server/local
+check;N2 two-PC held. Candidate/game are reserved for it. Exact hashes/scopes:
+RC1_EVIDENCE.txt and finite RC1_PLAN.txt. D1-D9 full release is not complete.
+
 RC1 INSTALLER/ADDRESS-ONLY ACCESS PRIORITY101
 Nick requests a simpler installer BEFORE two-PC testing and no CA/certificate
 verification requirement for RC1. RC1_PLAN.txt defines the finite candidate gates;
