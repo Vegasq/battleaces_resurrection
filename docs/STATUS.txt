@@ -3,6 +3,18 @@ Updated: 2026-10-21 UTC
 Delivery plan: REMAINING_DELIVERY_PLAN.txt, Windows only.
 Original roadmap: CLOSED / SUPERSEDED;see PLAN_CLOSEOUT.txt.
 
+NATIVE INSTALLER102 REPLACES POLICY-BLOCKED POWERSHELL UI
+Nick tried all3CMD entries on the second PC;photo trace says Configure-RCClient.ps1
+cannot load because running scripts is disabled.101 physical UI startup FAILED;
+its backend/native proofs stay scoped. New native Windows Forms EXE has exactly
+game-folder/server-IP inputs,no PowerShell. Backend installs a verified versioned
+runtime in the game folder and publishes Start Battle Aces.cmd plus editable local
+config. Name/profile preserved,foreign launchers refused,config/script publication
+rolls back on failure.29focused checks pass;actual native window opens under an
+ExecutionPolicy Restricted parent process and rendered layout is inspected.
+Standalone embedded-payload package and actual game-local launch are next;
+no102 delivery or physical pass is inferred yet.101/manual game copies preserved.
+
 RC1 CANDIDATE101 PREPARED / SINGLE-PC INSTALLER CHECK NEXT
 Clean db114316 packages,128/129focused checks+scoped regressions;new WinForms
 game/name/IP setup is rendered/inspected. No CA/invite for RC. Actual bundled

@@ -21,7 +21,7 @@ ROOT = Path(__file__).resolve().parents[1]
 PYTHON_VERSION = '3.14.8'
 PYTHON_ZIP_SHA256 = 'a93abe456ab01bd96d7a085b3cdb6566b3063f4241360d114142fbdb07f0a310'
 PYTHON_URL = 'https://www.python.org/ftp/python/3.14.8/python-3.14.8-embed-amd64.zip'
-PACKAGE_VERSION = '0.3.0-rc1'
+PACKAGE_VERSION = '0.3.0-rc1.2'
 RUNTIME_PTH = b'python314.zip\n.\n../app\n'
 COMMON = (
     'server/__init__.py', 'server/protocol.py', 'server/credentials.py',
@@ -51,7 +51,7 @@ CLIENT = COMMON + (
     'client_patch/transport/rc_setup.py', 'client_patch/launcher/Configure-RCClient.ps1',
     'client_patch/launcher/ClientConfig.ps1', 'client_patch/launcher/Launch-Client.ps1',
     'client_patch/launcher/Configure-Client.ps1',
-    'tools/package_client.py',
+    'tools/package_client.py', 'tools/game_installer.py',
 )
 MARKERS = (
     b'BA_RESURRECTION_NATIVE_BACKUP_GUARD_V1', b'OfflineBackupInitialRead\0', b'OfflineBackupWriteText\0',
@@ -148,6 +148,20 @@ def read_server_launcher(path):
     return data, receipt_data
 
 
+def read_client_installer(path):
+    path = Path(path)
+    data = path.read_bytes()
+    receipt_data = path.with_name('installer-build.json').read_bytes()
+    from tools.build_client_installer import SOURCES
+    receipt = json.loads(receipt_data)
+    if (not data.startswith(b'MZ') or not 1024 <= len(data) <= 1024*1024
+            or receipt.get('schema') != 1 or receipt.get('installer_sha256') != sha(data)
+            or receipt.get('payload_sha256') is not None or receipt.get('powershell_required') is not False
+            or receipt.get('source_sha256') != {name:sha(source_file(name)) for name in SOURCES}):
+        raise PackageError('Native installer build receipt differs from current sources')
+    return data, receipt_data
+
+
 def source_file(name):
     path = ordinary_file(ROOT, name)
     data = path.read_bytes()
@@ -168,7 +182,7 @@ def wrapper(product):
     if product == 'client':
         return ('@echo off\r\nsetlocal\r\n'
             'if "%~1"=="" (\r\n'
-            '  "%~dp0program\\runtime\\python.exe" -I -B -m tools.package_client configure\r\n'
+            '  "%~dp0Install Battle Aces.exe"\r\n'
             '  exit /b\r\n)\r\n'
             '"%~dp0program\\runtime\\python.exe" -I -B -m tools.package_client %*\r\n'
             'exit /b %errorlevel%\r\n').encode('ascii')
@@ -196,7 +210,7 @@ def write_zip(path, files, prefix):
             archive.writestr(info, data, compresslevel=9)
 
 
-def build(runtime_zip, helper, output, *, allow_dirty=False, server_launcher=None):
+def build(runtime_zip, helper, output, *, allow_dirty=False, server_launcher=None, client_installer=None):
     output = Path(output).absolute()
     # Developer outputs stay in ignored roots; never write archives into source
     # or over an existing package. Failed builds remain for inspection.
@@ -207,6 +221,7 @@ def build(runtime_zip, helper, output, *, allow_dirty=False, server_launcher=Non
         raise PackageError('Choose a fresh empty output directory')
     runtime, helper_data, source = read_runtime(runtime_zip), read_helper(helper), source_revision()
     launcher_data, launcher_receipt = read_server_launcher(server_launcher or ROOT/'build/server-launcher/Start Server.exe')
+    installer_data, installer_receipt = read_client_installer(client_installer or ROOT/'build/client-installer/Install Battle Aces.exe')
     if source['dirty'] and not allow_dirty: raise PackageError('Commit source changes or explicitly use --allow-dirty for a local preview')
     versions = dict(package=PACKAGE_VERSION, game_build=37822, game_protocol=3, community_protocol=1,
                     asset_format=1, patch_schema=2, python=PYTHON_VERSION, platform='windows-amd64')
@@ -216,6 +231,8 @@ def build(runtime_zip, helper, output, *, allow_dirty=False, server_launcher=Non
         for name in sources: files['program/app/' + name] = source_file(name)
         files['BattleAces-' + product.title() + '.cmd'] = wrapper(product)
         if product == 'client':
+            files['Install Battle Aces.exe'] = installer_data
+            files['program/installer/installer-build.json'] = installer_receipt
             files['Start Client.cmd'] = start_wrapper(product)
             files['Setup Client.cmd'] = wrapper(product)
         else:
@@ -268,12 +285,13 @@ def main(argv=None):
     parser = argparse.ArgumentParser(description=__doc__)
     parser.add_argument('--python-zip', type=Path, required=True)
     parser.add_argument('--helper', type=Path, required=True, help='our compiled BattleAcesOffline.dll, never a game DLL')
+    parser.add_argument('--client-installer', type=Path)
     parser.add_argument('--server-launcher', type=Path, help='our compiled Start Server.exe and adjacent source-bound launcher-build.json')
     parser.add_argument('--output', type=Path, required=True)
     parser.add_argument('--allow-dirty', action='store_true', help='local development preview with exact source hashes recorded')
     args = parser.parse_args(argv)
     try:
-        print(json.dumps(build(args.python_zip, args.helper, args.output, allow_dirty=args.allow_dirty, server_launcher=args.server_launcher), indent=2))
+        print(json.dumps(build(args.python_zip, args.helper, args.output, allow_dirty=args.allow_dirty, server_launcher=args.server_launcher, client_installer=args.client_installer), indent=2))
         return 0
     except (OSError, ValueError, zipfile.BadZipFile) as error:
         print('Package build failed: ' + str(error))

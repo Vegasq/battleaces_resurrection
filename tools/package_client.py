@@ -25,6 +25,8 @@ def main(argv=None):
     sub = commands.add_parser('rc-save')
     sub.add_argument('--config', type=Path, default=PACKAGE / 'config/client.json')
     sub.add_argument('--request', type=Path, required=True)
+    sub = commands.add_parser('install-game', help='install using the two-field native installer request')
+    sub.add_argument('--request', type=Path, required=True)
     sub = commands.add_parser('ca-fingerprint')
     sub.add_argument('--file', type=Path, required=True)
     sub = commands.add_parser('start', help='start local play with optional server connectivity')
@@ -44,6 +46,17 @@ def main(argv=None):
         if args.command == 'verify':
             print('Client package files verified. This does not verify the game or network.')
             return 0
+        if args.command == 'install-game':
+            from .game_installer import install
+            from client_patch.transport.launcher import read_json
+            try:
+                result = install(PACKAGE, read_json(args.request, 32768))
+                print(json.dumps(dict(ok=True, result=result)))
+                return 0
+            except (OSError, ValueError) as error:
+                message = str(error) if isinstance(error, ValueError) else 'Cannot write the game folder. Close the game and check its permissions and free disk space.'
+                print(json.dumps(dict(ok=False, error=message)))
+                return 1
         if args.command in ('start', 'launch'):
             if args.command == 'start' and not args.config.exists() and getattr(args, 'game', None) is None:
                 return main(['configure', '--config', str(args.config)])
@@ -97,8 +110,10 @@ def main(argv=None):
         # Windows PowerShell is part of the OS. Use its known system path rather
         # than a PATH executable; no profile, policy change or global Python.
         shell = Path(os.environ.get('SystemRoot', r'C:\Windows')) / 'System32/WindowsPowerShell/v1.0/powershell.exe'
-        if args.command in ('configure', 'configure-verified'):
-            script = PACKAGE / 'program/app/client_patch/launcher' / ('Configure-RCClient.ps1' if args.command == 'configure' else 'Configure-Client.ps1')
+        if args.command == 'configure':
+            return subprocess.run([str(PACKAGE/'Install Battle Aces.exe')], check=False).returncode
+        if args.command == 'configure-verified':
+            script = PACKAGE / 'program/app/client_patch/launcher/Configure-Client.ps1'
             return subprocess.run([str(shell), '-NoProfile', '-STA', '-File', str(script),
                 '-PythonExecutable', sys.executable, '-ConfigPath', str(args.config.resolve())], check=False).returncode
         script = PACKAGE / 'program/app/client_patch/launcher/Launch-Client.ps1'

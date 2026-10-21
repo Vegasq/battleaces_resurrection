@@ -1,0 +1,39 @@
+NATIVE CLIENT INSTALLER102 - RC1.2
+2026-10-21. Physical101 setup FAILED;its backend/native results keep their scope.
+
+Nick reports all3CMD entries show no UI. His second-PC photo identifies the root
+failure:Configure-RCClient.ps1 cannot load because running scripts is disabled.
+The replacement does not ask players to weaken Windows execution policy. A native
+Windows Forms EXE opens immediately and invokes only the bundled Python backend.
+Game folder/server IP are its two fields. Default display_name remains editable
+in the game's .battleaces-resurrection/client-config.json;existing name/profile/
+port choices survive updates. Blank server address remains valid for offline AI.
+
+The standalone EXE embeds the complete clean client ZIP. It unpacks its own
+bounded payload into Windows Temp,validates the package and installs the patch.
+The chosen game's .battleaces-resurrection/client-runtime/<manifest hash> receives
+only immutable package members. Personal download-folder config/credentials are
+not copied. A corrupted cached runtime is refused,not silently trusted. Original
+game files/AssetBundles are never embedded or distributed.
+
+On success the GAME folder contains Start Battle Aces.cmd. It uses its own relative
+runtime and separate game-local config,so the downloaded installer/extracted patch
+folder can be removed afterward. It enables no automation or heavy capture. Existing
+foreign scripts with that name are refused. Invalid paths/IP are rejected before
+patching. Runtime publication uses a new verified version directory;existing
+config/launcher bytes are restored if their publication fails. The game DLL patch
+has its existing independent verified-backup/rollback transaction. A late config
+failure may leave a valid patch installed;the installer reports failure and can be
+retried. It does not claim a single atomic transaction across all game/runtime files.
+
+Source/unit qualification
+61focused installer/package/RC/source-audit checks PASS,88.340s. The actual native
+window opened under an ExecutionPolicy Restricted parent;all2editable fields,
+game/server input visibility and Install button visibility passed. No script
+policy or registry setting was changed. Native form render inspected. This is an
+actual window/event-loop check on this PC,not physical second-PC acceptance.
+
+Current artifacts and final isolated game-folder launch evidence will be recorded
+below after the clean package/standalone payload check. Preserve old101 evidence,
+accepted manual71/startup58 and private LAN98 config. N4 will point only to the
+new EXE when it is ready. No repeated old-CMD or reboot request.

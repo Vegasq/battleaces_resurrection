@@ -1,4 +1,31 @@
-BATTLE ACES RESURRECTION - RC1 CLIENT SETUP
+BATTLE ACES RESURRECTION - NATIVE RC1.2 INSTALLER
+
+Double-click the standalone BattleAces-Installer-RC1-102.exe. It contains the
+complete patch runtime;no ZIP extraction,Python install or PowerShell policy
+change is required. Alternatively,extract the full client ZIP and double-click
+Install Battle Aces.exe. Setup Client.cmd opens that same native window.
+
+1. Browse to the working folder containing Battle Aces.exe (supported build37822).
+2. Enter the server IP,or leave it blank for offline play. Click Install / Update.
+3. Wait for the installed message,then close the installer.
+4. In the GAME folder,double-click Start Battle Aces.cmd for every later launch.
+
+The game folder now contains its own verified Python/client runtime under
+.battleaces-resurrection/client-runtime/. The downloaded installer/extracted
+package is no longer needed for launching. Original game backups and personal
+decks/cosmetics remain under .battleaces-resurrection;keep that directory.
+Advanced settings,including display_name and server_port,are editable in
+.battleaces-resurrection/client-config.json. Existing names/profiles are preserved
+on update. Default server port:47623. No CA,certificate name,fingerprint or invite.
+TLS encryption without certificate verification remains the explicit RC policy.
+Install verifies local game content and may take several minutes on a slow drive.
+Close the game before installing/updating. No original game assets are distributed.
+
+PREVIOUS EXTRACTED-PACKAGE/VERIFIED-MODE REFERENCE
+The following describes earlier entry points retained for compatibility. The
+native installer and game-folder launcher above are the current player flow.
+
+BATTLE ACES RESURRECTION - RC1 CLIENT SETUP (HISTORICAL101)
 
 Extract the complete patch ZIP to an ordinary writable local folder.
 Double-click Setup Client.cmd. Choose your working Battle Aces build37822 folder,

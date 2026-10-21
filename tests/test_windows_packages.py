@@ -38,6 +38,13 @@ class WindowsPackageTests(unittest.TestCase):
         self.launcher_receipt.write_text(json.dumps(dict(schema=1,launcher_sha256=builder.sha(executable),
             source_sha256={name:builder.sha(builder.source_file(name)) for name in builder.LAUNCHER_SOURCES},
             argument_tests_passed=True)))
+        self.client_installer=self.root/'Install Battle Aces.exe'
+        self.client_installer.write_bytes(b'MZ'+b'authored non-executable installer fixture '*40)
+        from tools.build_client_installer import SOURCES
+        (self.root/'installer-build.json').write_text(json.dumps(dict(schema=1,
+            installer_sha256=builder.sha(self.client_installer.read_bytes()),
+            source_sha256={name:builder.sha(builder.source_file(name)) for name in SOURCES},
+            powershell_required=False,payload_sha256=None)))
         self.write_runtime()
         self.pins = mock.patch.object(builder, 'PYTHON_ZIP_SHA256', hashlib.sha256(self.runtime.read_bytes()).hexdigest())
         self.pins.start()
@@ -59,7 +66,8 @@ class WindowsPackageTests(unittest.TestCase):
                 archive.writestr(info, value)
 
     def build(self, name='out'):
-        return builder.build(self.runtime, self.helper, self.root / name, server_launcher=self.server_launcher)
+        return builder.build(self.runtime, self.helper, self.root / name, server_launcher=self.server_launcher,
+                             client_installer=self.client_installer)
 
     def test_server_console_launcher_must_match_its_tested_current_source_receipt(self):
         receipt = json.loads(self.launcher_receipt.read_text())
@@ -162,16 +170,12 @@ class WindowsPackageTests(unittest.TestCase):
 
 
 class PackageDispatchTests(unittest.TestCase):
-    def test_configure_uses_bundled_python_and_known_system_shell_without_policy_change(self):
+    def test_configure_uses_native_installer_without_powershell(self):
         with (mock.patch.object(package_client, 'verify'), mock.patch.object(package_client.subprocess, 'run') as run):
             run.return_value.returncode = 17
             self.assertEqual(package_client.main(['configure', '--config', 'personal config.json']), 17)
             argv = run.call_args.args[0]
-            self.assertEqual(Path(argv[0]).name, 'powershell.exe')
-            self.assertEqual(argv[1:4], ['-NoProfile', '-STA', '-File'])
-            self.assertEqual(Path(argv[4]).name, 'Configure-RCClient.ps1')
-            self.assertEqual(argv[5:7], ['-PythonExecutable', package_client.sys.executable])
-            self.assertEqual(argv[-2:], ['-ConfigPath', str(Path('personal config.json').resolve())])
+            self.assertEqual(argv,[str(package_client.PACKAGE/'Install Battle Aces.exe')])
             self.assertNotIn('-ExecutionPolicy', argv)
             self.assertFalse(run.call_args.kwargs.get('shell', False))
 
@@ -182,7 +186,7 @@ class PackageDispatchTests(unittest.TestCase):
             run.return_value.returncode = 0
             self.assertEqual(package_client.main(['start']), 0)
             launch.assert_not_called()
-            self.assertEqual(Path(run.call_args.args[0][4]).name, 'Configure-RCClient.ps1')
+            self.assertEqual(Path(run.call_args.args[0][0]).name, 'Install Battle Aces.exe')
         with (mock.patch.object(package_server, 'verify'), mock.patch.object(Path, 'exists', return_value=False),
               mock.patch('server.rc_host.initialize') as initialize, mock.patch('server.host.main', return_value=0)):
             self.assertEqual(package_server.main(['check']), 0)

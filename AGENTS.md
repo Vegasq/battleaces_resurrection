@@ -37,6 +37,12 @@
   patch or launch unattended acceptance tests in that reserved manual game.
   RC1_EVIDENCE.txt distinguishes the failed parent summary from the separate
   passing retained native review;do not rewrite the original failed result.
+  Nick's second-PC photo confirms101's PowerShell setup cannot open under the
+  machine's script policy. Native installer102 replaces it with two fields and
+  game-folder Start Battle Aces.cmd plus its own installed runtime. No policy
+  change is requested. Keep101/manual game files frozen;use installer102-game01
+  for its isolated qualification. Supersede N4's old CMD retry only when the new
+  standalone artifact is ready,with instructions in DEV.txt.
 
 ## Delivery records
 

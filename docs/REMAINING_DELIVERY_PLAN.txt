@@ -46,6 +46,10 @@ These results keep their documented scope; they do not prove the remaining
 ordinary/cross-PC/Internet/deployment matrix. See STATUS.txt and focused records.
 
 Delivery order
+102 immediate installer correction:Nick's second-PC trace confirms PowerShell
+script execution is disabled. Replace default PS UI with a native two-field
+installer EXE and produce Start Battle Aces.cmd plus runtime in the GAME folder.
+No policy change or retained download-folder dependency. RC1_PLAN.txt tracks it.
 PRIORITY CHANGE2026-10-21:finish the simpler installer and explicit RC1 candidate
 BEFORE the physical two-PC test. RC1_PLAN.txt defines finite RC-I/N/L/M/P/F gates,
 address-only connection and acceptance scope. Keep D1-D9 final work;do not mistake

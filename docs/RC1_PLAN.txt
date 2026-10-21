@@ -5,14 +5,17 @@ final-release gate. The existing delivery plan remains authoritative for those
 remaining requirements. No earlier failed report is upgraded by this scope change.
 
 Player experience
-Extract the client patch ZIP and double-click Setup Client.cmd (or Start Client.cmd
-on first use). Choose the working game folder,set a player name,enter the server
-IP,and click Install / Update. No CA file,fingerprint,certificate name,invite,
-Python install or developer tools. Server port47623 is the default;advanced
-server_host/server_port/display_name remain editable in config/client.json.
-Blank address is valid for offline play. Thereafter use Start Client.cmd.
+102 supersedes the101 PowerShell UI after Nick's second-PC trace proves script
+execution policy blocks it. Download ONE standalone Windows installer executable;
+its native window asks for game folder and server IP. Click Install / Update.
+It copies the complete client runtime into the game folder and creates
+Start Battle Aces.cmd there. No retained download-folder dependency,PowerShell
+policy change,CA,fingerprint,invite or developer runtime installation.
+Server port47623 is the default;server_host/server_port/display_name remain
+editable in .battleaces-resurrection/client-config.json in the GAME folder.
+Blank address is valid for offline play. Existing names/profiles are preserved.
 Install/update verifies supported local files,preserves original backups and saves.
-Restore original is available in the same setup window. No game assets ship in Git.
+Verified restore remains available through the advanced patch command. No game assets ship in Git.
 
 RC connection contract
 Schema4 selects RC open access and TLS encryption WITHOUT certificate verification.
@@ -27,7 +30,10 @@ Saving from the new RC setup explicitly selects schema4 and preserves local_prof
 No plaintext fallback,OS trust-store edit,firewall edit or router configuration.
 
 Finite RC1 gates,in order
-[x] RC-I automated:address-only setup and install/update/restore from clean packages;
+[ ] RC-I102:new native UI and game-local runtime/launcher qualification replaces
+    the FAILED101 physical startup. Preserve101 backend proofs below;do not infer
+    that its rendered PowerShell form worked on Nick's second PC.
+    Historical101 automated:address-only setup and install/update/restore from clean packages;
     preserve decks/cosmetics/settings,show useful progress/failure,ordinary launch.
     567profile files unchanged;rendered UI inspected;ordinary CMD menu8.351s.
     Physical button/keyboard/visual behavior remains RC-P,not inferred here.
