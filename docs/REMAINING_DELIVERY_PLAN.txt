@@ -96,6 +96,15 @@ Completed subcases (same-PC automated controls; not physical LAN):
     server entry/world,then fresh Play/one30-second queue/one authoritative
     match/results/Continue.4718/3986exact receipts,one worker0 each,full loadouts;
     unchanged136bound paths/helper76/ordinary feature options,forced game cleanup.
+[x] Original Cancel after OFFERED/before READY in mode2 (cancel78 R03):no first
+    proposal worker/world,successful cancellation;ticket2 on the same TLS session
+    completes4683exact frames/results/Continue,worker0,full frozen selections.
+    Real fixture TLS/native callbacks/forced cleanup,not physical/LAN/native Quit.
+Scope correction78:mode1 R01/R03/R04 and mode5 R03 retain retirement-only passes;
+their reports have retry=false,no subsequent match. R07-mode1 has quiet completed
+return but no next Play. Keep those existing cases OPEN for the required next
+Play. Mode1 R02 already has cancel-retry01's actual waiting Cancel/ticket2 match;
+reuse that scope. Do not add cases or repeat qualified team-mode combinations.
 [x] Delayed first ENTER ACK during modes2/5 Cancel/retry (cancel72 R05):
     original second search survives the old reply,then one authoritative match/
     results/Continue;3451/4588 exact frames,each worker0,forced final game cleanup.

@@ -672,3 +672,61 @@ Final client termination is FORCED owned cleanup. No original files,raw native
 logs,simulation/bootstrap assets or private receipts are committed. R01-mode2/
 mode5 named native cells close;D2 and all physical gates remain OPEN. This turn
 changes documentation only;no redundant source/component test suite scheduled.
+
+2026-10-21 UTC original OFFERED Cancel78 (D2 R03-mode2)
+Unchanged tools.verify_public_client --ordinary-player --mode2 --cancel offered
+--retry,existing helper76/optimized58 and fixture TLS. Read-only preparation
+confirms same136bound source hashes,85-native-path helper receipt,installed
+program/catalog/manual71/LAN03 seals and133cached bundle fingerprints (0rehashes).
+No source/helper/patch/package/ordinary-launcher edits or manual71 launch.
+local/cancel78-preparation.json SHA256:
+9dcf726f8af62ee672a3b76ae225ab997e3727d5630fac2502e68edbdececcf0
+
+Native PID34172 PASS321.596s. Original first Play waits30.099s to OFFERED,then
+original Cancel runs BEFORE READY. Server CANCEL ACK kind59/request3 succeeds;
+native returns idle without disconnecting. First proposal retires server-side,
+with no worker/bootstrap/client world or invented result. Original second Play
+uses ticket2 on the SAME single authenticated TLS connection,waits30.028s and
+creates one authoritative four-seat match(one human/three original-profile bots).
+4683exact authoritative frame receipts,result4663/conceded0,original Continue/
+RETURN and search/world/ticket/offer release pass. Sole worker24664 exits0,no
+failure/stderr,reaped resources. Full selected deck/17cosmetic slots retained
+across both queue intents and native join;archived bootstrap hash/decoded human
+units match audit/queued deck exactly,identities1/2/3/4 contain one human/three AI.
+
+local/cancel78-offered-2v2-retry01/verification.json SHA256:
+3dcb448d7d5b84095eb99a304955649e52e3bfc95ffecc5720f8be0ba63ec17e
+local/cancel78-offered-2v2-review.json SHA256:
+012794ef71de5a6b21f0f63b9b0dfefc529ffab586eca5bc81a81152903db41a
+Archived bootstrap SHA256:
+2d7b1c7920ec88c037807e1c5e776210d70c38f682e03334be86eb0cb31ee588
+Strict retained reader binds native offer/Cancel/ACK/retirement/retry order,
+server ticket1 retirement before ticket2 entry,absence of first READY/world/
+worker,exact sole replacement assignment/result/Continue and all source/seals.
+Initial reader failed comparing decoder tuple units with JSON list units;
+corrected ordered list comparison passes on the SAME retained bootstrap/report.
+Initial reader/failure log preserved;no native rerun,changed inputs or weaker
+unit-order check. Shared TOML/program/helper/manual/LAN seals remain unchanged.
+This closes R03-mode2 within native automated callback/fixture TLS scope. Client
+termination is forced;not native Quit/physical/bundled/protected/LAN acceptance.
+
+Cancellation/RETURN next-Play scope audit78
+Inspection of actual retained reports confirms retry=false/no subsequent match:
+public-client-cancel-before01(mode1),cancel-offer01(mode1),cancel-ready01(mode1)
+and public-client-2vai-cancel01(mode5). Their prior retirement passes remain
+valid;full R01/R03/R04 native cells require the already-specified actual next Play
+and stay OPEN for that missing part. public-client-drop-return02 SHA256
+4961a20ad71d338fe226c6ff9a8e88ef99642ea06e9f6414633e62316c11118e
+likewise has retry=false,one worker/1220frames:quiet finished return passes,
+not next Play. R07-mode1 stays OPEN with modes2/5. No new requirement/case added.
+Mode1 R02 reuses cancel-retry01(7531f606...0710b3):waiting Cancel plus actual
+completed ticket2,also supporting R05's delayed-ACK case. Ordinary waiting-cancel
+PNG observation remains a separate narrower input;do not rerun it for the retry.
+Next reuse existing diagnostic for missing cancellation retries;then extend only
+Python verifier's currently rejected drop-RETURN-ACK/retry combination. Native
+finishMenu/smoke already schedules a second original Play on explicit retry flag;
+ordinary entry remains free of automation. Require both actual completed matches,
+quiet first retirement and distinct fresh intent/world/worker on the next Play.
+No production defect is inferred from missing evidence. D6 physical restart
+observation remains priority/pending. This change is documentation only;raw
+reports/logs/bootstrap/original files stay local and no component suite rerun.

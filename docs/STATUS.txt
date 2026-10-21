@@ -14,6 +14,23 @@ Readiness report SHA256 bb0efbd40c457e7f2e0fd025a4182d290f98490d7edde6030d91afd3
 Initial read-only checker used game_dir instead of game_directory and refused;
 corrected reader passes,no package/config/game edits or native rerun. D6 OPEN.
 
+D2 ORIGINAL OFFERED CANCEL78 (2026-10-21 UTC,R03-MODE2 PASS)
+Unchanged ordinary-feature verify_public_client/helper76 on automated58:original
+Cancel after first30.099s OFFERED,BEFORE READY;successful CANCEL ACK/nativeIdle
+retirement,no first proposal worker/world. Same one authenticated session sends
+second Play,ticket2 offered30.028s;one match completes4683exact native receipts,
+result4663/conceded0,Continue/RETURN,worker0/reaped. Whole321.596s. Selected deck,
+17-slot appearances and actual serialized four-seat human/AI ownership agree.
+136bound sources/shared settings/helper/program/catalog/manual71/LAN03 stable;
+0bundle rehashes. Final game cleanup forced,not native Quit/physical/protected/
+bundled/LAN. Retained reader's tuple/list type mismatch corrected with ordered
+list comparison;preserved initial reader/log,no native rerun or production edit.
+Scope review also corrects five overstated existing cells:mode1 R01/R03/R04,
+mode5 R03 and mode1 R07 have retirement passes but retry=false/no next match.
+Keep them OPEN for the already-required actual next Play. R02-mode1 can reuse
+cancel-retry01's waiting Cancel/completed retry. Details:public-matchmaking.txt.
+D2 parent OPEN,D6 reboot-first/repeat/physical gate still priority and pending.
+
 D2 ORIGINAL CANCEL BEFORE ENTER77 (2026-10-21 UTC,R01-MODE2/MODE5 PASS)
 Unchanged verify_public_client/ordinary feature options/helper76 on automated58,
 two distinct native processes/profiles/TLS fixture servers. Both original Cancel
