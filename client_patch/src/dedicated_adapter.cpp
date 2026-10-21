@@ -300,6 +300,7 @@ static void rematchSmoke(Obj server) {
     Obj stack=ba::get<Obj>(navigation,"_navigationStack");if(!stack || ba_local::count(stack))return;
     if(!smokePostgameAt){smokePostgameAt=GetTickCount64();return;}
     if(GetTickCount64()-smokePostgameAt<2000)return;
+    if(!ba_remote_profiles::resultReady(ba_lan::dedicatedMatchId))return;
     smokeContinueIssued=true;
     ba::log("DEDICATED REMATCH SMOKE automated original MatchResultVM.OnContinue; match=%s active=0 world=0 navigation=empty (NOT manual UI input)",ba_lan::dedicatedMatchId.c_str());
     ba::call(view,"OnContinue");

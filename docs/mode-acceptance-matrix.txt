@@ -54,15 +54,18 @@ All eight retain the entered human group in ONE authoritative match, frozen
 configured names/decks/full loadouts, original results/Continue and native Quit.
 No ordinary 30s timer or simulation step is shortened. They are same-PC native
 automated/TLS identity-fixture evidence. No further missing roster cardinality.
-B09   Original bot selection and difficulty applicability O:final review
+B09   Original bot selection and difficulty applicability P:82/83 native
 82 selection/frozen-bootstrap/local-profile-model review PASS:186deterministic
 profile/deck/strength choices,7actual local in-game/result bot bindings and
-14actual remote serialized seats. Actual remote AI loading/result profile-model
-observation remains OPEN;do not substitute bootstrap equality or lucky sampling.
+14actual remote serialized seats.83 independently observes original loading
+signals,10ingested native identities and10original result profiles across1/2/5,
+including7bots. Typed original loading model has mode only,no roster fields;
+all actual roster observations occurred after loading,without forced binding.
+Three Continue actions/workers0/root retirement pass. Physical P03 stays OPEN.
 Exact evidence/source/catalog hashes and remaining scope:bot-selection-acceptance.txt.
 Bind source-supported random difficulty/mode pools and varied catalog identity/
 deck/avatar selection to the retained local/online runs. Inspect actual loading/
-result models and physical P03 below; Try Deck must use its separate saved
+result models (remote-bot-profile-models.txt) and physical P03 below; Try Deck must use its separate saved
 difficulty. Do not require probabilistic sampling to produce every random value;
 selection/rule correctness needs direct source/native evidence, not a lucky draw.
 Quantitative health/damage/resource and catalog gameplay coverage belong to D3.
@@ -187,7 +190,8 @@ R: public-matchmaking.txt, ordinary-player-client.txt, matchmaking-search.txt
 C02/C03: native-custom-invitations.txt; C/Ready: native-custom-matches.txt
 T01/T02/T03/T04: remote-local-transitions.txt
 T06: team-modes.txt; local/local-modes02/verification.json
-82 A15:client-availability.txt;B09 partial:bot-selection-acceptance.txt.
+82 A15:client-availability.txt;B09:bot-selection-acceptance.txt.
+83 B09 original remote models:remote-bot-profile-models.txt.
 Local mode-matrix62-retained-review02.json binds exact retained report bytes,
 passing values, scopes and this matrix; it is not another game execution or
 blanket validation. transition62-retained-review.json additionally checks both

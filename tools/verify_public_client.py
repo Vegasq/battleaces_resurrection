@@ -41,12 +41,13 @@ from tools.verify_custom_lobby import require, source_hashes as core_hashes
 from tools import verify_unified_startup as startup_probe
 from tools import public_return_evidence
 from tools import public_late_assignment
+from tools import public_profile_evidence
 
 ROOT = Path(__file__).resolve().parents[1]
 
 
 def source_hashes():
-    paths = [Path(__file__), Path(public_return_evidence.__file__), Path(public_late_assignment.__file__), ROOT/'tools/run_secure_match.py', ROOT/'tools/verify_practice_ai.py', ROOT/'tools/verify_unified_startup.py'] + list((ROOT/'client_patch/transport').glob('*.py'))
+    paths = [Path(__file__), Path(public_return_evidence.__file__), Path(public_late_assignment.__file__), Path(public_profile_evidence.__file__), ROOT/'tools/run_secure_match.py', ROOT/'tools/verify_practice_ai.py', ROOT/'tools/verify_unified_startup.py'] + list((ROOT/'client_patch/transport').glob('*.py'))
     return core_hashes() | {p.relative_to(ROOT).as_posix(): hashlib.sha256(p.read_bytes()).hexdigest() for p in paths}
 
 
@@ -61,6 +62,7 @@ def elapsed_seconds(log,ticket):
 async def run(args):
     game, assets, output = args.game.resolve(), args.assets.resolve(), args.output.resolve()
     late_assignment=getattr(args,'late_assignment',False)
+    remote_profiles=getattr(args,'remote_profiles',False)
     launcher.verify_game(game, community=True, bridge_version=2, unified=True, player_features=args.ordinary_player)
     if args.drop_return_ack and args.retry:
         require(args.ordinary_player and b'BA_RESURRECTION_RETURN_RETRY_V1' in (game/'BattleAcesOffline.dll').read_bytes(),
@@ -68,6 +70,10 @@ async def run(args):
     if late_assignment:
         require(args.ordinary_player and args.retry and game.is_relative_to(ROOT/'local') and b'BA_RESURRECTION_LATE_ASSIGNMENT_V2' in (game/'BattleAcesOffline.dll').read_bytes(),
                 'late assignment requires the explicit owned three-intent diagnostic helper')
+    if remote_profiles:
+        require(args.ordinary_player and game.is_relative_to(ROOT/'local') and
+                b'BA_RESURRECTION_REMOTE_PROFILE_V1' in (game/'BattleAcesOffline.dll').read_bytes(),
+                'remote profile proof requires the explicit owned full-loadout diagnostic helper')
     practice_path=game/'.battleaces-resurrection/practice-settings.ini'
     practice_before=public_late_assignment.preference(practice_path) if late_assignment else None
     verify_assets(assets);output.mkdir(parents=True, exist_ok=False)
@@ -112,6 +118,7 @@ async def run(args):
                 disconnect=args.disconnect,menu_profile_proof=args.menu_profile_proof,
                 local_frames=args.local_frames if args.unavailable or late_assignment else None, local_profile=args.local_profile,
                 late_assignment=late_assignment,
+                remote_profiles=remote_profiles,
                 practice_preference_before=practice_before,
                 helper_sha256=hashlib.sha256((game/'BattleAcesOffline.dll').read_bytes()).hexdigest(),
                 source_sha256_at_start=source_hashes())
@@ -185,6 +192,7 @@ async def run(args):
         if args.retry: command+=['-public-queue-smoke-retry']
         if (args.drop_return_ack and args.retry) or late_assignment:command.append('-public-return-retry-smoke')
         if late_assignment:command.append('-public-late-assignment-smoke')
+        if remote_profiles:command.append('-remote-profile-smoke')
         if args.disconnect in ('loading','running'): command+=['-dedicated-recovery-smoke']
         if args.practice_overlap: command+=['-public-queue-smoke-practice-overlap']
         if args.mode==1:
@@ -504,6 +512,10 @@ async def run(args):
                     report['post_return_menu_loadout']=dict(deck=list(saved.deck),cosmetics=list(changed.slots))
             report['full_loadouts']=dict(catalog=cosmetic_book.sha256,local_profile=cosmetic_profile,queue=queue_selections,
                 server_matches=frozen_matches,native_snapshots=snapshots,post_play_edit=args.edit_loadout_after_play)
+        if remote_profiles:
+            bootstrap=(output/'matches'/report['match']/'bootstrap.pb.gz').read_bytes()
+            report['remote_profile_expected']=public_profile_evidence.expected_players(bootstrap,report['match'],args.mode)
+            report['remote_profile_evidence']=public_profile_evidence.validate(log,report['match'],args.mode,report['remote_profile_expected'])
         if args.menu_profile_proof:
             rows=[json.loads(line.split('MENU PROFILE PROOF passed: ',1)[1]) for line in log.splitlines()
                   if 'MENU PROFILE PROOF passed: ' in line]
@@ -607,6 +619,7 @@ def main():
     parser.add_argument('--drop-on-ready',action='store_true')
     parser.add_argument('--drop-return-ack',action='store_true')
     parser.add_argument('--late-assignment',action='store_true',help='remote/local/remote: replay original assignment during fallback and prove later stream drainage')
+    parser.add_argument('--remote-profiles',action='store_true',help='read original remote result profiles and compare with the actual authoritative bootstrap')
     parser.add_argument('--disconnect',choices=('assignment','loading','running'),
                         help='close first owned TLS peer at a native-observed stage; test cleanup and optional explicit retry')
     parser.add_argument('--practice-overlap',action='store_true')
@@ -621,6 +634,9 @@ def main():
             'bounded local frames and unavailable1v1-only profile override required')
     require(0<=args.delay_enter_ack<=8 and (not args.retry or args.cancel or args.drop_on_ready or args.drop_return_ack or args.disconnect or args.late_assignment),'bounded delay/retry point required')
     require(not args.late_assignment or (args.retry and args.ordinary_player),'late assignment requires ordinary full-loadout retry')
+    require(not args.remote_profiles or (args.ordinary_player and not any((args.unavailable,args.retry,args.cancel,args.drop_on_ready,
+        args.drop_return_ack,args.disconnect,args.late_assignment,args.practice_overlap,args.edit_loadout_after_play))),
+        'remote profile proof requires one healthy ordinary remote match')
     require(sum(map(bool,(args.unavailable,args.cancel,args.drop_on_ready,args.drop_return_ack,args.disconnect,args.late_assignment)))<=1,
             'choose one unavailable/cancel/disconnect scenario')
     require(not args.edit_loadout_after_play or (args.cosmetics_selection and not any((args.cancel,args.retry,args.drop_on_ready,args.drop_return_ack,args.disconnect))),

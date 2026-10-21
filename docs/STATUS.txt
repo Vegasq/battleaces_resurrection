@@ -3,6 +3,25 @@ Updated: 2026-10-21 UTC
 Delivery plan: REMAINING_DELIVERY_PLAN.txt, Windows only.
 Original roadmap: CLOSED / SUPERSEDED;see PLAN_CLOSEOUT.txt.
 
+D6 PRIORITY REAFFIRMED / NEXT ACCEPTANCE ACTION
+User priority remains D6. Implementation and automated package/native checks71
+are complete;physical restart-first/repeat launch and visible TryDeck/Continue/
+Quit remain the sole D6 gate. Prepared ordinary manual71 candidate is unchanged.
+No new warm launch/rebuild is required to repeat that evidence. Next acceptance
+uses startup71-packages01/battleaces-client-win64/Start Client.cmd after Windows
+restart. Prior owner observation remains pending;no duplicate request issued.
+
+D2 REMOTE BOT MODELS83 (B09 NATIVE PASS;COMPLETED TESTS RECORDED)
+The already-running final1v1/2v2/2vAI tests finished successfully,with strict
+independent retained reviews and aggregate PASS.10actual native/result profiles,
+including7bots,retain original names/decks/avatars;original loading signals,
+Continue and worker0/root retirement pass. Original typed loading model has no
+roster;actual native roster was observed after loading. Two failed diagnostic
+pilots remain failed with identified ABI corrections.26Python/12C++ checks pass.
+No physical/artwork/native Quit/protected/bundled/LAN acceptance inferred. Manual71/
+LAN03 unchanged;no archive updated. B09 native closes with82policy/local evidence;
+D2/P03 stay OPEN. Exact hashes/scopes:remote-bot-profile-models.txt.
+
 D6 PRIORITY / READ-ONLY READINESS76 (2026-10-21 UTC,PHYSICAL CHECK PENDING)
 Package integrity,installed program/catalog,frozen LAN source,sealed seven-input
 qualification evidence and133cached bundle fingerprints rechecked unchanged.

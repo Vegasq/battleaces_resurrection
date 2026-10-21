@@ -1,13 +1,18 @@
 STARTUP BUNDLE LOADING - D6 INVESTIGATION,2026-10-20
 
 Current finding
-Local bundle CRC validation is a concrete performance hypothesis. A private
-CRC-zero counterfactual69 completes original RGameInit:Start in14.757s with
-normal Quit and full restoration. Original-CRC reversal70 restores the long
-wait:Start213.249s/initial222.032s,also without Frida. This supports local full-
-bundle CRC validation as an actionable major contributor,not an exclusive cause
-of all startup work or a released fix. CRC-zero initial entry still takes39.031s.
-Do not change the ordinary launcher/packages or close D6 from one fast run.
+The reversible production optimization71 is implemented and automatically
+qualified. Bundle integrity is checked at installation;ordinary launch checks
+cached file fingerprints while the catalog disables repeated local bundle CRC
+work. Original Unity initialization Tasks/barriers remain unchanged. Native
+launch-to-initial-state is10.968/6.297/6.266s;the actual packaged ordinary entry
+reaches menu7.739s. Packaged AI/results/Continue/natural Quit also passes.
+The counterfactual69 and original-CRC reversal70 support local validation cost
+as a major contributor,not an exclusive explanation for every slow run.
+D6 remains OPEN only for physical post-Windows-restart first launch,repeat
+launch and visible Try Deck/results/Continue/Quit on the preserved71candidate.
+That observation was requested once and remains pending. Additional warm runs
+cannot substitute for it. Details and retained hashes follow chronologically.
 
 Qualified original local loader
 Original GameAssembly SHA256
@@ -168,7 +173,7 @@ file placement are not randomized;the read-only timing analyzer's cause_proven
 staysfalse. This does not claim every historical slow run has one exclusive
 cause,or that the39-second full initial-state delay is already a finished UX.
 
-Production implementation71 (qualification in progress)
+Production implementation71 (automated qualification complete;physical pending)
 patcher/build37822_bundles.py contains only133 filenames/sizes/SHA256 plus the
 original/patched catalog digests. The user-designated pristine copy is read
 without modification;total bundle size6722831443bytes. Original catalog

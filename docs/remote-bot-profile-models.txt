@@ -1,0 +1,157 @@
+REMOTE BOT PROFILE MODELS83
+Updated:2026-10-21 UTC. B09 native model qualification IN PROGRESS.
+Parent:mode-acceptance-matrix.txt;policy/retained local proof:bot-selection-acceptance.txt.
+D6 physical post-restart/repeat startup remains priority;manual71/LAN03 unchanged.
+
+Original loading contract (static,not a rendered/runtime absence claim)
+REA6.5.0 binary_session reports no open native target and Ghidra not_configured:
+GHIDRA_INSTALL_DIR is unset in that server process. No configuration changed and
+no native-provider decompilation claimed. Reused hash-checked original metadata/
+disassembly;independent read-only review retained all input/output hashes.
+Original GameAssembly SHA256:
+e59d08c01479b27404778048d7e13546dbf3771f6b3912744c7c2bdf80c4e758
+IL2CPP metadata SHA256:
+b760be9190309b14174cd272e1f83b730181b299bc7a0cdca66985c69dcdc57d
+local/bot83-contract/manifest03.json SHA256:
+317032895ef9e1fb09673dea5177e0c60899daaa76bcf3e38aba0df9e615bc56
+Contract note SHA256:
+7ccc52a69f9cb4a4757a2ac1a9fddf46fccc62426b0dd4da053283710f896893
+
+LoadingScreenModel declares Signal only;UILoadingScreen owns mode,provinggrounds,
+tip/wait reason and services,with no declared roster/profile binding. Do not
+invent a loading profile VM or force a new roster into the original UI. The
+LoadingScreenModel is a reference class;its Signal is an INLINE four-byte
+ShowLoadingScreenSignal value type,containing <LoadingScreenGameMode>k__BackingField.
+Neither field is an object pointer. Original constructors/getter/Refresh at
+731f70/886490/6d98d0/3c9099e corroborate that layout. Original InferGameModeFromMatchmakingGameMode RVA3c90760 maps
+public1/2/5 unchanged. Original view may present internal1 as Game_1vAI4 when
+its original practice predicate applies;record signal and view modes separately.
+Live loading proof reads original model/signal/current front,initialized and
+Unity active/enabled/hierarchy guards. Its profile_roster_present=false field
+records this typed static contract,not an exhaustive runtime prefab-child scan.
+
+Original native ingestion and result contracts
+RGame.<MatchDataManager>k__BackingField -> _matchInfo,_players,_simulation and
+_serviceManager. Original OnPlayerJoined installs actual SimPlayer pointers and
+advances PlayerCount. Wait for all expected players;read only active entries.
+SimPlayer.Handle is an INLINE value type:SteamId+10,AiProfileId+1c;PlayerName+30,
+ArmyID+38,AllianceID+3c,Deck+40,Portrait+90,Banner+94. SimDeck.UnitIDs is an array.
+Observe actual ingested identity/deck/avatar against the frozen server bootstrap,
+with current simulation/service ownership. Record whether loading UI is STILL
+active at that instant;never manufacture timing overlap or call refresh/bind.
+
+Result observer follows original UIPostGameController's current result state/
+MatchResultVM._players,not an arbitrary cached VM. It requires live original
+MatchPlayerProfileVM models,matching private SteamId/mode/alliance/front,name,
+get_PlayerName with original Alias suffix,model.IsAi and get_IsAI,all8actual
+PlayerDeck units,portrait/banner and initialized active cosmetic child Item IDs.
+No model is changed. Neither model values nor child bindings prove artwork
+pixels or physical controls;P03 retains those observations separately.
+
+Implementation boundary
+New remote_profile_smoke.cpp/.hpp is enabled only by explicit owned
+-remote-profile-smoke plus unified/public/full-loadout smoke prerequisites and a
+cosmeticstest_ profile. Freeze copies identities/decks before native join;polling
+reads loading/native/result owners. Diagnostic Continue waits for observations;
+normal arguments never contain this flag. Retirement releases rooted owners.
+No production network/simulation/READY/fallback policy or original patch site
+changes. tools.verify_public_client --remote-profiles requires one healthy
+ordinary/full-loadout owned match,exclusive with fault/retry/local scenarios.
+tools.public_profile_evidence independently decodes the actual server bootstrap
+and rejects changed/missing/duplicate/stale models,wrong loading signal/owner,
+invented roster,early Continue and missing retirement.26focused Python tests and
+12C++check programs pass. Final three-mode native qualification is recorded below.
+
+Preserved failed pilot01 and correction
+local/bot83-1v1-01/verification.json remains FAILED201.661s:
+cce1dedc7b48dd9d62eefc38649fe987182c5b8cc537b668ac8ae09a5eeb1a7b
+New observer incorrectly read model.Signal as Obj,then dereferenced the inline
+mode number during loading. Unity intercepted the native crash;it is not an
+accepted game run. A symbol-map relink of the SAME own-helper object has a
+byte-identical .text section and locates the exact chain:ba::field <- get<int>/
+get<uint32_t> <- loadingActive+498 <- remote observer/public/lifecycle updates.
+local/bot83-crash-location.json SHA256:
+a64a15cb292ab2e7bf4930b39edaec5b3bba426cd28433fd6cd2a83f39c27583
+Original own-helper source retained as local/bot83-profile-before-signal-fix.cpp.
+After exact PID49360/image-path and owned Crash!!! log checks,only that crashed
+test game was stopped;driver records owned-game-exited-before-native-return.
+Worker exits0/reaped,141sources/shared settings stable. No user/manual game or
+protected desktop process touched. This is an observer ABI defect,not evidence
+of a production startup/gameplay failure. No retry without this identified cause.
+
+Corrected observer checks the exact original LoadingScreenModel class and copies
+the verified four-byte Signal value as int. Additional static carrier audit
+confirms PlayerMatchEntry/MatchInformation/SimDeck/Deck/MatchPlayerProfileModel are
+reference classes,_players is a reference array;unit-key arrays have inline u32
+elements. SimPlayer.Handle remains inline as already handled. Audit SHA256:
+134c0d4ee96123b70877f4f17c2e3ea00d10cc8eed5279b5a5363f672d68f238
+Pilot02 reaches the actual owned original loading screen,signal/view modes1/1,
+then fails safely at native ingestion with Public client failure:PlayerName.
+local/bot83-1v1-02/verification.json stays FAILED46.492s SHA256:
+5a76ce42b31c062bd54a62d8038a092ec6b65cfabd7fc003034ef93a6779896f
+PlayerName belongs inside inline SimPlayer.Handle at absolute+30;the observer
+mistakenly requested it as a direct SimPlayer field. The missing-field exception
+is caught;owned game is reaped and interrupted server worker exits1. This failed
+probe does not qualify clean match/worker completion.141source/shared seals hold.
+Producer own source retained as bot83-profile-before-native-name-fix.cpp. Correct
+read takes the verified string reference at SimPlayer+30 without treating Handle
+as an object. No diagnostic failures activate in ordinary entry;native qualification
+of the fully corrected observer is recorded below.
+
+Final field-owner review04 checks51used fields across22declaring classes against
+original metadata. Exact manifest SHA256:
+c04a683fbb39340c69f4fd9f487554ecd6cf77a362afc496add3b23c1d484400
+Only the existing inline Handle/signal and u32 key-array elements need value
+handling;other reviewed carriers are reference classes. PlayerCount is read as
+its actual uint type. Lifecycle review additionally stops all native reads once
+proofs finish:original Continue clears transport/world before RETURN ACK arrives.
+Build03 passed12checks but was never installed/launched;build04 includes that
+completed-observer guard. No extra native failure is attributed to unused03.
+
+New helper04 SHA256:
+0e21c00bcd7bfac8efd25d17bca633e1dd81a83e527402a29f76bfc4d15b58fb
+87-native/build-path receipt SHA256:
+d2bffb0072c5b67f8cd48b6266edfb0881060476a24c08294f048a120141cefc
+Native preparation03 binds141current runtime sources,unchanged program/catalog,
+manual71/LAN03 seals and originally absent practice preference. Only automated58
+has the new helper. Corrected final mode1/2/5 native runs all pass below.
+
+Final native qualification83
+Mode  Output                     Whole seconds  Exact frames  Result / ending
+1     bot83-1v1-03                    117.095          1220   1200/concession
+2     bot83-2v2-01                    316.829          5177   5157/natural
+5     bot83-2vai-01                   268.333          4199   4179/natural
+Each output is under local/ and ends in verification.json. Each real public
+search waits30s,one human plus original-profile bots. Each independently decoded
+bootstrap matches the original ingested roster and original result cards:10total
+players,7bots. Native name/AI/deck getters and live portrait/banner child bindings
+agree. All3original loading signals are observed;the complete native roster is
+observed AFTER loading in all3cases. Typed loading model has no roster fields.
+No loading-profile VM or simultaneous loading/roster observation is invented.
+Original Continue/RETURN/root retirement passes;all3workers exit0/reaped. Final
+game cleanup is forced,not native Quit.141source/program/shared-setting seals,
+manual71/LAN03 and original practice-preference absence remain unchanged.
+
+Report SHA256,mode1/2/5 respectively:
+e91fb29d962ce8a426c2669c7afab022f26fec12f35f5d9f81268eff8732f194
+8934d3af7beb9f041c1dacda477516109562e81a5ab586aadacb1769e1a32331
+b7b8469e71d41f23b15ea01bd1d249b2c08acbc4a8e13c726c3591e0d862328d
+Independent retained-review SHA256,mode1/2/5:
+e221b542cfc3aa5a3d6bbf2d5dffffb50d2f74ac0a0d6ef8e1f2f3c4810efbdc
+a2e43473f1da12dacd0b7ba583e36735885ffb9d6d77ccc44b71669ec531155d
+3dd65477f8a2a738f336d8d265ebfd1dae3a7b83f29918c05de7487147e0cd49
+Readers validate raw native log hashes/CRLF boundaries,actual archived bootstrap,
+every frame checksum against server audit,real queue ages,result/Continue order,
+full human17-slot appearance,worker reaping/PKI removal and all current seals.
+local/bot83-aggregate.json PASS SHA256:
+33e77e57879036a3b286e4e738bf7a35971a45d62b08030d639c9fb7e8ccd6fe
+It binds all3passing reports/readers and both unchanged failed pilots. B09 native
+gate closes with82selection/local evidence. Physical P03/artwork,ordinary bundled
+runtime/protected enrollment/native Quit/LAN remain separate;D2 parent stays OPEN.
+No release archive/manual candidate updated. D6 restart-first/repeat physical
+check remains priority. No further D2 native launches are needed for this case.
+
+The failed01 Unity log mentions a crash-report destination under the user's
+Temp directory. This is evidence of an intercepted native fault message,not
+complete filesystem/network attribution or telemetry qualification. Reuse that
+owned fault artifact for D5's existing crash/collector gate;D5 remains OPEN.

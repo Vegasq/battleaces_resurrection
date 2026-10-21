@@ -1,5 +1,5 @@
 BOT SELECTION ACCEPTANCE82
-Updated:2026-10-21 UTC. D2 B09 remains OPEN for remote UI-model qualification.
+Updated:2026-10-21 UTC. D2 B09 native PASS82/83;physical P03 remains OPEN.
 Sources:public_bots.cpp,practice_ai.cpp,practice_settings.cpp,server/bot_catalog.py,
 server/public_matchmaking.py,server/game_data.py. No implementation changed here.
 
@@ -68,11 +68,13 @@ Installed imported bot-catalog SHA256:
 All six reviewed policy/native source hashes equal the81producer snapshot.
 No game/helper/config/package/manual71/LAN03 file changed;no game launched.
 
-Remaining B09 gate
-Observe actual remote AI loading/result profile models,using the existing
-read-only native ownership/name/avatar/child-binding pattern. Serialized remote
-bootstrap equality is insufficient. Keep original configured human name/deck and
-same original bot identity through result;do not force inactive panels to bind.
+Remote B09 model gate PASS83
+Three public modes now retain original loading signals,actual ingested native
+rosters and original result name/AI/deck/avatar getters/live cosmetic children.
+All10identities,including7bots,match their actual server bootstraps;three original
+Continue actions,worker0 and observer root retirement pass. Original typed loading
+model contains mode only;rosters were observed after loading,not fabricated on
+that screen. Exact reports/failures/hash seals:remote-bot-profile-models.txt.
 Physical P03 must separately check visible names/avatar artwork/loading/results
 and independent Try Deck difficulty. D3 owns quantitative rules/catalog gameplay.
 Protected enrollment,physical inputs,final ordinary artifacts/native Quit/LAN/

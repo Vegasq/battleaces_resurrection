@@ -43,6 +43,9 @@ These results keep their documented scope; they do not prove the remaining
 ordinary/cross-PC/Internet/deployment matrix. See STATUS.txt and focused records.
 
 Delivery order
+D6 priority reaffirmed by the user. Next acceptance action is D6-C4 on the
+prepared ordinary manual71 candidate. Preserve its package/game/configuration;
+finish recording already-completed tests before starting other engineering work.
 D6 is the immediate engineering priority at the user's explicit request on
 2026-10-20. Production fix/native/package checks71 now pass;only D6's physical
 restart-cold/repeat-launch observation is pending. Preserve its prepared manual
@@ -79,6 +82,11 @@ finished;their scoped results are recorded below. With D6's engineering fix and
 automated qualification complete,preserve its manual candidate and address the
 remaining named D2 cells without repeating covered queue/roster tests.
 Completed subcases (same-PC automated controls; not physical LAN):
+[x] Original remote bot loading/native/result model qualification,B09 (83),
+    together with selection/local-model review82. Three public modes,10actual
+    native/result identities,7bots,original Continue and workers0. Original
+    loading model carries mode only;native rosters were observed after loading.
+    Physical P03 remains OPEN. See remote-bot-profile-models.txt.
 [x] Healthy configured fixture TLS server while using Try Deck,A15 (retained62/
     review82). Six native clients,no new remote allocations during203.353/204.281s
     practice windows,real server matches before/after. No new game launch;current
@@ -147,9 +155,9 @@ Reuse those controls;physical ordinary/LAN and remaining cases below stay open.
 - Confirm real30-second queue timing, keeping existing humans together, correct
   alliances, random supported public difficulty and stable original bot identity/
   deck/avatar through loading/results. Try Deck uses its independent saved choice.
-  B09 policy/local-model/frozen remote identity review82 passes;actual remote AI
-  loading/result profile-model observation remains,plus physical P03. Reuse the
-  186deterministic selection checks;do not collect random draws indefinitely.
+  B09 selection/local-model review82 and original remote loading/native/result
+  qualification83 pass. Physical P03 remains. Reuse the186deterministic selection
+  checks;do not collect random draws indefinitely.
   Exact remaining scope:bot-selection-acceptance.txt.
 - Exercise full four-human2v2 and remaining partial team rosters on the current
   ordinary candidate. Custom never inserts bots or uses the public timeout.

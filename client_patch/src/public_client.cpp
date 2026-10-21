@@ -52,6 +52,7 @@ static void finishMenu(Obj front,const char* reason,bool disconnect,bool error=f
     ba::log("Public intent retired: ticket=%llu reason=%s nativeIdle=1 disconnect=%d",
         static_cast<unsigned long long>(ticket),reason,disconnect?1:0);
     if(ba::flag(L"-public-queue-smoke-retry") && smokeStarted==1)smokeRetryAt=GetTickCount64()+1000;
+    ba_remote_profiles::retire(current->intent.match);
     forget();
     if(error) {
         errorNotice=ba_match_loading::begin(ba_match_loading::Source::Dedicated,"public-error:"+std::to_string(ticket),ba_match_loading::Stage::Preparing);
@@ -186,6 +187,7 @@ static Obj validateBootstrap(Obj front) {
         require(ba::get<uint32_t>(ba_lan_bootstrap::at(armies,seat.slot),"portraitId_")==current->appearance.portrait &&
                 ba::get<uint32_t>(ba_lan_bootstrap::at(armies,seat.slot),"bannerId_")==current->appearance.banner,"public bootstrap cosmetic roles differ");
     }
+    ba_remote_profiles::freeze(front,config,s.match,s.mode);
     return local->get();
 }
 static void normalizeJoin(Obj action) {
@@ -236,6 +238,7 @@ static void update(Obj front) {
     try {
         auto& s=*current;auto& intent=s.intent;
         require(s.front.get()==front,"public attempt belongs to another front");
+        ba_remote_profiles::update(front);
         const auto now=GetTickCount64();Obj server=ba::read<Obj>(front,0xd8);
         if(s.lost) {
             // A valid result and native Continue already finished this match.
