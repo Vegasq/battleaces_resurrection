@@ -1,6 +1,71 @@
 REPLAY RECOVERY FINDING55 -- 2026-10-20
 Plan item:D4-RP1. Status:OPEN;malformed batch recovery is NOT qualified.
 
+92 options/exit investigation paused at Nick's request,2026-10-21 UTC
+Native03 completed before the pause. The visible button's actual component is
+PointerLeftClickTrigger,not the exact PointerClickTrigger class required by the
+experimental dispatch guard. Its captured OnTrigger event has no persistent or
+runtime callbacks. The guard refuses before pointer construction/dispatch,so
+this is NOT an exit-button success or a physical input verdict. Existing typed
+events on the button and up to three parents were read twice without invocation.
+Nested list callbacks are outside that field inventory;do not infer absence.
+Failure-only original exit API cleanup and original Quit pass naturally in
+33.680s,exit0,no force,owned PID52276 reaped and subsequently absent.
+Outer replay report remains FAILED:
+local/replay92-button-native03/verification.json SHA256
+322d43198e98cdbb7b63f707779f5190bfeccc7742bfcc1c01398942666048a2
+Inner native-quit/verification.json SHA256
+9f679c19a02b6de77188990e7e35b4562076c38433d3a3a58163f1dc2bb3f6b5
+Helper92-03 SHA256
+5b6ae164c74e00c8e2e05dfc7793ff29f9fe7ee33c0e47a53bfef66b2d442bd4
+95-source build receipt SHA256
+627cc9be4864091c03bf443a8a448e783797decdd47daf907399659082c30a7d
+13native build checks and34focused Python checks pass. No server was started.
+Resume only after Nick requests it:review DEV.txt answers first,D6 remains the
+priority. For D4 inspect the retained actual PointerLeftClickTrigger route before
+another dispatch experiment;do not repeat the disproven exact-class assumption.
+Manual71/LAN03 remain unchanged. No further test is started before the pause.
+
+Original TryShowOptionsConcedeView3b44490/token0600171b opens the real options
+view from the healthy replay. No manual FSM/UI visibility or event-binding writes.
+Native01 sees the same LeaveReplayButton active/initialized/interactive and calls
+original UIButton.Click89fe30/token06000615 once. It does not leave the replay
+within10s. Its report remains FAILED. Failure-only original ReplayEndGame cleanup
+returns,then the original Quit guard revalidates idle state and exits0 naturally,
+no force,in43.156s. Cleanup does not qualify the click. PID11760.
+local/replay92-button-native01/verification.json SHA256:
+37b4fd9567fbd52d8e63c9b6d3bbc102a4837853676fd39a26d1f11416a87126
+Inner native-quit/verification.json SHA256:
+65e042a6e59e0af8f8b3b691800573d55bc2626518c763361adc5dab2d43cd3f
+
+Original UIButton.OnPointerClick89fc20/token06000611 checks left button0 then
+delegates to the SAME Click(false) body as Click(). Repeating only that callback
+would not cover other components that Unity may invoke for a real pointer click.
+Original PointerClickTrigger86acf0/token06000182 has a separate OnTrigger event.
+Guarded native02 waits for original UIContainer.get_isVisible88a350(state0),then
+checks for an active PointerClickTrigger on the exact button GameObject before
+invoking any guessed handler. That guard refuses:no matching active component.
+It does NOT construct PointerEventData,validate that hypothetical binding or
+dispatch a pointer event. Failure-only API cleanup/original Quit0 pass33.995s,
+no force,PID16144. Its replay report stays FAILED,not a physical mouse verdict.
+local/replay92-button-native02/verification.json SHA256:
+9b946dff1bd40ceda977ce15a486b54c167c055c1f5229826f62fb69c8e01988
+Inner native-quit/verification.json SHA256:
+a8da789a843ac4caa29ea79a04548ee1c4d990d3bbac04067a296331704675d3
+Both retain unchanged seed/original recording/producer sources and automatic
+failure_cleanup_gate=true. Original reports and archived producer source bytes
+are preserved;no listener is installed to manufacture a pass. Both builds pass
+the existing13C++ checks;reader tests33then34 pass. Actual handler remains unknown.
+
+Next bounded action is passive component/event inventory on the visible button
+and up to three parents,using original Component.GetComponents(Type)5085bc0/
+token06000e1d. Read existing fields twice;do not rebuild/invoke their events.
+This replaces more guessed click dispatches. REA binary_session still reports
+Ghidra unavailable:GHIDRA_INSTALL_DIR unset,no target open. Original hash-checked
+LLVM/metadata review is the fallback;no Ghidra-native evidence is claimed.
+All work targets automated58;manual71/LAN03 stay frozen and DEV.txt N1D6 is
+still pending. No actual bound exit,Cancel/fault recovery or parent closure.
+
 Latest91:ordinary Custom shared-hook regression PASS,2026-10-21 UTC
 Same helper90-02/95-source build receipt;no helper rebuild or further install.
 Two native clients on automated58 use actual ordinary player options (public

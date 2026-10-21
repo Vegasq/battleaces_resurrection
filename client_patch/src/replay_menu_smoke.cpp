@@ -1,6 +1,7 @@
 #pragma once
 // Explicit healthy original replay API/lifecycle control. No ReplayFiles batch,
-// manual FSM transition, helper ticks, new UI route, or simulated button click.
+// manual FSM transition, helper ticks, or new UI route. The separate button
+// mode invokes the existing visible UIButton, never the exit API for success.
 namespace ba_replay_menu {
 using ba::Obj;using ba_local::Root;using ba_native_settings::require;
 namespace codec=ba_native_replay_reader;
@@ -8,6 +9,9 @@ namespace ui=ba_practice_settings_ui;
 struct Probe {
     Root owner,front,replay,simulation;
     ba_native_settings::Handle file;
+    std::unique_ptr<Root> controller,button;
+    bool optionsDispatched=false,buttonClicked=false;
+    ULONGLONG optionsDeadline=0;
     uint64_t world=0;int frames=0;
     Probe(Obj a,Obj b,Obj c,Obj d):owner(a),front(b),replay(c),simulation(d){}
 };
@@ -15,6 +19,79 @@ static auto& probe=*new std::unique_ptr<Probe>();
 static unsigned stage=0;static ULONGLONG due=0,deadline=0;
 static std::string lastState;
 static bool canInspect(){return probe && (stage==1 || stage==2);}
+static bool buttonMode(){return ba::flag(L"-native-replay-menu-button-smoke");}
+static void componentInventory(Obj button) {
+    Root type(ui::reflectedType("UnityEngine","Component"));
+    auto transform=std::make_unique<Root>(ba::call(button,"get_transform"));
+    for(unsigned depth=0;transform->get() && depth<4;++depth) {
+        void* args[]={type.get()};
+        Root values(codec::invoke(codec::method(codec::type("UnityEngine","Component"),"GetComponents",1,
+            0x5085bc0,0x06000e1d),transform->get(),args));
+        const auto count=ui::arrayCount(values.get(),64);
+        for(size_t i=0;i<count;++i) {
+            Root value(ui::arrayItem(values.get(),i));if(!value.get())continue;
+            const auto before=ba_replay_binding::graphEvents(value.get());
+            require(before==ba_replay_binding::graphEvents(value.get()),"replay component event inventory changed");
+            ba::log("NATIVE REPLAY BUTTON component inventory: {\"depth\":%u,\"component\":%s,\"events\":%s}",
+                depth,ba_replay_binding::reference(value.get()).c_str(),before.c_str());
+        }
+        Root parent(ba::call(transform->get(),"get_parent"));transform=std::make_unique<Root>(parent.get());
+    }
+}
+static bool clickExit(Probe& value,Obj controller) {
+    if(!value.optionsDispatched) {
+        value.controller=std::make_unique<Root>(controller);
+        value.button=std::make_unique<Root>(ba::get<Obj>(controller,"_leaveReplayButton"));
+        require(ui::exact(value.button->get(),"Doozy.Runtime.UIManager.Components","UIButton") &&
+            !ui::active(value.button->get()),"replay button must start under the closed options view");
+        value.optionsDispatched=true;value.optionsDeadline=GetTickCount64()+10000;
+        ba::log("NATIVE REPLAY BUTTON options dispatch: originalTryShowOptionsConcedeView=1 buttonInitiallyHidden=1 fsmWrites=0");
+        codec::invoke(codec::method(ba::klass(controller),"TryShowOptionsConcedeView",0,0x3b44490,0x0600171b),controller);
+        return false;
+    }
+    require(value.controller && value.controller->get()==controller && value.button &&
+        ba::get<Obj>(controller,"_leaveReplayButton")==value.button->get() && !value.buttonClicked &&
+        GetTickCount64()<value.optionsDeadline,"replay button owner/visibility deadline differs");
+    if(!ui::selectable(value.button->get()))return false;
+    Root view(ba::get<Obj>(controller,"_optionsConcedeView"));
+    if(!view.get() || !ba::native<bool(*)(Obj,Obj)>(0x88a350)(view.get(),nullptr))return false;
+    Root id(ba::get<Obj>(value.button->get(),"Id"));
+    require(id.get() && !ba::get<bool>(id.get(),"Custom") &&
+        ba_catalog::utf8(ba::get<Obj>(id.get(),"Category"))=="Game" &&
+        ba_catalog::utf8(ba::get<Obj>(id.get(),"Name"))=="Quit","replay visible button ID differs");
+    const auto before=ba_replay_binding::snapshot(controller,value.button->get());
+    require(before==ba_replay_binding::snapshot(controller,value.button->get()) &&
+        ba::read<uint64_t>(value.simulation.get(),0x1a8)==value.world,
+        "replay visible button bindings/world changed during inventory");
+    ba::log("NATIVE REPLAY BUTTON visible inventory: %s",before.c_str());
+    componentInventory(value.button->get());
+    // Unity dispatches pointer callbacks to sibling components as well as the
+    // UIButton. Its Click() only broadcasts; the authored exit is on the
+    // existing PointerClickTrigger's serialized OnTrigger UnityEvent.
+    Root trigger(ui::component(value.button->get(),"Doozy.Runtime.UIManager.Triggers","PointerClickTrigger"));
+    require(ui::exact(trigger.get(),"Doozy.Runtime.UIManager.Triggers","PointerClickTrigger") &&
+        ui::gameObject(trigger.get())==ui::gameObject(value.button->get()) && ui::active(trigger.get()),
+        "replay button requires its existing active pointer trigger");
+    Root event(ba::get<Obj>(trigger.get(),"OnTrigger"));
+    ui::persistentTarget(event.get(),controller,"ReplayEndGame");
+    const auto eventBefore=ba_replay_binding::event(event.get());
+    require(eventBefore==ba_replay_binding::event(event.get()),"replay pointer binding changed during inventory");
+    ba::log("NATIVE REPLAY BUTTON pointer binding: {\"trigger\":%s,\"same_game_object\":true,\"event\":%s}",
+        ba_replay_binding::reference(trigger.get()).c_str(),eventBefore.c_str());
+    Root system(codec::invoke(codec::method(codec::type("UnityEngine.EventSystems","EventSystem"),"get_current",0,0x53c5f20,0x0600064d),nullptr));
+    require(system.get()!=nullptr,"replay pointer control requires the existing EventSystem");
+    auto data=codec::allocate(codec::type("UnityEngine.EventSystems","PointerEventData"));
+    void* constructorArgs[]={system.get()};
+    codec::invoke(codec::method(ba::klass(data->get()),".ctor",1,0x53c4c40,0x06000633),data->get(),constructorArgs);
+    int left=0;void* buttonArgs[]={&left};
+    codec::invoke(codec::method(ba::klass(data->get()),"set_button",1,0x91f9c0,0x0600061c),data->get(),buttonArgs);
+    value.buttonClicked=true;
+    ba::log("NATIVE REPLAY BUTTON pointer dispatch: originalPointerClickTrigger=1 active=1 interactable=1 persistentReplayEndGame=1 originalExitApi=0 buttonClicks=1 fsmWrites=0 helperTicks=0");
+    void* clickArgs[]={data->get()};
+    codec::invoke(codec::method(ba::klass(trigger.get()),"OnPointerClick",1,0x86acf0,0x06000182),trigger.get(),clickArgs);
+    ba::log("NATIVE REPLAY BUTTON pointer returned: originalCallbackReturned=1");
+    return true;
+}
 static void update(Obj front) {
     if(!ba::flag(L"-native-replay-menu-smoke") || stage>=4 || GetTickCount64()<due)return;
     due=GetTickCount64()+50;
@@ -91,6 +168,10 @@ static void update(Obj front) {
             }
             require(controller && ba::get<Obj>(controller->get(),"_signalRouter")==ba::read<Obj>(ba::owner,0x238),
                 "replay menu cleanup requires the current original controller");
+            if(buttonMode()) {
+                if(!clickExit(*probe,controller->get()))return;
+                stage=3;deadline=now+10000;return;
+            }
             stage=3;
             ba::log("NATIVE REPLAY MENU exit API dispatch: originalReplayEndGame=1 buttonClicks=0 fsmWrites=0 helperTicks=0");
             codec::invoke(codec::method(ba::klass(controller->get()),"ReplayEndGame",0,0x3b443b0,0x06001718),controller->get());
@@ -102,8 +183,26 @@ static void update(Obj front) {
                 !ba::read<bool>(probe->simulation.get(),0x1a0) && !ba_practice::active() &&
                 ba_client::worldOwner==ba_client::Owner::None,"replay menu exit did not release the original world");
             probe.reset();stage=4;
-            ba::log("NATIVE REPLAY MENU API control passed: mainMenu=1 worldIdle=1 originalExitApi=1 probeRootsReleased=1 filePinReleased=1 buttonClicks=0 fsmWrites=0 helperTicks=0 BA_RESURRECTION_REPLAY_MENU_V1");
+            if(buttonMode())ba::log("NATIVE REPLAY MENU BUTTON control passed: mainMenu=1 worldIdle=1 originalExitApi=0 probeRootsReleased=1 filePinReleased=1 buttonClicks=1 fsmWrites=0 helperTicks=0 BA_RESURRECTION_REPLAY_MENU_BUTTON_V1");
+            else ba::log("NATIVE REPLAY MENU API control passed: mainMenu=1 worldIdle=1 originalExitApi=1 probeRootsReleased=1 filePinReleased=1 buttonClicks=0 fsmWrites=0 helperTicks=0 BA_RESURRECTION_REPLAY_MENU_V1");
         }
-    } catch(const std::exception& error){probe.reset();stage=5;ba::log("Native replay menu control failed: %s",error.what());}
+    } catch(const std::exception& error) {
+        stage=5;ba::log("Native replay menu control failed: %s",error.what());
+        if(buttonMode())try {
+            // Failure-only original API cleanup never qualifies the UI route.
+            if(probe && probe->controller && ba::owner==probe->owner.get() &&
+                ba::get<Obj>(probe->controller->get(),"_simulation")==probe->simulation.get() &&
+                ba::read<uint64_t>(probe->simulation.get(),0x1a8)==probe->world &&
+                ba::read<bool>(probe->simulation.get(),0x1a0)) {
+                Root fsm(ba::get<Obj>(ba::owner,"_mainFSM")),current(ba::get<Obj>(fsm.get(),"_currentState"));
+                require(ba_replay_binding::className(current.get())==".RGameInGameState" &&
+                    ba::read<Obj>(current.get(),0x18)==ba::owner,"replay failure cleanup requires the same in-game owner");
+                codec::invoke(codec::method(ba::klass(probe->controller->get()),"ReplayEndGame",0,0x3b443b0,0x06001718),probe->controller->get());
+                ba::log("NATIVE REPLAY BUTTON failure cleanup: originalExitApiReturned=1 successUnclaimed=1");
+            } else if(ba_dedicated_session::inMenu() && ba_client::nativeIdle(front))
+                ba::log("NATIVE REPLAY BUTTON failure cleanup: alreadyIdle=1 successUnclaimed=1");
+        }catch(const std::exception& cleanup){ba::log("Native replay button failure cleanup failed: %s",cleanup.what());}
+        probe.reset();
+    }
 }
 }

@@ -1,7 +1,9 @@
+import json
+import re
 import unittest
 
 from tests import test_replay_signal_evidence as fixture_module
-from tools.replay_menu_evidence import validate, COMPLETE
+from tools.replay_menu_evidence import validate, COMPLETE, BUTTON_COMPLETE
 from tools.replay_binding_evidence import validate as binding
 
 
@@ -60,6 +62,51 @@ class ReplayMenuEvidenceTests(unittest.TestCase):
                      self.text+'Native replay menu control failed: owner changed'):
             with self.subTest(text=text[-80:]), self.assertRaises(AssertionError):
                 validate(text, self.replay)
+
+    def button_text(self):
+        value=json.loads(re.search(r'REPLAY BINDING inventory: (.+)',self.binding)[1])
+        value['active']=True
+        opened='[4] NATIVE REPLAY BUTTON options dispatch: originalTryShowOptionsConcedeView=1 buttonInitiallyHidden=1 fsmWrites=0\n'
+        visible='[5] NATIVE REPLAY BUTTON visible inventory: '+json.dumps(value)+'\n'
+        pointer=dict(trigger=dict(id='300',**{'class':'Doozy.Runtime.UIManager.Triggers.PointerClickTrigger'}),
+                     same_game_object=True,event=dict(persistent=[dict(target=value['controller'],method='ReplayEndGame',
+                         method_name_present=True,state=2)]))
+        binding='[6] NATIVE REPLAY BUTTON pointer binding: '+json.dumps(pointer)+'\n'
+        dispatch='[7] NATIVE REPLAY BUTTON pointer dispatch: originalPointerClickTrigger=1 active=1 interactable=1 persistentReplayEndGame=1 originalExitApi=0 buttonClicks=1 fsmWrites=0 helperTicks=0\n'
+        prefix=self.text[:self.text.index('[4] NATIVE REPLAY MENU exit API dispatch:')]
+        return prefix+opened+visible+binding+dispatch+'[8] NATIVE REPLAY BUTTON pointer returned: originalCallbackReturned=1\n[9] '+BUTTON_COMPLETE+'\n'
+
+    def test_visible_button_route_is_distinct_from_api_and_physical_input(self):
+        text=self.button_text()
+        result=validate(text,self.replay,button_exit=True)
+        self.assertTrue(result['bound_button_exit_qualified'])
+        self.assertTrue(result['original_options_opened'])
+        self.assertFalse(result['original_exit_api'])
+        self.assertFalse(result['physical_ui_input_qualified'])
+        with self.assertRaises(AssertionError):validate(text,self.replay)
+        with self.assertRaises(AssertionError):validate(self.text,self.replay,button_exit=True)
+
+    def test_button_control_rejects_hidden_foreign_or_cleanup_routes(self):
+        text=self.button_text()
+        for bad in (text.replace('"active": true','"active": false'),
+                    text.replace('"initialized": true','"initialized": false'),
+                    text.replace('"signal_name": "Quit"','"signal_name": "Other"'),
+                    text+'NATIVE REPLAY BUTTON failure cleanup: originalExitApiReturned=1 successUnclaimed=1\n',
+                    text+'NATIVE REPLAY MENU exit API dispatch: injected\n',
+                    text.replace('originalTryShowOptionsConcedeView=1','originalTryShowOptionsConcedeView=0')):
+            self.assertNotEqual(text,bad)
+            with self.subTest(text=bad[-100:]), self.assertRaises(AssertionError):
+                validate(bad,self.replay,button_exit=True)
+
+    def test_pointer_exit_requires_existing_active_serialized_binding(self):
+        text=self.button_text()
+        for bad in (text.replace('"same_game_object": true','"same_game_object": false'),
+                    text.replace('"method": "ReplayEndGame"','"method": "Other"'),
+                    text.replace('"state": 2','"state": 0'),
+                    text.replace('"method_name_present": true','"method_name_present": false')):
+            self.assertNotEqual(text,bad)
+            with self.subTest(text=bad[-100:]), self.assertRaises(AssertionError):
+                validate(bad,self.replay,button_exit=True)
 
 
 if __name__ == '__main__':

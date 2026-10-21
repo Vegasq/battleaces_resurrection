@@ -59,6 +59,8 @@ def run(args):
     report = dict(passed=False, scope=__doc__, profile=profile, replay=replay,
                   source_verification=str(source_report), source_verification_sha256=sha(source_report),
                   source_replay=str(original), seed=str(seed), sources_before=sources())
+    button_exit=getattr(args,'button_exit',False)
+    report['exit_route']='original-visible-button' if button_exit else 'original-exit-api'
     stop = threading.Event()
     process = thread = None
     original_spawn = quit_probe.subprocess.Popen
@@ -70,10 +72,13 @@ def run(args):
         try:
             while not stop.wait(.05) and process.poll() is None:
                 text = read_native_log(game, process.pid, since_tick=tick)
-                if evidence.COMPLETE not in text:
+                completed=evidence.BUTTON_COMPLETE if button_exit else evidence.COMPLETE
+                failed_cleanup=(button_exit and 'Native replay menu control failed:' in text and
+                    'NATIVE REPLAY BUTTON failure cleanup:' in text)
+                if completed not in text and not failed_cleanup:
                     continue
-                require(text.count(evidence.COMPLETE) == 1 and 'Native replay menu control failed:' not in text,
-                        'original exit API completion is ambiguous')
+                require(failed_cleanup or (text.count(completed) == 1 and 'Native replay menu control failed:' not in text),
+                        'original exit completion is ambiguous')
                 # This gate permits cleanup, not acceptance. The original Quit
                 # verifier independently rechecks idle ownership before dispatch.
                 # Final metadata/UI assertions can still fail after natural Quit.
@@ -82,6 +87,7 @@ def run(args):
                     pass
                 temporary.rename(folder/'native-quit.ready')
                 report['quit_gate_released'] = True
+                report['failure_cleanup_gate']=failed_cleanup
                 return
         except BaseException as error:
             gate_errors.append(repr(error))
@@ -93,6 +99,7 @@ def run(args):
                 'one owned ordinary direct-game spawn required')
         extras = ['-native-replay-menu-smoke', '-native-quit-gate-smoke', '-replay-binding-inventory',
                   '-replay-signal-inventory', '-replay-nody-inventory']
+        if button_exit:extras.append('-native-replay-menu-button-smoke')
         require(not any(flag in command for flag in extras), 'replay control already injected')
         report['quit_control_arguments_before_adapter'] = list(command)
         command.extend(extras)
@@ -120,7 +127,7 @@ def run(args):
         require(native['passed'] is True and native['natural_exit'] is True and not native['forced_cleanup'] and
                 native['exit_code'] == 0 and report.get('quit_gate_released') is True and not gate_errors,
                 'original replay API cleanup/natural Quit incomplete')
-        report['entry'] = evidence.validate((output/'native-quit/native.log').read_text(), replay)
+        report['entry'] = evidence.validate((output/'native-quit/native.log').read_text(), replay,button_exit=button_exit)
         report['passed'] = True
     except BaseException as error:
         report.update(passed=False, error=repr(error), traceback=traceback.format_exc())
@@ -149,5 +156,6 @@ if __name__ == '__main__':
     for key in ('game', 'output', 'source-verification', 'shared-settings', 'helper-build-receipt'):
         parser.add_argument('--'+key, type=Path, required=True)
     parser.add_argument('--visible', action='store_true')
+    parser.add_argument('--button-exit',action='store_true',help='open the original options view and invoke its visible replay leave UIButton')
     parser.add_argument('--timeout', type=int, default=180)
     raise SystemExit(run(parser.parse_args()))
