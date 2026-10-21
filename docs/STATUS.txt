@@ -3,6 +3,20 @@ Updated: 2026-10-21 UTC
 Delivery plan: REMAINING_DELIVERY_PLAN.txt, Windows only.
 Original roadmap: CLOSED / SUPERSEDED;see PLAN_CLOSEOUT.txt.
 
+D2 CURRENT CUSTOM DIRECTORY/INVITATIONS74 (2026-10-21 UTC,C02/C03 NATIVE PASS)
+Applicability inspection finds changed current invitation/native/transport/server
+paths versus historical native proofs. Fresh optimized58/helper51 controls pass:
+C02 22.957s,original directory2->3->2/self+busy-disabled/available-enabled/TMP
+bindings and three pooled cycles each;C03 58.807s,four original popup cycles,
+Decline/Cancel/real30s expiry/duplicate Accept,all counters0 and both departures.
+Native presence retained,no simulation room/worker,bound source maps unchanged.
+Strict retained review binds exact reports/markers/current helper build receipt/
+candidate seals. Manual71/LAN03 remain unchanged,0bundle rehashes. Forced main
+cleanup and loopback development entry are NOT Quit/bundled/TLS/protected/LAN/
+physical acceptance. C02/C03 close;D2 parent stays OPEN. Details and exact hashes:
+native-custom-invitations.txt. Next C04 needs a three-actor native probe;the old
+two-client sequential test cannot establish simultaneous-inviter ownership.
+
 D2 READY-COMMIT CANCEL/RETRY73 (2026-10-21 UTC,R04-MODE2/MODE5 PASS)
 Current ordinary recipe/optimized58/helper51 handles original Cancel just after
 READY commitment in both team modes. Successful READY then negative committed

@@ -211,3 +211,61 @@ cross-PC play. Native Start/Ready and gameplay bootstrap/return were not part of
 this invitation change; see native-custom-matches.txt for their later progress.
 Try Deck vs AI remains unfinished. Neither the normal patch image nor the user's
 normal-play helper/image was changed; their digests were independently rechecked.
+
+CURRENT DIRECTORY AND INVITATIONS74 -- 2026-10-21 UTC (D2 C02/C03)
+Before another run,a read-only source applicability review inspected the retained
+roster-regression01/native03/leave-race01 reports. All remain genuine passes at
+their original scope,with stable capture-source maps and reaped main processes.
+Current invitation/native/popup/transport/wire/server code has changed since
+those runs (12/13/11 selected source paths respectively). Those results therefore
+do not by themselves establish current behavior. Applicability receipt SHA256
+6bdfdf07a3ba64447ec3b467422c4bc3df8846ece892014f25dccb4079b3e067
+
+Fresh unchanged tools.verify_custom_lobby --roster on optimized automated58/
+ordinary patch recipe/helper51 passes22.957s,PIDs27132/26064. Both original
+Custom/picker paths verify three pooled open/close cycles,actual TMP text/active
+hierarchy/outer bindings/eligibility,scripted directory join2->3 and departure
+3->2,then rows0/childBindings0. Self/busy rows disable,available third peer enables.
+Both original lobby departures retain their native presence connections. No
+simulation room/worker is created;the server closes normally after forced owned
+main-process cleanup. This closes C02's automated current native/model case.
+local/custom74-roster01/verification.json SHA256
+f0653d4173119ca4d1242b6f9b33cec81ccf9ecd20b66c5c4dc652b2929f481f
+
+Fresh unchanged tools.verify_custom_invites passes58.807s,PIDs51480/19616. Four
+original guest popup rounds show sender TMP/active hierarchy/countdown29;original
+Decline,host Cancel,real30-second expiry and original Accept resolve statuses
+2/3/4/1. Duplicate Accept retains two native reply credits but only the first may
+reach the server. Every terminal popup releases and counter returns0. Native
+shared two-member Party/prediction and guest/host departures settle with both
+presence connections retained and no simulation room/worker.350ms test ACK delays
+remain explicit,ordinary timers unchanged. This closes C03's automated case.
+local/custom74-invites01/verification.json SHA256
+6a807b8546691896b2ff8f437eeeb4c82e427ae5520a3c59dcbe11278455089e
+
+Both runs overlap on the read-only installed game/assets with separate native
+profiles,servers,ports and output folders. All captured source maps stay equal;
+actual helper51 build receipt still matches all84 native/build sources. Installed
+program/catalog and manual71/LAN03 candidate seals remain unchanged;133 verified
+bundle fingerprints require0rehashes. No new helper/production/source changes.
+Normal launchers contain no test actions. These legacy diagnostic entry points
+use loopback-development transport,NOT production TLS/bundled launcher/protected
+credentials;forced main-process cleanup does not qualify Quit,descendant-wide
+process attribution,physical controls,pixels or another PC. No broader gate closes.
+
+Retained review rechecks original native markers,source maps,events,profile/popup
+counts,real expiry and captured manifest values. First reader invocation fails
+its byte comparison:the probes parse and serialize the manifest through Windows
+text output,changing formatting/newlines. The corrected reader compares every
+parsed value and records raw digests separately,while the actual installed raw
+manifest remains pinned to preparation72. Failed reader/original script retained;
+native runs were not repeated/promoted/modified to pass that authored check.
+local/custom74-retained-review.json SHA256
+8ba23607ab849ada79cff8492956441e00e75b7b375264f673a8e96085236993
+
+Remaining C04 requires two simultaneous inviters/one native target and proof
+that accepting one cannot move/start the other inviter. Existing two-client
+smoke requires one other directory player/one incoming popup;it cannot establish
+that case. Extend only the explicit diagnostic,then use original picker/Accept
+callbacks and verify native Party/prediction/request credits for all three actors.
+C05 waiting beyond30s followed by a human match,and physical P04/D1,remain open.

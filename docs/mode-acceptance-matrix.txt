@@ -60,11 +60,13 @@ Quantitative health/damage/resource and catalog gameplay coverage belong to D3.
 C. Custom (always human-only)
 C01 P:51 actual Invite/Accept, Ready/Start, two matches, changed host deck,
     same lobby/connections, results/Continue, both Leaves and native Quit.
-C02 O:current directory refresh/join/departure, self/busy disabled and eligible
-    players enabled. Retained invites-roster-regression01 covers2->3->2 with
-    earlier helper; inspect applicability before deciding whether to repeat.
-C03 O:current original popup decline/cancel/expiry/duplicate Accept and request
-    credit cleanup. Earlier four-cycle native invitation proofs are retained.
+C02 P:74 current directory refresh2->3->2, self/busy disabled, eligible enabled;
+    original TMP/hierarchy/row models and three pooled open/close cycles each.
+C03 P:74 current original popup decline/cancel/real30s expiry/duplicate Accept,
+    four popup releases/reply counter0,stable native Party and both departures.
+    Current source differs from the historical retained runs,so fresh checks
+    were required. Both use helper51/optimized58 and loopback development peers;
+    forced owned cleanup,not ordinary TLS/protected/LAN/physical/Quit acceptance.
 C04 O:two simultaneous inviters to one available target; accept one, retire the
     other invitation without starting or moving the unrelated player.
 C05 O:Custom never auto-fills: leave a lobby waiting beyond30s, then complete a
@@ -170,8 +172,10 @@ R04-mode2/mode5 also pass73:original Cancel after READY success gets the genuine
 committed rejection;connection retires,no fallback/client world for that intent.
 A new authenticated Play completes one replacement world/results/Continue.
 Both workers per run exit0,including a created-but-unpublished cancelled worker.
-Next autonomous cases:inspect current applicability of retained Custom C02/C03
-before deciding whether a fresh native directory/invitation check is needed.
+Next autonomous case:C04,two simultaneous native inviters to one target. Current
+two-client probe hardcodes one incoming popup/other player;extend only the owned
+diagnostic for three actors,with original UI callbacks and exact group/credit
+checks. Do not infer this case from successful sequential C03 invitations.
 R02-mode2 already passed63;do not repeat.
 Use only the owned automated58 copy with production D6 catalog verification;
 the prepared D6 manual71/LAN03 candidates remain unchanged. No physical gate is waived.
