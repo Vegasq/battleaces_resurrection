@@ -3,6 +3,22 @@ Updated: 2026-10-21 UTC
 Delivery plan: REMAINING_DELIVERY_PLAN.txt, Windows only.
 Original roadmap: CLOSED / SUPERSEDED;see PLAN_CLOSEOUT.txt.
 
+REPLAY97 PARSED EMPTY/MISSING-CONFIG REFUSALS PASS
+Original Replay.Load null guards run before decoded-data storage/Pause/Reset.
+Two exact authored complete-Deflate inputs produce empty Replay/missing GameConfig;
+original high-level loader catches/logs NullReference errors and returns false.
+Each leaves the same idle owner,data absent/world0/navigation0 and exclusive file
+access. SAME process then plays3607healthy frames,Cancel preserves127->131,
+original leave/Confirm/menu/Quit0/reap,no force,in35.614s.156producer/original/
+fixture/shared hashes stable;helper95-source receipt and installed/manual71/LAN03
+seals reverify.13native/43Python checks pass. Only these early semantic refusals
+close;later decoded-state/partial-world failure and physical warnings/selection
+remain OPEN. Next review CreateReplayGame/CreateGame/Stop plus the restored pump's
+process-lifetime error latch before a bounded later-failure control. No native
+partial-init failure is yet demonstrated;no production fix for early refusals.
+D4 OPEN. New D1/N2 report93 fails player_invites/ModuleNotFoundError;LAN repair
+takes priority. Exact replay evidence:replay-failure-recovery.txt.
+
 REPLAY96 HIGH-LEVEL INVALID DEFLATE REFUSAL/REUSABILITY PASS
 Original loader logs IOException/returns false on the exact owned byte07 file.
 Same owner/Replay/simulation remains in idle menu,data absent/world0/navigation0;

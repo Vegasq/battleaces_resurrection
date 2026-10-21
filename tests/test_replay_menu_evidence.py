@@ -3,7 +3,7 @@ import re
 import unittest
 
 from tests import test_replay_signal_evidence as fixture_module
-from tools.replay_menu_evidence import validate, COMPLETE, BUTTON_COMPLETE, CANCEL_COMPLETE, INVALID_COMPLETE
+from tools.replay_menu_evidence import validate, COMPLETE, BUTTON_COMPLETE, CANCEL_COMPLETE, INVALID_COMPLETE, SEMANTIC_COMPLETE
 from tools.replay_binding_evidence import validate as binding
 
 
@@ -193,6 +193,43 @@ class ReplayMenuEvidenceTests(unittest.TestCase):
             validate(text[load:]+text[:load],self.replay,button_exit=True,cancel_first=True,invalid_first=True)
         with self.assertRaises(AssertionError):
             validate(text[:load]+INVALID_COMPLETE,self.replay,button_exit=True,cancel_first=True,invalid_first=True)
+
+    def semantic_text(self):
+        text=self.invalid_text();offset=text.index('[0] NATIVE REPLAY MENU load dispatch:')
+        semantic=''
+        for name,size in (('empty-replay',2),('missing-game-config',4)):
+            semantic+=(f'[3] NATIVE REPLAY SEMANTIC dispatch: case={name} bytes={size} mainMenu=1 worldIdle=1 '
+                       'originalLoadReplayFromFile=1 fsmWrites=0 helperTicks=0\n'
+                       f'[4] NATIVE REPLAY SEMANTIC refused: case={name} originalLoadReturned=0 originalStopCalls=0 fsmWrites=0 helperTicks=0\n'
+                       f'[5] NATIVE REPLAY SEMANTIC settled: case={name} sameOwner=1 mainMenu=1 worldIdle=1 decodedDataAbsent=1 '
+                       'navigationCount=0 originalFileReleased=1 originalStopCalls=0 fsmWrites=0 helperTicks=0\n')
+        return (text[:offset]+semantic+text[offset:]).replace(INVALID_COMPLETE,SEMANTIC_COMPLETE)
+
+    def test_semantic_refusals_are_two_named_cases_not_all_malformed_recovery(self):
+        result=validate(self.semantic_text(),self.replay,button_exit=True,cancel_first=True,invalid_first=True,semantic_first=True)
+        self.assertEqual(result['semantic_refusal_cases'],['empty-replay','missing-game-config'])
+        self.assertFalse(result['malformed_recovery_qualified'])
+        self.assertFalse(result['physical_ui_input_qualified'])
+        with self.assertRaises(AssertionError):validate(self.invalid_text(),self.replay,button_exit=True,cancel_first=True,invalid_first=True,semantic_first=True)
+        with self.assertRaises(AssertionError):validate(self.semantic_text(),self.replay,button_exit=True,cancel_first=True,invalid_first=True)
+
+    def test_semantic_refusals_require_both_actual_refusals_and_native_cleanup(self):
+        text=self.semantic_text()
+        for before,after in [('case=missing-game-config','case=empty-replay'),('case=empty-replay bytes=2','case=empty-replay bytes=4'),
+                             ('SEMANTIC refused: case=empty-replay originalLoadReturned=0','SEMANTIC refused: case=empty-replay originalLoadReturned=1'),
+                             ('decodedDataAbsent=1','decodedDataAbsent=0'),('originalFileReleased=1','originalFileReleased=0')]:
+            with self.subTest(before=before),self.assertRaises(AssertionError):
+                validate(text.replace(before,after),self.replay,button_exit=True,cancel_first=True,invalid_first=True,semantic_first=True)
+
+    def test_semantic_cases_must_settle_before_next_case_and_healthy_load(self):
+        text=self.semantic_text();begin=text.index('[3] NATIVE REPLAY SEMANTIC dispatch:')
+        middle=text.index('[3] NATIVE REPLAY SEMANTIC dispatch:',begin+1)
+        end=text.index('[0] NATIVE REPLAY MENU load dispatch:')
+        reordered=text[:begin]+text[middle:end]+text[begin:middle]+text[end:]
+        with self.assertRaises(AssertionError):
+            validate(reordered,self.replay,button_exit=True,cancel_first=True,invalid_first=True,semantic_first=True)
+        with self.assertRaises(AssertionError):
+            validate(text[:begin]+text[end:],self.replay,button_exit=True,cancel_first=True,invalid_first=True,semantic_first=True)
 
 
 if __name__ == '__main__':

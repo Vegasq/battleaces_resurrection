@@ -212,6 +212,11 @@ Completed subcases (same-PC packaged automated controls; two human clients):
 All four include results/Continue/natural Quit and owned-resource cleanup;
 team-recovery.txt binds the exact reports, scope and injected-worker outcomes.
 Additional scoped source/native qualification (not the same packaged controls):
+[x] Parsed empty Replay/missing GameConfig refusal/reusability97:two original
+    null guards refuse before decoded-state mutation;each restores idle owner/
+    data absent/world0/navigation0/exclusive file access,then SAME-process healthy
+    playback/Cancel/reopen/Confirm/Quit0,no force/helper Stop. Partial-init,
+    physical warning/selection and parent D4 remain OPEN.
 [x] Original high-level invalid Deflate refusal/reusability96:actual IOException,
     Load false,unchanged idle owner/data absent/world0/navigation0/exclusive file
     reopen,then3607-frame healthy playback/Cancel/reopen/Confirm/Quit0 in SAME
@@ -237,9 +242,11 @@ Current replay follow-up:D4-RP1 in replay-failure-recovery.txt.90/91 qualify the
 original replay pump,healthy entry/API exit and local/remote shared-hook guards;
 94/95 qualify authored leave/confirmation Cancel/reopen;96 qualifies high-level
 invalid Deflate refusal followed by healthy playback/exit in the same process.
-Next finite error classes:parsed empty/missing GameData,and decoded incompatible
-data/partial initialization. Review original Replay.Load validation/owner guards
-before exercising those missing caller/state scopes. Reuse29's six parser cases;
+97 also qualifies the parsed empty Replay/missing GameConfig original null guards.
+Remaining stateful class:decoded data applies,then validation/world initialization
+fails. Review original CreateReplayGame/Simulation.CreateGame/Stop ownership and
+the restored pump's exception lifetime before one bounded incompatible-data
+control with later healthy playback. Reuse29's six parser cases;
 do not repeat equivalent parse-only errors or the known55 developer-batch timeout.
 That diagnostic's noncompletion is retained;ordinary entry never selects it.
 No physical pointer/visible-warning/file-selection or broad semantic-recovery

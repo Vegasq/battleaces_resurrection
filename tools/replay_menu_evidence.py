@@ -18,11 +18,16 @@ CANCEL_COMPLETE = ('NATIVE REPLAY MENU CANCEL control passed: mainMenu=1 worldId
 INVALID_COMPLETE = ('NATIVE REPLAY MENU INVALID control passed: originalBadFileRefused=1 subsequentHealthyPlayback=1 '
                     'mainMenu=1 worldIdle=1 originalExitApi=0 probeRootsReleased=1 filePinReleased=1 buttonClicks=2 '
                     'cancelCallbacks=1 originalStopCalls=0 fsmWrites=0 helperTicks=0 BA_RESURRECTION_REPLAY_MENU_INVALID_V1')
+SEMANTIC_COMPLETE = ('NATIVE REPLAY MENU SEMANTIC control passed: originalBadFilesRefused=3 semanticCases=2 '
+                     'subsequentHealthyPlayback=1 mainMenu=1 worldIdle=1 originalExitApi=0 probeRootsReleased=1 '
+                     'filePinReleased=1 buttonClicks=2 cancelCallbacks=1 originalStopCalls=0 fsmWrites=0 helperTicks=0 '
+                     'BA_RESURRECTION_REPLAY_MENU_SEMANTIC_V1')
 
 
-def validate(text, replay, *, button_exit=False, cancel_first=False, invalid_first=False):
+def validate(text, replay, *, button_exit=False, cancel_first=False, invalid_first=False, semantic_first=False):
     require(not cancel_first or button_exit,'Cancel requires the authored leave route')
     require(not invalid_first or cancel_first,'Invalid-file control requires subsequent healthy Cancel/reopen/exit')
+    require(not semantic_first or invalid_first,'Semantic controls require the invalid-file/healthy sequence')
     cycles=2 if cancel_first else 1
     require('Native replay menu control failed:' not in text, 'native menu/replay API control failed')
     require(text.count('Original replay runner update restored: primaryIntegration=1 originalPredicate=1 helperTicks=0') == 1 and
@@ -42,11 +47,13 @@ def validate(text, replay, *, button_exit=False, cancel_first=False, invalid_fir
             'original replay metadata/world/presentation differs')
     exit_api = 'NATIVE REPLAY MENU exit API dispatch: originalReplayEndGame=1 buttonClicks=0 fsmWrites=0 helperTicks=0'
     returned = 'NATIVE REPLAY MENU exit API returned: originalCallbackReturned=1'
-    completed=INVALID_COMPLETE if invalid_first else CANCEL_COMPLETE if cancel_first else BUTTON_COMPLETE if button_exit else COMPLETE
+    completed=SEMANTIC_COMPLETE if semantic_first else INVALID_COMPLETE if invalid_first else CANCEL_COMPLETE if cancel_first else BUTTON_COMPLETE if button_exit else COMPLETE
     require(cancel_first or 'NATIVE REPLAY BUTTON cancel ' not in text and CANCEL_COMPLETE not in text,
             'unexpected Cancel control evidence')
     require(invalid_first or 'NATIVE REPLAY INVALID ' not in text and INVALID_COMPLETE not in text,
             'unexpected invalid-file control evidence')
+    require(semantic_first or 'NATIVE REPLAY SEMANTIC ' not in text and SEMANTIC_COMPLETE not in text,
+            'unexpected semantic-file control evidence')
     if invalid_first:
         invalid_markers=[
             'NATIVE REPLAY INVALID dispatch: case=invalid-deflate-07 bytes=1 mainMenu=1 worldIdle=1 originalLoadReplayFromFile=1 fsmWrites=0 helperTicks=0',
@@ -56,6 +63,18 @@ def validate(text, replay, *, button_exit=False, cancel_first=False, invalid_fir
         require(all(text.count(m)==1 for m in invalid_markers) and invalid_positions==sorted(invalid_positions) and
                 invalid_positions[-1]<text.index(load[0]),
                 'original invalid Deflate refusal/owner/file cleanup did not precede healthy playback')
+    if semantic_first:
+        prior=invalid_positions[-1]
+        for name,size in (('empty-replay',2),('missing-game-config',4)):
+            semantic_markers=[
+                f'NATIVE REPLAY SEMANTIC dispatch: case={name} bytes={size} mainMenu=1 worldIdle=1 originalLoadReplayFromFile=1 fsmWrites=0 helperTicks=0',
+                f'NATIVE REPLAY SEMANTIC refused: case={name} originalLoadReturned=0 originalStopCalls=0 fsmWrites=0 helperTicks=0',
+                f'NATIVE REPLAY SEMANTIC settled: case={name} sameOwner=1 mainMenu=1 worldIdle=1 decodedDataAbsent=1 navigationCount=0 originalFileReleased=1 originalStopCalls=0 fsmWrites=0 helperTicks=0']
+            semantic_positions=[text.find(m) for m in semantic_markers]
+            require(all(text.count(m)==1 for m in semantic_markers) and semantic_positions==sorted(semantic_positions) and
+                    prior<semantic_positions[0] and semantic_positions[-1]<text.index(load[0]),
+                    'parsed empty/missing-config refusal/owner/file cleanup did not precede healthy playback')
+            prior=semantic_positions[-1]
     if button_exit:
         require('NATIVE REPLAY MENU exit API dispatch:' not in text and COMPLETE not in text and
                 'NATIVE REPLAY BUTTON failure cleanup:' not in text,'button control used exit API cleanup')
@@ -130,4 +149,5 @@ def validate(text, replay, *, button_exit=False, cancel_first=False, invalid_fir
                 user_exposed_disk_selection_qualified=False, bound_button_exit_qualified=button_exit,
                 original_options_opened=button_exit,visible_button=visible,physical_ui_input_qualified=False,
                 confirmation_cancel_qualified=cancel_first,invalid_deflate_refusal_qualified=invalid_first,
+                semantic_refusal_cases=['empty-replay','missing-game-config'] if semantic_first else [],
                 malformed_recovery_qualified=False)

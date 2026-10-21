@@ -1,6 +1,72 @@
 REPLAY RECOVERY FINDING55 -- 2026-10-20
 Plan item:D4-RP1. Status:OPEN;malformed batch recovery is NOT qualified.
 
+97 parsed empty Replay / missing GameConfig refusal -- native PASS
+Original Replay.Load3ddbf50 first checks GameData and its GameConfig. Both null
+branches reach the original managed NullReference failure BEFORE writing decoded
+data at Replay+40 or calling Pause/Reset/world cleanup. Complete Deflate with
+empty protobuf produces an empty Replay;complete Deflate over0a00 produces a
+Replay with an empty GameData and missing GameConfig. These are distinct from
+96's decompression failure. The high-level LoadReplayFromFile catches/logs the
+failure and returns false. Static original-byte IL2CPP/LLVM ranges are retained;
+no new Ghidra/native-provider Evidence is claimed.
+
+Explicit --semantic-first (requires the invalid-file/healthy sequence) seeds
+only two authored files in a NEW owned profile. Compressed bytes0300/e3620000
+are independently generated/decompressed and checked against the native exact
+byte/file-identity guard. For EACH original load,false return must be followed
+by250ms with the same idle owner/Replay/simulation,no decoded data/native world,
+navigation0 and an exclusive file reopen. No helper clear/Stop/FSM transition is
+used. Only after BOTH settle can the same process load/play the healthy recording,
+Cancel/reopen/Confirm and Quit normally. Original codec file enumeration skips
+these authored-retention fixture leaves;the high-level control opens them itself.
+Normal launchers/product replay pump remain unchanged;these are diagnostic flags.
+
+Native01/PID16412 PASS35.614344s,first97 runtime attempt. Both semantic files return
+false;original game log records two NullReference errors,matching their guards.
+Each file releases and idle owner/data/world/navigation checks pass. Earlier
+invalid Deflate also refuses in this same sequence. Then3607healthy frames decode,
+presented30,Cancel retains world progression127->131,fresh original leave/Confirm
+returns to menu and original Quit0 exits/reaps naturally,no forced cleanup.
+Monitor stops;all156producer hashes/three bad fixtures/healthy seed/original
+recording/shared settings stay unchanged. Current95-source helper receipt and
+installed/manual71/LAN03 program/catalog seals reverify;practice preference stays
+absent. No server/package rebuild or accepted startup/LAN candidate change.
+
+13native build checks and43focused Python tests pass. New rejection controls
+require two distinct exact cases,actual false returns,per-case owner/data/file
+cleanup and ordering before subsequent healthy playback. Missing/duplicate or
+reordered cases cannot satisfy the sequence. semantic_refusal_cases lists ONLY
+empty-replay/missing-game-config;malformed_recovery_qualified remains false.
+Physical selection/visible warning and failures AFTER decoded state is applied
+are not qualified. No production fix was needed for these original refusals.
+
+local/replay97-semantic-native01/verification.json SHA256
+4ef2f5531f24bcc5a594b32ebda1a2de7e8edeac5ac9316cd8811abe7a7a1e0c
+Inner native-quit/verification.json SHA256
+e0a3e2add681fdbabaa29907249cb7485b0119cfc8da5916633366728113bd33
+local/replay97-retained-review.json SHA256
+b75c5ae5535028ff028805d4d4f57f1cde19909af70b89a7f6c2a6bc3a017f04
+local/replay97-load-contract/manifest.json SHA256
+fefdd19c3d293a076a560c3f2968cf8ab88aef44af9fb63c420726b616f9382d
+Preparation local/replay97-preparation01.json SHA256
+c4c35b6d2ff6d663e67e80bbe3e2d73ce8600257ec8b83e31d47559e36cec7d4
+Helper97-01 SHA256
+7e5e3d82cfbb1c5e4bdf7ab34e397b1da59cb0f0975eb3805727b30ab3d8c86a
+Build receipt SHA256
+f6851f1e09569c762ff32c744da9d577c30dc4055526dbdfe0abfb91933a8db1
+
+Next remaining stateful class:GameConfig exists and Replay.Load applies data,
+then validation/world initialization fails. Trace original CreateReplayGame/
+Simulation.CreateGame and Stop ownership/return before choosing one bounded
+incompatible decoded-data fixture. The helper's restored replay pump currently
+disables itself after an exception for the process lifetime;this is a source
+observation and a recovery risk to test,not a native partial-initialization fault
+already reproduced. Require usable original owner/later healthy playback,not
+just exception logging. Do not repeat settled early-null/parser refusals or the
+developer-batch timeout. D4 remains OPEN. A new N2 report93 arrived at97 closeout:
+player_invites fails with ModuleNotFoundError;the LAN defect now takes priority.
+
 96 high-level invalid Deflate refusal and subsequent playback -- native PASS
 Original LoadReplayFromFile3dddab0/token06000952 wraps FileStream/LoadFromStream,
 disposes the file on failure,logs the original error and returns false. Its

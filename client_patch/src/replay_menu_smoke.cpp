@@ -24,6 +24,7 @@ static bool canInspect(){return probe && (stage==1 || stage==2);}
 static bool buttonMode(){return ba::flag(L"-native-replay-menu-button-smoke");}
 static bool cancelMode(){return ba::flag(L"-native-replay-menu-cancel-smoke");}
 static bool invalidMode(){return ba::flag(L"-native-replay-menu-invalid-smoke");}
+static bool semanticMode(){return ba::flag(L"-native-replay-menu-semantic-smoke");}
 static bool invalidStarted=false,invalidSettled=false;
 static ULONGLONG invalidAfter=0;
 static bool invalidFile(Obj front,Obj replay,Obj simulation) {
@@ -63,6 +64,46 @@ static bool invalidFile(Obj front,Obj replay,Obj simulation) {
     invalidSettled=true;
     ba::log("NATIVE REPLAY INVALID settled: sameOwner=1 mainMenu=1 worldIdle=1 decodedDataAbsent=1 navigationCount=0 filePinReleased=1 originalFileReleased=1 originalStopCalls=0 fsmWrites=0 helperTicks=0");
     return true;
+}
+static unsigned semanticIndex=0;static bool semanticStarted=false;static ULONGLONG semanticAfter=0;
+static bool semanticFiles(Obj front,Obj replay,Obj simulation) {
+    if(semanticIndex==2)return true;
+    static constexpr const char* names[]={"empty-replay","missing-game-config"};
+    static constexpr const wchar_t* leaves[]={L"\\authored-retention-empty-menu.rep",L"\\authored-retention-missing-config-menu.rep"};
+    static constexpr unsigned char payloads[2][4]={{3,0,0,0},{0xe3,0x62,0,0}};
+    static constexpr DWORD lengths[]={2,4};
+    const auto path=ba_native_storage::destination(ba_native_storage::Kind::Replays).directory.apiPath()+leaves[semanticIndex];
+    if(!semanticStarted) {
+        probe=std::make_unique<Probe>(ba::owner,front,replay,simulation);
+        ba_native_settings::Handle pin(CreateFileW(path.c_str(),GENERIC_READ,FILE_SHARE_READ,nullptr,OPEN_EXISTING,
+            FILE_FLAG_OPEN_REPARSE_POINT,nullptr));ba_native_settings::ordinary(pin.value);
+        LARGE_INTEGER size{};unsigned char bytes[4]={};DWORD read=0;
+        require(GetFileSizeEx(pin.value,&size) && size.QuadPart==lengths[semanticIndex] &&
+            ReadFile(pin.value,bytes,lengths[semanticIndex],&read,nullptr) && read==lengths[semanticIndex] &&
+            !memcmp(bytes,payloads[semanticIndex],read),"replay semantic control requires its exact authored compressed payload");
+        wchar_t final[32768];const auto count=GetFinalPathNameByHandleW(pin.value,final,32768,FILE_NAME_NORMALIZED|VOLUME_NAME_DOS);
+        require(count && count<32768 && !_wcsicmp(final,path.c_str()),"replay semantic file escapes the owned directory");
+        Root selected(ba::api<Obj(*)(const wchar_t*,int32_t)>("il2cpp_string_new_utf16")(path.data(),static_cast<int32_t>(path.size())));
+        semanticStarted=true;
+        ba::log("NATIVE REPLAY SEMANTIC dispatch: case=%s bytes=%lu mainMenu=1 worldIdle=1 originalLoadReplayFromFile=1 fsmWrites=0 helperTicks=0",names[semanticIndex],lengths[semanticIndex]);
+        void* args[]={selected.get()};
+        Root loaded(codec::invoke(codec::method(ba::klass(replay),"LoadReplayFromFile",1,0x3dddab0,0x06000952),replay,args));
+        require(loaded.get() && !ba_catalog::unbox<bool>(loaded.get()),"original semantic replay load did not refuse");
+        ba::log("NATIVE REPLAY SEMANTIC refused: case=%s originalLoadReturned=0 originalStopCalls=0 fsmWrites=0 helperTicks=0",names[semanticIndex]);
+        semanticAfter=GetTickCount64()+250;return false;
+    }
+    require(probe && probe->owner.get()==ba::owner && probe->front.get()==front &&
+        probe->replay.get()==replay && probe->simulation.get()==simulation &&
+        !ba::get<Obj>(replay,"_gameData") && !ba::read<uint64_t>(simulation,0x1a8) &&
+        !ba::read<bool>(simulation,0x1a0),"semantic replay refusal left changed owner/data/world");
+    if(GetTickCount64()<semanticAfter)return false;
+    Root navigation(ba::get<Obj>(ba::owner,"<NavigationStack>k__BackingField"));
+    Root entries(ba::get<Obj>(navigation.get(),"_navigationStack"));
+    require(ba_local::count(entries.get())==0,"semantic replay refusal left a navigation entry");
+    ba_native_settings::Handle exclusive(CreateFileW(path.c_str(),GENERIC_READ,0,nullptr,OPEN_EXISTING,
+        FILE_FLAG_OPEN_REPARSE_POINT,nullptr));ba_native_settings::ordinary(exclusive.value);
+    ba::log("NATIVE REPLAY SEMANTIC settled: case=%s sameOwner=1 mainMenu=1 worldIdle=1 decodedDataAbsent=1 navigationCount=0 originalFileReleased=1 originalStopCalls=0 fsmWrites=0 helperTicks=0",names[semanticIndex]);
+    ++semanticIndex;semanticStarted=false;return false;
 }
 static void componentInventory(Obj button) {
     Root type(ui::reflectedType("UnityEngine","Component"));
@@ -231,6 +272,7 @@ static void update(Obj front) {
             !ba::flag(L"-native-replay-playback-smoke"),"replay menu control requires one owned diagnostic API sequence");
         require(!cancelMode() || buttonMode(),"replay Cancel control requires the original authored leave route");
         require(!invalidMode() || (buttonMode() && cancelMode()),"replay invalid-file control requires subsequent healthy Cancel/reopen/exit");
+        require(!semanticMode() || invalidMode(),"replay semantic controls require invalid-file and subsequent healthy controls");
         const auto& profile=ba_native_settings::session->profile();const std::string prefix="nativestest_replayui_";
         require(profile.size()==prefix.size()+12 && profile.rfind(prefix,0)==0 &&
             profile.find_first_not_of("0123456789abcdef",prefix.size())==std::string::npos,
@@ -252,6 +294,7 @@ static void update(Obj front) {
                 simulation.get() && !ba::read<uint64_t>(simulation.get(),0x1a8) &&
                 !ba::get<Obj>(replay.get(),"_gameData"),"replay menu refuses preexisting replay/world data");
             if(invalidMode() && !invalidFile(front,replay.get(),simulation.get()))return;
+            if(semanticMode() && !semanticFiles(front,replay.get(),simulation.get()))return;
             probe=std::make_unique<Probe>(ba::owner,front,replay.get(),simulation.get());
             auto& directory=ba_native_storage::destination(ba_native_storage::Kind::Replays);
             const auto selected=directory.directory.apiPath()+L"\\native-menu-replay.rep";
@@ -317,8 +360,10 @@ static void update(Obj front) {
                 ba_client::worldOwner==ba_client::Owner::None,"replay menu exit did not release the original world");
             if(cancelMode())require(probe->cancelSettled && probe->leaveCalls==2,"replay Cancel/reopen sequence incomplete");
             if(invalidMode())require(invalidSettled,"malformed replay refusal was not qualified before healthy playback");
+            if(semanticMode())require(semanticIndex==2,"semantic replay refusal controls incomplete");
             probe.reset();stage=4;
-            if(invalidMode())ba::log("NATIVE REPLAY MENU INVALID control passed: originalBadFileRefused=1 subsequentHealthyPlayback=1 mainMenu=1 worldIdle=1 originalExitApi=0 probeRootsReleased=1 filePinReleased=1 buttonClicks=2 cancelCallbacks=1 originalStopCalls=0 fsmWrites=0 helperTicks=0 BA_RESURRECTION_REPLAY_MENU_INVALID_V1");
+            if(semanticMode())ba::log("NATIVE REPLAY MENU SEMANTIC control passed: originalBadFilesRefused=3 semanticCases=2 subsequentHealthyPlayback=1 mainMenu=1 worldIdle=1 originalExitApi=0 probeRootsReleased=1 filePinReleased=1 buttonClicks=2 cancelCallbacks=1 originalStopCalls=0 fsmWrites=0 helperTicks=0 BA_RESURRECTION_REPLAY_MENU_SEMANTIC_V1");
+            else if(invalidMode())ba::log("NATIVE REPLAY MENU INVALID control passed: originalBadFileRefused=1 subsequentHealthyPlayback=1 mainMenu=1 worldIdle=1 originalExitApi=0 probeRootsReleased=1 filePinReleased=1 buttonClicks=2 cancelCallbacks=1 originalStopCalls=0 fsmWrites=0 helperTicks=0 BA_RESURRECTION_REPLAY_MENU_INVALID_V1");
             else if(cancelMode())ba::log("NATIVE REPLAY MENU CANCEL control passed: mainMenu=1 worldIdle=1 originalExitApi=0 probeRootsReleased=1 filePinReleased=1 buttonClicks=2 cancelCallbacks=1 fsmWrites=0 helperTicks=0 BA_RESURRECTION_REPLAY_MENU_CANCEL_V1");
             else if(buttonMode())ba::log("NATIVE REPLAY MENU BUTTON control passed: mainMenu=1 worldIdle=1 originalExitApi=0 probeRootsReleased=1 filePinReleased=1 buttonClicks=1 fsmWrites=0 helperTicks=0 BA_RESURRECTION_REPLAY_MENU_BUTTON_V2");
             else ba::log("NATIVE REPLAY MENU API control passed: mainMenu=1 worldIdle=1 originalExitApi=1 probeRootsReleased=1 filePinReleased=1 buttonClicks=0 fsmWrites=0 helperTicks=0 BA_RESURRECTION_REPLAY_MENU_V1");
