@@ -88,7 +88,7 @@ R02 waiting                   P:cancel-retry01       P:63-2  P:63-5
 R03 OFFERED before READY      P:79-offer             P:78-2  P:79-5
 R04 after READY committed     P:79-ready             P:73-2  P:73-5
 R05 cancel/retry + old ENTER   P:cancel-retry01       P:72-2  P:72-5
-R06 assignment after local AI O                      O       O
+R06 assignment after local AI P:81-retained           P:81-2  P:81-5
 R07 dropped final RETURN ACK  P:80-1                 P:80-2  P:80-5
 Scope correction78 found that existing mode1 cancel-before/offer/ready reports
 and mode5 2vai-cancel01 say retry=false/no subsequent match.79 now supplies the
@@ -132,9 +132,17 @@ T06 P:local4 -> offline1 -> offline2 -> offline5 -> local4, one five-match
     owned process termination is not native Quit. See team-modes.txt.
 T07 O:C -> local4 -> C, using the original Custom invitation/menu path.
 T08 O:C -> remote1 -> C, with no stale lobby/prediction/public intent.
-T09-11 O:completed remote -> server unavailable/local fallback -> remote,
-       for public modes1,2,5. Distinguish a pre-commit unavailable search from
-       a committed-match disconnect, which must abort rather than invent AI play.
+T09 P:81-retained,completed remote1 -> pre-READY unavailable/local1 -> remote1.
+    Actual original3world/results/Continue sequence preserves selected identity/
+    deck/17slots and saved Hard19 preference. Controlled resolver code8 fixture,
+    not protected configured-server TCP-refusal/timeout qualification.
+T10/T11 P:81-2/81-5,the same transition for public modes2/5. Both original
+    three-world traces/results/Continue pass,full chosen loadouts/saved Hard19
+    preserved,all local bots move after replay,both remote workers0 each. Four
+    team remote matches end naturally;local2 diagnostic concedes3600,local5
+    ends naturally. Same controlled resolver/fixture-TLS/forced-cleanup scope.
+    A committed-match disconnect must abort rather than invent AI play.
+    Exact hashes/qualification limits:public-late-assignment.txt.
 T01/T02 source/native reports and their forced termination boundary are in
 remote-local-transitions.txt. They prove transition behavior, not native Quit,
 bundled entry, all-mode transitions or physical controls.
@@ -219,10 +227,16 @@ The diagnostic Python verifier now supports finished RETURN-ACK loss/retry and
 retains both complete frame traces. A new explicit owned native diagnostic arms
 the second original Continue;the old hook deliberately stopped at second result.
 First80 pilot is preserved FAILED for that missing control,not a game defect.
-Next R06-mode1/2/5:late owned assignment must not replace an already-running
-fallback world. First inspect READY/fallback arbitration and transport generation
-handling;use valid assigned bytes from an owned session for the late-delivery
-proof. Never force fallback from a committed READY to manufacture this case.
+81 closes scoped R06-mode1/T09 using a complete retained native trace. The original
+report stays FAILED for a post-run metadata key error;separate strict corrected
+qualification verifies all3worlds/actual old assignment/exact remote receipts/
+post-delivery bot movement. R06-mode2/mode5 and T10/T11 now also pass terminal
+native runs and strict independent reviews. All9worlds/results/Continue and
+6worker0 outcomes pass;temporary Hard fixture restored to original absence.
+See public-late-assignment.txt for exact failed/passing report hashes.
+No fallback is forced after committed READY;private-session1 data queues during
+local play and is harmlessly consumed before authenticated READY3 on the same
+ordered stream. No production network pump or release artifact changed.
 R02-mode2 already passed63;do not repeat.
 Use only the owned automated58 copy with production D6 catalog verification;
 the prepared D6 manual71/LAN03 candidates remain unchanged. No physical gate is waived.

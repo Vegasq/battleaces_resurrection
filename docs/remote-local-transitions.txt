@@ -177,3 +177,21 @@ No independent whole-state/native-state-sample agreement is claimed by this
 older transition verifier; its exact frame/input and native model checks keep
 their stated scope. D2's remaining cases/physical acceptance and D1 remain open.
 No source implementation change means no redundant source-unit-suite rerun.
+
+2026-10-21 UTC transition81 / T09 retained native PASS
+New finite public-mode transition:remote1 -> controlled pre-READY unavailable/
+local1 -> fresh remote1 in the same client. Original3world/results/Continue,
+selected name/deck/17slots,saved Hard19 and both authoritative frame traces pass.
+Replayed exact old-session assignment during local play is drained harmlessly
+before fresh authenticated READY3. Failed original metadata extractor report
+remains failed;separate strict retained qualification passes. Exact source/
+artifact/report hashes and fault/cleanup limits:public-late-assignment.txt.
+T10/T11-mode2/5 also PASS81,737.641s/705.204s respectively,strict independent
+reviewers pass first invocation. Both remote matches per team case end naturally,
+all3local bots move after stale delivery,selected identity/deck/17slots and saved
+Hard19 preserved. Mode2 local diagnostic concedes3600;local5 ends naturally.
+138runtime sources/shared storage/helper/program/candidate seals unchanged;
+0bundle rehashes. All6remote workers0/reaped;all9worlds/original Continue actions
+pass. Exact temporary preference fixture restored to original absence afterward.
+No protected TCP-refusal/timeout,physical/native Quit/bundled/LAN acceptance is
+claimed. Manual71/LAN03 unchanged;D6 physical restart-first/repeat remains priority.

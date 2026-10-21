@@ -1,0 +1,158 @@
+PUBLIC LATE ASSIGNMENT / REMOTE-LOCAL-REMOTE81
+Updated: 2026-10-21 UTC
+Scope: D2 R06 and T09-T11; D6 physical startup acceptance remains priority.
+
+Contract and experiment
+public_attempt.hpp deliberately prevents local fallback after committed READY:
+a missing reply can represent a real server match. Do not override that rule
+to manufacture a late response. The compliant pre-READY unavailable intent has
+no new valid assignment to delay. Capture the real full MATCH_LOADOUT assignment
+from the first completed owned match instead, then replay those exact bytes
+under its retired private session while the second intent plays locally.
+
+One original native client executes three worlds, with normal lifecycle gates:
+1. Real TLS public search, ticket1/private session1/remote lease1; complete,
+   result/Continue. Drop only its successful RETURN ACK and close that peer;
+   native idle retirement completes quietly before the next original Play.
+2. Resolver attempt2 reports RemoteUnavailable before READY. Original ticket2
+   falls back safely to local lease2. After all bots are ready and simulation
+   cadence reaches >=100, send the exact captured old assignment as private
+   DATA(session1) over the inherited ordered TCP stream. Require continued
+   local simulation and produced, ordered AND moving units for every AI seat
+   after delivery. Original local result/Continue releases that same lease.
+3. Original Play ticket3 gets fresh authenticated TLS/private session3/remote
+   lease3, another real30-second search, completed game/result/Continue/retirement.
+
+client_lifecycle.cpp updates practice instead of polling the network during a
+local world. Writing old bytes while AI runs alone is not evidence they were
+consumed. WitnessBridge serializes actual bridge writes and records payload/
+outer-frame hashes and sequence numbers. Fresh authenticated READY(session3)
+behind the replay on the SAME ordered inherited TCP stream, followed by native
+join and completed match3, proves the queued old bytes were drained harmlessly.
+secure_bridge.hpp accepts plaintext only for its active current private session;
+prepareLocal retires the previous channel. No production network pump added.
+
+Saved practice preference is deliberately nondefault Hard/profile19. Its native
+cached value is checked before first Play and before intent3, and its exact INI
+bytes/hash must be unchanged. Public fallback bot profiles remain independently
+chosen. Actual human name, chosen units and all17 cosmetic slots must survive
+the two serialized remote bootstraps and native local fallback world.
+
+Implementation is diagnostic only
+tools.verify_public_client --late-assignment requires owned ordinary-player/full
+loadout/retry controls and the new helper marker V2. The explicit owned
+-public-late-assignment-smoke arms three original Play actions, preserves the
+existing menu/native-idle gates and disables only another diagnostic's first
+mode1 preparation auto-cancel. Ordinary entry has no such flags. The existing
+RETURN-retry smoke supplies the second remote Continue. No original patch site,
+ABI, READY/fallback policy, simulation or production timeout changes. Only this
+explicit three-world test accepts a1800-second bound;other bounds are unchanged.
+tools.public_late_assignment owns exact peer capture, replay witness and strict
+retained evidence checks. Native archives preserve original UTF-8 line bytes.
+21 focused Python tests pass,0skips;all12 C++ check programs pass.
+
+Helper81-03 SHA256:
+e580fe1d29f508c2f87d0807f71cde046195527a541660f47ea9a344f9db8b76
+85-native-path helper build receipt SHA256:
+7ce1371b21c0b144d2ddef3741c1f0163781a932e7ac6802b768b59efc7f35f4
+Installed automated58 manifest SHA256:
+338200af79e1860ce5abbd2a46f102c3d0c8b4cedb800f9e10f70b89b006caf8
+local/late81-preparation03.json binds138 runtime source paths,unchanged manual71/
+LAN03 seals,current program/catalog and the owned saved preference fixture:
+e3c160ee515b06623640765b0a625de1734c0bb41bf5d624b34b9475cfc30bea
+Ordinary source menu control PASS7.761s,0remote connections/0invite reads;
+forced readiness cleanup,not native Quit or cold/physical D6 acceptance.
+local/late81-ordinary-control02/verification.json SHA256:
+d12a76fafb1485b95478a1b031c48d7f28d826a233c41925270e07ce6465e591
+No release package,manual71 or LAN03 program/config changed.
+
+Preserved failures and corrected retained mode1 qualification
+First pilot local/late81-1v1-chain01/verification.json stays FAILED229.892s:
+fc6007338fee5669ede5950153b7a1562df4b5264319a82876a3699c45a64d6f
+Capture initially wrapped community.send rather than actual Peer.send;the
+assignment bypasses that function. Existing mode1 diagnostic also cancelled
+local preparation after2.5s. No active local replay was proved. Fixes are exact
+peer capture and the narrow diagnostic cancel exclusion described above.
+
+Corrected full native sequence local/late81-1v1-chain02/verification.json stays
+FAILED396.724s after gameplay,with post-check KeyError:'name':
+06c137ed58c09dfdd4bfb9786e33d60896cb95eb40e0a7451dd8480e6de7f663
+Actual native PlayerHandleWithName uses playerName. Full3world trace,exact
+assignment,frame receipts and transition proof had already been retained.
+Corrected extractor has a regression test. A separate strict reader verifies
+the producer source map and permits exactly two metadata-only changes:that key
+correction and unconditional retention of already-observed loadout metadata.
+It does not edit the failed original report or fabricate missing queue records.
+Instead it independently decodes the captured assignment and BOTH actual hashed
+bootstrap files and compares both native remote snapshots with the owned seed.
+
+local/late81-1v1-retained-qualified.json PASS SHA256:
+2af8a40495c345c425ad3e2e04b559efe966039781b7cbb1192e181936d7b3d6
+Reviewer SHA256:
+910a4eaff13be658f3b879846c9481612b92d30e6f63a37458657d2bc1d6b860
+Actual captured254-byte packet SHA256:
+ad23e29a31e595b3f535aeabc949da4c46512142e8fb44ec2c9d98acab43a17a
+Replay at localframe189/private sequence1234;local simulation progresses to
+sampledframe2789 with post-delivery ordered/moving original-profile64 bot units,
+then natural local result/Continue. Both remote matches have1220exact receipts,
+diagnostic concessions at1200/results/Continue;two workers exit0/reaped/empty
+stderr. Exactly3 separate world leases,3original Continue actions,no extra
+server queue/world/abort,Hard19/selected identity/deck/appearance preserved.
+Original138sources stable during native run;current helper/other source/program/
+manual71/LAN03 match the preparation.0bundle rehashes. The reader's first attempt
+counted local and remote SimPlayer lines together;its corrected scope checks
+REMOTE lines only. Failed reader/log retained;no native repetition for that fix.
+
+Final native team runs and independent retained reviews PASS
+Mode2 local/late81-2v2-chain01/verification.json PASS737.641s,PID41612:
+6c306d90e312821151aacabed5da9116151f30939aae5a0a81416d63fcd0294c
+Remote matches4482/4026exact receipts,result4462/4006,conceded0/0;both natural.
+Old254-byte assignment SHA256:
+baa589a18cc259f605458456baea90699661f6f15c6782d1cbc1a45a189e1161
+Delivered at localframe197;local progress sampled through3583,then explicit
+diagnostic ConcedeGame at the configured3600-frame cap/result/Continue. Each
+original-profile59 AI seat produces,orders and moves units after replay:
+66/59/63distinct entities respectively. Local natural victory is not claimed.
+local/late81-2v2-review.json SHA256:
+a1c5747852ca6f7a65147e48b0529ee204f1f464f88613a8f1b19043d8a995ef
+
+Mode5 local/late81-2vai-chain01/verification.json PASS705.204s,PID23892:
+45ccfaeba456949408bff229565df956777dedb9899d280de4b049f2013faff5
+Remote matches3792/4210exact receipts,result3772/4190,conceded0/0;both natural.
+Old254-byte assignment SHA256:
+c6cd11a077d95791008725fac134b46a65e47f7f29d37b44cf04c4b456bb137a
+Delivered at localframe198;local progress sampled through3383,then natural local
+result/Continue. AI profiles60/59/60 have69/7/14distinct produced ordered+moving
+entities after replay. The local player retains the chosen full appearance.
+local/late81-2vai-review.json SHA256:
+65b53bd30b81c3399b2b2386aec09db547a71397eb6101feef2c290ffbb1d08f
+
+Both strict team reviewers pass first invocation;reviewer SHA256:
+a5b1902236dbd40159d1a52af519870fa070a5b9fe58dc5adb4b6b66f3123042
+They independently check exact captured framing/decoded original intent/outer
+bridge hash/ordered READY3,native3world/3Continue order,post-injection all-bot
+movement,both original bootstraps/complete authoritative frame streams/full
+loadouts,2real authenticated sessions/3resolver attempts,2worker0/reaped/empty
+stderr,ephemeral PKI removal,138stable runtime sources,helper85-path build receipt,
+shared settings/program/manual71/LAN03 seals and0bundle rehashes. Neither team
+case needs a corrective native rerun. No release archive changed.
+
+After ALL native processes exited and all reviewers passed,the exact owned
+27-byte Hard fixture was verified then removed to restore original absence.
+No other settings or parent directory removed. Receipt SHA256:
+5e587578b21ae62be6baef0bd2e24e43d5c1bc0acce7a6ee915039414d549150
+local/late81-aggregate.json binds all3qualifications,original failed report,
+current138sources/program/candidate seals and that restoration. PASS SHA256:
+e8a8f91ebc0b8d87cabe4cf509c49162fc8d3650d3583cc1bd5bb3acd52a5406
+All9worlds/original Continue actions and all6remote workers exit0 are retained.
+
+R06-mode1/2/5 and T09/T10/T11 now have scoped native PASS. Mode1's original
+report remains failed;its separate corrected retained qualification is the input.
+The second-attempt failure is a controlled resolver RemoteUnavailable(code8)
+fixture,not protected owner TCP-refusal/timeout acceptance. Real TLS is exercised
+by matches1/3 using in-memory fixture invites and ephemeral PKI. Final client
+cleanup is forced owned termination,not original Quit. Physical controls,
+protected enrollment,ordinary bundled entry,LAN/Internet and D2 parent remain
+OPEN. D6 restart-first/repeat-launch observation remains pending and priority.
+Only authored source/knowledge goes in Git;raw packets/logs/bootstraps/binaries
+and all private evidence remain ignored local artifacts.

@@ -333,10 +333,24 @@ static bool smokeGate(bool practice) {
         "PUBLIC QUEUE SMOKE shared gate released: key=%s",key.c_str());return true;
 }
 static void smoke(Obj front) {
-    const unsigned attempts=ba::flag(L"-public-queue-smoke-retry")?2:1;
+    const bool late=ba::flag(L"-public-late-assignment-smoke");
+    if(late) {
+        require(ba_dedicated_session::returnRetrySmoke() && ba::flag(L"-practice-ai-smoke") && ba::flag(L"-public-ai-smoke"),
+            "late assignment requires an owned remote/local/remote diagnostic");
+        static uint32_t practiceProfile=ba_practice_settings::selection();
+        require(ba_practice_settings::selection()==practiceProfile,"public transition changed saved practice preference");
+        static bool logged=false;
+        if(!logged){logged=true;ba::log("PUBLIC LATE ASSIGNMENT SMOKE maxIntents=3 practiceProfile=%u BA_RESURRECTION_LATE_ASSIGNMENT_V2",practiceProfile);}
+    }
+    const unsigned attempts=late?3:ba::flag(L"-public-queue-smoke-retry")?2:1;
     if(!ba::flag(L"-public-queue-smoke") || !ba::flag(L"-public-queue-experimental") || active() || ba_practice::active() || smokeStarted>=attempts ||
         GetTickCount64()<smokeRetryAt || !ba_dedicated_session::inMenu() || !ba_client::nativeIdle(front))return;
     if(!smokeGate())return;
+    static bool latePreferenceLogged=false;
+    if(late && smokeStarted==2 && !latePreferenceLogged) {
+        latePreferenceLogged=true;
+        ba::log("PUBLIC LATE ASSIGNMENT SMOKE preference preserved before intent3: profile=%u",ba_practice_settings::selection());
+    }
     static bool edited=false;
     if(ba::flag(L"-public-queue-smoke-edit-deck") && !edited) {
         require(ba::flag(L"-dedicated-rematch-smoke"),"public diagnostic deck edit requires explicit native edit support");

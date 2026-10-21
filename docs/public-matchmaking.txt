@@ -900,3 +900,22 @@ not native Quit/physical/protected enrollment/bundled ordinary entry/LAN/Interne
 qualification. D2 parent/R06/physical gates remain OPEN. D6 reboot-first/repeat
 observation remains priority/pending. No raw logs/bootstraps/original files/
 binaries/credentials in Git;new authored source and knowledge-base only.
+
+2026-10-21 UTC late assignment81 (R06-modes1/2/5,T09-T11 PASS)
+Focused contract,diagnostic source changes,failed pilot/original report,corrected
+independent mode1 qualification and exact hashes:public-late-assignment.txt.
+It completes remote -> pre-READY unavailable/local fallback -> fresh remote in
+one native client. Actual retired-session assignment replay cannot replace local
+lease2;post-delivery bot movement and ordered authenticated READY3 prove recovery.
+All3original Continue actions,selected identity/deck/17slots and saved Hard19
+preference survive;both authoritative frame streams and worker0/cleanup pass.
+Mode2/5 native reports and strict independent retained reviews also pass;
+737.641s/4482+4026exact receipts and705.204s/3792+4210 respectively. Both remote
+matches in each team run end naturally;all3local bots move after replay and
+all6remote workers across modes exit0. Mode2 local diagnostic concedes3600;
+local1/local5 finish naturally. All9original worlds/Continue actions pass;
+138sources/shared state/helper/program stable,0bundle rehashes. Exact owned saved
+Hard fixture restored to original absence only after native/review completion.
+This is controlled resolver code8 plus real fixture TLS,not protected
+TCP-refusal/timeout/physical/native Quit/LAN. D2 parent remains OPEN.
+D6 manual71/LAN03 unchanged,D6 physical restart-first/repeat remains priority.

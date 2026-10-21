@@ -776,7 +776,7 @@ static bool frontUpdate(Obj front) {
             catch(const std::exception& e){ba_lan::fail("practice presence",e);}
         }
         if(!active())return true;
-        if(state.mode==1 && ba_match_search::diagnostic() && cancelledSearches==0 &&
+        if(state.mode==1 && ba_match_search::diagnostic() && !ba::flag(L"-public-late-assignment-smoke") && cancelledSearches==0 &&
             state.phase==Phase::Building && !state.buildStarted && GetTickCount64()-state.began>=2500)
             ba_match_search::clickCancel(state.searchTicket);
         if(state.cancelRequested) {

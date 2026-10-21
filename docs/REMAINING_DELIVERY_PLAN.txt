@@ -79,6 +79,12 @@ finished;their scoped results are recorded below. With D6's engineering fix and
 automated qualification complete,preserve its manual candidate and address the
 remaining named D2 cells without repeating covered queue/roster tests.
 Completed subcases (same-PC automated controls; not physical LAN):
+[x] Late valid old-session assignment during local fallback,R06-modes1/2/5,
+    and remote -> pre-READY unavailable/local -> remote,T09-T11 (81). All9worlds/
+    original Continue actions,6worker0,full selected loadouts/saved Hard19 pass.
+    Controlled resolver code8/real fixture TLS/forced final cleanup;not protected
+    TCP-refusal/timeout/physical/native Quit/LAN. Exact failures/independent
+    retained qualifications and hashes:public-late-assignment.txt.
 [x] Current Custom directory refresh/eligibility/pooling (custom74 C02),and
     original decline/cancel/expiry/duplicate Accept/counter cleanup (C03).
     Helper51/optimized58,loopback development transport;forced client teardown.
@@ -253,6 +259,10 @@ Ordinary63 reproduces223.719s launch-to-initial-state without an observer.
     48moving ordered bot entities. Only physical restart-cold/repeat launch and
     visible controls remain;owner observation requested once,pending. Ordinary
     offline entry:local/startup71-packages01/battleaces-client-win64/Start Client.cmd.
+    [x] C4 automated package/recovery/ordinary-entry/full-AI lifecycle checks.
+    [ ] C4 physical post-Windows-restart first launch,repeat launch and visible
+        Try Deck/results/Continue/Quit. This is the sole remaining D6 gate;
+        preserve manual71 and do not substitute further warm test launches.
     Read-only readiness76 reconfirms package integrity,installed program/catalog,
     all seven retained report hashes and133cached bundle fingerprints. No game
     launch or bundle rehash;physical restart observation remains the next D6 gate.

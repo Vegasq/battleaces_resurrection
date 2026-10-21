@@ -40,12 +40,13 @@ from tools.run_secure_match import read_native_log
 from tools.verify_custom_lobby import require, source_hashes as core_hashes
 from tools import verify_unified_startup as startup_probe
 from tools import public_return_evidence
+from tools import public_late_assignment
 
 ROOT = Path(__file__).resolve().parents[1]
 
 
 def source_hashes():
-    paths = [Path(__file__), Path(public_return_evidence.__file__), ROOT/'tools/run_secure_match.py', ROOT/'tools/verify_practice_ai.py', ROOT/'tools/verify_unified_startup.py'] + list((ROOT/'client_patch/transport').glob('*.py'))
+    paths = [Path(__file__), Path(public_return_evidence.__file__), Path(public_late_assignment.__file__), ROOT/'tools/run_secure_match.py', ROOT/'tools/verify_practice_ai.py', ROOT/'tools/verify_unified_startup.py'] + list((ROOT/'client_patch/transport').glob('*.py'))
     return core_hashes() | {p.relative_to(ROOT).as_posix(): hashlib.sha256(p.read_bytes()).hexdigest() for p in paths}
 
 
@@ -59,10 +60,16 @@ def elapsed_seconds(log,ticket):
 
 async def run(args):
     game, assets, output = args.game.resolve(), args.assets.resolve(), args.output.resolve()
+    late_assignment=getattr(args,'late_assignment',False)
     launcher.verify_game(game, community=True, bridge_version=2, unified=True, player_features=args.ordinary_player)
     if args.drop_return_ack and args.retry:
         require(args.ordinary_player and b'BA_RESURRECTION_RETURN_RETRY_V1' in (game/'BattleAcesOffline.dll').read_bytes(),
                 'install the explicit owned full-loadout RETURN retry diagnostic helper')
+    if late_assignment:
+        require(args.ordinary_player and args.retry and game.is_relative_to(ROOT/'local') and b'BA_RESURRECTION_LATE_ASSIGNMENT_V2' in (game/'BattleAcesOffline.dll').read_bytes(),
+                'late assignment requires the explicit owned three-intent diagnostic helper')
+    practice_path=game/'.battleaces-resurrection/practice-settings.ini'
+    practice_before=public_late_assignment.preference(practice_path) if late_assignment else None
     verify_assets(assets);output.mkdir(parents=True, exist_ok=False)
     pki_folder=output/'ephemeral-pki';pki=generate_test_pki(pki_folder)
     credentials, workers, events = Store(), [], []
@@ -88,6 +95,7 @@ async def run(args):
             match=server.rooms[fields['room']].match
             frozen_matches.append(dict(match=fields['match'],cosmetics={slot:dict(catalog_sha256=value.catalog_sha256,slots=value.slots)
                                    for slot,value in match.cosmetics_by_slot.items()}))
+    late_probe=public_late_assignment.Probe(args.mode,output,observe) if late_assignment else None
     async def factory(data,bots):
         worker=await SimulationWorker.create(data,assets/'Simulation.dll',working_directory=output,ai=AISetup(assets,bots))
         workers.append(worker);return worker
@@ -102,7 +110,9 @@ async def run(args):
                 cancel=args.cancel,retry=args.retry,delay_enter_ack=args.delay_enter_ack,
                 drop_on_ready=args.drop_on_ready,drop_return_ack=args.drop_return_ack,practice_overlap=args.practice_overlap,
                 disconnect=args.disconnect,menu_profile_proof=args.menu_profile_proof,
-                local_frames=args.local_frames if args.unavailable else None, local_profile=args.local_profile,
+                local_frames=args.local_frames if args.unavailable or late_assignment else None, local_profile=args.local_profile,
+                late_assignment=late_assignment,
+                practice_preference_before=practice_before,
                 helper_sha256=hashlib.sha256((game/'BattleAcesOffline.dll').read_bytes()).hexdigest(),
                 source_sha256_at_start=source_hashes())
     if args.shared_settings: report['shared_settings_before']=startup_probe.shared_state(args.shared_settings.resolve())
@@ -122,7 +132,7 @@ async def run(args):
                     delayed.append(asyncio.get_running_loop().call_later(args.delay_enter_ack,deliver))
                     observe('probe_delayed_enter_ack',request=request,seconds=args.delay_enter_ack)
                     return
-                if args.drop_return_ack and not dropped_return and command==q.RETURN:
+                if (args.drop_return_ack or late_assignment) and not dropped_return and command==q.RETURN:
                     require(reader.number('B')==1,'RETURN loss fixture requires an accepted completed return')
                     dropped_return=True;observe('probe_drop_return_ack',request=request,success=True)
                     peer.close('probe lost RETURN acknowledgement');return
@@ -131,7 +141,9 @@ async def run(args):
         apply=server.community.public.apply
         async def controlled_apply(session,kind,command,now):
             nonlocal dropped_ready
-            if args.drop_return_ack and args.retry and kind==q.RETURN:
+            if late_probe is not None and kind==loadout_protocol.ENTER_LOADOUT and command['ticket']==1:
+                late_probe.attach_peer(session.peer)
+            if (args.drop_return_ack or late_assignment) and args.retry and kind==q.RETURN:
                 observe('probe_return_request',**command)
             result=await apply(session,kind,command,now)
             if cosmetic_book and kind==loadout_protocol.ENTER_LOADOUT:
@@ -151,7 +163,7 @@ async def run(args):
                          header_gate_released=header_gate is not None and header_gate.exists(),
                          world_acquired='Client world acquired:' in observed,log_offset=len(observed))
             connection_attempts.append(attempt);observe('probe_resolve_attempt',**attempt)
-            if args.unavailable: raise bridge.RemoteUnavailable()
+            if args.unavailable or late_assignment and attempts==2: raise bridge.RemoteUnavailable()
             return bridge.Remote('127.0.0.1',port,context,credentials.player,credentials.token)
         config=dict(game_directory=game,server_host='127.0.0.1',server_port=port,display_name='Public Config Player',room='community')
         if cosmetic_book:config['local_profile']=cosmetic_profile
@@ -171,7 +183,8 @@ async def run(args):
         if not args.unavailable: command+=['-match-search-smoke']
         if args.cancel: command+=['-public-queue-smoke-cancel='+args.cancel]
         if args.retry: command+=['-public-queue-smoke-retry']
-        if args.drop_return_ack and args.retry:command.append('-public-return-retry-smoke')
+        if (args.drop_return_ack and args.retry) or late_assignment:command.append('-public-return-retry-smoke')
+        if late_assignment:command.append('-public-late-assignment-smoke')
         if args.disconnect in ('loading','running'): command+=['-dedicated-recovery-smoke']
         if args.practice_overlap: command+=['-public-queue-smoke-practice-overlap']
         if args.mode==1:
@@ -184,7 +197,7 @@ async def run(args):
             key=secrets.token_hex(16)
             header_gate=game/'investigation/runtime'/f'public-queue-{key}.ready'
             command+=['-menu-profile-proof','-public-queue-smoke-gate='+key]
-        if args.unavailable:
+        if args.unavailable or late_assignment:
             command+=['-practice-ai-smoke','-public-ai-smoke','-practice-ai-smoke-matches=1',f'-practice-ai-smoke-frames={args.local_frames}']
             if args.local_profile: command += [f'-public-ai-smoke-profile={args.local_profile}']
         startup=subprocess.STARTUPINFO();startup.dwFlags|=subprocess.STARTF_USESHOWWINDOW;startup.wShowWindow=1 if args.visible else 0
@@ -194,13 +207,18 @@ async def run(args):
         try: process=subprocess.Popen(command,cwd=game,startupinfo=startup,close_fds=True,creationflags=0 if args.visible else subprocess.CREATE_NO_WINDOW)
         finally: child.set_inheritable(False)
         job=_WindowsJob(process.pid);child.close()
-        bridge_task=asyncio.create_task(bridge.Bridge(reader,writer,resolve,version=2).run())
+        if late_probe is not None:
+            transport=public_late_assignment.WitnessBridge(reader,writer,resolve,version=2,observe=observe)
+            late_probe.transport=transport
+        else:transport=bridge.Bridge(reader,writer,resolve,version=2)
+        bridge_task=asyncio.create_task(transport.run())
         report.update(game_pid=process.pid,launch_tick=launch_tick,client_arguments=command)
         (output/'processes.json').write_text(json.dumps(report,indent=2)+'\n')
         shutil.copyfile(game/'.battleaces-resurrection/patch-manifest.json',output/'patch-manifest.json')
         preworld=(bool(args.cancel) or args.drop_on_ready or args.disconnect=='assignment') and not args.retry
         disconnected_only=bool(args.disconnect) and not args.retry
         marker=(f'Practice returned: completed=1 mode={args.mode}' if args.unavailable else
+                'Public intent retired: ticket=3 reason=returned nativeIdle=1 disconnect=0' if late_assignment else
                 'Public intent retired: ticket=2 reason=returned nativeIdle=1 disconnect=0' if args.drop_return_ack and args.retry else
                 'Public intent retired: ticket=1' if preworld or disconnected_only or (args.drop_return_ack and not args.retry) else 'PUBLIC QUEUE completed return:')
         while True:
@@ -210,6 +228,7 @@ async def run(args):
                 with header_gate.open('xb') as stream:stream.write(b'owned initial header observed\n')
             for failure in ('Public client failure:', 'Client lifecycle invariant failed:', 'Practice stopped in ', 'Local menu header binding failed:'):
                 require(failure not in log,'native public failure: '+failure)
+            if late_probe is not None:await late_probe.maybe_inject(log)
             for failure in re.findall(r'Offline loop stopped in [^\n]*',log):
                 require(fault is not None and args.disconnect in ('loading','running') and re.fullmatch(
                     r'Offline loop stopped in (?:LAN update|LAN front update|dedicated session update): '
@@ -269,7 +288,7 @@ async def run(args):
             require(log.count('PUBLIC QUEUE SMOKE cancellation:')==1 and 'Native search original Cancel invoked:' in log,
                     'original Cancel callback/intent missing or duplicated')
         if args.drop_on_ready: require(dropped_ready,'READY disconnect injection missing')
-        if args.drop_return_ack:
+        if args.drop_return_ack or late_assignment:
             require(dropped_return and 'reason=connection lost after return nativeIdle=1' in log,
                     'RETURN disconnect did not retire the completed native match')
             require('identity=public-error:' not in log,'completed match displayed an incorrect start-failure notice')
@@ -279,7 +298,7 @@ async def run(args):
             require(delayed_enter and any(row['event']=='probe_delayed_enter_ack_delivered' for row in events),
                     'delayed acknowledgement was not delivered')
         if args.retry:
-            require(log.count('Public search intent:')==2 and 'Native search stale ticket rejected:' in log,
+            require(log.count('Public search intent:')==(3 if late_assignment else 2) and 'Native search stale ticket rejected:' in log,
                     'retry did not use a new native search generation')
         if args.disconnect:
             require(fault is not None,'connection loss was not injected')
@@ -383,20 +402,21 @@ async def run(args):
                 report['native_elapsed_seconds']=elapsed_seconds(log,1)
         else:
             return_retry=args.drop_return_ack and args.retry
-            maximum=2 if args.retry and (args.cancel=='after-ready' or args.drop_on_ready or args.disconnect or args.drop_return_ack) else 1
+            multi_remote=return_retry or late_assignment
+            maximum=2 if late_assignment or args.retry and (args.cancel=='after-ready' or args.drop_on_ready or args.disconnect or args.drop_return_ack) else 1
             require(1<=len(workers)<=maximum and 1<=credentials.calls<=(2 if args.retry else 1),
                     'unexpected authenticated match/worker count')
             finished=[row for row in events if row['event']=='match_completed']
-            require(len(finished)==(2 if return_retry else 1),'duplicate/missing completed match')
+            require(len(finished)==(2 if multi_remote else 1),'duplicate/missing completed match')
             match=finished[-1]['match']
             offered=next(row for row in events if row['event']=='public_match_offered' and row['match']==match)
             ticket=offered['tickets'][0]
             entered=next(row for row in events if row['event']=='public_queue_entered' and row['ticket']==ticket)
             require(29<=offered['observed_at']-entered['observed_at']<=33,'server fallback did not use real30-second queue wait')
             require(not server.community.public.entries and not server.community.public.offers,'native RETURN retained ticket/offer')
-            expected_worlds=2 if return_retry or args.retry and args.disconnect in ('loading','running') else 1
+            expected_worlds=2 if multi_remote or args.retry and args.disconnect in ('loading','running') else 1
             require('Public native match joined:' in log and 'Public native return:' in log and 'owner=remote' in log and
-                    'owner=local-practice' not in log and log.count('Client world acquired:')==expected_worlds and
+                    (late_assignment or 'owner=local-practice' not in log) and log.count('Client world acquired:')==(3 if late_assignment else expected_worlds) and
                     log.count('owner=remote nativeIdle=1')==expected_worlds,
                     'remote native lifecycle missing/overlapped')
             receipts=game/'investigation/runtime'/f'dedicated-receipts-{process.pid}-{match}.tsv'
@@ -409,8 +429,8 @@ async def run(args):
             result=finished[-1]['result']
             report.update(match=match,received_frames=len(rows),result=result,real_queue_seconds=offered['observed_at']-entered['observed_at'],
                           native_elapsed_seconds=seconds)
-            if return_retry:
-                require(len(workers)==credentials.calls==attempts==2,'completed return retry requires two sessions/workers')
+            if multi_remote:
+                require(len(workers)==credentials.calls==2 and attempts==(3 if late_assignment else 2),'completed retry requires exact remote sessions/workers')
                 completed_matches=[]
                 for completed in finished:
                     key=completed['match']
@@ -430,7 +450,11 @@ async def run(args):
                     completed_matches.append(dict(match=key,ticket=generation,received_frames=len(native),result=completed['result'],
                         real_queue_seconds=wait,native_elapsed_seconds=elapsed_seconds(log,generation)))
                 report['completed_matches']=completed_matches
-                report['return_retry']=public_return_evidence.validate(log,args.mode,completed_matches,events)
+                if return_retry:report['return_retry']=public_return_evidence.validate(log,args.mode,completed_matches,events)
+                if late_assignment:
+                    report['late_assignment_evidence']=public_late_assignment.validate(log,args.mode,completed_matches,events,late_probe.capture,late_probe.injection,practice_before['profile'])
+                    report['local_fallback_evidence']=public_late_assignment.local_evidence(log,args.mode,late_probe.injection,
+                        list(queue_selections[0]['deck']),list(cosmetic_seed.keys))
         if cosmetic_book:
             prefix='HUMAN COSMETICS frozen message: ' if args.unavailable else 'REMOTE COSMETICS frozen snapshot: '
             snapshots=[json.loads(line.split(prefix,1)[1]) for line in log.splitlines() if prefix in line]
@@ -453,7 +477,7 @@ async def run(args):
                         'server match did not freeze original human appearance')
                 require(set(observed_matches)<={match['match'] for match in frozen_matches},'native proof refers to an unowned match')
                 if report.get('match'):require(report['match'] in observed_matches,'completed remote match lacks native full map/unit proof')
-                if args.drop_return_ack and args.retry:
+                if args.drop_return_ack and args.retry or late_assignment:
                     require(set(observed_matches)=={row['match'] for row in report['completed_matches']},
                             'both finished RETURN retry matches require original native full-loadout proof')
             if args.edit_loadout_after_play:
@@ -507,7 +531,7 @@ async def run(args):
             await asyncio.to_thread(process.wait,timeout=15)
             try:
                 log=read_native_log(game,process.pid,since_tick=launch_tick)
-                (output/f'native-{process.pid}.log').write_text(log,encoding='utf-8')
+                (output/f'native-{process.pid}.log').write_bytes(log.encode('utf-8'))
             except Exception as error:
                 report.update(passed=False,evidence_error=f'{type(error).__name__}: {error}')
             for name in re.findall(r'file=(match-search-\d+-\d+-\d+-\w+\.png)',log):
@@ -550,6 +574,15 @@ async def run(args):
             report['shared_settings_after']=startup_probe.shared_state(args.shared_settings.resolve())
             report['shared_settings_unchanged']=report['shared_settings_before']==report['shared_settings_after']
             report['passed'] &= report['shared_settings_unchanged']
+        if late_probe is not None:
+            report.update(late_assignment_capture=late_probe.capture,late_assignment_injection=late_probe.injection,
+                          queue_loadouts_observed=queue_selections,server_frozen_loadouts_observed=frozen_matches)
+            try:
+                report['practice_preference_after']=public_late_assignment.preference(practice_path)
+                report['practice_preference_unchanged']=report['practice_preference_after']==practice_before
+                report['passed'] &= report['practice_preference_unchanged']
+            except Exception as error:
+                report.update(passed=False,practice_preference_error=repr(error))
         (output/'verification.json').write_text(json.dumps(report,indent=2)+'\n',encoding='utf-8')
     print(json.dumps({key:report[key] for key in ('passed','error','elapsed_seconds','received_frames','worker_exit_codes') if key in report}))
     return 0 if report['passed'] else 1
@@ -573,6 +606,7 @@ def main():
     parser.add_argument('--delay-enter-ack',type=float,default=0)
     parser.add_argument('--drop-on-ready',action='store_true')
     parser.add_argument('--drop-return-ack',action='store_true')
+    parser.add_argument('--late-assignment',action='store_true',help='remote/local/remote: replay original assignment during fallback and prove later stream drainage')
     parser.add_argument('--disconnect',choices=('assignment','loading','running'),
                         help='close first owned TLS peer at a native-observed stage; test cleanup and optional explicit retry')
     parser.add_argument('--practice-overlap',action='store_true')
@@ -582,11 +616,12 @@ def main():
     args=parser.parse_args()
     require(not args.ordinary_player or (args.cosmetics_selection and args.shared_settings),
             'ordinary player qualification requires a full native cosmetic selection/catalog and shared-settings baseline')
-    require(os.name=='nt' and args.output.resolve().is_relative_to(ROOT/'local') and 120<=args.timeout<=900,'bounded Windows/ignored probe required')
+    require(os.name=='nt' and args.output.resolve().is_relative_to(ROOT/'local') and 120<=args.timeout<=(1800 if args.late_assignment else 900),'bounded Windows/ignored probe required')
     require(1200<=args.local_frames<=7200 and (not args.local_profile or args.unavailable and args.mode==1),
             'bounded local frames and unavailable1v1-only profile override required')
-    require(0<=args.delay_enter_ack<=8 and (not args.retry or args.cancel or args.drop_on_ready or args.drop_return_ack or args.disconnect),'bounded delay/retry point required')
-    require(sum(map(bool,(args.unavailable,args.cancel,args.drop_on_ready,args.drop_return_ack,args.disconnect)))<=1,
+    require(0<=args.delay_enter_ack<=8 and (not args.retry or args.cancel or args.drop_on_ready or args.drop_return_ack or args.disconnect or args.late_assignment),'bounded delay/retry point required')
+    require(not args.late_assignment or (args.retry and args.ordinary_player),'late assignment requires ordinary full-loadout retry')
+    require(sum(map(bool,(args.unavailable,args.cancel,args.drop_on_ready,args.drop_return_ack,args.disconnect,args.late_assignment)))<=1,
             'choose one unavailable/cancel/disconnect scenario')
     require(not args.edit_loadout_after_play or (args.cosmetics_selection and not any((args.cancel,args.retry,args.drop_on_ready,args.drop_return_ack,args.disconnect))),
             'post-Play edit requires a full single-intent remote/unavailable probe')
