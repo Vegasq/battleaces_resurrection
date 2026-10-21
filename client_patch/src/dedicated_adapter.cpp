@@ -261,6 +261,15 @@ static void postgameDiagnostics(Obj server) {
             ba::flag(L"-dedicated-rematch-smoke")?1:0,smokeContinueIssued?1:0,ba_lan::stopped?1:0);
     } catch(const std::exception& e){ba::log("Dedicated postgame diagnostics unavailable: %s",e.what());}
 }
+static bool publicSequenceSmoke() {
+    if(!ba::flag(L"-public-mode-sequence-smoke"))return false;
+    if(!ba::unified() || !ba::flag(L"-public-queue-experimental") || !ba::flag(L"-public-queue-smoke") ||
+       !ba::flag(L"-community-cosmetics-smoke") || !ba::flag(L"-dedicated-rematch-smoke") ||
+       ba::argument(L"-public-queue-smoke-gate=").size()!=32 ||
+       ba::argument(L"-local-profile=").rfind("cosmeticstest_",0)!=0)
+        throw std::runtime_error("public mode sequence requires an owned gated full-loadout diagnostic");
+    return true;
+}
 static bool returnRetrySmoke() {
     if(!ba::flag(L"-public-return-retry-smoke"))return false;
     const auto profile=ba::argument(L"-local-profile=");
@@ -281,11 +290,12 @@ static void rematchSmoke(Obj server) {
     // survivors that returned through an authoritative abort without Reconnect.
     // Both diagnostic paths are bounded to the second session's result.
     // RETURN-ACK retry separately rearms Continue after its completed first result.
-    const bool publicRecovery=startedSessions==2 &&
+    const bool sequence=publicSequenceSmoke() && startedSessions>=1 && startedSessions<=4;
+    const bool publicRecovery=sequence || (startedSessions==2 &&
         ba::flag(L"-public-queue-smoke") && ba::flag(L"-public-queue-smoke-retry") &&
         ((recoverySmokeStage==1 && ba::flag(L"-dedicated-recovery-smoke")) ||
          (ba::unified() && ba::flag(L"-public-queue-experimental") && ba::flag(L"-public-team-retry-smoke")) ||
-         returnRetrySmoke());
+         returnRetrySmoke()));
     if(startedSessions>=2 && !publicRecovery) {
         if(!smokeFinished){smokeFinished=true;ba::log("DEDICATED REMATCH SMOKE automated two-match flow finished; leaving second native result screen open");}
         return;
@@ -374,6 +384,10 @@ static void resetAtMenu(Obj front,Obj server,bool completed,bool keepCommunity=f
     if(completed && startedSessions==1 && returnRetrySmoke()) {
         smokeContinueIssued=false;smokePostgameAt=0;
         ba::log("PUBLIC RETURN RETRY SMOKE first native result retired; second Continue armed BA_RESURRECTION_RETURN_RETRY_V1");
+    }
+    if(completed && publicSequenceSmoke() && startedSessions<4) {
+        smokeContinueIssued=false;smokePostgameAt=0;
+        ba::log("PUBLIC MODE SEQUENCE result retired: stage=%u nextContinueArmed=1 BA_RESURRECTION_PUBLIC_SEQUENCE_V1",startedSessions);
     }
     if(ba_client::remoteWorld())ba_client::releaseRemote(front,releaseMatch);
 }

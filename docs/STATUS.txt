@@ -3,6 +3,19 @@ Updated: 2026-10-21 UTC
 Delivery plan: REMAINING_DELIVERY_PLAN.txt, Windows only.
 Original roadmap: CLOSED / SUPERSEDED;see PLAN_CLOSEOUT.txt.
 
+D2 PUBLIC MODE SEQUENCE84 (T05 NATIVE PASS,2026-10-21 UTC)
+The same two native PIDs complete remote1 -> remote2 -> remote5 -> remote1 in
+366.832s. Both humans/original community sessions/selected decks/17slots retained;
+real30s partial2v2 queue,8original Continue/world releases,4workers0 and every
+native receipt/journal build pass.143source/program/manual71/LAN03/shared/preference
+seals hold. Initial fixture pilot stays FAILED:writer used noncanonical JSON/CRLF;
+fixed own writer and required actual restored selections before Play,without a
+helper/production correction.17Python and12C++ checks pass,strict retained review
+passes. Diagnostic Concede/fixture TLS/forced final cleanup is not physical/native
+Quit/bundled/protected/LAN acceptance. No archive/manual candidate updated. T05
+closes,D2 stays OPEN;D6 reboot-first/repeat physical observation remains priority.
+Exact contracts/failed and passing report/hash bindings:public-mode-transitions.txt.
+
 D6 PRIORITY REAFFIRMED / NEXT ACCEPTANCE ACTION
 User priority remains D6. Implementation and automated package/native checks71
 are complete;physical restart-first/repeat launch and visible TryDeck/Continue/

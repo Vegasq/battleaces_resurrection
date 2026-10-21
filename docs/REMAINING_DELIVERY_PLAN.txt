@@ -82,6 +82,11 @@ finished;their scoped results are recorded below. With D6's engineering fix and
 automated qualification complete,preserve its manual candidate and address the
 remaining named D2 cells without repeating covered queue/roster tests.
 Completed subcases (same-PC automated controls; not physical LAN):
+[x] Same two native clients complete remote1 -> remote2 -> remote5 -> remote1,
+    T05 (84). Selected names/decks/17slots and existing sessions retained;real30s
+    partial2v2 queue,8original Continue actions,4workers0 and every native frame
+    checked. Diagnostic Concede/fixture TLS/forced final cleanup;not physical/
+    native Quit/bundled/protected/LAN. See public-mode-transitions.txt.
 [x] Original remote bot loading/native/result model qualification,B09 (83),
     together with selection/local-model review82. Three public modes,10actual
     native/result identities,7bots,original Continue and workers0. Original

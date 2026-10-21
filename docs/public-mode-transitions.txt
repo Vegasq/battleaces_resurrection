@@ -1,0 +1,125 @@
+PUBLIC MODE TRANSITIONS84 / D2 T05
+Updated:2026-10-21 UTC. T05 native PASS;physical/parent D2 remain OPEN.
+
+Finite missing claim
+The same two native clients must complete remote1 -> remote2 -> remote5 ->
+remote1 through original Play/results/Continue,retaining both available humans,
+their selected decks/names/full cosmetics and valid world/session ownership.
+Existing same-mode retries and remote/local/remote tests do not establish this
+cross-mode sequence. No new supported mode or matchmaking policy is introduced.
+
+Explicit owned diagnostic
+tools.verify_public_sequence requires a local/ disposable game,current helper
+build receipt,preparation source/program seals,native cosmetic seed and read-only
+shared-settings baseline. Both ordinary player argument sets are captured before
+any diagnostics are appended. Fixture TLS uses ephemeral PKI/in-memory invites;
+no protected player credential is read or put in a process argument.
+
+-public-mode-sequence-smoke is valid only with unified/public queue/full-cosmetic/
+rematch smoke settings,a cosmeticstest_ profile and a keyed gate. It selects
+exactly1/2/5/1 and invokes only original visible/interactable matchmaking buttons.
+Each stage has its own exclusive ordinary-file gate. The verifier releases the
+next gate only after both original results/Continue/native return/intent retirement
+and empty queue/offers/rooms/worker cleanup. Original public queue30s,READY rules,
+world ownership checks,simulation step and production behavior remain unchanged.
+
+Dedicated diagnostic Continue is armed for each of these four completed worlds.
+The diagnostic can submit normal human builds and existing original ConcedeGame
+commands;these flags do not appear in ordinary entry. Forced final owned cleanup
+is explicitly NOT native Quit. The D6 manual71 and LAN03 candidates are sealed
+and left unchanged. No release package is replaced.
+
+Required evidence
+- Four offers/completions,one match per stage,and the exact same two authenticated
+  humans in every offer. One persistent community session per human,no additional
+  authentication/connection,Custom lobby,local fallback or overlapping world.
+- 1v1 seats0/1,2v2 human0/1 with bot2/3 after a real30s queue,2vAI human allies0/2
+  with bot opponents1/3,and1v1 again. Full human groups do not wait for AI timeout.
+- Actual archived bootstrap identities/decks/avatar roles,all17frozen queue and
+  actual original native human appearance/unit bindings. Each selected human
+  deck remains exact despite changing mode,army seat and alliance.
+- Original search/timer/joining/release,one generation/remote lease per stage,
+  original result/Continue,completed RETURN/ACK and idle intent retirement.
+- Every native frame receipt equals the corresponding authoritative audit hash;
+  input journals contain actual original human build actions. Four workers must
+  exit0/reap with empty stderr;temporary PKI/gates are removed;source/program/
+  manual candidates/shared storage/practice preference remain unchanged.
+
+tools.public_sequence_evidence checks strict ordered lifecycle/lease completeness
+and rejects missing Continue,wrong mode/seat/human mask,stale leases,extra worlds,
+fallback/errors and duplicate matches.17focused Python tests PASS0.010s/0skips;
+the full native helper build passes12compiled check programs and unchanged-source
+receipt. Build helper-sequence84-01 SHA256:
+cb3729dddf7cc2fdd764aa82a020503d247403ea3c4b4731a8ed20154ceac6ed
+Build receipt SHA256:
+1151f29d5dfd63e06b248c41b8192966f2fc8c3a4d7399f380e8698b8f6314e2
+
+Preparation verifies all133original bundles during installation. Only automated58
+is upgraded;manual71/LAN03/practice-settings absence is preserved. The second
+preparation receipt reseals final verifier-only source assertions before the first
+native launch,without another install/game launch.143runtime source paths bind
+the actual run. Neither this install nor native warm startup closes D6's physical
+post-Windows-restart/repeat acceptance;D6 remains priority and pending.
+
+Preserved failed fixture pilot
+First pilot local/sequence84-native01 remains FAILED90.807s after completed
+1v1/results/Continue. Its new fixture writer incorrectly produced spaced JSON
+and Windows CRLF;the existing strict canonical native reader correctly refused
+it and retained the file. Both clients used default portrait66 instead of the
+seeded first portrait87. This is a diagnostic fixture defect,not qualified T05
+or a demonstrated production cosmetic regression. Its sole worker exits0/reaped,
+owned games are reaped,program/source/shared/candidate seals hold. Failed report:
+2ff08d0b6bb5b4a10e962a4a1fe7e23e36c089fae89c9d31735c4428770c57a7
+Own producer driver retained locally SHA256:
+c6daf270c45b22cf904492c383186081d9664d9ca49957d391b24c925916dcad
+Corrected writer uses compact JSON and exact LF bytes,matching the already-used
+canonical fixture format. Before releasing any Play gate,it now requires actual
+native restored=1/writable=1 for both intended profiles and refuses any cosmetic
+persistence error. No native/helper/game code correction or rebuild is required.
+Preparation03 reseals the changed verifier only;the failed report is unchanged.
+Final native qualification PASS
+local/sequence84-native02/verification.json passes366.832s,with the same PIDs
+11464/3652 throughout. Four distinct matches complete in order1/2/5/1;both humans
+retain exact original community session objects,configured names,selected distinct
+decks and17-slot native appearances. Each bridge resolves/authenticates once.
+2v2 fills two missing seats after the real30s deadline;1v1/2vAI full human groups
+are offered immediately. Native search clocks and intended human/alliance masks
+are checked in each stage. Eight native worlds (four generations per process)
+and eight original Continue actions
+release cleanly;no local fallback,Custom lobby,extra intent or stale world.
+
+Stage mode   Exact authoritative frames per client   Result frame / conceded mask
+1                         1220                              1200 / 1
+2                         1221                              1201 / 5
+5                         1250                              1230 / 5
+1                         1220                              1200 / 1
+All are diagnostic normal-ConcedeGame endings,not natural-victory qualification.
+Both clients' every frame receipt matches authoritative audit hashes. Actual
+input journals retain each human's original normal build. All4workers exit0/
+fully reap with empty stderr;owned games are forcibly drained after the final
+idle return. Ephemeral PKI/gates removed,143runtime source paths/program/catalog/
+manual71/LAN03/shared TOML and original practice-settings absence unchanged.
+
+Passing report SHA256:
+cc13270f7075cf190f63362b2a62e14821f91b063c16ef6ca0704fb1cbea67d7
+events.jsonl SHA256:
+889af6555def1cc3dbf68e3ed4a895d6f86ddd423babd1a0d4795870b1542205
+Retained native11464/3652 log SHA256:
+fb8904f94a22c9cc53eb98a7ebbfde665b35acd320013c47cb0f2cddcba260ca
+e8da2c5b3b110044a9d86d3ce555fa263611edf074af5765acb9e4fe8cbca4ad
+Independent local/review-sequence84.py passes first invocation. It rechecks the
+actual archived bootstrap/manifests/receipts/audit/journals,all original native
+stages/leases/Continue,configured human/full appearance selections,program/source/
+helper-build/candidate/shared/preference seals and preserved failed pilot bytes.
+It never launches a process or changes the report. Reviewer SHA256:
+20df3e08a7c661f92a785b8546a77e171dfc8ab1075c72f52c716bfea5285881
+local/sequence84-retained-review.json SHA256:
+5d045e17cef2fc65c832d46dc4de2e04fd490cbd6e3e88e32720d2ff7adeb097
+Preparation03 SHA256:
+97f762a020843f1b80f1d7f8f7e952993697e681fc8840402dbf6c3735944d4b
+T05's named native case closes. T07/T08,other remaining D2 cases and D6's physical
+reboot-first/repeat observation stay OPEN;no further T05 native rerun is needed.
+Physical controls/pixels,protected storage,
+bundled ordinary execution,native Quit,LAN/Internet remain independent gates.
+All original game/bootstrap/capture bytes remain ignored;Git contains own source,
+authored test fixtures and this knowledge record only.

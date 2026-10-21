@@ -1,4 +1,7 @@
 REMOTE / LOCAL MATCH TRANSITIONS
+Current cross-public-mode follow-up84:T05 native PASS in public-mode-transitions.txt.
+Two same native humans complete remote1/2/5/1 with retained sessions/decks/17slots,
+8original Continue actions and4workers0. Diagnostic/forced-cleanup limits apply.
 Updated:2026-10-20 UTC. Retained1v1 and current team transitions qualified;
 not release acceptance. Team follow-up62 below uses ordinary feature settings.
 

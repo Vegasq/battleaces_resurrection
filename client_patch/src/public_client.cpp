@@ -52,6 +52,7 @@ static void finishMenu(Obj front,const char* reason,bool disconnect,bool error=f
     ba::log("Public intent retired: ticket=%llu reason=%s nativeIdle=1 disconnect=%d",
         static_cast<unsigned long long>(ticket),reason,disconnect?1:0);
     if(ba::flag(L"-public-queue-smoke-retry") && smokeStarted==1)smokeRetryAt=GetTickCount64()+1000;
+    if(ba_dedicated_session::publicSequenceSmoke() && smokeStarted<4)smokeRetryAt=GetTickCount64()+1000;
     ba_remote_profiles::retire(current->intent.match);
     forget();
     if(error) {
@@ -308,6 +309,8 @@ static void update(Obj front) {
 }
 static bool smokeGate(bool practice) {
     const auto key=ba::argument(L"-public-queue-smoke-gate=");
+    const bool sequence=ba_dedicated_session::publicSequenceSmoke();
+    require(!sequence || (!practice && smokeStarted<4),"public sequence gate outside its four stages");
     const bool retry=smokeStarted==1 && ba::flag(L"-public-queue-smoke-retry-gate");
     if(practice)require(ba::flag(L"-practice-ai-smoke") && ba::flag(L"-public-practice-transition-smoke"),
         "public practice gate requires explicit local transition diagnostics");
@@ -315,24 +318,29 @@ static bool smokeGate(bool practice) {
     if(key.empty())return true;
     require(key.size()==32 && std::all_of(key.begin(),key.end(),[](char c){return (c>='0' && c<='9') || (c>='a' && c<='f');}),
         "public diagnostic gate must be a32-digit lowercase hex identifier");
-    static bool releases[3]={};static ULONGLONG beginnings[3]={};
-    const size_t stage=practice?2:retry?1:0;
+    static bool releases[7]={};static ULONGLONG beginnings[7]={};
+    const size_t stage=sequence?3+smokeStarted:practice?2:retry?1:0;
     bool& released=releases[stage];ULONGLONG& began=beginnings[stage];
     if(released)return true;
-    if(!began){began=GetTickCount64();ba::log(practice?"PUBLIC QUEUE SMOKE waiting for practice gate: key=%s idleMenu=1":retry?"PUBLIC QUEUE SMOKE waiting for retry gate: key=%s idleMenu=1":
-        "PUBLIC QUEUE SMOKE waiting for shared gate: key=%s idleMenu=1",key.c_str());}
+    if(!began){began=GetTickCount64();
+        if(sequence)ba::log("PUBLIC MODE SEQUENCE waiting for gate: key=%s stage=%u idleMenu=1",key.c_str(),smokeStarted+1);
+        else ba::log(practice?"PUBLIC QUEUE SMOKE waiting for practice gate: key=%s idleMenu=1":retry?"PUBLIC QUEUE SMOKE waiting for retry gate: key=%s idleMenu=1":
+            "PUBLIC QUEUE SMOKE waiting for shared gate: key=%s idleMenu=1",key.c_str());}
     const ULONGLONG limit=stage==1 && ba::flag(L"-public-practice-transition-smoke")?600000:180000;
     require(GetTickCount64()-began<limit,"public diagnostic start gate timed out");
     wchar_t module[32768];const DWORD length=GetModuleFileNameW(ba::module,module,32768);
     require(length && length<32768,"public diagnostic installation path unavailable");
     wchar_t* slash=wcsrchr(module,L'\\');require(slash!=nullptr,"public diagnostic installation path invalid");*(slash+1)=0;
-    const std::wstring path=std::wstring(module)+L"investigation\\runtime\\public-queue-"+std::wstring(key.begin(),key.end())+(practice?L"-practice.ready":retry?L"-retry.ready":L".ready");
+    const std::wstring suffix=sequence?L"-sequence-"+std::to_wstring(smokeStarted+1)+L".ready":practice?L"-practice.ready":retry?L"-retry.ready":L".ready";
+    const std::wstring path=std::wstring(module)+L"investigation\\runtime\\public-queue-"+std::wstring(key.begin(),key.end())+suffix;
     const DWORD attributes=GetFileAttributesW(path.c_str());
     if(attributes==INVALID_FILE_ATTRIBUTES) {
         const DWORD error=GetLastError();require(error==ERROR_FILE_NOT_FOUND || error==ERROR_PATH_NOT_FOUND,"public diagnostic gate unreadable");return false;
     }
     require(!(attributes&(FILE_ATTRIBUTE_DIRECTORY|FILE_ATTRIBUTE_REPARSE_POINT)),"public diagnostic gate must be an ordinary file");
-    released=true;ba::log(practice?"PUBLIC QUEUE SMOKE practice gate released: key=%s":retry?"PUBLIC QUEUE SMOKE retry gate released: key=%s":
+    released=true;
+    if(sequence)ba::log("PUBLIC MODE SEQUENCE gate released: key=%s stage=%u",key.c_str(),smokeStarted+1);
+    else ba::log(practice?"PUBLIC QUEUE SMOKE practice gate released: key=%s":retry?"PUBLIC QUEUE SMOKE retry gate released: key=%s":
         "PUBLIC QUEUE SMOKE shared gate released: key=%s",key.c_str());return true;
 }
 static void smoke(Obj front) {
@@ -345,7 +353,8 @@ static void smoke(Obj front) {
         static bool logged=false;
         if(!logged){logged=true;ba::log("PUBLIC LATE ASSIGNMENT SMOKE maxIntents=3 practiceProfile=%u BA_RESURRECTION_LATE_ASSIGNMENT_V2",practiceProfile);}
     }
-    const unsigned attempts=late?3:ba::flag(L"-public-queue-smoke-retry")?2:1;
+    const bool sequence=ba_dedicated_session::publicSequenceSmoke();
+    const unsigned attempts=sequence?4:late?3:ba::flag(L"-public-queue-smoke-retry")?2:1;
     if(!ba::flag(L"-public-queue-smoke") || !ba::flag(L"-public-queue-experimental") || active() || ba_practice::active() || smokeStarted>=attempts ||
         GetTickCount64()<smokeRetryAt || !ba_dedicated_session::inMenu() || !ba_client::nativeIdle(front))return;
     if(!smokeGate())return;
@@ -359,7 +368,7 @@ static void smoke(Obj front) {
         require(ba::flag(L"-dedicated-rematch-smoke"),"public diagnostic deck edit requires explicit native edit support");
         ba_dedicated_deck::rematchSmokeSelection(front);edited=true;return;
     }
-    const int mode=std::stoi(ba::argument(L"-public-queue-smoke-mode=","1"));
+    const int mode=sequence?std::array<int,4>{1,2,5,1}[smokeStarted]:std::stoi(ba::argument(L"-public-queue-smoke-mode=","1"));
     Root type(ba_tables::reflectedType("MatchmakingButtonVM","Uncapped.UI"));void* args[]={type.get()};
     Root buttons(ba::invoke(ba::find_class("UnityEngine","Resources"),nullptr,"FindObjectsOfTypeAll",1,args));
     if(!buttons.get())return;const auto count=ba::api<uintptr_t(*)(Obj)>("il2cpp_array_length")(buttons.get());require(count<=1024,"public smoke button capacity");
