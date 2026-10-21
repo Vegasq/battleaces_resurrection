@@ -138,4 +138,77 @@ launch. Require world disposal,usable menu,preserved data and natural Quit when
 that supported route is exercised. Do not invent a browser,force a menu jump or
 patch batch Quit solely to green a diagnostic. Do not repeat the unchanged
 timeout-only probe. This classification does not waive the remaining requirements.
-D1's prepared real LAN playtest is still the next user-facing milestone.
+D6's prepared restart-first/repeat physical launch check has priority;D1's
+prepared real LAN playtest remains unchanged.
+
+Owner/leave contract86 -- static prerequisite advanced,not a recovery PASS
+Read-only original-byte LLVM/IL2CPP review resolves the conditional owner/menu
+return behind ReplayEndGame. A separate UI review retains the binding inventory
+contract. No game/build/package/config/provider/ACL change or target launch;
+D6 manual71 and LAN03 are untouched. Ghidra was previously unavailable in the
+running REA provider;these are ordinary static artifacts,not REA native Evidence.
+The original GA/metadata identities remain e59d08c0...e758/b760be91...57d.
+
+ReplayEndGame03b443b0 loads the existing simulation+78 and calls StopSimulation
+03e67f30 with integer1 at03b443c9. Metadata declares this argument as
+SimulationShutdownReason,NOT bool. It conditionally destroys a remaining world
+through03e64d00,then resets SimPlayersBuffer03e5ed80 and disposes frames03789330.
+Its own body contains no direct FSM/menu call;that is not evidence that owner
+return is missing. StopSimulation,when simulation+1a0 is active,stops its sim
+thread,kills the two original coroutine handles,clears active flags and invokes
+SimulationShutdownEvent+30 with the supplied reason. An inactive simulation
+does not emit that event from this method. SimulationShutdownEventArgs is a
+VALUE TYPE;the handler receives the reason inline,not a managed object pointer.
+
+Original RGameInGameState.TransitionIn03dee860 installs its shutdown handler
+through the existing owner._essentialListener+2a8 stack. RGameMainListenerStack.
+RegisterListeners03c11790 subscribes that current listener set to the same
+SimulationShutdownEvent;UnregisterListeners03c118f0 removes it. The in-game
+handler03deeb20 checks owner._applicationIsQuitting+280. Unless quitting,a nonzero
+reason selects owner._rgameMainMenuState+2c0;zero selects _rgamePostGameState+2f0,
+both through the original shared FSM transition executor016eb180. Therefore
+reason1 has an original menu-return path WHEN the normal in-game state/listener
+is active. Replay.Init03ddbc80 separately subscribes its shutdown callback;
+OnSimulationShutdown03ddc640 calls original Pause then Reset. This is a static
+conditional contract,not an observed healthy Leave or probe55's actual state.
+It does not make developer ReplayFileState equivalent to normal in-game state.
+
+Independent UI review:ConcedeFlowUIController.Create/Initialize/Release configure
+lifecycle subscriptions and button visibility;they do not establish a persistent
+ReplayEndGame binding. Actual serialized/live button actions remain unknown.
+UIButton.Click also emits its existing Category/Name signal;ModyEvent executes
+existing action runners before its UnityEvent. Observing only persistent calls,
+or invoking ReplayEndGame alone,cannot establish the complete physical click.
+The named get_onClickEvent/get_onClickBehaviour methods call AddBehaviour(4);
+they are not safe read-only inventory getters. Any runtime observer must instead
+read the existing UISelectable.Behaviours list/OnClick4 entry,persistent calls,
+action runners and button signal identity,with bounded counts,validated types,
+current controller/simulation ownership and before/after equality. Do not add a
+missing binding or invoke a runner while inspecting. Exact field/method contract
+and stripped-method limitations remain in the ignored UI findings below.
+
+Catalog parsing distinguishes Debug/ReplayUI and InGame/ReplayUI asset keys,but
+their broad shared dependency set does not identify a concrete serialized event.
+Raw compressed-bundle/name scans are weak negatives,not parsed prefab evidence.
+No supported ordinary disk-file selection route is established by this review.
+Do not add a browser or force a main-menu jump to satisfy a diagnostic.
+
+Retained owner manifest:local/replay86-owner-contract/manifest.json SHA256
+f3043eb86a6a98e419c62bae732bfb0d9a888ce715167d5a34fe7e2597a3b5bc.
+It pins original inputs,LLVM/helper identities and selected disassembly outputs.
+Read-only review validates selected method/field identities and nine direct
+relative-branch targets directly against original bytes;no target execution:
+local/replay86-owner-contract/review.json SHA256
+47f714b633d71b0263bbfac1a50cbd3031ba5077148577de5d24d9d1c6fce71d.
+UI review:local/replay86-ui-binding/FINDINGS.txt SHA256
+3d06be53dbc43adc82439d5313c183ff81868c56205ffb47f8b0ad4b6b27b8db;
+its manifest.json SHA256
+b4f4fe3f764808a2ac89421de1a39b746d1881a33f9cc451774ab51b20753187.
+All original binaries/assets/raw observations/disassembly remain ignored locally.
+
+Next finite step:one explicit owned healthy-runtime binding inventory,requiring
+the original live controller/button,actual current main-FSM state/listener and
+unchanged world. Establish a supported replay entry before any Cancel or malformed
+load. Then exercise the original bound action and require world disposal,usable
+menu,preserved valid data and natural Quit. No unchanged malformed-batch rerun is
+authorized by these findings. D4-RP1/stateful cancel and fault acceptance stay OPEN.

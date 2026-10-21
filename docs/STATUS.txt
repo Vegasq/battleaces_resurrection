@@ -3,6 +3,20 @@ Updated: 2026-10-21 UTC
 Delivery plan: REMAINING_DELIVERY_PLAN.txt, Windows only.
 Original roadmap: CLOSED / SUPERSEDED;see PLAN_CLOSEOUT.txt.
 
+D6 CANDIDATE PRESERVED / REPLAY OWNER CONTRACT86 (STATIC ONLY)
+No newer physical D6 launch evidence or running game found;manual71 unchanged.
+While that gate is pending,read-only original metadata/LLVM review resolves the
+conditional replay owner return:ReplayEndGame passes enum reason1 to original
+StopSimulation;with the active normal in-game listener,shutdown goes to original
+main menu. Inactive simulations do not emit this event. Shutdown args are a value
+type,not a bool/ref object. Original listener registration/removal and nine direct
+branch targets corroborated against original bytes. Live button bindings/current
+owner/replay entry remain unproven. Separate UI review identifies onClick getters
+that mutate bindings,plus original runner/signal paths a read-only probe must
+inventory. No native run/helper/package/config edits or recovery PASS. D4-RP1 OPEN;
+next bounded action is healthy binding inventory,not another malformed-batch wait.
+Hashes/limits:replay-failure-recovery.txt. D6 physical acceptance remains first.
+
 D2 CUSTOM MODE TRANSITIONS85 (T07/T08 RETAINED NATIVE PASS)
 Same native PIDs complete C -> local4 -> C -> public1 -> C in541.814s. Three
 original invitations/6Leaves/10original Continue actions,four exact1220-frame

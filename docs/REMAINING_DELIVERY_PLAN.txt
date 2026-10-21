@@ -217,6 +217,10 @@ passes;malformed developer-batch noncompletion is retained. Review56 confirms
 ordinary entry does not select that diagnostic,and Stop clears current state.
 Ordinary malformed-load recovery remains unproven. Trace existing replay Leave
 binding/owner return before another fault run;stateful fault/cancel scope stays open.
+Review86 resolves the conditional original in-game shutdown/menu path;actual live
+button binding/current listener and ordinary replay entry remain unproven. Next:
+bounded read-only healthy binding inventory before any Cancel/fault exercise.
+No force-menu patch or repeated malformed developer-batch timeout test.
 - Close remaining invitation departure/late-return/abort-notice and multiplayer
   disconnect/restart/failure paths in every affected required mode. Survivors
   return to a usable menu/lobby; first release does not restore an active match.
