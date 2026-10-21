@@ -1,0 +1,9 @@
+{
+  "schema": 4,
+  "game_directory": "../your-working-game",
+  "display_name": "Player",
+  "local_profile": "default",
+  "server_host": "",
+  "server_port": 47623,
+  "room": "community"
+}

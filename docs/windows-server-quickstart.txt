@@ -1,4 +1,25 @@
-BATTLE ACES RESURRECTION - WINDOWS HOST PREVIEW
+BATTLE ACES RESURRECTION - RC1 WINDOWS HOST
+
+Import your locally owned build37822 assets using section1 below. Then double-click
+Start Server.exe. If config/host.json is absent,it creates an RC open-access config
+and self-signed certificate automatically using built-in Windows cryptography.
+No OpenSSL installation,CA distribution or player invite issuance is required.
+Players enter only this host's IP in client setup. Default TCP port:47623.
+Stop normally with Ctrl+C. Existing config/data are preserved on later starts.
+
+RC1 encrypts transport but clients do not verify the server certificate. Anyone
+who can reach this host can join. Configure normal Windows firewall/router access
+for the intended network;the program makes no automatic firewall/trust-store/NAT
+changes. Host config schema2 uses access_mode:rc-open,certificate/key paths and
+credential_directory:null. Server identity keys are generated locally,never shipped.
+Keep program/,assets/,config/ and data/ separate as described below.
+
+Existing schema1 verified/invite host configs are NOT changed automatically.
+The certificate/invite provisioning in section2 below is the optional verified
+mode reference,not an RC1 prerequisite. Remaining clean-PC/service/Internet and
+physical acceptance gates remain recorded in the delivery plan.
+
+VERIFIED/INVITE HOST REFERENCE
 
 This is a development preview for Windows x64 and game build37822. It has not
 passed clean-PC or outside-network release acceptance. Do not expose an

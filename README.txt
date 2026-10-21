@@ -1,5 +1,11 @@
 BATTLE ACES RESURRECTION - WINDOWS SERVER AND CLIENT ADAPTER
 
+RC1 is now the next milestone before physical two-PC testing. Its simpler setup
+asks for game folder,player name and server IP only;no CA or invite. It uses
+encrypted TLS with certificate verification disabled and explicit open admission.
+Existing verified deployments are preserved. See docs/RC1_PLAN.txt for the finite
+installer/package/playtest checklist and its remaining acceptance gates.
+
 Development project for private Battle Aces build 37822 matches. Windows x64
 server and clients are the current target. See docs/REMAINING_DELIVERY_PLAN.txt
 for unfinished delivery work and docs/STATUS.txt for evidence. The original

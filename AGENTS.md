@@ -27,6 +27,10 @@
   D1's corrected LAN setup98 is COMPLETE:owner report passed at ready,verified
   TLS/native health. Do not request setup again. Two-PC match/rematch observations
   remain unrecorded. Preserve failed53/93 files and Nick's original answers.
+  Nick prioritizes the simpler RC1 installer BEFORE two-PC testing. RC1_PLAN.txt
+  defines address-only open access with TLS certificate verification disabled;
+  no CA/invite requirement for RC1. Preserve explicit verified mode. Hold N2's
+  physical action until new RC artifacts are ready;do not repeat old provisioning.
 
 ## Delivery records
 

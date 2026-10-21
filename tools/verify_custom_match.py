@@ -22,7 +22,7 @@ import traceback
 import uuid
 
 from client_patch.transport.launcher import verify_game
-from client_patch.transport import bridge, client, launcher
+from client_patch.transport import bridge, client, launcher, rc_setup
 from server.admission import AdmissionController
 from server.credentials import AuthenticationError
 from server import tls_transport as tls
@@ -87,6 +87,8 @@ def remote_cosmetic_snapshots(log, catalog, profile, army):
 
 async def run(args):
     require(os.name == 'nt', 'Windows game runtime required')
+    rc_open = getattr(args, 'rc_open', False)
+    require(not rc_open or args.unified, 'RC transport requires the unified client')
     game, assets, output = args.game.resolve(), args.assets.resolve(), args.output.resolve()
     require(output.is_relative_to(ROOT / 'local'), 'evidence must be under ignored local/')
     require(not args.ordinary_player or (args.unified and game.is_relative_to(ROOT/'local') and
@@ -134,9 +136,24 @@ async def run(args):
                     return player
             raise AuthenticationError()
     pki_folder = output / 'ephemeral-pki'
-    pki = generate_test_pki(pki_folder) if args.unified else None
+    if rc_open:
+        from server.rc_host import generate_certificate
+        pki_folder.mkdir()
+        certificate, key = generate_certificate()
+        pki = dict(cert=pki_folder/'server.pem', key=pki_folder/'server.key')
+        pki['cert'].write_bytes(certificate); pki['key'].write_bytes(key)
+    else:
+        pki = generate_test_pki(pki_folder) if args.unified else None
+    gate = AdmissionController(None if rc_open else Store(), rc_open=rc_open) if pki else None
+    if rc_open:
+        original_authenticate = gate.authenticate
+        async def record_authenticate(reader, writer):
+            identity = await original_authenticate(reader, writer)
+            authenticated.append(identity)
+            return identity
+        gate.authenticate = record_authenticate
     secure = dict(tls_context=tls.load_server_context(pki['cert'], pki['key']),
-                  admission=AdmissionController(Store())) if pki else {}
+                  admission=gate) if pki else {}
     process_ticks = {}
     clock = ctypes.WinDLL('kernel32').GetTickCount64
     clock.restype = ctypes.c_ulonglong
@@ -144,6 +161,7 @@ async def run(args):
         scope='Automated original native UI actions; real simulation; two same-lobby matches; no manual visual/native Quit qualification',
         source_sha256_at_start=source_hashes(), game_pids=[], client_arguments=[], client_start_ticks=[],
         ordinary_player=args.ordinary_player, ordinary_player_base_arguments=[])
+    report['rc_open'] = rc_open
     if args.shared_settings:
         report['shared_settings_before'] = startup_probe.shared_state(args.shared_settings.resolve())
     started = time.monotonic()
@@ -255,8 +273,15 @@ async def run(args):
                 parent.setblocking(False)
                 reader, writer = await asyncio.open_connection(sock=parent)
                 writers.append(writer)
-                remote = bridge.Remote('127.0.0.1', address[1], tls.load_client_context(pki['ca'], 'localhost'),
-                                       *test_players[index])
+                if rc_open:
+                    local = {key: value for key, value in local.items() if key in rc_setup.KEYS}
+                    local.update(schema=4, server_host='127.0.0.1', server_port=address[1])
+                    settings.write_text(json.dumps(local), encoding='utf-8')
+                    remote = rc_setup.Resolver(settings, game).read()
+                    test_players[index] = (remote.player_id, remote.token)
+                else:
+                    remote = bridge.Remote('127.0.0.1', address[1], tls.load_client_context(pki['ca'], 'localhost'),
+                                           *test_players[index])
                 bridges.append(asyncio.create_task(bridge.Bridge(reader, writer, remote, version=2).run()))
                 options = client.player_options() if args.ordinary_player else argparse.Namespace(
                     run_name=f'unified-custom-{index}', unified_experimental=True)
@@ -510,6 +535,7 @@ def main():
         parser.add_argument('--' + name, required=True, type=Path)
     parser.add_argument('--timeout', type=int, default=180)
     parser.add_argument('--unified', action='store_true', help='qualify unified native ownership over real TLS with in-memory test invites')
+    parser.add_argument('--rc-open', action='store_true', help='use actual schema4 resolver/self-issued identity and unverified RC TLS admission')
     parser.add_argument('--ordinary-player', action='store_true', help='use ordinary Start Client options before owned automation')
     parser.add_argument('--hold-open',action='store_true',help='hold a fully created one-human lobby31s before original Invite/Accept/Start')
     parser.add_argument('--shared-settings', type=Path, help='read-only baseline for original shared native settings')

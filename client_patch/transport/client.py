@@ -36,7 +36,7 @@ def local_settings(value, path):
     never used to open sockets, load trust, or read invites during local setup.
     """
     if (not isinstance(value, dict) or type(value.get('schema')) is not int
-            or value['schema'] not in (2, 3) or not LOCAL_KEYS <= value.keys()
+            or value['schema'] not in (2, 3, 4) or not LOCAL_KEYS <= value.keys()
             or not value.keys() <= KEYS or (value['schema'] == 2 and not REMOTE_KEYS <= value.keys())):
         raise launcher.LaunchError('Client settings require schema3 local fields or an existing schema2 configuration')
     name, game = value['display_name'], value['game_directory']
@@ -114,7 +114,8 @@ def main(argv=None, *, default_game=None):
     args = parser.parse_args(argv)
     try:
         config = prepare_settings(args.config, args.game, default_game=default_game)
-        remote = launcher.RemoteConfigResolver(args.config, config['game_directory'], config_loader=load_connection)
+        from .rc_setup import Resolver
+        remote = Resolver(args.config, config['game_directory'])
         return asyncio.run(launcher.launch(config, remote, player_options()))
     except launcher.LaunchError as error:
         print('Client could not start: ' + str(error))

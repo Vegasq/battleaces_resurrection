@@ -44,6 +44,9 @@ def main(argv=None):
             print(json.dumps(registration(PACKAGE, args.config, args.name), indent=2))
             return 0
         if args.command in ('start', 'check'):
+            if args.command == 'start' and not args.config.exists():
+                from server.rc_host import initialize
+                initialize(args.config, PACKAGE / 'assets/build-37822')
             from server.host import main as host
             return host(['--config', str(args.config.resolve())] + (['--check'] if args.command == 'check' else []))
         if args.command == 'credentials':

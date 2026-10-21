@@ -21,7 +21,7 @@ ROOT = Path(__file__).resolve().parents[1]
 PYTHON_VERSION = '3.14.8'
 PYTHON_ZIP_SHA256 = 'a93abe456ab01bd96d7a085b3cdb6566b3063f4241360d114142fbdb07f0a310'
 PYTHON_URL = 'https://www.python.org/ftp/python/3.14.8/python-3.14.8-embed-amd64.zip'
-PACKAGE_VERSION = '0.2.0-dev'
+PACKAGE_VERSION = '0.3.0-rc1'
 RUNTIME_PTH = b'python314.zip\n.\n../app\n'
 COMMON = (
     'server/__init__.py', 'server/protocol.py', 'server/credentials.py',
@@ -34,6 +34,7 @@ SERVER = COMMON + (
     'server/cosmetics.py', 'server/loadout_protocol.py', 'server/public_protocol.py', 'server/public_matchmaking.py',
     'server/configuration.py', 'server/dedicated_server.py', 'server/game_data.py',
     'server/host.py', 'server/host_audit.py', 'server/native_simulation.py',
+    'server/rc_host.py', 'server/New-RCCertificate.ps1',
     'server/state_lock.py', 'server/state_backup.py', 'server/windows_service.py',
     'server/paths.py', 'server/profiles.py', 'server/protobuf_wire.py',
     'server/simulation_worker.py', 'server/tls_listener.py', 'server/worker_client.py',
@@ -47,6 +48,7 @@ CLIENT = COMMON + (
     'client_patch/patcher/telemetry.py', 'client_patch/transport/__init__.py',
     'client_patch/transport/bridge.py', 'client_patch/transport/launcher.py',
     'client_patch/transport/enrollment.py', 'client_patch/transport/client.py',
+    'client_patch/transport/rc_setup.py', 'client_patch/launcher/Configure-RCClient.ps1',
     'client_patch/launcher/ClientConfig.ps1', 'client_patch/launcher/Launch-Client.ps1',
     'client_patch/launcher/Configure-Client.ps1',
     'tools/package_client.py',
@@ -213,7 +215,9 @@ def build(runtime_zip, helper, output, *, allow_dirty=False, server_launcher=Non
         files = dict(runtime)
         for name in sources: files['program/app/' + name] = source_file(name)
         files['BattleAces-' + product.title() + '.cmd'] = wrapper(product)
-        if product == 'client': files['Start Client.cmd'] = start_wrapper(product)
+        if product == 'client':
+            files['Start Client.cmd'] = start_wrapper(product)
+            files['Setup Client.cmd'] = wrapper(product)
         else:
             files['Start Server.exe'] = launcher_data
             files['program/launcher/launcher-build.json'] = launcher_receipt
@@ -234,6 +238,7 @@ def build(runtime_zip, helper, output, *, allow_dirty=False, server_launcher=Non
             files['program/client-helper/BattleAcesOffline.dll'] = helper_data
             files['config/client.example.json'] = source_file('client_patch/launcher/secure-client-config.example.json')
             files['config/unified-client.example.json'] = source_file('client_patch/launcher/unified-client.example.json')
+            files['config/rc-client.example.json'] = source_file('client_patch/launcher/rc-client.example.json')
             files['config/practice.example.json'] = source_file('client_patch/launcher/offline-practice.example.json')
         manifest = dict(schema=1, product=product, versions=versions, source=source,
             files={name: dict(bytes=len(data), sha256=sha(data)) for name, data in sorted(files.items())})

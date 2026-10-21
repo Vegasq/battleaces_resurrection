@@ -1,4 +1,4 @@
-"""Verified remote TLS/authentication behind a private inherited client stream.
+"""Explicit verified/invite or RC-open TLS behind a private inherited stream.
 
 There is no local listener, credential CLI argument or plaintext remote fallback.
 One inherited connection can carry successive game sessions with monotonic IDs.
@@ -137,7 +137,8 @@ class Session:
         try:
             remote = await self.owner.resolve_remote()
             reader, self.remote_writer = await tls.open_verified_connection(remote.host, remote.port, remote.tls)
-            identity = await authenticate_client(reader, self.remote_writer, remote.token)
+            identity = await authenticate_client(reader, self.remote_writer, remote.token,
+                                                 rc_open=not remote.tls.verify_certificate)
             if identity != remote.player_id:
                 raise IdentityError()
             self.authenticated = True

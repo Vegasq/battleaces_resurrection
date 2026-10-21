@@ -20,7 +20,7 @@ import subprocess
 import time
 import traceback
 
-from client_patch.transport import client,launcher
+from client_patch.transport import client,launcher,rc_setup
 from server.worker_client import _WindowsJob
 from tools.package_integrity import verify
 from tools.run_secure_match import read_native_log
@@ -40,7 +40,7 @@ require=startup.require
 DRIVER=r'''
 import ctypes,hashlib,json,os,subprocess,sys,time,traceback
 from pathlib import Path
-from client_patch.transport import client,launcher
+from client_patch.transport import client,launcher,rc_setup
 from tools.package_integrity import verify
 
 request_path=Path(sys.argv[1]);request=json.loads(request_path.read_bytes())
@@ -51,7 +51,8 @@ process=None
 original_spawn=launcher.spawn_game
 original_connect=launcher.tls.open_verified_connection
 original_invite=launcher.read_credential_file
-original_resolve=launcher.RemoteConfigResolver.read
+resolver_type=rc_setup.Resolver if request.get('rc_settings') else launcher.RemoteConfigResolver
+original_resolve=resolver_type.read
 def forbid_connection(*args,**kwargs):
     report['remote_connections']+=1
     raise AssertionError('locally unavailable settings attempted a TLS connection')
@@ -107,7 +108,7 @@ try:
         time.sleep(.02)
     assert (output/'job-ready').read_bytes()==b'owned job attached\n'
     launcher.spawn_game=spawn;launcher.tls.open_verified_connection=forbid_connection;launcher.read_credential_file=forbid_invite
-    launcher.RemoteConfigResolver.read=resolve
+    resolver_type.read=resolve
     report['launcher_exit_code']=client.main(['--config',request['config']])
     report['game_exit_code']=None if process is None else process.poll()
     assert report['launcher_exit_code']==report['game_exit_code']==0
@@ -184,6 +185,7 @@ def job_accounting(handle):
 
 
 def run(args):
+    if not hasattr(args,'rc_settings'):args.rc_settings=False
     if not hasattr(args,'native_replay_faults'):args.native_replay_faults=False
     if not hasattr(args,'connection_state'):args.connection_state='unconfigured'
     package,game,output=(p.resolve() for p in (args.package,args.game,args.output))
@@ -213,11 +215,15 @@ def run(args):
     settings.update(local_profile=profile,display_name=owned_display_name(args.expect_long_replay))
     availability_folder=output/'availability-fixture'
     settings=availability_settings(settings,args.connection_state,availability_folder)
+    if args.rc_settings:
+        require(args.connection_state=='unconfigured','RC offline proof requires blank server address')
+        settings={key:value for key,value in settings.items() if key in rc_setup.KEYS}
+        settings['schema']=4
     availability_before=snapshot(availability_folder)
     config.write_text(json.dumps(settings,indent=2)+'\n');config_before=config.read_bytes()
     driver=output/'owned-driver.py';driver.write_text(DRIVER,encoding='utf-8')
     request=output/'request.json'
-    request.write_text(json.dumps(dict(package=str(package),game=str(game),output=str(output),config=str(config),
+    request.write_text(json.dumps(dict(rc_settings=args.rc_settings,package=str(package),game=str(game),output=str(output),config=str(config),
                                      profile=profile,visible=args.visible,mode=args.mode,native_replay_readback=args.native_replay_readback,
                                      native_replay_faults=args.native_replay_faults,connection_state=args.connection_state),indent=2)+'\n')
     cwd=output/'foreign cwd';cwd.mkdir()
@@ -386,6 +392,7 @@ if __name__=='__main__':
     parser=argparse.ArgumentParser(description=__doc__)
     for name in ('package','game','output','shared-settings','helper-build-receipt'):parser.add_argument('--'+name,type=Path,required=True)
     parser.add_argument('--timeout',type=int,default=300)
+    parser.add_argument('--rc-settings',action='store_true',help='qualify schema4 RC settings with a blank offline server address')
     parser.add_argument('--mode',type=int,choices=(1,2,4,5),default=4,help='1v1,2v2,Try Deck,2vAI respectively')
     parser.add_argument('--connection-state',choices=('unconfigured','missing-files','invalid-trust'),default='unconfigured',
                         help='actual production resolver local rejection;no socket/private-store fixture bypass')

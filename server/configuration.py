@@ -29,6 +29,7 @@ class HostConfig:
     log_max_bytes: int
     log_backups: int
     allow_insecure_loopback: bool
+    access_mode: str = 'invite'
 
 
 def load_config(path):
@@ -45,9 +46,13 @@ def load_config(path):
         value = json.loads(raw.decode('utf-8-sig'), object_pairs_hook=pairs)
     except (OSError, UnicodeError, ValueError, RecursionError):
         raise ConfigurationError('Cannot read a bounded valid host configuration') from None
-    fields = set(HostConfig.__dataclass_fields__) - {'source'}
-    if not isinstance(value, dict) or set(value) != fields | {'schema'} or type(value['schema']) is not int or value['schema'] != 1:
-        raise ConfigurationError('Expected host configuration schema1 and its exact fields')
+    fields = set(HostConfig.__dataclass_fields__) - {'source', 'access_mode'}
+    if (not isinstance(value, dict) or type(value.get('schema')) is not int or value['schema'] not in (1, 2)
+            or set(value) != fields | {'schema'} | ({'access_mode'} if value['schema'] == 2 else set())):
+        raise ConfigurationError('Expected host configuration schema1/2 and its exact fields')
+    value.setdefault('access_mode', 'invite')
+    if value['access_mode'] not in ('invite', 'rc-open'):
+        raise ConfigurationError('access_mode must be invite or rc-open')
     for name, minimum, maximum in (('listen_port', 1, 65535), ('max_rooms', 1, 64),
             ('input_window', MIN_INPUT_WINDOW, MAX_INPUT_WINDOW), ('log_max_bytes', 65536, 64*1024*1024), ('log_backups', 1, 16)):
         if type(value[name]) is not int or not minimum <= value[name] <= maximum:
@@ -69,6 +74,10 @@ def load_config(path):
             raise ConfigurationError(name + ' must be a nonempty local path')
         value[name] = (path.parent / item).resolve()
     secure = [value[name] is not None for name in ('certificate_file', 'private_key_file', 'credential_directory')]
+    if value['access_mode'] == 'rc-open':
+        if not all(secure[:2]) or secure[2] or value['allow_insecure_loopback']:
+            raise ConfigurationError('RC open mode requires TLS certificate/key, no invite store and no plaintext')
+        secure[2] = True  # Only certificate/key pairing is required in this mode.
     if any(secure) != all(secure) or (not all(secure) and not value['allow_insecure_loopback']):
         raise ConfigurationError('Certificate, private key and credential directory are required together')
     if all(secure) and value['allow_insecure_loopback']:

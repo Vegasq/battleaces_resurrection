@@ -1,0 +1,53 @@
+BATTLE ACES RESURRECTION - RC1 DELIVERY CONTRACT
+Defined2026-10-21 by Nick's installer/address-only connection requirement.
+RC1 is the next usable community candidate;it is not completion of every D1-D9
+final-release gate. The existing delivery plan remains authoritative for those
+remaining requirements. No earlier failed report is upgraded by this scope change.
+
+Player experience
+Extract the client patch ZIP and double-click Setup Client.cmd (or Start Client.cmd
+on first use). Choose the working game folder,set a player name,enter the server
+IP,and click Install / Update. No CA file,fingerprint,certificate name,invite,
+Python install or developer tools. Server port47623 is the default;advanced
+server_host/server_port/display_name remain editable in config/client.json.
+Blank address is valid for offline play. Thereafter use Start Client.cmd.
+Install/update verifies supported local files,preserves original backups and saves.
+Restore original is available in the same setup window. No game assets ship in Git.
+
+RC connection contract
+Schema4 selects RC open access and TLS encryption WITHOUT certificate verification.
+The server automatically generates its own self-signed certificate on first start
+after assets are imported. Players never handle it. RC open access admits anyone
+who can reach the configured server;it is not an invite allowlist or verified
+server identity. A local per-server/profile random key gives stable player identity
+on reconnect;names are configurable independently. Local profile saves persist.
+Existing schema2/3 verified CA/invite deployments remain explicit supported paths;
+they are not silently converted on launch and never fall back to open admission.
+Saving from the new RC setup explicitly selects schema4 and preserves local_profile.
+No plaintext fallback,OS trust-store edit,firewall edit or router configuration.
+
+Finite RC1 gates,in order
+[ ] RC-I:address-only setup and install/update/restore from fresh clean packages;
+    preserve decks/cosmetics/settings,show useful progress/failure,ordinary launch.
+[ ] RC-N:actual bundled runtime self-signed TLS/open identity/reconnect check;
+    auto server initialization,stable identities,no CA/invite prompts.
+[ ] RC-L:packaged ordinary offline AI/results/Continue/Quit and restart/persistence.
+[ ] RC-M:same-PC two-client Custom match/changed-deck rematch with RC transport,
+    results/Continue/natural Quit and worker cleanup. No diagnostic-only pass
+    substitutes for the final ordinary entry check.
+[ ] RC-P:Nick's physical installer/start/local check and two-PC LAN Custom playtest.
+    Request via DEV.txt only AFTER RC-I/N/L/M are ready. Keep setup98 accepted;
+    do not ask Nick to provision its old CA/invite handoff again.
+[ ] RC-F:freeze exact clean source/archive/helper/runtime hashes,concise shipped
+    guides,known limitations and no game/private files in public artifacts.
+Only these finite gates name RC1 ready. Record scoped automated subcases without
+closing a parent whose packaged/physical component is still missing. Remaining
+D2-D5/D7-D9 final-release work is retained,not silently dropped or called complete.
+
+Initial implementation101
+New RC setup UI,client schema4 and lazy persistent identities,explicit AUTH_RC
+protocol,host schema2 rc-open mode and built-in Windows self-signed generation.
+First72focused tests PASS,including actual encrypted admission/reconnect without
+CA,wrong-certificate verified refusal,open-protocol refusal by an invite server,
+name/profile preservation,stale edit/corrupt identity refusal and strict config.
+This is source/loopback evidence,not a clean package or physical match result.

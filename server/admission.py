@@ -1,11 +1,14 @@
 """Bounded credential exchange, permitted only inside an established TLS stream.
 
 This prelude precedes the existing game HELLO. No credential payload is logged or
-included in public errors. Game/profile identity comes from the credential store.
+included in public errors. Invite-mode identity comes from the credential store.
+Explicit RC open admission uses a separate prelude and persistent self-issued
+identity,without an allowlist.
 """
 from __future__ import annotations
 
 import asyncio
+import hashlib
 from concurrent.futures import ThreadPoolExecutor
 import ipaddress
 import ssl
@@ -16,6 +19,7 @@ from . import protocol as p
 from .credentials import AuthenticationError, CredentialError, PLAYER_ID, TOKEN
 
 AUTH, AUTH_OK, AUTH_VERSION = 20, 30, 1
+AUTH_RC = 21
 MAX_AUTH_BODY = 128
 
 
@@ -46,7 +50,10 @@ def _require_tls(writer, *, client=False):
 
 class AdmissionController:
     def __init__(self, store, *, timeout=5.0, max_pending=16, burst=8,
-                 attempts_per_second=1.0, max_addresses=4096, clock=time.monotonic):
+                 attempts_per_second=1.0, max_addresses=4096, clock=time.monotonic, rc_open=False):
+        if type(rc_open) is not bool or (store is None and not rc_open) or (store is not None and rc_open):
+            raise ValueError('Choose invite admission or explicit RC open admission')
+        self.rc_open = rc_open
         if not 0 < timeout <= 30 or type(max_pending) is not int or not 1 <= max_pending <= 256:
             raise ValueError("invalid admission deadline or capacity")
         if (type(burst) is not int or not 1 <= burst <= 64 or not 0 < attempts_per_second <= 10
@@ -95,7 +102,7 @@ class AdmissionController:
         deadline = asyncio.get_running_loop().time() + self.timeout
         try:
             kind, payload = await asyncio.wait_for(_receive(reader), self.timeout)
-            if kind != AUTH or len(payload) != 49 or payload[:2] != struct.pack("<H", AUTH_VERSION):
+            if kind != (AUTH_RC if self.rc_open else AUTH) or len(payload) != 49 or payload[:2] != struct.pack("<H", AUTH_VERSION):
                 raise AdmissionError("protocol")
             try:
                 token = payload[2:].decode("ascii")
@@ -105,7 +112,8 @@ class AdmissionController:
                 raise AdmissionError("invalid")
             if self.closing:
                 raise AdmissionError("closed")
-            verification = asyncio.get_running_loop().run_in_executor(self._executor, self.store.authenticate, token)
+            verify = rc_player_id if self.rc_open else self.store.authenticate
+            verification = asyncio.get_running_loop().run_in_executor(self._executor, verify, token)
             self.verifications.add(verification)
             verification.add_done_callback(self.verifications.discard)
             remaining = max(0.0, deadline - asyncio.get_running_loop().time())
@@ -172,13 +180,21 @@ class AdmissionController:
         return len(finished) == len(pending)
 
 
-async def authenticate_client(reader, writer, token, *, timeout=5.0):
+def rc_player_id(token):
+    """Stable self-issued RC identity; this is not an invite allowlist."""
+    if not isinstance(token, str) or not TOKEN.fullmatch(token):
+        raise AdmissionError('invalid')
+    return 'p_' + hashlib.sha256(('battleaces-rc1:' + token).encode('ascii')).hexdigest()[:32]
+
+
+async def authenticate_client(reader, writer, token, *, timeout=5.0, rc_open=False):
     """Exchange an in-memory credential only after verified TLS; never use CLI tokens."""
-    _require_tls(writer, client=True)
+    if type(rc_open) is not bool: raise AdmissionError('invalid')
+    _require_tls(writer, client=not rc_open)
     if not isinstance(token, str) or not TOKEN.fullmatch(token) or not 0 < timeout <= 30:
         raise AdmissionError("invalid")
     async def exchange():
-        writer.write(p.encode(AUTH, struct.pack("<H", AUTH_VERSION) + token.encode("ascii")))
+        writer.write(p.encode(AUTH_RC if rc_open else AUTH, struct.pack("<H", AUTH_VERSION) + token.encode("ascii")))
         await writer.drain()
         kind, payload = await _receive(reader)
         if (kind != AUTH_OK or len(payload) != 38 or payload[:4] != struct.pack("<HH", AUTH_VERSION, 34)):

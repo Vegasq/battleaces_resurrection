@@ -1,4 +1,35 @@
-BATTLE ACES RESURRECTION - WINDOWS CLIENT PATCH PREVIEW
+BATTLE ACES RESURRECTION - RC1 CLIENT SETUP
+
+Extract the complete patch ZIP to an ordinary writable local folder.
+Double-click Setup Client.cmd. Choose your working Battle Aces build37822 folder,
+enter your player name and server IP,then click Install / Update. Leave the IP
+blank for offline play. No CA,certificate name,fingerprint or invite is needed.
+The normal port is47623;advanced settings remain in config/client.json.
+
+Installation verifies local game content and preserves originals for restore.
+It can take several minutes on a slow drive;keep setup open. No game files are
+included and no Python/developer runtime installation is required.
+After installation,use Start Client.cmd for all play. On first use without
+settings,it opens setup. Try Deck vs AI works without a server. Public modes use
+local AI when unavailable or fill missing seats after30seconds;Custom is human-only.
+Use Save settings for a name/IP edit,Test connection for the saved server,and
+Restore original to remove the patch while retaining personal saves.
+Close the game before installation/update/restore.
+
+RC1 uses TLS encryption with certificate verification disabled and an open
+server admission mode. The client automatically keeps a per-server player identity
+in config/rc-identities. Keep that folder across updates to preserve server identity;
+keep the game's .battleaces-resurrection profile data to preserve local choices.
+Copy new releases into a separate folder and retain config/;do not overwrite
+program files with a mix of releases. RC1 still requires its documented packaged/
+physical acceptance gates;the version label is not a completed release claim.
+
+EXISTING VERIFIED CA/INVITE MODE - ADVANCED REFERENCE
+Existing schema2/3 configs continue using verified transport. To edit that mode,
+run BattleAces-Client.cmd configure-verified. The older Connection Setup and
+CA/invite instructions below apply ONLY to that mode;they are not RC1 prerequisites.
+
+BATTLE ACES RESURRECTION - VERIFIED CLIENT PATCH REFERENCE
 
 Development preview for your own Windows x64 copy of Battle Aces build37822.
 No original game files are included. Clean-PC and outside-network acceptance are

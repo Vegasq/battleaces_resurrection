@@ -1,4 +1,4 @@
-"""Verified stdlib TLS streams; application authentication is a separate layer.
+"""Explicit verified or RC-unverified TLS streams; admission is separate.
 
 Owner-supplied PEM files are read only. No OS trust-store edits, certificate
 generation, plaintext fallback, credential logging or TLS key logging occurs.
@@ -30,6 +30,7 @@ class TLSConfigurationError(ValueError):
 class ClientTLS:
     context: ssl.SSLContext
     server_hostname: str
+    verify_certificate: bool = True
 
 
 def normalize_server_name(value):
@@ -105,6 +106,15 @@ def load_client_context(ca_bundle, server_name):
     return result
 
 
+def rc_client_context(server_host):
+    """Explicit RC transport: encryption without certificate/hostname validation."""
+    context = ssl.SSLContext(ssl.PROTOCOL_TLS_CLIENT)
+    context.minimum_version = MINIMUM_TLS
+    context.check_hostname = False
+    context.verify_mode = ssl.CERT_NONE
+    return ClientTLS(context, normalize_server_name(server_host), False)
+
+
 def _validate_common(context, protocol):
     if (not isinstance(context, ssl.SSLContext) or context.protocol != protocol
             or context.minimum_version < MINIMUM_TLS or context.keylog_filename is not None):
@@ -115,6 +125,13 @@ def _validate_client(tls):
     if not isinstance(tls, ClientTLS):
         raise TLSConfigurationError("a ClientTLS configuration is required")
     _validate_common(tls.context, ssl.PROTOCOL_TLS_CLIENT)
+    if tls.verify_certificate is False:
+        if (tls.context.verify_mode != ssl.CERT_NONE or tls.context.check_hostname
+                or normalize_server_name(tls.server_hostname) != tls.server_hostname):
+            raise TLSConfigurationError('Invalid RC TLS configuration')
+        return
+    if tls.verify_certificate is not True:
+        raise TLSConfigurationError('Invalid certificate verification setting')
     if (tls.context.verify_mode != ssl.CERT_REQUIRED or not tls.context.check_hostname
             or tls.context.hostname_checks_common_name
             or normalize_server_name(tls.server_hostname) != tls.server_hostname):
@@ -136,10 +153,11 @@ def _stream_limit(value):
 async def open_verified_connection(host, port, tls: ClientTLS, *, connect_timeout=DEFAULT_CONNECT_TIMEOUT,
         handshake_timeout=DEFAULT_HANDSHAKE_TIMEOUT, shutdown_timeout=DEFAULT_SHUTDOWN_TIMEOUT,
         stream_limit=DEFAULT_STREAM_LIMIT):
-    """Return streams only after verified TLS; never retry as plaintext.
+    """Return TLS streams using the explicit ClientTLS policy; no plaintext retry.
 
     host routes the TCP connection; tls.server_hostname is the enrolled identity
-    checked against the certificate. They may differ for DNS/test/private routing.
+    checked against the certificate in verified mode. RC mode explicitly skips
+    that validation. No verification failure automatically switches modes.
     """
     _validate_client(tls)
     total = _timeout(connect_timeout, 60, "connect timeout")

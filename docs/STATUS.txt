@@ -3,6 +3,21 @@ Updated: 2026-10-21 UTC
 Delivery plan: REMAINING_DELIVERY_PLAN.txt, Windows only.
 Original roadmap: CLOSED / SUPERSEDED;see PLAN_CLOSEOUT.txt.
 
+RC1 INSTALLER/ADDRESS-ONLY ACCESS PRIORITY101
+Nick requests a simpler installer BEFORE two-PC testing and no CA/certificate
+verification requirement for RC1. RC1_PLAN.txt defines the finite candidate gates;
+the final D1-D9 backlog remains. DEV.txt N2 physical action is on hold.
+New WinForms setup has game/name/IP,install/update/save/test/restore and elapsed
+operation feedback. Its rendered layout was inspected. Schema4 enables explicit
+unverified encrypted TLS/open admission with per-route/profile local identity;
+existing verified/invite mode is preserved and never silently downgraded.
+Server schema2 rc-open and first-start built-in Windows self-signed provisioning
+are implemented. Real self-signed TLS/admission/reconnect and verified-mode refusal
+tests pass.129focused tests:128pass,1opt-in owner-DACL skip;additional49 checks:
+43pass,6opt-in/environment skips;34final affected tests pass. Native RC transport,
+fresh bundled/install/ordinary-entry and physical acceptance are not yet claimed.
+Native helper100 is reused;accepted manual71/LAN98 files remain unchanged.
+
 LAN98 OWNER SETUP READY - RESULT REVIEWED
 Nick's DEV.txt answer and public last-report.json agree:passed=true,stage=ready.
 Pinned coordinator/archive hashes match;protected credentials/enrollment and

@@ -16,12 +16,15 @@ def main(argv=None):
     parser = SafeParser(description=__doc__)
     commands = parser.add_subparsers(dest='command', required=True)
     commands.add_parser('verify', help='verify bundled files')
-    for action in ('configure', 'setup-data', 'check'):
+    for action in ('configure', 'configure-verified', 'setup-data', 'check', 'rc-data', 'rc-check'):
         sub = commands.add_parser(action)
         sub.add_argument('--config', type=Path, default=PACKAGE / 'config/client.json')
     sub = commands.add_parser('enroll')
     sub.add_argument('--config', type=Path, default=PACKAGE / 'config/client.json')
     sub.add_argument('--request', type=Path, required=True, help='JSON with public settings and local input paths; never token contents')
+    sub = commands.add_parser('rc-save')
+    sub.add_argument('--config', type=Path, default=PACKAGE / 'config/client.json')
+    sub.add_argument('--request', type=Path, required=True)
     sub = commands.add_parser('ca-fingerprint')
     sub.add_argument('--file', type=Path, required=True)
     sub = commands.add_parser('start', help='start local play with optional server connectivity')
@@ -42,10 +45,24 @@ def main(argv=None):
             print('Client package files verified. This does not verify the game or network.')
             return 0
         if args.command in ('start', 'launch'):
+            if args.command == 'start' and not args.config.exists() and getattr(args, 'game', None) is None:
+                return main(['configure', '--config', str(args.config)])
             from client_patch.transport.client import main as start
             arguments = ['--config', str(args.config.resolve())]
             if getattr(args, 'game', None) is not None: arguments.extend(['--game', str(args.game.resolve())])
             return start(arguments, default_game=PACKAGE.parent)
+        if args.command in ('rc-data', 'rc-save', 'rc-check'):
+            from client_patch.transport import rc_setup
+            from client_patch.transport.launcher import read_json
+            try:
+                if args.command == 'rc-data': result = rc_setup.setup_data(args.config)
+                elif args.command == 'rc-save': result = rc_setup.save(read_json(args.request, 32768), args.config)
+                else: result = asyncio.run(rc_setup.check(args.config))
+                print(json.dumps(dict(ok=True, result=result)))
+                return 0
+            except (OSError, ValueError, TimeoutError):
+                print(json.dumps(dict(ok=False, error='Could not complete setup. Check the game folder, saved settings and RC server address.')))
+                return 1
         if args.command in ('setup-data', 'enroll', 'check', 'ca-fingerprint'):
             from client_patch.transport import enrollment
             from client_patch.transport.launcher import read_json, LaunchError
@@ -80,8 +97,8 @@ def main(argv=None):
         # Windows PowerShell is part of the OS. Use its known system path rather
         # than a PATH executable; no profile, policy change or global Python.
         shell = Path(os.environ.get('SystemRoot', r'C:\Windows')) / 'System32/WindowsPowerShell/v1.0/powershell.exe'
-        if args.command == 'configure':
-            script = PACKAGE / 'program/app/client_patch/launcher/Configure-Client.ps1'
+        if args.command in ('configure', 'configure-verified'):
+            script = PACKAGE / 'program/app/client_patch/launcher' / ('Configure-RCClient.ps1' if args.command == 'configure' else 'Configure-Client.ps1')
             return subprocess.run([str(shell), '-NoProfile', '-STA', '-File', str(script),
                 '-PythonExecutable', sys.executable, '-ConfigPath', str(args.config.resolve())], check=False).returncode
         script = PACKAGE / 'program/app/client_patch/launcher/Launch-Client.ps1'

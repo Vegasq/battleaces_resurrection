@@ -169,10 +169,26 @@ class PackageDispatchTests(unittest.TestCase):
             argv = run.call_args.args[0]
             self.assertEqual(Path(argv[0]).name, 'powershell.exe')
             self.assertEqual(argv[1:4], ['-NoProfile', '-STA', '-File'])
+            self.assertEqual(Path(argv[4]).name, 'Configure-RCClient.ps1')
             self.assertEqual(argv[5:7], ['-PythonExecutable', package_client.sys.executable])
             self.assertEqual(argv[-2:], ['-ConfigPath', str(Path('personal config.json').resolve())])
             self.assertNotIn('-ExecutionPolicy', argv)
             self.assertFalse(run.call_args.kwargs.get('shell', False))
+
+    def test_first_start_opens_setup_and_rc_host_initializes_only_on_start(self):
+        with (mock.patch.object(package_client, 'verify'), mock.patch.object(Path, 'exists', return_value=False),
+              mock.patch.object(package_client.subprocess, 'run') as run,
+              mock.patch('client_patch.transport.client.main') as launch):
+            run.return_value.returncode = 0
+            self.assertEqual(package_client.main(['start']), 0)
+            launch.assert_not_called()
+            self.assertEqual(Path(run.call_args.args[0][4]).name, 'Configure-RCClient.ps1')
+        with (mock.patch.object(package_server, 'verify'), mock.patch.object(Path, 'exists', return_value=False),
+              mock.patch('server.rc_host.initialize') as initialize, mock.patch('server.host.main', return_value=0)):
+            self.assertEqual(package_server.main(['check']), 0)
+            initialize.assert_not_called()
+            self.assertEqual(package_server.main(['start']), 0)
+            initialize.assert_called_once_with(package_server.PACKAGE / 'config/host.json', package_server.PACKAGE / 'assets/build-37822')
 
     def test_install_restore_keep_existing_patcher_transaction_and_no_game_copy(self):
         with mock.patch.object(package_client, 'verify'), mock.patch('client_patch.patcher.patch_client.install', return_value={}) as install, redirect_stdout(io.StringIO()):

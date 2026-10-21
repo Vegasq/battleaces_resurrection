@@ -24,7 +24,10 @@ Retained requirements
   preserve decks, options, useful local UX state, native replay formats/tutorial.
 - Remove game analytics/automatic report collection and delivery; retain required
   gameplay networking and useful local diagnostics.
-- Verified TLS and revocable private invitations; isolated workers and persistent
+- RC1 uses address-only open access with encrypted TLS and no certificate
+  verification/CA/invite setup,per Nick's2026-10-21 instruction. Existing verified
+  TLS/invite mode remains available;its deployment gates do not block RC1.
+  Isolated workers and persistent
   host state, orderly shutdown, documented Windows service/backup/restore.
 - Keep source and knowledge base in the existing repository. Import game inputs
   locally; no original client files, assets, captures, secrets or archives in Git.
@@ -43,6 +46,11 @@ These results keep their documented scope; they do not prove the remaining
 ordinary/cross-PC/Internet/deployment matrix. See STATUS.txt and focused records.
 
 Delivery order
+PRIORITY CHANGE2026-10-21:finish the simpler installer and explicit RC1 candidate
+BEFORE the physical two-PC test. RC1_PLAN.txt defines finite RC-I/N/L/M/P/F gates,
+address-only connection and acceptance scope. Keep D1-D9 final work;do not mistake
+an RC milestone for full delivery. Current same-PC installer/RC transport work
+is next;hold N2's physical LAN action until its replacement RC artifacts are ready.
 D6 CLOSED on review93:Nick reports post-reboot menu20s,repeat2s,window/sound15s,
 Try Deck/results/Continue/Quit works,no issues. Manual71 seals/package still pass.
 Preserve that accepted candidate;do not repeat warm D6 batches as acceptance.
@@ -64,10 +72,12 @@ explicit independent gates; D9 closes only after those release gates pass.
     native create/step/close PASS;TLSv1.3,worker0/reaped,no game/listening server.
     Report/source/archive hashes match;lan-playtest-candidate.txt binds evidence.
     Preserve issued invites/config;do not rerun setup. Failed53/93 remain retained.
-Next unrecorded action:LAN Playtest.txt steps2-6 in the existing setup98 folder.
+Next physical action is ON HOLD for RC1 installer/package readiness. Historical
+setup98 remains accepted;do not rerun it or alter its private configuration.
 - Start the prepared host and transfer only friend-handoff to the second PC.
-- On that PC, patch its own build37822 copy, confirm CA hash, enroll its own
-  invite and pass Test connection. Use distinct configured names.
+- On that PC,use the RC1 installer on its own build37822 copy,enter only the
+  server IP,and pass Test connection. Use distinct configured names. The older
+  CA/invite handoff is retained as verified-mode evidence,not the RC1 user flow.
 - Launch both ordinary clients, discover/invite/accept through Custom, Ready/
   Start, finish a human match and changed-deck rematch in the same clients.
 - Check results/Continue, normal Quit/restart, saved choices, windows/audio and
@@ -387,6 +397,8 @@ match-blocking divergence, stalls or resource leaks in the required scenarios.
 References: network-qualification.txt, protocol-v3.txt, soak-qualification.txt.
 
 [ ] D9 - Freeze and deliver the final Windows release
+RC1 installer/package milestone runs FIRST under RC1_PLAN.txt;full D9 closure
+still requires the applicable final-release gates below.
 - Build fresh client/server archives from a clean source revision; bind helper/
   launcher/runtime/asset compatibility and audited hashes. Supply a reproducible
   local asset import; include no original game files or private runtime material.

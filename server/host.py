@@ -36,8 +36,9 @@ def prepare(config):
     context = store = None
     if not config.allow_insecure_loopback:
         context = load_server_context(config.certificate_file, config.private_key_file)
-        store = CredentialStore(config.credential_directory)
-        store.list_public()  # Exercise private locking and parsing before listening.
+        if config.access_mode == 'invite':
+            store = CredentialStore(config.credential_directory)
+            store.list_public()  # Exercise private locking and parsing before listening.
     config.data_directory.mkdir(parents=True, exist_ok=True)
     # Verify create/write/fsync/delete under the configured account, without
     # touching a profile, invite, existing log or program file.
@@ -104,7 +105,7 @@ async def _run_owned(config, *, check_only=False, on_progress=None, on_ready=Non
         server = DedicatedServer(template, ProfileStore(config.data_directory / 'profiles', template, catalog=cosmetics),
             audit=audit, data_dir=None, audit_state=config.diagnostic_audit,
             max_rooms=config.max_rooms, input_window=config.input_window, templates=templates, bot_catalog=catalog,
-            tls_context=context, admission=AdmissionController(store) if store else None,
+            tls_context=context, admission=AdmissionController(store, rc_open=config.access_mode == 'rc-open') if context else None,
             sim_factory=lambda data: SimulationWorker.create(data, config.assets_directory / 'Simulation.dll',
                 working_directory=config.data_directory / 'workers'),
             ai_factory=lambda data, bots: SimulationWorker.create(data, config.assets_directory / 'Simulation.dll',
