@@ -217,9 +217,11 @@ passes;malformed developer-batch noncompletion is retained. Review56 confirms
 ordinary entry does not select that diagnostic,and Stop clears current state.
 Ordinary malformed-load recovery remains unproven. Trace existing replay Leave
 binding/owner return before another fault run;stateful fault/cancel scope stays open.
-Review86 resolves the conditional original in-game shutdown/menu path;actual live
-button binding/current listener and ordinary replay entry remain unproven. Next:
-bounded read-only healthy binding inventory before any Cancel/fault exercise.
+Review86 resolves the conditional original in-game shutdown/menu path. Native87
+observes the loaded hidden button during healthy practice:its click event has no
+direct callback/runners;Id=Game/Quit. Existing signal receivers,current replay
+listener and ordinary replay entry remain unproven. Next:trace that signal route
+before any healthy replay Cancel/fault exercise;reuse the passive inventory.
 No force-menu patch or repeated malformed developer-batch timeout test.
 - Close remaining invitation departure/late-return/abort-notice and multiplayer
   disconnect/restart/failure paths in every affected required mode. Survivors

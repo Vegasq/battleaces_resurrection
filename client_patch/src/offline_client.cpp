@@ -29,6 +29,7 @@ namespace ba_cosmetics { static void update(void*);static bool prepare(void*);st
     static bool catalogReady();static std::string serialize(); }
 namespace ba_match_search {static void update(void*);static void joining(void*);}
 namespace ba_native_replay_playback {static bool enabled();static void* prepare(void*,void*);static void observe();}
+namespace ba_replay_binding {static void observe();}
 namespace ba_community_wire {struct Ack;struct Aborted;}
 namespace ba_public {
 static bool active();static bool deckLocked();static void start(void*,void*,int);static bool cancel(void*);static void normalizeJoin(void*);
@@ -293,6 +294,7 @@ extern "C" __declspec(dllexport) void OfflineFrontUpdate(void* front,void*) {
         // before the normal ten-second status throttle. Disabled audit is a cached
         // flag check and performs no FSM, UnityPlayer or native-object reads.
         ba_telemetry_audit::update();
+        ba_replay_binding::observe();
         if(ba_native_replay_playback::enabled()){ba_native_replay_playback::observe();return;}
         ba_catalog::exportOnce();
         ba_cosmetics::observe();
@@ -349,6 +351,7 @@ extern "C" __declspec(dllexport) void OfflineFrontUpdate(void* front,void*) {
 #include "client_lifecycle.cpp"
 #include "native_replay_reader.cpp"
 #include "native_replay_playback.cpp"
+#include "replay_binding_inventory.cpp"
 #include "native_quit_smoke.cpp"
 #include "native_settings_notice.cpp"
 #include "public_client.cpp"

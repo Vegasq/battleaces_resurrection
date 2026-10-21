@@ -212,3 +212,83 @@ unchanged world. Establish a supported replay entry before any Cancel or malform
 load. Then exercise the original bound action and require world disposal,usable
 menu,preserved valid data and natural Quit. No unchanged malformed-batch rerun is
 authorized by these findings. D4-RP1/stateful cancel and fault acceptance stay OPEN.
+
+Healthy hidden-button inventory87 -- native observation,signal route unresolved
+Implemented explicit -replay-binding-inventory in the authored helper and its
+existing owned practice/Quit verifier. Ordinary launch adds no flag. Disabled
+observation returns before any owner/Unity/object reads. Enabled mode requires
+an owned nativestest_ profile,offline automated practice,the Unity thread,an
+active simulation and the actual normal RGameInGameState. It locates the loaded
+ConcedeFlowUIController matching that simulation and owner signal router,requires
+one live owner,and reads the existing hidden _leaveReplayButton. No replay is
+selected,no click/action/event is executed,no UIBehaviour is added or made visible.
+
+Two successive snapshots read the current hierarchy/button identity,initialization,
+Category/Name signal,existing behaviour list,persistent UnityEvent calls/typed
+arguments,runtime/compiled/executing invokable identities and Mody module/action
+identities. They must match;world/current FSM remain unchanged. Lists/strings/
+hierarchy depths are bounded;temporary observer roots release on return. The
+named onClick getters and event Prepare/Rebuild/Invoke are never called. Runner
+arguments and signal receiver delegates are not decoded by this observer;any
+nonempty secondary route needs its own targeted follow-up before a click proof.
+
+Native observation01,PID46824,97.806s,uses only automated startup58/helper87 and
+the ordinary recipe without optional Quit/startup patches. The original loaded
+button is initialized but hidden during healthy practice. Its hierarchy ends
+OptionsSelector/VerticalButtons/ButtonGroup_SameLocationButtons/LeaveReplayButton.
+There is exactly one existing PointerLeftClick7 behaviour,owned by that button.
+Its persistent/runtime/compiled/executing lists and action runners are empty.
+The UIButton Id is Category=Game,Name=Quit,Custom=false. Therefore the expected
+direct persistent ReplayEndGame call is ABSENT in this observed healthy-practice
+instance. This does not prove the button is inert or that another replay-time
+binding cannot exist. The original Click can emit the Game/Quit signal;actual
+receivers and the complete action route remain unqualified. Do not install a new
+direct callback or invoke ReplayEndGame as a substitute for this signal route.
+
+The same run completes one1200-frame practice result,original Continue/menu and
+original confirmed Quit0,with no forced cleanup and the owned process reaped.
+Bot max supply14/nine autonomous action records;the order+movement intersection
+is empty,so this is not additional bot movement qualification. Shared TOML and
+all145 bound producer paths are unchanged across execution. Current installed
+program/catalog and manual71/LAN03 seals hold;practice preference remains absent.
+No packaged runtime,physical controls,active replay,Cancel/fault recovery or
+descendant job-accounting qualification is inferred from this direct-game check.
+
+Original verification.json stays FAILED for the final reader's unsupported
+expectation of one direct ReplayEndGame binding:
+local/replay87-binding-native01/verification.json SHA256
+48165285de4c36fba9ed0de1756fa4698d3d164b0e285e2f07af03637f9dedae.
+After execution terminated,the pure inventory reader was corrected to retain
+zero direct bindings explicitly and mark signal_receivers_qualified=false.
+The reader still rejects wrong/disabled targets,duplicates,foreign ownership,
+mutating/incomplete/failed observations. It never marks replay Cancel/recovery
+qualified. No native rerun or original report rewrite.
+
+Separate retained review pins the original failed producer and exact old reader,
+allows ONLY that inventory-reader source delta,requires all other producer/native
+sources and the installed helper receipt unchanged,checks native Quit/practice,
+the actual signal-only finding and preserved shared/manual/LAN seals. It PASSes:
+local/replay87-retained-review.json SHA256
+fb70f0cf5bf025a08dd2a404c56b50f56ae3cd07252c23356586b7c6e74ec558.
+Reviewer SHA256
+5fa76d3e4e6265ec36469ad203b531dd2fad1b9ce8ea21d95111d597bde2dc72.
+Its initial read used a nonexistent path key in shared_state and failed before
+writing a result;corrected to the known shared-settings path,no native change.
+Original reader SHA256
+a1e3ea8126981f5c08f22ad18b8ae971c61078c001dba642eff267dea7ffa68d.
+Current reader SHA256
+c2bd119fb8c3dfbf290d72148a5b007cbc4140644704e37fbc05ce7944d19c17.
+Preparation local/replay87-preparation01.json SHA256
+871d1b1c5a66d22bafbd241097cb5bcdd0dd09293e9efb766adc961fcd5c383a.
+Helper87 SHA256
+076fca35a750620615bae7a2799a0c4ca2f6d774ba56da207713e176821cbb48;
+90-source build receipt SHA256
+68c75372ca018bfdd5470a44c763f8558ae1d72aece5958c91608d394e3ab388.
+All12 existing native build checks and15 focused Python checks pass,0skips.
+Raw game evidence remains ignored;no archive/manual candidate updated.
+
+Next finite action:trace the existing Game/Quit signal receivers from this
+observed button identity and establish an original supported replay entry. Then
+qualify the actual healthy bound exit before injecting a stateful fault. Reuse
+the successful passive inventory;do not repeat it expecting a direct binding.
+D4-RP1 remains OPEN;D6's pending physical acceptance remains the first priority.
