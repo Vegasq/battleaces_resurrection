@@ -39,12 +39,13 @@ from tests.test_tls_transport import generate_test_pki, remove_test_pki
 from tools.run_secure_match import read_native_log
 from tools.verify_custom_lobby import require, source_hashes as core_hashes
 from tools import verify_unified_startup as startup_probe
+from tools import public_return_evidence
 
 ROOT = Path(__file__).resolve().parents[1]
 
 
 def source_hashes():
-    paths = [Path(__file__), ROOT/'tools/run_secure_match.py', ROOT/'tools/verify_practice_ai.py', ROOT/'tools/verify_unified_startup.py'] + list((ROOT/'client_patch/transport').glob('*.py'))
+    paths = [Path(__file__), Path(public_return_evidence.__file__), ROOT/'tools/run_secure_match.py', ROOT/'tools/verify_practice_ai.py', ROOT/'tools/verify_unified_startup.py'] + list((ROOT/'client_patch/transport').glob('*.py'))
     return core_hashes() | {p.relative_to(ROOT).as_posix(): hashlib.sha256(p.read_bytes()).hexdigest() for p in paths}
 
 
@@ -59,6 +60,9 @@ def elapsed_seconds(log,ticket):
 async def run(args):
     game, assets, output = args.game.resolve(), args.assets.resolve(), args.output.resolve()
     launcher.verify_game(game, community=True, bridge_version=2, unified=True, player_features=args.ordinary_player)
+    if args.drop_return_ack and args.retry:
+        require(args.ordinary_player and b'BA_RESURRECTION_RETURN_RETRY_V1' in (game/'BattleAcesOffline.dll').read_bytes(),
+                'install the explicit owned full-loadout RETURN retry diagnostic helper')
     verify_assets(assets);output.mkdir(parents=True, exist_ok=False)
     pki_folder=output/'ephemeral-pki';pki=generate_test_pki(pki_folder)
     credentials, workers, events = Store(), [], []
@@ -119,13 +123,16 @@ async def run(args):
                     observe('probe_delayed_enter_ack',request=request,seconds=args.delay_enter_ack)
                     return
                 if args.drop_return_ack and not dropped_return and command==q.RETURN:
-                    dropped_return=True;observe('probe_drop_return_ack',request=request)
+                    require(reader.number('B')==1,'RETURN loss fixture requires an accepted completed return')
+                    dropped_return=True;observe('probe_drop_return_ack',request=request,success=True)
                     peer.close('probe lost RETURN acknowledgement');return
             send(peer,kind,payload)
         server.community.send=controlled_send
         apply=server.community.public.apply
         async def controlled_apply(session,kind,command,now):
             nonlocal dropped_ready
+            if args.drop_return_ack and args.retry and kind==q.RETURN:
+                observe('probe_return_request',**command)
             result=await apply(session,kind,command,now)
             if cosmetic_book and kind==loadout_protocol.ENTER_LOADOUT:
                 entry=server.community.public.entries[session.peer.profile_id]
@@ -164,6 +171,7 @@ async def run(args):
         if not args.unavailable: command+=['-match-search-smoke']
         if args.cancel: command+=['-public-queue-smoke-cancel='+args.cancel]
         if args.retry: command+=['-public-queue-smoke-retry']
+        if args.drop_return_ack and args.retry:command.append('-public-return-retry-smoke')
         if args.disconnect in ('loading','running'): command+=['-dedicated-recovery-smoke']
         if args.practice_overlap: command+=['-public-queue-smoke-practice-overlap']
         if args.mode==1:
@@ -193,7 +201,8 @@ async def run(args):
         preworld=(bool(args.cancel) or args.drop_on_ready or args.disconnect=='assignment') and not args.retry
         disconnected_only=bool(args.disconnect) and not args.retry
         marker=(f'Practice returned: completed=1 mode={args.mode}' if args.unavailable else
-                'Public intent retired: ticket=1' if preworld or disconnected_only or args.drop_return_ack else 'PUBLIC QUEUE completed return:')
+                'Public intent retired: ticket=2 reason=returned nativeIdle=1 disconnect=0' if args.drop_return_ack and args.retry else
+                'Public intent retired: ticket=1' if preworld or disconnected_only or (args.drop_return_ack and not args.retry) else 'PUBLIC QUEUE completed return:')
         while True:
             require(process.poll() is None,'owned game exited before native return')
             log=read_native_log(game,process.pid,since_tick=launch_tick)
@@ -373,17 +382,19 @@ async def run(args):
             if args.cancel in ('offered','after-ready') or args.drop_on_ready:
                 report['native_elapsed_seconds']=elapsed_seconds(log,1)
         else:
-            maximum=2 if args.retry and (args.cancel=='after-ready' or args.drop_on_ready or args.disconnect) else 1
+            return_retry=args.drop_return_ack and args.retry
+            maximum=2 if args.retry and (args.cancel=='after-ready' or args.drop_on_ready or args.disconnect or args.drop_return_ack) else 1
             require(1<=len(workers)<=maximum and 1<=credentials.calls<=(2 if args.retry else 1),
                     'unexpected authenticated match/worker count')
-            finished=[row for row in events if row['event']=='match_completed'];require(len(finished)==1,'duplicate/missing completed match')
-            match=finished[0]['match']
+            finished=[row for row in events if row['event']=='match_completed']
+            require(len(finished)==(2 if return_retry else 1),'duplicate/missing completed match')
+            match=finished[-1]['match']
             offered=next(row for row in events if row['event']=='public_match_offered' and row['match']==match)
             ticket=offered['tickets'][0]
             entered=next(row for row in events if row['event']=='public_queue_entered' and row['ticket']==ticket)
             require(29<=offered['observed_at']-entered['observed_at']<=33,'server fallback did not use real30-second queue wait')
             require(not server.community.public.entries and not server.community.public.offers,'native RETURN retained ticket/offer')
-            expected_worlds=2 if args.retry and args.disconnect in ('loading','running') else 1
+            expected_worlds=2 if return_retry or args.retry and args.disconnect in ('loading','running') else 1
             require('Public native match joined:' in log and 'Public native return:' in log and 'owner=remote' in log and
                     'owner=local-practice' not in log and log.count('Client world acquired:')==expected_worlds and
                     log.count('owner=remote nativeIdle=1')==expected_worlds,
@@ -395,9 +406,31 @@ async def run(args):
             for row in rows: require(row['sha256']==authoritative[int(row['frame'])],'native public receipt differs from server input frame')
             shutil.copyfile(receipts,output/receipts.name)
             seconds=elapsed_seconds(log,ticket)
-            result=finished[0]['result']
+            result=finished[-1]['result']
             report.update(match=match,received_frames=len(rows),result=result,real_queue_seconds=offered['observed_at']-entered['observed_at'],
                           native_elapsed_seconds=seconds)
+            if return_retry:
+                require(len(workers)==credentials.calls==attempts==2,'completed return retry requires two sessions/workers')
+                completed_matches=[]
+                for completed in finished:
+                    key=completed['match']
+                    offer=next(row for row in events if row['event']=='public_match_offered' and row['match']==key)
+                    generation=offer['tickets'][0]
+                    enter=next(row for row in events if row['event']=='public_queue_entered' and row['ticket']==generation)
+                    wait=offer['observed_at']-enter['observed_at']
+                    require(29<=wait<=33,'completed RETURN retry skipped a real30-second queue wait')
+                    path=game/'investigation/runtime'/f'dedicated-receipts-{process.pid}-{key}.tsv'
+                    native=list(csv.DictReader(path.read_text(encoding='utf-8').splitlines(),delimiter='\t'))
+                    frames={row['frame']:row['frame_payload_sha256'] for row in events if row['event']=='frame_queued' and row['match']==key}
+                    require(len(native)>=600 and len(native)==len(frames) and
+                            [int(row['frame']) for row in native]==sorted(frames) and
+                            all(row['sha256']==frames[int(row['frame'])] for row in native),
+                            'completed RETURN retry native frames differ from authoritative input')
+                    shutil.copyfile(path,output/path.name)
+                    completed_matches.append(dict(match=key,ticket=generation,received_frames=len(native),result=completed['result'],
+                        real_queue_seconds=wait,native_elapsed_seconds=elapsed_seconds(log,generation)))
+                report['completed_matches']=completed_matches
+                report['return_retry']=public_return_evidence.validate(log,args.mode,completed_matches,events)
         if cosmetic_book:
             prefix='HUMAN COSMETICS frozen message: ' if args.unavailable else 'REMOTE COSMETICS frozen snapshot: '
             snapshots=[json.loads(line.split(prefix,1)[1]) for line in log.splitlines() if prefix in line]
@@ -420,6 +453,9 @@ async def run(args):
                         'server match did not freeze original human appearance')
                 require(set(observed_matches)<={match['match'] for match in frozen_matches},'native proof refers to an unowned match')
                 if report.get('match'):require(report['match'] in observed_matches,'completed remote match lacks native full map/unit proof')
+                if args.drop_return_ack and args.retry:
+                    require(set(observed_matches)=={row['match'] for row in report['completed_matches']},
+                            'both finished RETURN retry matches require original native full-loadout proof')
             if args.edit_loadout_after_play:
                 original=[json.loads(line.split('PUBLIC LOADOUT original frozen deck: ',1)[1]) for line in log.splitlines() if 'PUBLIC LOADOUT original frozen deck: ' in line]
                 require(len(original)==1 and 'PUBLIC LOADOUT edited after freeze: originalIntentRetained=1' in log,'post-Play native edit not exercised')
@@ -549,7 +585,7 @@ def main():
     require(os.name=='nt' and args.output.resolve().is_relative_to(ROOT/'local') and 120<=args.timeout<=900,'bounded Windows/ignored probe required')
     require(1200<=args.local_frames<=7200 and (not args.local_profile or args.unavailable and args.mode==1),
             'bounded local frames and unavailable1v1-only profile override required')
-    require(0<=args.delay_enter_ack<=8 and (not args.retry or args.cancel or args.drop_on_ready or args.disconnect),'bounded delay/retry point required')
+    require(0<=args.delay_enter_ack<=8 and (not args.retry or args.cancel or args.drop_on_ready or args.drop_return_ack or args.disconnect),'bounded delay/retry point required')
     require(sum(map(bool,(args.unavailable,args.cancel,args.drop_on_ready,args.drop_return_ack,args.disconnect)))<=1,
             'choose one unavailable/cancel/disconnect scenario')
     require(not args.edit_loadout_after_play or (args.cosmetics_selection and not any((args.cancel,args.retry,args.drop_on_ready,args.drop_return_ack,args.disconnect))),

@@ -14,6 +14,28 @@ Readiness report SHA256 bb0efbd40c457e7f2e0fd025a4182d290f98490d7edde6030d91afd3
 Initial read-only checker used game_dir instead of game_directory and refused;
 corrected reader passes,no package/config/game edits or native rerun. D6 OPEN.
 
+D2 COMPLETED RETURN RETRY80 (2026-10-21 UTC,R07-MODES1/2/5 PASS)
+Verifier now accepts --drop-return-ack --retry and requires two complete native
+matches/Continue/separate exact frame traces. First accepted RETURN ACK is dropped
+with peer closure;quiet idle retirement precedes a fresh authenticated Play.
+Initial pilot FAILED557.734s:both simulations finished,but old diagnostic only
+pressed Continue once and deliberately left second result open. Owned game was
+stopped;workers0/0,source/shared storage stable. No game defect or passing R07
+claim from that run. New explicit owned -public-return-retry-smoke only arms
+the second original Continue;ordinary entry/patch sites/gameplay policy unchanged.
+Helper80 e35e205a...f2ff/85-native-path receipt,12C++ checks and13Python checks
+pass. New-helper ordinary source menu control passes7.747s whole,0remote/invite
+reads,forced readiness cleanup;not native Quit or D6 cold acceptance. Only
+automated58 upgraded;manual71/LAN03 seals unchanged. Mode1 final02 PASS229.249s,
+1220+1220exact frames,diagnostic concessions1200,both results/Continue/workers0,
+full frozen17slots/deck and both actual bootstrap identities preserved.137bound
+sources/shared state stable. Mode2 PASS487.718s/4126+3462exact frames,mode5
+PASS458.147s/3281+3717frames;all four team matches end naturally,results/Continue/
+worker0 and both serialized identities/decks preserved. All three strict retained
+readers pass,all six workers0/reaped,R07 named native cells close. D2/R06/physical
+gates OPEN,D6 reboot check still priority. No release archives updated.
+Exact reports/failure/source/artifact hashes:public-matchmaking.txt.
+
 D2 FOUR CANCELLATION RETRIES79 (2026-10-21 UTC,R01/R03/R04-MODE1,R03-MODE5 PASS)
 Existing verify_public_client --ordinary-player/--retry/helper76 on automated58
 completes the actual next Play missing from four older retirement-only probes.

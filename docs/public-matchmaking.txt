@@ -801,3 +801,102 @@ so extend its diagnostic evidence/termination only. Native explicit retry hook
 already schedules the second Play. No new case or production defect inferred.
 No original files,raw logs/bootstraps/credentials or binaries in Git;source/
 component suite not repeated for documentation-only changes.
+
+2026-10-21 UTC completed RETURN-ACK loss/retry80 (R07,MODES1/2/5 PASS)
+tools.verify_public_client now accepts --drop-return-ack --retry for an owned
+ordinary/full-loadout client. It retains BOTH authoritative completed matches,
+copies and checks every frame receipt for each,requires two real30s searches/
+two authenticated sessions/workers and both native full-loadout proofs. First
+server RETURN must succeed before its ACK is dropped and peer closed. Verifier
+waits through second native idle retirement,not merely the first quiet return.
+tools.public_return_evidence correlates exact Play/world/join/Continue/release/
+RETURN/quiet retirement/retry order,server matches/results/tickets/worker creation
+and dropped ACK/accepted retirement. Negative tests reject retirement-only traces,
+missing Continue,overlap/wrong identity/generation/mode,errors/fallback,received
+first ACK,negative/differently ordered ACK loss and extra queue/worker/abort.
+13focused Python tests pass0skips;all12existing C++ check programs pass.
+
+Pilot local/return80-1v1-retry01/verification.json stays FAILED557.734s:
+63e152cedd52b2ca92bb8ed9393f15a3a440a51585e245c30353d1fde58e8bc2
+Both original simulations complete and first result/Continue/quiet retirement/
+next Play work,but existing rematch smoke is one-shot and deliberately leaves
+session2 at result. Its native Continue gate says already-issued;source confirms
+that diagnostic limit. Stopped only verified owned game PID52716 to end the
+unfinishable probe;report records owned-game-exited-before-native-return,workers
+0/0/reaped,stable sources/shared storage. Original pilot sources/logs retained.
+It is not a game failure or passing R07 proof. No forbidden desktop/protection
+access used and no user/manual game touched.
+
+New helper adds explicit -public-return-retry-smoke,requiring unified/public
+queue/smoke/retry/rematch flags and owned cosmeticstest_ profile. After session1's
+real completed menu reset,it rearms the second original Continue and preserves
+the existing native navigation/idle/result gates. Bounded to two diagnostic
+sessions;ordinary launchers have no flag and activate no automation. No original
+patch site,ABI,server/gameplay/timeout policy or release archive changed.
+build/helper-return80-01/BattleAcesOffline.dll SHA256:
+e35e205a47fdcece8a64bdb96c4f27778c860a493b77b7ea34a62f418c88f2ff
+85-native-path source-bound helper receipt SHA256:
+b6a0c2da5b6c0fccbae471d6034a743f62467fcab19dd0537f23f6213737b3fe
+Only automated58 is upgraded;GA/Unity/catalog and manual71/LAN03 seals unchanged.
+Installed manifest SHA256:
+7ed38b5c98ed458b4fcd2ea440b96892c33aefd0ba12c146d56a3861dfb54da2
+local/return80-preparation02.json SHA256:
+d6ca5fddfda4bd91439163c91151b6953952576fff64c391a96a1fc07ae8ec9e
+Installation verifies all133original bundles;native runs then use fingerprints.
+
+New-helper ordinary source startup control PASS7.747s whole,menu ready,0remote
+connections/0invite reads,no gameplay/capture actions. Forced readiness cleanup,
+not original Quit/physical/D6 cold acceptance. Manual71 never launched/modified.
+local/return80-ordinary-control01/verification.json SHA256:
+5ed079b3d95bec4651ebad9f0f930198647e0d20f2da922cd666e89ecc258adb
+
+Final mode1 local/return80-1v1-retry02/verification.json PASS229.249s,PID34724:
+70681427194c88246393a8d0e17456b92012047928a174c963c67060e91878aa
+Two distinct original matches each1220exact receipts/result1200/conceded1;these
+are explicit diagnostic concessions,not natural combat wins. Both native
+results/Continue/menu/world release and two worker0/reaped/empty stderr pass.
+First server RETURN accepted,ACK lost with peer closure,quiet idle retirement;
+second original Play creates a new connection/intent/world,finishes and returns
+normally. No public-error notice/local fallback/extra or overlapping world.
+Full chosen deck/17cosmetic slots persist in both queued/server/native matches.
+Strict retained reviewer revalidates exact events/logs/receipts and decodes both
+hashed archived bootstraps to the same human units/name and correct bot ownership.
+137bound source paths/shared TOML/helper/program/catalog/manual71/LAN03 seals
+unchanged;0bundle rehashes. Both server retirements say returned to menu.
+local/return80-1v1-review.json SHA256:
+45c1ee2e966440bbffcc019cf3ac03def01ff548130336dd12eadf9a4d194cc1
+
+Final mode2 local/return80-2v2-retry01/verification.json PASS487.718s,PID53112:
+3ddf97ce651a1259de1e988c3309dd0c1854b1430ad53b80b043a74e26b6a083
+First/second matches4126/3462exact frames,result4106/3442,conceded0/0. One human/
+three original-profile server bots in each four-seat match;both end naturally.
+Final mode5 local/return80-2vai-retry01/verification.json PASS458.147s,PID14240:
+f09266178d1d97c48b5496002dd7617e1f76a669062ab4f97d750631c7bcfc96
+First/second matches3281/3717exact frames,result3261/3697,conceded0/0,also natural
+completion with one human/AI ally/two original-profile opponents.
+Each team case drops only the first successful RETURN ACK and closes that peer;
+first native result/Continue/quiet idle retirement precedes second original Play.
+Fresh authentication and one distinct world follow;second result/Continue/normal
+RETURN also completes. No false startup notice,local fallback,aborted result or
+extra world. Two worker0/reaped/empty stderr per case. Both archived bootstraps
+decode to the selected human name/units and expected human/bot identities,with
+full17-slot native/server appearances preserved across both intents.137bound
+sources/shared state/program/helper/manual71/LAN03 seals unchanged;0rehashes.
+Retained reviewer receipts:
+local/return80-2v2-review.json SHA256
+b2e09a7d9b611ae0527829e6deaade36f5de23c6da3ce6f44a89efbf8851eacc
+local/return80-2vai-review.json SHA256
+98e176fff06bae14ce99bc6c5e797e4cb02ab44e52f34cd2a33fe175ff99e153
+All three final reviewers pass first invocation,no corrective native repeats.
+The earlier failed pilot stays separate;all final modes use the same new helper/
+source/ordinary feature options. No release archive updated. R07's three named
+native cells close for this lost-ACK/closed-peer flow;R06 remains the next finite
+fault case. Inspect READY/fallback and private transport generations before
+staging valid delayed assignment bytes;never enable fallback after committed READY.
+
+R07-modes1/2/5 close in native callback/real fixture-TLS scope.
+Client final cleanup is forced owned termination,
+not native Quit/physical/protected enrollment/bundled ordinary entry/LAN/Internet
+qualification. D2 parent/R06/physical gates remain OPEN. D6 reboot-first/repeat
+observation remains priority/pending. No raw logs/bootstraps/original files/
+binaries/credentials in Git;new authored source and knowledge-base only.

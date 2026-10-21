@@ -105,10 +105,16 @@ Completed subcases (same-PC automated controls; not physical LAN):
     results/Continue;all five created workers exit0/reaped. After-READY first
     match aborts frame0/result=null,no first client world. Full frozen loadouts,
     unchanged ordinary-feature/source/helper/candidate seals,forced final cleanup.
-Scope correction78's four cancellation gaps close79;R07-mode1 still has quiet
-completed return but no next Play and stays OPEN with modes2/5. Mode1 R02 already
-has cancel-retry01's actual waiting Cancel/ticket2 match;reuse that scope. Do not
-add cases or repeat qualified team-mode combinations.
+Scope correction78's four cancellation gaps close79. Mode1 R02 already has
+cancel-retry01's actual waiting Cancel/ticket2 match;reuse that scope. Do not add
+cases or repeat qualified team-mode combinations.
+[x] R07-modes1/2/5 now pass80:accepted final RETURN ACK dropped with peer closure,
+    quiet idle retirement,actual second Play and another complete native match/
+    Continue.Mode1:1220+1220exact frames;mode2:4126+3462;mode5:3281+3717. All six
+    workers0,full selected loadouts/both actual bootstrap identities preserved.
+    Explicit second-Continue diagnostic only;ordinary startup control passes.
+    Team matches end naturally,mode1 uses diagnostic concessions1200. Forced
+    final game cleanup,not native Quit.D2 parent/physical/LAN gates remain OPEN.
 [x] Delayed first ENTER ACK during modes2/5 Cancel/retry (cancel72 R05):
     original second search survives the old reply,then one authoritative match/
     results/Continue;3451/4588 exact frames,each worker0,forced final game cleanup.

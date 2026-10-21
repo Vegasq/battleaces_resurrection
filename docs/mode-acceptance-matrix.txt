@@ -89,13 +89,15 @@ R03 OFFERED before READY      P:79-offer             P:78-2  P:79-5
 R04 after READY committed     P:79-ready             P:73-2  P:73-5
 R05 cancel/retry + old ENTER   P:cancel-retry01       P:72-2  P:72-5
 R06 assignment after local AI O                      O       O
-R07 dropped final RETURN ACK  O:quiet-retirement     O       O
+R07 dropped final RETURN ACK  P:80-1                 P:80-2  P:80-5
 Scope correction78 found that existing mode1 cancel-before/offer/ready reports
 and mode5 2vai-cancel01 say retry=false/no subsequent match.79 now supplies the
 missing actual next Play for all four cancellation cells,not another retirement
 probe. Earlier retirement passes retain their scope. Mode1 drop-return02 still
 says retry=false/one worker/1220frames;quiet return passes,but next Play remains
-unproven. These are existing cases,not new ones.
+unproven by that old report.80 now supplies two completed matches/Continue on
+both sides of accepted RETURN-ACK loss plus peer closure in modes1/2/5. All six
+matches/results/Continue/workers pass;these are existing cases,not new ones.
 R02-mode1 reuses cancel-retry01's actual waiting Cancel and completed ticket2;
 ordinary-cancel01 remains its narrower original UI/search-release observation.
 63-2/63-5 are current-helper51 waiting Cancel/retry passes on the independent
@@ -208,10 +210,19 @@ CRLF reader attempt remains failed. All five scoped Custom C01-C05 cells pass;
 physical P04/D1 remains open. D6's physical restart-first/repeat launch stays
 the priority gate;check new feedback before further D2 scenarios. While awaiting
 that owner observation,79 completes those four existing cancellation retry gaps.
-Next R07-mode1/2/5 needs finished-match RETURN-ACK loss followed by original
-Play and another completed match. Current Python harness rejects that retry
-combination;extend only its diagnostic termination/evidence checks. Existing
-native explicit retry hook already schedules the next Play after idle retirement.
+R07-mode1/2/5 now pass80,two complete native matches each. Mode1 has1220+1220
+exact receipts;mode2 has4126+3462,mode5 has3281+3717. Team games end naturally;
+mode1 uses diagnostic concessions1200. All six workers exit0/reaped. Both full
+loadouts/bootstrap identities and137source/shared/helper/candidate seals agree.
+Forced final cleanup is not physical/native Quit/bundled/protected/LAN acceptance.
+The diagnostic Python verifier now supports finished RETURN-ACK loss/retry and
+retains both complete frame traces. A new explicit owned native diagnostic arms
+the second original Continue;the old hook deliberately stopped at second result.
+First80 pilot is preserved FAILED for that missing control,not a game defect.
+Next R06-mode1/2/5:late owned assignment must not replace an already-running
+fallback world. First inspect READY/fallback arbitration and transport generation
+handling;use valid assigned bytes from an owned session for the late-delivery
+proof. Never force fallback from a committed READY to manufacture this case.
 R02-mode2 already passed63;do not repeat.
 Use only the owned automated58 copy with production D6 catalog verification;
 the prepared D6 manual71/LAN03 candidates remain unchanged. No physical gate is waived.
