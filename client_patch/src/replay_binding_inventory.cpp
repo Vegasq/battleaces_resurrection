@@ -6,6 +6,7 @@ using ba::Obj;using ba_local::Root;using ba_native_settings::require;
 namespace ui=ba_practice_settings_ui;
 static std::string nodyListener(Obj,Obj);
 static bool finished=false;
+static bool passed=false;
 static ULONGLONG due=0;
 static std::string quote(const std::string& s){return ba_catalog::quote(s);}
 static std::string identity(Obj value){return quote(std::to_string(reinterpret_cast<uintptr_t>(value)));}
@@ -174,19 +175,27 @@ static std::string snapshot(Obj controller,Obj button) {
     Root container(ba::get<Obj>(button,"Behaviours")),id(ba::get<Obj>(button,"Id"));
     require(container.get() && id.get(),"replay binding existing container/id missing");
     require(ba::get<Obj>(container.get(),"Selectable")==button,"replay binding container owner");
+    std::string ownActive;
+    if(ba::flag(L"-native-replay-menu-smoke")) {
+        Root go(ui::gameObject(button)),active(ba::call(go.get(),"get_activeSelf"));
+        ownActive=",\"active_self\":"+std::string(ba_catalog::unbox<bool>(active.get())?"true":"false");
+    }
     return "{\"controller\":"+reference(controller)+",\"button\":"+reference(button)+
         ",\"path\":"+quote(path(button))+",\"active\":"+(ui::active(button)?"true":"false")+
         ",\"initialized\":"+(ba::get<bool>(button,"<selectableInitialized>k__BackingField")?"true":"false")+
         ",\"signal_category\":"+named(id.get(),"Category")+",\"signal_name\":"+named(id.get(),"Name")+
         ",\"signal_custom\":"+(ba::get<bool>(id.get(),"Custom")?"true":"false")+
         ",\"behaviours\":"+array(ba::get<Obj>(container.get(),"Behaviours"),behaviour)+
+        ownActive+
         (ba::flag(L"-replay-signal-inventory")?",\"button_stream\":"+signalStream():"")+"}";
 }
 static void observe() {
     if(!ba::flag(L"-replay-binding-inventory") || finished || GetTickCount64()<due)return;
+    const bool replayMenu=ba::flag(L"-native-replay-menu-smoke");
+    if(replayMenu && !ba_replay_menu::canInspect())return;
     due=GetTickCount64()+250;
     try {
-        require(ui::unityThread() && ba::offlinePractice() && ba::flag(L"-practice-ai-smoke") &&
+        require(ui::unityThread() && ba::offlinePractice() && (replayMenu || ba::flag(L"-practice-ai-smoke")) &&
             ba_native_settings::session && ba_native_settings::session->profile().rfind("nativestest_",0)==0,
             "replay binding inventory requires owned offline Unity practice");
         Root fsm(ba::get<Obj>(ba::owner,"_mainFSM")),current(ba::get<Obj>(fsm.get(),"_currentState"));
@@ -212,9 +221,9 @@ static void observe() {
         require(before==after && ba::get<Obj>(fsm.get(),"_currentState")==current.get() &&
             ba::get<Obj>(replay.get(),"_simulation")==simulation.get() && ba::read<uint64_t>(simulation.get(),0x1a8)==world &&
             ba::read<bool>(simulation.get(),0x1a0),"replay binding owner/world/actions changed");
-        finished=true;
+        finished=true;passed=true;
         ba::log("REPLAY BINDING inventory: %s",before.c_str());
-        ba::log("REPLAY BINDING inventory passed: version=1 phase=healthy-practice worldStable=1 fsmStable=1 bindingsStable=1 clicks=0 behavioursAdded=0 eventRebuilds=0 rootsReleasedOnReturn=1");
+        ba::log("REPLAY BINDING inventory passed: version=1 phase=%s worldStable=1 fsmStable=1 bindingsStable=1 clicks=0 behavioursAdded=0 eventRebuilds=0 rootsReleasedOnReturn=1",replayMenu?"healthy-replay":"healthy-practice");
     } catch(const std::exception& error){finished=true;ba::log("Replay binding inventory failed: %s",error.what());}
 }
 }

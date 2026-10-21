@@ -13,10 +13,11 @@ def require(condition, message):
         raise AssertionError(message)
 
 
-def validate(text):
+def validate(text, *, phase='healthy-practice'):
+    require(phase in ('healthy-practice', 'healthy-replay'), 'unsupported binding observation phase')
     records = re.findall(r'^\[\d+\] REPLAY BINDING inventory: (.+)$', text, re.M)
     passed = re.findall(r'^\[\d+\] REPLAY BINDING inventory passed: version=1 '
-                        r'phase=healthy-practice worldStable=1 fsmStable=1 bindingsStable=1 '
+                        r'phase='+re.escape(phase)+r' worldStable=1 fsmStable=1 bindingsStable=1 '
                         r'clicks=0 behavioursAdded=0 eventRebuilds=0 rootsReleasedOnReturn=1$', text, re.M)
     require(len(records) == len(passed) == 1 and 'Replay binding inventory failed:' not in text,
             'one complete unchanged replay binding inventory required')
@@ -25,7 +26,8 @@ def validate(text):
             value['button']['class'] == 'Doozy.Runtime.UIManager.Components.UIButton' and
             value['controller']['id'] != value['button']['id'] and
             all(re.fullmatch(r'[1-9][0-9]*', value[key]['id']) for key in ('controller', 'button')) and
-            value['initialized'] is True and value['active'] is False and
+            value['initialized'] is True and type(value['active']) is bool and
+            (value['active'] is False if phase == 'healthy-practice' else value.get('active_self') is True) and
             isinstance(value['path'], str) and 0 < len(value['path']) <= 32768,
             'original initialized hidden replay button identity missing')
     behaviours = value['behaviours']

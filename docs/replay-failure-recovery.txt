@@ -1,6 +1,82 @@
 REPLAY RECOVERY FINDING55 -- 2026-10-20
 Plan item:D4-RP1. Status:OPEN;malformed batch recovery is NOT qualified.
 
+Latest90:normal-menu API finding and source correction,2026-10-21 UTC
+The owned menu API control calls original LoadReplayFromFile3dddab0/token
+06000952 once. Original LoadFromStream3ddd390 calls Load and Play internally;
+the probe must not add a second Play or write the main/replay FSM. Independent
+codec input remains67033bytes/548192decoded/3607messages,GameData SHA256
+01bc5d86c6ef3c522b342e559470e2ffca1eaa6555bfde72bfa0e0256c79486d.
+The new passive inventory accepts an actual healthy-replay context separately
+from the old healthy-practice context;neither is silently interchangeable.
+Diagnostic ReplayEndGame API cleanup would not prove an existing UI button.
+
+Native01 on helper90-01 remains FAILED. PID51384 decodes the expected recording
+but stays in the original menu with simulation inactive/no world until its60s
+probe deadline. No replay in-game owner/binding snapshot or exit API dispatch
+is observed. After failure,an explicit owned existing Quit gate release permits
+the independent original Quit control to revalidate idle state and exit0
+naturally,no forced cleanup. This is cleanup,not replay recovery acceptance.
+The outer replay report remains false even though the inner Quit report passes.
+Seed/original recording/producer sources remained unchanged during that run.
+Outer verification SHA256:
+103af25b4d310f5a6488379f9edce26e63dbd3c79cdb651e847ec90f04b0e4f5
+Inner native Quit verification SHA256:
+6e47067bf1364b3b0c9fd202c3eb7f0e56631bb2cbe34d14545c40627a9acf96
+Cleanup-gate receipt SHA256:
+7e52f016dca2ba57583b23223e64499d0f00613aa1206397f041ea949bc26175
+All three are under local/replay90-menu-native01;the original reports are not
+rewritten to qualify the correction below.
+
+Original metadata/LLVM static fallback explains a concrete patch omission:
+GameServerIntegration.ProcessUpdate3e4e020/token060010da calls its replay FSM
+Update when replay exists and (isSpectator || !HasActiveGameConnectionInfo() ||
+gameState==3). Its inlined call is equivalent to original Replay.
+UpdateReplayRunner3ddd190/token0600094d. ReadyReplayState.Update3ddef40 then
+requests original CreateGame when no world/map load exists. Our replacement
+OfflineGameUpdate returned unless a synthetic local game was already ready and
+did not pump this replay path. The observed idle decoded recording is consistent
+with that omission;successful playback after correction remains unproven.
+Original connection predicate3e50530/token060010fb is read-only. No whole
+ProcessUpdate call is restored,because that would also run original networking.
+
+Source correction90-02 calls only the exact original UpdateReplayRunner after
+its original predicate. It requires the original Unity thread,primary human
+integration,matching singleton Replay/simulation and loaded data. Local AI,
+remote world ownership/joined sessions and helper bootstrap exclude pumping;
+secondary AI integrations cannot pump the shared runner. The explicit original
+batch diagnostic retains its independently qualified state/coroutine path.
+No helper simulation ticks,FSM writes,new selection UI or extra Play calls.
+Replay errors log once and disable only this replay pump;local input/timing
+still follows its existing path. Ownership exclusions/original predicate have
+a pure C++ regression check in the normal helper build.
+
+Build90-02 and all13C++ checks pass.31focused Python checks pass,including
+phase separation,decoded recording/world progression,production pump marker,
+API-vs-button scope and missing/failure evidence rejection. Those are source/
+reader/build checks,not a native replay PASS. The helper is NOT installed and
+no new game is launched. Helper SHA256:
+17bdcffb1c64a2e2c65ad553b145f036d1997e1b5bace72ac8a007e33f4b7d2b
+build/helper-replay90-02/helper-build.json SHA256:
+772bedaaf012f15b602a51454da1ff673de3dcf29a5df7f2951ca44710cc241e
+Its95native/build source hashes match the current raw source files. Retained
+static inputs,failed reports,build receipt and preserved manual71 program/
+catalog/offline config plus LAN03 helper are checked by the read-only seal:
+local/replay90-source-review.json SHA256
+f1c3fc2752a21f6d34ef539be5139988753a192cdba4ec501740d794443c3266
+Original GA/metadata hashes remain the qualified e59d...758/b760...57d.
+This is LLVM/IL2CPP evidence,not a new Ghidra/REA provider qualification.
+
+Next90 gates:install only into the owned automated copy and rerun the actual
+menu replay control;require advancing original world/in-game owner and original
+API exit/menu/natural Quit. Then check shared-hook local AI/results/Continue/
+Quit and a remote match guard before broader qualification. Actual bound replay
+exit,ordinary disk selection,Cancel and malformed stateful recovery remain OPEN.
+D6 physical restart-first/repeat observation is still first priority;its frozen
+manual71 candidate,package/configuration and LAN03 remain unchanged. Source/
+build work while awaiting that gate does not qualify D6 or authorize a warm run
+as its substitute. No top-level roadmap item closes from this finding.
+
 Question and result
 Does the existing original ReplayFiles startup batch reject a malformed replay
 and finish/exit naturally on the current package/helper? One authored invalid

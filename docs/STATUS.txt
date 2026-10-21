@@ -3,6 +3,26 @@ Updated: 2026-10-21 UTC
 Delivery plan: REMAINING_DELIVERY_PLAN.txt, Windows only.
 Original roadmap: CLOSED / SUPERSEDED;see PLAN_CLOSEOUT.txt.
 
+D6 PRIORITY REAFFIRMED,2026-10-21
+Engineering/native/package qualification71 already passes;physical first launch
+after Windows restart,repeat launch and visible TryDeck/Continue/Quit remain
+the only D6 gate. No newer physical result is recorded. Preserve manual71 and
+its ordinary entry/configuration. Defer further unrelated game launches in response
+to the renewed priority;unfinished replay changes do not update this candidate.
+No new game launch or D6 closure is claimed. See startup-bundle-loading.txt.
+
+REPLAY MENU90 FINDING / RUNNER FIX BUILT,NOT RUNTIME-QUALIFIED
+The prior owned menu API attempt decoded3607frames with the expected GameData
+hash,but stayed in the menu with no world. Its report remains FAILED;manual
+cleanup-gate release allowed original Quit0 without force,not replay acceptance.
+Original ProcessUpdate pumps the replay FSM under its spectator/no-connection/
+state3 predicate. OfflineGameUpdate had omitted that path. Restore only original
+UpdateReplayRunner on the primary matching Replay/simulation,excluding active
+local/remote owners and bootstrap/batch diagnostics. Failure does not stop local
+input production. Source/build checks pass;no new native run or package/install
+update. D4-RP1 remains OPEN. D6 candidate remains untouched and first priority.
+Exact evidence and remaining regressions:replay-failure-recovery.txt.
+
 REPLAY NODY GRAPH89 (NATIVE PASS;ACTIVE REPLAY CONTEXT STILL NEEDED)
 Original forwarded callback resolves to ShowUIObjectNode.OnUIButtonSignal and
 its active MainMenu graph.31nodes/70resolved links/12MainMenu button selectors,

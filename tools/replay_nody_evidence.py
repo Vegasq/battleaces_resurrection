@@ -5,8 +5,8 @@ from tools.replay_signal_evidence import validate as signal_inventory
 from tools.replay_binding_evidence import require
 
 
-def validate(text):
-    signal = signal_inventory(text)
+def validate(text, *, phase='healthy-practice'):
+    signal = signal_inventory(text, phase=phase)
     receivers = signal['binding_inventory']['inventory']['button_stream']['receivers']
     observed = [r for r in receivers if 'nody' in r]
     require(len(observed) == 1, 'one original Nody listener inventory required')

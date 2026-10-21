@@ -309,5 +309,15 @@ Initial readiness reader incorrectly expected config.game_dir and failed before
 writing a result. Corrected game_directory reader passes;failure log preserved,
 no native rerun or changed configuration. D6 remains the priority.
 
+Priority follow-up90,2026-10-21 UTC
+No newer physical acceptance result is recorded;the latest retained manual71
+runtime files still end at the automated71qualification. The ordinary Unity
+client-session log already includes RGameInit:Start time. This measures the
+engine Start phase,not total double-click-to-visible-menu latency;the latter
+still needs the physical first/repeat observations. Do not add diagnostic flags
+or run a warm probe to manufacture that evidence. Keep the existing ordinary
+entry/configuration unchanged. Independent replay source/build work90 neither
+installs into nor launches manual71 and cannot close D6-C4.
+
 All original binaries/catalogs/observations/private experiment artifacts remain
 under ignored local paths. This source knowledge base contains no client files.

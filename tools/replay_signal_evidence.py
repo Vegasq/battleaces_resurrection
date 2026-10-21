@@ -2,8 +2,8 @@
 from tools.replay_binding_evidence import validate as binding_inventory, require
 
 
-def validate(text):
-    result = binding_inventory(text)
+def validate(text, *, phase='healthy-practice'):
+    result = binding_inventory(text, phase=phase)
     stream = result['inventory'].get('button_stream')
     require(isinstance(stream, dict) and stream['category'] == 'UISelectable' and
             stream['name'] == 'UIButton' and

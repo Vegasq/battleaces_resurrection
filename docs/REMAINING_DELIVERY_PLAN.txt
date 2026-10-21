@@ -43,14 +43,20 @@ These results keep their documented scope; they do not prove the remaining
 ordinary/cross-PC/Internet/deployment matrix. See STATUS.txt and focused records.
 
 Delivery order
+D6 priority reaffirmed again on2026-10-21. Defer further unrelated game launches
+while focusing on its remaining physical C4 acceptance. Independent source/build
+work can proceed without altering or launching its candidate. Keep the unfinished
+replay work separate and preserve the qualified71 candidate;it is not a D6 fix.
+Do not replace the pending restart-first observation with more warm launches.
 D6 priority reaffirmed by the user. Next acceptance action is D6-C4 on the
 prepared ordinary manual71 candidate. Preserve its package/game/configuration;
 finish recording already-completed tests before starting other engineering work.
 D6 is the immediate engineering priority at the user's explicit request on
 2026-10-20. Production fix/native/package checks71 now pass;only D6's physical
 restart-cold/repeat-launch observation is pending. Preserve its prepared manual
-candidate and resume independent finite D2-D4 cases while awaiting that result;
-any reported D6 defect takes priority again. Do not repeat warm startup runs as
+candidate;the renewed2026-10-21 priority defers further unrelated native runs
+while the remaining D6 acceptance is addressed. Any reported D6 defect takes
+priority immediately. Do not repeat warm startup runs as
 cold acceptance. The already-prepared D1 physical LAN sequence can proceed independently;
 its candidate and pending owner steps remain unchanged. D7 precedes final D8/D9.
 After D6, resume D1 and close D2-D4 with planned playtests and targeted fixes.

@@ -29,6 +29,8 @@ namespace ba_cosmetics { static void update(void*);static bool prepare(void*);st
     static bool catalogReady();static std::string serialize(); }
 namespace ba_match_search {static void update(void*);static void joining(void*);}
 namespace ba_native_replay_playback {static bool enabled();static void* prepare(void*,void*);static void observe();}
+namespace ba_replay_menu {static void update(void*);static bool canInspect();}
+namespace ba_replay_runtime {static void update(void*);}
 namespace ba_replay_binding {static void observe();}
 namespace ba_community_wire {struct Ack;struct Aborted;}
 namespace ba_public {
@@ -301,6 +303,7 @@ extern "C" __declspec(dllexport) void OfflineFrontUpdate(void* front,void*) {
         if(unified())ba_client::update(front);
         else if(offlinePractice())ba_practice::offlineUpdate(front);
         else if(lan())lanFrontUpdate(front);
+        ba_replay_menu::update(front);
         ba_cosmetics::update(front);
         ba_match_search::update(front);
         ba_match_loading::update(front);
@@ -351,8 +354,10 @@ extern "C" __declspec(dllexport) void OfflineFrontUpdate(void* front,void*) {
 #include "client_lifecycle.cpp"
 #include "native_replay_reader.cpp"
 #include "native_replay_playback.cpp"
+#include "replay_runtime.cpp"
 #include "replay_binding_inventory.cpp"
 #include "replay_nody_inventory.cpp"
+#include "replay_menu_smoke.cpp"
 #include "native_quit_smoke.cpp"
 #include "native_settings_notice.cpp"
 #include "public_client.cpp"

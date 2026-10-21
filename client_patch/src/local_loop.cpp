@@ -236,6 +236,7 @@ extern "C" __declspec(dllexport) void OfflineGameUpdate(void* gameServer,void*) 
     using namespace ba_local;
     try {
         ba::init();
+        ba_replay_runtime::update(gameServer);
         if(!isTarget(gameServer) || !ready.load()) return;
         if(GetCurrentThreadId()!=updateThread) throw std::runtime_error("offline update on unexpected thread");
         ULONGLONG now=GetTickCount64(), elapsed=now-previousTime; previousTime=now;
