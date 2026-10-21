@@ -4,6 +4,7 @@
 namespace ba_replay_binding {
 using ba::Obj;using ba_local::Root;using ba_native_settings::require;
 namespace ui=ba_practice_settings_ui;
+static std::string nodyListener(Obj,Obj);
 static bool finished=false;
 static ULONGLONG due=0;
 static std::string quote(const std::string& s){return ba_catalog::quote(s);}
@@ -23,9 +24,9 @@ static std::string text(Obj value) {
 static std::string named(Obj value,const char* field){return quote(text(ba::get<Obj>(value,field)));}
 struct List {
     Root list,items;int size,version;
-    explicit List(Obj value):list(value),items(ba::get<Obj>(value,"_items")),
+    explicit List(Obj value,int maximum=32):list(value),items(ba::get<Obj>(value,"_items")),
         size(ba::get<int>(value,"_size")),version(ba::get<int>(value,"_version")) {
-        require(size>=0 && size<=32 && items.get() && ba_catalog::length(items.get())>=static_cast<size_t>(size) &&
+        require(size>=0 && size<=maximum && items.get() && ba_catalog::length(items.get())>=static_cast<size_t>(size) &&
             ba_catalog::length(items.get())<=1024,"replay binding list capacity");
     }
     Obj at(int i)const {require(i>=0 && i<size,"replay binding list index");return ba_catalog::arrayAt(items.get(),i);}
@@ -134,11 +135,15 @@ static std::string receiver(Obj value,Obj stream) {
     if(!ui::exact(value,"Doozy.Runtime.Signals","SignalReceiver"))
         return "{\"receiver\":"+reference(value)+",\"typed\":false,\"stream\":null,\"stream_matches\":null,\"connected\":null,\"disconnecting\":null,\"callback\":null}";
     Root associated(ba::get<Obj>(value,"<stream>k__BackingField"));
+    Root action(ba::get<Obj>(value,"<onSignal>k__BackingField"));
+    Root target(action.get()?ba::get<Obj>(action.get(),"m_target"):nullptr);
     return "{\"receiver\":"+reference(value)+",\"typed\":true,\"stream\":"+reference(associated.get())+
         ",\"stream_matches\":"+(associated.get()==stream?"true":"false")+
         ",\"connected\":"+(ba::get<bool>(value,"<isConnected>k__BackingField")?"true":"false")+
         ",\"disconnecting\":"+(ba::get<bool>(value,"<isDisconnecting>k__BackingField")?"true":"false")+",\"callback\":"+
-        callback(ba::get<Obj>(value,"<onSignal>k__BackingField"))+"}";
+        callback(action.get())+
+        (ba::flag(L"-replay-nody-inventory") && ui::exact(target.get(),"Doozy.Runtime.UIManager.Nodes.Listeners","UIButtonNodyListener")?
+            ",\"nody\":"+nodyListener(target.get(),value):"")+"}";
 }
 static std::string signalStream() {
     Obj cls=ba::find_class("Doozy.Runtime.UIManager.Components","UIButton");

@@ -368,3 +368,71 @@ and its Game/Quit payload conditions;establish supported original replay entry
 before exercising its bound exit. Do not manufacture a separate Game/Quit stream
 or a direct ReplayEndGame callback. D4-RP1 remains OPEN. D6's physical check stays
 first priority;its prepared candidate is unchanged and no repeat request is issued.
+
+Forwarded Nody graph89 -- native PASS,current practice graph has no Quit selector
+The explicit owned observer now reads the existing Nody listener's node/receiver/
+callback fields and its already assigned FlowGraph. It captures node identities,
+active-node identity,serialized input/output ports and connection IDs,raw port
+values and declared value types,plus existing typed UnityEvent/Mody/delegate
+fields. It never calls FlowPort.GetValue<T>,deserializes in the game,creates a
+graph/port/listener,transitions a graph or invokes an event. Node/port/field/depth/
+string bounds apply;two snapshots must match,with the same main-FSM state and
+simulation/world identity.
+Disabled mode performs no new native reads;normal launcher flags are unchanged.
+
+Native01/PID10712 PASS97.510s,first runtime attempt. The original forwarded delegate
+is ShowUIObjectNode.OnUIButtonSignal,token060034a6,RGame.dll,original03d56bf0.
+Its target is the listener's actual node,which is the active MainMenu node in
+the retained31-node menu graph. All70captured port links resolve;12output ports
+on this node deserialize OFF-PROCESS as Trigger2 with distinct MainMenu/* ButtonId
+conditions. None is Game/Quit. No direct persistent event binding is observed
+among the decoded graph-node event fields;native node overrides and other
+action surfaces are not ruled out by that field inventory.
+
+Original static OnUIButtonSignal compares non-None buttonName,handles Back,
+then reads output-port data,requires Trigger2 and compares both ButtonId category
+and name before selecting a port (plus a player-index condition in multiplayer
+mode). No handler or graph action was executed by this observation. Therefore
+the current MainMenu selectors do not establish a Game/Quit route. This is the
+healthy-practice instance with a HIDDEN replay button,not an active replay;do
+not classify it as a demonstrated replay defect or attach an invented handler.
+The ordinary graph's saved MainMenu state does not establish menu visibility
+while the separate main game FSM is in RGameInGameState.
+
+01 also finishes1200-frame practice,original result/Continue/menu and original
+confirmed Quit0 naturally,owned process reaped/no forced cleanup. Bot max supply14/
+nine autonomous records,empty movement intersection;not additional movement proof.
+All148 producer source hashes are stable during execution;current91-path helper
+receipt/installed program/catalog/shared TOML/manual71/LAN03 seals pass afterward.
+Practice preference stays absent.12existing native build checks and25distinct
+focused Python checks pass,0skips. No bundled runtime,physical controls,active
+replay/cancel/fault recovery or descendant job-accounting scope is inferred.
+
+Native local/replay89-nody-native01/verification.json SHA256
+3965800275230976c3f7652b70af1a4c380d7eefdba26790364382e3a01036e2.
+Independent retained review local/replay89-retained-review.json SHA256
+410476b4cda31b0252eb6a29bf863fb26e5c60e245aa76d3010255d2e7fd718e;
+reviewer SHA256
+cb062e0beb161847e4db2527d79fc7949d3d572b2afa1f3c29d61ca146b95d98.
+Original metadata/LLVM static manifest,not REA native Evidence:
+local/replay89-nody-contract/manifest.json SHA256
+55e10ee8feb64c1d6fbea7f296061a05544c200a7789fada8d5a450dae5c135d.
+The original direct constructor-call scan yields candidates only:shared AOT
+bodies and indirect/reflection/serialized references remain separate. Actual
+runtime target identity above,not that candidate scan,binds the selected node.
+Preparation local/replay89-preparation01.json SHA256
+032b616b378b786205214f30ee358bfc90bb4ed30695ac3d9a1818df84abc509.
+Helper89 SHA256
+739531811d667f1272cbca445571e47413d499621b27b16f5446d903662c8e17;
+91-source build receipt SHA256
+2958f7db1b5e01f28fb5646a594542cd69c9db5eb5e546749983d585a8e214af.
+No original client files,assets,raw graph values or captures are added to Git.
+
+Decision:current hidden-practice button/stream/Nody data is now retained. Stop
+walking or rerunning that same context expecting a replay exit binding. Next
+review the original Replay.Load/Play entry contract and qualify a healthy replay
+owner/state through original callbacks on an owned recording. This is diagnostic
+API/lifecycle work;it must not claim a user-exposed disk selector without evidence.
+Only then inspect/qualify that replay's actual bound exit before a stateful fault.
+No new replay browser,forced menu jump or direct callback is justified by89.
+D4-RP1 stays OPEN;D6's pending physical candidate/check remains first priority.

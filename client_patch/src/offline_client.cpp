@@ -352,6 +352,7 @@ extern "C" __declspec(dllexport) void OfflineFrontUpdate(void* front,void*) {
 #include "native_replay_reader.cpp"
 #include "native_replay_playback.cpp"
 #include "replay_binding_inventory.cpp"
+#include "replay_nody_inventory.cpp"
 #include "native_quit_smoke.cpp"
 #include "native_settings_notice.cpp"
 #include "public_client.cpp"

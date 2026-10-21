@@ -221,9 +221,12 @@ Review86 resolves the conditional original in-game shutdown/menu path. Native87
 observes the loaded hidden button during healthy practice:its click event has no
 direct callback/runners;Id=Game/Quit. Native88 resolves the actual broadcast stream
 UISelectable/UIButton and its three subscribers;the Back handlers filter Back.
-Next:inspect the Nody listener's existing forwarded callback/current graph/port
-and Game/Quit payload conditions. Actual exit/current replay listener and ordinary
-replay entry remain unproven;no healthy replay Cancel/fault exercise yet.
+Native89 identifies the forwarded ShowUIObjectNode.OnUIButtonSignal and current
+31-node MainMenu graph:12MainMenu/* selectors,none Game/Quit;70links resolve.
+This is a hidden practice-time replay button,not an active replay. Stop repeating
+that context. Next:review original Replay.Load/Play entry and qualify a healthy
+replay owner/state through original callbacks on an owned recording,then its
+actual bound exit. No user-exposed disk selector or Cancel/fault pass inferred.
 No force-menu patch or repeated malformed developer-batch timeout test.
 - Close remaining invitation departure/late-return/abort-notice and multiplayer
   disconnect/restart/failure paths in every affected required mode. Survivors

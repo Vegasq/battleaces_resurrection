@@ -3,6 +3,19 @@ Updated: 2026-10-21 UTC
 Delivery plan: REMAINING_DELIVERY_PLAN.txt, Windows only.
 Original roadmap: CLOSED / SUPERSEDED;see PLAN_CLOSEOUT.txt.
 
+REPLAY NODY GRAPH89 (NATIVE PASS;ACTIVE REPLAY CONTEXT STILL NEEDED)
+Original forwarded callback resolves to ShowUIObjectNode.OnUIButtonSignal and
+its active MainMenu graph.31nodes/70resolved links/12MainMenu button selectors,
+none Game/Quit. Read-only serialized ports/events;no GetValue<T>,graph changes,
+signal or click. This is the hidden replay button during practice,not an active
+replay. Stop repeating this context for exit acceptance. Next:original Replay.
+Load/Play entry and healthy replay owner/state,then actual bound exit;ordinary
+disk UI remains unproven. Native01 PASS97.510s/practice/result/Continue/menu/
+original Quit0/no force.148producer sources/91native-source receipt/shared/
+manual71/LAN03 seals hold;12C++/25Python checks pass. No parent D4/recovery closure,
+package update or D6 candidate change. Exact scopes/hashes:replay-failure-recovery.txt.
+D6 post-restart/repeat physical check remains first priority and pending.
+
 REPLAY SIGNAL SUBSCRIBERS88 (NATIVE PASS;PAYLOAD/STREAM DISTINGUISHED)
 Game/Quit is the button payload ID;actual original broadcast is UISelectable/
 UIButton. Passive observer reads existing static s_stream without creating a
