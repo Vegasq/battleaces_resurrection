@@ -10,10 +10,15 @@ its backend/native proofs stay scoped. New native Windows Forms EXE has exactly
 game-folder/server-IP inputs,no PowerShell. Backend installs a verified versioned
 runtime in the game folder and publishes Start Battle Aces.cmd plus editable local
 config. Name/profile preserved,foreign launchers refused,config/script publication
-rolls back on failure.29focused checks pass;actual native window opens under an
+rolls back on failure.61focused checks pass;actual native window opens under an
 ExecutionPolicy Restricted parent process and rendered layout is inspected.
-Standalone embedded-payload package and actual game-local launch are next;
-no102 delivery or physical pass is inferred yet.101/manual game copies preserved.
+Clean5c007ea standalone embedded payload verifies;actual backend installs into a
+new independent game in81.668s. Actual game-folder CMD reaches menu16.398s after
+original extracted payload is renamed:installed runtime is independent. Readiness
+cleanup was forced,not normal Quit. RC-I102 automated qualification COMPLETE;
+physical second-PC UI/launch,owner first-host and LAN play remain open. DEV.txt
+N4/N5 has the new executable/copy steps. Hashes/scope:installer102.txt. Preserve
+101/manual71/startup58/LAN98 and new102 reserved artifacts. No full RC1 pass.
 
 RC1 CANDIDATE101 PREPARED / SINGLE-PC INSTALLER CHECK NEXT
 Clean db114316 packages,128/129focused checks+scoped regressions;new WinForms

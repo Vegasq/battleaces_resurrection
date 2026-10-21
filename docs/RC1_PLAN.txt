@@ -30,13 +30,17 @@ Saving from the new RC setup explicitly selects schema4 and preserves local_prof
 No plaintext fallback,OS trust-store edit,firewall edit or router configuration.
 
 Finite RC1 gates,in order
-[ ] RC-I102:new native UI and game-local runtime/launcher qualification replaces
+[x] RC-I102 automated:new native UI and game-local runtime/launcher qualification replaces
     the FAILED101 physical startup. Preserve101 backend proofs below;do not infer
     that its rendered PowerShell form worked on Nick's second PC.
     Historical101 automated:address-only setup and install/update/restore from clean packages;
     preserve decks/cosmetics/settings,show useful progress/failure,ordinary launch.
     567profile files unchanged;rendered UI inspected;ordinary CMD menu8.351s.
-    Physical button/keyboard/visual behavior remains RC-P,not inferred here.
+    102:61focused checks,actual native UI under Restricted policy,standalone
+    embedded payload verify,actual bundled install81.668s,game-folder CMD menu
+    16.398s with extracted source renamed. Forced readiness cleanup,not Quit.
+    Exact candidate hashes/reports:installer102.txt. Physical button/keyboard/
+    visual behavior remains RC-P,not inferred here.
 [ ] RC-N:actual bundled runtime self-signed TLS/open identity/reconnect check;
     auto server initialization,stable identities,no CA/invite prompts.
     [x] Two actual bundled runtimes:certificate generation,TLS/open admission,
@@ -61,9 +65,13 @@ Finite RC1 gates,in order
     guides,known limitations and no game/private files in public artifacts.
     [x] Candidate101 clean source db114316,immutable client/server ZIP hashes,
         helper100,runtime3.14.8,shipped guides and source/history audit pinned.
+    [x] Replacement102 clean source5c007ea,standalone EXE and embedded clean
+        client/server ZIP hashes,helper/runtime and scoped evidence pinned in
+        installer102.txt. Native EXE replaces policy-blocked101 default setup.
     [ ] Physical gate review and final RC-ready declaration. Do not label RC1
         accepted yet. Preserve local/rc101-packages01 and its manual test game
-        local/startup58-game01 while N4 is pending.
+        local/startup58-game01 while N4 is pending. Also preserve102 standalone,
+        packages and local/installer102-game01;new physical steps use102.
 Only these finite gates name RC1 ready. Record scoped automated subcases without
 closing a parent whose packaged/physical component is still missing. Remaining
 D2-D5/D7-D9 final-release work is retained,not silently dropped or called complete.

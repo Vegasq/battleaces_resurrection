@@ -41,8 +41,11 @@
   machine's script policy. Native installer102 replaces it with two fields and
   game-folder Start Battle Aces.cmd plus its own installed runtime. No policy
   change is requested. Keep101/manual game files frozen;use installer102-game01
-  for its isolated qualification. Supersede N4's old CMD retry only when the new
-  standalone artifact is ready,with instructions in DEV.txt.
+  for its isolated qualification. Native102 standalone and game-folder launch
+  qualification now pass;DEV.txt N4 supersedes old CMD retries. Preserve the102
+  standalone/packages and installer102-game01 while its physical check is pending.
+  D:\share is not writable in this session;N5 supplies Nick's desktop copy command
+  for the new EXE. Do not replace or stop his existing HTTP server.
 
 ## Delivery records
 

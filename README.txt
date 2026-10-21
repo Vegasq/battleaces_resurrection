@@ -1,7 +1,9 @@
 BATTLE ACES RESURRECTION - WINDOWS SERVER AND CLIENT ADAPTER
 
 RC1 is now the next milestone before physical two-PC testing. Its simpler setup
-asks for game folder,player name and server IP only;no CA or invite. It uses
+uses a standalone native Windows installer with game-folder and server-IP fields;
+it creates Start Battle Aces.cmd inside the game folder,including its own runtime.
+Player name is configurable in the game-local client-config.json;no CA or invite. It uses
 encrypted TLS with certificate verification disabled and explicit open admission.
 Existing verified deployments are preserved. See docs/RC1_PLAN.txt for the finite
 installer/package/playtest checklist and its remaining acceptance gates.
@@ -11,9 +13,9 @@ server and clients are the current target. See docs/REMAINING_DELIVERY_PLAN.txt
 for unfinished delivery work and docs/STATUS.txt for evidence. The original
 roadmap is closed/superseded;docs/PLAN_CLOSEOUT.txt records the handoff.
 docs/RELEASE_ACCEPTANCE.txt collects the remaining final release/playtest gates.
-Current source builds provide Start Client.cmd for ordinary play and Start
-Server.exe for hosting. Install the patch into a working game copy first;see
-docs/windows-client-quickstart.txt. Start Client keeps local play available
+Current source builds provide game-folder Start Battle Aces.cmd for ordinary play
+and Start Server.exe for hosting. Install into a working game copy first;see
+docs/windows-client-quickstart.txt. The client keeps local play available
 without server setup and enables public queues plus installed cosmetic choices.
 Ordinary-feature qualification and exact limitations:docs/ordinary-player-client.txt.
 

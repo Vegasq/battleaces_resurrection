@@ -33,7 +33,50 @@ game/server input visibility and Install button visibility passed. No script
 policy or registry setting was changed. Native form render inspected. This is an
 actual window/event-loop check on this PC,not physical second-PC acceptance.
 
-Current artifacts and final isolated game-folder launch evidence will be recorded
-below after the clean package/standalone payload check. Preserve old101 evidence,
-accepted manual71/startup58 and private LAN98 config. N4 will point only to the
-new EXE when it is ready. No repeated old-CMD or reboot request.
+Frozen candidate102
+Clean payload source:5c007eab335c864a826e51df54497be42f30fd78.
+Standalone:local/installer102-standalone01/BattleAces-Installer-RC1-102.exe
+SHA256:1939e536dc7a61926c3985f4ddf567d61a2b4e6d710370d4e68dac242e7c7291
+Embedded clean client ZIP:local/installer102-packages01/battleaces-client-win64.zip
+SHA256:b3e4b4c396d2abbda3fab3463c5d34a41a8a5eb1863b27d88201d098ca789678
+Server ZIP:local/installer102-packages01/battleaces-server-win64.zip
+SHA256:acbd7a9fcde22d7fc0a1ff2fc55c049f801102a0a399b27d3907c7b7f6c58385
+Helper100 SHA256:3b848de5f66aab3304ac608da7e7c08a53b8420cf94bf261f52bcd2d0ee331c2
+Python3.14.8 embed ZIP SHA256:
+a93abe456ab01bd96d7a085b3cdb6566b3063f4241360d114142fbdb07f0a310
+No original game/private files in these distributable payloads. Later evidence-only
+documentation commits do not change this pinned package source or artifact bytes.
+
+Final isolated qualification
+Standalone actual window under Restricted policy PASS:2editable visible inputs,
+Install button visible,no PowerShell. Its actual embedded payload extraction and
+bundled interpreter/package verify PASS. Report:local/installer102-standalone-ui.json
+SHA256:d6c9fe0ae310e49bf9af8057bef0edbe8bc69845698a71726e7aa119829939d9
+Payload report:local/installer102-standalone-payload.json
+SHA256:56ab468fe973b82619b1700fd174c81793c84550ed63b291ccdc9f4bda7874b1
+
+An independent full game copy local/installer102-game01 was created without
+hardlinks from startup58;source unchanged,program/catalog seals match. Actual
+extracted bundled backend install PASS81.668s,all133bundles verified,full installed
+runtime verifies,server192.168.68.66 saved,no CA/invite. The original download path
+is absent from the generated launcher. Report:local/installer102-installed-report.json
+SHA256:3612b30c710df3037b551c708069341bb956aad9a276c1313d6723d725c361a9
+Earlier PowerShell test harness stopped on legitimate stderr progress;that failed
+harness output is retained. The actual Python subprocess capture/install passed.
+
+The actual game-folder Start Battle Aces.cmd then reached native menu readiness
+in16.398s using only its installed runtime,after the original extracted payload
+directory was renamed out of reach. Config,package and shared settings unchanged;
+no automatic match/diagnostics. Owned game/wrapper reaped. This check used forced
+readiness cleanup,NOT normal Quit;it does not replace101's scoped offline gameplay/
+results/Continue/natural Quit evidence. Report:local/installer102-launcher01/verification.json
+SHA256:fb8cf3d7c75df0f78847f554886eb492ed5f048bb2503488f2c2f5ea25dbb1e9
+61test log:local/installer102-tests02.txt
+SHA256:e680833b416363c6beaf0ce7fcc87202c0bbb33df1842adfc74964849b0fcb88
+
+RC-I102 automated qualification COMPLETE. Physical second-PC controls/installer/
+launch remain DEV.txt N4;normal-owner first-host provisioning and two-PC matches
+remain open. No full RC1 acceptance inferred. Preserve old101,accepted manual71/
+startup58,LAN98 and new102 manual artifacts. No repeated old-CMD or reboot request.
+This session cannot write D:\share. DEV.txt N5 supplies a copy command for Nick;
+the existing user-owned HTTP server can serve the new EXE without restarting.
