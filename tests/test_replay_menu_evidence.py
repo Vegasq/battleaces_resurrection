@@ -3,7 +3,7 @@ import re
 import unittest
 
 from tests import test_replay_signal_evidence as fixture_module
-from tools.replay_menu_evidence import validate, COMPLETE, BUTTON_COMPLETE, CANCEL_COMPLETE
+from tools.replay_menu_evidence import validate, COMPLETE, BUTTON_COMPLETE, CANCEL_COMPLETE, INVALID_COMPLETE
 from tools.replay_binding_evidence import validate as binding
 
 
@@ -160,6 +160,39 @@ class ReplayMenuEvidenceTests(unittest.TestCase):
         with self.assertRaises(AssertionError):validate(late,self.replay,button_exit=True,cancel_first=True)
         with self.assertRaises(AssertionError):
             validate(text[:second]+text[end:],self.replay,button_exit=True,cancel_first=True)
+
+    def invalid_text(self):
+        invalid=('[0] NATIVE REPLAY INVALID dispatch: case=invalid-deflate-07 bytes=1 mainMenu=1 worldIdle=1 '
+                 'originalLoadReplayFromFile=1 fsmWrites=0 helperTicks=0\n'
+                 '[1] NATIVE REPLAY INVALID refused: originalLoadReturned=0 originalStopCalls=0 fsmWrites=0 helperTicks=0\n'
+                 '[2] NATIVE REPLAY INVALID settled: sameOwner=1 mainMenu=1 worldIdle=1 decodedDataAbsent=1 '
+                 'navigationCount=0 filePinReleased=1 originalFileReleased=1 originalStopCalls=0 fsmWrites=0 helperTicks=0\n')
+        return invalid+self.cancel_text().replace(CANCEL_COMPLETE,INVALID_COMPLETE)
+
+    def test_invalid_deflate_refusal_is_scoped_and_requires_subsequent_healthy_playback(self):
+        text=self.invalid_text()
+        result=validate(text,self.replay,button_exit=True,cancel_first=True,invalid_first=True)
+        self.assertTrue(result['invalid_deflate_refusal_qualified'])
+        self.assertTrue(result['confirmation_cancel_qualified'])
+        self.assertFalse(result['malformed_recovery_qualified'])
+        self.assertFalse(result['physical_ui_input_qualified'])
+        with self.assertRaises(AssertionError):validate(self.cancel_text(),self.replay,button_exit=True,cancel_first=True,invalid_first=True)
+        with self.assertRaises(AssertionError):validate(text,self.replay,button_exit=True,cancel_first=True)
+
+    def test_invalid_refusal_rejects_changed_owner_retained_data_or_unreleased_file(self):
+        text=self.invalid_text()
+        for before,after in [('case=invalid-deflate-07','case=other'),('originalLoadReturned=0','originalLoadReturned=1'),
+                             ('sameOwner=1','sameOwner=0'),('decodedDataAbsent=1','decodedDataAbsent=0'),
+                             ('originalFileReleased=1','originalFileReleased=0'),('originalStopCalls=0','originalStopCalls=1')]:
+            with self.subTest(before=before),self.assertRaises(AssertionError):
+                validate(text.replace(before,after),self.replay,button_exit=True,cancel_first=True,invalid_first=True)
+
+    def test_invalid_refusal_must_precede_the_healthy_load_and_cannot_replace_it(self):
+        text=self.invalid_text();load=text.index('[0] NATIVE REPLAY MENU load dispatch:')
+        with self.assertRaises(AssertionError):
+            validate(text[load:]+text[:load],self.replay,button_exit=True,cancel_first=True,invalid_first=True)
+        with self.assertRaises(AssertionError):
+            validate(text[:load]+INVALID_COMPLETE,self.replay,button_exit=True,cancel_first=True,invalid_first=True)
 
 
 if __name__ == '__main__':

@@ -23,6 +23,47 @@ static std::string lastState;
 static bool canInspect(){return probe && (stage==1 || stage==2);}
 static bool buttonMode(){return ba::flag(L"-native-replay-menu-button-smoke");}
 static bool cancelMode(){return ba::flag(L"-native-replay-menu-cancel-smoke");}
+static bool invalidMode(){return ba::flag(L"-native-replay-menu-invalid-smoke");}
+static bool invalidStarted=false,invalidSettled=false;
+static ULONGLONG invalidAfter=0;
+static bool invalidFile(Obj front,Obj replay,Obj simulation) {
+    if(invalidSettled)return true;
+    if(!invalidStarted) {
+        probe=std::make_unique<Probe>(ba::owner,front,replay,simulation);
+        const auto path=ba_native_storage::destination(ba_native_storage::Kind::Replays).directory.apiPath()+
+            L"\\authored-retention-invalid-menu.rep";
+        ba_native_settings::Handle pin(CreateFileW(path.c_str(),GENERIC_READ,FILE_SHARE_READ,nullptr,OPEN_EXISTING,
+            FILE_FLAG_OPEN_REPARSE_POINT,nullptr));ba_native_settings::ordinary(pin.value);
+        LARGE_INTEGER size{};unsigned char byte=0;DWORD read=0;
+        require(GetFileSizeEx(pin.value,&size) && size.QuadPart==1 && ReadFile(pin.value,&byte,1,&read,nullptr) &&
+            read==1 && byte==7,"replay malformed control requires the exact authored invalid Deflate byte");
+        wchar_t final[32768];const auto count=GetFinalPathNameByHandleW(pin.value,final,32768,FILE_NAME_NORMALIZED|VOLUME_NAME_DOS);
+        require(count && count<32768 && !_wcsicmp(final,path.c_str()),"replay malformed file escapes the owned directory");
+        Root selected(ba::api<Obj(*)(const wchar_t*,int32_t)>("il2cpp_string_new_utf16")(path.data(),static_cast<int32_t>(path.size())));
+        invalidStarted=true;
+        ba::log("NATIVE REPLAY INVALID dispatch: case=invalid-deflate-07 bytes=1 mainMenu=1 worldIdle=1 originalLoadReplayFromFile=1 fsmWrites=0 helperTicks=0");
+        void* args[]={selected.get()};
+        Root loaded(codec::invoke(codec::method(ba::klass(replay),"LoadReplayFromFile",1,0x3dddab0,0x06000952),replay,args));
+        require(loaded.get() && !ba_catalog::unbox<bool>(loaded.get()),"original malformed replay load did not refuse");
+        ba::log("NATIVE REPLAY INVALID refused: originalLoadReturned=0 originalStopCalls=0 fsmWrites=0 helperTicks=0");
+        invalidAfter=GetTickCount64()+250;return false;
+    }
+    require(probe && probe->owner.get()==ba::owner && probe->front.get()==front &&
+        probe->replay.get()==replay && probe->simulation.get()==simulation &&
+        !ba::get<Obj>(replay,"_gameData") && !ba::read<uint64_t>(simulation,0x1a8) &&
+        !ba::read<bool>(simulation,0x1a0),"malformed replay refusal left changed owner/data/world");
+    if(GetTickCount64()<invalidAfter)return false;
+    Root navigation(ba::get<Obj>(ba::owner,"<NavigationStack>k__BackingField"));
+    Root entries(ba::get<Obj>(navigation.get(),"_navigationStack"));
+    require(ba_local::count(entries.get())==0,"malformed replay refusal left a navigation entry");
+    const auto path=ba_native_storage::destination(ba_native_storage::Kind::Replays).directory.apiPath()+
+        L"\\authored-retention-invalid-menu.rep";
+    ba_native_settings::Handle exclusive(CreateFileW(path.c_str(),GENERIC_READ,0,nullptr,OPEN_EXISTING,
+        FILE_FLAG_OPEN_REPARSE_POINT,nullptr));ba_native_settings::ordinary(exclusive.value);
+    invalidSettled=true;
+    ba::log("NATIVE REPLAY INVALID settled: sameOwner=1 mainMenu=1 worldIdle=1 decodedDataAbsent=1 navigationCount=0 filePinReleased=1 originalFileReleased=1 originalStopCalls=0 fsmWrites=0 helperTicks=0");
+    return true;
+}
 static void componentInventory(Obj button) {
     Root type(ui::reflectedType("UnityEngine","Component"));
     auto transform=std::make_unique<Root>(ba::call(button,"get_transform"));
@@ -189,6 +230,7 @@ static void update(Obj front) {
             ba::flag(L"-replay-nody-inventory") && !ba::flag(L"-practice-ai-smoke") &&
             !ba::flag(L"-native-replay-playback-smoke"),"replay menu control requires one owned diagnostic API sequence");
         require(!cancelMode() || buttonMode(),"replay Cancel control requires the original authored leave route");
+        require(!invalidMode() || (buttonMode() && cancelMode()),"replay invalid-file control requires subsequent healthy Cancel/reopen/exit");
         const auto& profile=ba_native_settings::session->profile();const std::string prefix="nativestest_replayui_";
         require(profile.size()==prefix.size()+12 && profile.rfind(prefix,0)==0 &&
             profile.find_first_not_of("0123456789abcdef",prefix.size())==std::string::npos,
@@ -198,6 +240,7 @@ static void update(Obj front) {
         if(state!=lastState){lastState=state;ba::log("NATIVE REPLAY MENU state: stage=%u state=%s",stage,state.c_str());}
         const auto now=GetTickCount64();
         if(stage==0) {
+            if(deadline)require(now<deadline,"replay menu entry deadline");
             if(!ba_local_menu::ready(front) || !ba_dedicated_session::inMenu() || !ba_client::nativeIdle(front))return;
             if(!deadline){deadline=now+60000;due=now+2500;return;}
             require(now<deadline,"replay menu entry deadline");
@@ -208,6 +251,7 @@ static void update(Obj front) {
             require(replay.get() && codec::type("Uncapped","Replay","RGame.dll")==ba::klass(replay.get()) &&
                 simulation.get() && !ba::read<uint64_t>(simulation.get(),0x1a8) &&
                 !ba::get<Obj>(replay.get(),"_gameData"),"replay menu refuses preexisting replay/world data");
+            if(invalidMode() && !invalidFile(front,replay.get(),simulation.get()))return;
             probe=std::make_unique<Probe>(ba::owner,front,replay.get(),simulation.get());
             auto& directory=ba_native_storage::destination(ba_native_storage::Kind::Replays);
             const auto selected=directory.directory.apiPath()+L"\\native-menu-replay.rep";
@@ -272,8 +316,10 @@ static void update(Obj front) {
                 !ba::read<bool>(probe->simulation.get(),0x1a0) && !ba_practice::active() &&
                 ba_client::worldOwner==ba_client::Owner::None,"replay menu exit did not release the original world");
             if(cancelMode())require(probe->cancelSettled && probe->leaveCalls==2,"replay Cancel/reopen sequence incomplete");
+            if(invalidMode())require(invalidSettled,"malformed replay refusal was not qualified before healthy playback");
             probe.reset();stage=4;
-            if(cancelMode())ba::log("NATIVE REPLAY MENU CANCEL control passed: mainMenu=1 worldIdle=1 originalExitApi=0 probeRootsReleased=1 filePinReleased=1 buttonClicks=2 cancelCallbacks=1 fsmWrites=0 helperTicks=0 BA_RESURRECTION_REPLAY_MENU_CANCEL_V1");
+            if(invalidMode())ba::log("NATIVE REPLAY MENU INVALID control passed: originalBadFileRefused=1 subsequentHealthyPlayback=1 mainMenu=1 worldIdle=1 originalExitApi=0 probeRootsReleased=1 filePinReleased=1 buttonClicks=2 cancelCallbacks=1 originalStopCalls=0 fsmWrites=0 helperTicks=0 BA_RESURRECTION_REPLAY_MENU_INVALID_V1");
+            else if(cancelMode())ba::log("NATIVE REPLAY MENU CANCEL control passed: mainMenu=1 worldIdle=1 originalExitApi=0 probeRootsReleased=1 filePinReleased=1 buttonClicks=2 cancelCallbacks=1 fsmWrites=0 helperTicks=0 BA_RESURRECTION_REPLAY_MENU_CANCEL_V1");
             else if(buttonMode())ba::log("NATIVE REPLAY MENU BUTTON control passed: mainMenu=1 worldIdle=1 originalExitApi=0 probeRootsReleased=1 filePinReleased=1 buttonClicks=1 fsmWrites=0 helperTicks=0 BA_RESURRECTION_REPLAY_MENU_BUTTON_V2");
             else ba::log("NATIVE REPLAY MENU API control passed: mainMenu=1 worldIdle=1 originalExitApi=1 probeRootsReleased=1 filePinReleased=1 buttonClicks=0 fsmWrites=0 helperTicks=0 BA_RESURRECTION_REPLAY_MENU_V1");
         }

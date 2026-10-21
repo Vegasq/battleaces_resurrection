@@ -36,6 +36,9 @@ def sources():
 
 
 def run(args):
+    invalid_first=getattr(args,'invalid_first',False)
+    require(not invalid_first or (getattr(args,'button_exit',False) and getattr(args,'cancel_first',False)),
+            '--invalid-first requires --button-exit and --cancel-first')
     game, output, source_report = (p.resolve() for p in (args.game, args.output, args.source_verification))
     require(args.visible and 60 <= args.timeout <= 300 and all(p.is_relative_to(ROOT/'local') for p in
             (game, output, source_report)), 'owned bounded graphical Windows control required')
@@ -56,6 +59,12 @@ def run(args):
     seed = folder/'AutoSaveReplays/native-menu-replay.rep'
     with api_path(seed).open('xb') as stream:
         stream.write(raw)
+    invalid_seed=None
+    if invalid_first:
+        # The existing owned codec enumerator excludes authored-retention-*;
+        # only the explicit high-level malformed control opens this file.
+        invalid_seed=folder/'AutoSaveReplays/authored-retention-invalid-menu.rep'
+        with api_path(invalid_seed).open('xb') as stream:stream.write(bytes([7]))
     report = dict(passed=False, scope=__doc__, profile=profile, replay=replay,
                   source_verification=str(source_report), source_verification_sha256=sha(source_report),
                   source_replay=str(original), seed=str(seed), sources_before=sources())
@@ -63,6 +72,8 @@ def run(args):
     cancel_first=getattr(args,'cancel_first',False)
     require(not cancel_first or button_exit,'--cancel-first requires --button-exit')
     report['cancel_first']=cancel_first
+    report['invalid_first']=invalid_first
+    if invalid_seed:report['invalid_seed']=dict(path=str(invalid_seed),bytes=1,sha256=sha(invalid_seed))
     report['exit_route']='original-visible-button' if button_exit else 'original-exit-api'
     stop = threading.Event()
     process = thread = None
@@ -75,7 +86,7 @@ def run(args):
         try:
             while not stop.wait(.05) and process.poll() is None:
                 text = read_native_log(game, process.pid, since_tick=tick)
-                completed=evidence.CANCEL_COMPLETE if cancel_first else evidence.BUTTON_COMPLETE if button_exit else evidence.COMPLETE
+                completed=evidence.INVALID_COMPLETE if invalid_first else evidence.CANCEL_COMPLETE if cancel_first else evidence.BUTTON_COMPLETE if button_exit else evidence.COMPLETE
                 failed_cleanup=(button_exit and 'Native replay menu control failed:' in text and
                     'NATIVE REPLAY BUTTON failure cleanup:' in text)
                 if completed not in text and not failed_cleanup:
@@ -104,6 +115,7 @@ def run(args):
                   '-replay-signal-inventory', '-replay-nody-inventory']
         if button_exit:extras.append('-native-replay-menu-button-smoke')
         if cancel_first:extras.append('-native-replay-menu-cancel-smoke')
+        if invalid_first:extras.append('-native-replay-menu-invalid-smoke')
         require(not any(flag in command for flag in extras), 'replay control already injected')
         report['quit_control_arguments_before_adapter'] = list(command)
         command.extend(extras)
@@ -131,7 +143,7 @@ def run(args):
         require(native['passed'] is True and native['natural_exit'] is True and not native['forced_cleanup'] and
                 native['exit_code'] == 0 and report.get('quit_gate_released') is True and not gate_errors,
                 'original replay API cleanup/natural Quit incomplete')
-        report['entry'] = evidence.validate((output/'native-quit/native.log').read_text(), replay,button_exit=button_exit,cancel_first=cancel_first)
+        report['entry'] = evidence.validate((output/'native-quit/native.log').read_text(), replay,button_exit=button_exit,cancel_first=cancel_first,invalid_first=invalid_first)
         report['passed'] = True
     except BaseException as error:
         report.update(passed=False, error=repr(error), traceback=traceback.format_exc())
@@ -147,9 +159,10 @@ def run(args):
                           source_unchanged=api_path(original).read_bytes() == raw and source_report.read_bytes() == source_raw,
                           sources_after=sources())
             report['sources_unchanged'] = report['sources_before'] == report['sources_after']
+            report['invalid_seed_unchanged']=invalid_seed is None or api_path(invalid_seed).read_bytes()==bytes([7])
         except BaseException as error:
             report.update(passed=False, final_file_check_error=repr(error))
-        report['passed'] &= all(report[k] for k in ('monitor_stopped', 'seed_unchanged', 'source_unchanged', 'sources_unchanged'))
+        report['passed'] &= all(report.get(k,False) for k in ('monitor_stopped', 'seed_unchanged', 'source_unchanged', 'sources_unchanged','invalid_seed_unchanged'))
         (output/'verification.json').write_text(json.dumps(report, indent=2)+'\n', encoding='utf-8')
     print(json.dumps({k: report[k] for k in ('passed', 'pid', 'natural_exit', 'forced_cleanup', 'error') if k in report}))
     return 0 if report['passed'] else 1
@@ -162,5 +175,6 @@ if __name__ == '__main__':
     parser.add_argument('--visible', action='store_true')
     parser.add_argument('--button-exit',action='store_true',help='invoke the existing leave input binding and original owned confirmation; no physical-input claim')
     parser.add_argument('--cancel-first',action='store_true',help='Cancel the first confirmation, require same-world playback, then reopen and Confirm')
+    parser.add_argument('--invalid-first',action='store_true',help='first refuse an owned invalid Deflate file through the original high-level loader')
     parser.add_argument('--timeout', type=int, default=180)
     raise SystemExit(run(parser.parse_args()))

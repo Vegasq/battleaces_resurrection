@@ -1,6 +1,71 @@
 REPLAY RECOVERY FINDING55 -- 2026-10-20
 Plan item:D4-RP1. Status:OPEN;malformed batch recovery is NOT qualified.
 
+96 high-level invalid Deflate refusal and subsequent playback -- native PASS
+Original LoadReplayFromFile3dddab0/token06000952 wraps FileStream/LoadFromStream,
+disposes the file on failure,logs the original error and returns false. Its
+LoadFromStream3ddd390 parses through Deflate/CodedInputStream before calling
+Replay.Load/Play. Invalid Deflate therefore fails before decoded data applies.
+Hash-checked IL2CPP/LLVM original-byte review qualifies this separate handler;
+it is not new REA/Ghidra native Evidence. The known55 ReplayFiles coroutine
+failure is a different diagnostic caller;no repeat batch-timeout test is needed.
+
+The opt-in --invalid-first requires subsequent original healthy Cancel/reopen/
+exit. It seeds ONLY a fresh owned profile's authored-retention-invalid-menu.rep
+with byte07,hash-pins it,then checks the exact ordinary file identity/size/byte
+before original LoadReplayFromFile. The original loader must return false. After
+250ms,the same owner/Replay/simulation must have no decoded data or native world,
+remain in the actual idle menu with navigation0,and permit an exclusive read
+reopen of the bad file. No helper Stop/clear/FSM write is used. Only then can the
+same process run its healthy file loader/world/confirmation Cancel/reopen/Confirm
+and normal Quit. The authored-retention prefix excludes ONLY the controlled bad
+fixture from the independent healthy-codec file selector;it is still opened by
+the explicit high-level error test. Fixture contents must remain unchanged.
+
+Native01/PID9600 PASS42.344469s,first96 runtime attempt. Original game log reports
+System.IO.IOException during decompression;high-level Load returns false. Native
+owner/data/world/navigation/file-release checks pass,then the same process
+decodes3607healthy frames,presents30,Cancel preserves world progression132->136,
+fresh original leave/Confirm returns to menu and original Quit0 exits/reaps
+naturally,no forced cleanup. Monitor stops;all156producer hashes,both fixtures,
+original recording and shared settings stay unchanged. Current95-source helper
+receipt and installed/manual71/LAN03 program/catalog seals reverify;practice
+preference stays absent. No server/package rebuild or frozen candidate change.
+
+13native build checks and40focused Python tests pass. Rejection controls cover
+unexpected successful bad load,changed owner/retained decoded data,unreleased
+file,helper Stop,wrong case and bad-refusal markers after healthy playback or
+without subsequent healthy replay. invalid_deflate_refusal_qualified=true is
+deliberately separate from malformed_recovery_qualified=false. This closes one
+stateful high-level refusal/reusability case,not every malformed payload,physical
+file selection,visible warning or partial-world-initialization recovery.
+
+local/replay96-invalid-native01/verification.json SHA256
+5a2f19fd9a9f9d5681eebd945869d7406c3d0fbcb6798caee48e8ad897868152
+Inner native-quit/verification.json SHA256
+1da98de8e03aa3bf5ae95f3389626588f27d6000508741919bbe9a1cfd7dedb0
+local/replay96-retained-review.json SHA256
+8d44362f68fb95e5005b97640c4a87de866206f834fa4e78d5af479a48df529b
+local/replay96-load-contract/manifest.json SHA256
+8c8253010d1be48313e8709f8c2fbd2f73632b85f0ddc20cdf6f0060fe70c25e
+Preparation local/replay96-preparation01.json SHA256
+d2b2cd8b5cb36366f59db658a8bfa15460b5f69c692cead33dfa2ba7986f3409
+Helper96-01 SHA256
+1a96ac3f6c24b66530229a464711480c0694fce939d57d8e9228b0e08979ccda
+Build receipt SHA256
+2006f35c21f71985da57bf8fe5b2ac2a6a242e4c30eb0c7cee73151bf7ee2c3f
+
+Finite remaining stateful error classes:parsed empty/missing GameData crosses
+the original Replay.Load boundary;decoded incompatible data/partial initialize
+crosses later validation/world ownership. Review their original guards first,
+then exercise only the missing original caller/state scope with subsequent
+usable owner/healthy playback. Existing29 covers six original parser rejection/
+cleanup cases;96 covers the caller after an actual IOException. Do not collect
+another series of equivalent parse-only errors. Loading/error Cancel needs an
+identified original user-facing route;the high-level loader reviewed here is
+synchronous. No new replay browser/Cancel UI is implied by unqualified scope.
+D4 stays OPEN. DEV.txt N2 still has no new answer/report;no repeat request.
+
 95 original replay confirmation Cancel/reopen/Confirm -- native PASS
 Explicit --button-exit --cancel-first adds only an owned diagnostic sequence;
 normal launchers and94's default authored-exit control stay unchanged. Before

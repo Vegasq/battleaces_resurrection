@@ -212,6 +212,11 @@ Completed subcases (same-PC packaged automated controls; two human clients):
 All four include results/Continue/natural Quit and owned-resource cleanup;
 team-recovery.txt binds the exact reports, scope and injected-worker outcomes.
 Additional scoped source/native qualification (not the same packaged controls):
+[x] Original high-level invalid Deflate refusal/reusability96:actual IOException,
+    Load false,unchanged idle owner/data absent/world0/navigation0/exclusive file
+    reopen,then3607-frame healthy playback/Cancel/reopen/Confirm/Quit0 in SAME
+    process,no force/helper Stop/FSM write. Not parsed semantic/partial-init
+    recovery,physical warning/file selection or parent D4 closure.
 [x] Healthy replay confirmation Cancel/reopen/Confirm95:original OnCancel releases
     the owned modal/navigation,same Replay/GameData/world advances130->134,then
     fresh original options/leave/Confirm/menu/world idle/natural Quit0,no force.
@@ -228,28 +233,18 @@ Additional scoped source/native qualification (not the same packaged controls):
     leases/full17slots/two workers0. Fixture TLS/forced final remote-client
     cleanup;not bound replay UI,Cancel/malformed recovery or parent D4 closure.
 Reuse those proofs;remaining full-human/other timings/physical/fault cases stay open.
-Current replay follow-up:D4-RP1 in replay-failure-recovery.txt. Healthy batch
-passes;malformed developer-batch noncompletion is retained. Review56 confirms
-ordinary entry does not select that diagnostic,and Stop clears current state.
-Ordinary malformed-load recovery remains unproven. Trace existing replay Leave
-binding/owner return before another fault run;stateful fault/cancel scope stays open.
-Review86 resolves the conditional original in-game shutdown/menu path. Native87
-observes the loaded hidden button during healthy practice:its click event has no
-direct callback/runners;Id=Game/Quit. Native88 resolves the actual broadcast stream
-UISelectable/UIButton and its three subscribers;the Back handlers filter Back.
-Native89 identifies the forwarded ShowUIObjectNode.OnUIButtonSignal and current
-31-node MainMenu graph:12MainMenu/* selectors,none Game/Quit;70links resolve.
-This is a hidden practice-time replay button,not an active replay. Stop repeating
-that context. Native90 now qualifies original normal-menu Load/Play,restored
-replay pump,advancing world/in-game owner and original exit API/menu/Quit0.
-Local AI/result/Continue/Quit and ordinary Custom/rematch shared-hook91
-regressions also pass.94 now qualifies the original options/authored input-binding
-and existing modal confirmation callbacks through menu/Quit0.95 now qualifies
-confirmation Cancel preserving an advancing replay,then original leave/Confirm
-on that same world. Next is original high-level malformed-file load/refusal,
-actual usable/cleared owner state and subsequent healthy playback/exit in the
-same process. No loading/error Cancel,physical pointer/user-exposed disk selector
-or malformed fault pass inferred. Exact reports:replay-failure-recovery.txt.
+Current replay follow-up:D4-RP1 in replay-failure-recovery.txt.90/91 qualify the
+original replay pump,healthy entry/API exit and local/remote shared-hook guards;
+94/95 qualify authored leave/confirmation Cancel/reopen;96 qualifies high-level
+invalid Deflate refusal followed by healthy playback/exit in the same process.
+Next finite error classes:parsed empty/missing GameData,and decoded incompatible
+data/partial initialization. Review original Replay.Load validation/owner guards
+before exercising those missing caller/state scopes. Reuse29's six parser cases;
+do not repeat equivalent parse-only errors or the known55 developer-batch timeout.
+That diagnostic's noncompletion is retained;ordinary entry never selects it.
+No physical pointer/visible-warning/file-selection or broad semantic-recovery
+pass inferred. No new replay browser or Cancel UI is required by an unqualified
+scope;loading/error Cancel first needs an identified original reachable control.
 No force-menu patch or repeated malformed developer-batch timeout test.
 - Close remaining invitation departure/late-return/abort-notice and multiplayer
   disconnect/restart/failure paths in every affected required mode. Survivors

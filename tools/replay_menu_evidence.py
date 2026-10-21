@@ -15,10 +15,14 @@ BUTTON_COMPLETE = ('NATIVE REPLAY MENU BUTTON control passed: mainMenu=1 worldId
 CANCEL_COMPLETE = ('NATIVE REPLAY MENU CANCEL control passed: mainMenu=1 worldIdle=1 originalExitApi=0 '
                    'probeRootsReleased=1 filePinReleased=1 buttonClicks=2 cancelCallbacks=1 fsmWrites=0 helperTicks=0 '
                    'BA_RESURRECTION_REPLAY_MENU_CANCEL_V1')
+INVALID_COMPLETE = ('NATIVE REPLAY MENU INVALID control passed: originalBadFileRefused=1 subsequentHealthyPlayback=1 '
+                    'mainMenu=1 worldIdle=1 originalExitApi=0 probeRootsReleased=1 filePinReleased=1 buttonClicks=2 '
+                    'cancelCallbacks=1 originalStopCalls=0 fsmWrites=0 helperTicks=0 BA_RESURRECTION_REPLAY_MENU_INVALID_V1')
 
 
-def validate(text, replay, *, button_exit=False, cancel_first=False):
+def validate(text, replay, *, button_exit=False, cancel_first=False, invalid_first=False):
     require(not cancel_first or button_exit,'Cancel requires the authored leave route')
+    require(not invalid_first or cancel_first,'Invalid-file control requires subsequent healthy Cancel/reopen/exit')
     cycles=2 if cancel_first else 1
     require('Native replay menu control failed:' not in text, 'native menu/replay API control failed')
     require(text.count('Original replay runner update restored: primaryIntegration=1 originalPredicate=1 helperTicks=0') == 1 and
@@ -38,9 +42,20 @@ def validate(text, replay, *, button_exit=False, cancel_first=False):
             'original replay metadata/world/presentation differs')
     exit_api = 'NATIVE REPLAY MENU exit API dispatch: originalReplayEndGame=1 buttonClicks=0 fsmWrites=0 helperTicks=0'
     returned = 'NATIVE REPLAY MENU exit API returned: originalCallbackReturned=1'
-    completed=CANCEL_COMPLETE if cancel_first else BUTTON_COMPLETE if button_exit else COMPLETE
+    completed=INVALID_COMPLETE if invalid_first else CANCEL_COMPLETE if cancel_first else BUTTON_COMPLETE if button_exit else COMPLETE
     require(cancel_first or 'NATIVE REPLAY BUTTON cancel ' not in text and CANCEL_COMPLETE not in text,
             'unexpected Cancel control evidence')
+    require(invalid_first or 'NATIVE REPLAY INVALID ' not in text and INVALID_COMPLETE not in text,
+            'unexpected invalid-file control evidence')
+    if invalid_first:
+        invalid_markers=[
+            'NATIVE REPLAY INVALID dispatch: case=invalid-deflate-07 bytes=1 mainMenu=1 worldIdle=1 originalLoadReplayFromFile=1 fsmWrites=0 helperTicks=0',
+            'NATIVE REPLAY INVALID refused: originalLoadReturned=0 originalStopCalls=0 fsmWrites=0 helperTicks=0',
+            'NATIVE REPLAY INVALID settled: sameOwner=1 mainMenu=1 worldIdle=1 decodedDataAbsent=1 navigationCount=0 filePinReleased=1 originalFileReleased=1 originalStopCalls=0 fsmWrites=0 helperTicks=0']
+        invalid_positions=[text.find(m) for m in invalid_markers]
+        require(all(text.count(m)==1 for m in invalid_markers) and invalid_positions==sorted(invalid_positions) and
+                invalid_positions[-1]<text.index(load[0]),
+                'original invalid Deflate refusal/owner/file cleanup did not precede healthy playback')
     if button_exit:
         require('NATIVE REPLAY MENU exit API dispatch:' not in text and COMPLETE not in text and
                 'NATIVE REPLAY BUTTON failure cleanup:' not in text,'button control used exit API cleanup')
@@ -114,4 +129,5 @@ def validate(text, replay, *, button_exit=False, cancel_first=False):
                 button_clicks=cycles if button_exit else 0, helper_ticks=0, helper_fsm_writes=0,
                 user_exposed_disk_selection_qualified=False, bound_button_exit_qualified=button_exit,
                 original_options_opened=button_exit,visible_button=visible,physical_ui_input_qualified=False,
-                confirmation_cancel_qualified=cancel_first,malformed_recovery_qualified=False)
+                confirmation_cancel_qualified=cancel_first,invalid_deflate_refusal_qualified=invalid_first,
+                malformed_recovery_qualified=False)

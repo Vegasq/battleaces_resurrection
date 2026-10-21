@@ -3,6 +3,20 @@ Updated: 2026-10-21 UTC
 Delivery plan: REMAINING_DELIVERY_PLAN.txt, Windows only.
 Original roadmap: CLOSED / SUPERSEDED;see PLAN_CLOSEOUT.txt.
 
+REPLAY96 HIGH-LEVEL INVALID DEFLATE REFUSAL/REUSABILITY PASS
+Original loader logs IOException/returns false on the exact owned byte07 file.
+Same owner/Replay/simulation remains in idle menu,data absent/world0/navigation0;
+exclusive reopen proves original file release. No helper Stop/clear/FSM write.
+SAME process then decodes3607healthy frames,Cancel preserves132->136,original
+leave/Confirm/menu/Quit0/reap,no force,in42.344s.156producer/original/fixture/shared
+hashes stable,current helper95-source receipt and installed/manual71/LAN03 seals
+reverify;13native/40Python checks pass. This closes the high-level invalid Deflate
+case,not all malformed input/semantic partial-init/physical warning/file selection.
+Next finite classes are parsed empty/missing GameData and decoded incompatible
+data/partial initialization;review original Load guards before more runtime work.
+Known malformed developer-batch failure stays retained,not rerun. D4 remains
+OPEN;D1/N2 retry still pending. Exact evidence:replay-failure-recovery.txt.
+
 REPLAY95 CONFIRMATION CANCEL/REOPEN/CONFIRM PASS
 Explicit owned native control invokes original OnCancel after verifying current
 model/pool/navigation/CancelButton binding,CloseOnCancel and an empty CancelEvent.
