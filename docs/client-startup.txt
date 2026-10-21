@@ -1,5 +1,16 @@
 CLIENT STARTUP TIMING (updated 2026-10-20)
 
+Owner result reviewed93,2026-10-21:D6 CLOSED
+DEV.txt N1 confirms first launch after an actual Windows restart:approximately
+20s to usable menu,2s repeat,window/sound15s. Try Deck vs AI -> result -> Continue
+-> normal Quit works;Nick reports no loading/freezing/control issues. Execution
+date is not supplied. These are approximate physical observations,not native
+instrumented timings. Manual71 program/catalog/component seals and immutable
+package verify unchanged in local/owner93-retained-review.json. Combined with
+the retained implementation/package/recovery/native71 evidence,this closes C4
+and D6. It does not close unrelated final-release/cross-PC/mode/deployment gates.
+Historical pending statements below describe the earlier evidence state.
+
 2026-10-20 production D6 implementation71 / post-install-warm native PASS
 Reversible installer verifies133 supported local bundles,changes only original
 catalog CRC values to0 and preserves the original catalog for restore. Ordinary

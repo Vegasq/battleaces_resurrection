@@ -21,10 +21,11 @@
   from actual evidence. An empty answer or elapsed time is not a result.
 - Keep pending requests visible. Archive completed or superseded requests with
   their result and reason; do not silently delete them or reset the answer form.
-- D6 startup acceptance is Nick's current priority. Keep its prepared manual71
-  candidate unchanged while its physical restart-first/repeat check is pending.
-  Independent work must preserve that candidate and cannot substitute a warm
-  automated launch for the pending physical observation.
+- D6 startup acceptance closed on owner-result review93: post-reboot menu20s,
+  repeat2s and visible AI/results/Continue/Quit without issues. Preserve the
+  accepted manual71 candidate; do not request that completed check again.
+  D1's corrected LAN setup93 is the next operator milestone. Preserve the old
+  failed53 configuration/private files and Nick's original answers.
 
 ## Delivery records
 

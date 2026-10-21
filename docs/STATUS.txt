@@ -3,6 +3,21 @@ Updated: 2026-10-21 UTC
 Delivery plan: REMAINING_DELIVERY_PLAN.txt, Windows only.
 Original roadmap: CLOSED / SUPERSEDED;see PLAN_CLOSEOUT.txt.
 
+OWNER RESULTS93 / D6 CLOSED / LAN SETUP FIX
+DEV.txt N1:post-Windows-restart usable menu~20s,repeat~2s,window/sound~15s;
+Try Deck/results/Continue/normal Quit works,no issues. Manual71 seals/package
+still verify. Combined with71 engineering/package evidence,D6-C4 and D6 close.
+N3/owner-console40 protected active-match PASS:two40-frame TLS/scripted-peer
+matches,Ctrl+C/worker0/restart same port/data/identities,job20/0/0/no force.
+Current production/launcher/driver hashes agree. This closes a D7 subcase only.
+N2/setup53 fails native_host_check. Real config readback reproduces TLS files
+under data rejection. Corrected coordinator uses private config storage;6focused
+tests pass. Fresh identical53 archives/local verified assets prepared as93;
+restricted bundled preflight refuses with no private operations/config writes.
+Failed53 data/report preserved;N2's fresh normal-account retry is in DEV.txt.
+No game/listening server launched in this follow-up. See client-startup.txt,
+server-console.txt,lan-playtest-candidate.txt. D1 and D2-D5/D7-D9 remain OPEN.
+
 REPLAY91 SHARED-HOOK REGRESSION PASS
 Same helper90-02 passes ordinary-option two-native-client Custom match/rematch
 in73.487s. Original Invite/Accept/Start/result/Continue retain one lobby/two

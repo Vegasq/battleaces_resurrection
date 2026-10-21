@@ -43,24 +43,24 @@ These results keep their documented scope; they do not prove the remaining
 ordinary/cross-PC/Internet/deployment matrix. See STATUS.txt and focused records.
 
 Delivery order
-D6 remains the user's first priority,reaffirmed2026-10-21. Production fix/native/
-package checks71 pass;only physical restart-first/repeat/visible controls remain.
-The prepared ordinary manual71 package/game/configuration must stay unchanged.
-DEV.txt is the single request/answer file:N1 is this D6 check,N2 the prepared
-D1 LAN setup,N3 the protected D7 active-console check. Check answers and public
-reports before repeating requests. See AGENTS.md for the communication rule.
-Independent finite work on the separate automated copy may proceed while physical
-results are pending;it cannot replace cold acceptance or alter the manual/LAN
-candidates. Any reported D6 defect takes immediate priority. Do not repeat warm
-D6 batches as acceptance. D7 precedes final D8/D9.
-After D6, resume D1 and close D2-D4 with planned playtests and targeted fixes.
+D6 CLOSED on review93:Nick reports post-reboot menu20s,repeat2s,window/sound15s,
+Try Deck/results/Continue/Quit works,no issues. Manual71 seals/package still pass.
+Preserve that accepted candidate;do not repeat warm D6 batches as acceptance.
+D1 is next:old setup53 failed the production TLS path rule;corrected fresh93
+setup is prepared without overwriting old private/configuration files. DEV.txt
+N2 records the single pending retry;N1 and N3 have reviewed results. Protected
+active-console40 PASS closes that D7 subcase,not SCM/backup/clean-PC deployment.
+Check DEV.txt answers/public reports before repeating requests. D7 precedes D8/D9.
+Close D2-D4 with planned playtests and targeted fixes after the LAN milestone.
 For D2-D4,list the finite remaining cases against retained evidence before more tests;
 each pass closes its named subcase, not the broader parent. D5-D8 retain their
 explicit independent gates; D9 closes only after those release gates pass.
 
 [ ] D1 - Complete the prepared two-PC LAN milestone
-Next action: normal desktop run of local/friends53-owner-setup01/
-LAN Playtest Setup.cmd. Its last-report.json is absent at closeout.
+Next action: normal desktop run of local/friends93-owner-setup01/
+LAN Playtest Setup.cmd. Failed53 report retained;invites revoked.93 moves private
+TLS into config/private,passes real production configuration regression,verified
+package/assets and restricted no-private-write preflight. Owner retry pending.
 - Confirm protected certificate/invite creation, host enrollment and native health
   with the real packaged code. Transfer only friend-handoff to the second PC.
 - On that PC, patch its own build37822 copy, confirm CA hash, enroll its own
@@ -275,7 +275,7 @@ are scoped inputs, not a completion substitute.
 References: telemetry.txt, telemetry-internal-config.txt,
 telemetry-persistent-observation.txt and nvidia-shutdown.txt.
 
-[ ] D6 - Resolve intermittent slow initialization
+[x] D6 - Resolve intermittent slow initialization
 IMMEDIATE PRIORITY by user request,2026-10-20.
 Ordinary63 reproduces223.719s launch-to-initial-state without an observer.
 [x] D6-C1:actual slow original task/pump capture64. Start107.515s;outer50 tasks
@@ -296,24 +296,25 @@ Ordinary63 reproduces223.719s launch-to-initial-state without an observer.
     bundle hashes,original catalog recovery,atomic rollback/refusal,unchanged
     native Tasks and explicit package inclusion are implemented;80focused tests
     reportOK. Native71 completes three normal Quits,including AI/result/Continue.
-[ ] D6-C4:qualify fresh package install/restore/reinstall,ordinary entry and full
+[x] D6-C4:qualify fresh package install/restore/reinstall,ordinary entry and full
     practice lifecycle,then physical first launch after a Windows restart and
-    repeat launch with truthful loading feedback. Post-install/native71 is warm,
-    not cold acceptance. D6 parent remains OPEN until this scope is satisfied
-    or the remaining measured limitation is explicitly accepted.
+    repeat launch with truthful loading feedback. Automated71 retains its warm
+    scope;Nick's separate post-reboot physical observation below closes the gate.
     Automated parts PASS71:clean ea541760 isolated21imports,exact catalog/
     component restore/reinstall/personal preservation,actual Start Client menu
     7.739s,and217.544s bundled AI/result/Continue/natural Quit0/job2/0/0 with
-    48moving ordered bot entities. Only physical restart-cold/repeat launch and
-    visible controls remain;owner observation requested once,pending. Ordinary
+    48moving ordered bot entities. Owner's physical result now passes. Ordinary
     offline entry:local/startup71-packages01/battleaces-client-win64/Start Client.cmd.
     [x] C4 automated package/recovery/ordinary-entry/full-AI lifecycle checks.
-    [ ] C4 physical post-Windows-restart first launch,repeat launch and visible
-        Try Deck/results/Continue/Quit. This is the sole remaining D6 gate;
-        preserve manual71 and do not substitute further warm test launches.
+    [x] C4 physical post-Windows-restart first launch,repeat launch and visible
+        Try Deck/results/Continue/Quit:Nick reports20s usable menu,2s repeat,
+        window/sound15s,gameplay/Continue/Quit works,no issues. Reviewed93 from
+        DEV.txt N1;date field blank,so no invented execution date. Manual71
+        program/catalog/component seals and immutable package reverified.
     Read-only readiness76 reconfirms package integrity,installed program/catalog,
     all seven retained report hashes and133cached bundle fingerprints. No game
-    launch or bundle rehash;physical restart observation remains the next D6 gate.
+    launch or bundle rehash;this was pre-acceptance readiness,not the subsequent
+    physical restart result now reviewed93 above.
 Keep the LAN source/ordinary launchers untouched and follow the measured boundary.
 Reuse retained captures;do not repeat fast batches as completion. Exact reports/
 reviewed contracts/counterfactual limits:client-startup.txt,startup-bundle-loading.txt.
@@ -323,8 +324,10 @@ startup barrier or inflate an ordinary timeout to produce a passing result.
 References: client-startup.txt and telemetry-game-observation.txt.
 
 [ ] D7 - Complete protected Windows host deployment and recovery
-- Obtain pending owner-console40 active-match Ctrl+C/same-state restart evidence;
-  owner39's idle-console PASS does not replace it. Preserve real protected APIs.
+[x] Protected owner-console40 active-match Ctrl+C/same-state restart PASS,review93:
+    two40-frame verified-TLS peer streams,workers0,port/lock released,identities/
+    profiles retained,job20/0/0,no forced cleanup. Source hashes still agree.
+    This closes active-console shutdown only,not physical graphical/SCM/reboot.
 - Qualify host/player accounts, TLS/private-key and invitation lifecycle, invalid/
   revoked credential refusal, quotas/handshake/message/queue bounds and safe logs.
 - Perform real SCM registration/account logon, start/stop/Windows shutdown/reboot,

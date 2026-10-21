@@ -1,5 +1,14 @@
 WINDOWS RELEASE ACCEPTANCE -- 2026-10-20
 
+Owner results93 reviewed2026-10-21
+D6 startup gate CLOSED:physical reboot-first~20s/repeat~2s,visible AI/results/
+Continue/Quit without issues,unchanged manual71 seals/package plus retained
+engineering/recovery/native checks. Protected active-console40 also PASS(two
+40-frame verified-TLS matches,Ctrl+C/natural workers0/same-state restart,
+job20/0/0,no force);SCM/reboot/backup/clean-PC D7 gates remain. LAN setup53
+failed the TLS-in-data configuration rule. Fresh corrected93 owner retry is
+prepared;D1 physical two-PC play and final release acceptance remain OPEN.
+
 This checklist distinguishes source-prototype evidence from a distributable
 release. STATUS.txt retains implementation history. REMAINING_DELIVERY_PLAN.txt
 is the current execution plan;PLAN_CLOSEOUT.txt maps the closed original roadmap

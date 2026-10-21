@@ -123,6 +123,17 @@ def write_new(path, value):
         target.write(json.dumps(value, indent=2)+'\n')
 
 
+def host_settings(server, address, port):
+    """Keep protected TLS material separate from writable runtime state."""
+    server = Path(server).resolve()
+    pki = server/'config/private/lan-playtest-tls'
+    host = json.loads((server/'config/host.example.json').read_bytes())
+    host.update(listen_host=address, listen_port=port,
+                certificate_file=str(pki/'server.pem'), private_key_file=str(pki/'server.key'),
+                credential_directory=str(server/'data/private/credentials'))
+    return host, pki
+
+
 def read_client_archive(player, manifest, expected_sha256):
     """Return only the exact verified client archive, never host/private data."""
     archive = player.parent/'battleaces-client-win64.zip'
@@ -182,8 +193,10 @@ def prepare(args):
         report.update(stage='private_pki', protected_operations_attempted=True)
         private_root = server/'data/private'
         require(not private_root.exists(), 'Use fresh packages without existing private host data')
+        host, pki = host_settings(server, address, args.port)
+        require(not pki.parent.exists(), 'Use fresh packages without existing private TLS files')
         private._ensure_private_directory(private_root)
-        pki = private_root/'lan-playtest-tls'
+        private._ensure_private_directory(pki.parent)
         require(not pki.exists(), 'Choose fresh playtest packages')
         report['verified_tls_memory_handshake'] = make_pki(pki, openssl, address)
         report['stage'] = 'player_invites'
@@ -209,10 +222,9 @@ def prepare(args):
             'setup use Start Client.cmd for normal play. Keep this invite private.\n'
             'This certificate expires after 30 days; this is a LAN test candidate.\n')
         with (handoff/'CONNECTION.txt').open('x', encoding='utf-8', newline='\n') as target: target.write(details)
-        host = json.loads((server/'config/host.example.json').read_bytes())
-        host.update(listen_host=address, listen_port=args.port, certificate_file=str(pki/'server.pem'),
-                    private_key_file=str(pki/'server.key'), credential_directory=str(private_root/'credentials'))
         write_new(host_config, host)
+        from server.configuration import load_config
+        load_config(host_config)  # Real production path rules before enrollment/native work.
         report['stage'] = 'host_client_enrollment'
         settings = client.defaults(game)
         settings.update(display_name='LAN Host', local_profile='lan_playtest_host')
@@ -235,6 +247,10 @@ def prepare(args):
         checked = subprocess.run([str(server/'program/runtime/python.exe'), '-I', '-B', '-m', 'tools.package_server', 'check'],
             cwd=server, stdin=subprocess.DEVNULL, stdout=subprocess.PIPE, stderr=subprocess.PIPE,
             timeout=60, creationflags=subprocess.CREATE_NO_WINDOW)
+        report['host_check_process'] = dict(exit_code=checked.returncode,
+            stdout_bytes=len(checked.stdout), stderr_bytes=len(checked.stderr),
+            stdout_sha256=hashlib.sha256(checked.stdout).hexdigest(),
+            stderr_sha256=hashlib.sha256(checked.stderr).hexdigest())
         require(checked.returncode == 0 and not checked.stderr, 'Packaged protected host check failed')
         health = json.loads(checked.stdout)
         require(health.get('passed') is True and health.get('tls') is True and health.get('credential_store_checked') is True and

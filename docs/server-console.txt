@@ -1,5 +1,21 @@
 WINDOWS SERVER CONSOLE LAUNCHER -- 2026-10-19
 
+Owner active-match40 PASS reviewed93,2026-10-21
+Nick reports PASS. Retained last-report.json SHA256
+81c1392dde5f6974045ab76eb5ea7ee2d16e60e1e4e7641d5f7105d293632c03
+confirms protected_operations_attempted=true,development_loopback=false and two
+actual packaged-console/native40-frame matches with verified TLS/authenticated
+scripted peers. Ctrl+C stops both naturally,exit0,worker0,port and state lock
+released;second cycle uses the same port/data/identities and preserved profiles.
+Stops take0.0315165/0.031735s;whole check16.930614s. Owned job20total/0active/
+0terminated,no forced cleanup. Disposable invites revoked/handoffs removed;
+test PKI removed. Current production/launcher/driver hashes match the recorded
+sources;read-only review local/owner93-retained-review.json passes. An initial
+reader used a nonexistent cycles key;correct active_match_cycles readback passes
+without rerunning the host or rewriting the original report. No graphical game,
+SCM/session0/reboot/clean-PC/backup/Internet acceptance is inferred. D7 remains
+OPEN for those explicit gates. Historical pending40 statements below are retired.
+
 2026-10-20 operator follow-up: user reports repeat owner-console39 PASS.
 Existing last-report.json remains passed=true,stage=complete,development_loopback
 false,forced_cleanup=false. This confirms the bounded protected TLS/idle-console

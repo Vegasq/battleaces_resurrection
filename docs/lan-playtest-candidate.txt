@@ -1,5 +1,48 @@
 TWO-PC LAN CANDIDATE53 -- 2026-10-20
 
+Owner failure53 / corrected fresh setup93,reviewed2026-10-21
+Nick reports failure at native_host_check,no two-PC steps. Public failed report
+SHA256 0d5824eabccf0d20e416e6df46256ed441a8aa58a5daddae28c3c0f616a304ed
+records successful TLS memory handshake and revocation of all failed-setup
+invites. Its generic error did not retain child output. Read-only production
+load_config on the actual generated configuration deterministically rejects:
+Keep TLS files in config, separate from game assets and server data.
+The coordinator put its private PKI under data/private. This is an evidenced
+configuration defect;no native simulation failure or LAN attempt is established.
+
+Corrected tools.prepare_lan_playtest uses config/private/lan-playtest-tls with
+the same production owner/SYSTEM DACL creation/checks. Credentials and friend
+handoff remain under data/private;no key enters the handoff. Production config
+is validated before host-client enrollment/native check. Host check exit code,
+output sizes and hashes are retained without publishing child output/secrets.
+Six focused tests pass,including real configuration acceptance of the generated
+layout and rejection of the original TLS-in-data relationship. TLS construction
+test retains its explicit privacy mock scope;no protected owner success inferred.
+
+Fresh local/friends93-packages01 is extracted from the EXACT53 client/server ZIPs,
+then populated only with verified local asset-manifest-declared files. Both
+immutable packages/assets verify. Existing failed53 configs/private files/report
+are preserved;no ACL repair/reuse/overwriting is attempted. Manual71/LAN03 game
+seals remain unchanged. Preparation's first final assertion incorrectly expected
+no data directory;the archive ships data/README.txt. Corrected final check requires
+no data/private or config/private and no host/client config;this passes without
+private operations. No listening server/game starts.
+
+Prepared owner action:local/friends93-owner-setup01/LAN Playtest Setup.cmd,
+with exact source hash924c03d8a18160acd69d655b7f6788fdd6755826ab4cc4d3fd4eb83cf52ed6b5.
+Same bundled client runtime rejects actual restricted preflight with exit2,
+normal_desktop_account_required,protected_operations_attempted=false;configs and
+both private roots stay absent. preparation.json retains wrapper/guide/preflight
+hashes. Host IPv4 remains192.168.68.66 via read-only .NET interface inventory.
+Normal-account retry is DEV.txt N2;do not rerun53. Its READY and physical two-PC
+Custom/match/rematch/ordinary-Quit results remain OPEN;Internet/SCM separate.
+Read-only local/owner93-retained-review.json SHA256
+17a7129e035f78f7192b5446f4237ad2d1f7b8a5148f95af769ad9e40bdf693e
+and local/friends93-owner-setup01/preparation.json SHA256
+3e96835df276ba9dda983b00b1267b1e5eb2349f0d1ffe86e95cd055eea83dde
+retain the bounded report/source/package/manual-artifact checks above.
+Historical53 pending/source-path text below records the original preparation.
+
 Next user milestone
 User confirms a second Windows PC is available on the same home/LAN network.
 Prepare a concrete current pair of packages and normal-account provisioning,

@@ -22,6 +22,30 @@ from tools import prepare_lan_playtest as lan
 
 
 class LANTests(unittest.TestCase):
+    def test_generated_host_paths_pass_real_config_and_tls_in_data_is_rejected(self):
+        from server.configuration import load_config, ConfigurationError
+        folder = private_test_folder('lan-config-')
+        try:
+            server = folder/'server'; (server/'config').mkdir(parents=True)
+            example = lan.ROOT/'server/host-config.example.json'
+            (server/'config/host.example.json').write_bytes(example.read_bytes())
+            value, pki = lan.host_settings(server, '192.168.68.66', 47623)
+            config = server/'config/host.json'
+            lan.write_new(config, value)
+            actual = load_config(config)
+            self.assertEqual(actual.certificate_file, pki/'server.pem')
+            self.assertEqual(actual.private_key_file, pki/'server.key')
+            self.assertFalse(pki.is_relative_to(actual.data_directory))
+            self.assertEqual(actual.credential_directory, server.resolve()/'data/private/credentials')
+            # Reproduce the previous owner setup's exact directory relationship.
+            value['certificate_file'] = str(actual.data_directory/'private/lan-playtest-tls/server.pem')
+            value['private_key_file'] = str(actual.data_directory/'private/lan-playtest-tls/server.key')
+            config.write_text(json.dumps(value), encoding='utf-8')
+            with self.assertRaisesRegex(ConfigurationError, 'Keep TLS files in config'):
+                load_config(config)
+        finally:
+            remove_test_folder(folder)
+
     def test_only_explicit_lan_ipv4_addresses_accepted(self):
         for value in ('192.168.68.66', '10.23.4.5', '172.16.1.2', '172.31.255.254'):
             self.assertEqual(lan.lan_address(value), value)
