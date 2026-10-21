@@ -1,6 +1,48 @@
 REPLAY RECOVERY FINDING55 -- 2026-10-20
 Plan item:D4-RP1. Status:OPEN;malformed batch recovery is NOT qualified.
 
+Latest91:ordinary Custom shared-hook regression PASS,2026-10-21 UTC
+Same helper90-02/95-source build receipt;no helper rebuild or further install.
+Two native clients on automated58 use actual ordinary player options (public
+queue/local cosmetics enabled) before explicit Custom automation. Verified
+fixture TLS/private inherited bridge2,original Invite/Accept/Start/result/
+Continue execute two matches in the SAME lobby/connections. Both clients acquire
+and release two remote world leases. No original replay-pump update or failure
+marker appears in either native log;this is log/source/functional compatibility
+evidence,not an independent trace of every original call. No extra simulation
+ticks or artificial world release is introduced by the regression coordinator.
+Full17-slot native/server maps agree for both players in both matches;the host's
+original cosmetic rematch edit changes its map and the guest remains unchanged.
+Two native workers close/exit0,without failure/stderr. Whole control73.487s.
+PIDs52816/50904,worker23152/43748.156bound producer files and helper/current
+program/catalog/manual71/LAN03/public manual entry+config/shared TOML/practice
+preference absence all remain unchanged. Owned graphical clients are terminated
+after successful result/Continue/lobby controls:NOT native Quit/LAN/physical/
+protected credential enrollment or final release acceptance. No package rebuild.
+
+Ignored runner local/run-replay91-remote.py SHA256:
+31fe8c2cbb4e2ab4eb022636166c8333d743993817f37ae3e2834c9746345f23
+Outer local/replay91-remote-native01/verification.json SHA256:
+c9f5413b76056927390c9bb8d680f5c6478908c7d8c922b9c783e6fd39d983af
+Its control/verification.json SHA256:
+f8eb9703f0f1c86420b8199b656aa8b31125d1db1c2d94a31d30c51459133c83
+The outer optional cosmetics field is null because it reads a different key;
+the authoritative inner full_loadouts field validates all four native maps.
+No rerun,report rewrite or production change is needed for that unused field.
+
+The source correction now has healthy normal-menu replay/API exit/natural Quit,
+local AI/result/Continue/natural Quit and ordinary unified Custom/rematch
+regressions. That bounded correction qualifies;D4-RP1 remains OPEN for the actual
+bound replay exit/Cancel and stateful malformed recovery. Do not repeat healthy
+batch or hidden-button inventories as substitutes. In the retained healthy-
+replay90 snapshot,the leave button is activeSelf=true but activeInHierarchy=false;
+the observed Nody receiver still owns the active MainMenu node/31-node graph,
+whose12selectors are MainMenu/*,not Game/Quit. Next inspect the existing options
+opening/actual visible button route before claiming a click or UI recovery.
+This interpretation uses retained source-generated observations,not a new native
+reverse-engineering session. D6 remains first priority;DEV.txt answers are still
+blank at this follow-up and no pending action is duplicated.
+
 Latest90 runtime follow-up,2026-10-21 UTC
 Installed helper90-02 only into automated58,ordinary recipe/no optional startup/
 Quit hooks. Preparation02 validates152bound producer paths and program/catalog/

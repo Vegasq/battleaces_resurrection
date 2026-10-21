@@ -211,6 +211,12 @@ Completed subcases (same-PC packaged automated controls; two human clients):
 [x] Allied2vAI zero-frame loading disconnect and replacement (recovery60 01).
 All four include results/Continue/natural Quit and owned-resource cleanup;
 team-recovery.txt binds the exact reports, scope and injected-worker outcomes.
+Additional scoped source/native qualification (not the same packaged controls):
+[x] Restore omitted original replay pump;healthy menu replay/original API exit/
+    natural Quit and local AI/result/Continue/natural Quit90 pass. Ordinary-option
+    two-client Custom/rematch shared-hook regression91 also passes,four remote
+    leases/full17slots/two workers0. Fixture TLS/forced final remote-client
+    cleanup;not bound replay UI,Cancel/malformed recovery or parent D4 closure.
 Reuse those proofs;remaining full-human/other timings/physical/fault cases stay open.
 Current replay follow-up:D4-RP1 in replay-failure-recovery.txt. Healthy batch
 passes;malformed developer-batch noncompletion is retained. Review56 confirms
@@ -226,8 +232,8 @@ Native89 identifies the forwarded ShowUIObjectNode.OnUIButtonSignal and current
 This is a hidden practice-time replay button,not an active replay. Stop repeating
 that context. Native90 now qualifies original normal-menu Load/Play,restored
 replay pump,advancing world/in-game owner and original exit API/menu/Quit0.
-Local AI/result/Continue/Quit regression also passes. The remote shared-hook
-regression and actual bound exit remain next. No user-exposed disk selector or
+Local AI/result/Continue/Quit and ordinary Custom/rematch shared-hook91
+regressions also pass. Actual options opening/bound exit remain next. No user-exposed disk selector or
 Cancel/fault pass inferred. Exact reports:replay-failure-recovery.txt.
 No force-menu patch or repeated malformed developer-batch timeout test.
 - Close remaining invitation departure/late-return/abort-notice and multiplayer

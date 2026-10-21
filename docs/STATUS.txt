@@ -3,6 +3,19 @@ Updated: 2026-10-21 UTC
 Delivery plan: REMAINING_DELIVERY_PLAN.txt, Windows only.
 Original roadmap: CLOSED / SUPERSEDED;see PLAN_CLOSEOUT.txt.
 
+REPLAY91 SHARED-HOOK REGRESSION PASS
+Same helper90-02 passes ordinary-option two-native-client Custom match/rematch
+in73.487s. Original Invite/Accept/Start/result/Continue retain one lobby/two
+connections;four acquired/released remote leases,full17slots/native rematch
+cosmetic edit and two worker0 pass. No replay-pump update/failure marker appears
+in those remote logs.156producer/current program/manual71/LAN03/shared/preference
+seals hold. Explicit fixture TLS/diagnostic automation/forced final game cleanup;
+not protected enrollment,LAN,physical input or native Quit. Combined with90's
+replay API and local AI natural-Quit passes,the bounded replay-pump correction
+qualifies. Actual bound exit/options opening,Cancel/malformed recovery and parent
+D4 remain OPEN. D6 still first;DEV.txt answers unchanged,no repeated request.
+Exact scopes/hashes:replay-failure-recovery.txt.
+
 OPERATOR REQUESTS / REPLAY90 RUNTIME FOLLOW-UP
 DEV.txt now holds all pending actions and a separate answer section,N1D6 first,
 N2LAN setup,N3protected active-console shutdown. Project/workspace AGENTS.md
