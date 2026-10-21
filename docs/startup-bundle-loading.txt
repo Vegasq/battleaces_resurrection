@@ -291,5 +291,18 @@ requires no server. No process is launched by preparing this configuration.
 Owner observation requested once;pending,not an assumed PASS. D6 stays OPEN
 until this scope passes or its remaining measured limit is explicitly accepted.
 
+Read-only readiness76,2026-10-21 UTC
+Rechecked both package manifests,all installed program/catalog/source seals,the
+seven retained qualification-input hashes and133cached bundle fingerprints.
+Public client config still selects manual71/offline defaults;ordinary entry is
+present. No game launched and0bundle rehashes,so no first-launch cache warming
+from another gameplay test. Physical post-Windows-restart/repeat launch remains
+pending;this readiness check cannot close it. No package/game/config modified.
+local/d6-ready76-review.json SHA256:
+bb0efbd40c457e7f2e0fd025a4182d290f98490d7edde6030d91afd3fad9c62d
+Initial readiness reader incorrectly expected config.game_dir and failed before
+writing a result. Corrected game_directory reader passes;failure log preserved,
+no native rerun or changed configuration. D6 remains the priority.
+
 All original binaries/catalogs/observations/private experiment artifacts remain
 under ignored local paths. This source knowledge base contains no client files.

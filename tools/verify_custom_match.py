@@ -39,6 +39,8 @@ from tools.run_secure_match import read_native_log
 from tools.verify_custom_lobby import require, source_hashes as core_hashes
 from tools import match_loading_evidence
 from tools import verify_unified_startup as startup_probe
+from tools import custom_wait_evidence
+from tools.verify_packaged_play import job_accounting
 from tests.test_tls_transport import generate_test_pki, remove_test_pki
 
 ROOT = Path(__file__).resolve().parents[1]
@@ -51,6 +53,8 @@ def source_hashes():
     result['tools/run_secure_match.py'] = hashlib.sha256((ROOT / 'tools/run_secure_match.py').read_bytes()).hexdigest()
     result['tools/match_loading_evidence.py'] = hashlib.sha256(Path(match_loading_evidence.__file__).read_bytes()).hexdigest()
     result['tools/verify_unified_startup.py'] = hashlib.sha256(Path(startup_probe.__file__).read_bytes()).hexdigest()
+    result['tools/custom_wait_evidence.py'] = hashlib.sha256(Path(custom_wait_evidence.__file__).read_bytes()).hexdigest()
+    result['tools/verify_packaged_play.py'] = hashlib.sha256((ROOT/'tools/verify_packaged_play.py').read_bytes()).hexdigest()
     for path in (ROOT / 'client_patch/transport').glob('*.py'):
         result[path.relative_to(ROOT).as_posix()] = hashlib.sha256(path.read_bytes()).hexdigest()
     return result
@@ -94,12 +98,18 @@ async def run(args):
     require(manifest.get('community', {}).get('native_scope') == 'custom-match-prototype',
             'install current experimental match patch into an isolated copy')
     if args.loading_ui: require(manifest.get('ui', {}).get('match_loading'), 'loading UI helper required')
+    hold_open=getattr(args,'hold_open',False)
+    require(not hold_open or (args.ordinary_player and args.scenario in ('normal','duplicates-deck')),
+            'ready Custom hold requires ordinary full-loadout human control')
+    if hold_open:require(b'BA_RESURRECTION_CUSTOM_OPEN_HOLD_V2' in (game/'BattleAcesOffline.dll').read_bytes(),
+                        'install the explicit ready-lobby hold diagnostic helper')
     output.mkdir(parents=True, exist_ok=False)
     (game / 'investigation/runtime').mkdir(parents=True, exist_ok=True)
     template = GameTemplate.load(assets / 'map-1v1.pb.gz', catalog_path=assets / 'unit-catalog.json',
                                  descriptors_path=assets / 'descriptors')
     cosmetic_book = CosmeticCatalog(assets) if args.cosmetics_selection else None
     cosmetic_seeds, cosmetic_profiles, frozen_matches = [], [], []
+    hold_samples,human_rosters,worker_requests=[],[],[]
     if cosmetic_book:
         require(args.unified and game.is_relative_to(ROOT/'local'), 'full cosmetic proof requires a disposable unified client')
         seed=json.loads(args.cosmetics_selection.read_bytes())
@@ -151,13 +161,19 @@ async def run(args):
             match=server.rooms[fields['room']].match
             frozen_matches.append(dict(match=fields['match'],cosmetics={slot:dict(catalog_sha256=value.catalog_sha256,slots=value.slots)
                                    for slot,value in match.cosmetics_by_slot.items()}))
+        if event=='match_created' and hold_open:
+            room=server.rooms[fields['room']]
+            human_rosters.append(dict(match=fields['match'],mode=room.mode,
+                players=[dict(slot=p.slot,army_id=p.army_id,name=p.name,ai_profile_id=p.ai_profile_id,
+                              profile=room.peers[p.slot].profile_id) for p in room.match.roster]))
 
     async def factory(data):
         nonlocal injected
         if args.scenario == 'setup-abort' and not injected:
             injected = True
             raise RuntimeError('qualification: worker setup failure before bootstrap')
-        worker = await SimulationWorker.create(data, assets / 'Simulation.dll')
+        if hold_open:worker_requests.append(time.perf_counter_ns())
+        worker = await SimulationWorker.create(data, assets / 'Simulation.dll', working_directory=output)
         workers.append(worker)
         return worker
 
@@ -192,6 +208,7 @@ async def run(args):
     async def apply(session, kind, command, now):
         nonlocal injected, return_abort_sent
         record=dict(command)
+        if hold_open:record['probe_perf_ns']=time.perf_counter_ns()
         if 'cosmetics' in record:
             value=record['cosmetics'];record['cosmetics']=dict(catalog_sha256=value.catalog_sha256,slots=value.slots)
         commands.append(dict(profile=session.peer.profile_id, kind=kind, **record))
@@ -259,6 +276,7 @@ async def run(args):
             if cosmetic_book:
                 if '-local-cosmetics-experimental' not in command: command.append('-local-cosmetics-experimental')
                 command.extend(['-community-cosmetics-smoke','-human-cosmetics-smoke'])
+            if hold_open and role=='host':command.append('-community-match-hold-open-smoke')
             startup = subprocess.STARTUPINFO(); startup.dwFlags |= subprocess.STARTF_USESHOWWINDOW; startup.wShowWindow = 4 if args.visible else 0
             if child is not None:
                 startup.lpAttributeList = {'handle_list': [child.fileno()]}
@@ -283,6 +301,16 @@ async def run(args):
             require(not any(marker in log for log in logs for marker in
                 ('Client lifecycle invariant failed:', 'Local menu initialization failed:')),
                 'unified lifecycle failed; inspect retained logs')
+            if hold_open and 'COMMUNITY OPEN HOLD waiting:' in logs[0] and 'COMMUNITY OPEN HOLD released:' not in logs[0] and not any(c['kind']==wire.START for c in commands):
+                require(len(server.community.lobbies)==1,'waiting Custom lobby disappeared or duplicated')
+                waiting_lobby=next(iter(server.community.lobbies.values()))
+                sample=dict(perf_ns=time.perf_counter_ns(),lobby=waiting_lobby.id,phase=waiting_lobby.phase,
+                    epoch=waiting_lobby.epoch,members=list(waiting_lobby.members),room=waiting_lobby.room is not None,
+                    workers=len(workers),public_entries=len(server.community.public.entries),public_offers=len(server.community.public.offers))
+                require(sample['phase']==wire.OPEN and sample['epoch']==0 and sample['members']==[test_players[0][0]] and
+                        not sample['room'] and sample['workers']==sample['public_entries']==sample['public_offers']==0,
+                        'waiting human Custom lobby incorrectly started or acquired a public queue')
+                hold_samples.append(sample)
             if args.scenario == 'stale-abort':
                 if not injected and all('COMMUNITY MATCH SMOKE native result ready;' in log for log in logs):
                     injected = True
@@ -424,9 +452,14 @@ async def run(args):
             duplicate_abort=aborted_scenario, stale_result_and_next_match_abort=old_abort_sent,
             stale_abort_while_returning=return_abort_sent,
             presence_connections_retained=2, start_ready_ack_delay_seconds=.35)
+        if hold_open:
+            require(not any(e['event'] in ('public_queue_entered','public_match_offered') for e in events),
+                    'Custom-only control entered public matchmaking')
+            report['open_hold']=custom_wait_evidence.validate(logs[0],hold_samples,human_rosters,commands,worker_requests,
+                                                            [player for player,_ in test_players])
         print('Native custom matches passed: two Start/result/Continue cycles on the same connections and lobby.', flush=True)
     except BaseException as error:
-        report.update(error=repr(error), traceback=traceback.format_exc())
+        report.update(passed=False, error=repr(error), traceback=traceback.format_exc())
         raise
     finally:
         for process in processes:
@@ -436,7 +469,10 @@ async def run(args):
                 process.terminate()
         for process in processes:
             process.wait(timeout=15)
-        for job in jobs: job.close()
+        report['jobs_before_close']=[]
+        for job in jobs:
+            try:report['jobs_before_close'].append(job_accounting(job.handle))
+            finally:job.close()
         for task in bridges: task.cancel()
         await asyncio.gather(*bridges, return_exceptions=True)
         for writer in writers:
@@ -455,10 +491,14 @@ async def run(args):
             teardown='owned test termination; not native Quit validation', source_sha256_at_finish=source_hashes())
         report['source_files_unchanged'] = report['source_sha256_at_start'] == report['source_sha256_at_finish']
         report['passed'] &= report['source_files_unchanged'] and report['owned_processes_reaped'] and all(w.process.poll() == 0 for w in workers)
+        if hold_open:report['passed'] &= len(report['jobs_before_close'])==2 and all(job['active_processes']==0 for job in report['jobs_before_close'])
         if args.shared_settings:
             report['shared_settings_after'] = startup_probe.shared_state(args.shared_settings.resolve())
             report['shared_settings_unchanged'] = report['shared_settings_before'] == report['shared_settings_after']
             report['passed'] &= report['shared_settings_unchanged']
+        if hold_open:
+            # Preserve every sampled input even if any earlier assertion refuses.
+            report.update(open_hold_samples=hold_samples,human_rosters=human_rosters,worker_requests=worker_requests)
         (output / 'verification.json').write_text(json.dumps(report, indent=2), encoding='utf-8')
         audit.close()
         print('Evidence: ' + str(output / 'verification.json'), flush=True)
@@ -471,6 +511,7 @@ def main():
     parser.add_argument('--timeout', type=int, default=180)
     parser.add_argument('--unified', action='store_true', help='qualify unified native ownership over real TLS with in-memory test invites')
     parser.add_argument('--ordinary-player', action='store_true', help='use ordinary Start Client options before owned automation')
+    parser.add_argument('--hold-open',action='store_true',help='hold a fully created one-human lobby31s before original Invite/Accept/Start')
     parser.add_argument('--shared-settings', type=Path, help='read-only baseline for original shared native settings')
     parser.add_argument('--loading-ui', action='store_true', help='verify native loading status and retain Unity screenshots')
     parser.add_argument('--cosmetics-selection',type=Path,help='accepted native full-map proof; enable full protocol and a fresh cosmetic rematch edit')

@@ -524,6 +524,37 @@ static bool leaveGateReady() {
     wait.clear();
     return true;
 }
+static bool openHoldReady(Obj front) {
+    if(!ba::flag(L"-community-match-hold-open-smoke") || probeMatches!=0)return true;
+    const auto profile=ba::argument(L"-local-profile=");
+    wire::require(ba::unified() && ba::flag(L"-community-match-host-smoke") &&
+        !ba::flag(L"-community-match-guest-smoke") && profile.rfind("cosmeticstest_",0)==0,
+        "Custom open hold requires an owned ordinary full-loadout diagnostic");
+    const auto& lobby=native::authority;
+    Root owner(native::manager(front));
+    wire::require(lobby.phase==wire::Open && lobby.members.size()==1 && lobby.host==ba_community::welcome.profile &&
+        native::installedLobby==lobby.id && native::requests.empty() && operations.empty() &&
+        ba_community_invites::operations.empty() && !ba_dedicated_session::joined && ba_client::nativeIdle(front) &&
+        !ba::get<Obj>(owner.get(),"_pendingCreateLobbyRequest") && !ba::get<Obj>(owner.get(),"_pendingLobbyUpdateRequest"),
+        "Custom waiting hold lost its fully created one-human lobby/empty seat");
+    ba_community_invites::verifyParty(front,1,true);
+    static ULONGLONG began=0;
+    static std::string heldLobby;
+    static bool released=false;
+    const auto now=GetTickCount64();
+    if(!began) {
+        began=now;heldLobby=lobby.id;
+        ba::log("COMMUNITY OPEN HOLD waiting: lobby=%s members=1 phase=Open nativeIdle=1 minimumMs=31000 BA_RESURRECTION_CUSTOM_OPEN_HOLD_V2",heldLobby.c_str());
+    }
+    wire::require(heldLobby==lobby.id,"Custom waiting hold changed lobby identity");
+    if(now-began<31000)return false;
+    if(!released) {
+        released=true;
+        ba::log("COMMUNITY OPEN HOLD released: lobby=%s elapsedMs=%llu members=1 phase=Open nativeIdle=1 BA_RESURRECTION_CUSTOM_OPEN_HOLD_V2",
+            heldLobby.c_str(),static_cast<unsigned long long>(now-began));
+    }
+    return true;
+}
 static void smoke(Obj front) {
     const bool host=ba::flag(L"-community-match-host-smoke"),guest=ba::flag(L"-community-match-guest-smoke");
     if(!host && !guest)return;
@@ -577,6 +608,7 @@ static void smoke(Obj front) {
         }
     } else if(probeStage==1 && !native::installedLobby.empty() && native::requests.empty()) {
         Root main(ba_community_roster::mainScreen());if(!main.get())return;
+        if(!openHoldReady(front))return;
         probeButton=std::make_unique<Root>(ba_community_roster::pickerButton(main.get()));
         ba::native<void(*)(Obj,Obj)>(0x3d62c40)(probeButton->get(),nullptr);probeStage=2;probeAt=now+500;
     } else if(probeStage==2) {

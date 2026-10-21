@@ -3,6 +3,29 @@ Updated: 2026-10-21 UTC
 Delivery plan: REMAINING_DELIVERY_PLAN.txt, Windows only.
 Original roadmap: CLOSED / SUPERSEDED;see PLAN_CLOSEOUT.txt.
 
+D6 PRIORITY / READ-ONLY READINESS76 (2026-10-21 UTC,PHYSICAL CHECK PENDING)
+Package integrity,installed program/catalog,frozen LAN source,sealed seven-input
+qualification evidence and133cached bundle fingerprints rechecked unchanged.
+No game launched,no bundle rehash,no warm run substituted for cold acceptance.
+Ordinary offline entry remains startup71-packages01/battleaces-client-win64/
+Start Client.cmd. First post-Windows-restart launch/repeat launch/physical TryDeck/
+Continue/Quit is the next D6 gate,already requested once and still pending.
+Readiness report SHA256 bb0efbd40c457e7f2e0fd025a4182d290f98490d7edde6030d91afd3fad9c62d.
+Initial read-only checker used game_dir instead of game_directory and refused;
+corrected reader passes,no package/config/game edits or native rerun. D6 OPEN.
+
+D2 EMPTY-SEAT CUSTOM WAIT76 (2026-10-21 UTC,C05 AUTOMATED PASS)
+Fully created one-human native Party/lobby waits31s before original Invite;
+147live server samples span30.687s with empty seat,no bot/queue/room/worker.
+Original Invite/Accept/Start,results/Continue and changed-deck rematch complete;
+actual two archived bootstraps decode to two human identities/AIprofile0. Both
+workers exit0/two owned jobs empty/shared storage unchanged. Helper76 diagnostic
+only on automated58;manual71/LAN03 seals unchanged,no package update.12Python
+and12C++ checks pass. Forced game teardown is not native Quit/physical/protected/
+LAN acceptance. Earlier full-lobby hold is narrower;initial CRLF checker run
+remains failed. C01-C05 scoped automated Custom cases now pass,D2 parent OPEN.
+Exact reports,hashes and limitations:native-custom-matches.txt.
+
 D2 SIMULTANEOUS NATIVE INVITERS75 (2026-10-21 UTC,C04 PASS)
 Explicit owned diagnostic uses three native clients/two original picker Invites/
 one original popup Accept. Target waits for both native invitations,then joins

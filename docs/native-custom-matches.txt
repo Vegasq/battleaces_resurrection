@@ -1,6 +1,61 @@
 NATIVE CUSTOM START, MATCH HANDOFF AND LOBBY RETURN
 Updated:2026-10-17. Experimental Windows build37822 adapter.
 
+CURRENT EMPTY-SEAT WAIT76 (2026-10-21 UTC,C05 AUTOMATED PASS)
+tools.verify_custom_match --unified --ordinary-player --scenario duplicates-deck
+--hold-open,with owned optimized58 game,verified53 simulation assets and retained
+full17-slot cosmetic seed. New native diagnostic flag holds only the first host
+smoke flow AFTER original Create ACK/native Party/prediction/lobby readiness,
+BEFORE original picker Invite. No sleep,production timer/patch/launcher change;
+ordinary paths do not activate it. Rematch is not held. Source/native/helper/
+shared settings remain stable throughout;manual71/LAN03 programs/catalogs intact.
+
+Final local/custom76-empty-seat03/verification.json SHA256:
+5b59f2572faee37b196102d706428b45b349e6f2d9168647296aa3fc8350c2f1
+One host waits31000ms with no second member:147live authority samples span
+30.686944s,Open/epoch0,same host/lobby,no public entry/offer,room or native worker.
+After release,original Invite/Accept/Start produce one match;original Continue
+then changed-host-deck rematch produces the second. Both native workers exit0,
+both owned client jobs empty. Duplicate Start/Ready coalescing/full cosmetic
+loadouts/results/Continue checks remain enabled. Diagnostic surrender at frame160
+ends each match;this is not natural combat victory or physical input acceptance.
+
+Retained raw logs/samples/commands/worker-request timestamps/rosters are validated
+again independently. Archived bootstrap.pb.gz hashes match audit records;decoded
+armies0/1 each contain one human identity,player IDs1/2,AIprofile0 in BOTH matches.
+No AI-only stand-in is accepted as a human match. Review receipt:
+local/custom76-empty-retained-review.json SHA256
+99fd96e3263ff02dc7579e52aa842add559c2737c81713c7bd5fbf1e95583b0a
+Helper build/helper-custom-hold76-02/BattleAcesOffline.dll SHA256:
+1e40eed17fbc9c7c4c4e3c145b52d9efd2b80eeeb549a464db89417431991525
+Its85-path source-bound build receipt SHA256:
+65829e30185ab3373f795005a34dbee6850c4c3a67e921312974518c8dcf51a3
+Installed manifest SHA256:
+ade43b30e879fdd4b91be60a9a0e74ad4606399a10fbd1811f148d4e5525b6cd
+12C++ check programs and12focused Python evidence checks pass,0skips. Python
+negative controls reject early native/server waits,public activity,member/lobby
+changes,bot/changed-player rosters,early workers/Start and duplicate observations.
+
+Earlier runs remain separately scoped:
+- custom76-open-hold01 FAILED:anchored log checker missed Windows CRLF;native
+  two-human hold/matches succeeded but raw authority samples were not retained.
+  SHA256 c42d7af951dd8bc3adda05a3bc4b4b0a42ce8374393fc5dfcff9a3020621c842.
+  Added actual CRLF test/normalization,unconditional raw-input retention and
+  explicit passed=false on exception. Never reclassified that failed run.
+- custom76-open-hold02 PASS as a FULL two-human waiting lobby only,not missing
+  seat/AI-fill proof. SHA256
+  a70def84cdbdb6681c70f58420f675e377130f724a29645940bce44c3a6f127a.
+  Coverage review caught this before closing C05;new diagnostic moved hold BEFORE
+  Invite and final empty-seat03 above supplies the required scope.
+- Initial retained reviewer failed on integer versus JSON string deck keys;
+  corrected string-key reader reuses archived evidence,no native rerun for that.
+
+Real TLS uses in-memory fixture invitations,not protected owner enrollment or
+ordinary bundled client.main. Native callbacks do not prove pixels/mouse input.
+Games are forcibly reaped after successful Continue;not native Quit acceptance.
+C05's finite automated wait/human-match case closes;D1/P04/D2 parent and D6's
+physical cold-start gate remain open. No original files/evidence binaries in Git.
+
 STATUS
 Start/Ready, the narrow original CustomGameCreated handoff and a same-connection
 result/return prototype are implemented. The first automated two-native-client

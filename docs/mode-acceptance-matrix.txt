@@ -71,8 +71,11 @@ C04 P:75 three native actors,two simultaneous original picker invitations and
     one original popup Accept. Selected pair shares one lobby;other inviter keeps
     its exact one-member native Party/lobby. Other invite BUSY,credits/popup0,
     no match/worker. Explicit loopback diagnostic,forced cleanup;not physical/TLS.
-C05 O:Custom never auto-fills: leave a lobby waiting beyond30s, then complete a
-    human match. Public matchmaking timers must not create an AI Custom world.
+C05 P:76 one-human fully created Custom lobby holds31s before original Invite;
+    empty seat stays empty through147live samples spanning30.687s,no public
+    queue/room/worker. Original Invite/Accept/Start and changed-deck rematch both
+    complete with two humans/AIprofile0 in actual serialized bootstraps. Real
+    fixture TLS,automated callbacks/forced teardown;not physical/LAN/native Quit.
 Existing component/protocol rejection tests support these cases, but cannot
 replace a required native/model or physical observation. Accept/departure during
 an actual committed match remains D4; do not count it twice as an unbounded list.
@@ -174,10 +177,11 @@ R04-mode2/mode5 also pass73:original Cancel after READY success gets the genuine
 committed rejection;connection retires,no fallback/client world for that intent.
 A new authenticated Play completes one replacement world/results/Continue.
 Both workers per run exit0,including a created-but-unpublished cancelled worker.
-Next autonomous case:C05,fully created human Custom lobby stays open beyond30s,
-then original Start completes a human match. Existing match probe starts as soon
-as both humans are ready;add only an explicit diagnostic hold before original
-Start,after real native Party/prediction/lobby readiness. No public timer changes.
+C05 now passes76 with an EMPTY seat throughout the wait,then two completed human
+matches. Earlier76 full two-human lobby wait is narrower evidence only;failed
+CRLF reader attempt remains failed. All five scoped Custom C01-C05 cells pass;
+physical P04/D1 remains open. D6's physical restart-first/repeat launch stays
+the priority gate;do not launch further D2 scenarios before checking new feedback.
 R02-mode2 already passed63;do not repeat.
 Use only the owned automated58 copy with production D6 catalog verification;
 the prepared D6 manual71/LAN03 candidates remain unchanged. No physical gate is waived.

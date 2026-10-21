@@ -85,6 +85,11 @@ Completed subcases (same-PC automated controls; not physical LAN):
 [x] Three-native-client simultaneous inviters/one target (multisender75 C04):
     original picker/Accept chooses one lobby,unselected Party/lobby stays exact,
     both invitations retire/counters0/no match. Explicit diagnostic/forced cleanup.
+[x] One-human Custom lobby waits31s with an empty seat,then original Invite/
+    Accept/Start completes two human-only matches (custom76 C05).147live server
+    samples span30.687s without bot/public queue/room/worker;both serialized
+    bootstraps retain two humans. Real TLS with fixture invites,forced cleanup;
+    not protected enrollment,physical controls,LAN or native Quit acceptance.
 [x] Original waiting Cancel/retry in modes2 and5 (cancel63 R02);one subsequent
     authoritative AI-fill match each,results/Continue;forced final cleanup.
 [x] Delayed first ENTER ACK during modes2/5 Cancel/retry (cancel72 R05):
@@ -225,6 +230,9 @@ Ordinary63 reproduces223.719s launch-to-initial-state without an observer.
     48moving ordered bot entities. Only physical restart-cold/repeat launch and
     visible controls remain;owner observation requested once,pending. Ordinary
     offline entry:local/startup71-packages01/battleaces-client-win64/Start Client.cmd.
+    Read-only readiness76 reconfirms package integrity,installed program/catalog,
+    all seven retained report hashes and133cached bundle fingerprints. No game
+    launch or bundle rehash;physical restart observation remains the next D6 gate.
 Keep the LAN source/ordinary launchers untouched and follow the measured boundary.
 Reuse retained captures;do not repeat fast batches as completion. Exact reports/
 reviewed contracts/counterfactual limits:client-startup.txt,startup-bundle-loading.txt.
