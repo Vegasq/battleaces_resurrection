@@ -29,3 +29,5 @@ __pycache__/
 **/client-config.json
 **/secure-client-config.json
 **/private-invite*.json
+# Nick's local requests, machine paths and answers; instructions are in AGENTS.md.
+/DEV.txt

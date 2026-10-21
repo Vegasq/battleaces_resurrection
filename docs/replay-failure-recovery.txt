@@ -1,7 +1,39 @@
 REPLAY RECOVERY FINDING55 -- 2026-10-20
 Plan item:D4-RP1. Status:OPEN;malformed batch recovery is NOT qualified.
 
-Latest90:normal-menu API finding and source correction,2026-10-21 UTC
+Latest90 runtime follow-up,2026-10-21 UTC
+Installed helper90-02 only into automated58,ordinary recipe/no optional startup/
+Quit hooks. Preparation02 validates152bound producer paths and program/catalog/
+manual71/LAN03 seals. SHA256:
+c4800028406a07a9806a7c47d01574303f62436ff8cd9e5673a460b39d641087
+Native menu02 passes34.537s:original LoadReplayFromFile decodes3607frames with
+the expected GameData hash,restored original replay pump creates an advancing
+world,original main FSM reaches LoadingGameUI then InGame,presented30. Passive
+healthy-replay binding/signal/Nody inventory passes;original ReplayEndGame API
+returns through original shutdown to menu. Owned probe pins/roots release,then
+the original Quit gate releases automatically. Original Quit exits0 naturally,
+no force;monitor stops,source/seed/producer source seals stay unchanged.
+PID11084,fresh profile nativestest_replayui_563f8d5752f1.
+local/replay90-menu-native02/verification.json SHA256:
+6e79b209875ac121e45ede93d874e89b9e5f7e75410d370fc7559ec784b6fdfa
+Inner native-quit/verification.json SHA256:
+57031cceb5067b9089111c339678c970ee95e4de60215c00e53921df600f675f
+
+Same helper local practice regression01 passes97.765s,PID29704:1200-frame native
+AI production/native result/original Continue/menu/original Quit0,no force.
+Bot max supply14/9autonomous actions;movement order+position intersection empty,
+so this short test does not establish movement. First original replay-pump log
+is after Practice returned at933979328,then933979343;no pump failure observed.
+Local control/shared settings/producer sources remain unchanged. Report:
+local/replay90-practice-native01/verification.json SHA256:
+537c17e42dc96cbe5a1e0e9cbcc3353298c02454955d3bbb2495814b342fd3bd
+Remote shared-hook regression is still pending. API exit is NOT a bound button
+click;ordinary disk selection,Cancel and stateful malformed recovery remain
+OPEN. Failed menu01 and uninstalled source-review scope below remain retained
+historical evidence,not rewritten. No archive/manual71/LAN03 update or D6 closure.
+User actions/answers now live in DEV.txt;N1D6 still has first priority.
+
+Initial90:normal-menu API finding and source correction,2026-10-21 UTC
 The owned menu API control calls original LoadReplayFromFile3dddab0/token
 06000952 once. Original LoadFromStream3ddd390 calls Load and Play internally;
 the probe must not add a second Play or write the main/replay FSM. Independent

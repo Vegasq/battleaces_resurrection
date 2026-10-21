@@ -43,22 +43,16 @@ These results keep their documented scope; they do not prove the remaining
 ordinary/cross-PC/Internet/deployment matrix. See STATUS.txt and focused records.
 
 Delivery order
-D6 priority reaffirmed again on2026-10-21. Defer further unrelated game launches
-while focusing on its remaining physical C4 acceptance. Independent source/build
-work can proceed without altering or launching its candidate. Keep the unfinished
-replay work separate and preserve the qualified71 candidate;it is not a D6 fix.
-Do not replace the pending restart-first observation with more warm launches.
-D6 priority reaffirmed by the user. Next acceptance action is D6-C4 on the
-prepared ordinary manual71 candidate. Preserve its package/game/configuration;
-finish recording already-completed tests before starting other engineering work.
-D6 is the immediate engineering priority at the user's explicit request on
-2026-10-20. Production fix/native/package checks71 now pass;only D6's physical
-restart-cold/repeat-launch observation is pending. Preserve its prepared manual
-candidate;the renewed2026-10-21 priority defers further unrelated native runs
-while the remaining D6 acceptance is addressed. Any reported D6 defect takes
-priority immediately. Do not repeat warm startup runs as
-cold acceptance. The already-prepared D1 physical LAN sequence can proceed independently;
-its candidate and pending owner steps remain unchanged. D7 precedes final D8/D9.
+D6 remains the user's first priority,reaffirmed2026-10-21. Production fix/native/
+package checks71 pass;only physical restart-first/repeat/visible controls remain.
+The prepared ordinary manual71 package/game/configuration must stay unchanged.
+DEV.txt is the single request/answer file:N1 is this D6 check,N2 the prepared
+D1 LAN setup,N3 the protected D7 active-console check. Check answers and public
+reports before repeating requests. See AGENTS.md for the communication rule.
+Independent finite work on the separate automated copy may proceed while physical
+results are pending;it cannot replace cold acceptance or alter the manual/LAN
+candidates. Any reported D6 defect takes immediate priority. Do not repeat warm
+D6 batches as acceptance. D7 precedes final D8/D9.
 After D6, resume D1 and close D2-D4 with planned playtests and targeted fixes.
 For D2-D4,list the finite remaining cases against retained evidence before more tests;
 each pass closes its named subcase, not the broader parent. D5-D8 retain their
@@ -230,9 +224,11 @@ UISelectable/UIButton and its three subscribers;the Back handlers filter Back.
 Native89 identifies the forwarded ShowUIObjectNode.OnUIButtonSignal and current
 31-node MainMenu graph:12MainMenu/* selectors,none Game/Quit;70links resolve.
 This is a hidden practice-time replay button,not an active replay. Stop repeating
-that context. Next:review original Replay.Load/Play entry and qualify a healthy
-replay owner/state through original callbacks on an owned recording,then its
-actual bound exit. No user-exposed disk selector or Cancel/fault pass inferred.
+that context. Native90 now qualifies original normal-menu Load/Play,restored
+replay pump,advancing world/in-game owner and original exit API/menu/Quit0.
+Local AI/result/Continue/Quit regression also passes. The remote shared-hook
+regression and actual bound exit remain next. No user-exposed disk selector or
+Cancel/fault pass inferred. Exact reports:replay-failure-recovery.txt.
 No force-menu patch or repeated malformed developer-batch timeout test.
 - Close remaining invitation departure/late-return/abort-notice and multiplayer
   disconnect/restart/failure paths in every affected required mode. Survivors

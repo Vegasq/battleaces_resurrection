@@ -3,6 +3,19 @@ Updated: 2026-10-21 UTC
 Delivery plan: REMAINING_DELIVERY_PLAN.txt, Windows only.
 Original roadmap: CLOSED / SUPERSEDED;see PLAN_CLOSEOUT.txt.
 
+OPERATOR REQUESTS / REPLAY90 RUNTIME FOLLOW-UP
+DEV.txt now holds all pending actions and a separate answer section,N1D6 first,
+N2LAN setup,N3protected active-console shutdown. Project/workspace AGENTS.md
+requires this channel in future turns and preserves Nick's answers.
+Separate automated58/helper90-02 passes normal-menu original replay entry,
+3607decoded frames,presented30,in-game owner,passive replay inventory,original
+exit API/menu/original Quit0,no force,in34.537s. Local1200-frame AI/results/
+Continue/menu/Quit0 also passes97.765s. Pump first logs after practice release,
+not during that local match. Remote shared-hook regression remains pending.
+Prior failed01 stays false. This is API lifecycle acceptance,not bound button,
+disk UI,Cancel/malformed recovery or parent D4 closure. Manual71/LAN03 unchanged;
+D6 physical result remains pending. Exact reports:replay-failure-recovery.txt.
+
 D6 PRIORITY REAFFIRMED,2026-10-21
 Engineering/native/package qualification71 already passes;physical first launch
 after Windows restart,repeat launch and visible TryDeck/Continue/Quit remain
@@ -11,7 +24,7 @@ its ordinary entry/configuration. Defer further unrelated game launches in respo
 to the renewed priority;unfinished replay changes do not update this candidate.
 No new game launch or D6 closure is claimed. See startup-bundle-loading.txt.
 
-REPLAY MENU90 FINDING / RUNNER FIX BUILT,NOT RUNTIME-QUALIFIED
+REPLAY MENU90 INITIAL FINDING / BEFORE THE RUNTIME FOLLOW-UP ABOVE
 The prior owned menu API attempt decoded3607frames with the expected GameData
 hash,but stayed in the menu with no world. Its report remains FAILED;manual
 cleanup-gate release allowed original Quit0 without force,not replay acceptance.

@@ -9,7 +9,7 @@ from pathlib import PurePosixPath
 import re
 import subprocess
 
-ROOT_FILES = {".gitignore", ".gitattributes", "README.txt"}
+ROOT_FILES = {".gitignore", ".gitattributes", "README.txt", "AGENTS.md"}
 SOURCE_DIRS = {"server", "client_patch", "tools", "tests", "docs", ".github"}
 EXTENSIONS = {".py", ".cpp", ".h", ".hpp", ".ps1", ".cmd", ".txt", ".json", ".yml", ".yaml"}
 FORBIDDEN_PARTS = {"local", "build", "dist", "assets", "fixtures", "captures", "original",
