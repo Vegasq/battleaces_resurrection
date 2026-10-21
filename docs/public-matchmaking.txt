@@ -617,3 +617,58 @@ local/cancel73-2v2-review.json SHA256
 local/cancel73-2vai-review.json SHA256
 89e6a4d6e078d8ec22fff39392db117dd5f59f121c9214196fae695db2f31896
 R04-mode2/mode5 now close within this exact native scope;D2 parent stays OPEN.
+
+2026-10-21 UTC original Cancel before ENTER77 (D2 R01-mode2/mode5)
+Existing verify_public_client --ordinary-player --cancel before-enter --retry,
+unchanged source/native/helper76 on owned optimized58. Before testing,verified
+helper's85-path source-bound receipt,ordinary feature preflight,136bound source
+hashes,current installed program/catalog,all133cached bundle fingerprints and
+unchanged manual71/LAN03 program/catalog seals. No installation/bundle rehash/
+source/package/ordinary-launcher changes. D6 physical restart-first/repeat launch
+remains pending;its manual71 candidate was not launched or modified.
+Preparation local/cancel77-preparation.json SHA256:
+236d26c256e8373d997befcdccc55ed88fc73f1149f17ac5b086c92d5ffe8a4b
+
+Two isolated native runs overlap on read-only program/imported assets,with their
+own profiles/bridge sockets/TLS authorities/in-memory credential stores/servers/
+rooms/workers. Original Play creates ticket1;original Cancel executes BEFORE
+intent.enter,logs noWorld=1 and retires nativeIdle=1/disconnect=1. Server audit
+has NO ticket1 queue entry,offer,READY or match. One second Play creates ticket2,
+rejects the stale search generation,authenticates a fresh connection and alone
+enters the real queue. Two resolver attempts/authentications per run,not one.
+Authoritative OFFERED elapsed is30070ms(mode2)/30047ms(mode5);timers/deadlines/
+simulation clock are unchanged. One human/three server bots form each four-seat
+match;one native client world and one worker per run,no local fallback.
+
+Mode2 local/cancel77-before-enter-2v2-retry01/verification.json:
+PASS297.290s,PID45448,4718exact authoritative frame receipts;native result at4698,
+conceded0. SHA256
+8998d4763f69d99923c5e09a47121979dbf54edda3f1229c90824293c3dec8e2
+Mode5 local/cancel77-before-enter-2vai-retry01/verification.json:
+PASS259.583s,PID3632,3986exact receipts;result3966,conceded0. SHA256
+33acf1277c858fa7aef8741934f306c75570e0935ecb41f20b5751127b7fb26e
+
+Full selected unit deck/17cosmetic slots are frozen on the sole queued intent,
+server match and original native join models. Original result/Continue/RETURN
+release search/world/ticket/offer. Each actual worker exits0,empty stderr/no
+failure,reaped IPC/stderr resources. All136bound source paths,shared TOML and
+installed/helper/manual71/LAN03 identities remain unchanged;133cached bundle
+fingerprints still match,0rehashes. Test PKI removed and servers stopped.
+
+Strict retained read-only reviewers bind original Play/Cancel/retire/retry log
+order,absence of ticket1 server state,single ticket2 offer/assignment/completion,
+native one-world ownership and full results/Continue/worker release. Both pass
+first invocation without another native run. Source-bound helper SHA256:
+1e40eed17fbc9c7c4c4e3c145b52d9efd2b80eeeb549a464db89417431991525
+local/cancel77-2v2-review.json SHA256:
+8d063a75ad9f18730b0ea6f4bd5a332e4a2ce34270fa891011bf0f47b2bbd95e
+local/cancel77-2vai-review.json SHA256:
+7ad4a2b609a0499a7ce7113136bbc7524fe4485af4c37363eb5f1913d2ea812b
+
+Qualification uses original automated callbacks and direct source bridge/server
+with real verified TLS/in-memory fixtures;not physical mouse/pixels,protected
+owner enrollment,bundled ordinary client/host entry,LAN/Internet or native Quit.
+Final client termination is FORCED owned cleanup. No original files,raw native
+logs,simulation/bootstrap assets or private receipts are committed. R01-mode2/
+mode5 named native cells close;D2 and all physical gates remain OPEN. This turn
+changes documentation only;no redundant source/component test suite scheduled.

@@ -83,7 +83,7 @@ an actual committed match remains D4; do not count it twice as an unbounded list
 R. Public cancellation / stale control responses
 Each cell names native evidence only. All missing cells are explicit cases.
 ID / point                    Mode1                 Mode2   Mode5
-R01 before ENTER              P:cancel-before01      O       O
+R01 before ENTER              P:cancel-before01      P:77-2  P:77-5
 R02 waiting                   P:ordinary-cancel01    P:63-2  P:63-5
 R03 OFFERED before READY      P:cancel-offer01       O       P:2vai-cancel01
 R04 after READY committed     P:cancel-ready01       P:73-2  P:73-5
@@ -177,11 +177,18 @@ R04-mode2/mode5 also pass73:original Cancel after READY success gets the genuine
 committed rejection;connection retires,no fallback/client world for that intent.
 A new authenticated Play completes one replacement world/results/Continue.
 Both workers per run exit0,including a created-but-unpublished cancelled worker.
+R01-mode2/mode5 now pass77:original Cancel before ENTER retires first intent with
+no server queue/world. Fresh Play alone enters as ticket2,waits the full30s and
+finishes one authoritative match/results/Continue;4718/3986exact receipts,one
+worker0 each,full selected loadouts unchanged. Forced final owned cleanup;not
+native Quit,physical/bundled/protected/LAN qualification. No product code change.
 C05 now passes76 with an EMPTY seat throughout the wait,then two completed human
 matches. Earlier76 full two-human lobby wait is narrower evidence only;failed
 CRLF reader attempt remains failed. All five scoped Custom C01-C05 cells pass;
 physical P04/D1 remains open. D6's physical restart-first/repeat launch stays
-the priority gate;do not launch further D2 scenarios before checking new feedback.
+the priority gate;check new feedback before further D2 scenarios. While awaiting
+that owner observation,the next finite D2 case is R03-mode2 original Cancel in
+OFFERED before READY,then a fresh usable Play. Reuse the existing diagnostic.
 R02-mode2 already passed63;do not repeat.
 Use only the owned automated58 copy with production D6 catalog verification;
 the prepared D6 manual71/LAN03 candidates remain unchanged. No physical gate is waived.

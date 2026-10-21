@@ -14,6 +14,20 @@ Readiness report SHA256 bb0efbd40c457e7f2e0fd025a4182d290f98490d7edde6030d91afd3
 Initial read-only checker used game_dir instead of game_directory and refused;
 corrected reader passes,no package/config/game edits or native rerun. D6 OPEN.
 
+D2 ORIGINAL CANCEL BEFORE ENTER77 (2026-10-21 UTC,R01-MODE2/MODE5 PASS)
+Unchanged verify_public_client/ordinary feature options/helper76 on automated58,
+two distinct native processes/profiles/TLS fixture servers. Both original Cancel
+callbacks retire ticket1 before ENTER,no server entry/world. Fresh Play gets a
+second connection/authentication and ticket2 alone enters;authoritative offers
+elapsed30070/30047ms. Mode2 PASS297.290s/4718exact receipts,result4698/conceded0;
+mode5 PASS259.583s/3986receipts,result3966/conceded0. One remote world,full17-slot
+loadout/deck,native result/Continue/RETURN and worker0/reaped per case.136bound
+source paths/shared settings/installed/manual71/LAN03 seals unchanged;0bundle
+rehashes. Client cleanup is forced,not native Quit/physical/bundled/protected/
+LAN acceptance. Both strict retained readers pass,no native retry or source/
+package changes. R01 native cells close,D2 remains OPEN;D6 cold observation is
+still pending and priority. Exact hashes/scope:public-matchmaking.txt.
+
 D2 EMPTY-SEAT CUSTOM WAIT76 (2026-10-21 UTC,C05 AUTOMATED PASS)
 Fully created one-human native Party/lobby waits31s before original Invite;
 147live server samples span30.687s with empty seat,no bot/queue/room/worker.

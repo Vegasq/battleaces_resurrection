@@ -92,6 +92,10 @@ Completed subcases (same-PC automated controls; not physical LAN):
     not protected enrollment,physical controls,LAN or native Quit acceptance.
 [x] Original waiting Cancel/retry in modes2 and5 (cancel63 R02);one subsequent
     authoritative AI-fill match each,results/Continue;forced final cleanup.
+[x] Original Cancel BEFORE ENTER in modes2 and5 (cancel77 R01);no first-ticket
+    server entry/world,then fresh Play/one30-second queue/one authoritative
+    match/results/Continue.4718/3986exact receipts,one worker0 each,full loadouts;
+    unchanged136bound paths/helper76/ordinary feature options,forced game cleanup.
 [x] Delayed first ENTER ACK during modes2/5 Cancel/retry (cancel72 R05):
     original second search survives the old reply,then one authoritative match/
     results/Continue;3451/4588 exact frames,each worker0,forced final game cleanup.
