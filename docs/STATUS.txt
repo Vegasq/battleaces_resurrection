@@ -3,6 +3,21 @@ Updated: 2026-10-21 UTC
 Delivery plan: REMAINING_DELIVERY_PLAN.txt, Windows only.
 Original roadmap: CLOSED / SUPERSEDED;see PLAN_CLOSEOUT.txt.
 
+REPLAY94 AUTHORED LEAVE/CONFIRMATION CALLBACK ROUTE PASS
+Retained92 inventory reveals original BindUISelectableToInputAction.ClickEvent
+ShowUIObjectComponent.Show -> options Hide,then its ModalConfirmModel's existing
+ReplayEndGame target. Replace the disproven pointer-trigger guess only in the
+explicit diagnostic. Native94 original ClickButton/owned ModalConfirmVM.OnConfirm
+passes3607decoded frames/presented31/menu/world idle/original Quit0 in38.461s,no
+force,156stable producers. Existing serialized targets/runtime-empty lists,
+same model/pool/prefab52/current navigation and actual confirm button are guarded.
+No direct exit API/listener/FSM writes qualify success. Current helper95-source
+receipt and installed/manual71/LAN03 seals reverify;13native/34Python checks pass.
+This closes the healthy callback subcase. Physical input/disk selector,Cancel,
+stateful malformed recovery and D4 remain OPEN;next is same-world Cancel/reopen/
+Confirm. D1/N2 corrected LAN setup still pending,no repeated request. Exact
+evidence and preserved failed experiments:replay-failure-recovery.txt.
+
 OWNER RESULTS93 / D6 CLOSED / LAN SETUP FIX
 DEV.txt N1:post-Windows-restart usable menu~20s,repeat~2s,window/sound~15s;
 Try Deck/results/Continue/normal Quit works,no issues. Manual71 seals/package

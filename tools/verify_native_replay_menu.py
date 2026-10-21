@@ -156,6 +156,6 @@ if __name__ == '__main__':
     for key in ('game', 'output', 'source-verification', 'shared-settings', 'helper-build-receipt'):
         parser.add_argument('--'+key, type=Path, required=True)
     parser.add_argument('--visible', action='store_true')
-    parser.add_argument('--button-exit',action='store_true',help='open the original options view and invoke its visible replay leave UIButton')
+    parser.add_argument('--button-exit',action='store_true',help='invoke the existing leave input binding and original owned confirmation; no physical-input claim')
     parser.add_argument('--timeout', type=int, default=180)
     raise SystemExit(run(parser.parse_args()))

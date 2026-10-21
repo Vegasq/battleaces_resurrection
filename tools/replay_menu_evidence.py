@@ -11,7 +11,7 @@ COMPLETE = ('NATIVE REPLAY MENU API control passed: mainMenu=1 worldIdle=1 origi
             'BA_RESURRECTION_REPLAY_MENU_V1')
 BUTTON_COMPLETE = ('NATIVE REPLAY MENU BUTTON control passed: mainMenu=1 worldIdle=1 originalExitApi=0 '
                    'probeRootsReleased=1 filePinReleased=1 buttonClicks=1 fsmWrites=0 helperTicks=0 '
-                   'BA_RESURRECTION_REPLAY_MENU_BUTTON_V1')
+                   'BA_RESURRECTION_REPLAY_MENU_BUTTON_V2')
 
 
 def validate(text, replay, *, button_exit=False):
@@ -37,10 +37,10 @@ def validate(text, replay, *, button_exit=False):
     if button_exit:
         require('NATIVE REPLAY MENU exit API dispatch:' not in text and COMPLETE not in text and
                 'NATIVE REPLAY BUTTON failure cleanup:' not in text,'button control used exit API cleanup')
-        exit_api='NATIVE REPLAY BUTTON pointer dispatch: originalPointerClickTrigger=1 active=1 interactable=1 persistentReplayEndGame=1 originalExitApi=0 buttonClicks=1 fsmWrites=0 helperTicks=0'
-        returned='NATIVE REPLAY BUTTON pointer returned: originalCallbackReturned=1'
+        exit_api='NATIVE REPLAY BUTTON authored dispatch: originalBindClickButton=1 active=1 interactable=1 originalExitApi=0 buttonClicks=1 fsmWrites=0 helperTicks=0'
+        returned='NATIVE REPLAY BUTTON authored returned: originalCallbackReturned=1'
     else:
-        require('NATIVE REPLAY BUTTON pointer dispatch:' not in text and BUTTON_COMPLETE not in text,
+        require('NATIVE REPLAY BUTTON authored dispatch:' not in text and BUTTON_COMPLETE not in text,
                 'API control contains button exit evidence')
     markers = [load[0], 'NATIVE REPLAY MENU loaded:', 'REPLAY BINDING inventory:', exit_api, returned, completed]
     positions = [text.find(marker) for marker in markers]
@@ -59,15 +59,25 @@ def validate(text, replay, *, button_exit=False):
                 all(visible[k]==hidden[k] for k in ('controller','button','path','signal_category','signal_name','signal_custom')) and
                 visible['signal_category']=='Game' and visible['signal_name']=='Quit' and visible['signal_custom'] is False,
                 'visible original button ownership/activation differs')
-        bindings=list(re.finditer(r'^\[\d+\] NATIVE REPLAY BUTTON pointer binding: (.+)$',text,re.M))
+        bindings=list(re.finditer(r'^\[\d+\] NATIVE REPLAY BUTTON authored binding: (.+)$',text,re.M))
         require(len(bindings)==1 and inventories[0].end()<bindings[0].start()<positions[3],
-                'existing pointer binding was not observed before dispatch')
-        pointer=json.loads(bindings[0][1]);calls=pointer['event']['persistent']
-        require(pointer['same_game_object'] is True and
-                pointer['trigger']['class']=='Doozy.Runtime.UIManager.Triggers.PointerClickTrigger' and
+                'existing authored binding was not observed before dispatch')
+        authored=json.loads(bindings[0][1]);calls=authored['confirm_event']['persistent']
+        clicks=authored['click_event']['persistent']
+        require(authored['same_game_object'] is True and
+                authored['binder']['class']=='Uncapped.BindUISelectableToInputAction' and
+                authored['show']['class']=='Uncapped.UI.ShowUIObjectComponent' and
+                authored['view']['class']=='Doozy.Runtime.UIManager.Containers.UIView' and
+                len(clicks)==2 and clicks[0]['target']==authored['show'] and clicks[0]['method']=='Show' and
+                clicks[1]['target']==authored['view'] and clicks[1]['method']=='Hide' and
+                all(c['mode']==1 and c['state']==2 and c['method_name_present'] is True for c in clicks) and
+                authored['click_event']['runtime']==[] and authored['confirm_event']['runtime']==[] and
                 len(calls)==1 and calls[0]['target']==visible['controller'] and
                 calls[0]['method']=='ReplayEndGame' and calls[0]['method_name_present'] is True and
-                calls[0]['state'] in (1,2), 'existing pointer callback does not own the replay exit')
+                calls[0]['state']==2 and calls[0]['mode']==1, 'existing authored callbacks do not own replay confirmation/exit')
+        confirm='NATIVE REPLAY BUTTON confirmation dispatch: originalModalOnConfirm=1 currentNavigation=1 nativeModel=1 persistentReplayEndGame=1 originalExitApi=0 fsmWrites=0 helperTicks=0'
+        require(text.count(confirm)==1 and positions[3]<text.index(confirm)<positions[4],
+                'original current confirmation was not invoked after the authored leave action')
     nody_receivers = [r for r in signal['binding_inventory']['inventory']['button_stream']['receivers'] if 'nody' in r]
     nody = nody_inventory(text, phase='healthy-replay') if len(nody_receivers) == 1 else None
     require('Practice requested:' not in text and 'NATIVE REPLAY playback armed:' not in text,

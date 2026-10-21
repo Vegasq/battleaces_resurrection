@@ -9,7 +9,7 @@ namespace ui=ba_practice_settings_ui;
 struct Probe {
     Root owner,front,replay,simulation;
     ba_native_settings::Handle file;
-    std::unique_ptr<Root> controller,button;
+    std::unique_ptr<Root> controller,button,show,model,modal,modalOwner;
     bool optionsDispatched=false,buttonClicked=false;
     ULONGLONG optionsDeadline=0;
     uint64_t world=0;int frames=0;
@@ -50,8 +50,40 @@ static bool clickExit(Probe& value,Obj controller) {
         return false;
     }
     require(value.controller && value.controller->get()==controller && value.button &&
-        ba::get<Obj>(controller,"_leaveReplayButton")==value.button->get() && !value.buttonClicked &&
+        ba::get<Obj>(controller,"_leaveReplayButton")==value.button->get() &&
         GetTickCount64()<value.optionsDeadline,"replay button owner/visibility deadline differs");
+    if(value.buttonClicked) {
+        require(value.show && value.model,"replay authored modal source missing");
+        Root modal(ba::get<Obj>(value.show->get(),"_uiObject"));
+        if(!modal.get() || !ba::get<bool>(modal.get(),"_isInitialized") || !ui::active(modal.get()))return false;
+        require(ui::exact(modal.get(),"Uncapped.UI","ModalConfirmVM") &&
+            ba::get<Obj>(modal.get(),"_model")==value.model->get(),"replay acquired wrong confirmation model");
+        Root owner(ba::get<Obj>(modal.get(),"<Owner>k__BackingField"));
+        Root navigation(ba::get<Obj>(ba::owner,"<NavigationStack>k__BackingField"));
+        Root entries(ba::get<Obj>(navigation.get(),"_navigationStack"));
+        require(owner.get() && ba::get<bool>(owner.get(),"<IsInitialized>k__BackingField") &&
+            ba::get<Obj>(owner.get(),"<Root>k__BackingField")==modal.get() &&
+            ba::get<Obj>(owner.get(),"_pool")==ba::get<Obj>(value.show->get(),"_pool") &&
+            ba::get<int>(owner.get(),"<PrefabType>k__BackingField")==52 &&
+            ba::get<Obj>(modal.get(),"_navigationStack")==navigation.get() &&
+            ba_local::count(entries.get())==1 && ui::item(entries.get(),0)==modal.get(),
+            "replay confirmation is not the current owned modal");
+        Root child(ui::findChild(modal.get(),"ModalContainer/Buttons/ConfirmButton"));
+        Root button(ui::component(child.get(),"Doozy.Runtime.UIManager.Components","UIButton"));
+        if(!ui::selectable(button.get()))return false;
+        Root container(ba::get<Obj>(button.get(),"Behaviours"));
+        ba_replay_binding::List behaviours(ba::get<Obj>(container.get(),"Behaviours"));unsigned found=0;
+        for(int i=0;i<behaviours.size;++i) {
+            Root item(behaviours.at(i));if(ba::get<int>(item.get(),"BehaviourName")!=7)continue;
+            require(++found==1 && ba::get<Obj>(item.get(),"Selectable")==button.get(),"replay confirm button owner differs");
+            ui::persistentTarget(ba::get<Obj>(item.get(),"Event"),modal.get(),"OnConfirm");
+        }
+        behaviours.unchanged();require(found==1,"replay original confirm callback missing");
+        value.modal=std::make_unique<Root>(modal.get());value.modalOwner=std::make_unique<Root>(owner.get());
+        ba::log("NATIVE REPLAY BUTTON confirmation dispatch: originalModalOnConfirm=1 currentNavigation=1 nativeModel=1 persistentReplayEndGame=1 originalExitApi=0 fsmWrites=0 helperTicks=0");
+        ba::call(modal.get(),"OnConfirm");
+        ba::log("NATIVE REPLAY BUTTON authored returned: originalCallbackReturned=1");return true;
+    }
     if(!ui::selectable(value.button->get()))return false;
     Root view(ba::get<Obj>(controller,"_optionsConcedeView"));
     if(!view.get() || !ba::native<bool(*)(Obj,Obj)>(0x88a350)(view.get(),nullptr))return false;
@@ -65,32 +97,47 @@ static bool clickExit(Probe& value,Obj controller) {
         "replay visible button bindings/world changed during inventory");
     ba::log("NATIVE REPLAY BUTTON visible inventory: %s",before.c_str());
     componentInventory(value.button->get());
-    // Unity dispatches pointer callbacks to sibling components as well as the
-    // UIButton. Its Click() only broadcasts; the authored exit is on the
-    // existing PointerClickTrigger's serialized OnTrigger UnityEvent.
-    Root trigger(ui::component(value.button->get(),"Doozy.Runtime.UIManager.Triggers","PointerClickTrigger"));
-    require(ui::exact(trigger.get(),"Doozy.Runtime.UIManager.Triggers","PointerClickTrigger") &&
-        ui::gameObject(trigger.get())==ui::gameObject(value.button->get()) && ui::active(trigger.get()),
-        "replay button requires its existing active pointer trigger");
-    Root event(ba::get<Obj>(trigger.get(),"OnTrigger"));
-    ui::persistentTarget(event.get(),controller,"ReplayEndGame");
-    const auto eventBefore=ba_replay_binding::event(event.get());
-    require(eventBefore==ba_replay_binding::event(event.get()),"replay pointer binding changed during inventory");
-    ba::log("NATIVE REPLAY BUTTON pointer binding: {\"trigger\":%s,\"same_game_object\":true,\"event\":%s}",
-        ba_replay_binding::reference(trigger.get()).c_str(),eventBefore.c_str());
-    Root system(codec::invoke(codec::method(codec::type("UnityEngine.EventSystems","EventSystem"),"get_current",0,0x53c5f20,0x0600064d),nullptr));
-    require(system.get()!=nullptr,"replay pointer control requires the existing EventSystem");
-    auto data=codec::allocate(codec::type("UnityEngine.EventSystems","PointerEventData"));
-    void* constructorArgs[]={system.get()};
-    codec::invoke(codec::method(ba::klass(data->get()),".ctor",1,0x53c4c40,0x06000633),data->get(),constructorArgs);
-    int left=0;void* buttonArgs[]={&left};
-    codec::invoke(codec::method(ba::klass(data->get()),"set_button",1,0x91f9c0,0x0600061c),data->get(),buttonArgs);
+    Root binder(ui::component(value.button->get(),"Uncapped","BindUISelectableToInputAction"));
+    Root show(ui::component(value.button->get(),"Uncapped.UI","ShowUIObjectComponent"));
+    require(ui::exact(binder.get(),"Uncapped","BindUISelectableToInputAction") && ui::active(binder.get()) &&
+        ba::get<Obj>(binder.get(),"_button")==value.button->get() && show.get() &&
+        ui::gameObject(binder.get())==ui::gameObject(value.button->get()),"replay authored input binding owner differs");
+    Root event(ba::get<Obj>(binder.get(),"ClickEvent"));
+    Root group(ba::get<Obj>(event.get(),"m_PersistentCalls"));
+    ba_replay_binding::List calls(ba::get<Obj>(group.get(),"m_Calls"));require(calls.size==2,"replay authored click callback count differs");
+    for(int i=0;i<2;++i) {
+        Root call(calls.at(i));
+        require(ba::get<Obj>(call.get(),"m_Target")==(!i?show.get():view.get()) &&
+            ba_catalog::utf8(ba::get<Obj>(call.get(),"m_MethodName"))==(!i?"Show":"Hide") &&
+            ba::get<int>(call.get(),"m_Mode")==1 && ba::get<int>(call.get(),"m_CallState")==2,
+            "replay authored click target differs");
+    }
+    calls.unchanged();Root descriptor(ba::get<Obj>(show.get(),"_showUIObject"));
+    Root model(ba::get<Obj>(descriptor.get(),"_model"));
+    require(ui::exact(model.get(),"Uncapped.UI","ModalConfirmModel"),"replay authored confirmation model differs");
+    Root meta(ba::get<Obj>(model.get(),"Meta")),confirm(ba::get<Obj>(meta.get(),"ConfirmEvent"));
+    ui::persistentTarget(confirm.get(),controller,"ReplayEndGame");
+    Root confirmGroup(ba::get<Obj>(confirm.get(),"m_PersistentCalls"));
+    ba_replay_binding::List confirmCalls(ba::get<Obj>(confirmGroup.get(),"m_Calls"));
+    Root confirmCall(confirmCalls.at(0));
+    require(ba::get<int>(confirmCall.get(),"m_Mode")==1 && ba::get<int>(confirmCall.get(),"m_CallState")==2,
+        "replay authored confirmation mode/state differs");
+    for(Obj action:{event.get(),confirm.get()}) {
+        Root invoked(ba::get<Obj>(action,"m_Calls"));
+        ba_replay_binding::List runtime(ba::get<Obj>(invoked.get(),"m_RuntimeCalls"));
+        require(runtime.size==0,"replay authored event has unqualified runtime listeners");runtime.unchanged();
+    }
+    const auto clickBefore=ba_replay_binding::event(event.get()),confirmBefore=ba_replay_binding::event(confirm.get());
+    require(clickBefore==ba_replay_binding::event(event.get()) && confirmBefore==ba_replay_binding::event(confirm.get()),
+        "replay authored event inventory changed");
+    ba::log("NATIVE REPLAY BUTTON authored binding: {\"binder\":%s,\"same_game_object\":true,\"show\":%s,\"view\":%s,\"click_event\":%s,\"confirm_event\":%s}",
+        ba_replay_binding::reference(binder.get()).c_str(),ba_replay_binding::reference(show.get()).c_str(),
+        ba_replay_binding::reference(view.get()).c_str(),clickBefore.c_str(),confirmBefore.c_str());
+    value.show=std::make_unique<Root>(show.get());value.model=std::make_unique<Root>(model.get());
     value.buttonClicked=true;
-    ba::log("NATIVE REPLAY BUTTON pointer dispatch: originalPointerClickTrigger=1 active=1 interactable=1 persistentReplayEndGame=1 originalExitApi=0 buttonClicks=1 fsmWrites=0 helperTicks=0");
-    void* clickArgs[]={data->get()};
-    codec::invoke(codec::method(ba::klass(trigger.get()),"OnPointerClick",1,0x86acf0,0x06000182),trigger.get(),clickArgs);
-    ba::log("NATIVE REPLAY BUTTON pointer returned: originalCallbackReturned=1");
-    return true;
+    ba::log("NATIVE REPLAY BUTTON authored dispatch: originalBindClickButton=1 active=1 interactable=1 originalExitApi=0 buttonClicks=1 fsmWrites=0 helperTicks=0");
+    codec::invoke(codec::method(ba::klass(binder.get()),"ClickButton",0,0x3e9b630,0x060015bc),binder.get());
+    return false;
 }
 static void update(Obj front) {
     if(!ba::flag(L"-native-replay-menu-smoke") || stage>=4 || GetTickCount64()<due)return;
@@ -183,7 +230,7 @@ static void update(Obj front) {
                 !ba::read<bool>(probe->simulation.get(),0x1a0) && !ba_practice::active() &&
                 ba_client::worldOwner==ba_client::Owner::None,"replay menu exit did not release the original world");
             probe.reset();stage=4;
-            if(buttonMode())ba::log("NATIVE REPLAY MENU BUTTON control passed: mainMenu=1 worldIdle=1 originalExitApi=0 probeRootsReleased=1 filePinReleased=1 buttonClicks=1 fsmWrites=0 helperTicks=0 BA_RESURRECTION_REPLAY_MENU_BUTTON_V1");
+            if(buttonMode())ba::log("NATIVE REPLAY MENU BUTTON control passed: mainMenu=1 worldIdle=1 originalExitApi=0 probeRootsReleased=1 filePinReleased=1 buttonClicks=1 fsmWrites=0 helperTicks=0 BA_RESURRECTION_REPLAY_MENU_BUTTON_V2");
             else ba::log("NATIVE REPLAY MENU API control passed: mainMenu=1 worldIdle=1 originalExitApi=1 probeRootsReleased=1 filePinReleased=1 buttonClicks=0 fsmWrites=0 helperTicks=0 BA_RESURRECTION_REPLAY_MENU_V1");
         }
     } catch(const std::exception& error) {

@@ -68,13 +68,18 @@ class ReplayMenuEvidenceTests(unittest.TestCase):
         value['active']=True
         opened='[4] NATIVE REPLAY BUTTON options dispatch: originalTryShowOptionsConcedeView=1 buttonInitiallyHidden=1 fsmWrites=0\n'
         visible='[5] NATIVE REPLAY BUTTON visible inventory: '+json.dumps(value)+'\n'
-        pointer=dict(trigger=dict(id='300',**{'class':'Doozy.Runtime.UIManager.Triggers.PointerClickTrigger'}),
-                     same_game_object=True,event=dict(persistent=[dict(target=value['controller'],method='ReplayEndGame',
-                         method_name_present=True,state=2)]))
-        binding='[6] NATIVE REPLAY BUTTON pointer binding: '+json.dumps(pointer)+'\n'
-        dispatch='[7] NATIVE REPLAY BUTTON pointer dispatch: originalPointerClickTrigger=1 active=1 interactable=1 persistentReplayEndGame=1 originalExitApi=0 buttonClicks=1 fsmWrites=0 helperTicks=0\n'
+        show=dict(id='301',**{'class':'Uncapped.UI.ShowUIObjectComponent'})
+        view=dict(id='302',**{'class':'Doozy.Runtime.UIManager.Containers.UIView'})
+        def call(target,method):return dict(target=target,method=method,method_name_present=True,state=2,mode=1)
+        authored=dict(binder=dict(id='300',**{'class':'Uncapped.BindUISelectableToInputAction'}),
+                     same_game_object=True,show=show,view=view,
+                     click_event=dict(persistent=[call(show,'Show'),call(view,'Hide')],runtime=[]),
+                     confirm_event=dict(persistent=[call(value['controller'],'ReplayEndGame')],runtime=[]))
+        binding='[6] NATIVE REPLAY BUTTON authored binding: '+json.dumps(authored)+'\n'
+        dispatch='[7] NATIVE REPLAY BUTTON authored dispatch: originalBindClickButton=1 active=1 interactable=1 originalExitApi=0 buttonClicks=1 fsmWrites=0 helperTicks=0\n'
         prefix=self.text[:self.text.index('[4] NATIVE REPLAY MENU exit API dispatch:')]
-        return prefix+opened+visible+binding+dispatch+'[8] NATIVE REPLAY BUTTON pointer returned: originalCallbackReturned=1\n[9] '+BUTTON_COMPLETE+'\n'
+        confirm='[8] NATIVE REPLAY BUTTON confirmation dispatch: originalModalOnConfirm=1 currentNavigation=1 nativeModel=1 persistentReplayEndGame=1 originalExitApi=0 fsmWrites=0 helperTicks=0\n'
+        return prefix+opened+visible+binding+dispatch+confirm+'[9] NATIVE REPLAY BUTTON authored returned: originalCallbackReturned=1\n[10] '+BUTTON_COMPLETE+'\n'
 
     def test_visible_button_route_is_distinct_from_api_and_physical_input(self):
         text=self.button_text()
@@ -98,12 +103,16 @@ class ReplayMenuEvidenceTests(unittest.TestCase):
             with self.subTest(text=bad[-100:]), self.assertRaises(AssertionError):
                 validate(bad,self.replay,button_exit=True)
 
-    def test_pointer_exit_requires_existing_active_serialized_binding(self):
+    def test_authored_exit_requires_existing_active_serialized_binding(self):
         text=self.button_text()
         for bad in (text.replace('"same_game_object": true','"same_game_object": false'),
                     text.replace('"method": "ReplayEndGame"','"method": "Other"'),
                     text.replace('"state": 2','"state": 0'),
-                    text.replace('"method_name_present": true','"method_name_present": false')):
+                    text.replace('"method_name_present": true','"method_name_present": false'),
+                    text.replace('"method": "Hide"','"method": "Show"'),
+                    text.replace('"mode": 1','"mode": 0'),
+                    text.replace('"runtime": []','"runtime": [{}]'),
+                    text.replace('originalModalOnConfirm=1','originalModalOnConfirm=0')):
             self.assertNotEqual(text,bad)
             with self.subTest(text=bad[-100:]), self.assertRaises(AssertionError):
                 validate(bad,self.replay,button_exit=True)

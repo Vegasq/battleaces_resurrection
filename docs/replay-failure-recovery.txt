@@ -1,6 +1,72 @@
 REPLAY RECOVERY FINDING55 -- 2026-10-20
 Plan item:D4-RP1. Status:OPEN;malformed batch recovery is NOT qualified.
 
+94 authored replay leave/confirmation callback route -- native PASS
+The retained92 component inventory supplies the missing route:the visible leave
+button's existing BindUISelectableToInputAction.ClickEvent has two serialized
+calls:Show on its same-GameObject ShowUIObjectComponent,then Hide on the current
+options UIView. Its model is the original ModalConfirmModel;the Meta.ConfirmEvent
+has the current ConcedeFlowUIController.ReplayEndGame target. Therefore the
+previous exact PointerClickTrigger/direct-exit hypothesis was wrong. The actual
+PointerLeftClickTrigger event was empty in92;do not attach a replacement callback.
+
+Original metadata/LLVM review qualifies ClickButton3e9b630/token060015bc:it creates
+the original default ButtonActivationInfo then calls the virtual Perform action.
+Original PerformButtonAction3e9b690/token060015bd calls the selectable/reset state
+then invokes its existing ClickEvent. ShowUIObjectComponent.Show3d62c40 uses its
+existing pool/descriptor and stores the acquired UI object. This is original-byte
+static fallback evidence,not Ghidra decompilation. REA binary_session still reports
+Ghidra not configured,GHIDRA_INSTALL_DIR unset,no open target;no setup retry.
+
+The explicit button diagnostic now checks those exact existing Show/Hide targets,
+mode1/state2 and empty runtime listener lists,then invokes original ClickButton.
+It waits for the actual initialized ModalConfirmVM/model/prefab52/pool/current
+navigation entry and the existing ConfirmButton -> OnConfirm binding. Original
+ModalConfirmVM.OnConfirm dispatches the model's existing ReplayEndGame event.
+No listener creation,manual FSM/UI visibility write,extra simulation tick or
+direct ReplayEndGame invocation qualifies success. Failure-only API cleanup stays
+separate and causes strict evidence rejection. V2 marker distinguishes this route
+from the failed92 pointer experiments;their reports are preserved unchanged.
+
+Native01/PID26772 PASS38.461355s,first94 runtime attempt. Original file loader
+decodes3607frames and restores advancing replay/world,presented31;original options
+open,authored leave,current confirmation,menu/world idle,probe roots/file pin
+release and original normal Quit0 all pass. Owned process reaped and absent,no
+force;monitor stops,156producer hashes/seed/original recording stay unchanged.
+Current95-source helper receipt,installed program/catalog/manual71/LAN03 seals
+pass retained review. No package rebuild/frozen candidate change/server start.
+This is an authored UI CALLBACK route,not physical pointer/input acceptance or a
+user-exposed disk selector. Cancel,malformed stateful recovery and D4 remain OPEN.
+
+13existing native build checks and34focused Python tests pass. First test command
+named nonexistent tests.test_native_quit_evidence;corrected module test_native_quit
+passes without a native retry. First retained reviewer compared the152-path base
+source set with the156-path outer report;using the actual outer producer set
+passes without changing any report or validation rule.
+
+local/replay94-button-native01/verification.json SHA256
+8df9014b17b8ccacfdb2657ec1c79794686604c798689a97ebd1eeaf0f773b7a
+Inner native-quit/verification.json SHA256
+9d61e0a034f98551edf0d3c3876b394f99dc80786f33bc593d30952f27fea096
+local/replay94-retained-review.json SHA256
+3d795df6cde8564a4308cd8096944d69ea8a27947a02113523d47a280b0c369c
+local/replay94-exit-contract/manifest.json SHA256
+582ff1bae3f4dfde647ef6b68861db252123918c711578788264b7161e52fdaa
+Preparation local/replay94-preparation01.json SHA256
+8fd1d604cd67a3c5f42a0836c388910d21b7db50ba0c3201744a1f529d78c94e
+Helper94-01 SHA256
+f2f99f16de397950f1490bd7cf8fa943bd519c246f47e246388f24b6352f242b
+Build receipt SHA256
+6f90f616524747617afddb63b5dbedabb8bdfca52426e7027c3e60c98483e290
+
+Next finite D4 case:original replay confirmation Cancel must preserve the same
+advancing replay/world,then a fresh authored leave/Confirm must return to menu.
+After that qualified lifecycle,exercise bounded ordinary malformed-load recovery
+through original Load/Stop callbacks;never rerun the known malformed developer
+batch timeout or force a menu transition as recovery. Physical disk selection/
+input and release-artifact qualification remain separate. DEV.txt N2 LAN retry
+still has no answer/report at94 closeout;no repeated operator request is added.
+
 92 options/exit investigation paused at Nick's request,2026-10-21 UTC
 Native03 completed before the pause. The visible button's actual component is
 PointerLeftClickTrigger,not the exact PointerClickTrigger class required by the
