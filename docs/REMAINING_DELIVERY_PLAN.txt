@@ -390,6 +390,17 @@ are scoped inputs, not a completion substitute.
     window's alignment subcase,not pre-attach/full-lifetime/all-mode/descendant/
     crash/cache/reporting removal. Failed v1 game alignment remains failed.
     Exact evidence/limits:telemetry-clock-attribution110.txt. D5 still OPEN.
+[x] Review111 qualifies owned paused launch/observer-before-primary-resume:
+    authored control,10focused checks and24actual rejection cases pass. Native
+    AI/results/Continue/default Quit0 passes with source/shared/program seals,
+    job1/0/0 and no force. This advances observation earlier than110;not D6 timing.
+[ ] Startup file attribution111 remains FAILED:660rows/355anchors align settings
+    before native load through Quit,but2relative roots are unresolved. Add bounded
+    path/caller metadata and identify them;never discard that gap counter. Real
+    Bugsnag reader uses generic persistentDataPath,not isolated profile storage;
+    no real queued reports found in candidate shared root. Disposable root/type-
+    correct payload contract is required before seed tests. Recipe9 unchanged;
+    no111 package/new human action. Evidence:telemetry-startup-observation111.txt.
 References: telemetry.txt, telemetry-internal-config.txt,
 telemetry-persistent-observation.txt,telemetry-device-cef106.txt and nvidia-shutdown.txt.
 

@@ -2,6 +2,28 @@
 
 ## Requests and answers with Nick
 
+- Privacy111 adds direct owned CREATE_SUSPENDED diagnostic launch,retains raw
+  handles/job before passive REA attach,and resumes only with prior count1.
+  Control04 passes38rows/20operations/9anchors with body absent until ready;
+  job3/0/0 includes recorded conhost and authored child.10focused checks and24
+  actual owner/capture mutation rejections pass. Game02 native AI/result/Continue/
+  default Quit0 passes123.617s,no force/job1/0/0,program/shared/source unchanged.
+  Observer installed before primary resume,660rows/355anchors align native
+  settings-before-load through Quit. BUT2unresolved relative file roots mean
+  observation qualification FAILS;review03 records alignment=true/overall=false.
+  Next:add opt-in bounded unresolved-root path/caller metadata and identify them,
+  not another unchanged run or suppressing counters. Exact evidence/failures:
+  docs/telemetry-startup-observation111.txt. Pre-loader/injection/tree coverage
+  not proven. Real Bugsnag reader is generic persistentDataPath/Bugsnag,not
+  profile/Bugsnag;candidate shared root exists with0queued reports. Require
+  disposable root isolation/typed payload contract before seeding. No shared
+  writes/queue clearing. REA-spawn control01 job assignment denied;terminated,
+  actual PID absent. Its adapter is abandoned;do not retry that flow. Control02/
+  03 and game01 precondition/count failures remain failures. All owners terminal,
+  successful REA sessions closed. Recipe9/helper110 unchanged;r103g stays mixed
+  diagnostic fixture. No111 packages;105/DEV N7 unchanged;D5 OPEN/false. No new
+  Nick action or repeat accepted D6/LAN/manual105 requested.
+
 - Privacy110 supersedes109 SOURCE only:recipe9/75guards,three cache serializer
   call NOPs retain request/locks/cleanup;separate virtual40 query selects unknown.
   86focused checks,C++ suite,actual8->9 preserving profiles,native AI/Continue/

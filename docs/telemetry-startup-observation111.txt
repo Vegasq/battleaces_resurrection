@@ -1,0 +1,145 @@
+PRIMARY-THREAD STARTUP OBSERVATION111
+2026-10-22. D5 remains OPEN;recipe9/75 guards/runtime_validated=false unchanged.
+
+Outcome
+The observer can now be installed before controlled primary-thread resume.
+Actual game AI/results/Continue/default original Quit pass with natural root0,
+empty job and no forced cleanup. Startup observation is NOT fully qualified:
+two relative file roots could not be resolved. Preserve that failure and
+identify the missing paths next. No new product patch/helper/package is made.
+Frozen105 client/server and DEV N7 remain the current planned manual update.
+
+Owned launch and scope
+tools/owned_suspended_launch.py directly calls the installed _winapi.CreateProcess
+with CREATE_SUSPENDED. It retains returned process/primary-thread handles,assigns
+the owned kill-on-close job,checks PID/TID identity,and accepts exactly one prior
+suspension on ResumeThread. No global Popen interception,arbitrary PID targeting,
+system-wide process enumeration,privilege or machine policy change is used.
+Only direct ignored local images,no inherited handles/pipes and bounded commands
+are supported. Owned-job membership is read-only metadata,not system inventory.
+Job assignment is immediate AFTER creation,not atomic. CREATE_SUSPENDED does
+not prevent injected Frida threads,Windows loader or DLL initialization work.
+Do not call this pre-all-execution,pre-loader,whole-life or whole-tree coverage.
+Cleanup uses the owned job,checked root waits and finally releases thread/process
+handles. Fault receipts do not turn a timeout/termination failure into reaping.
+
+Original uncommitted interception proposal was not launched. Read-only review:
+ local/privacy111-suspended-review01/FINDINGS.txt
+ 2c3d4b17c785c4d9c99ec22781cf0d4df9e07b743b8250278a0481eddf8a6e15
+It identified raw-handle transfer and cleanup gaps;direct creation replaces it.
+Final authored launch source SHA256:
+ c0a874c3bfcdd6b038113401042d1ff07b5383dfe70a0c08170d4df3ba0cdc4a
+6 fault-path tests plus4 existing clock tests PASS (10 total):
+ local/privacy111-focused-tests03.txt
+ 6494039a039287fde972becf476a4fd00e582e9f65913ad85b063cf7a2cd16a6
+Tests cover exact resume count/identity,failed assignment,failed termination,
+accounting failure and timeout-finally release. They do not simulate an actual
+unkillable process or guarantee every possible OS failure is recoverable.
+
+Actual authored control04
+local/privacy111-suspended-control-owner04.py and privacy111-suspended-control04/.
+The first authored Python body writes its PID/run/native-clock marker. It is
+absent at owned-job readiness and after actual REA observer-ready. Release binds
+PID/session/source;ResumeThread returns1;the body marker follows resume.
+Canonical clocked-v2 control body plus that exact prefix runs file operations,
+localhost resolver/socket7bytes each way,one authored child0 and eight alternating
+clock calls. The synthetic queue sentinel is ONLY sensor control data,not a
+game/Bugsnag/Unity report fixture. It remains unchanged.
+38 provider rows,20 operation records,9 clock anchors,max drift15ms. Root0 and
+job3/0/0(total/active/terminated),no forced cleanup. The extra owned member is
+C:/Windows/System32/conhost.exe,recorded before resume;the third process is the
+authored Python child. Do not attribute console-host creation solely to Frida.
+REA final ev_d6ce17e4f971b9c91d647ce976f69addc14024ab88d126e399494f37412098fc.
+Owner verification SHA256:
+ 865a75fcb7daee6f1e75eed98d119cddde37a494e35f7ab24785e42ed4b067a1
+Read-only observation-review04.json SHA256:
+ f82881b46b71993818f2c225ab98ae1f6b37246df37212e9c887c7d0daa78e48
+Reviewer source local/privacy111-control-review04.py SHA256:
+ 258f62951175755405fb49f6cea82d58bd65ff34df676d91728a2205c01c28b5
+The later independent PID lookup for25548 was denied(error5);it supplies no
+additional terminal proof. The retained owner waited on its original handle
+for actual exit0 and checked job empty before closing;do not kill a reused PID.
+
+Actual game02 and explicit observation failure
+local/privacy111-game-owner02.py;local/privacy111-game-ai02/.
+Recipe9/helper110-01 in owned r103g;fresh nativestest_ profile. Existing native
+checker uses its ordinary3s practice diagnostic delay,not110's added30s delay.
+No game/server product code or frozen candidate is modified. Source/observer/
+six program-component/shared-state seals pass. Native owner123.616759s includes
+the external paused preparation period;this is not ordinary startup timing.
+Controlled resume68210953;first clock anchor68210968. Native settings selection
+before native load68211671;practice request68220718;result68290437;Continue
+68298968;returned-menu68299562;original Quit confirm68306156. Last anchor68307218.
+660 complete provider rows,355 anchors,max drift11ms,278 selected file records,
+0 observed network/child records. All native markers fall inside the anchored
+window. No errors/truncation/overflow;native root0/reaped,job1/0/0,no force.
+REA final ev_3ae3fb74902c2d95a866be159afb42a9927d36344dd7bc5021a22a6c8cf0d0f2.
+
+HOWEVER:unknownRelativeRoots first becomes2 by the15s heartbeat and remains2.
+Current sensor only counts these unresolved operations;it cannot show their
+paths/callers. Neither those operations nor possible inherited/duplicated
+handles can be classified from the current recording. No zero-traffic or complete
+selected-root/file/collection-removal claim is valid. observation-review01.json
+retains its original assertion failure. observation-review03.json independently
+records alignment_passed=true,passed=false,reason=unresolved-relative-roots.
+Never promote the latter into a full observation or D5 pass.
+Owner SHA256:
+ eb03757593714c93a2755d96e6c89bb6efff2d507fa309c8a6d56a9d492cbb6d
+Native verification SHA256:
+ 863c1e2d85eac3a758cbc707042fa011c26c24dbfb0b60bd133cb718be826510
+Observation-review03 SHA256:
+ d0369746ebb9b865bb5e25b085eafa4bd45e299ece561d4eccda1bf1d09454fd
+Reviewer source local/privacy111-game-review03.py SHA256:
+ f95dbd9280ee89a81b89e89e49f7d9003f49f0dea56bd88750668f4ac138a119
+24 in-memory actual control/game capture/owner mutations reject;no retained
+evidence was changed. Baseline game absence remains failed,alignment accepted.
+ local/privacy111-review-rejections01.json
+ d92303fb5fc7ad61894cf595b28783d77239e3c11f2b883add66ce5f50a44939
+
+Persisted report reader review
+Independent read-only original-byte review establishes the real Bugsnag paths:
+Application.persistentDataPath/Bugsnag/Events/<id>.event and Sessions/<id>.session.
+The native reader enumerates suffixes,reads text,deserializes a JSON object and
+constructs typed Report/Event or SessionReport models. Cached event format is
+not assumed to be the ordinary outbound envelope;minimum valid seed schema
+remains incomplete. Current profile hooks isolate settings/backup/replays,NOT
+generic Application.persistentDataPath. Never seed profile/Bugsnag and call that
+the native cache;never alter the actual shared queue to manufacture a test.
+ local/privacy111-queued-report-contract01/FINDINGS.txt
+ ffdf8adae4aa5508a568b80b455118964f44ddc27cabd45ab0c9c475e6a09b30
+ evidence-manifest.json
+ c5361cffaaf91d1fcf51e5e8e5b4980c44929fcf194b355f3e2b6ad9a2ee2bc9
+Read-only candidate shared Bugsnag root inventory DURING game02 found the root
+present and0 *.event/*.session files. It is not a before/after preservation
+proof or a runtime query of Application.persistentDataPath. No payloads seeded,
+deleted,delivered or printed. Unity archived-event/CEF queue formats stay open.
+ local/privacy111-shared-queue-inventory01.json
+ 2e2008cad40d8ac71c78459be1e1a4d18d9a51eb7ae0b5e6070a92c0b101f1fa
+
+Retained failed attempts
+REA paused spawn control01:job assignment denied5;constructor terminates/waits
+the selected control. PID11048 subsequently absent87;load reports no open Frida
+session. Preserve failed report and as-reviewed-owner-helper.py.txt;that adapter
+is abandoned,not packaged and not used to claim successful job ownership.
+Suspended control02:default STARTUPINFO contains an empty handle_list dictionary;
+the overly strict guard refused before creating a child. Fixed to accept empty
+attributes only. Control03:real body/exit/job checks work but parent expects2
+instead of3 total processes;parent remains failed. Control04 explicitly records
+console-host membership and accepts the actual3/0/0 result.
+Game01:existing native checker requires visible=True;rejects before launch.
+Game02 uses that required mode and passes native flow;its observation gap stays.
+First fault-test run hit tempfile ACL restrictions before mocked creation;no ACL
+was changed. Revised fault test mocks filesystem existence and never creates a
+real process/file. Second run initially modeled an already-exited root;corrected
+fake wait sequence now exercises live-root termination. Retain failed outputs.
+
+Next finite work
+1. Add opt-in bounded metadata for unresolved relative roots and caller frames;
+   preserve legacy observer source profiles. Positively qualify new decoding,
+   then identify these two startup operations. Do not suppress the gap counter.
+2. For genuine pre-existing report tests,establish disposable persistent-root
+   isolation and the real typed payload format before any authored queue seed.
+   Continue unresolved native identity acquisition and other D5 matrix cases.
+3. Keep final artifacts/manual105 separate until complete-set qualification.
+All owned game/control owners are terminal;both successful REA sessions closed.
+No game/server left running;no new Nick action or repeat D6/LAN1v1 requested.

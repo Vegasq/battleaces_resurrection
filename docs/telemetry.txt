@@ -3,6 +3,13 @@ Updated: 2026-10-22
 Supported input: Battle Aces build 37822, Windows x64.
 Recipe version: 9. Guards: 75. Complete-set runtime_validated: false.
 
+Review111 installs the passive observer before controlled primary-thread resume.
+Authored control and native AI/results/Continue/Quit pass,without forced cleanup.
+The new startup recording aligns660rows/355anchors but exposes2unresolved
+relative file roots;observation qualification FAILS and D5 stays OPEN. Actual
+Bugsnag reader/root review rules out a fake profile-local queue fixture. Exact
+evidence/failures/next gates:telemetry-startup-observation111.txt. No new package.
+
 Review110 omits three cached analytics serialization calls and selects an
 existing fallback for a separate identity-refresh platform query.86checks,C++
 suite,actual8->9 profile-preserving upgrade and native AI/Continue/Quit pass.
