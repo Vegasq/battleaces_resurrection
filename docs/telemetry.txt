@@ -3,6 +3,17 @@ Updated: 2026-10-22
 Supported input: Battle Aces build 37822, Windows x64.
 Recipe version: 15. Guards: 103. Complete-set runtime_validated: false.
 
+Review121 closes the named genuine SDK cache-instance/on-disk reader subtask.
+Construct on empty canonical owned directories BEFORE seeds;read two authored
+files through real instance methods,rehydrate real reports,verify missing IDs/
+unchanged files and restore null static config/path icall. Original reference
+setter takes Obj DIRECTLY,not &Obj;CLASS ABI traced/pinned before restore.
+80checks/C++ suite,profile-preserving helper install and native AI/Continue/
+default Quit0 pass126.804s. Selected capture records one original-image read per
+seed;77actual altered-record controls reject. Whole-startup cache isolation/
+ordinary guarded delivery and full D5 remain OPEN,false. Recipe15/103 unchanged,
+no121packages. Scope/hashes/next genuine Delivery review:telemetry-cache-readers121.txt.
+
 Review120 closes111's scoped cache-path/typed-format prerequisites. Four original
 getters use an owned canonical path during an explicit thread-scoped override,
 then restore the icall. Genuine parser/constructors retain one authored error/

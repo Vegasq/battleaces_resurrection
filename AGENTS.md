@@ -2,6 +2,31 @@
 
 ## Requests and answers with Nick
 
+- Privacy121 closes the named genuine cache-instance/on-disk READER subtask.
+  SDK ctor836660 runs only on proven EMPTY canonical qc/queue121 dirs,before
+  two authored seeds;expiry can delete creation-age>60days and is never called
+  post-seed. Real Config/CacheManager/reader strings/parser/reports;positive
+  path/byte/type checks and two null missing IDs pass. Null prior STATIC
+  _configuration required/restored;_deviceIdFile pointer unchanged. CRITICAL
+  original il2cpp_field_static_set_value CLASS reference ABI takes Obj DIRECT;
+  restore(field,nullptr),NOT &nullObj (would retain stack pointer). Export/
+  switch/GC-barrier leaf pinned before use. Value-type address setters differ.
+  Cctor may initialize owned filename;NOT all statics unchanged. Per-thread
+  icall scope across ctor/readers,then restore;NOT whole-life/all-thread scope.
+  Files allow READ|WRITE|DELETE sharing so locks cannot mask SDK mutation.
+  80checks/C++ suite,profile/backups-preserving helper install,AI/results/
+  Continue/default Quit0 pass126.804s,job1/0/0/no force,sources/program/shared
+  sealed.702rows/351anchors,0unknown roots,one original-image read per427/302byte
+  seed,77actual record/fixture-byte changes reject,in-memory only. Full scope/
+  original ABI/hashes:docs/telemetry-cache-readers121.txt. Recipe15/103 unchanged;
+  r103g helper121-01,cached runtime/CMD105:mixed owned fixture,not121 deployment.
+  No121packages;105/DEV N7 current. Owner terminal/REA closed. No new Nick action/
+  repeat accepted D6/LAN/manual or scoped121 without new change/concrete concern.
+  Next genuine Delivery initialization/ownership + guarded entry contracts;
+  no fake receivers/reporting helpers to manufacture queue tests. Ordinary
+  startup isolation/delivery,identity/native archived/runtime/final gates remain
+  OPEN;D5 false. Reuse120typed/121reader evidence rather than rerunning it.
+
 - Privacy120 closes111's SCOPED cache-path/typed-format prerequisites only.
   Recipe15/103guards unchanged. Four original getters use canonical owned qc
   during thread-scoped icall substitution,then restore the cell. Real GC-rooted

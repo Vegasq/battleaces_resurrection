@@ -236,8 +236,9 @@ def run(args):
         if getattr(args,'startup_tasks_audit',False): command.append('-startup-tasks-audit')
         if getattr(args,'telemetry_audit',False): command.append('-telemetry-audit')
         if getattr(args,'telemetry_device_probe',False): command.append('-telemetry-device-probe')
-        if getattr(args,'telemetry_cache_probe',False): command.append('-telemetry-cache-probe')
-        if getattr(args,'telemetry_cache_probe',False):
+        if getattr(args,'telemetry_cache_probe',False) or getattr(args,'telemetry_cache_disk_probe',False): command.append('-telemetry-cache-probe')
+        if getattr(args,'telemetry_cache_disk_probe',False):command.append('-telemetry-cache-disk-probe')
+        if getattr(args,'telemetry_cache_probe',False) or getattr(args,'telemetry_cache_disk_probe',False):
             require(getattr(args,'telemetry_audit',False) and args.mode=='confirm',
                     'cache probe requires telemetry audit and original confirmed Quit')
         if getattr(args,'replay_binding_inventory',False): command.append('-replay-binding-inventory')
@@ -328,9 +329,9 @@ def run(args):
         if getattr(args,'telemetry_audit',False):
             report['telemetry']=telemetry_evidence(log(),rows,hashlib.sha256((game/'UnityPlayer.dll').read_bytes()).hexdigest(),
                 after_practice=args.after_practice,device_probe=getattr(args,'telemetry_device_probe',False))
-        if getattr(args,'telemetry_cache_probe',False):
+        if getattr(args,'telemetry_cache_probe',False) or getattr(args,'telemetry_cache_disk_probe',False):
             from tools.telemetry_cache_evidence import validate
-            report['telemetry_cache_contract']=validate(log(),rows)
+            report['telemetry_cache_contract']=validate(log(),rows,disk_probe=getattr(args,'telemetry_cache_disk_probe',False))
         report['trace'] = rows;report['passed'] = True
     except BaseException as error:
         report.update(error=repr(error),traceback=traceback.format_exc())
@@ -375,6 +376,7 @@ if __name__=='__main__':
     parser.add_argument('--telemetry-audit',action='store_true',help='require read-only startup/lifecycle/pre-original-Quit field observations')
     parser.add_argument('--telemetry-device-probe',action='store_true',help='one guarded no-argument device API call in an owned menu,never during teardown')
     parser.add_argument('--telemetry-cache-probe',action='store_true',help='explicit owned scoped original cache-path diagnostic; does not prove startup cache isolation')
+    parser.add_argument('--telemetry-cache-disk-probe',action='store_true',help='real original cache manager/readers on fresh owned authored files; no startup isolation or delivery claim')
     parser.add_argument('--after-practice',action='store_true',help='explicit automated one-match result/Continue before original menu Quit')
     parser.add_argument('--replay-binding-inventory',action='store_true',help='read existing hidden replay-button actions in healthy owned practice; no click')
     parser.add_argument('--replay-signal-inventory',action='store_true',help='read existing UIButton broadcast subscribers; no signal dispatch')

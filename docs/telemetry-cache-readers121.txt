@@ -1,0 +1,168 @@
+ORIGINAL CACHE READERS121
+2026-10-22. Genuine owned cache instance/on-disk read subtask PASS.
+Full D5 and complete-set runtime_validated remain OPEN/false.
+
+Result and scope
+An actual CacheManager is constructed with genuine Configuration on empty owned
+directories,then two authored .event/.session files are created. Exact original
+enumerators/readers find/read them;the real parser/report constructors reconstruct
+the120-authored error/session. Missing IDs return null. Files remain unchanged,
+static configuration returns to null,device filename pointer stays unchanged,
+and the scoped path icall is restored. No sender,serializer,failure/save helper
+or post-seed expiry call runs. This is a deliberate positive reader control,
+not proof of ordinary startup isolation or disabled cached delivery in all modes.
+Recipe15/103guards is unchanged. No personal report is used as a fixture.
+
+Source contract
+Reuse120's pinned GameAssembly/metadata/typed ownership contract. Ghidra remains
+known unconfigured and was not retried. LLVM disassembly,PE/unwind bounds and
+IL2CPP metadata are static evidence,not REA decompiler/runtime Evidence.
+local/privacy121-cache-contract01/evidence-manifest.json:
+ 4bf76c6615b42b63a45fa58e610c7443875b8b558df28f38205de2036fb952a9
+local/privacy121-cache-contract01/code-contract.json:
+ ccd96154995f3c05e63f0935a9a9f812675bb46ad3671e195444b97312c88b70
+local/privacy121-cache-contract01/static-set-contract.json:
+ 9ff5fb2e64891dee389f6b5ac40cbf8d497c6b6fdb3616e3d1f394a9aadd0f32
+FINDINGS.txt and metadata.json include exact signatures/tokens/flags and decoded
+IO enum values. Raw source/captures/binaries stay ignored. Git contains authored
+diagnostics and digest-only recognition records,never original client files.
+
+CacheManager index20024 belongs to BugsnagUnity.Windows.dll and has no instance
+data fields. Nevertheless it requires genuine allocation AND actual ctor836660;
+null or uninitialized pretend receivers do not qualify. That ctor stores the
+Configuration reference into PRIVATE STATIC _configuration,token04000103,attrs
+0x11,offset0. It runs CheckForDirectoryCreation837850 then RemoveExpiredPayloads
+836b50. _deviceIdFile04000104 is a separate static string at offset8. Cctor837e50
+composes a filename but does not open/create the identity file;120's initial
+path check may initialize that filename against the owned base qc folder.
+
+Expiry enumerates both queue directories and builds a genuine combined list.
+With size0,the enumerator returns false and836d74 jumps to the normal return;
+no file timestamp,UtcNow,warning or delete branch is reached. For nonempty input,
+creation-time age strictly greater than60days can invoke File.Delete3547950.
+JSON's authored session date is not that filesystem timestamp. Therefore121
+constructs while both directories are empty,before seeding,and never reruns the
+ctor/expiry on the seeded files. SDK/BCL type/allocator initialization still runs.
+
+GetCachedEventFiles836730/GetCachedSessionFiles8367b0 select original paths and
+suffixes,then GetFilesBySuffix836830 calls Directory.GetFiles. Its catch can
+return an empty array. Positive count,actual returned paths and read bytes are
+mandatory;quiet empty results cannot pass. Instance readers837d10/837db0 select
+the first full path containing ID,not a validated GUID/exact basename. Fixture
+IDs are unique and cannot match parent paths. GetJsonFromCachePath837810 calls
+File.Exists and File.ReadAllText35480a0. The latter's StreamReader/FileStream
+chain uses mode Open3,access Read1,share Read1 and synchronous SequentialScan.
+No SDK reader save/delete branch was found in these complete reviewed bodies.
+
+CRITICAL original static reference ABI
+il2cpp_field_static_set_value export5dd140 jumps to5e61e0. For non-byref CLASS18,
+the switch targets5e63b5,which forwards the supplied RDX directly to5eb9a0.
+That leaf writes [RCX]=RDX and applies the GC barrier. Reference setters take
+the Obj DIRECTLY. To restore this null static reference,use(field,nullptr).
+Passing &aNullObjSlot would retain a stack pointer as a managed object. Boolean/
+value-type setters use different dereferencing cases and are not a precedent.
+Both whole setter implementation and explicit no-unwind export/leaf ranges are
+retained and recognized before use. The leaf has no unwind row;the initial
+read-only extraction KeyError was corrected with explicit complete leaf bounds.
+
+Implementation
+telemetry_cache_disk_probe.cpp is included inside the existing owned probe.
+telemetry_cache_disk_signatures.hpp recognizes32 loaded code spans,including
+SDK/IO bodies,reference setter implementation and explicit export/leaf bounds.
+It patches none of those instructions. New --telemetry-cache-disk-probe implies
+the existing cache diagnostic and requires telemetry audit/confirmed native Quit.
+The ordinary client does not enable either diagnostic flag.
+
+The helper creates NEW profile/qc/queue121;an existing root is a refusal. Canonical
+ordinary handles for root/Bugsnag/Events/Sessions remain held. Both directories
+are checked empty before AND after original ctor. A per-thread PathScope remains
+active across ALL original constructor/reader calls. Other threads retain their
+original path implementation;this is not all-thread/whole-process isolation.
+The helper refuses a pre-existing nonnull static SDK configuration rather than
+traversing/replacing somebody else's owner. It checks the field is static CLASS,
+uses a real rooted Config,and restores the initial null reference explicitly.
+The static device filename object's identity is checked without opening that file.
+Its original cctor initialization effects are not described as all statics unchanged.
+
+After constructor completion,CreateNew writes/flushes exactly the two synthetic
+payloads from120. Verification checks regular/non-reparse/single-link file identity,
+size,creation time and bytes. Handles allow READ|WRITE|DELETE sharing,so blocking
+SDK write/delete access cannot manufacture a preservation result. The original
+enumerators must return one exact expected path per suffix;readers must return
+the complete authored UTF8 text. Two nonexistent IDs must return null. Actual
+on-disk reader strings,not newly substituted literal strings,feed the original
+typed parser/constructors. Files remain for inspection;no queue clearing occurs.
+
+Typed proof version2 requires diskQueueRead1/fromDisk2/cacheManagerConstructed1.
+Legacy120 version1 remains available only for the explicitly narrower in-memory
+mode. The verifier rejects cross-version substitution,mixed proof,missing/duplicate
+reader boundaries,wrong thread/order,failed restoration and broader scope claims.
+It requires original event begin/end then session begin/end,reader proof,typed
+proof,and the same thread's ordinary confirmed Quit. Read phases are not forced
+to take multiple milliseconds;126.804s run has all four at the same valid tick.
+
+Checks and installed fixture
+local/privacy121-affected-tests01.txt:80affected checks PASS5.999s:
+ 5e5a04fdc006edf566191ca683288eaadcdbb4fdbaa5496b18c3620191851bbf
+Required C++ suite/build PASS. Final helper:
+ build/helper-privacy121-01/BattleAcesOffline.dll
+ 573fae5780f583eebdeba7090eaed62f32a820924a8328f43346b36693d07388
+ build/helper-privacy121-01/helper-build.json
+ 16e6f1f7c0104d9238fee6bc141d11715aa0f0e9163ef4101750b493083579f9
+local/privacy121-install01/verification.json:PASS42.672s,dry-run unchanged,
+preview/install/idempotence match,same15/103recipe,all profiles and all four
+pristine backups unchanged:
+ 2f47a33ad05bb8616744261aef9c8a66a6cb9ebe38d877814801707705652c46
+r103g is now helper121-01/recipe15 with cached runtime/CMD105:a mixed owned
+fixture,not121 deployment. No121 packages/installers;frozen105/N7 remain current.
+
+Controlled runtime and capture
+local/privacy121-game-owner01.py:
+ 686fc154d91aa5b70d51321cc9d9ad0c6a311530b35919b2450e012a90fefdb3
+local/privacy121-game-ai01/verification.json:
+ 8c500e746281a81811746600cf97aa846585c257c897ce61990493d78487470a
+local/privacy121-game-ai01/native/verification.json:
+ 6c3d34d93af100f130aa29ae2f754f60fc06bffb1e7f99d0876f499af106ebee
+PASS126.804s including controlled suspended preparation. Actual reader/typed
+proof,AI/results/Continue/menu/default original Quit0;owner reaped,job1/0/0,
+no force,program/shared settings/sealed source unchanged. No failed native121
+run was overwritten or restarted. The owned REA session is closed.
+
+REA observed final record:
+ ev_b80eb0b8868e9ec540d89fb15e9459dad69352dbab2ad449bea31b76122e3777
+local/privacy121-game-ai01/observation-review01.json:
+ aec5fa2d82ed016882cf3a16f9272aebe574d3cf7230d174bab3e4875c6c181a
+Independent read-only reviewer reparses original native proof,checks command/
+owner/source/program/capture identity and aligns nine native markers.702provider
+rows,351clock anchors,max drift10ms,321selected file operations,0unknown roots,
+0observed selected network/child operations. Both native log opens resolve in
+owned game folder,status0. Observation starts before controlled primary resume,
+not a claim of preloader/injection/tree/kernel/wire/all-I/O coverage.
+
+The reviewer also reads ONLY the known owned fixture paths after native exit,
+compares exact bytes against authored C++ constants,checks no reparse/hardlink
+aliases and rejects unexpected files in the fresh queue root. Event payload:
+427bytes,SHA d8f2d6b8d957ce7109e7277ed39a7c60301c97d6251068fe536ed62b0814207b.
+Session:302bytes,SHA0dbcc2e8b51e7dc44fe0a056161f9bbfe5199e5976fcf0a2a35446eb88698c8b.
+Each file has4successful captured opens,3reads. Exactly one successful NtReadFile
+per file has GameAssembly as the first non-system frame;the two other reads are
+helper verification. This independently distinguishes original-image file reading
+from merely seeding/rechecking a file. It is not a full SDK stack or wire capture.
+
+local/privacy121-disk-rejections01.json:77actual retained proof/report/owner/
+capture/fixture-byte changes reject in memory;capture and fixture hashes unchanged:
+ d90bb2625a815811a8b32b6e91f9ba79fd6692ae496a3e7f7c05e30b3a3a8ff2
+Controls include replacing the original-image read witness with a helper frame,
+failed read status,wrong fixture path,missing phases,wrong cleanup and changed
+bytes. Unit checks also reject legacy/mixed proof. No raw capture or seeded file
+was modified.
+
+Remaining delivery work
+The named genuine cache-instance/on-disk reader subtask is CLOSED. Whole-startup
+queue isolation and ordinary guarded cached-delivery tests remain OPEN;do not
+rename this positive reader control as their completion. Next review genuine
+Delivery initialization/ownership and guarded entry contracts without collecting
+personal data or fabricating receivers. Native archived/Crashpad formats,remaining
+identity acquisition,mode/error/runtime matrix and final packages also remain.
+No new Nick action/repeat accepted D6/LAN/manual105 or this scoped121 pass is
+needed without a new change/concrete concern. Keep earlier120 failure/corrections.

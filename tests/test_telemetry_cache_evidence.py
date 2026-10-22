@@ -6,9 +6,42 @@ from tools.telemetry_cache_evidence import validate
 
 PATH = '[100] TELEMETRY CACHEPATH probe passed: version=1 thread=17 getters=4 originalBodies=1 scopedOwnedRoot=1 icallRestored=1 reportEnumeration=0 reportPayloadRead=0 wholeRunIsolation=0'
 TYPED = '[102] TELEMETRY CACHETYPE probe passed: version=1 thread=17 parsed=4 constructed=2 errors=1 sessions=1 authoredFieldsRetained=1 missingKeyRejected=2 cacheManagerConstructed=0 reportDelivered=0 diskQueueRead=0'
+DISK_TYPED=TYPED.replace('version=1','version=2').replace('cacheManagerConstructed=0','cacheManagerConstructed=1').replace('diskQueueRead=0','diskQueueRead=1')+' fromDisk=2'
+READER='[101] TELEMETRY CACHEREADER probe passed: version=1 thread=17 instanceCtor=1 emptyBeforeCtor=1 emptyAfterCtor=1 seeds=2 enumerated=2 reads=2 rawBytesMatched=2 missingIdNull=2 fileIdentityBytesUnchanged=2 staticConfigRestored=1 deviceFilenameUnchanged=1 icallRestored=1 wholeRunIsolation=0'
+BOUNDARIES=['[101] TELEMETRY CACHEREAD '+phase+': version=1 thread=17 kind='+kind
+            for phase,kind in [('begin','event'),('end','event'),('begin','session'),('end','session')]]
 
 
 class CacheContractEvidenceTests(unittest.TestCase):
+    def test_explicit_disk_mode_cannot_accept_legacy_or_promote_whole_run_scope(self):
+        text='\n'.join([PATH,*BOUNDARIES,READER,DISK_TYPED]);rows=[dict(event='OnConfirm.dispatch',tick=110,thread=17)]
+        proof=validate(text,rows,disk_probe=True)
+        self.assertTrue(proof['disk_queue_read'])
+        self.assertTrue(proof['static_configuration_restored'])
+        self.assertFalse(proof['whole_run_cache_isolation'])
+        self.assertFalse(proof['report_delivered'])
+        for disk,changed in [(False,text),(True,PATH+'\n'+TYPED),(True,text+'\n'+TYPED),
+                             (False,PATH+'\n'+TYPED+'\n'+READER)]:
+            with self.subTest(disk=disk,changed=changed),self.assertRaises(AssertionError):validate(changed,rows,disk_probe=disk)
+
+    def test_disk_reader_state_fields_and_boundaries_are_required(self):
+        text='\n'.join([PATH,*BOUNDARIES,READER,DISK_TYPED]);rows=[dict(event='OnConfirm.dispatch',tick=110,thread=17)]
+        changes=[text.replace(READER,''),text+'\n'+READER,text.replace('fromDisk=2','fromDisk=0'),
+                 text.replace(READER,READER.replace('thread=17','thread=18')),
+                 text.replace(READER,READER.replace('[101]','[999]'))]
+        for field,value in [('instanceCtor',0),('emptyBeforeCtor',0),('emptyAfterCtor',0),('seeds',1),
+                            ('enumerated',1),('reads',1),('rawBytesMatched',1),('missingIdNull',0),
+                            ('fileIdentityBytesUnchanged',0),('staticConfigRestored',0),('deviceFilenameUnchanged',0),
+                            ('icallRestored',0),('wholeRunIsolation',1)]:
+            changes.append(text.replace(READER,re.sub(r'\b'+field+r'=\d+',field+'='+str(value),READER)))
+        for boundary in BOUNDARIES:
+            changes.extend([text.replace(boundary,''),text+'\n'+boundary,
+                            text.replace(boundary,boundary.replace('thread=17','thread=18')),
+                            text.replace(boundary,boundary.replace('[101]','[99]'))])
+        changes.append(text.replace(BOUNDARIES[0],'swap').replace(BOUNDARIES[1],BOUNDARIES[0]).replace('swap',BOUNDARIES[1]))
+        for changed in changes:
+            with self.subTest(changed=changed),self.assertRaises(AssertionError):validate(changed,rows,disk_probe=True)
+
     def test_scoped_proof_preserves_its_limits(self):
         proof=validate(PATH+'\n'+TYPED,[dict(event='OnConfirm.dispatch',tick=110,thread=17)])
         self.assertTrue(proof['passed'])

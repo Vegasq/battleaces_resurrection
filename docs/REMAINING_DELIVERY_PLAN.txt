@@ -404,10 +404,22 @@ are scoped inputs, not a completion substitute.
 [ ] Pre-existing report cache:111's real Bugsnag reader uses generic
     Application.persistentDataPath,not isolated profile storage;
     no real queued reports found in candidate shared root.120 closes the scoped
-    path/typed-format prerequisites below;actual on-disk reader,whole-startup
-    isolation and guarded-delivery seed tests remain OPEN. Never acquire/clear
-    the shared queue. Recipe15/103 unchanged,no120package/new human action.
-    Evidence:telemetry-startup-observation111.txt,telemetry-cache-contract120.txt.
+    path/typed-format prerequisites below;121 closes the scoped genuine on-disk
+    reader. Whole-startup isolation and ordinary guarded-delivery seed tests
+    remain OPEN. Never acquire/clear the shared queue. Recipe15/103 unchanged,
+    no121package/new human action. Evidence:telemetry-startup-observation111.txt,
+    telemetry-cache-contract120.txt,telemetry-cache-readers121.txt.
+[x] Review121:construct genuine SDK CacheManager under EMPTY canonical owned
+    root,then seed/read two authored reports via original instance readers.
+    Actual returned paths/bytes/typed fields,missing IDs,file preservation and
+    static config/device filename/path restoration pass. CLASS static setter
+    reference is DIRECT Obj,not &Obj;original switch/leaf ABI pinned before use.
+    80checks/C++ suite,profile/backups-preserving helper install and native AI/
+    results/Continue/default Quit0 pass126.804s,job1/0/0/no force. Selected capture
+    shows one original-image read per seed;77altered-record checks reject. Named
+    reader subtask CLOSED;NOT whole-startup/ordinary guarded delivery/full D5.
+    Next review genuine Delivery initialization/ownership and guarded entries
+    without collectors or fake receivers. Source/evidence:telemetry-cache-readers121.txt.
 [x] Review120:four original cache/application getters use an explicit canonical
     owned root with icall restoration;genuine JSON/parser/report constructors
     retain one authored error/session and reject two missing-key dictionaries.
