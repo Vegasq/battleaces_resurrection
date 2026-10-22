@@ -1,0 +1,43 @@
+INSTALLER PROGRESS130 - SOURCE FIX AND NATIVE QUALIFICATION
+2026-10-22. Full release requirements remain open.
+
+Concrete defect
+Both native installers constructed/configured a marquee ProgressBar and toggled
+its Visible property during installation,but never added it to the form Controls.
+The status label and elapsed title worked;the progress bar could not render.
+An external native WinForms host loaded unchanged standalone server128 and
+checked its actual private control hierarchy. It failed before any Install click:
+"Progress bar is not attached to the native installer form". No game,setup stage
+or server destination was created;owner job1/0/0,no forced cleanup. This is a real
+native UI hierarchy failure,not a claim based on an absent screenshot.
+Retained:local/privacy130-server-native01/form.json and verification.json.
+
+Fix
+Add the existing ProgressBar to Controls;retain its placement,marquee style,
+busy visibility,completion hiding and original background worker. Native --ui-smoke
+now exposes progress_control_attached from the actual form/control hierarchy.
+No gameplay,networking,asset export,profile,installer request or helper changes.
+Native client/server rebuilds pass;actual forms both show with progress parented
+and the expected3/2editable fields. Physical visibility is not tested by automation.
+Report:local/privacy130-ui-check01/verification.json. Both current frozen128 EXEs
+and all earlier manual candidates remain unchanged.
+
+Affected regressions
+20existing package/server-installer checks PASS,exit0. Reports:
+local/privacy130-tests02.json and .stdout/.stderr.txt.
+First PowerShell pipeline returned outer1 despite unittest's20tests/OK on stderr;
+local/privacy130-installer-tests01.txt remains retained. Corrected runner captures
+native stdout/stderr/exit code directly;the repeat passes. No assertion weakened.
+
+Next qualification
+Build clean current client/server packages and standalone EXEs with this fixed UI.
+Use an external test host to load the actual resource-bearing server installer,
+populate its fields and PerformClick on its original Install button under the
+real WinForms message pump. Its original worker must extract the embedded ZIP,
+independently copy/patch/export/import game data,and restore controls on success.
+Check source-game inventory/critical hashes and shared storage before/after,
+actual busy/progress/elapsed controls,installed inventories/assets,working-copy
+removal and installed native health. Keep export-only process termination distinct
+from normal gameplay Quit. Then qualify the current ordinary game-folder CMD.
+These steps are pending,not implied by UI/source checks. Full D5/D9 stay open;
+reuse129's unchanged gameplay/runtime evidence only with exact byte bindings.

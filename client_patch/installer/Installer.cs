@@ -66,7 +66,7 @@ internal sealed class Installer : Form {
         reset.Visible = !Server;
         uninstall.Text = "Uninstall client patch"; uninstall.SetBounds(435,actions,261,39); uninstall.Visible = !Server; Controls.Add(uninstall);
         progress.SetBounds(24,Server ? 299 : 357,672,16);
-        progress.Style = ProgressBarStyle.Marquee; progress.Visible = false;
+        progress.Style = ProgressBarStyle.Marquee; progress.Visible = false; Controls.Add(progress);
         status.SetBounds(24, Server ? 331 : 389, 672, 65); status.Text = Server ? "Creates Start Server.exe. The source game folder stays unchanged." : "Creates Start Battle Aces.cmd in your game folder."; Controls.Add(status);
         browse.Click += delegate {
             using (var dialog = new FolderBrowserDialog()) {
@@ -108,7 +108,8 @@ internal sealed class Installer : Form {
                     player_name_field_visible = playerName.Visible, player_name_nonempty = !String.IsNullOrWhiteSpace(playerName.Text),
                     account_default_used = !Server && !playerNameEdited && playerName.Text == PlayerName.Default(),
                     install_button_visible = install.Visible, reset_button_visible = reset.Visible,
-                    uninstall_button_visible = uninstall.Visible, server_installer = Server, powershell_used = false
+                    uninstall_button_visible = uninstall.Visible, server_installer = Server, powershell_used = false,
+                    progress_control_attached = progress.Parent == this && Controls.Contains(progress)
                 })); close.Dispose(); Close();
             };
             close.Start();

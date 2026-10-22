@@ -2,6 +2,16 @@
 
 ## Requests and answers with Nick
 
+- Installer130:actual unchanged server128 native control hierarchy FAILS before
+  Install click:marquee ProgressBar never added to form Controls. No game/stage/
+  destination created,job1/0/0/no force. Shared client/server C# fix adds existing
+  control;--ui-smoke exposes actual parent check. Both rebuilt native forms and
+  20affected package/server-installer checks PASS. Build fresh clean130 packages/
+  standalone EXEs,then full original form Install action/copy/export/import/
+  installed health and ordinary game-folder entry. Source/helper/gameplay
+  unchanged;reuse129 by exact byte bindings. No manual replacement or new Nick
+  action;105/N7 current,N8 deferred. Full D5/D9 OPEN. docs/installer-progress130.txt.
+
 - Candidate129:actual128 client/server ZIPs and native standalone EXEs built
   from clean29882b3,recipe17/helper127-02. Standalone forms/payloads PASS2.811s;
   bundled relocation/import/health/three worker0 lifecycles/patch roundtrip PASS
