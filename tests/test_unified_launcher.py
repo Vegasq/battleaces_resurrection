@@ -32,10 +32,11 @@ class UnifiedLauncherTests(unittest.TestCase):
 
     def test_first_launch_creates_editable_local_defaults_without_reading_invites(self):
         with (mock.patch.object(launcher, 'read_credential_file', side_effect=AssertionError('must not read invite')),
-              mock.patch.object(launcher.tls, 'load_client_context', side_effect=AssertionError('must not load trust'))):
+              mock.patch.object(launcher.tls, 'load_client_context', side_effect=AssertionError('must not load trust')),
+              mock.patch('client_patch.transport.player_name.getpass.getuser', return_value='LAN\\QA!Tester')):
             result = client.prepare_settings(self.path, self.game)
             self.assertEqual(result['game_directory'], self.game)
-            self.assertEqual(result['display_name'], 'Player')
+            self.assertEqual(result['display_name'], 'QA Tester')
             self.assertEqual(json.loads(self.path.read_text())['schema'], 3)
             with self.assertRaises(bridge.RemoteUnavailable) as failure: client.load_connection(self.path)
             self.assertEqual(failure.exception.reason, bridge.UNCONFIGURED_FAILURE)

@@ -2,6 +2,21 @@
 
 ## Requests and answers with Nick
 
+- Privacy106 source now uses telemetry recipe5:65guards/four DLLs. Narrow Unity
+  device builder preserves marker2->0;independent CEF handler returns0 before
+  initialization.56focused checks,required C++ builds/tests,actual four-component
+  upgrade/restore/reapply and native AI/results/Continue/default natural Quit0
+  pass. Separate controlled patched CEF child0/job-empty and REA call/return
+  pass;failed RET-hook/job/expired-owner probes remain failures. Full D5 remains
+  OPEN;RUNTIME_VALIDATED=false. Exact evidence/limits:docs/telemetry-device-cef106.txt.
+  r103g is now an owned recipe5 diagnostic fixture with helper106-02;its cached
+  runtime/game-folder CMD still belong to105. No106 packages/installers built yet.
+  Do not treat that mixed diagnostic fixture as106 deployment or launch its old
+  installer to downgrade it inadvertently. Frozen105 and DEV N7 remain unchanged.
+  No owned game/server/REA session remains live. Do not repeat the completed
+  bounded checks without a new change/concern;next D5 work is uncovered paths,
+  actual relevant file/network/descendant attribution and final artifacts.
+
 - Current105 supersedes the older candidate notes below for NEXT updates only.
   Native Invite Friend cosmetic portraits now pass source/native/readiness and
   actual paired packaged RC TLS Custom/rematch/Continue/natural Quit qualification.

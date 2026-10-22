@@ -1,0 +1,143 @@
+TELEMETRY DEVICE / CEF HANDLER106
+2026-10-22;recipe5 scoped source/install/native qualification PASS. D5 remains OPEN.
+
+Requirement and change
+Disable actual game-owned collection/report paths while preserving the original
+game lifecycle and local saves. Recipe5 adds two narrowly reviewed guards:
+- Unity device/app payload builder returns before its local payload constructor,
+  preserving the original pending-device marker2->0. Other marker values remain
+  unchanged. Its independently initialized cache/settings and caller cleanup
+  remain original. Do not RET the collecting constructor or shared OS helpers.
+- CEF's explicit crashpad-handler dispatch returns int0 before acquisition,
+  option parsing/database/handler initialization. The old chrome_elf config guard
+  does not gate this separate dispatch. Caller-owned argument/string cleanup
+  propagates0 through cef_execute_process to child exit. Returning-1 would instead
+  continue browser initialization. Normal renderer/GPU dispatch is unchanged.
+
+Recipe5 has65 guards:GameAssembly42,UnityPlayer21,chrome_elf1,libcef1. The new
+libcef component is backed up and restored by the existing all-component file
+transaction;no proprietary DLL or resource is included in Git/packages. It adds
+one full214,695,936-byte original backup on the owner's installed game. Installer
+updates still validate every original/current component before writes. Original
+full hashes and <=32-byte safety signatures remain in the authored patch recipe.
+RUNTIME_VALIDATED=false. No full analytics/network/descendant-removal claim.
+
+Static evidence and limits
+REA native Ghidra provider remains known unavailable;no repeat setup/repair was
+attempted. These static reviews use pinned original IL2CPP metadata and PE/LLVM
+disassembly,not REA native Evidence. Private artifacts remain under ignored local/.
+Unity:RVA c40840,known caller c3d0a4 in c3c5d0 ignores return and retains subsequent
+settings serialization/drain cleanup. Settings+80 is original app_info_hash,not
+general engine state. Original constructors initialize valid empty SSO cache and
+settings;their destructors do not require collection/hash refresh. Conditional
+marker reset preserves observed2->0 queue progress before skipping construction.
+ local/privacy106-unity-entry-contract01/FINDINGS.txt
+ SHA2567740b2343e74e697a1405447ae3ab25b4efd045b774e5e3b7e006f6795bb2db6
+ manifest.json SHA256a9cfff045b913bf36e179526d7811f5a0b3b2593076ab9bbc36c22e6f446b2ec
+CEF:Vuplex child main81e00 ->cef_execute_process202f20 ->2b7d60 ->dispatcher2deaa0
+ ->handler17403d0 via call2df01b,independent of config-loader success. Reviewed
+caller owns/releases its UTF8 argv/vector/strings and preserves EAX. Full-section
+exactVA64 scan0,all.text overlapping rel32 scan1,RIP-relative LEA scan0;these
+bounded scans do not exclude computed/indirect dispatch. Static capability does
+not establish that normal patched gameplay actually started a report handler.
+ local/privacy106-cef-contract01/FINDINGS.txt
+ SHA25682531e276d93ff2c37dd23f0f8de50948941636715abc5f5164243b1f565afe2
+Bugsnag:no new bypass demonstrated. Client constructor inlines cache creation,
+expiry removal and default-data setup;guarding CacheManager constructor alone
+would miss it. Failure/device-ID writes reach the already guarded WriteFile.
+Failure handlers can delete old queues:do not activate them against real queues.
+ local/privacy106-cache-contract01/FINDINGS.txt
+ SHA256c4351438c6b442f9d29b909796c573461a56e83b7bbe1b92f89b481bfd9c2863
+
+Focused qualification
+local/privacy106-focused-tests01.txt:56tests PASS11.110s,including read-only
+pure transformations on all four pristine originals and unrelated-byte identity.
+Authored Windowsx64 replacement execution covers marker0/1/2/3/ffffffff with both
+boolean flags and whole-buffer canaries;only2 becomes0. Handler stub returns0
+without reading even invalid synthetic argument addresses. No original collector
+was invoked. Four-component authored install/restore,corrupt final input refusal,
+mapped-final-component rollback and dry-run checks pass. Audit checker supports
+explicit legacy3/4 and current5;legacy samples cannot qualify current guards.
+Canonical recipe4 passive observer/source is unchanged for retained45/52 evidence.
+Helper01 and02 required C++ build/tests pass.02 corrects diagnostic version text;
+current native helper receipt/source identity is under build/helper-privacy106-02.
+
+Controlled CEF evidence
+Only a separately copied,hash-verified patched Chromium tree was launched. No
+unpatched reporter positive control or retained user queue was activated.
+REA session02f92195-34e5-4695-a975-1ddd0081b88b,PID1844,spawned paused. First
+observer could not intercept the3-byte early return;Windows also refused job
+assignment(error5) for that REA-spawned PID. Both failures are retained. Observer2
+instead checks the full patched entry and exact direct-call target,observes the
+incoming call and original return site,and passively counts CEF API entries.
+Actual ready/call/return/cef_execute_process-return sequence:one handler call,
+handler0,execute0,cef_initialize0. Source SHA as returned by REA:
+ 1444076f67515ad35b3a9845656688dc338c86ed51875d571437ad0c2a0682b3
+Load Evidence:ev_67607368085b35d7d6fb215f10a577d5b5420cf42cf88dd68168c782fe77c89f
+Status Evidence:ev_78f17f1e7ff1f039bbce8fc7c6667e92db061b9a70c244dc2d75c2f43523d758
+Provider rows/journal retained in local/privacy106-cef-runtime01. Failed script
+messages remain in the same session's history and are not silently discarded.
+Owner02's90s observation ended before later resumed execution;its failed report
+does not establish process exit or warrant a restart. Selected PID was confirmed
+absent afterward and the REA session closed. No exit code is inferred from that.
+
+Separate owned03 runs the same verified patched child with an explicit fresh
+unused database path and isolated APPDATA/LOCALAPPDATA/TEMP/TMP;no inherited
+CHROME_CRASHPAD_PIPE_NAME. Its parent was assigned to an unnamed kill-on-close
+job before starting the target. PASS:child0,parent0,job total2/active0/terminated0,
+no forced cleanup,database absent,input/resource files unchanged. This proves
+this explicit handler invocation's natural exit,not remote-web analytics absence.
+ local/privacy106-cef-runtime01/verification03.json
+ SHA256ac1c249c33cb8e8b0a744e3af744faf33dbc3bb66bd3f5c7ea0c5b2789dac472
+Read-only postcheck04 binds the untruncated provider rows to the exact second
+script and matching5-row journal;validates ready/call/return order and counters.
+ local/privacy106-cef-runtime01/observation-verification04.json
+ SHA256041cc0b36896085213d3231e7aed58e5b2110ecf8562babe0c8645f5710ee2e1
+
+Remaining qualification
+Installed recipe4->5 upgrade/restore/reapply PASS79.686s:four components,65guards,
+dry-run leaves files/manifest unchanged,idempotent install,all four originals and
+original catalog restored,reapplied hashes identical,all profile files unchanged.
+ local/privacy106-install01/verification.json
+ SHA2569e32c43ec351903bad60f27f63a87f31dba0b5cf5ef7bfccf3d7915cdcaf4fcd
+An initial native command omitted
+the checker's required --visible and failed before any game launch;its console
+report is retained. Corrected native02 is a new actual lifecycle run.
+Affected test batch02:61tests,60pass/1failure. The failure is an old first-launch
+test still expecting Player after104's requested account-name default. Corrected
+fixture now supplies a synthetic account through getpass and expects its cleaned
+name;no runtime behavior changed. All8 unified-launcher tests PASS0.111s in03.
+Final bundled artifacts not built yet. Existing
+105 installers/manual candidates remain frozen and current for DEV N7.
+Full D5 still requires independent/indirect callback and collection coverage,
+pre-existing queues,error/crash/retry,startup/edits/tutorial/mode/reconnect/
+shutdown matrix,actual game+descendant DNS/network/relevant-file attribution,
+and final installed artifact qualification. CEF inherited external Crashpad pipe
+and remote page JavaScript remain unqualified;OS/driver/overlay reporting is
+outside a system-wide promise. Silent counters cannot close these requirements.
+
+Native02 qualification PASS99.357s
+Actual owned installed recipe5 and source-bound helper02,default NGX-disabled
+patch with no optional teardown hooks. Explicit original practice/Concede/Continue/
+Quit automation passes:original result and returned menu,main exits0/reaped,
+no forced cleanup,shared settings and checked sources unchanged. Eight complete
+read-only telemetry snapshots cover startup/menu/ingame/postgame/menu/pre-Quit,
+all21 Unity guards recognized and normalized full original hash verified.
+The guarded no-argument public SendDeviceInfo call returns false with sampled
+header/marker/disabled fields unchanged before the original Quit dispatch.
+This does NOT actively invoke the new private builder;its marker semantics are
+covered by authored replacement execution,not a fabricated native main/payload.
+Bot produced max supply14/11 action records;the moving-and-ordered unit set is
+empty,so no new movement proof is claimed. No Frida/DNS/network/CEF-descendant
+observation is supplied by this game run;ordinary physical play remains separate.
+ local/privacy106-native02/verification.json
+ SHA25615bcd1c351c78fce13a38dccb15ad494df3e94f64f25884d96061a8ccbe628ae
+Helper02:build/helper-privacy106-02/BattleAcesOffline.dll
+ SHA2566465c0808773bbd872dd1c96451a868804333fff9887fb3f3aee9b634aa28658
+Source-bound helper-build.json
+ SHA256ad2f59307412e56dad31946428973a2798e5d96d722ac9b60452ad94458b25ee
+Installed UnityPlayer
+ SHA25699c756c5f848910fc6272e052d27d7131e08474c8cce379352289753ef541386
+No owned game/server/REA session remains active. r103g is an owned recipe5
+diagnostic fixture;its installed cached105 runtime/launcher still belong to105,
+so it is not a final106 bundled deployment candidate. Do not mutate frozen105.

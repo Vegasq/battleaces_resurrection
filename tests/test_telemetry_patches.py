@@ -1,13 +1,15 @@
 """Asset-free patch safety tests, plus explicitly enabled read-only validation."""
 from dataclasses import replace
 import hashlib
+import ctypes
 import os
+import platform
 from pathlib import Path, PurePosixPath
 import struct
 import unittest
 
 from client_patch.patcher.telemetry import (
-    CEF_COMPONENT_PATH, COMPONENTS, RECIPE_VERSION, RUNTIME_VALIDATED,
+    CEF_COMPONENT_PATH, CEF_HANDLER_COMPONENT_PATH, COMPONENTS, RECIPE_VERSION, RUNTIME_VALIDATED,
     Component, Patch, _apply_recipe, patch_component,
 )
 
@@ -88,7 +90,8 @@ class TelemetryPatchSafetyTests(unittest.TestCase):
                 patch_component(name, b"MZ" + bytes(64))
 
     def test_unknown_components_and_path_aliases_are_rejected(self):
-        for name in ("unknown.dll", "other/GameAssembly.dll", "chrome_elf.dll",
+        for name in ("unknown.dll", "other/GameAssembly.dll", "chrome_elf.dll", "libcef.dll",
+                     "../" + CEF_HANDLER_COMPONENT_PATH,
                      "./" + CEF_COMPONENT_PATH, "../" + CEF_COMPONENT_PATH,
                      "/" + CEF_COMPONENT_PATH, CEF_COMPONENT_PATH.replace("/", "\\"), None):
             with self.subTest(name=name), self.assertRaisesRegex(ValueError, "Unsupported"):
@@ -96,15 +99,16 @@ class TelemetryPatchSafetyTests(unittest.TestCase):
 
     def test_only_reviewed_recipes_are_present(self):
         self.assertFalse(RUNTIME_VALIDATED)
-        self.assertEqual(RECIPE_VERSION, 4)
+        self.assertEqual(RECIPE_VERSION, 5)
         self.assertEqual(len(COMPONENTS["GameAssembly.dll"].patches), 42)
         self.assertEqual({p.rva for p in COMPONENTS["UnityPlayer.dll"].patches},
                          {0xC90C2A, 0x80366F, 0xC93D10, 0xD84EC6, 0xD84E3E,
                           0x292110, 0xC8C5F3, 0xC66C20, 0xC2F570, 0xC333DA,
                           0x2078B0, 0xC2F3FC, 0x207A60, 0xC381D0, 0xC37400,
-                          0xC33440, 0x1FD3A0, 0x1FDA50, 0xC392C0, 0xC2E240})
-        self.assertEqual(len(COMPONENTS), 3)
+                          0xC33440, 0x1FD3A0, 0x1FDA50, 0xC392C0, 0xC2E240, 0xC40840})
+        self.assertEqual(len(COMPONENTS), 4)
         self.assertEqual([p.rva for p in COMPONENTS[CEF_COMPONENT_PATH].patches], [0x323A0])
+        self.assertEqual([p.rva for p in COMPONENTS[CEF_HANDLER_COMPONENT_PATH].patches], [0x17403D0])
         for name, component in COMPONENTS.items():
             path = PurePosixPath(name)
             self.assertFalse(path.is_absolute())
@@ -113,7 +117,7 @@ class TelemetryPatchSafetyTests(unittest.TestCase):
             self.assertEqual(len(component.original_sha256), 64)
             end = 0
             for patch in sorted(component.patches, key=lambda item: item.offset):
-                self.assertIn(len(patch.guard), (15, 16))
+                self.assertIn(len(patch.guard), (15, 16, 32))
                 self.assertLessEqual(len(patch.replacement), len(patch.guard))
                 self.assertGreaterEqual(patch.offset, end)
                 end = patch.offset + len(patch.guard)
@@ -189,6 +193,51 @@ class TelemetryOriginalTests(unittest.TestCase):
                     self.assertEqual(patched[patch.offset:cursor], patch.replacement)
                 self.assertEqual(patched[cursor:], original[cursor:])
                 self.assertEqual(hashlib.sha256(original).hexdigest(), component.original_sha256)
+
+
+@unittest.skipUnless(os.name == 'nt' and struct.calcsize('P') == 8
+                     and platform.machine().lower() in ('amd64', 'x86_64'),
+                     'Authored replacement execution requires Windows x64')
+class TelemetryReplacementExecutionTests(unittest.TestCase):
+    """Execute only our authored replacement bytes, never any original game code."""
+    def executable(self, code, result, *arguments):
+        kernel = ctypes.WinDLL('kernel32', use_last_error=True)
+        kernel.VirtualAlloc.argtypes = (ctypes.c_void_p, ctypes.c_size_t, ctypes.c_ulong, ctypes.c_ulong)
+        kernel.VirtualAlloc.restype = ctypes.c_void_p
+        kernel.VirtualProtect.argtypes = (ctypes.c_void_p, ctypes.c_size_t, ctypes.c_ulong, ctypes.POINTER(ctypes.c_ulong))
+        kernel.VirtualFree.argtypes = (ctypes.c_void_p, ctypes.c_size_t, ctypes.c_ulong)
+        kernel.FlushInstructionCache.argtypes = (ctypes.c_void_p, ctypes.c_void_p, ctypes.c_size_t)
+        kernel.GetCurrentProcess.restype = ctypes.c_void_p
+        address = kernel.VirtualAlloc(None, len(code), 0x3000, 0x04)
+        self.assertTrue(address, ctypes.get_last_error())
+        self.addCleanup(lambda: kernel.VirtualFree(address, 0, 0x8000))
+        ctypes.memmove(address, code, len(code))
+        previous = ctypes.c_ulong()
+        self.assertTrue(kernel.VirtualProtect(address, len(code), 0x20, ctypes.byref(previous)))
+        self.assertTrue(kernel.FlushInstructionCache(kernel.GetCurrentProcess(), address, len(code)))
+        return ctypes.WINFUNCTYPE(result, *arguments)(address)
+
+    def test_device_guard_only_resets_completed_marker_and_returns(self):
+        patch = next(p for p in COMPONENTS['UnityPlayer.dll'].patches if p.rva == 0xc40840)
+        invoke = self.executable(patch.replacement, None, ctypes.c_void_p, ctypes.c_ubyte)
+        for marker in (0, 1, 2, 3, 0xffffffff):
+            for flag in (0, 1):
+                with self.subTest(marker=marker, flag=flag):
+                    before = bytearray(b'\xa5' * 0x1660)
+                    struct.pack_into('<I', before, 0x1490, marker)
+                    buffer = (ctypes.c_ubyte * len(before)).from_buffer_copy(before)
+                    invoke(ctypes.addressof(buffer), flag)
+                    expected = bytearray(before)
+                    if marker == 2:
+                        struct.pack_into('<I', expected, 0x1490, 0)
+                    self.assertEqual(bytes(buffer), bytes(expected))
+
+    def test_handler_guard_returns_handled_zero_without_reading_arguments(self):
+        patch, = COMPONENTS[CEF_HANDLER_COMPONENT_PATH].patches
+        invoke = self.executable(patch.replacement, ctypes.c_int,
+                                 ctypes.c_int, ctypes.c_void_p, ctypes.c_void_p)
+        self.assertEqual(invoke(0, None, None), 0)
+        self.assertEqual(invoke(123, ctypes.c_void_p(1), ctypes.c_void_p(1)), 0)
 
 
 if __name__ == "__main__":

@@ -346,8 +346,15 @@ Done: the full supported game-owned reporting/collection requirement is evidence
 and gameplay/lifecycle compatibility passes. RUNTIME_VALIDATED stays false until
 that gate is actually met. Existing63 guards/NGX containment and observation52
 are scoped inputs, not a completion substitute.
+[x] Review106 identifies separate CEF handler dispatch and constructor-side device
+    collection boundary;recipe5 adds two narrow guards with cleanup/state retained.
+    56focused checks,authored x64 replacement execution and controlled patched
+    child call/return + separate natural child0/empty job pass. Four components,
+    65guards;RUNTIME_VALIDATED=false. Real recipe4->5 upgrade/restore/reapply and
+    native AI/result/Continue/default natural Quit0 pass;final-artifact packaging,
+    full D5 matrix/attribution remain open. Existing105 manual files stay frozen.
 References: telemetry.txt, telemetry-internal-config.txt,
-telemetry-persistent-observation.txt and nvidia-shutdown.txt.
+telemetry-persistent-observation.txt,telemetry-device-cef106.txt and nvidia-shutdown.txt.
 
 [x] D6 - Resolve intermittent slow initialization
 IMMEDIATE PRIORITY by user request,2026-10-20.

@@ -1,6 +1,6 @@
 """Exact-build telemetry patch transformations; no file or process operations.
 
-These 63 recipes have static source/control-flow review. The complete recipe
+These 65 recipes have static source/control-flow review. The complete recipe
 set has not been runtime validated; recipe2's 59 had a bounded compatibility run.
 They do not establish complete telemetry removal; see docs/telemetry.txt.
 Only brief patch safety signatures are included, never original game payloads.
@@ -10,7 +10,7 @@ import hashlib
 from types import MappingProxyType
 
 GAME_BUILD = 37822
-RECIPE_VERSION = 4
+RECIPE_VERSION = 5
 RUNTIME_VALIDATED = False
 VALIDATION_STATUS = "Static review and original-byte validation only"
 UNRESOLVED_COMPONENTS = (
@@ -22,6 +22,9 @@ UNRESOLVED_COMPONENTS = (
 )
 CEF_COMPONENT_PATH = (
     "Battle Aces_Data/Plugins/x86_64/VuplexWebViewChromium/chrome_elf.dll"
+)
+CEF_HANDLER_COMPONENT_PATH = (
+    "Battle Aces_Data/Plugins/x86_64/VuplexWebViewChromium/libcef.dll"
 )
 
 
@@ -191,6 +194,13 @@ COMPONENTS = MappingProxyType({
                   bytes.fromhex('48895c24205556574154415541564157'), bytes.fromhex('31c0c3')),
             Patch('native configuration payload append returns false before serialization', 0xc2e240, 0xc2d640,
                   bytes.fromhex('405356574883ec60488bfac744245449'), bytes.fromhex('31c0c3')),
+            # Preserve the original pending-device marker 2->0, then return
+            # before constructing the local OS/interface/device payload. Main,
+            # its independently initialized cache/settings and caller cleanup
+            # remain valid. Never RET the payload constructor or shared helpers.
+            Patch('native device payload preserves queue progress without collection', 0xc40840, 0xc3fc40,
+                  bytes.fromhex('885424105553564154488dac2448f8ffff4881ecb80800004c8be1b00133c989'),
+                  bytes.fromhex('83b99014000002750ac7819014000000000000c3')),
         ),
     ),
     CEF_COMPONENT_PATH: Component(
@@ -200,6 +210,16 @@ COMPONENTS = MappingProxyType({
             # and returns before Crashpad bootstrap/database initialization.
             Patch('CEF crash reporter config returns false before startup', 0x323a0, 0x317a0,
                   bytes.fromhex('4157415641554154565755534881ecf8'), bytes.fromhex('31c0c3')),
+        ),
+    ),
+    CEF_HANDLER_COMPONENT_PATH: Component(
+        '168352bebcc14245493791362b5bc7a5669b331933a74217a8a6c0967c85e44e',
+        (
+            # Explicit --type=crashpad-handler dispatch is independent of the
+            # chrome_elf config loader. Zero propagates through caller-owned
+            # cleanup and exits the child; -1 would start the browser path.
+            Patch('CEF Crashpad handler exits cleanly before initialization', 0x17403d0, 0x173f9d0,
+                  bytes.fromhex('4157415641554154565755534881ec28'), bytes.fromhex('31c0c3')),
         ),
     ),
 })
@@ -243,7 +263,8 @@ def patch_component(name: str, original: bytes) -> bytes:
     """Patch a supported pristine component; reject unknown or modified input.
 
     ``name`` is an exact allow-listed game-relative path from COMPONENTS:
-    GameAssembly.dll, UnityPlayer.dll, or CEF_COMPONENT_PATH. There is no path
+    GameAssembly.dll, UnityPlayer.dll, CEF_COMPONENT_PATH, or
+    CEF_HANDLER_COMPONENT_PATH. There is no path
     normalization, basename fallback or file lookup; aliases are rejected.
     This function performs no I/O, never mutates its input, preserves file size
     and all bytes outside the recipe replacements, and does not update the PE

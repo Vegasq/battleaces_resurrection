@@ -21,9 +21,11 @@ class InstallerTests(unittest.TestCase):
         self.root.mkdir(parents=True)
         self.addCleanup(self.remove_fixture)
         self.nested = 'Battle Aces_Data/Plugins/x86_64/VuplexWebViewChromium/chrome_elf.dll'
+        self.handler = 'Battle Aces_Data/Plugins/x86_64/VuplexWebViewChromium/libcef.dll'
         self.originals = {'GameAssembly.dll': b'authored game fixture',
                           'UnityPlayer.dll': b'authored engine fixture',
-                          self.nested: b'authored browser fixture'}
+                          self.nested: b'authored browser fixture',
+                          self.handler: b'authored independent handler fixture'}
         self.patched = {name: content + b' private patch' for name, content in self.originals.items()}
         for name, content in self.originals.items():
             (self.root / name).parent.mkdir(parents=True, exist_ok=True)
@@ -72,7 +74,7 @@ class InstallerTests(unittest.TestCase):
             self.assertEqual(restored['components'][name]['installed_sha256'], installer.digest(content))
 
     def test_last_component_validation_failure_leaves_installation_untouched(self):
-        (self.root / self.nested).write_bytes(b'unrecognized browser')
+        (self.root / self.handler).write_bytes(b'unrecognized browser')
         with self.assertRaisesRegex(ValueError, 'SHA256'):
             installer.install(self.root, helper=self.helper)
         self.assertEqual((self.root / 'GameAssembly.dll').read_bytes(), self.originals['GameAssembly.dll'])
@@ -292,7 +294,7 @@ class InstallerTests(unittest.TestCase):
         (self.root / 'BattleAcesOffline.dll').write_bytes(old_helper)
         write = installer.atomic_write
         def fail_engine(path, data):
-            if path == self.root / self.nested:
+            if path == self.root / self.handler:
                 raise PermissionError('test: browser is mapped by a running process')
             return write(path, data)
         with patch.object(installer, 'atomic_write', side_effect=fail_engine):
