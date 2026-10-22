@@ -8,9 +8,14 @@ Nick reports "1v1 over real lan worked!" Accept cross-PC LAN1v1 play;do not repe
 first-match reachability. Exact menu path/rematch/results/Continue/Quit/restart/
 persistence and103 installer-specific observations remain unrecorded. D1/RC-P
 parents stay open at those remaining scopes. Source report:lan-playtest-candidate.txt.
-Next104:use cleaned Windows account name by default,editable Player name in native
-client installer,load/preserve saved names and stable identity. Compute only on
-player PC,never ship builder name. Plan RC-U104 added;implementation in progress.
+104 username implementation/automated qualification COMPLETE:cleaned account
+default,editable native name field,preserved saved names/stable identity.53tests:
+52pass,1existing owner-DACL skip;3policy tests and11shared C#/Python fixtures pass.
+Actual standalone UI under Restricted policy;actual bundled fresh install62.593s,
+rename update11.633s preserve save hashes and ID/token. Actual game-folder CMD
+menu12.331s with download source renamed;forced readiness cleanup,not Quit.
+Frozen clientd9df4f0 bytes/scopes:username104.txt. Server103 unchanged;physical
+name-field observation on next update is N4,remaining LAN observations N2.
 
 INSTALLER103 - CLIENT RESET/UNINSTALL AND READ-ONLY-SOURCE SERVER SETUP READY
 Client native UI adds backed-up selected-deck reset using original starter logic

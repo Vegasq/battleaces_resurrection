@@ -7,7 +7,10 @@
   Continue/Quit/restart and installer103-specific observations are still missing,
   not failures. This supersedes older blanket LAN holds below. Username104 is
   next:cleaned local account default,editable installer name,preserve saved names
-  and identity. Runtime defaults must never embed the build machine's username.
+  and identity. Username104 now passes automated/native UI/bundled install/rename/
+  ordinary-menu qualification;source/hashes:docs/username104.txt. Server103 is
+  unchanged. r103g is now an installed104 owned diagnostic fixture,not a frozen
+  manual candidate. Runtime defaults never embed the build machine's username.
 
 - Use repository-root `DEV.txt` as the single place for every request that needs
   Nick to take an action, supply information, test something, or make a decision.

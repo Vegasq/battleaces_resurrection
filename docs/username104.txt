@@ -20,12 +20,58 @@ updates preserve saved display_name. Optional display_name supports the new UI.
 Invalid choices fail before runtime publication/patching. Renaming preserves
 local_profile,per-route identity,decks,cosmetics and server settings.
 
-Current qualification:53focused tests,52PASS and1existing opt-in owner-DACL skip.
-Native C# and Python policy fixtures,actual form name-load/edit behavior and final
-embedded package evidence are being qualified before delivery. Source helper100,
-simulation,network protocol and103 server deployment are not changed by this work.
-Keep all manual/accepted103/102/71/98 candidates frozen. Only owned restored r103g
-may be used for the new disposable client install qualification.
+Qualification COMPLETE at automated scope
+53focused tests:52PASS,1existing opt-in owner-DACL skip,13.442s. The extended
+Unicode policy fixture run passes3tests. Actual standalone C# and Python cleanup
+match on11fixtures,including domain/email removal,NFC,unsafe chars,empty fallback
+and32non-BMP-letter truncation. Actual form reads both games' saved names and
+retains the explicitly typed name when changing folder. Restricted-policy actual
+standalone window shows3editable fields and uses its runtime account default;
+server form regression still shows2and hides the player-name field. Rendered
+client layout inspected. Both native maintenance buttons stay available.
+
+Actual extracted BUNDLED package_client install-game on owned restored r103g:
+fresh install62.593s uses that runtime's current account default. Second actual
+installer update11.633s saves chosen name LAN Commander. Profile save hashes,
+local_profile,remote player ID and token remain identical. Installed package
+verifies. No game/server was started by those2install operations,total74.391s.
+The actual generated game-folder CMD then reaches ordinary native menu12.331s,
+using installed runtime after original download extraction is renamed away.
+Config/package/shared settings unchanged;game/wrapper reaped. Menu check cleanup
+was forced,NOT natural Quit or a new full-match/physical acceptance claim.
+
+Source helper100,simulation,network protocol and103 server deployment are not
+changed. Keep accepted/manual103/102/71/98 candidates frozen;no server reinstall
+is required for104. r103g is now an owned installed104 diagnostic fixture,not a
+manual candidate. Physical display/name-field observation can be recorded on
+Nick's next normal update via DEV.txt N4. No repeat of successful LAN1v1 requested.
+
+Frozen client candidate
+Clean payload source:d9df4f05531b6fc68929c4486342d533272d2982.
+Standalone:local/username104-standalone01/BattleAces-Installer-RC1-104.exe
+SHA256:8655c37f2c1b213803be749ece16660b668ba456fbbc5a37e57ad8bced4daac3
+Embedded client ZIP:local/username104-packages01/battleaces-client-win64.zip
+SHA256:92b6b68ba053e6df07ca1d5c6bd1dfbc1fcb6e7f631cbe2047d33039c6bea11c
+Helper100 SHA256:3b848de5f66aab3304ac608da7e7c08a53b8420cf94bf261f52bcd2d0ee331c2
+Python3.14.8 official pinned ZIP unchanged. Explicit payload allowlist includes
+player_name.py and no personal profile/config/identity or builder account data.
+The build also emits a server ZIP as usual;it is not a newly qualified/deployed
+server replacement. Keep103 server installer/host as the retained candidate.
+Later evidence-only documentation commits do not change the pinned client bytes.
+
+Retained reports (ignored local files)
+local/username104-ui-verification.json
+SHA256:2b1b471798c5d03ed869f08a2ea362cdf17f96394a611fa0a4a52516e9dfbb42
+local/username104-standalone-ui.json
+SHA256:a996cc5ff7335bfd04e3c4ad1f5638d1a61673f1d9adb6554276d10ccd67f854
+local/username104-install01/verification.json
+SHA256:2c3fa5260b39e5bb1c2b9b1ca5fee8fd6fe7ff2b6b66a84912670e5894e8aeb4
+local/username104-launcher01/verification.json
+SHA256:0de4880e6f34c9293fdb5bcd4995d887ad55262c34f0f85cd7979c0907754d00
+local/username104-tests01.txt
+SHA256:931a894be8d0abdf7ca81dd19842c7d746bd8a8a525d79714f66b123e1e53c69
+local/username104-policy-tests02.txt
+SHA256:fda170c1d27bdaa50c92dc103df2ee357b7bb17da7d938e08e4f7b590d9930c2
 
 Physical LAN evidence
 Nick's exact report:"1v1 over real lan worked!" Record physical cross-PC LAN1v1

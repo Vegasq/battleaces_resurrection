@@ -13,12 +13,15 @@ no usable account name exists. Compute on the PLAYER'S PC,never at package build
 Client installer exposes an editable Player name field. Existing saved/custom
 names are loaded and preserved unless the player deliberately edits the field;
 rename never changes profile identity,decks or cosmetics. Config remains editable.
-[ ] RC-U104:implement and qualify cleaned account default,editable installer name,
-    existing-name preservation,rename identity stability and final bundled UI.
+[x] RC-U104 automated:cleaned account default,editable installer name,preserved
+    saved names/identity,11shared native/Python fixtures,actual standalone UI and
+    bundled fresh install/rename update pass. Ordinary game-folder CMD reaches
+    menu12.331s;forced readiness cleanup,not Quit. Exact bytes/scopes:username104.txt.
+    Physical field/display observation remains RC-P;no repeated LAN game required.
 
 102 supersedes the101 PowerShell UI after Nick's second-PC trace proves script
 execution policy blocks it. Download ONE standalone Windows installer executable;
-its native window asks for game folder and server IP. Click Install / Update.
+its native window asks for game folder,server IP and104 Player name. Click Install / Update.
 It copies the complete client runtime into the game folder and creates
 Start Battle Aces.cmd there. No retained download-folder dependency,PowerShell
 policy change,CA,fingerprint,invite or developer runtime installation.
@@ -98,6 +101,8 @@ Finite RC1 gates,in order
         installer102.txt. Native EXE replaces policy-blocked101 default setup.
     [x] Replacement103 clean source37a0095,both standalone EXEs and embedded
         ZIPs,native certificate tool and exact evidence frozen in installer103.txt.
+    [x] Client104 clean sourced9df4f0 and standalone/embedded ZIP hashes frozen
+        in username104.txt. Server103 stays the retained host candidate.
     [ ] Physical gate review and final RC-ready declaration. Do not label RC1
         accepted yet. Preserve local/rc101-packages01 and its manual test game
         local/startup58-game01 while N4 is pending. Also preserve102 standalone,

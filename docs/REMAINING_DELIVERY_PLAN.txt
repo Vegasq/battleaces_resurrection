@@ -53,8 +53,11 @@ Delivery order
 2026-10-22:Nick reports "1v1 over real lan worked!" Close D1's physical LAN1v1
 play subcase;do not repeat it. Custom menu path/rematch/results/Continue/Quit and
 restart/persistence are unreported,not failed. Record missing observations via
-DEV.txt. Next independent work:RC-U104 username default + editable installer
-name,including preservation and stable identity,then remaining finite RC gates.
+DEV.txt. RC-U104 username default + editable installer name is now implemented
+and qualified:53tests(1existing opt-in skip),shared native/Python policy,actual
+bundled install/rename with stable identity/saves,ordinary native menu pass.
+Frozen client/hashes:username104.txt;server103 unchanged. Next:review missing
+physical workflow/installer observations and continue remaining finite RC gates.
 103 maintenance/server installer automated qualification COMPLETE:backed-up
 selected-deck reset,verified client uninstall,full server copy/export/import with
 unchanged source,installed production health worker. Both native UIs/payloads pass.
