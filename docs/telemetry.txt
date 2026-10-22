@@ -3,6 +3,13 @@ Updated: 2026-10-22
 Supported input: Battle Aces build 37822, Windows x64.
 Recipe version: 9. Guards: 75. Complete-set runtime_validated: false.
 
+Review113 closes the two startup current-directory gaps with live PEB metadata
+and an independent owned-handle path check. Actual control handles a cwd change
+and keeps a foreign alias unresolved;the game records both native log opens at
+the owned game folder with status0. Selected AI-window attribution now PASS,
+0unknown roots,664rows/355anchors;26checks/56actual rejections/native Quit0 pass.
+Full D5 remains OPEN;no113 package. Scope:telemetry-current-directory113.txt.
+
 Review112's opt-in entry metadata identifies111's two startup gaps:sim.log from
 Simulation.dll and fuzzylogicai.log from aiprogram.dll. Original imports confirm
 their CreateFileW caller sites. Absolute root0x40 and successful I/O remain

@@ -2,6 +2,26 @@
 
 ## Requests and answers with Nick
 
+- Privacy113 closes112's selected startup cwd-root gap. New cwd-v4 observer
+  reads live PEB parameters/handle/path,checks stability and preserves unknown
+  aliases;owner separately checks the actual directory handle's path. Actual
+  control02 resolves two folders across cwd change,keeps1foreign alias unknown,
+  root0/job3/0/0/no force. Initial01 fails on genuinely uninitialized cwd handle0;
+  revised explicit state is unproven,not a guessed root. Parameters allocation
+  changes at startup:never cache that initial pointer.26focused checks/56actual
+  mutations pass. Game01 native AI/result/Continue/default Quit0 passes123.454s,
+  no force/job1/0/0,8program files/shared/source sealed.664rows/355anchors align
+  settings-through-Quit;both native log opens resolve in owned r103g,status0,
+  0unknown roots. Selected observation review PASS;full D5 OPEN/false. Scope/
+  hashes/failures:docs/telemetry-current-directory113.txt. Current host Windows
+  10x64 19045 only;not preloader/tree/kernel/all-mode/queued/final-package proof.
+  Do not rerun this completed bounded startup/AI case without change or concrete
+  concern. Next remaining native identity acquisition,isolated real queued-report
+  contract and supported runtime/final-artifact matrix. New diagnostic tools
+  only;recipe9/helper110/r103g mixed fixture unchanged. No113 packages;frozen105/
+  DEV N7 stays current. Both owners terminal/REA sessions closed. No new Nick
+  action or repeat accepted D6/LAN/manual check.
+
 - Privacy112's opt-in paths-v3 observer preserves legacy sources and emits
   entry-only unresolved-file-root metadata without clearing counters. Actual
   duplicated-directory-handle/NtOpenFile control passes40rows/21operations/

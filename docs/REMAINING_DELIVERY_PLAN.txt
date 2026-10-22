@@ -394,10 +394,15 @@ are scoped inputs, not a completion substitute.
     authored control,10focused checks and24actual rejection cases pass. Native
     AI/results/Continue/default Quit0 passes with source/shared/program seals,
     job1/0/0 and no force. This advances observation earlier than110;not D6 timing.
-[ ] Startup absolute-root attribution remains FAILED:111's660rows/355anchors align
-    settings-before-load through Quit;112 now identifies the2relative entries.
-    Prove their parent handle/directory next;never discard that gap counter. Real
-    Bugsnag reader uses generic persistentDataPath,not isolated profile storage;
+[x] Startup absolute-root attribution113 for the selected native AI window PASS:
+    actual live current-directory/owned-handle checks resolve both log opens in
+    r103g with status0.664rows/355anchors align settings-through-Quit,0unknown
+    roots,no force/job1/0/0;8program files/shared/source sealed.26checks/56actual
+    rejections pass. Earlier111/112 failures stay failed. No repeat of this scoped
+    case without change/concern;full D5/all modes/final artifacts stay OPEN.
+    Evidence:telemetry-current-directory113.txt. No recipe/helper/package change.
+[ ] Pre-existing report cache:111's real Bugsnag reader uses generic
+    Application.persistentDataPath,not isolated profile storage;
     no real queued reports found in candidate shared root. Disposable root/type-
     correct payload contract is required before seed tests. Recipe9 unchanged;
     no111 package/new human action. Evidence:telemetry-startup-observation111.txt.
@@ -405,8 +410,8 @@ are scoped inputs, not a completion substitute.
     opt-in relative-path/caller metadata:sim.log/Simulation.dll and fuzzylogicai.log/
     aiprogram.dll. Matching original IATs confirm CreateFileW call sites. Native
     AI/results/Continue/default Quit0 still passes;20checks/36actual rejections
-    pass. Full absolute-root/absence qualification remains FAILED with counter2;
-    next prove root0x40's actual directory/handle origin,not another unchanged run.
+    pass.112's own absolute-root qualification remains FAILED with counter2;
+    the new113 proof above closes that separate subcase,preserving old reports.
     Evidence:telemetry-relative-roots112.txt. Recipe9 unchanged,no112 package.
 References: telemetry.txt, telemetry-internal-config.txt,
 telemetry-persistent-observation.txt,telemetry-device-cef106.txt and nvidia-shutdown.txt.

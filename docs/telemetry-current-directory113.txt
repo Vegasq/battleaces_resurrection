@@ -1,0 +1,138 @@
+STARTUP CURRENT-DIRECTORY ATTRIBUTION113
+2026-10-22. Selected startup/AI window PASS;full D5 remains OPEN/false.
+Recipe9/75guards/helper110-01 unchanged. No113 installer or product patch.
+
+Closed subcase
+111/112's unresolved root0x40 is now proved against live current-directory
+metadata in the owned process. Both native log opens use:
+ <owned r103g game directory>/sim.log
+ <owned r103g game directory>/fuzzylogicai.log
+The observed NtCreateFile returns are0,not pending. Thus the records establish
+successful opens at these paths,not just intended names. They do not establish
+payload contents or completed writes. Current observation has zero unresolved
+roots. Preserve the earlier failed111/112 qualification records unchanged.
+
+Metadata ownership and validation
+tools/owned_process_directory.py accepts an existing live SuspendedChild with
+its owned process/job handles. GetProcessId must match the recorded child PID.
+NtQueryInformationProcess(class0) is invoked by the owner against that existing
+handle;bounded ReadProcessMemory reads process-directory metadata only. No PID
+selection/enumeration,new privilege,ACL/policy change or remote code is used.
+The host checks the current-directory string against GetFinalPathNameByHandleW
+on a duplicate of that exact target directory handle,then rechecks its metadata.
+This duplicate is always closed;failed identity/mismatch/change is not a pass.
+PEB/process-basic-information offsets are cross-checked against installed SDK
+10.0.26100.0 winternl.h;private current-directory fields are independently checked
+by actual owned controls and the handle-path comparison. Runtime qualification
+here is Windows10 x64 10.0.19045,not all future Windows/PEB layouts.
+
+Important actual startup finding:the newly created paused child's current-
+directory string exists but its directory handle is0. Initial control01 rejects
+that state,forces cleanup and reaps root1;it remains FAILED. The revised explicit
+allow_uninitialized mode returns viewsAgree=false/rootHandle0,never a resolved
+path proof. The PEB anchor/PID are usable;the observer reads LIVE process
+parameters and directory fields later,once initialized. The parameters allocation
+also changes during startup,so caching its initial address would be wrong.
+
+tools/frida_attribution_cwd.py is separate opt-in cwd-v4;legacy/clock-v1/v2 and
+paths-v3 source generators remain unchanged. The owner-proved PEB anchor is bound
+to the actual PID. At each rooted relative entry,the observer reads the live
+parameters pointer,current-directory handle and UTF16 path. It resolves ONLY
+when the syscall root equals that current handle and all fields/string remain
+stable across a second read. Other roots still use the existing observed-handle
+map or emit/increment unresolved metadata. No target API/NativeFunction/query,
+game function,argument/return replacement,payload read or file write is added.
+resolvedCwdRoots counters and exact resolved-cwd-root entry metadata are retained.
+This stability recheck is not an atomic snapshot of every process thread.
+tools/attribution_cwd_metadata.py requires exact provenance/keys/addresses,an
+absolute bounded path and entry phase;dot-segment normalization is refused.
+The current reader supports the owned local-drive paths used here,not UNC roots.
+
+Source SHA256:
+ owned_process_directory.py
+ a5c37906f281988a04b1dc09d0a1a423c3ec0c4759c6d4e71a54befe5ab55679
+ frida_attribution_cwd.py
+ 846bb957a6276c52b070f55a82966b54ba6d92e08944b6fb5c78a819bac15e22
+ attribution_cwd_metadata.py
+ 6abc346509f1666fca111ee7e493f1e005e6cc83743cc261a36f4af6643c88da
+
+Actual authored control02
+local/privacy113-cwd-control-owner02.py;privacy113-cwd-control02/.
+111's owned create/job/identity/primary-resume flow is preserved. Body marker
+stays absent until REA observer-ready;ResumeThread prior count1. The authored
+body reads a sentinel relative to its inherited current directory,changes cwd
+to a different owned folder,reads the same name there,then returns. Both live
+directory roots/handles are recorded correctly and their absolute NtCreateFile
+records return0. A deliberately duplicated directory handle still produces
+one unresolved entry:the new reader does not simply zero or discard gaps.
+The host's later duplicate-handle path agrees with its live directory string.
+All files/sentinels are authored sensor fixtures,not game analytics/report data.
+50rows/29operation records/9anchors,max drift12ms,2resolved cwd entries and
+1intentionally unresolved alias;root0,reaped,job3/0/0,no forced cleanup.
+Final REA:
+ ev_77ab5eec47fab16aa92c10126289292c851412fc5647019e74d1d3167e51be2a
+Owner verification SHA256:
+ edb0062a1c25215b1cdfe66fe4fe50c5a9d6b80ec7985a888de4aca59df73041
+Independent observation review SHA256:
+ 37a9cb51f2c7e06e887f97ced95bd9633bddceeb76cbb3ccb83e570b780b8652
+Reviewer local/privacy113-control-review01.py SHA256:
+ 1d4c9a367e365de369e34673851c5b14cbd0f5d8e4cec23ef737236781959a5c
+
+Actual game01
+local/privacy113-game-owner01.py;privacy113-game-ai01/.
+Owned r103g recipe9/helper110-01,fresh profile,ordinary3s practice diagnostic
+delay. Only diagnostic tooling changes. Existing launch helper unchanged;8
+program files now include original Simulation/aiprogram and seal unchanged
+before/after. New owner also seals both host-directory and observer modules.
+Shared settings/source seals pass. This is direct native offline-practice
+qualification,not ordinary production launcher/physical UI/all mode acceptance.
+Native AI/results/Continue/default Quit PASS123.4535496s including the external
+paused preparation;root0/reaped,job1/0/0,no force. It is not D6 timing evidence.
+
+Observer installed before controlled primary resume70229437. First clock
+anchor70229453;settings-before-load70230484;practice request70239531;result
+70309890;Continue70318406;menu70318765;original Quit confirmation70325375;last
+anchor70326453. All native markers align;664complete rows/355anchors,max drift
+11ms,280 selected file-operation records,2resolved cwd metadata records,0unknown
+roots,0observed network/child records. Heartbeat counters match resolved entries;
+no errors/truncation/overflow. Selected roots include shared settings,owned profile
+and the two exact log paths;the full game asset tree is not broadly selected.
+Both log opens use the current directory proved by the host and by the live
+entry reader,with original module caller RVAs from112. Both normal return records
+have status0/pending=false. No NtWriteFile event for either log is recorded in
+this window;this is not a general no-write or complete-byte-I/O claim.
+Selected-window observation review PASS. Full analytics_removal_qualified=false.
+Final REA:
+ ev_096ce175ed86a68bb345dde19d8d1b9a9d624a4124a4e18c7845fd3fdd1d0e3c
+Owner verification SHA256:
+ 7faf2bf7a20633bd9088dba9673f372f5099f49fe90f71812472c8658976e4d5
+Native verification SHA256:
+ 12a8ffa4b5638b07c89f55f9ebb10c26a1b8828f45d461cd04a2eab5be673727
+Observation review SHA256:
+ 93b58255949c5410ca0fafcf17ce87da09888bc8c011d5d550214b93b5d7c05a
+Reviewer local/privacy113-game-review01.py SHA256:
+ 11ebfe75421ec07460cced6b086524a4a23fed78a49bff5b591f5c6591b3f215
+
+Checks and preserved limits
+26 focused tests PASS:legacy attribution/clock/owned-launch plus new schema,
+isolated authored JS reader behavior and owner metadata identity/change/mismatch/
+uninitialized guards. Node behavior is not Frida runtime proof;the actual control
+above supplies that separate evidence. One earlier unit assertion confused a
+ctypes handle wrapper with its integer value;corrected test retains failed02 log.
+ local/privacy113-focused-tests03.txt
+ 0d940bc3bd4f0a51297ba5f8ec4c6e906f627426f240f9a4ce8ac6a1cc9e20bf
+56 actual in-memory control/game mutations reject,including foreign root paths,
+PEB/parameters/handles/provenance,names,counters,unproven host comparison and
+failed return status. Original captures/receipts are not rewritten.
+ local/privacy113-review-rejections01.json
+ 77658eb5c7e12e293e9ca9c7e6056bd372d0914fc955e64490084d26068d84aa
+
+This closes ONLY the previously unresolved current-directory startup log entries
+and the selected native AI window. No pre-attach loader/injected-thread capture,
+whole-process tree,kernel/wire/DNS completeness,all profiles/modes,error/retry/
+crash/real queued-report or final-package qualification is claimed. Earlier
+111/112 failures stay failed. Do not rerun this completed bounded case without
+a new source change or concrete concern. Next:remaining D5 native acquisition,
+genuine isolated report-cache contract and supported runtime/final-artifact matrix.
+Both owned owners are terminal/reaped;both REA sessions closed. No game/server
+left running by this work.105/DEV N7 remains current;no new Nick action requested.
