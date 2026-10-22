@@ -2,6 +2,25 @@
 
 ## Requests and answers with Nick
 
+- Privacy119 supersedes118 SOURCE/owned fixture:recipe15/103guards returns
+  INTEGER synchronous disabled2 at ContinuousEvent49..53 before borrowed input/
+  collector factory/configuration work. No completion/owner acquired on original
+  disabled failure. Current Main virtual68c33440 is ALREADY guarded false by108;
+  no new assumption about external provider query. Lower/shared helpers unchanged.
+  Managed type exists but methods stripped(start-1/count0);initial range-parser
+  failure recorded,local zero-count handling fixed.76checks/C++ suite,actual
+  14->15 preserving profiles/backups,five verified replacements/AI/results/
+  Continue/default Quit0 pass123.413s,job1/0/0/no force,8program/shared/source
+  seals unchanged.662rows/352anchors,0unknown roots,121actual rejection cases
+  pass. No real collector/delegate invoked by new calls. Scope/hashes/contracts:
+  docs/telemetry-continuous119.txt. Named five-entry subtask CLOSED;not native/
+  indirect/pre-existing collector closure. Reuse source records before new guards;
+  identity/isolated typed queued reports/error/runtime/final artifacts remain.
+  D5 OPEN/false. r103g recipe15/helper119-01,cached runtime/CMD105:mixed fixture,
+  not119deployment. No119packages;frozen105/DEV N7 current. Owner terminal/game
+  REA closed;no new Nick action/repeat D6/LAN/manual. Do not repeat bounded pass
+  without a change/concrete concern. Static final seal02 includes query dependency.
+
 - Privacy118 supersedes117 SOURCE/owned fixture:recipe14/98guards filters only
   Create205084 incoming name to original null path;7CustomEventData Add entries
   return Boolean false before input access. Original Create entry/Destroy/shared

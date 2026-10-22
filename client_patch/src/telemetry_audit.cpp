@@ -67,6 +67,11 @@ static const Signature signatures[]={
     {0x206a30,0x205e30,"4c894424185553574157488d6c24c148","31c0c3",1},
     {0x206f10,0x206310,"40555356574157488d6c24c94881ecd0","31c0c3",1},
     {0x207340,0x206740,"f20f115424185553574157488d6c24c1","31c0c3",1},
+    {0x202050,0x201450,"40555357415441554157488d6c24d848","b802000000c3",1},
+    {0x2026f0,0x201af0,"4055535657415441554157488dac2460","b802000000c3",1},
+    {0x203050,0x202450,"4055535657415441554157488d6c24f0","b802000000c3",1},
+    {0x203710,0x202b10,"488bc45553415441554157488d688848","b802000000c3",1},
+    {0x203df0,0x2031f0,"488bc45553415441554157488da818ff","b802000000c3",1},
     {0xd84ec6,0xd842c6,"0f857d0100004c8bcbc603014c8d0587","e97e01000090",2},
     {0xd84e3e,0xd8423e,"c740080001000048897810c6401901e8","c7400800000000",2},
     {0x292110,0x291510,"84c9488b0d8fcba7010f95c24883c108","31c9",2},
@@ -78,7 +83,7 @@ static const Signature signatures[]={
     {0x205430,0x204830,"4885c90f840f010000574883ec30488b","",3},
 };
 static uintptr_t unity=0;
-static bool checked=false,disabled=false,startupLogged=false,quitAttempted=false,completeRecipe14=false;
+static bool checked=false,disabled=false,startupLogged=false,quitAttempted=false,completeRecipe15=false;
 static unsigned snapshots=0;
 static ba_telemetry_sampling::Schedule schedule;
 static DWORD auditThread=0;
@@ -146,9 +151,9 @@ static bool verifyModule() {
         }
         memcpy(bytes.data()+peOffset+24+64,&originalChecksum,sizeof(originalChecksum));
         if(digest(bytes)!=originalHash)throw std::runtime_error("unsupported UnityPlayer normalized SHA256");
-        completeRecipe14=groups[0]==3 && groups[1]==48 && groups[2]==3;
+        completeRecipe15=groups[0]==3 && groups[1]==53 && groups[2]==3;
         disabled=false;
-        ba::log("Telemetry audit build verified: UnityPlayer sha256=%s normalized=%s crashSignatures=%u/3 coreCandidateSignatures=%u/48 performanceCandidateSignatures=%u/3; READ ONLY, no qualification claim",
+        ba::log("Telemetry audit build verified: UnityPlayer sha256=%s normalized=%s crashSignatures=%u/3 coreCandidateSignatures=%u/53 performanceCandidateSignatures=%u/3; READ ONLY, no qualification claim",
             actualHash.c_str(),originalHash,groups[0],groups[1],groups[2]);
     } catch(const std::exception& e) {ba::log("Telemetry audit disabled: %s; no object reads attempted",e.what());}
     return !disabled;
@@ -233,10 +238,10 @@ static void deviceProbe() noexcept {
     attempted=true;
     try {
         auto require=[](bool value,const char* why){if(!value)throw std::runtime_error(why);};
-        require(requested() && checked && !disabled && completeRecipe14 && auditThread==GetCurrentThreadId() &&
+        require(requested() && checked && !disabled && completeRecipe15 && auditThread==GetCurrentThreadId() &&
             ba::flag(L"-native-quit-smoke") && ba_native_settings::session &&
             ba_native_settings::session->profile().compare(0,12,"nativestest_")==0,
-            "complete recipe14,initialized game thread and explicit owned diagnostic required");
+            "complete recipe15,initialized game thread and explicit owned diagnostic required");
         struct Main {
             uintptr_t pointer=0,vtable=0,worker=0;
             uint64_t header[4]={};uint32_t marker=0,state=0,init=0,archive=0;
@@ -433,6 +438,29 @@ static void deviceProbe() noexcept {
         require(capture(after) && capture(last) && same(before,after) && same(after,last),
             "custom-data lifetime changed sampled disabled Main state");
         ba::log("TELEMETRY CUSTOMDATA probe passed: version=1 thread=%lu creates=1 adds=7 addFalse=7 destroys=1 realNativeOwner=1 emptyMetadataUnchanged=1 borrowedUnreadable=1 borrowedPayloadRead=0",
+            GetCurrentThreadId());
+        // Continuous-event failure is synchronous status2,not a completion
+        // callback. Check and invoke replacements only;no collector is created.
+        for(const size_t rva:{size_t(0x202050),size_t(0x2026f0),size_t(0x203050),size_t(0x203710),size_t(0x203df0)}) {
+            const Signature* entry=nullptr;for(const auto& item:signatures)if(item.rva==rva)entry=&item;
+            require(entry!=nullptr,"continuous-event signature absent");
+            Bytes guarded=hex(entry->original),change=hex(entry->candidate),live(guarded.size());
+            require(change==Bytes({0xb8,2,0,0,0,0xc3}),"continuous-event entry must return disabled status2");
+            memcpy(guarded.data(),change.data(),change.size());
+            require(copy(unity+rva,live.data(),live.size()) && live==guarded,"continuous-event entry not fully guarded");
+            const auto borrowed=reinterpret_cast<void*>(uintptr_t(1));int status=-1;
+            switch(rva) {
+                case 0x202050:status=reinterpret_cast<int(*)(void*,void*,void*)>(unity+rva)(borrowed,borrowed,borrowed);break;
+                case 0x2026f0:status=reinterpret_cast<int(*)(void*,void*,int,void*,int,void*)>(unity+rva)(borrowed,borrowed,1,borrowed,1,borrowed);break;
+                case 0x203050:status=reinterpret_cast<int(*)(void*,void*,int,void*)>(unity+rva)(borrowed,borrowed,1,borrowed);break;
+                case 0x203710:status=reinterpret_cast<int(*)(void*,void*,float,float,bool)>(unity+rva)(borrowed,borrowed,1.25f,2.5f,true);break;
+                case 0x203df0:status=reinterpret_cast<int(*)(void*,void*,float,float,bool,int,void*)>(unity+rva)(borrowed,borrowed,1.25f,2.5f,true,1,borrowed);break;
+            }
+            require(status==2,"continuous-event API did not return disabled status2");
+        }
+        require(capture(after) && capture(last) && same(before,after) && same(after,last),
+            "continuous-event replacement changed sampled disabled Main state");
+        ba::log("TELEMETRY CONTINUOUS probe passed: version=1 thread=%lu calls=5 returnedDisabled=5 borrowedUnreadable=1 sampledStateUnchanged=1 borrowedPayloadRead=0",
             GetCurrentThreadId());
     } catch(...) {
         // A refusal makes no success claim and never blocks original Quit.

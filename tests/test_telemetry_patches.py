@@ -99,7 +99,7 @@ class TelemetryPatchSafetyTests(unittest.TestCase):
 
     def test_only_reviewed_recipes_are_present(self):
         self.assertFalse(RUNTIME_VALIDATED)
-        self.assertEqual(RECIPE_VERSION, 14)
+        self.assertEqual(RECIPE_VERSION, 15)
         self.assertEqual(len(COMPONENTS["GameAssembly.dll"].patches), 42)
         self.assertEqual({p.rva for p in COMPONENTS["UnityPlayer.dll"].patches},
                          {0xC90C2A, 0x80366F, 0xC93D10, 0xD84EC6, 0xD84E3E,
@@ -109,7 +109,8 @@ class TelemetryPatchSafetyTests(unittest.TestCase):
                           0xC2F790, 0xC2FC09, 0xC3016B, 0xC30273, 0xC3A5D0,
                           0xC39D14, 0xC3A2A5, 0xC41F0C, 0xC32468, 0x2048A0, 0x204CB0, 0xC30838, 0x208350, 0x208840, 0x20AFA0,
                           0x207AD0, 0x208890, 0x208C50, 0x209000, 0x2096C0, 0x209D80, 0x20A610, 0x20B690, 0x20BEA0,
-                          0x205084, 0x205550, 0x205CD0, 0x206110, 0x206550, 0x206A30, 0x206F10, 0x207340})
+                          0x205084, 0x205550, 0x205CD0, 0x206110, 0x206550, 0x206A30, 0x206F10, 0x207340,
+                          0x202050, 0x2026F0, 0x203050, 0x203710, 0x203DF0})
         self.assertEqual(len(COMPONENTS), 4)
         self.assertEqual([p.rva for p in COMPONENTS[CEF_COMPONENT_PATH].patches], [0x323A0])
         self.assertEqual([p.rva for p in COMPONENTS[CEF_HANDLER_COMPONENT_PATH].patches], [0x17403D0])
@@ -353,6 +354,22 @@ class TelemetryReplacementExecutionTests(unittest.TestCase):
                 result=self.executable(patches[rva].replacement,integer,*types)(*arguments)
                 self.assertEqual(result,2)  # Integer disabled status,never Boolean false.
         self.assertTrue({0x207990,0x1fdb90,0xc67840,0x15b680,0xc676f0,0xc65b20}.isdisjoint(patches))
+
+    def test_continuous_entries_return_disabled_without_reading_names_arrays_or_collectors(self):
+        patches={p.rva:p for p in COMPONENTS['UnityPlayer.dll'].patches}
+        ptr=ctypes.c_void_p;integer=ctypes.c_int;floating=ctypes.c_float;boolean=ctypes.c_bool
+        for pointer in (0,1):
+            cases={
+                0x202050:((ptr,ptr,ptr),(pointer,pointer,pointer)),
+                0x2026f0:((ptr,ptr,integer,ptr,integer,ptr),(pointer,pointer,1,pointer,1,pointer)),
+                0x203050:((ptr,ptr,integer,ptr),(pointer,pointer,1,pointer)),
+                0x203710:((ptr,ptr,floating,floating,boolean),(pointer,pointer,1.25,2.5,True)),
+                0x203df0:((ptr,ptr,floating,floating,boolean,integer,ptr),(pointer,pointer,1.25,2.5,True,1,pointer)),
+            }
+            for rva,(types,arguments) in cases.items():
+                code=patches[rva].replacement;self.assertEqual(code,bytes.fromhex('b802000000c3'))
+                self.assertEqual(self.executable(code,integer,*types)(*arguments),2)
+        self.assertTrue({0xc21b20,0xc21e40,0xc22200,0xc1fc80,0xc222f0}.isdisjoint(patches))
 
     def test_custom_data_masks_name_and_adds_fail_without_reading_borrowed_inputs(self):
         patches={p.rva:p for p in COMPONENTS['UnityPlayer.dll'].patches}

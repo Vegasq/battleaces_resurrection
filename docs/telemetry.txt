@@ -1,7 +1,15 @@
 TELEMETRY PATCH STATUS
 Updated: 2026-10-22
 Supported input: Battle Aces build 37822, Windows x64.
-Recipe version: 14. Guards: 98. Complete-set runtime_validated: false.
+Recipe version: 15. Guards: 103. Complete-set runtime_validated: false.
+
+Review119 guards5registered continuous-event input/collector/configuration APIs
+with existing synchronous disabled status2 before input/factory ownership.76checks,
+C++ suite,actual14->15 preserving profiles/backups and guarded calls/AI/results/
+Continue/default Quit0 pass. Selected window/121actual rejection checks pass.
+Existing owner virtual68 guard remains unchanged;no collector/delegate invoked
+by new probes. Named entry subtask CLOSED;full source/cache/runtime/final gates
+remain OPEN. No119package. Scope:telemetry-continuous119.txt.
 
 Review118 discards CustomEventData's incoming name while preserving real native
 construction/destruction;7Add methods return false before input access.75checks,
@@ -173,7 +181,7 @@ performs no I/O, changes no input bytes and preserves all unrelated bytes.
 Exact component keys, guard counts and pristine SHA-256:
  GameAssembly.dll (42)
  e59d08c01479b27404778048d7e13546dbf3771f6b3912744c7c2bdf80c4e758
- UnityPlayer.dll (54: crash 3 + performance 3 + analytics 48)
+ UnityPlayer.dll (59: crash 3 + performance 3 + analytics 53)
  ac144d56d53f07904d52ed27a1539de90bc3290038fe52d73d2f6b268c85d6bc
  Battle Aces_Data/Plugins/x86_64/VuplexWebViewChromium/chrome_elf.dll (1)
  080e409112b33a0e4cc763cba6d3c206fd640dd9006cb60f2f05ab7e73279563

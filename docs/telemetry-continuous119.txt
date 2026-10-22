@@ -1,0 +1,125 @@
+CONTINUOUS-EVENT INPUT / COLLECTOR REGISTRATION GUARDS119
+2026-10-22. Recipe15,103guards/four DLLs. Full D5 remains OPEN/false.
+
+Change and synchronous failure contract
+Five registered continuous analytics entries rooted/converted borrowed inputs
+before existing disabled checks. Exact-entry MOV EAX,2;RET now returns the same
+integer disabled status BEFORE input work,collector factory/ownership or event
+configuration. No event/collector is accepted;caller retains all inputs:
+ InternalRegisterCollector202050(index49)
+ InternalSetEventHistogramThresholds2026f0(index50)
+ InternalSetCustomEventHistogramThresholds203050(index51)
+ InternalConfigureCustomEvent203710(index52)
+ InternalConfigureEvent203df0(index53).
+All return scalar statusEAX,not Boolean/void/hidden output. Existing failure
+paths return2 without retaining/calling the collector input or registering a
+request;no asynchronous completion is owed on that synchronous failure. Entry
+guards acquire no local/native GC/reference/string owner to release. Shared
+factories/registration/destructors/privacy controls remain unchanged.
+
+Static ABI and ownership evidence
+REA skill used pinned original PE/unwind/LLVM/native bodies. Known unavailable
+Ghidra was not retried;this is static evidence,not new REA decompiler/runtime
+Evidence. Original UnityPlayer:
+ ac144d56d53f07904d52ed27a1539de90bc3290038fe52d73d2f6b268c85d6bc
+Same-index192ff50/1930280 binding readerfd42d0 proof reused from114;selected
+entries/whole native procedures/offsets/original16/hashes are pinned in manifest.
+Managed ContinuousEvent type remains but its methods are stripped,start=-1,
+count0. Initial metadata attempt failed the strict nonnegative method range;
+corrected local reader explicitly handles zero count. No core parser/native
+target modified/launched. Native signatures follow complete bodies,not invented
+managed declarations or names. The complete managed collector delegate type/
+invocation ABI is not recovered.
+Register roots3borrowed managed inputs,two names and a collector input. Its
+lowerc21b20 returnsEAX2 atc21b48 before lookup/factory/refcount work. Enabled
+path passes third input to a selected factory,registers its resulting collector,
+then releases the local reference. Wrapper preserves statusR13D through cleanup.
+Event histogram takes two names,integer,thresholds pointer,stack integer/name;
+lowerc21e69 returnsEAX2 before threshold/prefix work. Custom histogram takes two
+names,integer,thresholds pointer;wrapper2031d3 selects2 before lowerc22200.
+Custom configuration takes two names,two FLOATs and stack Boolean;wrapper20386d
+selects2 before sharedc1fc80. Ordinary configuration additionally takes stack
+integer/name;lowerc22322 selects2 before config/prefix work. MOVSS verifies
+FLOAT,not double. All pointer arguments are borrowed inputs,no caller outputs.
+Current Main virtual68 is c33440,ALREADY guarded false by108/current recipe.
+Thus these disabled paths do not execute its original external provider query;
+no new assumption about that provider's side effects is made. New guards remove
+earlier input work;the prior shared-query guard and other helpers are unchanged.
+ local/privacy119-continuous01/FINDINGS.txt
+ 1c77fa4761566e380cd04e9ce5930a2955b24d93a2f8b97ed905419de0e4c5f2
+ local/privacy119-continuous01/evidence-manifest02.json
+ 05e7dede3a061448e3e247b49634fb61efff5013f3dbf9c3d4c0e0cb002df27b
+Seal02 adds the existing owner-query dependency;earlier partial seal is retained.
+Private verify_contract.py checks5entries/bindings/disabled constants and exact
+original slices/bounds;PASS. Raw game/disassembly/capture evidence stays private;
+Git receives authored source/docs/brief safety signatures.
+
+Checks/build/owned upgrade
+76affected tests PASS5.571s:all4pinned original transforms/unrelated bytes,
+5typed replacements with null/unreadable names/collector/thresholds pointers and
+proper integer/FLOAT/Boolean/stack arguments,legacy evidence,Quit checker,patcher
+and Windows packages. Required C++ suite/helper119-01 build PASS,source-bound.
+Unity auditor recognizes59guards(crash3/core53/perf3);older3..14 samples require
+explicit older recipe and cannot qualify the new guards.
+ local/privacy119-affected-tests01.txt
+ 061fc4e48df3919b616a884ef8dd9660fc66780e8644f8257e90f4f750d75b6e
+ build/helper-privacy119-01/BattleAcesOffline.dll
+ 17c3cb7ed18b87f17c1d21a08e29683ad9e890d10297693aa6be365c52a8c703
+ build/helper-privacy119-01/helper-build.json
+ c202145e1b9d7b20c7f6f2a3a89c024aa88ae555a6b3e38d4c960af91546c38f
+Actual owned r103g14->15 upgrade PASS42.7679112s:dry-run leaves components/
+manifest unchanged,preview equals install,idempotent reinstall passes,all
+original backups/every existing profile file unchanged. No fresh restore/reapply
+claim. Installed UnityPlayer:
+ e3c71bb9a2dec4d5f92ebd43e427cdbd34640d9152726bae3290346600d04b61
+ local/privacy119-install01/verification.json
+ 651808634d6d4ee2d794796be3005fe70a19cf2d8ea6cab56776916cf33e17ad
+
+Controlled native qualification
+Existing explicit owned device-probe requires full recipe15,known nativestest_
+profile,Unity thread,disabled Main and preceding118lifetime proof. It verifies
+all5loaded signatures and calls ONLY constant-result replacements with unreadable
+names/collector/threshold pointers and reviewed integer/FLOAT/Boolean/stack ABI.
+All5return integer2 and sampled Main fields remain unchanged. No real collector,
+factory,delegate,configuration body or query is invoked by these new calls;
+no managed object fabricated. Ordinary product launch never enables the probes.
+Native AI,result,Continue,menu/default original Quit PASS123.4130958s including
+paused observer preparation. All7probe groups pass once on the Unity thread.
+Eight complete field snapshots span startup/menu/game/postgame/menu/pre-Quit.
+Root0/reaped,job1/0/0,no force;8program/shared/bound source/observer seals unchanged.
+This is replacement ABI/compatibility,not actual delegate invocation/release,
+stripped managed caller recovery,physical controls,new bot movement proof,
+ordinary startup timing or final profile/mode acceptance.
+ local/privacy119-game-ai01/native/verification.json
+ 79cc06a2b1f2e65f74500f66f26a3445cd32988286cfaa717c5349c913191da8
+ local/privacy119-game-ai01/verification.json
+ a4ee388c1150d96c50c6fe2fe7840edfcf171d09d10461f437251b760411b8b0
+Qualified cwd-v4 observer installed before controlled primary resume records
+662rows/352clock anchors,max drift8ms. Settings-before-load through original
+Quit align;280selected file records,0unknown roots,0observed network/child records.
+No complete preloader/injection/tree/kernel/wire/all-I/O claim. Final REA:
+ ev_e978790d098e1c467adca93281101aaba78ca29586a23f8a6e2089f1c1d0c7b0
+Read-only review reparses raw field/all-probe/Quit records and requires equality
+with native claims plus owner/job/source/provider/clock/path seals.121actual
+in-memory mutations reject,including absent/duplicate/late/wrong-thread/count/
+result/input/state/borrowed-payload continuous proof and false native claims.
+Retained113 control/current game baselines pass;no unchanged control rerun or
+captured evidence rewrite.
+ local/privacy119-game-ai01/observation-review01.json
+ aad86a3e26bc2a27ea6b45a2708a37859b94bb0c0da1b1ca513a6c9e210e21d9
+ local/privacy119-game-review01.py
+ b56d01cbb88559e2c4ae7d42566d089fb555e8290108be7b21d9f398d1c33d57
+ local/privacy119-review-rejections01.json
+ 4817166bfaa10fa156789cf58e9c68a72bf5b2a7c87b2d2ebb9b9f377b0b18e1
+
+Delivery/remaining work
+GameAssembly42,Unity59,CEF2=103guards. No119installer/package;frozen105/DEV N7
+current. r103g recipe15/helper119-01 with cached runtime/CMD105 is a mixed owned
+fixture,not119deployment. Owner terminal/REA closed,no server started. No new
+Nick action/repeat accepted D6/LAN/manual check. Named five-entry input/registration
+subtask CLOSED,not native/indirect/pre-existing collector completeness. Full D5/
+RUNTIME_VALIDATED remains OPEN/false. Remaining source/control/identity aliases,
+disposable type-correct pre-existing report queues,error/retry/crash/profile-mode/
+runtime matrix and final installed artifacts still require qualification. Reuse
+existing source/ABI records before selecting another guard;do not repeat this
+bounded pass without a change or concrete unresolved concern.

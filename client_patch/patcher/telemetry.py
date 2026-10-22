@@ -1,6 +1,6 @@
 """Exact-build telemetry patch transformations; no file or process operations.
 
-These 98 recipes have static source/control-flow review. The complete recipe
+These 103 recipes have static source/control-flow review. The complete recipe
 set has not been runtime validated; recipe2's 59 had a bounded compatibility run.
 They do not establish complete telemetry removal; see docs/telemetry.txt.
 Only brief patch safety signatures are included, never original game payloads.
@@ -10,7 +10,7 @@ import hashlib
 from types import MappingProxyType
 
 GAME_BUILD = 37822
-RECIPE_VERSION = 14
+RECIPE_VERSION = 15
 RUNTIME_VALIDATED = False
 VALIDATION_STATUS = "Static review and original-byte validation only"
 UNRESOLVED_COMPONENTS = (
@@ -303,6 +303,18 @@ COMPONENTS = MappingProxyType({
                   bytes.fromhex('40555356574157488d6c24c94881ecd0'), bytes.fromhex('31c0c3')),
             Patch('Unity Analytics CustomEventData AddDouble before borrowed input access', 0x207340, 0x206740,
                   bytes.fromhex('f20f115424185553574157488d6c24c1'), bytes.fromhex('31c0c3')),
+            # Continuous-event entries have synchronous disabled status2
+            # before any collector factory/delegate ownership or completion.
+            Patch('Unity Analytics ContinuousEvent InternalRegisterCollector before input work', 0x202050, 0x201450,
+                  bytes.fromhex('40555357415441554157488d6c24d848'), bytes.fromhex('b802000000c3')),
+            Patch('Unity Analytics ContinuousEvent InternalSetEventHistogramThresholds before input work', 0x2026f0, 0x201af0,
+                  bytes.fromhex('4055535657415441554157488dac2460'), bytes.fromhex('b802000000c3')),
+            Patch('Unity Analytics ContinuousEvent InternalSetCustomEventHistogramThresholds before input work', 0x203050, 0x202450,
+                  bytes.fromhex('4055535657415441554157488d6c24f0'), bytes.fromhex('b802000000c3')),
+            Patch('Unity Analytics ContinuousEvent InternalConfigureCustomEvent before input work', 0x203710, 0x202b10,
+                  bytes.fromhex('488bc45553415441554157488d688848'), bytes.fromhex('b802000000c3')),
+            Patch('Unity Analytics ContinuousEvent InternalConfigureEvent before input work', 0x203df0, 0x2031f0,
+                  bytes.fromhex('488bc45553415441554157488da818ff'), bytes.fromhex('b802000000c3')),
         ),
     ),
     CEF_COMPONENT_PATH: Component(

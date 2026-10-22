@@ -46,14 +46,16 @@ class NativeQuitVerifierTests(unittest.TestCase):
         events='[102] TELEMETRY EVENTS probe passed: version=1 thread=17 calls=3 returnedDisabled=3 borrowedUnreadable=1 sampledStateUnchanged=1 payloadRead=0'
         controls='[102] TELEMETRY EVENTCONTROL probe passed: version=1 thread=17 calls=9 returnedDisabled=9 borrowedUnreadable=1 sampledStateUnchanged=1 payloadRead=0'
         custom='[102] TELEMETRY CUSTOMDATA probe passed: version=1 thread=17 creates=1 adds=7 addFalse=7 destroys=1 realNativeOwner=1 emptyMetadataUnchanged=1 borrowedUnreadable=1 borrowedPayloadRead=0'
+        continuous='[102] TELEMETRY CONTINUOUS probe passed: version=1 thread=17 calls=5 returnedDisabled=5 borrowedUnreadable=1 sampledStateUnchanged=1 borrowedPayloadRead=0'
         # Place the active probe in the menu,not inside the final sample.
-        text=text.replace('[103] Telemetry audit',call+'\n'+identity+'\n'+ads+'\n'+events+'\n'+controls+'\n'+custom+'\n[103] Telemetry audit',1)
+        text=text.replace('[103] Telemetry audit',call+'\n'+identity+'\n'+ads+'\n'+events+'\n'+controls+'\n'+custom+'\n'+continuous+'\n[103] Telemetry audit',1)
         self.assertTrue(quit_probe.telemetry_evidence(text,rows,sha,device_probe=True)['device_api_guarded_false_and_sampled_config_unchanged'])
         self.assertTrue(quit_probe.telemetry_evidence(text,rows,sha,device_probe=True)['identity_setters_guarded_void_and_metadata_unchanged'])
         self.assertTrue(quit_probe.telemetry_evidence(text,rows,sha,device_probe=True)['ads_callback_copy_guard_and_progress_qualified'])
         self.assertTrue(quit_probe.telemetry_evidence(text,rows,sha,device_probe=True)['event_apis_guarded_disabled_before_input_access'])
         self.assertTrue(quit_probe.telemetry_evidence(text,rows,sha,device_probe=True)['event_control_apis_guarded_disabled_before_input_access'])
         self.assertTrue(quit_probe.telemetry_evidence(text,rows,sha,device_probe=True)['custom_event_data_empty_native_lifetime_and_add_false_qualified'])
+        self.assertTrue(quit_probe.telemetry_evidence(text,rows,sha,device_probe=True)['continuous_event_inputs_guarded_disabled_before_registration'])
         for changed in (text.replace(call,''),text.replace(call,call+'\n'+call),
                         text.replace('returned=0','returned=1'),text.replace('markerBefore=0','markerBefore=1'),
                         text.replace('calls=1 returned','calls=2 returned'),
@@ -71,7 +73,10 @@ class NativeQuitVerifierTests(unittest.TestCase):
                         text.replace(controls,controls.replace('payloadRead=0','payloadRead=1')),
                         text.replace(custom,''),text.replace(custom,custom+'\n'+custom),
                         text.replace('destroys=1','destroys=0'),text.replace('realNativeOwner=1','realNativeOwner=0'),
-                        text.replace('emptyMetadataUnchanged=1','emptyMetadataUnchanged=0')):
+                        text.replace('emptyMetadataUnchanged=1','emptyMetadataUnchanged=0'),
+                        text.replace(continuous,''),text.replace(continuous,continuous+'\n'+continuous),
+                        text.replace('returnedDisabled=5','returnedDisabled=4'),text.replace('calls=5','calls=4'),
+                        text.replace(continuous,continuous.replace('borrowedPayloadRead=0','borrowedPayloadRead=1'))):
             with self.subTest(changed=changed[-240:]),self.assertRaises(AssertionError):
                 quit_probe.telemetry_evidence(changed,rows,sha,device_probe=True)
 

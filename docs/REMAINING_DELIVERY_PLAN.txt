@@ -449,9 +449,14 @@ are scoped inputs, not a completion substitute.
     owner/Add-false/Destroy cycle+AI/results/Continue/default Quit0 pass. Selected
     window/111actual rejection checks pass. No118package;105/DEV N7 current.
     Scope:telemetry-custom-data118.txt. Not stripped managed ctor/Dispose proof.
-[ ] Review ContinuousEvent collector/configuration input contracts(indices49..53:
-    202050,2026f0,203050,203710,203df0). Preserve caller/delegate ownership and
-    mandatory completion;entry guard absence is not proof of an active bypass.
+[x] Review119 closes ContinuousEvent49..53 input/registration/configuration
+    subtask:original synchronous disabled status2 before borrowed input/factory
+    ownership. Existing owner virtual68c33440 false guard unchanged;no completion
+    is owed on that failure. Recipe15/103guards;76checks,C++ suite,actual14->15
+    preserving profiles/backups,five guarded calls/AI/results/Continue/default
+    Quit0 pass. Selected window/121actual rejection cases pass. No119package;
+    105/DEV N7 current. Scope:telemetry-continuous119.txt. Not full native/indirect
+    collector coverage or actual delegate lifetime invocation/release proof.
     Remaining identity acquisition/aliases,queued reports/runtime/final gates
     above remain OPEN;116's bounded negative ads search is not source closure.
 References: telemetry.txt, telemetry-internal-config.txt,

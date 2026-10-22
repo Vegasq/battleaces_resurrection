@@ -88,6 +88,12 @@ def telemetry_evidence(text,rows,expected_sha256,*,after_practice=False,device_p
                                 controls[0].end()<data[0].start()<data[0].end()<begin[0].start(),
                                 'custom event-data native ownership/empty metadata/Add-false cycle did not complete before original Quit')
                             result['custom_event_data_empty_native_lifetime_and_add_false_qualified']=True
+                            if result['recipe_version']>=15:
+                                continuous=list(re.finditer(r'^\[(\d+)\] TELEMETRY CONTINUOUS probe passed: version=1 thread=(\d+) calls=5 returnedDisabled=5 borrowedUnreadable=1 sampledStateUnchanged=1 borrowedPayloadRead=0$',text,re.M))
+                                startup.require(len(continuous)==1 and int(continuous[0][2])==thread and int(continuous[0][1])<=int(begin[0][1]) and
+                                    data[0].end()<continuous[0].start()<continuous[0].end()<begin[0].start(),
+                                    'continuous-event guarded inputs did not synchronously return disabled before original Quit')
+                                result['continuous_event_inputs_guarded_disabled_before_registration']=True
     return dict(**result,same_original_quit_thread=True,pre_confirm_tick=tick,original_confirm_tick=dispatch[0]['tick'])
 
 
