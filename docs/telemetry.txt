@@ -3,6 +3,13 @@ Updated: 2026-10-22
 Supported input: Battle Aces build 37822, Windows x64.
 Recipe version: 9. Guards: 75. Complete-set runtime_validated: false.
 
+Review112's opt-in entry metadata identifies111's two startup gaps:sim.log from
+Simulation.dll and fuzzylogicai.log from aiprogram.dll. Original imports confirm
+their CreateFileW caller sites. Absolute root0x40 and successful I/O remain
+unproven;the gap counter stays2 and observation absence qualification FAILS.
+Actual control/20focused tests/36actual rejection cases pass;native AI-through-
+Quit0 passes without force. Evidence:telemetry-relative-roots112.txt. D5 OPEN.
+
 Review111 installs the passive observer before controlled primary-thread resume.
 Authored control and native AI/results/Continue/Quit pass,without forced cleanup.
 The new startup recording aligns660rows/355anchors but exposes2unresolved

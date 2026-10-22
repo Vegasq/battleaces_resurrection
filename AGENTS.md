@@ -2,6 +2,23 @@
 
 ## Requests and answers with Nick
 
+- Privacy112's opt-in paths-v3 observer preserves legacy sources and emits
+  entry-only unresolved-file-root metadata without clearing counters. Actual
+  duplicated-directory-handle/NtOpenFile control passes40rows/21operations/
+  9anchors;20focused checks/36actual capture mutation cases pass. Game01 native
+  AI/result/Continue/default Quit0 passes121.404s,no force/job1/0/0,program/shared/
+  source unchanged.661rows/354anchors align startup-settings through Quit.
+  Two entries now IDENTIFIED:sim.log via Simulation.dll+35acdc and fuzzylogicai.log
+  via aiprogram.dll+2734ac,both root0x40. Original matching DLL IAT slots confirm
+  CreateFileW;not high-level logger-constructor or completed-I/O proof. Absolute
+  root unresolved,counter2,observation review alignment=true/overall=false. Next
+  prove that owned handle's directory/current-directory origin before resolving
+  it;do not infer from launch cwd/names or discard the gap. Exact hashes/scopes/
+  literal-parser failures:docs/telemetry-relative-roots112.txt. No CPP/product/
+  recipe change;helper110/r103g mixed fixture stays unchanged. No112 package;
+  frozen105/DEV N7 stays current. Both owners terminal,REA sessions closed.
+  D5 OPEN/false;no new Nick action/repeat accepted D6/LAN/manual check.
+
 - Privacy111 adds direct owned CREATE_SUSPENDED diagnostic launch,retains raw
   handles/job before passive REA attach,and resumes only with prior count1.
   Control04 passes38rows/20operations/9anchors with body absent until ready;

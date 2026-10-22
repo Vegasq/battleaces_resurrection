@@ -1,0 +1,138 @@
+UNRESOLVED STARTUP FILE ENTRIES112
+2026-10-22. Source/runtime metadata progress;D5 OPEN/runtime_validated=false.
+Recipe9/75 guards and helper110-01 remain unchanged. No112 packages/installers.
+
+Outcome
+The two111 startup gaps now have actual names and callers. Both are entry-only
+NtCreateFile attempts using root handle0x40 on the primary thread:
+ sim.log -- Simulation.dll+0x35acdc
+ fuzzylogicai.log -- aiprogram.dll+0x2734ac
+Original matching-module PE imports confirm both return addresses immediately
+follow a call to KERNEL32!CreateFileW. This is consistent with the existing native
+logging contract,not evidence of analytics delivery. Absolute root0x40,return
+status,completed writes and file contents are NOT established by these entry
+records. The unresolved counter stays2 and full file/absence qualification stays
+FAILED. Do not remove those failures or claim D5 completion from these names.
+
+Observer and reader
+tools/frida_attribution_paths.py is separate opt-in paths-v3. It builds the exact
+existing clocked-v2 source,then adds bounded metadata at its unknown-relative-root
+branch. Legacy source/clock-v1/clock-v2 generators remain unchanged. Calls are
+observed,not made:the script has no NativeFunction,API query,replacement,argument/
+return write,payload read or file write. Existing unknownRelativeRoots increments
+before emitting;an unresolved root still returns null to the normal file mapper.
+The event has exact keys api,operation,phase=entry,rootHandle,relativePath,frames.
+tools/attribution_path_metadata.py rejects wrong ABI/phase/keys,null or oversized
+handles,absolute/empty/NUL/oversized names and malformed/excess caller frames.
+This is an entry decoder,not a successful-open/absolute-path decoder. Capture
+event limits and original string/handle budgets remain in force.
+Source SHA256s:
+ frida_attribution_paths.py
+ e94a1022d124136f50bc017ddb9316e6215ef1db43567d8930240635b9914df2
+ attribution_path_metadata.py
+ 23aced87537e0547ca7023e4c97b8c1786f8cb6d5de56c54c7f1a8f956eadc6a
+
+Authored positive control01
+local/privacy112-path-control-owner01.py;local/privacy112-path-control01/.
+Uses111's qualified owned suspended launch/job/identity/resume flow and first-body
+marker. Actual body stays absent until observer-ready;ResumeThread prior count1.
+The authored body opens its owned queue directory,duplicates that directory handle
+through an API outside the sensor,and calls NtOpenFile relative to the duplicate.
+The valid duplicate is intentionally unknown to the sensor;NtOpenFile succeeds0
+and closes all handles. The event's queued.json name and0x284 root match the
+authored receipt,with ctypes/Python caller frames. No file payload is read by
+this new native control step. The separate canonical control still checks its
+synthetic sentinel,normal file operations,localhost7bytes each way,child0 and
+eight alternating clock calls. The sentinel is NOT a real game reporting queue.
+40rows/21operations/9anchors,max drift7ms,one unresolved entry;root0,reaped,
+job3/0/0 (root+recorded conhost+authored child),no force. Independent read-only
+reconciliation PASS. Final REA:
+ ev_6c3197c110a42e9b86e23f34c1169683d13ba5f70e3f7f816c8f4bce995f4e17
+Owner verification SHA256:
+ 0bcb22e90ad2e5a8f4fd3f5fb0bf005a90effa2c5b708f60a3c23c2ab7b75865
+observation-review01.json SHA256:
+ a0baa97d7eac1fa01c19febe7ff651808bca32e170fa8db35fc668ff76232b25
+Reviewer local/privacy112-control-review01.py SHA256:
+ 6cd9bde107e1236f37796aff8dc64ca34a0662929eb13cdbecddca8c778f6c36
+
+Actual startup/AI game01
+local/privacy112-game-owner01.py;local/privacy112-game-ai01/.
+Owned r103g recipe9/helper110-01,fresh profile,unchanged ordinary3s practice
+diagnostic delay. Observer installed before controlled primary resume69022437.
+First anchor69022750;settings-before-load69023781;practice request69032796;
+result69102828;Continue69111359;menu69111609;original Quit69118718;last anchor
+69119515. Native AI/results/Continue/default Quit PASS121.4042764s including
+paused preparation;root0/reaped,job1/0/0,no force. This is not D6 ordinary timing,
+physical clicks or a repeat physical LAN test. Six program-component/shared/
+source seals pass. No product code or existing manual candidate is modified.
+661rows/354anchors,max drift10ms,278 selected absolute file records plus2new
+unresolved entry records;0 observed network/child records. No decoder errors,
+truncation,overflow or missing unresolved entries at the heartbeat boundaries.
+New entries102/103 appear at observer elapsed12169/12171ms,primary TID15796.
+The gap counter reaches2 and both records are accounted for. Names/callers are
+established;the parent absolute root is not. Read-only observation-review01.json
+therefore records alignment_passed=true,unresolved_entry_metadata_accounted=true,
+passed=false,reason=absolute-relative-root-unresolved. Full absence stays failed.
+Final REA:
+ ev_b82f6b7ac81823ff4cad5ad8ee18f1ff9735e13e7aa8e51d081f21055ed126f1
+Owner verification SHA256:
+ b05f54b668361f45a8f2b382e7165c4d18f8a36e5b9829adae57930f99cfaaf0
+Native verification SHA256:
+ faf3bab1805674b13cc6d295811d14072f70451efacb41050dc815cd16e19d77
+Observation review SHA256:
+ 8245b6f6ff451905dce1f0b7f577ab568a689d6e15ee0b38a10cd22f1f8525df
+Reviewer local/privacy112-game-review01.py SHA256:
+ 3323486e1f599ba7609c29952f37a3ef7c3f75dca197c775213fad94d5de27cc
+
+Original-byte caller verification and limits
+No Ghidra/provider setup was retried. Read-only PE/LLVM analysis uses the untouched
+copy and verifies both owned installed plugin files match byte-for-byte:
+ Simulation.dll
+ 107bb83dc416a16492277392c50104660e34c48911345ae2e0d5afe3929a07fb
+ aiprogram.dll
+ 14b504d4946fe60d0d62e1e8b8a641b4c1bbd07277d1bbca09e0151512ff19ca
+Recorded return RVAs lie within original unwind ranges35abd0..35afbf and
+2733a0..27378f. The immediately preceding FF15 call sites resolve through exact
+PE IAT slots385290/298288 to KERNEL32.dll/CreateFileW. LLVM's nearest-export
+SimStep labels are not method names or evidence these bodies are SimStep itself.
+These are file-opening/runtime bodies,not a recovered full high-level logger
+constructor or proof that no other caller exists.
+ local/privacy112-log-callers03/manifest.json
+ 83c5ecb64c967d1bb8203561f893de7a4025af9da9560168df8b4943f8cd4847
+ local/privacy112-log-imports01.json
+ 7351a7b17f0ed91996328decd043ec99246bee0523f89627a1817411bcc06df3
+Earlier callers01/02 parsers incorrectly required whole literal strings and
+failed before recording slices. ASCII and UTF16 whole-name searches in these
+two DLLs and original GameAssembly/UnityPlayer did not find those literals.
+This is not an absence proof or evidence of obfuscation;names can be supplied
+or constructed elsewhere. Corrected callers03 accepts that limit and verifies
+the actually observed return sites. No reporter/collector or DLL was executed
+for this static review. Raw disassembly stays ignored,never in Git/packages.
+
+The prior docs/windows-packaging.txt native-log section already pins the same
+Simulation hash and supports SimSetLogFlags(0) before SimInit in server workers.
+Those old probes show DLL load may create an empty sim.log while independent
+console/file sinks and useful callbacks have separate controls. They are not
+repeated or used to infer this graphical client's writes. A one-point owned
+game-directory read found both named files at0bytes with old timestamps;this
+does not prove their open status,destination or before/after preservation.
+
+Checks and next work
+20 focused tests PASS,including all legacy attribution/clock and owned-launch
+tests plus the new schema/source cases. Source/control compilation is checked;
+only actual REA control above qualifies live native decoding.
+ local/privacy112-focused-tests01.txt
+ ccfccaf53fc7616a687b7e343fc16d3a0c459f2abc1c38ee19982ce6ba89a8d4
+36 in-memory actual owner/capture mutations reject,including new root phase,
+absolute name,zero handle,excess frames,extra payload field and mismatched gap
+counters for both control/game. Baseline game absence intentionally still fails.
+ local/privacy112-review-rejections01.json
+ 004ae5f80daa14a04947c1e3c358ca242310e30bfa798dd2c53987743c0ea920
+
+Next:resolve the recorded root against the owned process's actual current-directory
+state or another proven handle origin;qualify that metadata before treating the
+paths as absolute. Do not infer root from filename/launch cwd alone,filter the
+entries out,zero the counter or repeat the unchanged recording. Preserve all111
+failures. Continue remaining D5 native acquisition and isolated real queued-report
+contracts/matrix afterward. Current105/DEV N7 stays unchanged;no new Nick action.
+Both owned game/control owners exited/reaped and both REA sessions closed.

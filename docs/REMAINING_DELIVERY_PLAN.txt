@@ -394,13 +394,20 @@ are scoped inputs, not a completion substitute.
     authored control,10focused checks and24actual rejection cases pass. Native
     AI/results/Continue/default Quit0 passes with source/shared/program seals,
     job1/0/0 and no force. This advances observation earlier than110;not D6 timing.
-[ ] Startup file attribution111 remains FAILED:660rows/355anchors align settings
-    before native load through Quit,but2relative roots are unresolved. Add bounded
-    path/caller metadata and identify them;never discard that gap counter. Real
+[ ] Startup absolute-root attribution remains FAILED:111's660rows/355anchors align
+    settings-before-load through Quit;112 now identifies the2relative entries.
+    Prove their parent handle/directory next;never discard that gap counter. Real
     Bugsnag reader uses generic persistentDataPath,not isolated profile storage;
     no real queued reports found in candidate shared root. Disposable root/type-
     correct payload contract is required before seed tests. Recipe9 unchanged;
     no111 package/new human action. Evidence:telemetry-startup-observation111.txt.
+[x] Review112 identifies both111 unresolved entries using positively qualified
+    opt-in relative-path/caller metadata:sim.log/Simulation.dll and fuzzylogicai.log/
+    aiprogram.dll. Matching original IATs confirm CreateFileW call sites. Native
+    AI/results/Continue/default Quit0 still passes;20checks/36actual rejections
+    pass. Full absolute-root/absence qualification remains FAILED with counter2;
+    next prove root0x40's actual directory/handle origin,not another unchanged run.
+    Evidence:telemetry-relative-roots112.txt. Recipe9 unchanged,no112 package.
 References: telemetry.txt, telemetry-internal-config.txt,
 telemetry-persistent-observation.txt,telemetry-device-cef106.txt and nvidia-shutdown.txt.
 
