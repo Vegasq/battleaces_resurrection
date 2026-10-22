@@ -99,13 +99,14 @@ class TelemetryPatchSafetyTests(unittest.TestCase):
 
     def test_only_reviewed_recipes_are_present(self):
         self.assertFalse(RUNTIME_VALIDATED)
-        self.assertEqual(RECIPE_VERSION, 6)
+        self.assertEqual(RECIPE_VERSION, 7)
         self.assertEqual(len(COMPONENTS["GameAssembly.dll"].patches), 42)
         self.assertEqual({p.rva for p in COMPONENTS["UnityPlayer.dll"].patches},
                          {0xC90C2A, 0x80366F, 0xC93D10, 0xD84EC6, 0xD84E3E,
                           0x292110, 0xC8C5F3, 0xC66C20, 0xC2F570, 0xC333DA,
                           0x2078B0, 0xC2F3FC, 0x207A60, 0xC381D0, 0xC37400,
-                          0xC33440, 0x1FD3A0, 0x1FDA50, 0xC392C0, 0xC2E240, 0xC40840, 0x20C560})
+                          0xC33440, 0x1FD3A0, 0x1FDA50, 0xC392C0, 0xC2E240, 0xC40840, 0x20C560,
+                          0xC2F790, 0xC2FC09})
         self.assertEqual(len(COMPONENTS), 4)
         self.assertEqual([p.rva for p in COMPONENTS[CEF_COMPONENT_PATH].patches], [0x323A0])
         self.assertEqual([p.rva for p in COMPONENTS[CEF_HANDLER_COMPONENT_PATH].patches], [0x17403D0])
@@ -130,7 +131,20 @@ class TelemetryPatchSafetyTests(unittest.TestCase):
         # returning from a constructor whose initialized fields callers destroy.
         for first,last in ((0xc3a680,0xc3b1e7),(0xc49110,0xc49dc0)):
             self.assertFalse(any(first<=rva<last for rva in patches))
-        for shared in (0x154920,0x155710,0xc65160):self.assertNotIn(shared,patches)
+        for shared in (0x154920,0x155710,0xc65160,0x9fb910,0xc4df10,0xc300f0):self.assertNotIn(shared,patches)
+
+    def test_configuration_redirect_preserves_original_tail_and_existing_sentinel_path(self):
+        patches={p.rva:p for p in COMPONENTS['UnityPlayer.dll'].patches}
+        prepare=patches[0xc2f790]
+        self.assertEqual(prepare.replacement[:1],b'\xe9')
+        self.assertEqual(prepare.rva+5+struct.unpack_from('<i',prepare.replacement,1)[0],0xc300f0)
+        query=patches[0xc2fc09]
+        self.assertEqual(query.guard[0],0xe8)
+        self.assertEqual(query.rva+5+struct.unpack_from('<i',query.guard,1)[0],0x9fb910)
+        self.assertEqual(query.guard[5:7],b'\xeb\x07')
+        self.assertEqual(query.replacement[:1],b'\xe9')
+        self.assertEqual(query.rva+5+struct.unpack_from('<i',query.replacement,1)[0],query.rva+7)
+        self.assertEqual(query.guard[7:10],b'\x48\x8d\x05')
 
     def test_registration_skips_keep_existing_branch_destinations(self):
         patches = {p.rva: p for p in COMPONENTS["UnityPlayer.dll"].patches}
@@ -245,6 +259,27 @@ class TelemetryReplacementExecutionTests(unittest.TestCase):
                                  ctypes.c_void_p, ctypes.c_void_p, ctypes.c_uint, ctypes.c_void_p)
         self.assertEqual(invoke(None,None,0,None),0)
         self.assertEqual(invoke(1,1,0xffffffff,1),0)
+
+    def test_configuration_tail_branch_preserves_borrowed_argument_registers(self):
+        patch=next(p for p in COMPONENTS['UnityPlayer.dll'].patches if p.rva==0xc2f790)
+        target=5+struct.unpack_from('<i',patch.replacement,1)[0]
+        # Authored callee writes RDX/R8/R9 to our output,then returns directly to
+        # Python. No original collector,serializer,query or state code executes.
+        callee=bytes.fromhex('4889114c8941084c894910c3')
+        code=patch.replacement+b'\x90'*(target-len(patch.replacement))+callee
+        invoke=self.executable(code,None,ctypes.c_void_p,ctypes.c_uint64,ctypes.c_uint64,ctypes.c_uint64)
+        output=(ctypes.c_uint64*3)()
+        expected=(0x0123456789abcdef,0xfedcba9876543210,0x1122334455667788)
+        invoke(ctypes.addressof(output),*expected)
+        self.assertEqual(tuple(output),expected)
+
+    def test_query_branch_reaches_existing_fallback_location(self):
+        patch=next(p for p in COMPONENTS['UnityPlayer.dll'].patches if p.rva==0xc2fc09)
+        target=5+struct.unpack_from('<i',patch.replacement,1)[0]
+        # The target stand-in returns123. The real literal/LEA is checked against
+        # pinned originals separately;no original game instruction is executed.
+        code=patch.replacement+b'\x90'*(target-len(patch.replacement))+bytes.fromhex('b87b000000c3')
+        self.assertEqual(self.executable(code,ctypes.c_int)(),123)
 
 
 if __name__ == "__main__":

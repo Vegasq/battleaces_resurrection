@@ -2,6 +2,19 @@
 
 ## Requests and answers with Nick
 
+- Privacy108 supersedes107 SOURCE only:recipe7/68guards skips configuration
+  identity prep while preserving original dirty tail,and uses existing unknown
+  sentinel in separate state-one query.69focused checks,C++ suite,actual6->7
+  upgrade preserving profiles and native AI/result/Continue/default Quit0 pass.
+  Exact contracts/hashes/limits:docs/telemetry-platform108.txt. D5 stays OPEN;
+  RUNTIME_VALIDATED=false. Normal registration/Resume roots are guarded under
+  reviewed ownership;indirect activation,machine-ID,other serializer and dirty
+  ads-identity conversion remain unresolved. No whole-network/removal claim.
+  r103g now recipe7/helper108-01,cached runtime/CMD still105:mixed diagnostic
+  fixture,not deployment. No106/107/108 packages;frozen105 and DEV N7 unchanged.
+  No game/server/REA left running. Do not repeat completed bounded checks without
+  a new change/concern;continue remaining D5 coverage and final artifacts.
+
 - Privacy107 now supersedes106 SOURCE only:recipe6/66guards includes public
   QueueEvent false before conversion.74focused checks,C++ suite,actual5->6
   upgrade preserving profiles and native AI/results/Continue/default Quit0 pass.

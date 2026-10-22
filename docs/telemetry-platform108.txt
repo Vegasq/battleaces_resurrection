@@ -1,0 +1,101 @@
+ANALYTICS CONFIGURATION / PLATFORM QUERY108
+Started2026-10-22. Recipe7,68guards/four components;D5 remains OPEN.
+
+Problem and scope
+The original analytics drain invokes configuration preparation BEFORE inspecting
+the event queue. Empty sampled queues therefore do not rule out that preparation's
+platform query. A separate state-one initializer also calls the shared query.
+Two narrow guards now skip those analytics callers without changing the shared
+query,ordinary gameplay platform APIs,serializer constructors or drain cleanup.
+These are preventive collection guards,not evidence of an active recipe6 bypass
+or proof of full analytics removal. RUNTIME_VALIDATED remains false.
+
+Evidence and original contracts
+Two independent read-only reviews used matching original PE/unwind information,
+retained IL2CPP metadata and LLVM disassembly. REA's Ghidra provider remained
+unconfigured;no new provider setup,REA Evidence or runtime collection observation
+is claimed. Original UnityPlayer SHA256:
+ ac144d56d53f07904d52ed27a1539de90bc3290038fe52d73d2f6b268c85d6bc
+Private ownership review:
+ local/privacy108-config-submission01/FINDINGS.txt
+ 96cec091654f29fa53a5e89339ed6908c1ff506119b8959ebc8a27baad32f128
+ local/privacy108-config-submission01/manifest.json
+ b56cc24ce592cf262c0ff3216ff78c57316f3f1c33ed808f99f04aa2ceceec30
+Private state/callback review:
+ local/privacy108-state-routes01/FINDINGS.txt
+ 41ca312b3c0ace5f13ca1e5ba797ae7f98274a8acc9c77992ebf1504c85fb4cc
+ local/privacy108-state-routes01/manifest.json
+ 7b04d183c897e0478d5e0b93e4f9302f6d81b4f21019416aebb3c19863f2f067
+Original files,raw disassembly and captures remain ignored local inputs.
+
+Configuration preparation entry c2f790 now branches to its original dirty-state
+tail c300f0. The reviewed caller c3a680 owns an already-constructed builder and
+valid empty output string,accepts an unchanged empty output,and does not inspect
+the returned RAX. Entry redirection acquires no skipped local resources. It
+preserves caller destruction,queue destruction and marker1->2 progress,as well
+as the original dirty flag reset and conditional recursive drain. It omits this
+preparation's device/custom-device assignment,timestamp and configuration JSON.
+The serializer c4df10 must remain intact:it consumes a copied string and has a
+separate real caller. Returning from that serializer would skip required cleanup.
+No entry RET is placed in the drain,serializer or constructor.
+
+State-one query call c2fc09 now branches to the existing fallback atc2fc10.
+That path supplies the original literal "unknown",not an empty string. Existing
+string construction,assignment,destruction and subsequent state handling remain.
+Neither guard changes shared query9fb910 or fabricates native objects/results.
+All branch displacements and original16-byte safety signatures are exact-build
+checked. GameAssembly42,UnityPlayer24(crash3/performance3/analytics18),CEF2 =68.
+
+Reachability findings and limits
+Reviewed normal Start registration sites are guarded. Another callback address
+consumer belongs to deregistration,not an independent subscription. Normal public
+Resume checks an enabled field that the reviewed constructor/setter guards force
+false. Exact references/field-offset scans support those bounded conclusions;
+computed pointers,aliases,bulk writes and other indirect activation remain open.
+Virtual worker entry c402d0 and scheduled drain c2e640 lack equivalent enabled
+gates;their ordinary engine activation under the suppressed startup remains
+unproved. The new guards cover their reviewed preparation callees regardless.
+Machine-ID provenance,other serializer callers,and dirty ads-identity conversion
+remain separate questions. The dirty tail deliberately remains functional.
+
+Qualification
+local/privacy108-focused-tests01.txt:69tests PASS16.190s. Includes original four
+component transformations,unrelated-byte preservation,branch destinations,
+authored x64 branch execution,legacy-recipe rejection,native Quit checker and
+installer checks. Authored executable stand-ins verify register/return flow only;
+they never invoke original collectors or pretend to exercise actual game state.
+build/helper-privacy108-01 completed with its required C++ suites and unchanged
+source receipt. Helper SHA256:
+ 82a415756e386d2b5d110bbf696f507e9d0fbaf3643accbf0b242b4d7cbc572f
+Adjacent helper-build.json SHA256:
+ 03c86b53968ea6c13dd75b36d480d52807c6eca6353e52421f29724776fef882
+local/privacy108-install01/verification.json:PASS43.770s actual recipe6->7,
+dry-run no writes,preview equals actual install,four installed hashes and pinned
+original backups,idempotence and every existing profile file unchanged. SHA256:
+ 777d53cfe4b7dc3d1bf0dcbcc09a5ebdf68fd22a207447917b9909d1c020e959
+local/privacy108-native01/verification.json:PASS97.183s,ordinary patch without
+optional disposal hooks. One original Try Deck AI join,result,automated native
+Continue and return to menu precede original Quit confirmation. Main exits0
+1.328s after confirmation;owned process reaped,no forced cleanup,shared settings
+and source files unchanged. Eight read-only field snapshots cover startup,menu,
+ingame,postgame,returned menu and same-thread pre-confirm boundary. UnityPlayer
+loaded identity has all24guards;guarded no-argument device probe returnsfalse
+once without changing sampled config/header/marker fields. Report SHA256:
+ a58f7a35d79cd035e3432bfed0fd422c71d405a2f7e3cfb40267c36b6255d15f
+Installed UnityPlayer SHA256:
+ f5a33a5a986de3bf46954da71b5d5cea04fa7eb071d958040ff7837d391d5e72
+No new runtime invocation proof for either redirected configuration caller is
+claimed:the branch contract has static/authored-code support;the real lifecycle
+proves bounded compatibility. Bot supply14/action records9 pass existing checks,
+but ordered/moving produced-unit intersection is empty,so no new movement proof.
+No physical clicks,network/whole-lifetime collection or descendant proof follows.
+
+Deployment
+No108 package/installer has been built. Frozen105 remains the current paired
+manual update,including DEV N7's visible portrait observation. This review does
+not repeat accepted LAN1v1,D6 reboot or protected host checks. Final installed
+artifact testing,full supported mode/profile/error/cache/retry/crash coverage and
+attributed file/network/descendant evidence remain required by D5.
+The owned r103g fixture now has recipe7/helper108-01;its cached launcher/runtime
+still belong to105. It is a mixed diagnostic fixture,not a108 deployment. No
+game/server/REA session was left running by this work.

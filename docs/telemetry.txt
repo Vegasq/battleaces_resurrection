@@ -1,7 +1,13 @@
 TELEMETRY PATCH STATUS
 Updated: 2026-10-22
 Supported input: Battle Aces build 37822, Windows x64.
-Recipe version: 6. Guards: 66. Complete-set runtime_validated: false.
+Recipe version: 7. Guards: 68. Complete-set runtime_validated: false.
+
+Review108 skips analytics configuration identity preparation while preserving
+its original dirty-state tail and caller cleanup. A separate state-one caller
+uses its existing unknown device-ID fallback. Shared platform queries and
+serializers remain unchanged. Exact contracts,qualification and remaining
+indirect/machine-ID/dirty-identity scope:telemetry-platform108.txt. D5 stays OPEN.
 
 Review107 suppresses the public QueueEvent conversion path before the guarded
 sink.74focused checks,required C++ suite,actual upgrade and native AI/results/
@@ -94,7 +100,7 @@ performs no I/O, changes no input bytes and preserves all unrelated bytes.
 Exact component keys, guard counts and pristine SHA-256:
  GameAssembly.dll (42)
  e59d08c01479b27404778048d7e13546dbf3771f6b3912744c7c2bdf80c4e758
- UnityPlayer.dll (22: crash 3 + performance 3 + analytics 16)
+ UnityPlayer.dll (24: crash 3 + performance 3 + analytics 18)
  ac144d56d53f07904d52ed27a1539de90bc3290038fe52d73d2f6b268c85d6bc
  Battle Aces_Data/Plugins/x86_64/VuplexWebViewChromium/chrome_elf.dll (1)
  080e409112b33a0e4cc763cba6d3c206fd640dd9006cb60f2f05ab7e73279563

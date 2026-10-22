@@ -9,7 +9,7 @@ ORIGINAL = 'ac144d56d53f07904d52ed27a1539de90bc3290038fe52d73d2f6b268c85d6bc'
 
 
 def fixture(stages=DEFAULT_STAGES,*,recipe_version=RECIPE_VERSION):
-    core={3:12,4:14,5:15,6:16}[recipe_version]
+    core={3:12,4:14,5:15,6:16,7:18}[recipe_version]
     lines = [f'[100] Telemetry audit build verified: UnityPlayer sha256={SHA} '
              f'normalized={ORIGINAL} crashSignatures=3/3 coreCandidateSignatures={core}/{core} '
              'performanceCandidateSignatures=3/3; READ ONLY, no qualification claim']
@@ -28,13 +28,13 @@ def fixture(stages=DEFAULT_STAGES,*,recipe_version=RECIPE_VERSION):
 
 class TelemetryAuditTests(unittest.TestCase):
     def test_legacy_samples_require_explicit_legacy_recipe_and_never_validate_current(self):
-        for version in (3,4,5):
+        for version in (3,4,5,6):
             old=fixture(recipe_version=version)
             self.assertFalse(verify_lines(old,expected_sha256=SHA)['passed'])
             result=verify_lines(old,expected_sha256=SHA,recipe_version=version)
             self.assertTrue(result['passed']);self.assertEqual(result['recipe_version'],version)
             self.assertFalse(verify_lines(fixture(),expected_sha256=SHA,recipe_version=version)['passed'])
-        for version in (True,2,7,'4'):
+        for version in (True,2,8,'4'):
             with self.subTest(version=version),self.assertRaises(ValueError):
                 verify_lines(fixture(),expected_sha256=SHA,recipe_version=version)
 
@@ -77,8 +77,8 @@ class TelemetryAuditTests(unittest.TestCase):
         lines = fixture()
         self.rejects([lines[0].replace(SHA, 'b' * 64), *lines[1:]], 'unsupported_or_partial_build')
         self.rejects([lines[0].replace(ORIGINAL, 'b' * 64), *lines[1:]], 'unsupported_or_partial_build')
-        self.rejects([lines[0].replace('16/16', '15/16'), *lines[1:]], 'unsupported_or_partial_build')
-        self.rejects([lines[0].replace('16/16', '10/10'), *lines[1:]], 'disabled_or_unrecognized_audit')
+        self.rejects([lines[0].replace('18/18', '17/18'), *lines[1:]], 'unsupported_or_partial_build')
+        self.rejects([lines[0].replace('18/18', '10/10'), *lines[1:]], 'disabled_or_unrecognized_audit')
 
     def test_unavailable_nonzero_or_missing_fields_and_objects(self):
         lines = fixture()

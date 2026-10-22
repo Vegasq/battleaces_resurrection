@@ -361,6 +361,14 @@ are scoped inputs, not a completion substitute.
     that is not full lifecycle/descendant/network/removal proof. Inherited CEF
     pipe has no demonstrated new bypass;WMI-capable drain reachability remains
     open and cannot be dismissed from empty queues. See telemetry-attribution107.txt.
+[x] Review108 skips configuration identity preparation through its original dirty
+    tail and selects an existing unknown device-ID fallback in a separate state
+    initializer. Shared query/serializer/drain cleanup stay intact. Recipe7,
+    68guards;69focused checks,C++ suite,actual6->7 upgrade with unchanged profiles
+    and native AI/result/Continue/default Quit0 pass. Static callback review
+    supports guarded normal registration/Resume;indirect engine activation,
+    machine-ID/other serializer/dirty ads-identity paths remain open. No108
+    packages;105 remains current. Evidence:telemetry-platform108.txt. D5 OPEN.
 References: telemetry.txt, telemetry-internal-config.txt,
 telemetry-persistent-observation.txt,telemetry-device-cef106.txt and nvidia-shutdown.txt.
 
