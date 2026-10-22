@@ -2,6 +2,26 @@
 
 ## Requests and answers with Nick
 
+- Privacy118 supersedes117 SOURCE/owned fixture:recipe14/98guards filters only
+  Create205084 incoming name to original null path;7CustomEventData Add entries
+  return Boolean false before input access. Original Create entry/Destroy/shared
+  ownership unchanged,real native handle never fabricated.75checks/C++ suite,
+  actual13->14 preserving profiles/backups and real empty Create/Add-false/
+  original Destroy cycle+AI/results/Continue/default Quit0 pass122.858s,job1/0/0/
+  no force,8program/shared/source seals unchanged. Probe uses null managed owner,
+  unreadable filtered name and verified Add stubs with unreadable arguments;
+  NO managed wrapper fabricated,no original Add invoked. Native empty metadata
+  checked,RAII cleanup,never read freed owner. borrowedPayloadRead excludes
+  supplied data,not fixed literals/normal allocator/GC metadata.663rows/354anchors,
+  0unknown roots,111actual rejection cases pass. Exact source/ABI/hashes/limits:
+  docs/telemetry-custom-data118.txt. Named native lifetime subtask CLOSED;managed
+  ctor/Dispose metadata is stripped,not recovered/proven. Next finite source
+  gate ContinuousEvent49..53(202050/2026f0/203050/203710/203df0);preserve delegate
+  ownership/progress. Identity/queued/runtime/final artifacts remain;D5 OPEN/false.
+  r103g recipe14/helper118-01,cached runtime/CMD105:mixed fixture,not118deployment.
+  No118packages;frozen105/DEV N7 current. Owner terminal/game REA closed;no new
+  Nick action/repeat D6/LAN/manual. Do not repeat scoped pass without concern.
+
 - Privacy117 supersedes116 SOURCE/owned fixture:recipe13/90guards returns
   INTEGER disabled2 at9registered Transaction/registration/event control/query/
   endpoint/priority entries BEFORE borrowed string/array input work. Two Is...

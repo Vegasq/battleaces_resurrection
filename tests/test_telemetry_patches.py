@@ -99,7 +99,7 @@ class TelemetryPatchSafetyTests(unittest.TestCase):
 
     def test_only_reviewed_recipes_are_present(self):
         self.assertFalse(RUNTIME_VALIDATED)
-        self.assertEqual(RECIPE_VERSION, 13)
+        self.assertEqual(RECIPE_VERSION, 14)
         self.assertEqual(len(COMPONENTS["GameAssembly.dll"].patches), 42)
         self.assertEqual({p.rva for p in COMPONENTS["UnityPlayer.dll"].patches},
                          {0xC90C2A, 0x80366F, 0xC93D10, 0xD84EC6, 0xD84E3E,
@@ -108,7 +108,8 @@ class TelemetryPatchSafetyTests(unittest.TestCase):
                           0xC33440, 0x1FD3A0, 0x1FDA50, 0xC392C0, 0xC2E240, 0xC40840, 0x20C560,
                           0xC2F790, 0xC2FC09, 0xC3016B, 0xC30273, 0xC3A5D0,
                           0xC39D14, 0xC3A2A5, 0xC41F0C, 0xC32468, 0x2048A0, 0x204CB0, 0xC30838, 0x208350, 0x208840, 0x20AFA0,
-                          0x207AD0, 0x208890, 0x208C50, 0x209000, 0x2096C0, 0x209D80, 0x20A610, 0x20B690, 0x20BEA0})
+                          0x207AD0, 0x208890, 0x208C50, 0x209000, 0x2096C0, 0x209D80, 0x20A610, 0x20B690, 0x20BEA0,
+                          0x205084, 0x205550, 0x205CD0, 0x206110, 0x206550, 0x206A30, 0x206F10, 0x207340})
         self.assertEqual(len(COMPONENTS), 4)
         self.assertEqual([p.rva for p in COMPONENTS[CEF_COMPONENT_PATH].patches], [0x323A0])
         self.assertEqual([p.rva for p in COMPONENTS[CEF_HANDLER_COMPONENT_PATH].patches], [0x17403D0])
@@ -352,6 +353,26 @@ class TelemetryReplacementExecutionTests(unittest.TestCase):
                 result=self.executable(patches[rva].replacement,integer,*types)(*arguments)
                 self.assertEqual(result,2)  # Integer disabled status,never Boolean false.
         self.assertTrue({0x207990,0x1fdb90,0xc67840,0x15b680,0xc676f0,0xc65b20}.isdisjoint(patches))
+
+    def test_custom_data_masks_name_and_adds_fail_without_reading_borrowed_inputs(self):
+        patches={p.rva:p for p in COMPONENTS['UnityPlayer.dll'].patches}
+        self.assertEqual(patches[0x205084].replacement,bytes.fromhex('31ff90'))
+        self.assertTrue({0x205070,0x205430,0xc66090,0xc661b0}.isdisjoint(patches))
+        # Authored RDI-save/return stand-in;the original MOV reversal returns
+        # the supplied name pointer and proves the mask test can detect retention.
+        for pointer in (0,1,0x1234):
+            for revert in (False,True):
+                head=bytes.fromhex('488bfa') if revert else patches[0x205084].replacement
+                code=b'\x57'+head+bytes.fromhex('4889f85fc3')
+                result=self.executable(code,ctypes.c_void_p,ctypes.c_void_p,ctypes.c_void_p)(None,pointer)
+                self.assertEqual(result or 0,pointer if revert else 0)
+            ptr=ctypes.c_void_p
+            for rva,value_type,value in ((0x205550,ptr,pointer),(0x205cd0,ctypes.c_int32,-1),
+                    (0x206110,ctypes.c_uint32,1),(0x206550,ctypes.c_int64,-1),
+                    (0x206a30,ctypes.c_uint64,2**63+1),(0x206f10,ctypes.c_bool,True),
+                    (0x207340,ctypes.c_double,1.25)):
+                code=patches[rva].replacement;self.assertEqual(code,bytes.fromhex('31c0c3'))
+                self.assertFalse(self.executable(code,ctypes.c_bool,ptr,ptr,value_type)(pointer,pointer,value))
 
     def test_ads_copy_skip_preserves_tracking_dirty_and_conditional_progress(self):
         patches={p.rva:p for p in COMPONENTS['UnityPlayer.dll'].patches};patch=patches[0xc30838]

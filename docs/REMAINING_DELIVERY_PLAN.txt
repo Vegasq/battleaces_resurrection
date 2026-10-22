@@ -442,9 +442,16 @@ are scoped inputs, not a completion substitute.
     nine guarded calls/AI/results/Continue/default Quit0 pass. Selected observer
     window/98actual rejection checks pass. No117package;105/DEV N7 current.
     Evidence:telemetry-event-controls117.txt. Do not repeat this scoped pass.
-[ ] Review registered CustomEventData create/add/destroy ownership(indices65..73)
-    before choosing guards. Prevent earlier input retention while preserving
-    valid caller object lifetime;do not simply RET Destroy or invent handles.
+[x] Review118 closes registered CustomEventData native input/lifetime subtask:
+    discard incoming name before first use,retain real Create/Destroy ownership,
+    7Add methods return Boolean false before input access. Recipe14/98guards;
+    75checks,C++ suite,actual13->14 preserving profiles/backups,real empty native
+    owner/Add-false/Destroy cycle+AI/results/Continue/default Quit0 pass. Selected
+    window/111actual rejection checks pass. No118package;105/DEV N7 current.
+    Scope:telemetry-custom-data118.txt. Not stripped managed ctor/Dispose proof.
+[ ] Review ContinuousEvent collector/configuration input contracts(indices49..53:
+    202050,2026f0,203050,203710,203df0). Preserve caller/delegate ownership and
+    mandatory completion;entry guard absence is not proof of an active bypass.
     Remaining identity acquisition/aliases,queued reports/runtime/final gates
     above remain OPEN;116's bounded negative ads search is not source closure.
 References: telemetry.txt, telemetry-internal-config.txt,

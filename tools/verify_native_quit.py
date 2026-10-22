@@ -82,6 +82,12 @@ def telemetry_evidence(text,rows,expected_sha256,*,after_practice=False,device_p
                             events[0].end()<controls[0].start()<controls[0].end()<begin[0].start(),
                             'guarded transaction/registration/event controls did not return disabled with unchanged sampled state before original Quit')
                         result['event_control_apis_guarded_disabled_before_input_access']=True
+                        if result['recipe_version']>=14:
+                            data=list(re.finditer(r'^\[(\d+)\] TELEMETRY CUSTOMDATA probe passed: version=1 thread=(\d+) creates=1 adds=7 addFalse=7 destroys=1 realNativeOwner=1 emptyMetadataUnchanged=1 borrowedUnreadable=1 borrowedPayloadRead=0$',text,re.M))
+                            startup.require(len(data)==1 and int(data[0][2])==thread and int(data[0][1])<=int(begin[0][1]) and
+                                controls[0].end()<data[0].start()<data[0].end()<begin[0].start(),
+                                'custom event-data native ownership/empty metadata/Add-false cycle did not complete before original Quit')
+                            result['custom_event_data_empty_native_lifetime_and_add_false_qualified']=True
     return dict(**result,same_original_quit_thread=True,pre_confirm_tick=tick,original_confirm_tick=dispatch[0]['tick'])
 
 

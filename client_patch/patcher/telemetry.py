@@ -1,6 +1,6 @@
 """Exact-build telemetry patch transformations; no file or process operations.
 
-These 90 recipes have static source/control-flow review. The complete recipe
+These 98 recipes have static source/control-flow review. The complete recipe
 set has not been runtime validated; recipe2's 59 had a bounded compatibility run.
 They do not establish complete telemetry removal; see docs/telemetry.txt.
 Only brief patch safety signatures are included, never original game payloads.
@@ -10,7 +10,7 @@ import hashlib
 from types import MappingProxyType
 
 GAME_BUILD = 37822
-RECIPE_VERSION = 13
+RECIPE_VERSION = 14
 RUNTIME_VALIDATED = False
 VALIDATION_STATUS = "Static review and original-byte validation only"
 UNRESOLVED_COMPONENTS = (
@@ -285,6 +285,24 @@ COMPONENTS = MappingProxyType({
                   bytes.fromhex('488bc4554157488da848ffffff4881ec'), bytes.fromhex('b802000000c3')),
             Patch('Unity Analytics SetEventWithLimitPriority before input conversion', 0x20bea0, 0x20b2a0,
                   bytes.fromhex('4055535657415441554157488d6c24f0'), bytes.fromhex('b802000000c3')),
+            # Keep real Create/Destroy ownership;discard only the incoming name
+            # before its first use,selecting the original empty-name path.
+            Patch('Unity Analytics CustomEventData Create ignores borrowed event name', 0x205084, 0x204484,
+                  bytes.fromhex('488bfac7451b01000000488bd9c645f7'), bytes.fromhex('31ff90')),
+            Patch('Unity Analytics CustomEventData AddString before borrowed input access', 0x205550, 0x204950,
+                  bytes.fromhex('40555356574157488d6c24c04881ec40'), bytes.fromhex('31c0c3')),
+            Patch('Unity Analytics CustomEventData AddInt32 before borrowed input access', 0x205cd0, 0x2050d0,
+                  bytes.fromhex('44894424185553574157488d6c24c148'), bytes.fromhex('31c0c3')),
+            Patch('Unity Analytics CustomEventData AddUInt32 before borrowed input access', 0x206110, 0x205510,
+                  bytes.fromhex('44894424185553574157488d6c24c148'), bytes.fromhex('31c0c3')),
+            Patch('Unity Analytics CustomEventData AddInt64 before borrowed input access', 0x206550, 0x205950,
+                  bytes.fromhex('4c894424185553574157488d6c24c148'), bytes.fromhex('31c0c3')),
+            Patch('Unity Analytics CustomEventData AddUInt64 before borrowed input access', 0x206a30, 0x205e30,
+                  bytes.fromhex('4c894424185553574157488d6c24c148'), bytes.fromhex('31c0c3')),
+            Patch('Unity Analytics CustomEventData AddBool before borrowed input access', 0x206f10, 0x206310,
+                  bytes.fromhex('40555356574157488d6c24c94881ecd0'), bytes.fromhex('31c0c3')),
+            Patch('Unity Analytics CustomEventData AddDouble before borrowed input access', 0x207340, 0x206740,
+                  bytes.fromhex('f20f115424185553574157488d6c24c1'), bytes.fromhex('31c0c3')),
         ),
     ),
     CEF_COMPONENT_PATH: Component(

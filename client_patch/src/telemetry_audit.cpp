@@ -1,9 +1,11 @@
 #pragma once
 #include "telemetry_sampling.hpp"
+#include <memory>
 // Read-only, opt-in observation of the supported UnityPlayer native layout.
 // Include after lan_transport.cpp for its local SHA-256 utility. Field sampling
 // invokes no Unity/telemetry API. A SEPARATE explicit owned menu diagnostic below
-// can call the verified guarded device-info entry;no collector/flush is invoked.
+// calls checked replacements and a reviewed data-free native Create/Destroy
+// cycle;no identity query,collector or flush is invoked.
 namespace ba_telemetry_audit {
 using Bytes=std::vector<unsigned char>;
 static constexpr size_t fileSize=30902464;
@@ -57,6 +59,14 @@ static const Signature signatures[]={
     {0x20a610,0x209a10,"488bc44c894820554155488da8c8feff","b802000000c3",1},
     {0x20b690,0x20aa90,"488bc4554157488da848ffffff4881ec","b802000000c3",1},
     {0x20bea0,0x20b2a0,"4055535657415441554157488d6c24f0","b802000000c3",1},
+    {0x205084,0x204484,"488bfac7451b01000000488bd9c645f7","31ff90",1},
+    {0x205550,0x204950,"40555356574157488d6c24c04881ec40","31c0c3",1},
+    {0x205cd0,0x2050d0,"44894424185553574157488d6c24c148","31c0c3",1},
+    {0x206110,0x205510,"44894424185553574157488d6c24c148","31c0c3",1},
+    {0x206550,0x205950,"4c894424185553574157488d6c24c148","31c0c3",1},
+    {0x206a30,0x205e30,"4c894424185553574157488d6c24c148","31c0c3",1},
+    {0x206f10,0x206310,"40555356574157488d6c24c94881ecd0","31c0c3",1},
+    {0x207340,0x206740,"f20f115424185553574157488d6c24c1","31c0c3",1},
     {0xd84ec6,0xd842c6,"0f857d0100004c8bcbc603014c8d0587","e97e01000090",2},
     {0xd84e3e,0xd8423e,"c740080001000048897810c6401901e8","c7400800000000",2},
     {0x292110,0x291510,"84c9488b0d8fcba7010f95c24883c108","31c9",2},
@@ -64,9 +74,11 @@ static const Signature signatures[]={
     {0xc8c510,0xc8b910,"4883ec48803d4f260801000f859e0100","",3},
     {0xd84de0,0xd841e0,"4883ec4848833dbc9ef800000f855c02","",3},
     {0xc307c0,0xc2fbc0,"48895c2408574883ec20418079200141","",3},
+    {0x205070,0x204470,"4055535741544157488d6c24c94881ec","",3},
+    {0x205430,0x204830,"4885c90f840f010000574883ec30488b","",3},
 };
 static uintptr_t unity=0;
-static bool checked=false,disabled=false,startupLogged=false,quitAttempted=false,completeRecipe13=false;
+static bool checked=false,disabled=false,startupLogged=false,quitAttempted=false,completeRecipe14=false;
 static unsigned snapshots=0;
 static ba_telemetry_sampling::Schedule schedule;
 static DWORD auditThread=0;
@@ -134,9 +146,9 @@ static bool verifyModule() {
         }
         memcpy(bytes.data()+peOffset+24+64,&originalChecksum,sizeof(originalChecksum));
         if(digest(bytes)!=originalHash)throw std::runtime_error("unsupported UnityPlayer normalized SHA256");
-        completeRecipe13=groups[0]==3 && groups[1]==40 && groups[2]==3;
+        completeRecipe14=groups[0]==3 && groups[1]==48 && groups[2]==3;
         disabled=false;
-        ba::log("Telemetry audit build verified: UnityPlayer sha256=%s normalized=%s crashSignatures=%u/3 coreCandidateSignatures=%u/40 performanceCandidateSignatures=%u/3; READ ONLY, no qualification claim",
+        ba::log("Telemetry audit build verified: UnityPlayer sha256=%s normalized=%s crashSignatures=%u/3 coreCandidateSignatures=%u/48 performanceCandidateSignatures=%u/3; READ ONLY, no qualification claim",
             actualHash.c_str(),originalHash,groups[0],groups[1],groups[2]);
     } catch(const std::exception& e) {ba::log("Telemetry audit disabled: %s; no object reads attempted",e.what());}
     return !disabled;
@@ -221,10 +233,10 @@ static void deviceProbe() noexcept {
     attempted=true;
     try {
         auto require=[](bool value,const char* why){if(!value)throw std::runtime_error(why);};
-        require(requested() && checked && !disabled && completeRecipe13 && auditThread==GetCurrentThreadId() &&
+        require(requested() && checked && !disabled && completeRecipe14 && auditThread==GetCurrentThreadId() &&
             ba::flag(L"-native-quit-smoke") && ba_native_settings::session &&
             ba_native_settings::session->profile().compare(0,12,"nativestest_")==0,
-            "complete recipe13,initialized game thread and explicit owned diagnostic required");
+            "complete recipe14,initialized game thread and explicit owned diagnostic required");
         struct Main {
             uintptr_t pointer=0,vtable=0,worker=0;
             uint64_t header[4]={};uint32_t marker=0,state=0,init=0,archive=0;
@@ -377,6 +389,50 @@ static void deviceProbe() noexcept {
             read(before.pointer,0x1620,tracking) && tracking==1 && read(before.pointer,0x1621,dirty) && dirty==1,
             "event-control API changed sampled disabled state or identity metadata");
         ba::log("TELEMETRY EVENTCONTROL probe passed: version=1 thread=%lu calls=9 returnedDisabled=9 borrowedUnreadable=1 sampledStateUnchanged=1 payloadRead=0",
+            GetCurrentThreadId());
+        // Create retains ORIGINAL native allocation/construction/cleanup but
+        // discards its incoming name. No managed wrapper type is fabricated.
+        for(const size_t rva:{size_t(0x205070),size_t(0x205084),size_t(0x205430),size_t(0x205550),size_t(0x205cd0),
+                             size_t(0x206110),size_t(0x206550),size_t(0x206a30),size_t(0x206f10),size_t(0x207340)}) {
+            const Signature* entry=nullptr;for(const auto& item:signatures)if(item.rva==rva)entry=&item;
+            require(entry!=nullptr,"custom-data signature absent");
+            Bytes expected=hex(entry->original),change=hex(entry->candidate),live(expected.size());
+            if(rva==0x205084)require(change==Bytes({0x31,0xff,0x90}),"Create must ignore only incoming name");
+            else if(rva==0x205070 || rva==0x205430)require(change.empty(),"Create entry/Destroy must remain original");
+            else require(change==Bytes({0x31,0xc0,0xc3}),"custom-data Add must return Boolean false");
+            if(!change.empty())memcpy(expected.data(),change.data(),change.size());
+            require(copy(unity+rva,live.data(),live.size()) && live==expected,"custom-data lifetime/guard differs");
+        }
+        const auto input=reinterpret_cast<void*>(uintptr_t(1));
+        using Destroy=void(*)(void*);
+        std::unique_ptr<void,Destroy> event(
+            reinterpret_cast<void*(*)(void*,void*)>(unity+0x205070)(nullptr,input),
+            reinterpret_cast<Destroy>(unity+0x205430));
+        require(event.get()!=nullptr,"original empty event allocation failed");
+        const auto address=reinterpret_cast<uintptr_t>(event.get());
+        auto emptyEvent=[&]() {
+            uintptr_t table=0,document=0,node=0;uint64_t first=1,second=1,total=1;uint32_t kind=0;
+            unsigned char tag=0,remaining=0;
+            return read(address,0,table) && table==unity+0x1a2c4f0 &&
+                read(address,0x160,document) && document==address+0x48 &&
+                read(document,0x78,node) && node==address+0xf8 &&
+                read(node,0,first) && !first && read(node,8,second) && !second && read(node,0x10,kind) && kind==3 &&
+                read(address,0x1b8,total) && !total &&
+                read(address,0x1b0,tag) && tag==1 && read(address,0x1a8,remaining) && remaining==24;
+        };
+        require(emptyEvent(),"original event is not empty with expected inline metadata");
+        require(!reinterpret_cast<bool(*)(void*,void*,void*)>(unity+0x205550)(input,input,input) &&
+            !reinterpret_cast<bool(*)(void*,void*,int32_t)>(unity+0x205cd0)(input,input,-1) &&
+            !reinterpret_cast<bool(*)(void*,void*,uint32_t)>(unity+0x206110)(input,input,1) &&
+            !reinterpret_cast<bool(*)(void*,void*,int64_t)>(unity+0x206550)(input,input,-1) &&
+            !reinterpret_cast<bool(*)(void*,void*,uint64_t)>(unity+0x206a30)(input,input,1) &&
+            !reinterpret_cast<bool(*)(void*,void*,bool)>(unity+0x206f10)(input,input,true) &&
+            !reinterpret_cast<bool(*)(void*,void*,double)>(unity+0x207340)(input,input,1.25) && emptyEvent(),
+            "custom-data Add did not return false or empty metadata changed");
+        event.reset();  // Original destroy returned;never inspect this freed owner.
+        require(capture(after) && capture(last) && same(before,after) && same(after,last),
+            "custom-data lifetime changed sampled disabled Main state");
+        ba::log("TELEMETRY CUSTOMDATA probe passed: version=1 thread=%lu creates=1 adds=7 addFalse=7 destroys=1 realNativeOwner=1 emptyMetadataUnchanged=1 borrowedUnreadable=1 borrowedPayloadRead=0",
             GetCurrentThreadId());
     } catch(...) {
         // A refusal makes no success claim and never blocks original Quit.

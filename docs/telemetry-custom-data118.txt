@@ -1,0 +1,140 @@
+CUSTOM EVENT-DATA INPUT FILTERS / NATIVE LIFETIME118
+2026-10-22. Recipe14,98guards/four DLLs. Full D5 remains OPEN/false.
+
+Change and lifetime
+CustomEventData could retain supplied event names/fields before the already-
+guarded submission APIs. Create now discards only its incoming name at205084,
+selecting the original null-name path while preserving real native allocation,
+construction,cleanup and pointer return. Seven Add entries return Boolean false
+before reading wrapper/key/value inputs. Destroy and all shared ownership helpers
+remain original. No fake native handle or failed-construction substitute is used.
+This prevents these registered methods retaining supplied names/field values;
+it does not establish all other collectors/storage/reporters disabled.
+The Create filter is XOR EDI,EDI;NOP in place of MOV RDI,RDX,after original
+RDI save but before the first name use. Later GC call/cmp establish their own
+flags;no original flag consumer is skipped. Local owner rooting and valid native
+event result remain. The ordinary caller still owns that real object and cleanup.
+AddString205550,AddInt32205cd0,AddUInt32206110,AddInt64206550,AddUInt64206a30,
+AddBool206f10,AddDouble207340 use XOR EAX,EAX;RET. Their Boolean false is distinct
+from117's integer disabled status2. Invalid wrappers now decline before original
+exceptions;no input data is accepted. No owned input/output/queued completion
+has been acquired at these entries. Gameplay/configuration/privacy APIs unchanged.
+
+Static contracts
+REA skill used pinned original PE/unwind/LLVM/native bodies. Known unconfigured
+Ghidra was not retried;these are static original-byte observations,not new REA
+decompiler/runtime Evidence. Original UnityPlayer:
+ ac144d56d53f07904d52ed27a1539de90bc3290038fe52d73d2f6b268c85d6bc
+Actual fd42d0 same-index192ff50/1930280 binding proof is reused from114. Entries
+65..73 and complete original bounds/bytes/slices are pinned in manifest.json.
+No exact CustomEventData type is retained in pinned managed metadata;no managed
+constructor/Dispose body is claimed recovered and dynamic/native callers are
+not ruled out. Caller lifetime below follows the native implementation.
+Create205070 takes borrowed managed ownerRCX/nameRDX. Owner is used in local GC
+roots,not dereferenced as a fabricated wrapper. It converts supplied name,allocates
+1c0bytes,calls nativec66090 and returns pointerRAX. Destroy205430 takes that
+native pointer DIRECTLY,invokes virtual0c661b0 withEDX0,then releases outer
+allocation. Derived cleanup frees owned name/document/strings via original
+c21ac0/JSON helpers. EntryRET at Destroy would leak real ownership and is absent.
+Filtered Create instead supplies original empty SSO to c66090. That constructs
+fixed type literals,owned JSON buffers,empty inline name and field-byte total0;
+no platform identity query or report submission appears in reviewed construction.
+10c5d30/acbe90/20cc00 establish empty inline root metadata. Fixed literal copying,
+allocator/GC metadata and ordinary memory helpers still execute.
+Add arguments:borrowed managed wrapper/key inRCX/RDX;R8 borrowed string,typed
+32/64-bit integer,or Boolean;AddDouble uses XMM2 DOUBLE (original MOVSD spill).
+Wrapper+10 native pointer and input conversion previously preceded field insertion.
+No caller-owned out-buffer or input ownership transfer exists;normal duplicate-key
+failure already returns false. All7guards precede roots/local owners.
+ local/privacy118-custom-data01/FINDINGS.txt
+ 6649a22deecda62167cd2d7fc7bbb93f59f1f489263cd064d48d49c940b724c5
+ local/privacy118-custom-data01/evidence-manifest.json
+ 2996f8969930b24eafd05238598a17978c3bd622660215883413cd52f24e62f7
+Private verify_contract.py checks9bindings,unwind entries,original16signatures,
+slice hashes and Create filter boundary;PASS. Raw game/disassembly/capture
+evidence stays private. Git receives authored source/docs/brief safety signatures.
+
+Tests/build/upgrade
+Final75affected tests PASS5.914s:all4pinned original transformations/unrelated
+bytes,authored name-mask/reversal execution,7typed Add-false replacements with
+null/unreadable inputs,legacy evidence,native Quit checker,patcher and Windows
+packaging. Initial01 also passed75tests5.729s with a generic payloadRead marker;
+final02 and helper use explicit borrowedPayloadRead to distinguish fixed literals.
+ local/privacy118-affected-tests02.txt
+ 81a43b0c33a91cb5c081f8c328590fe4c51e635c1d72830ff459cf160d3de087
+Required C++ suite/helper118-01 build PASS with source-bound receipt. Unity
+auditor recognizes54guards(crash3/core48/perf3);older3..13 evidence requires
+explicit older recipe and cannot qualify new guards.
+ build/helper-privacy118-01/BattleAcesOffline.dll
+ 514c21eb116f32f83e2919aaa7070e8f7d0410bc2498cfc975ce4ed1964e2ccd
+ build/helper-privacy118-01/helper-build.json
+ 23945c5171061f1f4ff0ca9b96736a1b085f092df81fb2139a5f6567c1e970d7
+Actual owned r103g13->14 upgrade PASS44.0245676s. Dry-run leaves components/
+manifest unchanged,preview equals install,idempotent reinstall passes;all
+original backups/every existing profile file unchanged. No fresh restore/reapply
+claim. Installed UnityPlayer:
+ 19b29ec25dfc0f0239179adabacf6c459a04f26c47d90d8c95db6a60b55ae70b
+ local/privacy118-install01/verification.json
+ c6996927701a512d276445fa9c9705af2c67d015de633d8950980b1f396e92df
+
+Actual real-owner diagnostic and compatibility
+Existing explicit owned telemetry-device-probe requires full recipe14,known
+nativestest_ profile,Unity thread,disabled Main and all preceding probe groups.
+It checks loaded Create entry/filter,unchanged Destroy and7Add signatures.
+Original Create runs with null managed owner/unreadable name1;the filter prevents
+name rooting/reading and the remaining native body constructs a REAL empty owner.
+No managed wrapper is fabricated. RAII binds it to original Destroy,including
+refusal paths after allocation. Only owned inline metadata is sampled:
+vtable1a2c4f0,document=event+48,inline root=event+f8,zero data/count words,
+kind3,field bytes0,name SSO tag1/remaining24. No supplied name/field payload read.
+Seven verified Add-false replacements are called with unreadable wrapper/key/
+value pointers and proper integer/Boolean/DOUBLE arguments,NOT a fabricated
+valid managed wrapper. The separately held native owner stays empty. Original
+Destroy then returns once;no freed-owner reads occur. Main sampled fields remain
+unchanged. borrowedPayloadRead=0 does not exclude fixed literal copying or normal
+allocator/GC metadata work. Normal product launch never enables these probes.
+
+Native AI,result,Continue,menu/default original Quit PASS122.8583484s including
+paused observer preparation. All6probe groups pass once on the Unity thread.
+Eight complete field snapshots span startup/menu/game/postgame/menu/pre-Quit.
+Root0/reaped,job1/0/0,no force;8program/shared/bound source/observer seals unchanged.
+This is native lifetime/replacement ABI compatibility,not recovered managed
+constructor/Dispose proof,physical controls,new unit movement,ordinary startup
+timing or final supported profile/mode acceptance.
+ local/privacy118-game-ai01/native/verification.json
+ 740c990654b13ce84b5fcbcf01ba8dd2920c8354b9d646c3a2e2e74cad6f3c77
+ local/privacy118-game-ai01/verification.json
+ 2a7a6657645447a7d38c05a9be4b110c2aeb54fea675d3a26006a5efe14e752a
+
+Qualified cwd-v4 observer installed before controlled primary resume records
+663rows/354clock anchors,max drift12ms. Settings-before-load through original
+Quit align;280selected file records,0unknown roots,0observed network/child records.
+No full preloader/injection/tree/kernel/wire/all-I/O coverage claim. Final REA:
+ ev_80830b568edb82ec71154ca3c2e078b504a94f06bced22b39c6083f0e080a9d6
+Read-only review reparses all raw field/probe/Quit records and requires equality
+with native claims plus owner/job/source/provider/clock/path seals.111actual
+in-memory mutations reject,including absent/duplicate/late/wrong-thread and
+failed create/Add/destroy/fake-owner/retention/borrowed-payload proof. Retained113
+control/current game baselines pass;no unchanged control rerun/evidence rewrite.
+ local/privacy118-game-ai01/observation-review01.json
+ d911a8f68f7c30244d961d422c4d4b9c0ec9849a2296c8a28324e7e05a287e6c
+ local/privacy118-game-review01.py
+ 65e9c20f4f8ab0c97e7c345621486e99ba74cc145eb4d3bc35120cb0eae7054b
+ local/privacy118-review-rejections01.json
+ d3e44034252a1a8a8f14a2f5778f5c9ad434f505da13a32d396eb31b4692afc5
+
+Delivery and next gate
+GameAssembly42,Unity54,CEF2=98guards. No118installer/package. Frozen105/DEV N7
+current;r103g recipe14/helper118-01 with cached runtime/CMD105 is a mixed owned
+fixture,not118deployment. Owner terminal/REA closed,no server started. No new
+Nick action/repeat accepted D6/LAN/manual check. Named CustomEventData native
+source/lifetime subtask CLOSED;full D5/RUNTIME_VALIDATED remains OPEN/false.
+Finite next review:ContinuousEvent indices49..53 at202050,2026f0,203050,203710,
+203df0(collector registration/histogram thresholds/event configuration). Complete
+106entry bound inventory records entry guards/filter separately;absence of an
+entry guard alone does not prove an active bypass or justify an early return.
+ local/privacy118-native-binding-inventory01.json
+ d8b9c89cfa88807ad043f6222ba79f353d03446c34b44ceca2392654b8c19d19
+Remaining native identity acquisition/aliases,isolated typed queued reports,
+error/retry/crash/profile-mode/runtime matrix and final installed artifacts are
+still required. Do not repeat this scoped pass without change/concrete concern.
