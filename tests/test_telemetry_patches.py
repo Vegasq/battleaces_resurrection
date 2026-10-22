@@ -99,7 +99,7 @@ class TelemetryPatchSafetyTests(unittest.TestCase):
 
     def test_only_reviewed_recipes_are_present(self):
         self.assertFalse(RUNTIME_VALIDATED)
-        self.assertEqual(RECIPE_VERSION, 11)
+        self.assertEqual(RECIPE_VERSION, 12)
         self.assertEqual(len(COMPONENTS["GameAssembly.dll"].patches), 42)
         self.assertEqual({p.rva for p in COMPONENTS["UnityPlayer.dll"].patches},
                          {0xC90C2A, 0x80366F, 0xC93D10, 0xD84EC6, 0xD84E3E,
@@ -107,7 +107,7 @@ class TelemetryPatchSafetyTests(unittest.TestCase):
                           0x2078B0, 0xC2F3FC, 0x207A60, 0xC381D0, 0xC37400,
                           0xC33440, 0x1FD3A0, 0x1FDA50, 0xC392C0, 0xC2E240, 0xC40840, 0x20C560,
                           0xC2F790, 0xC2FC09, 0xC3016B, 0xC30273, 0xC3A5D0,
-                          0xC39D14, 0xC3A2A5, 0xC41F0C, 0xC32468, 0x2048A0, 0x204CB0, 0xC30838})
+                          0xC39D14, 0xC3A2A5, 0xC41F0C, 0xC32468, 0x2048A0, 0x204CB0, 0xC30838, 0x208350, 0x208840, 0x20AFA0})
         self.assertEqual(len(COMPONENTS), 4)
         self.assertEqual([p.rva for p in COMPONENTS[CEF_COMPONENT_PATH].patches], [0x323A0])
         self.assertEqual([p.rva for p in COMPONENTS[CEF_HANDLER_COMPONENT_PATH].patches], [0x17403D0])
@@ -329,6 +329,19 @@ class TelemetryReplacementExecutionTests(unittest.TestCase):
                 progress=ctypes.c_uint64();output=ctypes.c_uint64()
                 self.executable(code,None,ctypes.c_void_p,ctypes.c_void_p)(ctypes.addressof(progress),ctypes.addressof(output))
                 self.assertEqual((progress.value,output.value),(1,expected))
+
+    def test_event_entries_return_disabled_without_reading_borrowed_inputs(self):
+        patches={p.rva:p for p in COMPONENTS['UnityPlayer.dll'].patches}
+        for rva in (0x208350,0x208840,0x20afa0):
+            self.assertEqual(patches[rva].replacement,bytes.fromhex('b802000000c3'))
+            for pointer in (0,1):
+                code=patches[rva].replacement
+                if rva==0x20afa0:
+                    result=self.executable(code,ctypes.c_int,ctypes.c_void_p,ctypes.c_void_p,ctypes.c_int,ctypes.c_void_p)(pointer,pointer,1,pointer)
+                else:
+                    result=self.executable(code,ctypes.c_int,ctypes.c_void_p)(pointer)
+                self.assertEqual(result,2)
+        self.assertTrue({0x207990,0x1fdb90,0xc67840,0x15b680}.isdisjoint(patches))
 
     def test_ads_copy_skip_preserves_tracking_dirty_and_conditional_progress(self):
         patches={p.rva:p for p in COMPONENTS['UnityPlayer.dll'].patches};patch=patches[0xc30838]

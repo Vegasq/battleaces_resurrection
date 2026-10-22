@@ -429,6 +429,17 @@ are scoped inputs, not a completion substitute.
     reject. Earlier acquisition/registration stays UNKNOWN;this is not whole
     D5 collection/removal proof. No115 package;frozen105/DEV N7 stay current.
     Evidence:telemetry-ads-retention115.txt. Do not repeat this scoped pass.
+[x] Review116 guards3registered public event submission entries before borrowed
+    input rooting/conversion/wrapper access,with original disabled result2.
+    Recipe12/81guards;74checks,C++ suite,actual11->12 preserving profiles/backups,
+    guarded calls/AI/results/Continue/default Quit0 pass. Selected observer window
+    and88actual rejection checks pass. No116 package;105/DEV N7 stays current.
+    Evidence:telemetry-event-inputs116.txt. Do not repeat this scoped pass.
+[ ] Finish earlier public input-handling review:Transaction207ad0 and event
+    registration209d80/20a610 need their own ownership/return contracts. Do not
+    infer that lower QueueEvent/serializer guards prevent preceding conversion.
+    Remaining identity acquisition/aliases,queued reports/runtime/final gates
+    above remain OPEN;116's bounded negative ads search is not source closure.
 References: telemetry.txt, telemetry-internal-config.txt,
 telemetry-persistent-observation.txt,telemetry-device-cef106.txt and nvidia-shutdown.txt.
 

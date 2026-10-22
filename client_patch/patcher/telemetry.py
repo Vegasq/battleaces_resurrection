@@ -1,6 +1,6 @@
 """Exact-build telemetry patch transformations; no file or process operations.
 
-These 78 recipes have static source/control-flow review. The complete recipe
+These 81 recipes have static source/control-flow review. The complete recipe
 set has not been runtime validated; recipe2's 59 had a bounded compatibility run.
 They do not establish complete telemetry removal; see docs/telemetry.txt.
 Only brief patch safety signatures are included, never original game payloads.
@@ -10,7 +10,7 @@ import hashlib
 from types import MappingProxyType
 
 GAME_BUILD = 37822
-RECIPE_VERSION = 11
+RECIPE_VERSION = 12
 RUNTIME_VALIDATED = False
 VALIDATION_STATUS = "Static review and original-byte validation only"
 UNRESOLVED_COMPONENTS = (
@@ -256,6 +256,15 @@ COMPONENTS = MappingProxyType({
             # assignment,matching the original self-assignment skip path.
             Patch('skip native ads callback retained identity copy preserving progress', 0xc30838, 0xc2fc38,
                   bytes.fromhex('e843ae52ff4088bb8801000033c0c683'), bytes.fromhex('9090909090')),
+            # Return the original analytics-disabled result before borrowing/
+            # converting event inputs or acquiring local owners. Scalar EAX,
+            # no caller-owned output or queued completion is abandoned.
+            Patch('Unity Analytics SendCustomEventName before input conversion', 0x208350, 0x207750,
+                  bytes.fromhex('40555341544157488dac24a8feffff48'), bytes.fromhex('b802000000c3')),
+            Patch('Unity Analytics SendCustomEvent before wrapper access', 0x208840, 0x207c40,
+                  bytes.fromhex('4883ec284c8bc1488d54243033c9ff15'), bytes.fromhex('b802000000c3')),
+            Patch('Unity Analytics SendEventWithLimit before input conversion', 0x20afa0, 0x20a3a0,
+                  bytes.fromhex('4055535657415441554157488d6c24e0'), bytes.fromhex('b802000000c3')),
         ),
     ),
     CEF_COMPONENT_PATH: Component(

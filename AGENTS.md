@@ -2,6 +2,24 @@
 
 ## Requests and answers with Nick
 
+- Privacy116 supersedes115 SOURCE/owned fixture:recipe12/81guards returns
+  original disabled2 at registered SendCustomEventName208350,SendCustomEvent
+  208840,SendEventWithLimit20afa0 BEFORE borrowed input/root/conversion work.
+  Scalar EAX,no caller output/queued completion;all ownership begins after
+  entry. Shared helpers/privacy controls unchanged.74affected checks,C++ suite,
+  actual11->12 upgrade preserving profiles/backups and guarded-entry/AI/results/
+  Continue/default Quit0 pass128.001s,job1/0/0/no force,8program/shared/source
+  seals unchanged. Explicit verified replacement calls use unreadable borrowed
+  inputs,all return2,sampled fields/identity metadata unchanged.662rows/353anchors,
+  0unknown roots,88actual rejection cases pass. Source/evidence/limits:
+  docs/telemetry-event-inputs116.txt. Earlier ads acquisition/registration stays
+  UNKNOWN;exact1498 matches include unrelated/displacement-interior candidates,
+  not a complete source closure. Transaction/registration input contracts next,
+  plus isolated queued reports/runtime/final artifacts. D5 OPEN/false. r103g
+  recipe12/helper116-01,cached runtime/CMD105:mixed fixture,not116 deployment.
+  No116 packages;frozen105/DEV N7 current. Owner terminal/REA closed;no new
+  Nick action/repeat D6/LAN/manual. Do not rerun bounded pass without concern.
+
 - Privacy115 supersedes114 SOURCE/owned fixture:recipe11/78guards omits only
   ads callbackc307c0's retained-copy CALLc30838. Keep validation,tracking/dirty
   flags,atomic state read,conditional drain and all unwind/cleanup;do NOT RET

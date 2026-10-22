@@ -70,6 +70,12 @@ def telemetry_evidence(text,rows,expected_sha256,*,after_practice=False,device_p
                     identity[0].end()<ads[0].start()<ads[0].end()<begin[0].start(),
                     'guarded ads callback did not preserve empty storage and data-free progress before original Quit')
                 result['ads_callback_copy_guard_and_progress_qualified']=True
+                if result['recipe_version']>=12:
+                    events=list(re.finditer(r'^\[(\d+)\] TELEMETRY EVENTS probe passed: version=1 thread=(\d+) calls=3 returnedDisabled=3 borrowedUnreadable=1 sampledStateUnchanged=1 payloadRead=0$',text,re.M))
+                    startup.require(len(events)==1 and int(events[0][2])==thread and int(events[0][1])<=int(begin[0][1]) and
+                        ads[0].end()<events[0].start()<events[0].end()<begin[0].start(),
+                        'guarded event APIs did not return disabled with unchanged sampled state before original Quit')
+                    result['event_apis_guarded_disabled_before_input_access']=True
     return dict(**result,same_original_quit_thread=True,pre_confirm_tick=tick,original_confirm_tick=dispatch[0]['tick'])
 
 

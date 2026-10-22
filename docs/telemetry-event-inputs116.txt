@@ -1,0 +1,127 @@
+ANALYTICS EVENT INPUT GUARDS116
+2026-10-22. Recipe12,81guards/four DLLs. Full D5 remains OPEN/false.
+
+Problem and change
+Three registered Unity Analytics submission entries processed supplied event
+inputs before checking existing disabled state. Guarding the later QueueEvent/
+serializer/transport did not prevent this earlier rooting/conversion/wrapper
+access. New exact-entry guards return the original disabled scalar result2:
+ index90,208350 SendCustomEventName
+ index91,208840 SendCustomEvent
+ index98,20afa0 SendEventWithLimit
+Each guard is MOV EAX,2;RET before the first frame/save/local owner is acquired.
+No borrowed input is dereferenced,no managed/native conversion happens and no
+event is accepted. The entry has no caller-owned output or queued completion
+to initialize/release. Shared GC/string helpers,native event-wrapper lifecycle,
+privacy controls and gameplay names remain unchanged. This does not establish
+all other analytics APIs or collection paths disabled.
+
+Static contracts
+REA skill used pinned original PE/unwind/LLVM and retained binding evidence.
+Known unavailable Ghidra was not retried. These are static original-byte
+observations,not new REA decompiler/runtime Evidence. Original UnityPlayer:
+ ac144d56d53f07904d52ed27a1539de90bc3290038fe52d73d2f6b268c85d6bc
+Actual fd42d0 same-index reader192ff50/1930280 from sealed114 establishes native
+binding. New event-bindings.json and event-entry-contract.json retain selected
+indices,complete procedure bounds,original16guards and slice hashes. Stripped
+metadata does not retain these managed declarations;no recovered managed type
+signature is claimed. Borrowing/return/owner contracts follow full native bodies.
+208350 roots a borrowed managed name and converts native SSO before global/main
+flags. Its disabled-main branch20853e setsR15D2;final208822 returns it inEAX.
+208840 roots/reads a borrowed wrapper's native event pointer and forwards scalar
+result fromc67840. That helper's disabled-main branchc678c1 returnsEAX2 without
+event processing. Null wrapper/event originally returns6;the new entry returns
+disabled2 without validating it. This intentionally prioritizes disabled status,
+never success/acceptance,and avoids any input access. Caller retains ownership.
+20afa0 borrows nameRCX,payloadRDX,integer versionR8D,prefixR9. Pointer arguments
+are rooted into LOCAL slots;native string conversion precedes enabled checks.
+Disabled-main branches20b124..14c select20b176/R15D2;final20b66c returnsEAX.
+All cleanup belongs to locals acquired after entry;entry return acquires none.
+No shared c67840/15b680/GC helper is replaced.
+ local/privacy116-ads-source01/FINDINGS.txt
+ 07f73733c327fd799ac4e9cd1e43c13631d4c3dfd8a62064439bb39b9964f178
+ local/privacy116-ads-source01/evidence-manifest.json
+ a714f383febc9b5c7d420fb5d88199d4748dce662e0caedcd653b7e42b0a38ff
+
+Ads-source review boundary
+Follow-up c307c0 references yield the two known secondary vtable constants,
+no verified direct E8/E9 or supported RIP entry reference. Exact1498 executable
+scan has21candidates/17decoded ranges,including unrelated objects/stack sites
+and displacement interiors. Leaf fallback decoding is NOT instruction-boundary
+proof. No new native source/registration is established;computed/interior/bulk
+aliases remain unresolved. Shared external settings-like global1ca49c8 has many
+consumers,not a proved ads-only collector. It stays unchanged. The generic
+public ads API110 remains separate. This review does not close that source gate.
+
+Checks and owned upgrade
+74affected tests PASS5.867s:all4pinned original transforms/unrelated bytes,
+constant-disabled replacements with null/unreadable borrowed inputs,legacy
+recipe separation,native Quit checker,patcher and Windows packaging. Required
+C++ suite and fresh helper116-01 build PASS with source-bound receipt.
+ local/privacy116-affected-tests01.txt
+ 1f443054111590eb5f5f796bb99c8059d0338ca0f086704bffe40a5364c5b8e5
+ build/helper-privacy116-01/BattleAcesOffline.dll
+ 5ea66adbb5e1f4e7fa779dcfab0c062518a8be7bf3e64486ffe7616863c5d4df
+ build/helper-privacy116-01/helper-build.json
+ 81a2deb0ca6bd2fcfc0c1a736a71953715ebe2bc2332eb2d81f044abec41177f
+Auditor recognizes Unity37guards(crash3/core31/performance3);older3..11 evidence
+requires explicit older recipe and cannot qualify the new guards.
+Actual r103g11->12 upgrade PASS42.9066128s. Dry-run leaves components/manifest
+unchanged,preview equals install,idempotent reinstallation passes,all original
+backups/every existing profile file unchanged. No fresh restore/reapply claim.
+ local/privacy116-install01/verification.json
+ da9b0402cc3721841adf6e5ab96c8ecc9f5d0dcac0810efd2d921282f69a030b
+Installed UnityPlayer:
+ 864779e8805680ee23260edc8c5ce76b387e2f5fb14d9ccc416992cfcb2d1d4f
+
+Actual guarded calls and native compatibility
+Existing opt-in owned telemetry-device-probe additionally requires complete
+recipe12,known nativestest_ profile,Unity thread,disabled singleton and prior
+device/identity/ADS qualification. It verifies all3loaded entry signatures,
+calls only the checked constant-result replacements with unreadable borrowed
+pointer1/version1 and requires three result2 values. No original event wrapper,
+collector/query or fabricated managed object is used. Main sampled fields and
+custom/ads SSO metadata stay unchanged;tracking/dirty remain1 from115's prior
+intentional authored callback progress. This is not entire-object immutability.
+Normal product launch never enables those diagnostic calls. Refusal makes no
+success claim and retains original game/Quit flow.
+Native Try Deck/AI,result,Continue,menu/default original Quit PASS128.0013319s
+including paused observer preparation. All four probe groups pass once on the
+same Unity thread. Eight complete field snapshots cover startup/menu/game/
+postgame/menu/pre-Quit. Root0/reaped,job1/0/0,no force. Eight program components,
+shared settings,bound sources/observer modules unchanged.
+ local/privacy116-game-ai01/native/verification.json
+ 8d77090bd09592879e916c27a6b60cc043931e77ba01082b751e945a905ae7f8
+ local/privacy116-game-ai01/verification.json
+ 593165d8dabb7c86e93a6a059ad3af1147a3b563c1a820639bfbcd2b000ffe93
+This is controlled compatibility,not physical controls,new bot movement proof,
+ordinary startup timing or final all-mode/profile acceptance.
+
+Selected observation and remaining delivery
+Qualified cwd-v4 observer is installed before controlled primary resume:
+662rows/353clock anchors,max drift12ms align settings-before-load through original
+Quit;280selected file records,0unknown roots,0observed network/child records.
+Native log paths/status0 match the retained113 source contracts. No complete
+preloader/injection/tree/kernel/wire/all-I/O coverage claim. Final REA Evidence:
+ ev_0524fad956c7582aabafcfc25b621409627c052e4f3b685f67207c4960acee0c
+Read-only review reparses raw field/device/identity/ADS/EVENTS/Quit records and
+requires equality with native claims plus owner/job/source/provider/clock/path
+seals.88actual in-memory mutations reject,including missing,duplicate,late,
+wrong-thread/count/result/input/state/payload event records and false native
+claims. Retained113 control/current game baselines pass;no unchanged control
+rerun or captured-data rewrite.
+ local/privacy116-game-ai01/observation-review01.json
+ 0beb2428b7d57d0a615f7adbc4086af1cbc541b62fca0546300d8a8025e5cbda
+ local/privacy116-game-review01.py
+ 47256e54fe4685ad6a368970b103d7d06cec3eade6eee04f696c13908f270767
+ local/privacy116-review-rejections01.json
+ d3688b8f014efa62cdd794687818192f1be5beb936559dcfb7cb701a6d965004
+GameAssembly42,Unity37,CEF2=81guards. No116 installer/package. Frozen105/DEV N7
+stay current;r103g has recipe12/helper116-01 with cached runtime/CMD105,mixed
+diagnostic fixture,not116 deployment. Owned game terminal/REA closed,no server
+started. No new Nick action or repeat accepted D6/LAN/manual check requested.
+Remaining:other earlier public input paths(Transaction/registration need their
+own contracts),actual identity acquisition/aliases,isolated typed queued reports,
+error/retry/crash/supported profile-mode matrix and final installed artifacts.
+D5 OPEN/RUNTIME_VALIDATED=false. Do not rerun this scoped pass without change
+or concrete unresolved concern. No proprietary bytes/captures/binaries enter Git.
