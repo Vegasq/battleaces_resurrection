@@ -1,7 +1,15 @@
 TELEMETRY PATCH STATUS
 Updated: 2026-10-22
 Supported input: Battle Aces build 37822, Windows x64.
-Recipe version: 8. Guards: 71. Complete-set runtime_validated: false.
+Recipe version: 9. Guards: 75. Complete-set runtime_validated: false.
+
+Review110 omits three cached analytics serialization calls and selects an
+existing fallback for a separate identity-refresh platform query.86checks,C++
+suite,actual8->9 profile-preserving upgrade and native AI/Continue/Quit pass.
+New two-export passive clock observer is positively qualified,and one actual
+AI-to-original-Quit selected metadata window aligns549rows/400anchors to native
+markers. Full D5 is still OPEN. Source/ownership:telemetry-cached-requests110.txt;
+controls,retained failures,actual observation and limits:telemetry-clock-attribution110.txt.
 
 Review109 skips dirty ads-identity conversion with both state progress and all
 chained unwind saves/restores retained. A separate base configuration entry
@@ -106,7 +114,7 @@ performs no I/O, changes no input bytes and preserves all unrelated bytes.
 Exact component keys, guard counts and pristine SHA-256:
  GameAssembly.dll (42)
  e59d08c01479b27404778048d7e13546dbf3771f6b3912744c7c2bdf80c4e758
- UnityPlayer.dll (27: crash 3 + performance 3 + analytics 21)
+ UnityPlayer.dll (31: crash 3 + performance 3 + analytics 25)
  ac144d56d53f07904d52ed27a1539de90bc3290038fe52d73d2f6b268c85d6bc
  Battle Aces_Data/Plugins/x86_64/VuplexWebViewChromium/chrome_elf.dll (1)
  080e409112b33a0e4cc763cba6d3c206fd640dd9006cb60f2f05ab7e73279563

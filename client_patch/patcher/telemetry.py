@@ -1,6 +1,6 @@
 """Exact-build telemetry patch transformations; no file or process operations.
 
-These 71 recipes have static source/control-flow review. The complete recipe
+These 75 recipes have static source/control-flow review. The complete recipe
 set has not been runtime validated; recipe2's 59 had a bounded compatibility run.
 They do not establish complete telemetry removal; see docs/telemetry.txt.
 Only brief patch safety signatures are included, never original game payloads.
@@ -10,7 +10,7 @@ import hashlib
 from types import MappingProxyType
 
 GAME_BUILD = 37822
-RECIPE_VERSION = 8
+RECIPE_VERSION = 9
 RUNTIME_VALIDATED = False
 VALIDATION_STATUS = "Static review and original-byte validation only"
 UNRESOLVED_COMPONENTS = (
@@ -230,6 +230,20 @@ COMPONENTS = MappingProxyType({
             # acquisition;never RET the shared consuming serializer c4df10.
             Patch('skip base analytics configuration serialization before local acquisition', 0xc3a5d0, 0xc399d0,
                   bytes.fromhex('48895c240848896c2410488974241848'), bytes.fromhex('c3')),
+            # Caller-owned output strings are already valid empty defaults.
+            # Omit ONLY serialization;keep cache assignment,dirty flag,request
+            # state/completion,locks and all original cleanup/unwind saves.
+            Patch('skip state-three analytics cache serialization call', 0xc39d14, 0xc39114,
+                  bytes.fromhex('e827440100488d8fb8040000ff150a07'), bytes.fromhex('9090909090')),
+            Patch('skip session-tag analytics cache serialization call', 0xc3a2a5, 0xc396a5,
+                  bytes.fromhex('e8963e0100488d8bb8040000ff157901'), bytes.fromhex('9090909090')),
+            Patch('skip identity-change analytics cache serialization call', 0xc41f0c, 0xc4130c,
+                  bytes.fromhex('e82fc20000488d8bb8040000ff151285'), bytes.fromhex('9090909090')),
+            # virtual+40 performs a separate query BEFORE the last serialization
+            # call above. Select its existing unknown fallback;retain AL=1 and
+            # string ownership. No shared query or whole state function RET.
+            Patch('analytics identity refresh uses existing unknown device sentinel', 0xc32468, 0xc31868,
+                  bytes.fromhex('e8a394dcffeb07488d05326bd50049c7'), bytes.fromhex('e902000000')),
         ),
     ),
     CEF_COMPONENT_PATH: Component(

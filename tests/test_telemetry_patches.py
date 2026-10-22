@@ -99,14 +99,15 @@ class TelemetryPatchSafetyTests(unittest.TestCase):
 
     def test_only_reviewed_recipes_are_present(self):
         self.assertFalse(RUNTIME_VALIDATED)
-        self.assertEqual(RECIPE_VERSION, 8)
+        self.assertEqual(RECIPE_VERSION, 9)
         self.assertEqual(len(COMPONENTS["GameAssembly.dll"].patches), 42)
         self.assertEqual({p.rva for p in COMPONENTS["UnityPlayer.dll"].patches},
                          {0xC90C2A, 0x80366F, 0xC93D10, 0xD84EC6, 0xD84E3E,
                           0x292110, 0xC8C5F3, 0xC66C20, 0xC2F570, 0xC333DA,
                           0x2078B0, 0xC2F3FC, 0x207A60, 0xC381D0, 0xC37400,
                           0xC33440, 0x1FD3A0, 0x1FDA50, 0xC392C0, 0xC2E240, 0xC40840, 0x20C560,
-                          0xC2F790, 0xC2FC09, 0xC3016B, 0xC30273, 0xC3A5D0})
+                          0xC2F790, 0xC2FC09, 0xC3016B, 0xC30273, 0xC3A5D0,
+                          0xC39D14, 0xC3A2A5, 0xC41F0C, 0xC32468})
         self.assertEqual(len(COMPONENTS), 4)
         self.assertEqual([p.rva for p in COMPONENTS[CEF_COMPONENT_PATH].patches], [0x323A0])
         self.assertEqual([p.rva for p in COMPONENTS[CEF_HANDLER_COMPONENT_PATH].patches], [0x17403D0])
@@ -157,6 +158,20 @@ class TelemetryPatchSafetyTests(unittest.TestCase):
         for first,last in ((0xc300f0,0xc3016b),(0xc30223,0xc30273),(0xc3077c,0xc307b6)):
             self.assertFalse(any(first<=rva<last for rva in patches))
         self.assertEqual(patches[0xc3a5d0].replacement,b'\xc3')
+
+    def test_cache_guards_only_remove_serializer_call_and_select_original_query_fallback(self):
+        patches={p.rva:p for p in COMPONENTS['UnityPlayer.dll'].patches}
+        for site in (0xc39d14,0xc3a2a5,0xc41f0c):
+            patch=patches[site]
+            self.assertEqual(patch.guard[0],0xe8)
+            self.assertEqual(site+5+struct.unpack_from('<i',patch.guard,1)[0],0xc4e140)
+            self.assertEqual(patch.replacement,b'\x90'*5)
+        query=patches[0xc32468]
+        self.assertEqual(query.rva+5+struct.unpack_from('<i',query.guard,1)[0],0x9fb910)
+        self.assertEqual(query.guard[5:10],bytes.fromhex('eb07488d05'))
+        self.assertEqual(query.rva+5+struct.unpack_from('<i',query.replacement,1)[0],0xc3246f)
+        for shared in (0xc4e140,0xc4d8b0,0xc39ce0,0xc3a250,0xc41ec0,0xc32430):
+            self.assertNotIn(shared,patches)
 
     def test_registration_skips_keep_existing_branch_destinations(self):
         patches = {p.rva: p for p in COMPONENTS["UnityPlayer.dll"].patches}
@@ -286,12 +301,24 @@ class TelemetryReplacementExecutionTests(unittest.TestCase):
         self.assertEqual(tuple(output),expected)
 
     def test_query_branch_reaches_existing_fallback_location(self):
-        patch=next(p for p in COMPONENTS['UnityPlayer.dll'].patches if p.rva==0xc2fc09)
-        target=5+struct.unpack_from('<i',patch.replacement,1)[0]
-        # The target stand-in returns123. The real literal/LEA is checked against
-        # pinned originals separately;no original game instruction is executed.
-        code=patch.replacement+b'\x90'*(target-len(patch.replacement))+bytes.fromhex('b87b000000c3')
-        self.assertEqual(self.executable(code,ctypes.c_int)(),123)
+        for site in (0xc2fc09,0xc32468):
+            patch=next(p for p in COMPONENTS['UnityPlayer.dll'].patches if p.rva==site)
+            target=5+struct.unpack_from('<i',patch.replacement,1)[0]
+            # Authored target returns123;no original game instruction executes.
+            code=patch.replacement+b'\x90'*(target-len(patch.replacement))+bytes.fromhex('b87b000000c3')
+            self.assertEqual(self.executable(code,ctypes.c_int)(),123)
+
+    def test_cache_call_skips_preserve_empty_outputs_and_continue_to_progress(self):
+        patches={p.rva:p for p in COMPONENTS['UnityPlayer.dll'].patches}
+        # Authored continuation increments RCX counter;authored serializer at32
+        # writes RDX output. A CALL reversal proves the stand-in can detect writes.
+        for site in (0xc39d14,0xc3a2a5,0xc41f0c):
+            for revert,expected in ((False,0),(True,1)):
+                head=bytes.fromhex('e81b000000') if revert else patches[site].replacement
+                code=head+bytes.fromhex('48ff01c3')+b'\x90'*23+bytes.fromhex('48c70201000000c3')
+                progress=ctypes.c_uint64();output=ctypes.c_uint64()
+                self.executable(code,None,ctypes.c_void_p,ctypes.c_void_p)(ctypes.addressof(progress),ctypes.addressof(output))
+                self.assertEqual((progress.value,output.value),(1,expected))
 
     def test_paired_ads_branches_skip_local_regions_but_execute_progress_standin(self):
         patches={p.rva:p for p in COMPONENTS['UnityPlayer.dll'].patches}

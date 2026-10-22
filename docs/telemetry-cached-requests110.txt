@@ -1,0 +1,91 @@
+ANALYTICS CACHED REQUESTS / SOURCE REVIEW110
+2026-10-22. Recipe9,75guards/four DLLs. D5 remains OPEN/false.
+
+Change and ownership
+Three reviewed callers still serialized analytics identity into their cached
+request string. Each initializes its own valid empty output SSO before calling
+c4e140,ignores the scalar return,and then copies that output into main490 under
+its existing lock,marks48c dirty,and retains cleanup. Replace ONLY the five-byte
+calls atc39d14/c3a2a5/c41f0c with NOPs. The cache intentionally becomes empty;
+request state/completion,locks and original save/restore/unwind paths remain.
+c39ce0's request480 state and callback completion must not be skipped. No shared
+serializer,cached-request function,callback or constructor entry RET is added.
+
+The third caller first invokes virtual+40,c32430,which prepares device/custom
+identity BEFORE serialization. Its independent queryc32468 now uses the original
+unknown fallbackc3246f,retaining string ownership,other state and originalAL=1.
+Shared query9fb910 remains unchanged. This is a separate conditional query route
+from recipe7's earlier two guards. No runtime hit/WMI operation is demonstrated;
+prior109 samples all had state0/init0. These are preventive call-site guards.
+
+Static evidence
+Two independent REA-skill reviews used pinned original PE/unwind/LLVM and retained
+IL2CPP metadata. Known unavailable Ghidra was not retried. These are static
+observations,not new REA runtime Evidence. Original UnityPlayer SHA256:
+ ac144d56d53f07904d52ed27a1539de90bc3290038fe52d73d2f6b268c85d6bc
+local/privacy110-cached-serialization01/FINDINGS.txt
+ e5814e59f37d7b0a3b7618223aa8334bc43a3b7b7499eed70915653371751434
+guard-contracts.json
+ 2ae3855c4431244f02df0932f87a198ecd94065132112b6f051e0a521f461615
+unwind.json
+ ad644708b719c7ca5bae776efe0b1208343c3825d393a375e1c5e97738e6ff22
+manifest.json
+ 8bb44b4efb0c3db994b09ff8b03d632a59ef86b63fb862e79b6c66f8272ce9c0
+All original saves/local cleanup remain,including chained ranges;no reviewed
+range has EHANDLER/UHANDLER. Exact guards/branch arithmetic are pinned to the
+whole original hash. Raw originals/disassembly stay ignored/out of Git.
+
+Bounded source-acquisition findings
+Same-index registrationfd42d0 maps unguarded native roots to AddSessionTag,
+set_customUserIdInternal,set_customDeviceIdInternal andset_limitUserTrackingInternal.
+Their earlier supplied-value conversion/storage is NOT removed by these skips.
+The device query/serialization routes require main+e10!=0;some callbacks and
+computed/alias/bulk/interior activation remain unknown. Other request/transport/
+cache persistence and source collection need separate coverage.
+
+local/privacy110-ads-source01/FINDINGS.txt
+ efb8df7260984094f42435b27bba589efeda8f74bd7ac2b639d4a4a6b2a1d8fe
+manifest.json
+ f21eca2121345065fb04ff7182ab042cd3051b6fc0647e75ee9b729d8395d52f
+Actual readerfd2420 establishes RequestAdvertisingIdentifierAsync index323 ->
+native5fb70. The old lexical index64 was only a disclaimed lead. Fresh original
+manager construction yields an empty ID/error. The request roots/queues a managed
+callback,sets state1,and returnsfalse without acquisition on that exact fresh
+path. It is not a pure no-op. Cached delivery uses existing fields and releases
+handles/nodes. No bridge to analytics secondary callbackc307c0 is established;
+no new general API/callback guard is justified. Alternate lifetime writers and
+native source/registration/acknowledgement remain unresolved.
+
+Qualification
+local/privacy110-focused-tests02.txt:86tests PASS9.844s. Includes all-four pinned
+original transformations/unrelated bytes,call-target/branch checks,authored
+cache-call reversals and fallback execution,legacy recipe rejection,native Quit,
+installer,and clock-observer controls. No original collector is invoked by those
+authored executable tests. Required C++ build/suite helper-privacy110-01 PASS.
+Helper SHA256:
+ fb47feb2a02569629b690ad50deea2ec0fe51217db4f214fd6154fc8a4cd5501
+Adjacent helper-build.json:
+ d603224d61a9c247bd6ee52605a2aef4520914ad3a099ced41f048f0fcc5f180
+local/privacy110-install01/verification.json:PASS42.727s actual8->9,dry-run no
+writes,preview equals install,idempotence,all installed/original backup hashes
+and existing profile files unchanged. Report SHA256:
+ 0c9e8e4a00ba20eb6e8ea2fe7858cb02d375b40d3ea5cbfa3cb9bd2155658171
+
+Actual native AI/result/Continue/default original Quit passes in two owned runs,
+both with an explicit30s diagnostic practice delay. First124.599s;second123.569s.
+The second also has reconciled clocked metadata through all required markers;
+see telemetry-clock-attribution110.txt for retained failures,exact evidence and
+coverage limits. Both main0/empty job1/0/0/no force,source/shared settings and
+six program file seals unchanged. No new actual invocation of the four guarded
+call sites or live unwind is claimed. No new physical movement/control proof.
+Installed UnityPlayer SHA256:
+ da1efc85b3fac5f2ccb00d092decc843c03a45b9dae8efb367baa963ebc6b335
+
+Deployment
+GameAssembly42,UnityPlayer31(crash3/performance3/analytics25),CEF2 =75.
+No110 packages/installers built. Frozen105/DEV N7 remains current. Owned r103g
+now recipe9/helper110-01;cached runtime/CMD still105,mixed diagnostic fixture.
+No owned game/server/REA remains live. Final artifacts and broader D5 profile/
+all-mode/edit/cache/error/retry/crash/reconnect/file/network/descendant coverage
+stay open. Do not repeat accepted LAN1v1/D6/owner checks or these bounded passes
+without a new concern.

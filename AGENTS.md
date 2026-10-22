@@ -2,6 +2,27 @@
 
 ## Requests and answers with Nick
 
+- Privacy110 supersedes109 SOURCE only:recipe9/75guards,three cache serializer
+  call NOPs retain request/locks/cleanup;separate virtual40 query selects unknown.
+  86focused checks,C++ suite,actual8->9 preserving profiles,native AI/Continue/
+  default Quit0 pass. Details:docs/telemetry-cached-requests110.txt. Public ads
+  API fresh-state path queues callback/returnsfalse without query;not pure no-op,
+  no source/callback guard justified. Earlier setters/conversion remain open.
+  Clocked-v2 metadata positive control and17actual rejections pass. Actual game02
+  persistent549rows/400anchors span pre-practice through original Quit;120local
+  file records,no network/child events,20actual rejection cases pass. Owner123.569s,
+  30s explicit diagnostic delay,main0/job1/0/0/no force;6files/shared/source sealed.
+  Exact limits:docs/telemetry-clock-attribution110.txt. Game01 v1 alignment FAILED
+  (1anchor),despite separate native pass;never promote it. One-shot tool cap60s;
+  use persistent attach/load/status/close for longer windows,clocked-v2 BOTH
+  kernelbase/kernel32 exports. V1 control/source stays selectable for legacy.
+  No pre-attach/all-mode/whole-process-tree/full-removal claim. D5 OPEN/false.
+  r103g now recipe9/helper110-01,cached runtime/CMD105:mixed diagnostic fixture.
+  No106-110 installers/packages;frozen105/DEV N7 unchanged. Both owned REA sessions
+  closed,all game owners reaped. Do not repeat accepted/bounded checks without
+  new concern;remaining D5 source acquisition and supported runtime matrix/final
+  artifacts still need work. Use existing110 clocked control/evidence as inputs.
+
 - Privacy109 supersedes108 SOURCE only:final recipe8/71guards skips ads payload
   conversion/cleanup preserving dirty progress and ALL chained unwind saves;
   separate baseprep RET precedes local acquisition.72focused checks,C++ suite,

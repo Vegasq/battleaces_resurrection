@@ -379,6 +379,17 @@ are scoped inputs, not a completion substitute.
     empty in the reviewed constructor,but lifetime writes/ads input acquisition
     and other cache/request serializers stay unresolved. Full D5 remains OPEN;
     no109 package/current manual update change. No accepted playtest repeated.
+[x] Review110 adds three caller-specific cache serialization skips with request/
+    lock/cleanup retained,and a separate identity-refresh unknown fallback.
+    Recipe9/75guards;86checks,C++ suite,actual8->9 preserving profiles and native
+    AI/result/Continue/default Quit0 pass. Source:telemetry-cached-requests110.txt.
+    A new clocked-v2 metadata control passes with17actual rejection controls;
+    one persistent game window has549rows/400anchors aligned from pre-practice
+    through original Quit,120local file records and no network/child events.
+    20actual game/owner mutations reject. This closes only that selected-API AI
+    window's alignment subcase,not pre-attach/full-lifetime/all-mode/descendant/
+    crash/cache/reporting removal. Failed v1 game alignment remains failed.
+    Exact evidence/limits:telemetry-clock-attribution110.txt. D5 still OPEN.
 References: telemetry.txt, telemetry-internal-config.txt,
 telemetry-persistent-observation.txt,telemetry-device-cef106.txt and nvidia-shutdown.txt.
 

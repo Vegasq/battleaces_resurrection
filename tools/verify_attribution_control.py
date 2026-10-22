@@ -24,7 +24,7 @@ def path(value):
     return str(PureWindowsPath(value)).casefold()
 
 
-def verify(inputs,result,positive,source,*,target_sha256):
+def verify(inputs,result,positive,source,*,target_sha256,clocked=False):
     errors=[]
     def check(condition,code):
         if not condition:errors.append(code)
@@ -32,10 +32,22 @@ def verify(inputs,result,positive,source,*,target_sha256):
                 analytics_removal_qualified=False,descendants_instrumented=False,
                 kernel_capture=False,wire_dns_qualified=False,exit_code_qualified=False,errors=errors)
     try:
+        if type(clocked) is not bool:raise ValueError('Explicit clock profile required')
+        source_builder,request_builder=build_source,control_request
+        known,required=KNOWN,REQUIRED
+        aliases={};clock_keys=set()
+        if clocked:
+            from tools.frida_attribution_clock import build_source as clock_source,control_request as clock_request,CLOCK_KEY,PROFILE,CLOCK_KEY_KERNEL32,PROFILE_KERNEL32
+            profile=inputs.get('observer_profile');check(profile in (PROFILE,PROFILE_KERNEL32),'wrong_clock_profile')
+            include_kernel32=profile==PROFILE_KERNEL32
+            source_builder=lambda config:clock_source(config,include_kernel32=include_kernel32)
+            request_builder=lambda image,folder,run:clock_request(image,folder,run,include_kernel32=include_kernel32)
+            clock_keys={CLOCK_KEY,CLOCK_KEY_KERNEL32} if include_kernel32 else {CLOCK_KEY}
+            known,required=KNOWN|clock_keys,REQUIRED|clock_keys
         config=inputs['config'];request=inputs['request'];run=config['runId']
-        canonical,arguments=control_request(config['image'],str(PureWindowsPath(request['path']).parent),run)
+        canonical,arguments=request_builder(config['image'],str(PureWindowsPath(request['path']).parent),run)
         check(inputs['schema']==1 and type(inputs['schema']) is int and config==canonical and request==arguments,'noncanonical_control')
-        check(source in (build_source(config).encode(),build_source(config).replace('\n','\r\n').encode()),'noncanonical_source')
+        check(source in (source_builder(config).encode(),source_builder(config).replace('\n','\r\n').encode()),'noncanonical_source')
         check(inputs['source_sha256']==digest(source) and inputs['target_sha256']==target_sha256 and
               bool(re.fullmatch('[0-9a-f]{64}',target_sha256)),'input_identity_differs')
         check(not result.get('isError',False),'provider_error')
@@ -63,7 +75,7 @@ def verify(inputs,result,positive,source,*,target_sha256):
               integer(positive['childPid'],1) and positive['childPid']!=pid and positive['childExit']==0 and type(positive['childExit']) is int and
               positive['bytesSent']==positive['bytesReceived']==7 and type(positive['bytesSent']) is type(positive['bytesReceived']) is int and
               positive['queueUnchanged'] is True,'wrong_positive_receipt')
-        ready=False;elapsed=-1;installed=set();operations=[];heartbeats=[]
+        ready=False;elapsed=-1;installed=set();operations=[];heartbeats=[];anchors=[]
         root=PureWindowsPath(config['fileRoots'][0]);allowed={path(str(root/name)) for name in ('queued.json','owned.tmp','published.bin')}
         previous_counts={}
         for index,message in enumerate(messages,1):
@@ -74,23 +86,32 @@ def verify(inputs,result,positive,source,*,target_sha256):
                   integer(row['seq'],1) and row['seq']==index and integer(row['elapsedMs']) and elapsed<=row['elapsedMs']<=10000,
                   'row_identity_sequence_time_differs')
             elapsed=row['elapsedMs']
-            check(kind in ('module-ready','observer-ready','heartbeat','process-exit-entry','file-operation','network-operation','process-create'),
+            check(kind in ('module-ready','observer-ready','heartbeat','process-exit-entry','file-operation','network-operation','process-create') or
+                  (clocked and kind=='clock-anchor'),
                   'unexpected_error_or_overflow_row')
             if 'errors' in data:check(data['errors']==[],'observer_error')
             if 'installed' in data:
                 keys=[h['key'] for h in data['installed']]
-                check(len(keys)==len(set(keys)) and set(keys)<=KNOWN and installed<=set(keys),'hook_inventory_differs')
+                check(len(keys)==len(set(keys)) and set(keys)<=known and installed<=set(keys),'hook_inventory_differs')
                 installed=set(keys)
                 check(all('aliasOf' not in h or h['aliasOf'] in installed for h in data['installed']),'unbound_hook_alias')
+                for h in data['installed']:
+                    if h['key'] in clock_keys and 'aliasOf' in h:
+                        check(h['aliasOf'] in clock_keys and h['aliasOf']!=h['key'],'invalid_clock_alias')
+                        aliases[h['key']]=h['aliasOf']
             if kind=='observer-ready':
                 check(not ready,'duplicate_ready');ready=True
             if kind in ('heartbeat','process-exit-entry'):
                 check(ready and data['overflow'] is False and type(data['unknownRelativeRoots']) is int and
                       data['unknownRelativeRoots']==0,'incomplete_observation')
                 counts=data['counts']
-                check(REQUIRED<=installed and set(counts)<=installed and all(integer(v) for v in counts.values()) and
+                check(required<=installed and set(counts)<=installed and all(integer(v) for v in counts.values()) and
                       all(counts.get(k,-1)>=v for k,v in previous_counts.items()),'invalid_or_decreasing_counts')
                 previous_counts=counts;heartbeats.append(index)
+            if clocked and kind=='clock-anchor':
+                check(ready and CLOCK_KEY in installed and set(data)=={'tickMs'} and integer(data['tickMs']) and
+                      (not anchors or data['tickMs']>=anchors[-1][1]),'invalid_native_clock_anchor')
+                anchors.append((row['elapsedMs'],data['tickMs']))
             if kind in ('file-operation','network-operation','process-create'):
                 check(ready and data['api'] in installed and data['api'].split(':',1)[1]==data['operation'] and
                       type(data['returnValue']) is int and type(data['pending']) is bool,'operation_before_ready_or_bad_metadata')
@@ -108,7 +129,19 @@ def verify(inputs,result,positive,source,*,target_sha256):
                 if kind=='process-create':check(data.get('childPid')==positive['childPid'] and data['returnValue']!=0,'wrong_child_process')
                 operations.append((index,kind,data))
         check(ready and heartbeats and heartbeats[-1]>max((i for i,_,_ in operations),default=0),'missing_final_snapshot')
-        check(all(previous_counts.get(key,0)>0 for key in REQUIRED),'positive_hook_not_exercised')
+        check(all(previous_counts.get(aliases.get(key,key),0)>0 for key in required),'positive_hook_not_exercised')
+        if clocked:
+            ticks=positive.get('clockTicks')
+            check(isinstance(ticks,list) and len(ticks)==8 and all(integer(tick,1) for tick in ticks) and
+                  all(b-a>=250 for a,b in zip(ticks,ticks[1:])),'invalid_clock_receipt')
+            if include_kernel32:
+                check(positive.get('clockModules')==['kernelbase.dll','kernel32.dll']*4,'wrong_clock_export_control')
+            observed={tick for _,tick in anchors}
+            check(len(anchors)>=8 and isinstance(ticks,list) and all(tick in observed for tick in ticks),'clock_return_not_observed')
+            check(bool(anchors) and all(abs((t-anchors[0][1])-(elapsed-anchors[0][0]))<=100 for elapsed,t in anchors),
+                  'native_elapsed_clock_drift')
+            report.update(native_clock_return_anchors_qualified=False,clock_anchor_count=len(anchors),
+                          game_stage_alignment_qualified=False)
         files=[data for _,kind,data in operations if kind=='file-operation' and data['returnValue']==0 and not data['pending']]
         def saw(name,filename,**fields):
             return any(d['operation']==name and path(d['path'])==path(str(root/filename)) and all(d.get(k)==v for k,v in fields.items()) for d in files)
@@ -122,6 +155,7 @@ def verify(inputs,result,positive,source,*,target_sha256):
                       metadata_operations=len(operations),observed_counts_lower_bounds=previous_counts,
                       destination_attempt_and_resolution_qualified=not errors,file_operation_metadata_qualified=not errors,
                       application_callsite_qualified=not errors,child_creation_metadata_qualified=not errors)
+        if clocked:report['native_clock_return_anchors_qualified']=not errors
     except (KeyError,IndexError,TypeError,ValueError,AttributeError):errors.append('malformed_or_incomplete_input')
     report['passed']=not errors
     return report
@@ -138,10 +172,11 @@ def main():
     parser.add_argument('--control-dir',type=Path,required=True)
     parser.add_argument('--output',type=Path,required=True)
     parser.add_argument('--check-process-terminal',action='store_true')
+    parser.add_argument('--clocked',action='store_true',help='require the separate canonical clock-return observer and control')
     args=parser.parse_args();folder=args.control_dir.resolve()
     inputs=read_json(folder/'inputs.json');target=Path(inputs['config']['image'])
     report=verify(inputs,read_json(folder/'rea-result.json'),read_json(folder/'positive.json'),
-                  (folder/'observer.js').read_bytes(),target_sha256=digest(target.read_bytes()))
+                  (folder/'observer.js').read_bytes(),target_sha256=digest(target.read_bytes()),clocked=args.clocked)
     report['queue_unchanged']=(folder/'queue/queued.json').read_bytes()==b'authored queued report; never delivered\n'
     report['passed'] &= report['queue_unchanged']
     if args.check_process_terminal:

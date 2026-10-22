@@ -1,0 +1,106 @@
+CLOCKED METADATA OBSERVATION110
+2026-10-22. Scoped controls and one native AI lifecycle window PASS;D5 OPEN.
+
+Purpose and source
+Earlier metadata windows could not be aligned to native lifecycle ticks. New
+tools/frida_attribution_clock.py extends the existing bounded metadata source
+with passive GetTickCount64 RETURN hooks. It calls no target API,reads no game/
+file/socket payload,and changes no arguments/return values. At most one clock
+anchor every250ms is emitted AFTER observer readiness. Existing errors,budgets,
+heartbeats and selected roots remain. Interceptor still changes code/timing.
+Source profile clocked-v1 observes kernelbase only. Preserve it for original
+control review;games select include_kernel32=True /clocked-v2,which observes both
+kernelbase andkernel32 exports. Shared-address aliases retain one real hook.
+The control alternates existing read-only clock calls across both exports.
+tools/verify_attribution_control.py requires exact profile/request/source,
+independent clock receipt,positive hook counts,monotonic anchors and<=100ms
+elapsed/native drift,alongside prior file/network/process metadata controls.
+It never qualifies game stages,descendants,kernel/wire capture or full removal.
+
+Prepare the TWO-export owned control:
+ python -m tools.frida_attribution_clock --image <owned-python.exe>
+   --control-dir local/<fresh-clock-control> --include-kernel32
+Submit exactly request.json to REA instrument_with_frida;retain complete result.
+ python -m tools.verify_attribution_control --control-dir local/<fresh-clock-control>
+   --output local/<fresh-clock-control>/verification.json --clocked --check-process-terminal
+For observations over60s,use a persistent attach/load/status/close session.
+Do not repeat a rejected oversized one-shot request or restart a live owner.
+
+Actual controls
+clock-control01/v1:34rows,20metadata operations,8anchors PASS. It explicitly
+calls kernelbase;that pass does not qualify a game's other clock call sites.
+clock-control02/v2 REA:
+ ev_aba0dfe6e33a02c0500cb71ba8e18d002de171ececf8205c07f3cb4c6dc9314d
+PID17432,35rows,20metadata operations,8anchors from alternating export calls.
+Existing localhost7/7-byte exchange,selected file read/write/rename/delete and
+child completion controls pass;root subsequently absent. No root exit-CODE or
+instrumented-child/wire DNS claim. All errors/unknown roots/overflow absent.
+local/privacy110-clock-control02/verification01.json SHA256:
+ 322c656107914cd410a684edfcb3b367cbe63e528256cd3f231f107aea94d3bf
+local/privacy110-clock-rejections02.json:17mutations of ACTUAL capture rejected:
+ 6511d992dd4542946bf31ea4a27dfb206fed3c74dd09378c9ee7d08d92531294
+Legacy v1 remains canonically reproducible after v2;old107 control/source remains
+separate.12clock/legacy tests pass;86combined checks pass after final changes.
+
+Retained failed/incomplete game trial01
+The one-shot180000ms request failed tool validation(max60000ms),before attaching.
+The same running owned PID24676 then received one persistent v1 script;no restart.
+Native AI/results/Continue/default Quit0 and external job1/0/0 passed124.599s.
+Its metadata window has133rows but only ONE kernelbase clock return. It cannot
+prove required stage alignment;that observation review remains FAILED:
+ local/privacy110-game-ai01/observation-review01.json
+ 15cea8d25a5ea7b0868d2a98319d6477fab7261ea0a0fe65de0b07ef74220b07
+REA status ev_7bc6512304100def080478543a7aae1fb0fa86c36ad9be8de71047d0807fc7e3
+No decoder error was required to expose this coverage gap. v2 adds kernel32 and
+is separately positively qualified;do not promote01 as full lifecycle evidence.
+Early authored clock tests failed from fixture shared-list aliasing and an invalid
+missing-hook mutation;corrected fixtures preserve staged module loading rules.
+
+Actual native game02
+One persistent clocked-v2 script was loaded into externally owned PID9568. Source
+SHA2561fc1b0d620cbcab0af63354486684c2b0b03700caf5b0b6236aa5b6d9b808f32.
+Load REA ev_ff430a90b0fa0a84d3cec16f9e173df4859a352f40d77c3dbb23a991080d6bc5
+Final REA ev_b32ce3a385c48a88c0fff68ace6a08e87940ed8ec68066455dca051c17b8fd50
+549complete ordered rows,400clock anchors,max elapsed/native drift16ms,no
+truncation/decode/setup errors,overflow or unknown relative roots. Heartbeats
+stay within6s. Loaded script prefix matches complete final history. Observation
+range native ticks66292812..66398390 contains all exact original native markers:
+ practice request66311593,result66381812,Continue66390734,returned menu66390968,
+ original Quit confirmation66397578. Native telemetry separately has8complete
+recipe9 scalar snapshots. The guarded public device probe returnsfalse once.
+This is one continuous selected-API window from before practice request through
+original Quit confirmation,NOT startup-before-attach or entire process lifetime.
+
+120selected file-operation records all reference the owned profile's settings,
+StorageSyncBackup,AutoSaveReplays,diagnostic trace and corresponding temp paths.
+Every record has game/helper caller frames.119return0 and one returns failure;
+metadata records do not establish payload contents or completed byte counts.
+No network-metadata or child-creation events occurred INTHISWINDOW. Do not infer
+zero traffic/collection from that bounded API result. Shared settings,source and
+six program files remain sealed. Native AI/result/Continue/default Quit passes
+123.569s,main0/reaped,job1/0/0,no force. The explicit30s diagnostic practice delay
+allows pre-match attachment;it is not ordinary startup timing or user input proof.
+Bot supply14/nine action records;no new ordered/moving-unit intersection proof.
+
+Private reconciliation local/privacy110-game-review02.py SHA256:
+ dcc6cf0605973798911f785b8cc8e279de4122fb8794166527b994c37692917c
+local/privacy110-game-ai02/observation-review01.json PASS:
+ d6fce225af4f7ec9c1e9d107d5140372644e876b9bf97a28713128b2c44381bc
+local/privacy110-game-rejections01.json:20ACTUAL capture/owner/marker mutations
+reject,including lost clock coverage,PID/session/source/gaps/overflow/unknown
+roots,escaped file path,forced/active job,wrong recipe/command and duplicate marker:
+ 6aeabba588e82456e49584b1941f8551475a2af4af374ba9d111c98ff77060ab
+Native report SHA2561668b702c5497e8b030a781e403e69a6eb3b38d3d8335ef9bea7a36c5dfd5faa
+Owner report SHA256e097ff8e529b442c4385a7b391d3a3282f3717141d7cd883539834429ee7d48d
+Both REA sessions explicitly closed after detached status;owners reaped naturally.
+Complete original evidence/raw metadata and owned scripts remain ignored.
+
+Limits / remaining D5
+No pre-existing report queue seeded or reporter/crash/API collection forced.
+Pre-attachment handles,NT volume aliases/reparse canonicalization,relative roots,
+rename targets,asynchronous completions,direct syscalls/AFD/ConnectEx/unhooked
+APIs,wire DNS and descendants remain limits. Only IPv4 control is positively
+covered. No file payloads were read. Other profiles,modes,edits,cache/error/retry/
+crash/reconnect and final installed packages still require coverage. Native
+callback/query hit provenance remains separate from stage-aligned metadata.
+No package/current105 action change;RUNTIME_VALIDATED remains false.

@@ -38,6 +38,10 @@ static const Signature signatures[]={
     {0xc3016b,0xc2f56b,"4c8d3d66a9df00c744246c490000004c","e9b3000000",1},
     {0xc30273,0xc2f673,"4438adc80000000f857a020000488bb5","e904050000",1},
     {0xc3a5d0,0xc399d0,"48895c240848896c2410488974241848","c3",1},
+    {0xc39d14,0xc39114,"e827440100488d8fb8040000ff150a07","9090909090",1},
+    {0xc3a2a5,0xc396a5,"e8963e0100488d8bb8040000ff157901","9090909090",1},
+    {0xc41f0c,0xc4130c,"e82fc20000488d8bb8040000ff151285","9090909090",1},
+    {0xc32468,0xc31868,"e8a394dcffeb07488d05326bd50049c7","e902000000",1},
     {0xd84ec6,0xd842c6,"0f857d0100004c8bcbc603014c8d0587","e97e01000090",2},
     {0xd84e3e,0xd8423e,"c740080001000048897810c6401901e8","c7400800000000",2},
     {0x292110,0x291510,"84c9488b0d8fcba7010f95c24883c108","31c9",2},
@@ -46,7 +50,7 @@ static const Signature signatures[]={
     {0xd84de0,0xd841e0,"4883ec4848833dbc9ef800000f855c02","",3},
 };
 static uintptr_t unity=0;
-static bool checked=false,disabled=false,startupLogged=false,quitAttempted=false,completeRecipe8=false;
+static bool checked=false,disabled=false,startupLogged=false,quitAttempted=false,completeRecipe9=false;
 static unsigned snapshots=0;
 static ba_telemetry_sampling::Schedule schedule;
 static DWORD auditThread=0;
@@ -114,9 +118,9 @@ static bool verifyModule() {
         }
         memcpy(bytes.data()+peOffset+24+64,&originalChecksum,sizeof(originalChecksum));
         if(digest(bytes)!=originalHash)throw std::runtime_error("unsupported UnityPlayer normalized SHA256");
-        completeRecipe8=groups[0]==3 && groups[1]==21 && groups[2]==3;
+        completeRecipe9=groups[0]==3 && groups[1]==25 && groups[2]==3;
         disabled=false;
-        ba::log("Telemetry audit build verified: UnityPlayer sha256=%s normalized=%s crashSignatures=%u/3 coreCandidateSignatures=%u/21 performanceCandidateSignatures=%u/3; READ ONLY, no qualification claim",
+        ba::log("Telemetry audit build verified: UnityPlayer sha256=%s normalized=%s crashSignatures=%u/3 coreCandidateSignatures=%u/25 performanceCandidateSignatures=%u/3; READ ONLY, no qualification claim",
             actualHash.c_str(),originalHash,groups[0],groups[1],groups[2]);
     } catch(const std::exception& e) {ba::log("Telemetry audit disabled: %s; no object reads attempted",e.what());}
     return !disabled;
@@ -201,10 +205,10 @@ static void deviceProbe() noexcept {
     attempted=true;
     try {
         auto require=[](bool value,const char* why){if(!value)throw std::runtime_error(why);};
-        require(requested() && checked && !disabled && completeRecipe8 && auditThread==GetCurrentThreadId() &&
+        require(requested() && checked && !disabled && completeRecipe9 && auditThread==GetCurrentThreadId() &&
             ba::flag(L"-native-quit-smoke") && ba_native_settings::session &&
             ba_native_settings::session->profile().compare(0,12,"nativestest_")==0,
-            "complete recipe8,initialized game thread and explicit owned diagnostic required");
+            "complete recipe9,initialized game thread and explicit owned diagnostic required");
         struct Main {
             uintptr_t pointer=0,vtable=0,worker=0;
             uint64_t header[4]={};uint32_t marker=0,state=0,init=0,archive=0;
