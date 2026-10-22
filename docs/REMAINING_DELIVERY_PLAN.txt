@@ -435,9 +435,16 @@ are scoped inputs, not a completion substitute.
     guarded calls/AI/results/Continue/default Quit0 pass. Selected observer window
     and88actual rejection checks pass. No116 package;105/DEV N7 stays current.
     Evidence:telemetry-event-inputs116.txt. Do not repeat this scoped pass.
-[ ] Finish earlier public input-handling review:Transaction207ad0 and event
-    registration209d80/20a610 need their own ownership/return contracts. Do not
-    infer that lower QueueEvent/serializer guards prevent preceding conversion.
+[x] Review117 closes116's Transaction207ad0/registration209d80/20a610 input
+    subtask and6nearby event control/query/endpoint/priority entries. All return
+    INTEGER disabled status2 before input work;no caller output/queued owner.
+    Recipe13/90guards;74checks,C++ suite,actual12->13 preserving profiles/backups,
+    nine guarded calls/AI/results/Continue/default Quit0 pass. Selected observer
+    window/98actual rejection checks pass. No117package;105/DEV N7 current.
+    Evidence:telemetry-event-controls117.txt. Do not repeat this scoped pass.
+[ ] Review registered CustomEventData create/add/destroy ownership(indices65..73)
+    before choosing guards. Prevent earlier input retention while preserving
+    valid caller object lifetime;do not simply RET Destroy or invent handles.
     Remaining identity acquisition/aliases,queued reports/runtime/final gates
     above remain OPEN;116's bounded negative ads search is not source closure.
 References: telemetry.txt, telemetry-internal-config.txt,

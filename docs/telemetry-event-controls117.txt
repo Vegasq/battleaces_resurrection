@@ -1,0 +1,129 @@
+ANALYTICS TRANSACTION / REGISTRATION / EVENT CONTROLS117
+2026-10-22. Recipe13,90guards/four DLLs. Full D5 remains OPEN/false.
+
+Change and ownership
+Nine additional registered Unity Analytics methods rooted/converted supplied
+names,strings or arrays before checking disabled state. They now return the
+original scalar disabled status2 at exact entry,before local ownership begins:
+ Transaction207ad0;IsCustomEventWithLimitEnabled208890;
+ EnableCustomEventWithLimit208c50;IsEventWithLimitEnabled209000;
+ EnableEventWithLimit2096c0;RegisterEventWithLimit209d80;
+ RegisterEventsWithLimit20a610;SetEventWithLimitEndPoint20b690;
+ SetEventWithLimitPriority20bea0.
+The two Is...Enabled methods return INTEGER STATUS,not Boolean. Returning
+false would incorrectly claim status0. Native disabled branches select2 and
+return it inEAX. The new MOV EAX,2;RET never claims event acceptance/registration.
+Pointer arguments are borrowed,no caller output or queued completion exists,
+and no local cleanup is needed before entry. Bulk registration constructs no
+partial vector/registration. Existing caller objects/arrays remain caller-owned.
+Analytics endpoint controls are separate from the community server address.
+Only the Analytics.Transaction binding is changed;no purchase/gameplay API.
+Privacy controls,RemoteConfig,shared GC/string/allocator helpers,lower transaction
+builders and useful game diagnostics remain unchanged. Invalid-input status
+precedence may become disabled2;no supplied input needs to be inspected first.
+
+Static evidence and ABI
+REA skill used pinned original PE/unwind/LLVM/native bodies and retained binding
+evidence. Known unavailable Ghidra was not retried. This is static original-byte
+review,not new REA decompiler/runtime Evidence. Original UnityPlayer:
+ ac144d56d53f07904d52ed27a1539de90bc3290038fe52d73d2f6b268c85d6bc
+Same-index fd42d0 binding192ff50/1930280 proof is reused from114. Native indices
+89,92..97,99,100 are independently checked against exact original pointer/name
+slots and complete unwind procedure bounds. Managed declarations are stripped;
+native ABI/ownership comes from the complete implementations,not method names.
+Transaction forwards XMM1->XMM6->XMM2;lowerc65b20 stores MOVSD atc65c22,
+establishing DOUBLE. Other inputs include four borrowed strings and a Boolean.
+Its lower disabled branchc67809 setsECX2,c67815 copiesEAX;wrapper returns that
+status after local destruction. Registration has integer and borrowed-string
+stack arguments;bulk RCX is a borrowed managed array. Its initial R9 home-slot
+spill is not a caller output. All native vectors/strings are local temporaries.
+Is...Enabled query methods return status0/2,with no out-Boolean pointer.
+Exact register/stack signatures,disabled/final-return sites and exclusions:
+ local/privacy117-event-control01/FINDINGS.txt
+ 69986dbab35555d2ef29863b11ec57e34e38b74ef82c5c03407f922ebb052cc3
+ local/privacy117-event-control01/evidence-manifest.json
+ f092a93500000c690509f98fcad19ad2bb47f5948d8e86a1c31bf8f266db9bc3
+Private verify_contract.py rechecks9bindings,entries,original16guards,unwind
+bounds,slice hashes and9supporting original disabled constants;PASS. Original
+code/data/raw disassembly/captures/binaries stay out of Git and packages.
+
+Checks/build/actual upgrade
+74affected tests PASS5.654s include all4pinned original transforms/unrelated
+bytes,all12event entry replacements with null/unreadable borrowed pointers,
+integer/Boolean/DOUBLE/stack arguments,legacy evidence separation,Quit checker,
+patcher and Windows packages. Required C++ suite/helper117-01 build PASS with
+source-bound receipt. Unity auditor recognizes46guards(crash3/core40/perf3).
+Older3..12 evidence requires explicit older recipe,never qualifying new guards.
+ local/privacy117-affected-tests01.txt
+ 1cb5233e341582f16955287319f2cd695613e2f3c018a6cffbc87c07c1061dea
+ build/helper-privacy117-01/BattleAcesOffline.dll
+ 7495650b93e4016533c23462d453726b1581611e4383a79b8a314039dcc5e1b3
+ build/helper-privacy117-01/helper-build.json
+ 0e8f9cf6a745a00637d5bf9b774a54e97fcfe219229d6b251017f09c508573a4
+Actual owned r103g12->13 upgrade PASS42.3029638s. Dry-run leaves components/
+manifest unchanged,preview equals install,idempotent reinstall passes,all
+original backups/every existing profile file unchanged. No fresh restore/reapply
+claim.
+ local/privacy117-install01/verification.json
+ 77a9db7d681e65f7665a42e525c7e0557449bfdc85539b833bd1ba0ce76b6b4e
+Installed UnityPlayer:
+ 580cf089583a4699a1c8c9c10c32e5e7afc644b90f5824558b8252001c125df2
+
+Controlled native qualification
+Existing explicit owned telemetry-device-probe additionally requires complete
+recipe13,known nativestest_ profile,Unity thread,disabled singleton and preceding
+116event proof. It verifies all9loaded signatures,then calls only the constant
+replacements with unreadable borrowed pointer1 using reviewed native integer,
+Boolean,DOUBLE and stack argument positions. All9return integer2. No original
+wrapper/builder/query/collector executes and no managed object is fabricated.
+Main sampled fields/custom/ads SSO metadata stay unchanged;tracking/dirty remain1
+from the preceding intentional115 authored callback progress. This does not
+claim whole-object immutability. Normal product launch never enables the probes.
+Native Try Deck/AI,result,Continue,menu/default original Quit PASS119.3097558s
+including paused observer preparation. All5probe groups pass once on the same
+Unity thread. Eight complete field snapshots cover startup/menu/game/postgame/
+menu/pre-Quit. Root exits0/reaped,job1/0/0,no force. Eight program components,
+shared settings,bound sources/observer modules remain unchanged.
+ local/privacy117-game-ai01/native/verification.json
+ 7224303a94f81f511ea9a490e7b386a41bc9cbc4a93e1ce6bd7859381773eef7
+ local/privacy117-game-ai01/verification.json
+ 724654b068ebf539d8666c31c34029ae5b5c2364e67c2ab4487867cfe80951e6
+This is controlled compatibility,not physical controls,new unit movement proof,
+ordinary startup timing or final supported profile/mode acceptance.
+
+Qualified cwd-v4 observer installed before controlled primary resume records
+658complete rows/349clock anchors,max drift15ms. Settings-before-load through
+original Quit markers align;280selected file records,0unknown roots,0observed
+network/child records. Native log paths/status0 retain113's source contracts.
+No full preloader/injection/tree/kernel/wire/all-I/O claim. Final REA Evidence:
+ ev_6a50b2e077adedd703d8ef3fe1867ed00c92b6cb54b920aec498cad95c372a1f
+Read-only review reparses raw native field/device/identity/ADS/EVENTS/EVENTCONTROL/
+Quit records,requires equality with claimed native results,and checks owner/job/
+source/provider/clock/path seals.98actual in-memory mutations reject,including
+missing,duplicate,late,wrong-thread/count/result/input/state/payload control
+records and false native claims. Retained113 control/current game baselines
+pass;no unchanged control rerun or captured evidence rewrite.
+ local/privacy117-game-ai01/observation-review01.json
+ c0635de87faa751fbf4756c227dc2ab23b10a1c45267fa849a905730008758e5
+ local/privacy117-game-review01.py
+ dc616e4c7ca1acdcf52f6462f5dedd06d36854078e1e72e31bfc06ee361d733f
+ local/privacy117-review-rejections01.json
+ 694cc97e0b3cbd5aa19de3db8b0284ce51545c3af51bb41db63abad1666c97dc
+
+Delivery and next source gate
+GameAssembly42,Unity46,CEF2=90guards. No117 installer/package. Frozen105/DEV N7
+stay current;r103g has recipe13/helper117-01 with cached runtime/CMD105,mixed
+diagnostic fixture,not117deployment. Owned game terminal/REA closed,no server
+started. No new Nick action or repeat accepted D6/LAN/manual check requested.
+The named116 Transaction/registration input subtask is closed,not full D5.
+Next finite source inventory:registered CustomEventData indices65..73,create
+205070/destroy205430/add205550,205cd0,206110,206550,206a30,206f10,207340.
+These currently remain unguarded. Establish caller constructor/Add/Destroy
+ownership before choosing changes;do not simply RET Destroy or manufacture an
+invalid native handle. This inventory is not proof of active collection.
+ local/privacy117-next-input-inventory01.json
+ 893f6486afb9e7bbe0f80d6f3df700d02695388aea78ffbac418b65a8da54aee
+Actual identity acquisition/aliases,isolated typed queued reports,error/retry/
+crash/profile-mode/runtime matrix and final installed artifacts remain required.
+D5 OPEN/RUNTIME_VALIDATED=false. Do not repeat this bounded pass without change
+or a concrete unresolved concern.

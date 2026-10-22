@@ -2,6 +2,24 @@
 
 ## Requests and answers with Nick
 
+- Privacy117 supersedes116 SOURCE/owned fixture:recipe13/90guards returns
+  INTEGER disabled2 at9registered Transaction/registration/event control/query/
+  endpoint/priority entries BEFORE borrowed string/array input work. Two Is...
+  methods are status,not Boolean. Native mixed DOUBLE/Boolean/stack ABI reviewed;
+  no caller output/queued owner. Shared helpers/privacy/game config unchanged.
+  74affected checks,C++ suite,actual12->13 upgrade preserving profiles/backups,
+  nine verified replacement calls/AI/results/Continue/default Quit0 pass119.310s,
+  job1/0/0/no force,8program/shared/source seals unchanged.658rows/349anchors,
+  0unknown roots,98actual rejection cases pass. Scope/hashes/contracts:
+  docs/telemetry-event-controls117.txt.116's named Transaction/registration input
+  subtask CLOSED;next finite source gate CustomEventData create/add/destroy
+  indices65..73. Preserve valid lifetime;do NOT simply RET Destroy/invent handles.
+  Remaining identity acquisition/aliases,isolated queued reports/runtime/final
+  artifacts required;D5 OPEN/false. r103g recipe13/helper117-01,cached runtime/
+  CMD105:mixed fixture,not117deployment. No117 packages;frozen105/DEV N7 current.
+  Owner terminal/game REA closed;no new Nick action/repeat D6/LAN/manual.
+  Do not repeat this bounded pass without change/concrete concern.
+
 - Privacy116 supersedes115 SOURCE/owned fixture:recipe12/81guards returns
   original disabled2 at registered SendCustomEventName208350,SendCustomEvent
   208840,SendEventWithLimit20afa0 BEFORE borrowed input/root/conversion work.

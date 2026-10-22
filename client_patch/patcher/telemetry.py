@@ -1,6 +1,6 @@
 """Exact-build telemetry patch transformations; no file or process operations.
 
-These 81 recipes have static source/control-flow review. The complete recipe
+These 90 recipes have static source/control-flow review. The complete recipe
 set has not been runtime validated; recipe2's 59 had a bounded compatibility run.
 They do not establish complete telemetry removal; see docs/telemetry.txt.
 Only brief patch safety signatures are included, never original game payloads.
@@ -10,7 +10,7 @@ import hashlib
 from types import MappingProxyType
 
 GAME_BUILD = 37822
-RECIPE_VERSION = 12
+RECIPE_VERSION = 13
 RUNTIME_VALIDATED = False
 VALIDATION_STATUS = "Static review and original-byte validation only"
 UNRESOLVED_COMPONENTS = (
@@ -265,6 +265,26 @@ COMPONENTS = MappingProxyType({
                   bytes.fromhex('4883ec284c8bc1488d54243033c9ff15'), bytes.fromhex('b802000000c3')),
             Patch('Unity Analytics SendEventWithLimit before input conversion', 0x20afa0, 0x20a3a0,
                   bytes.fromhex('4055535657415441554157488d6c24e0'), bytes.fromhex('b802000000c3')),
+            # Remaining reviewed event controls/registration/transaction entries
+            # use the same scalar disabled status,never Boolean false.
+            Patch('Unity Analytics Transaction before input conversion', 0x207ad0, 0x206ed0,
+                  bytes.fromhex('488bc4554155488da8d8feffff4881ec'), bytes.fromhex('b802000000c3')),
+            Patch('Unity Analytics IsCustomEventWithLimitEnabled before input conversion', 0x208890, 0x207c90,
+                  bytes.fromhex('40555741544157488d6c24c14881ec98'), bytes.fromhex('b802000000c3')),
+            Patch('Unity Analytics EnableCustomEventWithLimit before input conversion', 0x208c50, 0x208050,
+                  bytes.fromhex('4055535741544157488d6c24c94881ec'), bytes.fromhex('b802000000c3')),
+            Patch('Unity Analytics IsEventWithLimitEnabled before input conversion', 0x209000, 0x208400,
+                  bytes.fromhex('40555357415441554157488d6c24e848'), bytes.fromhex('b802000000c3')),
+            Patch('Unity Analytics EnableEventWithLimit before input conversion', 0x2096c0, 0x208ac0,
+                  bytes.fromhex('4055535657415441554157488d6c24f0'), bytes.fromhex('b802000000c3')),
+            Patch('Unity Analytics RegisterEventWithLimit before input conversion', 0x209d80, 0x209180,
+                  bytes.fromhex('488bc4554154488da8d8feffff4881ec'), bytes.fromhex('b802000000c3')),
+            Patch('Unity Analytics RegisterEventsWithLimit before input conversion', 0x20a610, 0x209a10,
+                  bytes.fromhex('488bc44c894820554155488da8c8feff'), bytes.fromhex('b802000000c3')),
+            Patch('Unity Analytics SetEventWithLimitEndPoint before input conversion', 0x20b690, 0x20aa90,
+                  bytes.fromhex('488bc4554157488da848ffffff4881ec'), bytes.fromhex('b802000000c3')),
+            Patch('Unity Analytics SetEventWithLimitPriority before input conversion', 0x20bea0, 0x20b2a0,
+                  bytes.fromhex('4055535657415441554157488d6c24f0'), bytes.fromhex('b802000000c3')),
         ),
     ),
     CEF_COMPONENT_PATH: Component(

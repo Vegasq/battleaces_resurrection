@@ -48,6 +48,15 @@ static const Signature signatures[]={
     {0x208350,0x207750,"40555341544157488dac24a8feffff48","b802000000c3",1},
     {0x208840,0x207c40,"4883ec284c8bc1488d54243033c9ff15","b802000000c3",1},
     {0x20afa0,0x20a3a0,"4055535657415441554157488d6c24e0","b802000000c3",1},
+    {0x207ad0,0x206ed0,"488bc4554155488da8d8feffff4881ec","b802000000c3",1},
+    {0x208890,0x207c90,"40555741544157488d6c24c14881ec98","b802000000c3",1},
+    {0x208c50,0x208050,"4055535741544157488d6c24c94881ec","b802000000c3",1},
+    {0x209000,0x208400,"40555357415441554157488d6c24e848","b802000000c3",1},
+    {0x2096c0,0x208ac0,"4055535657415441554157488d6c24f0","b802000000c3",1},
+    {0x209d80,0x209180,"488bc4554154488da8d8feffff4881ec","b802000000c3",1},
+    {0x20a610,0x209a10,"488bc44c894820554155488da8c8feff","b802000000c3",1},
+    {0x20b690,0x20aa90,"488bc4554157488da848ffffff4881ec","b802000000c3",1},
+    {0x20bea0,0x20b2a0,"4055535657415441554157488d6c24f0","b802000000c3",1},
     {0xd84ec6,0xd842c6,"0f857d0100004c8bcbc603014c8d0587","e97e01000090",2},
     {0xd84e3e,0xd8423e,"c740080001000048897810c6401901e8","c7400800000000",2},
     {0x292110,0x291510,"84c9488b0d8fcba7010f95c24883c108","31c9",2},
@@ -57,7 +66,7 @@ static const Signature signatures[]={
     {0xc307c0,0xc2fbc0,"48895c2408574883ec20418079200141","",3},
 };
 static uintptr_t unity=0;
-static bool checked=false,disabled=false,startupLogged=false,quitAttempted=false,completeRecipe12=false;
+static bool checked=false,disabled=false,startupLogged=false,quitAttempted=false,completeRecipe13=false;
 static unsigned snapshots=0;
 static ba_telemetry_sampling::Schedule schedule;
 static DWORD auditThread=0;
@@ -125,9 +134,9 @@ static bool verifyModule() {
         }
         memcpy(bytes.data()+peOffset+24+64,&originalChecksum,sizeof(originalChecksum));
         if(digest(bytes)!=originalHash)throw std::runtime_error("unsupported UnityPlayer normalized SHA256");
-        completeRecipe12=groups[0]==3 && groups[1]==31 && groups[2]==3;
+        completeRecipe13=groups[0]==3 && groups[1]==40 && groups[2]==3;
         disabled=false;
-        ba::log("Telemetry audit build verified: UnityPlayer sha256=%s normalized=%s crashSignatures=%u/3 coreCandidateSignatures=%u/31 performanceCandidateSignatures=%u/3; READ ONLY, no qualification claim",
+        ba::log("Telemetry audit build verified: UnityPlayer sha256=%s normalized=%s crashSignatures=%u/3 coreCandidateSignatures=%u/40 performanceCandidateSignatures=%u/3; READ ONLY, no qualification claim",
             actualHash.c_str(),originalHash,groups[0],groups[1],groups[2]);
     } catch(const std::exception& e) {ba::log("Telemetry audit disabled: %s; no object reads attempted",e.what());}
     return !disabled;
@@ -212,10 +221,10 @@ static void deviceProbe() noexcept {
     attempted=true;
     try {
         auto require=[](bool value,const char* why){if(!value)throw std::runtime_error(why);};
-        require(requested() && checked && !disabled && completeRecipe12 && auditThread==GetCurrentThreadId() &&
+        require(requested() && checked && !disabled && completeRecipe13 && auditThread==GetCurrentThreadId() &&
             ba::flag(L"-native-quit-smoke") && ba_native_settings::session &&
             ba_native_settings::session->profile().compare(0,12,"nativestest_")==0,
-            "complete recipe12,initialized game thread and explicit owned diagnostic required");
+            "complete recipe13,initialized game thread and explicit owned diagnostic required");
         struct Main {
             uintptr_t pointer=0,vtable=0,worker=0;
             uint64_t header[4]={};uint32_t marker=0,state=0,init=0,archive=0;
@@ -337,6 +346,37 @@ static void deviceProbe() noexcept {
             read(before.pointer,0x1620,tracking) && tracking==1 && read(before.pointer,0x1621,dirty) && dirty==1,
             "event API changed sampled disabled state or identity metadata");
         ba::log("TELEMETRY EVENTS probe passed: version=1 thread=%lu calls=3 returnedDisabled=3 borrowedUnreadable=1 sampledStateUnchanged=1 payloadRead=0",
+            GetCurrentThreadId());
+        // Remaining registered entries include mixed double/Boolean/stack ABI.
+        // All calls execute only the verified constant-disabled replacement.
+        for(const size_t rva:{size_t(0x207ad0),size_t(0x208890),size_t(0x208c50),size_t(0x209000),size_t(0x2096c0),
+                             size_t(0x209d80),size_t(0x20a610),size_t(0x20b690),size_t(0x20bea0)}) {
+            const Signature* entry=nullptr;for(const auto& item:signatures)if(item.rva==rva)entry=&item;
+            require(entry!=nullptr,"event-control entry signature absent");
+            Bytes guarded=hex(entry->original),change=hex(entry->candidate),live(guarded.size());
+            require(change==Bytes({0xb8,2,0,0,0,0xc3}),"event-control entry must return disabled status2");
+            memcpy(guarded.data(),change.data(),change.size());
+            require(copy(unity+rva,live.data(),live.size()) && live==guarded,"event-control entry not fully guarded");
+            const auto input=reinterpret_cast<void*>(uintptr_t(1));int status=-1;
+            switch(rva) {
+                case 0x207ad0:status=reinterpret_cast<int(*)(void*,double,void*,void*,void*,bool)>(unity+rva)(input,1.25,input,input,input,true);break;
+                case 0x208890:status=reinterpret_cast<int(*)(void*)>(unity+rva)(input);break;
+                case 0x208c50:status=reinterpret_cast<int(*)(void*,bool)>(unity+rva)(input,true);break;
+                case 0x209000:status=reinterpret_cast<int(*)(void*,int,void*)>(unity+rva)(input,1,input);break;
+                case 0x2096c0:status=reinterpret_cast<int(*)(void*,bool,int,void*)>(unity+rva)(input,true,1,input);break;
+                case 0x209d80:case 0x20a610:status=reinterpret_cast<int(*)(void*,int,int,void*,int,void*,void*)>(unity+rva)(input,1,1,input,1,input,input);break;
+                case 0x20b690:status=reinterpret_cast<int(*)(void*,void*,int,void*)>(unity+rva)(input,input,1,input);break;
+                case 0x20bea0:status=reinterpret_cast<int(*)(void*,int,int,void*)>(unity+rva)(input,1,1,input);break;
+            }
+            require(status==2,"event-control API did not return disabled status2");
+        }
+        require(capture(after) && capture(last) && same(before,after) && same(after,last) &&
+            identities(idAfter) && idBefore.userTag==idAfter.userTag && idBefore.userRemaining==idAfter.userRemaining &&
+            idBefore.deviceTag==idAfter.deviceTag && idBefore.deviceRemaining==idAfter.deviceRemaining &&
+            read(before.pointer,0x1618,adTag) && adTag==1 && read(before.pointer,0x1610,adRemaining) && adRemaining==24 &&
+            read(before.pointer,0x1620,tracking) && tracking==1 && read(before.pointer,0x1621,dirty) && dirty==1,
+            "event-control API changed sampled disabled state or identity metadata");
+        ba::log("TELEMETRY EVENTCONTROL probe passed: version=1 thread=%lu calls=9 returnedDisabled=9 borrowedUnreadable=1 sampledStateUnchanged=1 payloadRead=0",
             GetCurrentThreadId());
     } catch(...) {
         // A refusal makes no success claim and never blocks original Quit.

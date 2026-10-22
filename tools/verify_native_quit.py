@@ -76,6 +76,12 @@ def telemetry_evidence(text,rows,expected_sha256,*,after_practice=False,device_p
                         ads[0].end()<events[0].start()<events[0].end()<begin[0].start(),
                         'guarded event APIs did not return disabled with unchanged sampled state before original Quit')
                     result['event_apis_guarded_disabled_before_input_access']=True
+                    if result['recipe_version']>=13:
+                        controls=list(re.finditer(r'^\[(\d+)\] TELEMETRY EVENTCONTROL probe passed: version=1 thread=(\d+) calls=9 returnedDisabled=9 borrowedUnreadable=1 sampledStateUnchanged=1 payloadRead=0$',text,re.M))
+                        startup.require(len(controls)==1 and int(controls[0][2])==thread and int(controls[0][1])<=int(begin[0][1]) and
+                            events[0].end()<controls[0].start()<controls[0].end()<begin[0].start(),
+                            'guarded transaction/registration/event controls did not return disabled with unchanged sampled state before original Quit')
+                        result['event_control_apis_guarded_disabled_before_input_access']=True
     return dict(**result,same_original_quit_thread=True,pre_confirm_tick=tick,original_confirm_tick=dispatch[0]['tick'])
 
 
