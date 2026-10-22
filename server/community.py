@@ -64,6 +64,7 @@ class Community:
         self.invite_timeout, self.start_timeout = invite_timeout, start_timeout
         self.sessions, self.lobbies, self.invites = {}, {}, {}
         self.revision, self.directory_rows = 0, ()
+        self.portrait_rows = ()
         self.maintenance = None
         self.launches = set()
         self.closing = False
@@ -85,6 +86,7 @@ class Community:
 
     def publish_presence(self, *, recipient=None):
         rows = []
+        portraits = {}
         for peer in self.server.peers:
             if peer.closed or peer.profile_id is None:
                 continue
@@ -101,16 +103,33 @@ class Community:
                 status = c.IN_MATCH if peer.room and peer.room.state not in ('lobby', 'completed', 'closed') else c.IN_LOBBY
                 invitable = False  # Legacy clients cannot receive invitation messages.
             rows.append((peer.profile_id, peer.name, status, invitable))
+            # Re-derive from validated slots, never a caller's derived portrait ID
+            # or a disk profile changed after this session's selection was frozen.
+            portrait = 0
+            if session and session.cosmetics and self.server.cosmetic_catalog:
+                try:
+                    portrait = self.server.cosmetic_catalog.validate_selection(session.cosmetics.slots).portrait
+                except ValueError:
+                    pass  # An unavailable/foreign selection gets the client fallback.
+            portraits[peer.profile_id] = portrait
         rows = tuple(sorted(rows))
-        changed = rows != self.directory_rows
+        portrait_rows = tuple(sorted(portraits.items()))
+        changed = rows != self.directory_rows or portrait_rows != self.portrait_rows
         if changed:
             self.directory_rows = rows
+            self.portrait_rows = portrait_rows
             self.revision += 1
         if changed or recipient:
-            packet = c.directory(self.revision, rows)
+            packets = {}
             targets = [recipient] if recipient and not changed else [s.peer for s in self.sessions.values()]
             for peer in targets:
-                self.send(peer, c.DIRECTORY, packet)
+                version = peer.community_version
+                if version not in packets:
+                    packets[version] = ((c.DIRECTORY_PORTRAITS, c.directory_portraits(
+                        self.revision, rows, self.server.cosmetic_catalog.sha256 if self.server.cosmetic_catalog else '0'*64,
+                        portraits)) if version == c.PORTRAIT_VERSION else (c.DIRECTORY, c.directory(self.revision, rows)))
+                kind, packet = packets[version]
+                self.send(peer, kind, packet)
 
     def register(self, peer, profile, name):
         try:
@@ -122,7 +141,7 @@ class Community:
             self.server.audit('profile_load_fallback', profile=profile, reason=str(error))
         peer.profile_id, peer.name, peer.community = profile, name, True
         self.sessions[profile] = Session(peer, list(deck), cosmetics=cosmetics)
-        self.send(peer, c.WELCOME, c.welcome(profile, deck))
+        self.send(peer, c.WELCOME, c.welcome(profile, deck, version=peer.community_version))
         self.publish_presence(recipient=peer)
         self.server.audit('community_joined', profile=profile, name=name)
 
@@ -274,6 +293,7 @@ class Community:
                 raise Rejected('profile save unavailable') from error
             session.deck, session.cosmetics = list(command['deck']), cosmetics
             if kind == loadout.SET_LOADOUT: session.full_loadout = True
+            self.publish_presence()
             self.server.audit('community_loadout_saved', profile=profile, complete=kind == loadout.SET_LOADOUT,
                               catalog=cosmetics.catalog_sha256 if cosmetics else None, slots=len(cosmetics.slots) if cosmetics else 0)
             if lobby:

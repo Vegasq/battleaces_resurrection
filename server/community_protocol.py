@@ -10,6 +10,8 @@ from . import protocol as p
 from . import loadout_protocol as loadout
 
 VERSION = 1
+PORTRAIT_VERSION = 2
+DIRECTORY_PORTRAITS = 69
 HELLO, WELCOME, DIRECTORY, CREATE, LOBBY = range(40, 45)
 INVITE, REPLY, CANCEL, START, READY, LEAVE, SET_DECK, RETURN, ACK, INVITATION, REFRESH, ABORTED = range(45, 57)
 PRACTICE = 57
@@ -64,20 +66,28 @@ class Reader:
         p.require(self.offset == len(self.payload), 'extra community fields')
 
 
-def hello(profile_id, name):
-    return struct.pack('<H', VERSION) + p.hello(p.AUTO_SEAT, profile_id, name, 'community')
+def hello(profile_id, name, *, version=VERSION):
+    p.require(version in (VERSION, PORTRAIT_VERSION), 'unsupported community protocol')
+    return struct.pack('<H', version) + p.hello(p.AUTO_SEAT, profile_id, name, 'community')
+
+
+def hello_version(payload):
+    p.require(len(payload) >= 2, 'truncated community hello')
+    version, = struct.unpack_from('<H', payload)
+    p.require(version in (VERSION, PORTRAIT_VERSION), 'unsupported community protocol')
+    return version
 
 
 def decode_hello(payload):
-    p.require(len(payload) >= 2 and struct.unpack_from('<H', payload)[0] == VERSION,
-              'unsupported community protocol')
+    hello_version(payload)
     slot, profile_id, name, room = p.decode_hello(payload[2:])
     p.require(slot == p.AUTO_SEAT and room == 'community', 'invalid community hello')
     return profile_id, name
 
 
-def welcome(profile_id, deck):
-    return struct.pack('<HH', VERSION, p.VERSION) + p.encode_string(profile_id) + p.deck_bytes(deck)
+def welcome(profile_id, deck, *, version=VERSION):
+    p.require(version in (VERSION, PORTRAIT_VERSION), 'unsupported community protocol')
+    return struct.pack('<HH', version, p.VERSION) + p.encode_string(profile_id) + p.deck_bytes(deck)
 
 
 def decode_command(kind, payload):
@@ -125,6 +135,22 @@ def directory(revision, rows):
     return struct.pack('<QH', revision, len(rows)) + b''.join(
         p.encode_string(profile) + p.encode_string(name) + bytes((status, bool(invitable)))
         for profile, name, status, invitable in rows)
+
+
+def directory_portraits(revision, rows, catalog_sha256, portraits):
+    """Version2 clients only; v1 directory bytes and recipients stay unchanged."""
+    p.require(len(rows) <= MAX_PLAYERS, 'community directory capacity')
+    p.require(type(catalog_sha256) is str and len(catalog_sha256) == 64 and
+              all(c in '0123456789abcdef' for c in catalog_sha256), 'invalid portrait catalog')
+    body = struct.pack('<H', 1) + bytes.fromhex(catalog_sha256) + struct.pack('<QH', revision, len(rows))
+    for profile, name, status, invitable in rows:
+        portrait = portraits.get(profile, 0)
+        p.require(type(portrait) is int and 0 <= portrait <= 0xffffffff and
+                  (not portrait or catalog_sha256 != '0'*64), 'invalid directory portrait')
+        body += (p.encode_string(profile) + p.encode_string(name) + bytes((status, bool(invitable))) +
+                 struct.pack('<I', portrait))
+    p.require(len(body) <= 32768, 'portrait directory size')
+    return body
 
 
 def lobby_state(lobby, sessions, reason='', *, complete=False):

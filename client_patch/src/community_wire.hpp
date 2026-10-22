@@ -113,9 +113,10 @@ struct Writer {
         for(const auto& pair:value.slots){number(pair.first,4);number(pair.second,4);}
     }
 };
-struct Welcome {std::string profile;Deck deck;};
-struct Player {std::string profile,name;unsigned char status;bool invitable;};
-struct Directory {uint64_t revision;std::vector<Player> players;};
+constexpr unsigned char DirectoryPortraits=69;
+struct Welcome {std::string profile;Deck deck;unsigned version=1;};
+struct Player {std::string profile,name;unsigned char status;bool invitable;uint32_t portrait=0;};
+struct Directory {uint64_t revision;std::vector<Player> players;std::array<unsigned char,32> catalog{};bool portraits=false;};
 struct Member {std::string profile;Deck deck;bool ready,returned;bool full=false;Selection cosmetics;};
 struct Lobby {
     uint64_t revision=0;unsigned char phase=None;uint32_t epoch=0;
@@ -130,14 +131,21 @@ inline Event decode(unsigned char kind,const Bytes& bytes) {
     Reader r(bytes);Event result;
     switch(kind) {
     case WelcomeKind: {
-        require(r.u16()==version && r.u16()==gameVersion,"unsupported community welcome version");
-        Welcome value;value.profile=r.id();value.deck=r.deck();result=std::move(value);break;
+        Welcome value;value.version=r.u16();
+        require((value.version==version || value.version==2) && r.u16()==gameVersion,"unsupported community welcome version");
+        value.profile=r.id();value.deck=r.deck();result=std::move(value);break;
     }
-    case DirectoryKind: {
-        Directory value;value.revision=r.u64();const auto count=r.u16();
+    case DirectoryKind: case DirectoryPortraits: {
+        Directory value;value.portraits=kind==DirectoryPortraits;bool catalog=false;
+        if(value.portraits) {
+            require(r.u16()==1,"unsupported portrait directory version");
+            for(auto& byte:value.catalog){byte=r.u8();catalog|=byte!=0;}
+        }
+        value.revision=r.u64();const auto count=r.u16();
         require(count<=maxPlayers,"community directory capacity");
         for(unsigned i=0;i<count;++i) {
             Player row;row.profile=r.id();row.name=r.text();row.status=r.u8();row.invitable=r.flag();
+            if(value.portraits){row.portrait=r.u32();require(!row.portrait || catalog,"portrait without catalog");}
             require(!row.name.empty() && utf8(row.name)<=32,"community display name bound");
             require(row.status<=3 && (!row.invitable || row.status==0),"invalid community availability");
             require(value.players.empty() || value.players.back().profile<row.profile,"unsorted or duplicate community profile");

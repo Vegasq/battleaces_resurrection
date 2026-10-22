@@ -1,5 +1,45 @@
 #pragma once
 namespace ba_cosmetics {
+static uint32_t communityPortrait(uint32_t requested,const std::array<unsigned char,32>& catalog) {
+    if(ba::flag(L"-community-portrait-delay-smoke")) {
+        require(ba::flag(L"-community-portrait-smoke"),"portrait delay requires the owned renderer diagnostic");
+        static ULONGLONG availableAt=GetTickCount64()+2000;
+        if(GetTickCount64()<availableAt)return 0;
+    }
+    // A directory ID cannot select arbitrary assets: require this catalog and
+    // the original portrait slot filter. Missing/old data uses the shipped default.
+    if(!catalogReady())return 0;
+    Root config(ba::get<Obj>(ba::owner,"_clientGlobalConfig"));
+    if(!config.get())return 0;
+    Root slot(slots.at(ba::get<uint32_t>(config.get(),"PortraitCosmeticSlot")));
+    if(!slot.get())return 0;
+    auto valid=[&](uint32_t id) {
+        if(!id)return false;
+        Root elements(ba::call(ba_public_bots::cosmetics.get(),"get_Elements"));
+        const auto count=ba_catalog::length(elements.get());require(count<=4096,"community portrait catalog capacity");
+        bool known=false;
+        for(size_t i=0;i<count && !known;++i) {
+            Root item(ba_catalog::arrayAt(elements.get(),i));
+            known=ba_catalog::unbox<uint32_t>(ba::call(item.get(),"get_ID"))==id;
+        }
+        if(!known)return false; // Never ask the native table to resolve an unknown key.
+        Root item(ba_public_bots::cosmetics.at(id));if(!item.get())return false;
+        Root definition(ba::call(item.get(),"get_Definition"));if(!definition.get())return false;
+        void* args[]={definition.get()};Root accepted(ba::call(slot.get(),"FilterItem",1,args));
+        return ba_tables::boolean(accepted.get());
+    };
+    static const char hex[]="0123456789abcdef";std::string digest;
+    for(auto byte:catalog){digest+=hex[byte>>4];digest+=hex[byte&15];}
+    // Non-unified diagnostic/community launchers have no persistence cache;
+    // establish the same read-only catalog identity without creating a profile.
+    static auto& directoryCatalog=*new std::string();
+    if(directoryCatalog.empty()) {
+        const auto text=serialize();directoryCatalog=ba_export::hash(ba_export::Bytes(text.begin(),text.end()));
+    }
+    if(digest==directoryCatalog && valid(requested))return requested;
+    const auto fallback=ba::get<uint32_t>(slot.get(),"DefaultItem");
+    return valid(fallback)?fallback:0;
+}
 static std::vector<uint32_t> orderedItems(const FrozenLoadout& frozen) {
     std::vector<uint32_t> result;
     for(const auto& pair:frozen.slots)if(pair.second)result.push_back(pair.second);

@@ -7,6 +7,7 @@ from __future__ import annotations
 
 import argparse
 import asyncio
+import ctypes
 from datetime import datetime, timezone
 import hashlib
 import json
@@ -22,6 +23,8 @@ from server.assets import verify_assets
 from server.dedicated_server import Audit, DedicatedServer
 from server.game_data import GameTemplate
 from server.profiles import ProfileStore
+from server.cosmetics import CosmeticCatalog
+from server import loadout_protocol
 from server import community_protocol as community_wire
 from tools.verify_worker_rooms import ScriptedPeer
 from tools.run_secure_match import read_native_log
@@ -56,7 +59,18 @@ async def run(args):
     template = GameTemplate.load(assets / 'map-1v1.pb.gz', catalog_path=assets / 'unit-catalog.json', descriptors_path=assets / 'descriptors')
     audit = Audit(output)
     events, processes, scripted = [], [], []
+    ticks = {}
+    clock = ctypes.WinDLL('kernel32').GetTickCount64
+    clock.restype = ctypes.c_ulonglong
     profiles = ['custom_' + uuid.uuid4().hex for _ in range(2)]
+    book = CosmeticCatalog(assets) if args.portraits else None
+    profile_store = ProfileStore(output / 'profiles', template, catalog=book)
+    if book:
+        portrait_slot = book.roles['portrait']
+        choices = sorted(book.slots[portrait_slot].compatible_items)
+        require(len(choices)>=2, 'portrait proof needs two installed portraits')
+        for index, profile in enumerate(profiles):
+            profile_store.save(profile, template.default_decks[0], cosmetics=book.normalize_local({portrait_slot:choices[index]}))
     report = dict(passed=False, utc=datetime.now(timezone.utc).isoformat(), source_sha256_at_start=source_hashes(),
         scope=('Native Create/Leave and pooled roster binding/lifecycle' if args.roster else 'Native manager Create/Leave callbacks') +
               '; no manual visual, invitation, AI or gameplay qualification',
@@ -69,7 +83,7 @@ async def run(args):
     async def unexpected_match(_):
         raise AssertionError('Create/Leave test must not create a simulation worker')
 
-    server = DedicatedServer(template, ProfileStore(output / 'profiles', template), audit=observe,
+    server = DedicatedServer(template, profile_store, audit=observe,
         sim_factory=unexpected_match, data_dir=output, lobby_timeout=300)
     # Delay only the native CREATE acknowledgment, keeping the earlier lobby
     # snapshot immediate. This forces Leave/re-enter while the original native
@@ -91,24 +105,43 @@ async def run(args):
                 '-dedicated-community', '-community-roster-smoke' if args.roster else '-community-create-smoke', '-player-id=' + profile,
                 '-player-name=' + (('<b>Roster one</b>', 'Roster \u2605 two')[index] if args.roster else 'Custom probe ' + str(index + 1)), '-screen-fullscreen', '0',
                 '-screen-width', '960', '-screen-height', '540', '-logFile', str(output / f'game-{index}.log')]
+            if args.portraits: command.extend(['-community-portrait-smoke','-community-portrait-delay-smoke'])
             startup = subprocess.STARTUPINFO();startup.dwFlags |= subprocess.STARTF_USESHOWWINDOW;startup.wShowWindow = 0
+            launch_tick = clock()
             processes.append(subprocess.Popen(command, cwd=game, startupinfo=startup,
                 creationflags=subprocess.CREATE_NO_WINDOW, close_fds=True))
+            ticks[processes[-1].pid] = launch_tick
             report['game_pids'].append(processes[-1].pid);report['client_arguments'].append(command)
         (output / 'processes.json').write_text(json.dumps(report, indent=2))
         deadline = time.monotonic() + args.startup_timeout
         churn_stage = 0
         while True:
             require(all(p.poll() is None for p in processes), 'native client exited before callback verification')
-            logs = [read_native_log(game, p.pid) for p in processes]
+            logs = [read_native_log(game, p.pid, since_tick=ticks[p.pid]) for p in processes]
             require(all('Offline loop stopped in ' not in log for log in logs), 'native community adapter failed; inspect retained logs')
             if args.roster and churn_stage == 0 and all('Community roster populated:' in log for log in logs):
                 reader, writer = await asyncio.open_connection(*address[:2])
                 peer = ScriptedPeer(reader, writer);scripted.append(peer)
-                await peer.send(community_wire.HELLO, community_wire.hello('roster_' + uuid.uuid4().hex, '<color=red>Peer</color>'))
+                peer.profile = 'roster_' + uuid.uuid4().hex
+                await peer.send(community_wire.HELLO, community_wire.hello(peer.profile, '<color=red>Peer</color>'))
                 await peer.receive(community_wire.WELCOME)
                 churn_stage = 1
             elif args.roster and churn_stage == 1 and all('COMMUNITY ROSTER SMOKE live join: count=3 TMP checked' in log for log in logs):
+                if book:
+                    # Missing connected selection must render the original local
+                    # default, never the previous pooled occupant's portrait.
+                    server.community.sessions[scripted[0].profile].cosmetics = None
+                    server.community.publish_presence();churn_stage = 10
+                else:
+                    await scripted[0].close();churn_stage = 2
+            elif book and churn_stage == 10 and all(
+                f'profile={scripted[0].profile} requested=0 rendered={book.normalize_local().portrait} ' in log for log in logs):
+                selected = book.normalize_local({portrait_slot:choices[-1]})
+                await scripted[0].send(loadout_protocol.SET_LOADOUT,
+                    loadout_protocol.set_loadout(1, template.default_decks[0], selected))
+                await scripted[0].receive(community_wire.ACK);churn_stage = 11
+            elif book and churn_stage == 11 and all(
+                f'profile={scripted[0].profile} requested={selected.portrait} rendered={selected.portrait} ' in log for log in logs):
                 await scripted[0].close();churn_stage = 2
             if all((ROSTER_PASSED if args.roster else PASSED) in log for log in logs):
                 break
@@ -141,13 +174,20 @@ async def run(args):
             simulation_workers=0, callbacks_deferred=True, create_ack_delay_seconds=.35,
             cancelled_creates_without_stale_native_callback=0 if args.roster else 2, rapid_reenters=0 if args.roster else 2,
             roster_open_close_cycles_per_client=3 if args.roster else 0, roster_churn_verified=bool(args.roster))
+        if book:
+            require(churn_stage == 2 and all('COMMUNITY PORTRAIT verified:' in log for log in logs), 'portrait churn proof missing')
+            require(all('Community portrait assets ready; repainting the owned picker without a directory event' in log for log in logs),
+                    'delayed portrait readiness did not repaint the owned picker')
+            report.update(portraits=True, catalog_sha256=book.sha256, selected_portrait_ids=choices[:2],
+                live_portrait_update=True, missing_selection_fallback=True, native_material_bindings=True,
+                active_image_hierarchy=True, steam_texture_absent=True, delayed_asset_readiness_repaint=True)
         print('Native custom ' + ('roster lifecycle and live directory' if args.roster else 'Create/Leave cancellation') + ' passed; presence retained.', flush=True)
     except BaseException as error:
         report.update(error=repr(error), traceback=traceback.format_exc())
         raise
     finally:
         for process in processes:
-            (output / f'native-{process.pid}.log').write_text(read_native_log(game, process.pid), encoding='utf-8')
+            (output / f'native-{process.pid}.log').write_text(read_native_log(game, process.pid, since_tick=ticks[process.pid]), encoding='utf-8')
             if process.poll() is None:
                 process.terminate()
         for process in processes:
@@ -170,8 +210,10 @@ def main():
         parser.add_argument('--' + name, required=True, type=Path)
     parser.add_argument('--startup-timeout', type=int, default=150)
     parser.add_argument('--roster', action='store_true', help='qualify pooled directory renderer; invitation actions remain disabled')
+    parser.add_argument('--portraits', action='store_true', help='verify selected portraits, native Image bindings, live edit and missing-data fallback')
     args = parser.parse_args()
     require(30 <= args.startup_timeout <= 300, 'startup timeout must be30..300 seconds')
+    require(not args.portraits or args.roster, '--portraits requires --roster')
     asyncio.run(run(args))
 
 

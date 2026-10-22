@@ -57,6 +57,7 @@ static void receive(unsigned char kind,const wire::Bytes& payload) {
     } else {
         wire::require(online,"community event before welcome");
         if(const auto* listing=std::get_if<wire::Directory>(&event)) {
+            wire::require(listing->portraits==(welcome.version==2),"community directory capability mismatch");
             wire::require(listing->revision>=directory.revision,"community directory revision regressed");
             bool self=false;std::map<uint64_t,std::string> aliases;
             for(const auto& row:listing->players) {

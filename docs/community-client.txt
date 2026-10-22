@@ -1,6 +1,29 @@
 EXPERIMENTAL NATIVE COMMUNITY CLIENT
 Updated:2026-10-17. Windows build37822; source-only adapter.
 
+VISIBLE PRESENTATION GAP - REVIEWED2026-10-22
+Initial report and diagnosis below are historical. Development105 now binds
+server-selected validated cosmetic portraits through the original Material
+renderer. Mixed-version sockets and native selected-model/material/Image/live
+edit/fallback/pooled-cycle/explicit asset-delay checks pass at source scope.
+Paired package qualification continues;physical pixels remain unobserved. See
+community-portraits105.txt. Current shipped103/104 handoffs are unchanged.
+Nick reports no avatars in Invite Friend. This matches the current adapter:
+community_roster.cpp present() clears Portrait and both cosmetic-availability
+flags,while modelFor() omits Steam avatar tasks. The original prefab has a null
+Steam RawImage and inactive cosmetic avatar by default (custom-roster-bindings.txt).
+Community.publish_presence currently sends only profile,name,status,invitable;
+community_wire.hpp Player has the same fields. Thus selected portrait data is not
+carried to these rows. This is a temporary implementation limitation,not evidence
+that match cosmetics failed or the original game intended blank friend avatars.
+D3 tracks validated server-local selected portraits and native cosmetic bindings,
+including live changes,pool reuse and missing-data fallback. At that review no
+implementation/runtime verification was claimed. Do not enable Steam lookup
+or merely turn on the cosmetic-availability flag without supplying its model.
+Separately,the original Front.get_DisplayName appends the Alias suffix;local
+identity flags remain required by the adapter. Any cleanup must change display
+only,not flags/routing or Front.SetPlayerName's original-service connection.
+
 IMPLEMENTED BOUNDARY
 The helper can join community control v1 independently of simulation seats,
 receive bounded directory/lobby events, and drive original CustomGameLobbyManager

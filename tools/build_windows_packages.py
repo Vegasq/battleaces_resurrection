@@ -21,7 +21,7 @@ ROOT = Path(__file__).resolve().parents[1]
 PYTHON_VERSION = '3.14.8'
 PYTHON_ZIP_SHA256 = 'a93abe456ab01bd96d7a085b3cdb6566b3063f4241360d114142fbdb07f0a310'
 PYTHON_URL = 'https://www.python.org/ftp/python/3.14.8/python-3.14.8-embed-amd64.zip'
-PACKAGE_VERSION = '0.3.0-rc1.4'
+PACKAGE_VERSION = '0.3.0-rc1.5'
 RUNTIME_PTH = b'python314.zip\n.\n../app\n'
 COMMON = (
     'server/__init__.py', 'server/protocol.py', 'server/credentials.py',
@@ -236,7 +236,8 @@ def build(runtime_zip, helper, output, *, allow_dirty=False, server_launcher=Non
             raise PackageError('Certificate helper build differs from current sources')
         crypto=(data,receipt)
     if source['dirty'] and not allow_dirty: raise PackageError('Commit source changes or explicitly use --allow-dirty for a local preview')
-    versions = dict(package=PACKAGE_VERSION, game_build=37822, game_protocol=3, community_protocol=1,
+    versions = dict(package=PACKAGE_VERSION, game_build=37822, game_protocol=3, community_protocol=2,
+                    community_protocol_min=1,
                     asset_format=1, patch_schema=2, python=PYTHON_VERSION, platform='windows-amd64')
     plans = {}
     for product, sources in (('server', SERVER), ('client', CLIENT)):

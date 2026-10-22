@@ -1,6 +1,10 @@
-BATTLE ACES RESURRECTION - NATIVE RC1.4 INSTALLER
+BATTLE ACES RESURRECTION - NATIVE RC1.5 INSTALLER
 
-Double-click the standalone BattleAces-Installer-RC1-104.exe. It contains the
+Update the host with the matching105 server before installing this105 client.
+The pair adds selected portraits to Invite Friend. Earlier103 servers cannot
+accept this client;earlier103/104 clients can still join the updated server.
+
+Double-click the standalone BattleAces-Installer-RC1-105.exe. It contains the
 complete patch runtime;no ZIP extraction,Python install or PowerShell policy
 change is required. Alternatively,extract the full client ZIP and double-click
 Install Battle Aces.exe. Setup Client.cmd opens that same native window.

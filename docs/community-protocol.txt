@@ -1,6 +1,27 @@
 COMMUNITY SESSION CONTROL V1
 Updated: 2026-10-18. Server implementation: community.py/community_protocol.py.
 
+PORTRAIT EXTENSION - DEVELOPMENT105,2026-10-22
+The current source also accepts community HELLO version2 and echoes that version
+in WELCOME41. The remainder of HELLO/WELCOME is unchanged. Version1 still gets
+exact DIRECTORY42 bytes;only version2 receives DIRECTORY_PORTRAITS69 instead.
+69 payload:u16 presentationVersion=1,32raw bytes cosmetic catalog SHA256,
+u64 directory revision,u16 count;each row:text profile,text name,u8 status,
+u8 invitable,u32 portrait cosmetic item ID. A zero digest permits only zero IDs.
+All existing identity/name/availability/order/count bounds apply;native payload
+limit32768bytes covers136maximal UTF8 names/keys. Portrait IDs come from the
+connected session's validated slot selection,not arbitrary derived fields or a
+later disk-profile reload. A selection change advances the directory revision.
+No URL,image bytes,Steam identity,IP or credentials are added. Missing/foreign
+catalog/invalid local portrait uses the original installed default;the client
+checks catalog identity and the original portrait-slot FilterItem before binding.
+New native source sends HELLO2. It needs the updated server;server103 rejects2.
+Deploy the next client/server pair together after qualification. Existing103/104
+client HELLO1 works with the updated server. Do not replace current handoff bytes
+or claim backward new-client/old-server support. Existing match/worker ABI and
+loadout65..68 bytes remain unchanged. Development105 qualification is tracked in
+community-portraits105.txt;the shipped103/104 candidates remain frozen.
+
 STATUS AND COMPATIBILITY
 The server implements this extension. The opt-in graphical community helper uses
 this handshake for the native custom-menu adapter; normal launchers retain the

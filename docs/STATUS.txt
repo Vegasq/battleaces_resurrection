@@ -3,6 +3,17 @@ Updated: 2026-10-22
 Delivery plan: REMAINING_DELIVERY_PLAN.txt, Windows only.
 Original roadmap: CLOSED / SUPERSEDED;see PLAN_CLOSEOUT.txt.
 
+COMMUNITY PORTRAITS105 - SOURCE/NATIVE PASS;PAIRED PACKAGING IN PROGRESS
+Invite Friend now binds server-selected,validated original cosmetic portraits.
+HELLO2/directory69 is per-client;legacy1 keeps exact42.74affected tests73pass/
+1existing opt-in owner-DACL skip,16package checks and required native C++ suites
+pass. Final helper06 native05 passes21.2411s:two clients,selected original models,
+Material->enabled active Image,live edit,missing/foreign/unknown-key fallback,
+three pooled cycles and explicit delayed-readiness repaint. No worker started;
+owned PIDs reaped,sources unchanged. Exact evidence:community-portraits105.txt.
+Current103/104 handoff bytes stay frozen;next105 client needs matching new server.
+Paired package/visible pixel acceptance remain;Alias display cleanup is separate.
+
 PHYSICAL LAN1v1 PASS / USERNAME104 REQUIREMENT ADDED
 Nick reports "1v1 over real lan worked!" Accept cross-PC LAN1v1 play;do not repeat
 first-match reachability. Exact menu path/rematch/results/Continue/Quit/restart/

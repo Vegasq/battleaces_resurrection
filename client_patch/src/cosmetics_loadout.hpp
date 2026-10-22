@@ -21,4 +21,5 @@ static void practiceHumanProof(void* server,const FrozenLoadout& frozen,void* de
 static void remoteProof(void* front);
 static void practiceRematchSmoke(void* front);
 static void captureHumanProfile(const std::string& match,bool result);
+static uint32_t communityPortrait(uint32_t requested,const std::array<unsigned char,32>& catalog);
 }

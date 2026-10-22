@@ -62,5 +62,13 @@ int main() {
     assert(!publication.acknowledge(6,SetDeck,true)); // A Custom operation owns a different ACK.
     publication.submit(7,SetLoadout);assert(publication.acknowledge(7,SetLoadout,false) && !publication.accepted);
     publication.reset();assert(!publication.acknowledge(5,SetLoadout,true));publication.submit(1,SetLoadout);
+    c::reset();auto modern=greeting();modern.bytes[0]=2;c::receive(WelcomeKind,modern.bytes);
+    rejects([]{c::receive(DirectoryKind,listing().bytes);});
+    Writer portraitListing;portraitListing.number(1,2);
+    for(unsigned i=0;i<32;++i)portraitListing.number(0,1);
+    auto base=listing();portraitListing.bytes.insert(portraitListing.bytes.end(),base.bytes.begin(),base.bytes.end());
+    portraitListing.number(0,4);c::receive(DirectoryPortraits,portraitListing.bytes);
+    assert(c::directory.portraits && c::player("me")->portrait==0);c::reset();
+    c::receive(WelcomeKind,greeting().bytes);rejects([&]{c::receive(DirectoryPortraits,portraitListing.bytes);});c::reset();
     std::cout << "community presence, deferred ACK correlation, revision, timeout and queue bounds passed\n";
 }

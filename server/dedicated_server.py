@@ -60,6 +60,7 @@ class Peer:
         self.profile_id = None
         self.name = None
         self.community = False
+        self.community_version = community_wire.VERSION
         self.next_input = 0
         self.joined_army = False
         self.closed = False
@@ -671,6 +672,7 @@ class DedicatedServer:
             is_community = kind == community_wire.HELLO
             if is_community:
                 profile_id, name = community_wire.decode_hello(payload)
+                peer.community_version = community_wire.hello_version(payload)
             else:
                 slot, profile_id, name, room_name = p.decode_hello(payload)
             p.require(not self.closing, "server stopped")

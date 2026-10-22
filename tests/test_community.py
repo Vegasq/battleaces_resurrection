@@ -46,15 +46,15 @@ class CommunityTests(DedicatedFixture):
             with self.assertRaises(p.ProtocolError):
                 c.decode_command(c.PRACTICE, struct.pack('<I', 1) + body)
 
-    async def online(self, profile=None, name=None):
+    async def online(self, profile=None, name=None, *, version=c.VERSION):
         profile = profile or 'p_' + uuid.uuid4().hex
         reader, writer = await asyncio.open_connection(*self.address[:2])
         peer = TestPeer(reader, writer)
         peer.profile, peer.request = profile, 0
         self.clients.append(peer)
-        await peer.send(c.HELLO, c.hello(profile, name or ('Player ' + profile[:8])))
+        await peer.send(c.HELLO, c.hello(profile, name or ('Player ' + profile[:8]), version=version))
         data = c.Reader(await peer.receive(c.WELCOME))
-        self.assertEqual((data.number('H'), data.number('H')), (c.VERSION, p.VERSION))
+        self.assertEqual((data.number('H'), data.number('H')), (version, p.VERSION))
         self.assertEqual(data.key(), profile)
         peer.deck = data.deck()
         data.end()
@@ -330,7 +330,7 @@ class CommunityTests(DedicatedFixture):
         reader, writer = await asyncio.open_connection(*self.address[:2])
         peer = TestPeer(reader, writer)
         self.clients.append(peer)
-        await peer.send(c.HELLO, b'\x02\x00' + c.hello('new-player', 'Player')[2:])
+        await peer.send(c.HELLO, b'\x03\x00' + c.hello('new-player', 'Player')[2:])
         self.assertIn(b'unsupported community', await peer.receive(p.ERROR))
         other = await self.online()
         await other.send(p.INPUT, struct.pack('<I', 0))

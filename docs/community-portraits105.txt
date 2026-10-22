@@ -1,0 +1,113 @@
+COMMUNITY FRIEND PORTRAITS105
+Started2026-10-22;D3 source/native qualification PASS;paired packaging in progress.
+
+Problem and intended behavior
+Nick reports blank avatars in Custom Game -> Invite Friend. The old community
+adapter intentionally suppressed both original cosmetic views and Steam texture
+loading. It supplied names/status only. This was a missing community feature;
+the original game supports both cosmetic portraits and Steam avatars.
+The community picker should show each connected player's selected in-game
+portrait,update after an equip,and fall back to its original installed default
+when selection/catalog data is unavailable. Do not fetch Steam avatars or accept
+image URLs. Keep original identity flags,canonical handles and invite routing.
+The unrelated original Alias display suffix remains a separate D3 cleanup.
+
+Original-byte/prefab contract
+REA binary_session on2026-10-22 confirmed no target open and Ghidra unconfigured
+(GHIDRA_INSTALL_DIR absent in the connected server). No setup/config repair or
+native provider decompilation was performed. Retained original IL2CPP metadata,
+LLVM disassembly and bounded prefab decoder provide the static evidence instead.
+local/portrait105-binding-contract01/FINDINGS.txt:
+ fd56166e8f580bccf67ab3042ab2affc6e738de1c7501514d09e0961f5f1fbf0
+local/portrait105-binding-contract01/evidence-manifest.json:
+ d2349e8350837a98e58ae522c79b2af5617a463f40e224bb92c936cb215fa23b
+It pins original DLL e59d08c01479b27404778048d7e13546dbf3771f6b3912744c7c2bdf80c4e758,
+metadata b760be9190309b14174cd272e1f83b730181b299bc7a0cdca66985c69dcdc57d,
+UI bundle e69769a1c70cbf50786f753d0fe5a79d46b4bc0a5569b7c59e37f05e15082283,
+exact prefab objects,native model/setter/material override contracts and5disassemblies.
+FriendVM._portraitVMs contains original CosmeticItemVM children. Bind original
+CosmeticItemModel(Item) through its real virtual setter. The shipped friend row
+uses CosmeticItemVM.Material -> Image.material,NOT Sprite -> Image.sprite.
+CosmeticPortraitAvailable activates Avatar and hides the Steam RawImage. The
+original material override may create a separate rendering buffer:compare base
+Image.material to VM.Material,never pointer-equality with materialForRendering.
+Keep FriendVM itself presentation-only and the outer native invite model bound.
+Original ClearModel unobserves nested views on clear/reuse;every rebind supplies
+the new model and flushes initialized binding collections.
+
+Implementation
+Community HELLO2 negotiates DIRECTORY_PORTRAITS69 with catalog digest and per-row
+portrait ID. Server keeps exact DIRECTORY42 for HELLO1. See community-protocol.txt
+for bytes,bounds and coordinated deployment. The server derives portraits from
+connected validated slots;accepted SET_LOADOUT republishes presence. Existing
+unified idle500ms loadout synchronization already observes native cosmetic equips.
+Client checks the original installed catalog hash and portrait slot FilterItem;
+unknown keys are rejected before native table lookup. Missing/foreign data gets
+the original default. A pending asset load is retried on the owned picker at500ms
+and repaints once ready even with no directory event. Reset/release remain scoped.
+No game files/assets/raw disassemblies enter source control or distribution.
+
+Evidence retained so far
+local/portrait105-python-tests02.txt:35affected tests PASS14.885s.
+local/portrait105-new-tests03.txt:3new portrait tests PASS0.473s.
+Mixed-version real sockets cover changed/connected-vs-disk selection,derived ID
+revalidation,accepted edit/rejected foreign catalog and departure. Authored max136
+row/32four-byte-scalar names fit32768bytes;legacy directory bytes remain exact.
+Native helper builds01..05 and their required C++ suites passed. Build05 adds
+enabled Image and invalid-key/foreign-catalog fallback assertions. Build06 adds
+an explicit2s diagnostic-only asset delay;normal arguments never enable it.
+Build06 and all required C++ suites PASS. Frozen helper:
+ build/helper-portrait105-06/BattleAcesOffline.dll
+ c6e16518572a6c6b0136eb4e728ed6315924d040b228e96b9ab038b68811d9d4
+Adjacent source-bound helper-build.json:
+ 76b9c2ec765e287792a6df9fdc9cebfe2c0d99b9238b13f2a61ffd4bc75f58be
+local/portrait105-affected-tests04.txt:74tests,73pass,1existing opt-in owner-DACL
+skip,31.808s. Covers affected community/loadout/public/coordinator/patch/package.
+After package version metadata updates,16package tests PASS5.278s:
+ local/portrait105-package-tests05.txt
+ 07c264bba974661eb317c52f312c69d32ee639321564d9b7c75dd0a2c684e927
+
+local/portrait105-native05/verification.json:PASS21.2411s using final helper06,
+same original model/material/enabled Image/fallback/live-edit/three pooled-cycle
+checks. Explicit2s diagnostic-only readiness delay exercised both clients'
+owned-picker repaint without a directory event. All sources unchanged,owned PIDs
+reaped,no simulation workers. Report SHA256:
+ 6618e34012145e2d77f757ef6187c52138884bb2bff2b4232271ab6e1f6d5677
+
+local/portrait105-native04/verification.json:PASS21.5196s. Two original native
+clients negotiated HELLO2;three pooled picker cycles each and a third scripted
+client joined,changed its portrait via real SET_LOADOUT,and departed. Missing
+selection renders the original default. Every checked owned CosmeticItemModel
+matches its selected ID;original Material binding reaches an enabled Image on
+the same active GameObject. Unknown-key/foreign-catalog native fallbacks pass.
+No simulation workers started;both owned game PIDs reaped,sources unchanged.
+This is programmatic native model/binding/hierarchy evidence,not inspected pixels,
+physical clicks,natural Quit or a new LAN match. The delayed-readiness branch
+was not observed in04,so06 explicitly holds availability for a bounded diagnostic
+delay and must require the owned-picker readiness repaint marker before passing.
+
+Failed probes remain failures
+native01-console:checker passed an unsupported cosmetic_catalog constructor
+keyword to DedicatedServer,which obtains its catalog from ProfileStore instead.
+No game/server listener launched. Fixed checker uses the real constructor.
+local/portrait105-native02/verification.json:FAIL14.1779s,owned PIDs reaped,
+sources unchanged. Diagnostic verified selected original model and nonnull Sprite
+but incorrectly required a Sprite binding that this prefab does not have.
+local/portrait105-native03/verification.json:FAIL12.9230s,owned PIDs reaped,
+sources unchanged. Bounded live binding inspection confirmed Material,Animation,
+CosmeticType sources and no Sprite receiver. This agrees with the independent
+original-byte/prefab contract. Corrected proof follows Material -> Image.material.
+Neither failure is rewritten as a pass or claimed as evidence of rendered pixels.
+
+Deployment/remaining scope
+Current client104/server103 installers and manual candidates remain unchanged.
+New helper sends HELLO2 and requires a newly packaged matching server;server103
+rejects2. Deploy the next pair together only after qualification. Old103/104
+clients remain supported by the updated server. No new manual request yet.
+Pending:final paired package qualification and physical visible portrait
+observation. Native binding/live edit/fallback/pooled reuse/readiness passed05
+at the scope above. The diagnostic fixture r103g is patched with final helper06;
+its original104 installer runtime/cache remains unchanged. This fixture is not
+a published105 installed-runtime acceptance or a reserved manual candidate.
+Native programmatic checks do not establish physical clicks,natural Quit,or
+cross-PC matches. D3 and the full roadmap remain OPEN.

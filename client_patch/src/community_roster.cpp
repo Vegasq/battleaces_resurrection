@@ -11,7 +11,8 @@ struct Row {
 };
 static auto& rows=*new std::vector<std::unique_ptr<Row>>();
 static auto& screen=*new std::unique_ptr<Root>();
-static bool dirty=false,building=false;
+static bool dirty=false,building=false,portraitsPending=false;
+static ULONGLONG portraitPollAt=0;
 static unsigned smokeStage=0,smokeRounds=0;
 static unsigned smokeChurn=0;
 static ULONGLONG smokeAt=0;
@@ -46,6 +47,28 @@ static std::string literalName(const std::string& text) {
 template<class T> static void property(Obj child,uintptr_t setter,T value) {
     ba::native<void(*)(Obj,T,Obj)>(setter)(child,value,nullptr);
 }
+static uint32_t portrait(Obj child,const wire::Player* player) {
+    Root views(ba::get<Obj>(child,"_portraitVMs"));
+    const size_t count=views.get()?ba_catalog::length(views.get()):0;
+    wire::require(count<=16,"community portrait view capacity");
+    uint32_t id=player?ba_cosmetics::communityPortrait(player->portrait,ba_community_native::directory.catalog):0;
+    if(player && !id)portraitsPending=true;
+    std::unique_ptr<Root> model;
+    if(id && count) {
+        Obj klass=ba::find_class("Uncapped","CosmeticItemModel");
+        ba::api<void(*)(Obj)>("il2cpp_runtime_class_init")(klass);
+        model=std::make_unique<Root>(ba::api<Obj(*)(Obj)>("il2cpp_object_new")(klass));
+        void* args[]={&id};ba::call(model->get(),".ctor",1,args);
+    }
+    for(size_t i=0;i<count;++i) {
+        Root view(ba_catalog::arrayAt(views.get(),i));
+        wire::require(view.get() && !strcmp(ba_dedicated_session::className(view.get()),"CosmeticItemVM"),"community portrait view type");
+        if(model)virtualBind(view.get(),model->get(),ba::read<Obj>(ba::klass(view.get()),0x240));
+        else if(ba::read<bool>(view.get(),0x50))ba::call(view.get(),"ClearModel");
+        if(initialized(view.get()))ba::native<void(*)(Obj,Obj)>(0x3d699d0)(view.get(),nullptr);
+    }
+    return count?id:0;
+}
 static void present(Obj child,const wire::Player* player) {
     wire::require(child && !strcmp(ba_dedicated_session::className(child),"FriendVM"),"community child renderer type");
     // Clear an old observed native model through its own lifecycle, without
@@ -60,7 +83,8 @@ static void present(Obj child,const wire::Player* player) {
     property(child,0x3d00c10,player!=nullptr);property(child,0x3d00cb0,player && player->status==2);
     property(child,0x3d00d50,player?1:3);property(child,0x3d00de0,busy);
     property(child,0x3d00f20,0);property(child,0x3d00fc0,0);property(child,0x3d01060,0);
-    property(child,0x3d01100,false);property(child,0x3d011b0,false);property<Obj>(child,0x3d01250,nullptr);
+    const auto portraitId=portrait(child,player);
+    property(child,0x3d01100,false);property(child,0x3d011b0,portraitId!=0);property<Obj>(child,0x3d01250,nullptr);
     property(child,0x3d012f0,false);property(child,0x3d01390,false);property(child,0x3d01440,false);
     property(child,0x3d014f0,false);property(child,0x3d01590,false);property(child,0x3d01640,player!=nullptr);
     if(initialized(child))ba::native<void(*)(Obj,Obj)>(0x3d699d0)(child,nullptr);
@@ -74,7 +98,7 @@ static void reset() {
         ba::native<void(*)(Obj,Obj)>(0x3ca98e0)(screen->get(),nullptr);
     }
     rows.clear();screen.reset();smokeButton.reset();dirty=false;building=false;
-    smokeStage=0;smokeRounds=0;smokeChurn=0;smokeAt=0;
+    smokeStage=0;smokeRounds=0;smokeChurn=0;smokeAt=0;portraitsPending=false;portraitPollAt=0;
 }
 static Obj reflectedType(const char* ns,const char* name) {
     Obj type=ba::api<Obj(*)(Obj)>("il2cpp_class_get_type")(ba::find_class(ns,name));
@@ -105,6 +129,7 @@ static void populate(Obj object) {
     wire::require(!screen || screen->get()==object || !initialized(screen->get()),"multiple active community invite pickers");
     building=true;
     try {
+        portraitsPending=false;
         clearPresentation();
         ba::native<void(*)(Obj,Obj)>(0x3ca98e0)(object,nullptr);
         rows.clear();screen=std::make_unique<Root>(object);
@@ -159,6 +184,13 @@ static void released(Obj object) {
 }
 static void changed() {dirty=true;}
 static void update() {
+    const auto now=GetTickCount64();
+    if(portraitsPending && screen && initialized(screen->get()) && !building && now>=portraitPollAt) {
+        portraitPollAt=now+500;
+        if(ba_cosmetics::communityPortrait(0,ba_community_native::directory.catalog)) {
+            dirty=true;ba::log("Community portrait assets ready; repainting the owned picker without a directory event");
+        }
+    }
     if(dirty && screen && initialized(screen->get()) && !building)populate(screen->get());
 }
 static bool canInvite(const Row& row) {return ba_community_invites::canInvite(row.profile);}
@@ -254,6 +286,49 @@ static void verifyRenderedName(Obj child,const std::string& expected) {
     }
     wire::require(checked>0,"community row PlayerName receiver missing");
 }
+static void verifyPortrait(Obj child,const wire::Player& player) {
+    const auto expected=ba_cosmetics::communityPortrait(player.portrait,ba_community_native::directory.catalog);
+    const auto fallback=ba_cosmetics::communityPortrait(0,ba_community_native::directory.catalog);
+    auto foreign=ba_community_native::directory.catalog;foreign[0]^=1;
+    wire::require(fallback && ba_cosmetics::communityPortrait(UINT32_MAX,ba_community_native::directory.catalog)==fallback &&
+        ba_cosmetics::communityPortrait(player.portrait,foreign)==fallback,"community portrait invalid-key/catalog fallback mismatch");
+    wire::require(expected && ba::get<bool>(child,"_cosmeticPortraitAvailable") &&
+        !ba::get<Obj>(child,"_portrait"),"community cosmetic portrait missing or Steam texture installed");
+    Root views(ba::get<Obj>(child,"_portraitVMs"));const auto count=ba_catalog::length(views.get());
+    wire::require(count && count<=16,"community portrait proof capacity");unsigned receivers=0;
+    for(size_t i=0;i<count;++i) {
+        Root view(ba_catalog::arrayAt(views.get(),i)),model(ba::get<Obj>(view.get(),"_model"));
+        Root material(ba::call(view.get(),"get_Material"));
+        wire::require(initialized(view.get()) && ba::read<bool>(view.get(),0x50) && model.get() &&
+            ba::get<uint32_t>(model.get(),"Item")==expected && material.get(),"community native portrait model/material mismatch");
+        Root collection(ba::get<Obj>(view.get(),"_bindings")),bindings(ba::get<Obj>(collection.get(),"_bindings"));
+        wire::require(ba::get<bool>(collection.get(),"_initialized"),"community portrait binding collection inactive");
+        const int n=ba_local::count(bindings.get());wire::require(n<=128,"community portrait bindings capacity");
+        for(int j=0;j<n;++j) {
+            void* args[]={&j};Root binding(ba::call(bindings.get(),"get_Item",1,args));
+            Root source(ba::get<Obj>(binding.get(),"_source")),value(ba::get<Obj>(source.get(),"BindyValue"));
+            if(!value.get() || ba::get<Obj>(value.get(),"Target")!=view.get() ||
+                ba_catalog::utf8(ba::get<Obj>(value.get(),"VariableName"))!="Material")continue;
+            Root targets(ba::get<Obj>(binding.get(),"_targets"));const int m=ba_local::count(targets.get());
+            wire::require(m<=16,"community portrait binding target capacity");
+            for(int k=0;k<m;++k) {
+                void* itemArgs[]={&k};Root target(ba::call(targets.get(),"get_Item",1,itemArgs));
+                Root targetValue(ba::get<Obj>(target.get(),"BindyValue")),image(ba::get<Obj>(targetValue.get(),"Target"));
+                wire::require(image.get() && !strcmp(ba_dedicated_session::className(image.get()),"Image") &&
+                    ba_catalog::utf8(ba::get<Obj>(targetValue.get(),"VariableName"))=="material" &&
+                    ba::call(image.get(),"get_material")==material.get(),"community portrait Image material mismatch");
+                Root object(ba::call(image.get(),"get_gameObject")),active(ba::call(object.get(),"get_activeInHierarchy"));
+                Root enabled(ba::call(image.get(),"get_enabled"));
+                wire::require(object.get()==ba::call(view.get(),"get_gameObject") &&
+                    *ba::api<bool*(*)(Obj)>("il2cpp_object_unbox")(active.get()) &&
+                    *ba::api<bool*(*)(Obj)>("il2cpp_object_unbox")(enabled.get()),"community portrait Image inactive or foreign");++receivers;
+            }
+        }
+    }
+    wire::require(receivers>0,"community portrait Image receiver missing");
+    ba::log("COMMUNITY PORTRAIT verified: profile=%s requested=%u rendered=%u receivers=%u nativeModel=1 materialBound=1 active=1 SteamTexture=0 BA_RESURRECTION_COMMUNITY_PORTRAITS_V1",
+        player.profile.c_str(),player.portrait,expected,receivers);
+}
 static Obj pickerButton(Obj main) {
     Root allowed(ba::call(main,"get_CanInvitePlayer"));
     wire::require(*ba::api<bool*(*)(Obj)>("il2cpp_object_unbox")(allowed.get()),"community picker button unavailable");
@@ -291,6 +366,7 @@ static void smoke(Obj front) {
         ba::log("COMMUNITY ROSTER SMOKE native picker Show (NOT manual UI input)");
         ba::native<void(*)(Obj,Obj)>(0x3d62c40)(smokeButton->get(),nullptr);
     } else if(smokeStage==2) {
+        if(ba::flag(L"-community-portrait-smoke") && portraitsPending){smokeAt=now+100;return;}
         wire::require(screen && initialized(screen->get()) && rows.size()==ba_community::directory.players.size(),"community roster smoke row count");
         wire::require(ba::get<Obj>(smokeButton->get(),"_uiObject")==screen->get(),"community picker owner mismatch");
         for(const auto& row:rows) {
@@ -300,6 +376,7 @@ static void smoke(Obj front) {
             const auto expected=literalName(player->name);
             wire::require(ba_catalog::utf8(ba::get<Obj>(row->child.get(),"_playerName"))==expected,"community roster smoke name mismatch");
             verifyRenderedName(row->child.get(),expected);
+            if(ba::flag(L"-community-portrait-smoke"))verifyPortrait(row->child.get(),*player);
         }
         if(!smokeRounds) {
             if(smokeChurn==0 && rows.size()==3) {

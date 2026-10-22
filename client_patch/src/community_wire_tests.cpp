@@ -10,7 +10,8 @@ int main() {
     assert(welcome.profile=="test_profile" && welcome.deck[7]==8);
     for(size_t length=0;length<w.bytes.size();++length)rejects([&]{decode(WelcomeKind,Bytes(w.bytes.begin(),w.bytes.begin()+length));});
     w.bytes.push_back(0);rejects([&]{decode(WelcomeKind,w.bytes);});w.bytes.pop_back();
-    w.bytes[0]=2;rejects([&]{decode(WelcomeKind,w.bytes);});
+    w.bytes[0]=2;assert(std::get<Welcome>(decode(WelcomeKind,w.bytes)).version==2);
+    w.bytes[0]=3;rejects([&]{decode(WelcomeKind,w.bytes);});
     for(const auto& text:{std::string("\xc0\xaf"),std::string("\xed\xa0\x80"),std::string("\xf4\x90\x80\x80"),
         std::string("\xe2\x28\xa1"),std::string("\xf0\x90"),std::string("\n")})rejects([&]{utf8(text);});
     assert(utf8("One \xf0\x9f\x8e\xae")==5);
@@ -20,6 +21,22 @@ int main() {
     auto rows=std::get<Directory>(decode(DirectoryKind,directory.bytes));assert(rows.revision==7 && rows.players.size()==2 && rows.players[1].invitable);
     auto bad=directory.bytes;bad[8]=137;rejects([&]{decode(DirectoryKind,bad);});
     bad=directory.bytes;bad.back()=2;rejects([&]{decode(DirectoryKind,bad);});
+    Writer portraits;portraits.number(1,2);
+    for(unsigned i=0;i<32;++i)portraits.number(i+1,1);
+    portraits.number(8,8);portraits.number(2,2);
+    for(const auto& profile:{"a","b"}) {
+        portraits.id(profile);portraits.text("Name");portraits.number(0,1);portraits.number(1,1);
+        portraits.number(profile[0]=='a'?901:902,4);
+    }
+    auto rendered=std::get<Directory>(decode(DirectoryPortraits,portraits.bytes));
+    assert(rendered.portraits && rendered.catalog[31]==32 && rendered.players[1].portrait==902);
+    for(size_t n=0;n<portraits.bytes.size();++n)
+        rejects([&]{decode(DirectoryPortraits,Bytes(portraits.bytes.begin(),portraits.bytes.begin()+n));});
+    bad=portraits.bytes;bad.push_back(0);rejects([&]{decode(DirectoryPortraits,bad);});
+    bad=portraits.bytes;bad[0]=2;rejects([&]{decode(DirectoryPortraits,bad);});
+    bad=portraits.bytes;for(size_t i=2;i<34;++i)bad[i]=0;
+    rejects([&]{decode(DirectoryPortraits,bad);});
+    rejects([&]{decode(DirectoryKind,portraits.bytes);});
     Writer state;state.number(9,8);state.number(Starting,1);state.number(4,4);
     state.id("lobby");state.id("a");state.text("");state.text("");state.number(2,1);
     for(const auto& profile:{"a","b"}){state.id(profile);state.deck({1,2,3,4,5,6,7,8});state.number(profile[0]=='a',1);state.number(0,1);}
