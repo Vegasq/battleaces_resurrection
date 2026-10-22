@@ -1,0 +1,149 @@
+CURRENT GUARDED CANDIDATE - PACKAGING AND INSTALLED QUALIFICATION129
+2026-10-22. Engineering candidate;full D5/D9 remain OPEN.
+
+Purpose
+Move the qualified recipe17/helper127-02 into actual distributable packages and
+an installed bundled runtime. This closes artifact-specific gaps independently
+of128's resolved settings getter. It does not resolve the separate upstream
+c307c0 advertising producer or replace the remaining reporting/mode/error/
+descendant/deployment matrix. Frozen105 remains Nick's manual candidate.
+
+Frozen payloads128
+Clean source29882b3baedf865487b37a3353d4e2c7d5d1f875,dirty=false.
+Python3.14.8 official embeddable ZIP and source-bound helper/UI/server-launcher/
+certificate receipts were verified during assembly. No original game files,
+assets,personal config,saves or credentials are included. Package version string
+remains0.3.0-rc1.5;128 filenames identify this engineering candidate.
+
+Client ZIP:local/privacy128-packages01/battleaces-client-win64.zip
+ 13309350bytes,79files
+ a98a4dd3be5689d512a3ee9b0201cfe7e83f93716d66b3f43b1cb302a8139334
+Server ZIP:local/privacy128-packages01/battleaces-server-win64.zip
+ 13484471bytes,111files
+ 1e478dbd11328fa3ef82801f0790e32bbc3c03df589043f289cc34812ad7a445
+Client standalone:
+ local/privacy128-client-standalone01/BattleAces-Installer-RC1-128.exe
+ de81a2714f2cdab8b1bd11f889d1ee6053311d32e8ae7274fc0304d854ec4d57
+Server standalone:
+ local/privacy128-server-standalone01/BattleAces-Server-Installer-RC1-128.exe
+ 1543d917aadae13a167bf50470148d73b8d892b391f69796f5cfcb15968da08b
+Helper127-02:
+ 35746ceaa7bf0b592f9f0ab2dc0d6184a7600cbb47de141a813931c6056fec35
+
+Completed artifact checks
+[x] Actual standalone forms and embedded payload verification PASS2.811069s.
+    Client3editable fields and maintenance controls;server2fields. Native form
+    Shown/controls checked,not physical visibility. Actual embedded ZIP extracted
+    and verified by its isolated bundled interpreter. No PowerShell/game/server.
+    Reports:local/privacy128-standalone-verification.json and associated UI/
+    payload JSONs. Existing standalone/manual files were not replaced.
+[x] Relocated bundled packages PASS325.645511s,18command outcomes checked.
+    Reports:local/privacy129-package-qualification02/verification.json.
+    Both immutable inventories/import closures verified under isolated bundled
+    Python,hostile unrelated cwd/PYTHONPATH and System32-only PATH. Complete
+    retained native export setup47-export02 imported locally;52playable units.
+    Native health create/step0/close/reaped0. Three real two-peer loopback native
+    worker lifecycles(exit0):normal cancellation,service-controller STOP and
+    SHUTDOWN from independent callback threads. Listener/lock released;second
+    host/live backup refused;no raw matches and native sim.log empty. These are
+    controller tests,NOT actual SCM registration or protected owner deployment.
+    Authored development snapshot verified;restore into an occupied destination
+    refused without changing its owner file. No protected backup creation/fresh
+    restore acceptance is inferred. Four-component dry-run/install/idempotent
+    reinstall/restore and original catalog/backups pass;133bundles verified,
+    unchanged receipt requires0bundle rehashes. Original source component hashes
+    and packaged program inventories unchanged. Component copy has no game EXE.
+[x] Actual bundled128 install-game update on full owned r103g PASS72.253596s.
+    Reports:local/privacy129-installed-update01/verification.json.
+    All202profile files,five original backups and exact config/name/identity
+    settings unchanged. Exact package manifest/inventory cached under runtime
+    50531c6ca4c6a671bad6;normal game-folder CMD references that runtime and uses
+    isolated bundled Python. Helper exactly127-02;default production patch has
+    no optional teardown hooks. No game/server started during this update.
+    r103g now has a coherent128 installed runtime/helper/patch,not the previous
+    mixed diagnostic105 runtime. It remains an owned fixture,not a manual client.
+
+Installed/runtime matrix
+[x] All four local modes using that actual installed runtime:Try Deck4,public1,
+    public2,public5. Actual original result/Continue/default Quit0 PASS for each:
+    mode4 215.438061s;mode1 212.117380s;mode2 213.017990s;mode5 214.040010s.
+    Each actual game/driver reaped,job2total/0active/0terminated,no forced cleanup.
+    Config,package,shared storage,source and unavailable-settings fixture unchanged.
+    Native selected-deck/replay/local settings/atomic backup checks pass;Try Deck
+    bot produced moving units(154autonomous actions,max supply129). Public cases
+    pass native roster/search/bot/deck checks. Actual production modules imported
+    exclusively from installed runtime;remote connection/invite attempts0 in the
+    blank-address fixture. Schema4 unconfigured local play,NOT configured outage/
+    30s remote queue/recovery/all-mode privacy proof. Driver:local/privacy129-
+    installed-modes01.py;aggregate report under same stem directory. Four reports:
+    local/privacy129-installed-local-modeN-01/verification.json for N=4,1,2,5.
+    Total outer elapsed861.966921s.
+[x] Current-package paired RC TLS Custom invite/two matches/changed-deck rematch/
+    Continue/sequential Leave/default Quit and worker drain PASS186.263596s.
+    local/privacy129-packaged-custom01/verification.json. Actual RC-open schema4
+    identities/admission and encrypted TLS without CA/invite/verification. Two
+    real native clients;three native workers0/reaped. Server job9/0/0,each client
+    job2/0/0,no forced cleanup. Config/package/assets/shared/source/adapters
+    unchanged;fixture tokens absent from public logs. Packaged runtime bytes equal
+    the installed runtime,with separate external diagnostic adapters. This does
+    not establish physical LAN/Internet/ordinary CMD playthrough or full D5.
+[ ] Actual128 native server installer full source-copy/export/import/installed
+    health,then actual current game-folder CMD entry independent of download.
+    Reuse103/105 source-preservation/entry cases as scoped inputs;do not claim
+    the changed helper/export path is qualified solely by embedded ZIP verification.
+[ ] Remaining required supported remote/error/recovery/descendant cases against
+    final installed artifacts;bind prior applicable evidence explicitly.
+[ ] Ordinary game-folder entry behavior and physical deployment observations
+    at the stated final scope;do not infer these from diagnostic adapters.
+
+Retained failure
+The first checkout-driver command used -I -m,which excludes the checkout from
+module search and failed before creating qualification output or starting a
+game/server. local/privacy129-driver-preflight01.json retains that failure.
+Corrected checkout orchestrator uses -B;actual bundled child interpreters retain
+-I -B. The successful qualification is02;no failed result was overwritten.
+The first final-review command used a direct local/*.py script path,so checkout
+tools was again absent from sys.path. Its console is retained in local/privacy129-
+artifact-review01-console.txt;no game started or evidence changed. The identical
+reviewer succeeds via python -B -m local.privacy129-artifact-review01;successful
+console02 is separate. No runtime case failed or was rerun for either import error.
+
+Incremental source/history path audit
+local/privacy129-source-audit01.json PASS:all changed paths in25commits from
+frozen105 source6f820d6 through frozen128 source29882b3 are source/text docs.
+No tracked DLL/EXE/ZIP/FB/PB.GZ/PNG/JPG,local/build tree or DEV worksheet at the
+frozen128 revision. This is a bounded path/extension audit,NOT a semantic secret
+scanner or all-history acceptance. Package allowlist/receipt checks retain their
+actual content/integrity scope.
+
+Final read-only artifact review and retained seals
+local/privacy129-artifact-review01.json PASS. Actual current archive/EXE hashes,
+exact installed/source package inventories,current helper source receipt,and all
+four native mode reports plus paired Custom cleanup/invariants were checked.
+It binds the immutable individual inputs;full_D5_D9_acceptance remains false.
+SHA256:
+ artifact review01:
+ eae74d0b526ae1e69351a5ac3c0790eb7a1bb87943846cad303e8ca6f21f417c
+ package qualification02/verification.json:
+ 6a84dc1a9bae66ab0fabfc3198b3d9d4db9c03878c0e098399284f3fda474c7c
+ installed-update01/verification.json:
+ 9c33782492ff8dc797c8dc00bb6e48405a7b8e0ce61a76cdbaffb40c3e46fad9
+ installed-modes01/verification.json:
+ 429770ba8c8eaf5157b61baf9659f34dfad1330d43850c2ed8cfee7e1308ab6c
+ packaged-custom01/verification.json:
+ d7a5c1230c6757d434e03302c64f1503823d43ff23b86c4fa200531aeaaa1c47
+ source-audit01.json:
+ 402ae41137bb98f0fd86bccf211e5e939a70ec37e0b51d2585d7f2c5b1a4acf3
+All129 workers/drivers/games are terminal;final Get-Process finds no Battle Aces
+process. This is a cleanup observation,not game-owned reporting-source closure.
+
+Visibility is a separate launch-context issue
+Nick:"When you start game I do not see it. When I run it I always see it."
+Background native tests never qualify physical visibility/audio/mouse controls.
+His own desktop launches are visible;do not keep asking about Tutorial2 windows.
+DEV N8 is deferred/no action requested. Preserve the historical sound-only answer
+and mission evidence without inferring a completed Tutorial2 playthrough.
+
+No new Nick action or replacement manual installer is requested by this record.
+The complete release requirements remain in REMAINING_DELIVERY_PLAN.txt and
+RC1_PLAN.txt;runtime_validated remains false until the full D5 gate is evidenced.

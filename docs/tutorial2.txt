@@ -1,4 +1,11 @@
 TUTORIAL 2 - EXPLICIT OFFLINE LAUNCH
+Visibility clarification129 supersedes earlier pending visibility requests:
+Nick:"When you start game I do not see it. When I run it I always see it."
+His own desktop launches are visible;automated launches are background technical
+checks and do not prove physical visibility. DEV N8 is deferred/no action
+requested. Do not repeat the visibility question. Tutorial2 mission completion,
+controls and persistence are not inferred from this general launch observation.
+
 2026-10-22. Separate user-requested exploration;roadmap remains PAUSED.
 Source/build/install and native intro-state entry pass. Subsequent desktop-launched
 instance reaches actual Tutorial2 mission and advancing world;physical visibility,

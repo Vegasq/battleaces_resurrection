@@ -2,6 +2,33 @@
 
 ## Requests and answers with Nick
 
+- Candidate129:actual128 client/server ZIPs and native standalone EXEs built
+  from clean29882b3,recipe17/helper127-02. Standalone forms/payloads PASS2.811s;
+  bundled relocation/import/health/three worker0 lifecycles/patch roundtrip PASS
+  325.646s. Full owned r103g update PASS72.254s preserving202profile files,five
+  backups and config/name/profile settings. r103g now coherent128 installed
+  runtime50531c6ca4c6a671bad6,not mixed105. Installed local4/1/2/5 all PASS
+  215.438/212.117/213.018/214.040s;results/Continue/default Quit0,each job2/0/0,
+  no force,shared/config/program/source unchanged. Schema4 blank-address scope,
+  not configured outage/full privacy acceptance. Current paired RC Custom/rematch
+  PASS186.264s:two matches/changed deck/Continue/Leave/default Quit0,three workers
+  0/reaped,jobs9/0/0+2/0/0+2/0/0,no force,shared/config/program/assets/source
+  unchanged. Strict actual artifact review PASS;initial direct-script import
+  failure retained,unchanged reviewer succeeds via -m. All owned processes terminal;
+  no game process remains. No new manual installer/action;105/N7 unchanged.
+  Full D5/D9 remain OPEN. Failed checkout -I import preflight retained. Scopes/hashes:
+  docs/guarded-candidate129.txt. Do not repeat passed local/Custom cases absent a
+  change/concrete concern. Next actual128 server full native copy/export/import
+  and current game-folder entry,then missing configured-outage/remote/recovery/
+  error/descendant gates. Keep c307c0 source gate and all broader D1-D9 scope.
+
+- Visibility129:Nick clarified "When you start game I do not see it. When I run
+  it I always see it." His desktop launches are visible;automated launches are
+  background technical checks,NOT physical window acceptance. Do not keep asking
+  him to troubleshoot Tutorial2 visibility or repeat a hidden launch. DEV N8 is
+  DEFERRED/no action requested;older awaiting-visibility notes are historical.
+  Tutorial2 completion/controls remain unreported. Continue roadmap work.
+
 - Privacy128 CLOSES named external settings-query source question.1ca49c8 is
   UnityConnectSettings registry slot17 of1ca4940,typed slot1ca4a88;aggregate
   loader36d380 writes [R12] at36d700. Native class310,size0x288,factoryc04080->

@@ -120,6 +120,19 @@ finished;their scoped results are recorded below. With D6's engineering fix and
 automated qualification complete,preserve its manual candidate and address the
 remaining named D2 cells without repeating covered queue/roster tests.
 Completed subcases (same-PC automated controls; not physical LAN):
+[x] Current recipe17/helper127-02 and actual installed128 bundled runtime129:
+    Try Deck4/offline public1/2/5 all pass native result/Continue/default Quit0,
+    each job2/0/0,no forced cleanup;shared/config/package/source unchanged.
+    215.438/212.117/213.018/214.040s. Schema4 blank-address/native diagnostic
+    adapter scope,not configured outage/remote/physical UI acceptance. Exact
+    candidate/source/evidence:guarded-candidate129.txt. Do not repeat unchanged
+    local cases while addressing remaining remote/error/descendant gates.
+[x] Current128 packaged paired RC TLS Custom129 PASS186.264s:original invite,
+    two matches,changed-deck rematch,Continue,sequential Leave/default Quit0.
+    Three native workers0/reaped,jobs9/0/0+2/0/0+2/0/0,no forced cleanup;
+    package/assets/config/shared/source unchanged. Strict artifact review passes.
+    Background native/bundled diagnostic adapter scope,not physical LAN or an
+    ordinary game-folder CMD playthrough. Exact bindings:guarded-candidate129.txt.
 [x] Custom -> local4 -> Custom -> public1 -> Custom,T07/T08 (85 retained).
     Same two native clients,3original invitations/6Leaves/10Continue actions,
     4worker0,selected decks/full17slots and moving local bots pass. Original
@@ -670,6 +683,16 @@ References: network-qualification.txt, protocol-v3.txt, soak-qualification.txt.
 [ ] D9 - Freeze and deliver the final Windows release
 RC1 installer/package milestone runs FIRST under RC1_PLAN.txt;full D9 closure
 still requires the applicable final-release gates below.
+[x] Engineering artifact subcase128/129:clean29882b3 recipe17/helper127-02
+    client/server ZIPs and both standalone EXEs built;actual native forms/payloads
+    pass. Bundled relocation/import/health/three native worker0 shutdown paths/
+    patch install-idempotence-restore PASS325.646s. Actual owned installed update
+    PASS72.254s,preserving202profile files,five backups and config/name/profile
+    settings. Installed local4/1/2/5 all pass results/Continue/default Quit0,
+    no force;paired RC Custom/rematch passes186.264s with three worker0 exits
+    and empty jobs. Strict artifact/source-receipt review passes. This is
+    NOT final D9/clean-PC/SCM/protected backup/privacy/physical acceptance and
+    does not replace105's manual candidate. Exact scope:guarded-candidate129.txt.
 - Build fresh client/server archives from a clean source revision; bind helper/
   launcher/runtime/asset compatibility and audited hashes. Supply a reproducible
   local asset import; include no original game files or private runtime material.

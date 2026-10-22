@@ -3,6 +3,22 @@ Updated: 2026-10-22
 Delivery plan: REMAINING_DELIVERY_PLAN.txt, Windows only.
 Original roadmap: CLOSED / SUPERSEDED;see PLAN_CLOSEOUT.txt.
 
+GUARDED CANDIDATE129 - PACKAGE/INSTALLED LOCAL MODES/PAIRED CUSTOM PASS
+Actual128 client/server ZIPs and native standalone EXEs bind clean29882b3 and
+recipe17/helper127-02. Standalone forms/embedded payloads pass;relocated bundled
+import/health/shutdown/patch restore PASS325.646s. Full owned installed-runtime
+update PASS72.254s,preserving202profile files,five backups and config/name/profile.
+Installed local4/1/2/5 all pass native result/Continue/default Quit0,each job2/0/0,
+no force. Current paired RC TLS Custom/two matches/changed-deck rematch/Continue/
+Leave/Quit PASS186.264s,three workers0/reaped and empty jobs,no force. Strict
+artifact/source-receipt review passes. Two checkout import invocation failures
+retained;no runtime case failed or was repeated for them. No new manual update
+or Nick action;105/DEV N7 stays current. Tutorial2 N8 is deferred:Nick confirms
+his own launches visible,automation launches invisible;do not repeat that question.
+Full D5/D9 remain OPEN. Next current128 full native server install/export and
+ordinary game-folder entry,then missing remote/error/recovery/descendant gates.
+Exact candidate/report hashes and scope:guarded-candidate129.txt.
+
 COMMUNITY PORTRAITS105 - SOURCE/NATIVE/PAIRED PACKAGE PASS;VISIBLE CHECK PENDING
 Invite Friend now binds server-selected,validated original cosmetic portraits.
 HELLO2/directory69 is per-client;legacy1 keeps exact42.74affected tests73pass/
