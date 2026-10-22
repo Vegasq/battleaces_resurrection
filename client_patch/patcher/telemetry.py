@@ -1,6 +1,6 @@
 """Exact-build telemetry patch transformations; no file or process operations.
 
-These 68 recipes have static source/control-flow review. The complete recipe
+These 71 recipes have static source/control-flow review. The complete recipe
 set has not been runtime validated; recipe2's 59 had a bounded compatibility run.
 They do not establish complete telemetry removal; see docs/telemetry.txt.
 Only brief patch safety signatures are included, never original game payloads.
@@ -10,7 +10,7 @@ import hashlib
 from types import MappingProxyType
 
 GAME_BUILD = 37822
-RECIPE_VERSION = 7
+RECIPE_VERSION = 8
 RUNTIME_VALIDATED = False
 VALIDATION_STATUS = "Static review and original-byte validation only"
 UNRESOLVED_COMPONENTS = (
@@ -218,6 +218,18 @@ COMPONENTS = MappingProxyType({
             # destruction or state transition. Never patch shared query9fb910.
             Patch('analytics state preparation uses existing unknown device sentinel', 0xc2fc09, 0xc2f009,
                   bytes.fromhex('e802bddcffeb07488d059193d50049c7'), bytes.fromhex('e902000000')),
+            # Paired redirects:keep dirty reset,r13=0,state/be/drain processing
+            # and ALL six nonvolatile saves/restores,including chained unwind
+            # metadata. Skip BOTH local construction and matching destruction.
+            Patch('skip ads identity payload construction retaining dirty state progress', 0xc3016b, 0xc2f56b,
+                  bytes.fromhex('4c8d3d66a9df00c744246c490000004c'), bytes.fromhex('e9b3000000')),
+            Patch('skip unconstructed ads identity cleanup after all unwind register saves', 0xc30273, 0xc2f673,
+                  bytes.fromhex('4438adc80000000f857a020000488bb5'), bytes.fromhex('e904050000')),
+            # Base virtual+d0 has the same initialized caller outputs as the
+            # derived prep,but no dirty tail. Return before timestamp/string
+            # acquisition;never RET the shared consuming serializer c4df10.
+            Patch('skip base analytics configuration serialization before local acquisition', 0xc3a5d0, 0xc399d0,
+                  bytes.fromhex('48895c240848896c2410488974241848'), bytes.fromhex('c3')),
         ),
     ),
     CEF_COMPONENT_PATH: Component(

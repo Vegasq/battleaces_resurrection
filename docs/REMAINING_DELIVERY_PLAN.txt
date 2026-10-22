@@ -369,6 +369,16 @@ are scoped inputs, not a completion substitute.
     supports guarded normal registration/Resume;indirect engine activation,
     machine-ID/other serializer/dirty ads-identity paths remain open. No108
     packages;105 remains current. Evidence:telemetry-platform108.txt. D5 OPEN.
+[x] Review109 skips dirty ads-identity construction/destruction while retaining
+    dirty reset,conditional drain and all six chained unwind saves/restores.
+    Separate base preparation returns before timestamp/string acquisition.
+    Recipe8/71guards,72focused tests,C++ suite,final four-component restore/
+    reapply with preserved profiles and native AI/Continue/default Quit0 pass.
+    First normal-flow proposal rejected before runtime for an unwind mismatch;
+    corrected guard and full evidence:telemetry-identity109.txt. Machine-ID starts
+    empty in the reviewed constructor,but lifetime writes/ads input acquisition
+    and other cache/request serializers stay unresolved. Full D5 remains OPEN;
+    no109 package/current manual update change. No accepted playtest repeated.
 References: telemetry.txt, telemetry-internal-config.txt,
 telemetry-persistent-observation.txt,telemetry-device-cef106.txt and nvidia-shutdown.txt.
 

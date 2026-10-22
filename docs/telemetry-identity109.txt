@@ -1,0 +1,127 @@
+ANALYTICS IDENTITY CONVERSION / OWNERSHIP109
+Started2026-10-22. Recipe8,71guards/four DLLs. D5 stays OPEN.
+
+Purpose and implementation
+The retained dirty analytics path constructed advertising-identity JSON before
+its already-disabled append. A separate base configuration preparation still
+called the identity serializer. Three exact-build guards now omit that work
+while retaining the original caller outputs,state progress and register/frame
+ownership. Shared platform queries,constructors and serializers are unchanged.
+No claim that earlier identity acquisition or all reporting is removed follows.
+
+Independent static reviews
+REA skill workflow used matching original PE/unwind/LLVM analysis and retained
+metadata. Ghidra remained known unconfigured and was not retried;there is no
+new REA Evidence or observed execution in these static findings. Original Unity:
+ ac144d56d53f07904d52ed27a1539de90bc3290038fe52d73d2f6b268c85d6bc
+Private ads-state review local/privacy109-adsidentity01:
+ FINDINGS.txt SHA256
+ 3dc1c69dd758dbea7d29542d3845dcadb9a100cf0650a3c6bdf56a5c68bf05d6
+ manifest.json SHA256
+ d25f4ad6fb5de399881b67afcae1f96dce217b424c08020765ff04265520aaee
+ unwind.json SHA256
+ 80a33fff6d5a6079da5c9ac5d4d708efc2627d2f360c92dcee0be734e23bda86
+Private machine/default/base-preparation review local/privacy109-machineid01:
+ FINDINGS.txt SHA256
+ 99cf7fd58dd440e4133be4d1d4edc6cb28466b4e6db1c8ead9980c3c5d13e819
+ manifest.json SHA256
+ 89660c97c97fbbc3be0f80de5ce7e018f263a543160a961b85c3868ba4ff2eca
+Original binaries,raw disassembly and captured reports stay ignored/out of Git.
+
+Advertising conversion contract
+c3016b now branches toc30223 AFTER original dirty reset,suppression gates,
+r12/r13/r15 saves and r13=0,BEFORE local ownership begins. It skips local
+name/builder construction,adsid/tracking conversion and the guarded append.
+The original state3/e10/be decision still clears be and invokes virtual+b0 when
+required. That call retains its original receiver,shadow space and alignment.
+Original r12=-1 and subsequent rsi/rdi/r14 saves remain. A second branch at
+c30273 goes toc3077c,skipping only the corresponding unconstructed-local
+destruction;all six nonvolatiles restore before the original frame epilogue.
+The early dirty-false/suppressed exits and every caller's cleanup remain intact.
+The two guards are one atomic recipe change,never independent shipping options.
+
+Unwind correction found BEFORE runtime
+The first normal-flow proposal used c30255->c30794. Although its authored
+branch tests/build/install checks passed,it could enter a chained unwind range
+whose rsi/rdi/r14 save slots had not been initialized. It was rejected before
+any game launch. Retain helper109-01,focused-tests01 and install01 as the rejected
+pre-runtime trial;their green checks do not qualify its safety or final recipe.
+The final c30273->c3077c preserves those original saves and all restores.
+PE records:initial frame c300f0..c30144;three-save chained range throughc3025b;
+six-save chained range throughc307ac;shared ADD/POP epilogue throughc307b6.
+No EHANDLER/UHANDLER appears in these records. Preserved drain callc3024f and
+final restore target have their actual required save slots initialized. This
+is static unwind-contract evidence,not a live exception/stack-walk execution test.
+
+Base preparation and machine-ID findings
+Base table1a2ade0 pairs drainc3a680 at+b0 with preparationc3a5d0 at+d0. The
+drain constructs its builder and empty output string,accepts unchanged outputs,
+ignores returned RAX and retains queue/marker/destruction work. c3a5d0 entryRET
+avoids its timestamp/copied-string acquisition. Unlike derivedc2f790,it has no
+dirty-state tail. The shared consuming serializerc4df10 must remain functional.
+Original payload constructorc4d630 initializes machineid payload+1b0/main1098
+empty;normal destruction remains. No nonempty writer/acquisition was identified
+in the reviewed analytics-owned exact-offset sites. Aliases,computed/bulk writes
+and other paths remain unresolved;empty construction does not prove lifetime empty.
+
+Source-acquisition boundary remains open
+Ads callbackc307c0 receives main+1498 via secondary vtables installed there by
+constructors. Adjacent table addresses do NOT establish main virtual+f8 dispatch;
+destructor thunks and receiver subtraction confirm the secondary ownership.
+The callback borrows supplied ID/error strings and can copy the ID into main
+before the guarded conversion. Its actual source/registration/return/progress
+contract is unidentified. No callback-entry RET is installed on that assumption.
+The RequestAdvertisingIdentifierAsync name is an investigative lead only,with
+no proved registration/function/callback association. Other payload serializers
+c39ce0/c3a250/c41ec0 also retain distinct cache/request/state work requiring
+their own contracts. No broad whole-function suppression is justified here.
+
+Qualification so far
+local/privacy109-focused-tests02.txt:72tests PASS11.729s,including all-four
+pinned original transformations/unrelated bytes,paired branch destinations,
+authored execution with each branch independently disabled as a negative
+control,base RET with unreadable borrowed inputs,legacy sample rejection,
+installer and native Quit checker. Authored stand-ins never execute original
+state,collector,serializer,stack frames or exception handlers.
+Required C++ suite/build helper-privacy109-02 PASS with unchanged source receipt.
+Helper SHA256:
+ f0aa90d3a5771c581e8151fb27390359b53e33dbbdaa0cf82b28b285de61f6db
+Adjacent helper-build.json SHA256:
+ 990bd4e4ae2833a3593e7fa0afb5d811f32542544e8e29041d09a0fe56beabe7
+local/privacy109-install02/verification.json:PASS73.326s. Updates the rejected
+pre-runtime recipe8 proposal to final8,verifies dry-run no writes,preview equals
+install,idempotence and all four backups/installed hashes,then restores all
+four pristine DLLs and original catalog and reapplies final8 identically. Every
+existing profile file remains unchanged. This is a final8 restore/reapply;
+the earlier7->8 install01 belongs only to the rejected proposal. Report SHA256:
+ cf9d24c3ca4121d096ebbc68027a9250c5ba3f05425a3e486f1cd14a99c9613b
+local/privacy109-native01/native/verification.json:PASS97.303s. Original Try Deck
+AI join,result,automated native Continue,return to menu,and default-recipe
+original Quit complete;main0/reaped1.656s after confirmation,no forced cleanup.
+Eight complete read-only snapshots cover startup/menu/ingame/postgame/menu/
+pre-confirm. All27Unity guards match loaded/file identities;guarded device
+probe returnsfalse once without changing sampled config/header/marker. SHA256:
+ 0f205df3c9f7abe33278edbe034d135bf00586b69c7db1694f5c232255919d4d
+External owner local/privacy109-native01/verification.json:PASS,six program
+file hashes unchanged,job assigned1/active1/terminated0 then1/0/0 before close,
+no force,owner source unchanged. Native shared-settings/source seals also pass.
+Owner report SHA256:
+ 0a54fa7ebd33f7227e84592cbe072fb48b4a729e27649948a7bbe2dbc86cc154
+Final installed UnityPlayer SHA256:
+ 3642872fce45e6b92f6258f8aec2da843e13e36b1c055713114ba7605e10e10d
+No new actual invocation of the redirected callers or live unwind is claimed.
+Bot supply14/nine action records retain existing production checks;ordered/moving
+produced-unit intersection is empty,so this is no new movement/control proof.
+There is no new packet/file/descendant instrumentation or physical click result.
+
+Deployment and remaining D5
+GameAssembly42,UnityPlayer27(crash3/performance3/analytics21),two CEF guards =71.
+RUNTIME_VALIDATED=false. No109 packages/installers built;frozen paired105 and
+DEV N7 remain current. No repeat accepted LAN1v1/D6/owner checks is requested.
+Full supported profile/mode/edit/cache/error/retry/crash/reconnect lifecycle,
+attributed file/network/process-tree evidence and final installed-artifact
+qualification remain required. This closes only the reviewed conversion
+subcase;source acquisition and full game-owned reporting removal remain open.
+The owned r103g now has final8/helper109-02 while cached runtime/CMD remain105;
+it is a mixed diagnostic fixture,not a109 deployment. No owned game/server/REA
+session remains live. Do not repeat these bounded checks without a new concern.

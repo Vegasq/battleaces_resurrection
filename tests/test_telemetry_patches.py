@@ -99,14 +99,14 @@ class TelemetryPatchSafetyTests(unittest.TestCase):
 
     def test_only_reviewed_recipes_are_present(self):
         self.assertFalse(RUNTIME_VALIDATED)
-        self.assertEqual(RECIPE_VERSION, 7)
+        self.assertEqual(RECIPE_VERSION, 8)
         self.assertEqual(len(COMPONENTS["GameAssembly.dll"].patches), 42)
         self.assertEqual({p.rva for p in COMPONENTS["UnityPlayer.dll"].patches},
                          {0xC90C2A, 0x80366F, 0xC93D10, 0xD84EC6, 0xD84E3E,
                           0x292110, 0xC8C5F3, 0xC66C20, 0xC2F570, 0xC333DA,
                           0x2078B0, 0xC2F3FC, 0x207A60, 0xC381D0, 0xC37400,
                           0xC33440, 0x1FD3A0, 0x1FDA50, 0xC392C0, 0xC2E240, 0xC40840, 0x20C560,
-                          0xC2F790, 0xC2FC09})
+                          0xC2F790, 0xC2FC09, 0xC3016B, 0xC30273, 0xC3A5D0})
         self.assertEqual(len(COMPONENTS), 4)
         self.assertEqual([p.rva for p in COMPONENTS[CEF_COMPONENT_PATH].patches], [0x323A0])
         self.assertEqual([p.rva for p in COMPONENTS[CEF_HANDLER_COMPONENT_PATH].patches], [0x17403D0])
@@ -145,6 +145,18 @@ class TelemetryPatchSafetyTests(unittest.TestCase):
         self.assertEqual(query.replacement[:1],b'\xe9')
         self.assertEqual(query.rva+5+struct.unpack_from('<i',query.replacement,1)[0],query.rva+7)
         self.assertEqual(query.guard[7:10],b'\x48\x8d\x05')
+
+    def test_ads_payload_branches_retain_state_progress_and_register_restore_targets(self):
+        patches={p.rva:p for p in COMPONENTS['UnityPlayer.dll'].patches}
+        for site,target in ((0xc3016b,0xc30223),(0xc30273,0xc3077c)):
+            patch=patches[site]
+            self.assertEqual(patch.replacement[:1],b'\xe9')
+            self.assertEqual(site+5+struct.unpack_from('<i',patch.replacement,1)[0],target)
+        # No edits to dirty reset,conditional recursive drain or the saved-register
+        # restore. Shared serializers/constructors retain their existing exclusions.
+        for first,last in ((0xc300f0,0xc3016b),(0xc30223,0xc30273),(0xc3077c,0xc307b6)):
+            self.assertFalse(any(first<=rva<last for rva in patches))
+        self.assertEqual(patches[0xc3a5d0].replacement,b'\xc3')
 
     def test_registration_skips_keep_existing_branch_destinations(self):
         patches = {p.rva: p for p in COMPONENTS["UnityPlayer.dll"].patches}
@@ -280,6 +292,32 @@ class TelemetryReplacementExecutionTests(unittest.TestCase):
         # pinned originals separately;no original game instruction is executed.
         code=patch.replacement+b'\x90'*(target-len(patch.replacement))+bytes.fromhex('b87b000000c3')
         self.assertEqual(self.executable(code,ctypes.c_int)(),123)
+
+    def test_paired_ads_branches_skip_local_regions_but_execute_progress_standin(self):
+        patches={p.rva:p for p in COMPONENTS['UnityPlayer.dll'].patches}
+        start=0xc3016b;second=0xc30273-start;progress=0xc30223-start;end=0xc3077c-start
+        code=bytearray(b'\x90'*(end+1))
+        code[:5]=patches[start].replacement
+        code[second:second+5]=patches[start+second].replacement
+        # Authored stand-ins touch separate counters for skipped construction,
+        # retained progress,and skipped destruction. No original instructions,
+        # collector,stack frame,serializer or native state is executed here.
+        code[5:13]=bytes.fromhex('48c7410801000000')
+        code[progress:progress+3]=bytes.fromhex('48ff01')
+        code[second+5:second+13]=bytes.fromhex('48c7411001000000')
+        code[end]=0xc3
+        for disabled,expected in ((None,(1,0,0)),(0,(1,1,0)),(second,(1,0,1))):
+            trial=bytearray(code)
+            if disabled is not None:trial[disabled:disabled+5]=b'\x90'*5
+            output=(ctypes.c_uint64*3)()
+            self.executable(bytes(trial),None,ctypes.c_void_p)(ctypes.addressof(output))
+            self.assertEqual(tuple(output),expected)
+
+    def test_base_configuration_guard_does_not_read_caller_outputs(self):
+        patch=next(p for p in COMPONENTS['UnityPlayer.dll'].patches if p.rva==0xc3a5d0)
+        invoke=self.executable(patch.replacement,None,ctypes.c_void_p,ctypes.c_void_p,ctypes.c_void_p)
+        invoke(None,None,None)
+        invoke(1,1,1)
 
 
 if __name__ == "__main__":

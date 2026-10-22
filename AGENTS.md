@@ -2,6 +2,22 @@
 
 ## Requests and answers with Nick
 
+- Privacy109 supersedes108 SOURCE only:final recipe8/71guards skips ads payload
+  conversion/cleanup preserving dirty progress and ALL chained unwind saves;
+  separate baseprep RET precedes local acquisition.72focused checks,C++ suite,
+  four-component original restore/reapply with unchanged profiles and native
+  AI/result/Continue/default Quit0 pass. External job1/0/0,no force,6program files/
+  source/shared settings unchanged. Exact contracts/hashes:telemetry-identity109.txt.
+  First second-jump proposal(helper109-01/install01/tests01) rejected BEFORE
+  runtime due missing unwind save slots;retain it,never deploy it. Final helper
+  is109-02;correct second jumpc30273->c3077c. r103g now final8/helper109-02;
+  cached runtime/CMD still105,mixed diagnostic fixture. No106-109 packages;
+  frozen105/DEV N7 unchanged. No owned game/server/REA left live. D5 OPEN/false;
+  next actual acquisition/registration of secondary ads callbackc307c0,other
+  cache/request serializer contracts and full supported runtime attribution.
+  Do not infer machine-ID lifetime empty from its empty constructor or RET the
+  unknown-source callback/shared serializers. Do not repeat completed checks.
+
 - Privacy108 supersedes107 SOURCE only:recipe7/68guards skips configuration
   identity prep while preserving original dirty tail,and uses existing unknown
   sentinel in separate state-one query.69focused checks,C++ suite,actual6->7

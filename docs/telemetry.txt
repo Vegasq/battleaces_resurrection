@@ -1,7 +1,13 @@
 TELEMETRY PATCH STATUS
 Updated: 2026-10-22
 Supported input: Battle Aces build 37822, Windows x64.
-Recipe version: 7. Guards: 68. Complete-set runtime_validated: false.
+Recipe version: 8. Guards: 71. Complete-set runtime_validated: false.
+
+Review109 skips dirty ads-identity conversion with both state progress and all
+chained unwind saves/restores retained. A separate base configuration entry
+returns before local ownership begins.72focused checks and C++ build pass;
+qualification/evidence,including rejected pre-runtime unwind proposal and
+unresolved earlier acquisition:telemetry-identity109.txt. D5 remains OPEN.
 
 Review108 skips analytics configuration identity preparation while preserving
 its original dirty-state tail and caller cleanup. A separate state-one caller
@@ -100,7 +106,7 @@ performs no I/O, changes no input bytes and preserves all unrelated bytes.
 Exact component keys, guard counts and pristine SHA-256:
  GameAssembly.dll (42)
  e59d08c01479b27404778048d7e13546dbf3771f6b3912744c7c2bdf80c4e758
- UnityPlayer.dll (24: crash 3 + performance 3 + analytics 18)
+ UnityPlayer.dll (27: crash 3 + performance 3 + analytics 21)
  ac144d56d53f07904d52ed27a1539de90bc3290038fe52d73d2f6b268c85d6bc
  Battle Aces_Data/Plugins/x86_64/VuplexWebViewChromium/chrome_elf.dll (1)
  080e409112b33a0e4cc763cba6d3c206fd640dd9006cb60f2f05ab7e73279563
