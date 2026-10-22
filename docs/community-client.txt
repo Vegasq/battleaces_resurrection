@@ -6,8 +6,9 @@ Initial report and diagnosis below are historical. Development105 now binds
 server-selected validated cosmetic portraits through the original Material
 renderer. Mixed-version sockets and native selected-model/material/Image/live
 edit/fallback/pooled-cycle/explicit asset-delay checks pass at source scope.
-Paired package qualification continues;physical pixels remain unobserved. See
-community-portraits105.txt. Current shipped103/104 handoffs are unchanged.
+Paired packaged Custom/rematch/Continue/normal Quit and installed105 update/CMD
+qualification pass;physical pixels remain unobserved. See community-portraits105.txt.
+Existing103/104 handoff bytes are unchanged;next105 update steps are DEV N7.
 Nick reports no avatars in Invite Friend. This matches the current adapter:
 community_roster.cpp present() clears Portrait and both cosmetic-availability
 flags,while modelFor() omits Steam avatar tasks. The original prefab has a null

@@ -103,11 +103,18 @@ Finite RC1 gates,in order
         ZIPs,native certificate tool and exact evidence frozen in installer103.txt.
     [x] Client104 clean sourced9df4f0 and standalone/embedded ZIP hashes frozen
         in username104.txt. Server103 stays the retained host candidate.
+    [x] Paired105 clean source6f820d6,rc1.5 client/server ZIPs and both native
+        standalone EXEs frozen in community-portraits105.txt. Selected Invite
+        Friend portraits,actual bundle update,paired RC TLS Custom/rematch/
+        Continue/normal Quit and generated game-folder CMD qualify at scoped
+        automated/native boundaries. New client needs matching updated server;
+        old103/104 clients can join new host. Visible portrait observation is
+        DEV N7 on next planned update;no repeat of accepted LAN1v1/D6 requested.
     [ ] Physical gate review and final RC-ready declaration. Do not label RC1
         accepted yet. Preserve local/rc101-packages01 and its manual test game
         local/startup58-game01 while N4 is pending. Also preserve102 standalone,
         packages and local/installer102-game01. Also preserve103 packages/standalone
-        EXEs and installed local/s103. New physical steps use103.
+        EXEs and installed local/s103. Next paired update steps use105(DEV N7).
 Only these finite gates name RC1 ready. Record scoped automated subcases without
 closing a parent whose packaged/physical component is still missing. Remaining
 D2-D5/D7-D9 final-release work is retained,not silently dropped or called complete.

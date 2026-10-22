@@ -231,9 +231,12 @@ current-community-matches.txt, remote-local-transitions.txt.
   requests disabled. Cover live changes,join/leave,pooled-row reuse and missing
   portrait fallback. Review the original Alias suffix as a separate display-only
   cleanup;preserve canonical identity and invitation routing.
-  105 implementation/mixed-version sockets/native material bindings/live edit/
-  default fallback/three pooled cycles PASS at source scope;physical pixels and
-  paired release qualification remain. Evidence:community-portraits105.txt.
+  [x]105 implementation/mixed-version sockets/native material bindings/live edit/
+  default fallback/three pooled cycles/delayed readiness PASS. Paired packaged
+  RC TLS Custom02 two matches/changed-deck rematch/Continue/normal Quit passes;
+  standalone UIs/payloads,actual installed update and game CMD pass their scopes.
+  [ ]105 physical visible portraits on next paired update(DEV N7). No repeat of
+  accepted LAN1v1 requested. Evidence:community-portraits105.txt.
 - Verify configurable names in menu/profile, presence, lobby, loading and results
   after restart/mode switches. Confirm the difficulty dropdown and effective
   original rule selection, including quantitative rule differences where specified.

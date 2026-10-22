@@ -2,6 +2,22 @@
 
 ## Requests and answers with Nick
 
+- Current105 supersedes the older candidate notes below for NEXT updates only.
+  Native Invite Friend cosmetic portraits now pass source/native/readiness and
+  actual paired packaged RC TLS Custom/rematch/Continue/natural Quit qualification.
+  Frozen clean payload source6f820d6;both105 standalone installers and exact hashes/
+  scopes:docs/community-portraits105.txt. New client sends HELLO2 and needs the
+  updated server;older103/104 clients can join the new server. DEV N7 requests
+  only the new visible portrait observation on the next planned paired update;
+  N5 has both desktop copy commands. N4/old103 N6 actions are historical,keep
+  their unanswered/existing observations without requiring old reinstallation.
+  Preserve every accepted/manual103/104/102/101/71/58/LAN98 artifact. r103g is now
+  an owned installed105 diagnostic fixture with ordinary non-Quit-trace patch,
+  not a manual candidate. Packaged Custom01 failed from extra trace hooks;
+  retain it. Corrected Custom02 passes,no forced cleanup;do not repeat unless a
+  new change or concrete unresolved concern requires it. No server/game is left
+  running. D1 physical LAN1v1/D6 remain accepted;do not ask to repeat them.
+
 - Current2026-10-22:Nick reports physical LAN1v1 works. Its first-match play
   subcase is accepted;do not repeat it. Exact Custom/public path,rematch/results/
   Continue/Quit/restart and installer103-specific observations are still missing,

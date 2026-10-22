@@ -1,5 +1,5 @@
 COMMUNITY FRIEND PORTRAITS105
-Started2026-10-22;D3 source/native qualification PASS;paired packaging in progress.
+Started2026-10-22;D3 source/native and paired packaging qualification PASS.
 
 Problem and intended behavior
 Nick reports blank avatars in Custom Game -> Invite Friend. The old community
@@ -100,14 +100,72 @@ original-byte/prefab contract. Corrected proof follows Material -> Image.materia
 Neither failure is rewritten as a pass or claimed as evidence of rendered pixels.
 
 Deployment/remaining scope
+Clean payload source:6f820d6905becdaf92d537b58fd41babf9f753e8.
+local/portrait105-packages01/build-report.json records rc1.5,community2(min1),
+client79files/server111files,official pinned embedded Python and source allowlists.
+Client ZIP SHA256:
+ bc61c471f092ca0547e526af4ddd283649bb19a871ba8ff46d44487a16d6256c
+Server ZIP SHA256:
+ 4dd51d89b982588f97b39f0d1c9e56648acdbc2abaa1bfb1951bb9848f9dedd9
+local/portrait105-client-standalone01/BattleAces-Installer-RC1-105.exe:
+ 51f35edc9b4f43da2de95c3992fe8ec1050f61750d3b0cd15c45b0608285ba5c
+local/portrait105-server-standalone01/BattleAces-Server-Installer-RC1-105.exe:
+ 4a39f97686ea05dfecd61458cc5f850c7561f91ff0119d911cbfaa4f19694b62
+Native installer C#/builder sources,certificate helper103 and server console
+launcher39 are unchanged and their source-bound receipts verify. Both actual
+standalone windows and actual extracted bundled payloads PASS3.5251s:
+ local/portrait105-standalone-verification.json
+No PowerShell,game/server launch or new owner/protected first-start claim there.
+Source/history audit1812distinct paths/objects,0failures:
+ local/portrait105-history-audit01.txt
+
+Packaged Custom01 retained FAIL187.7965s,forced_cleanup=false. Actual bundled
+server and both bundled clients completed their work,each client-driver reports
+exit0,the3native workers reaped0,package/assets/shared channels unchanged. The
+parent rejects Quit trace because this owned fixture had extra opt-in disposal
+hooks installed:expected5events,observed those5plus the original OnDestroy/
+Dispose enter/return4events. Do not rewrite that parent as a pass. The candidate
+installer's ordinary patch recipe does not install those extra hooks. Correct
+the fixture using the actual105 bundled install and repeat normal qualification.
+local/portrait105-installed-update01/verification.json:PASS12.3836s using actual
+extracted bundled package_client install-game;all profile files,identity/name/
+config preserved,105helper/runtime/game-folder entry installed and ordinary
+non-Quit-diagnostic patch restored. No game/server started by update. This
+isolates the recipe correction;it does not upgrade failed packaged Custom01.
+local/portrait105-packaged-custom02/verification.json:PASS189.1482s with the
+actual ordinary installer recipe,bundled server/client Python runtimes and RC
+open admission/TLS encryption without verification. Two original native Custom
+matches,changed-deck rematch,results/Continue,sequential Leave and original menu
+Quit complete;both native exits0,three native workers reaped0. No forced cleanup.
+Package/config/assets/shared channels/source unchanged,fixture tokens not logged.
+Report SHA256:
+ 6b0c3f467e3ba7c9b9e2d5d234ad36f8c6c2612bfd5913d78ad1dd937d413b53
+This is same-PC packaged automation,not physical clicks/LAN105/Internet/SCM proof.
+Actual installed update report SHA256:
+ 439a0e3ee1e978f24b9f6f78d0c3564252538ed7cc27450d008b6eed25cdbe50
+Actual standalone verification SHA256:
+ 605493d5983c5fd091a36f6a3ec049b76013066d569a3bea726c3f75501e3886
+
+local/portrait105-launcher01/verification.json:PASS ordinary GAME-folder CMD
+menu9.5630s,installed105 runtime,download payload directory renamed and unavailable,
+no automatic match/diagnostic arguments,config/shared settings/package unchanged.
+Both wrapper/game reaped by forced readiness cleanup,NOT natural Quit evidence.
+Report SHA256:
+ d7552990529d13fa51c9330213859f40b150a05b19b9bebdd32a689a5e8b4db7
+The first local console attempt failed import tools before executing the script
+body or starting a game;second uses the repository runner with correct sys.path.
+Retain both console records. Download extraction remains renamed-not-needed.
+
 Current client104/server103 installers and manual candidates remain unchanged.
 New helper sends HELLO2 and requires a newly packaged matching server;server103
-rejects2. Deploy the next pair together only after qualification. Old103/104
-clients remain supported by the updated server. No new manual request yet.
-Pending:final paired package qualification and physical visible portrait
-observation. Native binding/live edit/fallback/pooled reuse/readiness passed05
-at the scope above. The diagnostic fixture r103g is patched with final helper06;
-its original104 installer runtime/cache remains unchanged. This fixture is not
-a published105 installed-runtime acceptance or a reserved manual candidate.
+rejects2. Deploy the qualified105 pair together. Old103/104 clients remain
+supported by the updated server. DEV N7 is the new visible check on next update.
+Pending:physical visible portrait observation on105 and remaining full D1-D9
+acceptance. Native binding/live edit/fallback/pooled reuse/readiness passed05 and
+paired packaged Custom02 passes at the scopes above. r103g is now an owned
+installed105 runtime/ordinary patch fixture,not a reserved manual candidate.
+All owned game/wrapper/server/worker processes are stopped/reaped. DEV N7 has
+next-update steps;N5 has desktop-only copies of both EXEs into the existing share.
+No repeat of accepted physical LAN1v1 or D6 reboot check is requested.
 Native programmatic checks do not establish physical clicks,natural Quit,or
 cross-PC matches. D3 and the full roadmap remain OPEN.
