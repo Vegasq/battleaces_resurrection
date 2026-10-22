@@ -18,6 +18,29 @@ MARKER = b'rem BA_RESURRECTION_GAME_LAUNCHER_V1'
 CONFIG = '.battleaces-resurrection/client-config.json'
 
 
+def uninstall(game):
+    game=Path(game).expanduser().resolve()
+    target=contained_path(game,LAUNCHER)
+    script=target.read_bytes() if target.exists() else None
+    if script is not None and (MARKER not in script or len(script)>4096):
+        raise PackageError('An unrelated Start Battle Aces.cmd exists; it was preserved')
+    manifest=launcher.read_json(game/'.battleaces-resurrection/patch-manifest.json',131072)
+    helper=contained_path(game,'BattleAcesOffline.dll')
+    if helper.exists() and hashlib.sha256(helper.read_bytes()).hexdigest()!=manifest.get('helper_sha256'):
+        raise PackageError('Client helper changed; original files and helper were preserved')
+    print('Restoring verified original game files...',file=sys.stderr,flush=True)
+    result=patch_game(game,restore=True,progress=console_progress)
+    if result.get('state')!='restored': raise PackageError('Original game restore did not complete')
+    # Only our known launcher/helper are removed after the verified restoration.
+    # Retain profiles,original backups,config and cached runtime for recovery.
+    if target.exists():
+        if target.read_bytes()!=script: raise PackageError('Launcher changed during restore; it was preserved')
+        target.unlink()
+    helper.unlink(missing_ok=True)
+    return dict(uninstalled=True,original_game_restored=True,saves_preserved=True,
+                recovery_directory=str(game/'.battleaces-resurrection'))
+
+
 def launcher_bytes(runtime_relative):
     # Only an authored relative path with a hexadecimal version ID enters CMD.
     import re

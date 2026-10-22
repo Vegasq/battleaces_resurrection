@@ -33,8 +33,10 @@ def _pem(label, raw):
 def generate_certificate():
     """Return certificate/key bytes only; never print subprocess output or keys."""
     shell = Path(os.environ.get('SystemRoot', r'C:\Windows')) / 'System32/WindowsPowerShell/v1.0/powershell.exe'
-    result = subprocess.run([str(shell), '-NoProfile', '-NonInteractive', '-File',
-                             str(Path(__file__).with_name('New-RCCertificate.ps1'))],
+    native = Path(__file__).resolve().parents[2] / 'crypto/Generate Certificate.exe'
+    command = ([str(native), '--pipe-certificate'] if native.is_file() else
+               [str(shell), '-NoProfile', '-NonInteractive', '-File', str(Path(__file__).with_name('New-RCCertificate.ps1'))])
+    result = subprocess.run(command,
                             stdin=subprocess.DEVNULL, stdout=subprocess.PIPE, stderr=subprocess.PIPE,
                             timeout=30, creationflags=subprocess.CREATE_NO_WINDOW if os.name == 'nt' else 0)
     if result.returncode or len(result.stdout) > 32768:

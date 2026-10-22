@@ -27,6 +27,10 @@ def main(argv=None):
     sub.add_argument('--request', type=Path, required=True)
     sub = commands.add_parser('install-game', help='install using the two-field native installer request')
     sub.add_argument('--request', type=Path, required=True)
+    sub = commands.add_parser('reset-deck', help='back up settings and reset only the selected deck')
+    sub.add_argument('--request', type=Path, required=True)
+    sub = commands.add_parser('uninstall-game', help='restore originals and remove the client launcher/helper; preserve saves')
+    sub.add_argument('--request', type=Path, required=True)
     sub = commands.add_parser('ca-fingerprint')
     sub.add_argument('--file', type=Path, required=True)
     sub = commands.add_parser('start', help='start local play with optional server connectivity')
@@ -46,11 +50,20 @@ def main(argv=None):
         if args.command == 'verify':
             print('Client package files verified. This does not verify the game or network.')
             return 0
-        if args.command == 'install-game':
+        if args.command in ('install-game', 'reset-deck', 'uninstall-game'):
             from .game_installer import install
             from client_patch.transport.launcher import read_json
             try:
-                result = install(PACKAGE, read_json(args.request, 32768))
+                request = read_json(args.request, 32768)
+                if args.command in ('reset-deck','uninstall-game'):
+                    from .reset_deck import reset
+                    if not isinstance(request, dict) or set(request) != {'game_directory', 'server_host'}:
+                        raise ValueError('Choose the installed game folder')
+                    if args.command == 'reset-deck': result = reset(request['game_directory'])
+                    else:
+                        from .game_installer import uninstall
+                        result = uninstall(request['game_directory'])
+                else: result = install(PACKAGE, request)
                 print(json.dumps(dict(ok=True, result=result)))
                 return 0
             except (OSError, ValueError) as error:

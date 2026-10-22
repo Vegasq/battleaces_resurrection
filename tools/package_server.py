@@ -13,6 +13,8 @@ def main(argv=None):
     parser = SafeParser(description=__doc__)
     commands = parser.add_subparsers(dest='command', required=True)
     commands.add_parser('verify', help='verify immutable bundled files, not imported game assets')
+    sub = commands.add_parser('install-server', help='install a host from the native two-folder setup')
+    sub.add_argument('--request', type=Path, required=True)
     sub = commands.add_parser('service-command', help='print registration settings; does not install or start a service')
     sub.add_argument('--config', type=Path, default=PACKAGE / 'config/host.json')
     sub.add_argument('--name', default='BattleAcesResurrection')
@@ -36,6 +38,15 @@ def main(argv=None):
     args = parser.parse_args(argv)
     try:
         verify(PACKAGE, 'server')
+        if args.command == 'install-server':
+            from .server_installer import install
+            from client_patch.transport.launcher import read_json
+            try:
+                result=install(PACKAGE,read_json(args.request,32768))
+                print(json.dumps(dict(ok=True,result=result)));return 0
+            except (OSError,ValueError) as error:
+                message=str(error) if isinstance(error,ValueError) else 'Cannot prepare the server folder. Check permissions and disk space; choose a fresh empty folder to retry.'
+                print(json.dumps(dict(ok=False,error=message)));return 1
         if args.command == 'verify':
             print('Server package files verified. Imported assets are checked by the check/start commands.')
             return 0

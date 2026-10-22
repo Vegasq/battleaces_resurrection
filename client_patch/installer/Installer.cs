@@ -12,53 +12,76 @@ using System.Windows.Forms;
 
 // BA_RESURRECTION_NATIVE_INSTALLER_V1
 internal sealed class Installer : Form {
+#if SERVER_INSTALLER
+    static readonly bool Server = true;
+#else
+    static readonly bool Server = false;
+#endif
     readonly TextBox game = new TextBox(), address = new TextBox();
-    readonly Button browse = new Button(), install = new Button();
+    readonly Button browse = new Button(), install = new Button(), reset = new Button(), uninstall = new Button();
     readonly Label status = new Label();
     readonly ProgressBar progress = new ProgressBar();
     readonly BackgroundWorker worker = new BackgroundWorker();
     readonly Timer timer = new Timer();
     DateTime started;
     string selectedGame, selectedAddress;
+    bool resetRequested, uninstallRequested;
     readonly string smokeReport;
 
     Installer(string smoke) {
         smokeReport = smoke;
         Text = "Battle Aces Resurrection - Install";
-        ClientSize = new Size(720, 360); StartPosition = FormStartPosition.CenterScreen;
+        ClientSize = new Size(720, 405); StartPosition = FormStartPosition.CenterScreen;
         FormBorderStyle = FormBorderStyle.FixedDialog; MaximizeBox = false;
         AutoScaleMode = AutoScaleMode.Dpi; Font = new Font("Segoe UI", 10);
         BackColor = Color.FromArgb(246, 248, 251);
-        AddLabel("Install Battle Aces Resurrection", 22, 20, 675, 40).Font = new Font("Segoe UI", 19, FontStyle.Bold);
-        AddLabel("Choose your game folder and enter the server IP.", 24, 67, 670, 28);
+        AddLabel(Server ? "Install Battle Aces Server" : "Install Battle Aces Resurrection", 22, 20, 675, 40).Font = new Font("Segoe UI", 19, FontStyle.Bold);
+        AddLabel(Server ? "Choose your game and an empty folder for the server." : "Choose your game folder and enter the server IP.", 24, 67, 670, 28);
         AddLabel("Game folder", 24, 118, 120, 28);
         game.SetBounds(148, 114, 430, 28); Controls.Add(game);
         browse.Text = "Browse..."; browse.SetBounds(590, 110, 106, 35); Controls.Add(browse);
-        AddLabel("Server IP", 24, 170, 120, 28);
+        AddLabel(Server ? "Server folder" : "Server IP", 24, 170, 120, 28);
         address.SetBounds(148, 166, 548, 28); address.MaxLength = 253; Controls.Add(address);
-        AddLabel("Leave blank for offline play. You can edit the saved settings later.", 148, 202, 548, 30);
+        if (Server) {
+            address.Width = 430;
+            var destination = new Button(); destination.Text = "Browse..."; destination.SetBounds(590, 162, 106, 35); Controls.Add(destination);
+            destination.Click += delegate { if (worker.IsBusy) return; using (var dialog = new FolderBrowserDialog()) {
+                dialog.Description = "Choose an empty folder for the dedicated server";
+                if (dialog.ShowDialog(this) == DialogResult.OK) address.Text = dialog.SelectedPath;
+            }};
+        }
+        AddLabel(Server ? "Imports game data locally. Creates Start Server.exe; no game files ship." : "Leave blank for offline play. You can edit the saved settings later.", 148, 202, 548, 38);
         install.Text = "Install / Update"; install.SetBounds(24, 247, 178, 39); Controls.Add(install);
-        progress.SetBounds(220, 254, 476, 22); progress.Style = ProgressBarStyle.Marquee; progress.Visible = false;
-        status.SetBounds(24, 303, 672, 50); status.Text = "Creates Start Battle Aces.cmd in your game folder."; Controls.Add(status);
+        reset.Text = "Reset selected deck"; reset.SetBounds(220, 247, 195, 39); Controls.Add(reset);
+        reset.Visible = !Server;
+        uninstall.Text = "Uninstall client patch"; uninstall.SetBounds(435,247,261,39); uninstall.Visible = !Server; Controls.Add(uninstall);
+        progress.SetBounds(24,299,672,16);
+        progress.Style = ProgressBarStyle.Marquee; progress.Visible = false;
+        status.SetBounds(24, 331, 672, 65); status.Text = Server ? "Creates Start Server.exe. The source game folder stays unchanged." : "Creates Start Battle Aces.cmd in your game folder."; Controls.Add(status);
         browse.Click += delegate {
             using (var dialog = new FolderBrowserDialog()) {
                 dialog.Description = "Choose the folder containing Battle Aces.exe";
                 if (dialog.ShowDialog(this) == DialogResult.OK) game.Text = dialog.SelectedPath;
             }
         };
-        install.Click += delegate {
+        EventHandler begin = delegate(object sender, EventArgs e) {
             if (worker.IsBusy) return;
             if (!File.Exists(Path.Combine(game.Text, "Battle Aces.exe"))) { status.Text = "Choose the folder containing Battle Aces.exe."; return; }
+            resetRequested = !Server && sender == reset;
+            uninstallRequested = !Server && sender == uninstall;
+            if (resetRequested && MessageBox.Show(this, "Close the game first. Reset only the selected deck to the original starter deck? Saved decks, cosmetics and options stay unchanged. A settings backup is kept.", "Reset selected deck", MessageBoxButtons.YesNo, MessageBoxIcon.Question) != DialogResult.Yes) return;
+            if (uninstallRequested && MessageBox.Show(this, "Close the game first. Restore the original game files and remove the Resurrection launcher and helper? Saves, configuration, recovery backups and cached runtime will be kept.", "Uninstall client patch", MessageBoxButtons.YesNo, MessageBoxIcon.Question) != DialogResult.Yes) return;
             selectedGame = game.Text; selectedAddress = address.Text.Trim();
-            game.Enabled = address.Enabled = browse.Enabled = install.Enabled = false;
+            game.Enabled = address.Enabled = browse.Enabled = install.Enabled = reset.Enabled = uninstall.Enabled = false;
             progress.Visible = true; started = DateTime.UtcNow; timer.Start();
             status.Text = "Preparing installation..."; worker.RunWorkerAsync();
         };
+        install.Click += begin; reset.Click += begin; uninstall.Click += begin;
         worker.DoWork += RunInstall;
         worker.RunWorkerCompleted += delegate(object sender, RunWorkerCompletedEventArgs e) {
             timer.Stop(); Text = "Battle Aces Resurrection - Install"; progress.Visible = false;
-            game.Enabled = address.Enabled = browse.Enabled = install.Enabled = true;
-            status.Text = e.Error == null ? "Installed. Open Start Battle Aces.cmd in your game folder to play." : e.Error.Message;
+            game.Enabled = address.Enabled = browse.Enabled = install.Enabled = reset.Enabled = uninstall.Enabled = true;
+            status.Text = e.Error == null ? (Server ? "Installed. Open Start Server.exe in your server folder to host." : uninstallRequested ? "Client patch uninstalled. Original game restored; saves and recovery files kept." : resetRequested ? "Deck reset. Start Battle Aces.cmd will load the original starter deck." : "Installed. Open Start Battle Aces.cmd in your game folder to play.") : e.Error.Message;
             if (e.Error != null) MessageBox.Show(this, e.Error.Message, "Installation failed", MessageBoxButtons.OK, MessageBoxIcon.Error);
         };
         timer.Interval = 1000; timer.Tick += delegate { Text = "Battle Aces Resurrection - Installing (" + (int)(DateTime.UtcNow-started).TotalSeconds + "s)"; };
@@ -71,7 +94,8 @@ internal sealed class Installer : Form {
                 File.WriteAllText(smokeReport, new JavaScriptSerializer().Serialize(new {
                     shown = Visible && Created && IsHandleCreated, editable_fields = fields,
                     game_field_visible = game.Visible, server_field_visible = address.Visible,
-                    install_button_visible = install.Visible, powershell_used = false
+                    install_button_visible = install.Visible, reset_button_visible = reset.Visible,
+                    uninstall_button_visible = uninstall.Visible, server_installer = Server, powershell_used = false
                 })); close.Dispose(); Close();
             };
             close.Start();
@@ -112,7 +136,7 @@ internal sealed class Installer : Form {
                     using (Stream input = entry.Open()) using (Stream output = new FileStream(path, FileMode.CreateNew)) input.CopyTo(output);
                 }
             }
-            return Path.Combine(root, "battleaces-client-win64");
+            return Path.Combine(root, Server ? "battleaces-server-win64" : "battleaces-client-win64");
         }
     }
 
@@ -120,10 +144,10 @@ internal sealed class Installer : Form {
         string package = PackageRoot(), request = Path.GetTempFileName();
         try {
             File.WriteAllText(request, new JavaScriptSerializer().Serialize(new Dictionary<string,string> {
-                {"game_directory", selectedGame}, {"server_host", selectedAddress}
+                {"game_directory", selectedGame}, {Server ? "server_directory" : "server_host", selectedAddress}
             }), new UTF8Encoding(false));
             var info = new ProcessStartInfo(Path.Combine(package, "program", "runtime", "python.exe"));
-            info.Arguments = "-I -B -m tools.package_client install-game --request " + Quote(request);
+            info.Arguments = "-I -B -m " + (Server ? "tools.package_server install-server" : "tools.package_client " + (uninstallRequested ? "uninstall-game" : resetRequested ? "reset-deck" : "install-game")) + " --request " + Quote(request);
             info.UseShellExecute = false; info.CreateNoWindow = true;
             info.RedirectStandardOutput = info.RedirectStandardError = true;
             using (var process = new Process()) {
@@ -148,7 +172,7 @@ internal sealed class Installer : Form {
             if (args.Length == 2 && args[0] == "--verify-payload") {
                 string package = PackageRoot();
                 var info = new ProcessStartInfo(Path.Combine(package, "program", "runtime", "python.exe"));
-                info.Arguments = "-I -B -m tools.package_client verify"; info.UseShellExecute = false; info.CreateNoWindow = true;
+                info.Arguments = "-I -B -m " + (Server ? "tools.package_server" : "tools.package_client") + " verify"; info.UseShellExecute = false; info.CreateNoWindow = true;
                 info.RedirectStandardOutput = info.RedirectStandardError = true;
                 using (var process = Process.Start(info)) {
                     string output = process.StandardOutput.ReadToEnd(), error = process.StandardError.ReadToEnd(); process.WaitForExit();
@@ -162,7 +186,7 @@ internal sealed class Installer : Form {
             string smoke = args.Length == 2 && args[0] == "--ui-smoke" ? args[1] : null;
             using (var form = new Installer(smoke)) {
                 if (args.Length == 2 && args[0] == "--render-preview") {
-                    form.game.Text = @"D:\Battle Aces"; form.address.Text = "192.168.1.25";
+                    form.game.Text = @"D:\Battle Aces"; form.address.Text = Server ? @"D:\Battle Aces Server" : "192.168.1.25";
                     form.Show(); form.Refresh();
                     using (var bitmap = new Bitmap(form.Width, form.Height)) { form.DrawToBitmap(bitmap, new Rectangle(0,0,form.Width,form.Height)); bitmap.Save(args[1]); }
                     form.Close();

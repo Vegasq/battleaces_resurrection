@@ -21,7 +21,7 @@ ROOT = Path(__file__).resolve().parents[1]
 PYTHON_VERSION = '3.14.8'
 PYTHON_ZIP_SHA256 = 'a93abe456ab01bd96d7a085b3cdb6566b3063f4241360d114142fbdb07f0a310'
 PYTHON_URL = 'https://www.python.org/ftp/python/3.14.8/python-3.14.8-embed-amd64.zip'
-PACKAGE_VERSION = '0.3.0-rc1.2'
+PACKAGE_VERSION = '0.3.0-rc1.3'
 RUNTIME_PTH = b'python314.zip\n.\n../app\n'
 COMMON = (
     'server/__init__.py', 'server/protocol.py', 'server/credentials.py',
@@ -51,8 +51,11 @@ CLIENT = COMMON + (
     'client_patch/transport/rc_setup.py', 'client_patch/launcher/Configure-RCClient.ps1',
     'client_patch/launcher/ClientConfig.ps1', 'client_patch/launcher/Launch-Client.ps1',
     'client_patch/launcher/Configure-Client.ps1',
-    'tools/package_client.py', 'tools/game_installer.py',
+    'tools/package_client.py', 'tools/game_installer.py', 'tools/reset_deck.py',
 )
+# The server installer reads an already patched local game; these are our own
+# validation/export orchestration sources, not original client files or assets.
+SERVER = tuple(dict.fromkeys(SERVER + CLIENT + ('tools/server_installer.py',)))
 MARKERS = (
     b'BA_RESURRECTION_NATIVE_BACKUP_GUARD_V1', b'OfflineBackupInitialRead\0', b'OfflineBackupWriteText\0',
     b'BA_RESURRECTION_NATIVE_STORAGE_V1',
@@ -210,7 +213,7 @@ def write_zip(path, files, prefix):
             archive.writestr(info, data, compresslevel=9)
 
 
-def build(runtime_zip, helper, output, *, allow_dirty=False, server_launcher=None, client_installer=None):
+def build(runtime_zip, helper, output, *, allow_dirty=False, server_launcher=None, client_installer=None, certificate_tool=None):
     output = Path(output).absolute()
     # Developer outputs stay in ignored roots; never write archives into source
     # or over an existing package. Failed builds remain for inspection.
@@ -222,6 +225,15 @@ def build(runtime_zip, helper, output, *, allow_dirty=False, server_launcher=Non
     runtime, helper_data, source = read_runtime(runtime_zip), read_helper(helper), source_revision()
     launcher_data, launcher_receipt = read_server_launcher(server_launcher or ROOT/'build/server-launcher/Start Server.exe')
     installer_data, installer_receipt = read_client_installer(client_installer or ROOT/'build/client-installer/Install Battle Aces.exe')
+    crypto = None
+    if certificate_tool is not None:
+        from .build_certificate_tool import SOURCES
+        tool=Path(certificate_tool);data=tool.read_bytes();receipt=tool.with_name('certificate-build.json').read_bytes()
+        value=json.loads(receipt)
+        if (not data.startswith(b'MZ') or value.get('sha256')!=sha(data)
+                or value.get('source_sha256')!={n:sha(source_file(n)) for n in SOURCES}):
+            raise PackageError('Certificate helper build differs from current sources')
+        crypto=(data,receipt)
     if source['dirty'] and not allow_dirty: raise PackageError('Commit source changes or explicitly use --allow-dirty for a local preview')
     versions = dict(package=PACKAGE_VERSION, game_build=37822, game_protocol=3, community_protocol=1,
                     asset_format=1, patch_schema=2, python=PYTHON_VERSION, platform='windows-amd64')
@@ -237,7 +249,11 @@ def build(runtime_zip, helper, output, *, allow_dirty=False, server_launcher=Non
             files['Setup Client.cmd'] = wrapper(product)
         else:
             files['Start Server.exe'] = launcher_data
+            files['program/client-helper/BattleAcesOffline.dll']=helper_data
             files['program/launcher/launcher-build.json'] = launcher_receipt
+            if crypto:
+                files['program/crypto/Generate Certificate.exe']=crypto[0]
+                files['program/crypto/certificate-build.json']=crypto[1]
         files['QUICKSTART.txt'] = source_file('docs/windows-' + product + '-quickstart.txt')
         compatibility = dict(schema=1, product=product, versions=versions, source=source,
             maturity='development-preview', clean_windows_qualified=False,
@@ -286,12 +302,13 @@ def main(argv=None):
     parser.add_argument('--python-zip', type=Path, required=True)
     parser.add_argument('--helper', type=Path, required=True, help='our compiled BattleAcesOffline.dll, never a game DLL')
     parser.add_argument('--client-installer', type=Path)
+    parser.add_argument('--certificate-tool', type=Path)
     parser.add_argument('--server-launcher', type=Path, help='our compiled Start Server.exe and adjacent source-bound launcher-build.json')
     parser.add_argument('--output', type=Path, required=True)
     parser.add_argument('--allow-dirty', action='store_true', help='local development preview with exact source hashes recorded')
     args = parser.parse_args(argv)
     try:
-        print(json.dumps(build(args.python_zip, args.helper, args.output, allow_dirty=args.allow_dirty, server_launcher=args.server_launcher, client_installer=args.client_installer), indent=2))
+        print(json.dumps(build(args.python_zip, args.helper, args.output, allow_dirty=args.allow_dirty, server_launcher=args.server_launcher, client_installer=args.client_installer, certificate_tool=args.certificate_tool), indent=2))
         return 0
     except (OSError, ValueError, zipfile.BadZipFile) as error:
         print('Package build failed: ' + str(error))

@@ -1,0 +1,48 @@
+NATIVE INSTALLER103 - DECK RESET,CLIENT UNINSTALL,SERVER SETUP
+2026-10-21. Supersedes102 for the new maintenance/server controls.
+
+Nick reports the second-PC installation shows his current deck and requests a
+default reset. It corroborates that102 reached installation/game on that PC,
+not a complete UI/gameplay acceptance result. Client payloads are built from an
+explicit source/runtime/helper allowlist and contain no personal profile saves.
+Installation intentionally preserves saves already in the selected game folder,
+including any copied there with the game. The exact second-PC save provenance
+is not observable from this workspace and is not asserted as proven.
+
+Client window retains game-folder/server-IP inputs and Install / Update. Adds:
+- Reset selected deck:explicit confirmation,closed-game writer lock,exact TOML
+  backup in profiles/<profile>/deck-reset-backups/,only selected units/abilities
+  cleared. The original selector chooses its own shipped starter next launch.
+  Saved deck list,options,cosmetics,config and identities are preserved. No hardcoded
+  developer/AI deck,no automatic reset on update. Unsupported/malformed settings
+  refuse before writing. Existing native all-empty fallback remains unchanged.
+- Uninstall client patch:explicit confirmation,verified original DLL/catalog
+  restoration using existing transactional patcher,then removal of the owned
+  launcher and known helper. Foreign/changed helper or launcher is refused.
+  Profiles,config,original backups and cached runtime stay for recovery/reinstall.
+  The original game still depends on its defunct original services after restore.
+
+Server window:game folder plus empty server destination. The source game is read
+only:independent private copy of the required program/data and original backups,
+excluding player profiles/runtime/identities. Only that copy is patched/exported.
+The export runs isolated from network/Play with a new private profile. Its owned
+export-only process is stopped after completion. Original source files/saves are
+never patched or written. Fresh stage verifies/imports maps,units,bots,AI,cosmetics,
+descriptors and original simulation DLL. Working game copy is removed only from
+the verified staging child before publishing the installed server folder. Failed
+stages are retained locally;existing nonempty host destinations are never replaced.
+Setup needs enough temporary disk space for a full local game copy and takes a
+few minutes. No original game data is embedded in/distributed with the installer.
+
+Installed Start Server.exe uses bundled Python. First normal-owner start creates
+private self-signed keys/config using a native Windows certificate tool,no PS
+script or trust-store change. Certificate helper refuses to emit keys to an
+interactive console. RC encrypted/open admission/no certificate verification is
+unchanged. No listener/firewall/service is started by setup. Ctrl+C stops hosting.
+Existing verified mode remains explicit. Source checkout legacy certificate
+generation fallback remains;delivered103 server contains the native helper.
+
+Qualification pending:39focused reset/uninstall/server-copy/package/RC checks
+PASS. Final UI,payload,native selected-deck reset/uninstall and full server import
+evidence will be added before handing103 to Nick. Preserve all102/101/manual71/
+startup58/LAN98 artifacts. User requests/answers remain exclusively in DEV.txt.

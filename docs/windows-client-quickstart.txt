@@ -1,6 +1,6 @@
-BATTLE ACES RESURRECTION - NATIVE RC1.2 INSTALLER
+BATTLE ACES RESURRECTION - NATIVE RC1.3 INSTALLER
 
-Double-click the standalone BattleAces-Installer-RC1-102.exe. It contains the
+Double-click the standalone BattleAces-Installer-RC1-103.exe. It contains the
 complete patch runtime;no ZIP extraction,Python install or PowerShell policy
 change is required. Alternatively,extract the full client ZIP and double-click
 Install Battle Aces.exe. Setup Client.cmd opens that same native window.
@@ -9,6 +9,14 @@ Install Battle Aces.exe. Setup Client.cmd opens that same native window.
 2. Enter the server IP,or leave it blank for offline play. Click Install / Update.
 3. Wait for the installed message,then close the installer.
 4. In the GAME folder,double-click Start Battle Aces.cmd for every later launch.
+
+For maintenance,select that game folder in the installer. Reset selected deck
+backs up local settings and restores the original starter selection on next
+launch;it preserves saved decks,cosmetics,options and identity. Close the game
+first. Uninstall client patch restores verified original game files and removes
+the owned launcher/helper,keeping saves,config,recovery backups and cached runtime.
+Original services remain offline after uninstall. Updates preserve existing saves;
+copying an already patched game with its profiles also copies its selected deck.
 
 The game folder now contains its own verified Python/client runtime under
 .battleaces-resurrection/client-runtime/. The downloaded installer/extracted

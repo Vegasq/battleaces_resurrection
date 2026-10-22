@@ -91,5 +91,26 @@ class GameInstallerTests(unittest.TestCase):
         for relative in ('../escape','C:/absolute','abc & whoami','.battleaces-resurrection/client-runtime/%PATH%'):
             with self.assertRaises(ValueError):installer.launcher_bytes(relative)
 
+    def test_uninstall_restores_before_removing_owned_files_and_keeps_saves(self):
+        result=self.install();helper=self.game/'BattleAcesOffline.dll';helper.write_bytes(b'known helper')
+        manifest=self.game/'.battleaces-resurrection/patch-manifest.json'
+        manifest.write_text(json.dumps(dict(helper_sha256=hashlib.sha256(helper.read_bytes()).hexdigest())))
+        saves=self.game/'.battleaces-resurrection/profiles/default';saves.mkdir(parents=True)
+        (saves/'gameconfig-localuser.toml').write_bytes(b'keep saved deck')
+        self.patcher.return_value={'state':'restored'}
+        installer.uninstall(self.game)
+        self.assertTrue(self.patcher.call_args.kwargs['restore'])
+        self.assertFalse(helper.exists());self.assertFalse(Path(result['launcher']).exists())
+        self.assertEqual((saves/'gameconfig-localuser.toml').read_bytes(),b'keep saved deck')
+        self.assertTrue(Path(result['runtime']).is_dir())
+
+    def test_failed_restore_does_not_remove_launcher_or_helper(self):
+        result=self.install();helper=self.game/'BattleAcesOffline.dll';helper.write_bytes(b'known helper')
+        (self.game/'.battleaces-resurrection/patch-manifest.json').write_text(json.dumps(
+            dict(helper_sha256=hashlib.sha256(helper.read_bytes()).hexdigest())))
+        self.patcher.side_effect=PermissionError('running game')
+        with self.assertRaises(PermissionError): installer.uninstall(self.game)
+        self.assertTrue(helper.exists());self.assertTrue(Path(result['launcher']).exists())
+
 
 if __name__=='__main__':unittest.main()
