@@ -3,6 +3,19 @@ Updated: 2026-10-22
 Supported input: Battle Aces build 37822, Windows x64.
 Recipe version: 15. Guards: 103. Complete-set runtime_validated: false.
 
+Current source gates and NEXT implementation:telemetry-source-worklist125.txt.
+125 identifies three SDK failure/cache handlers that can enumerate/prune after
+the disabled writer,with FIVE safe interior branch proposals preserving pending
+owner cleanup and the genuine empty device-ID return. Proposals are not installed
+or runtime qualified. Native identity/archive state activation stays separate.
+Unforced native125-02 AI/Continue/normal Quit passes with native field audit intact,
+12 observed native entry counters0 and c307c0 explicitly unobserved.16checks and
+86altered-capture rejections pass;one earlier hook/audit failure stays retained.
+124 closes the selected canonical SDK-root startup-through-exit-ENTRY case;
+122 covers genuine fresh guarded-delivery lifetime. Full D5 remains OPEN,false;
+no new packages. Exact identities/limits:telemetry-exit-boundary124.txt,
+telemetry-cache-delivery122.txt and telemetry-source-worklist125.txt.
+
 Review121 closes the named genuine SDK cache-instance/on-disk reader subtask.
 Construct on empty canonical owned directories BEFORE seeds;read two authored
 files through real instance methods,rehydrate real reports,verify missing IDs/

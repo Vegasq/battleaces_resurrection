@@ -1,0 +1,181 @@
+D5 REMAINING SOURCE WORKLIST125
+2026-10-22. Full D5 remains OPEN. Source findings below narrow the remaining
+engineering work;they are not complete analytics-removal or release acceptance.
+Reuse bounded120-124 evidence. Do not add format reconstruction solely because
+a dormant library contains a parser: first establish an effective reader route.
+
+S1 / NEXT:existing pending Bugsnag owners and device-cache identity
+Source review identifies three unguarded synchronous PayloadManager handlers:
+SendPayloadFailed824b60,CacheSession824e20,CacheEvent824f70. They inline Save work
+and can enumerate/prune cache files AFTER the already-guarded WriteFile returns.
+Thus a disabled final writer does not cover their enumeration/deletion effects.
+Ordinary SDK startup/fresh coroutine entry guards are separately established;
+this residual concerns existing pending owners/failure/indirect entry paths.
+
+All three handlers return void and borrow managed inputs,without an output,
+external subscriber callback or transferred native owner. They must still retire
+matching pending owners:an entry RET would strand those list references. Five
+source-reviewed proposals are now pinned,NOT yet installed or runtime qualified:
+-824bf1->824ce5 and824d3a->824ce5 skip the two SendPayloadFailed cache branches.
+-824e50->824f3c and824fa0->82508c skip CacheSession/CacheEvent disk work.
+-83692d->836aa8 selects GetCachedDeviceId's EXISTING genuine String.Empty path,
+ avoiding report-file/random identity access while preserving prologue/init.
+All four handler branches preserve original GetPending lookup,matching
+RemovePendingPayload825190 and epilogues. All nonvolatile saves at source/target
+remain compatible. Source/target and replacement end are decoded instructions.
+
+RemovePendingPayload uses actual List.RemoveAll and predicate733680,which reads
+only PendingPayload.PayloadId and captured report ID,not Json. It preserves
+unmatched order,clears vacated array references and advances count/version.
+Actual PendingPayload constructor818f80 stores two managed String refs through
+real GC barriers;do not fabricate a managed owner/use guarded AddPendingPayload.
+
+Finite implementation/acceptance for S1:
+1. Add five atomic exact-build recipe guards,retaining every cleanup path.
+2. Validate original/full masked bodies and jump/unwind/ABI contracts.
+3. Use genuine manager/config/path lifetime and authored matched+unmatched
+   pending owners,including both typed failure branches,cache calls and ID miss.
+   Prove only matched membership retires,unmatched order/JSON/IDs remain,cleared
+   array refs and sensible versions/counts;empty-list tests are insufficient.
+4. Under an isolated owned root,enable the genuine device flag and require the
+   original empty-string return without device-file/random path access. Preserve
+   authored seed identities. Do not read/seed/clear the actual shared queue.
+5. Profile/backups-preserving upgrade and normal AI/result/Continue/Quit,strict
+   selected file/network/process reconciliation;keep full D5 false afterward.
+
+Source seals,all ignored local records:
+local/privacy125-cache-source01/evidence-manifest02.json
+ ffd81f2330feb2c3c716ad8a5bbf08120cf9d491321b8d4c1c148acf3972504e
+local/privacy125-cache-source01/candidate-interior-bypasses.json
+ 968bae7e094118eac3cdcba24b689e425e4ade403d1bc5bde6ba11e92521168d
+local/privacy125-cache-source01/code-contract.json
+ ade0a3ef1498b952eb41432c1d3beec5727b784c1c129766a65f3cd3f0017ad0
+71 complete source bodies plus direct references/metadata. Initial manifest01
+retained;02 corrects a human SessionTracker label826a30->826b40,not its original
+callsite826d9c. No original game payload enters Git.
+
+S2 / native identity acquisition and indirect activation
+c416b0 is serialization-shaped:receiver+190 native SSO field,fallback c43ae0 when
+empty. It is NOT established advertising acquisition/registration. All three
+raw RVA32 references to c416b0 are PE unwind/chained-unwind metadata,not callback
+table links. Do not use them to invent a provider registration edge.
+c43ae0 returns an owned native string via hidden output and calls lazy cloud
+user-ID accessor c478c0. Verified direct callers:c3bf3c(rootc3bb20),c41845(root
+c416b0),c9320b(rootc92720). c478c0 handles unity.cloud_userid/migration;public
+managed getter2047b0 is unguarded. Existing c307c0 retained-copy guard does NOT
+establish upstream acquisition/registration;external1ca49c8/+98 virtual40 owner
+also remains unresolved. No safe new guard is established merely from names.
+Next:trace actual production activation/source owners;preserve native string
+construction/destruction and shared platform APIs. Never invoke an original
+getter simply to discover a real user ID or root.
+local/privacy125-ads-source01/manifest.json
+ 74fcc6ed3d7cc4b1c0b7bc6d5bcfa2e67f16d0c353d4899868db0e779b4cdbcd
+local/privacy125-ads-source01/FINDINGS.txt
+ 23c4c73c6f97ab03deba19cd00ee1c62cb65809e0efcc5c0d8a5096c5963d91c
+
+S3 / native archive applicability;reuse CEF closure inputs
+FlushArchivedEvents207a80 and lifecyclec3d120/c3d1b0 require nonzero main+e10 and
++480 before posting worker callbackc51630->c5b200. The original ctor initializes
+main+e10/+480/worker+4e0 to0;main/base Start registration is guarded. This is a
+reviewed inactive-state path argument,not every-state/all-mode closure.
+
+Concrete archive initialization is a separate route:c2fbc0 tailjumps c3bb20,
+which initializes archive owner+2b8 via c58bf0->c5a610. Zero main+e10 alone does
+NOT skip this construction. c5a610 composes owner+68 path and appends the actual
+ArchivedEvents literal intoowner+90. Establish the state-machine activation of
+c2fbc0 before requiring a valid archived-format fixture. Do not patch archive
+cleanup or construct a fake native main/owner merely to exercise it.
+
+The earlier c05b20 '%s/Unity/.../Analytics' lead belongs to cloud-user-ID migration
+via c478c0,not a proven archived-event root. Keep these obligations separate.
+CEF inherited-pipe config/bootstrap chains are behind chrome_elf323a0;libcef
+17403d0 handler guard has existing positive-control/lifetime evidence106/107.
+Reuse it. No original Crashpad parser/minidump activation is required unless an
+effective independent reader/bootstrap bypass is demonstrated. Actual legitimate
+WebView/descendant/final-package observation remains a runtime obligation.
+local/privacy125-native-archive01/evidence-manifest.json
+ 445fcf1bcafe033264564efd19d6de06dea004d53d775aff96611e464ffb4f7d
+local/privacy125-native-archive01/code-contract.json
+ d3557e304d9d3eba78aebc765314b7c619c7e94d0105eef8db96a29732754077
+
+R / finite runtime and final-artifact work after source gates
+Keep exact source/patch/helper/runtime identities per case. Reuse existing
+positive file/network/process sensor controls and native reader/lifetime cases.
+Qualify a final installed candidate across fresh/existing writable profiles:
+startup/idle,deck/options/cosmetic edits,tutorial,Try Deck/public1v1/2v2/2vAI and
+Custom,results/Continue/rematch,offline/server reconnect and ordinary shutdown.
+Include the supported controlled reporter/error/crash and effective queued-owner
+routes identified by S1-S3. Attribute expected server traffic separately from
+telemetry and inspect relevant game-owned descendants. API-selected captures do
+not become kernel/wire/tree coverage through quiet counters. Preserve functional
+saves/diagnostics,original/last-valid state,ordinary transitions and cleanup.
+Do not repeat accepted physical D6/LAN1v1 or unchanged bounded source controls.
+
+Current125 unforced native watcher
+New tools/frida_native_telemetry.py recognizes13 original entry prefixes and
+counts12 entries,with up to8 caller-only events/name and continued counters in
+heartbeats/exit snapshots. No original collector is invoked/no payload read.
+ads.identity.callback c307c0 is recognition-only,NOT observed0:the native field
+auditor independently checks its prologue and an Interceptor would alter it.
+
+First owned native-ai01 FAILED its field audit because that prologue was hooked.
+Its source/capture/natural0/empty-job result is retained,but is not a qualifying
+telemetry case. Revised observer keeps c307c0 untouched. Initial focused-tests02
+caught a filter applied to recognition instead of hook installation;no game ran
+that rejected version. Corrected03 passes16 checks,including executing callback
+budget behavior under an authored JS host. No C++/helper/recipe changes yet.
+Completed native-ai02/reconciliation records follow below. These witnesses
+can establish bounded actual hits/absence;zero hits do not close S2/S3 source
+reachability. The exit layer retains124's explicit200ms hold per distinct export.
+
+Completed native-ai02
+Native AI/result/Continue/default original Quit PASS128.625569s,including paused
+observer preparation. Process0/reaped,job1/0/0,no owner-forced cleanup. Eight
+program components,shared settings and all recorded sources remain unchanged.
+There are NO device/cache/identity original API probes or SDK-root substitutions.
+The original native audit stays intact:3/53/3 guards,all required field stages.
+
+Strict read-only review02 PASS:664 provider rows/352 clock anchors,12ms max drift,
+280 selected file operations,0 selected network/child events,0 unresolved roots.
+Twelve watched native entry counters remain integer0 from installed witnesses
+through both actual self-TerminateProcess entries,with Unity caller80547e and
+status0. c307c0 remains explicitly recognized-only/unobserved,not a zero counter.
+86 actual retained-capture mutations reject in memory,including Boolean counters,
+fabricated hits,missing installation/terminal rows,wrong prefixes and falsely
+including the recognized-only callback among observed entries. Captures unchanged.
+
+This supplies one actual unforced lifecycle input to S2/S3,not source closure,
+every-mode absence,pre-loader/injection coverage or full D5. Native original
+collectors were not invoked to manufacture a positive hit. Authored JS counter
+tests and existing metadata sensor controls retain their separate positive scope.
+No current guard/recipe/helper/package change. Both owned processes terminal and
+both REA sessions closed. No new Nick action or repeat of this unchanged case.
+Next engineering work is S1's FIVE safe interior guards with genuine pending-
+owner/disabled-ID lifetime qualification,not more equivalent quiet AI runs.
+
+Final REA Evidence:
+ ev_f34f2fe263d297f62b363d438b27264c6d59ffc15b369cab7032d729b0593d3d
+Session38f32d17-d557-4fb8-a5eb-e5fc239eb4e6 closed. Failed01 session
+0e0b3fd8-559b-48cb-a660-dd2c0fa63beb also closed,retained as failed above.
+
+Retained runtime identities
+local/privacy125-native-ai01/verification.json
+ 66c33882e6801ac7cbb481c16cbc273d2dcf97c6e9b73157419d8f416190f3c5
+local/privacy125-native-ai01/rea-final.json
+ 74dcbd7701050d7950f76b4c4a48f054be40feb5b4dac2fca6e6152c5a781684
+local/privacy125-observer-tests03.txt
+ a4f56c085c102859792e4aa27967ca7e41fb52b6976890829aa4452508daf561
+local/privacy125-native-owner02.py
+ c08fef40de4b52320dc26d36d3049bda27c8a8bf0593ce35d823b25fd1141fc3
+local/privacy125-native-ai02/verification.json
+ 0ca26e26e50bceb65598452b531c557ca9df0044dfa6cdb2c88fd6aa0ce41bf7
+local/privacy125-native-ai02/native/verification.json
+ 75875558c1527b00745daf9a41237e60a5bcd2adde2b216e215d6c3e65fd066a
+local/privacy125-native-ai02/rea-final.json
+ 1398cc963b4346b0238f3b5e1cafeda347da298486d817ea63f01df706849fda
+local/privacy125-native-review02.py
+ 356e0c591b5e068c086a22c47d6d9a302e0caf2ad8a71938835e85d0ec41cfed
+local/privacy125-native-ai02/observation-review01.json
+ 0a2caf8e9f854df18bdef2865556285d98fa7fd305956961f8f0559ff0368d5c
+local/privacy125-native-ai02/rejection-review01.json
+ c063ffff4bf9bf769004cb593141f01684e03b4c651d4abacd8b09d0f59bc644

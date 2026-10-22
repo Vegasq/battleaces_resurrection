@@ -339,6 +339,17 @@ native-settings-atomic.txt, native-deck-validation.txt, packaged-multiplayer.txt
 native-custom-invitations.txt, native-custom-matches.txt.
 
 [ ] D5 - Complete game analytics/report removal and qualification
+Current finite source/runtime worklist:telemetry-source-worklist125.txt.
+NEXT:S1's FIVE safe interior SDK guards,with genuine matched/unmatched pending
+owner cleanup and disabled-ID qualification.125 source review found failed/cache
+handlers can enumerate/prune AFTER WriteFile RET;do not entry-RET those handlers
+because their pending-list cleanup is required. Source proposals are not yet
+installed/runtime qualified. S2 native identity and S3 archive state activation
+remain separate finite source gates.125 native02 adds an actual unforced AI/
+Continue/Quit observation:12 watched native entries0,c307c0 recognized-only,
+native audit intact,process0/job1/0/0/no force.16checks/86actual capture mutations
+pass. Initial hook-vs-native-audit failure01 retained;no repeated quiet AI runs
+or unused parser-format work in place of the concrete S1 fix. D5 stays OPEN.
 - Finish indirect collector/storage/callback/reporter review, including constructor
   work, cache/retry/error/crash paths, bundled CEF and child reporters. Preserve
   functional UX/local saves while disabling the actual telemetry/cloud sinks.

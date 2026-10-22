@@ -2,6 +2,32 @@
 
 ## Requests and answers with Nick
 
+- Privacy125 source inventory finds a CONCRETE residual:PayloadManager
+  SendPayloadFailed824b60/CacheSession824e20/CacheEvent824f70 inline cache work
+  can enumerate/prune AFTER WriteFile RET. Do NOT entry-RET them:they must remove
+  matching pending owners. FIVE safe source proposals pinned in ignored
+  local/privacy125-cache-source01/candidate-interior-bypasses.json:824bf1->824ce5,
+  824d3a->824ce5,824e50->824f3c,824fa0->82508c,83692d->836aa8(existing String.Empty
+  device-ID branch). Not installed/runtime qualified. NEXT implement/qualify all5
+  with genuine pending matched+unmatched/ID-miss/ref-clear and typed failure
+  paths;preserve120-124 scopes. Detailed finite S1/S2/S3/R gates,metadata/unwind/
+  bytes/seals:docs/telemetry-source-worklist125.txt. Device original getter must
+  not be invoked without owned isolation;no real shared queue reads/seeding.
+  Native source:archive initc2fbc0->c3bb20->c58bf0->c5a610 isn't skipped by e10=0
+  alone;state activation remains open. c416b0 is serialization-shaped,NOT proven
+  advertising acquisition;raw RVA refs are unwind metadata. Existing CEF107
+  inherited-pipe gating/106handler evidence reused,not forced parser/minidump.
+  New passive native observer recognizes13 prefixes/counts12; c307c0 MUST stay
+  recognition-only because native auditor checks its prologue. First game01
+  hooked it and field audit FAILED;retain. Corrected02 native AI/results/Continue/
+  default Quit0 PASS128.626s,job1/0/0/no force,8program/shared/source unchanged;
+  664rows/352anchors/12ms drift,0unknown roots,12counts0,final2exit entries.
+  16checks/86actual retained mutations pass. No original collector/device/cache
+  probe/root substitution. No all-mode/source/preloader/full-D5 claim. Both
+  owners terminal/REA sessions closed;recipe15/103/helper-tutorial2-01 unchanged,
+  r103g remains mixed diagnostic. No125package/new Nick action/repeat D6/LAN/manual
+  or unchanged quiet125AI case. Frozen105/DEV N7 and Tutorial2 N8 stay current.
+
 - Privacy124 closes123's selected canonical SDK-root startup-through-exit-ENTRY
   observation gap. Original UnityMain805460 calls TerminateProcess at805478,
   bypassing RtlExitUserProcess;runtime frames80547e match. New explicit diagnostic
