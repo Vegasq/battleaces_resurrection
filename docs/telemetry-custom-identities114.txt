@@ -1,0 +1,138 @@
+ANALYTICS CUSTOM IDENTITY SETTERS114
+2026-10-22. Recipe10,77guards/four DLLs. Full D5 remains OPEN/false.
+
+Change
+Two Unity Analytics native property setters still converted supplied managed
+strings and copied them into retained analytics identity fields BEFORE the
+already-disabled cache serialization. New entry RETs stop those exact paths:
+ UnityEngine.Analytics.AnalyticsSessionInfo::set_customUserIdInternal
+ UnityEngine.Analytics.AnalyticsSessionInfo::set_customDeviceIdInternal
+They return before managed-root creation,string conversion,singleton access,
+retained assignment or local ownership. Caller-owned input strings are borrowed.
+No acquired local resource or required queued completion is abandoned. There is
+no scalar return/output buffer for this synchronous void setter contract.
+The game/player profile name/configuration paths are separate and unchanged.
+This does not clear pre-existing identity fields or prove every other writer
+or source acquisition absent. Separate native callbacks remain unresolved.
+
+Static contract
+REA skill applied using pinned original PE/LLVM and retained metadata. Known
+unconfigured Ghidra was not retried. These are original-byte observations,not
+new REA decompiler/runtime Evidence. Original UnityPlayer SHA256:
+ ac144d56d53f07904d52ed27a1539de90bc3290038fe52d73d2f6b268c85d6bc
+Actual readerfd42d0 loads function192ff50 and name1930280 with the same index
+and registers those together. Index62->2048a0,user;64->204cb0,device. Both
+entries borrow RCX as the managed string. The full native property-setter bodies
+root/convert/copy it,then clean up variable local storage with no preserved
+scalar result. Guarded entries are at original unwind-function starts,before
+the first PUSH;no nonvolatile/frame/local ownership has begun.
+The exact managed setter bodies/signatures were stripped from retained metadata;
+they are not claimed recovered. Void/input classification comes from the native
+binding and complete setter implementation,not a fabricated managed declaration.
+Short safety signatures remain pinned to whole-original input hashes. No original
+game file/raw assembly is committed or distributed.
+ local/privacy114-custom-identities01/FINDINGS.txt
+ 155f95b39c6fd21e64614026e80aeb0d857b941360ed93166a23aaaf0f58a61a
+ manifest.json
+ d1c67dd9b20bb89d7e035ed577269ff2091dddd720c91269993d01bf64c8be40
+
+Intentional exclusions
+RemoteConfigSettings.AddSessionTag at1fdb90 remains unchanged:its shared scope
+is not established as analytics-only. The tracking-limit privacy setter207990
+also remains unchanged. It updates main15c1 and refreshes cache state only on
+effective privacy changes;returning without updating it could weaken opt-out.
+Its virtualf0 is c33490,which consults external/provider boolean interfaces.
+That getter is not proved acquisition-free or safely replaceable. Neither it,
+shared string/GC helpers,native ads callbackc307c0,nor identity callbackc416b0
+is guarded on an unsupported source/acknowledgement assumption. Their earlier
+source/registration/alias/progress coverage remains a separate D5 gate.
+
+Checks/build/install
+72 affected tests PASS6.932s,including full locally supplied original transforms/
+unrelated bytes across all4components,authored replacement execution with null/
+unreadable borrowed inputs,explicit legacy-recipe rejection,native Quit evidence,
+patcher and Windows packaging. Earlier focused01 failed because the authored
+device-probe fixture lacked the newly required identity line;corrected02 passes
+50tests and affected03 passes72. Preserve the initial failure output.
+ local/privacy114-affected-tests03.txt
+ e39f24224a76cc030de6e529341498a2dfd3bdb9006c104e1e024cf5d546a9a3
+Required C++ suite and helper build114-01 PASS;source-bound receipt unchanged
+during build. Unity auditor recognizes33guards(crash3/core27/performance3).
+Older recipe3..9 field evidence requires its explicit older recipe and cannot
+qualify the new guards. Complete-set RUNTIME_VALIDATED remains false.
+ build/helper-privacy114-01/BattleAcesOffline.dll
+ ffbe28da702e7f9a22a3f9ca358017957e4fa2714b44163eb855bb888c21a6d8
+ helper-build.json
+ 3c9e27f07bc124754e9dccdee7d141515d88ec18d85a9c0dd61fe9165f874c10
+
+Actual owned r103g upgrade9->10 PASS42.5499195s. Dry-run writes nothing;preview
+equals installation;idempotent reinstallation passes. All original backups and
+every existing profile file remain unchanged. This is an actual controlled
+upgrade,not a new standalone installer or a fresh restore/reapply claim.
+ local/privacy114-install01/verification.json
+ 6a9629fc0889fe3e8ada4015c97e5bd98a936d3a8a7839a4a2db0895a5400263
+Installed UnityPlayer SHA256:
+ 0cd93340470971be0256f9f9e6d9a7cf2dc464303318db9316702e150dbb4a4e
+
+Actual guarded-entry calls and native compatibility
+The existing EXPLICIT owned telemetry-device-probe diagnostic now also checks
+both new loaded entries against their full candidate signatures,requires complete
+recipe10 and a known empty disabled singleton on the Unity thread,then calls
+each guarded void entry once with borrowed pointer1. Only verified replacement
+RET instructions execute;no original setter/collector/query body is invoked.
+It samples only SSO tag/remaining-capacity bytes for these identities,not inline
+identity data or heap payloads. Both metadata pairs remain empty/unchanged;
+sampled disabled configuration/state also remains unchanged. The default product
+launcher has no new diagnostic calls. Failure refuses qualification and retains
+normal game/Quit flow. The Python checker requires one same-thread identity
+success after the device probe and before the final pre-Quit snapshot.
+
+local/privacy114-game-ai01/native/verification.json PASS122.2513601s including
+paused observer preparation. Native Try Deck/AI,result,Continue,menu and default
+original Quit complete;root0/reaped,job1/0/0,no forced cleanup. Both guarded
+setters and the guarded device-false probe pass once before Quit. Eight complete
+native field snapshots cover startup/menu/game/postgame/menu/pre-Quit. Eight
+program files,shared settings and bound source/observer modules stay unchanged.
+This is direct native diagnostic compatibility,not physical controls,new movement
+proof,ordinary launcher timing or full supported profile/mode acceptance.
+Native verification SHA256:
+ 75fbdfec35f62b038cf86256bbce5b1486d8372367e7669ebc339d2dae3cac9a
+External owner verification SHA256:
+ 2c442dc25fb45baa910416d2e33dab4be1fe84aa052af35519a756689286c427
+
+Same owned process's qualified cwd-v4 observer is installed before controlled
+primary resume.661complete rows/352anchors,max drift11ms align settings-before-
+load through original Quit;280selected file records,0unknown roots,0observed
+network/child records. Native log opens retain the resolved paths/status0 from
+113. There is no complete process-tree/kernel/wire/DNS or all-I/O claim.
+Final REA:
+ ev_b2596185c66ce57cd4474027e7ffc45e0803b41c761d7eea0701ad461041e391
+Read-only review03 reparses the actual raw native field/device/identity/Quit
+records and requires equality with the native result as well as provider/source/
+owner/clock/path bindings. Review02 initially failed on CRLF line endings in the
+retained Windows log;review03 normalizes line boundaries without changing original
+evidence and passes. No extra game run is used to hide that parser failure.
+ local/privacy114-game-ai01/observation-review03.json
+ c4f51c26f385b7eb848865ae718573f3a38e1b7158681767d653d235e1ddcf6e
+ local/privacy114-game-review03.py
+ e6f7e4343391eb1c53b36e58a361b59c12c0123308a3041a4bfa67393c336bee
+65 actual in-memory owner/capture/native-log mutations reject,including absent,
+duplicated,late,wrong-thread/count/metadata/payload-read identity proof. Current
+selected-window and retained113 control baselines pass;no control was rerun and
+no captured evidence was rewritten.
+ local/privacy114-review-rejections01.json
+ 26ccc3bb382dc402deeb67d99f38d975f7cc67b2aec8deee3451c8c18d19410a
+
+Deployment / remaining work
+GameAssembly42,UnityPlayer33,CEF2 =77guards. No114 package/installer is built;
+frozen105 client/server and DEV N7 stay current. r103g is now recipe10/helper114
+with cached runtime/CMD105,a mixed diagnostic fixture. Do not run its old installer
+or treat it as114 deployment. The game owner is terminal and its REA session is
+closed;no server/game is left running by this work. The retained113 control was
+reviewed unchanged,not relaunched.
+This closes only these two registered supplied-value conversion/storage paths.
+Native identity/ads callback acquisition,computed/interior aliases,real isolated
+queued-report/error/retry/crash cases,the remaining profile/mode/edit/reconnect
+matrix and final installed artifacts still require qualification. D5 remains
+OPEN/RUNTIME_VALIDATED=false. No new Nick action or repeat accepted D6/LAN/manual
+check is requested. Do not repeat this bounded pass without change/concern.

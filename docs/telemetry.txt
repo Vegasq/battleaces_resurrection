@@ -1,7 +1,14 @@
 TELEMETRY PATCH STATUS
 Updated: 2026-10-22
 Supported input: Battle Aces build 37822, Windows x64.
-Recipe version: 9. Guards: 75. Complete-set runtime_validated: false.
+Recipe version: 10. Guards: 77. Complete-set runtime_validated: false.
+
+Review114 stops both AnalyticsSessionInfo custom identity setters before managed
+string rooting/conversion/retained storage. Privacy controls/shared helpers stay
+unchanged.72affected tests,C++ suite,actual profile-preserving9->10 upgrade and
+native guarded-entry/AI/result/Continue/default Quit0 pass. Selected observer
+window passes;65actual altered-record checks reject. Full D5 remains OPEN,no114
+package. Exact ABI/evidence/limits:telemetry-custom-identities114.txt.
 
 Review113 closes the two startup current-directory gaps with live PEB metadata
 and an independent owned-handle path check. Actual control handles a cwd change

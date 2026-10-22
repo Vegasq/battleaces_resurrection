@@ -1,6 +1,6 @@
 """Exact-build telemetry patch transformations; no file or process operations.
 
-These 75 recipes have static source/control-flow review. The complete recipe
+These 77 recipes have static source/control-flow review. The complete recipe
 set has not been runtime validated; recipe2's 59 had a bounded compatibility run.
 They do not establish complete telemetry removal; see docs/telemetry.txt.
 Only brief patch safety signatures are included, never original game payloads.
@@ -10,7 +10,7 @@ import hashlib
 from types import MappingProxyType
 
 GAME_BUILD = 37822
-RECIPE_VERSION = 9
+RECIPE_VERSION = 10
 RUNTIME_VALIDATED = False
 VALIDATION_STATUS = "Static review and original-byte validation only"
 UNRESOLVED_COMPONENTS = (
@@ -244,6 +244,13 @@ COMPONENTS = MappingProxyType({
             # string ownership. No shared query or whole state function RET.
             Patch('analytics identity refresh uses existing unknown device sentinel', 0xc32468, 0xc31868,
                   bytes.fromhex('e8a394dcffeb07488d05326bd50049c7'), bytes.fromhex('e902000000')),
+            # Analytics-only synchronous void setters borrow managed strings.
+            # Return before rooting/conversion/retained identity assignment.
+            # Keep privacy controls,RemoteConfig tags and shared string helpers.
+            Patch('Unity Analytics custom user identity setter before input conversion', 0x2048a0, 0x203ca0,
+                  bytes.fromhex('4055534157488d6c24b94881ec900000'), bytes.fromhex('c3')),
+            Patch('Unity Analytics custom device identity setter before input conversion', 0x204cb0, 0x2040b0,
+                  bytes.fromhex('4055534157488d6c24b94881ec900000'), bytes.fromhex('c3')),
         ),
     ),
     CEF_COMPONENT_PATH: Component(

@@ -99,7 +99,7 @@ class TelemetryPatchSafetyTests(unittest.TestCase):
 
     def test_only_reviewed_recipes_are_present(self):
         self.assertFalse(RUNTIME_VALIDATED)
-        self.assertEqual(RECIPE_VERSION, 9)
+        self.assertEqual(RECIPE_VERSION, 10)
         self.assertEqual(len(COMPONENTS["GameAssembly.dll"].patches), 42)
         self.assertEqual({p.rva for p in COMPONENTS["UnityPlayer.dll"].patches},
                          {0xC90C2A, 0x80366F, 0xC93D10, 0xD84EC6, 0xD84E3E,
@@ -107,7 +107,7 @@ class TelemetryPatchSafetyTests(unittest.TestCase):
                           0x2078B0, 0xC2F3FC, 0x207A60, 0xC381D0, 0xC37400,
                           0xC33440, 0x1FD3A0, 0x1FDA50, 0xC392C0, 0xC2E240, 0xC40840, 0x20C560,
                           0xC2F790, 0xC2FC09, 0xC3016B, 0xC30273, 0xC3A5D0,
-                          0xC39D14, 0xC3A2A5, 0xC41F0C, 0xC32468})
+                          0xC39D14, 0xC3A2A5, 0xC41F0C, 0xC32468, 0x2048A0, 0x204CB0})
         self.assertEqual(len(COMPONENTS), 4)
         self.assertEqual([p.rva for p in COMPONENTS[CEF_COMPONENT_PATH].patches], [0x323A0])
         self.assertEqual([p.rva for p in COMPONENTS[CEF_HANDLER_COMPONENT_PATH].patches], [0x17403D0])
@@ -272,6 +272,16 @@ class TelemetryReplacementExecutionTests(unittest.TestCase):
                     if marker == 2:
                         struct.pack_into('<I', expected, 0x1490, 0)
                     self.assertEqual(bytes(buffer), bytes(expected))
+
+    def test_identity_setters_do_not_dereference_borrowed_managed_inputs(self):
+        patches={p.rva:p for p in COMPONENTS['UnityPlayer.dll'].patches}
+        for shared in (0x207990,0x1fdb90,0xc33490,0xc307c0,0x4b2e30,0x15b680):
+            self.assertNotIn(shared,patches)
+        for rva in (0x2048a0,0x204cb0):
+            patch=patches[rva];self.assertEqual(patch.replacement,b'\xc3')
+            invoke=self.executable(patch.replacement,None,ctypes.c_void_p)
+            invoke(None);invoke(1);invoke(0xffffffffffffffff)
+
 
     def test_handler_guard_returns_handled_zero_without_reading_arguments(self):
         patch, = COMPONENTS[CEF_HANDLER_COMPONENT_PATH].patches

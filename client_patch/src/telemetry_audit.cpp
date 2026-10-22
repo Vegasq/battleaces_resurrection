@@ -42,6 +42,8 @@ static const Signature signatures[]={
     {0xc3a2a5,0xc396a5,"e8963e0100488d8bb8040000ff157901","9090909090",1},
     {0xc41f0c,0xc4130c,"e82fc20000488d8bb8040000ff151285","9090909090",1},
     {0xc32468,0xc31868,"e8a394dcffeb07488d05326bd50049c7","e902000000",1},
+    {0x2048a0,0x203ca0,"4055534157488d6c24b94881ec900000","c3",1},
+    {0x204cb0,0x2040b0,"4055534157488d6c24b94881ec900000","c3",1},
     {0xd84ec6,0xd842c6,"0f857d0100004c8bcbc603014c8d0587","e97e01000090",2},
     {0xd84e3e,0xd8423e,"c740080001000048897810c6401901e8","c7400800000000",2},
     {0x292110,0x291510,"84c9488b0d8fcba7010f95c24883c108","31c9",2},
@@ -50,7 +52,7 @@ static const Signature signatures[]={
     {0xd84de0,0xd841e0,"4883ec4848833dbc9ef800000f855c02","",3},
 };
 static uintptr_t unity=0;
-static bool checked=false,disabled=false,startupLogged=false,quitAttempted=false,completeRecipe9=false;
+static bool checked=false,disabled=false,startupLogged=false,quitAttempted=false,completeRecipe10=false;
 static unsigned snapshots=0;
 static ba_telemetry_sampling::Schedule schedule;
 static DWORD auditThread=0;
@@ -118,9 +120,9 @@ static bool verifyModule() {
         }
         memcpy(bytes.data()+peOffset+24+64,&originalChecksum,sizeof(originalChecksum));
         if(digest(bytes)!=originalHash)throw std::runtime_error("unsupported UnityPlayer normalized SHA256");
-        completeRecipe9=groups[0]==3 && groups[1]==25 && groups[2]==3;
+        completeRecipe10=groups[0]==3 && groups[1]==27 && groups[2]==3;
         disabled=false;
-        ba::log("Telemetry audit build verified: UnityPlayer sha256=%s normalized=%s crashSignatures=%u/3 coreCandidateSignatures=%u/25 performanceCandidateSignatures=%u/3; READ ONLY, no qualification claim",
+        ba::log("Telemetry audit build verified: UnityPlayer sha256=%s normalized=%s crashSignatures=%u/3 coreCandidateSignatures=%u/27 performanceCandidateSignatures=%u/3; READ ONLY, no qualification claim",
             actualHash.c_str(),originalHash,groups[0],groups[1],groups[2]);
     } catch(const std::exception& e) {ba::log("Telemetry audit disabled: %s; no object reads attempted",e.what());}
     return !disabled;
@@ -205,10 +207,10 @@ static void deviceProbe() noexcept {
     attempted=true;
     try {
         auto require=[](bool value,const char* why){if(!value)throw std::runtime_error(why);};
-        require(requested() && checked && !disabled && completeRecipe9 && auditThread==GetCurrentThreadId() &&
+        require(requested() && checked && !disabled && completeRecipe10 && auditThread==GetCurrentThreadId() &&
             ba::flag(L"-native-quit-smoke") && ba_native_settings::session &&
             ba_native_settings::session->profile().compare(0,12,"nativestest_")==0,
-            "complete recipe9,initialized game thread and explicit owned diagnostic required");
+            "complete recipe10,initialized game thread and explicit owned diagnostic required");
         struct Main {
             uintptr_t pointer=0,vtable=0,worker=0;
             uint64_t header[4]={};uint32_t marker=0,state=0,init=0,archive=0;
@@ -253,6 +255,31 @@ static void deviceProbe() noexcept {
         require(!result && capture(after) && capture(last) && same(before,after) && same(after,last),
             "device API result or sampled configuration changed");
         ba::log("TELEMETRY DEVICE probe passed: version=1 thread=%lu calls=1 returned=0 mainStable=1 disabledFieldsUnchanged=1 rawHeaderUnchanged=1 markerBefore=0 markerAfter=0 configCount=0 payloadRead=0",
+            GetCurrentThreadId());
+        // These separate analytics-only void entries are checked RETs. Borrowed
+        // unreadable inputs must never be dereferenced. Observe only SSO tags/
+        // remaining-capacity bytes,not inline identity data or heap payloads.
+        struct IdentityMeta {unsigned char userTag=0,userRemaining=0,deviceTag=0,deviceRemaining=0;};
+        auto identities=[&](IdentityMeta& s) {
+            return read(before.pointer,0x1130,s.userTag) && read(before.pointer,0x1128,s.userRemaining) &&
+                read(before.pointer,0x14c8,s.deviceTag) && read(before.pointer,0x14c0,s.deviceRemaining);
+        };
+        IdentityMeta idBefore,idAfter;
+        require(identities(idBefore) && idBefore.userTag==1 && idBefore.userRemaining==24 &&
+            idBefore.deviceTag==1 && idBefore.deviceRemaining==24,"owned empty identity SSO metadata required");
+        for(const size_t rva:{size_t(0x2048a0),size_t(0x204cb0)}) {
+            const Signature* entry=nullptr;for(const auto& item:signatures)if(item.rva==rva)entry=&item;
+            require(entry!=nullptr,"identity setter signature absent");
+            Bytes guarded=hex(entry->original),change=hex(entry->candidate),live(guarded.size());
+            require(change==Bytes({0xc3}),"identity setter must be an entry RET");
+            memcpy(guarded.data(),change.data(),change.size());
+            require(copy(unity+rva,live.data(),live.size()) && live==guarded,"identity setter not fully guarded");
+            reinterpret_cast<void(*)(void*)>(unity+rva)(reinterpret_cast<void*>(uintptr_t(1)));
+        }
+        require(identities(idAfter) && idBefore.userTag==idAfter.userTag && idBefore.userRemaining==idAfter.userRemaining &&
+            idBefore.deviceTag==idAfter.deviceTag && idBefore.deviceRemaining==idAfter.deviceRemaining &&
+            capture(after) && capture(last) && same(before,after) && same(after,last),"identity metadata or disabled state changed");
+        ba::log("TELEMETRY IDENTITY probe passed: version=1 thread=%lu calls=2 borrowedUnreadable=1 mainStable=1 emptySsoMetadataUnchanged=1 identityPayloadRead=0",
             GetCurrentThreadId());
     } catch(...) {
         // Diagnostic refusal never changes game state or blocks original Quit.

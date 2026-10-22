@@ -2,6 +2,26 @@
 
 ## Requests and answers with Nick
 
+- Privacy114 supersedes113 SOURCE/owned fixture:recipe10/77guards adds entry
+  RETs for registered AnalyticsSessionInfo custom user/device ID setters before
+  rooting/conversion/storage. Borrowed managed input/void property-setter ABI;
+  stripped metadata does not retain their managed declarations. Keep privacy
+  setter207990,RemoteConfig1fdb90,shared helpers and unknownc307c0/c416b0 callbacks
+  unchanged.72affected checks,C++ suite,actual9->10 profile/backups-preserving
+  upgrade pass. New explicit owned device probe also checks/calls both guarded
+  entries with pointer1;SSO metadata/disabled state unchanged,no identity payload
+  read. Native AI/results/Continue/default Quit0 passes122.251s,no force/job1/0/0,
+  8program files/shared/source sealed.661rows/352anchors align startup-through-
+  Quit,0unknown roots;raw field/probe evidence reparses,65actual mutations reject.
+  Exact hashes/scopes/failures:docs/telemetry-custom-identities114.txt. Review02
+  CRLF parser failure and initial missing-identity fixture failure stay retained;
+  corrected read-only reviewer03/new fixtures pass,no extra game rerun. r103g now
+  recipe10/helper114-01,cached runtime/CMD105:mixed diagnostic fixture,not a114
+  deployment. No114 packages;frozen105/DEV N7 stay current. D5 OPEN/false;remaining
+  acquisition/aliases,isolated real queued reports,error/crash/runtime matrix/final
+  artifacts still required. Do not rerun this scoped pass without change/concern.
+  All owners terminal/game REA closed;no new Nick action/repeat D6/LAN/manual.
+
 - Privacy113 closes112's selected startup cwd-root gap. New cwd-v4 observer
   reads live PEB parameters/handle/path,checks stability and preserves unknown
   aliases;owner separately checks the actual directory handle's path. Actual

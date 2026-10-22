@@ -413,6 +413,14 @@ are scoped inputs, not a completion substitute.
     pass.112's own absolute-root qualification remains FAILED with counter2;
     the new113 proof above closes that separate subcase,preserving old reports.
     Evidence:telemetry-relative-roots112.txt. Recipe9 unchanged,no112 package.
+[x] Review114 guards the two registered AnalyticsSessionInfo custom user/device
+    identity setters before conversion/storage. Privacy setter/RemoteConfig/shared
+    helpers and unknown callbacks stay unchanged. Recipe10/77guards;72checks,
+    required C++ suite,actual9->10 upgrade preserving profiles/backups,and native
+    guarded-entry calls/AI/result/Continue/default Quit0 pass. Selected metadata
+    window has0unknown roots;65actual mutations reject. Full source/acquisition,
+    queued reports/runtime matrix/final artifacts remain OPEN. No114 package;
+    evidence:telemetry-custom-identities114.txt. No repeat accepted manual checks.
 References: telemetry.txt, telemetry-internal-config.txt,
 telemetry-persistent-observation.txt,telemetry-device-cef106.txt and nvidia-shutdown.txt.
 

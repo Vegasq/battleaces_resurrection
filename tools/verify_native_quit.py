@@ -58,6 +58,12 @@ def telemetry_evidence(text,rows,expected_sha256,*,after_practice=False,device_p
             calls[0].end()<begin[0].start() and 'TELEMETRY DEVICE probe failed:' not in text,
             'guarded device API probe did not pass once before original Quit')
         result['device_api_guarded_false_and_sampled_config_unchanged']=True
+        if result['recipe_version']>=10:
+            identity=list(re.finditer(r'^\[(\d+)\] TELEMETRY IDENTITY probe passed: version=1 thread=(\d+) calls=2 borrowedUnreadable=1 mainStable=1 emptySsoMetadataUnchanged=1 identityPayloadRead=0$',text,re.M))
+            startup.require(len(identity)==1 and int(identity[0][2])==thread and int(identity[0][1])<=int(begin[0][1]) and
+                calls[0].end()<identity[0].start()<identity[0].end()<begin[0].start(),
+                'guarded identity setters did not return with unchanged metadata before original Quit')
+            result['identity_setters_guarded_void_and_metadata_unchanged']=True
     return dict(**result,same_original_quit_thread=True,pre_confirm_tick=tick,original_confirm_tick=dispatch[0]['tick'])
 
 
