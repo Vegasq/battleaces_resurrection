@@ -9,10 +9,10 @@ ORIGINAL = 'ac144d56d53f07904d52ed27a1539de90bc3290038fe52d73d2f6b268c85d6bc'
 
 
 def fixture(stages=DEFAULT_STAGES,*,recipe_version=RECIPE_VERSION):
-    core={3:12,4:14,5:15,6:16,7:18,8:21,9:25,10:27,11:28,12:31,13:40,14:48,15:53}[recipe_version]
+    core={3:12,4:14,5:15,6:16,7:18,8:21,9:25,10:27,11:28,12:31,13:40,14:48,15:53,16:53}[recipe_version]
     lines = [f'[100] Telemetry audit build verified: UnityPlayer sha256={SHA} '
              f'normalized={ORIGINAL} crashSignatures=3/3 coreCandidateSignatures={core}/{core} '
-             'performanceCandidateSignatures=3/3; READ ONLY, no qualification claim']
+             f'performanceCandidateSignatures=3/3'+(' cacheFailureSignatures=5/5' if recipe_version==16 else '')+'; READ ONLY, no qualification claim']
     for sequence, stage in enumerate(stages, 1):
         prefix = f'[{100 + sequence}] Telemetry audit {sequence}'
         lines.extend([
@@ -28,13 +28,13 @@ def fixture(stages=DEFAULT_STAGES,*,recipe_version=RECIPE_VERSION):
 
 class TelemetryAuditTests(unittest.TestCase):
     def test_legacy_samples_require_explicit_legacy_recipe_and_never_validate_current(self):
-        for version in (3,4,5,6,7,8,9,10,11,12,13,14):
+        for version in (3,4,5,6,7,8,9,10,11,12,13,14,15):
             old=fixture(recipe_version=version)
             self.assertFalse(verify_lines(old,expected_sha256=SHA)['passed'])
             result=verify_lines(old,expected_sha256=SHA,recipe_version=version)
             self.assertTrue(result['passed']);self.assertEqual(result['recipe_version'],version)
             self.assertFalse(verify_lines(fixture(),expected_sha256=SHA,recipe_version=version)['passed'])
-        for version in (True,2,16,'4'):
+        for version in (True,2,17,'4'):
             with self.subTest(version=version),self.assertRaises(ValueError):
                 verify_lines(fixture(),expected_sha256=SHA,recipe_version=version)
 

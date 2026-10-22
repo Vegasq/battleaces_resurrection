@@ -84,7 +84,7 @@ static const Signature signatures[]={
     {0x205430,0x204830,"4885c90f840f010000574883ec30488b","",3},
 };
 static uintptr_t unity=0;
-static bool checked=false,disabled=false,startupLogged=false,quitAttempted=false,completeRecipe15=false;
+static bool checked=false,disabled=false,startupLogged=false,quitAttempted=false,completeRecipe16=false;
 static unsigned snapshots=0;
 static ba_telemetry_sampling::Schedule schedule;
 static DWORD auditThread=0;
@@ -111,6 +111,33 @@ static std::string digest(const Bytes& bytes) {
     auto hash=ba_lan::sha(bytes);char text[65];
     for(size_t i=0;i<hash.size();++i)sprintf_s(text+2*i,sizeof(text)-2*i,"%02x",hash[i]);
     return text;
+}
+static unsigned cacheFailureGuardCount() {
+    static const Signature guards[]={
+        {0x824bf1,0x8231f1,"488b7b10488b68184c8b70104885ff0f","e9ef00000090909090909090",0},
+        {0x824d3a,0x82333a,"488b7b10488b68184c8b70104885ff0f","e9a6ffffff90909090909090",0},
+        {0x824e50,0x823450,"488b7b10488b68184c8b70104885ff0f","e9e700000090909090909090",0},
+        {0x824fa0,0x8235a0,"488b7b10488b68184c8b70104885ff0f","e9e700000090909090909090",0},
+        {0x83692d,0x834f2d,"0f8475010000488b05be57310683b8e0","e97601000090",0},
+    };
+    wchar_t path[32768];const auto n=GetModuleFileNameW(ba::module,path,32768);
+    if(!n || n>=32768)throw std::runtime_error("GameAssembly guard file path unavailable");
+    struct File {HANDLE value=INVALID_HANDLE_VALUE;~File(){if(value!=INVALID_HANDLE_VALUE)CloseHandle(value);}} file;
+    file.value=CreateFileW(path,GENERIC_READ,FILE_SHARE_READ|FILE_SHARE_WRITE|FILE_SHARE_DELETE,nullptr,
+        OPEN_EXISTING,FILE_ATTRIBUTE_NORMAL|FILE_FLAG_OPEN_REPARSE_POINT,nullptr);
+    if(file.value==INVALID_HANDLE_VALUE)throw std::runtime_error("GameAssembly guard file unavailable");
+    unsigned count=0;
+    for(const auto& guard:guards) {
+        auto expected=hex(guard.original);const auto replacement=hex(guard.candidate);
+        memcpy(expected.data(),replacement.data(),replacement.size());
+        Bytes disk(expected.size()),loaded(expected.size());DWORD received=0;LARGE_INTEGER offset{};offset.QuadPart=guard.offset;
+        if(!SetFilePointerEx(file.value,offset,nullptr,FILE_BEGIN) ||
+           !ReadFile(file.value,disk.data(),static_cast<DWORD>(disk.size()),&received,nullptr) || received!=disk.size() ||
+           disk!=expected || !copy(reinterpret_cast<uintptr_t>(ba::module)+guard.rva,loaded.data(),loaded.size()) || loaded!=disk)
+            throw std::runtime_error("current cache-failure guard missing or loaded/disk bytes differ");
+        ++count;
+    }
+    return count;
 }
 static bool verifyModule() {
     if(checked)return !disabled;
@@ -152,10 +179,11 @@ static bool verifyModule() {
         }
         memcpy(bytes.data()+peOffset+24+64,&originalChecksum,sizeof(originalChecksum));
         if(digest(bytes)!=originalHash)throw std::runtime_error("unsupported UnityPlayer normalized SHA256");
-        completeRecipe15=groups[0]==3 && groups[1]==53 && groups[2]==3;
+        const auto cacheGuards=cacheFailureGuardCount();
+        completeRecipe16=groups[0]==3 && groups[1]==53 && groups[2]==3 && cacheGuards==5;
         disabled=false;
-        ba::log("Telemetry audit build verified: UnityPlayer sha256=%s normalized=%s crashSignatures=%u/3 coreCandidateSignatures=%u/53 performanceCandidateSignatures=%u/3; READ ONLY, no qualification claim",
-            actualHash.c_str(),originalHash,groups[0],groups[1],groups[2]);
+        ba::log("Telemetry audit build verified: UnityPlayer sha256=%s normalized=%s crashSignatures=%u/3 coreCandidateSignatures=%u/53 performanceCandidateSignatures=%u/3 cacheFailureSignatures=%u/5; READ ONLY, no qualification claim",
+            actualHash.c_str(),originalHash,groups[0],groups[1],groups[2],cacheGuards);
     } catch(const std::exception& e) {ba::log("Telemetry audit disabled: %s; no object reads attempted",e.what());}
     return !disabled;
 }
@@ -239,10 +267,10 @@ static void deviceProbe() noexcept {
     attempted=true;
     try {
         auto require=[](bool value,const char* why){if(!value)throw std::runtime_error(why);};
-        require(requested() && checked && !disabled && completeRecipe15 && auditThread==GetCurrentThreadId() &&
+        require(requested() && checked && !disabled && completeRecipe16 && auditThread==GetCurrentThreadId() &&
             ba::flag(L"-native-quit-smoke") && ba_native_settings::session &&
             ba_native_settings::session->profile().compare(0,12,"nativestest_")==0,
-            "complete recipe15,initialized game thread and explicit owned diagnostic required");
+            "complete recipe16,initialized game thread and explicit owned diagnostic required");
         struct Main {
             uintptr_t pointer=0,vtable=0,worker=0;
             uint64_t header[4]={};uint32_t marker=0,state=0,init=0,archive=0;

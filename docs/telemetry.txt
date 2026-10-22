@@ -1,13 +1,22 @@
 TELEMETRY PATCH STATUS
 Updated: 2026-10-22
 Supported input: Battle Aces build 37822, Windows x64.
-Recipe version: 15. Guards: 103. Complete-set runtime_validated: false.
+Recipe version: 16. Guards: 108. Complete-set runtime_validated: false.
 
-Current source gates and NEXT implementation:telemetry-source-worklist125.txt.
+Current result126:telemetry-cache-failure126.txt closes125's finite S1. All five
+interior SDK cache/device-ID guards are installed in the owned r103g fixture.
+Genuine pending cleanup eight cases/32owners,readable device control/real empty
+ID,88checks/C++ suite,profile-preserving15->16 update and native AI/Continue/
+default Quit0 pass. Strict717rows/356anchors/98actual altered-record rejections
+pass. Full D5 OPEN/false;no126packages. NEXT S2 native identity acquisition/
+activation and S3 archive activation,then runtime/final artifact gates.
+
+Retained125 source rationale:telemetry-source-worklist125.txt.
 125 identifies three SDK failure/cache handlers that can enumerate/prune after
 the disabled writer,with FIVE safe interior branch proposals preserving pending
-owner cleanup and the genuine empty device-ID return. Proposals are not installed
-or runtime qualified. Native identity/archive state activation stays separate.
+owner cleanup and the genuine empty device-ID return. These proposals are now
+implemented/qualified within126's scope. Native identity/archive state activation
+stays separate.
 Unforced native125-02 AI/Continue/normal Quit passes with native field audit intact,
 12 observed native entry counters0 and c307c0 explicitly unobserved.16checks and
 86altered-capture rejections pass;one earlier hook/audit failure stays retained.

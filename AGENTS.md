@@ -2,6 +2,26 @@
 
 ## Requests and answers with Nick
 
+- Privacy126 supersedes125 S1 proposals:recipe16/108guards implements all FIVE
+  interior branches,retaining real pending cleanup and genuine String.Empty.
+  88checks/C++ suite,profile/backups-preserving15->16 update,actual genuine32
+  pending owners/eight matched+miss cases/device readable control/empty ID and
+  native AI/results/Continue/default Quit0 PASS121.450s,job1/0/0/no force.
+  Strict717rows/356anchors/13ms drift/0unknown roots,330selected fileops/0network/
+  child ops and98actual retained mutations pass. Device ticks coincide;API
+  sequence/callers/full-body guards establish scope,NOT sub-tick separation.
+  +4d is GenerateAnonymousId,NOT PersistUser(+4e);125 prose erratum,bytes unchanged.
+  Initial01 preflight source-filename failure retained;no game started there.
+  Owner02 terminal/REA closed. Full D5 OPEN/false;no126packages/new Nick action.
+  r103g recipe16/helper126-01,cached CMD/runtime105:mixed diagnostic fixture.
+  Frozen105/DEV N7 and Tutorial2 N8 remain current;do not touch user gameplay.
+  Next S2 identity acquisition/activation,S3 archive activation,then runtime/final
+  artifacts. Reuse bounded126 proof;no repeat without new concern. Exact source/
+  evidence/scopes:docs/telemetry-cache-failure126.txt. Matched runtime IDs reuse
+  the same String pointer;equal UTF16 with distinct objects is static-only.
+  No operational/in-flight/whole-run claim;failure may leave authored pending
+  refs in disposable process. No shared queue seeds or original getter discovery.
+
 - Privacy125 source inventory finds a CONCRETE residual:PayloadManager
   SendPayloadFailed824b60/CacheSession824e20/CacheEvent824f70 inline cache work
   can enumerate/prune AFTER WriteFile RET. Do NOT entry-RET them:they must remove

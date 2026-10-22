@@ -4,7 +4,13 @@ engineering work;they are not complete analytics-removal or release acceptance.
 Reuse bounded120-124 evidence. Do not add format reconstruction solely because
 a dormant library contains a parser: first establish an effective reader route.
 
-S1 / NEXT:existing pending Bugsnag owners and device-cache identity
+S1 / CLOSED BY126:existing pending Bugsnag owners and device-cache identity
+Recipe16 implements all five branches below.88checks/C++ suite,actual preserved
+15->16 update,genuine32 pending owners/eight cases/device readable control/empty
+ID and native AI/Continue/default Quit0 PASS. Strict717rows/356anchors and98
+retained mutations pass. Details,hashes and exact scope:telemetry-cache-failure126.txt.
+This closes finite S1,not full D5/operational Client/in-flight/all-mode coverage.
+The following125 source proposal record is retained as its original rationale.
 Source review identifies three unguarded synchronous PayloadManager handlers:
 SendPayloadFailed824b60,CacheSession824e20,CacheEvent824f70. They inline Save work
 and can enumerate/prune cache files AFTER the already-guarded WriteFile returns.
@@ -54,7 +60,7 @@ local/privacy125-cache-source01/code-contract.json
 retained;02 corrects a human SessionTracker label826a30->826b40,not its original
 callsite826d9c. No original game payload enters Git.
 
-S2 / native identity acquisition and indirect activation
+S2 / NEXT:native identity acquisition and indirect activation
 c416b0 is serialization-shaped:receiver+190 native SSO field,fallback c43ae0 when
 empty. It is NOT established advertising acquisition/registration. All three
 raw RVA32 references to c416b0 are PE unwind/chained-unwind metadata,not callback

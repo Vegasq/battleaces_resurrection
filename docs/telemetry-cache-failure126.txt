@@ -1,0 +1,109 @@
+SDK PENDING-OWNER CLEANUP AND DISABLED DEVICE ID126
+2026-10-22. S1 of telemetry-source-worklist125.txt CLOSED within the explicit
+owned fixture below. Full D5 and RUNTIME_VALIDATED remain OPEN/false.
+
+Problem and change
+SendPayloadFailed824b60,CacheSession824e20 and CacheEvent824f70 can enumerate/
+evict after the existing WriteFile guard. Recipe16 adds five exact-build guards:
+ 824bf1->824ce5;824d3a->824ce5;824e50->824f3c;824fa0->82508c;
+ 83692d->836aa8 (existing genuine String.Empty branch).
+The four cache branches retain original lookup,RemovePendingPayload825190,
+nonvolatile saves and epilogues. Entry RET would strand pending references.
+The device branch retains configuration-null handling and type initialization.
+47GameAssembly+59Unity+2CEF guards=108. No shared platform/BCL API is patched.
+
+Static contracts
+Reuse125's sealed71 original bodies/proposals. New126 list/config evidence pins
+13 complete original bodies/leaves,closed generic List Add/count MethodSpec
+registration,nested PendingPayload ownership and typed failure dispatch.
+Runtime checks18 complete loaded bodies/leaves,including the five patched method
+windows;no original SDK AddPendingPayload or active Client is used. The native
+audit now requires five exact loaded/disk guard windows in addition to the
+existing normalized Unity full hash. Recipe15 samples cannot qualify recipe16.
+Ghidra remains unavailable;PE/LLVM/IL2CPP review is static evidence,not REA
+decompilation. Original images/metadata/disassembly remain ignored local inputs.
+
+Erratum to125's human prose:configuration+4d is GenerateAnonymousId Boolean,
+NOT PersistUser(+4e).125's original bytes/branch proposal were already correct.
+The new fixture validates flags/type/offset,sets and restores the actual field.
+local/privacy126-list-contract01/evidence.json:
+ c5d475f1e1b8ebd7249ca1dd482d2bf126f50f9a254437d2147f851f4c25545a
+local/privacy126-list-contract01/evidence-manifest.json:
+ 7127cc9b05e0e0ab30c50ea9c906505f12d454c5be8f11ce04934dbb31ad4b92
+local/privacy126-failure-signatures01.json:
+ b33e9e1e69ab51193f0da8f0e92444102eed1ed4559e15f39711c8dbf42c6ee2
+
+Genuine owned fixture
+- Existing120-122 real Config/CacheManager,typed disk reports,PayloadManager,
+  Delivery and per-thread path scope stay alive through this new fixture.
+- Eight cases:four matched and four ID-miss cases across SendPayloadFailed for
+  Report/SessionReport,CacheEvent and CacheSession.32 genuine PendingPayload
+  objects use the real ctor/GC barriers and closed List.Add generic context.
+- Matched lists interleave two matching owners and two unmatched sentinels.
+  Eight matches retire;24 unmatched entries retain order/Json/PayloadId/fields.
+  Eight vacated references clear;four versions increment once;four miss lists
+  retain count/version/array/slots. Authored cleanup leaves pending count0.
+- Matched IDs reuse the same genuine report-ID String pointer. Distinct-object
+  equal-UTF16 matching is source-reviewed,not separately runtime exercised.
+- MaxPersistedEvents/Sessions are both0 with real authored queue files,so a
+  mistaken bypass cannot hide behind non-pruning limits. Values/config fields,
+  report/manager fields,static list identity and unrelated Delivery state restore.
+- The genuine retained filename is checked against exact qc/Bugsnag/deviceId.txt
+  before CREATE_NEW of an authored31-byte seed. Original GetJsonFromCachePath
+  positively reads it. With GenerateAnonymousId=true,the guarded original getter
+  returns the non-null genuine System.String.Empty. Seed identity/bytes,retained
+  filename and configuration remain intact. No actual shared queue is seeded.
+- If an assertion fails mid-round,authored pending members may remain in this
+  disposable process;no all-path rollback or operational Client claim is made.
+
+Verification
+88 affected Python tests PASS8.740s with original-image validation enabled;
+required C++ suite/helper build PASS. Actual15->16 update PASS55.581s:dry-run
+unchanged,preview==install,idempotent,all profiles/original backups unchanged.
+Game01 failed before launch:observer source filename singular vs actual plural.
+Its script/preflight receipt remain failed;no process existed to clean up.
+Corrected owner02 uses passive cwd+exit metadata only,no SDK/native entry hook.
+Actual native AI/result/Continue/default original Quit0 PASS121.449783s;source,
+eight program files and shared settings unchanged,owned process reaped,natural
+job1/0/0,no forced cleanup. Owner terminal;REA session closed.
+
+Strict observation review PASS:717 provider rows,356 clock anchors,13ms maximum
+drift,zero unresolved relative roots,330 selected file operations,zero selected
+network/child-creation events. Both report seeds have one successful original-
+image read and unchanged bytes/identity. Device sequence is exactly seven API
+records:authored create/write,original open/read/EOF,authored verify open/read.
+The original reader frames include GameAssembly837833;no extra device operation.
+The four device boundary tick values coincide. Do NOT claim sub-tick separation:
+API sequence/callers plus full-body guard/real empty return establish this scope.
+Two terminal self-TerminateProcess entries contain Unity80547e/status0;explicit
+200ms transport hold each,then OS handles independently prove completed exit.
+98 actual retained-record/seed-byte mutations reject in memory;raw captures and
+seeds unchanged. No gap-free post-entry,all-API,kernel/wire/descendant claim.
+
+Build/evidence seals
+build/helper-privacy126-01/BattleAcesOffline.dll:
+ e7d9389e3311f8ae641ca0b9eaa7a727f9d2869dbe9fd319a8b1827c8396c137
+build/helper-privacy126-01/helper-build.json:
+ e3939961e9476913dfdcb668c4c1c89c40cfa819b08644bf0124b93e85cbb4e1
+local/privacy126-install01/verification.json:
+ 18b4658535f86c094bc6b7bcb7356099cd5012e44e3d6997006ce29acb2a023c
+local/privacy126-game-ai02/verification.json:
+ be598aafdaa7f950cabe52d513ddd4da863b77cb3c5eb886b0a640735ff95b63
+local/privacy126-game-ai02/native/verification.json:
+ f5e35e3061953f590cee76a13a376281a2b6c844bb9f5966e6b1bf4ece473576
+local/privacy126-game-ai02/observation-review01.json:
+ 00d2aa63589b30d83f76fad0af94035186086b221706a86bec46c2d2d7ee5d92
+local/privacy126-game-ai02/rejection-review01.json:
+ c4f711885c85f46b05ea249764f8161810adb69e4bb75378875a58126127938d
+REA final Evidence ev_1ae31748d0e469e145872f9e7a8ff070c2c7cb2e3857720e3e3db9553df36ab1.
+Full local seals:local/privacy126-evidence-hashes01.json. No raw evidence in Git.
+
+Delivery boundary and next work
+r103g now uses recipe16/helper126-01;cached runtime/CMD105 remain mixed diagnostic
+inputs. No126 installer/package published. Frozen105 client/server and DEV N7
+remain current;N8 is the separate visible Tutorial2 request. No repeat D6/LAN/
+manual test or new Nick action. Do not repeat this scoped run without a change
+or concrete concern. Continue S2 actual native identity acquisition/activation,
+S3 archive activation,then supported mode/error/descendant/final artifact matrix.
+Operational Client,in-flight/resumed requests and all-mode privacy remain open;
+the fixture does not replace those obligations or qualify the full recipe set.

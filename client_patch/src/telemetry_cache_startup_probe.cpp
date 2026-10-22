@@ -6,12 +6,12 @@ static void startupRun() noexcept {
     static const bool enabled=ba::flag(L"-telemetry-cache-startup-probe");
     static bool attempted=false;if(!enabled || attempted)return;attempted=true;
     try {
-        require(requested() && checked && !disabled && completeRecipe15 && auditThread==GetCurrentThreadId() &&
+        require(requested() && checked && !disabled && completeRecipe16 && auditThread==GetCurrentThreadId() &&
             ba::flag(L"-native-quit-smoke") && ba_native_settings::session &&
             ba_native_settings::session->profile().compare(0,12,"nativestest_")==0,
             "startup cache probe requires explicit owned complete-recipe diagnostic");
         require(!ba::flag(L"-telemetry-cache-probe") && !ba::flag(L"-telemetry-cache-disk-probe") &&
-            !ba::flag(L"-telemetry-cache-delivery-probe"),"startup cache fixture cannot run scoped reader/path overrides");
+            !ba::flag(L"-telemetry-cache-delivery-probe") && !ba::flag(L"-telemetry-cache-failure-probe"),"startup cache fixture cannot run scoped reader/path overrides");
         original(0x836580,112,"017aa617c00d2e5a71df7599ee517c08e6c22cccc017e43fed278346ef0bcf43");
         original(0x8365f0,112,"17c801369b2bc5823aec24cd0dad9bb05d7fd45c6ed443a5c8900ea1ac870c06");
         original(0x837e50,192,"233619b5348e22fde5cf16e5cb004877924e453a5574ecb3da7e7edd6795126a");

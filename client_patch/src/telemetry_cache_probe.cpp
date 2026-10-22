@@ -138,7 +138,7 @@ static void typed(const std::wstring& selected,bool fromDisk,bool delivery) {
     else
         ba::log("TELEMETRY CACHETYPE probe passed: version=1 thread=%lu parsed=4 constructed=2 errors=1 sessions=1 authoredFieldsRetained=1 missingKeyRejected=2 cacheManagerConstructed=0 reportDelivered=0 diskQueueRead=0",
             GetCurrentThreadId());
-    if(delivery)guardedDelivery(config.get(),manager,report.get(),session.get());
+    if(delivery)guardedDelivery(config.get(),manager,report.get(),session.get(),selected);
     };
     if(delivery) {
         // Keep the genuine cache owner, its configuration and thread-local path
@@ -187,17 +187,17 @@ public:
 };
 #include "telemetry_cache_disk_probe.cpp"
 static void run() noexcept {
-    static const bool delivery=ba::flag(L"-telemetry-cache-delivery-probe");
+    static const bool delivery=ba::flag(L"-telemetry-cache-delivery-probe") || ba::flag(L"-telemetry-cache-failure-probe");
     static const bool fromDisk=ba::flag(L"-telemetry-cache-disk-probe") || delivery;
     static const bool enabled=ba::flag(L"-telemetry-cache-probe") || fromDisk;
     static bool attempted=false;
     if(!enabled || attempted)return;
     attempted=true;
     try {
-        require(requested() && checked && !disabled && completeRecipe15 && auditThread==GetCurrentThreadId() &&
+        require(requested() && checked && !disabled && completeRecipe16 && auditThread==GetCurrentThreadId() &&
             ba::flag(L"-native-quit-smoke") && ba_native_settings::session &&
             ba_native_settings::session->profile().compare(0,12,"nativestest_")==0,
-            "cache probe requires complete recipe15 and explicit owned game-thread diagnostic");
+            "cache probe requires complete recipe16 and explicit owned game-thread diagnostic");
         original(0x8364e0,160,"d547e382cad835bbf8f9587fc04aeca3d324dc47e0806e5957ccf7bb06bff003");
         original(0x836580,112,"017aa617c00d2e5a71df7599ee517c08e6c22cccc017e43fed278346ef0bcf43");
         original(0x8365f0,112,"17c801369b2bc5823aec24cd0dad9bb05d7fd45c6ed443a5c8900ea1ac870c06");

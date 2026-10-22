@@ -15,7 +15,8 @@ static Obj staticList(Obj type,const char* name) {
     Obj value=nullptr;ba::api<void(*)(Obj,void*)>("il2cpp_field_static_get_value")(field,&value);
     require(value && count(value)==0,"delivery fixture requires empty genuine SDK lists");return value;
 }
-static void guardedDelivery(Obj config,Obj manager,Obj report,Obj session) {
+#include "telemetry_cache_failure_probe.cpp"
+static void guardedDelivery(Obj config,Obj manager,Obj report,Obj session,const std::wstring& selected) {
     require(config && manager && report && session,"delivery fixture requires genuine cache/report dependencies");
     #include "telemetry_cache_delivery_signatures.hpp"
     const auto payloadType=ba::find_class("BugsnagUnity","PayloadManager");
@@ -102,4 +103,10 @@ static void guardedDelivery(Obj config,Obj manager,Obj report,Obj session) {
         "guarded fresh delivery changed owner/report/list fields");
     ba::log("TELEMETRY CACHEDELIVERY probe passed: version=1 thread=%lu realPayloadManager=1 realDelivery=1 absentClient=1 activeClientConstructed=0 deliverCalls=2 cachedStartCalls=1 iteratorFactories=5 moveNextFalse=5 originalDisposes=5 freshStateRetained=5 currentNull=5 capturesRetained=5 pendingCount=0 finishedCount=0 listFieldsUnchanged=2 reportFieldsUnchanged=2 deliveryFieldsUnchanged=1 payloadManagerFieldsUnchanged=1 reportDelivered=0 wholeRunIsolation=0",
         GetCurrentThreadId());
+    if(ba::flag(L"-telemetry-cache-failure-probe")) {
+        guardedCacheFailure(config,manager,payload.get(),pending.get(),report,session,selected);
+        require(instanceFields(delivery.get())==deliveryFields &&
+            staticList(deliveryType,"_finishedCacheDeliveries")==finished.get() && instanceFields(finished.get())==finishedFields,
+            "failure fixture changed unrelated delivery/finished-list state");
+    }
 }

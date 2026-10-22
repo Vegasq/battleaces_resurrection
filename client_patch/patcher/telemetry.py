@@ -1,6 +1,6 @@
 """Exact-build telemetry patch transformations; no file or process operations.
 
-These 103 recipes have static source/control-flow review. The complete recipe
+These 108 recipes have static source/control-flow review. The complete recipe
 set has not been runtime validated; recipe2's 59 had a bounded compatibility run.
 They do not establish complete telemetry removal; see docs/telemetry.txt.
 Only brief patch safety signatures are included, never original game payloads.
@@ -10,12 +10,12 @@ import hashlib
 from types import MappingProxyType
 
 GAME_BUILD = 37822
-RECIPE_VERSION = 15
+RECIPE_VERSION = 16
 RUNTIME_VALIDATED = False
-VALIDATION_STATUS = "Static review and original-byte validation only"
+VALIDATION_STATUS = "Scoped native compatibility verified; full lifecycle/report-removal qualification pending"
 UNRESOLVED_COMPONENTS = (
     "Native Unity indirect callback consumers and independent reporter entry points",
-    "Explicit configuration/device-info guard runtime qualification",
+    "Pending-owner cache cleanup and disabled device-ID guard runtime qualification",
     "Internal hardware collection/constructor paths and indirect configuration callers",
     "Deferred/cached delivery and error-path process/network qualification",
     "CEF descendant initialization and analytics in remote web content",
@@ -133,6 +133,21 @@ COMPONENTS = MappingProxyType({
                   bytes.fromhex('48895c2408574883ec40498bf8488bc2'), bytes.fromhex('c3')),
             Patch('BugsnagUnity.BugsnagAutoInit::OnBeforeSceneLoadRuntimeMethod', 0x80b370, 0x809970,
                   bytes.fromhex('40534883ec20803d52d7630600756d48'), bytes.fromhex('c3')),
+            # Keep original pending lookup/removal and all saved-register exits.
+            # Entry RET would strand existing pending owners;WriteFile RET alone
+            # still allows inline enumeration/eviction after the attempted write.
+            Patch('Bugsnag failure session bypass retains pending cleanup', 0x824bf1, 0x8231f1,
+                  bytes.fromhex('488b7b10488b68184c8b70104885ff0f'), bytes.fromhex('e9ef00000090909090909090')),
+            Patch('Bugsnag failure event bypass retains pending cleanup', 0x824d3a, 0x82333a,
+                  bytes.fromhex('488b7b10488b68184c8b70104885ff0f'), bytes.fromhex('e9a6ffffff90909090909090')),
+            Patch('Bugsnag CacheSession bypass retains pending cleanup', 0x824e50, 0x823450,
+                  bytes.fromhex('488b7b10488b68184c8b70104885ff0f'), bytes.fromhex('e9e700000090909090909090')),
+            Patch('Bugsnag CacheEvent bypass retains pending cleanup', 0x824fa0, 0x8235a0,
+                  bytes.fromhex('488b7b10488b68184c8b70104885ff0f'), bytes.fromhex('e9e700000090909090909090')),
+            # Select the existing String.Empty path after configuration/type init.
+            # Keep its null-config exception and all prologue/epilogue ownership.
+            Patch('Bugsnag cached device identity uses existing disabled branch', 0x83692d, 0x834f2d,
+                  bytes.fromhex('0f8475010000488b05be57310683b8e0'), bytes.fromhex('e97601000090')),
         ),
     ),
     'UnityPlayer.dll': Component(

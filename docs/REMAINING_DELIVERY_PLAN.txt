@@ -340,16 +340,26 @@ native-custom-invitations.txt, native-custom-matches.txt.
 
 [ ] D5 - Complete game analytics/report removal and qualification
 Current finite source/runtime worklist:telemetry-source-worklist125.txt.
-NEXT:S1's FIVE safe interior SDK guards,with genuine matched/unmatched pending
-owner cleanup and disabled-ID qualification.125 source review found failed/cache
+S1 CLOSED BY126:all FIVE safe interior SDK guards,with genuine matched/unmatched
+pending-owner cleanup and disabled-ID qualification.125 found failed/cache
 handlers can enumerate/prune AFTER WriteFile RET;do not entry-RET those handlers
-because their pending-list cleanup is required. Source proposals are not yet
-installed/runtime qualified. S2 native identity and S3 archive state activation
-remain separate finite source gates.125 native02 adds an actual unforced AI/
+because their pending-list cleanup is required.126 now implements/qualifies the
+five proposals within its explicit owned scope. NEXT S2 native identity and S3
+archive state activation remain separate finite source gates.125 native02 adds
+an actual unforced AI/
 Continue/Quit observation:12 watched native entries0,c307c0 recognized-only,
 native audit intact,process0/job1/0/0/no force.16checks/86actual capture mutations
 pass. Initial hook-vs-native-audit failure01 retained;no repeated quiet AI runs
-or unused parser-format work in place of the concrete S1 fix. D5 stays OPEN.
+or unused parser-format work in place of concrete source fixes. D5 stays OPEN.
+[x] Review126 closes finite S1:recipe16/108guards,eight genuine matched/miss
+    pending-owner cases/32objects,readable device-file control/genuine empty ID.
+    88checks/C++ suite,actual15->16 update preserving profiles/backups,native
+    AI/results/Continue/default Quit0 PASS121.450s,job1/0/0/no force. Strict717
+    rows/356anchors/13ms drift/0unknown roots,330selected fileops/0network/child
+    events,98actual retained mutations pass. Owner terminal/REA closed;first01
+    preflight failure preserved. No126packages;105/N7 stays current. Scoped
+    source/ABI/limits/hashes:telemetry-cache-failure126.txt. Operational/in-flight/
+    all-mode/descendant/final artifact gates remain OPEN;full D5 stays false.
 - Finish indirect collector/storage/callback/reporter review, including constructor
   work, cache/retry/error/crash paths, bundled CEF and child reporters. Preserve
   functional UX/local saves while disabling the actual telemetry/cloud sinks.

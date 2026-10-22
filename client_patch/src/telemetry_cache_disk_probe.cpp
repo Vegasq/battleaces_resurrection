@@ -78,6 +78,44 @@ public:
             count==payload.size() && !memcmp(actual.data(),payload.data(),payload.size()),"authored queue file bytes changed");
     }
 };
+static void disabledDeviceIdentity(Obj config,Obj manager,const std::wstring& selected) {
+    const auto type=ba::klass(manager),configuration=ba::klass(config);
+    const auto field=ba::api<Obj(*)(Obj,const char*)>("il2cpp_class_get_field_from_name")(type,"_deviceIdFile");
+    require(field!=nullptr,"device fixture retained filename field absent");Obj filename=nullptr;
+    ba::api<void(*)(Obj,void*)>("il2cpp_field_static_get_value")(field,&filename);
+    ba_local::Root retained(filename);auto actual=text(retained.get());std::replace(actual.begin(),actual.end(),L'/',L'\\');
+    const auto parent=selected+L"\\Bugsnag",expected=parent+L"\\deviceId.txt";
+    require(actual==expected,"device fixture filename is not the exact owned retained root");
+    ba_cosmetics_state::Handle directory(ba_cosmetics_state::directory(parent));
+    ba_native_settings::exactDirectory(directory.value,parent);
+    QueueFixture seed(expected,"authored-readable-device-id-126");
+    ba::log("TELEMETRY CACHEFAILURE device boundary: version=1 thread=%lu phase=read-begin",GetCurrentThreadId());
+    void* readArgs[]={retained.get()};
+    ba_local::Root positive(invoke(method(type,"GetJsonFromCachePath",1,0x837810),manager,readArgs));
+    require(text(positive.get())==L"authored-readable-device-id-126","original owned device-file read control failed");
+    ba::log("TELEMETRY CACHEFAILURE device boundary: version=1 thread=%lu phase=read-end",GetCurrentThreadId());
+    const auto flag=ba::api<Obj(*)(Obj,const char*)>("il2cpp_class_get_field_from_name")(configuration,"GenerateAnonymousId");
+    require(flag && !(ba::api<unsigned(*)(Obj)>("il2cpp_field_get_flags")(flag)&0x10) &&
+        ba::api<int(*)(Obj)>("il2cpp_field_get_offset")(flag)==0x4d &&
+        ba::api<int(*)(Obj)>("il2cpp_type_get_type")(ba::api<Obj(*)(Obj)>("il2cpp_field_get_type")(flag))==2,
+        "genuine GenerateAnonymousId Boolean layout differs");
+    const bool previous=ba::get<bool>(config,"GenerateAnonymousId");
+    struct Restore {Obj config;bool value;~Restore(){ba::set<bool>(config,"GenerateAnonymousId",value);}} restore{config,previous};
+    ba::set<bool>(config,"GenerateAnonymousId",true);
+    ba::log("TELEMETRY CACHEFAILURE device boundary: version=1 thread=%lu phase=id-begin",GetCurrentThreadId());
+    ba_local::Root value(invoke(method(type,"GetCachedDeviceId",0,0x8368b0),manager,nullptr));
+    ba::log("TELEMETRY CACHEFAILURE device boundary: version=1 thread=%lu phase=id-end",GetCurrentThreadId());
+    require(ba::get<bool>(config,"GenerateAnonymousId"),"device getter changed owned configuration");
+    const auto strings=ba::find_class("System","String");ba::api<void(*)(Obj)>("il2cpp_runtime_class_init")(strings);
+    const auto emptyField=ba::api<Obj(*)(Obj,const char*)>("il2cpp_class_get_field_from_name")(strings,"Empty");
+    require(emptyField!=nullptr,"genuine String.Empty field absent");Obj empty=nullptr;
+    ba::api<void(*)(Obj,void*)>("il2cpp_field_static_get_value")(emptyField,&empty);
+    require(value.get() && value.get()==empty && text(value.get()).empty(),"device getter did not use genuine String.Empty");
+    seed.verify();Obj after=nullptr;ba::api<void(*)(Obj,void*)>("il2cpp_field_static_get_value")(field,&after);
+    require(after==retained.get(),"device getter replaced retained filename");
+    ba::set<bool>(config,"GenerateAnonymousId",previous);
+    require(ba::get<bool>(config,"GenerateAnonymousId")==previous,"device configuration restore failed");
+}
 static std::unique_ptr<DiskInputs> disk(Obj config,const std::wstring& selected,const DiskCallback& callback) {
     #include "telemetry_cache_disk_signatures.hpp"
     const auto folder=selected+L"\\queue121";
