@@ -78,7 +78,7 @@ public:
             count==payload.size() && !memcmp(actual.data(),payload.data(),payload.size()),"authored queue file bytes changed");
     }
 };
-static std::unique_ptr<DiskInputs> disk(Obj config,const std::wstring& selected) {
+static std::unique_ptr<DiskInputs> disk(Obj config,const std::wstring& selected,const DiskCallback& callback) {
     #include "telemetry_cache_disk_signatures.hpp"
     const auto folder=selected+L"\\queue121";
     require(CreateDirectoryW(folder.c_str(),nullptr)!=0,"queue diagnostic requires a NEW disposable root");
@@ -137,7 +137,9 @@ static std::unique_ptr<DiskInputs> disk(Obj config,const std::wstring& selected)
         ba_local::Root missing(ba::str("missing-authored-report-121"));void* missingArgs[]={missing.get()};
         require(!invoke(method(type,"GetCachedEvent",1,0x837d10),manager.get(),missingArgs) &&
             !invoke(method(type,"GetCachedSession",1,0x837db0),manager.get(),missingArgs),"missing queue IDs did not return null");
+        if(callback)callback(result->event->get(),result->session->get(),manager.get());
         event.verify();session.verify();
+        require(configuration.selected(),"cache diagnostic changed the selected static configuration");
         Obj afterDevice=nullptr;ba::api<void(*)(Obj,void*)>("il2cpp_field_static_get_value")(deviceField,&afterDevice);
         require(afterDevice==deviceFilename.get(),"cache reader changed static device filename metadata");
         require(configuration.restore(),"cache static configuration restore failed");

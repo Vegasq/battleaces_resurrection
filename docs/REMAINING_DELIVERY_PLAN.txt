@@ -405,10 +405,26 @@ are scoped inputs, not a completion substitute.
     Application.persistentDataPath,not isolated profile storage;
     no real queued reports found in candidate shared root.120 closes the scoped
     path/typed-format prerequisites below;121 closes the scoped genuine on-disk
-    reader. Whole-startup isolation and ordinary guarded-delivery seed tests
+    reader.122 closes fresh-instance guarded delivery with real disk reports
+    and an explicitly absent Client. Whole-startup isolation and ordinary
+    operational guarded-delivery seed tests
     remain OPEN. Never acquire/clear the shared queue. Recipe15/103 unchanged,
-    no121package/new human action. Evidence:telemetry-startup-observation111.txt,
-    telemetry-cache-contract120.txt,telemetry-cache-readers121.txt.
+    no122package/new human action. Evidence:telemetry-startup-observation111.txt,
+    telemetry-cache-contract120.txt,telemetry-cache-readers121.txt,
+    telemetry-cache-delivery122.txt.
+[x] Review122:genuine PayloadManager/Delivery constructors and five real iterator
+    factories exercise existing guards with two rehydrated disk reports while
+    cache/config/path lifetime stays selected. Explicit absent Client,not a fake
+    operational SDK. Deliver2/Start1/MoveNext-false5/original fresh Dispose5 pass;
+    state0/current/captures/top-level report/owner/list fields and files stable.
+    82checks/C++ suite,profile/backups-preserving helper install and native AI/
+    result/Continue/default Quit0 pass134.596s,job1/0/0/no force.703rows/352anchors,
+    0unknown roots;127actual retained mutations reject. Named fresh guard lifetime
+    subtask CLOSED;not resumed/in-flight delivery,ordinary startup isolation or
+    full D5. Static list initialization acknowledged,not all statics unchanged.
+    Next remaining ordinary startup/root isolation and supported runtime/identity
+    source gates;reuse120-122 rather than rerun fresh scope without concern.
+    No122packages;105/DEV N7 current. Evidence:telemetry-cache-delivery122.txt.
 [x] Review121:construct genuine SDK CacheManager under EMPTY canonical owned
     root,then seed/read two authored reports via original instance readers.
     Actual returned paths/bytes/typed fields,missing IDs,file preservation and
@@ -418,8 +434,8 @@ are scoped inputs, not a completion substitute.
     results/Continue/default Quit0 pass126.804s,job1/0/0/no force. Selected capture
     shows one original-image read per seed;77altered-record checks reject. Named
     reader subtask CLOSED;NOT whole-startup/ordinary guarded delivery/full D5.
-    Next review genuine Delivery initialization/ownership and guarded entries
-    without collectors or fake receivers. Source/evidence:telemetry-cache-readers121.txt.
+    Genuine fresh Delivery initialization/ownership is now covered by122 above.
+    Source/evidence:telemetry-cache-readers121.txt.
 [x] Review120:four original cache/application getters use an explicit canonical
     owned root with icall restoration;genuine JSON/parser/report constructors
     retain one authored error/session and reject two missing-key dictionaries.

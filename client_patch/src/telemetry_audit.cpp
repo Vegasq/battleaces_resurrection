@@ -1,6 +1,7 @@
 #pragma once
 #include "telemetry_sampling.hpp"
 #include <memory>
+#include <functional>
 // Read-only, opt-in observation of the supported UnityPlayer native layout.
 // Include after lan_transport.cpp for its local SHA-256 utility. Field sampling
 // invokes no Unity/telemetry API. A SEPARATE explicit owned menu diagnostic below

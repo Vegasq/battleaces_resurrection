@@ -61,8 +61,10 @@ static void headers(Obj report,const std::wstring& version) {
 static constexpr const char* eventFixture=R"({"id":"authored-event-120","apiKey":"00000000000000000000000000000120","notifier":{"name":"Resurrection Diagnostic","version":"120","url":"http://127.0.0.1/"},"event":{"unhandled":false,"severity":"info","severityReason":{"type":"handledException"},"metaData":{},"app":{},"device":{},"exceptions":[{"errorClass":"AuthoredCacheFixtureException","message":"Synthetic privacy cache fixture 120","type":"csharp","stacktrace":[]}]}})";
 static constexpr const char* sessionFixture=R"({"id":"authored-session-120","notifier":{"name":"Resurrection Diagnostic","version":"120","url":"http://127.0.0.1/"},"app":{},"device":{},"sessions":[{"id":"00000000-0000-0000-0000-000000000120","startedAt":"2026-01-01T00:00:00Z","user":{"id":"authored-cache-fixture-120","name":"Synthetic Fixture"}}]})";
 struct DiskInputs {std::unique_ptr<ba_local::Root> event,session;};
-static std::unique_ptr<DiskInputs> disk(Obj,const std::wstring&);
-static void typed(const std::wstring& selected,bool fromDisk) {
+using DiskCallback=std::function<void(Obj,Obj,Obj)>;
+static std::unique_ptr<DiskInputs> disk(Obj,const std::wstring&,const DiskCallback& callback={});
+#include "telemetry_cache_delivery_probe.cpp"
+static void typed(const std::wstring& selected,bool fromDisk,bool delivery) {
     // Full supported-build original-body hashes, including nested constructors.
     // Raw binaries/disassembly are NOT embedded in this helper or repository.
     #include "telemetry_cache_signatures.hpp"
@@ -90,11 +92,9 @@ static void typed(const std::wstring& selected,bool fromDisk) {
         require(parsed.get() && ba::klass(parsed.get())==objectType,"cache JSON did not deserialize to genuine JsonObject");
         return invoke(dictionary,parsed.get(),nullptr);
     };
-    auto inputs=fromDisk?disk(config.get(),selected):nullptr;
-    ba_local::Root eventSource(fromDisk?nullptr:ba::str(eventFixture));
-    ba_local::Root sessionSource(fromDisk?nullptr:ba::str(sessionFixture));
-    ba_local::Root eventData(parse(fromDisk?inputs->event->get():eventSource.get()));
-    ba_local::Root sessionData(parse(fromDisk?inputs->session->get():sessionSource.get()));
+    auto reconstruct=[&](Obj eventSource,Obj sessionSource,Obj manager) {
+    ba_local::Root eventData(parse(eventSource));
+    ba_local::Root sessionData(parse(sessionSource));
     ba_local::Root report(ba::api<Obj(*)(Obj)>("il2cpp_object_new")(reportType));
     ba_local::Root session(ba::api<Obj(*)(Obj)>("il2cpp_object_new")(sessionType));
     void* reportArgs[]={config.get(),eventData.get()};invoke(reportCtor,report.get(),reportArgs);
@@ -133,11 +133,25 @@ static void typed(const std::wstring& selected,bool fromDisk) {
     require(rejects(sessionType,sessionCtor,badSessionArgs) && rejects(reportType,reportCtor,badReportArgs),
         "original cached constructors accepted missing required keys");
     if(fromDisk)
-        ba::log("TELEMETRY CACHETYPE probe passed: version=2 thread=%lu parsed=4 constructed=2 errors=1 sessions=1 authoredFieldsRetained=1 missingKeyRejected=2 cacheManagerConstructed=1 reportDelivered=0 diskQueueRead=1 fromDisk=2",
-            GetCurrentThreadId());
+        ba::log("TELEMETRY CACHETYPE probe passed: version=%d thread=%lu parsed=4 constructed=2 errors=1 sessions=1 authoredFieldsRetained=1 missingKeyRejected=2 cacheManagerConstructed=1 reportDelivered=0 diskQueueRead=1 fromDisk=2",
+            delivery?3:2,GetCurrentThreadId());
     else
         ba::log("TELEMETRY CACHETYPE probe passed: version=1 thread=%lu parsed=4 constructed=2 errors=1 sessions=1 authoredFieldsRetained=1 missingKeyRejected=2 cacheManagerConstructed=0 reportDelivered=0 diskQueueRead=0",
             GetCurrentThreadId());
+    if(delivery)guardedDelivery(config.get(),manager,report.get(),session.get());
+    };
+    if(delivery) {
+        // Keep the genuine cache owner, its configuration and thread-local path
+        // selected throughout reconstruction/guard calls. Never reconstruct the
+        // CacheManager after seeds: its original ctor includes expiry/deletion.
+        disk(config.get(),selected,reconstruct);
+    }else if(fromDisk) {
+        auto inputs=disk(config.get(),selected);
+        reconstruct(inputs->event->get(),inputs->session->get(),nullptr);
+    }else {
+        ba_local::Root eventSource(ba::str(eventFixture)),sessionSource(ba::str(sessionFixture));
+        reconstruct(eventSource.get(),sessionSource.get(),nullptr);
+    }
 }
 class PathScope {
     void* volatile* slot;
@@ -173,7 +187,8 @@ public:
 };
 #include "telemetry_cache_disk_probe.cpp"
 static void run() noexcept {
-    static const bool fromDisk=ba::flag(L"-telemetry-cache-disk-probe");
+    static const bool delivery=ba::flag(L"-telemetry-cache-delivery-probe");
+    static const bool fromDisk=ba::flag(L"-telemetry-cache-disk-probe") || delivery;
     static const bool enabled=ba::flag(L"-telemetry-cache-probe") || fromDisk;
     static bool attempted=false;
     if(!enabled || attempted)return;
@@ -208,7 +223,7 @@ static void run() noexcept {
         }
         ba::log("TELEMETRY CACHEPATH probe passed: version=1 thread=%lu getters=4 originalBodies=1 scopedOwnedRoot=1 icallRestored=1 reportEnumeration=0 reportPayloadRead=0 wholeRunIsolation=0",
             GetCurrentThreadId());
-        typed(selected,fromDisk);
+        typed(selected,fromDisk,delivery);
     }catch(const std::exception& error) {
         ba::log("TELEMETRY CACHE probe failed: %s; no success claim",error.what());
     }catch(...) {ba::log("TELEMETRY CACHE probe failed: unknown error; no success claim");}

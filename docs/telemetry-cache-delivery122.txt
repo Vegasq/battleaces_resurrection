@@ -1,0 +1,146 @@
+FRESH CACHED DELIVERY GUARDS122
+2026-10-22. Fresh cached-delivery guard subtask PASS; full D5 OPEN/false.
+
+Scope
+The new explicit diagnostic reconstructs the two authored120 reports from the
+real121 readers, then calls existing delivery guards using genuine SDK objects.
+It retains the original CacheManager, selected static configuration and owned
+thread-local path throughout reconstruction and guarded calls. Its constructor
+runs on empty directories before seeding; it is never repeated after seeding.
+The two queue files are checked again after guards, before scope restoration.
+No personal reports or shared queue are acquired, cleared or modified.
+
+This is a fresh, unstarted Delivery with an explicitly absent SDK Client. It is
+not an operational Client, ordinary startup isolation, resumed delivery, an
+in-flight cancellation test, or full analytics-removal qualification. Recipe15
+and its103 guards are unchanged. No new installer is produced by this step.
+
+Source and ownership contract
+The Ghidra provider remains known unconfigured and was not retried. Pinned
+original IL2CPP metadata, LLVM disassembly and PE/unwind bounds are static
+evidence, not REA decompiler/runtime Evidence. Raw originals/captures stay local.
+local/privacy122-delivery-contract01/evidence-manifest.json:
+ af0eddd5e3eb05378e5524659d4cb6b34ac7fdbc4cc9a738f29d2591935eb57f
+local/privacy122-delivery-contract01/code-contract.json:
+ e35e491342dbb2ad93cf4fa9a5a22669dadb1dfb60ad6a6491d5b7ace87a9e6d
+local/privacy122-delivery-contract01/metadata.json:
+ 3cdc4765182da92764372b4d572fda22eb1335b9517119223715d7ff19c8d29d
+local/privacy122-delivery-contract01/generic-lists.json:
+ 4d78c5beef3cb04f984e4409fc13bac27de9897cc1634d5349e171796981cf7e
+FINDINGS.txt includes all reviewed ABIs, exact tokens/fields and limitations.
+
+Actual PayloadManager ctor717fb0 stores the real CacheManager with a GC barrier.
+Actual private Delivery ctor81c490 allocates System.Object callback lock and
+stores Client/Configuration/CacheManager/PayloadManager refs without dereferencing
+the borrowed inputs or scheduling work. Client is explicitly null, never a
+fabricated or uninitialized object. Other dependencies and iterators are genuine
+managed allocations from original constructors/factories and remain GC-rooted.
+The real Client ctor812690 is deliberately excluded: it performs identity/Unity
+GameObject/interceptor/delegate initialization rather than pure reference setup.
+
+Delivery.cctor81ffa0 and PayloadManager.cctor825320 allocate genuine List<String>
+and List<PendingPayload>. Shared List ctor19a2160 selects its BCL empty array.
+Static/type/BCL/GC initialization may occur; not all SDK statics are unchanged.
+The fixture requires both actual lists empty and preserves their references,
+counts and top-level fields across guarded calls. Delivery has no Dispose or
+finalizer; its lifetime is managed. Original CLASS static reference setter still
+takes Obj directly, never &Obj;121's reviewed restore remains unchanged.
+
+Original DeliverCachedPayloads81f8b0, ProcessCachedItems81f950 and PushToServer
+81cf00 factories only allocate their typed state0 iterators and retain captures.
+Process accepts real System.Type, obtained through actual runtime metadata for
+Report/SessionReport, not IDs/a list. Push accepts each genuine rehydrated report.
+Five iterators result: one cached, two process and two push. Class name/declaring
+type, owner/type/payload captures, state0 and null Current are validated.
+
+Existing Deliver81c6a0 and StartDeliveringCachedPayloads81f730 entry RETs precede
+callback/dispatch/ownership acquisition. Existing MoveNext8201f0/8204c0/820de0
+replacements return native Boolean false (AL/EAX0), not boxed Boolean. They leave
+state0/current/captures unchanged; they do not execute original state progression
+or set state=-1. Normal consumers stop on false. No request/worker/completion was
+acquired, so none is owed by this fresh-only fixture. Start keeps in-process=false;
+it does not clear an already-running instance and must not be claimed to do so.
+
+Original Dispose6af170 is a shared leaf; Process820430 and Push820d10 only enter
+cleanup for other states, so verified state0 takes the no-op return. The fixture
+calls genuine Dispose after false, rechecks fields, then releases roots. It never
+calls Reset, manual finally helpers or original MoveNext. All18 called/dependency
+bodies are hash-checked in the loaded image before constructor/guard invocation,
+including exact recipe15 masks for the five replacements. Exact shared leaf
+extents exclude unrelated neighboring code; hashes embed no client file bytes.
+
+Implementation and evidence rules
+--telemetry-cache-delivery-probe implies the disk/base probes and still requires
+the explicit owned nativestest profile, telemetry audit and original confirmed
+Quit. Legacy120/121 evidence modes stay selectable and retain their prior scope.
+Version3 proof orders original read boundaries, typed reconstruction, guard begin,
+guard success, file/static/path restoration, then ordinary gameplay and Quit.
+Missing/duplicate/changed fields, wrong threads, failed probes or wrong order
+must reject. Raw proof is reparsed and must equal the reported contract.
+reportFieldsUnchanged means top-level field bytes only, not recursive equality of
+the report graph. No serializer or failure/save/delete helper manufactures proof.
+
+Build and installation
+local/privacy122-affected-tests01.txt:
+ d47529b301602d15553d671f4ba7bd8adb5ec37e710a8f97f3f2f650f368e122
+82 affected checks PASS5.762s, including legacy path/type/disk evidence and
+strict fresh-delivery false-pass controls. The required C++ suite/build passes.
+build/helper-privacy122-01/BattleAcesOffline.dll:
+ 956240d4be7f6f7eeff3abadd8a1965866acc1b57ecb43e46f862e44b2f9f51a
+build/helper-privacy122-01/helper-build.json:
+ 374b8b66740eb9cfa275663f31154a07067790c8702a4fc10fd4713d7d6d551d
+Source was frozen before build and remains frozen throughout runtime qualification.
+local/privacy122-install01/verification.json:
+ efdf99d47cde76c4131e585f7a72af8c5478f7959a620d0108650e3b6deab515
+Actual same15/103 helper update PASS45.3578461s: dry-run writes nothing, preview
+equals installation, original backups and all profiles unchanged, idempotent.
+This is the owned r103g diagnostic fixture; its cached runtime/CMD remain105.
+It is not a122 deployment. Frozen105 installers/DEV N7 stay current.
+
+Owned runtime and observation
+local/privacy122-game-owner01.py:
+ 60ef90e6f0c69e3bc466fa5ff80c2a424d0e34b833bd1472d8d51520aacb24f3
+local/privacy122-game-ai01/verification.json:
+ 14cfc014e3c117743a14390ba72ef1347ecde70a3e66a1b763a094ea53965737
+local/privacy122-game-ai01/native/verification.json:
+ 5d1622db0a68be134268aa5488f1e18d3b60acf0c0cc1654c225846e2292ff70
+Actual native case PASS134.5957139s, including suspended preparation. Both real
+reports passed guarded Deliver; Start remained unstarted; all five genuine
+factory iterators returned false and their original state0 Dispose completed.
+Top-level reports/owners/lists and iterator captures/state/current stayed stable.
+Both actual file identities/bytes, static config/device filename and path restore
+passed. Ordinary native AI/result/Continue/menu/default Quit0 then completed.
+Job1/0/0,process reaped,no forced cleanup; eight program components,shared saves
+and all recorded source seals unchanged. No original reporter/serializer invoked.
+
+local/privacy122-game-review01.py:
+ 4bb3b08c350969e3e5f96e7d40e365bca655e9c269e848b1f9ba3ae64240a3db
+local/privacy122-game-ai01/observation-review01.json:
+ 1c72573ab04d14c1336747415f21c10ee717363b6e07be0216af7b4476ff01a6
+Actual REA final Evidence:
+ ev_fbfa5c3c082fcaed1bd116b204cdcbcd2ea07cff7dfab2cd8f2482673a710ab7
+703 rows/352 clock anchors,11ms max drift,11 native markers aligned,0 unknown
+relative roots.321 selected file operations,0 observed selected network/child
+operations. Each authored427/302-byte file has four successful opens,three reads,
+including one read whose first non-system frame is original GameAssembly. The
+other reads are helper checks; no full SDK call-stack claim. Passive observer was
+installed before controlled primary resume; not loader/injection/kernel/wire/
+all-IO/descendant instrumentation. Source and masks corroborate guarded calls;
+quiet networking alone is not their proof. Guard markers share a clock tick:
+ordered raw lines prove order; nonzero guard duration is neither required nor
+claimed. Original file reads are an intentional positive fixture,not leakage.
+
+local/privacy122-disk-rejections01.json:
+ 0d2f19ab133477fd4254ac6ce2c0d7c4df9ce9ab72f46737aba4a7c9d5e4db6c
+127 actual retained-record/fixture-byte changes reject in memory, including new
+guard/owner/lifetime fields, missing/duplicate/bad-order records, report overclaims,
+wrong threads/ticks, failure/forced cleanup and changed SDK-read witnesses. Raw
+captures and real fixture bytes stay unchanged. No second gameplay run needed.
+Owned process handles are terminal/reaped and the REA session is closed. No new
+Nick action/repeat accepted D6/LAN/AI/manual105 check is requested.
+
+Remaining
+Whole-startup/all-thread cache isolation, operational Client initialization,
+pre-existing in-flight delivery, remaining identity acquisition/native archived
+paths, required error/runtime modes and final packaged artifacts remain OPEN.
+Do not promote selected observation or fresh guard lifetime into full D5 closure.

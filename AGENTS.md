@@ -2,6 +2,23 @@
 
 ## Requests and answers with Nick
 
+- Privacy122 closes the named FRESH cached-delivery guard lifetime subtask.
+  Real PayloadManager/Delivery/null Client and original factories,not operational
+  Client or fake receivers. Actual disk strings/typed reports remain under121's
+  real manager/static config/thread path lifetime.18full loaded-body hashes with
+  recipe15 masks;Deliver2/Start1/MoveNext-false5/original state0 Dispose5 pass,
+  captures/current/state0 and top-level report/owner/list fields stable. Static
+  list initialization acknowledged,not all SDK statics unchanged.82checks/C++
+  suite,profile/backups-preserving helper install,AI/results/Continue/default
+  Quit0 pass134.596s,job1/0/0/no force;8program/shared/source seals unchanged.
+  703rows/352anchors,0unknown roots,127actual mutations reject in memory. Details/
+  hashes/limits:docs/telemetry-cache-delivery122.txt. Recipe15/103 unchanged;
+  r103g helper122-01,cached runtime/CMD105:mixed diagnostic fixture,not122deployment.
+  No122packages;105/DEV N7 current. Owner terminal/REA closed. No new Nick action/
+  repeat accepted D6/LAN/manual or scoped122 without new change/concrete concern.
+  Operational startup/root isolation,resumed/in-flight delivery,identity/native
+  archived/runtime/final gates remain OPEN;D5 false. Reuse120-122 evidence.
+
 - Privacy121 closes the named genuine cache-instance/on-disk READER subtask.
   SDK ctor836660 runs only on proven EMPTY canonical qc/queue121 dirs,before
   two authored seeds;expiry can delete creation-age>60days and is never called

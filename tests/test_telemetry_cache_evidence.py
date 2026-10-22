@@ -10,9 +10,48 @@ DISK_TYPED=TYPED.replace('version=1','version=2').replace('cacheManagerConstruct
 READER='[101] TELEMETRY CACHEREADER probe passed: version=1 thread=17 instanceCtor=1 emptyBeforeCtor=1 emptyAfterCtor=1 seeds=2 enumerated=2 reads=2 rawBytesMatched=2 missingIdNull=2 fileIdentityBytesUnchanged=2 staticConfigRestored=1 deviceFilenameUnchanged=1 icallRestored=1 wholeRunIsolation=0'
 BOUNDARIES=['[101] TELEMETRY CACHEREAD '+phase+': version=1 thread=17 kind='+kind
             for phase,kind in [('begin','event'),('end','event'),('begin','session'),('end','session')]]
+DELIVERY_BEGIN='[102] TELEMETRY CACHEDELIVERY begin: version=1 thread=17 fresh=1 absentClient=1'
+DELIVERY='[102] TELEMETRY CACHEDELIVERY probe passed: version=1 thread=17 realPayloadManager=1 realDelivery=1 absentClient=1 activeClientConstructed=0 deliverCalls=2 cachedStartCalls=1 iteratorFactories=5 moveNextFalse=5 originalDisposes=5 freshStateRetained=5 currentNull=5 capturesRetained=5 pendingCount=0 finishedCount=0 listFieldsUnchanged=2 reportFieldsUnchanged=2 deliveryFieldsUnchanged=1 payloadManagerFieldsUnchanged=1 reportDelivered=0 wholeRunIsolation=0'
+
+
+def delivery_text():
+    return '\n'.join([PATH,*BOUNDARIES,DISK_TYPED.replace('version=2','version=3'),DELIVERY_BEGIN,DELIVERY,READER.replace('[101]','[103]')])
 
 
 class CacheContractEvidenceTests(unittest.TestCase):
+    def test_fresh_delivery_cannot_be_promoted_to_operational_sdk_or_inflight_proof(self):
+        text=delivery_text();rows=[dict(event='OnConfirm.dispatch',tick=110,thread=17)]
+        proof=validate(text,rows,delivery_probe=True)
+        self.assertEqual(proof['guarded_move_next_false'],5)
+        self.assertEqual(proof['original_fresh_disposes'],5)
+        self.assertTrue(proof['sdk_client_absent'])
+        self.assertFalse(proof['operational_sdk_client_initialized'])
+        self.assertFalse(proof['resumed_or_in_flight_delivery_qualified'])
+        self.assertFalse(proof['whole_run_cache_isolation'])
+        self.assertFalse(proof['report_delivered'])
+        for kwargs,changed in [({},text),({'disk_probe':True},text),
+                               ({'delivery_probe':True},'\n'.join([PATH,*BOUNDARIES,READER,DISK_TYPED]))]:
+            with self.subTest(kwargs=kwargs),self.assertRaises(AssertionError):validate(changed,rows,**kwargs)
+
+    def test_delivery_requires_all_fresh_owner_guard_capture_and_cleanup_records(self):
+        text=delivery_text();rows=[dict(event='OnConfirm.dispatch',tick=110,thread=17)]
+        changes=[]
+        for line in (DELIVERY_BEGIN,DELIVERY):
+            changes.extend([text.replace(line,''),text+'\n'+line,
+                            text.replace(line,line.replace('thread=17','thread=18')),
+                            text.replace(line,line.replace('[102]','[999]'))])
+            for match in re.finditer(r'\b(\w+)=(\d+)',line):
+                field=match[1]
+                if field in ('version','thread'):continue
+                bad='1' if match[2]=='0' else '0'
+                changes.append(text.replace(line,re.sub(r'\b'+field+r'=\d+',field+'='+bad,line)))
+        changes.extend([text.replace('version=3','version=2'),text+'\nTELEMETRY CACHE probe failed: failed guards',
+                        text.replace(DELIVERY,DELIVERY+' extra=1'),
+                        text.replace(DELIVERY_BEGIN,'SWAP').replace(DELIVERY,DELIVERY_BEGIN).replace('SWAP',DELIVERY),
+                        text.replace(READER.replace('[101]','[103]'),'')+'\n'+READER])
+        for changed in changes:
+            with self.subTest(changed=changed),self.assertRaises(AssertionError):validate(changed,rows,delivery_probe=True)
+
     def test_explicit_disk_mode_cannot_accept_legacy_or_promote_whole_run_scope(self):
         text='\n'.join([PATH,*BOUNDARIES,READER,DISK_TYPED]);rows=[dict(event='OnConfirm.dispatch',tick=110,thread=17)]
         proof=validate(text,rows,disk_probe=True)
