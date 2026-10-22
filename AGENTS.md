@@ -2,6 +2,30 @@
 
 ## Requests and answers with Nick
 
+- Privacy120 closes111's SCOPED cache-path/typed-format prerequisites only.
+  Recipe15/103guards unchanged. Four original getters use canonical owned qc
+  during thread-scoped icall substitution,then restore the cell. Real GC-rooted
+  strings/Config/Endpoints/parser/dictionaries/Report/SessionReport owners;
+  one authored error/session retained,two required-key failures rejected.
+  Config reads Application.version,BCL metadata work not excluded. CacheManager
+  cctor may retain owned deviceId filename in disposable process;NOT all-static-
+  state unchanged. Instance ctor836660 creates/deletes expired queues:NOT used.
+  No disk reader/serializer/sender invoked,no whole-startup isolation claim.
+  Actual SDK image BugsnagUnity.Windows.dll(corrects schema01's human label).
+  Native01 failed ambiguous JsonObject int/string indexer;retain it. Correct02
+  converts record via original GetDictionary.78checks/C++ suite,helper install
+  preserving profiles/backups,AI/results/Continue/default Quit0 pass132.189s,
+  job1/0/0/no force.666rows/354anchors,0unknown roots,44actual rejections pass.
+  Source/contracts/hashes/limits:docs/telemetry-cache-contract120.txt. Next actual
+  CacheManager under EMPTY canonical owned root before seeding:review expiry/
+  static-config effects,then real reader calls. Do NOT use null/uninitialized
+  receiver or serializer/failure helpers to claim valid queues. Full D5 OPEN/
+  false;identity/native archived/runtime/final packages remain. r103g recipe15/
+  helper120-02,cached runtime/CMD105:mixed owned fixture,not120 deployment.
+  No120packages;105/DEV N7 current. Both owners terminal/REA sessions closed.
+  No new Nick action/repeat accepted D6/LAN/manual or scoped120 pass without
+  new change/concrete concern. Reuse retained source/evidence before more runs.
+
 - Privacy119 supersedes118 SOURCE/owned fixture:recipe15/103guards returns
   INTEGER synchronous disabled2 at ContinuousEvent49..53 before borrowed input/
   collector factory/configuration work. No completion/owner acquired on original

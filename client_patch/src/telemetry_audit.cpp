@@ -468,6 +468,7 @@ static void deviceProbe() noexcept {
         try {ba::log("TELEMETRY DEVICE probe failed: no success claim; original game flow retained");} catch(...) {}
     }
 }
+#include "telemetry_cache_probe.cpp"
 static void update() {
     if(!requested() || disabled || !startupLogged || !ba::owner || quitAttempted ||
        snapshots>=ba_telemetry_sampling::maxRegularSnapshots)return;
@@ -490,7 +491,7 @@ static void update() {
             else if(current==ba::read<Obj>(ba::owner,0x2f8)){stage=Stage::Tutorial;label="tutorial";}
         }
         if(schedule.due(stage,GetTickCount64(),snapshots))sample(label);
-        if(stage==Stage::Menu)deviceProbe();
+        if(stage==Stage::Menu){deviceProbe();cache_probe::run();}
     } catch(const std::exception&) {
         disabled=true;ba::log("Telemetry audit disabled: state observation failed");
     }

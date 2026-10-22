@@ -30,7 +30,8 @@ def sources():
                                      for p in (Path(__file__), ROOT/'client_patch/build.ps1',ROOT/'tools/verify_practice_ai.py',
                                                ROOT/'tools/startup_task_evidence.py', ROOT/'client_patch/patcher/startup_tasks.py',
                                                ROOT/'tools/verify_telemetry_audit.py', ROOT/'tools/replay_binding_evidence.py',
-                                               ROOT/'tools/replay_signal_evidence.py', ROOT/'tools/replay_nody_evidence.py')}
+                                               ROOT/'tools/replay_signal_evidence.py', ROOT/'tools/replay_nody_evidence.py',
+                                               ROOT/'tools/telemetry_cache_evidence.py')}
 
 
 def telemetry_evidence(text,rows,expected_sha256,*,after_practice=False,device_probe=False):
@@ -235,6 +236,10 @@ def run(args):
         if getattr(args,'startup_tasks_audit',False): command.append('-startup-tasks-audit')
         if getattr(args,'telemetry_audit',False): command.append('-telemetry-audit')
         if getattr(args,'telemetry_device_probe',False): command.append('-telemetry-device-probe')
+        if getattr(args,'telemetry_cache_probe',False): command.append('-telemetry-cache-probe')
+        if getattr(args,'telemetry_cache_probe',False):
+            require(getattr(args,'telemetry_audit',False) and args.mode=='confirm',
+                    'cache probe requires telemetry audit and original confirmed Quit')
         if getattr(args,'replay_binding_inventory',False): command.append('-replay-binding-inventory')
         if getattr(args,'replay_signal_inventory',False): command.append('-replay-signal-inventory')
         if getattr(args,'replay_nody_inventory',False): command.append('-replay-nody-inventory')
@@ -323,6 +328,9 @@ def run(args):
         if getattr(args,'telemetry_audit',False):
             report['telemetry']=telemetry_evidence(log(),rows,hashlib.sha256((game/'UnityPlayer.dll').read_bytes()).hexdigest(),
                 after_practice=args.after_practice,device_probe=getattr(args,'telemetry_device_probe',False))
+        if getattr(args,'telemetry_cache_probe',False):
+            from tools.telemetry_cache_evidence import validate
+            report['telemetry_cache_contract']=validate(log(),rows)
         report['trace'] = rows;report['passed'] = True
     except BaseException as error:
         report.update(error=repr(error),traceback=traceback.format_exc())
@@ -366,6 +374,7 @@ if __name__=='__main__':
     parser.add_argument('--startup-tasks-audit',action='store_true',help='opt-in original startup Task/pump observation; requires owned diagnostic patch')
     parser.add_argument('--telemetry-audit',action='store_true',help='require read-only startup/lifecycle/pre-original-Quit field observations')
     parser.add_argument('--telemetry-device-probe',action='store_true',help='one guarded no-argument device API call in an owned menu,never during teardown')
+    parser.add_argument('--telemetry-cache-probe',action='store_true',help='explicit owned scoped original cache-path diagnostic; does not prove startup cache isolation')
     parser.add_argument('--after-practice',action='store_true',help='explicit automated one-match result/Continue before original menu Quit')
     parser.add_argument('--replay-binding-inventory',action='store_true',help='read existing hidden replay-button actions in healthy owned practice; no click')
     parser.add_argument('--replay-signal-inventory',action='store_true',help='read existing UIButton broadcast subscribers; no signal dispatch')

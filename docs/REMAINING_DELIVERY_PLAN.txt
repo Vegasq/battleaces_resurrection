@@ -403,9 +403,23 @@ are scoped inputs, not a completion substitute.
     Evidence:telemetry-current-directory113.txt. No recipe/helper/package change.
 [ ] Pre-existing report cache:111's real Bugsnag reader uses generic
     Application.persistentDataPath,not isolated profile storage;
-    no real queued reports found in candidate shared root. Disposable root/type-
-    correct payload contract is required before seed tests. Recipe9 unchanged;
-    no111 package/new human action. Evidence:telemetry-startup-observation111.txt.
+    no real queued reports found in candidate shared root.120 closes the scoped
+    path/typed-format prerequisites below;actual on-disk reader,whole-startup
+    isolation and guarded-delivery seed tests remain OPEN. Never acquire/clear
+    the shared queue. Recipe15/103 unchanged,no120package/new human action.
+    Evidence:telemetry-startup-observation111.txt,telemetry-cache-contract120.txt.
+[x] Review120:four original cache/application getters use an explicit canonical
+    owned root with icall restoration;genuine JSON/parser/report constructors
+    retain one authored error/session and reject two missing-key dictionaries.
+    78affected checks,C++ suite,profile/backups-preserving helper install and
+    corrected native AI/results/Continue/default Quit0 pass132.189s,no force.
+    Selected window/44actual altered-record checks pass. Failed native01 retained;
+    actual JsonObject indexer ambiguity corrected via original GetDictionary.
+    CacheManager ctor can delete expired entries and is NOT invoked;nor are disk
+    readers,report serializers/delivery. This is NOT whole-process/startup queue
+    isolation or full D5 closure. Next review a genuine initialized cache instance
+    under an EMPTY owned root before seed/reader tests,including static-config/
+    expiry side effects. Exact source/evidence:telemetry-cache-contract120.txt.
 [x] Review112 identifies both111 unresolved entries using positively qualified
     opt-in relative-path/caller metadata:sim.log/Simulation.dll and fuzzylogicai.log/
     aiprogram.dll. Matching original IATs confirm CreateFileW call sites. Native

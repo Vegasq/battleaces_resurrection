@@ -3,6 +3,17 @@ Updated: 2026-10-22
 Supported input: Battle Aces build 37822, Windows x64.
 Recipe version: 15. Guards: 103. Complete-set runtime_validated: false.
 
+Review120 closes111's scoped cache-path/typed-format prerequisites. Four original
+getters use an owned canonical path during an explicit thread-scoped override,
+then restore the icall. Genuine parser/constructors retain one authored error/
+session and reject two missing-key inputs.78checks,C++ suite,corrected helper
+install preserving profiles/backups,and native AI/Continue/default Quit0 pass.
+Selected observation and44actual altered-record checks pass. Native01 failure
+is retained;02 fixes ambiguous JsonObject indexer via original GetDictionary.
+NO disk queue reader/delivery/serializer or whole-run isolation claim. Full D5
+stays OPEN,false;recipe15/103 unchanged,no120packages. Exact source/limits:
+telemetry-cache-contract120.txt. Next genuine isolated cache instance/readers.
+
 Review119 guards5registered continuous-event input/collector/configuration APIs
 with existing synchronous disabled status2 before input/factory ownership.76checks,
 C++ suite,actual14->15 preserving profiles/backups and guarded calls/AI/results/

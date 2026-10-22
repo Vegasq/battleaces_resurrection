@@ -1,0 +1,174 @@
+CACHED REPORT CONTRACT120
+2026-10-22; scoped original path/typed-constructor prerequisites PASS.
+Full D5 and complete-set runtime_validated remain OPEN/false.
+
+Scope
+111 found a real Bugsnag cache reader, but an arbitrary profile/Bugsnag folder
+and guessed JSON do not qualify a queued-report test.120 proves original path
+composition against a scoped owned root and rehydrates authored data using the
+game's real parser and report constructors. It does NOT enumerate/read on-disk
+queues, invoke a reporter/delivery/serializer, or prove startup/whole-process
+cache isolation. No personal report payload was acquired. Recipe15/103guards
+across four components is unchanged;the new helper is explicitly diagnostic.
+
+Static inputs and records
+Supported37822 original GameAssembly:
+ e59d08c01479b27404778048d7e13546dbf3771f6b3912744c7c2bdf80c4e758
+Original metadata:
+ b760be9190309b14174cd272e1f83b730181b299bc7a0cdca66985c69dcdc57d
+Ghidra is known unconfigured and was not retried. Pinned LLVM disassembly,
+PE/unwind bounds and IL2CPP metadata are static evidence,NOT REA decompiler or
+runtime Evidence. Actual REA observations appear separately below.
+local/privacy120-root-contract01/code-contract02.json:
+ 756d20f5ac81ff93e9dbdf6609a1e6b69ef1c521ff0f3fd2756fd4e9538c7d93
+local/privacy120-schema01/code-contract02.json:
+ 28dce05e07fd2553218db9f8b24a489b6153ecda0b852843f6087d7f98761604
+local/privacy120-schema01/evidence-manifest02.json:
+ 9d6bec9f34462c4c3c92ef74710b3921ac3d87291faa8317e90322002a6fdcc7
+local/privacy120-indexer01/evidence-manifest.json:
+ b878a803739e815c76844b0513899431b53208da0c91c2832aa41dfb0ca7a41a
+The actual SDK image is BugsnagUnity.Windows.dll. The earlier sealed schema01
+human label BugsnagUnity.dll is corrected by indexer01's metadata/token/module
+mapping;namespace/type identities and researched code/tokens remain correct.
+Raw binaries,metadata,assembly and captures remain ignored. Git gets authored
+code/docs and original-code digests,never original client files/assets.
+
+Original path and initialization
+CacheManager.get__cacheDirectory8364e0 uses Application.persistentDataPath via
+shared icall cell6e61f00,then appends /Bugsnag. Events8365f0 and Sessions836580
+append /Events and /Sessions. Application wrapper5021d80 uses the same cell.
+CacheManager cctor837e50 only composes/stores root+/deviceId.txt;it does not
+read/create that file. Application cctor5023d90 constructs an empty cancellation
+source. Root review01 initially stopped its slice at5023e20:partial files remain,
+but corrected contract02 includes full5023d90..5023e60,return5023e55 and barriers.
+
+Explicit -telemetry-cache-probe requires complete recipe15,telemetry audit,
+initialized owned nativestest_ profile,native Quit diagnostic and the established
+game thread. It creates/opens canonical profile/qc using the existing ordinary
+directory checks. A real GC-rooted managed String supplies that path. An atomic
+compare/exchange temporarily overrides the cached icall pointer. Only this
+thread receives the authored root;other callers forward to the retained original
+resolved function. Four direct original getter calls must return exact strings.
+Recursive getter/cctor calls are outside that direct-call count. The slot is
+restored before success/root release,including exception unwinding.
+
+The original persistent-path implementation is not invoked on the probe thread.
+CacheManager cctor may retain the authored filename in this disposable process;
+it is not rewritten back. Do not claim all static SDK state or whole-process
+behavior unchanged. With the explicit flag absent,this code creates no override,
+cache folder or typed fixture. Runtime01 and02 each use a fresh owned profile.
+
+Typed cached format
+The event cache is a flattened rehydration dictionary,not the outbound events
+envelope. Outer fields:id/apiKey/notifier/event. Required nested direct lookups:
+unhandled/severity/severityReason/metaData/app/device/exceptions. Session cache:
+id,notifier/app/device/sessions. Precise original branches and authored JSON are
+in schema01 FINDINGS.txt,FINDINGS-extra.txt,event-one-error.json and
+session-one-record.json. Both authored positive candidates contain one record.
+
+SimpleJson.DeserializeObject(string)06000224/8299e0 is selected by its actual
+pointer plus name/arity;a generic same-name one-argument overload also exists.
+Its genuine JsonObject.GetDictionary0600020e/827c00 recursively converts nested
+objects. Arrays and their JsonObject elements remain separate. Real Report
+ctor84b090 and SessionReport ctor84d2f0 receive genuine initialized Configuration
+and Dictionary objects through il2cpp_runtime_invoke. Exceptions are contained.
+No fake handles or zero-filled uninitialized objects are passed as valid SDK
+receivers;every live managed owner is held by a real GC handle.
+
+Configuration819760 uses an authored32hex key and its genuine ordinary ctor.
+It allocates SDK/BCL defaults and reads Application.version,not an identity.
+Genuine EndpointConfiguration8227b0 supplies localhost URIs. Both resulting
+report endpoints and header arrays must retain those objects/key/version4.0/1.0.
+URI/Regex/culture/configuration internals are not claimed free of every system
+lookup. No Client/collector/sender is constructed. This is not a no-acquisition
+claim for all transitive BCL implementation or the entire process.
+
+Original Event constructs one genuine Error841700 with authored errorClass,
+message,type and empty stacktrace. Checks cover those fields,real metadata/app/
+device/empty User owners,and absent optional Event.Session. No current exception,
+Unity log or current stack is captured. SessionReport retains one authored
+session;checks cover its ID/timestamp after original GetDictionary conversion.
+These are constructor-compatible fixtures,not remote service acceptance or exact
+SDK serialization round trips. Report.GetSerialisablePayload84b520 is uninvoked:
+its notifier/Event transitive dependencies still need review. Two further parsed
+dictionaries omit required keys;both original report constructors must throw
+genuine KeyNotFoundException. Quiet acceptance cannot pass.
+
+CacheManager ctor836660 is deliberately NOT used:it stores static configuration,
+creates directories and invokes RemoveExpiredPayloads836b50,which can delete.
+Its readers are instance methods;do not call them with null/uninitialized
+receivers or generate fixtures through original reporter/failure/save helpers.
+
+Implementation and checks
+client_patch/src/telemetry_cache_probe.cpp implements the opt-in diagnostic.
+telemetry_cache_signatures.hpp recognizes19 full original bodies by SHA256;
+it never patches them. tools/telemetry_cache_evidence.py rejects incomplete,
+duplicate,failed and overclaimed proof,requiring both groups on original Quit's
+thread in order before dispatch. verify_native_quit seals this new Python reader
+with its existing sources and requires cache proof when explicitly requested.
+
+local/privacy120-affected-tests01.txt:78affected tests PASS5.979s:
+ c9d2d941b9849cca0a9aa8f913fe253e4843c110070ec8751e799568fb3d6c55
+local/privacy120-affected-tests02.txt:11changed verifier tests PASS0.046s:
+ fb53f5f8b4a1dce481a0113877fd0a83293889ea8ed899acc9fedb822d8fe43e
+Both helper builds pass the required C++ suite. Corrected final helper:
+ build/helper-privacy120-02/BattleAcesOffline.dll
+ 9375a692dd01a92836328867f2ac6e8db48f52a1a45e01d3b8873fccc8fbf1b1
+ build/helper-privacy120-02/helper-build.json
+ 1679035fdf94ae5b7cc76692611b268311695a72c1e74afa38746117bda53a7c
+local/privacy120-install02/verification.json:PASS43.914s,same recipe15/103guards,
+dry-run unchanged,preview/install/idempotence match,all existing profiles and
+all four pristine backups unchanged:
+ 8a7bf07b7c706933091b3dbffcf330d60fadd8bedd4b720f959aa5c0117f4d8d
+r103g now has helper120-02 but cached runtime/CMD105;it is a mixed owned fixture,
+not a120 deployment. No120 installers or manual-candidate updates were produced.
+
+Corrected controlled runtime02
+local/privacy120-game-owner02.py:
+ 6edf241bb0aa38e68c1f2bcede9727d3232b14e3b526b7e00c20149cbc9197e3
+local/privacy120-game-ai02/verification.json:
+ 15f7fd520a66e8970125c2de78c6d9460329798c040ddeedaab77b637dceb6bf
+local/privacy120-game-ai02/native/verification.json:
+ e604243f77d04b59bccba99966a22cfefa500326b68f3534eca2ca1c2475eb28
+PASS132.189s including suspended preparation. AI/result/Continue/menu/default
+original Quit0,owner reaped,job1/0/0,no force. Program/shared settings/sealed
+sources unchanged. Both new groups pass:four parsed inputs,two successful typed
+reports,one error,one session record,two required-key rejections.
+
+REA final observed persistent-session record:
+ ev_070f3fa0b6f9d328a3eb13ffb3b29ce1b954d339a492c941aafa93f9632b7beb
+local/privacy120-game-ai02/observation-review01.json:
+ 860b52e5da98977fca72e8952ce8eda48a96994e609eb4661d6aed5e7b32467b
+Independent read-only review reparses raw native proof,compares reported fields,
+binds source/owner/program/capture and aligns eight markers including both cache
+groups before practice and original Quit.666provider rows,354clock anchors,max
+drift15ms,282selected file operations,0unknown roots,0observed selected network/
+child operations. Native log opens resolve to owned game folder,status0. This
+is selected process metadata before controlled primary resume,not preloader/
+injection/tree/kernel/wire/all-I/O coverage. Session closed;owner terminal.
+local/privacy120-cache-rejections01.json:44actual retained proof/report/owner/
+capture changes,all reject,in memory only;capture hashes unchanged:
+ 3ae7cf35a0cfa1a9a49747ad130d8b0bc256404f37542818e31d1a433e91fab0
+
+Retained failure and correction
+helper120-01/install01/native01 remain failed for typed qualification. Root
+proof passed,but a later get_Item threw ArgumentOutOfRangeException. Overall
+verifier correctly failed despite natural AI/Continue/Quit0/job1/0/0/no force
+and unchanged program/shared/source. Never relabel it PASS.
+Indexer01 found JsonObject Int32 indexer06000210/827fb0 declared before String
+indexer06000218/828500. Name/count lookup is ambiguous. Corrected helper converts
+that actual JsonObject using the already-reviewed GetDictionary before string
+reads. Fresh runtime02 above qualifies this correction. Earlier partial slice,
+read-only shell quoting/path/rg failures and original sealed records are retained;
+no truncated output is canonical evidence.
+
+Remaining work
+111's scoped root/typed-format prerequisites are CLOSED with the limits above.
+The full pre-existing on-disk queue gate stays OPEN. Next establish a genuine
+CacheManager under an empty,canonical owned root before seeding;review/contain
+expiry and static-config side effects,then qualify actual readers against
+authored files without acquiring/clearing the real shared queue. Whole-startup
+isolation and ordinary guarded delivery still need separate proof. Native
+archived/Crashpad formats,identity source reachability,supported error/runtime
+matrix and final packages remain. No new Nick action or repeat accepted D6/LAN/
+manual105 is needed for this step.
