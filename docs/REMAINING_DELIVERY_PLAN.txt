@@ -353,6 +353,14 @@ are scoped inputs, not a completion substitute.
     65guards;RUNTIME_VALIDATED=false. Real recipe4->5 upgrade/restore/reapply and
     native AI/result/Continue/default natural Quit0 pass;final-artifact packaging,
     full D5 matrix/attribution remain open. Existing105 manual files stay frozen.
+[x] Review107 suppresses public QueueEvent before name/payload conversion,with
+    reviewed borrowed-input/false-result ABI. Recipe6/66guards,74focused checks,
+    required C++ suite,actual upgrade and native AI/results/Continue/Quit0 pass.
+    New selected metadata observer positive control and20retained rejection
+    controls pass. Separate bounded recipe5 game window has no selected events;
+    that is not full lifecycle/descendant/network/removal proof. Inherited CEF
+    pipe has no demonstrated new bypass;WMI-capable drain reachability remains
+    open and cannot be dismissed from empty queues. See telemetry-attribution107.txt.
 References: telemetry.txt, telemetry-internal-config.txt,
 telemetry-persistent-observation.txt,telemetry-device-cef106.txt and nvidia-shutdown.txt.
 

@@ -1,6 +1,6 @@
 """Exact-build telemetry patch transformations; no file or process operations.
 
-These 65 recipes have static source/control-flow review. The complete recipe
+These 66 recipes have static source/control-flow review. The complete recipe
 set has not been runtime validated; recipe2's 59 had a bounded compatibility run.
 They do not establish complete telemetry removal; see docs/telemetry.txt.
 Only brief patch safety signatures are included, never original game payloads.
@@ -10,7 +10,7 @@ import hashlib
 from types import MappingProxyType
 
 GAME_BUILD = 37822
-RECIPE_VERSION = 5
+RECIPE_VERSION = 6
 RUNTIME_VALIDATED = False
 VALIDATION_STATUS = "Static review and original-byte validation only"
 UNRESOLVED_COMPONENTS = (
@@ -201,6 +201,12 @@ COMPONENTS = MappingProxyType({
             Patch('native device payload preserves queue progress without collection', 0xc40840, 0xc3fc40,
                   bytes.fromhex('885424105553564154488dac2448f8ffff4881ecb80800004c8be1b00133c989'),
                   bytes.fromhex('83b99014000002750ac7819014000000000000c3')),
+            # Same-index original icall registration binds QueueEvent here.
+            # Its four managed inputs are borrowed; all native ownership and
+            # cleanup are local. False precedes both name conversion and the
+            # c38c80 managed-payload adapter, not just the guarded final sink.
+            Patch('Analytics QueueEvent returns false before managed payload conversion', 0x20c560, 0x20b960,
+                  bytes.fromhex('4055535657415441554157488d6c24f0'), bytes.fromhex('31c0c3')),
         ),
     ),
     CEF_COMPONENT_PATH: Component(

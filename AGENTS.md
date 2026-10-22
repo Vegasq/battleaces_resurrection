@@ -2,6 +2,23 @@
 
 ## Requests and answers with Nick
 
+- Privacy107 now supersedes106 SOURCE only:recipe6/66guards includes public
+  QueueEvent false before conversion.74focused checks,C++ suite,actual5->6
+  upgrade preserving profiles and native AI/results/Continue/default Quit0 pass.
+  r103g is now an owned recipe6/helper107-01 fixture,while cached runtime/CMD
+  still belong to105. No106/107 packages/installers;frozen105/DEV N7 stay current.
+  New metadata sensor control02 and20actual rejection controls pass. Game idle01
+  is separately sealed recipe5 evidence:15s/10rows,no selected metadata events,
+  ownerQuit0/job1/0/0;no exact stage clock/startup/whole-life/removal claim.
+  Do not repeat failed ANSI reader01;current bounded NUL decoder is qualified.
+  Exact scope/hashes:docs/telemetry-attribution107.txt. No owned game/server/REA
+  session remains live. D5 OPEN/RUNTIME_VALIDATED=false. Next:callback/state
+  reachability c3a680->c2f790 BEFOREqueue inspection(WMI-capable shared query),
+  anchored full-mode/file/network/descendant/cache/error/retry/crash coverage and
+  final artifact packaging. Empty queues do not protect that earlier query.
+  Collector registration gate and inherited CEF pipe reviews found no concrete
+  new bypass;no extra shared/global guards or Ghidra retries are justified.
+
 - Privacy106 source now uses telemetry recipe5:65guards/four DLLs. Narrow Unity
   device builder preserves marker2->0;independent CEF handler returns0 before
   initialization.56focused checks,required C++ builds/tests,actual four-component

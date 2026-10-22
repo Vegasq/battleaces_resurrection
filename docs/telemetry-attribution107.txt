@@ -1,0 +1,182 @@
+PRIVACY CALLBACK / ATTRIBUTION107
+2026-10-22. D5 remains OPEN;RUNTIME_VALIDATED=false. Current source recipe6/66.
+
+Production change
+Original public Analytics.QueueEvent20c560 still converted managed event names
+and payloads before c38c80 reached the already guarded submission sinkc381d0.
+Recipe6 now returns false at this public entry BEFORE conversion. Original
+same-index icall registrationfd42d0 index101 binds the name/function association.
+Its four incoming arguments are borrowed; main is fetched internally; all native
+objects and cleanup are local. AL false was already a supported downstream result.
+No incoming output/resource or required external state change was found. This
+guards the concrete public path rather than shared il2cpp_object_get_class,
+conversion/runtime helpers,or constructor bodies. No active old-client upload
+bypass was demonstrated. c38c80 hypothetical independent computed callers remain
+unproven. Recipe6 has GameAssembly42,UnityPlayer22,chrome_elf1,libcef1 guards.
+
+Original static findings
+REA skill's independent reviews reused pinned originals,IL2CPP metadata and PE/
+LLVM evidence because the known Ghidra provider remains unconfigured. No repeated
+setup,remote page fetch,SDK/reporter activation or original-game mutation.
+ local/privacy107-unity-callbacks01/FINDINGS.txt
+ 4ff851109803adc6d9808354b89865190d6bc1861d6e0280381b41018ea87a9e
+ manifest.json 1f9bc6f76d4ea09afbf52576d28b7a796f35803885a82598ed4a63b1c6d2aa2e
+ FOLLOWUP.txt f895f5fbf7dabe76b7b125fb2190de60585818d1d335bcc034498bd1e95561b9
+ followup-manifest.json c4ba49d3cc8d33c88e9c92029b5cefa63af8c99d1f7f2e5451a3fdd27b456ba1
+Upper20c560 guard is preferable to lowerc38c80-only because it also prevents name/
+additional-string conversion. The original lower callback is shared object-class
+inspection,not an analytics-only global;do not patch that global.
+Continuous collector registrationc21b20 is already gated before retention by
+constructor-bound main virtual68=c33440,false in current recipe. No extra guard
+justified from that route. Internal c300f0 dirty-config copies remain upstream
+of its guarded append. Preserve dirty-state progress if studying a future guard.
+Important remaining route:c3a680 virtuald0=c2f790 performs shared WMI-capable
+platform work BEFORE inspecting config queue/count/marker. Empty queues and the
+guarded appenders DO NOT establish that this work is unreachable. Public Resume
+requires several enable flags/state2;constructor state0/suppressed Start and
+sampled defaults are narrower evidence. Callback/state reachability remains open.
+
+CEF inherited pipe and actual web navigation
+ local/privacy107-cef-inheritance01/FINDINGS.txt
+ 3aaefc1bfe0ad8358769ea76b9577b210c26735a87112c7d4a8f180fee2ac547
+ manifest.json af257adf4a698a33cfb7f65af3835b047ffedd6a29553c7e470d7b6388073a9d
+chrome_elf2d860 really reads CHROME_CRASHPAD_PIPE_NAME and can register through
+an existing named pipe. All identified source chains remain behind guarded
+config loader323a0;no independent bypass demonstrated/no extra patch justified.
+Bounded direct/RIP/preferred-pointer scans do not exclude computed paths. One
+local finding accidentally calls PE sections ELF sections;the component is a
+Windows PE DLL and the actual reader/scans use PE file-backed sections.
+Concrete game web path:KoreanComplianceDialogVM initialization ->canvas-ready ->
+ProcessAISInstructions ->IWebView.LoadUrl(first AIS instruction URL). This is
+dynamic content,not a known effective endpoint or observed remote analytics.
+The bound-model generic getter is not decoded;the AIS type association is a
+strong inference from matching original metadata/fields and method role.
+Ordinary community menu may not activate that dialog. No remote URL was fetched.
+
+New reusable attribution observer and control
+tools/frida_attribution_source.py prepares source and a fresh owned control;it
+does not execute/attach. Observer records metadata only:
+- selected-root NtCreate/Open/Read/Write/SetInformation/DeleteFile attempts;
+  handle-to-path association,requested lengths,NTSTATUS,not file contents;
+- Winsock connect/sendto destination attempts and resolver node/service;
+  WinHTTP/WinINet connect host metadata when loaded;no socket/HTTP payloads,
+  headers,query strings,command lines,environment values or credentials;
+- CreateProcess/AsUser child PID on successful return,without child attachment;
+- up to8caller module/RVA frames,per-process/thread/nonce/ordered sequence,
+  bounded event/handle maps,explicit decode/setup/overflow errors and heartbeats.
+ANSI/UTF16 names stop at NUL within256units. Counts are API-call lower bounds.
+IPv4/IPv6 sockaddr decoding is present;only IPv4 is qualified by this control.
+Relative unknown-root operations,NT device-volume aliases/reparse canonicalization,
+pre-attachment handles,rename target details,
+asynchronous completion,direct syscalls/AFD/ConnectEx and unhooked network/DNS/
+file/process routes remain limits. Requested bytes are NOT completed bytes.
+No replacement,argument/return write,NativeFunction,game API or target-side file
+write is performed. Interceptor still relocates code and can affect timing.
+
+tools/verify_attribution_control.py binds canonical request/source,actual input/
+target hashes,matching provider envelopes/session/script/PID/nonce,ordered rows,
+full hook inventory/counts,bounded metadata/callers,independent localhost exchange
+and child completion receipt,and selected file effects. Malformed/truncated/error/
+missing evidence fails. It never promotes kernel/wire DNS/child-instrumentation/
+game-removal/OS exit-code qualification. Optional terminal check opens only the
+recorded PID for read-only synchronization. Sources/tests do not include game
+bytes,raw captured metadata,private reports or personal paths.
+
+Prepare (existing selected bundled Python and NEW ignored directory):
+ python -m tools.frida_attribution_source --image <bundled-python.exe>
+   --control-dir local/<fresh-control>
+Invoke REA instrument_with_frida using exactly the prepared request.json. Retain
+the complete returned object as rea-result.json;do not reconstruct an Evidence.
+ python -m tools.verify_attribution_control --control-dir local/<fresh-control>
+   --output local/<fresh-control>/verification.json --check-process-terminal
+No game or production server is started by that authored control. Only localhost
+is contacted. Its synthetic queued report is read/sealed and never delivered.
+
+Actual control02 PASS
+REA ev_43efc09ab98993c9ae9a893025693b054972a04cd19b5ebe10fbc4e5a846e8de
+PID16992/child18096,26rows/20metadata operations,untruncated,source bound. Observed
+localhost GetAddrInfoW/getaddrinfo,IPv4 destination attempt matching the independent
+7/7-byte exchange,selected file create/read/write/rename-class10/delete-class64,
+Python module callers and child creation. Child receipt0/root PID subsequently
+absent;root exit CODE is not independently qualified. connect returns-1 because
+the socket operation is asynchronous;exchange receipt proves it later worked.
+No decoder errors/unknown roots/overflow. WinHTTP/WinINet/IPv6/NtDeleteFile APIs
+were not positively exercised;do not infer their qualified coverage from source.
+ local/privacy107-attribution-control02/verification02.json
+ e2f3b07ad09daf1cd3258f67ec5abb08398274440e87dc23d51d0acc54078c21
+Initial01 is a FAILED sensor trial:readCString(256) read beyond ANSI NUL into
+unrelated control-process memory. Its private raw capture/source remains frozen;
+current source explicitly tests each unit for NUL before decoding further.
+An initial verifier import typo failed before review,then was corrected. No game
+used that bad observer. Eight authored mutation tests pass;actual retained
+rejection controls are recorded below. No raw memory/capture is in the repository.
+local/privacy107-actual-rejections01.json:all20mutations of the ACTUAL captured
+control reject after provider envelopes are resynchronized. Includes mixedPID/
+session/source/request,wrong confidence,truncation,missing final heartbeat,
+unknown roots,ANSI tail/wrong destination,missing file/rename/delete semantics,
+pending write,wrong child/caller,bool count,overflow and changed receipt port.
+ SHA256c2a8f8d01b74a52a4b5fd7dfba9308bf0f84825b68142ec4b128a930a2a92012
+
+Actual game window01 uses recipe5,BEFORE the recipe6 change
+REA ev_4cadd2cd583f1f589e382e7aaa51af013db3275b780562001c3e8f15bd60ab1d
+Owned selected r103g PID24992,source-bound observer,file identities sealed by
+the external owner.10rows/3heartbeats at5002/10002/15002ms,all expected loaded API
+hooks,untruncated,no errors/unknown relative roots/overflow. No scoped file,
+network-metadata or CreateProcess events occurred in this bounded window.
+Global NtCreateFile counts include excluded diagnostic gate polling;scope filters
+must not be read as no filesystem activity. No report queue was seeded here.
+Its separate native owner then completes original menu Quit0/reaped in44.431s,
+owned job total1/active0/terminated0,no force,shared settings/sources unchanged.
+Provider state reports running at end of attached observation;it is NOT natural
+Quit evidence. Original Quit/empty job comes separately from the retained owner.
+There is no exact native-clock stage alignment or startup/whole-life coverage;
+this does not qualify all menu/file/network behavior or descendants. Preserve
+the gap rather than calling it continuous telemetry-removal proof.
+ local/privacy107-game-idle01/observation-review01.json
+ edcc5f4a87e00a82261c4caf3247c1ca3462a9a03bfcfb8beedcecb90f6832cd
+local owner/review scripts and complete raw Evidence remain ignored.
+
+Recipe6 validation so far
+74focused Python checks PASS10.473s,including optional read-only all-four-pristine
+input transformation,authored QueueEvent stub false with unreadable synthetic
+borrowed inputs,and patch transaction/native-Quit/checker fixtures. No original
+collector is activated by the authored stub test. Required C++ suite/build PASS.
+Explicit legacy audit recipes3/4/5 remain available;old samples cannot qualify6.
+Actual recipe5->6 upgrade PASS43.415s:dry-run no writes,idempotent install,all
+original backups and profile files unchanged. No redundant full restore run;
+106's four-component restore/reapply evidence retains its exact recipe5 scope.
+ local/privacy107-install01/verification.json
+ 36a65995302f04ef9814787be3df84152739740860dd53e12500251d985aadb3
+build/helper-privacy107-01/BattleAcesOffline.dll
+ 2e82588dcc1877e5020dd0b761fec266fdac0eca216d3e7c79216e63a3b32b83
+helper-build.json
+ 38b2926970af0945cbed5507ce494ef4a7a8af353123f494ba9fa60afddc7cb2
+Recipe6 native AI/result/Continue/Quit PASS95.580s,main0/reaped,no forced cleanup,
+shared settings/checked sources unchanged. Eight complete sampled-field snapshots
+cover startup/menu/ingame/postgame/menu/pre-Quit;all22 Unity guards normalize to
+the full original hash and match loaded signatures. Guarded public device-info
+probe returns false with sampled disabled/config fields unchanged. Bot max supply
+14/nine action records;moving-and-ordered set is empty,no new movement claim.
+This is default-recipe original callbacks with explicit diagnostic practice/
+Concede/Continue/Quit,not physical controls or whole-life network attribution.
+ local/privacy107-native01/verification.json
+ 2fcccf68edb64191d1af8647ba2ee69cca7eb0b607e9b243406928b5d82df585
+Installed recipe6 UnityPlayer SHA256
+ 56b3a582f4b5f342c1cae456bb98cc469a179ae7e80aa81226f1047f52dfc662
+Do not use the earlier recipe5 idle result as recipe6 gameplay/network evidence.
+No106/107 packages or installers are built. Frozen105/DEV N7 remain current.
+No owned game/server/REA session is left active. r103g now has recipe6/helper107;
+its cached105 runtime/game-folder CMD remains an older diagnostic configuration.
+
+Next unresolved work
+Finish state/callback reachability for the WMI-capable config drain;cover actual
+full lifecycle,edits,all modes,error/cache/retry/crash/reconnect,whole process tree
+and relevant files/network destinations with properly anchored positive sensors.
+Correlate actual events with original disabled paths;quiet windows or endpoint
+blocking cannot close D5. Final installed bundle qualification remains required.
+
+API layout references used with actual Windowsx64 positive controls
+https://learn.microsoft.com/en-us/windows-hardware/drivers/ddi/ntifs/nf-ntifs-ntcreatefile
+https://learn.microsoft.com/en-us/windows-hardware/drivers/ddi/ntifs/nf-ntifs-ntwritefile
+https://learn.microsoft.com/en-us/windows/win32/api/ws2def/ns-ws2def-sockaddr_in
+https://learn.microsoft.com/en-us/windows/win32/api/processthreadsapi/nf-processthreadsapi-createprocessw
