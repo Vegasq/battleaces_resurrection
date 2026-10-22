@@ -1,0 +1,170 @@
+WINDOWS SELF-TERMINATION OBSERVATION124
+2026-10-22. D5 remains OPEN. This is diagnostic tooling,not a new game patch or
+release installer. Nick explicitly resumed roadmap work after the paused123
+handoff. Tutorial2's visible-desktop action stays separate in DEV N8.
+
+Problem and source result
+123's native root-control/AI/Continue/default Quit case passed,but its strict
+external review FAILED because no final process-exit-entry snapshot existed.
+That failure and all its original evidence remain unchanged. RtlExitUserProcess
+being installed does not establish coverage of every Windows shutdown route.
+
+Independent static review used pinned untouched PE imports,exports,unwind spans,
+LLVM disassembly and retained IL2CPP names. Ghidra remains unavailable;this is
+static fallback evidence,not new REA decompiler output. Original UnityMain export
+UnityPlayer+805460 calls engine runner803510,preserves its returned status,calls
+GetCurrentProcess,then unconditionally calls TerminateProcess at805478. The
+corresponding caller return address is80547e. Successful self-termination bypasses
+launcher CRT ExitProcess and ntdll RtlExitUserProcess. The middle Application.Quit
+to engine-runner return chain was not fully reconstructed;new runtime caller
+evidence is required to bind this route to an actual owned Quit.
+
+Static seal:local/privacy124-exit-static01/evidence-manifest.json
+ a6ae4ff5e2d660845d1e270547ed66335202cf3ebb4a2f52215c7d95391ccab2
+Complete UnityMain38-byte span SHA256:
+ 967c0b1e7264c2d67e07eed68d7e8b8db5e35db905aaebf401e5cbc4d43f65b8
+The manifest binds21 complete spans and17 validated import references,including
+one explicitly identified7-byte launcher tail-jump leaf without an unwind row.
+Dynamic symbol lookup/indirect code paths are not excluded by an import scan.
+
+Explicit diagnostic behavior
+tools/frida_attribution_exit.py composes either the original cwd-v4 observer or
+the123 SDK-root diagnostic. All older profiles remain separately selectable and
+unchanged. It hooks TerminateProcess in kernel32 and kernelbase. Only the exact
+current-process pseudo-handle(-1) emits a terminal-entry snapshot;other handles
+emit a distinct termination-request and are never treated as self-termination.
+Real handles referring to this process are outside this selected recognizer.
+
+Snapshot contains API/status/caller frames and selected file/network/process/SDK
+counters. tools/attribution_exit_metadata.py rejects a foreign handle,status,
+API,missing hook/counter,overflow,error or wrong expected caller. An entry alone
+does not prove OS termination. Retained process and job handles independently
+must prove expected exit,reaping,empty job and no owner-forced cleanup.
+
+Frida send() is asynchronous. Each distinct self-TerminateProcess callback waits
+200ms after emitting metadata to let transport drain before calling the original
+API. This host has separate kernel32 wrapper and kernelbase implementation:both
+snapshots are expected and the added delay is400ms total for that path. Aliased
+exports share one hook. No arguments,status,return values or exit route change;
+no gameplay API is called. This delay is diagnostic and is NOT part of ordinary
+client or installer behavior. It is not kernel capture or descendant coverage.
+API reference:https://frida.re/docs/javascript-api/ (send,Thread.sleep,Interceptor).
+
+Owned positive control
+local/privacy124-exit-control01 retains the first control. A fresh owned bundled
+Python process calls original TerminateProcess(NULL,9),checks failure,then calls
+TerminateProcess(GetCurrentProcess(),7). Expected7 is intentional control behavior,
+not a passing game Quit. REA captures both non-self requests followed by both
+self-entry snapshots,status7,RtlExit count0.22 rows,no observer decode errors.
+Process exits7 naturally;owned job empties with no owner termination/reaping error.
+
+The owner's original summary remains FAILED:it wrongly assumed job total1.
+Actual pre-resume membership includes the selected Python plus its owned Windows
+conhost;terminal job total2/active0/terminated0. Independent read-only reviewer
+local/privacy124-control-review01.py validates exact membership,raw transport,
+source/target/owner hashes,nonce/PID,pre-resume state,all expected clock returns,
+actual7 and both terminal snapshots. It records PASS for this bounded control
+without rewriting the failed owner summary or running another unchanged process.
+REA session7870b68b-6621-4115-a1e4-73a88db69602 is closed.
+Final Evidence:
+ ev_92d4103f0a56d6ecf7228201b5e7a4d2724d1c8db36faad404af6269216f3a7f
+
+Current qualification
+16 focused checks pass,including executing generated JS callbacks under an
+authored Node host to verify aliased export counting,self/non-self handling,
+status argument position,unchanged arguments and bounded transport delay.
+Parser mutation checks are unit scope;actual retained-capture mutation checks
+and the new owned game observation are recorded below when complete.
+No C++ source/helper/patch recipe changed. The current r103g fixture keeps the
+hash-bound tutorial2-01 helper with recipe15/103 and cached runtime/CMD105.
+No124 packages/new Nick action. Frozen105 pair and DEV N7 remain current.
+
+Completed owned game observation
+Fresh124 native AI/result/Continue/default original Quit PASS121.2168467s,
+including paused preparation. Retained process exits0,reaped,job1/0/0,no owner
+forced cleanup. Both pre-launch427/302-byte authored seeds retain inode,birthtime,
+mtime,size and SHA. All8 program files,shared settings and recorded runtime
+sources are unchanged. No C++ rebuild or helper installation was needed.
+
+REA captures669 rows/352 clock anchors,max drift15ms,281 selected file operations,
+0 selected network/child events,0 unresolved relative roots. Module/root install
+precedes four genuine String/GC-handle returns. All8 watched SDK entry counters
+remain integer0. The final TWO rows are the expected kernel32/kernelbase
+self-TerminateProcess entries,status0,with UnityPlayer return frame80547e and
+launcher11f2,matching the pinned source route. Both contain installed root4/
+handles4/counters0. Independent native markers cover settings-before-load,root
+control,practice request,result,Continue,menu and original Quit confirmation.
+These facts close the selected canonical SDK-root startup-through-exit-entry
+case that123 could not qualify. They do not promote123's failed observation.
+
+Both snapshots are ENTRY observations;each is followed by its diagnostic200ms
+hold. This does not prove absence of other-thread actions between the final
+snapshot and OS termination. Owner handles establish termination separately.
+Neither this run nor the null-handle control proves a real foreign-process
+termination path. Source/queue/runtime/final-artifact D5 gates remain required.
+The SDK-only root shim and transport holds are explicit diagnostic mutations;
+general Unity persistentDataPath is unchanged. Not a shipped isolation patch.
+
+Read-only decoder tightening after the completed capture
+Independent review found Boolean False could compare equal to integer0 in a
+Python dictionary,plus insufficient alias provenance checks. Tightened decoder
+now requires exact SDK Boolean/integer types/budgets and aliases that refer to a
+preceding non-aliased hook of the same API,without a separate alias counter.
+The new reviewer also type-checks installation flags and root return counters.
+No observer/native source or injected JS changed and no game was rerun.
+
+The original UNUSED read-only decoder was included in the owner's source seal.
+Its exact archived bytes are kept as decoder-at-capture.py and match that seal;
+review02 checks the archive for this one historical input and current files for
+every other source. It separately records the tightened read-only decoder SHA.
+Generated observer.js remains byte-for-byte equal to the current source builder.
+This preserves runtime provenance while strengthening post-capture validation.
+
+Strict observation-review02 PASS.96 actual retained-capture mutations reject
+in memory,including missing/relabelled terminal rows,wrong API/status/caller,
+SDK/API counters,Boolean-as-integer values,aliases and root ownership/genuineness.
+Original files/seeds/captures are never modified. Rejection01 remains FAILED:
+one proposed counter mutation set0 to its existing0 before kernelbase entry,
+so it was a no-op. Fresh02 changes counters by+2 and rejects59 real alterations;
+fresh03 adds the typed/alias checks and rejects96. No failed result is rewritten.
+17 final focused checks PASS0.120s. No extra native run after the decoder change.
+
+Final REA Evidence:
+ ev_2cc279f2ca3d18fa115c2af044cbc1fc4146e75a39c98918164ab8289182937e
+Sessiona224a753-87c1-4281-95fd-3e408039b33a is closed;owned game is reaped.
+
+Retained identities
+local/privacy124-focused-tests03.txt
+ 96aec13e9c9f5cb13a6d43fda41baf63ec8429065463c1f9237b2f6bbadbdeb9
+local/privacy124-exit-control01/verification.json
+ 01583c1be4156edea7314c250eaf04f5375f29dc7d548cc2b09615c4a1d07d40
+local/privacy124-exit-control01/observation-review01.json
+ 6e8c568ea43af4debf7d50543a590e27af2f1ffb519a53f381522bbcfae1ef9f
+local/privacy124-exit-control01/rea-final.json
+ 7bc7cc62d684a04f4be98c36baf86715f1c37036f4353e3621de13170263951c
+local/privacy124-game-owner01.py
+ e1ebb6b6878734dbb47bf1b1a4c68bb10efd9f2d5846b932776794a6233ae2be
+local/privacy124-game-ai01/verification.json
+ 1c245180676aa179f8588c731e7eceb11be9540d161486c38a73ee34a2ba9d41
+local/privacy124-game-ai01/native/verification.json
+ 2bdc64c3f78000d809e5a6f3c32576e6913ac813c6394fd0d457aea93ac264fd
+local/privacy124-game-ai01/rea-final.json
+ 2f8b1d706c88b26cf858e5e406c1129d698108159945e547d98c87c1b7aecaed
+local/privacy124-game-review02.py
+ d6448228dc2fd2c48dbd4cfa8b945a0229d509ee60d5e717fd161efd2d447300
+local/privacy124-game-ai01/observation-review02.json
+ baa6a74c16de1fcf6b92995c4b93b25eb09ae268ef4404ee58e06cc767938c2e
+local/privacy124-game-ai01/rejection-review03.json
+ 5f51d48c4046307591de9531cac1e33f96461f60fc33539842ce86fff7a7265c
+local/privacy124-game-ai01/decoder-at-capture.py
+ 42ae3f3dba92583238a800adf0037da6d63dd71510f6092e60d76bc5626ff6a7
+tools/attribution_exit_metadata.py
+ a805db1cb7dfc012c04d1139c520f10b37fe378ba2702844f4ba3888f3d587e5
+
+Remaining
+Full D5 stays OPEN and analytics_removal_qualified/RUNTIME_VALIDATED stay false.
+Canonical roots in one owned AI case are qualified only through the observed
+exit entries;arbitrary paths,remaining identity/native archived sources,resumed/
+in-flight reporter work,descendant/error/crash/full-mode observations and final
+installed artifacts retain independent obligations. Reuse120-122 and this124
+bounded case;do not repeat them without a change or concrete unresolved concern.

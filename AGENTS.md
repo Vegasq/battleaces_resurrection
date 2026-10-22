@@ -2,6 +2,33 @@
 
 ## Requests and answers with Nick
 
+- Privacy124 closes123's selected canonical SDK-root startup-through-exit-ENTRY
+  observation gap. Original UnityMain805460 calls TerminateProcess at805478,
+  bypassing RtlExitUserProcess;runtime frames80547e match. New explicit diagnostic
+  hooks kernel32/kernelbase self-pseudo-handle entries,200ms hold EACH(400ms here).
+  No status/argument/route override;owner independently proves natural0,reaped,
+  job1/0/0/no force.17checks,native AI/results/Continue/default Quit121.217s pass;
+  seeds/8program/shared/runtime sources unchanged.669rows/352anchors/15ms drift,
+  0unknown roots,final2 entries root4handles4/all8SDK counts0. Strict review02 and
+  96actual retained mutations PASS. Decoder bool/int+alias checks tightened AFTER
+  terminal capture;original unused sealed decoder archived,observer JS unchanged,
+  provenance explicit. Control owner summary failed wrong total1 vs actual owned
+  conhost total2;independent exact-member/expected7 control review passes,failed
+  summary preserved. No real foreign-process control/gap-free post-entry lifetime
+  claim. Full D5 OPEN/false;no124packages/new Nick action. Reuse bounded cases.
+  Recipe15/103 and helper-tutorial2-01 unchanged;r103g remains mixed diagnostic.
+  Both124 owners terminal/REA sessions closed. Details:telemetry-exit-boundary124.txt.
+  Next finite gates:remaining identity/native archived source coverage,then
+  supported mode/error/descendant/final-installed-artifact matrix. No123 rerun.
+
+- ACTIVE again per Nick's explicit roadmap continuation. Earlier PAUSED notes
+  describe historical handoffs and no longer block independent roadmap work.
+  Privacy123's own missing-boundary review remains FAILED;124 above closes its
+  selected replacement observation without weakening the original review.
+  Latest process check found no Battle Aces process;Tutorial2 PID32028 is historical.
+  DEV N8 still requests a visible desktop launch;read answers before repeating it.
+  Never alter or stop a subsequently running user-owned game.
+
 - Separate explicit user request:launch Tutorial2 while roadmap stays PAUSED.
   New -offline-tutorial2 routes original owner._rgameTutorial02State(+300),admits
   mode100 only under that flag,labels match tutorial02. No predicate patch:
