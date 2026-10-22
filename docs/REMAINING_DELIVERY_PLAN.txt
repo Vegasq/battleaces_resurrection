@@ -120,6 +120,13 @@ finished;their scoped results are recorded below. With D6's engineering fix and
 automated qualification complete,preserve its manual candidate and address the
 remaining named D2 cells without repeating covered queue/roster tests.
 Completed subcases (same-PC automated controls; not physical LAN):
+[x] Fresh installed130 server assets RC public2vAI PASS107.911s,two real clients/
+    two bots,original native orders/movement/results/Continue/default Quit0;
+    two worker0 exits,empty jobs,no forced cleanup. Direct check is necessary:
+    fresh native exports differ from setup47 across processes;byte/ordered-schema
+    identity reviews remain FAILED. Do not directly reuse old AI results for new
+    blobs. This current roster passes,not every59profile/all remote/error cases.
+    Exact artifact/failure bindings:installer-progress130.txt.
 [x] Current recipe17/helper127-02 and actual installed128 bundled runtime129:
     Try Deck4/offline public1/2/5 all pass native result/Continue/default Quit0,
     each job2/0/0,no forced cleanup;shared/config/package/source unchanged.
@@ -683,6 +690,17 @@ References: network-qualification.txt, protocol-v3.txt, soak-qualification.txt.
 [ ] D9 - Freeze and deliver the final Windows release
 RC1 installer/package milestone runs FIRST under RC1_PLAN.txt;full D9 closure
 still requires the applicable final-release gates below.
+[x] Installer130:fix actual missing ProgressBar attachment(shared native client/
+    server UI),two native forms and20affected checks pass. Fresh clean a09061c
+    paired ZIPs/standalone EXEs bind unchanged gameplay/helper bytes. Actual form
+    ORIGINAL Install/worker/embedded ZIP server setup/import/native health passes
+    286.126s with247source-file inventory/6hashes/shared unchanged. Client form
+    update69.632s preserves242profiles/5backups/config/name;actual game-folder CMD
+    menu14.179s independent of ACTUAL extraction source. Entry uses forced
+    readiness cleanup,NOT Quit. Fresh imported-assets2vAI native lifecycle passes
+    separately. New130/N7 is NEXT planned manual pair;old files frozen. Full
+    clean-PC/owner/SCM/backup/privacy/physical/final gates remain. Scope/hashes:
+    installer-progress130.txt. No repeat of unchanged129/130 cases.
 [x] Engineering artifact subcase128/129:clean29882b3 recipe17/helper127-02
     client/server ZIPs and both standalone EXEs built;actual native forms/payloads
     pass. Bundled relocation/import/health/three native worker0 shutdown paths/

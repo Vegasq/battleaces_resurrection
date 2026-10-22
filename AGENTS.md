@@ -2,15 +2,26 @@
 
 ## Requests and answers with Nick
 
-- Installer130:actual unchanged server128 native control hierarchy FAILS before
+- Installer130 COMPLETE at named scopes:unchanged server128 hierarchy FAILS before
   Install click:marquee ProgressBar never added to form Controls. No game/stage/
   destination created,job1/0/0/no force. Shared client/server C# fix adds existing
   control;--ui-smoke exposes actual parent check. Both rebuilt native forms and
-  20affected package/server-installer checks PASS. Build fresh clean130 packages/
-  standalone EXEs,then full original form Install action/copy/export/import/
-  installed health and ordinary game-folder entry. Source/helper/gameplay
-  unchanged;reuse129 by exact byte bindings. No manual replacement or new Nick
-  action;105/N7 current,N8 deferred. Full D5/D9 OPEN. docs/installer-progress130.txt.
+  20affected checks PASS. Clean a09061c130 packages/standalones/forms/payloads pass.
+  Actual ORIGINAL form button/worker/embedded ZIP server copy/export/import/
+  installed health PASS286.126s,source247inventory+6hashes/shared unchanged,
+  119assets,job4/0/0/no owner force. Client form update PASS69.632s,242profiles/
+  5backups/config/name preserved,job3/0/0;current r103g coherent installed130.
+  Actual game-folder CMD menu14.179s after ACTUAL observed extraction renamed;
+  readiness-only forced cleanup,NOT Quit. Export raw identity and ordered-schema
+  comparisons FAIL;59AI blobs differ across processes,retain both failures.
+  Maps/other inputs unchanged,catalog PID-only;do NOT directly reuse old AI
+  results. DIRECT fresh-assets RC2vAI PASS107.911s,two clients/two bots,results/
+  Continue/default Quit0,workers0/reaped,empty jobs/no force. Artifact review PASS.
+  Gameplay/transport/helper bytes unchanged;129 local input proofs retained.
+  130/N7 supersedes105 for NEXT planned update only;preserve all old candidates.
+  N8 deferred. Full D5/D9 OPEN;next finite configured-outage/remote/recovery/
+  reporting/owner/physical gates. No repeat unchanged UI/local/2vAI cases.
+  Details/hashes:docs/installer-progress130.txt. All owned processes terminal.
 
 - Candidate129:actual128 client/server ZIPs and native standalone EXEs built
   from clean29882b3,recipe17/helper127-02. Standalone forms/payloads PASS2.811s;
@@ -28,9 +39,9 @@
   no game process remains. No new manual installer/action;105/N7 unchanged.
   Full D5/D9 remain OPEN. Failed checkout -I import preflight retained. Scopes/hashes:
   docs/guarded-candidate129.txt. Do not repeat passed local/Custom cases absent a
-  change/concrete concern. Next actual128 server full native copy/export/import
-  and current game-folder entry,then missing configured-outage/remote/recovery/
-  error/descendant gates. Keep c307c0 source gate and all broader D1-D9 scope.
+  change/concrete concern.130 above closes its next installer/entry scope;retain
+  missing configured-outage/remote/recovery/error/descendant gates,c307c0 source
+  gate and all broader D1-D9 scope.129's105/N7 handoff is historical;130 is current.
 
 - Visibility129:Nick clarified "When you start game I do not see it. When I run
   it I always see it." His desktop launches are visible;automated launches are

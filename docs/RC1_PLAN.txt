@@ -87,8 +87,9 @@ Finite RC1 gates,in order
     [ ] Exact Custom/public menu path,changed-deck rematch,results/Continue,
         normal Quit/restart/persistence and installer maintenance observations
         not yet reported. Do not infer these or exact artifact hashes from LAN pass.
-    N4 is now103 second-PC selected-deck reset/local play;N6 is103 server UI and
-    first-host-start. N2 now asks only for missing observations from the successful
+    N7 now uses the prepared130 pair for the next planned update/visible portrait
+    observation. N4/103 N6 retain historical answers only;do not install old builds
+    just for those fields. N2 asks only for missing observations from the successful
     LAN session;the earlier installer-first hold is superseded by the actual test.
     Request via DEV.txt only when actionable artifacts are ready. Keep setup98 accepted;
     do not ask Nick to provision its old CA/invite handoff again.
@@ -110,11 +111,18 @@ Finite RC1 gates,in order
         automated/native boundaries. New client needs matching updated server;
         old103/104 clients can join new host. Visible portrait observation is
         DEV N7 on next planned update;no repeat of accepted LAN1v1/D6 requested.
+    [x] Corrected130 clean source a09061c:shared native progress control fixed;
+        actual ORIGINAL form Install actions/client preservation/full server
+        independent copy/export/import/installed health and ordinary game-folder
+        entry pass. Fresh-assets RC2vAI passes without forced cleanup. Prior raw/
+        schema export-identity failures stay failed;no all-mode/privacy/physical
+        inference. Frozen hashes/scopes:installer-progress130.txt.130/DEV N7 is
+        the next planned pair;all105/older manual candidates remain frozen.
     [ ] Physical gate review and final RC-ready declaration. Do not label RC1
         accepted yet. Preserve local/rc101-packages01 and its manual test game
         local/startup58-game01 while N4 is pending. Also preserve102 standalone,
         packages and local/installer102-game01. Also preserve103 packages/standalone
-        EXEs and installed local/s103. Next paired update steps use105(DEV N7).
+        EXEs and installed local/s103. Next paired update steps use130(DEV N7).
 Only these finite gates name RC1 ready. Record scoped automated subcases without
 closing a parent whose packaged/physical component is still missing. Remaining
 D2-D5/D7-D9 final-release work is retained,not silently dropped or called complete.

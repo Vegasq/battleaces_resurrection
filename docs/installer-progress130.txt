@@ -29,15 +29,88 @@ First PowerShell pipeline returned outer1 despite unittest's20tests/OK on stderr
 local/privacy130-installer-tests01.txt remains retained. Corrected runner captures
 native stdout/stderr/exit code directly;the repeat passes. No assertion weakened.
 
-Next qualification
-Build clean current client/server packages and standalone EXEs with this fixed UI.
-Use an external test host to load the actual resource-bearing server installer,
-populate its fields and PerformClick on its original Install button under the
-real WinForms message pump. Its original worker must extract the embedded ZIP,
-independently copy/patch/export/import game data,and restore controls on success.
-Check source-game inventory/critical hashes and shared storage before/after,
-actual busy/progress/elapsed controls,installed inventories/assets,working-copy
-removal and installed native health. Keep export-only process termination distinct
-from normal gameplay Quit. Then qualify the current ordinary game-folder CMD.
-These steps are pending,not implied by UI/source checks. Full D5/D9 stay open;
-reuse129's unchanged gameplay/runtime evidence only with exact byte bindings.
+Frozen current engineering candidate130
+Clean source:a09061c095dd1a5426715ca02863a18366687c5b,dirty=false.
+Both source-bound native UI builds pass;helper127-02/Python3.14.8/server launcher/
+certificate helper remain unchanged. No original game/personal files in payloads.
+Client:local/privacy130-client-standalone01/BattleAces-Installer-RC1-130.exe
+ 3b536225f214494be0cbcd6b4ce8970e663a2b98d38a16f7527ec3053169ec82
+Server:local/privacy130-server-standalone01/BattleAces-Server-Installer-RC1-130.exe
+ 3bfee999702e4892ce72071112242fa8829d69e4e5f059e269199e8add6642cd
+Client ZIP:local/privacy130-packages01/battleaces-client-win64.zip
+ 12d2e406160adb7c9b085832f62f5fb0854aeb111933866e925859abf7795d13
+Server ZIP:local/privacy130-packages01/battleaces-server-win64.zip
+ d3a26968d9f49f577a9b6d7bf91280a5dcdf2a5a87b6d4f5c333433a8fb0cb80
+Actual native forms/embedded ZIP verification PASS2.714479s. This pair supersedes
+105 only for the next planned update in DEV N7;old candidates remain frozen.
+
+Actual native Install actions,not a substituted backend
+External fixture loads each unchanged resource-bearing EXE,sets its real fields
+and PerformClicks its original button under the WinForms message pump. Original
+worker extracts its embedded ZIP and runs that bundled backend. No replacement
+worker/PackageRoot/install method. Physical visibility/file dialogs are untested.
+[x] Server130 full setup PASS286.125824s. Actual busy controls locked,attached
+    progress control visible with native handle,elapsed title observed,original
+    completion status/controls restored. Independent game copy patched/exported/
+    imported;119asset files verify;working copy removed and server published.
+    Source247-file size/mtime inventory and six critical SHA256s unchanged;
+    shared settings/replay/backup channels unchanged. Exact installed package
+    inventory equals130 source. Installed production native health creates,
+    steps frame0,closes/reaps worker0. Owner job4/0/0,no owner-forced cleanup.
+    Product intentionally stops its export-only child after completion;this is
+    not native gameplay Quit evidence. No host config/keys/listener created.
+    local/privacy130-server-native02/verification.json;installed owned local/s130.
+[x] Client130 actual form update PASS69.631512s. Busy/progress/native handle/
+    elapsed/completion controls pass. All242prior profile files,five original
+    backups and exact config/name/profile settings preserved. Exact package
+    runtime installed under dcdaaec69efe5c1a6672;owner job3/0/0,no forced cleanup.
+    No game/server starts in this step. Actual embedded extraction identified
+    from an owned-job child's executable and independently verified.
+    local/privacy130-client-native01/verification.json.
+[x] Actual generated game-folder Start Battle Aces.cmd reaches normal menu
+    14.179303s after that ACTUAL extraction root is renamed away. Hostile unrelated
+    cwd/PYTHONPATH;actual owned executable paths prove installed bundled runtime
+    and correct game. Ordinary flags,no automatic match/diagnostic actions;
+    native profile binding/settings pass. Config/shared/package unchanged.
+    Owner/game reaped after explicit readiness-only job cleanup(job5active before
+    close);NOT normal Quit or physical play acceptance. Current r103g is coherent
+    installed130. local/privacy130-client-entry01/verification.json.
+
+Fresh-export differences and direct AI qualification
+Raw asset identity against129's retained setup47 export FAILS;keep local/privacy130-
+byte-reuse01.py and byte-reuse-failure01.json. Same119file names/metadata;unit
+catalog differs only in exporter PID. Maps,cosmetics,descriptors,simulation/AI
+DLLs remain byte-identical. AI manifest profile metadata matches,but blobs and
+checksums differ. Original export explicitly promises same_loaded_process
+repeatability,not cross-process byte identity.
+Read-only ordered/schema-defined comparison02 also FAILS for all59profiles;
+local/privacy130-asset-review02.json retains that result. It is not a full native
+consumer semantics proof. Do not sort/ignore fields merely to turn it green or
+claim old server-AI results prove these new blobs. All59fresh blobs independently
+pass bounded RuleBook structural admission;native health alone exercises no bots.
+[x] DIRECT fresh130-assets RC TLS public2vAI PASS107.910745s:two real clients,
+    two original AI seats,native bot orders/unit movement/result/Continue/default
+    Quit. Two workers0/reaped,jobs7/0/0+2/0/0+2/0/0,no forced cleanup. Fresh assets,
+    package/config/shared/source/adapters unchanged;tokens not logged.
+    local/privacy130-fresh-assets-mode5-01/verification.json. This qualifies this
+    actual roster/profile selection,not every59profile's behavior or Internet.
+
+Reuse and remaining scope
+Exact128/130 package comparison changes only compatibility.json and the client's
+native installer EXE/source receipt. Gameplay/transport/Python/helper bytes remain
+identical.129's four native local-mode/normal-Quit results remain applicable to
+those unchanged inputs;UI and fresh server AI use their NEW direct checks above.
+This is not a new all-mode/error/descendant/privacy/clean-PC/physical acceptance.
+No source callback/acquisition gate is dropped. Full D5/D9 remain OPEN.
+Current next work:finite missing configured-outage/remote/recovery/reporting cases
+and remaining owner/physical/deployment gates;do not repeat these passed UI/local
+cases without a change or concrete concern. Nick's visibility clarification/N8
+deferral stays in force.130/N7 preserves the same next-update portrait request.
+
+Final read-only artifact review
+local/privacy130-final-review01.json PASS,explicitly retaining both export-identity
+failures and full_D5_D9_acceptance=false. SHA256:
+ 7559c568b66c7b817a33e981823e259c7cd0971fbcea841e9518f355d734a0c5
+It seals the actual reports and external fixture/owner scripts. No original game
+files,captures,private stores or built binaries enter Git. All owned processes are
+terminal;no user-owned game/HTTP server or manual candidate was modified/stopped.

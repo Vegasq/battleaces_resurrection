@@ -87,10 +87,12 @@ Installed/runtime matrix
     unchanged;fixture tokens absent from public logs. Packaged runtime bytes equal
     the installed runtime,with separate external diagnostic adapters. This does
     not establish physical LAN/Internet/ordinary CMD playthrough or full D5.
-[ ] Actual128 native server installer full source-copy/export/import/installed
-    health,then actual current game-folder CMD entry independent of download.
-    Reuse103/105 source-preservation/entry cases as scoped inputs;do not claim
-    the changed helper/export path is qualified solely by embedded ZIP verification.
+SUPERSEDED BY130:the actual128 server-form probe found a missing ProgressBar
+attachment before Install. Corrected130 now passes actual original server/client
+Install actions/full server source-copy/export/import/installed health and current
+game-folder CMD readiness independent of its actual extraction. Raw export-byte/
+ordered-schema equivalence FAILS;fresh-assets2vAI is directly qualified instead.
+See installer-progress130.txt;do not rerun the obsolete128 pending case.
 [ ] Remaining required supported remote/error/recovery/descendant cases against
     final installed artifacts;bind prior applicable evidence explicitly.
 [ ] Ordinary game-folder entry behavior and physical deployment observations

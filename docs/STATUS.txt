@@ -3,6 +3,21 @@ Updated: 2026-10-22
 Delivery plan: REMAINING_DELIVERY_PLAN.txt, Windows only.
 Original roadmap: CLOSED / SUPERSEDED;see PLAN_CLOSEOUT.txt.
 
+INSTALLER130 - ACTUAL NATIVE INSTALL ACTIONS/ENTRY/FRESH SERVER AI PASS
+Fixed ProgressBar missing from both forms. Unchanged128 native hierarchy FAIL
+before Install is retained;no game/stage created.20affected checks,two actual
+forms and fresh clean a09061c paired packages/standalone payload checks pass.
+Actual original server form button/worker/full copy/export/import/native health
+PASS286.126s,source247inventory/6critical hashes/shared unchanged. Actual client
+form update PASS69.632s,242profiles/five backups/config preserved. Current r103g
+is coherent130. Generated game-folder CMD menu14.179s after actual observed
+extraction renamed away;forced readiness cleanup,not Quit. Export byte/ordered
+schema identity reviews FAIL(all59AI profiles differ);do not relabel them passes.
+Fresh installed assets DIRECT RC2vAI PASS107.911s,two clients/two AI,movement/
+results/Continue/Quit0 and workers0/reaped,empty jobs/no force. Exact current
+artifacts/failures/reuse scopes:installer-progress130.txt.130/N7 supersedes105
+only on next planned update;old artifacts preserved. Full D5/D9 remain OPEN.
+
 GUARDED CANDIDATE129 - PACKAGE/INSTALLED LOCAL MODES/PAIRED CUSTOM PASS
 Actual128 client/server ZIPs and native standalone EXEs bind clean29882b3 and
 recipe17/helper127-02. Standalone forms/embedded payloads pass;relocated bundled
