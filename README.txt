@@ -8,6 +8,12 @@ encrypted TLS with certificate verification disabled and explicit open admission
 Existing verified deployments are preserved. See docs/RC1_PLAN.txt for the finite
 installer/package/playtest checklist and its remaining acceptance gates.
 
+Native installer103 adds selected-deck reset with backup and client uninstall
+while preserving saves. A separate native server installer imports local game
+data using its own working copy,leaving the source game unchanged,and creates
+Start Server.exe. Automated qualification/hashes:docs/installer103.txt. Physical
+installer/owner-start/LAN acceptance remains open.
+
 Development project for private Battle Aces build 37822 matches. Windows x64
 server and clients are the current target. See docs/REMAINING_DELIVERY_PLAN.txt
 for unfinished delivery work and docs/STATUS.txt for evidence. The original

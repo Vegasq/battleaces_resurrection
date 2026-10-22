@@ -25,7 +25,8 @@ Client window retains game-folder/server-IP inputs and Install / Update. Adds:
 Server window:game folder plus empty server destination. The source game is read
 only:independent private copy of the required program/data and original backups,
 excluding player profiles/runtime/identities. Only that copy is patched/exported.
-The export runs isolated from network/Play with a new private profile. Its owned
+The export mode disables the game's network adapters/Play and uses a new private
+profile;this is not a claim of independent process-wide egress isolation. Its owned
 export-only process is stopped after completion. Original source files/saves are
 never patched or written. Fresh stage verifies/imports maps,units,bots,AI,cosmetics,
 descriptors and original simulation DLL. Working game copy is removed only from
@@ -42,7 +43,71 @@ unchanged. No listener/firewall/service is started by setup. Ctrl+C stops hostin
 Existing verified mode remains explicit. Source checkout legacy certificate
 generation fallback remains;delivered103 server contains the native helper.
 
-Qualification pending:39focused reset/uninstall/server-copy/package/RC checks
-PASS. Final UI,payload,native selected-deck reset/uninstall and full server import
-evidence will be added before handing103 to Nick. Preserve all102/101/manual71/
-startup58/LAN98 artifacts. User requests/answers remain exclusively in DEV.txt.
+Frozen candidate
+Clean source:37a00952505647eb12a60d58a0e8878f10359804.
+Client EXE:local/installer103-client-standalone01/BattleAces-Installer-RC1-103.exe
+SHA256:675bda52c7d731f323dc384b0951b2f367e5ab6e14475008915dd23a90301b64
+Server EXE:local/installer103-server-standalone01/BattleAces-Server-Installer-RC1-103.exe
+SHA256:877434f926d2935330fc6e1f83b3f0c54faf1b1ce2c5912d9e55736fef00a0c3
+Embedded client ZIP:local/installer103-packages01/battleaces-client-win64.zip
+SHA256:e13c64f76572c612666639eef8652655bf937f45af254e9f596c25da68d832d6
+Embedded server ZIP:local/installer103-packages01/battleaces-server-win64.zip
+SHA256:a860d03ab7b38ff46fa0081c991977454839c845211b1fff7fbbf575cdc93989
+Helper100 SHA256:3b848de5f66aab3304ac608da7e7c08a53b8420cf94bf261f52bcd2d0ee331c2
+Native certificate helper SHA256:
+affda837efc430be773c30c39263fdccbe3eb68fe543e14ed6e9364bd3b0e6e3
+Official embedded Python3.14.8 unchanged from102. Later evidence-only source/docs
+commits do not change this payload source or the frozen executable/archive bytes.
+
+Qualification COMPLETE at these automated scopes
+39focused reset/uninstall/server-copy/package/RC checks PASS7.746s;32affected
+installer/source/instructions regressions PASS78.871s. Actual native client and
+server windows open under ExecutionPolicy Restricted with exactly2editable fields;
+client reset/uninstall visible,server hides client actions. Rendered layouts
+inspected. Both standalone embedded payloads extract and verify using their own
+interpreters. Actual bundled reset CLI preserves an exact backup. Both ZIP
+inventories contain no profiles,identities,original game DLLs or private keys.
+Actual bundled native certificate helper generates/parses certificate/key in
+memory/pipes;private bytes are never reported or persisted by that test.
+
+Native selected-deck reset and verified uninstall PASS120.015s. New owned r103g
+game fixture has independent programs/catalog/profiles;only immutable asset
+bundles are hardlinked to102 for this test. Native menu first selects the original
+starter,then loads a distinct customized core unit75 and a stored deck. The actual
+reset backs up exact settings,returns next native selection to the initial starter
+and preserves the stored deck. Actual uninstall restores all component/catalog
+hashes to originals,removes helper and preserves save bytes. Source102 program/
+catalog seals unchanged. All3native menu probes used forced readiness cleanup,
+NOT native Quit evidence. Earlier01 failed because the test harness omitted its
+native log directory;its timeout/report are retained. Corrected02 passes.
+
+Full actual bundled server installation from BattleAcesBeta_untouched PASS465.974s.
+Fresh independent copy,patch,export,descriptor extraction,import,119asset-file
+verification,working-copy deletion and final server publication all pass.52units.
+Source247-file inventory(size/mtime) and critical executable/DLL/catalog SHA256
+unchanged. Installed package verifies;native certificate creation passes. No host
+config/keys persisted and no server listener started. Then the INSTALLED bundled
+runtime's exact production native health method creates/steps frame0/closes its
+simulation worker with exit0/reaped. This is no physical LAN/owner TLS result.
+Native host first-start protected storage and visible controls remain DEV.txt N6;
+second-PC deck reset/local play remain N4. N2 two-PC match remains held.
+
+Evidence reports (local ignored,not redistributed)
+local/reset103-native02/verification.json
+SHA256:e822b1f2e8b24293152b8218c406a47417aed004362f5d481be5ac71eeb32826
+local/server103-import01/verification.json
+SHA256:231c665b11fe1bfc1459102345feb1fad80f3dd3ff29000fb1b03ce3b1980c69
+local/server103-health.json
+SHA256:66c7113e9885b6fb7572e0a6490d2a5b8d38a6789ceead1a29782384e7c8181a
+local/installer103-payload-qualification.json
+SHA256:2b7447c75aad3d53253c85432d3501214439ec93a9603418724fccbb26177d02
+local/installer103-client-ui.json
+SHA256:bcedf292dbcd42ed7a2cf8b6415d410459addcb5c57b08976449f01112f6acdb
+local/installer103-server-ui.json
+SHA256:3bedfca3f0e60d4844e86596de85e39f9e58603fdfa2b3c20ccb0e76488b7ceb
+local/installer103-tests02.txt
+SHA256:bb064524b7f6855fc5891c421aad1da3f44cc7529ba11e4ad570c4c00979a0b9
+local/installer103-regressions01.txt
+SHA256:6b53a10ea503c796be6da6b1961f05a210ef510d25a69739a0674b990087ea13
+Preserve all103/102/101/manual71/startup58/LAN98 artifacts. No full RC1 or D1-D9
+completion inferred. User requests/answers remain exclusively in DEV.txt.

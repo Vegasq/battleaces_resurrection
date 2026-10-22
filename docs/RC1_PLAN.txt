@@ -15,7 +15,12 @@ Server port47623 is the default;server_host/server_port/display_name remain
 editable in .battleaces-resurrection/client-config.json in the GAME folder.
 Blank address is valid for offline play. Existing names/profiles are preserved.
 Install/update verifies supported local files,preserves original backups and saves.
-Verified restore remains available through the advanced patch command. No game assets ship in Git.
+103 adds explicit backed-up selected-deck reset and native Uninstall client patch.
+Uninstall restores original game files and keeps saves/config/recovery/runtime.
+The server installer selects game source and empty server destination,operates on
+its own independent copy,imports local data and creates Start Server.exe without
+changing the source game. Native cryptography replaces PS certificate generation
+in the delivered server. No game assets ship in Git or standalone installers.
 
 RC connection contract
 Schema4 selects RC open access and TLS encryption WITHOUT certificate verification.
@@ -30,6 +35,11 @@ Saving from the new RC setup explicitly selects schema4 and preserves local_prof
 No plaintext fallback,OS trust-store edit,firewall edit or router configuration.
 
 Finite RC1 gates,in order
+[x] RC-I103 automated maintenance/server installer replacement:39focused+32affected
+    checks,both native windows under Restricted policy,real native deck reset/
+    saved-deck preservation/original-file uninstall,actual bundled server full
+    import and installed native health worker pass. Source game unchanged.
+    Exact hashes/scopes:installer103.txt. Physical controls/owner startup stay RC-P/N.
 [x] RC-I102 automated:new native UI and game-local runtime/launcher qualification replaces
     the FAILED101 physical startup. Preserve101 backend proofs below;do not infer
     that its rendered PowerShell form worked on Nick's second PC.
@@ -45,7 +55,8 @@ Finite RC1 gates,in order
     auto server initialization,stable identities,no CA/invite prompts.
     [x] Two actual bundled runtimes:certificate generation,TLS/open admission,
         stable identity after rename/reconnect,no CA/invite,server exit0.
-    [ ] Normal-desktop first Start Server.exe provisioning:DEV.txt N4.
+    [ ] Normal-desktop first Start Server.exe provisioning:DEV.txt N6 (103 native
+        server setup supersedes the uncompleted101/102 first-start request).
 [x] RC-L automated:packaged schema4 offline AI/results/Continue/natural Quit0,
     no force217.768s;ordinary CMD startup separately passes. Physical restart/
     persistence observation remains RC-P. Existing name/profile tests pass.
@@ -57,8 +68,8 @@ Finite RC1 gates,in order
     and all3workers0/reaped. Original parent's summary fails KeyError and stays
     FAILED;outer job accounting was not retained. See RC1_EVIDENCE.txt for scope.
 [ ] RC-P:Nick's physical installer/start/local check and two-PC LAN Custom playtest.
-    N4 is the first single-PC installer/first-host-start check,now prepared after
-    the automated parts above. N2 two-PC play stays ON HOLD until N4 review.
+    N4 is now103 second-PC selected-deck reset/local play;N6 is103 server UI and
+    first-host-start. N2 two-PC play stays ON HOLD until these installer reviews.
     Request via DEV.txt only when actionable artifacts are ready. Keep setup98 accepted;
     do not ask Nick to provision its old CA/invite handoff again.
 [ ] RC-F:freeze exact clean source/archive/helper/runtime hashes,concise shipped
@@ -68,10 +79,13 @@ Finite RC1 gates,in order
     [x] Replacement102 clean source5c007ea,standalone EXE and embedded clean
         client/server ZIP hashes,helper/runtime and scoped evidence pinned in
         installer102.txt. Native EXE replaces policy-blocked101 default setup.
+    [x] Replacement103 clean source37a0095,both standalone EXEs and embedded
+        ZIPs,native certificate tool and exact evidence frozen in installer103.txt.
     [ ] Physical gate review and final RC-ready declaration. Do not label RC1
         accepted yet. Preserve local/rc101-packages01 and its manual test game
         local/startup58-game01 while N4 is pending. Also preserve102 standalone,
-        packages and local/installer102-game01;new physical steps use102.
+        packages and local/installer102-game01. Also preserve103 packages/standalone
+        EXEs and installed local/s103. New physical steps use103.
 Only these finite gates name RC1 ready. Record scoped automated subcases without
 closing a parent whose packaged/physical component is still missing. Remaining
 D2-D5/D7-D9 final-release work is retained,not silently dropped or called complete.

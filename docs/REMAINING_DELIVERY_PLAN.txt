@@ -11,7 +11,7 @@ client must support local AI without a server. This plan contains unfinished
 delivery work; implemented features are inputs to acceptance, not new rewrites.
 
 Retained requirements
-- One normal Start Server.exe and one normal Start Client.cmd; editable server
+- One normal Start Server.exe and game-folder Start Battle Aces.cmd; editable server
   address/port and display_name. No original services/account required.
 - Local Try Deck with the selected deck and saved practice difficulty. Public
   1v1/2v2/2vAI always playable: local AI when unavailable, and a real30-second
@@ -46,6 +46,12 @@ These results keep their documented scope; they do not prove the remaining
 ordinary/cross-PC/Internet/deployment matrix. See STATUS.txt and focused records.
 
 Delivery order
+103 maintenance/server installer automated qualification COMPLETE:backed-up
+selected-deck reset,verified client uninstall,full server copy/export/import with
+unchanged source,installed production health worker. Both native UIs/payloads pass.
+Native server certificate helper avoids disabled PS scripts. Physical second-PC
+reset/local check N4 and server UI/owner first-start N6 remain;N5 transfers both
+new EXEs. installer103.txt records clean source/hashes/scopes. Full D9 stays open.
 102 immediate installer correction:Nick's second-PC trace confirms PowerShell
 script execution is disabled. Replace default PS UI with a native two-field
 installer EXE and produce Start Battle Aces.cmd plus runtime in the GAME folder.

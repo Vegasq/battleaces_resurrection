@@ -3,6 +3,21 @@ Updated: 2026-10-21 UTC
 Delivery plan: REMAINING_DELIVERY_PLAN.txt, Windows only.
 Original roadmap: CLOSED / SUPERSEDED;see PLAN_CLOSEOUT.txt.
 
+INSTALLER103 - CLIENT RESET/UNINSTALL AND READ-ONLY-SOURCE SERVER SETUP READY
+Client native UI adds backed-up selected-deck reset using original starter logic
+and verified uninstall preserving saves/recovery data. Server native UI imports
+from an independent private game copy,leaving selected source untouched. Clean
+37a0095 standalone client/server artifacts pinned in installer103.txt.39focused+
+32affected checks PASS,both actual UIs under Restricted policy,payload inventories/
+bundled reset/native cryptography PASS. Native fresh/custom75/reset/stored-deck/
+uninstall(original component/catalog hashes,save preserved) PASS120.015s;forced
+readiness cleanup,not Quit. Full actual bundled server copy/export/import from
+untouched PASS465.974s,119asset files,source247-file inventory+critical hashes
+unchanged. Installed production native health worker frame0/exit0/reaped PASS.
+No listener or protected host config/keys created. DEV.txt N4 is second-PC reset/
+local check,N6 new server UI/normal-owner first-start;N5 shares both103 EXEs.
+Physical/owner/LAN gates remain OPEN. Preserve accepted/manual/failed records.
+
 NATIVE INSTALLER102 REPLACES POLICY-BLOCKED POWERSHELL UI
 Nick tried all3CMD entries on the second PC;photo trace says Configure-RCClient.ps1
 cannot load because running scripts is disabled.101 physical UI startup FAILED;

@@ -46,6 +46,13 @@
   standalone/packages and installer102-game01 while its physical check is pending.
   D:\share is not writable in this session;N5 supplies Nick's desktop copy command
   for the new EXE. Do not replace or stop his existing HTTP server.
+  Candidate103 now supersedes102 for physical actions:client UI adds explicit
+  backed-up deck reset and verified uninstall;server UI works on an independent
+  copy and leaves its selected source game unchanged. Preserve103 packages/EXEs
+  and local/s103. Automated qualification passes;N4 reset/local and N6 server UI/
+  normal-owner first-start are still pending. Do not rerun automated tests in the
+  reserved manual games/server. r103g is an owned restored diagnostic fixture,
+  not an installed manual candidate. Exact scopes/hashes:docs/installer103.txt.
 
 ## Delivery records
 
