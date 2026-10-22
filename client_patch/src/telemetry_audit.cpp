@@ -2,6 +2,7 @@
 #include "telemetry_sampling.hpp"
 #include <memory>
 #include <functional>
+#include <tuple>
 // Read-only, opt-in observation of the supported UnityPlayer native layout.
 // Include after lan_transport.cpp for its local SHA-256 utility. Field sampling
 // invokes no Unity/telemetry API. A SEPARATE explicit owned menu diagnostic below
@@ -20,6 +21,9 @@ static const Signature signatures[]={
     {0xc90c2a,0xc9002a,"0fb64210488bf2884101488bd984c00f","31c09090",0},
     {0x80366f,0x802a6f,"0f85a40500004c39b424200800000f84","e9a505000090",0},
     {0xc93d10,0xc93110,"488bc44889480855488da868ffffff48","c3",0},
+    {0xc3bafc,0xc3aefc,"488b03488bcbff908000000041b001c6","e90a00000090909090909090909090",1},
+    {0xc34270,0xc33670,"48895c240848896c2410488974241857","31c0c3",1},
+    {0xc478f5,0xc46cf5,"7410488d41484881c4c0010000415f5b","9090",1},
     {0xc8c5f3,0xc8b9f3,"0f85b80000004c8bcbc64308014c8d","e9b900000090",1},
     {0xc66c20,0xc66020,"40574883ec7080b9c015000000488b","c3",1},
     {0xc2f570,0xc2e970,"40534883ec2080b9c015000000488b","c3",1},
@@ -84,7 +88,7 @@ static const Signature signatures[]={
     {0x205430,0x204830,"4885c90f840f010000574883ec30488b","",3},
 };
 static uintptr_t unity=0;
-static bool checked=false,disabled=false,startupLogged=false,quitAttempted=false,completeRecipe16=false;
+static bool checked=false,disabled=false,startupLogged=false,quitAttempted=false,completeRecipe17=false;
 static unsigned snapshots=0;
 static ba_telemetry_sampling::Schedule schedule;
 static DWORD auditThread=0;
@@ -180,9 +184,9 @@ static bool verifyModule() {
         memcpy(bytes.data()+peOffset+24+64,&originalChecksum,sizeof(originalChecksum));
         if(digest(bytes)!=originalHash)throw std::runtime_error("unsupported UnityPlayer normalized SHA256");
         const auto cacheGuards=cacheFailureGuardCount();
-        completeRecipe16=groups[0]==3 && groups[1]==53 && groups[2]==3 && cacheGuards==5;
+        completeRecipe17=groups[0]==3 && groups[1]==56 && groups[2]==3 && cacheGuards==5;
         disabled=false;
-        ba::log("Telemetry audit build verified: UnityPlayer sha256=%s normalized=%s crashSignatures=%u/3 coreCandidateSignatures=%u/53 performanceCandidateSignatures=%u/3 cacheFailureSignatures=%u/5; READ ONLY, no qualification claim",
+        ba::log("Telemetry audit build verified: UnityPlayer sha256=%s normalized=%s crashSignatures=%u/3 coreCandidateSignatures=%u/56 performanceCandidateSignatures=%u/3 cacheFailureSignatures=%u/5; READ ONLY, no qualification claim",
             actualHash.c_str(),originalHash,groups[0],groups[1],groups[2],cacheGuards);
     } catch(const std::exception& e) {ba::log("Telemetry audit disabled: %s; no object reads attempted",e.what());}
     return !disabled;
@@ -267,10 +271,10 @@ static void deviceProbe() noexcept {
     attempted=true;
     try {
         auto require=[](bool value,const char* why){if(!value)throw std::runtime_error(why);};
-        require(requested() && checked && !disabled && completeRecipe16 && auditThread==GetCurrentThreadId() &&
+        require(requested() && checked && !disabled && completeRecipe17 && auditThread==GetCurrentThreadId() &&
             ba::flag(L"-native-quit-smoke") && ba_native_settings::session &&
             ba_native_settings::session->profile().compare(0,12,"nativestest_")==0,
-            "complete recipe16,initialized game thread and explicit owned diagnostic required");
+            "complete recipe17,initialized game thread and explicit owned diagnostic required");
         struct Main {
             uintptr_t pointer=0,vtable=0,worker=0;
             uint64_t header[4]={};uint32_t marker=0,state=0,init=0,archive=0;
@@ -497,6 +501,7 @@ static void deviceProbe() noexcept {
         try {ba::log("TELEMETRY DEVICE probe failed: no success claim; original game flow retained");} catch(...) {}
     }
 }
+#include "telemetry_activation_probe.cpp"
 #include "telemetry_cache_probe.cpp"
 static void update() {
     if(!requested() || disabled || !startupLogged || !ba::owner || quitAttempted ||
@@ -520,7 +525,7 @@ static void update() {
             else if(current==ba::read<Obj>(ba::owner,0x2f8)){stage=Stage::Tutorial;label="tutorial";}
         }
         if(schedule.due(stage,GetTickCount64(),snapshots))sample(label);
-        if(stage==Stage::Menu){deviceProbe();cache_probe::run();cache_probe::startupRun();}
+        if(stage==Stage::Menu){deviceProbe();activationProbe();cache_probe::run();cache_probe::startupRun();}
     } catch(const std::exception&) {
         disabled=true;ba::log("Telemetry audit disabled: state observation failed");
     }

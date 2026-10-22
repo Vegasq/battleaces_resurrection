@@ -1,9 +1,18 @@
 TELEMETRY PATCH STATUS
 Updated: 2026-10-22
 Supported input: Battle Aces build 37822, Windows x64.
-Recipe version: 16. Guards: 108. Complete-set runtime_validated: false.
+Recipe version: 17. Guards: 111. Complete-set runtime_validated: false.
 
-Current result126:telemetry-cache-failure126.txt closes125's finite S1. All five
+Current127:telemetry-native-activation127.txt covers the native cloud getter's
+retained-value-only path and BOTH identified preparation dispatches. Existing
+busy reset/false results/borrowed-string lifetime/caller cleanup retained.91
+checks/C++ suite,actual preserved16->17 update,genuine-owner calls,native AI/
+results/Continue/default Quit0,strict668rows/357anchors and38retained mutations
+pass. Full D5 OPEN/false;no127packages. Next external provider/upstream ads
+activation,then supported mode/error/descendant/final artifacts. Earlier scoped
+proofs below remain inputs,not repeated blanket acceptance.
+
+Result126:telemetry-cache-failure126.txt closes125's finite S1. All five
 interior SDK cache/device-ID guards are installed in the owned r103g fixture.
 Genuine pending cleanup eight cases/32owners,readable device control/real empty
 ID,88checks/C++ suite,profile-preserving15->16 update and native AI/Continue/

@@ -1,6 +1,12 @@
 D5 REMAINING SOURCE WORKLIST125
 2026-10-22. Full D5 remains OPEN. Source findings below narrow the remaining
 engineering work;they are not complete analytics-removal or release acceptance.
+Current127:telemetry-native-activation127.txt implements/qualifies THREE narrow
+native guards:retained cloud getter and both named state/config preparation
+routes. Recipe17/111guards;91checks/C++ suite,genuine-owner guarded calls,native
+AI/results/Continue/Quit0,strict observation and38retained mutations pass. Named
+cloud/preparation scope CLOSED;external provider/upstream ads source and runtime/
+final artifacts remain. The125 source findings below retain their original scope.
 Reuse bounded120-124 evidence. Do not add format reconstruction solely because
 a dormant library contains a parser: first establish an effective reader route.
 
@@ -60,7 +66,12 @@ local/privacy125-cache-source01/code-contract.json
 retained;02 corrects a human SessionTracker label826a30->826b40,not its original
 callsite826d9c. No original game payload enters Git.
 
-S2 / NEXT:native identity acquisition and indirect activation
+S2 / PARTLY CLOSED127;NEXT external provider/upstream advertising activation
+127 guards c478c0's acquisition branch while retaining its borrowed-string ABI.
+Public wrapper2047b0/c43ae0 consumers remain original and use that guarded getter.
+Resolve external1ca49c8 initialization/+98 virtual40 and actual upstream ads
+registration,or establish all relevant telemetry consumers are cut before it.
+Do not invoke an original query to discover IDs. Retained125 analysis follows.
 c416b0 is serialization-shaped:receiver+190 native SSO field,fallback c43ae0 when
 empty. It is NOT established advertising acquisition/registration. All three
 raw RVA32 references to c416b0 are PE unwind/chained-unwind metadata,not callback
@@ -79,7 +90,13 @@ local/privacy125-ads-source01/manifest.json
 local/privacy125-ads-source01/FINDINGS.txt
  23c4c73c6f97ab03deba19cd00ee1c62cb65809e0efcc5c0d8a5096c5963d91c
 
-S3 / native archive applicability;reuse CEF closure inputs
+S3 / NAMED PREPARATION ROUTES CLOSED127;reuse CEF closure inputs
+127 maps actual platform vtable slot80 to c67360->c2fbc0->c3bb20. State dispatcher
+c3b990 and separate c34270 configuration preparation both reach it;three guards
+cover those routes plus cloud acquisition. The second route was found before
+installation and is included in final helper127-02. No original archive reader
+or format is required merely for those disabled preparation routes. Remaining
+independent/indirect applicability and final runtime gates are not inferred closed.
 FlushArchivedEvents207a80 and lifecyclec3d120/c3d1b0 require nonzero main+e10 and
 +480 before posting worker callbackc51630->c5b200. The original ctor initializes
 main+e10/+480/worker+4e0 to0;main/base Start registration is guarded. This is a
@@ -156,8 +173,10 @@ collectors were not invoked to manufacture a positive hit. Authored JS counter
 tests and existing metadata sensor controls retain their separate positive scope.
 No current guard/recipe/helper/package change. Both owned processes terminal and
 both REA sessions closed. No new Nick action or repeat of this unchanged case.
-Next engineering work is S1's FIVE safe interior guards with genuine pending-
-owner/disabled-ID lifetime qualification,not more equivalent quiet AI runs.
+The125 next action was S1's five interior guards;126 has now closed that scope.
+127 closes the named retained-getter/two preparation routes. Current next source
+question is S2's external provider/upstream registration,then R/final artifacts.
+Do not substitute more equivalent quiet AI runs for that remaining source work.
 
 Final REA Evidence:
  ev_f34f2fe263d297f62b363d438b27264c6d59ffc15b369cab7032d729b0593d3d

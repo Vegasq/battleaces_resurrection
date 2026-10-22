@@ -2,6 +2,28 @@
 
 ## Requests and answers with Nick
 
+- Privacy127 recipe17/111guards closes THREE named native activation paths:
+  c3bafc->c3bb0b declines only state1 preserving busy-clear/false tail;
+  c34270 false before borrowed config strings blocks SECOND slot80 route;
+  c478f5 NOP2 selects original retained SSO fast-return(no acquisition/migration).
+  Actual Main platform vtable1a2c538:slot80 c67360->c2fbc0->c3bb20->archive init.
+  Both named dispatch routes now guarded;other transitions/cleanup unchanged.
+  Native cloud return is borrowed Session+48,NOT null and NOT guaranteed cleared
+  if previously nonempty.57full roots+separate980-byte forwarding caller pinned.
+  Build01(two guards) superseded BEFORE install/runtime after config bypass found;
+  final helper127-02.91checks/C++ suite,actual16->17 profile/backups-preserving
+  update,genuine Main/Session guarded calls and AI/results/Continue/default Quit0
+  PASS126.662s,job1/0/0/no force. Strict668rows/357anchors/9ms drift/0unknown roots,
+  280selected fileops/0network/child events,38actual retained mutations pass.
+  Sources/program/shared unchanged;owner terminal/REA closed. Full D5 OPEN/false;
+  no127packages/new Nick action. r103g recipe17/helper127-02,cached CMD/runtime105
+  mixed diagnostic. Frozen105/DEV N7 and Tutorial2 N8 unchanged. Exact scope/hash/
+  source errata:docs/telemetry-native-activation127.txt. Next concrete source gate:
+  resolve external1ca49c8 initialization/+98 virtual40/upstream ads registration
+  OR establish every relevant consumer is cut before it;no original query for
+  discovery. Then supported modes/error/descendants/final artifacts. Reuse127;
+  don't repeat quiet AI/probes absent a new concern. No full CFG/all-mode claim.
+
 - Privacy126 supersedes125 S1 proposals:recipe16/108guards implements all FIVE
   interior branches,retaining real pending cleanup and genuine String.Empty.
   88checks/C++ suite,profile/backups-preserving15->16 update,actual genuine32

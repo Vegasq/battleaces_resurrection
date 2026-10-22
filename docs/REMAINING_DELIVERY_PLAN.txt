@@ -340,6 +340,17 @@ native-custom-invitations.txt, native-custom-matches.txt.
 
 [ ] D5 - Complete game analytics/report removal and qualification
 Current finite source/runtime worklist:telemetry-source-worklist125.txt.
+127 closes named cloud-getter and two native preparation routes with three
+guards,retaining original return/ownership/busy/caller cleanup. NEXT external
+provider/upstream advertising registration or source proof its consumers are
+already cut;then supported runtime/final artifacts. Full D5 stays OPEN.
+[x] Review127:recipe17/111guards,91checks/C++ suite,preserved16->17 update,
+    genuine inactive Main/Session guarded calls,AI/results/Continue/default
+    Quit0 PASS126.662s,job1/0/0/no force. Strict668rows/357anchors/9ms drift,
+    0unknown roots/280selected fileops/0network/child events and38actual retained
+    mutations pass. Build01 superseded before install/runtime after discovering
+    second config route;final helper127-02. No127packages/new action;105/N7
+    current. Source/ABI/lifecycle limits and hashes:telemetry-native-activation127.txt.
 S1 CLOSED BY126:all FIVE safe interior SDK guards,with genuine matched/unmatched
 pending-owner cleanup and disabled-ID qualification.125 found failed/cache
 handlers can enumerate/prune AFTER WriteFile RET;do not entry-RET those handlers

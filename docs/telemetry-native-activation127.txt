@@ -1,0 +1,139 @@
+NATIVE IDENTITY GETTER AND ARCHIVE PREPARATION127
+2026-10-22. Three named paths,not full D5/all-mode/privacy qualification.
+
+Recovered activation and ownership
+The actual retained Main constructor c33210 uses base ctor c2ee90,then sets
+vtable1a2c538 and publishes singleton1d0eb28. Its slot80 is c67360,which calls
+platform configuration c673b0 then tailjumps base preparation c2fbc0;the latter
+tailjumps initialization c3bb20,which constructs archive owner via c58bf0/c5a610.
+Main+e10=0 alone does NOT block that archive setup.
+
+Two decoded slot80 callsites in reviewed analytics region c2e000..c68000:
+-State dispatcher c3b990 at c3bb02,requested state1. It sets busy+c4,dispatches
+ preparation,then returns true after clearing busy. Other states use separate
+ slots88/90/a0/a8;reentrant/same-state requests already return false.
+-Configuration preparation c34270 at c343a3,independent of c3b990. Its direct
+ caller c30df0 at c30f15 captures AL,cleans its own temporary strings,then returns
+ that Boolean. c34270 borrows Main/two native strings/flags;it acquires no owner
+ before entry and does not transfer an output. Returning false before input work
+ preserves caller cleanup and prevents this second preparation dispatch.
+The bounded instruction/pointer searches establish these named positive edges;
+they are not a complete computed/indirect whole-engine CFG.
+
+Cloud getter c478c0 returns a BORROWED reference to Session's native SSO+48.
+Original nonempty fast path c478f7 returns that address and restores original
+stack/registers. Empty path c47907 reads unity.cloud_userid,can migrate old
+Analytics paths,generate and persist an ID. Public managed getter2047b0 and
+temporary-Session fallback c43ae0 both consume this reference;null/scalar RET
+would break their ownership contract. c43ae0 initializes a real native Session
+temporary before calling,then copies its result and destroys owned resources.
+Actual retained Session is allocated at c8c591,size78,vtable1a2b078,SSO remaining
+60=24/tag68=1/allocator6c=0x96,then published at singleton1d0eb40. This is genuine
+constructor storage,not a fabricated diagnostic object.
+
+Recipe17 changes
+111 guards:47GameAssembly,62Unity,2CEF. Complete-set RUNTIME_VALIDATED=false.
+-c3bafc->c3bb0b skips only state1's virtual call/success assignment. R8B remains
+ its entry zero on every path reaching this block;the ORIGINAL busy-clear and
+ Boolean return tail run. Other transitions and cleanup stay unchanged.
+-c34270 returns false before prologue/input/string ownership. Caller-side cleanup
+ remains original. Do not replace its forwarding caller or lifecycle cleanup.
+-c478f5's JE slow-path becomes two NOPs,always selecting the existing retained-
+ string return. Original SSO metadata/prologue/epilogue/owner lifetime stay.
+ This does not clear an already-retained nonempty value or fabricate String.Empty.
+ It prevents acquisition/migration/generation/persistence inside this getter.
+
+Source provenance
+Pinned original Unity ac144d56d53f07904d52ed27a1539de90bc3290038fe52d73d2f6b268c85d6bc.
+PE/unwind/LLVM original review only;Ghidra remains unconfigured and was not retried.
+This is not REA decompiler/runtime Evidence. Ignored source directory:
+local/privacy127-state-source01. complete-code-contract02.json pins57 full merged
+unwind roots;config-preparation-callers.json additionally pins c30df0's980-byte
+forwarding body. Unknown48-byte leaf windows are explicitly excluded from57.
+Original data,complete disassembly and raw captures never enter Git.
+First pointer-context record mistakenly added image base to FILE offsets;it is
+retained,not used as VA proof. tables-pointer-context02.json explicitly converts
+file offsets to RVAs and is authoritative. The constructor and table bytes agree.
+The external1ca49c8 pointer lives in a non-file-backed PE area;an attempted direct
+file read refused. No value/type/initializer was inferred from that refusal.
+Source manifest01 SHA256:
+ a0867e5357b8c5dc25f4a18918f1d6fec3bd39d7f1b6be6a20fbab4b7246c7e8
+
+Diagnostic scope
+New explicit -telemetry-activation-probe requires full recipe17 audit,owned
+nativestest_ profile,native Quit diagnostic and same Unity thread. Three complete
+loaded method bodies are hashed before any call. Genuine inactive Main and empty
+retained Session are required;only SSO metadata is read,no identity payload.
+Three dispatcher calls cover declined state1,original busy rejection with authored
+busy1/restoration,and original same-state0 rejection. Guarded c34270 receives two
+unreadable borrowed inputs and must return false without changing sampled Main.
+Guarded c478c0 must return the exact retained string address with stable sampled
+metadata. It never calls an original acquisition/initializer/archiver helper.
+Other non-initialization transitions and nonempty retained values are source-
+reviewed,not independently runtime exercised. Main comparisons are selected
+fields,not whole-object or atomic snapshots. No queued native report is fabricated.
+
+Build01/initial tests passed for the first TWO-guard proposal. Before installation
+or runtime,the second configuration route above was found;build01 was superseded,
+not deployed. Revised build02 contains all THREE guards.91 affected Python checks
+PASS6.572s with original-image validation;required C++ suite/helper build02 PASS.
+Actual16->17 update PASS45.834s:dry-run unchanged,preview==install,idempotent,all
+original backups and existing profile files unchanged. Completed build receipt
+matches installed helper and current C++ sources before controlled launch.
+
+Actual native qualification
+Guarded-call proof PASS on genuine retained objects:three dispatcher calls,
+one preparation false call with two unreadable borrowed inputs,and one retained
+cloud getter call. Busy0/1/restoration,state0,initialization/archive/worker samples
+and empty SSO metadata stay as required. The new false calls do not run an
+original initializer/archiver or acquire an ID. No fake native owner is used.
+Native AI/result/Continue/default original Quit0 PASS126.661771s,including owned
+paused preparation. Eight program files,shared settings and all runtime sources
+unchanged;process reaped,natural job1/0/0,no forced cleanup. REA session closed.
+
+Strict read-only review PASS:668 provider rows/357 clock anchors,9ms maximum
+drift,zero unresolved roots,280 selected file operations,zero selected network/
+child-creation events. Markers cover native settings,explicit probe,AI/results/
+Continue/menu/original Quit. Two actual self-TerminateProcess entries include
+Unity80547e/status0 and explicit200ms transport hold each;independent retained
+OS handles establish completed exit. This is not a gap-free post-entry lifetime,
+kernel/wire capture,all APIs or descendant instrumentation. Probe begin/end tick
+values coincide;do not claim sub-tick attribution of individual calls from them.
+38 actual retained-capture/log mutations reject in memory,captures unchanged.
+Source-only/runtime limits above remain explicit in both verifier results.
+
+Seals
+build/helper-privacy127-02/BattleAcesOffline.dll:
+ 35746ceaa7bf0b592f9f0ab2dc0d6184a7600cbb47de141a813931c6056fec35
+build/helper-privacy127-02/helper-build.json:
+ e4dc6a2895053c11b0e4b9c0282de66a0ef5007b8f541179b1b038d2055c46aa
+local/privacy127-install01/verification.json:
+ b7ae60146bb174c4f4a58418cee427f40282d39c02068392b74e016e86b3d15c
+local/privacy127-state-source01/proposed-body-contract02.json:
+ 790d0cc78eb063c41b834c36255ac198085e38665f01478880b848c50dce1f92
+local/privacy127-game-ai01/verification.json:
+ 32adc3764e35350ab7931f1052429af35545f96ad52d53bd79f859d7bf09cd68
+local/privacy127-game-ai01/native/verification.json:
+ 279c7aeb733b9a90179131fd159e60a33a8382587d89819a302051d87fd0d077
+local/privacy127-game-ai01/observation-review01.json:
+ c8a20bb73ced9973a381f81e64d41119f22a685e25a3acd89adfd33c71711db0
+local/privacy127-game-ai01/rejection-review01.json:
+ fa7abfc7c11dd2a1886c16aaadb38df1f257fccf1b1b81d580cefe7d93744f5a
+Final REA Evidence ev_a521aa4a5189d2c2d4b8b1cff64e3c3498a40034a0f44140de8b6e8b8670cfd6.
+Full ignored seals:local/privacy127-evidence-hashes01.json.
+
+Closed scope and remaining delivery
+The retained cloud getter and TWO named state/config preparation routes are
+implemented and qualified within this scope. This resolves the concrete archive
+activation gap found125 without invoking a destructive archiver or inventing an
+archive format. It does not prove every independent/indirect native activation.
+External1ca49c8 producer/+98 virtual40 and upstream advertising registration
+remain unresolved:trace their actual initialization/consumer cuts before new
+guards or original queries. Existing c307c0 guard suppresses retained copy but
+does not by itself prove upstream acquisition absent. Reuse this run;do not
+repeat unchanged quiet AI/probe cases instead of addressing that source question.
+Supported mode/error/descendant/final installed-artifact gates remain open.
+r103g recipe17/helper127-02,cached runtime/CMD105:mixed diagnostic fixture,not
+a127release package. No new installers or Nick actions. Frozen105/DEV N7 and
+Tutorial2 N8 remain current;accepted D6/LAN checks are not repeated. Full D5 and
+the complete Windows server/client roadmap remain OPEN.

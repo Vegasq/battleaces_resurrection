@@ -1,6 +1,6 @@
 """Exact-build telemetry patch transformations; no file or process operations.
 
-These 108 recipes have static source/control-flow review. The complete recipe
+These 111 recipes have static source/control-flow review. The complete recipe
 set has not been runtime validated; recipe2's 59 had a bounded compatibility run.
 They do not establish complete telemetry removal; see docs/telemetry.txt.
 Only brief patch safety signatures are included, never original game payloads.
@@ -10,12 +10,12 @@ import hashlib
 from types import MappingProxyType
 
 GAME_BUILD = 37822
-RECIPE_VERSION = 16
+RECIPE_VERSION = 17
 RUNTIME_VALIDATED = False
 VALIDATION_STATUS = "Scoped native compatibility verified; full lifecycle/report-removal qualification pending"
 UNRESOLVED_COMPONENTS = (
     "Native Unity indirect callback consumers and independent reporter entry points",
-    "Pending-owner cache cleanup and disabled device-ID guard runtime qualification",
+    "Native identity and archive activation runtime/lifecycle qualification",
     "Internal hardware collection/constructor paths and indirect configuration callers",
     "Deferred/cached delivery and error-path process/network qualification",
     "CEF descendant initialization and analytics in remote web content",
@@ -159,6 +159,18 @@ COMPONENTS = MappingProxyType({
                   bytes.fromhex('0f85a40500004c39b424200800000f84'), bytes.fromhex('e9a505000090')),
             Patch('native in-process report uploader defense', 0xc93d10, 0xc93110,
                   bytes.fromhex('488bc44889480855488da868ffffff48'), bytes.fromhex('c3')),
+            # Reject only state1 preparation through the existing false-return
+            # tail,including its reentrancy reset. Other transitions/cleanup stay.
+            Patch('Unity analytics initialization transition declines before preparation', 0xc3bafc, 0xc3aefc,
+                  bytes.fromhex('488b03488bcbff908000000041b001c6'), bytes.fromhex('e90a00000090909090909090909090')),
+            # The separate configuration route also dispatches preparation.
+            # Its caller forwards AL after releasing its own temporary strings.
+            Patch('Unity analytics configuration preparation declines before borrowed input', 0xc34270, 0xc33670,
+                  bytes.fromhex('48895c240848896c2410488974241857'), bytes.fromhex('31c0c3')),
+            # Always take the original retained-SSO fast return. Do not acquire,
+            # migrate or persist a cloud ID;do not return null/fabricate an owner.
+            Patch('Unity cloud user ID getter retains value without acquisition', 0xc478f5, 0xc46cf5,
+                  bytes.fromhex('7410488d41484881c4c0010000415f5b'), bytes.fromhex('9090')),
             # Keep initialized performance storage; its getters are not null-safe.
             # The existing exit and destructor both handle registered=false.
             Patch('skip performance callbacks after object initialization', 0xd84ec6, 0xd842c6,
