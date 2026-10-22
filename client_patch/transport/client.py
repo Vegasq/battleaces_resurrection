@@ -9,6 +9,7 @@ import re
 
 from . import launcher
 from .bridge import RemoteUnavailable
+from .player_name import default_name
 
 KEYS = frozenset(('schema', 'game_directory', 'display_name', 'server_host',
                  'server_port', 'server_name', 'ca_bundle', 'credential_file', 'room', 'local_profile'))
@@ -24,7 +25,7 @@ def profile_key(value):
 
 
 def defaults(game):
-    return dict(schema=3, game_directory=str(Path(game).resolve()), display_name='Player', local_profile='default',
+    return dict(schema=3, game_directory=str(Path(game).resolve()), display_name=default_name(), local_profile='default',
                 server_host='', server_port=47623, server_name='', ca_bundle='',
                 credential_file='', room='community')
 

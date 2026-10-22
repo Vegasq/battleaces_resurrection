@@ -21,7 +21,7 @@ ROOT = Path(__file__).resolve().parents[1]
 PYTHON_VERSION = '3.14.8'
 PYTHON_ZIP_SHA256 = 'a93abe456ab01bd96d7a085b3cdb6566b3063f4241360d114142fbdb07f0a310'
 PYTHON_URL = 'https://www.python.org/ftp/python/3.14.8/python-3.14.8-embed-amd64.zip'
-PACKAGE_VERSION = '0.3.0-rc1.3'
+PACKAGE_VERSION = '0.3.0-rc1.4'
 RUNTIME_PTH = b'python314.zip\n.\n../app\n'
 COMMON = (
     'server/__init__.py', 'server/protocol.py', 'server/credentials.py',
@@ -49,6 +49,7 @@ CLIENT = COMMON + (
     'client_patch/transport/bridge.py', 'client_patch/transport/launcher.py',
     'client_patch/transport/enrollment.py', 'client_patch/transport/client.py',
     'client_patch/transport/rc_setup.py', 'client_patch/launcher/Configure-RCClient.ps1',
+    'client_patch/transport/player_name.py',
     'client_patch/launcher/ClientConfig.ps1', 'client_patch/launcher/Launch-Client.ps1',
     'client_patch/launcher/Configure-Client.ps1',
     'tools/package_client.py', 'tools/game_installer.py', 'tools/reset_deck.py',

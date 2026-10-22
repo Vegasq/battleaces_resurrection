@@ -1,0 +1,35 @@
+PLAYER NAME104 AND PHYSICAL LAN RESULT - 2026-10-22
+
+Nick requests the system account's cleaned username as the default,with an
+editable player-name field in client setup. This is added to both active plans.
+Native installer104 now has game-folder/server-IP/Player name inputs. The account
+default is computed at runtime on the player's PC,not while building a package.
+Domain prefix and email domain are removed,Unicode letters/decimal digits/marks
+and ordinary handle punctuation remain,unsafe/control characters become spaces,
+whitespace is collapsed and the result is bounded to32Unicode codepoints. Player
+is only an empty/unavailable fallback. Manual choices are validated,not rewritten
+through the account cleanup policy. Existing names,including an existing Player,
+remain unchanged unless explicitly edited. Native reset/uninstall actions ignore
+the name field and retain their103 request/behavior. Server UI remains2fields.
+
+Selecting a game loads its saved name in the native form;changing folder loads
+the other saved/default name until the player types a choice. Once edited,the
+choice survives folder changes. Backend accepts the original2field request for
+compatibility;fresh2field install uses the current runtime account default,while
+updates preserve saved display_name. Optional display_name supports the new UI.
+Invalid choices fail before runtime publication/patching. Renaming preserves
+local_profile,per-route identity,decks,cosmetics and server settings.
+
+Current qualification:53focused tests,52PASS and1existing opt-in owner-DACL skip.
+Native C# and Python policy fixtures,actual form name-load/edit behavior and final
+embedded package evidence are being qualified before delivery. Source helper100,
+simulation,network protocol and103 server deployment are not changed by this work.
+Keep all manual/accepted103/102/71/98 candidates frozen. Only owned restored r103g
+may be used for the new disposable client install qualification.
+
+Physical LAN evidence
+Nick's exact report:"1v1 over real lan worked!" Record physical cross-PC LAN1v1
+play as passed. No Custom/public path,changed-deck rematch,results/Continue,
+normal Quit/restart/persistence or exact installer/hash was supplied. Those are
+unrecorded;the first LAN game is not an open/repeat request. D1/RC-P parents keep
+their remaining flow scope. DEV.txt N2 asks for already-known observations only.

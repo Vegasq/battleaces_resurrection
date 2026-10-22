@@ -12,6 +12,7 @@ from .package_integrity import verify, ordinary_file, PackageError
 from client_patch.patcher.patch_client import contained_path, install as patch_game, atomic_write
 from client_patch.patcher.bundle_loading import console_progress
 from client_patch.transport import client, rc_setup, launcher
+from client_patch.transport.player_name import default_name, chosen_name
 
 LAUNCHER = 'Start Battle Aces.cmd'
 MARKER = b'rem BA_RESURRECTION_GAME_LAUNCHER_V1'
@@ -58,8 +59,9 @@ def launcher_bytes(runtime_relative):
 def install(package, request):
     package = Path(package).resolve()
     inventory = verify(package, 'client')
-    if not isinstance(request, dict) or set(request) != {'game_directory', 'server_host'}:
-        raise PackageError('Choose the game folder and server IP')
+    required = {'game_directory', 'server_host'}
+    if not isinstance(request, dict) or not required <= set(request) <= required | {'display_name'}:
+        raise PackageError('Choose the game folder, server IP and player name')
     if not all(isinstance(value, str) for value in request.values()):
         raise PackageError('Game folder and server IP must be text')
     game = Path(request['game_directory']).expanduser().resolve()
@@ -73,8 +75,10 @@ def install(package, request):
         raise PackageError('An unrelated Start Battle Aces.cmd exists; keep it and choose another working copy')
     previous = launcher.read_json(config, 32768) if before_config is not None else {}
     if previous: client.local_settings(previous, config)
+    name = previous['display_name'] if previous else default_name()
+    if 'display_name' in request: name = chosen_name(request['display_name'])
     settings = dict(schema=4, game_directory=str(game), server_host=request['server_host'].strip(),
-                    server_port=previous.get('server_port', 47623), display_name=previous.get('display_name', 'Player'),
+                    server_port=previous.get('server_port', 47623), display_name=name,
                     local_profile=previous.get('local_profile', 'default'), room=previous.get('room', 'community'))
     validated = rc_setup.settings(settings, config)
     launcher.native_storage_preflight(client.local_settings(settings, config))

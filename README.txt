@@ -1,9 +1,10 @@
 BATTLE ACES RESURRECTION - WINDOWS SERVER AND CLIENT ADAPTER
 
 RC1 is now the next milestone before physical two-PC testing. Its simpler setup
-uses a standalone native Windows installer with game-folder and server-IP fields;
+uses a standalone native Windows installer with game-folder,server-IP and Player name fields;
 it creates Start Battle Aces.cmd inside the game folder,including its own runtime.
-Player name is configurable in the game-local client-config.json;no CA or invite. It uses
+Player name defaults to the cleaned local account name and stays editable in setup
+and game-local client-config.json;existing saved names are preserved. No CA or invite. It uses
 encrypted TLS with certificate verification disabled and explicit open admission.
 Existing verified deployments are preserved. See docs/RC1_PLAN.txt for the finite
 installer/package/playtest checklist and its remaining acceptance gates.

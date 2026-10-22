@@ -1,5 +1,14 @@
 TWO-PC LAN CANDIDATE53 -- 2026-10-20
 
+Physical LAN1v1 accepted - user report2026-10-22
+Nick:"1v1 over real lan worked!" This closes the physical cross-PC LAN1v1 play
+subcase. No exact artifact hashes,Custom/public menu path,rematch,results/Continue,
+normal Quit/restart/persistence or native installer103 results accompanied that
+report;those remain unrecorded. Do not rerun first-game LAN reachability or the
+completed setup98. Record missing existing observations in DEV.txt N2. D1's full
+workflow and RC1 acceptance remain open. Older unrecorded/held statements below
+are historical;this new physical result supersedes their first-match scope.
+
 Owner setup98 READY - reviewed2026-10-21
 Nick's new DEV.txt answer reports passed=true,stage=ready. Public report
 local/friends98-owner-setup01/last-report.json SHA256

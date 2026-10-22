@@ -13,6 +13,10 @@ delivery work; implemented features are inputs to acceptance, not new rewrites.
 Retained requirements
 - One normal Start Server.exe and game-folder Start Battle Aces.cmd; editable server
   address/port and display_name. No original services/account required.
+- Use the current Windows account's cleaned username as the runtime default;
+  let the player change it in client setup. Preserve existing saved names and
+  profile/remote identities on update/rename. Never bake the builder's name into
+  a package. Player is only an unavailable/empty-name fallback. Added2026-10-22.
 - Local Try Deck with the selected deck and saved practice difficulty. Public
   1v1/2v2/2vAI always playable: local AI when unavailable, and a real30-second
   queue limit with AI filling missing seats while keeping available humans in
@@ -46,6 +50,11 @@ These results keep their documented scope; they do not prove the remaining
 ordinary/cross-PC/Internet/deployment matrix. See STATUS.txt and focused records.
 
 Delivery order
+2026-10-22:Nick reports "1v1 over real lan worked!" Close D1's physical LAN1v1
+play subcase;do not repeat it. Custom menu path/rematch/results/Continue/Quit and
+restart/persistence are unreported,not failed. Record missing observations via
+DEV.txt. Next independent work:RC-U104 username default + editable installer
+name,including preservation and stable identity,then remaining finite RC gates.
 103 maintenance/server installer automated qualification COMPLETE:backed-up
 selected-deck reset,verified client uninstall,full server copy/export/import with
 unchanged source,installed production health worker. Both native UIs/payloads pass.
@@ -82,21 +91,19 @@ each pass closes its named subcase, not the broader parent. D5-D8 retain their
 explicit independent gates; D9 closes only after those release gates pass.
 
 [ ] D1 - Complete the prepared two-PC LAN milestone
+[x] Physical LAN1v1 play:Nick's2026-10-22 report,verbatim above. This is actual
+    cross-PC play evidence,not another loopback/native harness result. Exact
+    build/menu path/rematch/shutdown details were not supplied.
 [x] Setup98 owner readiness:protected TLS/invites/host enrollment and packaged
     native create/step/close PASS;TLSv1.3,worker0/reaped,no game/listening server.
     Report/source/archive hashes match;lan-playtest-candidate.txt binds evidence.
     Preserve issued invites/config;do not rerun setup. Failed53/93 remain retained.
-Next physical action is ON HOLD for RC1 installer/package readiness. Historical
-setup98 remains accepted;do not rerun it or alter its private configuration.
-- After RC1 installer approval,start the RC host and transfer the unconfigured
-  client patch ZIP to the second PC. No CA/invite/identity-key handoff is needed.
-- On that PC,use the RC1 installer on its own build37822 copy,enter only the
-  server IP,and pass Test connection. Use distinct configured names. The older
-  CA/invite handoff is retained as verified-mode evidence,not the RC1 user flow.
-- Launch both ordinary clients, discover/invite/accept through Custom, Ready/
-  Start, finish a human match and changed-deck rematch in the same clients.
-- Check results/Continue, normal Quit/restart, saved choices, windows/audio and
-  responsiveness using physical controls. Fix observed blockers before advancing.
+Historical setup98 remains accepted;do not rerun or alter its private config.
+The earlier installer-first hold no longer describes LAN reachability:Nick has
+already played1v1. Remaining:identify whether that run used Custom invite/Ready/
+Start,and whether changed-deck rematch,results/Continue,normal Quit/restart,saves,
+windows/audio and responsiveness were checked. Record existing observations
+first;request only genuinely untested parts after reviewing DEV.txt answers.
 Done: retained owner result plus both-PC observations prove the complete sequence.
 Evidence/start instructions: lan-playtest-candidate.txt and its local playtest guide.
 This does not close Internet, clean-machine or four-human acceptance.

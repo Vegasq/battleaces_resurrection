@@ -1,12 +1,14 @@
-BATTLE ACES RESURRECTION - NATIVE RC1.3 INSTALLER
+BATTLE ACES RESURRECTION - NATIVE RC1.4 INSTALLER
 
-Double-click the standalone BattleAces-Installer-RC1-103.exe. It contains the
+Double-click the standalone BattleAces-Installer-RC1-104.exe. It contains the
 complete patch runtime;no ZIP extraction,Python install or PowerShell policy
 change is required. Alternatively,extract the full client ZIP and double-click
 Install Battle Aces.exe. Setup Client.cmd opens that same native window.
 
 1. Browse to the working folder containing Battle Aces.exe (supported build37822).
-2. Enter the server IP,or leave it blank for offline play. Click Install / Update.
+2. Enter the server IP,or leave it blank for offline play. Choose your Player name;
+   a fresh install suggests your cleaned Windows account name. Existing saved
+   names are loaded automatically. Click Install / Update.
 3. Wait for the installed message,then close the installer.
 4. In the GAME folder,double-click Start Battle Aces.cmd for every later launch.
 
@@ -25,6 +27,7 @@ decks/cosmetics remain under .battleaces-resurrection;keep that directory.
 Advanced settings,including display_name and server_port,are editable in
 .battleaces-resurrection/client-config.json. Existing names/profiles are preserved
 on update. Default server port:47623. No CA,certificate name,fingerprint or invite.
+Changing the name keeps your player identity and existing decks/cosmetics.
 TLS encryption without certificate verification remains the explicit RC policy.
 Install verifies local game content and may take several minutes on a slow drive.
 Close the game before installing/updating. No original game assets are distributed.

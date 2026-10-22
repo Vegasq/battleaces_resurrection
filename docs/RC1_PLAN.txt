@@ -5,6 +5,17 @@ final-release gate. The existing delivery plan remains authoritative for those
 remaining requirements. No earlier failed report is upgraded by this scope change.
 
 Player experience
+104 requirement,2026-10-22:default player name comes from the installing/running
+Windows account,cleaned to remove domain/email-domain prefixes,unsafe/control
+characters and excess whitespace,and bounded to the supported32characters.
+Keep Unicode letters/digits and ordinary handle punctuation;use Player only if
+no usable account name exists. Compute on the PLAYER'S PC,never at package build.
+Client installer exposes an editable Player name field. Existing saved/custom
+names are loaded and preserved unless the player deliberately edits the field;
+rename never changes profile identity,decks or cosmetics. Config remains editable.
+[ ] RC-U104:implement and qualify cleaned account default,editable installer name,
+    existing-name preservation,rename identity stability and final bundled UI.
+
 102 supersedes the101 PowerShell UI after Nick's second-PC trace proves script
 execution policy blocks it. Download ONE standalone Windows installer executable;
 its native window asks for game folder and server IP. Click Install / Update.
@@ -68,8 +79,14 @@ Finite RC1 gates,in order
     and all3workers0/reaped. Original parent's summary fails KeyError and stays
     FAILED;outer job accounting was not retained. See RC1_EVIDENCE.txt for scope.
 [ ] RC-P:Nick's physical installer/start/local check and two-PC LAN Custom playtest.
+    [x] 2026-10-22 Nick:"1v1 over real lan worked!" Physical LAN1v1 play accepted
+        at that scope. Do not repeat first-match reachability as an open gate.
+    [ ] Exact Custom/public menu path,changed-deck rematch,results/Continue,
+        normal Quit/restart/persistence and installer maintenance observations
+        not yet reported. Do not infer these or exact artifact hashes from LAN pass.
     N4 is now103 second-PC selected-deck reset/local play;N6 is103 server UI and
-    first-host-start. N2 two-PC play stays ON HOLD until these installer reviews.
+    first-host-start. N2 now asks only for missing observations from the successful
+    LAN session;the earlier installer-first hold is superseded by the actual test.
     Request via DEV.txt only when actionable artifacts are ready. Keep setup98 accepted;
     do not ask Nick to provision its old CA/invite handoff again.
 [ ] RC-F:freeze exact clean source/archive/helper/runtime hashes,concise shipped

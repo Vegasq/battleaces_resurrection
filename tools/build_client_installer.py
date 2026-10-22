@@ -7,7 +7,7 @@ from pathlib import Path
 import subprocess
 
 ROOT = Path(__file__).resolve().parents[1]
-SOURCES = ('client_patch/installer/Installer.cs', 'tools/build_client_installer.py')
+SOURCES = ('client_patch/installer/Installer.cs', 'client_patch/installer/PlayerName.cs', 'tools/build_client_installer.py')
 
 
 def build(output, payload=None, *, server=False):
@@ -29,7 +29,7 @@ def build(output, payload=None, *, server=False):
         payload = Path(payload).resolve()
         if not payload.is_file() or payload.stat().st_size > 32*1024*1024: raise ValueError('Invalid client payload ZIP')
         arguments.append('/resource:'+str(payload)+',BattleAces.Payload.zip')
-    arguments.append(str(ROOT/'client_patch/installer/Installer.cs'))
+    arguments.extend(str(ROOT/name) for name in SOURCES if name.endswith('.cs'))
     result = subprocess.run(arguments, capture_output=True, text=True, timeout=60)
     if result.returncode: raise ValueError('Installer compilation failed: '+result.stdout+result.stderr)
     if source_hashes != {name: hashlib.sha256((ROOT/name).read_bytes()).hexdigest() for name in SOURCES}:

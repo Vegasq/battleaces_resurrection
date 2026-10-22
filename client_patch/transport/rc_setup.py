@@ -102,11 +102,12 @@ def save(request, path):
 
 def setup_data(path):
     from . import client
+    from .player_name import default_name
     path = Path(path).resolve()
     value = launcher.read_json(path, 32768) if path.exists() else {}
     local = client.local_settings(value, path) if value else None
     return dict(game_directory=str(local['game_directory']) if local else '',
-                display_name=local['display_name'] if local else 'Player',
+                display_name=local['display_name'] if local else default_name(),
                 server_host=value.get('server_host', ''), expected_config_sha256=digest(path))
 
 

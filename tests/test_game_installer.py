@@ -59,6 +59,26 @@ class GameInstallerTests(unittest.TestCase):
         after=json.loads(path.read_bytes())
         self.assertEqual((after['display_name'],after['local_profile'],after['server_port']),('Nick','friends',5000))
 
+    def test_fresh_install_uses_player_pc_account_default_and_rename_keeps_identity_and_saves(self):
+        with mock.patch.object(installer,'default_name',return_value='Local Pilot'):
+            result=self.install()
+        path=Path(result['config']);before=json.loads(path.read_bytes())
+        self.assertEqual(before['display_name'],'Local Pilot')
+        identity_before=rc_setup.Resolver(path,self.game).read()
+        saves=self.game/'.battleaces-resurrection/profiles/default';saves.mkdir(parents=True)
+        (saves/'gameconfig-localuser.toml').write_bytes(b'authored saved deck fixture')
+        installer.install(self.package,dict(game_directory=str(self.game),server_host='127.0.0.1',display_name='Chosen Commander'))
+        identity_after=rc_setup.Resolver(path,self.game).read()
+        self.assertEqual((identity_before.player_id,identity_before.token),(identity_after.player_id,identity_after.token))
+        self.assertEqual(json.loads(path.read_bytes())['display_name'],'Chosen Commander')
+        self.assertEqual((saves/'gameconfig-localuser.toml').read_bytes(),b'authored saved deck fixture')
+
+    def test_invalid_chosen_name_is_refused_before_runtime_copy_or_patch(self):
+        with self.assertRaises(ValueError): installer.install(self.package,dict(
+            game_directory=str(self.game),server_host='',display_name='bad"name'))
+        self.patcher.assert_not_called()
+        self.assertFalse((self.game/'.battleaces-resurrection').exists())
+
     def test_invalid_address_or_foreign_launcher_is_refused_before_patch(self):
         with self.assertRaises(ValueError):self.install('https://bad.example')
         self.patcher.assert_not_called()

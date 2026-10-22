@@ -2,6 +2,13 @@
 
 ## Requests and answers with Nick
 
+- Current2026-10-22:Nick reports physical LAN1v1 works. Its first-match play
+  subcase is accepted;do not repeat it. Exact Custom/public path,rematch/results/
+  Continue/Quit/restart and installer103-specific observations are still missing,
+  not failures. This supersedes older blanket LAN holds below. Username104 is
+  next:cleaned local account default,editable installer name,preserve saved names
+  and identity. Runtime defaults must never embed the build machine's username.
+
 - Use repository-root `DEV.txt` as the single place for every request that needs
   Nick to take an action, supply information, test something, or make a decision.
   This applies to future turns, automatic goal continuations, and new sessions.
