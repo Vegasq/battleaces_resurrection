@@ -492,7 +492,7 @@ static void update() {
             else if(current==ba::read<Obj>(ba::owner,0x2f8)){stage=Stage::Tutorial;label="tutorial";}
         }
         if(schedule.due(stage,GetTickCount64(),snapshots))sample(label);
-        if(stage==Stage::Menu){deviceProbe();cache_probe::run();}
+        if(stage==Stage::Menu){deviceProbe();cache_probe::run();cache_probe::startupRun();}
     } catch(const std::exception&) {
         disabled=true;ba::log("Telemetry audit disabled: state observation failed");
     }

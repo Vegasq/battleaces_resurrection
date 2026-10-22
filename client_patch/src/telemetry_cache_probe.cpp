@@ -228,4 +228,5 @@ static void run() noexcept {
         ba::log("TELEMETRY CACHE probe failed: %s; no success claim",error.what());
     }catch(...) {ba::log("TELEMETRY CACHE probe failed: unknown error; no success claim");}
 }
+#include "telemetry_cache_startup_probe.cpp"
 }

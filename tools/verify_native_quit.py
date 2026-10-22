@@ -31,7 +31,8 @@ def sources():
                                                ROOT/'tools/startup_task_evidence.py', ROOT/'client_patch/patcher/startup_tasks.py',
                                                ROOT/'tools/verify_telemetry_audit.py', ROOT/'tools/replay_binding_evidence.py',
                                                ROOT/'tools/replay_signal_evidence.py', ROOT/'tools/replay_nody_evidence.py',
-                                               ROOT/'tools/telemetry_cache_evidence.py')}
+                                               ROOT/'tools/telemetry_cache_evidence.py',
+                                               ROOT/'tools/telemetry_cache_startup_evidence.py',ROOT/'tools/frida_cache_startup.py')}
 
 
 def telemetry_evidence(text,rows,expected_sha256,*,after_practice=False,device_probe=False):
@@ -236,6 +237,10 @@ def run(args):
         if getattr(args,'startup_tasks_audit',False): command.append('-startup-tasks-audit')
         if getattr(args,'telemetry_audit',False): command.append('-telemetry-audit')
         if getattr(args,'telemetry_device_probe',False): command.append('-telemetry-device-probe')
+        if getattr(args,'telemetry_cache_startup_probe',False):
+            require(getattr(args,'telemetry_audit',False) and args.mode=='confirm',
+                    'startup cache probe requires telemetry audit and original confirmed Quit')
+            command.append('-telemetry-cache-startup-probe')
         cache_delivery=getattr(args,'telemetry_cache_delivery_probe',False)
         if getattr(args,'telemetry_cache_probe',False) or getattr(args,'telemetry_cache_disk_probe',False) or cache_delivery: command.append('-telemetry-cache-probe')
         if getattr(args,'telemetry_cache_disk_probe',False) or cache_delivery:command.append('-telemetry-cache-disk-probe')
@@ -331,6 +336,9 @@ def run(args):
         if getattr(args,'telemetry_audit',False):
             report['telemetry']=telemetry_evidence(log(),rows,hashlib.sha256((game/'UnityPlayer.dll').read_bytes()).hexdigest(),
                 after_practice=args.after_practice,device_probe=getattr(args,'telemetry_device_probe',False))
+        if getattr(args,'telemetry_cache_startup_probe',False):
+            from tools.telemetry_cache_startup_evidence import validate as startup_cache_validate
+            report['telemetry_cache_startup']=startup_cache_validate(log(),rows)
         if getattr(args,'telemetry_cache_probe',False) or getattr(args,'telemetry_cache_disk_probe',False) or cache_delivery:
             from tools.telemetry_cache_evidence import validate
             report['telemetry_cache_contract']=validate(log(),rows,disk_probe=getattr(args,'telemetry_cache_disk_probe',False),delivery_probe=cache_delivery)
@@ -380,6 +388,7 @@ if __name__=='__main__':
     parser.add_argument('--telemetry-cache-probe',action='store_true',help='explicit owned scoped original cache-path diagnostic; does not prove startup cache isolation')
     parser.add_argument('--telemetry-cache-disk-probe',action='store_true',help='real original cache manager/readers on fresh owned authored files; no startup isolation or delivery claim')
     parser.add_argument('--telemetry-cache-delivery-probe',action='store_true',help='genuine fresh Delivery with absent Client and disk reports; guards only, no operational SDK/in-flight delivery claim')
+    parser.add_argument('--telemetry-cache-startup-probe',action='store_true',help='positive original SDK root control with separate externally verified early isolation; no queue reader/expiry')
     parser.add_argument('--after-practice',action='store_true',help='explicit automated one-match result/Continue before original menu Quit')
     parser.add_argument('--replay-binding-inventory',action='store_true',help='read existing hidden replay-button actions in healthy owned practice; no click')
     parser.add_argument('--replay-signal-inventory',action='store_true',help='read existing UIButton broadcast subscribers; no signal dispatch')

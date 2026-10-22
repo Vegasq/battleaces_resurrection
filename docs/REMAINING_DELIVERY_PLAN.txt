@@ -405,13 +405,31 @@ are scoped inputs, not a completion substitute.
     Application.persistentDataPath,not isolated profile storage;
     no real queued reports found in candidate shared root.120 closes the scoped
     path/typed-format prerequisites below;121 closes the scoped genuine on-disk
-    reader.122 closes fresh-instance guarded delivery with real disk reports
+    reader.123 implements early canonical SDK-root isolation and passes a native
+    root-control/AI/Quit case,but its terminal-counter observation review FAILS
+    (no process-exit-entry). Keep startup qualification OPEN;do not relax it.
+    122 closes fresh-instance guarded delivery with real disk reports
     and an explicitly absent Client. Whole-startup isolation and ordinary
     operational guarded-delivery seed tests
     remain OPEN. Never acquire/clear the shared queue. Recipe15/103 unchanged,
-    no122package/new human action. Evidence:telemetry-startup-observation111.txt,
+    no123package/new human action. Evidence:telemetry-startup-observation111.txt,
     telemetry-cache-contract120.txt,telemetry-cache-readers121.txt,
-    telemetry-cache-delivery122.txt.
+    telemetry-cache-delivery122.txt,telemetry-cache-startup123.txt.
+[ ] Review123:complete ordinary-startup canonical SDK queue observation
+    [x] Static contract:66 bounded original bodies/21direct refs establish early
+        SDK getter hook before retained device filename initialization. Direct/
+        canonical scope only;inlined Client ctor work and arbitrary-path gaps kept.
+    [x] Diagnostic implementation,85checks/C++ suite,profile/backups-preserving
+        helper update. Corrected native02 root-control/AI/results/Continue/default
+        Quit0 PASS129.892s,job1/0/0,no force;pre-launch seeds/program/shared/source
+        unchanged. Failed01 Boolean-marshalling exit1610 retained,not promoted.
+    [ ] Final observer counter boundary:668rows/352anchors have after-Quit armed
+        counters0,but no process-exit-entry;strict review02 FAILS. Identify actual
+        normal exit route and qualify a supported terminal boundary before retry.
+        Do not relax the assertion or repeat unchanged native/previous controls.
+    PAUSED at Nick's explicit request after this wrap-up. No123packages/new user
+    action. Both owners terminal/REA sessions closed.105/DEV N7 stays current.
+    Evidence/scopes/hashes:telemetry-cache-startup123.txt. Full D5 OPEN/false.
 [x] Review122:genuine PayloadManager/Delivery constructors and five real iterator
     factories exercise existing guards with two rehydrated disk reports while
     cache/config/path lifetime stays selected. Explicit absent Client,not a fake

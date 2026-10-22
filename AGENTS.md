@@ -2,6 +2,23 @@
 
 ## Requests and answers with Nick
 
+- PAUSED at Nick's explicit request after privacy123 wrap-up. Answer his questions
+  without resuming roadmap execution until he asks to continue/resume.123 source/
+  implementation/native02 root-control passes;STARTUP OBSERVATION NOT QUALIFIED.
+  Strict review02 fails missing process-exit-entry counters despite after-Quit
+  heartbeat/root4handles/8SDK counts0 and owner natural0/job1/0/0. Preserve failed
+  report;never relax its assertion or promote native pass into full observation.
+  Next identify actual normal exit route and add supported terminal counter
+  boundary before another runtime attempt. Failed01 Boolean FFI usesfalse->exit
+  1610 retained;corrected numeric0 native02 passes129.892s,seeds/program/shared/
+  source unchanged.85checks/C++ suite/helper update preserving profiles/backups
+  pass. Canonical SDK-root shim is explicit diagnostic,not generic Unity save root
+  or shipped patch;real Strings/handles retained only while owned script lives.
+  Source66bodies/21direct refs,limits/hashes:docs/telemetry-cache-startup123.txt.
+  Recipe15/103 unchanged;r103g helper123-01,cached runtime/CMD105:mixed owned
+  fixture,not123deployment. No123packages/new Nick action;105/DEV N7 current.
+  Both owners terminal/both REA sessions closed;D5 and full roadmap remain OPEN.
+
 - Privacy122 closes the named FRESH cached-delivery guard lifetime subtask.
   Real PayloadManager/Delivery/null Client and original factories,not operational
   Client or fake receivers. Actual disk strings/typed reports remain under121's

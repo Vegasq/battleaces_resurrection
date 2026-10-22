@@ -1,0 +1,157 @@
+CANONICAL SDK CACHE STARTUP123
+2026-10-22. Source/implementation/native02 root control PASS. Full startup
+observation FAILS its terminal-counter requirement; D5 stays OPEN/false.
+
+Purpose and boundary
+120-122 qualify real path/format/read/fresh-delivery prerequisites.123 tests
+reports already present BEFORE process creation through an ordinary native AI/
+Continue/Quit lifecycle. It never seeds/reads/clears the actual shared queue.
+An explicit diagnostic Frida shim replaces ONLY CacheManager.get__cacheDirectory,
+not Application.persistentDataPath. This is deliberate test isolation, not a
+shipped root change or an uninstrumented lifecycle. General Unity path remains
+original. Other modes, arbitrary-path helpers, indirect/native/CEF reporting,
+resumed delivery and full analytics-removal/final-package gates remain OPEN.
+
+Static original contract
+Ghidra remains known unconfigured and was not retried. Original IL2CPP metadata,
+LLVM and PE/unwind analysis are static evidence,not REA decompiler/runtime data.
+local/privacy123-startup-contract01/evidence-manifest02.json:
+ 534f86c00bff526b88feb9545a2556d8163411b5869d2ab4a15701b596c46b19
+local/privacy123-startup-contract01/code-contract.json:
+ c2c50d5ac6ec55f309e86c9007098baa4fd080a9a8d3b9410bc159448e4d638b
+local/privacy123-startup-contract01/metadata.json:
+ 5505a1e51077ca8fa9619868c9ce80d5308a0ac2f8881f35c09ef5fc3895ae5b
+local/privacy123-startup-contract01/direct-references.json:
+ b0cb711ed0653aa93fe93aba0a8744ccc36839b90170269aee0dacf68ec85271
+FINDINGS.txt records66 complete unwind-bounded bodies,21 validated direct refs,
+all original/masked hashes and remaining unknowns. The initial copied manifest
+has the old122 scope and a print-only missing generic-file error; retained as
+nonauthoritative. Only corrected evidence-manifest02 above is authoritative.
+
+Canonical root8364e0 feeds events8365f0,sessions836580,constructor directory
+creation837850 and cctor837e50. The cctor retains root+'/deviceId.txt' once;
+installing a root shim AFTER that initializer cannot isolate the retained device
+filename. Cctor only composes/stores the string,not IO. GetCachedDeviceId8368b0
+can read/generate identity/write and is not invoked as a path control. Original
+Client812690 inlines cache constructor work:static config assignment,directory
+creation and expiry. Watching only CacheManager ctor836660 is insufficient.
+The ordinary AutoInit/Start overloads/game reporter entry routes are already
+guarded. The direct-reference review is not reflection/delegate/inlining closure.
+Arbitrary-path GetJsonFromCachePath,WriteFile,DeleteFile/GetFilesBySuffix helpers
+retain their separate guard/reachability obligations.
+
+Root shim and positive control
+tools/frida_cache_startup.py composes the existing cwd-v4 metadata observer with
+an explicitly non-passive SDK-root replacement. The owner attaches before
+controlled primary resume. Module observer installs on GameAssembly addition;
+the Frida API contract calls onAdded before the application uses a newly loaded
+module:https://frida.re/docs/javascript-api/#process . This timing is not loader/
+injection coverage. Module path and supported root160-byte recognition span are
+checked before replacement; the exact unwind root is158bytes plus2padding.16-byte
+loaded entry hashes recognize the selected SDK entries. Whole on-disk component
+hashes/source/helper receipts are separately sealed before/after the owned run.
+
+No SDK API runs during module addition. The replacement is called later from a
+managed thread and lazily creates a genuine UTF16 String via the real IL2CPP
+export,then real uint32 GC handle and get_target. Handles stay rooted until the
+owned process exits;the script/session must not unload early. No original/shared
+fallback exists. Installation/allocation/budget failure stops that owned child
+with a nonzero diagnostic exit,never a success. Maximum64 root calls/witness
+events bounds the fixture. Local call IDs survive cooperative callback scheduling.
+The source accepts all calling threads;this case is not a concurrency stress test.
+
+Eight original entries have passive counters:Client constructor,CacheManager
+constructor,event/session/device readers,DeleteFile,RemoveExpiredPayloads and
+CheckForDirectoryCreation. Guarded RET entries are recognized without hooking
+their RET bytes. This avoids106's known unsupported RET-interception problem and
+preserves original derivative/cctor/Application bodies for native hash checks.
+
+The helper's explicit --telemetry-cache-startup-probe confirms actual original
+Application/events/sessions getters and CacheManager cctor/retained filename
+against the owned root,static config null and unchanged general Unity path.
+No instance constructor,reader,expiry,serializer,delivery or scoped icall override
+is used. Three original getters means Application/events/sessions;the root getter
+itself is the shim. Native proof alone explicitly does NOT qualify startup queue
+isolation;retained early shim,entry counters,files,owner lifetime and observations
+must independently reconcile. It cannot run together with120-122 override probes.
+
+Failure retained
+local/privacy123-game-ai01 remains FAILED37.9297949s. The first root callback's
+native Boolean GC-handle argument used JavaScript false;Frida rejected it with
+'expected an integer'. The diagnostic stopped its own child with exit1610 before
+report IO,job1/0/0,owner reaped,not normal Quit. Both seed files remained unchanged.
+REA session closed. The corrected tool passes numeric0 to the native Boolean
+marshaller and retains phase-specific failure stacks. Native C++ source/helper
+did not change;helper123-01 and the successful installation are reused by the
+fresh02 profile/owner/source. Do not rewrite01 as passed or rerun it unchanged.
+
+Build and owned update
+local/privacy123-affected-tests04.txt:
+ 8859d108cccdfe9f0d1a3d37d63fe8e13e25a735dbe7692fee5477f774b4632f
+85 affected tests PASS5.620s with pristine original fixtures enabled. Earlier01
+had one missing-environment skip;02/03/04 include the original-build checks.
+Required C++ suite/build passes. C++ source frozen before build; the later fix
+changes the Frida Boolean marshaller only,not the native helper.
+build/helper-privacy123-01/BattleAcesOffline.dll:
+ d3087043ff3d343a6c8255ea16417ab83b1b2cc7fb886c6dcf3b05363ab1bb89
+build/helper-privacy123-01/helper-build.json:
+ 28f65b2e22f3ea032127ba32e9f96d2cda785740b8c9bd324655174b5c034ffc
+local/privacy123-install01/verification.json:
+ 2c782852cda8d85aca53f343513e749d62f2d3f2f91e2df7ecfd76c166ef3b8b
+Actual same15/103 helper update PASS44.5321135s: dry-run writes nothing,preview
+equals install,original backups/all profiles unchanged,idempotent. r103g is a
+mixed owned diagnostic fixture with helper123-01 and cached runtime/CMD105.
+
+Retained runtime records
+local/privacy123-game-ai01/verification.json:
+ 7f2677696a2452a0e8569481c0979ed115e9fecaf5a63fbda04b943cae84d53a
+local/privacy123-game-ai01/rea-final.json:
+ d3ff6dace916a147376d505fdc6b160e41ec7f03bc918d135a2f3a9d0180bc84
+These remain the failed Boolean-argument case described above.
+local/privacy123-game-owner02.py:
+ 7b5aaec47554ef44110363c4c39703300f393bd258fddb8fae6b4c98d79b0453
+local/privacy123-game-ai02/verification.json:
+ 1346b429763821648ea480d2660f1d794c75c8f8b020255c0235c5def9e7e549
+local/privacy123-game-ai02/native/verification.json:
+ d46e9b8f3d1ad53a71f5aa05e460eda2a180e9f12babd875f49dcc285d4fbaeb
+Actual corrected native02 PASS129.8917795s,including suspended preparation:
+four genuine String/GC-handle root returns,correct retained filename/static config
+null/general Unity path unchanged,AI/result/Continue/menu/default original Quit0.
+Both pre-launch427/302-byte seeds retain inode,creation/mtime,size and exact SHA.
+Eight program files,shared saves and all recorded source seals unchanged.
+Job1/0/0,process reaped,no forced cleanup. This native pass is a root control and
+ordinary gameplay compatibility result,not a passing full startup observation.
+
+local/privacy123-game-ai02/rea-final.json:
+ cdbd2fed8bc5dc1e21a77380f1d9f8f9622a476f3a12bef2df7e5928cb65c1e9
+REA final Evidence:
+ ev_7dffa8a14a37dc9fb0a687751ee1ce546d30b883a9ee089e5b5391f336db1d0f
+668rows/352anchors,10ms max clock drift. Raw records contain281 selected file
+operations,0 selected network/child operations,4 root returns and no SDK witness
+entries. Final heartbeat has installed=true,4handles and all8 SDK counters0;
+its estimated tick83366520 follows original OnConfirm.return83365859. Last clock
+anchor83366718. These are raw bounded observations,not full privacy qualification.
+
+local/privacy123-game-review02.py:
+ 2cec843374ca8cda164bba2ecc4d940952515edf5733f4e740bb9c6c202ba6b3
+local/privacy123-game-ai02/observation-review01.json:
+ 17fc04f683d7de24ea25664db4e91f8766d3144c1f6783b5814939eb3edda45d
+Strict read-only review FAILS: no process-exit-entry counter snapshot exists;
+RtlExitUserProcess is installed but its observed call count is0. After-Quit
+heartbeats and terminal OS owner handles do not substitute for the requested
+final counter boundary. Do not relax that assertion or relabel this report PASS.
+No actual retained-capture mutation qualification was run because the baseline
+external observation review is not passing. Unit rejection checks retain their
+narrow parser/config scope. Both owners are terminal and both REA sessions closed.
+
+Remaining / paused handoff
+Nick explicitly requested pausing after this wrap-up. Plan records the source/
+implementation/native control as done and terminal observation as OPEN. Before
+another runtime attempt,identify the actual normal exit route and add a supported
+final counter boundary;reuse the native/root evidence rather than repeat it
+unchanged. Resume only after Nick's instruction. No action is requested from him.
+Only canonical managed SDK roots in this selected Windows10x64/owned AI case
+can be qualified here. Preserve120-122 reader/lifetime controls rather than repeat
+them. Continue remaining identity acquisition/native archived/source gates and
+the supported error/mode/runtime/final-installed-artifact matrix before full D5.
+No123 installer or new Nick action;105/DEV N7 remains the current manual pair.
