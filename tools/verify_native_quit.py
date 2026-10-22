@@ -64,6 +64,12 @@ def telemetry_evidence(text,rows,expected_sha256,*,after_practice=False,device_p
                 calls[0].end()<identity[0].start()<identity[0].end()<begin[0].start(),
                 'guarded identity setters did not return with unchanged metadata before original Quit')
             result['identity_setters_guarded_void_and_metadata_unchanged']=True
+            if result['recipe_version']>=11:
+                ads=list(re.finditer(r'^\[(\d+)\] TELEMETRY ADS probe passed: version=1 thread=(\d+) calls=1 authoredInput=1 retainedEmpty=1 tracking=1 dirty=1 state=0 borrowedUnchanged=1 retainedPayloadRead=0$',text,re.M))
+                startup.require(len(ads)==1 and int(ads[0][2])==thread and int(ads[0][1])<=int(begin[0][1]) and
+                    identity[0].end()<ads[0].start()<ads[0].end()<begin[0].start(),
+                    'guarded ads callback did not preserve empty storage and data-free progress before original Quit')
+                result['ads_callback_copy_guard_and_progress_qualified']=True
     return dict(**result,same_original_quit_thread=True,pre_confirm_tick=tick,original_confirm_tick=dispatch[0]['tick'])
 
 

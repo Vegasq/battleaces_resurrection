@@ -1,7 +1,14 @@
 TELEMETRY PATCH STATUS
 Updated: 2026-10-22
 Supported input: Battle Aces build 37822, Windows x64.
-Recipe version: 10. Guards: 77. Complete-set runtime_validated: false.
+Recipe version: 11. Guards: 78. Complete-set runtime_validated: false.
+
+Review115 omits the native ads callback's retained-ID copy while preserving
+validation,tracking/dirty progress,conditional drain and unwind cleanup.73checks,
+C++ suite,actual10->11 profile/backups-preserving upgrade and controlled native
+callback/AI/results/Continue/default Quit0 pass. Selected metadata window passes;
+78actual mutations reject. Earlier source acquisition remains UNKNOWN and D5
+stays OPEN. No115 package. Exact scope:telemetry-ads-retention115.txt.
 
 Review114 stops both AnalyticsSessionInfo custom identity setters before managed
 string rooting/conversion/retained storage. Privacy controls/shared helpers stay
@@ -142,7 +149,7 @@ performs no I/O, changes no input bytes and preserves all unrelated bytes.
 Exact component keys, guard counts and pristine SHA-256:
  GameAssembly.dll (42)
  e59d08c01479b27404778048d7e13546dbf3771f6b3912744c7c2bdf80c4e758
- UnityPlayer.dll (31: crash 3 + performance 3 + analytics 25)
+ UnityPlayer.dll (34: crash 3 + performance 3 + analytics 28)
  ac144d56d53f07904d52ed27a1539de90bc3290038fe52d73d2f6b268c85d6bc
  Battle Aces_Data/Plugins/x86_64/VuplexWebViewChromium/chrome_elf.dll (1)
  080e409112b33a0e4cc763cba6d3c206fd640dd9006cb60f2f05ab7e73279563

@@ -421,6 +421,14 @@ are scoped inputs, not a completion substitute.
     window has0unknown roots;65actual mutations reject. Full source/acquisition,
     queued reports/runtime matrix/final artifacts remain OPEN. No114 package;
     evidence:telemetry-custom-identities114.txt. No repeat accepted manual checks.
+[x] Review115 omits only the native ads callback retained-ID copy,preserving
+    validation,tracking/dirty progress,conditional drain and unwind cleanup.
+    Recipe11/78guards;73affected checks,C++ suite,actual10->11 upgrade preserving
+    profiles/backups and controlled callback/AI/results/Continue/default Quit0
+    pass. Selected startup-through-Quit window passes;78actual altered records
+    reject. Earlier acquisition/registration stays UNKNOWN;this is not whole
+    D5 collection/removal proof. No115 package;frozen105/DEV N7 stay current.
+    Evidence:telemetry-ads-retention115.txt. Do not repeat this scoped pass.
 References: telemetry.txt, telemetry-internal-config.txt,
 telemetry-persistent-observation.txt,telemetry-device-cef106.txt and nvidia-shutdown.txt.
 

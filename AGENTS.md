@@ -2,6 +2,24 @@
 
 ## Requests and answers with Nick
 
+- Privacy115 supersedes114 SOURCE/owned fixture:recipe11/78guards omits only
+  ads callbackc307c0's retained-copy CALLc30838. Keep validation,tracking/dirty
+  flags,atomic state read,conditional drain and all unwind/cleanup;do NOT RET
+  callback. Upstream acquisition/registration stays UNKNOWN. Main14a0 is an
+  inline interface;its slot30 only reads1648,not proof about the separate
+  external query.73affected tests,C++ suite,actual10->11 upgrade preserving
+  profiles/backups and controlled native callback/AI/results/Continue/default
+  Quit0 pass122.417s,job1/0/0/no force,8program/shared/source seals unchanged.
+  Explicit authored ID fixture stays unretained,borrowed inputs unchanged;
+  tracking/dirty intentionally0->1 remain,not an entire-object-unchanged claim.
+  661rows/352anchors,0unknown roots,78actual rejection cases pass. Exact scope/
+  hashes:docs/telemetry-ads-retention115.txt. r103g now recipe11/helper115-01,
+  cached runtime/CMD105:mixed diagnostic fixture,not115 deployment. No115
+  packages;frozen105/DEV N7 stay current. D5 OPEN/false;remaining acquisition,
+  isolated real queued reports,error/runtime matrix/final artifacts required.
+  All owners terminal/game REA closed;no new Nick action/repeat D6/LAN/manual.
+  Do not rerun this scoped pass without a change/concrete concern.
+
 - Privacy114 supersedes113 SOURCE/owned fixture:recipe10/77guards adds entry
   RETs for registered AnalyticsSessionInfo custom user/device ID setters before
   rooting/conversion/storage. Borrowed managed input/void property-setter ABI;

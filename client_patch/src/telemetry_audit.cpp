@@ -44,15 +44,17 @@ static const Signature signatures[]={
     {0xc32468,0xc31868,"e8a394dcffeb07488d05326bd50049c7","e902000000",1},
     {0x2048a0,0x203ca0,"4055534157488d6c24b94881ec900000","c3",1},
     {0x204cb0,0x2040b0,"4055534157488d6c24b94881ec900000","c3",1},
+    {0xc30838,0xc2fc38,"e843ae52ff4088bb8801000033c0c683","9090909090",1},
     {0xd84ec6,0xd842c6,"0f857d0100004c8bcbc603014c8d0587","e97e01000090",2},
     {0xd84e3e,0xd8423e,"c740080001000048897810c6401901e8","c7400800000000",2},
     {0x292110,0x291510,"84c9488b0d8fcba7010f95c24883c108","31c9",2},
     {0xc33210,0xc32610,"4883ec5848833d0cb90d01000f851002","",3},
     {0xc8c510,0xc8b910,"4883ec48803d4f260801000f859e0100","",3},
     {0xd84de0,0xd841e0,"4883ec4848833dbc9ef800000f855c02","",3},
+    {0xc307c0,0xc2fbc0,"48895c2408574883ec20418079200141","",3},
 };
 static uintptr_t unity=0;
-static bool checked=false,disabled=false,startupLogged=false,quitAttempted=false,completeRecipe10=false;
+static bool checked=false,disabled=false,startupLogged=false,quitAttempted=false,completeRecipe11=false;
 static unsigned snapshots=0;
 static ba_telemetry_sampling::Schedule schedule;
 static DWORD auditThread=0;
@@ -120,9 +122,9 @@ static bool verifyModule() {
         }
         memcpy(bytes.data()+peOffset+24+64,&originalChecksum,sizeof(originalChecksum));
         if(digest(bytes)!=originalHash)throw std::runtime_error("unsupported UnityPlayer normalized SHA256");
-        completeRecipe10=groups[0]==3 && groups[1]==27 && groups[2]==3;
+        completeRecipe11=groups[0]==3 && groups[1]==28 && groups[2]==3;
         disabled=false;
-        ba::log("Telemetry audit build verified: UnityPlayer sha256=%s normalized=%s crashSignatures=%u/3 coreCandidateSignatures=%u/27 performanceCandidateSignatures=%u/3; READ ONLY, no qualification claim",
+        ba::log("Telemetry audit build verified: UnityPlayer sha256=%s normalized=%s crashSignatures=%u/3 coreCandidateSignatures=%u/28 performanceCandidateSignatures=%u/3; READ ONLY, no qualification claim",
             actualHash.c_str(),originalHash,groups[0],groups[1],groups[2]);
     } catch(const std::exception& e) {ba::log("Telemetry audit disabled: %s; no object reads attempted",e.what());}
     return !disabled;
@@ -207,10 +209,10 @@ static void deviceProbe() noexcept {
     attempted=true;
     try {
         auto require=[](bool value,const char* why){if(!value)throw std::runtime_error(why);};
-        require(requested() && checked && !disabled && completeRecipe10 && auditThread==GetCurrentThreadId() &&
+        require(requested() && checked && !disabled && completeRecipe11 && auditThread==GetCurrentThreadId() &&
             ba::flag(L"-native-quit-smoke") && ba_native_settings::session &&
             ba_native_settings::session->profile().compare(0,12,"nativestest_")==0,
-            "complete recipe10,initialized game thread and explicit owned diagnostic required");
+            "complete recipe11,initialized game thread and explicit owned diagnostic required");
         struct Main {
             uintptr_t pointer=0,vtable=0,worker=0;
             uint64_t header[4]={};uint32_t marker=0,state=0,init=0,archive=0;
@@ -281,8 +283,38 @@ static void deviceProbe() noexcept {
             capture(after) && capture(last) && same(before,after) && same(after,last),"identity metadata or disabled state changed");
         ba::log("TELEMETRY IDENTITY probe passed: version=1 thread=%lu calls=2 borrowedUnreadable=1 mainStable=1 emptySsoMetadataUnchanged=1 identityPayloadRead=0",
             GetCurrentThreadId());
+        // Guarded CALLBACK body deliberately retains data-free progress. All
+        // native strings below are authored stack fixtures,never user payloads.
+        unsigned char adTag=0,adRemaining=0,tracking=0,dirty=0;
+        uintptr_t receiverTable=0;
+        require(read(before.pointer,0x1498,receiverTable) && receiverTable==unity+0x1a2c630 &&
+            read(before.pointer,0x1618,adTag) && adTag==1 && read(before.pointer,0x1610,adRemaining) && adRemaining==24 &&
+            read(before.pointer,0x1620,tracking) && !tracking && read(before.pointer,0x1621,dirty) && !dirty && before.state==0 && !before.init,
+            "ads callback requires owned disabled empty constructor state");
+        const Signature *callback=nullptr,*copySite=nullptr;
+        for(const auto& item:signatures){if(item.rva==0xc307c0)callback=&item;if(item.rva==0xc30838)copySite=&item;}
+        require(callback && copySite,"ads callback signatures absent");
+        for(const auto* item:{callback,copySite}) {
+            Bytes expected=hex(item->original),change=hex(item->candidate),live(expected.size());
+            if(!change.empty())memcpy(expected.data(),change.data(),change.size());
+            require(copy(unity+item->rva,live.data(),live.size()) && live==expected,"ads callback not guarded as reviewed");
+        }
+        require(hex(copySite->candidate)==Bytes(5,0x90),"ads copy guard must contain five NOPs");
+        alignas(8) unsigned char supplied[40]={},error[40]={},suppliedBefore[40]={},errorBefore[40]={};
+        supplied[0]='x';supplied[24]=23;supplied[32]=1;error[24]=24;error[32]=1;
+        const uint32_t allocator=0x49;memcpy(supplied+36,&allocator,4);memcpy(error+36,&allocator,4);
+        memcpy(suppliedBefore,supplied,sizeof(supplied));memcpy(errorBefore,error,sizeof(error));
+        reinterpret_cast<void(*)(void*,const void*,unsigned char,const void*)>(unity+0xc307c0)(
+            reinterpret_cast<void*>(before.pointer+0x1498),supplied,1,error);
+        require(!memcmp(suppliedBefore,supplied,sizeof(supplied)) && !memcmp(errorBefore,error,sizeof(error)) &&
+            read(before.pointer,0x1618,adTag) && adTag==1 && read(before.pointer,0x1610,adRemaining) && adRemaining==24 &&
+            read(before.pointer,0x1620,tracking) && tracking==1 && read(before.pointer,0x1621,dirty) && dirty==1 &&
+            capture(after) && capture(last) && same(before,after) && same(after,last),"ads callback retention/progress differs");
+        ba::log("TELEMETRY ADS probe passed: version=1 thread=%lu calls=1 authoredInput=1 retainedEmpty=1 tracking=1 dirty=1 state=0 borrowedUnchanged=1 retainedPayloadRead=0",
+            GetCurrentThreadId());
     } catch(...) {
-        // Diagnostic refusal never changes game state or blocks original Quit.
+        // A refusal makes no success claim and never blocks original Quit.
+        // If reached after the callback,its data-free progress is retained.
         try {ba::log("TELEMETRY DEVICE probe failed: no success claim; original game flow retained");} catch(...) {}
     }
 }

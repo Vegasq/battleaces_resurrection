@@ -1,0 +1,126 @@
+ADVERTISING CALLBACK RETENTION115
+2026-10-22. Recipe11,78guards/four DLLs. Full D5 remains OPEN/false.
+
+Change and ownership
+Unity's secondary native advertising callbackc307c0 accepts borrowed ID/error
+strings and a tracking flag. It validates lengths,copies the ID into retained
+analytics storage,updates tracking/dirty flags,and conditionally drains state3.
+Recipe11 omits only the5byte retained-copy CALL atc30838. It preserves validation,
+tracking/dirty updates,the atomic state read,conditional drain,unwind/register
+restoration and normal return. The original self-assignment branch already
+skips the same copy and resumes at the same continuation. No copy result is
+consumed and no acquired local resource requires this assignment for cleanup.
+The whole callback must NOT return early:its completion/progress matters.
+This stops new retention through this callback. It does not clear existing IDs,
+prove earlier acquisition absent,or establish every possible writer/source.
+Privacy-limit setter207990,RemoteConfig1fdb90,shared string helpers,callback
+c416b0 and unrelated game/profile names remain unchanged.
+
+Static evidence
+REA skill applied;known unconfigured Ghidra was not retried. Pinned original
+PE/unwind/LLVM review is static evidence,not new REA decompiler/runtime output.
+Original UnityPlayer SHA256:
+ ac144d56d53f07904d52ed27a1539de90bc3290038fe52d73d2f6b268c85d6bc
+Main+1498 is the secondary callback interface. Main+14a0 is a separate INLINE
+interface,not a pointer to an allocated provider. Its virtual30 getterc30890
+only reads main1648;virtual38c30880 sets it. c33490 also consults an external
+global interface whose acquisition semantics remain unresolved. Neither that
+query nor the privacy setter is replaced based on the inline getter finding.
+Constructor native SSO metadata places ads storage at15f8,tag1618=1,
+remaining1610=24;tracking1620/dirty1621 start0. Callback source/registration is
+still UNKNOWN. Separate session callbackc2f640 is not asserted to be its source.
+The first provider01 raw vtable windows extended into adjacent ASCII. Corrected
+provider02 uses bounded two-entry callback/eight-entry inline tables;neighboring
+ASCII qwords are not callable entries. Both private outputs are retained.
+Contract and per-slice evidence seal:
+ local/privacy115-ad-provider02/FINDINGS.txt
+ f8f79cebb9882956a982e846cbe8ae79a9718546480326284b8775bc4ad34320
+ local/privacy115-ad-provider02/evidence-manifest.json
+ da9aec75ee98ab85098f7d35b27df79dd9447a8e9be4e0f3039bee0c812947c3
+Only short safety signatures and authored descriptions enter Git;no original
+game file,raw disassembly,capture or built binary is committed/distributed.
+
+Tests/build/actual upgrade
+51focused tests PASS0.801s.73affected tests PASS5.762s include all4original
+component transformations/unrelated bytes,authored callback-copy/progress stand-in
+execution for states0/3,explicit legacy evidence,Quit checker,patcher and Windows
+packaging. The stand-in is authored code,not an original state3 drain invocation.
+ local/privacy115-affected-tests02.txt
+ 229c0c482346f3c68ceed35e23092c870a2b107a6ecad21c15bd35693833ad6f
+Required C++ suite and fresh helper115-01 build PASS. Source-bound receipt:
+ build/helper-privacy115-01/BattleAcesOffline.dll
+ b8f87317c27bf403e0b60883d790ae2fc7eca3e8aa7ab6b13a379f6d184083f8
+ build/helper-privacy115-01/helper-build.json
+ b465b565f3e9fa36d73ede33d4ba07bbb7b8ecc7f405921b102add31730c11cf
+Auditor recognizes Unity34guards(crash3/core28/performance3). Older3..10 samples
+require explicit older recipe and never qualify the new guard.
+Actual owned r103g10->11 upgrade PASS42.8194766s:dry-run has no component/manifest
+writes,preview equals install,idempotent reinstallation passes,all original
+backups/every existing profile file unchanged. No fresh restore/reapply claim.
+ local/privacy115-install01/verification.json
+ f5fc5538f74592ba4fd9274d0cb064ee754430305c9f709207bdd5cd77869f7d
+Installed UnityPlayer:
+ b728ddfa2ed05f5504bc75b77491d3d0a3471b449b9da0031d5df3a3d9b054d1
+
+Actual controlled native callback and compatibility
+The existing opt-in telemetry-device-probe now additionally requires complete
+recipe11,known owned nativestest_ profile,game thread,disabled state/init0,
+secondary callback vtable,empty retained ads SSO metadata and tracking/dirty0.
+It verifies the loaded callback entry and copy-site candidate,then calls the
+original callback body with authored inline'x'/empty-error stack strings.
+This DOES execute original validation/progress with the copy omitted;it is
+different from114's RET-only setter calls. No OS query/string-copy is called.
+State0 excludes the original conditional drain. Authored inputs remain unchanged,
+retained ads metadata stays empty,tracking/dirty become1,and old sampled Main
+fields stay unchanged. Those intentional data-free progress flags are retained;
+no manual reset and no claim that the entire object stays unchanged.
+Only retained metadata bytes are sampled. Fixture memcmp reads authored payloads;
+retainedPayloadRead=0 does not claim no authored fixture bytes were inspected.
+The ordinary product launcher never enables these diagnostic calls.
+
+Actual native Try Deck/AI,result,Continue,menu/default original Quit PASS122.4167902s
+including paused observer preparation. All three explicit guarded probes pass
+once on the same Unity thread;ADS succeeds after identity and before final Quit.
+Root exits0/reaped,owned job1/0/0,no forced cleanup. Eight complete field snapshots
+cover startup/menu/game/postgame/menu/pre-Quit. Eight program components,shared
+settings and bound sources/observer modules remain unchanged.
+ local/privacy115-game-ai01/native/verification.json
+ e6027e4d2a826661a8610ea470cc1de6640242ca39cccdb713865d03fa9b4ac6
+ local/privacy115-game-ai01/verification.json
+ aeb5c83b61568b0691b90d00d5292e3a71d0499e8073c1e7e28c77ffc620fea4
+This is native compatibility,not physical controls,new unit movement proof,
+ordinary startup timing or final profile/mode acceptance.
+
+Read-only reconciliation
+Qualified cwd-v4 observer installed before controlled primary resume records
+661complete rows/352clock anchors,max drift9ms. Settings-before-load through
+original Quit markers align;280selected file operations,0unknown roots,
+0observed network/child records. Both native log opens resolve in owned r103g
+with status0. Full preloader/injection/tree/kernel/wire/all-I/O coverage is NOT
+claimed. Final REA Evidence,session subsequently closed:
+ ev_2eebce5f7a5537630ff60682e0b2d728eacc8746c3201fb91e259b8e9dbab46d
+Review01 reparses raw native field/device/identity/ADS/Quit lines with normalized
+line boundaries and requires exact equality with the claimed native result,
+plus owner/job/source/provider/clock/path seals. PASS:
+ local/privacy115-game-ai01/observation-review01.json
+ fa240be7139ffb29c7544572d1e44f1d8ceb574f02cc052ccd4518395a063e58
+ local/privacy115-game-review01.py
+ 43c5060914ec11f530471eee87a3ed4bdf2ff3fb9622464b1e307da37ddf6c54
+78actual in-memory owner/capture/raw-log mutations reject,including absent,
+duplicated,late,wrong-thread/count,input/storage/tracking/dirty/state/borrowed/
+payload ADS evidence and false native claims. Retained113 control and current
+game baselines pass. No unchanged control rerun or evidence rewriting.
+ local/privacy115-review-rejections01.json
+ 0cc9a874d9a1a05442cb42356fa735a5b809377e5959c3ca70d058dd785e6c76
+
+Deployment and next gates
+GameAssembly42,Unity34,CEF2=78guards. No115 installer/package built. Frozen105
+client/server and DEV N7 stay current. r103g has recipe11/helper115-01 but cached
+runtime/CMD105;a mixed diagnostic fixture,not a115 deployment. Do not run its
+old installer. Owned game owner is terminal/REA session closed;no server started.
+This closes only retained-copy/progress qualification for this callback. Actual
+upstream acquisition/registration,other identity sources/aliases,isolated typed
+queued reports,error/retry/crash cases,supported profile/mode/runtime matrix and
+final installed artifacts remain required. D5 OPEN/RUNTIME_VALIDATED=false.
+No new Nick action or repeat of accepted D6/LAN/manual checks. Do not repeat
+this bounded pass without a change or concrete unresolved concern.

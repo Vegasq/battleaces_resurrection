@@ -1,6 +1,6 @@
 """Exact-build telemetry patch transformations; no file or process operations.
 
-These 77 recipes have static source/control-flow review. The complete recipe
+These 78 recipes have static source/control-flow review. The complete recipe
 set has not been runtime validated; recipe2's 59 had a bounded compatibility run.
 They do not establish complete telemetry removal; see docs/telemetry.txt.
 Only brief patch safety signatures are included, never original game payloads.
@@ -10,7 +10,7 @@ import hashlib
 from types import MappingProxyType
 
 GAME_BUILD = 37822
-RECIPE_VERSION = 10
+RECIPE_VERSION = 11
 RUNTIME_VALIDATED = False
 VALIDATION_STATUS = "Static review and original-byte validation only"
 UNRESOLVED_COMPONENTS = (
@@ -251,6 +251,11 @@ COMPONENTS = MappingProxyType({
                   bytes.fromhex('4055534157488d6c24b94881ec900000'), bytes.fromhex('c3')),
             Patch('Unity Analytics custom device identity setter before input conversion', 0x204cb0, 0x2040b0,
                   bytes.fromhex('4055534157488d6c24b94881ec900000'), bytes.fromhex('c3')),
+            # Keep borrowed-input validation,tracking/dirty updates,state read,
+            # conditional drain and all unwind/cleanup. Omit only retained ID
+            # assignment,matching the original self-assignment skip path.
+            Patch('skip native ads callback retained identity copy preserving progress', 0xc30838, 0xc2fc38,
+                  bytes.fromhex('e843ae52ff4088bb8801000033c0c683'), bytes.fromhex('9090909090')),
         ),
     ),
     CEF_COMPONENT_PATH: Component(

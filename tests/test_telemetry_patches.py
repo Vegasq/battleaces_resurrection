@@ -99,7 +99,7 @@ class TelemetryPatchSafetyTests(unittest.TestCase):
 
     def test_only_reviewed_recipes_are_present(self):
         self.assertFalse(RUNTIME_VALIDATED)
-        self.assertEqual(RECIPE_VERSION, 10)
+        self.assertEqual(RECIPE_VERSION, 11)
         self.assertEqual(len(COMPONENTS["GameAssembly.dll"].patches), 42)
         self.assertEqual({p.rva for p in COMPONENTS["UnityPlayer.dll"].patches},
                          {0xC90C2A, 0x80366F, 0xC93D10, 0xD84EC6, 0xD84E3E,
@@ -107,7 +107,7 @@ class TelemetryPatchSafetyTests(unittest.TestCase):
                           0x2078B0, 0xC2F3FC, 0x207A60, 0xC381D0, 0xC37400,
                           0xC33440, 0x1FD3A0, 0x1FDA50, 0xC392C0, 0xC2E240, 0xC40840, 0x20C560,
                           0xC2F790, 0xC2FC09, 0xC3016B, 0xC30273, 0xC3A5D0,
-                          0xC39D14, 0xC3A2A5, 0xC41F0C, 0xC32468, 0x2048A0, 0x204CB0})
+                          0xC39D14, 0xC3A2A5, 0xC41F0C, 0xC32468, 0x2048A0, 0x204CB0, 0xC30838})
         self.assertEqual(len(COMPONENTS), 4)
         self.assertEqual([p.rva for p in COMPONENTS[CEF_COMPONENT_PATH].patches], [0x323A0])
         self.assertEqual([p.rva for p in COMPONENTS[CEF_HANDLER_COMPONENT_PATH].patches], [0x17403D0])
@@ -329,6 +329,22 @@ class TelemetryReplacementExecutionTests(unittest.TestCase):
                 progress=ctypes.c_uint64();output=ctypes.c_uint64()
                 self.executable(code,None,ctypes.c_void_p,ctypes.c_void_p)(ctypes.addressof(progress),ctypes.addressof(output))
                 self.assertEqual((progress.value,output.value),(1,expected))
+
+    def test_ads_copy_skip_preserves_tracking_dirty_and_conditional_progress(self):
+        patches={p.rva:p for p in COMPONENTS['UnityPlayer.dll'].patches};patch=patches[0xc30838]
+        self.assertEqual(patch.replacement,b'\x90'*5)
+        self.assertEqual(patch.rva+5+struct.unpack_from('<i',patch.guard,1)[0],0x15b680)
+        self.assertNotIn(0xc307c0,patches)
+        # Authored copy stub at32 writes marker0. Continuation marks tracking/
+        # dirty and conditionally marks progress4 for state3;never original code.
+        tail=bytes.fromhex('c6410101c6410201807903037503fe41044883c428c3')
+        for state in (0,3):
+            for reverse in (False,True):
+                head=bytes.fromhex('e817000000') if reverse else patch.replacement
+                code=bytes.fromhex('4883ec28')+head+tail+b'\x90'*2+bytes.fromhex('c60101c3')
+                output=(ctypes.c_ubyte*5)(0,0,0,state,0)
+                self.executable(code,None,ctypes.c_void_p)(ctypes.addressof(output))
+                self.assertEqual(tuple(output),(int(reverse),1,1,state,int(state==3)))
 
     def test_paired_ads_branches_skip_local_regions_but_execute_progress_standin(self):
         patches={p.rva:p for p in COMPONENTS['UnityPlayer.dll'].patches}

@@ -42,17 +42,21 @@ class NativeQuitVerifierTests(unittest.TestCase):
         text,rows,sha=self.telemetry_fixture()
         call='[102] TELEMETRY DEVICE probe passed: version=1 thread=17 calls=1 returned=0 mainStable=1 disabledFieldsUnchanged=1 rawHeaderUnchanged=1 markerBefore=0 markerAfter=0 configCount=0 payloadRead=0'
         identity='[102] TELEMETRY IDENTITY probe passed: version=1 thread=17 calls=2 borrowedUnreadable=1 mainStable=1 emptySsoMetadataUnchanged=1 identityPayloadRead=0'
+        ads='[102] TELEMETRY ADS probe passed: version=1 thread=17 calls=1 authoredInput=1 retainedEmpty=1 tracking=1 dirty=1 state=0 borrowedUnchanged=1 retainedPayloadRead=0'
         # Place the active probe in the menu,not inside the final sample.
-        text=text.replace('[103] Telemetry audit',call+'\n'+identity+'\n[103] Telemetry audit',1)
+        text=text.replace('[103] Telemetry audit',call+'\n'+identity+'\n'+ads+'\n[103] Telemetry audit',1)
         self.assertTrue(quit_probe.telemetry_evidence(text,rows,sha,device_probe=True)['device_api_guarded_false_and_sampled_config_unchanged'])
         self.assertTrue(quit_probe.telemetry_evidence(text,rows,sha,device_probe=True)['identity_setters_guarded_void_and_metadata_unchanged'])
+        self.assertTrue(quit_probe.telemetry_evidence(text,rows,sha,device_probe=True)['ads_callback_copy_guard_and_progress_qualified'])
         for changed in (text.replace(call,''),text.replace(call,call+'\n'+call),
                         text.replace('returned=0','returned=1'),text.replace('markerBefore=0','markerBefore=1'),
                         text.replace('calls=1 returned','calls=2 returned'),
                         text.replace(call,call.replace('[102]','[104]')),
                         text.replace('thread=17 calls','thread=18 calls'),text.replace(identity,''),
                         text.replace(identity,identity+'\n'+identity),text.replace('identityPayloadRead=0','identityPayloadRead=1'),
-                        text.replace('emptySsoMetadataUnchanged=1','emptySsoMetadataUnchanged=0')):
+                        text.replace('emptySsoMetadataUnchanged=1','emptySsoMetadataUnchanged=0'),text.replace(ads,''),
+                        text.replace(ads,ads+'\n'+ads),text.replace('retainedEmpty=1','retainedEmpty=0'),
+                        text.replace('dirty=1 state=0','dirty=0 state=0'),text.replace('retainedPayloadRead=0','retainedPayloadRead=1')):
             with self.subTest(changed=changed[-240:]),self.assertRaises(AssertionError):
                 quit_probe.telemetry_evidence(changed,rows,sha,device_probe=True)
 
