@@ -2,6 +2,23 @@
 
 ## Requests and answers with Nick
 
+- Privacy128 CLOSES named external settings-query source question.1ca49c8 is
+  UnityConnectSettings registry slot17 of1ca4940,typed slot1ca4a88;aggregate
+  loader36d380 writes [R12] at36d700. Native class310,size0x288,factoryc04080->
+  ctorc03bf0 binds inline98 to vtable1a27a98. Its virtual40=c05a70 is COMPLETE
+  five-byte MOVZX EAX,[RCX+1a];RET,no calls/stores/acquisition. c33490 combines
+  that flag and local1648 only;do not patch shared settings/consent getter.
+  39full roots+exact leaf,seven byte-window/current recipe17 checks PASS. Static
+  PE/LLVM evidence,NOT runtime provider observation/Ghidra. Details/seals:
+  docs/telemetry-settings-query128.txt. Separate upstream c307c0 producer remains
+  unresolved;do not conflate with managed manager110 or manufacture ID queries.
+  Recipe17/helper127-02/programs/profiles unchanged,no128game/build needed for
+  this source finding. Next independently assemble current guarded candidate
+  and finite mode/error/descendant/installed-artifact matrix;retain producer gate.
+  No more equivalent quiet AI tests for this getter. Frozen105/DEV N7 current
+  until actual replacement qualification;N8 Tutorial2 remains separate. Full
+  D5/D9 OPEN. No original/client data in Git or new Nick action for source review.
+
 - Privacy127 recipe17/111guards closes THREE named native activation paths:
   c3bafc->c3bb0b declines only state1 preserving busy-clear/false tail;
   c34270 false before borrowed config strings blocks SECOND slot80 route;

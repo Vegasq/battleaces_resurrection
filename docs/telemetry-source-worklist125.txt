@@ -1,6 +1,12 @@
 D5 REMAINING SOURCE WORKLIST125
 2026-10-22. Full D5 remains OPEN. Source findings below narrow the remaining
 engineering work;they are not complete analytics-removal or release acceptance.
+Current128:telemetry-settings-query128.txt closes the named external query's
+type/initializer/virtual40 source question. It is UnityAnalyticsSettings' five-
+byte Boolean-field getter,not ID acquisition. Recipe17/helper127-02 unchanged.
+Separate upstream callback producer remains open. NEXT independently prepare
+the current guarded candidate and R's finite installed-artifact matrix;do not
+repeat quiet AI runs for this resolved getter or erase the remaining source gate.
 Current127:telemetry-native-activation127.txt implements/qualifies THREE narrow
 native guards:retained cloud getter and both named state/config preparation
 routes. Recipe17/111guards;91checks/C++ suite,genuine-owner guarded calls,native
@@ -66,11 +72,11 @@ local/privacy125-cache-source01/code-contract.json
 retained;02 corrects a human SessionTracker label826a30->826b40,not its original
 callsite826d9c. No original game payload enters Git.
 
-S2 / PARTLY CLOSED127;NEXT external provider/upstream advertising activation
+S2 / PARTLY CLOSED127/128;upstream advertising activation remains
 127 guards c478c0's acquisition branch while retaining its borrowed-string ABI.
 Public wrapper2047b0/c43ae0 consumers remain original and use that guarded getter.
-Resolve external1ca49c8 initialization/+98 virtual40 and actual upstream ads
-registration,or establish all relevant telemetry consumers are cut before it.
+128 resolves external1ca49c8 initialization/+98 virtual40 as a pure settings
+getter. Actual upstream ads registration,or relevant consumer cuts,remains.
 Do not invoke an original query to discover IDs. Retained125 analysis follows.
 c416b0 is serialization-shaped:receiver+190 native SSO field,fallback c43ae0 when
 empty. It is NOT established advertising acquisition/registration. All three
@@ -175,7 +181,8 @@ No current guard/recipe/helper/package change. Both owned processes terminal and
 both REA sessions closed. No new Nick action or repeat of this unchanged case.
 The125 next action was S1's five interior guards;126 has now closed that scope.
 127 closes the named retained-getter/two preparation routes. Current next source
-question is S2's external provider/upstream registration,then R/final artifacts.
+question is S2's upstream registration;128 resolved the external settings getter.
+Prepare R's current guarded candidate/matrix independently of that resolved leg.
 Do not substitute more equivalent quiet AI runs for that remaining source work.
 
 Final REA Evidence:

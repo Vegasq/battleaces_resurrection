@@ -3,6 +3,13 @@ Updated: 2026-10-22
 Supported input: Battle Aces build 37822, Windows x64.
 Recipe version: 17. Guards: 111. Complete-set runtime_validated: false.
 
+Source128 resolves the previously unknown external query in c33490:typed
+UnityConnectSettings/UnityAnalyticsSettings construction leads to a five-byte
+Boolean getter with no identity acquisition. No guard added. Seven byte checks/
+original-image/current recipe transformation pass;no runtime provider claim.
+Details:telemetry-settings-query128.txt. Upstream advertising registration remains
+open. Prepare current guarded candidate/final runtime matrix independently.
+
 Current127:telemetry-native-activation127.txt covers the native cloud getter's
 retained-value-only path and BOTH identified preparation dispatches. Existing
 busy reset/false results/borrowed-string lifetime/caller cleanup retained.91

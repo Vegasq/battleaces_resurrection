@@ -1,0 +1,75 @@
+UNITY SETTINGS QUERY RESOLUTION128
+2026-10-22. Named external settings-query source subtask CLOSED. Full D5 OPEN.
+Recipe17/111guards/helper127-02 unchanged. No target execution or new ID query.
+
+Finding
+Global1ca49c8 is slot17 of the game-manager pointer registry at1ca4940.
+The corresponding type slot is1ca4a00+17*8=1ca4a88. Type initialization361c73
+looks up UnityConnectSettings and stores that result at361c85. Registry loader
+36d380 walks the typed slots and writes returned managers through [R12] at36d700;
+this explains why an exact RIP-store search for1ca49c8 did not find its writer.
+Registry cleanup loops also use the aggregate base;absence of an individual
+RIP store never proved the global uninitialized.
+
+Native type descriptor1c06f60 names UnityConnectSettings,class ID310,size0x288.
+Static registration808b85 binds factoryc04080 to descriptor+8;factory allocates
+0x288bytes(648decimal) and tailjumps constructorc03bf0. That constructor selects the inline
+analytics subobject at+98 and stores vtable1a27a98 atc03c98. Original serializer
+c040d0 independently names that +98 subobject UnityAnalyticsSettings;its reader
+c04ff0 uses the same offset/name. These are positive type/layout links,not a
+guess from adjacent strings or a name alone.
+
+The exact virtual40 entry in the validated nine-entry table1a27a98 is c05a70:
+  MOVZX EAX,byte ptr [RCX+1a];RET
+It is a complete five-byte leaf,with no call,store,allocation,ID read or query.
+Constructor sets that flag to0. The whole original c33490 consumer calls this
+settings getter and the already-reviewed local inline getter c30890. Its result
+is true only when settings flag(global+b2) is nonzero and local flag(main1648)
+is zero. Neither getter acquires a hardware/advertising identity. No shared
+settings/consent getter needs a new patch based on this earlier uncertainty.
+This does NOT classify every UnityConnectSettings method as acquisition-free.
+
+Evidence and limits
+Pinned original UnityPlayer:
+ ac144d56d53f07904d52ed27a1539de90bc3290038fe52d73d2f6b268c85d6bc
+Static PE/unwind/LLVM/registration review only. Ghidra remains unconfigured and
+was not retried. No runtime provider instance/vtable/flag was sampled or invoked;
+the exact original construction/type route above is source evidence. No user
+identifier or profile/queue data was read.39 full unwind roots and the complete
+five-byte leaf are pinned;unknown64/32-byte exploratory leaf windows remain
+explicit windows,not full-function proofs. Broad nearby-registry searches have
+bounded opcode coverage and do not establish a whole-engine computed CFG.
+
+Read-only verifier checks seven original instruction windows,slot arithmetic,
+class ID/size,name and virtual target. All named windows are unchanged by current
+recipe17's full in-memory transformation. It PASSes against the pristine input.
+No new build/gameplay rerun is needed for this source-only finding. Retained127
+native compatibility and earlier115/110 callback/managed-manager evidence retain
+their original scopes. No original game files/disassembly/raw captures enter Git.
+
+Ignored local evidence:local/privacy128-provider-source01/
+evidence-manifest02.json:
+ 1217a6ab8d662c318060a3517e032bc6648be729db9d83236a9be602108e2183
+full-code-contract01.json:
+ 646b91201c1aa5a32ee01b9a47cebcfca8190a4b19f108a93cf2f94943e0c9de
+verification01.json:
+ 23facc536efd2343df93e41ab1541ab72a11ba4c9ce5009db4e3faafabeaae0b
+verify.py:
+ d608a8b4d2482cd33db458ff8753b9a8ac3cb087efde622c50ace72693d43f45
+Reproduce without executing a target:
+ python -B -m local.privacy128-provider-source01.verify
+
+Remaining work
+The separate upstream acquisition/registration producer for secondary callback
+c307c0 is still unresolved;this pure settings leaf is not that producer. Existing
+retained-copy/progress guard115 remains valid. Public managed advertising request
+110's fresh failure/cached delivery evidence stays separate;do not RET its handle
+queue or claim a whole-lifetime no-op. Trace an actual registration edge or the
+relevant consumer cuts before adding more original-source guards.
+
+Proceed with preparing the current guarded release candidate and its finite
+supported-mode/error/descendant/installed-package matrix as independent work.
+Do not repeat unchanged quiet AI runs or block candidate assembly on this now-
+resolved getter. Source producer question and full final qualification remain
+explicit gates;candidate preparation is not D5/D9 completion. Frozen105/DEV N7
+remains the manual pair until replacement artifacts pass their actual checks.

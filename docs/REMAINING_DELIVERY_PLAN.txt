@@ -340,6 +340,14 @@ native-custom-invitations.txt, native-custom-matches.txt.
 
 [ ] D5 - Complete game analytics/report removal and qualification
 Current finite source/runtime worklist:telemetry-source-worklist125.txt.
+128 resolves the external1ca49c8 settings query as a pure Boolean-field getter,
+with constructor/type/registry links and39full roots+exact leaf. No new patch or
+runtime test is justified for that resolved query. Source producer remains open;
+NEXT prepare current guarded candidate and its finite installed mode/error/
+descendant matrix independently. Evidence:telemetry-settings-query128.txt.
+[x] Review128:named settings object initialization/type/virtual40 source question.
+    Seven byte-window checks and current recipe17 in-memory transformation pass;
+    no target execution/ID query. Not upstream callback registration/full D5.
 127 closes named cloud-getter and two native preparation routes with three
 guards,retaining original return/ownership/busy/caller cleanup. NEXT external
 provider/upstream advertising registration or source proof its consumers are
