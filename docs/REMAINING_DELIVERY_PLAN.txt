@@ -225,6 +225,15 @@ match-loading.txt, client-availability.txt, empty-server-queue.txt,
 current-community-matches.txt, remote-local-transitions.txt.
 
 [ ] D3 - Finish visible player features and catalog acceptance
+- Separate requested Tutorial2 exploration while roadmap is PAUSED:explicit
+  native state/mode100 path implemented,C++ suite/build/preserving update pass.
+  Automated intro-state reached,but visible launch FAILED(hidden desktop,sound
+  only). Owned hidden process stopped. Subsequent desktop PID32028 reaches actual
+  Tutorial2 mission/mode100,world active,human0 sim/presentation59..1659. Visible
+  controls/full completion/normal Quit/settings persistence remain OPEN. Existing
+  tutorial-profile input guard causes startup write-sharing errors;keep protection,
+  follow up after play. DEV N8 keeps missing observations;no repeat launch needed.
+  No release package/general gameplay acceptance change. Evidence:tutorial2.txt.
 - Invite Friend presentation gap (Nick report2026-10-22):community rows currently
   have no avatars. Show each player's selected in-game portrait using validated
   server-local cosmetic data and original cosmetic bindings;keep Steam avatar

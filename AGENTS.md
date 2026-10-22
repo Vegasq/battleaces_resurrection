@@ -2,6 +2,27 @@
 
 ## Requests and answers with Nick
 
+- Separate explicit user request:launch Tutorial2 while roadmap stays PAUSED.
+  New -offline-tutorial2 routes original owner._rgameTutorial02State(+300),admits
+  mode100 only under that flag,labels match tutorial02. No predicate patch:
+  local_version already sets actual _isLoggedIn prerequisite. Original intro/
+  Continue/assets/objectives/world waits retained. C++ suite/build/helper update
+  pass,recipe15/103 unchanged,backups/profiles preserved. r103g now helper-
+  tutorial2-01,cached runtime/CMD105;not a new release package. Automated PID28868
+  reached real Tutorial02 intro but Nick saw sound/no window;hidden-desktop
+  visibility FAILED. Exact owned PID/path/start-time revalidated,stopped,reaped;
+  exit-1 not normal Quit. Do not retry hidden launch. DEV N8 requests File Explorer
+  local/Play Tutorial 2.cmd then original Continue,profile tutorial2_nick_01.
+  Subsequent USER desktop instance PID32028 now logs actual mode100/Start Mission
+  Tutorial2/world active,matching human0 sim/presentation59..1659. Native mission
+  start proven;physical visibility/controls/completion/normal Quit unconfirmed.
+  Reused tutorial-profile startup settings writes show preserved-input sharing
+  errors because menu deck-load path is bypassed;persistence NOT accepted. Keep
+  guard intact,follow up after play. Immutable handoff report hash in tutorial2.txt.
+  Read N8/new chat before repeating or claiming broader acceptance.
+  Check whether his r103g instance is running before ANY patch/cleanup;do not
+  modify/terminate his gameplay. Sources/hashes/limits:docs/tutorial2.txt.
+
 - PAUSED at Nick's explicit request after privacy123 wrap-up. Answer his questions
   without resuming roadmap execution until he asks to continue/resume.123 source/
   implementation/native02 root-control passes;STARTUP OBSERVATION NOT QUALIFIED.

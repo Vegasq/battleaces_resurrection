@@ -140,7 +140,8 @@ static void poll(Obj server) {
 namespace ba_bootstrap {
 static void create(Obj front,Obj controller,int mode) {
         ba::init();
-        if(mode!=3 && !(ba::lan() && mode==1) && !(ba::exportServerAssets() && (mode==1 || mode==2 || mode==5)))
+        if(mode!=3 && !(mode==100 && ba::flag(L"-offline-tutorial2")) &&
+            !(ba::lan() && mode==1) && !(ba::exportServerAssets() && (mode==1 || mode==2 || mode==5)))
             throw std::runtime_error("unsupported offline game mode");
         if(creating)throw std::runtime_error("offline game creation already pending");
         checked(front,"front service missing");checked(controller,"game setting controller missing");
@@ -218,7 +219,8 @@ static void beginJoined(Obj front,Obj encoded,Obj player,bool lan,const char* lo
             ba::set<Obj>(server,"<ClientConfig>k__BackingField",checked(ba::get<Obj>(front,"<ClientConfig>k__BackingField"),"local ClientConfig missing"));
         bootstrapThread=GetCurrentThreadId();
         Root handle(ba::make("CommonPb","GameHandle"));
-        ba::set<Obj>(handle.get(),"gameName_",ba::str(localMatch ? localMatch : ba::dedicated() ? ba_lan::dedicatedMatchId.c_str() : (lan ? "loopback-1v1" : "offline-tutorial01")));
+        ba::set<Obj>(handle.get(),"gameName_",ba::str(localMatch ? localMatch : ba::dedicated() ? ba_lan::dedicatedMatchId.c_str() :
+            lan ? "loopback-1v1" : ba::flag(L"-offline-tutorial2") ? "offline-tutorial02" : "offline-tutorial01"));
         Root connection(ba::make("CommonPb","GameConnectionInfo"));
         ba::set<Obj>(connection.get(),"gameHandle_",handle.get());
         ba::set<Obj>(connection.get(),"address_",ba::str(localMatch ? "offline" : ba::dedicated() ? ba::argument(L"-dedicated-server=").c_str() : "offline"));

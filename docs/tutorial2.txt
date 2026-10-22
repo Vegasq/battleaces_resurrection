@@ -1,0 +1,80 @@
+TUTORIAL 2 - EXPLICIT OFFLINE LAUNCH
+2026-10-22. Separate user-requested exploration;roadmap remains PAUSED.
+Source/build/install and native intro-state entry pass. Subsequent desktop-launched
+instance reaches actual Tutorial2 mission and advancing world;physical visibility,
+completion/return and persistence acceptance remain unconfirmed in DEV.txt N8.
+
+Implementation
+-offline-tutorial2 selects the original RGameSingleton._rgameTutorial02State
+(offset300) instead of Tutorial01 at2f8. Only that explicit flag admits wire
+mode100 through the existing local authored GameData bootstrap. Match label is
+offline-tutorial02. Default menu/Tutorial1 routing is preserved;no server starts.
+No login predicate bypass or shared connection-flag patch was added:existing
+local_version already supplies the actual _isLoggedIn prerequisite before entry.
+
+Original state TransitionIn shows TutorialBotMatchScreen. Its real Continue
+callback starts the Tutorial2 coroutine. Keep original asset group7/announcer
+group5 waits,Objective.Init/FinishedLoading,world and HasGameStarted waits.
+Entering the intro is not proof that CreateGame100 or the mission completed.
+Original postmatch MarkTutorial02Complete/feature2 acknowledgement can affect
+return/restart/quit and is still unverified. No automatic surrender or exit.
+
+Retained static source
+Ghidra known unconfigured,not retried. Original metadata/LLVM/PE-unwind review is
+static evidence,not REA decompiler/runtime Evidence.87 bounded original bodies,
+field layouts/callback dependencies and exact source hashes are retained locally.
+local/tutorial2-state-contract01/evidence-manifest.json:
+ 351c955b2bd33c4b443c2988c74e176d5191b19f1ba813388fda0cf0e9ef02d5
+The retained team-mode assets show MainGameModeConfigList includes
+GameModeConfig_TEMP_FTUE_TUTORIAL2,GameMode100,provider FTUEGame_II,scene RGameFTUE.
+These are actual shipped configuration refs,not cloned Tutorial1 data. Generic
+managed-reference converter payloads were not newly decoded in this request.
+No original assets,disassembly or binaries enter Git.
+
+Build and owned helper update
+Required C++ suite/build PASS;no new test duplicates the small route expression.
+build/helper-tutorial2-01/BattleAcesOffline.dll:
+ a4db40139242c2223ead4f48b05672e76bca31e3857df63789a9c3700933f957
+build/helper-tutorial2-01/helper-build.json:
+ db1f9ffb5c4df5ea5bbb8afda5c10c94dec8a1fb192c9ab59aa51b9c18dd9b62
+local/tutorial2-install01/verification.json:
+ c8bacaeffee65b93968ee38b09fea9bd1fb141382c0ce1c0cd71eabcae865b66
+Actual update PASS45.0696094s:dry-run unchanged,preview==install,recipe15/103guards,
+original backups and all prior profiles preserved,idempotent. The owned r103g
+fixture now uses helper-tutorial2-01;cached runtime/CMD remain105. No installer
+was published and frozen105 client/server/manual files remain unchanged.
+
+Launch and current boundary
+Ignored local/Play Tutorial 2.cmd starts local/r103g/Battle Aces.exe with:
+  -offline-tutorial2 -local-profile=tutorial2_nick_01
+  -screen-fullscreen0 (as two command arguments) and window1280x720.
+The CMD itself contains the exact executable arguments and working directory.
+Log:local/tutorial2-player.log;native log:r103g/investigation/runtime/offline-native.log.
+It uses a separate local profile,with no native-Quit/practice-smoke/audit automation.
+
+Automated Start-Process case PID28868 reached RGameTutorial02State,responding
+window handle1117836;world not created because real intro Continue was pending.
+Nick reported "I see no window. Only sound." Treat physical visibility as FAILED,
+not success from a native window handle. This repeats the known automation-desktop
+boundary. That exact PID/path/start-time was revalidated and the owned process
+stopped;launch receipt records exited-1,not a natural-Quit pass. No other game
+process was stopped. local/tutorial2-hidden-launch-result01.json retains this.
+
+N8 asks Nick to launch the verified CMD in File Explorer and press original
+Continue. A subsequent instance PID32028 now logs mode100 creation,two authored
+armies/10initial actions,original GameStarted and 'Start Mission - Tutorial 2'.
+Human army0 has matching simulation/presentation samples59..1659. This confirms
+the mission start beyond the intro;Nick has not separately confirmed visible UI
+or physical controls. Do not repeat the launch while that game is running.
+local/tutorial2-handoff01/verification.json:
+ 1545dda52706db8a6c79ebe8bbfad2e87adc9bf33f328037a1b62f0d89b276c7
+The report pins immutable ignored game/native log snapshots. Completion,normal
+Quit and restart are not qualified. Startup writes in this reused tutorial-only
+profile report sharing violations;the persisted-input guard is still protecting
+existing input while this route bypasses menu deck loading. Files are preserved,
+but Tutorial2 settings persistence is NOT accepted;follow up after play rather
+than modifying a running game or removing that guard. No full playthrough claim.
+Do not retry hidden launch/move windows across security contexts. No restart/
+repeat LAN test requested.
+Before future patching,check whether his r103g Tutorial2 instance is still running;
+do not modify/terminate a player-owned session merely to resume roadmap work.

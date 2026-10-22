@@ -270,10 +270,11 @@ extern "C" __declspec(dllexport) int OfflineInitialUpdate(void* state,void*) {
             Obj background=invoke(find_class("UnityEngine","Application"),nullptr,"get_runInBackground",0);
             log("LAN Unity runInBackground=%d",*api<bool*(*)(Obj)>("il2cpp_object_unbox")(background));
         }
-        bool tutorial=!exportServerAssets() && wcsstr(GetCommandLineW(),L"-offline-tutorial")!=nullptr;
-        Obj target=read<Obj>(owner,tutorial ? 0x2f8 : 0x2c0);
+        const bool tutorial2=!exportServerAssets() && flag(L"-offline-tutorial2");
+        const bool tutorial=!exportServerAssets() && (flag(L"-offline-tutorial") || tutorial2);
+        Obj target=tutorial2 ? get<Obj>(owner,"_rgameTutorial02State") : read<Obj>(owner,tutorial ? 0x2f8 : 0x2c0);
         if(!target)throw std::runtime_error("startup target state missing");
-        log("Entering existing %s state %p",tutorial ? "tutorial01" : "main menu",target);
+        log("Entering existing %s state %p",tutorial2 ? "tutorial02" : tutorial ? "tutorial01" : "main menu",target);
         return native<int(*)(Obj,Obj)>(0x4dd1d0)(state,target);
     } catch(const std::exception& e) {
         if(ba_native_replay_playback::enabled())log("Native replay startup refused: %s; ordinaryFallback=0",e.what());
