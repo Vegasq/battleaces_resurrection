@@ -32,6 +32,7 @@ namespace ba_native_replay_playback {static bool enabled();static void* prepare(
 namespace ba_replay_menu {static void update(void*);static bool canInspect();}
 namespace ba_replay_runtime {static void update(void*);}
 namespace ba_replay_binding {static void observe();}
+namespace ba_webview_probe {static void update(void*);}
 namespace ba_community_wire {struct Ack;struct Aborted;}
 namespace ba_public {
 static bool active();static bool deckLocked();static void start(void*,void*,int);static bool cancel(void*);static void normalizeJoin(void*);
@@ -309,6 +310,7 @@ extern "C" __declspec(dllexport) void OfflineFrontUpdate(void* front,void*) {
         ba_match_search::update(front);
         ba_match_loading::update(front);
         ba_match_loading_smoke::update(front);
+        ba_webview_probe::update(front);
         if(GetTickCount64()-last<10000)return;
         last=GetTickCount64();
         Obj fsm=read<Obj>(owner,0x2b0), state=get<Obj>(fsm,"_currentState");
@@ -376,6 +378,7 @@ extern "C" __declspec(dllexport) void OfflineFrontUpdate(void* front,void*) {
 #include "cosmetics_loadout.cpp"
 #include "cosmetics_ui_smoke.cpp"
 #include "cosmetics_equip_smoke.cpp"
+#include "webview_probe.cpp"
 
 extern "C" __declspec(dllexport) void OfflineStartupReady(void* context,void* freshThreshold,void* reusedThreshold,void* initializer) {
     // Exact RGameInit.Start completion callsite, after _loadingFinish=true.

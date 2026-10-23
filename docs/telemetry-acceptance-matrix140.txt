@@ -96,6 +96,15 @@ Finite rows
     CEF handler return/natural exit remains scoped input. Do not invoke original
     independent crash bootstrap merely because a parser exists.
 [ ] P8 Effective game-owned descendants
+    [x]147 diagnostic implementation/actual original child startup and owned-cache
+        argv subcase. FOURdash spelling is original;fixed authored parser only.
+        19tests/C++suite/tracker controls pass,not browser acceptance.03/04/05
+        initialization controls FAIL;05positive256x144/active component still
+        times out. RootQuit0/no force/empty jobs;04retainsWerFault,03/05miss one
+        short process. Decoder/unresolved-root/child network gaps remain. Next
+        actual child execute/init/IPC and complete short-lived identities;do not
+        repeat unchanged root-only run or speculate away a reporter guard.
+        All prior seals preserved via exact source snapshots. webview-runtime147.txt.
     Identify an original supported WebView/CEF route and its actual game-owned
     descendants/inherited bootstrap,then bind child binaries and network/file
     activity. If a route is inaccessible,prove the cut from supported UI/source;

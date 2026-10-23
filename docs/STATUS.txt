@@ -3,6 +3,19 @@ Updated: 2026-10-23
 Delivery plan: REMAINING_DELIVERY_PLAN.txt, Windows only.
 Original roadmap: CLOSED / SUPERSEDED;see PLAN_CLOSEOUT.txt.
 
+WEBVIEW147 - REAL CHILD ACTIVATION OBSERVED; INITIALIZATION STILL FAILS
+Default-disabled owned Unity-thread diagnostic implemented;original browser really
+spawns with owned cache argv. Corrected fixed256x144/enabled component still times
+out initialization/shutdown tasks. Root original Quit0/no harness force,all jobs
+empty,sessions closed.03/05miss one short process;04retains all3 includingWerFault,
+which does not identify cause.19tests/C++suite/tracker controls pass;failed runtime
+controls stay FAILED,including decoder/unresolved-root gaps. Four-dash cache flag
+is original and source-correct;observer fixed.211-input seal rechecks old seals
+using exact source snapshots. Only isolated r147g helper changed;shipping139,
+manual/N7/share untouched. NEXT actual child95cf0/95dd0/IPC and complete short-child
+observation;no equivalent root-only run or speculative reporter restoration.
+FullP8/D5/roadmap OPEN. Evidence/limits:webview-runtime147.txt.
+
 WEBVIEW146 - STATIC ACTIVATION / CACHE / LIFECYCLE PREREQUISITES QUALIFIED
 Actual Korean-compliance prefab owner and typed field resolve;31managed bodies
 bind original/current139,whole native plugin identical. First genuine render or

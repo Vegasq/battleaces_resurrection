@@ -2,6 +2,19 @@
 
 ## Requests and answers with Nick
 
+- WebView147 driver IMPLEMENTED,NOT qualified:owned original factory actually
+  spawns Vuplex;03/05 init60s+stop20s fail,04earlyRectfail. Corrected05 measured
+  256x144/enabledactive STILLfails. RootQuit0/noharnessforce/alljobs empty,sessions
+  closed;03/05retain2of3processes,04all3 includesWerFault (NOTprovenCrashpad/cause).
+  Captures retain decodeerror/unresolvedemptyNtOpenFile root;03overflows,05complete
+  6449rows recoveredexact25MBbundle. NoP8/D5closure. FOURdashcachearg is ORIGINAL:
+  oneouterprefix removal leaveschildlookupkey;fixobserveronly,nevernativeargv.
+  19tests/C++suite/trackerpositive+missingchildnegative pass;211seal/priorseals
+  resolveEXACTarchivedsources. Onlyr147ghelper/profilediagnostics changed;shipping/
+  manual/Nickactions unchanged. NEXT genuinechild95cf0/95dd0+IPC/failure/shortchild
+  observation,notunchangedrootquietrerun or restoringreporter. OptionalSUPPLIED
+  viewnull isNOTinternalviewstate. docs/webview-runtime147.txt hasfailurelimits.
+
 - WebView146 STATIC prerequisites qualified,NOT P8/runtime closure. Original
   KoreanComplianceDialogVM has actual CanvasWebViewPrefab field+80;typed native
   table resolves10579RGame fields/one DIRECT Vuplex class field (NOT generic/

@@ -1,0 +1,140 @@
+WEBVIEW147 - OWNED ACTIVATION IMPLEMENTED; INITIALIZATION NOT QUALIFIED
+Updated:2026-10-23. Whole P8/D5 and the Windows delivery goal remain OPEN.
+
+Result and next action
+The original Canvas factory now runs through a default-disabled,owned diagnostic
+on the Unity thread. It actually starts the original Vuplex browser executable.
+It does NOT reach initialized IWebView/page completion:cases03/05 time out;case04
+rejects its rectangle early. All three roots subsequently use original Confirm
+Quit and exit0 without harness forced cleanup. None is a passing browser control.
+The next useful runtime observation is INSIDE the actual browser startup/IPC path,
+with retained identities for short-lived descendants. Do not repeat an unchanged
+root-only quiet run or mark this implemented driver as qualified P8.
+
+Implementation and scope
+client_patch/src/webview_probe.cpp is included by offline_client.cpp. The cached
+default-disabled flag returns before object access. Policy requires all three
+explicit WebView/Quit/gate flags,Confirm mode and a bounded owned nativestest_
+profile;conflicting AI/tutorial/replay/transition/edit diagnostics are refused.
+No ordinary launcher enables it. Thirteen original managed method prefixes are
+hash checked before factory/cache/lifetime operations. Original source metadata,
+managed invocations and GC roots supply the actual components/tasks;no raw native
+view creation,fake callbacks,license bypass or original web URL is supplied.
+
+The driver creates a fresh owned profile/webview-cache,uses PUBLIC SetCachePath
+before factory/Start,empties InitialUrl,and uses an inert authored HTML string
+only after real readiness. It asynchronously checks tasks and actual rectangle/
+pixel dimensions,then calls original Dispose,prefab Destroy and browser shutdown.
+The intended page task would prove a next-load callback,not HTML content/pixels.
+Those success stages were NOT reached in these attempts. Stop-task completion
+and deferred prefab destruction were also NOT qualified;preserve the timeouts.
+
+New tools/owned_job_tracker.py retains query/synchronize handles only for members
+of the existing owned job,with PID+creation FILETIME,image/hash,membership and
+signaled exit/time/status. It has no termination API. Completeness additionally
+requires final total==retained identities,active0,terminated0,no errors/deadline.
+An empty job or exit0 alone cannot qualify every descendant or graceful causality.
+The original product may itself terminate its browser during shutdown.
+
+New tools/frida_webview_process.py transiently parses bounded child argv and emits
+only sorted switch names,closed process-type category,argument/cache counts,
+owned-cache equality and creation/inheritance flags. It does NOT retain command
+text,option values,license/pipe text. Root process-create events retain their
+existing caller frames/return/PID. The opt-in browser budget is bounded to16384;
+legacy builders retain4096. No selected events/counters are filtered to pass.
+Children themselves are NOT instrumented;network/cache effects there are unknown.
+
+Actual isolated controls and corrections
+Fresh r147g is an independent247-file/7,616,840,857-byte copy of pristine inputs,
+with full copy hashes verified;no hardlinks. Only this copy receives helper147.
+The current139 r134g and prior r141g component hashes remain unchanged. Every
+helper update preserves all existing r147g profile files. No installer is built,
+manual game changed,share/HTTP service touched,or Nick action requested.
+
+Case03:root21752,browser16756;native135.045s,outer136.959s. Genuine factory plus
+browser creation observed;init60s and stop20s timeouts. Root original Quit0.
+Owned job3/0/0 but ONLY2 identities retained:complete=false. Owner also closed
+the tracker too early for child.close's final poll;owner_close_error is retained.
+Capture4097 rows hits its4096 budget,has1decode error/1unresolved root and lacks
+termination entries. The original two-dash cache parser assumption reports no
+cache match. This capture CANNOT qualify SDK/privacy/browser completeness.
+
+Case04:root20704,browser5172;native67.255s,outer68.667s. Component enabled and
+active,but measured-rectangle validation rejects before readiness. Actual width/
+height were not retained by this revision;do not invent their values. It then
+times out stopping. Root Quit0;job3/0/0,ALL3 process identities/exit handles retained.
+The third is System32/WerFault.exe,SHA97448c6ae59a389e0aec5c62ccef112be44d5f648568680dc83962102f8475af,
+exit2147942405. That is Windows crash-reporting helper activity,NOT evidence the
+third child is Crashpad,and NOT proof of which code caused browser failure.
+Capture2153 rows,correct cache argv match,1decode error/1unresolved root;two final
+root termination entries survive. Complete process lifetime is not browser health.
+
+Case05:root29984,browser30804;native129.400s,outer130.849s. Helper147-04 explicitly
+centers anchorMin/anchorMax/pivot and waits a frame before periodic state samples.
+Actual rectangle256x144,component enabled/active verified;still init60s/stop20s
+timeouts. No cached view or view GameObject published. The optional SUPPLIED
+_webViewForInitialization remains null,which does not classify an internally
+created view or prove Start never ran. Root Quit0;job3/0/0 but2 retained identities,
+so full tree again FAILS. Capture6449 rows,no budget overflow,truncated=false;
+1decode error/1unresolved root remain. No initialized page/native pixel claim.
+
+All three actual root CreateProcessW events originate from Vuplex+1c1d4 and
+successfully create original-identical browser SHA84cc11157ad97455e545acd02ec7d54872ed712cc963715577f8b3d65ef4018c.
+Creation flags0,inheritHandles=true,environment/cwd inherited. Corrected04/05
+metadata has exactly one owned-cache argument match. This is raw argv equality,
+NOT proof of effective child storage or all cache roots. One NtOpenFile entry
+from Vuplex+1bc43 has empty relative name/unresolved handle;do not erase it.
+The repeated diagnostic native-quit.ready opens explain most captured events;
+the larger opt-in budget retains them. No all-thread/wire/descendant proof.
+
+Source correction:the FOUR-dash cache switch is intentional
+Earlier146 prose simplified raw spelling incorrectly. Original plugin110c0
+prepends '--' to stored '--vx-cache-path',yielding '----vx-cache-path=value'.
+Original child53150/53cf0 queries key '--vx-cache-path'. Original CEF parser
+13a5000->13a58b0->32aece0 removes ONE outer prefix from table '--','-','/',leaving
+exactly that key. Complete selected original/installed parser bodies match.
+Do not patch native argv generation. Only the authored observer was wrong.
+Independent source chain/hashes/corrections:local/webview147-review01/
+CACHE-AND-FAILURE17.txt and source-cache-consumer07/source-cef-command08..16 plus
+17-prefix-table.json. Original146 report remains unchanged.
+
+Crash bootstrap next boundary
+Retained106 only qualified directly dispatched handler return/cleanup,not a
+browser waiting on a handler. Current child/plugin whole-file original;CEF and
+chrome_elf exactly recipe21 plus checksum. Known chrome_elf producer bootstrap
+is already guarded before registration. A libcef disable-breakpad query1356340
+has a caller12e380a that discards its return;it is NOT a demonstrated new disable
+gate. Do not remove the existing privacy guard or restore an original reporter
+based on the present failure. Source identifies child95cf0 cef_execute_process
+and95dd0 cef_initialize wrappers,then Vuplex pipe initialization. Main continues
+only after execute returns negative,but does not test initialize's Boolean.
+Observe those genuine child boundaries and actual failure/short descendant;
+source alone does not determine the initialization fault. Source applicability
+from normal community UI,Korean compliance reachability and all remaining P1-P9
+still require their existing proofs.
+
+Validation,preservation and evidence
+19 focused Python tests pass,including Node execution of the actual parser and
+legacy SDK callback tests. Full C++ suite/helper147-02/-03/-04 builds pass.
+The actual packaged Windows tracker positive control retains all4 processes;
+the deliberate missed-child control correctly refuses completeness. Its first
+checker assumption of exactly2/1 processes failed on console hosts and is kept.
+First helper compile namespace error,owner01 missing-parent prelaunch failure,
+owner02 invalid420s timeout,install02 precondition-key failure,and review01's
+unhandled oversized status remain retained. No failed result was overwritten.
+
+Case05 status exceeds10MiB transport;the COMPLETE retained25,707,992-byte/22-record
+bundle supplies exact evidence ev_03c667bc653a00dd553e519a1fc0131dbc04500677b68d1586a0f11b27918c3e.
+Extracted canonical record SHAdd6792ffa6c5e1881e61f97f4ff89fcda958c7b2fabc706f480ad7da102399a4;
+no MCP envelope reconstructed. All3 Frida sessions explicitly closed and owned
+jobs empty. Read-only capture-review02 verifies the failed controls and refuses
+browser/P8/D5 qualification;it does not relabel a failed control as passed.
+
+local/webview147-seal01.json binds211 inputs,SHA:
+ 1caed4ab4246c19e74ee4ea74948a1761f35b190ba73040f786df294099659aa
+It rechecks prior141/142/143/144/145/146 seals of74/34/90/102/100/173 inputs.
+Changed authored CPP/build and old143 symbol sources resolve exact archived
+snapshots;historical reports are unchanged. Original binaries/raw capture/cache/
+build DLLs remain ignored. Final helper147-04 SHA:
+ f2f6dd6981426d38c2fd02d923e9369954cf7868bdc9d3749b52705405e990e8
+Neither current139 shipping qualification nor RUNTIME_VALIDATED=false changes.
