@@ -120,6 +120,7 @@ def practice_evidence(game, output, pid, text):
         supplies = [int(row['current_supply']) for row in csv.DictReader(source,delimiter='\t') if row['viewer']=='1' and row['army']=='1']
     require(supplies and max(supplies)>0,'post-practice bot did not produce native unit supply')
     moved,orders = movement_evidence(text,set(joins[1]['deck']['units']))
+    require(bool(moved & orders),'post-practice bot lacks correlated native movement and Move/Attack orders')
     return dict(match=starts[0],native_result=True,native_continue=True,returned_to_menu=True,bot_max_supply=max(supplies),
                 autonomous_action_records=text.count('Practice AI action:'),produced_bot_units_with_orders_and_position_change=sorted(moved&orders))
 
@@ -165,6 +166,9 @@ def run(args):
     require(60<=args.timeout<=300 and (args.mode=='inventory' or args.visible) and
             (not args.capture_dialog or args.mode!='inventory'), 'bounded timeout and visible dialog required')
     require(not args.after_practice or args.mode=='confirm','post-practice requires original Confirm/natural exit mode')
+    practice_frames=getattr(args,'practice_frames',3600)
+    require(type(practice_frames) is int and 1200<=practice_frames<=3600,
+            'practice diagnostic frames must be1200..3600')
     require(not getattr(args,'replay_binding_inventory',False) or args.after_practice,
             'replay binding inventory requires a healthy owned practice match')
     require(not getattr(args,'replay_signal_inventory',False) or getattr(args,'replay_binding_inventory',False),
@@ -268,7 +272,7 @@ def run(args):
             command.append('-native-backup-write-smoke')
         if args.after_practice:
             command.extend(['-native-quit-after-practice','-practice-ai-smoke','-practice-ai-smoke-matches=1',
-                            '-practice-ai-smoke-frames=1200','-practice-ai-smoke-delay-ms=3000','-lan-audit','-lan-smoke'])
+                            f'-practice-ai-smoke-frames={practice_frames}','-practice-ai-smoke-delay-ms=3000','-lan-audit','-lan-smoke'])
         info = subprocess.STARTUPINFO();info.dwFlags |= subprocess.STARTF_USESHOWWINDOW;info.wShowWindow = 5 if args.visible else 0
         tick = clock();process = subprocess.Popen(command,cwd=game,startupinfo=info,
             creationflags=0 if args.visible else subprocess.CREATE_NO_WINDOW,close_fds=True)
@@ -404,6 +408,7 @@ if __name__=='__main__':
     parser.add_argument('--telemetry-activation-probe',action='store_true',help='guarded initialization decline and retained-string getter on genuine inactive owners; no original acquisition or initializer')
     parser.add_argument('--telemetry-cache-startup-probe',action='store_true',help='positive original SDK root control with separate externally verified early isolation; no queue reader/expiry')
     parser.add_argument('--after-practice',action='store_true',help='explicit automated one-match result/Continue before original menu Quit')
+    parser.add_argument('--practice-frames',type=int,default=3600,help='owned diagnostic match length1200..3600;default allows normal bot deployment before Quit')
     parser.add_argument('--replay-binding-inventory',action='store_true',help='read existing hidden replay-button actions in healthy owned practice; no click')
     parser.add_argument('--replay-signal-inventory',action='store_true',help='read existing UIButton broadcast subscribers; no signal dispatch')
     parser.add_argument('--replay-nody-inventory',action='store_true',help='read existing Nody callback/graph/port/event data; no graph transition')
@@ -411,5 +416,5 @@ if __name__=='__main__':
     parser.add_argument('--mode',choices=('inventory','cancel','confirm'),default='cancel')
     parser.add_argument('--visible',action='store_true')
     parser.add_argument('--capture-dialog',action='store_true',help='explicit GPU capture; omit to avoid capture work during the exit test')
-    parser.add_argument('--timeout',type=int,default=180)
+    parser.add_argument('--timeout',type=int,default=300,help='overall diagnostic bound60..300s;default300 covers the longer practice check')
     raise SystemExit(run(parser.parse_args()))

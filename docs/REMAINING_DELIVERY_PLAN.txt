@@ -406,9 +406,21 @@ already cut;then supported runtime/final artifacts. Full D5 stays OPEN.
     No actual Init invocation/visible/all-mode claim. Failure corrections,
     reviewer02/29checks and hashes:telemetry-service-identity134.txt. No new
     installer/Nick action;130/N7 and coherent r103g unchanged,r134g diagnostic.
-[ ] Next source:review remaining original service/profile/context enrichment
-    and gameplay need;retain separate c307c0 upstream producer gate. Indirect/
-    computed calls and broader runtime/reporting gates remain open;D5 stays false.
+[x] Review135 classifies remaining service context and extends same two guards
+    past type/model acquisition+formatting+setter. Recipe19/still113guards;
+    empty ID/model and lifecycle/version/locale/public APIs retained.95checks/
+    C++ suite/helper135-01,18->19 update46.829s preserving6profiles/backups/source
+    130 pass. First short capture FAILS independent movement despite valid Quit;
+    corrected checker rejects actual134/13501 combat claims,original summaries
+    retained and134 prose corrected. Fresh3600-frame native02 PASS217.135s,
+    48correlated units/91actions/results/Continue/default Quit0,job1/0/0/no force,
+    eight samples/profile2/2/explicit19. Review02 PASS34checks. Exact failures/
+    scope/hashes:telemetry-service-profile135.txt. No package/Nick action;130/N7
+    unchanged,r134g now19/helper135-01 diagnostic only. Full D5 remains OPEN.
+[ ] Next source:resolve c307c0 producer,including possible adjacent-interface
+    aliases(main14a0 to1498) rather than repeat prior negative exact-address
+    scans. Alias is a hypothesis,not proven registration. Indirect/computed
+    calls and broader mode/error/reporting/descendant/final gates remain open.
 S1 CLOSED BY126:all FIVE safe interior SDK guards,with genuine matched/unmatched
 pending-owner cleanup and disabled-ID qualification.125 found failed/cache
 handlers can enumerate/prune AFTER WriteFile RET;do not entry-RET those handlers

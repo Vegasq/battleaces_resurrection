@@ -194,10 +194,10 @@ static void run() noexcept {
     if(!enabled || attempted)return;
     attempted=true;
     try {
-        require(requested() && checked && !disabled && completeRecipe18 && auditThread==GetCurrentThreadId() &&
+        require(requested() && checked && !disabled && completeRecipe && auditThread==GetCurrentThreadId() &&
             ba::flag(L"-native-quit-smoke") && ba_native_settings::session &&
             ba_native_settings::session->profile().compare(0,12,"nativestest_")==0,
-            "cache probe requires complete recipe18 and explicit owned game-thread diagnostic");
+            "cache probe requires complete current recipe and explicit owned game-thread diagnostic");
         original(0x8364e0,160,"d547e382cad835bbf8f9587fc04aeca3d324dc47e0806e5957ccf7bb06bff003");
         original(0x836580,112,"017aa617c00d2e5a71df7599ee517c08e6c22cccc017e43fed278346ef0bcf43");
         original(0x8365f0,112,"17c801369b2bc5823aec24cd0dad9bb05d7fd45c6ed443a5c8900ea1ac870c06");

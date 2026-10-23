@@ -2,6 +2,25 @@
 
 ## Requests and answers with Nick
 
+- Privacy135 recipe19/still113:extends SAME two Init guards past device type/
+  model formatting+setter to256cae3/256f2d0;genuine profile ID/model stay empty,
+  GC publication/version/locale/service/lifetime retained. Shared public APIs
+  original. Nativeprofile2/2+explicit recipe19 required;actual18 log explicit
+  pass/current19 reject.95checks/C++ suite/helper135-01/update18->19 PASS46.829s,
+  six profile files/backups/source130 preserved. First13501 NativeQuit PASS but
+  independent movement review FAILS empty correlation;old checker missed assert.
+  Actual134/13501 captures now reject for combat;original lifecycle/Quit remains
+  valid,summaries unchanged,134 prose corrected. Pre-fix source sealed. Two test
+  temp-ACL failures retained,inherited workspace fixture fixes access,no skip.
+  New3600-frame diagnostic13502 PASS217.135s/outer218.235s,48correlated bot units,
+  91actions/supply136/result/Continue/default Quit0,job1/0/0/no force,eight samples,
+  source/program/shared unchanged. Review02 passes34checks. No actual Init/visible/
+  full D5 claim. r134g NOW19/helper135-01,cached130 diagnostic;coherent r103g and
+  frozen130/N7 untouched. All jobs terminal,no new Nick action/package. Next
+  c307c0 producer/adjacent14a0->1498 alias hypothesis(not another negative exact
+  address scan),mode/error/reporting/descendant/final gates. No quiet rerun.
+  Exact scopes/failures/hashes:docs/telemetry-service-profile135.txt.
+
 - Privacy134 recipe18/113 guards:two generic ServiceIntegration.Init bodies
   inline public device-ID query despite no wrapper CALLs. Actual generic map
   definition9722/token06001141 ->256c430/256ec20;ctorDeviceProfile39271b0 sets

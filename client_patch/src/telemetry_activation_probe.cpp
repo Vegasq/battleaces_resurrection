@@ -6,7 +6,7 @@ static void activationProbe() noexcept {
     static bool attempted=false;if(!enabled || attempted)return;attempted=true;
     try {
         auto require=[](bool value,const char* why){if(!value)throw std::runtime_error(why);};
-        require(requested() && checked && !disabled && completeRecipe18 && auditThread==GetCurrentThreadId() &&
+        require(requested() && checked && !disabled && completeRecipe && auditThread==GetCurrentThreadId() &&
             ba::flag(L"-native-quit-smoke") && ba_native_settings::session &&
             ba_native_settings::session->profile().compare(0,12,"nativestest_")==0,
             "activation probe requires explicit owned complete-recipe diagnostic");

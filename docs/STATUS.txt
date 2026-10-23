@@ -3,6 +3,19 @@ Updated: 2026-10-22
 Delivery plan: REMAINING_DELIVERY_PLAN.txt, Windows only.
 Original roadmap: CLOSED / SUPERSEDED;see PLAN_CLOSEOUT.txt.
 
+PRIVACY135 - SERVICE HARDWARE PROFILE BYPASS AND STRONGER MOVEMENT EVIDENCE
+Recipe19/still113guards retains empty device ID/model in both service Init
+variants,with lifecycle/version/locale/public APIs unchanged.95checks/C++ build,
+18->19 update46.829s preserving6profile files/backups/source130 pass. Short native
+capture passes Quit but FAILS independent movement review;old checker allowed
+empty correlation. Actual134/13501 captures reject as combat evidence and134
+prose corrected. Stronger checker/regression,3600diagnostic frames:new native02
+PASS217.135s,48correlated bot units,91actions/result/Continue/default Quit0,
+job1/0/0/no force,profile2/2/explicit19/eight samples. Review02 PASS34checks.
+Full D5 OPEN;no active Init/visible/all-mode claim. r134g now19/helper135-01 is
+diagnostic only;130/N7/r103g unchanged,no new installer/action. Exact scopes/
+failures/hashes:telemetry-service-profile135.txt.
+
 PRIVACY134 - TWO ORIGINAL SERVICE DEVICE-ID ACQUISITIONS GUARDED
 Recipe18/113guards skips inlined query+setter in both registered generic Init
 bodies,retaining genuine DeviceProfile empty ID/service lifecycle.93Python checks,

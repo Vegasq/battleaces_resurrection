@@ -11,6 +11,46 @@ from tools import verify_native_quit as quit_probe
 
 
 class NativeQuitVerifierTests(unittest.TestCase):
+    def test_practice_rejects_supply_and_commands_without_same_entity_movement(self):
+        match='a'*32;pid=123
+        temp_root=(quit_probe.ROOT/'local').resolve()
+        self.assertTrue(temp_root.is_relative_to(quit_probe.ROOT.resolve()))
+        temp_root.mkdir(exist_ok=True)
+        for moved,ordered,target,accepted in ((True,True,101,True),(False,True,101,False),
+                                             (True,False,101,False),(True,True,102,False)):
+            with self.subTest(moved=moved,ordered=ordered,target=target):
+                # Inherit workspace ACLs;Python3.14's mode0700 temporary dirs
+                # cannot be reopened by the Windows automation token.
+                folder=temp_root/('native-quit-movement-'+uuid.uuid4().hex)
+                self.assertEqual(folder.resolve().parent,temp_root)
+                folder.mkdir()
+                try:
+                    game=folder/'game';output=folder/'output';output.mkdir()
+                    runtime=game/'investigation/runtime';runtime.mkdir(parents=True)
+                    (runtime/f'lan-resources-{pid}-{match}.tsv').write_text('viewer\tarmy\tcurrent_supply\n1\t1\t14\n')
+                    lines=[f'Practice requested: match={match} ', 'Practice AI join captured:',
+                           'Practice AI JoinedGame delivered:',
+                           'PRACTICE SMOKE original EditDeck mode4 callback: owned=1 visible=1 interactable=1 preamble=1',
+                           'Practice original JoinArmy: '+json.dumps({'deck':{'units':[1]}}),
+                           'Practice original JoinArmy: '+json.dumps({'deck':{'units':[34]}})]
+                    lines+=['Practice AI action: case=1']*5
+                    lines+=['Practice AI entity: frame=1 army=1 id=101 type=34 position=(1,0,1)',
+                            f'Practice AI entity: frame=2 army=1 id=101 type=34 position=({2 if moved else 1},0,1)']
+                    if ordered:lines+=['Practice AI protobuf: '+json.dumps({'executeCommand':{
+                        'commandData':{'targetGroundCommandData':{}},'entityTypeData':[{'abilityId':12,'entityIds':[target]}]}})]
+                    lines+=['Practice native EndOfGameResponse delivered;','PRACTICE SMOKE native Continue (automated)',
+                            'Practice returned: completed=1 mode=4 seat=-1 presenceRetained=0 standalone=1',
+                            'NATIVE QUIT owned menu verified:']
+                    if accepted:
+                        result=quit_probe.practice_evidence(game,output,pid,'\n'.join(lines))
+                        self.assertEqual(result['produced_bot_units_with_orders_and_position_change'],[101])
+                    else:
+                        with self.assertRaisesRegex(AssertionError,'correlated native movement'):
+                            quit_probe.practice_evidence(game,output,pid,'\n'.join(lines))
+                finally:
+                    self.assertEqual(folder.resolve().parent,temp_root)
+                    shutil.rmtree(folder)
+
     def telemetry_fixture(self,*,practice=False):
         from tests.test_telemetry_audit import fixture,SHA
         path=('startup-after-engine-init','menu')

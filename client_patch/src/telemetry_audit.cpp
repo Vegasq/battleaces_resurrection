@@ -88,7 +88,8 @@ static const Signature signatures[]={
     {0x205430,0x204830,"4885c90f840f010000574883ec30488b","",3},
 };
 static uintptr_t unity=0;
-static bool checked=false,disabled=false,startupLogged=false,quitAttempted=false,completeRecipe18=false;
+static constexpr unsigned currentRecipeVersion=19;
+static bool checked=false,disabled=false,startupLogged=false,quitAttempted=false,completeRecipe=false;
 static unsigned snapshots=0;
 static ba_telemetry_sampling::Schedule schedule;
 static DWORD auditThread=0;
@@ -146,10 +147,10 @@ static unsigned cacheFailureGuardCount() {
     };
     return gameGuardCount(guards);
 }
-static unsigned serviceIdentityGuardCount() {
+static unsigned serviceProfileGuardCount() {
     static const Signature guards[]={
-        {0x256c9d2,0x256afd2,"488b0567838f044885c0751c488d0da3","e93c0000009090",0},
-        {0x256f1c2,0x256d7c2,"488b05775b8f044885c0751c488d0db3","e93c0000009090",0},
+        {0x256c9d2,0x256afd2,"488b0567838f044885c0751c488d0da3","e90c0100009090",0},
+        {0x256f1c2,0x256d7c2,"488b05775b8f044885c0751c488d0db3","e9090100009090",0},
     };
     return gameGuardCount(guards);
 }
@@ -194,11 +195,11 @@ static bool verifyModule() {
         memcpy(bytes.data()+peOffset+24+64,&originalChecksum,sizeof(originalChecksum));
         if(digest(bytes)!=originalHash)throw std::runtime_error("unsupported UnityPlayer normalized SHA256");
         const auto cacheGuards=cacheFailureGuardCount();
-        const auto serviceGuards=serviceIdentityGuardCount();
-        completeRecipe18=groups[0]==3 && groups[1]==56 && groups[2]==3 && cacheGuards==5 && serviceGuards==2;
+        const auto serviceGuards=serviceProfileGuardCount();
+        completeRecipe=groups[0]==3 && groups[1]==56 && groups[2]==3 && cacheGuards==5 && serviceGuards==2;
         disabled=false;
-        ba::log("Telemetry audit build verified: UnityPlayer sha256=%s normalized=%s crashSignatures=%u/3 coreCandidateSignatures=%u/56 performanceCandidateSignatures=%u/3 cacheFailureSignatures=%u/5 serviceIdentitySignatures=%u/2; READ ONLY, no qualification claim",
-            actualHash.c_str(),originalHash,groups[0],groups[1],groups[2],cacheGuards,serviceGuards);
+        ba::log("Telemetry audit build verified: UnityPlayer sha256=%s normalized=%s crashSignatures=%u/3 coreCandidateSignatures=%u/56 performanceCandidateSignatures=%u/3 cacheFailureSignatures=%u/5 serviceProfileSignatures=%u/2 recipeVersion=%u; READ ONLY, no qualification claim",
+            actualHash.c_str(),originalHash,groups[0],groups[1],groups[2],cacheGuards,serviceGuards,currentRecipeVersion);
     } catch(const std::exception& e) {ba::log("Telemetry audit disabled: %s; no object reads attempted",e.what());}
     return !disabled;
 }
@@ -282,10 +283,10 @@ static void deviceProbe() noexcept {
     attempted=true;
     try {
         auto require=[](bool value,const char* why){if(!value)throw std::runtime_error(why);};
-        require(requested() && checked && !disabled && completeRecipe18 && auditThread==GetCurrentThreadId() &&
+        require(requested() && checked && !disabled && completeRecipe && auditThread==GetCurrentThreadId() &&
             ba::flag(L"-native-quit-smoke") && ba_native_settings::session &&
             ba_native_settings::session->profile().compare(0,12,"nativestest_")==0,
-            "complete recipe18,initialized game thread and explicit owned diagnostic required");
+            "complete current recipe,initialized game thread and explicit owned diagnostic required");
         struct Main {
             uintptr_t pointer=0,vtable=0,worker=0;
             uint64_t header[4]={};uint32_t marker=0,state=0,init=0,archive=0;

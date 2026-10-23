@@ -10,7 +10,7 @@ import hashlib
 from types import MappingProxyType
 
 GAME_BUILD = 37822
-RECIPE_VERSION = 18
+RECIPE_VERSION = 19
 RUNTIME_VALIDATED = False
 VALIDATION_STATUS = "Scoped native compatibility verified; full lifecycle/report-removal qualification pending"
 UNRESOLVED_COMPONENTS = (
@@ -149,14 +149,14 @@ COMPONENTS = MappingProxyType({
             Patch('Bugsnag cached device identity uses existing disabled branch', 0x83692d, 0x834f2d,
                   bytes.fromhex('0f8475010000488b05be57310683b8e0'), bytes.fromhex('e97601000090')),
             # Both shared generic ServiceIntegration.Init bodies construct a
-            # genuine DeviceProfile with an empty DeviceId BEFORE this region.
-            # Skip icall resolution/acquisition AND its matching setter;retain
+            # genuine DeviceProfile with empty ID/model BEFORE this region.
+            # Skip ID/type/model acquisition,formatting and setters;retain
             # initialization,profile ownership and all later service setup.
             # Never RET Init or patch public SystemInfo/random initialization.
-            Patch('reference service initialization retains empty device identity', 0x256c9d2, 0x256afd2,
-                  bytes.fromhex('488b0567838f044885c0751c488d0da3'), bytes.fromhex('e93c0000009090')),
-            Patch('fully shared service initialization retains empty device identity', 0x256f1c2, 0x256d7c2,
-                  bytes.fromhex('488b05775b8f044885c0751c488d0db3'), bytes.fromhex('e93c0000009090')),
+            Patch('reference service initialization retains empty device profile', 0x256c9d2, 0x256afd2,
+                  bytes.fromhex('488b0567838f044885c0751c488d0da3'), bytes.fromhex('e90c0100009090')),
+            Patch('fully shared service initialization retains empty device profile', 0x256f1c2, 0x256d7c2,
+                  bytes.fromhex('488b05775b8f044885c0751c488d0db3'), bytes.fromhex('e9090100009090')),
         ),
     ),
     'UnityPlayer.dll': Component(

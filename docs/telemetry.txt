@@ -1,7 +1,18 @@
 TELEMETRY PATCH STATUS
 Updated: 2026-10-22
 Supported input: Battle Aces build 37822, Windows x64.
-Recipe version: 18. Guards: 113. Complete-set runtime_validated: false.
+Recipe version: 19. Guards: 113. Complete-set runtime_validated: false.
+
+Current135 extends the same two service guards past device type/model collection,
+retaining empty DeviceProfile strings and version/locale/service lifecycle.
+95checks/C++ suite/helper135-01,preserved18->19 update and actual96.295s lifecycle
+pass;independent movement review correctly FAILS that short capture. Verifier
+now requires correlated owned movement/orders;actual134/135-01 old captures
+reject for combat,without changing their valid Quit results. Fresh3600-frame
+native02 PASS217.135s,48correlated entities/results/Continue/default Quit0,
+job1/0/0/no force,eight samples/profile2/2/explicit19. Full D5 OPEN. Scopes/
+failures/hashes:telemetry-service-profile135.txt.130/N7/r103g unchanged;r134g
+now19/helper135-01,cached130 diagnostic only. No new installer/action.
 
 Current134 adds two ORIGINAL service Init device-ID acquisition bypasses,leaving
 genuine DeviceProfile empty defaults and service/ownership/cleanup intact.

@@ -56,7 +56,9 @@ Owned17->18 upgrade PASS94.649s:dry-run unchanged,idempotence,all four original
 backups,authored profile sentinel and source130 critical programs preserved.
 No real user-profile persistence claim is inferred from that authored sentinel.
 Actual background native AI/result/Continue/default Quit0 PASS101.816s;outer
-102.965s. Original bot supply/orders/movement pass. Eight current18 field
+102.965s. Bot supply/actions pass;135's independent recheck finds no correlated
+Move/Attack orders and movement in this1200-frame capture. Combat is NOT qualified;
+the original lifecycle/result/Continue/Quit compatibility remains valid. Eight current18 field
 snapshots include startup/menu/world/results/menu/pre-Quit,loaded service2/2.
 Shared settings,source/program files and source130 remain unchanged. Owned main
 reaped,job1/0/0,no forced cleanup. Background technical check,not visible UI or

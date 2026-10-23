@@ -1,0 +1,107 @@
+ORIGINAL SERVICE HARDWARE PROFILE135
+2026-10-22. Recipe19/still113guards. Full D5/runtime_validated OPEN/false.
+
+Change
+134 removed original service device-ID acquisition. The remaining block still
+queries SystemInfo.GetDeviceType() and GetDeviceModel(),formats the result,and
+calls CommonPb.DeviceProfile.set_DeviceModel. Extend the SAME two bypasses:
+ 256c9d2->256cae3;256f1c2->256f2d0.
+Both now retain the genuine empty ID AND model initialized by DeviceProfile's
+original constructor. Resume at the original GC publication into ClientConfig;
+keep allocation,metadata initialization,build/version,descriptor/DLL profile,
+locale,service callbacks and all save/restore/cleanup. No shared SystemInfo API
+or whole Init/constructor/setter RET. No direct external branch or stack
+adjustment lies inside the omitted region. Formatting temporaries are not used
+after that region. No claim that these Init variants actually ran in the test.
+
+Source review
+Reused134's complete hash-pinned original bodies.33 direct callees/20 ordinary
+method bindings identify generated CommonPb.VersionBuild,DllProfile,DeviceProfile,
+ClientConfig,descriptor compatibility and LocalizationSettings consumers.
+The remaining inline icalls are Application.version and the three device
+queries. DeviceProfile has exactly the ID/model strings at18/20,both initialized
+from the original empty metadata literal. Token/native-table mapping pins six
+public SystemInfo aliases at5096f90/5096fe0/5097080;all remain original in the
+installed file,as do the profile constructor and shared setters.
+This is selected callee/field classification,not every indirect service consumer.
+REA skill with retained PE/LLVM/IL2CPP fallback;known unavailable Ghidra not
+retried. NOT REA decompilation/runtime Evidence. Original identities are134's.
+Review/control code never invokes original hardware getters to manufacture a
+hit. Whole-run query/network/reporting absence is not established.
+
+Qualification and evidence integrity correction
+Recipe19 still has49GameAssembly+62Unity+2CEF guards. Native audit requires the
+wider loaded/disk serviceProfileSignatures2/2 AND explicit recipeVersion19.
+Old18 has the same numerical guard count;its narrower identity signature/log
+must not qualify19. Actual retained18 log passes explicit18 review and fails
+default19 review. All diagnostic probes share the current completeness gate.
+C++ suite/helper135-01 build PASS. Final95affected Python checks PASS,including
+original-file branch/body/lifetime/shared API checks and parser/packaging tests.
+
+Owned r134g18->19 upgrade PASS46.829s,preserving SIX existing native-created/
+authored profile files,all four original backups and source130 programs;dry-run
+and idempotence pass. Coherent source r103g and frozen130/N7 remain untouched.
+r134g now19/helper135-01,cached runtime130:DIAGNOSTIC ONLY,not a new package.
+
+First135 native run has valid AI/result/Continue/default Quit0 compatibility
+(96.295s,job1/0/0),but independent movement review FAILS. It has supply14,9actions
+and some changed positions,yet no SAME produced unit with Move12/Attack88 orders
+and movement. The old checker returned an empty correlation list without failing.
+Actual134 and135-01 captures are now rejected as combat evidence by the corrected
+reader;their lifecycle/Quit results remain valid and original summaries/captures
+are unchanged.134's public prose claiming movement was corrected. Pre-fix source
+archive hashes match135-01's actual input seal. Do not promote its green summary
+into movement/attack qualification or erase the failed independent review.
+
+The checker now requires a correlated owned produced unit. Regression fixtures
+cover positive movement+order,stationary units,no order,and mismatched entity.
+Two first fixture attempts fail Python temporary-directory ACL access/cleanup;
+the existing inherited workspace UUID-directory pattern fixes test storage while
+retaining every assertion.58focused checks then pass;final95affected checks pass.
+Diagnostic match length is bounded1200..3600 frames,default3600,so the normal bot
+can deploy before diagnostic surrender. Product gameplay timers and AI behavior
+are unchanged. No helper rebuild is needed for this Python-only verifier fix.
+After native02,the CLI overall timeout default was aligned to300s for its longer
+practice default. That run already used explicit300. Its actual verifier source
+is archived/hash-matched;AST comparison proves run/practice/telemetry functions
+unchanged. A parser-only control confirms300s/3600frames without starting a game.
+
+Fresh native02 with SAME recipe/helper passes217.135s (outer218.235s):supply136,
+91actions,FORTY-EIGHT produced bot entities with matching Move/Attack orders and
+changed positions. Original result/Continue/default normal Quit0,main reaped,
+job1/0/0,no forced cleanup. Eight current19 snapshots and loaded profile2/2/version
+tag pass. Source/program/shared settings remained unchanged DURING the run. This is background
+technical compatibility/order/movement evidence,not physical controls/visible UI,
+actual Init invocation,damage/win,all-mode or complete reporting qualification.
+Final source/installed/native reviewer02 passes34 assertions without relaxing
+the failed movement assertion or rewriting earlier results.
+
+Retained identities
+local/privacy135-service-context01/evidence-manifest.json:
+ f789d801d66d3c9f29b49f8423467fc202fd1acab622a6122c926e22be142671
+Its verification02.json:
+ f920603ecce363942d5e111d7a2e3e50ef804813503a67603fcf89d51993cd72
+local/privacy135-install01/verification.json:
+ 0cb1133ab496f8b746a1808a4e56e8ce4fcfad66d5a1561d2a07fd5fad12673d
+local/privacy135-native-ai02/verification.json:
+ 116c99f5d81de8d2808d255be6479506111048e213fa8837912659ca18e058c9
+Its native/verification.json:
+ 54d8011dcea13a884846bd7a52f3d19e22c914a62815be6f5f12a153ba541bf6
+local/privacy135-movement-recheck01/verification.json:
+ 8c883bf75400a4628d2775f4d71389d7b3de022ab0f88dca4fffafcbf7ab3fcb
+build/helper-privacy135-01/BattleAcesOffline.dll:
+ 0b67e398ec484bae1d0faba9dd13293670c082ed8911c9696b8b675a9d53af67
+Its helper-build.json:
+ c33cd9f86544bbac15789d70fd657ed482093c2829fd3bee4fd533679d8f7684
+CLI defaults/source-equivalence controls(local/privacy135-cli-*.json):
+ a38e50f58ae7f91fa2d2d56f31078d862a26ee75fa353a1224e4b1e48d279e65
+ b83d2323b86d4dea266fa2dfc2eebf4fa2bc9092b175df601254d2c23a1a86dd
+Raw originals/disassembly/captures remain ignored local inputs,out of Git.
+
+Next
+Resolve c307c0 advertising callback activation;reuse prior negative address
+searches rather than repeating them. Adjacent-interface aliases from exposed
+main14a0 to callback1498 are a hypothesis to inspect,not a known registration.
+Continue remaining source/mode/error/reporting/descendant/final artifact gates.
+Full D5 stays OPEN. No new installer/package or Nick action;130/N7 unchanged.
+All owned build/install/game jobs terminal,no game left running.
