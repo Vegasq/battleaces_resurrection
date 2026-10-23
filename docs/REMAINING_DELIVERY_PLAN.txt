@@ -297,6 +297,13 @@ References: practice-difficulty.txt, menu-profile-binding.txt, cosmetic-unlock.t
 cosmetic-persistence.txt, cosmetic-community.txt and manual35's retained feedback.
 
 [ ] D4 - Close lifecycle, storage, replay and failure coverage
+[x]154 native allied2vAI BOT_INPUT loss/timeout server subcase:humans0/2,bots1/3,
+    actual AIprofile60/four frame identities;frame10 BOT_INPUT fails,no STEP.
+    ABORTED/RESULTS/RETURN2/RETIRED/same sockets/ticket1->2/10frame replacement/
+    fullprofile bytes preserved. Other same room/worker51/111frames,61duringhang.
+    Actual17.426s/controller0/job18/0/0/no extra cleanup,6workers reaped(victims1,
+    others0),15tests pass. Max gap875.677ms is D8 concern,not cadence acceptance.
+    No graphical/fullD4 inference or new product/package/action. bot-rpc-faults154.txt.
 [x]153 server-side packaged RC/native public1v1 worker loss/timeout control:
     ABORTED+RESULTS/nullresult/no failedframe10,RETURN2/RETIRED/old offer removed,
     same sockets/ticket1->2/fresh10frames/full17profile bytes preserved. Healthy
@@ -876,6 +883,12 @@ References: server-console.txt, windows-service.txt, state-backup.txt,
 windows-packaging.txt, windows-server-quickstart.txt.
 
 [ ] D8 - Complete Internet, latency and final capacity evidence
+- Concrete154 local admission/rematch concern:healthy2vAI receive gap875.677ms
+  crosses Return/new ENTER processing BEFORE replacement worker_started;healthy
+  frame worker_ms775.985/no snapshot. Hang max153.799ms. Existing receipt/audit
+  clocks correlate admission,not a particular blocking call. Bound original
+  profile persistence/admission/worker RPC timings before a performance change;
+  do not assume Popen or relax input/timeout/cadence. bot-rpc-faults154.txt.
 - Two physical Windows PCs on different networks connect, play and rematch with
   the configured RC transport with its recorded certificate-verification policy.
   No CA/invite requirement for RC1. Document the chosen TCP port/firewall/NAT

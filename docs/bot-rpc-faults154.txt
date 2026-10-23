@@ -1,0 +1,104 @@
+BOT RPC154 - NATIVE ALLIED2vAI ABORT / RETURN / SAME-SESSION REMATCH
+2026-10-23. Selected D4 server-side BOT_INPUT loss/timeout subcase COMPLETE.
+Whole D4,D8 and D1-D9 delivery remain OPEN.
+
+Outcome
+Two concurrent mode5 public matches each have humans in slots0/2 and actual
+native bots in slots1/3. Current HELLO2/full17 loadouts,original30000ms queue
+deadline,READY,complete assignments and actual bootstrap identities are checked.
+Both human seats fill,so offers have fallback:false and require no AI-fill wait;
+mode5 always has the two opposing bots. No fake clock or private fallback match.
+
+At frame10 one owned worker is deliberately terminated before the next bot
+request. A second control suspends only the owned primary thread before frame10.
+The server attempts BOT_INPUT(operation7);STEP(operation2) for frame10 never runs.
+Termination reaches the original closed-worker refusal without a new IPC request
+(request counter24 remains24). Suspension sends request25 and reaches the original
+3second request timeout. These are process-loss/unresponsive-worker controls,
+not proof of a spontaneous DLL access violation or a particular internal deadlock.
+
+Both cases deliver ABORTED and ticket-bound RESULTS/server simulation error.
+No failedframe10 or invented winner is published;host abort result is null and
+next_frame10. Both original connections acknowledge RETURN,receive RETIRED,and
+release the old ticket/offer. Same sockets enter ticket2 and start a fresh match
+with10 native frames. Four saved human deck/full17 cosmetic files stay exact.
+Healthy room/worker identities stay the same;ordered frames and bot requests
+continue through the failure and replacement. No graphical game is launched.
+
+Actual control local/roomfault154-native01/verification.json PASS17.426s,
+child16.987s,using actual151 bundled server Python/modules and139exported assets:
+- Process loss:victim31176 exits1 as injected;healthy13060/replacement32748 exit0.
+  Abort0.0620s;healthy51frames,1during the failure,max receive gap875.6765ms.
+- Suspended primary:victim14356 exits1 through failed-worker supervision;
+  healthy32392/replacement23780 exit0. Abort3.0734s;healthy111frames,
+  61during the failure,max receive gap153.7987ms. Prior suspend count0.
+Controller exits0;all six workers reap,six duplicate process/thread pairs close,
+job18total/0active/0job-terminated,no additional harness cleanup. Victim exit1
+is intentional loss/disposal,not a normal-shutdown claim. No existing host,
+game,protected owner state,manual installer or shared HTTP server is selected.
+
+Real native AI / RPC evidence
+Every worker CREATE independently validates actual Simulation.dll/GameData and
+native aiprogram.dll,AI rules manifest and frozen bot roster. All six actual
+assignments select supported profile60 for slots1/3. AI DLL SHA256:
+14b504d4946fe60d0d62e1e8b8a641b4c1bbd07277d1bbca09e0151512ff19ca.
+AI rules manifest SHA256:
+f08956299cb3139f647ad2cd2c58d44d1e43745e8a30cde0ec3fa8b4db319e09.
+Both human clients receive byte-identical four-participant public frames;every
+slot's input identity is checked against the original native bootstrap roster,
+including the bot seats. Host frame hashes match the delivered frame journal.
+
+An explicit diagnostic-only delegate records original operation/frame/request
+counters and reply/exception timing. It forwards original argument objects and
+return objects unchanged,and rethrows original exceptions/cancellation. It does
+not replace BOT_INPUT,STEP,worker replies or server timeouts with simulated data.
+For each successful frame,the journal shows BOT_INPUT then STEP exactly once:
+victims10frames each,healthy51/111,replacements10each. The only failed request
+is victim BOT_INPUT/frame10:WorkerError or WorkerTimeout respectively. There is
+no victim STEP/frame10. Default request3s/close2s,50ms simulation step and input
+window6 remain unchanged. Ownership/injection retains152's exact creation handle,
+FILETIME/PID/TID/job validation and one-increment suspend/rollback rules.
+
+Performance finding / next work
+These passes establish isolation and retry,not smooth frame cadence. The near
+0.9second healthy receive gap in the termination case is retained as a concrete
+D8 concern. Passive existing-receipt/audit comparison is saved separately in
+local/roomfault154-cadence01.json. It falls between healthy frames9/10,across
+Return and new ENTER processing,BEFORE replacement worker_started. The healthy
+frame records worker_ms775.985,frame_work_ms776.035,no snapshot. The second
+largest gap is64.358ms. Hang's largest153.799ms gap also crosses new queue entries.
+These timings correlate with rematch admission;they do not attribute the delay
+to the worker CPU,profile persistence,event-loop blocking or a particular call.
+Next bound those specific admission/persistence calls before changing them.
+Do not assume worker Popen caused this observed first gap or tune input/timeout
+limits to hide it. Diagnostic1000ms stall ceiling is not a product performance
+target. D8/capacity/Internet/click-to-action/physical smoothness remain OPEN.
+
+Implementation / verification
+tools/verify_room_faults.py adds mutually exclusive --public-ai alongside current
+Custom(default),--public (human1v1) and direct comparison routes. Public participant
+counts/slots/decks and frame identity checking now follow production mode
+definitions. The observer is installed only for explicit mode5 diagnostic runs;
+normal server/client/helpers/packages are unchanged. Exact153 source5738f30e
+is preserved in local/roomfault154-prior-source01.py for historical seal resolution.
+
+15focused tests PASS0.070s:existing ownership/public ticket controls plus new
+four-seat identity/count/frame rejections and transparent delegate argument/
+reply/error/cancellation checks. Actual native control passes first attempt.
+Driver SHA256:
+6f5c8f6d62a7c2cbb885613c11d415b4a1860a18324f11f7a9cbaec9f8c7fdfd.
+Read-only local/roomfault154-review01.json PASS35current inputs;31prior153,
+83prior152 and276prior151 inputs resolve unchanged or through their exact source
+archives. All six pending N10 capsule pins remain unchanged. It independently
+checks original audit/frame/profile/offer/retirement/worker/AI/RPC/terminal facts.
+Successful native reports and prior seals are not edited or regenerated.
+
+Scope / handoff
+This closes the real mode5 BOT_INPUT process-loss/timeout server branch with
+another live AI room and same-session retry. It does not close physical abort/
+Continue/menu presentation,completed-game/rematch acceptance,all bot profiles/
+movement/difficulty,mode2-specific failure presentation,storage/SCM or whole D4.
+Reuse152Custom/153human1v1/154BOT_INPUT evidence;do not repeat equivalent cases
+without a source change or concrete concern. Continue admission-gap attribution
+and the remaining client/storage/deployment/privacy/D1-D9 gates. N9/N10 desktop
+answers/reports are still absent;no new Nick action or installer/share handoff.

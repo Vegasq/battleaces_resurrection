@@ -2,6 +2,21 @@
 
 ## Requests and answers with Nick
 
+- BotRPC154 CLOSES selected native mode5 BOT_INPUT loss/timeout server branch:
+  humans0/2,bots1/3,real profile60/AI DLL+rules/4identity frames,original30s queue/
+  default3s request. Victim frame10 BOT_INPUT fails before STEP;ABORTED/RESULTS/
+  RETURN2/RETIRED/ticket1->2/same sockets/10frame rematch/profile bytes exact.
+  Healthy same room/worker51/111frames,61duringhang. Actual17.426s/controller0/
+  job18/0/0/no extra cleanup/6workers reaped(victims1,others0)/6dupe pairsclosed.
+  15tests pass;35current/31prior153/83prior152/276prior151 inputs reconcile.
+  IMPORTANT max healthy receive gap875.677ms crosses Return/new ENTER BEFORE
+  replacement worker_started;worker_ms775.985,no snapshot. Hang gap153.799ms.
+  NOT D8/cadence/causal proof. NEXT finite passive admission/persistence timing
+  attribution,not assumed Popen cause or unchanged native fault variants. Full
+  D4/UI/storage/D8/D1-D9 OPEN. Exact153source archived roomfault154-prior-source01;
+  old seals unchanged. All owned terminal;N9/N10blank/no reports/pins unchanged,
+  no new action/game/helper/package/manual/share change. bot-rpc-faults154.txt.
+
 - PublicFault153 CLOSES selected RC/native public1v1 loss/timeout server subcase:
   two human pairs/original30s ENTER_LOADOUT/HELLO2/full17,ABORTED+RESULTS reason,
   nullresult/no frame10,RETURN2/RETIRED/old offer removed,ticket1->2/same sockets/

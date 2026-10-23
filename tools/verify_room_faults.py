@@ -88,8 +88,32 @@ class Capture:
     def close(self):
         for ref in self.refs.values():ref.close()
 
+def observe_worker_rpc(worker,records):
+    """Record delegated operations without changing arguments, replies or errors."""
+    original=worker._exchange
+    async def exchange(operation,frame,*args,**kwargs):
+        row=dict(operation=operation,frame=frame,started=time.perf_counter(),request_id_before=worker._request_id)
+        records.append(row)
+        try:
+            result=await original(operation,frame,*args,**kwargs)
+            row['status']='reply'
+            return result
+        except BaseException as error:
+            row.update(status='error',error_type=type(error).__name__)
+            raise
+        finally:row.update(ended=time.perf_counter(),request_id_after=worker._request_id)
+    worker._exchange=exchange
+
+def validate_public_frame(peer,payload,frame):
+    from server import public_protocol as public
+    from server.protobuf_wire import get_bytes
+    number,inputs=public.decode_frame(payload,peer.participant_count)
+    require(number==frame,'public frame number differs')
+    require(all(get_bytes(body,1,required=True)==peer.roster[slot] for slot,body in inputs.items()),'public frame identity ownership differs')
+    return inputs
+
 class Peer:
-    def __init__(self,reader,writer):self.reader,self.writer=reader,writer;self.observed=[];self.identity=self.join=None;self.request=0;self.profile=self.lobby_id=self.room_key=None;self.ticket=0;self.public_states=[];self.frame_kind=14
+    def __init__(self,reader,writer):self.reader,self.writer=reader,writer;self.observed=[];self.identity=self.join=None;self.request=0;self.profile=self.lobby_id=self.room_key=None;self.ticket=0;self.public_states=[];self.frame_kind=14;self.participant_count=2;self.roster={}
     async def send(self,kind,body=b''):
         from server import protocol as p
         self.writer.write(p.encode(kind,body));await self.writer.drain()
@@ -131,8 +155,11 @@ async def pair(port,room,tokens,peers,*,server=None,custom=False,public_mode=Fal
     import struct
     from server.game_data import decompress_game_data
     from server.protobuf_wire import get_bytes,get_repeated_bytes,get_uint,field_bytes,field_uint
+    count,human_slots=public.MODES[public_mode] if public_mode else (2,(0,1))
+    template=server.templates[public_mode] if public_mode else server.template
     result=list(existing or [])
-    for slot,token in enumerate(tokens if not existing else []):
+    for index,token in enumerate(tokens if not existing else []):
+        slot=human_slots[index]
         reader,writer=await tls.open_verified_connection('127.0.0.1',port,tls.rc_client_context('127.0.0.1'))
         peer=Peer(reader,writer);peers.append(peer);result.append(peer)
         profile=await admission.authenticate_client(reader,writer,token,rc_open=True)
@@ -141,22 +168,22 @@ async def pair(port,room,tokens,peers,*,server=None,custom=False,public_mode=Fal
             await peer.send(community.HELLO,community.hello(profile,'Fault Player '+str(slot),version=community.PORTRAIT_VERSION))
             r=community.Reader(await peer.receive(community.WELCOME))
             require((r.number('H'),r.number('H'),r.key())==(2,p.VERSION,profile),'current community identity differs');r.deck();r.end()
-            await peer.command(loadout.SET_LOADOUT,struct.pack('<H',loadout.VERSION)+p.deck_bytes(server.template.default_decks[slot])+loadout.encode(server.cosmetic_catalog.normalize_local()))
+            await peer.command(loadout.SET_LOADOUT,struct.pack('<H',loadout.VERSION)+p.deck_bytes(template.default_decks[slot])+loadout.encode(server.cosmetic_catalog.normalize_local()))
         else:
             await peer.send(p.HELLO,p.hello(slot,profile,'Fault Player '+str(slot),room))
             assigned,window,deck=p.decode_welcome(await peer.receive(p.WELCOME));require(assigned==slot and window==6,'peer seat/window differs')
     if public_mode:
-        for slot,peer in enumerate(result):
+        for slot,peer in zip(human_slots,result):
             peer.ticket+=1
-            await peer.public_command(loadout.ENTER_LOADOUT,mode=1,deck=server.template.default_decks[slot],cosmetics=server.cosmetic_catalog.normalize_local(),wait_ms=30000)
+            await peer.public_command(loadout.ENTER_LOADOUT,mode=public_mode,deck=template.default_decks[slot],cosmetics=server.cosmetic_catalog.normalize_local(),wait_ms=30000)
         offered=await asyncio.gather(*(peer.public_phase(public.OFFERED) for peer in result))
         require(offered[0]['match']==offered[1]['match'] and bool(offered[0]['match']),'public proposals differ')
         match=offered[0]['match']
         await asyncio.gather(*(peer.public_command(public.READY,match=match) for peer in result))
-        for slot,peer in enumerate(result):
+        for slot,peer in zip(human_slots,result):
             assignment=public.decode_assignment(await peer.receive(loadout.MATCH_LOADOUT),complete=True)
-            require(assignment['match']==match and assignment['generation']==peer.ticket and assignment['mode']==1 and assignment['slot']==slot and assignment['human_mask']==3 and assignment['count']==2 and assignment['input_window']==6,'public human assignment differs')
-            require(assignment['deck']==list(server.template.default_decks[slot]),'public frozen deck differs')
+            require(assignment['match']==match and assignment['generation']==peer.ticket and assignment['mode']==public_mode and assignment['slot']==slot and assignment['human_mask']==sum(1<<s for s in human_slots) and assignment['count']==count and assignment['input_window']==6,'public human assignment differs')
+            require(assignment['deck']==list(template.default_decks[slot]),'public frozen deck differs')
             assignment['cosmetics'].validate(server.cosmetic_catalog)
             peer.room_key='public_'+match;peer.frame_kind=public.FRAME
         matches=[match.encode('ascii')]*2
@@ -176,9 +203,10 @@ async def pair(port,room,tokens,peers,*,server=None,custom=False,public_mode=Fal
     if not public_mode:matches=await asyncio.gather(*(peer.receive(p.MATCH_INFO) for peer in result));require(matches[0]==matches[1],'match IDs differ')
     bootstraps=await asyncio.gather(*(peer.receive(p.BOOTSTRAP) for peer in result));require(bootstraps[0]==bootstraps[1],'native bootstraps differ')
     config=get_bytes(decompress_game_data(bootstraps[0]),1,required=True)
-    armies={get_uint(a,1):a for a in get_repeated_bytes(config,2)};require(set(armies)=={0,1},'native human roster differs')
-    for slot,peer in enumerate(result):
+    armies={get_uint(a,1):a for a in get_repeated_bytes(config,2)};require(set(armies)==set(range(count)),'native participant roster differs')
+    for slot,peer in zip(human_slots,result):
         army=armies[slot];deck=get_bytes(army,3,required=True);peer.identity=get_bytes(army,2,required=True)
+        peer.participant_count=count;peer.roster={s:get_bytes(a,2,required=True) for s,a in armies.items()}
         join=field_uint(1,slot)+field_bytes(2,deck)
         for target,source in ((3,5),(4,6)):
             value=get_uint(army,source)
@@ -195,8 +223,7 @@ async def advance(peers,frame):
     values=await asyncio.gather(*(peer.receive(peer.frame_kind) for peer in peers))
     require(values[0]==values[1] and __import__('struct').unpack_from('<I',values[0])[0]==frame,'native frames differ')
     if peers[0].frame_kind!=p.FRAME:
-        from server import public_protocol as public
-        require(public.decode_frame(values[0],2)[0]==frame,'public frame structure differs')
+        validate_public_frame(peers[0],values[0],frame)
     return dict(frame=frame,at=time.perf_counter(),sha256=hashlib.sha256(values[0]).hexdigest())
 
 async def scenario(folder,assets,kind,capture,*,custom=False,public_mode=False):
@@ -209,11 +236,14 @@ async def scenario(folder,assets,kind,capture,*,custom=False,public_mode=False):
     folder.mkdir();work=folder/'workers';work.mkdir()
     certificate,key=rc_host.generate_certificate();cert=folder/'server.pem';keypath=folder/'server.key';cert.write_bytes(certificate);keypath.write_bytes(key)
     template=GameTemplate.load(assets/'map-1v1.pb.gz',catalog_path=assets/'unit-catalog.json',descriptors_path=assets/'descriptors')
-    workers=[]
+    workers=[];operations={}
     async def factory(data,*,ai=None):
         worker=await SimulationWorker.create(data,assets/'Simulation.dll',working_directory=work,ai=ai)
         workers.append(worker);require(worker.pid in capture.refs and not capture.errors,'worker primary-thread capture failed')
         require(worker.dll_sha256==p.SIM_SHA and worker.game_data_sha256==hashlib.sha256(data).hexdigest() and not worker._test_backend,'real native worker inputs differ')
+        if public_mode==5:
+            require(ai is not None and set(ai.bots)=={1,3} and worker.ai_info is not None,'native allied AI roster absent')
+            operations[worker.pid]=[];observe_worker_rpc(worker,operations[worker.pid])
         return worker
     extra={}
     if public_mode:
@@ -225,13 +255,13 @@ async def scenario(folder,assets,kind,capture,*,custom=False,public_mode=False):
         for mode,name in ((2,'map-2v2.pb.gz'),(5,'map-2vai.pb.gz')):templates[mode]=GameTemplate.load(assets/name,catalog_path=assets/'unit-catalog.json',descriptors_path=assets/'descriptors')
         extra=dict(templates=templates,bot_catalog=BotCatalog(assets,template=template,rules=RuleBook(assets)),ai_factory=ai_factory)
     audit=HostAudit(folder/'logs',max_bytes=8388608,backups=4,diagnostics=True);server=dedicated.DedicatedServer(template,ProfileStore(folder/'profiles',template,catalog=CosmeticCatalog(assets)),sim_factory=factory,audit=audit,audit_state=True,tls_context=tls.load_server_context(cert,keypath),admission=admission.AdmissionController(None,rc_open=True),**extra)
-    peers=[];healthy_task=None;healthy_stop=asyncio.Event();healthy_frames=[];record=dict(kind=kind,passed=False,route='public' if public_mode else 'custom' if custom else 'direct')
+    peers=[];healthy_task=None;healthy_stop=asyncio.Event();healthy_frames=[];record=dict(kind=kind,passed=False,route='public' if public_mode else 'custom' if custom else 'direct',mode=int(public_mode) if public_mode else 1)
     try:
         port=(await server.start('127.0.0.1',0))[1]
         tokens=[['ba1_'+secrets.token_urlsafe(32) for _ in range(2)] for _ in range(2)]
         if public_mode:
-            victims,match=await pair(port,'victim',tokens[0],peers,server=server,public_mode=True)
-            healthy,healthy_match=await pair(port,'healthy',tokens[1],peers,server=server,public_mode=True)
+            victims,match=await pair(port,'victim',tokens[0],peers,server=server,public_mode=public_mode)
+            healthy,healthy_match=await pair(port,'healthy',tokens[1],peers,server=server,public_mode=public_mode)
         else:(victims,match),(healthy,healthy_match)=await asyncio.gather(pair(port,'victim',tokens[0],peers,server=server,custom=custom),pair(port,'healthy',tokens[1],peers,server=server,custom=custom))
         victim_key,healthy_key=victims[0].room_key,healthy[0].room_key
         room=server.rooms[healthy_key];healthy_worker=room.sim;victim=server.rooms[victim_key].sim;ref=capture.refs[victim.pid]
@@ -245,6 +275,7 @@ async def scenario(folder,assets,kind,capture,*,custom=False,public_mode=False):
             raise AssertionError('healthy room frame budget exceeded')
         healthy_task=asyncio.create_task(pump())
         for frame in range(10):await advance(victims,frame)
+        require(victim.frame==9 and victim._prepared_bots is None,'fault must precede next native request')
         fault_at=time.perf_counter();record.update(victim_pid=victim.pid,healthy_pid=healthy_worker.pid,thread_identity=ref.identity,fault_at=fault_at,request_timeout=3,close_timeout=2)
         if kind=='crash':ref.validate(victim);victim.process.kill();record['injected_termination']=True
         else:record['suspend_previous_count']=ref.suspend(victim)
@@ -294,6 +325,16 @@ async def scenario(folder,assets,kind,capture,*,custom=False,public_mode=False):
         failed_frames=[r['frame'] for r in selected if r['event']=='frame_queued'];require(failed_frames==list(range(10)),'failed-frame audit differs')
         aborts=[r for r in selected if r['event']=='match_aborted'];require(len(aborts)==1 and aborts[0]['result'] is None and aborts[0]['next_frame']==10,'victim audit invented a result')
         failures=[r for r in selected if r['event']=='simulation_error'];require(len(failures)==1 and failures[0]['error'].startswith('WorkerTimeout(' if kind=='hang' else 'WorkerError('),'worker failure category differs')
+        if public_mode==5:
+            from server import simulation_worker as ipc
+            victim_ops=operations[victim.pid]
+            failed=[r for r in victim_ops if r['frame']==10 and r['operation'] in (ipc.BOT_INPUT,ipc.STEP)]
+            require(len(failed)==1 and failed[0]['operation']==ipc.BOT_INPUT and failed[0]['status']=='error' and failed[0]['error_type']==('WorkerTimeout' if kind=='hang' else 'WorkerError'),'fault did not stop BOT_INPUT before STEP')
+            if kind=='hang':require(failed[0]['request_id_after']==failed[0]['request_id_before']+1 and failed[0]['ended']-failed[0]['started']>=2.8,'native BOT_INPUT timeout exchange absent')
+            for worker,frames in ((victim,10),(healthy_worker,len(healthy_frames)),(server.rooms[replacement[0].room_key].sim,10)):
+                successful=[(r['operation'],r['frame']) for r in operations[worker.pid] if r['status']=='reply' and r['operation'] in (ipc.BOT_INPUT,ipc.STEP)]
+                require(successful==[(op,frame) for frame in range(frames) for op in (ipc.BOT_INPUT,ipc.STEP)],'native bot preparation/step sequence differs')
+            record.update(failed_rpc='BOT_INPUT',participant_count=4,human_slots=[0,2],bot_slots=[1,3],native_ai_info={str(w.pid):w.ai_info for w in workers})
         delivered=[r for r in rows if r.get('match')==healthy_match and r['event']=='frame_queued']
         require([r['frame'] for r in delivered]==list(range(len(healthy_frames))) and [r['frame_payload_sha256'] for r in delivered]==[r['sha256'] for r in healthy_frames],'healthy host/client frame journal differs')
         record.update(passed=True,healthy_frames=healthy_frames,max_healthy_gap_ms=max(gaps),replacement_match=replacement_match,replacement_frames=10,failed_frame_not_published=True,unknown_result_abort=True,healthy_same_room_and_worker=True)
@@ -305,6 +346,7 @@ async def scenario(folder,assets,kind,capture,*,custom=False,public_mode=False):
         finally:
             await asyncio.gather(*(worker.close() for worker in workers),return_exceptions=False);audit.close()
         record['worker_exits']=[dict(pid=worker.pid,exit_code=worker.process.poll()) for worker in workers]
+        if operations:record['worker_operations']={str(pid):rows for pid,rows in operations.items()}
         require(all(row['exit_code'] is not None for row in record['worker_exits']),'owned worker survived scenario')
         require(all(row['exit_code']==0 for row in record['worker_exits'] if row['pid']!=record.get('victim_pid')),'healthy/replacement worker did not close normally')
         save(folder/'result.json',record)
@@ -372,8 +414,10 @@ def run(package,assets,out,*,custom=True,public_mode=False):
 
 if __name__=='__main__':
     parser=argparse.ArgumentParser(description=__doc__);parser.add_argument('--child-request',type=Path,help=argparse.SUPPRESS)
-    parser.add_argument('--direct-rooms',action='store_true',help='legacy direct-room comparison instead of current Custom flow')
-    parser.add_argument('--public',action='store_true',dest='public_mode',help='two complete human public1v1 rooms, original queue/Ready/Return')
+    routes=parser.add_mutually_exclusive_group()
+    routes.add_argument('--direct-rooms',action='store_true',help='legacy direct-room comparison instead of current Custom flow')
+    routes.add_argument('--public',action='store_const',const=1,default=0,dest='public_mode',help='two complete human public1v1 rooms, original queue/Ready/Return')
+    routes.add_argument('--public-ai',action='store_const',const=5,dest='public_mode',help='two allied2vAI rooms; native BOT_INPUT loss/timeout before STEP')
     for name in ('package','assets','output'):parser.add_argument('--'+name,type=Path)
     args=parser.parse_args()
     if args.child_request:raise SystemExit(child(args.child_request))

@@ -3,6 +3,18 @@ Updated: 2026-10-23
 Delivery plan: REMAINING_DELIVERY_PLAN.txt, Windows only.
 Original roadmap: CLOSED / SUPERSEDED;see PLAN_CLOSEOUT.txt.
 
+BOT RPC154 - REAL ALLIED2vAI WORKER LOSS/TIMEOUT / RETURN / SAME-SESSION RETRY
+Selected mode5 native BOT_INPUT branch PASS17.426s,15focused tests pass. Humans
+0/2,bots1/3,real AIprofile60/four slot identities;failed frame10 has BOT_INPUT
+error and NO STEP. Original ABORTED/RESULTS/RETURN2/RETIRED/ticket1->2/same sockets/
+10frame rematch/fullprofile bytes preserved. Healthy same room/worker51/111frames,
+61during3s timeout. Victims1/other0 exits,controller0/job18/0/0/no extra cleanup.
+Observed875.677ms healthy gap across new ENTER before replacement worker starts,
+153.799ms in hang case;D8 concern retained,NOT smoothness/causal proof. Next bound
+admission/persistence timing.35current/31prior153/83prior152/276prior151 inputs
+reconcile. Whole D4/D8/D1-D9 open,no new Nick action/product/package/share change.
+Evidence:bot-rpc-faults154.txt.
+
 PUBLIC FAULT153 - ORIGINAL RESULTS/RETURN/RETIRED/FRESH TICKET AFTER WORKER FAILURE
 Selected server-side public1v1 native/RC control PASS13.198s. ABORTED+ticket-bound
 RESULTS reason/nullresult/no frame10,original RETURN2/RETIRED/old offer gone;
