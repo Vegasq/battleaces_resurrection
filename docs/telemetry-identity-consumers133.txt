@@ -1,0 +1,70 @@
+SHARED IDENTITY CONSUMER CLASSIFICATION133
+2026-10-22. Static source classification;full D5 remains OPEN/false.
+
+Result
+132's two remaining direct getter routes now have concrete roles.10e270 is the
+public UnityEngine.SystemInfo::GetDeviceUniqueIdentifier wrapper.5920b0 seeds
+shared engine random state used by registered UnityEngine.Random APIs,and a
+second owner in particle-system-related initialization. These functions are not
+analytics-only boundaries;keep their allocation/output/API contracts intact.
+The three analytics call sites already guarded in132 remain covered. No new
+product patch or duplicate refresh guard is justified by this evidence.
+
+Actual public binding,not adjacent-table inference
+Complete readerfd2420 obtains module base R12 atfd2441. It loads functions from
+18c8e40 atfd2450 and names from18cfac0 atfd2461 using the SAME R14 offset,passes
+function/name asRDX/RCX to registration atfd2498,increments R14 by8,and bounds
+the loop to0xd8f=3471. Index2402 pairs function slot18cd950/10e270 with name slot
+18d45d0/literal18f57a0=UnityEngine.SystemInfo::GetDeviceUniqueIdentifier.
+The wrapper invokes shared9fb910 and converts its borrowed result to a managed
+string through existing runtime callbacks. It is not an ads callback binding.
+
+Initial contiguous-code-pointer candidate included four preceding entries and
+suggested index2406. That output is retained as a candidate,not authoritative
+table bounds. The actual reader establishes index2402. RIP-only reference
+search did not find this reader because it uses module-base+index+RVA operands;
+raw RVA32 candidates led to the verified instructions. Do not turn an absent
+RIP reference into proof that a table or function is unused.
+
+Shared random-state consumers
+Executable direct E8/E9 instruction verification finds exactly two5920b0 calls:
+ *592041 in591fe0:allocates/initializes16bytes,invokes seed builder,publishes
+  pointer to global1d0cbe0 at592046.
+ *d5f80a in constructord5f730:initializes state atreceiver+c0. Its direct caller
+  d5fc39 in startupd5fae0 references gParticleSystemTRSInterest and speed.
+  The particle-system-related role is inferred,not a recovered class symbol.
+Actual reader indices2185..2197 bind thirteen UnityEngine.Random names:InitState,
+state access,Range/value/vector/rotation and seed. Registered insideUnitSphere
+implementationf4e50 loads the SAME1d0cbe0 atf4e5a. Thus replacing the shared
+builder with RET/zero output would affect engine random initialization.
+The helper mixes timing/process/state/hash inputs and shared machine-ID query
+into seed state. This review does NOT claim automatic ID queries are absent.
+No live ID/seed value was read and no native query/constructor was executed.
+
+Verification and scope
+70 independent assertions PASS across14 complete original merged-unwind roots:
+reader operands/bounds,same-index selected14bindings,two relative seed calls,
+same global publication/consumption,original body hashes and actual installed130
+full-body preservation. References without unwind extents remain unverified in
+follow-contract.json;their registration names do not invent native body bounds.
+No game/build/install/package/profile/queue change.130/N7 and all Nick answers
+stay unchanged. No new user action or repeat playtest requested.
+
+REA skill with retained original PE/LLVM fallback;known unavailable Ghidra not
+retried. NOT REA decompilation/runtime Evidence. Original hash/tool pin are the
+same as132. Raw originals/disassembly/scripts/reports remain ignored under
+local/privacy133-identity-consumers01. Evidence-manifest.json SHA256:
+ 4082236a09e65bf90d36ee29a0d170c4215b905315fcdee062147777082c6544
+verification.json SHA256:
+ 4e3b1c94ee328da3983ec13576bd36c90c91e6b9b11172bfd92a69c46b9e04e9
+bindings.json SHA256:
+ 20e0ddeaad772713477313c9fd23e73dfdcf80b63784e8dd20a2ba29b9f4d1b9
+reader-candidates.json SHA256:
+ b25f5dcba29d55595089881b489e5ba53da9780d5864d0311a7a9b7c812e0569
+
+Next
+Classify managed GameAssembly callers of public SystemInfo identity access;
+do not globally patch the shared getter or random-state initialization.
+Retain the separate c307c0 upstream advertising-producer question and broader
+native/source,mode/error/reporting/descendant/final-artifact gates. Existing
+quiet AI runs or this finite static classification cannot close full D5.

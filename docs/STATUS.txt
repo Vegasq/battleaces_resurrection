@@ -3,6 +3,15 @@ Updated: 2026-10-22
 Delivery plan: REMAINING_DELIVERY_PLAN.txt, Windows only.
 Original roadmap: CLOSED / SUPERSEDED;see PLAN_CLOSEOUT.txt.
 
+SOURCE133 - TWO SHARED IDENTITY ROUTES CLASSIFIED
+Actual native same-index reader identifies10e270 public SystemInfo identity API.
+5920b0 seeds shared state consumed by13 registered Unity Random APIs and a
+particle-related initializer.70static checks/14full roots/current130 preservation
+pass. No shared getter/random initialization patch or game run. Finite132 source
+question closed;next managed SystemInfo callers,with independent advertising
+producer/full D5 still OPEN.130/N7 unchanged. Scope/hashes:
+telemetry-identity-consumers133.txt.
+
 SOURCE132 - FINITE DIRECT MACHINE-ID CALL COVERAGE VERIFIED
 Five verified direct calls;three analytics routes already guarded in actual130.
 136static assertions pass. Initial missing-refresh-guard assumption FAILED;

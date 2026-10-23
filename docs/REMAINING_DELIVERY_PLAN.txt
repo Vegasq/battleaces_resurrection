@@ -393,9 +393,14 @@ already cut;then supported runtime/final artifacts. Full D5 stays OPEN.
     no duplicate guard/new runtime run. Platform/base31-entry tables differ only
     at four known slots,no new Windows-only ads override in this table pair.
     Scope/failure/hashes:telemetry-platform-coverage132.txt. Full D5 stays OPEN.
-[ ] Next source:classify10e270/5920b0 registrations/consumers before changing
-    remaining direct getter routes;retain separate c307c0 upstream producer gate.
-    Indirect/computed calls and broader runtime/reporting gates remain open.
+[x] Review133 classifies10e270/5920b0:actual fd2420 reader binds public SystemInfo
+    identity wrapper and13 Unity Random APIs consuming shared seeded state.
+    Second seed owner is particle-related(inference).70static checks/14full
+    roots and installed130 preservation pass. Keep shared query/random init;
+    no duplicate/global guard/game run. Details:telemetry-identity-consumers133.txt.
+[ ] Next source:classify managed GameAssembly SystemInfo identity callers;
+    retain separate c307c0 upstream producer gate. Indirect/computed calls and
+    broader runtime/reporting gates remain open;full D5 stays false.
 S1 CLOSED BY126:all FIVE safe interior SDK guards,with genuine matched/unmatched
 pending-owner cleanup and disabled-ID qualification.125 found failed/cache
 handlers can enumerate/prune AFTER WriteFile RET;do not entry-RET those handlers

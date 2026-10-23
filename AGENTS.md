@@ -2,6 +2,18 @@
 
 ## Requests and answers with Nick
 
+- Source133 CLOSES132's finite two-route classification:actual fd2420 reader
+  pairs core function18c8e40/name18cfac0,count3471,index2402 ->10e270 public
+  SystemInfo.GetDeviceUniqueIdentifier. Candidate contiguous index2406 was NOT
+  actual bound. Reader uses module-base+index+RVA,so negative RIP scan insufficient.
+  5920b0 seeds16-byte global1d0cbe0 used by13 registered Random APIs;second owner
+  d5f730 called from particle-related d5fae0(inference,literal anchored). Preserve
+  shared getters/random init;NO new patch.70static checks/14full roots and actual
+  installed130 preservation pass,no query/game/build/install. Next managed
+  GameAssembly SystemInfo consumers;keep c307c0 producer/full D5 OPEN/false.
+  Evidence/scopes:docs/telemetry-identity-consumers133.txt.130/N7 unchanged,no new
+  Nick action or equivalent quiet AI run.
+
 - Source132:finite shared9fb910 executable direct-call inventory is FIVE verified
   sites;all THREE analytics routes already guarded in recipe17/installed130.
   Initial assertion of missing c32468 guard FAILED;110 already covers it,do NOT
