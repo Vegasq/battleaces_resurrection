@@ -1,0 +1,97 @@
+PUBLIC ROOM FAULT153 - NATIVE ABORT / RESULTS / RETURN / FRESH TICKET
+2026-10-23. Selected D4 public1v1 server-side fault/retry subtask COMPLETE.
+Full D4 graphical/team-bot/storage and D1-D9 remain OPEN.
+
+Outcome
+Two concurrent public1v1 matches use real native workers and RC TLS on the actual
+151bundled runtime. Both have two humans,human_mask3,count2,no fallback/bots.
+Current HELLO2/full17-slot loadouts enter with the original30000ms queue deadline.
+Complete human pairs match normally without waiting for AI fill. Clock,worker
+3second request/2second close,50ms simulation step and input window6 are unchanged.
+
+One owned worker is deliberately terminated;the other case suspends only its
+retained primary thread before the next STEP. These controls test process loss/
+unresponsive IPC,not a spontaneous access violation or a particular DLL deadlock.
+Each affected match delivers exact ABORTED(match,server simulation error) and
+ticket-bound public RESULTS with that reason. Audit result is null,next_frame10;
+only frames0..9 publish. There is no failedframe10,MATCH_END or invented winner.
+
+Both original connections acknowledge public RETURN. Wire RETIRED states and the
+actual queue/offer tables confirm ticket1/old offer release. The same connections
+enter with ticket2,receive fresh complete human assignments/bootstraps and advance
+10replacement frames. No reconnect or forced fallback substitutes for retry.
+All four saved deck/full17-slot profile files stay byte-identical. The healthy
+room retains its object/worker and advances while the failure is handled.
+
+Actual control01 PASS13.198s,child12.765s:
+- Termination:abort0.0469s,victim1096 exits1 as injected;healthy32264 and replacement
+  31968 exit0. Healthy40frames,max gap223.43ms.
+- Unresponsive primary:abort3.0814s using the default3s request deadline;victim16252
+  exits1 through ordinary failed-worker disposal;healthy31564 and replacement15888
+  exit0. Healthy100frames,61during the failure window,max gap141.32ms.
+There are cadence-reset events (3/2 respectively). These bounded local measurements
+are not a supported cadence,capacity,click-to-action,Internet or graphical-lag
+claim;D8 retains that work. The diagnostic stall ceiling is1000ms. No input window,
+clock or timeout was relaxed to obtain a pass.
+
+All six simulation workers reap. Six duplicated process/thread pairs close.
+Controller exits0;owned job18total/0active/0job-terminated,no additional harness
+cleanup. Victim exit1 is expected injection/disposal,not normal shutdown. No game
+executable,existing host or protected owner state is selected.
+
+Implementation
+tools/verify_room_faults.py adds explicit --public. The existing Custom/default
+and --direct-rooms paths remain available. The source archive
+local/roomfault153-prior-source01.py is exact152905c8705source,so old152evidence
+does not depend on the new implementation's hash. No production Python/helper/
+patch/asset/package bytes changed.
+
+The new peer validates public STATE through the production decoder and binds
+phase,ticket and optional exact match ID. public_command shares the monotonic
+community request counter and current uint64 ticket. It uses original ENTER_LOADOUT,
+READY,complete MATCH_LOADOUT,public FRAME,RETURN and RETIRED messages. Both frame
+streams are validated by decode_frame(count2),remain byte-identical and match the
+host's per-frame hashes. Two public pairs are entered sequentially to prevent
+unrelated waiting humans being paired across the intended test groups.
+
+The server is configured with the actual supported templates,BotCatalog,RuleBook
+and production AISetup factory,as the packaged host is. No fake bot capability
+or factory satisfies admission. These all-human matches use the normal non-AI
+worker factory;BOT_INPUT/team/AI fault behavior is not inferred. All three offers
+per case have fallback:false and two human profiles;their ticket pairs are
+[1,1],[1,1],[2,2]. Per case:4community joins/4full-loadout saves/6queue entries/
+3offers/3native workers/3starts. Initial and replacement frames use actual native
+roster identities/joins,not synthetic worker replies or a replaced STEP API.
+
+Ownership/injection remains152's source-anchored own CreateProcess handle capture:
+reduced duplicates,PID/TID/both FILETIMEs/live worker job validation,prior suspend
+count0 and exact one-increment rollback on refusal. No global enumeration,remote
+memory,privilege/policy change or production timeout override. Context:
+room-fault-isolation152.txt.
+
+Verification and retained state
+10focused tests PASS0.051s:the six ownership/output-boundary checks plus four
+public-peer controls rejecting stale tickets,wrong-match Results and malformed
+state,with next request/current ticket checked by the real command decoder.
+Actual native output is local/roomfault153-native01/verification.json,its
+child-report and crash/hang result/audit files. These successful reports are not
+edited or regenerated. Driver SHA256:
+5738f30e5f65794e4557cdfded1fc4d57239e7c2ffac31de21c2fd732d8347c7.
+Package source07d2a7b9e4b1f5ad8fbe3f294768b5b6df584ea9;server ZIP:
+969f5c0b16eb70166fc0fe3e9ca581eeeb8c4a9f30bc8ecc246419db332d50d7.
+All119asset files and package files verify after execution as well as before.
+Read-only reconciliation local/roomfault153-review01.json PASS:31 current inputs,
+83 prior152 inputs (changed driver resolved by its exact archived152 source),
+276 prior151 inputs and all six pending N10 pins verified. It independently
+checks frame hashes against host events,three real offers/tickets,no completed
+winner,two Return retirements,profile bytes and actual terminal worker/job exits.
+Successful native reports and older seals remain unchanged.
+
+Limits/next
+This closes selected server-side public1v1 worker-loss/timeout abort,explicit
+Return/ticket retirement and same-session retry with another live room. It is
+not Unity UI/Continue/search presentation,completed game/results acceptance,
+team/AI BOT_INPUT fault coverage,private recovery,SCM or full D4/D8 qualification.
+Reuse this pass and152Custom;continue genuinely missing mode/RPC/client/storage
+and D1-D9 gates. N9/N10 answers/reports remain pending and their six input pins
+stay unchanged. No new Nick action or manual/share/release change.

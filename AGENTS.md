@@ -2,6 +2,20 @@
 
 ## Requests and answers with Nick
 
+- PublicFault153 CLOSES selected RC/native public1v1 loss/timeout server subcase:
+  two human pairs/original30s ENTER_LOADOUT/HELLO2/full17,ABORTED+RESULTS reason,
+  nullresult/no frame10,RETURN2/RETIRED/old offer removed,ticket1->2/same sockets/
+  fresh10frame replacement/fullprofile bytes retained. Healthy same room/worker
+  40/100frames,61during default3s timeout. Control13.198s/6workers reaped(victims1,
+  others0)/6dupe pairsclosed/controller0/job18/0/0/no extra cleanup.10tests pass.
+  Max gaps223/141ms+cadence resets retained,NOT D8/performance acceptance. Real
+  bot capability configured,all offers2humans/fallbackfalse;NO BOT_INPUT/team/UI/
+  completedgame/fullD4 inference. Native/production/package unchanged. Exact152
+  source905c8705 archived local/roomfault153-prior-source01.py;old seals resolve
+  it,never rewrite152reports. NEXT finite AI/team RPC/client/storage/D1-D9,
+  not unchanged public1v1/Custom repeat. N9/N10blank/no reports;readDEVfirst.
+  All owned terminal;no new Nick action/manual/share change. public-room-faults153.txt.
+
 - RoomFault152 CLOSES packaged RC/native 2human Custom1v1 abrupt-loss/unresponsive
   worker isolation subtask. Real151runtime/119assets/default request3s/close2s,
   no synthetic backend. Both victims abort/resultnull/frame10unpublished;fresh

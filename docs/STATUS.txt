@@ -3,6 +3,17 @@ Updated: 2026-10-23
 Delivery plan: REMAINING_DELIVERY_PLAN.txt, Windows only.
 Original roadmap: CLOSED / SUPERSEDED;see PLAN_CLOSEOUT.txt.
 
+PUBLIC FAULT153 - ORIGINAL RESULTS/RETURN/RETIRED/FRESH TICKET AFTER WORKER FAILURE
+Selected server-side public1v1 native/RC control PASS13.198s. ABORTED+ticket-bound
+RESULTS reason/nullresult/no frame10,original RETURN2/RETIRED/old offer gone;
+same sockets/ticket1->2/10frame replacement/full17profile bytes retained. Other
+same room/worker advances40/100frames,61during3s timeout. Victims1/other0 exits,
+controller0/job18/0/0/no extra cleanup/6dupe pairsclosed.10focused tests pass.
+Max gaps223/141ms/cadence resets retained,NOT D8/capacity/UI/performance proof.
+Real bot capability configured but no bot/fallback used. Team/BOT_INPUT/client/
+storage/fullD4 remain OPEN. Exact old152source archived;no production/package/
+manual/share/new Nick action. Evidence:public-room-faults153.txt.
+
 ROOM FAULT152 - REAL PACKAGED WORKER LOSS/TIMEOUT CONFINED TO ONE ROOM
 Selected D4 server-side control PASS10.630s:two concurrent RC TLS/Custom1v1rooms,
 one deliberate worker termination or primary-thread suspension. Default3s request

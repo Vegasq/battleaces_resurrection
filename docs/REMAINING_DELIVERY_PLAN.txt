@@ -297,6 +297,14 @@ References: practice-difficulty.txt, menu-profile-binding.txt, cosmetic-unlock.t
 cosmetic-persistence.txt, cosmetic-community.txt and manual35's retained feedback.
 
 [ ] D4 - Close lifecycle, storage, replay and failure coverage
+[x]153 server-side packaged RC/native public1v1 worker loss/timeout control:
+    ABORTED+RESULTS/nullresult/no failedframe10,RETURN2/RETIRED/old offer removed,
+    same sockets/ticket1->2/fresh10frames/full17profile bytes preserved. Healthy
+    same room/worker40/100frames,61during3s timeout.13.198s/controller0/job18/0/0,
+    victim1/others0,6dupe pairsclosed/no extra cleanup.10tests pass. Max gaps223/
+    141ms/cadence resets NOT D8 proof. All human/no fallback;real bot capability
+    configured,not BOT_INPUT/team/UI/completedgame/fullD4 acceptance. Prior152
+    source archived;no new product/package/manual/action. public-room-faults153.txt.
 [x]152 server-side packaged RC/native two-Custom-room worker loss/timeout isolation:
     deliberate TerminateProcess or retained-primary-thread suspension;default3s/
     2s policies unchanged. Victim abort/resultnull/no failedframe10,10frame fresh

@@ -89,17 +89,18 @@ class Capture:
         for ref in self.refs.values():ref.close()
 
 class Peer:
-    def __init__(self,reader,writer):self.reader,self.writer=reader,writer;self.observed=[];self.identity=self.join=None;self.request=0;self.profile=self.lobby_id=self.room_key=None
+    def __init__(self,reader,writer):self.reader,self.writer=reader,writer;self.observed=[];self.identity=self.join=None;self.request=0;self.profile=self.lobby_id=self.room_key=None;self.ticket=0;self.public_states=[];self.frame_kind=14
     async def send(self,kind,body=b''):
         from server import protocol as p
         self.writer.write(p.encode(kind,body));await self.writer.drain()
     async def receive(self,expected):
-        from server import protocol as p,community_protocol as community,loadout_protocol as loadout
+        from server import protocol as p,community_protocol as community,loadout_protocol as loadout,public_protocol as public
         async with asyncio.timeout(8):
             for _ in range(128):
                 kind,body=await p.receive(self.reader);self.observed.append((kind,body))
+                if kind==public.STATE:self.public_states.append(public.decode_state(body))
                 if kind==expected:return body
-                require(kind in (p.LOBBY,p.NOTICE,p.MATCH_INFO,community.DIRECTORY,community.DIRECTORY_PORTRAITS,community.LOBBY,community.INVITATION,loadout.LOBBY_LOADOUT),'unexpected peer packet')
+                require(kind in (p.LOBBY,p.NOTICE,p.MATCH_INFO,community.DIRECTORY,community.DIRECTORY_PORTRAITS,community.LOBBY,community.INVITATION,loadout.LOBBY_LOADOUT,public.STATE),'unexpected peer packet')
         raise AssertionError('peer message budget')
     async def command(self,kind,body=b''):
         from server import community_protocol as community
@@ -109,13 +110,24 @@ class Peer:
         require((r.number('I'),r.number('B'))==(self.request,kind),'command acknowledgement differs')
         accepted,reason,identity=r.flag(),r.text(),r.text();r.end()
         require(accepted,'community command refused: '+reason);return identity
+    async def public_command(self,kind,**fields):
+        from server import public_protocol as public
+        body=public.command(kind,self.request+1,self.ticket,**fields)
+        return await self.command(kind,body[4:])
+    async def public_phase(self,phase,*,match=None):
+        from server import public_protocol as public
+        async with asyncio.timeout(8):
+            while True:
+                candidates=[s for s in self.public_states if s['ticket']==self.ticket and s['phase']==phase and (match is None or s['match']==match)]
+                if candidates:return candidates[-1]
+                await self.receive(public.STATE)
     async def close(self):
         self.writer.close()
         try:await asyncio.wait_for(self.writer.wait_closed(),2)
         except (OSError,TimeoutError):self.writer.transport.abort()
 
-async def pair(port,room,tokens,peers,*,server=None,custom=False,existing=None):
-    from server import protocol as p,tls_transport as tls,admission,community_protocol as community,loadout_protocol as loadout
+async def pair(port,room,tokens,peers,*,server=None,custom=False,public_mode=False,existing=None):
+    from server import protocol as p,tls_transport as tls,admission,community_protocol as community,loadout_protocol as loadout,public_protocol as public
     import struct
     from server.game_data import decompress_game_data
     from server.protobuf_wire import get_bytes,get_repeated_bytes,get_uint,field_bytes,field_uint
@@ -125,7 +137,7 @@ async def pair(port,room,tokens,peers,*,server=None,custom=False,existing=None):
         peer=Peer(reader,writer);peers.append(peer);result.append(peer)
         profile=await admission.authenticate_client(reader,writer,token,rc_open=True)
         peer.profile=profile;peer.room_key=room
-        if custom:
+        if custom or public_mode:
             await peer.send(community.HELLO,community.hello(profile,'Fault Player '+str(slot),version=community.PORTRAIT_VERSION))
             r=community.Reader(await peer.receive(community.WELCOME))
             require((r.number('H'),r.number('H'),r.key())==(2,p.VERSION,profile),'current community identity differs');r.deck();r.end()
@@ -133,7 +145,22 @@ async def pair(port,room,tokens,peers,*,server=None,custom=False,existing=None):
         else:
             await peer.send(p.HELLO,p.hello(slot,profile,'Fault Player '+str(slot),room))
             assigned,window,deck=p.decode_welcome(await peer.receive(p.WELCOME));require(assigned==slot and window==6,'peer seat/window differs')
-    if custom:
+    if public_mode:
+        for slot,peer in enumerate(result):
+            peer.ticket+=1
+            await peer.public_command(loadout.ENTER_LOADOUT,mode=1,deck=server.template.default_decks[slot],cosmetics=server.cosmetic_catalog.normalize_local(),wait_ms=30000)
+        offered=await asyncio.gather(*(peer.public_phase(public.OFFERED) for peer in result))
+        require(offered[0]['match']==offered[1]['match'] and bool(offered[0]['match']),'public proposals differ')
+        match=offered[0]['match']
+        await asyncio.gather(*(peer.public_command(public.READY,match=match) for peer in result))
+        for slot,peer in enumerate(result):
+            assignment=public.decode_assignment(await peer.receive(loadout.MATCH_LOADOUT),complete=True)
+            require(assignment['match']==match and assignment['generation']==peer.ticket and assignment['mode']==1 and assignment['slot']==slot and assignment['human_mask']==3 and assignment['count']==2 and assignment['input_window']==6,'public human assignment differs')
+            require(assignment['deck']==list(server.template.default_decks[slot]),'public frozen deck differs')
+            assignment['cosmetics'].validate(server.cosmetic_catalog)
+            peer.room_key='public_'+match;peer.frame_kind=public.FRAME
+        matches=[match.encode('ascii')]*2
+    elif custom:
         if not existing:
             lobby_id=await result[0].command(community.CREATE,b'\x01')
             invitation=await result[0].command(community.INVITE,p.encode_string(result[1].profile))
@@ -146,7 +173,7 @@ async def pair(port,room,tokens,peers,*,server=None,custom=False,existing=None):
         for slot,peer in enumerate(result):
             assigned,window,deck=p.decode_welcome(await peer.receive(p.WELCOME));require(assigned==slot and window==6 and deck==list(server.template.default_decks[slot]),'custom seat/deck differs')
     else:await asyncio.gather(*(peer.send(p.LOBBY_READY,b'\x01') for peer in result))
-    matches=await asyncio.gather(*(peer.receive(p.MATCH_INFO) for peer in result));require(matches[0]==matches[1],'match IDs differ')
+    if not public_mode:matches=await asyncio.gather(*(peer.receive(p.MATCH_INFO) for peer in result));require(matches[0]==matches[1],'match IDs differ')
     bootstraps=await asyncio.gather(*(peer.receive(p.BOOTSTRAP) for peer in result));require(bootstraps[0]==bootstraps[1],'native bootstraps differ')
     config=get_bytes(decompress_game_data(bootstraps[0]),1,required=True)
     armies={get_uint(a,1):a for a in get_repeated_bytes(config,2)};require(set(armies)=={0,1},'native human roster differs')
@@ -165,12 +192,15 @@ async def advance(peers,frame):
     from server import protocol as p
     from server.game_data import encode_player_input
     await asyncio.gather(*(peer.send(p.INPUT,__import__('struct').pack('<I',frame)+encode_player_input(peer.identity,[peer.join] if frame==0 else [])) for peer in peers))
-    values=await asyncio.gather(*(peer.receive(p.FRAME) for peer in peers))
+    values=await asyncio.gather(*(peer.receive(peer.frame_kind) for peer in peers))
     require(values[0]==values[1] and __import__('struct').unpack_from('<I',values[0])[0]==frame,'native frames differ')
+    if peers[0].frame_kind!=p.FRAME:
+        from server import public_protocol as public
+        require(public.decode_frame(values[0],2)[0]==frame,'public frame structure differs')
     return dict(frame=frame,at=time.perf_counter(),sha256=hashlib.sha256(values[0]).hexdigest())
 
-async def scenario(folder,assets,kind,capture,*,custom=False):
-    from server import protocol as p,dedicated_server as dedicated,admission,tls_transport as tls,rc_host,community_protocol as community
+async def scenario(folder,assets,kind,capture,*,custom=False,public_mode=False):
+    from server import protocol as p,dedicated_server as dedicated,admission,tls_transport as tls,rc_host,community_protocol as community,public_protocol as public
     from server.game_data import GameTemplate
     from server.cosmetics import CosmeticCatalog
     from server.profiles import ProfileStore
@@ -180,17 +210,29 @@ async def scenario(folder,assets,kind,capture,*,custom=False):
     certificate,key=rc_host.generate_certificate();cert=folder/'server.pem';keypath=folder/'server.key';cert.write_bytes(certificate);keypath.write_bytes(key)
     template=GameTemplate.load(assets/'map-1v1.pb.gz',catalog_path=assets/'unit-catalog.json',descriptors_path=assets/'descriptors')
     workers=[]
-    async def factory(data):
-        worker=await SimulationWorker.create(data,assets/'Simulation.dll',working_directory=work)
+    async def factory(data,*,ai=None):
+        worker=await SimulationWorker.create(data,assets/'Simulation.dll',working_directory=work,ai=ai)
         workers.append(worker);require(worker.pid in capture.refs and not capture.errors,'worker primary-thread capture failed')
         require(worker.dll_sha256==p.SIM_SHA and worker.game_data_sha256==hashlib.sha256(data).hexdigest() and not worker._test_backend,'real native worker inputs differ')
         return worker
-    audit=HostAudit(folder/'logs',max_bytes=8388608,backups=4,diagnostics=True);server=dedicated.DedicatedServer(template,ProfileStore(folder/'profiles',template,catalog=CosmeticCatalog(assets)),sim_factory=factory,audit=audit,audit_state=True,tls_context=tls.load_server_context(cert,keypath),admission=admission.AdmissionController(None,rc_open=True))
-    peers=[];healthy_task=None;healthy_stop=asyncio.Event();healthy_frames=[];record=dict(kind=kind,passed=False,route='custom' if custom else 'direct')
+    extra={}
+    if public_mode:
+        from server.worker_ai import AISetup
+        from server.ai_rules import RuleBook
+        from server.bot_catalog import BotCatalog
+        async def ai_factory(data,bots):return await factory(data,ai=AISetup(assets,bots))
+        templates={1:template}
+        for mode,name in ((2,'map-2v2.pb.gz'),(5,'map-2vai.pb.gz')):templates[mode]=GameTemplate.load(assets/name,catalog_path=assets/'unit-catalog.json',descriptors_path=assets/'descriptors')
+        extra=dict(templates=templates,bot_catalog=BotCatalog(assets,template=template,rules=RuleBook(assets)),ai_factory=ai_factory)
+    audit=HostAudit(folder/'logs',max_bytes=8388608,backups=4,diagnostics=True);server=dedicated.DedicatedServer(template,ProfileStore(folder/'profiles',template,catalog=CosmeticCatalog(assets)),sim_factory=factory,audit=audit,audit_state=True,tls_context=tls.load_server_context(cert,keypath),admission=admission.AdmissionController(None,rc_open=True),**extra)
+    peers=[];healthy_task=None;healthy_stop=asyncio.Event();healthy_frames=[];record=dict(kind=kind,passed=False,route='public' if public_mode else 'custom' if custom else 'direct')
     try:
         port=(await server.start('127.0.0.1',0))[1]
         tokens=[['ba1_'+secrets.token_urlsafe(32) for _ in range(2)] for _ in range(2)]
-        (victims,match),(healthy,healthy_match)=await asyncio.gather(pair(port,'victim',tokens[0],peers,server=server,custom=custom),pair(port,'healthy',tokens[1],peers,server=server,custom=custom))
+        if public_mode:
+            victims,match=await pair(port,'victim',tokens[0],peers,server=server,public_mode=True)
+            healthy,healthy_match=await pair(port,'healthy',tokens[1],peers,server=server,public_mode=True)
+        else:(victims,match),(healthy,healthy_match)=await asyncio.gather(pair(port,'victim',tokens[0],peers,server=server,custom=custom),pair(port,'healthy',tokens[1],peers,server=server,custom=custom))
         victim_key,healthy_key=victims[0].room_key,healthy[0].room_key
         room=server.rooms[healthy_key];healthy_worker=room.sim;victim=server.rooms[victim_key].sim;ref=capture.refs[victim.pid]
         profiles_before={p.name:sha(p) for p in (folder/'profiles').glob('*.json')}
@@ -207,23 +249,34 @@ async def scenario(folder,assets,kind,capture,*,custom=False):
         if kind=='crash':ref.validate(victim);victim.process.kill();record['injected_termination']=True
         else:record['suspend_previous_count']=ref.suspend(victim)
         await asyncio.gather(*(peer.send(p.INPUT,__import__('struct').pack('<I',10)+__import__('server.game_data',fromlist=['encode_player_input']).encode_player_input(peer.identity,[])) for peer in victims))
-        errors=await asyncio.gather(*(peer.receive(community.ABORTED if custom else p.ERROR) for peer in victims));abort_at=time.perf_counter()
-        if custom:
+        errors=await asyncio.gather(*(peer.receive(community.ABORTED if custom or public_mode else p.ERROR) for peer in victims));abort_at=time.perf_counter()
+        if custom or public_mode:
             for body in errors:
                 r=community.Reader(body);require((r.text(),r.text())==(match,'server simulation error'),'custom abort differs');r.end()
         else:require(errors==[b'server simulation error']*2,'victim did not receive explicit unknown-result abort')
         for peer in victims:
-            require(not any(k in (p.FRAME,p.MATCH_END) and (k==p.MATCH_END or __import__('struct').unpack_from('<I',body)[0]>=10) for k,body in peer.observed),'failed frame or invented result published')
-            if not custom:await peer.close()
+            require(not any(k in (peer.frame_kind,p.MATCH_END) and (k==p.MATCH_END or __import__('struct').unpack_from('<I',body)[0]>=10) for k,body in peer.observed),'failed frame or invented result published')
+            if not custom and not public_mode:await peer.close()
         async with asyncio.timeout(8):
             while victim_key in server.rooms or victim.process.poll() is None or server.worker_cleanup:await asyncio.sleep(.01)
         require(server.rooms.get(healthy_key) is room and room.sim is healthy_worker and healthy_worker.process.poll() is None,'unrelated room/worker was replaced')
         record.update(victim_exit=victim.process.returncode,abort_seconds=abort_at-fault_at,healthy_frames_during_failure=sum(fault_at<=x['at']<=abort_at for x in healthy_frames))
         if kind=='hang':require(record['abort_seconds']>=2.8 and record['healthy_frames_during_failure']>=20,'default timeout/independent progression not evidenced')
-        if custom:
+        if public_mode:
+            results=await asyncio.gather(*(peer.public_phase(public.RESULTS,match=match) for peer in victims))
+            require(all(s['reason']=='server simulation error' for s in results),'public Results reason differs')
+            old_tickets=[peer.ticket for peer in victims]
+            await asyncio.gather(*(peer.public_command(public.RETURN,match=match) for peer in victims))
+            await asyncio.gather(*(peer.public_phase(public.RETIRED,match=match) for peer in victims))
+            require(match not in server.community.public.offers and all(peer.profile not in server.community.public.entries for peer in victims),'public return retained old offer/tickets')
+            record.update(return_acknowledgements=2,same_connections_reused=True,current_community_version=2,old_tickets=old_tickets,old_offer_retired=True,public_wait_ms=30000)
+        elif custom:
             await asyncio.gather(*(peer.command(community.RETURN,p.encode_string(match)) for peer in victims))
             record.update(return_acknowledgements=2,same_connections_reused=True,current_community_version=2)
-        replacement,replacement_match=await pair(port,'victim',tokens[0],peers,server=server,custom=custom,existing=victims if custom else None)
+        replacement,replacement_match=await pair(port,'victim',tokens[0],peers,server=server,custom=custom,public_mode=public_mode,existing=victims if custom or public_mode else None)
+        if public_mode:
+            record['replacement_tickets']=[peer.ticket for peer in victims]
+            require(record['replacement_tickets']==[t+1 for t in old_tickets],'public retry did not advance tickets')
         require(replacement_match!=match,'replacement reused failed match identity')
         for frame in range(10):await advance(replacement,frame)
         profiles_after={p.name:sha(p) for p in (folder/'profiles').glob('*.json')}
@@ -271,7 +324,7 @@ def child(request_path):
         deadline=time.monotonic()+20
         while not (out/'job-ready').exists():require(time.monotonic()<deadline,'owned job gate absent');time.sleep(.02)
         subprocess.Popen=capture.popen
-        async def execute():return [await scenario(out/kind,assets,kind,capture,custom=request['custom']) for kind in ('crash','hang')]
+        async def execute():return [await scenario(out/kind,assets,kind,capture,custom=request['custom'],public_mode=request.get('public_mode',False)) for kind in ('crash','hang')]
         report['cases']=asyncio.run(execute());require(not capture.errors,'creation observer errors')
         verify_assets(assets);report['assets_verified_after']=True
         report['passed']=True
@@ -289,14 +342,14 @@ def owned_paths(package,assets,out):
     require(not out.is_relative_to(package) and not out.is_relative_to(assets),'keep diagnostic output outside packages and imported assets')
     return package,assets,out
 
-def run(package,assets,out,*,custom=True):
+def run(package,assets,out,*,custom=True,public_mode=False):
     from tools.owned_suspended_launch import SuspendedChild,job_accounting
     from tools.package_integrity import verify
     package,assets,out=owned_paths(package,assets,out);out.mkdir(exist_ok=False)
     owner=None;started=time.monotonic();report=dict(passed=False,scope=__doc__,forced_harness_cleanup=False)
     try:
         manifest=verify(package,'server');report['package_manifest_sha256']=sha(package/'package-manifest.json');report['asset_manifest_sha256']=sha(assets/'asset-manifest.json')
-        report['driver_sha256']=sha(__file__);save(out/'request.json',dict(package=str(package),assets=str(assets),custom=custom,driver_sha256=report['driver_sha256']))
+        report['driver_sha256']=sha(__file__);save(out/'request.json',dict(package=str(package),assets=str(assets),custom=custom and not public_mode,public_mode=public_mode,driver_sha256=report['driver_sha256']))
         owner=SuspendedChild.create([str(package/'program/runtime/python.exe'),'-I','-B',str(Path(__file__).resolve()),'--child-request',str(out/'request.json')],cwd=out,creationflags=subprocess.CREATE_NO_WINDOW)
         (out/'job-ready').write_bytes(b'owned job attached\n');owner.resume()
         deadline=time.monotonic()+90
@@ -320,8 +373,10 @@ def run(package,assets,out,*,custom=True):
 if __name__=='__main__':
     parser=argparse.ArgumentParser(description=__doc__);parser.add_argument('--child-request',type=Path,help=argparse.SUPPRESS)
     parser.add_argument('--direct-rooms',action='store_true',help='legacy direct-room comparison instead of current Custom flow')
+    parser.add_argument('--public',action='store_true',dest='public_mode',help='two complete human public1v1 rooms, original queue/Ready/Return')
     for name in ('package','assets','output'):parser.add_argument('--'+name,type=Path)
     args=parser.parse_args()
     if args.child_request:raise SystemExit(child(args.child_request))
     require(all((args.package,args.assets,args.output)),'package/assets/output required')
-    raise SystemExit(run(args.package,args.assets,args.output,custom=not args.direct_rooms))
+    require(not (args.direct_rooms and args.public_mode),'choose one room route')
+    raise SystemExit(run(args.package,args.assets,args.output,custom=not args.direct_rooms,public_mode=args.public_mode))
