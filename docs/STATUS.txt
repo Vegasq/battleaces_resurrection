@@ -3,6 +3,19 @@ Updated: 2026-10-23
 Delivery plan: REMAINING_DELIVERY_PLAN.txt, Windows only.
 Original roadmap: CLOSED / SUPERSEDED;see PLAN_CLOSEOUT.txt.
 
+REPLAY163 - CURRENT INSTALLED ENGINE REFUSAL / REPLACEMENT
+D4 installed-engine subcase COMPLETE on unchanged coherent139 r134g/helper138:
+late one contained original exception/different decoded-data replacement on same
+owner;early invalidDeflate/emptyReplay/missingGameConfig false/idle/file release.
+Both3607healthy frames/present31or30/original Options/Leave/Cancel/advancing world/
+reopen/Confirm/menu/Quit0,helperTicks/FSMwrites0. Outer64.668/37.693s/controller0/
+jobs223/0/0/no force.49prior profiles/criticalfiles/shared/seeds/source25recording/
+187producer hashes preserved. Strict explicit frozen helper source pin;scoped
+Popen adapter fixes source-validation Git interception.40tests pass314/312.
+Three pregame failures retained;guards unchanged. No product/helper/package/
+manual/share/new action. No physical/normal-launcher/diskUI/visible-error/universal
+malformed acceptance. N9/N10pending;full D4/D5/D1-D9 OPEN. installed-replay163.txt.
+
 STRENGTH162 - QUANTITATIVE NATIVE BOT INCOME / FIRST-HIT DAMAGE
 D3 bounded subcase COMPLETE:actual161 runtime/originalDLL/verified139assets,
 Easy/Normal/Hard+identicalNormalrepeat,8closed worlds/4580native50ms steps.

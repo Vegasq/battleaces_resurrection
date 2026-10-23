@@ -2,6 +2,23 @@
 
 ## Requests and answers with Nick
 
+- Replay163 CLOSES D4 final-installed ENGINE subcase on unchanged coherent139
+  r134g/helper138==161package. Late one original init exception/sameOwner/newData
+  replacement->3607decoded/present31;early invalidDeflate/emptyReplay/missing
+  GameConfig eachfalse/250msidle/file release->3607/present30. Both original
+  Options/Leave/Cancel/advancing playback/reopen/Confirm/menu/Quit0,helperTicks/
+  FSMwrites0,outer64.668/37.693s/controller0/job223/0/0/no force.49prior profiles/
+  8criticalfiles/shared/seed/source25recording/187producer hashes preserved.
+  New explicit immutable helper pin uses159validator107sources/15CRLF/f99fc83;
+  default current guard stays. Replay now scopes subprocess module to Quit;
+  oldglobal Popen intercepted Git.40tests pass314/312. Attempts01/02guard-refuse
+  precreate,03adapter rejects Git pregame;failures/exact sources retained,guards
+  unchanged. Owners04/05 use owned bundled runtime/privatecwd. No helper/game/
+  package/manual130/N7/share change;no physical/normal-launcher/diskUI/warning/
+  universal malformed claim. NEXT remaining finite D4/D1-D9,not same replay or
+  developer-batch rerun. N9/N10blank/no reports/pins unchanged,no new action or
+  visibility request. Whole D4/D5/goal OPEN. docs/installed-replay163.txt.
+
 - Strength162 CLOSES D3 bounded quantitative native income/damage subcase. Actual
  161 bundled runtime/originalDLL/verified139assets,Easy/Normal/Hard+identicalNormal
  repeat,8worlds/4580native50mssteps.20simsecs botincome432/172 vs480/192,firsthit

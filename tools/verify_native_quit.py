@@ -27,7 +27,8 @@ ROOT = Path(__file__).resolve().parents[1]
 
 def sources():
     return startup.source_hashes() | {p.relative_to(ROOT).as_posix(): hashlib.sha256(p.read_bytes()).hexdigest()
-                                     for p in (Path(__file__), ROOT/'client_patch/build.ps1',ROOT/'tools/verify_practice_ai.py',
+                                     for p in (Path(__file__), ROOT/'tools/helper_provenance.py',ROOT/'tools/audit_repository.py',
+                                               ROOT/'tools/package_integrity.py',ROOT/'client_patch/build.ps1',ROOT/'tools/verify_practice_ai.py',
                                                ROOT/'tools/startup_task_evidence.py', ROOT/'client_patch/patcher/startup_tasks.py',
                                                ROOT/'tools/verify_telemetry_audit.py', ROOT/'tools/replay_binding_evidence.py',
                                                ROOT/'tools/replay_signal_evidence.py', ROOT/'tools/replay_nody_evidence.py',
@@ -125,7 +126,18 @@ def practice_evidence(game, output, pid, text):
                 autonomous_action_records=text.count('Practice AI action:'),produced_bot_units_with_orders_and_position_change=sorted(moved&orders))
 
 
-def verify_build_receipt(game, path):
+def verify_build_receipt(game, path, *, source_revision=None):
+    if source_revision is not None:
+        from tools.helper_provenance import validate
+        from tools.package_integrity import PackageError
+        startup.require(isinstance(source_revision,str) and re.fullmatch('[0-9a-fA-F]{7,40}',source_revision) and
+                        path.name=='helper-build.json','explicit helper ancestor hash and canonical receipt required')
+        data=(game/'BattleAcesOffline.dll').read_bytes()
+        try:binding=validate(path.with_name('BattleAcesOffline.dll'),data,ROOT,revision=source_revision)
+        except PackageError:raise AssertionError('helper build receipt does not bind installed helper to pinned sources') from None
+        raw=path.read_bytes()
+        startup.require(hashlib.sha256(raw).hexdigest()==binding['build_receipt_sha256'],'helper receipt changed during binding')
+        return dict(path=str(path.resolve()),sha256=hashlib.sha256(raw).hexdigest(),receipt=json.loads(raw),source_binding=binding)
     raw = path.read_bytes()
     startup.require(len(raw)<=256*1024,'helper build receipt exceeds bound')
     receipt = json.loads(raw)
@@ -185,7 +197,7 @@ def run(args):
     require(0<len(display_name.encode('utf-8'))<=96 and not any(ord(c)<32 for c in display_name),
             'bounded diagnostic player name required')
     launcher.verify_game(game,community=True,bridge_version=2,unified=True)
-    build_receipt = verify_build_receipt(game,args.helper_build_receipt.resolve())
+    build_receipt = verify_build_receipt(game,args.helper_build_receipt.resolve(),source_revision=getattr(args,'helper_source_revision',None))
     manifest = json.loads((game/'.battleaces-resurrection/patch-manifest.json').read_bytes())
     if getattr(args,'startup_tasks_audit',False):
         from client_patch.patcher import startup_tasks
@@ -395,6 +407,7 @@ if __name__=='__main__':
     parser = argparse.ArgumentParser(description=__doc__)
     for key in ('game','output','shared-settings'): parser.add_argument('--'+key,type=Path,required=True)
     parser.add_argument('--helper-build-receipt',type=Path,required=True)
+    parser.add_argument('--helper-source-revision',help='explicit ancestor hash for a tested frozen helper; default still requires current sources')
     parser.add_argument('--profile',help='explicit owned nativestest_ profile for a seeded native-settings regression')
     parser.add_argument('--display-name',help='bounded diagnostic name for replay filename failure controls')
     parser.add_argument('--storage-directory-fault',action='store_true',help='owned original managed directory failure control')

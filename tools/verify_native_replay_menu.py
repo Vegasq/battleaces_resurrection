@@ -36,6 +36,12 @@ def sources():
         Path(__file__), Path(evidence.__file__), ROOT/'tools/verify_native_storage.py', ROOT/'tools/replay_retention.py')}
 
 
+def scoped_spawn_module(original,spawn):
+    # The Quit module's game spawn is the seam. Mutating subprocess.Popen on
+    # the shared module would also intercept Git/source checks and other tools.
+    return SimpleNamespace(**{**vars(original),'Popen':spawn})
+
+
 def run(args):
     invalid_first=getattr(args,'invalid_first',False)
     semantic_first=getattr(args,'semantic_first',False)
@@ -107,7 +113,8 @@ def run(args):
     report['exit_route']='original-visible-button' if button_exit else 'original-exit-api'
     stop = threading.Event()
     process = thread = None
-    original_spawn = quit_probe.subprocess.Popen
+    original_subprocess = quit_probe.subprocess
+    original_spawn = original_subprocess.Popen
     gate_errors = []
     clock = ctypes.WinDLL('kernel32').GetTickCount64
     clock.restype = ctypes.c_ulonglong
@@ -162,12 +169,13 @@ def run(args):
     try:
         control = SimpleNamespace(game=game, output=output/'native-quit', shared_settings=args.shared_settings,
                                   helper_build_receipt=args.helper_build_receipt, profile=profile,
+                                  helper_source_revision=getattr(args,'helper_source_revision',None),
                                   display_name='Replay Menu API Control', mode='confirm', visible=True,
                                   timeout=args.timeout, capture_dialog=False, after_practice=False,
                                   default_recipe=True, startup_tasks_audit=False)
-        quit_probe.subprocess.Popen = spawn
+        quit_probe.subprocess = scoped_spawn_module(original_subprocess,spawn)
         result = quit_probe.run(control)
-        quit_probe.subprocess.Popen = original_spawn
+        quit_probe.subprocess = original_subprocess
         native = json.loads((output/'native-quit/verification.json').read_bytes())
         report.update(native_verification_sha256=sha(output/'native-quit/verification.json'),
                       natural_exit=native['natural_exit'], forced_cleanup=native['forced_cleanup'])
@@ -180,7 +188,7 @@ def run(args):
     except BaseException as error:
         report.update(passed=False, error=repr(error), traceback=traceback.format_exc())
     finally:
-        quit_probe.subprocess.Popen = original_spawn
+        quit_probe.subprocess = original_subprocess
         stop.set()
         if thread:
             thread.join(timeout=10)
@@ -207,6 +215,7 @@ if __name__ == '__main__':
     for key in ('game', 'output', 'source-verification', 'shared-settings', 'helper-build-receipt'):
         parser.add_argument('--'+key, type=Path, required=True)
     parser.add_argument('--visible', action='store_true')
+    parser.add_argument('--helper-source-revision',help='explicit ancestor hash binding the tested frozen installed helper')
     parser.add_argument('--button-exit',action='store_true',help='invoke the existing leave input binding and original owned confirmation; no physical-input claim')
     parser.add_argument('--cancel-first',action='store_true',help='Cancel the first confirmation, require same-world playback, then reopen and Confirm')
     parser.add_argument('--invalid-first',action='store_true',help='first refuse an owned invalid Deflate file through the original high-level loader')

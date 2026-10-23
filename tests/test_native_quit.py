@@ -11,6 +11,38 @@ from tools import verify_native_quit as quit_probe
 
 
 class NativeQuitVerifierTests(unittest.TestCase):
+    def test_replay_game_spawn_scope_does_not_intercept_shared_subprocess_users(self):
+        import subprocess
+        from tools.verify_native_replay_menu import scoped_spawn_module
+        from tools import helper_provenance
+        original=subprocess.Popen;spawn=Mock()
+        scoped=scoped_spawn_module(subprocess,spawn)
+        self.assertIs(scoped.Popen,spawn)
+        self.assertIs(scoped.STARTUPINFO,subprocess.STARTUPINFO)
+        self.assertIs(subprocess.Popen,original)
+        self.assertIs(helper_provenance.subprocess.Popen,original)
+
+    def test_frozen_helper_requires_explicit_exact_source_pin(self):
+        from tools import helper_provenance as provenance
+        root=quit_probe.ROOT/'local'/('quit-frozen-'+uuid.uuid4().hex)
+        (root/'client_patch/src').mkdir(parents=True);(root/'game').mkdir()
+        self.addCleanup(shutil.rmtree,root)
+        old={'client_patch/build.ps1':b'old build source\n','client_patch/src/helper.cpp':b'old helper source\n'}
+        for name in old:(root/name).write_bytes(b'new source\n')
+        helper=root/'game/BattleAcesOffline.dll';helper.write_bytes(b'authored non-executable helper')
+        receipt=dict(schema=1,sources_unchanged_during_build=True,source_sha256={n:hashlib.sha256(b).hexdigest() for n,b in old.items()},
+                     helper_sha256=hashlib.sha256(helper.read_bytes()).hexdigest(),compiler_path='authored compiler',compiler_sha256='a'*64,sdk_version='10.0.0.0')
+        path=root/'helper-build.json';path.write_text(json.dumps(receipt))
+        with patch.object(quit_probe,'ROOT',root),patch.object(provenance,'git_sources',return_value=('f'*40,old)):
+            with self.assertRaisesRegex(AssertionError,'current sources'):quit_probe.verify_build_receipt(root/'game',path)
+            report=quit_probe.verify_build_receipt(root/'game',path,source_revision='f'*40)
+            self.assertEqual(report['receipt'],receipt)
+            self.assertEqual(report['source_binding']['source'],dict(mode='pinned-git',revision='f'*40))
+            for invalid in ('HEAD','','--all'):
+                with self.subTest(pin=invalid),self.assertRaises(AssertionError):quit_probe.verify_build_receipt(root/'game',path,source_revision=invalid)
+            helper.write_bytes(b'changed helper')
+            with self.assertRaisesRegex(AssertionError,'pinned sources'):quit_probe.verify_build_receipt(root/'game',path,source_revision='f'*40)
+
     def test_practice_rejects_supply_and_commands_without_same_entity_movement(self):
         match='a'*32;pid=123
         temp_root=(quit_probe.ROOT/'local').resolve()

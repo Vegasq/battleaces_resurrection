@@ -1,6 +1,16 @@
 REPLAY RECOVERY FINDING55 -- 2026-10-20
 Plan item:D4-RP1. Status:OPEN;malformed batch recovery is NOT qualified.
 
+Installed-engine supplement163 (2026-10-23)
+Actual coherent139 installed copy/current packaged helper138 now passes the late
+100replacement and early96/97refusal sequences:two fresh profiles,3607decoded
+frames each,original Options/Leave/Cancel/reopen/Confirm/menu/normal Quit0,
+empty owned jobs/no force.49prior profile files/program/config/shared settings
+remain unchanged. Explicit frozen-source binding preserves the tested helper;
+the harness's global Popen interception is corrected. Physical warnings/file
+selection/normal-launcher initiation and full D4 remain open. Historical records
+below keep their original scope. Exact new reports:installed-replay163.txt.
+
 99 reproduced permanent replay failure latch;100 fixes decoded-data replacement
 Original Simulation.CreateGame allows replay build-label mismatch with a warning;
 do not classify that label alone as malformed. Missing VersionBuild is different:

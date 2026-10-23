@@ -1,0 +1,99 @@
+INSTALLED REPLAY ENGINE RECOVERY163
+2026-10-23. D4 final-relevant-installed-engine subcase COMPLETE; full D4 OPEN.
+
+Result
+The installer-produced coherent139 local/r134g copy, with unchanged recipe21
+and frozen helper138, now passes the finite late-initialization replacement and
+early-refusal replay sequences. The helper bytes equal current161's packaged
+helper. A new owned diagnostic profile per session contains only the pinned
+healthy recording and authored bad files. No helper/game/installed runtime is
+replaced and no developer replay batch or new replay browser is used.
+
+Late case:local/replay163-partial-native02,owner04
+The original loader accepts GameData with empty GameConfig/missing VersionBuild,
+then the original runner reports exactly one contained NullReference failure.
+After250ms the same idle owner retains failed data,does not retry it,and releases
+the original file. Original LoadReplayFromFile supplies different valid data on
+the SAME owner;the data-scoped helper latch releases and original runner resumes.
+3607frames decode,presentation31 in an owned world,original Options/Leave and
+confirmation Cancel preserve advancing playback,then reopen/Confirm returns to
+the idle menu. Original normal Quit exits0. No helper ticks,StopSimulation,FSM
+writes or direct ReplayEndGame diagnostic API substitute are used.
+Native elapsed61.385s,outer64.668s;PID24332,controller0,owned job223/active0/
+terminated0,no forced cleanup. Larger job totals include source-validation Git
+children;the adapter records one exact owned game spawn.
+
+Early cases:local/replay163-semantic-native01,owner05
+One session first rejects the existing one-byte invalid Deflate file through
+the original high-level loader,then parsed empty Replay and missing GameConfig.
+Each original Load returns false;after250ms the same idle owner has no decoded
+data/world,zero navigation locks and the file exclusively reopens. It then loads
+the same healthy recording,decodes3607frames/presents30,passes original Options/
+Leave,Cancel/continued playback/reopen/Confirm/menu and normal Quit0.
+Native34.216s,outer37.693s;PID8636,controller0/job223/0/0,no forced cleanup.
+These are the existing finite engine classes96/97/100 applied to this installed
+candidate,not new equivalent parser variants or exhaustive malformed safety.
+
+Identity and preservation
+Read-only local/replay163-preparation01.json pins49pre-existing profile files,
+eight installed program/config/catalog entry files,shared TOML,current161 client
+package manifest and helper receipt. All remain byte-identical afterward.
+Both healthy seeds,authored bad seeds,original codec-qualified25recording and
+its original verification report remain unchanged. Each producer records187
+current authored source hashes unchanged across execution. Original game bytes,
+recordings,captures and receipts remain ignored;only authored source/docs/tests
+enter Git. Old manual130/N7,accepted D6/LAN and shared installers stay unchanged.
+
+Harness correction
+The old Quit/replay harness allowed only a helper matching today's source tree.
+New optional --helper-source-revision binds a tested frozen helper through159's
+strict receipt validator to an explicit immutable ancestor. The default current-
+source check remains. Real installed138 binds107sources/15exact CRLF variants
+to f99fc83da645b5027688f7f38cda3a9b7d72bce9,helperSHA
+076950d5a91d9061f9a3bbebc4364bbe11457d26976afe8378989b645dc99d61.
+The canonical receipt remains ca72d6072e4ed1111e1c25e9871f7f9a9aedf9cdc869ef92eb100cc81cf02e0d.
+No current-source mismatch is silently waived and no diagnostic149 helper is
+substituted. The source pin and full binding are retained in each inner report.
+
+Pin integration exposed a second real harness defect:the replay adapter mutated
+Popen on the shared subprocess module. It therefore intercepted source-check Git
+calls as if they were game launches. It now supplies a scoped module view only
+to the Quit module;unrelated subprocess consumers retain original Popen. The
+module is restored in finally. No native/library/policy or game behavior changes.
+40affected tests pass on Python3.14.8/2.866s and3.12.10/2.628s,no skips. New
+controls require an explicit exact frozen pin,reject changed bytes/unqualified
+refs,and prove the shared subprocess module remains intact.
+
+Retained failures
+Owner01 refuses before process creation because the developer-installed Python
+image is outside the owned ignored image roots. Owner02 refuses before creation
+because cwd was the source root. Owner03 uses the existing owned bundled runtime
+and private cwd,but the old adapter rejects its Git command BEFORE game creation.
+Its failed native01 report and exact adapter source replay163-adapter-failed01.py
+remain. No ownership guard was weakened. Corrected owners04/05 use the same
+bundled runtime and fresh ignored cwd,with source-check subprocess isolation.
+No retry follows a mere observation timeout;all earlier attempts are terminal.
+
+Read-only local/replay163-review01.json recomputes strict replay/Cancel/refusal/
+replacement evidence from retained native logs,checks both source bindings/187
+producer hashes,seed and baseline preservation,exact source25recording,all five
+owner outcomes and current161/162proofs/N10pins through exact archives.
+Prior authored harness/test/ledger/plan/recovery-doc bytes are archived under
+local/replay163-prior-source01. Historical99/100reports are not rewritten or
+promoted to current installed acceptance;these163records supply that new scope.
+
+Remaining boundary
+Execution uses explicit direct-game diagnostics against an actual installed
+copy. Source-bootstrap imports are external diagnostic tooling,not proof that a
+normal game-folder launcher or bundled production transport initiated these
+replays. The original high-level loader and bound original controls do the work;
+no physical mouse/keyboard/disk-picker/visible warning completion is inferred.
+The legacy --visible flag is a launch request,not desktop visibility evidence.
+Nick's manual launches remain the source of visible-window observations.
+Both records explicitly keep malformed_recovery_qualified:false;partial data
+replacement is not automatic recovery of the same invalid record or universal
+replay safety. No in-match reconnect or new UI scope is added. Reuse existing
+six codec/limit checks;do not repeat these installed sequences unchanged.
+Remaining D4 storage/retention/ordinary reachable controls/physical gates and
+the other D1-D9 requirements remain open. N9/N10answers/reports stay blank/
+absent,with six N10 pins exact. No new Nick action or replay visibility request.
