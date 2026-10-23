@@ -145,6 +145,7 @@ class Room:
         self.bots = MappingProxyType({bot.slot: bot for bot in bots})
         self.input_window = server.input_window  # Frozen for every participant in this room.
         self.peers = {}
+        self.joining, self.saving_decks = set(), set()
         self.decks = {bot.slot: self.template.validate_deck(bot.deck) for bot in bots}
         self.cosmetics = {}
         self.ready, self.loaded = set(self.bots), set()
@@ -182,11 +183,11 @@ class Room:
                        + p.deck_bytes(deck0) + p.deck_bytes(deck1))
         self.server.community.publish_presence()
 
-    def join(self, peer, slot, profile_id, name, *, deck=None, ticket=None, cosmetics=None, full_loadout=False):
+    async def join(self, peer, slot, profile_id, name, *, deck=None, ticket=None, cosmetics=None, full_loadout=False):
         if slot == p.AUTO_SEAT:
-            slot = next((seat for seat in sorted(self.slots) if seat not in self.peers and seat not in self.bots), None)
+            slot = next((seat for seat in sorted(self.slots) if seat not in self.peers and seat not in self.bots and seat not in self.joining), None)
         p.require(slot in self.slots, "room full")
-        p.require(self.state == "lobby" and slot not in self.peers and slot not in self.bots, "room slot unavailable")
+        p.require(self.state == "lobby" and slot not in self.peers and slot not in self.bots and slot not in self.joining, "room slot unavailable")
         p.require(all(x.profile_id != profile_id for x in self.peers.values()), "profile already connected")
         if self.public_match is not None:
             public_wire.ticket(ticket)
@@ -196,13 +197,19 @@ class Room:
             deck = list(self.template.validate_deck(deck))
         else:
             p.require(deck is None and ticket is None and cosmetics is None, 'legacy room does not accept public intent')
+            self.joining.add(slot)
             try:
-                state = self.server.profiles.load_state(profile_id, self.template.default_decks[slot])
-                deck, cosmetics = list(state.deck), state.cosmetics
-            except (ValueError, KeyError, OSError) as error:
-                deck = list(self.template.default_decks[slot])
-                cosmetics = self.server.cosmetic_catalog.normalize_local() if self.server.cosmetic_catalog else None
-                self.event("profile_load_fallback", profile=profile_id, reason=str(error))
+                try:
+                    state = await self.server.profile_io.load_state(profile_id, self.template.default_decks[slot])
+                    deck, cosmetics = list(state.deck), state.cosmetics
+                except (ValueError, KeyError, OSError) as error:
+                    deck = list(self.template.default_decks[slot])
+                    cosmetics = self.server.cosmetic_catalog.normalize_local() if self.server.cosmetic_catalog else None
+                    self.event("profile_load_fallback", profile=profile_id, reason=str(error))
+                p.require(not self.server.closing and not peer.closed and self.state == 'lobby' and slot not in self.peers,
+                          'room changed during profile load')
+            finally:
+                self.joining.discard(slot)
         frozen_cosmetics = None
         if self.server.cosmetic_catalog is not None:
             from .profiles import cosmetic_state
@@ -377,7 +384,14 @@ class Room:
                 if kind == p.SET_DECK:
                     deck = p.decode_deck(payload)
                     self.template.validate_deck(deck)
-                    self.server.profiles.save(peer.profile_id, deck, cosmetics=self.cosmetics.get(peer.slot))
+                    slot = peer.slot
+                    self.saving_decks.add(slot)
+                    try:
+                        await self.server.profile_io.save(peer.profile_id, deck, cosmetics=self.cosmetics.get(slot))
+                        if self.server.closing or peer.closed or self.state != 'lobby' or self.peers.get(slot) is not peer:
+                            return
+                    finally:
+                        self.saving_decks.discard(slot)
                     self.decks[peer.slot] = deck
                     self.ready.discard(peer.slot)
                     self.event("deck_selected", slot=peer.slot, profile=peer.profile_id, deck=deck)
@@ -395,7 +409,7 @@ class Room:
                 peer.send(p.NOTICE, str(error).encode("utf-8")[:1024])
                 self.lobby_state()
                 return
-            if (self.peers.keys() | self.bots.keys()) == self.ready == self.slots:
+            if not self.saving_decks and (self.peers.keys() | self.bots.keys()) == self.ready == self.slots:
                 await self.prepare_match()
         elif kind == p.LOADED:
             p.require(self.state == "loading" and peer.slot not in self.loaded, "unexpected loaded acknowledgement")
@@ -563,6 +577,8 @@ class DedicatedServer:
                  loading_timeout=120, completed_timeout=60, tls_context=None, admission=None,
                  input_window=p.DEFAULT_INPUT_WINDOW, templates=None, bot_catalog=None):
         self.template, self.profiles = template, profiles
+        from .profile_io import ProfileIO
+        self.profile_io = ProfileIO(profiles)
         self.cosmetic_catalog = profiles.catalog
         self.templates = dict(templates or {1: template})
         p.require(self.templates.get(1) is template and all(mode in public_wire.MODES and
@@ -621,7 +637,7 @@ class DedicatedServer:
                 peer = session.peer
                 p.require(peer.room is None, 'previous match has not been released')
                 peer.next_input, peer.joined_army = 0, False
-                room.join(peer, slot, profile, peer.name, deck=tuple(session.deck), cosmetics=session.cosmetics)
+                await room.join(peer, slot, profile, peer.name, deck=tuple(session.deck), cosmetics=session.cosmetics)
                 room.ready.add(slot)
             room.lobby_state()
             await room.prepare_match()
@@ -680,8 +696,9 @@ class DedicatedServer:
                 raise AdmissionError("identity_mismatch")
             p.require(all(other is peer or other.closed or other.profile_id != profile_id for other in self.peers),
                       "profile already connected")
+            peer.profile_id = profile_id  # Reserve identity across asynchronous profile I/O.
             if is_community:
-                self.community.register(peer, profile_id, name)
+                await self.community.register(peer, profile_id, name)
             else:
                 room = self.rooms.get(room_name)
                 if room is None:
@@ -689,7 +706,7 @@ class DedicatedServer:
                     room = self.rooms[room_name] = Room(self, room_name)
                 p.require(room.community_lobby is None and room.public_match is None,
                           'managed rooms require an accepted invitation or public ticket')
-                room.join(peer, slot, profile_id, name)
+                await room.join(peer, slot, profile_id, name)
             while not peer.closed:
                 kind, payload = await p.receive(reader)
                 if peer.community:
@@ -734,6 +751,7 @@ class DedicatedServer:
             task.cancel()
         await asyncio.gather(*list(self.tasks), return_exceptions=True)
         await asyncio.gather(*list(self.worker_cleanup), return_exceptions=True)
+        await self.profile_io.close()
         if self.admission and not await self.admission.close():
             self.audit("authentication_shutdown_incomplete", remaining=len(self.admission.verifications))
         if self.listener:

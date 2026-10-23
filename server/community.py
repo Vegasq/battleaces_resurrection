@@ -27,6 +27,7 @@ class Session:
     full_loadout: bool = False
     lobby: str | None = None
     practicing: bool = False
+    saving: bool = False
     last_request: int = 0
     last_public_ticket: int = 0
     tokens: float = 16.0
@@ -96,9 +97,9 @@ class Community:
             lobby = self.lobbies.get(session.lobby) if session else None
             if session:
                 public = self.public.busy(peer.profile_id)
-                status = (self.public.status(peer.profile_id) if public else c.UNAVAILABLE if session.practicing
+                status = (self.public.status(peer.profile_id) if public else c.UNAVAILABLE if session.practicing or session.saving
                           else c.AVAILABLE if not lobby else c.IN_LOBBY if lobby.phase < c.LOADING else c.IN_MATCH)
-                invitable = lobby is None and not session.practicing and not public
+                invitable = lobby is None and not session.practicing and not session.saving and not public
             else:
                 status = c.IN_MATCH if peer.room and peer.room.state not in ('lobby', 'completed', 'closed') else c.IN_LOBBY
                 invitable = False  # Legacy clients cannot receive invitation messages.
@@ -131,19 +132,36 @@ class Community:
                 kind, packet = packets[version]
                 self.send(peer, kind, packet)
 
-    def register(self, peer, profile, name):
+    async def register(self, peer, profile, name):
+        peer.profile_id, peer.name, peer.community = profile, name, True
         try:
-            state = self.server.profiles.load_state(profile, self.server.template.default_decks[0])
+            state = await self.server.profile_io.load_state(profile, self.server.template.default_decks[0])
             deck, cosmetics = list(state.deck), state.cosmetics
         except (ValueError, KeyError, OSError) as error:
             deck = list(self.server.template.default_decks[0])
             cosmetics = self.server.cosmetic_catalog.normalize_local() if self.server.cosmetic_catalog else None
             self.server.audit('profile_load_fallback', profile=profile, reason=str(error))
-        peer.profile_id, peer.name, peer.community = profile, name, True
+        require(not self.closing and not self.server.closing and not peer.closed, 'connection closed during profile load')
         self.sessions[profile] = Session(peer, list(deck), cosmetics=cosmetics)
         self.send(peer, c.WELCOME, c.welcome(profile, deck, version=peer.community_version))
         self.publish_presence(recipient=peer)
         self.server.audit('community_joined', profile=profile, name=name)
+
+    def require_session(self, session):
+        require(not self.closing and not self.server.closing and not session.peer.closed and
+                self.sessions.get(session.peer.profile_id) is session, 'player session changed or closed')
+
+    async def save_loadout(self, session, deck, cosmetics):
+        self.require_session(session)
+        require(not session.saving, 'profile selection is still saving')
+        session.saving = True
+        self.publish_presence()
+        try:
+            await self.server.profile_io.save(session.peer.profile_id, deck, cosmetics=cosmetics)
+            self.require_session(session)
+        finally:
+            session.saving = False
+            self.publish_presence()
 
     def publish_lobby(self, lobby, reason=''):
         lobby.revision += 1
@@ -251,6 +269,8 @@ class Community:
 
     async def apply(self, session, kind, command, now):
         profile = session.peer.profile_id
+        self.require_session(session)
+        require(not session.saving or kind == c.REFRESH, 'profile selection is still saving')
         from . import public_protocol as public
         if kind in public.COMMANDS:
             return await self.public.apply(session, kind, command, now)
@@ -279,18 +299,22 @@ class Community:
             self.publish_presence(recipient=session.peer)
             return
         if kind in (c.SET_DECK, loadout.SET_LOADOUT):
+            lobby_id = session.lobby
             lobby = self.lobbies.get(session.lobby)
             require(not lobby or lobby.phase == c.OPEN or
                     (lobby.phase == c.RESULTS and profile in lobby.returned), 'deck is frozen for this match')
             try:
                 cosmetics = (command['cosmetics'].validate(self.server.cosmetic_catalog)
                              if kind == loadout.SET_LOADOUT else session.cosmetics)
-                self.server.profiles.save(profile, command['deck'], cosmetics=cosmetics)
+                await self.save_loadout(session, command['deck'], cosmetics)
             except ValueError as error:
                 raise Rejected(str(error)) from error
             except OSError as error:
                 self.server.audit('profile_save_failed', profile=profile, reason=repr(error))
                 raise Rejected('profile save unavailable') from error
+            require(session.lobby == lobby_id and self.lobbies.get(lobby_id) is lobby and
+                    (not lobby or lobby.phase == c.OPEN or
+                     (lobby.phase == c.RESULTS and profile in lobby.returned)), 'lobby changed while saving selection')
             session.deck, session.cosmetics = list(command['deck']), cosmetics
             if kind == loadout.SET_LOADOUT: session.full_loadout = True
             self.publish_presence()
@@ -312,7 +336,7 @@ class Community:
                 self.resolve_invite(invite, c.CANCELLED if kind == c.CANCEL else c.DECLINED)
                 return invite.id
             lobby = self.lobbies.get(invite.lobby)
-            require(not session.practicing, 'finish practice before accepting an invitation')
+            require(not session.practicing and not session.saving, 'finish practice or profile save before accepting an invitation')
             require(session.lobby is None, 'already in a custom lobby')
             require(lobby and lobby.host == invite.sender and lobby.phase == c.OPEN and len(lobby.members) < 2,
                     'invited lobby is unavailable')
@@ -345,7 +369,7 @@ class Community:
                     'only the host of an open lobby can invite')
             target = self.sessions.get(command['target'])
             require(command['target'] != profile, 'cannot invite yourself')
-            require(target is not None and not target.peer.closed and target.lobby is None and not target.practicing
+            require(target is not None and not target.peer.closed and target.lobby is None and not target.practicing and not target.saving
                     and not self.public.busy(command['target']), 'player is not available')
             require(not any(i.sender == profile and i.target == command['target'] for i in self.invites.values()),
                     'invitation already pending')
@@ -367,6 +391,7 @@ class Community:
         if kind == c.START:
             require(lobby.host == profile, 'only the host can start')
             require(lobby.phase == c.OPEN and len(lobby.members) == 2, 'custom lobby needs two players')
+            require(not any(self.sessions[member].saving for member in lobby.members), 'wait for profile selections to finish saving')
             require(command['revision'] == lobby.revision, 'custom lobby changed; refresh before starting')
             lobby.phase, lobby.deadline = c.STARTING, now + self.start_timeout
             lobby.epoch += 1
@@ -376,6 +401,7 @@ class Community:
             return lobby.id
         if kind == c.READY:
             require(lobby.phase == c.STARTING and command['epoch'] == lobby.epoch, 'start attempt changed')
+            require(not any(self.sessions[member].saving for member in lobby.members), 'wait for profile selections to finish saving')
             if now >= lobby.deadline:
                 self.cancel_start(lobby, 'start acknowledgement timed out')
                 raise Rejected('start acknowledgement expired')

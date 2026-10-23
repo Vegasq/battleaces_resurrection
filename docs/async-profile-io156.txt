@@ -1,0 +1,40 @@
+ASYNC PROFILE156 - SERVER-OWNED SERIAL STORAGE / ADMISSION RACE GUARDS
+2026-10-23. Implementation and scoped source tests PASS;bundled/native acceptance
+is pending in this source checkpoint. Full D8/D1-D9 delivery remains OPEN.
+
+The server now owns a bounded single-thread ProfileIO executor for original
+ProfileStore.save/load_state. Original validation/read/flush/fsync/atomic replace
+and cleanup remain unchanged. Reads share the write FIFO,including an unfinished
+save whose network waiter was cancelled. Mutable deck/fallback inputs are frozen.
+Cancelled waiters relinquish only a proxy;the server retains/drains the real I/O
+and consumes late errors. Server shutdown drains and joins storage before its
+server_stopped event;even cancelled storage close waits for owned completion.
+
+Community/public selections publish unavailable while saving and acknowledge
+only after durable success and current session/activity validation. Custom Start/
+Ready cannot race pending selections;departed lobbies receive no stale in-memory
+selection commit. Asynchronous community/legacy profile loads reserve identities
+and auto-seats. Legacy ready cannot start an old selected deck while its new deck
+is saving. All three server save paths use the owned executor;CLI ProfileStore
+behavior and bytes are unchanged. Package source allowlist includes profile_io.py.
+
+99affected tests PASS53.903s,98pass/1existing opt-in native skip. Twelve new
+deterministic storage/socket controls cover pending-save refresh/Start/invites,
+failed data preservation/retry,departure,duplicate identity,concurrent auto-seats,
+legacy ready,queue bounds,cancelled write/reconnect read and cancelled shutdown.
+Remaining tests cover community/public/legacy lifecycle,full17cosmetics,loadout
+protocol and package boundaries. No proprietary fixture data is used.
+
+Initial43-test run had5failures:one real cancellation logging issue from bundled
+Python3.14 asyncio.shield and four invalid fixture assumptions (three reversed
+tech-slot decks,one string identity assertion). Source evidence is preserved in
+local/asyncprofiles156-failed-source01;the first failed log remains unchanged.
+Use an owned future proxy instead of shield for storage waiters;do not suppress
+the loop exception handler. Corrected ten initial race tests pass1.315s;two more
+legacy/public ordering tests are included in the99-test run. Exact original
+production sources are retained in local/asyncprofiles156-prior-source01.
+
+Next:build a clean paired engineering candidate,then execute actual bundled/native
+timed admission with another advancing match. No performance envelope or complete
+attribution of154's875ms observation is claimed from source/synthetic controls.
+No game/helper/manual/share/Nick action change. N9/N10 desktop checks stay pending.

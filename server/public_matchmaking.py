@@ -88,6 +88,8 @@ class PublicMatchmaking:
     async def apply(self, session, kind, command, now):
         now = self.clock()
         profile = session.peer.profile_id
+        self.community.require_session(session)
+        require(not session.saving, 'profile selection is still saving')
         require(not self.server.closing and not self.community.closing, 'server is stopping')
         if kind in (q.ENTER, loadout.ENTER_LOADOUT):
             require(not self.busy(profile) and session.lobby is None and not session.practicing and session.peer.room is None,
@@ -99,12 +101,14 @@ class PublicMatchmaking:
                 deck = self.server.templates[command['mode']].validate_deck(command['deck'])
                 cosmetics = (command['cosmetics'].validate(self.server.cosmetic_catalog)
                              if kind == loadout.ENTER_LOADOUT else session.cosmetics)
-                self.server.profiles.save(profile, deck, cosmetics=cosmetics)
+                await self.community.save_loadout(session, deck, cosmetics)
             except ValueError as error:
                 raise Rejected(str(error)) from error
             except OSError as error:
                 self.server.audit('profile_save_failed', profile=profile, reason=repr(error))
                 raise Rejected('profile save unavailable') from error
+            require(not self.busy(profile) and session.lobby is None and not session.practicing and session.peer.room is None,
+                    'activity changed while saving public selection')
             remaining = command['wait_ms']/1000
             entry = Entry(session, command['ticket'], command['mode'], tuple(deck),
                           now-(q.FALLBACK_SECONDS-remaining), now+remaining, cosmetics=cosmetics,
@@ -214,7 +218,7 @@ class PublicMatchmaking:
             for slot, entry in humans.items():
                 peer = entry.session.peer
                 peer.next_input, peer.joined_army = 0, False
-                room.join(peer, slot, entry.profile, peer.name, deck=entry.deck, ticket=entry.ticket,
+                await room.join(peer, slot, entry.profile, peer.name, deck=entry.deck, ticket=entry.ticket,
                           cosmetics=entry.cosmetics, full_loadout=entry.full_loadout)
                 room.ready.add(slot)
             await room.prepare_match()
