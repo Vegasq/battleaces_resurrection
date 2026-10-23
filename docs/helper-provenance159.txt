@@ -1,6 +1,6 @@
 HELPER PROVENANCE159 - DECLARED BUILD RECEIPT / EXPLICIT FROZEN SOURCE BINDING
-2026-10-23. Build-input correction implemented;artifact qualification pending at
-this source checkpoint. Whole D9/D1-D9 release remains OPEN.
+2026-10-23. Selected build-input correction and paired artifact qualification
+COMPLETE. Whole D9/D1-D9 release remains OPEN.
 
 Defect / correction
 The builder checked helper PE/AMD64/DLL shape and capability markers but ignored
@@ -43,11 +43,39 @@ after its commands succeed and sources remain stable;individual native/game test
 results remain separate evidence. No source lineage assertion upgrades privacy,
 physical,SCM,Internet or complete release acceptance.
 
-Source tests/next
+Source tests and artifact qualification
 42affected tests pass on Python3.14.8 in12.980s and3.12.10 in13.205s,covering helper receipt/content/
 path/Git/line-ending rejections,package metadata verification,runtime install/
-preservation/uninstall and console packaging. Actual clean package/native
-installer form/payload qualification is pending in this source checkpoint.
+preservation/uninstall and console packaging. No affected tests were skipped.
+Source/index/history audit:2331distinct source paths/objects,zero findings.
+
+Clean source f2f1bb87b28720b99028fb4170f2dfd31dcdbcd5 produced version0.3.0-rc1.5
+under local/helperbinding159-packages01;no dirty-build override:
+server ZIP3881d06a7446a9102fcb9cd0c63ce7b205c72b8b133aea8e79df90914a4849b0
+client ZIP4c76bb8a170a39e28a02209f7400b37126e6a026e64321dd3410fb63150dc955
+Matching native standalone installers under local/helperbinding159-server-standalone01
+and local/helperbinding159-client-standalone01:
+server EXEb3aaf29d6b68555effcb33b9c231196f7c7ea27225ac3cf41ed3d7e12935387c
+client EXEe46190f5e168676a6041118d5dae2bc65c12197d4e0117b72c2abb6bc0bf7948
+
+Actual bundled integrity CLIs,isolated five-module server imports,both native
+forms and each embedded ZIP extraction/integrity check PASS6.470s. Seven owned
+commands exit0/reap,each job active0/terminated0,no forced cleanup. Server form
+has2editable fields/client3;both progress controls attached,client reset/uninstall
+and name fields present. This is automated form proof,not human visual acceptance.
+Both manifests verify;DLL/provenance/compatibility digests agree and current input
+helper/receipt remain exact. All payload bytes compared with156:only compatibility
+metadata changes and the new helper-provenance.json is added. Runtime/helper/
+installer logic and guides are identical. No unchanged AI/native soak/game-window
+rerun is needed for this metadata integration;earlier gameplay scope is retained.
+No Install action/full game copy/protected owner operation was performed here.
+
+Read-only reconciliation:local/helperbinding159-review01.json validates prior158,
+157 and156 inputs,593historical suite inputs through exact archives,and six N10
+pins. Existing seals/results are not rewritten to hide intentional source changes.
+N9/N10 answers remain blank and public reports absent. This receipt work does not
+close any remaining physical/protected owner/privacy/SCM/Internet/release gate.
 Exact prior builder/test source bytes:local/helperbinding159-prior-source01.
+The same folder also retains prior AGENTS/STATUS/plan bytes for historical seals.
 No client DLL/CPP/gameplay/transport/patch-recipe/native form change. Existing156
 artifacts,manual130/N7,N9/N10 capsules and share stay frozen;no new Nick action.

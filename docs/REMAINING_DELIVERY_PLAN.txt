@@ -933,6 +933,14 @@ match-blocking divergence, stalls or resource leaks in the required scenarios.
 References: network-qualification.txt, protocol-v3.txt, soak-qualification.txt.
 
 [ ] D9 - Freeze and deliver the final Windows release
+[x]159 helper build-input binding:require declared receipt/DLL/full source match;
+    current tree default or explicit immutable ancestor for frozen tested helper.
+    Sanitized provenance bound in both packages.42tests pass on314/312,audit2331/0.
+    Clean f2f1bb8 paired ZIPs/native installers/CLI/imports/forms/payloads pass
+    6.470s,7owned commands0/emptyjobs/no force. Frozen138 retained;delta156 only
+    compatibility+new provenance,all runtime bytes unchanged. Prior seals/source
+    archives/N10pins reconciled. No game/manual/share/new action. This closes
+    only this packaging gap;full D9/D1-D8 stays open. helper-provenance159.txt.
 [x]158 source/docs checkpoint:full983tests on Python3.14.8 and3.12.10 each pass
     966/17skip,exit0;312records593unchanged inputs and actual skip IDs/reasons.
     Source/historyf97 snapshot2319objects/0findings;staged review retained.

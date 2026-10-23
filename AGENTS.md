@@ -2,6 +2,20 @@
 
 ## Requests and answers with Nick
 
+- Helper159 CLOSES selected D9 build-input gap:require schema1 helper-build.json,
+  exact DLL/source inventory/digests/unchanged-build/compiler/SDK;default current
+  tree or explicit immutable ancestor pin. Frozen138 binds107sources/15exact CRLF
+  variants to f99fc83;default refuses. Current149 accepts current113but is NOT
+  shipping selection. Both products bind sanitized provenance in compatibility/
+  manifests;declared local receipt,NOT signed attestation/gameplay proof.42tests
+  pass on314(12.980s)/312(13.205s),audit2331/0. Clean f2f1bb8 paired ZIPs/native
+  installers/imports/CLI/forms/payloads PASS6.470s,7owned exit0/emptyjobs/no force.
+  Delta156 only compatibility+new provenance;runtime/helper unchanged. Exact old
+  builder/test/docs archives retained;159review reconciles prior158/157/156 and
+  593historical suite inputs/sixN10pins. No game/manual130/N7/share/new Nick action;
+  N9/N10blank/no reports. NEXT remaining finite D1-D9 gates,not unchanged build/
+  game/soak repetitions. Whole D9/goal OPEN. docs/helper-provenance159.txt.
+
 - Release158 CLOSES selected source/docs checkpoint:full983source tests on BOTH
   Python3.14.8(129.354s) and3.12.10(126.817s),966pass/17skip EACH,exit0.312journal
   retains exact skip IDs/reasons/593inputs unchanged;17includes2 restricted
