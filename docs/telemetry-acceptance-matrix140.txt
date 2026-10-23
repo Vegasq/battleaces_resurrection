@@ -96,6 +96,13 @@ Finite rows
     CEF handler return/natural exit remains scoped input. Do not invoke original
     independent crash bootstrap merely because a parser exists.
 [ ] P8 Effective game-owned descendants
+    [x]149 selected actual pipe creation/name/error subcase:validserver,same64char
+        saltedfingerprint atchildopen,error5. Connect997/wait0cleanup NOTclient
+        connection.57tests/C++suites/typedactualreview pass;fullbrowserFAIL.
+        Immutable122proofpublications fixonlydiagnosticoutput replacement;rejected
+        sharingproposal/failures preserved. ShortthirdPID+parentrootgap remain.
+        NextactualownedSD/label/tokens;N9stillpending,no newaction.280seal/old
+        sourcearchives verified;shipping unchanged. pipe-equality149.txt.
     [x]148 controlled actualCEF execute/init subcase:exports observed-1/1,
         wrappertrue;IPC original failure logging/error5 narrows timeout. Exception
         in this log path is NOT provenfatal/cause. Authored exact-access pipe

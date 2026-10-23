@@ -525,9 +525,15 @@ already cut;then supported runtime/final artifacts. Full D5 stays OPEN.
     comparison ready;read DEV/report first. RootQuit0/no force/jobs empty,full
     browsercontrol FAILED and short-child lifetime/decoder gaps remain. No ACL,
     helper or shipping change;browser-ipc148.txt,113seal/prior147211preserved.
-[ ] Next:observe actual same-run parent named-pipe creation/connection and child
-    open flags/results/error with name equality/digest;then read-only effective
-    owned-handle security/token facts if the same-name server is valid. Review
+[x]149 controlled same-run pipe metadata:parent creationvalid,same64char salted
+    fingerprint atchildopen,error5;Connect997pending/wait0cleanup NOTconnection.
+    Two actualcaptures/57tests/C++suites/typedreview pass,not fullbrowsercontrol.
+    Final isolated helper149-04 immutable122publication protocol closes its
+    diagnosed output-replacement failure;rejectedshare-delete proposal retained.
+    Old failures/shortchild/unresolved-root gaps stayopen.280seal/oldinputs exact
+    archivedsource verified;shipping/manual unchanged. pipe-equality149.txt.
+[ ] Next:read-only effective security/label and relevant parent/child token facts
+    on the actual same-name owned server pipe with retained handle identity. Review
     N9 desktop result before asking to repeat;continue other finite gates while
     it is pending. Retain complete short-lived process identity gate. Do not
     repeat unchanged root-only

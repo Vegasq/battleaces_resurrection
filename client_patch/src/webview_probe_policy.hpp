@@ -1,6 +1,11 @@
 #pragma once
 #include "command_line.h"
 namespace ba_webview_probe_policy {
+inline unsigned initializationTimeout(const std::vector<std::wstring>& args) {
+    // Only the separately authorized owned diagnostic consumes this value.
+    // Fixed upper bound allows external observer attachment without an open wait.
+    return ba_command_line::has(args,L"-native-webview-observer-handoff")?120000u:60000u;
+}
 inline bool allowed(const std::vector<std::wstring>& args,const std::string& profile) {
     if(profile.rfind("nativestest_",0)!=0 || profile.size()<13 || profile.size()>46)return false;
     for(size_t i=12;i<profile.size();++i) {

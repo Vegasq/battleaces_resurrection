@@ -5,6 +5,11 @@ int main() {
     using namespace ba_webview_probe_policy;
     const std::vector<std::wstring> good={L"game.exe",L"-native-webview-proof",L"-native-quit-smoke",L"-native-quit-gate-smoke",L"-native-quit-mode=confirm"};
     assert(allowed(good,"nativestest_webview147_a1"));
+    assert(initializationTimeout(good)==60000u);
+    auto handoff=good;handoff.push_back(L"-native-webview-observer-handoff");
+    assert(allowed(handoff,"nativestest_webview149_a1") && initializationTimeout(handoff)==120000u);
+    assert(!allowed({L"game.exe",L"-native-webview-observer-handoff"},"default"));
+    for(size_t i=1;i<good.size();++i){auto a=handoff;a.erase(a.begin()+i);assert(!allowed(a,"nativestest_webview149_a1"));}
     for(size_t i=1;i<good.size();++i){auto a=good;a.erase(a.begin()+i);assert(!allowed(a,"nativestest_webview147_a1"));}
     for(const auto* p:{"default","nativestest_","nativestest_../other","nativestest_a/b","nativestest_a\\b","nativestest_UPPER"})assert(!allowed(good,p));
     auto bad=good;bad.back()=L"-native-quit-mode=cancel";assert(!allowed(bad,"nativestest_webview147_a1"));

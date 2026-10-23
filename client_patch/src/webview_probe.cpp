@@ -7,7 +7,7 @@ namespace ba_webview_probe {
 using ba::Obj;using ba_local::Root;
 struct V2 {float x,y;};struct Rect {float x,y,width,height;};struct Size {int width,height;};
 struct Control {
-    unsigned stage=0;ULONGLONG deadline=0,due=0,sampled=0;DWORD thread=0;
+    unsigned stage=0,initializationTimeout=60000,publication=0;ULONGLONG deadline=0,due=0,sampled=0;DWORD thread=0;
     bool started=false,mayCleanup=false,initialized=false,pageLoaded=false,disposed=false,destroyed=false,destroyConfirmed=false,stopCompleted=false,failed=false;
     float rectWidth=0,rectHeight=0;int width=0,height=0;std::string error,cache;
     bool componentEnabled=false,componentActive=false,cachedView=false,initializingView=false,viewObject=false;
@@ -31,8 +31,13 @@ static std::string utf8(const std::wstring& value) {
 }
 static Obj standalone(){return ba::find_class("Vuplex.WebView","StandaloneWebView");}
 static void publish(const char* phase) {
+    require(state.started,"WebView publication requires the validated owned diagnostic");
+    require(state.publication<256,"WebView publication bound exceeded");
+    ++state.publication;
     const std::string text="{\"schema\":1,\"pid\":"+std::to_string(GetCurrentProcessId())+",\"phase\":"+ba_catalog::quote(phase)+
+        ",\"publication\":"+std::to_string(state.publication)+
         ",\"stage\":"+std::to_string(state.stage)+",\"thread\":"+std::to_string(state.thread)+
+        ",\"initialization_timeout_ms\":"+std::to_string(state.initializationTimeout)+
         ",\"initialized\":"+(state.initialized?"true":"false")+",\"page_loaded\":"+(state.pageLoaded?"true":"false")+
         ",\"disposed\":"+(state.disposed?"true":"false")+",\"prefab_destroy_requested\":"+(state.destroyed?"true":"false")+
         ",\"prefab_destroyed\":"+(state.destroyConfirmed?"true":"false")+
@@ -44,7 +49,14 @@ static void publish(const char* phase) {
         ",\"rect_width\":"+std::to_string(state.rectWidth)+",\"rect_height\":"+std::to_string(state.rectHeight)+
         ",\"width\":"+std::to_string(state.width)+",\"height\":"+std::to_string(state.height)+
         ",\"cache\":"+ba_catalog::quote(state.cache)+",\"error\":"+ba_catalog::quote(state.error)+"}\n";
-    const auto path=ba_export::moduleDirectory()+L"investigation\\runtime\\webview-proof-"+std::to_wstring(GetCurrentProcessId())+L".json";
+    require(ba_native_settings::session!=nullptr,"WebView publication owner absent");
+    const auto settings=ba_native_settings::session->path();const auto slash=settings.find_last_of(L'\\');
+    require(slash!=std::wstring::npos,"WebView publication directory absent");
+    // Each closed temporary is renamed to a fresh immutable publication. No
+    // reader of an earlier generation can obstruct replacing its destination.
+    const auto path=settings.substr(0,slash+1)+L"webview-proof-"+std::to_wstring(GetCurrentProcessId())+L"-"+std::to_wstring(state.publication)+L".json";
+    const auto attributes=GetFileAttributesW(path.c_str());const auto error=GetLastError();
+    require(attributes==INVALID_FILE_ATTRIBUTES && error==ERROR_FILE_NOT_FOUND,"WebView publication destination must be fresh");
     ba_export::atomicWrite(path,reinterpret_cast<const unsigned char*>(text.data()),text.size());
     ba::log("WEBVIEW PROBE %s: stage=%u initialized=%d pageLoaded=%d disposed=%d prefabDestroyed=%d stopTask=%d failed=%d",
         phase,state.stage,state.initialized?1:0,state.pageLoaded?1:0,state.disposed?1:0,state.destroyed?1:0,state.stopCompleted?1:0,state.failed?1:0);
@@ -120,7 +132,8 @@ static void update(Obj front) {
             ba::call(transform.get(),"set_sizeDelta",1,sizes);ba::call(transform.get(),"set_anchoredPosition",1,positions);
             Root go(ba::call(state.prefab->get(),"get_gameObject"));require(boolean(go.get(),"get_activeInHierarchy"),"WebView prefab not active in hierarchy");
             state.init=std::make_unique<Root>(ba::call(state.prefab->get(),"WaitUntilInitialized"));
-            state.stage=1;state.sampled=now;state.deadline=now+60000;publish("configured");return;
+            state.initializationTimeout=ba_webview_probe_policy::initializationTimeout(ba::arguments());
+            state.stage=1;state.sampled=now;state.deadline=now+state.initializationTimeout;publish("configured");return;
         }
         require(state.thread==GetCurrentThreadId(),"WebView proof moved off Unity thread");require(now<state.deadline,"WebView proof phase timeout");
         if(state.stage==1) {

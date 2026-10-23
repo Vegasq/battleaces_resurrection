@@ -3,6 +3,18 @@ Updated: 2026-10-23
 Delivery plan: REMAINING_DELIVERY_PLAN.txt, Windows only.
 Original roadmap: CLOSED / SUPERSEDED;see PLAN_CLOSEOUT.txt.
 
+PIPE149 - REAL SERVER / MATCHING NAME FINGERPRINT / CHILD ACCESS DENIED
+Two controlled captures qualify parent pipe creation and same64char fingerprint
+at child open,error5. Connect pending997/wait0duringcleanup is not a connection.
+57tests/C++suites/typedactualreview pass;fullbrowsercontrols FAIL. RootQuit0/no
+force/jobs empty;shortchild lifetime and parentdecoder/root gaps remain. Failed
+01/02/03 and rejected delete-sharing reader preserved. Final r147g-only helper149-04
+uses immutable numbered proof publications;122qualified without old replacement
+failure.280seal/prior147211/148113 preserved via exact source archives. No shipping/
+manual/share change. N9desktop result still pending;no new action. Next actual
+owned security/label/token comparison,then remaining privacy/delivery gates.
+WholeP8/D5 OPEN. Evidence/limits:pipe-equality149.txt.
+
 BROWSER148 - ACTUAL CEF INIT SUCCEEDS; IPC OPEN LOG REPORTS ACCESS DENIED
 Controlled two-process observer qualifies execute-1/initialize1/wrappertrue,then
 original IPC failure-log chain and error5. Logging exception is not provenfatal.

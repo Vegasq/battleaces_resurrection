@@ -1,0 +1,134 @@
+PIPE149 - SERVER CREATED / MATCHING NAME FINGERPRINT / CHILD ACCESS DENIED
+Updated:2026-10-23. Selected metadata and immutable publication qualified.
+Full browser control,P8/D5 and Windows delivery goal remain OPEN.
+
+Result
+Two actual controlled runs observe original parent CreateNamedPipeA succeeding,
+with duplex/overlapped mode40000003,message mode6,255instances,1MiB buffers,
+timeout0 and NULL security-attributes pointer. The child attempts CreateFileA
+with the SAME salted name fingerprint/64-character source prefix+UUID shape,
+accessc0000000,share0,OPEN_EXISTING3,overlapped40000000,NULL attributes/template.
+Both observed child API layers return INVALID_HANDLE_VALUE with last-error5.
+This closes the missing-server/wrong-name alternatives for these observed calls.
+It does NOT identify the access-check cause or prove a particular DACL/token fix.
+
+Parent ConnectNamedPipe returns false/error997 (pending) at both observed DLL
+layers. Later connection-event waits return0 during cleanup. A signaled event
+is NOT a completed client connection:the child open failed and cancellation/
+cleanup can signal that event. No payload or fabricated handshake is supplied.
+Next read-only gate:effective security descriptor/label and relevant parent/child
+token facts on the actual owned pipe,with retained handle/process identities.
+N9's desktop comparison remains pending;read DEV.txt/report before any retry.
+No global ACL/token/policy or reporter guard change is justified by this finding.
+
+Instrumentation / provenance
+New tools/frida_webview_pipe.py composes148's controlled hold/attach observers.
+The added pipe probe itself changes no target arguments,return values,security
+or last-error. It transiently reads only the source-anchored owned pipe name,
+checks the fixed prefix/UUID structure and publishes length plus per-run salted
+SHA256. The raw name/UUID is not retained in its records/errors. Same-name proof
+is cryptographic fingerprint equality,not a retained plaintext comparison.
+Existing controlled parent CREATE_SUSPENDED0->4 mutation remains explicit.
+
+Source-stack RVAs:parent creation1b6af,Connect1b73f,connection wait1b772;
+child open840e8. This is matching original stack membership,NOT an independent
+direct-return-address proof. Module path/selected16byte windows are checked.
+The child hashes untouched call window840e2 instead of startup entry84050,
+which the148 observer already hooks. Both selected original/current windows and
+whole native plugin/child files match;local/webview149-prefix01 binds them.
+
+Distinct Kernel32/KernelBase code addresses remain separate hooks/records;
+shared-address aliases keep only the FIRST label,not a complete alias-name list.
+Actual parent ready has5bindings for3API names;child2bindings for1API name.
+Completed records per run:CreateNamedPipe1,Connect2,Wait2,CreateFile2. This is
+binding-level observation,not two physical clients/connections. Invocation
+last-error is copied before metadata work and never queried/replaced by the probe.
+
+tools/webview_pipe_evidence.py checks every original row envelope and typed pipe
+extension:exact role descriptor,binding vocabulary,Win64 argument scalars,
+return/error semantics,frames,digests and snapshot counters. Call IDs may complete
+out of order;entered lower bounds/pending IDs are reported honestly. It never
+filters,projects,relabels or resequences original rows. Unrelated observer data
+stays outside its qualification scope;passing is NOT complete capture/privacy.
+
+Actual runs / failures retained
+01:root32052 never resumes its primary thread. Checker wrongly expects exactly3
+bindings but Windows exposes5. It fails before game initialization;owned forced
+cleanup/reap/closed session retained. This case is not a passing startup.
+02:root5880 creates pipe successfully;browser15252 stays held/unresumed. REA
+attachment fails VirtualAllocEx5. Exact cause/time relative to teardown is not
+proven;do not relabel it as definitively a timeout or reinstall REA. Root later
+uses original Quit0,no harness force,empty job. Complete failed response is
+explicitly labeled a response COPY,not reconstructed successful Evidence.
+
+03:root2464/browser27508;native165.617s/outer167.039s. Live PID creation identity
+is rechecked before successful attachment/resume count1. Parent9264/child395rows.
+Server creation/name fingerprint/child5 are qualified. Diagnostic publication
+fails replacing the mutable JSON path ("export atomic rename failed");stop task
+also times out. Root original Quit0/no force/jobs empty. Full control FAILS.
+
+04:root23092/browser30568;native197.407s/outer198.827s. Final helper149-04 and
+immutable publication protocol;parent10885/child487rows,truncated=false. Same
+pipe result,with all122 complete numbered publications retained/identity-checked.
+Final initialized/page/disposed/destroyed/stop-task success remains false;init
+and stop timeouts remain. Root original Quit0/no harness force/jobs empty. Full
+browser control still FAILS despite qualified pipe metadata/publication.
+
+Both03/04 retain only2of3job identities;short descendant lifetime stays unqualified.
+Parent captures retain1decoder error/1unresolved empty NtOpenFile root each.
+Neither gap is discarded. Child network/event counts are not whole-tree/wire
+or all-thread privacy evidence. All actual Frida sessions explicitly closed.
+
+Diagnostic handoff / publication correction
+An explicit -native-webview-observer-handoff allows120000ms initialization in an
+already validated owned/gated diagnostic;default stays60000ms. No normal launcher
+sets it. This does not change matchmaking's30s limit or ordinary client timing.
+The proof records the chosen bound;controller still has its independent300s cap.
+
+Replacing a JSON destination while a reader holds it can fail here. The proposed
+FILE_SHARE_DELETE reader was TESTED and REJECTED:closed replacement succeeds,
+ordinary AND shared readers both receive error5 on replacement. Its source/tests
+and failed fixtures are preserved privately;that proposal is NOT shipped.
+The first tempfile fixture also failed before exercising the reader;the ordinary
+inherited workspace fixture corrected that setup without a permission waiver.
+Do not claim delete-sharing solved this environment or infer the exact producer
+error solely from the generic atomic-rename failure message.
+
+Final diagnostic publisher instead closes a temporary and renames to a fresh,
+numbered file inside the already validated owned profile:
+ webview-proof-<PID>-<publication>.json
+It checks destination absence and bounds publications to256. Policy denial
+cannot write into an ordinary profile. Old generations are never replaced.
+tools/webview_proof_journal.py reads the numeric latest complete generation,
+checks ownership/PID/ordinal/phase/size/count and refuses malformed latest data.
+It ignores incomplete temporary files,not invalid evidence. An actual Windows
+test pins an old ordinary reader while a NEW publication succeeds;04 verifies
+the native producer/reader together through all122 generations without the
+mutable-destination failure. No package/helper outside isolated r147g updated.
+
+Validation / retention / next
+57 focused Python checks pass,including actual Node callbacks,Win32 publication
+with old handle pinned,typed metadata corruption/pending/alias cases and all
+previous ownership tests. Full C++ suites/helper149-01/-02/-03/-04 builds pass;
+02/03 builds were not installed. Final149-04 helper SHA:
+ d9d12efe7adbe1a4f2f10c2687971e552ef9c0d41ba6fe60fd3071b59448c6d8
+Profile-preserving updates and r134g/r141g component seals pass. Normal/shipping
+139,manual/N7/share/HTTP candidates are not changed. No new Nick action beyond
+the existing N9 is requested;older answers and requests remain preserved.
+
+Read-only local/webview149-review01.json verifies both actual captures and rejects
+8altered actual records per case. New metadata validates without hiding existing
+observer gaps. Immutable122publication hashes are sealed. Oversized root statuses
+are selected exactly from complete58,568,322-byte/44record retained bundle,
+SHA99592ec111c5e6331360e7b6b52ad4894357167840ecab5e73ff7df13b9ff39b;
+no CallToolResult envelope reconstructed. Canonical record SHAs:
+ 03:b2549c3e0210d9f1610c637c6f590ec2254f2594db7316955ee16806145fb5e0
+ 04:aa228bdb29f606e2ae22dab980354fd3be140eac90855f76d5733572d02c655c
+
+local/webview149-seal01.json binds280inputs,SHA:
+ 2d3f8736d5c8ed2d54d638612c66b1b1a95092de017607e0135bd9d98ec80d64
+Prior147211/148113inputs recheck using exact archived authored CPP/header/test
+snapshots where source changed. Older reports/builds are unchanged. The final
+driver is still opt-in diagnostic code;RUNTIME_VALIDATED=false and wholeP8/D5
+remain open. Next actual owned security/token attribution,then supported-route/
+descendant/wire applicability and the remaining Windows D1-D9 delivery gates.

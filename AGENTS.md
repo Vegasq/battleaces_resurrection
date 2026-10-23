@@ -2,6 +2,21 @@
 
 ## Requests and answers with Nick
 
+- Pipe149 CLOSES observed server/name/error subcase:actualCreateNamedPipevalid,
+  same64char saltedfingerprint atchildCreateFileA,childinvalid/error5. Connect997
+  pending;wait0duringcleanup NOTconnectionproof. Stackmembership NOTdirectcaller;
+  distinctbindingsretained/sharedaliasesfirstlabelonly.57tests/C++suites pass,
+  typedactual03/04review+16corruptionrejections. FullbrowsercontrolsFAIL;RootQuit0/
+  noforce/emptyjobs,shortthirdPIDunretained+parentdecode/rootgapstayopen.01failed
+  beforeprimary/forcedreap;02failedattach/neverresumedcauseunproven;03mutableJSON
+  renamefailed. Rejectedshare-deleteproposal retained,NOTfix.04immutable122fresh
+  profile publications qualified:tools/webview_proof_journal.py;finalhelper149-04
+  r147gONLY. Explicitobserverhandoff120s/default60 unchanged,normalflagsdisabled.
+ 280seal/prior147211+148113resolveEXACTarchives. N9stillpending,readDEV/report
+  beforeanyretry;NOnewaction/Tutorial2/D6/LANrepeat. NEXTread-onlyactualownedpipe
+  SD/label+relevanttokens,thenremainingP1-P9/D1-D9. NoACL/reporterworkaround or
+  unchangedroot-onlyrun. Shipping139/manual/share untouched. docs/pipe-equality149.txt.
+
 - Browser148 CLOSES controlled execute/init boundary:actualCEFexecute=-1,
   initialize=1/wrappertrue,then originalIPC failure log/error5 ACCESSDENIED. IPC
   systemexception is OutputDebugString logging,NOTprovenfatal/cause. DefaultSCNULL
