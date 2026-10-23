@@ -2,6 +2,25 @@
 
 ## Requests and answers with Nick
 
+- WebView146 STATIC prerequisites qualified,NOT P8/runtime closure. Original
+  KoreanComplianceDialogVM has actual CanvasWebViewPrefab field+80;typed native
+  table resolves10579RGame fields/one DIRECT Vuplex class field (NOT generic/
+  serialized/indirect absence).31complete managed bodies bind original/r141g/
+  current139;Vuplex plugin WHOLE-file identical. Native init/new don't directly
+  spawn;FIRST genuine render(or cookie APIs)->bridge/thread/CreateProcess1c1ce.
+  Pointer renderer vsinteger event callback ABIs differ;never fake/null callbacks.
+  Canvas.Instantiate0 genuine resource;Canvas.Init is VOID/shared RETimm0,NOTTask.
+  Use WaitUntilInitialized/Start lifecycle,empty InitialUrl then inert LoadHtml.
+  PUBLIC SetCachePath stores managed override,reapplies after native init reset;
+  raw native setter alone insufficient. Set owned cache BEFOREfactory/bootstrap.
+  Dispose is perview;global termination4s reset can ORIGINAL-TerminateProcess child;
+  browserProcessIsRunning only bridge!=null,NOT OSexit. Independently hold/wait
+  owned child handles/tree;distinguish product fallback from harness forcedcleanup.
+  Corrections/partial/raw-index false assumptions preserved;seal173/prior145100
+  unchanged. No target/browser/cache/license/sourcehelper/package/manual/action
+  changed. NEXT genuine managed component runtime with owned inert data/cache,
+  actual children/argv/exit+remaining P1-P9. docs/webview-contracts146.txt.
+
 - Warning145 CLOSES captured553PDB trigger:ALL inside ONE Unity log scope66,
   directcaller+4a9a46(renderTexture warning),nested loadcaller+9f8c2c. Original/
   installed complete source and five printed stack RVAs match;new passive module

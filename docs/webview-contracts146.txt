@@ -1,0 +1,140 @@
+WEBVIEW / CEF ACTIVATION, CACHE AND SHUTDOWN CONTRACTS146
+Updated:2026-10-23. Static prerequisites qualified;actual P8/D5 remain OPEN.
+
+Result
+Original source identifies an actual game UI consumer of Vuplex:
+KoreanComplianceDialogVM.CanvasWebViewPrefab. It also identifies how a genuine view starts the
+browser,how to isolate its cache through a public managed API,and why the native
+running/termination results cannot prove child exit. These contracts enable a
+bounded owned component control with inert HTML. No game,browser,original URL or
+report handler was executed here. No cache,license,patch,helper or installer changed.
+The compliance dialog's reachability from current community menus is NOT proven;
+it is a source anchor,not an assertion that normal startup opens a browser.
+
+Identity/applicability
+Original GameAssembly SHA:
+ e59d08c01479b27404778048d7e13546dbf3771f6b3912744c7c2bdf80c4e758
+Original/current139 metadata SHA:
+ b760be9190309b14174cd272e1f83b730181b299bc7a0cdca66985c69dcdc57d
+Current139(r134g,recipe21) GameAssembly SHA:
+ 4ee66839b00bf04cb72ca03124cfbc83dd392f03384619bb2cdaba6555113a3e
+31selected complete managed function bodies match original,r141g andcurrent139.
+Original/r141g/current139 VuplexWebViewWindows.dll are WHOLE-FILE IDENTICAL:
+ f654299829e9d3c65d2fa6af0db13d320b12ac6769566c7fecaa96208e327d89
+The selected file-body proofs do not hash complete loaded memory. Existing original
+PE/IL2CPP readers and pinned LLVM were used;known-unconfigured Ghidra was not retried.
+Native bootstrap/lifecycle/cache reviews were independently delegated read-only.
+
+Managed UI/type evidence
+The name/namespace inventory has139selected types/1339methods. It is not exhaustive
+Vuplex reachability or proof that unrelated Steam HTML/file-browser types use CEF.
+A separate scan resolves native Il2CppType records,including attribute-qualified
+duplicate types:tableRVA6223420,count82705,registration pointer61982c8. Of10579RGame
+fields,one direct CLASS/VALUETYPE field resolves to Vuplex:KoreanComplianceDialogVM
+field19364/token04002135,CanvasWebViewPrefab at instance+80. Its native type pointer
+6cd4028 resolves to definition11325. Generic/array/indirect/serialized routes are
+not excluded by this direct-field result.
+Original VM Initialize3d057d0 subscribes prefab Initialized;OnCanvasInitialized
+3d05cf0 obtains IWebView,installs its original script/message bridge and processes
+compliance instructions. Do not activate that account/URL path merely to start CEF.
+Community startup's direct menu transition is source evidence only;it does not
+by itself exclude every serialized component or later UI/browser route.
+
+Exact managed control surface
+ CanvasWebViewPrefab.Instantiate() static54ad160 ->54ad180 returns genuine prefab;
+ the zero-argument factory supplies zeroed WebViewOptions and uses the original
+ CanvasWebViewPrefab resource. Parent canvas/rect and original render lifetime
+ must remain valid;a raw native allocation is not equivalent.
+ CanvasWebViewPrefab.Start54ae600 aliases_initCanvasPrefab;its original async
+ state is54af360. The three public Init overloads instead map to the shared
+ RET imm0 leaf6af170(C20000),return VOID,and do not initialize the view.
+ BaseWebViewPrefab.WaitUntilInitialized54a6880 returns Task. Use that task and
+ original callbacks across Unity frames;do not invent a Task from Canvas.Init.
+ StandaloneWebView.Init54c1fd0 takes width/height INT32 and returns Task.
+ StandaloneWebView.LoadHtml54c23d0 takes one String and returns void.
+ BaseWebView.Dispose54cfdc0 is instance void;global TerminateBrowserProcess54c4620
+ is static and returns Task. Managed task completion is not an OS exit witness.
+Base prefab InitialUrl is String+58. Original_initBase MoveNext54aa720 checks
+String.IsNullOrWhiteSpace33903e0,then TrimWhiteSpaceHelper338d110 and IWebView.LoadUrl
+slot44(one String);slot45 is the separate two-argument overload. A fresh control
+must set InitialUrl empty before its Start/initialization and later use inert HTML.
+Serialized defaults were not observed and must not be assumed empty.
+Unity2022.3 documents Start before first Update and Awake before Start;this is
+lifecycle context,not evidence that this particular prefab was initialized:
+ https://docs.unity3d.com/2022.3/Documentation/ScriptReference/MonoBehaviour.Start.html
+
+Native activation
+initializePlugin13f20 registers seven real callback/pointer slots and resets state.
+WebView_new14780 constructs/registers a genuine view,including original license
+validation. Neither reviewed direct path starts the browser. Callback behavior is
+not globally excluded;trial/license branches remain original.
+The normal first-render path is:
+ WebView_render1f140 ->19ef0
+ OR getRenderFunction1f130 ->render-event callback1f110 ->190a0 ->19ef0
+ ->first view+28 transition/texture-device setup1a3b0 ->5fb0 ->62a0
+ ->lazy bridge1b030 ->CreateThread1b2e8(start1b010) ->1bbd0
+ ->CreateProcessW1c1ce(return1c1d4).
+Render export consumes a genuine pointer inRCX;Unity callback consumes its
+registered integer event ID inECX. Do not swap those ABIs or supply null callbacks.
+Cookie APIs are alternate lazy bootstrap routes:getCookies13cdf,deleteCookies
+135bf,setCookie153c4 call62a0. Account for them even if no view has rendered.
+CreateProcess uses inheritHandles=true,flags0,null environment/null cwd. Browser
+path is derived from the plugin directory;actual argv/inheritance/child identities
+remain runtime obligations. PROCESS_INFORMATION is stored in bridge+38:process
+HANDLE+38,threadHANDLE+40,processID+48/threadID+4c.
+
+Cache isolation ordering
+PUBLIC StandaloneWebView.SetCachePath54c31c0 takes one absolute-path String and
+returns void. It first stores the managed override in staticfields+0 at54c3221,
+then calls_setCachePath54c7430. Its native setter14fa0 rejects an existing bridge
+without mutation;otherwise it copies the path to native global5c018 and returnsAL1.
+Native initialization resets that global. However the original managed initializer
+calls native init at54c6db2,then_getCachePath54c6db6,and reapplies_setCachePath at
+54c6de6. _getCachePath reads the SAME managed override at54c507e,returning it when
+nonnull;otherwise it builds Vuplex.WebView/chromium-cache under its original root.
+Thus public SetCachePath before factory/first render survives native reset. A raw
+native setter alone would not establish that. Native argument builder110c0 emits
+the quoted --vx-cache-path value. Setter acceptance does not prove containment,
+writability or that every CEF/driver file stays there;validate an owned path first
+and observe actual argv/files. Do not clear or seed Nick's existing browser cache.
+
+Shutdown and independent ownership
+WebView_destroy136d0 is per-view opcode13/removal/destructor. It does not stop the
+global browser. terminateBrowserProcess158e0 sends opcode57 through10dd0 and arms
+a4000ms reset timer12af0->10cc0;there is also a separate exact-message reset path.
+The original bridge destructor1b420 calls TerminateProcess(childHANDLE+38,0) at
+1b530 and closes handles,without waiting/checking that child exited. This original
+product fallback must be distinguished from harness-forced cleanup.
+browserProcessIsRunning12d20 ONLY tests bridge!=null. Neither false,AL1,a completed
+managed Task nor a closed handle is sufficient child-exit/descendant proof. Capture
+and independently wait owned OS process handles and verify the final job/tree.
+Reuse106/107/125's patched handler/config guards;do not launch unpatched reporters
+or reconstruct more Crashpad formats without an effective supported bypass.
+
+Retained corrections and limits
+inventory01 rejected negative methodStart on zero-method types;02 retains them.
+selection01 confused property_count17 with field_count18;02 corrects the table.
+kr-route01's raw field/type-index equality subsection is superseded by the actual
+Il2CppType resolution above;its empty result is NOT absence evidence.
+url-source01 stopped at an unwind-less Canvas ctor;its earlier dumps stay partial.
+url-source02 verifies six complete selected methods and excludes that leaf.
+runtime-contract01 expected a one-byte RET;02 verifies actual C20000 and correct
+void signatures. No original method was invoked to resolve these mistakes.
+
+Evidence and next action
+local/cef146-native-bootstrap01/{FINDINGS,LIFECYCLE,CACHE}.txt and static03/04/05
+reports retain complete native bodies,leaf scopes,commands,hashes and limits.
+Managed inventory02,typed-fields01,kr/factory/url02/states/cache source reports,
+runtime-contract02 andcurrent139-binding02 retain exact metadata/body checks.
+local/cef146-seal01.json seals173inputs and rechecks prior145's100inputs unchanged.
+SealSHA:30fcfb415a4d5998c75d3e0b1c9a8ec4986c0e833ece593893c7a2b7514c9d8f
+Original binaries/assets,raw disassembly and native metadata remain ignored.
+
+NEXT implement a separately gated owned Unity-thread component control:public
+owned cache override;genuine prefab/render callbacks;empty InitialUrl;actual
+WaitUntilInitialized;inert local LoadHtml;original Dispose/global termination;
+independent observed child images/tree/network/file/exit and normal game Quit.
+Preserve original license behavior and record unsupported outcomes. Bind actual
+child argv/cache path and inherited Crashpad applicability;do not call native
+render with fake pointers or mistake bridge state for OS reaping. Keep prior
+diagnostic evidence and current139/manual130/N7/share frozen. No Nick action.

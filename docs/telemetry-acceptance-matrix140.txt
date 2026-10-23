@@ -102,6 +102,13 @@ Finite rows
     zero selected CreateProcess counts is insufficient. Reuse106/107/125 handler/
     inherited-pipe analysis. No extra Crashpad format reconstruction without a
     demonstrated independent bypass.
+    [x]146 STATIC activation/cache/lifetime prerequisites bind31managed bodies
+        tocurrent139 and whole native plugin tooriginal. First render/cookie APIs,
+        genuine managed factory/Task and owned cache override are identified.
+        Native bridge/running/termination results are NOT OSexit proof. No game
+        or browser executed;source173seal/prior145100unchanged. P8 remains OPEN.
+        Next owned genuine component/inert HTML and actual child/argv/cache/exit
+        attribution. Details and retained corrections:webview-contracts146.txt.
 [ ] P9 Source applicability/final installed closure
     Resolve upstream c307c0 advertising producer/registration OR prove relevant
     consumers are cut before acquisition. Preserve127/128 preparation/settings,
