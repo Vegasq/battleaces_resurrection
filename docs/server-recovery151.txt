@@ -1,5 +1,5 @@
 SERVER RECOVERY151 - RC BACKUP AND STRICT CONFIG ROUNDTRIP
-2026-10-23. Source repair qualified;packaged qualification follows separately.
+2026-10-23. Source repair and scoped bundled/native controls qualified.
 Full D7 protected deployment/SCM/restored-host match acceptance remains OPEN.
 
 Defects reproduced
@@ -53,11 +53,67 @@ local/recovery151-tests02.{py,txt,json}.
 Corrected server source SHA256:
 2f8508fcf1b6ce6c06a5a546dcc52b654aba0e079e0f4027361ed827a85065ad.
 
+Clean packages and actual bundled validation
+Clean source:07d2a7b9e4b1f5ad8fbe3f294768b5b6df584ea9,dirty=false.
+local/recovery151-packages01/battleaces-server-win64.zip SHA256:
+969f5c0b16eb70166fc0fe3e9ca581eeeb8c4a9f30bc8ecc246419db332d50d7.
+Client ZIP:
+8451744c2b6ecf5a3281c175ec6576bfca347ffeeaa777bcd98e52ff28e7e07f.
+Native standalone server:
+local/recovery151-server-standalone01/Install Battle Aces Server.exe
+484f6085968edb219b46c4560fe97df1f7f7f2b85b95e609d2daebaa71e17b79.
+Native standalone client:
+local/recovery151-client-standalone01/Install Battle Aces.exe
+77b24743da75e490b5118429bce9cf71f9586d0d19a8068f92f12c4d80e52a37.
+Version remains0.3.0-rc1.5/engineering checkpoint151,not a final release.
+Helper138-01/native forms130/launcher39/certificate103 are unchanged.
+
+Actual qualification local/recovery151-package-qualification01 PASS19.865s.
+Both package verifiers and both native form/payload actions pass;form controls
+remain3client/2server fields with attached progress. Five authored transferred
+snapshots cover RC3full,invite2full,development2full and both legacy1deck modes.
+Each is checked by the actual isolated server CLI against all119verified139
+asset files:5same-mode accepts,10cross-mode refuses. These are explicitly
+authored fixtures,NOT actual protected backups. No credentials/private output
+directory is created. Package/assets inventories stay identical. Delta from139
+is exactly server QUICKSTART/compatibility/state_backup.py;client compatibility
+only. No gameplay/helper/transport bytes changed and no accepted install/play
+test was repeated. Embedded payloads carry this exact source backend.
+
+Ready owner check and bounded native control
+New tools/verify_server_recovery.py uses the actual bundled production imports,
+with no sys.path injection/OS privacy substitution. It prepares only fresh owned
+state and listens only on127.0.0.1. Default checks the normal account before any
+private operation. RC snapshot/private config readback,profile/full17slots,
+original-state preservation and restored native peers are checked together.
+The separate explicit --transport-control branch does NOT perform private backup/
+restore;its authored certificate/keys belong only to that disposable fixture.
+
+Actual transport control PASS5.641s:two TLSv1.3 RC peers,certificate verification
+disabled as required by RC,matching native bootstrap and all40frame packets.
+Host audit binds original roster/decks/native active snapshots;worker9600 was
+retained live and signaled exit0 after orderly host cancellation. Listener/lock
+released;job10/0/0,no forced cleanup. Profiles remain exact. It deliberately
+stops an ACTIVE match and records unknown/aborted result,not a completed game,
+win/results/Continue or physical game UI. Existing console39 helper is reused
+unchanged for bounded frame/audit/worker observations. Source remains unchanged
+during execution;local/recovery151-native-control01/verification.json retains it.
+
+local/owner-recovery151/Owner Recovery Check.cmd is ready as DEV N10. It pins
+six driver/helper/package/asset inputs and uses the new bundled runtime. Actual
+--selfcheck PASS:normal-owner-required,controller not started,no protected
+operation attempted. last-selfcheck.json stays distinct from Nick's future
+last-report.json. No owner acceptance is inferred. New normal-owner action is
+the only new request;N9's pipe comparison remains separate and pending.
+
 Packaging/owner boundary
 Existing139 engineering and130/manual candidates are not modified in place.
-No accepted D6/LAN/AI/installer action is repeated. Before changing the planned
-manual handoff,a new package must bind this exact backend and use its bundled
-runtime to validate both new and legacy snapshots against verified assets.
+No accepted D6/LAN/AI/installer action is repeated. New151packages bind the
+backend;the planned N7 manual update/share artifacts are not silently replaced.
 Actual protected backup/restore under the intended account,restored native play,
 SCM/account/reboot and clean-PC support remain the original D7 gates.
-N7/N9 answers remain pending;no additional Nick action is requested here.
+N7/N9 answers remain pending. N10 will provide only its actual observed protected
+recovery/active native-frame scope;completed restored game/SCM/clean-PC stay open.
+local/recovery151-review01.json reconciles these actual reports and seals276inputs;
+all196inputs from150's prior seal still match. Original source,baseline failure,
+test-assertion failure and earlier manual packages are retained without rewriting.

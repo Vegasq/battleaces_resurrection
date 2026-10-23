@@ -832,8 +832,12 @@ References: client-startup.txt and telemetry-game-observation.txt.
     original TLS/access mode. All6cross-mode directions refuse before creation;
     changed full17cosmetics/legacy/revocations/lock/durability regression passes.
     102tests100pass/2protected skips,synthetic assets/private boundary mocked.
-    Baseline failures retained. Package binding/protected owner/restored native
-    match/SCM remain OPEN. server-recovery151.txt;no new manual action.
+    Baseline failures retained. Clean07d2a7b paired ZIPs/EXEs/forms/payloads and
+    actual bundled CLI5accept10refuse/119assets PASS19.865s. Server delta3files/
+    clientcompatibilityonly. RC TLS40nativeframe control PASS5.641s/worker0/job
+    10/0/0/no force,NOT completed/protected recovery. DEV N10 normal-owner capsule
+    READY;restricted guard PASS without privateops/child,not Nickresult. Protected
+    owner/completed restored native match/SCM remain OPEN. server-recovery151.txt.
 [x] Protected owner-console40 active-match Ctrl+C/same-state restart PASS,review93:
     two40-frame verified-TLS peer streams,workers0,port/lock released,identities/
     profiles retained,job20/0/0,no forced cleanup. Source hashes still agree.

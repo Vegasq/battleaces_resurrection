@@ -9,8 +9,12 @@ failures. RC-only schema3 explicitly separates open TLS from legacy plaintext;
 legacy1/2 preserved,all6cross-mode directions refused before output. Restored
 schema2 retains original access_mode/TLS paths.102tests100pass/2protected skips;
 private boundary mocked/synthetic assets,not owner/SCM/restored native acceptance.
-Baseline and initial test-assertion failure preserved. Next clean bundled backend
-binding;existing engineering/manual/share/Nick actions unchanged. D7OPEN.
+Baseline and initial test-assertion failure preserved. Clean07d2a7b paired ZIPs/
+EXEs/forms/payloads and actual bundled CLI5accept/10refuse/119assets PASS19.865s;
+server delta3files/clientcompatibilityonly. RC TLS/native40frame control PASS
+5.641s/worker0/job10/0/0/no force,not completed/protected recovery. DEV N10 normal
+owner capsule READY;actualrestricted preflight guard PASS,no privateops/child.
+last-selfcheck is not Nickresult. Existing manual/share/N7/N9 unchanged. D7OPEN.
 Details:server-recovery151.txt.
 
 PIPE150 - OWNED SECURITY SNAPSHOTS / RESTRICTED PROCESS TOKEN WRITE MISMATCH

@@ -8,10 +8,16 @@
   directions refuse before destination. Restore writes schema2/preserves TLSmode.
   Baseline2failures retained;102tests100pass/2protected skips. Full17cosmetics/
   legacy/revocations/durability/locks pass within explicit mocked-private/synthetic
-  scope,NOT protected owner/SCM/restorednative acceptance. Prior exact source
-  local/recovery151-prior-source01. NEXT clean bundled package/actual verify CLI
-  binding;do not repeat protected writes under restricted token. No game/server,
-  helper/shipping/manual/N7/N9/share change yet. docs/server-recovery151.txt.
+  scope,NOT protected owner/SCM/restorednative acceptance. Clean07d2a7b paired
+  ZIPs/EXEs/forms/payloads/actualCLI5accept10refuse/119assets PASS19.865s;server
+  delta3files/clientcompatibilityonly. New ownerrecovery diagnostic actualRC TLS
+  40frame control PASS5.641s/worker0/job10/0/0/no force,NOT completed/protectedgame.
+  Desktop capsule local/owner-recovery151 is READY DEV N10;six inputpins,bundled
+  runtime,actualrestricted guard PASS/no privateops/controller. last-selfcheck
+  isNOT Nickresult. NEXT read N10 answer/report before retry;other D1-D9 gates.
+  Do not repeat protected writes under restricted token. Prior exact source
+  local/recovery151-prior-source01. All owned terminal;no game/helper/shipping/
+  manual/N7/N9/share changes. docs/server-recovery151.txt. D7/fullgoal OPEN.
 
 - Pipe150 CLOSES read-only actual owned SD/label/process-token snapshot subtask.
   Before browser resume and after original open error5:five allow ACEs,same user,
