@@ -3,6 +3,15 @@ Updated: 2026-10-22
 Delivery plan: REMAINING_DELIVERY_PLAN.txt, Windows only.
 Original roadmap: CLOSED / SUPERSEDED;see PLAN_CLOSEOUT.txt.
 
+SOURCE132 - FINITE DIRECT MACHINE-ID CALL COVERAGE VERIFIED
+Five verified direct calls;three analytics routes already guarded in actual130.
+136static assertions pass. Initial missing-refresh-guard assumption FAILED;
+existing110 guard retained,no extra patch. Platform/base tables differ only at
+four known slots,no new Windows-only ads override in this pair. Next classify
+10e270/5920b0 registrations/consumers;upstream c307c0 remains unresolved. No game/
+build/install/new Nick action;130/N7 unchanged,full D5 OPEN. Exact scope/failure/
+hashes:telemetry-platform-coverage132.txt.
+
 RC AVAILABILITY131 - ALL EIGHT CONFIGURED-UNAVAILABLE CELLS PASS
 Actual installed130 bundled Resolver/identity/TLS/bridge connects to owned TCP
 refusing or silent TLS endpoints in1/2/4/5. Original5s handshake/10s outer defaults;

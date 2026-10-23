@@ -387,6 +387,15 @@ already cut;then supported runtime/final artifacts. Full D5 stays OPEN.
     mutations pass. Build01 superseded before install/runtime after discovering
     second config route;final helper127-02. No127packages/new action;105/N7
     current. Source/ABI/lifecycle limits and hashes:telemetry-native-activation127.txt.
+[x] Review132 finite direct9fb910 inventory and installed130 byte coverage:
+    five verified E8/E9 calls;three analytics routes already guarded.136static
+    assertions pass. Initial missing-c32468-guard assertion FAILED;110 covers it,
+    no duplicate guard/new runtime run. Platform/base31-entry tables differ only
+    at four known slots,no new Windows-only ads override in this table pair.
+    Scope/failure/hashes:telemetry-platform-coverage132.txt. Full D5 stays OPEN.
+[ ] Next source:classify10e270/5920b0 registrations/consumers before changing
+    remaining direct getter routes;retain separate c307c0 upstream producer gate.
+    Indirect/computed calls and broader runtime/reporting gates remain open.
 S1 CLOSED BY126:all FIVE safe interior SDK guards,with genuine matched/unmatched
 pending-owner cleanup and disabled-ID qualification.125 found failed/cache
 handlers can enumerate/prune AFTER WriteFile RET;do not entry-RET those handlers

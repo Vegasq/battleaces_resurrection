@@ -2,6 +2,17 @@
 
 ## Requests and answers with Nick
 
+- Source132:finite shared9fb910 executable direct-call inventory is FIVE verified
+  sites;all THREE analytics routes already guarded in recipe17/installed130.
+  Initial assertion of missing c32468 guard FAILED;110 already covers it,do NOT
+  duplicate. Corrected136assertions pass;shared getter/10e270/5920b0 bodies and
+  other refresh bytes unchanged.31-entry platform/base tables differ only at
+  30/80/e0/e8,no new Windows-only ads override in this pair. NOT producer/full
+  reachability closure. Next classify actual registrations/consumers10e270 and
+  5920b0;keep c307c0 source gate. Static original PE/LLVM only,no game/query/
+  build/install/new action. Full D5 false;130/N7 unchanged. Evidence/failure/
+  limits:docs/telemetry-platform-coverage132.txt. No equivalent quiet AI rerun.
+
 - Availability131 COMPLETE:all EIGHT RC schema4 refusal/default-TLS-deadline
   counterparts1/2/4/5 pass on actual installed130. Delegating observers,real
   exclusive nonlistener or silent ClientHello endpoint,original5s/10s defaults.

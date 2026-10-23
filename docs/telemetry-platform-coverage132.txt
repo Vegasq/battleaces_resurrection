@@ -1,0 +1,67 @@
+PLATFORM DISPATCH AND DIRECT MACHINE-ID CALL COVERAGE132
+2026-10-22. Static source review;full D5 remains OPEN/false.
+
+Result
+The exact executable E8/E9 inventory for shared getter9fb910 contains five
+instruction-verified calls. All THREE identified analytics callers already
+have preventive guards in recipe17 AND actual installed130:
+  call c2f7de:entry c2f790 redirects to c300f0 before configuration acquisition;
+  call c2fc09:redirects to existing unknown branch c2fc10;
+  call c32468:redirects to existing unknown branch c3246f.
+Both latter branches use literal1988fa8="unknown". All other refresh-body bytes
+remain original. This completes this finite direct-call inventory/installed-byte
+check;it does not prove indirect reachability or complete identity removal.
+
+The other direct calls are10e274 in full root10e270 and592161 in full root5920b0.
+The former is a forwarding/conversion-shaped wrapper. The latter mixes timing,
+process/state/hash inputs and the getter into16 output bytes. Their actual
+registrations/consumers are not established here. Do not label them telemetry
+or alter generic identifier generation without that evidence. Both full bodies
+and the shared getter remain identical to the pinned original in installed130.
+
+Platform hypothesis
+The known base/platform Main vtables each contain31 entries,bounded by the next
+independently reviewed secondary callback table. Only four slots differ:
+  30:base c2f420/platform c66b50 (destruction);
+  80:base c2fbc0/platform c67360 (state preparation,review127);
+  e0:base c2f570/platform c66c20 (both Start registrations already guarded);
+  e8:base c2f5e0/platform c66fd0 (teardown).
+This eliminates a missing Windows-only override in THIS table pair as a new
+advertising-request candidate. It does NOT identify c307c0's producer,exclude
+other interfaces/registries,or establish whole-program unreachability. Leaf
+prefixes without unwind records remain explicitly unbounded in the inventory.
+No entry-RET for c307c0 or shared getter patch follows from this review.
+
+Correction and verification
+The first verifier incorrectly asserted that c32430 had no existing guard.
+It FAILED that assertion. Recipe110 already guards c32468 and documents it in
+telemetry-cached-requests110.txt. Retain failed verify.py;do not add a duplicate
+guard or report a newly discovered product defect. Corrected verify02.py passes
+136 assertions:all original Unity guard signatures/all installed replacements,
+five verified direct query calls,three relative destinations,two original
+sentinels,shared full-body preservation and remaining refresh-body preservation.
+This is byte/source verification,not a new game compatibility or runtime test.
+
+Provenance and limits
+REA skill with retained PE/unwind/LLVM fallback;known unavailable Ghidra not
+retried. NOT REA decompiler/runtime Evidence. Original UnityPlayer SHA256:
+ ac144d56d53f07904d52ed27a1539de90bc3290038fe52d73d2f6b268c85d6bc
+No game/SDK/getter executed,no build/install/package/profile/queue changes.
+Original bytes/disassembly and scripts remain ignored under
+local/privacy132-platform-source01 (34 assembly files;not original symbols).
+Evidence manifest SHA256:
+ 12f9edfea9259f19f9afbbe7a713560ad0d84f77ac462d7bf41920ef6a5e9899
+verification02.json SHA256:
+ 0ff7f99d4aa492c26a995370f5ac59a77d413ed42a1365f1a5498de9aa876a1d
+machine-branch-contract.json SHA256:
+ 20262a149706d5179901c0cad52f3f1ca19e3e7c33d2efc18c7291f42a220f07
+platform-tables.json SHA256:
+ 353d5e707c4997b0c3b65a1b4059a4c84d1099747af3f3b77f62c7b90d4814c8
+
+Next finite source action
+Resolve registrations/consumers of10e270 and5920b0 to classify the remaining
+direct getter routes. Retain the independent c307c0 upstream producer gate.
+Reuse the three existing analytics guards and prior runtime evidence;do not
+repeat equivalent quiet AI runs or duplicate covered refresh work. Broader
+identity/constructor,error/descendant,reporting/runtime/final delivery remain
+open. Frozen130/N7 and all manual answers stay unchanged;no Nick action needed.
