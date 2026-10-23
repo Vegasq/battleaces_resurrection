@@ -1,0 +1,101 @@
+INITIALIZED SDK CLIENT AND CACHED DELIVERY138
+2026-10-22. Recipe21/120 guards. Full D5 OPEN;RUNTIME_VALIDATED=false.
+
+Outcome
+Preserve genuine SDK Client/NativeClient initialization while bypassing automatic
+reporting hooks and inlined cache directory/expiry work. A new owned fixture
+tests delivery guards with a real initialized reporting-disabled Client,closing
+the absent-Client limitation of122 for this separate fresh case. No installer
+or Nick action. Legacy fixtures retain their original scope.
+
+Source and six atomic guards
+Original PE/IL2CPP/LLVM fallback,not Ghidra decompilation. Provider not retried.
+GameAssembly e59d08c01479b27404778048d7e13546dbf3771f6b3912744c7c2bdf80c4e758.
+Metadata b760be9190309b14174cd272e1f83b730181b299bc7a0cdca66985c69dcdc57d.
+Client812690 takes INativeClient;NativeClient834b50 takes Configuration. Both
+are void instance constructors. Entries/core fields/frame restoration stay.
+-8128c1 NOP5 omits unused MainThreadDispatch.Instance acquisition.
+-8129db merged15-byte mask skips directory creation837850 and expiry836b50,
+ retaining intervening XOR EDX/MOV RCX,RBX argument setup.
+-813183->81329b omits interception,lifecycle GameObject/component and automatic
+ session activation;original dependency/counter initialization stays.
+-81338d->81375c omits session/scene/webrequest/log setup and reaches ORIGINAL
+ register restoration. REQUIRES paired813778 RET+NOP4:the original final JMP
+ subscribes a log delegate prepared in the omitted block. Omitting tail is unsafe.
+-834ea1 RET+NOP4 after ORIGINAL NativeClient restoration omits lowMemory hook.
+One whole guarded component transaction,no constructor entry RET or shared event/
+GC/engine API patch. All56managed guard windows disjoint. Initial separate IO
+proposal overlapped16-byte guards;merged BEFORE implementation/install,retained.
+
+49source assertions pass:exact ABIs/branches/frame depth/tail restoration/guards
+and actual prior20 log accepted explicit20/rejected default21. Thirteen relevant
+roots have full decoded extents;two unchanged App/Device JSON constructors retain
+byte/hash windows and prior typed-reader scope. Initial all15-linear assertion
+fails at83c92d and remains retained,not reachability proof. Fifteen whole-body
+recognition hashes protect diagnostic calls. Additional Client cctor818bd0..818c98
+sets SDK threshold30.0 and allocates a managed lock. SDK/general class init and
+engine version/time setup remain;do not claim all SDK statics unchanged.
+
+Actual initialized-Client fixture
+--telemetry-cache-client-probe implies owned scoped path/disk/delivery probes.
+After two original owned-file readers/typed reconstruction,the live configuration/
+thread-local root scope encloses real constructors with21masks. No fabricated
+interface/uninitialized Client. Verify configuration/breadcrumb/payload objects,
+14Client core fields,linked Client/cache/payload/delivery and idle Delivery.
+Root four existing Unity heads(lowMemory,log,threaded log,sceneLoaded) before
+construction;unchanged after constructors and guards. The User-owned property
+listener remains managed instance state. Skipped work acquires no worker/request/
+SDK GameObject or async completion debt. General BCL initialization is retained.
+
+Client's own PayloadManager/Delivery handles two genuine rehydrated reports and
+five original factories/false MoveNext/original state0 Dispose paths. Client/
+native TOP-LEVEL bytes and original report/owner/list fields stay stable,not a
+recursive graph/state-advancement claim. Original owned file identities/bytes,
+selected static configuration/device-filename/path restoration remain required
+after calls. Real shared queue untouched. Active scoped diagnostic,not passive
+or whole-startup/all-thread isolation,resumed/in-flight delivery or wire absence.
+
+Qualification
+21=56GameAssembly+62Unity+2CEF=120guards. Auditor requires SDK6/6,collector1/1,
+profile2/2/cache5/5/Unity groups/explicit21.76Python checks PASS1.759s,original
+fixtures enabled/no skips;required C++ suite/helper138-01 build passes.
+Owned r134g20->21 update PASS45.0940763s,preserving21profiles/four original
+backups/source130;dry-run/preview/idempotence pass. Installed GameAssembly:
+4ee66839b00bf04cb72ca03124cfbc83dd392f03384619bb2cdaba6555113a3e.
+Helper138-01:076950d5a91d9061f9a3bbebc4364bbe11457d26976afe8378989b645dc99d61.
+r134g21/helper138,cached130 is diagnostic,not a new coherent release. Coherent
+r103g/frozen130/N7 unchanged.
+
+Native13801 PASS217.1897629s,outer218.3252071s:both real constructors/14fields/
+linked non-null Client/four retained heads,two reports/five guards/disposes/files/
+restoration. Gameplay supply136/91actions/48produced entities correlate movement/
+orders;results/Continue/default normal Quit0. Eight21 samples/SDK6/6,job1/0/0,
+no force/process reaped;source/eight program files/shared settings/source130
+unchanged during run. Independent20artifact checks/52actual record rejections
+pass;raw v4 reparses exactly. Mutations in memory only,saved originals unchanged.
+Not physical UI,ordinary startup/all-thread,in-flight,descendant/error/all-mode/
+reporting-absence/final-artifact or full D5 acceptance.
+
+Ignored evidence and SHA256
+local/privacy138-sdk-lifetime01/evidence-manifest.json
+ b11fd66119f01f5178dfaf87967c9f899d80abab3810eee6f812a899a1a4096d
+verification02.json
+ 2874a74d5439d361fcc94b7719dc6338806b1094a8ed9dd0073d3dbebc9c237c
+runtime-verification.json
+ 85811efc0bbfe10aff8ed041ad6beca37d97bdad723768386b2a0597b080f456
+proposals.json
+ 4cab8408efa1bcb3638600803fee3615e1976bab1a3d3df07c8545aaa48da041
+local/privacy138-install01/verification.json
+ 688f93cc877f08678023d4adde3d3434296ae58e0ea32d10958cfa9a31c5d363
+local/privacy138-native-ai01/verification.json
+ 1594f97bd8bc2d7615d6a58b76e0a98d325bd7ca8c9e983a97133c7a79fc68df
+local/privacy138-native-ai01/native/verification.json
+ 6c397b7a1713b4332f9da0ecf81d4aa01e492c542bd54e8b6a7fa3373bce9e42
+build/helper-privacy138-01/helper-build.json
+ ca72d6072e4ed1111e1c25e9871f7f9a9aedf9cdc869ef92eb100cc81cf02e0d
+Raw originals/disassembly/captures stay ignored,not in Git.
+
+Next coherent paired candidate/finite installed startup/error/mode/descendant/
+final matrix. Keep upstream ads producer and ordinary whole-startup/all-thread/
+in-flight gates. No equivalent quiet constructor/AI or accepted D6/LAN/Tutorial2
+rerun. Broader D1-D9 active;all owned build/install/game jobs terminal.

@@ -432,12 +432,20 @@ already cut;then supported runtime/final artifacts. Full D5 stays OPEN.
     current20 samples/collector1/1/job1/0/0/no force. Not operational Client or
     actual collector invocation. r134g diagnostic20/helper137;130/N7 unchanged.
     Scope/seals:telemetry-default-collector137.txt. Full D5 remains OPEN/false.
-[ ] Next:review genuine INativeClient implementation ctor834b50 and remaining
-    Client812690 identity/interceptor/Unity callback configuration and lifetimes
-    before operational guarded report delivery with owned seeds/isolated SDK
-    root. Client ctor takes INativeClient,NOT raw Config;do not fabricate it.
-    Then finite installed mode/error/descendant/final matrix. Retain unresolved
-    c307c0 producer gate;no repeated exact/adjacent scans or quiet AI cases.
+[x] Review138 initialized reporting-disabled SDK Client FRESH fixture:21/120
+    keeps real constructors/core,skips dispatch/cache IO/hooks. Paired callback
+    jump/tail restores original frame. Actual constructors/14fields/linked own
+    cache/payload/delivery/non-null Client/four retained Unity heads,two reports/
+    five false/Dispose paths/files/restoration pass.76Python/C++ suite,49source/
+    20actual checks/52actual rejections. Update45.094s preserves21profiles/backups/
+    source130;native217.190s/48correlated bots/results/Continue/Quit0,eight21
+    samples/SDK6/6/job1/0/0/no force/source/program/shared unchanged. NOT ordinary
+    startup/all-thread/inflight/physical/full D5. r134g21/helper138 diagnostic;
+    130/N7 unchanged. Scope/seals:telemetry-sdk-client138.txt.
+[ ] Next:coherent paired current candidate,then finite installed startup/error/
+    mode/descendant/final matrix. Keep ordinary whole-startup/all-thread,resumed/
+    inflight and c307c0 producer gates;no equivalent quiet AI/constructor or
+    completed exact/adjacent source scan rerun.
 S1 CLOSED BY126:all FIVE safe interior SDK guards,with genuine matched/unmatched
 pending-owner cleanup and disabled-ID qualification.125 found failed/cache
 handlers can enumerate/prune AFTER WriteFile RET;do not entry-RET those handlers
@@ -539,10 +547,11 @@ are scoped inputs, not a completion substitute.
     following the actual Unity TerminateProcess route. Full cache/report coverage
     stays OPEN;this diagnostic root shim is not a shipped isolation patch.
     122 closes fresh-instance guarded delivery with real disk reports
-    and an explicitly absent Client. Whole-startup isolation and ordinary
-    operational guarded-delivery seed tests
-    remain OPEN. Never acquire/clear the shared queue. Recipe15/103 unchanged,
-    no123package/new human action. Evidence:telemetry-startup-observation111.txt,
+    and an explicitly absent Client.138 separately qualifies a genuine initialized
+    reporting-disabled Client with owned reports/guarded delivery. Whole-startup/
+    all-thread isolation,ordinary operational lifecycle and resumed/inflight
+    delivery remain OPEN. Never acquire/clear the shared queue. Historical123
+    retained recipe15/103 with no123package/new action. Evidence:telemetry-startup-observation111.txt,
     telemetry-cache-contract120.txt,telemetry-cache-readers121.txt,
     telemetry-cache-delivery122.txt,telemetry-cache-startup123.txt.
 [x] Review123/124:selected canonical SDK queue startup-through-exit-entry case

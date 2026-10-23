@@ -10,7 +10,7 @@ import hashlib
 from types import MappingProxyType
 
 GAME_BUILD = 37822
-RECIPE_VERSION = 20
+RECIPE_VERSION = 21
 RUNTIME_VALIDATED = False
 VALIDATION_STATUS = "Scoped native compatibility verified; full lifecycle/report-removal qualification pending"
 UNRESOLVED_COMPONENTS = (
@@ -98,6 +98,22 @@ COMPONENTS = MappingProxyType({
             # Keep the original Client ctor and shared Unity device APIs intact.
             Patch('BugsnagUnity.AutomaticDataCollector::SetDefaultData', 0x80fb20, 0x80e120,
                   bytes.fromhex('4055534156488d6c24b94881ece00000'), bytes.fromhex('c3')),
+            # Keep genuine Client/NativeClient dependency initialization. Skip
+            # only unused dispatch acquisition, inlined cache IO and reporting
+            # hooks. The callback-block jump REQUIRES the paired tail RET:
+            # the original restored-register tail registers a log delegate.
+            Patch('Bugsnag Client bypass unused dispatcher acquisition', 0x8128c1, 0x810ec1,
+                  bytes.fromhex('e85a05010044393d7b3b630649897e58'), bytes.fromhex('9090909090')),
+            Patch('Bugsnag Client bypass cache directory and expiry IO', 0x8129db, 0x810fdb,
+                  bytes.fromhex('e8704e020033d2488bcbe86641020044'), bytes.fromhex('909090909033d2488bcb9090909090')),
+            Patch('Bugsnag Client bypass automatic lifecycle activation', 0x813183, 0x811783,
+                  bytes.fromhex('4538be80000000740a33d2498bcee8ea'), bytes.fromhex('e9130100009090')),
+            Patch('Bugsnag Client bypass global reporting callback setup', 0x81338d, 0x81198d,
+                  bytes.fromhex('44383da05763067529488d0d1b8f3306'), bytes.fromhex('e9ca0300009090')),
+            Patch('Bugsnag Client restored-register tail returns without log subscription', 0x813778, 0x811d78,
+                  bytes.fromhex('e913f08004e86e0fddffcc488d0d4686'), bytes.fromhex('c390909090')),
+            Patch('Bugsnag NativeClient restored-register tail returns without low-memory subscription', 0x834ea1, 0x8334a1,
+                  bytes.fromhex('e97ad47e04cccccccccccccccccccc48'), bytes.fromhex('c390909090')),
             Patch('BugsnagUnity.Bugsnag::Start', 0x810660, 0x80ec60,
                   bytes.fromhex('48895c2408574883ec20803d8d846306'), bytes.fromhex('c3')),
             Patch('BugsnagUnity.Bugsnag::Start', 0x8106f0, 0x80ecf0,

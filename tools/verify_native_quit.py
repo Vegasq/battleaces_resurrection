@@ -250,11 +250,13 @@ def run(args):
                     'startup cache probe requires telemetry audit and original confirmed Quit')
             command.append('-telemetry-cache-startup-probe')
         cache_failure=getattr(args,'telemetry_cache_failure_probe',False)
-        cache_delivery=getattr(args,'telemetry_cache_delivery_probe',False) or cache_failure
+        cache_client=getattr(args,'telemetry_cache_client_probe',False)
+        cache_delivery=getattr(args,'telemetry_cache_delivery_probe',False) or cache_failure or cache_client
         if getattr(args,'telemetry_cache_probe',False) or getattr(args,'telemetry_cache_disk_probe',False) or cache_delivery: command.append('-telemetry-cache-probe')
         if getattr(args,'telemetry_cache_disk_probe',False) or cache_delivery:command.append('-telemetry-cache-disk-probe')
         if cache_delivery:command.append('-telemetry-cache-delivery-probe')
         if cache_failure:command.append('-telemetry-cache-failure-probe')
+        if cache_client:command.append('-telemetry-cache-client-probe')
         if getattr(args,'telemetry_cache_probe',False) or getattr(args,'telemetry_cache_disk_probe',False) or cache_delivery:
             require(getattr(args,'telemetry_audit',False) and args.mode=='confirm',
                     'cache probe requires telemetry audit and original confirmed Quit')
@@ -351,7 +353,7 @@ def run(args):
             report['telemetry_cache_startup']=startup_cache_validate(log(),rows)
         if getattr(args,'telemetry_cache_probe',False) or getattr(args,'telemetry_cache_disk_probe',False) or cache_delivery:
             from tools.telemetry_cache_evidence import validate
-            report['telemetry_cache_contract']=validate(log(),rows,disk_probe=getattr(args,'telemetry_cache_disk_probe',False),delivery_probe=cache_delivery)
+            report['telemetry_cache_contract']=validate(log(),rows,disk_probe=getattr(args,'telemetry_cache_disk_probe',False),delivery_probe=cache_delivery,client_probe=cache_client)
         if cache_failure:
             from tools.telemetry_cache_failure_evidence import validate as failure_validate
             report['telemetry_cache_failure']=failure_validate(log(),rows)
@@ -407,6 +409,7 @@ if __name__=='__main__':
     parser.add_argument('--telemetry-cache-failure-probe',action='store_true',help='genuine pending-owner cleanup and owned readable device-file/empty-ID guard; no operational Client')
     parser.add_argument('--telemetry-activation-probe',action='store_true',help='guarded initialization decline and retained-string getter on genuine inactive owners; no original acquisition or initializer')
     parser.add_argument('--telemetry-cache-startup-probe',action='store_true',help='positive original SDK root control with separate externally verified early isolation; no queue reader/expiry')
+    parser.add_argument('--telemetry-cache-client-probe',action='store_true',help='owned genuine reporting-disabled SDK Client constructors and cached-delivery guards; implies scoped disk/delivery probes')
     parser.add_argument('--after-practice',action='store_true',help='explicit automated one-match result/Continue before original menu Quit')
     parser.add_argument('--practice-frames',type=int,default=3600,help='owned diagnostic match length1200..3600;default allows normal bot deployment before Quit')
     parser.add_argument('--replay-binding-inventory',action='store_true',help='read existing hidden replay-button actions in healthy owned practice; no click')

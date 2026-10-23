@@ -3,6 +3,18 @@ Updated: 2026-10-22
 Delivery plan: REMAINING_DELIVERY_PLAN.txt, Windows only.
 Original roadmap: CLOSED / SUPERSEDED;see PLAN_CLOSEOUT.txt.
 
+PRIVACY138 - INITIALIZED SDK CLIENT CACHED-DELIVERY GUARDS
+21/120 keeps real constructors/core fields while skipping hooks/lifecycle/
+unused dispatch/inlined cache IO. Paired jump+tail RET mandatory. Owned v4:
+both real constructors/14fields/linked non-null Client/four retained heads,two
+reports/five fresh stop/Dispose paths/files/restoration.76Python/C++ suite,
+49source/20actual checks/52actual rejections pass. Update45.094s preserves21
+profiles/backups/source130;native217.190s,48correlated bots/Continue/Quit0,eight
+21samples/SDK6/6/job1/0/0/no force/source/program/shared unchanged. Fresh initialized
+reporting-disabled Client only,D5/startup/inflight/physical OPEN. r134g21/helper138
+diagnostic;130/N7 unchanged,no new action/installer. Next coherent paired candidate/
+finite remaining matrix. Scopes/failures/seals:telemetry-sdk-client138.txt.
+
 PRIVACY137 - SDK DEFAULT DEVICE METADATA COLLECTION CUT
 Recipe20/114 adds static void AutomaticDataCollector.SetDefaultData entry RET,
 preserving constructors/shared engine APIs. Loaded/file collector1/1+explicit20

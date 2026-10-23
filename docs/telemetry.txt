@@ -1,7 +1,18 @@
 TELEMETRY PATCH STATUS
 Updated: 2026-10-22
 Supported input: Battle Aces build 37822, Windows x64.
-Recipe version: 20. Guards: 114. Complete-set runtime_validated: false.
+Recipe version: 21. Guards: 120. Complete-set runtime_validated: false.
+
+Current138 keeps real SDK constructors/core fields while skipping dispatch/cache
+IO/lifecycle/reporting hooks. Paired callback jump/tail RET restores correctly.
+Owned v4:both real constructors/14fields/linked non-null Client/four retained
+heads,two reports/five fresh guard/Dispose paths/files/restoration.76Python/C++
+suite,49source/20actual checks/52actual rejections pass. Update45.094s preserves
+21profiles/backups/source130;native217.190s,48correlated entities/results/Continue/
+normal Quit0,eight21 samples/SDK6/6/job1/0/0/no force/source/program/shared unchanged.
+Not ordinary startup/all-thread/inflight/physical/full D5. r134g21/helper138
+diagnostic;130/N7 unchanged,no installer/action. Next coherent paired candidate/
+finite remaining matrix. Scope/seals:telemetry-sdk-client138.txt.
 
 Current137 cuts static void AutomaticDataCollector.SetDefaultData80fb20 before
 device/metadata queries;constructors/shared APIs stay original.65Python checks/

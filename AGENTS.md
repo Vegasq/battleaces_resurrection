@@ -2,6 +2,26 @@
 
 ## Requests and answers with Nick
 
+- Privacy138 recipe21/120:6INTERIOR/tail guards skip dispatch8128c1,merged cache
+  IO8129db,lifecycle813183->81329b,callbacks81338d->81375c PLUS REQUIRED tail
+  813778RET,NativeClient tail834ea1RET. Never entry-RET constructors/omit paired
+  tail. Real NativeClient(Config)/Client(INativeClient),14core fields/linked own
+  cache/payload/delivery/non-null Client/four retained Unity heads,two reports/
+  five false/Dispose paths/files/restoration pass. SDK class statics may init.
+  76Python/C++ suite/helper138-01/49source checks pass;initial overlapping IO
+  proposal merged BEFORE install. All15-linear verifier fails ancillary JSON
+  App,retained;13relevant full roots+2ancillary hash windows. Actual20->21 update
+  45.094s preserves21profiles/backups/source130. Native13801 PASS217.190s/outer
+  218.325s,48correlated bots/91actions/supply136/results/Continue/default Quit0,
+  eight21 samples/SDK6/6/job1/0/0/no force/source/program/shared unchanged.
+  20artifact checks/52actual rejections pass. Initialized reporting-disabled
+  Client FRESH scope only,not ordinary startup/all-thread/inflight/visible/D5.
+  r134g21/helper138,cached130 diagnostic;r103g/frozen130/N7 unchanged,no new
+  action/package. All jobs terminal. Next coherent paired current candidate/
+  finite installed startup/error/mode/descendant/final matrix;retain producer/
+  inflight/source gates. No quiet equivalent rerun. Scopes/seals:
+  docs/telemetry-sdk-client138.txt.
+
 - Privacy137 recipe20/114 adds analytics-only static void SetDefaultData80fb20
   entry RET before borrowed INativeClient/metadata/device queries. Exact IL2CPP
   token0600005a;ctor812690 calls812ffb. Shared APIs/constructors remain original.

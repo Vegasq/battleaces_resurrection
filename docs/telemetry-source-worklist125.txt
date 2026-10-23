@@ -1,6 +1,17 @@
 D5 REMAINING SOURCE WORKLIST125
 2026-10-22. Full D5 remains OPEN. Source findings below narrow the remaining
 engineering work;they are not complete analytics-removal or release acceptance.
+Current138:telemetry-sdk-client138.txt closes FRESH initialized reporting-disabled
+SDK Client dependency scope left open122/137.21/120 retains real constructors/
+core with six skips for dispatch/cache IO/hooks;paired tail mandatory. Real
+constructors/14fields/dependency graph/four retained Unity heads,two reports/
+five guard/dispose paths/files/restoration pass,76Python/C++ suite/49source/
+20actual checks/52actual rejections. Native217.190s/48correlated bots/results/
+Continue/Quit0,SDK6/6/eight samples/job1/0/0/no force/source/program/shared retained.
+Not ordinary startup/all-thread/inflight/visible/full D5. r134g21/helper138
+diagnostic;130/N7 unchanged,no new action/package. NEXT coherent paired candidate/
+finite installed startup/error/mode/descendant/final matrix;keep producer/inflight
+gates. No equivalent quiet constructor/AI rerun. All owned jobs terminal.
 Current137:telemetry-default-collector137.txt cuts actual unguarded static void
 SetDefaultData collection found while preparing the operational fixture.20/114,
 65Python checks/C++ suite,15source/18runtime checks,actual preserved19->20 update

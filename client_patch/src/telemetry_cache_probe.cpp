@@ -134,7 +134,7 @@ static void typed(const std::wstring& selected,bool fromDisk,bool delivery) {
         "original cached constructors accepted missing required keys");
     if(fromDisk)
         ba::log("TELEMETRY CACHETYPE probe passed: version=%d thread=%lu parsed=4 constructed=2 errors=1 sessions=1 authoredFieldsRetained=1 missingKeyRejected=2 cacheManagerConstructed=1 reportDelivered=0 diskQueueRead=1 fromDisk=2",
-            delivery?3:2,GetCurrentThreadId());
+            ba::flag(L"-telemetry-cache-client-probe")?4:delivery?3:2,GetCurrentThreadId());
     else
         ba::log("TELEMETRY CACHETYPE probe passed: version=1 thread=%lu parsed=4 constructed=2 errors=1 sessions=1 authoredFieldsRetained=1 missingKeyRejected=2 cacheManagerConstructed=0 reportDelivered=0 diskQueueRead=0",
             GetCurrentThreadId());
@@ -187,7 +187,7 @@ public:
 };
 #include "telemetry_cache_disk_probe.cpp"
 static void run() noexcept {
-    static const bool delivery=ba::flag(L"-telemetry-cache-delivery-probe") || ba::flag(L"-telemetry-cache-failure-probe");
+    static const bool delivery=ba::flag(L"-telemetry-cache-delivery-probe") || ba::flag(L"-telemetry-cache-failure-probe") || ba::flag(L"-telemetry-cache-client-probe");
     static const bool fromDisk=ba::flag(L"-telemetry-cache-disk-probe") || delivery;
     static const bool enabled=ba::flag(L"-telemetry-cache-probe") || fromDisk;
     static bool attempted=false;

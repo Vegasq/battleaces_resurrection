@@ -88,7 +88,7 @@ static const Signature signatures[]={
     {0x205430,0x204830,"4885c90f840f010000574883ec30488b","",3},
 };
 static uintptr_t unity=0;
-static constexpr unsigned currentRecipeVersion=20;
+static constexpr unsigned currentRecipeVersion=21;
 static bool checked=false,disabled=false,startupLogged=false,quitAttempted=false,completeRecipe=false;
 static unsigned snapshots=0;
 static ba_telemetry_sampling::Schedule schedule;
@@ -160,6 +160,17 @@ static unsigned automaticCollectorGuardCount() {
     };
     return gameGuardCount(guards);
 }
+static unsigned sdkInitializationGuardCount() {
+    static const Signature guards[]={
+        {0x8128c1,0x810ec1,"e85a05010044393d7b3b630649897e58","9090909090",0},
+        {0x8129db,0x810fdb,"e8704e020033d2488bcbe86641020044","909090909033d2488bcb9090909090",0},
+        {0x813183,0x811783,"4538be80000000740a33d2498bcee8ea","e9130100009090",0},
+        {0x81338d,0x81198d,"44383da05763067529488d0d1b8f3306","e9ca0300009090",0},
+        {0x813778,0x811d78,"e913f08004e86e0fddffcc488d0d4686","c390909090",0},
+        {0x834ea1,0x8334a1,"e97ad47e04cccccccccccccccccccc48","c390909090",0},
+    };
+    return gameGuardCount(guards);
+}
 static bool verifyModule() {
     if(checked)return !disabled;
     checked=true;disabled=true;
@@ -203,10 +214,11 @@ static bool verifyModule() {
         const auto cacheGuards=cacheFailureGuardCount();
         const auto serviceGuards=serviceProfileGuardCount();
         const auto collectorGuards=automaticCollectorGuardCount();
-        completeRecipe=groups[0]==3 && groups[1]==56 && groups[2]==3 && cacheGuards==5 && serviceGuards==2 && collectorGuards==1;
+        const auto initializationGuards=sdkInitializationGuardCount();
+        completeRecipe=groups[0]==3 && groups[1]==56 && groups[2]==3 && cacheGuards==5 && serviceGuards==2 && collectorGuards==1 && initializationGuards==6;
         disabled=false;
-        ba::log("Telemetry audit build verified: UnityPlayer sha256=%s normalized=%s crashSignatures=%u/3 coreCandidateSignatures=%u/56 performanceCandidateSignatures=%u/3 cacheFailureSignatures=%u/5 serviceProfileSignatures=%u/2 recipeVersion=%u automaticCollectorSignatures=%u/1; READ ONLY, no qualification claim",
-            actualHash.c_str(),originalHash,groups[0],groups[1],groups[2],cacheGuards,serviceGuards,currentRecipeVersion,collectorGuards);
+        ba::log("Telemetry audit build verified: UnityPlayer sha256=%s normalized=%s crashSignatures=%u/3 coreCandidateSignatures=%u/56 performanceCandidateSignatures=%u/3 cacheFailureSignatures=%u/5 serviceProfileSignatures=%u/2 recipeVersion=%u automaticCollectorSignatures=%u/1 sdkInitializationSignatures=%u/6; READ ONLY, no qualification claim",
+            actualHash.c_str(),originalHash,groups[0],groups[1],groups[2],cacheGuards,serviceGuards,currentRecipeVersion,collectorGuards,initializationGuards);
     } catch(const std::exception& e) {ba::log("Telemetry audit disabled: %s; no object reads attempted",e.what());}
     return !disabled;
 }

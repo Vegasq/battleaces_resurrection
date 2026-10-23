@@ -1,6 +1,7 @@
 #pragma once
-// Explicit fresh-instance guard fixture. The real SDK Client is absent; this
-// does not initialize an operational SDK or qualify resumed/in-flight delivery.
+// Explicit fresh-instance guard fixture. Legacy mode has no SDK Client; the
+// separate client mode constructs genuine reporting-disabled dependencies.
+// Neither mode qualifies resumed/in-flight delivery or startup isolation.
 static Bytes instanceFields(Obj value) {
     require(value!=nullptr,"delivery fixture object absent");
     const auto size=ba::api<uint32_t(*)(Obj)>("il2cpp_class_instance_size")(ba::klass(value));
@@ -16,6 +17,7 @@ static Obj staticList(Obj type,const char* name) {
     require(value && count(value)==0,"delivery fixture requires empty genuine SDK lists");return value;
 }
 #include "telemetry_cache_failure_probe.cpp"
+#include "telemetry_cache_client_probe.cpp"
 static void guardedDelivery(Obj config,Obj manager,Obj report,Obj session,const std::wstring& selected) {
     require(config && manager && report && session,"delivery fixture requires genuine cache/report dependencies");
     #include "telemetry_cache_delivery_signatures.hpp"
@@ -25,13 +27,15 @@ static void guardedDelivery(Obj config,Obj manager,Obj report,Obj session,const 
     ba::api<void(*)(Obj)>("il2cpp_runtime_class_init")(deliveryType);
     ba_local::Root pending(staticList(payloadType,"_pendingPayloads"));
     ba_local::Root finished(staticList(deliveryType,"_finishedCacheDeliveries"));
-    ba_local::Root payload(ba::api<Obj(*)(Obj)>("il2cpp_object_new")(payloadType));
-    void* payloadArgs[]={manager};invoke(method(payloadType,".ctor",1,0x717fb0),payload.get(),payloadArgs);
-    ba_local::Root delivery(ba::api<Obj(*)(Obj)>("il2cpp_object_new")(deliveryType));
-    void* deliveryArgs[]={nullptr,config,manager,payload.get()};
-    invoke(method(deliveryType,".ctor",4,0x81c490),delivery.get(),deliveryArgs);
+    const bool withClient=ba::flag(L"-telemetry-cache-client-probe");
+    std::unique_ptr<CacheClientFixture> client;
+    if(withClient){client=std::make_unique<CacheClientFixture>(config);manager=client->manager;}
+    ba_local::Root payload(withClient?client->payload:ba::api<Obj(*)(Obj)>("il2cpp_object_new")(payloadType));
+    if(!withClient){void* args[]={manager};invoke(method(payloadType,".ctor",1,0x717fb0),payload.get(),args);}
+    ba_local::Root delivery(withClient?client->delivery:ba::api<Obj(*)(Obj)>("il2cpp_object_new")(deliveryType));
+    if(!withClient){void* args[]={nullptr,config,manager,payload.get()};invoke(method(deliveryType,".ctor",4,0x81c490),delivery.get(),args);}
     require(ba::get<Obj>(payload.get(),"_cacheManager")==manager &&
-        !ba::get<Obj>(delivery.get(),"_client") && ba::get<Obj>(delivery.get(),"_configuration")==config &&
+        ba::get<Obj>(delivery.get(),"_client")== (withClient?client->client():nullptr) && ba::get<Obj>(delivery.get(),"_configuration")==config &&
         ba::get<Obj>(delivery.get(),"_cacheManager")==manager && ba::get<Obj>(delivery.get(),"_payloadManager")==payload.get() &&
         ba::get<Obj>(delivery.get(),"<_callbackLock>k__BackingField") &&
         !ba::get<bool>(delivery.get(),"_cacheDeliveryInProcess"),"delivery original constructor references/state differ");
@@ -91,7 +95,7 @@ static void guardedDelivery(Obj config,Obj manager,Obj report,Obj session,const 
     const auto deliveryFields=instanceFields(delivery.get()),payloadFields=instanceFields(payload.get());
     const auto reportFields=instanceFields(report),sessionFields=instanceFields(session);
     const auto pendingFields=instanceFields(pending.get()),finishedFields=instanceFields(finished.get());
-    ba::log("TELEMETRY CACHEDELIVERY begin: version=1 thread=%lu fresh=1 absentClient=1",GetCurrentThreadId());
+    ba::log("TELEMETRY CACHEDELIVERY begin: version=%u thread=%lu fresh=1 absentClient=%u",withClient?2u:1u,GetCurrentThreadId(),withClient?0u:1u);
     for(Obj object:{report,session})
         reinterpret_cast<void(*)(Obj,Obj,Obj)>(ba::read<uintptr_t>(deliverEntry,0))(delivery.get(),object,deliverEntry);
     reinterpret_cast<void(*)(Obj,Obj)>(ba::read<uintptr_t>(startEntry,0))(delivery.get(),startEntry);
@@ -101,8 +105,9 @@ static void guardedDelivery(Obj config,Obj manager,Obj report,Obj session,const 
         staticList(payloadType,"_pendingPayloads")==pending.get() && staticList(deliveryType,"_finishedCacheDeliveries")==finished.get() &&
         instanceFields(pending.get())==pendingFields && instanceFields(finished.get())==finishedFields,
         "guarded fresh delivery changed owner/report/list fields");
-    ba::log("TELEMETRY CACHEDELIVERY probe passed: version=1 thread=%lu realPayloadManager=1 realDelivery=1 absentClient=1 activeClientConstructed=0 deliverCalls=2 cachedStartCalls=1 iteratorFactories=5 moveNextFalse=5 originalDisposes=5 freshStateRetained=5 currentNull=5 capturesRetained=5 pendingCount=0 finishedCount=0 listFieldsUnchanged=2 reportFieldsUnchanged=2 deliveryFieldsUnchanged=1 payloadManagerFieldsUnchanged=1 reportDelivered=0 wholeRunIsolation=0",
-        GetCurrentThreadId());
+    if(client)client->unchanged();
+    ba::log("TELEMETRY CACHEDELIVERY probe passed: version=%u thread=%lu realPayloadManager=1 realDelivery=1 absentClient=%u activeClientConstructed=%u deliverCalls=2 cachedStartCalls=1 iteratorFactories=5 moveNextFalse=5 originalDisposes=5 freshStateRetained=5 currentNull=5 capturesRetained=5 pendingCount=0 finishedCount=0 listFieldsUnchanged=2 reportFieldsUnchanged=2 deliveryFieldsUnchanged=1 payloadManagerFieldsUnchanged=1 reportDelivered=0 wholeRunIsolation=0",
+        withClient?2u:1u,GetCurrentThreadId(),withClient?0u:1u,withClient?1u:0u);
     if(ba::flag(L"-telemetry-cache-failure-probe")) {
         guardedCacheFailure(config,manager,payload.get(),pending.get(),report,session,selected);
         require(instanceFields(delivery.get())==deliveryFields &&
