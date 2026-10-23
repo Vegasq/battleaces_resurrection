@@ -2,6 +2,19 @@
 
 ## Requests and answers with Nick
 
+- Identifiers164 resolves132's general-wrapper binding/first-RNG-consumer source
+  subcase:actual3471-entry registrar binds10e270 to SystemInfo device-ID API;
+  5920b0 system-RNG-first16-byte output,zero branch skips machine-ID fallback.
+  One consumer seeds registered UnityEngine.Random;second owner still unnamed.
+  806independent static byte/extent/binding checks/14pairs/11complete windows and
+  72sealed worker artifacts verify;not runtime/getter/whole-program proof. No
+  shared API/recipe/helper/package/profile/manual130/N7/share change,new action
+  or visibility request. Exact old docs archived;N9/N10blank/no reports/sixpins
+  unchanged. c307c0 producer/telemetry-specific managed consumers/computed aliases
+  and wholeD5/D1-D9 OPEN. NEXT remaining final-installed mode/error/reporter/
+  descendant matrix,not samewrapper/adjacent/quietAI repetition;source cuts need
+  positive relevant edge. docs/native-identifier-consumers164.txt.
+
 - Replay163 CLOSES D4 final-installed ENGINE subcase on unchanged coherent139
   r134g/helper138==161package. Late one original init exception/sameOwner/newData
   replacement->3607decoded/present31;early invalidDeflate/emptyReplay/missing

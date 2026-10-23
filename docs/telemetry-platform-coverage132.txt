@@ -1,6 +1,13 @@
 PLATFORM DISPATCH AND DIRECT MACHINE-ID CALL COVERAGE132
 2026-10-22. Static source review;full D5 remains OPEN/false.
 
+Follow-up164 resolves the named10e270 registration as SystemInfo's general
+device-ID API and5920b0 as system-RNG-first16-byte output. One consumer seeds
+registered UnityEngine.Random state;the second concrete owner remains unnamed.
+No analytics-only patch or c307c0 producer closure follows. Reuse the positive
+bindings/conditional branch proof in native-identifier-consumers164.txt;do not
+repeat132's direct-call inventory. The original132 findings below are historical.
+
 Result
 The exact executable E8/E9 inventory for shared getter9fb910 contains five
 instruction-verified calls. All THREE identified analytics callers already

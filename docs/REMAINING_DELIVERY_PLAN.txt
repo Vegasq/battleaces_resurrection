@@ -414,6 +414,15 @@ native-settings-atomic.txt, native-deck-validation.txt, packaged-multiplayer.txt
 native-custom-invitations.txt, native-custom-matches.txt.
 
 [ ] D5 - Complete game analytics/report removal and qualification
+[x]164 named general-wrapper source subcase:actual3471-entry registrar binds
+    10e270 to SystemInfo device-ID API;5920b0 system-RNG-first16-byte fill reaches
+    machine-ID fallback only on nonzero return. One consumer seeds registered
+    UnityEngine.Random state;second owner and upstreamc307c0 still unresolved.
+    806independent static byte/extent/binding checks/14pairs/11complete windows,
+    72worker artifact hashes pass. No runtime/getter/SDK/product/package change
+    or analytics-only patch. Next remaining final-installed mode/error/reporter/
+    descendant matrix;not same wrapper/quiet-AI repeats. WholeD5 remains OPEN.
+    Scope/gaps/evidence:native-identifier-consumers164.txt.
 Current finite acceptance inventory:P1-P9 in telemetry-acceptance-matrix140.txt.
 Source/runtime contracts retained in telemetry-source-worklist125.txt;140 maps
 the same requirements without a new product scope or blanket rerun. P1's selected

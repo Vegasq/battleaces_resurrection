@@ -1,6 +1,13 @@
 D5 REMAINING SOURCE WORKLIST125
 2026-10-22. Full D5 remains OPEN. Source findings below narrow the remaining
 engineering work;they are not complete analytics-removal or release acceptance.
+Current164:positive registrarfd2420 binds10e270 to general SystemInfo device-ID
+API;5920b0 uses system RNG first/conditional machine-ID fallback. One concrete
+consumer seeds registered UnityEngine.Random state;second owner unnamed.806
+independent static byte/extent/binding checks/72worker artifacts verified,no
+execution/product change. No analytics-only patch/upstreamc307c0 source closure.
+Next remaining final-installed mode/error/reporter/descendant matrix,not repeat
+exact-wrapper/adjacent-interface/quiet-AI checks. See native-identifier-consumers164.txt.
 Current138:telemetry-sdk-client138.txt closes FRESH initialized reporting-disabled
 SDK Client dependency scope left open122/137.21/120 retains real constructors/
 core with six skips for dispatch/cache IO/hooks;paired tail mandatory. Real

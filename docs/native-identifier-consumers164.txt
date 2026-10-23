@@ -1,0 +1,94 @@
+NATIVE IDENTIFIER CONSUMERS164
+2026-10-23. Static source findings; full D5 remains OPEN.
+
+Result
+The two unclassified direct machine-ID wrappers left by132 have positive source
+identities now.10e270 is registered as UnityEngine.SystemInfo's general device-ID
+API.5920b0 fills sixteen random bytes; it reaches the machine-ID fallback only
+after a nonzero BCryptGenRandom return. One consumer initializes UnityEngine.Random
+state. The other consumer's concrete type remains unidentified. Neither shared
+function is an established analytics-only patch target. No product change follows.
+
+Concrete registration, not table proximity
+The original fd2420..fd24cd loop loads function pointers from18c8e40 and name
+pointers from18cfac0 using the SAME image-base/index addressing. It passes each
+pair as RCX=name/RDX=function to registration callbacks and global1d0d5c8, advances
+the offset by8 and loops3471 entries. Index2402 binds function slot18cd950 to
+10e270 and name slot18d45d0 to UnityEngine.SystemInfo::GetDeviceUniqueIdentifier.
+The runtime resolver77fbb0 obtains il2cpp_add_internal_call and stores that
+function in1d0d5c8 at77fda5. This proves the API binding, not invocation by a
+particular game/SDK managed consumer.10e274 still calls shared getter9fb910.
+
+Random generation and its conditional fallback
+The original PE import descriptors map IAT185afc0 to bcrypt!BCryptGenRandom.
+5920b0 passes NULL provider/output buffer/16 bytes/flag2. The native call is at
+5920d2; its zero-return branch goes directly to5921c0's epilogue. That branch
+does not call9fb910. The nonzero fallback combines timing/process/counter/hash
+inputs and the getter at592161 into sixteen output bytes. No real ID or random
+API was queried in this investigation. Microsoft documents flag2 as the system-
+preferred RNG with a NULL provider:
+https://learn.microsoft.com/en-us/windows/win32/api/bcrypt/nf-bcrypt-bcryptgenrandom
+
+591fe0 allocates sixteen-byte state, calls5920b0 at592041, then stores the
+pointer at1d0cbe0. The actual registration loop binds thirteen Random entries
+(indices2185..2197), including state/Range/value/sphere/circle/rotation/seed APIs.
+Reviewed concrete users load this state;f4e50 reads/mutates its four words with
+shifts/xors. Small entries without unwind extents remain bounded windows, not
+claimed complete functions. This establishes an engine PRNG use independently
+of names and does not justify disabling shared random generation.
+
+The other direct call,d5f80a,initializes object+c0 in constructord5f730. Caller
+d5fae0 stores the returned object at global1d0ec98. Its reviewed users manipulate
+collections/indices and atomic queue-shaped state; initialization references
+speed/simulationSpeed and a TransformChangeDispatch diagnostic. Those references
+do NOT establish its type or an analytics relationship. Keep that classification
+gap explicit; do not promote a particle-system or telemetry guess into fact.
+
+Advertising callback source remains a separate question
+Parent followed c2ee90's actual base constructorc33530 and owner handoff
+c33530->c1d080(Main+1370,Main). That dependency installs a borrowed owner pointer,
+sentinel containers and a lock. No advertising-provider registration was
+established by this dependency review. Main+1498/c307c0 remains unresolved.
+Slotd8 c308a0->c308c0 was ALREADY described109 as queued forwarding of retained
+Main190, not an established advertising-ID source. The new exact terminal-leaf
+decode confirms that existing finding; it is not a new closure. Slotf0 is the
+previously resolved settings predicatec33490, not another producer candidate.
+Do not repeat their negative scans or change callback completion semantics.
+
+Verification and provenance
+Original untouched UnityPlayer SHA256:
+ ac144d56d53f07904d52ed27a1539de90bc3290038fe52d73d2f6b268c85d6bc
+Existing LLVM executable SHA256:
+ 5e7a457bf23033b6ec4a959d2276f09d44c024092529684d7eeb687d38da700d
+REA skill applied. Ghidra remains unconfigured; no setup retry. This is pinned
+PE/unwind/LLVM static evidence, NOT new native REA Evidence or observed behavior.
+
+Worker verifier rehashes44 retained native ranges and checks positive binding/
+branch/direct-edge facts. Parent independent verification passes806 mechanical
+checks:11 complete decoded extents (ten merged-unwind roots,one terminal leaf),
+original/assembly byte matches,14 registration pairs,import descriptors/RNG
+branch/owner handoff and unchanged six N10 pins. These are NOT806 runtime tests.
+Parent also verifies all72 sealed worker files against their manifest. No
+target/SDK/getter execution, helper build, package/install/profile/shared queue
+operation or game launch. Source-only documentation does not require a repeated
+gameplay/full-suite run. Prior exact documentation is archived before editing.
+
+Retained ignored artifacts
+local/privacy164-wrapper-source01/manifest.json SHA256
+ 175565c81b73b00b43c4b697a0d8de99b818ee3b3d417ba25b14752823be219c
+local/privacy164-wrapper-source01/FINDINGS.txt and verification.json
+local/privacy164-ads-source01/independent-verification01.json
+local/privacy164-prior-source01/baseline.json and exact prior documentation
+local/privacy164-review01.py (independent byte/binding verifier)
+Raw disassembly/native bytes/derived tables remain ignored, never added to Git.
+
+Next
+132's named SystemInfo binding and first Random-state consumer questions are
+answered. The second random-state owner, telemetry-specific managed consumers,
+computed aliases and upstream c307c0 producer are not closed. Existing three
+analytics machine-ID guards and callback-retention guard remain unchanged.
+Advance the remaining final-installed mode/error/reporter/descendant matrix
+using recipe21/helper138. Do not substitute another exact-wrapper scan or quiet
+AI run for those gates. Reopen source cuts only from a positive relevant edge.
+Whole D5 and D1-D9 delivery remain OPEN. Manual130/N7,DEV answers,share and
+N9/N10 requests are unchanged. No new Nick action or visibility check is needed.
