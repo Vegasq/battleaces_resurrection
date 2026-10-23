@@ -3,6 +3,18 @@ Updated: 2026-10-23
 Delivery plan: REMAINING_DELIVERY_PLAN.txt, Windows only.
 Original roadmap: CLOSED / SUPERSEDED;see PLAN_CLOSEOUT.txt.
 
+ADMISSION155 - SYNCHRONOUS PROFILE SAVE DELAYS COMPLETED HEALTHY WORKER REPLY
+Selected source/native attribution COMPLETE,performance NOT FIXED.20 original
+save calls47..88ms run on coordinator. Healthy STEP wire1.05/1.10ms completes
+during rematch save10;awaiting coordinator resume waits53.45/64.97ms for that
+save. Original875.677ms gap is NOT reproduced/fully attributed;new gaps152/145ms.
+18tests/native16.441s pass,6workers reaped/controller0/job18/0/0/no extra cleanup.
+Explicit passive metadata timers only;source/server/package behavior unchanged.
+40current/35prior154/31prior153/83prior152/276prior151 input review passes.
+Next off-coordinator profile writes with save-before-ACK,pending state/race guards
+and shutdown drain;preserve fsync/atomic validation. Full D8/D1-D9 remain OPEN.
+No new Nick action/game/manual/share change. Evidence:profile-admission-timing155.txt.
+
 BOT RPC154 - REAL ALLIED2vAI WORKER LOSS/TIMEOUT / RETURN / SAME-SESSION RETRY
 Selected mode5 native BOT_INPUT branch PASS17.426s,15focused tests pass. Humans
 0/2,bots1/3,real AIprofile60/four slot identities;failed frame10 has BOT_INPUT

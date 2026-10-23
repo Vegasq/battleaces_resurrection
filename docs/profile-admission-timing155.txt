@@ -1,0 +1,100 @@
+PROFILE ADMISSION155 - COORDINATOR SAVE BLOCKS AN ALREADY COMPLETED WORKER REPLY
+2026-10-23. Selected D8 timing-attribution subtask COMPLETE;performance NOT fixed.
+Full D8,D4 and Windows D1-D9 delivery remain OPEN.
+
+Finding
+The actual packaged server performs synchronous ProfileStore.save on its asyncio
+coordinator thread during public ENTER and community loadout selection. This
+routine retains its original validation/read,temporary-file write/flush/fsync,
+atomic replace and cleanup. A passive full-call timer measures the aggregate;
+it does not distinguish those internal costs or blame a particular filesystem API.
+
+One bounded real-native run measures20 original saves,10per scenario. All run on
+the coordinator thread;each takes47.027..87.691ms. Critical rematch ENTER saves
+are calls9/10;the healthy second match is already running. In BOTH scenarios,
+the healthy worker's executor has finished reading a valid STEP response while
+the coordinator is still inside the second save. The awaiting async STEP cannot
+resume until that synchronous save returns. This is direct timing/thread evidence
+of profile persistence blocking coordinator progress,not a worker CPU inference.
+
+Actual retained thread/time intervals:
+- Process-loss case,healthy frame10:save10 takes53.8773ms;wire STEP1.0485ms,
+  async exchange54.6749ms,wire completion -> coordinator resume53.4467ms.
+  Both rematch saves64.8817/53.8773ms overlap healthy receive frame9->10,
+  whose gap is152.2423ms.
+- Suspended-worker case,healthy frame70:save10 takes65.0966ms;wire STEP1.1037ms,
+  async exchange66.1171ms,wire completion -> coordinator resume64.9722ms.
+  Both rematch saves54.6662/65.0966ms overlap healthy receive frame69->70,
+  whose gap is144.5403ms.
+The read-only reviewer independently asserts save.started <= wire.ended <
+save.ended <= async.ended,with original thread IDs and matching operation/frame/
+request IDs. Wire threads differ from coordinator;all20 save calls use it.
+The next ordinary healthy frame has no save overlap and sub-millisecond resume
+delay in the selected comparisons. No timing clock,reply,save or timeout is faked.
+
+Limits
+154's875.677ms gap is NOT reproduced here. This new run explains the measured
+53/65ms completion delays and provides a concrete defect in the same admission
+path;it does not prove the entire older875ms interval had one cause. Do not
+retroactively rewrite154 as fully attributed or claim that instrumentation fixed
+performance. Source still blocks;all ordinary package bytes remain unchanged.
+No Internet/capacity/physical smoothness or broad D8 acceptance follows.
+
+Actual control / ownership
+local/profiletiming155-native01/verification.json PASS16.4408s,child15.9956s.
+Uses151's actual bundled runtime/server modules and119 hash-checked139 assets.
+Two current HELLO2/full17 native2vAI matches,humans0/2,bots1/3/profile60 and original
+30000ms queue/default3s request/2s close/50ms step/window6. Original BOT_INPUT/STEP,
+four bootstrap-bound input identities and host/frame hashes remain checked.
+This repeats154's bounded flow ONLY to measure the new identified timing gap.
+- Crash victim20208 exit1;healthy4932/replacement5760 exit0. Abort0.0603s,
+  healthy51frames,1during loss. Hang victim31192 exit1;healthy21508/replacement
+  8112 exit0. Abort3.0591s,healthy111frames,61during timeout.
+- ABORTED/RESULTS/null result/no failedframe10;original RETURN2/RETIRED/same
+  sockets/ticket1->2/10frame replacement;four profile files byte-preserved.
+- Controller0,all six workers reaped,six duplicate handle pairs closed,
+  job18total/0active/0job-terminated,no additional harness cleanup. Deliberate
+  loss/disposal exits1 are retained distinctly from normal worker exits0.
+No game executable or existing host/owner/private state is selected. These are
+background protocol/native controls,not visible gameplay or movement acceptance.
+
+Diagnostic implementation / qualification
+tools/verify_room_faults.py adds explicit --profile-timing,allowed only together
+with --public-ai. Default diagnostic paths do not install the new timers. The
+observer wraps original instance save and executor _wire_exchange calls on their
+original threads. It preserves argument objects,reply objects and original errors,
+does not retry,and stores only call names/thread/timing/profile or numeric RPC
+operation/request/frame metadata. It never retains IPC packets or reply payloads.
+RPC async timing is154's existing transparent delegate. Package code is unmodified.
+
+18focused tests PASS0.070s:three new sync-call argument/return/error/thread/payload
+exclusion controls,plus the15existing wire/ticket/ownership/delegate tests. Native
+timed control passes first attempt. Actual driver SHA256:
+a72566e362d0dfd36dabd89cd0369e6757513fd1c94a6e797a26efccef8a9876.
+Exact old154 driver6f5c8f6d is archived local/roomfault155-prior-source01.py;
+prior successful reports/seals remain unchanged. New read-only reconciliation
+local/profiletiming155-review01.json PASS40current inputs,35prior154/31prior153/
+83prior152/276prior151 inputs and all six N10 pins. It checks source/package
+module bindings,actual profile/frame/offer/RPC/AI/terminal facts and the completion
+delay inequalities. Review performance_fixed:false,D8_qualified:false is explicit.
+
+Next finite correction and acceptance
+Move server profile persistence off the coordinator thread without weakening
+atomic replacement,fsync,validation or save-before-ACK ordering. Cover public
+ENTER,community loadout saves and the legacy lobby deck-save path;inspect the
+remaining read paths separately. A no-op-only shortcut is insufficient for changed
+loadouts or newly connecting players. Keep normal CLI ProfileStore behavior.
+
+Async persistence introduces yields:reserve pending selection/admission state,
+preserve deck freezing and reject stale session/lobby/room commits after I/O.
+An overlapping Custom Start/Ready,departure,cancellation or shutdown must not
+start with stale choices or publish an ACK/world after its owner has gone away.
+Bound/serialize owned storage work and drain it before server_stopped/state-lock
+release;cancelled waiters must not leave unowned writes or unobserved exceptions.
+Use deterministic delayed/failing writes for those ordering/lifetime regression
+cases,then qualify changed source through actual bundled/native admission while
+another match advances. Keep the original step,worker deadlines and input window.
+Reuse154 fault results;do not add equivalent fault variants or unchanged probes.
+
+N9/N10 answer fields/reports are still blank/absent. Their artifacts/pins and all
+manual candidates/installers/share/HTTP state stay unchanged. No new Nick action.

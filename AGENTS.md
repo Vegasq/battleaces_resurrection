@@ -2,6 +2,22 @@
 
 ## Requests and answers with Nick
 
+- Admission155 CLOSES selected timing attribution,NOT performance:20 ORIGINAL
+  ProfileStore.save calls on coordinator thread47..88ms. Critical rematch healthy
+  STEP wire1.05/1.10ms finishes INSIDE save10;async resume waits53.45/64.97ms until
+  save returns (reviewed interval inequalities/thread/request/frame). Gaps152/
+  145ms;older154875.677ms NOT reproduced/fully attributed.18tests/native16.441s
+  pass,6workers reaped(victims1,others0)/controller0/job18/0/0/no extra cleanup.
+  Timers explicit --profile-timing --public-ai,original calls/results/threads,
+  no payloads. Production/package unchanged;performance_fixed/D8 false.40current/
+  35prior154/31prior153/83prior152/276prior151 inputs reconcile;exact old154driver
+  archived roomfault155-prior-source01.py. NEXT IMPLEMENT off-coordinator profile
+  persistence for ENTER/loadout/legacy deck with pending-state race guards,
+  save-before-ACK,unchanged fsync/atomic validation and owned shutdown draining;
+  no no-op-only substitute or unchanged timing/fault rerun. Concrete acceptance
+  plan:profile-admission-timing155.txt. All owned terminal;N9/N10blank/no reports/
+  sixpins unchanged,no game/helper/manual/share/new action. Full D1-D9 OPEN.
+
 - BotRPC154 CLOSES selected native mode5 BOT_INPUT loss/timeout server branch:
   humans0/2,bots1/3,real profile60/AI DLL+rules/4identity frames,original30s queue/
   default3s request. Victim frame10 BOT_INPUT fails before STEP;ABORTED/RESULTS/

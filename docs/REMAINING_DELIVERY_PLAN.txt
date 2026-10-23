@@ -883,6 +883,18 @@ References: server-console.txt, windows-service.txt, state-backup.txt,
 windows-packaging.txt, windows-server-quickstart.txt.
 
 [ ] D8 - Complete Internet, latency and final capacity evidence
+[x]155 selected coordinator/profile admission attribution:actual20 original
+    saves47..88ms on coordinator;healthy STEP wire1.05/1.10ms completes INSIDE
+    rematch save10,coordinator resume waits53.45/64.97ms until that save returns.
+    18tests/native16.441s pass,job18/0/0/no extra cleanup. New gaps152/145ms;
+    original154875.677ms NOT reproduced/fully attributed. No product fix/fullD8.
+    Source/timing/interval proof:profile-admission-timing155.txt.
+[ ] Correct off-coordinator profile persistence(public ENTER,community selection,
+    legacy lobby saves),preserving fsync/atomic validation/save-before-ACK and
+    draining owned writes on shutdown. Cover pending session/deck/lobby freeze,
+    Start/Ready/departure/cancel races and stale commits,then actual bundled/native
+    admission with another advancing room. Keep50ms step/default deadlines/window.
+    No no-op-only shortcut or extra equivalent fault variants.155 has finite plan.
 - Concrete154 local admission/rematch concern:healthy2vAI receive gap875.677ms
   crosses Return/new ENTER processing BEFORE replacement worker_started;healthy
   frame worker_ms775.985/no snapshot. Hang max153.799ms. Existing receipt/audit

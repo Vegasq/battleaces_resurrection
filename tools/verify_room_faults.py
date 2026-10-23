@@ -8,7 +8,7 @@ from __future__ import annotations
 import argparse,asyncio,contextlib,ctypes as c,hashlib,io,json,os,secrets
 from ctypes import wintypes as w
 from pathlib import Path
-import subprocess,sys,time,traceback
+import subprocess,sys,threading,time,traceback
 
 ROOT=Path(__file__).resolve().parents[1]
 def require(value,message):
@@ -103,6 +103,23 @@ def observe_worker_rpc(worker,records):
             raise
         finally:row.update(ended=time.perf_counter(),request_id_after=worker._request_id)
     worker._exchange=exchange
+
+def observe_sync_call(owner,name,records,fields=()):
+    """Passive timing on the original calling thread; never retain wire payloads."""
+    original=getattr(owner,name)
+    def call(*args,**kwargs):
+        row=dict(method=name,started=time.perf_counter(),thread=threading.get_ident())
+        row.update((key,value) for key,value in zip(fields,args) if key is not None)
+        records.append(row)
+        try:
+            result=original(*args,**kwargs)
+            row['status']='reply'
+            return result
+        except BaseException as error:
+            row.update(status='error',error_type=type(error).__name__)
+            raise
+        finally:row['ended']=time.perf_counter()
+    setattr(owner,name,call)
 
 def validate_public_frame(peer,payload,frame):
     from server import public_protocol as public
@@ -226,7 +243,7 @@ async def advance(peers,frame):
         validate_public_frame(peers[0],values[0],frame)
     return dict(frame=frame,at=time.perf_counter(),sha256=hashlib.sha256(values[0]).hexdigest())
 
-async def scenario(folder,assets,kind,capture,*,custom=False,public_mode=False):
+async def scenario(folder,assets,kind,capture,*,custom=False,public_mode=False,profile_timing=False):
     from server import protocol as p,dedicated_server as dedicated,admission,tls_transport as tls,rc_host,community_protocol as community,public_protocol as public
     from server.game_data import GameTemplate
     from server.cosmetics import CosmeticCatalog
@@ -236,7 +253,8 @@ async def scenario(folder,assets,kind,capture,*,custom=False,public_mode=False):
     folder.mkdir();work=folder/'workers';work.mkdir()
     certificate,key=rc_host.generate_certificate();cert=folder/'server.pem';keypath=folder/'server.key';cert.write_bytes(certificate);keypath.write_bytes(key)
     template=GameTemplate.load(assets/'map-1v1.pb.gz',catalog_path=assets/'unit-catalog.json',descriptors_path=assets/'descriptors')
-    workers=[];operations={}
+    workers=[];operations={};wire_operations={};profile_saves=[]
+    coordinator_thread=threading.get_ident()
     async def factory(data,*,ai=None):
         worker=await SimulationWorker.create(data,assets/'Simulation.dll',working_directory=work,ai=ai)
         workers.append(worker);require(worker.pid in capture.refs and not capture.errors,'worker primary-thread capture failed')
@@ -244,6 +262,9 @@ async def scenario(folder,assets,kind,capture,*,custom=False,public_mode=False):
         if public_mode==5:
             require(ai is not None and set(ai.bots)=={1,3} and worker.ai_info is not None,'native allied AI roster absent')
             operations[worker.pid]=[];observe_worker_rpc(worker,operations[worker.pid])
+        if profile_timing:
+            wire_operations[worker.pid]=[]
+            observe_sync_call(worker,'_wire_exchange',wire_operations[worker.pid],(None,'operation','request_id','frame'))
         return worker
     extra={}
     if public_mode:
@@ -255,6 +276,7 @@ async def scenario(folder,assets,kind,capture,*,custom=False,public_mode=False):
         for mode,name in ((2,'map-2v2.pb.gz'),(5,'map-2vai.pb.gz')):templates[mode]=GameTemplate.load(assets/name,catalog_path=assets/'unit-catalog.json',descriptors_path=assets/'descriptors')
         extra=dict(templates=templates,bot_catalog=BotCatalog(assets,template=template,rules=RuleBook(assets)),ai_factory=ai_factory)
     audit=HostAudit(folder/'logs',max_bytes=8388608,backups=4,diagnostics=True);server=dedicated.DedicatedServer(template,ProfileStore(folder/'profiles',template,catalog=CosmeticCatalog(assets)),sim_factory=factory,audit=audit,audit_state=True,tls_context=tls.load_server_context(cert,keypath),admission=admission.AdmissionController(None,rc_open=True),**extra)
+    if profile_timing:observe_sync_call(server.profiles,'save',profile_saves,('profile',))
     peers=[];healthy_task=None;healthy_stop=asyncio.Event();healthy_frames=[];record=dict(kind=kind,passed=False,route='public' if public_mode else 'custom' if custom else 'direct',mode=int(public_mode) if public_mode else 1)
     try:
         port=(await server.start('127.0.0.1',0))[1]
@@ -347,6 +369,7 @@ async def scenario(folder,assets,kind,capture,*,custom=False,public_mode=False):
             await asyncio.gather(*(worker.close() for worker in workers),return_exceptions=False);audit.close()
         record['worker_exits']=[dict(pid=worker.pid,exit_code=worker.process.poll()) for worker in workers]
         if operations:record['worker_operations']={str(pid):rows for pid,rows in operations.items()}
+        if profile_timing:record['profile_timing']=dict(coordinator_thread=coordinator_thread,saves=profile_saves,wire_operations={str(pid):rows for pid,rows in wire_operations.items()})
         require(all(row['exit_code'] is not None for row in record['worker_exits']),'owned worker survived scenario')
         require(all(row['exit_code']==0 for row in record['worker_exits'] if row['pid']!=record.get('victim_pid')),'healthy/replacement worker did not close normally')
         save(folder/'result.json',record)
@@ -366,7 +389,7 @@ def child(request_path):
         deadline=time.monotonic()+20
         while not (out/'job-ready').exists():require(time.monotonic()<deadline,'owned job gate absent');time.sleep(.02)
         subprocess.Popen=capture.popen
-        async def execute():return [await scenario(out/kind,assets,kind,capture,custom=request['custom'],public_mode=request.get('public_mode',False)) for kind in ('crash','hang')]
+        async def execute():return [await scenario(out/kind,assets,kind,capture,custom=request['custom'],public_mode=request.get('public_mode',False),profile_timing=request.get('profile_timing',False)) for kind in ('crash','hang')]
         report['cases']=asyncio.run(execute());require(not capture.errors,'creation observer errors')
         verify_assets(assets);report['assets_verified_after']=True
         report['passed']=True
@@ -384,14 +407,14 @@ def owned_paths(package,assets,out):
     require(not out.is_relative_to(package) and not out.is_relative_to(assets),'keep diagnostic output outside packages and imported assets')
     return package,assets,out
 
-def run(package,assets,out,*,custom=True,public_mode=False):
+def run(package,assets,out,*,custom=True,public_mode=False,profile_timing=False):
     from tools.owned_suspended_launch import SuspendedChild,job_accounting
     from tools.package_integrity import verify
     package,assets,out=owned_paths(package,assets,out);out.mkdir(exist_ok=False)
     owner=None;started=time.monotonic();report=dict(passed=False,scope=__doc__,forced_harness_cleanup=False)
     try:
         manifest=verify(package,'server');report['package_manifest_sha256']=sha(package/'package-manifest.json');report['asset_manifest_sha256']=sha(assets/'asset-manifest.json')
-        report['driver_sha256']=sha(__file__);save(out/'request.json',dict(package=str(package),assets=str(assets),custom=custom and not public_mode,public_mode=public_mode,driver_sha256=report['driver_sha256']))
+        report['driver_sha256']=sha(__file__);save(out/'request.json',dict(package=str(package),assets=str(assets),custom=custom and not public_mode,public_mode=public_mode,profile_timing=profile_timing,driver_sha256=report['driver_sha256']))
         owner=SuspendedChild.create([str(package/'program/runtime/python.exe'),'-I','-B',str(Path(__file__).resolve()),'--child-request',str(out/'request.json')],cwd=out,creationflags=subprocess.CREATE_NO_WINDOW)
         (out/'job-ready').write_bytes(b'owned job attached\n');owner.resume()
         deadline=time.monotonic()+90
@@ -418,9 +441,11 @@ if __name__=='__main__':
     routes.add_argument('--direct-rooms',action='store_true',help='legacy direct-room comparison instead of current Custom flow')
     routes.add_argument('--public',action='store_const',const=1,default=0,dest='public_mode',help='two complete human public1v1 rooms, original queue/Ready/Return')
     routes.add_argument('--public-ai',action='store_const',const=5,dest='public_mode',help='two allied2vAI rooms; native BOT_INPUT loss/timeout before STEP')
+    parser.add_argument('--profile-timing',action='store_true',help='passive original save and executor wire-call timing for explicit allied2vAI diagnostic')
     for name in ('package','assets','output'):parser.add_argument('--'+name,type=Path)
     args=parser.parse_args()
     if args.child_request:raise SystemExit(child(args.child_request))
     require(all((args.package,args.assets,args.output)),'package/assets/output required')
     require(not (args.direct_rooms and args.public_mode),'choose one room route')
-    raise SystemExit(run(args.package,args.assets,args.output,custom=not args.direct_rooms,public_mode=args.public_mode))
+    require(not args.profile_timing or args.public_mode==5,'profile timing requires the explicit allied2vAI diagnostic')
+    raise SystemExit(run(args.package,args.assets,args.output,custom=not args.direct_rooms,public_mode=args.public_mode,profile_timing=args.profile_timing))
