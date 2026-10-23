@@ -3,6 +3,19 @@ Updated: 2026-10-23
 Delivery plan: REMAINING_DELIVERY_PLAN.txt, Windows only.
 Original roadmap: CLOSED / SUPERSEDED;see PLAN_CLOSEOUT.txt.
 
+DIAGNOSTICS161 - ARBITRARY EXCEPTION CONTENT REMOVED FROM HOST FAILURES
+Selected D7 gap CLOSED:fixed error categories/class labels/bounded OS codes;
+known authored validation reasons retained,unknown ValueError/KeyError gets
+fixed rejection. No exception arguments/filenames/type names/str/repr hooks.
+Baseline4log-marker failures+2fixture type mismatches retained;final106tests
+105pass/1existing native opt-in skip on314/312. Audit600/0. Clean262b786 paired
+ZIPs/native installers/imports/CLI/authored bundled socket faults/forms/payloads
+PASS7.004s,8owned0/emptyjobs/no force. Previous profile bytes/same-session retries/
+drain-before-server_stopped hold. Serverdelta159:compat+3modules+newdiagnostics;
+clientcompat only,helper/recipe/installer logic unchanged. Prior160/159/source
+archives/N10pins reconcile;N9/N10pending. No game/native/protected/Install/manual/
+share/new action. Full D7/D5/D1-D9 OPEN. host-failure-diagnostics161.txt.
+
 CAPACITY160 - FOUR CURRENT PACKAGED RC TLS/NATIVE ROOMS
 Default4room native subcase COMPLETE:6rounds/24Custom1v1matches/8persistent TLS1.3
 RC peers/72workers0/reaped/14880frames/29760matching reference comparisons. All

@@ -1,0 +1,93 @@
+HOST FAILURE DIAGNOSTICS161
+2026-10-23. Selected D7 safe-failure diagnostic correction COMPLETE.
+Whole D7/D1-D9 and game privacy acceptance remain OPEN.
+
+Problem and resulting behavior
+Profile fallback/save, simulation, setup and unexpected connection handlers wrote
+str/repr(exception) to host events. Generic ValueError/KeyError handlers could
+also echo arbitrary text as a protocol failure or selection rejection. Exception
+arguments can contain paths or data. The bounded log writer did not remove them.
+
+server/diagnostics.py now emits fixed error_kind values and authored class labels,
+plus bounded integer errno/winerror when available. It never evaluates arbitrary
+exception str/repr hooks, arguments, filenames, dynamic type names or cause chains.
+Kinds distinguish worker timeout/failure, permission, missing file, timeout,
+OS error, invalid data, missing field and internal failure. The error field uses
+an empty-argument class label, e.g. WorkerTimeout(), preserving existing internal
+worker category consumers without retaining exception content.
+
+Known exact authored ProtocolError/GameDataError/InputError/WireError/CosmeticError
+types retain their useful bounded validation messages. Unknown ValueError/KeyError
+uses fixed invalid-client-request or invalid-selection/saved-profile text instead.
+Community Rejected messages still come from authored guards or that controlled
+validation conversion. Profile/match/connection IDs, ordinary names and useful
+local events are retained; no blanket log suppression or gameplay network change.
+Profile save/load FIFO, atomic persistence/save-before-ACK, room supervision and
+result/abort semantics are unchanged. No winner is invented on worker failure.
+
+Reproduction and source checks
+local/diagnostics161-baseline01.txt has47 tests with6 failures. Four are actual
+persisted-marker reproductions (Custom/public save, simulation and unexpected
+connection failures); two fallback tests stop earlier on list-versus-tuple fixture
+assertions. Imported test classes also caused41 existing cases to run there.
+Exact baseline test source is diagnostics161-baseline-test01.py. Module-only
+fixture imports now avoid accidental rediscovery. The intermediate nine-test
+focused01 retains those same two fixture errors; its exact source is archived as
+diagnostics161-fixture-failed-test01.py. Neither failed run is called a pass.
+Final corrected fallback checks cover the actual persisted records too.
+
+Thirteen new checks cover actual loopback/profile/worker failure paths, prior-data
+preservation, same-session retries/no premature public ticket, unknown-result
+abort/no failed frame, actual HostAudit serialization, fixed classification,
+numeric-code bounds and string-hook refusal. The larger affected106-test suite
+passes on Python3.14.8 in51.244s and3.12.10 in55.140s:105pass/1existing opt-in
+native-public-snapshot skip each. The skipped original/native test is not a pass.
+Earlier intermediate affected314-02 also passed102tests/1skip before the final
+four generic-validation checks. It is not the final106-test evidence.
+Source/index audit before source commit:600 source paths/objects,zero findings.
+
+Current artifacts
+Clean source262b786d7e728f5fdd3cf1d08b21269298783430,version0.3.0-rc1.5:
+local/diagnostics161-packages01
+server ZIP6df2945f533372a3b10132ac5266676852c966a3885bad5fcda483f23160a8d0
+client ZIPe7baa5c0ec947285b5003b0f7cd9f423df5ae10e7c1dbc5d3e16c410560d738e
+Matching standalone folders:local/diagnostics161-server-standalone01 and
+local/diagnostics161-client-standalone01
+server EXEaec3bf220dfe0a660f4ef483477573ec5dece81942e809670daf9907f750ec63
+client EXEc864a657cb6ddc8a0b0bda24e976978688bd745b292973bde2aee4cbcd411787
+
+Actual package/installer qualification PASS7.004s. Eight owned commands exit0,
+reap and leave empty jobs,zero terminated processes and no forced cleanup:
+both bundled integrity CLIs,isolated seven-module server imports,a bundled-server
+authored socket-failure probe,both native forms and both embedded ZIP checks.
+Forms retain server2/client3 editable fields and attached progress controls.
+This is automated form evidence,not a human visual/physical-controls pass.
+
+The isolated actual bundled server uses an authored template/no original assets:
+profile read permission fallback,denied save/previous-data preservation,successful
+retry,unknown storage ValueError/rejection/retry,and unknown connection ValueError
+produce fixed messages/categories and no marker in the persisted events. Original
+profile bytes remain intact;server_stopped follows drained storage/closed sockets.
+All observed server modules resolve inside this package and match its manifest.
+No game,real simulation,protected credential operation or Install action starts.
+
+Compared with159,server payload deltas are compatibility and community.py,
+dedicated_server.py,public_matchmaking.py plus the new diagnostics.py. Client
+changes only compatibility metadata. The tested helper138/explicit f99fc83 source
+pin/provenance,Python/native tools,installer logic,patch recipe and all other
+runtime bytes remain identical. No unchanged original-game/fault/soak rerun is
+needed to prove these diagnostic-only changes;their prior evidence keeps its scope.
+
+Read-only local/diagnostics161-review01.json reconciles actual module/payload/
+failure events,terminal jobs,tests and exact prior160/159 inputs through immutable
+archives. Old source/docs live under local/diagnostics161-prior-source01;earlier
+seals are never rewritten for the intentional source changes. Six N10 pins stay
+exact. N9/N10 answers and public reports remain blank/absent;no repeated request.
+
+Next / limits
+This closes the identified arbitrary-exception diagnostic gap,not protected owner
+recovery,SCM/session0/reboot,clean-machine,Internet,physical or whole release gates.
+It is not game analytics/report removal or arbitrary content scanning of every
+possible owner-authored log field. Existing display names and local diagnostics
+remain intentional. Current game/host/manual130/N7/share/HTTP are untouched.
+No new Nick action. Continue the remaining finite roadmap requirements.

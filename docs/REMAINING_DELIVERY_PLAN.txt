@@ -851,6 +851,15 @@ startup barrier or inflate an ordinary timeout to produce a passing result.
 References: client-startup.txt and telemetry-game-observation.txt.
 
 [ ] D7 - Complete protected Windows host deployment and recovery
+[x]161 fixed host failure diagnostics:arbitrary exception text/paths removed from
+    profile/simulation/setup/connection logs and unknown validation rejections;
+    retain authored validation,IDs,worker labels and bounded OS codes.106tests
+    105pass/1native opt-in skip314/312,audit600/0. Clean262b786 paired archives/
+    installers/actual bundled socket-failure probe/imports/CLI/forms/payloads
+    pass7.004s,8owned0/emptyjobs/no force;prior data/session retries/unknown-result
+    abort unchanged. No original game/native/protected/Install operation or new
+    action/manual/share change. Full D7 owner/SCM/reboot/clean-host and D1-D9 stay
+    open. Scope/failures/artifacts:host-failure-diagnostics161.txt.
 [x]151 source correction:RC backup omits nonexistent invite store and writes
     explicit rc-open snapshot3;legacy1/2 remain valid. Restore writes schema2 with
     original TLS/access mode. All6cross-mode directions refuse before creation;

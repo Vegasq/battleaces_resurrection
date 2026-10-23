@@ -2,6 +2,21 @@
 
 ## Requests and answers with Nick
 
+- Diagnostics161 CLOSES selected D7 arbitrary-exception log/rejection gap. Fixed
+  error_kind/class labels+bounded OS codes;unknown str/repr/filenames/dynamic type
+  names never evaluated. Known authored validation stays useful,unknown ValueError/
+  KeyError gets fixed rejection. WorkerError()/WorkerTimeout() labels preserve
+  consumers. Baseline47/6fail includes4actual log markers+2fixture type mismatches;
+  intermediate9/2fixturefail retained/fixed imports/list shape. Final106tests
+  105pass/1native opt-in skip on31451.244s/31255.140s. Audit600/0. Clean262b786
+  paired ZIPs/standalones/CLI/7imports/authored bundled socketfaults/forms/payloads
+  PASS7.004s,8owned0/emptyjobs/no force. Actual no game/native/protected/Install.
+  Serverdelta159:compat+3runtime modules+newdiagnostics;clientcompat only. Helper138/
+  provenance/installer/recipe unchanged;no unchanged native/soak rerun. Exact old
+  source/docs retained;161review reconciles prior160/159/sixN10pins. N9/N10blank/
+  no reports,no new action/game/manual130/N7/share change. Whole D7/D5/D1-D9 OPEN.
+  NEXT remaining finite gates,not same diagnostics repeat. host-failure-diagnostics161.txt.
+
 - Capacity160 CLOSES D8 default4room native workload subcase:actual159 bundled
   RC TLS/8persistent HELLO1 peers/6rounds/24Custom1v1matches/72worker0/reaped,
   14880frames/29760native reference comparisons,production/movement/damage/deck
