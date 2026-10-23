@@ -1,6 +1,14 @@
 D5 REMAINING SOURCE WORKLIST125
 2026-10-22. Full D5 remains OPEN. Source findings below narrow the remaining
 engineering work;they are not complete analytics-removal or release acceptance.
+Current136:telemetry-adjacent-interface136.txt qualifies the finite14a0->1498
+alias review:8methods/10named direct-global consumers forward events/flag,
+87source checks pass. Ancillary numeric/data candidates unclassified;initial
+all-window completeness assertion failed and is retained. No upstream producer/
+computed-alias/full D5 closure or new patch. Do not repeat this finite scan.
+NEXT independently advance operational guarded report delivery with owned
+seeds/isolated SDK root and finite installed runtime matrix;producer stays open.
+Recipe19/helper135/coherent130/manual N7 unchanged,no new action/game/query.
 Current128:telemetry-settings-query128.txt closes the named external query's
 type/initializer/virtual40 source question. It is UnityAnalyticsSettings' five-
 byte Boolean-field getter,not ID acquisition. Recipe17/helper127-02 unchanged.

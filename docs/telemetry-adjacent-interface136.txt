@@ -1,0 +1,74 @@
+ADJACENT ANALYTICS INTERFACE SOURCE REVIEW136
+2026-10-22. D5 remains OPEN;RUNTIME_VALIDATED remains false.
+
+Finding
+The Main+14a0 interface forwards events and exposes a local privacy flag. The
+eight concrete methods and ten named direct-global consumers do not turn that
+pointer into the adjacent Main+1498 advertising callback before their reviewed
+dispatches. This closes the named finite alias review,not the upstream callback
+producer or whole-program reachability. No new guard is justified by this result.
+
+Evidence
+Original Unity SHA256:
+ac144d56d53f07904d52ed27a1539de90bc3290038fe52d73d2f6b268c85d6bc
+Static original PE/unwind/LLVM fallback,not REA Ghidra decompilation or runtime
+observation. Known unavailable Ghidra provider was not retried.
+
+c33210 constructs Main,sets R15=Main+14a0 at c332a7,and publishes that exact
+interface into global1d0ca50 at c333e7. Table1a2afc8 has eight entries:
+00 c32000 ->18 c2e790 ->20 c312b0 -> Main virtual50 c381d0.
+08 c2eac0 ->10 c318e0 -> Main virtual50 c381d0.
+28 c2edf0 -> Main virtual68 c33440,then c2dc10 on its permitted branch.
+30 c30890 reads Main1648;38 c30880 writes Main1648.
+The two flag leaves are exactly8/7bytes including RET. Their wrappers1f4d80/
+1f4da0 dispatch30/38 with the unchanged interface. Actual setter entry includes
+MOVZX EDX,CL before the global load;116's1f4da3 was an interior fragment.
+
+The event methods recover Main by subtracting14a0. Their later [RSI-8] operands
+are allocation metadata AFTER RSI has been rebound to temporary storage at
+c313b9/c31a42. R14 becomes the allocator at c32145/c2e812/c2eb42. Thus textual
+minus8 occurrences do not establish an advertising callback alias. The original
+Main+1498 interface and c307c0 retained-copy guard remain separate and unchanged.
+
+Reused116 reference inventory:eleven supported RIP MOV/LEA sites to1d0ca50,
+independently byte/target checked. One store above;ten consumers dispatch to
+00(3cfc54),10(39e1a7),28(56c549),18(e23233/e236ad/e251f8/f61a9e/f6a46f),
+and flag30/38. No named dispatch subtracts8 from the published interface.
+This does not exclude computed/RVA/bulk/interior aliases outside this inventory.
+
+Verification and limitations
+Review02 passes87source checks:35unwind windows,25907byte-matching decoded
+locations,eight strict complete roots,four exact terminal leaves,table and
+receiver/dispatch/rebinding anchors. These are mechanical static assertions,
+not87runtime tests. No game,identity query,helper build,install or package run.
+
+The +/-14a0 scan found39byte candidates,34 in decoded instruction windows.
+These are NOT39pointer references or34proven Main owners. Ancillary object/
+stack/data candidates remain unclassified. Initial all-window completeness
+assertion FAILED on unrelated10aa0f0..10b6bdc:linear decode at10b6bdb crosses
+the unwind end. Failed verifier is retained. Review02 enforces complete extents
+for relevant roots and checks ancillary bytes without claiming reachability.
+This deliberately does not close whole-program source coverage. One anchor
+transcription was corrected c2eadc->c2eae4 before passing;candidate containment
+also now uses actual decoded instruction lengths instead of a15-byte heuristic.
+
+Retained ignored artifacts and SHA256
+local/privacy136-adjacent-source01/evidence-manifest.json
+ 01f25e0c1b3f3f5117e1b4a92d134a6615dbfd5c488c48961034c7d1c250ab40
+verification02.json
+ 62c794695402b858add962e547393eb220828469f8d851c5390b7b3279f63ab4
+adjacent-contract.json
+ a42c4e1ee7d8577b5716a36b9e13aca6afb0f5bce09af0c38b3408ee8e69209e
+forwarding-contract.json
+ 6b6be6054fc921ffbf1366b55aa3348bb3130a1bafa9dd9af43e9e78146d5573
+FINDINGS.txt
+ 236c6fe2d3c1de4f4dbc4000d06c11fa2b56e393b5bc46e3208504645d41ca0a
+Original disassembly,raw artifacts and failed verifier remain ignored,not in Git.
+
+Next
+Do not repeat the exact-address/adjacent-interface scans or quiet AI cases.
+Keep the unresolved upstream producer gate. Independently advance ordinary
+operational guarded report delivery with owned seeded reports and the existing
+isolated SDK-root technique,then finite installed mode/error/descendant/final
+coverage. Recipe19/helper135/diagnostic r134g,coherent r103g and frozen130/N7
+remain unchanged. No new Nick action,installer or visibility request.

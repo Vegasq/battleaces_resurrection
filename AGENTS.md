@@ -2,6 +2,19 @@
 
 ## Requests and answers with Nick
 
+- Source136 closes only finite adjacent-interface alias review:Main14a0 is
+  published to1d0ca50;8methods and10named consumers forward events/privacy flag,
+  no reviewed dispatch forms1498. Six full methods+ctor/query and4exact leaves,
+  87source checks/35windows pass.39byte candidates/34decoded are NOT pointer/
+  Main/reachability proof. Initial all-window completeness FAILS unrelated
+  10aa0f0 end decode;failed verifier retained,ancillary windows unclassified.
+  Cleanup minus8 follows receiver rebinding,not callback alias. Producer/full
+  D5 remain OPEN/false. No game/query/build/install or changed recipe19/helper/
+  r134g/r103g/frozen130/N7/Nick action. Next operational guarded report delivery
+  under isolated SDK root,then finite mode/error/descendant/final matrix;retain
+  computed/bulk/source gate. Do not repeat exact/adjacent scans or quiet AI.
+  Scope/seals:docs/telemetry-adjacent-interface136.txt.
+
 - Privacy135 recipe19/still113:extends SAME two Init guards past device type/
   model formatting+setter to256cae3/256f2d0;genuine profile ID/model stay empty,
   GC publication/version/locale/service/lifetime retained. Shared public APIs

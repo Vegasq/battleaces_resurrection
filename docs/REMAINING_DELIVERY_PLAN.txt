@@ -417,10 +417,17 @@ already cut;then supported runtime/final artifacts. Full D5 stays OPEN.
     eight samples/profile2/2/explicit19. Review02 PASS34checks. Exact failures/
     scope/hashes:telemetry-service-profile135.txt. No package/Nick action;130/N7
     unchanged,r134g now19/helper135-01 diagnostic only. Full D5 remains OPEN.
-[ ] Next source:resolve c307c0 producer,including possible adjacent-interface
-    aliases(main14a0 to1498) rather than repeat prior negative exact-address
-    scans. Alias is a hypothesis,not proven registration. Indirect/computed
-    calls and broader mode/error/reporting/descendant/final gates remain open.
+[x] Review136 finite adjacent14a0->1498 alias hypothesis:constructor publication,
+    eight concrete methods and ten named global consumers forward event/flag
+    paths without forming callback at reviewed dispatches.87source checks pass,
+    eight full relevant roots/four exact leaves. Ancillary numeric candidates
+    unclassified;failed all-window completeness retained. No query/game/patch.
+    Evidence:telemetry-adjacent-interface136.txt. This does NOT resolve upstream
+    producer or computed/RVA/bulk/interior aliases;full D5 remains OPEN/false.
+[ ] Next:advance ordinary operational guarded report delivery with owned seeded
+    reports/isolated SDK root,then finite installed mode/error/descendant/final
+    matrix. Retain unresolved c307c0 producer gate;do not repeat completed exact
+    address/adjacent-interface scans or equivalent quiet AI cases.
 S1 CLOSED BY126:all FIVE safe interior SDK guards,with genuine matched/unmatched
 pending-owner cleanup and disabled-ID qualification.125 found failed/cache
 handlers can enumerate/prune AFTER WriteFile RET;do not entry-RET those handlers
