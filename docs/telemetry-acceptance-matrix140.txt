@@ -1,0 +1,175 @@
+D5 FINITE ACCEPTANCE INVENTORY AND PASSIVE INSTALLED SDK STARTUP140
+2026-10-22. Parent:REMAINING_DELIVERY_PLAN.txt D5. Full D5 remains OPEN.
+
+Closure boundary
+These nine rows map the existing requirement;they do not replace it or introduce
+a new product plan. Each row needs its named evidence,with applicable retained
+proofs reused. Do not multiply profile/roster/failure variants without a distinct
+code path or concrete defect. D2 owns roster/search coverage;D3 owns physical
+catalog controls;D4 owns storage/replay recovery. D5 needs their relevant privacy
+behavior,not another blanket gameplay rerun. Accepted D6/LAN/manual play stay closed.
+
+Cross-cutting requirement
+Tie game-owned DNS/network/process and relevant queue/file activity to the actual
+installed programs and reviewed disabled paths. Cover effective descendants and
+raw-socket routes,distinguishing expected server traffic. Selected Frida counters
+are scoped evidence;quiet counters,WinHTTP alone or zero observed CreateProcess
+calls do not prove wire/kernel/tree completeness. Source cuts and effective route
+classification remain necessary. Existing matching positive sensor controls may
+be reused;declare external driver/overlay/OS limits. Do not acquire/clear the real
+SDK queue or send reports to original endpoints to manufacture observations.
+
+Finite rows
+[ ] P1 Startup/profile/idle/shutdown
+    Missing:ordinary installed fresh/existing startup and relevant idle behavior
+    under the cross-cutting attribution contract. No SDK root replacement in an
+    ordinary-startup claim.139 binds the installed pair/runtime.123/124 diagnostic
+    root/seed/exit evidence and138 initialized Client evidence retain their scopes.
+    [x]140 closes ONLY the selected thirteen SDK-entry/native-field/metadata pair
+        described below:settings-absent owned profile then same-profile restart,
+        startup/menu/default original Quit. No queue reads/seeds/path replacement.
+    Still missing:full effective collection/reporting attribution,ordinary complete
+    entry/idle and applicable all-thread/pre-loader/inflight/source conclusions.
+[ ] P2 Existing-profile edits/idle/persistence
+    One existing-profile session changes deck,cosmetic and options,idles,normally
+    quits and restarts. Bind actual selected before/after values and native loaded
+    guards;attribute relevant collection/queue paths.139 install preservation and
+    140 unchanged-TOML restart are inputs,not proof of edited-value persistence.
+    NEXT independent behavior case;no repeated constructor/Try Deck run needed.
+[ ] P3 Supported original tutorial
+    Relevant collection/reporting,progress and ordinary shutdown for the supported
+    original tutorial route. Tutorial2 exploration is separate;DEV N8 is deferred.
+    Do not request another Tutorial2 visibility/completion test for D5.
+[ ] P4 Required local modes
+    Try Deck4 and local public fallback1/2/5,result/Continue/default Quit with the
+    same attribution. Reuse129 gameplay and135/138 bounded movement evidence where
+    applicable;they do not supply complete current139 privacy observations.
+    No profile cross-product absent a differing path.
+[ ] P5 Connected modes
+    Connected public1/2/5 plus Custom with changed-deck rematch and transitions.
+    Attribute expected server traffic separately.129 Custom and139 fresh installed
+    assets2vAI prove named compatibility/lifecycle cases,not whole privacy. D2 owns
+    remaining roster combinations,so do not recreate every roster solely for D5.
+[ ] P6 Availability/reconnect
+    One controlled unavailable/offline -> online/reconnect -> ordinary shutdown
+    sequence,with effective retry/queue observation.131's eight refusal/TLS default
+    deadline cases remain accepted availability evidence;do not repeat all eight
+    just to produce quiet counters.
+[ ] P7 Effective queue/error/reporter/crash paths
+    Reuse120-122 real typed readers/fresh guarded delivery,126 matched/missed pending
+    cleanup and138 genuine initialized reporting-disabled Client. Qualify only the
+    missing supported managed-error/explicit-reporter/disposable native-crash routes
+    and relevant retries/descendants;preserve authored seeds and useful local logs.
+    Settle resumed/inflight applicability with source/state evidence;fresh-instance
+    fixtures are not automatically resumed/inflight proofs.106 controlled patched
+    CEF handler return/natural exit remains scoped input. Do not invoke original
+    independent crash bootstrap merely because a parser exists.
+[ ] P8 Effective game-owned descendants
+    Identify an original supported WebView/CEF route and its actual game-owned
+    descendants/inherited bootstrap,then bind child binaries and network/file
+    activity. If a route is inaccessible,prove the cut from supported UI/source;
+    zero selected CreateProcess counts is insufficient. Reuse106/107/125 handler/
+    inherited-pipe analysis. No extra Crashpad format reconstruction without a
+    demonstrated independent bypass.
+[ ] P9 Source applicability/final installed closure
+    Resolve upstream c307c0 advertising producer/registration OR prove relevant
+    consumers are cut before acquisition. Preserve127/128 preparation/settings,
+    132/133 getter-consumer and136 adjacent-interface conclusions;do not repeat
+    their bounded exact scans. Explicitly settle all-thread/resumed/inflight
+    applicability,bind this finite matrix to final installed hashes and publish
+    exact tested/unsupported scope. Only then consider runtime_validated=true.
+
+140 implementation
+New tools/frida_sdk_startup.py composes the existing metadata/cwd/clock/exit
+observer with thirteen GameAssembly entry witnesses:Client/NativeClient/CacheManager
+constructors,CacheRoot,cached device/event/session getters,DeleteFile,expiry,
+directory creation,SendPayloadFailed,CacheSession and CacheEvent. The loaded
+module/path and every original sixteen-byte prefix are checked before hooks.
+Guarded entry-RET sites are not intercepted;read-only patch/field audits remain
+intact. Counts continue after an eight-record-per-entry caller-event budget.
+No arguments,payloads or identifiers are read;no constructor/getter/collector API
+is called by this observer. No SDK/general Unity path replacement or fallback.
+The inherited exit diagnostic still adds200ms at EACH self-TerminateProcess entry
+to drain asynchronous messages. It is an entry boundary,not OS completion proof.
+
+tools/sdk_startup_evidence.py validates exact install contract,typed monotonic
+counters,entry sequence/caller shape,ready/installation ordering and both terminal
+snapshots. Positive activity is represented as activity,not fabricated absence.
+Full privacy qualification is always false in this bounded decoder. Source/module,
+REA envelope,clock/I/O and OS exit/job evidence are separately reconciled below.
+
+Controls
+Command:python -B -m unittest tests.test_sdk_startup_evidence
+ tests.test_sdk_startup_observer tests.test_native_telemetry_observer
+ tests.test_telemetry_cache_startup tests.test_attribution_exit
+(one command;wraps above for readability).
+16focused checks pass:executable authored JS tests exercise actual generated
+callbacks beyond the eight-event budget,all-prefix verification before hooks,
+wrong hash/reload failures and absence of path/API replacement. Evidence tests
+reject missing/error/overflow/Boolean/reset/unreported-positive counts,bad caller
+frames and falsely replaced paths/target API calls. Positive entry data produces
+selected_sdk_entries_quiet=false. Existing metadata/clock/cwd/exit controls remain
+unchanged. These authored tests are not a positive original SDK constructor call.
+Initial forbidden-token assertion failed because a legacy COMMENT contains the
+word NativeFunction;the assertion now checks invocation syntax. No target ran
+under that failed test;no production patch/assertion was weakened.
+
+Actual installed139 native startup pair
+Owner:local/privacy140-sdk-owner01.py. Actual current local/r134g,recipe21 and
+helper138-01;exact installed package runtime verifies. Native game is launched
+directly with existing offline/local-profile flags,read-only telemetry audit and
+automated original menu Quit. This is NOT generated-CMD/bridge/physical acceptance.
+No practice match,SDK fixture,root shim,collector/device query or queue seeding.
+Create suspended -> owned job -> REA attach/script-ready -> controlled primary
+resume. Observe selected entries from module addition through terminal entries.
+This does NOT cover work before Frida injection or arbitrary inlined entry bypasses.
+
+Fresh settings-absent owned profile:
+ native PASS107.470885s,outer108.684371s;job1total/0active/0terminated,no force.
+ 295provider rows,52clock anchors,12ms maximum drift,215selected file operations.
+ 18SDK snapshots,all thirteen counters0,0SDK entry records.0selected network/
+ process-create operations,0unresolved relative roots. Two original log opens
+ resolve from the actual process cwd with successful return status0.
+Existing SAME profile restart:
+ native PASS46.801838s,outer47.945942s;job1/0/0,no force.206rows,46clock anchors,
+ 12ms max drift,143selected file operations,7SDK snapshots/all thirteen0,
+ 0selected network/process-create operations,0unresolved roots.
+Both:three complete native recipe21 samples(startup/menu/pre-confirm),same-thread
+original confirmation,process exit0/reaped and two self-TerminateProcess entries
+with Unity caller80547e. Profile's1164-byte TOML digest and selected deck remain
+identical across restart. Prior owned Quit trace is archived,not discarded.
+All eight game components,source modules,client config,shared settings/replays/
+backup channels and frozen130 source remain unchanged. No SDK queue contents
+were enumerated or read by the owner/observer. All recipe21 guards remain
+installed. No physical UI/performance claim:instrumentation and
+pre-resume coordination contribute to elapsed times;D6 is not rerun here.
+
+Independent reconciliation
+local/privacy140-sdk-review01.json passes both actual cases.02 additionally seals
+reviewer/decoder/test/owner source identities and applies stricter frame/missing-
+error-field validation to the SAME retained captures,without rerunning games.
+Both cases reject29actual-capture mutations each in memory;raw reports unchanged.
+Both REA sessions are closed,all owned processes terminal. No new installer,
+source patch/helper rebuild,manual130/N7 change or Nick action is requested.
+
+Ignored evidence SHA256
+local/privacy140-sdk-fresh01/verification.json
+ fce8f9288bd3feb865d06a3680b3493fb8375a5f98eb422f00c0b3a1829221f6
+local/privacy140-sdk-existing01/verification.json
+ c3f5fa1101e5c62db533f0ce97065bd2cbfe483be295d6edcd2c09ce572c2ee1
+local/privacy140-sdk-review01.json
+ 7f0837e1bb0b59aa486c3485ae4b6185616638d00c11bcad310357354fc7a075
+local/privacy140-sdk-review02.json
+ 99d9799942c0ccc6a63aafa57533caefb86182df216e374f5ee4e7d700ca673a
+REA final evidence:
+ fresh ev_068ff4f1dd5aa4e0aa782e291e0a7646a0a616ab122046b1ebe3c0eb1d1a9a3f
+ existing ev_3ea41eabbe5b218e036451cd131999832cf498dc5014b77a0fd9f9ecb2a9d526
+Private final review seals REA raw envelopes and all supporting inputs. Original
+client/assets/raw captures/identities/binaries stay ignored,out of Git.
+
+Remaining limits
+Thirteen quiet entry counters do not prove inlined consumers absent,complete
+collection/report removal,all-thread/pre-loader/inflight paths or descendant/
+wire/kernel coverage. They close this selected installed-startup observation
+subcase. P1 as a whole and P2-P9 remain OPEN. Next P2 plus the independent source/
+attribution work;do not rerun unchanged140 startup or earlier quiet AI controls.

@@ -3,6 +3,18 @@ Updated: 2026-10-22
 Supported input: Battle Aces build 37822, Windows x64.
 Recipe version: 21. Guards: 120. Complete-set runtime_validated: false.
 
+Current finite acceptance inventory:telemetry-acceptance-matrix140.txt(P1-P9).
+140 closes ONLY a selected installed SDK startup pair:direct native game with
+audit/default original Quit,settings-absent owned profile then same-profile
+restart. No SDK root replacement/fixture/collector call/queue read or seed.
+13SDK entry counters0,three native21 samples each,normal exit0/job1/0/0/no force,
+same TOML/deck preserved. Fresh295rows/52anchors/215selected file ops,restart
+206/46/143,max12ms drift,0selected network/child events/unknown roots.16focused
+controls and strict source-sealed actual review pass;29actual mutations/case
+reject. No all-thread/pre-injection/inlined/tree/wire/physical/full-D5 claim.
+No shipping/helper/package change;139/manual130/N7 unchanged. Next P2 edit/idle/
+restart plus independent attribution/source gates;do not repeat quiet140 startup.
+
 Candidate139 now coherently ships21/helper138-01 from clean f99fc83. Actual native
 client/server installers,game-folder entry,relocated package/legacy upgrade/restore
 and fresh installed-server-assets RC2vAI lifecycle pass. Final49artifact checks

@@ -2,6 +2,25 @@
 
 ## Requests and answers with Nick
 
+- Privacy140 adds PASSIVE thirteen SDK entry witnesses,NO root/queue/target API
+  replacement/call.16focused tests pass(authored actual callback budget/hash/reload
+  controls and strict typed evidence). Installed139 native startup/direct original
+  Quit pair:no SDK fixture/AI. Fresh settings-absent profile native107.471s/outer
+  108.684s;SAME-profile restart46.802s/47.946s. Each job1/0/0/no force/exit0/reaped;
+  three current21 samples. Fresh295rows/52anchors/18SDK samples/215selected files;
+  restart206/46/7/143;each max12ms drift/13counters0/0selected network or child/
+  0unresolved roots/two actual termination entries. TOML1164bytes/deck unchanged
+  across restart;components/config/shared/source130 preserved. Strict02 review
+  seals sources and rejects29actual mutations/case;01 pass retained. Both REA
+  sessions closed/all processes terminal. This is direct native startup with
+  audit/Quit diagnostics,NOT ordinary CMD/physical/performance/all-thread/
+  pre-injection/inlined/descendant/wire/full D5 acceptance. No packaging/helper/
+  recipe/current139/manual130/N7 change or Nick action. Finite P1-P9 inventory:
+  docs/telemetry-acceptance-matrix140.txt. P1 only selected startup subcase closes;
+  NEXT P2 edits/idle/restart plus independent source/tree/network attribution.
+  Keep upstream producer and resumed/inflight gates;do not rerun quiet140/AI/
+  constructors or accepted D6/LAN. Exact hashes/REA evidence in that document.
+
 - Candidate139 closes coherent current packaging/install qualification:clean
   f99fc83 paired ZIPs/standalone EXEs,recipe21/helper138-01. Actual forms/payloads
   pass;original server Install/copy/export/import/health565.536s(source247files/

@@ -373,7 +373,10 @@ native-settings-atomic.txt, native-deck-validation.txt, packaged-multiplayer.txt
 native-custom-invitations.txt, native-custom-matches.txt.
 
 [ ] D5 - Complete game analytics/report removal and qualification
-Current finite source/runtime worklist:telemetry-source-worklist125.txt.
+Current finite acceptance inventory:P1-P9 in telemetry-acceptance-matrix140.txt.
+Source/runtime contracts retained in telemetry-source-worklist125.txt;140 maps
+the same requirements without a new product scope or blanket rerun. P1's selected
+installed startup pair is closed below;P1 as a whole and P2-P9 remain OPEN.
 128 resolves the external1ca49c8 settings query as a pure Boolean-field getter,
 with constructor/type/registry links and39full roots+exact leaf. No new patch or
 runtime test is justified for that resolved query. Source producer remains open;
@@ -454,8 +457,19 @@ already cut;then supported runtime/final artifacts. Full D5 stays OPEN.
     server-assets RC2vAI lifecycle pass.49actual artifact assertions. Forced
     entry cleanup is separate from natural match Quit0. No privacy observation
     completion or independent bot movement claim. Scope:guarded-candidate139.txt.
-[ ] Next:finite installed privacy inventory/startup/error/mode/descendant/final
-    matrix against139. Keep ordinary whole-startup/all-thread,resumed/
+[x] Review140 selected PASSIVE installed139 SDK startup pair:13SDK entry counters,
+    no path replacement/SDK fixture/collector call/queue read or seed. Settings-
+    absent profile then SAME-profile restart/native audit/original Quit0 pass;
+    each job1/0/0/no force,three21 samples,config/shared/program/source130 unchanged,
+    same1164-byte TOML/deck preserved. Fresh295rows/52anchors/215selected file ops,
+    restart206/46/143,max12ms drift,13SDK counts0/0selected network/child/unknown
+    roots.16focused checks/strict02 source-sealed actual review/29actual mutation
+    rejections per case pass. Direct native diagnostic entry,NOT CMD/physical/
+    performance/all-thread/inlined/pre-loader/tree/wire or full D5. Both sessions
+    closed,no shipping/package/manual change. telemetry-acceptance-matrix140.txt.
+[ ] Next:P2 existing-profile edit/idle/Quit/restart,plus independent source and
+    credible tree/network attribution. Apply P1-P9 finite inventory to139 rather
+    than repeat quiet constructor/AI/startup controls. Keep whole-startup/all-thread,resumed/
     inflight and c307c0 producer gates;no equivalent quiet AI/constructor or
     completed exact/adjacent source scan rerun.
 S1 CLOSED BY126:all FIVE safe interior SDK guards,with genuine matched/unmatched

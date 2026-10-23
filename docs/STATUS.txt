@@ -3,6 +3,22 @@ Updated: 2026-10-22
 Delivery plan: REMAINING_DELIVERY_PLAN.txt, Windows only.
 Original roadmap: CLOSED / SUPERSEDED;see PLAN_CLOSEOUT.txt.
 
+PRIVACY140 - PASSIVE INSTALLED SDK STARTUP PAIR / FINITE D5 INVENTORY
+No SDK path replacement,target API call,queue read/seed or AI match. New13SDK
+entry observer/evidence decoder and16focused controls pass. Actual installed139
+native startup/audit/default original Quit:settings-absent profile107.471s/outer
+108.684s,SAME-profile restart46.802s/47.946s;each job1/0/0/no force/exit0/reaped.
+Three current21 samples each. Fresh295rows/52anchors/18SDK snapshots/215selected
+file operations;restart206/46/7/143;max12ms drift,13SDK counts0,0selected network/
+process creates/unknown roots. Same1164-byte TOML/deck preserved;components/config/
+shared/source130 unchanged. Strict02 source-sealed review passes,29actual capture
+mutations rejected/case. Both REA sessions closed. Native direct diagnostic entry
+only,NOT CMD/physical/performance/inlined/pre-loader/all-thread/tree/wire or full
+D5. Nine finite evidence rows P1-P9 now explicit;only P1's selected-entry pair
+closes. Next P2 edit/idle/restart and independent attribution/source applicability.
+No unchanged140/AI/constructor rerun or new manual action;139/130/N7 remain frozen.
+Scopes/hashes/REA evidence:telemetry-acceptance-matrix140.txt.
+
 CANDIDATE139 - COHERENT CURRENT PACKAGES/INSTALLED ENGINEERING QUALIFICATION
 Clean f99fc83 paired ZIPs/EXEs,recipe21/helper138-01;actual forms/payloads pass.
 Original server Install/copy/export/import/health565.536s,247source files/six
