@@ -3,6 +3,18 @@ Updated: 2026-10-22
 Supported input: Battle Aces build 37822, Windows x64.
 Recipe version: 21. Guards: 120. Complete-set runtime_validated: false.
 
+Candidate139 now coherently ships21/helper138-01 from clean f99fc83. Actual native
+client/server installers,game-folder entry,relocated package/legacy upgrade/restore
+and fresh installed-server-assets RC2vAI lifecycle pass. Final49artifact checks
+bind the actual pair/runtime/recipe/source/preservation and retained failures.
+r134g now coherent installed139;manual130/N7/r103g unchanged,no new action.
+Entry uses forced readiness cleanup;separate two-client match proves natural
+Quit0/no force. Its bot evidence is commands/supply,NOT independent movement.
+No full privacy observation/ordinary startup/all-thread/resumed/inflight/producer/
+descendant/error/all-mode claim. Next finite installed privacy inventory against
+this exact candidate;do not repeat quiet AI/constructors/installer checks already
+covered. Scope,hashes and failed-run dispositions:guarded-candidate139.txt.
+
 Current138 keeps real SDK constructors/core fields while skipping dispatch/cache
 IO/lifecycle/reporting hooks. Paired callback jump/tail RET restores correctly.
 Owned v4:both real constructors/14fields/linked non-null Client/four retained

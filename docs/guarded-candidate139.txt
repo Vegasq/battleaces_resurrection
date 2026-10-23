@@ -1,0 +1,164 @@
+GUARDED CANDIDATE139 - COHERENT WINDOWS PACKAGES AND INSTALLED QUALIFICATION
+2026-10-22. Engineering subcases only;full D5/D9 acceptance remains OPEN.
+
+Outcome
+Recipe21/helper138-01 now ship together in a clean paired client/server build.
+Actual native installer actions,installed game-folder entry,package relocation/
+upgrade/restore and a direct fresh-server-assets RC2vAI lifecycle pass. This closes
+the next coherent-candidate preparation subcase from138;it does not establish
+whole-startup/all-thread/inflight/reporting/error/descendant coverage. Complete
+telemetry runtime_validated remains false. No new physical playtest is requested;
+manual130/N7,r103g,accepted D6/LAN and D:\share/HTTP server remain unchanged.
+Nick's own launches are visible;automation launches are background checks only.
+
+Frozen artifact identity
+Clean source:f99fc83da645b5027688f7f38cda3a9b7d72bce9,dirty=false.
+Package version remains0.3.0-rc1.5;139 identifies this engineering candidate.
+Client:local/privacy139-client-standalone01/BattleAces-Installer-RC1-139.exe
+ 63a6d6acb326ab11b6fc7584220701110858754a1cb62a998ee0496607c409ca
+Server:local/privacy139-server-standalone01/BattleAces-Server-Installer-RC1-139.exe
+ 2e5f92d5f6afd1d4cf884e96480bccae76590bd673020f07ed98372e3125574f
+ZIPs:local/privacy139-packages01/battleaces-{client,server}-win64.zip
+ Client39fd291aa0b98186164aaef440a2b5e74417d65d8b0a1fca6d710c80af7708b1
+ Serverd729957a0ae7b71341fa6475a445ad410acb785513bbf526c75e6d80b4382942
+Helper:build/helper-privacy138-01/BattleAcesOffline.dll
+ 076950d5a91d9061f9a3bbebc4364bbe11457d26976afe8378989b645dc99d61
+Official embedded Python ZIP pin:
+ a93abe456ab01bd96d7a085b3cdb6566b3063f4241360d114142fbdb07f0a310
+Existing source-bound client/server native forms,server launcher39 and native
+certificate helper103 are reused unchanged. Both actual standalone form/payload
+checks PASS2.934183s;native progress hierarchy and expected3/2fields pass. Server
+compatibility.helper_sha256 is deliberately null for its dedicated runtime;
+its included import helper is independently verified against138-01. No original
+game assets or personal profiles ship in the packages.
+
+Exact payload delta from130
+Client78manifest-listed files(79withmanifest),74unchanged;server110listed
+(111withmanifest),106unchanged. Exactly FOUR changed files in each product:
+QUICKSTART.txt,compatibility.json,program/app/client_patch/patcher/telemetry.py,
+program/client-helper/BattleAcesOffline.dll. Guide131 now ships instead of stale
+embedded105instructions. Other gameplay/transport/setup Python payloads are byte
+identical. The helper and patch recipe changed,so129/130 gameplay/privacy results
+are retained at their original scope rather than promoted to all139 acceptance.
+
+Actual original native Install actions
+External unchanged WinForms fixture loads the resource-bearing original EXEs,
+sets real fields and PerformClicks the original Install button under a message
+pump. Original worker extracts embedded ZIP and executes its bundled backend.
+Both jobs observe locked controls,attached/visible progress with a native handle,
+elapsed title,completion text and restored controls. This does not prove physical
+window visibility,file dialogs or mouse/keyboard behavior on Nick's desktop.
+[x] Server139 PASS565.535594s. Independent source copy/patch/export/import and
+    publication;119assets verified under local/s139/assets/build-37822. Original
+   247-file size/mtime inventory and six critical hashes remain unchanged,as do
+    shared settings/replays/backups and installed program files. Private working
+    copy removed;no host config/keys/listener issued. Installed production native
+    create/step0/close/reap health PASS. Job4total/0active/0terminated,no owner
+    forced cleanup. Export-only child termination is not gameplay Quit evidence.
+[x] Client139 PASS16.995934s with warm bundle cache. Actual owned local/r134g
+    existing install receives exact runtime a6b0d19a4abd78377b85. All28prior
+    profile files,five original backups and config/name/identity choices preserved.
+    Before hashes retained,job3/0/0,no owner force. No game/server starts here.
+    r134g is now COHERENT installed139;older mixed-cached130 notes are historical.
+    r103g/coherent130 remains untouched.
+[x] Actual generated game-folder Start Battle Aces.cmd reaches menu13.376230s
+    (outer13.782819s) after its ACTUAL observed embedded extraction is renamed
+    away. Unrelated cwd/PYTHONPATH,System32-only PATH;owned executable paths prove
+    installed isolated runtime. Ordinary flags,no automatch/diagnostic startup.
+    Config/shared/program unchanged. EXPLICIT readiness-only forced job cleanup:
+    NOT normal Quit/visible acceptance. Separate match below supplies Quit evidence.
+
+Direct freshly exported server-assets match
+Native exports can differ across exporter processes;130 established all59AI
+blobs may differ despite matching metadata. Do not substitute old AI proofs or
+sorted-field equivalence for direct use of139's actual freshly installed inputs.
+RC open TLS mode5,two production clients and two native AI seats PASS151.086777s.
+Human seats0/2;bots1/3.1250frames,game-over1230,authoritative result,Continue and
+both default original Quit0;launcher exits0. Native bot assignment/replay/supply
+evidence binds two original names,profile60,14/25commands,supply12/14 and one
+join each. THIS IS NOT independent entity movement or pixels. Do not describe
+this validator as proof that bots visibly moved/fought.135/138 retained local
+movement correlations have their own separate scope.
+Both worker exits0/reaped;jobs7/0/0,2/0/0,2/0/0,no forced cleanup. Exact package,
+assets,config,adapters,source and shared settings/replays/backups unchanged;
+ephemeral RC identities are not logged. Not physical/LAN/Internet/native replay
+playback or independent full simulation state proof. Source-bound helper receipt
+and actual freshly exported asset-manifest are bound in the raw report.
+
+Relocated package and legacy-upgrade qualification
+PASS471.396022s:isolated bundled interpreter/import closure with hostile cwd/PATH,
+inventory checks,local asset import,native health,host cancellation,service STOP
+and SHUTDOWN controller paths(worker0/listenerclosed/lockreleased),live backup/
+second-host refusal,authored transfer snapshot and occupied restore refusal.
+Actual SCM registration/protected desktop storage are NOT tested by this harness.
+All four patched components:dry-run no writes,install,reinstall identity,restore
+original hashes/catalog,133bundle checks and zero unchanged-cache rehashes pass.
+Old setup47 backend with cosmetics=False creates the actual old control;current
+full-player upgrade/reinstall/restore preserves personal marker/original backups,
+old package inventory and unrelated owner file. Component-only fixture MUST remain
+unplayable;launcher refusal is checked,not converted into a graphical startup.
+
+Checker correction,not a production downgrade
+Normal tools.package_client install intentionally enables cosmetics. The old
+optional legacy-control setup called that normal entry and then required absent
+cosmetics,so both supplied previous packages failed the test setup. The checker
+now invokes the previous package's ORIGINAL backend install with cosmetics=False
+and its own helper. The absent-recipe assertion and all current upgrade/restore/
+personal-data/idempotence/launcher-refusal requirements remain intact. Frozen139
+payloads were built from clean f99fc83 before this checker-only change;they are
+not rebuilt with different provenance.
+
+Retained failures and corrected evidence
+- Package wrapper01 builds valid paired ZIPs then fails a wrong full expected
+  commit literal.02 builds valid client EXE then assumes server helper metadata
+  non-null.03 verifies actual product roles/source/embedded helper and completes.
+- Package qualification01 fails wrong export wrapper path;actual export is
+  local/setup47-export02/export.02/03 fail the legacy-control defect above after
+  normal checks;04 passes the corrected real upgrade. All failed reports remain.
+- Client native01 fails its outer180s test deadline during simultaneous heavy
+  disk work;owner force is explicit. Product timing is unchanged.02 completes
+  native work77.068s but preservation assertion fails:copied r134g fixture still
+  points its config at r103g. Installer correctly changes only game_directory to
+  selected r134g;other config matches source.03 starts from a consistent fixture,
+  captures all before hashes and passes exact preservation. Neither failed report
+  is rewritten green. No product feature/assertion was weakened to pass these.
+
+Final read-only artifact review
+local/privacy139-final-review01.py verifies49named assertions over actual source,
+ZIP/EXE/inventories/helper/installed recipe/current runtime,original native form
+actions,preservation,explicit entry cleanup,fresh match lifecycle/bot scope,
+fresh asset binding,package roundtrip/real old control and retained failures.
+PASS. This review is not a substitute for missing release/privacy runtime cells.
+Its report seals actual supporting reports and checker/owner sources.
+
+Ignored evidence SHA256
+local/privacy139-final-review01.json
+ e6e4b23302e70552ae1dad4a63ba77917529adba5b9e7bd4f5ef2de79ff9f900
+local/privacy139-package-qualification04/verification.json
+ 4ac102011838f3d89aa6acc4b6cee62742a4594770ac4f4d702f1b9bbcd565ce
+local/privacy139-server-native02/verification.json
+ c6159447fa428cc74d3a4f054a8612a0a5a3c7e5d93c4872d7e893f6161f5661
+local/privacy139-client-native03/verification.json
+ 22a8c7571ade9ce121e35b2644e40c26311767d7775bcc2a95af9266c7c006d1
+local/privacy139-client-entry01/verification.json
+ 6d9fda053e3ca439a5e267faed2e223c40bcc233ffc05af5dec73ce7273ed41e
+local/privacy139-fresh-assets-mode5-01/verification.json
+ 3784bda34a7d3b1ff18329e87ee3a8ac4cae595def1f593968603679830529e2
+local/privacy139-payload-delta01.json
+ f78254aa75ed33c3206d53c578ae2d15f0be44ffc43083fdfaaa035adf66d743
+local/privacy139-build-verification03.json
+ cef17fe3ae3fd67af35f22d3ce0cf39f0e49a81e0f036ce57936f6745ac668ed
+local/privacy139-standalone-verification.json
+ daea11941566cac9c97f75d5149fe1ee28bab8021bc6892b638400fa81655d0b
+All original client/assets/raw capture/built binaries stay ignored,out of Git.
+
+Next,without repeating passed139 engineering cases
+Build the finite installed privacy case inventory against this exact candidate:
+ordinary startup/idle and edits with fresh/existing profiles;required local and
+remote modes/transitions;controlled queued-owner/error/reporter paths;effective
+game-owned descendants. Keep source review of the upstream advertising producer
+and ordinary startup/all-thread/resumed/inflight SDK obligations open. Choose
+cases for missing evidence rather than repeat a quiet Try Deck/constructor test.
+Reuse accepted sensor controls,source gates and exact payload deltas where valid;
+selected-API zero counters never imply complete network/process-tree coverage.
+139 is ready for that independent engineering matrix,not a full-release claim.

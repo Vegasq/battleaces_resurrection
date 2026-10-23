@@ -311,7 +311,16 @@ def run(args):
             require(previous.is_relative_to(ROOT/'local') and previous != folders['client'],
                     'previous package must be a separate owned local preview')
             previous_inventory = verify(previous, 'client')
-            legacy = json.loads(command('client', 'patch-previous-install', action, package=previous))
+            # Normal package installers intentionally enable cosmetics. Prepare
+            # the legacy component-only control through its original backend
+            # with that feature explicitly off,then require the absent recipe.
+            # Reusing the normal install command cannot create this control.
+            legacy_script = ('import json,sys; from pathlib import Path; '
+                             'from client_patch.patcher.patch_client import install; '
+                             'print(json.dumps(install(Path(sys.argv[1]),helper=Path(sys.argv[2]),'
+                             'community=True,cosmetics=False)))')
+            legacy = json.loads(command('client', 'patch-previous-install',
+                ['-c',legacy_script,str(working),str(previous/'program/client-helper/BattleAcesOffline.dll')],package=previous))
             require(legacy.get('cosmetics', {}).get('experimental') is not True,
                     'upgrade control requires an old preview without the cosmetic recipe')
             saved = working/'.battleaces-resurrection/profiles/upgrade_probe/gameconfig-localuser.toml'

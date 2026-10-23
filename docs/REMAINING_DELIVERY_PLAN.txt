@@ -120,6 +120,12 @@ finished;their scoped results are recorded below. With D6's engineering fix and
 automated qualification complete,preserve its manual candidate and address the
 remaining named D2 cells without repeating covered queue/roster tests.
 Completed subcases (same-PC automated controls; not physical LAN):
+[x] Current139 fresh installed server-assets RC2vAI lifecycle PASS151.087s:
+    two clients/two native bots,results/Continue/default Quit0,workers0/reaped,
+    jobs empty/no force,config/shared/assets/program/source preserved. Actual
+    bot proof is assignments/14+25commands/supply12+14/joins,NOT independent
+    movement/pixels. Coherent recipe21/helper138 pair,49artifact assertions.
+    No physical/Internet/full mode/privacy claim. See guarded-candidate139.txt.
 [x] Eight RC schema4 configured-unavailable counterparts AR01-08 (131):real OS
     refusal/default TLS deadline,all1/2/4/5 modes on actual installed130 runtime.
     Actual resolver/identity/TLS/bridge failure/local world/result/Continue/
@@ -442,8 +448,14 @@ already cut;then supported runtime/final artifacts. Full D5 stays OPEN.
     samples/SDK6/6/job1/0/0/no force/source/program/shared unchanged. NOT ordinary
     startup/all-thread/inflight/physical/full D5. r134g21/helper138 diagnostic;
     130/N7 unchanged. Scope/seals:telemetry-sdk-client138.txt.
-[ ] Next:coherent paired current candidate,then finite installed startup/error/
-    mode/descendant/final matrix. Keep ordinary whole-startup/all-thread,resumed/
+[x] Candidate139:coherent recipe21/helper138 current pair from clean f99fc83,
+    actual original native installers,exact installed client runtime,game-folder
+    entry,relocated package/legacy upgrade/restore and direct freshly installed
+    server-assets RC2vAI lifecycle pass.49actual artifact assertions. Forced
+    entry cleanup is separate from natural match Quit0. No privacy observation
+    completion or independent bot movement claim. Scope:guarded-candidate139.txt.
+[ ] Next:finite installed privacy inventory/startup/error/mode/descendant/final
+    matrix against139. Keep ordinary whole-startup/all-thread,resumed/
     inflight and c307c0 producer gates;no equivalent quiet AI/constructor or
     completed exact/adjacent source scan rerun.
 S1 CLOSED BY126:all FIVE safe interior SDK guards,with genuine matched/unmatched
@@ -758,6 +770,16 @@ References: network-qualification.txt, protocol-v3.txt, soak-qualification.txt.
 [ ] D9 - Freeze and deliver the final Windows release
 RC1 installer/package milestone runs FIRST under RC1_PLAN.txt;full D9 closure
 still requires the applicable final-release gates below.
+[x] Engineering candidate139:clean f99fc83 current21/helper138 ZIPs/standalones,
+    actual native forms/payloads/Install actions,independent server copy/export/
+    import/health,exact installed runtime and settings/profile/backup preservation
+    pass. Actual ordinary game-folder entry independent of extraction passes
+    menu13.376s;forced readiness cleanup,NOT Quit. Separate fresh-assets RC2vAI
+    passes151.087s/results/Continue/natural Quit0/empty jobs/no force. Relocated
+    package/old-backend upgrade/restore471.396s passes;four-file delta/49actual
+    artifact assertions. Prior failed controls/deadline/config-fixture records
+    retained. No new manual pair/action;130/N7 unchanged. Full clean-PC/SCM/owner/
+    physical/privacy/final gates remain OPEN. Scope:guarded-candidate139.txt.
 [x] Installer130:fix actual missing ProgressBar attachment(shared native client/
     server UI),two native forms and20affected checks pass. Fresh clean a09061c
     paired ZIPs/standalone EXEs bind unchanged gameplay/helper bytes. Actual form

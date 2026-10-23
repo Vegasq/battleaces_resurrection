@@ -2,6 +2,26 @@
 
 ## Requests and answers with Nick
 
+- Candidate139 closes coherent current packaging/install qualification:clean
+  f99fc83 paired ZIPs/standalone EXEs,recipe21/helper138-01. Actual forms/payloads
+  pass;original server Install/copy/export/import/health565.536s(source247files/
+  six hashes/shared unchanged,119assets,job4/0/0);client consistent-fixture update
+  16.996s preserves28profiles/5backups/config/name,job3/0/0. r134g NOW coherent
+  installed139/runtime a6b0d19a4abd78377b85,not mixed cached130. Actual game-folder
+  CMD menu13.376s after actual extraction renamed;forced readiness cleanup,NOT
+  Quit. Fresh s139-assets RC2vAI151.087s passes results/Continue/default Quit0,
+  workers0/reaped/jobs7/0/0+2/0/0+2/0/0/no force. Bots14/25commands/supply12/14,
+  NOT independent movement/pixels. Relocated package/real legacy upgrade/restore
+  471.396s passes after checker uses old backend cosmetics=False;normal installer
+  enables cosmetics so could not create old control. Absent-recipe assertion kept.
+  Earlier wrong export/control failures and client180s/config-path failures stay
+  FAILED. Exact payload delta FOUR files;49actual artifact checks pass. All owned
+  runs terminal. Full D5/D9 false;next finite installed privacy inventory/startup/
+  error/mode/descendants,retain upstream producer/all-thread/resumed/inflight gates.
+  No unchanged quiet AI/constructor/install rerun. r103g/frozen130/N7/D:\share/HTTP
+  unchanged,no new Nick action;automation is background-only,never physical UI.
+  Scope/hashes/seals:docs/guarded-candidate139.txt.
+
 - Privacy138 recipe21/120:6INTERIOR/tail guards skip dispatch8128c1,merged cache
   IO8129db,lifecycle813183->81329b,callbacks81338d->81375c PLUS REQUIRED tail
   813778RET,NativeClient tail834ea1RET. Never entry-RET constructors/omit paired

@@ -3,6 +3,24 @@ Updated: 2026-10-22
 Delivery plan: REMAINING_DELIVERY_PLAN.txt, Windows only.
 Original roadmap: CLOSED / SUPERSEDED;see PLAN_CLOSEOUT.txt.
 
+CANDIDATE139 - COHERENT CURRENT PACKAGES/INSTALLED ENGINEERING QUALIFICATION
+Clean f99fc83 paired ZIPs/EXEs,recipe21/helper138-01;actual forms/payloads pass.
+Original server Install/copy/export/import/health565.536s,247source files/six
+hashes/shared unchanged,119assets,job4/0/0. Client consistent-fixture update
+16.996s preserves28profiles/5backups/config/name,job3/0/0. r134g now coherent
+installed139/runtime a6b0d19a4abd78377b85. Actual game-folder CMD menu13.376s
+without actual extraction uses forced readiness cleanup,NOT Quit. Fresh installed
+s139-assets RC2vAI151.087s passes results/Continue/default Quit0,workers0/reaped,
+empty jobs/no force. Bots14/25commands/supply12/14,NOT independent movement/pixels.
+Relocated package and actual old-backend upgrade/restore471.396s pass. Corrected
+legacy-control setup uses old backend cosmetics=False;normal installer enables
+cosmetics. Required absence and all upgrade assertions kept. Prior package/control/
+deadline/config-fixture failures retained. Four-file payload delta/49actual review
+checks pass. Full D5/D9 OPEN;no new manual pair/action,r103g/frozen130/N7 unchanged.
+Next finite installed privacy inventory/startup/error/mode/descendant matrix;
+retain source producer/all-thread/resumed/inflight gates. No duplicate quiet AI/
+installer qualification. All runs terminal. Details:guarded-candidate139.txt.
+
 PRIVACY138 - INITIALIZED SDK CLIENT CACHED-DELIVERY GUARDS
 21/120 keeps real constructors/core fields while skipping hooks/lifecycle/
 unused dispatch/inlined cache IO. Paired jump+tail RET mandatory. Owned v4:
