@@ -3,6 +3,20 @@ Updated: 2026-10-23
 Delivery plan: REMAINING_DELIVERY_PLAN.txt, Windows only.
 Original roadmap: CLOSED / SUPERSEDED;see PLAN_CLOSEOUT.txt.
 
+PIPE150 - OWNED SECURITY SNAPSHOTS / RESTRICTED PROCESS TOKEN WRITE MISMATCH
+Actual before-resume and after-open snapshots qualify with same DACL/tokens:
+five allow ACEs,same user,14groups/four restricting SIDs,medium/notAppContainer.
+Only restricting DACL match grants read0x120089,missing requested write rights.
+Separate authored owned control agrees and reproduces error5. Restricted-context
+explanation supported;effective failing-thread token/causal AccessCheck unobserved.
+76tests/strictactual8corruption rejections pass. Root originalQuit0/no force/job
+3/0/0,2of3identities retained/fullbrowsercontrol FAIL;01 harness PermissionError/
+forcedcleanup preserved.02 adds bounded journal-read retry,but did not exercise
+it. All owned terminal/sessionsclosed. Historical149280/147211/148113 preserved.
+No helper/shipping/manual/share change or new Nick action. N9 still pending;
+continue other finite source/installed/network/lifetime gates,not unchanged
+browser replay or permission weakening. WholeP8/D5OPEN. pipe-security150.txt.
+
 PIPE149 - REAL SERVER / MATCHING NAME FINGERPRINT / CHILD ACCESS DENIED
 Two controlled captures qualify parent pipe creation and same64char fingerprint
 at child open,error5. Connect pending997/wait0duringcleanup is not a connection.

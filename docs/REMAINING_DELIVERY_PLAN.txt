@@ -532,11 +532,20 @@ already cut;then supported runtime/final artifacts. Full D5 stays OPEN.
     diagnosed output-replacement failure;rejectedshare-delete proposal retained.
     Old failures/shortchild/unresolved-root gaps stayopen.280seal/oldinputs exact
     archivedsource verified;shipping/manual unchanged. pipe-equality149.txt.
-[ ] Next:read-only effective security/label and relevant parent/child token facts
-    on the actual same-name owned server pipe with retained handle identity. Review
-    N9 desktop result before asking to repeat;continue other finite gates while
-    it is pending. Retain complete short-lived process identity gate. Do not
-    repeat unchanged root-only
+[x]150 read-only actual owned pipe SD/label/process-token snapshots before browser
+    resume and after open error5. Same user/medium/four restricting SIDs;only
+    restricting DACL match grants read0x120089,missing writes. Authored control
+    agrees.76tests/strictactual8corruption rejections pass;bounded security gate
+    only,NOT effective failing-thread token/causal AccessCheck/fullbrowser/P8/D5.
+    RootQuit0/no force/job3/0/0,shortthirdidentity missing.01journal PermissionError
+    before query/forcedcleanup retained;02retry added but unexercised. Old149280/
+    147211/148113seals preserved;no helper/shipping/manual changes. pipe-security150.txt.
+[ ] Next:review N9 desktop result before asking to repeat;continue independent
+    finite source/installed/network/lifetime and D1-D9 gates while it is pending.
+    Restriction mismatch supports automation-context explanation,not a game/global
+    ACL/token workaround. Preserve exact effective-thread/causal limits if further
+    access analysis is needed. Retain complete short-lived process identity gate.
+    Do not repeat unchanged root-only
     activation or restore reporters on an unproven causal theory. Independently
     qualify initialization/page/Dispose/task/destruction and effective child cache/
     network/files/exit. Four-dash private cache flag is source-correct,not a native

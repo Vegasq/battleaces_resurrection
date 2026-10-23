@@ -2,6 +2,21 @@
 
 ## Requests and answers with Nick
 
+- Pipe150 CLOSES read-only actual owned SD/label/process-token snapshot subtask.
+  Before browser resume and after original open error5:five allow ACEs,same user,
+  14groups/4restricting SIDs,medium/notAppContainer;only restricting DACL match
+  grants READ0x120089,missing writes. Authored control independently matches.
+  Restricted-context explanation supported,NOT exact effective-thread/AccessCheck
+  cause;no permission workaround.76tests/strictactual8corruption rejections pass.
+  Game01 harness journal PermissionError fails before query/forcedcleanup kept;
+  02 bounded retry added but NOT exercised.02 actual snapshots qualify,rootQuit0/
+  no force/job3/0/0,2of3identities retained/fullbrowserFAIL. All owned terminal/
+  sessionsclosed. Historical149280/147211/148113 inputs preserved. No helper/
+  shipping/manual/share change. N9stillpending,readDEV/report before retry;no new
+  action/Tutorial2/D6/LANrepeat. NEXT desktop comparison when available plus other
+  finite source/installed/network/lifetime and D1-D9 gates,NOT unchanged browser
+  rerun or ACL/token weakening. docs/pipe-security150.txt. WholeP8/D5/goal OPEN.
+
 - Pipe149 CLOSES observed server/name/error subcase:actualCreateNamedPipevalid,
   same64char saltedfingerprint atchildCreateFileA,childinvalid/error5. Connect997
   pending;wait0duringcleanup NOTconnectionproof. Stackmembership NOTdirectcaller;

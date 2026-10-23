@@ -96,6 +96,15 @@ Finite rows
     CEF handler return/natural exit remains scoped input. Do not invoke original
     independent crash bootstrap merely because a parser exists.
 [ ] P8 Effective game-owned descendants
+    [x]150 actual owned SD/label/process-token snapshots before browser resume and
+        after matching-name open error5 qualify. Same user/medium/4restricting
+        SIDs;only restricting DACL match grants read0x120089,missing writes.
+        Authored control agrees. Restricted-context inference,NOT effective API
+        thread token/causal AccessCheck;no permission workaround.76tests/8actual
+        corruptions reject. RootQuit0/no force/job3/0/0,2of3identities/fullbrowser
+        FAIL.01harness read failure/forcedcleanup retained;02retry unexercised.
+        N9pending;continue independent finite gates,not unchanged replay. Prior
+        seals/shipping unchanged. pipe-security150.txt;wholeP8/D5remain OPEN.
     [x]149 selected actual pipe creation/name/error subcase:validserver,same64char
         saltedfingerprint atchildopen,error5. Connect997/wait0cleanup NOTclient
         connection.57tests/C++suites/typedactualreview pass;fullbrowserFAIL.

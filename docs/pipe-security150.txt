@@ -1,0 +1,131 @@
+PIPE150 - OWNED PIPE SECURITY AND RESTRICTED PROCESS TOKENS
+2026-10-23. Read-only security snapshot subtask COMPLETE.
+Full browser initialization,P8/D5 and Windows delivery remain OPEN.
+
+Finding
+The actual original game server pipe has a present DACL with five allow ACEs,
+not a NULL DACL. Parent and browser process tokens have equal user fingerprints,
+14groups,four restricting SIDs,medium integrity8192,primary token type,
+IsAppContainer=false and mandatory policy3. Separate LABEL16 query succeeds and
+returns no explicit label ACE. Owner/group/SID values are retained only as salted
+per-run hashes. No pipe name,raw SID,security blob or pipe payload is published.
+
+The ordinary user matches a full-control allow mask0x1f01ff. Only ONE DACL SID
+matches the restricting list,and that ACE grants0x120089 (FILE_GENERIC_READ).
+It lacks write-data0x2,append/create-instance0x4,write-EA0x10 and write-attributes
+0x100. Another full-control group is deny-only(attributes0x10),so its allow ACE
+does not grant access. These exact relationships occur both before browser
+primary-thread resume and after its original CreateFileA returns error5 for the
+same salted name fingerprint. The two snapshots' identities,DACL,label and all
+seven process-token classes agree. A separate authored owned-pipe control shows
+the same relationship and independently reproduces read/write-open error5.
+
+Inference and limits
+Windows applies both ordinary and restricting-SID access checks to a restricted
+token. The missing restricting-pass write grants fit the observed denial despite
+ordinary same-user full control. This is concrete evidence for a restricted
+automation-context explanation;it is NOT an observed AccessCheck result or proof
+of the failing thread's exact effective token. Thread impersonation/token changes
+at the API instant were not observed. Snapshots are not atomic. Numeric handle
+observation plus later pipe-type/server-PID queries does not independently exclude
+historical handle close/reuse inside the same server process. Do not claim a
+game defect or apply a game/global ACL,token or privilege workaround from this.
+
+Official semantics:
+https://learn.microsoft.com/en-us/windows/win32/secauthz/restricted-tokens
+https://learn.microsoft.com/en-us/windows/win32/secauthz/sid-attributes-in-an-access-token
+https://learn.microsoft.com/en-us/windows/win32/ipc/named-pipe-security-and-access-rights
+https://learn.microsoft.com/en-us/windows/win32/secauthz/security-information
+https://learn.microsoft.com/en-us/windows/win32/api/aclapi/nf-aclapi-getsecurityinfo
+https://learn.microsoft.com/en-us/windows/win32/api/winbase/nf-winbase-getnamedpipeserverprocessid
+
+Implementation
+tools/frida_webview_pipe_security.py composes the existing149 parent profile by
+one checked source replacement. After successful source-anchored CreateNamedPipeA,
+it additionally emits the returned numeric handle,thread/binding/call/frames and
+salted name digest. A separate ready event makes this opt-in profile explicit.
+select_handle validates every original envelope and original pipe metadata,then
+correlates exactly one witness to the later same-thread/binding/call success.
+Old149 source/builders remain unchanged. Exact source stack membership remains
+the stated boundary,not an independently measured direct return address.
+The composed controlled replay still explicitly changes original browser creation
+flags0->4 to hold its primary thread;normal launchers do not enable this profile.
+
+tools/owned_pipe_security.py requires an existing exact SuspendedChild and live
+tracked distinct child with matching PID/creation FILETIME/image SHA/job. It
+duplicates the returned handle into the controller with ONLY0x20080
+(READ_CONTROL|FILE_READ_ATTRIBUTES),options0. It requires FILE_TYPE_PIPE and
+GetNamedPipeServerProcessId==live owner PID. Root borrowed handle identity is
+queried before/after;child query handle identity matches the tracker. It queries
+OWNER|GROUP|DACL7,separate optional LABEL16 and TOKEN_QUERY8 process tokens.
+Token classes:user/groups/restricted SIDs/type/integrity/AppContainer/policy.
+No privilege adjustment,impersonation,setter,remote memory read,global enumeration
+or pipe-content/name query is used by the OS security reader. Unknown/errors stay
+explicit. Only its own four opened handles close;owner/job handles remain borrowed.
+Buffers<=1MiB,relative offsets,token pointers,SID/ACE sizes/counts are bounded.
+Absent,NULL and empty DACL differ;unknown ACEs remain unclassified salted hashes.
+snapshot_qualified is only identity/base-security/liveness/cleanup,not complete
+token facts,causal access,P8 or privacy. Actual150 has all selected facts known.
+
+Verification and retained failures
+15parser/fake ownership/security tests plus4executed JS handle-witness tests pass.
+Together with existing pipe/typed-evidence tests:34tests pass. Strict actual
+review rejects8corruptions of the retained handle/security facts. Existing old
+profile source and all original rows remain intact;no projection/resequencing.
+Final affected ownership/child/gate/pipe/publication suite:76tests PASS1.641s.
+
+Authored control:local/webview150-security-control01/verification.json PASS,
+0.792s,child open error5,all selected facts known,four query handles closed.
+Owned job4/0/0,all four process lifetime identities retained,no forced cleanup.
+This qualifies the query tooling;it is not substituted for actual game evidence.
+
+Game01:root22644/browser2380,64.883s. Harness PermissionError reading immutable
+publication11 aborts before security query;owned forced cleanup retained. The
+same publication is readable after terminal state. This does not establish the
+cause of the transient read failure. Child attach was attempted after the absent
+handoff marker and failed VirtualAllocEx5;its response is explicitly retained as
+a failure-response COPY,not successful evidence. No retry on that dead PID.
+
+Game02:root24304/browser23196,native189.013s/outer190.435s. Private owner adds a
+bounded nonblocking retry for PermissionError on journal reads,max2s/32failures;
+malformed evidence still fails without fallback. No retry is actually needed in
+02,so its recovery behavior is not runtime-qualified by this run. All target
+source/helper/program hashes remain unchanged. Both before-resume and after-open
+OS snapshots qualify with no query/cleanup errors;each closes its four handles.
+Parent10874rows/child454rows,truncated=false. Child two binding-level CreateFileA
+records both fail error5 with matching64char digest;not two physical connections.
+Parent creationvalid,Connect997pending,Wait0during cleanup remains NOT a completed
+handshake. Original CEF startup observers retained.122immutable publications bind
+PID/ordinal/final diagnostic;only init120s/stop20s timeout errors remain. Full
+browsercontrol FAILS. Root original Quit0,no harness force,owned job3/0/0 empty;
+only2of3process lifetime identities retained,so whole-tree qualification FAILS.
+Parent decoding/unresolved-root and credible network gates remain open.
+All owned processes terminal;successful REA sessions explicitly closed.
+
+Actual retained final parent Evidence:
+ev_45281ab981fac77bfcb864ef57082d34d26f4669a04d1d832d82feeda09f379b
+Final child:
+ev_e1f74a1c7883f14beccae3653a2e08ec6efceea5a2178334024d0cebe91ec677
+After-open child:
+ev_17d8f2a7be3f2d4ff965807d9a48dba5421ff37af8705ce35f39a3df383dff8f
+local/webview150-retained01.json:69433309bytes,52records,SHA256
+014839aa5f060f6fad2303bab37bb4ab4e023f0fa82fbd9ee3a7beb568fc86b8.
+Transport budget rejection did not truncate the retained result. Exact selected
+parent record extracted without reconstructing an MCP envelope;canonical SHA256
+4479da635b099043ad1091285f36e907b0e6db242d5a1de5cb0d0f7ebcc45222.
+local/webview150-review01.json seals exact captures,queries,publications and
+original rows;local/webview150-seal01.json preserves historical149/147/148 inputs.
+The150seal covers196inputs;historical149280/147211/148113inputs were rechecked,
+using the existing exact archived sources where their originals changed earlier.
+
+Next
+Read existing DEV N9 answer/report before any desktop retry. It is still pending;
+no new Nick action is created. Desktop comparison can distinguish the ordinary
+owner environment from this restricted automation environment. Until then,do
+not rerun unchanged browser controls or weaken permissions to make them pass.
+Continue independent finite source/installed-artifact/network/lifetime and D1-D9
+work. Retain the exact effective-thread/causal limits if further access analysis
+is needed. Shipping139,manual130/N7,D:\share,HTTP server and accepted D6/LAN remain
+unchanged. Nick's manual client launches are visible;automation remains background
+technical evidence and never physical UI/performance acceptance. Tutorial2 N8 is
+deferred and no hidden launch or accepted test is requested again.
