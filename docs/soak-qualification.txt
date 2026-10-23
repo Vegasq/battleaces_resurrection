@@ -1,5 +1,11 @@
 WINDOWS MULTI-ROOM SOAK QUALIFICATION
-Updated: 2026-10-17
+Updated: 2026-10-23
+
+Current bounded packaged RC TLS subcase157 passes8matches/24worker lives in130s,
+20Hz mean/max65.36ms,4persistent authenticated TLS1.3 connections. Its explicit
+--rc-tls flag/default plain comparison and current-package scope are detailed in
+packaged-tls-soak157.txt. It is NOT another eight-hour/graphical/Internet/SCM pass.
+All earlier long-run records below retain their original source and scope.
 
 PURPOSE AND SCOPE
 

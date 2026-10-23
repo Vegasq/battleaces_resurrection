@@ -2,6 +2,21 @@
 
 ## Requests and answers with Nick
 
+- TLSsoak157 CLOSES bounded current156-package RC TLS/two-room Custom1v1 native
+  concurrency:4rounds/8matches/24worker lives/4persistent TLS1.3 RC peers,4960frames/
+  9920reference comparisons,all players produce/move/take damage,changed decks/
+  Return/reopen/same sockets/default17profiles.130.397s/123.829s concurrent,
+  mean20.00026Hz/max65.358ms,worker max5.305ms/0over50,idle handles200->196/private
+  +1,994,752B. Controller0/job54/0/0/no force/all24workers0/reaped.16tests pass;
+  initial one diagnostic-name32limit failure retained/fixed label,not game rule.
+  Explicit --rc-tls/ordinary disposablecert/no protectedowner/HELLO1 compatibility,
+  SelfDestruct600 permitted. NOT physical/Internet/SCM/maximumcapacity/eight-hour
+  TLS/current-package gate. Original14assessment unchanged;old8hour98edbbc4/source
+  9748a64c/exact archive unchanged.27input review+74prior156+N10sixpins pass.
+  NEXT remaining D1-D9 gates,not equivalent soak/fault repeats. N9/N10blank/no
+  reports;readDEVfirst. All owned terminal,no product/package/helper/manual130/
+  N7/share/new Nick action. Evidence:docs/packaged-tls-soak157.txt.
+
 - AsyncProfile156 CORRECTS155's coordinator profile-I/O stall:server-owned bounded
   single-thread FIFO for ORIGINAL save/load,unchanged fsync/atomic validation,
   durable-before-ACK,pending selection/session/lobby/legacy-ready/identity/seat

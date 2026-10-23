@@ -3,6 +3,17 @@ Updated: 2026-10-23
 Delivery plan: REMAINING_DELIVERY_PLAN.txt, Windows only.
 Original roadmap: CLOSED / SUPERSEDED;see PLAN_CLOSEOUT.txt.
 
+TLS SOAK157 - CURRENT PACKAGED TWO-ROOM NATIVE/RC TLS CONCURRENCY
+Bounded subcase COMPLETE:4rounds/8Custom1v1matches/4persistent TLS1.3 RC peers/
+24native workers0/reaped/4960frames/9920matching reference comparisons;changed
+decks/Return/default17profiles and actual production/movement/damage pass.
+130.397s/123.829s simultaneous rooms,20.00026Hz mean/max65.358ms;worker max5.305ms,
+0over50. Idle handles200->196/private+1,994,752B. Controller0/job54/0/0/no force.
+16tests pass;27input review+74prior156+old8hour exact report/source+N10pins pass.
+Current eight_hour_gate:false;no graphical/Internet/SCM/protectedowner/maximum
+capacity claim. Product156/manual130/N7/share unchanged,no new Nick action.
+Full D8/D1-D9 OPEN. Evidence:packaged-tls-soak157.txt.
+
 ASYNC PROFILE156 - VERIFIED COORDINATOR PROFILE BLOCKAGE CORRECTED
 Bounded server-owned serial save/load FIFO,unchanged original fsync/atomic
 validation/save-before-ACK;pending selection/Start/identity/seat/departure guards,

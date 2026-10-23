@@ -883,6 +883,14 @@ References: server-console.txt, windows-service.txt, state-backup.txt,
 windows-packaging.txt, windows-server-quickstart.txt.
 
 [ ] D8 - Complete Internet, latency and final capacity evidence
+[x]157 bounded actual156-package RC TLS/two-room Custom1v1 native concurrency:
+    130.397s/4rounds/8matches/4persistent TLS1.3 RC peers,24workers0/reaped,
+    4960frames/9920reference comparisons,production/movement/damage/changed-deck
+    Return/rematch/default17profiles. Mean20.00026Hz,max65.358ms,worker max5.305ms,
+    handles200->196/private+1,994,752B,controller0/job54/0/0/no force.16tests pass.
+    Original14gate unchanged/old8hour retained;THIS eight_hour_gate:false.
+    Not graphical/Internet/SCM/protectedowner/maximumcapacity/fullD8 proof.
+    Exact current package/legacy HELLO1/fixture/policy:packaged-tls-soak157.txt.
 [x]155 selected coordinator/profile admission attribution:actual20 original
     saves47..88ms on coordinator;healthy STEP wire1.05/1.10ms completes INSIDE
     rematch save10,coordinator resume waits53.45/64.97ms until that save returns.

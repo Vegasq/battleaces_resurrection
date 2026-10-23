@@ -1,7 +1,9 @@
 """Opt-in Windows multi-room soak with persistent community TCP peers.
 
 Run with locally imported assets. Evidence is bounded and local. Scripted native
-worlds do not establish graphical-client, TLS, internet or Windows service health.
+worlds do not establish graphical-client, internet or Windows service health.
+Explicit --rc-tls adds original RC admission with an owned ordinary TLS fixture;
+it does not qualify protected owner storage or optional verified/invite mode.
 This file can run through the pinned package Python without importing a checkout.
 """
 from __future__ import annotations
@@ -18,6 +20,7 @@ import math
 import os
 from pathlib import Path
 import platform
+import secrets
 import struct
 import sys
 import threading
@@ -26,6 +29,9 @@ import traceback
 
 from server import community_protocol as c, protocol as p
 from server import dedicated_server, worker_client, simulation_worker, native_simulation
+# Anchor these real server dependencies before the initial source manifest;
+# current server construction/secure listener setup imports them lazily.
+from server import profile_io,public_matchmaking,tls_listener
 from server.assets import verify_assets
 from server.game_data import GameTemplate, encode_frame, encode_player_input, decompress_game_data
 from server.host_audit import HostAudit
@@ -288,8 +294,19 @@ class Soak:
         self.last_published = {}
         self.baseline = self.final_idle = None
         self.server = None
+        self.tls_context = None
+        self.cosmetic_catalog = None
+        if getattr(args,'rc_tls',False):
+            from server import rc_host,tls_transport
+            from server.cosmetics import CosmeticCatalog
+            certificate,key=rc_host.generate_certificate()
+            (self.output/'server.pem').write_bytes(certificate)
+            (self.output/'server.key').write_bytes(key)
+            self.tls_context=tls_transport.load_server_context(self.output/'server.pem',self.output/'server.key')
+            self.cosmetic_catalog=CosmeticCatalog(args.assets)
         self.report = dict(schema=1, passed=False, state='starting', pid=os.getpid(), utc=utc(),
-            scope='scripted persistent community TCP peers with native replay worlds; no graphical/TLS/internet/SCM acceptance',
+            scope='scripted persistent community peers with native replay worlds; no graphical/internet/SCM/protected-owner acceptance',
+            transport='rc-tls' if self.tls_context else 'loopback-development',authentication=[],
             requested_seconds=args.seconds, rooms=args.rooms, match_frames=args.match_frames, minimum_rounds=args.minimum_rounds,
             python=sys.version, platform=platform.platform(), cpu_count=os.cpu_count(), tick_ms=50,
             source_sha256=self.source_hashes(), asset_manifest_sha256=digest((args.assets/'asset-manifest.json').read_bytes()))
@@ -351,9 +368,23 @@ class Soak:
         return worker
 
     async def connect(self, profile):
-        reader, writer = await asyncio.open_connection(*self.address[:2])
+        display_name='Soak '+profile
+        if self.tls_context:
+            from server import admission,tls_transport
+            reader,writer=await tls_transport.open_verified_connection('127.0.0.1',self.address[1],tls_transport.rc_client_context('127.0.0.1'))
+            try:
+                token='ba1_'+secrets.token_urlsafe(32)
+                profile=await admission.authenticate_client(reader,writer,token,rc_open=True)
+                require(profile==admission.rc_player_id(token),'RC authenticated profile differs')
+                self.report['authentication'].append(dict(profile=profile,tls_version=writer.get_extra_info('ssl_object').version(),certificate_verified=False,authenticated=True))
+            except BaseException:
+                writer.close()
+                try:await asyncio.wait_for(writer.wait_closed(),2)
+                except (OSError,TimeoutError):writer.transport.abort()
+                raise
+        else:reader, writer = await asyncio.open_connection(*self.address[:2])
         peer = Peer(reader, writer, profile); self.peers.append(peer)
-        await peer.send(c.HELLO, c.hello(profile,'Soak '+profile))
+        await peer.send(c.HELLO, c.hello(profile,display_name))
         r = c.Reader(await peer.receive(c.WELCOME))
         require((r.number('H'),r.number('H'),r.key()) == (c.VERSION,p.VERSION,profile), 'Community identity mismatch')
         r.deck(); r.end()
@@ -431,7 +462,7 @@ class Soak:
         await peers[1].command(c.READY,p.encode_string(lobby_id)+struct.pack('<IB',lobby.epoch,1))
         for slot,peer in enumerate(peers):
             assigned,window,deck = p.decode_welcome(await peer.receive(p.WELCOME))
-            require(assigned == slot and deck == list(self.decks[(cycle+slot)%2]), 'Seat/deck changed at start')
+            require(assigned == slot and window == p.DEFAULT_INPUT_WINDOW and deck == list(self.decks[(cycle+slot)%2]), 'Seat/window/deck changed at start')
         bootstrap = await asyncio.gather(*(peer.receive(p.BOOTSTRAP) for peer in peers))
         require(bootstrap[0] == bootstrap[1], 'Peers received different bootstrap data')
         room = lobby.room
@@ -533,8 +564,10 @@ class Soak:
     async def run(self):
         monitor = batch = probe = None
         try:
-            self.server = dedicated_server.DedicatedServer(self.template,ProfileStore(self.output/'profiles',self.template),
-                sim_factory=self.factory,audit=self.event,data_dir=None,audit_state=False,max_rooms=self.args.rooms)
+            from server.admission import AdmissionController
+            self.server = dedicated_server.DedicatedServer(self.template,ProfileStore(self.output/'profiles',self.template,catalog=getattr(self,'cosmetic_catalog',None)),
+                sim_factory=self.factory,audit=self.event,data_dir=None,audit_state=False,max_rooms=self.args.rooms,
+                tls_context=getattr(self,'tls_context',None),admission=AdmissionController(None,rc_open=True) if getattr(self,'tls_context',None) else None)
             self.address = await self.server.start('127.0.0.1',0)
             self.report['address'] = list(self.address[:2])
             pairs = [await self.pair(index) for index in range(self.args.rooms)]
@@ -609,6 +642,7 @@ def arguments(argv=None):
     parser.add_argument('--rooms',type=int,default=2)
     parser.add_argument('--match-frames',type=int,default=3600)
     parser.add_argument('--minimum-rounds',type=int,default=20)
+    parser.add_argument('--rc-tls',action='store_true',help='owned ordinary self-signed TLS fixture and original RC admission; no protected owner setup')
     args = parser.parse_args(argv)
     if not 10 <= args.seconds <= 32400 or not 2 <= args.rooms <= 4 or not 200 <= args.match_frames <= 10000 or not 4 <= args.minimum_rounds <= 1000:
         parser.error('seconds10..32400, rooms2..4, match-frames200..10000, minimum-rounds4..1000 required')

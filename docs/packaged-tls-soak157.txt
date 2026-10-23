@@ -1,0 +1,97 @@
+PACKAGED RC TLS SOAK157 - TWO CONCURRENT1v1 ROOMS / CHANGED-DECK REMATCHES
+2026-10-23. Selected bounded D8 packaged/TLS concurrency subcase COMPLETE.
+Full D8/D1-D9 delivery,graphical/Internet/SCM/protected-owner gates remain OPEN.
+
+Outcome
+Actual156 packaged server modules/runtime complete four rounds in two persistent
+Custom1v1 lobbies:8matches,4enduring community connections,24native worker lives.
+Each match runs one authoritative Simulation.dll worker and two independent
+reference worlds reconstructed from the actual received frame stream. Every
+frame's canonical observable state and native result/checksum agree;both peers'
+length-delimited input journals match the authoritative worker's successful
+input journal. Raw packets/snapshots are not retained;these are source-enforced
+per-frame assertions with bounded journals and retained match summaries,not a
+post-hoc reconstruction of unrecorded native state.
+
+Each match produces,moves and damages units for both players. Decks alternate
+between two validated basic-unit selections on the SAME sockets;original custom
+Create/Invite/Accept/Start/Ready/Return and reopened lobbies are used. Default
+full17cosmetics are preserved in four schema2 profile files. Community HELLO1
+compatibility is used on the current HELLO2-capable server;this is not portrait
+UI or edited full-loadout selection acceptance. Custom remains human-only.
+The workload permits original owned SelfDestruct at frame600;all8matches finish
+with620frames including result tail. No natural-win/physical input claim follows,
+and no automatic surrender is added to normal clients/server entry points.
+
+Actual local/soak157-native01/verification.json PASS,controller132.185s,
+measured soak130.397s on Windows10build19045,x64 Python3.14.8,16logical CPUs.
+Both rooms are simultaneously running123.829s,94.96percent
+of actual soak wall time. Four original RC authentications negotiate TLS1.3,
+certificate_verified:false as required for RC,no CA/invite/credential-store setup.
+Their generated tokens stay in memory;only canonical profile IDs appear in
+reports. TLS uses an ordinary disposable localhost certificate fixture,not a
+protected owner-key qualification or an exception to normal protection rules.
+
+Results / unchanged predefined bounds
+-4960authoritative frames,9920matching native replay-state comparisons.
+-Publication mean49.99935ms(20.00026Hz),p95<=63ms,p99<=64ms,max65.3581ms.
+-Authoritative worker mean2.39245ms,max5.3046ms;0of4960calls exceed50ms.
+-Post-round3 idle handles200 ->196;private committed bytes37,703,680 ->39,698,432
+ (+1,994,752). Samples retain intermediate CPU/memory/handle/lifetime trends.
+ The coordinator metric includes this harness and its reference-world scheduling;
+ this is a stated workload sample,not the maximum production-host capacity.
+-All24native workers exit0/reap,controller0,owned job54total/0active/0job-terminated,
+ no forced cleanup. No existing host,game/manual launcher or unrelated PID is used.
+-All14original assessment checks pass. Source/imported assets stay identical.
+ eight_hour_gate:false for THIS run;120requested seconds cannot pass that gate.
+Original50ms native step,default input window6,worker timeouts and the old cadence/
+worker/resource thresholds are unchanged. The gate function is AST-identical to
+the source used for the prior successful eight-hour run. No thresholds were tuned.
+
+Implementation / tests
+tools/soak_server.py adds explicit --rc-tls. The default loopback-development path
+remains available. The flag supplies real RC admission,TLS sockets and the real
+exported cosmetic catalog. Source manifests now eagerly anchor lazily imported
+current profile/public/secure-listener modules before measuring unchanged source.
+New tools/run_packaged_soak.py validates fresh separate local paths,verifies the
+package,creates a suspended bundled-runtime controller in an owned job,then
+resumes it. All authoritative/reference workers inherit that job. Parent terminal
+accounting and original subprocess handles establish cleanup;no PID-name killing.
+This opt-in diagnostic is not packaged or selected by an ordinary game launcher.
+
+16focused controls PASS1.072s:the12existing gate/evidence/resource/cleanup tests
+plus four new output-boundary/CLI/real TLS RC identity/failure-cleanup checks.
+The first extended16-test run failed one new display-name case:using the canonical
+34character auth ID as a name exceeded the original32character display limit.
+The diagnostic now retains its short scripted seat label and keeps canonical
+identity separate. Failed source/log are retained;game validation is unchanged.
+Native control01 passes first attempt. No proprietary fixtures enter Git.
+
+Artifacts / provenance
+Package is the SAME clean156 engineering server from14ba1fb7c77de1f6f302e0f11d45612e04e2ea26;
+ZIP SHA25696b936b3739a03713c6dfcb7866fa4ed6682ece7c9beb75245545009dc402db3.
+The actual child source manifest binds27server modules to that package's file
+hashes plus the external diagnostic source. Driver,source,asset and job receipts
+are under local/soak157-native01;matches.jsonl,samples.jsonl,progress and final
+verification are under its soak subfolder. Keys/fixtures/raw evidence stay ignored.
+New read-only local/soak157-review01.json PASS27inputs and all74prior156 inputs;
+all six N10 capsule pins remain exact. It independently recomputes14gate checks,
+reconciles match/worker/connection/frame/result/resource summaries,source/package
+bindings and terminal job facts. It cannot re-execute unrecorded native state.
+
+Prior eight-hour proof remains unchanged and is REUSED,not repeated:
+local/p5-soak-frozen03/local/eight-hour02/verification.json SHA256
+98edbbc4c83d0329226d53f028f865ed97196131586570e0b5d44c91d402543d.
+It retains passed/eight_hour_gate:true and all original source hashes. Its exact
+9748a64c runner is also preserved as local/soak157-prior-source01.py. That older
+plaintext/native scope does not become an eight-hour TLS/current-package claim.
+
+Next / limits
+This fills bounded packaged RC TLS/two-room native/rematch concurrency evidence
+on this Windows host. Remaining D8 requires physical Internet conditions,measured
+RTT/jitter/loss/retransmission and click-to-action behavior,graphical20-rematch
+lifetime,documented supported capacity and remaining deployment/session0 scopes.
+Use this pass plus the old20-match/eight-hour evidence;do not rerun equivalent
+bounded soaks or manufacture a new eight-hour requirement. Full D8 stays open.
+All owned processes are terminal. No new product/helper/package/manual130/N7/
+share/HTTP/Nick action. N9/N10 answers/reports remain blank/absent;read them first.
