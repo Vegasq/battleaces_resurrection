@@ -3,6 +3,18 @@ Updated: 2026-10-23
 Delivery plan: REMAINING_DELIVERY_PLAN.txt, Windows only.
 Original roadmap: CLOSED / SUPERSEDED;see PLAN_CLOSEOUT.txt.
 
+STRENGTH162 - QUANTITATIVE NATIVE BOT INCOME / FIRST-HIT DAMAGE
+D3 bounded subcase COMPLETE:actual161 runtime/originalDLL/verified139assets,
+Easy/Normal/Hard+identicalNormalrepeat,8closed worlds/4580native50ms steps.
+20simsecs botincome432/172 vs480/192,damage44/50/57,HP539/600/689;humanincome/
+damage/HP unchanged. ExactQ32floors/<=1displayed resource endpoint bound,both
+single-unit hits frame543/equalgeometry.41checks/native9.014s/child8.763s,
+controller0/job2/0/0/no force/runtime null.22tests pass314/312. No AI/Unity/
+listener/Install/protected operation. REAprovider unconfigured;actual evidence
+is authored nativebridge,not new REA native analysis. Failed/no-hit pilots kept.
+Prior161/160/N10pins reconcile,docs archived,no product/helper/package/manual/
+share/new action;N9/N10pending. Whole D3/D5/D1-D9 OPEN. bot-strength162.txt.
+
 DIAGNOSTICS161 - ARBITRARY EXCEPTION CONTENT REMOVED FROM HOST FAILURES
 Selected D7 gap CLOSED:fixed error categories/class labels/bounded OS codes;
 known authored validation reasons retained,unknown ValueError/KeyError gets

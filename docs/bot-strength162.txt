@@ -1,0 +1,105 @@
+NATIVE BOT STRENGTH EFFECTS162
+2026-10-23. D3 quantitative income/damage subcase COMPLETE; whole D3/D1-D9 OPEN.
+
+Measured result
+Original Simulation.dll now has independent gameplay observations for all three
+exported community strength choices. This fills the explicitly missing income
+and attack-damage comparison in practice-difficulty.txt, alongside its earlier
+native health evidence. A current161 bundled server builds the frozen mode1 bot
+match; the diagnostic controls inputs directly, without Unity or tactical AI.
+It qualifies native application of these same strength fields, not a new local
+practice dropdown/UI path or every unit/weapon/upgrade/map combination.
+
+The fixed seed, selected compatible deck/identity, spawn positions, build timing,
+one-unit-per-army roster and first-hit geometry stay equal. Only the strength
+choice changes. Normal repeats with identical complete observations, match hash
+and length-prefixed native-input journal digests. Each run has a fresh income
+world and a separate fresh combat world, both destroyed normally.
+
+Actual observations (source-owned attribute IDs/dynamic installed basic unit):
+Choice        Bot income primary/secondary   Bot hit   Human hit   Bot max HP
+Easy                       432/172              44          50          539
+Normal                     480/192              50          50          600
+Hard                       480/192              57          50          689
+Normal repeat              480/192              50          50          600
+
+Income is the cumulative gathered difference from frame200 to600:400 steps of
+50ms,20 simulated seconds. No spending,losses,army production or combat occurs
+in those worlds. Both initial resource balances remain400; human income stays
+480/192 for every choice. Integer endpoint observations differ from the scaled
+Normal interval by at most one displayed resource, the explicit quantization
+bound; there is no broad percentage tolerance.
+
+Combat builds exactly one matching basic unit for each army at frame140. Owned
+Attack88 target-unit commands make them meet away from both cores. Both first
+hits occur on frame543 at equal geometry. Before each hit the target has zero
+damage and both units are alive. Bot damage is EXACT floor(Normal hit * exported
+damageQ / 2^32); unit max health is the same exact calculation. Human damage and
+maximum health600 remain unchanged. Native float/Q32 flooring gives44 rather
+than nominal-decimal45 on Easy, and539/689 rather than540/690 HP. No balance
+factor, attribute importer, simulation timing or gameplay source is changed.
+
+Identity and scope
+Actual161 package:local/diagnostics161-packages01/battleaces-server-win64,
+clean source262b786d7e728f5fdd3cf1d08b21269298783430. All nine observed server
+modules resolve inside that package and match its manifest before/after.
+The119-file local/s139/assets/build-37822 import passes complete verification
+before/after; original Simulation SHA is
+107bb83dc416a16492277392c50104660e34c48911345ae2e0d5afe3929a07fb.
+Strength triples are read from the verified exported bot catalog, not copied into
+the diagnostic. EasyQ3865470464/all three; NormalQ4294967296/all three;
+Hard resourceQ4294967296,damage/healthQ4939212288. The existing match builder
+composes those modifiers with baseline buffs and applies them only to bot army1.
+Earlier local client bindings/health proof remain separate applicable inputs.
+
+tools/verify_bot_strength.py is an external opt-in diagnostic, not player runtime.
+It owns the actual bundled controller before execution, verifies package/source/
+asset identity, requires all four choices/control records and both first hits,
+and never calls gameplay ticks from a UI observer. It executes4580 native50ms
+steps across8 worlds as fast as the native API allows; wall time is not a20Hz
+throughput measurement. No game window, AI decision DLL, server listener, Install
+action, protected storage or user profile is started or changed. This is not
+packet/kernel/tree evidence for game privacy.
+
+local/strength162-native01/verification.json PASS9.014s; native child8.763s,
+all41 comparisons true. Controller exit0,owned job2/active0/terminated0,
+no forced cleanup,owned process reaped. Every world is closed and native runtime
+reference state returns to null. Normal repeat includes both phases exactly.
+22 affected authored tests pass on Python3.14.8/0.190s and3.12.10/0.107s,
+no skips. They reject ineffective income,changed human control,>1unit endpoint
+error,missing/multiple/wrong-army hits,incorrect damage/health/geometry,failed
+repeat,unclosed worlds and spending. Existing catalog/match-builder checks pass.
+
+Reproduce with a unique output:
+python -m tools.verify_bot_strength --package local/diagnostics161-packages01/battleaces-server-win64 --assets local/s139/assets/build-37822 --output local/strength162-native-UNIQUE
+
+Retained pilots and REA limits
+REA6.5.0 is connected but has no open target and its Ghidra provider remains
+not_configured. No setup, registration, provider, permission or target-session
+change is made. local/strength162-rea-session01.json retains selected observed
+availability facts. This measurement uses retained ABI findings and the existing
+hash-checked native bridge; it is NOT a newly produced REA native Evidence record.
+
+Pilot01 fails after frame0 because the authored recorder supplied frame twice;
+native ownership still exits cleanly. Its exact failed source is
+local/strength162-pilot-failed-source01.py. Pilot02 completes an income observation
+but its lone attacker never damages the enemy core: empty hits are NOT damage
+acceptance. Exact pilot02 source is strength162-pilot-source02.py. Pilot03's
+one-unit duel observes damage and supplies the controlled experiment; its source
+is strength162-pilot-source03.py. Pilot success flags describe observation scripts
+only. The final strict tool cannot pass without both hits and all comparisons.
+All pilot owners exit/reap with empty jobs/no force. Their logs/results stay local.
+
+Read-only local/strength162-review01.json recomputes the41 comparisons and checks
+input/resource/ownership arithmetic,package/source/asset identity,terminal native
+ownership and prior161/160/N10pins through exact archives. Prior docs live under
+local/strength162-prior-docs01; existing acceptance is not rewritten or expanded.
+No original asset, capture, game file or native export enters Git.
+
+Remaining scope
+D3 still needs its stated physical difficulty/catalog/cosmetic controls and broader
+unit/ability gameplay acceptance. D5 privacy, D7 deployment and D8 Internet/
+graphical lifetime remain open. No repeated random profile draws, unchanged
+fullgame/soak/native-strength run or new Nick action is required for this subcase.
+Current game/host/helper/packages/manual130/N7/share/HTTP stay unchanged. N9/N10
+answers/reports remain blank/absent; keep the roadmap active.

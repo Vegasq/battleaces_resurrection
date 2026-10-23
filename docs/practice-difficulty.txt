@@ -1,5 +1,15 @@
 OFFLINE PRACTICE DIFFICULTY (2026-10-17, native qualification passed)
 
+2026-10-23 quantitative supplement162
+Current161 packaged native simulation now independently measures the SAME exported
+strength fields:20 simulated seconds of bot income432/172 on Easy versus480/192
+Normal/Hard;one-unit first-hit damage44/50/57,while human damage50/income480/192
+and HP600 remain unchanged. Bot unit HP539/600/689 matches exact Q32 floors.
+Normal repeat is identical,8worlds close,41checks/22source tests pass. This fills
+the earlier native income/damage comparison gap at its controlled simulation
+scope,not a new physical/local dropdown or all-unit/weapon pass. Original06
+observations and their limitations below remain historical. bot-strength162.txt.
+
 User request: select AI difficulty in Settings, reusing the Region selector.
 Scope is the standalone offline launcher. Connected multiplayer retains the
 original Region model and behavior. A choice is snapshotted at match creation;

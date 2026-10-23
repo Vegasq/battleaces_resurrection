@@ -2,6 +2,21 @@
 
 ## Requests and answers with Nick
 
+- Strength162 CLOSES D3 bounded quantitative native income/damage subcase. Actual
+ 161 bundled runtime/originalDLL/verified139assets,Easy/Normal/Hard+identicalNormal
+ repeat,8worlds/4580native50mssteps.20simsecs botincome432/172 vs480/192,firsthit
+ damage44/50/57,botHP539/600/689;humanincome480/192/damage50/HP600 unchanged.
+ Exact Q32 floors,<=1displayed resource endpoint bound,2single-unit firsthits at
+ equalframe543/geometry,no AI/Unity/listener.41checks/native9.014s/child8.763s,
+ controller0/job2/0/0/no force/allworldsclosed/runtime null.22tests pass314/312.
+ Pilots retained:01duplicateframe recorderfail;02no corehit NOT damageproof;
+ 03duel observations,final stricttool requires bothhits. REAconnected/Ghidra
+ unconfigured/no target;measurements authored nativebridge,NOT REAEvidence.
+ Prior161/160/seals/N10pins unchanged;prior docs archived. NEXT remaining finite
+ D3 physical/catalog + D1-D9 gates,not samequant/native/soak repeats. N9/N10blank/
+ no reports,no new action/product/helper/package/manual130/N7/share change.
+ Whole D3/D5/D1-D9 OPEN. docs/bot-strength162.txt.
+
 - Diagnostics161 CLOSES selected D7 arbitrary-exception log/rejection gap. Fixed
   error_kind/class labels+bounded OS codes;unknown str/repr/filenames/dynamic type
   names never evaluated. Known authored validation stays useful,unknown ValueError/

@@ -259,6 +259,14 @@ match-loading.txt, client-availability.txt, empty-server-queue.txt,
 current-community-matches.txt, remote-local-transitions.txt.
 
 [ ] D3 - Finish visible player features and catalog acceptance
+[x]162 quantitative native income/damage subcase:actual161 bundled runtime /
+    originalDLL/verified139assets,8worlds/4580native50mssteps,Easy/Normal/Hard +
+    identicalNormal repeat.20simsecs botincome432/172 vs480/192,damage44/50/57,
+    HP539/600/689;human values unchanged. Exact Q32 floors/<=1displayed resource
+    endpoint bound,isolated first hits at equalframe543/geometry.41checks/native
+    9.014s/controller0/job2/0/0/no force,22tests pass314/312. No AI/Unity/new local
+    dropdown/physical/allcatalog claim. This closes the prior quantitative gap,
+    not wholeD3. No product/manual/share/new action. bot-strength162.txt.
 - Separate requested Tutorial2 exploration while roadmap is PAUSED:explicit
   native state/mode100 path implemented,C++ suite/build/preserving update pass.
   Automated intro-state reached,but visible launch FAILED(hidden desktop,sound
