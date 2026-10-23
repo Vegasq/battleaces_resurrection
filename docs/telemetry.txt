@@ -1,7 +1,16 @@
 TELEMETRY PATCH STATUS
-Updated: 2026-10-22
+Updated: 2026-10-23
 Supported input: Battle Aces build 37822, Windows x64.
-Recipe version: 21. Guards: 120. Complete-set runtime_validated: false.
+Recipe version: 22. Guards: 127. Complete-set runtime_validated: false.
+
+165 closes seven unguarded instance/queued SDK error-collection entries before
+input processing. Original callbacks are optional report filters,not completion.
+85tests/C++suite,67profile-preserving upgrade and genuine Client/Exception/seven
+guarded calls/original local exception log/practice/Continue/Quit0 pass,no force.
+Saved proofs rederive/21actual mutations reject. SDK-root scope remains explicit;
+not ordinary whole-run/wire/native-crash/full-P7 acceptance. Diagnostic r134g22/
+helper165;packages/manual130/N7 unchanged. Next remaining P1-P9 gates,not same
+quiet/error/practice rerun. sdk-report-errors165.txt records exact evidence/limits.
 
 Current finite acceptance inventory:telemetry-acceptance-matrix140.txt(P1-P9).
 140 closes ONLY a selected installed SDK startup pair:direct native game with

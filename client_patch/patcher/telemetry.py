@@ -1,6 +1,6 @@
 """Exact-build telemetry patch transformations; no file or process operations.
 
-These 113 recipes have static source/control-flow review. The complete recipe
+These 127 guards have static source/control-flow review. The complete recipe
 set has not been runtime validated; recipe2's 59 had a bounded compatibility run.
 They do not establish complete telemetry removal; see docs/telemetry.txt.
 Only brief patch safety signatures are included, never original game payloads.
@@ -10,7 +10,7 @@ import hashlib
 from types import MappingProxyType
 
 GAME_BUILD = 37822
-RECIPE_VERSION = 21
+RECIPE_VERSION = 22
 RUNTIME_VALIDATED = False
 VALIDATION_STATUS = "Scoped native compatibility verified; full lifecycle/report-removal qualification pending"
 UNRESOLVED_COMPONENTS = (
@@ -130,6 +130,23 @@ COMPONENTS = MappingProxyType({
                   bytes.fromhex('48895c2408574883ec20488bfa488bd9'), bytes.fromhex('c3')),
             Patch('BugsnagUnity.Client::NotifyFromUnityLog', 0x814880, 0x812e80,
                   bytes.fromhex('48895c241855415641574883ec70803d'), bytes.fromhex('c3')),
+            # Instance reporting bypasses the static Notify wrappers. Suppress
+            # before exception conversion/closure allocation; inputs are borrowed,
+            # return is void and original discarded reports owe no callback.
+            Patch('BugsnagUnity.Client::Notify named error', 0x814ef0, 0x8134f0,
+                  bytes.fromhex('48895c240848896c2418488974242057'), bytes.fromhex('c3')),
+            Patch('BugsnagUnity.Client::Notify exception with stack', 0x815100, 0x813700,
+                  bytes.fromhex('48895c2418555657415641574883ec50'), bytes.fromhex('c3')),
+            Patch('BugsnagUnity.Client::Notify exception', 0x815390, 0x813990,
+                  bytes.fromhex('48895c24084889742410574883ec3048'), bytes.fromhex('c3')),
+            Patch('BugsnagUnity.Client::Notify exception with severity', 0x8153e0, 0x8139e0,
+                  bytes.fromhex('48895c240848896c2410488974241857'), bytes.fromhex('c3')),
+            Patch('BugsnagUnity.Client::Notify exception with handled state', 0x8154e0, 0x813ae0,
+                  bytes.fromhex('40535557415441574883ec50803d4736'), bytes.fromhex('c3')),
+            Patch('BugsnagUnity.Client::Notify exception collection', 0x8157d0, 0x813dd0,
+                  bytes.fromhex('48895c2408488974241048897c24184c'), bytes.fromhex('c3')),
+            Patch('BugsnagUnity.Client::NotifyOnMainThread queued collector', 0x815ba0, 0x8141a0,
+                  bytes.fromhex('4c894c24204c89442418488954241048'), bytes.fromhex('c3')),
             Patch('.<DeliverCachedPayloads>d__36::MoveNext', 0x8201f0, 0x81e7f0,
                   bytes.fromhex('4889742410574883ec20803d79896206'), bytes.fromhex('31c0c3')),
             Patch('.<ProcessCachedItems>d__37::MoveNext', 0x8204c0, 0x81eac0,

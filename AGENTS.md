@@ -2,6 +2,23 @@
 
 ## Requests and answers with Nick
 
+- Errors165 closes SDK instance/queued error-collection gap:seven pre-input
+  Client.Notify/NotifyOnMainThread guards,void borrowed ABI/optional Func<IEvent,
+  bool> filter/original discards/outer closure plain return.22/127,85tests314/312/
+  C++suite;67profile-preserving upgrade and genuine Client/Exception/seven calls/
+  original local Exception log/practice/Continue/Quit0 PASS213.820s,outer215.361s/
+  job3/0/0/no force,185covered producer hashes stable.21actual mutations reject.
+  Exact prior21GameAssembly/helper/manifest and prior authored inputs archived;
+  runtime-used verifier retained before post-run decoder-inventory/type checks.
+  Initial stale-version test failure/preinstall provenance-call mistake/import-
+  section verifier assumption retained,not product failures. r134g now22/helper
+  165 withcached139runtime,NOT coherent release. Packages/manual130/N7/share/HTTP
+  unchanged,no new action/visibility request;N9/N10blank/no reports/sixpins exact.
+  NEXT remaining P7 reporter/native-crash/state applicability/P1-P9/coherent
+  candidate,not same error/constructor/quietAI repetition. FullD5/D1-D9 OPEN;
+  explicit SDK-root fixture NOT ordinary/all-thread/wire/every-inflight proof.
+  docs/sdk-report-errors165.txt.
+
 - Identifiers164 resolves132's general-wrapper binding/first-RNG-consumer source
   subcase:actual3471-entry registrar binds10e270 to SystemInfo device-ID API;
   5920b0 system-RNG-first16-byte output,zero branch skips machine-ID fallback.

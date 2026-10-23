@@ -1,6 +1,14 @@
 D5 REMAINING SOURCE WORKLIST125
 2026-10-22. Full D5 remains OPEN. Source findings below narrow the remaining
 engineering work;they are not complete analytics-removal or release acceptance.
+Current165:seven instance Notify/lower queued error-collector guards close a
+real pre-Send collection gap. Callback is optional report filter;queued closure
+returns normally.22/127,85tests/C++suite,67profile-preserving upgrade,genuine
+Client/Exception/seven calls/local exception log/practice/Continue/Quit0 pass;
+21actual mutations reject. Explicit SDK-root diagnostic,not ordinary/wire/
+all-thread/native-crash/all-inflight closure. Next remaining P7/P1-P9/final
+coherent candidate;not same error/constructor/practice repetition. See
+sdk-report-errors165.txt. Packages/manual130/N7 unchanged,no new Nick action.
 Current164:positive registrarfd2420 binds10e270 to general SystemInfo device-ID
 API;5920b0 uses system RNG first/conditional machine-ID fallback. One concrete
 consumer seeds registered UnityEngine.Random state;second owner unnamed.806

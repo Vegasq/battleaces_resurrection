@@ -87,6 +87,14 @@ Finite rows
     deadline cases remain accepted availability evidence;do not repeat all eight
     just to produce quiet counters.
 [ ] P7 Effective queue/error/reporter/crash paths
+    [x]165 instance Notify/lower queued collector subcase:seven pre-input guards,
+        callback Func<IEvent,bool>/original discard/outer closure return contract.
+        Recipe22/127;85tests/C++suite,67profile-preserving upgrade and actual
+        genuine Client/Exception/seven guarded calls/local Exception log/practice/
+        Continue/Quit0 pass213.820s,job3/0/0/no force.21actual mutations reject.
+        Explicit SDK-root fixture,not ordinary/all-thread/wire/native-crash/
+        every-inflight acceptance. Diagnostic r134g22/helper165,packages/manual
+        unchanged. sdk-report-errors165.txt. Reuse;no equivalent rerun.
     Reuse120-122 real typed readers/fresh guarded delivery,126 matched/missed pending
     cleanup and138 genuine initialized reporting-disabled Client. Qualify only the
     missing supported managed-error/explicit-reporter/disposable native-crash routes

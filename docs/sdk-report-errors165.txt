@@ -1,0 +1,103 @@
+SDK INSTANCE ERROR COLLECTION165
+2026-10-23. Recipe22/127 guards. Full D5 remains OPEN;runtime_validated=false.
+
+Problem and correction
+The guarded static Bugsnag.Notify and final Send entries did not cover instance
+Client.Notify overloads. Those original methods construct exception payloads,
+arrays and closures before the guarded sender. A previously queued closure also
+calls NotifyOnMainThread directly. Seven new entry guards stop this SDK-only
+collection before reading inputs,allocating local objects or registering work.
+Shared exception construction,Unity local logging,GC helpers and dispatch queue
+cleanup remain original. The patch changes no server gameplay/transport code.
+
+Guard contract
+All seven are instance void methods; inputs are borrowed managed references or
+by-value data. The optional callback is Func<IEvent,bool>,a report filter rather
+than asynchronous completion. Original valid discard branches already return
+without invoking it. An entry RET acquires no original frame,local owner,lock
+or cleanup debt; no caller input is consumed or output fabricated.
+RVA/file offset:
+ 814ef0/8134f0 named error;815100/813700 exception plus supplied stack;
+ 815390/813990 exception;8153e0/8139e0 severity;
+ 8154e0/813ae0 handled state;8157d0/813dd0 exception collection;
+ 815ba0/8141a0 NotifyOnMainThread lower collector.
+All exact original16-byte guards are checked atomically; replacement is C3.
+
+The lower collector's three original discard checks converge on816b51 before
+report allocation. Callback false also returns before Send. Generated closure
+819310 loads captured arguments,calls the lower collector at819347,then restores
+its own frame and returns. Keeping that closure/queue machinery intact preserves
+its return and managed capture lifetime. This is a named queued collector cut,
+not a claim that every resumed/inflight SDK/cache owner is classified.
+
+Source and implementation verification
+Pinned original PE/IL2CPP/LLVM fallback,not new native Ghidra/REA Evidence:
+ GameAssembly e59d08c01479b27404778048d7e13546dbf3771f6b3912744c7c2bdf80c4e758
+ metadata b760be9190309b14174cd272e1f83b730181b299bc7a0cdca66985c69dcdc57d
+Independent review passes2169mechanical checks over12complete native roots and
+binds the report-filter type and actual queued caller. Parent passes1960static
+checks including complete original extents,all seven installed guards and exact
+upgrade delta. Installed GameAssembly changes exactly seven entry bytes plus
+two checksum bytes;the existing3584-byte import extension stays unchanged.
+
+The read-only native auditor now requires reportErrorSignatures7/7 and explicit
+recipe22. Legacy3..21 need their own version,never imply these guards. CLI now
+accepts its actual supported version range,including20/21/22. The owned probe
+requires a genuine initialized reporting-disabled Client and rooted Exception;
+it calls all seven checked replacements,with absent optional/internal payloads,
+and preserves sampled Client/native fields and four global callback heads.
+It then invokes ORIGINAL Debug.LogException;useful local diagnostics must remain.
+No original SDK Notify body or identifier getter is invoked to test the fix.
+
+85focused Python checks pass on3.14.8(1.750s) and3.12.10(1.655s),no skips,with
+optional original-byte validation enabled. Required C++ build/test script passes.
+Initial70-test run exposed a stale test fixture that treated current22 as an
+invalid recipe;fixed to compare explicit older/future versions. The failed log
+is retained. Post-run producer inventory adds the new decoder and stricter typed
+Quit-thread validation;exact runtime-used source is archived. The same saved
+records revalidate under the stricter decoder;no equivalent game rerun required.
+
+Owned installation and actual runtime
+21->22 update of diagnostic r134g passes92.306s:dry-run has no writes,real result
+matches preview,reinstall is idempotent,all67prior profile files/four original
+backups/config choices and coherent source130 remain unchanged. Exact prior21
+GameAssembly/helper/manifest are archived before replacement,not overwritten as
+historical evidence. First installer owner omitted the provenance data argument
+and failed BEFORE patch.install;failed owner/archive remain. Corrected02 passes.
+
+Actual background native case passes213.820s,outer215.361s. Seven guarded calls
+return on the game thread with genuine Client/Exception and stable sampled fields.
+The authored Exception is present in the original local game log. Existing scoped
+cache reader/two-report/five-delivery lifetime checks still pass;their temporary
+game-thread SDK-root/config scope is explicit,not ordinary whole-run isolation.
+The client then completes practice,results/Continue and original confirmed Quit0:
+bot supply131,148autonomous records,40units with correlated orders/movement.
+Owned process reaped;outer job3total/0active/0terminated,no forced cleanup.
+Those totals are lifecycle accounting,not complete descendant classification.
+Eight installed files/config/manifest,source130,shared state and185covered source
+hashes remain stable during execution. All67prior profile files remain exact.
+
+Read-only retained reconciliation rederives Client/cache/native-field/error/Quit
+proofs and rejects21actual-record mutations without changing raw artifacts.
+This is not physical UI,ordinary-launcher/wire/all-thread/native-crash/full-P7
+acceptance. No real shared SDK queue was enumerated,seeded or cleared.
+
+Identities and retained ignored records
+Helper165-01 f82aee3e54eb87a9bb31f10a20a527a28d5182d354376c43a0474df45b8b2e26
+Installed GameAssembly3bc1491ef3c4bc94c961fec58871ee3632fa3cf580bc2b46e273c76437efcfe2
+Independent source manifest:
+ local/errors165-independent01/manifest.json
+ f86757b2d450389457637b81b753506939fa86c2105da3b3a10024d1f5e69729
+Parent contracts:local/errors165-source01;install:local/errors165-install02.
+Runtime:local/errors165-native01 and errors165-native-owner01.
+Reconciliation:local/errors165-review01/verification.json;exact old authored
+inputs:local/errors165-prior-source01;runtime-used tool:errors165-runtime-source01.
+Original bytes,disassembly,captures,built helpers and packages remain out of Git.
+
+Next
+Named instance/queued error-collection gap CLOSED. Finish remaining P7 reporter/
+native-crash/applicable resumed-state and P1-P9 attribution/final-installed gates.
+Do not repeat this constructor/error/practice control without a changed path or
+new concern. r134g is now diagnostic22/helper165 with cached139 runtime,not a new
+coherent release. Existing packages/manual130/N7/share/HTTP are unchanged;no new
+Nick action. N9/N10 remain pending and six N10 pins are preserved. Full D1-D9 OPEN.

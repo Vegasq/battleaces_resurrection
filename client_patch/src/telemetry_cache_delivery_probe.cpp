@@ -18,6 +18,7 @@ static Obj staticList(Obj type,const char* name) {
 }
 #include "telemetry_cache_failure_probe.cpp"
 #include "telemetry_cache_client_probe.cpp"
+#include "telemetry_report_error_probe.cpp"
 static void guardedDelivery(Obj config,Obj manager,Obj report,Obj session,const std::wstring& selected) {
     require(config && manager && report && session,"delivery fixture requires genuine cache/report dependencies");
     #include "telemetry_cache_delivery_signatures.hpp"
@@ -105,7 +106,7 @@ static void guardedDelivery(Obj config,Obj manager,Obj report,Obj session,const 
         staticList(payloadType,"_pendingPayloads")==pending.get() && staticList(deliveryType,"_finishedCacheDeliveries")==finished.get() &&
         instanceFields(pending.get())==pendingFields && instanceFields(finished.get())==finishedFields,
         "guarded fresh delivery changed owner/report/list fields");
-    if(client)client->unchanged();
+    if(client){client->unchanged();guardedReportErrors(*client);}
     ba::log("TELEMETRY CACHEDELIVERY probe passed: version=%u thread=%lu realPayloadManager=1 realDelivery=1 absentClient=%u activeClientConstructed=%u deliverCalls=2 cachedStartCalls=1 iteratorFactories=5 moveNextFalse=5 originalDisposes=5 freshStateRetained=5 currentNull=5 capturesRetained=5 pendingCount=0 finishedCount=0 listFieldsUnchanged=2 reportFieldsUnchanged=2 deliveryFieldsUnchanged=1 payloadManagerFieldsUnchanged=1 reportDelivered=0 wholeRunIsolation=0",
         withClient?2u:1u,GetCurrentThreadId(),withClient?0u:1u,withClient?1u:0u);
     if(ba::flag(L"-telemetry-cache-failure-probe")) {
