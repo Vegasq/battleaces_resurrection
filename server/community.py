@@ -8,6 +8,7 @@ import uuid
 
 from . import community_protocol as c, protocol as p
 from . import loadout_protocol as loadout
+from .diagnostics import failure_fields,validation_reason
 
 
 class Rejected(ValueError):
@@ -140,7 +141,7 @@ class Community:
         except (ValueError, KeyError, OSError) as error:
             deck = list(self.server.template.default_decks[0])
             cosmetics = self.server.cosmetic_catalog.normalize_local() if self.server.cosmetic_catalog else None
-            self.server.audit('profile_load_fallback', profile=profile, reason=str(error))
+            self.server.audit('profile_load_fallback', profile=profile, **failure_fields(error))
         require(not self.closing and not self.server.closing and not peer.closed, 'connection closed during profile load')
         self.sessions[profile] = Session(peer, list(deck), cosmetics=cosmetics)
         self.send(peer, c.WELCOME, c.welcome(profile, deck, version=peer.community_version))
@@ -308,9 +309,9 @@ class Community:
                              if kind == loadout.SET_LOADOUT else session.cosmetics)
                 await self.save_loadout(session, command['deck'], cosmetics)
             except ValueError as error:
-                raise Rejected(str(error)) from error
+                raise Rejected(validation_reason(error,'invalid selection or saved profile')) from error
             except OSError as error:
-                self.server.audit('profile_save_failed', profile=profile, reason=repr(error))
+                self.server.audit('profile_save_failed', profile=profile, **failure_fields(error))
                 raise Rejected('profile save unavailable') from error
             require(session.lobby == lobby_id and self.lobbies.get(lobby_id) is lobby and
                     (not lobby or lobby.phase == c.OPEN or

@@ -32,6 +32,7 @@ from .admission import AdmissionController, AdmissionError
 from . import community_protocol as community_wire
 from .community import Community
 from . import public_protocol as public_wire
+from .diagnostics import failure_fields,validation_reason
 TICK = 0.05
 
 
@@ -205,7 +206,7 @@ class Room:
                 except (ValueError, KeyError, OSError) as error:
                     deck = list(self.template.default_decks[slot])
                     cosmetics = self.server.cosmetic_catalog.normalize_local() if self.server.cosmetic_catalog else None
-                    self.event("profile_load_fallback", profile=profile_id, reason=str(error))
+                    self.event("profile_load_fallback", profile=profile_id, **failure_fields(error))
                 p.require(not self.server.closing and not peer.closed and self.state == 'lobby' and slot not in self.peers,
                           'room changed during profile load')
             finally:
@@ -405,8 +406,9 @@ class Room:
                 self.lobby_state()
                 self.last_progress = time.perf_counter()
             except ValueError as error:
-                self.event("selection_rejected", slot=peer.slot, reason=str(error))
-                peer.send(p.NOTICE, str(error).encode("utf-8")[:1024])
+                reason=validation_reason(error,'invalid selection or saved profile')
+                self.event("selection_rejected", slot=peer.slot, reason=reason, **failure_fields(error))
+                peer.send(p.NOTICE, reason.encode("utf-8")[:1024])
                 self.lobby_state()
                 return
             if not self.saving_decks and (self.peers.keys() | self.bots.keys()) == self.ready == self.slots:
@@ -539,7 +541,7 @@ class Room:
         except asyncio.CancelledError:
             pass
         except Exception as error:
-            self.event("simulation_error", error=repr(error))
+            self.event("simulation_error", **failure_fields(error))
             await self.finish("server simulation error", aborted=True)
 
     async def record_snapshot(self):
@@ -649,7 +651,7 @@ class DedicatedServer:
                 await room.finish('custom match setup failed', aborted=True)
             if not isinstance(error, Exception):
                 raise
-            self.audit('custom_match_setup_error', lobby=lobby.id, error=repr(error))
+            self.audit('custom_match_setup_error', lobby=lobby.id, **failure_fields(error))
             if room is None and self.community.lobbies.get(lobby.id) is lobby:
                 self.community.cancel_start(lobby, 'custom match setup failed')
 
@@ -717,12 +719,13 @@ class DedicatedServer:
             self.audit("authentication_failed", connection=peer.connection, category=error.category)
             peer.close("authentication failed")
         except (ValueError, KeyError) as error:
-            self.audit("protocol_error", connection=peer.connection, slot=peer.slot, reason=str(error))
-            peer.close(str(error))
+            reason=validation_reason(error,'invalid client request')
+            self.audit("protocol_error", connection=peer.connection, slot=peer.slot, reason=reason, **failure_fields(error))
+            peer.close(reason)
         except (asyncio.IncompleteReadError, OSError, asyncio.TimeoutError):
             peer.close("connection ended")
         except Exception as error:
-            self.audit("connection_error", connection=peer.connection, error=repr(error))
+            self.audit("connection_error", connection=peer.connection, **failure_fields(error))
             peer.close("server error; see server log")
         finally:
             if peer.community:

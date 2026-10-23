@@ -33,7 +33,7 @@ SERVER = COMMON + (
     'server/assets.py', 'server/community.py', 'server/community_protocol.py',
     'server/cosmetics.py', 'server/loadout_protocol.py', 'server/public_protocol.py', 'server/public_matchmaking.py',
     'server/configuration.py', 'server/dedicated_server.py', 'server/game_data.py',
-    'server/host.py', 'server/host_audit.py', 'server/native_simulation.py',
+    'server/host.py', 'server/host_audit.py', 'server/diagnostics.py', 'server/native_simulation.py',
     'server/rc_host.py', 'server/New-RCCertificate.ps1',
     'server/state_lock.py', 'server/state_backup.py', 'server/windows_service.py',
     'server/paths.py', 'server/profiles.py', 'server/profile_io.py', 'server/protobuf_wire.py',

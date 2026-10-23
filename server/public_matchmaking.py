@@ -14,6 +14,7 @@ import uuid
 from . import community_protocol as c, public_protocol as q
 from . import loadout_protocol as loadout
 from .community import Rejected, require
+from .diagnostics import failure_fields,validation_reason
 
 
 @dataclass
@@ -103,9 +104,9 @@ class PublicMatchmaking:
                              if kind == loadout.ENTER_LOADOUT else session.cosmetics)
                 await self.community.save_loadout(session, deck, cosmetics)
             except ValueError as error:
-                raise Rejected(str(error)) from error
+                raise Rejected(validation_reason(error,'invalid selection or saved profile')) from error
             except OSError as error:
-                self.server.audit('profile_save_failed', profile=profile, reason=repr(error))
+                self.server.audit('profile_save_failed', profile=profile, **failure_fields(error))
                 raise Rejected('profile save unavailable') from error
             require(not self.busy(profile) and session.lobby is None and not session.practicing and session.peer.room is None,
                     'activity changed while saving public selection')
@@ -237,7 +238,7 @@ class PublicMatchmaking:
                 self.community.publish_presence()
             if not isinstance(error, Exception):
                 raise
-            self.server.audit('public_match_setup_error', match=offer.id, error=repr(error))
+            self.server.audit('public_match_setup_error', match=offer.id, **failure_fields(error))
 
     def match_running(self, room):
         offer = self.offers.get(room.public_match)
