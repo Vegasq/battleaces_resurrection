@@ -2,6 +2,22 @@
 
 ## Requests and answers with Nick
 
+- Symbol143 closes loaded DbgHelp identity/selected4export/caller subtask ONLY.
+  New opt-in nativeAPI scope witness/validator,22checks,real authored Init+Cleanup
+  positivecontrol pass(48rows/job3/0/0/no force). Native newprofile73.965s/outer
+  75.121s Quit0/job1/0/0/no force,2575rows/2421balanced unwinds. DLL Sys32dbghelp
+  SHA6357f697... PEexports/size/prehook16bytes bind;Unity observed2Init+9f87ba,
+  1Cleanup+9f9253,0FromAddr/StackWalk. APIresults UNREAD. All553PDB/172paths remain
+  outside4API/observer emit scopes;producerUNKNOWN. Source Unity9f8440 resolves
+  UNMONITORED SymLoadModule64 intohelper+60 at9f86dc;NEXT that original caller/
+  extent,not another same4hook run. Original GameAssembly stack-string direct
+  chain endsINT29;no shared-stack privacy guard justified. Unity pretermination
+  cleanup callback identities unresolved. Exact/chained source retained,initial
+  partial/leaf/thunk and controlHandleReuse/execNamespace failures preserved.
+  Strict control03/native01/diskProof02/seal90inputs pass;prior141/142seals and
+  choices unchanged. All owned processes terminal/sessionsclosed. No helper,
+  recipe,shipping/manual/Nick action change;fullP2/D5false. docs/symbol-identity143.txt.
+
 - Observer142 adds OPT-IN per-thread emit-time unwind provenance and nested-PC
   fallback,retaining all operations/counters/legacy builders.17focused tests pass.
   Actual authored sensor48rows/32balanced unwinds/child+localhost+cwd controls,

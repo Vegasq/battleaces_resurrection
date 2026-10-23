@@ -1,0 +1,141 @@
+LOADED SYMBOL LIBRARY AND ORIGINAL CALLERS143
+Updated: 2026-10-23. Full P2/D5 remain OPEN.
+
+Result
+The captured game uses C:\Windows\SYSTEM32\dbghelp.dll. Its image size,named export
+RVAs and four pre-hook sixteen-byte entry hashes match the on-disk PE. Observed
+entries bind two SymInitialize calls to UnityPlayer+9f87ba and one SymCleanup call
+to UnityPlayer+9f9253. All three return;API result values are deliberately unread.
+All553PDB rows still emit outside these four selected API scopes and outside
+observer unwind scopes. The PDB initiator remains UNKNOWN. Source identifies an
+unmonitored API,SymLoadModule64,as the next specific witness target.
+No original game API,analytics guard,helper,recipe,normal launcher or package is
+changed. There is no justification to suppress shared symbol/diagnostic code merely
+because it uses DbgHelp. No visible test or Nick action is requested.
+
+Original source,not runtime attribution
+The bounded import inventory covers original UnityPlayer.dll,GameAssembly.dll
+and Battle Aces.exe. Original UnityPlayer SHA:
+ ac144d56d53f07904d52ed27a1539de90bc3290038fe52d73d2f6b268c85d6bc
+Original GameAssembly SHA:
+ e59d08c01479b27404778048d7e13546dbf3771f6b3912744c7c2bdf80c4e758
+Existing LLVM decoder SHA:
+ 5e7a457bf23033b6ec4a959d2276f09d44c024092529684d7eeb687d38da700d
+These are original PE/unwind/static-disassembly findings,not Ghidra or observed
+execution of each path. No provider setup retry/download occurred.
+
+GameAssembly imports SymInitialize/SymFromAddr at555d750/555d758. One exact
+native routine5d6db0..5d6f11 calls both,initializes with current process/NULL/TRUE,
+captures up to128frames and constructs a returned stack string. Its sole qualified
+direct E8/E9 caller6760e0..676166 prints a native-stack/no-stack diagnostic and
+reaches600640. That exact eight-byte leaf is b907000000cd29c3:MOV ECX,7/INT29/RET,
+a hard-failure pattern,inconsistent with ordinary successful Quit0 absent altered
+execution/interception. Direct-call inventory does NOT exclude indirect users or
+alternate entries of the shared stack routine. Returning immediately from that
+routine would also break its returned-string construction/cleanup contract.
+
+The final UnityMain wrapper805460..805486 calls internal803510,then current-process
+and TerminateProcess;its retained return80547e contains no intervening symbol work.
+Earlier cleanup5c5830..5c5bf3 spans SEVEN chained unwind fragments. It dispatches
+enabled registration-record callback+18 at5c5916 with payload+8,then clears the
+enabled flag. Callback identities/reachability are unresolved;this source dispatch
+is not evidence that a particular callback initiated the PDB requests. Initial
+single-fragment dumps remain explicitly partial;complete counterparts are retained.
+The initially named loop-exit-complete dump is actually used in a no-message loop
+branch and is not treated as shutdown-only from its filename.
+
+Unity's complete9f8440..9f88f7 body dynamically loads DbgHelp and resolves symbol
+APIs through GetProcAddress. It stores SymInitialize in helper+58,SymCleanup+20,
+StackWalk64+70 and other entries. The indirect SymInitialize call at9f87b8 returns
+to the EXACT observed9f87ba. Complete9f9200..9f92b1 calls helper+20 at9f9250,
+returning to the observed9f9253 before freeing resources/library. Both original
+bodies match the corresponding installed r141g file bytes. This is selected-body
+file evidence,not a full loaded-image audit.
+Constructor literal1a0b210 is SymLoadModule64;GetProcAddress stores it in helper+60
+at9f86dc. It is outside this four-API probe. Do not repeat a run with the same four
+hooks and claim absence under an unmonitored API.
+
+Ignored static inputs/results
+ local/pdb143-imports01/verification.json
+ local/pdb143-game-symbols01/verification.json
+ local/pdb143-game-callers01/verification.json
+ local/pdb143-unity-symbols01/verification.json
+ local/pdb143-final-source01/verification.json
+ local/pdb143-shutdown-source01/FINDINGS.txt and complete range/fragment reports
+The first literals01 unwind-entry assumption and literals02 import-thunk assumption
+FAILED. The final source pass resolves exact leaf bytes instead of fabricating a
+function boundary or thunk. Failures and initial partial dumps are preserved.
+
+New opt-in observer and validator
+tools/frida_attribution_symbols.py composes142 and legacy SDK/I/O observation.
+Only dbghelp.dll/dbghelp-x86_64.dll and SymInitialize,SymCleanup,SymFromAddr,
+StackWalk64 are selected. Module identity/export-prefix metadata is captured before
+this probe hooks each export. Entry records one direct return address,without an
+observer backtrace. Per-thread native extents balance through onLeave;the first
+eight histories/API are retained while counts continue. No arguments,return values,
+symbol text or payloads are read,and no API is invoked/replaced by the probe.
+The authored positive control,not the observer,explicitly calls a symbol API.
+
+tools/attribution_symbol_metadata.py validates types,identity/order,module history,
+monotonic counters,bounded histories,native LIFO scopes and drained final totals.
+Projection removes only the separately validated nativeSymbols annotation;142's
+validator then handles unwind metadata and original SDK/I/O validators handle their
+unchanged data/sequence. No operations/counters are removed. Native extent is
+observed at EMIT on that thread,not all possible API-entry/causal activity. Callback
+pre-push overhead,hidden/reentrant activity,other threads/modules and unselected
+APIs remain limits. Disk prefix matching does not hash the entire loaded DLL.
+
+Qualification
+22focused checks pass,including generated-JS nested scopes/direct callers,history
+budget/count continuation,bad return/corrupt metadata rejection and SDK composition.
+Positive native control uses a disposable Python process and a distinct valid
+handle to that same process. It calls SymInitialize with an explicit owned search
+directory and invade=false,then SymCleanup and closes the handle. The witness
+observes one entry/return each from libffi-8.dll+4771. Existing local file/network/
+child/cwd controls also pass:48rows/29operations/9anchors,max13ms drift,exit0,
+job3total/0active/0terminated,no force. DLL identity/exports/prefixes match disk.
+This is a real native positive API witness;the nested-scope positive test remains
+an authored JS control,not a claim of native recursive I/O on this run.
+
+New disposable native profile:73.964563s/outer75.120624s,original edit/Back/idle/
+default Quit0,reaped/job1/0/0/no force. Same helper141-07/recipe21.2575provider rows,
+138clock anchors/max10ms drift,1864selected file operations,555resolved cwd records,
+zero unknown roots.553PDB attempts/172paths all outside selected symbol/unwind
+emit scopes. Native entries3/returns3,SymInitialize2/SymCleanup1/SymFromAddr0/
+StackWalk64=0.2421observer unwinds complete.13SDK counts0 across10samples;selected
+network/process-create records0. Those are selected observations,not full wire/
+tree/collection/all-thread/pre-injection/reporting qualification. Original exit's
+two200ms transport holds remain diagnostic;OS completion is separately proven.
+
+Both the actual control and native case load the same on-disk DLL SHA:
+ 6357f697069e90b475f78520f235aae782da79d32a0e70c733168082cb933c25
+File bytes1,986,560;SizeOfImage2,101,248. An independent PE export-table parser binds
+the four captured named RVAs and pre-hook memory-prefix hashes to that file.
+This closes the loaded identity/selected export/caller subtask;not the PDB initiator.
+Both REA sessions are closed;all owned processes are terminal. Prior141/142 sealed
+inputs,accepted141 choices/trace,current139 images,manual130/N7/share remain unchanged.
+
+Failed checker assumptions
+Control review01 required Windows to reuse its earlier closed cwd handle. Extra
+DLL activity changed handle allocation;that reuse is not an OS contract. Corrected
+review03 keeps live PEB provenance,viewsAgree and separately verifies the current
+handle's resolved directory with samefile. Review02 itself failed Python exec
+namespace lookup. Both failures remain. The same actual capture passes review03;
+no target rerun or unknown-root suppression. Native strict review01 passes.
+
+Ignored evidence seals
+Control review03:891e53cb623a2168e9e74584bf96f395b1a819527cb6f5ae2e335d36ee8c703d
+Native review01:5e34e9aa2e52484e50ebcc3e89d3b5f0b1fb776e89b8c99089ad691469b1545a
+Native disk proof02:cd7935197b0ff6c1c2abba1bfaa02a0b8c3a59e33546f0842d6305f568c41a4e
+Final source01:4e485cc32abd2c076361f45ce688af41542f328269985fee12b442db8a692e55
+local/pdb143-seal01.json validates90inputs and prior14174/prior14234seals/choices:
+ b922657e7221219d3b17dda6b0ce82ad992258a0669847b428a2c26fa4cfd966
+REA native:ev_fcabcb280f080241b3f6762ef1d1dfee5272089e991f417364c82f43077b3a6a
+Raw captures,original files/disassembly/system DLL data remain ignored,out of Git.
+
+Next
+Qualify source-identified SymLoadModule64 and its original caller/extent,using the
+same identified DLL and preserving all observations. Reuse the finished identity,
+source and sensor controls;do not replay them unchanged for another quiet count.
+Keep P1-P9,upstream c307c0 and final installed-artifact/privacy gates open. No
+privacy guard of shared diagnostic/stack code is justified by this evidence.

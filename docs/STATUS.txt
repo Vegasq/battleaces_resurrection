@@ -3,6 +3,17 @@ Updated: 2026-10-23
 Delivery plan: REMAINING_DELIVERY_PLAN.txt, Windows only.
 Original roadmap: CLOSED / SUPERSEDED;see PLAN_CLOSEOUT.txt.
 
+SYMBOL143 - LOADED DLL / FOUR EXPORTS / ORIGINAL UNITY CALLERS QUALIFIED
+Sys32dbghelp.dll identity,size,named exportRVAs and prehook16byte hashes match disk.
+Witness observes Unity2SymInitialize+9f87ba/1SymCleanup+9f9253;API results unread.
+Real native positivecontrol and targeted new-profile game case pass,22focused
+checks,natural exits/jobs empty/no force. All553PDB attempts still outside the
+four selected symbol/observer emit scopes;initiator UNKNOWN. Source identifies
+UNMONITORED SymLoadModule64 at helper+60;next targeted caller/extent. Original
+hardfailure stack-string and incomplete cleanup fragments are not global privacy
+guards. No shipping/helper/recipe/manual change. Full P2/D5 remain OPEN.
+Exact source/failures/90input seals: symbol-identity143.txt.
+
 OBSERVER142 - QUALIFIED EMIT-TIME UNWIND SCOPE / PDB INITIATOR STILL OPEN
 New opt-in marker/nested-PC fallback/strict decoder retain every operation/counter;
 17focused checks pass. Actual sensor48rows/32balanced unwinds/job3/0/0;targeted new

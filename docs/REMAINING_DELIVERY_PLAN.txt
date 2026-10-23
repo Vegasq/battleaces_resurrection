@@ -482,6 +482,13 @@ already cut;then supported runtime/final artifacts. Full D5 stays OPEN.
     not startup validation errors. Prior141 inputs/choices preserved. Next loaded
     DbgHelp identity/caller ownership or independent OS/native observation,not
     another unmodified quiet run. Full P2/D5 OPEN;observer-unwind142.txt.
+[x] Symbol143 loaded DbgHelp identity/named four-export prefix/original Unity
+    caller subtask:real positive Init/Cleanup control,native Quit0/jobempty/no force,
+    22focused checks,strict native/control/disk PE proof and90input seals pass.
+    All553PDB remain outside selected4API extents;initiator UNKNOWN. Source now
+    identifies UNMONITORED SymLoadModule64(helper+60);next targeted caller/extent,
+    not a same4hook rerun. Preserve shared hardfailure stack routines;no broad
+    diagnostic privacy guard justified. FullP2/D5OPEN. symbol-identity143.txt.
 [ ] Next:P2's missing collection attribution/installed binding,independent source
     and credible tree/network observation. Apply P1-P9 finite inventory to139 rather
     than repeat quiet constructor/AI/startup controls. Keep whole-startup/all-thread,resumed/

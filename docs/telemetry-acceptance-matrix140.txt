@@ -49,6 +49,10 @@ Finite rows
         with authored/live sensor and one targeted native case. All553PDB attempts
         reproduce OUTSIDE marked unwind scopes;producer remains unknown. Exact
         shutdown timing/limits:observer-unwind142.txt. This does not close P2.
+    [x]143 closes loaded DbgHelp identity/four exported entry prefixes and original
+        Unity Init/Cleanup caller binding,with real positive API control. PDB
+        producer remains UNKNOWN;source-identified SymLoadModule64 is unmonitored.
+        Next that caller/extent. Source/seals: symbol-identity143.txt. P2 stays open.
 [ ] P3 Supported original tutorial
     Relevant collection/reporting,progress and ordinary shutdown for the supported
     original tutorial route. Tutorial2 exploration is separate;DEV N8 is deferred.
