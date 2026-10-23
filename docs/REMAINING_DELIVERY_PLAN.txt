@@ -517,8 +517,20 @@ already cut;then supported runtime/final artifacts. Full D5 stays OPEN.
     still times out. RootQuit0/jobs empty/no force;04retainsWerFault as thirdprocess,
     while03/05miss one short child. Decoder/root gaps remain;no fullP8/D5 claim.
     Exact capture/source failures,seals and unchanged shipping:webview-runtime147.txt.
-[ ] Next:observe genuine browser child95cf0/95dd0 and IPC/failure boundaries with
-    complete short-lived process identities. Do not repeat unchanged root-only
+[x]148 controlled actual browser startup:both wrappers AND actualCEFexports
+    observed,execute-1/initialize1/wrappertrue;IPC loop logs original pipe-open
+    failure and returns. Original log error5/access denied;source binds normal
+    failure logging,not fatalcause.36tests/actual owned held-thread control pass.
+    Exact-access authored pipe denial reproduced without game code. N9 desktop
+    comparison ready;read DEV/report first. RootQuit0/no force/jobs empty,full
+    browsercontrol FAILED and short-child lifetime/decoder gaps remain. No ACL,
+    helper or shipping change;browser-ipc148.txt,113seal/prior147211preserved.
+[ ] Next:observe actual same-run parent named-pipe creation/connection and child
+    open flags/results/error with name equality/digest;then read-only effective
+    owned-handle security/token facts if the same-name server is valid. Review
+    N9 desktop result before asking to repeat;continue other finite gates while
+    it is pending. Retain complete short-lived process identity gate. Do not
+    repeat unchanged root-only
     activation or restore reporters on an unproven causal theory. Independently
     qualify initialization/page/Dispose/task/destruction and effective child cache/
     network/files/exit. Four-dash private cache flag is source-correct,not a native

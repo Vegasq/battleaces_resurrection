@@ -1,0 +1,151 @@
+BROWSER148 - CEF INITIALIZES; ORIGINAL IPC OPEN REPORTS ACCESS DENIED
+Updated:2026-10-23. Named startup boundary qualified in controlled execution.
+Browser control,ordinary launch,whole P8/D5 and full delivery remain OPEN.
+
+Finding
+The genuine browser passes its API-hash wrappers,actually calls cef_execute_process
+and receives-1,then actually calls cef_initialize and receives1. The wrapper
+returns true. The later original IPC routine attempts its pipe open,follows its
+failure-log branch and returns. The retained original log records Win32 error5,
+ERROR_ACCESS_DENIED. This narrows147's opaque initialization timeout to a concrete
+IPC-open failure;it is NOT evidence the privacy guards broke CEF initialization.
+Windows error definition:[Microsoft system error codes](https://learn.microsoft.com/en-us/windows/win32/debug/system-error-codes--0-499-).
+
+An independent authored default-security pipe reproduces error5 in automation
+without any game/CEF code. N9 in DEV.txt provides a verified short desktop probe
+to compare Nick's normal launch context. Its result is pending,not inferred from
+automation. Actual original same-run pipe-name equality/server creation/effective
+security still need observation. Do not change game DACLs,tokens,global policy or
+reporter guards to make this controlled check pass.
+
+New opt-in tools;no helper or shipping change
+tools/frida_webview_gate.py composes147's metadata observer and adds one explicitly
+MUTATING CreateProcessW gate. It requires the expected child-image/cache equality,
+exact Vuplex returnPC1c1d4,module path/original prefix and original flags0,then
+adds CREATE_SUSPENDED4. It records both flags and returned childPID/TID. Foreign
+image/cache/type/caller is untouched;bad prefix/flags and a second gate refuse.
+No ordinary launcher uses this profile. This is controlled replay,NOT passive or
+unmodified process creation. No raw argv,pipe-name/license values are retained.
+
+tools/owned_held_thread.py opens only its own process-query/thread handles for a
+tracked process in the EXISTING owner job. It checks owner liveness,PID/creation
+FILETIME,image/hash/job and threadPID/TID/creation/liveness before one ResumeThread
+attempt. Only prior count1 qualifies. Count0/2/API failure cannot retry. It queries
+the48-byte process-basic structure for a PEB anchor;no target-memory/env read,
+process creation/suspension/termination/global enumeration/privilege change.
+Close only closes its own handles and never implicitly resumes or closes the job.
+Existing job owner retains final cleanup responsibility on every failure.
+
+tools/frida_webview_child.py observes four original browser wrappers/IPC entries
+and three actual libcef exports. Two module paths,export RVAs and ALL selected
+16-byte prefixes are checked before attaching those hooks. Per-name entry/return
+counts and32 bounded exception records retain module/RVA metadata,not arguments,
+register payloads or messages. Exception callbacks return false without changing
+context,so original handling continues;see [Frida API](https://frida.re/docs/javascript-api/).
+This adds controlled exception instrumentation and does not prove pre-loader
+coverage or unchanged exception timing. Existing file/network/process/exit records
+are kept. Wrapper return is distinct from actual exported-API execution.
+
+Source binding
+local/webview148-source01/observer-descriptors02.json supplies seven descriptors,
+SHA0614393eb71553aec3309d03c14e1d6e76ce0ede6086b7d9c2c5a559dfdd4700.
+Original-identical childSHA84cc11157ad97455e545acd02ec7d54872ed712cc963715577f8b3d65ef4018c:
+ -95cf0 execute wrapper,int32;95dd0 initialize wrapper,bool AL.
+ -851e0 IPC-thread startup;84050 actual pipe-open/receive routine.
+Installed libcef exports match original selected full bodies and export tables:
+ -202f20 cef_execute_process,int32.
+ -202ff0 cef_initialize,C API int32 normalized0/1.
+ -205920 cef_api_hash,pointer/null;contents are not read by the observer.
+The wrappers can return early on API-hash mismatch;observing both layers avoids
+mistaking such a return for CEF execution. Both actual layers ran in this capture.
+
+Actual controlled run
+local/webview148-game01:root32652,browser25880,held primaryTID3172. Parent gate
+flags0->4;owner's independent retained process/thread checks and ResumeThread
+prior count1 pass. Both observers are installed before their respective primary
+thread resumes. Attach can execute injected/loader work;pre-loader coverage is
+not claimed. Parent6455 rows,child305 rows;both reported truncated=false.
+Root native125.718s/outer127.176s,original Confirm Quit0/no harness forced cleanup.
+All jobs empty and held handles closed. Full control remains FAILED:managed init
+and stop tasks still time out;no loaded page,Dispose or destroyed-prefab success.
+The helper remains147-04,with actual256x144/enabled/active component in this case.
+
+Child calls/returns are paired:execute wrapper1/API1=-1;initialize wrapper1=true/
+API1=1;api_hash3 nonnull. IPC start1 and receive-loop1 both return. The receive
+thread32264 logs failure and returns within1ms of entry. All selected entry/return
+prefix checks and snapshots have no child observer errors;no bounded overflow.
+Four exception events were observed,including a CEF worker breakpoint. Do not
+classify every exception as fatal or claim its cause from a stack alone.
+
+Source resolves the IPC exception to NORMAL FAILURE LOGGING:
+ child84050:CreateFileA840e2,INVALID_HANDLE_VALUE,GetLastError840fa;
+ non-busy error branch84108->841e2 formats decimal error and shipped failure text;
+ log84248->78cc0->81780->87870->cef_log36c4c0->139d170->139d1f0;
+ actual OutputDebugStringA call139d5b9 returns at observed139d5bf.
+Thus the system exception atKERNELBASE+25369 is debug-output handling on this
+chain,not proof of a fatal crash or the source of pipe denial. Original/current
+eight complete selected bodies and exact import slots match. Retained source:
+local/webview148-failure-source01/{FINDINGS.txt,source-contract.json,manifest.json}.
+
+The same IPC thread's actual row207 records successful nonpending104-byte
+NtWriteFile to owned log-chromium.txt with the failure-log frames. Privately
+preserved original log is776bytes/SHAee06a19b8210faf63f174f2995421fad8316a53cc4a18001f657345a2a5572fa;
+its last104-byte line records pipe error5. Last-line SHA:
+ e7a8323ee23b0247e182347b698b6ab09f4dd2e0e1fd8a3598bc9758dd9086d9.
+There are four historical failure messages,all5;do not bind older lines to earlier
+runs merely from their count. Raw log/captures are ignored and never Git payloads.
+
+Parent source and remaining access proof
+Original/current native plugin wholeSHAf654299829e9d3c65d2fa6af0db13d320b12ac6769566c7fecaa96208e327d89.
+Parent1b630 creates its named pipe at1b6a9 with openMode40000003 (duplex/overlapped),
+pipeMode6,maxInstances255,1MiB buffers,timeout0,lpSecurityAttributes=NULL. This is
+the OS DEFAULT descriptor,NOT a null/world-writable DACL. The same native owner+68
+feeds the pipe creation and argv pipe-name source. Child requests accessc0000000,
+share0,OPEN_EXISTING3,overlapped40000000. Separate anonymous stdout-pipe attributes
+are unrelated to the named pipe. Source does not reveal the effective live DACL,
+token restrictions,mandatory label,or actual same-run name/result. Microsoft's
+[CreateNamedPipeA contract](https://learn.microsoft.com/en-us/windows/win32/api/winbase/nf-winbase-createnamedpipea)
+defines the default-descriptor behavior. Static contracts:
+local/webview148-parent-pipe-source01/FINDINGS.txt and source-contract.json.
+
+Two actual authored probes create default-security pipes successfully but their
+own packaged-Python child receives error5. Control02 uses the exact parent mode,
+instances/buffers and child access flags above;0.084s,child0/job2/0/0/no force,
+server handle closed. This reproduces a permission problem without game code;
+it does not prove the exact original named pipe or token was identical. No ACL
+was broadened. Desktop CMD selfcheck reproduces DENIED with clean exit/cleanup;
+last-selfcheck.json stays separate from Nick's pending last-report.json.
+
+Coverage,qualification and next step
+Child observed0selected network events. It makes three CreateProcessW attempts
+requesting System32/WerFault.exe:two fail,third succeeds withPID19036. This is
+successful requested-image creation metadata,not a retained image hash/lifetime.
+Owner job3/0/0 retains only root+browser:the short third process remains missed,
+so whole-job lifetime qualification FAILS. Parent also retains one decoder error/
+empty relative NtOpenFile root gap. Neither gap is filtered away. Child heartbeats
+stop before OS exit;305 retained rows are not whole child-lifetime completeness.
+No wire/all-thread/descendant-tree/ordinary launch/UI/privacy completion claim.
+
+Next finite metadata test:observe exact parent CreateNamedPipeA returnPC1b6af,
+ConnectNamedPipe completion/pending status,and child CreateFileA returnPC840e8.
+Retain flags/results/errors and a bounded same-run name equality/digest without
+publishing the name. If the same-name server is valid,compare only relevant
+read-only owned-handle security/token facts. Review N9 before asking for any
+desktop retry. Other finite delivery/privacy gates remain active meanwhile.
+
+Validation and preservation
+36 focused tests pass:15 held-thread edge cases,actual Node gate/child callbacks
+and existing metadata/job tests. Actual Win32 held-thread control0.451s proves
+body absent before resume/present after,count1,normal owned exits/no force.
+No CPP/helper/package/installer change this turn. r134g/r141g eight component
+hashes unchanged before/after;manual/share/HTTP candidates not modified.
+Both Frida sessions explicitly closed. Root status exceeded10MiB;complete retained
+33,760,557-byte/28-record bundle supplies exact record without reconstructing a
+CallToolResult envelope. Review01's script-variable shadowing failure is preserved;
+corrected read-only review02 validates6455/305 rows and keeps fullP8/D5false.
+
+local/webview148-seal01.json binds113 inputs,SHA:
+ 52476df8ef50afd58d67a18a30ce15f65f8f0ee08bd317a20fdc238e5313ae1d.
+It rechecks147's211 inputs unchanged and all four new static manifests. Nick's
+mutable desktop report/DEV answers are deliberately excluded. Shipping139 and
+RUNTIME_VALIDATED=false remain unchanged. Goal remains active.

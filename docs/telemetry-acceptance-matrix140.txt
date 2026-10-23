@@ -96,6 +96,14 @@ Finite rows
     CEF handler return/natural exit remains scoped input. Do not invoke original
     independent crash bootstrap merely because a parser exists.
 [ ] P8 Effective game-owned descendants
+    [x]148 controlled actualCEF execute/init subcase:exports observed-1/1,
+        wrappertrue;IPC original failure logging/error5 narrows timeout. Exception
+        in this log path is NOT provenfatal/cause. Authored exact-access pipe
+        also denied inautomation.36tests/Win32heldthread controlpass;fullbrowser
+        control FAILS,rootQuit0/noharnessforce/jobs empty,shortchildunretained.
+        N9 desktoppipe probe ready (not game/reboot);answer/report before retry.
+        Next actual same-run pipe creation/name equality/clientopen/effective
+        owned security facts;no blanketACL/reporterfix. browser-ipc148.txt.
     [x]147 diagnostic implementation/actual original child startup and owned-cache
         argv subcase. FOURdash spelling is original;fixed authored parser only.
         19tests/C++suite/tracker controls pass,not browser acceptance.03/04/05

@@ -2,6 +2,21 @@
 
 ## Requests and answers with Nick
 
+- Browser148 CLOSES controlled execute/init boundary:actualCEFexecute=-1,
+  initialize=1/wrappertrue,then originalIPC failure log/error5 ACCESSDENIED. IPC
+  systemexception is OutputDebugString logging,NOTprovenfatal/cause. DefaultSCNULL
+  parentpipe is OSdefaultdescriptor,NOTnullDACL. Authored exact-access pipeprobe
+  independentlydenied5;NOpermission/guardfixjustifiedyet. Newexplicitchildhold
+  MUTATESflags0->4,validatesownedPID/image/creation/job/thread,Resumeprior1only;
+  two original/CEFprefixsets beforeprimaryresume.36tests/Win32controlpass. Runtime
+  rootQuit0/noharnessforce/jobs empty/bothsessionsclosed;browsercontrolFAILS,
+  shortWerFaultPIDnotretained/rootdecodegap remains.113seal/prior147211unchanged.
+  N9 DEV is READY desktopPIPE-only probe,no game/reboot;readanswer/report BEFORE
+  anyrepeat. last-selfcheck isautomatedDENIED,notNickresult. Next actualsame-name
+  parentcreation/connection+childopen/error/effectivesecurity metadata,otherfinite
+  gates meanwhile. No unchangedrootquietrun/globalACL/reporterrestore/Tutorial2.
+  Shipping/helper unchanged;docs/browser-ipc148.txt. WholeP8/D5/goal OPEN.
+
 - WebView147 driver IMPLEMENTED,NOT qualified:owned original factory actually
   spawns Vuplex;03/05 init60s+stop20s fail,04earlyRectfail. Corrected05 measured
   256x144/enabledactive STILLfails. RootQuit0/noharnessforce/alljobs empty,sessions
