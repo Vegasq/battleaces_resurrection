@@ -3,6 +3,19 @@ Updated: 2026-10-23
 Delivery plan: REMAINING_DELIVERY_PLAN.txt, Windows only.
 Original roadmap: CLOSED / SUPERSEDED;see PLAN_CLOSEOUT.txt.
 
+ROOM FAULT152 - REAL PACKAGED WORKER LOSS/TIMEOUT CONFINED TO ONE ROOM
+Selected D4 server-side control PASS10.630s:two concurrent RC TLS/Custom1v1rooms,
+one deliberate worker termination or primary-thread suspension. Default3s request
+and2s close unchanged. Both victim rooms explicitly abort/resultnull without
+failedframe10/winner,then original RETURN2/same connections start10frame rematch.
+HELLO2/full17slot profile files bytepreserved. Healthy same room/worker advances
+40/99frames,61duringhang;max observed gap<65ms.
+Victim1/other worker0 exits/controller0/job18/0/0,no extra harness cleanup;
+6dupe handlepairsclosed.6ownership/path tests pass;01harnessAuditfailure and
+prior sources retained. Product/packages/manual/N9/N10 unchanged,no new action.
+Full D4 graphical/storage/team-botRPC/other gates remain OPEN. Scope/evidence:
+room-fault-isolation152.txt.
+
 RECOVERY151 - RC NO-INVITE BACKUP / RESTORED CONFIG SCHEMA REPAIR
 Source repairs actual absent-invite-store RC backup and strict restore readback
 failures. RC-only schema3 explicitly separates open TLS from legacy plaintext;

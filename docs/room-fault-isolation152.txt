@@ -1,0 +1,117 @@
+ROOM FAULT152 - PACKAGED NATIVE WORKER LOSS/TIMEOUT ISOLATION
+2026-10-23. Selected D4 server-side two-room subtask COMPLETE.
+Full D4 graphical/storage/failure matrix and D1-D9 delivery remain OPEN.
+
+Outcome
+Two concurrent RC TLS Custom1v1 rooms use the actual packaged native Simulation.dll.
+One selected owned worker is deliberately terminated;in the second case only
+its retained primary thread is suspended before the next STEP. The ordinary
+3second request/2second close policies remain unchanged. These are abrupt process
+loss/unresponsive IPC controls,not a spontaneous native access violation or
+reproduction of a particular internal DLL deadlock.
+
+Current community version2/full17-slot loadouts use original CREATE/INVITE/accept/
+START/READY commands. Both affected Custom peers receive ABORTED with the exact
+match ID/server simulation error;the room records aborted/result:null/next_frame10
+and publishes only frames0..9. No failed frame10 or MATCH_END/winner is published.
+Both original connections receive accepted RETURN acknowledgements,reopen their
+existing lobby and use START/READY for a fresh replacement match/10frames. There
+are only4community connections per case;no reconnect substitutes for Return.
+Saved decks/full17cosmetic profile files stay byte-identical across the fault
+and replacement.
+The unaffected room keeps the same room object and live worker,with continuous
+ordered byte-identical streams independently matched to the host frame audit.
+
+Final Custom control05 PASS10.630s (child10.208s):
+- Termination:abort0.0470s,victim18556 exits1 as injected;healthy21140 and
+  replacement27112 exit0. Healthy room completes40frames,max observed gap64.12ms.
+- Unresponsive primary:default timeout abort3.062s,victim3136 exits1 through
+  production failed-worker disposal;healthy33788 and replacement25936 exit0.
+  Healthy room completes99frames,61during the failure window,max gap63.90ms.
+These measurements describe this local controlled run,not an Internet/input-
+latency/capacity or graphical responsiveness guarantee. The test's stall bound
+is1000ms;the product step remains50ms and input window6.
+
+All six simulation workers are reaped;all six duplicated process/thread handle
+pairs close. Controller exits0,owned job18total/0active/0job-terminated,no extra
+harness cleanup. The two victim exit1 values are expected fault injection/
+supervision,not normal native shutdown. No game executable is launched. Private
+owner data,existing hosts,manual games and pending N7/N9/N10 artifacts are untouched.
+
+Implementation and ownership
+tools/verify_room_faults.py is an explicit diagnostic,not packaged or enabled by
+ordinary launchers. It runs with the actual151server bundled runtime and verified
+119file139asset bundle. Existing Python coordinator/worker IPC/native DLL code is
+unchanged. Production factory calls create genuine workers with synthetic=false,
+matching GameData and Simulation SHA. Actual coordinator and worker module paths/
+hashes bind to the immutable package. Two self-issued in-memory RC identities per
+room use real self-signed TLS with certificate verification disabled,as required
+for RC. Default diagnostic uses Custom;--direct-rooms retains the earlier legacy
+comparison. No invite store,global ACL/token setting or protected storage is
+changed. Scripted Start/Ready uses the real lobby's revision/epoch from its
+authoritative object;this is backend protocol coverage,not proof of Unity UI
+parsing or physical clicks.
+
+During the synchronous original worker Popen call only,the diagnostic observes
+_winapi.CreateProcess's exact returned handles before CPython closes its original
+thread handle. Arguments,flags,returned tuple and original handles are unchanged.
+Only newly returned own-process handles are duplicated:process SYNCHRONIZE|
+QUERY_LIMITED_INFORMATION0x101000;thread QUERY_INFORMATION|SUSPEND_RESUME0x42;
+options0/noninheritable. PID/TID,both creation FILETIMEs,live process and membership
+in that worker's actual job are revalidated before injection. No process/thread
+enumeration,OpenThread by arbitrary PID,remote memory,privilege elevation or
+debugger attachment is used. Termination uses the actual Popen handle.
+
+SuspendThread must report prior count0. If an earlier suspension exists,the
+diagnostic immediately undoes exactly its own increment and refuses the test;
+it never drains someone else's suspension. Failure cleanup resumes only its own
+still-live suspension before closing its duplicates. Output must be a fresh local
+directory outside both package and imported assets. Six focused tests cover
+foreign/dead/synthetic/reused identities,foreign job,failed/prior suspension,
+owned-only resume/close and forbidden output destinations.
+
+Primary API contracts:
+https://learn.microsoft.com/en-us/windows/win32/api/processthreadsapi/nf-processthreadsapi-suspendthread
+https://learn.microsoft.com/en-us/windows/win32/api/handleapi/nf-handleapi-duplicatehandle
+CPython3.14 installed subprocess source confirms CreateProcess returns hp,ht,pid,
+tid and Popen closes ht after retaining hp. The child uses the pinned bundled
+Python3.14.8 runtime;this is not a generic cross-version instrumentation promise.
+
+Evidence and retained attempts
+local/roomfault152-native05/verification.json and crash/hang/result.json contain
+the final exact worker identities,per-peer frame hashes,timings,abort/replacement
+facts and all process exit codes. Request pins the diagnostic source. Package
+manifest and actual asset contents verify after execution as well as before.
+The clean package source remains07d2a7b9e4b1f5ad8fbe3f294768b5b6df584ea9.
+Server archive969f5c0b16eb70166fc0fe3e9ca581eeeb8c4a9f30bc8ecc246419db332d50d7;
+diagnostic source905c87056479188f95c6d5dc4aafbba20b1d8ee00fd16eac6734f459477bc99d.
+
+01 FAILS before worker/listener creation:diagnostic omitted HostAudit's required
+max_bytes/backups arguments. No extra harness cleanup;owned job4/0/0. Fixed with
+the existing host defaults. 02 passes both native controls10.126s. Subsequent
+guard review fixes rollback of an unexpected earlier suspension;five targeted
+ownership tests and03pass10.143s. Final output-tree guard/sixth test and04pass
+follow. Those are legacy direct-room controls.05then exercises current Custom
+invite/start/abort/Return/rematch and full-profile persistence because Custom's
+failure notification differs from legacy peer ERROR/close. Historical sources:
+local/roomfault152-source01.py,source02.py,source03.py,source04.py. Failed01 is
+not relabeled as product startup or fault-isolation success. No unchanged product
+tests are repeated;03/04 qualify the concrete diagnostic safety changes.
+
+Limits/next
+This closes native packaged server-side abrupt-loss/unresponsive-worker isolation
+for two human Custom1v1 rooms,connection-preserving Return/rematch and saved
+profiles. It does not observe Unity
+error pixels/menu recovery,complete a match/results/Continue,prove public-queue
+abort/Return or team/bot RPC failure coverage,or qualify SCM/protected recovery/
+Internet capacity. Existing
+synthetic tests and earlier native team-disconnect proofs keep their stated
+scope. Reuse this subcase;continue the remaining D4/client and D1-D9 gates.
+N9/N10 answers remain pending;read DEV/report before any repeat. No new Nick
+action,helper,recipe,release package,manual/share or original game change.
+Initial reconciliation local/roomfault152-review01.json preserves56direct-room
+inputs. Initial final-review02 fails a Windows slash-key assumption;its source is
+preserved. Corrected review03 adds05and seals83inputs,resolving the old current-
+source reference through exact source04 without changing the first report.
+All276prior151inputs and six
+pending N10 input pins remain unchanged. Full D4 is explicitly false.

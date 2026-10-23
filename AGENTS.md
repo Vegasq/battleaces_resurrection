@@ -2,6 +2,21 @@
 
 ## Requests and answers with Nick
 
+- RoomFault152 CLOSES packaged RC/native 2human Custom1v1 abrupt-loss/unresponsive
+  worker isolation subtask. Real151runtime/119assets/default request3s/close2s,
+  no synthetic backend. Both victims abort/resultnull/frame10unpublished;fresh
+  sameconnection RETURN2/replacement10frames;HELLO2/full17 profiles bytepreserved.
+  Healthy same room/worker advances40/99frames,61duringhang,maxgaps<65ms(control).
+  Victims exit1 as injected/supervised;others0;
+  controller0/job18/0/0/no EXTRA harness cleanup,6dupe process/thread pairsclosed.
+  Diagnostic observes original CP return unchanged,validates PID/TID/FILETIMEs/job;
+  Suspendprior0only,undoownincrement on refusal.6ownership/path tests pass.
+  01missingAuditargsFAIL kept;02-04directpass/exact archives;final05Custom10.630s.
+  DoesNOTclose graphical/error/menu/completedgame/team-botRPC/storage/SCM/D4.
+  NEXT remaining finite D4/D1-D9;reuse scoped152,not unchanged repeat. N9/N10still
+  blank/no publicresults;readDEV/reports first. All owned terminal;no new Nick
+  action/product/helper/package/manual/share change. room-fault-isolation152.txt.
+
 - Recovery151 source FIXES two actual D7 bugs:RC backup attempted absent invite
   store;all restored configs wrote schema1 despite access_mode field. RC-only
   snapshot3 explicitly rc-open/credentialsnull,legacy1/2 unchanged;all6cross-mode

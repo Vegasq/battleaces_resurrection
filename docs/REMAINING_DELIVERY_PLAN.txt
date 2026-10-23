@@ -297,6 +297,15 @@ References: practice-difficulty.txt, menu-profile-binding.txt, cosmetic-unlock.t
 cosmetic-persistence.txt, cosmetic-community.txt and manual35's retained feedback.
 
 [ ] D4 - Close lifecycle, storage, replay and failure coverage
+[x]152 server-side packaged RC/native two-Custom-room worker loss/timeout isolation:
+    deliberate TerminateProcess or retained-primary-thread suspension;default3s/
+    2s policies unchanged. Victim abort/resultnull/no failedframe10,10frame fresh
+    rematch after RETURN2 on SAME connections. HELLO2/full17profiles bytepreserved;
+    healthy same room/worker continues40/99frames,61duringhang.
+    Final control10.630s,victim1/other0 exits,controller0/job18/0/0/no extra harness
+    cleanup.6ownership/path tests pass;failed01/old diagnostic sources retained.
+    This is not graphical client recovery,completed match,team/bot RPC or whole
+    D4 closure. No product/package/manual/Nick action change. room-fault-isolation152.txt.
 Completed subcases (same-PC packaged automated controls; two human clients):
 [x] Partial2v2 running disconnect and same-process replacement (recovery59 03).
 [x] Allied2vAI running disconnect and same-process replacement (recovery59 01).
