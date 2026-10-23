@@ -6,7 +6,7 @@ static void startupRun() noexcept {
     static const bool enabled=ba::flag(L"-telemetry-cache-startup-probe");
     static bool attempted=false;if(!enabled || attempted)return;attempted=true;
     try {
-        require(requested() && checked && !disabled && completeRecipe17 && auditThread==GetCurrentThreadId() &&
+        require(requested() && checked && !disabled && completeRecipe18 && auditThread==GetCurrentThreadId() &&
             ba::flag(L"-native-quit-smoke") && ba_native_settings::session &&
             ba_native_settings::session->profile().compare(0,12,"nativestest_")==0,
             "startup cache probe requires explicit owned complete-recipe diagnostic");

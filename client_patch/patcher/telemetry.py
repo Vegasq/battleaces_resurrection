@@ -1,6 +1,6 @@
 """Exact-build telemetry patch transformations; no file or process operations.
 
-These 111 recipes have static source/control-flow review. The complete recipe
+These 113 recipes have static source/control-flow review. The complete recipe
 set has not been runtime validated; recipe2's 59 had a bounded compatibility run.
 They do not establish complete telemetry removal; see docs/telemetry.txt.
 Only brief patch safety signatures are included, never original game payloads.
@@ -10,7 +10,7 @@ import hashlib
 from types import MappingProxyType
 
 GAME_BUILD = 37822
-RECIPE_VERSION = 17
+RECIPE_VERSION = 18
 RUNTIME_VALIDATED = False
 VALIDATION_STATUS = "Scoped native compatibility verified; full lifecycle/report-removal qualification pending"
 UNRESOLVED_COMPONENTS = (
@@ -148,6 +148,15 @@ COMPONENTS = MappingProxyType({
             # Keep its null-config exception and all prologue/epilogue ownership.
             Patch('Bugsnag cached device identity uses existing disabled branch', 0x83692d, 0x834f2d,
                   bytes.fromhex('0f8475010000488b05be57310683b8e0'), bytes.fromhex('e97601000090')),
+            # Both shared generic ServiceIntegration.Init bodies construct a
+            # genuine DeviceProfile with an empty DeviceId BEFORE this region.
+            # Skip icall resolution/acquisition AND its matching setter;retain
+            # initialization,profile ownership and all later service setup.
+            # Never RET Init or patch public SystemInfo/random initialization.
+            Patch('reference service initialization retains empty device identity', 0x256c9d2, 0x256afd2,
+                  bytes.fromhex('488b0567838f044885c0751c488d0da3'), bytes.fromhex('e93c0000009090')),
+            Patch('fully shared service initialization retains empty device identity', 0x256f1c2, 0x256d7c2,
+                  bytes.fromhex('488b05775b8f044885c0751c488d0db3'), bytes.fromhex('e93c0000009090')),
         ),
     ),
     'UnityPlayer.dll': Component(

@@ -1,7 +1,16 @@
 TELEMETRY PATCH STATUS
 Updated: 2026-10-22
 Supported input: Battle Aces build 37822, Windows x64.
-Recipe version: 17. Guards: 111. Complete-set runtime_validated: false.
+Recipe version: 18. Guards: 113. Complete-set runtime_validated: false.
+
+Current134 adds two ORIGINAL service Init device-ID acquisition bypasses,leaving
+genuine DeviceProfile empty defaults and service/ownership/cleanup intact.
+93Python checks,C++ suite/helper134-02,independent17->18 upgrade and actual AI/
+results/Continue/default Quit0 pass. Loaded/disk service guards2/2 and current18
+validator pass;old reports cannot qualify18. No actual Init invocation/all-mode/
+reporting-absence claim. Full D5 stays OPEN. Scope/failures/hashes:
+telemetry-service-identity134.txt. Source130/r103g and frozen130/N7 untouched;
+r134g is a separate diagnostic fixture,not a new packaged release.
 
 Source128 resolves the previously unknown external query in c33490:typed
 UnityConnectSettings/UnityAnalyticsSettings construction leads to a five-byte

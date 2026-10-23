@@ -1,0 +1,100 @@
+ORIGINAL SERVICE DEVICE-IDENTITY ACQUISITION134
+2026-10-22. Recipe18/113guards. Full D5/runtime_validated remain OPEN/false.
+
+Problem and change
+Two generic Uncapped.ServiceIntegration`3.Init implementations independently
+resolve SystemInfo.GetDeviceUniqueIdentifier() and assign the result into a
+CommonPb.DeviceProfile. They inline the public wrapper,so a direct-CALL search
+to that wrapper finds no callers and misses this collection. Existing Unity
+analytics guards do not change these original service metadata blocks.
+
+Both implementations construct a genuine DeviceProfile BEFORE the query. Its
+original constructor initializes DeviceId atoffset18 to an empty managed string.
+New narrow branches skip icall resolution/query AND the matching set_DeviceId:
+ 256c9d2->256ca13;256f1c2->256f203 (seven bytes each,JMP+two NOPs).
+The default empty ID remains. Init,profile allocation,other service setup,all
+saved registers/cleanup and the public SystemInfo/random APIs remain intact.
+Both destinations overwrite RAX. Full-body direct branch review finds no
+external direct entry into the skipped region after the guard. This is a
+preventive acquisition guard,not evidence those Init variants ran in the test.
+
+Source identity and generic ownership
+Retained CoreModule tokens06000fe7/get_deviceUniqueIdentifier and0600100e/
+GetDeviceUniqueIdentifier alias GameAssembly5096f90. Icall literal56f3c88 is
+exactly UnityEngine.SystemInfo::GetDeviceUniqueIdentifier();cache6e64d40.
+Supported MOV/LEA/FF RIP references find two additional inlined owners.
+
+Pinned generic registration follows pointer indexes168362/168390 at5bca610,
+table rows168785/168817 at5db8ed0,and specs185150/185182 at5864110,to method
+definition9722,Uncapped.ServiceIntegration`3.Init token06001141,public instance
+void. Context2 uses three object arguments;11964 uses two fully shared arguments
+and object. All four Init method specs have two registered native bodies:
+256c430 and256ec20. This is not a dynamic/reflection reachability proof.
+DeviceProfile is type6753,RGame.Generated.dll;ctor39271b0/token06002eab and
+set_DeviceId3927650/token06002eaf. Constructor metadata usage6b2d780 resolves
+an original zero-length literal. Its ctor/setter and public wrapper are unchanged.
+
+REA skill with hash-checked original PE/unwind/LLVM/IL2CPP fallback. Known
+unavailable Ghidra not retried;this is NOT REA decompilation/runtime Evidence.
+Original GameAssembly SHA256:
+ e59d08c01479b27404778048d7e13546dbf3771f6b3912744c7c2bdf80c4e758
+Metadata SHA256:
+ b760be9190309b14174cd272e1f83b730181b299bc7a0cdca66985c69dcdc57d
+Raw inputs/disassembly/scripts stay ignored inlocal/privacy134-managed-identity01.
+
+Qualification
+93 Python checks PASS:62 focused original-image/patch/audit/SDK checks and31
+native-Quit/package regressions. The new original-image test checks both branches,
+the preserved constructor/setter,all other body bytes and shared public wrapper.
+Helper audit verifies BOTH loaded/file service guards and emits2/2. Current18
+validator rejects missing/partial service guards and explicit old-recipe reuse.
+Legacy reports remain supported only with their explicit legacy recipe.
+C++ suite and helper134-02 build PASS;receipt binds current unchanged sources.
+
+Independent r134g copied from coherent installed130 r103g,excluding profiles.
+Owned17->18 upgrade PASS94.649s:dry-run unchanged,idempotence,all four original
+backups,authored profile sentinel and source130 critical programs preserved.
+No real user-profile persistence claim is inferred from that authored sentinel.
+Actual background native AI/result/Continue/default Quit0 PASS101.816s;outer
+102.965s. Original bot supply/orders/movement pass. Eight current18 field
+snapshots include startup/menu/world/results/menu/pre-Quit,loaded service2/2.
+Shared settings,source/program files and source130 remain unchanged. Owned main
+reaped,job1/0/0,no forced cleanup. Background technical check,not visible UI or
+actual Init invocation observation. No original collector/query was invoked to
+manufacture a hit. Final source/installed/native artifact review02 PASS29checks.
+
+Retained failures
+Owner01 metadata review fails stripped start-1/count0. Owner02 excludes zero
+count ranges,records135 modules/two facade lookup errors and no ordinary owner
+matches. Generic registration subsequently establishes the two owners above;
+the ordinary-table miss was not promoted to no callers. Build134-01 fails three
+old completeRecipe17 identifiers in diagnostic probes;never installed. Fresh02
+updates all explicit gates and passes. Final reviewer01 expects an icall literal
+without parentheses and fails;original bytes confirm exact() signature. Reviewer02
+checks that exact signature and passes. Failed scripts/build remain retained.
+
+Artifact identities
+Source evidence manifest:
+ 1ad96ba3a966a607020d7aa156140d66c50d02119ffff161f91c47eefe441f2c
+Source/installed/native reviewer02:
+ 9982dee9bc96a5e09768fc02e7bb276bbb22ab3725bc0aa849f3cc196f48ca75
+local/privacy134-install01/verification.json:
+ 12b3b584de86ff4fa01db3cf7a8cec2b9421e05eb37d4065e4ecab25bbfd0a25
+local/privacy134-native-ai01/verification.json:
+ f973391181408bdcedb4aa70234d8fc5227a89a717062697f1d644dddad9ada3
+local/privacy134-native-ai01/native/verification.json:
+ b9fe0404fb0010d3094fdf69ef5e76d946c7556855ca4e2b152c6c05ff4536b8
+build/helper-privacy134-02/BattleAcesOffline.dll:
+ 11e679f5173f131b174a4c822bb47175e89c77487428288e84ac37f105aca601
+Its helper-build.json:
+ fd8d12b834494f821570956c93769331f1f3ee6b89f2fbf5e1bb57f5d94c48b2
+
+Next and delivery limits
+Review remaining original service/profile/context enrichment and whether it is
+needed for gameplay. Keep the independent c307c0 advertising-producer question
+and source/runtime/mode/error/reporting/descendant/final-artifact gates OPEN.
+Do not globally disable SystemInfo/random initialization or RET service Init.
+No new package/installer or Nick action. Frozen130/N7 and coherent r103g remain
+unchanged. r134g has recipe18/helper134-02 plus cached runtime130:an owned
+DIAGNOSTIC fixture,not a newly qualified game-folder launcher/release package.
+All owned build/copy/install/game jobs are terminal;no game left running.

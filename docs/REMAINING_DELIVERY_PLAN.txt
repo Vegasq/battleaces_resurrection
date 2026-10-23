@@ -398,9 +398,17 @@ already cut;then supported runtime/final artifacts. Full D5 stays OPEN.
     Second seed owner is particle-related(inference).70static checks/14full
     roots and installed130 preservation pass. Keep shared query/random init;
     no duplicate/global guard/game run. Details:telemetry-identity-consumers133.txt.
-[ ] Next source:classify managed GameAssembly SystemInfo identity callers;
-    retain separate c307c0 upstream producer gate. Indirect/computed calls and
-    broader runtime/reporting gates remain open;full D5 stays false.
+[x] Review134 maps managed aliases/inlined generic service Init calls and adds
+    two acquisition+setter bypasses retaining genuine DeviceProfile empty ID.
+    Recipe18/113guards;93Python checks/C++ suite/helper134-02,independent17->18
+    upgrade94.649s and actual AI/results/Continue/default Quit0 PASS101.816s,
+    loaded2/2/eight samples/job1/0/0/no force. Source130/program/shared preserved.
+    No actual Init invocation/visible/all-mode claim. Failure corrections,
+    reviewer02/29checks and hashes:telemetry-service-identity134.txt. No new
+    installer/Nick action;130/N7 and coherent r103g unchanged,r134g diagnostic.
+[ ] Next source:review remaining original service/profile/context enrichment
+    and gameplay need;retain separate c307c0 upstream producer gate. Indirect/
+    computed calls and broader runtime/reporting gates remain open;D5 stays false.
 S1 CLOSED BY126:all FIVE safe interior SDK guards,with genuine matched/unmatched
 pending-owner cleanup and disabled-ID qualification.125 found failed/cache
 handlers can enumerate/prune AFTER WriteFile RET;do not entry-RET those handlers

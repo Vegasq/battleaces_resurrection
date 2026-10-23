@@ -2,6 +2,22 @@
 
 ## Requests and answers with Nick
 
+- Privacy134 recipe18/113 guards:two generic ServiceIntegration.Init bodies
+  inline public device-ID query despite no wrapper CALLs. Actual generic map
+  definition9722/token06001141 ->256c430/256ec20;ctorDeviceProfile39271b0 sets
+  genuine empty ID. Branch256c9d2->256ca13 and256f1c2->256f203 skip query+setter
+  only,preserve Init/ctor/shared public API/random/state/cleanup.93Python checks/
+  C++ suite/helper134-02 pass. Separate r134g17->18 update94.649s,authored sentinel/
+  backups/source130 preserved. Actual background AI/results/Continue/default
+  Quit0 PASS101.816s,outer102.965s,loaded2/2/eight samples/job1/0/0/no force.
+  Source/program/shared unchanged. Reviewer02 exact() literal passes29checks;
+  first verifier literal mismatch and first build3old17-gate references retained.
+  No actual Init invocation/visible/all-mode/full D5 claim. Current r103g/frozen
+  130/N7 unchanged;r134g18/helper134-02,cached130 is diagnostic only. Next remaining
+  original service/context collection,c307c0 producer/runtime/final gates. No
+  new Nick action/package or unchanged quiet rerun. All owned jobs terminal.
+  Evidence/source/failure scopes:docs/telemetry-service-identity134.txt.
+
 - Source133 CLOSES132's finite two-route classification:actual fd2420 reader
   pairs core function18c8e40/name18cfac0,count3471,index2402 ->10e270 public
   SystemInfo.GetDeviceUniqueIdentifier. Candidate contiguous index2406 was NOT

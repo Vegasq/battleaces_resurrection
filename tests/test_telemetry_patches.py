@@ -99,8 +99,8 @@ class TelemetryPatchSafetyTests(unittest.TestCase):
 
     def test_only_reviewed_recipes_are_present(self):
         self.assertFalse(RUNTIME_VALIDATED)
-        self.assertEqual(RECIPE_VERSION, 17)
-        self.assertEqual(len(COMPONENTS["GameAssembly.dll"].patches), 47)
+        self.assertEqual(RECIPE_VERSION, 18)
+        self.assertEqual(len(COMPONENTS["GameAssembly.dll"].patches), 49)
         self.assertEqual({p.rva for p in COMPONENTS["UnityPlayer.dll"].patches},
                          {0xC34270, 0xC3BAFC, 0xC478F5, 0xC90C2A, 0x80366F, 0xC93D10, 0xD84EC6, 0xD84E3E,
                           0x292110, 0xC8C5F3, 0xC66C20, 0xC2F570, 0xC333DA,
@@ -223,6 +223,32 @@ class TelemetryPatchSafetyTests(unittest.TestCase):
 @unittest.skipUnless(os.environ.get("BA_TELEMETRY_ORIGINAL_DIR"),
                      "Set BA_TELEMETRY_ORIGINAL_DIR for optional local originals; no runtime test")
 class TelemetryOriginalTests(unittest.TestCase):
+    def test_service_identity_skips_query_and_setter_but_preserves_constructed_profile(self):
+        from tools.extract_descriptors import PE
+        original=(Path(os.environ['BA_TELEMETRY_ORIGINAL_DIR'])/'GameAssembly.dll').read_bytes()
+        pe=PE(original);patched=patch_component('GameAssembly.dll',original)
+        patches={p.rva:p for p in COMPONENTS['GameAssembly.dll'].patches}
+        for root,site,ctor,setter,dest in (
+                (0x256c430,0x256c9d2,0x256c9cd,0x256ca0e,0x256ca13),
+                (0x256ec20,0x256f1c2,0x256f1bd,0x256f1fe,0x256f203)):
+            patch=patches[site];offset=pe.offset(pe.base+site)
+            self.assertEqual(patch.offset,offset)
+            self.assertEqual(site+5+struct.unpack_from('<i',patch.replacement,1)[0],dest)
+            self.assertEqual(patch.replacement[5:],b'\x90\x90')
+            for at,target in ((ctor,0x39271b0),(setter,0x3927650)):
+                start=pe.offset(pe.base+at)
+                self.assertEqual(original[start],0xe8)
+                self.assertEqual(at+5+struct.unpack_from('<i',original,start+1)[0],target)
+            self.assertEqual(ctor+5,site)
+            self.assertEqual(setter+5,dest)
+            start=pe.offset(pe.base+root);end=start+pe.function_ends[pe.base+root]-(pe.base+root)
+            self.assertEqual(patched[start:offset],original[start:offset])
+            self.assertEqual(patched[offset+7:end],original[offset+7:end])
+        # Public API,profile allocation/defaults,and setter lifetime stay shared.
+        for root in (0x5096f90,0x39271b0,0x3927650):
+            start=pe.offset(pe.base+root);end=start+pe.function_ends[pe.base+root]-(pe.base+root)
+            self.assertEqual(patched[start:end],original[start:end])
+
     def test_local_originals_and_unrelated_bytes(self):
         directory = Path(os.environ["BA_TELEMETRY_ORIGINAL_DIR"])
         for name, component in COMPONENTS.items():

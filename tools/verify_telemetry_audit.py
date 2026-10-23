@@ -1,4 +1,4 @@
-"""Check exact recipe3/4/5/6/7/8/9/10/11/12/13/14/15/16/17 native-field samples and ordered lifecycle coverage.
+"""Check exact recipe3 through18 native-field samples and ordered lifecycle coverage.
 
 This verifies the bounded read-only helper log, not collection/network absence.
 No game files or processes are accessed. Original log lines are never emitted.
@@ -25,7 +25,7 @@ FIELDS = {
 LINE = re.compile(r'^\[(\d+)\] Telemetry audit (.*)$')
 BUILD = re.compile(r'build verified: UnityPlayer sha256=([0-9a-f]{64}) '
                    r'normalized=([0-9a-f]{64}) crashSignatures=(\d+)/3 '
-                   r'coreCandidateSignatures=(\d+)/(12|14|15|16|18|21|25|27|28|31|40|48|53|56) performanceCandidateSignatures=(\d+)/3(?: cacheFailureSignatures=(\d+)/5)?; '
+                   r'coreCandidateSignatures=(\d+)/(12|14|15|16|18|21|25|27|28|31|40|48|53|56) performanceCandidateSignatures=(\d+)/3(?: cacheFailureSignatures=(\d+)/5)?(?: serviceIdentitySignatures=(\d+)/2)?; '
                    r'READ ONLY, no qualification claim')
 BEGIN = re.compile(r'(\d+)/17 stage=([a-z-]+) retained main=(\d+) session=(\d+) '
                    r'performance=(\d+) callbackHooks main=(\d+) performance=(\d+)')
@@ -38,9 +38,9 @@ def verify_lines(lines, *, expected_sha256, required_stages=DEFAULT_STAGES,recip
     """Fail on missing, partial, unavailable, changed or out-of-order evidence."""
     if not re.fullmatch('[0-9a-f]{64}', expected_sha256):
         raise ValueError('Expected UnityPlayer SHA256 must be 64 lowercase hexadecimal digits.')
-    if type(recipe_version) is not int or recipe_version not in (3,4,5,6,7,8,9,10,11,12,13,14,15,16,17):
-        raise ValueError('Only explicit telemetry recipes3/4/5/6/7/8/9/10/11/12/13/14/15/16/17 are supported.')
-    core_guards={3:12,4:14,5:15,6:16,7:18,8:21,9:25,10:27,11:28,12:31,13:40,14:48,15:53,16:53,17:56}[recipe_version]
+    if type(recipe_version) is not int or recipe_version not in (3,4,5,6,7,8,9,10,11,12,13,14,15,16,17,18):
+        raise ValueError('Only explicit telemetry recipes3 through18 are supported.')
+    core_guards={3:12,4:14,5:15,6:16,7:18,8:21,9:25,10:27,11:28,12:31,13:40,14:48,15:53,16:53,17:56,18:56}[recipe_version]
     required_stages = tuple(required_stages)
     if (not required_stages or len(required_stages) > 17
             or required_stages[0] != 'startup-after-engine-init'
@@ -80,7 +80,8 @@ def verify_lines(lines, *, expected_sha256, required_stages=DEFAULT_STAGES,recip
             if (match[1] != expected_sha256
                     or match[2] != COMPONENTS['UnityPlayer.dll'].original_sha256
                     or match.groups()[2:6] != ('3', str(core_guards),str(core_guards), '3') or
-                    match[7] != ('5' if recipe_version>=16 else None)):
+                    match[7] != ('5' if recipe_version>=16 else None) or
+                    match[8] != ('2' if recipe_version>=18 else None)):
                 fail('unsupported_or_partial_build', number)
         elif match := BEGIN.fullmatch(body):
             if active is not None:
@@ -143,7 +144,7 @@ def main():
     parser = argparse.ArgumentParser(description=__doc__)
     parser.add_argument('--log', type=Path, required=True, help='One client process log from a fresh run.')
     parser.add_argument('--expected-unity-sha256', required=True, help='Installed UnityPlayer hash from that run manifest.')
-    parser.add_argument('--recipe-version',type=int,choices=(3,4,5,6,7,8,9,10,11,12,13,14,15,16,17),default=RECIPE_VERSION,help='older reports require explicit older recipe; never qualify current guards from legacy samples')
+    parser.add_argument('--recipe-version',type=int,choices=tuple(range(3,19)),default=RECIPE_VERSION,help='older reports require explicit older recipe; never qualify current guards from legacy samples')
     parser.add_argument('--stages', nargs='+', choices=sorted(STAGES), default=DEFAULT_STAGES)
     parser.add_argument('--output', type=Path, help='Optional new JSON report; existing files are never overwritten.')
     args = parser.parse_args()
