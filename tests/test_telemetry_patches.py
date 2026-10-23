@@ -99,8 +99,8 @@ class TelemetryPatchSafetyTests(unittest.TestCase):
 
     def test_only_reviewed_recipes_are_present(self):
         self.assertFalse(RUNTIME_VALIDATED)
-        self.assertEqual(RECIPE_VERSION, 19)
-        self.assertEqual(len(COMPONENTS["GameAssembly.dll"].patches), 49)
+        self.assertEqual(RECIPE_VERSION, 20)
+        self.assertEqual(len(COMPONENTS["GameAssembly.dll"].patches), 50)
         self.assertEqual({p.rva for p in COMPONENTS["UnityPlayer.dll"].patches},
                          {0xC34270, 0xC3BAFC, 0xC478F5, 0xC90C2A, 0x80366F, 0xC93D10, 0xD84EC6, 0xD84E3E,
                           0x292110, 0xC8C5F3, 0xC66C20, 0xC2F570, 0xC333DA,

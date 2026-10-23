@@ -2,6 +2,24 @@
 
 ## Requests and answers with Nick
 
+- Privacy137 recipe20/114 adds analytics-only static void SetDefaultData80fb20
+  entry RET before borrowed INativeClient/metadata/device queries. Exact IL2CPP
+  token0600005a;ctor812690 calls812ffb. Shared APIs/constructors remain original.
+  Auditor loaded/file collector1/1 plus explicit20 now mandatory;actual13502
+  log explicit19 passes/default20 rejects.65Python checks/C++ suite/helper137-01,
+  15source checks and18runtime review pass. Actual19->20 r134g update44.566s
+  preserves16profiles/backups/source130. Native13701 PASS217.357s/outer218.496s,
+  47correlated bot entities/95actions/supply136/results/Continue/default Quit0,
+  eight samples/job1/0/0/no force,source/program/shared unchanged. NOT operational
+  Client/original collector invocation/visible/full D5. r134g now20/helper137-01,
+  cached130 diagnostic only;r103g/frozen130/N7 unchanged,no new action/package.
+  Next real Client ctor needs genuine INativeClient,NOT raw Config. Type20020
+  NativeClient ctor834b50..834ea6 creates payload/Application callback;not yet
+  source-safe. Review its config/lifetime and remaining Client InitUserObject/
+  interceptor/Unity callbacks before operational isolated-root report test.
+  Keep producer/other modes/error/descendant/final gates;no quiet equivalent run.
+  Scopes/seals:docs/telemetry-default-collector137.txt. All owned jobs terminal.
+
 - Source136 closes only finite adjacent-interface alias review:Main14a0 is
   published to1d0ca50;8methods and10named consumers forward events/privacy flag,
   no reviewed dispatch forms1498. Six full methods+ctor/query and4exact leaves,

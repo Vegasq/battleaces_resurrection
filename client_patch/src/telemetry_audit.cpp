@@ -88,7 +88,7 @@ static const Signature signatures[]={
     {0x205430,0x204830,"4885c90f840f010000574883ec30488b","",3},
 };
 static uintptr_t unity=0;
-static constexpr unsigned currentRecipeVersion=19;
+static constexpr unsigned currentRecipeVersion=20;
 static bool checked=false,disabled=false,startupLogged=false,quitAttempted=false,completeRecipe=false;
 static unsigned snapshots=0;
 static ba_telemetry_sampling::Schedule schedule;
@@ -154,6 +154,12 @@ static unsigned serviceProfileGuardCount() {
     };
     return gameGuardCount(guards);
 }
+static unsigned automaticCollectorGuardCount() {
+    static const Signature guards[]={
+        {0x80fb20,0x80e120,"4055534156488d6c24b94881ece00000","c3",0},
+    };
+    return gameGuardCount(guards);
+}
 static bool verifyModule() {
     if(checked)return !disabled;
     checked=true;disabled=true;
@@ -196,10 +202,11 @@ static bool verifyModule() {
         if(digest(bytes)!=originalHash)throw std::runtime_error("unsupported UnityPlayer normalized SHA256");
         const auto cacheGuards=cacheFailureGuardCount();
         const auto serviceGuards=serviceProfileGuardCount();
-        completeRecipe=groups[0]==3 && groups[1]==56 && groups[2]==3 && cacheGuards==5 && serviceGuards==2;
+        const auto collectorGuards=automaticCollectorGuardCount();
+        completeRecipe=groups[0]==3 && groups[1]==56 && groups[2]==3 && cacheGuards==5 && serviceGuards==2 && collectorGuards==1;
         disabled=false;
-        ba::log("Telemetry audit build verified: UnityPlayer sha256=%s normalized=%s crashSignatures=%u/3 coreCandidateSignatures=%u/56 performanceCandidateSignatures=%u/3 cacheFailureSignatures=%u/5 serviceProfileSignatures=%u/2 recipeVersion=%u; READ ONLY, no qualification claim",
-            actualHash.c_str(),originalHash,groups[0],groups[1],groups[2],cacheGuards,serviceGuards,currentRecipeVersion);
+        ba::log("Telemetry audit build verified: UnityPlayer sha256=%s normalized=%s crashSignatures=%u/3 coreCandidateSignatures=%u/56 performanceCandidateSignatures=%u/3 cacheFailureSignatures=%u/5 serviceProfileSignatures=%u/2 recipeVersion=%u automaticCollectorSignatures=%u/1; READ ONLY, no qualification claim",
+            actualHash.c_str(),originalHash,groups[0],groups[1],groups[2],cacheGuards,serviceGuards,currentRecipeVersion,collectorGuards);
     } catch(const std::exception& e) {ba::log("Telemetry audit disabled: %s; no object reads attempted",e.what());}
     return !disabled;
 }

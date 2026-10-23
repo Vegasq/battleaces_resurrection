@@ -1,7 +1,19 @@
 TELEMETRY PATCH STATUS
 Updated: 2026-10-22
 Supported input: Battle Aces build 37822, Windows x64.
-Recipe version: 19. Guards: 113. Complete-set runtime_validated: false.
+Recipe version: 20. Guards: 114. Complete-set runtime_validated: false.
+
+Current137 cuts static void AutomaticDataCollector.SetDefaultData80fb20 before
+device/metadata queries;constructors/shared APIs stay original.65Python checks/
+C++ suite/helper137-01,15source/18runtime checks pass. Actual19->20 update44.566s
+preserves16profiles/backups/source130;native AI/results/Continue/default Quit0
+PASS217.357s,47correlated bot entities/95actions,eight current20 samples with
+collector1/1/profile2/2/cache5/5,job1/0/0/no force/source/program/shared unchanged.
+Actual19 logs require explicit19 and reject default20. Not operational Client/
+collector invocation/visible/full D5. r134g now20/helper137 diagnostic only;
+r103g/frozen130/N7 unchanged,no new action/package. Next genuine INativeClient/
+remaining SDK constructor lifetimes before isolated operational report test.
+Full scopes/seals:telemetry-default-collector137.txt.
 
 Current135 extends the same two service guards past device type/model collection,
 retaining empty DeviceProfile strings and version/locale/service lifecycle.

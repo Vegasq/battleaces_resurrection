@@ -1,0 +1,93 @@
+SDK DEFAULT DATA COLLECTOR137
+2026-10-22. Recipe20/114 guards. Full D5 OPEN;RUNTIME_VALIDATED=false.
+
+Change
+Disable BugsnagUnity.AutomaticDataCollector.SetDefaultData before its first
+instruction acquires any local owner or queries Unity information. This closes
+one actual residual collection entry found while preparing the operational
+cached-delivery test. It does not close that operational test or all reporting.
+The SDK Client constructor and shared Unity device APIs remain original.
+
+Source and ABI
+Pinned original PE/IL2CPP/LLVM review,not REA Ghidra decompilation or target query.
+GameAssembly e59d08c01479b27404778048d7e13546dbf3771f6b3912744c7c2bdf80c4e758.
+Metadata b760be9190309b14174cd272e1f83b730181b299bc7a0cdca66985c69dcdc57d.
+Complete original collector80fb20..810397 is2167bytes. Actual native module
+BugsnagUnity.Windows.dll maps token0600005a to this static void method with
+one INativeClient parameter. RCX is borrowed interface,RDX hidden MethodInfo;
+no returned object/status/output buffer,transferred owner or completion owed.
+The body synchronously builds/formats metadata and calls its metadata interface.
+It gathers company/product,screen DPI/resolution,graphics version/memory/shader,
+processor type and system language. Exact icall strings and complete code are
+retained locally. No original query was invoked to discover actual device data.
+
+Client812690 calls it at812ffb. Existing Start/AutoInit/delivery guards do not
+cover direct use of this collector or every constructor/indirect entry. Guard
+at80fb20/file80e120 replaces only the first byte with RET,before PUSH/frame/
+temporary allocation/input access. No caller ownership has been acquired;the
+disabled metadata is intentionally absent. Returning from a constructor instead
+would leave required fields uninitialized and is not the implemented change.
+
+Recipe19->20 telemetry transformation changes exactly one collector byte.
+Other constructors,InitUserObject8141f0,interceptor812480,shared SystemInfo APIs
+and all other recipe19 bytes remain intact. Total50GameAssembly+62Unity+2CEF=114.
+The native read-only auditor now requires loaded/file collector1/1 in addition
+to service-profile2/2,cache5/5 and existing Unity groups. Its log explicitly says
+recipeVersion20. The verifier requires that tag and new group. Actual retained
+13502 recipe19 log still passes explicit19 and rejects default20;historical
+evidence remains available without being promoted to current qualification.
+
+Validation
+65affected Python checks PASS:59telemetry/audit/native-Quit1.644s plus6patcher
+0.002s,original input fixtures enabled,no skips. Required C++ suite/helper137-01
+build passes.15source mapping/body/ABI/one-byte/preservation/actual legacy-log
+checks and18actual install/native artifact-review checks pass.
+
+Owned r134g19->20 upgrade PASS44.5657867s:dry-run writes nothing,preview matches
+installation,idempotent,16existing native profile files/four original backups/
+coherent source130 preserved. Installed GameAssembly SHA256:
+4f5acc4f8e50185d871b990485e4e3c509d67961f70aa8f829a66d51b2643a01.
+Helper137-01 SHA256:
+72fbc08f0b21dce61de5beb018252e0453f98443d2759e3d1ed80bf7133d6ee1.
+r134g remains a mixed diagnostic fixture with cached runtime130,not a qualified
+new normal CMD/release package. Coherent r103g/frozen130/N7 remain untouched.
+
+Actual background native13701 PASS217.3571188s,outer218.4958609s. AI supply136,
+95autonomous actions,47produced bot entities with correlated orders+position
+changes;original results/Continue/menu/default normal Quit0. Eight current20
+snapshots include loaded/file collector1/1/profile2/2/cache5/5. Job1/0/0,process
+reaped,no force;program/shared/source seals unchanged during the run. This is
+technical compatibility and loaded-guard evidence,not physical visibility,
+actual original collector invocation or operational Client/report delivery.
+
+Evidence (ignored local files;SHA256)
+local/privacy137-client-source01/evidence-manifest.json
+ 4c00184e78823a1a7d627e319ca033587eac8834b992be5ad3b9ffddd5f63a16
+verification.json
+ b0669bfb3ee2fbf873a79ddb9f73e2a857bf65339a5e233341c6bff31c63c9fb
+runtime-verification.json
+ f004be721d84bdad99c2bc6bf3b741341759d47efe2f04e91c4f2878681134bb
+collector-contract.json
+ 6c66851728bb98bb70241609513f07a65d067d456386c8612338ecbea6ff68af
+local/privacy137-install01/verification.json
+ 6012e5a0c7053c028a829ca0162c3a7733066a1505463e1c5b9574e8715a987c
+local/privacy137-native-ai01/verification.json
+ 7aca7e5b9ddf71a97a0fea1a53c189c945e1dd4e69aa27f140b55ae7fcafd0c8
+local/privacy137-native-ai01/native/verification.json
+ 6892660f2d9891648cead24aadaec2fce5f575e7b32a30574bf93ddca5c3b954
+build/helper-privacy137-01/helper-build.json
+ ada2b7291442bb30727aa79330acaa392299a0846946f8ebbcc1aab92342dbc3
+Initial metadata script failed on wrong data-folder spelling before output;
+corrected to 'Battle Aces_Data' and pinned hashes. Original captures remain intact.
+
+Next
+The real SDK Client ctor takes INativeClient,not raw Configuration. Its actual
+NativeClient implementation type20020/ctor834b50..834ea6 builds payload state
+and registers an Application callback. That constructor is mapped,not qualified
+source-safe. Client812690 still has identity/interceptor/GameObject and scene/
+log/webrequest callback work. Review genuine configuration and lifetime before
+an operational fixture;do not fabricate an interface or call original collectors
+to test their removal. Reuse early isolated SDK-root technique for owned seeded
+reports;never read/clear the shared queue. Operational/resumed/in-flight delivery,
+upstream ads producer,other modes/error/descendant/final gates remain OPEN.
+No new installer or Nick action;all owned build/install/game processes terminal.

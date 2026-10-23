@@ -10,7 +10,7 @@ import hashlib
 from types import MappingProxyType
 
 GAME_BUILD = 37822
-RECIPE_VERSION = 19
+RECIPE_VERSION = 20
 RUNTIME_VALIDATED = False
 VALIDATION_STATUS = "Scoped native compatibility verified; full lifecycle/report-removal qualification pending"
 UNRESOLVED_COMPONENTS = (
@@ -93,6 +93,11 @@ COMPONENTS = MappingProxyType({
                   bytes.fromhex('48895c2410488974241848894c240857'), bytes.fromhex('c3')),
             Patch('Uncapped.FrontServerIntegration::SendBIClientDeckModifiedTelemetry', 0x3e33a90, 0x3e32090,
                   bytes.fromhex('488bc448895810488970184889480857'), bytes.fromhex('c3')),
+            # Static void analytics-only collector. Borrowed INativeClient is
+            # not read/retained and no local owner/callback exists before entry.
+            # Keep the original Client ctor and shared Unity device APIs intact.
+            Patch('BugsnagUnity.AutomaticDataCollector::SetDefaultData', 0x80fb20, 0x80e120,
+                  bytes.fromhex('4055534156488d6c24b94881ece00000'), bytes.fromhex('c3')),
             Patch('BugsnagUnity.Bugsnag::Start', 0x810660, 0x80ec60,
                   bytes.fromhex('48895c2408574883ec20803d8d846306'), bytes.fromhex('c3')),
             Patch('BugsnagUnity.Bugsnag::Start', 0x8106f0, 0x80ecf0,

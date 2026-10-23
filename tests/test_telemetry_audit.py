@@ -9,10 +9,10 @@ ORIGINAL = 'ac144d56d53f07904d52ed27a1539de90bc3290038fe52d73d2f6b268c85d6bc'
 
 
 def fixture(stages=DEFAULT_STAGES,*,recipe_version=RECIPE_VERSION):
-    core={3:12,4:14,5:15,6:16,7:18,8:21,9:25,10:27,11:28,12:31,13:40,14:48,15:53,16:53,17:56,18:56,19:56}[recipe_version]
+    core={3:12,4:14,5:15,6:16,7:18,8:21,9:25,10:27,11:28,12:31,13:40,14:48,15:53,16:53,17:56,18:56,19:56,20:56}[recipe_version]
     lines = [f'[100] Telemetry audit build verified: UnityPlayer sha256={SHA} '
              f'normalized={ORIGINAL} crashSignatures=3/3 coreCandidateSignatures={core}/{core} '
-             f'performanceCandidateSignatures=3/3'+(' cacheFailureSignatures=5/5' if recipe_version>=16 else '')+(' serviceIdentitySignatures=2/2' if recipe_version==18 else '')+(f' serviceProfileSignatures=2/2 recipeVersion={recipe_version}' if recipe_version>=19 else '')+'; READ ONLY, no qualification claim']
+             f'performanceCandidateSignatures=3/3'+(' cacheFailureSignatures=5/5' if recipe_version>=16 else '')+(' serviceIdentitySignatures=2/2' if recipe_version==18 else '')+(f' serviceProfileSignatures=2/2 recipeVersion={recipe_version}' if recipe_version>=19 else '')+(' automaticCollectorSignatures=1/1' if recipe_version>=20 else '')+'; READ ONLY, no qualification claim']
     for sequence, stage in enumerate(stages, 1):
         prefix = f'[{100 + sequence}] Telemetry audit {sequence}'
         lines.extend([
@@ -28,13 +28,13 @@ def fixture(stages=DEFAULT_STAGES,*,recipe_version=RECIPE_VERSION):
 
 class TelemetryAuditTests(unittest.TestCase):
     def test_legacy_samples_require_explicit_legacy_recipe_and_never_validate_current(self):
-        for version in range(3,19):
+        for version in range(3,20):
             old=fixture(recipe_version=version)
             self.assertFalse(verify_lines(old,expected_sha256=SHA)['passed'])
             result=verify_lines(old,expected_sha256=SHA,recipe_version=version)
             self.assertTrue(result['passed']);self.assertEqual(result['recipe_version'],version)
             self.assertFalse(verify_lines(fixture(),expected_sha256=SHA,recipe_version=version)['passed'])
-        for version in (True,2,20,'4'):
+        for version in (True,2,21,'4'):
             with self.subTest(version=version),self.assertRaises(ValueError):
                 verify_lines(fixture(),expected_sha256=SHA,recipe_version=version)
 
@@ -47,9 +47,20 @@ class TelemetryAuditTests(unittest.TestCase):
 
     def test_current_requires_exact_recipe_tag_even_with_same_guard_counts(self):
         lines=fixture()
-        for value in ('',' recipeVersion=18',' recipeVersion=20'):
-            changed=[lines[0].replace(' recipeVersion=19',value),*lines[1:]]
+        for value in ('',' recipeVersion=18',' recipeVersion=19',' recipeVersion=21'):
+            changed=[lines[0].replace(f' recipeVersion={RECIPE_VERSION}',value),*lines[1:]]
             self.assertFalse(self.check(changed)['passed'])
+
+    def test_current_requires_automatic_collector_guard_and_legacy19_is_explicit(self):
+        lines=fixture()
+        for value in ('',' automaticCollectorSignatures=0/1',
+                      ' automaticCollectorSignatures=1/2',
+                      ' automaticCollectorSignatures=1/1 automaticCollectorSignatures=1/1'):
+            changed=[lines[0].replace(' automaticCollectorSignatures=1/1',value),*lines[1:]]
+            self.assertFalse(self.check(changed)['passed'])
+        old=fixture(recipe_version=19)
+        self.assertTrue(verify_lines(old,expected_sha256=SHA,recipe_version=19)['passed'])
+        self.assertFalse(self.check(old)['passed'])
 
     def test_pre_quit_must_be_a_single_final_snapshot(self):
         path=DEFAULT_STAGES+('pre-quit-confirm',)

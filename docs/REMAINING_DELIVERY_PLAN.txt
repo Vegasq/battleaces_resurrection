@@ -424,10 +424,20 @@ already cut;then supported runtime/final artifacts. Full D5 stays OPEN.
     unclassified;failed all-window completeness retained. No query/game/patch.
     Evidence:telemetry-adjacent-interface136.txt. This does NOT resolve upstream
     producer or computed/RVA/bulk/interior aliases;full D5 remains OPEN/false.
-[ ] Next:advance ordinary operational guarded report delivery with owned seeded
-    reports/isolated SDK root,then finite installed mode/error/descendant/final
-    matrix. Retain unresolved c307c0 producer gate;do not repeat completed exact
-    address/adjacent-interface scans or equivalent quiet AI cases.
+[x] Review137 resolves one operational-fixture collection gap:recipe20/114 adds
+    static void AutomaticDataCollector.SetDefaultData guard before Unity queries.
+    Constructors/shared APIs intact.65Python checks/C++ suite,15source/18runtime
+    checks pass;actual19->20 update44.566s preserves16profiles/backups/source130.
+    Native AI217.357s/47correlated units/results/Continue/default Quit0,eight
+    current20 samples/collector1/1/job1/0/0/no force. Not operational Client or
+    actual collector invocation. r134g diagnostic20/helper137;130/N7 unchanged.
+    Scope/seals:telemetry-default-collector137.txt. Full D5 remains OPEN/false.
+[ ] Next:review genuine INativeClient implementation ctor834b50 and remaining
+    Client812690 identity/interceptor/Unity callback configuration and lifetimes
+    before operational guarded report delivery with owned seeds/isolated SDK
+    root. Client ctor takes INativeClient,NOT raw Config;do not fabricate it.
+    Then finite installed mode/error/descendant/final matrix. Retain unresolved
+    c307c0 producer gate;no repeated exact/adjacent scans or quiet AI cases.
 S1 CLOSED BY126:all FIVE safe interior SDK guards,with genuine matched/unmatched
 pending-owner cleanup and disabled-ID qualification.125 found failed/cache
 handlers can enumerate/prune AFTER WriteFile RET;do not entry-RET those handlers

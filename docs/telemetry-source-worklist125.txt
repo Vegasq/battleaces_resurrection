@@ -1,6 +1,17 @@
 D5 REMAINING SOURCE WORKLIST125
 2026-10-22. Full D5 remains OPEN. Source findings below narrow the remaining
 engineering work;they are not complete analytics-removal or release acceptance.
+Current137:telemetry-default-collector137.txt cuts actual unguarded static void
+SetDefaultData collection found while preparing the operational fixture.20/114,
+65Python checks/C++ suite,15source/18runtime checks,actual preserved19->20 update
+and native AI/results/Continue/default Quit0 pass;47correlated units/eight current
+samples/collector1/1/job1/0/0/no force. No operational Client/collector invocation/
+full D5 claim. Genuine Client ctor requires INativeClient,NOT raw Config;actual
+implementation type20020/ctor834b50..834ea6 constructs payload/Application
+callback and is not yet qualified source-safe. NEXT review genuine configuration/
+lifetime and remaining Client identity/interceptor/Unity callbacks before owned
+isolated-root operational report fixture. r134g20/helper137 diagnostic;130/N7
+unchanged,no new action/package. All owned jobs terminal. Do not repeat quiet AI.
 Current136:telemetry-adjacent-interface136.txt qualifies the finite14a0->1498
 alias review:8methods/10named direct-global consumers forward events/flag,
 87source checks pass. Ancillary numeric/data candidates unclassified;initial
