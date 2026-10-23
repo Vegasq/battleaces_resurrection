@@ -1,0 +1,88 @@
+FOUR-ROOM HOST WORKLOAD160
+2026-10-23. D8 default-capacity native subcase COMPLETE; full D8/D1-D9 OPEN.
+
+Measured envelope
+The existing default max_rooms=4 now has a current packaged RC TLS/native
+workload record: four simultaneous Custom1v1 rooms, eight persistent human-protocol
+peers, six rounds and 24 completed matches. The configured four-room workload
+passes the unchanged 14 timing, correctness and resource assessment checks.
+This supplies a tested native ceiling of four such rooms on this host. It is
+not a capacity promise for all hardware, team modes, Internet paths or Unity
+clients. The configuration accepts1..64 as an admission bound; this result
+does not qualify64 rooms. Two-room long-duration evidence is reused separately.
+
+Actual run
+local/capacity160-native01/verification.json records owned controller exit0,
+201.150s elapsed, job150 processes/0 active/0 terminated and no forced cleanup.
+The child soak runs198.297s, with all four rooms active184.827s (93.2percent).
+It creates/reaps72 native workers, all exit0:24 authoritative simulations and
+48 independent reference simulations. Eight original RC admissions use TLS1.3
+and certificate_verified:false, as required for RC. These peers remain on the
+same sockets across changed-deck rematches and original Return/lobby reopening.
+Eight persisted profiles retain eight-unit decks and all17 default cosmetic
+slots. The protocol peers use legacy HELLO1 compatibility; no current graphical
+or protected-account acceptance is inferred.
+
+Every match produces units, moves, attacks and takes damage on both sides.
+14,880 authoritative frames and29,760 independent native replay comparisons
+match; results and ordered input journals agree. The existing diagnostic uses
+its frame600 self-destruct completion action and retains20 result frames.
+This is not a natural-victory or physical input test. Ordinary launchers have no
+automatic surrender, Continue or Quit actions.
+
+Mean publication interval50.003179ms (about19.999Hz), p95<=63ms, p99<=65ms,
+maximum69.316900ms. Worker mean2.928836ms/maximum7.333300ms; none of14,880
+steps exceeds50ms. These are complete publication intervals, not the shorter
+interval before worker execution. All-phase loop delay peaks16.013ms.
+Evidence writes peak852.768ms off the coordinator loop; the publication bound
+is unchanged. No input-window,50ms step, timeout or acceptance limit is relaxed.
+
+After round3 warm-up to the round6 idle sample: handles211->203 and coordinator
+private commit45,375,488->47,611,904 bytes (+2,236,416), within original limits.
+Twenty process snapshots include four real host simulation workers and eight
+reference workers. The maximum sampled coordinator plus FOUR HOST workers is
+736,931,840 private bytes (about703MiB),290,508,800 working-set bytes (about277MiB),
+and759 handles. These are snapshot maxima, not continuous peaks or minimum RAM
+requirements. Reference workers and graphical player resources are excluded from
+that host subtotal; their extra load is present during the measured test.
+Platform:Windows10 build19045 x64,16 logical CPUs. CPU model/physical RAM remain
+unverified: the WMI inventory read was denied. No privileged retry was made.
+
+Inputs and implementation
+The actual server runtime is local/helperbinding159-packages01/battleaces-server-win64,
+clean f2f1bb87b28720b99028fb4170f2dfd31dcdbcd5. Its gameplay/runtime bytes match
+candidate156;159 changes only compatibility/provenance. The verified119-file
+local/s139/assets/build-37822 import is reused, with unchanged source/assets at
+finish. No new game export, helper, installer, patch recipe or player package.
+
+tools/run_packaged_soak.py now forwards an explicit --rooms2..4 option, default2,
+through the original soak argument validator before output/child creation. It
+also binds its own source digest alongside the child driver/package manifest.
+tools/soak_server.py, its assess function and all original thresholds are unchanged.
+The original two-room wrapper/test bytes are archived under
+local/capacity160-prior-source01, along with prior ledger/plan/instructions.
+18 affected tests pass on Python3.14.8/1.127s and3.12.10/1.449s, no skips.
+New checks refuse out-of-range room counts before launch and reject a four-room
+assessment containing two-room connection/match/worker/concurrency counts.
+
+Reproduce with unique output (no game/owner provisioning):
+python -m tools.run_packaged_soak --package local/helperbinding159-packages01/battleaces-server-win64 --assets local/s139/assets/build-37822 --output local/capacity160-native-UNIQUE --rooms 4 --seconds 180 --frames 600 --rounds 6
+
+Read-only local/capacity160-review01.json independently recomputes all14 gates,
+reconciles24 matches/72 distinct worker PIDs/eight identities/frames/results,
+resource samples and package/source/terminal ownership. It verifies53 prior159
+and27 prior157 inputs via exact archives, plus all six N10 pins. Raw result data,
+certificates and local machine paths remain ignored; no original client files
+or artifacts are committed.
+
+Retained boundaries / next work
+The old eight-hour98edbbc4 report remains unchanged, with eight_hour_gate:true
+for its original two-room plaintext/native scope. This run explicitly records
+eight_hour_gate:false. It neither replaces that proof nor creates an eight-hour
+four-room/TLS requirement. Remaining D8 still needs physical Internet/RTT/jitter/
+loss/retransmission and click-to-action evidence, graphical20-rematch lifetime,
+session0/deployment and final supported release scope. No equivalent four-room
+sample rerun is needed without a changed implementation or concrete concern.
+No game window, Install action, protected owner check, reboot, service, current
+host, manual130/N7, share or HTTP change. N9/N10 answers/reports remain pending;
+no new Nick action. Roadmap remains active.

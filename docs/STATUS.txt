@@ -3,6 +3,20 @@ Updated: 2026-10-23
 Delivery plan: REMAINING_DELIVERY_PLAN.txt, Windows only.
 Original roadmap: CLOSED / SUPERSEDED;see PLAN_CLOSEOUT.txt.
 
+CAPACITY160 - FOUR CURRENT PACKAGED RC TLS/NATIVE ROOMS
+Default4room native subcase COMPLETE:6rounds/24Custom1v1matches/8persistent TLS1.3
+RC peers/72workers0/reaped/14880frames/29760matching reference comparisons. All
+produce/move/attack/take damage,changed decks/Return/default17profiles retained.
+198.297s,4rooms active184.827s,mean19.999Hz/max69.317ms;worker max7.333ms/0over50.
+Idle handles211->203/private+2236416B;controller0/job150/0/0/no force.18tests pass
+314/312;wrapper explicit2..4rooms/default2/selfdigest,original child driver/14
+checks unchanged. Review53prior159/27prior157/sixN10pins/old8hour proof passes.
+Measured HOST subtotal703MiBprivate/277MiBworking set is a snapshot,not minimum
+RAM;extra8reference workers also ran. Win10/16logical;CPUmodel/RAM unverified.
+No game/product/helper/installer/manual/share/new action. N9/N10pending. This is
+not64room/team/graphical/Internet/SCM/four-room long-duration/fullD8 acceptance.
+Exact scope,resource attribution and reproduction:host-capacity160.txt.
+
 HELPER159 - SOURCE-BOUND DECLARED BUILD INPUTS
 Selected D9 gap CLOSED:packaging now requires adjacent schema1 helper receipt,
 exact DLL/source inventory/digests,unchanged-build flag and compiler/SDK identity.

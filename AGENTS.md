@@ -2,6 +2,21 @@
 
 ## Requests and answers with Nick
 
+- Capacity160 CLOSES D8 default4room native workload subcase:actual159 bundled
+  RC TLS/8persistent HELLO1 peers/6rounds/24Custom1v1matches/72worker0/reaped,
+  14880frames/29760native reference comparisons,production/movement/damage/deck
+  rematches/Return/full17profiles.198.297s/184.827s4rooms,mean19.999Hz/max69.317ms,
+  worker max7.333ms/0over50;idle handles211->203/private+2236416B. Controller0/
+  job150/0/0/no force.18tests pass314/312. Wrapper --rooms2..4/default2/selfdigest;
+  original soak driver/14gate/step/timeouts unchanged. Exact old wrapper/tests/
+  docs archived. Review53prior159/27prior157/sixN10pins/eight-hour proof retained.
+  Sampled HOST subtotal703MiBprivate/277MiBworking set,not minimumRAM/whole load;
+  test includes8extra references. CPUmodel/RAM WMI denied,no privileged retry.
+  Tested4Custom native rooms on Win10/16logical,NOT64/team/graphical/Internet/
+  SCM/longduration4room acceptance. NEXT finite remaining D1-D9 gates,not same
+  capacity/game/soak repetition. N9/N10blank/no reports,no new action/product/
+  manual130/N7/share change. Full D8/goal OPEN. docs/host-capacity160.txt.
+
 - Helper159 CLOSES selected D9 build-input gap:require schema1 helper-build.json,
   exact DLL/source inventory/digests/unchanged-build/compiler/SDK;default current
   tree or explicit immutable ancestor pin. Frozen138 binds107sources/15exact CRLF

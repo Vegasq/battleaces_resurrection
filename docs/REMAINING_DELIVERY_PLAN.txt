@@ -883,6 +883,15 @@ References: server-console.txt, windows-service.txt, state-backup.txt,
 windows-packaging.txt, windows-server-quickstart.txt.
 
 [ ] D8 - Complete Internet, latency and final capacity evidence
+[x]160 default4room packaged RC TLS/native workload:6rounds/24Custom1v1matches,
+    8persistent peers/72workers0/reaped/14880frames/29760matching references,
+    production/movement/damage/deck rematches/Return/default17profiles.198.297s,
+    4rooms active184.827s,mean19.999Hz/max69.317ms;no worker step>50ms,handles
+    211->203/private+2236416B,controller0/job150/0/0/no force.18tests pass314/312;
+    original14limits/step/driver unchanged. Defines a tested4room native sample
+    on this Win10/16logical host,NOT64/team/graphical/Internet/SCM/longduration
+    four-room/fullD8 proof. Existing8hour reused. No equivalent repeat needed.
+    No product/manual/share/new action. Scope/resources:host-capacity160.txt.
 [x]157 bounded actual156-package RC TLS/two-room Custom1v1 native concurrency:
     130.397s/4rounds/8matches/4persistent TLS1.3 RC peers,24workers0/reaped,
     4960frames/9920reference comparisons,production/movement/damage/changed-deck
