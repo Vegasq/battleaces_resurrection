@@ -10,6 +10,8 @@ from tools.frida_attribution_clock import replace_once
 
 PROFILE='symbols-v1'
 APIS=('SymInitialize','SymCleanup','SymFromAddr','StackWalk64')
+LOAD_PROFILE='symbols-module-load-v1'
+LOAD_APIS=APIS+('SymLoadModule64',)
 SYMBOLS=r'''const symbolModules=[],symbolAddresses=new Map(),symbolStacks=new Map(),symbolErrors=[];
 let symbolEntered=0,symbolReturned=0;
 function symbolFrame(address) {
@@ -62,8 +64,14 @@ const symbolModuleObserver=Process.attachModuleObserver({onAdded(m){try{symbolMo
 '''
 
 
-def build_source(config,cwd,sdk=None):
+def build_source(config,cwd,sdk=None,*,include_module_load=False):
+    if type(include_module_load) is not bool:
+        raise TypeError('include_module_load must be bool')
     source=unwind_source(config,cwd,sdk)
-    source=replace_once(source,'function emit(kind,data) {',SYMBOLS+'\nfunction emit(kind,data) {')
+    symbols=SYMBOLS
+    if include_module_load:
+        symbols=replace_once(symbols,"['SymInitialize','SymCleanup','SymFromAddr','StackWalk64']",
+                             "['SymInitialize','SymCleanup','SymFromAddr','StackWalk64','SymLoadModule64']")
+    source=replace_once(source,'function emit(kind,data) {',symbols+'\nfunction emit(kind,data) {')
     return replace_once(source,'observerUnwind:observerUnwindSnapshot()});',
                         'observerUnwind:observerUnwindSnapshot(),nativeSymbols:symbolSnapshot(kind)});')

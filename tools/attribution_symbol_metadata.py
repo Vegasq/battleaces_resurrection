@@ -2,10 +2,13 @@
 import re
 from pathlib import PureWindowsPath
 from tools.attribution_unwind_metadata import BASE
-from tools.frida_attribution_symbols import APIS
+from tools.frida_attribution_symbols import APIS,LOAD_APIS
 
 
-def validate(rows,*,pid,run_id):
+def validate(rows,*,pid,run_id,include_module_load=False):
+    if type(include_module_load) is not bool:
+        raise TypeError('include_module_load must be bool')
+    apis=LOAD_APIS if include_module_load else APIS
     def require(ok,message):
         if not ok:raise AssertionError(message)
     def integer(x,minimum=0):return type(x) is int and minimum<=x<=2**53-1
@@ -16,7 +19,7 @@ def validate(rows,*,pid,run_id):
             isinstance(value['rva'],str) and re.fullmatch('0x[0-9a-f]{1,16}',value['rva'])
     def call(value,history=False):
         return isinstance(value,dict) and set(value)=={'id','moduleId','api','caller','observerUnwindDepth'}|({'tid'} if history else set()) and \
-            integer(value['id'],1) and integer(value['moduleId'],1) and value['api'] in APIS and caller(value['caller']) and \
+            integer(value['id'],1) and integer(value['moduleId'],1) and value['api'] in apis and caller(value['caller']) and \
             type(value['observerUnwindDepth']) is int and value['observerUnwindDepth'] in (0,1) and (not history or integer(value['tid'],1))
     require(integer(pid,1) and isinstance(run_id,str) and re.fullmatch('[0-9a-f]{32}',run_id),'symbol identity required')
     require(isinstance(rows,list) and rows,'symbol rows required')
@@ -43,16 +46,16 @@ def validate(rows,*,pid,run_id):
                     m['name'] in ('dbghelp.dll','dbghelp-x86_64.dll') and isinstance(m['path'],str) and 1<=len(m['path'])<=32768 and
                     PureWindowsPath(m['path']).is_absolute() and '\0' not in m['path'] and
                     isinstance(m['base'],str) and re.fullmatch('0x[0-9a-f]{1,16}',m['base']) and integer(m['size'],16) and m['size']<=2**32,'symbol module identity differs')
-                require(m['id'] not in current and isinstance(m['exports'],list) and len(m['exports'])<=len(APIS),'symbol exports differ')
+                require(m['id'] not in current and isinstance(m['exports'],list) and len(m['exports'])<=len(apis),'symbol exports differ')
                 names=[]
                 for e in m['exports']:
-                    require(isinstance(e,dict) and set(e) in ({'name','rva','sha256'},{'name','rva','sha256','aliasOf'}) and e['name'] in APIS and
+                    require(isinstance(e,dict) and set(e) in ({'name','rva','sha256'},{'name','rva','sha256','aliasOf'}) and e['name'] in apis and
                         integer(e['rva']) and e['rva']+16<=m['size'] and isinstance(e['sha256'],str) and re.fullmatch('[0-9a-f]{64}',e['sha256']),'symbol export binding differs')
-                    if 'aliasOf' in e:require(isinstance(e['aliasOf'],str) and re.fullmatch('[1-9][0-9]*:(?:'+('|'.join(APIS))+')',e['aliasOf']),'symbol alias differs')
+                    if 'aliasOf' in e:require(isinstance(e['aliasOf'],str) and re.fullmatch('[1-9][0-9]*:(?:'+('|'.join(apis))+')',e['aliasOf']),'symbol alias differs')
                     names.append(e['name'])
                 require(len(names)==len(set(names)) and isinstance(m['counts'],dict) and set(m['counts'])==set(names) and
                     all(integer(v) for v in m['counts'].values()),'symbol counts differ')
-                require(isinstance(m['history'],list) and len(m['history'])<=8*len(APIS) and
+                require(isinstance(m['history'],list) and len(m['history'])<=8*len(apis) and
                     all(call(c,True) and c['moduleId']==m['id'] and c['id']<=entered for c in m['history']) and
                     len({c['id'] for c in m['history']})==len(m['history']),'symbol history differs')
                 for name,count in m['counts'].items():

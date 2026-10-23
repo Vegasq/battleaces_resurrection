@@ -2,6 +2,19 @@
 
 ## Requests and answers with Nick
 
+- Symbol144 closes immediate native scope ownership for NEW capture's553PDB
+  attempts/172paths:ALL inside SymLoadModule64,callerUnity+9f8c2c. Opt-in fifth
+  hook/default4APIbytes unchanged;22tests and actual authored successful module
+  load/control pass. Native65.126s/outer66.305s/Quit0/job1/0/0/no force,2557rows,
+  254loads/257balanced APIentries;13SDKcounts0. Original complete wrapper/5body
+  installed match plus9fa330 address-symbolizer source explain module init/refresh,
+  NOT high-level trigger. Next9fa330caller/source,NOT same5hook quiet run. PDB
+  completion/content/wire/tree/preloader still unproven;fullP2/D5false. Seal02
+  102inputs/historical14174/14234/14390checks and choices preserved;old143three
+  authored sources resolve EXACT archived snapshots/version7224198. Failedseal01
+  receipt-key assumption retained;no rerun. Both sessionsclosed/owned terminal,
+  no helper/recipe/shipping/manual/Nick action. docs/module-symbol-loading144.txt.
+
 - Symbol143 closes loaded DbgHelp identity/selected4export/caller subtask ONLY.
   New opt-in nativeAPI scope witness/validator,22checks,real authored Init+Cleanup
   positivecontrol pass(48rows/job3/0/0/no force). Native newprofile73.965s/outer

@@ -1,0 +1,128 @@
+UNITY MODULE SYMBOL LOADING144
+Updated:2026-10-23. Full P2/D5 remain OPEN.
+
+Result and delivery boundary
+All553 previously unexplained owned-cwd PDB attempts in the new targeted capture
+emit inside SymLoadModule64 with direct callerUnityPlayer+9f8c2c. Original source
+binds that exact return to the module-symbol wrapper;this closes immediate native
+scope ownership for this capture. It does not identify the high-level initiator,
+prove file-operation results/content reads,or retroactively attribute141-143.
+The same game exits normally with no forced cleanup. No game/helper/privacy recipe,
+shipping package,normal launcher,manual130/N7 or Nick action changes. Background
+automation remains technical evidence only;Nick's own launches remain the accepted
+visible path. Tutorial2/accepted D6/LAN tests are not repeated.
+
+Opt-in observer extension
+tools/frida_attribution_symbols.py adds include_module_load=True and the separate
+symbols-module-load-v1 profile. The default four-API profile remains byte-identical
+for the frozen canonical configuration;explicit False produces the same bytes.
+The only added API is SymLoadModule64. Builder and validator reject non-bool options
+and unknown API names. No arguments,return values,symbol text or payloads are read;
+no target API is invoked/replaced by the observer. Existing per-thread entry/return
+scopes/direct return addresses/module export-prefix bindings/history budgets remain.
+Counts continue after eight entry histories per API. Projection removes only the
+validated annotation,then uses the existing unwind/SDK/I/O decoders without dropping
+operations,data or sequence. This is current-thread EMIT-time scope ownership;
+hidden/reentrant/pre-push/other-thread/other-API causality remains outside its proof.
+
+22focused tests pass across symbols,unwind,SDK startup and exit modules. New cases
+cover default byte preservation,explicit opt-in,ten module-load calls with eight
+histories/count10 and retained file operations,strict option types and unknown API
+rejection. Existing nested/LIFO/corruption/SDK projection checks also pass.
+
+Real authored positive control
+Fresh disposable packaged Python process;no game/SDK APIs or original reports.
+Uses a distinct valid handle to itself,explicit owned search directory,invade=false,
+deferred-symbol options,and the process's actual loaded Python executable/base.
+SymLoadModule64 returns that base;SymUnloadModule64/SymCleanup/CloseHandle succeed.
+Witness observes Init/Load/Cleanup once each,callerlibffi-8.dll+4771,all three return.
+Microsoft ABI/options references:
+ https://learn.microsoft.com/en-us/windows/win32/api/dbghelp/nf-dbghelp-symloadmodule64
+ https://learn.microsoft.com/en-us/windows/win32/api/dbghelp/nf-dbghelp-symsetoptions
+These references define the authored control,not the original game's runtime options.
+Existing authored local file/localhost7-byte/child/dynamic-cwd/foreign-root controls
+pass:48rows,29operations,9anchors,max14ms clock drift,32balanced observer unwinds,
+two resolved cwd entries/one deliberate foreign unknown root. Rootexit0,reaped,
+job3total/0active/0terminated,no force. No native nested I/O was induced by the
+deferred load;the nested emit positive case is the generated-JS test.
+
+Actual game evidence
+New owned profile nativestest_pdb144_a464c288aa in independent local/r141g;unchanged
+helper141-07/recipe21. It uses the already-qualified edit/Back/idle/default Quit
+diagnostic pipeline. Existing normal practice preference stays normal;this is not
+a new difficulty-persistence or ordinary installed-entry acceptance claim.
+Native65.126204s/outer66.304714s,Quit0,natural/reaped/job1/0/0,no force.
+2557provider rows,not truncated;136anchors,max9ms drift;1848selected file operations,
+555resolved cwd records/zero unknown roots. 2405observer unwinds all balance,nested0.
+Thirteen SDK-entry counts0 across10samples;selected network/process-create records0.
+These are selected observations,not full wire/tree/collection/privacy qualification.
+257native symbol entries/returns:Init2,Cleanup1,FromAddr0,StackWalk0,LoadModule254.
+The first eight retained load histories callUnity+9f8c2c. Every one of the553PDB
+records/172paths independently carries that same active scope/caller;none occurs
+inside an observer unwind. PDB rowsseq2001..2553,elapsed39671..39918ms.
+The selected file-operation stream contains no completed PDB-path operations;
+resolved-cwd records alone do not prove success,failure,content reads or writes.
+Do not turn these attempted searches into a claim that reports were collected or
+that nothing was collected. Both actual REA sessions are closed and owners terminal.
+
+Loaded DLL/source binding
+Control and game load the sameC:\Windows\SYSTEM32\dbghelp.dll,fileSHA:
+ 6357f697069e90b475f78520f235aae782da79d32a0e70c733168082cb933c25
+Independent PE export-table parsing binds all FIVE named RVAs/pre-hook16-byte
+hashes andSizeOfImage2101248. Added SymLoadModule64 RVA110208,prefixSHA:
+ 5a8aa3d93de1555ab0cc2f0ea97f22fd09836624b46dc69b92ff719b35ad9aea
+This does not hash the whole loaded DLL. Original UnitySHAac144d56... remains
+distinct from installed guarded UnitySHA6adb9713...;five selected complete bodies
+match exactly between original and installed files. No whole-image equality claim.
+
+Original complete wrapper9f8ba0..9f8e9c spans five chained unwind fragments,SHA:
+ 6a4b32e52f44c949fda81a3566cb4bac0a81027eed876aa191fa23da8aaf1c53
+It loads helper+60 at9f8c0b,executes CALLR10 at9f8c29,returns9f8c2c. Resolver143
+binds helper+60 to namedSymLoadModule64. It supplies processhandle,nullfilehandle,
+prepared image path/module name,64-bit modulebase/32-bit size under original lock.
+The wrapper returns a32-bit error,not the API's64-bit base;do not entry-RET it.
+Original PSAPI9f8900 and toolhelp/fallback9f92c0 enumerate loaded modules and call
+this wrapper. Conditional search-string construction includes current/executable/
+plugin/system locations;runtime options/pathvalues and DbgHelp internal search
+order/network applicability were not captured. Early raw+60 heuristic missed SIB
+addressing and remains a limited failure,not absence evidence. Complete unwind
+methods retain switch-table data as data,not fictitious executable instructions.
+
+One bounded upward source step finds9fa330..9fa918(seven unwind fragments,SHA
+eb7ca8d9f0efa4dd4f7e0cfc372fa36efccda4603440fd6959a587ce6459ed10). It accepts native
+addresses,initializes modules through9f92c0(false),then uses helper+50(named143 as
+SymGetSymFromAddr64). A failed first resolution can force9f92c0(true) then retry.
+This provides a source initialization/refresh trigger inside address symbolization;
+it does not prove the high-level caller or that this branch ran in the capture.
+Do not suppress shared stack/symbol services based on these findings.
+
+Evidence/version preservation
+local/pdb144-prior143-source01 preserves the exact three pre-extension authored
+source/test files from722419861c59d30b4df96dfd595614aae087df04 plus their hashes and
+canonical default JS. Before edits,all14174/14234/14390 sealed inputs verified.
+Historical143 source hashes resolve through those exact snapshots;the other87
+historical inputs remain in place. Old seals/captures/review reports are not rewritten.
+Current evidence:local/pdb144-control01/observation-review01.json,
+local/pdb144-game01/observation-review01.json,symbol-correlation01.json,
+both module-file-proof01.json,and local/pdb144-module-load-source01 source/proofs.
+Raw captures,disassembly,game/system DLL bytes and runtime outputs stay ignored.
+Strict control review SHA:
+ 55816416196a8003229cc49b52a9d35143495aef0e3a6fdb8b03395308181828
+Strict native review SHA:
+ 5840d449513184c447da40b84e73b782399a4ab4178dc0f5a3f1308e07dcb573
+REA native:ev_8fda5c30a67796217ae442454406657d596437c5862b7586a0b6cf15eb7e2931
+local/pdb144-seal02.json verifies102current inputs plus historical14174/14234/
+14390inputs and accepted141 choices/trace. Historical143's three authored source
+files resolve through the snapshots;all other old inputs are checked in place.
+SealSHA:8d44960beb6673ff501cb84612f77b633f95321aef1d3733e9066bc0b5f8c846
+Initial seal01 failed on an incorrect common receipt-key assumption:control uses
+owner,native uses launch. Its source/failure remain;seal02 uses the actual field
+for each case and passes on the SAME observations. No target rerun or waived check.
+
+Next
+Trace the high-level caller of the now-source-bound9fa330 address symbolizer and
+its relation to shutdown;do not repeat the same five-hook capture or prior neighbor
+heuristic. Reuse this immediate-scope ownership result while qualifying P1-P9,
+ordinary current installed entry/artifact binding and credible tree/network paths.
+Keep upstreamc307c0,all-thread/pre-injection,resumed/inflight and effective reporting
+requirements open. Full P2/D5 and the overall Windows delivery plan remain active.

@@ -53,6 +53,13 @@ Finite rows
         Unity Init/Cleanup caller binding,with real positive API control. PDB
         producer remains UNKNOWN;source-identified SymLoadModule64 is unmonitored.
         Next that caller/extent. Source/seals: symbol-identity143.txt. P2 stays open.
+    [x]144 binds ALL553PDB attempts/172paths in its new capture to SymLoadModule64
+        scope/exact Unity+9f8c2c caller. Real positive native control,22checks,
+        source/installed wrapper bindings and natural Quit0 pass. Upward source
+        shows address-symbolizer9fa330 init/refresh;high-level requester remains
+        unknown. No PDB completion/content/tree/wire/fullP2 claim. Next that caller,
+        not a same5hook capture. module-symbol-loading144.txt retains102inputseal
+        and exact historical143source snapshots;prior141/142 evidence preserved.
 [ ] P3 Supported original tutorial
     Relevant collection/reporting,progress and ordinary shutdown for the supported
     original tutorial route. Tutorial2 exploration is separate;DEV N8 is deferred.
