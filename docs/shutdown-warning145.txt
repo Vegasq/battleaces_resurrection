@@ -1,0 +1,115 @@
+SHUTDOWN WARNING / SYMBOL FILE ATTRIBUTION145
+Updated:2026-10-23. The named PDB-trigger question is closed for this capture.
+Full P2/D5 and the Windows delivery plan remain OPEN.
+
+Result
+All553 owned-cwd PDB attempts/172paths in the successful targeted capture occur
+inside ONE original Unity logging call from the render-texture warning,while also
+inside SymLoadModule64. The warning is:
+ Releasing render texture that is set as Camera.targetTexture!
+The exact warning caller isUnityPlayer+4a9a46;the module-load caller is+9f8c2c.
+The probe reads no log arguments,text,event fields or payloads. This establishes
+the warning's dynamic scope around these attempts,not merely nearby log timing.
+Their completed file results/content and whole wire/tree behavior remain unproven.
+There is no analytics-specific patch to make in the shared logging/stack functions
+on this evidence. Keep useful local diagnostics. Do not repeat the same PDB probe
+or add another symbol-API hook just to reclassify these already-attributed attempts.
+
+Source and retained log
+Original UnityPlayer SHA:
+ ac144d56d53f07904d52ed27a1539de90bc3290038fe52d73d2f6b268c85d6bc
+Installed diagnostic r141g Unity SHA:
+ 6adb97131603d7aaee9c12837ef7c4191336cffc8a5b47087d46ca910319bfde
+Complete selected original bodies match their installed file bodies. Raw direct
+E8/E9 candidates are qualified against decoded instructions in complete unwind
+bodies;this does not exclude indirect callers/alternate entries or establish
+whole-image loaded-memory identity. Decoder/source hashes and commands are retained.
+
+The original source chain is:
+ warning in4a9910 ->log107c0d0 at4a9a41(return4a9a46)
+ ->stack formatter9e0c10 at107c21c(return107c221)
+ ->capture/format9f9ae0 at9e0c64(return9e0c69)
+ ->capture9f9d70 at9f9b63(return9f9b68)
+ ->address symbolizer9fa330 at9f9b7c/9f9b99
+ ->module initialization/refresh9f92c0 ->module loader9f8ba0
+ ->SymLoadModule64 at9f8c29(return9f8c2c).
+This notation shows capture followed by symbolization;9f9d70 itself is not claimed
+to call9fa330. The earlier144 source established those lower module-loading steps.
+The same warning literal1973cc8 has another original caller4877f0;both are retained.
+Do not infer that every warning or every possible stack uses only the captured path.
+
+Retained144 log line122 prints21stack frames after this warning. Its first five
+RVAs9f9ded,9f9b68,9e0c69,107c221,4a9a46 match the original calls. The inferred
+ASLR base in that old log is explicitly not a loader observation. The new145 log
+has the same five RVAs;its base independently matches the passively captured
+Unity module base. The old log is not retroactively given the new runtime scopes.
+Log function107c0d0..107cb90 complete file-body SHA:
+ d7c382707cfcbf2245edac593ec1ba17bcefc0e1604df806b2803727bd498f14
+Captured pre-hook16-byte SHA:
+ e349284306262ecabfe02488fb4706ab817b2014d1a21293da4b495fb773bddf
+
+New opt-in observation
+tools/frida_unity_log_scope.py composes the unchanged five-API144 observer. It
+checks exact Unity path,RVA,size and original16-byte prefix BEFORE hooking the
+function entry. It records only direct caller,per-thread balanced entry/return
+extents,first eight histories and counts that continue afterward. No original
+function is explicitly invoked,replaced,returned early or asked for arguments.
+tools/unity_log_scope_metadata.py validates identity/order,code binding,history,
+counter monotonicity,active scopes and drained final state. It removes only its
+own annotation,then the symbol/unwind/SDK/I/O validators handle all original rows.
+No operation,data or sequence is dropped. Default prior builders remain unchanged.
+26focused tests pass,including actual generated-JS callbacks with ten nested
+log/module-load entries,history8/count10,retained file operations,code-prefix and
+invalid-return rejection,and strict typed metadata/identity/projection checks.
+
+Successful native case03
+Fresh owned profile nativestest_pdb145_2dbb158b48;unchanged r141g/helper141-07/recipe21.
+Normal original edit/Back/idle/default Quit0,reaped/job1total/0active/0terminated,
+no forced cleanup. Native diagnostic135.473228s/outer136.626075s include controller
+handoff waiting;create-to-resume alone50.562s. These are not play/startup performance
+or physical window results. Nick's own visible launch remains accepted.
+2609provider rows,not truncated;150clock anchors/max8ms drift;1873selected file
+operations;555resolved cwd records/zero unknown roots.2430observer unwinds balance.
+Thirteen SDK-entry counts0 across23samples;selected network/process-create records0.
+Log69entries/69returns. All553PDB rows carry log scope66 with caller+4a9a46 and
+module-load scope with caller+9f8c2c,on primary thread24640. Symbol counts remain
+Init2/Load254/Cleanup1/FromAddr0/StackWalk0,all257return. The code-prefix witness
+matches the installed file;the retained warning stack matches the observed base.
+This is a real positive native logging-scope observation beyond its history budget.
+The inherited general review's producer=false field is unchanged because that
+decoder does not assert the warning predicate. warning-correlation01 separately
+asserts the exact caller/nesting on EVERY PDB row and closes this named predicate.
+
+Failure and evidence preservation
+Case02 FAILED before the primary thread resumed:the owner saw release.json while
+PowerShell still held it for writing and received PermissionError13. Its owned
+process was force-reaped/jobempty;it is not normal Quit evidence. Case03 publishes
+closed staging files by same-directory rename. An initial absent ready marker
+was rechecked against the SAME live controller;no new process was started for it.
+Both cases and their close receipts remain. The game/helper did not need a fix.
+
+The successful status operation completed but exceeded REA's10MiB MCP response
+budget. The retained record is COMPLETE. Export produced14,108,777bytes/16records;
+the exact requested record was extracted and independently compared with that
+bundle. No MCP envelope is reconstructed. Strict review04 consumes that record
+directly and verifies the export receipt,canonical hash,source/owner/job/guard
+identity,all projections and original I/O/clock/SDK/exit evidence. Preview text
+truncation is not used as source data. Both REA sessions are closed/owners terminal.
+REA complete record:
+ ev_6fbf8a9ba3525d225390d53537b3a329479529c03251c9a540678f8f10ceb168
+Native review04 SHA:
+ 0cc9d613ae2db847fe891ab4db5e5491d43a7cb929976c008e591788802ff652
+Warning correlation SHA and all further inputs are in local/pdb145-seal01.json.
+Its100inputs are sealed;all prior144102/14174/14234/14390inputs and accepted141
+choices/trace still verify,using the exact archived143sources where appropriate.
+Seal SHA:e62b358f995269ff17b6563e50ed22a66dd1dbf2bb57294482fb228e60c16c7c
+Original/system bytes,disassembly,raw logs/captures,built files stay ignored.
+
+Next delivery work
+Move to finite P8:the actual supported WebView/CEF route and effective game-owned
+descendants,using106/107/125source and existing handler controls. Keep P1-P9's
+ordinary installed-entry/artifact binding,network/tree applicability,upstream
+c307c0 consumer cuts and resumed/inflight/reporting requirements open. Do not use
+quiet counters or this warning result to close them. No extra Crashpad format work
+without a demonstrated supported bypass. Shipping/current139,manual130/N7 and
+D:\share remain unchanged;no Nick action or repeated D6/LAN/Tutorial2 test.

@@ -3,6 +3,18 @@ Updated: 2026-10-23
 Delivery plan: REMAINING_DELIVERY_PLAN.txt, Windows only.
 Original roadmap: CLOSED / SUPERSEDED;see PLAN_CLOSEOUT.txt.
 
+WARNING145 - CAPTURED PDB TRIGGER ATTRIBUTED / NEXT EFFECTIVE DESCENDANTS
+All553PDB attempts/172paths occur inside one original Unity render-texture warning
+log call(+4a9a46),nested inside module load(+9f8c2c). Exact source/installed bodies,
+retained warning stack and passive module identity corroborate the dynamic scope.
+26checks/strict04/nativecase03 Quit0/jobempty/no force pass;69balanced logs and
+257balanced symbolcalls,2609rows. Failed02 release race before primary resume stays
+failed/force-reaped;atomic publication fixes handoff. Complete14MBretained export
+qualifies oversized response without reconstructing envelope. Prior evidence/
+choices preserved. Named trigger gap CLOSED;wholeP2/D5OPEN. No shared logging
+patch or more equivalent PDB runs. NEXT finiteP8 supportedCEF/descendants plus
+remaining P1-P9 source/runtime/binding gates. shutdown-warning145.txt.
+
 SYMBOL144 - PDB ATTEMPTS BOUND TO UNITY MODULE-LOAD SCOPE
 All553PDB attempts/172paths in new capture emit inside SymLoadModule64 with exact
 Unity+9f8c2c return caller. Source/installed complete wrapper binding passes.

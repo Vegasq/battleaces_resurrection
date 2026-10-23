@@ -497,8 +497,16 @@ already cut;then supported runtime/final artifacts. Full D5 stays OPEN.
     preserved via exact143source snapshots;102inputseal02passes. Next9fa330's
     high-level caller/shutdown requester;no same5hook rerun. PDBcompletion/content
     reads and fullP2/D5remain unproven. module-symbol-loading144.txt.
-[ ] Next:P2's missing collection attribution/installed binding,independent source
-    and credible tree/network observation. Apply P1-P9 finite inventory to139 rather
+[x] Warning145 captured PDB-trigger classification:CLOSED. ALL553attempts/172paths
+    inside one original Unity renderTexture-warning log call+4a9a46,nested load
+    +9f8c2c. Exact source/installed/printed-stack/module-base binding,26checks,
+    strict04/native normalQuit0/jobempty/no force pass. Failed02pre-resume release
+    race preserved;atomic publication fixes controller. Complete14MBretained
+    evidence/export verified;prior inputs/choices unchanged. No shared logging
+    privacy guard or equivalent PDB probe needed. WholeP2/D5OPEN. shutdown-warning145.txt.
+[ ] Next:finiteP8 supported WebView/CEF route/effective descendants,with P2's
+    remaining attribution/installed binding and credible network observation.
+    Apply P1-P9 finite inventory to139 rather
     than repeat quiet constructor/AI/startup controls. Keep whole-startup/all-thread,resumed/
     inflight and c307c0 producer gates;no equivalent quiet AI/constructor or
     completed exact/adjacent source scan rerun.

@@ -2,6 +2,23 @@
 
 ## Requests and answers with Nick
 
+- Warning145 CLOSES captured553PDB trigger:ALL inside ONE Unity log scope66,
+  directcaller+4a9a46(renderTexture warning),nested loadcaller+9f8c2c. Original/
+  installed complete source and five printed stack RVAs match;new passive module
+  base independently binds145log. New opt-in exact log-entry witness/decoder,
+  26tests/nativecase03 pass:Quit0/job1/0/0/no force,2609rows/69balanced logs/
+  257balanced symbolcalls/13SDKcounts0. 135.473s includes50.562s handoff wait;
+  NOT physical/performance/installed139/fullD5 acceptance. Failed02 before resume
+  release-file sharing race is retained/force-reaped. Publish ready/release inputs
+  CLOSED then atomic same-dir rename;absent marker isn't terminal/restart reason.
+  Complete retained status exceeded10MiB;14MBexport/strict04 selects exactrecord,
+  NO reconstructed envelope. Seal100/prior144102+141/142/143inputs/choices verify.
+  No more samePDB/log/symbol probes or shared logging suppression. NEXT finiteP8
+  supported WebView/CEF descendants +remaining P1-P9/source/binding. FullP2/D5OPEN.
+  Both sessionsclosed/owners terminal;no helper/recipe/shipping/manual/Nick action.
+  docs/shutdown-warning145.txt. Parallel static reviewer unavailable(capacity);
+  work completed sequentially from exact originals/installed bodies/retained logs.
+
 - Symbol144 closes immediate native scope ownership for NEW capture's553PDB
   attempts/172paths:ALL inside SymLoadModule64,callerUnity+9f8c2c. Opt-in fifth
   hook/default4APIbytes unchanged;22tests and actual authored successful module
