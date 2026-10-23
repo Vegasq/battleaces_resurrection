@@ -2,6 +2,21 @@
 
 ## Requests and answers with Nick
 
+- Release158 CLOSES selected source/docs checkpoint:full983source tests on BOTH
+  Python3.14.8(129.354s) and3.12.10(126.817s),966pass/17skip EACH,exit0.312journal
+  retains exact skip IDs/reasons/593inputs unchanged;17includes2 restricted
+  operatorpipe skips,NOT protected/native/desktop acceptance. Sourcehistoryf97
+  2319objects/0findings;new staged index/history audited separately. Hosted CI
+  UNVERIFIED(gh proxy127.0.0.1:9 refuses),no proxy/policy workaround. README now
+  uses game-folder Start Battle Aces.cmd/config,accepted LAN1v1/156engineering vs
+  130manual,optional verified setup,4telemetrycomponents/host input_window. Main
+  RELEASE_ACCEPTANCE has current map;older51/63guard/pendingLAN records clearly
+  historical. Original5docs bytes archived releaseaudit158-prior-docs01;do not
+  rewrite historical test logs. Product156/helper/manual130/N7/share unchanged.
+  Full D1-D9 still OPEN/D6accepted,RUNTIME_VALIDATEDfalse;next remaining finite
+  requirements,not unchanged fullsuite/audit/soak repetition. N9/N10blank/no
+  reports/pins unchanged;readDEVfirst,no new action. release-readiness158.txt.
+
 - TLSsoak157 CLOSES bounded current156-package RC TLS/two-room Custom1v1 native
   concurrency:4rounds/8matches/24worker lives/4persistent TLS1.3 RC peers,4960frames/
   9920reference comparisons,all players produce/move/take damage,changed decks/

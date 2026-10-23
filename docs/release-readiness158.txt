@@ -1,0 +1,78 @@
+RELEASE READINESS158 - SOURCE CHECKS / HISTORY SCAN / CURRENT ACCEPTANCE INDEX
+2026-10-23. Selected D9 source/docs checkpoint COMPLETE;final release NOT accepted.
+This is an evidence reconciliation,not a new plan or smaller definition of v1.
+
+Current accepted inputs
+The last implementation checkpoint is156's off-coordinator profile I/O correction
+and clean14ba1fb paired engineering packages/installers.157 adds external bounded
+packaged RC TLS/two-room rematch evidence without changing those product bytes.
+Manual130/N7 remains the planned desktop pair. Accepted manual35 AI/persistence,
+manual71/D6 startup,LAN98 setup and Nick's physical LAN1v1 report retain their
+scopes;do not repeat them just because a newer engineering artifact exists.
+
+Full source test suites at f97ba9d
+- Python3.14.8:983 tests in129.354s,966pass/17skip,exit0.
+  Exact captured output:local/releaseaudit158-full314-01.txt. PowerShell wraps
+  unittest stderr as NativeCommandError text;the actual process exit is0 and
+  unittest summary is OK(skipped=17),not a failed suite.
+- Python3.12.10:983 tests in126.817s,966pass/17skip,exit0.
+  local/releaseaudit158-full312-01/verification.json records runtime/executable,
+  all593 tracked-input hashes before/after,actual failed/skipped IDs and reasons,
+  exact UTF8 output hash,driver hash and sources_unchanged:true. Controller
+  elapsed129.750s includes discovery/hash bookkeeping;do not confuse with test time.
+  Runner:local/releaseaudit158-suite.py. It never changes skip/permission rules.
+
+The3.12 report records these17 excluded tests:
+6 authored native bridge-probe tests(no BA_NATIVE_BRIDGE_PROBE executable opt-in),
+3 real private DACL enrollment/credential/snapshot opt-ins,
+2 operator process-pipe controls denied under the restricted automation token,
+1 native public snapshot opt-in,1 native worker smoke opt-in,
+2 optional local-original telemetry byte checks,2 native AI IPC opt-ins.
+The3.14 raw run records17skips;its summary alone is not a separate per-ID journal.
+These exclusions are NOT passes. Synthetic/private-boundary-mocked tests do not
+qualify protected owner storage,original game execution or physical controls.
+Packaged production runtime stays the pinned Python3.14.8;3.12 is a supported
+source-check runtime,not a newly shipped alternative player dependency.
+
+Repository/private-content check
+At source snapshot f97ba9d,tools.audit_repository --history audits2319distinct
+source paths/objects with0findings. The tool reads Git index/reachable objects,
+not ignored game/assets/captures/keys/DEV.txt. It checks path/extension/size/text
+allowlists and common binary/archive/encoded/private-key/token/absolute-path
+mistakes. This automated guard is not a complete provenance/legal/privacy proof.
+The current staged-index/history result is retained separately under
+local/releaseaudit158-index01.json and checked before publication. New staged
+changes are authored documentation only;no game files/private material are added.
+
+Remote Actions status remains UNVERIFIED. The read-only gh run list request failed
+because its configured proxy127.0.0.1:9 refused the connection. No network/proxy/
+permission setting is changed and no external CI success is inferred. Local
+Windows10x64 results above do not become a hosted Windows-latest/Windows11 claim.
+
+Documentation corrections
+README previously put RC1 before all physical two-PC tests and still instructed
+normal players to use the extracted-package Start Client.cmd/config/client.json.
+It now records accepted LAN1v1,separates engineering156 from manual130,and names
+the installed game-folder Start Battle Aces.cmd/client-config.json flow. Optional
+CA/invite setup is clearly configure-verified only. Packaged input_window belongs
+in host config;the developer protocol CLI is separate. Telemetry component count
+is corrected from three to actual recipe21's four,including libcef.dll.
+
+RELEASE_ACCEPTANCE.txt now begins with a current requirement/evidence map. Its
+older source51/current63guard and pending-LAN narratives are explicitly historical
+or corrected. It preserves old observations and missing requirements. D6 remains
+closed;D1-D5/D7-D9 retain unfinished final-scope rows. Exact previous document
+bytes are in local/releaseaudit158-prior-docs01 for historical test/hash resolution.
+No shipping QUICKSTART/program/helper/runtime/package bytes change here,so this
+does not require rebuilding or retesting the unchanged156installer/native flows.
+
+Remaining work / handoff
+Full ordinary/physical mode/catalog/cosmetic/error/storage acceptance,complete
+analytics/report/source/descendant attribution,protected recovery/latest owner
+host/SCM/clean-machine deployment,Internet/latency/click-delay/graphical lifetime
+and final capacity/freeze still need their stated evidence. RUNTIME_VALIDATED
+stays false. The current matrix is REMAINING_DELIVERY_PLAN.txt and the privacy
+inventory is telemetry-acceptance-matrix140.txt;no requirement is silently dropped.
+N9/N10 desktop fields/reports remain blank/absent,all six N10 pins remain exact.
+Read them before repeating requests. No new Nick action/game/helper/manual/share/
+HTTP change. Both full-test process handles are terminal;no target is left running.

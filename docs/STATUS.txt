@@ -3,6 +3,18 @@ Updated: 2026-10-23
 Delivery plan: REMAINING_DELIVERY_PLAN.txt, Windows only.
 Original roadmap: CLOSED / SUPERSEDED;see PLAN_CLOSEOUT.txt.
 
+RELEASE158 - FULL SOURCE CHECKS AND CURRENT ACCEPTANCE RECONCILIATION
+Both full983-test suites pass:Python3.14.8/129.354s,3.12.10/126.817s;966pass and
+17skip EACH,exit0.312 retains skipped IDs/reasons/593unchanged input hashes.
+Optional native/private and restricted operatorpipe exclusions are not passes.
+Source/historyf97 snapshot2319objects/0findings;staged source reviewed separately.
+Remote Actions remains unverified(proxy refused),no network/policy changes.
+README normal entry/config/optional verified flow/4component count corrected;
+RELEASE_ACCEPTANCE current map accepts LAN1v1/D6 and separates156engineering/
+130manual from historical records. No product/helper/package/manual/share or
+new Nick action. Full D1-D9 OPEN,D6closed,RUNTIME_VALIDATEDfalse. Evidence:
+release-readiness158.txt. N9/N10 pending fields/reports/pins unchanged.
+
 TLS SOAK157 - CURRENT PACKAGED TWO-ROOM NATIVE/RC TLS CONCURRENCY
 Bounded subcase COMPLETE:4rounds/8Custom1v1matches/4persistent TLS1.3 RC peers/
 24native workers0/reaped/4960frames/9920matching reference comparisons;changed

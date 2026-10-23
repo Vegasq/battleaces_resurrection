@@ -933,6 +933,14 @@ match-blocking divergence, stalls or resource leaks in the required scenarios.
 References: network-qualification.txt, protocol-v3.txt, soak-qualification.txt.
 
 [ ] D9 - Freeze and deliver the final Windows release
+[x]158 source/docs checkpoint:full983tests on Python3.14.8 and3.12.10 each pass
+    966/17skip,exit0;312records593unchanged inputs and actual skip IDs/reasons.
+    Source/historyf97 snapshot2319objects/0findings;staged review retained.
+    Optional native/private and restricted processpipe exclusions stay unverified;
+    hosted CI unavailable through configured proxy,not assumed green. README and
+    RELEASE_ACCEPTANCE current entry/config/LAN/candidate/component map corrected;
+    original docs archived,product156/manual130/N7 unchanged. This is not final
+    D9/D1-D8/freeze acceptance. Exact logs/limits:release-readiness158.txt.
 RC1 installer/package milestone runs FIRST under RC1_PLAN.txt;full D9 closure
 still requires the applicable final-release gates below.
 [x] Engineering candidate139:clean f99fc83 current21/helper138 ZIPs/standalones,

@@ -1,4 +1,63 @@
-WINDOWS RELEASE ACCEPTANCE -- 2026-10-20
+WINDOWS RELEASE ACCEPTANCE -- CURRENT REVIEW2026-10-23
+
+CURRENT RELEASE POSITION158
+Final release is NOT accepted. REMAINING_DELIVERY_PLAN.txt remains the execution
+plan;this summary corrects stale present-tense candidate labels in older records.
+Historical paragraphs below retain their original source/artifact/test scope.
+
+Retained requirements and current evidence:
+- One Windows Start Server.exe and game-folder Start Battle Aces.cmd,native
+  installer with game/IP/editable cleaned account-name fields,reversible client
+  reset/uninstall and independent server import are implemented.130 qualifies
+  actual corrected installer actions/progress;156 is the latest clean paired
+  engineering package/standalone checkpoint,from14ba1fb. Manual130/N7 is separate.
+- First physical LAN1v1 play PASSED per Nick on2026-10-22. Do not repeat first-game
+  reachability. Exact Custom/public path,finish/Continue,changed-deck rematch,
+  Quit/restart and installer/portrait observations remain unreported. DEV.txt N2/N7
+  ask only for their stated missing results. LAN98 provisioning is accepted.
+- D6 startup is CLOSED:accepted post-reboot~20s/repeat~2s and visible AI lifecycle.
+  Manual35 AI/deck/cosmetic persistence/Continue/Quit also stays accepted at its
+  original scope. Automation is background-only;Nick's own launches are visible.
+- All required local/public/team/Custom paths,real30s AI fill,original bot identity
+  selection,difficulty/configuration,search/loading and result handling have
+  scoped implementation/native evidence. D2's remaining ordinary/physical matrix
+  stays open;prototype/diagnostic coverage does not replace those missing rows.
+- Installed107-item/17-slot cosmetics,names and portraits are implemented with
+  scoped persistence/propagation tests. D3's physical category/catalog/effect/audio
+  coverage and current visible portraits remain open. Cosmetic unlock is not
+  ranked/commerce/backend reconstruction. Linux/Wine are outside current scope.
+- D4 replay error-latch correction100,profile storage and failure recovery have
+  scoped proof.152Custom/153public1v1/154native BOT_INPUT loss/timeout controls
+  retain explicit unknown-result abort,Return and same-session replacement.
+  Remaining installed/native warnings/storage/visible recovery gates stay open.
+- D5 uses telemetry recipe21/four components;RUNTIME_VALIDATED remains false.
+  Collection/queue/source applicability,other supported modes,error/reporter and
+  descendant attribution remain P1-P9 in telemetry-acceptance-matrix140.txt.
+  Quiet counters or selected entry guards do not establish complete removal.
+  N9's normal-desktop pipe comparison is pending;no unchanged browser rerun.
+- D7 protected console40 Ctrl+C/restart is accepted.151 fixed RC backup and config
+  restore schema;N10's protected recovery result remains pending at151 scope.
+  Actual SCM/session0/reboot,clean Windows support and latest owner-host acceptance
+  stay open. RC requires no player CA/invite/certificate verification setup;
+  optional verified mode remains explicit and is not silently downgraded.
+- D8 profile I/O correction156 retains durable-before-ACK,freeze/race guards and
+  owned shutdown draining.157's current packaged RC TLS run proves8scripted
+  native Custom matches/two rooms/20Hz mean/max65.36ms/24workers0/reaped.
+  Original20-match/eight-hour evidence is reused at its earlier scope. Physical
+  Internet/RTT/jitter/loss/click delay,graphical20-rematch/capacity/deployment
+  envelope are still missing;the130s TLS run is not an eight-hour TLS result.
+- D9 current source/history audit and source checks are separate from final
+  release acceptance.158 source history snapshot f97ba9d:2319objects/0findings.
+  Full983-test suites pass on Python3.14.8 and3.12.10,966pass/17skip each;optional
+  native/private and restricted process-pipe exclusions remain exclusions.
+  Source/docs review,exact logs/skips/limitations:release-readiness158.txt.
+
+No source/game-data/private-file provenance claim follows from green tests alone.
+Keep proprietary inputs,raw captures,keys and personal DEV.txt out of Git/packages.
+No manual/accepted candidate is silently upgraded. New source requires its own
+changed-scope checks;final freeze/audit still depends on D1-D8 completion.
+
+HISTORICAL QUALIFICATION RECORDS (original scopes,not the latest candidate)
 
 LAN98 owner readiness result reviewed
 Public report passed at ready;verified TLSv1.3/protected credentials/enrollment/
@@ -48,7 +107,7 @@ issues. No new movement claim or product/helper/recipe/package change. Full
 collection/network/CEF/startup/physical/deployment gates remain OPEN;see
 telemetry-persistent-observation.txt. Owner39 repeat PASS is not active-match40.
 
-Current ordinary source candidate
+Historical ordinary source candidate51
 Custom Leave51 cleanf547003/helperf27311fe... adds the same opt-in <=1000ms32retry
 to the second diagnostic reader. Strict profile/file/empty checks stay.95tests
 94pass1skip and actual brief guest/host writer contention/two-round Custom/
@@ -413,8 +472,9 @@ Required before a general release
     fixtures and hidden black captures do not close protected/physical acceptance.
 [ ] Complete telemetry collection/storage/indirect callback/reporter/CEF child
     coverage and bounded network-capture checks on the final installed build.
-    Current63 guards and the separate NGX guard are not a universal zero-traffic
-    or graphics-driver/overlay reporting guarantee. See telemetry.txt.
+    Current recipe21/four-component guards and the separate NGX guard are not a
+    universal zero-traffic or graphics-driver/overlay reporting guarantee. The
+    remaining finite contract is telemetry-acceptance-matrix140.txt;see telemetry.txt.
 [ ] Isolate original replay and functional UX read/write paths by installation/
     profile;preserve their native formats and functional UI state while scoping
     reviewed cloud sinks. Exercise missing/corrupt/denied owned paths and native

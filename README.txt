@@ -1,6 +1,8 @@
 BATTLE ACES RESURRECTION - WINDOWS SERVER AND CLIENT ADAPTER
 
-RC1 is now the next milestone before physical two-PC testing. Its simpler setup
+Windows RC1 is in qualification. Physical LAN1v1 play has passed;remaining
+installer/workflow,privacy,deployment and Internet gates are recorded in
+docs/REMAINING_DELIVERY_PLAN.txt. Native setup
 uses a standalone native Windows installer with game-folder,server-IP and Player name fields;
 it creates Start Battle Aces.cmd inside the game folder,including its own runtime.
 Player name defaults to the cleaned local account name and stays editable in setup
@@ -9,11 +11,13 @@ encrypted TLS with certificate verification disabled and explicit open admission
 Existing verified deployments are preserved. See docs/RC1_PLAN.txt for the finite
 installer/package/playtest checklist and its remaining acceptance gates.
 
-Native installer103 adds selected-deck reset with backup and client uninstall
+The native client installer includes selected-deck reset with backup and uninstall
 while preserving saves. A separate native server installer imports local game
 data using its own working copy,leaving the source game unchanged,and creates
-Start Server.exe. Automated qualification/hashes:docs/installer103.txt. Physical
-installer/owner-start/LAN acceptance remains open.
+Start Server.exe. Implementation evidence:docs/installer103.txt;corrected native
+progress UI:docs/installer-progress130.txt. Latest engineering artifacts and scoped
+results:docs/async-profile-io156.txt. Planned desktop update130/DEV.txt N7 stays
+separate. First LAN1v1 is accepted;its remaining workflow observations stay open.
 
 Development project for private Battle Aces build 37822 matches. Windows x64
 server and clients are the current target. See docs/REMAINING_DELIVERY_PLAN.txt
@@ -33,10 +37,11 @@ now pass; broader manual/failure flows, complete telemetry removal, private inte
 hosting and release packaging remain under development.
 Do not treat this development baseline as the finished release.
 
-Server community control v1 adds a connected-player directory, targeted invites,
+Server community control supports a connected-player directory, targeted invites,
 host-controlled custom starts and same-connection rematches. Scripted clients pass
 two matches using the real simulation, with a third player kept outside both games.
-The opt-in custom picker now lists connected players and sends targeted invites.
+Custom -> Invite Friend lists connected players and sends targeted invites;
+current paired builds also propagate selected cosmetic portraits.
 Two real clients pass native popup decline, cancel, expiry, duplicate Accept and
 lobby departure checks. Native Start/Ready, results/Continue and same-lobby rematch
 now pass automated two-client tests, including duplicate requests and a changed
@@ -52,9 +57,12 @@ It does not require a replacement server,CA,invite or imported server assets.
 Public1v1/2v2/2vAI use local AI when no server is available;configured online queues
 fill open seats after30 seconds while retaining connected humans. Custom games
 remain human-only. Name,server route and isolated local profile are configurable.
-After installing the current patch,select the game once:
-  "Start Client.cmd" --game "<working game directory>"
-Subsequent launches use the same Start Client.cmd and saved config/client.json.
+After native installation,double-click Start Battle Aces.cmd IN THE GAME FOLDER
+for every launch. The game folder contains its own runtime;the downloaded
+installer/package is no longer needed. Configure the server IP and Player name
+in setup,or edit .battleaces-resurrection/client-config.json in that game folder.
+The older extracted-package Start Client.cmd/config/client.json route remains
+an advanced compatibility path,not an extra step after native setup.
 Open Edit Deck -> Try Deck vs AI. Settings -> General -> AI Difficulty offers
 Easy, Normal and Hard in the offline Region row. Normal is the initial default;
 the saved choice applies to the next match and survives restart. The manual
@@ -67,15 +75,17 @@ startup failure. Native lifecycle checks and remaining visual acceptance are
 documented in docs/match-loading.txt; this remains a development preview.
 
 Current game wire protocol3 requires updating both helper and server. The server
-selects a bounded input window with --input-window (2..12, default6); both players
-receive the same setting. See docs/protocol-v3.txt and docs/network-qualification.txt
+selects a bounded input_window in host config (2..12,default6);both players
+receive the same setting. The standalone developer coordinator CLI also accepts
+--input-window. See docs/protocol-v3.txt and docs/network-qualification.txt
 for compatibility,command-delay tradeoffs and measured network tests.
 
 Portable Windows preview packages now have separate server/client archives,
 bundled Python, editable host/player configs and a native startup health check.
 Start Client.cmd starts local play with optional multiplayer. The separate
-BattleAces-Client.cmd administration command opens Connection Setup for server
-address,name,CA fingerprint confirmation,protected invite import and a TLS test.
+BattleAces-Client.cmd configure-verified command opens the optional verified-mode
+Connection Setup for CA/invite settings. Native RC setup only needs the host IP
+and player name;those verified-mode fields are not RC prerequisites.
 See docs/client-enrollment.txt for transaction and qualification details.
 The builder includes only allowlisted project source and our helper; game assets
 are imported locally. See docs/windows-packaging.txt for build/test evidence and
@@ -130,8 +140,9 @@ The installer verifies original component SHA256s, preserves originals locally u
 .battleaces-resurrection/original/, and refuses unknown modifications. For an
 existing compatible prototype patch, --original may identify a verified original
 DLL. Do not target the untouched recovery installation.
-Current guards modify GameAssembly.dll, UnityPlayer.dll and the bundled nested
-chrome_elf.dll; the manifest records all three hashes. Reviewed telemetry guards
+Current telemetry recipe21 covers GameAssembly.dll,UnityPlayer.dll and the bundled
+nested chrome_elf.dll/libcef.dll;the manifest records all four component hashes.
+Reviewed telemetry guards
 are included, but complete reporting
 removal remains unverified. See docs/telemetry.txt for the exact scope.
 
