@@ -1,0 +1,119 @@
+OBSERVER UNWIND PROVENANCE142
+Updated: 2026-10-23. D5/P2 remain OPEN.
+
+Result
+New opt-in observer metadata identifies events EMITTED while that same thread is
+inside the observer's ACCURATE stack unwind. It retains all operations/counters.
+An authored sensor control and one targeted native edit/shutdown case pass. The
+native case reproduces553PDB attempts/172paths;ALL are emitted with unwind depth0.
+This narrows the observation,not the initiating producer. Do not infer that the
+observer caused them,that it could not cause deferred/hidden work,or that they
+are telemetry-free. Original141 captures have no such scope field and cannot be
+retroactively attributed. No analytics/game patch,helper,recipe or package changed.
+
+Retained141 timing/source review
+local/pdb142-correlation01/verification.json reparses the sealed141 records and
+aligns actual clock anchors with native markers. Edit07's553PDB attempts are all
+on the original Quit thread29112,in a roughly267ms shutdown window. The
+anchor-derived tick estimates:first116014345..116014361,last116014596..116014612. They follow the
+last native backup marker116014140. Startup's three protected-save refusals are
+at115976765..115976781,over37seconds earlier. Restart07 also has three sharing-
+violation log messages but no PDB attempts. Thus those errors alone do not explain
+the difference. The existing input-protection path deliberately preserves its
+original save result before validation;no new save failure/product fix is claimed.
+
+local/pdb142-observer-source01 retains independent source/package review. frames()
+calls Thread.backtrace(context,Backtracer.ACCURATE),then maps addresses to module/
+RVA. cwdRoot calls it before relevant-file filtering,so even unselected relative
+paths can request unwinding. Locally discovered Frida17.23.2 binding strings
+include StackWalk64/SymInitialize/SymLoadModuleExW and DbgHelp assets. These are
+capabilities,NOT a proven native call chain or runtime initiator. Native Gum/core
+implementation source is absent in that selected installed package. No download,
+provider configuration repair or original SDK report/query is performed.
+
+Implementation
+tools/frida_attribution_unwind.py composes existing cwd or SDK observers without
+changing their legacy builders. Per-thread scope starts immediately before the
+actual Thread.backtrace and ends in finally,including an exception path. Every
+emitted row adds observerUnwind with schema/depth/scope ID,total started/completed,
+active scope count and nested-current-PC request count. The marked scope includes
+the native backtrace and subsequent slice/map/module lookup,until finally runs.
+Nested frame requests use
+the current native PC rather than another ACCURATE unwind. This is explicitly a
+current-PC frame,not a recovered caller stack. No event/counter is filtered or
+reset,and no game/SDK API is replaced or explicitly invoked by the wrapper. The underlying unwind
+itself may do native work;metadata-only output never proved absence of that work.
+
+tools/attribution_unwind_metadata.py checks exact types,identity,sequence,monotonic
+counters,scope consistency and drained final scopes. It projects only that
+separately validated annotation away so existing SDK/clock/I/O validators can read
+the same data and sequence. Those validators still enforce domain errors and
+capture budgets;the annotation validator does not replace them. Raw provider rows
+remain complete. Emit-time scope
+does not establish API-entry/initiating-parent causality or independently visible
+file/kernel/descendant coverage. Reentrant hooks may be hidden by the runtime;
+unmarked activity remains unattributed.
+
+Controls and source preservation
+17focused Python checks pass:actual generated JS executes authored nested I/O,
+throw/finally cleanup and concurrent-thread-state scenarios. Nested frame requests
+produce marked current-PC evidence without another unwind. SDK composition keeps
+eight event records while counters reach10. Missing/Boolean/inconsistent/backward/
+undrained annotations fail. Authored JS is not a positive original PDB/backend call.
+
+Actual disposable sensor:local/pdb142-control01. Current139 packaged Python is
+launched suspended,owned job assigned,REA attach/script-ready,then primary resume.
+No game/SDK target. Actual local file/read/write/rename/delete,localhost7-byte
+send/receive,child exit and dynamic cwd/foreign-root controls pass. Root exit0,
+reaped,job3total/0active/0terminated,no force;48rows/29operations/9clock anchors,
+max7ms drift,two resolved cwd roots and one explicitly expected foreign root.
+All32unwinds complete,nested PC requests0,no emitted rows inside a scope. That
+quiet nested result does not establish PDB causality. Session closes with a retained receipt.
+
+Targeted native attribution case:local/pdb142-game01. A NEW disposable profile is
+seeded from the sealed valid baseline TOML;accepted141 choices/trace are preserved.
+Same helper141-07/recipe21 and original edit/Back/idle/default Quit path. Difficulty
+starts/ends normal;this case does NOT claim a new persistence result. Native PASS
+59.362200s/outer60.524323s,exit0/reaped/job1/0/0/no force. Original method/body and
+main-generation/released-cosmetic checks remain intact. SDK/native guards retain
+their scopes. No SDK queue read/seed/path replacement or collector invocation.
+
+Actual2527provider rows/not truncated,135clock anchors/max9ms drift,1819selected
+file operations,555resolved cwd records,zero unknown roots.553PDB attempts on172
+paths retain DbgHelp frames and occur outside marked unwind scopes;none is dropped.
+All2376unwinds complete,nested PC requests0.13selected SDK counters stay0 across
+10samples;selected network/process-create records0. This is not raw-socket/wire/
+all-thread/pre-loader/descendant/full privacy proof. Exit still has the inherited
+200ms transport hold at each of two self-TerminateProcess entries;OS completion
+is separately verified. REA session closes;all owned processes are terminal.
+
+Review/failure records
+Actual native review01 failed a Windows forward/backslash string comparison;
+actual source hashes were equal. Review02 corrected path normalization but its
+filename substitution changed the control-report reference to a nonexistent02.
+Both failed reports are retained. Review03 corrects that reference and passes
+the SAME runtime records;no game rerun or source/hash check suppression.
+Actual control review01 passes. Final seal verifies34inputs plus all74prior141
+sealed inputs unchanged,and prior141 TOML/cosmetic/difficulty/Quit-trace hashes
+unchanged. Current139 images,manual130/N7/share and normal launchers stay unchanged.
+
+Ignored evidence SHA256
+local/pdb142-correlation01/verification.json
+ b985a81fc9a3aa497ee61cda15644a415e7a20ab861efa257f100a443a7049ba
+local/pdb142-control01/observation-review01.json
+ 6ed3a74b78fed86fed57693b9f401204e4220f080b8973f11792c9ebed2818e4
+local/pdb142-game01/observation-review03.json
+ 75eaf1081a44dca7be2f14c25dbad22a07f5bc67036fe3e67d2bf132e0cf6c9b
+local/pdb142-seal01.json
+ a160d2d73ff525be3eb2f95965ac752fe8987161d1f0fd3e729a1f66d814af4c
+REA final control:ev_ada8dec7a8a4069f76ac1bd0e2aea34c9d49ccde5239d55bc7ae056592457da5
+REA final native:ev_0d4e48858175cc0036692adbc7a14fe279a695c061fc84c1f3eb6c0e4894bcb1
+Raw provider records/source/package strings/binaries remain ignored,out of Git.
+
+Next
+Reuse142's marker and actual observations. The next PDB attribution step needs
+actual loaded DbgHelp identity and original entry/caller ownership or independent
+OS/native observation;another unmodified quiet run cannot answer it. Continue the
+finite P1-P9 collection/source/tree/network/installed-artifact gates. Keep upstream
+c307c0,all-thread/pre-injection,inlined and resumed/inflight questions open.
+No new Nick action,physical visibility test,Tutorial2 launch or installer requested.

@@ -2,6 +2,22 @@
 
 ## Requests and answers with Nick
 
+- Observer142 adds OPT-IN per-thread emit-time unwind provenance and nested-PC
+  fallback,retaining all operations/counters/legacy builders.17focused tests pass.
+  Actual authored sensor48rows/32balanced unwinds/child+localhost+cwd controls,
+  job3/0/0/no force. New-owned-profile native edit/shutdown59.362s/outer60.524s,
+  job1/0/0/Quit0/no force;2527rows/2376balanced unwinds/13SDK counts0. It REPRODUCES
+  all553PDB attempts/172paths with depth0;initiating producer STILL UNKNOWN.
+  Do not infer observer innocence/causality or retroactively attribute141. Retained
+  timing places141 PDB attempts in shutdown,>37s after input-protection errors;
+  restart hassame3errors/noPDB. Local Frida strings prove capabilities,not backend
+  call chain. Strict native review03/control01/seal34inputs pass;old14174seals and
+  choice/trace hashes unchanged. Reviewer01slash and02wrongref failures retained.
+  All owned processes terminal/REA sessionsclosed. No helper/recipe/package/manual
+  or Nick action change. Next actual loaded DbgHelp identity/entrycaller ownership
+  or independent OS observation,plus finite P1-P9;no unchanged quiet rerun. Full
+  P2/D5false. Scope/limits/seals:docs/observer-unwind142.txt.
+
 - Profile141 bounded behavior PASS:existing owned profile changes deck/full17
   cosmetics/difficulty,original Back,idle10031ms,normal Quit/restart with exact
   bytes/native values retained. New fully gated opt-in diagnostic only;normal

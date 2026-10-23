@@ -3,6 +3,16 @@ Updated: 2026-10-23
 Delivery plan: REMAINING_DELIVERY_PLAN.txt, Windows only.
 Original roadmap: CLOSED / SUPERSEDED;see PLAN_CLOSEOUT.txt.
 
+OBSERVER142 - QUALIFIED EMIT-TIME UNWIND SCOPE / PDB INITIATOR STILL OPEN
+New opt-in marker/nested-PC fallback/strict decoder retain every operation/counter;
+17focused checks pass. Actual sensor48rows/32balanced unwinds/job3/0/0;targeted new
+owned native profile2527rows/2376balanced unwinds/Quit0/job1/0/0/no force. All553PDB
+attempts reproduce at emit-depth0. This is not initiating-producer attribution or
+retroactive141 causality. Actual timing places141 PDB work in shutdown,not startup
+save refusal. Both sessionsclosed/prior14174seals and choices preserved. No shipping/
+helper/recipe/manual change. Next loaded DbgHelp identity/caller ownership or
+independent observation;reuse completed142 case. See observer-unwind142.txt.
+
 PROFILE141 - BOUNDED EDIT / BACK / IDLE / QUIT / RESTART PASS
 Same owned profile changes deck,full17cosmetics and difficulty,uses original Back,
 idles10031ms,Quits normally and restarts with exact edited bytes/native values.
