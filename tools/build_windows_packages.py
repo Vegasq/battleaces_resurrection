@@ -111,7 +111,7 @@ def read_runtime(path):
     return {'program/runtime/' + name: data for name, data in files.items()}
 
 
-def read_helper(path):
+def read_helper(path,*,source_revision=None):
     path = Path(path)
     if not 256 <= path.stat().st_size <= 8*1024*1024: raise PackageError('Unexpected helper size')
     data = path.read_bytes()
@@ -124,7 +124,8 @@ def read_helper(path):
             raise ValueError()
     except (ValueError, struct.error): raise PackageError('Expected our AMD64 helper DLL') from None
     if any(marker not in data for marker in MARKERS): raise PackageError('Helper is missing required feature/protocol markers')
-    return data
+    from .helper_provenance import validate
+    return data,validate(path,data,ROOT,revision=source_revision)
 
 
 def read_server_launcher(path):
@@ -214,7 +215,7 @@ def write_zip(path, files, prefix):
             archive.writestr(info, data, compresslevel=9)
 
 
-def build(runtime_zip, helper, output, *, allow_dirty=False, server_launcher=None, client_installer=None, certificate_tool=None):
+def build(runtime_zip, helper, output, *, allow_dirty=False, server_launcher=None, client_installer=None, certificate_tool=None, helper_source_revision=None):
     output = Path(output).absolute()
     # Developer outputs stay in ignored roots; never write archives into source
     # or over an existing package. Failed builds remain for inspection.
@@ -223,7 +224,11 @@ def build(runtime_zip, helper, output, *, allow_dirty=False, server_launcher=Non
         raise PackageError('Build output inside the checkout must use local/ or dist/')
     if output.exists() and (not output.is_dir() or any(output.iterdir())):
         raise PackageError('Choose a fresh empty output directory')
-    runtime, helper_data, source = read_runtime(runtime_zip), read_helper(helper), source_revision()
+    runtime,source = read_runtime(runtime_zip),source_revision()
+    helper_data,helper_provenance=read_helper(helper,source_revision=helper_source_revision)
+    if helper_provenance['source']['mode']=='current-worktree':helper_provenance['source'].update(revision=source['revision'],dirty=source['dirty'])
+    else:helper_provenance['source']['dirty']=False
+    helper_provenance_data=json_bytes(helper_provenance)
     launcher_data, launcher_receipt = read_server_launcher(server_launcher or ROOT/'build/server-launcher/Start Server.exe')
     installer_data, installer_receipt = read_client_installer(client_installer or ROOT/'build/client-installer/Install Battle Aces.exe')
     crypto = None
@@ -257,10 +262,13 @@ def build(runtime_zip, helper, output, *, allow_dirty=False, server_launcher=Non
                 files['program/crypto/Generate Certificate.exe']=crypto[0]
                 files['program/crypto/certificate-build.json']=crypto[1]
         files['QUICKSTART.txt'] = source_file('docs/windows-' + product + '-quickstart.txt')
+        files['program/client-helper/helper-provenance.json']=helper_provenance_data
         compatibility = dict(schema=1, product=product, versions=versions, source=source,
             maturity='development-preview', clean_windows_qualified=False,
             runtime=dict(url=PYTHON_URL, sha256=PYTHON_ZIP_SHA256, path_file_modified=True),
             helper_sha256=sha(helper_data) if product == 'client' else None,
+            helper_build=dict(helper_sha256=sha(helper_data),source=helper_provenance['source'],
+                provenance_path='program/client-helper/helper-provenance.json',provenance_sha256=sha(helper_provenance_data)),
             server_launcher_sha256=sha(launcher_data) if product == 'server' else None,
             game_files_included=False)
         files['compatibility.json'] = json_bytes(compatibility)
@@ -303,6 +311,7 @@ def main(argv=None):
     parser = argparse.ArgumentParser(description=__doc__)
     parser.add_argument('--python-zip', type=Path, required=True)
     parser.add_argument('--helper', type=Path, required=True, help='our compiled BattleAcesOffline.dll, never a game DLL')
+    parser.add_argument('--helper-source-revision',help='explicit ancestor commit for a tested frozen helper; default requires current helper sources')
     parser.add_argument('--client-installer', type=Path)
     parser.add_argument('--certificate-tool', type=Path)
     parser.add_argument('--server-launcher', type=Path, help='our compiled Start Server.exe and adjacent source-bound launcher-build.json')
@@ -310,7 +319,7 @@ def main(argv=None):
     parser.add_argument('--allow-dirty', action='store_true', help='local development preview with exact source hashes recorded')
     args = parser.parse_args(argv)
     try:
-        print(json.dumps(build(args.python_zip, args.helper, args.output, allow_dirty=args.allow_dirty, server_launcher=args.server_launcher, client_installer=args.client_installer, certificate_tool=args.certificate_tool), indent=2))
+        print(json.dumps(build(args.python_zip, args.helper, args.output, allow_dirty=args.allow_dirty, server_launcher=args.server_launcher, client_installer=args.client_installer, certificate_tool=args.certificate_tool,helper_source_revision=args.helper_source_revision), indent=2))
         return 0
     except (OSError, ValueError, zipfile.BadZipFile) as error:
         print('Package build failed: ' + str(error))

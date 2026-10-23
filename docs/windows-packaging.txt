@@ -1,5 +1,17 @@
 WINDOWS PORTABLE PACKAGING - DEVELOPMENT PREVIEW
-Updated: 2026-10-20
+Updated: 2026-10-23
+
+Current helper input contract159
+Package builds require adjacent helper-build.json and bind its DLL digest,
+complete helper source inventory,unchanged-build declaration,compiler digest and
+SDK version. Default builds require current helper sources. A tested frozen helper
+requires explicit --helper-source-revision <ancestor commit hash>;the builder
+checks that immutable Git tree and records exact legacy LF-to-CRLF variants.
+Both packages include sanitized program/client-helper/helper-provenance.json,
+bound by compatibility and integrity manifests. The compiler's machine path is
+not shipped. This is declared local build lineage,not a signed attestation or a
+substitute for native gameplay/compatibility qualification. Earlier candidates
+below retain their original weaker input check;see helper-provenance159.txt.
 
 2026-10-20 LAN candidate53
 Clean57120a2 archives differ from51only in compatibility/manifests. Actual
@@ -149,7 +161,9 @@ uses -S, a private explicit module path and the configured writable worker cwd;
 foreign cwd/PYTHONPATH/sitecustomize cannot choose the worker module.
 
 Build locally after compiling our helper and server console launcher:
+  powershell -File client_patch/build.ps1
   powershell -File server/build_launcher.ps1
+  python -m tools.build_client_installer --output build/client-installer
   python -m tools.build_windows_packages --python-zip "<official ZIP>" --helper "<our BattleAcesOffline.dll>" --output dist/preview-unique
 Committed source is required by default. --allow-dirty explicitly creates a local
 preview with dirty:true, source revision and per-file content hashes. It is not
@@ -160,7 +174,10 @@ Archive path/type/size bounds reject traversal, device names, alternate streams,
 normalized names, links and case-folded duplicates. Only reviewed source paths
 are copied, and they also pass the source-content audit. The helper must be an
 AMD64 PE DLL with the current protocol, practice, difficulty and loading markers.
-Those markers are compatibility checks, not proof of a compiler/source match.
+Those markers are compatibility checks. The adjacent helper-build.json is now
+also required;its full declared sources must match the current helper tree or
+the explicitly pinned ancestor commit. Frozen inputs are never inferred from a
+DLL name or a marker string. Preserve the receipt beside the compiled DLL.
 Only the supplied authored helper is included; no game installation is traversed.
 
 Output must be fresh/empty. Failed builds remain for inspection. Fixed timestamps

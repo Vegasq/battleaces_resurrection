@@ -1,0 +1,53 @@
+HELPER PROVENANCE159 - DECLARED BUILD RECEIPT / EXPLICIT FROZEN SOURCE BINDING
+2026-10-23. Build-input correction implemented;artifact qualification pending at
+this source checkpoint. Whole D9/D1-D9 release remains OPEN.
+
+Defect / correction
+The builder checked helper PE/AMD64/DLL shape and capability markers but ignored
+the adjacent helper-build.json. Unlike its native launcher/installer inputs,it
+could package a compatible-looking DLL without binding the supplied local build
+receipt to that binary or its authored sources. The source revision in package
+metadata did not separately identify a deliberately frozen helper's source epoch.
+
+tools/helper_provenance.py now requires the producer's exact schema1 receipt,
+DLL SHA256,unchanged-during-build declaration,complete source inventory,compiler
+digest and SDK version. Duplicate/malformed/oversized receipts,bad paths,missing
+or extra sources,changed bytes/digests and incomplete builds refuse before output.
+Default input matches the current helper source tree. An older tested helper
+requires --helper-source-revision with an explicit commit hash:the builder resolves
+an immutable ancestor of HEAD and verifies all declared source files against it.
+Only an exact Git byte match or a reconstructable LF->CRLF variant is accepted;
+the latter is recorded per file and allowed only for the explicitly pinned tree.
+No arbitrary source edit or current-tree mismatch is ignored.
+
+Both products get sanitized program/client-helper/helper-provenance.json,with its
+digest/source/helper identities bound in compatibility.json and package manifests.
+Compiler machine paths are omitted;relative authored paths/digests,compiler SHA,
+SDK version and original receipt SHA remain. Legacy compatibility.helper_sha256
+stays null for the dedicated server;the new helper_build field separately binds
+its included client import helper. Players require no Git/compiler/receipt setup.
+
+Existing concrete inputs
+Current helper149-04d9d12efe passes default binding:113current helper sources.
+This is source/DLL receipt validation,NOT a new ordinary gameplay qualification
+or selection of that diagnostic helper for shipping.
+The tested helper138-01076950d5 refuses by default because its source inventory
+has107files. Explicit sourcef99fc83da645b5027688f7f38cda3a9b7d72bce9 binds all107,
+with15exact CRLF variants. Original helper/receipt bytes remain unchanged;the raw
+138receipt SHA is ca72d6072e4ed1111e1c25e9871f7f9a9aedf9cdc869ef92eb100cc81cf02e0d.
+Use that explicit frozen pin to preserve current156's tested helper bytes.
+
+The local receipt is a declared build record,not code signing or independent proof
+against a malicious builder. The named source build script emits its receipt only
+after its commands succeed and sources remain stable;individual native/game test
+results remain separate evidence. No source lineage assertion upgrades privacy,
+physical,SCM,Internet or complete release acceptance.
+
+Source tests/next
+42affected tests pass on Python3.14.8 in12.980s and3.12.10 in13.205s,covering helper receipt/content/
+path/Git/line-ending rejections,package metadata verification,runtime install/
+preservation/uninstall and console packaging. Actual clean package/native
+installer form/payload qualification is pending in this source checkpoint.
+Exact prior builder/test source bytes:local/helperbinding159-prior-source01.
+No client DLL/CPP/gameplay/transport/patch-recipe/native form change. Existing156
+artifacts,manual130/N7,N9/N10 capsules and share stay frozen;no new Nick action.

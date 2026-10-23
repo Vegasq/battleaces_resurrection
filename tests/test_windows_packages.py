@@ -28,6 +28,11 @@ class WindowsPackageTests(unittest.TestCase):
         struct.pack_into('<H', helper, 0x80+22, 0x2000)
         struct.pack_into('<H', helper, 0x80+24, 0x20b)
         helper.extend(b'\0'.join(builder.MARKERS)); self.helper.write_bytes(helper)
+        from tools.helper_provenance import current_sources
+        self.helper_receipt=dict(schema=1,helper_sha256=builder.sha(helper),sources_unchanged_during_build=True,
+            source_sha256={name:builder.sha(data) for name,data in current_sources(builder.ROOT).items()},
+            compiler_path='authored compiler',compiler_sha256='e'*64,sdk_version='10.0.0.0')
+        (self.root/'helper-build.json').write_text(json.dumps(self.helper_receipt))
         self.server_launcher = self.root/'Start Server.exe'
         executable = bytearray(helper[:512])
         struct.pack_into('<H', executable, 0x80+22, 2)
@@ -85,6 +90,35 @@ class WindowsPackageTests(unittest.TestCase):
         package = self.root/'out/battleaces-server-win64'
         self.assertEqual((package/'Start Server.exe').read_bytes(), self.server_launcher.read_bytes())
         self.assertFalse((package/'Start Server.cmd').exists())
+
+    def test_helper_receipt_is_required_and_provenance_is_bound_in_both_packages(self):
+        receipt_path=self.root/'helper-build.json'
+        receipt_path.unlink()
+        with self.assertRaisesRegex(PackageError,'Helper build receipt'):self.build()
+        self.assertFalse((self.root/'out').exists())
+        original_helper=self.helper.read_bytes()
+        for change in ('digest','source','drift','bytes'):
+            self.helper.write_bytes(original_helper)
+            value=json.loads(json.dumps(self.helper_receipt))
+            if change=='digest':value['helper_sha256']='0'*64
+            elif change=='source':value['source_sha256'].pop(next(iter(value['source_sha256'])))
+            elif change=='drift':value['sources_unchanged_during_build']=False
+            else:
+                altered=bytearray(original_helper);altered[0x20]^=1;self.helper.write_bytes(altered)
+            receipt_path.write_text(json.dumps(value))
+            with self.subTest(change=change),self.assertRaisesRegex(PackageError,'Helper build receipt'):self.build()
+            self.assertFalse((self.root/'out').exists())
+        self.helper.write_bytes(original_helper);receipt_path.write_text(json.dumps(self.helper_receipt));self.build()
+        for product in ('client','server'):
+            package=self.root/'out'/('battleaces-'+product+'-win64')
+            path=package/'program/client-helper/helper-provenance.json'
+            provenance=json.loads(path.read_bytes());compat=json.loads((package/'compatibility.json').read_bytes())
+            self.assertEqual(provenance['helper_sha256'],builder.sha(self.helper.read_bytes()))
+            self.assertEqual(provenance['source'],dict(mode='current-worktree',revision='test-authored',dirty=False))
+            self.assertEqual(compat['helper_build']['provenance_sha256'],builder.sha(path.read_bytes()))
+            self.assertEqual(compat['helper_build']['helper_sha256'],provenance['helper_sha256'])
+            self.assertNotIn('compiler_path',provenance)
+            verify(package,product)
 
     def test_wrong_runtime_pin_or_unrecognized_helper_creates_no_output(self):
         self.runtime.write_bytes(self.runtime.read_bytes() + b'changed')
