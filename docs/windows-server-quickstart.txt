@@ -180,8 +180,10 @@ to stop, then create a new snapshot under the same Windows account:
   BattleAces-Server.cmd backup --out "backups/weekly.backup.json"
   BattleAces-Server.cmd verify-backup --input "backups/weekly.backup.json"
 
-The snapshot stores saved decks and the hash-only invitation database, including
-stable player identities and revocations. It contains no bearer invite files,
+The snapshot stores saved decks/full cosmetics and stable profile identities.
+Verified invite mode also includes the hash-only invitation database/revocations;
+RC open mode has no invite store and uses an explicit rc-open snapshot format.
+It contains no bearer invite files,
 game assets, logs, host settings or TLS private key. Its output directory/file
 is created with protected owner/SYSTEM permissions; existing output is refused.
 Keep snapshots private. The checksum detects accidental changes, not a malicious
@@ -195,9 +197,12 @@ Restore into a NEW directory; even an existing empty destination is refused:
   BattleAces-Server.cmd start --config "restored-server/host.json"
 
 The current --config supplies host settings and trusted asset/TLS paths. Restore
-validates snapshot integrity, exact asset compatibility, decks and credentials
-before writing. It creates new data/private storage for the current Windows
-account, then writes the new host.json last. The existing config, profiles and
+validates snapshot integrity,exact asset compatibility,decks/cosmetics and the
+same access mode before writing. RC,verified invite and development plaintext
+snapshots cannot be converted into each other by restore. It creates new
+data/private storage for the current Windows
+account,then writes the new schema2 host.json with its original access_mode last.
+RC mode creates no credential store. The existing config,profiles and
 credential store stay unchanged. A failed restore retains its incomplete new
 folder for inspection without a runnable host.json; retry with a new destination.
 It does not edit Windows ACLs or turn off runtime credential checks.

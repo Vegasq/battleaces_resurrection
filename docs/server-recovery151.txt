@@ -1,0 +1,63 @@
+SERVER RECOVERY151 - RC BACKUP AND STRICT CONFIG ROUNDTRIP
+2026-10-23. Source repair qualified;packaged qualification follows separately.
+Full D7 protected deployment/SCM/restored-host match acceptance remains OPEN.
+
+Defects reproduced
+The previous backup implementation assumed every TLS host had an invite store.
+RC open-access hosts deliberately have credential_directory:null,so backup called
+CredentialStore(None) instead of saving their profiles. Separately,restore used
+asdict(HostConfig),which now includes access_mode,but wrote schema1. The strict
+config loader forbids that field under schema1,so the final config readback
+refused even a valid legacy invite backup. Restore retained the incomplete new
+directory and never published host.json;original state stayed intact.
+
+local/recovery151-baseline01-tests.txt reproduces both defects before the fix:
+the existing legacy invite roundtrip errors,and the new RC test detects the
+unwanted invite-store access. Exact prior server/test source is preserved under
+local/recovery151-prior-source01. Prior server source SHA256:
+6e4a1560e90a76f0b866689ef59dfffd4f697b54886f24ae57f6a36b9d843743.
+No protected-write retry,server/game launch,ACL change or real invite was used.
+
+Correction
+RC backup never opens an invite store. Its new envelope schema3 adds exactly
+payload.access_mode:rc-open and requires credentials:null. Exact asset identity
+still binds the snapshot. With a cosmetic catalog,profiles retain complete
+schema2 records/all17slots;without one,they retain validated eight-unit lists.
+Legacy snapshot1/2 emission and reading remain unchanged for invite TLS and
+development loopback. Legacy null credentials remain development-only.
+All six cross-mode directions reject during validation,before creating a restore
+destination;restore is not an authentication-mode migration operation.
+
+Restored configs now use schema2,matching HostConfig's explicit access_mode.
+Certificate/key paths,listen/host limits and the selected TLS/access mode remain
+from the supplied trusted config;only new data/credential paths are redirected.
+RC restoration creates no credential store. Original config/store/profile bytes,
+exclusive output/refusal behavior,asset checks and private output rules remain.
+No TLS verification requirement is added to RC clients.
+
+Verification
+Four added regression methods cover RC no-store roundtrip,changed full17-slot
+cosmetics,all3same-mode restores/all6cross-mode refusals,and correctly rehashed
+bad/missing/extra mode/credential payload fields. Existing legacy/schema2,
+revocation/token exclusion,atomic-failure/lock/recovery tests remain relevant.
+An initial post-fix focused run has one TEST error:CosmeticSnapshot is not iterable;
+the assertion was corrected to compare the retained typed snapshot directly.
+That failed report is preserved at local/recovery151-focused01-tests.txt.
+
+Final affected source suite:102tests/100passed/2protected-DACL opt-in skips,
+28.291s,outer28.833s. Actual process lock/crash recovery tests run;the transaction
+fixtures explicitly mock the OS private-file boundary and use synthetic assets.
+This is not normal-account DACL or restored native-match proof. Both before/after
+source hashes and complete test output are retained:
+local/recovery151-tests02.{py,txt,json}.
+Corrected server source SHA256:
+2f8508fcf1b6ce6c06a5a546dcc52b654aba0e079e0f4027361ed827a85065ad.
+
+Packaging/owner boundary
+Existing139 engineering and130/manual candidates are not modified in place.
+No accepted D6/LAN/AI/installer action is repeated. Before changing the planned
+manual handoff,a new package must bind this exact backend and use its bundled
+runtime to validate both new and legacy snapshots against verified assets.
+Actual protected backup/restore under the intended account,restored native play,
+SCM/account/reboot and clean-PC support remain the original D7 gates.
+N7/N9 answers remain pending;no additional Nick action is requested here.

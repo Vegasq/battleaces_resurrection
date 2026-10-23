@@ -272,6 +272,103 @@ class StateBackupTests(unittest.TestCase):
         with redirect_stderr(output), self.assertRaises(SystemExit): b.main([self.tokens[0]])
         self.assertNotIn(self.tokens[0], output.getvalue())
 
+    def mode_config(self, mode):
+        settings = json.loads(self.config.source.read_bytes())
+        settings.update(schema=2, access_mode='invite')
+        if mode == 'rc-open':
+            settings.update(access_mode='rc-open', credential_directory=None)
+        elif mode == 'development':
+            settings.update(listen_host='127.0.0.1', allow_insecure_loopback=True,
+                            certificate_file=None, private_key_file=None, credential_directory=None)
+        else:
+            self.assertEqual(mode, 'invite')
+        path = self.config.source.with_name('host-'+mode+'.json')
+        path.write_bytes(b.canonical(settings))
+        return load_config(path)
+
+    def test_rc_backup_restore_without_invite_store_preserves_profiles_and_tls_mode(self):
+        config = self.mode_config('rc-open')
+        original_config, original_store = config.source.read_bytes(), self.store.path.read_bytes()
+        with mock.patch.object(c, 'CredentialStore', side_effect=AssertionError('RC mode must not open an invite store')):
+            summary = b.backup(config, self.output)
+            self.assertTrue(b.verify_snapshot(config, self.output)['verified'])
+            result = b.restore(config, self.output, self.target)
+        restored = load_config(result['config'])
+        self.assertEqual((summary['profiles'], summary['invites'], summary['players'], summary['revoked']), (1, 0, 0, 0))
+        envelope = json.loads(self.output.read_bytes())
+        self.assertEqual(envelope['schema'], 3)
+        self.assertEqual(envelope['payload']['access_mode'], 'rc-open')
+        self.assertIsNone(envelope['payload']['credentials'])
+        self.assertEqual(restored.access_mode, 'rc-open')
+        self.assertFalse(restored.allow_insecure_loopback)
+        self.assertIsNone(restored.credential_directory)
+        self.assertEqual(restored.certificate_file, config.certificate_file)
+        self.assertEqual(restored.private_key_file, config.private_key_file)
+        self.assertEqual(restored.listen_port, config.listen_port)
+        self.assertEqual(ProfileStore(restored.data_directory/'profiles', self.template).load(self.first['player_id'], []), self.deck)
+        self.assertFalse((restored.data_directory/'private/credentials').exists())
+        self.assertEqual(config.source.read_bytes(), original_config)
+        self.assertEqual(self.store.path.read_bytes(), original_store)
+
+    def test_rc_full_cosmetic_snapshot_roundtrip_and_bad_selection_refusal(self):
+        catalog, selection = self.enable_cosmetics()
+        self.profiles.save(self.first['player_id'], self.deck, cosmetics=selection)
+        config = self.mode_config('rc-open')
+        with mock.patch.object(c, 'CredentialStore', side_effect=AssertionError('unexpected invite store')):
+            b.backup(config, self.output)
+            result = b.restore(config, self.output, self.target)
+        restored = load_config(result['config'])
+        state = ProfileStore(restored.data_directory/'profiles', self.template, catalog=catalog).load_state(self.first['player_id'], [])
+        self.assertEqual(state.deck, tuple(self.deck))
+        self.assertEqual(state.cosmetics, selection)
+        original = json.loads(self.output.read_bytes())
+        bad = copy.deepcopy(original['payload'])
+        bad['profiles'][self.first['player_id']]['cosmetics']['slots'].pop()
+        self.output.write_bytes(b.canonical(dict(schema=3, payload=bad, sha256=b.digest(b.canonical(bad)))))
+        refused = self.folder/'bad-cosmetics'
+        with self.assertRaises(ValueError): b.restore(config, self.output, refused)
+        self.assertFalse(refused.exists())
+
+    def test_all_three_snapshot_modes_refuse_cross_mode_restore_before_creation(self):
+        configs = {mode:self.mode_config(mode) for mode in ('invite', 'development', 'rc-open')}
+        snapshots = {}
+        for mode, config in configs.items():
+            snapshots[mode] = self.folder/'snapshots'/(mode+'.json')
+            b.backup(config, snapshots[mode])
+            self.assertEqual(json.loads(snapshots[mode].read_bytes())['schema'], 3 if mode=='rc-open' else 1)
+        for source_mode, source in snapshots.items():
+            for destination_mode, config in configs.items():
+                target = self.folder/('restore-'+source_mode+'-to-'+destination_mode)
+                with self.subTest(source=source_mode, destination=destination_mode):
+                    if source_mode == destination_mode:
+                        self.assertTrue(b.verify_snapshot(config, source)['verified'])
+                        restored = load_config(b.restore(config, source, target)['config'])
+                        self.assertEqual(restored.access_mode, config.access_mode)
+                        self.assertEqual(restored.allow_insecure_loopback, config.allow_insecure_loopback)
+                        self.assertEqual(json.loads(restored.source.read_bytes())['schema'], 2)
+                    else:
+                        with self.assertRaisesRegex(b.BackupError, 'mode'):
+                            b.verify_snapshot(config, source)
+                        with self.assertRaisesRegex(b.BackupError, 'mode'):
+                            b.restore(config, source, target)
+                        self.assertFalse(target.exists())
+
+    def test_rc_snapshot_requires_explicit_mode_and_no_credentials(self):
+        config = self.mode_config('rc-open')
+        b.backup(config, self.output)
+        original = json.loads(self.output.read_bytes())['payload']
+        cases = []
+        for mode in ('invite', 'development', True, None):
+            value = copy.deepcopy(original); value['access_mode'] = mode; cases.append(value)
+        value = copy.deepcopy(original); del value['access_mode']; cases.append(value)
+        value = copy.deepcopy(original); value['credentials'] = json.loads(self.store.export_snapshot()); cases.append(value)
+        value = copy.deepcopy(original); value['extra'] = 'unexpected'; cases.append(value)
+        for payload in cases:
+            with self.subTest(keys=list(payload), mode=payload.get('access_mode')):
+                self.output.write_bytes(b.canonical(dict(schema=3, payload=payload, sha256=b.digest(b.canonical(payload)))))
+                with self.assertRaises(ValueError): b.restore(config, self.output, self.target)
+                self.assertFalse(self.target.exists())
+
 
 class ProfileDurabilityTests(unittest.TestCase):
     def test_flush_or_replace_failure_preserves_previous_deck(self):

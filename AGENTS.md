@@ -2,6 +2,17 @@
 
 ## Requests and answers with Nick
 
+- Recovery151 source FIXES two actual D7 bugs:RC backup attempted absent invite
+  store;all restored configs wrote schema1 despite access_mode field. RC-only
+  snapshot3 explicitly rc-open/credentialsnull,legacy1/2 unchanged;all6cross-mode
+  directions refuse before destination. Restore writes schema2/preserves TLSmode.
+  Baseline2failures retained;102tests100pass/2protected skips. Full17cosmetics/
+  legacy/revocations/durability/locks pass within explicit mocked-private/synthetic
+  scope,NOT protected owner/SCM/restorednative acceptance. Prior exact source
+  local/recovery151-prior-source01. NEXT clean bundled package/actual verify CLI
+  binding;do not repeat protected writes under restricted token. No game/server,
+  helper/shipping/manual/N7/N9/share change yet. docs/server-recovery151.txt.
+
 - Pipe150 CLOSES read-only actual owned SD/label/process-token snapshot subtask.
   Before browser resume and after original open error5:five allow ACEs,same user,
   14groups/4restricting SIDs,medium/notAppContainer;only restricting DACL match

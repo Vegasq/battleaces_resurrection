@@ -827,6 +827,13 @@ startup barrier or inflate an ordinary timeout to produce a passing result.
 References: client-startup.txt and telemetry-game-observation.txt.
 
 [ ] D7 - Complete protected Windows host deployment and recovery
+[x]151 source correction:RC backup omits nonexistent invite store and writes
+    explicit rc-open snapshot3;legacy1/2 remain valid. Restore writes schema2 with
+    original TLS/access mode. All6cross-mode directions refuse before creation;
+    changed full17cosmetics/legacy/revocations/lock/durability regression passes.
+    102tests100pass/2protected skips,synthetic assets/private boundary mocked.
+    Baseline failures retained. Package binding/protected owner/restored native
+    match/SCM remain OPEN. server-recovery151.txt;no new manual action.
 [x] Protected owner-console40 active-match Ctrl+C/same-state restart PASS,review93:
     two40-frame verified-TLS peer streams,workers0,port/lock released,identities/
     profiles retained,job20/0/0,no forced cleanup. Source hashes still agree.

@@ -3,6 +3,16 @@ Updated: 2026-10-23
 Delivery plan: REMAINING_DELIVERY_PLAN.txt, Windows only.
 Original roadmap: CLOSED / SUPERSEDED;see PLAN_CLOSEOUT.txt.
 
+RECOVERY151 - RC NO-INVITE BACKUP / RESTORED CONFIG SCHEMA REPAIR
+Source repairs actual absent-invite-store RC backup and strict restore readback
+failures. RC-only schema3 explicitly separates open TLS from legacy plaintext;
+legacy1/2 preserved,all6cross-mode directions refused before output. Restored
+schema2 retains original access_mode/TLS paths.102tests100pass/2protected skips;
+private boundary mocked/synthetic assets,not owner/SCM/restored native acceptance.
+Baseline and initial test-assertion failure preserved. Next clean bundled backend
+binding;existing engineering/manual/share/Nick actions unchanged. D7OPEN.
+Details:server-recovery151.txt.
+
 PIPE150 - OWNED SECURITY SNAPSHOTS / RESTRICTED PROCESS TOKEN WRITE MISMATCH
 Actual before-resume and after-open snapshots qualify with same DACL/tokens:
 five allow ACEs,same user,14groups/four restricting SIDs,medium/notAppContainer.

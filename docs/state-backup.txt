@@ -1,5 +1,15 @@
 SERVER STATE SNAPSHOTS AND FRESH-LOCATION RESTORE
-Updated:2026-10-19
+Updated:2026-10-23
+
+Recovery151 source correction
+RC open-access TLS backup now omits the nonexistent invite store and writes
+explicit snapshot schema3/access_mode:rc-open. Restored host configs use schema2,
+preserving access_mode even when the source config was legacy schema1. The prior
+writer included access_mode under schema1,so strict config readback refused every
+completed restore. Legacy invite/development snapshot formats remain supported;
+all six cross-mode restore directions refuse before creating a destination.
+100affected tests pass,2protected-permission tests skip. Protected owner/SCM/
+restored native play remain OPEN. Detailed evidence:server-recovery151.txt.
 
 Scope
 P4 has explicit backup, verify-backup and restore commands for saved decks,
@@ -61,22 +71,27 @@ is not a claim about every storage controller's power-loss guarantees.
 
 Snapshot format and output
 The file is bounded to8MiB and is ordinary JSON, not an archive to extract.
-Envelope schema1/2 has exactly schema,payload,sha256. SHA256 covers the canonical
+Envelope schema1/2/3 has exactly schema,payload,sha256. SHA256 covers the canonical
 ASCII JSON payload (sorted keys, compact separators). It detects accidental
 semantic changes; it is not a signature and does not authenticate an untrusted
 replacement. Whole-file SHA256 is also returned for the owner's records.
 
-Payload fields are created_at,compatibility,profiles,credentials. Compatibility
+Legacy payload fields are created_at,compatibility,profiles,credentials. RC
+schema3 adds exactly access_mode with value rc-open and credentials:null;it never
+opens or exports an invite store. Compatibility
 binds game build, asset format, game protocol, original GameAssembly hash,
 simulation hash and a SHA256 of the verified asset-manifest file mapping. Current
 assets are verified and loaded for deck validation before backup/restore. A
 different asset export requires deliberate migration, not an unchecked restore.
 Schema1 profiles map bounded IDs to eight-unit decks. Schema2 profiles map IDs
 to complete schema2 profile records,including all17 cosmetic slots. The latter
-requires the verified cosmetic catalog hash in compatibility. There are at most4096 records and no
+requires the verified cosmetic catalog hash in compatibility. Schema3 uses full
+schema2 profile records when its exact asset identity includes the cosmetic
+catalog;otherwise it uses the same eight-unit deck lists as schema1. There are at most4096 records and no
 case-folded Windows name collisions. The credentials member is the exact existing
-schema1 hash-only database, or null for explicit loopback development. Secure and
-development snapshot/config modes cannot be mixed. Database validation retains
+schema1 hash-only database,or null for development/RC. Invite-authenticated TLS,
+RC open TLS and development plaintext snapshots/configs cannot be mixed. Legacy
+null credentials mean development only,never RC. Database validation retains
 its1MiB/4096-invite limits; no token-valued field is accepted.
 
 Backup reads only committed profile JSON. Recognized old/new save temporaries
@@ -108,7 +123,8 @@ host.json is then validated and published last, exclusively. It keeps the chosen
 config's host settings and absolute asset/TLS paths, with data/credential paths
 redirected to the new directory. It does not start a server or alter the old config.
 Schema2 restoration reads back both deck and complete cosmetics before publishing
-host.json. A schema1 snapshot with exactly matching assets can acquire installed
+host.json. Every restored config uses schema2 with its explicit access_mode;
+RC restoration creates no credential store. A schema1 snapshot with exactly matching assets can acquire installed
 defaults under a new catalog. An older snapshot with different asset inventory
 must first be restored with its matching bundle before an explicit asset upgrade.
 Failed restores retain their new incomplete directory for inspection with no

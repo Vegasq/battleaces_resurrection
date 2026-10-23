@@ -103,27 +103,43 @@ def saved_profiles(directory, template, *, catalog=None):
     return profiles
 
 
-def validate_snapshot(raw, template, identity, *, secure, catalog=None):
+def validate_snapshot(raw, template, identity, *, secure, catalog=None, access_mode='invite'):
+    if type(secure) is not bool or access_mode not in ('invite', 'rc-open') or (access_mode=='rc-open' and not secure):
+        raise BackupError('Unsupported snapshot destination mode')
     if not isinstance(raw, bytes) or not 0 < len(raw) <= MAX_BACKUP_BYTES:
         raise BackupError('Snapshot size limit')
     try:
         envelope = private._json(raw)
     except private.CredentialError: raise BackupError('Snapshot must be bounded duplicate-free JSON') from None
     if (not isinstance(envelope, dict) or set(envelope) != {'schema', 'payload', 'sha256'}
-            or type(envelope['schema']) is not int or envelope['schema'] not in (1, 2)
+            or type(envelope['schema']) is not int or envelope['schema'] not in (1, 2, 3)
             or not isinstance(envelope['sha256'], str) or not HASH.fullmatch(envelope['sha256'])):
         raise BackupError('Unsupported snapshot envelope')
     if (envelope['schema'] == 2 or 'cosmetic_catalog_sha256' in identity) and (
             catalog is None or catalog.sha256 != identity.get('cosmetic_catalog_sha256')):
         raise BackupError('Snapshot requires its verified cosmetic catalog')
     payload = envelope['payload']
-    if not isinstance(payload, dict) or set(payload) != {'created_at', 'compatibility', 'profiles', 'credentials'}:
+    fields = {'created_at', 'compatibility', 'profiles', 'credentials'}
+    if envelope['schema'] == 3: fields.add('access_mode')
+    if not isinstance(payload, dict) or set(payload) != fields:
         raise BackupError('Unsupported snapshot payload')
     if digest(canonical(payload)) != envelope['sha256']:
         raise BackupError('Snapshot integrity check failed')
     if (type(payload['created_at']) is not int or not 0 <= payload['created_at'] < 1 << 63
             or canonical(payload['compatibility']) != canonical(identity)):
         raise BackupError('Snapshot is incompatible with the selected assets or has an invalid date')
+    # Legacy schemas distinguish invite-authenticated TLS from plaintext by
+    # credential presence. RC TLS has no invite store and needs its own explicit
+    # version; a legacy development snapshot must never silently become RC state.
+    if envelope['schema'] == 3:
+        if payload['access_mode'] != 'rc-open' or payload['credentials'] is not None:
+            raise BackupError('RC snapshot requires explicit rc-open mode and no invite credentials')
+        snapshot_mode = 'rc-open'
+    else:
+        snapshot_mode = 'invite' if payload['credentials'] is not None else 'development'
+    target_mode = access_mode if secure else 'development'
+    if snapshot_mode != target_mode:
+        raise BackupError('Snapshot and destination must use the same TLS/access mode')
     profiles = payload['profiles']
     if not isinstance(profiles, dict) or len(profiles) > MAX_PROFILES:
         raise BackupError('Snapshot profile count limit')
@@ -132,15 +148,13 @@ def validate_snapshot(raw, template, identity, *, secure, catalog=None):
         profile_key(key)
         if key.casefold() in seen: raise BackupError('Snapshot contains duplicate Windows profile names')
         seen.add(key.casefold())
-        if envelope['schema'] == 1:
+        if envelope['schema'] == 1 or (envelope['schema'] == 3 and catalog is None):
             template.validate_deck(selected)
         else:
             if type(selected) is not dict or selected.get('schema') != 2:
                 raise BackupError('Snapshot requires complete cosmetic profile records')
             parse_profile_state(canonical(selected), key, template, catalog=catalog)
-    if secure != (payload['credentials'] is not None):
-        raise BackupError('Snapshot and destination must use the same TLS/authentication mode')
-    if secure: private.parse_store_snapshot(canonical(payload['credentials']))
+    if snapshot_mode == 'invite': private.parse_store_snapshot(canonical(payload['credentials']))
     return payload
 
 
@@ -161,11 +175,14 @@ def backup(config, output):
     with exclusive_state(config.data_directory):
         profiles = saved_profiles(config.data_directory/'profiles', template, catalog=catalog)
         credentials = None
-        if not config.allow_insecure_loopback:
+        if not config.allow_insecure_loopback and config.access_mode == 'invite':
             credentials = json.loads(private.CredentialStore(config.credential_directory).export_snapshot())
         payload = dict(created_at=int(time.time()), compatibility=identity, profiles=profiles, credentials=credentials)
-        raw = canonical(dict(schema=2 if catalog else 1, payload=payload, sha256=digest(canonical(payload))))+b'\n'
-        validate_snapshot(raw, template, identity, secure=not config.allow_insecure_loopback, catalog=catalog)
+        if config.access_mode == 'rc-open': payload['access_mode'] = 'rc-open'
+        schema = 3 if config.access_mode == 'rc-open' else 2 if catalog else 1
+        raw = canonical(dict(schema=schema, payload=payload, sha256=digest(canonical(payload))))+b'\n'
+        validate_snapshot(raw, template, identity, secure=not config.allow_insecure_loopback,
+                          catalog=catalog, access_mode=config.access_mode)
         private._ensure_private_directory(output.parent)
         created = False
         try:
@@ -186,7 +203,8 @@ def verify_snapshot(config, source):
     template, identity = load_inputs(config)
     catalog = load_cosmetics(config, identity)
     raw = regular_file(private._local_path(source), MAX_BACKUP_BYTES)
-    payload = validate_snapshot(raw, template, identity, secure=not config.allow_insecure_loopback, catalog=catalog)
+    payload = validate_snapshot(raw, template, identity, secure=not config.allow_insecure_loopback,
+                                catalog=catalog, access_mode=config.access_mode)
     return dict(verified=True, sha256=digest(raw), **public_summary(payload))
 
 
@@ -200,7 +218,8 @@ def restore(config, source, destination):
     template, identity = load_inputs(config)
     catalog = load_cosmetics(config, identity)
     raw = regular_file(private._local_path(source), MAX_BACKUP_BYTES)
-    payload = validate_snapshot(raw, template, identity, secure=not config.allow_insecure_loopback, catalog=catalog)
+    payload = validate_snapshot(raw, template, identity, secure=not config.allow_insecure_loopback,
+                                catalog=catalog, access_mode=config.access_mode)
     destination = output_path(destination)
     forbidden = [config.data_directory, config.assets_directory]
     if config.credential_directory: forbidden.append(config.credential_directory)
@@ -227,7 +246,9 @@ def restore(config, source, destination):
             credential_dir = data/'private/credentials'
             private.CredentialStore(credential_dir).import_snapshot(canonical(payload['credentials']))
         settings = asdict(config); settings.pop('source')
-        settings.update(schema=1, data_directory=data, credential_directory=credential_dir)
+        # HostConfig includes access_mode even when loaded from a legacy schema1
+        # file. Publish schema2 so the exact field set and TLS mode round-trip.
+        settings.update(schema=2, data_directory=data, credential_directory=credential_dir)
         settings = {key:str(value) if isinstance(value, Path) else value for key,value in settings.items()}
         private._write_file(temporary, canonical(settings)+b'\n')
         restored_config = load_config(temporary)
