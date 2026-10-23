@@ -1,6 +1,18 @@
 WINDOWS PORTABLE PACKAGING - DEVELOPMENT PREVIEW
 Updated: 2026-10-23
 
+Current coherent engineering candidate166
+Clean5cd67fa source,recipe22/127 and helper165 ship as a matched pair. Both
+bundled CLIs/imports/native forms/embedded payloads pass8owned commands6.551s.
+Actual client native Install/Update passes18.474s,preserving74profiles/config/
+backups/game components;generated game-folder CMD uses installed166 runtime
+after actual download rename and reaches menu9.112s. Its readiness cleanup is
+forced,NOT Quit/performance/physical/privacy proof. Compared with161 only helper,
+telemetry recipe,provenance and compatibility change;server runtime is unchanged.
+Existing source165 natural-Quit/gameplay proof retains exact-byte scope. No new
+full-server-export/SCM/clean-PC/Internet acceptance. DEV N5/N7 now166 for the next
+planned update;old130/manual copies preserved. See coherent-candidate166.txt.
+
 Current helper input contract159
 Package builds require adjacent helper-build.json and bind its DLL digest,
 complete helper source inventory,unchanged-build declaration,compiler digest and

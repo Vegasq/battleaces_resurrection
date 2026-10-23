@@ -3,6 +3,14 @@ Updated: 2026-10-23
 Supported input: Battle Aces build 37822, Windows x64.
 Recipe version: 22. Guards: 127. Complete-set runtime_validated: false.
 
+166 packages recipe22/helper165 coherently from clean5cd67fa. Both native
+installers/payloads/bundled imports pass;actual client Install/Update preserves
+74profiles/config/backups/game bytes. Ordinary installed CMD works after download
+rename,menu9.112s;forced readiness cleanup,not Quit/privacy acceptance. Exact165
+native/error/lifecycle bytes are reused at their prior scope. DEV N5/N7 now166
+for next planned update;old manual130 kept. Full P1-P9/D5 OPEN. See
+coherent-candidate166.txt;do not repeat equivalent packaging/quiet-AI controls.
+
 165 closes seven unguarded instance/queued SDK error-collection entries before
 input processing. Original callbacks are optional report filters,not completion.
 85tests/C++suite,67profile-preserving upgrade and genuine Client/Exception/seven

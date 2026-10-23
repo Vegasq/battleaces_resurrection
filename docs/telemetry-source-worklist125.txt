@@ -1,6 +1,14 @@
 D5 REMAINING SOURCE WORKLIST125
 2026-10-22. Full D5 remains OPEN. Source findings below narrow the remaining
 engineering work;they are not complete analytics-removal or release acceptance.
+Current166:clean5cd67fa matched22/127/helper165 packages/standalones,8actual
+bundled CLI/import/forms/payload commands pass. Real client Install/Update
+preserves74profiles/config/backups/game bytes;ordinary installed CMD reaches
+menu9.112s after actual download rename,forced readiness cleanup/not Quit.
+Reuses165 native/error proof by exact game/helper equality,not another quiet AI.
+DEV N5/N7 now166 for next planned update;manual130 preserved. Full P1-P9/source
+producer/inflight/privacy gates stay open. Next those finite cases,not repeated
+packaging. coherent-candidate166.txt records identities/scopes.
 Current165:seven instance Notify/lower queued error-collector guards close a
 real pre-Send collection gap. Callback is optional report filter;queued closure
 returns normally.22/127,85tests/C++suite,67profile-preserving upgrade,genuine

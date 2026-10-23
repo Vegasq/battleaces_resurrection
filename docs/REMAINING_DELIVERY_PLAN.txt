@@ -985,6 +985,16 @@ match-blocking divergence, stalls or resource leaks in the required scenarios.
 References: network-qualification.txt, protocol-v3.txt, soak-qualification.txt.
 
 [ ] D9 - Freeze and deliver the final Windows release
+[x]166 coherent22/127/helper165 engineering pair from clean5cd67fa. Both native
+    standalones/archives/bundled CLI/import/forms/payloads pass8owned commands,
+    6.551s/no force. Real client Install/Update18.474s preserves74profiles/config/
+    backups/eight game components;job3/0/0/no force. Generated game-folder CMD
+    uses installed166 after actual download rename,menu9.112s,explicit forced
+    readiness cleanup/reaped;not Quit/physical/performance/privacy proof. Four-
+    file payload delta161/server runtime unchanged;165 lifecycle scope reused.
+    No new full-server-Install/owner/SCM/clean-PC/Internet/fullD9 acceptance.
+    DEV N5/N7 now166 for next planned update,all old answers/manual130 preserved.
+    Artifacts,hashes and scopes:coherent-candidate166.txt.
 [x]159 helper build-input binding:require declared receipt/DLL/full source match;
     current tree default or explicit immutable ancestor for frozen tested helper.
     Sanitized provenance bound in both packages.42tests pass on314/312,audit2331/0.

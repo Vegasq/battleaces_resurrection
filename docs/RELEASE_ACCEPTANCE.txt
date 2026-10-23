@@ -9,8 +9,12 @@ Retained requirements and current evidence:
 - One Windows Start Server.exe and game-folder Start Battle Aces.cmd,native
   installer with game/IP/editable cleaned account-name fields,reversible client
   reset/uninstall and independent server import are implemented.130 qualifies
-  actual corrected installer actions/progress;156 is the latest clean paired
-  engineering package/standalone checkpoint,from14ba1fb. Manual130/N7 is separate.
+  actual corrected installer actions/progress;166 is the latest clean paired
+  engineering package/standalone checkpoint,from5cd67fa,recipe22/helper165.
+  Native forms/payloads/bundled imports and client Install/Update pass,74profiles
+  preserved;ordinary installed CMD works after actual download rename. Its forced
+  readiness cleanup is not Quit/performance/physical/privacy acceptance. DEV N5/N7
+  now166 for the next planned update;manual130 remains frozen. coherent-candidate166.txt.
 - First physical LAN1v1 play PASSED per Nick on2026-10-22. Do not repeat first-game
   reachability. Exact Custom/public path,finish/Continue,changed-deck rematch,
   Quit/restart and installer/portrait observations remain unreported. DEV.txt N2/N7
@@ -29,8 +33,14 @@ Retained requirements and current evidence:
 - D4 replay error-latch correction100,profile storage and failure recovery have
   scoped proof.152Custom/153public1v1/154native BOT_INPUT loss/timeout controls
   retain explicit unknown-result abort,Return and same-session replacement.
+  163 qualifies the named early/late engine replay failures and same-owner valid
+  reload/Cancel/reopen/Confirm/Quit on installed139;not physical selection/warnings.
   Remaining installed/native warnings/storage/visible recovery gates stay open.
-- D5 uses telemetry recipe21/four components;RUNTIME_VALIDATED remains false.
+- D5 uses telemetry recipe22/127guards/four components;RUNTIME_VALIDATED is false.
+  165 closes seven SDK instance/queued error-collection entries,with actual
+  genuine Client/error/local log/practice/Continue/natural Quit proof.166 binds
+  those exact game/helper bytes into its coherent pair;SDK-root fixture scope is
+  explicit,not ordinary/all-thread/wire/native-crash/every-inflight acceptance.
   Collection/queue/source applicability,other supported modes,error/reporter and
   descendant attribution remain P1-P9 in telemetry-acceptance-matrix140.txt.
   Quiet counters or selected entry guards do not establish complete removal.
@@ -43,6 +53,9 @@ Retained requirements and current evidence:
 - D8 profile I/O correction156 retains durable-before-ACK,freeze/race guards and
   owned shutdown draining.157's current packaged RC TLS run proves8scripted
   native Custom matches/two rooms/20Hz mean/max65.36ms/24workers0/reaped.
+  160 additionally qualifies a bounded current default-four-room native/TLS
+  workload:24matches/72workers0/14880frames/19.999Hz mean/max69.32ms. Not64rooms,
+  graphical/Internet/SCM/four-room long-duration or whole capacity acceptance.
   Original20-match/eight-hour evidence is reused at its earlier scope. Physical
   Internet/RTT/jitter/loss/click delay,graphical20-rematch/capacity/deployment
   envelope are still missing;the130s TLS run is not an eight-hour TLS result.

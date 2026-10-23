@@ -2,6 +2,21 @@
 
 ## Requests and answers with Nick
 
+- Candidate166 now coherent22/127/helper165 from clean5cd67fa:paired native
+  installers/ZIPs,8actual bundled CLI/import/forms/payload commands6.551s pass,
+  emptyjobs/no force. Real client Install/Update18.474s preserves74profiles/
+  config/backups/eight game components;job3/0/0/no force. Actual generated CMD
+  uses installed166 after actual download rename,menu9.112s,total9.515s;forced
+  readiness cleanup/reaped,NOT Quit/performance/physical/privacy. Four-file
+  payload delta161/server runtime unchanged;165 exact native/lifecycle scope
+  reused,not rerun. r134g now coherent166. DEV N5/N7 updated for NEXT planned166
+  pair,new matching answers/old ones preserved;do not direct Nick to130/older
+  for new installs. Old manual130/frozen copies/share/HTTP/hosts unchanged. No
+  repeated LAN1v1/AI/Tutorial2/reboot request. N9/N10blank/no reports/sixpins exact.
+  No new full-server-Install/protected/SCM/clean-PC/Internet/fullD5/D9 acceptance.
+  NEXT remaining P1-P9/reporter/native-crash/state/final gates,not same packaging/
+  quietAI repetitions. docs/coherent-candidate166.txt.
+
 - Errors165 closes SDK instance/queued error-collection gap:seven pre-input
   Client.Notify/NotifyOnMainThread guards,void borrowed ABI/optional Func<IEvent,
   bool> filter/original discards/outer closure plain return.22/127,85tests314/312/

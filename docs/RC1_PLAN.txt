@@ -4,6 +4,15 @@ RC1 is the next usable community candidate;it is not completion of every D1-D9
 final-release gate. The existing delivery plan remains authoritative for those
 remaining requirements. No earlier failed report is upgraded by this scope change.
 
+Current engineering candidate166,2026-10-23
+Clean5cd67fa paired native standalones/ZIPs bind22/127guards/helper165. Actual
+forms/payloads/bundled imports,client Install/Update with74profiles preserved and
+ordinary game-folder entry after actual download rename pass. Readiness cleanup
+is forced,not Quit/physical/privacy acceptance;165's identical game/helper native
+proof retains its scope. DEV N5/N7 now166 for the next planned update;manual130
+stays frozen. No new full server166 Install/first-owner/SCM/clean-PC acceptance.
+This is not final RC acceptance. Identities/scopes:coherent-candidate166.txt.
+
 Player experience
 104 requirement,2026-10-22:default player name comes from the installing/running
 Windows account,cleaned to remove domain/email-domain prefixes,unsafe/control
@@ -69,8 +78,8 @@ Finite RC1 gates,in order
     auto server initialization,stable identities,no CA/invite prompts.
     [x] Two actual bundled runtimes:certificate generation,TLS/open admission,
         stable identity after rename/reconnect,no CA/invite,server exit0.
-    [ ] Normal-desktop first Start Server.exe provisioning:DEV.txt N6 (103 native
-        server setup supersedes the uncompleted101/102 first-start request).
+    [ ] Normal-desktop first Start Server.exe provisioning:DEV.txt N7/current166.
+        N6 keeps103 existing observations;do not reinstall an old build for it.
 [x] RC-L automated:packaged schema4 offline AI/results/Continue/natural Quit0,
     no force217.768s;ordinary CMD startup separately passes. Physical restart/
     persistence observation remains RC-P. Existing name/profile tests pass.
@@ -87,7 +96,7 @@ Finite RC1 gates,in order
     [ ] Exact Custom/public menu path,changed-deck rematch,results/Continue,
         normal Quit/restart/persistence and installer maintenance observations
         not yet reported. Do not infer these or exact artifact hashes from LAN pass.
-    N7 now uses the prepared130 pair for the next planned update/visible portrait
+    N7 now uses the prepared166 pair for the next planned update/visible portrait
     observation. N4/103 N6 retain historical answers only;do not install old builds
     just for those fields. N2 asks only for missing observations from the successful
     LAN session;the earlier installer-first hold is superseded by the actual test.
@@ -116,13 +125,17 @@ Finite RC1 gates,in order
         independent copy/export/import/installed health and ordinary game-folder
         entry pass. Fresh-assets RC2vAI passes without forced cleanup. Prior raw/
         schema export-identity failures stay failed;no all-mode/privacy/physical
-        inference. Frozen hashes/scopes:installer-progress130.txt.130/DEV N7 is
-        the next planned pair;all105/older manual candidates remain frozen.
+        inference. Frozen hashes/scopes:installer-progress130.txt.130 was the
+        planned pair;166 now supersedes it for N7. All older manual copies stay.
+    [x] Coherent166 clean5cd67fa,22/127/helper165,paired ZIP/native installer
+        hashes frozen in coherent-candidate166.txt. Real client Update/74profiles/
+        ordinary installed CMD pass;no new full server Install/first-owner or
+        physical/privacy acceptance. DEV N5/N7 use this next planned pair.
     [ ] Physical gate review and final RC-ready declaration. Do not label RC1
         accepted yet. Preserve local/rc101-packages01 and its manual test game
         local/startup58-game01 while N4 is pending. Also preserve102 standalone,
         packages and local/installer102-game01. Also preserve103 packages/standalone
-        EXEs and installed local/s103. Next paired update steps use130(DEV N7).
+        EXEs and installed local/s103. Next paired update steps use166(DEV N7).
 Only these finite gates name RC1 ready. Record scoped automated subcases without
 closing a parent whose packaged/physical component is still missing. Remaining
 D2-D5/D7-D9 final-release work is retained,not silently dropped or called complete.

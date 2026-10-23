@@ -1,0 +1,92 @@
+COHERENT WINDOWS CANDIDATE166
+2026-10-23. Engineering candidate; full release/D5 acceptance remains OPEN.
+
+Outcome
+Current recipe22/127 guards and tested helper165 now ship together in clean
+client/server archives and native standalone installers. Both isolated bundled
+runtimes/imports/native forms/payloads pass. The real client Install/Update action
+preserves all74existing profile files,config/name/identity,original backups and
+eight installed game components. Its actual game-folder CMD starts the newly
+installed runtime after the observed download extraction is renamed away.
+This replaces mixed cached139/recipe22 notes for diagnostic r134g;it is coherent166.
+
+Frozen artifact identities
+Source5cd67fa4242b502ecc5cbe96077518b280d17d5c,dirty=false.
+Version0.3.0-rc1.5,Windows x64. No original game files/assets/profiles included.
+local/candidate166-packages01:
+ client ZIP2ec3a4c1a4bbf0db67eabfb313a15432b3cd0c25887500837c8ed56d414bcbf2
+ server ZIP9a4c77101b059f0aa85f50744d67081f40e9e7fc8effaf8a2f4148dc24f5f9b0
+Standalone aliases:
+ local/candidate166-client-standalone01/BattleAces-Installer-RC1-166.exe
+ 17956a2088d7b69b8ed93c2e6570aff9121a64f2ee11156905ae0e01dc096597
+ local/candidate166-server-standalone01/BattleAces-Server-Installer-RC1-166.exe
+ 9fb343ef720b7ffa4dc61cc6337cf7cfb4d4ed51da6251e54953f747e426663d
+Both are resource-bearing native installers;PowerShell is not required.
+Helper165-01:
+ f82aee3e54eb87a9bb31f10a20a527a28d5182d354376c43a0474df45b8b2e26
+Its full build receipt is pinned to5cd67fa with159's exact Git-source validator;
+sanitized provenance is bound by both compatibility/integrity manifests.
+The server's legacy compatibility.helper_sha256 remains intentionally null;
+its embedded import helper has its own explicit helper_build/provenance binding.
+
+Exact delta and reused scope
+Compared with161,each payload changes exactly FOUR files:compatibility.json,
+program/app/client_patch/patcher/telemetry.py,program/client-helper/BattleAcesOffline.dll,
+and program/client-helper/helper-provenance.json. All server host/worker/transport/
+profile code,Python runtime,certificate helper,native installer logic and launcher
+bytes remain identical. Source165's actual genuine-Client/error/local-log/AI/
+Continue/natural-Quit proof applies to these exact game/helper bytes;it is not
+repeated as a quiet gameplay test. Inherited server-native/TLS/soak proofs retain
+their named scope. No new166 full server export/Install/SCM/owner proof is claimed.
+The import/export orchestrator is unchanged and139's full source-preserving
+server action remains retained evidence on its earlier helper. Later helper
+diagnostics/default-path differences are not erased by that earlier test.
+
+Actual package/native-form checks
+local/candidate166-qualification01 PASS6.551s:8owned commands exit0,reap and leave
+empty jobs,zero terminated processes/no forced cleanup. Both bundled integrity
+CLIs,isolated server7/client6 imports,actual client3/server2-field forms with
+attached progress controls and both embedded payload verifiers pass. Imported
+modules resolve inside each package and match its manifest;both expose22/127
+with runtime_validated=false. Standalone aliases match the original build EXEs.
+No game,host listener,Install action or protected credential operation here.
+
+Actual native client Install/Update
+local/candidate166-client-native01 PASS18.474s,job3/0/0/no forced cleanup.
+External unchanged authored WinForms fixture loads the unchanged installer,
+sets original controls and clicks the real Install button under its message pump.
+Original BackgroundWorker extracts the embedded payload and runs its bundled
+backend. Busy/disabled controls,attached visible progress,elapsed title,final
+status and restored controls are observed. This is not physical desktop input.
+The single observed temporary extraction exactly matches the166 manifest.
+Installed runtime adb57d7e0bfeff2593ad and generated Start Battle Aces.cmd bind
+that same manifest. All74prior profile files/four original backups/config bytes
+and eight game components remain exact. No game or host starts during Install.
+
+Actual ordinary entry with download unavailable
+local/candidate166-client-entry01 PASS:menu9.112s,total9.515s. The actual owned
+temporary extraction is renamed away after its processes exit;the installed
+wrapper still works from an unrelated cwd/PYTHONPATH with only System32 on PATH.
+Observed process images bind the game and installed166 Python,not a global or
+downloaded runtime. Ordinary startup selects no automatic match/audit/test flag.
+Package/config/shared channels remain unchanged. Cleanup after menu readiness
+is explicitly FORCED and both owner/game are reaped;this is entry readiness,
+NOT another native Quit/performance/physical-window or full privacy claim.
+Reuse165's natural Quit evidence for the identical game/helper at its own scope.
+
+Handoff and remaining work
+DEV N5/N7 now point to166 for the NEXT planned paired update;all old steps and
+answers remain historical. N5 has two exact copy commands for the existing LAN
+share;N7 retains server-first/kept old host folder and the short portrait check.
+No repeated successful LAN1v1/AI game,Tutorial2 visibility or reboot requested.
+Automation did not write the share or start/stop its HTTP server or a real host.
+The current LAN address was observed through NetworkInterface API;share target
+exists. HTTP-listener state was not established by the restricted NetTCP query;
+download URLs are conditional on the existing HTTP server running.
+
+Continue P1-P9 attribution,remaining reporter/native-crash/state applicability,
+physical/catalog/storage/deployment/Internet and final release gates. Do not
+repeat this packaging/unchanged error/AI control without a new change or concern.
+Manual130,D6accepted71,other frozen candidates and N9/N10's six pins are unchanged.
+No old artifact,failed record or acceptance claim is silently replaced. Raw local
+reports,binaries,original game files and assets remain ignored,out of Git.

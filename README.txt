@@ -16,8 +16,9 @@ while preserving saves. A separate native server installer imports local game
 data using its own working copy,leaving the source game unchanged,and creates
 Start Server.exe. Implementation evidence:docs/installer103.txt;corrected native
 progress UI:docs/installer-progress130.txt. Latest engineering artifacts and scoped
-results:docs/async-profile-io156.txt. Planned desktop update130/DEV.txt N7 stays
-separate. First LAN1v1 is accepted;its remaining workflow observations stay open.
+results:docs/coherent-candidate166.txt. DEV.txt N5/N7 use166 for the next planned
+paired update;older manual130 copies remain preserved. First LAN1v1 is accepted;
+its remaining workflow observations stay open.
 
 Development project for private Battle Aces build 37822 matches. Windows x64
 server and clients are the current target. See docs/REMAINING_DELIVERY_PLAN.txt
