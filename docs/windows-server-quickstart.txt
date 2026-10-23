@@ -1,11 +1,11 @@
 BATTLE ACES RESURRECTION - RC1 WINDOWS HOST
 
-NATIVE SERVER INSTALLER105
-Use this updated host with client105 for selected Invite Friend portraits.
-Earlier103/104 clients can also join. Keep existing host data/backups private;
+NATIVE SERVER INSTALLER
+Use the client and server installers from the same release. Update the host
+before updating clients. Keep existing host data/backups private;
 this installer requires a fresh destination and does not overwrite an old host.
-Run BattleAces-Server-Installer-RC1-105.exe. Choose your supported build37822
-game folder and an EMPTY server destination. Setup works on a private independent
+Run the standalone server installer downloaded from this release. Choose your
+supported build37822 game folder and an EMPTY server destination. Setup works on a private independent
 copy,so the source game,its binaries and saves stay unchanged. It imports required
 maps/simulation/AI locally;no game assets are distributed. Allow temporary space
 for a full game copy and a few minutes. Do not select an existing host to overwrite.

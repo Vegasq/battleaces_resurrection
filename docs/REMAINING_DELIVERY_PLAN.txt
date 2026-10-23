@@ -120,6 +120,14 @@ finished;their scoped results are recorded below. With D6's engineering fix and
 automated qualification complete,preserve its manual candidate and address the
 remaining named D2 cells without repeating covered queue/roster tests.
 Completed subcases (same-PC automated controls; not physical LAN):
+[x] Eight RC schema4 configured-unavailable counterparts AR01-08 (131):real OS
+    refusal/default TLS deadline,all1/2/4/5 modes on actual installed130 runtime.
+    Actual resolver/identity/TLS/bridge failure/local world/result/Continue/
+    default Quit0,empty jobs/no force,endpoint peers drained/threads stopped,
+    shared/config/program/source preserved and tokens not logged.10affected
+    checks and8focused checks pass;initial Win32-vs-Winsock code failure retained.
+    No product/helper/130 candidate change. Protected A07-14/TCP connect timeout/
+    physical/Internet/full privacy gates not closed. See rc-availability131.txt.
 [x] Fresh installed130 server assets RC public2vAI PASS107.911s,two real clients/
     two bots,original native orders/movement/results/Continue/default Quit0;
     two worker0 exits,empty jobs,no forced cleanup. Direct check is necessary:

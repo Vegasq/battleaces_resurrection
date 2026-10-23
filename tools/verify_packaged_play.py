@@ -13,6 +13,7 @@ import csv
 import ctypes
 import hashlib
 import json
+import math
 import os
 from pathlib import Path
 import secrets
@@ -31,6 +32,7 @@ from tools.local_ai_evidence import public_match,public_search
 from tools import replay_retention
 from tools import native_replay_evidence
 from tools import replay_codec_fixtures
+from tools.availability_endpoint import AvailabilityEndpoint, NETWORK_STATES
 
 ROOT=Path(__file__).resolve().parents[1]
 require=startup.require
@@ -38,7 +40,7 @@ require=startup.require
 # Authored test driver only. Never installed into the product/package or
 # imported from the source checkout by its isolated bundled interpreter.
 DRIVER=r'''
-import ctypes,hashlib,json,os,subprocess,sys,time,traceback
+import asyncio,ctypes,hashlib,json,os,subprocess,sys,time,traceback
 from pathlib import Path
 from client_patch.transport import client,launcher,rc_setup
 from tools.package_integrity import verify
@@ -47,12 +49,38 @@ request_path=Path(sys.argv[1]);request=json.loads(request_path.read_bytes())
 package=Path(request['package']);output=Path(request['output']);game=Path(request['game'])
 verify(package,'client')
 report={'passed':False,'remote_connections':0,'invite_reads':0,'resolver_requests':0,'availability_reasons':[],'production_modules':{}}
+network_case=request['connection_state'] in ('rc-refused','rc-handshake-timeout')
+report.update(connection_attempts=[],resolved_targets=[],bridge_failures=[])
 process=None
 original_spawn=launcher.spawn_game
 original_connect=launcher.tls.open_verified_connection
 original_invite=launcher.read_credential_file
 resolver_type=rc_setup.Resolver if request.get('rc_settings') else launcher.RemoteConfigResolver
 original_resolve=resolver_type.read
+bridge=sys.modules['client_patch.transport.bridge'];original_send=bridge.Bridge.send
+
+async def observe_connection(host,port,tls,**kwargs):
+    assert network_case and host=='127.0.0.1' and port==request['endpoint_port'] and not kwargs
+    assert tls.verify_certificate is False
+    report['remote_connections']+=1
+    row=dict(host=host,port=port,verify_certificate=tls.verify_certificate,
+             connect_timeout=launcher.tls.DEFAULT_CONNECT_TIMEOUT,
+             handshake_timeout=launcher.tls.DEFAULT_HANDSHAKE_TIMEOUT)
+    report['connection_attempts'].append(row);began=time.monotonic()
+    try:
+        result=await original_connect(host,port,tls)
+        row['unexpected_success']=True
+        return result
+    except BaseException as error:
+        row.update(error_type=type(error).__name__,winerror=getattr(error,'winerror',None),errno=getattr(error,'errno',None))
+        raise
+    finally:row['elapsed_seconds']=time.monotonic()-began
+
+async def observe_send(self,kind,identity,data=b''):
+    if kind==bridge.FAILURE:
+        assert len(data)==1
+        report['bridge_failures'].append(dict(session=identity,code=data[0]))
+    return await original_send(self,kind,identity,data)
 def forbid_connection(*args,**kwargs):
     report['remote_connections']+=1
     raise AssertionError('locally unavailable settings attempted a TLS connection')
@@ -63,10 +91,14 @@ def resolve(self):
     from client_patch.transport.bridge import RemoteUnavailable
     report['resolver_requests']+=1
     try:
-        original_resolve(self)
+        target=original_resolve(self)
     except RemoteUnavailable as error:
         report['availability_reasons'].append(error.reason)
         raise
+    if network_case:
+        assert target.host=='127.0.0.1' and target.port==request['endpoint_port'] and target.tls.verify_certificate is False
+        report['resolved_targets'].append(dict(host=target.host,port=target.port,verify_certificate=False))
+        return target
     raise AssertionError('unavailable-settings fixture unexpectedly resolved a remote')
 def spawn(config,remote,options,child):
     global process
@@ -78,7 +110,11 @@ def spawn(config,remote,options,child):
     command[command.index('-logFile')+1]=str(output/'game.log')
     diagnostic=['-native-quit-smoke','-native-quit-mode=confirm','-native-quit-after-practice',
         '-practice-ai-smoke','-practice-ai-smoke-matches=1','-practice-ai-smoke-frames=3600',
-        '-practice-ai-smoke-delay-ms=3000','-lan-audit','-lan-smoke']
+        # In the Try Deck network-failure cell, let the unchanged5s optional
+        # handshake deadline finish BEFORE the authored Play action. Ordinary
+        # client timing and all public queue deadlines remain unchanged.
+        '-practice-ai-smoke-delay-ms='+('10000' if network_case and request['mode']==4 else '3000'),
+        '-lan-audit','-lan-smoke']
     assert request['mode'] in (1,2,4,5)
     if request['mode']!=4:
         diagnostic.extend(['-public-queue-smoke','-public-queue-smoke-mode='+str(request['mode']),'-public-ai-smoke'])
@@ -98,7 +134,7 @@ def spawn(config,remote,options,child):
     (output/'game-process.json').write_text(json.dumps(record,indent=2)+'\n')
     return process
 try:
-    for module in (client,launcher,sys.modules['client_patch.transport.bridge'],sys.modules['tools.package_integrity']):
+    for module in (client,launcher,rc_setup,launcher.tls,sys.modules['client_patch.transport.bridge'],sys.modules['tools.package_integrity']):
         path=Path(module.__file__).resolve()
         assert path.is_relative_to(package/'program/app')
         report['production_modules'][module.__name__]=dict(path=str(path),sha256=hashlib.sha256(path.read_bytes()).hexdigest())
@@ -107,28 +143,35 @@ try:
         assert time.monotonic()<deadline,'parent did not establish owned job before gameplay'
         time.sleep(.02)
     assert (output/'job-ready').read_bytes()==b'owned job attached\n'
-    launcher.spawn_game=spawn;launcher.tls.open_verified_connection=forbid_connection;launcher.read_credential_file=forbid_invite
+    launcher.spawn_game=spawn;launcher.tls.open_verified_connection=observe_connection if network_case else forbid_connection;launcher.read_credential_file=forbid_invite
+    if network_case:bridge.Bridge.send=observe_send
     resolver_type.read=resolve
     report['launcher_exit_code']=client.main(['--config',request['config']])
     report['game_exit_code']=None if process is None else process.poll()
     assert report['launcher_exit_code']==report['game_exit_code']==0
-    assert report['remote_connections']==report['invite_reads']==0
     assert 1<=report['resolver_requests']<=2
-    expected=9 if request['connection_state']=='invalid-trust' else 8
-    assert report['availability_reasons']==[expected]*report['resolver_requests']
+    if network_case:
+        assert report['invite_reads']==0 and report['availability_reasons']==[]
+        assert len(report['resolved_targets'])==report['resolver_requests']
+        assert report['remote_connections']==len(report['connection_attempts'])>=1
+        assert report['bridge_failures'] and not any(row.get('unexpected_success') for row in report['connection_attempts'])
+    else:
+        assert report['remote_connections']==report['invite_reads']==0
+        expected=9 if request['connection_state']=='invalid-trust' else 8
+        assert report['availability_reasons']==[expected]*report['resolver_requests']
     report['passed']=True
 except BaseException as error:
     report.update(passed=False,error=repr(error),traceback=traceback.format_exc())
 finally:
     launcher.spawn_game=original_spawn;launcher.tls.open_verified_connection=original_connect;launcher.read_credential_file=original_invite
-    launcher.RemoteConfigResolver.read=original_resolve
+    resolver_type.read=original_resolve;bridge.Bridge.send=original_send
     (output/'bundled-driver.json').write_text(json.dumps(report,indent=2)+'\n')
 raise SystemExit(0 if report['passed'] else 1)
 '''
 
 
 def sources():
-    paths=[Path(__file__),ROOT/'tools/verify_native_storage.py',ROOT/'tools/local_ai_evidence.py',ROOT/'tools/replay_retention.py',ROOT/'tools/native_replay_evidence.py',ROOT/'tools/replay_codec_fixtures.py']
+    paths=[Path(__file__),ROOT/'tools/availability_endpoint.py',ROOT/'tools/verify_native_storage.py',ROOT/'tools/local_ai_evidence.py',ROOT/'tools/replay_retention.py',ROOT/'tools/native_replay_evidence.py',ROOT/'tools/replay_codec_fixtures.py']
     return quit_probe.sources()|{p.relative_to(ROOT).as_posix():hashlib.sha256(p.read_bytes()).hexdigest() for p in paths}
 
 
@@ -159,6 +202,7 @@ def availability_settings(settings,state,folder):
 
 
 def availability_evidence(bundled,text,state):
+    if state in NETWORK_STATES:return network_availability_evidence(bundled,text,state)
     require(state in ('unconfigured','missing-files','invalid-trust'),'unsupported availability evidence')
     reason=9 if state=='invalid-trust' else 8
     expected='Online connection settings are invalid' if reason==9 else 'Online connection is not configured'
@@ -169,6 +213,44 @@ def availability_evidence(bundled,text,state):
     require(expected+'; localWorldUnaffected=1' in text,'native availability failure differs')
     return dict(state=state,resolver_requests=count,reasons=bundled['availability_reasons'],
                 remote_tls_open_calls=0,invite_reads=0,scope='Actual production local-settings rejection;not valid-credential connection refusal or online queue evidence.')
+
+
+def network_availability_evidence(bundled,text,state):
+    require(state in NETWORK_STATES,'unsupported RC transport failure')
+    count=bundled.get('resolver_requests');attempts=bundled.get('connection_attempts');targets=bundled.get('resolved_targets')
+    require(type(count) is int and 1<=count<=2 and isinstance(attempts,list) and 1<=len(attempts)<=2 and
+            type(bundled.get('remote_connections')) is int and bundled['remote_connections']==len(attempts) and
+            isinstance(targets,list) and len(targets)==count and bundled.get('availability_reasons')==[] and
+            type(bundled.get('invite_reads')) is int and bundled['invite_reads']==0,'real RC resolver/connection evidence missing')
+    require(all(isinstance(row,dict) and row.get('host')=='127.0.0.1' and row.get('verify_certificate') is False and
+                type(row.get('port')) is int and 1<=row['port']<=65535 for row in targets),'RC resolver target differs')
+    expected=[]
+    for row in attempts:
+        require(isinstance(row,dict) and row.get('host')=='127.0.0.1' and row.get('verify_certificate') is False and
+                type(row.get('port')) is int and any(row['port']==target['port'] for target in targets) and
+                type(row.get('connect_timeout')) in (int,float) and row['connect_timeout']==10.0 and
+                type(row.get('handshake_timeout')) in (int,float) and row['handshake_timeout']==5.0 and
+                type(row.get('elapsed_seconds')) in (int,float) and math.isfinite(row['elapsed_seconds']) and
+                0<=row['elapsed_seconds']<12 and not row.get('unexpected_success'),'unmodified production TLS defaults/outcome missing')
+        if row.get('error_type')=='CancelledError':continue
+        if state=='rc-refused':
+            require(row.get('error_type')=='ConnectionRefusedError' and
+                    (row.get('winerror') in (10061,1225) or row.get('errno')==10061),'OS TCP refusal missing')
+            expected.append(2)
+        else:
+            require(row.get('error_type') in ('ConnectionAbortedError','TimeoutError') and row['elapsed_seconds']>=4.8,
+                    'real default TLS/outer deadline did not expire')
+            expected.append(7 if row['error_type']=='TimeoutError' else 2)
+    failures=bundled.get('bridge_failures')
+    require(expected and isinstance(failures,list) and all(isinstance(row,dict) and type(row.get('session')) is int and
+            row['session']>0 and type(row.get('code')) is int for row in failures) and
+            [row['code'] for row in failures]==expected,'actual private bridge failure differs')
+    for code in set(expected):
+        reason='Secure server unavailable' if code==2 else 'Secure server connection timed out'
+        require(reason in text,'native availability reason missing')
+    return dict(state=state,resolver_requests=count,remote_tls_open_calls=len(attempts),
+                failed_attempts=len(expected),bridge_codes=expected,invite_reads=0,
+                scope='Real schema4 RC resolver/identity and owned-loopback OS refusal or default TLS deadline;not protected-mode or TCP connect timeout.')
 
 
 def job_accounting(handle):
@@ -185,9 +267,19 @@ def job_accounting(handle):
 
 
 def run(args):
+    state=getattr(args,'connection_state','unconfigured')
+    if state not in NETWORK_STATES:return _run(args)
+    require(getattr(args,'rc_settings',False),'owned network endpoint requires RC settings')
+    endpoint=AvailabilityEndpoint(state)
+    try:return _run(args,endpoint)
+    finally:endpoint.close()
+
+
+def _run(args,endpoint=None):
     if not hasattr(args,'rc_settings'):args.rc_settings=False
     if not hasattr(args,'native_replay_faults'):args.native_replay_faults=False
     if not hasattr(args,'connection_state'):args.connection_state='unconfigured'
+    require(args.connection_state not in NETWORK_STATES or args.rc_settings,'network fixture requires schema4 RC mode')
     package,game,output=(p.resolve() for p in (args.package,args.game,args.output))
     require(os.name=='nt' and 90<=args.timeout<=300,'bounded Windows play probe required')
     require(args.mode in (1,2,4,5),'unsupported packaged local mode')
@@ -214,9 +306,11 @@ def run(args):
     config=output/'client.json';settings=client.defaults(game)
     settings.update(local_profile=profile,display_name=owned_display_name(args.expect_long_replay))
     availability_folder=output/'availability-fixture'
-    settings=availability_settings(settings,args.connection_state,availability_folder)
+    if endpoint:
+        settings.update(server_host='127.0.0.1',server_port=endpoint.port)
+    else:settings=availability_settings(settings,args.connection_state,availability_folder)
     if args.rc_settings:
-        require(args.connection_state=='unconfigured','RC offline proof requires blank server address')
+        require(args.connection_state=='unconfigured' or endpoint,'RC fixture must be blank or owned endpoint')
         settings={key:value for key,value in settings.items() if key in rc_setup.KEYS}
         settings['schema']=4
     availability_before=snapshot(availability_folder)
@@ -225,7 +319,8 @@ def run(args):
     request=output/'request.json'
     request.write_text(json.dumps(dict(rc_settings=args.rc_settings,package=str(package),game=str(game),output=str(output),config=str(config),
                                      profile=profile,visible=args.visible,mode=args.mode,native_replay_readback=args.native_replay_readback,
-                                     native_replay_faults=args.native_replay_faults,connection_state=args.connection_state),indent=2)+'\n')
+                                     native_replay_faults=args.native_replay_faults,connection_state=args.connection_state,
+                                     endpoint_port=endpoint.port if endpoint else None),indent=2)+'\n')
     cwd=output/'foreign cwd';cwd.mkdir()
     for name in ('sitecustomize.py','tools.py','client_patch.py'):
         (cwd/name).write_text('raise RuntimeError("foreign module must not run")\n')
@@ -299,7 +394,8 @@ def run(args):
                 exit_tick-rows[3]['tick']<60000,'original natural Quit trace/deadline invalid')
         bundled=json.loads((output/'bundled-driver.json').read_bytes())
         require(bundled['passed'] and bundled['launcher_exit_code']==bundled['game_exit_code']==0 and
-                bundled['remote_connections']==bundled['invite_reads']==0,'bundled production launcher/transport proof incomplete')
+                (endpoint or bundled['remote_connections']==0) and bundled['invite_reads']==0,
+                'bundled production launcher/transport proof incomplete')
         report['availability']=availability_evidence(bundled,text,args.connection_state)
         report.update(natural_quit=True,exit_code=exit_code.value,exit_seconds_after_confirm=(exit_tick-rows[3]['tick'])/1000)
         for module in bundled['production_modules'].values():
@@ -380,6 +476,23 @@ def run(args):
         report.update(shared_after=channels(),source_sha256_at_finish=sources(),elapsed_seconds=time.monotonic()-started)
         report['shared_channels_unchanged']=report['shared_before']==report['shared_after']
         report['source_files_unchanged']=report['source_sha256_at_start']==report['source_sha256_at_finish']
+        if endpoint:
+            try:
+                before=endpoint.snapshot();after=endpoint.close();report['owned_endpoint']=after
+                endpoint_ok=not before['live_peers'] and not after['errors'] and not after['owner_closed_peers'] and not after['thread_alive'] and after['closed']
+                if args.connection_state=='rc-refused':endpoint_ok &= not after['peers'] and not after['listening']
+                else:endpoint_ok &= bool(after['peers']) and all(row['client_hello'] and row['closed_by_client'] for row in after['peers'])
+                report['endpoint_qualified']=bool(endpoint_ok)
+                identities=list((output/'rc-identities').glob('*.json'));private=[]
+                for identity in identities:
+                    value=launcher.read_json(identity,4096)
+                    require(set(value)=={'player_id','token'} and rc_setup.rc_player_id(value['token'])==value['player_id'],'owned RC identity invalid')
+                    private.append(value['token'].encode())
+                public=[path for path in output.iterdir() if path.is_file() and path.suffix in ('.json','.txt','.log')]
+                report['rc_identity_files']=len(identities)
+                report['rc_tokens_not_logged']=not any(token in path.read_bytes() for token in private for path in public)
+                report['passed'] &= endpoint_ok and len(identities)==1 and report['rc_tokens_not_logged']
+            except BaseException as error:report.update(passed=False,endpoint_error=repr(error))
         report['passed'] &= all(report.get(k,False) for k in ('driver_reaped','game_reaped','package_files_unchanged',
                                                            'config_unchanged','driver_unchanged','shared_channels_unchanged','source_files_unchanged',
                                                            'availability_fixture_unchanged')) and not report['forced_cleanup']
@@ -392,10 +505,10 @@ if __name__=='__main__':
     parser=argparse.ArgumentParser(description=__doc__)
     for name in ('package','game','output','shared-settings','helper-build-receipt'):parser.add_argument('--'+name,type=Path,required=True)
     parser.add_argument('--timeout',type=int,default=300)
-    parser.add_argument('--rc-settings',action='store_true',help='qualify schema4 RC settings with a blank offline server address')
+    parser.add_argument('--rc-settings',action='store_true',help='qualify schema4 RC settings with blank address or owned failure endpoint')
     parser.add_argument('--mode',type=int,choices=(1,2,4,5),default=4,help='1v1,2v2,Try Deck,2vAI respectively')
-    parser.add_argument('--connection-state',choices=('unconfigured','missing-files','invalid-trust'),default='unconfigured',
-                        help='actual production resolver local rejection;no socket/private-store fixture bypass')
+    parser.add_argument('--connection-state',choices=('unconfigured','missing-files','invalid-trust',*NETWORK_STATES),default='unconfigured',
+                        help='local resolver rejection or real RC connection to an owned numeric-loopback endpoint')
     parser.add_argument('--expect-long-replay',action='store_true',help='require the ordinary native replay path to exceed260 characters')
     parser.add_argument('--native-replay-readback',action='store_true',help='explicit owned original-codec probe before native menu Quit; not playback')
     parser.add_argument('--native-replay-faults',action='store_true',help='authored malformed codec inputs after healthy readback, before same idle Quit')

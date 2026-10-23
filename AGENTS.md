@@ -2,6 +2,24 @@
 
 ## Requests and answers with Nick
 
+- Availability131 COMPLETE:all EIGHT RC schema4 refusal/default-TLS-deadline
+  counterparts1/2/4/5 pass on actual installed130. Delegating observers,real
+  exclusive nonlistener or silent ClientHello endpoint,original5s/10s defaults.
+  Actual resolver/identity/bridge/native reason/local match/result/Continue/
+  default Quit0,job empty/no force,peers self-close/thread drained,one RC identity
+  per case/tokens not logged,config/shared/program/source unchanged. First10tests
+  failed10061-only assumption;OS confirmsIOCP1225,corrected10pass;8focused pass.
+  Native pilots185.150/216.877s plus six-cell owner1303.434s all first-attempt
+  PASS. Only Try Deck test click delayed10s AFTER default deadline;product timing
+  unchanged. AR01 checker source sealed before that diagnostic-only change.
+  Strict actual eight-case review PASS;all owners terminal,no Game running.
+  Do not repeat unchanged AR01-08. Parent D2/D5/D9 and protected-mode A07-14,
+  real TCP connect timeout,physical/Internet/reporting/deployment gates remain.
+  Source guides now release-independent after finding stale105 filenames in
+  embedded130 text;20guide/package checks pass. Frozen130 EXEs/ZIPs unchanged,
+  corrected guide will ship NEXT build;DEV N7 is current instruction. No new Nick
+  action/installer/helper/runtime change. Scope/seals:docs/rc-availability131.txt.
+
 - Installer130 COMPLETE at named scopes:unchanged server128 hierarchy FAILS before
   Install click:marquee ProgressBar never added to form Controls. No game/stage/
   destination created,job1/0/0/no force. Shared client/server C# fix adds existing

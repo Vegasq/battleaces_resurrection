@@ -27,6 +27,15 @@ A07-10   Valid protected settings, TCP refusal / 1,2,4,5     O:normal owner
 A11-14   Valid protected settings, connection/handshake
          timeout / 1,2,4,5                                  O:normal owner
 A15      Healthy configured server while using Try Deck      P:62/82 native
+AR01-04  Valid RC schema4,TCP refusal / 1,2,4,5               P:131 installed130
+AR05-08  Valid RC schema4,TLS deadline / 1,2,4,5               P:131 installed130
+All eight RC counterparts use the actual bundled Resolver/local identity/TLS
+and bridge against owned numeric-loopback endpoints. Original defaults5s TLS/
+10s outer deadline;native result/Continue/default Quit0,empty jobs,no forced
+cleanup,config/shared/program/source preserved. Try Deck's AFTER-FAILURE cells
+delay only the authored click10s. No protected credentials,TCP connect timeout,
+physical/UI or Internet scope is inferred. Source/reports:rc-availability131.txt.
+Original A07-14 verified/protected owner gates remain OPEN at their stated scope.
 For A07-14 use an owned refusing/controlled nonresponding endpoint; never a
 guessed public address. Require real resolver/private reader, useful failure,
 one local world, original results/Continue, saved deck/practice preference and

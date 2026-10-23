@@ -3,6 +3,19 @@ Updated: 2026-10-22
 Delivery plan: REMAINING_DELIVERY_PLAN.txt, Windows only.
 Original roadmap: CLOSED / SUPERSEDED;see PLAN_CLOSEOUT.txt.
 
+RC AVAILABILITY131 - ALL EIGHT CONFIGURED-UNAVAILABLE CELLS PASS
+Actual installed130 bundled Resolver/identity/TLS/bridge connects to owned TCP
+refusing or silent TLS endpoints in1/2/4/5. Original5s handshake/10s outer defaults;
+native local match/result/Continue/default Quit0,no forced cleanup,empty jobs,
+peers self-close and endpoint threads drained. Config/shared/program/source
+unchanged,tokens not logged. First10test run's Winsock10061-only expectation
+fails on IOCP Win321225;corrected10and later8focused checks pass. All eight
+native first attempts/strict source-and-input review pass. No product/candidate
+change or new Nick action;130/N7 current. Protected A07-14/TCP connect timeout/
+physical/Internet/full privacy/deployment remain OPEN. Source quickstarts made
+release-independent after stale105 filename discovery;20package checks pass,
+frozen130 embedded text unchanged. Scope/hashes:rc-availability131.txt.
+
 INSTALLER130 - ACTUAL NATIVE INSTALL ACTIONS/ENTRY/FRESH SERVER AI PASS
 Fixed ProgressBar missing from both forms. Unchanged128 native hierarchy FAIL
 before Install is retained;no game/stage created.20affected checks,two actual

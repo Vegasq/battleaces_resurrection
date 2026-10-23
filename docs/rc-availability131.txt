@@ -1,0 +1,95 @@
+RC AVAILABILITY131 - REAL CONNECTION FAILURE WITH LOCAL PLAY
+2026-10-22. D2 counterparts to A07-14 for schema4 RC;full D2/D5/D9 remain open.
+
+Claim and finite scope
+The installed normal client must still play Try Deck/public1/public2/public5 when
+a VALID RC address refuses TCP or accepts TCP without completing TLS. These are
+not blank settings,missing trust files,synthetic RemoteUnavailable responses or
+protected verified-mode credentials. Keep those older A07-14 owner gates separate.
+No guessed public endpoints or real players. Exact frozen130 runtime:
+local/r103g/.battleaces-resurrection/client-runtime/dcdaaec69efe5c1a6672.
+Game/helper/runtime/normal launcher/130 installers remain unchanged.
+
+Owned endpoint and observations
+- Exclusive numeric127.0.0.1 bound port WITHOUT listen produces real OS refusal.
+- A controlled numeric-loopback listener receives TLS ClientHello and sends no
+  ServerHello/application/error data. Client uses its UNCHANGED5s handshake/10s
+  outer connection defaults. It closes the peer itself;owner-forced peer close,
+  unexpected data,live peers or worker thread prevent acceptance.
+- External driver calls the actual bundled production client/Resolver/RC identity
+  factory/TLS/Bridge. Observers delegate to ORIGINAL operations and record safe
+  results;no result substitution,authentication success or timer override. Private
+  token remains in the owned RC identity store and is checked against public logs.
+- Genuine Windows refusal can be WSAECONNREFUSED10061 or IOCP Win32
+  ERROR_CONNECTION_REFUSED1225. First ten-test run FAILED the old10061-only
+  expectation;OS FormatError confirms1225's meaning. Corrected run10tests PASS;
+  failed01 retained. Later8focused legacy/parser/driver checks pass after the
+  Try Deck diagnostic timing change. No product error handling changed.
+- SSL handshake deadline raises ConnectionAbortedError on this platform,which
+  the unchanged bridge maps to native code2/"Secure server unavailable". A real
+  outer TimeoutError would map to7. Do not fabricate7 merely because time elapsed.
+- Try Deck cancels optional control in prepareLocal. Its AFTER-FAILURE cells
+  therefore delay only the authored Try Deck click10s,so the real5s failure occurs
+  before Play. Ordinary startup,30s public queues and50ms simulation are untouched.
+  This is not a physical immediate-click or pending-handshake cancellation claim.
+
+Acceptance per cell
+Require valid RC resolver success,actual TLS invocation/failure,actual bridge and
+native reason,one local world,selected deck/native bot movement,original public
+search phases where applicable,native result/Continue/default Quit0. Game/driver
+reaped,job empty/no forced cleanup;config/package/shared/source unchanged;owned
+endpoint drained/thread stopped and no private token in public evidence.
+
+Cell                  Mode     Current status
+AR01 real TCP refusal   1      PASS185.150000s
+AR02 real TCP refusal   2      PASS216.208140s
+AR03 real TCP refusal   4      PASS223.944098s
+AR04 real TCP refusal   5      PASS200.258646s
+AR05 real TLS deadline  1      PASS218.200793s
+AR06 real TLS deadline  2      PASS218.760504s
+AR07 real TLS deadline  4      PASS216.876544s
+AR08 real TLS deadline  5      PASS219.692655s
+Same-PC bundled/native external diagnostics,not mouse/pixel/LAN/Internet or
+authenticated server play. Genuine TCP SYN/connect timeout is not induced by
+the handshake-stall endpoint;do not merge these scopes.
+
+Evidence in ignored local paths
+AR01:availability131-rc-refused-mode1-01/verification.json.
+AR07:availability131-rc-handshake-mode4-01/verification.json.
+Remaining six:availability131-STATE-modeN-01/verification.json with STATE
+rc-refused or rc-handshake-timeout and N as above. Six-cell sequential owner:
+local/availability131-matrix01.py;aggregate directory with the same stem.
+AR01's original checker/endpoint/test sources are sealed under local/availability131-
+pilot01-sources before adding the10s Try Deck diagnostic delay. Its report and
+actual emitted driver remain unchanged;do not overwrite it or repeat that case.
+Tests:local/availability131-tests01/02/03 JSON and stdout/stderr files.
+
+Completed qualification
+All eight first native attempts PASS:actual RC identity/resolver/TLS/bridge and
+native reason/local world/results/Continue/default Quit0. No forced game cleanup.
+Owned endpoints drained,threads stopped,owner-closed peer count0;one valid RC
+identity per case,no token in public evidence. Config/program/shared/source and
+owned unavailable-settings fixtures unchanged. Native game/driver reaped and
+jobs empty with0job-terminated processes. Six-case owner PASS1303.434065s;two
+pilots are sealed separately,not replayed. No game/server remains running.
+
+Strict read-only eight-case review PASS. It reparses actual transport/native
+evidence,checks every source identity against current or sealed pilot source,
+checks installed130 inventory and endpoint/cleanup/privacy invariants,and keeps
+full_D2_D5_D9_acceptance=false. Retained SHA256:
+ local/availability131-review01.json
+ 02b7e821d507c184d23d1d9d138d9367c6be0b9e4b5be945e4b741bd3bbf017e
+ local/availability131-matrix01/verification.json
+ 4fd84f3b8874ecfbf8ef6a747273607a561809587d1eb771b3f3e065f69bec51
+The review seals all eight individual reports/driver/config inputs. Raw game,
+profile,identity and capture files remain ignored;no original files enter Git.
+Do not repeat these unchanged cells. Protected verified mode,TCP SYN/connect
+timeout,physical controls,Internet and the full reporting/deployment gates stay
+separate.130/DEV N7 remains current;no new Nick action or installer is needed.
+
+Source guide correction
+Review of130's embedded quickstarts found hardcoded105 download filenames.
+Source windows-client/server-quickstart.txt now uses release-independent wording;
+20existing package/server-installer regressions PASS. Frozen130 EXEs/ZIPs were NOT
+modified or rebuilt. Their embedded text is historical;DEV N7 remains the exact
+current130 instruction. The corrected source text will enter the next build.
