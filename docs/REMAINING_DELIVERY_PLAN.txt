@@ -889,12 +889,18 @@ windows-packaging.txt, windows-server-quickstart.txt.
     18tests/native16.441s pass,job18/0/0/no extra cleanup. New gaps152/145ms;
     original154875.677ms NOT reproduced/fully attributed. No product fix/fullD8.
     Source/timing/interval proof:profile-admission-timing155.txt.
-[ ] Correct off-coordinator profile persistence(public ENTER,community selection,
+[x]156 Correct off-coordinator profile persistence(public ENTER,community selection,
     legacy lobby saves),preserving fsync/atomic validation/save-before-ACK and
     draining owned writes on shutdown. Cover pending session/deck/lobby freeze,
     Start/Ready/departure/cancel races and stale commits,then actual bundled/native
     admission with another advancing room. Keep50ms step/default deadlines/window.
-    No no-op-only shortcut or extra equivalent fault variants.155 has finite plan.
+    Original ProfileStore/read/flush/fsync/replace remain,all reads share FIFO.
+    99tests98pass/1opt-in skip,clean14ba1fb bundled/native17.759s pass:20saves OFF
+    coordinator54..347ms;healthy55/113frames/max gaps66.23/67.12ms,STEP resumes
+    <0.083ms DURING pending rematch saves. Abort/Return/rematch/profiles preserved,
+    job18/0/0/no extra cleanup. Actual paired156 forms/payloads/imports pass3.589s.
+    Selected stall correction,not fullD8/875ms attribution/UI/service acceptance.
+    Exact ordering/cancellation/failure/artifact scopes:async-profile-io156.txt.
 - Concrete154 local admission/rematch concern:healthy2vAI receive gap875.677ms
   crosses Return/new ENTER processing BEFORE replacement worker_started;healthy
   frame worker_ms775.985/no snapshot. Hang max153.799ms. Existing receipt/audit

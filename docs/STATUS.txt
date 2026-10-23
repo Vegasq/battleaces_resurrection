@@ -3,6 +3,19 @@ Updated: 2026-10-23
 Delivery plan: REMAINING_DELIVERY_PLAN.txt, Windows only.
 Original roadmap: CLOSED / SUPERSEDED;see PLAN_CLOSEOUT.txt.
 
+ASYNC PROFILE156 - VERIFIED COORDINATOR PROFILE BLOCKAGE CORRECTED
+Bounded server-owned serial save/load FIFO,unchanged original fsync/atomic
+validation/save-before-ACK;pending selection/Start/identity/seat/departure guards,
+cancelled I/O ownership and shutdown drain/join.99tests98pass/1opt-in skip.
+Clean14ba1fb paired ZIPs/native installers/imports/CLI/forms/payloads pass3.589s.
+Actual bundled/native SAME155driver PASS17.759s:20saves OFF coordinator54..347ms,
+healthy55/113frames,max gaps66.23/67.12ms. Healthy STEP completes/resumes<0.083ms
+DURING pending rematch writes;abort/Return/ticket2/full17profiles preserved.
+6workers reaped/controller0/job18/0/0/no extra cleanup.74current+40/35/31/83/276
+historical input review passes. Selected fix complete,full D8/D1-D9 OPEN;no full
+875ms attribution/physical/service inference. No manual130/N7/share/new Nick
+action;pending N9/N10 unchanged. Evidence:async-profile-io156.txt.
+
 ADMISSION155 - SYNCHRONOUS PROFILE SAVE DELAYS COMPLETED HEALTHY WORKER REPLY
 Selected source/native attribution COMPLETE,performance NOT FIXED.20 original
 save calls47..88ms run on coordinator. Healthy STEP wire1.05/1.10ms completes

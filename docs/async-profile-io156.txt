@@ -1,6 +1,6 @@
 ASYNC PROFILE156 - SERVER-OWNED SERIAL STORAGE / ADMISSION RACE GUARDS
-2026-10-23. Implementation and scoped source tests PASS;bundled/native acceptance
-is pending in this source checkpoint. Full D8/D1-D9 delivery remains OPEN.
+2026-10-23. Selected off-coordinator profile I/O correction COMPLETE at source,
+socket-race and clean bundled/native scopes. Full D8/D1-D9 delivery remains OPEN.
 
 The server now owns a bounded single-thread ProfileIO executor for original
 ProfileStore.save/load_state. Original validation/read/flush/fsync/atomic replace
@@ -34,7 +34,80 @@ the loop exception handler. Corrected ten initial race tests pass1.315s;two more
 legacy/public ordering tests are included in the99-test run. Exact original
 production sources are retained in local/asyncprofiles156-prior-source01.
 
-Next:build a clean paired engineering candidate,then execute actual bundled/native
-timed admission with another advancing match. No performance envelope or complete
-attribution of154's875ms observation is claimed from source/synthetic controls.
-No game/helper/manual/share/Nick action change. N9/N10 desktop checks stay pending.
+Actual clean package/native qualification
+Source14ba1fb7c77de1f6f302e0f11d45612e04e2ea26,dirty=false.
+local/asyncprofiles156-packages01 contains paired0.3.0-rc1.5 engineering ZIPs:
+- server96b936b3739a03713c6dfcb7866fa4ed6682ece7c9beb75245545009dc402db3
+- client037d2b7ea93584f0ad4b6417c2256ac87fda4612a10f6fd32e6bee9dc869809a
+Compared with151,server delta is exactly compatibility.json and community.py,
+dedicated_server.py,public_matchmaking.py,new profile_io.py. Client changes only
+compatibility.json. Original profiles.py/helper138/native forms130/launcher39/
+certificate103 and client gameplay/transport remain byte-identical.
+
+Actual local/asyncprofiles156-native01/verification.json PASS17.7594s,
+child17.1904s. Uses the SAME a72566e3 diagnostic driver as155 (not retuned),actual
+new bundled modules,119verified139 assets,RC TLS,current HELLO2/full17,two mode5
+rooms with humans0/2 and original profile60 bots1/3. Default3s/2s worker policies,
+50ms step/window6 and30000ms public deadline are unchanged.
+
+All20 actual save calls run OFF coordinator,one serial storage thread per case.
+Observed save durations54..347ms;slow real filesystem calls remain durable.
+- Crash case:healthy55frames,max receive gap66.2266ms. During rematch save9
+  (181.4462ms),healthy STEP frames11/12/13 complete;during save10(64.7467ms),
+  frame14 completes. Actual wire durations0.88..1.03ms;completion-to-coordinator
+  resume0.0695..0.0821ms,WHILE storage is still executing.
+- Hang case:healthy113frames,max gap67.1142ms;61frames during the default3s
+  failed-bot timeout. During rematch save9(79.793ms),healthy frames70/71 complete;
+  during save10(54.2513ms),frame72 completes. Wire0.88..1.03ms,resume0.0734..0.0792ms.
+This removes155's verified profile-write completion blockage. It is a bounded
+local two-room sample,not an Internet/capacity/physical smoothness envelope or
+complete attribution of154's older875.677ms gap. Full D8 remains OPEN.
+
+Original abort/Results/Return/RETIRED/ticket1->2/same-connection10frame rematch,
+four profile file bytes,all four bootstrap-bound frame identities and host frame
+hashes pass. Victim BOT_INPUT/frame10 fails before STEP,no invented result/frame.
+Crash victim9336 exits1,healthy28660/replacement28196 exit0;abort0.0610s.
+Hang victim4944 exits1,healthy32600/replacement22772 exit0;abort3.0549s.
+All six workers reap,six duplicated handle pairs close,controller0,
+job18total/0active/0job-terminated,no additional harness cleanup.
+
+Matching standalone native installers are prepared without changing manual ones:
+local/asyncprofiles156-server-standalone01/Install Battle Aces Server.exe
+SHA25655d7e35fcbbfa29aaf55a6727f841babfe608982c1d9e05416a6800fac8985f6
+local/asyncprofiles156-client-standalone01/Install Battle Aces.exe
+SHA256f6fefdca432381cf5ed80eae1a7fc59806b962091cb588c23b60de1e6507b90b
+local/asyncprofiles156-package-qualification01 PASS3.5889s:actual isolated bundled
+imports for all five relevant server modules,server/client CLI verification,
+both native forms (2server/3client fields,attached progress),both embedded ZIP
+verification/extraction and exact five-server/one-client file delta. Seven owned
+commands exit0/reap/empty jobs/no force. No Install button/game export/protected
+host setup/ordinary graphical play is claimed or repeated for unchanged forms.
+
+Read-only local/asyncprofiles156-review01.json PASS74current inputs plus40prior155,
+35prior154,31prior153,83prior152,276prior151 inputs. Modified production originals
+resolve through exact156 source archives;old driver versions through their exact
+earlier archives. Successful reports/seals are unchanged. Current source/actual
+package/import/form/AI/frame/profile/RPC/terminal facts and concurrent completion
+intervals reconcile. An initial ASCII-only test-log check failed on PowerShell's
+UTF16 BOM;its exact reviewer is retained separately. Strict BOM decoding fixes
+the read-only reviewer;no test/native rerun or changed original log was needed.
+
+Cancellation/departure semantics
+A cancelled waiter does not undo a filesystem write already submitted. That write
+remains server-owned and drains;subsequent reads/writes follow it in the FIFO.
+No stale session/lobby/room mutation or success ACK follows the cancelled/stale
+operation. In particular,a departed-lobby refusal can follow an authorized write
+that finished on disk;it must not mutate a later lobby or roll back newer data.
+Actual storage failures preserve the prior file and produce a refusal,not a queue
+ticket/world. The regression controls distinguish those cases.
+
+Next / remaining scope
+Reuse this corrected native/timing/race evidence;do not rerun unchanged155/156
+profile/fault variants. Continue remaining D1-D9 physical/privacy/storage/service/
+network/capacity/final-installed gates. Legacy/public/Custom ordering has source
+and synthetic-socket proof;this native correction control is mode5,not physical
+menu/error presentation or every mode/profile. All owned commands are terminal.
+No game/helper/manual130/N7/share/HTTP change or new Nick action. N9/N10 desktop
+fields/reports are still blank/absent and all six N10 input pins stay exact.
+N10 remains its151protected-recovery check;new async host/service owner acceptance
+is a separate remaining gate. New engineering artifacts do not replace handoffs.

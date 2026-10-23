@@ -2,6 +2,24 @@
 
 ## Requests and answers with Nick
 
+- AsyncProfile156 CORRECTS155's coordinator profile-I/O stall:server-owned bounded
+  single-thread FIFO for ORIGINAL save/load,unchanged fsync/atomic validation,
+  durable-before-ACK,pending selection/session/lobby/legacy-ready/identity/seat
+  guards,read-after-cancelled-write ordering,drain/join before server_stopped.
+  Python3.14 shield late-error logging caught;use owned proxy,never suppress loop
+  handler. Initial5failures retained(1implementation/4fixture);99tests98pass/1
+  opt-in skip. Clean14ba1fb paired156 ZIPs/native installers/imports/CLI/forms/
+  payloads PASS3.589s. Actual SAME155driver native17.759s:20saves OFF coordinator
+  (54..347ms),healthy55/113frames/max gaps66.23/67.12ms;healthy STEP resumes<0.083ms
+  DURING pending rematch saves. Abort/Return/ticket2/rematch/full17profiles remain
+  exact,6workers reaped(victims1,others0)/controller0/job18/0/0/no extra cleanup.
+  74current+40/35/31/83/276 historical input review passes/exact old source archives.
+  Selected blocking fix closes,NOT fullD8/875ms attribution/physical/service/D1-D9.
+  NEXT remaining finite delivery gates,not unchanged profile/fault probes. N9/N10
+  blank/no reports/pins unchanged;N10 still151scope,new async owner acceptance
+  separate. All owned terminal;no game/helper/manual130/N7/share/new action.
+  Source/failure/artifact hashes/scopes:docs/async-profile-io156.txt.
+
 - Admission155 CLOSES selected timing attribution,NOT performance:20 ORIGINAL
   ProfileStore.save calls on coordinator thread47..88ms. Critical rematch healthy
   STEP wire1.05/1.10ms finishes INSIDE save10;async resume waits53.45/64.97ms until
