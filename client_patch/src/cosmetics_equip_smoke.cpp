@@ -1,4 +1,5 @@
 #pragma once
+#include "profile_edit_policy.hpp"
 // Opt-in original callback diagnostics. No normal launcher selects/equips items.
 namespace ba_cosmetics {
 static unsigned equipStage=0;
@@ -6,6 +7,12 @@ static ULONGLONG equipDue=0,equipDeadline=0;
 static auto& equipBefore=*new Pairs();
 static auto& equipExpected=*new Pairs();
 static uint32_t portraitSlot=0,portraitFirst=0,portraitSecond=0,emoteA=0,emoteB=0,emoteX=0,emoteY=0;
+struct EditBackLease {
+    Root flow,graph,node,picker,owner,screen,menu,main,mainOwner,pool,mainDescriptor,destination;
+    EditBackLease(Obj f,Obj g,Obj n,Obj p,Obj o,Obj s,Obj m,Obj v,Obj vo,Obj poolValue,Obj descriptor,Obj target):
+        flow(f),graph(g),node(n),picker(p),owner(o),screen(s),menu(m),main(v),mainOwner(vo),pool(poolValue),mainDescriptor(descriptor),destination(target){}
+};
+static auto& editBack=*new std::unique_ptr<EditBackLease>();
 static uint32_t selectedAt(const Pairs& selection,uint32_t slot) {
     for(auto pair:selection)if(pair.first==slot)return pair.second;
     throw std::runtime_error("cosmetic diagnostic slot missing");
@@ -67,13 +74,161 @@ static void writeCosmeticProof(const wchar_t* prefix,const std::string& text) {
     require(GetFileAttributesW(path.c_str())==INVALID_FILE_ATTRIBUTES && GetLastError()==ERROR_FILE_NOT_FOUND,"cosmetic proof output already exists");
     ba_export::atomicWrite(path,reinterpret_cast<const unsigned char*>(text.data()),text.size());
 }
+static void originalBackBody(uintptr_t rva,size_t size,const char* expected) {
+    ba_telemetry_audit::Bytes body(size);
+    require(ba_telemetry_audit::copy(reinterpret_cast<uintptr_t>(ba::module)+rva,body.data(),body.size()) &&
+        ba_telemetry_audit::digest(body)==expected,"profile edit original Back bytes differ");
+}
+static void editBackBegin() {
+    namespace ui=ba_practice_settings_ui;
+    reacquirePicker();Root flow(ui::flowController()),graph(ba::get<Obj>(flow.get(),"_flowGraph"));
+    require(graph.get()!=nullptr,"profile edit Back graph missing");
+    Root node(ba::get<Obj>(graph.get(),"ActiveNode"));
+    require(ui::exact(node.get(),"Uncapped.UI","ShowUIObjectNode"),"profile edit Back requires original acquired node");
+    Root owner(ba::get<Obj>(picker->get(),"<Owner>k__BackingField")),screen(ba::get<Obj>(owner.get(),"<Root>k__BackingField"));
+    require(screen.get() && ba::get<bool>(screen.get(),"_isInitialized") && ui::active(screen.get()) &&
+        ba::get<Obj>(screen.get(),"<Owner>k__BackingField")==owner.get() &&
+        ba::get<Obj>(owner.get(),"_pool")==ba::get<Obj>(node.get(),"_pool") &&
+        ba::get<Obj>(picker->get(),"_pool")==ba::get<Obj>(owner.get(),"_pool") &&
+        ba::get<Obj>(picker->get(),"_menuFlowController")==flow.get(),"profile edit picker acquired lifetime differs");
+    Root descriptors(ba::get<Obj>(node.get(),"ShowUIObject")),views(ba::get<Obj>(node.get(),"_uiObject"));
+    const auto count=ui::arrayCount(descriptors.get(),32);require(ui::arrayCount(views.get(),32)==count,"profile edit acquired arrays differ");
+    unsigned found=0;
+    for(size_t i=0;i<count;++i)if(ui::arrayItem(views.get(),i)==screen.get()) {
+        Obj descriptor=ui::arrayItem(descriptors.get(),i);
+        require(descriptor && ba::get<int>(descriptor,"_prefabKey")==ba::get<int>(owner.get(),"<PrefabType>k__BackingField"),
+            "profile edit acquired descriptor differs");++found;
+    }
+    require(found==1,"profile edit picker root is not the unique current acquired view");
+    Root previous(picker->get()),transform(ba::call(screen.get(),"get_transform"));picker.reset();unsigned nodes=0;
+    findPicker(transform.get(),0,nodes);require(picker && picker->get()==previous.get(),"profile edit picker lies outside acquired root");
+    require(ba::get<Obj>(graph.get(),"ActiveNode")==node.get(),"profile edit graph changed during binding");
+    originalBackBody(0x3d53fb0,112,"8db7941bfa43e107b56c9509e596833e5b47ba5e115732071c5aae55bb6d8cd6");
+    originalBackBody(0x3d54c30,256,"56dbe8de729eb4d59d1946bf65b18cdb61fbc4859b430d96fa5254093b4ab139");
+    originalBackBody(0x3d56800,352,"15cbb9b9b4581a5bb3e2b7d7b1028f69495e0929b68fb0d5c9595ad87e76e730");
+    Root fromPort(ba::get<Obj>(node.get(),"_fromPort"));
+    require(ui::exact(fromPort.get(),"System","String") &&
+        ba::api<int(*)(Obj)>("il2cpp_string_length")(fromPort.get())>0,"profile edit Back has no prior port");
+    require(ba::read<Obj>(node.get(),0x20)==graph.get(),"profile edit node belongs to another graph");
+    Root priorPort(ba::native<Obj(*)(Obj,Obj,Obj)>(0x953270)(graph.get(),fromPort.get(),nullptr));
+    require(priorPort.get() && ba::read<Obj>(priorPort.get(),0x78),"profile edit prior port has no destination node");
+    // Additional original UI policy gate, not called by direct GoBack itself.
+    // The original getter can initialize metadata/normalize its loading counter.
+    const bool canGoBack=ba::native<bool(*)(Obj,Obj)>(0x3d54c30)(node.get(),nullptr);
+    // Container state is separate evidence: the original controller/node Back
+    // bodies do not consult UIContainer.isVisible. Never call this desktop proof.
+    Root container(ba::get<Obj>(owner.get(),"_uiContainer"));
+    const bool compatible=container.get() && ba::api<bool(*)(Obj,Obj)>("il2cpp_class_is_assignable_from")(
+        ba::find_class("Doozy.Runtime.UIManager.Containers","UIContainer"),ba::klass(container.get()));
+    bool visible=false;int containerState=0;std::string containerClass="null";
+    if(container.get())containerClass=std::string(ba::api<const char*(*)(Obj)>("il2cpp_class_get_namespace")(ba::klass(container.get())))+"."+
+        ba::api<const char*(*)(Obj)>("il2cpp_class_get_name")(ba::klass(container.get()));
+    if(compatible) {
+        originalBackBody(0x88a350,8,"e9943457754d79d150465f361e8b6688d8d9366e64f713d9ecde13171986de87");
+        containerState=ba::read<int>(container.get(),0x54);
+        visible=ba::native<bool(*)(Obj,Obj)>(0x88a350)(container.get(),nullptr);
+        require(visible==(containerState==0),"profile edit container state/getter mismatch");
+    }
+    writeCosmeticProof(L"profile-edits-back-state","{\"schema\":1,\"physical_visibility_tested\":false,\"can_go_back\":"+
+        std::string(canGoBack?"true":"false")+",\"prior_port_nonempty\":true,\"container_present\":"+(container.get()?"true":"false")+
+        ",\"container_class\":"+ba_catalog::quote(containerClass)+",\"container_compatible\":"+(compatible?"true":"false")+
+        ",\"container_state\":"+(compatible?std::to_string(containerState):"null")+",\"container_visible\":"+
+        (compatible?(visible?"true":"false"):"null")+",\"picker_active\":"+(ui::active(picker->get())?"true":"false")+
+        ",\"picker_initialized\":"+(ba::get<bool>(picker->get(),"_isInitialized")?"true":"false")+
+        ",\"owner_initialized\":"+(ba::get<bool>(owner.get(),"<IsInitialized>k__BackingField")?"true":"false")+
+        ",\"screen_active\":true,\"screen_initialized\":true,\"owned_current_view\":true}\n");
+    require(!container.get() || compatible,"profile edit unknown UI container class");
+    require(canGoBack,"profile edit original CanGoBack declined");
+    originalBackBody(0x3d509c0,1008,"0bee3b9fa0845e1b48825dd50a57703f1e44f7aada642425816888e1e1f601d3");
+    originalBackBody(0x3d628c0,416,"084a1088fc41966d1f192c6ab1680c7a55cb30eb3dbf7e37bc879f0db3ef1bf6");
+    Root menu(ba::get<Obj>(ba::owner,"<UIMenuController>k__BackingField")),main(ba::get<Obj>(menu.get(),"_mainMenu"));
+    require(ui::exact(main.get(),"Uncapped.UI","PlayScreenVM") && ba::get<bool>(main.get(),"_isInitialized"),
+        "profile edit persistent main missing");
+    Root mainOwner(ba::get<Obj>(main.get(),"<Owner>k__BackingField")),pool(ba::get<Obj>(menu.get(),"_pool")),descriptor(ba::get<Obj>(menu.get(),"_showMainMenu"));
+    require(mainOwner.get() && pool.get() && descriptor.get() && ba::get<bool>(mainOwner.get(),"<IsInitialized>k__BackingField") &&
+        ba::get<Obj>(mainOwner.get(),"<Root>k__BackingField")==main.get() && ba::get<Obj>(mainOwner.get(),"_pool")==pool.get() &&
+        ba::get<int>(mainOwner.get(),"<PrefabType>k__BackingField")==ba::get<int>(descriptor.get(),"_prefabKey"),
+        "profile edit persistent main acquired ownership differs");
+    Obj method=ba::api<Obj(*)(Obj,const char*,int)>("il2cpp_class_get_method_from_name")(
+        ba::klass(flow.get()),"Uncapped.UI.IMenuFlowController.GoBack",0);
+    require(method && ba::read<uintptr_t>(method,0)==reinterpret_cast<uintptr_t>(ba::module)+0x3d53fb0,
+        "profile edit original GoBack method differs");
+    editBack=std::make_unique<EditBackLease>(flow.get(),graph.get(),node.get(),picker->get(),owner.get(),screen.get(),
+        menu.get(),main.get(),mainOwner.get(),pool.get(),descriptor.get(),ba::read<Obj>(priorPort.get(),0x78));
+    ba::log("PROFILE EDITS Back dispatch: ownedCurrentView=1 originalGoBack=1 fullMap=17");
+    ba::call(flow.get(),"Uncapped.UI.IMenuFlowController.GoBack");
+}
+static bool editBackComplete() {
+    namespace ui=ba_practice_settings_ui;
+    require(editBack && ui::flowController()==editBack->flow.get(),"profile edit Back controller changed");
+    Root current(ba::get<Obj>(editBack->graph.get(),"ActiveNode"));
+    if(!ui::exact(current.get(),"Uncapped.UI","ShowUIObjectNode") || current.get()==editBack->node.get())return false;
+    const bool directDestination=current.get()==editBack->destination.get();
+    const bool graphMatches=ba::read<Obj>(current.get(),0x20)==editBack->graph.get();
+    static bool destinationReported=false;
+    if(!destinationReported) {
+        ba::log("PROFILE EDITS settled navigation: directTargetMatches=%d currentGraphMatches=%d",directDestination?1:0,graphMatches?1:0);
+        destinationReported=true;
+    }
+    // SetActiveNode invokes OnEnter/callbacks before returning; original entry
+    // nodes may synchronously redirect. The direct target is an observation.
+    Root menu(ba::get<Obj>(ba::owner,"<UIMenuController>k__BackingField")),main(ba::get<Obj>(menu.get(),"_mainMenu"));
+    if(!main.get() || !ui::active(main.get()) || !ba::get<bool>(main.get(),"_isInitialized") ||
+        ba::get<bool>(editBack->owner.get(),"<IsInitialized>k__BackingField") ||
+        ba::get<bool>(editBack->picker.get(),"_isInitialized") || ba::get<bool>(editBack->screen.get(),"_isInitialized"))return false;
+    require(!ui::active(editBack->screen.get()),"profile edit released screen still active");
+    Root views(ba::get<Obj>(current.get(),"_uiObject"));const auto count=ui::arrayCount(views.get(),32);unsigned found=0;
+    for(size_t i=0;i<count;++i) {
+        Obj view=ui::arrayItem(views.get(),i);require(view!=editBack->screen.get(),"profile edit old screen remains acquired");
+        if(view==main.get())++found;
+    }
+    Root owner(ba::get<Obj>(main.get(),"<Owner>k__BackingField"));
+    const bool ownerInitialized=owner.get() && ba::get<bool>(owner.get(),"<IsInitialized>k__BackingField");
+    const bool rootMatches=owner.get() && ba::get<Obj>(owner.get(),"<Root>k__BackingField")==main.get();
+    const bool poolMatches=owner.get() && ba::get<Obj>(owner.get(),"_pool")==ba::get<Obj>(menu.get(),"_pool");
+    static unsigned previousState=~0u;
+    const unsigned state=static_cast<unsigned>(count)*32+found*8+(ownerInitialized?4:0)+(rootMatches?2:0)+(poolMatches?1:0);
+    if(state!=previousState) {
+        ba::log("PROFILE EDITS main recovery: acquiredViews=%u mainMatches=%u ownerInitialized=%d rootMatches=%d poolMatches=%d",
+            static_cast<unsigned>(count),found,ownerInitialized?1:0,rootMatches?1:0,poolMatches?1:0);previousState=state;
+    }
+    require(found<=1,"profile edit main duplicated in acquired views");
+    // UIMenuController.UpdateVisibility retains main directly, separately from
+    // node-acquired views. Validate its own generation/descriptor instead.
+    if(!ownerInitialized || !rootMatches || !poolMatches)return false;
+    require(menu.get()==editBack->menu.get() && main.get()==editBack->main.get() && owner.get()==editBack->mainOwner.get() &&
+        ba::get<Obj>(menu.get(),"_pool")==editBack->pool.get() && ba::get<Obj>(menu.get(),"_showMainMenu")==editBack->mainDescriptor.get() &&
+        ba::get<int>(owner.get(),"<PrefabType>k__BackingField")==ba::get<int>(editBack->mainDescriptor.get(),"_prefabKey"),
+        "profile edit persistent main generation changed");
+    require(ba_client::nativeIdle(ownedFront->get()) && ba_client::worldOwner==ba_client::Owner::None &&
+        ba_native_quit::staticInt("LoadingCount")==0,"profile edit return has active world/assets");
+    Root navigation(ba::get<Obj>(ba::owner,"<NavigationStack>k__BackingField"));
+    require(ba_native_quit::navCount(navigation.get())==0,"profile edit return has active navigation");
+    require(normalize(rawSnapshot().first)==equipExpected && accepted==equipExpected && committed==equipExpected && !projectionPending,
+        "profile edit Back changed committed cosmetics");
+    validateProjection(accepted);picker.reset();editBack.reset();
+    writeCosmeticProof(L"profile-edits-return","{\"schema\":1,\"passed\":true,\"original_back\":true,\"old_picker_released\":true,\"main_acquired\":true,\"navigation_empty\":true,\"world_idle\":true,\"loading_count\":0,\"full_map_preserved\":true,\"main_owned_by_menu_controller\":true,\"current_graph_matches\":"+
+        std::string(graphMatches?"true":"false")+",\"direct_destination_matches\":"+(directDestination?"true":"false")+
+        ",\"acquired_views\":"+std::to_string(count)+",\"main_matches_in_node_views\":"+std::to_string(found)+"}\n");
+    ba::log("PROFILE EDITS returned: originalBack=1 oldPickerReleased=1 mainAcquired=1 navigationCount=0 worldIdle=1 loadingCount=0 fullMap=17");return true;
+}
 static void equipSmoke() {
-    if(!ba::flag(L"-cosmetics-equip-smoke") || equipStage==10)return;
+    if(!ba::flag(L"-cosmetics-equip-smoke") || equipStage>=12)return;
+    const bool combined=ba::flag(L"-profile-edits-smoke");
+    if(!combined && equipStage==10)return;
+    if(combined) {
+        require(ba_profile_edit_policy::allowed(ba::arguments(),ba::argument(L"-local-profile=")),"profile edits require explicit owned gated diagnostic");
+        if(!ba_practice_settings_ui::smokeComplete())return;
+    }
     const auto now=GetTickCount64();if(!equipDeadline){equipDeadline=now+60000;equipDue=now+2500;return;}
     require(now<equipDeadline,"cosmetic equip diagnostic deadline");if(now<equipDue)return;
     require(persistenceReady && stateStore && unlockActive() && ba_dedicated_session::inMenu() &&
         ba_dedicated_session::worldIdle(ba::read<Obj>(ownedFront->get(),0xd8)),"cosmetic equip requires writable idle test profile");
-    require(profileKey.rfind("cosmeticstest_",0)==0,"cosmetic equip requires an explicit disposable test profile");
+    require(profileKey.rfind("cosmeticstest_",0)==0 || (combined && ba_native_settings::session &&
+        ba_native_settings::session->profile()==profileKey && profileKey.rfind("nativestest_",0)==0),
+        "cosmetic equip requires an explicit disposable test profile");
+    if(equipStage==10) {editBackBegin();equipStage=11;equipDue=now+500;return;}
+    if(equipStage==11) {if(editBackComplete())equipStage=12;return;}
     if(equipStage==0) {
         namespace ui=ba_practice_settings_ui;
         Root menu(ba::get<Obj>(ba::owner,"<UIMenuController>k__BackingField")),main(ba::get<Obj>(menu.get(),"_mainMenu"));
@@ -121,7 +276,7 @@ static void persistenceProof() {
     static bool complete=false;static ULONGLONG due=0;
     if(complete || !ba::flag(L"-cosmetics-persistence-proof") || !persistenceReady)return;
     const auto now=GetTickCount64();if(!due){due=now+2500;return;}if(now<due)return;
-    if(ba::flag(L"-cosmetics-equip-smoke") && equipStage!=10)return;
+    if(ba::flag(L"-cosmetics-equip-smoke") && equipStage!=(ba::flag(L"-profile-edits-smoke")?12u:10u))return;
     const auto actual=normalize(rawSnapshot().first);require(actual==accepted && !projectionPending,"cosmetic persistence proof stale");validateProjection(actual);
     writeCosmeticProof(L"cosmetics-persistence","{\"schema\":1,\"passed\":true,\"restored\":"+std::string(persistenceRestored?"true":"false")+
         ",\"writable\":"+(stateStore?"true":"false")+",\"read_error\":"+(persistenceReadError?"true":"false")+",\"projection12\":true,\"state\":"+

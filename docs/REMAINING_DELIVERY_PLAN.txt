@@ -467,8 +467,16 @@ already cut;then supported runtime/final artifacts. Full D5 stays OPEN.
     rejections per case pass. Direct native diagnostic entry,NOT CMD/physical/
     performance/all-thread/inlined/pre-loader/tree/wire or full D5. Both sessions
     closed,no shipping/package/manual change. telemetry-acceptance-matrix140.txt.
-[ ] Next:P2 existing-profile edit/idle/Quit/restart,plus independent source and
-    credible tree/network attribution. Apply P1-P9 finite inventory to139 rather
+[x] Profile141 bounded native edit/Back/idle10031ms/Quit/restart and actual-value
+    persistence:deck/full17cosmetics/difficulty. New fully gated diagnostic;
+    original main ownership/navigation recovered. All3successful cases exit0/
+    job1/0/0/no force;failed attempts stay failed. Strict review06/sealed74inputs,
+    selected13SDK counts0. Extra553PDB lookups retain unknown initiating producer;
+    restart full provider record recovered verbatim,explicit laterclose unavailable.
+    Separate r141g/helper141-07,not final installed139/physical/full P2/D5.
+    Scope/failures/hashes:profile-edits141.txt. No new Nick action/package.
+[ ] Next:P2's missing collection attribution/installed binding,independent source
+    and credible tree/network observation. Apply P1-P9 finite inventory to139 rather
     than repeat quiet constructor/AI/startup controls. Keep whole-startup/all-thread,resumed/
     inflight and c307c0 producer gates;no equivalent quiet AI/constructor or
     completed exact/adjacent source scan rerun.

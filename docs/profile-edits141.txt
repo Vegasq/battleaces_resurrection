@@ -1,0 +1,160 @@
+BATTLE ACES - ORIGINAL PROFILE EDIT / BACK / IDLE / RESTART CHECK141
+Updated: 2026-10-23
+
+Result and scope
+The bounded native behavior check passes:an existing owned profile changes its
+deck,cosmetic loadout and AI difficulty,returns through original Back,idles10031ms,
+uses original Quit,and restarts with those choices preserved. The thirteen
+selected SDK entry counters stay0. P2 as a whole and full D5 remain OPEN/false:
+ordinary installed entry,complete collection attribution,descendants/wire and
+source applicability are separate requirements. No shipping candidate changed.
+Nick's desktop launches remain the visible-window evidence. These background
+diagnostics do not establish desktop visibility,physical input or performance.
+
+Implementation
+New explicitly opt-in -profile-edits-smoke sequences existing deck/settings and
+cosmetic callback diagnostics instead of opening their screens concurrently.
+profile_edit_policy.hpp requires the complete seven-flag diagnostic combination,
+confirm-mode original Quit and a bounded lowercase nativestest_ profile name.
+The normal launcher never enables it. C++ policy tests reject missing flags,
+wrong modes and ordinary/foreign/invalid profiles. Cosmetic selection/equip,
+confirmation,prior-item swap,valid-item reset,twelve-field projection and full
+seventeen-slot atomic persistence use the existing original callback paths.
+After Back,an external owner waits ten seconds before releasing the Quit gate.
+No graph-state rewrite,forced-success navigation or force-exit substitutes.
+
+Original ownership contracts and corrected diagnostic assumptions
+Static fallback:hash-checked original GameAssembly/IL2CPP metadata plus existing
+LLVM decoder. Ghidra provider setup was not retried. Evidence is disassembly,
+not reconstructed original source or runtime execution of every possible path.
+Original DLL:e59d08c01479b27404778048d7e13546dbf3771f6b3912744c7c2bdf80c4e758.
+
+UIContainer.get_isVisible88a350 is a specific state==0 predicate. The cosmetic
+owner's container is actually NULL in the passing run;picker/root/owner are
+initialized and active. Container presence/class/state/getter are recorded
+separately,never translated into desktop visibility. Controller GoBack3d53fb0
+forwards to exact ShowUIObjectNode.GoBack3d56800. Neither direct body reads that
+container. The node uses its prior port and graph,does original cleanup/navigation
+and clears the prior port. Original get_CanGoBack3d54c30 is an ADDITIONAL UI-policy
+diagnostic gate,not a direct Back ABI prerequisite;it can initialize metadata and
+normalize a negative loading counter. It is not described as a passive getter.
+
+UIMenuController.UpdateVisibility3d509c0 acquires main through its own descriptor/
+pool and stores the returned UIObject in _mainMenu,separately from active-node
+_uiObject arrays. ShowUIObject.Show3d628c0 returns that object directly. Therefore
+recovery retains the same menu/main/owner/pool/descriptor generation,exact
+PlayScreenVM,initialized/active main and owner/root/prefab correspondence. It also
+requires released cosmetic owner/root/picker,old root absent from current views,
+changed active node,empty navigation,zero loading,idle world and committed map.
+The passing node has0acquired views and0main matches;this is not main loss.
+
+FlowGraph.SetActiveNode94fb30 writes the supplied target,then calls OnEnter and
+callbacks before returning. Original entry nodes can call GoToNextNode and
+recursively SetActiveNode. Thus the direct destination is not necessarily the
+settled active node. Actual return records direct_destination_matches=false and
+current_graph_matches=true. Both are observations;neither is invented into a
+universal final-target invariant. The diagnostic pins controller/node Back,
+CanGoBack and main-acquisition bodies before dispatch. Graph transition bodies
+are retained static evidence,not a full transitive runtime hash audit. Source records:
+ local/profile141-back-static01/{verification.json,can-go-back.asm,node-go-back.asm}
+ local/profile141-main-static01/{verification.json,supplemental-report.json,FINDINGS.txt}
+ local/profile141-navigation-static01/{verification.json,entry-supplement.json,FINDINGS.txt}
+
+Isolation and actual sequence
+local/r141g is a new independent247-file/7,616,840,857-byte pristine copy,not a
+hardlink or manual candidate. Copy01 verifies names/sizes,six critical hashes and
+the original inventory. Only this copy receives the new diagnostic helpers.
+r134g's coherent139 eight components remain unchanged. r103g/manual130,N7,
+server assets,D:\share and the existing HTTP server are not changed.
+Recipe21/120guards/runtime_validated=false remain unchanged. Final helper141-07:
+ e513527c413e1616bd69965c9b31a7e1d31458352398aa6e0cbcc8e3068d42e4
+Full required C++ build/tests pass,including diagnostic-policy tests. The38
+affected Python checks pass. No original game/assets/captures/binaries enter Git.
+
+Baseline03 uses helper141-03;edit07/restart07 use final141-07. This is explicitly
+not one final installed139 artifact pair. Failed diagnostic attempts between
+baseline and final edit are retained. Before final edit,only owned fixture choices
+are restored from sealed baseline bytes after checking the actual failed-state
+hashes. Default cosmetic state had no disk file;that owned absence is restored.
+Prior Quit traces are copied/archived with exact hashes. Update05 proves choices
+unchanged across helper installation. No real user/manual profile is reset.
+
+Case             Native seconds   Outer seconds   Rows   Clock anchors   File ops
+baseline03       36.617746         37.775437        275    45              215
+edit07           59.837282         60.959455        2606   139             1894
+restart07        54.598478         55.823233        204    46              143
+Each:exit0,natural Quit,reaped,job1total/0active/0terminated,no forced cleanup.
+Current21 complete audit snapshots3/4/3,ordered startup/menu/pre-confirm entries,
+original confirmation thread. SDK samples5/10/5,thirteen counters0;selected network
+and process-create records0,unresolved roots0. Max clock drift13/8/10ms. These are
+selected observations,not complete wire/process-tree/privacy evidence. Observer
+still holds each of two self-TerminateProcess entries200ms to drain messages;
+OS completion is proven separately by owner handles/job results.
+
+Default1164-byte TOML changes to1165bytes with a different native selected deck.
+Final edit and restart TOML hashes match exactly:
+ b60777fb7b62ab78aa91ce55009f34384a01854d1b9aef31322509d56c29ef8a
+The full17-slot state is first atomically written during edits,five writes,then
+restored/projection-checked on restart with identical287-byte file bytes. Difficulty
+changes hard->normal through original settings callbacks;its29-byte file is
+identical after restart. Original Region data/localization are restored unchanged.
+The original Back release and main ownership checks pass before the idle interval.
+
+Additional observed file activity,not discarded
+Edit07 has555resolved-current-directory entries. Two are the original simulation/
+AI log opens. The other553are172distinct .pdb paths,43NtOpenFile/510NtCreateFile,
+all with DbgHelp frames and the actual owned cwd/PEB provenance. The strict reviewer
+validates every record. It does not infer the initiating producer or claim these
+lookups are telemetry-free merely from their names. Baseline/restart each have only
+the two log resolutions. Initiating producer/independent attribution remain OPEN.
+No SDK path override,queue read/seed or explicit SDK constructor/collector call.
+
+Interrupted export recovery
+Restart's raw outer envelope export was interrupted. The retained324000-byte
+prefix contains the COMPLETE original content[0].text JSON string ending at
+character192400. Recovery decodes that exact original string,retains the prefix
+and validates all204provider rows/not-truncated/detached. It does not synthesize
+the missing outer structuredContent duplicate. The resumed provider reports no
+open session;that error and unavailable explicit close are retained. Baseline/edit
+explicit close receipts exist. Restart's original detached record plus independently
+reaped game/empty job prove terminal state;no explicit-close receipt is claimed.
+Prefix SHA:08061d83f3b4d51e948484f804b6d8422d7ac1353d6fee79cfea9cd1e86facc3
+Recovered record SHA:14f926eea1949a3b5e9d4e6e9d23dd79d9aa9b22653cba4f35512cb1039d29ce
+
+Failures remain failures
+baseline01 omitted the ordinary cosmetic-enable flag:its native Quit passed but
+the outer cosmetic check failed. Corrected baseline02/03 pass. edit02 failed the
+unsupported container visibility requirement. edit03 failed invented main node-
+membership;edit04 waited for that same impossible membership and hit its deadline,
+with4097provider rows/truncation. edit05 failed grouped final-target/graph equality;
+it cannot identify which conjunct failed. All failed edit jobs were force-cleaned
+and do NOT count as normal Quit/persistence passes. Builds02/06 were superseded
+before installation. Failed-state files,old helpers and receipts remain ignored.
+Review04 failed Python name shadowing;review05 failed its old exact-two-cwd
+assumption. Corrected06 retains/classifies additional observations and passes.
+Review01-03 were prepared but not executed;no passing reports are claimed for them.
+
+Strict reconciliation and evidence seals
+local/profile141-review06.json passes all three actual cases,seals74inputs,
+reuses the unchanged SDK decoder controls and verifies raw before/after choices,
+actual native deck/projection state,source/helper identities,original callbacks,
+clock/I/O/exit evidence and the qualified recovered provider record. No runtime
+rerun is needed just to revalidate the same completed behavior case.
+Review SHA:51956afeb725ffe24c4eb183910798d038e14e855fff7fedfe40e9c2329e442a
+Baseline verification:d221d7348aa3cec82f5873c34de83d52592decd434910caa18f39efcd4cdf60e
+Edit verification:066f37966c7ba73fe0f31d14b352f14b1e78c1d2b4fc3a662d4dbe9287ff2e20
+Restart verification:d3d8e447b755aba79a1d05da04f03d145d888b65405752e70e0d0ee4cdb07d1f
+Final helper receipt:32a9fc39d0951c32c1a76dd981abce69ad06e1e2496473fdada59d462d19069c
+REA final IDs:
+ baseline ev_c1cc24d5f98c86ac16f75a26a671c36112f3cd06f37c41c248b68a4dd425af54
+ edit ev_747dadca9328dbb43a7f5164def26e032b84d5ad40a7a2a523429c6712469b56
+ restart ev_f367a6350bd9966742047ef3befc69900224474d5d830e1b441e1ac11f1488fa
+
+Next
+Reuse this bounded behavior/selected-entry evidence. Continue P2's missing credible
+attribution/source applicability and the remaining P1-P9 inventory. Attribute the
+observed PDB initiating producer before treating its activity as understood.
+Retain c307c0 upstream producer,all-thread/pre-injection,inlined,resumed/inflight,
+descendant/wire and final installed-artifact gates. Do not repeat accepted D6/LAN,
+request Tutorial2 visibility,rerun quiet constructors/AI,or declare full D5 from
+thirteen quiet counters. No new Nick action or installer is requested here.

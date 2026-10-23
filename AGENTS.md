@@ -2,6 +2,26 @@
 
 ## Requests and answers with Nick
 
+- Profile141 bounded behavior PASS:existing owned profile changes deck/full17
+  cosmetics/difficulty,original Back,idle10031ms,normal Quit/restart with exact
+  bytes/native values retained. New fully gated opt-in diagnostic only;normal
+  launcher unchanged. Original source shows null cosmetic container is valid,
+  main retained separately by UIMenuController,SetActiveNode may redirect.
+  Failed baseline01/edit02-05 remain failures;edit04 capture truncated. Final helper
+  141-07/C++ suite/38Python checks pass. baseline03 native36.618s/outer37.775s,
+  edit07 59.837/60.959,restart07 54.598/55.823;each job1/0/0/no force/exit0/reaped.
+  Rows275/2606/204,SDK13counts0,selected network/child0,unknown roots0;3/4/3
+  current21 audits. Edit has553additional owned-cwd PDB attempts/172paths with
+  DbgHelp frames;initiating producer UNATTRIBUTED,not discarded/quiet attribution.
+  Strict review06 passes/seals74inputs. Restart COMPLETE provider record recovered
+  verbatim from interrupted outer export;detached/game reaped,explicit laterclose
+  unavailable after provider reset;do not invent a close receipt. r141g is separate
+  diagnostic copy,NOT final139 deployment. r134g139/manual130/N7/share unchanged.
+  Full P2/D5 false;next missing attribution/source/P1-P9,not another unchanged
+  edit/startup/quiet AI run. Desktop visibility remains Nick's accepted report;
+  automation background-only,no new action/Tutorial2 test. Scopes/seals/failures:
+  docs/profile-edits141.txt. All owned game processes terminal;goal remains active.
+
 - Privacy140 adds PASSIVE thirteen SDK entry witnesses,NO root/queue/target API
   replacement/call.16focused tests pass(authored actual callback budget/hash/reload
   controls and strict typed evidence). Installed139 native startup/direct original

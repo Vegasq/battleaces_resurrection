@@ -1,7 +1,21 @@
 IMPLEMENTATION LEDGER
-Updated: 2026-10-22
+Updated: 2026-10-23
 Delivery plan: REMAINING_DELIVERY_PLAN.txt, Windows only.
 Original roadmap: CLOSED / SUPERSEDED;see PLAN_CLOSEOUT.txt.
+
+PROFILE141 - BOUNDED EDIT / BACK / IDLE / QUIT / RESTART PASS
+Same owned profile changes deck,full17cosmetics and difficulty,uses original Back,
+idles10031ms,Quits normally and restarts with exact edited bytes/native values.
+New opt-in policy/C++ suite/38Python checks pass. Original source corrects three
+diagnostic assumptions:container state is separate,main is separately retained,
+navigation may redirect. Failed runs remain failed. Native36.618/59.837/54.598s,
+each exit0/job1/0/0/no force. Strict review06 seals74inputs. Selected13SDK counts0;
+extra553owned-cwd PDB attempts with DbgHelp frames remain unattributed. Restart's
+complete provider record is recovered from interrupted export;explicit laterclose
+unavailable,original detached/reaped/empty-job evidence retained. No physical/
+performance/full P2/D5/installed139 claim. Manual130/N7 and coherent139 unchanged;
+only independent r141g receives helper141-07. Next credible attribution/source
+and finite P1-P9 gates;reuse behavior evidence. See profile-edits141.txt.
 
 PRIVACY140 - PASSIVE INSTALLED SDK STARTUP PAIR / FINITE D5 INVENTORY
 No SDK path replacement,target API call,queue read/seed or AI match. New13SDK

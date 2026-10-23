@@ -35,7 +35,16 @@ Finite rows
     quits and restarts. Bind actual selected before/after values and native loaded
     guards;attribute relevant collection/queue paths.139 install preservation and
     140 unchanged-TOML restart are inputs,not proof of edited-value persistence.
-    NEXT independent behavior case;no repeated constructor/Try Deck run needed.
+    [x]141 closes the BOUNDED native behavior/selected-entry subcase:actual deck,
+        full17cosmetic and difficulty edits,original Back,idle10031ms,normal Quit
+        and same-profile restart with exact bytes/native values retained. Source-
+        backed menu ownership/navigation;strict review06. Separate r141g/helper
+        141-07 diagnostic,not final installed139. profile-edits141.txt preserves
+        failures,complete recovered restart record and explicit-close limitation.
+    Still OPEN:credible complete collection/queue/tree/network attribution and
+    installed-artifact binding.553additional owned-cwd PDB attempts have DbgHelp
+    frames but initiating producer unknown. Reuse141 behavior;do not rerun it or
+    constructor/Try Deck controls just to obtain another quiet counter.
 [ ] P3 Supported original tutorial
     Relevant collection/reporting,progress and ordinary shutdown for the supported
     original tutorial route. Tutorial2 exploration is separate;DEV N8 is deferred.
