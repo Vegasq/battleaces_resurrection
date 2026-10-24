@@ -1,0 +1,205 @@
+BATTLE ACES - DOCUMENTATION INDEX
+Updated:2026-10-24. Paths below are relative to docs/.
+
+START WITH THREE FILES
+  REMAINING_DELIVERY_PLAN.txt - what is next and which D1-D9 gates remain
+  RELEASE_ACCEPTANCE.txt - what counts as release completion
+  STATUS.txt - latest evidence,source/package distinction and user results
+
+For play/hosting,use the quickstart guides. For a task,use its topic below.
+DEV.txt at repository root is the private request/answer worksheet.
+AGENTS.md at repository root contains concise working instructions.
+
+READING OLD RECORDS
+Numbered documents are checkpoint evidence,not automatic current instructions.
+A historical NEXT,pending candidate or user request may have been superseded.
+Use the current roadmap and DEV answers first;retain original failure scopes.
+The full pre-cleanup instruction/roadmap/status/checklist text is preserved in
+history/2026-10-24/ with exact hashes in manifest.json. See history/README.txt.
+Focused evidence files were not renamed because tools and retained reports
+depend on their paths. Top-level reference documents are indexed below.
+
+CURRENT PLANNING AND ACCEPTANCE
+  bot-selection-acceptance.txt
+  mode-acceptance-matrix.txt
+  RC1_PLAN.txt
+  RELEASE_ACCEPTANCE.txt
+  REMAINING_DELIVERY_PLAN.txt
+  STATUS.txt
+  telemetry-acceptance-matrix140.txt
+  legacy-compliance171.txt - Korean flow removal and browser feature inventory
+  browser-activation172.txt - startup process census and survey applicability
+  report-resume173.txt - saved queues,fresh-process prevention and in-flight limits
+
+PLAYER / HOST GUIDES AND CONFIGURATION
+  client-configuration.txt
+  client-enrollment.txt
+  state-backup.txt
+  windows-client-quickstart.txt
+  windows-server-quickstart.txt
+  windows-service.txt
+
+INSTALLERS,PACKAGING AND RELEASE CHECKPOINTS
+  coherent-candidate166.txt
+  guarded-candidate129.txt
+  guarded-candidate139.txt
+  helper-provenance159.txt
+  installer-progress130.txt
+  installer102.txt
+  installer103.txt
+  lan-playtest-candidate.txt
+  owner-setup-qualification.txt
+  RC1_EVIDENCE.txt
+  release-readiness158.txt
+  windows-packaging.txt
+
+GAMEPLAY,LOBBIES,AI AND COSMETICS
+  bot-strength162.txt
+  community-client.txt
+  community-lobby.txt
+  community-portraits105.txt
+  cosmetic-community.txt
+  cosmetic-persistence.txt
+  cosmetic-unlock.txt
+  cosmetics.txt
+  current-community-matches.txt
+  custom-invite-lifecycle.txt
+  custom-leave-gate-wait.txt
+  custom-lobby-native.txt
+  custom-lobby-responses.txt
+  custom-lobby-roster.txt
+  custom-mode-transitions.txt
+  custom-roster-bindings.txt
+  empty-server-queue.txt
+  local-user-settings.txt
+  matchmaking-search.txt
+  menu-profile-binding.txt
+  module-symbol-loading144.txt
+  native-custom-invitations.txt
+  native-custom-matches.txt
+  ordinary-player-client.txt
+  packaged-gameplay.txt
+  packaged-multiplayer.txt
+  practice-ai.txt
+  practice-difficulty.txt
+  public-bot-roster.txt
+  public-late-assignment.txt
+  public-matchmaking.txt
+  public-mode-transitions.txt
+  public-results.txt
+  remote-bot-profile-models.txt
+  remote-local-transitions.txt
+  team-modes.txt
+  try-deck-ai-native.txt
+  tutorial2.txt
+  unified-client.txt
+  username104.txt
+
+LIFECYCLE,STORAGE,REPLAY AND STARTUP
+  client-availability.txt
+  client-session-lifecycle.txt
+  client-startup.txt
+  client-storage-isolation.txt
+  installed-replay163.txt
+  match-loading.txt
+  native-deck-validation.txt
+  native-path-preflight.txt
+  native-quit-gate-wait.txt
+  native-quit.txt
+  native-replay-validation.txt
+  native-settings-atomic.txt
+  native-settings-notice.txt
+  nvidia-shutdown.txt
+  rc-availability131.txt
+  replay-failure-recovery.txt
+  startup-bundle-loading.txt
+
+PRIVACY,REPORTING,BROWSER AND SYMBOL DIAGNOSTICS
+  browser-ipc148.txt
+  native-crash-contract167.txt
+  native-crash-handoff169.txt
+  native-crash-policy168.txt
+  native-crash-qualification170.txt
+  native-identifier-consumers164.txt
+  observer-unwind142.txt
+  pipe-equality149.txt
+  pipe-security150.txt
+  profile-edits141.txt
+  sdk-report-errors165.txt
+  shutdown-warning145.txt
+  symbol-identity143.txt
+  telemetry-adjacent-interface136.txt
+  telemetry-ads-retention115.txt
+  telemetry-attribution107.txt
+  telemetry-cache-contract120.txt
+  telemetry-cache-delivery122.txt
+  telemetry-cache-failure126.txt
+  telemetry-cache-readers121.txt
+  telemetry-cache-startup123.txt
+  telemetry-cached-requests110.txt
+  telemetry-clock-attribution110.txt
+  telemetry-continuous119.txt
+  telemetry-current-directory113.txt
+  telemetry-custom-data118.txt
+  telemetry-custom-identities114.txt
+  telemetry-default-collector137.txt
+  telemetry-device-cef106.txt
+  telemetry-event-controls117.txt
+  telemetry-event-inputs116.txt
+  telemetry-exit-boundary124.txt
+  telemetry-explicit-config.txt
+  telemetry-game-observation.txt
+  telemetry-identity-consumers133.txt
+  telemetry-identity109.txt
+  telemetry-internal-config.txt
+  telemetry-native-activation127.txt
+  telemetry-observation.txt
+  telemetry-persistent-observation.txt
+  telemetry-platform-coverage132.txt
+  telemetry-platform108.txt
+  telemetry-prequit.txt
+  telemetry-relative-roots112.txt
+  telemetry-runtime-audit.txt
+  telemetry-sdk-client138.txt
+  telemetry-service-identity134.txt
+  telemetry-service-profile135.txt
+  telemetry-settings-query128.txt
+  telemetry-source-worklist125.txt
+  telemetry-startup-observation111.txt
+  telemetry.txt
+  webview-contracts146.txt
+  webview-runtime147.txt
+
+SERVER,PROTOCOL,SECURITY AND CAPACITY
+  admission.txt
+  async-profile-io156.txt
+  bot-rpc-faults154.txt
+  community-protocol.txt
+  credentials.txt
+  host-capacity160.txt
+  host-failure-diagnostics161.txt
+  loadout-protocol.txt
+  network-qualification.txt
+  packaged-tls-soak157.txt
+  profile-admission-timing155.txt
+  protocol-v2.txt
+  protocol-v3.txt
+  public-room-faults153.txt
+  room-fault-isolation152.txt
+  secure-client-transport.txt
+  server-ai-runtime.txt
+  server-bot-catalog.txt
+  server-console.txt
+  server-recovery151.txt
+  soak-qualification.txt
+  team-recovery.txt
+  tls-transport.txt
+  worker-ipc.txt
+
+OTHER DIAGNOSTICS
+  analysis-tools.txt
+  camera-diagnostics.txt
+
+SUPERSEDED PLANS
+  PLAN_CLOSEOUT.txt
+  SERVER_REPLACEMENT_PLAN.txt

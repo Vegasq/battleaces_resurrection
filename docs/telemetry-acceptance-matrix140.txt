@@ -1,6 +1,28 @@
 D5 FINITE ACCEPTANCE INVENTORY AND PASSIVE INSTALLED SDK STARTUP140
 2026-10-22. Parent:REMAINING_DELIVERY_PLAN.txt D5. Full D5 remains OPEN.
 
+CURRENT RECONCILIATION - 2026-10-24
+N9 desktop pipe check is COMPLETE / PASS with saved report;actual game-browser
+P8 remains open. N10 protected recovery is complete at151 scope under D7.
+Crash169 handoff fix:clean02 original crash exit passes without instrumentation
+or force after atomic publication/prompt refusal handling. Old clean01 refused
+before triggering and stays failed. Details:native-crash-handoff169.txt.
+170 closes the named DbgHelp/search-path reconciliation,complete selected crash
+file/network capture through filter-return,and original normal-Quit saved-mode
+restore. FullP7/D5 remains open.171 disables the Korean dialog creation,original
+validation request and pending login gate per Nick. It is the only confirmed
+game-specific embedded-browser consumer in the bounded code/assets review.
+The survey opens an external browser.172 qualifies its explicit-click/reset-gate
+applicability and owned startup/menu/Quit lifetime:four positive initializers,
+no selected browser/process/shell activation,complete job1/0/0,no force. FullP8
+remains open beyond that scope. Next:P7/P9 resumed/in-flight queue applicability;
+do not repair the removed legacy flow. Details:browser-activation172.txt.
+Evidence and limits:legacy-compliance171.txt.
+Details:native-crash-qualification170.txt. Current work is in
+REMAINING_DELIVERY_PLAN.txt;no repeat N9/N10 requested. The checkpoint
+entries below retain their historical observations/next-step wording,not new
+user requests. Exact pre-cleanup matrix:history/2026-10-24/telemetry-acceptance-matrix140.txt.
+
 Closure boundary
 These nine rows map the existing requirement;they do not replace it or introduce
 a new product plan. Each row needs its named evidence,with applicable retained
@@ -87,6 +109,23 @@ Finite rows
     deadline cases remain accepted availability evidence;do not repeat all eight
     just to produce quiet counters.
 [ ] P7 Effective queue/error/reporter/crash paths
+    [x]173 named resumed/in-flight applicability:three managed MoveNext guards
+        cut before state reads;known serializer/request acquisition prevented.
+        Unity state0/preparation/archive prerequisites stop named saved-flush
+        submission. Original posted workers/requests retain live cleanup;not
+        universal cancellation. Installer writes disk;launcher starts a verified
+        fresh process.64managed bodies/18edges,24Unity extents,128current guards
+        verified. Reused171/172samples only;no queue/runtime mutation or new patch.
+        report-resume173.txt. P9 upstream producer/computed scope remains open.
+    [x]170 native comparison/scoped capture/restore subcases:Windows DbgHelp
+        and full logged path match clean02;all232symbol-load pairs and8887
+        scoped file outcomes retained,no overflow/unknown roots. Selected
+        process-wide network counts0 through filter-return;natural crash
+        exitc0000005/job1/0/0/no force. Original normal Quit restores saved32769
+        from3 before teardown return/self-termination0/job1/0/0.26focused tests
+        pass314/312;independent source/capture reviews and authored positive
+        sensors retained. No full-wire,post-filter OS,clean-run-I/O or final
+        installed claim. Reuse;native-crash-qualification170.txt.
     [x]168 source/CONTROL subcase:per-process WER owner1->3 preserves original
         conditional restore/local logs. Source23/128;authored native C++ original
         filter/crash exit/job1/0/0/no force PASS,13actual mutations reject.103
@@ -122,6 +161,20 @@ Finite rows
     CEF handler return/natural exit remains scoped input. Do not invoke original
     independent crash bootstrap merely because a parser exists.
 [ ] P8 Effective game-owned descendants
+    [x]172 startup/survey applicability:actual shipped startup callbacks persist,
+        four selected initializer entries1each,six browser/survey entries0,
+        eight selected process/shell APIs0. Natural Quit0,complete job1/0/0,
+        no force.834contiguous instrumented events;source/shared files unchanged.
+        Survey button is explicit-click;community source retains inactive reset
+        configuration. Final terminal-suffix review handles actual forwarded
+        self-termination pair;14tests314/312 pass. browser-activation172.txt.
+        Not all later/dynamic/indirect routes,external brokers,wire or final
+        installed scope. Reuse known consumer cuts;no same startup/browser retry.
+    [x]171 original Korean login/compliance removal per Nick:known dialog
+        creation and original validation request disabled,pending wait cleared,
+        dispatch bypassed. No other confirmed embedded-browser game consumer
+        emerged in the bounded inventory;indirect/runtime routes remain bounded.
+        Community/LAN unchanged. FullP8/D5 stays open. legacy-compliance171.txt.
     [x]150 actual owned SD/label/process-token snapshots before browser resume and
         after matching-name open error5 qualify. Same user/medium/4restricting
         SIDs;only restricting DACL match grants read0x120089,missing writes.

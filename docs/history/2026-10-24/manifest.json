@@ -1,0 +1,48 @@
+{
+  "date": "2026-10-24",
+  "purpose": "Exact pre-cleanup documentation snapshots; historical status, not the current task queue.",
+  "files": [
+    {
+      "original_path": "AGENTS.md",
+      "archive_path": "docs/history/2026-10-24/AGENTS.txt",
+      "sha256": "29e51228c8a8bb8f7b37708af0e28fac2681178942d9ba50fa7b99541ab0bda3",
+      "bytes": 90141
+    },
+    {
+      "original_path": "README.txt",
+      "archive_path": "docs/history/2026-10-24/README.txt",
+      "sha256": "f0485efb968646916bb41ffc6b90937f4dbae0761c90a819e7dfad968a98e3e1",
+      "bytes": 13330
+    },
+    {
+      "original_path": "docs/REMAINING_DELIVERY_PLAN.txt",
+      "archive_path": "docs/history/2026-10-24/REMAINING_DELIVERY_PLAN.txt",
+      "sha256": "141687da4e10986833144398869c1f7fc205a8bc24edf56616d614320b211253",
+      "bytes": 84551
+    },
+    {
+      "original_path": "docs/STATUS.txt",
+      "archive_path": "docs/history/2026-10-24/STATUS.txt",
+      "sha256": "ca609548866cb2dda5def5c9267a14a698ef13f3ce1f32a596b67bb88c8f1e27",
+      "bytes": 258946
+    },
+    {
+      "original_path": "docs/RELEASE_ACCEPTANCE.txt",
+      "archive_path": "docs/history/2026-10-24/RELEASE_ACCEPTANCE.txt",
+      "sha256": "3855ebbd63bdb58adb51cee854e9c186cee3767c7ed9100046da251698d448aa",
+      "bytes": 40054
+    },
+    {
+      "original_path": "docs/RC1_PLAN.txt",
+      "archive_path": "docs/history/2026-10-24/RC1_PLAN.txt",
+      "sha256": "7af0d813031ff270ed286fc33cdb92ab55c5534b5ad1f01cc060f32e2e49fbbf",
+      "bytes": 11425
+    },
+    {
+      "original_path": "docs/telemetry-acceptance-matrix140.txt",
+      "archive_path": "docs/history/2026-10-24/telemetry-acceptance-matrix140.txt",
+      "sha256": "5810785719163083cab749a9d804ad5ea4012f4c47fa30d4c74e9e18827c8be8",
+      "bytes": 19281
+    }
+  ]
+}

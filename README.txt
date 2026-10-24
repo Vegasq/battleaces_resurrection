@@ -1,206 +1,84 @@
-BATTLE ACES RESURRECTION - WINDOWS SERVER AND CLIENT ADAPTER
+BATTLE ACES RESURRECTION
+Windows x64 server and reversible client patch for Battle Aces build37822.
 
-Windows RC1 is in qualification. Physical LAN1v1 play has passed;remaining
-installer/workflow,privacy,deployment and Internet gates are recorded in
-docs/REMAINING_DELIVERY_PLAN.txt. Native setup
-uses a standalone native Windows installer with game-folder,server-IP and Player name fields;
-it creates Start Battle Aces.cmd inside the game folder,including its own runtime.
-Player name defaults to the cleaned local account name and stays editable in setup
-and game-local client-config.json;existing saved names are preserved. No CA or invite. It uses
-encrypted TLS with certificate verification disabled and explicit open admission.
-Existing verified deployments are preserved. See docs/RC1_PLAN.txt for the finite
-installer/package/playtest checklist and its remaining acceptance gates.
+START HERE
+  Work remaining:       docs/REMAINING_DELIVERY_PLAN.txt
+  Release gates:        docs/RELEASE_ACCEPTANCE.txt
+  Latest evidence:      docs/STATUS.txt
+  Guides and references:docs/INDEX.txt
+  Nick's requests:      DEV.txt (private/local; answers belong here)
 
-The native client installer includes selected-deck reset with backup and uninstall
-while preserving saves. A separate native server installer imports local game
-data using its own working copy,leaving the source game unchanged,and creates
-Start Server.exe. Implementation evidence:docs/installer103.txt;corrected native
-progress UI:docs/installer-progress130.txt. Latest engineering artifacts and scoped
-results:docs/coherent-candidate166.txt. DEV.txt N5/N7 use166 for the next planned
-paired update;older manual130 copies remain preserved. First LAN1v1 is accepted;
-its remaining workflow observations stay open.
+CURRENT POSITION - 2026-10-24
+The Windows release candidate works, including accepted physical LAN play and
+startup. Final release qualification is still open. Candidate166 is the current
+coherent client/server installer pair: version0.3.0-rc1.5,recipe22/helper165.
+The next paired engineering prerelease174 is version0.3.0-rc1.6:recipe23,
+the qualified169 crash fix,and171's disabled Korean login/compliance flow.
+Its build/publication is explicitly requested;final release gates remain open.
+Exact package hashes and tested scope: docs/coherent-candidate166.txt.
 
-Development project for private Battle Aces build 37822 matches. Windows x64
-server and clients are the current target. See docs/REMAINING_DELIVERY_PLAN.txt
-for unfinished delivery work and docs/STATUS.txt for evidence. The original
-roadmap is closed/superseded;docs/PLAN_CLOSEOUT.txt records the handoff.
-docs/RELEASE_ACCEPTANCE.txt collects the remaining final release/playtest gates.
-Current source builds provide game-folder Start Battle Aces.cmd for ordinary play
-and Start Server.exe for hosting. Install into a working game copy first;see
-docs/windows-client-quickstart.txt. The client keeps local play available
-without server setup and enables public queues plus installed cosmetic choices.
-Ordinary-feature qualification and exact limitations:docs/ordinary-player-client.txt.
+Nick has confirmed N2/LAN, N5/download-install, N9/desktop pipe and N10/protected
+recovery PASS. N7's remaining visible portrait/host/save details are unreported.
+Complete analytics/report removal, the remaining mode/catalog/storage matrix,
+service/clean-PC deployment, Internet/capacity and final freeze remain open.
 
-The coordinator runs each original simulation in an isolated worker, validates
-decks/actions and serves multiple private rooms. Twenty successive native matches
-and worker crash containment are verified. Two client matches in the same processes
-now pass; broader manual/failure flows, complete telemetry removal, private internet
-hosting and release packaging remain under development.
-Do not treat this development baseline as the finished release.
+PLAY OR HOST
+Use the native client installer,then Start Battle Aces.cmd INSIDE the selected
+game folder. Setup asks for game folder,server IP and editable Player name;
+existing profiles/names are preserved. A blank server address permits local AI.
+The installed runtime is independent of the downloaded installer folder.
+Player guide: docs/windows-client-quickstart.txt.
 
-Server community control supports a connected-player directory, targeted invites,
-host-controlled custom starts and same-connection rematches. Scripted clients pass
-two matches using the real simulation, with a third player kept outside both games.
-Custom -> Invite Friend lists connected players and sends targeted invites;
-current paired builds also propagate selected cosmetic portraits.
-Two real clients pass native popup decline, cancel, expiry, duplicate Accept and
-lobby departure checks. Native Start/Ready, results/Continue and same-lobby rematch
-now pass automated two-client tests, including duplicate requests and a changed
-deck. Match-only abort recovery retains the same lobby; targeted native setup,
-loading and stale-result tests are recorded separately. Broader failure/manual
-acceptance remains open; standalone AI evidence is described below. Details and
-reproduction commands: docs/community-client.txt, docs/native-custom-invitations.txt
-and docs/native-custom-matches.txt.
-See docs/community-protocol.txt and docs/community-lobby.txt for scope and evidence.
+The native server installer imports your local game data through an independent
+working copy and creates Start Server.exe. The selected source game stays intact.
+Start Server.exe hosts;Ctrl+C stops it. Host guide: docs/windows-server-quickstart.txt.
+RC mode uses TLS encryption with certificate verification disabled and open
+admission,as requested. Optional verified CA/invite mode remains available.
+No original game assets are distributed. Internet release acceptance is pending.
 
-Start Client uses the game's local deck storage,simulation and AI for Try Deck.
-It does not require a replacement server,CA,invite or imported server assets.
-Public1v1/2v2/2vAI use local AI when no server is available;configured online queues
-fill open seats after30 seconds while retaining connected humans. Custom games
-remain human-only. Name,server route and isolated local profile are configurable.
-After native installation,double-click Start Battle Aces.cmd IN THE GAME FOLDER
-for every launch. The game folder contains its own runtime;the downloaded
-installer/package is no longer needed. Configure the server IP and Player name
-in setup,or edit .battleaces-resurrection/client-config.json in that game folder.
-The older extracted-package Start Client.cmd/config/client.json route remains
-an advanced compatibility path,not an extra step after native setup.
-Open Edit Deck -> Try Deck vs AI. Settings -> General -> AI Difficulty offers
-Easy, Normal and Hard in the offline Region row. Normal is the initial default;
-the saved choice applies to the next match and survives restart. The manual
-launcher has no automatic play or surrender. See docs/practice-ai.txt and
-docs/practice-difficulty.txt for runtime evidence and remaining acceptance.
-
-The current helper adds match-start feedback for AI, normal multiplayer and
-Custom Game. It follows real preparation/readiness and clears on Cancel or
-startup failure. Native lifecycle checks and remaining visual acceptance are
-documented in docs/match-loading.txt; this remains a development preview.
-
-Current game wire protocol3 requires updating both helper and server. The server
-selects a bounded input_window in host config (2..12,default6);both players
-receive the same setting. The standalone developer coordinator CLI also accepts
---input-window. See docs/protocol-v3.txt and docs/network-qualification.txt
-for compatibility,command-delay tradeoffs and measured network tests.
-
-Portable Windows preview packages now have separate server/client archives,
-bundled Python, editable host/player configs and a native startup health check.
-Start Client.cmd starts local play with optional multiplayer. The separate
-BattleAces-Client.cmd configure-verified command opens the optional verified-mode
-Connection Setup for CA/invite settings. Native RC setup only needs the host IP
-and player name;those verified-mode fields are not RC prerequisites.
-See docs/client-enrollment.txt for transaction and qualification details.
-The builder includes only allowlisted project source and our helper; game assets
-are imported locally. See docs/windows-packaging.txt for build/test evidence and
-docs/windows-server-quickstart.txt / docs/windows-client-quickstart.txt for setup.
-Clean-machine and outside-network release acceptance remain open.
-
-The server package adds backup, verify-backup and restore commands for saved
-decks and invitation state. Restore creates a new server data location and keeps
-existing state unchanged. A running packaged host excludes concurrent backup or
-another host using the same data. See docs/state-backup.txt and the server guide
-for scope, recovery commands and remaining Windows permissions/restore acceptance.
+IMPLEMENTED CAPABILITIES
+- Local Try Deck and public1v1/2v2/2vAI with local fallback;online queues retain
+  available humans and fill missing public seats after30seconds. Custom is human-only.
+- Custom presence/invites,results/Continue and same-connection rematches.
+- Editable names,selected decks,107 installed cosmetics/17slots,portraits and
+  persistent Easy/Normal/Hard practice settings,with scoped native evidence.
+- Isolated native simulation workers,persistent host profiles,TLS,backup/restore,
+  native installers,selected-deck reset and reversible client uninstall.
+Implementation is not blanket acceptance. The roadmap identifies remaining gates.
 
 SOURCE LAYOUT
-  server/                 Python server, protocol and native simulation adapter
-  client_patch/src/       our C++ helper source
-  client_patch/patcher/   exact-build patch recipes and reversible installer
-  client_patch/launcher/  client config example, initializer and launcher
-  client_patch/transport/ verified TLS/authentication parent for the secure client
-  tools/                  local extraction/import and publication audit
-  tests/                  synthetic tests requiring no game installation
-  docs/                   implementation plan, protocol and knowledge base
+  server/                 Python coordinator,protocol,native workers and host
+  client_patch/src/       C++ helper
+  client_patch/patcher/   exact-build recipes and reversible installer
+  client_patch/launcher/  client configuration and launchers
+  client_patch/transport/ verified TLS/authentication parent
+  tools/                  import,packaging,diagnostics and publication audit
+  tests/                  source tests,including explicitly gated native cases
+  docs/                   current plan,guides,topic references and history/
+  local/,build/,dist/     ignored inputs,artifacts and retained evidence
 
-No game binaries, maps, catalogs, descriptors or captured game fixtures are
-distributed here. Supply a compatible game installation locally. Generated assets,
-build output and test evidence belong under ignored local/, build/ or dist/.
-
-SOURCE CHECKS (Python 3.12 and 3.14.8)
+DEVELOPER CHECKS AND BUILDS
+Read AGENTS.md before project work. Python source checks target3.12 and3.14.8:
   python -m unittest discover -s tests -v
   python -m tools.audit_repository --history
+The audit reads the Git index/history;it does not validate unstaged content or
+ignored evidence. Record actual skips and affected checks at each checkpoint.
 
-Optional real-simulation custom lobby/rematch probe (Windows, locally imported assets):
-  python -m tools.verify_community_native --assets "<asset directory>" --output local/community-native-test
-This uses scripted TCP peers and deliberate test surrender, without graphical UI.
-
-The audit reads the Git index and reachable history, not ignored runtime files.
-Review the staged diff as well; automated scans cannot establish provenance.
-
-BUILD THE CLIENT HELPER (Visual Studio x64 C++ tools and Windows SDK required)
+Visual Studio x64 C++ tools and Windows SDK are required for native builds:
   powershell -File client_patch/build.ps1
-
-BUILD THE WINDOWS SERVER CONSOLE LAUNCHER (same C++ tools/SDK)
   powershell -File server/build_launcher.ps1
-This produces our Start Server.exe and a source-bound build receipt. Windows
-packages include this foreground entry point;Ctrl+C reaches Python's cleanup
-without a CMD batch-confirmation prompt. See docs/server-console.txt for scope.
 
-INSTALL INTO A WORKING GAME COPY (close that game's processes first)
-  python -m client_patch.patcher.patch_client --game-dir "<game directory>" --dry-run
-  python -m client_patch.patcher.patch_client --game-dir "<game directory>"
+Exact-build patch/restore into a CLOSED working game copy:
+  python -m client_patch.patcher.patch_client --game-dir "<game>" --dry-run
+  python -m client_patch.patcher.patch_client --game-dir "<game>"
+  python -m client_patch.patcher.patch_client --game-dir "<game>" --restore
+Do not target the untouched recovery installation or a reserved manual candidate.
+Source recipe23 covers GameAssembly.dll,UnityPlayer.dll and nested chrome_elf.dll/
+libcef.dll. RUNTIME_VALIDATED remains false. Packages166 still bind recipe22.
+Use the guides/index for asset import,advanced verified setup and diagnostic tools.
 
-The installer verifies original component SHA256s, preserves originals locally under
-.battleaces-resurrection/original/, and refuses unknown modifications. For an
-existing compatible prototype patch, --original may identify a verified original
-DLL. Do not target the untouched recovery installation.
-Current telemetry recipe21 covers GameAssembly.dll,UnityPlayer.dll and the bundled
-nested chrome_elf.dll/libcef.dll;the manifest records all four component hashes.
-Reviewed telemetry guards
-are included, but complete reporting
-removal remains unverified. See docs/telemetry.txt for the exact scope.
-
-RESTORE
-  python -m client_patch.patcher.patch_client --game-dir "<game directory>" --restore
-
-SERVER RUNTIME INPUTS
-Default asset directory: local/assets/build-37822
-Required local files: map-1v1.pb.gz, unit-catalog.json, descriptors/*.proto.json,
-and Simulation.dll. After patching a working game copy, launch it with
--export-server-assets and wait for server-assets/export.json with complete=true,
-then close it. Use normal graphics for the tested export path. This mode builds
-local assets without joining a match. Import them with:
-  python -m tools.import_assets --game-dir "<game>" --export-dir "<game>/server-assets" --original "<game>/.battleaces-resurrection/original/GameAssembly.dll"
-
-The destination must be empty; use --destination under local/ for another bundle.
-Import checks export hashes and regenerates the protobuf descriptors from the
-original DLL and metadata. It copies the local simulation DLL and writes the
-asset-manifest.json completion record. No asset download is involved.
-
-Development commands can explicitly select existing local inputs:
-  python -m server.dedicated_server --assets "<asset directory>" --dll "<Simulation.dll>"
-  powershell -File client_patch/launcher/Launch-Client.ps1 -GameDirectory "<game>" -Slot 0
-
-COMMUNITY CLIENT CONFIGURATION
-Create a personal editable config once:
-  powershell -File client_patch/launcher/Initialize-ClientConfig.ps1 -GameDirectory "<game>"
-Edit client_patch/launcher/client-config.json: set server_host to the server's IP
-or DNS name and server_port to its TCP port (default 47623). Then launch with:
-  powershell -File client_patch/launcher/Launch-Client.ps1
-See docs/client-configuration.txt for room/player settings and current transport
-limits. Personal configs are ignored by Git; the example is included in source.
-
-The commands above use schema1 for plaintext loopback development. The secure
-launcher uses secure-client-config.example.json (schema2), an explicit trusted CA,
-expected server name and a private invite handoff. The server IP/DNS and port are
-editable in either config. See docs/secure-client-transport.txt for installation,
-trust/enrollment, its test boundaries and the separate Launch-SecureClient.ps1.
-
-Automated graphical two-client baseline (local diagnostics, normal game commands):
-  powershell -File tools/Run-LocalMatch.ps1 -GameDirectory "<game>" -RunName unique-name -AutoReady -Smoke -DeckSmoke -SurrenderSmoke -DiagnosticAudit -DurationSeconds 100
-  python -m server.verify_dedicated_run local/matches/unique-name --runtime-directory "<game>/investigation/runtime" --processes local/matches/unique-name/processes.json
-
-Runtime environment overrides:
-  BA_ASSET_DIR        locally supplied map/catalog/descriptors directory
-  BA_SIMULATION_DLL   matching Windows x64 Simulation.dll
-  BA_DATA_DIR         profiles, match history and local diagnostics
-
-Default listener:127.0.0.1:47623, plaintext development mode with self-reported
-identities. Plaintext non-loopback binds are rejected. The server's optional TLS
-listener binds profiles to revocable credentials; see docs/admission.txt and
-docs/tls-transport.txt. Raw TLS handshakes have global/source limits and real TLS
-tests reach a lobby. Two actual clients completed two matching TLS1.3 matches in
-the same processes with changed decks; see docs/secure-client-transport.txt.
-Ordinary-account private-file permissions, manual UI and cross-network
-qualification remain pending; explicit friend enrollment is implemented.
-Internet play is not ready.
-
-Original-game assets remain local. Release artifacts will contain our executable
-helper and tooling, not the original or patched full game binaries.
+DOCUMENTATION HISTORY
+Long checkpoint logs and prior instructions are preserved byte-for-byte under
+  docs/history/2026-10-24/
+Focused evidence files keep their original paths for tools and retained reports.
+The current roadmap is the work queue;historical pending/next labels are not.

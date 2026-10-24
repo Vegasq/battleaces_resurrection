@@ -1,0 +1,133 @@
+NATIVE CRASH170 - DBGHELP RECONCILIATION AND NORMAL-QUIT RESTORATION
+2026-10-24. Named comparison/scoped-observation/restore tasks complete.
+Full P7/D5 and final-installed qualification remain OPEN;runtime flag=false.
+
+Results
+- Normal Quit executes the original conditional saved-error-mode restore.
+  Owned quit01:original Show/OnConfirm dispatch+return,teardown caller8052d4,
+  global owner matches,expected/current3,saved32769. Original GetErrorMode
+  returns3;original SetErrorMode(32769) completes returning previous3;teardown
+  returns before original UnityMain self-TerminateProcess caller80547e.
+  Same original thread34176,exit0,job1/0/0,no forced cleanup. This closes the
+  missing instrumented restore witness. No synthetic getter/setter/destructor
+  call or return/argument replacement;no post-setter getter sample is claimed.
+- Owned crash game03:original thread2024,recipe23,mode3,valid stack controller,
+  disabled manager/empty tree/six invalid IPC handles,original ForceCrash.
+  Original filter -> local stack -> handoff -> filter-return0,then natural
+  exception exit0xc0000005,job1/0/0,no forced cleanup. Local game/stack log kept.
+- New no-unwind observer loads C:\Windows\System32\dbghelp.dll,size2101248,
+  version10.0.19041.5848. Its disk SHA256 is stable before/after the run:
+  6357f697069e90b475f78520f235aae782da79d32a0e70c733168082cb933c25.
+  Loaded path/size and stable disk identity are bound;this is not a full
+  relocated in-memory module hash. The effective logged symbol search path
+  matches clean169-clean02:current directory,owned game/plugin directories,
+  Windows and system32. Options534(0x216),including useful local diagnostics.
+- All232 SymLoadModule64 entries AND returns are retained,with uncapped path
+  arguments:230nonzero returns and2zero returns(second-pass KERNELBASE/UnityPlayer;
+  no recorded last-error value establishes why). Two SymInitialize/A-to-W pairs,two SymSetOptions and one
+  SymSetSearchPathW entry/return are retained. Counts include nested wrappers;
+  they are API counts,not distinct modules or independent initialization passes.
+- 1145 contiguous events,no provider truncation,decode errors,unknown roots,
+  event overflow or aggregate overflow. At filter-return,5119 exact grouped
+  rows account for8887 scoped operations:7731NtCreateFile,880NtOpenFile,
+  276NtWriteFile. Group keys preserve thread,path,operation,access/options,
+  result,pending/requested-byte metadata;rows retain count and first/last ordinal
+  and time. No payloads or stack frames are collected.
+- 8567 PDB/DBG open attempts all fail:3605STATUS_OBJECT_NAME_NOT_FOUND and
+  4962STATUS_OBJECT_PATH_NOT_FOUND.42read-access MUI opens succeed;2fail.
+  All276scoped writes target the owned game.log. No scoped NtReadFile,
+  NtSetInformationFile or NtDeleteFile appears. File mapping/contents/completed
+  byte counts are outside these hooks;an open is not a read-content observation.
+- All installed selected Winsock/WinHTTP network counters remain zero through
+  filter-return,with no selected process-creation call. These are process-wide
+  selected API counts;file expansion is confined to the executing crash/symbol
+  thread scopes plus the configured owned roots. The retained job separately
+  establishes root-only lifetime for this game run.
+
+Why the old runs differed
+Earlier169-game06 loaded Frida's temporary DbgHelp10.0.19041.1,size1978368,
+and logged effective search path "." despite the full input path. Its observer
+used Thread.backtrace;it also capped SymLoadModule64 arguments at128 and had no
+post-crash terminal network snapshot. Its 916PDB/8DBG path-resolution records
+were outside selected I/O roots and did not establish I/O outcomes.
+Clean169-clean02 used Windows DbgHelp and the full path.170 removes observer
+stack unwinding and reproduces that path/build selection in the instrumented
+run. This resolves the observer confound;it does not retroactively give clean02
+file/network coverage or retroactively hash the DbgHelp bytes loaded by old runs.
+The native code/helper used by clean02 and170 is identical. Oldgame06 had the
+earlier helper;among117common source paths,only native gate error logging changed.
+
+Verifier correction and retained attempts
+The native contract preserves whatever saved mode belongs to its live owner.
+The earlier Python validator hardcoded32769.170-game01 correctly reached mode3
+but reported savedMode1,so the owner stopped BEFORE arming and force-cleaned
+only its owned process. This remains a failed attempt,not a native-crash failure.
+The gate verifier now accepts an explicitly bound typed saved_mode,retaining
+32769 as the low-level caller default. Both clean and instrumented owners now
+bind the single launch's ready value,
+then requires the same complete ready/trigger contract through final exit.
+The C++ reader/owner/thread/ABI/gate/policy checks are unchanged.
+170-game02 natural exception exit passes,but its4096-event observer overflowed;
+its file/network capture remains incomplete.170-game03 uses bounded exact
+aggregation instead of dropping repeated file outcomes;both old reports remain.
+
+Sensor checks and limits
+Authored local-only control03 observes three successful fixture opens/reads,
+three missing-file failures outside configured roots inside an explicit test
+scope,and loopback name lookup/connect/send/receive:7bytes each direction.
+Its complete33-event stream groups15operations into7rows without loss.
+No game or real report queue is used. Owner passed=false is preserved because
+it expected job1 but retained Python plus conhost,job2/0/0,both exit0,no force.
+That disproves the control's root-only expectation;the separately checked
+sensor observations remain positive. Control01 was rejected before creation
+for an unowned runtime;02 stopped before resume at an uninitialized cwd handle.
+Their failures are retained. No further equivalent control/game rerun is needed.
+
+Frida changes hook entry code and timing. Filter-return holds200ms for transport;
+normal Quit traversed two terminal hooks,200ms each(400ms total). Independent
+OS process/job handles establish exit;hook entry is not itself exit proof.
+The final crash snapshot precedes subsequent OS exception handling. It does not
+cover every raw socket/API route,external OS/driver processes,pre-attach work,
+all mapped-file activity,inflight/resumed report producers or other scenarios.
+Blank child symbol-path environment overrides are diagnostic inputs,not a
+network prohibition. No global WER setting,ACL,real queue or user process changed.
+
+Evidence and validation
+Primary source-owned checks:
+  tools/frida_crash_policy170.py
+  tools/verify_crash_policy170.py (lifetime verdict;observer verdict separate)
+  tools/review_crash_policy170.py (strict finite capture review)
+  tools/native_crash_gate.py / tests/test_native_crash_gate.py
+  tests/test_crash_policy170_review.py
+26affected tests pass on Python3.14.8 and3.12.10,zero skips. New regressions reject
+saved-mode mismatch/type errors,transport loss,foreign events,sequence gaps,
+decode errors,unknown roots,overflow,missing/duplicate aggregate chunks,
+inconsistent totals and pending I/O. Generated JS passes node --check.
+Native C++/game/installer files did not change this checkpoint;169 build proof
+remains applicable. No package build or repeat gameplay acceptance was needed.
+
+local/crash170-game03/observation-review.json records the strict bounded PASS.
+  owner verification SHA256:
+  57dda8b1bd441f2d978401395d783c1f139aa010906471f3e5b75f1ab5c24b10
+  loaded observer SHA256:
+  84325c61db8af0810460aa3ce93e96e92dfd9cbb6ce7fce3317610423ed580d6
+  evidence bundle SHA256:
+  9467eb29a8eb290c3b2e11b2ddbc7f71ea704e641a39f4165ab32de0674aa00a
+  final Evidence:ev_7e514b5bac423623e9365dc61d3eff6031a281524e36f1ae01c6d86dff44f0ed
+local/crash170-quit-review01/review.json independently verifies restore:
+  edb5b316cfcff350214a07a20985c9d9213661b41f386ee27c95882f6545d087
+  final Evidence:ev_a64b0cb6959cb32bb64b79c50ee69d1de065f34d801a4f8b58f8258a175099c1
+local/crash170-reconcile01 and crash170-restore-source01 retain the independent
+historical comparison and exact original cleanup/owner/IAT source review.
+local/crash170-policy-review01 retains the independent final capture/control
+review. local/crash170-source01 retains test/check logs and the final manifest.
+Exact per-run .used sources and raw captures stay ignored. Source/components,
+shared settings,current166 and System32 DbgHelp remained exact across accepted
+runs. The helper remains56c279af... and source23/128;candidate166 stays22/165.
+
+Next
+Close these named native subcases and move to actual P8 browser/effective
+descendant qualification using accepted N9 desktop evidence. Full P7/D5 remains
+subject to its finite matrix and cross-cutting route/installed-artifact limits.
+Do not repeat native symbol/restore checks without a changed path or concern.
+No new Nick action,package/manual/share/host change or accepted-test repeat.

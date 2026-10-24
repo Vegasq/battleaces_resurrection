@@ -5,6 +5,7 @@ from .pe_imports import extend_imports_with_thunks, pe_checksum
 from . import telemetry
 from . import startup_tasks
 from . import bundle_loading
+from . import legacy_compliance
 ROOT = Path(__file__).resolve().parents[2]
 ORIGINAL_SHA256 = 'e59d08c01479b27404778048d7e13546dbf3771f6b3912744c7c2bdf80c4e758'
 PATCHES = [
@@ -33,7 +34,7 @@ PATCHES = [
     # be shared by multiple rows. Recover original MethodInfo from its vtable.
     {'name': 'Pass exact settings row to scoped difficulty selection hook',
      'offset': 0x3d17b0d, 'before': '4d8b8110020000', 'after': '4989d890909090'},
-]
+] + legacy_compliance.PATCHES
 HOOKS = [
     {'name': 'OfflineDedicatedLeaveQueue', 'rva': 0x3e3e760, 'offset': 0x3e3cd60, 'before': '48895c2408574883ec20'},
     {'name': 'OfflineDedicatedJoinQueue', 'rva': 0x3e3c0d0, 'offset': 0x3e3a6d0, 'before': '48895c240848896c2410'},
@@ -366,6 +367,7 @@ def install(game_dir, *, helper=None, original_path=None, restore=False, dry_run
                                 'dlss_enabled': bool(allow_dlss_diagnostics and not restore)},
                 'graphics': {'dlss_setup': 'original-restored' if restore else 'original-owned-diagnostic' if allow_dlss_diagnostics else 'unavailable-before-native-init',
                              'original_shutdown': True},
+                'legacy_account_flow': legacy_compliance.descriptor(restored=restore),
                 'pointer_hooks': QUIT_POINTER_HOOKS if quit_diagnostics else [],
                 'cosmetics': {'experimental': cosmetics,
                               'persistence': bool(cosmetics and helper_bytes is not None and b'BA_RESURRECTION_COSMETICS_PERSIST_V1' in helper_bytes),

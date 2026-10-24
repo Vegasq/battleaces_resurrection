@@ -21,7 +21,7 @@ ROOT = Path(__file__).resolve().parents[1]
 PYTHON_VERSION = '3.14.8'
 PYTHON_ZIP_SHA256 = 'a93abe456ab01bd96d7a085b3cdb6566b3063f4241360d114142fbdb07f0a310'
 PYTHON_URL = 'https://www.python.org/ftp/python/3.14.8/python-3.14.8-embed-amd64.zip'
-PACKAGE_VERSION = '0.3.0-rc1.5'
+PACKAGE_VERSION = '0.3.0-rc1.6'
 RUNTIME_PTH = b'python314.zip\n.\n../app\n'
 COMMON = (
     'server/__init__.py', 'server/protocol.py', 'server/credentials.py',
@@ -43,6 +43,7 @@ SERVER = COMMON + (
 CLIENT = COMMON + (
     'client_patch/__init__.py', 'client_patch/patcher/__init__.py',
     'client_patch/patcher/patch_client.py', 'client_patch/patcher/pe_imports.py',
+    'client_patch/patcher/legacy_compliance.py',
     'client_patch/patcher/startup_tasks.py',
     'client_patch/patcher/bundle_loading.py', 'client_patch/patcher/build37822_bundles.py',
     'client_patch/patcher/telemetry.py', 'client_patch/transport/__init__.py',

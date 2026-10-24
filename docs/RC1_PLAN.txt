@@ -1,153 +1,65 @@
-BATTLE ACES RESURRECTION - RC1 DELIVERY CONTRACT
-Defined2026-10-21 by Nick's installer/address-only connection requirement.
-RC1 is the next usable community candidate;it is not completion of every D1-D9
-final-release gate. The existing delivery plan remains authoritative for those
-remaining requirements. No earlier failed report is upgraded by this scope change.
+BATTLE ACES - RC1 DELIVERY CONTRACT
+Reviewed:2026-10-24. Engineering candidate166;RC1 final acceptance remains OPEN.
+Full release queue:REMAINING_DELIVERY_PLAN.txt. Gates:RELEASE_ACCEPTANCE.txt.
+The exact prior contract/checkpoint history is history/2026-10-24/RC1_PLAN.txt.
 
-Current engineering candidate166,2026-10-23
-Source168 advances to23/128 with a process-local automatic Windows report guard.
-Authored native control/source tests pass;actual game crash qualification remains
-required. No168 installer is published;166 below stays the current matched pair.
-See native-crash-policy168.txt;do not mix its pending helper/Unity into manual166.
-Clean5cd67fa paired native standalones/ZIPs bind22/127guards/helper165. Actual
-forms/payloads/bundled imports,client Install/Update with74profiles preserved and
-ordinary game-folder entry after actual download rename pass. Readiness cleanup
-is forced,not Quit/physical/privacy acceptance;165's identical game/helper native
-proof retains its scope. DEV N5/N7 now166 for the next planned update;manual130
-stays frozen. No new full server166 Install/first-owner/SCM/clean-PC acceptance.
-This is not final RC acceptance. Identities/scopes:coherent-candidate166.txt.
+CURRENT CANDIDATE
+Matched166 client/server packages:0.3.0-rc1.5,clean5cd67fa,recipe22/helper165.
+Forms/payloads/bundled runtime,client update and independent installed launch
+have scoped passes. Nick has accepted LAN(N2) and download/install(N5).
+N7 retains unreported host/save/portrait details;do not reinstall to fill fields.
+Source168 uses recipe23;unfinished169 diagnostics are not another release.
+Exact artifact hashes and limitations:coherent-candidate166.txt.
 
-Player experience
-104 requirement,2026-10-22:default player name comes from the installing/running
-Windows account,cleaned to remove domain/email-domain prefixes,unsafe/control
-characters and excess whitespace,and bounded to the supported32characters.
-Keep Unicode letters/digits and ordinary handle punctuation;use Player only if
-no usable account name exists. Compute on the PLAYER'S PC,never at package build.
-Client installer exposes an editable Player name field. Existing saved/custom
-names are loaded and preserved unless the player deliberately edits the field;
-rename never changes profile identity,decks or cosmetics. Config remains editable.
-[x] RC-U104 automated:cleaned account default,editable installer name,preserved
-    saved names/identity,11shared native/Python fixtures,actual standalone UI and
-    bundled fresh install/rename update pass. Ordinary game-folder CMD reaches
-    menu12.331s;forced readiness cleanup,not Quit. Exact bytes/scopes:username104.txt.
-    Physical field/display observation remains RC-P;no repeated LAN game required.
+PLAYER AND HOST CONTRACT
+The client uses ONE standalone native Windows installer. Fields are game folder,
+server IP and editable Player name. It installs its own runtime and Start Battle
+Aces.cmd INSIDE the game folder;the downloaded installer folder is not required.
+No PowerShell policy change,developer runtime,CA or invite is required for RC.
+The cleaned local account name is the initial default:remove domain/email-domain
+prefixes,unsafe/control characters and excess whitespace;bound to32characters.
+Keep Unicode names and ordinary handle punctuation. Use Player only if no usable
+name exists. Never bake the builder's account into packages. Preserve saved names
+unless deliberately edited;renaming does not change identity,decks or cosmetics.
+Client config retains server_host/server_port/display_name/local_profile;default
+port47623,blank address valid for offline play. Install/update validates files and
+preserves backups/saves. Selected-deck reset is explicit and backed up;uninstall
+restores original components and preserves saves/config/recovery/runtime.
 
-102 supersedes the101 PowerShell UI after Nick's second-PC trace proves script
-execution policy blocks it. Download ONE standalone Windows installer executable;
-its native window asks for game folder,server IP and104 Player name. Click Install / Update.
-It copies the complete client runtime into the game folder and creates
-Start Battle Aces.cmd there. No retained download-folder dependency,PowerShell
-policy change,CA,fingerprint,invite or developer runtime installation.
-Server port47623 is the default;server_host/server_port/display_name remain
-editable in .battleaces-resurrection/client-config.json in the GAME folder.
-Blank address is valid for offline play. Existing names/profiles are preserved.
-Install/update verifies supported local files,preserves original backups and saves.
-103 adds explicit backed-up selected-deck reset and native Uninstall client patch.
-Uninstall restores original game files and keeps saves/config/recovery/runtime.
-The server installer selects game source and empty server destination,operates on
-its own independent copy,imports local data and creates Start Server.exe without
-changing the source game. Native cryptography replaces PS certificate generation
-in the delivered server. No game assets ship in Git or standalone installers.
+The server installer selects a local game source and new/empty server destination,
+imports through an independent working copy,and leaves the source game unchanged.
+It creates Start Server.exe;normal first start generates its private certificate/
+config using native Windows cryptography and hosts on47623. Ctrl+C shuts down.
+Setup does not start a listening host. Keep old host state for rollback.
 
-RC connection contract
-Schema4 selects RC open access and TLS encryption WITHOUT certificate verification.
-The server automatically generates its own self-signed certificate on first start
-after assets are imported. Players never handle it. RC open access admits anyone
-who can reach the configured server;it is not an invite allowlist or verified
-server identity. A local per-server/profile random key gives stable player identity
-on reconnect;names are configurable independently. Local profile saves persist.
-Existing schema2/3 verified CA/invite deployments remain explicit supported paths;
-they are not silently converted on launch and never fall back to open admission.
-Saving from the new RC setup explicitly selects schema4 and preserves local_profile.
-No plaintext fallback,OS trust-store edit,firewall edit or router configuration.
+CONNECTION CONTRACT
+Schema4 selects RC open access with TLS encryption and certificate verification
+DISABLED,as requested. The host generates its own self-signed certificate. Players
+handle no CA/fingerprint/invite. Anyone who can reach the configured host may join;
+RC is not an invite allowlist or verified server identity. A local per-server/
+profile random key provides stable identity independently of display names.
+Existing schema2/3 verified CA/invite deployments remain explicit supported paths:
+never silently downgrade them to RC or plaintext. RC setup explicitly selects
+schema4 and retains local_profile. No OS trust-store/firewall/router change.
+Original game inputs are imported locally,never distributed with our artifacts.
 
-Finite RC1 gates,in order
-[x] RC-I103 automated maintenance/server installer replacement:39focused+32affected
-    checks,both native windows under Restricted policy,real native deck reset/
-    saved-deck preservation/original-file uninstall,actual bundled server full
-    import and installed native health worker pass. Source game unchanged.
-    Exact hashes/scopes:installer103.txt. Physical controls/owner startup stay RC-P/N.
-[x] RC-I102 automated:new native UI and game-local runtime/launcher qualification replaces
-    the FAILED101 physical startup. Preserve101 backend proofs below;do not infer
-    that its rendered PowerShell form worked on Nick's second PC.
-    Historical101 automated:address-only setup and install/update/restore from clean packages;
-    preserve decks/cosmetics/settings,show useful progress/failure,ordinary launch.
-    567profile files unchanged;rendered UI inspected;ordinary CMD menu8.351s.
-    102:61focused checks,actual native UI under Restricted policy,standalone
-    embedded payload verify,actual bundled install81.668s,game-folder CMD menu
-    16.398s with extracted source renamed. Forced readiness cleanup,not Quit.
-    Exact candidate hashes/reports:installer102.txt. Physical button/keyboard/
-    visual behavior remains RC-P,not inferred here.
-[ ] RC-N:actual bundled runtime self-signed TLS/open identity/reconnect check;
-    auto server initialization,stable identities,no CA/invite prompts.
-    [x] Two actual bundled runtimes:certificate generation,TLS/open admission,
-        stable identity after rename/reconnect,no CA/invite,server exit0.
-    [ ] Normal-desktop first Start Server.exe provisioning:DEV.txt N7/current166.
-        N6 keeps103 existing observations;do not reinstall an old build for it.
-[x] RC-L automated:packaged schema4 offline AI/results/Continue/natural Quit0,
-    no force217.768s;ordinary CMD startup separately passes. Physical restart/
-    persistence observation remains RC-P. Existing name/profile tests pass.
-[x] RC-M automated:same-PC bundled Custom match/changed-deck rematch with RC transport,
-    results/Continue/natural Quit and worker cleanup. No diagnostic-only pass
-    substitutes for the final ordinary entry check.
-    Retained strict review qualifies two1220-frame rounds,each client's122
-    matching state samples/round,matching native replays,original Leave/Quit0
-    and all3workers0/reaped. Original parent's summary fails KeyError and stays
-    FAILED;outer job accounting was not retained. See RC1_EVIDENCE.txt for scope.
-[ ] RC-P:Nick's physical installer/start/local check and two-PC LAN Custom playtest.
-    [x] 2026-10-22 Nick:"1v1 over real lan worked!" Physical LAN1v1 play accepted
-        at that scope. Do not repeat first-match reachability as an open gate.
-    [ ] Exact Custom/public menu path,changed-deck rematch,results/Continue,
-        normal Quit/restart/persistence and installer maintenance observations
-        not yet reported. Do not infer these or exact artifact hashes from LAN pass.
-    N7 now uses the prepared166 pair for the next planned update/visible portrait
-    observation. N4/103 N6 retain historical answers only;do not install old builds
-    just for those fields. N2 asks only for missing observations from the successful
-    LAN session;the earlier installer-first hold is superseded by the actual test.
-    Request via DEV.txt only when actionable artifacts are ready. Keep setup98 accepted;
-    do not ask Nick to provision its old CA/invite handoff again.
-[ ] RC-F:freeze exact clean source/archive/helper/runtime hashes,concise shipped
-    guides,known limitations and no game/private files in public artifacts.
-    [x] Candidate101 clean source db114316,immutable client/server ZIP hashes,
-        helper100,runtime3.14.8,shipped guides and source/history audit pinned.
-    [x] Replacement102 clean source5c007ea,standalone EXE and embedded clean
-        client/server ZIP hashes,helper/runtime and scoped evidence pinned in
-        installer102.txt. Native EXE replaces policy-blocked101 default setup.
-    [x] Replacement103 clean source37a0095,both standalone EXEs and embedded
-        ZIPs,native certificate tool and exact evidence frozen in installer103.txt.
-    [x] Client104 clean sourced9df4f0 and standalone/embedded ZIP hashes frozen
-        in username104.txt. Server103 stays the retained host candidate.
-    [x] Paired105 clean source6f820d6,rc1.5 client/server ZIPs and both native
-        standalone EXEs frozen in community-portraits105.txt. Selected Invite
-        Friend portraits,actual bundle update,paired RC TLS Custom/rematch/
-        Continue/normal Quit and generated game-folder CMD qualify at scoped
-        automated/native boundaries. New client needs matching updated server;
-        old103/104 clients can join new host. Visible portrait observation is
-        DEV N7 on next planned update;no repeat of accepted LAN1v1/D6 requested.
-    [x] Corrected130 clean source a09061c:shared native progress control fixed;
-        actual ORIGINAL form Install actions/client preservation/full server
-        independent copy/export/import/installed health and ordinary game-folder
-        entry pass. Fresh-assets RC2vAI passes without forced cleanup. Prior raw/
-        schema export-identity failures stay failed;no all-mode/privacy/physical
-        inference. Frozen hashes/scopes:installer-progress130.txt.130 was the
-        planned pair;166 now supersedes it for N7. All older manual copies stay.
-    [x] Coherent166 clean5cd67fa,22/127/helper165,paired ZIP/native installer
-        hashes frozen in coherent-candidate166.txt. Real client Update/74profiles/
-        ordinary installed CMD pass;no new full server Install/first-owner or
-        physical/privacy acceptance. DEV N5/N7 use this next planned pair.
-    [ ] Physical gate review and final RC-ready declaration. Do not label RC1
-        accepted yet. Preserve local/rc101-packages01 and its manual test game
-        local/startup58-game01 while N4 is pending. Also preserve102 standalone,
-        packages and local/installer102-game01. Also preserve103 packages/standalone
-        EXEs and installed local/s103. Next paired update steps use166(DEV N7).
-Only these finite gates name RC1 ready. Record scoped automated subcases without
-closing a parent whose packaged/physical component is still missing. Remaining
-D2-D5/D7-D9 final-release work is retained,not silently dropped or called complete.
+FINITE RC GATES
+RC-I Installer:automated native setup/update/reset/uninstall/import passes at
+  recorded scopes;N5 download/install success accepted. Remaining maintenance/
+  clean-machine/physical fields are qualified only by actual observations.
+RC-N Hosting/connection:native RC TLS/identity/worker evidence retained. Protected
+  N10 recovery passed at151 scope. Remaining current host/clean-PC observations
+  and RC deployment boundaries stay explicit;optional CA setup is not a blocker.
+RC-L Local play:packaged local AI/result/Continue/natural Quit passes retained;
+  preserve accepted physical startup/AI. N7 retains current save/name details.
+RC-M Multiplayer:packaged Custom/rematch lifecycle and physical LAN/N2 accepted
+  within their evidence. Exact historical artifact/menu details are not invented.
+RC-P Physical presentation:remaining N7 portrait/live-change/reopen and unreported
+  host/save observations;no repeat accepted LAN/install/startup check requested.
+RC-F Freeze:clean coherent pair,exact hashes,shipped guides,known limits and
+  proprietary/private-content audit.166 is an engineering checkpoint,not final RC.
 
-Initial implementation101
-New RC setup UI,client schema4 and lazy persistent identities,explicit AUTH_RC
-protocol,host schema2 rc-open mode and built-in Windows self-signed generation.
-First72focused tests PASS,including actual encrypted admission/reconnect without
-CA,wrong-certificate verified refusal,open-protocol refusal by an invite server,
-name/profile preservation,stale edit/corrupt identity refusal and strict config.
-This is source/loopback evidence,not a clean package or physical match result.
+Only scoped evidence closes these gates. The separate D2-D5/D7-D9 full-release
+requirements remain in the current roadmap. Preserve old manual candidates,
+failed reports and exact sources. Detailed prior implementation/qualification:
+history/2026-10-24/RC1_PLAN.txt,RC1_EVIDENCE.txt and INDEX.txt topic references.

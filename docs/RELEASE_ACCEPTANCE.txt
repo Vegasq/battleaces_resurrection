@@ -1,541 +1,77 @@
-WINDOWS RELEASE ACCEPTANCE -- CURRENT REVIEW2026-10-23
+BATTLE ACES - RELEASE ACCEPTANCE
+Reviewed:2026-10-24. FINAL RELEASE:NOT ACCEPTED.
+Work queue:REMAINING_DELIVERY_PLAN.txt. Latest results:STATUS.txt.
+Exact prior checklist/history:history/2026-10-24/RELEASE_ACCEPTANCE.txt.
 
-CURRENT RELEASE POSITION158
-Final release is NOT accepted. REMAINING_DELIVERY_PLAN.txt remains the execution
-plan;this summary corrects stale present-tense candidate labels in older records.
-Historical paragraphs below retain their original source/artifact/test scope.
+Acceptance is scoped to actual artifacts and observations. A user request may
+be complete without closing its entire parent gate. Historical failures remain
+failures;skips,forced readiness cleanup and instrumentation have explicit limits.
 
-Retained requirements and current evidence:
-- One Windows Start Server.exe and game-folder Start Battle Aces.cmd,native
-  installer with game/IP/editable cleaned account-name fields,reversible client
-  reset/uninstall and independent server import are implemented.130 qualifies
-  actual corrected installer actions/progress;166 is the latest clean paired
-  engineering package/standalone checkpoint,from5cd67fa,recipe22/helper165.
-  Native forms/payloads/bundled imports and client Install/Update pass,74profiles
-  preserved;ordinary installed CMD works after actual download rename. Its forced
-  readiness cleanup is not Quit/performance/physical/privacy acceptance. DEV N5/N7
-  now166 for the next planned update;manual130 remains frozen. coherent-candidate166.txt.
-- First physical LAN1v1 play PASSED per Nick on2026-10-22. Do not repeat first-game
-  reachability. Exact Custom/public path,finish/Continue,changed-deck rematch,
-  Quit/restart and installer/portrait observations remain unreported. DEV.txt N2/N7
-  ask only for their stated missing results. LAN98 provisioning is accepted.
-- D6 startup is CLOSED:accepted post-reboot~20s/repeat~2s and visible AI lifecycle.
-  Manual35 AI/deck/cosmetic persistence/Continue/Quit also stays accepted at its
-  original scope. Automation is background-only;Nick's own launches are visible.
-- All required local/public/team/Custom paths,real30s AI fill,original bot identity
-  selection,difficulty/configuration,search/loading and result handling have
-  scoped implementation/native evidence. D2's remaining ordinary/physical matrix
-  stays open;prototype/diagnostic coverage does not replace those missing rows.
-- Installed107-item/17-slot cosmetics,names and portraits are implemented with
-  scoped persistence/propagation tests. D3's physical category/catalog/effect/audio
-  coverage and current visible portraits remain open. Cosmetic unlock is not
-  ranked/commerce/backend reconstruction. Linux/Wine are outside current scope.
-- D4 replay error-latch correction100,profile storage and failure recovery have
-  scoped proof.152Custom/153public1v1/154native BOT_INPUT loss/timeout controls
-  retain explicit unknown-result abort,Return and same-session replacement.
-  163 qualifies the named early/late engine replay failures and same-owner valid
-  reload/Cancel/reopen/Confirm/Quit on installed139;not physical selection/warnings.
-  Remaining installed/native warnings/storage/visible recovery gates stay open.
-- D5 source168 uses recipe23/128guards/four components;RUNTIME_VALIDATED is false.
-  The new process-local WER mode has source/authored-control qualification only;
-  actual game crash/mode/restore/diagnostics/descendants remain required before
-  packaging.166 stays the current coherent22/helper165 pair. native-crash-policy168.txt.
-  165 closes seven SDK instance/queued error-collection entries,with actual
-  genuine Client/error/local log/practice/Continue/natural Quit proof.166 binds
-  those exact game/helper bytes into its coherent pair;SDK-root fixture scope is
-  explicit,not ordinary/all-thread/wire/native-crash/every-inflight acceptance.
-  Collection/queue/source applicability,other supported modes,error/reporter and
-  descendant attribution remain P1-P9 in telemetry-acceptance-matrix140.txt.
-  Quiet counters or selected entry guards do not establish complete removal.
-  N9's normal-desktop pipe comparison is pending;no unchanged browser rerun.
-- D7 protected console40 Ctrl+C/restart is accepted.151 fixed RC backup and config
-  restore schema;N10's protected recovery result remains pending at151 scope.
-  Actual SCM/session0/reboot,clean Windows support and latest owner-host acceptance
-  stay open. RC requires no player CA/invite/certificate verification setup;
-  optional verified mode remains explicit and is not silently downgraded.
-- D8 profile I/O correction156 retains durable-before-ACK,freeze/race guards and
-  owned shutdown draining.157's current packaged RC TLS run proves8scripted
-  native Custom matches/two rooms/20Hz mean/max65.36ms/24workers0/reaped.
-  160 additionally qualifies a bounded current default-four-room native/TLS
-  workload:24matches/72workers0/14880frames/19.999Hz mean/max69.32ms. Not64rooms,
-  graphical/Internet/SCM/four-room long-duration or whole capacity acceptance.
-  Original20-match/eight-hour evidence is reused at its earlier scope. Physical
-  Internet/RTT/jitter/loss/click delay,graphical20-rematch/capacity/deployment
-  envelope are still missing;the130s TLS run is not an eight-hour TLS result.
-- D9 current source/history audit and source checks are separate from final
-  release acceptance.158 source history snapshot f97ba9d:2319objects/0findings.
-  Full983-test suites pass on Python3.14.8 and3.12.10,966pass/17skip each;optional
-  native/private and restricted process-pipe exclusions remain exclusions.
-  Source/docs review,exact logs/skips/limitations:release-readiness158.txt.
+Gate  State       Evidence retained / requirement still open
+D1    ACCEPTED    Nick's N2 success confirmation;LAN1v1 and setup98 retained.
+                  No invented menu/build details or Internet/four-human inference.
+D2    OPEN        Native mode/roster/queue passes retained. Remaining ordinary/
+                  physical/availability/transition cells:mode-acceptance-matrix.txt.
+D3    OPEN        Cosmetics/names/portraits/difficulty implemented and scoped tests
+                  pass. N7 visible details plus catalog/effect/audio coverage remain.
+D4    OPEN        Replay163 and worker faults152-154 pass named cases. Ordinary
+                  replay UI/errors,storage and other visible recovery gates remain.
+D5    OPEN        Source23/128guards;RUNTIME_VALIDATED=false. Complete collection/
+                  delivery/source/network/descendant proof and P1-P9 remain.
+D6    ACCEPTED    Physical reboot-first~20s/repeat~2s and AI lifecycle accepted.
+D7    OPEN        Console shutdown/restart accepted. N10 protected recovery and
+                  restored40-frame native host check accepted at151 scope.
+                  Completed restored game,SCM/session0/reboot/clean-host remain.
+D8    OPEN        Bounded two/four-room TLS/native and older soak evidence retained.
+                  Internet/network/click delay,final capacity/graphical lifetime
+                  and remaining deployment/duration scopes remain.
+D9    OPEN        Candidate166 coherent;N5 download/install accepted. Final clean
+                  artifact freeze/audit,guides and applicable prerequisite closure
+                  remain. No final release from source-only or diagnostic passes.
 
-No source/game-data/private-file provenance claim follows from green tests alone.
-Keep proprietary inputs,raw captures,keys and personal DEV.txt out of Git/packages.
-No manual/accepted candidate is silently upgraded. New source requires its own
-changed-scope checks;final freeze/audit still depends on D1-D8 completion.
+CURRENT ARTIFACTS
+Candidate166:version0.3.0-rc1.5,clean5cd67fa,recipe22/helper165. Exact hashes and
+forms/client-update/installed-entry scopes:coherent-candidate166.txt. Preserve
+older manual/accepted copies. Source168 adds recipe23 and process-local WER mode;
+169 now has a clean original native crash exit after its handoff fix,as well
+as the earlier instrumented pass;old clean01 refusal stays failed. See
+native-crash-handoff169.txt.170 additionally qualifies original normal-Quit
+saved-mode restoration and reconciles Windows DbgHelp/search paths with complete
+selected crash file/network counters through filter-return. These named passes
+do not replace166 or establish full privacy;native-crash-qualification170.txt.
+171 disables original Korean login/compliance per Nick,including its browser
+creation,validation request and pending gate. Community/LAN unchanged. This
+source change does not replace166 or close fullP8/D5;legacy-compliance171.txt.
+172 qualifies startup/survey applicability and an instrumented owned startup/
+normal-Quit lifetime,job1/0/0,no browser activation in that run. It changes no
+product binary and does not establish all supported-mode/final-installed privacy.
+Scope,initial reviewer refusal and retained evidence:browser-activation172.txt.
+173 settles named saved-report/resumption applicability for fresh patched launches,
+not cancellation of already-running original requests. No product change or full
+P7/P9 closure:report-resume173.txt. Nick authorized a new GitHub engineering
+prerelease;that publication does not mark final D9 acceptance complete.
 
-HISTORICAL QUALIFICATION RECORDS (original scopes,not the latest candidate)
+USER ACCEPTANCE UPDATE
+N2,N5,N9,N10 complete2026-10-24. N1/N3 were already complete. No repeat requested.
+N9 desktop pipe access succeeds;actual browser qualification stays open.
+N10 report confirms backup/restore,protected readback,preserved state/cosmetics,
+40matching TLS/native frames,clean worker/listener/lock/job shutdown. It explicitly
+excludes completed-game/SCM acceptance. Report identities are in STATUS.txt.
+N7 still holds unreported portraits/host/save details;N8 is deferred. Exact
+answers and requests live only in DEV.txt. No reinstall just to fill old fields.
 
-LAN98 owner readiness result reviewed
-Public report passed at ready;verified TLSv1.3/protected credentials/enrollment/
-native health all pass,worker0/reaped,no game/listening server. Nick's matching
-answer is preserved. Provisioning is COMPLETE;do not rerun setup. D1 still needs
-the actual two-PC match/rematch/physical observations. Evidence/hash is recorded
-in lan-playtest-candidate.txt;the preparation-only status below is historical.
+FINAL CLOSURE RULE
+Bind evidence to the final source/helper/recipe/runtime/installed files. Reuse
+unchanged relevant proofs with explicit applicability;run checks for actual deltas.
+Qualify ordinary player/host install,first start,offline/online play,updates,
+restore/uninstall,persistence,refusals and shutdown on supported clean Windows
+machines. Supply support/capacity limits and guides. Audit original requirements,
+source/history/package contents and proprietary/private exclusions. Publish only
+agreed artifacts after applicable D1-D8 and final-release requirements pass.
 
-LAN retry98 preparation
-Owner93 fails a server-only coordinator import in the client runtime. Corrected98
-retains server-side production config validation;7tests and actual bundled-client
-dependency/bundled-server config checks pass. Failed53/93 settings/private files/
-reports retained,invites revoked. DEV.txt N2 has the single fresh retry. No owner
-READY,LAN reachability/physical match or broader release gate is closed.
-
-Owner results93 reviewed2026-10-21
-D6 startup gate CLOSED:physical reboot-first~20s/repeat~2s,visible AI/results/
-Continue/Quit without issues,unchanged manual71 seals/package plus retained
-engineering/recovery/native checks. Protected active-console40 also PASS(two
-40-frame verified-TLS matches,Ctrl+C/natural workers0/same-state restart,
-job20/0/0,no force);SCM/reboot/backup/clean-PC D7 gates remain. LAN setup53
-failed the TLS-in-data configuration rule. Fresh corrected93 owner retry is
-prepared;D1 physical two-PC play and final release acceptance remain OPEN.
-
-This checklist distinguishes source-prototype evidence from a distributable
-release. STATUS.txt retains implementation history. REMAINING_DELIVERY_PLAN.txt
-is the current execution plan;PLAN_CLOSEOUT.txt maps the closed original roadmap
-and unfinished requirements. SERVER_REPLACEMENT_PLAN.txt preserves original scope. Existing frozen archives are not automatically
-upgraded when source changes. No original client binaries/assets belong in Git.
-
-Prepared two-PC LAN candidate53
-User confirms same-LAN second PC. Clean57120a2 archives preserve51program/helper
-bytes;actual package import/native lifecycle/patch roundtrip59.808s and ordinary
-CMD menu14.378s pass. New owner-run private TLS/invite/enrollment coordinator,
-54tests53pass1skip and actual no-private-write restricted preflight qualify the
-preparation path only. Concrete setup CMD and Custom match/rematch guide await
-normal desktop provisioning and real second-PC feedback. No LAN/physical/
-clean-PC/SCM/Internet/full telemetry gate is closed;see lan-playtest-candidate.txt.
-
-Bounded persistent analytics observation52
-One actual script covers pre-practice menu/1200-frame AI/results/Continue/original
-OnDestroy return:41provider rows equal journal,max heartbeat5005ms,natural main0/
-empty owned job/no forced cleanup. New read-only checker binds real persistent
-Evidence and owner/native timing/match;55tests54pass1skip/16actual rejection
-controls pass. Preserve/correct initial movement-scope and clock-binding checker
-issues. No new movement claim or product/helper/recipe/package change. Full
-collection/network/CEF/startup/physical/deployment gates remain OPEN;see
-telemetry-persistent-observation.txt. Owner39 repeat PASS is not active-match40.
-
-Historical ordinary source candidate51
-Custom Leave51 cleanf547003/helperf27311fe... adds the same opt-in <=1000ms32retry
-to the second diagnostic reader. Strict profile/file/empty checks stay.95tests
-94pass1skip and actual brief guest/host writer contention/two-round Custom/
-results/Continue/Leave/Quit pass191.710s/all exits0/empty jobs/no force. Retain
-stale-view failure;parent waits<=5s for actual empty-lobby readiness. Retain first
-explicit-stop negative;final monitor catches native1000ms refusal125ms later,
-no Leave/Quit after release,expected forced cleanup. Ordinary CMD menu11.155s
-is separate forced readiness cleanup. No ordinary/server/protocol changes;
-physical/permissions/deployment/telemetry matrix remains. See custom-leave-gate-wait.txt.
-Gate/community50's clean467c7bd helper candidate adds only bounded opt-in Quit
-gate sharing32retry. Exact file/profile/60s exit checks stay intact;86focused
-tests85pass1skip,new component/native transient and persistent-negative controls
-pass. Current human1v1/partial2v2/2vAI/Custom invite-rematch-Leave pass authoritative
-frame/state/results/Continue/Quit/all game+launcher+worker0/empty jobs/no forced
-cleanup;retained native TOML choices bind to actual authenticated seats. Actual
-ordinary CMD startup11.353s passes separately (forced readiness cleanup). Preserve
-prior failed human run and negative no-Quit cleanup. Custom's separate Leave gate
-needs bounded-retry follow-up;protected/physical/fault/SCM/cross-PC/telemetry gates
-remain open. See native-quit-gate-wait.txt/current-community-matches.txt.
-Empty queue49 qualifies actual one-human public1v1/2v2/2vAI on current clean47
-archives/helper42. Real30s native/server wait,original bot fill/commands/native
-supply,1220/1221/1221exact frames and122/124/124common native state samples,
-results/Continue/menu Quit and games/launchers/workers0/empty jobs/no forced
-cleanup pass. A retained2v2 diagnostic Quit-gate race is corrected by closing
-pending files before publishing;native guards unchanged.53 tests50pass/3skip.
-Actual TLS uses explicit stdin identity fixtures,not protected enrollment.
-Inspected hidden search PNG is black;physical/rendering/permissions/Internet
-gates stay open. See empty-server-queue.txt. No product/native/package change.
-Availability48 adds actual bundled invalid-trust1v1/code9 and missing-online-files
-Try Deck/code8 lifecycle proofs:189.387/214.703s,production resolver,bot production/
-movement/results/Continue/Quit,277char native replays,game+launcher0/empty jobs/no
-forced cleanup,shared saves unchanged.47 focused tests41pass/6skip pass. Retain
-strict257char fixture failure;max32char configured name/profile48 corrects the
-fixture while preserving random bots/native path limits. Post-terminal counter
-label review changes no validation logic;remote opener0 is not global sockets0.
-No product/helper/recipe/package change. See client-availability.txt. Valid-
-credential server refusal/remaining queue/mode/physical/deployment gates stay open.
-Setup47 cleanff61f6a archives change only guides/compatibility from corrected46.
-Fresh helper42 export11.838s validates maps/rules/bot/cosmetic catalogs with owned
-profile and unchanged shared/default saves;explicit termination is not Quit.
-42 focused tests pass. Actual relocated maintenance CMD verify/fresh119file asset
-import/native health/development lifecycle passes13.045s. Actual Start Server.exe
-two40frame active-match Ctrl+C/same-state restarts pass11.524s with job23active0/
-terminated0/no forced cleanup. Protected40 remains pending;this is loopback-only.
-Retain final-parser failure01 as failed;corrected02 checks final lifecycle JSON.
-See owner-setup-qualification.txt for exact hashes and remaining deployment gates.
-Path46 fixes reproduced native save-path refusal with useful preflight before
-game/IPC;native guards/limits unchanged.29 focused/full Python591 tests575pass/
-16skip pass. Corrected clean8d974fa archives pass actual19/36 imports,bundled
-refusal,ordinary CMD menu10.570s and all four packaged offline AI/results/Continue/
-natural Quit controls with262..308char saved native replays. Per-bot movement/
-public identity/configured human name,main+launcher0/empty non-terminated jobs
-pass;1v1 adds original codec/six malformed refusals/cleanup. Preserve initial
-strict247char/deep-folder failures. External opted-in adapter/native models are
-not seamless CMD mouse/pixel/all-server-state acceptance;readiness cleanup is
-forced,separate from natural Quit. See native-path-preflight.txt. Remaining
-release/owner40/SCM/clean-PC/Internet/telemetry/slow-startup gates stay open.
-Observation45 adds canonical source and a read-only retained-game checker only.
-Actual combined startup task/observer17.716s and full1200-frame AI/results/
-Continue/natural Quit158.364s pass main0/owner job0active/0terminated. Positive
-OnDestroy return observed on original Quit thread;43 focused tests/16 actual
-negative controls pass. First practice provider21/journal22 rows demonstrate an
-explicit trailing journal heartbeat;three windows leave gaps. No continuous/
-traffic absence/removal/movement proof;slow startup225s cause stays open. See
-telemetry-game-observation.txt. No shipping/helper/recipe/package change,ordinary
-owned03 restored;remaining release gates stay required.
-Observation44 adds bounded actual owned-game evidence only. Original OnDestroy
-entry/return and natural Quit0 are observed;initial/late attach windows have gaps
-and do not qualify full-lifecycle/descendant/network absence. Initialization
-225.163s reproduces a real delay;separate startup-task run without Frida6.851s
-does not explain it. All50tasks complete,53roots release,original Quit0,ordinary
-owned03 restored exactly. No shipping/helper/recipe/package change. Exact scope
-and hashes are in telemetry-observation.txt/client-startup.txt. Remaining gates
-stay open;owner39 repeat PASS is not protected active-match40 acceptance.
-Telemetry43 adds diagnostic preparation/checking tools only. Actual REA localhost
-socket-hook positive control and PID/nonce receipt pass;provider/request/session/
-source/readiness/monotonicity/cleanup validation and34 focused tests pass. This
-does not qualify game/native13 candidates,packet capture,full-window/final-counter
-absence,loaded identities,exit0 or descendants. No shipping recipe/helper/package
-change;remaining release gates stay open. See telemetry-observation.txt.
-Telemetry42's recipe4 adds two internal config append false-return guards,63
-total. Exact original bytes/installer roundtrip/current loaded signatures and
-bounded idle/practice/Continue/natural main Quit/no-telemetry control pass;full
-Python565 tests549pass/16skip and all11 C++ programs/six atomic boundaries pass.
-New inner entries are not actively probed,no active recipe3 bypass was shown,
-and hardware/earlier constructors/indirect/network/full-mode gates remain OPEN.
-RUNTIME_VALIDATED stays false. See telemetry-internal-config.txt;older reports
-and packages retain their exact versions. Owner39 PASS confirms existing bounded
-protected idle-console evidence;the separate protected active-match40 is pending.
-Clean35969f0 previews pass19/36 actual bundled imports/integrity and ordinary
-Start Client.cmd menu9.955s without server/automatic flags. Forced readiness
-cleanup does not qualify Quit;exact server program/entry equality to41 does not
-constitute a new42 server runtime report. Full release gates below remain OPEN.
-Telemetry41 adds explicit owned diagnostics,not a new ordinary game flow. One
-guarded device API call/unchanged sampled config and read-only pre-original-Quit
-fields pass through idle and practice/result/Continue/natural main-process exit.
-Same-code build02/no-telemetry control pass;broader collection/network/reporters/
-descendants/full-mode scope and complete removal remain OPEN. See
-telemetry-prequit.txt;RUNTIME_VALIDATED remains false.
-Clean9dca4d6 previews pass actual19/36 embedded imports,ordinary Start Client.cmd
-menu10.153s without diagnostics/server and actual server archive development-mode
-active-match/restart11.479s. Startup's readiness cleanup is forced,not Quit;native
-Quit remains separate. Protected TLS40 and all broader release gates stay OPEN.
-Console40 adds an external active-match/restart verifier without changing the
-production host/launcher/package. Actual development-loopback control passes
-two pairs of scripted peers/40 original-native frames per match,observed worker
-exit0/EOF/port/data lock release and same saved profiles after restart;final and
-pre-close outer job23 active0/terminated0,no forced cleanup. Protected TLS/real
-disposable invite active-match run is prepared for the normal owner and remains
-PENDING. This is not graphical-client/matchmaking/SCM/Internet acceptance. See
-server-console.txt for the retained failed controls and exact current source.
-Server entry39 replaces the batch Start Server with Start Server.exe after an
-actual Ctrl+C confirmation hang. Development and actual normal-owner protected
-TLS1.3/native health/CLI0/1/2/one Ctrl+C/natural0/port/state-lock/job cleanup pass.
-Owned conhost exits naturally51ms later;final/pre-close job0/0 and no forced
-cleanup required. First failed observer report retained. This closes bounded
-idle console startup/stop on this account;active-room/SCM/clean-PC/Internet
-remain OPEN. See server-console.txt for exact source/report boundaries.
-Startup diagnostic38 qualifies instrumentation only:three fast original-startup/
-natural Quit runs (including concurrent pair),50 completed tasks,53->0 roots and
-same original Unity/Quit thread. Ordinary-recipe bytes remain equal;ordinary
-same-helper no-observer control passes. Slow168s startup cause/fix still OPEN.
-No cold-cache/exception-unwind fault/zero-overhead claim;see client-startup.txt.
-Clean08f8d10 previews with helper38 pass actual embedded runtime imports of all
-19 client/36 server modules,foreign cwd/empty PATH/no site-packages and unchanged
-package integrity. New packaged gameplay/owner/server controls remain separate;
-manual35/older qualified archives are preserved. See client-startup.txt.
-The shared player entry point now enables public queues and installed cosmetic
-selection/persistence;packaged install includes their native recipe. Actual
-no-server startup,local1v1/2v2/2vAI,real30-second fill,partial two-human2v2,waiting
-Cancel and human-only Custom/rematch have bounded native controls. The actual
-extracted Start Client.cmd reaches its menu without a spawn seam or automatic
-actions. Current native settings saves use staged handle publication. See
-ordinary-player-client.txt for reports,retained failures and remaining matrix.
-These controls do not close the final/manual/clean-machine/Internet gates below.
-
-Real-credential native37 qualification (BOUNDED PASS)
-Actual normal-owner run passes267.999s:no forced cleanup. Packaged server check
-CMD/native health and two actual client enrollment commands exit0. Production
-host.run/exact CredentialStore plus original strict runtime readers authenticate
-two real protected identities. Full-human1v1 receives1220 exact frames/122 matching
-sampled states per client with names/selected decks/full loadouts. Original build/
-result/Continue/five-event Quit and all game/launcher/worker exits0 pass;listener/
-state lock release,four outer jobs active0/total_terminated0. Two native replay
-structures agree. All input/shared-channel invariants,real-token non-disclosure
-and disposable revoke/handoff cleanup pass. Slow168.359/168.500s initialization
-remains OPEN,not a cold-cache/network-cause claim. Exact report in
-client-enrollment.txt;actual Start Server Ctrl+C,all-mode/fault/graphical setup/
-SCM/clean-PC/cross-PC/Internet/final telemetry/manual gates remain OPEN.
-New explicit normal-owner mode combines actual bundled client enroll commands,
-actual server maintenance check CMD/native health and host.run/native multiplayer
-with exact production credential store/strict readers. No auth fixture in this
-path. Existing full native/authoritative/Continue/Quit/replay/resource checks stay
-required,plus command receipts/real private reader/store proofs/revoke/removal/
-token non-disclosure. Read-only preflight attempts no private operations/server/
-game under the restricted token.26 focused logic/evidence checks pass with their
-explicit mocked privacy boundary;actual owner/native report passes separately.
-Manual35 unchanged;see client-enrollment.txt for ignored launcher and scope.
-
-Real two-runtime enrollment36 / manual35 feedback
-PASS:normal desktop runs unchanged packaged client enrollment/check_connection
-and separate packaged production coordinator/real protected CredentialStore.
-Private transaction/profile preservation,wrong fingerprint/stale save refusal,
-verified TLS/AUTH,wrong CA/name/identity and revoked credential refusal pass.
-No game/worker/room/profile is created;all connections/admission/listener/port
-release and server child natural exit0 pass. Disposable credentials revoked,
-bearer handoffs/configs removed,both packages/assets/test PKI unchanged. This
-qualifies bounded same-account backend enrollment/TLS only. Graphical setup,
-host.run/Start Server/real-credential native gameplay,SCM/another account/clean
-PC/Internet remain OPEN;previous multiplayer fixture evidence stays fixture-based.
-User separately confirms the actual manual35 deck/cosmetics/AI/Continue/Quit/
-restart flow works and saved choices persist. All cosmetic category/mode/fault
-and physical-PC coverage remains OPEN. Exact evidence in client-enrollment.txt.
-
-Owner credential check35 / fresh manual candidate
-PASS under the user's normal desktop account using the clean34 bundled runtime
-and unchanged production credentials module:protected issue/read/import/auth,
-identity mismatch refusal,existing handoff/store preservation,persistent revoke,
-unprotected runtime refusal/explicit protected import,and disposable cleanup.
-The agent's separate token preflight attempted no protected operations. This
-qualifies the bounded owner credential lifecycle on THIS account only. Full
-Connection Setup with actual TLS,other accounts,SCM,clean PC and Internet stay
-OPEN;earlier packaged multiplayer identity adapters remain fixture evidence.
-Fresh independent manual35 ordinary CMD startup passes25.262s to menu with no
-automatic match/actions;owned readiness job cleanup is forced,not native Quit.
-Manual deck/cosmetic persistence/AI/Continue/Quit/restart now passes above. See
-client-enrollment.txt;no private output or original game files enter Git.
-
-Bundled Custom invite/rematch34 qualification
-Bundled host/two production clients pass194.845s using ordinary patch settings:
-original live-directory Invite/Accept,two human Start/Ready/build/result/Continue
-cycles on one lobby/two connections,changed host deck/stable guest. Each client
-receives1220 exact authoritative frames/122 matching observable-state samples
-in EACH round. Native duplicate callbacks settle without duplicate wire actions.
-Test-only gate then dispatches original guest Leave/host Leave;party/request/
-world/lobby release precedes original five-event menu Quit and both game/launcher
-exits0. Three workers exit0/reap,listener/state lock release,outer jobs active0/
-terminated0,no forced cleanup. Two completed native replays per profile match
-frozen GameData/1220 contiguous records and agree across clients. Eleven C++
-programs/six atomic boundaries and Python522 tests508pass/14skip pass. First
-optional-disposal-trace mismatch remains failed;strict ordinary-recipe rerun
-passes. Preview dirty=true;clean archive/equivalence/actual CMD follow-up remains.
-Same external credential-fixture/DACL limitation applies;broader fault/manual/
-protected deployment/SCM/clean-PC/Internet/capacity/telemetry gates remain OPEN.
-See packaged-multiplayer.txt;ordinary launcher has no automatic Leave/test flags.
-Clean06e65f8 packages additionally pass production/runtime/helper byte equivalence
-to native-tested preview and actual ordinary CMD startup10.014s/10.509s total.
-No spawn seam/test actions/global Python;config/package/source/shared TOML
-unchanged. Readiness cleanup is forced,not counted as another native Quit.
-
-Bundled four-human2v2-33 qualification
-Clean30 host/four independent bundled clients pass129.370s with all four native
-human seats/profiles0,no bots. Each receives1250 exact authoritative frames and
-agrees on126 observable-state samples. Two native original-setter deck probes
-export fresh baseline/edited choices;all four configured identities/selections/
-active ability groups/full loadouts bind to their actual authoritative seats,
-including legal identical-deck pairs. Four original builds/results/Continue/
-gated idle Quits and all game/launcher/worker exits0 pass. Listener/state lock
-release,five outer jobs active0/terminated0,no forced cleanup. Identical native
-replays in all four profiles have1250 contiguous frames/exact GameData hash;
-306-character canonical paths save/read back. Python517 tests503pass/14skip
-pass;shipping/helper/packages unchanged. Same explicit credential fixture/DACL
-boundary applies. Packaged Custom/rematch,broader fault/manual/deployment/
-clean-PC/Internet/capacity matrix remains OPEN;see packaged-multiplayer.txt.
-
-Bundled running-disconnect32 qualification
-Clean30 host/two bundled clients pass154.033s after both original build callbacks
-queue. Real TLS fault at603 interrupts603 exact frames/62 matching sampled states
-per client;native cleanup/worker-capacity release precede separately gated original
-Play and same-process replacement1220 exact frames/122 matching samples each.
-Survivor keeps session,only victim reconnects;seat swap preserves names/decks/full
-loadouts. Original results/Continue/Quit and both game/launcher exits0 pass. Exact
-CancelledError/exit1 qualifies ONLY the deliberately aborted running worker with
-matching authoritative abort/release/reaping;health/replacement workers exit0.
-Host listener/state lock release,jobs active0/terminated0,no forced native-game/
-harness cleanup. Aborted603-frame and completed1220-frame native recordings are
-retained/structurally checked;no aborted playback claim. Python514 tests500pass/
-14skip pass. Shipping/helper/package bytes unchanged;credential fixtures remain
-explicit,not protected deployment. Full-team/Custom/rematch/broader fault/manual/
-clean-PC/Internet gates stay OPEN;see packaged-multiplayer.txt.
-
-Bundled two-human2vAI31 qualification
-Clean30 host/two bundled clients pass mode5 in112.839s:human seats0/2 and two
-original native AI profiles60/60 in seats1/3 with distinct names/decks. Configured
-human names/independent decks/full loadouts agree with frozen authoritative data.
-Both clients receive1250 exact frames/126 matching observable-state samples;
-native result/Continue/original Quit and all exits0/worker reap/listener/state
-lock release/jobs active0/terminated0 pass,no forced cleanup. Identical native
-completed replay per profile has1250 contiguous frames/exact GameData hash.
-No shipping code/helper/package change or broader manual/Internet/credential
-deployment claim. Remaining full-team/Custom/rematch/running-disconnect and
-final release matrix stays OPEN;see packaged-multiplayer.txt.
-
-Bundled loading-disconnect31 qualification
-Clean30 host/two bundled clients pass actual accepted TLS loading disconnect,
-original modal/deferred cleanup,capacity release,and separate public replacement
-in the same native processes. Victim reconnects once;survivor retains its session.
-Replacement1220 exact authoritative frames/122 matching sampled states each;
-names/decks/loadouts survive seat swap. Original results/Continue/Quit,all worker/
-game/launcher exits0,listener/state lock release,jobs active0/terminated0,no forced
-cleanup pass126.803s. Original zero-frame abort plus completed replays are checked
-by role/hash without claiming aborted playback. Python509 tests495pass/14skip
-pass. No shipping code/package/helper change. This uses explicit stdin-only test
-credential fixtures,not protected enrollment acceptance. Running disconnect,
-remaining multiplayer/manual/deployment/clean-PC/Internet gates remain OPEN.
-See packaged-multiplayer.txt for retained first checker failure and fresh pass.
-
-Bundled multiplayer30 source qualification
-Verified bundled host.run plus two bundled client.main/TLS/bridge/native clients
-now pass full-human1v1 and real30-second partial2v2 with original native AI fill.
-Exact authoritative frame streams,sampled observable-state agreement,independent
-decks/full loadouts/names,original results/Continue/gated native Quit and all
-normal exits0/zero active owned descendants pass. Same source/package/assets/
-config/shared channels remain unchanged. External stdin-only identity fixtures
-are used because protected DACL enrollment is not accessible to the restricted
-tool token. This does not qualify real credential deployment,actual Start Server/
-Start Client CMD mouse play,SCM,clean-PC or Internet play. Broader multiplayer
-recovery/Custom/rematch/team/manual gates remain open. See packaged-multiplayer.txt.
-Cleaneb5b0ff packages have identical production/runtime/helper bytes to the two
-tested30 controls. Actual ordinary CMD client startup also passes10.571s;forced
-readiness cleanup is separate from the native multiplayer Quit proof above.
-
-Packaged ordinary24 replay correction
-The new full packaged2v2 check catches a real legacy-path save failure despite
-successful gameplay/Quit. Ordinary24 fixes the scoped replay API spelling and
-clean-package2v2 now passes long replay save/structural decode,original100-file
-retention,results/Continue/native Quit/launcher exit0. Prototype2vAI101-file
-retention also passes. Native original-codec control25 additionally passes with
-3607 contiguous batches/build37822/read-only file identity/three stream disposals,
-same idle menu and both natural exits0. Native batch28 playback also passes32.677s
-with matching full GameData/3607 batches,original FSM ownership,advancing native
-simulation/presentation and exact original completion/both exits0,job active0,
-no forced cleanup. No reported desync is not independent determinism or pixel
-acceptance. Six exact malformed codec/limit/structural cases29 additionally
-pass expected refusals,all18 disposals/exclusive reopens,same idle menu and both
-exits0,job active0/no forced cleanup. Stateful playback/fault controls remain
-OPEN;this does not require inventing a new browser feature or claim exhaustive
-hostile-input safety. Size checking can refill4KiB past its threshold.
-Actual Start Client.cmd startup passes in clean package and independent manual24
-copy;physical input/audio/preferences feedback remains pending. Python488 tests
-pass474/14skip;eleven C++ programs/six atomic boundaries pass. See
-packaged-gameplay.txt;older frozen/manual archives are unchanged.
-Latest28 cleanadc95dd packages additionally pass production-byte equivalence to
-native-playback-tested preview and actual ordinary CMD startup10.158s. Startup
-readiness cleanup is forced,not native Quit. Current Python495 tests481pass/
-14skip and final focused replay checks pass;see native-replay-validation.txt.
-Current29 clean7ab3ef0 package additionally passes byte equivalence to native
-six-fault-tested preview and actual ordinary CMD menu10.574s. Startup cleanup
-is forced and not counted as Quit. Python499 tests485pass/14skip pass. These
-codec and startup controls do not close the broader multiplayer release matrix.
-
-Qualified source checkpoint aa5a803
-- One ordinary unified launcher reaches a native local menu without configured
-  server,CA or invite and without gameplay automation.
-- Original fresh-menu and post-AI-result/Continue Quit exit naturally0 with the
-  default NGX-free recipe. Both clients also exit naturally0 from the original
-  connection-error Quit action after a deliberate remote disconnect.
-- The original non-DLSS renderer shows a useful arena,HQ,terrain,workers,effects,
-  HUD and cosmetic identities in an inspected diagnostic capture. Native bot
-  production,autonomous orders plus movement,and two-human server2vAI results/
-  Continue have separate passing controls. See nvidia-shutdown.txt/native-quit.txt.
-- Native local-user settings are isolated by installation/profile. Original
-  setters,restart,separate profiles/copies,Unicode paths,writer locking,malformed
-  TOML refusal and handled write failure/retry/readback have bounded passing
-  controls. The original writer is not atomic. See local-user-settings.txt.
-
-Required before a general release
-[x] Source qualification:preserve malformed persisted deck JSON/wrong node types/invalid dimensions
-    and IDs before original startup can replace them. Healthy new profiles and
-    incomplete but legitimate edited decks remain supported:40 native cases
-    pass on helper-input05. Final installer/ordinary release regression remains
-    required;see native-deck-validation.txt for bounds and retained failures.
-[x] Source qualification:show a useful native in-game warning after failed settings writes;verify
-    acknowledgment,recovery and later successful save without UI reentry during
-    writer callbacks or shutdown. Current helper-input05 regression passes with
-    an inspected readable image;manual/all-exception-path acceptance stays open.
-    Missing-body10/11/12 PNGs expose unsupported Update-phase capture;corrected13
-    engine file capture passes twice with readable inspected title/body.
-[x] Source qualification:define and test bounded process-interruption behavior.
-    Six owned child-kill boundaries retain complete old/new settings;native
-    retry/restart and normal Quit pass. Sudden power loss,device failure,custom
-    metadata/security policies and other filesystems remain explicit limits.
-    See native-settings-atomic.txt. Final installed-package regression is required;
-    do not equate a callback or flush with universal durability.
-[ ] Qualify the enabled public/cosmetic features through the ordinary entry point
-    across the complete final matrix. Verify actual mouse selection/drag/equip,all
-    installed cosmetic categories,ability/effect/audio rendering,persistence and
-    complete match choices across public/Custom/local/team/rematch/fault paths.
-[ ] Test the final ordinary offline path:Try Deck,1v1,2v2 and2vAI remain playable
-    with no server. Test configured but unavailable server and30-second queue AI
-    fill,including partial humans,original search/timer/Cancel/loading UX,varied
-    bot identities/decks and configured player name. Custom remains human-only.
-    Corrected clean46 passes bounded bundled native versions of all four offline
-    modes with production/movement/identity/result/Continue/Quit and long saves.
-    Actual ordinary CMD startup passes separately. Physical UX/Cancel/timer and
-    configured-unavailable/empty/populated server matrix remain required.
-    Availability48 additionally passes actual invalid-trust1v1 and missing-files
-    Try Deck with full bounded native lifecycle;valid-credential network refusal
-    and the remaining combinations are still required. See client-availability.txt.
-    Empty queue49 passes one-human real30s wait/AI fill/results/Continue/Quit in
-    all three public modes with exact native/host frame agreement. Identity
-    fixtures and hidden black captures do not close protected/physical acceptance.
-[ ] Complete telemetry collection/storage/indirect callback/reporter/CEF child
-    coverage and bounded network-capture checks on the final installed build.
-    Current recipe21/four-component guards and the separate NGX guard are not a
-    universal zero-traffic or graphics-driver/overlay reporting guarantee. The
-    remaining finite contract is telemetry-acceptance-matrix140.txt;see telemetry.txt.
-[ ] Isolate original replay and functional UX read/write paths by installation/
-    profile;preserve their native formats and functional UI state while scoping
-    reviewed cloud sinks. Exercise missing/corrupt/denied owned paths and native
-    results/Continue/Quit. TOML-only hash checks do not cover these channels;
-    see client-storage-isolation.txt. Do not remove functional UX as analytics.
-    Helper18 candidate passes ordinary startup and an owned practice/result/
-    Continue/natural Quit with profile-local native replay/JSON. Blocked-folder
-    shutdown regression also passes after covering all four native callers.
-    A controlled original directory exception preserves Continue/Quit,and one
-    tutorial bit survives native JSON load/write. Backup failures,full readback/
-    restart/mode/cloud/network/package controls remain open.
-    Helper21 additionally qualifies malformed/locked/read-only input and an
-    explicit repaired same-profile restart through AI/results/Continue/two
-    natural Quits. Original Write Boolean agrees with actual publication;
-    complete native defaults compare equal and prior bytes survive refusal.
-    Repaired seeded native progress survives read/write. Current ordinary
-    startup passes. Remaining full-mode/native-playback/directory/ACL/disk,
-    cloud/network/final-package/manual/cross-PC controls keep this gate open.
-[ ] Build fresh source-only client patch/server archives with exactly one Start
-    Client and one Start Server entry point. Validate install,upgrade,restore,
-    config relocation,logs,missing/corrupt files and normal Quit/save persistence.
-    Clean source7200d46/helper18 development archives pass actual bundled Start
-    Client.cmd startup,relocated imports/native host/controller,three-component
-    roundtrip and both early/minimal and last/full-feature preview upgrades.
-    Final packaged gameplay/Quit,manual and remaining failure coverage stay open.
-    Clean30e666f/helper22 now additionally passes bundled MODULE unified Try Deck
-    combat/results/Continue/original Quit/normal launcher exit238.973s,with an
-    explicit external spawn adapter and zero active owned job processes before
-    close. Ordinary arguments remain free of automatic actions. Actual separate
-    CMD startup in a prepared independent manual copy passes14.337s. Broader
-    packaged mode/server/fault/manual/cross-PC coverage remains open;see
-    packaged-gameplay.txt. Do not equate the adapter with seamless CMD mouse play.
-[ ] Qualify protected deployment/backup permissions,SCM service start/stop/reboot,
-    clean Windows machine without developer tools,and cross-PC/internet matches
-    with friends. Record measured capacity and remaining limitations.
-
-Manual playtest after preparing a concrete current candidate
-1. Start Client,confirm name/settings,edit a deck and cosmetics,then Quit through
-   the original dialog. Restart and confirm retained choices.
-2. With no server,play Try Deck and each public mode. Check original search and
-   loading feedback,bot combat,results/Continue and return to the same menu.
-3. Start Server,connect independent profiles/copies,invite through Custom,and
-   complete a human match/rematch. Check late joins,Cancel,disconnect and recovery.
-4. Check actual visuals,sound,input responsiveness and window behavior. Record
-   build/config/mode and observed behavior;do not infer these from log markers.
-
-Do not count forced test cleanup as native Quit,PNG existence as inspected
-rendering,or a prototype mode pass as final installer/ordinary-path acceptance.
+DETAILS
+RC1 contract:RC1_PLAN.txt (engineering milestone,not full D1-D9 completion).
+Privacy:telemetry-acceptance-matrix140.txt. Deployment:windows-service.txt,
+state-backup.txt,server-recovery151.txt. Packaging:windows-packaging.txt,
+helper-provenance159.txt. Prior full source suite:release-readiness158.txt.
+Historical scopes and failed records remain accessible through INDEX.txt/history/.

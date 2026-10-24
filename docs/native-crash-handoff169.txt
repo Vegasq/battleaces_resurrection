@@ -1,0 +1,70 @@
+CRASH169 - ATOMIC ARM PUBLICATION AND PROMPT REFUSAL
+2026-10-24. Diagnostic handoff defect fixed and clean native exit verified.
+
+Problem
+The old clean01 owner opened native-crash169.arm directly for writing while the
+game polled that final filename with GENERIC_READ and FILE_SHARE_READ. Windows
+can reject this reader while a writer is open. The game permanently refused the
+probe, but the owner stopped checking refusal after arming and waited60seconds.
+Its log has "native crash gate unavailable" and NO trigger. The retained failed
+run/forced cleanup is not evidence of a game hang after a crash.
+
+The old native log did not retain its Win32 error. A deterministic Windows test
+now reproduces ERROR_SHARING_VIOLATION(32) with that exact reader/writer contract.
+This establishes the publication defect without inventing clean01's missing code.
+
+Fix
+tools/native_crash_gate.py writes the fixed authorization into a unique sibling
+temporary,flushes/fsyncs,closes it,then uses Windows no-replacement os.rename.
+The final filename is absent during writing. An existing gate is never overwritten;
+failed writes/publications clean only their owned temporary. The native reader's
+strict sharing,path,regular/single-link file,exact contents,thread/owner/mode and
+original function checks remain unchanged. A refused open now logs the actual
+bounded Win32 error before the existing permanent refusal.
+
+tools/verify_native_crash.py promotes the clean diagnostic owner into source.
+It requires an explicit --arm-native-crash and the owned local/r169g copy with
+current helper provenance,a fresh private profile and a new output directory.
+It checks refusal before readiness,before arming,throughout the exit wait and
+after the retained process handle signals. A refusal exits the wait immediately.
+Success requires one checked ready marker and one later original-thread trigger,
+the expected native exception code,and complete natural root-only job cleanup.
+It does not install exception handlers,invoke target APIs remotely or use Frida.
+Historical private owner scripts and reports remain unchanged as prior evidence.
+
+Validation
+- 16 focused tests pass on Python3.14.8 and3.12.10,zero skips on this Windows host.
+  Actual Win32 tests reproduce old error32 and verify the new publication is
+  absent while writing/readable only after close. Existing gate preservation,
+  failed flush,foreign profile,prompt refusal,final refusal,missing/duplicate/
+  wrong-thread trigger,wrong mode/exit and bounded timeout cases are covered.
+- Required client_patch/build.ps1 C++ suite/helper build passes. Existing compiler
+  conversion warnings remain in the retained log;this is not a warning-free claim.
+- Actual diagnostic helper update preserves19 existing profile/backup files and
+  all non-helper game components;candidate166/r134g remains unchanged.
+- local/crash169-clean02 PASS7.901s without instrumentation. Native ready and
+  trigger run on original thread13156,recipe23,mode3,savedMode32769,expectedMode3,
+  disabled manager/empty pending tree,live stack controller and six invalid IPC
+  handles. Original registered wrapper1484d0/category0 is used.
+- Exit0xc0000005,root retained/reaped,job1/0/0,no forced cleanup. Original local
+  crash/stack log is present. Sources,installed components,candidate166 and shared
+  settings are unchanged across the run. No game or reporter remains running.
+
+Evidence
+local/crash169-gate-fix01/review.json binds exact source/report/build/test hashes.
+local/crash169-clean02/verification.json SHA256:
+  12f5abc16f595752488755b78e798dd21e31289e66115bcfc128d54e8c86faf2
+build/helper-crash169-fix01/BattleAcesOffline.dll SHA256:
+  56c279af274156cad21424416b0ee254f6372d6ce3b7996342ee6f4ddfdd7374
+local/crash169-fix-prior01 preserves exact pre-fix code,owner scripts,installed
+helper/receipt and working documents. Old clean01 and game01-05 failures remain.
+
+Scope and next work
+This closes the arm-file publication/refusal defect and demonstrates the clean
+original native crash exit. It does not establish full P7/D5 privacy,wire-wide
+absence,all effective symbol/network routes,or saved-mode restoration at Quit.
+Earlier instrumented game06 and normal Quit01 keep their stated scopes. Continue
+those remaining qualification gaps under REMAINING_DELIVERY_PLAN.txt;do not repeat
+the fixed handoff or accepted user checks without a change or concrete concern.
+No new package/manual installer/share/host/user request. Recipe remains23/128;
+RUNTIME_VALIDATED remains false and candidate166 remains the coherent release pair.

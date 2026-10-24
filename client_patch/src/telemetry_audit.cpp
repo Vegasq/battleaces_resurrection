@@ -548,6 +548,7 @@ static void deviceProbe() noexcept {
 }
 #include "telemetry_activation_probe.cpp"
 #include "telemetry_cache_probe.cpp"
+#include "native_crash_probe.cpp"
 static void update() {
     if(!requested() || disabled || !startupLogged || !ba::owner || quitAttempted ||
        snapshots>=ba_telemetry_sampling::maxRegularSnapshots)return;
@@ -570,7 +571,7 @@ static void update() {
             else if(current==ba::read<Obj>(ba::owner,0x2f8)){stage=Stage::Tutorial;label="tutorial";}
         }
         if(schedule.due(stage,GetTickCount64(),snapshots))sample(label);
-        if(stage==Stage::Menu){deviceProbe();activationProbe();cache_probe::run();cache_probe::startupRun();}
+        if(stage==Stage::Menu){deviceProbe();activationProbe();cache_probe::run();cache_probe::startupRun();nativeCrashProbe();}
     } catch(const std::exception&) {
         disabled=true;ba::log("Telemetry audit disabled: state observation failed");
     }

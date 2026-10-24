@@ -1,0 +1,100 @@
+BROWSER ACTIVATION172 - COMMUNITY STARTUP AND SURVEY APPLICABILITY
+2026-10-24. Named P8 subcase complete;full P8/D5 and final delivery remain open.
+
+Outcome
+The post171 community client still enters Vuplex initialization callbacks,but
+the observed startup/menu/normal-Quit route creates no view/browser/helper.
+The original survey is a separate explicit-click external link;its examined
+community source leaves the configuration inactive. No product patch is needed
+for these identified startup paths. Do not repeat inert-browser repair or the
+same startup census without a changed route or concrete concern.
+
+Static startup evidence
+The shipped RuntimeInitializeOnLoads.json schedules six Vuplex callbacks:
+StandaloneWebView._initializePlugin,BaseWebView._staticInit,ThreadDispatcher,
+WebPluginFactory before-scene readiness,and Mac/Windows registration. The Mac
+callback is a shared empty leaf and was not used as a specific runtime witness.
+The examined bodies register native callbacks,create persistent dispatcher/
+plugin components and establish state. BaseWebView's system/render information
+path ends in UnityEngine.Debug.Log:local support logging,not a network sender
+in that reviewed path. Keep useful diagnostics.
+Live view/render and cookie APIs remain the separate known lazy-browser startup
+paths documented at146. The171 cut removes the only confirmed game-specific
+embedded-browser consumer in its bounded code/assets inventory. Dynamic and
+indirect later routes are not globally excluded. Sixteen additional complete
+managed bodies match r171g;the native plugin remains original-identical.
+
+Survey source/asset evidence
+Menu_SurveyContainer/SurveyButton has PointerLeftClick -> SurveyVM.OpenURL.
+Its automatic _onNewSurvey callback instead invokes ReactorController.Play.
+AccountService constructs reset SurveyConfig:SurveyNumber0,empty link. Both
+the model and prompt reject number0. The examined population route is original
+ServiceEventNotification -> ServiceEventInformation.FromProto -> SurveyConfig.
+Current community processing replaces that original front-service receiver and
+provides no survey config. This supports inactive survey applicability in the
+inspected community source;no live SurveyConfig fields were sampled.
+If populated by the original service,the link appends survey ID and the player's
+Steam ID as query parameters. That is identifiable user-click navigation,not
+an observed automatic report. No original URL or account flow was activated.
+Nineteen selected native extents match r171g. Two small leaf extents use explicit
+adjacent metadata bounds;the other new bodies have complete unwind bounds.
+
+Owned runtime observation
+local/activation172-game01:PASS,natural original Quit0,no force,job1/0/0.
+The retained process handle/job census is complete and reports only the game;
+all tracker handles close without errors.43.105s includes observer handshake;
+the captured observer reaches its final boundary at24.371s after script load.
+Source/components/shared settings are unchanged throughout the run.
+Ten selected entries were bound to exact original/current complete bodies,
+then all16-byte entry prefixes and absolute module paths checked before hooks.
+Four entry witnesses fire once:managed plugin initialization,dispatcher,
+Windows registration,and native initializePlugin. These prove function entry,
+not successful completion. Survey.OpenURL,Canvas.Instantiate,Standalone.Init,
+native new-view,lazy bridge and browser-creation entries all remain0.
+All eight selected CreateProcess/AsUser/ShellExecute counters remain0. The
+observer records91module paths,834contiguous events,no decoding errors,unknown
+relative file roots,overflow or transport truncation. Selected network API
+counters also remain0;this is neither a wire capture nor full reporting proof.
+
+Boundary and reviewer correction
+The owner launches its isolated copy suspended,assigns the job,retains process
+identity and loads the observer before resuming its primary thread. Frida attach
+may execute injected/loader work;this is not untouched pre-loader coverage.
+Metadata instrumentation does not invoke view/browser/URL APIs or alter their
+arguments/results. It inherits an explicit200ms self-TerminateProcess transport
+hold. Windows forwards kernel32 -> kernelbase,so this run has TWO200ms holds.
+The original reviewer incorrectly required one terminal snapshot and refused
+the evidence. review-attempt01.json and exact source .used snapshots preserve
+that failure. The corrected reviewer accepts only the known ordered same-thread
+self-termination pair with matching state and exactly the expected forwarding
+counter change. Terminal snapshots must be the final contiguous event suffix.
+No gameplay rerun was needed:the generated observer bytes remain identical.
+Fourteen focused tests pass on Python3.14/3.12,including missing/foreign/truncated
+events,missing hooks/counts,forwarded exits and post-snapshot activity rejection.
+Counters stop at the last self-termination entry;retained OS handles separately
+prove natural process lifetime. They do not establish every post-entry thread,
+external broker,driver,network or later supported-menu behavior.
+
+Evidence and identities
+local/activation172-source01:startup callback list,16managed bodies,14safe entry
+descriptors,native146 reuse and hash manifest. local/survey172-source01:exact
+button/event serialization,source/default gates,19native extents and manifest.
+local/activation172-preflight01:ten complete selected entry proofs,tests,prior
+current-doc snapshots and final evidence manifest. local/activation172-game01:
+owner/input integrity,raw REA structured Evidence,observer,review and logs.
+REA load Evidence ev_1eeaa9d4027584272431dec948d61f21e67e43d93dedf106fb6b57af6d03bf34.
+REA status Evidence ev_a1a053c6dcbb5c48aaa664acc9bcce74f602a1d270980fbea3d5e5c11aa99827.
+GameAssembly:f9e14f0b45134eb96e51c4cd7c3965049ae317a64734a364e43ab8325f35d3fa.
+Helper:56c279af274156cad21424416b0ee254f6372d6ce3b7996342ee6f4ddfdd7374.
+Native plugin:f654299829e9d3c65d2fa6af0db13d320b12ac6769566c7fecaa96208e327d89.
+Native REA engines remain unavailable;static work reused pinned PE/IL2CPP/LLVM.
+Only the runtime records above are REA observation Evidence. Its session closed.
+
+Roadmap consequence
+Known removed Korean flow and current startup/survey applicability are settled
+at these named scopes. Move to P7/P9 resumed/in-flight report queue applicability
+using existing producer/guard evidence;identify a reachable missing path before
+requesting another runtime test. Do not read/seed real shared report queues.
+Remaining supported-mode/privacy and final-installed binding obligations remain
+in the finite matrix;RUNTIME_VALIDATED stays false. Candidate166,manual copies,
+helper/game binaries and community transport are unchanged. No Nick action.

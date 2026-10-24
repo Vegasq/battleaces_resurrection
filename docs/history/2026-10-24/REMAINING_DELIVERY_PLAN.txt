@@ -1,0 +1,1096 @@
+BATTLE ACES RESURRECTION - REMAINING DELIVERY PLAN
+Created: 2026-10-20
+Status: ACTIVE. Replaces SERVER_REPLACEMENT_PLAN.txt as the execution plan.
+Source checkpoint: 5a8bdbb8b2fd8cee5ac25e6e3da2d27bf3864288.
+Closeout and transferred scope: PLAN_CLOSEOUT.txt.
+
+Outcome
+Finish the Windows x64 dedicated server and reversible client patch so friends
+can install, connect, play, finish and rematch on separate PCs. The same normal
+client must support local AI without a server. This plan contains unfinished
+delivery work; implemented features are inputs to acceptance, not new rewrites.
+
+Retained requirements
+- One normal Start Server.exe and game-folder Start Battle Aces.cmd; editable server
+  address/port and display_name. No original services/account required.
+- Use the current Windows account's cleaned username as the runtime default;
+  let the player change it in client setup. Preserve existing saved names and
+  profile/remote identities on update/rename. Never bake the builder's name into
+  a package. Player is only an unavailable/empty-name fallback. Added2026-10-22.
+- Local Try Deck with the selected deck and saved practice difficulty. Public
+  1v1/2v2/2vAI always playable: local AI when unavailable, and a real30-second
+  queue limit with AI filling missing seats while keeping available humans in
+  one authoritative match. Original varied bot decks/names/avatars and random
+  supported public-fallback difficulty. Custom remains human-only.
+- Original search/timer/Cancel presentation, distinct immediate preparing/loading
+  feedback, correct results/Continue/rematch, and normal Quit.
+- All installed cosmetics selectable/persistent and propagated into matches;
+  preserve decks, options, useful local UX state, native replay formats/tutorial.
+- Remove game analytics/automatic report collection and delivery; retain required
+  gameplay networking and useful local diagnostics.
+- RC1 uses address-only open access with encrypted TLS and no certificate
+  verification/CA/invite setup,per Nick's2026-10-21 instruction. Existing verified
+  TLS/invite mode remains available;its deployment gates do not block RC1.
+  Isolated workers and persistent
+  host state, orderly shutdown, documented Windows service/backup/restore.
+- Keep source and knowledge base in the existing repository. Import game inputs
+  locally; no original client files, assets, captures, secrets or archives in Git.
+Linux/Wine, commerce/ranked progression and original backend reconstruction are
+outside scope. In-match reconnect, spectator/server-browser UX and extra maps/
+modes remain the old P6 follow-ups, not prerequisites for this release.
+
+Starting point (reuse; do not redo by default)
+Server/client implementation, all four local modes, two-human public play,
+partial-team AI fill, Custom invites/rematches, persistence, reversible install,
+bundled runtime, TLS/enrollment and console hosting have scoped passing evidence.
+The native/community20-match and eight-hour soak already passed. Manual35 covers
+physical AI/deck/cosmetic persistence/Continue/Quit on its frozen candidate.
+Latest53 packages retain51 program/helper bytes; only provenance metadata differs.
+These results keep their documented scope; they do not prove the remaining
+ordinary/cross-PC/Internet/deployment matrix. See STATUS.txt and focused records.
+
+Delivery order
+2026-10-22:Nick reports "1v1 over real lan worked!" Close D1's physical LAN1v1
+play subcase;do not repeat it. Custom menu path/rematch/results/Continue/Quit and
+restart/persistence are unreported,not failed. Record missing observations via
+DEV.txt. RC-U104 username default + editable installer name is now implemented
+and qualified:53tests(1existing opt-in skip),shared native/Python policy,actual
+bundled install/rename with stable identity/saves,ordinary native menu pass.
+Frozen client/hashes:username104.txt;server103 unchanged. Next:review missing
+physical workflow/installer observations and continue remaining finite RC gates.
+103 maintenance/server installer automated qualification COMPLETE:backed-up
+selected-deck reset,verified client uninstall,full server copy/export/import with
+unchanged source,installed production health worker. Both native UIs/payloads pass.
+Native server certificate helper avoids disabled PS scripts. Physical second-PC
+reset/local check N4 and server UI/owner first-start N6 remain;N5 transfers both
+new EXEs. installer103.txt records clean source/hashes/scopes. Full D9 stays open.
+102 immediate installer correction:Nick's second-PC trace confirms PowerShell
+script execution is disabled. Replace default PS UI with a native two-field
+installer EXE and produce Start Battle Aces.cmd plus runtime in the GAME folder.
+No policy change or retained download-folder dependency. Automated102 qualification
+is COMPLETE:61checks,native window,standalone payload,bundled install and actual
+game-folder launcher without extracted source. Physical second-PC UI/launch and
+owner first-server start remain N4;N5 transfers new standalone to the existing LAN
+share. RC1_PLAN.txt and installer102.txt track exact scope/hashes.
+PRIORITY CHANGE2026-10-21:finish the simpler installer and explicit RC1 candidate
+BEFORE the physical two-PC test. RC1_PLAN.txt defines finite RC-I/N/L/M/P/F gates,
+address-only connection and acceptance scope. Keep D1-D9 final work;do not mistake
+an RC milestone for full delivery. Current same-PC installer/RC transport work
+is next;hold N2's physical LAN action until its replacement RC artifacts are ready.
+D6 CLOSED on review93:Nick reports post-reboot menu20s,repeat2s,window/sound15s,
+Try Deck/results/Continue/Quit works,no issues. Manual71 seals/package still pass.
+Preserve that accepted candidate;do not repeat warm D6 batches as acceptance.
+D1 historical preparation:setup53 failed the TLS path rule;93 then failed a server-only import
+in the client runtime. Fresh98 removes that import,retains real server readiness
+validation and passes actual bundled-client import closure/bundled-server config
+checks without overwriting either failed setup's private/configuration files. DEV.txt
+N2 setup98 now has a reviewed READY result;do not rerun provisioning. Actual
+two-PC match/rematch observations are still unrecorded. N1 and N3 are reviewed. Protected
+active-console40 PASS closes that D7 subcase,not SCM/backup/clean-PC deployment.
+Check DEV.txt answers/public reports before repeating requests. D7 precedes D8/D9.
+Close D2-D4 with planned playtests and targeted fixes after the LAN milestone.
+For D2-D4,list the finite remaining cases against retained evidence before more tests;
+each pass closes its named subcase, not the broader parent. D5-D8 retain their
+explicit independent gates; D9 closes only after those release gates pass.
+
+[ ] D1 - Complete the prepared two-PC LAN milestone
+[x] Physical LAN1v1 play:Nick's2026-10-22 report,verbatim above. This is actual
+    cross-PC play evidence,not another loopback/native harness result. Exact
+    build/menu path/rematch/shutdown details were not supplied.
+[x] Setup98 owner readiness:protected TLS/invites/host enrollment and packaged
+    native create/step/close PASS;TLSv1.3,worker0/reaped,no game/listening server.
+    Report/source/archive hashes match;lan-playtest-candidate.txt binds evidence.
+    Preserve issued invites/config;do not rerun setup. Failed53/93 remain retained.
+Historical setup98 remains accepted;do not rerun or alter its private config.
+The earlier installer-first hold no longer describes LAN reachability:Nick has
+already played1v1. Remaining:identify whether that run used Custom invite/Ready/
+Start,and whether changed-deck rematch,results/Continue,normal Quit/restart,saves,
+windows/audio and responsiveness were checked. Record existing observations
+first;request only genuinely untested parts after reviewing DEV.txt answers.
+Done: retained owner result plus both-PC observations prove the complete sequence.
+Evidence/start instructions: lan-playtest-candidate.txt and its local playtest guide.
+This does not close Internet, clean-machine or four-human acceptance.
+
+[ ] D2 - Finish the final mode, matchmaking and transition matrix
+Use the same selected candidate and record missing combinations explicitly.
+Finite case inventory and requirement mapping: mode-acceptance-matrix.txt.
+All eight supported public roster sizes already have native PASS evidence.
+The waiting Cancel/retry tests already active when D6 was prioritized have
+finished;their scoped results are recorded below. With D6's engineering fix and
+automated qualification complete,preserve its manual candidate and address the
+remaining named D2 cells without repeating covered queue/roster tests.
+Completed subcases (same-PC automated controls; not physical LAN):
+[x] Current139 fresh installed server-assets RC2vAI lifecycle PASS151.087s:
+    two clients/two native bots,results/Continue/default Quit0,workers0/reaped,
+    jobs empty/no force,config/shared/assets/program/source preserved. Actual
+    bot proof is assignments/14+25commands/supply12+14/joins,NOT independent
+    movement/pixels. Coherent recipe21/helper138 pair,49artifact assertions.
+    No physical/Internet/full mode/privacy claim. See guarded-candidate139.txt.
+[x] Eight RC schema4 configured-unavailable counterparts AR01-08 (131):real OS
+    refusal/default TLS deadline,all1/2/4/5 modes on actual installed130 runtime.
+    Actual resolver/identity/TLS/bridge failure/local world/result/Continue/
+    default Quit0,empty jobs/no force,endpoint peers drained/threads stopped,
+    shared/config/program/source preserved and tokens not logged.10affected
+    checks and8focused checks pass;initial Win32-vs-Winsock code failure retained.
+    No product/helper/130 candidate change. Protected A07-14/TCP connect timeout/
+    physical/Internet/full privacy gates not closed. See rc-availability131.txt.
+[x] Fresh installed130 server assets RC public2vAI PASS107.911s,two real clients/
+    two bots,original native orders/movement/results/Continue/default Quit0;
+    two worker0 exits,empty jobs,no forced cleanup. Direct check is necessary:
+    fresh native exports differ from setup47 across processes;byte/ordered-schema
+    identity reviews remain FAILED. Do not directly reuse old AI results for new
+    blobs. This current roster passes,not every59profile/all remote/error cases.
+    Exact artifact/failure bindings:installer-progress130.txt.
+[x] Current recipe17/helper127-02 and actual installed128 bundled runtime129:
+    Try Deck4/offline public1/2/5 all pass native result/Continue/default Quit0,
+    each job2/0/0,no forced cleanup;shared/config/package/source unchanged.
+    215.438/212.117/213.018/214.040s. Schema4 blank-address/native diagnostic
+    adapter scope,not configured outage/remote/physical UI acceptance. Exact
+    candidate/source/evidence:guarded-candidate129.txt. Do not repeat unchanged
+    local cases while addressing remaining remote/error/descendant gates.
+[x] Current128 packaged paired RC TLS Custom129 PASS186.264s:original invite,
+    two matches,changed-deck rematch,Continue,sequential Leave/default Quit0.
+    Three native workers0/reaped,jobs9/0/0+2/0/0+2/0/0,no forced cleanup;
+    package/assets/config/shared/source unchanged. Strict artifact review passes.
+    Background native/bundled diagnostic adapter scope,not physical LAN or an
+    ordinary game-folder CMD playthrough. Exact bindings:guarded-candidate129.txt.
+[x] Custom -> local4 -> Custom -> public1 -> Custom,T07/T08 (85 retained).
+    Same two native clients,3original invitations/6Leaves/10Continue actions,
+    4worker0,selected decks/full17slots and moving local bots pass. Original
+    final-reader label failure preserved;strict corrected retained qualification
+    passes without another native run. Fixture TLS/diagnostic Concede/forced
+    cleanup;physical/protected/bundled/native Quit/LAN remain separate.
+    Exact bindings:custom-mode-transitions.txt.
+[x] Same two native clients complete remote1 -> remote2 -> remote5 -> remote1,
+    T05 (84). Selected names/decks/17slots and existing sessions retained;real30s
+    partial2v2 queue,8original Continue actions,4workers0 and every native frame
+    checked. Diagnostic Concede/fixture TLS/forced final cleanup;not physical/
+    native Quit/bundled/protected/LAN. See public-mode-transitions.txt.
+[x] Original remote bot loading/native/result model qualification,B09 (83),
+    together with selection/local-model review82. Three public modes,10actual
+    native/result identities,7bots,original Continue and workers0. Original
+    loading model carries mode only;native rosters were observed after loading.
+    Physical P03 remains OPEN. See remote-bot-profile-models.txt.
+[x] Healthy configured fixture TLS server while using Try Deck,A15 (retained62/
+    review82). Six native clients,no new remote allocations during203.353/204.281s
+    practice windows,real server matches before/after. No new game launch;current
+    ownership-path source applicability checked. Protected/bundled config and
+    physical/native Quit/LAN remain separate. See client-availability.txt.
+[x] Late valid old-session assignment during local fallback,R06-modes1/2/5,
+    and remote -> pre-READY unavailable/local -> remote,T09-T11 (81). All9worlds/
+    original Continue actions,6worker0,full selected loadouts/saved Hard19 pass.
+    Controlled resolver code8/real fixture TLS/forced final cleanup;not protected
+    TCP-refusal/timeout/physical/native Quit/LAN. Exact failures/independent
+    retained qualifications and hashes:public-late-assignment.txt.
+[x] Current Custom directory refresh/eligibility/pooling (custom74 C02),and
+    original decline/cancel/expiry/duplicate Accept/counter cleanup (C03).
+    Helper51/optimized58,loopback development transport;forced client teardown.
+[x] Three-native-client simultaneous inviters/one target (multisender75 C04):
+    original picker/Accept chooses one lobby,unselected Party/lobby stays exact,
+    both invitations retire/counters0/no match. Explicit diagnostic/forced cleanup.
+[x] One-human Custom lobby waits31s with an empty seat,then original Invite/
+    Accept/Start completes two human-only matches (custom76 C05).147live server
+    samples span30.687s without bot/public queue/room/worker;both serialized
+    bootstraps retain two humans. Real TLS with fixture invites,forced cleanup;
+    not protected enrollment,physical controls,LAN or native Quit acceptance.
+[x] Original waiting Cancel/retry in modes2 and5 (cancel63 R02);one subsequent
+    authoritative AI-fill match each,results/Continue;forced final cleanup.
+[x] Original Cancel BEFORE ENTER in modes2 and5 (cancel77 R01);no first-ticket
+    server entry/world,then fresh Play/one30-second queue/one authoritative
+    match/results/Continue.4718/3986exact receipts,one worker0 each,full loadouts;
+    unchanged136bound paths/helper76/ordinary feature options,forced game cleanup.
+[x] Original Cancel after OFFERED/before READY in mode2 (cancel78 R03):no first
+    proposal worker/world,successful cancellation;ticket2 on the same TLS session
+    completes4683exact frames/results/Continue,worker0,full frozen selections.
+    Real fixture TLS/native callbacks/forced cleanup,not physical/LAN/native Quit.
+[x] Four cancellation retry gaps identified78 now pass79:R01/R03/R04-mode1 and
+    R03-mode5. Actual second Play completes1220frames each mode1/5546mode5,original
+    results/Continue;all five created workers exit0/reaped. After-READY first
+    match aborts frame0/result=null,no first client world. Full frozen loadouts,
+    unchanged ordinary-feature/source/helper/candidate seals,forced final cleanup.
+Scope correction78's four cancellation gaps close79. Mode1 R02 already has
+cancel-retry01's actual waiting Cancel/ticket2 match;reuse that scope. Do not add
+cases or repeat qualified team-mode combinations.
+[x] R07-modes1/2/5 now pass80:accepted final RETURN ACK dropped with peer closure,
+    quiet idle retirement,actual second Play and another complete native match/
+    Continue.Mode1:1220+1220exact frames;mode2:4126+3462;mode5:3281+3717. All six
+    workers0,full selected loadouts/both actual bootstrap identities preserved.
+    Explicit second-Continue diagnostic only;ordinary startup control passes.
+    Team matches end naturally,mode1 uses diagnostic concessions1200. Forced
+    final game cleanup,not native Quit.D2 parent/physical/LAN gates remain OPEN.
+[x] Delayed first ENTER ACK during modes2/5 Cancel/retry (cancel72 R05):
+    original second search survives the old reply,then one authoritative match/
+    results/Continue;3451/4588 exact frames,each worker0,forced final game cleanup.
+[x] Original Cancel after READY commitment in modes2/5 (cancel73 R04),then fresh
+    authenticated Play/results/Continue. No local fallback/first client world;
+    aborted result=null,4035/4397 exact replacement frames,all workers0/reaped.
+[x] Packaged four-human2v2 through results/Continue/natural Quit (roster57 full-human01).
+[x] Packaged three-human/one-bot2v2 with real30-second fill, results/Continue/natural Quit
+    (roster57 three-human03). See current-community-matches.txt for evidence.
+[x] Same-process allied2vAI -> offline Try Deck -> allied2vAI, preserving full
+    selections/fresh sessions (transition62 T03; forced final cleanup, not Quit).
+[x] Same-process four-human2v2 -> offline Try Deck -> four-human2v2 with the same
+    preservation (transition62 T04; forced final cleanup, not Quit). Earlier
+    offline4 ->1 ->2 ->5 ->4 is retained as matrix T06, not scheduled again.
+Reuse those controls;physical ordinary/LAN and remaining cases below stay open.
+- Try Deck,1v1,2v2,2vAI: no server/config/credentials; configured valid-credential
+  server unreachable/refusing; reachable empty server; partial/full human rosters.
+  Existing invalid-trust/missing-file/empty-queue proofs need no blanket rerun.
+- Confirm real30-second queue timing, keeping existing humans together, correct
+  alliances, random supported public difficulty and stable original bot identity/
+  deck/avatar through loading/results. Try Deck uses its independent saved choice.
+  B09 selection/local-model review82 and original remote loading/native/result
+  qualification83 pass. Physical P03 remains. Reuse the186deterministic selection
+  checks;do not collect random draws indefinitely.
+  Exact remaining scope:bot-selection-acceptance.txt.
+- Exercise full four-human2v2 and remaining partial team rosters on the current
+  ordinary candidate. Custom never inserts bots or uses the public timeout.
+  Verify directory refresh/status,self/busy exclusion and invite accept/decline/
+  cancel/expiry without starting an unrelated online player.
+- Physically verify original Searching.../elapsed timer/Cancel, immediate accepted-
+  match preparation/loading and settlement on cancel, failure or match found.
+- Close remaining team/Custom/public/local mode switches, cancel/retry, late ACK/
+  assignment/Ready/Return and remote-intent retirement races. One request creates
+  one world; a late server response cannot replace an active local match.
+Done: a finite matrix names each case's PASS evidence or a fixed/retested defect;
+no stuck search/loading/result state and no unsupported success assumption.
+References: RELEASE_ACCEPTANCE.txt, public-results.txt, matchmaking-search.txt,
+match-loading.txt, client-availability.txt, empty-server-queue.txt,
+current-community-matches.txt, remote-local-transitions.txt.
+
+[ ] D3 - Finish visible player features and catalog acceptance
+[x]162 quantitative native income/damage subcase:actual161 bundled runtime /
+    originalDLL/verified139assets,8worlds/4580native50mssteps,Easy/Normal/Hard +
+    identicalNormal repeat.20simsecs botincome432/172 vs480/192,damage44/50/57,
+    HP539/600/689;human values unchanged. Exact Q32 floors/<=1displayed resource
+    endpoint bound,isolated first hits at equalframe543/geometry.41checks/native
+    9.014s/controller0/job2/0/0/no force,22tests pass314/312. No AI/Unity/new local
+    dropdown/physical/allcatalog claim. This closes the prior quantitative gap,
+    not wholeD3. No product/manual/share/new action. bot-strength162.txt.
+- Separate requested Tutorial2 exploration while roadmap is PAUSED:explicit
+  native state/mode100 path implemented,C++ suite/build/preserving update pass.
+  Automated intro-state reached,but visible launch FAILED(hidden desktop,sound
+  only). Owned hidden process stopped. Subsequent desktop PID32028 reaches actual
+  Tutorial2 mission/mode100,world active,human0 sim/presentation59..1659. Visible
+  controls/full completion/normal Quit/settings persistence remain OPEN. Existing
+  tutorial-profile input guard causes startup write-sharing errors;keep protection,
+  follow up after play. DEV N8 keeps missing observations;no repeat launch needed.
+  No release package/general gameplay acceptance change. Evidence:tutorial2.txt.
+- Invite Friend presentation gap (Nick report2026-10-22):community rows currently
+  have no avatars. Show each player's selected in-game portrait using validated
+  server-local cosmetic data and original cosmetic bindings;keep Steam avatar
+  requests disabled. Cover live changes,join/leave,pooled-row reuse and missing
+  portrait fallback. Review the original Alias suffix as a separate display-only
+  cleanup;preserve canonical identity and invitation routing.
+  [x]105 implementation/mixed-version sockets/native material bindings/live edit/
+  default fallback/three pooled cycles/delayed readiness PASS. Paired packaged
+  RC TLS Custom02 two matches/changed-deck rematch/Continue/normal Quit passes;
+  standalone UIs/payloads,actual installed update and game CMD pass their scopes.
+  [ ]105 physical visible portraits on next paired update(DEV N7). No repeat of
+  accepted LAN1v1 requested. Evidence:community-portraits105.txt.
+- Verify configurable names in menu/profile, presence, lobby, loading and results
+  after restart/mode switches. Confirm the difficulty dropdown and effective
+  original rule selection, including quantitative rule differences where specified.
+- Verify all107 installed cosmetic items/17 slots through the original pickers,
+  equivalent-slot swaps, physical drag/double-click/equip/confirm, restart and
+  profile isolation. Confirm full frozen loadouts in local/public/Custom/team/
+  rematch results, including announcers, effects, abilities and audio.
+- Exercise the selectable unit/tech/ability catalog in actual battles: production,
+  upgrades, targeting, movement, damage and deaths. Check natural wins/losses as
+  well as surrender; retain an explicit coverage list.
+- Preserve existing standalone practice/tutorial and functional menu progress.
+Done: missing physical/catalog cases have inspected results and no unresolved
+feature or persistence defect. Catalog export/field equality alone is insufficient.
+References: practice-difficulty.txt, menu-profile-binding.txt, cosmetic-unlock.txt,
+cosmetic-persistence.txt, cosmetic-community.txt and manual35's retained feedback.
+
+[ ] D4 - Close lifecycle, storage, replay and failure coverage
+[x]163 final-relevant-installed engine error subcase:unchanged coherent139 r134g/
+    helper138==161package,late init failure/different-data replacement on same
+    owner plus early invalidDeflate/emptyReplay/missingGameConfig refusals. Both
+    healthy3607frames/original Options/Leave/Cancel/advancing replay/reopen/Confirm/
+    menu/Quit0,outer64.668/37.693s/jobs223/0/0/no force.49prior profiles/critical/
+    shared/seeds/source25/187producer hashes preserved. Strict explicit frozen
+    helper pin and scoped Popen adapter,40tests pass314/312;pregame failures kept.
+    No product/helper/package/manual/share/new action. Physical/ordinary-launcher/
+    diskUI/warning/storage and wholeD4 remain open. installed-replay163.txt.
+[x]154 native allied2vAI BOT_INPUT loss/timeout server subcase:humans0/2,bots1/3,
+    actual AIprofile60/four frame identities;frame10 BOT_INPUT fails,no STEP.
+    ABORTED/RESULTS/RETURN2/RETIRED/same sockets/ticket1->2/10frame replacement/
+    fullprofile bytes preserved. Other same room/worker51/111frames,61duringhang.
+    Actual17.426s/controller0/job18/0/0/no extra cleanup,6workers reaped(victims1,
+    others0),15tests pass. Max gap875.677ms is D8 concern,not cadence acceptance.
+    No graphical/fullD4 inference or new product/package/action. bot-rpc-faults154.txt.
+[x]153 server-side packaged RC/native public1v1 worker loss/timeout control:
+    ABORTED+RESULTS/nullresult/no failedframe10,RETURN2/RETIRED/old offer removed,
+    same sockets/ticket1->2/fresh10frames/full17profile bytes preserved. Healthy
+    same room/worker40/100frames,61during3s timeout.13.198s/controller0/job18/0/0,
+    victim1/others0,6dupe pairsclosed/no extra cleanup.10tests pass. Max gaps223/
+    141ms/cadence resets NOT D8 proof. All human/no fallback;real bot capability
+    configured,not BOT_INPUT/team/UI/completedgame/fullD4 acceptance. Prior152
+    source archived;no new product/package/manual/action. public-room-faults153.txt.
+[x]152 server-side packaged RC/native two-Custom-room worker loss/timeout isolation:
+    deliberate TerminateProcess or retained-primary-thread suspension;default3s/
+    2s policies unchanged. Victim abort/resultnull/no failedframe10,10frame fresh
+    rematch after RETURN2 on SAME connections. HELLO2/full17profiles bytepreserved;
+    healthy same room/worker continues40/99frames,61duringhang.
+    Final control10.630s,victim1/other0 exits,controller0/job18/0/0/no extra harness
+    cleanup.6ownership/path tests pass;failed01/old diagnostic sources retained.
+    This is not graphical client recovery,completed match,team/bot RPC or whole
+    D4 closure. No product/package/manual/Nick action change. room-fault-isolation152.txt.
+Completed subcases (same-PC packaged automated controls; two human clients):
+[x] Partial2v2 running disconnect and same-process replacement (recovery59 03).
+[x] Allied2vAI running disconnect and same-process replacement (recovery59 01).
+[x] Partial2v2 zero-frame loading disconnect and replacement (recovery60 01).
+[x] Allied2vAI zero-frame loading disconnect and replacement (recovery60 01).
+All four include results/Continue/natural Quit and owned-resource cleanup;
+team-recovery.txt binds the exact reports, scope and injected-worker outcomes.
+Additional scoped source/native qualification (not the same packaged controls):
+[x] Reproduce permanent replay error latch99;scope failure to decoded data100.
+    Original accepted data fails initialization once;original valid reload now
+    resumes same-owner playback/Cancel/reopen/Confirm/Quit0,no force/helper Stop/
+    FSM write. Same failed data stays quarantined;ownership exclusions hold.
+    Final installed/ordinary visible error/physical/storage gates stay OPEN.
+[x] Parsed empty Replay/missing GameConfig refusal/reusability97:two original
+    null guards refuse before decoded-state mutation;each restores idle owner/
+    data absent/world0/navigation0/exclusive file access,then SAME-process healthy
+    playback/Cancel/reopen/Confirm/Quit0,no force/helper Stop. Partial-init,
+    physical warning/selection and parent D4 remain OPEN.
+[x] Original high-level invalid Deflate refusal/reusability96:actual IOException,
+    Load false,unchanged idle owner/data absent/world0/navigation0/exclusive file
+    reopen,then3607-frame healthy playback/Cancel/reopen/Confirm/Quit0 in SAME
+    process,no force/helper Stop/FSM write. Not parsed semantic/partial-init
+    recovery,physical warning/file selection or parent D4 closure.
+[x] Healthy replay confirmation Cancel/reopen/Confirm95:original OnCancel releases
+    the owned modal/navigation,same Replay/GameData/world advances130->134,then
+    fresh original options/leave/Confirm/menu/world idle/natural Quit0,no force.
+    Current helper/installed/manual/LAN seals hold. Not loading/error Cancel,
+    physical input,disk selection,malformed recovery or parent D4 closure.
+[x] Healthy replay original options/authored leave/owned confirmation callback
+    route94:3607decoded frames,presented31,existing Show/Hide and ReplayEndGame
+    bindings,current native modal,menu/world idle and natural Quit0/no force.
+    No helper listeners/FSM writes/direct exit API. Not physical pointer/disk UI,
+    Cancel/malformed recovery or parent D4 closure. See replay-failure-recovery.txt.
+[x] Restore omitted original replay pump;healthy menu replay/original API exit/
+    natural Quit and local AI/result/Continue/natural Quit90 pass. Ordinary-option
+    two-client Custom/rematch shared-hook regression91 also passes,four remote
+    leases/full17slots/two workers0. Fixture TLS/forced final remote-client
+    cleanup;not bound replay UI,Cancel/malformed recovery or parent D4 closure.
+Reuse those proofs;remaining full-human/other timings/physical/fault cases stay open.
+Current replay follow-up:D4-RP1 in replay-failure-recovery.txt.90/91 qualify the
+original replay pump,healthy entry/API exit and local/remote shared-hook guards;
+94/95 qualify authored leave/confirmation Cancel/reopen;96 qualifies high-level
+invalid Deflate refusal followed by healthy playback/exit in the same process.
+97 also qualifies the parsed empty Replay/missing GameConfig original null guards.
+99 reproduces the late decoded-state failure:the process-lifetime helper latch
+blocks valid reload.100's data-scoped correction passes original valid reload/
+playback/exit without retrying the same bad record. The finite engine error
+classes enumerated96 have scoped evidence;reuse them. Next qualify the final
+relevant installed candidate/ordinary reachable controls/visible error behavior,
+alongside the separate storage/physical gates below. Do not add equivalent parse
+variants or repeat the known55 developer-batch timeout.
+That diagnostic's noncompletion is retained;ordinary entry never selects it.
+No physical pointer/visible-warning/file-selection or broad semantic-recovery
+pass inferred. No new replay browser or Cancel UI is required by an unqualified
+scope;loading/error Cancel first needs an identified original reachable control.
+No force-menu patch or repeated malformed developer-batch timeout test.
+- Close remaining invitation departure/late-return/abort-notice and multiplayer
+  disconnect/restart/failure paths in every affected required mode. Survivors
+  return to a usable menu/lobby; first release does not restore an active match.
+  Show an explicit abort when the result is unknown; do not invent a winner.
+- Qualify final installed profile-local TOML, cosmetics, replay and functional UX
+  backup/JSON readback/restart. Check owned missing/corrupt/locked/denied paths,
+  interrupted or failed writes, recovery and useful native warning messages.
+- Finish stateful native replay playback negative/fault/cancel coverage and final
+  retention/path/readback checks. Reuse passed codec/six-malformed-input tests.
+- Preserve original/previous valid data on refusal, correct result delivery,
+  Continue and natural Quit, and worker/room/owned-process cleanup.
+- Cover remaining slow-load, incompatible-version/assets, malformed/oversized
+  traffic and worker crash/hang cases without disturbing unrelated rooms.
+Done: bounded reproductions of remaining faults yield the intended visible
+recovery, preserved data and released resources on the final relevant candidate.
+References: client-storage-isolation.txt, native-replay-validation.txt,
+native-settings-atomic.txt, native-deck-validation.txt, packaged-multiplayer.txt,
+native-custom-invitations.txt, native-custom-matches.txt.
+
+[ ] D5 - Complete game analytics/report removal and qualification
+[x]168 source/runtime-CONTROL subcase:process-local WER owner constant1->3 retains
+    original conditional restore/local logs.23/128,one native+onechecksum byte.
+    Authored C++ main/originalfilter/c0000005 exit/job1/0/0/no force PASS;13actual
+    mutations reject,01/02failures retained.103tests on314/312/C++suite/helper168
+    pass. NO actual game install/crash/package change;166 remains22/helper165.
+    NEXT owned23 client/passive observer/gated C++ original crash,actual mode/
+    owner/symbols/local logs/exit/descendants/normalQuit+restore before packaging.
+    Actual game/P7/fullD5 OPEN;not same control/scans/quiet AI. No new Nick action.
+    Evidence:native-crash-policy168.txt.
+[x]167 source-only native crash contract:two distinct owners,three existing guard
+    lifetimes,original cursor callback and invalid-pipe exit before native report
+    payload/event/infinite wait. Actual registered ForceCrash selector0 raises
+    c0000005;original local StackWalker/DbgHelp/username/module/path diagnostics
+    remain.2735API/14414closing byte checks/36full bodies/current166 Unity/six
+    N10 pins verify;no target/crash/product/package/queue operation or new action.
+    NEXT actual one bounded crash after thread/owner/symbol policy/OS handoff
+    qualification;not same source or quiet AI. Runtime/P7/fullD5 stay OPEN.
+    Scope:native-crash-contract167.txt.
+[x]165 SDK instance/queued error-collection gap:seven guards before input reads/
+    allocation;borrowed void ABI/filter callback/original discarded-report and
+    queued closure return contract.22/127,85tests on314/312/C++suite;67profile-
+    preserving upgrade/genuine Client/Exception/seven calls/original local log/
+    practice/results/Continue/Quit0 pass213.820s,job3/0/0/no force.21actual
+    mutations reject. Explicit SDK-root diagnostic,not ordinary/wire/all-thread/
+    native-crash/every-inflight/fullD5 proof. r134g22/helper165;packages/manual130/
+    N7/share unchanged,no new action. Scope:sdk-report-errors165.txt.
+[x]164 named general-wrapper source subcase:actual3471-entry registrar binds
+    10e270 to SystemInfo device-ID API;5920b0 system-RNG-first16-byte fill reaches
+    machine-ID fallback only on nonzero return. One consumer seeds registered
+    UnityEngine.Random state;second owner and upstreamc307c0 still unresolved.
+    806independent static byte/extent/binding checks/14pairs/11complete windows,
+    72worker artifact hashes pass. No runtime/getter/SDK/product/package change
+    or analytics-only patch. Next remaining final-installed mode/error/reporter/
+    descendant matrix;not same wrapper/quiet-AI repeats. WholeD5 remains OPEN.
+    Scope/gaps/evidence:native-identifier-consumers164.txt.
+Current finite acceptance inventory:P1-P9 in telemetry-acceptance-matrix140.txt.
+Source/runtime contracts retained in telemetry-source-worklist125.txt;140 maps
+the same requirements without a new product scope or blanket rerun. P1's selected
+installed startup pair is closed below;P1 as a whole and P2-P9 remain OPEN.
+128 resolves the external1ca49c8 settings query as a pure Boolean-field getter,
+with constructor/type/registry links and39full roots+exact leaf. No new patch or
+runtime test is justified for that resolved query. Source producer remains open;
+NEXT prepare current guarded candidate and its finite installed mode/error/
+descendant matrix independently. Evidence:telemetry-settings-query128.txt.
+[x] Review128:named settings object initialization/type/virtual40 source question.
+    Seven byte-window checks and current recipe17 in-memory transformation pass;
+    no target execution/ID query. Not upstream callback registration/full D5.
+127 closes named cloud-getter and two native preparation routes with three
+guards,retaining original return/ownership/busy/caller cleanup. NEXT external
+provider/upstream advertising registration or source proof its consumers are
+already cut;then supported runtime/final artifacts. Full D5 stays OPEN.
+[x] Review127:recipe17/111guards,91checks/C++ suite,preserved16->17 update,
+    genuine inactive Main/Session guarded calls,AI/results/Continue/default
+    Quit0 PASS126.662s,job1/0/0/no force. Strict668rows/357anchors/9ms drift,
+    0unknown roots/280selected fileops/0network/child events and38actual retained
+    mutations pass. Build01 superseded before install/runtime after discovering
+    second config route;final helper127-02. No127packages/new action;105/N7
+    current. Source/ABI/lifecycle limits and hashes:telemetry-native-activation127.txt.
+[x] Review132 finite direct9fb910 inventory and installed130 byte coverage:
+    five verified E8/E9 calls;three analytics routes already guarded.136static
+    assertions pass. Initial missing-c32468-guard assertion FAILED;110 covers it,
+    no duplicate guard/new runtime run. Platform/base31-entry tables differ only
+    at four known slots,no new Windows-only ads override in this table pair.
+    Scope/failure/hashes:telemetry-platform-coverage132.txt. Full D5 stays OPEN.
+[x] Review133 classifies10e270/5920b0:actual fd2420 reader binds public SystemInfo
+    identity wrapper and13 Unity Random APIs consuming shared seeded state.
+    Second seed owner is particle-related(inference).70static checks/14full
+    roots and installed130 preservation pass. Keep shared query/random init;
+    no duplicate/global guard/game run. Details:telemetry-identity-consumers133.txt.
+[x] Review134 maps managed aliases/inlined generic service Init calls and adds
+    two acquisition+setter bypasses retaining genuine DeviceProfile empty ID.
+    Recipe18/113guards;93Python checks/C++ suite/helper134-02,independent17->18
+    upgrade94.649s and actual AI/results/Continue/default Quit0 PASS101.816s,
+    loaded2/2/eight samples/job1/0/0/no force. Source130/program/shared preserved.
+    No actual Init invocation/visible/all-mode claim. Failure corrections,
+    reviewer02/29checks and hashes:telemetry-service-identity134.txt. No new
+    installer/Nick action;130/N7 and coherent r103g unchanged,r134g diagnostic.
+[x] Review135 classifies remaining service context and extends same two guards
+    past type/model acquisition+formatting+setter. Recipe19/still113guards;
+    empty ID/model and lifecycle/version/locale/public APIs retained.95checks/
+    C++ suite/helper135-01,18->19 update46.829s preserving6profiles/backups/source
+    130 pass. First short capture FAILS independent movement despite valid Quit;
+    corrected checker rejects actual134/13501 combat claims,original summaries
+    retained and134 prose corrected. Fresh3600-frame native02 PASS217.135s,
+    48correlated units/91actions/results/Continue/default Quit0,job1/0/0/no force,
+    eight samples/profile2/2/explicit19. Review02 PASS34checks. Exact failures/
+    scope/hashes:telemetry-service-profile135.txt. No package/Nick action;130/N7
+    unchanged,r134g now19/helper135-01 diagnostic only. Full D5 remains OPEN.
+[x] Review136 finite adjacent14a0->1498 alias hypothesis:constructor publication,
+    eight concrete methods and ten named global consumers forward event/flag
+    paths without forming callback at reviewed dispatches.87source checks pass,
+    eight full relevant roots/four exact leaves. Ancillary numeric candidates
+    unclassified;failed all-window completeness retained. No query/game/patch.
+    Evidence:telemetry-adjacent-interface136.txt. This does NOT resolve upstream
+    producer or computed/RVA/bulk/interior aliases;full D5 remains OPEN/false.
+[x] Review137 resolves one operational-fixture collection gap:recipe20/114 adds
+    static void AutomaticDataCollector.SetDefaultData guard before Unity queries.
+    Constructors/shared APIs intact.65Python checks/C++ suite,15source/18runtime
+    checks pass;actual19->20 update44.566s preserves16profiles/backups/source130.
+    Native AI217.357s/47correlated units/results/Continue/default Quit0,eight
+    current20 samples/collector1/1/job1/0/0/no force. Not operational Client or
+    actual collector invocation. r134g diagnostic20/helper137;130/N7 unchanged.
+    Scope/seals:telemetry-default-collector137.txt. Full D5 remains OPEN/false.
+[x] Review138 initialized reporting-disabled SDK Client FRESH fixture:21/120
+    keeps real constructors/core,skips dispatch/cache IO/hooks. Paired callback
+    jump/tail restores original frame. Actual constructors/14fields/linked own
+    cache/payload/delivery/non-null Client/four retained Unity heads,two reports/
+    five false/Dispose paths/files/restoration pass.76Python/C++ suite,49source/
+    20actual checks/52actual rejections. Update45.094s preserves21profiles/backups/
+    source130;native217.190s/48correlated bots/results/Continue/Quit0,eight21
+    samples/SDK6/6/job1/0/0/no force/source/program/shared unchanged. NOT ordinary
+    startup/all-thread/inflight/physical/full D5. r134g21/helper138 diagnostic;
+    130/N7 unchanged. Scope/seals:telemetry-sdk-client138.txt.
+[x] Candidate139:coherent recipe21/helper138 current pair from clean f99fc83,
+    actual original native installers,exact installed client runtime,game-folder
+    entry,relocated package/legacy upgrade/restore and direct freshly installed
+    server-assets RC2vAI lifecycle pass.49actual artifact assertions. Forced
+    entry cleanup is separate from natural match Quit0. No privacy observation
+    completion or independent bot movement claim. Scope:guarded-candidate139.txt.
+[x] Review140 selected PASSIVE installed139 SDK startup pair:13SDK entry counters,
+    no path replacement/SDK fixture/collector call/queue read or seed. Settings-
+    absent profile then SAME-profile restart/native audit/original Quit0 pass;
+    each job1/0/0/no force,three21 samples,config/shared/program/source130 unchanged,
+    same1164-byte TOML/deck preserved. Fresh295rows/52anchors/215selected file ops,
+    restart206/46/143,max12ms drift,13SDK counts0/0selected network/child/unknown
+    roots.16focused checks/strict02 source-sealed actual review/29actual mutation
+    rejections per case pass. Direct native diagnostic entry,NOT CMD/physical/
+    performance/all-thread/inlined/pre-loader/tree/wire or full D5. Both sessions
+    closed,no shipping/package/manual change. telemetry-acceptance-matrix140.txt.
+[x] Profile141 bounded native edit/Back/idle10031ms/Quit/restart and actual-value
+    persistence:deck/full17cosmetics/difficulty. New fully gated diagnostic;
+    original main ownership/navigation recovered. All3successful cases exit0/
+    job1/0/0/no force;failed attempts stay failed. Strict review06/sealed74inputs,
+    selected13SDK counts0. Extra553PDB lookups retain unknown initiating producer;
+    restart full provider record recovered verbatim,explicit laterclose unavailable.
+    Separate r141g/helper141-07,not final installed139/physical/full P2/D5.
+    Scope/failures/hashes:profile-edits141.txt. No new Nick action/package.
+[x] Observer142 per-thread emit-time unwind provenance/nested-PC fallback and strict
+    annotation projection.17focused checks,actual sensor and new-owned-profile native
+    source-bound case pass,natural exit/jobs empty/no force. All553PDB attempts
+    reproduce at depth0;initiator stays UNKNOWN. Retained141 timing is shutdown,
+    not startup validation errors. Prior141 inputs/choices preserved. Next loaded
+    DbgHelp identity/caller ownership or independent OS/native observation,not
+    another unmodified quiet run. Full P2/D5 OPEN;observer-unwind142.txt.
+[x] Symbol143 loaded DbgHelp identity/named four-export prefix/original Unity
+    caller subtask:real positive Init/Cleanup control,native Quit0/jobempty/no force,
+    22focused checks,strict native/control/disk PE proof and90input seals pass.
+    All553PDB remain outside selected4API extents;initiator UNKNOWN. Source now
+    identifies UNMONITORED SymLoadModule64(helper+60);next targeted caller/extent,
+    not a same4hook rerun. Preserve shared hardfailure stack routines;no broad
+    diagnostic privacy guard justified. FullP2/D5OPEN. symbol-identity143.txt.
+[x] Symbol144 closes immediate native scope ownership for new capture's553PDB
+    attempts/172paths:all inside SymLoadModule64,Unity+9f8c2c. Exact original/
+    installed wrapper and address-symbolizer init/refresh source bind;22checks,
+    actual successful authored load/native Quit0/empty jobs/no force pass. Default
+    four-hook source unchanged;opt-in fifthAPI only. Historical inputs/choices
+    preserved via exact143source snapshots;102inputseal02passes. Next9fa330's
+    high-level caller/shutdown requester;no same5hook rerun. PDBcompletion/content
+    reads and fullP2/D5remain unproven. module-symbol-loading144.txt.
+[x] Warning145 captured PDB-trigger classification:CLOSED. ALL553attempts/172paths
+    inside one original Unity renderTexture-warning log call+4a9a46,nested load
+    +9f8c2c. Exact source/installed/printed-stack/module-base binding,26checks,
+    strict04/native normalQuit0/jobempty/no force pass. Failed02pre-resume release
+    race preserved;atomic publication fixes controller. Complete14MBretained
+    evidence/export verified;prior inputs/choices unchanged. No shared logging
+    privacy guard or equivalent PDB probe needed. WholeP2/D5OPEN. shutdown-warning145.txt.
+[x] WebView146 STATIC P8 prerequisites:original managed compliance prefab owner,
+    genuine factory/Task/render ABI,first-render/cookie native spawn,public cache
+    override/reapplication and original disposal/4s termination contracts qualified.
+    31managed bodies/current139 and whole native plugin identity bind. Source
+    seal173/prior145100 unchanged. NO browser/target/runtime proof. Running flag
+    and Task are not OSexit. webview-contracts146.txt;wholeP8/D5OPEN.
+[x]147 implements the default-disabled owned Unity-thread component driver and
+    observes original Vuplex startup/correct owned-cache argv.19tests/C++suite and
+    tracker positive/negative controls pass. This closes IMPLEMENTATION ONLY:
+    03/04/05 browser initialization controls FAILED. Corrected05 rectangle256x144
+    still times out. RootQuit0/jobs empty/no force;04retainsWerFault as thirdprocess,
+    while03/05miss one short child. Decoder/root gaps remain;no fullP8/D5 claim.
+    Exact capture/source failures,seals and unchanged shipping:webview-runtime147.txt.
+[x]148 controlled actual browser startup:both wrappers AND actualCEFexports
+    observed,execute-1/initialize1/wrappertrue;IPC loop logs original pipe-open
+    failure and returns. Original log error5/access denied;source binds normal
+    failure logging,not fatalcause.36tests/actual owned held-thread control pass.
+    Exact-access authored pipe denial reproduced without game code. N9 desktop
+    comparison ready;read DEV/report first. RootQuit0/no force/jobs empty,full
+    browsercontrol FAILED and short-child lifetime/decoder gaps remain. No ACL,
+    helper or shipping change;browser-ipc148.txt,113seal/prior147211preserved.
+[x]149 controlled same-run pipe metadata:parent creationvalid,same64char salted
+    fingerprint atchildopen,error5;Connect997pending/wait0cleanup NOTconnection.
+    Two actualcaptures/57tests/C++suites/typedreview pass,not fullbrowsercontrol.
+    Final isolated helper149-04 immutable122publication protocol closes its
+    diagnosed output-replacement failure;rejectedshare-delete proposal retained.
+    Old failures/shortchild/unresolved-root gaps stayopen.280seal/oldinputs exact
+    archivedsource verified;shipping/manual unchanged. pipe-equality149.txt.
+[x]150 read-only actual owned pipe SD/label/process-token snapshots before browser
+    resume and after open error5. Same user/medium/four restricting SIDs;only
+    restricting DACL match grants read0x120089,missing writes. Authored control
+    agrees.76tests/strictactual8corruption rejections pass;bounded security gate
+    only,NOT effective failing-thread token/causal AccessCheck/fullbrowser/P8/D5.
+    RootQuit0/no force/job3/0/0,shortthirdidentity missing.01journal PermissionError
+    before query/forcedcleanup retained;02retry added but unexercised. Old149280/
+    147211/148113seals preserved;no helper/shipping/manual changes. pipe-security150.txt.
+[ ] Next:review N9 desktop result before asking to repeat;continue independent
+    finite source/installed/network/lifetime and D1-D9 gates while it is pending.
+    Restriction mismatch supports automation-context explanation,not a game/global
+    ACL/token workaround. Preserve exact effective-thread/causal limits if further
+    access analysis is needed. Retain complete short-lived process identity gate.
+    Do not repeat unchanged root-only
+    activation or restore reporters on an unproven causal theory. Independently
+    qualify initialization/page/Dispose/task/destruction and effective child cache/
+    network/files/exit. Four-dash private cache flag is source-correct,not a native
+    defect. All failed controls stay failed;keep shipping139/manual/N7 unchanged.
+    Retain finiteP8 supported-route applicability,with P2's
+    remaining attribution/installed binding and credible network observation.
+    Apply P1-P9 finite inventory to139 rather
+    than repeat quiet constructor/AI/startup controls. Keep whole-startup/all-thread,resumed/
+    inflight and c307c0 producer gates;no equivalent quiet AI/constructor or
+    completed exact/adjacent source scan rerun.
+S1 CLOSED BY126:all FIVE safe interior SDK guards,with genuine matched/unmatched
+pending-owner cleanup and disabled-ID qualification.125 found failed/cache
+handlers can enumerate/prune AFTER WriteFile RET;do not entry-RET those handlers
+because their pending-list cleanup is required.126 now implements/qualifies the
+five proposals within its explicit owned scope. NEXT S2 native identity and S3
+archive state activation remain separate finite source gates.125 native02 adds
+an actual unforced AI/
+Continue/Quit observation:12 watched native entries0,c307c0 recognized-only,
+native audit intact,process0/job1/0/0/no force.16checks/86actual capture mutations
+pass. Initial hook-vs-native-audit failure01 retained;no repeated quiet AI runs
+or unused parser-format work in place of concrete source fixes. D5 stays OPEN.
+[x] Review126 closes finite S1:recipe16/108guards,eight genuine matched/miss
+    pending-owner cases/32objects,readable device-file control/genuine empty ID.
+    88checks/C++ suite,actual15->16 update preserving profiles/backups,native
+    AI/results/Continue/default Quit0 PASS121.450s,job1/0/0/no force. Strict717
+    rows/356anchors/13ms drift/0unknown roots,330selected fileops/0network/child
+    events,98actual retained mutations pass. Owner terminal/REA closed;first01
+    preflight failure preserved. No126packages;105/N7 stays current. Scoped
+    source/ABI/limits/hashes:telemetry-cache-failure126.txt. Operational/in-flight/
+    all-mode/descendant/final artifact gates remain OPEN;full D5 stays false.
+- Finish indirect collector/storage/callback/reporter review, including constructor
+  work, cache/retry/error/crash paths, bundled CEF and child reporters. Preserve
+  functional UX/local saves while disabling the actual telemetry/cloud sinks.
+- Exercise fresh/existing profiles through startup, idle, deck/options edits,
+  tutorial, all required modes, postgame/rematch, offline/reconnect and shutdown.
+  Use controlled owned error/reporter/crash cases and pre-existing queued reports.
+- Attribute DNS/network/process and relevant queue/file activity across the game
+  and descendants. Distinguish real game-server traffic; correlate observations
+  with reviewed disabled paths. Endpoint blocking or quiet counters are insufficient.
+- Repeat affected checks against the final installed artifacts, retaining private
+  capture/source identities and a public tested-scope summary. Declare external
+  driver/overlay/OS limits explicitly; do not promise system-wide reporting control.
+Done: the full supported game-owned reporting/collection requirement is evidenced
+and gameplay/lifecycle compatibility passes. RUNTIME_VALIDATED stays false until
+that gate is actually met. Existing63 guards/NGX containment and observation52
+are scoped inputs, not a completion substitute.
+[x] Review106 identifies separate CEF handler dispatch and constructor-side device
+    collection boundary;recipe5 adds two narrow guards with cleanup/state retained.
+    56focused checks,authored x64 replacement execution and controlled patched
+    child call/return + separate natural child0/empty job pass. Four components,
+    65guards;RUNTIME_VALIDATED=false. Real recipe4->5 upgrade/restore/reapply and
+    native AI/result/Continue/default natural Quit0 pass;final-artifact packaging,
+    full D5 matrix/attribution remain open. Existing105 manual files stay frozen.
+[x] Review107 suppresses public QueueEvent before name/payload conversion,with
+    reviewed borrowed-input/false-result ABI. Recipe6/66guards,74focused checks,
+    required C++ suite,actual upgrade and native AI/results/Continue/Quit0 pass.
+    New selected metadata observer positive control and20retained rejection
+    controls pass. Separate bounded recipe5 game window has no selected events;
+    that is not full lifecycle/descendant/network/removal proof. Inherited CEF
+    pipe has no demonstrated new bypass;WMI-capable drain reachability remains
+    open and cannot be dismissed from empty queues. See telemetry-attribution107.txt.
+[x] Review108 skips configuration identity preparation through its original dirty
+    tail and selects an existing unknown device-ID fallback in a separate state
+    initializer. Shared query/serializer/drain cleanup stay intact. Recipe7,
+    68guards;69focused checks,C++ suite,actual6->7 upgrade with unchanged profiles
+    and native AI/result/Continue/default Quit0 pass. Static callback review
+    supports guarded normal registration/Resume;indirect engine activation,
+    machine-ID/other serializer/dirty ads-identity paths remain open. No108
+    packages;105 remains current. Evidence:telemetry-platform108.txt. D5 OPEN.
+[x] Review109 skips dirty ads-identity construction/destruction while retaining
+    dirty reset,conditional drain and all six chained unwind saves/restores.
+    Separate base preparation returns before timestamp/string acquisition.
+    Recipe8/71guards,72focused tests,C++ suite,final four-component restore/
+    reapply with preserved profiles and native AI/Continue/default Quit0 pass.
+    First normal-flow proposal rejected before runtime for an unwind mismatch;
+    corrected guard and full evidence:telemetry-identity109.txt. Machine-ID starts
+    empty in the reviewed constructor,but lifetime writes/ads input acquisition
+    and other cache/request serializers stay unresolved. Full D5 remains OPEN;
+    no109 package/current manual update change. No accepted playtest repeated.
+[x] Review110 adds three caller-specific cache serialization skips with request/
+    lock/cleanup retained,and a separate identity-refresh unknown fallback.
+    Recipe9/75guards;86checks,C++ suite,actual8->9 preserving profiles and native
+    AI/result/Continue/default Quit0 pass. Source:telemetry-cached-requests110.txt.
+    A new clocked-v2 metadata control passes with17actual rejection controls;
+    one persistent game window has549rows/400anchors aligned from pre-practice
+    through original Quit,120local file records and no network/child events.
+    20actual game/owner mutations reject. This closes only that selected-API AI
+    window's alignment subcase,not pre-attach/full-lifetime/all-mode/descendant/
+    crash/cache/reporting removal. Failed v1 game alignment remains failed.
+    Exact evidence/limits:telemetry-clock-attribution110.txt. D5 still OPEN.
+[x] Review111 qualifies owned paused launch/observer-before-primary-resume:
+    authored control,10focused checks and24actual rejection cases pass. Native
+    AI/results/Continue/default Quit0 passes with source/shared/program seals,
+    job1/0/0 and no force. This advances observation earlier than110;not D6 timing.
+[x] Startup absolute-root attribution113 for the selected native AI window PASS:
+    actual live current-directory/owned-handle checks resolve both log opens in
+    r103g with status0.664rows/355anchors align settings-through-Quit,0unknown
+    roots,no force/job1/0/0;8program files/shared/source sealed.26checks/56actual
+    rejections pass. Earlier111/112 failures stay failed. No repeat of this scoped
+    case without change/concern;full D5/all modes/final artifacts stay OPEN.
+    Evidence:telemetry-current-directory113.txt. No recipe/helper/package change.
+[ ] Pre-existing report cache:111's real Bugsnag reader uses generic
+    Application.persistentDataPath,not isolated profile storage;
+    no real queued reports found in candidate shared root.120 closes the scoped
+    path/typed-format prerequisites below;121 closes the scoped genuine on-disk
+    reader.123 implements early canonical SDK-root isolation and passes a native
+    root-control/AI/Quit case,but its own observation remains FAILED.124 now
+    closes the selected canonical-root startup-through-exit-entry observation,
+    following the actual Unity TerminateProcess route. Full cache/report coverage
+    stays OPEN;this diagnostic root shim is not a shipped isolation patch.
+    122 closes fresh-instance guarded delivery with real disk reports
+    and an explicitly absent Client.138 separately qualifies a genuine initialized
+    reporting-disabled Client with owned reports/guarded delivery. Whole-startup/
+    all-thread isolation,ordinary operational lifecycle and resumed/inflight
+    delivery remain OPEN. Never acquire/clear the shared queue. Historical123
+    retained recipe15/103 with no123package/new action. Evidence:telemetry-startup-observation111.txt,
+    telemetry-cache-contract120.txt,telemetry-cache-readers121.txt,
+    telemetry-cache-delivery122.txt,telemetry-cache-startup123.txt.
+[x] Review123/124:selected canonical SDK queue startup-through-exit-entry case
+    [x] Static contract:66 bounded original bodies/21direct refs establish early
+        SDK getter hook before retained device filename initialization. Direct/
+        canonical scope only;inlined Client ctor work and arbitrary-path gaps kept.
+    [x] Diagnostic implementation,85checks/C++ suite,profile/backups-preserving
+        helper update. Corrected native02 root-control/AI/results/Continue/default
+        Quit0 PASS129.892s,job1/0/0,no force;pre-launch seeds/program/shared/source
+        unchanged. Failed01 Boolean-marshalling exit1610 retained,not promoted.
+    [x] Final entry counter boundary124:original UnityMain self-TerminateProcess
+        call805478/return80547e matched in actual fresh AI/Continue/default Quit.
+        669rows/352anchors have final2 snapshots/root4handles4/all8SDK counts0,
+        0unknown roots;owner natural0/reaped/job1/0/0,no force,seeds/seals unchanged.
+        17checks,strict typed/alias review02 and96actual retained mutations pass.
+        Explicit200ms hold per distinct entry(400ms here),not ordinary behavior.
+        Entry counters plus independent OS completion,not gap-free post-entry
+        lifetime/all reporters.123's missing snapshot review stays FAILED.
+    ACTIVE again per Nick's explicit continuation;the pause was historical.
+    Review124 is complete within the selected scope above. No123/124packages/new
+    user action. All owners terminal/REA sessions closed.105/DEV N7 stays current.
+    Evidence/scopes/hashes:telemetry-cache-startup123.txt and
+    telemetry-exit-boundary124.txt. Full D5 OPEN/false;continue remaining native/
+    archived identity sources and supported runtime/final-artifact gates.
+[x] Review122:genuine PayloadManager/Delivery constructors and five real iterator
+    factories exercise existing guards with two rehydrated disk reports while
+    cache/config/path lifetime stays selected. Explicit absent Client,not a fake
+    operational SDK. Deliver2/Start1/MoveNext-false5/original fresh Dispose5 pass;
+    state0/current/captures/top-level report/owner/list fields and files stable.
+    82checks/C++ suite,profile/backups-preserving helper install and native AI/
+    result/Continue/default Quit0 pass134.596s,job1/0/0/no force.703rows/352anchors,
+    0unknown roots;127actual retained mutations reject. Named fresh guard lifetime
+    subtask CLOSED;not resumed/in-flight delivery,ordinary startup isolation or
+    full D5. Static list initialization acknowledged,not all statics unchanged.
+    Next remaining ordinary startup/root isolation and supported runtime/identity
+    source gates;reuse120-122 rather than rerun fresh scope without concern.
+    No122packages;105/DEV N7 current. Evidence:telemetry-cache-delivery122.txt.
+[x] Review121:construct genuine SDK CacheManager under EMPTY canonical owned
+    root,then seed/read two authored reports via original instance readers.
+    Actual returned paths/bytes/typed fields,missing IDs,file preservation and
+    static config/device filename/path restoration pass. CLASS static setter
+    reference is DIRECT Obj,not &Obj;original switch/leaf ABI pinned before use.
+    80checks/C++ suite,profile/backups-preserving helper install and native AI/
+    results/Continue/default Quit0 pass126.804s,job1/0/0/no force. Selected capture
+    shows one original-image read per seed;77altered-record checks reject. Named
+    reader subtask CLOSED;NOT whole-startup/ordinary guarded delivery/full D5.
+    Genuine fresh Delivery initialization/ownership is now covered by122 above.
+    Source/evidence:telemetry-cache-readers121.txt.
+[x] Review120:four original cache/application getters use an explicit canonical
+    owned root with icall restoration;genuine JSON/parser/report constructors
+    retain one authored error/session and reject two missing-key dictionaries.
+    78affected checks,C++ suite,profile/backups-preserving helper install and
+    corrected native AI/results/Continue/default Quit0 pass132.189s,no force.
+    Selected window/44actual altered-record checks pass. Failed native01 retained;
+    actual JsonObject indexer ambiguity corrected via original GetDictionary.
+    CacheManager ctor can delete expired entries and is NOT invoked;nor are disk
+    readers,report serializers/delivery. This is NOT whole-process/startup queue
+    isolation or full D5 closure. Next review a genuine initialized cache instance
+    under an EMPTY owned root before seed/reader tests,including static-config/
+    expiry side effects. Exact source/evidence:telemetry-cache-contract120.txt.
+[x] Review112 identifies both111 unresolved entries using positively qualified
+    opt-in relative-path/caller metadata:sim.log/Simulation.dll and fuzzylogicai.log/
+    aiprogram.dll. Matching original IATs confirm CreateFileW call sites. Native
+    AI/results/Continue/default Quit0 still passes;20checks/36actual rejections
+    pass.112's own absolute-root qualification remains FAILED with counter2;
+    the new113 proof above closes that separate subcase,preserving old reports.
+    Evidence:telemetry-relative-roots112.txt. Recipe9 unchanged,no112 package.
+[x] Review114 guards the two registered AnalyticsSessionInfo custom user/device
+    identity setters before conversion/storage. Privacy setter/RemoteConfig/shared
+    helpers and unknown callbacks stay unchanged. Recipe10/77guards;72checks,
+    required C++ suite,actual9->10 upgrade preserving profiles/backups,and native
+    guarded-entry calls/AI/result/Continue/default Quit0 pass. Selected metadata
+    window has0unknown roots;65actual mutations reject. Full source/acquisition,
+    queued reports/runtime matrix/final artifacts remain OPEN. No114 package;
+    evidence:telemetry-custom-identities114.txt. No repeat accepted manual checks.
+[x] Review115 omits only the native ads callback retained-ID copy,preserving
+    validation,tracking/dirty progress,conditional drain and unwind cleanup.
+    Recipe11/78guards;73affected checks,C++ suite,actual10->11 upgrade preserving
+    profiles/backups and controlled callback/AI/results/Continue/default Quit0
+    pass. Selected startup-through-Quit window passes;78actual altered records
+    reject. Earlier acquisition/registration stays UNKNOWN;this is not whole
+    D5 collection/removal proof. No115 package;frozen105/DEV N7 stay current.
+    Evidence:telemetry-ads-retention115.txt. Do not repeat this scoped pass.
+[x] Review116 guards3registered public event submission entries before borrowed
+    input rooting/conversion/wrapper access,with original disabled result2.
+    Recipe12/81guards;74checks,C++ suite,actual11->12 preserving profiles/backups,
+    guarded calls/AI/results/Continue/default Quit0 pass. Selected observer window
+    and88actual rejection checks pass. No116 package;105/DEV N7 stays current.
+    Evidence:telemetry-event-inputs116.txt. Do not repeat this scoped pass.
+[x] Review117 closes116's Transaction207ad0/registration209d80/20a610 input
+    subtask and6nearby event control/query/endpoint/priority entries. All return
+    INTEGER disabled status2 before input work;no caller output/queued owner.
+    Recipe13/90guards;74checks,C++ suite,actual12->13 preserving profiles/backups,
+    nine guarded calls/AI/results/Continue/default Quit0 pass. Selected observer
+    window/98actual rejection checks pass. No117package;105/DEV N7 current.
+    Evidence:telemetry-event-controls117.txt. Do not repeat this scoped pass.
+[x] Review118 closes registered CustomEventData native input/lifetime subtask:
+    discard incoming name before first use,retain real Create/Destroy ownership,
+    7Add methods return Boolean false before input access. Recipe14/98guards;
+    75checks,C++ suite,actual13->14 preserving profiles/backups,real empty native
+    owner/Add-false/Destroy cycle+AI/results/Continue/default Quit0 pass. Selected
+    window/111actual rejection checks pass. No118package;105/DEV N7 current.
+    Scope:telemetry-custom-data118.txt. Not stripped managed ctor/Dispose proof.
+[x] Review119 closes ContinuousEvent49..53 input/registration/configuration
+    subtask:original synchronous disabled status2 before borrowed input/factory
+    ownership. Existing owner virtual68c33440 false guard unchanged;no completion
+    is owed on that failure. Recipe15/103guards;76checks,C++ suite,actual14->15
+    preserving profiles/backups,five guarded calls/AI/results/Continue/default
+    Quit0 pass. Selected window/121actual rejection cases pass. No119package;
+    105/DEV N7 current. Scope:telemetry-continuous119.txt. Not full native/indirect
+    collector coverage or actual delegate lifetime invocation/release proof.
+    Remaining identity acquisition/aliases,queued reports/runtime/final gates
+    above remain OPEN;116's bounded negative ads search is not source closure.
+References: telemetry.txt, telemetry-internal-config.txt,
+telemetry-persistent-observation.txt,telemetry-device-cef106.txt and nvidia-shutdown.txt.
+
+[x] D6 - Resolve intermittent slow initialization
+IMMEDIATE PRIORITY by user request,2026-10-20.
+Ordinary63 reproduces223.719s launch-to-initial-state without an observer.
+[x] D6-C1:actual slow original task/pump capture64. Start107.515s;outer50 tasks
+    sampled pending through launch+109.906s,selected pumps return promptly.
+    Normal Quit0/empty job/ordinary restore/source03 unchanged. Same-installation
+    repeat65 is7.538s;this uncontrolled contrast does not prove a cache cause.
+[x] D6-C2:identify actionable loader validation cost (scoped engineering inference).
+    Original loader/CRC/deferred callback bodies are qualified;bounded68 observes
+    72 callback returns throughout the wait,with no captured early loader args.
+    CatalogCRC-zero69 Start14.757s/initial39.031s;original-CRC reversal70 returns
+    Start213.249s/initial222.032s. Both noFrida/strict startup/Quit0,identical
+    program/source seals. Code+counterfactual+reversal support local full-bundle
+    validation as a strong actionable hypothesis;not an exclusive cause/all
+    timing proof. Production ordinary-recipe71 retains real Tasks and reaches
+    full initial state10.968s/6.297s/6.266s. Retain the causal scope above.
+[x] D6-C3:implement reversible catalog optimization with install-time original
+    bundle verification/build hashes and launch fingerprint checks.133 supported
+    bundle hashes,original catalog recovery,atomic rollback/refusal,unchanged
+    native Tasks and explicit package inclusion are implemented;80focused tests
+    reportOK. Native71 completes three normal Quits,including AI/result/Continue.
+[x] D6-C4:qualify fresh package install/restore/reinstall,ordinary entry and full
+    practice lifecycle,then physical first launch after a Windows restart and
+    repeat launch with truthful loading feedback. Automated71 retains its warm
+    scope;Nick's separate post-reboot physical observation below closes the gate.
+    Automated parts PASS71:clean ea541760 isolated21imports,exact catalog/
+    component restore/reinstall/personal preservation,actual Start Client menu
+    7.739s,and217.544s bundled AI/result/Continue/natural Quit0/job2/0/0 with
+    48moving ordered bot entities. Owner's physical result now passes. Ordinary
+    offline entry:local/startup71-packages01/battleaces-client-win64/Start Client.cmd.
+    [x] C4 automated package/recovery/ordinary-entry/full-AI lifecycle checks.
+    [x] C4 physical post-Windows-restart first launch,repeat launch and visible
+        Try Deck/results/Continue/Quit:Nick reports20s usable menu,2s repeat,
+        window/sound15s,gameplay/Continue/Quit works,no issues. Reviewed93 from
+        DEV.txt N1;date field blank,so no invented execution date. Manual71
+        program/catalog/component seals and immutable package reverified.
+    Read-only readiness76 reconfirms package integrity,installed program/catalog,
+    all seven retained report hashes and133cached bundle fingerprints. No game
+    launch or bundle rehash;this was pre-acceptance readiness,not the subsequent
+    physical restart result now reviewed93 above.
+Keep the LAN source/ordinary launchers untouched and follow the measured boundary.
+Reuse retained captures;do not repeat fast batches as completion. Exact reports/
+reviewed contracts/counterfactual limits:client-startup.txt,startup-bundle-loading.txt.
+Done: the observed106/168/225-second slow behavior has an evidenced cause and
+resolution, or an explicitly accepted measured limitation. Do not bypass the
+startup barrier or inflate an ordinary timeout to produce a passing result.
+References: client-startup.txt and telemetry-game-observation.txt.
+
+[ ] D7 - Complete protected Windows host deployment and recovery
+[x]161 fixed host failure diagnostics:arbitrary exception text/paths removed from
+    profile/simulation/setup/connection logs and unknown validation rejections;
+    retain authored validation,IDs,worker labels and bounded OS codes.106tests
+    105pass/1native opt-in skip314/312,audit600/0. Clean262b786 paired archives/
+    installers/actual bundled socket-failure probe/imports/CLI/forms/payloads
+    pass7.004s,8owned0/emptyjobs/no force;prior data/session retries/unknown-result
+    abort unchanged. No original game/native/protected/Install operation or new
+    action/manual/share change. Full D7 owner/SCM/reboot/clean-host and D1-D9 stay
+    open. Scope/failures/artifacts:host-failure-diagnostics161.txt.
+[x]151 source correction:RC backup omits nonexistent invite store and writes
+    explicit rc-open snapshot3;legacy1/2 remain valid. Restore writes schema2 with
+    original TLS/access mode. All6cross-mode directions refuse before creation;
+    changed full17cosmetics/legacy/revocations/lock/durability regression passes.
+    102tests100pass/2protected skips,synthetic assets/private boundary mocked.
+    Baseline failures retained. Clean07d2a7b paired ZIPs/EXEs/forms/payloads and
+    actual bundled CLI5accept10refuse/119assets PASS19.865s. Server delta3files/
+    clientcompatibilityonly. RC TLS40nativeframe control PASS5.641s/worker0/job
+    10/0/0/no force,NOT completed/protected recovery. DEV N10 normal-owner capsule
+    READY;restricted guard PASS without privateops/child,not Nickresult. Protected
+    owner/completed restored native match/SCM remain OPEN. server-recovery151.txt.
+[x] Protected owner-console40 active-match Ctrl+C/same-state restart PASS,review93:
+    two40-frame verified-TLS peer streams,workers0,port/lock released,identities/
+    profiles retained,job20/0/0,no forced cleanup. Source hashes still agree.
+    This closes active-console shutdown only,not physical graphical/SCM/reboot.
+- Qualify RC host/player accounts,automatic server-key/local player-identity
+  lifecycle,quotas/handshake/message/queue bounds and safe logs. The optional
+  verified/invite path retains its scoped regression evidence;manual CA/invite
+  provisioning is not an RC1 prerequisite.
+- Perform real SCM registration/account logon, start/stop/Windows shutdown/reboot,
+  state-lock release and active-room cleanup, including session0/headless operation.
+- Qualify protected backups/restores and a real match on the restored host under
+  the intended account. Retain identities/revocations/decks; preserve old state.
+- Test chosen clean Windows10/11 support targets without the developer workspace
+  or installed developer runtimes. Verify read-only program files plus permitted
+  separate config/data/assets and documented certificate/asset provisioning.
+Done: actual deployment/account/service/recovery records prove those operations;
+scripted controllers, loopback fixtures and successful imports retain narrower scope.
+References: server-console.txt, windows-service.txt, state-backup.txt,
+windows-packaging.txt, windows-server-quickstart.txt.
+
+[ ] D8 - Complete Internet, latency and final capacity evidence
+[x]160 default4room packaged RC TLS/native workload:6rounds/24Custom1v1matches,
+    8persistent peers/72workers0/reaped/14880frames/29760matching references,
+    production/movement/damage/deck rematches/Return/default17profiles.198.297s,
+    4rooms active184.827s,mean19.999Hz/max69.317ms;no worker step>50ms,handles
+    211->203/private+2236416B,controller0/job150/0/0/no force.18tests pass314/312;
+    original14limits/step/driver unchanged. Defines a tested4room native sample
+    on this Win10/16logical host,NOT64/team/graphical/Internet/SCM/longduration
+    four-room/fullD8 proof. Existing8hour reused. No equivalent repeat needed.
+    No product/manual/share/new action. Scope/resources:host-capacity160.txt.
+[x]157 bounded actual156-package RC TLS/two-room Custom1v1 native concurrency:
+    130.397s/4rounds/8matches/4persistent TLS1.3 RC peers,24workers0/reaped,
+    4960frames/9920reference comparisons,production/movement/damage/changed-deck
+    Return/rematch/default17profiles. Mean20.00026Hz,max65.358ms,worker max5.305ms,
+    handles200->196/private+1,994,752B,controller0/job54/0/0/no force.16tests pass.
+    Original14gate unchanged/old8hour retained;THIS eight_hour_gate:false.
+    Not graphical/Internet/SCM/protectedowner/maximumcapacity/fullD8 proof.
+    Exact current package/legacy HELLO1/fixture/policy:packaged-tls-soak157.txt.
+[x]155 selected coordinator/profile admission attribution:actual20 original
+    saves47..88ms on coordinator;healthy STEP wire1.05/1.10ms completes INSIDE
+    rematch save10,coordinator resume waits53.45/64.97ms until that save returns.
+    18tests/native16.441s pass,job18/0/0/no extra cleanup. New gaps152/145ms;
+    original154875.677ms NOT reproduced/fully attributed. No product fix/fullD8.
+    Source/timing/interval proof:profile-admission-timing155.txt.
+[x]156 Correct off-coordinator profile persistence(public ENTER,community selection,
+    legacy lobby saves),preserving fsync/atomic validation/save-before-ACK and
+    draining owned writes on shutdown. Cover pending session/deck/lobby freeze,
+    Start/Ready/departure/cancel races and stale commits,then actual bundled/native
+    admission with another advancing room. Keep50ms step/default deadlines/window.
+    Original ProfileStore/read/flush/fsync/replace remain,all reads share FIFO.
+    99tests98pass/1opt-in skip,clean14ba1fb bundled/native17.759s pass:20saves OFF
+    coordinator54..347ms;healthy55/113frames/max gaps66.23/67.12ms,STEP resumes
+    <0.083ms DURING pending rematch saves. Abort/Return/rematch/profiles preserved,
+    job18/0/0/no extra cleanup. Actual paired156 forms/payloads/imports pass3.589s.
+    Selected stall correction,not fullD8/875ms attribution/UI/service acceptance.
+    Exact ordering/cancellation/failure/artifact scopes:async-profile-io156.txt.
+- Concrete154 local admission/rematch concern:healthy2vAI receive gap875.677ms
+  crosses Return/new ENTER processing BEFORE replacement worker_started;healthy
+  frame worker_ms775.985/no snapshot. Hang max153.799ms. Existing receipt/audit
+  clocks correlate admission,not a particular blocking call. Bound original
+  profile persistence/admission/worker RPC timings before a performance change;
+  do not assume Popen or relax input/timeout/cadence. bot-rpc-faults154.txt.
+- Two physical Windows PCs on different networks connect, play and rematch with
+  the configured RC transport with its recorded certificate-verification policy.
+  No CA/invite requirement for RC1. Document the chosen TCP port/firewall/NAT
+  setup; automatic NAT traversal is outside v1.
+- Measure50/100/200ms RTT, jitter, loss/retransmission and stalls on a controlled
+  real-network path. Record click-to-action delay as well as frame throughput,
+  measured ping/connection status and correct abort/recovery. Tune input buffering only
+  from evidence; preserve the50ms simulation step and gameplay correctness.
+- Measure final host capacity/resource growth and sustained20Hz operation for
+  supported concurrent rooms,including at least two independent1v1 rooms. Reuse
+  the passed native/community eight-hour and
+  20-match results; fill their missing packaged/TLS/Unity/session0/Internet scope.
+  Complete the remaining graphical20-rematch requirement with real client lifetime.
+Done: a documented supported capacity/network envelope and no unexplained
+match-blocking divergence, stalls or resource leaks in the required scenarios.
+References: network-qualification.txt, protocol-v3.txt, soak-qualification.txt.
+
+[ ] D9 - Freeze and deliver the final Windows release
+[x]166 coherent22/127/helper165 engineering pair from clean5cd67fa. Both native
+    standalones/archives/bundled CLI/import/forms/payloads pass8owned commands,
+    6.551s/no force. Real client Install/Update18.474s preserves74profiles/config/
+    backups/eight game components;job3/0/0/no force. Generated game-folder CMD
+    uses installed166 after actual download rename,menu9.112s,explicit forced
+    readiness cleanup/reaped;not Quit/physical/performance/privacy proof. Four-
+    file payload delta161/server runtime unchanged;165 lifecycle scope reused.
+    No new full-server-Install/owner/SCM/clean-PC/Internet/fullD9 acceptance.
+    DEV N5/N7 now166 for next planned update,all old answers/manual130 preserved.
+    Artifacts,hashes and scopes:coherent-candidate166.txt.
+[x]159 helper build-input binding:require declared receipt/DLL/full source match;
+    current tree default or explicit immutable ancestor for frozen tested helper.
+    Sanitized provenance bound in both packages.42tests pass on314/312,audit2331/0.
+    Clean f2f1bb8 paired ZIPs/native installers/CLI/imports/forms/payloads pass
+    6.470s,7owned commands0/emptyjobs/no force. Frozen138 retained;delta156 only
+    compatibility+new provenance,all runtime bytes unchanged. Prior seals/source
+    archives/N10pins reconciled. No game/manual/share/new action. This closes
+    only this packaging gap;full D9/D1-D8 stays open. helper-provenance159.txt.
+[x]158 source/docs checkpoint:full983tests on Python3.14.8 and3.12.10 each pass
+    966/17skip,exit0;312records593unchanged inputs and actual skip IDs/reasons.
+    Source/historyf97 snapshot2319objects/0findings;staged review retained.
+    Optional native/private and restricted processpipe exclusions stay unverified;
+    hosted CI unavailable through configured proxy,not assumed green. README and
+    RELEASE_ACCEPTANCE current entry/config/LAN/candidate/component map corrected;
+    original docs archived,product156/manual130/N7 unchanged. This is not final
+    D9/D1-D8/freeze acceptance. Exact logs/limits:release-readiness158.txt.
+RC1 installer/package milestone runs FIRST under RC1_PLAN.txt;full D9 closure
+still requires the applicable final-release gates below.
+[x] Engineering candidate139:clean f99fc83 current21/helper138 ZIPs/standalones,
+    actual native forms/payloads/Install actions,independent server copy/export/
+    import/health,exact installed runtime and settings/profile/backup preservation
+    pass. Actual ordinary game-folder entry independent of extraction passes
+    menu13.376s;forced readiness cleanup,NOT Quit. Separate fresh-assets RC2vAI
+    passes151.087s/results/Continue/natural Quit0/empty jobs/no force. Relocated
+    package/old-backend upgrade/restore471.396s passes;four-file delta/49actual
+    artifact assertions. Prior failed controls/deadline/config-fixture records
+    retained. No new manual pair/action;130/N7 unchanged. Full clean-PC/SCM/owner/
+    physical/privacy/final gates remain OPEN. Scope:guarded-candidate139.txt.
+[x] Installer130:fix actual missing ProgressBar attachment(shared native client/
+    server UI),two native forms and20affected checks pass. Fresh clean a09061c
+    paired ZIPs/standalone EXEs bind unchanged gameplay/helper bytes. Actual form
+    ORIGINAL Install/worker/embedded ZIP server setup/import/native health passes
+    286.126s with247source-file inventory/6hashes/shared unchanged. Client form
+    update69.632s preserves242profiles/5backups/config/name;actual game-folder CMD
+    menu14.179s independent of ACTUAL extraction source. Entry uses forced
+    readiness cleanup,NOT Quit. Fresh imported-assets2vAI native lifecycle passes
+    separately. New130/N7 is NEXT planned manual pair;old files frozen. Full
+    clean-PC/owner/SCM/backup/privacy/physical/final gates remain. Scope/hashes:
+    installer-progress130.txt. No repeat of unchanged129/130 cases.
+[x] Engineering artifact subcase128/129:clean29882b3 recipe17/helper127-02
+    client/server ZIPs and both standalone EXEs built;actual native forms/payloads
+    pass. Bundled relocation/import/health/three native worker0 shutdown paths/
+    patch install-idempotence-restore PASS325.646s. Actual owned installed update
+    PASS72.254s,preserving202profile files,five backups and config/name/profile
+    settings. Installed local4/1/2/5 all pass results/Continue/default Quit0,
+    no force;paired RC Custom/rematch passes186.264s with three worker0 exits
+    and empty jobs. Strict artifact/source-receipt review passes. This is
+    NOT final D9/clean-PC/SCM/protected backup/privacy/physical acceptance and
+    does not replace105's manual candidate. Exact scope:guarded-candidate129.txt.
+- Build fresh client/server archives from a clean source revision; bind helper/
+  launcher/runtime/asset compatibility and audited hashes. Supply a reproducible
+  local asset import; include no original game files or private runtime material.
+- On clean player/host machines follow the shipped guides: install, first launch,
+  local play, configure/enroll, online play, update, restore/uninstall, save
+  persistence, missing/corrupt file handling and ordinary shutdown.
+- Run the appropriate final source/native/packaging checks for actual changes,
+  recording skips and failures accurately. Preserve recovery/manual/frozen copies.
+- Produce concise host/player guides, support matrix, capacity, troubleshooting,
+  backup/revocation instructions, release notes and explicit lesser limitations.
+- Audit every original user requirement against exact final evidence. Complete
+  RELEASE_ACCEPTANCE.txt only where that evidence meets its scope; publish only
+  the agreed source and release files after source/history/private-content review.
+Done: D1-D8 and all first-release acceptance requirements are satisfied, with no
+known match-blocking failure and no prerequisite silently moved to optional work.
+
+Execution rules for this plan
+Keep this file a short open-work queue; detailed history belongs in STATUS.txt and
+focused evidence records. Close an item by citing its result, not by expanding it
+into an endless series of diagnostics. Start each investigation with one missing
+claim, a bounded check and a defined result. A failure produces a specific defect
+or external action. Reuse matching earlier evidence and run only affected
+regressions unless a new concern justifies more. Normal launchers stay free of
+automation, heavy captures and forced surrender/Continue/Quit. Forced cleanup,
+black screenshots, optional skips and mocked privacy never satisfy their broader
+acceptance gates. Never retry protected writes under the restricted token.
+
+Uncertainty and scheduling
+The old phase estimates are retired. Re-estimate from D1/D8 findings and a finite
+defect list, not the volume of historical notes or tests. There is no completion
+date commitment in this reset. Preserve the full product scope while keeping each
+next action concrete and reviewable.

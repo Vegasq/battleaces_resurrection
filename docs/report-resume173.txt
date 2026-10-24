@@ -1,0 +1,96 @@
+REPORT RESUMPTION173 - SAVED QUEUES AND IN-FLIGHT APPLICABILITY
+2026-10-24. Named source-applicability review complete;full P7/P9/D5 stays open.
+
+Conclusion
+No new patch is required for the examined fresh patched-process paths. Existing
+guards stop automatic saved-report processing and prevent acquisition of the
+reviewed worker/request owners. They are not cancellation routines for original
+work already running in memory. Saved reports are not deleted or migrated by
+this review. No game,report queue,original URL or live reporter was activated.
+
+Supported process boundary
+patch_client.install validates original/installed images,constructs replacement
+bytes,then publishes files through temporary-write/flush/os.replace. It does not
+modify an existing process's executable memory,coroutines,threads or requests.
+On file publication failure it rolls back earlier files;the existing installer
+test covers an authored mapped-file PermissionError. That test is not an actual
+OS sharing experiment. Normal launcher.launch verifies installed manifest hashes
+before spawn_game calls Popen for a NEW game process. It has no live-upgrade path.
+Thus a completed installation followed by a new patched launch does not inherit
+another game's in-memory SDK owners. An already running original process is
+outside this prevention claim;on-disk replacement does not cancel its traffic.
+Launcher hash checking is manifest consistency,not an assertion that every old
+package uses the current recipe. Current173 evidence binds the r171g image below.
+
+Managed Bugsnag saved and queued routes
+Deliver and StartDeliveringCachedPayloads guards return before scheduling work.
+DeliverCachedPayloads,ProcessCachedItems and PushToServer factories can still
+create genuine iterators,but all three MoveNext entries return false BEFORE
+reading iterator state. The same entry guard applies to a subsequent invocation,
+not only state0. Automatic cached-report read/rehydration/serialization/send in
+the examined iterator paths is therefore not reached. Existing120-122 genuine
+readers/fresh-delivery controls and126 cleanup controls retain their old scopes;
+they are not relabeled as runtime resumed-owner or cancellation experiments.
+
+Two original Push worker callbacks remain unchanged:820080 queries native
+ShouldAttemptDelivery through slot20;820100 prepares/serializes an event body.
+Their ThreadStart acquisition is inside guarded Push MoveNext. Original request
+submission821cab and states3/4 polling/disposal remain in its unreachable body
+for these fresh paths. Returning false neither aborts a previously submitted
+request nor synchronizes an already running original serializer thread.
+Original Dispose/finally and shared networking APIs remain intact. In particular,
+cached state2 normally clears Delivery+38 and Push Dispose has state-specific
+ownership;blanket-returning cleanup would be incorrect.126's pending-owner
+failure branches retain lookup/removal/epilogues.165's queued Notify closure
+returns through its guarded lower collector without new collection.
+Verification binds64complete bodies/current guard masks and18positive call/
+continuation edges. Only the two worker bodies needed new decoding.
+
+Native Unity analytics archives and continuations
+The reviewed constructor establishes Main state0. Its state dispatcher accepts
+only preparation1 from0/5;the existing patch declines that preparation while
+retaining busy-clear/return. Independent configuration preparation also returns
+false before archive setup. Saved-event flush/lifecycle routes require initialized
+Main+e10 and archive/request+480 before submitting the examined worker path.
+These named cold-start routes cannot acquire that archive/request state.
+Already-posted c51630/c51670 callbacks remain able to reach live stateful c5b200;
+c516f0 tails into c52660. They do not recheck every outer activation guard.
+Preserve their state/ownership cleanup;do not claim universal hot-patch cancellation.
+Review binds24extents and all63Unity replacements;three continuations were newly
+decoded. No new supported cold-start bypass emerged in this bounded review.
+Upstream c307c0/computed activation is still the separate unresolved P9 source
+question;the reviewed dispatcher is not a whole-engine indirect control-flow proof.
+
+Current applicability and reused runtime evidence
+The parent reconstructs all FOURcurrent images from pinned originals and compares
+them byte-for-byte with r171g,including171's feature patches and PE checksums.
+All128recipe23guards match original preimages and installed replacements. Normal
+launcher verify_game passes against that installation without starting a game.
+Retained171play02 has8main-state samples;172game01 has3. All show state0,
+initialization0,archive-flush0,no worker and preinit queue count0. These existing
+samples corroborate inactive state at their recorded stages,not every thread,
+intermediate state or an absence of on-disk reports. No equivalent run repeated.
+
+Evidence
+local/managed173-source01:64body/18edge verification,two new worker decodes,
+source review and manifest. local/unity173-source01:24extents,three new decodes,
+63guard verification and manifest. local/report173-applicability01:four-image/
+128guard verification,installer/launcher source snapshots,retained-observation
+binding,prior document bytes and final manifest. The first parent scratch check
+used nonexistent Patch.name instead of Patch.label and stopped without changes;
+the retained verify.py uses the actual dataclass and completes successfully.
+Original GameAssembly:e59d08c01479b27404778048d7e13546dbf3771f6b3912744c7c2bdf80c4e758.
+Current GameAssembly:f9e14f0b45134eb96e51c4cd7c3965049ae317a64734a364e43ab8325f35d3fa.
+Current UnityPlayer:a53b0c613a86c737b7caa7588c7c93ae20d5d5700f9321a406df9dcca8e32a7f.
+Pinned PE/IL2CPP/LLVM static evidence reused;no new native REA/runtime claim.
+Product sources/binaries and frozen166 artifacts are unchanged by this review.
+
+Roadmap
+Close the named resumed/in-flight applicability question with the fresh-process
+boundary above. Do not repeat original MoveNext/worker execution or inspect real
+queues to manufacture cancellation proof. P9's upstream c307c0 producer/computed
+consumer remains the next source question,alongside finite supported-mode and
+final-installed obligations. RUNTIME_VALIDATED remains false.
+Nick separately requested matched client/server installers uploaded to GitHub
+after this task. That next delivery is an engineering prerelease,not full D9
+acceptance. No new Nick test or answer is requested.

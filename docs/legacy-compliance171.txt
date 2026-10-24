@@ -1,0 +1,125 @@
+LEGACY KOREAN LOGIN/COMPLIANCE171 - FEATURE INVENTORY AND COMMUNITY DISABLE
+2026-10-24. Nick requested identifying browser consumers,then explicitly asked
+to skip/disable the entire original Korean login/compliance flow.
+"Server" means the discontinued original account/compliance service here;
+the community/LAN server and its existing transport are retained.
+
+Feature inventory
+The confirmed game-specific Vuplex consumer is KoreanComplianceDialogVM.
+Original flow:LoginResponse contains nonempty JudgeLoginData/AIS instructions
+->FinalizeLoginResponse sets its compliance wait and dispatches JudgeLogin
+->UIMenuController.OnJudgeLogin creates the Korean dialog prefab
+->the initialized view processes the server-supplied URL/instructions
+->close/confirm calls the original ValidateJudgeLogin request
+->its response resumes the original finalizer. This is a legacy account/login
+feature,not an identified requirement for community gameplay or LAN networking.
+Current OfflineInitialUpdate creates local profile/version state and enters
+the menu directly;OfflineFrontUpdate owns no original front-service connection.
+
+The packaged Menu_koKRComplianceDialog prefab has a real CanvasWebViewPrefab
+with empty InitialUrl. It also contains an enabled Vuplex CanvasWebViewDemo
+on an active child named "Scripting API Example". These are serialized template
+defaults,not proof a live scene creates them. Blocking the entire dialog's
+creation route also blocks that child on this route.
+
+SurveyVM is a separate confirmed web feature:OpenURL invokes UnityEngine's
+Application.OpenURL(System.String),rather than Vuplex. Its existing code is
+unchanged. Steam overlay/HTML and file-browser library types are not by
+themselves evidence of additional embedded-browser game features.
+
+Search boundary
+- RGame/Vuplex native method tables are bound to original build37822 metadata.
+  Among9913unique RGame addresses,8732complete unwind-start bodies were
+  eligible;1181unwindless/nonstart/shared leaf addresses are explicitly outside
+  that scan.28raw E8/E9 candidates target Vuplex table addresses.18are shared
+  aliases,not evidence of browser use. All10nonshared sites decode as real calls
+  in four KoreanComplianceDialogVM methods;no other specific consumer emerged.
+- Asset review parsed133bundles/142serialized nodes with type trees and no
+  parser errors. One bundled InitialUrl-bearing view is tied to the Korean
+  prefab. Five root assets were inspected with declared stripped-schema limits;
+  resources includes reusable browser templates. No Korean/Vuplex component
+  reference was found in the inspected level0/sharedassets0 component prefixes.
+- Indirect calls,generics,reflection,dynamic Addressables routes and unobserved
+  runtime states are not globally excluded. No original web URL,account flow
+  or real queue was activated to inventory features.
+
+Implementation
+client_patch/patcher/legacy_compliance.py supplies four exact-original-byte
+patches included by patch_client.PATCHES in both local and community variants:
+1. UIMenuController.OnJudgeLogin RVA3d508d0:instance-void return before prologue
+   or input access,preventing the known Korean prefab creation route.
+2. FrontServerIntegration.ValidateJudgeLogin RVA3e3af60:instance-void return
+   before request construction/enqueue,preventing original validation requests.
+3. FinalizeLoginResponse RVA3e3f11a:clear only _pendingJudgeLogin byte+108;
+   replace the following old pending-wait branch with NOPs. Preserve the
+   original stack/nonvolatile registers and subsequent fallthrough.
+4. RVA3e3f1f2:unconditional jump to the existing null-JudgeLoginData target
+   3e3f298,before compliance event dispatch and pending-flag assignment.
+   E9 displacement is0xa1;the sixth byte is NOP.
+The last two changes avoid silently hiding the dialog while leaving an old
+login response waiting forever. They do not fabricate remote validation success.
+If no pending response exists,the original early return remains. The rest of
+the original finalizer is unchanged;restored official-service login is not a
+supported community-client scenario or a new qualification claim.
+
+Adjacent original judge-pay/timing response bodies only log instruction counts;
+they do not create this dialog. They were inspected but not broadened into this
+change. Survey,Vuplex library/license/cache/render code,shared APIs,community
+transport,gameplay and local diagnostics are unchanged.
+
+The install manifest records legacy_account_flow version1/disabled and the
+three policy effects. Restore records original-restored and restores the full
+original GameAssembly through the existing backup/transaction mechanism.
+These are feature patches,separate from telemetry recipe23/128guards.
+RUNTIME_VALIDATED remains false. No new helper exports or C++ changes are needed.
+
+Validation and delivery
+- Authored native patch execution,branch-target and policy checks pass. The
+  affected patcher/telemetry/installer suites run80tests on each of Python3.14
+  and3.12:78pass/2skip. Skips are optional original-file telemetry tests without
+  BA_TELEMETRY_ORIGINAL_DIR;actual original-file patch comparison is separate.
+- Windows packaging suite passes17tests on each version,including imports from
+  an isolated package outside the checkout. The source allowlist now includes
+  legacy_compliance.py for both products. Total95pass/2skip per version.
+- Actual original-file builds for local and community/cosmetic variants differ
+  from the prior patch in exactly four code spans plus the PE checksum. Existing
+  hooks/imports/telemetry/transport bytes remain unchanged. Installation into
+  a fresh independent copy succeeds with the disabled-flow manifest.
+- Short1200-frame play01 is FAILED at its movement-evidence assertion:it reached
+  result/Continue and naturally exited0 without force,but lacked correlated
+  native movement/Move-or-Attack evidence. Retained,not relabeled as a full pass.
+- Standard3600-frame play02 PASSES210.625s:AI unit production/orders/movement,
+  original result/Continue/menu and normal Quit,exit0,natural exit,no force,
+  owned process reaped,source files/shared settings unchanged. Default recipe
+  and telemetry audit enabled;no optional teardown hooks or original web flow.
+  This is an owned automated compatibility check,not physical acceptance or
+  proof of every effective browser/OS/network route or full descendant census.
+- Frozen166 ZIPs/standalone installers and pristine original GameAssembly
+  match their pinned hashes. All existing DEV answer bytes are preserved.
+Source/isolated diagnostic installation is separate from frozen candidate166;
+no new public installer,manual game update or share deployment is implied.
+
+Evidence
+Original GameAssembly SHA256:
+ e59d08c01479b27404778048d7e13546dbf3771f6b3912744c7c2bdf80c4e758
+Original metadata SHA256:
+ b760be9190309b14174cd272e1f83b730181b299bc7a0cdca66985c69dcdc57d
+local/browser171-korean-route01:source/signature/field-offset manifests,
+16complete original bodies,current169 equality,and independent PATCH-REVIEW.
+local/browser171-assets01:serialized component/hierarchy/container evidence,
+bundle/root inventory and input hashes.
+local/browser171-links01:survey/Unity/Steam bodies and bounded RGame link scan.
+local/browser171-boundaries01:direct-call candidates and decoded verification.
+local/compliance171-patch01:before-patcher snapshot,pure before/after comparison,
+test logs and final evidence manifest.
+local/compliance171-install01:independent pristine-copy hashes and installation.
+local/compliance171-play01 and play02:owned automated local-AI lifecycle checks.
+Original binaries/assets/raw decoded data remain ignored. REA's native engine
+is still unavailable;existing pinned PE/IL2CPP readers and LLVM were reused.
+
+Roadmap consequence
+Per Nick's decision,do not repair/qualify an inert browser component merely
+to preserve this legacy feature. Continue P8 by assessing remaining effective
+browser/descendant activation and reporting routes in supported community use.
+This removal does not itself close every P8/D5 privacy obligation or prove
+all possible browser/OS/network behavior absent. No new Nick test is requested.
