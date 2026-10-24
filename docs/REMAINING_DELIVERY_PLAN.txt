@@ -414,6 +414,15 @@ native-settings-atomic.txt, native-deck-validation.txt, packaged-multiplayer.txt
 native-custom-invitations.txt, native-custom-matches.txt.
 
 [ ] D5 - Complete game analytics/report removal and qualification
+[x]167 source-only native crash contract:two distinct owners,three existing guard
+    lifetimes,original cursor callback and invalid-pipe exit before native report
+    payload/event/infinite wait. Actual registered ForceCrash selector0 raises
+    c0000005;original local StackWalker/DbgHelp/username/module/path diagnostics
+    remain.2735API/14414closing byte checks/36full bodies/current166 Unity/six
+    N10 pins verify;no target/crash/product/package/queue operation or new action.
+    NEXT actual one bounded crash after thread/owner/symbol policy/OS handoff
+    qualification;not same source or quiet AI. Runtime/P7/fullD5 stay OPEN.
+    Scope:native-crash-contract167.txt.
 [x]165 SDK instance/queued error-collection gap:seven guards before input reads/
     allocation;borrowed void ABI/filter callback/original discarded-report and
     queued closure return contract.22/127,85tests on314/312/C++suite;67profile-

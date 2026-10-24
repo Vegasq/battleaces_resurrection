@@ -87,6 +87,16 @@ Finite rows
     deadline cases remain accepted availability evidence;do not repeat all eight
     just to produce quiet counters.
 [ ] P7 Effective queue/error/reporter/crash paths
+    [x]167 source-only native guard/owner/registered-trigger contract. Log-error
+        manager and native controller differ;child skip/invalid pipe prevents
+        native handoff payload/event/infinite wait,while filters,cursor restore
+        and original local StackWalker/DbgHelp/username/module paths remain.
+        ForceCrash selector0 raises c0000005.2735API/14414closing byte checks/
+        36full bodies/current166 Unity/six N10 pins verify. No native crash,
+        product/package/queue change or new visibility/action request. Next
+        thread/actual owner/symbol policy/OS handoff then one bounded crash;
+        not another source/quiet-AI rerun. Runtime/P7/fullD5 stay OPEN. See
+        native-crash-contract167.txt.
     [x]165 instance Notify/lower queued collector subcase:seven pre-input guards,
         callback Func<IEvent,bool>/original discard/outer closure return contract.
         Recipe22/127;85tests/C++suite,67profile-preserving upgrade and actual

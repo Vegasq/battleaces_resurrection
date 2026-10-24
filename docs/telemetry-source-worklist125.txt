@@ -1,6 +1,14 @@
 D5 REMAINING SOURCE WORKLIST125
 2026-10-22. Full D5 remains OPEN. Source findings below narrow the remaining
 engineering work;they are not complete analytics-removal or release acceptance.
+Current167:source-only crash classification binds two owners/three guard lifetimes,
+invalid-pipe native exit,cursor callback and actual registered RaiseException
+trigger. Local StackWalker/DbgHelp/username/module/path diagnostics remain before
+handoff.2735API/14414closing checks/36full bodies/51worker artifacts/current166
+Unity/six N10 pins verify;no target/crash/product/package/queue/new Nick action.
+NEXT actual bounded native crash after thread/owner/symbol policy/OS handoff
+prerequisites;reuse this source,not same scan/quiet AI. Native runtime/P7/fullD5
+remain OPEN. Details:native-crash-contract167.txt.
 Current166:clean5cd67fa matched22/127/helper165 packages/standalones,8actual
 bundled CLI/import/forms/payload commands pass. Real client Install/Update
 preserves74profiles/config/backups/game bytes;ordinary installed CMD reaches

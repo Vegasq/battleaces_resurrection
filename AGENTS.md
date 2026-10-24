@@ -2,6 +2,20 @@
 
 ## Requests and answers with Nick
 
+- Crash167 CLOSES source-only two-owner/three-guard/registered-trigger question.
+  Manager1d08f98 disabled before log collection;uploader RET retains outer drain.
+  Native controller1d0e128 keeps exception filters/cursor callback801fb0;child
+  skip leaves pipe-1,source exit precedes payload/event/infinite wait. Original
+  prehandoff StackWalker/DbgHelp still reads local username/module/path data;
+  useful local diagnostics allowed,not all-native-collection/WER suppression.
+  Registrar binds six selected APIs;ForceCrash selector0 actually RaiseException
+  c0000005,not literal null store.2735parent/14414closing mechanical checks,
+  51worker files/28bodies+8parent bodies/six N10 pins verified. No target/crash/
+  helper/install/package/profile/queue operation,new action or Tutorial2 test.
+  Candidate166/manual copies/N5/N7/share unchanged;N9/N10blank. NEXT one bounded
+  crash only after actual owner/thread/DbgHelp/symbol policy/OS handoff qualified;
+  reuse source,not same scan/quiet AI. FullP7/D5/D1-D9 OPEN. native-crash-contract167.txt.
+
 - Candidate166 now coherent22/127/helper165 from clean5cd67fa:paired native
   installers/ZIPs,8actual bundled CLI/import/forms/payload commands6.551s pass,
   emptyjobs/no force. Real client Install/Update18.474s preserves74profiles/

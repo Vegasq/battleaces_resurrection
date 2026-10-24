@@ -3,6 +3,16 @@ Updated: 2026-10-23
 Supported input: Battle Aces build 37822, Windows x64.
 Recipe version: 22. Guards: 127. Complete-set runtime_validated: false.
 
+167 classifies the two native crash/report owners and existing three guards.
+Disabled log-error manager/outer drain and invalid-pipe native handoff have source
+contracts;native filters,cursor restore and local StackWalker/DbgHelp remain.
+Actual registered ForceCrash selector0 raises c0000005. Local username/module/
+path diagnostics are NOT removed by reporter guards;useful local logs retained.
+2735API/14414closing mechanical checks/36full bodies/current166 installed Unity/
+six N10 pins verify,no target/crash/product change. Runtime/WER/tree/wire/P7/D5
+stay OPEN. Next bounded crash prerequisites,not repeated source/quiet AI. See
+native-crash-contract167.txt;no new Nick action or visibility test.
+
 166 packages recipe22/helper165 coherently from clean5cd67fa. Both native
 installers/payloads/bundled imports pass;actual client Install/Update preserves
 74profiles/config/backups/game bytes. Ordinary installed CMD works after download

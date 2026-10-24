@@ -3,6 +3,19 @@ Updated: 2026-10-23
 Delivery plan: REMAINING_DELIVERY_PLAN.txt, Windows only.
 Original roadmap: CLOSED / SUPERSEDED;see PLAN_CLOSEOUT.txt.
 
+CRASH167 - NATIVE OWNER / GUARD / REGISTERED TRIGGER SOURCE CLASSIFIED
+Report manager and native exception controller are separate. Existing guards
+retain disabled manager/outer drain and reject invalid-pipe native handoff before
+payload/event/infinite wait;filters/cursor restore/local StackWalker remain.
+Positive original ForceCrash selector0 uses RaiseException c0000005. Local
+DbgHelp/username/module/path diagnostics remain;no native crash/WER/runtime pass.
+2735API/14414closing mechanical checks,51worker artifacts/36complete native
+bodies/current166 installed Unity/six N10 pins verify. No target/build/install/
+package/profile/queue operation,new Nick action or visibility replay.166 stays
+current;fullP7/D5/D1-D9 OPEN. NEXT bounded native crash after actual owner/thread/
+symbol policy/OS handoff prerequisites,not repeat source/quiet AI. Evidence and
+retained verifier failures:native-crash-contract167.txt.
+
 CANDIDATE166 - COHERENT22/HELPER165 WINDOWS PACKAGES
 Clean5cd67fa paired ZIPs/native installers ready;127guards and exact helper165
 provenance.8actual bundled CLI/import/form/payload commands PASS6.551s,empty

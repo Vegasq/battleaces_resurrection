@@ -1,0 +1,133 @@
+NATIVE CRASH / REPORT OWNER CONTRACT167
+2026-10-23. Source classification complete; P7 runtime and full D5 remain OPEN.
+
+Result
+The three existing Unity crash/report guards affect two different owners. They
+disable the log-error report manager and skip native CrashHandler creation;
+they leave the original native exception filter and useful local stack/symbol
+diagnostics active. No new analytics-only patch follows from that distinction.
+The delivery plan explicitly retains useful local diagnostics. It does not
+permit claiming that all native crash-time identity collection is disabled.
+
+This checkpoint performs no game/API/getter/reporter/crash execution, helper
+build, install, package, profile or queue operation. Candidate166 remains the
+current coherent22/127/helper165 handoff. Nick's clarification is retained in
+DEV N8:his own launches are visible;automated launches are background evidence,
+not physical window acceptance. No further Tutorial2/visibility test is requested.
+
+Report manager and ownership
+Global UnityPlayer+1d08f98 owns a0x118-byte manager,allocated byc8c8f0 and
+initialized byc909e0. Its two initial flag bytes are0. c90c10 copies config+10
+to owner+1;the existingc90c2a guard forces that value0 and preserves the store
+and original zero exitc90e38 before report metadata/endpoint construction.
+Callbackc91190 retains the owner and entersc91550,whose checks atc91586/c9158f
+precede log traversal,string copies,sampling and stack/report work.
+
+Uploaderc93d10 borrows reports. Both verified direct callersc925e3/c948b3 do
+not inspect a return value. Existing entry RET leaves their cleanup active.
+Thec94860 drain retains mutex+58,walks pending tree+80,attempts eligible nodes,
+clears node+518,destroys report nodes,restores sentinel links/zeroes count+88
+and leaves the mutex. Its submitted count is attempted processing,not wire
+success. This establishes static outer progress;not actual every-inflight
+owner retirement or a runtime uploader test. Never call the original uploader.
+
+Separate native controller
+Startup803510 retains controller global1d0e128 pointing to its stack owner;
+controller+78 is the IPC object. Process+20 and pipe/event handle words start
+at-1. Existing80366f jumps to803c19,skipping named events/CreatePipe and
+UnityCrashHandler64.exe --attach creation. Native filters are still installed:
+803ca8 installs9f76d0;804759 installs leaf9fdf80,which tails9fdec0. Normal
+exit restores its owned filter without discarding an intervening other filter.
+
+The initialized controller+70 callback is801fb0,installed by804708..804716.
+It restores the cursor through ClipCursor(NULL)/ShowCursor(TRUE);it is not a
+report bootstrap. A future runtime fixture must expect that callback,not NULL.
+9f8370 invokes it and passes exception context to IPC handoff9e0e10.
+That handoff first requires WaitForSingleObject(process+20,0)==WAIT_TIMEOUT.
+Do not assume-1 must fail:it can denote the current-process pseudo-handle.
+Its independent unsigned pipe test at9e0e43..9e0e4e rejects0/-1 and exits
+9e113f before payload writes9e0e9b,SetEvent9e1002 or the infinite handoff wait
+9e102c. Child-skip therefore prevents this handoff CONDITIONED on actual retained
+pipe state;it is not a measured native-crash result or an OS WER suppression.
+
+Positive supported trigger and wrapper boundary
+The exactfd2420 registrar established164 pairs3471 same-index function/name
+slots. Its selected registrations are:
+ index636 CrashReport.GetReports ->79d60;637 GetReportData ->79de0;
+ 638 RemoveReport ->7a120;640 DebugLogHandler.Internal_LogException ->7a8d0;
+ 2770 Windows.CrashReporting.crashReportFolder ->11fa90;
+ 3326 Diagnostics.Utils.ForceCrash ->1484d0.
+The complete registrar-name filter crash/exception/bugreport yields these six;
+this is not a whole-program reporter/API inventory. No hypothesized exception-
+capture setter was found in that finite table;do not invent its ABI or patch.
+Report wrappers are retained as named source windows,not called to discover or
+enumerate Nick's reports. Folder getter calls9fec70,which consults the literal
+crash-report-folder and constructs its default Crashes path. No actual user
+root is selected/read or claimed by this source review.
+
+ForceCrash1484d0 calls dispatcher6f4b60,with a stack error output that is raised
+through779090 if returned nonempty. Dispatcher selector0 logs an authored engine
+message and tails the ORIGINAL KERNEL32 RaiseException import at185a700 with
+code0xc0000005,flags0,argument count0/NULL. Although the log says dereferencing
+NULL,the actual selected instructions raise an exception;no literal null-store
+is in that branch. No exception is raised in this checkpoint. Other selectors,
+debugger handling,filter return/OS termination and dialogs are not qualified.
+
+Local diagnostics still precede the handoff
+On first entry9fdec0 calls9fde30 BEFORE its debugger/dialog/IPC decisions.
+9fde30 constructs StackWalker9f9120,initializes9f92c0,walks9f9ae0 and destroys
+9f9200. Its positive9f8440 dependency loads dbghelp.dll,constructs a symbol
+search path,initializes symbols with invade=false and applies options0x214.
+GetUserNameA at9f8877 feeds its diagnostic callback;module paths,current
+directory,SYSTEMROOT and stack information also enter local diagnostics.
+The reporter guards do not anonymize these local values or control Windows
+Error Reporting. Keep useful local logs;do not publish raw identity/path data
+or patch a shared username/OS/symbol API based only on this local sink.
+
+Verification / provenance
+Original UnityPlayer SHA256:
+ ac144d56d53f07904d52ed27a1539de90bc3290038fe52d73d2f6b268c85d6bc
+LLVM SHA256:
+ 5e7a457bf23033b6ec4a959d2276f09d44c024092529684d7eeb687d38da700d
+REA skill applied with independent owner/lifetime review. Known Ghidra provider
+unconfigured state reused;no setup retry. These are original PE/unwind/LLVM
+static fallback results,NOT new native REA Evidence or observed execution.
+Independent worker seals51artifacts/28complete unwind bodies/36static checks.
+Parent API review passes2735mechanical checks/eight complete bodies,exact
+registrations/direct edges/import/three actual installed guards. Closing review
+passes14414mechanical checks,rehashing all worker files and decoding/rechecking
+original instructions,positive edges/pipe exit/cursor thunk,current166 bodies
+and all six N10 pins. These counts are byte/source checks,not runtime tests.
+Whole installed Unity equals recipe22 plus its normal recomputed PE checksum.
+No unchanged gameplay/full-suite test is justified by source-only documentation.
+
+Retained failures:parent API review first had a mistyped prior164 manifest hash,
+then incorrectly compared unrecomputed PE checksum. Closing verifier initially
+used guessed equivalent pipe encoding/offset and a mistyped cursor displacement.
+All rejected before publication or target execution;exact failed scripts remain
+ignored. Final checks use actual decoded bytes and keep original product guards.
+
+Ignored evidence
+local/crash167-api-source01/contract.json
+local/crash167-api-followup01/contract.json
+local/crash167-api-review01.json SHA256
+ db7a25376a1507c66d97ef6b2b5a89f336f360ffaf3328fabdaadd027409b1db
+local/crash167-native-source01/FINDINGS.txt and manifest.json SHA256
+ 0505193bd671d830749539e144a403027162ac5ebb7868b43b175c238fc76ab4
+local/crash167-close-source01/verification.json SHA256
+ 9d6bf60e4214a06b34f72116dc1024ba1b63cec31e2f7a73e9246181fc89486c
+local/crash167-close-source01/prior/ retains exact previous documentation/DEV.
+Raw binaries,disassembly,derived tables and local diagnostics remain out of Git.
+
+Next finite work
+Qualify one disposable patched client's original registered selector0 route.
+Before triggering it,bind thread/ABI and actual flags/report-tree/controller
+lifetime,invalid pipe,801fb0 callback,break-on-crash state and loaded DbgHelp.
+Reuse143-145 symbol/source findings where exact;resolve the actual crash-time
+symbol search/external-resolution policy and relevant OS dialog/WER handoff.
+Use private profile/environment/log roots,owned handles/job/hard deadline and
+continuous descendant/file/network attribution;preserve shared state and seeds.
+Local diagnostics are allowed,but an isolated APPDATA does not anonymize the
+real OS account. Forced cleanup must fail native natural-termination acceptance.
+Do not run the original uploader/CrashHandler or change global OS policy to make
+the test pass. Native runtime/dump/retry/tree/wire/P7 and full D5 remain OPEN.
