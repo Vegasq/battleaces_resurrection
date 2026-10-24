@@ -1,0 +1,136 @@
+PROCESS-LOCAL NATIVE CRASH REPORT POLICY168
+2026-10-23. Source fix and authored control pass; actual game crash NOT qualified.
+
+Result
+Recipe23 adds one narrow Unity startup guard:the game process selects error mode3
+instead of1. This retains its critical-error behavior and disables the automatic
+Windows Error Reporting handoff. The same stored owner field drives teardown's
+expected-mode comparison,so the original conditional restore remains valid.
+Local exception filters,stack/symbol diagnostics and useful local logs remain.
+This is a per-process setting,not a Windows registry/service/global policy change.
+
+The product change is source-only here. No game was launched,installed or
+crashed. Current166 packages/standalones/manual copies remain22/127/helper165;
+DEV N5/N7 still refer to that coherent pair. New source is23/128 with compiled
+diagnostic helper168,awaiting actual client qualification before packaging.
+Full P7/D5/D1-D9 and complete-set runtime_validated remain OPEN/false.
+
+Concrete defect exposed by a disposable control
+167 proved native filters survive the Unity child/uploader guards.168 follows
+their actual OS boundary:filter9fdec0 returns LONG0,EXCEPTION_CONTINUE_SEARCH.
+Startup803cbd configures SetErrorMode(1). The original native IPC path's later
+SetErrorMode(2) at9e1066 is beyond the invalid-pipe exit produced by child skip.
+Thus the three old guards do not prevent an automatic OS report handoff.
+
+Microsoft documents bit2,SEM_NOGPFAULTERRORBOX,as preventing Windows Error
+Reporting invocation. It is distinct from merely suppressing reporting UI.
+Top-level filter return0 follows normal OS handling under the process error mode.
+Sources,checked2026-10-23:
+ https://learn.microsoft.com/en-us/windows/win32/api/errhandlingapi/nf-errhandlingapi-seterrormode
+ https://learn.microsoft.com/en-us/windows/win32/api/errhandlingapi/nf-errhandlingapi-setunhandledexceptionfilter
+
+Correct patch site / ownership
+Original803c92 stores1 at stack[rsp+7e0],the retained controller's expected mode
+at+40.803cae loads that field into ECX for803cbd SetErrorMode. Return EAX is
+saved through803ccb to controller+8. Teardown9f82be GetErrorMode compares current
+mode to owner+40 at9f82c4,then restores saved owner+8 at9f82cc only if equal.
+Changing only a temporary API argument would leave expected1 and break restore.
+New guard changes the stored immediate1->3 at instruction RVA803c92/file803092;
+the only differing native byte is RVA803c99/file803099. The saved-mode logic,
+unwind shape,filter registration,local diagnostic calls and teardown stay intact.
+This affects the game process and modes inherited by its children. It does not
+establish absence of every future writer in another DLL or arbitrary indirect code.
+
+In-memory exact original22->23 verification passes. Installed diagnostic r134g
+still equals22. The23 candidate differs from it in exactly that one native byte
+and one recomputed PE-checksum byte at file1a1. No installed file is replaced.
+Source now has63GameAssembly+63Unity+1chrome_elf+1libcef guards=128. The read-only
+helper audit recognizes four crash signatures and tag23;the verifier requires
+4/4 for23 and still accepts3/3 ONLY with an explicit recipe3..22 selection.
+Mismatched denominator,missing signature and stale tag evidence are rejected.
+
+Actual authored control / retained failures
+tools/native_crash_control.cpp is a small independently compiled native program.
+Its C++ main installs its original LONG0 filter and journals its own PID/thread/
+error mode. An owner-created local gate makes that SAME main thread call
+RaiseException(c0000005,flags0,count0,NULL). The final Frida script only observes
+fixed exported entry/exception API;no native caller,exception-handler replacement
+or error-mode write is injected. Owned suspended launch retains original process/
+thread/job handles before attach/resume;OwnedJobTracker retains descendant
+identities and signaled exit handles. This control never loads original game DLLs.
+
+- Native01 FAIL:the first design called an authored native function from Frida
+  with exceptions:'propagate'. It exitedc0000005,but original filter journal was
+  absent. It is rejected,not treated as original-filter qualification;the exact
+  cause is not inferred. That NativeFunction approach is removed.
+- Native02 FAIL:passive observation/native C++ invocation reaches the original
+  filter on main thread30172,mode32769. Actual owned WerFault.exe exits80070005;
+  root remains active through the45s deadline. Forced owned cleanup/reaping
+  follows. No natural-termination/no-report pass;no global policy workaround.
+- Native03 PASS:the authored program itself adds only bit2. Journal modes are
+  32769 before,32771 ready/invoke/original-filter. PID32784/thread9804 raises
+  c0000005 on its original C++ main thread,then exits that code. Job total1/
+  active0/terminated0,all retained/reaped,no forced cleanup/no reporter child.
+  Owner elapsed25.465s includes attach/pre-resume coordination;not startup or
+  crash performance. REA terminal events:ready,native trigger,RaiseException.
+  This proves the selected CONTROL behavior,not an actual game/OS-wide/wire claim.
+
+REA final native03 evidence:
+ ev_ad8d170b91d6de57aabdfb6a8cb7f8cb74b770460524ca8575d2980dcd59aa56
+Native02 retained failed evidence:
+ ev_94bae7e9c8d7407da266079158c9125621974554846fc2965e2954bb7645158a
+REA records lack automatic artifact binding;the external owner/strict review
+bind the actual executable hash,source inputs,PID/thread and observer bytes.
+Observer/generation hashes account for the Windows owner's CRLF output exactly.
+
+Validation
+103 affected source checks pass on BOTH Python3.14.8(13.024s) and3.12.10(13.008s),
+no skips. They include exact original component transformations,all telemetry
+decoders,packaging/provenance and native-control false-pass refusals. Required
+client_patch/build.ps1 C++ suite/helper build exits0;all helper source hashes
+remain stable during build. No unchanged full983-test/gameplay/soak rerun.
+The strict actual-control review rederives native03 and rejects13mutations of
+its real records. Both failed controls remain failed. Local review01 incorrectly
+assumed LF output instead of Windows Path.write_text CRLF;no target was rerun.
+Build01 failed from an incorrectly derived compiler include root;build02 warned
+on a signed/unsigned journal comparison. Corrected build05 passes/W4/WX. Failed
+design/build/review artifacts remain ignored and are not rewritten as passes.
+
+Independent source reviews
+REA skill applied. Known Ghidra unconfigured state reused;static findings use
+pinned original PE/unwind/LLVM fallback,not new native REA static Evidence.
+One review reuses167/143-145 and binds original symbol search inputs/95checks;
+another reviews the new constant/API/owner-restore path/14checks. Local diagnostic
+symbol search can still use cwd,EXE/plugin/SystemRoot paths and embedded symbol
+references. Environment restriction alone is not a no-network proof. Future game
+test must bind actual loaded DbgHelp/search state and relevant API/network scope.
+No shared getter/username/symbol API is patched. No shared queue is read/cleared.
+
+Ignored artifacts and SHA256
+local/crash168-symbol-source01/manifest.json
+ 3a75bb742ca685e4e1a909093d4531892fb805bca8e587e4a91ce30ef46a2579
+local/crash168-error-mode-source01/manifest.json
+ 2e8c8ce45457e5c028bad3af87c75b3cf9f357639c328b6e1bd6bcd3900dc094
+local/crash168-control-native03/verification.json
+ 3f5a2612ae35473fc1e53e53089879c911798d2fea4ca2075ea89103b222bb3a
+local/crash168-control-review02/verification.json
+ f55e0f502a1020ebea3b50a6c0ac39f5bb08567ce916d61193fa4ad35990d729
+local/crash168-patch-review01/verification.json
+ 443258384a647f4252c29324afacb23f80995e8a0ce31915d8c5f7cabcf3a045
+build/helper-crash168-01/BattleAcesOffline.dll
+ fb7234ef78144e4f308385d9714b28f3dcc2c2ffeb8f06f45ddc7fc50fdc448a
+build/helper-crash168-01/helper-build.json
+ 59c7da3628b84972098084a97c024ad48184fb5d851e7c4b3e88949e99f73794
+local/crash168-prior-source01/ preserves exact prior authored sources/docs/DEV.
+No original/client/built binary,disassembly,raw trace or credential enters Git.
+
+Next
+Install/qualify23 and its matching helper in an owned diagnostic game,retaining
+current166/manual files. Implement an explicitly gated C++ main-thread call to
+the proven original registered ForceCrash selector0;Frida must remain passive.
+Verify actual mode/owner/controller/pipe/callback/break-on-crash state before
+arming. Bind actual DbgHelp/symbol paths,local crash log,exception exit,complete
+owned descendants and relevant reporting/file/network behavior. Exercise normal
+launch/Quit and saved-mode restore;then package the matching pair. This actual
+game/runtime/P7 qualification is still required;the authored control cannot replace
+it. N9/N10 remain pending;no new Nick action/visibility/Tutorial2 test is requested.

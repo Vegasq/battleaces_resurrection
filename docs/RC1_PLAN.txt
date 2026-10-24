@@ -5,6 +5,10 @@ final-release gate. The existing delivery plan remains authoritative for those
 remaining requirements. No earlier failed report is upgraded by this scope change.
 
 Current engineering candidate166,2026-10-23
+Source168 advances to23/128 with a process-local automatic Windows report guard.
+Authored native control/source tests pass;actual game crash qualification remains
+required. No168 installer is published;166 below stays the current matched pair.
+See native-crash-policy168.txt;do not mix its pending helper/Unity into manual166.
 Clean5cd67fa paired native standalones/ZIPs bind22/127guards/helper165. Actual
 forms/payloads/bundled imports,client Install/Update with74profiles preserved and
 ordinary game-folder entry after actual download rename pass. Readiness cleanup

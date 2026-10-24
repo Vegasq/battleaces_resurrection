@@ -36,7 +36,10 @@ Retained requirements and current evidence:
   163 qualifies the named early/late engine replay failures and same-owner valid
   reload/Cancel/reopen/Confirm/Quit on installed139;not physical selection/warnings.
   Remaining installed/native warnings/storage/visible recovery gates stay open.
-- D5 uses telemetry recipe22/127guards/four components;RUNTIME_VALIDATED is false.
+- D5 source168 uses recipe23/128guards/four components;RUNTIME_VALIDATED is false.
+  The new process-local WER mode has source/authored-control qualification only;
+  actual game crash/mode/restore/diagnostics/descendants remain required before
+  packaging.166 stays the current coherent22/helper165 pair. native-crash-policy168.txt.
   165 closes seven SDK instance/queued error-collection entries,with actual
   genuine Client/error/local log/practice/Continue/natural Quit proof.166 binds
   those exact game/helper bytes into its coherent pair;SDK-root fixture scope is

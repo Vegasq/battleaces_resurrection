@@ -2,6 +2,22 @@
 
 ## Requests and answers with Nick
 
+- Crash168 source23/128 adds process-local automatic WER disable through owner
+  constant803c92 immediate1->3;both startup argument and teardown expected+40
+  change,prior+8/conditionalrestore/local logs stay. In-memory22->23 exactlyone
+  native byte+onechecksum byte;installed166/r134g22/manual/N5/N7 unchanged.
+  Authored native03 C++ main/real LONG0 filter/c0000005 exit/job1/0/0/no force
+  passes;13actual corruptions reject. Native01 JS-call missesfilter FAIL;02
+  originalfilter/actualWerFault/rootdeadline/forcedcleanup FAIL retained. Passive
+  C++ gate replaces JS NativeFunction trigger.103tests BOTH314/312/no skips,
+  requiredC++suite/helper168 pass115sourcesstable. Static95symbol/14mode review
+  sealed. NO game/install/crash/package/sharedqueue operation/new Nick action.
+  Source-only fix NOT actual game/native/WER/wire/fullP7/D5 proof. NEXT actual23
+  owned client/explicit gated C++ originalForceCrash call/passive observation,
+  mode/owner/DbgHelp/symbol policy/local log/exit/descendants/normalQuit+restore;
+  then coherent packages. Do not repeat controls/scans/quiet AI without concern.
+  N9/N10blank/sixpins exact. docs/native-crash-policy168.txt.
+
 - Crash167 CLOSES source-only two-owner/three-guard/registered-trigger question.
   Manager1d08f98 disabled before log collection;uploader RET retains outer drain.
   Native controller1d0e128 keeps exception filters/cursor callback801fb0;child

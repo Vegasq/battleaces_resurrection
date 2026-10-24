@@ -20,6 +20,7 @@ struct Signature {size_t rva,offset;const char* original;const char* candidate;u
 static const Signature signatures[]={
     {0xc90c2a,0xc9002a,"0fb64210488bf2884101488bd984c00f","31c09090",0},
     {0x80366f,0x802a6f,"0f85a40500004c39b424200800000f84","e9a505000090",0},
+    {0x803c92,0x803092,"c78424e007000001000000c78424f8","c78424e007000003000000",0},
     {0xc93d10,0xc93110,"488bc44889480855488da868ffffff48","c3",0},
     {0xc3bafc,0xc3aefc,"488b03488bcbff908000000041b001c6","e90a00000090909090909090909090",1},
     {0xc34270,0xc33670,"48895c240848896c2410488974241857","31c0c3",1},
@@ -88,7 +89,7 @@ static const Signature signatures[]={
     {0x205430,0x204830,"4885c90f840f010000574883ec30488b","",3},
 };
 static uintptr_t unity=0;
-static constexpr unsigned currentRecipeVersion=22;
+static constexpr unsigned currentRecipeVersion=23;
 static bool checked=false,disabled=false,startupLogged=false,quitAttempted=false,completeRecipe=false;
 static unsigned snapshots=0;
 static ba_telemetry_sampling::Schedule schedule;
@@ -228,9 +229,9 @@ static bool verifyModule() {
         const auto collectorGuards=automaticCollectorGuardCount();
         const auto initializationGuards=sdkInitializationGuardCount();
         const auto errorGuards=reportErrorGuardCount();
-        completeRecipe=groups[0]==3 && groups[1]==56 && groups[2]==3 && cacheGuards==5 && serviceGuards==2 && collectorGuards==1 && initializationGuards==6 && errorGuards==7;
+        completeRecipe=groups[0]==4 && groups[1]==56 && groups[2]==3 && cacheGuards==5 && serviceGuards==2 && collectorGuards==1 && initializationGuards==6 && errorGuards==7;
         disabled=false;
-        ba::log("Telemetry audit build verified: UnityPlayer sha256=%s normalized=%s crashSignatures=%u/3 coreCandidateSignatures=%u/56 performanceCandidateSignatures=%u/3 cacheFailureSignatures=%u/5 serviceProfileSignatures=%u/2 recipeVersion=%u automaticCollectorSignatures=%u/1 sdkInitializationSignatures=%u/6 reportErrorSignatures=%u/7; READ ONLY, no qualification claim",
+        ba::log("Telemetry audit build verified: UnityPlayer sha256=%s normalized=%s crashSignatures=%u/4 coreCandidateSignatures=%u/56 performanceCandidateSignatures=%u/3 cacheFailureSignatures=%u/5 serviceProfileSignatures=%u/2 recipeVersion=%u automaticCollectorSignatures=%u/1 sdkInitializationSignatures=%u/6 reportErrorSignatures=%u/7; READ ONLY, no qualification claim",
             actualHash.c_str(),originalHash,groups[0],groups[1],groups[2],cacheGuards,serviceGuards,currentRecipeVersion,collectorGuards,initializationGuards,errorGuards);
     } catch(const std::exception& e) {ba::log("Telemetry audit disabled: %s; no object reads attempted",e.what());}
     return !disabled;

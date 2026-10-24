@@ -1,6 +1,14 @@
 D5 REMAINING SOURCE WORKLIST125
 2026-10-22. Full D5 remains OPEN. Source findings below narrow the remaining
 engineering work;they are not complete analytics-removal or release acceptance.
+Current168:source23/128 adds process-local WER owner-mode1->3 with saved/expected
+mode restore intact. Authored passive C++ originalfilter/crash exit/job1/0/0/no
+force passes;13actual mutations reject. Native01/02 failures retained.103tests
+314/312/C++suite/helper168 pass;NO actual game/install/crash/packages changed.
+166 remains coherent22/helper165/currentN5/N7. NEXT actual23 diagnostic C++ native
+crash/passive observer,mode/owner/symbols/logs/exit/descendants/normalQuit+restore
+then packages;not same controls/scans/quiet AI. FullP7/D5 OPEN. No new action.
+Details:native-crash-policy168.txt.
 Current167:source-only crash classification binds two owners/three guard lifetimes,
 invalid-pipe native exit,cursor callback and actual registered RaiseException
 trigger. Local StackWalker/DbgHelp/username/module/path diagnostics remain before

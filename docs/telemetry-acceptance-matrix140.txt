@@ -87,6 +87,14 @@ Finite rows
     deadline cases remain accepted availability evidence;do not repeat all eight
     just to produce quiet counters.
 [ ] P7 Effective queue/error/reporter/crash paths
+    [x]168 source/CONTROL subcase:per-process WER owner1->3 preserves original
+        conditional restore/local logs. Source23/128;authored native C++ original
+        filter/crash exit/job1/0/0/no force PASS,13actual mutations reject.103
+        tests314/312/C++suite/helper168 pass.01/02 failures retained. Actual game
+        NOT installed/crashed;166 packages remain22/helper165. NEXT actual23
+        C++ original crash/passive observer,mode/owner/symbols/logs/exit/tree/
+        normalQuit+restore before packages. Not same control/scans/quiet AI.
+        Native/P7/fullD5 OPEN. No new action;native-crash-policy168.txt.
     [x]167 source-only native guard/owner/registered-trigger contract. Log-error
         manager and native controller differ;child skip/invalid pipe prevents
         native handoff payload/event/infinite wait,while filters,cursor restore

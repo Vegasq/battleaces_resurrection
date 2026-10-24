@@ -1,6 +1,6 @@
 """Exact-build telemetry patch transformations; no file or process operations.
 
-These 127 guards have static source/control-flow review. The complete recipe
+These 128 guards have static source/control-flow review. The complete recipe
 set has not been runtime validated; recipe2's 59 had a bounded compatibility run.
 They do not establish complete telemetry removal; see docs/telemetry.txt.
 Only brief patch safety signatures are included, never original game payloads.
@@ -10,7 +10,7 @@ import hashlib
 from types import MappingProxyType
 
 GAME_BUILD = 37822
-RECIPE_VERSION = 22
+RECIPE_VERSION = 23
 RUNTIME_VALIDATED = False
 VALIDATION_STATUS = "Scoped native compatibility verified; full lifecycle/report-removal qualification pending"
 UNRESOLVED_COMPONENTS = (
@@ -204,6 +204,11 @@ COMPONENTS = MappingProxyType({
                   bytes.fromhex('0fb64210488bf2884101488bd984c00f'), bytes.fromhex('31c09090')),
             Patch('prevent Unity crash-handler child creation', 0x80366f, 0x802a6f,
                   bytes.fromhex('0f85a40500004c39b424200800000f84'), bytes.fromhex('e9a505000090')),
+            # This owner field supplies both SetErrorMode and teardown's expected
+            # mode. Keep the original critical-error bit and add process-local
+            # SEM_NOGPFAULTERRORBOX; preserve the saved-mode conditional restore.
+            Patch('disable process-local Windows automatic crash reporting', 0x803c92, 0x803092,
+                  bytes.fromhex('c78424e007000001000000c78424f8'), bytes.fromhex('c78424e007000003000000')),
             Patch('native in-process report uploader defense', 0xc93d10, 0xc93110,
                   bytes.fromhex('488bc44889480855488da868ffffff48'), bytes.fromhex('c3')),
             # Reject only state1 preparation through the existing false-return

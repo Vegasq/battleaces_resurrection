@@ -3,6 +3,17 @@ Updated: 2026-10-23
 Delivery plan: REMAINING_DELIVERY_PLAN.txt, Windows only.
 Original roadmap: CLOSED / SUPERSEDED;see PLAN_CLOSEOUT.txt.
 
+CRASH168 - PROCESS-LOCAL WER POLICY SOURCE FIX / REAL AUTHORED CONTROL
+Recipe23/128 changes startup owner mode1->3,preserving expected-mode/old-mode
+restore and local logs. Exactlyone native+onechecksum byte in derived Unity.
+Native authored C++ control03 originalfilter/c0000005 exit/job1/0/0/no force
+PASS;13actual mutations reject.01JS-trigger/filter-missing and02WerFault/root
+deadline/forcedcleanup remain FAIL.103tests BOTH314/312/no skips,C++suite/helper
+168pass. Actual game NOT launched/installed/crashed;166 stays coherent22/helper
+165/currentN5/N7,manual/share untouched. NEXT actual23 diagnostic native crash/
+mode/owner/symbols/local log/exit/descendants/normalQuit+restore before packages.
+NativeP7/D5/fullD1-D9 OPEN,false. No new action;native-crash-policy168.txt.
+
 CRASH167 - NATIVE OWNER / GUARD / REGISTERED TRIGGER SOURCE CLASSIFIED
 Report manager and native exception controller are separate. Existing guards
 retain disabled manager/outer drain and reject invalid-pipe native handoff before

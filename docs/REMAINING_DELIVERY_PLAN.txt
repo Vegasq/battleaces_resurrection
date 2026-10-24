@@ -414,6 +414,15 @@ native-settings-atomic.txt, native-deck-validation.txt, packaged-multiplayer.txt
 native-custom-invitations.txt, native-custom-matches.txt.
 
 [ ] D5 - Complete game analytics/report removal and qualification
+[x]168 source/runtime-CONTROL subcase:process-local WER owner constant1->3 retains
+    original conditional restore/local logs.23/128,one native+onechecksum byte.
+    Authored C++ main/originalfilter/c0000005 exit/job1/0/0/no force PASS;13actual
+    mutations reject,01/02failures retained.103tests on314/312/C++suite/helper168
+    pass. NO actual game install/crash/package change;166 remains22/helper165.
+    NEXT owned23 client/passive observer/gated C++ original crash,actual mode/
+    owner/symbols/local logs/exit/descendants/normalQuit+restore before packaging.
+    Actual game/P7/fullD5 OPEN;not same control/scans/quiet AI. No new Nick action.
+    Evidence:native-crash-policy168.txt.
 [x]167 source-only native crash contract:two distinct owners,three existing guard
     lifetimes,original cursor callback and invalid-pipe exit before native report
     payload/event/infinite wait. Actual registered ForceCrash selector0 raises
