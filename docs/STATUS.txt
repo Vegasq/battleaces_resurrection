@@ -4,19 +4,19 @@ Current work:REMAINING_DELIVERY_PLAN.txt. Evidence navigation:INDEX.txt.
 Exact prior3576-line ledger:history/2026-10-24/STATUS.txt.
 Historical records retain their original failures,claims and artifact scopes.
 
-SOURCE / PACKAGE / DIAGNOSTIC ARE SEPARATE
-- Latest committed checkpoint168:recipe23/128guards across four components.
-  Source/authored native control passes;RUNTIME_VALIDATED=false.
-- Current coherent Windows package166:0.3.0-rc1.5,recipe22/helper165,clean5cd67fa.
-  Actual forms/imports/payloads/client update and installed entry pass within
-  documented scope. Client update preserves74profiles;entry readiness used forced
-  cleanup. Installer hashes matched coherent-candidate166.txt in the review.
-- Uncommitted169/170:client_patch/src/native_crash_probe.cpp,
-  telemetry_audit.cpp integration and bounded crash/restore diagnostic tools.
-  No newer release or complete privacy acceptance is claimed.
-- Source171 disables original Korean login/compliance per Nick. Community/LAN
-  transport unchanged;candidate166 and installed user copies remain frozen.
-  Evidence and feature inventory:legacy-compliance171.txt.
+CURRENT PUBLISHED SOURCE AND PACKAGES
+Prerelease174:version0.3.0-rc1.6,clean48135e3,recipe23/128guards/helper169.
+https://github.com/Vegasq/battleaces_resurrection/releases/tag/v0.3.0-rc1.6
+Both self-contained EXEs,checksums and release manifest published. Anonymous
+downloads match local SHA256 and GitHub digests. Source/history audit2464objects,
+0findings. Both Python3.14/3.12 suites:1057run,1044pass/13skip,0failures each.
+Eight owned bundled-runtime/import/form/payload checks pass6.765s. Actual native
+client update passes69.781s,job3/0/0,no force;14prior profile files,settings,
+backups and eight game components preserved. Exact installed runtime verified.
+Includes171 Korean-flow removal and169 crash handoff fix;community/LAN unchanged.
+No new full server export,gameplay,SCM or clean-PC acceptance. Reused171/172
+game/helper evidence retains its named scope. RUNTIME_VALIDATED=false;full release
+open. Frozen166/manual copies preserved. Details:coherent-candidate174.txt.
 
 NEW USER RESULTS - 2026-10-24
 N2 COMPLETE:Nick confirmed the LAN request succeeded. Earlier LAN1v1/setup98
@@ -44,8 +44,8 @@ in-flight workers/requests are not cancelled by on-disk installation.64managed
 bodies/18edges,24Unity extents and all128current guards/four complete images
 verified. Reused171/172inactive-state samples retain sampled scope. No new patch,
 game launch or real queue access. FullP7/P9/D5 stays open;report-resume173.txt.
-Nick requested matched installers uploaded to GitHub next as an engineering
-prerelease;full release acceptance is unchanged.
+Requested matched installers are published as prerelease174 above. Next source
+question:P9 upstream c307c0/computed consumers;full acceptance is unchanged.
 
 BROWSER ACTIVATION172 - 2026-10-24
 Current startup/survey applicability qualified:automatic plugin callbacks remain,
@@ -58,7 +58,7 @@ with inactive reset config in examined community source. No original URL opened.
 14focused tests pass on both Python versions. Reviewer initially rejected the
 normal kernel32->kernelbase exit pair;corrected final-suffix validation reuses
 the exact capture/observer,with prior refusal preserved. FullP8/D5 remains open.
-Next:P7/P9 resumed/in-flight queue applicability. browser-activation172.txt.
+Resumed/in-flight applicability is recorded at173 above. browser-activation172.txt.
 
 LEGACY LOGIN/COMPLIANCE171 - 2026-10-24
 Known Korean dialog creation,original validation request and pending login gate

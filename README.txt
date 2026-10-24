@@ -10,12 +10,12 @@ START HERE
 
 CURRENT POSITION - 2026-10-24
 The Windows release candidate works, including accepted physical LAN play and
-startup. Final release qualification is still open. Candidate166 is the current
-coherent client/server installer pair: version0.3.0-rc1.5,recipe22/helper165.
-The next paired engineering prerelease174 is version0.3.0-rc1.6:recipe23,
-the qualified169 crash fix,and171's disabled Korean login/compliance flow.
-Its build/publication is explicitly requested;final release gates remain open.
-Exact package hashes and tested scope: docs/coherent-candidate166.txt.
+startup. Final release qualification is still open. Published prerelease174 is
+the current coherent client/server pair:version0.3.0-rc1.6,recipe23/helper169,
+including171's disabled Korean login/compliance flow. Download both installers:
+https://github.com/Vegasq/battleaces_resurrection/releases/tag/v0.3.0-rc1.6
+Both public downloads are hash-verified. Exact identities and tested scope:
+docs/coherent-candidate174.txt. Earlier166/manual copies remain frozen.
 
 Nick has confirmed N2/LAN, N5/download-install, N9/desktop pipe and N10/protected
 recovery PASS. N7's remaining visible portrait/host/save details are unreported.
@@ -74,7 +74,7 @@ Exact-build patch/restore into a CLOSED working game copy:
   python -m client_patch.patcher.patch_client --game-dir "<game>" --restore
 Do not target the untouched recovery installation or a reserved manual candidate.
 Source recipe23 covers GameAssembly.dll,UnityPlayer.dll and nested chrome_elf.dll/
-libcef.dll. RUNTIME_VALIDATED remains false. Packages166 still bind recipe22.
+libcef.dll. RUNTIME_VALIDATED remains false. Prerelease174 binds recipe23.
 Use the guides/index for asset import,advanced verified setup and diagnostic tools.
 
 DOCUMENTATION HISTORY

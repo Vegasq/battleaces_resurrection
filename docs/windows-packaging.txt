@@ -1,7 +1,15 @@
 WINDOWS PORTABLE PACKAGING - DEVELOPMENT PREVIEW
-Updated: 2026-10-23
+Updated: 2026-10-24
 
-Current coherent engineering candidate166
+Current published engineering prerelease174
+Version0.3.0-rc1.6,clean48135e3,recipe23/128/helper169 and Korean-flow171 removal.
+Both installers published with hashes/manifest;anonymous downloads verify exactly.
+Eight owned package checks and actual client update pass,14profile files/settings/
+backups/components preserved,job3/0/0/no force. Both full Python suites pass with
+13skips each. Full server export/clean-PC/SCM/Internet gates remain open.
+Exact artifacts,download URL and scope:coherent-candidate174.txt.
+
+Preserved earlier coherent engineering candidate166
 Clean5cd67fa source,recipe22/127 and helper165 ship as a matched pair. Both
 bundled CLIs/imports/native forms/embedded payloads pass8owned commands6.551s.
 Actual client native Install/Update passes18.474s,preserving74profiles/config/

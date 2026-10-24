@@ -20,14 +20,10 @@ Linux/Wine,commerce/ranked backend reconstruction,in-match reconnect,spectator/
 server-browser UX and extra modes/maps remain outside this release's scope.
 
 CURRENT BASELINE
-- Coherent packages:166,version0.3.0-rc1.5,recipe22/127guards/helper165.
-  Exact identities and scope:coherent-candidate166.txt. Manual copies stay frozen.
-- Committed source:168,recipe23/128guards,RUNTIME_VALIDATED=false.
-  native-crash-policy168.txt records its authored-control/source qualification.
-- Diagnostic work169/170:native crash probe/observer/audit integration. This is
-  uncommitted diagnostic work,not a newly accepted or packaged release.
-- Source171 disables original Korean login/compliance per Nick;community/LAN
-  remains. Candidate166 does not contain this change. legacy-compliance171.txt.
+- Published coherent prerelease174:version0.3.0-rc1.6,recipe23/128guards/helper169.
+  Clean build48135e3 includes171 Korean-flow removal and169/170 diagnostic fixes.
+  Exact downloads,hashes and scope:coherent-candidate174.txt.166/manual preserved.
+- Source/package guards agree;RUNTIME_VALIDATED=false. Full release stays open.
 - Nick's N2/LAN,N5/download-install,N9/desktop pipe,N10/protected recovery are
   PASS as of2026-10-24. N1/startup and N3/console shutdown were already accepted.
   N7 retains unreported details;N8 is deferred. DEV.txt owns all user requests.
@@ -62,10 +58,10 @@ NEXT WORK - IN THIS ORDER
    Reuse N9 desktop PASS/automation DENIED at their stated scopes;no repeat denial.
    N10 closes the requested protected recovery subcase;continue the remaining
    deployment/completed-game gates rather than repeating that desktop check.
-4. NEXT:Nick requested a matching client/server installer pair uploaded to
-   GitHub Releases after173. Build/verify a clean engineering prerelease174;
-   preserve166 and keep full-release/privacy acceptance explicitly open.
-5. Then resolve P9 upstream c307c0/computed-consumer applicability and work
+4. COMPLETE:matched client/server prerelease174 published to GitHub Releases.
+   Both Python suites,8package commands and actual client update pass;all four
+   public downloads match hashes. Details:coherent-candidate174.txt.
+5. NEXT:resolve P9 upstream c307c0/computed-consumer applicability and work
    through remaining D2-D5/D7-D8 rows below using their finite matrices.
    Package a matching updated pair only after changed behavior is qualified;
    perform final D9 acceptance after its prerequisite gates are met.
@@ -144,7 +140,7 @@ D8 - Internet,latency,capacity:OPEN.
   packaged-tls-soak157.txt,soak-qualification.txt.
 
 D9 - Final freeze and delivery:OPEN;depends on applicable D1-D8 closure.
-  N5 confirms download/install success;166 remains an engineering candidate.
+  N5 confirms earlier download/install success;174 is an engineering prerelease.
   Bind clean source/helper/launcher/runtime/asset compatibility and exact hashes;
   qualify clean-machine ordinary install/local-online play/update/restore/
   uninstall/save preservation/refusal/shutdown. Supply concise shipped guides,
@@ -152,7 +148,7 @@ D9 - Final freeze and delivery:OPEN;depends on applicable D1-D8 closure.
   Run affected source/native/package checks;record skips/failures;review source,
   history and private/proprietary content before publishing agreed artifacts.
   References:RELEASE_ACCEPTANCE.txt,RC1_PLAN.txt,windows-packaging.txt,
-  helper-provenance159.txt,release-readiness158.txt,coherent-candidate166.txt.
+  helper-provenance159.txt,release-readiness158.txt,coherent-candidate174.txt.
 
 WORKING RULES
 Each next investigation needs a missing claim,bounded check and stopping condition.

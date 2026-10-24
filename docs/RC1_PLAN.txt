@@ -1,15 +1,15 @@
 BATTLE ACES - RC1 DELIVERY CONTRACT
-Reviewed:2026-10-24. Engineering candidate166;RC1 final acceptance remains OPEN.
+Reviewed:2026-10-24. Published prerelease174;RC1 final acceptance remains OPEN.
 Full release queue:REMAINING_DELIVERY_PLAN.txt. Gates:RELEASE_ACCEPTANCE.txt.
 The exact prior contract/checkpoint history is history/2026-10-24/RC1_PLAN.txt.
 
 CURRENT CANDIDATE
-Matched166 client/server packages:0.3.0-rc1.5,clean5cd67fa,recipe22/helper165.
-Forms/payloads/bundled runtime,client update and independent installed launch
-have scoped passes. Nick has accepted LAN(N2) and download/install(N5).
-N7 retains unreported host/save/portrait details;do not reinstall to fill fields.
-Source168 uses recipe23;unfinished169 diagnostics are not another release.
-Exact artifact hashes and limitations:coherent-candidate166.txt.
+Matched174 installers:0.3.0-rc1.6,clean48135e3,recipe23/helper169,legacy flow171
+disabled. Published on GitHub with hashes/manifest;all four public assets verified.
+Forms/payloads/bundled runtime and actual owned client update pass. Frozen166 and
+manual copies preserved. Exact artifacts and scope:coherent-candidate174.txt.
+Nick accepted earlier LAN(N2) and downloads/install(N5);no new174 user result is
+invented. N7 retains host/save/portrait details;do not reinstall to fill fields.
 
 PLAYER AND HOST CONTRACT
 The client uses ONE standalone native Windows installer. Fields are game folder,
@@ -57,7 +57,7 @@ RC-M Multiplayer:packaged Custom/rematch lifecycle and physical LAN/N2 accepted
 RC-P Physical presentation:remaining N7 portrait/live-change/reopen and unreported
   host/save observations;no repeat accepted LAN/install/startup check requested.
 RC-F Freeze:clean coherent pair,exact hashes,shipped guides,known limits and
-  proprietary/private-content audit.166 is an engineering checkpoint,not final RC.
+  proprietary/private-content audit.174 is an engineering prerelease,not final RC.
 
 Only scoped evidence closes these gates. The separate D2-D5/D7-D9 full-release
 requirements remain in the current roadmap. Preserve old manual candidates,

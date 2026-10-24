@@ -25,31 +25,28 @@ D7    OPEN        Console shutdown/restart accepted. N10 protected recovery and
 D8    OPEN        Bounded two/four-room TLS/native and older soak evidence retained.
                   Internet/network/click delay,final capacity/graphical lifetime
                   and remaining deployment/duration scopes remain.
-D9    OPEN        Candidate166 coherent;N5 download/install accepted. Final clean
+D9    OPEN        Prerelease174 published;earlier N5 accepted. Final clean
                   artifact freeze/audit,guides and applicable prerequisite closure
                   remain. No final release from source-only or diagnostic passes.
 
 CURRENT ARTIFACTS
-Candidate166:version0.3.0-rc1.5,clean5cd67fa,recipe22/helper165. Exact hashes and
-forms/client-update/installed-entry scopes:coherent-candidate166.txt. Preserve
-older manual/accepted copies. Source168 adds recipe23 and process-local WER mode;
-169 now has a clean original native crash exit after its handoff fix,as well
-as the earlier instrumented pass;old clean01 refusal stays failed. See
-native-crash-handoff169.txt.170 additionally qualifies original normal-Quit
-saved-mode restoration and reconciles Windows DbgHelp/search paths with complete
-selected crash file/network counters through filter-return. These named passes
-do not replace166 or establish full privacy;native-crash-qualification170.txt.
-171 disables original Korean login/compliance per Nick,including its browser
-creation,validation request and pending gate. Community/LAN unchanged. This
-source change does not replace166 or close fullP8/D5;legacy-compliance171.txt.
+Published174:version0.3.0-rc1.6,clean48135e3,recipe23/helper169. Exact hashes,
+public downloads and scoped checks:coherent-candidate174.txt. Both Python suites,
+native forms/payloads and owned client update pass;all public assets hash-verified.
+Preserve166/manual/accepted copies. Source168 adds recipe23/process-local WER;
+169 fixes the native crash handoff;170 qualifies original normal-Quit saved-mode
+restoration and selected crash observation.171 disables original Korean login/
+compliance creation,validation and pending gate;community/LAN remains unchanged.
+These now ship together in174;they do not establish complete privacy or final
+release acceptance. Focused169-171 records retain failures and scope limits.
 172 qualifies startup/survey applicability and an instrumented owned startup/
 normal-Quit lifetime,job1/0/0,no browser activation in that run. It changes no
 product binary and does not establish all supported-mode/final-installed privacy.
 Scope,initial reviewer refusal and retained evidence:browser-activation172.txt.
 173 settles named saved-report/resumption applicability for fresh patched launches,
 not cancellation of already-running original requests. No product change or full
-P7/P9 closure:report-resume173.txt. Nick authorized a new GitHub engineering
-prerelease;that publication does not mark final D9 acceptance complete.
+P7/P9 closure:report-resume173.txt. Requested GitHub engineering prerelease174
+is published;this does not mark final D9 acceptance complete.
 
 USER ACCEPTANCE UPDATE
 N2,N5,N9,N10 complete2026-10-24. N1/N3 were already complete. No repeat requested.

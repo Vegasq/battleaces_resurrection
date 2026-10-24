@@ -40,7 +40,8 @@ PLAYER / HOST GUIDES AND CONFIGURATION
   windows-service.txt
 
 INSTALLERS,PACKAGING AND RELEASE CHECKPOINTS
-  coherent-candidate166.txt
+  coherent-candidate174.txt - current published installer pair and hashes
+  coherent-candidate166.txt - preserved earlier pair
   guarded-candidate129.txt
   guarded-candidate139.txt
   helper-provenance159.txt

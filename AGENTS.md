@@ -32,9 +32,10 @@
 
 ## Current source and artifacts
 
-- Candidate166 is the coherent paired installer/package: recipe22/helper165.
-  Exact identities are in `docs/coherent-candidate166.txt`. Preserve frozen
-  manual130, accepted startup71, earlier evidence and installed user copies.
+- Published174 is the coherent paired installer/package:recipe23/helper169,
+  version0.3.0-rc1.6,clean48135e3. Exact downloads/identities/scope are in
+  `docs/coherent-candidate174.txt`. Preserve166/manual130,accepted startup71,
+  earlier evidence and installed user copies.
 - Source168 is recipe23/128 guards; `RUNTIME_VALIDATED` remains false.
 - Crash169 handoff defect is FIXED:closed temporary/no-replacement rename,
   exact Win32 open error logging,and prompt owner refusal detection. Clean02
@@ -47,8 +48,9 @@
   community/LAN remains.172 qualifies startup/survey applicability and owned
   startup lifetime;see docs/browser-activation172.txt.173 settles named report
   resumption applicability for fresh patched launches;report-resume173.txt.
-  Nick requested paired installers/GitHub prerelease next. Do not
-  repeat the qualified native subcases without a changed path or concern.
+  Requested paired installers/GitHub prerelease174 published and hash-verified.
+  Next:P9 upstream c307c0/computed consumers per current roadmap. Do not
+  repeat qualified native/package subcases without a changed path or concern.
   Use the source-owned verifier/gate;historical private scripts remain evidence.
 - N9's desktop pipe result passes; retained automation result is DENIED.
   This supports a context difference, not complete browser qualification.

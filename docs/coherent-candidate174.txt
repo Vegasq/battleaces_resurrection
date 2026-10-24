@@ -1,0 +1,102 @@
+PUBLISHED WINDOWS PRERELEASE174
+2026-10-24. Engineering prerelease;final release/D5 acceptance remains OPEN.
+
+Outcome and download
+https://github.com/Vegasq/battleaces_resurrection/releases/tag/v0.3.0-rc1.6
+Matched client/server self-contained native EXEs,release-manifest.json and
+SHA256SUMS.txt published at Nick's request after report-resumption173 completed.
+All four assets were downloaded anonymously and matched both local SHA256 and
+GitHub's asset digests. Tag v0.3.0-rc1.6 points to the exact clean build commit
+48135e32f797933fc1306836dac9cc717d75d882. Publication is a prerelease,not latest
+stable or final RC acceptance. Later documentation commits do not change this
+build identity. No original game assets or private profiles are distributed.
+
+Exact identities
+Version0.3.0-rc1.6,Windows x64,game build37822,recipe23/128guards.
+RUNTIME_VALIDATED=false;clean_windows_qualified=false.
+BattleAces-Installer-RC1-174.exe:13401088bytes
+ d85476da0ffce2fa9d491ea5e3efb7818b0e607b352c7089239c94806ed48e0d
+BattleAces-Server-Installer-RC1-174.exe:13579264bytes
+ 268175028e7ae44a7698bb4d8325109b15db37237c39d9c542eb79a7c2912722
+release-manifest.json:1603bytes
+ e953f8b9fe2bc1fd739b80131c51832469c2813802afabb150d3dcac858dba16
+SHA256SUMS.txt:296bytes
+ c0327d52659e7ddeb1b2210af072c35882d5f5119cc6a9604903aa9b7c4a1cd6
+Embedded client ZIP:13371286bytes/81files
+ 1836ac93447781d5a6ce55585c28530cab2b23e4eacbb09416fa5c38fde5a6f4
+Embedded server ZIP:13549221bytes/115files
+ 4c8ba7d2fca616b2ca38b3560d657edf6b7b2f26e4b2c9388ab60ee7943120b0
+The ZIPs are local build inputs,not separate public downloads.
+Qualified helper169-fix01
+ 56c279af274156cad21424416b0ee254f6372d6ce3b7996342ee6f4ddfdd7374
+Python3.14.8 embedded amd64 input
+ a93abe456ab01bd96d7a085b3cdb6566b3063f4241360d114142fbdb07f0a310
+Helper receipt binds current native sources/build script,compiler and SDK. Both
+packages carry sanitized current-worktree provenance with clean48135e3. Existing
+server launcher39,installer shell130 and certificate103 receipts validate against
+their unchanged sources. No developer-specific build paths are shipped.
+
+Product delta and evidence reuse
+Compared with frozen166,each package changes exactly six entries:
+ compatibility.json
+ program/app/client_patch/patcher/legacy_compliance.py
+ program/app/client_patch/patcher/patch_client.py
+ program/app/client_patch/patcher/telemetry.py
+ program/client-helper/BattleAcesOffline.dll
+ program/client-helper/helper-provenance.json
+This ships recipe23,qualified native crash handoff169 and Korean-flow171 removal
+together. Actual server host/worker/transport/profile modules,Python runtime,
+certificate helper and native installer/launcher logic remain identical.
+Prior171 local AI/results/Continue/natural Quit and172 owned startup/Quit prove
+their named behavior on exactly the installed game/helper bytes preserved below.
+Native170 and report173 retain their scoped diagnostic/source conclusions.
+No new quiet gameplay run or broad all-mode/privacy claim is made by packaging.
+
+New validation
+Both Python3.14.8 and3.12.10 full suites ran1057tests:1044pass/13skip/0failures
+each. Existing explicit native/optional skips are retained,not counted as passes.
+Prepublication source/history audit:2464distinct paths/objects,0findings.
+Package build PASS6.859s from a clean committed source,without allow-dirty.
+Qualification PASS6.765s:8owned commands cover both bundled integrity CLIs,
+isolated runtime imports,actual native forms and embedded payload verification.
+Modules resolve inside the package and match its integrity inventory. Each
+reports recipe23/128/runtime_validated=false. Forms have client3/server2 editable
+fields and attached progress controls. Every job empties naturally,no force.
+
+Actual client native Install/Update PASS69.781s,job3/0/0,no forced cleanup.
+Unchanged authored WinForms host loads the real resource-bearing installer and
+clicks its actual Install action;original BackgroundWorker extracts and executes
+the embedded backend. Busy/locked controls,progress,elapsed title,completion and
+restored controls pass. This is automation,not a physical desktop observation.
+Single observed temporary extraction matches the174manifest. Installed runtime
+e2b1c518a3d8fb00b8f6 matches every package file;generated Start Battle Aces.cmd
+references that installed runtime. All14prior profile files,configuration bytes,
+original backups and eight critical game/helper components stay exact. The test
+used owned local/r171g with separately authored test settings;no user install,
+reserved manual copy,shared report queue,real host or HTTP service was changed.
+No game or host was started during these174package/install checks.
+
+Publication and retained records
+local/candidate174-build01.py and candidate174-build01.json
+local/candidate174-packages01/build-report.json
+local/candidate174-client-standalone01/installer-build.json
+local/candidate174-server-standalone01/installer-build.json
+local/candidate174-qualify01.py and candidate174-qualification01/verification.json
+local/candidate174-client-install01.py and candidate174-client-native01/verification.json
+local/release174-validation01/{tests.json,python314.log,python312.log,
+ repository-audit.log,build-inputs.json,dev-preservation.json}
+local/release174-assets01/ holds exactly the four uploaded assets.
+local/release174-download01/{release.json,verification.json} binds actual public
+asset IDs/URLs,digests,sizes,source tag and the anonymously downloaded files.
+local/release174-verify.py reproduces that download/identity check into a fresh
+output path. Detailed evidence digests:local/release174-validation01/evidence.json.
+Original166/manual/recovery files stay preserved. DEV answer bytes stay exact;
+no new Nick test or action was requested. Existing N7 observations remain separate.
+
+Limits and next work
+No new full server asset import/export,ordinary installed-game launch,clean-PC,
+protected hosting,SCM,Internet/capacity,physical UI or complete privacy acceptance.
+Earlier unchanged installer/server scopes remain evidence with their original
+limits. This prerelease does not close D2-D5/D7-D9. Next:P9 upstream c307c0 and
+computed-consumer applicability,then the finite current delivery gates. Do not
+repeat qualified package/native subcases without changed behavior or a concern.
