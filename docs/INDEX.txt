@@ -1,5 +1,5 @@
 BATTLE ACES - DOCUMENTATION INDEX
-Updated:2026-10-24. Paths below are relative to docs/.
+Updated:2026-10-25. Paths below are relative to docs/.
 
 START WITH THREE FILES
   REMAINING_DELIVERY_PLAN.txt - what is next and which D1-D9 gates remain
@@ -32,6 +32,10 @@ CURRENT PLANNING AND ACCEPTANCE
   report-resume173.txt - saved queues,fresh-process prevention and in-flight limits
 
 PLAYER / HOST GUIDES AND CONFIGURATION
+  linux-client-quickstart.txt - headless client CLI setup,verification and launch
+  linux-client176.txt - actual client installation and system-crash evidence limits
+  linux-server-quickstart.txt - experimental Linux/Wine setup,start and storage
+  linux-host175.txt - Linux export,native/TLS40-frame and lifecycle evidence
   client-configuration.txt
   client-enrollment.txt
   state-backup.txt

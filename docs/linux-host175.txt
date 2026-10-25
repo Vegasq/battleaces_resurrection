@@ -1,0 +1,85 @@
+EXPERIMENTAL LINUX HOST175
+2026-10-25. Explicit user request extends the previous Windows-only work scope.
+
+Missing claim:can this Linux machine host the original simulation using the
+locally owned game when the Windows installer UI is unavailable under Wine?
+Bounded outcome:import supported assets,pass native create/step/close,receive
+40identical frames over two real TLS connections,stop normally and restart.
+No native source changes,Windows patch changes or expanded release acceptance.
+
+Inputs and implementation
+Host Linux7.2.5-3-omarchy/x86_64,Wine11.20,Linux Python3.14.8.
+Downloaded server installer174 matches SHA256
+268175028e7ae44a7698bb4d8325109b15db37237c39d9c542eb79a7c2912722.
+Extracted13549221-byte server ZIP matches
+4c8ba7d2fca616b2ca38b3560d657edf6b7b2f26e4b2c9388ab60ee7943120b0.
+All114manifest entries verify. Exact helper169,recipe23,Windows Python3.14.8 and
+unchanged coordinator/worker/native launcher come from that package. The local
+source game matches the supported GameAssembly,UnityPlayer,Simulation and AI
+hashes. Exact source revision/package identities remain coherent-candidate174.txt.
+
+tools/linux_server.py extracts only the pinned installer resource and calls the
+existing packaged install-server backend in a deployment-owned Wine prefix.
+It creates missing RC TLS/config with Linux OpenSSL and owner-only POSIX key
+storage,then executes the existing Start Server.exe or packaged check command.
+No system Wine prefix,Mono,global settings,firewall or router configuration used.
+Default setup root:local/linux-server. This session's installed root:local/linux175.
+The source game stays read-only;the existing backend independently copies and
+patches its temporary game,then removes that copy after a verified import.
+
+Observed results
+- Initial sandbox Wine attempt failed before runtime execution because local
+  socket binding was denied. Explicit execution outside that sandbox succeeded.
+- Bundled Windows Python3.14.8,64-bit ctypes and OpenSSL3.5.9 load under Wine.
+- Original packaged setup backend completed under Wine. Export includes three
+  mode maps,52playable units,AI rule/bot catalog and107cosmetics/17slots. The
+  missing GStreamer Quicktime decoder message did not prevent completion.
+- The one-time Unity export was terminated by the existing export-only owner
+  after manifest verification. This is installer behavior,not natural game Quit.
+- Wrapper check passes:TLS loaded,real Simulation.dll world created,initial
+  frame0xffffffff,step0,worker exit0/reaped. No synthetic simulation involved.
+- Unchanged Start Server.exe listens on0.0.0.0:47623. Two Linux protocol peers
+  complete RC admission over TLS1.3,receive identical native bootstrap and
+  contiguous frames0..39 in2.004454362seconds. Both peers disconnect;the host
+  records unknown-result abort at next_frame40 and releases worker372.
+- Ctrl+C in the owned host terminal returns launcher0;server_stopped follows
+  worker release. No forced host cleanup. A subsequent generated-shell launch
+  uses the same deployment/config/state;its own startup health checks run again.
+  A same-machine connection through the LAN address then negotiates TLS1.3 and
+  matches the deployment certificate;this is not a remote LAN-client result.
+
+Source checks
+Six new Linux tests cover installer hash refusal,ZIP traversal refusal,source
+overlap and existing deployment refusal,real private TLS/config preservation,
+and competing config publication. Two existing mocked installer tests now also
+mock the Windows-only storage preflight;their POSIX fixture paths previously
+failed before their intended transaction/export assertions.
+Focused suite:25run,23pass,2Windows-only TLS tests skipped,0failures outside the
+sandbox. The first sandbox run retains the two pre-fix fixture failures and a
+stalled synthetic-worker IPC test;its exact owned test process was stopped.
+This failed/incomplete run is not counted as a pass. The affected suite then
+completed in0.389seconds with a45-second outer deadline outside the sandbox.
+
+Retained local records
+local/linux175/inputs.json
+local/linux175/runtime-check.log (sandbox failure)
+local/linux175/runtime-check-unsandboxed.log
+local/linux175/install-request.json and install01.log
+local/linux175/host/.setup/export-game.log and export/ (original export capture)
+local/linux175/host-check01.log
+local/linux175/peers01.py and peers01.json
+local/linux175/restart-terminal.json and restart-connect.json
+local/linux175/source-tests01.log (failed/incomplete),source-tests02.log (pass)
+local/linux175/host/data/logs/events.jsonl (normal host audit)
+local/linux175/verification.json (scoped summary and artifact digests)
+
+Limits
+These are scripted protocol clients against a real Wine-hosted native worker,
+not graphical clients or physical LAN play. No completed game,AI battle,Linux
+service/boot,capacity/soak,Internet or all-mode privacy qualification. The GUI
+installer failure itself was reported by the user;no exact .NET error diagnosis
+is claimed. Initial export manually invoked the same pinned extraction/backend
+operations now wrapped by setup;the final setup CLI was not used to repeat the
+7GB export. Final wrapper check/start and its generated launcher ran directly.
+No Windows acceptance gate closes;RUNTIME_VALIDATED remains false.
+Guide:linux-server-quickstart.txt. Private machine paths/connection details:DEV.txt.

@@ -1,0 +1,84 @@
+BATTLE ACES - EXPERIMENTAL LINUX / WINE CLIENT CLI
+2026-10-25. Release174/build37822;tested installation with Wine11.20.
+
+IF THE CLIENT IS ALREADY INSTALLED
+setup creates a new deployment;it does not overwrite an existing one. For an
+existing local/linux-client installation,use these commands from the repo root:
+
+  python3 -m tools.linux_client configure --server 192.168.1.100 --name "Player"
+  python3 -m tools.linux_client check
+  python3 -m tools.linux_client start
+
+Replace the example IP with your host's address. configure and check are headless
+and do not launch the game. Only start launches it. Omit --server or --name to
+keep its current value;--server "" selects local AI. Name changes preserve the
+profile,port,room,saves and identity for the same server route. Settings apply
+on the next start. Add --root <existing-directory> for a different installation.
+
+INSTALL WITHOUT OPENING THE INSTALLER WINDOW
+Run from the repository root with python3 and wine available. Use your local
+game copy and the exact BattleAces-Installer-RC1-174.exe from release174:
+
+  python3 -m tools.linux_client setup \
+    --installer "$HOME/Downloads/BattleAces-Installer-RC1-174.exe" \
+    --game-dir "$HOME/Downloads/BA" \
+    --server 192.168.1.100 \
+    --name "Player"
+
+Replace the example server address with your host's address. Omit --server for
+local AI only. Omit --name to use the current account name. Linux paths are
+case-sensitive;BA and ba differ. Default port:47623.
+
+Setup creates local/linux-client. Choose another new location with --root.
+The destination must not exist and must be separate from the source game.
+Allow approximately7GB for an independent game copy plus the runtime/prefix.
+Your original game and its saves are not patched,deleted or copied as profiles;
+this fresh deployment starts with its own local profile. An incomplete earlier
+GUI install in the source game is preserved,not cleaned up by this command.
+
+Both the full installer and embedded ZIP are hash-pinned to release174. Setup
+extracts the Windows runtime/helper,uses the existing install-game backend,and
+checks the installed runtime,patch components,settings and all supported game
+bundles. No .NET installer,game executable or helper DLL is executed during setup.
+Wine uses a separate deployment-owned prefix;X11/Wayland Wine graphics drivers
+are disabled for setup/check. No desktop or global Wine configuration changes.
+
+SETUP OUTPUT
+  local/linux-client/game/                independent patched game
+  local/linux-client/wineprefix/          isolated client Wine prefix
+  local/linux-client/Start Battle Aces.sh  explicit game launcher
+  local/linux-client/install.log          retained backend/Wine diagnostics
+  local/linux-client/check.log            installed file verification
+  local/linux-client/linux-setup.json     completion receipt;game_started:false
+
+Failure preserves its copy and logs and does not publish a successful launcher.
+Do not overwrite a failed deployment or installed saves;use a new root to retry.
+
+VERIFY WITHOUT LAUNCHING
+  python3 -m tools.linux_client check
+
+Pass the same --root if you selected a different deployment. This validates
+files and settings only;it does not connect to a server or launch the game.
+
+START SEPARATELY
+  ./local/linux-client/'Start Battle Aces.sh'
+
+Or:
+  python3 -m tools.linux_client start
+
+Only start enables the ordinary desktop environment and launches the game.
+The shell launcher references this checkout,so keep it at its installed path.
+The selected server must be running;hosting is not started automatically.
+Server CLI:linux-server-quickstart.txt.
+
+Use configure above to change public settings later. It uses the installed
+backend's configuration lock,digest check and atomic save;it does not reinstall
+the runtime or patch. Existing game files and saves are preserved.
+
+LIMITS
+Actual headless installation and installed-file verification pass. Graphical
+client launch/play on Linux is unqualified. A reported GUI-installer system
+freeze left no retained core or logged kernel cause;headless setup avoids that
+UI path but does not establish a fix for the unknown system-level cause.
+Original Windows acceptance gates and RUNTIME_VALIDATED=false remain unchanged.
+Evidence:linux-client176.txt.

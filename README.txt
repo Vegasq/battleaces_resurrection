@@ -23,6 +23,12 @@ Complete analytics/report removal, the remaining mode/catalog/storage matrix,
 service/clean-PC deployment, Internet/capacity and final freeze remain open.
 
 PLAY OR HOST
+Experimental Linux/Wine hosting is available through tools/linux_server.py,
+which bypasses the Windows installer UI using its verified bundled backend.
+Linux host guide:docs/linux-server-quickstart.txt. Scoped evidence:docs/linux-host175.txt.
+Client CLI:tools/linux_client.py installs/checks in headless Wine without opening
+the game. Run start separately. Guide:docs/linux-client-quickstart.txt.
+
 Use the native client installer,then Start Battle Aces.cmd INSIDE the selected
 game folder. Setup asks for game folder,server IP and editable Player name;
 existing profiles/names are preserved. A blank server address permits local AI.

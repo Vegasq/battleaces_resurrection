@@ -17,6 +17,29 @@ native-form/payload/HTTP checks pass,empty jobs/no force. No original game launc
 live host mutation,full asset export or new client standalone;recipe/helper unchanged.
 Published174 remains the GitHub release below;full delivery gates remain open.
 
+HEADLESS LINUX CLIENT176 - 2026-10-25
+Client CLI setup completes against the pinned174installer in an independent
+game copy. Installed runtime,patch/settings and133game files verify;game not
+launched. Headless setup/check disable Wine graphics drivers and bypass the
+GUI. Server/client wrappers share pinned extraction/prefix helpers.33focused
+tests:31pass/2skip. Reported GUI-related system freeze has no confirmed cause
+in retained logs. No graphical/Linux gameplay or Windows gate closure.
+Guide:linux-client-quickstart.txt. Evidence:linux-client176.txt.
+Follow-up177 replaces raw existing-directory errors with actionable commands
+and adds headless configure for existing clients,without reinstalling or
+changing saves. Original deployment and game-launch limits remain unchanged.
+
+EXPERIMENTAL LINUX HOST175 - 2026-10-25
+User-requested Wine host installed using the verified174server package and an
+independent local game export. Wine11.20 runs the unchanged Windows Python/native
+simulation;Linux OpenSSL provisions private TLS and a wrapper bypasses the GUI.
+Native health passes;two Linux TLS1.3 peers receive40equal frames in2.004s.
+Normal Ctrl+C returns0 after worker release;generated launcher restart checked.
+Focused tests:25run,23pass/2skip. Initial sandbox/fixture failures retained.
+No graphical-client/completed-game/Internet/capacity or Windows gate closure;
+RUNTIME_VALIDATED remains false. Details:linux-host175.txt. Guide:
+linux-server-quickstart.txt. Existing published174package identities unchanged.
+
 CURRENT PUBLISHED SOURCE AND PACKAGES
 Prerelease174:version0.3.0-rc1.6,clean48135e3,recipe23/128guards/helper169.
 https://github.com/Vegasq/battleaces_resurrection/releases/tag/v0.3.0-rc1.6

@@ -35,7 +35,8 @@ class ServerInstallerTests(unittest.TestCase):
             self.assertNotEqual(game,self.game);self.assertFalse((game/'.battleaces-resurrection/profiles').exists())
             out.mkdir();(out/'fixture').write_bytes(b'export')
         with (mock.patch.object(installer,'export_game',side_effect=exported),mock.patch.object(installer,'patch_game') as patch,
-              mock.patch.object(installer.launcher,'verify_game'),mock.patch.object(installer,'verify_assets'),mock.patch.object(installer,'import_assets',return_value={'playable_units':100})):
+              mock.patch.object(installer.launcher,'verify_game'),mock.patch.object(installer.launcher,'native_storage_preflight'),
+              mock.patch.object(installer,'verify_assets'),mock.patch.object(installer,'import_assets',return_value={'playable_units':100})):
             result=installer.install(self.package,dict(game_directory=str(self.game),server_directory=str(destination)))
         self.assertNotEqual(patch.call_args.args[0],self.game)
         self.assertTrue(Path(result['launcher']).is_file());self.assertFalse(result['server_started'])
@@ -52,7 +53,8 @@ class ServerInstallerTests(unittest.TestCase):
     def test_failed_export_does_not_publish_or_change_source(self):
         destination=self.root/'not-published'
         with (mock.patch.object(installer,'export_game',side_effect=ValueError('export failed')),
-              mock.patch.object(installer,'patch_game'),mock.patch.object(installer.launcher,'verify_game')):
+              mock.patch.object(installer,'patch_game'),mock.patch.object(installer.launcher,'verify_game'),
+              mock.patch.object(installer.launcher,'native_storage_preflight')):
             with self.assertRaisesRegex(ValueError,'export failed'):installer.install(self.package,dict(
                 game_directory=str(self.game),server_directory=str(destination)))
         self.assertFalse(destination.exists());self.assertEqual((self.game/'GameAssembly.dll').read_bytes(),b'fixture dll')

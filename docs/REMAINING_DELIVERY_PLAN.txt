@@ -16,8 +16,27 @@ installed cosmetics,varied native bots/difficulty,persistent host state and
 orderly shutdown. Remove game analytics/automatic reporting while retaining
 required gameplay networking. RC uses address-only open TLS;verified mode stays
 explicit. Original game data/private material never enters Git or packages.
-Linux/Wine,commerce/ranked backend reconstruction,in-match reconnect,spectator/
-server-browser UX and extra modes/maps remain outside this release's scope.
+Linux/Wine hosting was added as an explicit experimental request at175;see below.
+Commerce/ranked backend reconstruction,in-match reconnect,spectator/server-browser
+UX and extra modes/maps remain outside this release's scope.
+
+LINUX HOST REQUEST175
+Experimental host installed from locally owned assets through the pinned174
+backend in an isolated Wine prefix. Native health,two TLS peers/40equal frames,
+Ctrl+C and restart checked. Linux wrapper/guide added;no native or packaged
+Windows behavior changed. Graphical-client/completed-game/Internet/capacity
+qualification remains open. Details:linux-host175.txt,linux-server-quickstart.txt.
+This requested setup does not close Windows release gates or replace the P9 queue.
+
+LINUX CLIENT/PUBLICATION REQUEST176
+Headless client CLI added after a reported system freeze with the GUI installer.
+Actual independent-copy install and installed-file check pass without launching
+the game. Server/client CLI source and guides are complete for this request;
+shared helpers and33focused tests pass31/2skip. Graphical-client/system-crash
+cause remains unqualified. Details:linux-client176.txt,linux-client-quickstart.txt.
+No Windows release-gate closure or change to the existing P9 queue.
+Follow-up177:existing installs now have headless configure and clear repeat-setup
+guidance;no recopy/reinstall is needed to change the player name or server.
 
 CURRENT BASELINE
 - Published coherent prerelease174:version0.3.0-rc1.6,recipe23/128guards/helper169.
