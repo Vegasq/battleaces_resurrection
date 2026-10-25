@@ -17,6 +17,7 @@ import sys
 
 from tools.package_integrity import verify
 from tools.linux_wine import extract_payload, windows_path, wine_environment
+from tools.host_relocation import preflight, relocate
 
 ROOT = Path(__file__).resolve().parents[1]
 INSTALLER_SHA256 = '268175028e7ae44a7698bb4d8325109b15db37237c39d9c542eb79a7c2912722'
@@ -90,15 +91,41 @@ def initialize_config(host):
     return config
 
 
-def write_launcher(root):
+def write_launcher(root, host=None):
     path = root / 'Start Server.sh'
     if path.exists():
         return
     command = [sys.executable, '-m', 'tools.linux_server', 'start', '--root', str(root)]
+    if host is not None:
+        command += ['--host-dir', str(host)]
     with path.open('x', encoding='utf-8') as stream:
         stream.write('#!/bin/sh\ncd ' + shlex.quote(str(ROOT)) + ' || exit 1\nexec ' +
                      shlex.join(command) + '\n')
     path.chmod(0o700)
+
+
+def prepare_prefix(root, host):
+    """Create a fresh persistent Wine environment for an already installed host."""
+    if root == host or root.is_relative_to(host) or host.is_relative_to(root):
+        raise ValueError('Choose a new Wine deployment root separate from the copied host')
+    verify(host, 'server')
+    preflight(host)
+    root.mkdir(mode=0o700, parents=True)  # Never reset a prefix or failed attempt.
+    log = root / 'prefix-check.log'
+    try:
+        with log.open('xb') as stream:
+            result = subprocess.run(['wine', 'cmd', '/c', 'echo', 'BA_WINE_READY'],
+                                    env=wine_environment(root), stdout=stream,
+                                    stderr=subprocess.STDOUT, timeout=120)
+    except subprocess.TimeoutExpired:
+        raise ValueError('Wine prefix initialization timed out; preserved log: ' + str(log)) from None
+    with log.open('rb') as stream:
+        output = stream.read(1024*1024 + 1)
+    if (result.returncode or len(output) > 1024*1024 or b'BA_WINE_READY' not in output.splitlines()
+            or not (root / 'wineprefix/system.reg').is_file()):
+        raise ValueError('Wine prefix check failed; preserve this root and inspect: ' + str(log))
+    write_launcher(root, host)
+    print('Wine prefix ready. Server was not started. Launcher: ' + str(root / 'Start Server.sh'))
 
 
 def setup(root, installer, game):
@@ -131,31 +158,49 @@ def setup(root, installer, game):
 
 def main(argv=None):
     parser = argparse.ArgumentParser(description=__doc__)
-    parser.add_argument('command', choices=('setup', 'start', 'check'))
+    parser.add_argument('command', choices=('setup', 'start', 'check', 'relocate', 'prepare-prefix'))
     parser.add_argument('--root', type=Path, default=ROOT / 'local/linux-server')
     parser.add_argument('--installer', type=Path)
     parser.add_argument('--game-dir', type=Path)
+    parser.add_argument('--host-dir', type=Path, help='existing copied host; default is <root>/host')
     args = parser.parse_args(argv)
     if not sys.platform.startswith('linux'):
         parser.error('This wrapper is for Linux; use the native installer on Windows')
-    for executable in ('wine', 'openssl'):
+    for executable in (() if args.command == 'relocate' else ('wine', 'openssl')):
         if not shutil.which(executable):
             parser.error('Required command is missing: ' + executable)
     root = args.root.expanduser().resolve()
     try:
         if args.command == 'setup':
+            if args.host_dir is not None: parser.error('--host-dir does not apply to setup')
             if args.installer is None or args.game_dir is None:
                 parser.error('setup requires --installer and --game-dir')
             setup(root, args.installer.expanduser().resolve(), args.game_dir.expanduser().resolve())
             return 0
         if args.installer is not None or args.game_dir is not None:
             parser.error('--installer and --game-dir apply only to setup')
-        host = root / 'host'
+        host = args.host_dir.expanduser().resolve() if args.host_dir is not None else root / 'host'
+        if args.command == 'relocate':
+            verify(host, 'server')
+            backup = relocate(host)
+            print('Host paths already portable.' if backup is None else 'Host paths repaired. Exact backup: ' + str(backup))
+            return 0
+        if args.command == 'prepare-prefix':
+            if args.host_dir is None: parser.error('prepare-prefix requires --host-dir')
+            prepare_prefix(root, host)
+            return 0
+        if args.host_dir is not None and (root == host or root.is_relative_to(host) or host.is_relative_to(root)):
+            raise ValueError('Wine deployment root must be separate from the copied host')
         verify(host, 'server')
+        configured = (host / 'config/host.json').exists()
+        if configured: preflight(host)
         if not (root / 'wineprefix/system.reg').is_file():
-            raise ValueError('Deployment Wine prefix is missing; run setup in a new directory')
-        initialize_config(host)
-        write_launcher(root)
+            raise ValueError('Deployment Wine prefix is missing; for a copied host use prepare-prefix '
+                             '--host-dir <copied-host> --root <new-persistent-directory>; do not use ~/.wine')
+        if not configured:
+            initialize_config(host)
+            preflight(host)
+        write_launcher(root, host if args.host_dir is not None else None)
         command = (['wine', str(host / 'Start Server.exe')] if args.command == 'start'
                    else runtime_command(host, 'check'))
         os.chdir(host)

@@ -27,6 +27,11 @@ Ctrl+C and restart checked. Linux wrapper/guide added;no native or packaged
 Windows behavior changed. Graphical-client/completed-game/Internet/capacity
 qualification remains open. Details:linux-host175.txt,linux-server-quickstart.txt.
 This requested setup does not close Windows release gates or replace the P9 queue.
+Follow-up178 adds copied-host relocation with an exact config backup,early path
+validation and persistent-prefix preparation. New Windows first-run configs use
+relative paths where possible. Remote Ubuntu9Wine basic loader passed;stale
+Windows Desktop paths were confirmed. Repaired remote hosting remains unreported.
+Details:linux-host-relocation178.txt. No repeated native or user acceptance claim.
 
 LINUX CLIENT/PUBLICATION REQUEST176
 Headless client CLI added after a reported system freeze with the GUI installer.

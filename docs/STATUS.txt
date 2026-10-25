@@ -4,6 +4,17 @@ Current work:REMAINING_DELIVERY_PLAN.txt. Evidence navigation:INDEX.txt.
 Exact prior3576-line ledger:history/2026-10-24/STATUS.txt.
 Historical records retain their original failures,claims and artifact scopes.
 
+COPIED LINUX HOST RELOCATION178 - 2026-10-25
+Remote report:Ubuntu24.04/x86_64/Wine9.0. A fresh win64 prefix prints WINE_OK
+despite display/tray warnings. Server Python then reports FileNotFoundError;
+inspection confirms Windows Desktop paths for assets/TLS while the local asset
+manifest exists. Server startup after repair is not yet reported;DEV N11 owns it.
+Source adds backed-up explicit relocate,early path validation,prepare-prefix for
+a fresh persistent Wine root,and a bound shell launcher for an existing copied
+host. New Windows first-run configs use relative same-drive paths. Existing
+keys/data/settings and published installers remain unchanged. Focused evidence:
+linux-host-relocation178.txt. No new Wine/gameplay or release-gate acceptance.
+
 SERVER DASHBOARD175 - 2026-10-25
 User-requested integrated read-only web:live players,active games,1000retained
 match summaries,winners from simulation results and restart recovery. Loopback

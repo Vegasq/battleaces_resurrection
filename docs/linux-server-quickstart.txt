@@ -7,7 +7,46 @@ certificate. This is not a port of the original simulation to a Linux library.
 The .NET installer window and Windows certificate utility are bypassed. No Mono,
 system Python packages, system Wine prefix or desktop configuration are changed.
 
-PREPARE AND INSTALL
+COPY AN EXISTING WINDOWS HOST TO LINUX (178)
+Use this route when game assets are already exported,for example a complete host
+copied to /srv/ba. Copy the entire installed host,including assets,program,config
+(with its existing private TLS files) and data (with player profiles/history).
+An installer EXE or the portable package without imported assets is insufficient.
+Stop the old host before copying;keep the copy private. The commands below run
+from this source repository's root and require python3,wine and openssl.
+
+Older Windows configs contain absolute Desktop/drive paths. With both copies
+stopped,repair the new host's config using the existing copied identity:
+  python3 -m tools.linux_server relocate --host-dir /srv/ba
+
+This verifies the package,maps paths within the old standard host root to the
+copied root,validates the config,and saves exact original bytes as
+config/host.json.before-relocate-<unique-id> before atomic replacement. Existing
+keys,profiles,game assets,ports and other settings remain. No certificate is
+regenerated and no game export runs. Missing copied data/TLS files,external
+custom paths or invalid config stop the repair without replacing configuration.
+Already-portable configs are checked without rewriting. Restore missing copied
+files or configure custom locations explicitly;do not substitute a random TLS pair.
+
+Create a NEW persistent Wine deployment directory separate from the host:
+  python3 -m tools.linux_server prepare-prefix --host-dir /srv/ba --root /srv/ba-linux
+
+This creates /srv/ba-linux/wineprefix as win64 and tests Wine's command runtime.
+It does not start the game server. Existing roots are never reset or overwritten;
+failed attempts keep prefix-check.log. Choose a different new root after fixing
+a failed attempt. Do not use /tmp for the permanent prefix. A successful check
+creates /srv/ba-linux/Start Server.sh bound to this host,source checkout and prefix.
+
+Then verify the imported simulation and start:
+  python3 -m tools.linux_server check --host-dir /srv/ba --root /srv/ba-linux
+  '/srv/ba-linux/Start Server.sh'
+
+Stop with Ctrl+C. Keep this checkout at its current location for the generated
+launcher. start/check validate config paths before launching Wine and never
+silently relocate config or replace keys. Runtime/game behavior comes from the
+copied package;pulling source does not update its bundled Python modules.
+
+PREPARE AND INSTALL FROM ORIGINAL GAME DATA
 Run from the repository root. Have wine, python3 and openssl available, plus your
 local build37822 game and BattleAces-Server-Installer-RC1-174.exe. This wrapper
 accepts only that exact published server installer; its EXE and embedded ZIP
@@ -53,6 +92,27 @@ Private TLS material: <root>/host/config/private/ (owner-only POSIX directory)
 Isolated Wine prefix: <root>/wineprefix/
 Wine diagnostics remain on stderr; setup diagnostics are in <root>/install.log.
 Keep the deployment private and out of Git. No firewall/router changes are made.
+
+TROUBLESHOOTING
+Do not launch raw wine 'Start Server.exe' on a copied host. Without WINEPREFIX,
+Wine uses the current user's default environment (root normally uses /root/.wine).
+Use the generated shell launcher or the start command with its persistent --root.
+The optional --host-dir selects the installed host,not the Wine deployment root.
+
+kernel32.dll/c0000135 means Wine failed before the Python host. Check the selected
+prefix and installed64-bit Wine runtime;do not delete a working prefix or reinstall
+game assets based solely on that error. On the reported Ubuntu24.04/Wine9 host,
+a fresh win64 prefix reached WINE_OK despite explorer/tray/nodrv_CreateWindow
+warnings. Those warnings alone do not prove a failed console launch or require
+Xvfb/a desktop. prepare-prefix checks return status,a success marker and system.reg;
+a timeout/nonzero result preserves diagnostics instead of claiming success.
+
+Host FileNotFoundError after Python starts is a different problem. Old configs can
+still refer to a Windows Desktop even though local assets are present. relocate
+handles standard copied layouts;start/check report stale or missing paths before
+Wine. Copy existing certificate/key files together;never paste key contents into
+chat. New source178Windows configs use relative paths where possible;existing
+174/175installer configs still need the explicit relocation step when copied.
 
 SCOPE
 RC open mode uses TLS with unverified server identity and open admission, as in

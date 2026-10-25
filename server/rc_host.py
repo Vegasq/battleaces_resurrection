@@ -67,18 +67,22 @@ def initialize(path, assets):
     private._write_file(cert_path, certificate)
     private._write_file(key_path, key)
     load_server_context(cert_path, key_path)
+    try: asset_path = os.path.relpath(assets, path.parent).replace(os.sep, '/')
+    except ValueError: asset_path = str(assets)  # Explicit assets on another Windows drive.
     value = dict(schema=2, access_mode='rc-open', listen_host='0.0.0.0', listen_port=47623,
-                 assets_directory=str(assets), data_directory=str(path.parent.parent / 'data'),
-                 certificate_file=str(cert_path), private_key_file=str(key_path), credential_directory=None,
+                 assets_directory=asset_path, data_directory='../data',
+                 certificate_file=cert_path.relative_to(path.parent).as_posix(),
+                 private_key_file=key_path.relative_to(path.parent).as_posix(), credential_directory=None,
                  max_rooms=4, input_window=6, diagnostic_audit=False, log_max_bytes=8388608,
                  log_backups=4, allow_insecure_loopback=False,
                  dashboard_host='127.0.0.1', dashboard_port=47624)
     # Exclusive publication: never replace a configured server, including races.
-    temporary = directory / 'host.json'
+    temporary = path.parent / ('.rc-host-' + secrets.token_hex(12) + '.json')
     temporary.write_text(json.dumps(value, indent=2)+'\n', encoding='utf-8')
     load_config(temporary)  # Validate all paths before publishing.
     try:
         with temporary.open('r+b') as stream: stream.flush(); os.fsync(stream.fileno())
         os.link(temporary, path)  # Atomic, exclusive publication on the same volume.
     except FileExistsError: pass
+    finally: temporary.unlink(missing_ok=True)
     return load_config(path)

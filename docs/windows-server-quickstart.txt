@@ -7,6 +7,15 @@ access,port settings and history retention:DASHBOARD.txt
 (source:docs/server-dashboard175.txt).
 The published174 installer predates this feature.
 
+MOVING AN INSTALLED HOST TO LINUX
+Copy the complete stopped host,including config/private and data as well as
+program and imported assets. Older host.json files contain absolute Windows
+paths;copying files alone does not update them. Use the source Linux wrapper's
+relocate and prepare-prefix commands in docs/linux-server-quickstart.txt.
+Do not launch raw wine with the default account prefix or a temporary /tmp prefix.
+New source178first-run configs use relative paths for same-drive deployments;
+existing installer/config files are unchanged and need explicit relocation.
+
 NATIVE SERVER INSTALLER
 Use the client and server installers from the same release. Update the host
 before updating clients. Keep existing host data/backups private;

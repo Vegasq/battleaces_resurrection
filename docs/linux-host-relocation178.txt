@@ -1,0 +1,59 @@
+COPIED HOST PATHS AND PERSISTENT WINE PREFIX178
+2026-10-25. User requested prevention after a copied Windows host failed on Linux.
+
+Observed problem and limits
+Nick's Ubuntu24.04/x86_64 host has matching wine,wine64,libwine9.0 packages.
+Raw wine used the root account's default prefix and failed loading kernel32.dll.
+A fresh win64 prefix later printed WINE_OK,despite headless window/tray warnings.
+No Xvfb or Wine reinstall was needed to establish that basic command result.
+Launching the server in that prefix reached the Python host,then failed with
+FileNotFoundError. Config inspection confirmed old Windows Desktop paths for
+assets and certificate/key;the host's local asset manifest was present. The
+misdirected writable data directory existed inside Wine,which does not establish
+that it contained the intended copied player profiles. Exact private replies
+and the pending repair/start result remain in DEV N11. No successful repaired
+server or completed-game result has been reported for that remote host.
+
+Source changes
+- tools.host_relocation reads bounded,duplicate-free config;preflight rejects
+  Windows drive paths before Linux launches Wine and names missing path fields.
+- Explicit tools.linux_server relocate --host-dir maps paths inside one standard
+  old Windows host root into the copied host. It validates staged config and
+  requires copied data/TLS paths,backs up exact old bytes,then atomically replaces
+  only config/host.json. Other settings,private-key bytes and player files remain.
+  Already-portable config is checked without rewriting. Missing files,custom
+  external paths,escape attempts,invalid options and observed concurrent edits
+  refuse without replacing config. A failed final replace retains the backup.
+  Both hosts must be stopped;no cross-OS lock exclusion is claimed.
+- prepare-prefix --host-dir <host> --root <new-directory> verifies the copied
+  package/config,creates a new persistent win64 prefix and retains prefix-check.log.
+  Requires exit0,exact BA_WINE_READY line and system.reg before writing a shell
+  launcher. The launcher binds the copied host and chosen prefix. No game export,
+  server listener,certificate regeneration or existing-prefix reset occurs.
+- start/check accept --host-dir,validate paths before Wine and explain missing
+  prefixes. Normal fresh-install setup remains supported using the pinned174
+  package and one-time graphical export. The copied-host route needs no export.
+- New server.rc_host first-run configs use relative assets/data/TLS paths for
+  same-drive layouts. Explicit assets on another Windows drive remain absolute.
+  Staging now happens beside the final config so relative-path validation uses
+  the correct base. Existing configs are never rewritten by first-run setup.
+
+Validation
+tests/test_host_relocation.py exercises exact backups,profile/key/option retention,
+idempotence,missing copied files,outside/traversal paths,invalid/duplicate config,
+changed-config and failed-replace preservation,early startup refusal,prefix log/
+timeout/refusal controls,launcher arguments and selected host/prefix for start/check.
+The Windows first-run test checks relative configuration and existing-config
+preservation. Linux command execution is mocked in these tests;no new Wine run
+or native game run is inferred. Existing real Windows TLS tests remain separate.
+Focused suite on Python3.12 and3.14 includes migration,Linux server/client,RC setup,
+host config,server installer and Windows packages. Results are retained under
+local/linux-host-relocation178/. POSIX-only tests skip on this Windows workspace.
+Both versions:67run,54pass/13skip,0failures. No remote host was accessed or changed.
+No new installer build or release is included. Published174 and local175packages
+keep their exact original bytes;Linux source helpers can operate on their copied
+hosts without patching immutable bundled files. The relative Windows initializer
+will apply to future builds;old configs need explicit relocation.
+
+Usage and troubleshooting:linux-server-quickstart.txt. Full delivery gates remain
+open;this preventive change does not close the outstanding remote startup result.

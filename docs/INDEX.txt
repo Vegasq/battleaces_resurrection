@@ -36,6 +36,7 @@ PLAYER / HOST GUIDES AND CONFIGURATION
   linux-client176.txt - actual client installation and system-crash evidence limits
   linux-server-quickstart.txt - experimental Linux/Wine setup,start and storage
   linux-host175.txt - Linux export,native/TLS40-frame and lifecycle evidence
+  linux-host-relocation178.txt - copied host paths,persistent Wine prefix and repair
   client-configuration.txt
   client-enrollment.txt
   state-backup.txt
