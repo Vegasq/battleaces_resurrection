@@ -37,6 +37,7 @@ PLAYER / HOST GUIDES AND CONFIGURATION
   state-backup.txt
   windows-client-quickstart.txt
   windows-server-quickstart.txt
+  server-dashboard175.txt - integrated online players,games and saved history
   windows-service.txt
 
 INSTALLERS,PACKAGING AND RELEASE CHECKPOINTS

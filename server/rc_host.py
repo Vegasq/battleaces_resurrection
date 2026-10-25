@@ -71,7 +71,8 @@ def initialize(path, assets):
                  assets_directory=str(assets), data_directory=str(path.parent.parent / 'data'),
                  certificate_file=str(cert_path), private_key_file=str(key_path), credential_directory=None,
                  max_rooms=4, input_window=6, diagnostic_audit=False, log_max_bytes=8388608,
-                 log_backups=4, allow_insecure_loopback=False)
+                 log_backups=4, allow_insecure_loopback=False,
+                 dashboard_host='127.0.0.1', dashboard_port=47624)
     # Exclusive publication: never replace a configured server, including races.
     temporary = directory / 'host.json'
     temporary.write_text(json.dumps(value, indent=2)+'\n', encoding='utf-8')

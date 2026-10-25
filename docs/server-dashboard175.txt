@@ -1,0 +1,83 @@
+SERVER WEB DASHBOARD175
+2026-10-25. Read-only server feature; original game/helper/protocol unchanged.
+
+Open the dashboard
+Start the updated server normally with Start Server.exe. On that same PC open:
+  http://127.0.0.1:47624
+The console prints the dashboard address. It starts/stops with the host; no
+separate web program,Node installation,external CDN or database setup is needed.
+Published GitHub174 installers predate this feature.175source and its local
+server installer include the dashboard;174clients remain protocol-compatible.
+
+What it shows
+- Online player names,stable profile IDs and availability from the live directory.
+- Preparing/loading/running games:mode,players,bots and elapsed simulation time.
+- Completed/aborted match history with participant IDs,names,teams,duration and
+  the authoritative winning alliance when the simulation reports one.
+- Server uptime and retained completed-match count,automatic3-second refresh,
+  paged history,and a disconnected indicator retaining the last received view.
+Bots are labelled separately and never receive a human account ID. Renames do
+not rewrite old match participant names. This adds no ranking or rating system.
+
+Access and configuration
+Existing schema1/2 host configs remain valid. Optional fields in config/host.json:
+  "dashboard_host": "127.0.0.1",
+  "dashboard_port": 47624
+Default is access from the host PC only. Port0 disables the dashboard and its
+history recording. The web port must differ from the game port47623.
+For a deliberately public/LAN read-only view,set dashboard_host to0.0.0.0 and
+allow the web TCP port through the applicable firewall/router. Visitors then use
+http://<server-IP>:47624. This exposes names,stable profile IDs and match summaries
+to anyone who can reach that port. It is an unauthenticated HTTP status page,
+with no administration actions. Existing gameplay TLS remains separate.
+The direct listener accepts numeric IPv4/localhost Host headers. A domain/HTTPS
+reverse proxy must set its upstream Host to127.0.0.1:<web-port>;proxy provisioning
+and authentication are not included. No firewall/router changes are automatic.
+
+History and recovery
+data/web-matches.json retains the latest1000match summaries. There is no import
+of older rotated diagnostics; history begins with this version enabled. Active
+summaries are published at match lifecycle transitions,not on every frame.
+An unfinished saved match becomes Interrupted after a process restart,with no
+invented winner. Completed results cannot be overwritten by result-screen cleanup.
+Disk writes run off the match loop,coalesce bursts and use flush/atomic replace.
+Up to the last pending update can be lost on an abrupt crash;this is an operator
+history view,not a transactional ranked-results ledger. Normal shutdown flushes.
+Corrupt history is preserved and the dashboard refuses to start;game hosting
+continues with a console notice. Write failures appear in the live page and the
+last successfully saved file stays intact. A port conflict also leaves hosting
+available with a notice. No raw logs,IP addresses,tokens,keys,paths or game assets
+are served. Only the page,CSS,JavaScript and sanitized /api/status are routable.
+Existing profiles/invite backup does NOT include this new history file. Preserve
+it separately while the server is stopped when migrating hosts.
+
+Implementation and validation
+server/web_dashboard.py owns bounded HTTP requests,live snapshots and atomic
+history. server/web_dashboard_page.py contains self-contained responsive assets.
+Host configuration,host lifetime and room lifecycle integrate the feature;package
+allowlisting ships both files. No game/helper/native patch or TLS protocol change.
+tests/test_web_dashboard.py covers actual HTTP,read-only/Host/path restrictions,
+literal hostile names,persistence/restart recovery,failed-write preservation,
+retention/paging,and slow HTTP shutdown. An actual coordinator/two loopback peers
+and explicitly synthetic native workers cover completion,abort and disconnect.
+No original gameplay or physical UI acceptance is inferred from synthetic tests.
+Host lifecycle checks also cover disabled/check-only operation and continued
+game hosting after web port conflicts or rejected corrupt history.
+Full Python3.12/3.14 suites:1065run,1052pass/13skip each. Final focused checks
+repeat dashboard/host/configuration/RC setup/package/backup after minor hardening.
+Final focused selection initially named nonexistent tests.test_rc_host:the55
+actual tests had54passes/1skip on each Python;the selection error is retained.
+Correct tests.test_rc_setup then passed all7 on each Python (61passes/1skip total).
+First slow-client shutdown testing exposed waiting for the listener before closing
+accepted clients;close now cancels handlers before awaiting the listener.
+Node syntax/DOM checks use actual preview HTTP for live metrics/roster/games,
+paging,disconnected stale-data display and recovery. Browser inventory was empty;
+no browser rendering or physical/mobile layout pass is claimed.
+Retained results:local/dashboard175-validation01 and local/dashboard175-preview01.
+The preview uses authored sample players/matches,never live user state.
+Existing user host,HTTP share,frozen174/166 and DEV answers are preserved.
+
+Release status
+175is a local engineering update,not a replacement of the published GitHub174
+release or closure of remaining D2-D5/D7-D9 gates. The current roadmap remains
+the source of outstanding work. No new Nick test is required for this feature.

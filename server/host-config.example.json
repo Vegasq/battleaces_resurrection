@@ -2,6 +2,8 @@
   "schema": 1,
   "listen_host": "0.0.0.0",
   "listen_port": 47623,
+  "dashboard_host": "127.0.0.1",
+  "dashboard_port": 47624,
   "assets_directory": "../assets/build-37822",
   "data_directory": "../data",
   "certificate_file": "server-cert.pem",

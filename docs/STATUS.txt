@@ -1,8 +1,18 @@
 BATTLE ACES - CURRENT STATUS
-Reviewed:2026-10-24. Final release is not accepted.
+Reviewed:2026-10-25. Final release is not accepted.
 Current work:REMAINING_DELIVERY_PLAN.txt. Evidence navigation:INDEX.txt.
 Exact prior3576-line ledger:history/2026-10-24/STATUS.txt.
 Historical records retain their original failures,claims and artifact scopes.
+
+LOCAL SERVER DASHBOARD175 - 2026-10-25
+User-requested integrated read-only web:live players,active games,1000retained
+match summaries,winners from simulation results and restart recovery. Loopback
+HTTP47624 by default,optional remote bind/disable. Host/game/helper protocol
+unchanged. Full Python3.12/3.14 suites:1065run,1052pass/13skip each. Final focused
+host/config/package/persistence checks cover subsequent small hardening changes.
+Actual HTTP/synthetic coordinator and Node DOM recovery/paging checked;no browser
+available for visual acceptance. Details and local artifact:server-dashboard175.txt.
+Published174 remains the GitHub release below;full delivery gates remain open.
 
 CURRENT PUBLISHED SOURCE AND PACKAGES
 Prerelease174:version0.3.0-rc1.6,clean48135e3,recipe23/128guards/helper169.

@@ -33,6 +33,21 @@ class HostConfigurationTests(unittest.TestCase):
         self.settings['certificate_file'] = None
         with self.assertRaises(ConfigurationError): self.load()
 
+    def test_dashboard_defaults_disable_and_public_address(self):
+        self.settings.pop('dashboard_host', None)
+        self.settings.pop('dashboard_port', None)
+        config = self.load()
+        self.assertEqual((config.dashboard_host, config.dashboard_port), ('127.0.0.1', 47624))
+        self.settings.update(dashboard_host='0.0.0.0', dashboard_port=8080)
+        self.assertEqual(self.load().dashboard_port, 8080)
+        self.settings['dashboard_port'] = 0
+        self.assertEqual(self.load().dashboard_port, 0)
+        for key, value in (('dashboard_host', 'localhost'), ('dashboard_host', '::1'),
+                           ('dashboard_port', True), ('dashboard_port', -1), ('dashboard_port', 47623)):
+            prior = self.settings.copy(); self.settings[key] = value
+            with self.subTest(key=key, value=value), self.assertRaises(ConfigurationError): self.load()
+            self.settings = prior
+
     def test_plaintext_requires_explicit_numeric_loopback_and_no_tls_settings(self):
         self.settings.update(allow_insecure_loopback=True, certificate_file=None, private_key_file=None, credential_directory=None)
         for address in ('0.0.0.0', '192.0.2.1', 'localhost', '::1', ''):

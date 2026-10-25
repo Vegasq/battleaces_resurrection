@@ -21,7 +21,7 @@ ROOT = Path(__file__).resolve().parents[1]
 PYTHON_VERSION = '3.14.8'
 PYTHON_ZIP_SHA256 = 'a93abe456ab01bd96d7a085b3cdb6566b3063f4241360d114142fbdb07f0a310'
 PYTHON_URL = 'https://www.python.org/ftp/python/3.14.8/python-3.14.8-embed-amd64.zip'
-PACKAGE_VERSION = '0.3.0-rc1.6'
+PACKAGE_VERSION = '0.3.0-rc1.7'
 RUNTIME_PTH = b'python314.zip\n.\n../app\n'
 COMMON = (
     'server/__init__.py', 'server/protocol.py', 'server/credentials.py',
@@ -34,6 +34,7 @@ SERVER = COMMON + (
     'server/cosmetics.py', 'server/loadout_protocol.py', 'server/public_protocol.py', 'server/public_matchmaking.py',
     'server/configuration.py', 'server/dedicated_server.py', 'server/game_data.py',
     'server/host.py', 'server/host_audit.py', 'server/diagnostics.py', 'server/native_simulation.py',
+    'server/web_dashboard.py', 'server/web_dashboard_page.py',
     'server/rc_host.py', 'server/New-RCCertificate.ps1',
     'server/state_lock.py', 'server/state_backup.py', 'server/windows_service.py',
     'server/paths.py', 'server/profiles.py', 'server/profile_io.py', 'server/protobuf_wire.py',
@@ -275,6 +276,7 @@ def build(runtime_zip, helper, output, *, allow_dirty=False, server_launcher=Non
         files['compatibility.json'] = json_bytes(compatibility)
         if product == 'server':
             files['SERVICE.txt'] = source_file('docs/windows-service.txt')
+            files['DASHBOARD.txt'] = source_file('docs/server-dashboard175.txt')
             files['config/host.example.json'] = source_file('server/host-config.example.json')
             files['assets/IMPORT.txt'] = b'Import your local build37822 assets here; see QUICKSTART.txt. No game files are included.\n'
             files['data/README.txt'] = b'Writable host data belongs here. Stop the host before backup; keep credentials private.\n'

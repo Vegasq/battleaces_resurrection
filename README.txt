@@ -37,6 +37,8 @@ admission,as requested. Optional verified CA/invite mode remains available.
 No original game assets are distributed. Internet release acceptance is pending.
 
 IMPLEMENTED CAPABILITIES
+- Server dashboard175:online players,active games and persistent match history.
+  Local engineering update;published174 predates it. docs/server-dashboard175.txt.
 - Local Try Deck and public1v1/2v2/2vAI with local fallback;online queues retain
   available humans and fill missing public seats after30seconds. Custom is human-only.
 - Custom presence/invites,results/Continue and same-connection rematches.

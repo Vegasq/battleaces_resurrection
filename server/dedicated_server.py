@@ -167,6 +167,8 @@ class Room:
 
     def event(self, event, **fields):
         self.server.audit(event, room=self.name, match=self.match_id, **fields)
+        if self.server.match_observer is not None:
+            self.server.match_observer(self, event, fields)
 
     def broadcast(self, kind, payload=b""):
         for peer in list(self.peers.values()):
@@ -313,6 +315,7 @@ class Room:
         self.state = "preparing"
         self.server.community.publish_presence()
         self.match_id = self.public_match or uuid.uuid4().hex
+        self.event('match_preparing')
         roster = [{"slot": slot, "player_id": slot + 1, "army_id": slot,
                    "name": self.bots[slot].name if slot in self.bots else self.peers[slot].name,
                    "ai_profile_id": self.bots[slot].profile_id if slot in self.bots else 0} for slot in sorted(self.slots)]
@@ -593,6 +596,7 @@ class DedicatedServer:
         self.sim_factory = sim_factory
         self.ai_factory = ai_factory
         self.audit = audit or (lambda event, **fields: None)
+        self.match_observer = None
         self.data_dir = Path(data_dir) if data_dir else None
         self.input_timeout = input_timeout
         self.input_window = p.validate_input_window(input_window)

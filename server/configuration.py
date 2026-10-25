@@ -30,6 +30,8 @@ class HostConfig:
     log_backups: int
     allow_insecure_loopback: bool
     access_mode: str = 'invite'
+    dashboard_host: str = '127.0.0.1'
+    dashboard_port: int = 47624
 
 
 def load_config(path):
@@ -46,11 +48,23 @@ def load_config(path):
         value = json.loads(raw.decode('utf-8-sig'), object_pairs_hook=pairs)
     except (OSError, UnicodeError, ValueError, RecursionError):
         raise ConfigurationError('Cannot read a bounded valid host configuration') from None
-    fields = set(HostConfig.__dataclass_fields__) - {'source', 'access_mode'}
+    web_fields = {'dashboard_host', 'dashboard_port'}
+    fields = set(HostConfig.__dataclass_fields__) - {'source', 'access_mode'} - web_fields
     if (not isinstance(value, dict) or type(value.get('schema')) is not int or value['schema'] not in (1, 2)
-            or set(value) != fields | {'schema'} | ({'access_mode'} if value['schema'] == 2 else set())):
+            or set(value) - web_fields != fields | {'schema'} | ({'access_mode'} if value['schema'] == 2 else set())):
         raise ConfigurationError('Expected host configuration schema1/2 and its exact fields')
     value.setdefault('access_mode', 'invite')
+    value.setdefault('dashboard_host', '127.0.0.1')
+    value.setdefault('dashboard_port', 47624)
+    try:
+        if not isinstance(value['dashboard_host'], str): raise ValueError()
+        ipaddress.IPv4Address(value['dashboard_host'])
+    except ValueError:
+        raise ConfigurationError('dashboard_host must be a numeric IPv4 bind address') from None
+    if type(value['dashboard_port']) is not int or not 0 <= value['dashboard_port'] <= 65535:
+        raise ConfigurationError('dashboard_port must be0(disabled) or1..65535')
+    if value['dashboard_port'] == value['listen_port']:
+        raise ConfigurationError('Dashboard and game must use different ports')
     if value['access_mode'] not in ('invite', 'rc-open'):
         raise ConfigurationError('access_mode must be invite or rc-open')
     for name, minimum, maximum in (('listen_port', 1, 65535), ('max_rooms', 1, 64),

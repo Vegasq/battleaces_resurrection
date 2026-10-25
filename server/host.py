@@ -22,6 +22,7 @@ from .cosmetics import CosmeticCatalog
 from .dedicated_server import DedicatedServer
 from .admission import AdmissionController
 from .host_audit import HostAudit
+from .web_dashboard import Dashboard
 from .state_lock import exclusive_state, StateBusyError
 from .protobuf_wire import field_uint
 from . import protocol
@@ -88,7 +89,7 @@ async def _run_owned(config, *, check_only=False, on_progress=None, on_ready=Non
     if check_only: return health
     audit = HostAudit(config.data_directory / 'logs', max_bytes=config.log_max_bytes,
                       backups=config.log_backups, diagnostics=config.diagnostic_audit)
-    server = None
+    server = dashboard = None
     try:
         from .worker_ai import AISetup
         templates, catalog = {1: template}, None
@@ -110,6 +111,15 @@ async def _run_owned(config, *, check_only=False, on_progress=None, on_ready=Non
                 working_directory=config.data_directory / 'workers'),
             ai_factory=lambda data, bots: SimulationWorker.create(data, config.assets_directory / 'Simulation.dll',
                 working_directory=config.data_directory / 'workers', ai=AISetup(config.assets_directory, bots)))
+        if config.dashboard_port:
+            dashboard = Dashboard(server, config.data_directory / 'web-matches.json')
+            try:
+                web_address = await dashboard.start(config.dashboard_host, config.dashboard_port)
+                print(f'Server dashboard: http://{web_address[0]}:{web_address[1]}', flush=True)
+            except (OSError, ValueError):
+                await dashboard.close()
+                dashboard = None
+                print('Dashboard unavailable: check its port and web-matches.json; game hosting continues.', file=sys.stderr)
         address = await server.start(config.listen_host, config.listen_port)
         if on_ready: on_ready(address)
         print(f'Battle Aces server listening on {address[0]}:{address[1]}; Ctrl+C stops it cleanly.', flush=True)
@@ -119,7 +129,10 @@ async def _run_owned(config, *, check_only=False, on_progress=None, on_ready=Non
             if on_progress: on_progress('stopping')
             if server is not None: await server.close()
         finally:
-            audit.close()
+            try:
+                if dashboard is not None: await dashboard.close()
+            finally:
+                audit.close()
 
 
 def main(argv=None):

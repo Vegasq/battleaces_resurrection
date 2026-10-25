@@ -1,5 +1,5 @@
 BATTLE ACES - CURRENT DELIVERY ROADMAP
-Updated:2026-10-24. ACTIVE. Single current work queue;final release is not accepted.
+Updated:2026-10-25. ACTIVE. Single current work queue;final release is not accepted.
 
 Read this file for what to do next. STATUS.txt summarizes the latest evidence;
 RELEASE_ACCEPTANCE.txt defines closure;INDEX.txt locates guides and detailed records.
@@ -61,7 +61,11 @@ NEXT WORK - IN THIS ORDER
 4. COMPLETE:matched client/server prerelease174 published to GitHub Releases.
    Both Python suites,8package commands and actual client update pass;all four
    public downloads match hashes. Details:coherent-candidate174.txt.
-5. NEXT:resolve P9 upstream c307c0/computed-consumer applicability and work
+5. COMPLETE at175 implementation scope:user-prioritized read-only host dashboard,
+   live players/active games and bounded persistent match history. Local update,
+   not yet published to GitHub. Browser rendering remains unverified;no new Nick
+   test or full-game acceptance claimed. Details:server-dashboard175.txt.
+6. NEXT:resolve P9 upstream c307c0/computed-consumer applicability and work
    through remaining D2-D5/D7-D8 rows below using their finite matrices.
    Package a matching updated pair only after changed behavior is qualified;
    perform final D9 acceptance after its prerequisite gates are met.
