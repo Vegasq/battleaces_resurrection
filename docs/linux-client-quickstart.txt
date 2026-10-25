@@ -1,6 +1,20 @@
 BATTLE ACES - EXPERIMENTAL LINUX / WINE CLIENT CLI
 2026-10-25. Release174/build37822;tested installation with Wine11.20.
 
+IF THE CLIENT IS ALREADY INSTALLED
+setup creates a new deployment;it does not overwrite an existing one. For an
+existing local/linux-client installation,use these commands from the repo root:
+
+  python3 -m tools.linux_client configure --server 192.168.1.100 --name "Player"
+  python3 -m tools.linux_client check
+  python3 -m tools.linux_client start
+
+Replace the example IP with your host's address. configure and check are headless
+and do not launch the game. Only start launches it. Omit --server or --name to
+keep its current value;--server "" selects local AI. Name changes preserve the
+profile,port,room,saves and identity for the same server route. Settings apply
+on the next start. Add --root <existing-directory> for a different installation.
+
 INSTALL WITHOUT OPENING THE INSTALLER WINDOW
 Run from the repository root with python3 and wine available. Use your local
 game copy and the exact BattleAces-Installer-RC1-174.exe from release174:
@@ -57,9 +71,9 @@ The shell launcher references this checkout,so keep it at its installed path.
 The selected server must be running;hosting is not started automatically.
 Server CLI:linux-server-quickstart.txt.
 
-To change public settings later,close the game and edit server_host or
-display_name in game/.battleaces-resurrection/client-config.json. Preserve the
-other fields,profile and cached runtime. A blank server_host enables local AI.
+Use configure above to change public settings later. It uses the installed
+backend's configuration lock,digest check and atomic save;it does not reinstall
+the runtime or patch. Existing game files and saves are preserved.
 
 LIMITS
 Actual headless installation and installed-file verification pass. Graphical

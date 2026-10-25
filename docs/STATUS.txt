@@ -12,6 +12,9 @@ GUI. Server/client wrappers share pinned extraction/prefix helpers.33focused
 tests:31pass/2skip. Reported GUI-related system freeze has no confirmed cause
 in retained logs. No graphical/Linux gameplay or Windows gate closure.
 Guide:linux-client-quickstart.txt. Evidence:linux-client176.txt.
+Follow-up177 replaces raw existing-directory errors with actionable commands
+and adds headless configure for existing clients,without reinstalling or
+changing saves. Original deployment and game-launch limits remain unchanged.
 
 EXPERIMENTAL LINUX HOST175 - 2026-10-25
 User-requested Wine host installed using the verified174server package and an

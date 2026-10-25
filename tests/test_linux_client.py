@@ -82,7 +82,7 @@ class LinuxClientTests(unittest.TestCase):
         marker = self.root / 'existing-save'
         marker.write_bytes(b'preserve existing')
         with mock.patch.object(client, 'extract_installer') as extract:
-            with self.assertRaises(FileExistsError):
+            with self.assertRaisesRegex(FileExistsError, 'configure'):
                 client.setup(self.root, self.base / 'installer.exe', self.game)
         extract.assert_not_called()
         self.assertEqual(marker.read_bytes(), b'preserve existing')
@@ -130,6 +130,60 @@ class LinuxClientTests(unittest.TestCase):
         self.assertEqual(headless['DISPLAY'], '')
         self.assertEqual(desktop['DISPLAY'], ':99')
         self.assertEqual(desktop['WINEDLLOVERRIDES'], 'mscoree,mshtml=')
+
+    def configuration_fixture(self):
+        game = self.root / 'game'
+        game.mkdir(parents=True)
+        (game / 'Battle Aces.exe').write_bytes(b'authored executable')
+        path = game / '.battleaces-resurrection/client-config.json'
+        path.parent.mkdir()
+        value = dict(schema=4, game_directory=str(game), server_host='localhost',
+                     server_port=47800, display_name='Before', local_profile='saved', room='friends')
+        path.write_text(json.dumps(value))
+        save = path.parent / 'profiles/saved/save'
+        save.parent.mkdir(parents=True)
+        save.write_bytes(b'preserve save')
+        return game, path, value, save
+
+    def run_configuration_script(self, game, command):
+        # Execute the exact script with the real portable backend on an authored
+        # POSIX fixture. Actual Wine execution has its own retained evidence.
+        script = command[command.index('-c') + 1]
+        return subprocess.run([sys.executable, '-c', script, str(game), command[-1]],
+                              cwd=client.ROOT, capture_output=True, text=True, timeout=10)
+
+    def test_configure_changes_only_requested_fields_and_preserves_saved_state(self):
+        from client_patch.transport.rc_setup import Resolver
+        game, path, before, save = self.configuration_fixture()
+        identity = Resolver(path, game).read()
+        command = client.configuration_command(self.root, self.base / 'runtime', name='Player')
+        result = self.run_configuration_script(game, command)
+        self.assertEqual(result.returncode, 0, result.stderr)
+        self.assertEqual(json.loads(path.read_bytes()), dict(before, display_name='Player'))
+        after = Resolver(path, game).read()
+        self.assertEqual((after.player_id, after.token), (identity.player_id, identity.token))
+        self.assertEqual(save.read_bytes(), b'preserve save')
+        self.assertIn('Game was not launched', result.stdout)
+        result = self.run_configuration_script(game, client.configuration_command(
+            self.root, self.base / 'runtime', server=''))
+        self.assertEqual(result.returncode, 0, result.stderr)
+        self.assertEqual(json.loads(path.read_bytes()), dict(before, display_name='Player', server_host=''))
+
+    def test_configure_refuses_rebound_game_without_changing_settings(self):
+        game, path, value, _ = self.configuration_fixture()
+        value['game_directory'] = str(self.game)
+        path.write_text(json.dumps(value))
+        before = path.read_bytes()
+        result = self.run_configuration_script(game, client.configuration_command(
+            self.root, self.base / 'runtime', name='Player'))
+        self.assertNotEqual(result.returncode, 0)
+        self.assertIn('Client game binding differs', result.stderr)
+        self.assertEqual(path.read_bytes(), before)
+
+    def test_configure_requires_valid_explicit_changes(self):
+        for changes in ({}, {'name': 'bad"name'}, {'server': 'host:1234'}):
+            with self.subTest(changes=changes), self.assertRaises(ValueError):
+                client.configuration_command(self.root, self.base / 'runtime', **changes)
 
 
 if __name__ == '__main__':

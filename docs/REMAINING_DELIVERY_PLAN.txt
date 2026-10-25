@@ -35,6 +35,8 @@ the game. Server/client CLI source and guides are complete for this request;
 shared helpers and33focused tests pass31/2skip. Graphical-client/system-crash
 cause remains unqualified. Details:linux-client176.txt,linux-client-quickstart.txt.
 No Windows release-gate closure or change to the existing P9 queue.
+Follow-up177:existing installs now have headless configure and clear repeat-setup
+guidance;no recopy/reinstall is needed to change the player name or server.
 
 CURRENT BASELINE
 - Published coherent prerelease174:version0.3.0-rc1.6,recipe23/128guards/helper169.

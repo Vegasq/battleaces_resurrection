@@ -70,6 +70,29 @@ def check_command(root, runtime):
     return python_command(runtime, '-c', script, windows_path(root / 'game'))
 
 
+def configuration_command(root, runtime, *, server=None, name=None):
+    changes = {}
+    if server is not None:
+        changes['server_host'] = normalize_server_name(server.strip()) if server.strip() else ''
+    if name is not None:
+        changes['display_name'] = chosen_name(name)
+    if not changes:
+        raise ValueError('configure requires --server or --name')
+    # Reuse the installed backend's configuration lock, expected digest and
+    # atomic publication. Omitted settings, profiles and identities are retained.
+    script = (
+        "import json,sys;from pathlib import Path;"
+        "from client_patch.transport import rc_setup;"
+        "game=Path(sys.argv[1]).resolve();config=game/'.battleaces-resurrection/client-config.json';"
+        "current=rc_setup.setup_data(config);"
+        "assert Path(current['game_directory']).resolve()==game,'Client game binding differs';"
+        "current.update(json.loads(sys.argv[2]));"
+        "rc_setup.save(current,config);"
+        "print('Client settings saved. Game was not launched; changes apply on next start.')"
+    )
+    return python_command(runtime, '-c', script, windows_path(root / 'game'), json.dumps(changes))
+
+
 def write_launcher(root):
     path = root / 'Start Battle Aces.sh'
     command = [sys.executable, '-m', 'tools.linux_client', 'start', '--root', str(root)]
@@ -90,7 +113,18 @@ def setup(root, installer, game, *, server='', name=None):
         name = chosen_name(name)
     working = root / 'game'
     native_storage_preflight(dict(game_directory=windows_path(working), local_profile='default'))
-    root.mkdir(mode=0o700, parents=True)
+    try:
+        root.mkdir(mode=0o700, parents=True)
+    except FileExistsError:
+        command = 'python3 -m tools.linux_client'
+        selected = ' --root ' + shlex.quote(str(root))
+        raise FileExistsError(
+            'Deployment already exists: ' + str(root) + '\n'
+            'Verify it: ' + command + ' check' + selected + '\n'
+            'Change settings: ' + command + ' configure' + selected + ' --server <host> --name <name>\n'
+            'Launch it: ' + command + ' start' + selected + '\n'
+            'For a separate installation, run setup with --root <new-directory>. Existing files were preserved.'
+        ) from None
     package = extract_installer(installer, root / 'package')
     print('Copying game files into ' + str(working) + '. The source game stays unchanged.', flush=True)
     copy_game(game, working)
@@ -125,12 +159,12 @@ def setup(root, installer, game, *, server='', name=None):
 
 def main(argv=None):
     parser = argparse.ArgumentParser(description=__doc__)
-    parser.add_argument('command', choices=('setup', 'check', 'start'))
+    parser.add_argument('command', choices=('setup', 'configure', 'check', 'start'))
     parser.add_argument('--root', type=Path, default=ROOT / 'local/linux-client')
     parser.add_argument('--installer', type=Path)
     parser.add_argument('--game-dir', type=Path)
-    parser.add_argument('--server', help='server IP or DNS name; omit for local AI only')
-    parser.add_argument('--name', help='player name; defaults to the current account name')
+    parser.add_argument('--server', help='server IP or DNS name; empty selects local AI; configure preserves an omitted value')
+    parser.add_argument('--name', help='player name; setup defaults to account name, configure preserves an omitted value')
     args = parser.parse_args(argv)
     if not sys.platform.startswith('linux'):
         parser.error('This wrapper is for Linux; use the native installer on Windows')
@@ -144,12 +178,18 @@ def main(argv=None):
             setup(root, args.installer.expanduser().resolve(), args.game_dir.expanduser().resolve(),
                   server=args.server or '', name=args.name)
             return 0
-        if any(value is not None for value in (args.installer, args.game_dir, args.server, args.name)):
-            parser.error('--installer, --game-dir, --server and --name apply only to setup')
+        if args.installer is not None or args.game_dir is not None:
+            parser.error('--installer and --game-dir apply only to setup')
+        if args.command != 'configure' and (args.server is not None or args.name is not None):
+            parser.error('--server and --name apply only to setup or configure')
         runtime = installed_runtime(root)
         if not (root / 'wineprefix/system.reg').is_file():
             raise ValueError('Deployment Wine prefix is missing; run setup in a new directory')
-        if args.command == 'check':
+        if args.command == 'configure':
+            if not (root / 'linux-setup.json').is_file():
+                raise ValueError('Client setup did not complete; inspect install.log and check.log')
+            command = configuration_command(root, runtime, server=args.server, name=args.name)
+        elif args.command == 'check':
             command = check_command(root, runtime)
         else:
             if not (root / 'linux-setup.json').is_file():
@@ -157,7 +197,7 @@ def main(argv=None):
             command = python_command(runtime, '-m', 'tools.package_client', 'start', '--config',
                                      windows_path(root / 'game/.battleaces-resurrection/client-config.json'))
         os.chdir(root / 'game')
-        os.execvpe(command[0], command, wine_environment(root, headless=args.command == 'check'))
+        os.execvpe(command[0], command, wine_environment(root, headless=args.command != 'start'))
     except (OSError, ValueError, subprocess.SubprocessError) as error:
         print('Linux client: ' + str(error), file=sys.stderr)
         return 1

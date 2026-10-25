@@ -69,3 +69,15 @@ This is installed-file qualification,not graphical/gameplay acceptance. It does
 not close Windows release gates or change RUNTIME_VALIDATED=false. Setup reuses
 the published binaries;it does not compile a new helper or proprietary game.
 Guides:linux-client-quickstart.txt,linux-server-quickstart.txt.
+
+EXISTING-INSTALL FOLLOW-UP177 - 2026-10-25
+Repeated setup at an already installed root previously surfaced raw Errno17.
+The refusal now explains check/configure/start and choosing another root for a
+separate install. No existing installation is overwritten or recopied.
+New configure command changes only explicitly supplied name/server settings,
+using the installed rc_setup lock,expected digest and atomic-save implementation
+in headless Wine. It refuses a mismatched game binding and retains omitted
+settings,profiles and identities. The user-requested name/server were applied
+to the existing local client without executing the game or installer UI.
+Focused Linux client/RC tests cover the new setting preservation,game-binding
+refusal and input validation. Retained records:local/linux-client177/.
