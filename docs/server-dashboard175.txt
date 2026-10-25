@@ -75,6 +75,11 @@ paging,disconnected stale-data display and recovery. Browser inventory was empty
 no browser rendering or physical/mobile layout pass is claimed.
 Retained results:local/dashboard175-validation01 and local/dashboard175-preview01.
 The preview uses authored sample players/matches,never live user state.
+Follow-up requested screenshot:headless installed Edge rendered the actual page
+at1440x1080 with sample data. Screenshot inspected:online roster,active match,
+metrics and history visible. Capture:local/dashboard175-preview02/dashboard.png.
+Browser exit0;owned preview stopped afterward. This adds desktop render evidence,
+not physical input,mobile rendering or real gameplay acceptance.
 Existing user host,HTTP share,frozen174/166 and DEV answers are preserved.
 
 Release status
@@ -95,6 +100,9 @@ The packaged guide is frozen at the clean build;this artifact receipt is a later
 documentation-only addition. Preserve existing host state before fresh deployment;
 the installer requires an empty destination,as explained in the quickstart.
 
-175is a local engineering update,not a replacement of the published GitHub174
-release or closure of remaining D2-D5/D7-D9 gates. The current roadmap remains
+Dashboard source is included on main with the incoming Linux CLI changes;the
+175installer remains local. The dashboard source is unchanged from qualified
+04b3910 after the merge;existing test/package evidence retains its scope.
+This is not a replacement of the published GitHub174installer release or closure
+of remaining D2-D5/D7-D9 gates. The current roadmap remains
 the source of outstanding work. No new Nick test is required for this feature.

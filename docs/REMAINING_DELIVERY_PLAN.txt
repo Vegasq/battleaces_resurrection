@@ -81,9 +81,9 @@ NEXT WORK - IN THIS ORDER
    Both Python suites,8package commands and actual client update pass;all four
    public downloads match hashes. Details:coherent-candidate174.txt.
 5. COMPLETE at175 implementation scope:user-prioritized read-only host dashboard,
-   live players/active games and bounded persistent match history. Local update,
-   not yet published to GitHub. Browser rendering remains unverified;no new Nick
-   test or full-game acceptance claimed. Details:server-dashboard175.txt.
+   live players/active games and bounded persistent match history. Source included
+   on main;175installer remains local. Headless Edge desktop preview captured;
+   no new Nick test or full-game acceptance claimed. Details:server-dashboard175.txt.
 6. NEXT:resolve P9 upstream c307c0/computed-consumer applicability and work
    through remaining D2-D5/D7-D8 rows below using their finite matrices.
    Package a matching updated pair only after changed behavior is qualified;

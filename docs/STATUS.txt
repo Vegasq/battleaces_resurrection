@@ -4,18 +4,20 @@ Current work:REMAINING_DELIVERY_PLAN.txt. Evidence navigation:INDEX.txt.
 Exact prior3576-line ledger:history/2026-10-24/STATUS.txt.
 Historical records retain their original failures,claims and artifact scopes.
 
-LOCAL SERVER DASHBOARD175 - 2026-10-25
+SERVER DASHBOARD175 - 2026-10-25
 User-requested integrated read-only web:live players,active games,1000retained
 match summaries,winners from simulation results and restart recovery. Loopback
 HTTP47624 by default,optional remote bind/disable. Host/game/helper protocol
 unchanged. Full Python3.12/3.14 suites:1065run,1052pass/13skip each. Final focused
 host/config/package/persistence checks cover subsequent small hardening changes.
-Actual HTTP/synthetic coordinator and Node DOM recovery/paging checked;no browser
-available for visual acceptance. Details and local artifact:server-dashboard175.txt.
+Actual HTTP/synthetic coordinator and Node DOM recovery/paging checked. Later
+headless Edge1440x1080 preview captured with sample data;desktop layout inspected.
+No physical/mobile or real gameplay acceptance. Details:server-dashboard175.txt.
 Local server175installer built from clean04b3910;five owned bundled runtime,
 native-form/payload/HTTP checks pass,empty jobs/no force. No original game launch,
 live host mutation,full asset export or new client standalone;recipe/helper unchanged.
-Published174 remains the GitHub release below;full delivery gates remain open.
+Source included on main;published174 remains the GitHub installer release below.
+Full delivery gates remain open.
 
 HEADLESS LINUX CLIENT176 - 2026-10-25
 Client CLI setup completes against the pinned174installer in an independent
