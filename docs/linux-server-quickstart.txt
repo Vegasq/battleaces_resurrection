@@ -1,0 +1,68 @@
+BATTLE ACES - EXPERIMENTAL LINUX / WINE HOST
+2026-10-25. Tested with Wine11.20 on x86_64 Linux, release174/build37822.
+
+The coordinator and original simulation DLL run in Wine using the release's
+bundled Windows Python. Linux Python drives setup and OpenSSL creates the host
+certificate. This is not a port of the original simulation to a Linux library.
+The .NET installer window and Windows certificate utility are bypassed. No Mono,
+system Python packages, system Wine prefix or desktop configuration are changed.
+
+PREPARE AND INSTALL
+Run from the repository root. Have wine, python3 and openssl available, plus your
+local build37822 game and BattleAces-Server-Installer-RC1-174.exe. This wrapper
+accepts only that exact published server installer; its EXE and embedded ZIP
+hashes are pinned to coherent-candidate174.txt. No assets are downloaded.
+
+  python3 -m tools.linux_server setup \
+    --installer "$HOME/Downloads/BattleAces-Server-Installer-RC1-174.exe" \
+    --game-dir "$HOME/Downloads/BA"
+
+Linux filenames are case-sensitive: BA and ba are different directories.
+The default deployment is local/linux-server. Use --root <new-directory> to
+choose another location. The destination must not exist and must be separate
+from the original game. Allow space for an approximately7GB temporary independent
+game copy. Setup requires a working desktop/graphics session for its one-time
+Unity asset export; subsequent hosting uses only the imported assets.
+
+Setup preserves the source game and its saves, patches an independent copy,
+exports maps/catalogs/AI, validates the import, and removes its successful
+temporary game copy using the existing server installer backend. Failed staging
+directories and install.log remain available for diagnosis. Do not overwrite
+failed evidence or an existing host; choose a new root for another setup.
+
+START, CHECK, STOP
+  ./local/linux-server/'Start Server.sh'
+
+Or, from the repository root:
+  python3 -m tools.linux_server start --root local/linux-server
+
+Wait for "Battle Aces server listening on 0.0.0.0:47623". Players using the
+matching patched client enter this Linux machine's LAN IP;TCP port47623 is used.
+Stop with Ctrl+C in the hosting terminal. The host releases matches/workers and
+its state lock. Reuse the same root to preserve player profiles and TLS identity.
+The generated shell launcher references this checkout; retain its location.
+
+With the host stopped, this checks assets, TLS loading, writable storage and a
+real native create/step/close cycle without opening a public listener:
+  python3 -m tools.linux_server check --root local/linux-server
+
+Config: <root>/host/config/host.json
+Profiles and normal event logs: <root>/host/data/
+Imported local game assets: <root>/host/assets/build-37822/
+Private TLS material: <root>/host/config/private/ (owner-only POSIX directory)
+Isolated Wine prefix: <root>/wineprefix/
+Wine diagnostics remain on stderr; setup diagnostics are in <root>/install.log.
+Keep the deployment private and out of Git. No firewall/router changes are made.
+
+SCOPE
+RC open mode uses TLS with unverified server identity and open admission, as in
+the Windows RC. The native launcher's owned-job supervision and original worker
+IPC are retained. Configuration and keys are only created when missing;
+existing settings and identities are not replaced on start/check.
+
+Linux175 passed actual export/import, native health, two Linux TLS1.3 protocol
+peers receiving40equal native frames, normal Ctrl+C and restart. This does not
+establish graphical-client play, a completed match, Internet reachability, Linux
+capacity/soak or system-service support. Do not run Windows SCM commands here.
+The Windows release gates and RUNTIME_VALIDATED=false remain unchanged.
+Evidence and retained failures:linux-host175.txt.

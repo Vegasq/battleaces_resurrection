@@ -1,0 +1,71 @@
+HEADLESS LINUX CLIENT INSTALLER176
+2026-10-25. User requested commit/push of the server CLI and a client CLI after
+reporting that the graphical installer froze the whole Linux system.
+
+Bounded claim:install and verify a complete client through a command line,
+without invoking the GUI installer or starting the game. Original source game,
+partial user installation and profiles must remain intact. Publish source only.
+
+Implementation
+tools/linux_client.py provides setup/check/start. Setup validates public options,
+requires a fresh destination,uses the existing independent copy_game routine,
+and invokes the pinned Windows install-game backend using bundled Python in a
+separate Wine prefix. DISPLAY/WAYLAND_DISPLAY are empty and Wine X11/Wayland
+drivers are disabled during setup/check. Only start uses desktop graphics.
+The backend preserves its existing reversible patch,game-local runtime,settings
+and original backups. New Linux code does not change native helper or patch ABI.
+
+tools/linux_wine.py shares extraction,path conversion and prefix environment
+helpers with the existing Linux server wrapper. Server setup still performs its
+one-time graphical asset export;its previous175native/TLS evidence retains the
+same pinned package/worker scope. No server reinstall or native rerun for this
+pure helper extraction. The client CLI is independent of the host's Wine prefix.
+
+Exact input/output
+Client installer13401088bytes:
+d85476da0ffce2fa9d491ea5e3efb7818b0e607b352c7089239c94806ed48e0d
+Embedded client ZIP13371286bytes:
+1836ac93447781d5a6ce55585c28530cab2b23e4eacbb09416fa5c38fde5a6f4
+Both match coherent-candidate174.txt. Source build48135e3,recipe23/helper169.
+Installed runtime ID:e2b1c518a3d8fb00b8f6. Wine11.20,Linux Python3.14.8 and
+bundled Windows Python3.14.8. Installed deployment:local/linux-client.
+
+Actual CLI setup completed with exit0. The backend checked133game files and
+published the normal Windows launcher/config/runtime into the independent game.
+The wrapper then verified the cached package and ran the installed runtime's
+verify_game with community,ABI2,unified and player_features enabled. The actual
+check returned passed:true,game_started:false. A separate Linux shell launcher
+and completion receipt were written only after successful verification.
+No game process,graphical client or installer UI was launched in this check.
+
+Tests
+33focused tests:31pass,2Windows-only TLS tests skipped,0failures,0.496seconds.
+Eight new client controls cover no-launch/headless setup,backend failure,
+verification failure,source overlap/existing deployment refusal,invalid public
+settings/long native paths,tampered runtime,shell path quoting,and separate
+desktop versus headless environment. Existing six server Linux tests and host/
+installer/RC config checks pass after the shared-helper extraction.
+
+Crash evidence and limits
+Read-only journal/coredump review found the prior boot ending at07:30:22 local,
+followed by unclean-journal recovery on subsequent boots. No retained coredump
+or OOM/GPU/panic record in the inspected failure interval identifies the cause.
+The kernel pstore directory was not readable by the user account. Repeated
+nonfatal X keyboard warnings near the end do not establish a causal diagnosis.
+Current memory availability is not evidence of memory use at the failure time.
+Original source GameAssembly remained at its supported original hash;the partial
+GUI attempt had created a client-runtime directory,without a patch manifest.
+That partial installation was left intact. No global Wine/desktop/kernel changes
+or upstream issue report were made. Crash cause remains unconfirmed.
+
+Retained private evidence
+local/linux-client176-evidence/{prior-kernel.log,prior-tail.log,
+ setup-cli01.log,source-tests01.log,server-refactor-tests.log,verification.json}
+local/linux-client/{install.log,check.log,linux-setup.json}
+Game backups,assets,profiles,Wine prefix and any machine-specific details remain
+ignored/local. DEV.txt records this checkout's paths and request status.
+
+This is installed-file qualification,not graphical/gameplay acceptance. It does
+not close Windows release gates or change RUNTIME_VALIDATED=false. Setup reuses
+the published binaries;it does not compile a new helper or proprietary game.
+Guides:linux-client-quickstart.txt,linux-server-quickstart.txt.
