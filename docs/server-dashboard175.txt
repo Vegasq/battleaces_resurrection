@@ -78,6 +78,23 @@ The preview uses authored sample players/matches,never live user state.
 Existing user host,HTTP share,frozen174/166 and DEV answers are preserved.
 
 Release status
+Local installer:local/candidate175-server-standalone01/BattleAces-Server-Installer-RC1-175.exe
+Version0.3.0-rc1.7,clean source04b3910002e76f10608fdd541984c5d2a9920884.
+Installer SHA256:8e5af47311ef87639b17e1a4333afcbb9e97ed11648c3d2965426ad6542cb477
+Server archive SHA256:018eebb4851fcdfa09bf17248ffccce99139799e8acc2cc164d23ea934641903
+Build receipt:local/candidate175-build01.json. Qualification:
+local/candidate175-qualification01/verification.json. Five owned bundled-runtime,
+CLI/import/native-form/payload/HTTP commands passed in3.859s,exit0,empty jobs,
+no forced cleanup. Bundled HTTP serves all four routes and persists/reloads an
+authored completed result. No original game/game listener or Install action ran.
+The11-file package delta from174 is exactly dashboard code/config/docs and source
+provenance. Native helper/launcher/installer shell and game protocol are unchanged.
+No new full asset export or installed-host acceptance is claimed. Client archive
+was produced by the paired builder;no new client standalone or release upload.
+The packaged guide is frozen at the clean build;this artifact receipt is a later
+documentation-only addition. Preserve existing host state before fresh deployment;
+the installer requires an empty destination,as explained in the quickstart.
+
 175is a local engineering update,not a replacement of the published GitHub174
 release or closure of remaining D2-D5/D7-D9 gates. The current roadmap remains
 the source of outstanding work. No new Nick test is required for this feature.

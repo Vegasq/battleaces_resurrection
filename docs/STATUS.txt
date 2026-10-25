@@ -12,6 +12,9 @@ unchanged. Full Python3.12/3.14 suites:1065run,1052pass/13skip each. Final focus
 host/config/package/persistence checks cover subsequent small hardening changes.
 Actual HTTP/synthetic coordinator and Node DOM recovery/paging checked;no browser
 available for visual acceptance. Details and local artifact:server-dashboard175.txt.
+Local server175installer built from clean04b3910;five owned bundled runtime,
+native-form/payload/HTTP checks pass,empty jobs/no force. No original game launch,
+live host mutation,full asset export or new client standalone;recipe/helper unchanged.
 Published174 remains the GitHub release below;full delivery gates remain open.
 
 CURRENT PUBLISHED SOURCE AND PACKAGES
