@@ -1,0 +1,36 @@
+D5 / P7 - passive SetEnabled entry observations on owned recipe26
+2026-10-28. Bounded menu and local-practice runs;P7/D5 remain OPEN.
+
+Original Uncapped.BugsnagCrashReporter.SetEnabled is virtual/interface slot8
+(metadata method index6664,token600054f, RVA3cc30f0). Its prologue preserves
+the comparison flags across MOVZX EBX,DL and its tail writes BL to reporter
+class-static byte+18. The original class initializer at3cc6650 writes1 to
+the same byte at3cc687c. The exact original SetEnabled RVA guard is
+40534883ec20803d78631903000fb6da.
+
+A passive Frida hook was installed before GameAssembly initialized in an owned
+recipe26 default game. It checked the exact loaded SetEnabled prologue and
+recorded only call count,Boolean low byte and return RVA if invoked. No
+reporter/SDK method was called by the observer. The selected menu interval
+reached readiness,then the observer detached and original Quit exited0 with
+owned job drained,no forced cleanup. The hook saw zero calls before detach.
+Retained ignored local/privacy303-reporter-setenabled02/verification.json
+SHA256:75a149be75fef470167f913b9406b01a8b5f352be7e05dbd4e9eb4d997e9650d.
+REA status evidence ID:ev_8a75bb8fb1a8b9ea03b8e2397688def9dc0e8c6d1ec483f3795fa06a315dbd8e.
+
+A second owned recipe26 process kept the same hook active through one
+1200-frame local AI match,original result/Continue,menu and original Quit0.
+The hook saw zero SetEnabled calls in that selected complete interval;
+messages were not truncated. Retained ignored
+local/privacy304-reporter-setenabled-match01/verification.json SHA256:
+679429d17474e307369822c06059e71db5d19342d3892d5ae0602a820a72af01.
+REA final detached-status evidence ID:
+ev_acb650fb3477a5ddb280cf09c0f61a6770910aa4c5aac5f99afea3743e78ae67.
+Observer source tools/frida_reporter_setenabled303.js SHA256:
+fb06e2756a0ab6848e9fc6fe0bb6b053a4897eefb23d3e5b6cc6ac18329445b0.
+
+No positive SetEnabled call or argument value was observed. These zero counts
+do not exclude other modes,retained delegates,thread paths or later calls.
+The original class initializer still defaulted the reporter enabled byte to
+true in recipe26;this motivated the reporter-specific recipe27 cuts in305.
+No SDK queue,identity getter or report payload was read or changed.

@@ -1,0 +1,48 @@
+D5 / P5-P7 - recipe47 connected selected SDK/file/socket attribution
+
+2026-10-31. Source-bound owned public1 two-client prelaunch observation PASS
+at the selected API scope. Full P7/P9/D5 remain OPEN;RUNTIME_VALIDATED=false.
+Published174 is unchanged. No real SDK report queue was seeded or read.
+
+The private recipe47 client/server packages and installed game from512 ran
+one RC-open public1 two-human match with ephemeral identities. Both clients
+were created suspended and held behind observer-ready gates. REA Frida
+attached before primary-thread resume. The reviewer checked exact disk
+bytes for six guarded SDK entries. The passive scripts checked loaded
+bytes and installed five active SDK hooks in each client:
+DeliverCachedPayloads,ProcessCachedItems and PushToServer
+factories,BugsnagUnityWebRequest.SendWebRequest,and the shared
+UnityWebRequest.SendWebRequest. Both reported hooks installed with no error.
+The observer also watched selected native file/socket/process APIs and the
+original self-termination boundary. It did not read payloads,identifiers,
+request bodies or URLs.
+
+The native match completed1220 frames,result/Continue and both original
+Quit confirmations. Both clients exited0,workers reaped,and Jobs5/2/2
+ended0 active/0 terminated without forced cleanup. At each original
+self-TerminateProcess entry,the five SDK counters were zero,selected watched
+file and network operation event lists were empty,observer error/
+overflow fields were clear,and positive bridge send/recv counts were
+1216/70587 and1218/71458. Each client had nine unresolved file operations;
+the retained status records classify all as failed invalid-handle NtWriteFile
+calls. No file content or packet body was captured.
+
+The independent tools.review_recipe47_sdk_runtime522 binds the prior512
+source/package/installed review,the exact current GameAssembly guard bytes,
+private verifier result,suspended PID/gate/resume chain,observer source
+hashes,untruncated REA messages,installed hook lists,original exits and
+empty Jobs. PASS receipts:
+ local/privacy522-public1-01/verification.json SHA256
+ c6e5879d4cbac2fac0eeb1b0fffd0e91c30d7c4a44842e71af02606b1982cc43;
+ local/privacy522-trace01/rea-evidence.json SHA256
+ 49f91752fedb69375cac7a11ce9c3623908c4c90f1218112943b54cc07a18ec3;
+ local/privacy522-public1-01/sdk-route-review522.json SHA256
+ 5d256bf51aa54801652d65a7ef2813b0a2d7c42ccba9d45b10cb3b8420556432.
+
+This excludes invocation of the five selected SDK entries during this
+one pre-resume-to-exit connected match. The file observer's SDK root list
+is bounded to the selected shared Bugsnag path;other per-profile roots,
+other APIs/processes,real queue state,resumed/in-flight requests,whole
+kernel wire and the native advertising provider remain unqualified.
+Do not treat bridge send/recv activity as SDK delivery or zero selected
+events as a general no-network claim.

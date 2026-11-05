@@ -1,0 +1,47 @@
+D5 - current private Custom rematch selected native privacy routes
+2026-10-30. Bounded Custom subcase PASS. Full D5 OPEN.
+
+The external packaged verifier now permits its opt-in suspended prelaunch
+observer for an isolated RC-open Custom rematch with two human clients. It
+still rejects recovery, delay, real credentials and other Custom fault/soak
+controls in this combination. Normal launchers and published174 are unchanged.
+
+The current recipe38 private pair358/helper357 and owned301 game/assets ran
+two Custom matches. Both clients completed native Start/result/Continue,
+the host changed deck between matches, guest then host used original Leave,
+and both used normal Quit0. The source-owned verifier passed in209.563s,
+with no forced cleanup;workers reaped and jobs7/2/2 drained. Its Custom
+validator retains independent_full_state_proof=false.
+
+Both passive observers were armed before each suspended main thread resumed.
+Their complete,untruncated streams reached original self-TerminateProcess
+entry with exit status0 and no observer errors/overflow. Each resolved its
+relative file root (one call,zero failures) and ended with zero unknown
+relative roots. Neither recorded a selected file operation under the bound
+LocalLow Bugsnag root. The nine unresolved selected file operations per
+client were all failed NtWriteFile on invalid handle-1,STATUS_INVALID_HANDLE;
+none represents a successful write to an unknown file.
+
+Selected send/recv calls used only the exact inherited private bridge socket
+for each client. Selected connect,WSAConnect,sendto,WSASendTo,DNS and
+WinHttpConnect were zero at exit entry. The client jobs total only driver
+and native game each during this run,consistent with the no-breakaway
+source policy reviewed in privacy-client-jobs374.txt.
+
+tools.review_d5_current_custom375 independently checks source recipe,
+private package/game/asset/helper binding,Custom lifecycle,observer bytes,
+prelaunch gates,PID/bridge handles,final file-operation status and counts.
+Reviewer PASS. Ignored records:
+ local/privacy375-custom01/verification.json
+ SHA256 4aab7cb989a50714bfa0b666f6fdad4ee400b4fbbf882e01a8d3133340784361
+ local/privacy375-custom01/custom-review.json
+ SHA256 61df1195e91f3bb21d1487950a67be3ecbb743da0ca1d3768af4fd6ba4c52644
+ local/privacy375-custom-trace01/rea-evidence.json
+ SHA256 b1b46f6b611f4be2fbbea56eaf2e52a5d61a06d6e816595a1bf1fbc6d56e3c2f
+
+Scope is the selected user-mode native APIs in these two owned Custom clients
+from pre-main-thread resume to original self-termination entry. Other file
+APIs/aliases,other processes or external brokers,the200ms diagnostic hold
+and actual death,SDK queue contents,server/adapter wire,advertising-ID
+producer P9 and final installed artifacts remain outside this result.
+RUNTIME_VALIDATED=false;full P5-P9/D5 remain OPEN.

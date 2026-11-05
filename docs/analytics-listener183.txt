@@ -1,0 +1,90 @@
+ANALYTICS CONFIGURATION LISTENER DISPATCH183
+2026-10-26. Static named-edge result;P9/D5 remain OPEN,runtime flag=false.
+
+Result
+One concrete computed registration/dispatch/removal chain is now bound:
+platform Start c66c20 registers c66a80 with the exact Main owner for the
+"analytics" configuration key. The keyed dispatcher c42ab6 calls that function
+with Main in RCX and a separate parser context in R8. It does not reinterpret
+Main as the secondary Main+1498 interface at this dispatch. Its target is a
+configuration parser callback,not c307c0. Current recipe23 already RETs at Start
+before the named registration. This is a positive binding and existing cut for
+this chain,not discovery of the upstream advertising producer or a new patch.
+
+Registration and computed dispatch
+- Reuse132's platform table/constructor binding:table1a2c538 slotse0/e8 select
+  c66c20/c66fd0. Do not count revisiting these entries as a new override finding.
+- c66c20 retains Main in RDI. It selects literal1a2ac10="analytics" (length9),
+  obtains the key's listener list through c42230 atc66cf1,and passes
+  RDX=c66a80/R8=Main to5b8aa0 atc66d03.
+- c42230 searches/creates a key node;the key is atnode+20 and the returned
+  listener list atnode+48.5b8aa0 appends24-byte records using count+0xc00:
+  record+0=function,+8=bound owner,+10=1 (hex offsets). It increments the count.
+- c42790 walks that key tree,retains/reloads node+48 in R15 and reads those
+  same24-byte records. Atc42a84 it tests the bound-owner flag. The selected
+  branch loads RCX=record+8,points RDX at the key copy and R8 at a separate
+  stack parser context,sets R9 plus a fifth stack flag,and CALLs R10 atc42ab6.
+  For this registration,R10=c66a80 and RCX=Main. Table proximity,matching
+  callback-shaped prototypes or Main-relative address guesses are not the proof.
+- c66a80 checks the fifth flag. It derives Main+1660 from RCX,while RBX is
+  rebound from R8 to the parser context. It passes destination Main+1660 and
+  literal"enabled" toac9ab0,then Main+1668 to c668b0 for event configuration.
+  The parser's +40/+78 fields belong to that separate context,not Main. This
+  resolves the named receiver ambiguity;it does not classify every transitive
+  parser/allocator/runtime helper as acquisition-free.
+- Stop c66fd0 obtains the same key list and calls c46880 with the same function
+  and Main. Removal compares BOTH pointer and owner,clears all three record
+  fields,and compacts immediately or marks deferred compaction during dispatch.
+  Do not replace the shared dispatcher/list manager or skip cleanup.
+
+Installed applicability and limits
+Complete original-to-current-recipe Unity transformation matches local/r171g.
+Of the eight reviewed bodies,only c66c20's first byte differs:the existing RET.
+All other reviewed body bytes remain original. Thus a fresh call to the patched
+Start cannot enqueue this listener;no new source guard or runtime test is needed
+to re-establish that existing cut. This is not cancellation of already registered
+callbacks from a different/previous process state. Other registrations,computed
+aliases,interior entry,arbitrary pointer mutation and external input remain out
+of scope. The public advertising manager review110/179 remains separate.
+
+The nearby c425d0 routine uses another listener list at owner+c28 with a different
+argument layout. Similar record shapes alone do not make it this keyed listener.
+The bounded raw-displacement search in c40000..c47000 was a discovery aid,not a
+complete-reference inventory. No whole-program unreachability claim follows.
+The actual Main+1498/c307c0 producer remains unknown. Reuse182's closed runtime
+interval;zero calls are not absence proof. Next source evidence must bind a
+registration/producer to that actual interface,not repeat the covered platform,
+session,configuration,public-manager or adjacent-interface paths.
+
+Verification
+Source-owned tools/review_analytics_listener.py reads retained disassembly and
+pinned original/current DLL bytes without loading or executing either DLL.
+PASS:8complete unwind extents,1412contiguous decoded instructions checked against
+original bytes,51semantic anchors,6direct edges,5literal/callback address bindings,
+two platform slots,two configuration keys,and current whole-Unity recipe match.
+This is static PE/unwind/LLVM evidence,not REA native decompiler/runtime Evidence.
+REA's native decompiler remains unconfigured;no setup/install attempted.
+LLVM executable SHA256:
+ 5e7a457bf23033b6ec4a959d2276f09d44c024092529684d7eeb687d38da700d
+Original Unity SHA256:
+ ac144d56d53f07904d52ed27a1539de90bc3290038fe52d73d2f6b268c85d6bc
+Installed recipe23 Unity SHA256:
+ a53b0c613a86c737b7caa7588c7c93ae20d5d5700f9321a406df9dcca8e32a7f
+local/privacy183-dispatch01/verification02.json SHA256:
+ 0a37e7e39f16364801244f8bf053e568860d30243f734405a4c3413e62d45af1
+Each reviewed assembly/body hash is retained in that report.
+
+Python3.12/3.14 each pass5focused tests (4.637s/4.509s). They validate authored
+extent handling and retained actual evidence,including missing/overlapping/
+crossing/changed bytes,changed dispatch text/bytes,missing tail and restoration
+of the original Start entry. Tests never execute an original callback/collector.
+Use BA_ANALYTICS_LISTENER_EVIDENCE=local/privacy183-dispatch01 with
+ python -m unittest tests.test_analytics_listener
+
+Exploratory failures and corrections remain in local/privacy183-dispatch01:
+an unrelated d8 leaf window ended inside its final JMP and was rejected;it is
+excluded from the evidence gate. Initial dispatch anchor transcription failed
+atc42a70 and was corrected from actual retained instructions. No binary changed.
+Prior current documents:local/privacy183-prior-docs01. No game,queue,host,helper
+build,installer or Nick test occurred. Normal launchers,published174 and
+recipe23/helper169 remain unchanged. No new user answer is required.

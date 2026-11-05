@@ -11,9 +11,14 @@ import subprocess
 
 ROOT_FILES = {".gitignore", ".gitattributes", "README.txt", "AGENTS.md"}
 SOURCE_DIRS = {"server", "client_patch", "tools", "tests", "docs", ".github"}
-EXTENSIONS = {".py", ".cpp", ".cs", ".h", ".hpp", ".ps1", ".cmd", ".txt", ".json", ".yml", ".yaml"}
+EXTENSIONS = {".py", ".cpp", ".cs", ".h", ".hpp", ".ps1", ".cmd", ".txt", ".json", ".yml", ".yaml", ".js", ".asm"}
 FORBIDDEN_PARTS = {"local", "build", "dist", "assets", "fixtures", "captures", "original",
                    "backups", "metadata", "descriptors", "battle aces_data", "__pycache__"}
+SOURCE_FIXTURES = {
+    "tests/fixtures/ads_caller181/callback.asm",
+    "tests/fixtures/ads_caller181/host.cpp",
+    "tests/fixtures/ads_watch471/host.cpp",
+}
 
 
 def inspect_content(name: str, data: bytes) -> list[str]:
@@ -21,7 +26,7 @@ def inspect_content(name: str, data: bytes) -> list[str]:
     reasons = []
     if name not in ROOT_FILES and (path.parts[0] not in SOURCE_DIRS or path.suffix.lower() not in EXTENSIONS):
         reasons.append("not an allowed source/documentation path")
-    if any(part.lower() in FORBIDDEN_PARTS for part in path.parts):
+    if name not in SOURCE_FIXTURES and any(part.lower() in FORBIDDEN_PARTS for part in path.parts):
         reasons.append("runtime/capture/asset directory")
     if len(data) > 256 * 1024:
         reasons.append("source file over 256 KiB; review for embedded payload")

@@ -1,0 +1,31 @@
+D5 / P7 - SDK Configuration OnSendError list lifecycle, original build37822
+2026-10-28. Bounded named-method source review PASS;P7/D5 remain OPEN.
+
+Pinned original GameAssembly SHA256 e59d08c01479b27404778048d7e13546dbf3771f6b3912744c7c2bdf80c4e758
+and IL2CPP metadata SHA256 b760be9190309b14174cd272e1f83b730181b299bc7a0cdca66985c69dcdc57d.
+tools/review_configuration_callbacks308.py checks method identities,codegen
+addresses,unwind extents and complete LLVM-decoded bytes for four original
+BugsnagUnity.Configuration methods:constructor875 instructions,
+GetOnSendErrorCallbacks127,RemoveOnSendError99,Clone125. Ignored raw
+disassemblies are under local/privacy308-config-callbacks01.
+
+The original constructor assigns the OnSendError list reference to
+Configuration+0x168 at RVA81a4e7,after constructing the list at81a4d4.
+The original AddOnSendError body reviewed in307 reads that field and appends
+a supplied delegate. GetOnSendErrorCallbacks reads +0x168 at81b52d and
+passes it to a copy/export routine;RemoveOnSendError reads +0x168 at81b73c
+and passes the supplied delegate to a remove routine. Neither named method
+directly assigns that configuration field. Original Clone at81bfd7 calls a
+runtime object-copy helper;its helper copies source object data to a new
+object. The complete Clone body contains no direct +0x168 reference and
+updates other fields at +0x58 and +0xe8. A cloned instance can therefore
+inherit an already populated list reference;Clone itself does not append.
+
+Source recipe28 still guards AddOnSendError at RVA81b2b0 with a void RET.
+This named-method review found no second append through the three examined
+methods and requires no new patch. It is not a whole-program writer proof:
+reflection,indirect/native field writes,other collection aliases and any
+preexisting/in-flight callbacks remain unproven. It does not inspect real SDK
+queue,file,retry or wire delivery. RUNTIME_VALIDATED=false;published174 is
+still recipe23. Continue the finite P7/P9 and final-installed matrix,using
+new concrete producers or runtime evidence rather than repeating this scan.

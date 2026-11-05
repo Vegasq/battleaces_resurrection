@@ -1,0 +1,59 @@
+BATTLE ACES - INCORRECT LOADING ACKNOWLEDGEMENT202
+2026-10-26. SCOPED COMPLETE. Full D4 remains open.
+
+CLAIM
+An incorrect bootstrap hash cannot start a committed Custom1v1. The rejected
+player disconnects,the survivor receives an explicit unknown-result abort,and
+the same identities can play a replacement while another native room continues.
+Actual191 packaged server,RC TLS and Simulation.dll;authored peers,not Unity UI.
+No production change was needed. Extended tools/verify_malformed_traffic.py;
+--case selects only the new bootstrap_mismatch case. Prior192 cases not rerun.
+
+OBSERVED
+Two Custom1v1 rooms commit. The healthy pair acknowledges its matching bootstrap
+and begins normal50ms native frames. The victim pair receives identical bootstrap
+bytes but withholds loading acknowledgements. Slot0 sends the correct SHA256;
+a same-stream REFRESH acknowledgement confirms it was handled. Room remains
+loading with only slot0 loaded and native worker frame=-1.
+Slot1 sends a32-byte digest differing in exactly one byte. It receives ERROR
+"bootstrap acknowledgement mismatch",then EOF. Slot0 receives ABORTED naming
+the same match and "player disconnected". The room never sends START,FRAME or
+MATCH_END;the audit records no simulation error or completed result. Its worker
+exits0 without advancing;the rejected community session is removed.
+Slot0 returns to the usable one-member lobby on its original connection. Slot1
+reconnects using the same RC token,loading its saved deck/cosmetics without
+SET_LOADOUT. Reinvite/accept/start produces a distinct replacement match with
+ten equal native frames. All four persisted profile hashes remain unchanged.
+The unrelated room/worker retains40equal frames,max observed gap63.475ms.
+Audit frame hashes and exact rejection attribution agree. Three workers0,
+controller0,job10total/0active/0terminated,no forced cleanup. Total4.718s.
+Intentional diagnostic shutdown closes the still-active healthy/replacement
+matches;this does not claim a natural client Quit or completed second game.
+
+VALIDATION
+Sixteen source/evidence controls pass on Python3.12 and3.14,no skips. This includes
+the prior malformed/loading journal controls and four new checks for digest
+mutation,valid loading abort,rejected start/frame/completion/second loaded slot,
+and wrong survivor/abort boundary/result/reason. No qualified native case was
+repeated. Package/assets verified before/after;bundled server/worker imports and
+driver/helper hashes pinned. Old driver/tests/docs preserved in
+local/bootstrap202-prior01;final source snapshots/reconciliation accompany report.
+
+EVIDENCE
+Accepted:local/bootstrap202-01/verification.json
+SHA256:fdd7efcd6747dee385e08969b38c91e4f1b08fbdf021079677b37fd5364ad45d
+Case/audit:local/bootstrap202-01/bootstrap_mismatch/
+Package:local/candidate191-packages01/battleaces-server-win64
+Package manifest:e0531eec69057f165490fdb712581dec95632d6115fa29dda22035505d580235
+Assets:local/s139/assets/build-37822
+Asset manifest:5f26ae7e35ce004c5105fa42a85fed8671194380e9461caa89888decd2ee4ad3
+Driver:81be347366b5266266a5cdc7d8ae215d2d4d38ab06e6e3e03cea0a2d33fb3e61
+Helper:e2978c262e453ec0cbb1d514ad62ca7f2c78858e74b988d0de123d17a15c20ae
+Malformed tests:ff9190eb0701d9b2b757453277c3139492f45a92ca7c002bd99224b0f2ef4ec3
+Private keys,profiles,journal and generated output remain ignored/local.
+
+REMAINING
+Client loading-screen cancellation/error presentation,actual incompatible or
+damaged asset files,other loading faults and physical/Internet qualification
+remain open. Reuse201 HELLO compatibility and193 default loading-expiry scopes.
+No release/build or production change;local191 and published174 unchanged.

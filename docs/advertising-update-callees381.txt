@@ -1,0 +1,29 @@
+D5 / P9 - three direct callees of the Main.Start periodic update
+2026-10-30. Bounded original/current recipe38 static review PASS;P9/D5 OPEN.
+
+354 bound Main.Start's registered c2f5d0 -> c30940 update route and its
+existing entry cuts. This review follows all three direct calls in c30940:
+c3dc00, c1e1c0 and c351a0. Their complete original unwind-bounded bodies
+(433,558 and79 decoded instructions;1712,2089 and355 bytes) have no direct
+c307c0 call or Main+1498 displacement. Exact original body bytes also match
+current recipe38 source and the owned installed UnityPlayer. This removes
+these three direct bodies as unexamined immediate producers on that route.
+
+The bodies contain35 indirect call sites in total, and their deeper direct
+callees are not classified here. c351a0 visibly processes a list at Main+1458
+and uses indirect dispatch; this is not an advertising-registration finding.
+The periodic update registration remains cut at both guarded Main.Start
+entries on fresh patched launches. Other registrations, old state, indirect
+aliases and the separate Main+1498 producer remain unresolved.
+
+tools/review_ads_update_callees381.py PASS binds the exact c30940 call sites,
+original SHA256 ac144d56d53f07904d52ed27a1539de90bc3290038fe52d73d2f6b268c85d6bc,
+owned installed SHA256 a53b0c613a86c737b7caa7588c7c93ae20d5d5700f9321a406df9dcca8e32a7f,
+original disassembly bytes and recipe/source/installed regions. Its ignored
+raw assembly and report are in local/privacy381-update-callees01.
+Verification SHA256 b6b5118cb06cd8416e4e8150a1bbf1922bff4564ced8e8cd95164fe47ca03603.
+
+No target process or identity getter ran;no queue/network read or product
+patch occurred. Continue P9 from a distinct producer/registration lead or
+work remaining D5 matrix cells. Do not treat these direct-body exclusions as
+whole-program absence.

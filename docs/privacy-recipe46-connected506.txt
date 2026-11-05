@@ -1,0 +1,37 @@
+D5 / P5-P9 - recipe46 private packaged public1 compatibility
+
+2026-10-31. Private source-bound recipe46 client/server public1 two-human
+match PASS. Published174 remains recipe23;RUNTIME_VALIDATED=false and full
+P7/P9/D5 remain OPEN. No user-owned game or account was used.
+
+Fresh private Windows client/server archives at local/privacy506-packages01
+contain recipe46 and the source-matched helper. Client ZIP SHA256
+5a20d563542beed3ff68e5374326c7eef4521c84e23e7211d74698ce384f043f;
+server ZIP SHA256
+39bd857a203b6347317145038cfb0e3c32e1a2aac854bf0931ef59f9cd109cff.
+They use the already pinned official Python3.14.8 runtime ZIP,new source-
+matched server launcher,client installer and certificate tool. The package
+build is a dirty private engineering preview,not a public release.
+
+An isolated game copy local/privacy506-game01 was installed with recipe46,
+community/cosmetics and the normal native Quit path. Installed GameAssembly
+SHA256 99ffb3f723ccb6f48e89eb8f3cff3ed1675978cfec092be19b8f4d06ee5edb6e;
+helper SHA256 8d6a2be3bfa37b9aa59fe0e0095af54c5fc94055fdeeb8e1eb4dd9fd43c27670.
+The RC-open private public1 run local/privacy506-public1-01/verification.json
+PASS SHA256 be747fc2929588d9931d2cc70f407b769033672b95e195dcd7f7c0843b605093.
+It completed1220 native frames,result/Continue and original Quit0 on both
+clients. Both simulation workers exited0/reaped;host listener and state
+lock released;all three owned Jobs ended empty,without forced cleanup.
+Packages,assets,shared channels and source snapshots remained unchanged;
+temporary PKI was removed.
+
+tools.review_recipe46_connected506 independently regenerates the installed
+GameAssembly from the pinned original,checks current helper provenance,
+both package manifests/archives/source,match/Quit traces and worker/Job
+cleanup. PASS receipt local/privacy506-public1-01/review506.json SHA256
+803412df9c87551f39d8c786851bec1e29eba4fc604ad55415bdb592693c22c1.
+
+This closes connected gameplay compatibility for the changed recipe46 in
+one public1 path. It does not observe every effective SDK file,queue,
+network or descendant route,identify the separate advertising-ID provider,
+cover all supported modes with this recipe,or qualify a final public pair.

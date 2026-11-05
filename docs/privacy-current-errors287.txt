@@ -1,0 +1,38 @@
+D5 / P7 - current recipe25 managed error fixture (2026-10-28)
+
+The earlier165 error probe established the seven instance Client.Notify and
+queued lower collector guards at recipe22. This check runs that same positive
+path against a current recipe25/default owned installation, after the three
+reporter callback guards were added. It is an installed compatibility and
+selected collection-cut result, not a whole-run absence claim.
+
+Fixture:local/privacy286-runtime01/game with the helper built at
+local/privacy286-helper01. Manifest SHA256:
+0e57ee82eed0f99ae0367ab192eff043038baed86d914ef57df130e33afacf0b.
+Helper SHA256:
+f7f72e0fa1a481c4e8ed8b7abd4175e5d92a357f79034c2d9f74089126f7d44a.
+The normal installer verified133 bundles. The manifest selects recipe25,
+runtime_validated=false and default native_quit=false. No user-owned game,
+original SDK queue, or released package was used.
+
+The first verifier command refused before output creation or game launch because
+Confirm mode requires its visible-dialog flag. The corrected one armed run,
+local/privacy287-error01, passed in19.218s. A genuine initialized reporting-
+disabled SDK Client and rooted Exception were supplied to seven checked guard
+entries on one game thread. The original Debug.LogException produced the local
+"authored-report-error165" diagnostic. The read-only audit showed recipe25,
+reportErrorSignatures7/7 and reporterCallbackSignatures3/3;three complete
+snapshots covered startup,menu and pre-Quit Confirm on the original thread.
+Original Confirm returned exit0 with no forced cleanup. The real shared
+settings file was read only and unchanged;recorded source stayed unchanged.
+
+The existing cache fixture also read its two isolated seeded files,returned
+null for two absent IDs,and preserved seeded file bytes. It observed two guarded
+deliver calls,one guarded cached start and five guarded MoveNext false results.
+This is explicitly authored fixture behavior,not an inspection of the real SDK
+queue. Neither a delivered report nor full retry/wire/process-wide activity was
+proved. The three new reporter Boolean callbacks were signature checked but not
+invoked by this run. P7 and full D5 remain OPEN.
+
+Verification:local/privacy287-error01/verification.json SHA256
+112da73612e0691492cba0cd8aa49d951997e739fdba860a8a84811d921e7d26.

@@ -1,0 +1,50 @@
+D5 / P9 - exact +1498 operand census
+
+2026-10-30. Pinned original/current recipe38 static review PASS;P9/D5 OPEN.
+No game,provider or queue was invoked.
+
+The full disassembled original UnityPlayer .text section has23 instructions
+with an exact numeric0x1498 operand. Nine belong to the known advertising
+callback object boundary:five vtable stores from403,one callback-body
+subobject-to-owner conversion,one sized delete and two teardown thunks.
+The other14 use the same numeric operand in distinct code regions;their
+receiver identities are not established by a displacement match alone.
+All nine selected advertising-boundary instruction bytes match the current
+owned recipe38 image.
+
+None of those nine constructs and passes an address of Main+1498 to a
+provider. This retires the simple direct-offset registration lead within
+those known bodies;it is not proof that the callback is unreachable.
+Other objects also use0x1498,and computed offsets,pointer aliases,metadata
+and external/native registration remain possible. A raw displacement search
+cannot settle the advertising-ID producer. Use a concrete dispatch or
+provider edge for further P9 work;do not repeat this census as absence proof.
+
+Reviewer:tools.review_ads_callback_offset423. It binds each decoded
+instruction to original bytes and the selected nine to current recipe38.
+Ignored receipt:local/privacy423-ads-offset-census01/verification.json.
+Receipt SHA256:f49d3c9d661e71895dfa5cd0dde8fd4573f9beef96ccbca21aa20c665f2df5d0.
+P9/full D5 remain OPEN;RUNTIME_VALIDATED=false,published174 unchanged.
+
+Follow-up429/430 (2026-10-30):the14 other exact numeric0x1498 sites
+have now been instruction-classified and byte-matched to current recipe38.
+One passes a field to imported QueryPerformanceFrequency;three are floating
+point operations;four use frame-relative addresses or an immediate constant.
+The remaining six operate on array-like storage:one zero initializer,three
+pointer readers with a 0x38 element stride,and two addresses passed to
+0x38-stride array cleanup helpers. These operand uses do not show an
+advertising callback registration handoff. Their receiver identities are
+not globally proved by matching displacement numbers,so this is not a
+whole-program alias or computed-dispatch exclusion.
+
+The adjacent Main+14a0 address is a separate vtable installed next to the
+callback vtable in the constructor;its known virtual+30 getter reads a
+Boolean,as326 established. It is not itself the Main+1498 callback table.
+No new guard follows. Reviewers:tools.review_ads_adjacent_alias429 and
+tools.review_ads_offset_remaining430. Ignored receipts:
+local/privacy429-adjacent-alias01/verification.json,
+SHA256 fcd0915db08b822e35c9e600d100539d6e56dad2efc5317b13beb990f05931db;
+local/privacy430-offset-remaining01/verification.json,
+SHA256 eca4b7db2925f79acf9b5dc1485bd2bb0db06479f4b47a80782a3b5a4838503a.
+P9/D5 remain OPEN;the next useful evidence needs a computed/indirect
+producer or a proven pre-acquisition cut,not another displacement census.

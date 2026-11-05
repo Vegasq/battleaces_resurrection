@@ -1,0 +1,215 @@
+BATTLE ACES - CURRENT DELIVERY ROADMAP
+Updated:2026-10-26. ACTIVE. Single current work queue;final release is not accepted.
+
+Read this file for what to do next. STATUS.txt summarizes the latest evidence;
+RELEASE_ACCEPTANCE.txt defines closure;INDEX.txt locates guides and detailed records.
+The exact previous1096-line plan is history/2026-10-24/REMAINING_DELIVERY_PLAN.txt.
+Its detailed requirements and focused matrices are retained;this cleanup removes
+history from the daily queue,not requirements from the product.
+
+TARGET
+Finish the Windows x64 dedicated server and reversible client patch for build37822.
+Friends can install,connect,play,finish/rematch and preserve choices on separate
+PCs;the same ordinary client supports local AI without a server. Keep configurable
+names/addresses,original UI/lifecycle/replay/tutorial,useful local diagnostics,
+installed cosmetics,varied native bots/difficulty,persistent host state and
+orderly shutdown. Remove game analytics/automatic reporting while retaining
+required gameplay networking. RC uses address-only open TLS;verified mode stays
+explicit. Original game data/private material never enters Git or packages.
+Linux/Wine hosting was added as an explicit experimental request at175;see below.
+Commerce/ranked backend reconstruction,in-match reconnect,spectator/server-browser
+UX and extra modes/maps remain outside this release's scope.
+
+LINUX HOST REQUEST175
+Experimental host installed from locally owned assets through the pinned174
+backend in an isolated Wine prefix. Native health,two TLS peers/40equal frames,
+Ctrl+C and restart checked. Linux wrapper/guide added;no native or packaged
+Windows behavior changed. Graphical-client/completed-game/Internet/capacity
+qualification remains open. Details:linux-host175.txt,linux-server-quickstart.txt.
+This requested setup does not close Windows release gates or replace the P9 queue.
+Follow-up178 adds copied-host relocation with an exact config backup,early path
+validation and persistent-prefix preparation. New Windows first-run configs use
+relative paths where possible. Remote Ubuntu9Wine basic loader passed;stale
+Windows Desktop paths were confirmed. Repaired remote hosting remains unreported.
+Details:linux-host-relocation178.txt. No repeated native or user acceptance claim.
+
+LINUX CLIENT/PUBLICATION REQUEST176
+Headless client CLI added after a reported system freeze with the GUI installer.
+Actual independent-copy install and installed-file check pass without launching
+the game. Server/client CLI source and guides are complete for this request;
+shared helpers and33focused tests pass31/2skip. Graphical-client/system-crash
+cause remains unqualified. Details:linux-client176.txt,linux-client-quickstart.txt.
+No Windows release-gate closure or change to the existing P9 queue.
+Follow-up177:existing installs now have headless configure and clear repeat-setup
+guidance;no recopy/reinstall is needed to change the player name or server.
+
+CURRENT BASELINE
+- Published coherent prerelease174:version0.3.0-rc1.6,recipe23/128guards/helper169.
+  Clean build48135e3 includes171 Korean-flow removal and169/170 diagnostic fixes.
+  Exact downloads,hashes and scope:coherent-candidate174.txt.166/manual preserved.
+- Source/package guards agree;RUNTIME_VALIDATED=false. Full release stays open.
+- Nick's N2/LAN,N5/download-install,N9/desktop pipe,N10/protected recovery are
+  PASS as of2026-10-24. N1/startup and N3/console shutdown were already accepted.
+  N7 retains unreported details;N8 is deferred. DEV.txt owns all user requests.
+
+NEXT WORK - IN THIS ORDER
+1. Crash169 handoff defect CLOSED:atomic closed-file publication,Win32 error
+   logging and immediate owner refusal handling. Clean02 exitsc0000005 on the
+   original thread without instrumentation,job1/0/0,no force,7.901s;local crash
+   stack log retained. Both Python versions pass16focused tests;C++ suite passes.
+   Old clean01 failed BEFORE trigger and remains failed. Do not rerun this fixed
+   subcase without a change or concern. Evidence:native-crash-handoff169.txt.
+2. Native comparison/scoped observation/restore COMPLETE at170 scope:
+   Windows DbgHelp/full search path reconciled with clean02;all232symbol-load
+   pairs and8887scoped file outcomes retained;selected network counts0 through
+   filter-return. Original normal Quit restores saved32769 from3 before exit0.
+   Both game runs job1/0/0,no force. Full P7/D5 remains open;no whole-wire or
+   post-filter OS claim. Evidence:native-crash-qualification170.txt.
+   Reuse these results;do not repeat the same native checks without a concern.
+3. Korean login/compliance171 DISABLED per Nick:known dialog creation,original
+   validation request and pending login gate removed from the patch. The bounded
+   inventory found no other confirmed game-specific embedded-browser consumer;
+   the survey opens an external browser. Details:legacy-compliance171.txt.
+   Startup/survey applicability172 COMPLETE at named scope:four initializer
+   entries observed,no selected view/browser/survey activation,natural Quit0,
+   complete job1/0/0. Survey is an original-service-configured explicit click;
+   current community source leaves its reset gate inactive. browser-activation172.txt.
+   Resumed/in-flight applicability173 COMPLETE for named fresh-launch routes:
+   existing guards prevent reviewed saved-report/worker acquisition;no live
+   cancellation claim.64managed bodies/18edges,24Unity extents,all128current
+   guards verified. No new patch or queue access. report-resume173.txt.
+   Do not read/seed real queues or repeat these source/browser checks.
+   Reuse N9 desktop PASS/automation DENIED at their stated scopes;no repeat denial.
+   N10 closes the requested protected recovery subcase;continue the remaining
+   deployment/completed-game gates rather than repeating that desktop check.
+4. COMPLETE:matched client/server prerelease174 published to GitHub Releases.
+   Both Python suites,8package commands and actual client update pass;all four
+   public downloads match hashes. Details:coherent-candidate174.txt.
+5. COMPLETE at175 implementation scope:user-prioritized read-only host dashboard,
+   live players/active games and bounded persistent match history. Source included
+   on main;175installer remains local. Headless Edge desktop preview captured;
+   no new Nick test or full-game acceptance claimed. Details:server-dashboard175.txt.
+6. NEXT:resolve P9 upstream c307c0/computed-consumer applicability and work
+   through remaining D2-D5/D7-D8 rows below using their finite matrices.
+   Reuse179's public-manager lifecycle resolution and180-182's qualified caller
+   witness:actual Try Deck4/result/Continue/Quit0,job1/0/0,closed interval calls0.
+   183 binds the keyed analytics configuration listener's computed dispatch and
+   confirms the existing Start guard prevents that registration. It is a separate
+   callback,not the unresolved c307c0 producer. analytics-listener183.txt.
+   NEXT:positive registration/producer evidence for Main+1498 or its upstream
+   acquisition cut. Do not repeat covered configuration/platform/manager routes
+   or quiet runs as absence proof. P4/P9 remain open;field auditor stays separate.
+   Package a matching updated pair only after changed behavior is qualified;
+   perform final D9 acceptance after its prerequisite gates are met.
+
+DELIVERY GATES
+D1 - LAN milestone:ACCEPTED by Nick's N2 success confirmation2026-10-24.
+  Retain setup98 and physical LAN1v1 evidence. No repeat N2 request. Specific
+  menu/build/per-step details were not independently itemized;do not invent
+  them or use this acceptance as Internet/four-human/clean-PC qualification.
+
+D2 - Modes,matchmaking,transitions:OPEN.
+  189 is qualifying the remaining verified-mode connection-failure path:
+  refusal1/TLS-stall Try Deck4 pass native results/Continue/Quit0;other six
+  await reports. Fresh-profile scope;full A07-14 remain open. verified-availability189.txt.
+  Keep local Try Deck/public1v1/2v2/2vAI,real30s AI fill,all supported human rosters,
+  human-only Custom,search/loading/Cancel,results/Continue/rematch and natural Quit.
+  Remaining:ordinary/physical acceptance and uncovered availability/transition
+  cells in mode-acceptance-matrix.txt;bot coverage in bot-selection-acceptance.txt.
+  Reuse scoped native roster,RC refusal/deadline and same-process transition passes.
+  Optional verified-mode deployment does not become an RC prerequisite.
+
+D3 - Visible player features and catalog:OPEN.
+  Remaining:visible Invite Friend portrait changes/reopen (existing N7),name/save
+  presentation,107-item/17-slot cosmetic pickers/equip/restart/profile isolation,
+  full loadouts across modes,and unit/tech/ability/effect/audio battle coverage.
+  Include natural wins/losses and surrender. Retain162 quantitative difficulty
+  proof;do not rerun it as visual acceptance. Tutorial2 controls/completion/save
+  scope remains unqualified,but N8 is deferred with no visibility retry.
+  References:community-portraits105.txt,bot-strength162.txt,cosmetic-persistence.txt,
+  cosmetic-community.txt,menu-profile-binding.txt,practice-difficulty.txt,tutorial2.txt.
+
+D4 - Lifecycle,storage,replay,failure recovery:OPEN.
+  187 fixes RC identity junction/link refusal and exclusive first publication;
+  real Windows reproduction,25tests and new packaged identity/TLS lifecycle pass.
+  Matching187local previews are dirty/unpublished. rc-identity-storage187.txt.
+  188 fixes dashboard shutdown cancellation racing threaded history publication.
+  Held-write success/failure and45tests per Python pass;new packaged native
+  completion/history/shutdown passes,job8/0/0. dashboard-shutdown188.txt.
+  Local188server updates this module only;client identical187. Still unpublished.
+  Remaining:ordinary reachable replay controls/visible errors and file selection;
+  profile-local settings/replay/UX readback and missing/corrupt/locked/denied or
+  interrupted-write recovery;invitation departure/late return,disconnect/restart,
+  slow-load/incompatible assets or version/malformed traffic and remaining faults.
+  Preserve prior valid data,explicit unknown-result aborts,usable menu/lobby,
+  Continue/Quit and cleanup without disturbing unrelated rooms.
+  Reuse163 replay-engine recovery and152-154 worker-loss/timeout cases.
+  References:replay-failure-recovery.txt,installed-replay163.txt,
+  client-storage-isolation.txt,native-settings-atomic.txt,room-fault-isolation152.txt.
+
+D5 - Analytics/report collection and delivery removal:OPEN;runtime flag=false.
+  Finite requirements:telemetry-acceptance-matrix140.txt P1-P9 (startup/profile,
+  edits,tutorial,local modes,connected modes,availability,errors/crashes,
+  descendants,and source/final-installed applicability).169/170close named
+  native subcases above.171 disables the confirmed legacy Korean browser route;
+  172 qualifies current startup/survey applicability and owned startup lifetime.
+  N9 remains the desktop comparison only.173 settles named queue/resumed/inflight
+  applicability for fresh patched launches,not live cancellation. Remaining:
+  P9 upstream producer/computed consumers,supported-mode and final-installed scope.
+  Retain upstream producer/computed alias,queue/resumed/inflight/all-thread and
+  effective network/descendant coverage where applicable. Quiet counters are
+  not complete absence evidence. Keep local diagnostics and shared APIs intact.
+  References:native-crash-qualification170.txt,native-crash-policy168.txt,
+  sdk-report-errors165.txt,pipe-security150.txt.
+
+D6 - Startup usability:ACCEPTED.
+  Nick reported reboot-first~20s,repeat~2s,visible AI/results/Continue/Quit without
+  issues. Preserve accepted71/manual evidence;no repeat reboot/startup request.
+
+D7 - Protected Windows hosting and recovery:OPEN,with N10 recovery COMPLETE.
+  N10 corroborates protected backup/readback/restore,preserved profiles/cosmetics,
+  two TLS peers40frames,worker0,released listener/lock,job8/0/0,no forced cleanup.
+  This is151 scope,not a completed game or SCM result.184 now passes restored
+  native1v1 surrender,160matching TLS frames,worker0 before shutdown,and real
+  dashboard completed-history persistence;protected state preserved,job8/0/0,
+  no force. Scripted/package175 scope;physical clients and other modes remain.
+  185 passes same-owner packaged automatic keys/reuse,concurrent player identity,
+  route/profile/rename persistence,damaged-file refusal and identity/deck/cosmetics
+  across real host restart/certificate replacement. Job18/0/0,no force;175 scope.
+  Console shutdown/restart was already accepted. Remaining:cross-account key/
+  identity handling,uncovered bounds,SCM registration/logon/session0/start-stop/
+  shutdown/reboot,and clean Windows10/11 deployment/support targets.
+  186 prepares an isolated real-SCM operator check after create-service access
+  returned error5. New peer/control handoff rehearsed across two native host
+  cycles;20tests pass. DEV N12 pending;no SCM or session0 acceptance yet.
+  References:scm-operator186.txt,rc-identity-lifecycle185.txt,server-recovered-game184.txt,
+  server-recovery151.txt,windows-service.txt,state-backup.txt,
+  windows-server-quickstart.txt,host-failure-diagnostics161.txt.
+
+D8 - Internet,latency,capacity:OPEN.
+  Remaining:outside-LAN path,latency/jitter/loss/disconnect and click-to-action
+  behavior,supported host capacity/resource growth and sustained20Hz in the
+  missing packaged/TLS/Unity/session0/Internet scopes;graphical20-rematch lifetime.
+  Reuse the earlier eight-hour/20-match evidence plus157 TLS two-room and160
+  default-four-room workloads at their stated scopes. Keep50ms simulation steps.
+  References:network-qualification.txt,protocol-v3.txt,host-capacity160.txt,
+  packaged-tls-soak157.txt,soak-qualification.txt.
+
+D9 - Final freeze and delivery:OPEN;depends on applicable D1-D8 closure.
+  N5 confirms earlier download/install success;174 is an engineering prerelease.
+  Bind clean source/helper/launcher/runtime/asset compatibility and exact hashes;
+  qualify clean-machine ordinary install/local-online play/update/restore/
+  uninstall/save preservation/refusal/shutdown. Supply concise shipped guides,
+  support/capacity limits,troubleshooting,backup/revocation and release notes.
+  Run affected source/native/package checks;record skips/failures;review source,
+  history and private/proprietary content before publishing agreed artifacts.
+  References:RELEASE_ACCEPTANCE.txt,RC1_PLAN.txt,windows-packaging.txt,
+  helper-provenance159.txt,release-readiness158.txt,coherent-candidate174.txt.
+
+WORKING RULES
+Each next investigation needs a missing claim,bounded check and stopping condition.
+Reuse matching evidence and only rerun changed or concretely suspect behavior.
+Close the named subcase,then move on;do not create endless diagnostic variants.
+Record new evidence in a focused document and update this queue/status concisely.
+DEV.txt is the only request/answer worksheet. Completed N2/N5/N9/N10 are not blockers.
+Frozen manual games,failed reports,original inputs and private state are preserved.

@@ -1,0 +1,55 @@
+D5 / P7 - network breadcrumb collector entry guard
+2026-10-28. Source,owned install and loaded-byte audit PASS;P7/D5 OPEN.
+
+315 established that the original SDK Client.OnWebRequestComplete calls
+Client.LeaveNetworkBreadcrumb at two sites. The latter is a void SDK collector
+with two borrowed inputs. Recipe29 guards its entry at GameAssembly RVA8181f0
+with RET,so an independently invoked web completion cannot collect through
+this method. The other bytes of its complete original method remain unchanged.
+This does not change Unity web requests or the game's transport callback.
+
+tools/verify_sdk_network_breadcrumb317.py PASS binds original metadata index
+163587/token60000c4 and the BugsnagUnity.Windows method table,362 complete
+decoded instructions matched to original bytes,the void return,exact original
+entry signature and one-byte patch. Restoring that byte from the recipe29
+output reproduces recipe28 GameAssembly output SHA256
+2568beb2ed9deeda4e15941483889da53870ecbf05491d3c78455e4376b34739.
+Recipe29 source output SHA256:
+4627f1f224e5e193c0acc1205af2313c23cdc73d63a93739167726f41e8c48c3.
+The recipe has139 guards total:74 GameAssembly,63 UnityPlayer and two CEF.
+The C++ read-only audit now requires networkBreadcrumbSignatures=1/1 on both
+the loaded image and game file.73 focused patch/audit/error/crash-gate tests
+pass with two
+optional skips;the C++ helper build and its tests pass.
+
+The owned local/privacy301-runtime01/game copy upgraded from recipe28 to29
+with unchanged community/cosmetics options. Dry run and install each verified
+all133 bundles. The installed GameAssembly SHA256 is
+307aece7539b769522d5cc89892ee494d12c2a5d7351bdd5f6a36439ad0fff92;
+native helper SHA256 is
+eb6c952110bf6442943bb739d8137eeef7e8ec6a64dba487b81a3fff3783cb87.
+Manifest SHA256:
+e2d99b31b166ce57e820193a7506c7ffa18a7d6f0a825edba1e810653703644d.
+Helper receipt:local/privacy317-helper-build01/helper-build.json SHA256
+97ec4c336986840990e16205fe62179cb5038aca53fb26d4a39635dd5aa4a4b3.
+
+An owned menu check reports loaded/disk networkBreadcrumbSignatures=1/1,
+recipeVersion29 and three complete selected-field stages:startup,menu and
+pre-Quit confirmation. Original Quit exits0 naturally in15.703s without
+forced cleanup;the owned process is reaped. The check is not a call to the
+original collector. local/privacy317-menu01/verification.json PASS SHA256:
+95c81b639b85aa465b676c03ecc10b8c1ca2a02507419f14cd0e000e9dc9e630.
+The first menu command refused before launch because confirm mode requires
+the explicit visible option. A separate post-install print used a nonexistent
+guard_count JSON key and failed after the installer completed;the manifest,
+installed image and actual menu audit independently confirm the installation.
+
+This closes collection through this named SDK network-breadcrumb method in
+the current owned recipe,even if that entry is independently invoked.
+Other SDK collection routes,preexisting/in-flight work,real queue/file/wire,
+all-thread/descendant attribution and P9 advertising acquisition remain open.
+Published174 and the historical recipe28 package preview316 are unchanged.
+RUNTIME_VALIDATED=false.
+318 subsequently upgrades the current source/owned copy to recipe30;this
+record retains the at-time recipe29 hashes and check. See
+privacy-breadcrumb-collectors318.txt.

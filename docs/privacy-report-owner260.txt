@@ -1,0 +1,27 @@
+D5 REPORT OWNER CLOUD-ID GATE260
+2026-10-28. Bounded initialized-owner reachability check;D5/P9 stay OPEN.
+
+Reuse native-crash-contract167's report-manager owner classification. Its
+c909e0 constructor zeros the first two flag bytes. The existing current/parent
+installed guard at c90c2a forces zero into the c90c10 assignment to owner+1.
+Callback c91190 loads the retained report owner and jumps to c91550.
+That function tests owner+0 and owner+1 at c91586/c9158f;either zero branches
+to c92706 before both c92720 cloud-ID builder calls at c91ad1/c925d4.
+Thus these two calls are unreachable on the reviewed freshly initialized
+owner path with the report-init guard in effect.259 separately covers the
+c90c10 direct builder call. No new patch is warranted for these named paths.
+
+Exact original bytes,branch targets,current patch bytes,three merged-unwind
+bodies and parent installed comparison pass the retained bounded check at
+local/privacy260-report-owner01/verification.json. The c91190 tail jump has
+no unwind extent and is asserted as a selected leaf window. The first check
+attempt used an off-by-one displacement address and failed before publishing
+an artifact;the corrected check passes. No reporter,getter,game or network
+route was executed.
+
+This does not prove the report-owner flags cannot be changed later by another
+writer or that every crash-time collection path is cut. It does not identify
+the distinct Main+1498/c307c0 advertising-ID callback producer. Preserve
+native exception diagnostics and current reporter cleanup. Next D5 source
+work needs a concrete new advertising registration/producer lead;advance
+effective collection/delivery and final-installed attribution independently.

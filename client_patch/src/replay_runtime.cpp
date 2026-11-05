@@ -27,7 +27,7 @@ static void update(Obj server) {
             simulation && simulation==ba::read<Obj>(replay.get(),0x18),
             ba::read<Obj>(replay.get(),0x40)!=nullptr,
             ba_practice::active() || ba_local::ready.load(),
-            ba_client::worldOwner!=ba_client::Owner::None || ba_dedicated_session::joined,
+            (ba_client::worldOwner!=ba_client::Owner::None && ba_client::worldOwner!=ba_client::Owner::Replay) || ba_dedicated_session::joined,
             ba_bootstrap::creating || ba_bootstrap::awaitingWorld,
             ba_native_replay_playback::enabled()};
         if(!ba_replay_update::ownsReplay(context))return;

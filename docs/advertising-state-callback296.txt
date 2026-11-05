@@ -1,0 +1,38 @@
+D5 / P9 - Main.Start connection-state callback c2f640
+2026-10-28. Bounded static source/installed review;P9/D5 remain OPEN.
+
+Both original Main.Start implementations register the same c2f640 callback
+with c35b140 and the Main owner:base c2f570 at c2f59c,derived c66c20 at
+c66c4c. Their current recipe25 owned UnityPlayer entries each replace only
+the first byte with RET. The intact original tails cannot perform either
+fresh Start registration through these entry points. This is a pre-registration
+cut for this named callback,not a proof about previously retained callbacks,
+other registration APIs or the advertising-ID producer.
+
+The complete original c2f640 body is unmodified in the owned image. It branches
+on its connection-state argument:0 and2 can reach c343d0;other values store
+the supplied pointer at Main+f38,the fifth argument at Main+f40 and a changed
+flag at Main+bd. Its active path can invoke Main virtual slot38,then c30df0
+(the configuration-preparation caller reviewed127),or tail-jump c3b990 with
+requested state3. Both original base/platform Main vtables resolve slot38 to
+c34430. c343d0 can invoke virtual slot a0,bound to c3d120 in both tables.
+This review does not assert that c34430 or c3d120 cannot reach a computed
+advertising callback. c2f640 does not directly call c307c0 in its decoded
+body,and its argument/storage contract is connection state rather than the
+borrowed ID/error string contract of c307c0.
+
+tools/review_ads_state_callback296.py PASS binds pinned original UnityPlayer
+SHA256 ac144d56d53f07904d52ed27a1539de90bc3290038fe52d73d2f6b268c85d6bc
+and owned installed recipe25 SHA256
+a53b0c613a86c737b7caa7588c7c93ae20d5d5700f9321a406df9dcca8e32a7f.
+It verifies complete unwind roots,348 contiguous decoded instructions,16
+semantic anchors,
+both Main table pointers,entry RET plus intact tails and unchanged callback/
+state-helper bodies. Ignored local/privacy296-start-state01/verification.json
+SHA256 8e4e716cb7d6b7c79cccc9e3ed262a7baec4b5634fd3977709e7fbcb543f117f;
+raw LLVM disassembly is retained alongside. Static PE/LLVM evidence only;no
+native decompiler,game launch,real identity getter or SDK report queue access.
+
+The upstream c307c0 acquisition/registration and other computed consumers
+remain unresolved. Reuse this result,127/132/183/220/295;advance P9 only with a
+new concrete producer or registration edge. RUNTIME_VALIDATED remains false.

@@ -1,0 +1,49 @@
+D5 / P7 - SDK web-request wrapper dispatch contract
+
+2026-10-30. Bounded original IL2CPP metadata review PASS;P7/D5 OPEN.
+
+The pinned BugsnagNetworking.BugsnagUnityWebRequest class declares exactly
+one interface,System.IDisposable,whose only method is Dispose. It has no
+metadata-declared direct subclass. Its SendWebRequest method token6000028 maps
+to GameAssembly80e920,has method flags0x86(nonstatic,nonvirtual) and vtable
+slot65535(no slot). RequestCompleted is also nonvirtual;the static Get/Post
+factories have no vtable slots. Dispose is the one reviewed virtual member.
+
+This refines406/407's indirect-call limitation:ordinary virtual or declared
+interface dispatch cannot target this class's SendWebRequest method. The
+remaining possibilities include a computed method pointer,delegate,
+reflection,dynamic invocation or code outside the selected original image.
+It does not establish acquisition absence or a general no-wire result.
+408 independently observed0 wrapper/core send entries in one current owned
+public1 match;that runtime result has only its documented mode/lifetime scope.
+
+tools.review_sdk_wrapper_contract409 checks pinned original GameAssembly and
+metadata hashes,the class/type hierarchy,declared interface table,method
+tokens,flags,vtable slots and native codegen pointer. Ignored receipt:
+ local/privacy409-sdk-wrapper-contract01/verification.json SHA256
+ 3960ed8eab2f42172c9d11b6e32027f21246a6818eb3a8cd8bdda7a628a8a182.
+No game,request,queue,identity provider or endpoint ran for this review.
+Product binaries and published174 are unchanged;RUNTIME_VALIDATED=false.
+
+Follow-up466 (2026-10-31):the current recipe40 installed GameAssembly is
+byte-identical at the wrapper's complete SendWebRequest80e920 and
+RequestCompleted80ea30 bodies to the pinned original reviewed at406. At
+80e9c4 the wrapper loads the request pointer from its object+0x10;at80e9cf
+it directly calls the shared UnityWebRequest.SendWebRequest53dd0d0. The
+current shared send body is also unchanged. The current installed image has
+RET at the named SDK network-breadcrumb collector8181f0,both public
+LeaveBreadcrumb facades811180/8112a0,Client.OnWebRequestSend818040 and
+Client.Send8147e0. Read-only local/privacy466-review.py verifies these
+source/installed bytes;local/privacy466-wrapper-role01/verification.json
+PASS SHA256 2587d95ff0b0168acea1aeeef594f882de376dd3240f7d3784b9704b6edf96e7.
+
+BugSnag's version6+ Unity notifier documentation describes
+BugsnagUnityWebRequest as an optional wrapper around an application's own
+UnityWebRequest to capture a network breadcrumb:
+https://docs.bugsnag.com/platforms/unity/customizing-breadcrumbs/
+The exact shipped wrapper's forwarding body supports that role,but its
+precise SDK version and all callback branches are not established by the
+public documentation. A call to this wrapper or the shared Unity send is
+therefore not by itself evidence of a report delivery. Do not disable the
+shared Unity send,which has ResourceManager callers. Keep the remaining
+P7 queue/retry/actual report source and whole-wire work open.

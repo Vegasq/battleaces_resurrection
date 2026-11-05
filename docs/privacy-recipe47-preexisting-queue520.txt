@@ -1,0 +1,43 @@
+D5 / P7 - current recipe47 preexisting SDK queue compatibility
+
+2026-10-31. Owned installed recipe47 prelaunch authored queue PASS at its
+named scope;full P7/P9/D5 remain OPEN,RUNTIME_VALIDATED=false. No real
+shared SDK queue was read,seeded or cleared. Published174 is unchanged.
+
+An isolated copy of the prior recipe46 diagnostic installation was patched
+with current recipe47,community/cosmetics and owned native Quit diagnostics.
+The patcher's dry run and actual install each verified all133 assets. The
+installed GameAssembly matches source-generated recipe47 with Quit hooks:
+SHA256 c1e198808a43600556b9674cce7ed20dbd48836f50dc07dcf8339361a9f29341.
+The helper matches current source:SHA256
+549136ce31ec01d216678dc484d3852ba7e93bdee5333d4b500c601499095993.
+The reviewer also checks the two Bugsnag::Start entries and the scene-load
+BugsnagAutoInit entry:each is RET in this installed image,with exact
+pristine input bytes. The genuine Client below was constructed explicitly
+by the opt-in diagnostic fixture;its presence does not show that ordinary
+game startup acquires a Client. Alternate direct construction remains P7.
+
+Before launching the game,the verifier seeded one authored .event and one
+.session under a fresh owned profile. The original genuine SDK Client
+constructed with those files already present. Recipe47 returned empty
+guarded file lists,null ID lookups and from cached-delivery and two delete
+entries without changing the authored file identities or bytes. The game
+used the original menu Quit path,exited0 naturally,reaped its process,and
+needed no forced cleanup. Shared settings and source stayed unchanged.
+
+The first run at local/privacy520-preexisting03 exited0 and retained both
+files,but its overall verification FAILED because the queue evidence parser
+accepted only recipe44-46. The parser now explicitly accepts recipe47 with
+the same ordered markers and field requirements. The fresh run at
+local/privacy520-preexisting04/verification.json PASS,
+SHA256 3ede2278f6e5b16c9c954d86d8c913faec8f8ffa2763f5ceb4e9f107b1473894.
+tools.review_preexisting_queue520 independently binds current patch source,
+installed assembly/helper/manifest,raw event order,authored file bytes,
+source snapshots and original Quit:PASS receipt
+local/privacy520-preexisting04/review520.json SHA256
+64afbf4021bf5339938c7a8712511abfaa64d4ee8eff59a28b5ae612173251d9.
+
+This covers one fresh owned profile with two authored prelaunch files and
+the genuine Client's named cache route. It does not cover arbitrary real
+queues,resumed or in-flight delivery,all file/network routes,whole wire,
+the native advertising ID producer or the final published pair.

@@ -1,0 +1,30 @@
+D5 / P7 - current recipe47 direct SDK I/O inheritance
+
+2026-10-31. Read-only source/installed/receipt review PASS. P7/P9/D5
+remain OPEN;RUNTIME_VALIDATED=false and published174 is unchanged.
+
+The current recipe47 installed GameAssembly SHA256
+99ffb3f723ccb6f48e89eb8f3cff3ed1675978cfec092be19b8f4d06ee5edb6e
+is byte identical to the source-bound recipe46 installed image used by507.
+The current manifest names recipe47 and108 GameAssembly telemetry guards;
+review_unity_post512 binds the current source,package and installed pair.
+tools.review_sdk_disk_inheritance531 checks those identities and the
+original image against both retained507/508 review receipts.
+
+507 proved fifteen named direct SDK File/Directory call sites fall under
+five entry returns and two branches past the calls. Because recipe47 has
+the identical GameAssembly bytes,that result applies to the current image
+at the same normal method entries for any queue file content or filename.
+A physically SDK-produced queue is unnecessary to establish this specific
+pre-enumeration/pre-read property. It remains useful for alternate-reader,
+resumed and in-flight delivery attribution,which this proof does not cover.
+
+508's fifty-four selected direct SDK System.Net/Unity networking calls
+likewise have unchanged bytes in recipe47. The still-active
+BugsnagUnityWebRequest.SendWebRequest wrapper remains a selected indirect
+acquisition possibility;its mere presence is not evidence of a report send.
+Native calls,other modules,reflection/computed entry,actual wire and
+descendants remain outside this inheritance proof.
+
+Receipt:local/privacy531-direct-inheritance.json SHA256
+c8ae153b3924181d403ad59c0cab70c7c7d1e4acef6629426f90b0b509f9acf8.

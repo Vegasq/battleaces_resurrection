@@ -15,8 +15,14 @@ static Obj ownedPath() {
 static void require(bool value,const char* why){if(!value)throw std::runtime_error(why);}
 static void original(size_t rva,size_t size,const char* expected) {
     Bytes bytes(size);
-    require(copy(reinterpret_cast<uintptr_t>(ba::module)+rva,bytes.data(),bytes.size()) && digest(bytes)==expected,
-        "cache probe original method bytes mismatch");
+    const bool read=copy(reinterpret_cast<uintptr_t>(ba::module)+rva,bytes.data(),bytes.size());
+    const auto observed=read?digest(bytes):std::string();
+    if(!read || observed!=expected) {
+        ba::log("TELEMETRY CACHE original method mismatch: rva=0x%llx bytes=%llu read=%d expected=%s observed=%s",
+            static_cast<unsigned long long>(rva),static_cast<unsigned long long>(size),read?1:0,
+            expected,observed.c_str());
+        throw std::runtime_error("cache probe original method bytes mismatch");
+    }
 }
 static std::wstring text(Obj value) {return ba_native_settings::wide(value);}
 static Obj method(Obj type,const char* name,int count,size_t rva) {
@@ -64,7 +70,9 @@ struct DiskInputs {std::unique_ptr<ba_local::Root> event,session;};
 using DiskCallback=std::function<void(Obj,Obj,Obj)>;
 static std::unique_ptr<DiskInputs> disk(Obj,const std::wstring&,const DiskCallback& callback={});
 #include "telemetry_cache_delivery_probe.cpp"
-static void typed(const std::wstring& selected,bool fromDisk,bool delivery) {
+static void guardedCurrentQueue(CacheClientFixture&,const std::wstring&);
+static void guardedPreexistingQueue(Obj,const std::wstring&);
+static void typed(const std::wstring& selected,bool fromDisk,bool delivery,bool currentError=false,bool currentQueue=false) {
     // Full supported-build original-body hashes, including nested constructors.
     // Raw binaries/disassembly are NOT embedded in this helper or repository.
     #include "telemetry_cache_signatures.hpp"
@@ -82,6 +90,19 @@ static void typed(const std::wstring& selected,bool fromDisk,bool delivery) {
     void* endpointArgs[]={notify.get(),sessionUrl.get()};
     invoke(method(endpointType,".ctor",2,0x8227b0),endpoints.get(),endpointArgs);
     ba::set<Obj>(config.get(),"Endpoints",endpoints.get());
+    if(currentError || currentQueue) {
+        require(!fromDisk && !delivery && (!currentError || ba::flag(L"-telemetry-report-error-probe")),
+            "current SDK fixture requires only owned in-memory mode");
+        if(currentQueue && ba::flag(L"-telemetry-preexisting-queue-probe")) {
+            guardedPreexistingQueue(config.get(),selected);
+            return;
+        }
+        CacheClientFixture client(config.get());
+        if(currentQueue)guardedCurrentQueue(client,selected);
+        if(currentError)guardedReportErrors(client);
+        client.unchanged();
+        return;
+    }
     const auto deserialize=method(jsonType,"DeserializeObject",1,0x8299e0);
     const auto dictionary=method(objectType,"GetDictionary",0,0x827c00);
     const auto reportCtor=method(reportType,".ctor",2,0x84b090);
@@ -186,10 +207,76 @@ public:
     PathScope& operator=(const PathScope&)=delete;
 };
 #include "telemetry_cache_disk_probe.cpp"
+static void queueOperations(CacheClientFixture& client,const std::wstring& selected,
+                            QueueFixture& event,QueueFixture& session,bool preexisting) {
+    const auto cache=selected+L"\\Bugsnag";
+    const auto events=cache+L"\\Events",sessions=cache+L"\\Sessions";
+    for(const auto& name:{cache,events,sessions}) {
+        ba_cosmetics_state::Handle folder(ba_cosmetics_state::directory(name));
+        ba_native_settings::exactDirectory(folder.value,name);
+    }
+    const auto type=ba::klass(client.manager);
+    const auto deliveryFields=instanceFields(client.delivery);
+    if(preexisting)
+        ba::log("TELEMETRY CURRENTQUEUE begin: version=3 thread=%lu genuineClient=1 authoredSeeds=2 preexistingBeforeClient=1",GetCurrentThreadId());
+    else
+        ba::log("TELEMETRY CURRENTQUEUE begin: version=2 thread=%lu genuineClient=1 authoredSeeds=2",GetCurrentThreadId());
+    ba_local::Root eventFiles(invoke(method(type,"GetCachedEventFiles",0,0x836730),client.manager,nullptr));
+    ba_local::Root sessionFiles(invoke(method(type,"GetCachedSessionFiles",0,0x8367b0),client.manager,nullptr));
+    require(eventFiles.get() && sessionFiles.get() && ba::read<uintptr_t>(eventFiles.get(),0x18)==0 &&
+        ba::read<uintptr_t>(sessionFiles.get(),0x18)==0,"guarded queue lists are not both empty");
+    ba_local::Root eventId(ba::str("authored-event-120")),sessionId(ba::str("authored-session-120"));
+    void* eventArgs[]={eventId.get()};void* sessionArgs[]={sessionId.get()};
+    require(!invoke(method(type,"GetCachedEvent",1,0x837d10),client.manager,eventArgs) &&
+        !invoke(method(type,"GetCachedSession",1,0x837db0),client.manager,sessionArgs),
+        "guarded queue ID lookup did not return null");
+    invoke(method(ba::klass(client.delivery),"StartDeliveringCachedPayloads",0,0x81f730),client.delivery,nullptr);
+    require(instanceFields(client.delivery)==deliveryFields,"guarded cached delivery changed its owner");
+    const auto managedPath=ba::api<Obj(*)(const wchar_t*,int32_t)>("il2cpp_string_new_utf16");
+    const auto eventPath=events+L"\\authored-event-120.event";
+    const auto sessionPath=sessions+L"\\authored-session-120.session";
+    ba_local::Root eventName(managedPath(eventPath.data(),static_cast<int32_t>(eventPath.size())));
+    ba_local::Root sessionName(managedPath(sessionPath.data(),static_cast<int32_t>(sessionPath.size())));
+    require(eventName.get() && sessionName.get(),"authored delete paths missing");
+    const auto deleteEntry=method(type,"DeleteFile",1,0x837720);
+    void* deleteEventArgs[]={eventName.get()};void* deleteSessionArgs[]={sessionName.get()};
+    invoke(deleteEntry,client.manager,deleteEventArgs);
+    invoke(deleteEntry,client.manager,deleteSessionArgs);
+    client.unchanged();event.verify();session.verify();
+    if(preexisting)
+        ba::log("TELEMETRY CURRENTQUEUE probe passed: version=3 thread=%lu genuineClient=1 authoredSeeds=2 preexistingBeforeClient=1 eventFiles=0 sessionFiles=0 eventNull=1 sessionNull=1 cachedStartReturned=1 deleteEntriesReturned=2 deliveryFieldsUnchanged=1 clientFieldsUnchanged=1 seedIdentitiesAndBytesUnchanged=2 reportDelivered=0",GetCurrentThreadId());
+    else
+        ba::log("TELEMETRY CURRENTQUEUE probe passed: version=2 thread=%lu genuineClient=1 authoredSeeds=2 eventFiles=0 sessionFiles=0 eventNull=1 sessionNull=1 cachedStartReturned=1 deleteEntriesReturned=2 deliveryFieldsUnchanged=1 clientFieldsUnchanged=1 seedIdentitiesAndBytesUnchanged=2 reportDelivered=0",GetCurrentThreadId());
+}
+static void guardedCurrentQueue(CacheClientFixture& client,const std::wstring& selected) {
+    const auto events=selected+L"\\Bugsnag\\Events",sessions=selected+L"\\Bugsnag\\Sessions";
+    emptyDirectory(events);emptyDirectory(sessions);
+    QueueFixture event(events+L"\\authored-event-120.event",eventFixture);
+    QueueFixture session(sessions+L"\\authored-session-120.session",sessionFixture);
+    queueOperations(client,selected,event,session,false);
+}
+static void guardedPreexistingQueue(Obj config,const std::wstring& selected) {
+    const auto events=selected+L"\\Bugsnag\\Events",sessions=selected+L"\\Bugsnag\\Sessions";
+    for(const auto& name:{events,sessions}) {
+        ba_cosmetics_state::Handle folder(ba_cosmetics_state::directory(name));
+        ba_native_settings::exactDirectory(folder.value,name);
+    }
+    QueueFixture event(events+L"\\authored-event-120.event",eventFixture,true);
+    QueueFixture session(sessions+L"\\authored-session-120.session",sessionFixture,true);
+    ba::log("TELEMETRY PREEXISTING begin: version=1 thread=%lu ownedFilesBeforeClient=2",GetCurrentThreadId());
+    CacheClientFixture client(config);
+    event.verify();session.verify();
+    ba::log("TELEMETRY PREEXISTING ctor passed: version=1 thread=%lu genuineClient=1 fileIdentitiesAndBytesUnchanged=2",GetCurrentThreadId());
+    queueOperations(client,selected,event,session,true);
+    client.unchanged();
+}
 static void run() noexcept {
+    static const bool currentError=ba::flag(L"-telemetry-current-error-probe");
+    static const bool preexistingQueue=ba::flag(L"-telemetry-preexisting-queue-probe");
+    static const bool currentQueue=ba::flag(L"-telemetry-current-queue-probe") || preexistingQueue;
     static const bool delivery=ba::flag(L"-telemetry-cache-delivery-probe") || ba::flag(L"-telemetry-cache-failure-probe") || ba::flag(L"-telemetry-cache-client-probe");
     static const bool fromDisk=ba::flag(L"-telemetry-cache-disk-probe") || delivery;
-    static const bool enabled=ba::flag(L"-telemetry-cache-probe") || fromDisk;
+    static const bool enabled=ba::flag(L"-telemetry-cache-probe") || fromDisk || currentError || currentQueue;
     static bool attempted=false;
     if(!enabled || attempted)return;
     attempted=true;
@@ -198,6 +285,11 @@ static void run() noexcept {
             ba::flag(L"-native-quit-smoke") && ba_native_settings::session &&
             ba_native_settings::session->profile().compare(0,12,"nativestest_")==0,
             "cache probe requires complete current recipe and explicit owned game-thread diagnostic");
+        require(!(currentError && currentQueue) &&
+                !(preexistingQueue && ba::flag(L"-telemetry-current-queue-probe")) &&
+                (!(currentError || currentQueue) || (!fromDisk && !ba::flag(L"-telemetry-cache-probe") &&
+                (!currentError || ba::flag(L"-telemetry-report-error-probe")))),
+            "current SDK fixture cannot use original cache readers or combined modes");
         original(0x8364e0,160,"d547e382cad835bbf8f9587fc04aeca3d324dc47e0806e5957ccf7bb06bff003");
         original(0x836580,112,"017aa617c00d2e5a71df7599ee517c08e6c22cccc017e43fed278346ef0bcf43");
         original(0x8365f0,112,"17c801369b2bc5823aec24cd0dad9bb05d7fd45c6ed443a5c8900ea1ac870c06");
@@ -223,7 +315,17 @@ static void run() noexcept {
         }
         ba::log("TELEMETRY CACHEPATH probe passed: version=1 thread=%lu getters=4 originalBodies=1 scopedOwnedRoot=1 icallRestored=1 reportEnumeration=0 reportPayloadRead=0 wholeRunIsolation=0",
             GetCurrentThreadId());
-        typed(selected,fromDisk,delivery);
+        if(currentError || currentQueue) {
+            PathScope scope(selected);
+            typed(selected,false,false,currentError,currentQueue);
+            require(scope.restore(),"current SDK fixture path override restore failed");
+            if(currentError)
+                ba::log("TELEMETRY CURRENTERROR probe passed: version=1 thread=%lu genuineClient=1 inMemoryInputs=1 originalCacheReads=0 pathRestored=1 reportDelivered=0",
+                    GetCurrentThreadId());
+            else
+                ba::log("TELEMETRY CURRENTQUEUE scope restored: version=%u thread=%lu pathRestored=1",
+                    preexistingQueue?3u:2u,GetCurrentThreadId());
+        }else typed(selected,fromDisk,delivery);
     }catch(const std::exception& error) {
         ba::log("TELEMETRY CACHE probe failed: %s; no success claim",error.what());
     }catch(...) {ba::log("TELEMETRY CACHE probe failed: unknown error; no success claim");}

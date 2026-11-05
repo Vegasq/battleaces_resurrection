@@ -1,0 +1,48 @@
+D5 CURRENT INSTALLED LOCAL MATCH EFFECTIVE ROUTE264
+2026-10-28. Selected process/network/activation route PASS;P4/P8/D5 OPEN.
+
+An owned current-source local game (the installed copy used by262) ran a new
+fresh-profile Try Deck4 match with the existing passive172 observer adapted
+only in ignored local/privacy264-match-route01/runner.py. The suspended game
+entered an owned job before its primary thread resumed. The observer loaded
+before resume,checked selected module paths/16-byte entry prefixes and watched
+selected file,network,process,shell and browser activation entries. It did not
+invoke the advertising callback or combine with the native field auditor.
+
+PID20200/profile nativestest_d5_a5f3a8199104 completed the original EditDeck
+callback,3600-frame local-AI match,result,Continue,menu and original Quit0.
+The independent practice reviewer finds154autonomous action records and40bot
+units with correlated orders/position changes. The owner retained a complete
+job1total/0active/0terminated,no forced cleanup. Installed component/source
+hashes and shared settings stayed unchanged;the helper binds to current source.
+
+The Frida status retains1869contiguous messages with no truncation,observer
+error,unknown relative root or event overflow. Its final two events are the
+expected forwarded self-TerminateProcess entries on the original Quit thread.
+The passive observer had all nine selected ws2_32 DNS/socket hooks and
+WinHttpConnect installed;their final counts are0. All eight selected
+CreateProcess/AsUser/ShellExecute counts are0. Four Vuplex initialization
+entries fire once;the six selected survey/view/browser creation entries are0.
+The owned job observed no game child in this run. This extends172's startup
+route to a current installed local match,while262 supplies separate selected
+native field snapshots for a different match. No user-owned game was touched.
+
+These are selected user-mode API entries and one owned job interval. They are
+not kernel wire capture,raw socket/alternate API enumeration,external broker
+coverage,pre-instrumentation/all-thread proof,other modes,queue contents or
+advertising producer identification. The original start/exit instrumentation
+and two200ms terminal transport holds can affect timing. P4/P8/D5 and
+RUNTIME_VALIDATED=false remain unchanged. Next:effective attribution on a
+different applicable mode/error route and the positive P9 producer/source cut;
+do not replay this same quiet Try Deck case.
+
+Evidence under ignored local/privacy264-game02/:verification.json,
+practice-review.json,review.json,rea-evidence.json and rea-final-status.json.
+Owner SHA256 ad1aaee53f9c3e9b0e640e6218b74371ca2922add4c3f618372098e99b8ff7f8;
+route review b59a8f937d53c6e06e0c2a078d906b95b09f543cd7c348ca9da66f28d936378e;
+practice review aeda37482bd285cdd523ffd4541ecb466ebbe7891bf2123449a0a8848a5fea4b;
+REA bundle ceb2240e7a77cebc50faea5896d7ca6f759ffaaa3706abb278170b65548fea79.
+Final Frida Evidence ID ev_a89b001c700181c1fe0ae2bdf51b3669bbec389fc7b8aa203531f98980d5024d.
+The first local/privacy264-game01 attempt failed before primary-thread resume:
+the requested16384event budget exceeded the existing observer's4096maximum.
+Its suspended owned process was reaped;that failed report is preserved.

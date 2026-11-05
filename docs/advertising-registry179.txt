@@ -1,0 +1,94 @@
+ADVERTISING MANAGER COMPUTED LIFECYCLE179
+2026-10-26. P9/D5 remain OPEN. Recipe23/helper169 unchanged.
+
+Result
+Two previously unclassified computed module-registry calls resolve to the public
+advertising manager's creation and destruction. They do not register or invoke
+analytics callback Main+1498/c307c0. This closes those two descriptor-specific
+edges,not the upstream advertising producer or all possible aliases. No runtime
+patch is justified by this finding. Existing shared APIs and cleanup stay intact.
+
+Positive computed edges
+Retained110 establishes descriptor1c0af58 with +8=&cell1c0af00,+10=361870,
++18=3617c0. Static initializer17920 links it into registry1d0cd60. The new review
+follows the actual indexed readers rather than inferring use from table proximity:
+- 67eac0 walks descriptor+28 and collects pointers. At67eb85 it calls descriptor
+  +10 with RCX=descriptor+8,provided the callback is nonzero and descriptor+20 is
+  clear. For this descriptor that is361870(&cell1c0af00). It then sets+20.
+- 5c5830 traverses its collected list in reverse. At5c5916 it calls descriptor
+  +18 with RCX=descriptor+8 when the callback is nonzero and+20 is set,then clears
+  +20. For this descriptor that is3617c0(&cell1c0af00).
+Other descriptors have different callbacks. Neither generic walker is globally
+classified as acquisition-free,and unrelated later work in5c5830 is not covered.
+
+Creation and lifetime contract
+361870 supplies size0xb0 and initializer361900 to686d30. That helper locks the
+cell,checks its existing pointer,and invokes the supplied initializer only when
+empty. It publishes the returned pointer,sets cell+78,and unlocks. Cell+78 and
+descriptor+20 are the SAME byte:1c0af00+78=1c0af58+20. The other branch preserves
+the existing instance;it does not clear cached identity or establish fresh state.
+
+Reuse110's positive361900 constructor result:empty ID/error strings,tracking0,
+cache flags0,state0,two empty queues and a critical section. The new computed
+creation edge reaches that same constructor,not a platform advertising provider.
+686df0 copies bounded names into cell+18/+38;17920 supplies the empty literal for
+both. It does not install a provider callback.3617c0 retains its lock/queue/string/
+allocation cleanup and nulls the cell. The separate exit leaf18469b0..18469e8
+unlinks this descriptor from the registry without a call or manager-field access.
+
+Scope and unresolved work
+110 already establishes that the public API5fb70 queues a managed callback and
+returns false without acquisition on its fresh-manager path. This result adds
+the registry's computed lifecycle dispatches;it does not repeat or broaden110's
+API conclusion. Alternate writers to manager ID/error/+5c and bridges to the
+separate Main+1498 interface remain unproved. The existing c30838 guard prevents
+retention after a callback receives its borrowed input;it is not an upstream cut.
+Preserve128 settings,132 platform,134/135 inlined service and136 adjacent-interface
+results.164's second RNG owner remains unnamed;shared getters are not patch targets.
+
+Next evidence must identify a positive producer/registration or pre-acquisition
+cut. Do not repeat these registry walks or the exact c307c0/1498 scans. A future
+owned caller witness must account for the existing observer's limitation:
+tools/frida_native_telemetry.py deliberately excludes ads.identity.callback from
+OBSERVED to preserve the native auditor's prologue recognition. Its absence from
+counters is not zero calls. Prepare a separately qualified witness if pursuing
+runtime callers;do not silently combine a new entry hook with that auditor.
+Supported-mode/final-installed/all-thread coverage remains separate and open.
+
+Verification and provenance
+Pinned original UnityPlayer SHA256:
+ ac144d56d53f07904d52ed27a1539de90bc3290038fe52d73d2f6b268c85d6bc
+LLVM SHA256:
+ 5e7a457bf23033b6ec4a959d2276f09d44c024092529684d7eeb687d38da700d
+REA skill applied;native decompiler unavailable. These are PE/unwind/LLVM static
+findings,not runtime observations or native REA Evidence. Independent read-only
+review agrees on both descriptor edges and the existing-instance limitation.
+local/privacy179-manager-source01/verification.json:PASS1535 mechanical checks
+over eight unwind-bounded intervals,two leaf windows and four retained110 slices.
+Checks cover original/assembly bytes,interval continuity,descriptor pointers,
+computed dispatch operands,constructor handoff,flag alias and exit leaf.
+Verification SHA256:
+ 227f90a5260658979db8d3a1b2a1b22708476518dbb46f03e6eaba5f898a4f37
+The supporting registry-head scan found2878 byte candidates,not2878 verified
+references. It is a discovery aid,not complete indirect-address coverage.
+
+Failed bounded attempts remain recorded locally:exit leaf has no unwind entry;
+an initial oversized window crossed an unrelated instruction;one shell-quoted
+Python read failed before reading the DLL. Correct terminal bounds pass. No
+target/getter/SDK execution,game launch,real queue access,installer build or user
+acceptance test occurred. Original files and published174 installers unchanged.
+Raw evidence stays ignored under local/privacy179-manager-source01;exact previous
+current documentation is retained under local/privacy179-prior-docs01.
+
+Follow-up400 (2026-10-30):a pinned original UnityPlayer .text instruction
+inventory found exactly eight RIP-relative references into manager cell region
+1c0af00..1c0afaf. Three occur in registry initializer17920,one in public
+request5fb70,and four in exit unlink leaf18469b0. All eight decode in two
+complete unwind bodies or one exact leaf window and byte-match the current
+owned recipe38 UnityPlayer. The only absolute pointer to cell start1c0af00
+in the original image is the known descriptor slot1c0af60. This closes the
+direct literal cell-reference question at that selected code/data scope;
+derived pointers,other globals,computed uses and Main+1498/c307c0 remain
+unresolved. No new producer or guard is identified. Read-only reviewer:
+tools/review_ads_manager_cell400.py;ignored receipt and three assemblies:
+local/privacy400-manager-cell01. P9/D5 remain OPEN.

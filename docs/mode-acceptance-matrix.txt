@@ -23,9 +23,9 @@ ID       State / modes                                      Evidence / status
 A01-04   Blank online configuration / 1,2,4,5                 P:46 four-mode
 A05      Configured missing trust/invite files / 4           P:48 missing-files
 A06      Configured invalid public trust / 1                 P:48 invalid-trust
-A07-10   Valid protected settings, TCP refusal / 1,2,4,5     O:normal owner
+A07-10   Valid protected settings, TCP refusal / 1,2,4,5     P:189 native; O:full scope
 A11-14   Valid protected settings, connection/handshake
-         timeout / 1,2,4,5                                  O:normal owner
+         timeout / 1,2,4,5                                  P:189 TLS/199 TCP; O:full scope
 A15      Healthy configured server while using Try Deck      P:62/82 native
 AR01-04  Valid RC schema4,TCP refusal / 1,2,4,5               P:131 installed130
 AR05-08  Valid RC schema4,TLS deadline / 1,2,4,5               P:131 installed130
@@ -36,6 +36,25 @@ cleanup,config/shared/program/source preserved. Try Deck's AFTER-FAILURE cells
 delay only the authored click10s. No protected credentials,TCP connect timeout,
 physical/UI or Internet scope is inferred. Source/reports:rc-availability131.txt.
 Original A07-14 verified/protected owner gates remain OPEN at their stated scope.
+189 adds actual verified resolver/private-reader/native PASS for all eight
+refusal/TLS-stall cases1/2/4/5. See verified-availability189.txt. These
+fresh-profile transport/native subcases do not close non-default saved-preference
+or physical acceptance. Do not repeat the eight passing subcases to fill those gaps.
+190 adds non-default saved-choice native evidence for A07 (public1/refusal),then
+A13 (same-profile restart/Try Deck/TLS stall). Native joined deck,all17cosmetic
+slots,account/options and saved hard practice preference preserved;both normal
+Quit0/job2/0/0,no force. Earlier replay/seed retained and installation preference
+restored. See saved-preferences190.txt.198 now completes the other six preference
+cells on one copied profile across six lifetimes:all native choices/replays,
+normal Quit0/job2/0/0 per phase and final preference restoration pass. Together,
+190/198 qualify saved choices for all eight cells at automated native scope.
+See saved-preference-matrix198.txt.199 adds actual pending TCP through the
+default10s deadline in all four verified-mode cases. Same customized saved
+profile retains native choices;original results/Continue/Quit0,job2/0/0 each,
+four preserved replays,preference restoration and no force all pass. See
+tcp-connect-timeout199.txt. Physical input/presentation remains open;the RC
+native cases above retain their refusal/TLS scope. Do not repeat these completed
+verified TCP-timeout or refusal/TLS-stall cases without a changed path.
 For A07-14 use an owned refusing/controlled nonresponding endpoint; never a
 guessed public address. Require real resolver/private reader, useful failure,
 one local world, original results/Continue, saved deck/practice preference and
@@ -82,6 +101,10 @@ Quantitative health/damage/resource and catalog gameplay coverage belong to D3.
 C. Custom (always human-only)
 C01 P:51 actual Invite/Accept, Ready/Start, two matches, changed host deck,
     same lobby/connections, results/Continue, both Leaves and native Quit.
+    214adds current local packaged RC/TLS21-match same-client/lobby lifetime:
+    twenty changed host decks,stable guest deck,results/Continue,original Leave/
+    Quits0 and declared resource bounds,no force. Reuse soak-qualification.txt;
+    automated native scope,not physical input/visible presentation/final release.
 C02 P:74 current directory refresh2->3->2, self/busy disabled, eligible enabled;
     original TMP/hierarchy/row models and three pooled open/close cycles each.
 C03 P:74 current original popup decline/cancel/real30s expiry/duplicate Accept,
@@ -101,12 +124,17 @@ C05 P:76 one-human fully created Custom lobby holds31s before original Invite;
 Existing component/protocol rejection tests support these cases, but cannot
 replace a required native/model or physical observation. Accept/departure during
 an actual committed match remains D4; do not count it twice as an unbounded list.
+196 now qualifies the server side of committed loading/running stale Accept,
+Leave and premature Return refusal,staggered results return and old-match Return
+during rematch. Actual191 RC TLS/native completion;two retained connections.
+Original Unity callback/popup/menu acceptance remains open at that boundary.
+See custom-ownership196.txt;do not repeat these named server cases.
 
 R. Public cancellation / stale control responses
 Each cell names native evidence only. All missing cells are explicit cases.
 ID / point                    Mode1                 Mode2   Mode5
 R01 before ENTER              P:79-before            P:77-2  P:77-5
-R02 waiting                   P:cancel-retry01       P:63-2  P:63-5
+R02 waiting                   P:223                  P:221   P:222
 R03 OFFERED before READY      P:79-offer             P:78-2  P:79-5
 R04 after READY committed     P:79-ready             P:73-2  P:73-5
 R05 cancel/retry + old ENTER   P:cancel-retry01       P:72-2  P:72-5
@@ -122,7 +150,21 @@ both sides of accepted RETURN-ACK loss plus peer closure in modes1/2/5. All six
 matches/results/Continue/workers pass;these are existing cases,not new ones.
 R02-mode1 reuses cancel-retry01's actual waiting Cancel and completed ticket2;
 ordinary-cancel01 remains its narrower original UI/search-release observation.
-63-2/63-5 are current-helper51 waiting Cancel/retry passes on the independent
+221 adds current218 packaged RC/normal-Quit evidence for R02 mode2. Original
+waiting Cancel at3s retires ticket1 with no world/room/worker;gated ticket2 keeps
+one TLS connection,waits30.078s,then completes1221frames with three bots. Chosen
+native deck/17cosmetics retained;result/Continue/Quit0,jobs5/0/0 and2/0/0,no force.
+Initial cosmetic dictionary/pair comparison failed after clean native exit;
+corrected retained review passes without another game. packaged-cancel221.txt.
+222 adds the corresponding current218 packaged R02 mode5 pass:waiting Cancel3s,
+empty old ownership,same TLS session,real30.060s retry wait,1221frames,selected
+deck/17cosmetics and original Continue/Quit0. Jobs5/0/0 and2/0/0,no force.
+223 adds current218 packaged R02 mode1:waiting Cancel3s,empty prior ownership,
+same TLS session,real30.054s retry wait,1220frames,chosen deck/17cosmetics and
+original Continue/Quit0. Jobs5/0/0 and2/0/0,no force. Together221-223 cover this
+packaged/native-lifetime scope in all three public modes. Reuse the detailed
+follow-ups in packaged-cancel221.txt;physical input/presentation remains open.
+63-2/63-5 are retained helper51 waiting Cancel/retry passes on the independent
 owned58 game:one human + three server bots,natural result/Continue,forced final
 game cleanup. See public-matchmaking.txt;not native Quit or physical/bundled/LAN
 acceptance. Other P cells refer to earlier ordinary/native candidates in
@@ -134,7 +176,21 @@ until the client has entered fallback; it must retire/ignore that remote intent
 without replacing the local world. R07 preserves finished results, returns to
 idle quietly and allows another Play, without a false startup error.
 Late/duplicate READY is also covered by C01 and retained Custom start/expiry
-proofs; applicability of the earlier negative/stale native cases is OPEN.
+proofs.238 reviews the earlier Custom rejection/expiry/duplicate native sources
+against current routes. Exact pending-pointer ownership remains;new loading
+feedback,full-loadout capture and abort/phase guards prevent blanket runtime
+carryover. Current socket/test-worker regression preserves new-start ownership
+under stale positive/negative Ready,then proves successful valid Ready and no
+duplicate match.18community tests per Python pass.239 completes current packaged
+expiry/retry/delayed old ACK,including loading feedback,epochs3/4,two completed
+matches/original Continue/Leave/Quit0 and no force. The initial diagnostic epoch
+gate failure remains FAILED;corrected native run passes.48tests per Python pass.
+240 completes explicit host Start rejection/retry on current237:original negative
+callback/pending release,new loading ticket,same captured decks/17cosmetic slots,
+two completed native matches/Continue/Leave/Quit0,jobs empty/no force.49tests per
+Python pass. Reuse native-custom-matches.txt238-240;the expiry,rejection and named
+duplicate callbacks are done at that scope. Physical acceptance remains. This does
+not reopen the completed public R02 cases or claim physical acceptance.
 Retained Custom setup/loading/running/stale abort proofs remain D4 inputs.
 
 T. Same-process mode/world ownership transitions
@@ -152,12 +208,23 @@ T05 P:84,remote1 -> remote2 -> remote5 -> remote1 in the same two native clients
     actions,4workers0 and exact frame receipts pass. Explicit diagnostic Concede/
     fixture TLS/forced final cleanup;not physical/native Quit/bundled/protected/
     LAN. Failed fixture pilot preserved. See public-mode-transitions.txt.
+    241 revalidates actual retained evidence and exact changed source paths.
+    Current server async-save/join sequence passes with two persistent sessions,
+    synthetic workers/injected time/authored result;29tests/1skip per Python.
+    Shared replay/transport changes are recorded;no full-current-build/native
+    equivalence claimed. The named T05 pass and its review remain complete.
 T06 P:local4 -> offline1 -> offline2 -> offline5 -> local4, one five-match
     native sequence (local-modes02, earlier helper). Saved practice difficulty
     stays Normal; original results/Continue and all-bot movement pass. Final
     owned process termination is not native Quit. See team-modes.txt.
 T07 P:85-retained,C -> local4 -> C through original Custom invitation/menu path.
 T08 P:85-retained,C -> remote1 -> C,without stale lobby/prediction/public intent.
+    244 revalidates T07/T08 recordings and source applicability. Current socket
+    sequence covers three Custom cycles,profile reconnect,public return,fresh
+    lobbies,saved distinct decks/names and four synthetic worker exits0. Shared
+    portrait/replay/profile-I/O changes are recorded;not new graphical/current-
+    whole-build acceptance.52pass/1native opt-in skip per Python;see
+    custom-mode-transitions.txt244. Retained named native passes remain complete.
     One combined same-two-client five-world sequence,3original invitations and
     6Leaves,10Continue actions,4workers0,selected decks/17slots preserved. Local
     bots build and40/49produced entities have orders+position changes. Original

@@ -1,0 +1,58 @@
+D5 / P7 - SDK scene-load metadata collection
+
+2026-10-28. Recipe36 source,owned installed loaded-byte audit and changed-path
+practice compatibility PASS;full P7/P9/D5 remain OPEN.
+
+The pinned original BugsnagUnity.Windows metadata/codegen table binds
+Client.ListenForSceneLoad (814740) and its void callback
+Client.<ListenForSceneLoad>b__47_0 (818cf0). The callback's complete original
+body can gather scene data and directly call BugsnagUnity.Payload.Metadata.
+AddMetadata(3) at818f08,passing the Client metadata store reached through
+Client+20. That SDK collection path is independent of Client.Notify and the
+public Bugsnag data setters. Other direct AddMetadata candidates identified
+in the bounded source review lie in guarded NotifyOnMainThread and guarded
+BugsnagCrashReporter.Subs;this does not claim a whole-program caller census.
+The scene callback's actual invocation was not observed here.
+
+Recipe36 adds one void RET entry guard at818cf0, before the callback reads
+scene data. It preserves the original Unity scene machinery,the generic SDK
+Metadata.AddMetadata implementation and all caller-owned resources. The
+recipe has165 guards,100 in GameAssembly. RUNTIME_VALIDATED remains false.
+tools/verify_sdk_scene_metadata347.py PASS binds the three named metadata
+methods to their original codegen pointers/void signatures/unwind extents;
+177 decoded instructions in the registration and callback bodies match exact
+original bytes. It checks the callback-to-Metadata call and the one-byte entry
+delta. Restoring that byte reproduces recipe35 source GameAssembly SHA256
+eb016205270a729cf36300e7d8bd64fb5115b26afd8c51d9291e3f377c7a8b33.
+Recipe36 source GameAssembly SHA256:
+ba894975597777edd2e7544ea2df9aafb59101800885734e7decb0b66660ff92.
+Earlier configuration-ingress verifier345 passes after normalizing this one
+new byte.62 focused Python audit/patch tests pass with2 optional skips.
+
+Windows C++ helper build and embedded tests pass at
+local/privacy347-helper-build01. The owned local/privacy301-runtime01/game
+upgrade dry run and install each verify133 bundles with community/cosmetics
+options retained. Current installed GameAssembly SHA256:
+d408ee96c642e8029377c87c18f7e4a954305e85c6724703ac3f18f0e78dba87.
+Installed helper SHA256:
+f4a3601a9a6afdd382eb5401166c53ba877a6ad93e123aea898391d934dac05c.
+Installed manifest SHA256:
+47f09672e22b5894c3f0705567aae2d78ec3074006971d9caa4aa53753e3ddd2.
+Helper receipt SHA256:
+4c2ad3f07a76a7a579ced3db4f1ddbe8ee0790a1e09b54d4e5eff5eba0c0135a.
+
+The changed-path owned practice run completes native match/result/Continue/
+menu return and original Quit0 naturally in215.828s. It records95 autonomous
+action rows,47 produced bot units with correlated orders and position change,
+eight selected native-field snapshots and recipeVersion36 loaded/disk
+sdkSceneMetadataSignatures1/1. No forced cleanup;process reaped,shared settings
+and source unchanged. Retained local/privacy347-practice01/verification.json
+PASS SHA256:
+e65e4170e399074cf6f205161ed103d1f6639ab44c49b64f0bd6f0c93f675731.
+This is automated diagnostic gameplay and loaded-byte compatibility,not
+physical-input or actual original callback-invocation proof.
+
+348 now adds a private recipe36 package/connected pair PASS;see
+privacy-current-package348.txt. Real SDK queue/read/retry,whole wire,
+all-thread/descendant coverage and P9 upstream advertising-ID acquisition
+remain OPEN. Published174 is unchanged.

@@ -1,0 +1,43 @@
+D5 CURRENT-SOURCE CONNECTED PUBLIC1 SOCKET SNAPSHOT271 - 2026-10-28
+P5 selected-lifetime network scope PASS;P5/P8/P9/D5 remain OPEN.
+
+Current dirty-source helper SHA256
+28967b56df524c452096b835a6a26ee9b52aa7e97fcf8523e681041841fd4058
+and its matching122-source receipt were used to build a fresh local Windows
+server/client package pair,local/privacy271-packages01,with --allow-dirty.
+Both existing server-launcher39 and client-installer130 build receipts passed
+the current-source input checks. Package ZIP SHA256s are server
+9882726e52f0106dcd257be58a6251d1f33ea66ca055550a663d3ae211bb7a1e
+and client
+000b559c5e7bba3baf5886b8535cb33196447d36f76d57204687ba6aea47b0ab.
+This is a local preview,not a published release pair.
+
+The source-owned verifier ran RC open-admission public1 with two native clients
+on local/sprays257-match01/game,mode1/humans2,original match/result/Continue/
+menu/Quit. local/privacy271-connected01/verification.json passed in110.203s,
+forced_cleanup=false. Native game PIDs37112/2532,host24108,client adapters
+17632/8224,match worker8876. The host job accounted5 total processes,the two
+client jobs2 each;all had active0/terminated0 at exit. The server ended with
+rooms/entries/offers/cleanup/sessions/workers0. Package,assets,source,shared
+channels,adapters and configs were unchanged. Temporary PKI was removed.
+Verifier SHA256:
+91d5efa9f178b2ccc250660e13d522006fea0e9f0e6726dfb657e5d43e0026a3.
+
+A separate read-only Windows TCP/UDP endpoint sampler followed the owned
+verifier PID,its descendants and both game-process receipts. Its109 samples
+span2026-10-28T16:18:59.736Z to16:20:33.710Z. Every sample included both
+native game PIDs. It recorded2405 TCP endpoint rows and0 UDP rows. TCP owning
+PIDs were only the host and two packaged adapters;neither native game PID owned
+a sampled TCP endpoint. Remote addresses were only127.0.0.1 and the0.0.0.0
+sentinel for listening/unconnected endpoints. There were no sampled non-loopback
+remote endpoints. Journal SHA256:
+eccdd678766628e8fe6b2d1d2ea6c7be74cb656228ca44f6e0e19a42c41ae304.
+Sampler source:local/privacy270-socket-sample.ps1, SHA256
+31a5a3cedc567cc08e158eca5ce1cbb3f47c366222ff39ce0dc3b2b0b4df7ad3.
+
+Boundary:the sampler began after launch and polls endpoint tables,so it cannot
+exclude brief sockets between samples,earlier startup,raw packet/kernel paths,
+other processes,or SDK queue/file activity. Loopback is expected server traffic
+for this one public1 case. No P9 advertising callback producer was observed or
+identified. Connected public2/public5/Custom and complete privacy attribution
+remain open.270's failed old-receipt preflight is preserved separately.

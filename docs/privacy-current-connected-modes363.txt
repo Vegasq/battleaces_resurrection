@@ -1,0 +1,36 @@
+D5 / P5 - current recipe38 connected public5 and public2
+2026-10-30. Source-bound private pair modes PASS;full P5/P9/D5 remain OPEN.
+
+The corrected-helper recipe38 private pair358 ran two new isolated RC-open
+loopback matches in the owned301 game,with the build37822 asset set. Public5
+used two humans and two bots in alternating seats;both clients completed1250
+native frames,result/Continue/menu/original Quit0. Its two server workers
+exited0 and were reaped in104.296s. Public2 used two humans on one team and
+two bots on the other;both clients completed1221 frames and the same normal
+result/Quit path. Its workers exited0 and were reaped in153.141s. Each run's
+three retained jobs had5/2/2 total processes,all0 active/terminated,without
+forced cleanup. Temporary PKI was removed. Source,package,assets,config,
+adapters and shared channels were unchanged in both reports. This does not
+test a four-human public2 match.
+
+tools.review_d5_connected_modes363 independently binds both reports to the
+current recipe38 source/installed game/helper,helper build receipt,client and
+server package integrity/archives,assets,match seats/frames/results,client
+exits,worker cleanup and job drainage. Its first attempt correctly rejected
+an incorrect reviewer expectation:public2 with only two humans is not a full
+human group. The reviewer was corrected to require the actual two-human/two-bot
+shape and then passed. No game rerun was needed.
+
+Reports:
+ local/privacy361-connected05/verification.json PASS SHA256
+ 67e0dc1e648b09ad8c6418497ec5af9557288ba29a52136a83965d0768b21921
+ local/privacy362-connected02/verification.json PASS SHA256
+ e8ced0b0eb2ff1edd4702ae9855155b8ef5cb8e67133261ec11adfdaffb6b905
+ local/privacy363-connected-modes01/review.json PASS SHA256
+ 3b01f0abb1053a80fb1b178b6b17484d714ace11fa7f78d3f4883515ab865c89
+
+These runs show current private package compatibility on two distinct routes.
+They do not capture SDK queue reads/writes/retries,all native/descendant
+network or wire activity,the P9 advertising producer,Custom transitions or
+final installed release scope. Published174 remains unchanged and
+RUNTIME_VALIDATED remains false.

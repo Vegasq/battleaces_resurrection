@@ -1,0 +1,43 @@
+D5 / P7-P8 - current recipe47 combined lower device-I/O observation
+
+2026-10-31. Owned installed recipe47 public1/two-human match PASS at the
+bounded native/Python/queue scope. P7/P8/P9/D5 remain OPEN;
+RUNTIME_VALIDATED=false and published174 is unchanged.
+
+Both native clients were created suspended under owned Jobs. The passive
+prelaunch observer,including NtDeviceIoControlFile,armed before either
+primary thread resumed. Each fresh owned profile had one authored .event
+and .session file. The packaged host/adapters/workers enabled endpoint and
+Proactor-byte audits. The match completed1220 frames,result/Continue and
+both original Quit0;all three Jobs had0 active/terminated processes,no
+forced cleanup. Authored queue bytes/identities,packages,source,assets,
+adapters and shared channels remained unchanged.
+
+Untruncated REA messages show78,491 and81,474 device-I/O calls across25
+control codes in the respective native clients,with no observer error or
+overflow. Each client's seven observed0x120xx codes used only its inherited
+private bridge handle(0x1d4/0x210). The0x1201f send calls(1218/1219) and
+0x12017 receive calls(71,489/74,471) exactly match the selected Winsock
+hook counts. Many receive attempts were nonblocking failures,not delivered
+packets. Selected connect/DNS/sendto/WinHttpConnect counts were0. Nine
+unresolved invalid-handle writes per client remain unclassified as to path.
+The packaged Python host/adapters had reciprocal positive loopback byte
+counts and host,adapter and two simulation workers passed their endpoint
+audits. No payload contents were retained.
+
+tools.review_recipe47_device_io538 independently checks the current
+package/game/asset binding,owned run and normal exits,queue snapshots,
+observer source/ordering/REA messages and exact bridge handles/codes,
+packaged Python audit sources,reciprocal traffic and empty Jobs:PASS.
+Run report local/privacy538-public1-device01/verification.json SHA256
+01a8156b48a2668fa182770c6c1e89feb9cc25f3a2f82f61c52ca8c2c386f42c.
+REA export local/privacy538-trace01/rea-evidence.json SHA256
+a2f75568058ec3e0933af4f44d08a12e69c5f099c6e1cc3f7a253ce72f4834d4.
+Review receipt local/privacy538-device-io-review.json SHA256
+c9451ffd6666b4a7340f795aac497358d3f31c216de6fbc7365020e37e5dcc43.
+
+This is a stronger current installed user-mode route observation,not a
+kernel packet capture or a complete attribution of all native/indirect/OS
+broker paths. It does not prove behavior of a real SDK-produced queue,
+resumed work,other modes,the upstream advertising-ID provider or the final
+coherent release pair. Full D5 remains OPEN.

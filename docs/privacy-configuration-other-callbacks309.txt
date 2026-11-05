@@ -1,0 +1,31 @@
+D5 / P7 - other SDK Configuration callback-list registration APIs
+2026-10-28. Bounded source/owned-image review PASS;P7/D5 remain OPEN.
+
+Question:do AddOnError or AddOnSession populate the same OnSendError list
+whose AddOnSendError registration is guarded in recipe28? The original
+Configuration constructor initializes distinct lists at +0x158,+0x168 and
++0x178. Original AddOnError (RVA81ad10) appends to +0x158;AddOnSession
+(81b850) appends to +0x178. Their complete bodies do not reference +0x168.
+They are separate SDK callback classes,not alternate writers into the list
+guarded by307. Their independent indirect uses remain a separate P7 question.
+
+tools/review_configuration_other_callbacks309.py PASS checks pinned original
+GameAssembly/metadata method identities,codegen table and unwind extents;
+complete byte-matched LLVM bodies (116 AddOnError,116 AddOnSession,32 Client
+facade instructions);the two constructor field anchors;and the same complete
+method bytes in the current owned recipe28 GameAssembly. Original mapped
+sections contain no direct E8 call to AddOnError. One direct AddOnSession
+call is at8176f9 inside BugsnagUnity.Client.AddOnSession (RVA8176b0);
+there are no direct E8 calls to that facade. This is an exact direct-call
+inventory,not proof against delegates,reflection or native/indirect calls.
+
+Original GameAssembly SHA256 e59d08c01479b27404778048d7e13546dbf3771f6b3912744c7c2bdf80c4e758.
+Original metadata SHA256 b760be9190309b14174cd272e1f83b730181b299bc7a0cdca66985c69dcdc57d.
+Current owned recipe28 GameAssembly SHA256 5ae396233c1e48ec6a2043051030595d12c071bcdc4cc4a5b1ccf51a8aaeccb1.
+Raw disassemblies remain ignored under local/privacy309-onerror01.
+
+No source guard is added:the reviewed game has no demonstrated direct
+registration through these two distinct APIs,and cutting them would not
+settle the actual SDK queue/file/retry/wire or the P9 advertising producer.
+This leaves other indirect registrations,preexisting callbacks and all
+delivery attribution open. RUNTIME_VALIDATED=false;published174 is recipe23.

@@ -1,0 +1,61 @@
+BATTLE ACES - COMMITTED CUSTOM OWNERSHIP196
+2026-10-26. SCOPED COMPLETE. D2/D4 remain open.
+
+CLAIM
+Committed Custom loading/running ownership survives stale invitation replies,
+Leave and premature Return commands. Staggered result returns preserve the
+remaining player's ownership;old-match Return cannot affect a replacement.
+Actual191 packaged RC TLS server/native simulation;no original Unity UI claim.
+No production change was needed. Tool:tools/verify_custom_ownership.py.
+
+OBSERVED SEQUENCE
+Two authenticated community peers create/invite/accept/start Custom1v1. With
+both bootstraps received but LOADED withheld,the host's Leave and Return and
+guest's replayed Accept for the already accepted invitation receive negative
+ACKs. Repeat the three commands after both LOADED acknowledgements and START.
+Each rejection preserves lobby revision/epoch/match/host/members/returned set,
+room and peer-room ownership,invitation set and worker count.
+The same room then delivers160 equal native frames. At140,the owned army's
+native-state-derived self-destruct command causes actual surrender. Both peers
+receive the identical native completed result:winning alliance1,conceded flag1,
+game-over frame140. Worker exits0 before result return.
+Host Return detaches only the host. Lobby remains RESULTS with the guest still
+attached to the completed room. Duplicate host Return and premature Start refuse
+without changing ownership. Guest REFRESH succeeds,then guest Return reopens
+the same lobby. This is staggered return,not a prolonged idle-timeout test.
+Both original connections start a distinct replacement match. A guest Return
+naming the previous match refuses;replacement delivers ten equal native frames.
+All frame payload hashes match the host journal. Both profile files unchanged.
+Nine negative ACKs total;no protocol error,simulation error or abort before the
+final diagnostic shutdown. Replacement is deliberately still active at cleanup;
+its shutdown is not a second completed game. Both workers exit0,controller0,
+job8total/0active/0terminated,no forced cleanup. Total13.016s.
+
+VALIDATION
+Four evidence controls accept the expected completion/rematch journal and reject
+error/abort substitution,lost/duplicate frames,duplicate starts and premature
+replacement completion. With existing community tests:21 PASS on Python3.12
+and21 PASS on3.14,no skips. This supports server behavior;native result/menu/
+popup ownership and physical input must retain their separate evidence scopes.
+
+EVIDENCE
+Accepted:local/ownership196-01/verification.json
+SHA256:15c2da6ee11512e59fba0b429394a8b1df38f345bc523b7b5e7500e2de087a24
+Case/audit:local/ownership196-01/transitions/
+Package:local/candidate191-packages01/battleaces-server-win64
+Package manifest:e0531eec69057f165490fdb712581dec95632d6115fa29dda22035505d580235
+Assets:local/s139/assets/build-37822
+Asset manifest:5f26ae7e35ce004c5105fa42a85fed8671194380e9461caa89888decd2ee4ad3
+Driver:0f9c4ea6e37ece8bd2e3dcd6befc6b46519c27851e55181a63c02895ec7fbc2f
+Harness:9ffed736e00b6e088146132580da407a52ba6d0e302cafc88e879dde775d80df
+Helper:e2978c262e453ec0cbb1d514ad62ca7f2c78858e74b988d0de123d17a15c20ae
+Tests:9c44eda7b48e45b30c519c352d6cdf876c65d6d5aa4aa856166ad5f84750ed64
+Package/assets verified;bundled app imports;driver/helper/harness pinned before/
+after. Exact sources and final reconciliation retained under ownership196-01.
+Credentials,profiles,raw journal and binaries stay ignored/local.
+
+REMAINING
+Original client behavior when accepting/leaving during commitment,prolonged
+results/timeout/disconnect handling,other transition cells and physical acceptance
+remain open. Do not repeat these named server cases without a changed path.
+No new build/publication;local191 preview and published174 remain unchanged.

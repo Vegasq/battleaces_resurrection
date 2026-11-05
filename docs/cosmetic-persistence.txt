@@ -1,4 +1,7 @@
 LOCAL COSMETIC STATE - IMPLEMENTATION AND QUALIFICATION
+Current navigation245:cosmetics.txt reconciles all17slot restart/isolation and
+the24unique A/B restored values. Later selected-loadout graphical propagation
+is qualified in85/239/240/244;old pending labels below retain historical scope.
 Updated:2026-10-19 UTC. Experimental; final cosmetics delivery remains open.
 
 Native contract

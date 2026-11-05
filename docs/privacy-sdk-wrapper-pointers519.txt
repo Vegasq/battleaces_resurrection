@@ -1,0 +1,23 @@
+D5 / P7 - SDK web-request wrapper absolute pointer census
+
+2026-10-31. Pinned pristine GameAssembly static check PASS at this narrow
+scope;P7/D5 remain OPEN. No game,report queue or network endpoint ran.
+
+The BugsnagUnity.Windows.dll IL2CPP module has1224 method slots,with its
+method table at RVA6a380f0. The absolute pointer value for
+BugsnagUnityWebRequest.SendWebRequest80e920 occurs exactly once in the
+121MB pristine image:module method slot39 at RVA6a38228. The pointer for
+RequestCompleted80ea30 likewise occurs once:slot40 at RVA6a38230.
+The scan searches all file bytes,not only executable sections. It is
+bounded to literal absolute pointers;computed addresses,metadata invocation,
+reflection and runtime-created delegates are not excluded. The two methods
+remain active.406 found no direct relative call to either method,and409
+found the wrapper send is nonvirtual;this result removes an unexplained
+static address-taken lead but proves neither absence nor no wire traffic.
+
+Reproduce with python -m tools.review_sdk_wrapper_pointer519. It checks
+the exact original SHA256,IL2CPP module/table count and offsets,and every
+absolute pointer occurrence. Next P7 work should follow actual SDK
+queue/retry and wire behavior rather than patching a method solely because
+it exists in the module table. Published174 and RUNTIME_VALIDATED=false
+remain unchanged.

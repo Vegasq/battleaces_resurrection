@@ -1,0 +1,35 @@
+D5 / P5-P8 - current private public2 four-human worker socket audit
+2026-10-30. Owned packaged four-human match and seven Python process journals
+PASS;full P5/P8/P9/D5 remain OPEN,RUNTIME_VALIDATED=false.
+
+391 qualified the host and four client adapter CPython endpoint journals in
+one public2 four-human match. The external verifier now permits its existing
+opt-in worker socket audit for that same mode. The worker bootstrap prelude
+remains separate from product code and makes an authored localhost lookup
+after hook registration in each worker.
+
+The current recipe38 private pair358/helper357 and owned game/assets completed
+another RC-open public2 four-human/no-bot match:all four native clients received
+1250 frames,result/Continue/normal Quit0. The two server workers exited0 and
+were reaped. The server listener,status writer and lock closed;all five Jobs
+drained with no forced cleanup. Elapsed131.282s.
+
+Both worker journals start before their isolated -c bootstrap and end at
+normal interpreter exit. Each has observer-ready,one positive localhost
+getaddrinfo control and observer-exit,with no other CPython socket event or
+overflow. The server and four client adapter journals again record only
+loopback binds/connects,without overflow. tools.review_d5_four_human_workers392
+independently checks source/package/helper/asset/match/job binding,all five
+driver journals,two worker PIDs/preludes/controls and clean worker exits.
+Ignored evidence:
+ local/privacy392-four-human-workers01/verification.json SHA256
+ 93de4cb951baebd653c091b642f887e0bc2a87ff06d1ce7d5ba03704c985d4ee
+ local/privacy392-four-human-workers01/review392.json SHA256
+ 9067ae36e6f845d7c487a741ad9559e134d30cf687a54ea410c7f93d62312793.
+
+This covers the selected CPython socket events from script entry to exit in
+all seven packaged Python processes for this one four-human mode run. It does
+not prove absence of native/ctypes bypasses,pre-interpreter or kernel wire,
+external brokers,SDK queue/report delivery,other configurations,advertising
+ID acquisition or final installed privacy. Product binaries and published174
+remain unchanged;no Nick action was requested.

@@ -1,0 +1,46 @@
+D5 / P9 - owned state-three entry witness
+
+2026-10-30. Current recipe38 private public1 two-human runtime PASS at its
+bounded scope;P9 and full D5 remain OPEN.
+
+426 identified a source path that could exchange Main state3 and schedule
+the related worker. A new opt-in observer counted entry to c402d0(worker),
+c3c5d0(state3 setter),c300d0(immediate caller) and c3b990(dispatcher).
+It checked all four current UnityPlayer entry byte sequences before hooking;
+neither identity arguments nor queue,request or network payloads were read.
+
+Both owned game processes were created suspended. The observer loaded and
+reported all four hooks with no errors before main-thread resume. The
+current recipe38/helper357 private pair completed a public1 match,original
+result/Continue and normal Quit0 in both clients. At each first original
+self-TerminateProcess entry all four counters were0. Jobs/workers drained
+without forced cleanup. The selected native file/network and packaged Python
+endpoint reviewer also passes for this exact run. One heartbeat arrived in
+each 200ms diagnostic exit hold after the exit-entry message;the reviewer
+checks it but uses the exit-entry counters as the interval boundary.
+
+This directly excludes invocation of these four entries in this instrumented
+connected session. It does not prove that the worker cannot activate in
+another path,that no other state writer or advertising-ID producer exists,
+or that an inflight queue and whole wire are empty. The enabled gates and
+upstream producer question remain P9 work. Do not repeat this same quiet
+match without a changed path or concrete concern.
+
+The first owned attempt failed before gameplay because its observer gate
+contained literal backslash-n instead of a newline;its verifier refused
+the gate and performed forced cleanup. That failed report is retained and
+is not counted as acceptance. The second attempt used the exact marker,
+passed the reviewer and exited naturally.
+
+Diagnostic source:tools.frida_state3_entry427 and
+tools.prepare_prelaunch_observers366 --state3-entry. Independent reviewer:
+tools.review_d5_state3_runtime427. Ignored retained evidence:
+ local/privacy427-state3-entry01/verification.json (FAILED)
+  8a0f0c708b1e5901b9a5537dd6511a4916a8f33217d61a6291e697013070df7f
+ local/privacy427-state3-entry02/verification.json (PASS)
+  e5c76ee9ac3d2724f49c241da77ebb9cabd72ffc0f6d9966aa3bde10dcc555d6
+ local/privacy427-state3-entry02/state3-review.json (PASS)
+  3958d1028f9270f03afead9ed08a7ce8173c74b6261ca6c640710766bf315285
+ local/privacy427-state3-entry-trace02/rea-evidence.json
+  5bf666e2ffddcf3b08a79af417461aa6a815bffa1832c75692a7d6348903209d
+Published174 remains recipe23;RUNTIME_VALIDATED=false.

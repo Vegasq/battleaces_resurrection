@@ -1,0 +1,87 @@
+CLIENT LOADING SCHEDULER205
+2026-10-26. Scheduler ownership resolved at static scope;D4 remains OPEN.
+
+RESULT
+The map loader's RunCoroutine overload submits it to MEC.Timing's default
+UpdateProcesses scheduler,without a tag or layer,and with prewarm enabled.
+Discarding the returned handle does not discard the scheduled iterator. The
+handle-based kill path removes the iterator from its scheduler slot;that is not
+an established contract for releasing the map's scene operation or preventing
+every subsequent completion callback. Do not substitute KillCoroutines alone for
+the existing full native cleanup guard. No production change or launch.
+
+ENTRY AND OWNERSHIP
+Reuse204's Simulation.CreateGame call at3e67b93 and discarded return handle.
+Original metadata binds token060000a8 to RunCoroutine(IEnumerator<float>) at
+32f97f0. It obtains Timing.Instance,constructs a handle from instance+e8,and
+calls RunCoroutineInternal32ffff0 at32f98a8. Arguments are segment0,layer0,
+layerHasValue=false,tag=null,constructed handle,prewarm=true. This is not a
+GameObject/tag/layer overload that could be cancelled by the map's object name.
+
+Retained replay56 internal disassembly is reused for the default segment path:
+330020c selects Timing+130 (UpdateProcesses);33003f7 advances the next slot;
+3300435 reloads the iterator and3300443 stores it through the array helper.
+The method then populates the index/handle dictionaries at+108/+100. The selected
+33003f7..3300548 span is newly byte-checked for this ownership claim;it is not
+represented as a new full review of the scheduler or its exception handling.
+The existing prewarm path advances IEnumerator before the wrapper returns.
+Therefore even retaining the handle would not establish that no work has begun.
+
+HANDLE KILL AND SLOT REMOVAL
+Token060000db binds KillCoroutines(handle)3303860. It selects the scheduler by
+the low four bits of the handle,validates the Unity owner and tailcalls
+KillCoroutinesOnInstance(handle)3303c30. That method looks up _handleToIndex,
+conditionally calls CloseWaitingProcess,then Nullify and RemoveGraffiti. It also
+walks explicitly linked handles and recursively kills them. Those waiting/link
+semantics are not a general guarantee about arbitrary nested asynchronous work.
+
+Nullify(handle)330dc50 resolves the process index and tailcalls
+Nullify(coindex)330dcc0. Its segment0 branch loads UpdateProcesses+130,retains
+the old slot value,passes null in R8 to helper10110,and returns whether the old
+slot was non-null. Helper10110 bounds-checks the index,stores R8 at
+array+20+8*index,and performs the GC write barrier. It has no iterator Dispose
+or scene-release call. This proves slot removal,not a complete cancellation
+protocol.204 separately binds the map iterator's Dispose to an empty return.
+Stopping that iterator during a new-map load can bypass its normal completion
+and _existingLoadRunning clear;the scene operation already retained by the map
+manager is a separate ownership question. No safe field-reset patch follows.
+
+VERIFICATION
+tools/review_loading_scheduler.py checks original PE/metadata hashes,exact method
+tokens/parameter-name inventories (including overload distinction),scheduler
+field offsets,six complete merged-unwind bodies and one explicitly partial span.
+587 decoded instructions match original bytes and current installed bodies.
+Nullify's final36bytes are a nine-entry dispatch table,checked as data. Selected
+argument/store anchors and direct call/tail edges are verified. Existing56
+internal disassembly is hashed;no renewed claim about its exception table.
+
+Four opt-in tests PASS on Python3.12 (4.043s) and3.14 (4.189s),no skips. Positive
+owner binding retains all cancellation/runtime unknowns;wrong Kill overload,
+missing array store and misleading null-argument text reject. Run with
+BA_LOADING_SCHEDULER_EVIDENCE=local/loading205-scheduler01 and
+python -m unittest tests.test_loading_scheduler.
+
+Report:local/loading205-scheduler01/verification01.json
+SHA256:ba0e0721561e2a07c076c28f821e6ab5ca8fbd8786272a63343c09f2172c302e
+Verifier:4aea5ecc87321d933b2b83b5f7a9b3302f2d2490817464059b1d24b37a2b780e
+Tests:b394ce9b56e279ec13dddd0ee82bf46b1685dd0cc285c551d46698ebf034f41a
+Retained56internal:01d40ba1a2f302bc0c2db954b1134f1434ed73db0664aee62a4ccd1946951675
+Original GameAssembly:e59d08c01479b27404778048d7e13546dbf3771f6b3912744c7c2bdf80c4e758
+Metadata:b760be9190309b14174cd272e1f83b730181b299bc7a0cdca66985c69dcdc57d
+Installed GameAssembly:f9e14f0b45134eb96e51c4cd7c3965049ae317a64734a364e43ab8325f35d3fa
+Source/evidence inventory and prior planning snapshots:local/loading205-scheduler01.
+An initial metadata-helper import failed because its historical path was relative
+to the game root;corrected working directory before extraction. No target ran.
+Initial native_candidates in metadata.json are name-based overload candidates;
+exact-method-bindings.json and the verifier bind the actual tokens individually.
+
+NEXT MISSING CLAIM
+Follow AssetMemoryManager.LoadSceneAsset3b217e0 and the corresponding release/
+unload ownership for manager+20. Determine what happens to an unfinished scene
+operation when its iterator stops,including activation and completion callbacks.
+Do not repeat the scheduler entry/kill/Nullify bodies or infer that releasing a
+handle cancels the scene. Original client slow-load recovery and callback
+suppression remain unproved. Keep the120s retained-state diagnostic meanwhile.
+REA workflow continues through pinned LLVM/PE/metadata static fallback;no native
+provider setup,game execution,package build or publication. Preview203 remains
+latest;published174 and all pending DEV answers are unchanged.

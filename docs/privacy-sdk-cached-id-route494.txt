@@ -1,0 +1,29 @@
+D5 / P7 - cached payload ID enumeration direct route
+
+2026-10-31. Pinned original GameAssembly/metadata and current recipe44
+source review PASS. No game,real SDK queue or endpoint was accessed.
+P7/P9/D5 remain OPEN,RUNTIME_VALIDATED=false.
+
+tools.review_sdk_cached_ids494 binds the named CacheManager and cached-item
+coroutine pointers in BugsnagUnity.Windows.dll,scans raw rel32 candidates
+in both executable sections,and checks their exact call sites and current
+guard bytes. Receipt:
+local/privacy494-cached-id-route01/verification.json SHA256
+661e9f642ffd42c1be41b98421ecc3b084fbdb6bf7d403de60289b1e5aa1f7d2.
+
+GetPayloadIDsFromDirectory(8379d0) has four direct candidates:two from
+<ProcessCachedItems>d__37.MoveNext(8204c0) and tail jumps from
+GetCachedEventIds(837970) and GetCachedSessionIds(8379a0). Recipe44 returns
+at the coroutine entry before those two calls. The ID getters first call
+GetCachedEventFiles(836730) or GetCachedSessionFiles(8367b0). Both call the
+guarded GetFilesBySuffix(836830),whose branch at83683a returns its original
+empty array before Directory.GetFiles. GetPayloadIDsFromDirectory is the
+only direct caller of GetCreationOrderedFiles(837b00). That routine's named
+generic call at837c5e resolves to System.Linq.Enumerable.OrderBy;it orders
+the supplied file list rather than independently enumerating a directory.
+
+This settles the named direct cached-ID enumeration chain for fresh patched
+calls. It does not prove that an indirect caller cannot pass a separate
+nonempty list to either helper,or that real saved queue contents are empty.
+Other cache readers,report retries,whole wire and final installed scope
+remain open. Do not re-run this direct edge census without a changed path.

@@ -1,0 +1,55 @@
+D5 / P4 - CURRENT RECIPE34 LOCAL PUBLIC5 SDK-CACHE PATH WATCH335
+2026-10-28. Bounded selected-route PASS;P4/P8/P9/full D5 remain OPEN.
+
+Question and method
+The earlier266/267 local-public matches watched selected files under the owned
+output/profile only;269 watched the SDK cache path in an owned menu lifetime.
+This check combines a local public mode5 match with a third passive file root:
+the canonical SDK cache path.293 already binds that exact root to the original
+SDK getter result across owned runs with the same current UnityPlayer.dll hash.
+The observer records file metadata,selected user-mode network/process/browser
+APIs and exit boundaries. It does not open,seed,read or clear the real queue.
+The game is the owned recipe34 installation;the ordinary launcher/source and
+user-owned game/server were not changed. The diagnostic runner is ignored local
+data;tools/review_d5_local_sdk_route.py is the reusable evidence reviewer.
+
+Retained attempts
+local/privacy335-mode5-01 stopped before gameplay after the observer handshake
+was written with a UTF-8 BOM;its process was reaped and the failed report stays.
+local/privacy335-mode5-02 completed the original result,Continue,normal Quit0,
+job1/0/0,no force and seven selected native telemetry snapshots. The observer
+session was closed before its terminal stream was exported,so it is lifecycle
+evidence only. Its incomplete observer record stays retained.
+
+Accepted mode5 observation
+local/privacy335-mode5-03/verification.json passes the original local public5
+result,Continue and original Quit0,with seven complete native field snapshots,
+owned job1total/0active/0terminated and no forced cleanup. The reviewer binds
+the game assembly to its patch manifest,the helper to its manifest and the
+Unity image to293's live SDK-getter path binding. Source hashes are unchanged.
+
+The detached REA stream has1383 contiguous,untruncated selected events through
+both original self-termination entries. All871 selected file-operation records
+fall in the owned output/profile roots:563 output,308 profile,zero at or under
+the watched SDK cache root. There is no observer error,unknown relative root or
+overflow. All five selected send/recv calls use exactly the inherited private
+game bridge socket. Selected connect,WSAConnect,DNS,sendto,WinHttpConnect,
+process/shell creation and lazy browser activation counts are zero. This is
+bridge attribution,not a claim of complete wire capture.
+
+Ignored evidence identities
+  local/privacy335-mode5-03/verification.json SHA256
+  d6239e605a36d42388bc54eccb77f32d67c2bb60c16411b194095af4e838140f
+  local/privacy335-mode5-03/route-review.json SHA256
+  4cb74128fce93b6682925ffc91449a3ed38555e72ab420d3f70b0d0f36ac2be2
+  local/privacy335-mode5-03/rea-evidence.json SHA256
+  73cb40c7b5ee89024896d2d82ae09454bc2429acb63f51c9dd041d96280a7ccd
+  Final detached REA evidence ID:
+  ev_bc339d8c7906ce2565d863e36d3b917b7157eab9dbf047eb43a59e68f5218dda.
+
+Boundary
+This is an owned diagnostic mode5 run with explicit native automation,not an
+ordinary uninstrumented final installation. Selected user-mode hooks and three
+roots cannot establish all file APIs/threads,pre-attach activity,other cache
+locations,kernel/raw-socket wire,connected modes,report queue state or absent
+advertising-ID acquisition. P4/P8/P9/D5 stay OPEN;reuse the exact scoped result.

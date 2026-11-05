@@ -30,15 +30,23 @@ def find_openssl():
     raise unittest.SkipTest("installed OpenSSL executable unavailable; real-certificate cases not verified")
 
 
+def owned_pki_path(folder):
+    folder=Path(folder).resolve()
+    local=Path(os.environ.get('LOCALAPPDATA',''))/'BattleAcesDiagnostics/local'
+    roots=[(ROOT/'local').resolve()]+([local.resolve()] if local.is_absolute() else [])
+    if not any(folder!=root and folder.is_relative_to(root) for root in roots):
+        raise ValueError('owned repository or per-user diagnostic PKI directory required')
+    return folder
+
+
 def generate_test_pki(folder):
-    """Create fresh authored PKI under local/; caller owns cleanup of folder.
+    """Create fresh authored PKI in an owned diagnostic area; caller owns cleanup.
 
     Returns ca, cert, key, expired_cert, unrelated_ca, unrelated_key, cn_only_cert,
     encrypted_key and password_file Paths. No host trust store is accessed/changed.
     """
     openssl = find_openssl()
-    folder = Path(folder).resolve()
-    folder.relative_to((ROOT / "local").resolve())
+    folder = owned_pki_path(folder)
     folder.mkdir(parents=True, exist_ok=False)
 
     def run(*arguments):
@@ -82,12 +90,23 @@ def generate_test_pki(folder):
 
 
 def remove_test_pki(folder):
-    folder = Path(folder).resolve()
-    folder.relative_to((ROOT / "local").resolve())
+    folder = owned_pki_path(folder)
     shutil.rmtree(folder)
 
 
 class TLSParsingTests(unittest.IsolatedAsyncioTestCase):
+    def test_pki_scope_accepts_owned_children_but_not_root_or_parent(self):
+        local=Path(os.environ.get('LOCALAPPDATA',''))/'BattleAcesDiagnostics/local'
+        roots=[(ROOT/'local').resolve()]+([local.resolve()] if local.is_absolute() else [])
+        for root in roots:
+            self.assertEqual(owned_pki_path(root/'authored-case/ephemeral-pki'),root/'authored-case/ephemeral-pki')
+            for invalid in (root,root.parent,root/'..'/'outside'):
+                with self.assertRaises(ValueError):owned_pki_path(invalid)
+
+    def test_missing_localappdata_does_not_authorize_relative_external_root(self):
+        with mock.patch.dict(os.environ,{'LOCALAPPDATA':''}):
+            with self.assertRaises(ValueError):owned_pki_path(ROOT/'BattleAcesDiagnostics/local/ephemeral-pki')
+
     def test_expected_dns_ip_normalization_and_bad_names(self):
         for source, expected in (("Game.Example.", "game.example"), ("127.0.0.1", "127.0.0.1"),
                                  ("2001:0db8::1", "2001:db8::1"), ("localhost", "localhost"),

@@ -1,0 +1,33 @@
+D5 / P9 - corrected Unity Ads settings name/function pairing
+
+2026-10-30. Original/current recipe38 static review PASS;P9/D5 OPEN.
+
+The397 review paired the UnityAdsSettings::get_enabled name at192d090 with
+function slot192d0f0 by an incorrect index. The table has20 consecutive names
+at192d030..192d0c8 followed by20 function pointers at192d0d0..192d168.
+The Ads getter is index12,so its function slot is192d130 and its actual
+native entry is1f48c0. The old1f3be0 entry is index4 and pairs with
+UnityConnectSettings::get_eventUrl. The old397 receipt remains retained as
+the source of the corrected error;its claimed name/function pairing is void.
+
+The complete original1f48c0 leaf reads byte+0xc8 from the object referenced
+by global1ca49c8 and returns it. The adjacent Ads set_enabled at1f48d0
+normalizes its Boolean argument,forms global-object+0xb8 and tail-dispatches
+through virtual slot+0x20. Both short bodies and the complete20-name/20-function
+table are byte-identical in the current owned recipe38 UnityPlayer. This is a
+positive getter/setter mapping and a specific next source edge;it does not
+establish who invokes either method,what the setter's dynamic target does,or
+where the separate Main+1498/c307c0 advertising ID originates.
+
+tools.review_ads_settings_pair413 verifies the pinned original/current
+images,the complete parallel table,the index/old mispair,exact leaf bytes and
+decoded getter/setter instructions. Ignored receipt:
+ local/privacy413-ads-settings-pair01/verification.json SHA256
+ 8357681094faa2f4338e309531096f6f9d5bb9207cba56d754e5d0123f60ef7c.
+No game,identity provider,SDK queue,endpoint or installer ran. Published174
+and RUNTIME_VALIDATED=false are unchanged.
+
+Follow-up414 resolves the corrected setter's constructed-object virtual+20
+target to c03970. It writes the manager+c8 Boolean when changed and enters a
+settings notification path;see advertising-settings-setter414.txt. The
+advertising-ID callback producer remains unresolved.

@@ -1,0 +1,32 @@
+D5 / P7 - loaded recipe47 Unity Analytics post-entry result
+
+2026-10-31. Bounded loaded-entry runtime check PASS. P7/P9/D5 remain OPEN;
+RUNTIME_VALIDATED=false. No product patch or published artifact changed.
+
+The owned launcher tools/unity_post_owner513.py started the exact installed
+local/privacy512-game01 client suspended under a retained Job. All four
+installed executable/helper hashes matched recipe47 before and after launch.
+REA Frida attached to PID55384 before main-thread resume and loaded
+tools/unity_post_probe513.js (SHA256
+24ca9c18c0f437909365cd15b61f6da98e31a89d8c495453e0429189512fe148).
+The observer checked the game and UnityPlayer paths and x64 architecture,
+observed loaded UnityPlayer RVA c64e20 bytes 31 c0 c3, and hooked native
+Prepare RVA c64310 and Begin RVA c64ea0. At il2cpp_init return it called
+PerformPost as a Boolean native function with a null receiver. This is safe
+for this guarded entry because its first three instructions return without
+dereferencing the receiver. REA evidence ID for script load/messages:
+ev_f8d1a61eb3151e49419c99529760f09e43e9d107989a4e2b9d497e7e38255bb6.
+
+The single direct call returned0 (false). Prepare and Begin counters were
+both0 before and after;loaded entry bytes remained 31 c0 c3. The observer
+reported passed=true on main thread55724 and no script errors or message
+truncation. The owned smoke reached original Quit0;retained Job ended
+total1/active0/terminated0 without force. Local receipt:
+local/privacy513-postprobe01/verification.json SHA256
+f6cc410aa3b04a26cd8bf69a223eda9dcf958a04b1523e6a59af4100b420398f.
+
+This confirms the installed guard's return ABI and that this direct call
+does not enter Prepare or Begin. It does not invoke a real archived request,
+establish whether a caller retries, cover indirect Begin callers, or prove
+whole network/queue/descendant privacy. Source/direct-call evidence and
+private connected compatibility are in privacy-unity-post512.txt.

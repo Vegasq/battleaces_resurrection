@@ -1,0 +1,32 @@
+D5 / P5-P8 - direct GetProcAddress name arguments in worker DLL
+
+2026-10-30. Retained412 worker/source review PASS;full D5 OPEN.
+No game or worker was rerun.
+
+418 found65 direct .text calls to the imported GetProcAddress slot in the
+exact Simulation.dll used by both owned412 workers. This review binds63
+calls to nearby literal ASCII names passed as the function-name argument.
+Those names cover debug symbols/stack walking,Toolhelp module enumeration,
+Windows synchronization/thread/pool/file/locale helpers and CorExitProcess.
+None of the63 bound names is a selected socket,WinHTTP,Internet,DNS,connect,
+receive or send API. Their site,name and source offset are retained in the
+review receipt;the direct call and RIP-relative name instructions are matched
+to the exact DLL bytes.
+
+The two remaining direct sites,34e8bf and367508,pass a caller-supplied
+function-name pointer through R13. Both are inside the API-set loader
+functions classified at418,which select a DLL from bounded wide-name
+tables. Their caller names and any indirect GetProcAddress/loading routes
+remain unqualified. This is therefore no whole-native absence proof,and it
+does not replace OS/kernel/wire observation.
+
+tools.review_d5_simulation_getproc419 reuses the417/418 exact DLL/import
+binding,checks all65 direct sites across nine complete unwind owners and
+records63 literal name mappings plus the two argument-fed sites. Ignored
+receipt:local/privacy419-simulation-getproc01/verification.json SHA256
+e280f2579eb92be86aaa42af580ca2ecb49857d305a45d0146007c9dca3c0a72.
+P5-P8/full D5 remain OPEN;RUNTIME_VALIDATED=false,published174 unchanged.
+
+Follow-up420 binds all33 direct callers of the two API-set resolvers to
+literal non-network function names. Indirect callers and wire remain open;
+see privacy-simulation-resolver-callers420.txt.

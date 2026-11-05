@@ -1,0 +1,67 @@
+D5 / P7 - concrete SDK breadcrumb collection entry guards
+
+2026-10-28. Source,owned install and loaded-byte audit PASS;P7/D5 OPEN.
+
+315 and317 bind the original SDK web-completion callback to
+Client.LeaveNetworkBreadcrumb and guard that network collector. The game-level
+BugsnagCrashReporter.LeaveBreadcrumb was already guarded. A separate concrete
+SDK Breadcrumbs implementation has two Leave overloads. The three-argument
+overload forwards to the one-argument overload;the latter adds a breadcrumb to
+the SDK list. Game/SDK facades can dispatch through IBreadcrumbs.Leave,so
+guarding only the network collector would not cover this concrete class.
+
+Recipe30 adds RET entry guards to BugsnagUnity.Breadcrumbs.Leave with metadata
+(GameAssembly RVA835c60,metadata token6000299),Breadcrumbs.Leave (RVA835d00,
+token600029a),and Client.OnWebRequestSend (RVA818040,token60000c2). The latter
+is a distinct SDK web-send callback that processes request data before the
+completion and abort callbacks. Its entry is void. The original completion
+and abort bodies are preserved because they have their own cleanup paths;
+completion's call to the network collector is already guarded. The generic
+interface dispatch helper and Unity web requests are unchanged. Recipe30 has
+142 total guards:77 GameAssembly,63 UnityPlayer and two CEF.
+
+tools/verify_sdk_breadcrumb_collectors318.py PASS binds all three methods to
+original metadata and the BugsnagUnity.Windows method table,original unwind
+bounds,complete decoded instruction/byte matches (36,271,60),exact entry
+signatures and one-byte guards. It proves the first overload's JMP to835d00
+and the web-send callback's Client+88 read and precompletion call at81812f.
+It does not assign a further meaning to that helper. Restoring only these
+three entry bytes reproduces recipe29 GameAssembly output SHA256
+4627f1f224e5e193c0acc1205af2313c23cdc73d63a93739167726f41e8c48c3;
+current recipe30 output SHA256 is
+dd65e134d48a5da6c78ef69e48022027e89ad9ea6a5f300196d68f74e9bbf482.
+317 and307 source verifiers still pass against recipe30. The309/315 focused
+reviews pass against the upgraded owned GameAssembly.74 focused Python
+patch/audit/error/crash-gate tests pass with two optional skips;the C++ helper
+build and its tests pass.
+
+The owned local/privacy301-runtime01/game copy was upgraded from recipe29 to
+recipe30 with community/cosmetics options unchanged. Patcher dry run and
+install each verified all133 bundles. Installed GameAssembly SHA256:
+1450212059abbd083a03d3bc76ed72dbe03e18808f49c608be731bc6cd7a7a0d.
+Native helper SHA256:
+4d426f08740f03a8c1575e42d6fecb01e4e1d6c22fdce9844311c9ae52589baa.
+Manifest SHA256:
+4995216569313ea632dfd6249511dd0fd943c0d9659cd5a8b49499a18e634d25.
+Helper receipt local/privacy318-helper-build01/helper-build.json SHA256:
+8086e673324eb7bce374033c1f24c7e47abe09fc11da0242717dfe253fddd2f3.
+
+An owned menu check reports recipeVersion30,loaded/disk
+networkBreadcrumbSignatures=1/1 and breadcrumbCollectorSignatures=3/3,with
+complete selected-field stages at startup,menu and pre-Quit confirmation.
+Original Quit exits0 naturally in14.343s without forced cleanup;owned process
+reaped and shared settings/source unchanged. The check does not invoke the
+original collectors. local/privacy318-menu01/verification.json PASS SHA256:
+f579f1c93658c7f572223bc4a9a6639d0f5afcdd3055f1e06a8718550d9729a9.
+
+This closes collection through these named concrete SDK entries in the current
+owned recipe,including an independent call to either Leave overload. Other
+IBreadcrumbs implementations,retained/in-flight work,real queue/file/wire,
+all-thread/descendant attribution and P9 advertising acquisition remain open.
+Published174 and historical recipe28 private package preview316 are unchanged.
+RUNTIME_VALIDATED=false.
+319 subsequently inventories all original metadata-declared IBreadcrumbs
+implementations and finds only the guarded concrete Breadcrumbs class;see
+privacy-breadcrumb-interface319.txt.
+321 subsequently guards both upstream public Bugsnag.LeaveBreadcrumb facades
+in current source/owned recipe31;see privacy-breadcrumb-facades321.txt.

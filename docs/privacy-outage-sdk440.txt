@@ -1,0 +1,55 @@
+D5 / P6-P7 - selected SDK delivery/file route during native outage
+
+2026-10-30. Bounded current private recipe38 subcase PASS;P6/P7/D5 remain
+OPEN,RUNTIME_VALIDATED=false,published174 unchanged.
+
+The source-owned packaged verifier reran the owned public1 two-client network
+outage with both native games created suspended. REA Frida attached before
+main-thread resume and installed five exact-byte-checked passive hooks in each
+current GameAssembly:the active DeliverCachedPayloads,ProcessCachedItems and
+PushToServer iterator factories,BugsnagUnityWebRequest.SendWebRequest,and
+shared UnityWebRequest.SendWebRequest. The six already-guarded delivery,
+cached-worker and disk-write entries were checked against current disk bytes;
+their one-byte RET or short false-return prologues could not be hooked safely.
+No request,URL,header,payload,identifier or queue file was read by this check.
+
+Both clients received frame600 in the first match. The owned relay then
+closed both live TCP streams;new connection to the same port returned10061.
+The listener reopened the same port2.016seconds later. Both native clients
+used the original Reconnect confirmation,authenticated again,completed a
+distinct1220-frame match and took original Quit/Confirm exit0 in the same
+PIDs. Three jobs drained7/2/2 total processes to0 active/0 terminated,
+without forced cleanup. Installed five-hook counters were zero at both
+original self-TerminateProcess entries. Selected SDK-root file operations
+were zero in the pre-resume-to-exit observer;the9 per-client unresolved
+file operations were failed invalid-handle NtWriteFile calls,not successful
+unattributed queue reads. Positive native bridge send/receive counts were
+1823/85251 and1824/85520. Both observers reported no errors/overflow.
+
+Attempt01 used an isolated local Frida17.25.0 wheel. Its native runtime
+failed before attaching with "Unable to locate the ntdll loader TLS routines".
+The owned verifier was deliberately stopped through its server-stop sentinel;
+all owned processes exited. This attempt supplies no SDK evidence.
+Attempt02 used the configured REA Frida provider. It reached a passing native
+outage but the first hook targeted Delivery's one-byte RET and failed to
+install;hooks=[] in both clients. Zero counters from that attempt are invalid
+as SDK absence evidence. Its game and REA records are retained separately.
+The revised five active-entry observer was installed in fresh attempt03.
+
+Passing native report:local/privacy440-outage-sdk03/verification.json,
+SHA256 cabfce96fc5f36ccb4234f91cfb34067bfcccf3ff5f860bdac5ba02c889e8699.
+REA bundle:local/privacy440-outage-sdk-trace03/rea-evidence.json,
+SHA256 90d8d180629874b8bfd7bcfbb31199ef38758d6f599f7b5cabe71c364ab35bfa.
+Independent tools.review_d5_outage_sdk440 binds the current game bytes,
+observer source/gates,untruncated REA messages,raw/native outage report,
+selected file/network operations,original exits and drained jobs. It passes
+at local/privacy440-outage-sdk03/sdk-route-review.json,
+SHA256 f88c7659cdcb468302a4a55d5a66375dd7d3c2bd609a82bc96af6a396ee7b292.
+
+This directly excludes invocation of those five selected SDK entries and
+selected SDK-root file operations throughout this owned outage sequence.
+The guarded entry bytes plus the earlier source review explain why named
+fresh-process delivery routes stop before work acquisition. This does not
+inspect pre-existing queue contents,other possible cache roots/APIs,all
+threads and descendants,raw/kernel wire or SDK retry state. No real shared
+report queue was opened,seeded or cleared. P6/P7/full D5 remain OPEN.

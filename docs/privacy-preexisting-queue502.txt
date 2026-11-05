@@ -1,0 +1,59 @@
+D5 / P7 - preexisting authored cached reports before process launch
+
+2026-10-31. Current recipe45 owned preexisting-queue subcase PASS. Full
+P7/P9/D5 and RUNTIME_VALIDATED=false remain OPEN. No real shared SDK queue,
+original game installation or live reporter endpoint was read,seeded or
+cleared.
+
+tools.telemetry_preexisting_seed creates a new nativestest_ profile only
+under an owned local game copy. It writes exactly one authored .event and
+one .session payload into qc/Bugsnag before subprocess.Popen. It pins both
+source literals to known fixture hashes and records file IDs,devices,sizes
+and bytes. The verifier includes the seed module in its source snapshot,
+requires a fresh profile and compares the same file identities/bytes after
+the owned process exits. The game files permit normal deletion sharing;
+no restrictive handle makes this a false retention result.
+
+The opt-in -telemetry-preexisting-queue-probe starts a genuine original SDK
+NativeClient/Client with those files already present under its same-thread
+scoped root. The native probe checks both files before Client construction
+and again after its original constructor. Recipe45's expiry guard prevents
+constructor cleanup. The genuine CacheManager's guarded event/session lists
+return empty arrays,ID lookups return null,StartDeliveringCachedPayloads
+returns and both DeleteFile calls return. It checks unchanged Client/Delivery
+fields and both file identities/bytes,restores the scoped root,and reaches
+original same-thread Quit.
+
+The isolated game local/privacy502-game01 was copied from the retained501
+owned game and installed with the source-matched helper,community/cosmetics
+options and all133 verified assets. Installed GameAssembly SHA256
+ab73d481dc4c167671993f15884f1c7c32c441b2a26487d0728197ba02e2446e.
+Helper local/privacy502-helper-build01/BattleAcesOffline.dll SHA256
+44224029211c6d488b5039681724a48483dfb73320d89fc9c40e194e785d206c;
+source receipt SHA256
+c81c67a2bd439105b14b446804c642c29cdfa99ce37e6f78b40abe0064e86961.
+
+The initial owned run local/privacy502-preexisting01 passed,but its source
+snapshot omitted the new seed module. It is retained with that limitation.
+The corrected fresh-profile run at
+local/privacy502-preexisting02/verification.json PASS SHA256
+bfb497d949b16ccfba2eef1d510ed86bfa8bb6661d9688fec4c606d997a7adfa.
+Original Quit0 in13.344s,owned process reaped,zero forced cleanup,source
+and shared settings unchanged;prelaunch/postexit file IDs,sizes and bytes
+match exactly. Both current queue markers and the constructor-boundary
+markers pass on the same game thread.
+
+tools.review_preexisting_queue502 independently regenerates the installed
+GameAssembly,checks helper provenance and source snapshot including seed
+implementation,asserts seeding precedes subprocess.Popen,compares the
+actual files with the source literals and snapshots,and rechecks raw logs,
+run/manifest binding and the original Quit trace. PASS receipt
+local/privacy502-preexisting02/review502.json SHA256
+f2402ebd1f8673e7b67c2a9d255bf6c59552b3f0976dce0ee92c032d1152da75.
+Relevant patch,audit,queue,seed,error and Quit tests:87 run,85 pass,2 skipped.
+
+This establishes retention for two authored prelaunch queue files under one
+owned profile and a fresh patched process. It does not prove arbitrary
+ordinary queue contents,all indirect readers or deletion paths,resumed or
+in-flight original processes,whole network wire,the independent advertising
+ID provider or final installed-pair privacy. Published174 is recipe23.

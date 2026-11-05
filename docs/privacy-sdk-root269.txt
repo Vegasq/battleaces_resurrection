@@ -1,0 +1,49 @@
+D5 CURRENT INSTALLED STARTUP SDK-CACHE PATH WATCH269 - 2026-10-28
+P1 bounded selected-route PASS;P1/P8/P9/D5 remain OPEN.
+
+Question and setup
+268's retained local-public observer filtered file events to owned output/profile
+roots. This distinct owned current-installed startup/menu/original-Quit run adds
+the canonical Windows SDK cache path as a third passive file root. Original
+CacheManager.get__cacheDirectory8364e0 uses Application.persistentDataPath and
+appends /Bugsnag (telemetry-cache-contract120.txt). The watched absolute path
+is derived from that source contract and the existing Windows game-data path;
+the actual getter return was not captured. No SDK root replacement,queue read,
+seed,clear or diagnostic SDK getter call occurs. The game copy,normal launcher,
+real shared queue and product source are unchanged.
+
+Observed current installed lifetime
+local/privacy269-startup01/verification.json passes with original menu Show/
+OnConfirm/Quit0,exit0,job1/0/0,no force. Its current installed components match
+the prior264 baseline before and after;source and shared settings snapshots are
+unchanged. The native audit has three complete selected default-field stages:
+startup,menu and pre-Quit. The separate route review accepts834 contiguous,
+untruncated Frida events through the original self-termination boundary.
+Selected process/shell and lazy-browser activation calls are0.
+
+Of674 emitted selected file-operation records,zero fall at or below the added
+SDK-cache path. Selected Winsock/WinHTTP connect/DNS/send/recv counts are0 for
+this startup/menu/Quit interval. The observer reports no decode error,unresolved
+relative root or overflow,and positively records owned log/profile file events.
+It is metadata observation only;no queue contents were opened by this check.
+
+Retained ignored evidence
+ local/privacy269-startup01/verification.json SHA256
+ 409ee75fd2039886ec73c3f638afdd3550d0c50102d562ea2e5636738a861427
+ route-review.json SHA256 fd12dcac27db86a06df68a27b077e4d42b8563367fc64b95dc3664215bcefa2d
+ telemetry-review.json SHA256 93b99f3716f9f9447b5bd34289785f8a149b4db834a2c3995fa6e504dece306b
+ sdk-root-review.json SHA256 7ac598c4f6398612ef69dccc342fb0b62a82d9718f6ae3e0d73485e4b517c552
+ Final detached REA evidence ID:
+ ev_780ddaa2f0fde2cfbd78e68c9b86cfb232e508cb843d6a878b0fa23588a31204.
+The ignored runner/review scripts and exported REA bundle preserve exact owner,
+script,session,source and component identities. The REA session is closed.
+
+Boundary
+The path derives from source and Windows configuration,not a live return-value
+witness. This is an owned diagnostic direct launch with native Quit/audit flags,
+not an uninstrumented ordinary installation or full idle/restart P1 sequence.
+Selected user-mode APIs and three roots do not cover alternate paths,all APIs,
+pre-attach threads,raw socket/kernel traffic,other descendants,in-flight
+workers or every reporting producer. Zero events under this path cannot prove
+universal absence of collection or queued delivery. P1/full D5 remain OPEN;
+reuse this result for its exact path and lifetime scope.

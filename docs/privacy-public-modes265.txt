@@ -1,0 +1,58 @@
+D5 CURRENT INSTALLED LOCAL PUBLIC MODES265
+2026-10-28. P4 mode1/2/5 behavior and selected native fields PASS;P4/D5 OPEN.
+
+The current installed dirty local preview from261/262/264 was exercised through
+the original local public mode1,2 and5 buttons. tools/verify_public_ai.py now
+removes the ordinary unified launcher's -public-queue-experimental switch from
+the owned diagnostic child command,so -public-ai-experimental takes the local
+fallback branch in OfflineDedicatedJoinQueue. The ordinary launcher and normal
+product command remain unchanged. Every run uses a fresh isolated publicai_
+profile under the owned game. The tool also accepts an opt-in read-only
+-telemetry-audit flag and checks each requested match's ordered stages.
+
+Mode1 in local/privacy265-public-mode02 PASS:original OnMapSelected,one bot,
+native match/result/Continue/menu. The verifier records a bot supply120 and
+correlated movement/order evidence;native in-game and result identity bindings
+are present. Six complete field snapshots cover startup/menu/ingame/postgame/
+menu. All15selected main/session/performance scalar fields are constructor
+default0 and singleton pointers stable. Recipe23/current installed Unity hash
+a53b0c613a86c737b7caa7588c7c93ae20d5d5700f9321a406df9dcca8e32a7f.
+
+Modes2 then5 in one PID in local/privacy265-public-modes25 PASS:both original
+OnMapSelected callbacks,native result/Continue/menu twice,a valid changed
+human deck and autonomous movement/orders for three bots in each match.
+The mode2 bot profiles are59/59/59;mode5 are60/59/60. Ten complete read-only
+field snapshots cover BOTH ordered game/result/menu transitions,with the same
+15default0 fields and stable singleton pointers. A stricter post-run review
+uses the existing verifier on retained logs with both required cycles;its
+telemetry-strict.json passes. No configured remote connection or invite read
+occurred;the local diagnostic used the normal secure bridge startup without
+remote admission. Source files and installed helper remained unchanged during
+each accepted run. The tool itself gained stricter two-match stage checking
+after the accepted runs;the separate retained-log reviews bind that final check.
+
+These automated probes intentionally terminate the owned game after the final
+menu. Reaped process is not original Quit,or whole-job/tree/wire attribution.
+Native field snapshots are selected scalar samples,not full collection/queue
+absence or P9 advertising producer closure. Current source all-mode local
+behavior is strengthened;P4 still needs effective reporting/network attribution
+and normal shutdown where applicable. D5/RUNTIME_VALIDATED remain OPEN/false.
+No package,ordinary launcher,server,manual game or shared report queue changed.
+
+Preserved failures:local/privacy265-game01 direct offline-practice launch missed
+-unified-client and timed out before a match;game02 added it but lacked the
+required private bridge/compatible unified launch and was stopped only after
+its owned PID/path was verified. local/privacy265-public-mode01 used the normal
+ordinary public-queue switch;the queue route took precedence and its local AI
+assertion failed. None of these is a privacy PASS. Their reports/logs and the
+two Frida bundles remain retained. The final diagnostic source correction is
+the explicit local-queue switch removal used in both accepted public runs.
+
+Accepted report SHA256:
+ mode1 929da16099f072e3f54d34c5549ab3a2b927ddc1eba97d0a38e0d058af5641df;
+ modes2/5 08ef722ce2d8001110e553d92ecdb29866351a997efc115f6d8b7ba14fc91eb9.
+Strict telemetry review SHA256:
+ mode1 c82752aea5c95873dc4460fccfc41fac0ddbb5a7c66947c98979bf647e17fa52;
+ modes2/5 e1e6cfe9451bd4ad09131537ba1aa33b9eb2f68992095a5afc51f6a22fc0617d.
+Current tools/verify_public_ai.py SHA256:
+ f67428d64a4d430425f2f87fea4265193b6e4b5fd28dd32f6ea27cda527456ee.

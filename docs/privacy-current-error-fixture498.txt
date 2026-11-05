@@ -1,0 +1,52 @@
+D5 / P7 - recipe44 SDK error fixture applicability
+
+2026-10-31. The current recipe44 error fixture is INCOMPLETE. An isolated
+owned game passes the updated recipe44 audit and original Quit0,but the
+historical genuine Client/error fixture does not reach its report-error
+entries. P7/P9/D5 stay OPEN,RUNTIME_VALIDATED=false. No shared SDK queue,
+original game installation or user profile was changed.
+
+The old fixture357 reconstructed two authored cached reports through original
+CacheManager readers. Recipe44 deliberately guards those readers. Its old
+diagnostic helper also still labelled the audit recipe40. A separate copy of
+local/privacy487-game01 was made at local/privacy498-game01;all1884 files,
+8,054,857,032 bytes and GameAssembly SHA256 matched. Normal patcher dry run
+and install verified all133 assets and enabled only owned Quit diagnostics
+alongside the existing community/cosmetics options. First actual run:
+local/privacy498-error01/verification.json SHA256
+c78770d40e361224d899ff270a55c3451bfdc9293f6c1e47c2de52a2ce6502ae.
+It exited through original Quit0 without force,but the verifier refused the
+helper's recipe40 label. This is retained FAILED;the earlier attempt against
+the non-diagnostic game stopped at preflight without launching it.
+
+The diagnostic helper now labels recipe44 and verifies four loaded/on-disk
+CacheManager guards:RemoveExpiredPayloads,GetFilesBySuffix,
+GetJsonFromCachePath and GetCachedDeviceId. The read-only log parser accepts
+recipe44 only with all four signatures and rejects undeclared recipes41-43;
+31 focused tests pass. Current helper build
+local/privacy498-helper-build01/BattleAcesOffline.dll SHA256
+99643c9c1ff4a383e53eea1801f50b432e1676ec3549ef5cca58b1162c4e3a54;
+its source receipt SHA256
+41d6d473ad57c18f947626a57af0d4b53fecf4fc94c6b25c207250b0f9c295b2.
+The rebuilt helper was installed only in the owned498 copy.
+
+The second run local/privacy498-error02/verification.json SHA256
+c1cfd56d2f20e6589290d3c14bcce577450bde1a10a82e4244ce01a64886c879
+has a PASS telemetry audit:recipe44,58/58 Unity core and4/4 new cache
+reader guard signatures,three complete startup/menu/pre-Quit samples on the
+original Quit thread. The game exited0,naturally,with no forced cleanup;
+owned process reaped,source files and shared settings unchanged. The scoped
+cache path probe passed,then the old cache fixture refused the loaded
+RemoveExpiredPayloads body at RVA836b50 because it now has the recipe41
+entry RET. The CACHETYPE,Client and seven REPORTERROR proof entries were not
+reached. The overall run remains FAILED. Its raw log is retained under
+local/privacy498-game01/investigation/runtime/dedicated-native-53884.log.
+
+Next build a recipe44 fixture that initializes a genuine reporting-disabled
+Client with authored in-memory inputs while keeping the current cache guards
+active. It must exercise the seven error entries and original local exception
+logging without assuming the obsolete original cache reads. Review it
+independently and preserve these failed reports. The prior recipe38 fixture
+does not qualify this changed recipe,and the private489/496 gameplay pair
+still uses the previous helper;its exact historical source binding remains
+valid for that helper,not the new diagnostic build.

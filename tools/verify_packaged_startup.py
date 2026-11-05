@@ -2,8 +2,9 @@
 
 Uses the shipped CMD, bundled runtime, package integrity check and ordinary
 launcher. No automatic gameplay, screenshot or diagnostic game flags are added.
-An owned Windows job forcibly reaps the whole process tree after menu readiness;
-this is not native Quit, physical input, clean-PC or Internet acceptance.
+By default an owned Windows job reaps the tree after menu readiness. An optional
+owned-window close observes ordinary process shutdown; it is not in-game Quit,
+physical input, clean-PC or Internet acceptance.
 """
 from __future__ import annotations
 
@@ -18,15 +19,46 @@ import secrets
 import subprocess
 import time
 import traceback
+from ctypes import wintypes
 
 from client_patch.transport import client, launcher
 from server.worker_client import _WindowsJob
 from tools.package_integrity import verify
+from tools.game_installer import launcher_bytes
 from tools.run_secure_match import read_native_log
 from tools.verify_custom_lobby import require
 from tools import verify_unified_startup as startup_probe
 
 ROOT = Path(__file__).resolve().parents[1]
+
+
+def close_owned_window(pid):
+    user = ctypes.WinDLL('user32', use_last_error=True)
+    callback_type = ctypes.WINFUNCTYPE(wintypes.BOOL, wintypes.HWND, wintypes.LPARAM)
+    user.EnumWindows.argtypes = [callback_type, wintypes.LPARAM]
+    user.EnumWindows.restype = wintypes.BOOL
+    user.GetWindowThreadProcessId.argtypes = [wintypes.HWND, ctypes.POINTER(wintypes.DWORD)]
+    user.GetWindowThreadProcessId.restype = wintypes.DWORD
+    user.GetClassNameW.argtypes = [wintypes.HWND, wintypes.LPWSTR, ctypes.c_int]
+    user.GetClassNameW.restype = ctypes.c_int
+    rows = []
+    def visit(hwnd, _):
+        owner = wintypes.DWORD()
+        user.GetWindowThreadProcessId(hwnd, ctypes.byref(owner))
+        if owner.value == pid:
+            name = ctypes.create_unicode_buffer(256)
+            count = user.GetClassNameW(hwnd, name, len(name))
+            rows.append((int(hwnd), name.value if count else ''))
+        return True
+    if not user.EnumWindows(callback_type(visit), 0):
+        raise ctypes.WinError(ctypes.get_last_error())
+    matches = [hwnd for hwnd, name in rows if name == 'UnityWndClass']
+    require(len(matches) == 1, 'exactly one owned Unity window required for close')
+    user.PostMessageW.argtypes = [wintypes.HWND, wintypes.UINT, wintypes.WPARAM, wintypes.LPARAM]
+    user.PostMessageW.restype = wintypes.BOOL
+    if not user.PostMessageW(matches[0], 0x0010, 0, 0):
+        raise ctypes.WinError(ctypes.get_last_error())
+    return matches[0]
 
 
 def cmd_command(wrapper, config, game):
@@ -42,6 +74,10 @@ def cmd_command(wrapper, config, game):
 def run(args):
     package, game, output = (path.resolve() for path in (args.package, args.game, args.output))
     require(os.name == 'nt' and 60 <= args.timeout <= 300, 'bounded Windows probe required')
+    require(0 <= args.idle_seconds <= 60 and args.idle_seconds + 30 < args.timeout,
+            'bounded ordinary menu idle interval required')
+    require(not args.window_close or args.idle_seconds > 0,
+            'window-close probe requires a measured idle interval')
     require(all(path.is_relative_to(ROOT/'local') for path in (package, game, output)),
             'owned package, game and evidence paths below local/ required')
     inventory = verify(package, 'client')
@@ -49,16 +85,29 @@ def run(args):
     helper = package/'program/client-helper/BattleAcesOffline.dll'
     require(helper.read_bytes() == (game/'BattleAcesOffline.dll').read_bytes(),
             'install the same packaged helper into the owned game first')
-    wrapper = package/'Start Client.cmd'
-    expected = ('@echo off\nsetlocal\n"%~dp0program\\runtime\\python.exe" -I -B '
-                '-m tools.package_client start %*\nexit /b %errorlevel%\n')
-    require(wrapper.read_text() == expected, 'Start Client wrapper differs from the qualified command')
+    if args.installed_launcher:
+        relative = package.relative_to(game).as_posix()
+        wrapper = game/'Start Battle Aces.cmd'
+        require(wrapper.read_bytes() == launcher_bytes(relative),
+                'installed game launcher differs from the qualified command')
+    else:
+        wrapper = package/'Start Client.cmd'
+        expected = ('@echo off\nsetlocal\n"%~dp0program\\runtime\\python.exe" -I -B '
+                    '-m tools.package_client start %*\nexit /b %errorlevel%\n')
+        require(wrapper.read_text() == expected, 'Start Client wrapper differs from the qualified command')
     output.mkdir(parents=True, exist_ok=False)
     cwd = output/'foreign cwd';cwd.mkdir()
     for name in ('sitecustomize.py', 'tools.py', 'client_patch.py'):
         (cwd/name).write_text('raise RuntimeError("foreign module must not run")\n')
     config_path = output/'relocated config/client.json'
-    profile = 'packageprobe_'+secrets.token_hex(6)
+    profile = args.existing_profile or 'packageprobe_'+secrets.token_hex(6)
+    if args.existing_profile:
+        require(re.fullmatch(r'packageprobe_[0-9a-f]{12}', profile) is not None,
+                'exact owned package probe profile required')
+        profile_folder = game/'.battleaces-resurrection/profiles'/profile
+        require(profile_folder.is_dir() and not profile_folder.is_symlink() and
+                profile_folder.resolve().is_relative_to(game/'.battleaces-resurrection/profiles'),
+                'existing profile must be inside the owned game')
     settings = client.defaults(game)
     settings.update(local_profile=profile, display_name='Packaged Player')
     config_path.parent.mkdir()
@@ -73,7 +122,9 @@ def run(args):
                   package_inventory_sha256=hashlib.sha256(json.dumps(inventory, sort_keys=True).encode()).hexdigest(),
                   shared_settings_before=startup_probe.shared_state(args.shared_settings.resolve()),
                   source_sha256_at_start=startup_probe.source_hashes(), verifier_sha256=own_source,
-                  forced_cleanup=True, natural_quit=False)
+                  forced_cleanup=True, natural_quit=False,
+                  window_close_requested=args.window_close,
+                  installed_launcher=args.installed_launcher)
     started = time.monotonic()
     parent = job = None
     game_handle = None
@@ -134,6 +185,32 @@ def run(args):
                         report['menu_ready_seconds'] = time.monotonic()-started
                         report['ordinary_features_ready'] = True
                         report['no_match_or_diagnostic_actions'] = True
+                        settings_path = game/'.battleaces-resurrection/profiles'/profile/'gameconfig-localuser.toml'
+                        require(settings_path.is_file(), 'ordinary menu settings are missing')
+                        menu_settings_sha = hashlib.sha256(settings_path.read_bytes()).hexdigest()
+                        idle_started = time.monotonic()
+                        while time.monotonic()-idle_started < args.idle_seconds:
+                            require(parent.poll() is None and kernel.WaitForSingleObject(game_handle, 0) != 0,
+                                    'ordinary client stopped during idle interval')
+                            current = read_native_log(game, pid, since_tick=tick)
+                            require(not any(marker in current for marker in ('Practice requested:',
+                                'Native world lease acquired:', 'worldReady=1', 'SMOKE')),
+                                'ordinary menu entered gameplay or diagnostics during idle')
+                            time.sleep(.2)
+                        report['idle_seconds_observed'] = time.monotonic()-idle_started
+                        report['menu_settings_sha256'] = menu_settings_sha
+                        report['idle_settings_sha256'] = hashlib.sha256(settings_path.read_bytes()).hexdigest()
+                        require(report['menu_settings_sha256'] == report['idle_settings_sha256'],
+                                'ordinary menu settings changed during idle')
+                        if args.window_close:
+                            report['window_close_hwnd'] = close_owned_window(pid)
+                            report['window_close_posted'] = True
+                            require(kernel.WaitForSingleObject(game_handle, 60000) == 0,
+                                    'owned game did not exit after WM_CLOSE')
+                            require(parent.wait(timeout=15) == 0,
+                                    'packaged wrapper did not exit zero after WM_CLOSE')
+                            report['window_close_exit_zero'] = True
+                            report['forced_cleanup'] = False
                         report['passed'] = True
                         break
                 require(time.monotonic()-started < args.timeout, 'packaged native startup timed out')
@@ -174,6 +251,11 @@ def main():
     parser = argparse.ArgumentParser(description=__doc__)
     for key in ('package','game','output','shared-settings'): parser.add_argument('--'+key, type=Path, required=True)
     parser.add_argument('--timeout', type=int, default=180)
+    parser.add_argument('--existing-profile', help='reuse an exact owned packageprobe profile from a prior run')
+    parser.add_argument('--idle-seconds', type=int, default=0, help='bounded ordinary menu lifetime before owned cleanup')
+    parser.add_argument('--window-close', action='store_true', help='post WM_CLOSE to the unique owned Unity window after idle; observe ordinary exit')
+    parser.add_argument('--installed-launcher', action='store_true',
+                        help='use the exact installed Start Battle Aces.cmd and its installed runtime')
     return run(parser.parse_args())
 
 

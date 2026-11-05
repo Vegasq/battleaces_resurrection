@@ -52,19 +52,27 @@ def shared_state(path):
 def native_settings_evidence(game, output, pid, tick, profile):
     raw = (game/'investigation/runtime'/f'dedicated-native-{pid}.log').read_bytes()
     complete = raw[:raw.rfind(b'\n')+1].decode('utf-8').replace('\r\n', '\n')
+    lines = complete.splitlines()
     rows = []
-    for line in complete.splitlines():
+    for index, line in enumerate(lines):
         match = re.match(r'^\[(\d+)\] NATIVE SETTINGS path selected: (.+) BA_RESURRECTION_NATIVE_SETTINGS_V1$', line)
-        if match and int(match[1]) >= tick: rows.append((int(match[1]), json.loads(match[2])))
-    starts = [int(value) for value in re.findall(r'^\[(\d+)\] Offline initial state reached after game initialization\. PID='+str(pid), complete, re.M)
-              if int(value) >= tick]
-    require(len(rows) == len(starts) == 1 and rows[0][0] < starts[0], 'isolated path was not selected before this process initialized')
-    proof = rows[0][1]
+        if match:
+            proof = json.loads(match[2])
+            if int(match[1]) >= tick and proof['profile'] == profile:
+                rows.append((index, int(match[1]), proof))
+    require(len(rows) == 1, 'isolated path was not selected exactly once for this launch/profile')
+    selected_index, early_tick, proof = rows[0]
+    following = lines[selected_index+1:]
+    next_selection = next((i for i, line in enumerate(following)
+        if ' NATIVE SETTINGS path selected: ' in line), len(following))
+    current = '\n'.join(following[:next_selection])
+    starts = [int(value) for value in re.findall(r'^\[(\d+)\] Offline initial state reached after game initialization\. PID='+str(pid), current, re.M)]
+    require(len(starts) == 1 and early_tick < starts[0], 'isolated path was not selected before this process initialized')
     expected = game/'.battleaces-resurrection/profiles'/profile/'gameconfig-localuser.toml'
     require(proof['profile'] == profile and all(proof[key] is True for key in ('beforeNativeLoad', 'isolated', 'writerLock')) and
             Path(proof['path']) == expected and expected.resolve() == expected, 'native settings destination differs from the configured installation/profile')
     verified = [int(value) for value in re.findall(r'^\[(\d+)\] NATIVE SETTINGS path verified: profile='+re.escape(profile)+
-                r' staticField=1 getterCalled=0 isolated=1$', complete, re.M) if int(value) >= tick]
+                r' staticField=1 getterCalled=0 isolated=1$', current, re.M)]
     require(len(verified) == 1 and verified[0] >= starts[0],
             'initialized native loader field was not checked')
     data = expected.read_bytes();require(0 < len(data) <= 1024*1024, 'native TOML missing or oversized')
@@ -76,7 +84,7 @@ def native_settings_evidence(game, output, pid, tick, profile):
             all(type(value) is int and 0 <= value <= 0xffffffff for value in selected['activeAbilityGroups']),
             'isolated native deck has invalid identifier types/ranges')
     (output/'isolated-localuser.toml').write_bytes(data)
-    return dict(path=str(expected), profile=profile, early_tick=rows[0][0], startup_tick=starts[0], static_field_verified=True,
+    return dict(path=str(expected), profile=profile, early_tick=early_tick, startup_tick=starts[0], static_field_verified=True,
                 native_toml_sha256=hashlib.sha256(data).hexdigest(), native_toml_bytes=len(data), selected_deck=selected)
 
 

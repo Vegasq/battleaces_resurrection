@@ -1,0 +1,32 @@
+D5 / P9 - Main constructor's immediate member-initialization callees
+2026-10-30. Bounded original/current recipe38 static review PASS;P9/D5 OPEN.
+
+The complete original Main constructor stores the secondary advertising
+callback vtable at Main+1498. Four other immediate post-store callees had not
+been classified at this interface boundary. Their seven callsites receive
+later Main members:Main+1668/+16b0 for c2d240/c2cc30 and list members
+Main+1710/+1720 for c45cb0/c46540. The two large member constructors
+initialize string/config fields;the short helpers allocate a list root and
+walk/list-manage nodes. None of the four complete decoded bodies directly
+names Main+1498 or c307c0. The separate constructor c673b0 platform handoff
+was already reviewed in334;this report does not relabel or repeat it.
+
+tools/review_ads_constructor_callees388.py checks105 contiguous original
+constructor instructions and886 contiguous instructions across four complete
+unwind-bounded callees. It binds the receiver arithmetic and all seven
+callsites,checks whole callee bodies against original and current owned
+recipe38 bytes,and verifies the current constructor's existing default-byte
+change. Ignored disassembly/report:local/privacy388-ads-constructor-callees01;
+verification.json PASS SHA256
+ffd65b6e136635efffb7d11e16013fee42932fd1a1c542db7e4d79130b902c24.
+
+This narrows the constructor's immediate post-vtable calls;it does not prove
+that deeper/indirect code or another lifecycle path cannot acquire an ID or
+invoke the callback. P9's upstream producer/registration,real queue/wire and
+final installed release remain open. No game,ID query,queue,installer or
+network endpoint was run;published174 is unchanged.
+
+Follow-up424 (2026-10-30):the post-vtable direct call c333a0 to c45ac0
+was outside this four-target review. It initializes Main+1750's tree root;
+see advertising-constructor-tree424.txt. The original388 scope/result remains
+retained;its four-target inventory is not a complete constructor call list.

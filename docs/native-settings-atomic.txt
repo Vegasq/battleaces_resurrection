@@ -175,3 +175,194 @@ Concurrent/reentrant state mutation,escaping managed faults,arbitrary power loss
 storage-device failures,hostile same-user external edits and nonqualified
 filesystems are not covered merely by the process writer lock or flush call.
 Final package/upgrade/restore/manual acceptance remains open.
+
+FOLLOW-UP209 - 2026-10-26 - OWNED NATIVE FLUSH-RESULT FAILURE
+The named missing API-failure case now passes with the installed recipe23/helper169
+client. tools/verify_settings_flush.py owns a fresh profile in local/r171g and
+launches background native clients. No product source/helper/package change.
+REA observes FlushFileBuffers calls whose return address belongs to the exact
+installed BattleAcesOffline.dll and whose handle resolves to this profile's
+ba-XXXXXXXX-XXXXXXXX.tmp sibling. It changes the returned success to FALSE and
+ERROR_WRITE_FAULT(29),after the real flush returns. Other calls remain unchanged.
+This is an injected API-result failure,not a failing disk or durability proof.
+
+Corrected run02 passes48.094s. Exactly one selected flush is faulted. The helper
+reports 'native settings output flush failed';no matching FileRenameInfo call
+occurs while the fault is armed. The original deck edit remains live but the old
+1149-byte TOML is byte-for-byte preserved through the original failure dialog,
+automated OK acknowledgment and pooled-dialog release. No direct table mutation
+or replacement settings serializer was used. After explicit REA script unload,
+the original Save retry succeeds with the same live units/abilities. The saved
+file changes;fresh native restart exports those same selected values. Full TOML
+hash equality across restart is not required because native startup saves other
+fields. Both processes use original menu Quit and exit0;two jobs1/0/0,no force.
+Shared settings,replays and backup snapshots and source hashes remain unchanged.
+
+Evidence:local/settings209-flush02/verification.json
+SHA256:4c3f98886fc687308edc5ffb42d7318be86e24b7d14e42c69ad070df4e8aa6ba
+Before TOML:842a8f5d16f5dd5371056d3dfd7b053bbbcd3104509fccd8b0e2f637d7790c1f
+Retry TOML:5868b03a4866fd6555b0c2ee9e8bbd855a7a91adbd738f8fd6bca9d670c43709
+REA loaded-script digest equals the retained script/controller digest. Complete
+REA Evidence,journal,per-process native logs/Quit traces,TOML captures,source
+snapshots and SHA inventory remain under that ignored evidence directory.
+Eight focused Python tests pass on3.12 and3.14:three new fault-evidence controls
+plus five existing native-settings controls. Negative controls reject absent
+failure,wrong PID/order/result,error and observed publication during the fault.
+
+Failed run01 is retained at local/settings209-flush01/verification.json. Its
+failure/retry/first Quit and restarted deck readback succeeded,but the second
+Quit could not CREATE_NEW its trace because the first process's trace occupied
+the path. The controller timed out and forcibly reaped the second process.
+That is NOT normal-Quit acceptance. The harness now archives each trace after
+its owning process exits before reusing the profile. Run02 repeats the changed
+controller sequence and passes both normal Quits. Prior planning and exact run01
+source are retained under local/settings209-flush01.
+
+Limits:instrumented native existing-target failure,automated original UI calls,
+local Windows owned installation only. No physical-input/visual claim,first-ever
+save fault,power-loss/device fault,late publication failure,custom-permission
+mismatch,all-filesystem or final package/manual acceptance follows. No new build
+or publication;latest local203/published174 remain unchanged. Next named gap:
+publication failure after successful flush,with old-target preservation and retry.
+
+FOLLOW-UP210 - 2026-10-26 - REAL LATE PUBLICATION REFUSAL
+The existing verifier now accepts --fault publication. It observes a successful
+real FlushFileBuffers on the owned settings sibling,then checks the original
+FileRenameInfo destination,ReplaceIfExists flag and matching completed-flush path.
+Immediately before that original API call,it opens only the owned destination
+with GENERIC_READ and FILE_SHARE_READ|FILE_SHARE_WRITE,omitting delete sharing.
+The real Windows replacement fails;the probe closes its temporary target handle
+and preserves the observed API result/error. No return value is fabricated in
+this mode,no file permissions/content are changed,and no production code changes.
+The documented sharing contract is context,not substitute runtime evidence:
+https://learn.microsoft.com/windows/win32/api/fileapi/nf-fileapi-createfilea
+
+Corrected native run02 passes49.360s on installed recipe23/helper169/local/r171g.
+One complete flush precedes one late target lock and one actual replacement
+refusal,ERROR_ACCESS_DENIED(5). The helper's publication-failure log agrees.
+Original notice/acknowledgment/pool release completes with the previous1149-byte
+TOML unchanged. The live edited deck differs from disk. After REA unload,original
+Save persists that same live choice;fresh native startup reads it back. Both
+original menu Quits exit0;two jobs1/0/0,no force. Shared settings/replays/backup
+snapshots and source hashes remain unchanged. No package build or publication.
+
+Evidence:local/settings210-publication02/verification.json
+SHA256:23747b5bbe8a96a99797618fe75bedbe24a585f5953f1f91b7f1b0b03bc2fb49
+Before TOML:842a8f5d16f5dd5371056d3dfd7b053bbbcd3104509fccd8b0e2f637d7790c1f
+Retained source/script/REA Evidence,native logs,TOML captures,per-process Quit
+traces and evidence-manifest.json bind this result. Loaded-script,file and
+controller SHA256 values match. Prior planning/source snapshots are preserved
+under local/settings210-preparation01.209's tested source remains separately
+retained;its native flush case was not repeated to qualify publication210.
+
+First run01 is FAILED and preserved. The real API returned5 and old bytes were
+preserved,but the new verifier incorrectly required32. It stopped after the
+notice and forced cleanup;no Quit/retry acceptance comes from that run. The
+corrected verifier accepts observed5/32 only with successful flush,same temporary
+path,late lock acquisition,actual false rename result,closed lock and matching
+native error log. Three new controls reject wrong order/path,failed flush,
+delete-sharing lock,successful rename,unrelated error,unreleased lock and missing
+boundaries. Eleven focused tests pass on both Python3.12 and3.14.
+
+This qualifies a real sharing-induced existing-target replacement refusal at
+the late publication boundary. It does not establish arbitrary disk/driver or
+power-loss behavior,hostile concurrent edits,custom-permission mismatch,physical
+UI acceptance or final release. Full D4 remains OPEN. Next named gap:first-save
+failure when no previous target exists;require no partial target and usable retry.
+
+FOLLOW-UP211 - 2026-10-26 - FIRST STARTUP SAVE FAILURE/RETRY
+The first-save contract needed one correction from observed original behavior:
+startup creates a zero-byte canonical TOML before its first atomic save. Absence
+throughout startup is therefore not the original contract. The required safety
+claim is no partial serialized settings in that original empty placeholder,
+followed by successful retry/readback. No game code was changed to erase or
+bypass the placeholder. No existing/shared file was supplied to the new profile.
+
+The trace records target OPEN_EXISTING failing with2,then CREATE_ALWAYS succeeding
+with size0,then read/open of that empty file before the first atomic flush. The
+creation returns to installed GameAssembly.dll+600893,in function600720..600938.
+That complete body is byte-identical to the pinned original image:
+body SHA25691e18ce93239b56b60851abca5347ab139edda9f843e84a4f36a88508df8a95c.
+This identifies the original executable boundary,not a guessed managed method.
+See local/settings211-first05/placeholder-origin.json and retained module Evidence.
+
+tools/verify_settings_flush.py --first-save uses the existing SuspendedChild to
+own a hidden diagnostic process/job and retain its primary thread. The probe is
+armed while the target is absent,before exactly one ResumeThread(count1). Early
+helper binding uses GetModuleHandleW,exact module path and PE image extent at
+the file-call boundary. Only the new profile's ba-*.tmp flush results are changed
+to FALSE/ERROR_WRITE_FAULT29. The separate native directory preflight remains
+real and untouched. Canonical opens/writes and unexpected rename are observed.
+
+Run05 passes59.265s. All18 startup saves are refused after real flush success.
+There is one original zero-byte creation,no canonical payload write and no
+matching rename while armed. The placeholder remains empty at menu and through
+the original save-failure notice/automated acknowledgment/pool release. Startup
+log preservation proves no successful settings save before probe unload. After
+unload,the original native deck edit triggers a successful Save and produces a
+valid nonempty TOML. A fresh client reads the selected units/abilities back.
+Both original menu Quit sequences exit0;two jobs1/0/0,no force. Shared settings,
+replays/backup snapshots and source hashes remain unchanged. Product/helper and
+packages unchanged;latest local203/published174 remain the same.
+
+Evidence:local/settings211-first05/verification.json
+SHA256:dfebbcb676eafbebb621e449ec1bdcd6cbd7c5475fc1b7efbfa10b1fa8aa1f4e
+Owned suspended receipt,full REA Evidence,script/journal,module extents,origin
+binding,native logs/settings/Quit traces,source snapshots and evidence-manifest
+are retained there. Script/controller/REA-load SHA256 agree. Prior planning and
+source bytes are retained in local/settings211-preparation01. Fifteen focused
+controls pass on Python3.12 and3.14. New controls reject missing/late helper
+binding,unproved or nonempty placeholder,canonical payload writes and publication;
+the startup-log control retains pre-menu saves while excluding old-PID/partial
+lines. Existing209/210 controls still pass;their native cases were not rerun.
+
+Failed attempts remain FAILED,with forced owned cleanup,under settings211-first:
+01:module observer did not bind the early helper;fault was never exercised.
+02:early binding faulted18saves,but absence-only assertion rejected the original
+   zero-byte placeholder. This prompted actual canonical-file creation tracing.
+03:tracing confirmed the placeholder;an extra still-faulted deck edit triggered
+   a second dialog and hit the diagnostic's single-capture destination refusal.
+   The final test recovers directly from startup failure before editing again.
+04:post-menu-only log reader omitted the early failure lines. Raw logs retained
+   them. The verifier now selects complete lines by launch tick,including startup.
+None establishes normal Quit/recovery acceptance;run05 supplies that evidence.
+
+Scope:instrumented first-startup flush-result failure with original placeholder,
+followed by successful retry before exit. It is not physical device/power-loss
+qualification,nor proof of exit/restart while the failure is still unresolved.
+Next named D4 case:normal Quit with the save failure unresolved,then startup
+from the untouched zero-byte placeholder and subsequent native Save/readback.
+
+FOLLOW-UP212 - 2026-10-26 - NORMAL QUIT WITH SAVE FAILURE UNRESOLVED
+The verifier's --first-save --quit-unresolved variant retains the same selected
+flush-result fault through original Quit instead of unloading it before retry.
+Run01 passes60.422s.18startup saves fail;two additional saves fail during shutdown,
+including after original OnConfirm.dispatch. No successful settings publication,
+canonical payload write or matching rename occurs in that first process. It
+exits0 through the five original Quit trace events while the placeholder stays
+zero bytes. The probe disappears with process exit;no premature unload is used.
+
+The next uninstrumented process opens that same untouched profile,parses the
+empty TOML successfully,and reaches the original menu with the expected default
+units/abilities. Its normal startup saves produce a valid settings file. An
+original native deck edit then saves successfully. After normal Quit,a third
+process reads those selected units/abilities back and also quits normally0.
+All three owned jobs1/0/0;no forced cleanup. Shared settings/replays/backup and
+source hashes remain unchanged. No game/helper/package/normal-launcher changes.
+
+Evidence:local/settings212-exit01/verification.json
+SHA256:76a707e014fcf8581aecfad2bdf1e695a9146b864ad7cd4f3066865257491df1
+The report distinguishes fault at menu(18) from fault through Quit(20),records
+the empty target after exit,and binds recovery settings and all three Quit
+traces. Full REA Evidence,script/journal,native logs,TOML captures,suspended-owner
+receipt and source/evidence manifests are retained. Script/controller/REA-load
+SHA256 agree. Prior planning/source bytes:local/settings212-preparation01.
+
+Sixteen focused controls pass on Python3.12 and3.14. The new unresolved-exit
+control rejects an unloaded/ineffective fault at Quit,missing confirmation,
+no additional failure,wrong failure timing and any successful save before exit.
+This is a normal native shutdown/restart case with an injected flush result,
+not process kill,power loss or a physical disk failure. Original placeholder
+ownership findings and earlier failed attempts remain as recorded in211.
+The named209-212 save-failure cases are complete at their explicit scopes;
+other D4 storage/replay/physical/final-installed requirements remain OPEN.

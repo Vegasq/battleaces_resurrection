@@ -1,0 +1,36 @@
+D5 / P5-P9 - recipe40 private connected match compatibility
+
+2026-10-31. A source-bound recipe40 private client/server pair passed one
+public1 two-human match. This closes the connected compatibility subcheck for
+the AdsIdHandler static cut. P9/D5 remain OPEN;RUNTIME_VALIDATED=false.
+
+The private packages at local/privacy462-packages01 were built from the current
+dirty source,helper461 and source-receipted launcher,installer,certificate tool
+and pinned Python3.14.8 runtime. The source-aware builder verified the
+compiled-tool receipts. Client ZIP SHA256:
+4aba57cbbaa834f5277acc8e234f06313d5346534a769289589bba9f066d3133.
+Server ZIP SHA256:
+3659b56d81e4733890f4e22b06ad2a97c8310acd0cb56ff2c92132b7dffa692f.
+
+The owned local/privacy461-game01 has recipe40 in its manifest and installed
+UnityPlayer SHA256 d45b20470f41a05abf1513f7be65f27506f7dc63decfca625caab21792a04a98.
+Its helper SHA256 is 59aebb2db4a6778f817e6135b6ba767f54f1087cac69d9b65b5fda009fbb276f.
+Read-only local/privacy462-review.py regenerated the UnityPlayer from the
+pinned pristine source,confirmed the helper and both package inventories,
+then checked the connected report:PASS at local/privacy462-connected01/review462.json.
+
+The source-bound verifier used production RC open admission on the isolated
+TLS host,normal client and server adapters and two native clients. The match
+reached1220 frames with a complete result;both clients used original
+Continue/menu/Quit Confirm and exited0. Two simulation workers exited0/reaped.
+All three owned Jobs ended active0/terminated0 with no forced cleanup. The
+host listener and state lock released. Package,asset,config,shared settings
+and source snapshots were unchanged. Retained report SHA256
+e108e105b6ea3ea6b2e037471e90c1dc0e0f6be598a08766772e52e17b3a554b.
+
+This run establishes one connected compatibility path for recipe40. It does
+not identify the separate native advertising-ID acquisition provider or
+exclude computed/global aliases,other modes,SDK queue reads,whole wire,
+indirect descendants or final public installed privacy. Published174 remains
+recipe23 and unchanged. Next:trace the independent native producer/registration
+edge,then complete remaining P1-P8 attribution and final installed binding.

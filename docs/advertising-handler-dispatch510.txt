@@ -1,0 +1,38 @@
+D5 / P9 - named AdsIdHandler dispatch boundary
+
+2026-10-31. Read-only exact-PDB Ghidra decompilation completed with headless
+exit0. No game,ID provider,SDK queue or endpoint ran. P9/D5 remain OPEN;
+recipe46 and published174 are unchanged.
+
+The pinned pristine UnityPlayer project decompiles three named methods:
+AdsIdHandler::FetchCachedAdsId at3611d0,
+AdsIdHandler::InvokeAdsIdDoneDelegate at361260,and
+AdsIdHandler::InvokeAllAdsIdDelegate at361510. Ghidra's direct code
+references into FetchCachedAdsId and InvokeAllAdsIdDelegate are only from
+Application_CUSTOM_RequestAdvertisingIdentifierAsync at5fb70 (5fc6b and
+5fc77). InvokeAdsIdDoneDelegate has one direct call from the latter drain
+at36155c. Data references to the functions do not establish additional
+runtime callers.
+
+InvokeAllAdsIdDelegate reads the managed callback list at handler+0x68,
+invokes the managed callback for each node,frees its GC handle,and drains
+the list. It does not iterate the native IAdsIdListener* list at+0x78
+identified in453. FetchCachedAdsId reads handler+0x5c readiness and writes
+handler+0x60 when unavailable;it is likewise called directly from the
+public request. The public request is guarded before its handler-global
+read in current recipe46,so these named direct paths cannot independently
+explain the separate AnalyticsCoreStats::OnAdsIdRequestDone c307c0 callback.
+
+This independently confirms449's direct-caller boundary while adding the
+explicit+0x68 drain behavior. The next source question remains the native+0x78 registration/
+dispatch or another positive producer for c307c0. It is not proof that
+computed callers,aliases,other modules or alternate providers are absent.
+No new patch is justified by this trace.
+
+Retained ignored script:local/d5-ghidra-12.1.4/scripts/TraceAdsDispatch510.java
+SHA256 8f2674f31f711f26431184f1f85bc6e56c92d1928ce965e00d080381a104e9b1.
+Read-only log:local/d5-ghidra-12.1.4/pdb-ads-dispatch510-noanalysis-console.log
+SHA256 0bd807a445c34133b0a66335196c0f5c2c9611bc619f24a18758e4cc8f1f329a.
+The first headless attempt accidentally enabled full reanalysis and was
+interrupted;its partial log makes no method claim. The corrected read-only
+-noanalysis run exited0 and supplied the findings above.

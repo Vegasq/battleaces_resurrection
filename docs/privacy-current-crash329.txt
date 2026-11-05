@@ -1,0 +1,34 @@
+D5 / P7 - recipe34 owned native crash gate
+
+2026-10-28. Current owned recipe34 crash check PASS after one retained gate
+sharing failure. P7/full D5 remain OPEN.
+
+tools/native_crash_gate.py and tools/verify_native_crash.py now accept an
+explicit recipe34-owned mode for only local/privacy301-runtime01/game,its
+source-bound helper324-build02 and fresh local/privacy329-crash output.
+Historical recipe23/25 modes and their path constraints remain separate.
+The native gate tests pass15/15,including wrong-recipe refusal.
+
+The first output local/privacy329-crash01/verification.json is FAILED,
+SHA256 aac6be57c8c6acabf14d18e89582166cc3c4ac3a6c24668f41ce194b412bf283.
+Recipe34 preflight and closed-file arm publication succeeded,but the original
+game's first gate open returned Windows sharing error32 and refused the crash.
+The owned game was reaped by forced cleanup;source,components and shared
+settings stayed unchanged. After exit,the exact Win32 open call succeeded on
+that retained gate file,consistent with a transient sharing collision.
+This failed attempt is not a native-crash pass.
+
+A fresh profile and output local/privacy329-crash02/verification.json PASS,
+SHA256 f641115117f81f3f3d0ea7532ece66baa64e32e1661bc0c0726523b4ada0d548.
+The original game thread10116 logged recipe34 ready with saved mode1,then
+triggered original wrapper1484d0 after the closed gate appeared. The process
+exited with c0000005 in10.719s;owned job1total/0active/0terminated,root
+reaped,no forced cleanup. Loaded recipe34 audit included crash4/4,reporter
+callback7/7 and SDK metadata merge2/2. Source,installed components and shared
+settings remained unchanged. No Frida,report queue operation or OS policy
+change was used.
+
+This closes current owned recipe34 compatibility for this original native
+crash gate and natural exception exit. It does not prove SDK queue/retry/file/
+wire behavior,all crash/error routes,post-filter OS behavior or final paired
+release attribution. Published174 remains recipe23;RUNTIME_VALIDATED=false.

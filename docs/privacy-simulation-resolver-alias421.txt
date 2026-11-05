@@ -1,0 +1,23 @@
+D5 / P5-P8 - worker DLL API-set resolver static address aliases
+
+2026-10-30. Retained412 worker/source review PASS;full D5 OPEN.
+No game or worker was rerun.
+
+420 binds all33 direct calls into the two API-set resolver functions in the
+exact Simulation.dll used by both412 workers. This follow-up scans the entire
+pinned file for the two preferred-base 64-bit function addresses and the full
+disassembled .text section for instructions whose RIP-relative comment target
+is either resolver. Both searches return zero. The check does not change
+420's33 direct rel32 call/tail-jump mappings;those branch encodings do not
+store a preferred-base pointer or produce a RIP data-reference comment.
+
+This rules out those two simple static address-alias forms in this exact file.
+It does not exclude computed,rebased,or externally supplied indirect calls,
+or establish what the worker/OS transmitted at runtime. The loader IAT
+reference census is already in418. P9's advertising-ID producer is separate.
+
+Run:py -3 -m tools.review_d5_simulation_resolver_alias421
+The reviewer reuses417/420's SHA-bound DLL and writes ignored evidence at
+local/privacy421-simulation-resolver-alias01/verification.json.
+Receipt SHA256:1be0e357d9004d9ef40443975a215664a38b7e1ed770e8798a5ba79417a3c94d.
+P5-P8/full D5 remain OPEN;RUNTIME_VALIDATED=false,published174 unchanged.

@@ -1,0 +1,72 @@
+D5 / P7 - SDK cached device ID getter entry cut
+
+2026-10-31. Recipe44/173 guards source,isolated installed direct getter and
+source-bound private connected pair PASS. RUNTIME_VALIDATED=false,P7/P9/D5
+remain OPEN. Published174 remains recipe23.
+
+Pinned pristine GameAssembly SHA256
+e59d08c01479b27404778048d7e13546dbf3771f6b3912744c7c2bdf80c4e758
+and matching IL2CPP metadata bind BugsnagUnity.CacheManager.GetCachedDeviceId
+to RVA8368b0,ending836aca. The original body reads an existing SDK device ID
+through File.Exists at83695f and File.ReadAllText at836a7a. When missing,it
+generates an ID and calls CacheManager.WriteFile at836a46. Earlier351 bound
+three direct callers:Client.InitUserObject,Client.NotifyOnMainThread and
+SessionTracker.StartManagedSession. Recipe43 guards those owner routes,but
+the getter itself remained callable by an unclassified indirect caller.
+
+Recipe44 changes only the getter's entry bytes to xor eax,eax;ret,returning
+null before its original file or generation path. The pinned exact-build
+guard is RVA8368b0/file834eb0. tools.review_sdk_cached_id486 verifies the
+metadata method pointer and extent,original call targets,guard bytes and
+generated patch bytes. It passes with patched GameAssembly SHA256
+7c542f0de450ee07be324bc506cf120b6170d39694095f58053fd17dc3c26f39.
+tests.test_telemetry_patches passes35 with2 optional skips. Source has106
+GameAssembly guards and173 total.
+
+An isolated owned recipe43 game was copied to local/privacy487-game01;
+the source copy was left unchanged. Standard patcher dry-run and install
+each checked all133 assets and agree with the installed manifest:recipe44,
+106 GameAssembly guards,community/cosmetics options preserved and on-disk
+GameAssembly SHA256
+8a5595e068785af102e65cbb9a6179dec226c9129b629ea9180376427d1448e9.
+The pristine backup retains the pinned original hash. The helper stays at
+SHA256 59aebb2db4a6778f817e6135b6ba767f54f1087cac69d9b65b5fda009fbb276f.
+
+The first loaded observer at local/privacy487-cached-id-runtime01 failed to
+hook the already guarded one-byte CacheManager.WriteFile RET;the diagnostic
+error is retained. That game still used original menu Quit and exited0,but
+it supplies no direct getter result. A second owned run at
+local/privacy488-cached-id-runtime01 used the corrected observer. It checked
+loaded entry bytes31c0c3 and directly called the getter with null arguments
+on the game's original thread after il2cpp_init. The return was null,with
+zero watched File.Exists and File.ReadAllText entries during the call. The
+game used original menu Quit Confirm,exited0,Job1/0/0,no forced cleanup and
+images unchanged. tools.review_sdk_cached_id_installed488 independently
+binds source,patcher manifests,installed bytes,run,REA messages and Quit:
+PASS. REA evidence ev_90d3bdbbc2b09d083efc28e7a1248b4ee7a6794188f17a1c0e86d6f10ec792a8.
+
+Private source-bound client/server packages at local/privacy489-packages01
+contain recipe44 and the unchanged helper. Client ZIP SHA256
+676d14a6363220ccba2aeb072c78e21759a53f38f4b088c8d2c660c825888b8e;
+server ZIP SHA256
+65c4480b24aae27cf4e8ee04ba4a2147ba74b3d52bb785ab419e694b810eabe1.
+The first package attempt was rejected because an older server launcher
+receipt did not match current source;fresh launcher,installer and certificate
+tool builds were used for the passing pair. The packages are private
+engineering artifacts,not a published release.
+
+The RC-open private public1 two-human run at local/privacy490-connected01
+completed1220 native frames and reached result/Continue. Both clients used
+original Quit0;both simulation workers exited0/reaped and all three Jobs
+emptied without force. The host released its listener and state lock.
+tools.review_recipe44_connected490 independently binds current source,
+packages,installed recipe44 image,match,Quit and cleanup:PASS. The retained
+run report SHA256 is
+cf5f5916a3f1659332186b527aeda1f20bbcdf5adf4aa875b7193723412a462b.
+
+This closes the named getter body in source,its direct loaded-entry behavior
+and changed-recipe connected compatibility at the tested scope. An indirect
+caller's handling of null is not established. This does not close the
+separate UnityPlayer native advertising-ID producer,other SDK queue/retry/
+wire paths or final installed privacy. No real shared SDK queue or original
+game file was changed.

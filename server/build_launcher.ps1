@@ -4,7 +4,12 @@ $repo = Split-Path -Parent $PSScriptRoot
 if (-not $OutputDirectory) { $OutputDirectory = Join-Path $repo 'build/server-launcher' }
 function Get-LauncherSources {
     $result = [ordered]@{}
-    $paths = @($PSCommandPath) + @(Get-ChildItem -LiteralPath (Join-Path $PSScriptRoot 'launcher') -File | Select-Object -ExpandProperty FullName)
+    $paths = @(
+        $PSCommandPath
+        (Join-Path $PSScriptRoot 'launcher/console_launcher.cpp')
+        (Join-Path $PSScriptRoot 'launcher/launch_args.hpp')
+        (Join-Path $PSScriptRoot 'launcher/launch_args_tests.cpp')
+    )
     foreach ($sourcePath in ($paths | Sort-Object)) {
         $relative = $sourcePath.Substring($repo.Length + 1).Replace('\','/')
         $result[$relative] = (Get-FileHash -LiteralPath $sourcePath -Algorithm SHA256).Hash.ToLowerInvariant()

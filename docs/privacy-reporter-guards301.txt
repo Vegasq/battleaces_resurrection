@@ -1,0 +1,43 @@
+D5 / P7 - source recipe26 reporter callback guards
+2026-10-28. Source, owned install and native Quit audit verified; P7/D5 remain OPEN.
+
+The four formerly unguarded AddOnSendError Boolean callbacks resolved in 300
+now return false at entry: <>c::<Subs>b__20_0, <>c::<Subs>b__20_1,
+CleanBugEvents and AssignCustomGroupingHash. This prevents report mutation
+or enabled-flag reads through these entries even if a retained or independently
+registered delegate calls them. Subs remains guarded separately. Existing
+AddUserConfigToReport, FlagFirstEvent and AddVariablesToReport false guards
+and reporter-specific SetEnabled(false) remain in place.
+
+Recipe26 has 135 total guards and seven reporter callback audit signatures.
+The exact-build original GameAssembly transform passes its SHA/byte guards;
+its output SHA256 is
+7e4b761efb3181ac78802ba2e986d2e1c2f2deda7c88d956e5b7a35f1435a0a2.
+tools/verify_reporter_guards301.py PASS confirms the recipe26 transform differs
+from the recipe25-equivalent transform by exactly twelve entry bytes across
+the four callbacks. Focused Python audit/patch/native-gate tests PASS:
+66 tests, two optional original-asset skips, on Python3.12 and3.14.
+
+A fresh ignored native helper build succeeded in
+local/privacy301-helper-build01. BattleAcesOffline.dll SHA256:
+812d61ca6384e8f160ef751dddab5ac8a9e1ec846d2937beb3f783a3ebe5d638.
+The native audit source now requires reporterCallbackSignatures=7/7 for a
+complete recipe26 check; legacy25 audit fixtures still accept 3/3.
+
+A fresh owned copy at local/privacy301-runtime01/game passed the normal
+installer dry run and install over all133 bundles. At that run its helper and
+recipe26 manifest match disk;GameAssembly SHA256:
+43f6a6028aa64f22abfe65f87b4de8acfaa0505aa41dcbb2e11d9af69c82e6.
+The fixture retains its community and cosmetics options. A bounded original
+menu Confirm run passed natural exit0 in18.281s with no forced cleanup. Its
+read-only native audit recorded recipeVersion=26 and
+reporterCallbackSignatures=7/7. Verification.json SHA256:
+135cef659babd59b95f4ffbe3748c57180b04f96335f3fd3dbba5c275c7a3563.
+The owned installed manifest SHA256:
+ede8502f53c1728ffa79bb21194376c899caf0782f969a1c3671466502a50e72.
+These are the retained301 install identities;the same owned copy was later
+updated with diagnostic helper302 and the newer manifest is recorded there.
+
+Published174 remains recipe23. Runtime callback invocation, independent
+registrations, actual SDK queue/retry/file/wire, process descendants and final
+installed binding remain open. RUNTIME_VALIDATED=false.

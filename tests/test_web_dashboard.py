@@ -181,7 +181,7 @@ class HostDashboardTests(unittest.IsolatedAsyncioTestCase):
                 config.dashboard_port = 0 if label == 'disabled' else 47624
                 with mock.patch.object(host, 'prepare', return_value=(mock.Mock(), None, None, manifest)), \
                      mock.patch.object(host, 'check_native', mock.AsyncMock(return_value={})), \
-                     mock.patch.object(host, 'HostAudit'), mock.patch.object(host, 'ProfileStore'), \
+                     mock.patch.object(host, 'HostAudit', return_value=mock.Mock(aclose=mock.AsyncMock())), mock.patch.object(host, 'ProfileStore'), \
                      mock.patch.object(host, 'DedicatedServer', return_value=server), \
                      mock.patch.object(host, 'Dashboard', return_value=web) as factory, \
                      mock.patch('builtins.print'):

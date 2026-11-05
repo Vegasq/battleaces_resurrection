@@ -1,0 +1,59 @@
+D5 / P7 - native Unity Analytics final post guard,private recipe47
+
+2026-10-31. Source,private installed startup and public1 compatibility PASS.
+P7/P9/D5 remain OPEN;RUNTIME_VALIDATED=false. Published174 is unchanged.
+
+The exact-PDB pristine UnityPlayer identifies
+UnityEngine::Analytics::WebRequestRestClient::PerformPost at RVA c64e20 as
+a Boolean method. Its original body calls Prepare,returns false if that
+fails,and otherwise tail-jumps through Begin at c64ea0. Begin applies
+headers then virtually submits the prepared UnityWebRequest. The two direct
+PerformPost sites are a CALL from DispatcherService::FetchAndSaveConfigFromServer
+at c59630 and a tail JMP from DataDispatcher::PerformWebDispatch at c56b65.
+Begin has only the direct tail JMP from PerformPost at c64e97. These three
+instruction targets are decoded and checked against the pristine image by
+tools.review_unity_post512. Computed,virtual or other-module acquisition
+of Begin is not excluded by this direct-reference review.
+
+Recipe47 adds a guarded `xor eax,eax; ret` at c64e20 before Prepare/Begin.
+It returns the method's existing false value without reading its receiver,
+building a request or starting the post. This covers both named direct
+event and remote-configuration submission routes. The config caller treats
+false as a pending result and retains its owned request until later cleanup;
+the current evidence does not prove repeated attempts cannot occur under
+preexisting/alternate activation. A raw RET was not used because the
+Boolean return must be defined. The existing cold-start cuts remain intact.
+
+Current source has176 guards,including66 UnityPlayer guards;helper audit
+recognition now requires59 Unity core candidate signatures. Focused patch/
+audit tests:68 run,66 pass,2 optional skips. The helper built from current
+source has SHA256 549136ce31ec01d216678dc484d3852ba7e93bdee5333d4b500c601499095993.
+Fresh private client/server ZIPs are retained at local/privacy512-packages01;
+client SHA256 dabf6a0a4a374e630c1988b1d83d0a902d0773fedb81acd31b92a4b12bf9904e,
+server SHA256 6cc5dd6598ecc6289c885668f35cc774e1f6064e32b8f73ae795645d13b85de0.
+
+The separate owned game local/privacy512-game01 installed the new package
+and passed all133 asset checks. Its installed UnityPlayer SHA256 is
+935c78e7a1b7fae3f0bc6892e390d521e5d24cf40539112559d64312df6107e4,
+byte-identical to the source-generated recipe47 PE-checksummed image. Its
+normal installed launcher reached menu in11.953s,idled30.157s and exited0
+after owned WM_CLOSE without forced cleanup. Separate private RC-open public1
+two-human gameplay completed1220 native frames,result/Continue and both
+original Quit0;workers reaped and three Jobs ended empty without force.
+Private package,assets,source and shared channels stayed unchanged.
+
+Independent source/package/installed/run review PASS:
+local/privacy512-review01/review512.json SHA256
+67f61dfe47f599ec7ee28446f76c1edadcf6b8139c86ff13a5d487d1faf0f3e3.
+Source and exact-PDB trace are bound by retained ignored Ghidra log
+local/d5-ghidra-12.1.4/pdb-perform-post512-final2-console.log SHA256
+68fe826092f022ea3b5998ed4e5f3d64ebef297f6ae7bf6e0b38b872afaf891a.
+Its ignored TracePerformPost512.java script SHA256 is
+229c60a0aa6fbcab7c5240d4b4d0f36a60fd00184c0ca61ca57731e1f6bc0d8a.
+
+No real queued/archived analytics post was invoked. The direct guard proves
+this named method returns before request preparation when called in recipe47;
+the compatibility runs prove normal startup and one connected mode still
+work. Other native/managed network routes,indirect Begin access,external
+descendants,whole wire,advertising-ID producer and final published pair
+remain outside this result. Do not mark D5 or runtime validation complete.

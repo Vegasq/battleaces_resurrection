@@ -1,0 +1,87 @@
+ADVERTISING CALLER NATIVE CONTROL181
+2026-10-26. Actual native fixture qualification COMPLETE. P9/D5 OPEN.
+
+Result
+Real local REA/Frida instrumentation of an authored Windows x64 test process
+observed13calls:6on its main thread and7on a worker thread. It retained8caller
+records,continued counting5suppressed records,and detached its hook. The native
+host then made2further calls,verified restored entry/guard bytes and returned0.
+All15calls returned the expected arithmetic result. This is no game observation:
+the EXE/DLL have familiar names only to exercise180's unchanged selected-module
+contract. No original game instruction,identity input or collector was executed.
+
+What this closes
+180's generated caller witness works with actual Frida module observation,
+Interceptor.attach,returnAddress,accurate native backtraces,two native calling
+threads and explicit detachment on this fixture. Every recorded immediate caller
+is Battle Aces.exe+106e,inside the independently exported/unwind-bounded authored
+AuthoredCaller function1040..1095. The first6records match the owned main thread;
+the next2match the host-recorded worker. Its five-NOP guard remains intact.
+The original callback's different prologue/ABI and real gameplay timing are NOT
+qualified by a NOP/arithmetic fixture. The upstream c307c0 producer remains unknown.
+
+Owned lifecycle and provenance
+SuspendedChild retained primary-thread/process/job handles before attachment.
+The controller attached only to that PID,loaded one generated script,then resumed
+the owned primary thread. Explicit local flags gated fixture invocation and exit.
+REA was detached before the post-detach calls. The root and its conhost descendant
+both exited0;OwnedJobTracker complete,job2total/0active/0terminated,no forced
+cleanup. Both native files stayed byte-identical. REA's close result alone reports
+target_state=unknown;the retained OS handles supply the actual exit evidence.
+
+The available MCP exposes no Frida RPC-call operation. This CONTROL appends a
+declared timer adapter to the unchanged generated source:when its own count is13,
+call rpc.exports.finish(). It reads no target arguments or application state.
+The verifier reconstructs both source and adapter exactly. Do not copy the13-call
+stop condition into a game run;it is specific to this authored fixture.
+
+Tools and replay
+tests/fixtures/ads_caller181/{callback.asm,host.cpp}:entirely authored source.
+tools/build_ads_caller_control.ps1:existing MSVC/SDK;fresh ignored directory only.
+tools/ads_caller_control.py:finite owned lifetime and read-only evidence review.
+Build with a fresh local/adscaller_<12hex> path. Then:
+ python -B -m tools.ads_caller_control local/adscaller_<12hex>
+Read owner-ready.json,attach the local REA session to its retained PID and load
+observer.js. Create resume.flag,require ads-installed,then create invoke.flag.
+Retain full start/load/status Evidence with ads-finished;close the REA session,
+retain its result,then create finish.flag. Owner must exit normally. Review with:
+ python -B -m tools.ads_caller_control local/adscaller_<12hex> --review
+This is an explicit developer fixture workflow,not a normal launcher or Nick task.
+
+Verification
+Full raw provider results and independent owner evidence are retained under
+local/adscaller_181000000002/. verification.json passes source/file/session/PID/
+message identities,counter bounds,two-thread attribution,export/unwind caller
+binding,native arithmetic/restoration,natural exit and complete job reconciliation.
+REA final Evidence:
+ ev_4816aeecc2aba95695d541580a639315e45389eaac22c90b42d310d6fa02f100
+Actual loaded script SHA256:
+ b290fe87e9d14edeed2e8f720235bd30f44b065a857e106a7879587654c7a68d
+Fixture host SHA256:
+ c6bd07b3df5c74ad1aef4a0982a32931dde7c740d0b0b19b8faceaa6fec2a59d
+Fixture DLL SHA256:
+ acce5e378e528e82c530a314b204b859ccae547ff7b78c93e2c46ffeabf7bb82
+These fixture identities are deliberately NOT supported game-file identities.
+
+Python3.12/3.14 both pass14focused tests with BA_ADS_CALLER_CONTROL selecting this
+retained folder:tests.test_ads_caller_control,tests.test_ads_caller and
+tests.test_native_telemetry_observer. Five new read-only evidence tests include
+16in-memory rejection mutations;original receipts stay unchanged. Without the
+explicit evidence folder,those five tests skip;no native fixture auto-launches.
+
+Retained failed attempts
+First build181000000001 failed because the MASM /Fo: form did not create the
+ordinary object file. Correct /Fo filename syntax built fresh181000000002.
+First review failed on a source-hash difference:Windows write_text emitted CRLF
+while the owner recorded canonical LF. Original source/receipts are preserved.
+The corrected review binds actual raw bytes to REA's digest and separately checks
+the exact canonical source with LF or CRLF. Future owner writes explicit bytes.
+No native rerun was needed to resolve that evidence-format distinction.
+
+Next
+Integrate the separate caller witness into an owned patched-client observation
+for a still-required finite mode/lifecycle row. Keep the incompatible field audit
+and device probe out of that launch. Bind current helper/files/argv and an explicit
+observation end;positive game hits need actual upstream analysis,and quiet counts
+do not prove absence. Do not repeat this native control without a relevant change.
+Recipe23/helper169,published174 and RUNTIME_VALIDATED=false remain unchanged.

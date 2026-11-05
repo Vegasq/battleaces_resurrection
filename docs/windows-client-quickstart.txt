@@ -15,6 +15,19 @@ Install Battle Aces.exe. Setup Client.cmd opens that same native window.
 3. Wait for the installed message,then close the installer.
 4. In the GAME folder,double-click Start Battle Aces.cmd for every later launch.
 
+WATCH A SAVED REPLAY (new local preview227;not in published rc1.6)
+After installing a client package containing this feature,close any running game
+and double-click Watch Replay.cmd in the GAME folder. Choose a complete .rep file
+on a local drive. A server is not needed. Use the original in-game replay controls;
+Options -> Leave Replay returns to the menu. Cancel in the file chooser returns
+without loading. If the file cannot be opened,Retry chooses another file and
+Cancel returns to the menu. Selected files are read without editing them.
+Advanced:Start Battle Aces.cmd --replay "C:\Replays\match.rep" opens that file.
+Files must be nonempty,at most64MiB,and decode within256MiB. Missing,locked or
+invalid files are refused. The replay selection is not saved in client settings.
+Healthy explicit-file playback/Leave/normal Quit are qualified locally;Windows
+chooser and new refusal/Retry UI qualification remain pending before release.
+
 For maintenance,select that game folder in the installer. Reset selected deck
 backs up local settings and restores the original starter selection on next
 launch;it preserves saved decks,cosmetics,options and identity. Close the game
@@ -31,6 +44,21 @@ Advanced settings,including display_name and server_port,are editable in
 .battleaces-resurrection/client-config.json. Existing names/profiles are preserved
 on update. Default server port:47623. No CA,certificate name,fingerprint or invite.
 Changing the name keeps your player identity and existing decks/cosmetics.
+The installed launcher's identity files are in
+.battleaces-resurrection/rc-identities/,beside client-config.json. Close the game
+and back up the entire .battleaces-resurrection directory before moving or
+reinstalling your game. Keep the backup private:copying an identity file also
+copies that player's access to their server-side profile.
+The server address,port and local_profile select the identity. Using a different
+IP/hostname,port or local profile selects a different identity;returning to the
+original settings reuses the original file. Keep a consistent server address.
+A server certificate replacement alone does not reset the player identity.
+If an identity file is damaged,restore its backup;the client refuses it instead
+of silently replacing it with a new player. Display names are not recovery keys.
+Identity directories,identity files and setup lock files must be ordinary local
+storage. Linked/junction identity directories and linked identity/lock files are
+refused to prevent one installation from reading another's player identity.
+Use an independent copy of your own backed-up identity files,not filesystem links.
 TLS encryption without certificate verification remains the explicit RC policy.
 Install verifies local game content and may take several minutes on a slow drive.
 Close the game before installing/updating. No original game assets are distributed.
@@ -99,10 +127,15 @@ supported build's SHA256 values. This may take several minutes on a slow drive;
 keep setup open while it finishes. No game assets are included in this package.
 After verification, the patch changes the local catalogue's CRC settings so
 Unity need not repeat full-bundle CRC validation at every load. Bundle files
-remain unchanged. Ordinary launches check their fingerprints and rehash any
-changed files; missing/corrupt content is refused. Reinstall to refresh the
+remain unchanged. Ordinary launches check current read access and fingerprints,
+and rehash changed files; missing,unreadable or corrupt content is refused.
+If another program is locking a file,close it and retry. Reinstall to refresh the
 verification after repairing your supported game files. A dry-run verifies the
 same inputs without writing the catalogue, receipt or backups.
+If verified files are ready but the verification cache cannot be saved,the game
+can still start. A notice asks you to check disk space and folder write access;
+the next launch may recheck files until the cache can be saved. This fallback
+does not accept missing,unreadable or corrupt game content.
 
   BattleAces-Client.cmd install --game "<working game directory>" --dry-run
   BattleAces-Client.cmd install --game "<working game directory>"

@@ -1,0 +1,40 @@
+D5 / P5-P9 - recipe37 private package pair and connected match
+
+2026-10-28. Source-bound private package and owned connected public1
+compatibility PASS. Full P5/P7/P9/D5 remain OPEN;RUNTIME_VALIDATED=false.
+
+tools.build_windows_packages built the ignored dirty-source0.3.0-rc1.7
+recipe37 preview at local/privacy350-packages01 with the already source-bound
+launcher,client installer,certificate helper,recipe37 helper349-build01 and
+official SHA-verified Python3.14.8 embeddable runtime. It excludes game assets,
+private profiles and credentials. Both package manifests verify. This is not
+a published release. Build report SHA256:
+2564c4f7e8f95004b85254d49b1e924ce315bb3a64a10a89d92de61dec360721.
+Client ZIP SHA256:
+1d036cf8b680d197aabdc191479b964b3d63e91122a95fcef3ae236fd23b0849.
+Server ZIP SHA256:
+97987398b8785d6ec2ab21b249795c2767928c1fc5d743f9c831d26fb36d70ce.
+
+The source-owned packaged multiplayer verifier ran those exact ZIPs,the
+owned recipe37 installed game and verified build37822 assets in one RC-open
+loopback public1 match. Two human clients reached a complete result at1220
+frames and both bundled launchers/games exited0 after original Continue/menu/
+Quit. Both server workers exited0 and were reaped;listener,status writer and
+lock released. Three owned jobs report5/2/2 total processes,all with0 active/
+terminated at completion. No forced cleanup. Package,source,assets,config,
+adapters and shared channels stayed unchanged;temporary PKI was removed.
+Elapsed101.719s. Retained local/privacy350-connected01/verification.json
+PASS SHA256:
+cff4cd8c26936d27871f0d99bb1cfd844b5c50eb38ec89bbe109d2785bfd2338.
+
+tools/review_d5_connected_pair350.py binds the run to current source/package/
+helper/installed GameAssembly and the separate recipe37 loaded user-cache
+guard1/1/natural menu Quit report349. Retained
+local/privacy350-connected01/review.json PASS SHA256:
+a3d120e0f1302a10df19461482a9cbf80003ef735d2f81b70493a8fc78082b0a.
+
+This closes the changed recipe37 private pair's connected compatibility gap.
+It does not include SDK queue/file or complete network/wire capture for the
+clients/server,other modes,all-thread/descendant attribution,actual cached
+getter invocation or P9's upstream advertising-ID producer. Published174 is
+unchanged;final installed release privacy qualification remains OPEN.

@@ -1,0 +1,62 @@
+D5 / P5-P7 - selected relative file-root resolution
+2026-10-30. Bounded current private-pair subcase PASS. Full D5 OPEN.
+
+The previous native observer left1545 relative paths unresolved per client,
+so zero selected SDK-root events could not support a file-path conclusion.
+371 adds an opt-in diagnostic metadata query:for a RootDirectory handle not
+already in its map,it calls GetFinalPathNameByHandleW once and uses the
+returned absolute path to classify the pending relative NtCreateFile/
+NtOpenFile request. It reads handle metadata,not file contents or a queue.
+Normal player launchers and published174 are unchanged. This query can affect
+diagnostic timing and is not described as passive.
+
+In the positive control,an owned Python process opened an authored directory
+handle before Frida attached. After observer-ready,it made a relative
+NtCreateFile request for queue/owned.txt. The observer recorded the complete
+authored path;the final snapshot has one root-resolution call,zero failures,
+zero unresolved roots,empty errors and no truncation. The authored file was
+unchanged and the process made its original self-TerminateProcess call0.
+The earlier spawn control,whose root was opened after observer setup,is
+retained separately but is not used to prove preexisting-root resolution.
+
+The current recipe38 private pair358/helper357 and owned301 game/assets then
+passed one RC-open public1/two-human match:1220 frames,result,Continue and
+normal Quit0 for both clients,workers reaped,jobs5/2/2 drained,no forced
+cleanup. Both clients were created suspended and had selected hooks ready
+before main-thread resume. Each final self-termination-entry snapshot has one
+root-resolution call,zero failures and zero unresolved relative roots,versus
+the prior1545 unresolved requests per client. There were no selected file
+operations under the293-bound LocalLow Bugsnag root from pre-resume through
+that entry. No decode errors,overflow or truncated messages. Selected
+send/recv still use only each exact inherited bridge socket;selected DNS,
+connect,sendto and WinHTTP counts remain0 at entry. Source/package files
+were unchanged.
+
+tools.review_d5_resolved_roots371 verifies the control's preexisting handle,
+authored relative open,observer source/PID/evidence,and the game pair's exact
+source/package/assets,gate order,contiguous messages,final root counters,
+normal exits and worker/job cleanup.15 focused packaged tests and syntax
+checks pass. No actual shared SDK queue was read,seeded or cleared.
+
+Limits:The selected NtCreateFile/NtOpenFile relative-name gap is resolved for
+this run. File handles opened before observer attachment are not enumerated;
+later reads/writes on such handles may be unclassified. Other file APIs,
+absolute NT device-path aliases,raw/kernel I/O,other processes/descendants,
+the200ms diagnostic hold/actual death and final installed artifacts remain
+outside this file conclusion. A zero selected SDK-root event is not complete
+queue/file absence. P9 advertising-ID producer and full P5-P9/D5 remain OPEN;
+RUNTIME_VALIDATED=false.
+
+Ignored evidence SHA256:
+ local/privacy371-root-control02/rea-evidence.json
+ 15dc4b70a8cf78280fdd9d2ef9dd491b83854ea21c2c13cf48da4483c3ce5393
+ local/privacy371-connected01/verification.json
+ d6c28e0cfd194da70d1177b10905423680b1fee5cde16126ed7c3056e6d91b4c
+ local/privacy371-connected01/network-review.json
+ f69b64dc41f7d986cfa8c6e23a26f6db7ce97a75fd041c011dbf0b14aa6b9c65
+ local/privacy371-connected01/root-review.json
+ 0ed3266c918fcb8c5464f1f9fdd6364fed04d5324dce8be6a97ed97dbda2ed5d
+ local/privacy371-prelaunch-root-trace01/rea-evidence.json
+ 827527be16dee4a6dc286f094e4370163bb36114c652d467907ca590bb096e50
+REA bundles include older records;reviewers select the exact control/game
+session IDs in the ignored manifests.

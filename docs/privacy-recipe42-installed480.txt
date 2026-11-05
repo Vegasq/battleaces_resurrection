@@ -1,0 +1,50 @@
+D5 / P7 - recipe42 installed cache helper and private connected pair
+
+2026-10-31. Recipe42 source, owned installed helper call and source-bound
+private client/server 1v1 PASS. P7/P9/D5 remain OPEN,RUNTIME_VALIDATED=false;
+published174 stays recipe23. No real SDK queue was read,seeded or cleared.
+
+An owned 7.6GB game copy at local/privacy479-game01 was made from the earlier
+recipe40 copy. Its pre-install GameAssembly and helper hashes matched the
+source copy. Standard patcher dry-run and install each checked133 game assets.
+The identical dry-run/install/installed manifests record recipe42,104
+GameAssembly guards and installed GameAssembly SHA256
+b2192dc107f0bc2c27575d9b3bf7c09265ac2a0148e28a98e33d50572cb52785.
+The helper is unchanged at SHA256
+59aebb2db4a6778f817e6135b6ba767f54f1087cac69d9b65b5fda009fbb276f.
+The original GameAssembly backup retains pinned pristine SHA256
+e59d08c01479b27404778048d7e13546dbf3771f6b3912744c7c2bdf80c4e758.
+
+An owned game launched suspended under a Job,with a read-only REA observer
+attached before primary resume. The loaded GetFilesBySuffix branch at RVA
+83683a was e94500000090. After il2cpp_init,a direct null-argument call to
+the installed helper returned a non-null array of length0 on the original
+main thread. No runtime memory edit was made. The original menu Quit Confirm
+trace completed,game exited0,Job1/0/0,no force,and disk images were unchanged.
+tools.review_sdk_empty_installed479 PASS independently binds source,patched
+image,manifest,loaded branch,return,Quit and Job. Retained artifacts:
+local/privacy479-{dryrun,install}.json and
+local/privacy479-cache-runtime01/{observer.js,ready.json,rea-status.json,
+verification.json,review479.json};REA evidence
+ev_5e629937b699222ac559454d46187e7d495ade568c8d51ca5c33d37da2cc5e0b.
+
+The source-bound private client/server packages are in
+local/privacy480-packages01. Client ZIP SHA256
+01b06586e486edbaf4385ce062d0f9dc41e510aebbe11f2ea1c5b74b6028697c;
+server ZIP SHA256
+b61e2fc6660f9c4bc63ea670d9d3beecc001baf3cf91c9e03de945659153e909.
+Production RC open admission with two native clients completed a public1
+match at1220 frames. Both clients reached result,original Continue/menu/Quit
+Confirm and exit0. Both simulation workers exited0 and were reaped;three
+Jobs ended empty with no forced cleanup. Source/package/assets/shared-state
+checks stayed unchanged. tools.review_recipe42_connected480 PASS independently
+binds current source,packages,installed recipe42 image,match,original Quit and
+cleanup. Retained report:local/privacy480-connected01/verification.json,
+SHA256 79423ecb898fde85bb69aa49e22633e7404b9793b4bc0512e691fc13a930648d;
+review480.json records the independent result.
+
+This closes the changed-recipe installed helper and one connected
+compatibility subcase. It does not prove all SDK queue readers absent or
+inactive,real queue/retry/wire behavior,whole-tree file/network attribution,
+or the independent advertising-ID producer. Final D5 and release acceptance
+stay open. These packages are private development evidence,not publication.

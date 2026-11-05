@@ -1,0 +1,50 @@
+D5 / P6 - recipe38 running disconnect/recovery with SDK-root change watch
+2026-10-29. Bounded current private-pair recovery and selected file-change
+subcase PASS;full P6/P9/D5 remain OPEN,RUNTIME_VALIDATED=false.
+
+The source-bound recipe38 private pair358 and owned301 game ran an isolated
+two-human public1 recovery. A read-only Windows FileSystemWatcher observed the
+293-bound Bugsnag cache root from before launching the packaged verifier until
+after its exit. The watcher captured Created,Changed,Deleted,Renamed and Error
+notifications with a64KiB buffer. It did not enumerate,open,read,seed or
+clear the real SDK queue. A separate owned-root positive control used the same
+watcher and produced Created1,Changed3,Deleted1,Error0.
+
+The first orchestration attempt,local/privacy359-watch01,was refused by the
+packaged verifier before game creation:RC-open production admission cannot be
+combined with the authored recover-running fault fixture. The watcher and its
+positive control stopped normally;this attempt supplies no game/privacy result.
+Its retained orchestration SHA256:
+df9d8fb6eb2c244e7a864099b4eac9b14b1c0e09387003b200b2fed862d5da73.
+
+The supported isolated-fault run local/privacy359-connected02/verification.json
+PASS in147.000s,no forced cleanup. The first match was in running room state
+after both clients received frame600;the owned fault closed one TLS peer at
+authoritative next_frame603. Both clients stayed in the same native PIDs,
+retired that match and completed a distinct replacement match through1220
+frames,result/Continue/menu/original Quit0. Three server workers exited0 and
+were reaped;server state/listener/status writer/lock drained. Owned jobs7/2/2
+end active0/terminated0. Package,assets,config,source and shared channels
+were unchanged;temporary PKI was removed. Report SHA256:
+62a9616868e6f3e3ea7d940ef98d6be06b158c5cf66de862275cb17f67537661.
+
+The SDK-root watcher ran2026-10-29T01:54:10.3856577Z through
+2026-10-29T01:56:40.7305105Z,bracketing the verifier launch/exit. Its stop
+sentinel is present;Created0,Changed0,Deleted0,Renamed0,Error0. Watch report
+SHA256 90d298fcb87d2a3451b3b56e47557e35d295b1eefc7de1e570d75bfbcfdd6a3c.
+Positive control report SHA256
+95aedc55e3116eff32bf351ab4cc445dac786567441d7892050becf716b55542.
+Orchestration SHA256
+0a4e80b2665cc95099e72e0cbf0fc09e400146d6d91e791753ef6e72c4ade8a2.
+tools.review_d5_running_cache359 binds the root to293,the current source/
+helper/package/game/assets,full fault/replacement sequence,normal exits,
+watched time interval and positive control. It passes at
+local/privacy359-connected02/cache-review.json SHA256
+08f34900e28aeaf72fc9d1da18a2f6247772975f71ada919e0c38b3906d4ad1e.
+
+This is a loopback fixture with an authored running disconnect and selected
+metadata change notifications at one known SDK root. FileSystemWatcher cannot
+see reads,existing queue state,other roots,short-lived activity before its
+readiness,network packets or report delivery. It does not establish ordinary
+offline-to-online recovery,all-thread/descendant/wire attribution or P9's
+advertising-ID producer. Published174 remains unchanged.

@@ -1,0 +1,43 @@
+D5 / P7 - Unity Analytics web dispatcher source chain
+
+2026-10-31. Exact-PDB pristine UnityPlayer Ghidra decompilation and direct
+reference review PASS. This is static source attribution;no game,network
+request,archive or real queue ran. Recipe46 and published174 are unchanged.
+P7/P9/D5 remain OPEN.
+
+The named DataDispatcher::HandleDispatcherProcessingStepStatic at c516f0
+directly invokes HandleDispatcherProcessingStep at c52660. In processing
+state2,the latter checks archived-session expiry and dispatch conditions,
+then calls PerformWebDispatch at c565f0. That body sets request headers and
+calls WebRequestRestClient::PerformPost. This is a concrete native Unity
+Analytics submission sink separate from the managed Bugsnag SDK direct-call
+inventory508. The archived-session route enters
+OnSessionContainerArchivedAndReady at c55da0,which conditionally calls
+PerformWebDispatchOnSessionContainer at c53a20;that body also calls
+PerformWebDispatch. SetupWebRequest at c55fb0 is called from the ordinary
+data-block setup and archived-session route and prepares request headers.
+
+Ghidra lists pointer references to c516f0 in DataDispatcher::Start,
+AnalyticsCoreStats::PlayerLoopHandler,DataDispatcher::OnRestDownloaderDone
+and BaseUnityAnalytics::OnEnterStateStopped. These are data references to
+the static callback,not observed invocation counts. Earlier173 binds the
+current cold-start guards before the reviewed archive/request state can be
+acquired;it also explicitly leaves already posted continuations and in-flight
+requests outside that cold-start conclusion. This sink trace makes the
+remaining P7 wire/continuation attribution concrete. It does not justify a
+blind RET on PerformPost or a claim that current recipe46 sends a report.
+
+Reproducible ignored script:
+local/d5-ghidra-12.1.4/scripts/TraceAnalyticsDispatch511.java
+SHA256 468bfa114b224058e30709f11736806f1a7c566300a80417b19f38d858f1cc49.
+Three read-only -noanalysis headless runs exited0,with two hexadecimal RVA
+arguments per run. Retained logs and SHA256:
+local/d5-ghidra-12.1.4/pdb-analytics-dispatch511-final-console.log
+231023372f1d091adaf0dc2a01db1b346853b8658672d7f45ccf17189578281f;
+local/d5-ghidra-12.1.4/pdb-analytics-callers511-final-console.log
+8f937f972e36a58bf4d368361a9b7d70e300e5401c313af1941a118f211e7f2f;
+local/d5-ghidra-12.1.4/pdb-analytics-upstream511-final-console.log
+74eb9f97971d47deb94c58dbfd64dc9df6efbdc2454633c2be03946d553b0b31.
+Earlier broad native-list heuristic511 generated475 unrelated candidates,
+including the known handler constructor but no proven registration writer.
+It is not used as an absence claim;the P9 producer remains unresolved.

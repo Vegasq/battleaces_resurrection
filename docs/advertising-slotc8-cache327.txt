@@ -1,0 +1,31 @@
+D5 / P9 - slot+c8 identity-cache tail and existing acquisition cuts
+
+2026-10-28. Original/source/owned-installed review PASS;P9/D5 OPEN.
+
+310 binds c32e30's tail jump atc33021 to c41ec0 with RCX=Main. 326 resolves
+the same caller's three virtual+f0 predicates. c41ec0 checks Main+e10 and
+dispatches Main virtual+40 atc41ed9 before its cache serialization. Both
+pinned Main vtables have c32430 at+40. The original c32430 can call shared
+machine-ID getter9fb910 atc32468 after its flags and predicate checks.
+Recipe34's existing five-byte branch atc32468 selects c3246f's literal
+"unknown" fallback before that getter. The later c41ec0 call to identity
+serializer c4e140 atc41f0c is five NOPs in the same recipe. State,cache,
+request handling and cleanup around these sites remain original.
+
+tools/review_ads_slotc8_cache327.py PASS reuses310/326's pinned caller and
+predicate checks,then byte-matches complete original c41ec0/c32430 LLVM
+bodies (208+258 decoded instructions),both virtual+40 table entries,the
+original query/serializer instructions and fallback literal. It compares
+each full current source and owned-installed body with the original after
+only the two named replacements. Original Unity SHA256:
+ac144d56d53f07904d52ed27a1539de90bc3290038fe52d73d2f6b268c85d6bc.
+Owned installed Unity SHA256:
+a53b0c613a86c737b7caa7588c7c93ae20d5d5700f9321a406df9dcca8e32a7f.
+Ignored110 disassemblies are reused. No new guard or game launch was needed.
+
+This resolves the named shared machine-ID query and analytics identity-cache
+serialization through c32e30's c41ec0 tail in the current owned image. Other
+c41ec0 cache/request branches are not classified as acquisition-free here.
+The independent Main+1498/c307c0 advertising callback producer and other
+indirect/retained paths remain unproved. Real queue/file/wire and final paired
+release coverage remain open;RUNTIME_VALIDATED=false,published174 unchanged.

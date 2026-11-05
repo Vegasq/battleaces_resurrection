@@ -1,0 +1,32 @@
+D5 / P9 - immediate settings-change notification helpers
+
+2026-10-30. Bounded original/current recipe38 static review PASS;P9/D5 OPEN.
+
+414 bound UnityAdsSettings::set_enabled through the constructed manager's
+virtual+20 target to c038d0 when the enabled byte changes. This review binds
+that notification body's three immediate calls to complete current-matching
+original functions5b8d40,5ba5a0 and5bd620. The first resolves a tracked
+object/state byte;the second updates tracking data;the third walks tracked
+objects and can recurse through itself and5ba5a0. These are code-role
+descriptions from the selected instructions,not proof of all possible data
+or callbacks traversing those objects.
+
+None of the three decoded bodies directly names Main+1498 or c307c0.
+5bd620's recursive/dynamic traversal and the other helpers' deeper callees
+remain unclassified. The setter route therefore supplies no identified
+advertising-ID producer or pre-acquisition cut;it cannot be declared absent
+on the strength of these direct-body checks. Runtime invocation of this
+settings notification is also unproved.
+
+tools.review_ads_settings_notify415 verifies pinned original/current recipe38
+images,complete unwind extents and bytes for the three helpers,exact c038d0
+call targets and the recursive helper edges. Ignored report and disassembly:
+ local/privacy415-ads-settings-notify01/verification.json SHA256
+ 2bf595917aab9fad82cf975852f5679155fb256ebe0a45aada82a6da33ba8d7f.
+No game,identifier provider,SDK queue,endpoint or installer ran. Published174
+and RUNTIME_VALIDATED=false are unchanged.
+
+Follow-up445 decompiles c5bd620's immediate descendants in Ghidra and
+classifies their selected object-tracking operations;indirect handle
+conversions and the advertising-ID producer remain open. See
+advertising-object-tracking445.txt.

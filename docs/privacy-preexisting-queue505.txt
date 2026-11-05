@@ -1,0 +1,32 @@
+D5 / P7 - recipe46 prelaunch authored queue regression
+
+2026-10-31. Current recipe46 owned preexisting-queue subcase PASS. Full
+P7/P9/D5 remains OPEN;RUNTIME_VALIDATED=false. Published174 is unchanged.
+
+The recipe46 SDK cache-directory entry guard changes a constructor path
+that runs before queue lookup. The prior502 recipe45 queue result therefore
+needed a changed-recipe check. tools.verify_native_quit created a fresh
+owned nativestest_ profile in local/privacy504-game01 and seeded exactly one
+authored .event and one authored .session file before subprocess.Popen.
+The original genuine SDK Client/CacheManager constructed with both files
+already present under its scoped path. It found empty guarded queue lists,
+null ID lookups and returned from cached-delivery and both DeleteFile calls.
+Its original menu Quit returned0 without forced cleanup. Prelaunch,
+constructor-boundary and postexit file identities/bytes match.
+
+Source-bound owned run:local/privacy505-preexisting01/verification.json PASS,
+SHA256 aefe1d2240e3f599ce63b074f9270d4a8d1215f99b337b3e00d7024521f4b015.
+Installed native GameAssembly SHA256
+c1e198808a43600556b9674cce7ed20dbd48836f50dc07dcf8339361a9f29341;
+helper SHA256 8d6a2be3bfa37b9aa59fe0e0095af54c5fc94055fdeeb8e1eb4dd9fd43c27670.
+tools.review_preexisting_queue505 independently rebuilds that exact
+native DLL from the original,checks helper provenance,seed ordering,
+source snapshots,raw markers,actual retained files and normal Quit.
+PASS receipt local/privacy505-preexisting01/review505.json SHA256
+531793f8262389d3480756a2633f250f22d6d3a1bbd550e1780b6aaa57641d8e.
+
+This result covers two authored prelaunch files in one fresh private profile.
+It does not cover arbitrary existing queue contents,live/resumed/inflight
+delivery,whole file/network attribution,advertising ID acquisition or
+the final installed release pair. The profile contains only the two
+authored report files;no real shared report queue was read or changed.

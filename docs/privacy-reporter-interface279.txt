@@ -1,0 +1,77 @@
+D5 ORIGINAL REPORTER INTERFACE AND CURRENT INSTALLED CUT279
+2026-10-28. Bounded P7 source/byte subcase PASS;P7/P9/D5 remain OPEN.
+
+Original build37822 IL2CPP metadata maps Uncapped.ICrashReporter to six methods:
+AddStaticMetadata,LeaveBreadcrumb,RegisterDynamicMetadataEnricher,SendReport,
+SetEnabled and UnregisterDynamicMetadataEnricher. The concrete
+Uncapped.BugsnagCrashReporter has matching implementations. Current recipe23
+and the installed GameAssembly guard the other five interface methods at their
+entries;RegisterDynamicMetadataEnricher returns false and the void methods
+return. The original SendReport body also forwards to Client.Notify at8154e0,
+which has its separate current installed entry guard. This binds the named
+explicit reporter path's two cuts,but is static installed-byte evidence,not a
+runtime reporter invocation,all callers or a complete queue/delivery census.
+
+SetEnabled is deliberately not included in those entry guards. Original class
+initializer3cc6650 writes1 to the reporter static byte+18 at3cc687c.
+SetEnabled3cc30f0 copies its Boolean argument into the SAME byte at3cc3140.
+Current installed bytes preserve both complete bodies. A blanket entry RET on
+SetEnabled would also suppress a caller's SetEnabled(false) transition and
+could leave the static flag true. Its actual callers/values and indirect
+effects still need classification before changing it. No new patch follows.
+
+The unguarded AddUserConfigToReport3cc5df0 directly calls
+GenerateUserConfigCrashMetadata3cc5ee0 at3cc5e4a. The targeted raw E8
+inventory found this one exact direct edge;it does not resolve indirect or
+delegate callers of AddUserConfigToReport. Subs entry is guarded,which may
+prevent one registration route,but this review does not prove that all helper
+registrations or direct managed calls depend on Subs. These helpers remain the
+specific next source question for P7;do not label them absent from zero direct
+E8 candidates or patch shared configuration readers without receiver evidence.
+
+Pinned original GameAssembly SHA256:
+e59d08c01479b27404778048d7e13546dbf3771f6b3912744c7c2bdf80c4e758.
+Current installed GameAssembly SHA256:
+587a9d0c406e926131cd5b082eaa2c9b43b96cf2251baf7f7b6cd2b8a780ffca.
+Original metadata SHA256:
+b760be9190309b14174cd272e1f83b730181b299bc7a0cdca66985c69dcdc57d.
+Ignored local/privacy279-reporter-review.json SHA256:
+a34e32def3e74951c11635284b001bee740358ab0531735fe6a2fb1392e068ef.
+Its source local/privacy279-reporter-review.py SHA256:
+fb927c802bc4003363bedaa671c4c4767edc2c476716eec51df2be2c478d4176.
+The separate raw direct-call candidate table is
+local/privacy279-reporter-calls.json SHA256:
+f30367b6f41433d96891e4cf1685eb7a9d19599e887b06e9d4a28a21cff8670e.
+Original method disassemblies remain under ignored local/privacy279-game-*.asm.
+No game,reporter,queue,network API or original error method was executed.
+
+Follow-up401 (2026-10-30):a pinned original RGame/Bugsnag codegen-table
+direct-call scan found107 raw E8/E9 candidates with named RGame unwind owners.
+Eighty-seven target two shared delegate-constructor method pointers and are
+not treated as reporting-specific calls. The other20 decode as real direct
+calls to Bugsnag methods in six complete BugsnagCrashReporter bodies. All20
+original instructions and seven complete bodies byte-match the original.
+Five calling methods have current recipe38 entry guards on source and the
+owned installed GameAssembly. The sixth,FormatSimError,has just one direct
+E8 caller at3cc3a59 in CleanBugEvents;its current entry returns false before
+that call. This closes the named direct RGame-to-SDK path at these method
+tables and current guard bytes. It does not establish absence of unnamed,
+shared-alias,virtual/delegate/indirect SDK entry,real queue or wire activity.
+Read-only reviewer:tools/review_sdk_direct_game401.py;ignored receipt and
+original assembly:local/privacy401-sdk-direct01. P7/D5 remain OPEN.
+
+Follow-up402 (2026-10-30):401's617 unassigned raw hits split into606
+candidates targeting two shared delegate-constructor pointers and11
+reporting-specific candidates. Nine of those11 decode as SDK-local E9 tail
+wrappers in nine exact gap windows;they are entry adapters,not separate
+game-owned calls. One wrapper is current-guarded WritePayloadToDisk at837130
+before its original tail to WriteFile. Two remaining real calls to
+SimpleJson.DeserializeObject occur in complete original/current bodies at
+11fd3a0/11fd5e0,not assigned a module by the three-module table. A full raw
+rel32 scan finds no direct caller to those two bodies;indirect/generic use
+is not excluded. The first reviewer attempt failed because it expected the
+837130 original wrapper byte in the current image;the corrected reviewer
+checks the exact recipe38 source patch and installed byte. No product patch
+was made. Read-only receipt and eleven assemblies:
+local/privacy402-sdk-unnamed01;reviewer:tools/review_sdk_unnamed402.py.
+P7/D5 remain OPEN for unnamed/indirect entry,queue and wire behavior.

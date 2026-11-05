@@ -1,0 +1,55 @@
+P9 LISTENER LEAD220
+2026-10-27. Bounded static investigation complete;P9/D5 remain OPEN.
+
+Question and stopping rule
+Does the separate owner+c28 listener in183 establish a registration/adapter to
+Main+1498/c307c0? Follow a concrete registration if found;otherwise stop this
+lead without treating another negative search as privacy closure.
+
+Findings
+Reused183's complete c425d0..c42782 body and127's c33530..c33b76 body.
+At c33aa3 the constructor retains a newly allocated object in RBX. Its c33b00
+LEA selects that object's+c28 list for initialization;the object is published
+at the containing object's+1248 at c33b57. This is construction,not registration.
+At c42669 the dispatcher selects its receiver+c28. It reads the callback from
+24-byte records at c42694. The unbound call c426b2 supplies two zero-extended
+byte flags and an integer;bound c426c6 supplies record+8 as receiver,then the
+flags/integer. These are not c307c0's borrowed ID/error string arguments.
+An adapting subscriber could exist;none is identified by this review. This is
+not proof that the list is unused or that advertising acquisition is absent.
+
+One bounded discovery pass searched literal c28 displacements in original RVAs
+c2e000..c68000. It returned two candidates inside the verified construction and
+dispatch instructions above. This differs from183's c00/c08/c10 search within
+c40000..c47000. Raw candidates are not complete decoded references:computed
+addresses,other regions,interior aliases and external callers are not bounded.
+No further offset scan or quiet native game was launched. No actual registration
+was found,so the stated stopping condition was reached. Do not repeat this lead
+without a positive registration/adapter or a newly justified runtime trigger.
+
+Verification and scope
+local/privacy220-listener-source01/verification01.json:
+ b541ef1c6c9e147981f7af5e2c6ab1285a5e8bfb7600f4e5c9f9cef91d823914
+Two full PE merged-unwind extents,359 contiguous decoded instructions and16
+semantic anchors pass exact original-byte checks with Python3.12. Existing
+source-owned PE/parser helpers were reused;no new product code or tests needed.
+The local verify.py retains the assertions and references;no DLL was loaded.
+Original Unity SHA256:
+ ac144d56d53f07904d52ed27a1539de90bc3290038fe52d73d2f6b268c85d6bc
+Evidence retains candidate scope,assembly hashes and the false producer/guard
+outcomes explicitly. REA session inspection found no open binary and no available
+native provider. This is retained LLVM/PE evidence,not REA decompiler/runtime
+Evidence. No provider configuration or installation was attempted.
+
+Reuse179 manager lifecycle,182 original runtime interval,183 keyed listener,
+197 notification and200 parsed-token binding. Those results still do not identify
+the advertising producer. Keep existing callback state/progress cleanup and
+shared listeners intact;no new native patch follows from this finding.
+
+Roadmap disposition
+P9 remains unresolved with no demonstrated new source edge from this lead.
+Next actionable item is D2 R02 mode2:review retained waiting-Cancel/retry63-2
+against current packaged RC behavior,then qualify only the missing package and
+normal-Quit lifetime scope. Physical acceptance remains separate. No new Nick
+request;N7/N11/N12 answers remain pending and accepted checks need no repeats.
+Game files,host,packages,helpers,shared state and DEV.txt were not changed.

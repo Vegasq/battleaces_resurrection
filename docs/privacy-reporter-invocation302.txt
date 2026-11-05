@@ -1,0 +1,37 @@
+D5 / P7 - recipe26 seven guarded reporter callback entries in owned runtime
+2026-10-28. Installed entry behavior PASS;full P7/D5 remain OPEN.
+
+The opt-in reporter callback diagnostic was extended from the three recipe25
+guards to all seven recipe26 guards. It verifies exact loaded and disk entry
+bytes first,then directly invokes FlagFirstEvent,AddVariablesToReport,
+AddUserConfigToReport,<>c::<Subs>b__20_0,<>c::<Subs>b__20_1,
+CleanBugEvents and AssignCustomGroupingHash. Each returns false with unreadable
+borrowed arguments;none executes its original report-mutating body. The probe
+does not register or invoke an original delegate caller. The version2 evidence
+validator requires exact order,entries,thread and original Quit boundary;
+version1 historical recipe25 evidence remains valid.
+
+The fresh helper build in ignored local/privacy302-helper-build01 passed;
+BattleAcesOffline.dll SHA256:
+23d2739f18e1873637b17915a3f9d6bd943b11617d1daeea84148705cfc21240.
+The normal installer reinstalled this helper into the owned recipe26 game at
+local/privacy301-runtime01/game with its existing community/cosmetics fixture
+options. All133 bundles checked. Installed GameAssembly stayed SHA256:
+43f6a6028aa64f22abfe65f87b4de8acfaa0505aa41dcbb2e11d9af69c82e6.
+Installed manifest SHA256:
+7aaff854f4d1ef6065276e2274466e1bfad4b09a26cc78db636d3740db0a06a7.
+
+One bounded owned original menu Confirm run passed in13.891s:recipeVersion26,
+reporterCallbackSignatures7/7,all seven direct calls returned false on the
+same thread,and original Quit exited0 without forced cleanup. The existing
+genuine Client/Exception error fixture and original local Exception logging
+also passed. Verification.json SHA256:
+3c24084a368a8b32a8c2d3352543cd299d03f086c113a96670553fcfcdb83a2.
+Focused Python3.12 audit/patch/evidence tests passed57 with two optional
+asset skips;Python3.14 reporter evidence tests passed5. No real shared SDK
+report queue was read,seeded or cleared.
+
+This proves installed guarded entry behavior in the owned runtime. Original
+registration/indirect callers,SetEnabled caller values,SDK queue/retry/wire,
+all-thread and process-descendant behavior,and final release remain OPEN.
+Published174 remains recipe23. RUNTIME_VALIDATED=false.

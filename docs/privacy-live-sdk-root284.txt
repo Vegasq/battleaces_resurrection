@@ -1,0 +1,44 @@
+D5 / P1 - original live SDK cache-root return (2026-10-28)
+
+269 passively watched the path derived from CacheManager source, but did not
+observe the original getter's return. This separate owned recipe25 diagnostic
+calls the original CacheManager.get__cacheDirectory once on the established
+menu thread, with Application.persistentDataPath before and after. Full pinned
+original method-body hashes are checked first. It does not replace the Unity
+path icall,construct a CacheManager,enumerate a directory,read report payloads,
+invoke expiry or delivery,or inspect Nick's existing SDK queue.
+
+The returned application path is stable across the two calls. The SDK getter
+returns that exact path plus /Bugsnag. Hashes of both UTF-16LE strings and
+their lengths,not raw path strings,are logged. The source-owned verifier
+matches those hashes to the canonical Windows game LocalLow directory and
+requires the probe before original confirmation on that same thread. It also
+rejects a root override,queue enumeration,missing/duplicate/failed witness or
+wrong shared-settings path.57 focused tests pass on Python3.12 and3.14 with
+pinned originals;the native build and its C++ tests pass.
+
+The diagnostic helper SHA256 is
+4ede2e94bb35b6fca781f48099115f264ed8dd8269e5027db273dda61198866a;
+its source receipt local/privacy284-helper01/helper-build.json SHA256 is
+f764e606aefd6975f36151c92e1666490b39b7bd5f2b997d033bfbbb66fb3d34.
+A separate owned copy matched595 files/8056659078 bytes before normal installer
+dry run and install. Both verified133 bundles. Installed recipe25 manifest SHA256:
+63b90afaf5590a6e7c11ff55f35a874b1c1880f00c95b5c6f708b98f135057eb.
+This helper is a local diagnostic;the283 preview pair and published174 remain
+their retained artifacts,not current source-bound releases.
+
+local/privacy284-live-root01/verification.json passes original startup/menu/
+pre-Quit audit and one cache-root return,then original menu Confirm/Quit0 in
+19.140s,without forced cleanup. Source and real shared game settings are
+unchanged;the owned process is reaped. The native log records recipe25 with
+reporterCallbackSignatures=3/3 and the root return hash
+dd2e3d91eb48747914116ae95c49ecc6320a6bea566c5ae17eaf61c8220bb43a.
+Verifier report SHA256:
+5247b417d1ac358bfa3350b1a3f1954afaccb92269faf669f913547e5ff2b093.
+
+This confirms the exact root value at an owned menu-time call. It does not
+prove whether the original startup called the getter,opened that path,read or
+sent an existing report,or avoided another queue/path/network route. The
+probe itself calls the getter,so it cannot establish ordinary no-call startup.
+P1 and full D5 remain OPEN. Reuse269 for passive path activity at its selected
+interval;do not repeat it solely for this getter result.

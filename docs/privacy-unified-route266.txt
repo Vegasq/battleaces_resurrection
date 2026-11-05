@@ -1,0 +1,60 @@
+D5 CURRENT INSTALLED LOCAL PUBLIC BRIDGE ROUTE266 - 2026-10-28
+Gate: P4/P8 bounded evidence only. D5 remains OPEN; RUNTIME_VALIDATED=false.
+
+Question and method
+265 established local public fallback behavior and selected native fields but
+ended by forced diagnostic teardown. This check uses an owned diagnostic copy of
+the same installed four components/helper, one explicitly inherited private ABI2
+bridge socket, suspended launch and observer handshake. It plays distinct local
+public modes1 and2 through original selection, result, Continue and normal Quit.
+It observes selected Winsock/WinHTTP and process/browser activation calls without
+altering API outcomes or reading packet contents. The ordinary launcher and game
+sources are unchanged. The local runner and reports are ignored diagnostics;
+tools/owned_bridge_suspended_launch.py is the reusable owned launch adapter.
+
+Controls and retained failures
+local/privacy266-control01 failed before launch on an empty Python handle list;
+the adapter was corrected. control02 exited naturally but the review assumed a
+single job member; Windows conhost was a second member, so its review remains
+failed. control03 passes inherited BRIDGE_OK/GO exchange, one primary resume,
+exit0, job2/0/0 and no force. verification.json SHA256:
+755ed1676b03431b8a714f9b3e2d60130f574f132c1b0b4712bb67e4702bb8d3.
+public01 reached result/Continue but failed at native Quit because its profile
+did not carry the required owned nativestest_ prefix. Its failed report is
+retained at local/privacy266-public01/verification.json, SHA256
+ed53339bd44a460060a986bfa97913a54b5851266f5349d32db40cacfd6633ff.
+
+Accepted game evidence
+local/privacy266-public02 mode1 passes original result/Continue/Quit0, no forced
+cleanup and job1/0/0. Its Frida interval has1743 contiguous untruncated selected
+events; seven complete selected native telemetry snapshots contain all15 default
+zero values. Verification SHA256 efabf551326d0fecc6178331f25815ad8265f60b82f414b26f33b97dba8211dd;
+route review SHA256 cf85cbf15efe77b83a7ee1d53d382d365ff452302d31e4d4b9b7fe5360febe39;
+component review SHA256 16693218fc34be9716688b8498c953908051a0cd4d52dfd55ac8f848eb4d27ed.
+
+local/privacy266-public-mode2 passes the distinct mode2 route, original
+result/Continue/Quit0, no force, job1/0/0, seven complete all15-default selected
+native field snapshots and1885 contiguous untruncated selected observer events.
+Verification SHA256 e83a77c659140f259b92909ccdb9df488b2dbd1a4ac26e7432a7732ec9bc5e59;
+route review SHA256 5885f8c45ea202a1757b7fdee19579a461338aa7c9f08855cf77fc2ccd1d7950;
+component review SHA256 431ab8e6dfc2a8a99e2eaca062b846b29ed30549892a892cd24df8db27ff6c43.
+The final detached REA interval is ev_a6a2e33146e0efe93bea605bad9fea69e2f34dfa4379e834062f5dfda540d21a.
+
+Exact selected network attribution in mode2
+The child command and owner receipt identify the one inherited bridge socket as
+decimal492/0x1ec. All five selected network operations in the observer interval
+use precisely 0x1ec: two send and three recv calls. Selected connect, WSAConnect,
+DNS, sendto and WinHttpConnect counts are zero. Selected process/shell creation
+and lazy browser activation counts are zero. Source secure_bridge.hpp calls
+send/recv on this bridge; lan_transport.cpp routes secure-mode traffic through
+that channel. network-review.json passes and has SHA256
+e6ed3c8b00d7a964cd3f68cfa53d493b28ca190688d90f998b63f689b6a9e30d.
+These are expected private bridge calls, not observed analytics traffic.
+
+Boundary and next work
+The capture covers selected user-mode APIs and current local mode1/2, not every
+socket/API, kernel wire, queue write, all threads before observer attach, raw
+socket fallback, public mode5 natural Quit, connected modes, or a published final
+installer pair. The advertising callback's upstream producer at Main+1498/c307c0
+remains unresolved. P4, P8, P9 and D5 stay open. Reuse this route evidence;
+next work needs a distinct source/registration edge or a remaining matrix route.

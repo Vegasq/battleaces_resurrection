@@ -1,0 +1,42 @@
+D5 / P7 - owned execution of the three recipe25 reporter Boolean guards
+2026-10-28. Full P7/D5 remain OPEN,RUNTIME_VALIDATED=false.
+
+The three reporter callback guards added at280/282 had only source,installed
+byte and read-only signature evidence. An explicit owned diagnostic now verifies
+the exact loaded and disk guard bytes,then directly calls FlagFirstEvent
+(3cc3600),AddVariablesToReport (3cc5440) and AddUserConfigToReport (3cc5df0).
+Each entry returns false with unreadable borrowed inputs. The diagnostic does
+not invoke an original registration,delegate caller,or unguarded callback body.
+The separate shared SetEnabled/configuration code remains unchanged.
+
+The probe is opt-in through -telemetry-reporter-callback-probe and requires the
+existing initialized Client/error fixture. Its verifier binds one ordered
+three-call interval to the original Quit thread and rejects missing,changed,
+out-of-order or late evidence. The normal launcher does not enable this flag.
+Python3.12 and3.14 each passed59 focused reporter/error/audit/patch tests;
+the current native helper and C++ suite built successfully.
+
+The fresh owned copy local/privacy288-runtime01/game matched its source at
+601 files/8056995151 bytes. Installer dry run and install each checked133
+bundles. Installed manifest selects recipe25,default native_quit=false and
+runtime_validated=false. Helper SHA256:
+66cd3869f1d6f16855c441396844be655331799450904dacc7bd83431c6a3dda.
+Build receipt SHA256:
+bfd88b49d576793d42123863370fe69d0cfc9b77f6c4605a9e0d09abb1880fb8.
+Manifest SHA256:
+f1e7af5a1859cd36b13765e7136827bfa31ab72b4df1dc3a445eba070316ea99.
+
+The one owned runtime case local/privacy288-callback01 passed in19.000s.
+Read-only audit showed recipe25 and reporterCallbackSignatures3/3;the three
+direct guarded calls returned false on one thread. The genuine Client/Exception
+seven-entry fixture and original local Exception log also passed. Original
+Confirm exited0 without forced cleanup;source and real shared settings hashes
+were unchanged. Verification SHA256:
+a33714ee0fc10b8d80d4b9868a20e5a5ea04499541b4148fb6deff21dfd05a31.
+
+This establishes the guarded entry behavior in the installed recipe25 process.
+It does not establish which original callers register or invoke these callbacks,
+other reporter helpers,real SDK queue/retry/wire activity,all-thread behavior,
+or complete P7/D5 privacy. The ignored diagnostic copy is separate from the
+published174 recipe23 installer pair. No real SDK report queue was read or
+seeded;only the existing isolated cache fixture ran.

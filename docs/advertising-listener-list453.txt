@@ -1,0 +1,34 @@
+D5 / P9 - AdsIdHandler's second list is the native listener list
+
+2026-10-31. Static exact-PDB/pristine-UnityPlayer check PASS at bounded scope.
+No game or advertising ID provider was invoked. P9/D5 remain OPEN.
+
+The matching PDB contains a full decorated symbol at RVA361660 for
+std::list<IAdsIdListener*,stl_allocator<IAdsIdListener*,9,16>>::~list.
+Ghidra labels the same machine body as the ScriptingGCHandle list destructor
+because the two template instantiations have identical code. The PDB's full
+symbol therefore supplies type information that the single Ghidra display
+name omitted. Exact symbol is retained in
+<private-diagnostics-root>/ghidra443/
+pdb-symbolnames-console.log.
+
+The pristine handler constructor at361900 allocates a0x28-node list at+0x68
+and a0x18-node list at+0x78. The exact disassembly of StaticDestroy at3617c0
+passes handler+0x78 to the merged destructor first (LEA RCX,[RDI+0x78] at
+3617ea;CALL361660 at3617ee),then handler+0x68 (LEA at3617f3;CALL at3617f7).
+The public request5fb70 inserts0x28-byte managed callback nodes into+0x68.
+Together these facts identify+0x78 as the IAdsIdListener* list,and+0x68 as
+the managed delegate list. The previous449 note that the second list's type
+was unresolved is superseded at this exact scope.
+
+This identifies a concrete registration target,not its writer or the ID
+acquisition provider. Next inspect the constructor-independent writes to
+handler+0x78/+0x80 and any native listener insertion/dispatch callers. The
+public request remains guarded before its managed queue insertion in recipe39;
+the native producer may be independent. Published174 is still recipe23.
+
+Ignored script:local/d5-ghidra-12.1.4/scripts/TraceAdsListenerList453.java,
+SHA256 6e5b2f109ac7953b77cb55c017a3f8ae985506971bd85591ccb6fdddee89c198.
+Read-only headless log:local/d5-ghidra-12.1.4/pdb-listener-list453-console.log,
+SHA256 5639f1e9c581b6029b544b15d33c7d10e9742618b2473f06f59a77c711aa56f9;
+process exit0. Pinned pristine UnityPlayer SHA256 is in advertising-pdb448.txt.

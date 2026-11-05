@@ -1,0 +1,38 @@
+D5 / P1 - current recipe38 ordinary package menu idle and window shutdown
+2026-10-28. Bounded P1 shutdown subcase PASS;full P1/P9/D5 OPEN.
+
+The source-owned packaged startup verifier gained an optional --window-close
+mode. It runs the unmodified Start Client.cmd and ordinary client arguments,
+then posts WM_CLOSE only to the unique UnityWndClass window owned by the
+retained game PID after a measured menu idle. It requires the game and wrapper
+to exit within their deadlines,wrapper exit0,and no owned-job forced cleanup.
+The default forced-cleanup verifier behavior remains available. WM_CLOSE is
+not the game's in-menu Quit confirmation or physical input.
+
+Current private recipe38 client package:
+ local/privacy352-packages01/battleaces-client-win64
+Owned installed recipe38 game:local/privacy301-runtime01/game.
+Fresh owned profile packageprobe_a5df79b9fb47:
+ local/privacy353-ordinary-close01/verification.json PASS;
+ menu10.891s,idle30.156s,total42.953s,WM_CLOSE exit0,no forced cleanup.
+ Report SHA256 39ebd8eac82d8c3f18ad80efacbf6be94d5e68e4f33becc401e56c7004bc6fac.
+Same existing profile restart:
+ local/privacy353-existing-close01/verification.json PASS;
+ menu7.328s,idle30.031s,total38.765s,WM_CLOSE exit0,no forced cleanup.
+ Report SHA256 cc8c0853dd88e047e2ba183692dda1e3e4e9e34c22f3ee28f6439200f164504b.
+ Verifier SHA256 81c283337d2d1422b9d8680758967dfbf66b8ad64838625f20aea75a3a457df1.
+ Both runs verify package/config/source/shared files unchanged,ordinary command
+ without diagnostic/gameplay flags,menu readiness and no match entry during idle.
+
+The profile TOML is unchanged within each measured idle. Across the first
+shutdown/restart,menuuistates changes from an empty string to serialized
+ {"States":[]};the selected deck/abilities remain [1,6,17,13,77,29,58,11]
+ and [1,0,0,0]. This is a recorded native menu-state write,not a claim that
+ the complete profile bytes stay constant across sessions.
+
+The check covers ordinary package startup/idle and a window-close shutdown on
+this owned current-source install. It does not observe in-game Quit,all-thread
+network,real SDK queue/file/delivery,wires,descendants,early startup before
+capture,or the P9 advertising producer. Published174 remains recipe23 and
+RUNTIME_VALIDATED=false. Do not repeat this exact idle/WM_CLOSE check absent
+a changed path or concern.

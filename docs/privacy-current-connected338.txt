@@ -1,0 +1,50 @@
+D5 / P5 - CURRENT RECIPE34 PRIVATE PAIR CONNECTED PUBLIC1 RUNTIME338
+2026-10-28. Package/server compatibility PASS at one connected mode;
+P5/P8/P9/full D5 remain OPEN,RUNTIME_VALIDATED=false.
+
+Question and setup
+328 bound the recipe34 private client/server ZIP pair and ran its bundled
+client in local Try Deck,without a server runtime check. This run uses the same
+private package pair and separate owned recipe34 game installation in one RC
+open-admission loopback public1 match with two human clients. It uses the
+existing source-owned packaged multiplayer verifier,verified build37822
+assets and an isolated server data directory/profiles. The native clients use
+original match,result,Continue,menu and normal Quit paths. No user-owned
+server/game is stopped or changed. This is an engineering preview,not the
+published174 pair or a final installed release.
+
+Accepted result
+local/privacy338-connected01/verification.json passes in113.859s with no
+forced cleanup. The native match reaches1220 frames,has two human seats,
+records a complete result,and both packaged client launcher and game exit
+codes are0. The server's two workers exit0 and are reaped;the listener and
+status writer drain,lock releases,and final rooms/entries/offers/sessions/
+cleanup/workers counts are0. The retained server and two client jobs account
+5/2/2 total processes,each with0 active/0 terminated at completion.
+
+The private client/server ZIP hashes match328. The packaged telemetry.py
+matches current recipe34 source;the owned game's helper and GameAssembly
+hashes match its installation manifest and the helper324 build receipt.
+Package contents,assets,adapters,config,source and sampled shared game settings
+are unchanged;temporary test PKI was removed. The source-owned reviewer
+tools/review_d5_connected_pair338.py binds these identities and lifecycle
+claims to the retained report and current local files.
+
+Ignored evidence identities
+  local/privacy338-connected01/verification.json SHA256
+  be48f9c8392133def978de04dd358ecc65c0bb49295937caeb9e12fbf48cf6c8
+  local/privacy338-connected01/review.json SHA256
+  77a4d88fab93895532c589085a22fdbd325e4ca67128c2cc3f3d757a0a2d6699
+  Private client ZIP SHA256
+  674e638f2964803e9202c3f4994648ad90bc1575c518d8e4444c44e3f17e48d8
+  Private server ZIP SHA256
+  853a78c1a57d65107a671895679f62f487d96d79a077b0b92eb6d4cec584f6a9.
+
+Boundary
+This proves the current private pair can run one connected public1 match and
+shut down normally. It has no passive SDK-cache/file or complete network/wire
+capture for either client/server,does not settle all-thread/early/in-flight
+activity,other connected modes,Custom or P9's advertising-ID producer.
+Older271-274 endpoint samples cover their older pair at stated scopes and
+cannot be transferred to this changed recipe. Full P5/P8/P9/D5 and final
+installed/published qualification remain OPEN.

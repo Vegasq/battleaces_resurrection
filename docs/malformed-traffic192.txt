@@ -1,0 +1,74 @@
+BATTLE ACES - ACTIVE-MATCH MALFORMED TRAFFIC192
+Date:2026-10-26. SCOPED PASS. Full D4 remains OPEN.
+
+MISSING CLAIM
+Prior invalid-control tests rejected a malformed request with an idle peer;
+152-156 qualified native worker loss/stall. Neither established invalid client
+input isolation during a committed native match plus same-profile recovery.
+
+IMPLEMENTATION AND SCOPE
+New source-owned tools/verify_malformed_traffic.py reuses unchanged Peer/pair/
+advance helpers from tools/verify_room_faults.py. Production server,client,
+protocol,timeouts and packages are unchanged. No new build/publication needed.
+Actual191 bundled runtime/server,RC TLS,original Simulation.dll and verified
+assets;fresh owned profiles/state,loopback listeners and retained process/job
+ownership. Two simultaneous Custom1v1 rooms per case;ordinary50ms simulation.
+No worker kill/suspend or replacement of simulation output.
+
+After ten committed victim frames,slot1 sends one of:
+  oversized_header:MAX_BODY+1 length header,without any body;
+  truncated_input:frame10 with a truncated player-ID length varint;
+  foreign_identity:frame10 with valid protobuf naming slot0's identity.
+Expected client errors respectively:packet size limit;truncated varint;
+player identity does not match assigned slot.
+
+ALL THREE PASS
+Only the offending TLS connection receives protocol ERROR and EOF. The survivor
+gets explicit player-disconnected ABORTED,without winner or frame10 publication.
+Victim native worker stops at frame9 and exits0;no simulation_error. Exactly one
+protocol-error audit is attributed to the offending server connection.
+Survivor uses RETURN on its existing connection and reopens the retained lobby.
+Offender reconnects with the same token/profile;HELLO reloads saved deck/cosmetics
+without SET_LOADOUT. Reinvitation/START/READY yields a distinct replacement match
+and ten matching native frames. Four profile JSON files remain byte-identical.
+These are the fixture's saved default selections,not arbitrary cosmetic coverage.
+Concurrent room and native worker remain the same;40ordered,equal peer frames
+match the host's frame SHA256 journal. Maximum observed frame gaps:
+  oversized_header62.284ms;truncated_input64.198ms;foreign_identity62.995ms.
+The verifier's1000ms bound detects gross local stalls;not a latency guarantee.
+All nine native workers exit0. Controller exit0,job26total/0active/0terminated,
+no forced harness cleanup. Total11.047s.
+
+EVIDENCE
+Accepted:local/malformed192-02/verification.json
+SHA256:753ea7c080b82f5583afc35db78490f2fd3aad46c9570b1261524ddf5c8950a5
+Each case retains result.json and local audit logs beneath that directory.
+Package:local/candidate191-packages01/battleaces-server-win64
+Package manifest:e0531eec69057f165490fdb712581dec95632d6115fa29dda22035505d580235
+Assets:local/s139/assets/build-37822
+Asset manifest:5f26ae7e35ce004c5105fa42a85fed8671194380e9461caa89888decd2ee4ad3
+Driver:9d4ab89168e399a1863a98e754426589278dc41ece8bed6b31c2d6d88ccb319e
+Unchanged helper:a72566e362d0dfd36dabd89cd0369e6757513fd1c94a6e797a26efccef8a9876
+Tests:f5c50f08b5e985ff622810cf87fdd8306b7a225ae30f9934e293d88300272618
+Coordinator:7b9cf5e13cdf17e4b88fb54a66cd69d67aa63eccca7f12e8078e07955e620737
+Worker client:cebf69d02d5c574b88311da1ce82d7db6e97ae51e916ba6d258efd4892c65924
+Driver/helper pinned before/after;package and asset integrity checked. Private
+credentials,profiles and raw journals remain ignored local output.
+
+Seven diagnostic tests pass on Python3.12 and3.14. Packet controls verify that
+oversized rejection needs neither body nor EOF,protobuf is actually truncated,
+and foreign identity remains valid protobuf. Evidence controls reject a failed
+frame,winner,simulation error,misattributed rejection,healthy gap or changed hash.
+An initial authored test supplied raw text instead of a protobuf identity;fixed
+to use encode_identity. This was a test-fixture error,not a production defect.
+Initial local/malformed192-01 retains FAILED parent report:all child scenarios
+passed,but parent used nonexistent terminated_processes accounting key. Corrected
+to total_terminated_processes;02 reran the complete owner/report path successfully.
+Do not relabel01 as an accepted terminal run.
+
+REMAINING
+This closes only the three named scripted Custom1v1 malformed-input cases.
+No graphical error/Continue/Quit,physical client,public matchmaking,other roster,
+Internet,SCM,load/flood/fuzzing or exhaustive protocol robustness acceptance.
+Other D4 storage,replay,late-return,slow-load/version/asset and visible recovery
+requirements remain. Reuse this evidence;do not repeat without a changed path.

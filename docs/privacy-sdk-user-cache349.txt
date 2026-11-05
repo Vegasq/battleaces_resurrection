@@ -1,0 +1,58 @@
+D5 / P7 - SDK User initialization cached-device-ID acquisition
+
+2026-10-28. Recipe37 original/source review,owned installed loaded-byte audit
+and natural menu Quit0 PASS. Full P7/P9/D5 remain OPEN,RUNTIME_VALIDATED=false.
+
+The pinned original BugsnagUnity.Windows metadata binds Client.InitUserObject
+at8141f0 and CacheManager.GetCachedDeviceId at8368b0. The original Client
+constructor directly calls InitUserObject at812ec4. On its fresh User path,
+InitUserObject allocates a real Payload.User,then at81429d calls the cached
+device-ID getter and passes its return to User.set_Id at8142b4. The later
+Client+18 User store and callback setup are separate. The getter can read or
+generate identity;the original call is a positive collection edge even though
+its invocation in an ordinary game run was not observed here.
+
+Recipe37 changes only seven bytes at81428e:an unconditional branch to8142b9
+skips the fresh-path cached getter and Id setter after User construction.
+It retains the valid User object,its Client+18 store,configured-User branch,
+and later callback/native setup. It does not change the shared getter or
+public Unity identity APIs. The fresh User Id remains at its constructor
+default. Original unwind/function frames and return contract remain intact.
+The source recipe has166 guards,101 in GameAssembly.
+
+tools/verify_sdk_user_cache349.py PASS binds original metadata/codegen/unwind,
+312 decoded original instructions across Client.InitUserObject,
+CacheManager.GetCachedDeviceId and Payload.User constructor,the direct
+query/Id setter/stored User instructions,exact branch bytes and one-seven-byte
+delta from recipe36. Pinned original GameAssembly SHA256:
+e59d08c01479b27404778048d7e13546dbf3771f6b3912744c7c2bdf80c4e758.
+Recipe36 source GameAssembly SHA256:
+ba894975597777edd2e7544ea2df9aafb59101800885734e7decb0b66660ff92.
+Recipe37 source GameAssembly SHA256:
+89b6da75d36009ec3824859c6583cf29650e7db6d23dd804ac6100fa30ef30fd.
+Earlier source verifiers345/347 pass after normalizing the new branch.
+80 focused Python packaging/audit/patch tests pass with2 optional skips.
+
+Windows helper build and embedded tests pass atlocal/privacy349-helper-build01.
+Owned local/privacy301-runtime01/game dry-run and install each verify133 bundles
+and retain community/cosmetics options. Installed GameAssembly SHA256:
+3227437da9d1e5b503f93f4792b5278297567a00e78c5aaa67ad7e68af8209ea.
+Installed helper SHA256:
+5b0106bf502aab57315ea227fec9f79916714d718254d1991e924437cafdd6f7.
+Installed manifest SHA256:
+0df90d533eda32623a31f15d5bc01976f88ca0581beb8946f1aa196cbc567eaa.
+Helper receipt SHA256:
+39087eb158ca5c5a2868029801b85a09f2f55086212f7d2fa60539f5eca083e7.
+
+The owned menu run local/privacy349-menu01/verification.json PASS SHA256:
+4f0116fbb82eceb13e5e033a20f023edad10e12875bb5f9be1ae0da159b73323.
+It records three selected native-field snapshots,recipeVersion37 loaded/disk
+sdkUserCacheSignatures1/1,original Quit0 in15.187s,no forced cleanup,owned
+process reaped and source/shared settings unchanged. This is loaded-byte and
+menu compatibility evidence,not a live cached-getter invocation test or
+complete queue/wire privacy proof.
+
+350 now adds a private recipe37 package/connected pair PASS;see
+privacy-current-package350.txt. The separate native Unity advertising-ID
+producer,other SDK collection/queue/file/wire and all-thread/descendant/final
+installed scope remain OPEN. Published174 is unchanged.

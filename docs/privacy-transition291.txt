@@ -1,0 +1,49 @@
+D5 / P6 - current recipe25 same-process unavailable -> local -> online -> local -> Quit
+2026-10-28. P6/full D5 remain OPEN,RUNTIME_VALIDATED=false.
+
+The source-owned unified-client diagnostic gained an opt-in normal-Quit gate.
+It waits for both original local Try Deck matches and authenticated TLS Custom
+Create/Leave in one client PID,then releases the original menu Quit confirmation.
+Normal launcher arguments and default diagnostic behavior are unchanged.
+
+The helper build passed with C++ tests. A fresh owned copy matched its source
+at601 files/8,056,995,151 bytes before the patcher dry run and install each
+checked133 bundles. Both installed default recipe25 with helper SHA256
+2cff1618ac4643a09a59d56f29e38a67357dae3337ee7cd1048247f0ae99df0b.
+The first launch command pointed at a game bundle folder instead of the
+verified p0-export03 server assets and refused before output/game creation.
+The next preflight used the correct assets but failed on a missing Python
+secrets import before game PID creation;its failed report is preserved at
+local/privacy291-transition01/verification.json. The import was fixed before
+the completed run.
+
+local/privacy291-transition02/verification.json PASS:one PID35156,2 remote
+attempts,1 authentication,4 Custom lobby events,2 completed local matches,
+original native Quit exit0,job1/0/0,no forced cleanup. Source hashes at run
+start/finish and shared-settings hashes matched. The deterministic unavailable
+resolver produced the first failure while local practice remained available;
+after the first match,the same process authenticated to the owned loopback TLS
+server,completed Create/Leave,then started/completed a second local match.
+The owned test used ephemeral PKI and in-memory invites,not enrollment.
+Elapsed426.797s. Report SHA256:
+aa2b4aca5e3fa41f38f1396236ed09b647b0ba3aa2b3338f841776e87b622d7b.
+
+Review found one report-only alias error:the server audit events list was reused
+for Quit names,then server.close appended its server_stopped dictionary to the
+reported quit_events after the five-event assertion. The source alias is fixed
+for later use;the completed run was not repeated. The retained original raw
+quit-trace.jsonl has exactly armed,Show.dispatch,Show.return,
+OnConfirm.dispatch,OnConfirm.return,all bound to PID35156 after launch tick.
+The independent retained-file review at local/privacy291-transition02/review.json
+PASS also checked ordered native log markers,helper/build receipt hashes,
+report hash,job accounting and exact raw trace. Raw trace SHA256:
+62bf49b70bb8b2b4d00bb3559cd171405e6d451fd6b5f1575b9f0a3c67aa6238.
+The report's generic scope string also predates the opt-in Quit path;current
+source now emits a path-specific scope. These report text fixes were made after
+the run and do not alter its original trace or runtime behavior.
+
+This closes a selected same-process unavailable/local/online/local/original-Quit
+transition on the current owned recipe25 install. It does not simulate an
+ordinary network outage or prove reconnect policy,SDK retry/queue/file/wire
+behavior,early/brief sockets,all-thread collection,or descendant attribution.
+P6/D5 stay OPEN. No Nick action is requested.

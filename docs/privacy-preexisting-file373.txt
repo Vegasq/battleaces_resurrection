@@ -1,0 +1,68 @@
+D5 / P5-P7 - preexisting file-handle attribution and failed-call status
+2026-10-30. Bounded current private-pair subcase PASS. Full D5 OPEN.
+
+371 resolved previously unknown relative NtCreateFile/NtOpenFile directory
+handles. A further gap remained:NtReadFile,NtWriteFile or
+NtSetInformationFile could use a file handle opened before the observer.
+372 adds an opt-in GetFinalPathNameByHandleW metadata query for such a
+handle;GetFileType distinguishes a known pipe/character handle when path
+resolution fails.373 records return status,handle and type for unresolved
+selected file operations. These diagnostics query existing handle metadata;
+they do not read file contents or a real SDK report queue. Normal player
+launchers and published174 are unchanged.
+
+The owned positive control opened an authored queue/owned.txt handle BEFORE
+Frida attachment,waited for observer-ready,then read its17 authored bytes.
+The observer attributed the successful NtReadFile to that full path,with one
+file-handle resolution call,zero resolution failures and zero unresolved
+file operations. The authored file was unchanged and the process made its
+original self-TerminateProcess call0.
+
+The current recipe38 private pair358/helper357 and owned301 game/assets
+passed another RC-open public1/two-human match:1220 frames,result,Continue,
+normal Quit0 for both native clients,server workers reaped,jobs5/2/2 drained,
+no forced cleanup. Hooks were ready before each suspended main thread resumed.
+Both observers resolved the relative directory root (one call/zero failures)
+and had zero unknown relative paths at self-termination entry. They recorded
+no selected file operation under the293-bound LocalLow Bugsnag root.
+
+In the preceding372 game run,one pathless handle per client caused nine
+unresolved operations.373 identifies all nine in EACH client:NtWriteFile
+on0xffffffffffffffff,GetFileType0,return0xC0000008 (STATUS_INVALID_HANDLE).
+They are failed writes,not successful file I/O with an unknown destination.
+No other unresolved-handle operation appears in either complete stream.
+Selected send/recv stayed on each exact inherited bridge socket;selected
+DNS/connect/sendto/WinHTTP counts were0 at termination entry. No decode
+errors,message truncation or observer overflow occurred. Source/package
+files were unchanged.
+
+tools.review_d5_unresolved_file_status373 binds the authored preexisting-
+handle control,observer bytes/PID/gate and exact native file event;then it
+checks the current package/game/asset identities,both client gates,all nine
+failed returns per client,final counts,normal exits and drained workers/jobs.
+15 focused packaged tests and Python syntax checks pass. No actual shared
+SDK queue was read,seeded or cleared.
+
+Scope:The previously unresolved preexisting-handle operations in this match
+were all failed invalid-handle writes. This strengthens the selected
+user-mode file API observation from pre-main-thread resume to original
+self-TerminateProcess entry. It does not prove whole file/queue absence:
+other APIs,unnamed objects,absolute NT device aliases,renames/mappings,
+kernel/raw I/O,other processes/descendants,the200ms diagnostic hold/actual
+death and final installed artifacts remain outside this result. P9's
+advertising-ID producer and full P5-P9/D5 remain OPEN;
+RUNTIME_VALIDATED=false.
+
+Ignored evidence SHA256:
+ local/privacy372-read-control01/rea-evidence.json
+ 5dab74e94282fac613db3537a663d0604e3a975b689726c4acb455633377b621
+ local/privacy373-connected01/verification.json
+ 87dbb46dc4f19936a59e732dfab792fc133606e7f642a192859be2a4d4fbd7ae
+ local/privacy373-connected01/network-review.json
+ a14a62f5ebbcb411790c71b03f8d11bd5e8b66d5e02f7917c704480af6008717
+ local/privacy373-connected01/file-status-review.json
+ 0b6dbf3057875170435bb357565aae9ce0c364982f9ae4b7075c92b3c9cb9647
+ local/privacy373-unresolved-trace01/rea-evidence.json
+ 522dbda74effa0213e0a7dfc12608c7b10cf2d6d0231f1873708aca468fc8262
+The REA exports include older sessions;the reviewer selects exact control
+and game session IDs from ignored manifests.

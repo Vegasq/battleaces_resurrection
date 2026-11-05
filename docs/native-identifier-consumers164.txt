@@ -1,6 +1,11 @@
 NATIVE IDENTIFIER CONSUMERS164
 2026-10-23. Static source findings; full D5 remains OPEN.
 
+Follow-up194 binds a concrete particle auto-seed use of the second state via
+registered ParticleSystem.Play/randomSeed/useAutoRandomSeed and native receiver
+flow. Exact C++ type/all consumers and advertising producer remain open. Reuse
+particle-rng194.txt;the original164 findings below retain their historical scope.
+
 Result
 The two unclassified direct machine-ID wrappers left by132 have positive source
 identities now.10e270 is registered as UnityEngine.SystemInfo's general device-ID
@@ -45,6 +50,8 @@ do NOT establish its type or an analytics relationship. Keep that classification
 gap explicit; do not promote a particle-system or telemetry guess into fact.
 
 Advertising callback source remains a separate question
+Follow-up197 names the downstream Main190 notification and refines retained116
+offset candidates. See identity-notification197.txt;upstream producer stays open.
 Parent followed c2ee90's actual base constructorc33530 and owner handoff
 c33530->c1d080(Main+1370,Main). That dependency installs a borrowed owner pointer,
 sentinel containers and a lock. No advertising-provider registration was

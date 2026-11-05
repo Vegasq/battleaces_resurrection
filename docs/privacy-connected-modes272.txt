@@ -1,0 +1,36 @@
+D5 CURRENT-SOURCE CONNECTED PUBLIC5 AND PUBLIC2 SOCKET SNAPSHOTS272/273
+2026-10-28. P5 selected-lifetime scope PASS;P5/P8/P9/D5 remain OPEN.
+
+These are two distinct RC open-admission packaged native matches using the
+current-source local package/game/helper/receipt pair from
+privacy-connected-sockets271.txt. Each uses two humans and its own fresh output,
+host data,PKI,profiles and original native result/Continue/menu/Quit path.
+The source-owned verifier confirms unchanged packages,assets,source,shared
+channels,adapters and configs at finish. No user-owned game or host was used.
+
+Mode5,local/privacy272-connected05/verification.json:pass,105.468s,
+forced_cleanup=false,native game PIDs34428/35564,human seats0/2. Three owned
+jobs account5+2+2 processes with active0/terminated0 at exit;server
+rooms/sessions/workers/entries/offers/cleanup0. Its109 endpoint samples each
+include both native PIDs. They contain2401 TCP and0 UDP rows,with TCP owners
+only host13184 and client adapters29160/26840. Remote addresses are only
+127.0.0.1 or0.0.0.0 for listening/unconnected endpoints. Hashes:
+ verification.json 02fc1e136bd0bfa1c596226548e0f0315b4fddebdfca11c1eb9408e1a45b882f
+ local/privacy272-sockets05.jsonl ab68e2308faed4182db8fdcd2de55d06ae340b06ae2801b602e04ee17ccdb377
+
+Mode2,local/privacy273-connected02/verification.json:pass,134.015s,
+forced_cleanup=false,native game PIDs30656/3556,human seats0/1. Three owned
+jobs drain with active0/terminated0;server sessions0. Its147 endpoint samples
+each include both native PIDs. They contain3258 TCP and0 UDP rows,with TCP
+owners only host27668 and client adapters34724/8244. Remote addresses are
+only127.0.0.1 or the0.0.0.0 listener sentinel. Hashes:
+ verification.json 0604f1e9608a8b54c549b25f9feb4d877b5afc5e32c471036af9839616021f3b
+ local/privacy273-sockets02.jsonl d7daf45d633687e5daff4667a50931b17e3c9c1752bde3697e26af59fbc06109
+
+The metadata-only sampler is local/privacy270-socket-sample.ps1, SHA256
+31a5a3cedc567cc08e158eca5ce1cbb3f47c366222ff39ce0dc3b2b0b4df7ad3.
+These are post-launch endpoint-table samples,not a packet capture or a record
+of every early/short-lived socket. They cannot prove SDK queue/file behavior,
+raw socket/kernel activity,external processes,or full advertising producer
+absence. Local public1/2/5 and connected public1/2/5 are now distinct selected
+route inputs;Custom,complete P5 attribution and final-installed D5 remain.

@@ -4,6 +4,7 @@
 #include <winsock2.h>
 #include <ws2tcpip.h>
 #include <windows.h>
+#include <commdlg.h>
 #include <bcrypt.h>
 #include <vector>
 #include <deque>
@@ -30,6 +31,7 @@ namespace ba_cosmetics { static void update(void*);static bool prepare(void*);st
 namespace ba_match_search {static void update(void*);static void joining(void*);}
 namespace ba_native_replay_playback {static bool enabled();static void* prepare(void*,void*);static void observe();}
 namespace ba_replay_menu {static void update(void*);static bool canInspect();}
+namespace ba_replay_entry {static bool update(void*);}
 namespace ba_replay_runtime {static void update(void*);}
 namespace ba_replay_binding {static void observe();}
 namespace ba_webview_probe {static void update(void*);}
@@ -56,6 +58,7 @@ static bool acknowledge(const ba_community_wire::Ack&);
 static void prepareLocal(void*);static uint64_t acquireLocal(void*);static void releaseLocal(void*,uint64_t);
 static void acquireRemote(void*,const std::string&);static void releaseRemote(void*,const std::string&);
 static bool remoteWorld();static bool allowPracticeSmoke();static bool allowCustomSmoke();
+static bool replayWorld();
 }
 namespace ba_dedicated_session {
 static void update(void* front);
@@ -362,6 +365,7 @@ extern "C" __declspec(dllexport) void OfflineFrontUpdate(void* front,void*) {
 #include "replay_nody_inventory.cpp"
 #include "replay_menu_smoke.cpp"
 #include "native_quit_smoke.cpp"
+#include "replay_entry.cpp"
 #include "native_settings_notice.cpp"
 #include "public_client.cpp"
 #include "remote_profile_smoke.cpp"
@@ -378,6 +382,11 @@ extern "C" __declspec(dllexport) void OfflineFrontUpdate(void* front,void*) {
 #include "cosmetics_loadout.cpp"
 #include "cosmetics_ui_smoke.cpp"
 #include "cosmetics_equip_smoke.cpp"
+#include "cosmetics_preview_smoke.cpp"
+#include "cosmetics_video_smoke.cpp"
+#include "cosmetics_emote_smoke.cpp"
+#include "cosmetics_spray_smoke.cpp"
+#include "cosmetics_emote_match_smoke.cpp"
 #include "webview_probe.cpp"
 
 extern "C" __declspec(dllexport) void OfflineStartupReady(void* context,void* freshThreshold,void* reusedThreshold,void* initializer) {
@@ -391,4 +400,23 @@ extern "C" __declspec(dllexport) void OfflineStartupReady(void* context,void* fr
     ba_startup_tasks::ready();
     ba::log("Offline startup assets ready; original Start timing retained; releasing native intro gate");
     ba::native<void(*)(void*,void*)>(0x3dfced0)(owner.get(),nullptr);
+}
+
+extern "C" __declspec(dllexport) void OfflineStartupFailure(void* builder,void* exception,void* method) {
+    // Exact RGameInit.<Start>d__20.MoveNext terminal catch, after native state
+    // retirement. Forward its original exception publication/bookkeeping first;
+    // do not catch or replace the original managed exception propagation.
+    const auto image=reinterpret_cast<uintptr_t>(GetModuleHandleW(L"GameAssembly.dll"));
+    reinterpret_cast<void(*)(void*,void*,void*)>(image+0x34790b0)(builder,exception,method);
+    try {
+        static bool requested=false;
+        if(!ba::localMenu() || requested)return;
+        requested=true;ba::init();
+        ba::log("Startup failed before readiness; requesting original Unity Quit exit=78 BA_RESURRECTION_STARTUP_FAILURE_V1");
+        // Original Application.Quit(int); keep wantsToQuit, pending-load
+        // admission and original shutdown. No readiness/counter/owner writes.
+        reinterpret_cast<void(*)(int,void*)>(image+0x5021a80)(78,nullptr);
+    } catch(const std::exception& error) {
+        ba::log("Startup failure exit request failed: %s",error.what());
+    }
 }

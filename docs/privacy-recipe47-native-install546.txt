@@ -1,0 +1,56 @@
+D5 / P1-P9 - private recipe47 standalone pair and actual client install
+
+2026-10-31. Current private recipe47/176-guard installer-to-runtime check
+PASS at the named scope. P1/P7/P8/P9/D5 and RUNTIME_VALIDATED=false remain
+OPEN. Published174 remains recipe23;no release was uploaded. No original
+game,shared SDK report queue,real server or user installation was changed.
+
+The source-bound local/privacy512-packages01 client/server archives are
+version0.3.0-rc1.7 with dirty current-worktree provenance. Both package
+inventories pass. tools.build_client_installer embedded each archive in its
+native Windows Forms shell under local/privacy542-{client,server}-installer01.
+Client EXE SHA256:0d63226eefce722619f86a360f6d92fecd71f66040848d8e17e88622872e0755.
+Server EXE SHA256:bce2c4e13e010c3a7adb9c65864ee07087786d1a647d5fd0790b42543e7b08a6.
+Four owned native commands (UI smoke and payload verification for both)
+exited0 with empty Jobs and no forced cleanup. Both forms expose their
+expected editable fields/progress control;both embedded payloads extract
+and verify file-for-file against the package inventories. This is native
+form/payload verification,not an actual server installation.
+
+A fresh local/privacy543-game01 copy of the untouched game was byte-checked
+at seven critical components before install. The unchanged native form host
+loaded the current client installer and clicked its actual Install action.
+Its BackgroundWorker extracted the exact client package and completed in
+75.047s,reporting progress,locked controls and restored controls. The owned
+Job ended3/0/0 with no forced cleanup. The installed runtime matches the
+package inventory;original backups match the checked pristine components.
+Installed manifest names recipe47,108 GameAssembly and66 UnityPlayer guards,
+RUNTIME_VALIDATED=false. All four telemetry component files match the
+source-bound private512 installation byte-for-byte. Current verify_game
+accepts the installed manifest/helper for unified player features.
+
+The normal installed Start Battle Aces.cmd then launched a fresh isolated
+profile. It reached the ordinary menu in10.141s,idled30.140s and exited0
+after an owned WM_CLOSE;wrapper/game reaped without force. Same-profile
+restart reached menu in6.703s,idled30.156s and exited0 the same way.
+Both runs preserve package,config,source and shared-settings snapshots.
+These are background ordinary-window checks,not physical input,in-game
+Quit,match privacy,SDK-root file/wire observation or a clean-machine release.
+
+tools.review_recipe47_native_install546 independently binds the current
+source/package receipt,installer EXEs,UI/payload reports,actual native
+install,exact installed images/helper,manifest and both ordinary runs:PASS.
+Reviewer SHA256:c4f868fbf8f9a08dafd718dd838373511b7c4261cd1b035d2befd36e78ce22c1.
+Ignored receipt local/privacy546-native-install-review.json SHA256
+709db2cccc2322085e3ac4807c965597fa430093462af93baa8cd44dbabf5023.
+Install report local/privacy543-client-install01/verification.json SHA256
+394f54bd5bf50028c80c514b9810b710774bb6e055b6e9f2eb930e4996b5e3da.
+Shell report local/privacy542-qualification01/verification.json SHA256
+83873381b9ec4427ce1df129f762ba5841b04c565964b671352a3533c4339d0c.
+
+This closes the private current-recipe installer shell/payload and one
+actual client install plus ordinary fresh/restart compatibility subcase.
+Upstream advertising-ID acquisition,alternate SDK/file/network routes,
+real SDK-produced queue,whole wire,all supported-mode privacy and the final
+clean published pair still require D5 evidence. The server shell's actual
+Install action remains untested here.

@@ -1,0 +1,30 @@
+D5 / P1 - exact passive SDK path to original getter binding
+2026-10-28. P1/full D5 remain OPEN,RUNTIME_VALIDATED=false.
+
+269 passively watched a source-derived Windows Bugsnag cache directory during
+owned startup/menu/original Quit. 284 later called the original SDK cache getter
+once in a separate owned menu diagnostic and recorded the returned UTF-16 path
+hash. The source-owned tools/review_sdk_root_binding293.py rechecks both sealed
+reports,269's actual observer.js fileRoots,stable components and closed job,
+284's getter witness and unchanged UnityPlayer SHA256. After normalizing Windows
+slash separators,the exact 269 watched path hashes to 284's live getter return:
+dd2e3d91eb48747914116ae95c49ecc6320a6bea566c5ae17eaf61c8220bb43a.
+This proves the selected passive watch targeted the path returned by the
+original getter in the later run,not merely a guessed folder name.
+
+269's sealed review has834 contiguous observer events,674 selected file records,
+zero under that SDK root,no root replacement,unresolved relative root or
+overflow. Both cases exited through original Quit0 without forced cleanup;
+the common UnityPlayer SHA256 is
+a53b0c613a86c737b7caa7588c7c93ae20d5d5700f9321a406df9dcca8e32a7f.
+The 284 diagnostic itself called the getter;269 did not. They are two separate
+runs,with different installed GameAssembly versions. No queue was read,seeded,
+cleared or enumerated by this review. It cannot infer ordinary startup getter
+invocation,other cache roots,short-lived/all-thread file activity,SDK retry or
+queue emptiness. P1 and full D5 remain OPEN.
+
+Retained ignored local/privacy293-root-binding01/verification.json:PASS,
+SHA256 1297231d97d62dc24c18081f274bd91d3d69f0a26cf3941eb467eb18f411318e.
+The verifier refuses changed 269/284 reports,changed observer,missing root in
+the observer configuration,different Unity images or a different getter hash.
+No game,host,SDK query,installer or Nick action was needed.

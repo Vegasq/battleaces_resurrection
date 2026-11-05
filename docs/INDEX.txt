@@ -1,5 +1,5 @@
 BATTLE ACES - DOCUMENTATION INDEX
-Updated:2026-10-25. Paths below are relative to docs/.
+Updated:2026-11-01. Paths below are relative to docs/.
 
 START WITH THREE FILES
   REMAINING_DELIVERY_PLAN.txt - what is next and which D1-D9 gates remain
@@ -20,6 +20,255 @@ Focused evidence files were not renamed because tools and retained reports
 depend on their paths. Top-level reference documents are indexed below.
 
 CURRENT PLANNING AND ACCEPTANCE
+  privacy-etw-sensor556.txt - failed medium-token ETW start and prepared synthetic elevated calibration;N16 pending
+  advertising-libcef-winrt554.txt - installed libcef direct WinRT factory call resolves UIViewSettings
+  advertising-gameassembly-winrt553.txt - actual-installed GameAssembly direct WinRT chain resolves DispatcherQueue
+  advertising-registry-direct552.txt - direct runtime-static registry-head readers in pinned/current Unity
+  privacy-recipe47-installed-pair551.txt - actual-installed server/client public1 match and Python byte audit
+  privacy-recipe47-server-install549.txt - actual native server Install and exported asset verification
+  privacy-recipe47-public2-device-io547.txt - actual-installed four-client public2 selected device-I/O and Python audit
+  privacy-recipe47-native-install546.txt - private standalone pair,actual client Install and ordinary restart
+  privacy-sdk-loader541.txt - direct SDK Windows dynamic loader import/owner-call inventory
+  privacy-resume-current540.txt - named fresh-process saved/in-flight report prevention on recipe47
+  advertising-winrt-resolver539.txt - dynamic WinRT activation slots serve named speech/capture/gamepad readers
+  privacy-recipe47-device-io538.txt - current installed native device-I/O plus Python/queue audit
+  advertising-device-event536.txt - native DeviceInfoEvent adsid field and guarded construction routes
+  privacy-sdk-winsock-import535.txt - direct SDK Winsock import-call scope in current installed image
+  privacy-recipe47-direct-io531.txt - current byte identity for named direct SDK disk/network calls
+  advertising-recipe47-modes530.txt - current prelaunch public1/2/5 and Custom P9 entry observations
+  privacy-recipe47-combined-wire526.txt - authored queue plus native/Python loopback audit
+  advertising-name-import-inventory525.txt - matching-PDB P9 function/import name scope
+  privacy-recipe47-queue-connected524.txt - authored SDK queue in ordinary connected public1 pair
+  privacy-recipe47-queue-observer523.txt - authored prelaunch queue with selected native file/send trace
+  privacy-recipe47-sdk-runtime522.txt - prelaunch recipe47 public1 selected SDK/file/socket observation
+  privacy-sdk-client-acquisition521.txt - direct SDK Client constructor paths end in guarded Start/AutoInit
+  privacy-recipe47-preexisting-queue520.txt - recipe47 authored prelaunch SDK queue and original Quit
+  privacy-sdk-wrapper-pointers519.txt - SDK send/completion absolute pointers are only method slots
+  advertising-public-runtime518.txt - loaded recipe47 public advertising request false-return check
+  privacy-recipe47-modes517.txt - recipe47 private public1/2/5 and Custom connected compatibility
+  privacy-unity-post-refs516.txt - PerformPost/Begin data refs are PE unwind records
+  privacy-unity-config-cleanup515.txt - config request shutdown cleanup source and owned Quit trace
+  privacy-unity-config-followup514.txt - config caller pending branch after blocked post
+  privacy-unity-post-runtime513.txt - loaded recipe47 PerformPost direct-call return/Prepare/Begin check
+  privacy-recipe46-ordinary509.txt - private recipe46 installed launcher fresh/restart and SDK-root watch
+  privacy-sdk-network-targets508.txt - pinned direct SDK System.Net/Unity networking target inventory
+  privacy-sdk-disk-reachability507.txt - recipe46 seven-cut reachability for15 direct SDK disk calls
+  privacy-recipe46-connected506.txt - private recipe46 paired public1 match and normal exits
+  privacy-preexisting-queue505.txt - recipe46 prelaunch authored cached queue and genuine Client/Quit
+  privacy-sdk-directory504.txt - recipe46 cache directory creation guard and owned genuine Client/Quit
+  privacy-sdk-file-io503.txt - pinned direct SDK System.IO calls and in-memory stream classification
+  privacy-preexisting-queue502.txt - recipe45 prelaunch authored queue retention and original Quit
+  privacy-sdk-delete501.txt - recipe45 SDK DeleteFile guard,authored retained files and owned Quit
+  privacy-current-queue500.txt - recipe44 genuine Client with authored cached files and guarded queue entries
+  privacy-current-error499.txt - recipe44 genuine Client/error in-memory fixture and owned Quit
+  privacy-current-error-fixture498.txt - recipe44 audit pass and obsolete error fixture limit
+  privacy-unity-device-fallback497.txt - shared Unity DeviceId fallback and guarded analytics direct calls
+  privacy-recipe44-modes496.txt - changed-recipe private public1/2/5 and Custom connected compatibility
+  privacy-unity-post512.txt - recipe47 guarded Unity Analytics post and private runtime pass
+  privacy-unity-dispatch511.txt - Unity Analytics dispatcher to native PerformPost sink
+  advertising-handler-dispatch510.txt - named public handler drain versus independent native listener path
+  advertising-handler-global495.txt - raw direct handler-global references and current guarded entries
+  privacy-sdk-cached-id-route494.txt - cached payload ID direct reader chain and current guards
+  privacy-sdk-generic-reads493.txt - resolves both generic File.ReadAllText roots to RGame SteamRemoteFile
+  privacy-sdk-readalltext492.txt - direct shared File.ReadAllText census,with 493 binding the two unnamed roots
+  advertising-callback-unwind491.txt - third callback xref is PE unwind metadata
+  privacy-sdk-cached-id486.txt - recipe44 cached device ID getter guard and owned installed check
+  advertising-callback-entry485.txt - rejected native callback entry return and lifecycle reason
+  privacy-sdk-json-reader484.txt - recipe43 direct cache file reader cut and private pair
+  privacy-recipe42-installed480.txt - installed recipe42 helper and private connected pair
+  privacy-sdk-cache-empty478.txt - recipe42 cache reader cut and reversible probe
+  privacy-recipe41-connected477.txt - current private recipe41 paired match compatibility
+  privacy-sdk-expiry-guard476.txt - recipe41 cache-expiry entry cut and owned installed check
+  advertising-interface-offset475.txt - exact-PDB listener subobject offset use census
+  advertising-listener-connected473.txt - recipe39 two-client connected listener-count write watch
+  privacy-recipe40-modes465.txt - current private recipe40 public/Custom connected compatibility
+  advertising-connected-trace463.txt - recipe40 connected callback/handler pre-resume trace
+  privacy-recipe40-connected462.txt - recipe40 private source-bound connected match and Quit
+  advertising-handler-cut461.txt - recipe40 handler static initializer cut and owned menu compatibility
+  advertising-listener-runtime458.txt - owned installed recipe39 listener-list construction/destruction observation
+  advertising-listener-writers455.txt - bounded pristine UnityPlayer listener-list writer pattern scan
+  advertising-listener-list453.txt - exact PDB identifies AdsIdHandler's second list as native IAdsIdListener pointers
+  privacy-connected-sdk452.txt - installed recipe39 private connected match under selected SDK queue/file/network observer
+  privacy-installed-sdk451.txt - installed recipe39 original Quit under selected SDK queue/file/network observer
+  advertising-platform-scope450.txt - Unity2022.3 advertising request applicability to Windows standalone
+  advertising-listener-xrefs449.txt - named Unity listener/public-handler references and lifecycle review
+  advertising-pdb448.txt - matching Unity PDB and native advertising callback interface
+  privacy-original-quit-watch447.txt - installed recipe39 original Quit with passive SDK-root watch
+  privacy-installed-recipe39-446.txt - current private installed launcher fresh/restart SDK-root watch
+  advertising-object-tracking445.txt - Ads post-write recursive object tracking descendants
+  advertising-gameid444.txt - pinned Unity Ads GameId getter/setter and notification path
+  advertising-ghidra443.txt - pinned Unity decompilation of ID sink,table registration and public request
+  privacy-outage-sdk440.txt - current native outage with selected SDK entry/file observation
+  privacy-running-outage439.txt - current two-client running TCP outage/recovery and Quit
+  privacy-outage-control438.txt - owned relay outage/restore control for P6
+  privacy-tutorial-manual437.txt - hidden input failures and prepared visible Tutorial01 check
+  privacy-tutorial-objectives433.txt - shipped first objective condition and final marker native behavior
+  privacy-tutorial-completion432.txt - Tutorial01 BI guard versus preserved completion progression
+  privacy-current-tutorial431.txt - recipe38 Tutorial01 mission,window exit and selected prelaunch privacy route
+  advertising-state3-runtime427.txt - current private connected state3 entry witness
+  advertising-state3-entry426.txt - recipe38 state3 exchange and worker registration source graph
+  privacy-worker-sockets380.txt - current private startup-check and match worker CPython socket audit
+  privacy-python-modes378.txt - current private public2/public5/Custom packaged Python socket audit
+  privacy-python-sockets377.txt - packaged host/client CPython socket endpoint audit in current private match
+  privacy-job-prelaunch376.txt - suspended packaged driver Job assignment before execution
+  privacy-current-custom375.txt - current recipe38 Custom rematch prelaunch selected native file/socket/exit observation
+  privacy-client-jobs374.txt - current public1/2/5 client Job descendant accounting
+  privacy-preexisting-file373.txt - pre-attach file read control and current pair failed-handle classification
+  privacy-relative-roots371.txt - owned preexisting-root control and current pair relative-path resolution
+  privacy-prelaunch-socket370.txt - current pair selected native bridge-handle attribution through exit entry
+  privacy-prelaunch-exit368.txt - current pair selected API watch to self-termination entry
+  privacy-prelaunch-network366.txt - current pair native selected API watch before main-thread resume
+  privacy-prelaunch-attach365.txt - inert controlled prelaunch Frida attach and positive file API call
+  privacy-process-routes364.txt - current pair packaged direct child-launch inventory and selected jobs
+  privacy-current-connected-modes363.txt - current recipe38 connected public5/public2 package compatibility
+  privacy-python-egress360.txt - current pair packaged Python direct socket-route inventory
+  privacy-current-package352.txt - recipe38 private pair and connected public1 compatibility
+  privacy-sdk-session-cache351.txt - recipe38 SDK session cached-ID cut and owned menu audit
+  privacy-current-package350.txt - recipe37 private pair and connected public1 compatibility
+  privacy-sdk-user-cache349.txt - recipe37 SDK user-init cached-ID cut and owned menu audit
+  privacy-current-package348.txt - recipe36 private pair and connected public1 compatibility
+  privacy-sdk-scene-metadata347.txt - recipe36 SDK scene callback cut and owned practice audit
+  privacy-current-package346.txt - recipe35 private package pair and connected public1 compatibility
+  privacy-sdk-configuration-ingress345.txt - recipe35 six SDK data-entry cuts;owned menu pass,full D5 open
+  packaged-cancel221.txt - 221-223 packaged1v1/2v2/2vAI waiting Cancel/retry/normal Quit;221 format correction
+  listener-lead220.txt - bounded c28 listener lead exhausted;P9 open
+  advertising-state-callback296.txt - both Main.Start connection-state registrations,callback state branches and current entry guards
+  advertising-virtual-targets310.txt - Main connection-state virtual targets and three immediate callback registrations
+  advertising-slotc8-predicate326.txt - three Main +f0 calls resolved to the settings predicate
+  advertising-slotc8-cache327.txt - named slot+c8 tail's device-ID fallback and cache serializer cut
+  advertising-request-drain311.txt - public advertising request state predicate and queued callback drain
+  advertising-request-cut441.txt - recipe39 public request pre-queue guard and private runtime;separate producer open
+  advertising-settings-flags442.txt - remaining Unity Ads settings slots/defaults;producer open
+  advertising-flag-candidates312.txt - five misleading manager-state write candidates in lightmap serialization
+  advertising-drain-runtime313.txt - queued callback's IL2CPP runtime invocation binding
+  advertising-delegate-drain314.txt - public advertising request's managed Invoke completion route
+  privacy-sdk-web-breadcrumb315.txt - SDK web completion breadcrumb route and current constructor cut
+  privacy-network-breadcrumb-guard317.txt - recipe29 SDK network breadcrumb entry guard and owned audit
+  privacy-breadcrumb-collectors318.txt - recipe30 concrete SDK breadcrumb overloads/web-send cuts and owned audit
+  privacy-breadcrumb-interface319.txt - complete original IBreadcrumbs implementer census and recipe30 binding
+  privacy-breadcrumb-facades321.txt - recipe31 public SDK breadcrumb facade entry cuts and owned audit
+  privacy-sdk-data-ingress322.txt - recipe32 SDK user/metadata/feature-flag ingress guards and owned match audit
+  privacy-sdk-context323.txt - recipe33 SDK report-context facade/direct setter cuts and owned menu audit
+  privacy-sdk-metadata-merge324.txt - recipe34 configured report-metadata merge cuts and owned genuine Client fixture
+  privacy-cached-report-merge325.txt - all five direct metadata merges bound to NOPs or guarded entry chains
+  privacy-current-package316.txt - recipe28 private package and owned Try Deck compatibility
+  privacy-current-package328.txt - recipe34 private pair and bundled-client Try Deck compatibility
+  privacy-current-connected338.txt - recipe34 private pair connected public1/two-human package/server compatibility
+  privacy-current-connected-cache340.txt - current private pair connected match with selected SDK-cache change watch
+  privacy-current-connected-network341.txt - both current private-pair native clients' selected post-attach network API counts
+  privacy-current-connected-handles342.txt - both current private-pair native clients' selected send/recv bridge-handle attribution
+  privacy-current-crash-cache343.txt - recipe34 uninstrumented native crash full-lifetime named SDK-cache change watch
+  privacy-current-crash-sdk-root344.txt - recipe34 suspended-start native crash selected SDK-root file API observation
+  privacy-current-crash329.txt - current recipe34 owned native crash gate and retained first sharing failure
+  privacy-current-crash-observation330.txt - current recipe34 scoped file/network/DbgHelp crash observation
+  privacy-current-errors331.txt - current recipe34 genuine Client error and isolated cache fixture
+  advertising-cache-tail332.txt - selected c330e0 cached custom device string helper and guard binding
+  advertising-device-getter333.txt - native custom device getter registration and cached Main field
+  advertising-platform-config334.txt - constructor platform analytics configuration handoff
+  privacy-reporter-subs297.txt - six original reporter Subs AddOnSendError handoffs and current entry guard
+  privacy-reporter-delegate-refs298.txt - six encoded AddOnSendError delegate references and runtime-resolution boundary
+  privacy-reporter-runtime299.txt - owned recipe25 menu-time delegate slot sample and natural Quit
+  privacy-reporter-targets300.txt - six original AddOnSendError callback targets resolved through pinned metadata/codegen
+  privacy-reporter-guards301.txt - source recipe26 four new false-entry reporter callback guards and helper build
+  privacy-reporter-invocation302.txt - owned recipe26 seven guarded callback calls and natural original Quit
+  privacy-reporter-enabled303.txt - passive owned SetEnabled menu and match call observations
+  privacy-reporter-state305.txt - source recipe27 reporter enabled false cuts and owned static-state snapshot
+  privacy-reporter-setter306.txt - owned recipe27 true/false setter call leaves reporter enabled false
+  privacy-reporter-registration307.txt - source recipe28 SDK AddOnSendError entry guard and owned runtime check
+  privacy-configuration-callbacks308.txt - original SDK Configuration callback-list constructor/get/remove/clone review
+  privacy-configuration-other-callbacks309.txt - SDK AddOnError/Session use distinct lists and direct-call inventory
+  privacy-current-source258.txt - current privacy cuts match pinned originals;installed comparison and limits
+  privacy-report-cloud259.txt - report-init guard cuts one cloud-ID metadata builder caller;other calls open
+  privacy-report-owner260.txt - initialized report-owner gate cuts two more cloud-ID builder calls;later writers open
+  privacy-installed-source261.txt - corrected checksum and current local installed four-component/helper binding
+  privacy-current-match262.txt - current installed local-AI lifecycle and eight selected native-field snapshots
+  privacy-managed-names263.txt - complete original IL2CPP advertising method-name inventory;P9 remains open
+  advertising-settings-pair413.txt - corrected Unity Ads native name/function table index and bounded getter/setter
+  advertising-settings-setter414.txt - constructed Ads-enabled setter target and changed-value notification
+  advertising-settings-notify415.txt - three immediate settings-notification helpers and recursive limit
+  advertising-callback-table422.txt - two advertising callback table leading methods and RTTI limit
+  advertising-callback-offset423.txt - instruction-bound exact +1498 operand census and alias limit
+  advertising-constructor-tree424.txt - omitted Main+1750 tree initializer and full direct constructor-call inventory
+  advertising-state3-composition425.txt - current callback ID-copy and dirty-conversion cuts with preserved state-three drain
+  privacy-packaged-ffi416.txt - exact reported connected Python driver modules and explicit ctypes DLL sites
+  privacy-simulation-imports417.txt - exact connected worker DLL ordinary/delay imports and dynamic-loader limit
+  privacy-simulation-loader418.txt - exact worker DLL direct loader calls and selected DLL-name inputs
+  privacy-simulation-getproc419.txt - worker DLL direct GetProcAddress literal names and two dynamic sites
+  privacy-simulation-resolver-callers420.txt - two worker API-set resolver direct caller/name mappings
+  privacy-simulation-resolver-alias421.txt - static pointer and RIP address-reference check for worker resolvers
+  privacy-effective-match264.txt - current installed local match selected network/process/child route
+  privacy-public-modes265.txt - current installed local public1/2/5 behavior and selected-field stages
+  privacy-unified-route266.txt - current installed local public1/2 natural Quit and exact private bridge socket attribution
+  privacy-local-mode267.txt - current installed local public5 natural Quit and exact private bridge socket attribution
+  privacy-file-route268.txt - retained local public1/2/5 selected owned-root file attribution
+  privacy-sdk-root269.txt - current installed startup/Quit passive SDK-cache path watch without root replacement
+  privacy-local-sdk-route335.txt - current recipe34 local public5 passive SDK-cache path and bridge observation
+  privacy-local-sdk-modes336.txt - current recipe34 local public1/2 passive SDK-cache path and bridge observations
+  privacy-local-sdk-trydeck337.txt - current recipe34 Try Deck4 passive SDK-cache path and bridge observation
+  privacy-connected-preflight270.txt - old connected package/helper receipt rejected before launch against current sources
+  privacy-connected-sockets271.txt - current-source connected public1 pass and sampled host/adapter loopback endpoints
+  privacy-connected-modes272.txt - connected public5/public2 natural Quit and sampled host/adapter endpoints
+  privacy-connected-custom274.txt - Custom changed-deck rematch/Leave/Quit and sampled host/adapter endpoints
+  privacy-ordinary-package275.txt - current package ordinary fresh/restart menu and bounded existing-profile idle
+  privacy-ordinary-window-close353.txt - recipe38 ordinary fresh/restart menu idle and owned window shutdown
+  advertising-start-update354.txt - bounded Main.Start periodic update registration cut;P9 producer open
+  advertising-update-callees381.txt - three direct update callees;no immediate ads callback/field access
+  advertising-connected-caller382.txt - two-client connected callback witness;bounded zero calls,producer open
+  advertising-main-global383.txt - selected Main singleton references;direct owner and alias limits
+  advertising-main-leaves384.txt - thirteen short singleton sites;no immediate advertising callback access
+  advertising-manager-calls385.txt - selected manager predicate/drain direct-call inventory;indirect path open
+  advertising-constructor-callees388.txt - Main constructor member callees after ads-vtable store
+  advertising-flag-inventory389.txt - all fifteen selected literal readiness-byte write candidates
+  privacy-current-errors357.txt - recipe38 genuine SDK error fixture and corrected diagnostic recognition hash
+  privacy-current-package358.txt - corrected-helper recipe38 source-bound private pair and connected match
+  privacy-current-installed386.txt - corrected private client installed runtime and launcher hash binding
+  privacy-installed-launcher387.txt - corrected private installed CMD menu/WM_CLOSE/exit0 qualification
+  privacy-four-human391.txt - private public2 four-human match and five Python driver endpoint journals
+  privacy-four-human-workers392.txt - four-human mode with two worker and five driver Python socket journals
+  privacy-current-running-cache359.txt - recipe38 running recovery with prelaunch SDK-root change watch
+  privacy-recovery278.txt - current-source running disconnect/replacement/native Quit and sampled endpoints
+  privacy-reporter-interface279.txt - original six-method reporter interface/current installed cuts and unresolved helper callers
+  privacy-reporter-callback280.txt - source recipe24 callback guard before user-config report metadata construction
+  privacy-reporter-installed281.txt - owned recipe24 installation/package binding and connected running-fault recovery
+  privacy-reporter-callbacks282.txt - recipe25 two Boolean reporter callback guards,owned install/package binding and ordinary menu check
+  privacy-audit-binding283.txt - corrected recipe25 native audit,three reporter callback signatures,owned natural Quit and preview pair
+  privacy-live-sdk-root284.txt - original SDK cache getter return bound to canonical Windows game LocalLow path in owned menu/Quit
+  privacy-current-package-play285.txt - current recipe25 default install/local preview package Try Deck, result, Continue and natural Quit
+  privacy-current-crash286.txt - current recipe25 owned native crash gate/exit with original c0000005 and scoped P7 limits
+  privacy-current-errors287.txt - recipe25 owned managed error fixture,isolated cache controls and natural Quit
+  privacy-reporter-invocation288.txt - owned execution of all three recipe25 reporter Boolean guard entries
+  privacy-tutorial-entry289.txt - current recipe25 original Tutorial01 entry and selected native field snapshots
+  privacy-tutorial-mission290.txt - current recipe25 Tutorial01 mission start and later selected native field audit
+  privacy-transition291.txt - recipe25 same-PID unavailable/local/Custom/local/original Quit with retained raw trace review
+  privacy-tcp-retry292.txt - recipe25 actual loopback TCP refusal,authenticated bridge retry and original Quit
+  privacy-sdk-root-binding293.txt - binds passive SDK cache watch to original getter return across retained runs
+  privacy-tutorial-close294.txt - current recipe25 Tutorial01 mission audit and owned active-window close/exit
+  advertising-start-handoff295.txt - second Main.Start listener registration,callback contracts and current Start cut
+  native-settings-atomic.txt - atomic writer;209-212flush/publication/first-save/unresolved-Quit recovery
+  loading-delay208.txt - 232 pending-map Quit;233 static binding;234 real asset-count veto/automatic retry PASS
+  scene-release206.txt - 206unload chain;207pre-activation completion/dependency-only destruction
+  loading-scheduler205.txt - default scheduler ownership and handle-kill/scene-release boundary
+  map-loading204.txt - client map-load phases,empty Dispose and unresolved cancellation ownership
+  asset-recovery203.txt - 224-225 manifest/map sharing locks;235 actual read denial and exact permission restoration
+  bootstrap-recovery202.txt - incorrect loading hash,unknown abort and saved-profile retry
+  compatibility201.txt - incompatible HELLO rejection,healthy-room isolation and retry
+  identity-config200.txt - parsed-token input direction and conditional notification
+  tcp-connect-timeout199.txt - four actual pending-TCP/native fallback and saved-choice passes
+  saved-preference-matrix198.txt - all six remaining saved-choice failure/restart cases
+  identity-notification197.txt - named managed notification and retained offset classification
+  custom-ownership196.txt - committed-match control refusal and staggered return/rematch
+  profile-storage195.txt - real Windows profile locks,damaged JSON and saved-choice recovery
+  particle-rng194.txt - positive particle auto-seed use of second native random state
+  loading-recovery193.txt - real120s loading deadline,late packets and retained connections
+  malformed-traffic192.txt - three active-match invalid-input isolation/recovery cases
+  coordinator-shutdown191.txt - coordinator keeps ownership through cancelled cleanup
+  verified-availability189.txt - eight protected verified-mode fallback passes;scope limits
+  saved-preferences190.txt - customized choices survive two failure paths and restart
+  dashboard-shutdown188.txt - retain history I/O ownership during cancelled shutdown
+  rc-identity-storage187.txt - linked identity storage and publication fix
+  scm-operator186.txt - prepared real-service check;administrator result pending
+  rc-identity-lifecycle185.txt - packaged player identity and server-key lifecycle
+  server-recovered-game184.txt - restored native completion and dashboard history
   bot-selection-acceptance.txt
   mode-acceptance-matrix.txt
   RC1_PLAN.txt
@@ -30,6 +279,14 @@ CURRENT PLANNING AND ACCEPTANCE
   legacy-compliance171.txt - Korean flow removal and browser feature inventory
   browser-activation172.txt - startup process census and survey applicability
   report-resume173.txt - saved queues,fresh-process prevention and in-flight limits
+  privacy-cache-reader-direct467.txt - current direct SDK queue-reader/expiry inventory
+  advertising-module-boundary468.txt - native module construction and callback cuts
+  advertising-listener-write-watch472.txt - positive write sensor and private listener lifetime
+  advertising-registry179.txt - computed manager lifecycle edges and P9 limits
+  advertising-caller180.txt - isolated caller witness,authored controls and usage
+  advertising-native-control181.txt - real Frida fixture and owned lifetime proof
+  advertising-game182.txt - actual Try Deck caller integration and natural Quit
+  analytics-listener183.txt - keyed configuration callback dispatch and existing cut
 
 PLAYER / HOST GUIDES AND CONFIGURATION
   linux-client-quickstart.txt - headless client CLI setup,verification and launch
@@ -68,14 +325,14 @@ GAMEPLAY,LOBBIES,AI AND COSMETICS
   cosmetic-community.txt
   cosmetic-persistence.txt
   cosmetic-unlock.txt
-  cosmetics.txt
+  cosmetics.txt - 245 coverage;246-248 skins;249-251 fatalities;252-254 emotes;255 spray contract;256 all6spray menu bindings/Back;Nick accepted this workstream at current scope2026-10-28;remaining visual/audio/peer details unverified
   current-community-matches.txt
   custom-invite-lifecycle.txt
   custom-leave-gate-wait.txt
   custom-lobby-native.txt
   custom-lobby-responses.txt
   custom-lobby-roster.txt
-  custom-mode-transitions.txt
+  custom-mode-transitions.txt - T07/T08 retained85;244 source review and current reconnect/mixed-mode regression
   custom-roster-bindings.txt
   empty-server-queue.txt
   local-user-settings.txt
@@ -83,7 +340,7 @@ GAMEPLAY,LOBBIES,AI AND COSMETICS
   menu-profile-binding.txt
   module-symbol-loading144.txt
   native-custom-invitations.txt
-  native-custom-matches.txt
+  native-custom-matches.txt - 238 applicability;239 expiry and240 Start-rejection recovery/Quit
   ordinary-player-client.txt
   packaged-gameplay.txt
   packaged-multiplayer.txt
@@ -92,7 +349,7 @@ GAMEPLAY,LOBBIES,AI AND COSMETICS
   public-bot-roster.txt
   public-late-assignment.txt
   public-matchmaking.txt
-  public-mode-transitions.txt
+  public-mode-transitions.txt - T05 native pass;241 retained/source review and current server regression
   public-results.txt
   remote-bot-profile-models.txt
   remote-local-transitions.txt
@@ -118,8 +375,8 @@ LIFECYCLE,STORAGE,REPLAY AND STARTUP
   native-settings-notice.txt
   nvidia-shutdown.txt
   rc-availability131.txt
-  replay-failure-recovery.txt
-  startup-bundle-loading.txt
+  replay-failure-recovery.txt - 227 playback;228/229 admission;230 isolated manual UI check ready,N13 pending
+  startup-bundle-loading.txt - 236/237 read/cache recovery;243 fixes242 startup fault with clean exit/relaunch
 
 PRIVACY,REPORTING,BROWSER AND SYMBOL DIAGNOSTICS
   browser-ipc148.txt
@@ -186,7 +443,7 @@ SERVER,PROTOCOL,SECURITY AND CAPACITY
   host-capacity160.txt
   host-failure-diagnostics161.txt
   loadout-protocol.txt
-  network-qualification.txt
+  network-qualification.txt - 213current packaged graphical RC control/delay-jitter;older protocol timings
   packaged-tls-soak157.txt
   profile-admission-timing155.txt
   protocol-v2.txt
@@ -198,7 +455,7 @@ SERVER,PROTOCOL,SECURITY AND CAPACITY
   server-bot-catalog.txt
   server-console.txt
   server-recovery151.txt
-  soak-qualification.txt
+  soak-qualification.txt - host soak;216failure retained;218queued audit;219Windows/C-data21-match cadence/resources PASS
   team-recovery.txt
   tls-transport.txt
   worker-ipc.txt
@@ -210,3 +467,4 @@ OTHER DIAGNOSTICS
 SUPERSEDED PLANS
   PLAN_CLOSEOUT.txt
   SERVER_REPLACEMENT_PLAN.txt
+privacy-four-human-native394.txt - four-human native bridge socket attribution

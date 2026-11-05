@@ -1,0 +1,45 @@
+D5 / P5-P8 - four-human native bridge socket attribution
+2026-10-30. Current private public2 four-human subcase PASS;full D5 OPEN.
+
+The opt-in packaged suspended-start observer now accepts the existing public2
+four-human diagnostic mode. The preparation tool emits four distinct scripts.
+The same current recipe38 pair358/helper357 and owned301 game/assets completed
+one RC-open four-human/no-bot match:1250 frames,result/Continue/normal Quit0
+on all four clients. The two server workers exited0 and were reaped. Jobs
+5/2/2/2/2 drained without forced cleanup;elapsed173.438s.
+
+Each native game was created suspended. A separate Frida session installed
+the existing selected file/network/process and exit-boundary hooks before
+that game's main thread resumed. All four initial hook lists and error arrays
+passed. The complete untruncated message streams end at each original self-
+TerminateProcess entry with status0;the observer's diagnostic hold is200ms.
+Selected ws2_32 send/recv calls at those entries used only each inherited
+private bridge handle:
+  client0 handle640 send1238 recv43813
+  client1 handle180 send1240 recv43022
+  client2 handle592 send1238 recv43494
+  client3 handle472 send1241 recv42876.
+Selected connect,WSAConnect,sendto,WSASendTo,getaddrinfo,GetAddrInfoW,
+GetAddrInfoExW and WinHttpConnect calls were0 in each interval. The case
+also retains all five host/client-adapter and two worker CPython endpoint
+journals from script entry to exit,with the same loopback-only findings as
+391/392. tools.review_d5_four_human_native394 independently binds the
+package/source/helper/assets/match,worker and Job outcomes,each suspended
+PID/gate/resume,exact generated observer bytes,REA loads/final streams and
+the bridge socket argument/handle counts.19 focused packaged tests pass.
+
+Ignored evidence:
+ local/privacy394-four-human-native01/verification.json SHA256
+ 217abb975f9fc8e9b32b98baba63d4a76f299f7f5b82ce98bc1f64c8bd47358b
+ local/privacy394-four-human-native01/review394.json SHA256
+ 1e99870db93e5b6341f7dbd7e4fa8291fa07b77be0417c56e51a48cd1bf7904c
+ local/privacy394-four-human-native-trace01/rea-evidence.json SHA256
+ 684151599808ab1e23e8c391b5518714e520a53fe5d968de5f0c829d22d69681.
+
+This proves selected native socket entries and handles for four clients from
+pre-resume to self-exit entry in this one owned mode. It does not cover the
+200ms hold/actual process-death suffix,other native APIs or native/ctypes
+bypasses in Python,external brokers,kernel/raw wire,real SDK queue/report
+delivery,other configurations or final installed privacy. Each client still
+has1545 unresolved relative file roots,so no SDK file/queue absence follows.
+Published174 and product binaries remain unchanged;RUNTIME_VALIDATED=false.

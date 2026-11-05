@@ -1,0 +1,42 @@
+D5 RETAINED LOCAL PUBLIC FILE-ROUTE REVIEW268 - 2026-10-28
+P4 selected owned-root file attribution PASS;P4/P8/P9/D5 remain OPEN.
+
+Question
+The266/267 local public1/2/5 runs already have normal-Quit,selected native
+field,network and job reviews. Their Frida intervals also retained file metadata.
+This review classifies those existing records;no game or SDK getter was run,
+and no queue or file contents were opened for this review.
+
+Result
+The mode1,2,5 intervals contain1743/1885/1383 contiguous untruncated events,
+including892/880/874 file-operation records under the two configured owned
+roots:the diagnostic output and each isolated nativestest_ profile. All selected
+file records classify as local game log,profile config and directory,settings
+lock/write probe/atomic temporary,StorageSyncBackup and temporary,local replay
+and directory,or owned Quit trace. There are43 unique selected paths per run.
+No selected path is unclassified;all records reconcile to those owned roots.
+Each final observer reports zero decode errors,zero unresolved relative roots,
+two resolved current-directory roots and no event overflow. No pending selected
+file operation is recorded. All three owned profiles have zero remaining
+ba-*.tmp files in profile and StorageSyncBackup after normal exit.
+
+Source anchors
+client_patch/src/native_settings_atomic.hpp formats ba-<pid>-<seq>.tmp;
+client_patch/src/native_storage.hpp names AutoSaveReplays and StorageSyncBackup;
+client_patch/transport/launcher.py selects the local StorageSyncBackup GUID
+path. The read-only review binds these current source bytes and the three owner
+reports,Frida session IDs and selected event sequences. Retained ignored report:
+local/privacy268-file-route01/verification.json, SHA256
+8310a5b64fa04513412f188d0e82f30a59fb72be7e54a2b26635abdd3c2cfb0d.
+The ignored review.py is the reproducible classifier. It does not emit player
+names or replay filenames into the public document.
+
+Boundary
+The observer emits file-operation records only for configured output/profile
+roots,though its final counters include broader selected Nt calls. It does not
+classify paths outside those roots,independent SDK queue roots,unobserved APIs,
+all threads before attachment,kernel activity or content. Therefore zero
+unclassified emitted paths is not proof of no analytics queue activity. The
+existing guard/source and queue work remains applicable;P4/full D5 stay open.
+Next useful evidence must cover a distinct route or the unobserved file/queue
+boundary without accessing the real shared report queue to manufacture a pass.

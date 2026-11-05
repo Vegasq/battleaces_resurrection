@@ -1,0 +1,37 @@
+D5 CURRENT INSTALLED LOCAL MATCH FIELD LIFECYCLE262
+2026-10-28. Selected native field/lifecycle check PASS;P4/D5 stay OPEN.
+
+The unused owned copy prepared under local/sprays257-match01/game was installed
+with the current community+cosmetics source and exact helper261. It is now an
+isolated D5 diagnostic game;no spray-in-match result is inferred. The install
+manifest,all four transformed components/128privacy guards and helper bind to
+the unchanged current source receipt. No sealed256 game or manual game changed.
+
+One hidden owned PID23028/profile nativestest_d5_0187bb764979 entered the
+original Try Deck4 callback and completed a3600-frame local-AI match. The
+native result/Continue returned to menu;the original Quit confirmation exited0
+normally in216.546s. The owned job settled1total/0active/0terminated and no
+forced cleanup.140autonomous action records and40produced bot units with orders
+and position changes support the standard verifier's gameplay requirement.
+
+The read-only telemetry audit retained eight complete snapshots. Distinct
+stages are startup-after-engine-init,menu,ingame,postgame,menu and
+pre-quit-confirm. Each snapshot has all15selected main/session/performance
+scalar fields at their default0 values,with stable singleton pointers.
+The pre-Quit boundary and original confirmation share the original thread.
+All four installed component hashes,helper,source files and shared settings
+are unchanged after the run. Exact report/log hashes and bounded results:
+local/privacy262-current-match01/scoped-review.json. Original verifier and
+full retained log:local/privacy262-current-match01/native/. The first local
+wrapper invocation failed on its Python import path and a second on a literal
+newline edit;neither launched a game. The corrected owned run above is the
+only native attempt.
+
+This is selected-field observation and named lifecycle compatibility on a
+dirty local installed preview. It does NOT establish advertising-producer
+absence,all-thread/pre-loader/inflight state,complete queue/network/descendant
+attribution,other modes,physical input or final-publication privacy. Quiet
+fields are not a whole-process collection or delivery proof. P4/D5 remain open;
+do not repeat this same match just to obtain another quiet field sample.
+Next:source-backed effective route attribution or a concrete positive
+advertising producer/registration lead,then final-installed release binding.

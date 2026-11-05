@@ -1,0 +1,59 @@
+D5 / P7 - SDK session cached-device-ID acquisition
+
+2026-10-28. Recipe38 source review,owned installed loaded-byte audit and
+natural menu Quit0 PASS. Full P7/P9/D5 remain OPEN,RUNTIME_VALIDATED=false.
+
+The pinned original BugsnagUnity.Windows metadata binds CacheManager.
+GetCachedDeviceId at8368b0 and SessionTracker.StartManagedSession at826b40.
+The latter directly calls the getter at826d9c,then passes its result into
+Payload.Device construction at826dbf for an SDK-managed reporting session.
+This is independent of Client.InitUserObject's fresh-user query cut349.
+
+A bounded direct E8 candidate scan over the mapped original GameAssembly
+sections found exactly three call instructions to GetCachedDeviceId:
+81429d in Client.InitUserObject,8160b5 in Client.NotifyOnMainThread,and
+826d9c in SessionTracker.StartManagedSession. Their complete original
+byte-matched bodies confirm instruction boundaries and call targets.
+Recipe37 already skips the first and returns at the second entry. Recipe38
+adds a void RET at StartManagedSession entry826b40 before any session-owned
+work or cached-ID query. This preserves shared getters,report payload classes,
+session cleanup APIs and caller-owned resources. It does not claim an indirect
+call census or ordinary runtime invocation of this method.
+
+tools/verify_sdk_session_cache351.py PASS binds four metadata methods to
+codegen/unwind,the three decoded caller bodies (1512 original instructions),
+all three exact direct-call sites,session device payload flow,source guards
+and a one-byte recipe37->38 delta. Original GameAssembly SHA256:
+e59d08c01479b27404778048d7e13546dbf3771f6b3912744c7c2bdf80c4e758.
+Recipe37 source GameAssembly SHA256:
+89b6da75d36009ec3824859c6583cf29650e7db6d23dd804ac6100fa30ef30fd.
+Recipe38 source GameAssembly SHA256:
+cd71b66d3249985e820fc75c3597034c3e2bcfdfa01da96c8844c19e0df8db08.
+Earlier source verifiers345/347/349 pass after normalizing the new byte.
+81 focused Python package/audit/patch tests pass with2 optional skips.
+The source recipe has167 guards,102 in GameAssembly.
+
+Windows C++ helper build and embedded tests pass at
+local/privacy351-helper-build01. The owned local/privacy301-runtime01/game
+dry-run/install each verify133 bundles and retain community/cosmetics options.
+Installed GameAssembly SHA256:
+368ccf4af6b8c94bdd5e1c7269b038c7c79b869b797c000c2a64d1daabbc9648.
+Installed helper SHA256:
+ef0678387c04dd62ed7eb3719abdff689f8dcbe630bfd4e75e45be3af1759267.
+Installed manifest SHA256:
+1fa2fe799cd6ea5d1e36e780d2bee8c049083df0e0755c6f6cce99b2a6fddf32.
+Helper receipt SHA256:
+f77b763a334f72d9762f5a4ea4fb02cba2b067f54144fb64204cf216a1eefa00.
+
+The owned menu run local/privacy351-menu01/verification.json PASS SHA256:
+0163d9f60ebfdfafc127cd0ec187b803f908e95fd81752e2c9433bc22a5d68c1.
+It records three selected native-field snapshots,recipeVersion38 loaded/disk
+sdkSessionCacheSignatures1/1,original Quit0 in24.922s,no forced cleanup,
+owned process reaped and source/shared settings unchanged. This qualifies
+loaded bytes and menu compatibility,not an actual session-method hit or
+SDK queue/file/wire privacy proof.
+
+352 now adds a private recipe38 package/connected pair PASS;see
+privacy-current-package352.txt. The separate native Unity advertising-ID
+producer,indirect SDK collection/queue/file/wire and all-thread/descendant/
+final installed scope remain OPEN. Published174 is unchanged.

@@ -1,0 +1,66 @@
+D5 / P7 - direct SDK cached JSON reader cut,installed and connected
+
+2026-10-31. Current dirty source recipe43/172 guards;owned installed direct
+reader and source-bound private client/server pair PASS. P7/P9/D5 remain
+OPEN,RUNTIME_VALIDATED=false;published174 stays recipe23. No real SDK queue
+file was read,seeded or cleared.
+
+Pinned pristine GameAssembly SHA256
+e59d08c01479b27404778048d7e13546dbf3771f6b3912744c7c2bdf80c4e758
+and IL2CPP metadata bind BugsnagUnity.CacheManager.GetJsonFromCachePath to
+RVA837810. Its body calls File.Exists at RVA3547ab0 and,if true,
+File.ReadAllText at RVA35480a0. The original File.Exists-false branch at
+RVA83783a returns null and uses the normal epilogue. A Visual Studio dumpbin
+disassembly of the complete837810-837842 body is retained at
+local/privacy481-json-disasm.txt. The recipe43 guard at RVA837816 jumps to
+that original null-return branch after the prologue,so any direct caller
+avoids those two file entries.
+
+Before source modification,an owned recipe42 game ran a reversible in-memory
+six-byte branch probe. A direct null-argument call returned null,with zero
+watched File.Exists and File.ReadAllText calls within the call;the exact
+original bytes were restored. The game used original menu Quit Confirm and
+exited0,Job1/0/0,no forced cleanup,images unchanged. Independent
+tools.review_sdk_json_probe481 PASS binds the method pointer,original
+function/bytes,null branch,read-hook counts,restoration and Quit. Retained
+local/privacy481-directprobe01/{observer.js,ready.json,rea-status.json,
+verification.json,review481.json};REA evidence
+ev_0e6e4bc615ded4b807400ac3de6811854d0292ef6321b101d469e27151497827.
+
+An owned game copy at local/privacy482-game01 received recipe43 after
+standard dry-run/install checks of all133 assets. Identical dry-run/install/
+installed manifests report105 GameAssembly guards and GameAssembly SHA256
+9224d2c64dd4a2602f61955b5c32629850d254e226c1dcbeb07db3bcd3c63d50.
+The unchanged helper SHA256 is
+59aebb2db4a6778f817e6135b6ba767f54f1087cac69d9b65b5fda009fbb276f.
+The original backup retains the pinned pristine hash. A read-only loaded
+observer checked branch bytes e91f00000090 and directly called the installed
+reader. It returned null on the original main thread,with zero watched file
+entries. Original menu Quit exited0,Job1/0/0,no force,images unchanged.
+tools.review_sdk_json_installed483 PASS independently binds source,manifest,
+image,loaded bytes,return,Quit and Job. Retained
+local/privacy482-{dryrun,install}.json and
+local/privacy483-json-runtime01/{observer.js,ready.json,rea-status.json,
+verification.json,review483.json};REA evidence
+ev_cc1aa5a2666d07cda5a731b448a5a179c48b0ee586e5f0b613d0ae9f60a2ff94.
+
+The source-bound private client/server packages are in
+local/privacy484-packages01. Client ZIP SHA256
+a80b8d0cf50cd4d519257c9b01424b60953649da0c9158dddf46a5022bc71fb4;
+server ZIP SHA256
+99d9a408b814685dd2b33de4fd2d9b2f18b25e5ea18c09f09fe59860cb3aa479.
+Production RC open admission with two native clients completed a public1
+match at1220 frames. Both clients reached result,original Continue/menu/Quit
+Confirm and exit0;both simulation workers exited0/reaped,all three Jobs
+empty,no force. Source/package/assets/shared-state checks stayed unchanged.
+tools.review_recipe43_connected484 PASS binds source,packages,installed image,
+match,Quit and cleanup. Retained report
+local/privacy484-connected01/verification.json SHA256
+6510c20a707eebbc046a279de0ade8c2be6600570933777f63a5aa91bc7bb688;
+review484.json records the independent result.
+
+This closes the named direct cached JSON file read helper even if invoked
+outside the enumerator path. It does not prove all cache readers/aliases,
+effective real queue/retry/wire behavior,whole-tree file/network attribution,
+or the separate advertising-ID producer. Final D5 and release acceptance
+remain open. These private packages are development evidence,not publication.

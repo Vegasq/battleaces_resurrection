@@ -1,0 +1,30 @@
+D5 CURRENT-SOURCE APPLICABILITY258
+2026-10-28. Bounded source/byte check;P8/P9/D5 remain OPEN.
+
+The current community+cosmetics client transformation was applied in memory to
+the SHA-pinned untouched build37822 GameAssembly. All four original Korean
+compliance sites match their pinned before bytes and the resulting image has the
+four intended disabled-flow replacements. The current UnityPlayer recipe was
+applied in memory to its pinned original;the c30838 retained-ID copy is NOPed.
+These are byte applicability facts. They do not identify or cut the upstream
+c307c0 advertising-ID acquisition,prove all browser routes absent,or qualify
+runtime collection/network/descendant behavior.
+
+The parent game's installed GameAssembly and UnityPlayer hashes differ from
+these newly generated current-source images. It is an older installed state,
+not evidence of current-source or final-installed privacy behavior. No files in
+that game were modified and no game,server,collector or browser was launched.
+Correction261:the UnityPlayer hash generated here preceded the installer's PE
+checksum update. The corrected whole-image transformation matches a separate
+sealed current-source local installation;see privacy-installed-source261.txt.
+The exact original/generated/installed hashes,site outcomes and scope are in
+ignored local/privacy258-current-p8-source01/verification.json. Five authored
+legacy-flow controls pass on each of Python3.12 and3.14. The first attempted
+read used the wrong untouched-game path and failed before acquiring any bytes;
+the corrected source-only run generated the retained report.
+
+Next:find a positive advertising producer/registration or a proven
+pre-acquisition cut. Independently bind P1-P8 effective collection/delivery and
+descendant evidence to a coherent final installed pair when prepared. Reuse the
+current-source bytes above;do not rerun an unchanged quiet startup to infer
+upstream absence.

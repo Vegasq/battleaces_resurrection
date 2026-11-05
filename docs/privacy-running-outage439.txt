@@ -1,0 +1,49 @@
+D5 / P6 - owned running network outage and two-client recovery
+
+2026-10-30. Controlled native outage/recovery subcase PASS;P6/D5 OPEN,
+RUNTIME_VALIDATED=false. Published174 unchanged.
+
+The source-owned packaged verifier used current recipe38 private pair358,
+owned game301 and verified build37822 assets. Two native clients in a public1
+match each received frame600. At authoritative frame602,the separate owned
+loopback relay closed both active TCP streams and its listener. A fresh TCP
+connect to the same port returned Windows10061 (refused). After2.063seconds,
+the relay reopened that port. The original game clients each observed the
+disconnect,retired their native worlds and invoked the original Reconnect
+modal OnConfirm through the explicit diagnostic smoke. Both prior sessions
+were gone before the retry gate;after release,both authenticated anew and
+entered a distinct replacement match. The host reports both session objects
+replaced. Each game stayed in its original PID,received602 frames of the
+aborted match,then received1220 frames of the completed replacement.
+Original Continue/menu Quit/Confirm exited0 for both. The host drained its
+listener,status writer and state lock;three workers reaped at exit0. The
+three owned jobs accounted7/2/2 processes and ended0 active/0 terminated,
+without forced cleanup. Opaque TLS relay counters:4 accepted streams,
+853870 forwarded bytes,0 rejected/failures/active connections on close.
+Source,packages,assets,adapters,configs and shared channels matched their
+before/after checks;ephemeral PKI was removed.
+
+The first attempt,local/privacy439-outage01,failed before a match because the
+new non-RC diagnostic routed clients directly to the host port rather than
+through the relay. It was retained with verifier failure/owned cleanup.
+The second,local/privacy439-outage02,reached the native disconnect and
+Reconnect confirmation,but a new verifier gate incorrectly expected two
+server sessions before retry-gate release;the original flow has zero there.
+It too was retained failed. Both defects were corrected before fresh03.
+
+Passing run:local/privacy439-outage03/verification.json,elapsed146.156s,
+forced_cleanup=false,SHA256
+628cf4dd2e26b994e1b681828defef3f2c6414430d8462355e7c422b8626ca12.
+Independent tools.review_d5_outage439 rechecks source hashes,raw audit order,
+relay refusal/restoration,host session replacement,client native logs/Quit
+traces and drained owned jobs. It passes at
+local/privacy439-outage03/review.json.
+Reviewer receipt SHA256:
+f9a1a4436b831fec99d7b1cd6d2da6ff5c4cfefe24dc71616985fb273b6eb121.
+
+This is a real TCP path outage inside an owned loopback fixture while the host
+stays alive. It covers P6's controlled offline-to-online native game recovery
+and ordinary shutdown sequence. It does not observe the separate SDK report
+queue/retry,all endpoints or full wire,and does not qualify physical Internet,
+other modes or the final installed shipping pair. P6 remains OPEN for the
+effective SDK retry/queue and broader delivery attribution.

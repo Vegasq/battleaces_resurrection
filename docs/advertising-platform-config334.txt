@@ -1,0 +1,41 @@
+D5 / P9 - constructor platform analytics configuration handoff
+
+2026-10-28. Bounded original/current-owned source review PASS;P9/D5 remain
+OPEN,RUNTIME_VALIDATED=false. 127 showed the platform preparation slot80
+calls c673b0. This review follows that candidate through c311d0 and the
+constructor site that also creates the Main+1498 callback interface.
+
+In the original c67360 body,the platform preparation call reaches c673b0
+before tail-jumping base preparation c2fbc0. The complete c673b0 body
+checks Main+1651 and+1660 and an external flag,forms a Boolean,and passes
+Main,the literal "analytics" and that Boolean to c311d0. The complete
+c311d0 body looks up and inserts/removes a keyed record in Main+1628,
+updating counters at+15c8/+1634. No reviewed instruction passes Main+1498,
+references c307c0,or supplies borrowed advertising ID/error strings.
+Its list helpers and unrelated computed callers are not classified as a
+whole-program absence claim.
+
+The complete original Main constructor c33210 calls c673b0 atc333e2
+on its named conditional path. Current recipe34's sole difference within
+that constructor body is the existing default Main+1651 byte1->0 atc333e1;
+the handoff call remains. This config update is therefore preserved with
+disabled-default input on a fresh constructed Main,not a new callback
+registration cut. Existing retained state,external flag values and other
+registrations remain outside this result.
+
+tools/review_ads_platform_config334.py PASS byte-matches three complete
+original decoded bodies (19+201+58instructions),their current recipe34
+source/owned copies,the literal and call/receiver/list anchors,and the
+constructor's exact one-byte delta. Original Unity SHA256:
+ac144d56d53f07904d52ed27a1539de90bc3290038fe52d73d2f6b268c85d6bc.
+Current owned Unity SHA256:
+a53b0c613a86c737b7caa7588c7c93ae20d5d5700f9321a406df9dcca8e32a7f.
+Retained ignored local/privacy334-platform-config01/verification.json PASS
+SHA256:3ec17dbd6f8aa2bfec24006375fb141b1012e7c636f4cc36248dae5c3011e04b.
+Raw assembly stays in that ignored directory.
+
+This excludes the named platform configuration handoff as a direct
+Main+1498/c307c0 producer. It does not establish where the advertising
+callback is registered or whether its input is acquired elsewhere. No
+game or original API was run,no queue was accessed,and published174 is
+unchanged.

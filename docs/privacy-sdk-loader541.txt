@@ -1,0 +1,34 @@
+D5 / P7-P8 - SDK direct Windows dynamic-loader calls
+
+2026-10-31. Pinned original and current installed recipe47 GameAssembly
+source review PASS at the selected direct-call scope. P7/P8/P9/D5 remain
+OPEN;no game,SDK report queue or network endpoint ran.
+
+535 found no direct Bugsnag Winsock IAT calls. A separate possibility was
+that the SDK dynamically resolves a networking API. The original image
+imports five relevant KERNEL32 functions:GetProcAddress,LoadLibraryW,
+LoadLibraryExW,GetModuleHandleW and GetModuleHandleExW. The reviewer maps
+their exact IAT slots from llvm-objdump,then scans all735 named native
+method bodies in BugsnagUnity.Windows.dll for direct RIP-relative FF15/FF25
+calls/jumps to those slots. There are zero in both the pristine and current
+installed recipe47 GameAssembly. The same two code sections contain37
+matching direct-IAT sites in17 non-SDK owner bodies;three representative
+sites decode as calls in llvm-objdump.
+
+The reviewer also decodes direct E8 targets in the735 SDK bodies. None
+directly calls any of those17 loader owner bodies. Across the full code
+sections there are68 raw E8 candidates to the17 owners,including one
+representative decoded call. This is one-hop ownership only;it does not
+resolve deeper generic framework calls.
+
+This removes direct SDK IAT invocation and direct E8 calls to those specific
+loader owners as P7/P8 network acquisition leads. It does not exclude
+function-pointer calls,computed targets,delegates,managed/BCL networking,
+other modules or OS brokers. It provides no packet or whole-wire proof and
+does not justify another patch by itself. Current installed GameAssembly
+SHA256 is99ffb3f723ccb6f48e89eb8f3cff3ed1675978cfec092be19b8f4d06ee5edb6e.
+
+Reviewer:tools/review_sdk_dynamic_loader541.py SHA256
+9105b29c8f901875de78bafea4624571d56a47f15de361e098eaf3e5d12622a1.
+Ignored receipt:local/privacy541-sdk-loader.json SHA256
+3d4e227c16bed493218237bb6cc79f4714faacfed84d191a596267c1d8c0f95.

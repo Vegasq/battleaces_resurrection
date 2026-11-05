@@ -1,4 +1,7 @@
 COMMUNITY COSMETIC PROFILES AND FROZEN MATCH DATA
+Current navigation245:cosmetics.txt owns the coverage checklist. Later85/239/240/
+244 qualify named graphical transition/rematch loadouts;historical integration
+labels below do not reopen those passes. All-item effects/audio remain separate.
 Updated:2026-10-19 UTC. Server backend and experimental human Try Deck paths
 qualify within the boundaries below;client/server full-loadout integration and
 graphical public/Custom/team acceptance remain open.

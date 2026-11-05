@@ -1,0 +1,55 @@
+D5 / P1 - corrected private installed client launcher menu and window shutdown
+2026-10-30. Owned installed-runtime startup PASS;full P1/P9/D5 OPEN.
+
+tools.verify_packaged_startup now accepts --installed-launcher. It verifies
+the generated Start Battle Aces.cmd bytes against the installed package
+identity,then runs that exact CMD from the owned recipe38 game. Its existing
+foreign-CWD/PYTHONPATH trap,Job,package integrity,ordinary native menu markers,
+no-gameplay checks,profile settings and file-state checks remain in force.
+The opt-in diagnostic config chooses a fresh owned profile through the installed
+wrapper;the installed product config is not changed.
+
+The corrected private358 package was installed in386. On that installed
+runtime,the native game reached the ordinary menu in11.375s,stayed there
+for5.016s,and exited after WM_CLOSE to its unique owned Unity window.
+The CMD wrapper exited0. Both processes were reaped without forced cleanup.
+The verifier reports package,diagnostic config,source and shared native settings
+unchanged. No match or diagnostic gameplay action occurred. Retained ignored
+local/privacy387-installed-launcher01/verification.json PASS SHA256
+bfaa7b86a07800d564b50fb3a0ae969692a7d21aa2d1b3e1014d0df27e7a077a.
+
+This qualifies this owned corrected private installed launcher path at menu/
+window-close scope. It does not exercise the in-game Quit confirmation,real
+SDK queue/wire traffic,advertising-ID acquisition,clean-machine installation,
+server installation or final public release. Published174 is unchanged;
+RUNTIME_VALIDATED=false. No Nick action was requested.
+
+Follow-up395 (2026-10-30):the same current recipe38 private installed
+launcher ran a fresh owned profile,then restarted that exact profile under
+one read-only Windows FileSystemWatcher on the269-bound LocalLow Bugsnag
+root. The watcher was ready before the first launch and stopped after the
+second verifier exited. Each ordinary menu idled at least30s,then WM_CLOSE
+to the unique owned Unity window let the game and wrapper exit0 without
+forced cleanup. Fresh menu21.625s/idle30.156s;restart menu6.704s/idle30.203s.
+The watcher counted Created/Changed/Deleted/Renamed/Error=0/0/0/0/0.
+No SDK queue content was read,seeded or cleared. The prior359 isolated
+positive watcher control remains supporting sensor evidence.
+
+The first395 attempt stopped before native launch:the installed-launcher
+verifier correctly rejected an extracted package outside the owned game.
+Its failed local/privacy395-ordinary-sdk01/verification.json is retained.
+The corrected run uses the actual installed runtime identity verified in386.
+tools.review_d5_ordinary_sdk395 independently checks the failed prelaunch
+record,installed package/launcher,source hashes,both verifier receipts,
+same-profile restart,normal process exits and the entire watch interval.
+PASS evidence:
+ local/privacy395-ordinary-sdk02/verification.json SHA256
+ f98bcf7757321076f15c4344cf0f8b9e69931fda389f8b1e4a8056d152649d1a
+ local/privacy395-ordinary-sdk02/review.json PASS SHA256
+ 3706d4dbd11e2a4c84234e390618ecb67fc258fca3d87002b0471a2bf79578ef.
+
+This is SDK-root metadata-change evidence for ordinary fresh/restart/idle/
+WM_CLOSE on the owned private install. File reads,other roots,actual queue
+state,all-thread/whole-wire/network/process attribution,in-game Quit,
+advertising producer and final published install remain OPEN. Product bytes
+and published174 were unchanged;RUNTIME_VALIDATED=false.

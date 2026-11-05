@@ -1,0 +1,30 @@
+D5 / P9 - Unity 2022.3 advertising request platform scope
+
+2026-10-30. Documentation/source applicability check PASS at the stated
+scope. Native IAdsIdListener provider and full P9/D5 remain OPEN.
+
+The shipped globalgamemanagers/UnityPlayer version is Unity2022.3.40f1
+(441). Unity's matching2022.3 scripting API explicitly describes
+Application.RequestAdvertisingIdentifierAsync as an advertising ID request
+for iOS and UWP. It says unsupported platforms return false and do not
+invoke the supplied delegate:
+https://docs.unity3d.com/2022.3/Documentation/ScriptReference/Application.RequestAdvertisingIdentifierAsync.html
+Battle Aces here is a Windows standalone player,not a UWP package. This
+supports Windows standalone being outside the documented platform set.
+
+The pristine UnityPlayer's named Application_CUSTOM_...
+RequestAdvertisingIdentifierAsync at RVA5fb70 appends a managed delegate
+to AdsIdHandler+0x68,then calls FetchCachedAdsId. The fresh-handler state
+sets +0x60 to1 (pending) and returns false. Recipe39/441 instead returns
+false before delegate rooting/list insertion or a handler state change.
+This source behavior is consistent with the documented unsupported-platform
+contract. The public API was not invoked in the owned recipe39 game,so the
+runtime return/callback behavior of this exact client is not yet proven.
+
+This platform documentation does not cover AnalyticsCoreStats's separate
+native IAdsIdListener callback at c307c0,its registration,or an alternate
+platform provider. The +0x78 handler list type and its usage are also
+unproved. Do not equate a documented public API platform limit with whole
+binary absence. The next P9 check needs the native listener provider or
+positive evidence that the supported standalone lifecycle cannot register
+it. P1-P8 queue/read/wire/descendant/final installed work remains.

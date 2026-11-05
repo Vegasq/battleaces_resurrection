@@ -1,0 +1,45 @@
+D5 / P7-P8 - actual client Install, four-human public2 device-I/O audit
+
+2026-10-31. Scoped PASS;full D5 remains OPEN. Current recipe47 dirty/private
+client and server packages were used. The client game came from the actual
+native installer Install into a fresh owned directory at543,with ordinary
+startup/restart previously qualified at544/545. No package was published.
+
+One owned public2 match at547 completed1250 frames with four human seats,
+native result/Continue and four original Quit0 exits. The packaged host and
+two simulation workers exited normally. All five Jobs drained with no forced
+cleanup. Packages,source,assets,configuration,adapters and shared channels
+were unchanged. No authored or real SDK queue was seeded for this run.
+
+Four game processes were created suspended. The passive REA native observer
+armed its selected file,network,process,exit and NtDeviceIoControlFile hooks
+before primary-thread resume. All four final message streams were complete,
+had one self-terminate entry status0,zero observer errors/overflow,and no
+selected file/network/process-create event. Their device-I/O counts were
+54,841/53,888/57,051/55,407,each spanning25 observed control codes. Every
+observed 0x120xx code used that client's inherited bridge handle only.
+Selected 0x1201f send counts1231/1232/1233/1235 and 0x12017 receive counts
+47,826/46,872/50,034/48,388 exactly matched Winsock hook counts. Receive
+calls include nonblocking failures;these are not packet or payload counts.
+Selected connect,DNS,sendto and WinHttpConnect calls were0. The packaged
+host,four client drivers and two workers passed endpoint-only Python audits,
+with positive localhost controls and no overflow.
+
+tools.review_recipe47_public2_python547 binds the543 actual client Install,
+current recipe/package/asset hashes,match/normal exits,Job tree and seven
+packaged Python endpoint journals. tools.review_recipe47_public2_device_io547
+also binds the pre-resume gate and source to each installed game PID/bridge,
+the retained REA load/final records and exact observed device codes:PASS.
+
+Run:local/privacy547-public2-device01/verification.json SHA256
+b411d7f7c005dad801395506fb8ce10b98df1d6b398e5053b9894519d3837608.
+REA:local/privacy547-trace01/rea-evidence.json SHA256
+0bb9eb2c2fa7007bb0b45b42209c308d696053344ba298f0b7958651c16e3c61.
+Review:local/privacy547-public2-device01/device-io-review.json SHA256
+aa332b7d8d6b5e1761a285e6e8471d99b6ff1422d7d2d7404b21a0197eeb37d9.
+
+This establishes a selected user-mode path on an actually installed client
+in public2. It does not prove kernel/whole-wire absence,indirect or broker
+routes,real SDK-produced queue behavior,server native Install,other modes,
+the upstream advertising-ID producer,or a final coherent clean release.
+P7/P8/P9/D5 and RUNTIME_VALIDATED=false remain OPEN.

@@ -1,0 +1,28 @@
+D5 / P5-P8 - connected worker Simulation.dll import boundary
+
+2026-10-30. Retained412 public1/two-human source review PASS;full D5 OPEN.
+No game or worker was rerun.
+
+Both normally reaped simulation workers in412 report the same exact
+Simulation.dll SHA256 as the owned server asset:
+107bb83dc416a16492277392c50104660e34c48911345ae2e0d5afe3929a07fb.
+Its PE ordinary import table contains121 symbols,all from KERNEL32.dll.
+The PE delay-import directory is empty. Thus this worker DLL has no declared
+ordinary or delay import from a network DLL in that owned build.
+
+The ordinary imports include GetProcAddress,LoadLibraryA and LoadLibraryExW.
+They leave dynamic module/function lookup possible;the import table alone
+does not prove absence of native networking,third-party/OS calls or wire
+traffic. The retained worker CPython socket journals380/412 cover Python
+audit events,not calls made inside this native DLL. Source review of any
+dynamic lookup and stronger runtime/wire attribution remain P5/P8 work.
+
+tools.review_d5_simulation_imports417 binds the worker report and asset SHA,
+parses LLVM's COFF imports/file headers and records their exact output under
+local/privacy417-simulation-imports01. Receipt verification.json SHA256:
+2d3d54d4168670c0e38c693ffc29773e9b007ba0eeeb754320f30ec075b477bb.
+Published174 unchanged;RUNTIME_VALIDATED=false.
+
+Follow-up418 binds all direct loader call sites and their selected DLL-name
+inputs. The named modules contain no network DLL;GetProcAddress targets and
+indirect loader calls remain open. See privacy-simulation-loader418.txt.

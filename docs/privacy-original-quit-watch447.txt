@@ -1,0 +1,40 @@
+D5 / P1 - current recipe39 original menu Quit under SDK-root watch
+
+2026-10-30. Owned installed recipe39 game PASS at the original Confirm/Quit
+and selected SDK-root metadata scope. P1/P9/D5 remain OPEN.
+
+The private441 installed game copy at local/privacy441-game01 ran the existing
+owned native Quit harness in its default recipe,with a fresh isolated
+nativestest_quit_28315cb25781 profile. It reached the original menu
+confirmation,passed startup/menu/pre-Quit read-only native field snapshots
+on the same original Quit thread,and exited0 naturally 1.11s after dispatch.
+The process was reaped with no forced cleanup;shared settings and source files
+were unchanged. This diagnostic launches the installed game directly with
+its native Quit smoke flags;it is not a run through Start Battle Aces.cmd.
+446 separately covers that normal installed launcher with WM_CLOSE.
+
+The read-only FileSystemWatcher on the earlier269/284-bound LocalLow Bugsnag
+root was ready before the native verifier and stopped after it exited.
+Created/Changed/Deleted/Renamed/Error counts were0/0/0/0/0 from
+2026-10-31T04:14:10.36Z through04:14:24.66Z. It observed metadata changes
+only:the real SDK queue was neither read nor seeded or cleared.
+
+An independent read-only reviewer binds the complete installed UnityPlayer
+to recipe39 SHA256
+ce5fb2e15d5997a9ed6e2971a61d25812b5f91ec918ce0eee8e88a7915c21cdd,
+matches the helper to446's installed private package,checks natural Quit0,
+no forced cleanup,the selected native stages and the entire watcher interval.
+Ignored receipts:
+ local/privacy447-quit-watch01/native-quit/verification.json SHA256
+ ef6ee72b40dd013590e7ae71fef16eb603b5c47e05589e676e65256efd762491
+ local/privacy447-quit-watch01/verification.json SHA256
+ f230dc04b4094b29bfdcd22081f6b2bc377b6535fd7c78ede0a55a6db1d19077
+ local/privacy447-quit-watch01/review.json PASS SHA256
+ cc15a98e375c3b231ced65c52b7c6ba9368abbcd4c7fcac5fd49f7172a5faf34.
+The run/review scripts remain in the same ignored evidence directory.
+
+This combines the current original Quit route with a passive SDK-root
+metadata watch. No inference is made about SDK file reads,other roots,
+queue contents,whole-wire or all-thread network,external descendants,
+other modes,or a final published installed pair. The separate P9 advertising
+producer and RUNTIME_VALIDATED=false remain unchanged.

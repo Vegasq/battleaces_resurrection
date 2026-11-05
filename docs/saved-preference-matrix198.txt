@@ -1,0 +1,67 @@
+SAVED PREFERENCES - REMAINING AVAILABILITY MATRIX198
+2026-10-26. Six missing native cases COMPLETE. Full D2 remains OPEN.
+
+RESULT
+190 qualified saved choices through public1 refusal and Try Deck TLS stall.
+198 completes the other six named combinations. Together,190/198 cover saved
+non-default choices for all eight refusal/TLS-stall cells A07-14. Neither190's
+two cases nor189's fresh-profile matrix was repeated. No product change.
+
+IMPLEMENTATION AND OWNERSHIP
+tools/verify_saved_play.py accepts --phase-set remaining;default original retains
+190's sequence. The new sequence admits modes2/5 in native selection validation
+and archives each completed Quit trace before the next launch. Negative controls
+require the exact eight-cell union without overlap,reject unsupported modes and
+reject public play changing the practice preference.
+One new owned profile copies the hash-qualified141 restart seed,as in190:
+nativestest_saved_a1fd542ea99f. Same account/options,custom eight-unit/four-ability
+deck,all17cosmetic slots and installation-local hard preference persist across
+six real lifetimes without reseeding. Native joined deck/entitlement keys match
+saved choices,including portrait87. Public difficulty remains independently
+selected;Try Deck uses saved hard. Seed and real shared files remain unchanged.
+Each phase uses actual bundled verified resolver/private credential read/TLS,
+an owned loopback refusal or default handshake deadline,original native local
+play/results/Continue/default Quit,and empty job2total/0active/0terminated.
+Each creates one native replay and preserves all earlier replay bytes. Six final
+replays retained;five completed Quit traces archived,the sixth in its profile.
+Outer controller exits0,restores the installation preference's prior absence
+and removes its ownership marker. No force or abandoned native process.
+
+COMPLETED CASES
+Cell  Mode / failure                       Result / elapsed
+A11   public1 / TLS stall                  PASS219.750s
+A08   public2 / TCP refusal                PASS215.547s
+A12   public2 / TLS stall                  PASS219.281s
+A10   public5 / TCP refusal                PASS216.969s
+A14   public5 / TLS stall                  PASS218.453s
+A09   Try Deck4 / TCP refusal              PASS217.469s
+
+EVIDENCE AND VALIDATION
+Owner:local/savedpreferences198-01/verification.json
+SHA256:74f4dc66ff452d7b76354586df345bb28ac2a227312aea207a2534bfd3be53a2
+Read-only reconciliation:local/savedpreferences198-review01.json
+SHA256:9a75fe259c50a4ad3a154676d347ba1a4fce0f85f8ccf22bd99a5bd336019dd4
+Reparses native choices/transport outcomes;checks six report/native/replay hashes,
+package integrity,198sealed/current sources,shared-state preservation,each empty
+job,exact Quit trace bytes,seed preservation and final preference restoration.
+The reconciliation lists all six per-case identities. Actual package remains
+local/candidate188-packages01/battleaces-client-win64,owned game local/r171g,
+recipe23/helper169. Existing identities/receipt checked by every invocation.
+Source archive:local/savedpreferences198-sources01/manifest.json
+SHA256:8448b10b2e3f2f755a4899c67ac2181e0d16bba71f5cb684463d8e943677f45b
+Verifier:e88fe6f7321c29a9fd76adf2997425b985c566376fce0720c50cf85d841658ff
+Tests:e8e5ef563240b6241837230df5c599b037e7e9e5dd38871c7757dc52f85db530
+19focused tests PASS on Python3.12 and3.14,no skips:
+ tests.test_saved_play tests.test_availability_endpoint tests.test_packaged_play
+Prior verifier/tests:local/savedpreferences198-prior01. Credentials,profiles,
+replays,raw captures and binaries remain ignored/local. No new Nick request.
+
+BOUNDARY
+This closes the eight-cell automated native saved-choice scope with190. Physical
+presentation/input,actual TCP-connect timeout,Internet,other transitions and full
+D2 remain separate. No final-release/privacy/SCM acceptance or new publication.
+Do not rerun this completed matrix without a changed path or concrete concern.
+
+Follow-up199 separately qualifies actual pending TCP timeout across all four
+verified modes with saved choices and natural Quit. Reuse tcp-connect-timeout199.txt;
+198's retained refusal/TLS-stall evidence and hashes are unchanged.

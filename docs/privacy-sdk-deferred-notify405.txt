@@ -1,0 +1,26 @@
+D5 / P7 - two deferred SDK notify adapters
+2026-10-30. Bounded original/current recipe38 source review PASS;P7/D5 OPEN.
+
+Original IL2CPP metadata places Client.MultiThreadedNotify at814820. Its
+complete25-instruction body compares the current thread with the client
+thread and,when different,calls Client.NotifyFromUnityLog at814862. The
+separate <Notify>b__0 closure at819310 has a complete18-instruction body:
+it forwards its captured arguments to Client.NotifyOnMainThread at819347.
+Neither caller body differs in the current owned recipe38 GameAssembly.
+The two exact destination entries are RET-guarded in source recipe38 and
+the owned installed GameAssembly,so these named adapters cannot execute
+their original downstream collector bodies in that image. This is a
+source/byte conclusion,not observed invocation or proof that all deferred
+callbacks use either adapter.
+
+tools.review_sdk_deferred_notify405 checks pinned original GameAssembly
+and metadata,method-table names/addresses,complete caller disassembly and
+direct rel32 targets,source transformation,installed caller bytes and both
+entry guards. PASS receipt and original assemblies are ignored under
+local/privacy405-sdk-deferred01. verification.json SHA256:
+3cf5d81e0e3c82159665b0e6b923aad853b2c0650b77c123bbdf523f230a7f04.
+No game,real SDK queue or report endpoint ran;published174 remains unchanged.
+
+Other indirect adapters,independent SDK ingress,actual queue reads/retries,
+file/network routes and final installed release behavior remain P7/D5 work.
+RUNTIME_VALIDATED=false.

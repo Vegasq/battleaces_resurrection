@@ -192,6 +192,53 @@ class CommunityTests(DedicatedFixture):
         await self.command(b, c.READY, p.encode_string(lobby.id) + struct.pack('<IB', lobby.epoch, 0))
         self.assertEqual(lobby.phase, c.OPEN)
 
+    async def test_expired_ready_preserves_new_start_and_duplicate_cannot_launch_twice(self):
+        await self.start()
+        host, guest = await self.online(), await self.online()
+        lobby = await self.invite_pair(host, guest)
+        self.server.community.start_timeout = 0.05
+        await self.command(host, c.START, p.encode_string(lobby.id) + struct.pack('<Q', lobby.revision))
+        expired_epoch = lobby.epoch
+        await wait_until(lambda: lobby.phase == c.OPEN)
+        self.server.community.start_timeout = 10
+        await self.command(host, c.START, p.encode_string(lobby.id) + struct.pack('<Q', lobby.revision))
+        self.assertGreater(lobby.epoch, expired_epoch)
+
+        def ownership():
+            return (lobby.id, lobby.revision, lobby.epoch, lobby.phase, lobby.deadline,
+                    lobby.host, tuple(lobby.members), frozenset(lobby.ready),
+                    frozenset(lobby.returned), lobby.room,
+                    tuple(self.server.community.sessions[peer.profile].peer.room for peer in (host, guest)))
+
+        waiting = ownership()
+        for ready in (1, 0):
+            reason = await self.command(guest, c.READY,
+                p.encode_string(lobby.id) + struct.pack('<IB', expired_epoch, ready), ok=False)
+            self.assertEqual(reason, 'start attempt changed')
+            self.assertEqual(ownership(), waiting)
+            self.assertEqual(self.workers, [])
+
+        await self.command(guest, c.READY,
+            p.encode_string(lobby.id) + struct.pack('<IB', lobby.epoch, 1))
+        for peer in (host, guest):
+            peer.slot, _, peer.deck = p.decode_welcome(await peer.receive(p.WELCOME))
+            peer.bootstrap = await peer.receive(p.BOOTSTRAP)
+        self.assertEqual(host.bootstrap, guest.bootstrap)
+        self.assertEqual(lobby.phase, c.LOADING)
+        self.assertEqual(len(self.workers), 1)
+        loading = ownership()
+        reason = await self.command(guest, c.READY,
+            p.encode_string(lobby.id) + struct.pack('<IB', lobby.epoch, 1), ok=False)
+        self.assertEqual(reason, 'start attempt changed')
+        self.assertEqual(ownership(), loading)
+        self.assertEqual(len(self.workers), 1)
+        await asyncio.gather(*(peer.send(p.LOADED, hashlib.sha256(peer.bootstrap).digest())
+                               for peer in (host, guest)))
+        await asyncio.gather(*(peer.receive(p.START) for peer in (host, guest)))
+        self.assertEqual(lobby.phase, c.RUNNING)
+        self.assertEqual(len(self.workers), 1)
+        self.assertEqual(len([event for event in self.events if event['event'] == 'match_created']), 1)
+
     async def test_host_leave_transfers_host_and_invalidates_pending_start(self):
         await self.start()
         a, b = await self.online(), await self.online()

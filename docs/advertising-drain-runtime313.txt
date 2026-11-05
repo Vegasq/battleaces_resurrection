@@ -1,0 +1,24 @@
+D5 / P9 - advertising queue drain runtime invocation
+2026-10-28. Bounded original/current-owned source review PASS;P9/D5 OPEN.
+
+311 left the per-node drain's indirect call at UnityPlayer+3613f4 unnamed.
+The complete previously retained 361260 body loads RAX from global cell
+1d0d8e0 at3613de and calls RAX at3613f4. The retained resolver body77fbb0
+selects the literal il2cpp_runtime_invoke at78149b and stores the resolved
+export in that exact cell at7814a7. The call supplies a value from the local
+invocation object as RCX and a marshalled argument as RDX. This is an IL2CPP
+managed invocation handoff,not a direct native advertising-ID provider call.
+
+tools/review_ads_drain_runtime313.py PASS verifies both complete bodies against
+the pinned original Unity bytes,unwind extents,RIP-relative cell/name targets,
+resolver call,call-register instructions and unchanged recipe28 owned Unity
+bodies. Original SHA256 ac144d56d53f07904d52ed27a1539de90bc3290038fe52d73d2f6b268c85d6bc;
+current owned SHA256 a53b0c613a86c737b7caa7588c7c93ae20d5d5700f9321a406df9dcca8e32a7f.
+Reuses ignored disassemblies from local/privacy311-ads-request01 and
+local/privacy197-runtime-sink01. No game or provider was executed.
+
+The resolved export does not identify which managed method was stored in the
+invocation object,its subscribers,or any producer of Main+1498/c307c0.
+P9/D5 and final installed collection/delivery attribution remain OPEN;
+RUNTIME_VALIDATED=false. Follow the method pointer/argument provenance only
+with a concrete new source or runtime edge.

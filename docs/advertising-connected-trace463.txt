@@ -1,0 +1,38 @@
+D5 / P9 - recipe40 connected native advertising callback trace
+
+2026-10-31. One owned private source-bound recipe40 public1 two-human match
+passed a pre-resume passive advertising callback trace in both native clients.
+P9/D5 remain OPEN;RUNTIME_VALIDATED=false.
+
+The existing packaged verifier created each native client suspended in an
+owned no-breakaway Job. REA Frida attached before the primary thread resumed;
+the two observers validated the selected game/UnityPlayer paths and loaded
+recipe40 static-initializer/public-request guard bytes before the gate opened.
+They armed AdsIdHandler constructor361900,AnalyticsCoreStats
+OnAdsIdRequestDone c307c0,HandleRequestToSendAdsId c300f0 and both observed
+self-TerminateProcess exports. No advertising ID,report payload,arguments or
+endpoint contents were read. Initial handler globals were null.
+
+The private match reached1220 frames and complete result;both clients used
+original Continue/menu/Quit and exited0. Both workers exited0/reaped. Three
+owned Jobs ended active0/terminated0 without forced cleanup. The host
+listener and state lock released. In both clients,the complete untruncated
+REA observer stream records zero handler-constructor,ads-callback and
+send-request entries and a null handler global at self-termination entry.
+Read-only local/privacy463-review.py independently checked the exact recipe40
+UnityPlayer generated from pristine bytes,the owned run,ordered REA events,
+no truncation,the game PIDs and script hashes:PASS.
+
+Retained local/privacy463-connected01/verification.json SHA256
+0017d5b00a6d158c8f0dace0cde8cffd2dd8d06f003e0157bbab16ea73f50fe8,
+rea-evidence.json SHA256
+3c5cbeef7589e0d30fae411e6e5f9f4da3b27c76d800ae55e9d88adc134d1673,
+review463.json and both ads-observer.js scripts. The selected final REA
+status IDs are ev_b0449b3b43c42d9873e7d00dcb2163c939ea11135212e6e8cf6669eed8f29376
+and ev_13055c618fb8ee2a8ce4891e225d9d730fc528f3de013da44f412a6a7416c04d.
+
+This is observed absence at three selected entries in one connected mode.
+It does not prove the callback/provider can never run,find the independent
+ID acquisition edge,cover other providers/aliases,modes,queue or whole wire,
+or qualify the published pair. Next P9 work still needs a positive native
+provider/registration edge or an independently proved pre-acquisition cut.

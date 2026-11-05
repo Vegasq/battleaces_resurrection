@@ -1,0 +1,38 @@
+D5 / P5-P9 - recipe40 private connected mode compatibility
+
+2026-10-31. Current source-bound recipe40 private pair passes the applicable
+connected mode compatibility checks:public1 two humans,public2 four humans,
+public5 two humans/two bots,and Custom two human match/rematch. P5 privacy/P9/D5
+remain OPEN;RUNTIME_VALIDATED=false. Published174 remains recipe23.
+
+The same private recipe40 installed game at local/privacy461-game01,
+helper461 and client/server packages at local/privacy462-packages01 were
+used. The read-only local/privacy465-review.py independently regenerated
+UnityPlayer from the pinned pristine DLL,verified both package inventories
+and archive hashes,matched the installed helper and checked all four reports.
+Result:local/privacy465-review.json PASS.
+
+Public1 report:local/privacy462-connected01/verification.json SHA256
+e108e105b6ea3ea6b2e037471e90c1dc0e0f6be598a08766772e52e17b3a554b;
+1220 frames,complete result,two client exits0.
+Public2 report:local/privacy465-public2-01/verification.json SHA256
+19465d1b4f850f3d245546b6b2dc2b06f04136b2c7f3f8e91514a8d8e1c893c8;
+1250 frames,complete result,four client exits0.
+Public5 report:local/privacy465-public5-01/verification.json SHA256
+c1c7b2a7bf16ef5e86fec816890c215c8bdc83d6ff9f0c2c7a878a109bc67f35;
+1250 frames,complete result,two client exits0.
+Custom report:local/privacy465-custom-01/verification.json SHA256
+ed5dd22b19db37c5d79628172439a7188adb75e7ee7dd070293e057137b6ca9c;
+two1220-frame matches,epochs1/2,two client exits0.
+
+Every client used original Quit confirmation;the public clients reached result/
+Continue/menu and Custom completed its rematch/Leave flow. Every simulation
+worker exited0/reaped. Each case's owned Job counts ended active0 and
+terminated0 without forced cleanup;host listener and state lock released.
+Package,asset,shared-setting and source snapshots were unchanged within each
+run. This tests private mode compatibility of recipe40's handler cut. It
+does not observe all effective collection/queue/file/wire/descendant routes,
+identify the independent advertising-ID producer,qualify local/tutorial/error
+paths or bind the final published installer. Do not repeat identical mode
+checks without a changed recipe or specific failure;continue D5 source and
+effective-route attribution.

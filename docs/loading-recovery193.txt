@@ -1,0 +1,70 @@
+BATTLE ACES - DEFAULT LOADING DEADLINE193
+Date:2026-10-26. SCOPED PASS. Full D4 remains OPEN.
+
+MISSING CLAIM AND PRIOR EVIDENCE
+test_loading_expiry_releases_worker used a synthetic worker and0.12s deadline.
+Prior native-custom-matches.txt already qualifies named graphical loading-abort
+and late-packet cases at its recorded scope.193 adds the actual packaged native
+server's unmodified120s deadline with a concurrent healthy room and same-socket
+replacement. It does not repeat those graphical checks or claim native async
+map-callback cancellation. The remaining indefinitely unfinished client load
+limitation in client-session-lifecycle.txt stays explicit.
+
+CHANGES
+New tools/verify_loading_recovery.py owns disposable RC TLS/native host/peers,
+private profiles/certificate,loopback listeners and retained process/job handles.
+Existing verify_room_faults.pair gains loaded=True default;loaded=False stops
+the diagnostic handshake after the genuine bootstrap,without sending LOADED
+or waiting for START. Existing callers retain their original behavior. No
+production modules,normal entry points,timeouts or packages changed.
+The exact older helper used for192 remains archived in
+local/malformed192-02/source/verify_room_faults.py and matches192's retained hash.
+
+RESULT
+Two concurrent Custom1v1 matches use actual191bundled server/runtime and original
+Simulation.dll. Only slot0 of the victim acknowledges its bootstrap;slot1 never
+sends LOADED before expiry. Host loading_timeout120,input_timeout10 and native
+request/close timeouts3/2 remain unchanged;ordinary50ms simulation steps.
+Victim stays loading with native frame-1;at120.005323s it aborts explicitly with
+world loading timeout. Both peers receive ABORTED for that match;no START,
+frame,winner or simulation error. Victim worker exits0 before recovery.
+Both peers then send valid but late old-world LOADED and initial INPUT packets.
+Each gets a subsequent REFRESH ACK on the same TCP stream:an ordering barrier
+showing earlier packets were handled. Closed world remains unchanged;no protocol
+error,second world or disconnect. Both RETURN acknowledgements reopen the same
+lobby. Original connections start a distinct match and receive ten equal frames.
+All four profile JSON files retain exact hashes.
+The other room/worker stays identical and delivers2427ordered,equal peer frames
+matching its host audit hashes. Maximum observed frame gap65.3862ms;the1000ms
+diagnostic stall bound is not a latency guarantee or Internet acceptance.
+All three native workers exit0. Controller exit0;job10total/0active/0terminated;
+no forced cleanup. Total124.109s.
+
+VALIDATION AND EVIDENCE
+Five new journal controls reject unloaded start/step/native completion,error,
+late loaded mutation,disconnect,missing/duplicate/wrong abort and healthy frame
+loss/hash mismatch. With192controls,12tests PASS on each Python3.12 and3.14.
+New-helper default loading path is also exercised by the healthy/replacement
+matches;withheld loading path by the victim. No repeated prior fault injections.
+
+Accepted report:local/loading193-01/verification.json
+SHA256:6cbbad9cdf7a50b020d50a5496012a5b9a8a4a4d8a4d5b2661005411635728a7
+Per-case result/audit:local/loading193-01/loading-timeout/
+Package:local/candidate191-packages01/battleaces-server-win64
+Package manifest:e0531eec69057f165490fdb712581dec95632d6115fa29dda22035505d580235
+Assets:local/s139/assets/build-37822
+Asset manifest:5f26ae7e35ce004c5105fa42a85fed8671194380e9461caa89888decd2ee4ad3
+Driver:aa5470eda8ccc227b7f318abb2326fd2e7fce7d52ad9a16992e2a2200b510dba
+Helper:e2978c262e453ec0cbb1d514ad62ca7f2c78858e74b988d0de123d17a15c20ae
+New tests:dbe98a4590f8170d12a678b5ee8f2eb6432f8c839dcafe0217b58cb55c6885a4
+Coordinator:7b9cf5e13cdf17e4b88fb54a66cd69d67aa63eccca7f12e8078e07955e620737
+Worker client:cebf69d02d5c574b88311da1ce82d7db6e97ae51e916ba6d258efd4892c65924
+Driver/helper pinned before/after;package and assets verified;imports are from
+the packaged app. Source snapshots/final review retained under loading193-01.
+Credentials,profiles,raw journals,binaries and imported assets remain local.
+
+BOUNDARY
+This is default-deadline server-side Custom1v1 recovery,not a Unity loading-screen
+or callback-cancellation result. Other modes,physical visibility,reason-specific
+UI,version/assets mismatch,Internet,SCM,storage/replay and full D4 remain open.
+No new build or publication;191local preview and174published prerelease unchanged.

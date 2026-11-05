@@ -9,6 +9,8 @@ from __future__ import annotations
 import asyncio
 import math
 import random
+from concurrent.futures import Future
+import threading
 
 
 class StreamShaper:
@@ -23,15 +25,42 @@ class StreamShaper:
         self.target_port, self.delay, self.jitter = target_port, rtt_ms / 2000, jitter_ms / 1000
         self.seed, self.maximum = seed, maximum
         self.listener, self.closing = None, False
+        self.listen_port, self.paused = None, False
         self.tasks = set()
         self.stats = dict(accepted=0, rejected=0, forwarded_bytes=0, chunks=0,
-                          maximum_queued_chunks=0, failures=0)
+                          maximum_queued_chunks=0, failures=0,delay_samples=0,
+                          delay_total_ms=0.0,minimum_delay_ms=None,maximum_delay_ms=0.0)
 
-    async def start(self):
+    async def start(self,listen_port=0):
+        if type(listen_port) is not int or not 0<=listen_port<=65535:
+            raise ValueError('Invalid local listener port')
         if self.listener is not None or self.closing:
             raise ValueError('Relay already started or closed')
-        self.listener = await asyncio.start_server(self.handle, '127.0.0.1', 0, limit=65536)
-        return self.listener.sockets[0].getsockname()[1]
+        self.listener = await asyncio.start_server(self.handle, '127.0.0.1', listen_port, limit=65536)
+        self.listen_port = self.listener.sockets[0].getsockname()[1]
+        return self.listen_port
+
+    async def outage(self):
+        """Drop every owned relay stream and refuse new connections until restore."""
+        if self.listener is None or self.closing or self.paused:
+            raise ValueError('Relay is not serving')
+        self.paused = True
+        self.listener.close()
+        pending = list(self.tasks)
+        for task in pending: task.cancel()
+        await asyncio.gather(*pending, return_exceptions=True)
+        await self.listener.wait_closed()
+        if self.tasks:
+            raise RuntimeError('Relay streams survived outage')
+        return dict(port=self.listen_port, disconnected=len(pending))
+
+    async def restore(self):
+        """Reopen the same loopback port after an owned outage."""
+        if self.listener is None or self.closing or not self.paused or self.tasks:
+            raise ValueError('Relay is not in a drained outage')
+        listener = await asyncio.start_server(self.handle, '127.0.0.1', self.listen_port, limit=65536)
+        self.listener, self.paused = listener, False
+        return self.listen_port
 
     async def pipe(self, reader, writer, seed):
         queue = asyncio.Queue(32)  # <=2MiB, plus one in-flight chunk and stream buffers.
@@ -40,16 +69,22 @@ class StreamShaper:
         async def produce():
             previous = 0.0
             while data := await reader.read(65536):
-                due = max(previous, loop.time() + max(0, self.delay + rng.uniform(-self.jitter, self.jitter)))
+                received=loop.time()
+                due = max(previous, received + max(0, self.delay + rng.uniform(-self.jitter, self.jitter)))
                 previous = due  # TCP bytes remain ordered even with jitter.
-                await queue.put((due, data))
+                await queue.put((due, data,received))
                 self.stats['maximum_queued_chunks'] = max(self.stats['maximum_queued_chunks'], queue.qsize())
             await queue.put(None)
 
         async def consume():
             while item := await queue.get():
-                due, data = item
+                due, data,received = item
                 await asyncio.sleep(max(0, due - loop.time()))
+                held_ms=(loop.time()-received)*1000
+                self.stats['delay_samples']+=1;self.stats['delay_total_ms']+=held_ms
+                minimum=self.stats['minimum_delay_ms']
+                self.stats['minimum_delay_ms']=held_ms if minimum is None else min(minimum,held_ms)
+                self.stats['maximum_delay_ms']=max(self.stats['maximum_delay_ms'],held_ms)
                 writer.write(data)
                 await asyncio.wait_for(writer.drain(), 5)
                 self.stats['forwarded_bytes'] += len(data)
@@ -63,7 +98,7 @@ class StreamShaper:
             await asyncio.gather(*children, return_exceptions=True)
 
     async def handle(self, reader, writer):
-        if self.closing or len(self.tasks) >= self.maximum:
+        if self.closing or self.paused or len(self.tasks) >= self.maximum:
             self.stats['rejected'] += 1
             writer.transport.abort()
             return
@@ -107,3 +142,45 @@ class StreamShaper:
         await asyncio.gather(*pending, return_exceptions=True)
         if self.listener is not None:
             await self.listener.wait_closed()
+
+
+class ThreadedStreamShaper:
+    """Owned event-loop thread for synchronous diagnostic controllers only."""
+    def __init__(self,target_port,*,listen_port=0,**settings):
+        self.shaper=StreamShaper(target_port,**settings)
+        if type(listen_port) is not int or not 0<=listen_port<=65535:raise ValueError('Invalid listener port')
+        self.ready=Future();self.finished=Future();self.loop=None;self.stop=None
+        async def serve():
+            self.loop=asyncio.get_running_loop();self.stop=asyncio.Event()
+            try:
+                port=await self.shaper.start(listen_port)
+                self.ready.set_result(port)
+                await self.stop.wait()
+            finally:await self.shaper.close()
+        def run():
+            try:
+                asyncio.run(serve())
+                self.finished.set_result(dict(self.shaper.stats,active_connections=len(self.shaper.tasks),
+                                              listener_closed=not self.shaper.listener.is_serving()))
+            except BaseException as error:
+                if not self.ready.done():self.ready.set_exception(error)
+                self.finished.set_exception(error)
+        self.thread=threading.Thread(target=run,name='owned-stream-delay',daemon=True);self.thread.start()
+        try:self.port=self.ready.result(timeout=10)
+        except BaseException:
+            if self.loop and self.stop and not self.loop.is_closed():self.loop.call_soon_threadsafe(self.stop.set)
+            self.thread.join(timeout=10)
+            raise
+
+    def close(self):
+        if not self.finished.done():self.loop.call_soon_threadsafe(self.stop.set)
+        try:result=self.finished.result(timeout=10)
+        finally:self.thread.join(timeout=10)
+        if self.thread.is_alive():raise RuntimeError('Owned relay thread did not stop')
+        return result|dict(thread_stopped=True)
+
+    def outage(self):
+        return asyncio.run_coroutine_threadsafe(self.shaper.outage(),self.loop).result(timeout=10)
+
+    def restore(self):
+        return asyncio.run_coroutine_threadsafe(self.shaper.restore(),self.loop).result(timeout=10)

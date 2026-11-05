@@ -1,0 +1,57 @@
+D5 / P9 - analytics module construction and existing callback boundaries
+
+2026-10-31. Exact-PDB pristine UnityPlayer source review and recipe40 installed
+selected-byte check PASS. No game/provider/ID was invoked. P9/D5 stay OPEN.
+
+Read-only Ghidra script TraceAnalyticsModule468.java decompiled
+InitializeModule_UnityAnalytics at c8c510 and its direct callee
+AnalyticsCoreStats::StaticInitialize at c33210. The module initializer first
+registers analytics serialization hooks and constructs AnalyticsSessionService.
+Its original service branch registers pause,quit,exit-play,domain-reload,
+scene-load and PlayerPrefs-delete callbacks. Only then does it call c33210.
+The latter constructs the derived UnityAnalytics object,stores its
+IAdsIdListener vtable at object+1498,publishes the core singleton1d0eb28,
+and calls RegisterGlobalCallbacks virtually/directly. This is the concrete
+module-to-listener-object construction edge,not an ID acquisition edge.
+
+Recipe40 already skips the module initializer's session callback block at
+c8c5f3 while retaining the allocated service object. Its derived/base
+RegisterGlobalCallbacks entries c66c20/c2f570 return immediately,and the
+service-enabled gate c33440 returns false. The owned installed recipe40
+UnityPlayer at local/privacy461-game01/UnityPlayer.dll matches those selected
+bytes:e9b900000090,c3,c3,31c0c3 respectively;SHA256
+d45b20470f41a05abf1513f7be65f27506f7dc63decfca625caab21792a04a98.
+
+The singleton has many direct native consumers,including analytics and
+RemoteConfig property APIs. Returning at c33210 would leave it null;this
+source evidence does not justify that broad cut without proving every
+consumer's null behavior and compatibility. The object still exists under
+recipe40,so its virtual IAdsIdListener callback remains a residual P9
+surface even though these registration branches are disabled. The actual
+native provider/registration path and computed consumers remain unidentified.
+Do not count this as P9 or whole privacy closure.
+
+Ignored script and log:local/d5-ghidra-12.1.4/scripts/
+TraceAnalyticsModule468.java and pdb-module468-console.log. Headless process
+exit0;the first invocation with a space-containing script path failed before
+running,and the no-space script copy with identical SHA256 completed. The
+Ghidra project contains the exact applied matching PDB documented448.
+Script SHA256 4047a54a7d2a1289cf5c9097425a8d16bf649da55001fd4ae1b012960ab78598.
+Log SHA256 c6c346c2848685e155610aac9e556f0e035e1c9e84e8a9bbc77b32fc3aa674f7.
+
+Follow-up469:the two registrations before the c8c5f3 skip point resolve to
+CreateConfigSettingsReadTransferFunctionScriptingTraits at c69300 and
+WriteQueueForConfigSettingsReadTransferFunctionsIntoCache at c693e0.
+The first allocates/initializes a ConfigSettingsRead serialization trait
+and stores it in the transfer-function traits cache. The second registers
+a ConfigSettingsRead item through SerializationCache::Data::FindOrInsert.
+Neither named body calls a network/request/report or advertising-ID API;
+their registrations are serialization plumbing,not evidence of an active
+SDK report queue. Downstream serializer invocation/content and other module
+callbacks remain outside this bounded review. No new guard follows from
+these two bodies. Ghidra scanned59,459 analyzed functions and matched exactly
+these two names;headless exit0. Ignored script/log:
+local/d5-ghidra-12.1.4/scripts/TraceAnalyticsConfig469.java SHA256
+8f679257a4088cf435dac57e2ce54350caa888e3c7e9d628d30888f5b197cf53;
+local/d5-ghidra-12.1.4/pdb-config469-console.log SHA256
+65e629634b78d1d3cbd4e5f9c8a5a2538f495fd7387f5642f57994132b6c41ad.

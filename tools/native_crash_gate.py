@@ -50,11 +50,12 @@ def check_refusal(text):
         raise RuntimeError(detail + refusal.group(0))
 
 
-def validate_ready(text, thread, *, saved_mode=32769):
+def validate_ready(text, thread, *, saved_mode=32769, recipe_version=23):
     check_refusal(text)
-    if type(saved_mode) is not int or not 0 <= saved_mode < 2**32:
+    if (type(saved_mode) is not int or not 0 <= saved_mode < 2**32 or
+            type(recipe_version) is not int or recipe_version not in (23,25,26,27,28,34)):
         raise ValueError('Typed saved Windows process error mode required')
-    pattern = (r'^\[(\d+)\] NATIVE CRASH ready: version=1 thread=(\d+) recipe=23 '
+    pattern = (rf'^\[(\d+)\] NATIVE CRASH ready: version=1 thread=(\d+) recipe={recipe_version} '
                rf'mode=3 savedMode={saved_mode} expectedMode=3 managerPresent=([01]) '
                r'managerDisabledChecked=([01]) pendingTreeChecked=([01]) managerAbsent=([01]) '
                r'controllerOnCurrentStack=1 ipcInvalid=6 cursorCallbackRva=801fb0 recursion=0 '
@@ -63,12 +64,12 @@ def validate_ready(text, thread, *, saved_mode=32769):
     if (type(thread) is not int or not 0 < thread < 2**32 or len(rows) != 1 or
             text.count('NATIVE CRASH ready:') != 1 or int(rows[0][1]) != thread or
             tuple(rows[0][2:]) not in (('1', '1', '1', '0'), ('0', '0', '0', '1'))):
-        raise ValueError('One original-thread recipe23 native preflight required')
+        raise ValueError('One original-thread expected-recipe native preflight required')
     return int(rows[0][0])
 
 
-def validate_trigger(text, thread, *, saved_mode=32769):
-    ready_tick = validate_ready(text, thread, saved_mode=saved_mode)
+def validate_trigger(text, thread, *, saved_mode=32769, recipe_version=23):
+    ready_tick = validate_ready(text, thread, saved_mode=saved_mode, recipe_version=recipe_version)
     rows = re.findall(r'^\[(\d+)\] NATIVE CRASH trigger: version=1 thread=(\d+) '
                       r'category=0 wrapperRva=1484d0 nativeCaller=1 mode=3$', text, re.M)
     if (len(rows) != 1 or text.count('NATIVE CRASH trigger:') != 1 or
@@ -76,17 +77,17 @@ def validate_trigger(text, thread, *, saved_mode=32769):
         raise ValueError('One matching original-thread crash trigger after readiness required')
 
 
-def ready_saved_mode(text, thread):
+def ready_saved_mode(text, thread, *, recipe_version=23):
     """Bind this launch's prior mode while retaining the full native preflight."""
     modes = re.findall(r'NATIVE CRASH ready: [^\r\n]* savedMode=(\d+) ', text)
     if len(modes) != 1:
         raise ValueError('One saved-mode preflight required')
     mode = int(modes[0])
-    validate_ready(text, thread, saved_mode=mode)
+    validate_ready(text, thread, saved_mode=mode, recipe_version=recipe_version)
     return mode
 
 
-def wait_for_crash_exit(child, tracker, read_log, *, timeout=60, saved_mode=32769):
+def wait_for_crash_exit(child, tracker, read_log, *, timeout=60, saved_mode=32769, recipe_version=23):
     if type(timeout) not in (int, float) or not 0 < timeout <= 60:
         raise ValueError('Bounded crash exit deadline required')
     deadline = time.monotonic() + timeout
@@ -101,7 +102,7 @@ def wait_for_crash_exit(child, tracker, read_log, *, timeout=60, saved_mode=3276
             check_refusal(text)
             if code != FAULT:
                 raise RuntimeError('Natural native exception exit required')
-            validate_trigger(text, child.tid, saved_mode=saved_mode)
+            validate_trigger(text, child.tid, saved_mode=saved_mode, recipe_version=recipe_version)
             return code
         if time.monotonic() >= deadline:
             raise TimeoutError('Native crash exit deadline exceeded')

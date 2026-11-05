@@ -1,0 +1,90 @@
+VERIFIED-MODE FAILURE / LOCAL PLAY189
+2026-10-26. COMPLETE at fresh-profile transport/native scope. D2 and the full
+original A07-14 requirements remain OPEN.
+
+Missing claim
+131 qualified RC schema4 refusal/default TLS deadline. It did not exercise the
+verified resolver's actual protected invitation reader or verification-enabled
+TLS context.189 addresses that distinct path using the existing native-play
+verifier and fresh owned private credentials. No production behavior changes.
+
+Implementation
+tools/availability_endpoint.py adds verified-refused and verified-handshake-timeout
+to the same exclusive numeric-loopback endpoints. Refusal reserves a port without
+listening. The stall endpoint receives ClientHello and sends nothing,leaving the
+original5s TLS/10s outer defaults intact. It neither fabricates an exception nor
+shortens the game/queue clocks. Client closure and stopped endpoint thread required.
+
+tools/verify_packaged_play.py now admits those cases only with verified settings
+and an unrestricted owner. It checks the public authored CA before creating the
+endpoint;creates one fresh protected invitation through CredentialStore;and
+delegates the bundled RemoteConfigResolver/private reader/TLS operations to their
+original implementations. Witnesses count successful private reads and require
+verify_certificate=true. RC evidence still requires false and zero invite reads.
+The decoder rejects missing/extra/Boolean invite counts and mismatched contexts.
+Actual imported credential-module bytes are bound to the package inventory.
+Tokens remain in private fixture files and are checked against public outputs.
+
+Selected package/game
+Unmodified local/candidate188-packages01/battleaces-client-win64 and owned local/
+r171g,helper169/recipe23. Same client archive as187;no new package/build/install.
+Fresh local/availability189-pki01 is authored through the existing OpenSSL test
+fixture generator,with a localhost SAN certificate and CA. No OS trust-store edit.
+Each case gets a new owned native profile and invitation. All actual game launches
+use the bundled production client/bridge with the existing external diagnostic
+spawn adapter. Native callbacks,not mouse/physical UI. No real user host/game used.
+Try Deck's authored click is delayed10s to let the genuine TLS failure happen
+first,as in131;no immediate-click/pending-handshake cancellation claim.
+
+Source checks
+Python3.12/3.14:12tests PASS each,7.183s/7.170s,no skips:
+ tests.test_availability_endpoint tests.test_packaged_play
+Includes actual Windows refusal/default TLS-stall endpoints and authored evidence
+mutations;the two new tests reject RC/verified evidence substitution and verify
+the new nonlistener state. Native gameplay evidence comes from cases below.
+Exact prior verifier/endpoint preserved in local/availability189-prior01.
+200 source inputs sealed in local/availability189-sources01/manifest.json.
+
+Completed native results
+State                         Mode  Report status
+verified-refused               1     PASS218.297s
+verified-refused               2     PASS216.390s
+verified-refused               4     PASS218.468s
+verified-refused               5     PASS214.156s
+verified-handshake-timeout     1     PASS185.797s
+verified-handshake-timeout     2     PASS220.000s
+verified-handshake-timeout     4     PASS217.297s
+verified-handshake-timeout     5     PASS221.406s
+
+Reports:local/availability189-STATE-modeMODE-01/verification.json.
+Refused1 SHA256:
+ 01fc7d662e09e244bb982d3d85b3c4db37828a444eb33c5643b6bdd92dc6a875
+Handshake4 SHA256:
+ 0ba49507ade51e9f983cd5f322815177922f553bf9340c8542064e0c3c20538e
+All eight pass actual protected read/resolution/TLS failure,bridge reason2,one local
+world,AI activity,results/Continue and original default Quit0. Job2/0/0,no forced
+cleanup. Public token scans pass;private fixtures,package/config/source and shared
+TOML/replay/backup channels unchanged. Handshake cases expire the unchanged TLS
+deadline;this is not a TCP SYN/connect timeout or authenticated server session.
+
+Final eight-case read-only reconciliation:local/availability189-review01.json,
+SHA256 e6ee5ba8736335e0eee697b732055e5fe855a3ce879aadaa06500982c5b2c56f.
+Reparses actual native/transport evidence and checks both empty-job snapshots,
+actual bundled imports against package files,all200sealed/current source inputs,
+exact emitted driver text,private fixture hashes and public-output token absence.
+All eight terminal reports and their native/transport hashes are recorded there.
+The earlier four-case progress04 report remains preserved at its original scope.
+
+Remaining work and interpretation
+The sequential matrix completed successfully;its owning process exited0. Do not
+rerun these completed cases. Fresh-profile settings and native selection/readback
+are checked here. Non-default saved-preference
+retention,physical presentation and other original A07-14/D2 requirements remain
+separate;these transport/native passes cannot silently close those requirements.
+Follow-up190 now observes copied141 custom deck/cosmetics/options and saved hard
+practice preference through public1 refusal,then same-profile restart/Try Deck
+TLS stall. Its two named passes are in saved-preferences190.txt.198 subsequently
+completed the other six preference cells;see saved-preference-matrix198.txt.
+Physical scope remains open;do not repeat this fresh-profile matrix.
+P9 producer/privacy work,N12 actual SCM and all other roadmap gates stay open.
+No new Nick request,installer/release publication or production patch this step.

@@ -1,0 +1,24 @@
+D5 / P9 - leading advertising callback table methods
+
+2026-10-30. Pinned original static review PASS;P9/D5 OPEN.
+No game or provider was invoked.
+
+403 identified the two callback table addresses stored at object+1498.
+This byte-bound follow-up shows that both tables begin with c307c0.
+The next entries are c46a44 in base table1a2afb8 and c68184 in
+derived table1a2c630. 403 already binds those two short functions to
+their respective teardown paths. The qword immediately before each
+table is a code address c33490,not a standard MSVC RTTI complete-object
+locator. Class-name recovery through that usual vtable header is thus
+unavailable here. No later table entries are assigned by this check.
+
+The first-method position strengthens the need to trace interface dispatch
+or provider registration. It does not identify the caller,advertising-ID
+source,or any pre-acquisition cut. Zero callback calls in owned182/382
+runtime checks remain bounded observations,not absence proof.
+
+Reviewer:tools.review_ads_callback_rtti422;it reuses403's exact pinned
+source/table binding. Ignored receipt:
+local/privacy422-ads-callback-rtti01/verification.json.
+Receipt SHA256:fc592ece6a6c439fd449fcb29bc3765e67faf1098e8e787a8053a1b076cc574a.
+P9/full D5 remain OPEN;RUNTIME_VALIDATED=false,published174 unchanged.

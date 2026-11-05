@@ -1,0 +1,40 @@
+D5 / P5-P8 - current private packaged Python socket endpoints
+2026-10-30. Bounded public1 subcase PASS;full D5 OPEN.
+
+360 classified direct packaged Python socket source routes but left indirect
+library calls and actual early endpoints outside its scope. The external
+verifier now has an opt-in CPython audit prelude in its owned host/client
+driver scripts. It registers before importing packaged application modules,
+records only socket event names and endpoint metadata,and closes its journal
+on interpreter exit. It does not read payloads,SDK queues or credentials.
+Normal launchers,private pair358 and published174 are unchanged.
+
+An owned positive control recorded observer-ready,localhost getaddrinfo,
+127.0.0.1 bind and observer-exit. The current recipe38 private pair358/
+helper357 then passed one RC-open public1/two-human native match:1220 frames,
+result/Continue,normal Quit0,drained workers/jobs,zero forced cleanup.
+The host driver logged three binds and two connects;each client driver
+logged two binds and two connects. Every recorded endpoint was127.0.0.1;
+there were no selected DNS lookups,sends to another address,overflow or
+unfinished observer journal. The source-bound reviewer passes.
+
+tools.review_d5_python_sockets377 checks the positive control,actual
+prelude bytes/source hash,script-entry and exit markers,all event names/
+addresses/PIDs/ordering,package/match evidence and normal cleanup.
+Ignored evidence:
+ local/privacy377-control01/client-0/socket-audit.jsonl
+ SHA256 a9994d99ae35d2060b4cd34bdb67b4a3d5eb5338f0191f30cbf4a39e488a373a
+ local/privacy377-python-sockets01/verification.json
+ SHA256 56d0ef0de0fa430c10b22ef8738860f92c07ab28d345049fd428e006b34b4f2e
+ local/privacy377-python-sockets01/python-socket-review.json
+ SHA256 fd87ebebc5d4da092aa044ce7b5fae962a16390c918f543b32ea185f2f58f604
+
+This covers CPython audit events raised by these three packaged driver
+processes after script entry in this run. It does not cover interpreter
+startup before the hook,native/ctypes socket calls,Python extensions that
+skip audit events,the separate simulation worker,other processes,kernel/
+packet wire or other configurations. Python's audit API is observational,
+not a security boundary:
+https://docs.python.org/3.12/library/sys.html#sys.addaudithook
+https://docs.python.org/3.12/library/socket.html
+P9,final installed privacy and full P5-P9/D5 remain OPEN.

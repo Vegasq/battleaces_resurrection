@@ -1,0 +1,33 @@
+D5 / P9 - public advertising request delegate completion
+2026-10-28. Bounded original/current-owned source review PASS;P9/D5 OPEN.
+
+313 identified il2cpp_runtime_invoke in the public request queue drain but
+left its managed method unresolved. This review follows the exact queued
+callback object. Native RequestAdvertisingIdentifierAsync5fb70 accepts its
+managed callback as RCX,roots/handles it,and copies the resulting record into
+a queue node at5fc43. Drain361510 copies that node's payload and calls
+361260. The per-node routine prepares an invocation object at RSP+60 and
+calls770d00. That helper obtains the callback object's managed type,iterates
+methods,and matches the seven-byte literal "Invoke". It stores the selected
+method at invocation+f8. In361260,post-prologue RBP=RSP+100,so RBP+58 is
+RSP+158:the same invocation+f8 slot. The routine loads it into RCX and calls
+il2cpp_runtime_invoke through the313-bound export cell. This is the queued
+managed callback completion route;it does not identify an ID acquisition.
+
+tools/review_ads_delegate_drain314.py PASS checks pinned original Unity SHA256
+ac144d56d53f07904d52ed27a1539de90bc3290038fe52d73d2f6b268c85d6bc,
+five complete byte-matched unwind bodies,queue-payload and direct-call anchors,
+the exact Invoke literal and method-slot stack arithmetic. The reviewed bodies
+are unchanged in current recipe28 owned Unity SHA256
+a53b0c613a86c737b7caa7588c7c93ae20d5d5700f9321a406df9dcca8e32a7f.
+Ignored disassembly:local/privacy311-ads-request01/helper-770d00.asm;
+the prior three bodies and197's resolver body are reused. The resolver also
+binds helper cell1d0d918 to il2cpp_object_get_class. No game,callback or
+provider was invoked.
+
+The callback's runtime identity/target and manager's retained ID/error writer
+remain unproved;this helper only selects its Invoke method. No bridge from
+the public API to Main+1498/c307c0 or source collection is established.
+Do not guard the shared delegate/runtime helpers on this evidence.
+P9/D5 and final installed collection/delivery attribution stay OPEN;
+RUNTIME_VALIDATED=false.

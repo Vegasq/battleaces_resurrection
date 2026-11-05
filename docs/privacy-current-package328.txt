@@ -1,0 +1,33 @@
+D5 / P4 - recipe34 private package pair and bundled-client compatibility
+
+2026-10-28. Private source-bound ZIP pair built;owned Try Deck runtime PASS.
+P4/P7/P9/full D5 remain OPEN.
+
+tools.build_windows_packages built a local dirty-source preview0.3.0-rc1.7
+using pinned Python3.14.8 ZIP,recipe34 helper324-build02,existing source-bound
+client installer,server launcher and certificate helper. Both package manifests
+verify. Against the earlier316 recipe28 preview,each package changes exactly
+four entries:telemetry.py,helper DLL,helper provenance and compatibility.json.
+No game assets,private profiles or credentials are packaged. The ZIPs are not
+published or final installers. Build report:
+local/privacy328-packages01/build-report.json SHA256
+a26ae356306da7b5a9c845c6b8a33dbeccc17a165a176375527f75700a1e16dc.
+Client ZIP SHA256 674e638f2964803e9202c3f4994648ad90bc1575c518d8e4444c44e3f17e48d8.
+Server ZIP SHA256 853a78c1a57d65107a671895679f62f487d96d79a077b0b92eb6d4cec584f6a9.
+
+The source-owned packaged-play verifier ran the bundled client against the
+separate owned recipe34 installation at local/privacy301-runtime01/game,with
+a fresh isolated profile and unconfigured remote settings. Original Try Deck4
+delivered a native result,Continue and menu return,then original normal Quit0.
+It recorded133 autonomous action records and40 produced bot units with orders
+and position change. Elapsed215.422s;game and driver reaped,job2total/0active/
+0terminated,no forced cleanup. Package/config/driver/source and shared
+settings stayed unchanged. Verification:
+local/privacy328-play01/verification.json PASS SHA256
+48ee040419c79d538e96a4201a3f83bf1069071133e95f7f026cbd6720.
+
+This tests current bundled-client gameplay compatibility after the recipe34
+metadata-merge change. It has no native field audit or complete SDK queue,
+file,network,all-thread/descendant attribution,and does not qualify the
+server ZIP at runtime. It is not a clean committed release or P9 producer
+result. Published174 remains recipe23;RUNTIME_VALIDATED=false.

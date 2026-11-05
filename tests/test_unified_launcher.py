@@ -125,5 +125,48 @@ class UnifiedLauncherTests(unittest.TestCase):
         with mock.patch.object(launcher, 'launch', side_effect=launch):
             self.assertEqual(client.main(['--config', str(self.path), '--game', str(self.game)]), 17)
 
+    def test_replay_file_and_picker_reach_native_without_diagnostic_actions(self):
+        selected = self.folder / 'replay with spaces & percent %.rep'
+        for extra, expected in ((['--replay'], '-replay-select'),
+                                (['--replay', str(selected)], '-replay-file=' + str(selected.resolve()))):
+            async def launch(config, remote, args):
+                argv = launcher.game_arguments(config, None, 1234, args)
+                self.assertIn(expected, argv)
+                self.assertEqual(sum(a.startswith(('-replay-file=', '-replay-select')) for a in argv), 1)
+                self.assertFalse(any('smoke' in a or 'auto-' in a for a in argv))
+                return 0
+            with self.subTest(extra=extra), mock.patch.object(launcher, 'launch', side_effect=launch):
+                self.assertEqual(client.main(['--config', str(self.path), '--game', str(self.game), *extra]), 0)
+        saved = json.loads(self.path.read_text())
+        self.assertNotIn('replay', saved)
+
+    def test_startup_failure_exit_reports_recovery_without_resetting_settings(self):
+        self.save(client.defaults(self.game))
+        saved = self.path.read_bytes()
+        for code in (78, 0, 9):
+            with self.subTest(code=code):
+                process = mock.Mock()
+                process.poll.return_value = process.wait.return_value = code
+                output = io.StringIO()
+                with (mock.patch.object(launcher, 'native_storage_preflight'),
+                      mock.patch.object(launcher, 'verify_game'),
+                      mock.patch.object(launcher, 'spawn_game', return_value=process),
+                      redirect_stdout(output)):
+                    result = client.main(['--config', str(self.path)])
+                self.assertEqual(result, 1 if code == 78 else code)
+                self.assertEqual(self.path.read_bytes(), saved)
+                if code == 78:
+                    self.assertIn('Game startup failed.', output.getvalue())
+                    self.assertIn('start the client again', output.getvalue())
+                else:
+                    self.assertNotIn('Game startup failed.', output.getvalue())
+
+    def test_replay_argument_rejects_nontext_and_control_characters(self):
+        config = client.prepare_settings(self.path, self.game)
+        for value in (True, 'bad\nname.rep', '\0', 'x' * 32001):
+            options = client.player_options();options.replay = value
+            with self.subTest(value=repr(value)[:40]), self.assertRaises(launcher.LaunchError):
+                launcher.game_arguments(config, None, 1234, options)
+
 
 if __name__ == '__main__': unittest.main()

@@ -1,0 +1,54 @@
+D5 / P5 - selected native API observation to self-termination entry
+2026-10-30. Bounded current private-pair subcase PASS. Full D5 OPEN.
+
+The367 inert owned control calls TerminateProcess(GetCurrentProcess(),0).
+Its Frida observer was armed before resume and emitted one final
+self-terminate-entry with status0,empty errors and no truncation or overflow.
+This validates the boundary sensor,not the game or its OS exit status.
+
+368 used the same opt-in exit-boundary extension with the current recipe38
+private pair358,helper357,and owned301 game/assets. Both native clients were
+created suspended;REA Frida loaded the selected API hooks and exit-boundary
+hook before the verifier's observer-ready gates allowed main-thread resume.
+The RC-open public1/two-human match completed1220 frames,with result,
+Continue,original Quit and game/launcher exit0 for both clients. Server
+workers reaped;owned jobs5/2/2 drained with no forced cleanup. Source and
+package files were unchanged. Published174 was not rebuilt or changed.
+
+Both detached observer records have28 sequential messages and20 heartbeats.
+The final message in each is one self-terminate-entry from the original
+kernelbase.dll:TerminateProcess call with exitStatus0. The snapshot records
+selected ws2_32 send/recv counts1217/64382 and1218/64262 respectively.
+Selected connect,WSAConnect,sendto,WSASendTo,getaddrinfo,GetAddrInfoW,
+GetAddrInfoExW and WinHttpConnect are0 at that entry. The recv count in each
+snapshot is one greater than the last heartbeat,showing why the prior final
+heartbeat could not stand for the end of the observed interval. No selected
+file-operation,process-create or network-operation event was emitted.
+
+The independent reviewer tools.review_d5_exit_network368 checks the control,
+exact game sessions/PIDs,source hashes,load-before-gate receipts,ready hooks,
+contiguous messages,last-entry counters,normal game exits and drained workers/
+jobs. It reuses the source/package/game/asset and match reviewer.15 focused
+packaged play/snapshot tests and Python syntax checks pass.
+
+Scope:selected native-client user-mode API entries from before each game main
+thread resumes through entry to its original self TerminateProcess. The
+diagnostic holds that call for200ms to deliver the event;other threads can run
+during the hold. The interval after the entry,process creation before Frida
+attachment,all APIs/kernel/raw wire,server/adapters/descendants,real SDK queue
+and file absence remain unqualified. Each client still reports1545 unresolved
+relative file roots. P9 advertising-ID producer and final installed pair remain
+open. This does not close full P5/P8/D5 or set RUNTIME_VALIDATED.
+
+Ignored evidence (SHA256):
+ local/privacy367-exit-control01/rea-evidence.json
+ aef1d1443e79d6b010239f990989e7cce8fd2f8ad4b256ad4878344cefb1c1ad
+ local/privacy368-connected01/verification.json
+ 823fc0f8190f728f84d08775b116f92b8d4253abd2c93a15c7c4efe917b83180
+ local/privacy368-connected01/network-review.json
+ 7ce022aa4e7a18c244c0e1486a05a397e77bce9d7ddf1a4270ced26968eef0af
+ local/privacy368-connected01/exit-review.json
+ 04c47939e0d92f4d89f699026ba4ec916a0a3ecda567a3e2b75384341cf3b390
+ local/privacy368-prelaunch-exit-trace01/rea-evidence.json
+ b7ee1c55aec79f618ec4872ce25cfe351725267158198232e92ecb60ad079482
+Both REA bundles include older records;the reviewer selects exact session IDs.

@@ -80,6 +80,8 @@ CALL_HOOKS = [
     # Keep native Continue/navigation; public results have no service rewards.
     {'name': 'OfflineMatchResultContinue', 'rva': 0x3d61142, 'offset': 0x3d5f742, 'before': 'e8092949fd'},
     {'name': 'OfflineStartupReady', 'rva': 0x3dff36f, 'offset': 0x3dfd96f, 'before': 'e80cdeffff'},
+    # Only RGameInit.Start's terminal catch; preserve original SetException.
+    {'name': 'OfflineStartupFailure', 'rva': 0x3dff4d6, 'offset': 0x3dfdad6, 'before': 'e8d59b67ff'},
     # Scoped enum settings presentation/actions. All other rows/modes forward.
     {'name': 'OfflinePracticeSettingsModel', 'rva': 0x3d19579, 'offset': 0x3d17b79, 'before': 'e852fdc9fe'},
     {'name': 'OfflinePracticeSettingsModel', 'rva': 0x3d1960b, 'offset': 0x3d17c0b, 'before': 'e8c0fcc9fe'},
@@ -321,6 +323,9 @@ def install(game_dir, *, helper=None, original_path=None, restore=False, dry_run
         raise ValueError('Build the current helper with native backup input and publication protection before installing this patch.')
     if helper_bytes is not None and b'BA_RESURRECTION_NATIVE_REPLAY_LONG_PATH_V2' not in helper_bytes:
         raise ValueError('Build the current helper with ordinary extended replay paths before installing this patch.')
+    if helper_bytes is not None and any(marker not in helper_bytes for marker in
+            (b'BA_RESURRECTION_STARTUP_FAILURE_V1', b'OfflineStartupFailure\0')):
+        raise ValueError('Build the current helper with native startup failure handling before installing this patch.')
     if quit_diagnostics and helper_bytes is not None and any(marker not in helper_bytes for marker in
             (b'BA_RESURRECTION_NATIVE_QUIT_TRACE_V1',) + tuple(h['name'].encode()+b'\0' for h in QUIT_CALL_HOOKS+QUIT_POINTER_HOOKS)):
         raise ValueError('Build the owned native Quit diagnostic helper before installing this recipe.')

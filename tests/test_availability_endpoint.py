@@ -10,6 +10,38 @@ from tools.verify_packaged_play import network_availability_evidence,DRIVER
 
 @unittest.skipUnless(os.name=='nt','native Windows endpoint/error qualification')
 class OwnedEndpointTests(unittest.TestCase):
+    def test_real_tcp_connect_stays_pending_until_default_deadline(self):
+        endpoint=AvailabilityEndpoint('rc-connect-timeout')
+        async def check():
+            loop=asyncio.get_running_loop();original=loop.sock_connect;events=[];sockets=[]
+            async def observe(sock,address):
+                self.assertEqual(address,('127.0.0.1',endpoint.port))
+                sockets.append(sock);events.append('begin')
+                try:
+                    result=await original(sock,address)
+                    events.append('connected');return result
+                except BaseException as error:
+                    events.append(type(error).__name__);raise
+            loop.sock_connect=observe;began=time.monotonic()
+            try:
+                with self.assertRaises(TimeoutError):
+                    await open_verified_connection('127.0.0.1',endpoint.port,rc_client_context('127.0.0.1'))
+            finally:loop.sock_connect=original
+            self.assertGreaterEqual(time.monotonic()-began,9.8)
+            self.assertLess(time.monotonic()-began,12)
+            self.assertEqual(events,['begin','CancelledError'])
+            self.assertEqual(len(sockets),1)
+            self.assertEqual(sockets[0].fileno(),-1)
+        try:
+            asyncio.run(check())
+            self.assertTrue(endpoint.snapshot()['conditional_accept'])
+            self.assertEqual(endpoint.snapshot()['peers'],[])
+        finally:
+            result=endpoint.close()
+            self.assertTrue(result['closed'])
+            self.assertFalse(result['thread_alive'])
+            self.assertEqual(result['errors'],[])
+
     def test_reserved_nonlistener_really_refuses_tcp(self):
         endpoint=AvailabilityEndpoint('rc-refused')
         try:
@@ -43,6 +75,21 @@ class OwnedEndpointTests(unittest.TestCase):
 
 
 class AvailabilityEvidenceTests(unittest.TestCase):
+    def test_connect_deadline_rejects_tls_completion_short_wait_and_socket_leak(self):
+        import copy
+        proof=self.proof()
+        proof['bridge_failures'][0]['code']=7
+        proof['connection_attempts'][0].update(error_type='TimeoutError',elapsed_seconds=10.01,
+            tcp_events=['begin','CancelledError'],tcp_sockets_closed=True)
+        result=network_availability_evidence(proof,'Secure server connection timed out','rc-connect-timeout')
+        self.assertEqual(result['bridge_codes'],[7])
+        for field,value in [('tcp_events',[]),('tcp_events',['begin','connected']),
+                            ('tcp_events',['begin','ConnectionRefusedError']),('tcp_sockets_closed',False),
+                            ('tcp_sockets_closed',1),('elapsed_seconds',5.01),('error_type','ConnectionAbortedError')]:
+            bad=copy.deepcopy(proof);bad['connection_attempts'][0][field]=value
+            with self.subTest(field=field,value=value),self.assertRaises(AssertionError):
+                network_availability_evidence(bad,'Secure server connection timed out','rc-connect-timeout')
+
     def proof(self):
         return dict(resolver_requests=1,availability_reasons=[],invite_reads=0,remote_connections=1,
             resolved_targets=[dict(host='127.0.0.1',port=12345,verify_certificate=False)],
@@ -81,6 +128,29 @@ class AvailabilityEvidenceTests(unittest.TestCase):
         self.assertEqual(network_availability_evidence(report,'Secure server unavailable','rc-refused')['bridge_codes'],[2])
         report['connection_attempts'][0]['winerror']=report['connection_attempts'][0]['errno']=None
         with self.assertRaises(AssertionError):network_availability_evidence(report,'Secure server unavailable','rc-refused')
+
+    def test_verified_mode_requires_real_private_read_and_verification_enabled(self):
+        report=self.proof()
+        report['invite_reads']=1
+        report['resolved_targets'][0]['verify_certificate']=True
+        report['connection_attempts'][0]['verify_certificate']=True
+        result=network_availability_evidence(report,'Secure server unavailable','verified-handshake-timeout')
+        self.assertTrue(result['verify_certificate']);self.assertEqual(result['invite_reads'],1)
+        import copy
+        for field in ('resolved_targets','connection_attempts'):
+            bad=copy.deepcopy(report);bad[field][0]['verify_certificate']=False
+            with self.assertRaises(AssertionError):network_availability_evidence(bad,'Secure server unavailable','verified-handshake-timeout')
+        for reads in (0,True,2):
+            bad=copy.deepcopy(report);bad['invite_reads']=reads
+            with self.assertRaises(AssertionError):network_availability_evidence(bad,'Secure server unavailable','verified-handshake-timeout')
+        with self.assertRaises(AssertionError):network_availability_evidence(report,'Secure server unavailable','rc-handshake-timeout')
+
+    def test_verified_endpoint_uses_same_real_nonlistener_contract(self):
+        endpoint=AvailabilityEndpoint('verified-refused')
+        try:
+            self.assertFalse(endpoint.snapshot()['listening'])
+            self.assertFalse(endpoint.snapshot()['peers'])
+        finally:endpoint.close()
 
 
 if __name__=='__main__':unittest.main()

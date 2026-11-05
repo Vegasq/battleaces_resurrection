@@ -1,0 +1,29 @@
+D5 / P9 - matching PDB advertising names and external symbols
+
+2026-10-31. Read-only inventory in the pinned pristine UnityPlayer Ghidra
+project with its exact matching PDB. Both no-analysis headless runs exited0.
+No game,provider,SDK queue or network path was invoked. P9/D5 stay OPEN.
+
+The complete Ghidra function-name iteration found eleven names containing
+AdsId,Advertising or IdListener. They are the handler dynamic init/exit,
+public managed request,handler fetch/delegate drain/static init/constructor/
+destroy,and AnalyticsCoreStats HandleRequestToSendAdsId and
+OnAdsIdRequestDone. The separate native listener registration and ID
+provider are not named by those terms among analyzed functions. A second
+iteration found zero such names among502 external symbols/imports.
+
+This is a name/import inventory only. An unnamed internal function,
+computed dispatch,platform API under a generic name,or dynamically loaded
+module can still acquire the ID or invoke the listener. It does not justify
+a new patch or a P9 pass. The next source work remains tracing the actual
+listener registration/dispatch or a proved pre-acquisition cut.
+
+Ignored sources/logs under local/d5-ghidra-12.1.4:
+scripts/InventoryAdsNames525.java SHA256
+382ff38b12acb1497586d117e9d785a022c3653222170c1cda1a0cb4961579e;
+scripts/InventoryAdsImports525.java SHA256
+a5fd7ff28600957f11c295083c87fa3e71cb5b10c3776418a3a1bbdadc9f6f9c;
+pdb-ads-names525-console.log SHA256
+18476be1a77ebe5da85c1d983eb95512dea6902b70fd90bce1bcbb7de4813743;
+pdb-ads-imports525-console.log SHA256
+25a95e9ff0301ae2941dfae8a496dde05790db9dc756cb7123d183da390ae3f3.

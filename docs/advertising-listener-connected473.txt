@@ -1,0 +1,47 @@
+D5 / P9 - recipe39 connected listener-count write watch
+
+2026-10-31. Two-client private public1 match PASS at the selected watchpoint
+scope. P9/D5 remain OPEN,RUNTIME_VALIDATED=false;published174 remains recipe23.
+
+The first verifier attempt stopped before client launch:recipe39's helper
+receipt does not match current source40. A second preflight used the wrong
+asset root and also stopped before client launch. Both errors are retained in
+the command transcript;neither produced a game result. The successful run used
+tools.verify_historical_pair473,which binds only the immutable recipe39
+helper/package to the prior passing452 report and confirms that precisely one
+helper source file differs now. This explicit historical binding is for this
+diagnostic only;it does not make recipe39 a current release candidate.
+
+The source-bound private recipe39 client/server packages and installed game
+from441/452 ran one public1 two-human match. tools.verify_packaged_multiplayer
+created both native clients suspended. REA Frida attached to PID49864 and
+PID37016 before the primary threads resumed. Each loaded a PID/run-ID-bound
+copy of472's positively controlled hardware-watchpoint sensor and reported
+ready;only then were the two observer gates released. The verifier PASS report
+records1220 match frames,both native results/Continue/original Quit0,no
+forced cleanup,workers reaped,host/client Jobs5/2/2 total with0 active and0
+terminated. Package,asset,config,shared and source snapshots were unchanged.
+
+For each client,the untruncated REA stream records handler constructor return
+with count0 and four initially watched threads,then handler destructor with
+the same global/list owner,count0,self-linked head and zero listener-count
+write hits. Each had44 watched live threads at destructor. Both native
+self-TerminateProcess export entries recorded exit0,zero hits and no observer
+errors,then the processes exited naturally. tools.review_ads_listener_connected473
+PASS independently checks the authored positive control,prior receipt and
+installed helper binding,owned process/resume identities,all event sequences,
+script hashes,game exits and empty Jobs. Retained files:
+local/privacy473-connected-watch01/verification.json,
+local/privacy473-connected-watch01/review473.json,and each client-N folder's
+game-process.json,listener-watch-binding.json,listener-watch.js,rea-status.json.
+Verifier SHA256:2192d6e90c3cf6539e49fbc282e0c78f5ffdae6bfb030707217831ada7781122.
+REA evidence IDs:ev_1e7ea93b9843b36be618da229b4b91e491b8816e7ef346dd288b0e8c23ac5aa7
+and ev_e8dbe21101cc71a1aeb083844edc32282cfc323a5d69789cd88982a33ce61d1e.
+
+This closes the transient listener-count write gap for two recipe39 connected
+handler lifetimes after constructor return. It does not cover construction
+before watch arming,other list fields or insertion forms that leave count
+unchanged,other modes,the separate c307c0/ID provider,recipe40/final installed
+privacy,real SDK queues or whole wire. No advertising ID or original provider
+was invoked intentionally. Next work must resolve an upstream provider or
+other concrete registration edge;another equivalent quiet match is not closure.

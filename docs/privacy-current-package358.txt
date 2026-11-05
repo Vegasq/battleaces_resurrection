@@ -1,0 +1,38 @@
+D5 / P5-P9 - recipe38 corrected helper private package pair
+2026-10-28. Source-bound private package and connected public1 PASS;
+full P5/P7/P9/D5 remain OPEN,RUNTIME_VALIDATED=false.
+
+The diagnostic recognition repair357 changed the helper source and made the
+earlier private pair352 historical. tools.build_windows_packages rebuilt the
+dirty-source0.3.0-rc1.7 client/server preview using helper357,the pinned
+official SHA-verified Python3.14.8 embeddable ZIP,source-bound client installer,
+certificate tool and server launcher. The first builder attempt refused the
+old server launcher receipt before creating an output directory. The corrected
+attempt used local/privacy348-launcher-build02,whose receipt binds current
+launcher sources. Both package manifests verify;game assets,private profiles
+and credentials are excluded. Package path:local/privacy358-packages02.
+ Build report SHA256 63fdd8ecb661deab858f616cee692831eb27519d22e93708b4003dfb92cad504.
+ Client ZIP SHA256 5fb1fea2229cb6ddc154b64139ac7a4cccfda948de2f8df71af2745755ea9bfa.
+ Server ZIP SHA256 cededbdaf1c9b515fb7cf3f66dd0fae29dfe5993ac822c524c69be1f44170d56.
+
+The source-owned packaged verifier ran the pair and the owned recipe38 game
+against verified build37822 assets in one RC-open loopback public1 match. Two
+human clients received1220 frames and complete result at game-over frame1200.
+Both finished original Continue/menu/Quit and exit0;both server workers exited0
+and were reaped. Listener,status writer and state lock released;three owned
+jobs report5/2/2 total processes,all0 active/terminated,no forced cleanup.
+Elapsed104.281s. Source,package,assets,config and shared settings stayed
+unchanged;temporary PKI was removed. Retained report:
+ local/privacy358-connected01/verification.json PASS SHA256
+ 093ecb87db9ccb7340dc0bde50448cbaea4db801a3dc1059cbc001f2e3c192cd.
+ tools.review_d5_connected_pair358 independently binds source/helper/package/
+ game/assets,match/job claims and357's genuine error fixture:
+ local/privacy358-connected01/review358.json PASS SHA256
+ e4f956bfcfce890ad20b6503e2e8128b352e35e077787f800fcd9867e63ea19b.
+ Reviewer SHA256 27bcb95b131acfe5dd9f3c60bf7df6899e98d75da54ceb374e3f073f48b822b2.
+
+This confirms current helper/package connected compatibility after357. It
+does not observe real SDK queue/file/network/wire traffic,all-thread or
+descendant behavior,actual error callback invocation in ordinary play or
+P9 advertising-ID acquisition. Published174 remains unchanged;no release
+privacy acceptance follows.

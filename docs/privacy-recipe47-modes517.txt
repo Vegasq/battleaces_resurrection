@@ -1,0 +1,43 @@
+D5 / P5-P9 - recipe47 private connected mode compatibility
+
+2026-10-31. Source-bound private recipe47 client/server pair PASS in
+public1,public2,public5 and Custom rematch. Published174 remains recipe23;
+RUNTIME_VALIDATED=false. Effective SDK queue/wire,P9 and full D5 remain OPEN.
+
+Recipe47 adds the native Unity Analytics PerformPost false-return cut;
+privacy-unity-post512.txt binds its source,package and owned installed game.
+Its public1 two-human match already passed there. The changed native method
+justified new checks for the other connected modes,using the unchanged
+private client/server packages under local/privacy512-packages01 and the
+owned installed game local/privacy512-game01. No real account,Nick-owned
+game or real host was used.
+
+tools.verify_packaged_multiplayer used RC-open isolated ephemeral identities
+and temporary PKI. Each run completed its native result and Continue/Leave,
+all original client Quit confirmations returned0,workers exited/reaped,
+server listener/lock released,and all owned Jobs ended empty with no force:
+- Public2,four humans:local/privacy517-public2-01/verification.json SHA256
+  d8d3119c1b2c262392f48107e514dc8bc084c65bbb9a06814060654167aa0ee7;
+  1250frames,four clients,two workers,five empty Jobs.
+- Public5,two humans plus bots:local/privacy517-public5-01/verification.json
+  SHA256 ad017584aa39f5fe3a9a437bf7f42696b93f2299580d605fea8c598e1a3baa64;
+  1250frames,two clients,two workers,three empty Jobs.
+- Custom,two humans/rematch:local/privacy517-custom-01/verification.json
+  SHA256 6d3885be0b5eedf3daf345edd79b7e489d00589d2d247aed05fb6032854b18b5;
+  epochs1/2,two1220-frame matches,Leave,two clients,three workers,
+  three empty Jobs.
+
+Every run retained unchanged package files,assets,source,shared settings and
+channels;temporary PKI was removed. Independent
+tools.review_recipe47_modes517 rechecks recipe47's512 source/package/
+installed binding plus the three reports,including exact mode/participant
+count,native result/normal Quit,workers,Jobs and immutable state. Review
+receipt local/privacy517-modes-review01.json SHA256
+b19fb9c017a783c144a91340cc42089d0d8de3646476ac963abab42d731b39e6.
+Reviewer SHA256 59fa5e00e3ae42b059d23edc5a2c69a48ec401327c2409fa0d3e5836b4869e9f.
+
+This closes recipe47's changed-route connected compatibility for these
+four modes. It does not prove effective collection,real SDK cache/queue,
+delivery,descendant or whole-wire behavior,identify the separate
+advertising-ID producer,or bind a final published installer. Do not rerun
+identical connected mode checks without a changed recipe or concrete defect.

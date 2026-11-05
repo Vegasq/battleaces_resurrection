@@ -1,0 +1,57 @@
+D5 / P7 - recipe34 instrumented native crash observation
+
+2026-10-28. Scoped observation PASS; full P7/D5 remain OPEN and
+RUNTIME_VALIDATED=false. This follows the uninstrumented recipe34 native
+crash gate in privacy-current-crash329.txt. Published174 remains recipe23.
+
+The source-owned tools/verify_crash_policy170.py now has an explicit
+--recipe34-owned selection for only local/privacy301-runtime01/game,
+the source-bound helper in local/privacy324-helper-build02 and fresh
+local/privacy330-crash output. tools/frida_native_crash.py permits this
+exact owned image. The historical recipe23 observer path remains separate.
+
+Retained first attempt local/privacy330-crash01/verification.json FAILED
+before the observer loaded:its source builder still required the old owned
+r169g image. SHA256 2659bb96d4f1207b66ac13a42cefdc79f4f0490fb7dd6c312108254725616506.
+The owner cleaned its suspended child. This is a preflight failure,not a
+crash/privacy observation;it was not discarded or silently overwritten.
+
+Fresh local/privacy330-crash02/verification.json PASS:the original owned
+recipe34 game PID28012/thread37720 crashed with c0000005 in57.14s,
+job1total/0active/0terminated,no forced cleanup. Owner report SHA256
+55b0b9c72f58b1610db4335a82ae89c491d1e96e009bbd39b32bcbf67892b61a.
+Observer source SHA256 bc7ef9e2a05c49ff6041eee383013bb00407013f0a13502125bc42779826e918.
+Loaded through REA's suspended-owned process session;the owner released it,
+then collected a detached terminal status. The full local REA evidence
+bundle SHA256 is 6a98bb42000b76afd7dd5867f4a90ef1a083b9932dbf58fa68206be6fc7a0d97.
+
+tools/review_crash_policy170.py strictly reviewed that owner,source and
+REA stream:local/privacy330-crash02/observation-review.json PASS. Its
+1169 events are contiguous,with no provider truncation,decode error,
+unknown file root or aggregate overflow. The original native exception
+filter entered,called the local stack and handoff,and returned0 on the
+same thread;the terminal crash snapshot followed that policy final.
+The loaded Windows DbgHelp path is C:\Windows\SYSTEM32\dbghelp.dll,
+size2101248;disk SHA256 6357f697069e90b475f78520f235aae782da79d32a0e70c733168082cb933c25.
+SymInitialize/SymInitializeW had2calls each,SymLoadModule64 had236,
+SymSetOptions2,SymSetSearchPathW1;all entries and returns were captured.
+
+Through filter-return,the scoped file hooks captured9040 operations in
+5208 exact aggregate rows:7863 NtCreateFile,897 NtOpenFile and280
+NtWriteFile. All280 observed writes targeted this run's owned game.log.
+The installed selected Winsock/WinHTTP connect,name lookup,send and
+receive counters were zero. File aggregation is restricted to the
+crash/symbol thread scopes and configured owned roots;selected network
+counters cover the instrumented process. Hooks do not cover all raw API,
+mapped-file or external-process routes,and do not establish file contents.
+
+The observation ends at the filter return/terminal snapshot. It does not
+establish post-filter OS handling,clean-run behavior,real SDK queue or
+retry behavior,all errors/reporters,or final installed release privacy.
+The reviewer explicitly reports full_privacy_qualified=false. No shared
+SDK report queue was read,seeded or cleared;no user-owned game was touched.
+The REA session was closed after terminal detach.
+
+Focused verifier/gate tests pass23/23. The added reviewer allowance is
+limited to the actual detached terminal session status and one immediately
+trailing crash-snapshot;historical finite captures remain accepted.

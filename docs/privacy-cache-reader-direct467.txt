@@ -1,0 +1,68 @@
+D5 / P7 - direct SDK cache reader and expiry call inventory
+
+2026-10-31. Source and owned installed byte review PASS at the stated direct-call
+scope. P7/P9/D5 remain OPEN;RUNTIME_VALIDATED=false.
+
+tools/review_sdk_cache_readers467.py binds the pinned original GameAssembly and
+IL2CPP metadata to the CacheManager methods in BugsnagUnity.Windows.dll. One
+bounded scan of mapped PE sections finds these original E8 target candidates:
+GetCachedEventFiles eight;GetCachedSessionFiles eight;RemoveExpiredPayloads one;
+GetJsonFromCachePath two;GetCachedEvent one;GetCachedSession one. Exact RVAs are
+in the script's asserted inventory and its PASS output. The scan treats E8
+bytes as candidates;the earlier complete-body source reviews establish the
+named instruction/control-flow context. This is not an indirect/delegate or
+whole-program caller proof.
+
+The event/session readers' direct call sites fall in four known groups:
+- 820689/8206bc and 820904/82092b are in the entry-guarded cached-delivery
+  MoveNext. Its entry is xor eax,eax;ret before any queue read.
+- 824c9d/824de6/824efc/82504c are in pending-payload failure/cache handling.
+  Recipe40 retains the previously qualified126 interior bypasses and pending
+  cleanup at824bf1/824d3a/824e50/824fa0. The two Save entries836f10/837020
+  also return before their internal queue enumerations.
+- 836c3f/836ca2 are in RemoveExpiredPayloads. Its sole direct call from the
+  inlined Client constructor is8129e5,inside the patched8129db skip. The
+  separate CacheManager constructor remains a possible indirect acquisition
+  subject to the broader P7 attribution gate.
+- 837562/837602,83797b/8379ab and837d32/837dd2 are internal CacheManager
+  remove/ID/getter chains. The latter getter pair calls GetJsonFromCachePath
+  at837d7f/837e1f. Their direct automatic cached-report path runs through
+  the guarded MoveNext;the shared helpers themselves remain original.
+
+The current recipe40 source output has the exact reviewed entry/bypass bytes.
+The owned installed local/privacy301-runtime01/game/GameAssembly.dll has the
+same selected bytes and SHA256
+368ccf4af6b8c94bdd5e1c7269b038c7c79b869b797c000c2a64d1daabbc9648.
+The reviewer PASS output binds recipe40 and the original SHA256
+e59d08c01479b27404778048d7e13546dbf3771f6b3912744c7c2bdf80c4e758.
+
+This closes only the exact direct reader/expiry inventory. It does not prove
+indirect caller absence,already-active original process cancellation,complete
+queue/file observation,SDK retry or whole-wire privacy. No real shared queue
+was read or changed. Continue with P9 producer/registration and effective P7
+indirect/runtime attribution;do not repeat these direct-call scans without a
+changed binary or new path.
+
+Follow-up470 (2026-10-31):the same reviewer now also binds the Delivery method
+table and scans exact original E8 candidates for Deliver,PushToServer,
+StartDeliveringCachedPayloads,DeliverCachedPayloads and ProcessCachedItems.
+Four Deliver callers are Client.Send at81480a,ProcessCachedItems.MoveNext
+at8209f0/820a59 and SessionTracker.StartManagedSession at82718a. All three
+owners have recipe40 entry guards,as does Deliver itself. Three StartCached
+callers are Client::.ctor at81346a,Client.SetApplicationState at817376 and
+PushToServer.MoveNext at8211d2. SetApplicationState remains active,but its
+direct call enters the guarded StartCached method;the latter two owners also
+cannot schedule cached delivery through this entry. ProcessCachedItems has
+two direct callers inside guarded DeliverCachedPayloads.MoveNext at8202c7/
+820371. No raw direct E8 caller targets the PushToServer or
+DeliverCachedPayloads factories;their guarded MoveNext bodies remain the
+relevant fresh-process execution boundary.
+
+The owned recipe40 installed GameAssembly at the same SHA256 above has c3 at
+Client.Send,SessionTracker.StartManagedSession,Deliver and StartCached,plus
+31c0c3 at all three cached-delivery MoveNext entries. Its unmodified
+SetApplicationState call at817376 still targets StartCached. Reviewer PASS
+checks the pinned original method pointers,candidate sites and recipe40
+guard bytes. This narrows the direct retry/scheduling graph;it does not
+prove indirect callers absent or close existing in-flight,real queue,
+whole-wire,other installed-program or P7/D5 scope.

@@ -1,0 +1,77 @@
+D5 / P7 - configured SDK metadata merge during Client initialization
+
+2026-10-28. Source,owned install,loaded-byte audit and genuine SDK Client
+constructor fixture PASS;P7/D5 OPEN.
+
+Original BugsnagUnity.Client constructor812690 allocates and retains its
+Payload.Metadata container at Client+20. It then reads Configuration+60 and
+calls Payload.Metadata.MergeMetadata at812ff0,before the previously guarded
+AutomaticDataCollector.SetDefaultData call. This can copy configured report
+metadata even when automatic collection is disabled. Separate Client.InitMetadata
+813f40 constructs and retains the same container,then calls MergeMetadata at
+814064. Its direct E8 caller inventory is empty,but it remains a callable SDK
+method. Recipe34 replaces only those two five-byte calls with NOPs. The
+container,configuration access,existing null handling,automatic collector
+guard,restored-register paths and shared MergeMetadata implementation remain.
+
+tools/verify_sdk_metadata_merge324.py PASS checks pinned original GameAssembly/
+metadata,Client ctor/InitMetadata/MergeMetadata method-table identities and
+complete byte-matched original bodies (993+82+147 decoded instructions). The
+original has five direct MergeMetadata E8 callsites:the two selected sites,two
+inside the already entry-guarded NotifyOnMainThread,and one in another payload
+builder. That last builder and indirect/reflective calls are not closed by this
+finding. There are no direct E8 calls to InitMetadata. The two selected original
+call instructions and surrounding bytes match exactly;recipe34 changes ten
+bytes. Restoring them reproduces recipe33 source GameAssembly SHA256
+e02bd2bbd2cfe104637816df7da3dfa481031503602a92035adb1ab7552dd5cd.
+Recipe34 source output SHA256:
+dd8464a34a84a3d4e66ef59390d28a894c75227f1eeab1c5f01ce1c10b808c26.
+Original disassemblies stay ignored under local/privacy324-metadata-merge01;
+the earlier pinned Client ctor body from138 is reused. Historical307/317/318/
+321/322/323 source verifiers pass against recipe34.
+
+The source now has158 guards:93 GameAssembly,63 UnityPlayer,two CEF. The
+helper build and its C++ tests pass;78 focused Python tests pass with two
+optional skips. The owned local/privacy301-runtime01/game copy was upgraded
+from33 to34 after a dry run,with all133 bundles verified. Installed GameAssembly
+SHA256:
+30600add160a5bd1c23f4f3e37749080596985582ce577e22308cbfe9c64713e.
+Installed helper SHA256:
+1c16a737574123eef622cc7d9d5d6601dad971d9b71b9915ac96efd80c70f320.
+Helper receipt local/privacy324-helper-build02/helper-build.json SHA256:
+74f9eeaa999c0459df7748672b7dd7b2afcbae9a09ed8e6bf298643919d424dd.
+Installed manifest SHA256:
+eb8a652086339b9b69dd598f766f9d579055b0ed51a11bb96c2f7f953a81b3fa.
+
+The first owned local/privacy324-client-menu01/verification.json is FAILED,
+SHA256 cc280bb4e2ca85aecc0e3230fbf739ddee8c911a648d0288ebb822f853e618cb.
+It reached natural Quit0 without force and passed the recipe34 loaded-byte
+audit,but the SDK diagnostic retained a recipe33 Client constructor recognition
+hash and rejected the changed body before constructor execution. The failure
+and logs remain local. The recognition hash was updated from the exact recipe34
+constructor bytes;the first helper build is superseded,not counted as a fixture
+pass. A fresh helper build,install and profile/output were used for the retry.
+
+The fresh local/privacy324-client-menu02/verification.json PASS SHA256 is
+05bb2d8ef167755ee641489084817e26db820e47041c32c2fa03611316971376.
+It reports recipeVersion34,loaded/disk sdkMetadataMergeSignatures2/2 and three
+complete selected-field audit stages. The owned scoped fixture constructs one
+genuine NativeClient and one genuine reporting-disabled Client,checks14 core
+Client fields and unchanged four callback heads,and exercises existing guarded
+fresh delivery/iterator paths against authored isolated cache files. It does
+not deliver a report. Original Quit0 was natural after15.031s;no forced cleanup,
+process reaped,shared settings/source unchanged. The SDK Client fixture uses
+its prepared configuration;it is not a nonempty-metadata challenge or proof
+of ordinary-startup/all-thread queue behavior. Real shared SDK queue untouched.
+
+The two named configured-metadata merge paths are cut in current owned
+recipe34. Other collection paths,independent payload builder,already retained/
+in-flight work,queue/file/wire,all-thread/descendant attribution,and P9
+advertising-ID acquisition remain open. Published174 is unchanged;
+RUNTIME_VALIDATED=false.
+
+Follow-up325 binds the fifth direct MergeMetadata call to Event/Report
+construction through the already guarded cached-item MoveNext. The named
+automatic resume chain is cut in source and owned installed bytes;indirect
+entry and real queue/file/wire coverage remain open. See
+privacy-cached-report-merge325.txt.

@@ -1,0 +1,51 @@
+D5 / P7 - recipe25 native audit binding correction (2026-10-28)
+
+The source native audit helper still announced recipe23 after recipe25 added
+three reporter callback guards. Its complete-recipe predicate omitted those
+guards. Consequently the retained282 install/package/menu check is valid at
+its stated scope, but that helper cannot attest a complete recipe25 audit.
+
+Corrected client_patch/src/telemetry_audit.cpp now identifies recipe25 and
+requires all three reporter callback signatures in both the GameAssembly file
+and loaded image: FlagFirstEvent, AddVariablesToReport and
+AddUserConfigToReport. The audit parser requires 3/3 for recipe25; explicit
+older recipe24 evidence retains its historical parser scope. The corrected
+native helper built successfully. All56 focused audit/patch/report-error tests
+pass on Python3.12 and3.14 with pinned originals.
+
+Corrected helper:local/privacy283-helper01/BattleAcesOffline.dll SHA256
+c83f8a20b5da539facbff5d463949067b1c50bd58abe4b79728a2dd8e5a745dc.
+Source receipt:local/privacy283-helper01/helper-build.json SHA256
+b6ce3057dc768e69e2a0b49fd8025a1f6e9ce4873bb68f8b562ac228c01afe17.
+An owned copy of the282 game matched590 files/8056640161 bytes before the
+normal installer dry run and install. Both verified133 bundles. The new
+installed manifest is recipe25,helper hash as above,with native Quit diagnostics;
+SHA256 1b5081c0a65d57d9219d4179335fe49d08579dde73a8191a71610a04c39be5aa.
+Installed GameAssembly SHA256:
+d60564e9f1a627245fab5bcbda105420a49bd951326f56d6793a712ca9a4b200.
+The owned native Quit diagnostic hooks explain its difference from the ordinary
+282 install;this is a separate diagnostic recipe.
+
+The bounded local/privacy283-audit01 run passed with original menu Confirm,
+exit0,natural exit in19.203s,no forced cleanup,and unchanged source/shared
+settings. The read-only native audit logged recipeVersion=25 and
+reporterCallbackSignatures=3/3 alongside crash4/4,core56/56,performance3/3,
+cache5/5,service2/2,collector1/1,initialization6/6,error7/7. Three complete
+selected-field snapshots cover startup-after-engine-init,menu and pre-Quit;
+the pre-Quit observation preceded original confirmation on the same thread.
+Verification:local/privacy283-audit01/verification.json SHA256
+58a7654ea6bca8fb719bd28be26bef2682faba7a465252921703780da4fb15a7.
+
+Current dirty-source preview package pair:local/privacy283-packages01. The
+extracted client helper hash matches the installed/built helper;its telemetry.py
+hash matches source:4b7f4baf73b29eafa46ad8698c27abbeafb2b87f17b68b46d19fb475b23edb19.
+ZIP SHA256 client
+5e7d4f5c76abe6245634fc316ab7202c91439eda26713011aa246a4a3927e85b,
+server 9af277608e983d9afa76ac0a2ca0888402f36a6ca602cd36babd53c95aedafad.
+Build report SHA256:6a609566a219129a6b3b9e367a27686581d15255dfca0416104fcd312d0690c9.
+This preview pair is not published174.
+
+This confirms installed selected signatures and a natural native lifecycle,
+not invocation of those callbacks,full SDK queue/file/network attribution,
+the operational reporting client,advertising-ID producer or final release.
+P1/P7/P9/full D5 remain OPEN.

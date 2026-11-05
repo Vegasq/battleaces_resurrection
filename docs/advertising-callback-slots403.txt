@@ -1,0 +1,38 @@
+D5 / P9 - advertising callback pointer slots and object setup
+2026-10-30. Bounded original/current recipe38 static review PASS;P9/D5 OPEN.
+
+The pinned original UnityPlayer image has exactly two absolute pointer values
+to callback c307c0,at RVAs1a2afb8 and1a2c630. Full executable .text
+disassembly has four direct RIP references to those slot addresses:
+c2eec9,c2f477 target the first;c332ae,c66b6e target the second. Each
+reference loads its slot address and stores it to the object's
++1498 field. Thus the callback is a method entry in two related static
+dispatch tables;looking only for a direct call to c307c0 misses virtual
+dispatch through this field. The field's runtime consumers and the source
+of any advertising identifier remain unresolved.
+
+Lifecycle refinement:these four stores are two construction phases and two
+teardown phases,not four independent constructors. Base constructor c2ee90
+installs the first table;derived constructor c33210 calls that base before
+installing the second. Derived teardown c66b50 installs the second table
+then calls base teardown c2f460,which installs the first. Later in the base
+teardown body,c2f55a replaces +1498 with table1974f58,whose first method
+is17fe428 rather than c307c0,then tails to c33ff0. This identifies the
+object-lifetime transition;it does not establish who invokes the callback
+while the object is live.
+
+All four references decode inside complete original unwind-bounded owners.
+Those owners match current owned recipe38 except for the two previously
+qualified one-byte defaults:c2f402 device-statistics1->0 and c333e1
+platform-configuration1->0. Both callback pointer slots and the four
+selected setup instructions remain byte-identical. This is static source
+binding,not a claim that an identifier or callback fires in a game run.
+
+Reviewer:tools/review_ads_callback_slots403.py. Ignored receipt and four
+assembly bodies:local/privacy403-ads-callback-slots01/verification.json,
+SHA256 da773a5ff2a0164685f4ff0af7c37f3402a7fe13aa3e0ebacbfd7739982d5587.
+No game,identifier provider,real report queue or endpoint was invoked.
+Published174 and RUNTIME_VALIDATED=false are unchanged. Next P9 source
+question:find a concrete indirect dispatch into the +1498 interface or an
+upstream acquisition/registration edge;do not infer absence from quiet
+callback witnesses or direct-call scans.

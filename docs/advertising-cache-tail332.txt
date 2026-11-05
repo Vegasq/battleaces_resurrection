@@ -1,0 +1,40 @@
+D5 / P9 - selected identity-cache helper c330e0
+
+2026-10-28. Bounded original/current-owned static review PASS;P9/D5 remain
+OPEN and RUNTIME_VALIDATED=false. This follows327's c32430 Main virtual+40
+edge through its later call atc32804 to c330e0. It classifies one previously
+unresolved cache helper,not the independent advertising callback producer.
+
+The complete original c330e0 body (56 contiguous byte-matched decoded
+instructions,unwind c330e0..c331b3) receives Main and an output string.
+It reads Main+14a8 as an existing cached custom device string. When the
+checked local privacy conditions select the other path,it copies the
+literal "unknown". Its only calls are Main virtual+f0 and the shared string
+copy helper15b680. The virtual+f0 target for the two pinned Main tables is
+c33490,whose leaves were classified in326 as Boolean getters. Neither
+branch of this selected helper directly acquires an OS/device identifier.
+
+The original Main constructor c2ee90 initializes the Main+14a8 string
+empty. Current recipe34 keeps that initialization slice and the full c330e0
+body unchanged;the existing custom-device setter204cb0 is an entry RET
+before input conversion and cache assignment. This cuts that named setter
+from populating the cache on a fresh patched instance. Other writers,
+restored state,alternate owners and retained instances are not excluded;
+this is not a whole-lifetime empty-cache proof.
+
+tools/review_ads_cache_tail332.py PASS checks the pinned original Unity SHA256
+ac144d56d53f07904d52ed27a1539de90bc3290038fe52d73d2f6b268c85d6bc,
+exact current owned recipe34 Unity SHA256
+a53b0c613a86c737b7caa7588c7c93ae20d5d5700f9321a406df9dcca8e32a7f,
+complete helper bytes and selected instructions,cached-field and literal,
+constructor initialization slice,and source/installed setter RET. It reuses
+326/327's virtual/predicate and machine-ID/serializer checks. Raw pinned
+disassembly stays ignored under local/privacy332-cache-tail01;
+unity-c330e0.asm SHA256
+2e4b52cfdd144a46ec56fcb3b9a2438d178158ea62166fff48f7aa74a71f1824.
+Retained verification.txt PASS SHA256
+6397ba0c81e7ca7c246d5372b33cf2dbf3185e32e655a47f621877ec3d329112.
+
+The separate Main+1498/c307c0 advertising ID/error producer and any other
+route into Main+14a8 remain unresolved. No native code changed,no target
+ran,no real SDK queue was touched,and published174 remains unchanged.

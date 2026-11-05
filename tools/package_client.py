@@ -36,6 +36,7 @@ def main(argv=None):
     sub = commands.add_parser('start', help='start local play with optional server connectivity')
     sub.add_argument('--config', type=Path, default=PACKAGE / 'config/client.json')
     sub.add_argument('--game', type=Path, help='working game folder for first launch')
+    sub.add_argument('--replay', nargs='?', const='', help='watch a replay file; omit FILE to choose one')
     for action in ('install', 'restore'):
         sub = commands.add_parser(action)
         sub.add_argument('--game', type=Path, required=True)
@@ -76,6 +77,7 @@ def main(argv=None):
             from client_patch.transport.client import main as start
             arguments = ['--config', str(args.config.resolve())]
             if getattr(args, 'game', None) is not None: arguments.extend(['--game', str(args.game.resolve())])
+            if getattr(args, 'replay', None) is not None: arguments.extend(['--replay', args.replay])
             return start(arguments, default_game=PACKAGE.parent)
         if args.command in ('rc-data', 'rc-save', 'rc-check'):
             from client_patch.transport import rc_setup

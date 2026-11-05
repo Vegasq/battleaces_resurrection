@@ -1,0 +1,259 @@
+BATTLE ACES - ASSET STARTUP FAILURE AND REPAIR203
+2026-10-26. FIXED / SCOPED VERIFIED. Full D4 remains open.
+
+PROBLEM / CHANGE
+A JSON list as asset-manifest.json raised AttributeError(.get);a null files
+inventory raised AttributeError(.keys). Host main did not catch these errors.
+Other asset failures were reduced to a generic assets/storage/certificate/runtime
+message. Actual original-source reproductions:assets203-prior01/reproduction.json.
+server/assets.py now validates object/inventory structure,exact integer versions,
+duplicate keys,digest shape and declared paths before opening declared files.
+Missing/unreadable manifests or files,malformed inventory,wrong build and changed
+content raise an authored AssetError category. Existing hash and semantic asset
+checks remain mandatory. Host main prints a fixed explanation and repair action,
+then returns1. Manifest values,exception arguments and absolute paths are not
+included in these messages. No player-state deletion or automatic repair.
+Quickstart explains fresh-directory import/verified restore,preserving data and
+host keys,and checking the repaired bundle before restart. Never edit hashes to
+accept altered content. Existing valid build37822 bundles remain compatible.
+
+SOURCE VALIDATION
+Seven new tests cover malformed object/inventory,missing/truncated/non-UTF8 or
+duplicate-key manifest,missing/changed map and byte restoration,strict versions/
+digest types,unsafe paths,authored permission refusal,and actual host.main error
+handling with no worker/listener construction,unchanged saved bytes and released
+state lock. Positive fixture hashes use authored test data,not a native DLL.
+The baseline suite fails14 subcases:most expect the new AssetError API and are
+not separate pre-fix defects;the direct reproduction above binds the two actual
+AttributeErrors. Baseline source/output retained. Final affected68 tests on each
+Python3.12/3.14:66PASS,2existing POSIX/OpenSSL-only skips. Both3.357s.
+Modules:asset_recovery,asset_import,host_configuration,host_relocation,
+host_failure_diagnostics,server_console,server_installer,linux_server.
+Real Windows ACL/sharing-lock failures are not proved by the mocked permission
+unit case. No skip counts as acceptance.
+
+PACKAGED CHECK / START AND REPAIR
+tools/verify_asset_recovery.py runs the actual bundled package command with an
+owned copy of verified assets,two authored persisted profiles and fresh RC TLS
+certificate/key. Seven faults:missing,truncated,list-shaped manifest,null file
+inventory,missing map,one-byte-altered map,and wrong simulation build hash.
+Both check and start reject each fault:14 exit1 results,exact fixed diagnostics,
+no ready output,no native creation,and released state lock. Profiles,config and
+TLS key/certificate hashes remain unchanged. A passive create observer delegates
+the original native factory without altering its arguments/results.
+Restoring original manifest/map bytes revalidates the whole bundle. Actual
+packaged check succeeds with RC TLS configuration and one real native worker:
+create/state/frame0/close,exit0/reaped. Same saved files/host identity preserved;
+source assets unchanged. Parent job6total/0active/0terminated,controller0,no force.
+Total7.640s. This is startup/health recovery,not match play,client UI,SCM,Internet,
+all asset semantics or physical disk/power-loss recovery.
+
+ARTIFACTS / EVIDENCE
+Local preview:local/candidate203-packages02,version0.3.0-rc1.7,dirty3ea4ab0e.
+Compared with191,server changes only assets.py,host.py,QUICKSTART and manifest.
+Client archive is byte-identical. Native helper169/recipe23/runtime unchanged.
+Initial build selection used obsolete104 client-installer receipt and was refused
+before output;build.txt retained. Correct source-bound130 receipt passed build02.
+No standalone-installer rebuild or GitHub publication;published174 unchanged.
+Server ZIP:1674f04e3ab3948dd57dee442a708887b340e27df68f29a9e49b65e3369ccf87
+Client ZIP:287e8367890c6c7ff5c89bb156434652d0a19b697cc098c2ee668f3fc6ba1acd
+Server manifest:ad51e891a0369280f3f781a580af55667494d8ae99940cc400b18f6df04a2462
+Accepted:local/assets203-native01/verification.json
+SHA256:9b51216f2b6e9f5886cf6bf5f6c2bbe105a534979c7ba3a2a0739e46bc32c5ed
+Driver:ce58a0b85a59459005e877a1c7f58ef0d361f7a520b822f63f3c5342fd09deb4
+Assets module:8eaf0fef81379d7af3c46a65528ff936b29d7852ebe49c35ae184f7def125cb8
+Host module:3e1a946ad755be7b9a49510eebb5a1313e37d55064ad4a7771aa9044c459deb6
+Tests:1feb4b6d58261e77c815d91dc95ab98841e4ae4aa22c18e2d56f2839d3b81fb7
+Prior source/tests/build outputs:local/assets203-prior01.
+Final exact source snapshots/reconciliation:local/assets203-native01.
+Package/asset integrity and source/helper/harness hashes checked before/after.
+N12 capsule/source/package pins unchanged;operator answer remains absent.
+
+REMAINING
+Client slow-load/error presentation,other asset-semantic failures and file-access
+faults,invitation/disconnect/replay/storage cases and full release gates remain.
+Reuse201 HELLO,202 bootstrap and193 deadline evidence. No new Nick request.
+
+FOLLOW-UP224 - 2026-10-27 - REAL MANIFEST SHARING REFUSAL/RECOVERY PASS
+Missing203 claim:actual Windows file-access refusal,not mocked PermissionError.
+This case holds an existing regular manifest only in a newly copied owned asset
+bundle. Reuses195's OwnedFileLock:CreateFileW read access/share0,explicit second
+read-open refusal with WinError32,and context-managed closure. No ACL,prefix,
+account or policy change;no original imported asset is locked or modified.
+
+External tools/verify_asset_recovery.py --sharing-lock selects only this case;
+it does not rerun203's seven damaged/missing cases. The shared owned controller
+passes nested diagnostic options in its retained request. Driver/helper/lock-
+helper hashes bind the check. Existing package isolation,owned suspended launch,
+job accounting and original native factory remain. A delegating observer also
+counts host construction;normal host commands contain no new diagnostic flags.
+No production or package changes and no build/publication were needed.
+
+Actual218 bundled Python3.14.8 imports the pinned packaged assets/host/worker/
+package_server modules. Under the real held lock,both check and start return1,
+stdout stays empty,and the exact actionable message is:
+ Host asset check failed: Asset manifest cannot be read. Check file access and retry after other file operations finish.
+Neither call creates a native worker or server object. After each refusal the
+state lock can be reacquired;two authored existing profiles and config/certificate/
+private-key hashes stay unchanged. The file handle is then closed;no manifest
+or map rewrite is performed. Full copied/original bundle validation succeeds.
+The same packaged check now creates a real native worker,steps frame0,closes,
+exits0 and reaps it. TLS health passes. All saved bytes/host identity remain.
+This is health recovery,not a running match,normal CMD UI,SCM or Internet proof.
+
+Controller exits0/PASS in6.000s;one native health worker0,owned job6/0/0,
+no forced cleanup. Original imported assets and current218package reverify.
+Eight named source/helper/test files were frozen across execution;the child
+also binds its packaged module hashes. Owned copy,profiles,keys/reports retained.
+DEV unchanged;no new Nick request. RUNTIME_VALIDATED remains false/fullD4 OPEN.
+
+24focused tests pass on Python3.12(0.458s) and3.14(0.338s),no skips. Suites:
+asset_recovery,profile_storage,loading_recovery,owned_suspended_launch. New test
+uses a real Windows lock,asserts unreadable_manifest,unchanged bytes and success
+immediately after closure. Existing exception-cleanup and ownership controls pass.
+No replay/game client is launched. First completion-review script omitted the
+source-root import path and failed before report inspection;corrected read-only
+review passes. That script/attempt is retained;no native failure or rerun.
+
+Evidence:local/assets224-native01/verification.json SHA256
+ 6477c0438129f64d43cc6b59dd98ba108ed74287215e2a05a10e5d2c22f6cb7d
+local/assets224-native01/completion-review.json SHA256
+ 2b4ff873b8e5afe5cf796dd1340391ca11fb1ca4e5dc743e4a5188f9ba4deb76
+local/assets224-preparation01 retains run plan,source/document snapshots,tests,
+terminal status and both review scripts.203/221-223 evidence remains unchanged.
+Next finite file-access case:actual sharing denial for a declared map file,
+which selects unreadable_asset after successful manifest reading. Do not repeat
+this manifest case. ACL denial,physical storage failure and client UI stay outside
+this result;no general file-access or full release acceptance is inferred.
+
+FOLLOW-UP225 - 2026-10-27 - REAL DECLARED-MAP SHARING REFUSAL/RECOVERY PASS
+Completes224's named next case:an owned map-1v1.pb.gz is held by the existing
+Windows read-sharing lock. The manifest remains readable and matches its original
+content during both check and start. The separate unreadable_asset diagnostic
+is required. The fixed target is selected by --sharing-lock --locked-asset map;
+manifest remains the default. Map selection without sharing-lock is rejected.
+Only external verifier/tests changed;no production/helper/package rebuild.
+
+Unchanged218 bundled interpreter/modules perform both commands under the real
+WinError32 lock. Both return1 before native/server construction. After each,
+the state lock is reacquired;two existing authored profiles,config and TLS bytes
+are unchanged. Closing the handle is the only repair:neither manifest nor map
+is rewritten. The full copied/original bundle validates;the packaged health check
+creates a native worker,steps frame0,closes,exits0 and reaps it. TLS health passes.
+Controller PASS/exit0 in5.406s,job6/0/0,no force. No native failure or rerun.
+
+25focused tests pass on Python3.12(0.251s) and3.14(0.185s),no skips. Same four
+suites as224. New actual Windows map-lock test verifies readable manifest,
+unreadable_asset,PermissionError on direct map read,unchanged bytes and healthy
+verification immediately after release. Independent retained-report completion
+review passes:all eight source pins,package/original/copied asset integrity,
+profile/config/TLS hashes and unchanged DEV are checked. No new Nick request.
+
+Evidence:local/assets225-native01/verification.json SHA256
+ c4bfa0ca1c059478ba71eb5e89e5ae5da3b0f8f373a1413975ff2c88b9bf858e
+local/assets225-native01/completion-review.json SHA256
+ d662f6ebc14242781ec313a2f2b20af6b44f5aea64449e2222594fbce50e94e6
+local/assets225-preparation01 retains prior source/docs,run plan,source pins,
+test summary,terminal controller status and completion review. Original reports
+203/224 and221-223 remain intact. A later read-only search had an invalid Windows
+glob;the native run and completed evidence review were already PASS.
+
+Scope is declared-map read-sharing refusal and release-only health recovery.
+ACL denial,physical storage/power loss,live matches,client UI,SCM and Internet
+are not established. RUNTIME_VALIDATED remains false and fullD4 OPEN.
+Next:reconcile ordinary replay-entry/file-selection reachability against retained
+replay-failure-recovery.txt and installed-replay163.txt plus current source.
+Identify an existing supported entry or the precise missing contract before any
+new native run;do not repeat loader/error/Options/Leave coverage or invent a UI.
+
+FOLLOW-UP235 - 2026-10-27 - REAL MAP/MANIFEST READ DENIAL AND RECOVERY PASS
+Completes the permission-denial follow-up selected after234. Each case denies
+FILE_READ_DATA(mask1) to the current Windows user's SID on one disposable copied
+file. CreateFileW GENERIC_READ returns actual WinError5,not the earlier sharing
+violation32 or an authored Python exception. The original imported assets,
+installed games,shared player state and machine-wide policy are untouched.
+
+External tools only:
+ - tools/owned_file_denial.py requires an ordinary single-link file beneath a
+   strict owned diagnostic directory,refuses reparse paths/hard links,retains
+   READ_CONTROL/WRITE_DAC and disallows file deletion while the handle is held.
+   It prepends one noninheritable deny ACE. Owner/group/SACL/token privileges
+   are never changed. Existing DACL/control are captured before mutation.
+ - verify_asset_recovery --permission-denial --locked-asset map|manifest runs
+   only the chosen access fault. It refuses combination with --sharing-lock.
+ - verify_loading_recovery has an explicit approved alternate diagnostic root;
+   packaged interpreter/output stay under that root and assets remain read-only
+   inputs. This avoids the nearly full E drive. Default existing path behavior
+   is unchanged. Actual packaged application imports remain verified.
+
+Package218 copied unchanged to:
+%LOCALAPPDATA%/BattleAcesDiagnostics/local/assets235-package01
+Package manifest SHA256:
+6b352e9a31f7693d676c0a0e2a29cc1e0d7f69307ec05a2fac64499267d33bac
+Original input:local/s139/assets/build-37822. No package/helper/product rebuild.
+
+INITIAL FAILURE AND DIAGNOSTIC CORRECTION
+assets235-native01 correctly rejects both commands under map denial,without
+native/server creation. SetSecurityInfo then restores the exact ACE bytes but
+changes descriptor control8004->8404(SE_DACL_AUTO_INHERITED). The strict gate
+fails;no health worker is launched. Exit1/job4/0/0/no force. Its original report
+is retained FAILED;its in-context permission fields precede cleanup and are not
+final handle-state evidence. Independent inspection records readable content,
+unchanged DACL bytes and the differing control flag. A separate restoration
+receipt proves the original full owner/group/DACL/control is now restored.
+
+The diagnostic now supports only the observed unprotected control states8004
+and8404;other states are refused before mutation. Restoration uses SetSecurityInfo
+when the original already had the auto-inherited flag. For8004 it uses the
+legacy file-specific SetFileSecurityW descriptor setter,which preserves the
+original flag state in this check. Exact snapshot comparison remains mandatory;
+the criterion was not relaxed. An intermediate blanket legacy-setter change
+failed two E-drive restoration tests;that test log is retained. The final
+selection passes both states,including a new C-drive regression. No native run
+used the intermediate failed version. APIs/reference constraints:
+https://learn.microsoft.com/en-us/windows/win32/api/aclapi/nf-aclapi-setsecurityinfo
+https://learn.microsoft.com/en-us/windows/win32/api/securitybaseapi/nf-securitybaseapi-setfilesecurityw
+SetFileSecurityW is documented as obsolete;its use here is confined to exact
+diagnostic rollback,not a new production permissions policy.
+
+PASSING CASES
+assets235-native02:map-1v1.pb.gz denied. Manifest remains readable and unchanged
+during both check/start. Both exit1 with the exact unreadable_asset diagnostic,
+no native worker/server object,and released state lock. Exact permission restore
+alone permits bundle validation and packaged native health:worker27984 creates,
+steps frame0,closes/exits0/reaped;TLS passes. Controller0/job6/0/0,no force,4.734s.
+assets235-native03:asset-manifest.json denied. Both commands exit1 with the
+distinct unreadable_manifest message before native/server construction;state
+lock released. Exact restore alone permits the same native/TLS health scope.
+Controller0/job6/0/0,no force,4.687s. Neither case rewrites the manifest/map.
+
+Both preserve two authored saved profiles,host.json,certificate/private-key
+hashes and full original/copied asset validation. Before/after descriptor hashes
+match exactly;the restore handle is closed. Final read-only inspection also
+checks the first failed run's repaired descriptor. Ten source/helper/test pins
+match across the passing runs;packaged module origins and hashes are recorded.
+29tests pass on Python3.12/3.14,no skips:asset_recovery,profile_storage,
+loading_recovery,owned_suspended_launch. New controls cover real map denial,
+manifest denial with exception cleanup,escape/directory/hardlink refusal and
+the original C-drive inheritance-control regression. DEV unchanged;no request.
+
+Evidence under %LOCALAPPDATA%/BattleAcesDiagnostics/local/:
+assets235-native01/verification.json SHA256(FAILED):
+ebf2d8a4db2a567444bd791ea8b6d198e0e2ad28e45f26636c10af7c16cb6348
+assets235-native02/verification.json SHA256(map PASS):
+ecf649724ca8226a77ba7aa2960eebcd840b4502b746004f70bd25c373ee3df2
+assets235-native03/verification.json SHA256(manifest PASS):
+f815851c46e81306fa8a8e20bb8f0d9d4b0336e3d0347a033cf6d48a80837ece
+assets235-preparation01 retains before/final-run sources,initial/final tests,
+the failed intermediate test and completion-review.json. Both owned bundles,
+profiles,keys and rollback descriptors remain ignored/private. Earlier203/
+224/225 evidence is unchanged. No graphical game or server deployment changed.
+
+Scope:these two current-user read-denied startup branches and restored native
+health,not arbitrary ACLs,other accounts,SCM,live-host matches,physical disk/power
+failure,client UI,Linux/Wine or Internet acceptance. FullD4 and final release
+remain OPEN. Do not repeat these cases without changed code or a concrete gap.
+Next:reconcile ordinary packaged client content-preflight refusal/repair against
+bundle_loading/launcher tests and retained installation evidence. Identify the
+uncovered missing/damaged/unreadable-content case before launching another game;
+require refusal before game/IPC/network creation and preserve saved profiles.

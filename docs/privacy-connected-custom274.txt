@@ -1,0 +1,34 @@
+D5 CURRENT-SOURCE CONNECTED CUSTOM REMATCH SOCKET SNAPSHOTS274
+2026-10-28. P5 selected-lifetime scope PASS;P5/P8/P9/D5 remain OPEN.
+
+The current-source local package/game/helper/receipt pair from
+privacy-connected-sockets271.txt ran one fresh RC open-admission Custom lobby
+with two humans,original native Start/result/Continue,changed host deck and a
+second match,guest then host Leave,and normal Quit. The source-owned verifier
+local/privacy274-custom01/verification.json passed in185.922s without forced
+cleanup. It records two completed matches,lobby epochs1/2,two distinct match
+workers and native Leave order guest/host. Its Custom validator checks that the
+host's old and new native deck units match both frozen server decks and differ,
+while the guest deck is stable. Its independent_full_state_proof flag is false;
+do not enlarge that claim. The three owned jobs account7+2+2 processes and end
+active0/terminated0. The host ends with rooms/sessions/workers/entries/offers/
+cleanup0 and no lobbies. Source,package,assets,shared channels,adapters and
+configs remained unchanged. Verifier SHA256:
+b92399495ca951a086d389d5e587f2a9551bba89d1518cb2fee874d98c1384b8.
+
+A separate metadata-only Windows endpoint sampler followed the owned verifier
+tree and both native game PIDs22836/20288. Its209 samples span
+2026-10-28T16:27:53.690Z to16:30:46.244Z;all include both game PIDs. It
+records4684 TCP and0 UDP endpoint rows. The only TCP owners are packaged host
+PID22660 and client adapters21892/17392. Remote addresses are only127.0.0.1
+or0.0.0.0 for listening/unconnected endpoints. Journal SHA256:
+a92b6558e33259b6d118e76c56d7cf9de21a91c5d28ea4827c1332306f1242a6.
+The longer-lived sampler source is local/privacy274-socket-sample.ps1, SHA256
+9597055f67f9e55d93f7d1dc9b1b37c013229ce2bd885054cb525dd99eb857e8.
+
+Together with271-273,all four named P5 connected mode paths now have current
+dirty-source native lifecycle plus sampled host/adapter endpoint evidence.
+This is still post-launch polling,not complete socket history,packet/kernel
+capture,queue/file attribution,ordinary published installation or universal
+advertising-ID producer proof. Short-lived/early sockets,other processes and
+report files remain outside these samples. Full P5/D5 remain OPEN.

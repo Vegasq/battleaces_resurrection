@@ -89,6 +89,17 @@ class SecureLauncherTests(unittest.TestCase):
         root, _, _ = self.install(secure=False)
         with self.assertRaises(launch.LaunchError): launch.verify_game(root)
 
+    def test_replay_requires_current_helper_without_breaking_ordinary_launch(self):
+        root, path, manifest = self.install()
+        launch.verify_game(root)
+        with self.assertRaisesRegex(launch.LaunchError, 'watch replay files'):
+            launch.verify_game(root, replay=True)
+        helper = root / 'BattleAcesOffline.dll'
+        helper.write_bytes(helper.read_bytes() + b' BA_RESURRECTION_REPLAY_ENTRY_V1')
+        manifest['helper_sha256'] = hashlib.sha256(helper.read_bytes()).hexdigest()
+        path.write_text(json.dumps(manifest))
+        launch.verify_game(root, replay=True)
+
     def test_secure_helper_with_old_game_protocol_rejected_before_spawn(self):
         root, _, _ = self.install(protocol3=False)
         with self.assertRaisesRegex(launch.LaunchError, 'protocol3'):

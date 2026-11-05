@@ -1,0 +1,40 @@
+D5 / P5-P8 - owned prelaunch observer capability
+2026-10-30. Inert Windows control PASS;game privacy gates remain OPEN.
+
+The current connected native network watcher341 begins after game creation,
+leaving startup before attach unobserved. tools.probe_prelaunch_attach365
+creates only an owned inert Python child with Windows CREATE_SUSPENDED and waits
+for an external observer-ready gate. REA Frida attached to that PID while its
+main thread was suspended. tools/frida_prelaunch_control365.js installed a
+CreateFileW entry hook and emitted ready. The gate was published only after
+that ready message and while the child's own marker did not exist. The parent
+then resumed the owned process;the hook reported a file API call,the child
+wrote its expected marker and exited0 without forced cleanup. The retained
+REA status has exactly ready and first-create-file messages,matching PID,
+no truncation,and detached state. tools.review_prelaunch_attach365 verifies
+the report,marker,gate,script hash and retained status.
+
+The first attempt local/privacy365-prelaunch-control01 failed before any
+process started because Python subprocess has no CREATE_SUSPENDED attribute.
+The corrected control uses the Windows flag value0x00000004. That failure is
+retained and does not support a runtime claim.
+
+Accepted local evidence:
+ local/privacy365-prelaunch-control02/verification.json SHA256
+ d472340bd9a18604e94a6c244b06b738a986986dd683c82f4d4ba74d73275d81
+ local/privacy365-prelaunch-control02/frida-evidence.json SHA256
+ ce01adcbdab573b0e59dfc0a61f0c0ed2672289192e4d9f859f0a78c8aae2791
+ local/privacy365-prelaunch-control02/review.json PASS SHA256
+ f1ba8ecb27ad2e8a82a8767c0dc282f75e3cfb674b3b62ff28696f69acd688bd
+ REA load Evidence ev_6c23dc49e65347dba3befa64481828d7a886d6f90d1b215e2510869a58ea3180
+ REA status Evidence ev_86f8276806c4bff618ae337dd084d9e15280d174805a52264c6fae379abb520c
+
+This proves attach/hook timing for this owned inert process only. The Frida
+helper thread itself runs during suspension;the claim is about the target's
+main thread. No game,SDK queue,packet,real identifier or report endpoint was
+accessed. Next apply the same gated creation to one owned packaged game
+without changing normal launchers,retain its inherited bridge handle and job
+ownership,and observe selected network/file APIs from before main-thread
+resume through exit with positive controls. That future game run must carry
+its own source/installed/observer/coverage reconciliation. P5/P8/P9/D5 and
+RUNTIME_VALIDATED remain OPEN;published174 is unchanged.

@@ -51,12 +51,29 @@ def source_hashes():
     return {name: sha(ROOT / name) for name in sorted(names)}
 
 
-def run(game, helper, output):
+def run(game, helper, output, *, current_owned=False, recipe34_owned=False):
     game, helper, output = (Path(p).resolve() for p in (game, helper, output))
-    require(os.name == 'nt' and game == ROOT / 'local/r169g', 'Only the owned Windows r169g copy is eligible')
-    require(output.parent == ROOT / 'local' and output.name.startswith('crash169-clean') and
+    require(not (current_owned and recipe34_owned), 'Choose one exact owned crash mode')
+    owned = current_owned or recipe34_owned
+    expected_game = (ROOT / 'local/privacy301-runtime01/game' if recipe34_owned else
+                     ROOT / 'local/privacy286-runtime01/game' if current_owned else ROOT / 'local/r169g')
+    expected_helper = (ROOT / 'local/privacy324-helper-build02/BattleAcesOffline.dll' if recipe34_owned else None)
+    require(os.name == 'nt' and game == expected_game,
+            'Only the explicit owned Windows crash fixture is eligible')
+    require(output.parent == ROOT / 'local' and
+            output.name.startswith('privacy329-crash' if recipe34_owned else
+                                   'privacy286-crash' if current_owned else 'crash169-clean') and
             not output.exists(), 'A new crash169-clean output directory is required')
-    require(helper.is_relative_to(ROOT / 'build'), 'An explicit built diagnostic helper is required')
+    require(helper == expected_helper if recipe34_owned else
+            helper.is_relative_to(ROOT / ('local/privacy286-helper01' if current_owned else 'build')),
+            'An explicit built diagnostic helper is required')
+    recipe_version = 34 if recipe34_owned else 25 if current_owned else 23
+    if owned:
+        manifest = json.loads((game / '.battleaces-resurrection/patch-manifest.json').read_bytes())
+        require(manifest.get('telemetry', {}).get('recipe_version') == recipe_version and
+                manifest.get('diagnostics', {}).get('native_quit') is False and
+                manifest.get('telemetry', {}).get('runtime_validated') is False,
+                f'Owned default recipe{recipe_version} crash fixture required')
     binding = validate(helper, (game / 'BattleAcesOffline.dll').read_bytes(), ROOT)
     profile = 'nativestest_crash169_' + secrets.token_hex(6)
     folder = game / '.battleaces-resurrection/profiles' / profile
@@ -116,8 +133,11 @@ def run(game, helper, output):
             if time.monotonic() >= deadline:
                 raise TimeoutError('Native preflight readiness deadline exceeded')
             time.sleep(.01)
-        report['saved_mode'] = saved_mode = ready_saved_mode(text, child.tid)
-        require('crashSignatures=4/4' in text and 'recipeVersion=23' in text,
+        report['saved_mode'] = saved_mode = ready_saved_mode(text, child.tid, recipe_version=recipe_version)
+        require('crashSignatures=4/4' in text and f'recipeVersion={recipe_version}' in text and
+                (not current_owned or 'reporterCallbackSignatures=3/3' in text) and
+                (not recipe34_owned or ('reporterCallbackSignatures=7/7' in text and
+                                        'sdkMetadataMergeSignatures=2/2' in text)),
                 'Current recipe audit is incomplete')
         require(source_hashes() == report['source_before'] and components(game) == report['components_before'] and
                 components(ROOT / 'local/r134g') == report['current166_before'] and
@@ -127,9 +147,10 @@ def run(game, helper, output):
         check_refusal(log())
         arm = publish_arm(folder)
         report.update(arm_published=True, arm_sha256=sha(arm), arm_publication='closed-file-no-replacement-rename')
-        report['exit_code'] = wait_for_crash_exit(child, tracker, log, saved_mode=saved_mode)
+        report['exit_code'] = wait_for_crash_exit(child, tracker, log, saved_mode=saved_mode,
+                                                 recipe_version=recipe_version)
         report['tracker'] = tracker.settle(timeout=5)
-        validate_trigger(log(), child.tid, saved_mode=saved_mode)
+        validate_trigger(log(), child.tid, saved_mode=saved_mode, recipe_version=recipe_version)
         require(report['tracker']['complete'] and
                 report['tracker']['final_accounting'] == dict(total=1, active=0, terminated=0),
                 'Complete natural root-only lifetime required')
@@ -164,8 +185,12 @@ def main():
     parser.add_argument('--helper', type=Path, required=True)
     parser.add_argument('--output', type=Path, required=True)
     parser.add_argument('--arm-native-crash', action='store_true', required=True)
+    modes = parser.add_mutually_exclusive_group()
+    modes.add_argument('--current-owned', action='store_true', help='exact isolated recipe25 local/privacy286 crash diagnostic')
+    modes.add_argument('--recipe34-owned', action='store_true', help='exact isolated recipe34 local/privacy301 crash diagnostic')
     args = parser.parse_args()
-    result = run(args.game_dir, args.helper, args.output)
+    result = run(args.game_dir, args.helper, args.output, current_owned=args.current_owned,
+                 recipe34_owned=args.recipe34_owned)
     print(json.dumps({key: result[key] for key in ('passed', 'exit_code', 'error', 'elapsed_seconds') if key in result}))
     return not result['passed']
 

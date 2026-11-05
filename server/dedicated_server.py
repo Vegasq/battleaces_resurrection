@@ -33,6 +33,7 @@ from . import community_protocol as community_wire
 from .community import Community
 from . import public_protocol as public_wire
 from .diagnostics import failure_fields,validation_reason
+from .profile_io import _await_owned
 TICK = 0.05
 
 
@@ -610,6 +611,7 @@ class DedicatedServer:
         self.rooms, self.listener = {}, None
         self.retired = set()
         self.closing = False
+        self._shutdown = None
         self.peers, self.tasks = set(), set()
         self.worker_cleanup = set()
         if (tls_context is None) != (admission is None):
@@ -743,7 +745,22 @@ class DedicatedServer:
             self.tasks.discard(task)
 
     async def close(self):
-        self.closing = True
+        if self._shutdown is None:
+            self.closing = True
+            self._shutdown = asyncio.create_task(self._close())
+        try:
+            await _await_owned(self._shutdown)
+        except asyncio.CancelledError:
+            # Cancellation before ProfileIO.close must not skip that drain or
+            # release the host state lock while earlier shutdown awaits run.
+            # Concurrent callers join this same complete cleanup operation.
+            while not self._shutdown.done():
+                try: await _await_owned(self._shutdown)
+                except asyncio.CancelledError: pass
+            self._shutdown.result()
+            raise
+
+    async def _close(self):
         if self.admission:
             self.admission.stop_accepting()
         if self.listener:

@@ -1,0 +1,33 @@
+D5 / P3 - current recipe25 supported Tutorial01 entry
+2026-10-28. P3 and full D5 remain OPEN,RUNTIME_VALIDATED=false.
+
+The supported -offline-tutorial route selects the original Tutorial01 state
+at owner+2f8;Tutorial2 at+300 is a separate deferred N8 route. The source-owned
+tools/verify_tutorial_privacy_entry.py launches only an ignored owned recipe25
+copy with a fresh nativestest_ profile and read-only -telemetry-audit. It checks
+the exact helper build receipt and current manifest,then requires the original
+"Entering existing tutorial01 state" marker and complete ordered startup and
+tutorial native field snapshots. It does not drive the tutorial UI or claim a
+natural shutdown;owned teardown is forced after the entry observation.
+
+The first run local/privacy289-tutorial01 FAILED the verifier:it watched the
+menu-specific dedicated-native-PID log,while tutorial writes offline-native.log.
+It timed out at90.750s and its owned job drained1/0/0 after forced cleanup.
+Its game log and the actual offline-native.log show original Tutorial01 mission
+startup,but the failed verifier is not promoted to a pass. Failed report SHA256:
+5c9c7a3d2356be43fc9678d3fd66fce6a780a4f05da8d28e32180841f2406d26.
+
+The corrected run local/privacy289-tutorial02 PASS used a new profile. It
+observed original Tutorial01 state entry and two complete read-only snapshots:
+startup-after-engine-init,then tutorial. The selected Main/session/performance
+fields were all their disabled constructor values;all singleton pointers stayed
+stable in these snapshots. Audit build was recipe25 with reporter guards3/3.
+The owned root was reaped after forced cleanup,job1/0/0. Installed component,
+source and real shared-settings hashes were unchanged. The run took6.875s.
+Verification SHA256:
+c12c33a5bb57e6e5752e111ab63b8cf85026fc076ca48e683c5d31d7b74512b8.
+
+This closes current installed Tutorial01 entry and selected native field-stage
+observation only. It does not prove tutorial progress/completion,normal Quit,
+all-thread collection,SDK queue/file/network or game-owned descendants. No
+new Nick request is made;deferred Tutorial2 is untouched. P3/D5 remain OPEN.

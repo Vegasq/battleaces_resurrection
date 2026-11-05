@@ -1,0 +1,33 @@
+D5 / P7 - current recipe25 owned native crash gate (2026-10-28)
+
+The native crash probe still logged recipe=23 even when the installed helper
+required recipe25. The historical verifier also accepted recipe23 only. The
+probe now logs its audited recipe version. The gate and verifier accept an
+explicit current-owned recipe25 mode while retaining the historical recipe23
+default. A recipe23 ready/trigger row cannot satisfy the recipe25 gate.
+
+The current helper built with the C++ suite and was installed into a separate
+owned copy, local/privacy286-runtime01/game. The copy matched its source at
+601 files and 8056995151 bytes. The dry run and install each verified all 133
+bundles. The installed manifest says recipe25, runtime_validated=false and
+native_quit=false. Helper SHA256:
+f7f72e0fa1a481c4e8ed8b7abd4175e5d92a357f79034c2d9f74089126f7d44a.
+Build receipt SHA256:
+2e9cffa1b7ba6f756fa883aa3e5f529a2583386a4e73cb34d763ac8743b815d0.
+
+The one armed owned check, local/privacy286-crash01, passed. The original
+native crash gate logged recipe=25, saved mode32769, mode3 and the original
+wrapper on its stack. The trigger used the same thread. The process exited
+with c0000005 in19.875s. The owned job retained the root and reached1 total,
+0 active,0 terminated with no termination API call or forced cleanup. Source,
+installed component and shared settings hashes were unchanged across the run.
+The read-only native audit logged recipeVersion=25 and reporter callback
+signatures3/3. Verification JSON SHA256:
+1d573618dbf95a2c9fa9df19cb4e18f256cbbdfb5b6409f22c763ee4158d1f5.
+
+Focused native crash/audit/patch tests passed66/66 on Python3.12 and3.14
+with the pinned original available. This proves the current installed local
+native crash gate and original process exit at this scope. It does not prove
+SDK queue, retry, wire, post-filter OS delivery, independent reporter entry
+points, or full P7/D5 privacy. The diagnostic copy and local preview packages
+are separate from any released installer. P7 and D5 remain OPEN.

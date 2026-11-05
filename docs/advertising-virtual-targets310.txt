@@ -1,0 +1,46 @@
+D5 / P9 - connection-state virtual targets and immediate callback registrations
+2026-10-28. Bounded original/owned Unity source review PASS;P9/D5 OPEN.
+
+296 showed that the original c2f640 connection-state callback can invoke
+Main vtable+38 and that its c343d0 helper can invoke Main vtable+a0. This
+review follows those named edges. Both original Main vtables,at1a2aec0 and
+1a2c538,resolve slot38=c34430,a0=c3d120,98=c3d0f0,a8=c3d1b0 and
+c8=c32e30. tools/review_ads_virtual_targets310.py verifies those pointers,
+unwind extents,complete byte-matched LLVM bodies (598+29+11+46+47+136 decoded
+instructions),selected call/branch anchors and unchanged owned Unity bytes.
+Pinned original SHA256 ac144d56d53f07904d52ed27a1539de90bc3290038fe52d73d2f6b268c85d6bc.
+The recipe25 and current recipe28 owned Unity copies both have SHA256
+a53b0c613a86c737b7caa7588c7c93ae20d5d5700f9321a406df9dcca8e32a7f.
+Ignored original disassemblies:local/privacy310-virtual-targets01.
+
+The large c34430 body is a connection-state path. It can invoke virtual
+slot+a8 and registers three immediate callbacks with c46880: c2e6a0 at
+c34518,c2e6c0 at c347db and c2e6d0 at c34a98. The first is a short
+conditional vtable+c8 dispatch,which resolves to c32e30 in both tables.
+That complete body works with Main+1250/+1340 state,can invoke a further
+object's virtual slot+f0,and tail-jumps c41ec0. It has no direct c307c0
+call or Main+1498 read;the separate virtual object's concrete type/target
+and deeper helper chain remain outside this review.
+The second conditionally jumps to c416b0,the parsed identity-token path
+already reviewed in200;it is not the Main+1498 advertising callback. The
+third handles parser/state values and writes through Main+1350,with no
+direct c307c0 call in its complete47-instruction body. The immediate a0,
+98 and a8 bodies manage state and call deeper helpers;none directly calls
+c307c0 or accesses Main+1498 in their complete bodies. All three immediate
+callbacks and five named virtual targets remain byte-identical in the
+current owned Unity image.
+
+296's fresh Main.Start RET prevents its named c2f640 registration through
+either Start entry. This review does not establish whether another caller can
+reach c34430 or any of these callback registrations. It also does not settle
+dynamic dispatch beyond the named slots,deeper callees of c32e30 or a separate
+producer of the borrowed advertising-ID/error strings passed to c307c0.
+No patch follows from this branch;do not infer a whole-program absence.
+P9 upstream acquisition and the final D5 matrix remain OPEN;
+RUNTIME_VALIDATED=false,published174 still recipe23.
+
+Follow-up326 binds c32e30's three Main virtual+f0 calls to the previously
+classified settings predicate c33490 in both pinned Main vtables. This removes
+that named dynamic target from the advertising producer candidates;the deeper
+c41ec0 path and independent callback producer remain open. See
+advertising-slotc8-predicate326.txt.

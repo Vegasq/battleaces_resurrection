@@ -1,0 +1,79 @@
+CUSTOMIZED CHOICES ACROSS VERIFIED FAILURE / RESTART190
+2026-10-26. COMPLETE at the two named native paths. D2/full A07-14 remain OPEN.
+
+Follow-up198 completes the other six saved-choice cells;see
+saved-preference-matrix198.txt. Original190 evidence below retains its two-case
+scope. Physical input/presentation and full D2 remain open.
+
+Missing claim
+189 completed eight fresh-profile transport/native cases. Those did not observe
+saved non-default choices.190 uses the two distinct public/Try Deck selection
+paths and a real restart of the SAME copied profile,without reseeding it.
+No product behavior,helper,package,ordinary launcher or server changes.
+
+Fixture and ownership
+tools/verify_saved_play.py copies the already qualified141 restart profile after
+matching its actual TOML/cosmetic bytes to the retained report hashes. It changes
+only the new cosmetic profile key. The copied deck starts with unit75 rather than
+the default1;portrait87 and cosmetic keys115/93 differ from default66/6/7. All17
+cosmetic slots and original account/options are checked,not just those examples.
+Source141 files remain untouched. An authored hard preference is saved to the
+owned installation's practice-settings.ini;there is no command-line difficulty
+override or diagnostic native edit. That SAME file remains across both lifetimes.
+Practice difficulty is installation-local by product design,not profile-local.
+Its exact prior bytes/existence are restored only after the sequence finishes.
+
+Existing packaged verifier owns both launches,real protected invitation reads,
+verified TLS contexts,loopback endpoints,source/package checks,AI activity,
+original results/Continue/default Quit and empty-job checks. The first completed
+Quit trace is archived before restart. Earlier replays must remain unchanged;
+each phase requires exactly one new native replay. Native probes remain explicit
+diagnostics,not ordinary launcher arguments or physical input.
+
+Selection evidence
+The existing cosmetic persistence probe reads all17 effective native slots and
+checks the12-field profile projection. The native human army snapshot must carry
+the exact saved eight-unit/four-ability deck and ordered nonzero cosmetic keys.
+Frozen native portrait/banner/catalog must match the joined army. The actual
+native initializer must report hard/profile19/source=saved. Try Deck must use
+hard/profile19;public matchmaking retains its independent random difficulty.
+TOML account/options,cosmetic bytes and practice bytes must remain preserved.
+Saved bytes alone cannot substitute for observed native selection/readback.
+
+Completed results
+local/savedpreferences190-01/public-refused/verification.json:
+ PASS214.797s,mode1 verified-refused,natural Quit0,job2/0/0,no force.
+ SHA256 4bc3a36393845952fcd241c65cd8995c29f1adf293df8205015e3e70ea554b35.
+local/savedpreferences190-01/restart-practice-timeout/verification.json:
+ PASS216.031s,mode4 verified-handshake-timeout,natural Quit0,job2/0/0,no force.
+ SHA256 79f7ac829044cf8e619174881aaa33500d2aea717259e9de3a0eef72404695fb.
+Both lifetimes use nativestest_saved_c1c999c0082b. The native TOML stays byte-exact
+to the original141 seed;both cosmetic files and hard preference retain their
+expected bytes. The second lifetime preserves the first replay and creates one
+new replay. First Quit trace archived;second trace retained with its own PID.
+The outer owner exits0,restores the installation preference's prior absence and
+releases its fixture ownership marker. Seed files remain byte-exact.
+
+Final owner report:local/savedpreferences190-01/verification.json SHA256
+27bb950b135b9643b290cd00e7b2c053bfd5552fa23b5b61e609ceb09b73eaf1.
+Read-only reconciliation:local/savedpreferences190-review01.json SHA256
+9d69762204f3833dd40b7fa893ced0320b92a2d8dbeb453d2ef8e3d9e31676dd.
+Reparses native choices and actual transport failures;checks both report hashes,
+bundled module/driver/package identities,all sealed/current inputs,private fixture
+hashes/token absence,empty jobs,both native replays and final restored state.
+
+Qualification uses unchanged local/candidate188-packages01 client and local/r171g
+helper169/recipe23.201source/test inputs sealed in
+local/savedpreferences190-sources01/manifest.json SHA256
+117adcf2142f29f185569185e533955dc749790a51a30c181963548060a6fee4.
+17focused tests PASS on each Python3.12/3.14,7.165s/7.176s,no skips:
+tests.test_saved_play,tests.test_availability_endpoint,tests.test_packaged_play.
+Evidence mutations reject default/override difficulty,changed native deck or
+cosmetic keys,wrong roles,stale/failed restore,duplicate evidence and invalid IDs.
+
+Scope and remaining work
+These are two named availability/selection paths (A07 and A13),not saved-choice
+evidence for every other mode/failure combination.189's other six fresh-profile
+subcases remain valid without repetition. Physical presentation and remaining
+D2 transition/availability requirements remain open. No privacy/P9,SCM,N11 Linux,
+Internet or whole-release acceptance follows. No new Nick request or publication.

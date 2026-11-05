@@ -1,0 +1,25 @@
+D5 / P9 - GameAssembly direct WinRT activation chain
+
+2026-11-01. Read-only source review PASS at the direct decoded .text scope
+for pristine and actual-installed recipe47 GameAssembly. No game or SDK was
+started. P9/D5 remain OPEN.
+
+GameAssembly dynamically resolves RoGetActivationFactory and
+WindowsCreateStringReference through KERNEL32 loader imports. The single
+direct reference to each resolver name leads to a call chain that creates
+the Windows.System.DispatcherQueue class string and requests its factory.
+The full .text decode finds one direct call to the RoGetActivationFactory
+wrapper and three direct references to its cached slot, all in these
+reviewed bodies. The two bodies' bytes match the actual-installed image.
+
+tools/review_ads_gameassembly_winrt553.py binds original and installed
+SHA256s to the actual client Install receipt543, checks PE body boundaries,
+imports, UTF16 literals and full .text reference sites. PASS receipt:
+local/privacy553-gameassembly-winrt01/verification.json.
+
+This direct activation chain is for DispatcherQueue. It does not establish
+the advertising-ID source or exclude indirect/computed calls, other modules
+or the independent AnalyticsCoreStats provider. The direct libcef import
+call is reviewed separately in advertising-libcef-winrt554.txt. The P9
+producer/registration or a proved pre-acquisition cut, real queue/whole
+wire and final installed D5 acceptance remain outstanding.

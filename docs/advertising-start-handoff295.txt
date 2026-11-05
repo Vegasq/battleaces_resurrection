@@ -1,0 +1,61 @@
+D5 / P9 - separate Main.Start listener handoff c68390
+2026-10-28. P9/full D5 remain OPEN,RUNTIME_VALIDATED=false.
+
+183 bound Main.Start's keyed analytics configuration listener c66a80.
+A second concrete call in the same original Start,at c66c5f,passes
+Main+1568 and the owner stored at Main+1248 to c68390. This previously
+unclassified handoff now has its immediate callback registrations bound:
+c68390 obtains an owner key list through c42230 and registers c682a0 with
+that list through5b8aa0. Its separate 24-byte record stores c682f0,
+the c68390 receiver and a bound-owner flag. c682a0 tails to c69270,
+which looks up owner/config state. The callback it passes onward from
+receiver+30 is bound by the original Main constructor's store at Main+1598
+to c69100. That function reads receiver+48 and formats a Boolean;it is not
+the advertising ID callback. c682f0 stores two byte flags and an integer at
+receiver+49/+50/+4c,then passes c68190 to c56ca40. The full c68190 body
+reads those three scalar fields and builds a formatted call. Neither immediate
+callback forwards the borrowed ID/error strings to c307c0.
+
+The current recipe25 owned UnityPlayer image has the existing Main.Start
+first-byte RET at c66c20. The rest of that complete Start body and the
+reviewed c68390/c69270/c68190/c69100 roots and two leaves match the original
+bytes. In the complete Main constructor,the only installed difference is the
+existing device-statistics default byte c2f402,1->0;the c69100 pointer store
+is unchanged.
+Thus a fresh call through the patched Start cannot execute this named listener
+registration. The finding adds a bounded pre-registration cut for this
+specific handoff;it does not claim that c307c0 is never called by another
+registration or an already retained/computed callback.
+
+tools/review_ads_start_handoff295.py checks pinned original and installed
+UnityPlayer SHA256,six complete unwind roots,exact leaf windows,
+734 contiguous decoded instructions matched byte-for-byte to the original,
+28 semantic anchors and the installed Start RET/unchanged tail. The retained
+local/privacy295-start-handoff01/verification.json PASS SHA256 is
+0ba9eb5285d679548637cbcf2d6caa103d012a1d2d2af96b51fc77a4f3fcdbd3.
+Raw LLVM disassembly remains ignored locally. This is static PE/LLVM evidence,
+not a native decompiler or runtime observation. No DLL/game,identity getter,
+SDK queue,report destination,installer or Nick action was invoked.
+
+The c69270 dynamic callback,other adapters and the upstream c307c0 producer
+remain unresolved at this checkpoint. Reuse183/220 and this named result;do not
+rescan the same offsets or repeat a quiet match as absence proof. P9/D5 stay OPEN.
+
+Follow-up393 (2026-10-30):the named c69270 immediate branch is classified.
+It reads an owner at receiver+40,looks up receiver+8 in that owner's +1850
+typed configuration tree through c42f40,requires type9,stores the result
+pointer at receiver+0 and copies owner+1890 Boolean to receiver+48. If the
+typed value exists,it passes receiver+30 and receiver as callback/owner to
+generic subscription helper c56ca40. The earlier295 constructor binding puts
+c69100 in receiver+30;that callback formats the receiver+48 Boolean. Thus
+this named branch is a configuration Boolean notification handoff. It does
+not directly reference Main+1498 or c307c0 or pass borrowed advertising ID/
+error strings. Generic subscription's later invocation and other producers
+are outside this conclusion.
+
+tools.review_ads_dynamic_config393 checks the pinned original and recipe38
+owned Unity images,three complete unchanged unwind bodies,130 decoded
+instructions and the lookup/type/flag/subscription anchors. PASS receipt:
+local/privacy393-dynamic-config01/verification.json. No game,provider,ID,
+queue or original endpoint ran. REA's native decompiler was unavailable;
+this is PE/LLVM source evidence. P9/D5 and runtime flag remain OPEN/false.

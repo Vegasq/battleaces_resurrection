@@ -1,4 +1,4 @@
-"""Check exact recipe3 through23 native-field samples and ordered lifecycle coverage.
+"""Check exact recipe3 through40 and44-47 native-field samples and ordered lifecycle coverage.
 
 This verifies the bounded read-only helper log, not collection/network absence.
 No game files or processes are accessed. Original log lines are never emitted.
@@ -25,7 +25,7 @@ FIELDS = {
 LINE = re.compile(r'^\[(\d+)\] Telemetry audit (.*)$')
 BUILD = re.compile(r'build verified: UnityPlayer sha256=([0-9a-f]{64}) '
                    r'normalized=([0-9a-f]{64}) crashSignatures=(\d+)/(?:3|4) '
-                   r'coreCandidateSignatures=(\d+)/(12|14|15|16|18|21|25|27|28|31|40|48|53|56) performanceCandidateSignatures=(\d+)/3(?: cacheFailureSignatures=(\d+)/5)?(?: serviceIdentitySignatures=(\d+)/2)?(?: serviceProfileSignatures=(\d+)/2)?(?: recipeVersion=(\d+))?(?: automaticCollectorSignatures=(\d+)/1)?(?: sdkInitializationSignatures=(\d+)/6)?(?: reportErrorSignatures=(\d+)/7)?; '
+                   r'coreCandidateSignatures=(\d+)/(12|14|15|16|18|21|25|27|28|31|40|48|53|56|57|58|59) performanceCandidateSignatures=(\d+)/3(?: cacheFailureSignatures=(\d+)/5)?(?: serviceIdentitySignatures=(\d+)/2)?(?: serviceProfileSignatures=(\d+)/2)?(?: recipeVersion=(\d+))?(?: automaticCollectorSignatures=(\d+)/1)?(?: sdkInitializationSignatures=(\d+)/6)?(?: reportErrorSignatures=(\d+)/7)?(?: reporterCallbackSignatures=(\d+)/(3|7))?(?: reporterEnabledSignatures=(\d+)/2)?(?: reporterRegistrationSignatures=(\d+)/1)?(?: networkBreadcrumbSignatures=(\d+)/1)?(?: breadcrumbCollectorSignatures=(\d+)/3)?(?: breadcrumbFacadeSignatures=(\d+)/2)?(?: sdkDataIngressSignatures=(\d+)/10)?(?: sdkContextSignatures=(\d+)/2)?(?: sdkMetadataMergeSignatures=(\d+)/2)?(?: sdkConfigurationIngressSignatures=(\d+)/6)?(?: sdkSceneMetadataSignatures=(\d+)/1)?(?: sdkUserCacheSignatures=(\d+)/1)?(?: sdkSessionCacheSignatures=(\d+)/1)?(?: sdkCacheReaderSignatures=(\d+)/(4|5))?(?: sdkCacheDirectorySignatures=(\d+)/1)?; '
                    r'READ ONLY, no qualification claim')
 BEGIN = re.compile(r'(\d+)/17 stage=([a-z-]+) retained main=(\d+) session=(\d+) '
                    r'performance=(\d+) callbackHooks main=(\d+) performance=(\d+)')
@@ -38,9 +38,9 @@ def verify_lines(lines, *, expected_sha256, required_stages=DEFAULT_STAGES,recip
     """Fail on missing, partial, unavailable, changed or out-of-order evidence."""
     if not re.fullmatch('[0-9a-f]{64}', expected_sha256):
         raise ValueError('Expected UnityPlayer SHA256 must be 64 lowercase hexadecimal digits.')
-    if type(recipe_version) is not int or recipe_version not in range(3,24):
-        raise ValueError('Only explicit telemetry recipes3 through23 are supported.')
-    core_guards={3:12,4:14,5:15,6:16,7:18,8:21,9:25,10:27,11:28,12:31,13:40,14:48,15:53,16:53,17:56,18:56,19:56,20:56,21:56,22:56,23:56}[recipe_version]
+    if type(recipe_version) is not int or recipe_version not in (*range(3,41),44,45,46,47):
+        raise ValueError('Only explicit telemetry recipes3 through40 and44-47 are supported.')
+    core_guards={3:12,4:14,5:15,6:16,7:18,8:21,9:25,10:27,11:28,12:31,13:40,14:48,15:53,16:53,17:56,18:56,19:56,20:56,21:56,22:56,23:56,24:56,25:56,26:56,27:56,28:56,29:56,30:56,31:56,32:56,33:56,34:56,35:56,36:56,37:56,38:56,39:57,40:58,41:58,42:58,43:58,44:58,45:58,46:58,47:59}[recipe_version]
     crash_guards=4 if recipe_version>=23 else 3
     required_stages = tuple(required_stages)
     if (not required_stages or len(required_stages) > 17
@@ -88,7 +88,24 @@ def verify_lines(lines, *, expected_sha256, required_stages=DEFAULT_STAGES,recip
                     match[10] != (str(recipe_version) if recipe_version>=19 else None) or
                     match[11] != ('1' if recipe_version>=20 else None) or
                     match[12] != ('6' if recipe_version>=21 else None) or
-                    match[13] != ('7' if recipe_version>=22 else None)):
+                    match[13] != ('7' if recipe_version>=22 else None) or
+                    match[14] != ('7' if recipe_version>=26 else '3' if recipe_version>=25 else None) or
+                    match[15] != ('7' if recipe_version>=26 else '3' if recipe_version>=25 else None) or
+                    match[16] != ('2' if recipe_version>=27 else None) or
+                    match[17] != ('1' if recipe_version>=28 else None) or
+                    match[18] != ('1' if recipe_version>=29 else None) or
+                    match[19] != ('3' if recipe_version>=30 else None) or
+                    match[20] != ('2' if recipe_version>=31 else None) or
+                    match[21] != ('10' if recipe_version>=32 else None) or
+                    match[22] != ('2' if recipe_version>=33 else None) or
+                    match[23] != ('2' if recipe_version>=34 else None) or
+                    match[24] != ('6' if recipe_version>=35 else None) or
+                    match[25] != ('1' if recipe_version>=36 else None) or
+                    match[26] != ('1' if recipe_version>=37 else None) or
+                    match[27] != ('1' if recipe_version>=38 else None) or
+                    match[28] != ('5' if recipe_version>=45 else '4' if recipe_version==44 else None) or
+                    match[29] != ('5' if recipe_version>=45 else '4' if recipe_version==44 else None) or
+                    match[30] != ('1' if recipe_version>=46 else None)):
                 fail('unsupported_or_partial_build', number)
         elif match := BEGIN.fullmatch(body):
             if active is not None:
@@ -151,7 +168,7 @@ def main():
     parser = argparse.ArgumentParser(description=__doc__)
     parser.add_argument('--log', type=Path, required=True, help='One client process log from a fresh run.')
     parser.add_argument('--expected-unity-sha256', required=True, help='Installed UnityPlayer hash from that run manifest.')
-    parser.add_argument('--recipe-version',type=int,choices=tuple(range(3,RECIPE_VERSION+1)),default=RECIPE_VERSION,help='older reports require explicit older recipe; never qualify current guards from legacy samples')
+    parser.add_argument('--recipe-version',type=int,choices=(*range(3,41),44,45),default=RECIPE_VERSION,help='older reports require explicit older recipe; never qualify current guards from legacy samples')
     parser.add_argument('--stages', nargs='+', choices=sorted(STAGES), default=DEFAULT_STAGES)
     parser.add_argument('--output', type=Path, help='Optional new JSON report; existing files are never overwritten.')
     args = parser.parse_args()

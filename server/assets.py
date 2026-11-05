@@ -9,28 +9,83 @@ from .game_data import GameTemplate
 from .cosmetics import CosmeticCatalog
 
 
+ASSET_FAILURES = {
+    'missing_manifest': 'Asset manifest is missing. Check assets_directory or import assets into a fresh directory.',
+    'unreadable_manifest': 'Asset manifest cannot be read. Check file access and retry after other file operations finish.',
+    'invalid_manifest': 'Asset manifest is damaged or malformed. Restore a verified asset bundle or import into a fresh directory.',
+    'unsupported_manifest': 'Asset manifest format or game build is unsupported. Use build37822 assets and matching server tools.',
+    'build_mismatch': 'Asset build hashes do not match this server. Use matching build37822 assets.',
+    'incomplete_manifest': 'Asset manifest is incomplete. Restore a verified asset bundle or import into a fresh directory.',
+    'unsafe_path': 'Asset manifest contains an invalid file path. Restore a verified asset bundle.',
+    'missing_asset': 'A declared asset file is missing. Restore a verified asset bundle or import into a fresh directory.',
+    'unreadable_asset': 'An asset file cannot be read. Check file access and retry after other file operations finish.',
+    'content_mismatch': 'Asset content does not match its manifest. Restore a verified asset bundle; do not edit its hashes.',
+    'simulation_mismatch': 'Simulation DLL does not match this server. Use matching build37822 assets.',
+}
+
+
+class AssetError(ValueError):
+    """Authored category only; never includes manifest values or OS paths."""
+    def __init__(self, code):
+        self.code = code
+        super().__init__(ASSET_FAILURES[code])
+
+
+def _manifest_pairs(items):
+    result = {}
+    for key, value in items:
+        if key in result:
+            raise AssetError('invalid_manifest')
+        result[key] = value
+    return result
+
+
 def verify_assets(directory):
     directory = Path(directory).resolve()
-    manifest = json.loads((directory / 'asset-manifest.json').read_text(encoding='utf-8'))
-    if (manifest.get('schema'), manifest.get('game_build'), manifest.get('asset_format')) != (1, 37822, 1):
-        raise ValueError('Unsupported asset manifest')
+    try:
+        manifest = json.loads((directory / 'asset-manifest.json').read_text(encoding='utf-8'),
+                              object_pairs_hook=_manifest_pairs)
+    except FileNotFoundError:
+        raise AssetError('missing_manifest') from None
+    except OSError:
+        raise AssetError('unreadable_manifest') from None
+    except (ValueError, UnicodeError, RecursionError):
+        raise AssetError('invalid_manifest') from None
+    if not isinstance(manifest, dict) or not isinstance(manifest.get('files'), dict):
+        raise AssetError('invalid_manifest')
+    if (any(type(manifest.get(key)) is not int for key in ('schema', 'game_build', 'asset_format')) or
+            (manifest.get('schema'), manifest.get('game_build'), manifest.get('asset_format')) != (1, 37822, 1)):
+        raise AssetError('unsupported_manifest')
     if manifest.get('original_gameassembly_sha256') != BUILD_SHA or manifest.get('simulation_sha256') != SIM_SHA:
-        raise ValueError('Asset build mismatch')
-    files = manifest.get('files', {})
+        raise AssetError('build_mismatch')
+    files = manifest['files']
     required = {'Simulation.dll', 'map-1v1.pb.gz', 'unit-catalog.json', 'descriptors/game_pb.proto.json'}
     if not required <= files.keys():
-        raise ValueError('Incomplete asset manifest')
+        raise AssetError('incomplete_manifest')
+    # Validate the entire inventory before opening any declared file.
     for name, expected in files.items():
         path = PurePosixPath(name)
-        if path.is_absolute() or '..' in path.parts or '\\' in name or ':' in name:
-            raise ValueError('Unsafe manifest path')
-        target = (directory / name).resolve()
+        if not path.parts or path.is_absolute() or '..' in path.parts or any(c in name for c in ('\\', ':', '\0')):
+            raise AssetError('unsafe_path')
+        if not isinstance(expected, str) or len(expected) != 64 or any(c not in '0123456789abcdef' for c in expected):
+            raise AssetError('invalid_manifest')
+    for name, expected in files.items():
+        try:
+            target = (directory / name).resolve()
+        except (OSError, RuntimeError):
+            raise AssetError('unreadable_asset') from None
         if not target.is_relative_to(directory):
-            raise ValueError('Asset path escapes bundle')
-        if hashlib.sha256(target.read_bytes()).hexdigest() != expected:
-            raise ValueError('Asset content mismatch: ' + name)
+            raise AssetError('unsafe_path')
+        try:
+            actual = hashlib.sha256(target.read_bytes()).hexdigest()
+        except FileNotFoundError:
+            raise AssetError('missing_asset') from None
+        except OSError:
+            raise AssetError('unreadable_asset') from None
+        if actual != expected:
+            raise AssetError('content_mismatch')
     if files['Simulation.dll'] != SIM_SHA:
-        raise ValueError('Simulation DLL mismatch')
+        raise AssetError('simulation_mismatch')
     cosmetics = None
     if 'cosmetic-catalog.json' in files or 'cosmetic_items' in manifest or 'cosmetic_slots' in manifest:
         if 'cosmetic-catalog.json' not in files:

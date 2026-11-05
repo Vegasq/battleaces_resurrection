@@ -1,0 +1,55 @@
+D5 / P5 - CURRENT PRIVATE PAIR CONNECTED NATIVE NETWORK API WATCH341
+
+2026-10-29. Selected post-attach network API observation PASS;
+P5/P9/full D5 remain OPEN,RUNTIME_VALIDATED=false.
+
+Question and method
+271-274 sampled socket tables for an older pair. 338/340 established the
+current recipe34 private pair's connected match and selected SDK-cache change
+scope,but not native process network calls. This run starts the source-owned
+packaged verifier for RC-open public1/two humans and attaches a passive REA
+Frida observer to each owned native game PID after its game-process receipt.
+The observer counts user-mode API entries on all threads of those two PIDs,
+without reading socket payloads,headers,credentials or SDK queue files.
+It does not observe the packaged server/adapter processes or pre-attach time.
+
+Result
+local/privacy341-connected01/verification.json passes in113.969s:1220
+frames,complete result,normal Quit0 on both native clients,server workers
+reaped/final state drained and no forced cleanup. Both Frida sessions detach
+with23 contiguous,untruncated messages each,including17 heartbeats,observer
+ready and five module-ready records. All selected ws2_32 and WinHTTP hooks
+are installed with no observer errors/overflow. At the last heartbeat,
+native client0 counts1207 send/53374 recv;client1 counts1208 send/53000 recv.
+Both count0 connect,WSAConnect,sendto,WSASendTo,getaddrinfo,GetAddrInfoW,
+GetAddrInfoExW and WinHttpConnect over their attached intervals. The positive
+send/recv counts establish that the selected socket hooks ran during the
+connected match;they do not attribute sockets to the private bridge because
+this observer records no send/recv handle. The source-owned reviewer binds
+both sessions to game-process receipts,observer hashes,current package/helper/
+game/source identities,normal match and exact retained REA records.
+
+Ignored identities
+  local/privacy341-connected01/verification.json SHA256
+  d4bfb89d74d8a019c713b592a8dfe11b71a2addd0ac090e13d075d49a45f4c65
+  local/privacy341-connected01/network-review.json SHA256
+  948a8c67dc66c3e60260a4b4b4dd6ac5cadb79599931d4655c447dfed3cfe5dc
+  local/privacy341-connected-network01/rea-evidence.json SHA256
+  2b02f20f4f3555b128d979374baf1a3b86c51165e334a5a7dec85818a3cca087
+
+Boundary and next action
+This is process-level selected API evidence after attachment and through the
+last heartbeat. It does not cover startup before attach,the final seconds
+after the last heartbeat,other network stacks,WinINet when not loaded,raw
+sockets,kernel wire,server/adapter/child traffic or complete delivery.
+The file-root helper recorded1517 unresolved relative roots in each client;
+no file absence claim is drawn from this observer. 340's separate cache
+notification watch remains the applicable selected file-change evidence.
+The next changed concern is socket-handle attribution for send/recv plus a
+bounded pre-launch/exit coverage strategy;do not repeat this exact watch.
+P9's upstream advertising-ID producer remains unresolved. Full D5 is OPEN.
+
+The first local review rejected a pre-write source-text hash because Windows
+newline translation changed the written observer bytes. The ignored config
+receipts were corrected to the actual file SHA256;the observer scripts and
+REA captured bytes were not changed. The corrected reviewer passes.

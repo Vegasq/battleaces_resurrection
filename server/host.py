@@ -12,7 +12,7 @@ import sys
 import tempfile
 
 from .configuration import load_config, ConfigurationError
-from .assets import verify_assets
+from .assets import verify_assets, AssetError, ASSET_FAILURES
 from .credentials import CredentialStore, CredentialError
 from .tls_transport import load_server_context, TLSConfigurationError
 from .game_data import GameTemplate
@@ -21,7 +21,7 @@ from .profiles import ProfileStore
 from .cosmetics import CosmeticCatalog
 from .dedicated_server import DedicatedServer
 from .admission import AdmissionController
-from .host_audit import HostAudit
+from .host_audit import QueuedHostAudit as HostAudit
 from .web_dashboard import Dashboard
 from .state_lock import exclusive_state, StateBusyError
 from .protobuf_wire import field_uint
@@ -87,9 +87,15 @@ async def _run_owned(config, *, check_only=False, on_progress=None, on_ready=Non
         scope='local configuration, asset hashes, private storage if enabled, native create/step/close; no internet reachability proof')
     print(json.dumps(health, separators=(',', ':')), flush=True)
     if check_only: return health
-    audit = HostAudit(config.data_directory / 'logs', max_bytes=config.log_max_bytes,
-                      backups=config.log_backups, diagnostics=config.diagnostic_audit)
     server = dashboard = None
+    loop = asyncio.get_running_loop()
+    def audit_failed():
+        print('Host audit writer failed; stopping server. Check writable log storage and queue capacity.', file=sys.stderr)
+        if server is not None and server.listener is not None:
+            server.listener.close()
+    audit = HostAudit(config.data_directory / 'logs', max_bytes=config.log_max_bytes,
+                      backups=config.log_backups, diagnostics=config.diagnostic_audit,
+                      on_failure=lambda: loop.call_soon_threadsafe(audit_failed))
     try:
         from .worker_ai import AISetup
         templates, catalog = {1: template}, None
@@ -121,6 +127,7 @@ async def _run_owned(config, *, check_only=False, on_progress=None, on_ready=Non
                 dashboard = None
                 print('Dashboard unavailable: check its port and web-matches.json; game hosting continues.', file=sys.stderr)
         address = await server.start(config.listen_host, config.listen_port)
+        audit.raise_if_failed()
         if on_ready: on_ready(address)
         print(f'Battle Aces server listening on {address[0]}:{address[1]}; Ctrl+C stops it cleanly.', flush=True)
         await server.listener.serve_forever()
@@ -132,7 +139,7 @@ async def _run_owned(config, *, check_only=False, on_progress=None, on_ready=Non
             try:
                 if dashboard is not None: await dashboard.close()
             finally:
-                audit.close()
+                await audit.aclose()
 
 
 def main(argv=None):
@@ -147,6 +154,8 @@ def main(argv=None):
         return 0
     except (ConfigurationError, CredentialError, TLSConfigurationError, StateBusyError) as error:
         print('Host configuration failed: ' + str(error), file=sys.stderr)
+    except AssetError as error:
+        print('Host asset check failed: ' + ASSET_FAILURES.get(error.code, ASSET_FAILURES['invalid_manifest']), file=sys.stderr)
     except (OSError, ValueError, WorkerError) as error:
         print('Host startup/runtime check failed (' + type(error).__name__ + '): verify local assets, writable data, certificate and native runtime.', file=sys.stderr)
     return 1

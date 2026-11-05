@@ -52,11 +52,15 @@ class QueueFixture {
     std::string payload;
     BY_HANDLE_FILE_INFORMATION created{};
 public:
-    QueueFixture(const std::wstring& target,const char* authored):path(target),payload(authored) {
-        ba_cosmetics_state::Handle file(CreateFileW(path.c_str(),GENERIC_READ|GENERIC_WRITE,
-            FILE_SHARE_READ|FILE_SHARE_WRITE|FILE_SHARE_DELETE,nullptr,CREATE_NEW,
+    QueueFixture(const std::wstring& target,const char* authored,bool preexisting=false):path(target),payload(authored) {
+        ba_cosmetics_state::Handle file(CreateFileW(path.c_str(),preexisting?GENERIC_READ:GENERIC_READ|GENERIC_WRITE,
+            FILE_SHARE_READ|FILE_SHARE_WRITE|FILE_SHARE_DELETE,nullptr,preexisting?OPEN_EXISTING:CREATE_NEW,
             FILE_ATTRIBUTE_NORMAL|FILE_FLAG_OPEN_REPARSE_POINT,nullptr));
         ba_native_settings::ordinary(file.value);
+        if(preexisting) {
+            require(GetFileInformationByHandle(file.value,&created),"preexisting authored file identity failed");
+            verify();return;
+        }
         DWORD written=0;
         require(WriteFile(file.value,payload.data(),static_cast<DWORD>(payload.size()),&written,nullptr) &&
             written==payload.size() && FlushFileBuffers(file.value) && GetFileInformationByHandle(file.value,&created),

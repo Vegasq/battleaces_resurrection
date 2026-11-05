@@ -1,0 +1,39 @@
+D5 / P7 - pinned direct SDK System.Net and Unity networking calls
+
+2026-10-31. Original GameAssembly/metadata static inventory PASS. Recipe46
+remains unchanged;RUNTIME_VALIDATED=false and full P7/P9/D5 stay OPEN.
+No game,report endpoint or real queue ran for this check.
+
+tools.review_sdk_network_targets508 enumerates named BugsnagUnity.Windows
+method bodies and decodes every direct E8 call to System.Net methods in
+System.dll and UnityEngine.Networking methods in the UnityWebRequest and
+UnityWebRequestAssetBundle modules. The pinned metadata maps no System.Net
+method target in mscorlib or System.Core. Fifty-four decoded SDK calls match:
+52 UnityEngine.Networking targets and two System.Net targets. Every site,
+owner and target is retained in the ignored review receipt.
+
+The two System.Net targets are ProtocolViolationException::.ctor from the
+SDK wrapper's set_useHttpContinue method,which is an exception constructor,
+and a shared generic code pointer at820a97 in the already guarded
+ProcessCachedItems.MoveNext. The latter address has several generic method
+names and does not identify a particular socket operation by itself.
+The SDK network-breadcrumb owner is also guarded in recipe46.
+
+Among the52 Unity networking calls,exactly two directly target the shared
+UnityWebRequest.SendWebRequest method:one at821cab in guarded
+PushToServer.MoveNext and one at80e9cf in the still-active
+BugsnagUnityWebRequest.SendWebRequest wrapper. This agrees with the
+earlier407 shared-send census. The other selected wrapper calls construct
+or configure UnityWebRequest objects,or access method/URI/response state;
+this inventory does not prove their invocation or absence. Earlier406/409
+found no distinct direct caller or virtual/interface send slot for the SDK
+wrapper,but indirect/delegate/reflection acquisition and whole wire remain
+unresolved. No new patch follows from this inventory.
+
+PASS receipt local/privacy508-network-targets01/review508.json SHA256
+ef3381e35b28358b51a56ac4e17c1b7c8ced1068db496a572d005c64e8e666ff.
+The reviewer pins original binary and metadata hashes,all54 site/owner/
+target tuples,decoded instructions,guarded owner entries and the active
+wrapper send entry. This selected direct-call inventory excludes native/OS
+socket calls,other BCL modules,indirect calls,actual packet destinations,
+effective descendants and the independent P9 advertising producer.

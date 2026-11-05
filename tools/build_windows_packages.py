@@ -255,6 +255,8 @@ def build(runtime_zip, helper, output, *, allow_dirty=False, server_launcher=Non
             files['Install Battle Aces.exe'] = installer_data
             files['program/installer/installer-build.json'] = installer_receipt
             files['Start Client.cmd'] = start_wrapper(product)
+            files['Watch Replay.cmd'] = (b'@echo off\r\nsetlocal DisableDelayedExpansion\r\n'
+                b'call "%~dp0Start Client.cmd" --replay\r\nexit /b %errorlevel%\r\n')
             files['Setup Client.cmd'] = wrapper(product)
         else:
             files['Start Server.exe'] = launcher_data

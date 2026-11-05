@@ -1,0 +1,80 @@
+COORDINATOR SHUTDOWN OWNERSHIP191
+2026-10-26. Named D4/D7 shutdown defect fixed and qualified;full gates remain OPEN.
+
+Problem
+ProfileIO already retains abandoned threaded writes and drains a cancelled close.
+The enclosing DedicatedServer.close could be cancelled at an EARLIER await,
+including community cleanup,before it reached that drain. Its caller could then
+leave the host state-lock context while an accepted profile publication remained
+pending. Dashboard188's shutdown protection does not own coordinator cleanup.
+
+Reproduction
+tests/test_coordinator_shutdown.py uses real ProfileStore serialization,flush,
+fsync and atomic publication,an actual loopback listener and OS-backed state lock.
+The test gates publication immediately before os.replace,cancels its network-style
+waiter,then cancels coordinator shutdown at its first await,twice. The original
+coordinator returns before the gated thread settles. Two corrected baseline tests
+fail at that ownership assertion in0.223s. The exact pre-fix source/test/output
+are retained under local/coordinator191-prior01.
+Initial baseline312.txt is a fixture failure,not a product reproduction:reversing
+the authored deck violates its slot constraints,so no write reaches the gate.
+The corrected authored catalog permits swapping the first two units. That corrected
+baseline-corrected312.txt establishes the product failure;both records are retained.
+
+Correction
+DedicatedServer retains one complete shutdown task. First close marks closing
+before yielding;all callers join the same cleanup. Repeated caller cancellation
+waits until it settles,then propagates cancellation. Community/rooms/workers,
+connections,profile I/O,admission and listener teardown keep their original order.
+Repeated close no longer repeats the server_stopped event. Uses the existing
+profile_io cancellation-safe waiter;no protocol,timing,data-format or native patch.
+server/dedicated_server.py SHA256:
+7b9cf5e13cdf17e4b88fb54a66cd69d67aa63eccca7f12e8078e07955e620737.
+
+Regression and affected checks
+Both held-write cases now pass. Until the thread settles,the owner and concurrent
+close stay pending and a second state-lock owner is refused. Successful publication
+keeps the changed deck;injected failure keeps exact prior bytes. Afterwards the
+thread pool,pending I/O,connections,maintenance and listener are drained,temporary
+files gone,lock available and exactly one stopped event recorded. No unconsumed
+event-loop error. This models host.run's lock context;not forced-process/power-loss
+recovery,physical UI or SCM/session0 proof.
+Python3.12:125tests in53.740s,124PASS/1existing opt-in native snapshot skip.
+Python3.14:125tests in52.944s,124PASS/the same1skip.
+Modules:coordinator_shutdown,profile_io,dashboard_shutdown,web_dashboard,
+dedicated_server,community,public_matchmaking,tls_listener,admission,
+windows_service,host_failure_diagnostics. Logs:local/coordinator191-prior01/
+affected312.txt and affected314.txt. The focused16-test312 pass is a subset.
+The skipped case is not accepted;malformed-traffic isolation remains at prior scope.
+
+Actual packaged/native qualification
+local/candidate191-packages01:version0.3.0-rc1.7,dirty3ea4ab0e local previews.
+Compared with188,server payload changes only program/app/server/dedicated_server.py
+and its inventory manifest. Client archive is byte-identical. Helper169/recipe23,
+runtime,native launchers and all other payload bytes remain unchanged. No new
+standalone EXE build or publication. Exact inventory comparison and N12 pins:
+local/coordinator191-prior01/artifact-review.json.
+Server archive SHA256:
+34ceb5492c665a6f6364d471b2226ac25abc2b2ce31a698ac9b75a656cf1cd12.
+Client archive SHA256:
+287e8367890c6c7ff5c89bb156434652d0a19b697cc098c2ee668f3fc6ba1acd.
+
+Unchanged source-owned verifiers use --transport-control and local/s139 assets.
+verify_recovered_game:completed native1v1 surrender,160matching TLS frames per
+peer,completed dashboard history and orderly host shutdown PASS12.969s.
+local/coordinator191-native01/verification.json SHA256:
+273c7c46769f30dcbc5d8494ac94d2decc5757fe982c564cc375de75966cda6e.
+verify_server_recovery:stop during an active native match,40matching TLS frames
+per peer,unknown-result abort and worker exit0 PASS6.203s.
+local/coordinator191-active01/verification.json SHA256:
+6ffcd7094a16a5f3f93e4dd7bb59a714df24d3a949d322f810a299a128aac358.
+Each owner exits0,job8total/0active/0terminated,no force,listener/state lock released.
+The native checks cover changed normal completed/active shutdown paths;the held
+write/repeated-cancellation fault itself is covered by the regression tests.
+No protected backup/restore or prior accepted user test was repeated.
+
+Remaining scope
+D4 storage/replay/visible/malformed-traffic and D7 cross-account/SCM/reboot/clean-PC
+requirements remain open. N12 operator report is still absent;its original four
+source pins and175package remain intact. No new Nick request. P9 producer and
+full privacy/runtime flag remain unresolved. Published174 remains unchanged.

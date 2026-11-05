@@ -1,0 +1,40 @@
+D5 / P9 - exact direct readers of the runtime-static registry head
+
+2026-10-31. Read-only pinned original and current installed UnityPlayer
+source review PASS at the direct-reference scope. No game,advertising ID,
+SDK queue or endpoint was invoked;P9/D5 remain OPEN.
+
+The runtime-static AdsIdHandler descriptor is linked into
+RegisterRuntimeInitializeAndCleanup::s_LastRegistered at RVA1d0cd60.
+Prior179 identified two generic walkers:ExecuteInitializations invokes a
+descriptor's initializer,and RuntimeCleanup invokes its destructor. To
+check for an omitted direct registry-head consumer,the exact-PDB Ghidra
+project enumerated2,878 references to that address. A separate full .text
+LLVM decode found exactly the same2,878 instruction sites;all decoded
+bytes also match the actual-installed recipe47 UnityPlayer at543.
+
+Ghidra assigns1,908 sites to named dynamic initializer bodies and961 to
+named dynamic atexit bodies. The remaining nine sites are in six bodies.
+Two are the previously reviewed generic invocation walkers(67eac0 and
+5c5830). The other four bodies create/link or unlink unrelated runtime
+registry nodes:ThreadSpecificValue<int>,FileSystem,GlobalContext and
+LocalFileSystemWindowsShared. The nine exact source instructions and six
+PDB-decompiled bodies were retained. There is no third direct non-static
+registry-head invocation walker in this decoded image.
+
+tools.review_ads_registry_noninit552 independently compares Ghidra's
+2,878 addresses with the raw full-.text decode,checks all selected bytes
+against pristine and installed UnityPlayer,verifies the nine non-static
+owners and retained decompilation:PASS. Receipt:
+local/privacy552-registry-noninit01/verification.json SHA256
+50320c39f1ee0362982b16ccbd5df53c22292bfb349ae92eed92e1e6eab6645d.
+Read-only decompilation log SHA256
+9f52b08ef1d825059bcd84a9dc16db2221a71dbf352e6d8289a0cfacb858ba9e.
+
+This narrows the descriptor alias question:the known two generic walkers
+remain the direct registry execution paths,and the current recipe47
+AdsIdHandler initializer returns before allocation. It does not prove
+that an independent AnalyticsCoreStats IAdsIdListener provider cannot
+acquire an ID,exclude computed aliases/other modules,or settle real queue
+and whole-wire privacy. A positive producer/registration edge or a proved
+pre-acquisition cut is still required before P9/D5 closure.

@@ -1,0 +1,37 @@
+D5 / P9 - UnityPlayer WinRT activation resolver attribution
+
+2026-10-31. Read-only exact-PDB/pristine-UnityPlayer investigation. P9/D5
+remain OPEN;no game,advertising provider,queue or network endpoint ran.
+
+The pristine UnityPlayer SHA256 is
+ac144d56d53f07904d52ed27a1539de90bc3290038fe52d73d2f6b268c85d6bc.
+It contains ASCII RoGetActivationFactory and WindowsCreateString names,so
+the WinRT import surface initially looked like a possible advertising-ID
+provider. An exact-PDB Ghidra -noanalysis -readOnly run found zero symbols
+with those names;the names are resolved dynamically in UnityMainImpl at
+803e71/803f30. That startup body stores their GetProcAddress results in
+global slots1d0e0c8 (RoGetActivationFactory) and1d0e0d0
+(WindowsCreateString). The call result is stored after the following
+name's LEA,which accounts for the one-instruction-pipeline ordering in
+the disassembly. The headless process exited0.
+
+Ghidra direct references to the first slot:13 total,one writer in
+UnityMainImpl and12 reads. The second:32 total,one writer in UnityMainImpl
+and31 reads. The named readers are Phrase/Dictation recognition,Photo/Video/
+MixedReality capture and Gamepads;none is an analytics,AdsIdHandler or
+advertising-named owner. The pristine binary also has no literal ASCII or
+UTF-16LE Windows.System.UserProfile,AdvertisingManager or
+IAdvertisingManagerStatics string. The generic RequestAdvertisingIdentifierAsync
+name in the binary is a scripting API registration string,not an OS provider.
+
+This retires the two direct WinRT resolver slots as a positive provider lead
+in the analyzed UnityPlayer image. It does not exclude computed aliases,
+constructed WinRT class names,other modules or another OS API. It is not a
+pre-acquisition cut and does not close P9. Continue with a concrete
+registration/provider edge or another supported route;do not repeat a generic
+WinRT string search.
+
+Ignored script:local/d5-ghidra-12.1.4/scripts/TraceWinRtAds539.java SHA256
+ee3f2462e2bf8c1e3e671318b7b3de5e66d1b5105057e34a10184333e89a5fed.
+Untruncated console:local/d5-ghidra-12.1.4/pdb-winrt-ads539-console.log SHA256
+bad36eeac7c904cf96838595205a6a66e2a4e62bbacce84f1fb046b2c96c4c0b.

@@ -1,0 +1,31 @@
+D5 / P7 - bind the two unnamed generic File.ReadAllText callers
+
+2026-10-31. Read-only pinned original GameAssembly and IL2CPP metadata review
+PASS. No game,queue file or endpoint was invoked. Current patch recipe44 is
+unchanged. P7/P9/D5 remain OPEN,RUNTIME_VALIDATED=false.
+
+tools.review_sdk_generic_reads493 checks the original binary and metadata
+SHA256s,then resolves the two unknown function roots from492 through the
+IL2CPP code registration genericMethodPointers and metadata registration
+genericMethodTable -> methodSpecs -> method definition. The registration
+counts/pointers and unique pointer/table/spec mappings are asserted. Receipt:
+local/privacy493-generic-read01/verification.json SHA256
+72974f46a1cf3691d62deb3f29bf904f7edf0cfae969d7d66163ea96333863a2.
+
+- Root2630870,File.ReadAllText call2630b35:generic pointer index174463,
+  table row174903,method spec191837,class inst136,definition10660.
+- Root2632790,File.ReadAllText call2632a86:generic pointer index174485,
+  table row174925,method spec191859,class inst11983,definition10660.
+
+Both resolve to RGame.dll SteamRemoteFile`2.ReadJsonText. They are two
+class specializations of the same game method definition,not BugsnagUnity
+methods. All eight original direct E8 calls from492 now have a named owner;
+the two SDK CacheManager calls remain guarded in recipe44. The shared
+File.ReadAllText API must stay intact for game/resource callers.
+
+This closes only the two unnamed direct-call owner questions. Indirect file
+reads,other file APIs,real SDK queue state,retry/delivery,whole wire,mode
+coverage,descendants and the P9 advertising-ID producer remain unproved.
+The next P7 work should follow an actual unguarded SDK collection/delivery
+edge or prove effective absence across the final installed pair;do not repeat
+the direct E8 census.

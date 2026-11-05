@@ -1,0 +1,37 @@
+D5 / P7-P9 - current callback/state-three composition
+
+2026-10-30. Pinned original/current recipe38 source review PASS;P7/P9/D5 OPEN.
+No game,callback,real queue or endpoint was invoked.
+
+115 qualified the native advertising callback's retained-ID copy guard at
+recipe11. 109 qualified the dirty-state identity conversion redirects at
+recipe8. This review binds those three sites together in the current owned
+recipe38 UnityPlayer and patch source. The complete49-instruction callback
+body differs from pinned original only by five NOPs at c30838,where the
+original borrowed-ID string copy was called. The remaining callback body
+updates tracking/dirty flags. After the skipped call,it does not read the
+borrowed ID/error argument registers;when its atomic state read is3 it
+passes the containing Main object to c300f0.
+
+Current c300f0 redirects c3016b to c30223,skipping construction/conversion
+of the analytics identity payload,and c30273 to c3077c,skipping cleanup of
+unconstructed locals while preserving restores. The state/e10/be conditional
+virtual+b0 drain call at c3024f is byte-identical to original. Thus this
+callback's supplied ID is not retained or forwarded into that conversion
+through these selected instructions,while drain progress remains possible.
+
+The preserved drain can act on state that predated this callback or was
+populated by an unclassified path.173 already closes the named automatic
+saved-report routes on a fresh patched launch and explains that installation
+does not cancel an already-running original process. This check does not
+reopen those named findings. Its own state3 reachability,other queued inputs
+and effective network behavior remain unestablished. The advertising-ID
+acquisition/registration path is still unknown. Do not interpret the
+preserved drain as a pass for P7 or P9.
+
+Reviewer:tools.review_ads_state3_composition425. It verifies full callback
+bytes,current source/owned recipe,branch destinations,conditional call and
+restore tail. Ignored callback assembly/receipt:
+local/privacy425-ads-state3-composition01/verification.json.
+Receipt SHA256:68964273e6c35c1f7d4cb65066c5deaa204ddac435066abea5dba5fad2e04c26.
+RUNTIME_VALIDATED=false,published174 unchanged.

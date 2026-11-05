@@ -1,0 +1,51 @@
+D5 / P5-P8 - native device-I/O control-code attribution
+
+2026-10-30. Current private public1/two-human subcase PASS;full D5 OPEN.
+
+Both current recipe38 clients were created suspended. A passive observer was
+armed before main-thread resume on NtDeviceIoControlFile. It counted handle,
+control code and return status without reading input/output buffers. The same
+current private RC-open public1 match completed1220 frames,result/Continue
+and normal Quit0 on both clients. Jobs/workers drained without forced cleanup.
+The existing prelaunch selected file/socket and packaged Python endpoint
+reviewers passed against this exact run.
+
+The observer saw60183 and59739 device-I/O calls in the respective clients,
+across25 control codes each,without errors,overflow or truncated messages.
+All seven observed0x120xx codes used only the client inherited private bridge
+handle(0x1a4/0x1f0). The0x1201f call counts(1218/1218) equal the selected
+Winsock send counts,and0x12017 counts(53181/52737) equal selected recv counts.
+The latter includes failed nonblocking receive attempts;its call total is
+not a successful packet total. Five other0x120xx codes occur once per client
+on that same bridge handle. This corroborates the earlier selected Winsock
+handle attribution at a lower user-mode API boundary for this owned run.
+
+The first run's per-handle collection budget overflowed after32 handles,
+because the process made tens of thousands of other device-I/O calls. Its
+packaged match passed but that diagnostic is INCOMPLETE and retained. The
+second sensor summarized every control code before interpreting handles;
+its25-code totals reconcile exactly to the total observed calls. The reviewer
+initially refused an assertion that all bridge receive calls succeeded;
+failed nonblocking receives are present. The corrected reviewer retains
+their status counts and passes without changing the capture.
+
+tools.review_d5_device_io410 independently binds source/package/helper/game,
+assets,match,Jobs,prelaunch gates,observer source and REA streams. It checks
+complete code totals,exact bridge-handle equality and selected send/recv
+count agreement. The source is tools.frida_device_io410. No original report
+queue,request contents,identity payload or endpoint was accessed.
+
+This is selected user-mode NtDeviceIoControlFile evidence in one owned mode,
+not kernel capture,actual wire,other native APIs,other processes/brokers,
+all supported modes or final installed release proof. Product binaries and
+published174 remain unchanged;RUNTIME_VALIDATED=false.
+
+Ignored retained evidence SHA256:
+ local/privacy410-device-io01/verification.json
+ 1b1bc06ee8b55586e6c6f072eef1ecb373dff18e3a4538b5436c7e23ad800ed0
+ local/privacy410-device-io02/verification.json
+ a7a19d9612cb5f0366ec35ae0a53f836c508c0075b1814865aed28fd1acff99e
+ local/privacy410-device-io02/device-io-review.json
+ c8a59946dc0e5c73293f2e80a64e3162eec04c87e34f33519db21e33f598620d
+ local/privacy410-device-io-trace02/rea-evidence.json
+ 938d73ea67511cf629bfe6a67304bbe2a541ef3aa508409338da904550785551

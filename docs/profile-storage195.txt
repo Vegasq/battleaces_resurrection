@@ -1,0 +1,66 @@
+BATTLE ACES - PROFILE STORAGE REFUSAL AND RECOVERY195
+2026-10-26. SCOPED COMPLETE. D4 remains open.
+
+CLAIM AND RESULT
+Actual packaged191 server preserves player files and session choices when
+Windows refuses profile replacement/read. Corrupt JSON is not silently replaced.
+Recovery loads the retained saved choice;an unrelated native match keeps running.
+No production change was needed. New verifier:tools/verify_profile_storage.py.
+The reusable parent in verify_loading_recovery.py now accepts a driver/scope
+and pins its own source as well as driver/helper. Default193 behavior retained;
+original193 source remains archived with its accepted evidence.
+
+BOUNDED CHECK
+Owned loopback RC TLS community peers use real authentication and SET_LOADOUT.
+One separate Custom1v1 room uses packaged Simulation.dll and ordinary50ms steps.
+Only disposable local profiles are obstructed;no ACL or real-player data changes.
+- A read-sharing Windows handle denies replacement. SET_LOADOUT returns profile
+  save unavailable;previous bytes/default cosmetics remain,no temporary file
+  survives,and REFRESH works. After release,the SAME connection saves portrait80
+  instead of66 and reads it back. Other cosmetic slots/default deck are retained.
+- An exclusive handle denies reading that saved file. Reconnect falls back to
+  defaults;save refuses and REFRESH works. Releasing the handle leaves exact
+  saved bytes intact. Reconnect with the same identity loads portrait80 again.
+- Deliberately truncated JSON produces defaults and an explicit save refusal.
+  Corrupt bytes remain unchanged. The harness restores retained valid bytes;
+  reconnect loads saved cosmetics. This is explicit operator-style repair,
+  not automatic product repair or recovery from power loss.
+Both lock controls independently probe conflicting CreateFileW access and obtain
+WinError32. Host replacement reports WinError5/errno13;CRT read reports errno13.
+Audit has two permission save failures and permission/invalid-data load fallbacks.
+No protocol/simulation error. The healthy room/worker remains identical,its two
+profile files unchanged,with40 equal peer frames matching host audit hashes.
+Maximum frame gap64.9061ms;the diagnostic1000ms bound is not a latency guarantee.
+Native worker/controller exit0;job6total/0active/0terminated;no force. Total4.563s.
+
+VALIDATION AND RETAINED ATTEMPTS
+Three real-Windows controls check replacement/read refusal,handle release after
+an exception,and refusal to lock a sibling outside the owned profile folder.
+Together with loading/profile cosmetics/profile I/O tests:18 PASS on each
+Python3.12 and3.14. No skips. Tests:test_profile_storage.py.
+storage195-01 remains FAILED:the verifier incorrectly required WinError32 on
+both high-level Python operations. Behavior reached recovery;the audit exposed
+the actual codes above. Corrected controls/error expectations pass195-02.
+That report's parent scope incorrectly retained193's label;child scope is correct.
+195-03 passes with matching parent/child storage scope. Exact prior sources and
+reports are retained;no failed report was relabeled or overwritten.
+
+ACCEPTED EVIDENCE
+Report:local/storage195-03/verification.json
+SHA256:79cf4b1f28e443565db183d3b031ee01c2da93ea028c115b782e015130e7e9b7
+Case/audit:local/storage195-03/storage/
+Package:local/candidate191-packages01/battleaces-server-win64
+Package manifest:e0531eec69057f165490fdb712581dec95632d6115fa29dda22035505d580235
+Assets:local/s139/assets/build-37822
+Asset manifest:5f26ae7e35ce004c5105fa42a85fed8671194380e9461caa89888decd2ee4ad3
+Driver:13252d0da40412fd1d02473d9c2afec2cfdd186ef1bda39906ba05c1ce857136
+Harness:9ffed736e00b6e088146132580da407a52ba6d0e302cafc88e879dde775d80df
+Helper:e2978c262e453ec0cbb1d514ad62ca7f2c78858e74b988d0de123d17a15c20ae
+Tests:06e11b7906be37ea76edaff3b1b48c180d2cb329b7985302d55a608846161b11
+Package/assets verified;server imports from packaged app;source pinned before/
+after. Final sources/manifest retained under storage195-03/source/.
+
+BOUNDARY
+Server profile storage only. Unity UI/local settings/replay,physical player
+feedback,other corruption/permission causes,disk-full/power-loss recovery and
+full D4 remain open. No new package/publication;191preview/174release unchanged.

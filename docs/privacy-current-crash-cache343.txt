@@ -1,0 +1,45 @@
+D5 / P7 - RECIPE34 NATIVE CRASH FULL-LIFETIME SDK-CACHE CHANGE WATCH343
+
+2026-10-29. Selected named-root change observation PASS;
+P7/P9/full D5 remain OPEN,RUNTIME_VALIDATED=false.
+
+Question and method
+330's instrumented recipe34 crash captured selected file/network activity
+through the original exception filter's return,but not later OS handling.
+This run starts the read-only Windows FileSystemWatcher on the293-bound
+Bugsnag cache root before the owned uninstrumented native game is created,
+then stops it after the crash process has exited and been reaped. It records
+Created,Changed,Deleted,Renamed and Error notification counts only. It does
+not open,enumerate,read,seed or clear any real SDK report queue files.
+The original recipe34 crash gate uses the owned301 game/helper324 and a fresh
+isolated profile;no user-owned game or global OS policy is changed.
+
+Result
+local/privacy329-crash343/verification.json passes:the original game crashes
+with c0000005 in9.891s,owned job1total/0active/0terminated,root reaped and
+no forced cleanup. The passive watch runs00:12:18.304769Z through
+00:12:33.722242Z. The retained owned job's OS process timestamps are
+00:12:22.981604Z creation and00:12:31.945299Z exit;the source-owned reviewer
+checks the watch brackets that entire lifetime. The cache-root counts are
+Created0,Changed0,Deleted0,Renamed0,Error0. 340's separate owned positive
+control with the same watcher source saw create/change/delete notifications.
+The reviewer also checks recipe34 installed helper identity,original crash
+exit,job completion,unchanged source/components/shared state and the exact
+SDK root established by293.
+
+Ignored identities
+  local/privacy329-crash343/verification.json SHA256
+  4b68845af11c9d8555d841a9a5cf0c44426266abf38bcd41395a6a2914a8c32c
+  local/privacy329-crash343/cache-review.json SHA256
+  82c7ebb507530a9f86bda64cb9a01553c337a2b0907f536916726dc82346519e
+  local/privacy343-crash-watch01/watch.json SHA256
+  65eb6de40772241bbc7f0d95597277ab1bd75dbcdd51b78fe67bb8bf4f4b1495
+
+Boundary
+This adds an independent whole-lifetime selected change watch,including the
+post-filter interval,for one named SDK cache root. It does not see file reads,
+existing unchanged cache state,other roots,mapped I/O,network delivery,
+external process behavior or every error/report route. 330 remains the
+applicable detailed through-filter file/network/DbgHelp trace. The cache
+root is shared,but there was no other game/host process at the pre-run owner
+check. P7/P9/full D5 remain OPEN and runtime_validated=false.

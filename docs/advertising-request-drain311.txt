@@ -1,0 +1,32 @@
+D5 / P9 - public advertising request and queued callback drain
+2026-10-28. Bounded source/current-owned-image review PASS;P9/D5 OPEN.
+
+110 identified native5fb70 as the public advertising request API and showed
+that its fresh-manager branch queues a managed callback with initially empty
+ID/error state. This follow-up traces the named immediate handoff after the
+queue append,including a manager with retained state. 5fb70 calls predicate
+3611d0 at5fc6b;only when that returns true does it call drain361510 at
+5fc77. Predicate reads manager+5c,can clear it after a timer threshold,and
+otherwise sets manager+60 to state1. It does not acquire an ID in its
+complete body. Drain361510 traverses queued nodes and calls361260 at
+36155c. That per-node routine marshals retained arguments and invokes an
+indirect callback at3613f4. The four complete reviewed bodies contain no
+direct c307c0 call or Main+1498 field reference. They do not reveal the
+indirect callback target,other manager field writers or an upstream provider.
+
+tools/review_ads_request_drain311.py PASS checks pinned original Unity SHA256
+ac144d56d53f07904d52ed27a1539de90bc3290038fe52d73d2f6b268c85d6bc,
+merged unwind extents,414 contiguous decoded instructions and selected
+call/state anchors. Both the earlier recipe25 and current recipe28 owned
+Unity copies have SHA256
+a53b0c613a86c737b7caa7588c7c93ae20d5d5700f9321a406df9dcca8e32a7f;
+all four bodies match the original bytes in those copies. Raw disassembly
+stays ignored under local/privacy311-ads-request01. No game or provider was
+executed;no real ID or shared queue was read.
+
+This extends110's fresh-manager source result through its immediate callback
+drain. It does not prove the public API is acquisition-free through all
+indirect callees,or that the separate Main+1498/c307c0 advertising path is
+cut before acquisition. No source patch follows. Continue P9 only from a
+concrete producer/indirect target or a proven pre-acquisition cut;P1-P8 and
+final installed collection/delivery scope remain open. RUNTIME_VALIDATED=false.

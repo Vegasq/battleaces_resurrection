@@ -1,5 +1,5 @@
 WINDOWS MULTI-ROOM SOAK QUALIFICATION
-Updated: 2026-10-23
+Updated:2026-10-27. Latest graphical/timing follow-ups214-219 are below.
 
 Current bounded packaged RC TLS subcase157 passes8matches/24worker lives in130s,
 20Hz mean/max65.36ms,4persistent authenticated TLS1.3 connections. Its explicit
@@ -299,3 +299,591 @@ PRIMARY METRIC REFERENCES
 https://learn.microsoft.com/en-us/windows/win32/api/psapi/ns-psapi-process_memory_counters_ex
 https://learn.microsoft.com/en-us/windows/win32/api/processthreadsapi/nf-processthreadsapi-getprocesshandlecount
 https://learn.microsoft.com/en-us/windows/win32/api/processthreadsapi/nf-processthreadsapi-getprocesstimes
+
+GRAPHICAL REMATCH214 - 2026-10-27 - LIFETIME/RESOURCE PASS;TIMING OPEN
+Missing claim:initial match plus20rematches in the same two graphical clients,
+with native results/Continue,saved-deck edits,worker release and final normal Quit.
+Existing host-only157/160 soaks and213 ordered stream delays retain their scopes.
+
+Added explicitly opted-in -community-match-soak-smoke to the existing Custom
+diagnostic. It requires owned nativestest_ profiles and gated native Quit. Default
+two-round diagnostic remains unchanged. The new sequence returns through original
+Continue after each match,holds the idle lobby until an owned empty gate arrives,
+edits the host deck through original setters and starts the next match. Guest
+deck remains stable. All21rounds use the same lobby,connections and native PIDs.
+At the end,guest then host perform original Leave and both use original Quit.
+Ordinary launchers do not add this flag. Product simulation/transport is unchanged.
+
+Controller checks both native idle markers,zero rooms/retired/public entries/
+offers/cleanup/active workers,two sessions and the matching open lobby epoch.
+After2s settled idle,it samples all five owned processes and releases both gates.
+Ten-second samples retain private commit,working set,handles,CPU and creation time.
+Retained handles/process objects prove liveness around each sample;identity must
+remain stable. Baseline=idle after round3;final=idle after round21. Predeclared
+growth limits:each native game256MiB private commit/+64handles;host and each
+launcher64MiB/+16handles. Intermediate peaks are reported,not erased by idle
+comparisons. No forced GC. These finite bounds do not prove indefinite leak freedom.
+Per-match cadence is reported separately from completion/resource acceptance.
+
+Every round must have exact receipt sequences,payload equality,sampled observable
+state agreement,unique native replay identity/frame sequence,matching recordings
+across clients and worker release before the next creation. Twenty host deck edits
+must match the frozen native loadouts;all guest decks stay unchanged. Both original
+Quits,exit0,drained jobs and unchanged packages/assets/shared channels are required.
+No partial,forced or still-running report qualifies the21-round gate.
+
+Preparation:local/rematch214-preparation01/run-plan.json records bounds before
+the long run. Before files and204source/test snapshots are retained there.
+54focused tests pass on Python3.12 and3.14;required C++ suite/helper build passes.
+Helper:build/helper-rematch214-01,source-bound receipt. Installed independent copy:
+<private-diagnostics-root>/rematch214-game01.
+Installed manifest differs from prior r171g only in helper_sha256;original user
+copies and r171g are preserved. Diagnostics permit this explicit owned C: root.
+
+Local preview214:local/candidate214-packages01,dirty/unpublished0.3.0-rc1.7.
+Both package payloads differ from203 only in helper,helper provenance and
+compatibility metadata. No standalone-installer rebuild or publication.
+Client ZIP76adb76ab49d34f6ab548684f1913f197fe090f6122e26c2f2737717ffa68c29
+Server ZIPf1c2ce799f360ba071173f295dacd11f4dd13fa97e86a62c57e5b0349cf2fbde
+
+Changed-helper default two-round control:local/rematch214-control01/verification.json
+PASS187.406s,two1220-frame matches,three workers0,jobs7/0/0,2/0/0,2/0/0,no force.
+SHA256 b58e79a40e5251be4794b8dc70d06c990b9c311f91e86c8acd1b0839ae70ac12
+Cadence19.259/19.826Hz,max gaps818.822/420.218ms. Completion passes;the first
+match is below the older host soak19.5Hz threshold. Do not claim sustained20Hz
+or infer an outlier's cause from this control. All observations remain evidence.
+
+FIRST FULL RUN / DIAGNOSTIC RETENTION FAILURE
+local/rematch214-soak01 finished1772.156s:21matches,1220frames and122common state
+samples per client per match,twenty native host deck edits and unchanged guest
+deck. Both native Quits0;22workers reaped/exit0,jobs45/0/0,2/0/0,2/0/0,no force.
+All package,asset,adapter,source,config and shared-channel preservation checks pass.
+Terminal report remains FAILED:server idle handles grew17 against the declared16
+limit. No threshold was relaxed. Server private growth5,054,464bytes;client0
+16,474,112bytes/client1 112,975,872bytes,each game handles-12. All other process
+resource limits pass.175intermediate resource samples retained.
+Verification SHA256:c71706b4352e021f6a79d1051dbbfd4ea8b26d2380c46f1ba5d1069d39036bf7.
+Supplemental result-delivery-review02.json independently matches all42client
+result deliveries to server frame/winner/concession/checksum and checks the two
+original Quit traces. Its scope is native results/Quit only;parent failure stays.
+Review SHA256:5f72da3a42722bd16dbc48dbc476cc10eb8075400712881eb28b75c976d491ca.
+Three matches fall below19.5Hz;minimum19.109Hz,max gap1184.404ms. This fails the
+older host-soak timing targets and does not establish sustained20Hz. Timing causes
+remain unisolated;record this separately from native completion/resource closure.
+Retained timing-review01.json examines all25,599within-match intervals:40reach
+200ms. Six include worker awaits>=200ms;18have>=200ms outside the current
+interval_ms/frame_work_ms measurements;ten have interval_ms>=200ms. These counts
+are not exclusive causal classifications. The largest gap includes1166.380ms
+outside those current-frame measurements,with3.206ms worker await. Source-matched
+tick code places last_progress after the previous audit call;the unmeasured span
+also includes post-event/current-event preparation and scheduling. Next bounded
+probe should time the audit/status callbacks and loop delay explicitly. Existing
+data does not establish disk,network,native CPU or scheduling as the sole cause.
+
+The external server adapter retained every completed SimulationWorker in a list,
+also retaining each Popen/process handle. The actual bundled Python3.14 Handle
+finalizer calls CloseHandle;Popen wait does not. An isolated owned-process probe
+directly measures eight retained process objects adding8handles and releasing the
+list removing8. No game/real host is involved. New observer stores weak references
+and immutable completion metadata;it retains a worker only until actual cleanup
+completes. Original close result/cancellation/errors propagate. No direct closure
+of a production process handle,no forced GC or product-code change.
+
+New tools/worker_observation.py is embedded in the external adapter,not shipped.
+Five focused tests include successful collection,cancelled callers,failed cleanup,
+missing cleanup evidence and copied metadata.59combined tests pass on3.12/3.14.
+The first process probe's observer phase showed+2handles despite all objects being
+collected;failed output/script retained and that extra count's cause is not isolated.
+Probe02 warms the same observer path before comparison:baseline136,retained144,
+released136,observer-final136;all eight observed objects collected,children exit0,
+no force. Preparation scripts/reports:local/rematch214-preparation01/.
+
+CORRECTED RUN / TERMINAL PASS
+local/rematch214-soak02/verification.json passes1767.719s,using the same214packages/
+helper,fresh profiles,2400s deadline and unchanged resource limits. Only diagnostic
+worker retention/report preservation changed.206source/test snapshots and exact
+pre-fix code/docs are retained. Report SHA256:
+875d4ce1fc03e352452700f80c8cbe007332aa9bb295859a3fd4f7864f8db32a.
+All21matches complete1220frames and122sampled observable-state comparisons per
+client:25,620frames/2,562samples each,not independent full-state proof. Original
+results/Continue,twenty native host deck edits,stable guest deck,matching native
+replays,original Leave and both original Quits0 pass. Same native PIDs/lobby/TLS
+connections persist.22workers exit0/reaped;jobs45/0/0,2/0/0,2/0/0;no forced cleanup.
+All source/package/asset/config/adapter/shared-channel preservation checks pass.
+
+All21settled-idle boundaries and175intermediate resource samples retained.
+Idle round3->21 private commit / handle deltas:
+  server:   +6,557,696bytes / -1
+  launcher0:  -28,672bytes / -1
+  launcher1:  -28,672bytes / -1
+  game0:  +115,445,760bytes / -11
+  game1:   +93,073,408bytes / -11
+Every predeclared bound passes. Peak private commit:server41,099,264bytes,
+game0 8,095,850,496bytes,game1 8,113,246,208bytes;peaks are not idle growth.
+completion-review.json rechecks raw samples,identity,all idle states,worker/job
+cleanup,source preservation and native lifetime evidence against the terminal
+report. result-delivery-review02.json independently checks all42native result
+deliveries against server frame/winner/concession/checksum and both Quit traces.
+Result review SHA256:
+629ccfb7695144c452c2f6545a8ccfc898aef50659279b6be520761d7f161a62.
+
+Cadence ranges19.229-20.004Hz;one match falls below19.5Hz,max gap998.747ms.
+Sustained timing remains OPEN. timing-review01.json retains25,599intervals:
+23gaps>=200ms,one worker await>=200ms,13residual windows>=200ms and five idle
+intervals>=200ms;counts are not exclusive causal classifications. Largest gap
+includes950.655ms in snapshot await;another976.183ms gap is mostly idle interval;
+another895.690ms includes881.769ms outside current interval/work measurements.
+Next bounded two-match probe should time audit/status callbacks and loop delay
+alongside worker/snapshot awaits. These windows do not isolate underlying disk,
+CPU or scheduling causes. No claim that the observer fix repairs performance.
+No Internet/loss/physical input/visual presentation/8-hour duration or fullD8 claim.
+
+HOST TIMING215 - 2026-10-27 - DIAGNOSTIC STATUS FIX / TWO-MATCH PASS
+Question:which measured callback/await windows overlap the retained long frame
+gaps?214's resource/lifetime pass does not identify a universal timing cause.
+Bounded plan:reuse214packages/helper/owned game for two Custom matches;record
+original HostAudit call spans,external status view/publication spans and50ms
+event-loop wakeup lateness in memory. Maximum65,536rows;overflow fails review.
+No added evidence writes during play;serialize once after host shutdown. Original
+server clocks,game,simulation,packages and audit records remain unchanged.
+tools/timing_probe.py and opt-in --timing-probe in verify_packaged_multiplayer.py
+provide this external adapter only. Every2440frame timestamp must fall within its
+matching measured original audit call. Raw records retain all windows;review
+summarizes twenty largest>=200ms gaps with up to twelve overlapping observations.
+Overlap windows are not mutually exclusive causal classifications.
+
+Original synchronous status control:local/timing215-control01/verification.json
+PASS183.016s,two1220frame/122sample matches,normal result/Continue/Leave/Quits0,
+three workers0,jobs7/0/0,2/0/0,2/0/0,no force. All source/package/asset/config/
+adapter/shared-channel preservation checks pass. Report SHA256:
+4196672d2c1ef51263c31b1f20b1a82a3f618c4020819c1e5d04e0635643b1b8.
+Cadence19.992/19.836Hz,max gaps73.184/465.316ms. Measurements:2723audit spans,
+1638status spans,3007loop-delay windows,no overflow. Audit max0.4175ms;
+status max450.5435ms;all-phase loop delay max595.3057ms. Record overhead total
+22.5025ms,max0.0581ms. The sole>=200ms frame gap is rematch frame652:
+465.316ms gap includes450.5435ms in synchronous status view/publication and
+432.2955ms loop wakeup lateness;current worker3.1628ms,snapshot0. This identifies
+an event-loop-blocking diagnostic callback window in this run. It does not
+attribute the underlying callback delay to disk/CPU/scheduling,explain all214
+outliers,or prove production gameplay has the same bottleneck.
+Raw server/server-timing.json SHA256:
+9aaad7ed28fa3b6020ea5200e2764d7fc951d6af537ad3871392dfab0cd4d484.
+completion-review.json rechecks archived source,all lifecycle/preservation gates,
+raw timing and every original frame timestamp. result-delivery-review02.json
+independently checks all four native result deliveries and both original Quits.
+
+Fix external qualification adapter only:collect status on the event loop,then
+serialize/write through one owned background thread. Await each publication;
+there is no unbounded queue. Cancellation drains the uncancellable write before
+propagating and shutdown joins the thread. Original write errors propagate.
+Status observations now measure threaded publication;new status_view observations
+measure snapshot collection separately. Loop/audit measurements stay unchanged.
+67tests pass on each Python3.12/3.14,including held-write loop responsiveness,
+repeated cancellation/drain,reentry/early-close refusal,original return/error,
+thread exit,probe overflow refusal and original timestamp coverage. No production
+module change,package/helper rebuild or publication. Before bytes,205source/test
+snapshots per run and predeclared plans:local/timing215-preparation01/.
+Changed control:local/timing215-control02/verification.json PASS182.203s. Two
+1220frame/122sample matches,matching native results/replays,normal Continue/Leave/
+Quits0,three workers0,jobs7/0/0,2/0/0,2/0/0,no force. Status thread and timing task
+drained;all source/package/asset/config/adapter/shared preservation checks pass.
+Report SHA256:
+99bc3bed9e8dbec3065721e3992a126c9c4f02283b8858dae1b512cff3fcbef2.
+Cadence20.000/20.002Hz,max gaps67.853/67.759ms,zero cadence resets and no>=200ms
+frame gaps.2720audit spans,1636status writes,1636status views,3014loop-delay
+windows,no overflow. All-phase maxima:audit4.2931ms,status write202.7002ms,
+status view0.0859ms,loop delay600.3521ms. Record overhead total23.9342ms,
+max0.0607ms. Raw timing SHA256:
+58f17d5876bb2fa2a0c9addfba3e807356928ba82cad6bb179b2835296c0e8bd.
+completion-review.json rechecks archived source/native lifetime/raw timing;
+result-delivery-review02.json checks all four original native results and Quits.
+
+phase-review.json in each run separates overlap with each first-to-last frame
+timestamp range from all-phase maxima. In changed control,the202.7002ms write
+and600.3521ms wakeup delay are outside those active-frame ranges. Inside them,
+maximum status-write overlap1.8289ms,status-view0.0695ms,loop delay15.5329ms,
+audit4.2931ms. Therefore this native control does not itself demonstrate gameplay
+during a slow status write;the held-write asynchronous tests establish loop
+responsiveness/drain. Do not claim all-phase sub-second scheduling from frame
+cadence,or assign earlier214snapshot/unmeasured stalls to this specific callback.
+The external status adapter no longer performs those file writes on the server
+event loop;its normal two-match path is qualified. No player-facing fix claimed.
+Next D8:qualify sustained packaged/TLS graphical cadence after this adapter fix,
+with unchanged timing targets and retained snapshot/loop windows if stalls remain.
+This two-match result does not close sustained performance/fullD8;no target relaxed.
+
+GRAPHICAL CADENCE216 - 2026-10-27 - CADENCE FAIL;LIFETIME/RESOURCE PASS
+Missing claim:sustained packaged RC TLS graphical cadence across21matches after
+215's external status-writer fix. Reuse214packages/helper/owned C: game,assets,
+original21round native lifecycle and resource gates. No product/package change.
+local/cadence216-preparation01/run-plan.json declares bounds before launch:
+each match>=19.5Hz,every within-match gap<=1000ms,and at most1percent of worker
+awaits>50ms per match. Includes the initial match and every rematch;no timing
+warmup exclusions. These are the existing numerical host-soak targets,applied
+per match rather than averaged across the entire run. Lifetime/resource scope
+retains214's exact idle3->21 bounds.50ms native simulation steps are unchanged.
+
+--custom-soak --timing-probe now qualifies all25,620original frame audit spans
+and applies tools/graphical_soak_evidence.py assess_cadence using raw integer
+timestamps;rounding cannot turn a failure into a pass. All1220frames per match,
+strictly increasing timestamps,unique21matches,finite worker times required.
+Results retain cadence/resource/native cleanup separately;an unmet bound leaves
+the terminal report FAILED. There is no automatic retry or threshold relaxation.
+Applying the new cadence evaluator to retained214soak02 still rejects its one
+below-target match;prior214-cadence-review.json preserves that comparison.
+
+The long-run timing collector has a fixed131,072row capacity(default two-match
+capacity stays65,536),50ms loop probe and original soak500ms status cadence.
+It retains audit/status/status-view/loop windows in memory until shutdown;overflow
+fails coverage. Its memory remains included in the unchanged resource limits.
+Status publication uses215's serial awaited thread and cancellation drain.
+71focused tests pass on Python3.12/3.14,including exact unrounded cadence/gap
+boundaries,per-match worker budget,and missing/foreign/duplicate/invalid evidence.
+206source/test snapshots and before bytes retained in preparation directory.
+
+TERMINAL REVIEW
+local/cadence216-soak01/verification.json finishes1766.390s with FAILED cadence,
+no forced cleanup. SHA256:
+6a0dc04cf4abcdb3b8ce9c06e08fadf3cab1cc12393bf9d2c92e24cdd69d7515.
+All21original native match/result/Continue cycles,twenty host deck edits,stable
+guest deck,replay/sample agreement,Leave and both original Quits0 complete.
+Each client25,620frames/2,562sampled states;not independent full-state proof.
+22workers exit0/reaped;jobs45/0/0,2/0/0,2/0/0. Timing task/status writer drain;
+source/package/asset/config/adapter/shared-channel preservation all pass.
+
+All21idle boundaries and175intermediate samples retained. Idle3->21 private
+commit / handle deltas:server+23,560,192bytes/-1;launcher0 -32,768/-1;
+launcher1 -28,672/-1;game0 +137,908,224/-11;game1 +108,036,096/-11.
+All unchanged resource bounds pass,including retained timing-observer memory.
+completion-review.json independently recomputes raw resource/cadence/timing and
+checks archived source/native lifetime;it preserves parent passed:false.
+result-delivery-review02.json checks all42native result deliveries and both
+original Quit traces;its native-only pass does not override the cadence failure.
+Result-review SHA256:
+12379fea861845e4354f56ec198592464c29905a3e193ab88b68cb032f8b0732.
+
+Round15=19.449375945Hz and round17=19.374989447Hz fail>=19.5Hz. Other19matches
+pass;range19.374989447-20.004094883Hz. All within-match gaps<=650.4959ms,so the
+1000ms bound passes. All25,620worker awaits<=6.3163ms;none exceeds50ms.
+This is a cadence failure only;the report is not relabeled or rerun automatically.
+
+65,269timing records:no overflow;29,853loop-delay,28,510audit,3453status-view and
+3453status-write spans. All25,620original frame timestamps fall within matching
+measured audit calls. Observer record overhead total202.9131ms,max0.1345ms.
+All-phase maxima:audit641.7721ms,loop delay624.6186ms,status view0.1121ms,
+threaded status write850.5944ms. Raw server/server-timing.json SHA256:
+2e7007c1acd29d29ce21bb6eaed4e5742218beedaf823433a1b682e2af527a60.
+
+audit-window-review.json examines all29within-match gaps>=200ms.27overlap a
+synchronous original audit call by>=80percent. Largest650.4959ms gap (round15,
+frame1142) overlaps641.7428ms of previous frame1141's641.7721ms audit call;
+current worker2.9067ms,snapshot0,input wait0. Round17's629.4315ms gap similarly
+overlaps620.8435ms in prior frame849 audit;current worker3.0249ms. These measured
+callback windows explain why prior interval_ms/frame_work_ms left residual time:
+last_progress is assigned after the previous audit call. This does not isolate
+JSON serialization,file write,rotation,CPU contention or scheduling within it.
+Two gaps (round7 frame860,378.0215ms;round15 frame88,467.2465ms) have negligible
+audit overlap and remain unlocalized;do not label every gap an audit-write stall.
+
+Next bounded check:separate original audit serialization,rotation and write
+windows,then remove confirmed blocking work while preserving producer timestamps,
+ordered records,retention/error semantics and shutdown drain. Normal diagnostics
+off filters high-frequency events;do not infer ordinary default-host behavior
+from this diagnostics-enabled capture. Reuse216before any new long soak.
+No fullD8,8hour graphical,physical input,Internet/loss,multiple-room capacity or
+all-phase scheduling claim follows. Sustained graphical cadence remains OPEN.
+
+AUDIT STAGES217 - 2026-10-27 - ORIGINAL WRITE WINDOW LOCALIZED
+Question after216:does the long synchronous audit-call window lie in JSON dumps,
+rotation,stream.write,or unmeasured preparation/scheduling? Source bytes alone
+cannot assign the elapsed time. tools/audit_stage_probe.py forwards the original
+JSON dumps and original stream write/close methods without replacing encoding
+or payload bytes. It wraps the owned logger's rotation and reattaches observation
+to each newly opened stream. Parent IDs bind event/match/frame and child spans;
+timestamps remain generated by the original HostAudit. Detach restores the module
+JSON binding,instance rotation binding and stream. No production module changes.
+JSON timing covers dumps,not subsequent UTF-8 encoding;remaining time is explicit
+residual. Nested audit/rotation/close windows must not be added as separate delays.
+
+Controlled observer tests preserve exact original bytes across UTF-8 records,
+oversize omission,actual bounded rotation and diagnostics-off filtering. They
+also preserve return/error identity and arbitrary field names,refuse missing/
+misattributed/out-of-parent observations and detect overflow. A fake500ms write
+is attributed to write rather than JSON. GC callback tests use a fake GC module;
+no collection is requested on a running game/host.
+
+ISOLATED PACKAGED REPLAY
+tools/verify_audit_stages.py replays216's retained28,510records (23,492,542input
+bytes) through the original214packaged HostAudit in one isolated owned process.
+No game,worker or listener. No pacing:replay throughput is not gameplay cadence.
+Generated utc/session/perf timestamps are excluded from payload comparison;
+every other field/event stays in order. All new producer timestamps lie inside
+their measured calls.8MiB retention with eight backups;two rotations/three files.
+local/audit217-replay01/verification.json PASS2.953s;actual replay0.8842735s;
+job1/0/0,no force,source/package/input/adapter unchanged. Report SHA256:
+29d05edd35a749ee49fe32e6bf14301ce20250688bede58dcf9a1c463fca9a21.
+Packaged server/host_audit.py SHA256:
+b4047a857bc40f6e9baeddc467778f5b8045db21e10bd55ac01ae07c3e03d5f1.
+Bundled Python3.14.8. Maxima:audit3.7477ms,JSON dumps3.6689ms,write0.2352ms,
+rotation2.5324ms,close0.1247ms. This did not reproduce216's long stalls;it validates
+the observer/replay path and does not prove the graphical workload has no issue.
+Exact replay observer/runner source:local/audit217-preparation01/source-replay01/.
+
+NATIVE TWO-MATCH STAGE/GC OBSERVATION
+Opt-in --audit-stages requires the existing bounded two-match RC --timing-probe.
+Original214packages/helper/game and diagnostic audit configuration retained.
+--custom-soak is refused for this new probe. Automatic GC callback windows are
+recorded separately from timing rows,with an8192row bound. No collect/freeze/
+disable/threshold change. Existing callbacks are preserved on removal;missing
+phases/overflow/changed GC settings fail the check. The observer is external.
+100combined tests pass on each Python3.12/3.14.208source/test snapshots and plans:
+local/audit217-preparation01/source-native01/ and native-plan.json.
+
+local/audit217-native01/verification.json PASS186.031s. Two1220frame/122sample
+matches/client,matching native replays/results,original Continue/Leave/Quits0.
+Three workers exit0/reaped;jobs7/0/0,2/0/0,2/0/0,no force. Timing/status writer
+drain,observer detach,source/package/asset/config/adapter/shared preservation pass.
+Cadence19.899/19.956Hz,max gaps291.296/177.356ms;not sustained acceptance.
+Report SHA256:
+e37e5284081dd43be02a9c05f4b8d39f19e22e6f45f59ffd4df55ee35e6c8afc.
+2724original audit calls,2724JSON calls and2724writes;one final close,no rotation
+in this short run. Actual rotation is covered by isolated replay and unit checks.
+All2440frame timestamps remain inside their original audit calls. Timing record
+overhead total36.8425ms,max0.1606ms. Raw server/server-timing.json SHA256:
+fffe9c62812609a8f25b20dfb38393d7c9734ad99b2bc7718df61f5832f0e948.
+
+First match frame117 gap291.2961ms overlaps previous frame116 audit281.0995ms,
+including280.9999ms in original stream.write;its JSON call0.0266ms. Current frame
+worker1.2661ms,snapshot0. Second match frame415 audit write167.6946ms similarly
+dominates that167.8105ms call. All JSON calls<=0.1205ms;final close0.0986ms.
+This localizes the observed synchronous stall to the write-call window. It does
+not separate filesystem service,storage/antivirus effects and thread scheduling
+inside that call or retroactively classify every216 gap.
+
+GC enabled/threshold[2000,10,10] unchanged;13automatic collections,max5.1145ms.
+None overlaps the three largest write windows (280.9999,167.6946,13.1114ms).
+GC raw SHA256:4fa0c7da5ab131d717c2535d1c55b36458bde2d066d9d983b087ad010962109d.
+stage-review.json recomputes subcall coverage and GC overlaps;completion-review
+checks archived source/native cleanup/timing;result-delivery-review02 checks all
+four native results and both original Quits. The unrelated all-phase loop-delay
+max673.448ms and threaded status-write max975.5865ms remain retained observations.
+
+NEXT
+Move confirmed audit file I/O off the server event loop with bounded buffering,
+producer timestamps,immutable ordered record bytes,original retention/rotation,
+visible errors and drained shutdown. Qualify held-write responsiveness,queue
+limits/write failure/rotation and shutdown before the changed native path and
+sustained cadence. No data omission or relaxed threshold may manufacture a pass.
+216's failed timing report and two unlocalized gaps remain. Product/packages and
+published174 unchanged at217;fullD8 and sustained graphical cadence remain OPEN.
+
+FOLLOW-UP218 - BOUNDED AUDIT WRITER / CHANGED PACKAGED CONTROL - 2026-10-27
+Missing claim:217located a synchronous file-write window on the host event loop.
+Move that I/O to one owned thread,then qualify record integrity,error/shutdown
+semantics and the changed native path before sustained cadence acceptance.
+
+IMPLEMENTATION
+server/host_audit.py retains synchronous HostAudit for existing tools/reference
+checks and adds QueuedHostAudit for production server/host.py. Producer encodes
+immutable UTF8 bytes with the original UTC/perf timestamp/session/event fields.
+One non-daemon writer owns append/rotation/close. Condition-protected queue holds
+at most1024pending records and2*log_max_bytes (16MiB at default8MiB retention),
+including the in-flight record. It performs no file I/O while holding that lock.
+Original fixed filenames,rotation/backups,high-frequency filter and oversized
+record omission format remain. Short writes now fail explicitly.
+
+Queue full stops acceptance,notifies host once,and drains accepted records.
+Write/rotation failure stops writer and explicitly counts abandoned records.
+Later events are counted as rejected without throwing through worker cleanup.
+The host closes its listener,performs normal resource cleanup,then awaits the
+writer. Close raises the original failure;errors cannot be reported as success.
+Status exposes accepted/written/rejected/abandoned,pending/peak/limits and failure/
+closed/thread state. Notification failures remain visible. Async close shields
+and joins one retained close task through repeated cancellation before releasing
+the host state lock. This is orderly shutdown,not durability across power loss.
+
+Synchronous audit-stage instrumentation now refuses an asynchronous writer before
+mutation;its parent/child timing assumption does not hold across threads. Native
+qualification uses producer/loop timing and --require-queued-audit instead. The
+external adapter reports actual production writer status;parent requires every
+accepted record in the retained journal,zero rejection/abandonment,pending0,
+closed/joined writer,no error and bounded peaks. Older214 controls still work
+without that opt-in requirement. Ordinary launchers acquire no diagnostic flags.
+
+VERIFICATION
+11new tests cover held-write loop responsiveness,immutable payload/timestamps/
+order,count and byte limits including in-flight,accepted-record drain on overflow,
+idle failure notification,short write,rotation/close/notification failures,
+thread-start cleanup,actual UTF8/rotation/omission parity with original logger,
+repeated cancellation,and host stop/state-lock lifetime on both fault and drain.
+153distinct tests pass on each Python3.12/3.14. One existing explicit opt-in
+Windows private snapshot DACL test is skipped;no new ACL acceptance is claimed.
+Retained logs:local/audit218-preparation01/tests312.log,tests314.log (152selected,
+151pass/1skip),queued-final312.log,queued-final314.log (11/11 each,including the
+two added final cases). Service/dashboard/backup/timing/native-evidence checks
+are included. Source/doc bytes before edits remain in that preparation folder.
+
+PACKAGES AND NATIVE CONTROL
+local/candidate218-packages01 is a dirty unpublished preview,existing version
+0.3.0-rc1.7/helper214/recipe23. Client package is byte-identical214. Server payload
+differs only in host.py,host_audit.py and package-manifest.json;both packages verify.
+client ZIP SHA256:76adb76ab49d34f6ab548684f1913f197fe090f6122e26c2f2737717ffa68c29
+server ZIP SHA256:ce98b3be390b579fad7e070f66164f2f55cc85416523ed0c17c2e6bccbf6bd91
+No installer rebuild,publication,installed-copy update or Nick action.
+
+local/audit218-native01/verification.json PASS185.703s with two graphical clients,
+two1220-frame matches/122common samples each,native results/replays/Continue,
+changed-deck rematch,guest/host Leave and original Quits0. Three native workers
+exit0/reaped;jobs7/0/0,2/0/0,2/0/0;no forced cleanup. Original source/helper,
+package/assets/config/shared-channel preservation and status/timing drain pass.
+All2722audit records accepted/written in producer order,one session,server_stopped
+last;zero rejected/abandoned/pending,writer closed/thread not alive. Peak14records/
+11566bytes versus limits1024/16777216. Listener closed and state lock released.
+Production host/audit module hashes match new package and205-file source archive.
+verification SHA256:12b76eaeb068c779005edd05956fd10928c02978b915e42204315623e010c569
+server/server-timing.json SHA256:
+231a6da43d9d989529f5605a709fe82e05e299eadb9ee790ed4daa027643245b
+
+TIMING AND LIMITS
+Matches19.975/19.879Hz,max gaps136.644/460.722ms,one cadence reset each. All2440
+frame timestamps remain inside producer audit calls;maximum audit0.1849ms.
+Second match frame962 gap460.7218ms includes416.3246ms worker await and overlaps
+404.9671ms of a405.0383ms loop-delay window. The prior/current audits overlap
+only0.0379/0.0210ms. These are overlapping elapsed windows,not proof of native
+simulation CPU time or its underlying scheduler/I/O cause. It remains unlocalized.
+All-phase loop max633.2137ms and async status max695.8ms are retained separately.
+Record-observation overhead total28.9527ms,max0.1189ms. No long write was forced
+during native gameplay;held-write responsiveness is proved by the separate tests.
+
+Supplemental result-delivery-review02.json verifies native results/Quits;
+completion-review.json recomputes original lifecycle/timing/source checks;
+queue-review.json verifies journal counts/order/last event,packaged module identity,
+unchanged DEV answers and preserved failed216 report. Review scripts,205source
+snapshots and native-plan.json are in local/audit218-preparation01.
+Queue review SHA256:0ea7337a3cd1ca6e5f82d16341aca04d55ff63c5b76e302d0c676c44e4b2c1b7
+Native result review SHA256:
+0230c556489e3563ce3b6937e702fb29d80136c5a30a0c83b5127b00bb608e71
+
+NEXT
+Run the changed21821-match graphical cadence/resource gate with216's original
+limits:every match>=19.5Hz,max gap<=1000ms,at most1percent worker awaits>50ms;
+retain214idle3-to21 resource bounds,no first-match exclusion. Preserve216failure
+and its two unlocalized gaps,plus218's remaining worker-await/loop-delay window.
+The audit I/O fix and short changed native path pass;no sustained-performance,
+Internet,SCM,physical-input or final-release claim. FullD8 remains OPEN.
+
+FOLLOW-UP219 - FIRST CONTROLLER FAILURE RETAINED / CORRECTED RUN PASS
+The21-match check uses unchanged218 packages/helper214 and216's original cadence
+and214resource limits. Source-bound preparation:local/cadence219-preparation01.
+E had only65MB free;the earlier216 evidence folder was51MB. The verifier's owned
+output boundary was extended to the existing per-user BattleAcesDiagnostics/local
+area on C,matching its game-copy allowance. Packages/assets remain repository-local.
+External snapshot-path and parent/sibling/escape refusal checks pass66tests on each
+Python3.12/3.14. No product/package change or threshold relaxation.
+
+FIRST RUN - CONTROLLER FAILED;NO FULL ACCEPTANCE
+Output:<private-diagnostics-root>/cadence219-soak01.
+All21idle checkpoints were captured;server driver passes with22reaped workers,
+empty final rooms/sessions/lobbies and released listener/state lock. Both client
+drivers report game/launcher0 and one TLS connection. All28466audit records are
+accepted/written,zero pending/rejected/abandoned,error false,writer closed/joined,
+peak3records/2366bytes. These child/raw observations remain separate from full
+parent acceptance.
+
+After closing the owned jobs,the verifier called tests.test_tls_transport's old
+remove_test_pki helper. Its repository-only path check refused the new C directory.
+Controller session22606 exited1 before writing verification.json. Its in-memory
+final job accounting and preservation/acceptance verdicts were lost. They cannot
+be reconstructed as original observations or treated as accepted. Native console
+traceback and terminal-failure.txt are retained;no synthetic verification.json.
+
+partial-review.json recomputes all raw21-match cadence and idle3-to21 resource
+limits:both pass,min19.9713794895Hz,max gap135.0429ms,zero worker awaits>50ms.
+It explicitly records controller_passed=false and missing final parent evidence.
+SHA256:0b0db99b395ff8550a13b536ca09cb5d0d14227496a98502c7c45dbf5f9ea9b8.
+This does not close the declared full qualification. Raw captures and original
+failed216 report remain untouched. The failed run's disposable certificate pair
+was subsequently removed with the corrected owned-directory check;its file hashes
+and separate cleanup result are retained in terminal-controller01.json.
+
+CORRECTION AND RETRY
+Verifier now removes only an ordinary ephemeral-pki directly beneath its owned
+run output,refusing different parents/names/symlinks/junctions. Resolved absolute
+target is checked before recursive removal. PKI removal errors force passed=false
+and still publish the final report,including retained job evidence.69focused tests
+pass per Python,including external cleanup/unrelated-file preservation,refusal and
+failed-report retention. This corrects the diagnostic controller,not the host.
+Before-fix source and failed console are retained. No game/host process was killed
+to make the failed run pass;its final parent job counters remain unavailable.
+
+Corrected run output:
+<private-diagnostics-root>/cadence219-soak02.
+Run-plan02.json and205-file source-before-run02 bind the unchanged packages and
+limits to the corrected controller. Controller session40891 finished exit0 with
+verification.json PASS1758.953s. Session22606 remains the failed first controller;
+neither run is active. Their live-controller metadata files are historical launch
+records,not current process-state proof.
+
+Both219 runs place host data/logs on C;216/218 used E. storage-scope.json records
+that difference. Even a corrected pass is a scoped Windows/C-data sustained check,
+not a controlled speedup estimate or proof that E storage stalls are resolved.
+218's held-write responsiveness tests and producer/native checks remain separate.
+
+CORRECTED TERMINAL EVIDENCE
+All21matches/20rematches finish in the same two graphical clients/lobby/TLS
+connections:25620exact frames and2562common state samples per client,original
+native results/replays/Continue,changed host decks,guest/host Leave and Quits0.
+All22native workers exit0/reaped;owned jobs45/0/0,2/0/0,2/0/0;no forced cleanup.
+Final server rooms/workers/sessions/lobbies empty,listener closed,state lock
+released. Source/adapters/package/assets/config/shared channels preserved.
+Temporary PKI removed=true and actual directory absent;final report saved.
+
+Every match passes the unchanged216 raw-integer cadence/gap/worker-budget tests:
+minimum19.9743264526Hz,maximum20.0052279782Hz,maximum gap124.3548ms,zero worker
+awaits>50ms. No discarded first match or outlier.174trend samples and21idle
+boundaries support the unchanged214 idle3-to21 limits:
+  process     private-byte growth   handle growth   result
+  server             23584768               +3       PASS
+  launcher0           -32768               -1       PASS
+  launcher1           -32768               -1       PASS
+  game0             115007488              -11       PASS
+  game1              38150144              -11       PASS
+Bounds remain64MiB/+16handles for server/launchers and256MiB/+64 per game.
+Observer/queued-writer allocations remain included;no forced collection.
+
+All28466audit records accepted/written in producer order,one session and final
+server_stopped record;zero rejected/abandoned/pending,writer closed and joined,
+no error/notification failure. Peak3records/2006bytes vs1024/16777216limits.
+All25620frame timestamps fall inside their producer audit calls. Audit max0.355ms,
+status-view max0.1658ms,async status max1.9812ms. All-phase loop-delay max663.0641ms
+is retained separately from the active-match cadence metric. No frame gap>=200ms.
+Timing rows65458 (capacity131072,no overflow);record overhead total237.833ms,
+max0.2962ms. These measurements do not claim all-phase latency or causal speedup.
+
+completion-review.json independently recomputes raw resource/cadence/timing,
+checks205archived sources,all21idle/native cycles,normal exits and job accounting.
+result-delivery-review02.json verifies all42native authoritative-result deliveries,
+their Continue ordering and original Quits. queue-review.json checks all audit
+counts/order/drain,bundled module identities and unchanged DEV/failed216 report.
+The first219 partial review remains failed at parent scope;it is not overwritten.
+
+Hashes under <private-diagnostics-root>/cadence219-soak02:
+  verification.json
+  862c82be92c86bc572571ac54e4032a356cca2ad1cac4e23ac9500918d5a30ad
+  server/server-timing.json
+  0d3154f8b0519c1f7fc00a525cdb5343e04a45d4bb85d4a3e0e65ec9fbfddc10
+  completion-review.json
+  66648440fe05821ea9cb5defdbc897539652fc22ccae947eaeeac19af1d0a992
+  queue-review.json
+  cd93de7ea0d6a84dd3b5fcdd5aea02f46e3c9f3b5fdc4996c036de69b0b66882
+  result-delivery-review02.json
+  13cccb7cecfed7fbf97c4fc90b160fcb1793ed2f10c18cb490db6a7cb3a918ec
+
+OUTCOME / NEXT
+The named218-package Windows/C-data21-match cadence/resource/lifetime/audit gate
+is complete. Reuse this evidence;do not repeat the same configuration without a
+changed path or concrete concern. First219controller failure and216cadence failure
+remain retained. FullD8 remains open for outside-LAN/loss/click latency and other
+capacity/deployment scopes;no eight-hour graphical,physical-input,SCM or final
+release acceptance. Resume the P9 producer investigation and remaining finite
+delivery rows in REMAINING_DELIVERY_PLAN.txt. No user request or publication.

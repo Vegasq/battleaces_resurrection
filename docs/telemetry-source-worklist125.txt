@@ -147,8 +147,11 @@ Public wrapper2047b0/c43ae0 consumers remain original and use that guarded gette
 128 resolves external1ca49c8 initialization/+98 virtual40 as a pure settings
 getter. Actual upstream ads registration,or relevant consumer cuts,remains.
 Do not invoke an original query to discover IDs. Retained125 analysis follows.
-c416b0 is serialization-shaped:receiver+190 native SSO field,fallback c43ae0 when
-empty. It is NOT established advertising acquisition/registration. All three
+Follow-up200 corrects125's provisional serialization-shaped label:c416b0 reads
+parsed token input INTO receiver+190;empty effective identity uses c43ae0.
+Main1138 changes queue197's notification. Missing members can retain old tokens.
+Entry activation/transport remain unproved;see identity-config200.txt.
+It is NOT established advertising acquisition/registration. All three
 raw RVA32 references to c416b0 are PE unwind/chained-unwind metadata,not callback
 table links. Do not use them to invent a provider registration edge.
 c43ae0 returns an owned native string via hidden output and calls lazy cloud

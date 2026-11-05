@@ -41,7 +41,12 @@ raise SystemExit(0 if report['passed'] else 1)
 SNAPSHOT_MAX_BYTES=4*1024*1024
 SNAPSHOT_MAX_ROW_BYTES=65536
 
-SERVER=f'SNAPSHOT_MAX_BYTES={SNAPSHOT_MAX_BYTES}\nSNAPSHOT_MAX_ROW_BYTES={SNAPSHOT_MAX_ROW_BYTES}\n'+r'''
+from pathlib import Path
+WORKER_OBSERVATION_SOURCE=Path(__file__).with_name('worker_observation.py').read_text(encoding='utf-8')
+TIMING_PROBE_SOURCE=Path(__file__).with_name('timing_probe.py').read_text(encoding='utf-8')
+AUDIT_STAGE_SOURCE=Path(__file__).with_name('audit_stage_probe.py').read_text(encoding='utf-8')
+
+SERVER=f'SNAPSHOT_MAX_BYTES={SNAPSHOT_MAX_BYTES}\nSNAPSHOT_MAX_ROW_BYTES={SNAPSHOT_MAX_ROW_BYTES}\n'+WORKER_OBSERVATION_SOURCE+'\n'+TIMING_PROBE_SOURCE+'\n'+AUDIT_STAGE_SOURCE+'\n'+r'''
 import asyncio,hashlib,json,secrets,socket,sys,time,traceback
 from pathlib import Path
 from server import host,worker_client
@@ -54,7 +59,9 @@ assert not request.get('recover_stage') or len(fixture['identities'])==2
 real_credentials=bool(request.get('real_credentials'))
 rc_open=bool(request.get('rc_open'))
 verify(package,'server');report=dict(passed=False,production_modules={},fixture_store=not (real_credentials or rc_open),workers=[],frozen_matches=[],custom_commands=[])
-workers=[];servers=[];authenticated=[];stores=[];old_sessions={};snapshot_sequence=0
+workers=WorkerObservations();servers=[];authenticated=[];stores=[];old_sessions={};snapshot_sequence=0
+timing=TimingObservations(capacity=131072 if request.get('custom_soak') else 65536) if request.get('timing_probe') else None
+stage_observers=[];original_audits=[];gc_observer=GCWindows() if request.get('audit_stages') else None
 def publish(name,value):
     global snapshot_sequence
     if name=='server-live.jsonl':
@@ -75,10 +82,31 @@ class MemoryStore:
             if secrets.compare_digest(token,identity['token']):authenticated.append(identity['player_id']);return identity['player_id']
         raise AuthenticationError()
 original_create=worker_client.SimulationWorker.create;original_server=host.DedicatedServer;original_store=host.CredentialStore
+original_popen=worker_client.subprocess.Popen
+worker_audit_launches=0
+worker_audit_pids=[]
+if request.get('worker_socket_audit'):
+    def worker_popen(command,*args,**kwargs):
+        global worker_audit_launches
+        selected=(isinstance(command,list) and len(command)>=9 and
+                  command[1:6]==['-I','-S','-B','-u','-c'] and
+                  command[6].startswith('import runpy,sys;sys.path.insert(0,sys.argv.pop(1));') and
+                  command[8]=='--stdio')
+        if selected:
+            assert worker_audit_launches<len(request['worker_audit_sources']),'owned worker audit capacity exceeded'
+            command=list(command);command[6]=request['worker_audit_sources'][worker_audit_launches]+command[6]
+        process=original_popen(command,*args,**kwargs)
+        if selected:
+            worker_audit_launches+=1;worker_audit_pids.append(process.pid)
+        return process
+    worker_client.subprocess.Popen=worker_popen
 async def create(*args,**kwargs):
-    worker=await original_create(*args,**kwargs);workers.append(worker);return worker
+    worker=await original_create(*args,**kwargs);return workers.add(worker)
 def server(*args,**kwargs):
     value=original_server(*args,**kwargs);servers.append(value);original_audit=value.audit
+    original_audits.append(original_audit)
+    stages=AuditStages(original_audit,sys.modules['server.host_audit'],timing) if request.get('audit_stages') else None
+    if stages:stage_observers.append(stages)
     if real_credentials or rc_open:
         store=value.admission.store
         if rc_open:
@@ -93,7 +121,15 @@ def server(*args,**kwargs):
         value.admission.authenticate=observe_authentication
         report['production_store_type_verified']=not rc_open
     def observe(event,**fields):
-        original_audit(event,**fields)
+        if stages:stages.call(event,**fields)
+        elif timing is None:original_audit(event,**fields)
+        else:timing.call('audit',original_audit,event,metadata=dict(event=event,**{key:fields[key] for key in ('match','frame') if key in fields}),**fields)
+        if request.get('cancel_waiting') and event=='public_queue_entered':
+            entry=value.community.public.entries[fields['profile']]
+            selection=dict(profile=entry.profile,ticket=entry.ticket,mode=entry.mode,deck=list(entry.deck),
+                           full_loadout=entry.full_loadout,cosmetics=dict(catalog_sha256=entry.cosmetics.catalog_sha256,slots=dict(entry.cosmetics.slots)))
+            report.setdefault('queue_selections',[]).append(selection)
+            assert len(report['queue_selections'])<=2,'unexpected additional cancellation diagnostic ticket'
         if event=='match_created':
             room=value.rooms[fields['room']];match=room.match
             report['frozen_matches'].append(dict(match=fields['match'],game_data_sha256=match.raw_sha256,
@@ -105,6 +141,13 @@ def server(*args,**kwargs):
                 decks={slot:list(deck) for slot,deck in match.decks_by_slot.items()},
                 active_ability_groups={slot:list(groups) for slot,groups in match.active_ability_groups_by_slot.items()},
                 full_loadout_seats=sorted(room.full_loadout_seats)))
+            if request.get('network_outage') and len(report['frozen_matches'])==1:
+                old_sessions.update({p['player_id']:value.community.sessions[p['player_id']]
+                                     for p in fixture['identities']})
+            if request.get('network_outage') and len(report['frozen_matches'])==2:
+                report['recovery_sessions']=dict(both_replaced=all(
+                    value.community.sessions[p['player_id']] is not old_sessions[p['player_id']]
+                    for p in fixture['identities']))
             if request.get('recover_stage') and len(report['frozen_matches'])==2:
                 victim,survivor=(p['player_id'] for p in fixture['identities'])
                 report['recovery_sessions']=dict(survivor_retained=value.community.sessions[survivor] is old_sessions[survivor],
@@ -113,14 +156,55 @@ def server(*args,**kwargs):
     if request.get('custom_rematch'):
         original_apply=value.community.apply
         async def apply(session,kind,command,now):
-            report['custom_commands'].append(dict(profile=session.peer.profile_id,kind=kind,lobby=command.get('lobby'),epoch=command.get('epoch'),perf_counter_ns=time.perf_counter_ns()))
+            report['custom_commands'].append(dict(profile=session.peer.profile_id,kind=kind,request=command.get('request'),lobby=command.get('lobby'),epoch=command.get('epoch'),perf_counter_ns=time.perf_counter_ns()))
+            if request.get('custom_start_rejection') and kind==48 and 'start_rejection' not in report:
+                from server.community import Rejected
+                lobby=value.community.lobbies[command['lobby']]
+                assert lobby.phase==1 and lobby.epoch==0 and lobby.host==session.peer.profile_id
+                assert not value.rooms and not report['frozen_matches']
+                report['start_rejection']=dict(lobby=lobby.id,profile=lobby.host,request=command['request'],
+                    epoch=lobby.epoch,phase=lobby.phase,revision=lobby.revision,rooms=0,matches=0,
+                    reason='qualification: host start rejected',
+                    selections={profile:dict(deck=list(value.community.sessions[profile].deck),
+                        full=value.community.sessions[profile].full_loadout,
+                        cosmetics=dict(catalog_sha256=value.community.sessions[profile].cosmetics.catalog_sha256,
+                            slots=value.community.sessions[profile].cosmetics.slots)) for profile in lobby.members})
+                # Authored one-shot rejection; the normal server handler emits
+                # the correlated negative ACK. No epoch or worker is created.
+                raise Rejected(report['start_rejection']['reason'])
+            if request.get('custom_ready_expiry') and kind==49 and 'ready_expiry' not in report:
+                from server.community import Rejected
+                lobby=value.community.lobbies[command['lobby']]
+                assert value.community.start_timeout==10 and lobby.phase==2 and lobby.epoch==command['epoch']==1
+                proof=dict(lobby=lobby.id,profile=session.peer.profile_id,request=command['request'],old_epoch=1,
+                    configured_timeout=value.community.start_timeout,deadline=lobby.deadline,held_at=time.monotonic())
+                report['ready_expiry']=proof
+                # Let real maintenance expire epoch1 and the original host UI
+                # retry. Retain the guest's old pending request until epoch3.
+                while lobby.epoch!=3 or lobby.phase!=2:
+                    assert time.monotonic()-proof['held_at']<20,'native host did not retry expired Start'
+                    await asyncio.sleep(.01)
+                def state():
+                    return dict(lobby=lobby.id,epoch=lobby.epoch,phase=lobby.phase,revision=lobby.revision,
+                        deadline=lobby.deadline,ready=sorted(lobby.ready),members=list(lobby.members),
+                        room=lobby.room,rooms=len(value.rooms),matches=len(report['frozen_matches']))
+                proof.update(released_at=time.monotonic(),before=state())
+                assert proof['released_at']>=proof['deadline'] and not value.rooms and not report['frozen_matches']
+                try:
+                    await original_apply(session,kind,command,time.monotonic())
+                except Rejected as error:
+                    proof.update(rejection=str(error),after=state(),rejected_at=time.monotonic())
+                    assert proof['before']==proof['after'] and str(error)=='start attempt changed'
+                    raise
+                raise AssertionError('expired Ready unexpectedly accepted')
             return await original_apply(session,kind,command,now)
         value.community.apply=apply
     return value
 def view():
     if not servers:return {}
     value=servers[0]
-    return dict(rooms=len(value.rooms),retired=len(value.retired),entries=len(value.community.public.entries),
+    return dict(active_workers=workers.active(),
+                rooms=len(value.rooms),retired=len(value.retired),entries=len(value.community.public.entries),
                 offers=len(value.community.public.offers),cleanup=len(value.worker_cleanup),sessions=len(value.community.sessions),
                 lobbies=[dict(id=l.id,phase=l.phase,epoch=l.epoch,members=sorted(l.members)) for l in value.community.lobbies.values()])
 def inject_disconnect():
@@ -147,29 +231,44 @@ async def run():
         assert address[0]=='127.0.0.1' and address[1]==config.listen_port
         ready=True;publish('server-ready.json',dict(address=list(address[:2]),pid=__import__('os').getpid()))
     running=asyncio.create_task(host.run(config,on_ready=on_ready));began=time.monotonic()
+    probe=asyncio.create_task(timing.loop_probe()) if timing else None
+    status_writer=AsyncStatusPublisher(timing)
     try:
         while not (output/'server-stop').exists():
             if running.done():await running;raise AssertionError('host ended before explicit stop')
             assert time.monotonic()-began<request['timeout'],'owned host deadline'
-            if ready:inject_disconnect();publish('server-live.jsonl',view())
-            await asyncio.sleep(.1)
+            if ready:
+                inject_disconnect()
+                status=timing.call('status_view',view) if timing else view()
+                await status_writer.call(publish,'server-live.jsonl',status)
+            await asyncio.sleep(.5 if request.get('custom_soak') else .1)
     finally:
         running.cancel()
-        result=await asyncio.wait_for(asyncio.gather(running,return_exceptions=True),30)
-        assert len(result)==1 and isinstance(result[0],asyncio.CancelledError),'host did not finish its original cancellation cleanup'
+        try:
+            result=await asyncio.wait_for(asyncio.gather(running,return_exceptions=True),30)
+            assert len(result)==1 and isinstance(result[0],asyncio.CancelledError),'host did not finish its original cancellation cleanup'
+        finally:
+            try:
+                if probe:
+                    probe.cancel();probe_result=await asyncio.gather(probe,return_exceptions=True)
+                    assert isinstance(probe_result[0],asyncio.CancelledError),'timing loop ended unexpectedly'
+                    report['timing_probe_drained']=True
+            finally:
+                status_writer.close();report['status_writer_drained']=True
     report['final_state']=view();report['authenticated']=authenticated;report['store_instances']=len(stores)
-    for worker in workers:
-        report['workers'].append(dict(pid=worker.pid,exit_code=worker.process.poll(),failure=worker.failure,
-            reaped=worker.process.poll() is not None and worker._cleanup_task is not None and worker._cleanup_task.done() and not worker._stderr_thread.is_alive(),
-            executable=worker.process.args[0],module_root=worker.process.args[7],game_data_sha256=worker.game_data_sha256,
-            simulation_sha256=worker.dll_sha256,ai=worker.ai_info))
-    recovering=bool(request.get('recover_stage'))
-    expected=[p['player_id'] for p in fixture['identities']]+([fixture['identities'][0]['player_id']] if recovering else [])
+    await asyncio.sleep(0)  # Drain observations of completed cleanup tasks.
+    report['workers']=workers.report()
+    recovering=bool(request.get('recover_stage') or request.get('network_outage')) and not request.get('pending_load_quit')
+    expected=[p['player_id'] for p in fixture['identities']]+(
+        [p['player_id'] for p in fixture['identities']] if request.get('network_outage') else
+        [fixture['identities'][0]['player_id']] if recovering else [])
     assert ready and len(servers)==1 and len(stores)==(0 if rc_open else 1) and sorted(authenticated)==sorted(expected)
     # Parent qualifies exact native worker exit/cancellation against the original
     # host audit journal. This driver only claims every child has been reaped.
-    assert len(workers)==(3 if recovering or request.get('custom_rematch') else 2) and all(row['reaped'] for row in report['workers'])
-    if recovering:assert report.get('fault') and report['recovery_sessions']==dict(survivor_retained=True,victim_replaced=True)
+    assert len(workers)==(22 if request.get('custom_soak') else 3 if recovering or request.get('custom_rematch') else 2) and all(row['reaped'] for row in report['workers'])
+    if request.get('network_outage'):assert report['recovery_sessions']==dict(both_replaced=True)
+    elif recovering:assert report.get('fault') and report['recovery_sessions']==dict(survivor_retained=True,victim_replaced=True)
+    if request.get('pending_load_quit'):assert report.get('fault') and len(report['frozen_matches'])==1
     assert all(Path(row['executable']).resolve()==(package/'program/runtime/python.exe').resolve() for row in report['workers'])
     assert all(Path(row['module_root']).resolve()==(package/'program/app').resolve() for row in report['workers'])
     with socket.socket() as probe:assert probe.connect_ex(('127.0.0.1',config.listen_port))!=0,'host listener survived stop'
@@ -177,7 +276,7 @@ async def run():
     with exclusive_state(config.data_directory):pass
     report['listener_closed']=True;report['state_lock_released']=True
 try:
-    for module in (host,worker_client,sys.modules['server.dedicated_server'],sys.modules['server.credentials'],sys.modules['server.tls_transport']):
+    for module in (host,worker_client,sys.modules['server.dedicated_server'],sys.modules['server.credentials'],sys.modules['server.tls_transport'],sys.modules['server.host_audit']):
         path=Path(module.__file__).resolve();assert path.is_relative_to(package/'program/app')
         report['production_modules'][module.__name__]=dict(path=str(path),sha256=hashlib.sha256(path.read_bytes()).hexdigest())
     deadline=time.monotonic()+10
@@ -191,7 +290,16 @@ except BaseException as error:
     if real_credentials:report['error_type']=type(error).__name__
     else:report.update(error=repr(error),traceback=traceback.format_exc())
 finally:
+    worker_client.subprocess.Popen=original_popen
+    report['worker_audit_launches']=worker_audit_launches
+    report['worker_audit_pids']=worker_audit_pids
     host.CredentialStore=original_store;host.DedicatedServer=original_server
+    report['queued_audits']=[audit.status() for audit in original_audits if getattr(type(audit),'ASYNCHRONOUS',False)]
+    for observer in stage_observers:observer.detach()
+    if gc_observer:
+        publish('gc-timing.json',gc_observer.detach())
+        report['audit_stages_detached']=len(stage_observers)==1
+    if timing:publish('server-timing.json',timing.report())
     publish('server-driver.json',report)
 raise SystemExit(0 if report['passed'] else 1)
 '''
@@ -235,22 +343,34 @@ def spawn(config,remote,options,child):
         '-native-quit-smoke','-native-quit-mode=confirm','-native-quit-gate-smoke']
     if request.get('custom_rematch'):
         diagnostic.extend(['-community-match-'+('host' if request['index']==0 else 'guest')+'-smoke',
-            '-community-match-deck-smoke','-community-match-duplicate-smoke','-community-match-leave-quit-smoke'])
+            '-community-match-deck-smoke','-community-match-leave-quit-smoke'])
+        if not request.get('custom_start_rejection'):diagnostic.append('-community-match-duplicate-smoke')
+        if request.get('custom_soak'):diagnostic.append('-community-match-soak-smoke')
     else:
         diagnostic.extend(['-public-queue-smoke','-public-queue-smoke-mode='+str(request['mode']),'-public-queue-smoke-gate='+request['gate'],
             '-dedicated-rematch-smoke','-public-team-surrender-smoke','-match-search-smoke'])
-        if request['index']%2==1:diagnostic.append('-public-queue-smoke-edit-deck')
+        if request['index']%2==1 or request.get('cancel_waiting'):diagnostic.append('-public-queue-smoke-edit-deck')
+    if request.get('cancel_waiting'):
+        assert request['mode'] in (1,2,5) and request['index']==0 and rc_open and not request.get('recover_stage')
+        diagnostic.extend(['-public-queue-smoke-cancel=waiting','-public-queue-smoke-retry','-public-queue-smoke-retry-gate'])
     if request.get('recover_stage'):
         diagnostic.extend(['-public-queue-smoke-retry','-public-queue-smoke-retry-gate','-public-team-retry-smoke'])
-        if request['index']==0:diagnostic.append('-dedicated-recovery-smoke')
+        if (request['index']==0 or request.get('network_outage')) and not request.get('pending_load_quit'):
+            diagnostic.append('-dedicated-recovery-smoke')
+    if request.get('pending_load_quit') and request['index']==0:
+        assert request.get('recover_stage')=='loading' and request['mode']==1 and not rc_open
+        diagnostic=[value for value in diagnostic if not value.startswith('-native-quit-')]
+        diagnostic.append('-dedicated-pending-load-quit-smoke')
     command.extend(diagnostic)
     info=subprocess.STARTUPINFO();info.dwFlags|=subprocess.STARTF_USESHOWWINDOW;info.wShowWindow=1 if request['visible'] else 0
     info.lpAttributeList={'handle_list':[child.fileno()]}
     clock=ctypes.WinDLL('kernel32').GetTickCount64;clock.restype=ctypes.c_ulonglong;tick=clock()
     try:
-        child.set_inheritable(True);process=subprocess.Popen(command,cwd=game,startupinfo=info,close_fds=True)
+        child.set_inheritable(True);process=subprocess.Popen(command,cwd=game,startupinfo=info,close_fds=True,
+            creationflags=0x00000004 if request.get('prelaunch_observer') else 0)
     finally:child.set_inheritable(False)
-    row=dict(pid=process.pid,launch_tick=tick,ordinary_arguments=ordinary,diagnostic_arguments=diagnostic,actual_arguments=command)
+    row=dict(pid=process.pid,launch_tick=tick,ordinary_arguments=ordinary,diagnostic_arguments=diagnostic,actual_arguments=command,
+             suspended_for_observer=bool(request.get('prelaunch_observer')))
     temporary=output/'game-process.tmp';temporary.write_text(json.dumps(row,indent=2)+'\n');temporary.rename(output/'game-process.json')
     return process
 try:
@@ -264,8 +384,11 @@ try:
     report['launcher_exit_code']=client.main(['--config',request['config']])
     report['game_exit_code']=None if process is None else process.poll()
     assert report['launcher_exit_code']==report['game_exit_code']==0
-    expected=2 if request.get('recover_stage') and request['index']==0 else 1
-    assert report['tls_connections']==expected and report['invite_reads']==(0 if rc_open else expected)
+    expected=2 if request.get('recover_stage') and (request['index']==0 or request.get('network_outage')) and not request.get('pending_load_quit') else 1
+    if request.get('network_outage'):
+        assert 2<=report['tls_connections']<=8 and report['invite_reads']==report['tls_connections']
+    else:
+        assert report['tls_connections']==expected and report['invite_reads']==(0 if rc_open else expected)
     report['passed']=True
 except BaseException as error:
     if real_credentials:report['error_type']=type(error).__name__

@@ -1,5 +1,74 @@
 NETWORK DELAY QUALIFICATION
-Updated:2026-10-17
+Updated:2026-10-27
+
+CURRENT PACKAGED RC FOLLOW-UP213 - SCOPED PASS
+Two sequential public1v1 matches use the current local203 server/client packages,
+helper169,production RC schema4 identities/open TLS admission and two graphical
+native clients. Fresh owned profiles;one deck differs;scripted original menu
+actions,builds,surrender1200,results/Continue and original normal Quit. No physical
+input or visible-presentation acceptance is inferred. Product/packages unchanged.
+
+The existing ordered byte-stream relay now supports the synchronous packaged
+controller through an owned event-loop thread. TLS remains end to end;no payload
+logging/decryption. Explicit --rtt-ms0 selects the control;--rtt-ms200
+--jitter-ms20 --network-seed17 selects nominal100ms per direction plus uniform
+[-20,+20]ms jitter,with ordered delivery. Input window6 and50ms simulation steps
+are identical. These are local stream delays,not WAN packets or measured RTT.
+
+Run local/network213-       Hz       Mean ms  P95 ms   Max ms   Cadence resets
+  control01                19.968    50.079   63.699   138.869       1
+  jitter01                 19.895    50.264   63.501   298.300       3
+Cadence uses all1220 frame_queued timestamps (1219 intervals),excluding only the
+nonexistent interval before frame0. It is server simulation publication cadence,
+not rendered FPS or physical click-to-display latency. No timing outlier was
+discarded or causally attributed. Match completion is separate from sustained
+20Hz acceptance;these short runs do not establish a general performance limit.
+
+Each run:1220 exact received frame payloads/client,122 common state samples per
+client,matching native surrender result at1200,original Continue/two Quits0.
+Sampled observable agreement is not an independent full-state proof. Two server
+workers exit0/reaped;owned jobs5/0/0,2/0/0,2/0/0;no forced cleanup. Runtime
+102.063s(control),104.313s(jitter). Each client uses one actual production TLS
+connection without a credential fixture. Relay accepted2/rejected0/failures0,
+active0 at close,listener closed and thread stopped in both runs.
+
+Relay measurements (receive-to-write,local monotonic clock,all directions):
+  control:4940 chunks,556921bytes,peak queue1;mean0.048ms,min0,max16ms.
+  jitter: 4845 chunks,554423bytes,peak queue4;mean98.883ms,min78,max141ms.
+Observed holds include timer/scheduling effects;configured jitter is not a hard
+observed-delay bound. These numbers do not measure round trips on a real network.
+Source,adapters,package files,assets,configs and shared settings/replay channels
+match their starting hashes. No user game,host or shared profile was changed.
+
+Evidence:local/network213-control01/verification.json SHA256
+900a3dd9097675674e98e19c4e022e349c30fa492e2074b2517dea947ed9aa6e
+local/network213-jitter01/verification.json SHA256
+5f9306527f3360ec70d2bd9a72746949b60d0ed60b6e1e2b8c8860e1dadbeac1
+Reports retain package/helper/asset identities,all200 source hashes,worker/job,
+client/native,settings/replay and timing evidence. Source snapshots and compact
+comparison:local/network213-evidence01/. Before bytes:network213-preparation01/.
+Commands:py -3.12 -m tools.verify_packaged_multiplayer with
+--packages local/candidate203-packages02 --game local/r171g
+--assets local/s139/assets/build-37822
+--helper-build-receipt build/helper-crash169-fix01/helper-build.json
+--shared-settings "<user-LocalLow>/Uncapped Games/Battle Aces/gameconfig-localuser.toml"
+--rc-open --mode 1 --humans 2 --timeout 360
+Control:--output local/network213-control01 --rtt-ms 0
+Delay:--output local/network213-jitter01 --rtt-ms 200 --jitter-ms 20 --network-seed 17
+These owned outputs are already used;do not overwrite them for another run.
+
+Validation:33 tests pass on Python3.12 and3.14 (test_stream_shaper and
+test_packaged_network_evidence),including real ordered socket delivery,measured
+delay,occupied listener refusal and pending-delivery thread shutdown. No skips.
+Full D8 remains open:real Internet,loss/retransmission,physical click latency,
+capacity/session0/support targets and other deployment scopes.214subsequently
+passes the graphical20-rematch lifetime/resource gate.215fixes blocking status
+writes in the external adapter;216cadence fails two matches with audit-call stalls.
+218adds bounded production audit I/O;219passes the21-match cadence/resource gate
+on Windows with owned host data on C. That scoped pass does not establish WAN
+or packet-loss performance;the earlier failed runs remain retained.
+See soak-qualification.txt and the current roadmap. Reuse these two completed
+delay cases. Older measurements below retain their original scope.
 
 Current source uses protocol3 and a server-selected input window2..12,default6.
 The window is frozen per room and advertised to both seats. See protocol-v3.txt

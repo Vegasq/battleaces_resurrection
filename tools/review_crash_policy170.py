@@ -98,11 +98,22 @@ def review(folder):
         matches = [r for r in records if r['operation'] == operation and r['parameters']['session_id'] == session]
         require(len(matches) == 1, 'One bound ' + operation + ' record required')
         return matches[0]
-    loaded, final_record = record('load_frida_script'), record('frida_session_status')
+    loaded = record('load_frida_script')
+    statuses = [r for r in records if r['operation'] == 'frida_session_status' and
+                r['parameters'].get('session_id') == session]
+    finals_status = [r for r in statuses if r['normalized_result']['state'] == 'detached']
+    require(len(finals_status) == 1 and all(r is finals_status[0] or
+            r['normalized_result']['state'] == 'running' for r in statuses),
+            'One terminal bound Frida status required')
+    final_record = finals_status[0]
     require(loaded['normalized_result']['source_sha256'] == owner['observer_sha256'], 'Loaded source differs')
     events = stream(final_record['normalized_result'], owner['pid'], owner['config']['runId'])
     finals = [e for e in events if e['kind'] == 'policy-final']
-    require(len(finals) == 1 and events[-1] == finals[0], 'One complete final boundary required')
+    require(len(finals) == 1 and (events[-1] == finals[0] or
+            (len(events) >= 2 and events[-2] == finals[0] and
+             events[-1]['kind'] == 'crash-snapshot' and
+             events[-1]['seq'] == finals[0]['seq'] + 1)),
+            'One complete final boundary required')
     final = finals[0]
     rows = aggregate(events, final)
     native = [(e['kind'], e['data']['label']) for e in events if e['kind'].startswith('crash-native-') and

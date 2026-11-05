@@ -1,0 +1,33 @@
+D5 / P3 - Tutorial01 completion and telemetry call-site distinction
+
+2026-10-30. Static original/current recipe38 subcase PASS;P3/D5 OPEN.
+
+The shipped RGame.dll metadata maps RGameTutorial01State's fields in order:
+_postMatchUIComplete,_tutorialSuccessfullyCompleted,
+_tutorialCompleteMessageSent,_forceRestartFTUE. Its original TransitionIn
+calls FrontServerIntegration.SendBIClientFTUEEventTelemetry at RVA3def687
+to3e32a10. Current recipe38 preserves that call site but the BI method's
+entry is RET. The current private package therefore guards this named
+tutorial-entry BI path before it can build a report.
+
+The same state's original Update checks the successful-completion flag and
+the message-sent flag. Its direct call at RVA3df01f3 reaches
+FrontServerIntegration.MarkTutorial01Complete at3e355a0,then Update sets
+the message-sent flag. The Mark method tail-jumps to
+ReconcileProgressionRequest at3e3baf0. These call sites and the first16
+bytes at both progression entries match current recipe38. This is gameplay
+progression,so the BI guard does not stand in for or disable completion.
+
+The code path does not prove the objective can be completed in the current
+offline game,that Mark runs,or that its request/ack is handled. Nor does a
+guarded BI entry establish complete queue or wire absence. The next P3 check
+must advance the genuine original objective and observe Update/Mark,
+progression handling,postgame/in-game Quit and selected privacy routes through
+natural exit. Do not set the success flag or call Mark directly to fabricate
+completion.
+
+Reviewer:python -m tools.review_tutorial_completion432 --output
+local/privacy432-static/review.json (PASS). Original GameAssembly SHA256
+e59d08c01479b27404778048d7e13546dbf3771f6b3912744c7c2bdf80c4e758.
+Retained ignored report:local/privacy432-static/review.json.
+RUNTIME_VALIDATED=false;published174 unchanged.

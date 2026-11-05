@@ -321,3 +321,330 @@ installs into nor launches manual71 and cannot close D6-C4.
 
 All original binaries/catalogs/observations/private experiment artifacts remain
 under ignored local paths. This source knowledge base contains no client files.
+
+FOLLOW-UP236 - 2026-10-27 - CACHED READ-ACCESS DEFECT FIXED
+Current queue/acceptance remain REMAINING_DELIVERY_PLAN.txt and DEV.txt;the
+physical-observation labels above are historical,not new requests to Nick.
+
+Production defect:verify_bundles skipped opening an unchanged cached bundle.
+Windows FILE_READ_DATA denial and read-sharing refusal can leave size,mtime,
+creation-time,file-ID and device fingerprints unchanged. Both actual Windows
+controls reproduce acceptance of unreadable authored bundles before the fix;
+regression-before.txt retains the two expected assertion failures. Existing
+catalog/missing/hash/receipt/race tests did not cover this cached access path.
+
+client_patch/patcher/bundle_loading.py now opens every bundle read-only. Changed
+fingerprints still get a complete SHA256;cache hits get a one-byte unbuffered
+read. Existing per-file and whole-pass fingerprint rechecks remain. Failure
+does not publish a new receipt. Catalog settings,original bundle bytes,Unity
+Tasks and native helper are unchanged. This checks access at preflight,not
+permission changes or physical I/O failure after validation,and is not a new
+security boundary against an owner rewriting both files and receipts.
+
+49tests pass on Python3.12/3.14,no skips:bundle_loading,secure_launcher,
+unified_launcher,game_installer. The new regression requires unchanged actual
+fingerprints,refusal under real read denial and sharing lock,unchanged receipt,
+and successful retry after restoration,without any full bundle hash on cache
+hits. Prior catalog/hash/in-flight-change/repair/install boundaries still pass.
+
+PACKAGED BASELINE AND CHANGED INSTALL
+An independent copy of owned232 was prepared as client236-game01,excluding its
+profiles/runtime logs;N13 and all ordinary user games remain untouched. The
+existing bundled installer backend installs new paired local preview236 with
+the unchanged source-bound helper232 and verifies all133bundles. Installed
+runtime identity:eabbbf6c2628b3f69827. No installer GUI or physical input claim.
+Changed source module SHA256:
+68adecd9c06d07a236e75b5c212aa2d228dacda81855d37a7540b340a4cd241c
+Previous packaged232 module SHA256:
+0ebf0d79aba51e9c16dccfaae88190fd00ae4b0ab9a74dded4ee5d5e6168b650
+
+tools/verify_client_content.py drives actual bundled package_client start with
+an explicit offline config and freshly seeded owned profile. It observes game
+IPC/Popen/resolver boundaries and bundle hashes. Fault-phase IPC is intercepted
+before creation;it is not fabricated success or a launched damaged game.
+These counters describe the game's private transport,not Python event-loop
+self-pipes. Ordinary native arguments are checked;only the healthy diagnostic
+adds the existing original-menu Quit controls and hides the owned window.
+
+Selected actual supported bundle:8779b549651992b1586b32e7d7927266.bundle,1779bytes.
+client236-baseline01 uses unmodified packaged232 on that verified copy. Under
+actual WinError5 with unchanged fingerprint it wrongly reaches game IPC creation
+intent. The observer stops before creating IPC or a game. No hash is attempted.
+Descriptor and content are restored exactly. Exit0/job2/0/0 here means the
+counterexample was reproduced;it is NOT product acceptance or native recovery.
+
+client236-native01 uses the installed changed runtime:
+ - Missing file:owned same-directory rename;exit1 before game IPC/Popen/remote
+   OPEN,zero hashes. Renaming back alone restores successful preflight.
+ - Same-size damaged content:one changed byte and changed mtime;exit1 before
+   those boundaries,one full hash. Original bytes restored;one rehash publishes
+   the refreshed valid receipt and preflight succeeds.
+ - Read denied:real mask1/WinError5,unchanged fingerprint;exit1 before those
+   boundaries,zero hashes. Exact descriptor restore alone permits preflight.
+All return the existing actionable Game content verification failed message;
+refusals leave the receipt unchanged. No additional install/repair is performed.
+
+INITIAL HEALTHY OBSERVER FAILURE - RETAINED
+That run's subsequent game18356 reaches native menu and normal Quit0,with saved
+preferences/shared channels preserved. Its diagnostic resolver incorrectly
+raises on the expected initial optional OPEN instead of allowing the original
+resolver to return unconfigured. The bridge ends early;the healthy assertion
+fails and controller exits1/job3/0/0,no force. The original full report remains
+FAILED. Its three completed refusal/repair subcases are independently checked;
+they did not reach that resolver and are not rerun after the observer correction.
+
+client236-native02 uses --healthy-only and the same installed product. The
+observer now calls the original resolver,records its normal RemoteUnavailable,
+and rethrows it unchanged. One optional OPEN,one unconfigured response,zero
+resolved remote targets;no connection is attempted. Game33008 reaches the native
+menu and original confirmation/Quit,exit0. Controller0/job3/0/0,no force,14.015s
+including startup/diagnostic Quit delays. Five original Quit trace events agree.
+Zero full bundle hashes;no secure-transport-ended message. Saved TOML parses
+identically,even without the allowed empty-menu serialization normalization.
+Shared settings/replays/backup snapshots,game component identities and explicit
+config remain unchanged. This is functional recovery,not a cold-start speed test.
+
+LOCAL ARTIFACTS / RECONCILIATION
+All paths below are under %LOCALAPPDATA%/BattleAcesDiagnostics/local/.
+Paired dirty/unpublished preview:client236-packages01,version0.3.0-rc1.7.
+Client manifest SHA256:
+eabbbf6c2628b3f698279da968dd6d7c266275ad2af1c0ab1f724b1947d5ebdd
+Server manifest SHA256:
+7c7971d76ff0cf219206fd67d0dfe0c26ecc705e34934255994c00efa3970b31
+Helper remains47aa23d3689c50c85a8e83207707a7c3d1272c6ae950ecd8e508dfebda1b2b8f.
+Both packages verify;the installed client manifest matches the new package.
+Published174 is unchanged;no new GitHub release or push. This client check does
+not establish new server-runtime,physical UI or clean-PC acceptance.
+
+baseline01/verification.json SHA256:
+b8c4e8cae3c9dfb4e26e5f25bb837c812790fd130ca4426f219682634417edca
+native01/verification.json SHA256(FAILED healthy observer):
+c7771a91beee4a11b5ee1659c279e5c4396178130abca647541264e08ebdc82d
+native02/verification.json SHA256(PASS corrected healthy path):
+d528b4caa59c3684e28209d08cc59997cbf2f5554b93a925e0089b0348360d63
+Use the client236- prefix on each of those directory names. Each retains exact
+source-at-run,request,child report and settings snapshots. Preparation root
+client236-preparation01 contains before sources,regression/test output,package
+build/install logs and completion-review.json. Independent review binds the
+retained three refusal/repair cases to the corrected healthy path,checks exact
+source/package identities,restored content/jobs/saves/shared channels and DEV.
+DEV is unchanged;no new Nick request or manual acceptance is inferred.
+
+Follow-up237 below closes cache receipt publication refusal/recovery. Other
+client-content paths,post-check I/O and physical presentation remain open. Do not
+repeat these successful read-fault or installation/native cases without cause.
+
+OPTIONAL VERIFICATION CACHE237 - 2026-10-27 - FIXED / SCOPED PASS
+Valid bundles could fail startup solely because atomic replacement of their
+optional verification cache was denied. The launcher mislabeled that as damaged
+game content. Existing missing/corrupt-cache handling already permits full hashes.
+verify_installed now catches OSError only around cache publication AFTER content
+verification succeeds. It warns that files are verified,cache saving failed,and
+disk space/folder write access should be checked;next launch may recheck files.
+Catalog/path/hash/read checks remain strict,as do installation and the generic
+atomic writer. No native helper/catalog/game content change. Quickstart updated.
+
+55tests pass without skips on each of Python3.12/3.14:bundle_loading,
+secure_launcher,unified_launcher,game_installer,profile_storage. The new real
+Windows replacement-lock regression failed before the fix with WinError5.
+Changed checks cover old-cache preservation,temporary cleanup,release/reuse,
+injected create/fsync OSError28,absent cache,and invalid content refusing before
+any publication. These injected failures are not a physically full-disk test.
+OwnedFileLock now also accepts strict descendants of the C diagnostics root;
+regular-file/containment/reparse restrictions remain. No user ACL changes.
+
+PACKAGED COUNTEREXAMPLE AND CHANGED PATH
+All237 artifacts below are under %LOCALAPPDATA%/BattleAcesDiagnostics/local/.
+client237-game01 is an independent owned copy,excluding inherited profiles/logs;
+the bundled installer installs pair237 and verifies all133bundles. N13/manual
+and user games are untouched. Runtime identity:f8c0fb3ef3474aa1a639.
+The existing verify_client_content tool adds --receipt-lock. It touches only
+the smallest valid bundle's mtime to require one rehash,then holds the old cache
+open with read sharing but without delete sharing. Conflicting delete probe32;
+actual os.replace fails5. The observer records the real operation,not a fake
+failure. Both runs preserve old cache/content,clean staging and release the lock.
+
+client237-baseline01 uses unchanged packaged236. Valid content is rejected with
+exit1 before game IPC/process/remote OPEN;one complete valid staged receipt was
+refused. Controller0/job2/0/0 here means the defect was reproduced,not product
+acceptance. No game launches. After release,one rehash publishes the cache and
+the next preflight hashes0;both stop at intercepted game IPC creation intent.
+
+client237-native01 uses installed237. While replacement remains denied it emits
+one fixed warning,starts actual game20728,reaches native menu/original Quit and
+confirmation,then exits0. Controller0/job3/0/0,no force,16.031s total. One optional
+OPEN receives the original unconfigured RemoteUnavailable;zero resolved targets.
+Five Quit events agree. After lock release,one rehash publishes the valid cache;
+next preflight hashes0 and publishes nothing. These two recovery passes stop
+before game IPC creation;no duplicate native launch. Parsed saved preferences
+are exactly equal,with no menu-state normalization needed. Shared settings/
+replays/backups,component identities,config and source hashes are preserved.
+
+IDENTITIES AND LIMITS
+Changed bundle_loading.py SHA256:
+d23260f0bd740d6652678491d67644e478b3763ab79ce5e0943e66dfcaa1e963
+Pair:client237-packages01,version0.3.0-rc1.7,dirty/unpublished. Both verify.
+Client manifest SHA256:
+f8c0fb3ef3474aa1a6396f14c7ea8be82f7cc63c93f3125635707829a7b5ba37
+Server manifest SHA256:
+d7999174934fe94a43339484cbd391a85869d0164c584c929a5bcf8fbcd4baa4
+Unchanged helper232 SHA256:
+47aa23d3689c50c85a8e83207707a7c3d1272c6ae950ecd8e508dfebda1b2b8f
+client237-baseline01/verification.json SHA256:
+d5f2531215558322a83ee86c5c9cbcee9b33b17479a8d846a2b84b7ddc5c621f
+client237-native01/verification.json SHA256:
+0bbcc96ce02aa571c331bd83d3ed0d42cab9e178ae8064d1f5a94e7f4824afdd
+Requests,source snapshots,child reports,cache/settings before/after and raw
+native log/Quit trace remain in those outputs. The inherited child scope label
+says Owned236;request.receipt_lock and the named per-case fields define237's
+actual scenario. client237-preparation01 retains before sources,pre-fix failure,
+tests/build/install logs and independently checked completion-review.json.
+Initial review command used a wrong package module path;corrected to program/app
+in reconcile.py. This did not rerun or alter the completed native evidence.
+DEV remains unchanged;no new manual acceptance. Published174 remains unchanged.
+This closes only the named optional-cache failure/recovery claim. It does not
+prove post-check I/O,power-loss/arbitrary storage faults,physical UI,clean-PC
+or server-runtime acceptance. FullD4 remains OPEN. Resume D2's existing retained
+negative/stale-control applicability review;do not add duplicate cache variants.
+
+POST-VALIDATION READ FAILURE242 - 2026-10-27 - REPRODUCED / UNFIXED
+Existing236/237 preflight and optional-cache passes remain complete. This is a
+distinct runtime read after validation. Current bundle verification closes its
+streams before launcher.launch creates IPC and starts the native process.
+
+Bounded fixture and target selection
+Catalog entry14437 names LargeGroupAudioTable.asset and includes dependency22,
+22afcd27e427dc74c718d35a50f695e4.bundle. Parsed serialized container confirms
+that table at pathID976267153171511136 in CAB-6a30b948abfd45abe2ae52fa9c9e8ed4.
+The same original background table load is bound/observed in233/234. Bundle size
+1598047559bytes,SHA256033aff4f1f92f3204c252494719ff11c7239d91e07be4baf50aeeaba0850081a.
+This chooses an actual startup dependency,not the smallest arbitrary bundle.
+Initial parser attempt mistook the .resource node for serialized metadata and
+failed before any runtime action;the known serialized CAB node parses correctly.
+Retained68 capture has ZERO loader entries,so it supplies no file-path binding.
+
+New diagnostic tools.verify_postcheck_content runs the installed237 bundled
+entry in a Windows-owned Job with one fresh isolated profile. After verify_game
+success,at socketpair before native creation,it takes a non-sharing read handle
+on that one bundle. Independent Win32 conflicting-open probe returns32. Only
+normal menu-Quit diagnostic flags are appended;no original loader/callback,
+read return,task status,asset count,ACL or file bytes are changed. The original
+Unity log observer requires the exact path on a file-open failure line before
+closing the handle. Five path/evidence controls pass on Python3.12/3.14.
+
+Observed native01 failure
+Successful validation and lock/native start at tick494403656. PID25696's original
+Unity log reports Unable to open archive file for the selected bundle1219ms
+later,followed by AssetBundleProvider RemoteProviderException,failed dependency
+groups and StaticTables.LoadTableAsync null references. Observer releases only
+the lock at tick494404875,immediately after reading that original failure.
+The same process does not reach the initial menu or original Quit within45s
+of restored access. Outer run49.047s stays FAILED. Controller34836 then forcibly
+cleans its owned job:3total/0active/0reported terminated. forced_cleanup=true is
+authoritative;zero termination accounting does NOT mean normal exit. No child
+completion report or original Quit success is invented. No retry run performed.
+
+Exact bundle hash,installed executable/helper/GameAssembly/manifest,owned parsed
+settings and shared settings/replays/backups remain unchanged. Source-at-run and
+all handles/processes are checked;lock released and job empty. No user/manual
+N13 game,server or credentials touched. Same dirty/unpublished237/helper232;
+no product fix,helper rebuild,package or release change. DEV unchanged.
+
+Current source boundary
+OfflineInitialUpdate's catch runs after original game initialization;the failed
+launch never reaches its marker. OfflineStartupReady is the successful Start
+completion callsite after _loadingFinish=true. Neither is evidence of handling
+this earlier table/asset fault. startup_tasks.cpp is an opted-in observer,not a
+production error-recovery path. Next:bind the original RGameInit.Start fault/
+exception path and pending-load Quit contract,then implement useful failure
+feedback plus clean exit/relaunch without fabricating readiness or clearing
+native ownership. Retest this retained counterexample only after a relevant
+change. Same-process repair is not established;full D4 remains OPEN.
+
+Artifacts:%LOCALAPPDATA%/BattleAcesDiagnostics/local/content242-postcheck01/
+catalog-binding.json,selected-bundle.json,tests312.txt/tests314.txt,native01/
+(request/source snapshots/events/live/original Unity log/settings/verification),
+and retained-review.json preserve exact inputs and outcomes.
+native01/verification.json SHA256:
+19c010b30e659a47a349323569950954b759033a594d71934bd182dc241f9336
+native01/events.jsonl SHA256:
+9960b74dbbaa1154f77369b1ccb0023ad5e89ece0ea532de751e77871a819feb
+native01/unity.log SHA256:
+a3e794aa67aac0b0325ee51e0321a8893605d8c8560427a1684ead273e823801
+REA process capture returned unsupported_provider:Windows PTY descendant cleanup
+is unsupported. No target was launched by that call;rea-unavailable.json retains
+it. Actual runtime evidence above is the source-owned Windows Job harness and
+original Unity log,not new REA Evidence. No engine/configuration repair attempted.
+
+STARTUP FAILURE EXIT / RELAUNCH243 - 2026-10-27 - FIXED / PACKAGED PASS
+This supersedes242's outstanding repair,not its historical failed report. The
+completed behavior is an orderly failed-start exit with useful instructions and
+healthy relaunch after access is restored. Same-process table-load retry is not
+implemented or claimed. FullD4 remains OPEN for its other cases.
+
+Original metadata and focused LLVM slices bind RGameInit.<Start>d__20.MoveNext
+RVA3dfe460 and its terminal catch call at3dff4d6/file3dfdad6,bytes e8d59b67ff.
+The native catch retires its state/fields before calling AsyncVoidMethodBuilder.
+SetException at34790b0. OfflineStartupFailure forwards that exact builder,
+exception and MethodInfo first,outside its own catch. In the ordinary local-menu/
+unified scope it then requests original Application.Quit(int) at5021a80 with78.
+Original exception reporting,wantsToQuit,pending-load admission and shutdown stay
+in place;no readiness,asset-counter,owner or callback result is fabricated.
+The patcher requires the helper marker/export before writing. Launcher maps78
+to an actionable file-access/repair/relaunch error and closes its normal bridge;
+other exit codes retain their existing meaning. Normal startup is unchanged.
+Native REA providers were unavailable;exact original bytes/metadata and LLVM are
+the explicit static fallback. No new REA runtime evidence or whole-program
+exception claim. Reuse233/234's pending-load contracts at their stated scope.
+
+New local paired preview243 was built and installed into an independent owned
+game copy. native02 uses its actual bundled entry,successful content validation,
+then a real read-sharing lock on the same242 table bundle. Conflicting open
+returns32;original Unity log identifies the exact failed bundle. Only that lock
+is released. Native37656 exits78,packaged client returns1 and prints recovery
+guidance. One startup-failure marker,no initial-state marker. The existing generic
+transport-ended notice also appears during shutdown;it was not suppressed.
+Same config/profile relaunch starts native6284,reaches menu,and uses original
+Quit confirmation to exit0/client0. Five original menu-Quit trace events retained.
+Outer20.157s,controller35724 exit0,job4total/0active/0terminated,no forced cleanup.
+Owned preferences,shared settings/replays/backups,bundle and program bytes stay
+unchanged. Diagnostic controls supply normal Quit actions,not physical UI evidence.
+
+Failed first243 native01 remains FAILED:controller35844/native32300,2.906s,
+forced cleanup before any original target-read observation. Append journaling
+showed native start while atomically replaced progress was stale. A separate
+owned-file control confirms replacement can fail with WinError5 while a CRT
+reader holds the destination;this is a plausible cause,not its captured exception.
+That control's byte assertion incorrectly expected LF instead of Windows CRLF;
+completion-review.json records exact preserved CRLF bytes without altering the
+failed control. The observer now reads complete append-only records and ignores
+an incomplete tail;final live.json is written only after job cleanup. native02
+uses unchanged product/helper/package bytes after this diagnostic correction.
+
+Regression suite:63tests pass on Python3.12 and3.14,including helper-admission
+refusal before writes and launcher78/error/settings preservation. Following the
+observer correction,all6observer controls pass on each version (5overlap the
+earlier suite;these are not69distinct tests). No repeat native run for paperwork.
+Retained reconciliation checks all helper/source hashes,package integrity,the
+full installed GameAssembly against a fresh in-memory source transformation,
+original242 failed-report hash,actual lock/error/events,exit codes,same profile,
+settings and no-force owner receipt. DEV unchanged;no new Nick request.
+
+Artifacts:%LOCALAPPDATA%/BattleAcesDiagnostics/local/content243-fault01/
+static-binding.json,method-bindings.json,three focused LLVM slices,helper01/,
+packages01/,tests312/314.txt,observer-tests312/314.txt,native01/,native02/,
+reconcile.py and completion-review.json. Native logs/events/source snapshots and
+both failed reports remain intact. Paired rc1.7 is dirty/unpublished;published174
+and previous237/user/manual N13 copies remain unchanged.
+Helper SHA256:
+98cdb7b564931747d0563a6ba259410f649312eb72d3e2579b0aefd748e1629c
+Installed GameAssembly SHA256:
+587a9d0c406e926131cd5b082eaa2c9b43b96cf2251baf7f7b6cd2b8a780ffca
+Client manifest SHA256:
+ed8b5b838a98446759eca3e39d7820c82bf6ab260beb877724289664d7474a50
+Server manifest SHA256:
+a1cc35e76c8fcec2e70dfab60453f323d047684bbd7442d0f94de71e2d63008b
+native02/verification.json SHA256:
+50274afceaf10ec71dc4e1b52887e2ab8e06221fc27f85c46e914a78844cf92a
+Next:D2 T07/T08 retained85 Custom/local/public applicability review. Reuse prior
+passes before considering a changed-path test;243 does not reopen healthy cases.

@@ -79,5 +79,63 @@ class PackagedSnapshotTests(unittest.TestCase):
         with self.assertRaises(AssertionError):probe.read_live_snapshot(self.folder/'other.json')
         self.assertEqual(list(self.folder.iterdir()),[])
 
+    def test_dedicated_external_diagnostic_output_and_path_boundary(self):
+        from unittest import mock
+        with mock.patch.dict('os.environ', {'LOCALAPPDATA':str(self.folder)}):
+            owned=self.folder/'BattleAcesDiagnostics/local/run'
+            owned.mkdir(parents=True)
+            path=owned/'server-live.jsonl'
+            path.write_text('{"sequence":1,"snapshot":{"rooms":0}}\n',encoding='utf-8')
+            self.assertTrue(probe.owned_diagnostic_path(owned))
+            self.assertEqual(probe.read_live_snapshot(path),dict(rooms=0))
+            # Use a temporary ROOT outside this fixture's tree, so the existing
+            # repository-local allowance cannot mask a rejected external path.
+            with mock.patch.object(probe,'ROOT',self.folder/'different-repository'):
+                self.assertTrue(probe.owned_diagnostic_path(owned))
+                for rejected in (owned.parents[1],owned.parents[1]/'local-other',
+                                 owned/'../../outside',self.folder/'unrelated'):
+                    with self.subTest(path=str(rejected)):
+                        self.assertFalse(probe.owned_diagnostic_path(rejected))
+                        with self.assertRaises(AssertionError):
+                            probe.read_live_snapshot(rejected/'server-live.jsonl')
+                with mock.patch.dict('os.environ',{'LOCALAPPDATA':''}):
+                    self.assertFalse(probe.owned_diagnostic_path(owned))
+
+    def test_external_pki_cleanup_and_final_report_preserve_unrelated_files(self):
+        from unittest import mock
+        with mock.patch.dict('os.environ',{'LOCALAPPDATA':str(self.folder)}), \
+                mock.patch.object(probe,'ROOT',self.folder/'different-repository'):
+            output=self.folder/'BattleAcesDiagnostics/local/run';output.mkdir(parents=True)
+            pki=output/'ephemeral-pki';pki.mkdir();(pki/'server.key').write_bytes(b'owned fixture')
+            (output/'retain.txt').write_text('keep')
+            report=dict(passed=True,jobs=[dict(active_processes=0)],forced_cleanup=False)
+            probe.finish_verification(output,pki,report)
+            self.assertFalse(pki.exists());self.assertEqual((output/'retain.txt').read_text(),'keep')
+            saved=json.loads((output/'verification.json').read_bytes())
+            self.assertTrue(saved['passed']);self.assertTrue(saved['temporary_pki_removed'])
+            self.assertEqual(saved['jobs'],report['jobs'])
+
+    def test_pki_cleanup_error_preserves_failed_report_and_job_evidence(self):
+        from unittest import mock
+        pki=self.folder/'ephemeral-pki';pki.mkdir();(pki/'server.key').write_bytes(b'owned fixture')
+        report=dict(passed=True,jobs=[dict(active_processes=0)],forced_cleanup=False)
+        with mock.patch.object(probe,'remove_owned_pki',side_effect=OSError('fixture refusal')):
+            probe.finish_verification(self.folder,pki,report)
+        saved=json.loads((self.folder/'verification.json').read_bytes())
+        self.assertFalse(saved['passed']);self.assertFalse(saved['temporary_pki_removed'])
+        self.assertIn('fixture refusal',saved['pki_cleanup_error']);self.assertEqual(saved['jobs'],report['jobs'])
+        self.assertEqual((pki/'server.key').read_bytes(),b'owned fixture')
+
+    def test_pki_removal_rejects_wrong_parent_name_and_directory_link(self):
+        from unittest import mock
+        pki=self.folder/'ephemeral-pki';pki.mkdir();(pki/'server.key').write_bytes(b'owned fixture')
+        wrong=self.folder/'unrelated';wrong.mkdir();(wrong/'keep').write_text('keep')
+        with self.assertRaises(AssertionError):probe.remove_owned_pki(wrong,self.folder)
+        with self.assertRaises(AssertionError):probe.remove_owned_pki(pki,self.folder/'another-run')
+        for method in ('is_symlink','is_junction'):
+            with mock.patch.object(type(pki),method,return_value=True),self.assertRaises(AssertionError):
+                probe.remove_owned_pki(pki,self.folder)
+        self.assertTrue((pki/'server.key').exists());self.assertEqual((wrong/'keep').read_text(),'keep')
+
 
 if __name__=='__main__':unittest.main()

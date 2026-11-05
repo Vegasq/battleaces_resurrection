@@ -1,0 +1,39 @@
+D5 CURRENT-SOURCE CONNECTED RUNNING RECOVERY278 - 2026-10-28
+P6 bounded reconnect/native/network subcase PASS;P6/P9/D5 remain OPEN.
+
+The current dirty-source local package/game/helper/receipt pair from271 runs
+an isolated two-human public1 recovery through the source-owned packaged
+verifier. No real host,manual game or shared SDK queue was accessed by this
+check. An owned fault closes one real TLS peer only after both clients receive
+frame600 in a loaded/running world. The original clients keep the same native
+PIDs,retire the interrupted match,reconnect and complete a replacement match
+through result/Continue/menu/original Quit. This is an authored fault and
+automatic diagnostic retry,not an ordinary network outage or physical input.
+
+local/privacy278-recovery01/verification.json passes in145.312s with
+forced_cleanup=false. Fault match b4beb9e3bb054f01bbfa4e7eda3c5cb3 is
+recorded at room running,next_frame603,loaded/peer seats0/1;both clients had
+received frame600 before peer close. The replacement match is
+d4e0973ac8b94a49b5ec1acb67ff8212,with a distinct worker. Both native
+client PIDs9984/30172 each create two worlds in the same process. The three
+owned jobs account7+2+2 processes and end active0/terminated0,with server
+rooms/sessions/workers/entries/offers/cleanup0. Package,assets,source,shared
+channels,adapters and configs remain unchanged. Verifier SHA256:
+e3d544ba2af87a82abfe6025576b3a1b2534c53721cbc33f3440f5e6612d3595.
+
+A separate read-only OS endpoint sampler followed the owned verifier tree and
+both native game PIDs. All155 post-launch samples include both game PIDs. They
+contain3430 TCP endpoint rows and0 UDP rows. TCP owners are packaged host
+PID4080 and client adapters8732/19096;remote addresses are only127.0.0.1 or
+0.0.0.0 listening/unconnected sentinel. The journal
+local/privacy278-sockets.jsonl has SHA256
+578c899f6e6620a5ac0529ab90613d205614e65098aba9ebc70f8722419b4fb2.
+Sampler source local/privacy274-socket-sample.ps1 has SHA256
+9597055f67f9e55d93f7d1dc9b1b37c013229ce2bd885054cb525dd99eb857e8.
+
+Boundary:polling begins after launch and misses early or brief sockets;it does
+not measure packets,raw/kernel paths,other processes,file/SDK queue activity
+or original reporter delivery. This is a loopback fixture with an authored
+running disconnect. P6 still needs the stated unavailable/offline -> online/
+reconnect -> ordinary shutdown sequence with effective retry/queue attribution.
+P9's separate Main+1498 advertising callback producer is unresolved.

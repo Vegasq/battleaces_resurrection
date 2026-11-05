@@ -27,7 +27,7 @@ PARTIAL_COMPLETE = ('NATIVE REPLAY MENU PARTIAL control passed: originalRunnerFa
                     'cancelCallbacks=1 originalStopCalls=0 fsmWrites=0 helperTicks=0 BA_RESURRECTION_REPLAY_MENU_PARTIAL_V1')
 
 
-def validate(text, replay, *, button_exit=False, cancel_first=False, invalid_first=False, semantic_first=False, partial_first=False):
+def validate(text, replay, *, button_exit=False, cancel_first=False, invalid_first=False, semantic_first=False, partial_first=False, ordinary_entry=False):
     require(not partial_first or (button_exit and cancel_first and not invalid_first and not semantic_first),
             'Partial initialization requires a separate healthy replacement sequence')
     require(not cancel_first or button_exit,'Cancel requires the authored leave route')
@@ -39,10 +39,24 @@ def validate(text, replay, *, button_exit=False, cancel_first=False, invalid_fir
             text.count('Original replay runner update failed:')==int(partial_first), 'original production replay pump was not observed')
     load = ('NATIVE REPLAY MENU load dispatch: profile=', 'mainMenu=1 worldIdle=1 '
             'originalLoadReplayFromFile=1 extraPlayCalls=0 fsmWrites=0 helperTicks=0')
+    loaded_prefix = 'NATIVE REPLAY MENU loaded:'
+    if ordinary_entry:
+        require(button_exit and cancel_first and not (invalid_first or semantic_first or partial_first),
+                'ordinary entry requires its separate healthy Cancel/Leave sequence')
+        require('NATIVE REPLAY MENU load dispatch:' not in text and
+                'Replay file entry refused:' not in text and 'Replay file entry stopped:' not in text,
+                'ordinary entry used diagnostic loading or failed')
+        require(text.count('NATIVE REPLAY ENTRY control passed: originalCancelLeave=1 diagnosticLoadCalls=0 idleMenu=1 leaseReleased=1')==1 and
+                text.count('Replay file entry finished: originalLeave=1 idleMenu=1')==1,
+                'ordinary replay ownership did not finish')
+        load = ('Replay file entry: boundedAdmission=1 originalLoadReplayFromFile=1 frames=',
+                'BA_RESURRECTION_REPLAY_ENTRY_V1')
+        loaded_prefix = 'NATIVE REPLAY ENTRY observed:'
     require(text.count(load[0]) == 1 and text.count(load[1]) == 1,
             'one original file load from idle menu required')
-    loaded = list(re.finditer(r'NATIVE REPLAY MENU loaded: frames=(\d+) gameDataSha256=([0-9a-f]{64}) '
-                              r'loadReturned=1 originalPlayInternal=1', text))
+    loaded = list(re.finditer(
+        r'NATIVE REPLAY ENTRY observed: ordinaryLoader=1 diagnosticLoadCalls=0 frames=(\d+) gameDataSha256=([0-9a-f]{64})'
+        if ordinary_entry else r'NATIVE REPLAY MENU loaded: frames=(\d+) gameDataSha256=([0-9a-f]{64}) loadReturned=1 originalPlayInternal=1', text))
     world = list(re.finditer(r'NATIVE REPLAY MENU in-game: world=(\d+) presented=(\d+) '
                              r'originalMainFsm=1 practiceActive=0 frames=(\d+)', text))
     require(len(loaded) == len(world) == 1 and int(loaded[0][1]) == replay['input_action_messages'] and
@@ -102,7 +116,7 @@ def validate(text, replay, *, button_exit=False, cancel_first=False, invalid_fir
     else:
         require('NATIVE REPLAY BUTTON authored dispatch:' not in text and BUTTON_COMPLETE not in text,
                 'API control contains button exit evidence')
-    markers = [load[0], 'NATIVE REPLAY MENU loaded:', 'REPLAY BINDING inventory:', exit_api, returned, completed]
+    markers = [load[0], loaded_prefix, 'REPLAY BINDING inventory:', exit_api, returned, completed]
     positions = [text.rfind(marker) if cancel_first and marker==exit_api else text.find(marker) for marker in markers]
     require(all(text.count(marker) == (cycles if button_exit and marker==exit_api else 1) for marker in markers) and positions == sorted(positions) and
             positions[1] < world[0].start() < positions[3], 'replay load/observation/API exit/menu order differs')
@@ -165,6 +179,7 @@ def validate(text, replay, *, button_exit=False, cancel_first=False, invalid_fir
                 original_exit_api=not button_exit, returned_to_menu=True, world_idle_after_exit=True,
                 signal_inventory=signal, nody_listener_count=len(nody_receivers), nody_inventory=nody,
                 button_clicks=cycles if button_exit else 0, helper_ticks=0, helper_fsm_writes=0,
+                ordinary_file_entry_qualified=ordinary_entry,
                 user_exposed_disk_selection_qualified=False, bound_button_exit_qualified=button_exit,
                 original_options_opened=button_exit,visible_button=visible,physical_ui_input_qualified=False,
                 confirmation_cancel_qualified=cancel_first,invalid_deflate_refusal_qualified=invalid_first,

@@ -1,0 +1,22 @@
+D5 / P7-P8 - Bugsnag SDK direct Winsock import calls
+
+2026-10-31. Pinned original and installed recipe47 GameAssembly review PASS.
+No game,report queue or endpoint ran. P7/P8/P9/D5 remain OPEN.
+
+tools.review_sdk_winsock_import535 reads the original PE's WS2_32 import
+address table from llvm-objdump and finds37 slots. It checks every
+RIP-relative FF15/FF25 call/jump to those slots in735 BugsnagUnity.Windows
+methods with native bodies. None appears in original or installed recipe47
+GameAssembly. The same section scan finds four such calls elsewhere in the
+image;llvm-objdump decodes all four as actual indirect calls to the table.
+This positive control confirms the byte pattern and import range detect
+real calls. The installed GameAssembly SHA256 is
+99ffb3f723ccb6f48e89eb8f3cff3ed1675978cfec092be19b8f4d06ee5edb6e,
+bound to531's source/installed recipe47 package review. Receipt:
+local/privacy535-winsock-import.json SHA256
+9e5ede36131591552e797c909731dc2f0047cc1ec312e6fd492e20efcb7376f0.
+
+This rules out only direct RIP-relative SDK calls/jumps into GameAssembly's
+WS2_32 import table. It does not exclude an SDK call through an indirect
+pointer,managed Unity networking,the active web-request wrapper,other
+modules,OS brokers or any actual wire route. P7/P8/D5 remain OPEN.

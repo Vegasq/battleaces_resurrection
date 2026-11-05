@@ -1,0 +1,40 @@
+D5 / P8 - owned packaged driver Job assignment before execution
+2026-10-30. Bounded current private public1 subcase PASS;full P8/D5 OPEN.
+
+374 observed no additional job-inheriting client children in public1/2/5,
+but the external verifier started each packaged Python driver before assigning
+its Windows Job. The initial creation-to-assignment interval was unobserved.
+
+The source-owned diagnostic verifier now creates each packaged driver with
+CREATE_SUSPENDED,assigns it to the existing no-breakaway Job,checks a
+successful NtResumeProcess return,then publishes the job-ready gate. This
+changes only the external verifier;normal product launchers,source package
+pair358 and published174 remain unchanged. Microsoft documents that a
+CREATE_SUSPENDED primary thread does not begin execution until resumed and
+that ordinary CreateProcess children inherit a Job absent breakaway limits:
+https://learn.microsoft.com/en-us/windows/win32/procthread/suspending-thread-execution
+https://learn.microsoft.com/en-us/windows/win32/procthread/job-objects
+
+One owned current recipe38 private-pair RC-open public1/two-human match passed:
+1220 frames,result/Continue,normal native Quit0 for both clients,host workers
+reaped,all jobs drained with zero active/terminated,zero forced cleanup.
+The server driver Job totals5;each client driver Job totals2,its packaged
+driver and native game. All three launch receipts report suspended creation,
+successful Job assignment before resume,and monotonic ordered stage ticks.
+The ticks share a coarse clock quantum and are not independent proof of the
+within-quantum order;the exact reviewed source and successful return are.
+
+tools.review_d5_job_prelaunch376 checks verifier source and source hashes,
+the reviewed no-breakaway Job policy,package/game/asset match result,launch
+receipts,job-ready-before-native-game gates and final cumulative accounting.
+Reviewer PASS. Ignored evidence:
+ local/privacy376-job-launch01/verification.json
+ SHA256 5bebc004c57807665ca749302591da0b7d207af578e89a027df1e0b3e85f4950
+ local/privacy376-job-launch01/job-launch-review.json
+ SHA256 5871a4ee153c01d4c0cfb2b44f1827b31cf42a7c631c39bccc08d781ef9bdb67
+
+This closes the verifier's initial driver-execution-before-Job-assignment gap
+for this owned run. It does not establish that an external broker/WMI cannot
+create a process outside the Job,or attribute all descendant file/network
+traffic. Other modes and final installed artifacts require their own binding.
+P9 and full P8/D5 remain OPEN;RUNTIME_VALIDATED=false.

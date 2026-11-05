@@ -1,0 +1,43 @@
+D5 / P8 - current private public-mode client job descendants
+2026-10-30. Bounded public1/2/5 subcase PASS. Full P8/D5 OPEN.
+
+The retained current recipe38 private-pair runs provide one public5
+two-human/two-bot match361,one public2 two-human/two-bot match362,and a
+public1 two-human match373. Each completed native result/Continue/normal
+Quit0,server workers/jobs drained and no forced cleanup. Existing source/
+package/game/asset reviewers bind those outcomes to the private pair358.
+
+The external verifier assigns each packaged client driver to its own
+Windows Job before writing the driver's job-ready gate. Each native game
+launch receipt follows that gate. The same server.worker_client._WindowsJob
+source hash was recorded at start and finish in all three runs and still
+matches the current source. Its only job limit is0x2000,KILL_ON_JOB_CLOSE;
+it sets neither BREAKAWAY_OK nor SILENT_BREAKAWAY_OK. Microsoft documents
+that ordinary CreateProcess children inherit a job by default when those
+breakaway limits are absent:
+https://learn.microsoft.com/en-us/windows/win32/procthread/job-objects
+
+Each run reports client jobs with total_processes2,active_processes0 and
+total_terminated_processes0. The two known members are the packaged Python
+driver and a distinct native Battle Aces game PID. Thus no additional
+job-inheriting client child process was created during these owned public
+matches,including a CEF helper launched by ordinary CreateProcess from a
+job member. The server job separately totals5;this report does not classify
+its complete process identities or traffic.
+
+tools.review_d5_client_jobs374 verifies the no-breakaway source setting,
+its exact per-run source hash,package/match results,job-ready-before-game
+receipts,client PIDs,normal exits and final cumulative job accounting.
+The review passes against retained evidence;no new game or browser was
+launched. Verification SHA256:
+568be10083d5977439e70819aa8ea6b338b3beb64c375a3e0d75e2c87d28fbce
+Ignored report:local/privacy374-client-jobs01/review.json.
+
+Scope:these three current private public runs and child processes that
+inherit the client's Job. The initial driver creation-to-job-assignment
+interval,external brokers/WMI Win32_Process.Create,other modes,indirect
+activation and all descendant file/network traffic remain outside this
+claim. Microsoft explicitly notes the WMI creation exception in the same
+job-object documentation. The171 Korean browser cut and172 startup/survey
+applicability retain their own scopes;this review adds no global absence
+claim. P9/final installed privacy and full P8/D5 remain OPEN.

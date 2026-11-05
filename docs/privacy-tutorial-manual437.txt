@@ -1,0 +1,32 @@
+D5 / P3 - controlled Tutorial01 input probes and prepared visible check
+
+2026-10-30. Input probes did not advance the objective;P3/D5 OPEN.
+
+435 used a fresh owned current recipe38 Tutorial01 profile and reached
+2_Expand_2_Built. The hidden Unity window's PrintWindow call returned success
+but its saved image was all black. The initial report incorrectly marked that
+capture PASS;report-original.json is retained and report.json explicitly
+corrects it to FAILED. The game exited0 through owned WM_CLOSE without force.
+
+436 used another fresh owned profile. It posted Z key and four bounded mouse
+clicks only to the owned hidden UnityWndClass window. The game logged the
+same first objective and no next Enter Objective event;the probe FAILED to
+advance it. It exited0 through owned WM_CLOSE without force. The game log
+reports the newer input system. These posted messages are not evidence that
+Unity accepted player input;do not repeat random hidden-window clicks.
+
+A single-use visible manual capsule was prepared under
+local/privacy437-tutorial-manual01. It binds current recipe38 GameAssembly,
+UnityPlayer,helper357 and manifest hashes;package/helper validation and
+fresh-profile/launcher preflight pass. It has not been launched. DEV N15
+requests only genuine Tutorial01 gameplay and in-game Quit observations;
+the isolated game copy,its logs and existing user installations stay distinct.
+This manual check can establish behavior,but cannot by itself close SDK queue,
+whole wire or final installed D5 privacy attribution.
+
+Retained ignored evidence:
+ local/privacy435-tutorial-screen-d0c65281/report-original.json
+ local/privacy435-tutorial-screen-d0c65281/report.json (FAILED capture)
+ local/privacy436-tutorial-input-f07a3fec/report.json (FAILED advancement)
+ local/privacy437-tutorial-manual01/plan.json (prepared/unlaunched)
+RUNTIME_VALIDATED=false;published174 unchanged.

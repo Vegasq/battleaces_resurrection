@@ -1,0 +1,49 @@
+D5 / P5 - CURRENT PRIVATE PAIR CONNECTED SDK-CACHE CHANGE WATCH340
+
+2026-10-28/29. Selected file-change observation PASS;P5/P9/full D5 remain OPEN.
+
+Question and method
+338 proved the recipe34 private pair can complete one RC-open public1/two-human
+match but had no privacy observation for that pair. This run starts a read-only
+Windows FileSystemWatcher on the293-bound Bugsnag cache root before launching
+the same source-owned packaged verifier. It observes metadata notifications only:
+Created,Changed,Deleted,Renamed and Error. It does not open,enumerate,read,
+seed or clear SDK queue files. The watcher runs until after the verifier exits.
+The owned server,two clients and profiles use the same private328 packages and
+owned301 game;neither the user-owned game nor server is changed.
+
+Result
+local/privacy340-connected01/verification.json passes in113.047s without
+forced cleanup:1220 frames,complete public1 result,two game/launcher exit0,
+server workers reaped and final state drained. The source-owned connected-pair
+review rechecks package/helper/game/source/asset/shared identities and jobs.
+The watcher interval is2026-10-28T23:58:22.3988873Z through
+2026-10-29T00:00:18.5749717Z. Its stop sentinel is present and it completed.
+Counts:Created0,Changed0,Deleted0,Renamed0,Error0. A separate owned-root
+positive control using the same watcher saw Created1,Changed2,Deleted1,Error0.
+The source-owned review binds the watched path to the original SDK getter path
+already qualified by293 and rechecks both the match and positive control.
+
+Retained ignored identities
+  local/privacy340-connected01/verification.json SHA256
+  471a4cdada330d1319322fc82ab3b7cc3deafa210b3cc796c260c85d9ae2dd84
+  local/privacy340-connected-watch01/watch.json SHA256
+  d6e426928b4854f740e95d0f9bd5a3f7175e158bc43cfad45c19992735385d64
+  local/privacy340-connected01/cache-review.json SHA256
+  6b5339733e357f057bbe2c6fef0fc564eebae60e2a5b40008475646b6ca36fe5
+  local/privacy340-watcher-control01/watch.json SHA256
+  899dcea96e6eb8db9f02b4ba4725af6e6a57404fc21273632b3d886da33c0e7d
+
+Boundary
+This shows no selected change notification at the named cache root during the
+current pair's connected run. FileSystemWatcher cannot see reads,queue state,
+another root,process-private memory or network delivery. It is not an all-
+thread/all-API or full-wire census. The cache root is shared,though the owner
+process check found no other game/host process before this run. It does not
+settle other connected modes,SDK retries,P9's upstream advertising-ID producer
+or final installed/publication scope. P5/P9/full D5 remain OPEN and
+RUNTIME_VALIDATED=false.
+
+The first attempted watch339 used relative paths in a background job and did
+not produce a watcher report. Its separately completed match still passed;
+it supplies no cache evidence. The watcher now requires absolute paths.

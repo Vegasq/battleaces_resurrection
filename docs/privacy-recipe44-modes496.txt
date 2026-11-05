@@ -1,0 +1,44 @@
+D5 / P5-P9 - recipe44 private connected mode compatibility
+
+2026-10-31. Source-bound private recipe44 client/server pair PASS in public1,
+public2,public5 and Custom rematch. No user-owned game or real account was
+used. Published174 remains recipe23,RUNTIME_VALIDATED=false;effective SDK
+queue/wire,P9 and full D5 remain OPEN.
+
+The private recipe44 game is local/privacy487-game01;the exact helper and
+client/server archives are at local/privacy489-packages01. The existing
+public1 run local/privacy490-connected01 passes source-bound review490.
+The changed recipe44 getter guard justified fresh checks for the other
+connected modes;no equivalent recipe40 mode run was repeated without a
+source change.
+
+New runs used tools.verify_packaged_multiplayer with isolated ephemeral
+identities and temporary PKI:
+- Public2/four humans:local/privacy496-public2-01/verification.json SHA256
+  e09e0c0d5e8c9fa5dd1154f7160f5d63551dd4e2c6493e9d01c5f7f03738c21d;
+  1250frames,complete result,four client exits0,two workers reaped.
+- Public5/two humans plus bots:local/privacy496-public5-01/verification.json
+  SHA256 45d66c264705935c10800de071c57aa36ff6173df8155cfc1c714a2ef7b9e888;
+  1250frames,complete result,two client exits0,two workers reaped.
+- Custom/two humans/rematch:local/privacy496-custom-01/verification.json
+  SHA256 78d7da9b7b0fbc2fc0eaf8b14c52754ca2d468447af66a4595b875915e4bcb3f;
+  two1220-frame matches,epochs1/2,Leave and two client exits0,three
+  workers reaped.
+
+Every client used the original Quit confirmation. Every run ended with its
+host listener closed,state lock released,all owned Jobs empty,zero forced
+cleanup,unchanged package/assets/shared settings/source snapshots and
+temporary PKI removed. No owned game process remains live.
+
+tools.review_recipe44_modes496 independently rechecks the existing490
+source/package/installed binding and all new mode reports,including result,
+Quit,worker/Job and immutable-state fields. Review receipt:
+local/privacy496-modes-review01.json SHA256
+01b261c5955f451db312c7bda42b018d17ab829afb3125dbe4b6f1469f4153fb.
+
+This closes changed-recipe connected gameplay compatibility at these four
+mode paths. It does not observe all effective SDK collection,cache/queue,
+delivery,descendant or whole-wire behavior,qualify local/tutorial/error
+paths,identify the separate advertising-ID producer,or bind a final
+published installer. Do not rerun identical connected mode checks without
+a changed recipe or concrete defect.

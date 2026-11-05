@@ -1,0 +1,74 @@
+ISOLATED ADVERTISING CALLER WITNESS180
+2026-10-26. Diagnostic implementation/authored controls complete. P9/D5 OPEN.
+
+Result
+tools/frida_ads_caller.py adds a separate opt-in witness for callbackc307c0.
+179 established that the existing native observer deliberately leaves this
+callback unhooked. The new profile can collect its immediate return location,
+up to eight stack locations and thread ID without reading callback arguments,
+receiver fields,strings or identifiers. It never invokes a collector or replaces
+the callback's behavior. Frida entry instrumentation still changes live code;
+native field auditing and this witness must run separately.
+
+Preparation and owner integration
+This module does not launch or attach to anything. An owned diagnostic runner:
+1. Uses a separate ignored local/adscaller_<12hex>/ game copy and profile
+   nativestest_adscaller_<12hex>. Preserve installed/manual copies and real queues.
+2. Calls describe_unity(original_bytes,installed_bytes). It checks the pinned
+   original through patch_component,applies the current recipe AND PE checksum,
+   compares the whole installed file,and returns recipe/file/body identities.
+3. Supplies build_source(config) exactly these fields:
+   image:absolute Windows Battle Aces.exe path in that owned directory;
+   profile:absolute path under its .battleaces-resurrection/profiles directory;
+   argv:the actual owned launch argv,including one matching -local-profile=...;
+   pid:the retained owner's PID;runId:32 lowercase hex;unity:the descriptor above.
+   It rejects -telemetry-audit/-telemetry-device-probe and competing profiles.
+4. Loads the generated script through its owned instrumentation session and
+   retains every message. The script checks PID/image/architecture,selected
+   module path,complete177-byte callback body and five-NOP retention guard before
+   attaching. Reload/unload or mismatches invalidate the interval.
+5. Calls rpc.exports.finish() before closing the interval. It rechecks the guard,
+   detaches the entry hook/module observer and emits/returns a final snapshot.
+   Missing finish,script error,unknown schema/order or lost records do not pass.
+6. Calls validate(rows,config). Independently reconcile actual launch arguments,
+   source/helper/installed hashes,session messages and owned process/job lifetime.
+   Configured argv and echoed file hashes alone do not prove that external state.
+
+Calls after the first eight still increment the counter;their caller records
+are intentionally suppressed. Unknown module locations remain explicit nulls.
+No absolute return address or argument content is emitted. No automatic game
+exit,transport sleep,report-queue operation or normal-launcher integration added.
+
+Evidence interpretation
+The decoder qualifies only an explicitly stopped instrumented interval. Its
+producer_resolved,whole_process_coverage and full_privacy_qualified outputs are
+always false. A recorded return location is an investigative lead,not proof of
+which operation acquired an identity. Zero calls cannot establish whole-lifetime
+absence. Other injected scripts or the native device probe can manufacture calls;
+the owner must exclude them and bind the actual launch before interpreting hits.
+
+Verification
+Python3.12 and3.14 each pass9focused tests:
+ python -B -m unittest tests.test_ads_caller tests.test_native_telemetry_observer
+Executable Node VM controls run the generated script with authored callbacks:
+13calls yield8caller records/5suppressed;counts survive the budget;unknown callers
+stay unknown;final detach is explicit. Tests reject audit/probe conflicts,foreign
+paths/PIDs,wrong body/guard/size,reload/unload,unwind failure,changed final guard,
+missing/reordered rows,noninteger counters,forged descriptors and extra payloads.
+The prior observer's exclusion of this callback remains unchanged.
+
+Read-only actual-file descriptor verification also passes for existing171 Unity:
+ a53b0c613a86c737b7caa7588c7c93ae20d5d5700f9321a406df9dcca8e32a7f
+Complete patched callback-body SHA256:
+ a6044668d68af8db8cf82e43e6fef1c385e1370f1fd2aad2084debe89d200ef5
+Original/installed hashes remain unchanged. This is not an installed174 runtime
+observation. Retained artifacts:local/adscaller180-controls01/{verification.json,
+installed-descriptor.json,authored-positive.json,tests312.txt,tests314.txt}.
+
+Next
+Qualify actual native Frida attachment/caller capture and owned runner integration
+before using this witness in a still-required finite mode/lifecycle observation.
+No native Frida attachment or game launch happened here. The actual upstream
+c307c0 producer is still unidentified. Do not mark P9 complete or repeat an old
+quiet AI run as absence proof. Recipe23/helper169,published174 and runtime flag
+remain unchanged. No new Nick action is required for this engineering step.

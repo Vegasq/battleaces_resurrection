@@ -1,0 +1,40 @@
+D5 / P5-P9 - recipe35 private package pair and connected match
+
+2026-10-28. Private package pair and owned connected public1 compatibility
+PASS. P5/P7/P9 and full D5 remain OPEN,RUNTIME_VALIDATED=false.
+
+tools.build_windows_packages built dirty-source preview0.3.0-rc1.7 with the
+pinned Python3.14.8 runtime,source-bound client installer/server launcher,
+certificate helper and recipe35 helper345-build02. It excludes proprietary
+game assets,private profiles and credentials. This is an ignored local
+engineering preview,not a published release or final installer. Both package
+manifests verify. Build report:
+local/privacy346-packages01/build-report.json SHA256
+ba319565926760950102c599d33d7c3029ead79bfecfa59f9d89852b9cbb5c17.
+Client ZIP SHA256:
+bd38821e1e023e07d34ad4b15de4a6e56e92119a42edfefcf343b80b13d497ce.
+Server ZIP SHA256:
+f4308b7dfbde6441f52ccae8605bbc3f1ded80e22dc776f8a318f8d8241302de.
+
+The source-owned packaged multiplayer verifier used those two ZIPs,the
+separate owned recipe35 game install and verified build37822 assets in one
+RC-open loopback public1 match. Two human clients reached a complete result
+at1220 frames;both bundled client launchers and games exited0 after original
+Continue/menu/Quit. Both server workers exited0 and were reaped;listener,
+status writer and lock released. Three owned jobs report5/2/2 total processes,
+all with0 active/0 terminated at completion. No forced cleanup. Package,
+config,source,assets,adapters and sampled shared channels stayed unchanged;
+temporary test PKI was removed. Elapsed103.266s.
+
+local/privacy346-connected01/verification.json PASS SHA256:
+f67c9a45f261300fe88bf8176f693ae00544eb7267966c428f98f07b80277b1e.
+tools/review_d5_connected_pair346.py binds the run to source/package/helper/
+installed GameAssembly and the separate recipe35 loaded-guard6/6/natural
+menu Quit report345. Retained review.json PASS SHA256:
+a59ec9dac31841d8854bfd5cce1bfe29edbffded9546ced5f25ffb5d1c1e97e8.
+
+This closes the changed recipe35 private pair's one connected compatibility
+gap. It does not include SDK queue/file or full network/wire capture for the
+clients/server,other modes,all-thread/descendant attribution or P9's upstream
+advertising-identifier producer. Published174 is unchanged;final installed
+release qualification remains OPEN.

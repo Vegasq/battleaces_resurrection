@@ -1,0 +1,22 @@
+D5 / P6 - owned loopback outage control
+
+2026-10-30. Diagnostic control only;P6/D5 OPEN,RUNTIME_VALIDATED=false.
+
+tools.stream_shaper now has an opt-in outage/restore pair. Outage closes the
+relay listener and cancels its active TCP stream handlers;restore binds the
+same loopback port. The production game,client bridge and server are unchanged.
+The relay forwards opaque TLS bytes and does not decrypt or persist payloads.
+
+The bounded echo-socket test proves a live connection forwards before outage,
+is closed by outage,new connections receive OS refusal,and a fresh connection
+forwards after restoration on the exact same port. The threaded controller
+and relay end with zero active connections. The full stream-shaper test module
+passes9/9 with python -m unittest tests.test_stream_shaper -v.
+
+This creates the needed network control for a later owned native-client run.
+It does not yet show game recovery,SDK queue/retry state,wire destinations or
+ordinary Quit. Do not mark P6 complete from this control test.
+
+Follow-up439 used this control in a real owned native two-client match and
+passed the bounded outage/recovery/normal-Quit sequence. See
+privacy-running-outage439.txt;SDK queue/retry and full P6 remain open.

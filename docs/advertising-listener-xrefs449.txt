@@ -1,0 +1,85 @@
+D5 / P9 - symbol-backed listener and public handler cross references
+
+2026-10-30. Static original UnityPlayer check PASS at bounded scope.
+P9/D5 OPEN;no game or provider was invoked.
+
+Ghidra analyzed the exact PDB-matched pristine UnityPlayer described in448.
+The ignored local scripts TraceAdsListenerRefs.java,TraceAdsLifecycle.java and
+TraceAdsHandlerGlobal.java used Ghidra references,owner functions and
+decompilation. Logs are under local/d5-ghidra-12.1.4/pdb-{listener-refs,
+lifecycle,global}-console.log. All three headless processes exited0.
+
+Both IAdsIdListener vtables (1a2afb8 AnalyticsCoreStats and1a2c630
+UnityAnalytics) have references only from the corresponding analytics
+constructor/destructor or static initializer/destructor in this Ghidra
+database. c307c0 OnAdsIdRequestDone has two vtable data references and one
+other data reference;no direct call reference. c300f0 HandleRequestToSendAdsId
+has direct callers from OnAdsIdRequestDone,OnEnterStateStarted and
+GetConfigRequestSessionInfo. This confirms that formatting a retained ID
+also occurs when analytics state changes;it is not an acquisition edge.
+
+The named AdsIdHandler::FetchCachedAdsId and InvokeAllAdsIdDelegate each
+have one direct code caller,Application_CUSTOM_RequestAdvertisingIdentifierAsync
+at5fb70. InvokeAdsIdDoneDelegate has one direct code caller,
+InvokeAllAdsIdDelegate. The manager global s_AdsIdHandler region has direct
+Ghidra references from its initializer/destructor and the public request;
+no direct reference from the selected analytics lifecycle bodies. Its
+constructor allocates one0x28 node list at+0x68 and one0x18 node list at+0x78.
+The +0x68 list is traversed as managed delegates;the +0x78 element type and
+producer/consumer remain unproved. Ghidra merged list destructors,so their
+names do not resolve the second list's type.
+
+AnalyticsCoreStats::RegisterGlobalCallbacks registers a player-session
+callback,RemoteConfig handler and EarlyUpdate forwarder. The decompiled
+constructor,PerpareForInitialization,InitializeSession and StaticInitialize
+show no direct AdsIdHandler registration. This is a five-body observation,
+not proof of global listener absence:inlined,computed,other-body and
+cross-module dispatch remain possible. The next useful check is a positive
+provider/registration edge or a pre-acquisition boundary;do not infer
+unreachability from zero direct references.
+
+Recipe39's public pre-queue cut remains intact;published174 is recipe23.
+Full P1-P9,D5 and RUNTIME_VALIDATED=false are unchanged.
+
+Follow-up (2026-10-30):the derived UnityAnalytics BaseUnityAnalytics
+vtable+e0 resolves to c66c20 UnityAnalytics::RegisterGlobalCallbacks,
+while the base table+e0 resolves to c2f570. StaticInitialize c33210
+constructs the derived object and directly or virtually calls c66c20.
+The derived method registers the player-session callback,RemoteConfig,
+EarlyUpdate and the named "analytics" ConfigChanged listener. Its complete
+decompiled body has no direct IAdsIdListener/AdsIdHandler registration.
+The paired derived/base Unregister methods remove those same named
+callbacks. c33210's earlier UpdateCoreStatsCountForAnalytics call enters
+UpdateCoreStatsEnabledCount,which changes the service-name set/count;that
+selected body does not acquire an advertising ID. The Ready-state body
+does call GetDeviceUniqueIdentifier,already handled separately by the
+existing unknown-sentinel cut;it is not evidence of an ads-ID provider.
+
+This is not a newly discovered patch gap. Recipe39 already RET-guards
+both c66c20 and c2f570 at their entries,as source and installed
+local/privacy441-game01/UnityPlayer.dll bytes c3 at offsets c66020 and
+c2e970 confirm. The service-enabled virtual c33440 also returns false
+via installed bytes31c0c3 at offset c32840. The prior354 source/installed
+review covered both Start guards and EarlyUpdate registration;this PDB
+follow-up supplies exact names and the derived config-listener body.
+The actual native ads-ID provider/registration remains unidentified.
+Ignored Ghidra logs:pdb-gate-console.log,pdb-vtable2-console.log,
+pdb-derived-console.log,pdb-derived-unreg-console.log,pdb-updatecore-
+console.log,pdb-corecount-console.log,pdb-ready-console.log under
+local/d5-ghidra-12.1.4. All related headless processes exited0.
+
+Follow-up464 (2026-10-31):a read-only scan of the same PDB-applied pristine
+project visited59,459 analyzed functions and797,150 symbols. The36 names
+containing AdsId or AdvertisingIdentifier include the known handler,
+IAdsIdListener destructor/vtables,callback,formatter and global. No named
+registration function appears. Searching Ghidra's displayed function
+signatures for IAdsIdListener or AdsIdHandler found only three signatures
+whose own names contain AdsIdHandler;Ghidra has not surfaced useful typed
+listener parameters at this boundary. This is a tool/metadata limit,not
+proof that a registration API or provider is absent. It retires another
+name/signature search;continue with dataflow or a positive runtime edge.
+Ignored script:local/d5-ghidra-12.1.4/scripts/FindAdsListenerSignatures464.java,
+SHA256 24ce1759b88e83db59a6ec636eb59552cf4e6655c36a09fdbd3b8972bfb8d00e.
+Headless read-only process exited0;log:
+local/d5-ghidra-12.1.4/pdb-listener-signatures464-console.log,
+SHA256 8df1127bed19dca9e6d749ce393444b016e6a7adb220da4ffc895881c3cccf23.

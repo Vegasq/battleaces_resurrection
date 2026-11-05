@@ -22,8 +22,11 @@ static const Signature signatures[]={
     {0x80366f,0x802a6f,"0f85a40500004c39b424200800000f84","e9a505000090",0},
     {0x803c92,0x803092,"c78424e007000001000000c78424f8","c78424e007000003000000",0},
     {0xc93d10,0xc93110,"488bc44889480855488da868ffffff48","c3",0},
+    {0x361870,0x360c70,"4c8d0589000000bab0000000e9af5432","c3",1},
+    {0x5fb70,0x5ef70,"48895c24184889742420574883ec604c","31c0c3",1},
     {0xc3bafc,0xc3aefc,"488b03488bcbff908000000041b001c6","e90a00000090909090909090909090",1},
     {0xc34270,0xc33670,"48895c240848896c2410488974241857","31c0c3",1},
+    {0xc64e20,0xc64220,"40534883ec20488bd9e8e2f4ffff84","31c0c3",1},
     {0xc478f5,0xc46cf5,"7410488d41484881c4c0010000415f5b","9090",1},
     {0xc8c5f3,0xc8b9f3,"0f85b80000004c8bcbc64308014c8d","e9b900000090",1},
     {0xc66c20,0xc66020,"40574883ec7080b9c015000000488b","c3",1},
@@ -89,7 +92,7 @@ static const Signature signatures[]={
     {0x205430,0x204830,"4885c90f840f010000574883ec30488b","",3},
 };
 static uintptr_t unity=0;
-static constexpr unsigned currentRecipeVersion=23;
+static constexpr unsigned currentRecipeVersion=47;
 static bool checked=false,disabled=false,startupLogged=false,quitAttempted=false,completeRecipe=false;
 static unsigned snapshots=0;
 static ba_telemetry_sampling::Schedule schedule;
@@ -184,6 +187,126 @@ static unsigned reportErrorGuardCount() {
     };
     return gameGuardCount(guards);
 }
+static unsigned reporterCallbackGuardCount() {
+    static const Signature guards[]={
+        {0x3cc3600,0x3cc1c00,"40534883ec30803d6b5e190300488bd9","31c0c3",0},
+        {0x3cc5440,0x3cc3a40,"40534883ec20803d3140190300488bd9","31c0c3",0},
+        {0x3cc5df0,0x3cc43f0,"40534881ec80000000803d8136190300","31c0c3",0},
+        {0x3cc6930,0x3cc4f30,"40534883ec30803d492b190300488bda","31c0c3",0},
+        {0x3cc6a70,0x3cc5070,"40534883ec50803d0a2a190300488bda","31c0c3",0},
+        {0x3cc3700,0x3cc1d00,"48895c2408488974241048897c241841","31c0c3",0},
+        {0x3cc4aa0,0x3cc30a0,"48895c2410488974242048894c240857","31c0c3",0},
+    };
+    return gameGuardCount(guards);
+}
+static unsigned reporterEnabledGuardCount() {
+    static const Signature guards[]={
+        {0x3cc687c,0x3cc4e7c,"c64118014883c4205fc3cccccccccccc","c6411800",0},
+        {0x3cc30fd,0x3cc16fd,"0fb6da7518488d0d27fae702e8f29a95","b30090",0},
+    };
+    return gameGuardCount(guards);
+}
+static unsigned reporterRegistrationGuardCount() {
+    static const Signature guards[]={
+        {0x81b2b0,0x8198b0,"48895c2410574883ec40488bfa488bd9","c3",0},
+    };
+    return gameGuardCount(guards);
+}
+static unsigned networkBreadcrumbGuardCount() {
+    static const Signature guards[]={
+        {0x8181f0,0x8167f0,"40535641564883ec70803d4b096306","c3",0},
+    };
+    return gameGuardCount(guards);
+}
+static unsigned breadcrumbCollectorGuardCount() {
+    static const Signature guards[]={
+        {0x835c60,0x834260,"48895c240848896c2410488974241848","c3",0},
+        {0x835d00,0x834300,"48895c241056574154415641574883ec","c3",0},
+        {0x818040,0x816640,"48895c2408574883ec40803df80a6306","c3",0},
+    };
+    return gameGuardCount(guards);
+}
+static unsigned breadcrumbFacadeGuardCount() {
+    static const Signature guards[]={
+        {0x811180,0x80f780,"48895c240848896c2410488974241857","c3",0},
+        {0x8112a0,0x80f8a0,"48895c2408574883ec30803d59786306","c3",0},
+    };
+    return gameGuardCount(guards);
+}
+static unsigned sdkDataIngressGuardCount() {
+    static const Signature guards[]={
+        {0x811450,0x80fa50,"48895c240848896c2410488974241857","c3",0},
+        {0x811c60,0x810260,"48895c24084889742410574883ec3080","c3",0},
+        {0x811d00,0x810300,"48895c2408574883ec30803d096e6306","c3",0},
+        {0x811fb0,0x8105b0,"48895c2408574883ec30803d5e6b6306","c3",0},
+        {0x812040,0x810640,"48895c2408574883ec20803dcf6a6306","c3",0},
+        {0x817760,0x815d60,"4883ec38488b49204885c9741248c744","c3",0},
+        {0x817790,0x815d90,"4883ec28488b49204885c9740c4533c9","c3",0},
+        {0x817830,0x815e30,"48895c240848896c2410488974241848","c3",0},
+        {0x817940,0x815f40,"48895c24084889742410574883ec3080","c3",0},
+        {0x8179d0,0x815fd0,"48895c240848896c2410488974241848","c3",0},
+    };
+    return gameGuardCount(guards);
+}
+static unsigned sdkConfigurationIngressGuardCount() {
+    static const Signature guards[]={
+        {0x81bdf0,0x81a3f0,"4883ec38488b49604885c9741248c744","c3",0},
+        {0x81be20,0x81a420,"4883ec28488b49604885c9740c4533c9","c3",0},
+        {0x81bec0,0x81a4c0,"48895c240848896c2410488974241848","c3",0},
+        {0x81c1c0,0x81a7c0,"4883ec28488b49684885c9740c4533c9","c3",0},
+        {0x81c1e0,0x81a7e0,"48895c240848896c2410488974241848","c3",0},
+        {0x8359a0,0x833fa0,"4883ec28488b49284885c9740c4533c9","c3",0},
+    };
+    return gameGuardCount(guards);
+}
+static unsigned sdkSceneMetadataGuardCount() {
+    static const Signature guards[]={
+        {0x818cf0,0x8172f0,"48895c2418574883ec30803d4efe6206","c3",0},
+    };
+    return gameGuardCount(guards);
+}
+static unsigned sdkUserCacheGuardCount() {
+    static const Signature guards[]={
+        {0x81428e,0x81288e,"488b4b384885c90f846001000033d2e8","e9260000009090",0},
+    };
+    return gameGuardCount(guards);
+}
+static unsigned sdkSessionCacheGuardCount() {
+    static const Signature guards[]={
+        {0x826b40,0x825140,"48895c2410488974242048894c240857","c3",0},
+    };
+    return gameGuardCount(guards);
+}
+static unsigned sdkCacheReaderGuardCount() {
+    static const Signature guards[]={
+        {0x836b50,0x835150,"48895c2408488974241048897c241841","c3",0},
+        {0x83683a,0x834e3a,"498bd8488bfa803ddf236106007518","e94500000090",0},
+        {0x837816,0x835e16,"488bda33d2488bcbe88d02d10284c0","e91f00000090",0},
+        {0x8368b0,0x834eb0,"48895c2408574883ec50488bf9803d63","31c0c3",0},
+        {0x837720,0x835d20,"4883ec38488bc233d2488bc8e81f02","c3",0},
+    };
+    return gameGuardCount(guards);
+}
+static unsigned sdkCacheDirectoryGuardCount() {
+    static const Signature guards[]={
+        {0x837850,0x835e50,"4883ec38803dd2136106007518488d","c3",0},
+    };
+    return gameGuardCount(guards);
+}
+static unsigned sdkContextGuardCount() {
+    static const Signature guards[]={
+        {0x8118e0,0x80fee0,"40534883ec20803d2572630600488bd9","c3",0},
+        {0x817510,0x815b10,"48895c2408574883ec20803d1f1663","c3",0},
+    };
+    return gameGuardCount(guards);
+}
+static unsigned sdkMetadataMergeGuardCount() {
+    static const Signature guards[]={
+        {0x812ff0,0x8115f0,"e8fb640300498b4e5833d2e820cbffff","9090909090",0},
+        {0x814064,0x812664,"e887540300488b4f5833d2488b5c2430","9090909090",0},
+    };
+    return gameGuardCount(guards);
+}
 static bool verifyModule() {
     if(checked)return !disabled;
     checked=true;disabled=true;
@@ -229,10 +352,25 @@ static bool verifyModule() {
         const auto collectorGuards=automaticCollectorGuardCount();
         const auto initializationGuards=sdkInitializationGuardCount();
         const auto errorGuards=reportErrorGuardCount();
-        completeRecipe=groups[0]==4 && groups[1]==56 && groups[2]==3 && cacheGuards==5 && serviceGuards==2 && collectorGuards==1 && initializationGuards==6 && errorGuards==7;
+        const auto reporterCallbacks=reporterCallbackGuardCount();
+        const auto reporterEnabled=reporterEnabledGuardCount();
+        const auto reporterRegistration=reporterRegistrationGuardCount();
+        const auto networkBreadcrumb=networkBreadcrumbGuardCount();
+        const auto breadcrumbCollectors=breadcrumbCollectorGuardCount();
+        const auto breadcrumbFacades=breadcrumbFacadeGuardCount();
+        const auto dataIngress=sdkDataIngressGuardCount();
+        const auto configurationIngress=sdkConfigurationIngressGuardCount();
+        const auto sceneMetadata=sdkSceneMetadataGuardCount();
+        const auto userCache=sdkUserCacheGuardCount();
+        const auto sessionCache=sdkSessionCacheGuardCount();
+        const auto cacheReaders=sdkCacheReaderGuardCount();
+        const auto cacheDirectory=sdkCacheDirectoryGuardCount();
+        const auto context=sdkContextGuardCount();
+        const auto metadataMerges=sdkMetadataMergeGuardCount();
+        completeRecipe=groups[0]==4 && groups[1]==59 && groups[2]==3 && cacheGuards==5 && serviceGuards==2 && collectorGuards==1 && initializationGuards==6 && errorGuards==7 && reporterCallbacks==7 && reporterEnabled==2 && reporterRegistration==1 && networkBreadcrumb==1 && breadcrumbCollectors==3 && breadcrumbFacades==2 && dataIngress==10 && configurationIngress==6 && sceneMetadata==1 && userCache==1 && sessionCache==1 && cacheReaders==5 && cacheDirectory==1 && context==2 && metadataMerges==2;
         disabled=false;
-        ba::log("Telemetry audit build verified: UnityPlayer sha256=%s normalized=%s crashSignatures=%u/4 coreCandidateSignatures=%u/56 performanceCandidateSignatures=%u/3 cacheFailureSignatures=%u/5 serviceProfileSignatures=%u/2 recipeVersion=%u automaticCollectorSignatures=%u/1 sdkInitializationSignatures=%u/6 reportErrorSignatures=%u/7; READ ONLY, no qualification claim",
-            actualHash.c_str(),originalHash,groups[0],groups[1],groups[2],cacheGuards,serviceGuards,currentRecipeVersion,collectorGuards,initializationGuards,errorGuards);
+        ba::log("Telemetry audit build verified: UnityPlayer sha256=%s normalized=%s crashSignatures=%u/4 coreCandidateSignatures=%u/59 performanceCandidateSignatures=%u/3 cacheFailureSignatures=%u/5 serviceProfileSignatures=%u/2 recipeVersion=%u automaticCollectorSignatures=%u/1 sdkInitializationSignatures=%u/6 reportErrorSignatures=%u/7 reporterCallbackSignatures=%u/7 reporterEnabledSignatures=%u/2 reporterRegistrationSignatures=%u/1 networkBreadcrumbSignatures=%u/1 breadcrumbCollectorSignatures=%u/3 breadcrumbFacadeSignatures=%u/2 sdkDataIngressSignatures=%u/10 sdkContextSignatures=%u/2 sdkMetadataMergeSignatures=%u/2 sdkConfigurationIngressSignatures=%u/6 sdkSceneMetadataSignatures=%u/1 sdkUserCacheSignatures=%u/1 sdkSessionCacheSignatures=%u/1 sdkCacheReaderSignatures=%u/5 sdkCacheDirectorySignatures=%u/1; READ ONLY, no qualification claim",
+            actualHash.c_str(),originalHash,groups[0],groups[1],groups[2],cacheGuards,serviceGuards,currentRecipeVersion,collectorGuards,initializationGuards,errorGuards,reporterCallbacks,reporterEnabled,reporterRegistration,networkBreadcrumb,breadcrumbCollectors,breadcrumbFacades,dataIngress,context,metadataMerges,configurationIngress,sceneMetadata,userCache,sessionCache,cacheReaders,cacheDirectory);
     } catch(const std::exception& e) {ba::log("Telemetry audit disabled: %s; no object reads attempted",e.what());}
     return !disabled;
 }
@@ -571,7 +709,7 @@ static void update() {
             else if(current==ba::read<Obj>(ba::owner,0x2f8)){stage=Stage::Tutorial;label="tutorial";}
         }
         if(schedule.due(stage,GetTickCount64(),snapshots))sample(label);
-        if(stage==Stage::Menu){deviceProbe();activationProbe();cache_probe::run();cache_probe::startupRun();nativeCrashProbe();}
+        if(stage==Stage::Menu){deviceProbe();activationProbe();cache_probe::run();cache_probe::startupRun();cache_probe::liveRootRun();nativeCrashProbe();}
     } catch(const std::exception&) {
         disabled=true;ba::log("Telemetry audit disabled: state observation failed");
     }

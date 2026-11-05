@@ -1,0 +1,72 @@
+D5 / P9 - recipe47 connected advertising-entry observations across modes
+
+2026-10-31. Current owned installed recipe47 public1,public2,public5 and
+Custom rematch runs PASS at the selected native entry scope. This is not a
+P9 or D5 closure. RUNTIME_VALIDATED=false;published174 is unchanged.
+
+tools.verify_packaged_multiplayer created all clients suspended and held
+their primary threads until REA Frida attached. The read-only observer
+checked the exact loaded UnityPlayer callback body SHA256
+a6044668d68af8db8cf82e43e6fef1c385e1370f1fd2aad2084debe89d200ef5,
+the AdsIdHandler static-init RET,public request guard and retained-ID copy
+guard. It then armed handler constructor361900,AnalyticsCoreStats
+OnAdsIdRequestDone c307c0,HandleRequestToSendAdsId c300f0,and both
+self-TerminateProcess exports before main-thread resume. No advertising
+argument,ID string,report payload or endpoint was read.
+
+The four owned runs completed their native matches and original Quit0:
+- public1:two clients,1220 frames;local/privacy530-public1-ads01;
+- public2:four clients,1250 frames;local/privacy527-public2-ads01;
+- public5:two clients,1250 frames;local/privacy528-public5-ads01;
+- Custom:two clients,two rematch epochs;local/privacy529-custom-ads01.
+
+All ten observer sessions detached with untruncated messages. Each client
+reported zero handler-constructor,ads-callback and send-request entries,
+and a null handler global at readiness and self-termination entry. All
+client game exits were0,all host/client Jobs ended with0 active/terminated
+processes,and no forced cleanup occurred. Package,asset,source and shared
+snapshots were unchanged. tools.review_ads_connected527 independently
+binds the current recipe47 installed UnityPlayer,the four run reports,
+prelaunch PIDs,observer source/hashes,ordered REA messages and final exits:
+PASS. Receipt local/privacy530-ads-modes-review.json SHA256
+0e874f1194317c24817cb080ba82fb284d6dfa2cc23a303187fd037e333911be.
+
+Run report SHA256 values:public1
+4ae052bdb183aae243de00dee476164687cba1ed09f04d781964c64569989b4a;
+public2 2a071bdc249765bd1b00aafe031f63a9e5ba957221823af39377c631e9e81fab;
+public5 e014e57b383a9720a94e64f4c66eda6005b0fa7a5643d967a0447797977d2156;
+Custom 02d59eef4fbe8eed705dcc9b4f3250dd937b5812d8fce03cf10e2f53d9156562.
+REA bundles reside under local/privacy{527,528,529,530}-trace01/.
+
+These are observed quiet entries in the selected connected lifetimes. They
+do not identify the upstream ID provider or native listener registration,
+exclude other provider/indirect/earlier processes,or prove whole file/wire
+privacy. A positive source edge or pre-acquisition cut and final installed
+pair binding remain required for P9/D5.
+
+533 current installed callback probe:one owned recipe47 menu/Quit run invoked
+the original AnalyticsCoreStats::OnAdsIdRequestDone with an authored ID on
+disabled state0. The installed c30838 copy guard was five NOPs;retained ID
+remained empty,progress flags advanced,borrowed input was unchanged and the
+original Quit exited0 without forced cleanup. The independent
+tools.review_ads_callback533 check PASS binds the installed image,helper,
+report,raw native marker and unchanged source/shared files. Report:
+local/privacy533-ads-callback01/verification.json SHA256
+13f1bb4bc3bc924ef3cc917bdd9ee6c4845945e915a479964716b4264b5c72f6.
+Native log SHA256 fab798f6bfe77e2a2c43c7cdebf9307e0b4c97a0fcc79b9677185ffaed45aed0;
+review receipt local/privacy533-ads-review.json SHA256
+ae280cdd7f83ec0dfe667c9fb5f6d9892867f777b702b43807b37b6f62dc149a.
+This direct synthetic callback does not prove upstream ID acquisition or
+listener registration absent,and does not exercise state3 or real queued data.
+P9 and D5 remain OPEN.
+
+534 current installed composition check:tools.review_ads_current_composition534
+PASS binds all49 original callback instructions to recipe47 installed bytes.
+Its sole callback-body change is the five-NOP retained-ID copy cut;the
+tracking/dirty updates and conditional state3 call remain. Current installed
+c300f0 retains both guarded identity-conversion redirects and the original
+virtual+b0 drain. Receipt local/privacy534-ads-composition.json SHA256
+5b9d4180f0b94c1226648a94764f2122482093511a155c3e5351f86e802c9664.
+This extends425's recipe38 source composition to installed recipe47. It does
+not prove upstream acquisition,registration,state3 activation or safe
+delivery of previously retained/queued data. P9/D5 remain OPEN.

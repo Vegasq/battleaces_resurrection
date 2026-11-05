@@ -1,0 +1,50 @@
+D5 / P9 - state-three worker entry map
+
+2026-10-30. Static original/current recipe38 review PASS;P9/D5 OPEN.
+No game,callback,queue or endpoint was invoked.
+
+425 established that the current callback's borrowed-ID copy and two
+identity-conversion segments are skipped,while its conditional state-three
+virtual+b0 drain remains. The new source edge is c3c5d0:both original and
+current bytes at c3c5e7 exchange value3 into Main+8. Current recipe38 does
+not guard that state transition. c300d0 directly calls c3c5d0 and then
+tail-jumps to the guarded c300f0 conversion tail.
+
+The original/current c300d0 pointer occupies virtual slot+90 in two Main
+tables;the third table's slot+90 points directly to c3c5d0. The state
+dispatcher c3b990 calls slot+90 on its requested-state3 branch. Its two
+direct tail-jump callers are c2e629 in c2e5a0 and c2f757 in c2f640.
+The latter is the connection callback whose normal Main.Start registration
+is cut by the current Start guard. That cut alone does not exclude c2e5a0:
+c402d0,at virtual slot+8 in all three tables, references c2e5a0 at c40352
+and can register it after its state/flag checks. c402d0's ordinary engine
+activation under the guarded startup remains unproved,as108 already noted.
+
+This is a reachable source graph,not a witnessed current runtime invocation.
+It rules out treating the constructor's initial state as a permanent state0
+invariant. Actual c402d0 activation,callback registration,ID acquisition,
+inflight queue and wire behavior remain unresolved. The next useful check
+is a scoped pre-resume witness for c402d0/c3c5d0 in an owned patched launch;
+another quiet-state sample would not settle their full-lifetime reachability.
+
+Reviewer:tools.review_d5_state3_entry426. It pins original/current Unity
+identity,scans the full original .text for direct branches/RIP address
+references to five selected targets,verifies current direct-branch bytes,
+pointer slot sets/current values and the state3 exchange bytes. Its closed
+sets do not cover computed calls,other pointer forms or dynamic dispatch.
+Ignored receipt:local/privacy426-state3-entry01/verification.json
+SHA256:d79b1c7c67b6c3cdae7b58629b714fdf3e108f2d4e7a055061b3609f3ab1c769.
+RUNTIME_VALIDATED=false;published174 unchanged.
+
+Follow-up428:the c402d0 entry's two direct calls lead to c425d0 and c3f140.
+The former walks a callback array and calls both free and receiver-bound
+entries at c426b2/c426c6;the latter has a separate conditional initialization
+body. All three complete original/current recipe38 function bodies are byte-
+identical. Returning at the whole c402d0 entry would also skip this callback
+work and is not justified as an analytics-only cut. This review does not
+classify every registered callback or establish whether the entry activates
+outside427's observed match. Continue P9 at a positive provider/registration
+edge or a narrower proven acquisition cut. Reviewer:
+tools.review_d5_worker_init428;ignored receipt:
+local/privacy428-worker-init01/verification.json,
+SHA256 8606fdd12b289ec42193bdb301581dc6f3518384572a161b90723ca37cf08426.

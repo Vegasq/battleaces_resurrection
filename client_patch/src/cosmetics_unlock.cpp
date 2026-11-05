@@ -7,6 +7,11 @@ namespace ba_cosmetics {
 static void uiTrace();
 static void pickerSmoke();
 static void equipSmoke();
+static void skinPreviewSmoke();
+static void videoPreviewSmoke();
+static void emotePreviewSmoke();
+static void emoteMatchSmoke();
+static void sprayPreviewSmoke();
 static void persistenceProof();
 static void persistenceInitialize(const std::string&);
 static void observe();
@@ -117,7 +122,7 @@ static bool prepare(Obj front) {
 }
 static void unlockUpdate(Obj front) {
     if(!unlockEnabled() || unlockFailed || !ba_local_menu::ready(front) || !prepare(front))return;
-    try {observe();unlockSmoke(front);uiTrace();pickerSmoke();equipSmoke();observe();persistenceProof();}
+    try {observe();unlockSmoke(front);uiTrace();pickerSmoke();equipSmoke();skinPreviewSmoke();videoPreviewSmoke();emotePreviewSmoke();emoteMatchSmoke();sprayPreviewSmoke();observe();persistenceProof();}
     catch(const std::exception& error) {InterlockedExchange(&unlockOwnerThread,0);unlockFailed=true;unlockReady=false;ba::log("Cosmetics unlock failed: %s",error.what());}
 }
 }

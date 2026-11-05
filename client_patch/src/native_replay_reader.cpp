@@ -1,5 +1,6 @@
 #pragma once
-// Opt-in owned codec readback, never high-level Replay.Load/Play or ordinary UI.
+// Original bounded codec primitives shared by diagnostics and selected-file admission.
+// Decoding never calls high-level Replay.Load/Play or changes the current world.
 namespace ba_native_replay_reader {
 using ba::Obj;using ba_local::Root;using ba_native_settings::require;
 static Obj type(const char* ns,const char* name,const char* image=nullptr) {
@@ -44,11 +45,11 @@ static Obj get(Obj receiver,const char* name,uintptr_t rva,uint32_t token) {
     require(receiver!=nullptr,"replay reader getter owner missing");
     return invoke(method(ba::klass(receiver),name,0,rva,token),receiver);
 }
-static int count(Obj collection) {
+static int count(Obj collection,int maximum=65536) {
     require(collection && !strcmp(ba::api<const char*(*)(Obj)>("il2cpp_class_get_namespace")(ba::klass(collection)),"Google.Protobuf.Collections") &&
         !strncmp(ba::api<const char*(*)(Obj)>("il2cpp_class_get_name")(ba::klass(collection)),"RepeatedField",13),
         "replay reader expected original closed repeated field");
-    const int result=ba_local::count(collection);require(result>=0 && result<=65536,"replay reader repeated field bound");return result;
+    const int result=ba_local::count(collection);require(result>=0 && result<=maximum,"replay reader repeated field bound");return result;
 }
 struct Streams {
     std::unique_ptr<Root> file,deflate,coded;
@@ -92,15 +93,7 @@ struct Result {
     unsigned disposed=0,cleanupErrors=0;
     bool identity=false,limits=false;
 };
-static Result decode(const std::wstring& leaf,const char* faultCase=nullptr) {
-    require(!leaf.empty() && leaf.find_first_of(L"\\/:")==std::wstring::npos,"replay reader refuses a non-leaf selection");
-    const auto extended=ba_native_storage::replay->directory.apiPath()+L"\\"+leaf;
-    ba_native_settings::Handle pin(CreateFileW(extended.c_str(),GENERIC_READ,FILE_SHARE_READ,nullptr,OPEN_EXISTING,
-        FILE_FLAG_OPEN_REPARSE_POINT,nullptr));ba_native_settings::ordinary(pin.value);
-    LARGE_INTEGER size{};require(GetFileSizeEx(pin.value,&size) && size.QuadPart>0 && size.QuadPart<=4*1024*1024,
-        "replay reader compressed size bound");
-    wchar_t finalPath[32768];const DWORD length=GetFinalPathNameByHandleW(pin.value,finalPath,32768,FILE_NAME_NORMALIZED|VOLUME_NAME_DOS);
-    require(length && length<32768 && !_wcsicmp(finalPath,extended.c_str()),"replay reader escaped pinned destination");
+static Result decodePinned(const std::wstring& extended,HANDLE pin,bool strictRecording=true,const char* faultCase=nullptr) {
     const auto fileType=type("System.IO","FileStream","mscorlib.dll"),deflateType=type("System.IO.Compression","DeflateStream","System.dll"),
         codedType=type("Google.Protobuf","CodedInputStream","Google.Protobuf.dll"),messageType=type("GamePb","Replay","RGame.Generated.dll");
     Root path(ba::api<Obj(*)(const wchar_t*,int32_t)>("il2cpp_string_new_utf16")(extended.data(),static_cast<int32_t>(extended.size())));
@@ -111,14 +104,14 @@ static Result decode(const std::wstring& leaf,const char* faultCase=nullptr) {
         invoke(method(fileType,".ctor",7,0x3557960,0x060032b6),streams.file->get(),fileArgs);
         Root safe(ba::read<Obj>(streams.file->get(),0x38));require(safe.get()!=nullptr,"replay reader original file handle missing");
         BY_HANDLE_FILE_INFORMATION pinned{},actual{};
-        require(GetFileInformationByHandle(pin.value,&pinned) && GetFileInformationByHandle(ba::read<HANDLE>(safe.get(),0x10),&actual) &&
+        require(GetFileInformationByHandle(pin,&pinned) && GetFileInformationByHandle(ba::read<HANDLE>(safe.get(),0x10),&actual) &&
             pinned.dwVolumeSerialNumber==actual.dwVolumeSerialNumber && pinned.nFileIndexHigh==actual.nFileIndexHigh &&
             pinned.nFileIndexLow==actual.nFileIndexLow,"replay reader original stream identity differs");
         result.identity=true;
         streams.deflate=allocate(deflateType);int decompress=0;bool leaveOpen=false,gzip=false;
         void* deflateArgs[]={streams.file->get(),&decompress,&leaveOpen,&gzip};
         invoke(method(deflateType,".ctor",4,0x44f8660,0x06000da0),streams.deflate->get(),deflateArgs);
-        int byteLimit=16*1024*1024,recursionLimit=64;void* codedArgs[]={streams.deflate->get(),&byteLimit,&recursionLimit};
+        int byteLimit=(strictRecording?16:256)*1024*1024,recursionLimit=64;void* codedArgs[]={streams.deflate->get(),&byteLimit,&recursionLimit};
         streams.coded=std::make_unique<Root>(invoke(method(codedType,"CreateWithLimits",3,0x312d770,0x0600002e),nullptr,codedArgs));
         require(streams.coded->get()!=nullptr,"replay reader coded stream missing");
         Root bytes(get(streams.coded->get(),"get_SizeLimit",0x887b30,0x06000031)),recursion(get(streams.coded->get(),"get_RecursionLimit",0x865460,0x06000032));
@@ -136,19 +129,32 @@ static Result decode(const std::wstring& leaf,const char* faultCase=nullptr) {
         require(config.get() && ba::klass(config.get())==type("GamePb","GameConfig","RGame.Generated.dll"),"replay reader GameConfig missing");
         Root version(get(config.get(),"get_VersionBuild",0x845f70,0x06000308));
         require(version.get() && ba::klass(version.get())==type("CommonPb","VersionBuild"),"replay reader build model missing");
-        Root build(get(version.get(),"get_Build",0x70f380,0x06002e4d));require(ba_native_settings::wide(build.get())==L"37822","replay reader build differs");
-        result.frames=count(batches.get());result.initial=count(setup.get());require(result.frames>0 && result.initial>0,"replay reader empty recording/setup");
-        for(int index=0;index<result.frames;++index) {
+        Root build(get(version.get(),"get_Build",0x70f380,0x06002e4d));
+        if(strictRecording)require(ba_native_settings::wide(build.get())==L"37822","replay reader build differs");
+        result.frames=count(batches.get(),strictRecording?65536:16*1024*1024);result.initial=count(setup.get());
+        require(result.frames>0 && result.initial>0,"replay reader empty recording/setup");
+        for(int index=0;strictRecording && index<result.frames;++index) {
             void* args[]={&index};Root batch(ba::call(batches.get(),"get_Item",1,args));
             require(batch.get() && ba::klass(batch.get())==type("GamePb","InputActions","RGame.Generated.dll"),"replay reader batch class differs");
             Root frame(get(batch.get(),"get_GameFrame",0x6f9db0,0x0600097c));
             require(ba_catalog::unbox<int>(frame.get())==index,"replay reader recorded frames are not contiguous");
             Root players(get(batch.get(),"get_PlayerInputActions",0x728d00,0x06000985));if(count(players.get()))++result.playerBatches;
         }
-        require(result.playerBatches>0,"replay reader lacks recorded player batches");
+        if(strictRecording)require(result.playerBatches>0,"replay reader lacks recorded player batches");
     }catch(const ManagedError& error){result.failure=error.what();result.exception=error.type;}
     catch(const std::exception& error){result.failure=error.what();}
     streams.close();result.disposed=streams.disposed;result.cleanupErrors=streams.errors;return result;
+}
+static Result decode(const std::wstring& leaf,const char* faultCase=nullptr) {
+    require(!leaf.empty() && leaf.find_first_of(L"\\/:")==std::wstring::npos,"replay reader refuses a non-leaf selection");
+    const auto extended=ba_native_storage::replay->directory.apiPath()+L"\\"+leaf;
+    ba_native_settings::Handle pin(CreateFileW(extended.c_str(),GENERIC_READ,FILE_SHARE_READ,nullptr,OPEN_EXISTING,
+        FILE_FLAG_OPEN_REPARSE_POINT,nullptr));ba_native_settings::ordinary(pin.value);
+    LARGE_INTEGER size{};require(GetFileSizeEx(pin.value,&size) && size.QuadPart>0 && size.QuadPart<=4*1024*1024,
+        "replay reader compressed size bound");
+    wchar_t finalPath[32768];const DWORD length=GetFinalPathNameByHandleW(pin.value,finalPath,32768,FILE_NAME_NORMALIZED|VOLUME_NAME_DOS);
+    require(length && length<32768 && !_wcsicmp(finalPath,extended.c_str()),"replay reader escaped pinned destination");
+    return decodePinned(extended,pin.value,true,faultCase);
 }
 static void faults() {
     struct Case {const char* name;const wchar_t* leaf;const char* exception;};

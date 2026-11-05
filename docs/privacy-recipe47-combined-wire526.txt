@@ -1,0 +1,55 @@
+D5 / P7-P8 - recipe47 authored queue with combined native/Python audits
+
+2026-10-31. Owned installed recipe47 RC-open public1 pair PASS at this
+bounded scope. P7/P8/P9/D5 remain OPEN;RUNTIME_VALIDATED=false and
+published174 is unchanged. No existing user SDK queue was read or modified.
+
+tools.verify_packaged_multiplayer seeded one authored SDK .event and one
+.session before launching each fresh owned profile. It created both game
+processes suspended for prelaunch REA observers,then resumed them after
+both observers armed. The same run enabled the packaged Python socket,
+Proactor byte and two worker socket audits. Two human clients completed a
+1220-frame match,result/Continue and original Quit0. Host/client Jobs
+ended with0 active/terminated processes,no forced cleanup. Authored queue
+file bytes and identities,source,packages,assets,adapters and shared channels
+remained unchanged.
+
+Both untruncated REA sessions detached naturally. Each installed the five
+selected SDK hooks on exact loaded entry bytes and ended with all five
+counters0,no script errors or overflow. Both recorded positive native bridge
+send/recv and zero selected WinHTTP connects. No selected queue-root file
+operation was emitted. The nine unresolved invalid-handle writes per client
+remain unclassified as to path. The positive Python Proactor audits recorded
+host362716 send/195707 receive bytes,client0 260088/261831,and client1
+259835/261554. Their host-adapter links had reciprocal byte counts and
+loopback peers. Host,adapters and both workers passed endpoint-only socket
+audits with loopback endpoints. No payload content was retained.
+
+tools.review_recipe47_wire526 independently rechecks the installed pair
+report,queue file identities/bytes,observer source/hash/messages/counters,
+exact packaged diagnostic prefixes,endpoint and byte journals,reciprocal
+host-adapter links,worker audit sources and empty Jobs:PASS.
+Retained report:local/privacy526-public1-wire01/verification.json SHA256
+0b94b8f35d3a9b08e3aa4dbf6daa889bbdb7932d36fc8a4414a2787734b9a37d.
+REA bundle:local/privacy526-trace01/rea-evidence.json SHA256
+6753bff8b7b585d466b02d659dca8252d73727b666cd60b4a261e202b4edc6f0.
+
+This does not prove real SDK-produced queue behavior,resumed/in-flight
+delivery,all supported modes,all native/ctypes or OS broker routes,actual
+packet wire,or the P9 advertising-ID source. These and the coherent final
+installed pair remain D5 closure work.
+
+Follow-up532 (2026-10-31):tools.review_current_python_routes532 binds
+the current recipe47 package source copies to the direct Python child-launch
+and selected explicit ctypes inventories. All30 client and66 server packaged
+source files match the current workspace. Seven direct Python process-call
+sites retain the previously reviewed launcher,worker,certificate,installer
+and asset-export ownership. The six production modules reported by each
+526 host/adapter driver match the current package manifest bytes. Across
+those selected modules,the only explicit ctypes DLL constructors name
+kernel32 and advapi32 for credential ACLs and worker Jobs. No explicit
+network DLL constructor appears in that selected set. Receipt:
+local/privacy532-current-routes.json SHA256
+4de7c6b3b045932272ef98e0733cecfbdac2cd0de1041a4833c98e290e803c29.
+This does not classify indirect launches,stdlib/extensions,other native
+modules or OS brokers,and it does not prove actual wire destinations.

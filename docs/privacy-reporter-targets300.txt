@@ -1,0 +1,40 @@
+D5 / P7 - original reporter AddOnSendError delegate targets
+2026-10-28. Static pinned-build resolution; P7/D5 remain OPEN.
+
+The six encoded kind2 indices from 298 are global IL2CPP Metadata.methods
+indices. The original resolver at RVA622050 uses metadata header+0x30,
+36-byte method records and their declaring-type field. Crossing those
+records with the RGame.dll codegen method table and unwind extents resolves:
+
+  index 6683 / token6000562 / RVA3cc6930: <>c::<Subs>b__20_0
+  index 6684 / token6000563 / RVA3cc6a70: <>c::<Subs>b__20_1
+  index 6668 / token6000553 / RVA3cc3700: CleanBugEvents
+  index 6670 / token6000555 / RVA3cc4aa0: AssignCustomGroupingHash
+  index 6676 / token600055b / RVA3cc5df0: AddUserConfigToReport
+  index 6667 / token6000552 / RVA3cc3600: FlagFirstEvent
+
+All six have the same Boolean return type index38515 and one explicit
+parameter. In the pinned recipe25 installed image, the last two return false
+at entry; the first four retain their original bodies. Those bodies operate
+on report/reporter state and return the enabled flag. This supersedes 298/299's
+then-unresolved target names, without claiming a runtime delegate invocation.
+
+tools/review_reporter_delegate_targets300.py binds original, metadata and
+recipe25 installed image hashes, encoded slots, resolver instructions,
+method definitions, codegen pointers, unwind ends and complete callback
+bodies. Retained ignored targets.json SHA256:
+6c113f4c58e878c466084f9709bc4b7866a6f14a24714ac96d2f553ba62a9475.
+The verifier's retained receipt is create-only; inspect the existing result
+before choosing a fresh output directory for a repeat.
+
+A separate owned recipe25 process corroborated that the runtime metadata
+blob and method table globals are allocated after initialization. Its menu
+observer unloaded and the original Quit completed without forced cleanup.
+This did not invoke the SDK queue or resolve the names at runtime. Retained
+ignored verification.json SHA256:
+7530e5db8830de69ff6ec0050d2ae85807c9cd91f314baaa92c84d6d8e5fa450;
+frida-status.json SHA256:
+17a20804ff5c722d43a98c7073f5e8d6419ee06da4442d3326a29dd3a61868b1.
+
+Independent registrations, SetEnabled caller values, queue/file/wire and
+final installed runtime attribution remain open. RUNTIME_VALIDATED=false.

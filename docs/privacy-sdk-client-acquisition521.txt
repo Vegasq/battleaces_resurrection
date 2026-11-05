@@ -1,0 +1,38 @@
+D5 / P7 - direct SDK Client constructor acquisition graph
+
+2026-10-31. Pinned original IL2CPP metadata,pristine GameAssembly and
+current installed recipe47 static review PASS. Full P7/P9/D5 remain OPEN;
+RUNTIME_VALIDATED=false. No game,report queue or network endpoint ran.
+
+The BugsnagUnity.Windows.dll method table maps BugsnagUnity.Client::.ctor,
+token6000090/slot143,to RVA812690. Across both mapped executable sections,
+its only direct rel32 incoming instruction is CALL8108d1 in the second
+Bugsnag::Start overload at8106f0. That overload has three direct incoming
+instructions:TAIL JMP8106e0 from the first Bugsnag::Start overload810660,
+TAIL JMP80b592 from BugsnagAutoInit::OnBeforeSceneLoadRuntimeMethod80b370,
+and CALL3cc2a1c from Uncapped.BugsnagCrashReporter::Subs3cc2140.
+There are no direct E8/E9 incoming instructions to the first Start overload
+or AutoInit entry in these sections. All four source entry methods have a
+one-byte RET guard in the current installed recipe47 image;the reviewer
+matches each pristine signature and installed byte. The direct constructor
+graph therefore cannot create a Client through those ordinary entry paths
+in the current image. The genuine Client observed in520 was deliberately
+created by an opt-in diagnostic helper,which is outside this graph.
+The pristine image also has exactly one literal absolute pointer to each
+of the constructor,Start overloads and AutoInit entry,at RVAs6a38568,
+6a38400,6a383f8 and6a3a740 respectively. The first three lie in the
+reviewed Bugsnag IL2CPP method table;the AutoInit pointer is just beyond
+that table and its ownership is not assigned here. No extra literal
+address-taken lead appears in the image.
+
+This is a decoded direct-call inventory,not whole-program absence. It does
+not exclude reflection,delegates,computed calls,other modules,an already
+constructed owner,or direct calls to the constructor by code outside the
+selected image. It says nothing about native Unity Analytics,queue state
+or actual wire. Continue P7 with alternate acquisition and effective
+queue/network attribution;do not add another ordinary Start guard.
+
+Reproduce:python -m tools.review_sdk_client_acquisition521. PASS receipt:
+local/privacy521-sdk-client01/review521.json SHA256
+ef986604ad96cc40ca9f1d50e5065b34a893e18fe2d0ea201584e3e420280c83.
+Published174 is unchanged.

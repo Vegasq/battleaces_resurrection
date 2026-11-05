@@ -1,0 +1,108 @@
+ADVERTISING CALLER - OWNED GAME INTEGRATION182
+2026-10-26. Instrumented Try Deck4/result/Continue/Quit PASS at the scope below.
+P4/P9/D5 remain OPEN;recipe23/helper169 and RUNTIME_VALIDATED=false unchanged.
+
+Result
+The separate180 caller witness now runs on the actual patched UnityPlayer in an
+owned client. Successful game02 enters Try Deck through the original EditDeck
+mode4 callback,plays the bounded3600-frame diagnostic match,delivers the native
+result,uses native Continue,returns to the menu,and confirms original normal
+Quit. Root6340/thread22856 exits0;complete job1total/0active/0terminated,no force.
+The owner retains process/job handles and verifies exit independently of Frida.
+Elapsed owner lifetime229.750s includes the suspended attach handshake.
+
+The callback hook installed at elapsed3ms and closed at213852ms at the first
+original self-TerminateProcess entry. Observed calls0,caller records0,suppressed0.
+Final retention guard remained intact;the callback hook and module observer
+detached. There were no callback errors or truncated messages. No original
+callback invocation/backtrace was observed;its invoked-body behavior is not
+qualified by this quiet run. Reuse181's authored native positive control at its
+own scope. This result proves integration and named gameplay compatibility,
+not upstream acquisition absence or identification of the producer.
+
+Gameplay evidence
+Match6f5951168cd0662e805a81fe460b371a;154autonomous action records,bot supply129,
+40produced bot entity IDs correlated with Move/Attack orders and position change.
+One original practice join,two JoinArmy records,and ordered result/Continue/menu
+markers pass tools.verify_native_quit.practice_evidence. Quit trace is exactly
+armed,Show.dispatch,Show.return,OnConfirm.dispatch,OnConfirm.return for this PID.
+This is automated diagnostic input and a bounded diagnostic result,not physical
+acceptance,natural-win/loss coverage,all rosters or a new general bot qualification.
+
+Implementation and ownership
+- tools/frida_ads_game.py appends an explicit game-only exit boundary to180.
+  KernelBase/Kernel32 TerminateProcess addresses are deduplicated;foreign-handle
+  requests do not stop the witness. First self-pseudo-handle entry closes it,
+  records status/thread and holds200ms for asynchronous message transport.
+  Forwarded/repeated entries do not close it twice. Returning termination,
+  missing boundary,nonzero status or lost/forged records fail review. No API
+  replacement,argument writes,identity reads or original collector invocation.
+- tools/verify_ads_game.py owns independent preparation,suspended launch,exact
+  REA attach/load/release receipts,finite300s run and retained-file review.
+  Requires complete current Unity recipe/body,helper169 build/source binding,
+  installed-game verification,isolated profile and per-child TEMP/TMP. Normal
+  launchers,original game files,manual copies and real host remain untouched.
+- E: had under1GB free;the independent8GB copy is on C:,not a hardlink/junction:
+  <private-diagnostics-root>/adscaller_2987befeacf1.
+  tools/owned_suspended_launch.py retains its default repository-local boundary;
+  an explicit owned_root may select only that dedicated diagnostic root. Handles,
+  job assignment,resume checks and cleanup contracts are unchanged. Other roots,
+  escaped working directories and implicit external-image launches are rejected.
+- The source copy is local/r171g. Existing profiles and prior runtime logs are
+  excluded;the empty investigation/runtime directory is prepared before launch.
+  Reuse requires a completed owned lifetime with an empty job,and creates a fresh
+  profile. game02 uses nativestest_adscaller_81d251a25dce. Its nine observed binary/
+  initialization components,source hashes and shared settings match before/after.
+  Initial verify_game also checks133installed files. This is a copied171 build
+  with the current recipe/helper,not a newly installed174 package runtime test.
+
+Limits and next claim
+The field auditor and device probe are deliberately absent:their expected entry
+prologue conflicts with this hook,and a probe would manufacture a callback call.
+No all-thread field snapshot,wire/network/report-queue census or descendant
+instrumentation is supplied here. The job has no observed descendants and a
+complete accounting balance. Frida injection can perform loader work before
+primary resume;pre-installation and post-boundary activity are not covered.
+The200ms hold changes diagnostic timing. Only the owner establishes OS exit.
+No shared report queues were read,seeded or cleared. No new Nick action required.
+
+NEXT:identify a positive producer/registration feeding c307c0,or a byte-bound
+pre-acquisition cut for its relevant computed consumers. Reuse179-182;do not
+repeat this quiet Try Deck run or the prior exact-address scans as absence proof.
+Remaining modes,field/network attribution and final-installed qualification stay
+in telemetry-acceptance-matrix140.txt. No runtime patch or installer build is
+justified by zero calls;published174 remains unchanged.
+
+Evidence and checks
+Ignored local/adscaller182-game02/:
+ copy.json,inputs.json,request.json,observer.js,rea-start/load/final/close.json,
+ release.json,resume.json,verification.json,caller-review.json,native.log,
+ game.log,practice-resources.tsv,tests312.txt,tests314.txt.
+REA final Evidence:
+ ev_f61651a20511c094b74c6f61fb714d0d525c277748ebe8a96845408e3806de83
+Observer SHA256:
+ 3291f0bce1fe94a7247a8d4ad7251c512e04c323a021c193b648de1a358f87e4
+UnityPlayer SHA256:
+ a53b0c613a86c737b7caa7588c7c93ae20d5d5700f9321a406df9dcca8e32a7f
+Complete177-byte patched callback SHA256:
+ a6044668d68af8db8cf82e43e6fef1c385e1370f1fd2aad2084debe89d200ef5
+Helper SHA256:
+ 56c279af274156cad21424416b0ee254f6372d6ce3b7996342ee6f4ddfdd7374
+
+Independent retained-file review PASS. Python3.12/3.14 each pass36focused tests:
+ tests.test_ads_caller,tests.test_ads_caller_control,tests.test_ads_game,
+ tests.test_ads_game_evidence,tests.test_owned_suspended_launch,
+ tests.test_owned_job_tracker. BA_ADS_GAME selects game02;BA_ADS_CALLER_CONTROL
+ selects the retained181 authored native fixture. Tests do not launch games.
+Boundary controls exercise aliased/distinct exports,foreign/self/returning exits,
+quiet/positive callbacks,and failures. Retained-evidence controls reject16
+in-memory mutations of owner/job/provider/script/release/detach evidence.
+Prior current documentation is retained under local/adscaller182-prior-docs01.
+
+Preserved failed attempt
+local/adscaller182-game01 remains FAILED:copy preparation excluded the runtime
+directory as well as old logs. It was created mid-run,so startup/join markers
+were lost. The owner correctly rejects the incomplete practice evidence despite
+normal exit0,job1/0/0,no force and a closed quiet callback interval. No result was
+inferred from absent logs. The preparation fix and a fresh profile produced
+game02 above. Both REA sessions are closed and both owned processes are reaped.

@@ -1,0 +1,41 @@
+D5 / P3 - current recipe38 Tutorial01 mission and selected privacy route
+
+2026-10-30. Owned current-build runtime PASS at bounded scope;P3/D5 OPEN.
+
+Recipe38 in the owned301 game with helper357 entered the original Tutorial01
+state,applied GameStarted,reached the first objective and produced the third
+complete selected native telemetry audit. Main/session/performance reporting
+flags and callback hooks were disabled at those sampled stages. The verifier
+then posted WM_CLOSE only to its one owned Unity window. Game exit0 and Job
+1/0/0 passed without forced cleanup;shared settings,source and installed
+component hashes stayed unchanged.
+
+A passive observer was installed on the suspended native process before its
+main thread resumed. It stayed through the first original self-TerminateProcess
+entry and recorded0 selected Winsock connect/send/recv/DNS calls,0 selected
+WinHTTP connect calls,0 selected process launches and0 selected SDK-root file
+operations. Its SDK root resolved without error. Nine pathless NtWriteFile
+entries all used invalid handle -1 and returned STATUS_INVALID_HANDLE;
+they are not successful queue writes. The observer did not read request,
+identity,queue or network payloads. Selected APIs/root,not the OS wire or
+all possible file/child routes,define this privacy claim.
+
+The first attempt reached the mission but its verifier timed out and forced
+owned cleanup. Its log reader selected older high-tick lines from a previous
+run after a clock reset;the failed report is retained. The reader now selects
+the current unique profile's native path-selection segment. It was checked
+against the retained failed log before the second fresh-profile run passed.
+Neither run completed the objective or exercised the in-game Quit control.
+
+Source verifier:tools.verify_tutorial_privacy_entry --current-recipe
+--prelaunch-observer. Independent reviewer:tools.review_d5_tutorial431.
+Ignored retained evidence:
+ local/privacy431-tutorial01/verification.json (FAILED)
+  ac7c39a0cfe7ed804a28d4ffbea54169ce82e594ca3798fb18ec4626e89a8f5d
+ local/privacy431-tutorial02/verification.json (PASS)
+  c655ee4710f5ae52a61c272f7b67da79f80e85ecdbb82b7fe384e01029090602
+ local/privacy431-tutorial02/tutorial-review.json (PASS)
+  7d34d6619f63d0366ac257ad4d5dab63e37c826b5c8934757a91b9cc7c252fcb
+ local/privacy431-tutorial-trace02/rea-evidence.json
+  b339b50490d5633412c8a929fa9fc67c82c2543f48b31e52186329b6a1e62fcd
+RUNTIME_VALIDATED=false,published174 unchanged.

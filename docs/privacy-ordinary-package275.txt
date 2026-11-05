@@ -1,0 +1,53 @@
+D5 CURRENT-PACKAGE ORDINARY STARTUP / EXISTING IDLE275-276
+2026-10-28. P1 ordinary entry/idle subcase PASS;P1/P9/D5 remain OPEN.
+
+The current dirty-source local client package from271 was launched through its
+actual Start Client.cmd and bundled runtime on the owned current-source game
+local/sprays257-match01/game. No native smoke,telemetry audit,Frida or gameplay
+flag was added to the ordinary client command. The source-owned packaged
+startup verifier checks the actual game arguments,menu/unified readiness,
+optional unconfigured-connection retirement,and absence of match/diagnostic
+markers. It still forcibly closes its owned job after the observation;neither
+run proves natural shutdown or final published installation behavior.
+
+Fresh profile packageprobe_74b525f21cc7:
+local/privacy275-ordinary01/verification.json passes,menu ready in6.562s,
+whole probe7.016s. Game PID15588;wrapper and game reaped. Package,config,
+source and shared settings unchanged. Native profile settings SHA256
+842a8f5d16f5dd5371056d3dfd7b053bbbcd3104509fccd8b0e2f637d7790c1f.
+Report SHA256:
+01de0be9ac0e91611079a4eb5c36b926a02f091869ea1b4cd42ce750afc37e89.
+
+For the distinct existing-profile/idle claim,tools/verify_packaged_startup.py
+now accepts only a preexisting owned packageprobe_<12hex> profile under that
+game and a bounded idle duration. It retains the original CMD/argument/menu
+checks,requires the wrapper and game alive throughout idle,rejects match or
+diagnostic markers,and compares native TOML bytes at menu and idle end. The
+no-option path remains the previous quick menu-readiness probe. Current tool
+SHA256:3f32e7e8bde34a14e1f424365269e9266f857ff4c37ee4440d67e1691f756a25.
+
+Existing SAME profile:
+local/privacy276-existing01/verification.json passes,menu ready in7.110s,
+observed idle30.156s,whole probe37.688s. Game PID32916. Native selected
+settings hash equals the fresh run and the menu/end idle TOML hashes above.
+The actual ordinary command has no diagnostics and no match. Package,config,
+source and shared settings unchanged;wrapper/game reaped by owned cleanup.
+Report SHA256:
+e1a603a45a8f357d23eb2ea06042c85093933b17f967626c0f6600b38fa73aa0.
+
+A separate read-only endpoint sampler covered21 post-launch intervals during
+the existing idle and included verifier,wrapper,bundled-runtime and native game
+PIDs in its process set. It recorded114 TCP and0 UDP endpoint rows. Only bundled
+runtime PID13624 owned sampled TCP endpoints;remote addresses were127.0.0.1
+or0.0.0.0 listener/unconnected sentinel. It started late and cannot cover
+startup or all30s of idle. Journal local/privacy276-sockets.jsonl SHA256:
+d4d85c5781fdfb3acb9d89aa5cfed3ea4c164c218173c08d781ab3924ef9c1c8.
+Sampler source is the metadata-only local/privacy270-socket-sample.ps1,
+SHA256 31a5a3cedc567cc08e158eca5ce1cbb3f47c366222ff39ce0dc3b2b0b4df7ad3.
+
+Boundary:both ordinary startup runs end in forced cleanup,natural_quit=false.
+Neither samples the SDK getter return,all file/queue paths,pre-launch/short-lived
+sockets,raw/kernel traffic,external processes or in-flight report workers.
+269's diagnostic native Quit and140's older-recipe fresh/restart entry counts
+remain separate evidence. P1 still needs ordinary complete idle/shutdown and
+cross-cutting attribution;P9 advertising callback producer is unchanged.

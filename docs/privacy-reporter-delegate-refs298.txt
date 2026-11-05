@@ -1,0 +1,36 @@
+D5 / P7 - AddOnSendError delegate reference identities
+2026-10-28. Bounded static evidence;P7/D5 remain OPEN.
+
+The six original BugsnagCrashReporter.Subs AddOnSendError handoffs bound297
+load their delegate method reference from six separate IL2CPP metadata slots.
+The slots contain encoded values,not callable addresses. In call order:
+
+  code site  storage       encoded     decoded kind/index
+  3cc276d    186b42af0    60003437    2 / 6683
+  3cc2861    186b42b08    60003439    2 / 6684
+  3cc2903    186b42ad0    60003419    2 / 6668
+  3cc2934    186b42ad8    6000341d    2 / 6670
+  3cc2965    186b42ac8    60003429    2 / 6676
+  3cc2996    186b42ae8    60003417    2 / 6667
+
+Original initializer61cc00 reads these tagged values. Its dispatch selects
+the original61c9f0 resolver for kind2;the decoded index is the low28 bits
+after shifting right once. The resolver reads a runtime method table through
+global186e47c80. That global has no file-backed bytes in the original PE.
+The encoded words themselves are identical in the current recipe25 owned
+GameAssembly. Do not interpret the encoded numbers as per-assembly methodDef
+tokens or name delegate target methods from a coincidental token match.
+
+tools/review_reporter_delegate_refs298.py PASS binds the pinned original and
+installed GameAssembly hashes,complete original Subs disassembly,all six
+RIP-relative source loads/encoded words,decoder instruction bytes and the
+unbacked table pointer. Ignored
+local/privacy298-reporter-delegates01/verification.json SHA256
+a51d0d83ed2921ef9ccfed973a44e3a3f3ce11d30403ef9e9408dc34ceb0d286.
+This is static PE/LLVM evidence,no native decompiler or game execution.
+
+Next:resolve these exact six method references from a controlled owned runtime
+or from independently validated IL2CPP registration data. The existing Subs
+entry RET still cuts this named fresh registration route;indirect/retained
+registrations,SetEnabled caller values and effective queue/delivery remain
+unqualified. RUNTIME_VALIDATED remains false.

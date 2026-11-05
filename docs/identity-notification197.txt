@@ -1,0 +1,89 @@
+IDENTITY NOTIFICATION AND RETAINED OFFSET CANDIDATES197
+2026-10-26. Static binding;P9/D5 OPEN,runtime flag=false.
+
+Follow-up200 binds one parsed-input writer of Main190 and the conditional
+notification path. Reuse identity-config200.txt. Entry activation/transport,
+subscribers and the separate advertising producer remain unknown. The original
+197 findings and evidence below retain their historical scope.
+
+RESULT
+109/164 already described c308a0->c308c0 as queued forwarding of Main190.
+197 resolves its downstream action:construct one managed string argument and
+invoke UnityEngine.Analytics.AnalyticsSessionInfo.CallIdentityTokenChanged.
+Its retained managed body forwards that supplied argument to a non-null static
+delegate. This is a notification path,not a new binding to Main+1498/c307c0.
+The subscriber set and upstream source of Main190 are not established here.
+No new guard or broad suppression of runtime helpers is justified.
+
+POSITIVE DATAFLOW
+c308c0 retains Main in RBX,obtains context819490,and tests context+8. On its
+non-null path,it uses Main190's existing native string pointer/length. A local
+invocation object at stack+30 receives context+8 through770b70;that constructor
+stores the method pointer at invocation+f8.778be0 converts the supplied string
+through runtime cell1d0d6a8,roots it,and appends it at invocation+60 with type4.
+80bc90 passes the method at+f8 and argument array+60 to runtime cell1d0d8e0.
+Retained resolver77fbb0 binds those cells to il2cpp_string_new_len and
+il2cpp_runtime_invoke. Shared runtime helpers remain unchanged.
+
+819490 initializes global context1cff698 through818db0. The initializer selects
+the exact module UnityEngine.UnityAnalyticsModule.dll,namespace UnityEngine.Analytics,
+type AnalyticsSessionInfo and method CallIdentityTokenChanged.76dd70 enumerates
+methods via il2cpp_class_get_methods and compares il2cpp_method_get_name against
+the requested name. The resulting pointer is stored at context+8 at818f55.
+The alternative missing-class/method branches remain;no successful runtime
+resolution is claimed. Pinned managed metadata identifies type22715,token06000008,
+module method table slot7,GameAssembly RVA53d7a00..53d7a5b. Its body checks static
+delegate+8 and,if non-null,forwards the supplied string through delegate slot18.
+No subscriber-absence or transitive callback-safety claim follows.
+
+RETAINED116 EXACT-OFFSET REVIEW
+The existing21 byte candidates were reused,not rescanned:
+- Five known Main secondary-vtable stores during construction/destruction.
+- Two destructor thunks atc46a44/c68184.116's fallback snippets began three
+  bytes inside their SUB displacement;retained109 supplies the correct starts.
+- c33b99 passes immediate1498 as a deletion size,not an interface address.
+- Four stack operations at10b539c/13eb363/13ec2ef/13f0737.
+- a03201 derives RCX=RSI+1498 and a03216 calls IAT185a678. Original PE import
+  descriptors bind this slot to KERNEL32.dll!QueryPerformanceFrequency. This
+  is a timing-frequency output. a04d68 uses a +1498 qword as a numeric divisor;
+  its exact shared object-class relationship is not independently established.
+- Six container operations at14797ac/1482898/14828d2/14829bc/1494df3/14ab320
+  use allocation/count/capacity and38-byte elements;exact class remains unknown.
+- cfe6c4 reads a float from [RAX+1498],RAX previously loaded from[RDX+50].
+ 116's cfe6c8 fallback began inside the displacement. Receiver class is unknown.
+These instruction roles establish no positive analytics-interface registration.
+Computed/bulk/interior aliases and actual advertising producer remain unresolved.
+Do not repeat this finite candidate inventory as a new source result.
+
+VERIFICATION
+tools/review_identity_notification.py validates11 complete unwind roots and3030
+contiguous decoded instructions against pinned original bytes,semantic receiver/
+argument anchors,direct edges,literal/export cells,PE import and managed metadata/
+native method binding. Whole Unity recipe23 transformation matches local/r171g;
+all reviewed Unity bodies and the managed callback body remain original there.
+Four opt-in controls PASS on Python3.12 and3.14:retained binding/scope,wrong event
+name,missing dispatch instruction and altered receiver text. No native execution.
+Use BA_IDENTITY_NOTIFICATION_EVIDENCE=local/privacy197-runtime-sink01 with
+ python -m unittest tests.test_identity_notification
+
+Accepted report:local/privacy197-runtime-sink01/verification03.json
+SHA256:d1154fddb6f83a8b16107b2f1375a0dff745bd76c66204deecbe2c692d18a8c8
+Reviewer:9b0ee23adde9e010e5ff61fdcc50e58f5245e83c0ddb465d4c87cbce5f04b453
+Tests:c25c07de06281cf34e9d45f9c883a70900fbb0483ef00e41d2594b29a746c15e
+Original Unity:ac144d56d53f07904d52ed27a1539de90bc3290038fe52d73d2f6b268c85d6bc
+Original GameAssembly:e59d08c01479b27404778048d7e13546dbf3771f6b3912744c7c2bdf80c4e758
+Metadata:b760be9190309b14174cd272e1f83b730181b299bc7a0cdca66985c69dcdc57d
+LLVM:5e7a457bf23033b6ec4a959d2276f09d44c024092529684d7eeb687d38da700d
+Retained116 field-scan SHA256:
+ 5132e669da913606b92c06e5de9224eeb1bae478018eeb41d6f1299da9b45aae
+Its field-slices manifest SHA256:
+ 4dee0428620cf21f0026ca58d8768cf46561ce6164877bf81eb1b9ad7621ae41
+All17 retained slice hashes match. Manual classifications and source snapshots
+are retained locally. Verification01 passed the notification-only scope. Attempt02
+failed an authored RBX anchor;actual timer operand is RSI. Failed source/attempt
+are retained;03 corrects that transcription and adds the timer import proof.
+
+REA skill applied with PE/unwind/LLVM fallback. Known unavailable native decompiler
+was not retried. These are static findings,not REA native/runtime Evidence.
+No DLL loaded,collector invoked,game launched,real queue touched or product
+changed. Existing packages/manual answers are unchanged;no new Nick request.

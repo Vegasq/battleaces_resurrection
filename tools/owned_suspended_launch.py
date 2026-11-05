@@ -15,6 +15,15 @@ import time
 from server.worker_client import _WindowsJob
 
 ROOT=Path(__file__).resolve().parents[1]
+EXTERNAL_DIAGNOSTICS=Path.home()/'AppData/Local/BattleAcesDiagnostics/local'
+
+
+def diagnostic_root(owned_root=None):
+    """Opt-in alternate local disk for independent diagnostic copies only."""
+    root=(ROOT/'local') if owned_root is None else Path(owned_root).resolve()
+    if root not in ((ROOT/'local').resolve(), EXTERNAL_DIAGNOSTICS.resolve()):
+        raise ValueError('Only the repository or dedicated diagnostic root is supported')
+    return root
 
 
 def kernel_api():
@@ -78,19 +87,20 @@ class CreationFailure(RuntimeError):
 
 class SuspendedChild:
     @classmethod
-    def create(cls,command,*,cwd=None,startupinfo=None,creationflags=0,close_fds=True):
+    def create(cls,command,*,cwd=None,startupinfo=None,creationflags=0,close_fds=True,owned_root=None):
         """Narrow no-pipe/no-inheritance launch, sufficient for native diagnostics."""
         kernel=kernel_api()
         if not isinstance(command,(list,tuple)) or not command or not all(isinstance(a,str) and '\0' not in a for a in command):
             raise ValueError('Explicit bounded argument vector required')
+        root=diagnostic_root(owned_root)
         image=Path(command[0]).resolve();line=subprocess.list2cmdline(command)
-        if not image.is_relative_to(ROOT/'local') or not image.is_file() or len(line)>=32767:
+        if not image.is_relative_to(root) or not image.is_file() or len(line)>=32767:
             raise ValueError('Existing ignored owned image and bounded command required')
         if close_fds is not True or type(creationflags) is not int or creationflags & ~subprocess.CREATE_NO_WINDOW:
             raise ValueError('No inherited handles or unsupported creation flags')
         if cwd is not None:
             cwd=Path(cwd).resolve()
-            if not cwd.is_relative_to(ROOT/'local') or not cwd.is_dir():raise ValueError('Owned existing cwd required')
+            if not cwd.is_relative_to(root) or not cwd.is_dir():raise ValueError('Owned existing cwd required')
         info=startupinfo.copy() if startupinfo is not None else subprocess.STARTUPINFO()
         if info.lpAttributeList not in (None,{}, {'handle_list':[]}) or info.dwFlags & subprocess.STARTF_USESTDHANDLES:
             raise ValueError('Diagnostic launch does not support inherited standard/attribute handles')
@@ -98,7 +108,7 @@ class SuspendedChild:
         self=cls();self.kernel=kernel;self.handle=None;self.thread=None;self.job=None
         self.returncode=None;self.resumed=False;self.process=self
         self.receipt=dict(forced_cleanup=False,owned_process_reaped=False,primary_thread_resumed=False,
-                          create_before_tick=kernel.GetTickCount64())
+                          owned_root=str(root),create_before_tick=kernel.GetTickCount64())
         hp,ht,self.pid,self.tid=_winapi.CreateProcess(str(image),line,None,None,False,
             creationflags|4,None,str(cwd) if cwd else None,info)
         self.handle=hp;self.thread=ht

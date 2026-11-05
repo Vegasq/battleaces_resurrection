@@ -38,6 +38,10 @@ and self-signed certificate automatically using built-in Windows cryptography.
 No OpenSSL installation,CA distribution or player invite issuance is required.
 Players enter only this host's IP in client setup. Default TCP port:47623.
 Stop normally with Ctrl+C. Existing config/data are preserved on later starts.
+Keep a private backup of config/,including config/private/,as well as player data.
+State snapshots do not include TLS keys. If an existing config points to a missing
+key,the host refuses startup;it does not regenerate the key or reset the config.
+Restore the matching certificate/key backup and check the configured paths.
 
 RC1 encrypts transport but clients do not verify the server certificate. Anyone
 who can reach this host can join. Configure normal Windows firewall/router access
@@ -151,7 +155,19 @@ runtime credential check. No server private key is needed by a player.
 Check verifies local configuration, asset hashes, private credential access and a
 native worker's create/step/shutdown cycle without opening a public listener.
 Start repeats this check, then listens. Success proves local readiness only;
-test connectivity from a second PC before setting up remote access. For private
+it does not prove Internet reachability.
+
+If check/start reports "Host asset check failed",follow its category:missing or
+damaged manifest/file,unsupported build,changed content,or unreadable file.
+For unreadable files,finish any concurrent copy/backup and check the account's
+existing access. For missing/damaged/changed assets,restore your verified bundle
+or repeat import-assets with --destination pointing to a NEW empty directory.
+Set assets_directory in config/host.json to that verified directory,then run check
+again before start. Do not edit manifest hashes to accept changed files. Preserve
+data/ and config/private/ during this repair;they contain player state and host
+identity. Asset validation fails before starting a native worker or game listener.
+
+Test connectivity from a second PC before setting up remote access. For private
 internet hosting, separately configure TLS, a narrowly scoped TCP firewall rule
 and router forwarding for your chosen port. Those changes are not made by this
 package. Actual cross-PC/internet acceptance remains open.

@@ -8,11 +8,12 @@ from tools.owned_process_directory import snapshot
 from tools.frida_crash_policy170 import build_source
 from tools.verify_unified_startup import shared_state
 from tools.helper_provenance import validate
-parser=argparse.ArgumentParser();parser.add_argument('--mode',choices=['crash','quit'],required=True);parser.add_argument('--output',required=True);args=parser.parse_args()
+parser=argparse.ArgumentParser();parser.add_argument('--mode',choices=['crash','quit'],required=True);parser.add_argument('--output',required=True);parser.add_argument('--recipe34-owned',action='store_true');parser.add_argument('--watch-sdk-root',action='store_true');args=parser.parse_args()
 root=Path(__file__).resolve().parents[1];out=(root/args.output).resolve()
-assert out.parent==root/'local' and out.name.startswith('crash170-')
+assert out.parent==root/'local' and out.name.startswith('privacy330-crash' if args.recipe34_owned else 'crash170-')
+assert not args.watch_sdk_root or args.recipe34_owned and args.mode=='crash'
 out.mkdir(exist_ok=False)
-game=root/'local/r169g';profile='nativestest_crash169_'+secrets.token_hex(6)
+game=root/('local/privacy301-runtime01/game' if args.recipe34_owned else 'local/r169g');profile='nativestest_crash169_'+secrets.token_hex(6)
 folder=game/'.battleaces-resurrection/profiles'/profile
 assert not folder.exists();(out/'tmp').mkdir()
 sha=lambda p:hashlib.sha256(p.read_bytes()).hexdigest()
@@ -46,9 +47,13 @@ def log():
 try:
  if report['components_before']['UnityPlayer.dll']!='a53b0c613a86c737b7caa7588c7c93ae20d5d5700f9321a406df9dcca8e32a7f':
   raise ValueError('Pinned recipe23 Unity image differs')
+ if args.recipe34_owned:
+  manifest=json.loads((game/'.battleaces-resurrection/patch-manifest.json').read_bytes())
+  if manifest.get('telemetry',{}).get('recipe_version')!=34 or report['components_before']['GameAssembly.dll']!='30600add160a5bd1c23f4f3e37749080596985582ce577e22308cbfe9c64713e':
+   raise ValueError('Pinned owned recipe34 image differs')
  if sha(root/'local/crash169-preflight-source01/selected-bodies.json')!='fbf9e440d44f11a3a37fdfbc206def60fe992125942a3e049583432217e31f16':
   raise ValueError('Pinned native body inventory differs')
- validate(root/'build/helper-crash169-fix01/BattleAcesOffline.dll',(game/'BattleAcesOffline.dll').read_bytes(),root)
+ validate(root/('local/privacy324-helper-build02/BattleAcesOffline.dll' if args.recipe34_owned else 'build/helper-crash169-fix01/BattleAcesOffline.dll'),(game/'BattleAcesOffline.dll').read_bytes(),root)
  (game/'investigation/runtime').mkdir(parents=True,exist_ok=True)
  command=[str(game/'Battle Aces.exe'),'-offline-practice','-practice-ai-experimental','-local-profile='+profile,
   '-player-name=Native crash169','-telemetry-audit','-native-crash-probe',
@@ -77,7 +82,12 @@ try:
   raise ValueError('native body outside raw section')
  bodies=[dict(rva=int(b['start'],16),size=int(b['end'],16)-int(b['start'],16),sha256=bodyhash(int(b['start'],16),int(b['end'],16)))
   for b in json.loads((root/'local/crash169-preflight-source01/selected-bodies.json').read_bytes())]
- config=dict(image=str(game/'Battle Aces.exe'),runId=secrets.token_hex(16),fileRoots=[str(game/'.battleaces-resurrection'),str(game/'investigation/runtime'),str(out),str(game/'sim.log'),str(game/'fuzzylogicai.log')],eventLimit=4096)
+ file_roots=[str(game/'.battleaces-resurrection'),str(game/'investigation/runtime'),str(out),str(game/'sim.log'),str(game/'fuzzylogicai.log')]
+ if args.watch_sdk_root:
+  sdk_root=json.loads((root/'local/privacy269-startup01/verification.json').read_bytes())['sdk_cache_root']
+  if not Path(sdk_root).is_dir():raise ValueError('Original-bound SDK cache root is unavailable')
+  file_roots.append(sdk_root)
+ config=dict(image=str(game/'Battle Aces.exe'),runId=secrets.token_hex(16),fileRoots=file_roots,eventLimit=4096)
  native=dict(module=str(game/'UnityPlayer.dll'),bodies=bodies,armFile=str(folder/'native-crash169.arm'))
  (out/'observer.js').write_text(build_source(config,dict(pid=child.pid,pebAddress=cwd['pebAddress']),native),encoding='utf-8')
  report.update(config=config,native=native,pid=child.pid,thread=child.tid,observer_sha256=sha(out/'observer.js'))
@@ -96,13 +106,13 @@ try:
    tracker.observe()
    if child.poll() is not None or time.monotonic()>deadline or 'NATIVE CRASH refused:' in log():raise RuntimeError('native preflight did not become ready')
    time.sleep(.02)
-  report['saved_mode']=saved_mode=ready_saved_mode(log(),child.tid)
+  report['saved_mode']=saved_mode=ready_saved_mode(log(),child.tid,recipe_version=34 if args.recipe34_owned else 23)
   assert not(folder/'native-crash169.arm').exists();report['cwd_ready']=snapshot(child)
   save('ready.json',dict(pid=child.pid,profile=profile,native_log=log(),cwd=report['cwd_ready'],observer_sha256=report['observer_sha256']))
   assert source_hashes()==report['source_before'] and files(game)==report['components_before']
   assert files(root/'local/r134g')==report['current166_before'] and shared_state(shared)==report['shared_before']
   arm=publish_arm(folder);report['arm_sha256']=sha(arm);report['arm_published']=True
-  wait_for_crash_exit(child,tracker,log,saved_mode=saved_mode);validate_trigger(log(),child.tid,saved_mode=saved_mode)
+  wait_for_crash_exit(child,tracker,log,saved_mode=saved_mode,recipe_version=34 if args.recipe34_owned else 23);validate_trigger(log(),child.tid,saved_mode=saved_mode,recipe_version=34 if args.recipe34_owned else 23)
  else:
   deadline=time.monotonic()+90
   while child.poll() is None:

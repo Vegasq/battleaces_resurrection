@@ -1,0 +1,30 @@
+D5 / P9 - Unity Ads GetGameId and SetGameId
+
+2026-10-30. Pinned pristine UnityPlayer static review PASS at the named
+scope;P9/D5 OPEN. No getter,setter,ID provider,queue or endpoint was invoked.
+
+The completed Ghidra project from443 was processed with no new analysis;
+headless postscript exited0 and saved. Exact original UnityPlayer SHA256 is
+ac144d56d53f07904d52ed27a1539de90bc3290038fe52d73d2f6b268c85d6bc.
+The ignored local log is local/d5-ghidra-12.1.4/gameid-console.log,
+SHA256 d63960f8628c3836434559bb60d5973da658f556e494e1e1869682937238c5f5.
+
+GetGameId at1f4950 converts the platform argument,reads the string at the
+Ads settings manager+d8 and converts it to a managed return value. SetGameId
+at1f49d0 converts its caller-supplied managed string,stores it at the same
+manager+d8 field,then calls c038d0 on the settings notification at+b8.
+The rest of its large decompilation is temporary-string cleanup. Neither
+body directly references Main+1498 or callback c307c0.
+
+c038d0 checks for an attached notification object and a runtime-ready flag,
+then can dispatch through c5bd620. This is an indirect notification path;
+the recipient and any later advertising-ID effect are not established by
+this review. The getter/setter's Ghidra xrefs are data registration slots,
+not witnessed calls. Short Ads flag accessors and defaults remain as442;
+this follow-up closes only those GameId body classifications. It supplies
+no producer edge or pre-acquisition cut for the separate Main callback.
+RUNTIME_VALIDATED=false;P9/D5 remain OPEN.
+
+Follow-up445 binds the immediate c5bd620 descendants as object-tracking
+operations rather than a direct Main callback dispatch;see
+advertising-object-tracking445.txt.

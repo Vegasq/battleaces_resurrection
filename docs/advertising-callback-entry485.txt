@@ -1,0 +1,42 @@
+D5 / P9 - native advertising callback entry-return feasibility
+
+2026-10-31. Bounded reversible runtime probe and original control-flow
+review PASS. No source patch followed. Current recipe43/172 guards and
+RUNTIME_VALIDATED=false remain unchanged;P9/D5 remain OPEN.
+
+The pinned pristine UnityPlayer SHA256
+ac144d56d53f07904d52ed27a1539de90bc3290038fe52d73d2f6b268c85d6bc
+has AnalyticsCoreStats::OnAdsIdRequestDone at RVA c307c0,an exact-PDB
+virtual void IAdsIdListener method. Both known listener vtables point to
+it. The complete original body ends at c30871. It examines error and ID
+strings;on success it conditionally copies the ID,sets tracking at+188 and
+dirty at+189,then calls HandleRequestToSendAdsId if owner state is3.
+Recipe43 already NOPs the retained-ID copy at c30838 while leaving those
+progress operations intact. The original body/bytes and prior source/owned
+image evidence are bound in tools.review_ads_entry_probe485.
+
+An owned recipe43 game at local/privacy482-game01 was launched suspended
+under a Job. REA Frida checked loaded UnityPlayer entry byte48,temporarily
+replaced only that byte with RET,called the void callback with null arguments,
+observed a normal return on the game main thread,and restored byte48 before
+original menu Quit Confirm. The game exited0,Job1/0/0,no forced cleanup and
+disk images unchanged. Independent reviewer PASS;retained artifacts:
+local/privacy485-adsprobe01/{observer.js,ready.json,rea-status.json,
+verification.json,review485.json}. REA evidence
+ev_87f7b9c380bc063c96ad2336b8e8d6e68a39375936cc3c2c41b1d9ab612078de.
+
+The direct call proves only that a temporary entry RET can return safely.
+It does not establish safe callback lifecycle semantics:an entry RET also
+skips tracking/dirty updates and the conditional state3 completion path.
+The existing patch test explicitly requires those operations to remain
+available. A proposed recipe44 entry guard failed that test and was removed;
+the recipe43 suite again passes35 with2 optional skips. No installed image
+or package was changed by the proposal. An unconditional jump to the
+success-progress block would run it even for empty IDs or errors,so that
+alternative also needs a producer/state contract before adoption.
+
+Next useful P9 evidence is a positive native producer/registration edge or
+an observed callback invocation with state and completion ownership,not
+another exact-offset or quiet-call census. The current interior ID-copy
+cut remains the qualified behavior. This probe does not close acquisition,
+queue/wire,or final D5 privacy.

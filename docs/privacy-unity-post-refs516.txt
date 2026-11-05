@@ -1,0 +1,29 @@
+D5 / P7 - classify native Unity Analytics post data references
+
+2026-10-31. Read-only pristine PE/Ghidra reference reconciliation PASS.
+P7/P9/D5 remain OPEN;RUNTIME_VALIDATED=false. No product change or game run.
+
+The exact-PDB Ghidra reference list from512 has one DATA reference each
+to WebRequestRestClient::PerformPost (RVA c64e20) and Begin (c64ea0).
+tools.review_unity_post_pdata516 checks that list against the exact pristine
+UnityPlayer SHA256 ac144d56d53f07904d52ed27a1539de90bc3290038fe52d73d2f6b268c85d6bc.
+The references at RVAs1db13b4 and1db13c0 lie in PE .pdata and decode as
+RUNTIME_FUNCTION records:PerformPost c64e20..c64e9c/unwind1ab3108 and
+Begin c64ea0..c64f2c/unwind1ab315c. They are Windows unwind metadata,
+not function-pointer slots or native registration sites.
+
+The same pinned Ghidra reference list has exactly two reviewed direct code
+references to PerformPost (config c59630,event c56b65),and one to Begin
+(the PerformPost tail at c64e97). This excludes an apparent vtable/function
+pointer lead from those two DATA references. It does not prove absence of
+computed calls,other-module callers or other networking sinks. Recipe47's
+PerformPost entry guard remains the relevant direct-route cut;an additional
+Begin guard is not justified by this xref evidence alone.
+
+Reviewer SHA256 0af8f6badf275cd493efd74b856375bdfffa4837b43364c6d99c9c5bd8b0af7e.
+Ignored receipt:local/privacy516-post-pdata01/verification.json SHA256
+336fc5f86fd6bf31ba7a149548e5c982ab0bb657d3ea45915556e781239aed07.
+Pinned Ghidra log SHA256 68fe826092f022ea3b5998ed4e5f3d64ebef297f6ae7bf6e0b38b872afaf891a.
+The first reviewer attempt used UTF-8 for a UTF-16 log and failed before
+making a reference claim;the corrected reviewer passes. Continue P9's
+positive provider search and P1-P8 real queue/wire attribution.

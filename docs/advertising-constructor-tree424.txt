@@ -1,0 +1,26 @@
+D5 / P9 - remaining Main constructor tree initializer
+
+2026-10-30. Pinned original/current recipe38 static review PASS;P9/D5 OPEN.
+No game,provider,queue or endpoint was invoked.
+
+The earlier388 review classified four post-vtable initializer targets but
+did not include direct call c333a0. The complete Main constructor passes
+Main+1750 to c45ac0 there,after installing the callback vtable at+1498.
+The full c45ac0 body has24 decoded instructions. It clears two fields,
+allocates a small root,initializes the root's three self-links and flags,
+stores that root at Main+1750 and returns. It has no direct c307c0 call
+or+1498 field access. Its entire body is byte-identical in current owned
+recipe38. The constructor differs only in the previously reviewed
+c333e1 disabled-default byte. The reviewer also inventories all11 direct
+calls in the complete constructor,including the previously reviewed
+targets,allocation and this initializer.
+
+This closes the omitted immediate constructor call;it does not classify
+the shared allocator beyond this receiver contract,indirect Start dispatch,
+computed aliases,or the independent advertising-ID producer. The two
+Start entry RET cuts remain as qualified in354. P9/full D5 remain OPEN.
+
+Reviewer:tools.review_ads_constructor_tree424. Ignored assembly/receipt:
+local/privacy424-ads-constructor-tree01/verification.json.
+Receipt SHA256:a9727b3fc2dc53a1a94843b9e32ac883c69056683bce804b81412081ec6f678d.
+RUNTIME_VALIDATED=false,published174 unchanged.

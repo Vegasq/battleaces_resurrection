@@ -1,0 +1,50 @@
+D5 / P7 - recipe46 SDK cache directory creation cut
+
+2026-10-31. Source,owned installed genuine-Client and original Quit subcase
+PASS. Full P7/P9/D5 remains OPEN;RUNTIME_VALIDATED=false. Published174 is
+unchanged.
+
+503's pinned direct SDK System.IO inventory identified the remaining direct
+Directory.Exists/CreateDirectory path in CacheManager.CheckForDirectoryCreation
+at GameAssembly RVA837850. Original method-table/call review finds exactly
+two direct E8 callers:Client::.ctor at8129db and CacheManager::.ctor at836713.
+The method returns void and its direct body contains three directory-check/
+creation pairs. Recipe46 adds a one-byte entry RET before those calls,
+source-guarded by original15 bytes4883ec38803dd2136106007518488d.
+The helper audit now requires sdkCacheDirectorySignatures=1/1. There are
+108 GameAssembly guards and175 total;full runtime validation stays false.
+
+The isolated owned game local/privacy504-game01 was copied from the retained
+502 diagnostic game,then installed with recipe46,community/cosmetics and
+native Quit diagnostics. Installed GameAssembly SHA256
+c1e198808a43600556b9674cce7ed20dbd48836f50dc07dcf8339361a9f29341.
+Fresh helper local/privacy504-helper-build02/BattleAcesOffline.dll SHA256
+8d6a2be3bfa37b9aa59fe0e0095af54c5fc94055fdeeb8e1eb4dd9fd43c27670;
+its build receipt SHA256
+0ae69ff31ab56d6e771f7fb3e635a6b14541654d56e11234c5737eca7be4e69e.
+
+The first owned run local/privacy504-directory01 reached the genuine Client,
+all seven guarded error entries and normal Quit0,but overall verification
+FAILED:the helper emitted stale recipeVersion=45 while its source recipe was
+46. It remains retained. After correcting that helper constant,building a
+new helper and updating the owned installation,a fresh profile run at
+local/privacy504-directory02/verification.json PASS SHA256
+5ba3437c329b8482a7f59e698f5100bdf35c1fbb7ae576770465457f56eefaf8.
+The run records recipeVersion=46,all cache reader and directory audit
+signatures,one genuine reporting-disabled SDK Client,seven guarded error
+calls,local original Exception log,original menu Quit0,process reaped and
+zero forced cleanup. Its fresh owned qc root exists;qc/Bugsnag does not
+exist after exit. The source-owned502 game did not contain that profile.
+
+tools.review_sdk_directory504 independently rechecks the exact direct
+call sites,source guard,installed manifest/helper/bytes,source snapshot,
+raw log,normal exit and owned directory state. PASS receipt
+local/privacy504-directory02/review504.json SHA256
+0efec27463e28a89291845cd7075f7a8db5823252db4226f72f8d67e6fbc427e.
+Focused patch/audit/queue/error tests:75 run,73 pass,2 optional skips.
+
+This closes the named direct constructor-to-directory-creation route for
+the current private recipe46 and the observed postexit owned directory
+state. No continuous directory watch was installed;transient other paths,
+indirect/native file APIs,ordinary cache contents,resumed/inflight delivery,
+whole wire,advertising producer and final installed pair remain open.

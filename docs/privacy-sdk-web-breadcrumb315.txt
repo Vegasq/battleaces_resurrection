@@ -1,0 +1,32 @@
+D5 / P7 - SDK web-request breadcrumb route
+2026-10-28. Bounded original/current-owned source review PASS;P7/D5 OPEN.
+
+The original BugsnagUnity.Client.OnWebRequestComplete method (817e30) calls
+Client.LeaveNetworkBreadcrumb (8181f0) at817fcc and818018 on different
+completion branches. It can therefore collect SDK network breadcrumbs when
+its callback is installed and invoked. The existing recipe21+ Client ctor
+guard at81338d jumps to81375c before the original session/scene/webrequest/
+log callback setup. The original region includes a breadcrumb-type check at
+813585 and webrequest subscription calls at8135f5/813646. The paired
+813778 RET skips the original log subscription tail. The current Client.Send
+entry at8147e0 also returns before its Delivery.Deliver call. These cuts are
+present in the recipe28 owned image.
+
+tools/review_sdk_web_breadcrumb315.py PASS checks original GameAssembly and
+metadata hashes;four named Client methods by metadata/codegen table and
+complete byte-matched original unwind bodies;two direct breadcrumb calls;
+the constructor branch destination and tail guard;the Send entry guard;and
+unchanged original web-completion/collector bodies in the current owned image.
+Original GameAssembly SHA256 e59d08c01479b27404778048d7e13546dbf3771f6b3912744c7c2bdf80c4e758.
+Current owned recipe28 SHA256 5ae396233c1e48ec6a2043051030595d12c071bcdc4cc4a5b1ccf51a8aaeccb1.
+Reuses138's ignored ctor disassembly;new ignored method disassemblies are
+under local/privacy315-web-breadcrumb01. No game,SDK queue or network ran.
+
+This closes the named fresh Client-constructor registration route to the
+original web completion handler and binds its two direct breadcrumb calls.
+It does not prove that another caller cannot invoke the handler/collector,
+that old/in-flight callbacks are absent in all lifetimes,or complete P7
+collection/delivery absence. At315 no new SDK sink guard followed from this
+bounded route.317 now guards the named collector's void entry against an
+independent invocation;see privacy-network-breadcrumb-guard317.txt. Full P7
+stays open. RUNTIME_VALIDATED=false;published174 remains recipe23.

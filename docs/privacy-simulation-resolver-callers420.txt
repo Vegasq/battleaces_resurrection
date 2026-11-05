@@ -1,0 +1,27 @@
+D5 / P5-P8 - direct callers of worker DLL API-set resolvers
+
+2026-10-30. Retained412 worker/source review PASS;full D5 OPEN.
+No game or worker was rerun.
+
+419 left two direct GetProcAddress sites with function-name pointers supplied
+by their resolver callers. This review binds all direct .text calls into the
+two selected resolver functions in the exact Simulation.dll used by both412
+workers:5 calls to34e7b0 and28 to367380,including one tail jump. Each of
+the33 sites passes a RIP-relative literal ASCII function name. The20
+distinct names are Windows fiber/synchronization,app-policy,file,locale,
+WinRT and related helpers;none is a socket/WinHTTP/Internet/DNS API.
+The caller sites,name inputs and relative call targets are byte-bound to the
+worker DLL. Their exact mapping is retained in the ignored verification.
+
+This resolves the two GetProcAddress name inputs for these33 direct callers.
+It does not prove the resolver functions have no indirect callers or that
+all function pointers obtained elsewhere are harmless. Runtime loaded
+modules,other native routes,OS/kernel traffic and actual wire are unobserved
+by this static check. The P9 advertising-ID producer is separate and open.
+
+tools.review_d5_simulation_resolver_callers420 reuses417-419's exact
+worker/DLL/import binding,disassembles the full executable section and
+verifies33 direct caller/name pairs and their20-name set. Ignored receipt:
+local/privacy420-simulation-resolver-callers01/verification.json SHA256
+affc8609ee34d96dfe57c9125d65041326eda2b0a2b948e5003b33099b77e828.
+P5-P8/full D5 remain OPEN;RUNTIME_VALIDATED=false,published174 unchanged.

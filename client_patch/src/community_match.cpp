@@ -494,13 +494,13 @@ extern "C" __declspec(dllexport) void OfflineCommunityJoinGame(void* server,void
 namespace ba_community_match {
 // External packaged qualification only. Ordinary clients never request or
 // create this gate; original Leave is dispatched after BOTH result cycles.
-static bool leaveGateReady() {
+static bool leaveGateReady(const std::wstring& filename=L"custom-match-leave.ready") {
     if(!ba::flag(L"-community-match-leave-quit-smoke"))return false;
     wire::require(ba::unified() && ba::flag(L"-native-quit-smoke") && ba::flag(L"-native-quit-gate-smoke") &&
         ba_native_settings::session && ba_native_settings::session->profile().rfind("nativestest_",0)==0,
         "Custom leave gate requires an owned unified Quit diagnostic");
     const auto& settings=ba_native_settings::session->path();
-    const auto path=settings.substr(0,settings.find_last_of(L'\\')+1)+L"custom-match-leave.ready";
+    const auto path=settings.substr(0,settings.find_last_of(L'\\')+1)+filename;
     static ba_native_quit_gate::Wait wait;
     ba_native_settings::Handle file(CreateFileW(path.c_str(),GENERIC_READ,FILE_SHARE_READ,nullptr,OPEN_EXISTING,
         FILE_FLAG_OPEN_REPARSE_POINT,nullptr));
@@ -558,11 +558,34 @@ static bool openHoldReady(Obj front) {
 static void smoke(Obj front) {
     const bool host=ba::flag(L"-community-match-host-smoke"),guest=ba::flag(L"-community-match-guest-smoke");
     if(!host && !guest)return;
+    const bool soak=ba::flag(L"-community-match-soak-smoke");
+    const unsigned rounds=soak?21u:2u;
+    if(soak)wire::require(host!=guest && ba::unified() && !ba_custom_transition::enabled() &&
+        ba::flag(L"-community-match-leave-quit-smoke") && ba::flag(L"-native-quit-gate-smoke") &&
+        ba_native_settings::session && ba_native_settings::session->profile().rfind("nativestest_",0)==0,
+        "Custom soak requires an owned gated-Quit diagnostic");
     if(ba_custom_transition::enabled() && !ba_custom_transition::allowCustom())return;
     const auto now=GetTickCount64();if(!probeAt){probeAt=now+2500;return;}if(now<probeAt)return;
     Root owner(native::manager(front));wire::require(owner.get()!=nullptr,"community match smoke manager missing");
+    if(probeStage==11) {
+        wire::require(soak && probeMatches>0 && probeMatches<=rounds && !awaitingReturn && returnAccepted &&
+            operations.empty() && native::authority.phase==wire::Open && !native::installedLobby.empty() &&
+            native::requests.empty() && ba_community_invites::operations.empty() && !ba_dedicated_session::joined &&
+            ba_client::nativeIdle(front) && !ba::get<Obj>(owner.get(),"_pendingLobbyUpdateRequest"),
+            "Custom soak idle boundary retained a world/request");
+        if(!leaveGateReady(L"custom-soak-"+std::to_wstring(probeMatches)+L".ready"))return;
+        ba::log("COMMUNITY SOAK released: round=%u BA_RESURRECTION_CUSTOM_SOAK_V1",probeMatches);
+        if(probeMatches<rounds) {
+            if(host && ba::flag(L"-community-match-deck-smoke"))ba_dedicated_deck::rematchSmokeSelection(front);
+            probeStage=3;probeAt=now+1500;
+        } else {
+            probeStage=7;
+            ba::log("COMMUNITY MATCH SMOKE passed: 21 native Start/result/Continue cycles; same lobby, presence retained, seat=-1");
+        }
+        return;
+    }
     if(probeStage==7 && leaveGateReady()) {
-        wire::require(host!=guest && probeMatches==2 && !awaitingReturn && returnAccepted && operations.empty() &&
+        wire::require(host!=guest && probeMatches==rounds && !awaitingReturn && returnAccepted && operations.empty() &&
             native::authority.phase==wire::Open && !native::installedLobby.empty() && native::requests.empty() &&
             ba_community_invites::operations.empty() && !ba_dedicated_session::joined && ba_client::nativeIdle(front) &&
             !ba::get<Obj>(owner.get(),"_pendingLobbyUpdateRequest"),"Custom post-match Leave requires an idle owned lobby");
@@ -664,7 +687,13 @@ static void smoke(Obj front) {
             ba::log("CUSTOM TRANSITION original Custom return observed: lobby=%s nativeIdle=1",native::authority.id.c_str());
             return;
         }
-        if(probeMatches<2) {
+        if(soak) {
+            probeStage=11;
+            ba::log("COMMUNITY SOAK idle: round=%u lobby=%s nativeIdle=1 BA_RESURRECTION_CUSTOM_SOAK_V1",
+                probeMatches,native::authority.id.c_str());
+            return;
+        }
+        if(probeMatches<rounds) {
             if(host && ba::flag(L"-community-match-deck-smoke"))ba_dedicated_deck::rematchSmokeSelection(front);
             probeStage=3;probeAt=now+1500;
         }

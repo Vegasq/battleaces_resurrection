@@ -167,7 +167,7 @@ class Peer:
         try:await asyncio.wait_for(self.writer.wait_closed(),2)
         except (OSError,TimeoutError):self.writer.transport.abort()
 
-async def pair(port,room,tokens,peers,*,server=None,custom=False,public_mode=False,existing=None):
+async def pair(port,room,tokens,peers,*,server=None,custom=False,public_mode=False,existing=None,loaded=True):
     from server import protocol as p,tls_transport as tls,admission,community_protocol as community,loadout_protocol as loadout,public_protocol as public
     import struct
     from server.game_data import decompress_game_data
@@ -229,8 +229,9 @@ async def pair(port,room,tokens,peers,*,server=None,custom=False,public_mode=Fal
             value=get_uint(army,source)
             if value:join+=field_uint(target,value)
         peer.join=field_bytes(3,join)
-    await asyncio.gather(*(peer.send(p.LOADED,hashlib.sha256(bootstraps[0]).digest()) for peer in result))
-    require(await asyncio.gather(*(peer.receive(p.START) for peer in result))==[b'',b''],'native start differs')
+    if loaded:
+        await asyncio.gather(*(peer.send(p.LOADED,hashlib.sha256(bootstraps[0]).digest()) for peer in result))
+        require(await asyncio.gather(*(peer.receive(p.START) for peer in result))==[b'',b''],'native start differs')
     return result,matches[0].decode('ascii')
 
 async def advance(peers,frame):

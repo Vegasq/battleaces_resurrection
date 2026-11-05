@@ -1,8 +1,2007 @@
 BATTLE ACES - CURRENT STATUS
-Reviewed:2026-10-25. Final release is not accepted.
+Reviewed:2026-11-01. Final release is not accepted.
 Current work:REMAINING_DELIVERY_PLAN.txt. Evidence navigation:INDEX.txt.
 Exact prior3576-line ledger:history/2026-10-24/STATUS.txt.
 Historical records retain their original failures,claims and artifact scopes.
+
+555/556 D5 OS sensor calibration NOT RUN:medium-integrity ETW start failed
+0x80070005 before game launch;the synthetic elevated smoke passes only
+preflight/parse/compile and awaits DEV N16. No ETL schema,whole-wire,P1-P9
+or D5 PASS;rc1.7 unpublished. privacy-etw-sensor556.txt.
+
+554 installed recipe47 libcef direct RoGetActivationFactory FF15 call
+PASS:the resolved class is Windows.UI.ViewManagement.UIViewSettings.
+Indirect/other libcef routes,independent advertising-ID provider and
+P9/D5 OPEN;advertising-libcef-winrt554.txt.
+
+553 pristine/actual-installed recipe47 GameAssembly direct WinRT activation
+chain PASS:the resolved class is Windows.System.DispatcherQueue. Indirect
+aliases,other modules,independent advertising-ID provider and P9/D5 OPEN;
+advertising-gameassembly-winrt553.txt.
+
+552 P9 exact-PDB/raw current Unity registry-head reference review PASS:
+all2,878 direct sites reconcile;the nine non-static sites have two known
+generic walkers and unrelated node setup/cleanup. Independent provider and
+P9/D5 OPEN;advertising-registry-direct552.txt.
+
+551 actual-installed recipe47 server/client private loopback public1 pair
+PASS:1220 frames,two original Quits0,reciprocal packaged Python bytes,
+both workers0,Jobs5/0/0+2/0/0+2/0/0. Native/whole wire,real queue,P9/D5
+and final release OPEN;privacy-recipe47-installed-pair551.txt.
+
+549 private recipe47 actual server Install PASS:real native form action,
+verified server package/assets,source client unchanged,Job4/0/0,no force.
+Server runtime and full D5 remain OPEN;privacy-recipe47-server-install549.txt.
+
+547 actual-installed recipe47 public2 four-human native device-I/O and
+packaged Python endpoint audit PASS:four normal Quits0,all five Jobs drained,
+observed bridge-only 0x120xx codes. Kernel/whole wire,real queue,P9/whole D5
+and final release OPEN;privacy-recipe47-public2-device-io547.txt.
+
+546 current recipe47 private standalone pair PASS:both native shell/payload
+checks,actual client Install into fresh owned game,and ordinary menu/30s
+idle/window-close0 plus same-profile restart. Exact installed four
+telemetry images match prior private recipe47;P9/whole D5/final release OPEN;
+privacy-recipe47-native-install546.txt.
+
+541 current recipe47 SDK direct loader route PASS:zero calls to five
+KERNEL32 loader IAT slots or17 one-hop owner bodies among735 SDK native
+methods,with whole-image positive controls. Indirect/BCL/whole wire and
+P9/D5 OPEN;privacy-sdk-loader541.txt.
+
+540 current recipe47 source/installed fresh-process applicability PASS:
+all128 inherited guards match173,seven named delivery/cold-start entries
+and the new post guard remain. Alternate routes,whole wire,P9/D5 OPEN;
+privacy-resume-current540.txt.
+
+538 current recipe47 public1 authored queue/native NtDeviceIoControlFile/
+packaged Python audit PASS:two original Quits0,bridge-only observed0x120xx
+codes,reciprocal loopback bytes,unchanged queue,no force. Whole wire,real
+queue,P9/D5 OPEN;privacy-recipe47-device-io538.txt.
+
+537 DeviceInfoEvent exact-field census PASS:no other literal+0x5f0 writer
+in its named methods across6,056,204 analyzed Unity instructions. Aliases,
+upstream producer and D5 OPEN;advertising-device-event536.txt.
+
+536 native DeviceInfoEvent adsid serializer traced:the two direct event
+constructor routes enter current installed early guards. Indirect writers,
+upstream ID provider and D5 remain OPEN;advertising-device-event536.txt.
+
+535 original/current installed GameAssembly direct WS2_32 import scan PASS:
+zero calls/jumps in735 Bugsnag native bodies,four positive elsewhere.
+Indirect,wrapper and whole wire,P9/D5 remain OPEN;
+privacy-sdk-winsock-import535.txt.
+
+534 full current installed advertising callback composition PASS:all49
+instructions match the reviewed source except the ID-copy NOPs;state3
+handoff and guarded identity conversion remain bound. Upstream producer,
+real queued data and D5 stay OPEN;advertising-recipe47-modes530.txt.
+
+533 current installed recipe47 authored advertising callback probe PASS:
+retained ID empty,progress flags advance,original Quit0;independent review
+binds installed bytes and raw marker. Upstream acquisition/registration,
+state3 and D5 remain OPEN;advertising-recipe47-modes530.txt.
+
+532 current recipe47 package/526 process route review PASS:seven direct
+Python child-launch sites and selected explicit ctypes only kernel32/
+advapi32. Other native/indirect routes and wire,P9/D5 OPEN;
+privacy-recipe47-combined-wire526.txt.
+
+531 current recipe47 GameAssembly byte identity carries507's fifteen
+normal-entry direct SDK disk cuts and508's54 selected network-call inventory.
+Queue contents cannot affect those named pre-read cuts. Alternate/indirect
+I/O,whole wire,P9/D5 OPEN;privacy-recipe47-direct-io531.txt.
+
+530 P9 selected runtime mode coverage:recipe47 public1/2/5 and Custom
+rematch all pass prelaunch native advertising entry checks;ten clients,
+constructor/callback/send-request0,null handler at exit,normal Quit0.
+Provider/registration and D5 remain OPEN;advertising-recipe47-modes530.txt.
+
+526 recipe47 combined owned public1 authored queue/native/Python audit PASS:
+two clients,host/adapters/workers loopback and reciprocal byte counts,
+selected SDK entries0,unchanged queue,normal exits;review PASS. Whole
+wire,real produced queue,other modes,P9/D5 OPEN;
+privacy-recipe47-combined-wire526.txt.
+
+525 P9 matching-PDB name/import inventory:eleven advertising-named functions,
+zero advertising/identifier external names among502. Unnamed/computed
+provider and registration remain;P9/D5 OPEN;
+advertising-name-import-inventory525.txt.
+
+D5/P7 524:owned recipe47 ordinary connected public1 pair with preexisting
+authored SDK queue passes. Files unchanged,five selected SDK entries0,
+bridge send/recv positive,normal exits;independent retained review PASS.
+Real produced queue,resumed delivery,whole wire,P9 and D5 stay OPEN;
+privacy-recipe47-queue-connected524.txt.
+
+523 recipe47 owned authored prelaunch queue with suspended prelaunch observer
+passes genuine Client/guarded queue/original Quit0. Five selected SDK send/
+delivery entries0;24 watched qc file operations all include diagnostic
+helper,including six authored reads;files unchanged. Other queue/wire and
+P9/D5 stay OPEN;privacy-recipe47-queue-observer523.txt.
+
+522 recipe47 private public1 pair with prelaunch observers passes native
+result/Continue/original Quits and selected five SDK entry counters0 on
+both clients;positive bridge traffic,clean observers/Jobs. Real queue,
+other routes/whole wire and P9/D5 remain OPEN;privacy-recipe47-sdk-runtime522.txt.
+
+521 pristine direct-call graph has one SDK Client constructor call,inside
+guarded Bugsnag Start;all direct Start incoming owners also have recipe47
+entry guards. Alternate acquisition and actual queue/wire remain P7/D5
+OPEN;privacy-sdk-client-acquisition521.txt.
+
+520 current recipe47 genuine Client with two authored prelaunch queue files
+passes guarded lists/lookups/delivery/delete,unchanged files and original
+Quit0. Independent source/install/report review PASS. Real queue/resume/wire
+and P9/D5 remain OPEN;privacy-recipe47-preexisting-queue520.txt.
+The Client was opt-in fixture-owned;current installed Bugsnag::Start(2) and
+AutoInit(1) entries are guarded. Alternate acquisition remains P7.
+
+519 pristine SDK wrapper send/completion absolute pointers occur only at
+their IL2CPP method table slots. Computed/reflective calls,queue and wire
+remain P7/D5 OPEN;privacy-sdk-wrapper-pointers519.txt.
+
+518 owned recipe47 loaded public RequestAdvertisingIdentifierAsync call
+returns false with null callback:handler constructor/c307c0 hits0,handler
+global null before/after,original Quit0,Job1/0/0,no force. Separate native
+provider and P9/D5 remain OPEN;advertising-public-runtime518.txt.
+
+517 recipe47 private public2/public5/Custom rematch joins512 public1:
+all four connected modes complete native results,Continue/Leave and every
+original Quit0;workers reaped,Jobs empty,no force. Independent exact
+package/installed/report review PASS. Queue/wire/P9/D5 remain OPEN;
+privacy-recipe47-modes517.txt.
+
+516 reconciles Unity Analytics PerformPost/Begin's two Ghidra data refs
+to PE .pdata unwind entries,not function-pointer registration. The direct
+caller set remains as512;no extra Begin guard added. P7/P9/D5 OPEN;
+privacy-unity-post-refs516.txt.
+
+515 exact-PDB trace binds DispatcherService destruction to CloseService's
+enabled-path config request cleanup. A recipe47 owned original Quit0 enters
+destructor/CloseService with enabled0,request null,Fetch0;Job1/0/0,no force.
+Actual pending cleanup and full P7/P9/D5 remain OPEN;
+privacy-unity-config-cleanup515.txt.
+
+514 pristine exact-PDB caller trace shows blocked PerformPost takes the
+FetchAndSaveConfigFromServer pending branch,retains its owned request,and
+does not locally loop. StartPreparingConfigRequest schedules one continuation
+or calls it directly;later invocations/cleanup remain open. P7/P9/D5 OPEN;
+privacy-unity-config-followup514.txt.
+
+513 loaded recipe47 owned UnityPlayer guard direct-call returns false with
+Prepare/Begin counters unchanged at0 and guard bytes intact;original Quit0,
+Job1/0/0,no force. Real archive/retry/wire and P9/D5 remain OPEN;
+privacy-unity-post-runtime513.txt.
+
+512 recipe47 guards Unity Analytics WebRequestRestClient::PerformPost before
+Prepare/Begin with defined false. Two direct event/config callers and the
+sole direct Begin route are source-bound. Private installed normal launcher
+and public1 two-human match/Continue/both original Quit pass;independent
+installed/package review PASS. Real archived requests,other wire,P9 and
+final D5 remain OPEN;privacy-unity-post512.txt.
+
+511 exact-PDB Unity Analytics trace binds c516f0 processing through c52660,
+c565f0 and WebRequestRestClient::PerformPost,plus the archived-session route.
+This identifies the native sink behind173's cold-start/continuation limit;
+effective wire and in-flight scope stay P7/D5 OPEN;privacy-unity-dispatch511.txt.
+
+510 exact-PDB handler trace reconfirms FetchCachedAdsId and the managed callback
+drain to direct calls from the already guarded public advertising request.
+The drain only traverses handler+0x68,not the independent native listener
+list+0x78. That registration/dispatch and c307c0 producer remain P9/D5
+OPEN;advertising-handler-dispatch510.txt.
+
+509 private recipe46 installed normal launcher reaches ordinary fresh and
+same-profile menu,idles30s each and exits0 after owned WM_CLOSE without
+force. The269/284-bound SDK-root metadata watcher spans both and sees0
+changes;independent package/source/run review PASS. Reads,wire,P9 and
+final D5 remain OPEN;privacy-recipe46-ordinary509.txt.
+
+508 pinned original-source review inventories54 decoded direct SDK calls
+into selected System.Net/Unity networking methods:two System.Net targets
+(exception/shared generic guarded coroutine),52 Unity calls,including
+only the two known direct shared-send sites. SDK wrapper send remains
+active;indirect/wire,P9 and final D5 stay OPEN;
+privacy-sdk-network-targets508.txt.
+
+507 source/installed review binds all15 selected direct SDK File/Directory
+calls to five entry returns and two branches past their call sites in
+recipe46. The other four selected stream calls use MemoryStreams. Normal
+entry direct-call scope PASS;indirect/native file APIs,wire,P9 and final
+D5 remain OPEN;privacy-sdk-disk-reachability507.txt.
+
+506 private recipe46 client/server package pair passes one public1 two-human
+native match,result/Continue and both original Quit0. Workers reaped,all
+three Jobs empty,no force;independent source/package/installed review PASS.
+Effective queue/wire,P9 and final D5 remain OPEN;
+privacy-recipe46-connected506.txt.
+
+505 current recipe46 owned prelaunch authored event/session queue survives
+genuine SDK Client construction,guarded lookup/delete and original Quit0.
+Both file identities/bytes and independent source/helper/installed review
+PASS. Arbitrary queue,resumed/wire,P9 and final D5 remain OPEN;
+privacy-preexisting-queue505.txt.
+
+504 recipe46 guards SDK CheckForDirectoryCreation,called directly by
+Client/CacheManager constructors. Owned genuine Client/error/normal Quit0,
+postexit absence of Bugsnag under a fresh owned root and independent
+source/installed/log review PASS. First run failed stale helper version and
+is retained. Other file/wire routes,P9 and final D5 remain OPEN;
+privacy-sdk-directory504.txt.
+
+503 static original-source review pins19 direct SDK calls into selected
+System.IO File/Directory/Stream classes:15 CacheManager File/Directory sites
+and four in-memory StreamReader/Writer sites with same-object MemoryStream
+provenance. Recipe45 guard/hash reviewer PASS. Indirect/native I/O,ordinary
+queue/wire,P9 and final installed D5 remain OPEN;privacy-sdk-file-io503.txt.
+
+502 recipe45 owned prelaunch authored event/session files survive genuine
+SDK Client construction,guarded queue/delete calls and original Quit0.
+Prelaunch/postexit file identities/bytes and independent source/helper/
+installed/raw-log review PASS. The first run lacked seed-source binding;
+the corrected fresh-profile run passes. Arbitrary queues,resumed/inflight,
+whole wire,P9 and final installed D5 remain OPEN;
+privacy-preexisting-queue502.txt.
+
+501 recipe45 adds a guarded SDK DeleteFile entry after exact decoded
+File.Delete/caller review. Owned genuine Client calls it on two authored
+cached files;identities/bytes,guarded queue results and original Quit0
+hold. Independent source/helper/installed/raw-log review PASS. First run
+failed before probe on a stale audit count and remains retained. Ordinary
+queues/resumed/wire,P9 and final installed D5 remain OPEN;
+privacy-sdk-delete501.txt.
+
+500 current recipe44 owned genuine Client with two authored queue files
+returns empty event/session lists,null ID lookups and unchanged Delivery
+start/Client/seed files. Original Quit0,independent source/helper/installed/
+raw-log review and57 focused tests PASS. Ordinary queue/resumed/wire,P9 and
+final installed D5 remain OPEN;privacy-current-queue500.txt.
+
+499 replaces the obsolete disk dependency for the current recipe44 owned SDK
+error subcase: genuine reporting-disabled Client,seven guarded Notify entries,
+local Exception log,scoped in-memory inputs and original Quit0 PASS. Source/
+helper/installed/raw-log review PASS. Real queue/resumed/wire,P9 and final
+installed D5 remain OPEN;privacy-current-error499.txt.
+
+498 updates the opt-in diagnostic helper to recognize recipe44's four cache
+reader guards;31 focused parser tests and helper build PASS. An owned menu
+run passes the exact recipe44 audit and original Quit0,but the historical
+SDK error fixture stops at a now-guarded original cache reader before Client/
+error entries. The overall error run is FAILED;current P7/D5 remain OPEN.
+privacy-current-error-fixture498.txt.
+
+497 exact-PDB Unity device fallback reads/writes a per-user Unity DeviceId;
+its one direct caller is shared SystemInfo.GetDeviceUniqueIdentifier. Recipe44
+guards the three direct named AnalyticsCoreStats calls to the shared getter;
+public SystemInfo/RNG callers remain. Independent advertising provider,
+queue/wire and final installed P9/D5 remain OPEN;privacy-unity-device-fallback497.txt.
+
+496 source-bound private recipe44 pair passes public1/2/5 and Custom
+rematch through original Quit0,complete results,reaped workers and empty
+Jobs without force. Public2/5/Custom fresh runs and independent review
+PASS;effective queue/wire,P9 and final installed D5 stay OPEN;
+privacy-recipe44-modes496.txt.
+
+495 raw UnityPlayer review finds two decoded direct MOV/LEA references to
+s_AdsIdHandler:dynamic setup and the public request. Its sole absolute
+pointer occurrence is the RuntimeStatic descriptor. Recipe44 guards both
+named entries;computed aliases and the independent AnalyticsCoreStats
+provider remain P9/D5 OPEN;advertising-handler-global495.txt.
+
+494 binds the cached payload ID direct chain:its coroutine caller returns
+at recipe44 entry;the two ID-getter tails first take the guarded empty
+cache-file list. GetCreationOrderedFiles applies generic LINQ OrderBy to that
+input. Indirect callers/queue/wire and P7/D5 remain OPEN;
+privacy-sdk-cached-id-route494.txt.
+
+493 binds the two unnamed generic File.ReadAllText roots from492 to
+RGame.dll SteamRemoteFile`2.ReadJsonText via pinned IL2CPP registration,
+generic method table and method specs. All eight direct calls now have owners;
+the two SDK cache getters are guarded in recipe44. Indirect readers,other
+file APIs,queue/wire and P7/D5 remain OPEN;privacy-sdk-generic-reads493.txt.
+
+491 classifies Ghidra's third c307c0 data reference as the PE .pdata
+RUNTIME_FUNCTION begin address;the other two remain real listener vtable
+pointers. This removes a false dispatch lead,not the upstream producer gap.
+P9/D5 OPEN;advertising-callback-unwind491.txt.
+
+486-490 recipe44 adds a null return at the SDK CacheManager cached-device-ID
+getter before its saved-ID read or new-ID generation/write. Static reviewer,
+35 focused tests,owned installed direct loaded return and normal Quit pass.
+Source-bound private pair passes public1 match/result/Continue/original Quit0
+on both,workers reaped,three empty Jobs,no force. First observer hook failure
+is retained. Indirect caller null handling,P9 producer and full D5 remain OPEN;
+privacy-sdk-cached-id486.txt.
+
+485 reversible native advertising callback entry-RET probe returns safely
+and restores original bytes before normal Quit0/job1/0/0. Original control
+flow and existing patch test show that a permanent entry return would skip
+tracking/dirty/conditional completion;the proposed source guard was removed.
+Recipe43 remains current,P9 producer and D5 OPEN;
+advertising-callback-entry485.txt.
+
+481-484 source recipe43 routes CacheManager.GetJsonFromCachePath to its
+original null branch before File.Exists/ReadAllText. Reversible probe and
+owned installed loaded direct call return null with zero watched file calls,
+original Quit0/job1/0/0. Source-bound private pair passes public1 match/
+result/Continue/original Quit0 on both,workers reaped,three empty Jobs.
+Independent reviews PASS. Other queue/retry/wire,P9 and final D5 OPEN;
+privacy-sdk-json-reader484.txt.
+
+479/480 recipe42 owned installed helper call returns non-null empty array
+from the loaded guard,then original Quit0/job1/0/0;private source-bound pair
+passes public1 match/result/Continue/original Quit0 on both,workers reaped,
+three empty Jobs,no force. Independent source/install/package/run reviews
+PASS. Real queue/wire,P9 and final D5 remain OPEN;
+privacy-recipe42-installed480.txt.
+
+478 source recipe42 routes CacheManager.GetFilesBySuffix to its original
+empty-array path before directory enumeration. Reversible owned recipe41
+probe returned non-null length0, restored original bytes, exited0 with empty
+Job;independent probe and recipe source review PASS. Recipe42 installed/
+connected validation,other queue/wire routes,P9 and final D5 remain OPEN;
+privacy-sdk-cache-empty478.txt.
+
+477 current source-bound private recipe41 pair passes public1 two-human
+match/result/Continue/original Quit0 on both clients,workers reaped and three
+empty Jobs without force. Independent package/installed/source review PASS.
+Other modes,effective queue/wire/P9 and final D5 remain OPEN;
+privacy-recipe41-connected477.txt.
+
+476 current dirty recipe41 guards CacheManager.RemoveExpiredPayloads at entry,
+closing indirect-constructor expiry enumeration/deletion of SDK queue files.
+Pinned source/method review,owned installed game,loaded null-receiver return,
+original Quit0/job1/0/0 and independent reviewer PASS. Other cache readers,
+real queue/wire/P9 and final D5 stay OPEN;privacy-sdk-expiry-guard476.txt.
+
+473 private recipe39 public1 two-client match attached the positively
+controlled listener-count write sensor before resume. Both handler lifetimes
+had zero watched writes,count0/self-linked at teardown,44 watched live
+threads each,original Quit0 and empty Jobs. Historical helper receipt binding
+and independent run/REA review PASS. This is bounded connected evidence;
+other fields/modes/provider/final P9/D5 remain OPEN;
+advertising-listener-connected473.txt.
+
+475's exact+0x1498 Ghidra census repeats the earlier423/429/430 operand
+inventory. Its read-only cross-check passed but adds no new P9 coverage;
+advertising-interface-offset475.txt.
+
+471 authored x64 hardware-watchpoint control catches the exact known
+8-byte store and exits0 after detach.472 private recipe39 fresh-profile
+menu/Quit arms the same sensor on AdsIdHandler listener count after ctor;
+zero writes through destructor,count0/self-linked,original exit0/job1/0/0.
+Independent control/game review PASS. Other modes/provider and P9/D5 remain
+OPEN;advertising-listener-write-watch472.txt.
+
+468 exact-PDB module review binds analytics module initialization to the
+listener-bearing UnityAnalytics object,then confirms recipe40 skips its
+session callback and global registration paths in an owned installed image.
+469 classifies the two earlier registrations as ConfigSettingsRead
+serialization trait/cache builder bodies,with no direct report/network/ID
+call in either body. Downstream uses remain open.
+The singleton serves many callers,so broad construction removal needs more
+proof. Provider/computed registration and P9/D5 remain OPEN;
+advertising-module-boundary468.txt.
+
+467 pinned-original/recipe40 direct cache-reader inventory finds the named
+event/session/expiry/JSON getter call sites within previously guarded or
+bypassed paths;current owned installed selected bytes match. It closes that
+direct-call census only. Indirect queue/retry,whole wire and P9/D5 remain OPEN;
+privacy-cache-reader-direct467.txt.
+470 extends the same reviewer to direct Delivery scheduling:the active
+SetApplicationState caller reaches guarded StartCached,and other named
+Deliver/Process callers are guarded. Indirect/in-flight/whole-wire remain OPEN.
+
+466 current installed and pristine code confirm the SDK web wrapper forwards
+a caller-owned Unity request;selected network-breadcrumb sinks and Client.Send
+are guarded. Official notifier docs support its optional breadcrumb role.
+Do not equate its shared Unity send with report delivery;actual P7 queue/wire
+and full D5 stay OPEN;privacy-sdk-wrapper-contract409.txt.
+
+465 current private source-bound recipe40 pair passes public1,public2,
+public5 and Custom rematch compatibility with original Quit0 in all native
+clients,workers reaped and no forced cleanup. Independent source/package/
+reports review PASS. Effective privacy and final P9/D5 remain OPEN;
+privacy-recipe40-modes465.txt.
+
+463 recipe40 pre-resume connected observer in both clients sees null handler
+global and zero constructor,c307c0 callback,c300f0 send-request entries
+through original Quit0. Match/source/REA independent review PASS. Provider,
+other modes,whole privacy and final P9/D5 remain OPEN;
+advertising-connected-trace463.txt.
+
+462 current recipe40 private source-bound package/installed pair passes one
+public1 two-human match with complete result,Continue and original Quit0 in
+both clients. Workers0/reaped,three Jobs empty,no forced cleanup;independent
+source/package/run review PASS. Separate native ID provider,whole privacy
+attribution and final installed release remain OPEN;
+privacy-recipe40-connected462.txt.
+
+461 recipe40 adds a source-bound RET before AdsIdHandler static allocation;
+the public advertising request was already guarded. Exact pristine/current
+byte review,matching helper build,65 focused tests and owned installed
+original Quit0 pass. The handler constructor was not entered and its global
+remained null at selected pre-resume/exit boundaries;independent review PASS.
+Other native ID providers,connected modes and final D5 remain OPEN;
+advertising-handler-cut461.txt.
+
+458 owned installed recipe39 menu/normal Quit observes PDB-bound AdsIdHandler
+construction,312 passive samples and exact destructor entry. Native listener
+list count0/self-linked through teardown;original exit0,job1/0/0,no force;
+independent review PASS. Transient writes,other modes,ID acquisition and
+final P9/D5 remain OPEN;advertising-listener-runtime458.txt.
+
+455 read-only scan of59,459 pinned UnityPlayer functions narrows a
+listener-list field/allocator pattern to26 candidates. Only the known
+AdsIdHandler constructor is named for that handler;alternate dataflow,
+allocator and cross-module writers remain possible. P9/D5 OPEN;
+advertising-listener-writers455.txt.
+
+453 exact PDB symbol plus pristine UnityPlayer disassembly identify
+AdsIdHandler+0x78 as the native IAdsIdListener* list;the public request
+inserts managed delegates into its distinct+0x68 list. Registration writer
+and acquisition provider remain OPEN under P9/D5;
+advertising-listener-list453.txt.
+
+452 private installed recipe39 pair public1/two-human match,result,Continue
+and original Quit0 pass with both native clients observed before resume.
+Five selected SDK cached-delivery/send entries and SDK-root file events0;
+selected send/recv active,selected external route entries0;all jobs drain
+without force. Full queue/wire/descendant/other-mode/final scope and P9/D5
+remain OPEN;privacy-connected-sdk452.txt.
+
+451 installed recipe39 direct original Quit0 under a pre-resume passive
+SDK observer:five active cached-delivery/send entries0,selected SDK-root
+file operations0,selected Winsock/WinHTTP entries0. Nine unresolved writes
+all failed invalid-handle;job1/0/0,no force. Independent review PASS.
+Other queue/wire/aliases/P9/final D5 OPEN;privacy-installed-sdk451.txt.
+
+450 Unity2022.3 documents the public advertising request for iOS/UWP,
+while this game is Windows standalone. That supports recipe39's false
+pre-queue cut;the separate native IAdsIdListener provider is not covered.
+P9/D5 OPEN;advertising-platform-scope450.txt.
+
+449 symbol-backed cross references isolate the public AdsIdHandler direct
+callers from the native analytics IAdsIdListener callback. Five analytics
+lifecycle bodies show no direct listener registration;computed/other paths
+and the producer remain OPEN. Follow-up resolves derived/base virtual
+registration and confirms both existing recipe39 entry guards on the
+installed DLL;no new patch. advertising-listener-xrefs449.txt.
+
+448 exact UnityPlayer PDB matched the pristine DLL GUID/age and applied in
+Ghidra. It names c307c0 as AnalyticsCoreStats::OnAdsIdRequestDone,an
+IAdsIdListener callback; c300f0 formats the retained value for adsIdentity.
+Listener registration/ID acquisition remain unresolved. P9/D5 OPEN;
+advertising-pdb448.txt.
+
+447 current installed recipe39 original Confirm/Quit0 passes with three
+native stages,no force and a whole-interval passive SDK-root metadata watcher
+recording zero changes. Direct owned diagnostic launch;P1/P9/D5 broader
+scope stays OPEN;privacy-original-quit-watch447.txt.
+
+446 private recipe39 installed launcher passes fresh/same-profile ordinary
+menu,idle30s and natural WM_CLOSE exit0 under a whole-interval passive
+SDK-root metadata watcher with zero changes. Independent package/recipe/run
+review passes. P1/P9/D5 broader scope stays OPEN;
+privacy-installed-recipe39-446.txt.
+
+445 Ghidra follows the Ads settings post-write path through recursive
+object tracking,handle conversion and hash/queue updates. No direct Main
+callback dispatch in the selected descendants;indirect and separate
+producer paths remain OPEN;advertising-object-tracking445.txt.
+
+444 Ghidra classifies Unity Ads Get/SetGameId;SetGameId stores the caller
+string and calls the settings notification. No direct Main callback edge;
+indirect notification effects and P9/D5 remain OPEN;advertising-gameid444.txt.
+
+443 Ghidra headless decompiles pinned pristine UnityPlayer:Main callback
+c307c0 consumes a supplied string;constructor/callback-table references do
+not resolve its provider. Public5fb70 reaches a pending-request insertion
+after the recipe39 entry cut. P9/D5 stays OPEN;advertising-ghidra443.txt.
+
+442 maps remaining Unity Ads settings flag slots14-17 and GameId slots18/19
+against original/current recipe39. Constructor defaults enabled0/init1/test0;
+short flag accessors are not direct advertising-ID sources. Separate Main
+callback provider remains unresolved;advertising-settings-flags442.txt.
+
+441 recipe39 adds an exact-build public advertising-request entry guard:
+false before callback rooting/queue insertion. Source comparison,65 focused
+Python tests,helper/private package build,two-client public1 match and
+loaded-byte menu/original Quit audit pass. The API/provider was not invoked;
+separate Main+1498/c307c0 producer and full D5 stay OPEN;
+advertising-request-cut441.txt.
+
+440 current private outage passes two pre-resume passive SDK observers:
+five cached-delivery/send entries and selected SDK-root file operations0
+through both original exits,with positive bridge traffic. Failed local-Frida
+and one-byte-hook attempts remain retained. Existing queue/retry state,
+other routes,whole wire and full P6/P7/D5 stay OPEN;privacy-outage-sdk440.txt.
+
+439 current private pair passes a controlled two-client running network
+outage,refusal,restored port,both same-PID reconnects,replacement public1
+match and original Quit0 without forced cleanup. Two failed diagnostic
+attempts are retained. SDK queue/retry/wire and full P6/D5 remain OPEN;
+privacy-running-outage439.txt.
+
+438 adds a tested owned loopback relay outage/restore control for a future
+native P6 run. No game or SDK queue was exercised;P6/D5 remain OPEN;
+privacy-outage-control438.txt.
+
+435/436 hidden-window screenshot/input probes did not show or advance the
+Tutorial01 objective;both owned games exited0.437 prepares an unlaunched
+visible single-use check in DEV N15;no completion result or D5 privacy
+closure is claimed;privacy-tutorial-manual437.txt.
+
+433 shipped Tutorial01 assets bind the first observed objective to one
+expansion produced;its final named MarkFTUEFullyComplete action maps to an
+original/current immediate return. Actual completion,result,Quit and D5
+attribution remain OPEN;privacy-tutorial-objectives433.txt.
+
+432 original/current recipe38 Tutorial01 entry calls guarded BI reporting;
+Update separately calls unchanged MarkTutorial01Complete progression when
+its success flag is set. No objective completion,Mark invocation or in-game
+Quit is proved;queue/wire and final D5 remain OPEN;
+privacy-tutorial-completion432.txt.
+
+431 current recipe38 Tutorial01 reaches original GameStarted/first objective
+with selected disabled reporting audits,then owned WM_CLOSE exit0/Job1/0/0.
+Pre-resume-through-self-exit observer finds0 selected network,process and
+SDK-root file operations;the first stale-log failed run is retained. P3
+objective completion,in-game Quit,queue/wire and D5 remain OPEN;
+privacy-current-tutorial431.txt.
+
+427 current private public1 match installs exact-byte-checked hooks on four
+state3 worker/transition entries before both owned clients resume. All four
+entry counts are0 at both original self-exit boundaries;native result/
+Continue/Quit0 and selected route reviewer pass. Other activation/producers,
+queue/wire and P9/D5 remain OPEN;advertising-state3-runtime427.txt.
+
+428 checks c402d0's unchanged callback-array dispatch and conditional
+initializer calls. A broad entry cut is not justified;source/provider and
+P9/D5 remain OPEN;advertising-state3-entry426.txt.
+
+429/430 classify all14 previously unassigned exact numeric0x1498 operands
+in the pinned original/current recipe38 Unity image,and distinguish the
+adjacent Main+14a0 vtable. No direct provider handoff is identified at these
+sites;computed aliases,producer and P9/D5 remain OPEN;
+advertising-callback-offset423.txt.
+
+426 maps the current recipe38 state3 exchange and virtual worker registration
+edge. The relevant original/current slots and direct branches are verified;
+ordinary activation and the advertising-ID producer remain unknown.
+P9/D5 OPEN;advertising-state3-entry426.txt.
+
+416 binds the retained412 connected host/adapter production-module paths and
+hashes to their package manifests. Explicit ctypes DLL constructors in those
+modules name kernel32/advapi32 for credential ACL and worker Job work;other
+imports/extensions/OS wire and full D5 remain OPEN;privacy-packaged-ffi416.txt.
+
+417 binds both retained412 workers' exact Simulation.dll to121 KERNEL32-only
+ordinary PE imports and an empty delay-import directory. Dynamic loader APIs
+are imported,so native lookup/wire and full D5 remain OPEN;
+privacy-simulation-imports417.txt.
+
+418 binds the worker DLL's six direct LoadLibraryA and four LoadLibraryExW
+calls to selected non-network DLL names. GetProcAddress targets,indirect
+loader routes and OS wire remain OPEN;privacy-simulation-loader418.txt.
+
+419 binds63 of65 direct worker-DLL GetProcAddress calls to literal,
+non-network API names. The other two take caller-supplied names;indirect
+lookup,OS wire and full D5 remain OPEN;privacy-simulation-getproc419.txt.
+
+420 binds all33 direct calls into the worker DLL's two API-set resolvers
+to20 literal non-network function names. Indirect native callers,OS wire
+and full D5 remain OPEN;privacy-simulation-resolver-callers420.txt.
+
+421 finds zero preferred-base pointer values and zero RIP-relative address
+references to those resolvers in the pinned worker DLL. Computed calls,
+OS wire and full D5 remain OPEN;privacy-simulation-resolver-alias421.txt.
+
+422 confirms c307c0 as the first method of both advertising callback
+tables;their second methods are distinct teardown thunks,and neither
+preceding qword is standard MSVC RTTI. Provider and full D5 remain OPEN;
+advertising-callback-table422.txt.
+
+423 finds23 exact0x1498 operands in pinned original Unity .text;nine known
+callback-object sites match recipe38 and contain no direct provider
+handoff. Aliased/metadata registration and full D5 remain OPEN;
+advertising-callback-offset423.txt.
+
+424 closes an omitted Main constructor call:the+1750 tree initializer has
+no direct callback/field use. All11 direct constructor calls are now
+inventoried;indirect producer and full D5 remain OPEN;
+advertising-constructor-tree424.txt.
+
+425 binds current recipe38 callback and dirty-state guards together. The
+borrowed ID copy/conversion is skipped on this path,but state3's virtual
+drain remains. Unclassified queue/in-flight,producer and full D5 remain OPEN;
+advertising-state3-composition425.txt.
+
+413 corrects397's Unity Ads settings name/function table pairing. The actual
+get_enabled is native1f48c0,a Boolean-field read;the adjacent setter dispatches
+through a virtual slot. The old1f3be0 belongs to Connect eventUrl. No
+advertising-ID producer is identified;P9/full D5 remain OPEN.
+advertising-settings-pair413.txt.
+
+414 resolves that setter's virtual target on the constructed settings object:
+it updates the enabled byte when changed and enters c038d0 notification.
+Deeper helpers and the separate advertising-ID producer remain OPEN;
+advertising-settings-setter414.txt.
+
+415 binds the settings notification's three immediate helper bodies and
+their recursive tracking edge. No direct advertising callback reference in
+those bodies;generic descendants and the ID producer remain OPEN;
+advertising-settings-notify415.txt.
+
+412 current private public1 passes byte-count-only Windows asyncio Proactor
+audit in packaged host and two client adapters. All observed peers are
+loopback and both host-adapter links' completed byte totals match in both
+directions. Native match/normal Quit and worker/Job cleanup pass. This is
+Python-level transport evidence,not OS/kernel/wire/queue/P9/final installed
+privacy proof;full D5 remains OPEN. privacy-python-proactor412.txt.
+
+380 current private public1 qualifies both separate packaged simulation
+workers' endpoint-only CPython socket journals with an in-process localhost
+control. Both worker PIDs match the server report,exit0/reaped;no other
+worker socket event appears before normal interpreter exit. Native game/
+worker/OS/wire,P9,other configurations and full D5 remain OPEN. Failed
+one-worker diagnostic379 retained;privacy-worker-sockets380.txt.
+
+378 current private public2/public5/Custom complete the supported two-human
+CPython host/adapter endpoint audit matrix begun377. All three modes pass
+native match/normal Quit,source/package binding,drained Jobs and endpoint
+review:only loopback binds/connects,zero DNS/non-loopback/overflow in the
+script-entry-to-exit journals. Native/worker/wire,P9,other configurations
+and final installed D5 remain OPEN;privacy-python-modes378.txt.
+
+377 current private public1 match passes an opt-in endpoint-only CPython
+socket audit installed before packaged host/client module imports. The
+host and two client adapters each recorded only loopback bind/connect
+events through normal exit,with no overflow. Positive DNS/bind control and
+source/package reviewer pass. Native/worker/kernel/wire paths,P9,final
+installed and full D5 remain OPEN;privacy-python-sockets377.txt.
+
+376 external verifier now assigns each suspended packaged driver to its
+no-breakaway Job before resume. One current private public1 match/result/
+normal Quit0 passes with client jobs2/2 and no forced cleanup. This closes
+the verifier's initial assignment gap in that run;external brokers,whole
+tree traffic,other modes,P9 and full D5 remain OPEN;
+privacy-job-prelaunch376.txt.
+
+375 current private recipe38 Custom rematch passes two native matches,
+changed deck,guest/host Leave and normal Quit0 with prelaunch native observers
+on both clients. Selected SDK-root file operations and direct external
+socket routes remain zero through self-termination entry;all nine pathless
+file calls per client are failed invalid-handle writes. No forced cleanup;
+workers/jobs drained. Other routes,queue/wire,P9/final installed and full D5
+remain OPEN;privacy-current-custom375.txt.
+
+374 current private public1/2/5 reports qualify client Job membership:
+each no-breakaway job totals only packaged driver+native game,and drains0
+active/terminated after normal Quit. No extra job-inheriting client child in
+those runs. External brokers/WMI,initial assignment gap,other modes and
+whole-tree file/network scope remain OPEN;privacy-client-jobs374.txt.
+
+373 current private pair classifies all nine previously pathless selected file
+operations per native client as failed NtWriteFile calls on invalid handle-1
+(STATUS_INVALID_HANDLE).372 positive control resolves and observes a read
+through a pre-attach authored file handle. Both game clients complete match/
+normal Quit0 with zero selected SDK-root events and drained workers/jobs.
+Other file APIs/aliases/processes,real queue/wire,P9 and full D5 remain OPEN;
+privacy-preexisting-file373.txt.
+
+371 current private pair resolves previously unknown relative file roots:
+one successful handle-metadata query and zero unresolved paths per native
+client,versus1545 per client before. Positive preexisting-root control and
+normal connected match/Quit0 pass. No selected SDK-root file event through
+self-termination entry. Preexisting file read handles,other APIs/aliases,
+queue/wire/P9 and full D5 remain OPEN;privacy-relative-roots371.txt.
+
+370 current private-pair public1/two-human match passes selected native
+send/recv handle attribution from before each main-thread resume to original
+self-TerminateProcess entry:all observed calls use each exact inherited bridge
+socket,selected DNS/connect/sendto/WinHTTP0,normal Quit0,workers/jobs drained.
+Other APIs/wire/tree,1545 unresolved relative file roots per client,queue,
+P9 and full D5 remain OPEN;privacy-prelaunch-socket370.txt.
+
+368 current private pair passes selected native API observation from before
+both game main threads resume to each original self-TerminateProcess entry.
+Public1/two-human match/result/normal Quit0;positive send/recv and zero
+selected DNS/connect/sendto/WinHTTP at entry,workers/jobs drained without
+force.367 inert control validates the boundary sensor. The200ms diagnostic
+hold/actual death,1545 unresolved relative file roots per client,other
+routes/tree/wire,P9 and full D5 remain OPEN;privacy-prelaunch-exit368.txt.
+
+366 current private pair passes suspended-start native observation on both
+clients through public1/result/normal Quit0:selected hooks ready before main
+thread resume,positive send/recv,zero selected DNS/connect/sendto/WinHTTP
+through final heartbeat,workers/jobs drained.1545 relative file roots per
+client remain unresolved;exit suffix,server/children,wire/P9/full D5 OPEN.
+privacy-prelaunch-network366.txt.
+
+365 owned inert suspended-process control confirms a passive CreateFileW
+hook can be ready before target main-thread resume and observe a call after
+resume,natural exit0. It is a capability for the missing early observation,
+not game/SDK/wire evidence;privacy-prelaunch-attach365.txt. D5 remains OPEN.
+
+364 current private package process-route inventory passes:seven direct
+Python child launches and packaged PowerShell setup/game paths classified.
+Selected connected jobs drain,while native WebView/indirect children and
+whole-tree privacy attribution remain OPEN;privacy-process-routes364.txt.
+
+363 current recipe38 private pair passes public5 two-human/two-bot and public2
+two-human/two-bot connected native matches,result/Continue/original Quit0,
+server worker cleanup and jobs5/2/2 drained in each. Reviewer binds source,
+helper,package,game and assets. SDK queue/wire/P9/final installed D5 remain
+OPEN;privacy-current-connected-modes363.txt.
+
+360 current private pair's packaged Python direct socket inventory passes:
+30 client and66 server source-matched Python/PowerShell files,nine direct
+socket sites classified,and selected359 config bound to loopback. This does
+not cover indirect libraries,native processes,SDK queue or whole wire.
+P5/P8/P9/D5 remain OPEN;privacy-python-egress360.txt.
+
+357 current recipe38 genuine Client/isolated cache/error fixture passes seven
+guarded report-error entries,original local Exception log,delivery/reader
+checks and natural Confirm exit0. Two earlier failed runs identify a stale
+full-body diagnostic hash at the deliberate recipe37 InitUserObject branch;
+the recognition table now binds the guarded body without weakening the check.
+Helper rebuilt/owned installed;352 package pair is historical.
+Real queue/wire/P9/full D5 remain OPEN;privacy-current-errors357.txt.
+358 current helper/source-bound private client/server pair passes connected
+public1 two-human match/result/normal Quit0,server worker reaping and jobs
+5/2/2 all drained without force. This restores current package compatibility,
+not queue/wire/P9/final release privacy. privacy-current-package358.txt.
+359 current recipe38 pair survives an authored running frame600 disconnect,
+completes a replacement match in the same two client processes and exits
+normally;three workers and owned jobs7/2/2 drain. A prelaunch-through-exit
+watch at the293-bound SDK root sees zero selected change notifications;an
+owned positive control detects create/change/delete. Reads,real queue/retry,
+wire,P9/full D5 remain OPEN;privacy-current-running-cache359.txt.
+
+354 pinned native source/current installed review binds both Main.Start
+implementations to a c2f5d0 periodic update registration and its c30940 body.
+Both recipe38 Start entries RET before the store;the update body has no direct
+c307c0/Main+1498 access. Other producers/aliases and P9/D5 remain OPEN.
+advertising-start-update354.txt.
+
+353 current recipe38 private packaged ordinary Start Client.cmd reaches fresh
+menu,idles30.156s,then exits0 after WM_CLOSE to its unique owned Unity window.
+Same profile restarts,idles30.031s and exits0 likewise;no forced cleanup.
+Selected deck persists;menu UI state serializes on first exit. This is a
+bounded window-shutdown P1 subcase,not in-game Quit or complete network/queue/
+P9 attribution. Full P1/D5 remain OPEN;privacy-ordinary-window-close353.txt.
+
+345 recipe35 source adds six SDK Configuration/NativeClient data-entry guards.
+Pinned original/source verifier,focused tests,helper build and owned install/
+loaded audit6/6/natural menu Quit0 pass. Failed stale audit-version run is
+retained.346 private recipe35 client/server pair passes one owned connected
+two-human public1 match/result/normal shutdown and package binding. P9,
+queue/wire and D5 remain OPEN. privacy-current-package346.txt.
+347 recipe36 cuts the SDK Client scene-load callback before direct metadata
+collection. Source verifier,helper build,owned install/loaded audit1/1 and
+practice result/Continue/natural Quit0 pass.348 source-bound private recipe36
+client/server pair passes two-human connected public1/result/normal Quit0 and
+installed/practice reviewer. Queue/wire and full privacy/P9 remain OPEN.
+privacy-sdk-scene-metadata347.txt;privacy-current-package348.txt.
+349 recipe37 cuts the direct SDK Client user-init cached-device-ID query while
+retaining User construction/store and callback setup. Pinned source review,
+helper build,owned install,loaded audit1/1 and natural menu Quit0 pass.
+350 private source-bound recipe37 client/server pair passes two-human connected
+public1/result/normal Quit0 and package/installed/menu reviewer. Queue/wire,
+P9 and full D5 remain OPEN. privacy-sdk-user-cache349.txt;
+privacy-current-package350.txt.
+351 recipe38 cuts SDK SessionTracker.StartManagedSession before its direct
+cached-device-ID query. Original source review binds all three direct getter
+callers and existing cuts. Helper build,owned install,loaded audit1/1 and
+natural menu Quit0 pass. Recipe38 private pair,queue/wire,P9 and full D5
+remain OPEN.352 private source-bound recipe38 client/server pair passes
+two-human connected public1/result/normal Quit0 and package/installed/menu
+reviewer. Queue/wire,P9 and full D5 remain OPEN.
+privacy-sdk-session-cache351.txt;privacy-current-package352.txt.
+privacy-sdk-configuration-ingress345.txt.
+
+COSMETICS WORKSTREAM - OWNER ACCEPTED AT CURRENT SCOPE2026-10-28
+Nick said "Yah, cosmetics looks to be fine. Can we close this entire section?"
+The roadmap closes further cosmetics-only work for this release. Existing245-256
+checks retain their exact scope. Visible/audio/physical/peer and in-match spray
+effects remain unverified;257 has only preparatory input tracing and an owned
+game copy,no native match pass. D3 stays open for other player-facing work.
+Nick redirected priority to D5 on2026-10-28. P9 advertising-ID source and
+final-installed privacy attribution remain open;the D2 matrix stays queued.
+335 owned recipe34 local-public5 completes result/Continue/original Quit0,
+job1/0/0/no force and seven selected native snapshots. The detached observer
+records1383 events,871 selected file operations with zero under the293-bound
+SDK cache root,and five selected sends/recvs all on the private bridge.
+Selected connect/DNS/WinHTTP/process/browser activation0. Earlier failed
+handoffs are retained;all-thread/queue/wire/P9 and D5 remain OPEN.
+privacy-local-sdk-route335.txt.
+336 adds the same293-bound SDK-cache watch to current recipe34 local public1/2.
+Each owned match passes result/Continue/normal Quit0,seven selected native
+snapshots and job1/0/0/no force. Their detached1903-event streams have890/888
+selected file records,zero under the SDK root;all selected network calls use
+the private bridge. Failed combined/short attempts are retained. P4/P8/P9/D5
+remain OPEN;privacy-local-sdk-modes336.txt.
+337 adds current recipe34 Try Deck4 result/Continue/normal Quit0,owned job1/0/0
+and eight selected native snapshots. Its complete detached1847-event stream
+classifies862 selected file events to owned roots,zero at the293-bound SDK
+cache path;all five selected send/recv calls use the private bridge. All four
+required local paths now have this scoped watch. Queue/wire/all-thread/P9 and
+D5 stay OPEN;privacy-local-sdk-trydeck337.txt.
+338 current recipe34 private client/server ZIPs pass connected RC-open public1:
+two humans,1220 frames,result/Continue/normal Quit0,server workers exit0 and
+final state drains. Server/client owned jobs5/2/2 finish empty,no force.
+Package/helper/game/source/asset/shared bindings pass. No current-pair SDK
+file/wire capture or P9 producer closure;P5/P9/D5 OPEN.
+privacy-current-connected338.txt.
+340 repeats that current private pair's connected public1/two-human match with
+a passive FileSystemWatcher on the293-bound SDK cache root,starting before the
+verifier and stopping afterward. Match/normal Quit and drained jobs pass;
+cache Created/Changed/Deleted/Renamed/Error counts are all0. An owned positive
+control detects1/2/1 create/change/delete. This is named-root change evidence,
+not queue reads,other roots or wire. P5/P9/D5 stay OPEN;
+privacy-current-connected-cache340.txt.
+341 current recipe34 private pair again passes connected public1/two-human
+match/result/normal Quit with both owned native game PIDs under passive
+post-attach REA Frida selected network hooks. Each untruncated stream has17
+heartbeats,no observer errors/overflow,positive send/recv counts,and0 selected
+connect/DNS/sendto/WinHTTP entries through last heartbeat. This does not bind
+send/recv sockets to the private bridge or cover pre-attach/whole-wire paths.
+P5/P9/D5 OPEN;privacy-current-connected-network341.txt.
+342 current private pair again passes connected public1/two-human match and
+normal shutdown. Passive post-attach hooks on both native clients count all
+selected send/recv entries by SOCKET handle. Each inherits handle500 and
+observes only0x1f4 through its last heartbeat:client0 1211/62429,
+client1 1212/62421 send/recv;18 untruncated heartbeats each,no observer
+error/overflow. This binds selected native traffic to the private bridge,
+not pre-attach/whole-wire or SDK delivery. P5/P9/D5 remain OPEN;
+privacy-current-connected-handles342.txt.
+343 uninstrumented recipe34 original native crash exits c0000005 naturally,
+job1/0/0/no force. A passive293-bound SDK-cache watcher started before the
+owned process was created and ended after its OS exit;all selected change
+notifications/error0. The separate owned positive sensor control detects
+create/change/delete. This covers named-root changes through post-filter
+handling,not reads/other roots/wire;P7/P9/D5 remain OPEN.
+privacy-current-crash-cache343.txt.
+344 starts the recipe34 native crash suspended and loads the selected file API
+observer before resume. Its six-root configuration includes the293-bound SDK
+cache path. Original crash/filter/DbgHelp review passes1166 contiguous events,
+9040 aggregated selected file operations,no observer error/unknown root;
+SDK root contributes0 open/read/write events or aggregate rows through filter
+return. Post-filter reads/other roots/wire and P7/P9/D5 stay OPEN;
+privacy-current-crash-sdk-root344.txt.
+300 resolves six original reporter AddOnSendError callback targets from pinned
+metadata/codegen tables;four were unguarded in recipe25. 301 adds four
+false-entry guards in source recipe26/135 and rebuilds the native audit helper
+for 7/7 reporter signatures. Exact 12-byte transform delta and 66 focused
+tests,owned recipe26 install and native menu Quit audit 7/7 pass. No callback
+invocation or recipe26 release yet;P7/D5 remain OPEN.
+privacy-reporter-targets300.txt;privacy-reporter-guards301.txt.
+302 directly invokes all seven guarded recipe26 reporter callbacks in an
+owned installed runtime;loaded/disk guard checks and false returns pass,
+then original Quit0/no force. This does not prove original registration or
+SDK queue/delivery. P7/D5 remain OPEN;privacy-reporter-invocation302.txt.
+303/304 passive pre-init SetEnabled hook sees zero calls in selected owned
+recipe26 menu and one local AI match/result/Continue/Quit. 305 source
+recipe27/137 makes reporter enabled default false and makes its setter write
+false without changing the original branch/store. Four-byte delta,72 focused
+tests,helper build,owned install and native menu Quit audit enabled2/2 pass.
+Read-only initialized class snapshot sees enabled byte0. Independent
+registration,SDK queue/delivery and final release remain P7/D5 OPEN.
+privacy-reporter-enabled303.txt;privacy-reporter-state305.txt.
+306 controlled owned recipe27 SetEnabled(true/false) leaves the initialized
+reporter enabled byte0 after both calls;original Quit0/no force. This is
+installed setter behavior,not an original caller or SDK delivery proof.
+P7/D5 OPEN;privacy-reporter-setter306.txt.
+307 source recipe28/138 adds a void entry guard to the SDK
+Configuration.AddOnSendError registration API. Original complete body and
+six direct Subs calls are pinned. Owned install,guarded unreadable-argument
+call,native audit registration1/1 and natural Quit0 pass. Independent direct
+collection writers and actual queue/delivery remain P7/D5 OPEN.
+privacy-reporter-registration307.txt.
+308 binds four complete original Configuration bodies:constructor assigns
+OnSendError list+168;named getter/remover read it;Clone copies the object
+without a direct field write. No second append in those named methods.
+Indirect/reflective writers,actual queue/delivery and P7/D5 remain OPEN.
+privacy-configuration-callbacks308.txt.
+309 binds AddOnError/Session to separate Configuration lists+158/+178,not
+OnSendError+168. Only the SDK Client AddOnSession facade directly calls one;
+that facade has no direct E8 callers in the original. Current owned bodies
+match. Indirect registration and queue/delivery remain P7/D5 OPEN.
+privacy-configuration-other-callbacks309.txt.
+295 binds the separate Main.Start c68390 registration to two immediate
+scalar/config callbacks and confirms the current installed Start RET cuts this
+named registration. Dynamic adapters and the c307c0 producer remain P9/D5 OPEN.
+advertising-start-handoff295.txt.
+296 confirms both original Main.Start entries register c2f640 and both current
+owned entries RET before the registration. The callback body/state branches
+remain unchanged;other registrations and upstream c307c0 acquisition stay
+P9/D5 OPEN. advertising-state-callback296.txt.
+310 follows that callback's named virtual slots38/a0 and immediate 98/a8.
+c34430 registers c2e6a0,c2e6c0,c2e6d0;the second can reach the parsed-token
+path from200. None of the reviewed immediate bodies directly reaches c307c0
+or Main+1498. Current owned Unity bytes match;deeper/other producers and
+P9/D5 remain OPEN. advertising-virtual-targets310.txt.
+326 resolves c32e30's three Main virtual+f0 calls to the existing settings
+predicate c33490 in both pinned vtables;the getter leaves read booleans only.
+Deeper c41ec0 and the independent advertising producer remain P9/D5 OPEN.
+advertising-slotc8-predicate326.txt.
+327 binds the named c41ec0 tail through Main virtual+40 to c32430. The
+machine-ID query fallback and later identity-cache serializer NOP match source
+and owned installed bytes. Other cache/request and c307c0 producer paths
+remain P9/D5 OPEN. advertising-slotc8-cache327.txt.
+315 binds SDK web-completion breadcrumb collection to the existing Client
+constructor webrequest-setup bypass and Send guard in current owned bytes.
+Indirect entry/queue/wire remain P7/D5 OPEN;privacy-sdk-web-breadcrumb315.txt.
+317 recipe29 adds a direct entry guard to SDK Client.LeaveNetworkBreadcrumb.
+Owned install/loaded audit1/1 and original menu Quit0 pass;other collection,
+queue/wire/P9 and D5 stay OPEN;privacy-network-breadcrumb-guard317.txt.
+318 recipe30 guards both concrete SDK Breadcrumbs.Leave overloads and the SDK
+web-send callback. Original bodies/source delta,owned install,loaded/disk
+audit3/3 and natural menu Quit0 pass. Other SDK implementations,queue/wire/P9
+and D5 remain OPEN;privacy-breadcrumb-collectors318.txt.
+319 scans all12973 original metadata interface slots across22961 types;
+Breadcrumbs is the sole declared IBreadcrumbs implementer and has no declared
+subclass. Both Leave overloads are recipe30 guarded. This is static scope only;
+queue/delivery/P9 and D5 remain OPEN;privacy-breadcrumb-interface319.txt.
+321 recipe31 cuts both public SDK Bugsnag.LeaveBreadcrumb facades before their
+input reads or interface dispatch. Original-body/source delta,owned install,
+loaded/disk audit2/2 and natural menu Quit0 pass. Other collection,queue/wire,
+P9 and D5 remain OPEN;privacy-breadcrumb-facades321.txt.
+322 recipe32 cuts ten SDK SetUser/AddMetadata/AddFeatureFlag(s) data-ingress
+methods across Bugsnag and Client. Original bodies/source delta,owned install,
+loaded/disk audit10/10 and3600-frame native Try Deck/result/Continue/Quit0 pass.
+The1200-frame bot-correlation failure is retained. Actual setter invocation,
+queue/wire/P9 and D5 remain OPEN;privacy-sdk-data-ingress322.txt.
+323 recipe33 guards public Bugsnag.set_Context and direct Client.SetContext
+before SDK report-context retention/callback. Original method/codegen/source
+delta,owned install,loaded/disk audit2/2 and natural menu Quit0 pass. Actual
+setter invocation,queue/file/wire/P9 and D5 remain OPEN;
+privacy-sdk-context323.txt.
+324 recipe34 omits two SDK configured-metadata MergeMetadata calls in Client
+constructor/InitMetadata while preserving the payload container and shared
+helper. Original source delta,owned install,loaded/disk audit2/2 and genuine
+Client/NativeClient constructor fixture with natural Quit0 pass. The first
+fixture's stale constructor hash failed and remains retained. Independent
+payload builder,queue/file/wire/P9 and D5 remain OPEN;
+privacy-sdk-metadata-merge324.txt.
+325 verifies all five original direct metadata-merge call sites in source and
+owned install:two NOPs,two behind NotifyOnMainThread's entry guard,and the
+Event/Report chain behind cached-item MoveNext's entry guard. This closes
+those named fresh-entry routes;indirect entry,
+queue/file/wire/P9 and D5 stay OPEN. privacy-cached-report-merge325.txt.
+316 private recipe28 package/owned Try Deck4 passes native result,Continue,
+menu and original Quit0 with job2/0/0/no force. This is changed-recipe
+compatibility,not queue/wire/P9 or final release;privacy-current-package316.txt.
+328 builds a private dirty-source recipe34 ZIP pair and runs its bundled
+client through owned Try Deck4,result,Continue,menu and original Quit0;
+job2/0/0,no force. Server ZIP is manifest verified only. Full queue/wire/P9
+and final release remain OPEN;privacy-current-package328.txt.
+329 extends the owned crash gate to recipe34. First arm refuses transient
+sharing error32 and is retained;fresh second arm triggers original native
+crash c0000005 with job1/0/0,no force and loaded audit34. SDK queue/file/
+wire and full P7/D5 remain OPEN;privacy-current-crash329.txt.
+330 observes that same recipe34 owned crash path with the finite native
+file/network/DbgHelp observer:1169 contiguous events,9040 scoped file
+operations,all280 observed writes to owned game.log,selected network
+counters zero through filter return. Original exception exit c0000005,
+job1/0/0,no force. Failed preflight preserved. Post-filter OS handling,
+real SDK queue/retry/wire and full P7/D5 remain OPEN;
+privacy-current-crash-observation330.txt.
+331 runs the genuine Client/error and isolated seeded cache fixture on the
+current recipe34 owned install:seven guarded error calls,two original seeded
+reads,two guarded Deliver/five MoveNext false,retained local Exception log,
+original Confirm exit0/no force. No independent job/tree handle or ordinary
+queue/retry/wire proof;P7/D5 OPEN. privacy-current-errors331.txt.
+332 binds the c32430 cache helper c330e0 to an existing Main+14a8 string
+or literal "unknown" with no direct acquisition call. Current recipe34
+keeps constructor empty initialization and guards the named custom-device
+setter. Other writers/retained state and c307c0 producer remain P9/D5 OPEN;
+advertising-cache-tail332.txt.
+333 binds native get_customDeviceIdInternal index63/c204c60 to a read of
+Main+14a8 in the original/current recipe34 Unity image. Indirect callees,
+other writers and separate advertising producer remain P9/D5 OPEN;
+advertising-device-getter333.txt.
+334 binds the constructor's platform c673b0 call through c311d0 to a
+keyed "analytics" config update,with no direct Main+1498/c307c0 callback
+argument. Independent advertising producer remains P9/D5 OPEN;
+advertising-platform-config334.txt.
+314 binds that drain's method pointer to the queued callback object's Invoke
+method;no ID/error writer or Main+1498 producer follows.
+advertising-delegate-drain314.txt;P9/D5 OPEN,runtime flag false.
+313 resolves the311 drain's indirect callback to il2cpp_runtime_invoke via
+global cell1d0d8e0;the invoked managed method and ID producer remain unknown.
+advertising-drain-runtime313.txt;P9/D5 OPEN,runtime flag false.
+311 follows public advertising request5fb70 through manager predicate3611d0,
+queue drain361510 and per-node callback361260. Four complete bodies match
+current owned Unity and have no direct c307c0/Main+1498 reference. The
+indirect callback and upstream provider remain P9/D5 OPEN.
+advertising-request-drain311.txt.
+312 checks five nearby literal object+5c writes against complete original
+and owned Unity bodies;their lightmap/scene serialization context is a
+misleading advertising-manager lead. No producer found or patch justified.
+P9/D5 remain OPEN. advertising-flag-candidates312.txt.
+297 verifies six original delegate/BugsnagUnity.Configuration.AddOnSendError
+handoffs inside reporter Subs and
+the installed recipe25 entry RET before those calls. These are all six
+mapped-section direct E8 candidates for that helper. Delegate targets,
+other indirect registrations,SetEnabled caller values and real queue/wire remain
+P7/D5 OPEN. privacy-reporter-subs297.txt.
+298 binds the six reporter AddOnSendError delegate slots to exact encoded
+kind2 metadata indices;their target names depend on an unbacked runtime
+method table. No new guard or runtime queue evidence;P7/D5 remain OPEN.
+privacy-reporter-delegate-refs298.txt.
+299 samples six loaded reporter delegate slots at the current recipe25 owned
+menu;all remain encoded. The observer unloads and original Quit exits0 with
+job1/0/0,no force. This selected startup does not name delegate targets or
+close independent registration/queue/delivery;P7/D5 OPEN.
+privacy-reporter-runtime299.txt.
+286 verifies the current recipe25/default owned native crash gate and original
+c0000005 exit in19.875s,job1/0/0,no force,source/components/shared unchanged.
+The corrected probe logs recipe25 and the gate rejects recipe23 as current.
+This is local crash proof only;SDK queue/retry/wire,post-filter OS and other
+reporter paths keep P7/D5 OPEN. privacy-current-crash286.txt.
+287 passes the genuine managed Client/Exception seven-guard fixture in the
+recipe25/default owned install,with the original local exception log,isolated
+seeded cache controls and natural Quit0. The three newer reporter callbacks
+are signature checked but not invoked;real queue/retry/wire and full P7/D5
+remain OPEN. privacy-current-errors287.txt.
+288 executes the three installed recipe25 reporter Boolean guards in an owned
+diagnostic after loaded/disk byte checks;all return false before unreadable
+borrowed inputs can be read. The Client error fixture and original Quit0 pass.
+Original caller registration,real queue/retry/wire and full P7/D5 stay OPEN.
+privacy-reporter-invocation288.txt.
+289 confirms original Tutorial01 state entry and complete startup/tutorial
+selected-field snapshots in the current recipe25 owned copy. The wrong-log
+first attempt remains failed;the corrected check passes with forced teardown.
+Tutorial completion,normal Quit,queue/wire and P3/D5 remain OPEN.
+privacy-tutorial-entry289.txt.
+290 reaches original Tutorial01 GameStarted,mission and first objective in the
+current owned recipe25 install. A third complete selected-field audit follows
+world readiness and retains disabled reporting values. Forced owned teardown;
+objective completion,normal Quit,queue/wire/tree and P3/D5 remain OPEN.
+privacy-tutorial-mission290.txt.
+294 reaches original Tutorial01 mission/first objective and a later complete
+selected-field audit,then posts WM_CLOSE to the sole owned Unity window.
+Exit0/job1/0/0/no force;objective completion,in-game Quit and full privacy
+attribution remain P3/D5 OPEN. privacy-tutorial-close294.txt.
+291 passes same-PID unavailable/local -> authenticated loopback Custom -> local
+on the current owned recipe25 install,then original Quit0,job1/0/0,no force.
+The retained raw five-event Quit trace passes independent review;the report's
+extra server_stopped quit_events item is a fixed report-only alias artifact.
+Actual outage,SDK queue/retry/wire and P6/D5 remain OPEN.
+privacy-transition291.txt.
+292 passes real loopback TCP refusal -> bridge CONNECT_FAILURE -> later
+authenticated READY in the same recipe25 client,then original Quit0 after
+local/Custom/local,job1/0/0,no force. The failed harness-shadowing first run is
+retained. SDK analytics/report retry and queue remain unobserved;P6/D5 OPEN.
+privacy-tcp-retry292.txt.
+293 binds the passive269 SDK root watch to284's original getter return by
+normalized UTF-16 hash with the same UnityPlayer image. The selected zero root
+file events are path-bound across separate runs;SDK queue/retry and P1/D5 OPEN.
+privacy-sdk-root-binding293.txt.
+285 verifies changed recipe25 through the current local package and a separate
+default-recipe install:Try Deck/result/Continue/original Quit0,job2/0/0,no
+force,package/source/shared channels unchanged. The first attempt refused
+optional Quit hooks before launch and is retained. This is packaged P4
+compatibility,not reporter invocation or full D5 attribution. P4/P9/D5 OPEN;
+privacy-current-package-play285.txt.
+284 observes the original SDK cache getter's menu-time return in a separate
+owned recipe25 install:canonical LocalLow game root plus /Bugsnag,without path
+override or queue access. Hash/length validation and original Quit0 pass in
+19.140s,no force;57 focused tests pass on both Python versions. This closes
+269's path-value ambiguity only. Startup use,queue/file/network delivery and
+full P1/D5 remain OPEN. privacy-live-sdk-root284.txt.
+283 fixes a stale native audit contract:the earlier helper labeled its complete
+recipe23 and omitted the three reporter callback guards. The rebuilt helper
+requires recipe25/3-of-3 on disk and loaded. An owned diagnostic install,
+current dirty-source preview pair and startup/menu/pre-Quit natural Quit0 pass;
+56 focused tests pass on Python3.12/3.14. This confirms selected signature
+binding and lifecycle only. Callback invocation,operational SDK queues/files/
+network,P9 and full D5 remain OPEN. privacy-audit-binding283.txt.
+258 confirms the current-source Korean-flow cuts and retained-ID guard against
+the pinned original bytes;the parent installed images differ from the newly
+generated current-source images. No runtime or final-installed claim follows.
+See privacy-current-source258.txt.
+259 confirms that the existing native report-init guard bypasses one direct
+cloud-ID builder call in the ReportJson path. Two other builder calls and the
+separate advertising callback source remain open. privacy-report-cloud259.txt.
+260 confirms the two other builder calls sit after c91550's owner+0/+1 checks;
+the reviewed initialized owner and existing guard leave +1 zero. Later writes,
+other report paths and the advertising source remain unproved.
+privacy-report-owner260.txt.
+261 corrects258's pre-checksum UnityPlayer comparison:the checksum-complete
+current recipe matches all four components/128guards in sealed local256,plus
+its helper and122source receipt entries. This is local installed byte binding,
+not privacy runtime/final-release acceptance. privacy-installed-source261.txt.
+262 uses an owned current installed copy for one hidden local-AI match:
+3600frames,result/Continue/menu/original Quit0,eight complete selected-field
+snapshots all0,job1/0/0,no force. No full collection/network/tree,other-mode or
+final-release claim. P4/D5 open;privacy-current-match262.txt.
+263 scans all182388 pinned original IL2CPP method names. Five Steamworks
+game/server advertising names are the only matches;no named advertising-ID
+request/tracking-authorization method. This narrows one managed source lead,
+not the native/indirect P9 producer. privacy-managed-names263.txt.
+264 passes a distinct current installed local-AI match/result/Continue/Quit0
+with1869contiguous passive selected API events:ten installed Winsock/WinHTTP
+entries0,eight process/shell entries0,job1/0/0,no force. This narrows P4/P8
+for this route,not full wire/producer/privacy acceptance. D5 remains OPEN;
+privacy-effective-match264.txt.
+265 fixes local-public diagnostic queue precedence and passes current installed
+local mode1 and mode2->5 matches with original callbacks,result/Continue/menu,
+bot movement/deck transition and6+10complete default-field snapshots.
+Forced diagnostic teardown and no effective network/queue attribution keep
+P4/D5 OPEN. privacy-public-modes265.txt.
+266 passes current installed local public1 and2 through original result/Continue/
+Quit0,seven complete selected native-field snapshots each,job1/0/0,no force.
+Mode2 observes1885 contiguous selected events:all five Winsock send/recv calls
+use exactly inherited private bridge socket0x1ec;selected connect/DNS/WinHTTP,
+process and browser activation0. This narrows P4/P8 selected route attribution,
+not queue/wire/all APIs/P9 or full D5. privacy-unified-route266.txt.
+267 passes the distinct current installed local public5 native match/result/
+Continue/original Quit0,seven complete selected native-field snapshots and
+job1/0/0,no force. All five selected send/recv calls match the inherited private
+bridge socket0x1d8;selected connect/DNS/WinHTTP/process/browser activation0.
+1383contiguous observer events,component/route/network reviews pass. Local public
+1/2/5 selected route is covered;queue/wire/all-thread/P9/connected/final pair
+remain open. privacy-local-mode267.txt.
+268 reviews retained file events in those same three local public runs:892/880/
+874 selected records across43 owned-root paths each,all classified to local
+log,profile settings,backup,replay or Quit trace. Observer final errors,
+unresolved relative roots and overflow0;no owned ba-*.tmp remains. The observer
+filters to configured roots,so external SDK queue/full file attribution remains
+OPEN. No game rerun or real queue access. privacy-file-route268.txt.
+269 adds a distinct current installed startup/menu/original Quit0 passive watch
+of the source-derived Windows SDK-cache path,without root replacement or queue
+access.834contiguous events,674 selected file records,0 under that path;
+selected network/process/browser activation0,three complete native-field
+snapshots,job1/0/0,no force. The actual getter return and full ordinary/all-
+thread/alternate-path attribution remain unproved. P1/D5 OPEN;
+privacy-sdk-root269.txt.
+270 preserves an old connected-pair preflight rejection:the helper receipt
+differs from11 current source hashes,so no runtime launched.271 builds a fresh
+current-source local package pair and passes connected public1/two-human native
+match/result/Continue/original Quit0 in110.203s,three drained jobs,no force.
+109 OS endpoint samples covering both game PIDs show only loopback TCP owned by
+the host/adapters;startup gaps,brief sockets,queue/file,other modes and P9
+remain unproved. P5/D5 OPEN;privacy-connected-preflight270.txt and
+privacy-connected-sockets271.txt.
+272/273 pass distinct connected public5/public2 original matches and Quit0,
+each with three drained jobs and109/147 endpoint samples limited to loopback
+host/adapter TCP.274 passes Custom's two matches,changed-deck rematch,guest/
+host Leave and Quit0 with three drained jobs;209 endpoint samples likewise show
+only loopback host/adapter TCP. All named P5 mode paths have current-source
+scoped native/endpoint evidence. Full collection/queue/file,early/brief/raw-
+socket attribution,P9 and final-installed D5 remain OPEN. Details:
+privacy-connected-modes272.txt,privacy-connected-custom274.txt.
+275/276 pass the actual current local package Start Client.cmd ordinary fresh
+menu and same-profile restart with30.156s stable menu idle/no match,no native
+diagnostic flags. The native settings hash remains identical.21 late endpoint
+samples during existing idle show only loopback bundled-runtime TCP. Both runs
+end in owned forced cleanup;ordinary natural shutdown and full P1/D5 file/
+queue/network attribution remain OPEN. privacy-ordinary-package275.txt.
+278 passes current-source packaged running disconnect after native frame600,
+replacement match in the same two client PIDs and original Quit0. Three jobs
+drain without force;155 post-launch endpoint samples show only loopback TCP
+on the host/adapters. This is an authored fault,not ordinary offline->online;
+SDK queue,early/brief sockets and complete retry/wire attribution remain.
+P6/D5 OPEN. privacy-recovery278.txt.
+282 source recipe25/131 adds false-return guards before two reporter-specific
+callbacks mutate reports. Exact original/source six-byte comparison and51
+patch/audit tests pass on Python3.12/3.14. Separate owned install,all four
+component/package/helper hashes and ordinary packaged menu readiness pass.
+Menu cleanup is forced;there is no callback invocation or complete queue/file/
+network proof. Published174 is still recipe23;P1/P7/P9/D5 OPEN.
+privacy-reporter-callbacks282.txt.
+281 installs recipe24/129 into a separate owned copy and binds all four installed
+components to its manifest;client/server preview packages and source/helper
+hashes verify. The new GameAssembly differs from recipe23 at only the three
+callback entry bytes and PE checksum. A connected running-peer fault after
+frame600 recovers in the same native clients and finishes replacement result/
+Continue/original Quit;three owned jobs drain without force. No callback
+invocation or complete SDK queue/file/network proof. P7/D5 OPEN;
+privacy-reporter-installed281.txt.
+280 source recipe24 adds the reporter-specific AddUserConfigToReport Boolean
+entry guard,returning false before report metadata construction. Exact original
+method pointer/byte check and49 targeted tests pass/two optional-original
+skips on Python3.12/3.14;all34 patch tests pass with pinned originals on
+Python3.12. At that source check,the installed/public pair was recipe23;
+281 adds an owned local install. P7/D5 OPEN. privacy-reporter-callback280.txt.
+279 original ICrashReporter metadata and current installed bytes bind five
+entry guards;the original SendReport also calls separately guarded Notify.
+SetEnabled remains intact because its false argument clears the static flag
+initialized true by the class initializer. The unguarded user-config report
+helper has unresolved indirect/delegate callers. No game,queue or network API
+ran. P7/D5 remain OPEN. privacy-reporter-interface279.txt.
+
+SPRAY MENU256 - ALL SIX BINDINGS / BACK CHECKED OFF
+All6sprays plus return pass original menu selection:exact VM Sprite subobjects,
+matching active Image material identities,one preview owner and unchanged loadout.
+Back deactivates/uninitializes;normal Quit0 in27.5s,job1/0/0,no force;source/shared
+settings unchanged.9original body guards and10controls per Python pass.
+The first failed diagnostic expected an optional material override;retained
+original prefab binds Material directly to Image on the same object. Corrected
+native02 passes;native01 stays FAILED with its own ordinary Back/Quit0 retained.
+Actual Image.sprite is null;Back retains asset references. No pixel/audio/physical
+or world-decal acceptance. Dirty opt-in helper only,no ordinary behavior change.
+The later owner scope decision above closes spray follow-up. cosmetics.txt256.
+
+SPRAYS255 - STATIC DEFINITIONS / PLACEMENT CONTRACT CHECKED OFF
+All6spray definitions and18typed prefab/Sprite/menu-material targets resolve.
+Slot8/default54 agrees with original client settings. All controllers use10s
+lifetime/final3s fade;original settings specify3concurrent sprays,radius3 and
+one execution per20s.28bounded native bodies match installed bytes,including
+placement alliance/vision/overlap/cadence guards and fade/pool-release paths.
+Direct decal/audio/spawn references decoded;full transitive resources remain.
+Review passes;no native run,product/helper change,package or user request.
+Next:all6menu bindings plus return/Back,then original match placement/refusal/
+fade/release. Physical,pixels,audio and peer delivery remain open. cosmetics.txt255.
+
+MATCH EMOTES254 - FOUR EQUIPPED CONTROLS / EXPIRY CHECKED OFF
+Original selector/PerformEmote controls0..3 activate equipped items6..9 under
+portrait66 in one local-AI match.265observations retain native start/end state,
+model identity and playable-time progress. Each lifetime is60frames at20Hz;
+state clears exactly one frame after end,container finishes hiding at end+5,
+SoloAnimation inactive/stopped. Original Concede/result/Continue/Quit0,job1/0/0,
+no force;loadout/shared settings/source unchanged.23original body guards pass.
+Initial preflight did not launch. Broad native driver remains FAILED on separate
+bot movement correlation;retained scoped emote/lifecycle review passes.14controls
+per Python and helper build pass. Only explicit diagnostics changed;published174
+unchanged. Next:six spray definitions/placement route. Physical/visible/audio,
+peer emote delivery and other portrait combinations remain open. cosmetics.txt254.
+
+EMOTE PREVIEWS253 - MENU PLAYBACK / BACK CHECKED OFF
+All46items plus return to first complete189observations:default portrait66
+material/text,original Play time progress,switch/return and Back stops inactive
+preview. Original Quit0,job1/0/0,no force;shared settings/source unchanged.
+Two original controllers remain FAILED. Separate corrected review passes after
+resolving the original Special clip's serialized _Clip curve to Emote_Mad_Rare
+and original typewriter formatting prefix. No game defect or behavioral fix
+inferred.12controls per Python pass;helper build passes. Only opt-in diagnostics
+changed;published174 unchanged. Next:in-match emote display/expiry. Other portrait
+combinations,visible/audio/physical scope remains open. cosmetics.txt253.
+
+EMOTE CONTRACT252 - STATIC MAPPING CHECKED OFF
+All46 emote metadata tails decode fully;9original animation assets resolve and
+have no embedded animation events.13portrait dependencies provide all52emotion
+mappings to49Material references.35bounded original bodies match installed bytes.
+Preview loads selected animation plus equipped-portrait emotion material/text;
+async completion guards both IDs. Menu Show and in-match3s expiry are separate.
+Review and7controls per Python pass. Static only: no native run,helper/product
+change,publication or new request.251sealed video evidence unchanged.
+Next:all46original emote previews/Play progression,material/text bindings,
+switch/Back and normal Quit. Visual/audio/physical remain open. cosmetics.txt252.
+
+FATALITY MENU VIDEOS251 - PLAYBACK / BACK CHECKED OFF
+Both clips load and advance after original PlayPreview. Default -> teleport ->
+default switches actual clip bindings on one player;Back stops playback and
+clears VM/player/resume clip references,with inactive/uninitialized VM. Full
+loadout unchanged;original Quit0,job1/0/0,no force,shared/source unchanged.
+One native run passes;helper build and7controls per Python pass. New opt-in
+helper only;ordinary launchers/published174 unchanged. Frame/time and ownership
+observations do not qualify visible pixels,audio,physical input,whole-video
+loops/duration or GPU allocation release. Evidence:cosmetics.txt251.
+252 supplies the static emote map;runtime animation/material/text work remains.
+No new Nick request or publication.
+
+FATALITY RUNTIME250 - HQ-DEATH CALLBACKS CHECKED OFF
+Passive original-call observations confirm default/teleport collection8/42
+selection for both HQs with one configured human and empty bot loadout. Normal
+Concede1200 -> actual HQ Dead1201;all6/5configured event entries dispatch,11/10
+callbacks including nested actions. Both original Quit0,job1/0/0,no force,
+shared settings/seed/source unchanged. Original broad reports stay FAILED:
+first missing initial logs/CRLF seed,second inherited bot-movement gate.
+Separate scoped review and7controls per Python pass;no third match or product
+fix. Callback-entry evidence does not qualify component completion,pixels,
+audio,combat deaths or multi-human selection. Menu-video lifecycle follows in251.
+Evidence:cosmetics.txt250;no new Nick request or publication.
+
+FATALITY CONTRACT249 - STATIC DEFINITIONS / ACTIVATION CHECKED OFF
+Both definitions resolve to default/teleport event collections8/42 and separate
+menu videos. Full event payloads6/5 and Dead/state6 plus animation-label triggers
+decoded. Original simulation loading/registration/state-event dispatch and menu
+video route traced;27examined native bodies match installed bytes. No game run,
+product/helper change or new Nick request. Local/owner/alliance selection policy
+is not fully reconstructed;250 observes one-configured-player selection and
+actual HQ-death callbacks. Menu-video playback cannot substitute. Transitive assets,
+visual/audio/physical acceptance remain open;cosmetics.txt249.
+
+SKIN PREVIEW POOL248 - OWNERSHIP / REUSE CHECKED OFF
+Three-family original picker sequence plus return to first confirms each prior
+unit returns to its available pool and the first instance is reused. Back clears
+renderer.Unit,hides scene and returns final unit;full17-slot loadout unchanged.
+Active pooled GameObjects do not by themselves prove leaked ownership. Original
+Quit0,job1/0/0,no force,shared settings unchanged;8tests per Python and helper
+build pass. Diagnostic-only change,no publication or new Nick request.247's
+failed report/black captures are preserved;visual/audio/physical scope stays
+open. Follow-up249 completes fatality static tracing. Evidence:cosmetics.txt248/249.
+
+SKIN PREVIEW247 - EVENTS CHECKED OFF / ORIGINAL LIFECYCLE REPORT FAILED
+Historical cleanup concern is resolved by the separate248 ownership check above.
+Owned native02 selects all13skins plus return to first. All selected event configs
+load and their82event appearances are found in the corresponding unit caches;
+scene parameters agree and17-slot loadout is unchanged. Original Back releases
+picker and hides scene,but retained units remain activeInHierarchy. Pool ownership
+cleanup is unresolved;do not reinterpret the overall failed report as passed.
+All14captures are uniformly black;visual/audio/physical acceptance stays open.
+Native01's incorrect base-collection assertion is preserved and corrected using
+original RegisterEvents semantics. Both runs original Quit0,job1/0/0,no force,
+shared settings unchanged. Follow-up failure-gate controller:6tests per Python;
+no third native run. Diagnostic-only helper/source changes,no release or Nick
+request. Follow-up248 completes targeted pool ownership. Evidence:cosmetics.txt247/248.
+
+SKIN PREVIEW CONTRACT246 - 2026-10-27 - STATIC TRACE CHECKED OFF
+All13skin managed-reference tails decoded using embedded schemas;12event keys
+and12sprite GUIDs resolve to all24expected Addressables targets. Exact original
+method bindings trace selection through preview scene/unit loading and completion
+to the3D renderer;14examined bodies match current installed bytes. No runtime,
+product/helper/package change or new Nick request. This does not prove rendered
+effects,transitive asset loading,audio or physical input. Follow-up247 above
+records the13-skin runtime attempt and remaining cleanup;cosmetics.txt246/247.
+
+COSMETIC COVERAGE245 - 2026-10-27 - RECONCILED / CHECKED OFF
+Retained catalog/picker/equip and ten-phase persistence reports revalidated.
+All107items appear across245compatible slot positions;42filter cases cover all
+14populated slots. Three sticker slots have no installed items. Both announcer
+slots have one choice each. Full17-slot A/B restart/isolation contains24unique
+items and12changed slots,not an exhaustive visual/audio sample. Named callback
+and later85/239/240/244 selected-loadout passes remain complete. Old integration
+labels are marked historical;current coverage is at the top of cosmetics.txt.
+No new game launch,product/package change or user request. All-item preview/
+effect/audio and physical input remain open. Static activation trace is now
+completed by246 above;the next missing evidence is runtime preview behavior.
+
+CUSTOM TRANSITION REVIEW244 - 2026-10-27 - COMPLETE / CHECKED OFF
+T07/T08 retained85 recordings revalidated:five worlds per client,three Custom
+cycles,local Try Deck,public1v1,exact remote frames/full selections and moving
+local bots. Both historical failures stay intact. Production Custom matching
+prefix and original invitation/transition drivers are unchanged;portrait,
+replay and async profile-I/O additions are recorded separately. No whole-current-
+build equivalence or new game launch. Current real-socket regression passes
+three Custom cycles,reconnect with saved distinct decks/names,public return,
+fresh lobbies and four synthetic worker exits0. Both Python versions:52pass/
+1native opt-in skip. Initial invalid-deck/test-history failures retained and
+corrected in the authored fixture only. No product/helper/package change.
+Exact scope:custom-mode-transitions.txt244. Follow-up245 completes the cosmetic
+coverage inventory above.
+
+STARTUP FAILURE RECOVERY243 - 2026-10-27 - FIXED / CHECKED OFF
+Exact original Start terminal catch retains exception publication,then requests
+original Unity Quit78. Packaged launcher displays file-access/repair/relaunch
+guidance. Actual post-validation bundle read lock triggers original Unity errors;
+fault exits78/client1,then same-profile relaunch reaches menu/normal Quit0/client0.
+20.157s,job4/0/0,no force,settings/shared data/content preserved.63focused tests
+per Python3.12/3.14 plus6observer controls pass. Source/helper/package/installed
+bytes reconciled. Local pair243 rc1.7 remains dirty/unpublished;published174 stays
+unchanged. First243 diagnostic failed before target observation and is retained;
+242's original failure is also unchanged. Exact scope:startup-bundle-loading.txt243.
+Follow-up244 completes T07/T08 retained85 transition applicability above.
+
+POST-VALIDATION CONTENT242 - 2026-10-27 - REPRODUCED / UNFIXED
+Historical result;the named defect is subsequently repaired/qualified in243 above.
+Current installed237 validates successfully,then a real owned read lock blocks
+one actual startup table bundle. Original Unity records file/provider/dependency
+failures1219ms after native start. Lock release alone does not restore menu/Quit
+within45s;native01 remains FAILED,forced owned cleanup,job3/0/0. Original bundle,
+program,owned settings and shared settings/replays/backups preserved. Five
+observer-evidence tests per Python pass;these do not constitute game recovery.
+No product/helper/package changes. Next:bind original startup fault/exception
+handling and implement useful failure feedback with clean exit/relaunch.
+Exact evidence/scope:startup-bundle-loading.txt242.236/237 stay checked off.
+
+PUBLIC TRANSITION REVIEW241 - 2026-10-27 - COMPLETE / CHECKED OFF
+Revalidated retained84 four-mode native evidence:two clients,four matches,
+exact frames/bootstraps/journals,chosen decks/17slots and original Continue/lease
+retirement. Failed pilot preserved. Current public-client diff has two inactive
+opt-in diagnostic guards;shared replay/transport changes are recorded separately.
+Current async server regression passes same-session/deck1/2/5/1 with synthetic
+workers/injected time/authored results.29tests pass/1native-opt-in skip per Python.
+No new game,product/helper/package change or full-current-build native claim.
+T05's named pass stays complete;public-mode-transitions.txt241 owns exact scope.
+242 now reproduces the post-validation native startup fault;see above.
+
+CUSTOM START REJECTION240 - 2026-10-27 - PACKAGED PASS / CHECKED OFF
+One authored pre-commit Start rejection uses the production correlated negative
+ACK. Original host callback releases its pending request/loading ticket1;retry
+creates ticket2 and preserves both captured decks/all17cosmetic slots. Two
+1220-frame matches per client,122common samples per match,matching replays,
+changed host/stable guest rematch decks,original Continue/Leave/Quit0. Three
+workers0,jobs7/0/0,2/0/0,2/0/0,no force,182.640s.49tests per Python pass.
+Unchanged237/helper232;no production edit,rebuild or publication. Source/config/
+packages/assets/shared channels preserved. native-custom-matches.txt240.
+The explicit rejected-Start step is now checked off beside expiry/retry239.
+241 completes T05's retained transition84 applicability review above.
+
+CUSTOM READY RECOVERY239 - 2026-10-27 - PACKAGED PASS
+Original10s expiry,host retry at epoch3 before old guest rejection,exact old
+pending release and successful new Ready pass on unchanged237/helper232.
+Two1220-frame matches/client,122common samples per match,matching replays,
+changed host/stable guest decks,complete server loadouts and original Continue/
+Leave/Quit0. Loading errors clear;three workers0,jobs7/0/0,2/0/0,2/0/0,no force.
+Source/config/packages/assets/shared channels unchanged;48tests per Python pass.
+First run stays FAILED:old diagnostic cleanup expected epoch2 instead of4 and
+forced client cleanup. Corrected epoch/duplicate-callback validation passes.
+No production change,rebuild or publication. native-custom-matches.txt239.
+The main roadmap now starts with completed/outstanding checkboxes;OPEN parent
+gates do not mean all their features are unfinished.240 closes the explicit
+host Start-rejection follow-up;remaining D2 transitions/physical scope stay open.
+
+CUSTOM READY APPLICABILITY238 - 2026-10-27 - REVIEW / SOCKET REGRESSION PASS
+Recovered exact source versions for retained rejection/expiry/duplicate native
+checks. The exact pending-request ownership guard remains;loading feedback,
+frozen loadouts and abort/phase guards changed,so old native passes cannot close
+current integration. Retained timeout trace proves new host epoch3 preceded old
+guest epoch1 rejection,then guest Ready3 succeeded. Failed timeout01 stays failed.
+New current real-socket/test-worker regression proves stale positive/negative
+Ready preserves a newer start,valid Ready reaches running,and duplicate Ready
+creates no second match. All18community tests pass on Python3.12/3.14,no skips.
+No production/helper/package change or game launch. native-custom-matches.txt238.
+Follow-up239 completes the packaged native expiry/retry/delayed-ACK check with
+original Continue/Leave/Quit and no forced cleanup. FullD2 remains OPEN.
+
+OPTIONAL VERIFICATION CACHE237 - 2026-10-27 - FIXED / QUALIFIED LOCAL PREVIEW
+Valid content previously failed startup if its optional cache could not replace
+the old receipt. Only that post-verification write is now best effort,with an
+actionable warning;content checks and installation writes remain strict.
+Old packaged236 reproduces the defect. Installed237 starts through an actual
+Windows replacement lock and reaches native menu/normal Quit0,job3/0/0,no force.
+Old cache/content/saves/shared channels preserved;release alone restores cache
+publication,and the next preflight reuses it without hashes.55tests per Python
+pass,including injected create/flush failures and invalid-content rejection.
+Pair237 dirty/unpublished,same helper232. startup-bundle-loading.txt237 owns
+scope;fullD4 remains open.238 reviews D2 retained negative/stale-control evidence
+and identifies its next changed-path native check.
+
+CACHED CLIENT CONTENT236 - 2026-10-27 - FIXED / QUALIFIED LOCAL PREVIEW
+Cached bundle fingerprints missed real Windows read denial/sharing refusal.
+Old packaged entry reproduces the defect before intercepted game IPC creation.
+Production verification now opens every bundle and reads one unbuffered byte on
+cache hits;only changed fingerprints trigger full hashes.49tests per Python pass.
+Installed new package refuses actual missing/damaged/read-denied bundle before
+game IPC/process/remote OPEN. Repair passes preflight;corrected healthy native
+menu/normal Quit exits0,job3/0/0,no force,zero bundle rehashes. Saves/shared data
+preserved. Initial healthy observer wrongly rejected the normal optional OPEN;
+failed report retained,only healthy path rerun. Local pair236 dirty/unpublished,
+same helper232. See startup-bundle-loading.txt236. Follow-up237 closes the named
+verification-receipt publication refusal/recovery case with valid content.
+
+ASSET PERMISSION RECOVERY235 - 2026-10-27 - SCOPED PACKAGED PASS
+Real Windows READ_DATA denial5 on separate owned map and manifest files makes
+both packaged check/start refuse before worker/server construction. Exact
+owner/group/DACL/control restoration alone restores native health:worker0 and
+job6/0/0 per case,no force. Profiles/config/TLS and asset bytes preserved.
+29tests per Python pass. Initial map run stays FAILED for diagnostic restoration
+changing the auto-inherited bit;its exact descriptor is now repaired and checked.
+The helper now restores both supported control states exactly. No product/helper
+build/package change;218 is copied unchanged to the diagnostic C drive. FullD4
+remains OPEN;asset-recovery203.txt235.236 addresses the next client preflight gap.
+
+ASSET QUIT RETRY234 - 2026-10-27 - SCOPED NATIVE PASS
+Original startup audio load has count1;one instrumented Quit request at loader
+return is refused140ms later. Original completion63ms after that decrements to0
+and automatically retries Quit;native acceptance and exit0,job1/0/0,no force.
+Handle/version/generic callback/ABI/thread agree;no counter writes or callback
+suppression. Saved settings/shared channels/installed identities are unchanged.
+Initial completion-entry request was deferred until count0 and remains FAILED
+for the positive-count claim despite clean exit. Both raw reports are retained.
+16tests per Python pass. Direct offline startup in owned232 copy,new profiles;
+no product/helper/package change or release. Physical input,I/O stall,hung-engine
+exit and safe scene cancellation remain OPEN. Details:loading-delay208.txt234.
+Follow-up235 completes the next named server asset permission-denial cases.
+
+ASSET QUIT RETRY233 - 2026-10-27 - STATIC BINDING PASS
+Original completion decrements LoadingCount and automatically retries Quit when
+WantsToQuit is set and the remaining count<=0. Raw generic/rgctx bindings identify
+the real startup LargeGroupAudioTable loader and matching completion delegate.
+Three whole bodies plus an explicit unchanged startup window:452instructions;
+20static controls pass per Python. Whole startup body is not unchanged. No game
+run,helper/product edit,rebuild or publication. Follow-up234 supplies the scoped
+positive-count refusal/completion/automatic retry runtime result. Broader
+recovery/hung-engine/UI acceptance remain OPEN. loading-delay208.txt233/234.
+
+PENDING-LOAD QUIT232 - 2026-10-27 - SCOPED NATIVE PASS
+Opt-in diagnostic holds the first map iterator through real120s notice and
+original disconnected-modal Quit at121703ms. Asset count0;native wantsToQuit
+accepts,game/launcher exit0. No hold release,scene callback or CleanupGameState.
+Survivor returns from abort and uses original menu Quit0. Both native workers0;
+jobs5/0/0,2/0/0,2/0/0,no force. Shared channels/configs/assets/packages/decks
+preserved;only empty menu-state serialization changes in native settings.
+40tests per Python pass. Local helper01/packages02 dirty/unpublished. Initial
+package-path/PKI-path preflight failures retained;neither launched a game.
+233 resolves static completion/retry semantics;234 adds its scoped runtime pass.
+Do not repeat the zero-counter hold or bypass native guards. D4 remains OPEN.
+Details:loading-delay208.txt232. N13 remains pending/reserved for manual use.
+
+LOADING QUIT231 - 2026-10-27 - STATIC REVIEW PASS / RUNTIME EXIT OPEN AT231
+Original asset LoadingCount>0 vetoes Quit;this counter is distinct from mapLoading.
+Five original Quit bodies match installed227,eight raw metadata bindings and
+seven byte anchors pass. Six evidence controls pass on Python3.12/3.14. Current
+Quit automation requires completed cleanup/menu;208 completed loading before
+Quit. Neither covers pending-load exit. Next:one explicitly opted-in owned check
+that keeps loading pending,observes actual asset count/native admission and
+requires normal exit without force. Preserve native cleanup guards. No production
+edit,native run,rebuild or publication;D4 remains OPEN. loading-delay208.txt231.
+
+REPLAY UI230 - 2026-10-27 - MANUAL CHECK READY / N13 PENDING
+Separate offline game copy,three seeded profiles and one-use ordinary launchers
+prepared for chooser Cancel,error Retry into healthy replay/Leave,and missing-file
+Cancel. All133bundles/current installed helper/package verified. Actual bundled
+parser/config/argument/helper/offline preflight passes3cases;launch is replaced by
+an observer,so no game run or UI acceptance is claimed. Results remain empty.
+Computer-use sky.list_windows again reports missing native pipe;no UI input.
+DEV N13 contains exact steps/answer fields;all earlier answers preserved. Reserve
+replay230-manual01 for manual use only. No production edit/rebuild/publication.
+Independent loading review231 and its bounded runtime check232 are recorded above.
+Details:replay-failure-recovery.txt follow-up230. FullD4 remains open.
+
+REPLAY REFUSAL229 - 2026-10-27 - MISSING/CORRUPT ADMISSION OBSERVED
+Unchanged installed227 ordinary entry refuses a missing filename and authored
+invalid-DEFLATE input before high-level loading/world acquisition,without remote
+OPEN. Missing path stays absent;corrupt file permits exclusive reopen while game
+still waits for input. Files/settings/config/shared channels unchanged.32tests
+pass on3.12/3.14. Missing11.938s/corrupt11.750s;both observed for5s,then forced owned
+cleanup,controller1/empty jobs. Overall passed=false;only admission observation
+passes. First missing preflight expected optional winerror2 instead of actual
+CRT errno2/winerrorNone;failed report retained,no process launched in that attempt.
+No production change/rebuild/publication. Next:actual chooser/error Cancel/Retry;
+do not rerun these admission cases. D4 remains open. replay-failure-recovery.txt.
+
+REPLAY REFUSAL228 - 2026-10-27 - LOCKED ADMISSION OBSERVED;RECOVERY OPEN
+Unchanged installed227 helper/package refuses a real read-sharing lock before
+original replay loading/world acquisition. Native WinError32 probe,5.032s retained
+refusal,recording/settings/config/shared data preserved,no remote OPEN request.
+External driver adds no native diagnostic flags.26focused tests pass on3.12/3.14.
+Computer-use native pipe unavailable;no UI actions taken. Owned controller/job
+forcibly closed,exit1,active processes0. Report deliberately keeps passed=false
+and admission_observation_passed=true;this is not Cancel/Retry/normal-Quit proof.
+No production edit/rebuild/publication. Next:missing/malformed admission and real
+chooser/error recovery when UI tooling is available. FullD4 remains open.
+Details:replay-failure-recovery.txt follow-up228;reuse227 healthy normal Quit.
+
+REPLAY ENTRY227 - 2026-10-27 - ORDINARY SELECTED-FILE PLAYBACK PASS
+New --replay FILE and Watch Replay.cmd reach the original loader through the
+installed bundled client. Exclusive replay owner restores original runner updates
+in unified mode and releases on original idle/menu/assets state. Native04 passes
+1220-frame recording admission,advancing playback,original Options/Leave/Cancel,
+Confirm/menu/release and normal Quit0 in30.047s;job3/0/0,no force. Saved settings,
+source replay and real shared TOML/replays/backup unchanged;no remote OPEN request.
+Button/Quit automation is explicit diagnostic scope;no diagnostic replay loading.
+Three failed native attempts retained:missing unified pump,overstrict lease release,
+then CRLF evidence parsing. Final helper07/packages05 local only,not published.
+75focused plus17package tests pass on Python3.12/3.14;native build policy tests pass.
+Next:ordinary chooser cancel and refusal/Retry. Physical input/fullD4 remain open.
+Details:replay-failure-recovery.txt follow-up227;quickstart explains new entry.
+
+REPLAY ENTRY226 - 2026-10-27 - DEBUG LOAD LEAD RESOLVED;PRODUCT GAP OPEN
+Parsed original replay prefabs:64debug/99in-game hierarchy nodes. Debug Load
+references UIDebugReplayController,absent from the complete22961-entry raw IL2CPP
+type table;its saved click list is empty. In-game controller exists. Current218
+ordinary launcher has no file handoff;diagnostic loading remains opt-in only.
+Sparse asset reader matches a full standard-reader control;bundle/source/package
+pins and independent metadata reconciliation pass. No game launch/product change.
+Next:ordinary selected-file entry into the existing replay loader,with idle-world
+ownership and errors/cancel,then changed-entry qualification. FullD4 remains open.
+Details:replay-failure-recovery.txt follow-up226;reuse163 instead of rerunning it.
+
+ASSET ACCESS225 - 2026-10-27 - REAL DECLARED-MAP LOCK/RECOVERY PASS
+Unchanged218 package rejects check/start with unreadable_asset while the manifest
+remains readable. Real Windows sharing violation32;no server/native construction
+during refusal. Closing the owned handle alone restores native frame0/close/exit0.
+Profiles/config/TLS unchanged,state lock released;controller0,job6/0/0,no force,
+5.406s.25tests per Python pass;independent completion review passes. Only external
+diagnostic/test changes,no rebuild/publication. FullD4 remains open. Next:reconcile
+ordinary replay entry/file-selection reachability before any new runtime case.
+Details:asset-recovery203.txt follow-up225;reuse224 and203 without reruns.
+
+ASSET ACCESS224 - 2026-10-27 - REAL MANIFEST LOCK/RECOVERY PASS
+Unchanged218 package rejects check/start under an owned Windows read-sharing
+lock with the exact unreadable-manifest diagnostic. No server/native construction
+until release;two saved profiles/config/TLS hashes preserved,state lock released.
+Closing the handle alone restores native create/frame0/close/exit0. Controller0,
+job6/0/0,no force;6.000s.24tests per Python pass with actual Windows sharing cases.
+No product/package/ACL change. Next:declared-map unreadable_asset branch under a
+real sharing lock. Reuse manifest224 and damaged-file203 cases;fullD4 remains open.
+Details:asset-recovery203.txt follow-up224.
+
+PACKAGED CANCELLATION223 - 2026-10-27 - R02 MODE1 PASS
+Unchanged218 packages/helper214:waiting Cancel3s,no prior world/room/worker,
+same RC TLS session,real30.054s retry wait,one1220-frame1v1 world with one bot.
+Chosen deck/17cosmetics retained;original result/Continue/Quit0,both workers0,
+jobs5/0/0 and2/0/0,no force.1364audit records drained;source/packages/assets/
+config/shared channels preserved.41tests per Python pass. Together221-223 close
+this packaged R02 scope for public1/2/5,not physical/fullD2 acceptance. Reuse all
+three passes in packaged-cancel221.txt. Next:D4 real Windows asset sharing-lock
+refusal/recovery;reuse203's other startup failures.
+
+PACKAGED CANCELLATION222 - 2026-10-27 - R02 MODE5 PASS
+Unchanged218 packages/helper214 pass original waiting Cancel at3s,no old world,
+room or worker before retry,same RC TLS session,real30.060s retry wait,one1221-frame
+2vAI world. Chosen deck/17cosmetics retained;original results/Continue/Quit0,
+two workers0,jobs5/0/0 and2/0/0,no force. All1367audit records drained;source,
+packages,assets,config and shared channels preserved.40tests per Python pass.
+Full D2/physical acceptance stays open. Next:remaining R02 mode1 packaged/normal
+Quit scope. Detailed222 follow-up in packaged-cancel221.txt;reuse both team passes.
+
+PACKAGED CANCELLATION221 - 2026-10-27 - R02 MODE2 RETAINED REVIEW PASS
+Current218 packages/helper214:original waiting Cancel at3s;no world/room/worker
+before retry. Same TLS session,real30.078s retry wait,one1221-frame2v2 world with
+three native bots;selected deck/17cosmetics preserved. Results/Continue/Quit0,
+two workers0,jobs5/0/0 and2/0/0,no force. All1367audit records drained;packages,
+assets,shared channels and runtime source unchanged.39tests per Python pass.
+Initial final verifier failed on dictionary-versus-pairs cosmetics;that failed
+report remains. Corrected retained review validates all skipped match/bot gates,
+without another native run. Full D2/physical acceptance stays open. Next:R02
+mode5 package/lifetime applicability. Details:packaged-cancel221.txt.
+
+PRIVACY LEAD220 - 2026-10-27 - REVIEW COMPLETE;P9 STILL OPEN
+Distinct owner+c28 listener dispatch supplies flags/integer,not ID/error strings.
+Two complete retained bodies/359instructions/16anchors match pinned original
+bytes;bounded c28 discovery finds construction/dispatch only,no registration
+or adapting subscriber. No new guard is justified;no runtime/product change.
+Resume P9 on positive evidence;next actionable work:R02 mode2 packaged waiting
+Cancel/next Play with normal Quit. Details:listener-lead220.txt.
+
+GRAPHICAL CHECK219 - 2026-10-27 - CORRECTED21-MATCH CADENCE/RESOURCE PASS
+Unchanged218 packages complete21matches in1758.953s:19.974326-20.005228Hz,
+max gap124.3548ms,zero worker awaits>50ms. All original216 cadence and214 idle
+resource-growth limits pass. Native results/replays/Continue/Leave/Quits0,
+22workers0/reaped,jobs45/0/0,2/0/0,2/0/0,no force. All28466audit records written
+in order,zero rejected/abandoned/pending,writer joined. Final report and temporary
+PKI cleanup verified.69tests per Python pass. First219controller failure remains
+failed:repository-only PKI cleanup lost its parent report;raw observations remain.
+C host-data placement is part of this bounded Windows scope,not a controlled
+comparison against E storage. Named21-match check complete;fullD8 remains OPEN.
+Next:return to the unresolved P9 producer investigation and remaining finite rows;
+do not repeat this configuration without a changed path/concern. soak-qualification.txt.
+
+QUEUED AUDIT218 - 2026-10-27 - FIX AND PACKAGED TWO-MATCH CHECK PASS
+Production host queues immutable producer-timestamped records to one owned writer;
+bounded records/bytes,original rotation,visible failures and cancellation-safe drain.
+153distinct tests pass per Python3.12/3.14;one existing opt-in DACL test skipped.
+Changed packaged control passes185.703s:2722records accepted/written,zero loss or
+rejection,peak14records/11566bytes,writer joined. Native results/Continue/Leave/
+Quits0,three workers0,empty jobs,no force. Audit producer max0.1849ms;matches
+19.975/19.879Hz. A460.722ms gap overlaps416.325ms worker await and405.038ms loop
+delay;underlying cause remains unlocalized. Client byte-identical214;server local
+preview changes only host/audit source and manifest. No release/publication.
+Follow-up219passes the changed21-match cadence/resource gate on Windows/C data.
+Other deployment/performance scopes and fullD8 OPEN;failed216 retained.
+
+AUDIT STAGES217 - 2026-10-27 - WRITE STALL OBSERVED;FOLLOW-UP218
+Original packaged logger replay preserves28,510records/two rotations,job1/0/0,
+but does not reproduce long stalls. Native two-match probe then captures291.296ms
+frame gap overlapping280.9999ms in original stream.write;JSON dumps<=0.1205ms.
+13automatic GC collections,max5.1145ms,do not overlap the three largest writes;
+GC settings/callbacks preserved. Native results/Continue/Leave/Quits0,three
+workers0,jobs7/0/0,2/0/0,2/0/0,no force;186.031s.100tests per Python pass.
+Product/packages unchanged at217.218adds bounded async audit file I/O preserving
+timestamps,record order,rotation/errors and shutdown drain.216failure remains
+retained;219passes a new scoped sustained run. FullD8 open. soak-qualification.txt.
+
+GRAPHICAL CADENCE216 - 2026-10-27 - TIMING FAILED;LIFETIME/RESOURCE PASS
+21matches finish1766.390s,normal Quits,22workers0,jobs45/0/0,2/0/0,2/0/0,no force.
+All declared resource bounds and preservation/drain checks pass. Two matches miss
+the19.5Hz cadence target:round15 19.449376Hz,round17 19.374989Hz. Max gap650.496ms;
+all worker awaits<=6.317ms. Failed report retained;no timing target relaxed.
+27of29gaps>=200ms overlap synchronous audit calls by at least80percent;largest
+gap overlaps641.743ms of an original frame_queued audit call. Two other gaps
+remain unlocalized.217adds audit subcall attribution and observes a write stall
+in a new native control.71tests per Python pass;product/packages unchanged.
+Details:soak-qualification.txt. Sustained graphical cadence/fullD8 stay open.
+
+HOST TIMING215 - 2026-10-27 - DIAGNOSTIC STATUS FIX / TWO-MATCH PASS
+Measured465.316ms frame gap overlaps450.5435ms synchronous test-adapter status
+update;audit calls stay<1ms. Moved status serialization/write to a single owned
+thread,with cancellation drain and joined shutdown.67tests per Python pass.
+Changed native two-match control passes182.203s,20.000/20.002Hz,max67.853ms,
+normal results/Continue/Leave/Quits,three workers0,jobs7/0/0,2/0/0,2/0/0,no force.
+Packages/product unchanged;older214outliers are not all attributed to this cause.
+216extends this to sustained cadence and identifies remaining audit-call stalls;
+method,raw timing/phase boundaries and both controls:soak-qualification.txt.
+
+GRAPHICAL REMATCH214 - 2026-10-27 - LIFETIME/RESOURCE PASS
+Corrected21-match run passes1767.719s:25,620frames/2,562sampled states per client,
+twenty host deck edits,matching native results/replays and both original Quits0.
+22workers exit0/reaped;jobs45/0/0,2/0/0,2/0/0;no force. All declared resource
+bounds pass:server handles-1/private+6,557,696bytes;games handles-11 each and
+private+115,445,760/+93,073,408bytes.59tests per Python pass. First failed run
+and diagnostic worker-retention cause/fix remain preserved. Minimum19.229Hz,
+max gap998.747ms leaves sustained timing open.215adds bounded timing attribution.
+Dirty local preview only;details:soak-qualification.txt. FullD8 remains open.
+
+PACKAGED NETWORK213 - 2026-10-27 - CONTROL/DELAY-JITTER PASS
+Current203 RC packages,two graphical clients,window6:zero-delay control19.968Hz;
+200ms nominal RTT plus20ms per-direction jitter19.895Hz,max frame gap298.300ms.
+Both1220frames/client and122sampled states agree;results/Continue/normal Quits0.
+Each run jobs5/0/0,2/0/0,2/0/0,two workers0,relay drained,no force.33tests per
+Python;product/packages unchanged. Full D8 remains open;network-qualification.txt.
+
+UNRESOLVED SAVE EXIT212 - 2026-10-26 - SCOPED NATIVE QUIT/RESTART PASS
+18startup and two shutdown saves fail;original Quit0 leaves the empty placeholder
+untouched. Fresh process parses it,recovers defaults and saves an edited deck;
+third process reads it back. Three normal Quits0,jobs1/0/0 each,no force,60.422s.
+16tests per Python;product/packages unchanged. Full D4 remains open;reuse the
+completed209-212 scope in native-settings-atomic.txt rather than repeat it.
+
+FIRST SETTINGS SAVE211 - 2026-10-26 - SCOPED NATIVE FAILURE/RETRY PASS
+Early probe refuses18startup saves;original game-created zero-byte placeholder
+receives no partial settings bytes. Notice,retry,native restart/readback and two
+normal Quits0 pass59.265s,two jobs1/0/0,no force. Four failed diagnostic attempts
+retained;15tests per Python. Product/packages unchanged;unresolved-failure exit
+and full D4 remain open. native-settings-atomic.txt follow-up211.
+
+SETTINGS PUBLICATION210 - 2026-10-26 - REAL LATE REFUSAL/RETRY PASS
+Successful flush followed by a late non-delete-sharing target handle causes
+actual Windows replacement refusal5. Old TOML survives;notice,Save retry,native
+restart and both Quits0 pass49.360s,jobs1/0/0 each,no force. Initial verifier's
+wrong32-only assumption/failure retained;11tests pass per Python. Product and
+packages unchanged;full D4 open. native-settings-atomic.txt follow-up210.
+
+SETTINGS FLUSH209 - 2026-10-26 - SCOPED NATIVE FAILURE/RETRY PASS
+Injected helper flush-result failure preserves old TOML through original notice;
+Save retry and fresh native deck readback pass. Both normal Quits0,jobs1/0/0 each.
+First run's trace-reuse harness failure/forced second exit retained;corrected
+run48.094s passes without force.8tests per Python. Product/package unchanged;
+full D4 stays open. Details:native-settings-atomic.txt follow-up209.
+
+DELAYED LOADING208 - 2026-10-26 - SCOPED NATIVE RECOVERY PASS
+One-shot130s iterator delay crosses real120s diagnostic;original callback finishes
+before reason1 cleanup. Same clients retry1220frames and normal Quit0;no force.
+Initial verifier failed LF/CRLF hash bookkeeping;failed report preserved and
+retained evidence independently reconciled.29tests pass per Python. Product and
+packages unchanged;permanent loader failure/full D4 remain open. loading-delay208.txt.
+
+SCENE PROVIDER207 - 2026-10-26 - PRE-ACTIVATION BOUNDARY RESOLVED
+Original SceneOp completes at native done OR activation-disabled/progress~0.9.
+Destroy releases its dependency handle;no scene cancellation contract follows.
+Five new bodies/717instructions verified;eight combined controls pass per Python.
+Existing verifier extended,product unchanged. Next:owned delayed-completion
+recovery beyond120s,with normal Quit. Details:scene-release206.txt follow-up207.
+
+SCENE RELEASE206 - 2026-10-26 - STATIC UNLOAD BOUNDARY
+Asset scene unload is separate from iterator cancellation. Running operations
+take an Addressables chain;both callbacks lead to scene release. The unload
+worker checks loaded state before native unload. Pre-activation cancellation
+remains unproved.14bodies/1576instructions verified,four controls pass per Python.
+Product unchanged;D4 remains open. Details:scene-release206.txt.
+
+LOADING SCHEDULER205 - 2026-10-26 - STATIC OWNER BINDING
+Map loading belongs to MEC's default UpdateProcesses scheduler,with no tag/layer.
+Handle kill removes the iterator slot;scene cancellation/callback suppression
+remain unproved. Six full bodies/one partial span,587instructions verified;
+four controls pass per Python. No production change. Next:scene-operation
+release ownership. Details:loading-scheduler205.txt. D4 remains open.
+
+MAP LOADER204 - 2026-10-26 - STATIC OWNERSHIP BOUNDARY
+Scene-operation readiness precedes activation/InitMap/completion;get_IsLoading
+cannot replace the full recovery guard. Iterator Dispose is an empty return.
+Four bodies/953instructions and metadata bindings verified;four controls pass
+per Python. Safe cancellation remains unproved;D4 stays open. Product/package
+unchanged,latest preview203. Details:map-loading204.txt.
+
+ASSET RECOVERY203 - 2026-10-26 - FIXED / SCOPED VERIFIED
+Malformed manifest shape previously escaped as AttributeError. Strict inventory
+validation and fixed actionable asset errors now fail cleanly. Seven packaged
+faults reject both check/start;restored assets pass native health/frame0/exit0.
+Profiles and host keys/config preserved,job6/0/0,no force.66tests pass/2existing
+platform skips per Python. Local203preview changes assets.py,host.py,quickstart;
+client identical191,published174 unchanged. Details:asset-recovery203.txt.
+
+LOADING ACKNOWLEDGEMENT202 - 2026-10-26 - SCOPED COMPLETE
+Packaged191 RC TLS/native Custom rejects a one-byte bootstrap-hash mismatch.
+No native frame starts;offender disconnects,survivor gets unknown-result abort.
+Same-profile reconnect preserves saved choices and survivor connection;replacement
+ten frames and unrelated40frames pass. Three workers0,job10/0/0,no force.
+Sixteen controls pass per Python;product unchanged. bootstrap-recovery202.txt.
+
+COMPATIBILITY REJECTION201 - 2026-10-26 - SCOPED COMPLETE
+Packaged191 RC TLS server rejects seven incompatible HELLO variants with exact
+errors/EOF and no room/worker/profile allocation. Unrelated native room continues
+199 equal frames;same rejected identity retries successfully for ten frames.
+Two workers0,controller0,job8/0/0,no force;six controls pass per Python. Product
+unchanged;client UI/asset-file/full D4 recovery remain open. compatibility201.txt.
+
+IDENTITY TOKEN INPUT200 - 2026-10-26 - STATIC BINDING
+c416b0 reads parsed token input into Main190,correcting125's provisional
+serialization description. Effective identity changes update Main1138 and queue
+197's notification;missing keys can preserve old tokens. Eight full bodies and
+one leaf/1426instructions verified;four tests pass per Python. No product change.
+Input activation/transport and separate advertising producer remain unknown;
+P9/D5 remain open. Details:identity-config200.txt.
+
+TCP CONNECT TIMEOUT199 - 2026-10-26 - AUTOMATED SCOPE COMPLETE
+All four verified-mode native cases pass with TCP still pending until the real
+default10s deadline. Same saved profile retains deck/17cosmetic slots/options/
+hard preference across public1/2/5 and Try Deck4;four replays preserved. Original
+results/Continue/Quit0,job2/0/0 each,no force,preference restored.22focused tests
+pass per Python;final reconciliation passes. Diagnostic/documentation changes
+only. Physical/other D2 scope remains open. Details:tcp-connect-timeout199.txt.
+
+SAVED-PREFERENCE MATRIX198 - 2026-10-26 - AUTOMATED SCOPE COMPLETE
+All six remaining mode/refusal-or-TLS-stall cases pass on one copied customized
+profile across six native lifetimes. With190,all eight A07-14 saved-choice cells
+are qualified at automated native scope. Exact joined choices,normal Quit0,
+job2/0/0 per run,six retained replays and final preference restoration pass.
+19tests pass per Python. No production change;physical/full D2 remain open.
+Details:saved-preference-matrix198.txt.
+
+IDENTITY NOTIFICATION197 - 2026-10-26 - STATIC BINDING
+Resolved109/164's queued Main190 forwarding to the managed identity-token event,
+not the advertising callback. Classified retained116 offset candidates more
+precisely;one positive import binding is QueryPerformanceFrequency. Eleven full
+bodies/3030instructions verified;four controls pass per Python. No new patch;
+advertising producer/subscribers remain unresolved. identity-notification197.txt.
+
+CUSTOM OWNERSHIP196 - 2026-10-26 - SCOPED COMPLETE
+Packaged191 RC TLS/native Custom loading/running rejects stale Accept,Leave and
+premature Return without ownership changes. Native surrender completes160equal
+frames;staggered returns and same-connection rematch pass. Old-match Return is
+rejected during the replacement,which delivers ten frames. Two workers0,
+job8/0/0,no force;21tests pass per Python. Product unchanged;original client UI
+and full D2/D4 remain open. Details:custom-ownership196.txt.
+
+PROFILE STORAGE195 - 2026-10-26 - SCOPED COMPLETE
+Packaged191 RC TLS profile saves safely refuse real Windows read/replace locks
+and damaged JSON. Previous bytes/session choices survive;release or explicit
+repair followed by reconnect restores saved cosmetics. Concurrent native room
+delivers40 equal frames;worker0,job6/0/0,no force.18tests pass per Python.
+Diagnostic/report changes only;production unchanged. D4 UI/local storage and
+other recovery gates remain open. Details:profile-storage195.txt.
+
+PARTICLE AUTO-SEED CONSUMER194 - 2026-10-26 - STATIC BINDING
+Resolved a concrete use of164's second random-state owner:registered particle
+Play advances its four words into the named randomSeed field when the named
+auto-seed flag is set. Shared RNG/getter preserved;no product patch justified.
+Ten original/installed bodies,1754instructions and registration/receiver edges
+verified;four evidence controls pass per Python. Advertising Main+1498/c307c0
+producer remains unknown;P9/D5/runtime flag unchanged. Details:particle-rng194.txt.
+
+DEFAULT LOADING DEADLINE193 - 2026-10-26 - SCOPED COMPLETE
+Actual191package/RC TLS/native Custom1v1 expires at the unmodified120s deadline.
+Both peers receive unknown-result abort;late LOADED/INPUT are ignored,then both
+reuse their connections/lobby for a replacement match. Four profile files remain
+unchanged. Concurrent match delivers2427equal frames;three workers exit0,job10/0/0,
+no force.12diagnostic tests pass per Python. Production/packages unchanged;
+client loading-screen/callback recovery and full D4 remain open.
+Details:loading-recovery193.txt.
+
+MALFORMED TRAFFIC192 - 2026-10-26 - SCOPED COMPLETE
+Three active Custom1v1 invalid-input cases pass with actual191package/RC TLS/native
+workers:oversized header,truncated protobuf and foreign player identity. Offender
+disconnects;survivor receives unknown-result abort and reuses its connection/lobby.
+Same-profile reconnect/replacement passes;four saved profiles unchanged. Each
+concurrent match delivers40equal frames on the same worker. Nine workers exit0,
+job26/0/0,no force. Seven diagnostic tests pass per Python. No production change,
+new build or publication;full D4 remains open. Details:malformed-traffic192.txt.
+
+COORDINATOR SHUTDOWN OWNERSHIP191 - 2026-10-26
+Fixed cancellation before the coordinator reached its profile-I/O drain. Complete
+cleanup now has one retained task;repeated cancellation/concurrent closes retain
+ownership until it settles. Two actual held-publication cases fail old source and
+pass fixed source;124affected tests pass/1existing skip per Python. Local191server
+changes only coordinator/manifest;client identical188. Packaged native completed
+and active-match shutdown pass,each job8/0/0,no force,worker0 and lock released.
+Named D4/D7 defect closed;full gates and SCM remain open. Not published.
+Details:coordinator-shutdown191.txt.
+
+SAVED PREFERENCES190 - 2026-10-26 - SCOPED COMPLETE
+Customized owned profile passes verified refusal/public1 then same-profile
+restart/Try Deck after TLS stall. Both reach original results/Continue/Quit0,
+job2/0/0,no force. Native joined deck/cosmetics and all17effective slots match
+saved choices;account/options and hard preference preserved. Both replays and
+seed files retained;installation preference restored.17tests pass per Python;
+both native reports/source/package reconciled. A07/A13 native scope,not all
+availability cells or physical acceptance. Details:saved-preferences190.txt.
+
+VERIFIED-MODE AVAILABILITY189 - 2026-10-26 - SCOPED COMPLETE
+Extended the existing owned verifier to use valid protected invitations and
+verification-enabled TLS.12tests pass on each Python. Actual packaged/native
+verified refusal and default TLS-stall pass in all four modes1/2/4/5 with
+results/Continue/Quit0,job2/0/0,no force,private/shared/package/source preserved.
+All eight reports reconciled against the package and200sealed source inputs.
+Fresh-profile scope;190 adds customized-preference evidence for two named paths.
+No physical,Internet or full D2 acceptance. verified-availability189.txt.
+The active roadmap queue is shortened;exact former text is archived with a
+manifest in history/2026-10-26/. Delivery requirements were preserved verbatim.
+
+DASHBOARD SHUTDOWN OWNERSHIP188 - 2026-10-26
+Fixed a reproduced cancellation race that released shutdown ownership while
+threaded history publication could still run. Complete cleanup now has one
+retained task;repeated cancellation waits for it and concurrent closes join it.
+Both success/failure regression cases keep the actual state lock until I/O ends;
+45focused tests pass on each Python3.12/3.14. Local188server differs from187 only
+in this module/manifest;client identical. Packaged native160-frame TLS surrender,
+completed history and normal shutdown pass,job8/0/0,no force. No SCM/user/privacy
+or whole-gate acceptance. Details:dashboard-shutdown188.txt. Not published.
+
+RC IDENTITY STORAGE ISOLATION187 - 2026-10-26
+Fixed a reproduced directory-junction path that let one installation resolve
+another's player identity. Identity/lock storage now refuses links/reparse points;
+first publication cannot overwrite an intervening file. Original data preserved.
+Actual Windows junction and bundled CONFIG_FAILURE path pass;25focused tests
+pass on Python3.12/3.14. Matching dirty local client/server187 previews verify;
+changed-path185 lifecycle passes with4concurrent identity creators,two actual
+host/TLS starts,retained profiles,job18/0/0,no force. No new published release,
+game UI or broad D4/D5 closure. N12 pins remain intact. rc-identity-storage187.txt.
+
+SCM OPERATOR CHECK186 - 2026-10-26
+Read-only create-service permission probe returns Windows error5;actual SCM
+remains unqualified. Prepared unique manual-service capsule and local credential
+prompt under the same owner;no service registered by automation. Source/package/
+config preflight and PowerShell parsing pass. New peer/control handoff rehearsed
+with two real native40-frame host cycles,worker0,profiles/locks/listeners retained,
+no force. First relative-plan rehearsal failed and remains retained;02 passes.
+20source/operator tests pass on Python3.12/3.14. DEV N12 owns the administrator
+request;other roadmap work can continue. Details:scm-operator186.txt.
+
+RC IDENTITY AND SERVER KEY LIFECYCLE185 - 2026-10-26
+Actual package175 automatic private keys/reuse and four-process first identity
+creation PASS. Rename/route/profile return preserve identity;damaged file refuses
+without replacement. Real host restart with a new certificate preserves player
+ID/saved deck/full cosmetics;missing key refuses without silent regeneration.
+Two native health workers exit0,job18/0/0,no force,7.953s.26focused source tests
+pass on Python3.12/3.14. Client/server backup guidance clarified;no product build
+or new Nick action. Current initializer178 differs from package175 and retains
+separate path evidence. D7 cross-account/SCM/reboot/clean-host and remaining
+bounds stay open. Details:rc-identity-lifecycle185.txt.
+
+RESTORED PROTECTED HOST COMPLETED GAME184 - 2026-10-26
+Protected backup/restore and scripted native1v1 surrender PASS with package175.
+Both TLS peers receive160matching frames and the actual native result;worker0
+before host shutdown,listener/lock release,job8/0/0,no force. Dashboard HTTP and
+saved history retain the completed game/winner;profiles/full cosmetics preserved.
+Six evidence-control tests pass on Python3.12/3.14. First early-surrender attempt
+remains FAILED;fresh02 uses the existing fixture's frame140 and passes15.188s.
+No product/package change or user action. D7 physical/deployment/SCM/account
+scope remains open;D5 unaffected. Details:server-recovered-game184.txt.
+
+P9 COMPUTED CONFIGURATION LISTENER183 - 2026-10-26
+Bound platform Start's analytics-key registration through24-byte listener records
+to actual computed dispatchc42ab6->c66a80 and matching removal. Main is the bound
+owner;the parser context is separate. Existing recipe23 Start RET prevents this
+registration. This resolves a named configuration route,not upstream c307c0.
+Read-only gate passes8full extents/1412instructions/51anchors plus edges and exact
+installed recipe;5focused tests pass on both Python versions. No product patch,
+game run or gate closure. P9/D5 remain open. Details:analytics-listener183.txt.
+
+P9 OWNED GAME CALLER INTEGRATION182 - 2026-10-26
+Actual patched client passes instrumented Try Deck4/native result/Continue and
+original normal Quit0,complete job1/0/0,no force. Closed caller interval records
+0calls;guard intact and hook detached. Owner/source/file/session review passes;
+36focused tests pass on Python3.12/3.14. No original callback invocation observed;
+producer/P4/P9/D5 and final-installed privacy qualification remain open. First
+attempt remains FAILED for missing initial diagnostic logs;fresh-profile game02
+passes after directory preparation was fixed. Next:positive producer/registration
+or computed-consumer pre-acquisition cut,not another quiet run. Diagnostic-only
+changes;recipe/helper/published174 unchanged. Details:advertising-game182.txt.
+
+P9 NATIVE CALLER CONTROL181 - 2026-10-26
+Real REA/Frida on an authored native arithmetic fixture captures13calls across
+two threads,8caller records/5suppressed. All callers bind to the exported host
+function. Hook detached;2later calls return expected results,entry/guard restored.
+Natural root/conhost exits0,complete job2/0/0,no force,files unchanged. Independent
+evidence review and14focused tests pass on both Python versions. No original game
+code executed;real callback/producer qualification stays open. Followed by owned
+client integration182. Details:advertising-native-control181.txt.
+
+P9 ISOLATED CALLER WITNESS180 - 2026-10-26
+Separate opt-in c307c0 caller observer and evidence decoder implemented. Requires
+an owned image/profile/PID,complete current Unity recipe/body and retention guard;
+rejects native field-audit/device-probe combinations. Records caller locations,
+thread and bounded counts without identity payloads. Both Python versions pass
+9focused authored tests;actual171 file descriptor matches without changes.
+Native Frida/owned integration follows in181/182. No game launch or producer discovery at180;
+P9/D5 remain open. Details:advertising-caller180.txt. Normal launchers unchanged.
+
+P9 ADVERTISING REGISTRY179 - 2026-10-26
+Two positive computed lifecycle dispatches resolve to the public advertising
+manager's existing empty constructor and destructor. Existing-instance reuse
+preserves state. This narrows the alias investigation but does not identify the
+separate Main+1498/c307c0 producer or prove collection absent. Static byte-bound
+verification passes;no product patch,game run or release-gate closure. The current
+native observer leaves this callback unhooked to preserve its field auditor;
+missing callback counts are not zero calls. Details:advertising-registry179.txt.
 
 COPIED LINUX HOST RELOCATION178 - 2026-10-25
 Remote report:Ubuntu24.04/x86_64/Wine9.0. A fresh win64 prefix prints WINE_OK

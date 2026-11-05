@@ -1,0 +1,52 @@
+D5 / P5-P8 - packaged Python Proactor byte-count audit
+
+2026-10-30. Current private public1/two-human subcase PASS;full D5 OPEN.
+
+The existing CPython audit377 records endpoint operations but no stream
+send/receive sizes. An authored Windows loopback control showed why wrapping
+socket.socket.send/recv would miss this project's asyncio transport:
+the default ProactorEventLoop called IocpProactor.send/recv while the ordinary
+socket method wrappers saw zero calls. The new opt-in diagnostic wraps seven
+IocpProactor methods in the external packaged host/client drivers. It records
+only byte lengths,completed-operation counts,handles and peer endpoints;
+it never reads or stores payload content. Normal product launchers/packages
+are unchanged. The two simulation workers retained endpoint-only audits.
+
+The source-bound recipe38 private pair completed an RC-open public1 match
+1220 frames,result/Continue and normal Quit0 on both clients. Host,client
+adapters and both workers exited normally,Jobs5/2/2 drained without forced
+cleanup. The host and two adapter byte journals each have an entry and exit
+record,no overflow or unclassified operation,and loopback peers only.
+Host completed363519 send bytes and195799 receive bytes;the adapters
+completed260589/262365 and260346/262084 send/receive bytes respectively.
+The host's two active client-link send/receive byte pairs exactly equal the
+reciprocal receive/send pairs on the adapters' host-port links. Adapter
+traffic on their separate native-client bridge links also stayed loopback.
+The small additional host receive-only socket and the adapters' short
+receive-only sockets are retained in the detailed review,not discarded.
+
+tools.review_d5_proactor_bytes412 verifies the authored control,package/
+source/helper/game/assets/match/Jobs,exact diagnostic script prefixes,
+endpoint journals,worker positive controls,Proactor method counts,per-peer
+byte totals and both reciprocal host-adapter links. One initial reviewer
+attempt incorrectly sought a nonexistent per-driver inputs.json;the
+corrected reviewer uses the verifier's unchanged-source/adapters checks and
+passes the original capture. No game run was repeated for that reviewer fix.
+
+This is Python-level Proactor I/O within one owned configuration. It does
+not cover direct native/ctypes calls by those processes,all OS/kernel I/O,
+packet contents or actual wire,other modes,the real SDK queue,or final
+installed release. P5-P8 and full D5 remain OPEN;RUNTIME_VALIDATED=false.
+
+Ignored retained evidence SHA256:
+ local/privacy412-proactor-control01/byte-audit.jsonl
+ eb7b995d94853a596eaafd33ebf4b53329b591621bd9ebc7d1291058275b4f15
+ local/privacy412-proactor-pair01/verification.json
+ 6b8ab623cedfb8626f2aaa0a355b164febedc4069726dd846602769bf57c46ae
+ local/privacy412-proactor-pair01/proactor-review.json
+ 0400a026cfae3a41d0334483dbee6508421f743b7e0b991b23624eafd20f95fa
+
+Follow-up416 reviews explicit ctypes DLL constructors in the exact reported
+packaged Python driver modules. Only credential ACL and worker Job DLLs are
+named there;other imports/extensions/OS wire remain open.
+See privacy-packaged-ffi416.txt.

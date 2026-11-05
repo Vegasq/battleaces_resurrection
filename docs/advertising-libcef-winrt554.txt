@@ -1,0 +1,18 @@
+D5 / P9 - installed libcef direct WinRT factory call
+
+2026-11-01. Read-only installed recipe47 libcef.dll source review PASS
+at the direct FF15 RoGetActivationFactory import-call scope. No game,
+browser or SDK was started. P9/D5 remain OPEN.
+
+The reviewed direct import call at RVA134f0f9 requests the
+Windows.UI.ViewManagement.UIViewSettings runtime class. The reviewer
+checks the installed image hash, import slot, direct FF15 call census and
+class construction at that call site. PASS receipt:
+local/privacy554-libcef-winrt01/verification.json;
+reviewer:tools/review_ads_libcef_winrt554.py.
+
+The direct call is not an advertising-manager activation. Indirect or
+computed calls and other libcef paths remain unqualified. The independent
+AnalyticsCoreStats advertising-ID provider, P9 producer/registration or a
+proved pre-acquisition cut, real queue/whole wire and final installed D5
+acceptance remain outstanding.

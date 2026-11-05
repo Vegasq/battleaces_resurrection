@@ -1,0 +1,47 @@
+D5 ORIGINAL IL2CPP ADVERTISING METHOD-NAME BOUND263
+2026-10-28. Narrow source inventory;P9/D5 remain OPEN.
+
+The pinned original global-metadata.dat was parsed with the repository's
+IL2CPP Metadata reader. All182388 method records had readable name offsets.
+A case-insensitive method-name search for advertis,trackingauthorization and
+advertisingidentifier found only five Steamworks game/server advertising
+methods: _SetAdvertiseServerActive,SetAdvertiseServerActive,_AdvertiseGame,
+AdvertiseGame and set_AdvertiseServer. No named method in this metadata table
+requests an advertising identifier or tracking authorization. This expands
+110's narrower empty UnityEngine.Application method binding to the complete
+method-name table;it does not repeat the native manager/address searches.
+
+The negative name inventory cannot exclude stripped names,other spellings,
+native platform code,computed calls,external plugins or inlined acquisition.
+The original Unity native RequestAdvertisingIdentifierAsync registration at
+index323->5fb70 still exists;110 established only its fresh-manager queue path.
+No bridge to Main+1498/c307c0 or pre-acquisition cut follows from names alone.
+P9 requires a positive producer/registration or relevant source cut. No product
+patch,game launch,identifier request,queue read or package change occurred.
+
+Retained bounded report:local/privacy263-managed-names01/verification.json,
+SHA256 13383b1e89b25278964871cf986fb221a1ce53e3844f3303cbdc0f166f19c61c.
+The reader checked the pinned original metadata SHA before parsing;the report
+contains exact indices,tokens,search terms,count and all five names.
+
+Follow-up397 (2026-10-30):the original UnityPlayer also contains a separate
+UnityAdsSettings::get_enabled name/function table pair at RVA192d090/192d0f0,
+pointing to native1f3be0. This exact name is absent from the3471-entry native
+registry whose reader was proved in110;the separate table's registration or
+runtime use is not proved. The complete20-instruction getter body byte-matches
+original and current recipe38 installed UnityPlayer. It obtains a global
+settings object,adds168,and calls an indirect helper;it has no direct reference
+to c307c0 or Main+1498. The indirect callee and other Unity Ads settings
+methods remain outside this check. This retires only the named getter as a
+direct callback lead,not the advertising-ID producer or any acquisition path.
+Read-only reviewer:tools/review_ads_settings_binding397.py;ignored receipt and
+assembly:local/privacy397-ads-settings01. P9/D5 remain OPEN.
+
+Correction413 (2026-10-30):397 used the wrong index in the separate parallel
+name/function tables. The UnityAdsSettings::get_enabled entry at name index12
+maps to function1f48c0 via slot192d130. The prior1f3be0 function is actually
+UnityConnectSettings::get_eventUrl at index4. Therefore397's claimed Ads
+name/function pair and interpretation of1f3be0 as that getter are superseded.
+The real Ads getter reads a Boolean field from the UnityConnectSettings object;
+the adjacent setter uses an indirect virtual slot. Details and current
+byte-bound review:advertising-settings-pair413.txt. P9/D5 stay OPEN.

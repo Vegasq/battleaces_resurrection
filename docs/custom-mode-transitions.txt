@@ -139,3 +139,59 @@ Producer preparation03 SHA256:
 Named T07/T08 cases close within this scope. D2 protected availability/physical
 acceptance and other parent delivery gates remain OPEN. D6's preserved physical
 reboot-first/repeat test stays priority;no archive/manual candidate is updated.
+
+SOURCE APPLICABILITY REVIEW244 - 2026-10-27 - COMPLETE / CHECKED OFF
+The named T07/T08 native passes remain complete. Revalidated unchanged85 report,
+preparation/helper receipt,original logs,five world leases/Continue sequences,
+four remote bootstraps/manifests,input journals and both clients'1220exact frame
+receipts for each remote match. Full chosen selections/local identity bindings
+and40/49produced bots with original movement orders/changed positions also pass.
+The invalid-deck pilot and native02's final-reader label failure stay unchanged.
+Today's shared/install state is not substituted for historical seals. Old D6-
+pending text above is superseded by Nick's accepted N1/D6 result.
+
+Recovered11 exact source versions from755034f,matching85 hashes including CRLF
+where required. Custom invitation/native popup,transition driver,public client/
+attempt/result/wire and selected evidence readers remain byte-identical. The
+production community_match.cpp prefix is unchanged;its later differences are
+opted-in21-match/Leave smoke controls,absent from85's arguments. Current roster/
+wire/transport add version2 portrait directories and capability validation.
+These are actual shared changes,not called inactive. Existing portrait records/
+N7 retain presentation scope;the current socket case exercises version2 messages.
+Lifecycle/loop/bootstrap additions handle explicit replay requests/ownership and
+Tutorial2. Neither flag is in85's arguments;existing local/remote lease bodies
+remain. Replay runtime has separate owner/thread/service guards. No whole-build
+equivalence or new native/bundled/physical/native-Quit claim is made.
+
+Server changes add awaited profile persistence,session/lobby revalidation after
+saves,awaited joins,portrait protocol and orderly shutdown. New regression
+test_custom_reconnect_public_custom_preserves_saved_players in PublicQueueTests
+uses real loopback sockets and current profile I/O with portrait protocol2.
+Sequence:Custom result/RETURN/guest Leave/host Leave;disconnect both identities;
+reconnect with their saved distinct decks/names;new Custom;public1v1;new Custom.
+Each departure has no room,slot,lobby,invite or public intent left. Public and
+last Custom retain the replacement Session objects;three lobby IDs/four match
+IDs are fresh. Four synthetic workers each run three frames and exit0;results
+are authored. The disconnected interval represents local play but runs no local
+simulation;actual local movement evidence remains85. No TLS/rendering inference.
+
+Two test-development failures are retained:reversing all synthetic deck slots
+was correctly refused as unit107 invalid in slot0;the fixture now authors two
+interchangeable basic units and swaps just those. The public-frame helper also
+incorrectly rejected historical Custom frames in reused peers. It now compares
+the legacy-frame count before/after public play,retaining history and refusing
+new legacy frames during that public segment. Neither required product changes.
+Corrected focused test passes. Related public/community/profile-save-race/
+Custom-evidence/portrait suites:Python3.12 53tests/52pass/1skip25.518s;Python3.14
+same25.563s. NativePublicSnapshotTests explicitly needs BA_RUN_NATIVE_WORKER_TESTS
+and its skip is not acceptance. No additional native rerun justified here.
+
+Artifacts:%LOCALAPPDATA%/BattleAcesDiagnostics/local/transition244-review01/
+review.py,review.json,source-comparison.json,original/current source snapshots,
+normalized diffs,before docs/test snapshots,retained failed test fixtures/log,
+tests312.txt/tests314.txt and completion-manifest.json.
+review.json SHA256:
+c87e0d76f790a94074ec75d7de0d181203f122ece4642496d7d5a3242cd46311
+DEV unchanged;no new Nick action,no product/helper/package/build/publication.
+FullD2's final-artifact/physical scope stays open. Next:D3 reconcile existing
+107-item/17-slot cosmetic picker/equip/persistence evidence before new checks.

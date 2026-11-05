@@ -1,0 +1,38 @@
+D5 / P7-P9 - actual-installed recipe47 server and client loopback match
+
+2026-10-31. Scoped PASS;D5 remains OPEN. The server root was produced by
+the actual native Install at548/549,including its exported assets. The client
+game was produced by the actual native Install at543/546. The client driver
+came from the source-bound private recipe47 package512. A bounded verifier
+option selected the owned installed server root without copying or changing
+the installed package. The host listened on127.0.0.1 with temporary isolated
+config/data and RC open identities. No public listener or real account ran.
+
+The native public1 match completed1220 frames,result/Continue and both
+original Quits0. Two simulation workers exited normally;host listener,
+status writer and state lock closed. Jobs ended5/0/0,2/0/0,2/0/0 without
+forced cleanup. Source,installed packages,assets,adapters,configuration and
+shared channels remained unchanged. The temporary certificate directory
+was removed. The packaged host/two client drivers passed selected CPython
+endpoint and Proactor-byte audits;both simulation workers passed their
+endpoint audits. The two host/client loopback byte streams were reciprocal.
+No payload contents were retained.
+
+tools.review_recipe47_installed_pair551 independently binds both actual
+Install receipts,recipe/helper/server package and installed asset identities,
+loopback config,match/normal exits,Jobs,source snapshots,Python audit source
+prefixes and reciprocal bytes:PASS. The earlier547 native device-I/O run
+already covers a different public2 four-client installed-client case;this
+551 run did not attach a native device or kernel/wire observer.
+
+Run:local/privacy550-installed-pair01/verification.json SHA256
+2893a5585f93e716ba99fbbdd011faea270d8c50063d05c251b95fd193bdc8ff.
+Review:local/privacy550-installed-pair01/review551.json SHA256
+ac3ea15cd0e639e5215b11d430f0b7f93a69787203ddfb7f5e7f71f8f1aab6ef.
+Server installed asset-manifest SHA256
+4f70d43a1af2bd74180a9acf059609948eab8026e2f54120184eb254662fd1bc.
+
+This binds the private installed pair to one supported mode. It does not
+prove native/kernel whole-wire attribution,real SDK-produced queue,
+advertising-ID upstream producer,other modes/physical network,or a clean
+coherent public release. P7/P8/P9/D5 and RUNTIME_VALIDATED=false remain OPEN.

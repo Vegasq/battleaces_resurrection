@@ -7,6 +7,7 @@ import json
 import os
 from pathlib import Path
 import secrets
+import stat
 import time
 
 from . import launcher
@@ -16,6 +17,19 @@ from server.admission import authenticate_client, rc_player_id
 
 KEYS = frozenset(('schema', 'game_directory', 'display_name', 'local_profile',
                   'server_host', 'server_port', 'room'))
+
+
+def _ordinary(path, *, directory=False, missing_ok=False):
+    """Refuse redirected identity/lock storage; missing is distinct from a broken link."""
+    try: info = path.lstat()
+    except FileNotFoundError:
+        if missing_ok: return False
+        raise
+    kind = stat.S_ISDIR if directory else stat.S_ISREG
+    if (not kind(info.st_mode) or getattr(info, 'st_file_attributes', 0) & 0x400
+            or (not directory and info.st_nlink != 1)):
+        raise launcher.LaunchError('RC identity and setup lock storage must use ordinary unlinked local files and directories')
+    return True
 
 
 def settings(value, path):
@@ -41,10 +55,13 @@ def digest(path):
 @contextmanager
 def configuration_lock(parent):
     # Public settings lock; no owner-only invite store is needed in RC mode.
+    _ordinary(parent, directory=True)
     lock = parent / '.rc-setup.lock'
+    _ordinary(lock, missing_ok=True)
     try:
         with lock.open('xb') as stream: stream.write(b'\0')
     except FileExistsError: pass
+    _ordinary(lock)
     stream = lock.open('r+b')
     acquired = False
     try:
@@ -116,10 +133,12 @@ def remote(config, path):
     # Separate identities per route/profile; display-name edits never reset saves.
     route = f"{config['server_host']}:{config['server_port']}/{config['local_profile']}"
     directory = Path(path).resolve().parent / 'rc-identities'
+    _ordinary(directory, directory=True, missing_ok=True)
     directory.mkdir(parents=True, exist_ok=True)
+    _ordinary(directory, directory=True)
     identity = directory / (hashlib.sha256(route.encode('utf-8')).hexdigest() + '.json')
     with configuration_lock(directory):
-        if not identity.exists():
+        if not _ordinary(identity, missing_ok=True):
             token = 'ba1_' + secrets.token_urlsafe(32)
             value = dict(player_id=rc_player_id(token), token=token)
             temporary = directory / ('.identity-' + secrets.token_hex(12) + '.tmp')
@@ -127,8 +146,14 @@ def remote(config, path):
                 fd = os.open(temporary, os.O_WRONLY | os.O_CREAT | os.O_EXCL, 0o600)
                 with os.fdopen(fd, 'w', encoding='utf-8') as stream:
                     json.dump(value, stream); stream.flush(); os.fsync(stream.fileno())
-                os.replace(temporary, identity)
+                # Publish exclusively: an intervening file is preserved and then
+                # validated below, never overwritten with a new player identity.
+                try:
+                    if os.name == 'nt': temporary.rename(identity)
+                    else: os.link(temporary, identity)
+                except FileExistsError: pass
             finally: temporary.unlink(missing_ok=True)
+        _ordinary(identity)
         value = launcher.read_json(identity, 4096)
         if (not isinstance(value, dict) or set(value) != {'player_id', 'token'}
                 or value['player_id'] != rc_player_id(value['token'])):

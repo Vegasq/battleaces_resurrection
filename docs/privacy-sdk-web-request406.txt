@@ -1,0 +1,33 @@
+D5 / P7 - lower SDK web-request adapter direct-call inventory
+2026-10-30. Bounded original/current recipe38 static review PASS;P7/D5 OPEN.
+
+The pinned original BugsnagUnity.Windows.dll method table maps28
+BugsnagNetworking.BugsnagUnityWebRequest constructor/request/send/completion
+records to28 distinct native targets. One constructor target717fb0 is a
+shared generic code pointer;257 raw E8/E9 candidates target it across the
+two original executable sections and cannot be assigned to this class by
+address alone. The other27 distinct targets,including SendWebRequest80e920
+and RequestCompleted80ea30,have zero raw direct rel32 candidates in those
+sections. The complete send and completion bodies are byte-identical in the
+current owned recipe38 GameAssembly. They remain active methods and may be
+reached by indirect dispatch.409 subsequently establishes that this class's
+SendWebRequest is nonvirtual and has no interface send slot. This is a target-
+form inventory,not an absence or no-wire claim.
+
+The named PushToServer cached-delivery MoveNext guard qualified in173 cuts
+its own fresh-process submission route before the shared Unity engine send
+call53dd0d0. That is distinct from this class's SendWebRequest80e920 method.
+407 classifies both direct callers of the shared engine send;see
+privacy-sdk-engine-send407.txt. This inventory identifies no distinct direct
+caller of the SDK wrapper;it does not exhaust independent constructors,
+delegates,virtual dispatch or already-running requests.
+
+tools.review_sdk_web_request406 checks original GameAssembly/metadata hashes,
+the exact class method table,all selected target addresses,raw E8/E9 target
+arithmetic across both executable sections and the two complete original/
+current send/completion bodies. Ignored receipt and assemblies:
+local/privacy406-sdk-web-request01/verification.json SHA256
+2cad2f97e357ac309fc13ab0bda155a94927f167000d287e1543bb39d9c9153a.
+No game,real queue,web request or report endpoint was invoked. Published174
+is unchanged,RUNTIME_VALIDATED=false. P7/D5 remain OPEN for indirect SDK
+acquisition,queue/retry/file/wire and final installed release scope.

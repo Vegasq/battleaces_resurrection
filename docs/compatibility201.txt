@@ -1,0 +1,56 @@
+BATTLE ACES - PACKAGED COMPATIBILITY REJECTION201
+2026-10-26. SCOPED COMPLETE. Full D4 remains open.
+
+CLAIM
+The actual191 packaged RC TLS server rejects seven incompatible HELLO variants
+while an unrelated Custom1v1 native match keeps running. Correct compatibility
+information permits the previously rejected identity to connect and play.
+Authored wire clients against real Simulation.dll;no original client UI claim.
+No production change was needed. Tool:tools/verify_compatibility.py.
+
+OBSERVED
+One healthy Custom1v1 starts at the unchanged50ms tick. Seven separate TLS/RC
+connections authenticate the same owned identity,then each changes exactly one
+HELLO field:game protocol,original GameAssembly hash,or simulation hash on each
+of dedicated and community-v2 paths,plus unsupported community wrapper version3.
+Each receives its exact protocol/build rejection followed by EOF. No welcome,
+room,worker,persisted profile or retained community session is produced. Existing
+profile bytes remain unchanged. Admission defaults stay intact;attempts are
+paced1.1s apart rather than raising their rate budget.
+The same rejected token then authenticates normally,joins another peer in a
+new Custom1v1 and delivers ten identical native frames. Its identity is unchanged.
+The original room/worker survives199 identical frames with maximum observed
+gap63.687ms. Host frame hashes and every rejection's connection/reason agree
+with the journal. Healthy profiles retain their original hashes.
+Both workers exit0,controller0,job8total/0active/0terminated,no forced cleanup.
+Total12.594s. Diagnostic shutdown ends the two active rooms;no completed-game
+or natural client Quit inference is made.
+
+VALIDATION
+Six controls pass on Python3.12 and3.14,no skips. They check exact decoder
+reasons,one-field-only mutations,valid originals,and journal acceptance/refusal
+for wrong attribution,missing/duplicate/changed frames and healthy match abort,
+failure or completion. Package/assets and bundled module origins verified;
+driver/helper/harness and manifests remain unchanged before/after.
+
+EVIDENCE
+Accepted:local/compatibility201-01/verification.json
+SHA256:702a7f0485f800d783afb0dbbddc4a97a4c91510c8f12fa82bfef17d2feae8d6
+Case/audit:local/compatibility201-01/compatibility/
+Package:local/candidate191-packages01/battleaces-server-win64
+Package manifest:e0531eec69057f165490fdb712581dec95632d6115fa29dda22035505d580235
+Assets:local/s139/assets/build-37822
+Asset manifest:5f26ae7e35ce004c5105fa42a85fed8671194380e9461caa89888decd2ee4ad3
+Driver:affca1faff51e55f3d41ec8f2b305ed3ce4f830bde4fa341f1ebc99478977af8
+Harness:9ffed736e00b6e088146132580da407a52ba6d0e302cafc88e879dde775d80df
+Helper:e2978c262e453ec0cbb1d514ad62ca7f2c78858e74b988d0de123d17a15c20ae
+Tests:a0f1eaff9174ef4f0fb2803fecbe6e86b3349112386a6ffc59a04650b1602110
+Exact source snapshots and final reconciliation retained under compatibility201-01.
+Private keys/profiles/raw journal remain ignored/local.
+
+REMAINING
+Wrong bootstrap acknowledgement during committed loading,actual damaged or
+incompatible asset files,old original-client versions and visible recovery,
+verified-mode/Internet scope and other D4 cells remain open. Reuse these named
+server HELLO cases without rerunning unless their path changes. No new build
+or publication;local191 preview and published174 remain unchanged.

@@ -105,7 +105,7 @@ static bool releaseRetryModal(Obj front,Obj server) {
     return true;
 }
 static void recoverySmokeConfirm(Obj front,Obj server) {
-    const bool quit=ba::flag(L"-dedicated-quit-smoke");
+    const bool quit=ba::flag(L"-dedicated-quit-smoke") || ba::flag(L"-dedicated-pending-load-quit-smoke");
     if((!quit && !ba::flag(L"-dedicated-recovery-smoke")) || recoverySmokeStage || !failureNoticeShown)return;
     if(!recoverySmokeAt){recoverySmokeAt=GetTickCount64();return;}
     if(GetTickCount64()-recoverySmokeAt<1500)return;
@@ -116,6 +116,8 @@ static void recoverySmokeConfirm(Obj front,Obj server) {
        strcmp(className(modal.get()),"ModalConfirmVM"))return;
     recoverySmokeStage=quit?3:1;recoverySmokeAt=0;
     if(quit) {
+        if(ba::flag(L"-dedicated-pending-load-quit-smoke") && ba::read<bool>(server,0xd8))
+            ba::log("PENDING LOAD QUIT SMOKE BA_RESURRECTION_PENDING_LOAD_QUIT_V1: blocked=%d mapLoading=1 thread=%lu originalModal=ModalConfirmVM (NOT manual UI input)",blocked?1:0,GetCurrentThreadId());
         ba::log("QUIT SMOKE invoking original disconnected modal OnCancel (NOT manual UI input)");
         ba::call(modal.get(),"OnCancel");
         return;
@@ -467,6 +469,13 @@ static void recover(Obj front,Obj server) {
     if(now-failedAt>120000 && !blocked) {
         blocked=true;ba::log("Dedicated cleanup exceeded 120s; retaining native state, process restart required");
         showFailureNotice(front,server);
+    }
+    // Opt-in diagnostic only: request original Quit without releasing the held
+    // load, bypassing wantsToQuit, clearing roots or permitting another world.
+    if(blocked && joined && ba::read<bool>(server,0xd8) &&
+       ba::flag(L"-dedicated-pending-load-quit-smoke")) {
+        showFailureNotice(front,server);
+        recoverySmokeConfirm(front,server);
     }
     if(!blocked && now-lastWaitLog>10000) {
         lastWaitLog=now;ba::log("Dedicated recovery waiting for native teardown: menu=%d active=%d mapLoading=%d",

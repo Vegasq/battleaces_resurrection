@@ -1,0 +1,32 @@
+D5 / P8 - packaged process-launch route inventory
+2026-10-30. Bounded source/package review PASS;full P8/P9/D5 remain OPEN.
+
+tools.review_d5_process_routes364 byte-matches the current private pair358's
+allowlisted Python/PowerShell sources to both package trees,verifies package
+integrity/archive hashes,and inventories seven direct Python process-launch
+calls. The transport launcher starts the configured Battle Aces.exe. The
+server worker starts its bundled isolated Python simulation_worker. Server
+first-run certificate generation starts the bundled native certificate helper
+or Windows PowerShell fallback. Client package commands can start the bundled
+installer or PowerShell configure/launch scripts. Server asset export starts
+an owned Battle Aces.exe in export mode.
+
+The packaged PowerShell scripts add direct setup-backend Python launches and
+the normal client launcher Start-Process of Battle Aces.exe. These source
+paths are part of the expected local product operation;they are not report
+destinations. Their actual behavior still depends on mode/configuration.
+
+The two recent recipe38 connected public5/public2 reports each account for
+owned jobs with5/2/2 total processes and0 active/terminated on completion.
+This binds cleanup on those selected runtime paths,not all setup alternatives
+or short-lived native children. The original game's WebView/CEF descendants,
+indirect Python/native launches,OS brokers,process injection and whole-tree
+network/file attribution remain outside this review. P8 and D5 are OPEN.
+
+Current private package build report SHA256:
+63fdd8ecb661deab858f616cee692831eb27519d22e93708b4003dfb92cad504
+Selected runtime reports:local/privacy361-connected05/verification.json and
+local/privacy362-connected02/verification.json. Result:
+local/privacy364-process-routes01/verification.json PASS SHA256
+ace188c5d685bfb820a9ef66372b38792873e2df11490d5f16cb2af02e232f0a.
+Published174 remains unchanged and RUNTIME_VALIDATED remains false.

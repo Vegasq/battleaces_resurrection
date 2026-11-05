@@ -1,0 +1,168 @@
+PACKAGED WAITING CANCELLATION221-223
+2026-10-27. Current:R02 modes1/2/5 packaged RC/native Quit scope PASS.
+Initial221 mode2 result below;222 mode5 and223 mode1 follow-ups are appended.
+Full D2 and final release remain OPEN. No production game/server change.
+
+Missing claim and reuse
+63-2 already proved original waiting Cancel and next Play under source bridge,
+fixture TLS/helper51. Its final game cleanup was forced. This check adds current
+218 client/server packages,helper214,actual bundled RC resolver/open admission,
+same connection,selected loadout preservation and original normal Quit. The old
+report stays unchanged;its distinct natural-win observation is not replaced by
+this diagnostic surrender. No physical input,visual/LAN/Internet or all-mode
+acceptance follows. The source comparison and bounded plan are retained in
+local/cancel221-preparation01/run-plan.json.
+
+Actual native result
+135.250s;one owned client,one human plus three native bots in public2v2.
+Original Cancel fires at3000ms while waiting. Ticket1 retires,cancel ACK returns
+to native idle and server snapshot has zero rooms,retired rooms,entries,offers,
+cleanup and active workers. No original client world was created for ticket1.
+Only then does the explicit diagnostic retry gate release. Ticket2 uses the
+same authenticated TLS session;native stale-ticket rejection retains its panel.
+Actual retry wait30.0779641s;native offer clock30078ms/authoritative30082ms.
+Exactly one four-seat authoritative world,1221equal client/host frame receipts,
+124common observable-state samples. Original native build and diagnostic native
+Concede atframe1200 yield result game-over1201,winning alliance1,conceded mask5.
+All three native bots have recorded commands and supply;not a pixels/movement
+claim. Original result/Continue and five-event menu Quit trace pass. Launcher
+and original game exit0. Startup-health and match workers both exit0/reaped.
+Server job5/0/0,client job2/0/0,total/active/terminated. No forced cleanup.
+
+Original native saved deck edit precedes both Plays. Both queue tickets preserve
+the same8units and17cosmetic slots. The frozen human seat matches these choices;
+its four ability groups match the native export and configured name is retained.
+1367audit records accepted==written,none rejected/abandoned/pending,writer joined.
+Peak3records/2352bytes within1024/16777216 limits. Frame timing19.982Hz,
+max83.326ms;this single match does not expand219's sustained-performance scope.
+Source was frozen during execution;both packages,assets,config,external adapters
+and shared TOML/replay/backup channels remain unchanged. Temporary PKI removed.
+New owned profile/replay/evidence retained. DEV.txt unchanged;no new Nick request.
+
+External verifier changes
+--cancel-waiting is deliberately bounded to one RC public2v2 client with no
+other fault. Existing original-button diagnostic flags are added by the external
+spawn adapter only;ordinary generated launcher arguments remain diagnostic-free.
+The server observer captures two complete selected loadouts without changing
+matchmaking. The controller gates retry on cleanup,then uses existing full match,
+replay,bot-fill,normal-Quit,worker and preservation gates for ticket2.
+validate_waiting_cancel additionally rejects missing/duplicate Cancel,stale
+generations,early workers/worlds,wrong retirement,incorrect ordering and lost
+loadouts. Cosmetic equality supports JSON-object and frozen-pair representations
+while requiring all17unique slots;duplicates/missing slots are rejected.
+39focused tests pass on Python3.12(0.371s) and3.14(0.294s),including negative
+mutations and the actual frozen-pair format. Existing external drivers compile.
+No helper rebuild,installer rebuild,publication or native patch was needed.
+
+Preserved failure and correction
+The native run completed cleanly,then the first final validator compared queue
+cosmetic slots as a dictionary against frozen slots as a list of pairs. Exact
+values matched,but Python representation equality failed. Controller54210 exited1;
+its verification.json remains FAILED,not overwritten or relabeled.
+The semantic comparison was corrected after the run. Retained review02 checks
+the original preservation/lifetime proof and every remaining match/bot validation
+that the failure skipped. It passes against exact captured logs,frames,selected
+loadouts and native replay. Only the evidence module changed after execution;
+production/helper/packages did not. No native rerun was necessary.
+Preparation's final console summary also used a nonexistent receipt key after
+writing its plan;that non-runtime error is recorded in ATTEMPTS.txt.
+
+Evidence
+Owned output:
+ <private-diagnostics-root>/cancel221-packaged01
+Failed original verification.json SHA256:
+ 61615fb6dd854d594bf9ff4ed04527036478b6e7c494bb32d28ebe684f708424
+Passing retained-review02.json SHA256:
+ 6c5755f300d69d5017bda6b20fe15e54734e6295ad5bb5a4576208354918cc9b
+Local preparation retains prior source,run plan,205source identities,before-run
+adapters,review_retained.py,terminal controller status and documentation snapshots.
+Current artifacts remain dirty/unpublished candidate218/recipe23/helper214;
+published174 is unchanged. RUNTIME_VALIDATED stays false. Reuse this named pass.
+Next at221:mode5 package/normal-Quit scope,now completed by222 below.
+Do not infer physical acceptance or advertising-producer closure.
+
+FOLLOW-UP222 - 2026-10-27 - PACKAGED R02 MODE5 PASS
+Reused63-5's source/helper51 waiting Cancel/retry proof and221's common external
+verifier.63-5 ended with forced cleanup,so it did not supply this package/native
+Quit result. This is one new mode5 native case,not a repeat of221 mode2.
+
+The external --cancel-waiting gate now admits modes2/5 and binds the expected
+mode independently to both server tickets,selected loadouts and native intents.
+Negative tests reject a mismatched event/loadout/intent mode. The existing
+cosmetic representation correction and all lifecycle/preservation checks remain.
+40tests pass on Python3.12(0.899s) and3.14(0.298s). Production code,helper214,
+recipe23 and candidate218 packages are unchanged;no new build or publication.
+
+Actual controller35146 exits0/PASS in134.172s. Original waiting Cancel at3000ms
+retires ticket1;no world/room/worker before gated ticket2. One actual bundled RC
+TLS authentication/session. Retry waits30.0603594s;native offer30062ms and
+reported authoritative30064ms. One four-seat2vAI world:human0,bots1/2/3.
+1221matching native/host frame receipts,124common observable-state samples.
+Original selected deck and17cosmetics agree on both tickets and final human seat;
+ability groups/configured name retained. Diagnostic original Concede1200 yields
+game-over1201,winning alliance1,conceded mask5. Native bots issue recorded commands;
+this is not a natural win or visual/audio acceptance claim. Result/Continue and
+original five-event Quit trace pass;launcher/game exit0. Health/match workers0
+and reaped,server job5/0/0/client2/0/0,no force or surviving owned descendants.
+All1367audit records written,none rejected/abandoned/pending;writer joined,
+peak3records/2357bytes within original limits. Single-match19.989Hz,max75.213ms
+is observed,not an expanded sustained-performance qualification.
+
+All205source identities frozen during the run. Packages,assets,config,adapters,
+shared TOML/replay/backup channels and DEV.txt preserved. Disposable PKI removed;
+new owned profile/replay/captures retained. No new Nick request or repeated
+accepted manual check. Full D2/D5/final release remain OPEN;runtime flag=false.
+
+Output:<private-diagnostics-root>/cancel222-packaged01
+verification.json SHA256:
+ a316abecb26993577b78348cb7d63162e972a203ce619e374944ef455e682a48
+completion-review.json SHA256:
+ 6f7e10bc1a6126d4398d9567a44df51db279991bf5a743799241977c73c97f9a
+local/cancel222-preparation01 retains run plan,prior/before-run sources,tests,
+terminal controller status,read-only completion review and prior documentation.
+There was no native failure or retry in222.221's failed cosmetic-format report
+and passing retained review remain unchanged. Reuse both qualified team cases.
+Next at222:R02 mode1 package/normal-Quit scope,now completed by223 below.
+No physical or fullD2 closure is inferred.
+
+FOLLOW-UP223 - 2026-10-27 - PACKAGED R02 MODE1 PASS
+The historical public-client-cancel-retry01 report remains PASS at its original
+scope (SHA2567531f606d95b0cd728971c367d47b5fe44d4b5036f88401e4b0ccbc9420710b3).
+It combined waiting Cancel with a5s delayed ENTER acknowledgement under source
+bridge/fixture TLS,and forced final game cleanup. Its delayed-ACK evidence is
+retained separately;223 supplies only the missing packaged waiting-Cancel/native
+Quit scope,without injecting another delayed ACK or repeating the team runs.
+
+The external diagnostic admits modes1/2/5 and binds each actual server/native
+mode.41focused tests pass on Python3.12(0.387s) and3.14(0.322s),including1v1
+mode-mismatch rejection. Product code,recipe23/helper214 and218packages unchanged.
+
+Actual controller84088 exits0/PASS in134.906s. Original waiting Cancel at3000ms,
+no world/room/worker before retry;one actual bundled RC TLS session. Ticket2
+waits30.0539344s;native offer30063ms/authoritative30058ms. Exactly one1v1 world,
+human0/bot1,1220matching frame receipts and122common observable-state samples.
+Native saved edited deck/17cosmetics preserved across both tickets/final seat,
+with matching ability groups and configured name. Original native build and
+Concede1200 yield game-over1200,winning alliance1,conceded mask1. Original result/
+Continue and five-event menu Quit pass;launcher/game exit0. Startup-health and
+match workers exit0/reaped. Server job5/0/0,client2/0/0;no forced cleanup.
+1364audit records accepted==written,none rejected/abandoned/pending,writer joined.
+Peak3records/2002bytes stays inside the original bounds. Observed19.984Hz,
+max83.352ms is this one match's timing,not a new sustained-performance claim.
+
+All205source identities remained frozen. Packages,assets,config,adapters and
+shared TOML/replay/backup channels preserved;temporary PKI removed. Owned new
+profile/replay/captures retained. DEV unchanged;no new Nick action requested.
+No native failure/retry,helper build,installer build or publication in223.
+Output:<private-diagnostics-root>/cancel223-packaged01
+verification.json SHA256:
+ 125cb2935ac1e6b85d377b4fb72fca188aa9b152b72ab43ded55cbbff688dd31
+completion-review.json SHA256:
+ af55c6f8384a8c62d2e305bb015e604539a503a406f0c787a62c0f08f98339e7
+local/cancel223-preparation01 retains the plan,source/doc snapshots,tests,
+terminal controller status and completion review.221's original failed report
+and corrected retained pass,plus222's pass,are preserved. Reuse all three R02
+public-mode checks;physical input,broader D2 and final release remain open.
+Next bounded D4 work:real Windows sharing lock on an owned asset manifest,
+check/start refusal with saved profiles/keys intact,then native health after
+handle release.203 explicitly left this file-access boundary unqualified.

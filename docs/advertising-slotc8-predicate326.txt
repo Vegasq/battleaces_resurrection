@@ -1,0 +1,40 @@
+D5 / P9 - connection-state slot+c8 virtual predicate
+
+2026-10-28. Bounded original/current-owned source review PASS;P9/D5 OPEN.
+
+310 left slot+c8 c32e30's three virtual+f0 calls as a deeper target. In the
+complete original body,RCX is the Main receiver and is retained in RSI at
+c32e3a. RSI is not reassigned before the virtual calls at c32fc0,c32fdf and
+c33004. Each loads the vtable from RSI and calls slot+f0 with RCX=RSI. Both
+known Main vtables1a2aec0/1a2c538 contain c33490 at+f0. This resolves all
+three named dynamic calls to the existing settings predicate for those two
+concrete Main types.
+
+128 already classified c33490:it queries UnityConnectSettings' inline
+analytics boolean at+98/virtual40,and Main's adjacent inline boolean interface
+at+14a0/virtual30. The concrete getter leaves c05a70 and c30890 read one
+byte each;neither acquires an advertising or hardware identity. The predicate
+returns a boolean and has no call to c307c0 or access to Main+1498. The
+slot+c8 branch can subsequently tail-jump c41ec0;this finding does not
+classify that deeper routine or other paths into it.
+
+tools/review_ads_slotc8_predicate326.py PASS binds the pinned original Unity
+SHA256 ac144d56d53f07904d52ed27a1539de90bc3290038fe52d73d2f6b268c85d6bc
+and current owned Unity SHA256
+a53b0c613a86c737b7caa7588c7c93ae20d5d5700f9321a406df9dcca8e32a7f.
+It checks both complete byte-matched original LLVM bodies (slot+c8 and24-
+instruction predicate),unchanged current owned bodies,receiver preservation,
+three exact indirect call operands,both vtable entries and exact getter leaf
+bytes. The preexisting ignored disassemblies from310 and136 are reused.
+
+This closes the named +f0 candidate identified in310 for the two pinned Main
+vtables. Runtime substitution,other dynamic callers,other acquisitions and
+the independent Main+1498/c307c0 advertising callback producer remain open.
+No product patch,game launch,queue read or new user action occurred.
+RUNTIME_VALIDATED=false;published174 unchanged.
+
+Follow-up327 binds the c41ec0 tail's Main virtual+40 to c32430 in both pinned
+tables and verifies its existing machine-ID query fallback plus the later
+identity-cache serializer NOP in recipe34/current owned bytes. Other cache/
+request behavior and independent advertising acquisition remain open. See
+advertising-slotc8-cache327.txt.

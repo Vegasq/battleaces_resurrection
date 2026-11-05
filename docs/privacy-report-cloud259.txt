@@ -1,0 +1,32 @@
+D5 CLOUD-ID REPORT METADATA BRANCH259
+2026-10-28. One original/reporting branch cut verified;P9/D5 remain OPEN.
+
+The previously listed third direct caller of cloud-ID wrapper c43ae0 is inside
+original native builder c92720..c93d10. Its c9320b direct call targets c43ae0;
+the returned string is copied into the builder's receiver+140. Three direct
+calls target this builder: c90d65,c91ad1 and c925d4. The latter two are in
+the separate c91550..c9271c body and are not cut by the c90c10 branch alone.
+Follow-up260 checks their initialized-owner gate.
+
+The c90d65 call lies inside c90c10..c90e4d. That function labels the later
+output with literal ReportJson and the builder call is reached only on its
+source+10 true branch. Current recipe23 changes c90c2a to xor eax,eax;the
+unchanged following store writes AL=0 to its receiver+1 and the unchanged
+conditional jump at c90c39 takes the c90e38 return block. This bypasses
+c90d65 and therefore this report-metadata cloud-ID construction path.
+The exact five patch bytes are present in the parent installed UnityPlayer.
+This is a branch proof for one original caller;the ReportJson name supports
+reporting classification but does not establish a delivered report.
+
+The builder and separate c91550 caller body match the original installed bytes;
+the c90c10 body differs because of the expected guard. Original SHA256 is
+ac144d56d53f07904d52ed27a1539de90bc3290038fe52d73d2f6b268c85d6bc.
+Exact call targets,merged unwind bounds/body hashes,installed comparison and
+guard/branch checks are retained at
+local/privacy259-report-cloud-source01/verification.json. Read-only inspection;
+no native getter,reporter,game,server or network route was executed.
+
+This is NOT the Main+1498/c307c0 advertising callback producer. It does not
+settle the c91550 caller branches,all reporter/collection paths,or P9/D5.
+Follow-up260 binds the two c91550 calls to the existing initialized-owner
+flag gate. Preserve current shared APIs and callback cleanup.

@@ -1,0 +1,46 @@
+D5 / P7 - owned SDK wrapper and shared engine send entry observation
+
+2026-10-30. Current private public1/two-human subcase PASS;full P7/D5 OPEN.
+
+Both current recipe38 clients were created suspended. A passive observer was
+attached before main-thread resume and installed exact-entry-byte-checked
+hooks when GameAssembly loaded. The hooks counted entry to
+BugsnagUnityWebRequest.SendWebRequest at80e920 and the shared UnityWebRequest
+SendWebRequest at53dd0d0. Neither URL,request,header,payload,identifier nor
+report queue was read. Both hooks installed without error in each client.
+
+The RC-open public1 native match completed1220 frames,result/Continue and
+normal Quit0 on both clients. Jobs/workers drained without forced cleanup.
+At each original self-TerminateProcess entry,both SDK-wrapper and shared-core
+send counts were0. The existing selected native network/file observer and
+packaged Python endpoint reviewer passed for this exact run. This is direct
+runtime evidence that these two entries did not execute in this bounded
+match,including indirect callers. It does not establish complete absence of
+SDK request acquisition in all modes,an existing queue or whole wire.
+
+The first attempt reached both normal exits with the same zero counters but
+the packaged verifier rejected its startup proof. Its per-PID native log
+contained a stale previous launch whose higher uptime tick passed the old
+tick-only filter after PID reuse. tools/verify_unified_startup.py now selects
+the current unique profile's path-selected record and the subsequent startup
+and verification lines within that launch segment. The retained failed logs
+then parsed correctly;the fresh second run passed the complete verifier.
+The first attempt remains FAILED and is not promoted to acceptance.
+
+Independent reviewer:tools.review_d5_sdk_send408. It binds source/package,
+game,assets,helper,observer source hashes,suspended launch/gates,REA messages,
+two exact hooks,zero counters,selected network routes and final native exits.
+The SDK hook builder is tools.frida_sdk_send408;it is diagnostic only.
+Original game,published174 and product binaries were not changed.
+RUNTIME_VALIDATED=false. Indirect wrapper acquisition in other paths,
+queue/retry,file/wire,descendants and final installed release remain OPEN.
+
+Ignored retained evidence SHA256:
+ local/privacy408-sdk-send01/verification.json
+ c48ecc83eacab77e2d06a300a17a37bf6f998f669d3a16f321e781081b582c57
+ local/privacy408-sdk-send02/verification.json
+ cbd81f9cc0746c2095b7feff8b4bfc78b2343c2115b3ae54f5727444c92e0770
+ local/privacy408-sdk-send02/sdk-send-review.json
+ 46fcf966900a51b7fec571d02ff2ecffe78412f76fe03d46e46f7ce51932f512
+ local/privacy408-sdk-send-trace02/rea-evidence.json
+ 65e384f87b9723497cfdfe961f5f037fd1900b56733f39421ed166c54afacdc2

@@ -1,0 +1,42 @@
+D5 / P9 - native DeviceInfoEvent adsid serialization routes
+
+2026-10-31. Exact-PDB pristine UnityPlayer and installed recipe47 source
+review PASS. No game,ID provider,report queue or endpoint ran. P9/D5 OPEN.
+
+The Unity Analytics DeviceInfoEvent constructor c49110 initializes its
+string field+0x5f0 empty. ToJsonString c4ba90 can serialize that field under
+the key "adsid",along with an ads_tracking field. Ghidra lists two direct
+code callers of the constructor:the explicit RemoteConfigSettings
+SendDeviceInfoInConfigRequest at1fda50 and the native
+BaseUnityAnalytics::LookForVersionChange at c40840. Their original bodies
+construct/collect the event. Current installed recipe47 has the reviewed
+entry false return at1fda50 and the marker-preserving early return at
+c40840,both before those constructor calls. The complete constructor and
+serializer bodies are unchanged in the installed image.
+
+tools.review_ads_device_event536 checks the exact Ghidra log,original and
+installed Unity hashes,full constructor/serializer bytes and current guard
+replacements. Receipt local/privacy536-ads-device-event.json SHA256
+4d0bcc24bd8f33f308d0129c16bf4b4134814204381aa905445dc3774083c927.
+Read-only Ghidra console SHA256
+9a59aa4e2daa4b05dcca1196dc7893af26cb2b769adb0bb14fea6cee988e2d6f.
+
+This identifies another adsid serialization surface and a current cut for
+its two direct construction routes. It does not identify the upstream ID
+provider,exclude indirect event construction/field writers,or prove whole
+file/wire privacy. P9/D5 remain OPEN.
+
+Follow-up537:the exact-PDB Ghidra instruction pass visited59,459 analyzed
+functions and6,056,204 instructions,with560 literal0x5f0/0x618 matches.
+Only four matches belong to named DeviceInfoEvent methods:constructor
+zero-initialization of+0x5f0,destructor read,and ToJsonString addresses of
++0x5f0/+0x618. No other direct numeric field writer in those named
+methods appears in the analyzed instruction set. Full constructor,
+destructor and serializer bytes match installed recipe47. Independent
+tools.review_ads_field_census537 PASS;ignored receipt
+local/privacy537-ads-field-census.json SHA256
+3a62fa75947707989266e0e5bacf79356ca3f664df1d98b58f7c77fbaac1a368.
+Ghidra log SHA256
+cae800a86d2ad618920d3022a2a73f0749033ecdb31d47bac3e6d702bcfd3be6.
+Pointer aliases,bulk copies and unanalyzed code remain outside this census;
+it does not identify or exclude the upstream advertising ID provider.

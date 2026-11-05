@@ -1,0 +1,57 @@
+D5 / P5-P8 - current pair suspended-start native API observation
+2026-10-30. Selected pre-main-thread-resume native observation PASS;
+full P5/P8/P9/D5 remain OPEN,RUNTIME_VALIDATED=false.
+
+The365 inert control established that Frida could attach while an owned
+Windows process's main thread is suspended. The external packaged verifier
+now has an opt-in --prelaunch-observer diagnostic gate. Its client driver
+creates each native game with CREATE_SUSPENDED,publishes an owned PID receipt,
+and retains the inherited private bridge socket. The verifier resumes both
+owned native processes only after observer-ready gates are written. This
+changes no packaged player launcher or production module.
+
+The current recipe38 private client/server pair358 and owned301 game ran one
+RC-open loopback public1/two-human match. Both native game processes were
+suspended at creation. REA Frida attached to their recorded PIDs and loaded
+the existing passive file/network/process API observer before either main
+thread resumed. Each load result reports five module-ready records and one
+observer-ready record,with ntdll,ws2_32,kernelbase,advapi32 and WinHTTP
+selected hooks installed,errors empty and no message truncation. Gate files
+follow the PID receipts;the verifier records both resume ticks. The match
+completed1220 frames,result/Continue/menu/original Quit0;server workers and
+jobs5/2/2 drained without forced cleanup. Package,source,assets and shared
+channels remained unchanged;temporary PKI was removed.
+
+Each observer's final detached record has26 contiguous messages,including
+20 heartbeats,no decode errors or overflow. From before target main-thread
+resume through the final heartbeat,selected API counts per client were
+send1218/1219 and recv72362/72344. Both selected connect,WSAConnect,sendto,
+WSASendTo,getaddrinfo,GetAddrInfoW,GetAddrInfoExW and WinHttpConnect counts
+were0. The positive send/recv counts confirm the socket hooks ran. There
+were no selected SDK-root file-operation,process-create or network-operation
+messages. However each observer reports1545 unresolved relative file roots,
+so no SDK queue/file absence follows. The selected file root is the prior
+293-bound LocalLow Bugsnag path;the actual queue was not opened or changed.
+
+tools.review_d5_connected_network341 reuses source/package/game/asset,
+match,worker/job and selected network checks. The new
+tools.review_d5_prelaunch_network366 additionally checks the suspended PID
+receipts,gates,resume PIDs,observer source/hash,initial ready hooks and final
+messages. All tests are selected user-mode native-client API observations.
+The OS process-creation interval before attaching,the suffix after the final
+heartbeat,unresolved relative file roots,other network APIs/raw packets,
+packaged server/adapters,native descendants and real SDK queue state remain
+unqualified. P9's advertising-ID producer remains unresolved. Published174
+is unchanged;this private diagnostic run is not final installed privacy.
+
+Ignored local evidence:
+ local/privacy366-connected01/verification.json PASS SHA256
+ 69d487af6b1868a6c84390cba8697fa344de3879f5de8b3b0ed5dc34afd0f220
+ local/privacy366-connected01/network-review.json PASS SHA256
+ 5414a161139bdc9756bb77592f63c8f76ab9cabb95af77d2f17dc02d3bde6963
+ local/privacy366-connected01/prelaunch-review.json PASS SHA256
+ f8adb407c58dca3ade9e676e7d87e3bc10b305019208748cc18e947b91609808
+ local/privacy366-prelaunch-trace01/rea-evidence.json SHA256
+ f121d4a065da2a2ba6d3d4e59d28bfe788e00667cab80985f7f8e84897a7f712
+The evidence bundle also retains older REA records;the reviewer selects only
+the two exact current session IDs.15 focused packaged play/snapshot tests pass.

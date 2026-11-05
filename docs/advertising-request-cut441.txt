@@ -1,0 +1,71 @@
+D5 / P9 - public advertising request declines before queuing
+
+2026-10-30. Recipe39 source guard,matching helper and private runtime PASS at
+the stated scope. P9/D5 remain OPEN;RUNTIME_VALIDATED=false. Published174
+and the earlier owned recipe38 games/packages are unchanged.
+
+The original UnityPlayer RequestAdvertisingIdentifierAsync entry at RVA5fb70
+accepts a managed callback. Its original body roots that callback,appends a
+queue node and tests manager readiness before returning. Prior110/311 bind
+the index323 registration and complete named request/predicate/drain bodies;
+311's source review was rerun and passes. The original fresh-manager path
+returns false after queuing. Recipe39 now returns false at entry,using XOR
+EAX,EAX;RET before callback rooting,manager access,queue insertion or any
+request-side acquisition. The new guard matches the pinned original first16
+bytes at file offset5ef70. It changes only this public API's entry.
+The shipped globalgamemanagers identifies Unity2022.3.40f1. Unity's matching
+2022.3 API documentation says a false result on an unsupported platform does
+not invoke the delegate. That supports the guard's false/no-callback contract;
+it does not prove this game's separate native callback is the same API:
+https://docs.unity3d.com/2022.3/Documentation/ScriptReference/Application.RequestAdvertisingIdentifierAsync.html
+A complete raw E8 rel32 target scan of the pinned original UnityPlayer .text
+found no direct caller of RVA5fb70. The API remains registered for indirect
+engine/managed invocation;this scan does not exclude those callers or link
+it to the separate Main callback.
+
+The new helper recognizes the same guard as the 57th Unity core signature
+and reports recipe39. The helper build and its native source tests pass at
+local/privacy441-helper-build01. Focused Python patch/audit tests pass:
+65 tests,2 platform skips. The authored Windows executable test calls the
+three-byte replacement with null and invalid callback values;both return0
+without dereferencing them. Patch generation from the pinned original is
+byte-identical to the prior owned recipe38 UnityPlayer except this new
+three-byte entry guard and the prior installed image's PE checksum field.
+Receipt:local/privacy441-source01/verification.json. Generated UnityPlayer
+SHA256 2e3c16a9ce9c62ff61e3fa41ffad3aff1ff26837203603b83ae3561a873273be.
+New helper SHA256 3f97afc1f4247577a24a91fbcd789e01aa974939f661c9b3eecf95b1ab86a4c1.
+
+A private dirty-source client/server preview was then built with that helper,
+source-bound launcher,installer,certificate tool and pinned Python runtime.
+Both package inventories verify locally at local/privacy441-packages03.
+Client ZIP SHA256 af73c19c1b459f41dd44a78bc2cb58c165fe54ed8441a01e36cb9d485c48f54d;
+server ZIP SHA256 312a9f9560bcafeadedf949d2ef68923af3bed0c6fb12ca0738462515dfbaa53.
+The first preview attempt had no default launcher;the next pointed the
+installer input at a directory. Both failed before producing a package.
+The corrected preview passes.
+
+An owned copy of the prior private game was upgraded with the normal patcher
+to recipe39 and exact helper441;all133 asset bundles verified. A source-bound
+private public1 two-client match then reached1220 frames,complete result,
+original Continue/menu/Quit0 in both clients and both workers exit0/reaped.
+Host listener/status/lock released;three owned jobs5/2/2 ended0 active and
+0 terminated,without forced cleanup. The private match report is
+local/privacy441-connected01/verification.json SHA256
+4811251f00e9636f794ed222b21f8830632f6da713aa2ce2546f52b780842019.
+
+A separate owned menu audit loaded recipe39 and the exact installed guard
+bytes,recognized57/57 Unity core signatures and took original Confirm/Quit0
+without force. Its three read-only stages cover startup,menu and pre-Quit;
+local/privacy441-menu-audit01/verification.json SHA256
+cc44204b8366d27ffd8ae4b07ce3dd3138dcbbbfa6de504cd956cb9010a5158c.
+An independent reuse of the package/match reviewer plus source,helper,
+manifest and menu assertions passes at local/privacy441-connected01/review441.json
+SHA256 138e67796d827133d825bfcebd7e70878596f2340e2ccb54a12b9ee6e26c4383.
+
+This is a pre-queue cut for the named public API,not a discovery of the
+separate Main+1498/c307c0 provider. A caller that expects the callback
+despite a false return,indirect acquisition elsewhere,and existing/inflight
+state are unqualified. The public request itself was not invoked in the
+native runs;the loaded guard and match show compatibility only. No real
+shared report queue was read or seeded. Other acquisition routes,SDK retry,
+whole wire and final public installed D5 remain open.

@@ -1,0 +1,91 @@
+BATTLE ACES - PACKAGED RC IDENTITY AND SERVER KEY LIFECYCLE185
+Date:2026-10-26. PASS for the named same-owner Windows/package175 cases.
+
+Missing claim
+D7 retains automatic RC server-key/local-player-identity lifecycle requirements.
+Earlier RC setup tests covered rename/reconnect and authored corruption checks;
+184 proved restored native completion using directly generated peer tokens.
+185 instead uses production client identity creation and automatic server-key
+initialization,with concurrent bundled processes and real host restarts.
+
+Owned diagnostic
+tools/verify_rc_lifecycle.py requires fresh ignored output,separate from the
+selected package,assets and owned game copy. Before any protected write it checks
+the Windows token;restricted owners stop. The child waits for parent job ownership.
+Production imports come from the bundled isolated runtime;no sys.path override.
+Only fresh config/identity/data/key files and numeric loopback listeners are used.
+The owned game copy supplies the ordinary settings file-existence check;no game
+launch,patch,installer action or graphical acceptance is inferred.
+
+Actual observed cases
+- Automatic host setup creates private certificate/key files and verifies their
+  owner/SYSTEM protected DACLs through production APIs. A second initialization
+  preserves exact config/certificate/key bytes.
+- Four separate bundled Python processes start behind one diagnostic gate and
+  resolve the same initially absent client identity. All exit0 with the same ID.
+- Display-name edit preserves the identity bytes. Different hostname or local
+  profile selects a distinct identity;returning restores the original selection.
+- Replacing this disposable identity file with damaged JSON causes refusal and
+  preserves damaged bytes. Restoring its exact saved bytes recovers the same ID.
+- Actual packaged host starts with imported build37822 assets,passes native
+  health,authenticates the production-created identity over TLS1.3 and returns
+  the previously saved deck in WELCOME. Normal host task cancellation releases
+  the listener/state lock after native health worker exit0.
+- A second fresh certificate/key pair is explicitly selected in this diagnostic
+  config. The real host restarts on the same port/data. Peer-observed certificate
+  DER changes;player ID,returned deck and all saved full cosmetics remain equal.
+- Temporarily moving this owned key causes TLS setup refusal. Reinitialization
+  preserves config and does not silently regenerate the missing key. The exact
+  key is restored and its protected DACL/TLS context verified again.
+- Disposable bearer tokens are absent from the public result and actual host
+  logs. RC certificate verification remains disabled by the existing contract.
+
+Evidence
+local/rc-lifecycle185-owner01/verification.json
+Report SHA256:0d992465bb53bc8d70355ae6e2dc9d4adc233200c99c6b059c2ff449be8d6e49
+Driver SHA256:181d943a79362fa133dddc9ed78234b4b932b130917799a73e38de6e95e53753
+Console protocol helper:
+  5560da33f54071cd61a0506d3940162688a324e6c434b6978793e69e4ed235d2
+Package:local/candidate175-packages01/battleaces-server-win64
+Manifest:b00409fcab5afb033d52c8bc8ca93790faac492389eed778c3450fd21a03bd21
+Assets:local/s139/assets/build-37822
+Manifest:5f26ae7e35ce004c5105fa42a85fed8671194380e9461caa89888decd2ee4ad3
+Read-only game binding:local/r171g;EXE SHA256:
+  0ae4c67586e0aced96641e8e06c0b845d2d6d77c0cfb5b7533b9afee89eb77f6
+Native health workers16356 and28196 both exit0 and are reaped. Whole owned job
+18total/0active/0terminated before closing its handle,no forced cleanup.7.953s.
+Package/assets/game EXE and diagnostic sources unchanged. First attempt passes.
+
+Source applicability
+source-applicability.json alongside the report binds current and bundled files.
+rc_setup/admission/credentials/tls_transport/profiles/host/configuration match
+byte-for-byte. rc_host's certificate-generation helpers match structurally;
+initialize differs at178:relative paths,config-adjacent staging and temporary
+cleanup. This run qualifies175's packaged initializer,not a rebuilt178 artifact.
+Reuse178's separate path tests;final delivery must qualify its matching package.
+No package,product code or release was changed by185.
+
+Existing focused regression suite
+tests.test_rc_setup and tests.test_admission:26/26 PASS on Python3.12(3.851s)
+and3.14(3.600s),no skips. Includes wrong-player binding,pre-auth HELLO refusal,
+oversized authentication/deadlines/rate refill/capacity,shutdown and safe errors.
+Those source tests retain their authored-store/transport scopes;they are not a
+new all-bounds/native load qualification.
+Example from repository root (fresh output required):
+  py -3.12 -m tools.verify_rc_lifecycle --package local/candidate175-packages01/battleaces-server-win64 --assets local/s139/assets/build-37822 --game local/r171g --output local/rc-lifecycle185-new
+
+User guidance updated
+windows-client-quickstart.txt now names the installed rc-identities location,
+whole-profile backup,route/profile selection and damaged-file recovery.
+windows-server-quickstart.txt distinguishes private TLS key backup from state
+snapshots and explains refusal for an existing config's missing key.
+
+Remaining boundaries
+No motherboard/hardware identity or central account recovery exists or is added.
+The per-route random token is a bearer identity;copied files copy that identity.
+This is one Windows owner and package175,not different accounts,SCM/session0,
+Windows shutdown/reboot,clean-machine deployment or installed graphical clients.
+It does not qualify restoring TLS keys under a different account,identity files'
+cross-account access policy,full quota/queue coverage or a new native match.
+Reuse184 for completed restored play. D7 and final delivery stay open;no new Nick
+action or repeated N2/N5/N9/N10 request. D5/privacy requirements are unchanged.

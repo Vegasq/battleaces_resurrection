@@ -1,8 +1,12 @@
 // Recognition hashes only for explicit genuine SDK Client diagnostic.
+// The Client constructor is the recipe34 body with its configured-metadata
+// merge omitted;all other initialization and cleanup remain in that body.
+// InitUserObject is the recipe37+ body with its fresh-user cached-device-ID
+// query omitted;verify_sdk_user_cache349.py checks the exact original delta.
 original(0x812480,517,"b8af76fd48a9b100b3afa1317286c4c2f74ace1053584954ef57bc58902ff616");
-original(0x812690,4362,"39995d684f02e26c98a77b62bb384eceba23bae2c3384a40c4e6d55485f5d7c8");
+original(0x812690,4362,"a328206b5a8b97129361d71551682301111a90e67f89d9758d84a94338e4cae8");
 original(0x813c80,694,"c789ddf478abccaba7536d7122fd8a7cf8a212a335d6a8f178cfc1f88cc496bd");
-original(0x8141f0,529,"13cefdd6fd5f13c4b1f1cacc2e716f7e5af9e6e026150971b5f44795ea3bf9a2");
+original(0x8141f0,529,"bd5cc8f129a984dea24b420e571cb4ee273b50f29123486bda4c5297e19c4686");
 original(0x819760,4169,"d1eb35ff73f1ea62227120b3aad70b0a701559a333ec164dabbea4f2e9a08ef0");
 original(0x823db0,416,"7bc51e53474efbece88dfb1aeef8d941356c34209a55db18a1795ccf5d19d859");
 original(0x834180,480,"0e274d1dd5af36ceec6cbe2c19b2f17d3187aaf23dce34ca7bba29433a9e2d3b");

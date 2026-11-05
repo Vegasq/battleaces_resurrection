@@ -1,0 +1,39 @@
+D5 / P7 - owned menu-time reporter delegate-slot sample
+2026-10-28. One current recipe25 runtime sample;P7/D5 remain OPEN.
+
+An owned child of local/privacy291-runtime01/game launched suspended under its
+own job with a fresh nativestest_reporterdelegates profile. REA Frida attached
+to that exact PID. After primary-thread resume and menu initialization,a read
+only script sampled the six original Subs AddOnSendError method-reference slots
+bound298 in loaded GameAssembly. All six still held their original encoded
+values:60003437,60003439,60003419,6000341d,60003429,60003417. No slot had
+resolved to a MethodInfo pointer in that sample. The installed Subs entry RET
+was already byte-verified297. This is consistent with the named guarded Subs
+route remaining inactive on this startup;it is not proof of all-thread or
+other registration absence.
+
+The observer was unloaded and the owned native Quit gate released. The game
+executed original menu Show/OnConfirm,exited0,and drained its one-process job
+without termination or forced cleanup. This check did not invoke the original
+reporter,metadata resolver,identity getter or SDK report queue. It made no
+endpoint/queue/file census. The six callback target methods remain unnamed.
+
+tools/verify_reporter_delegate_runtime299.py PASS reconciles the pinned
+recipe25 GameAssembly SHA256
+c6e4480475e515e71a46e9579ee48d4db1a7f22062db5282d73c314a204d6b4e,
+owned PID5624/job/Quit trace,and complete detached Frida message set.
+Ignored local/privacy299-reporter-delegates01/review.json SHA256
+c1cbe203a245aeaf9a16b8a62ac364849a4b80aab2fa020a7765886ed42d42c8.
+Its underlying verification.json SHA256
+fa542bfd7856859205c8f63c201c7679a2a7d89168a89b6395151c58881394e7;
+frida-status.json SHA256
+89eba7a0f1ed119edd018ad643e5c7e6d73abddb7e67d43752dcb0f1fadb35f9.
+REA detached-status evidence ID:
+ev_f9b13ffd48887b7a6f7d387014979366bc8580ae3bde6bdc0a68626a38644274.
+The first periodic observer produced no sample before unload;the separate
+one-shot read produced the six values and is the asserted evidence.
+
+Next:resolve the delegate targets using independently validated IL2CPP
+registration data or a controlled metadata-only resolver in an owned process.
+Then examine indirect AddOnSendError callers,SetEnabled arguments and actual
+report queue/delivery scope. RUNTIME_VALIDATED remains false.

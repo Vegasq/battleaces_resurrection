@@ -1,0 +1,42 @@
+D5 / P7 - named fresh-process saved/in-flight report applicability on recipe47
+
+2026-10-31. Current source and private installed recipe47 inheritance PASS.
+This transfers173's named cold-start prevention conclusion to the current
+image;P7/P9/D5 remain OPEN. No game,report queue or network endpoint ran.
+
+173 established the source boundary:patch_client.install publishes disk files
+but does not alter a running process;normal launcher.verify_game checks the
+installed manifest before spawn_game creates a new process. The named managed
+Deliver/StartDeliveringCachedPayloads and three iterator MoveNext entries
+prevent a fresh patched process from acquiring the examined saved-report
+workers/requests. Named Unity analytics state0/preparation/archive gates
+likewise prevent cold-start submission. Already running original processes
+are outside this claim;the guards do not cancel their in-memory requests.
+
+tools.review_resume_inheritance540 pins173's receipt and verifies that all
+128 original recipe23 guard triples (RVA,offset,label),replacement hashes,
+original preimages and current installed bytes still match recipe47. This
+includes the five managed delivery/iterator entries and two Unity cold-start
+entries. It also checks recipe47's additional PerformPost early false return
+in the installed UnityPlayer. tools.review_unity_post512 independently binds
+the complete current source,private installation,packages and runtime
+compatibility. The current atomic_write and spawn_game function ASTs equal
+the173 source snapshots;the installer's three atomic_write call sites remain
+and launcher.verify_game still precedes spawn_game. Later source changes add
+startup/replay checks but do not create an in-memory upgrade path.
+
+This settles the *named* resumed/in-flight applicability question for a fresh
+recipe47 process at source/installed scope. It does not prove every alternate
+SDK/Unity producer,indirect or previously queued owner absent,whole file/wire
+privacy,or behavior of an original game already running when files are
+replaced. Real SDK-produced queue contents remain untested,but they cannot
+alter the named five pre-read managed guard entries. No new guard or
+repeated gameplay run follows from this result.
+
+Ignored receipt:local/privacy540-resume-inheritance.json SHA256
+0e45a80f22977d7459bed6f384eb6e1dd05e674ddf08b00a5cee0ea615d2ff77.
+Reviewer:tools/review_resume_inheritance540.py SHA256
+35ddbe8bbdceb67352d8a54c9f1bbeb073981b62ae1a9c9ef67a179391000f93.
+See report-resume173.txt for the original 64 managed bodies/18 edges and
+24 Unity extents;its receipt SHA256 is
+0dbe2d1cdf4be0fe4226e5038f9ef05358c54b61f6be793b487f6e88195f6f6f.

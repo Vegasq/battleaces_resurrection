@@ -139,6 +139,13 @@ static void update(Obj front) {
     if(!ba::flag(L"-native-quit-smoke") || stage>=4)return;
     Obj dispatch=nullptr,dispatchMethod=nullptr;
     try {
+        if(ba::flag(L"-native-quit-after-unified")) {
+            require(ba::unified() && ba::flag(L"-unified-smoke") && ba::flag(L"-practice-ai-smoke") &&
+                ba::argument(L"-practice-ai-smoke-matches=","0")=="2" &&
+                !ba::flag(L"-native-quit-after-practice") && ba_client::smokeStage<=3,
+                "native Quit unified diagnostic requires exactly two owned local matches");
+            if(ba_client::smokeStage!=3 || ba_practice::completed!=2 || ba_practice::active())return;
+        }
         if(!gateReady())return; // Explicit external qualification gate only.
         if(ba::flag(L"-native-quit-after-practice")) {
             require(ba::localMenu() && ba::flag(L"-practice-ai-smoke") &&

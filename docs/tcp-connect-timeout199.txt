@@ -1,0 +1,88 @@
+ACTUAL TCP CONNECT TIMEOUT199
+2026-10-26. Four native verified-mode cases COMPLETE. Full D2 remains OPEN.
+
+MISSING CLAIM
+189/190/198 qualify real TCP refusal and TLS handshake stalls. A TLS stall begins
+after TCP connects,so it does not establish recovery when TCP itself stays pending.
+This check targets that distinct A11-14 connection-timeout subcase,with the
+customized saved profile and ordinary production10s outer/5s TLS defaults.
+
+OWNED ENDPOINT AND EVIDENCE
+tools/availability_endpoint.py adds rc-connect-timeout/verified-connect-timeout.
+An exclusive IPv4 socket binds127.0.0.1:0,sets Windows SO_CONDITIONAL_ACCEPT before
+listen,and never accepts. No public endpoint,firewall/ACL/global networking edit,
+new driver or existing host change. This option is isolated to the owned socket.
+The authored packaged driver delegates real loop.sock_connect unchanged and
+records begin/cancellation versus successful connection. Qualification requires
+TimeoutError after9.8..12s,exact begin/CancelledError events and a closed client
+socket. A completed TCP handshake,TLS-stall exception,shortened deadline or leaked
+socket fails qualification. The actual bridge must send timeout code7 and the
+native client must report Secure server connection timed out.
+Endpoint readback alone is insufficient:provider behavior may differ. This
+Windows environment's actual pending-connect observation is the accepted scope.
+Primary references,consulted2026-10-26:
+ https://learn.microsoft.com/en-us/windows/win32/winsock/so-conditional-accept
+ https://learn.microsoft.com/en-us/windows/win32/api/winsock2/nf-winsock2-wsaaccept
+Constant0x3002 also checked in installed Windows SDK10.0.26100.0/ws2def.h.
+The initial owned backlog-saturation probe instead produced OS refusal after
+2.047s;it was rejected as a timeout fixture. Both probes and their findings are
+retained in local/connect199-investigation.txt and local/probe-*199.py.
+
+SEQUENCE AND OWNERSHIP
+tools/verify_saved_play.py --phase-set connect-timeout runs public1,public2,
+public5,then Try Deck4 on one copied qualified141 profile without reseeding.
+Each uses the actual packaged verified resolver,private credential reader and
+production transport. Original local play/results/Continue/default Quit are
+required;public difficulty preserves the separate saved hard practice choice.
+Try Deck's authored click waits15s so its optional presence failure completes
+before Play. No production timer,launcher or helper behavior is changed.
+Every phase checks native joined deck/abilities/all17cosmetic slots,account
+options,earlier replays,shared-file preservation and empty natural-exit job.
+After all phases,the owner restores the disposable installation preference and
+removes its marker. Real player profiles and the qualified seed are untouched.
+
+RESULT
+All four phases PASS with actual pending TCP and one default10s timeout each,
+bridge code7,original result/Continue/default Quit0 and job2total/0active/
+0terminated. No forced cleanup. Same profile:nativestest_saved_37d29ce4ea20.
+Exact native deck/abilities,all17cosmetic slots,portrait87,account/options and
+hard practice preference preserved. Four replays retained,three completed Quit
+traces archived. Installation preference restored to its prior absence;owner
+marker removed,seed/shared files unchanged. Parent exit0;no remaining game.
+Case                  Mode / cell          Elapsed
+public1-connect       public1 / A11         222.515s
+public2-connect       public2 / A12         225.453s
+public5-connect       public5 / A14         224.219s
+practice-connect      Try Deck4 / A13       221.750s
+
+VALIDATION
+22focused tests PASS on Python3.12 and3.14,no skips:
+ tests.test_saved_play tests.test_availability_endpoint tests.test_packaged_play
+Includes real pending TCP through the default10s deadline on both interpreters,
+negative evidence controls and exact four-mode membership separate from198.
+Prior sources:local/connect199-prior01.
+Sealed198source-file inputs:local/connect199-sources01/manifest.json
+SHA256:80b7630642b96b6f4b5fed1997b76d24979459cef17c7a1df126a2b3a2b01909
+Owner report:local/connect199-01/verification.json
+SHA256:1a6139713b8e5aa94994ce933b76f462e4ca0e185a47bfe4d9976611baadce91
+Read-only reconciliation:local/connect199-review01.json
+SHA256:94b49672a4122485f3c8bf087191ae19f817d473589d666b42f17c9a8f8c6970
+Reparses every native choice/transport report,requires pending TCP plus closed
+socket,checks report/native/replay hashes,Quit traces,empty jobs,source/package
+integrity,seed/shared state and final preference restoration. All four pass.
+Exact per-case hashes remain in that reconciliation. Final diagnostic/test and
+reviewer snapshots:local/connect199-01/final-sources/manifest.json.
+Package:local/candidate188-packages01/battleaces-client-win64;owned game local/r171g,
+recipe23/helper169. Exact receipt and installed/package identities checked every
+phase. The198source snapshot differs only in the three diagnostic tools below:
+ availability_endpoint.py:b3c408eb34d5a783d9baf3a2f4872878d723acbbf0fde929df914830be01d291
+ verify_packaged_play.py:fa82be2ebadb02ea2305cd83dd90c5e2bfed7fc3eea49ee8d5d27c098346f4f6
+ verify_saved_play.py:90d6bfb59fd1c7715c725bbf18b7c5a4abd77f591f046b21bc23b8ae4df6f83f
+Credentials,profiles,raw captures,replays and binaries stay ignored/local.
+
+BOUNDARY
+No server authentication is possible before TCP completes. This is automated
+native Windows/verified-configuration evidence,not physical input/presentation,
+Internet behavior or a separate native RC-mode run. Other D2 transitions and
+full release/privacy/SCM gates remain open. No product/package/publication change.
+Reuse this named four-mode TCP-timeout scope;no repeat of189/190/198 is needed.

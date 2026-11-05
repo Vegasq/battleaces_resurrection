@@ -1,0 +1,61 @@
+D5 / P7 - guarded SDK cached-report deletion helper
+
+2026-10-31. Recipe45 adds one exact-build GameAssembly guard at
+BugsnagUnity.CacheManager.DeleteFile (RVA837720). The owned installed
+genuine-Client deletion subcase and independent reviewer PASS. Full P7/P9/D5
+and RUNTIME_VALIDATED=false remain OPEN. No real shared report queue or
+original game installation was read,seeded or cleared.
+
+tools.review_sdk_delete501 pins the pristine GameAssembly/IL2CPP metadata,
+decodes every direct SDK rel32 edge in the selected deletion chain and
+regenerates recipe45's patched GameAssembly. Original RemoveExpiredPayloads
+and DeleteFile directly call System.IO.File.Delete. DeleteFile has four
+named direct SDK callers:RemoveOldestFiles,RemoveCachedEvent,
+RemoveCachedSession and RemovePayloadWithID. The selected parent routes
+are behind prior recipe guards or pending-cache bypasses,but DeleteFile
+itself was reachable by an indirect caller. Its original body is a short
+void wrapper around File.Delete. Recipe45 returns at its entry before any
+path or file operation,while preserving other CacheManager methods.
+This decoded direct-call review does not prove all indirect callers.
+Static receipt:local/privacy501-queue02/delete-route501.json SHA256
+a4b924d089c86be68afbf060017aeadedf1aface465d8ad60d5d4b0509bc2645.
+
+The opt-in current queue probe now invokes the installed DeleteFile entry
+on two fresh authored .event/.session paths under a same-thread scoped
+owned qc root,after constructing a genuine SDK Client/CacheManager. The
+files permit normal delete sharing. Both calls return without exception;
+the probe reopens and compares both file identities,sizes and bytes. It
+also checks the recipe44 empty-list/null-ID/cached-delivery route,Client/
+Delivery fields,scoped path restoration and original same-thread Quit.
+The verifier binds the new five-guard native audit and version2 markers.
+
+Isolated game:local/privacy501-game01,source copied from the retained500
+owned game and installed with recipe45,community/cosmetics options and
+the source-matched helper. All133 assets passed. Installed GameAssembly
+SHA256 ab73d481dc4c167671993f15884f1c7c32c441b2a26487d0728197ba02e2446e;
+helper local/privacy501-helper-build02/BattleAcesOffline.dll SHA256
+3542bbec380dcf01a84a79487811a2c80d508c85ea6cb7807edf5abd534ccd7a.
+Helper source receipt SHA256
+ca130d263336b51eea56a807e24924d5a4d9a60f8ab1ce61454c32ffe8f2c36f.
+
+The first run at local/privacy501-queue01 FAILED before the queue probe:
+the audit counted five guards but its completeness Boolean still required
+four. It exited normally without touching authored queue files. That
+count was corrected and the helper rebuilt;the failed report is retained.
+
+Fresh run local/privacy501-queue02/verification.json PASS SHA256
+4f12a72db7d20dee39ebda2f0d43bca00b8dbf28e0b86ea736fe847b9b18dc32.
+Original Quit0 in15.031s,owned process reaped,zero forced cleanup,source
+and shared settings unchanged. tools.review_current_delete501 separately
+regenerates the installed image from pinned pristine bytes and current
+source,checks helper provenance,actual authored files,raw log,run/manifest
+binding and Quit trace. PASS receipt
+local/privacy501-queue02/review501.json SHA256
+812960ffdcabb1e2ead7b9f4c9f720ef0b47329fe5252ec6b47d74432b40a5ca.
+Relevant patch,audit,queue,error-validator and Quit tests:85 run,83 pass,2 skipped.
+
+This closes only direct invocation of the guarded deletion helper on two
+authored files in an owned recipe45 game. Ordinary preexisting queues,
+resumed/inflight delivery,all indirect SDK/OS paths,whole wire,the
+independent advertising-ID provider and a final installed pair remain open.
+Published174 is still recipe23.

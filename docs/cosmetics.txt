@@ -1,4 +1,669 @@
 INSTALLED COSMETICS - BUILD37822 CONTRACT
+Current coverage245 / skins246-248 / fatalities249-251 / emotes252-254 / sprays255-256:2026-10-27.
+See the checklist below before
+interpreting historical open/experimental/integration labels in this record.
+
+CURRENT COVERAGE245 - RETAINED EVIDENCE REVIEW
+[x] Catalog:107 items,17 native slots,all107 definition references resolved.
+[x] Native picker membership/ownership:all107 items across245 slot/item positions;
+    42 All/Owned/Unowned filter cases across14 populated slots. Three empty slots.
+[x] Original select/Equip/confirm/equivalent-slot swap and full-map validation:
+    bounded original-callback pass,not every item's visual/effect activation.
+[x] Full17-slot restart/profile isolation and retained invalid-input handling:
+    ten-process persistence sequence. No blanket claim about today's full build.
+[x] Chosen full-loadout propagation through local/Custom/public transitions and
+    rematches:reuse later85/239/240/244 and their exact modes/artifact scopes.
+[x] All13 skin managed-reference tails decoded and original preview activation
+    route bound through asset loading to the3D renderer (246,static only).
+[x] All13skin selections plus return to first:matching scene parameters,loaded
+    event config and every selected event present in the unit cache (247).
+[x] Skin preview pool ownership:three-family switch/return,first instance reused,
+    Back clears renderer and returns final unit (248).247 report stays FAILED.
+[x] Both fatality definitions/event payloads and original loading/registration/
+    death-trigger route resolved;menu video is a separate path (249,static).
+[x] Default/teleport selection,registration and6/5event callback entries on
+    actual local-AI HQ death after normal Concede (250,instrumented scope).
+[x] Both fatality menu videos:original load/Play,frame/time progress,switch/return
+    and Back stops playback/clears clip ownership;normal Quit (251).
+[x] All46 emote metadata/9animation assets and13portrait emotion dependencies
+    mapped to original preview/lifetime routes (252,static only).
+[x] All46 emote menu previews plus return:default portrait66 material/text,
+    authored animation-field curve,Play progression,Back stops and normal Quit (253).
+[x] Four equipped emote buttons in local-AI match:original activation/3s frame
+    lifetime,state clear/hide/playback stop,Continue and normal Quit (254).
+[x] All6spray definitions/18typed assets,slot/default,serialized settings and
+    original placement/lifetime/cleanup routes mapped (255,static only).
+[x] All6spray menu selections plus return:VM sprite/actual Image material,
+    unchanged loadout,Back inactive/uninitialized and normal Quit (256).
+[ ] Spray match runtime:original placement,vision/cooldown/overlap refusal,
+    fade and pool release. Menu bindings do not establish world-decal behavior.
+[ ] Remaining emote peer delivery,portrait combinations and physical/visible/audio scope.
+[ ] All-item rendered preview/effect/audio coverage and real picker/drag input.
+[ ] Remaining visible portrait/name/save details:N7;no repeated install requested.
+[ ] Relevant final-artifact/physical acceptance. These old forced-teardown runs
+    alone do not establish native Quit;later named Quit passes keep their scope.
+
+Catalog families             Items   Restart A/B distinct values in that family
+Core skins                      4     2
+Expansion skins                 5     2
+Worker skins                    4     2
+Fatalities                      2     2 (restoration only,not effect execution)
+Army colors                    16     2
+Portraits                      13     2
+Banners                         9     2
+Sprays                          6     2
+Emotes (four equivalent slots)  46     6 (two values per slot,with overlaps)
+Game/menu announcers            2     2 (one per slot;audio not established)
+Stickers                        0     0 (three empty slots;no missing unlock)
+Total                         107    24 unique items in these specific profiles
+
+The A/B sequence restores all17slots and changes12slots between profiles,not12
+distinct cosmetic families. Its24unique values are a bounded restoration sample,
+not a whole-project coverage percentage or proof that the other83items are broken
+or never appeared in another capture. Original callback equip checks separately
+exercise portrait selection and equivalent-slot emote swapping. Picker membership
+checks cover every compatible item;they do not equip/render/play every effect.
+Every definition's top-level reference resolving likewise does not prove its
+preview/effect/audio dependencies execute. Do not repeat catalog enumeration or
+invent alternate announcer/sticker items absent from this supported build.
+
+Review245 checks exact hashes of both native exports,the picker/equip reports,
+all ten persistence phase reports,the corresponding native proof objects/logs,
+catalog membership,full-map validity,restart A after B,and the retained picker
+capture's identity. It does not reinterpret an image hash as new visual review.
+Current picker observer,server catalog validator and persistence implementation
+match the named historical sources;unlock/player/equip-diagnostic/store/driver
+files have recorded later changes. This is retained scoped evidence,not blanket
+source equivalence. Later selected-loadout match/normal-Quit results remain in
+native-custom-matches.txt239/240 and custom-mode-transitions.txt244.
+
+Artifacts:%LOCALAPPDATA%/BattleAcesDiagnostics/local/cosmetics245-review01/
+review.py,review.json,supplemental-review.json,current-source/,before/,completed/
+and completion-manifest.json. Per-slot item identities stay ignored/local.
+The first review mistook an ordinary dormant phase's false proof flag for a proof
+object;the corrected reader requires an object. No absent native proof is claimed
+and no historical report changed. No game launch,product edit or user request.
+Follow-up246 below completes that static trace;247 records the runtime attempt.
+Follow-up248 resolves pool ownership;249 resolves the fatality static route.
+250 adds original fatality selection and actual HQ-death callback evidence.
+251 adds both menu-video lifecycle checks;252 maps emote/portrait dependencies.
+253 adds all46menu emote runtime checks;254 covers four equipped local-match
+controls and expiry.255 completes six sprays' static definitions/placement route.
+256 completes all6spray menu bindings plus return/Back. Next:original in-match activation.
+No repeat catalog,persistence,skin,fatality or emote checks unchanged.
+
+SPRAY MENU256 - SIX SELECTIONS / RETURN / BACK CHECKED OFF
+Corrected owned native run selects54,10,71,151,152,203,54 through original
+cosmetics controls. Fifteen immutable observations cover loaded/settled pairs
+and Back. Each VM has the exact original Sprite subobject and Canvas material;
+the active Image's material has the same native instance ID as the VM material.
+All6resources differ,returning to54 reuses its prior resource identities,one
+preview VM/Image owns the sequence,and the entire saved loadout stays unchanged.
+Back leaves VM/Image inactive and VM uninitialized;normal Quit exits0 in27.5s,
+owned job1/0/0,no force. Shared settings and source hashes stay unchanged.
+
+Important original UI distinction:CosmeticItemPreview.prefab's SprayCosmetic
+object has CosmeticItemVM and Image on the SAME object. Serialized Bindy connects
+Material to Image.material and Image.enabled;_materialOverride is null.
+The first diagnostic incorrectly required the emote-style material override,
+stopped at item54,then original Back/Quit0 completed in21.86s,job1/0/0,no force.
+Its native01 report remains FAILED. Original prefab bytes were resolved in the
+catalog's2fa2b6e70fed51f3d26c422052c7443a bundle before correcting the reader.
+Only diagnostic observation changed;no game rendering or binding behavior repair.
+
+Native02 now passes directly with the corrected source/helper:PID20520,
+profile nativestest_spray_9a6274757181,helper02 SHA256
+28967b56df524c452096b835a6a26ee9b52aa7e97fcf8523e681041841fd4058.
+Nine original body guards pass;10authored evidence controls pass on Python3.12
+and3.14,including stale material,wrong Sprite,changed owner,disabled Image,
+missing selection,incorrect return,active Back and false scope/loadout claims.
+The new -cosmetics-spray-menu-smoke flag requires an isolated nativestest_spray_
+profile and explicit Quit gate;ordinary launchers do not enable it.
+
+Actual Image.sprite remains null in this material-rendered preview;the loaded
+VM Sprite is a separate binding observation. Back retains material/Sprite
+references;this result establishes deactivation,not complete resource release.
+No rendered-pixel,audible-sound,physical-click,world-decal or peer-delivery claim.
+Next:equipped original spray placement and refusal/fade/pool-release paths in
+local matches,using255's settings and separate simulation/Unity clocks.
+
+Artifacts:local/sprays256-runtime01/{native01,native02,helper01,helper02,
+source01,source02,before,completed},ui-prefab.json,ui-binding-review.json,
+guard-bindings.json,review.py/review.json and completion-manifest.json.
+All255sealed evidence and DEV answers remain unchanged. This is a dirty local
+diagnostic build;no installer/publication or new Nick request.
+
+SPRAY CONTRACT255 - DEFINITIONS / PLACEMENT / LIFETIME CHECKED OFF
+Static review resolves all6label4 definitions and their18managed references:
+item10 GG,54 Default Bomber,71 KingCrab Crownflare,151 Default NPIcon,
+152 Default Wasps and203 CCSE. Native catalog and original client settings agree:
+slot8,default54. Each has a GameObject prefab,a specifically named Sprite
+subobject and a separate menu Material. Typed catalog/container resolution is
+required:the same texture address can contain both Texture2D and multiple Sprites.
+All18 targets resolve in the original d2b47f9ae0ba73e99063f62b37a16eb0 bundle.
+The first path-only resolver rejected duplicate targets;corrected selection
+requires actual class ID and exact sprite subobject. No runtime failure or repair.
+
+All6prefabs have DecalProjector,AudioOnSpawn,SprayFadeController,
+MaterialPropertyEffectComponent and EventOwnerComponent beside their Transform.
+Their fade controller references their own projector and a VFX_Spray child.
+Each has a distinct in-match Decal material,not its Canvas menu material.
+All use the same FX_Spray_PC audio container. Direct child/component/audio
+configuration references are decoded;external audio collections and full
+shader/texture/VFX dependencies remain outside this static completion claim.
+
+Original client/global settings resolve from their named catalog entries into
+22afcd27e427dc74c718d35a50f695e4.bundle:MaxConcurrentSprayPerPlayer3,
+SprayRadius3.0 and one execution per20.0seconds. Client settings are decoded
+before an unrelated8-byte managed-reference tail;no full-global decode claim.
+CadenceManager uses elapsed unscaled simulation seconds. SprayFadeController
+uses UnityEngine.Time.get_time instead. Keep these clocks distinct in tests.
+
+Original activation route:UICosmeticAbilities.StartPerformSpray signals the
+selector;UnitSelector.OnSpray pops the prior caster and activates its spray
+caster. Activate obtains the equipped prefab through SpraySystem.GetSprayTemplate
+after asset-manager readiness and prepares a pooled preview. ProcessMapInput
+updates the preview position;requires a unit of the player's alliance with
+positive VisionRange and distance within VisionRange+UnitRadius. It rejects
+overlap against every army's existing spray queue at squared distance<=radius^2.
+Preview-only evaluation does not consume cadence. Committed placement requests
+cadence;denial produces no command. Accepted placement emits the original signal
+and returns SprayMapCommand;ToProto is separately bound. Network peer delivery
+is not established by this client static route.
+
+SpraySystem.OnSpray obtains the per-army equipped template,positions the pooled
+instance,activates its spawn effect and requires a fade controller. The queue
+limit path kills the oldest controller's coroutine and completes its release
+before adding the new controller. Reset drains existing controllers through
+RemoveImmediately and clears the template cache. These are static paths,not
+runtime ownership observations. Do not force the3-entry cap by disabling cadence.
+
+All6serialized controllers specify totalDuration10.0 and fadeDuration3.0.
+Scheduling sets spawnTime=Time.time,end=spawn+10,fadeStart=end-3. The exact
+controller-owned coroutine updates normalized lifetime=(time-spawn)/10,
+then projector fadeFactor=clamp01((end-time)/3) during the final3seconds.
+At time>=end it invokes CompleteRelease,which calls the queue callback,
+deactivates the spawn effect and releases its pool handle. Actual fade/reuse/
+cleanup still needs observation;static defaults do not establish rendered pixels.
+
+The menu path binds _selectedSprayVM (CosmeticItemVM) to the selected item;
+RefreshViewModel,material override reset and Release are retained for the
+next original-callback test. Do not confuse this flat menu path with a placed
+world decal. Next finite checks:all6items plus return in menu,Back/normal Quit;
+then equipped world placement with unchanged cooldown and original cleanup.
+
+Review passes:6complete definitions,18typed asset targets,serialized settings,
+28exact original native bodies matching installed GameAssembly.dll. Bindings use
+module token/RID and unwind extents;2leaf methods without extents are excluded.
+No game launch,helper/product edit,package build,publication or new Nick request.
+Artifacts:local/sprays255-contract01/{spray-metadata,addressables,assets,
+dependencies,settings,method-bindings,supplement,review,runtime-check-plan}.json,
+bounded assembly,decoder/review scripts,before/completed and completion-manifest.
+Native original/metadata hashes remain pinned by tools/extract_descriptors.py.
+Earlier253/254 failures and scoped completed reviews remain unchanged.
+
+MATCH EMOTES254 - EQUIPPED LOCAL-MATCH ACTIVATION / EXPIRY CHECKED OFF
+One original Try Deck/local-AI match uses UICosmeticAbilities' selector and each
+original UIPerformEmoteButton.PerformEmote callback,indices0..3. The diagnostic
+waits for original IsEmoteReady,selector visibility and button interactability;
+it never calls TriggerEmote,Show/Hide,RequestEmote or changes lifetime/clock/state.
+It observes the same owned simulation/server/army/display and unchanged full
+loadout. Defaults6/7/8/9 under portrait66 match each corresponding equipped slot.
+This tests four equipped controls/shared lifetime behavior,not all46items in-match.
+
+Original PerformEmote3c81500 requests cadence,dispatches local EmoteSignal,queues
+EmoteCommand and closes the selector. ToProto37ada80 creates InputAction case5 /
+UICommand case2 with slot index. EmoteSystem looks up that army's equipped list,
+shows its model and stores presented start frame plus LifeTime*tick rate. Existing
+252 OnFrameUpdated keeps the inclusive interval and calls original HideEmote
+outside it. This run observes local prediction/display;peer delivery is not inferred
+from enqueuing a command.17new bounded bodies and6reused display/expiry bodies
+are guarded against original bytes (23total);3leaf entries lack unwind extents.
+
+265immutable samples establish these exact frame boundaries:
+ index item start end last-active first-cleared hidden/stopped
+   0     6   125  185     185          186          190
+   1     7   231  291     291          292          296
+   2     8   338  398     398          399          403
+   3     9   444  504     504          505          509
+Each lifetime is60frames at20Hz. The matching asset/start/end state remains
+until the inclusive end,then clears to null/zero at end+1. The model stays bound;
+native playable time advances while its component is active and container is
+not hidden. At end+5 the original container is hidden and SoloAnimation is
+inactive/stopped. Fully Visible is a distinct container state:HideEmote first
+calls InstantShow(false),then Hide. Requiring the fully Visible terminal state
+during Show-transition playback would misclassify this original flow. This is
+UI state/ownership evidence,not pixel visibility or audible sound acceptance.
+
+Original Concede completes at1201,then native result/Continue/menu/Quit0. Job1/0/0,
+no force,shared settings/covered source/full loadout unchanged. PID12644/profile
+nativestest_emmatch_2579b67ea65b. Initial native01 fails before launch on the Quit
+driver's graphical-dialog option;native02 explicitly hides its automated window.
+Native02's broad driver fails separate bot movement/Move-Attack correlation after
+normal exit. Both original reports remain FAILED;separate retained emote/lifecycle
+review passes without claiming that bot gate. No repeat native run to rewrite it.
+
+The source-owned match-emote verifier now separates its own match/lifetime checks
+from the general Quit check. Corrected14authored controls pass on Python3.12/3.14,
+including early/late expiry,missing controls,wrong model,duration,hidden-but-playing,
+inactive animation,observation gaps,forced exit and missing Continue. The helper
+build/component programs pass. Source changes are opt-in diagnostics only,with
+no ordinary launcher,game behavior,publication or new Nick request.253sealed
+evidence remains unchanged. Helper SHA256:
+a0192df26620dcd215e9e504cf3155cca83db289057729dece704c6bc8a93d40.
+Artifacts:local/emotes254-match01/{method-bindings,guard-bindings,review}.json,
+native01/,native02/,helper01/,source/,completed/,completion-manifest.json.
+Remaining:physical input,visible/audio review,peer delivery,other portrait
+combinations and other cosmetic families. Next:six spray definitions and original
+placement/activation route;do not repeat the unchanged emote menu/match cases.
+
+EMOTE PREVIEWS253 - ORIGINAL MENU PLAYBACK / BACK CHECKED OFF
+One complete original Cosmetics/select/PlayPreview sequence covers all46items
+plus return to first,with189immutable observations. Selected model and portrait66
+agree;the four expected emotion materials bind to the Graphic,localized strings
+and their original tags reach the text animator,and effects/typewriter settings
+match each definition. Each Play advances native playable time on one retained
+SoloAnimation owner. Full17-slot loadout unchanged. Original Back leaves VM
+inactive/uninitialized and SoloAnimation inactive/stopped;the pooled graph remains
+initialized,which is not a graph-destruction claim. Original Quit0,job1/0/0,no
+force,shared settings and covered source unchanged.35original body guards pass.
+
+First run9084 stopped at item122 because VM/component clip references differed;
+its original Back/Quit still passed. Second run27316 retained actual clip names
+and instance IDs for the complete sequence,then the external identity rule failed.
+Both controller reports remain FAILED. A separate corrected review qualifies the
+retained complete run;no third native run or product behavior change was needed.
+
+The mismatch is authored asset behavior:Emote_Special has one compiled PPtr curve,
+root path0,type114,MonoScript Animancer.SoloAnimation,attribute1345833794 matching
+CRC32(_Clip). Its sole same-file target9013866206640549902 is Emote_Mad_Rare.
+All eight Special selections show that same distinct target instance;the other
+eight direct clips retain identical VM/component references. This adds a tenth
+transitive animation to252's nine direct definition assets. Empty m_PPtrCurves
+does not imply absent compiled object-reference bindings. The exact original
+bundle/object hashes and decoded target are retained in clip-curve.json.
+
+Original TAnimCore.SetTypewriterText0xae7a10 prepends <noparse></noparse> to nonempty
+text. Corrected validation requires that exact prefix only for typewriter text
+and preserves authored tags;it does not strip markup to manufacture equality.
+12controls per Python3.12/3.14 pass,including undocumented/wrong clip substitution,
+wrong material,text/tag loss,missing selections,stalled playback and Back still
+playing. Helper02 build/component programs pass. Diagnostic flags remain opt-in;
+ordinary launchers and published174 are unchanged. No new Nick request.
+
+Artifacts:local/emotes253-runtime01/{native01,native02,helper01,helper02,review.json,
+clip-curve.json,resolve_clip_curve.py,source,completed,completion-manifest.json}.
+Accepted retained run27316/profile nativestest_emote_dc1a93482986. Helper02 SHA256:
+385fd98d0a842fdee477aeeef321aa9e91bb818053ea6ec9ccd43ae08df427e1.
+Earlier251/252 sealed evidence remains intact. These are original-callback
+observations,not physical clicks,visible pixels,audio,full-duration playback,
+all13portrait runtime combinations or in-match3s expiry. Next:original in-match
+emote trigger/display/expiry using the already mapped252 route.
+
+EMOTE CONTRACT252 - DEFINITIONS / ANIMATION / PORTRAIT DEPENDENCIES CHECKED OFF
+All46 installed emote definitions' managed-reference tails are fully decoded
+against their embedded schemas. Each has exactly one CosmeticEmoteAssetReference:
+emotion0/1/2/3,localized table/entry,LifeTime3s,IsTypeWriter,text effects and an
+animation reference.29use typewriter and17do not. Text effects:DelayTime26,
+SlamIn17,and one each goldrainb/fadea/vertexp. All46 Vfx GUIDs are empty;there
+is no direct audio field in this metadata. This does not prove all UI is silent.
+
+The46items reference9distinct AnimationClips. Exact Addressables resource types
+and container keys resolve all9 original serialized clips in two identified
+bundles;no scan of all dependency archives. The eight shared clips are in
+3e0c18da02498fcf9a28dc4d6e65854b.bundle;Mad_Epic and emote definitions are in
+def417f990def88212e110358d6ee75b.bundle. Clips sample at60Hz and have no animation
+events. Five clips last1.5s,three3s,and Mad_Epic3.483333s. These clip durations
+are separate from each emote's3s in-match lifetime. Actual rendering is untested.
+
+The preview uses the EQUIPPED PORTRAIT,not a fixed face. Original RefreshViewModel
+resolves that portrait's emotion material. All13 portrait metadata tails are
+also decoded:each has all four emotion mappings,52mappings to49distinct Material
+GUIDs,all resolving with correct Addressables type. Default portrait66 has all
+four. This checks the static dependencies,not all598emote/portrait combinations
+or actual material/shader/texture output. No repeat catalog/picker enumeration.
+
+Original method bindings and35bounded bodies match installed bytes:
+- CosmeticItemPreviewVM.UpdateEmoteCosmeticPreviewVM builds a model from selected
+  emote and equipped portrait,sets HasEmote,and calls Show. PlayPreview calls
+  the same EmoteDisplayVM.Show path.
+- RefreshViewModel resolves the selected metadata/portrait material,sets Dialog,
+  IsTypeWriter and text-animator effects,requests the AnimationClip,and handles
+  the empty Vfx branch. Data binding to actual render components remains runtime
+  work;property assignment alone does not qualify displayed output.
+- Show invokes UIContainer.InstantHide(false),then Show. If the clip is loaded,
+  PlayAnimation resets material overrides/rewinds an existing valid playable
+  and calls SoloAnimation.Play;otherwise it records pendingShowRequested.
+- Original asynchronous animation completion checks VM initialized plus both
+  captured emote AND portrait IDs before applying the clip and pending Show.
+- SoloAnimation.OnDisable stops its playing state;OnDestroy separately destroys
+  a valid playable graph. A pooled disabled view need not destroy its graph.
+- In-match TriggerEmote calls UIEmoteDisplay.Show and computes stored start/end
+  frames from LifeTime and native tick rate. OnFrameUpdated hides outside the
+  interval. The menu Show route is separate;do not require its lifetime to match
+  the in-match expiry timer or treat a menu preview as remote-command evidence.
+
+Cross-check review and7controls pass on Python3.12/3.14. Controls reject a missing
+emote,wrong asset type,unresolved animation,missing portrait emotion,wrong clip
+identity or new animation-event applicability. This is STATIC evidence: no game
+launch,helper/product change,publication or new Nick request.251's sealed native
+video evidence and helper remain unchanged. D3 visual/audio/physical and
+in-match command/expiry coverage remain OPEN.
+
+Next:one owned original menu sequence for all46 emotes plus return to first,
+checking exact animation/material/text bindings and actual playable-time
+progress,then original Back and normal Quit. Reuse runtime-check-plan.json;
+never substitute a non-null object or playing flag for advancement. Preserve
+shared settings/full loadout;no direct clip/material/clock/cleanup writes.
+Artifacts:local/emotes252-contract01/{emote-metadata,portrait-metadata,animations,
+addressables,material-addressables,review,runtime-check-plan}.json,source decoders,
+method/type bindings,disassemblies,7controls per Python,before/completed snapshots
+and completion-manifest.json. Existing source-only packaging remains intact.
+
+FATALITY MENU VIDEOS251 - PLAYBACK / SWITCH / BACK CHECKED OFF
+One fresh owned game/profile uses the opt-in original picker/PlayPreview/Back
+callbacks on the Unity thread. Sequence:item11 default -> item12 teleport ->
+item11 default. No Equip,manual clip assignment,frame seek,Stop or Cleanup call
+in the driver. Ordinary launchers never select the diagnostic flag.31original
+bounded method bodies match installed bytes and are checked before navigation;
+three trivial leaf getters lack unwind extents and are excluded from that count.
+Static OnDisable remembers a playing clip;Release calls Cleanup. Consequently,
+this test leaves directly from a playing clip and checks actual release state,
+not merely hidden UI or a false isPlaying flag.
+
+Native01 pid12648,profile nativestest_video_8effa8e9bd43:all three selections bind
+the chosen VM clip to the same VideoPlayer instance-14686. Default clip726214
+advances9->24frames/0.15->0.4s,teleport clip726232 advances6->13/0.2->0.433333s,
+and returning to default reuses726214 and advances9->24/0.15->0.4s. Original
+PlayPreview returns with frame-1/time0/unprepared,then playback prepares and
+advances. The samples also observe automatic playback before explicit Play.
+Actual VideoClip.originalPath reports Fatality_Default.webm/Fatality_Warpout.webm;
+249's teleport Addressables lookup key ends .mp4. Preserve these distinct source
+fields;the loaded clip name and original selection/binding identify this case.
+
+Original Back returns to the main menu,releases the picker and leaves video VM
+inactive/uninitialized,player stopped/unprepared,VM/player clips null,pending
+play false and disabled-resume clip null. The render-target object remains
+present;this is not evidence of a leaked clip or a claim of GPU allocation
+release/texture-pixel clearing. Full17-slot equipped state stays unchanged.
+Original confirmed Quit exits0 in1.516s after dispatch,job total1/active0/
+terminated0,no force. Shared settings and covered source hashes are unchanged.
+
+Helper build/component checks and7evidence controls pass on Python3.12/3.14.
+Controls reject playing without advancement,wrong clips,missing return,retained
+resume clips,unrelated Back players and invented visual acceptance. Native
+owner and video lifecycle reports both PASS. No failed native run or retry.
+New helper1879b9d2429d2a3887db54be628c79a09630b5e6a6392015424068320d8afd17
+adds opt-in diagnostics only;no production fix,installer release or user request.
+Existing published174 and250's sealed artifacts stay unchanged.
+
+Scope:instrumented original-callback playback progress and clip/player ownership,
+not complete-video duration/loop coverage,rendered pixels,audible output,physical
+clicks or all transitive/GPU resources. D3 remains OPEN at those broader scopes.
+252 subsequently maps all46emote definitions/preview actions. Runtime animation
+and material/text bindings remain next;reuse107-item membership/fatality runs.
+Artifacts:local/videos251-runtime01/{helper01,native01,before,completed},
+trace_video.py,31bounded disassemblies,method/type bindings,install/build/test
+logs,review.json and completion-manifest.json. Every original sample and native
+Quit trace is retained. Source driver:tools/verify_video_previews.py;diagnostic:
+client_patch/src/cosmetics_video_smoke.cpp. No new public topic file.
+
+FATALITY RUNTIME250 - ORIGINAL HQ-DEATH CALLBACKS CHECKED OFF
+Two owned isolated local-AI matches reuse helper248 and the original Edit Deck/
+Try Deck/Concede/Continue/Quit driver. Passive Frida hooks attach before owned
+primary-thread resume;exact original method bodies and32-byte hook prefixes
+are verified. No observer game-memory writes,argument/return replacement,direct
+effect invocation or asset loading. This is instrumented evidence,not new
+ordinary-launch or physical-input acceptance.
+
+Native01 pid2444 observes local army/alliance0 with default item11 and bot1/1
+with no cosmetic selections. Native02 pid24392 restores item12 on a fresh
+profile;bot selection remains empty. Original selection returns the sole
+configured collection (8 or42) for BOTH HQ owners at simulation-loading and
+UnitPool.TakeForSim callsites. Native02 additionally binds each selector result
+to its returned unit/requested entity0/5,then initialized HQ state. This does
+not qualify full multi-human/alliance selection. Native01's raw army field is
+_initialArmyId,not reliable live ownership;02 labels it initial_army_field and
+uses original selector/TakeForSim context for ownership instead.
+
+Both normal Concede calls occur at simulation frame1200. HQ entity0 transitions
+to Dead/state6 at1201 with DeadToTheSim=true,after original event registration
+returned success. Every configured top-level event subsequently enters its
+original Trigger exactly once:6default entries and5teleport entries. Including
+nested EventDataList children,11default and10teleport callbacks are recorded.
+Dead callbacks execute inside the original state-event call;animation callbacks
+follow later. Default covers timeline/audio/material/camera-shake/VFX/transform;
+teleport covers prefab/timeline/audio/material/transform dispatch. Both finish
+original confirmed Quit0,job total1/active0/terminated0,no forced cleanup,with
+unchanged shared settings,helper/source and isolated cosmetic seed bytes.
+
+Original controller reports remain FAILED and are not rewritten:
+- Native01 omitted the native-log directory at launch (created during the run)
+  and wrote its seed through Windows newline translation. The CRLF seed did
+  not restore teleport;directly observed default behavior is retained. The
+  inherited controller rejects missing startup/join log evidence.
+- Native02 creates the directory and writes canonical LF seed bytes;restored=1,
+  full native lifecycle logs and actual item12 selection are present. Its
+  inherited practice verifier rejects missing correlated bot movement/Move or
+  Attack orders in this short match. No new bot/combat qualification is claimed;
+  no third unchanged match was run to fill that unrelated gate.
+
+Separate review.py validates immutable observations,original definitions,process/
+script identity,source/shared-state hashes,selector contexts,registration/event
+pointers,actual death/dispatch ordering and normal Quit/job closure.7controls
+pass on Python3.12/3.14;they reject missing death,wrong owner/selection,loaded-
+but-unexecuted events,direct calls outside state dispatch,event gaps and missing
+exit closure. Observer files contain flushed self-exit records;the final Frida
+send is absent from provider message history. REA sessions are closed;owned
+handles prove OS exit. REA close's unknown target state is not exit evidence.
+
+Scope is callback ENTRY,not every callback return,spawned-component release,
+media decoding,pixels or audible output. Normal Concede-induced death is
+observed,not combat-inflicted destruction.251 subsequently qualifies both menu
+videos' original load/Play/switch/Back and clip ownership. Visual/audio/physical and
+broader D3 remain open. No game/helper/product fix,publication or new Nick
+request. Installer emitted a PowerShell stderr progress diagnostic;subsequent
+installed-file verification passed without reinstalling.
+
+Artifacts:local/fatalities250-runtime01/{native01,native02,before,completed},
+observer templates/generated scripts,run.py/run02.py,review.py/review.json,
+test_review.py,tests312/314.txt and completion-manifest.json. REA attach/load/
+final/close receipts and events.jsonl retained per run;native logs/profiles stay
+in the independent game copy.249static evidence and248helper receipt unchanged.
+
+FATALITY CONTRACT249 - DEFINITIONS / STATIC ACTIVATION CHECKED OFF
+Both installed definitions' managed-reference tails are fully decoded using
+their embedded schemas:Cosmetic_Fatality_001/item11 -> event8 (HQ Death - Default)
+and Cosmetic_Fatality_002/item12 -> event42 (HQ Death - Teleport). Each separately
+references a menu video:Fatality_Default.webm and Fatality_Warpout.mp4. All four
+GUIDs resolve to the expected EventConfigAsset/VideoClip Addressables entries.
+Both actual EventConfigAssets are decoded from the original definition bundle,
+including their managed-reference payloads and checked reference-ID graphs.
+
+Default has6event entries;teleport has5. Shared requirement15 is Dead,implemented
+as ToStateRequirement state6. Requirement42/43/44 are animation events A/B/C,
+requiring presentation labels6/7/8. Default also has a custom animation-D
+requirement with label28. Default's dead entries request timeline/audio,with
+later material,VFX,camera-shake and transform actions. Teleport's dead entries
+request a prefab with4-second lifetime,timeline and audio;later animation
+entries request material/audio/transform actions. Event-collection key42 and
+event-requirement key42 are different tables and must not be conflated.
+
+Exact original routes:
+- CosmeticItemPreviewVM.RefreshViewModel -> UpdateVideoPreviewVM,then PlayPreview
+  -> CosmeticVideoPreviewVM.PlayVideo -> UnityEngine.Video.VideoPlayer.Play().
+  Cleanup stops playback,clears the render texture and clears the video clip.
+- UnitManager.ProcessSimulationUpdate and UnitPool.TakeForSim call original
+  FindFatalityAssets,with FindDefaultFatalityAsset fallback. Simulation setup
+  includes LoadEventCollection;TakeForSim registers the selected collection
+  through EventRunner.RegisterRequirementEvents.
+- EventRunner.TriggerStateEvents -> EventTriggerRequirementCache.TriggerStateEvents
+  -> EventRunner.ProcessEvents;requirement resolution precedes IEvent dispatch.
+  Timeline labels separately enter TriggerTimelineSingleLabelEvent/ProcessEvents.
+  The ToStateRequirement evaluator compares a simulation owner's entity state
+  with its configured state;its non-simulation-owner shortcut is not proof of
+  a real death. A direct effect invocation cannot qualify the gameplay trigger.
+
+The selector accepts both local and owner SimPlayers plus simulation context;
+closures compare ArmyID/AllianceID. Its full multi-player selection policy is
+not independently reconstructed. Do not assume the dying HQ uses its owner's
+equipped fatality;record the original selector result and player contexts in
+the runtime check.27examined native method bodies match the installed assembly;
+this is named-body identity,not whole-build or transitive runtime equivalence.
+
+No game launched,no production/helper/package changes,no new Nick request.
+Transitive timeline/prefab/VFX/audio dependencies,video decoding,rendered pixels,
+audible output and physical input remain unqualified.250 adds observed original
+selection/registration and actual Concede-induced HQ-death callback sequences.
+Menu video selection/playback/switch/Back remains a separate runtime check.
+
+Artifacts:local/fatalities249-contract01/. Reproducible readers,definition/event/
+requirement JSON,27bound method bodies,installed comparison,direct-callers.json,
+review.py/review.json,runtime-check-plan.json,before/completed docs and manifest.
+Parser development corrected explicit null-reference entries,the shared managed
+reference registry,and zero-field payloads;final reads consume every tail byte
+and validate referenced IDs. These are static-reader corrections,not game fixes.
+
+SKIN PREVIEW POOL248 - OWNERSHIP / REUSE CHECKED OFF
+One fresh isolated native run selects core1,expansion55,worker58,then core1 via
+the original picker without equipping. Each current unit is absent from its
+pool's available stack;each distinct previous unit is present after switching.
+Each sampled pool has CountAll=1,available=0 while borrowed and1 after return.
+Returning to core1 reuses the exact original instance (-18578),with no second
+allocation in that pool. The optional created-object tracker is absent;no claim
+depends on it. Original Back hides the scene,clears Unit3DRenderer.Unit and
+returns the final unit to the available stack. Full17-slot loadout is unchanged.
+
+Returned units still report activeInHierarchy=true. This is retained pooled
+state in the observed sequence,not evidence of leaked preview ownership.
+Original release trace supports the observed contract:UnitPreviewScene.Release
+(3b72f80) calls Unit3DRenderer.CleanupUnit (3d3e090);that returns through
+UnitPoolManager.Release (3be9770) and generic Pool.Release (22bb790),then clears
+the renderer reference. Generic release calls OnReleasedToPool and pushes into
+the available stack unless the pool is full. This does not qualify every pooled
+component's behavior,rendered pixels,audio or in-match effects.
+
+248 adds an explicitly opted-in -cosmetics-preview-pool-smoke diagnostic mode
+with four selections. It samples original pool ownership without changing pool
+behavior. The original247 report and strict active-object assertion remain
+unchanged;248 is a separate passing targeted check,not a rewrite of that failure.
+No screenshot is requested in pool mode;247's14black captures stay unqualified.
+Ordinary launchers and gameplay behavior are unchanged;no new Nick request.
+
+Native01 pid34840,profile nativestest_skins_36f48eeeb025:PASS,original confirmed
+Quit0,natural exit,job total1/active0/terminated0,no forced cleanup. Shared
+settings and source files unchanged. Full helper build/C++ checks pass;8focused
+evidence tests pass on Python3.12/3.14,including rejection of missing returns,
+uncleared renderer,fake reuse and a current unit still in the available stack.
+Artifacts:local/skins248-pool01/{before,static,helper01,native01,source-final,
+completed};install01.txt,tests312.txt,tests314.txt,completion-review.json and
+completion-manifest.json. Native proof JSON/logs remain in game/investigation/
+runtime. Original release bodies and source/helper receipts bind this scope.
+Follow-up249 resolves both fatality definitions and the static trigger/loading
+route. Visual/audio/physical and broader D3 acceptance remain open.
+
+SKIN PREVIEW RUNTIME247 - EVENT APPLICATION COMPLETE / CLEANUP OPEN
+Historical result:248 above resolves the pool-ownership concern with new evidence.
+New explicitly gated diagnostic uses the acquired original cosmetic picker,
+OnSelectItem and Back with a fresh isolated nativestest_skins_ profile. Normal
+launchers do not request it. It derives all13skins from the installed three
+configured slots,interleaves the families,and returns to the first skin without
+equipping or changing the full saved loadout. Source:cosmetics_preview_smoke.cpp,
+tools/verify_skin_previews.py and tests/test_skin_preview_evidence.py.
+
+Native02 records all14selections:matching selected skin/unit/event parameters,
+loaded EventConfigAsset and every one of its event objects present in the unit's
+root EventTriggerRequirementCache. There are82registered event appearances over
+the14selections,not82distinct effects. The helper checks exact original lookup
+bytes and resolved generic method names/pointers before looking up already-loaded
+assets. It does not load missing assets to make the observation pass. Original
+Back releases the acquired picker,returns to idle main with empty navigation and
+LoadingCount0,and hides the preview scene;full17-slot selection stays unchanged.
+
+OVERALL native02 REMAINS FAILED:the retained last unit reports activeInHierarchy
+after Back,and each distinct prior unit also reports active when switching.
+This does not by itself distinguish intentionally pooled objects from a leak.
+Original Unit3DRenderer.CleanupUnit calls UnitPoolManager.Release then clears its
+Unit field;the missing check is whether these retained objects actually returned
+to the intended pool and stopped owning render/event resources. Do not waive the
+cleanup gate,declare a product leak,or repeat all13event checks merely to settle
+that narrower ownership question. Next:targeted switch/Back pool-lifetime check.
+
+All14ScreenCapture images are uniform black (960x540). The automated window was
+hidden;neither image hashes nor live native objects establish visible rendering.
+Physical picker input,visual appearance,in-match effects and audio stay open.
+No repeat visibility troubleshooting or new Nick request was added.
+
+Native01 failed an incorrect diagnostic assumption:Unit.EventCollections was
+treated as the selected cosmetic list. Original UIPresentationTake passes a
+separate cosmeticEvents array into Unit.RegisterEvents and its EventRunner;
+the public base collection is not replaced. Native02 instead compares loaded
+event object identities with the actual cache. Native01 stays FAILED. Native02's
+failure cleanup required an explicit owned Quit gate after Back had completed;
+the controller now recognizes that recorded failure-return state for cleanup
+only. Six evidence/cleanup controls pass on Python3.12 and3.14;this controller
+follow-up is source-tested,not a third native run. Both helper builds/C++ suites
+passed. Both native runs finish original confirmed Quit0,job1/0/0,no force,and
+unchanged shared settings. Native02 takes95.078s including diagnostic investigation.
+
+The failure gate note initially hypothesized activeSelf. Exact metadata binds
+the sampled getter to activeInHierarchy;the supplemental review corrects that
+note without changing the original report. No cleanup acceptance is inferred.
+All artifacts stay in ignored local/skins247-preview01/:native01/native02,
+their frozen diagnostic sources,helper01/helper02 receipts,static byte slices,
+native02-retained-review.json and completion-manifest.json. Helper02 SHA256:
+f1515ae88cdded32b95e769bacf712d7ce6c08e72e8008efc4649f1751c7c6f2.
+Only the independent diagnostic game was patched;no package/publication or
+user-owned game/server change.246's static evidence remains unchanged below.
+
+SKIN PREVIEW ACTIVATION246 - STATIC CONTRACT COMPLETE
+All13core/expansion/worker definitions now have fully decoded managed-reference
+tails. Embedded referenced-type schemas establish an event-collection key and
+picker sprite reference per skin. Each192-byte tail is completely consumed;
+reference-array IDs join uniquely to registry IDs without assuming their order.
+The13skins select12distinct event collections and12distinct sprite GUIDs. Two
+expansion skins share an event collection;that alone is not a defect. All24GUID
+targets resolve in the pinned original Addressables catalog with their expected
+EventConfigAsset/Sprite types. This does not establish dependency loading or
+visual equivalence. Other cosmetic families' metadata tails were not decoded.
+
+Original IL2CPP method tokens/module tables bind the selected-key overload of
+SelectUnitCosmeticPreviewVM.UpdateSelectedUnitCosmetic at3ca7660:store the skin,
+call GetSelectedUnitCosmeticEvents,store its array,and UpdateUnitPreview. That
+method dispatches IMenuSceneManager.ShowPreview through interface slot4. The
+bound concrete MenuSceneManager.ShowPreview calls LoadPreviewContent;that loads
+the preview scene as needed and calls LoadUnitAndCosmetics. The latter passes
+the event array into AssetMemoryExtension.LoadUnitAsset and registers CheckDone.
+Its completion callback compares captured/current UnitPreviewParameters before
+reaching UnitPreviewScene.RenderUnit. TryShowContent also reaches that renderer;
+UnitPreviewScene passes the parameters to Unit3DRenderer.RenderUnit. This binds
+the static path;no generic alias is treated as evidence of a unique live caller.
+All14examined native method bodies match the current installed assembly bytes.
+Installed SHA256:fd67ed32e434838118c669112f4b6c32522b26ad1b2877696555bbdda6bf1728.
+This is a named-body comparison,not whole-build or transitive behavior acceptance.
+
+Runtime check selected at246 (attempted at247 above):use an isolated owned copy/profile and the original
+acquired picker OnSelectItem for all13skins. Observe matching skin/event keys,
+original scene/asset completion,scene parameters and the renderer's instantiated
+Unit. Inspect event application and a visible capture for each skin;non-null
+objects alone do not pass rendering. Switch between families and back,checking
+old preview/unit ownership cleanup and stale completion handling. Finish with
+original Back/normal Quit and complete owned-process cleanup. Do not repeat the
+catalog/filter/persistence matrix or use the reserved manual N13 game. Physical
+picker input,in-match effects and audio remain distinct outstanding claims.
+
+REA native engines remain unavailable;this uses the existing original-byte LLVM,
+PE/IL2CPP and bundle readers. No game launch,product/helper/package modification
+or new Nick request. Initial diagnostic assumptions about registry ordering and
+Windows filenames were corrected;the prior scripts remain retained. No product
+fault was established. Original hashes,method tokens/body ranges,decoded data,
+13-case runtime-check-plan.json and review.json are retained under:
+%LOCALAPPDATA%/BattleAcesDiagnostics/local/skins246-contract01/.
+Review SHA256:a24efff6a50738b966597a61bd11f670e2328b2130b864eae9d1b56cd429c05e.
+Generic selector internals and every event-config payload/dependency are not
+fully reconstructed. All-item rendered preview/effect/audio acceptance stays open.
+
+HISTORICAL CONTRACT AND QUALIFICATION (original scopes retained)
 Updated:2026-10-19 UTC. Catalog and experimental picker ownership qualified.
 Local select/Equip/confirm/swap and full17-slot persistence now pass bounded
 native qualification; see cosmetic-persistence.txt. Real gestures,all-item effects

@@ -103,7 +103,7 @@ class RemoteConfigResolver:
         return await asyncio.to_thread(self.read)
 
 
-def verify_game(root, *, community=False, bridge_version=1, unified=False, player_features=False):
+def verify_game(root, *, community=False, bridge_version=1, unified=False, player_features=False, replay=False):
     from client_patch.patcher.patch_client import contained_path
     if type(bridge_version) is not int or bridge_version not in (1, 2):
         raise LaunchError('Unsupported private transport version')
@@ -137,6 +137,8 @@ def verify_game(root, *, community=False, bridge_version=1, unified=False, playe
                         raise LaunchError('Install a helper supporting secure transport ABI2')
                     if unified and b'BA_RESURRECTION_UNIFIED_CLIENT_V1' not in helper:
                         raise LaunchError('Install a helper supporting the unified client lifecycle')
+                    if replay and b'BA_RESURRECTION_REPLAY_ENTRY_V1' not in helper:
+                        raise LaunchError('Install the current client patch to watch replay files')
                     if player_features:
                         markers = (b'BA_RESURRECTION_PUBLIC_QUEUE_V1', b'BA_RESURRECTION_COSMETICS_UNLOCK_V1',
                                    b'BA_RESURRECTION_COSMETICS_PERSIST_V1', b'BA_RESURRECTION_NATIVE_DECK_INPUT_V1',
@@ -229,6 +231,11 @@ def game_arguments(config, player_id, handle, args):
     else: result.append(f'-player-id={player_id}')
     result.append('-local-profile=' + profile)
     if unified: result.append('-unified-client')
+    replay = getattr(args, 'replay', None)
+    if replay is not None:
+        if not unified or not isinstance(replay, str) or len(replay) > 32000 or any(ord(c) < 32 for c in replay):
+            raise LaunchError('Replay selection requires a valid local filename and the unified client')
+        result.append('-replay-file=' + replay if replay else '-replay-select')
     if getattr(args, 'player_features', False):
         if not unified: raise LaunchError('Player features require the unified client')
         result.extend(('-public-queue-experimental', '-local-cosmetics-experimental'))
@@ -275,7 +282,8 @@ async def launch(config, remote, args):
     version = 2 if unified or getattr(args, 'dynamic_identity_experimental', False) else 1
     native_storage_preflight(config)
     verify_game(config['game_directory'], community=unified or getattr(args, 'community_experimental', False),
-                bridge_version=version, unified=unified, player_features=getattr(args, 'player_features', False))
+                bridge_version=version, unified=unified, player_features=getattr(args, 'player_features', False),
+                replay=getattr(args, 'replay', None) is not None)
     parent, child = socket.socketpair(socket.AF_INET)
     parent.setblocking(False)
     writer = task = None
@@ -294,7 +302,12 @@ async def launch(config, remote, args):
                 print('Secure transport ended; close the game before relaunching', flush=True)
                 reported = True
             await asyncio.sleep(.2)
-        return game.wait()
+        code = game.wait()
+        if code == 78:
+            raise LaunchError('Game startup failed. Close programs using the game folder, check file access, '
+                              'and repair the supported game files if needed, then start the client again. '
+                              'See the local game log for details.')
+        return code
     finally:
         child.close()
         if task is not None:

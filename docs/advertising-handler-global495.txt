@@ -1,0 +1,30 @@
+D5 / P9 - AdsIdHandler global direct-reference boundary
+
+2026-10-31. Read-only pinned pristine UnityPlayer and current recipe44
+source review PASS. No game,provider or advertising ID was invoked.
+P9/D5 remain OPEN,RUNTIME_VALIDATED=false.
+
+tools.review_ads_handler_global495 scans the one mapped .text section for
+MOV/LEA RIP-relative references to s_AdsIdHandler at RVA1c0af00. It finds
+exactly two candidates,byte-checks and decodes them:LEA at17950 in the
+dynamic initializer,and MOV at5fbad in the public
+Application_CUSTOM_RequestAdvertisingIdentifierAsync. This confirms the
+prior Ghidra direct-reference result449 with raw instruction arithmetic.
+
+The only absolute qword occurrence of the global address in the pristine
+file is at1c0af60,inside its RuntimeStatic descriptor. The next two qwords
+name StaticInitialize(361870) and StaticDestroy(3617c0). Current recipe44
+returns at StaticInitialize before it constructs the handler/list,and the
+public request returns false before its MOV/global read and managed callback
+queue. The source-generated UnityPlayer SHA is pinned in the receipt:
+local/privacy495-handler-global01/verification.json SHA256
+02da85020069859eef7705dcba8f3f18e3743118805b94e436d6709325a86bba.
+
+This bounds the named handler-global route in fresh patched code. The
+MOV/LEA scan does not exclude computed aliases,helper-passed pointers or
+other instruction forms. The separately constructed AnalyticsCoreStats
+IAdsIdListener object and c307c0 callback remain;their native provider or
+registration edge is not established by this global-reference check.
+Use a positive provider/registration edge or an effective pre-acquisition
+cut for that independent route before closing P9. Published174 remains an
+older recipe23 release;final installed privacy and whole P7/D5 stay open.

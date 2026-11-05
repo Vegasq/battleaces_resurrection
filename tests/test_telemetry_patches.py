@@ -99,10 +99,10 @@ class TelemetryPatchSafetyTests(unittest.TestCase):
 
     def test_only_reviewed_recipes_are_present(self):
         self.assertFalse(RUNTIME_VALIDATED)
-        self.assertEqual(RECIPE_VERSION, 23)
-        self.assertEqual(len(COMPONENTS["GameAssembly.dll"].patches), 63)
+        self.assertEqual(RECIPE_VERSION, 47)
+        self.assertEqual(len(COMPONENTS["GameAssembly.dll"].patches), 108)
         self.assertEqual({p.rva for p in COMPONENTS["UnityPlayer.dll"].patches},
-                         {0xC34270, 0xC3BAFC, 0xC478F5, 0xC90C2A, 0x80366F, 0x803C92, 0xC93D10, 0xD84EC6, 0xD84E3E,
+                         {0x361870, 0x5FB70, 0xC34270, 0xC64E20, 0xC3BAFC, 0xC478F5, 0xC90C2A, 0x80366F, 0x803C92, 0xC93D10, 0xD84EC6, 0xD84E3E,
                           0x292110, 0xC8C5F3, 0xC66C20, 0xC2F570, 0xC333DA,
                           0x2078B0, 0xC2F3FC, 0x207A60, 0xC381D0, 0xC37400,
                           0xC33440, 0x1FD3A0, 0x1FDA50, 0xC392C0, 0xC2E240, 0xC40840, 0x20C560,
@@ -325,6 +325,13 @@ class TelemetryReplacementExecutionTests(unittest.TestCase):
                                  ctypes.c_void_p, ctypes.c_void_p, ctypes.c_uint, ctypes.c_void_p)
         self.assertEqual(invoke(None,None,0,None),0)
         self.assertEqual(invoke(1,1,0xffffffff,1),0)
+
+    def test_public_advertising_request_declines_before_callback_rooting(self):
+        patch = next(p for p in COMPONENTS['UnityPlayer.dll'].patches if p.rva == 0x5fb70)
+        self.assertEqual(patch.replacement, bytes.fromhex('31c0c3'))
+        invoke = self.executable(patch.replacement, ctypes.c_ubyte, ctypes.c_void_p)
+        self.assertEqual(invoke(None), 0)
+        self.assertEqual(invoke(1), 0)
 
     def test_configuration_tail_branch_preserves_borrowed_argument_registers(self):
         patch=next(p for p in COMPONENTS['UnityPlayer.dll'].patches if p.rva==0xc2f790)

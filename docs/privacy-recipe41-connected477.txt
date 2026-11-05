@@ -1,0 +1,45 @@
+D5 / P5-P7 - recipe41 private connected pair compatibility
+
+2026-10-31. Source-bound private recipe41 client/server pair PASS in one
+public1 two-human match. P7/P9/D5 remain OPEN,RUNTIME_VALIDATED=false;
+published174 stays recipe23. No real SDK queue file was read,seeded or cleared.
+
+The current dirty source recipe41 adds the CacheManager.RemoveExpiredPayloads
+entry guard at476. The source-aware private package builder used the pinned
+Python3.14.8 archive,unchanged source-receipted helper461,client installer,
+certificate tool and server launcher. It produced
+local/privacy477-packages01. Both client/server package inventories verify;
+the packaged telemetry.py bytes equal current source. The first build command
+pointed to the installer output directory rather than its nested executable
+and stopped before package creation;the corrected build succeeded.
+Client ZIP SHA256 f09e9c4a7bbbef6f9eb7936cbad10f840cca54d9e8181b49e98b9495485218d5;
+server ZIP SHA256 1245d00936565559f56f83ccd0bd9a40025f8848a2c85a51737b9fd5cfe3049a.
+
+The owned local/privacy476-game01 installed game has recipe41 in its manifest.
+Its GameAssembly.dll is byte-identical to the current patcher's pristine-input
+community+cosmetics recipe41 output,SHA256
+bc56260c985bcde5ae352654727ab88f89d28dd4f5754508e085fe860096dacc.
+The helper SHA256 is
+59aebb2db4a6778f817e6135b6ba767f54f1087cac69d9b65b5fda009fbb276f
+and matches both packages. The original GameAssembly backup still matches its
+pinned pristine SHA256.
+
+tools.verify_packaged_multiplayer used production RC open admission on an
+isolated TLS host and two production native clients. The public1 match
+completed1220 frames;both clients reached result,original Continue/menu/
+Quit Confirm and game exit0. Both simulation workers exited0 and were
+reaped. Host/client Jobs total5/2/2 processes,all active0/terminated0;
+there was no forced cleanup. The host listener and state lock released.
+Package,assets,config,shared settings and verifier source snapshots remained
+unchanged. tools.review_recipe41_connected477 PASS independently binds
+current source,helper/package archives,installed recipe41 image,match,
+native Quit and Job/worker receipts. Retained report:
+local/privacy477-connected01/verification.json,SHA256
+052234713ffb68d147f40e9ca9cb89b79023e4c2acb6ed4d52cb9d71bc95f941;
+independent review:local/privacy477-connected01/review477.json.
+
+This closes one changed-recipe connected compatibility check. It does not
+observe actual SDK queue reads/retry,prove whole source/wire/descendant
+attribution,qualify other modes on recipe41,or resolve the independent native
+advertising-ID producer. These are private development packages,not final
+installers or a publication candidate.

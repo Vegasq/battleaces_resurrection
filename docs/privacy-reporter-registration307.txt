@@ -1,0 +1,57 @@
+D5 / P7 - SDK AddOnSendError registration entry cut in source recipe28
+2026-10-28. Source/owned installed entry subcase PASS;P7/D5 remain OPEN.
+
+Original IL2CPP metadata binds BugsnagUnity.Configuration.AddOnSendError to
+method index163618,token60000e3,nonvirtual flags0x86,one argument and the
+same void return type as Subs. The BugsnagUnity.Windows.dll codegen table maps
+that method to GameAssembly RVA81b2b0,unwind end81b493. Its complete decoded
+116-instruction body reads Configuration+160/+168 and can append the borrowed
+OnSendError delegate to the configuration collection. All six mapped-section
+direct E8 calls to this method are the known BugsnagCrashReporter.Subs sites;
+indirect callers remain possible.
+
+Source recipe28/138 adds an exact-build RET at this SDK registration method's
+entry. This cuts registration through AddOnSendError before reading either
+receiver or delegate,including independent callers that bypass guarded Subs.
+The rest of its original body stays byte-identical. It does not clear already
+registered callbacks or cover a different API that writes the collection.
+tools/verify_reporter_registration307.py PASS pins original GameAssembly and
+metadata hashes,method identity/codegen/unwind,116 decoded instructions,six
+direct call sites and the source entry-only transformation. GameAssembly-only
+recipe28 output SHA256:
+2568beb2ed9deeda4e15941483889da53870ecbf05491d3c78455e4376b34739.
+Ignored raw disassembly SHA256:
+3b488d1c1fcd86e5fea54f82f9a072d20dd840483c6f60f8ea7a35e47260f1dd.
+Python3.12 and3.14 each pass73 focused audit/patch/crash-gate/callback tests
+with two optional asset skips.
+
+The native helper built at local/privacy307-helper-build01;SHA256:
+2925df0d272b6c1d382729c62e6e5d5a0d6724438369437c86c4824eeefe4c38.
+Its build receipt SHA256:
+212a3cc3a4aeae993b4f094b51ff6d58493993aa5075034bdceef9d4c9bb188c.
+Normal installer dry run and install each checked all133 bundles in the owned
+local/privacy301-runtime01/game copy. It now records recipe28/138 and73
+GameAssembly patches. Installed GameAssembly SHA256:
+5ae396233c1e48ec6a2043051030595d12c071bcdc4cc4a5b1ccf51a8aaeccb1.
+Installed manifest SHA256:
+aab2666d7c7a48223121015fd6f60f803a5fcbe5b750b63ebd5c965d919d8eff.
+
+One explicit owned menu diagnostic checked the loaded RET and intact tail,
+then called only that guarded void method with unreadable borrowed receiver
+and delegate pointers. It returned;the observer detached and original Quit0
+drained the owned job without forced cleanup. REA evidence ID:
+ev_923489f2ac2bb950fe14d4e5b3ae46d42e1ae53b163c705ace41f080d4e44052.
+Script tools/frida_reporter_registration307.js SHA256:
+8b3aa6b6557e2d2f956a23a6e4cae0625b5949e01b650a00eff5df0d3f107caa.
+Ignored verification.json SHA256:
+270103a3dce140e49a55abcb4444078a31023acb178933bcebc1605267bc8dc7.
+A separate owned default-menu Confirm passed natural exit0 in14.891s with the
+read-only audit reporting recipeVersion28,reporterCallbackSignatures7/7,
+reporterEnabledSignatures2/2 and reporterRegistrationSignatures1/1.
+Verification.json SHA256:
+b08fb24f1f1dc7fcecfa94a839b0d0ee2e6362a217cfd050f77a55f39372a379.
+
+This closes fresh registrations through the named SDK method in this installed
+recipe. Other list writers,retained/in-flight owners,actual SDK queue/file/
+retry/wire,all-thread/descendant paths and final release remain OPEN.
+Published174 is still recipe23. RUNTIME_VALIDATED=false.

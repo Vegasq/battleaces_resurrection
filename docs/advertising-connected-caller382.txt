@@ -1,0 +1,40 @@
+D5 / P9 - advertising callback witness in current private connected public1
+2026-10-30. Bounded owned runtime PASS;P9 and full D5 OPEN.
+
+The current recipe38 private pair358/helper357 ran one two-human RC-open
+public1 match in the owned301 game. The packaged verifier passed native
+result/Continue and original normal Quit0 for both clients in139.484s,
+without forced cleanup. Server and client Jobs ended5/2/2 total,all zero
+active/terminated;both simulation workers exited0 and were reaped.
+
+Each native game was created suspended. A separate Frida caller witness was
+installed on the byte-bound c307c0 callback before the main thread resumed.
+Both complete,untruncated streams ran from that installed boundary through
+the first original self-TerminateProcess entry with status0. Both report
+calls0,records0,suppressed0,retention guard intact,hook detached and no
+script errors. This is a new connected activation path beyond182's Try Deck
+run. Zero bounded calls supply no upstream acquisition absence proof.
+
+tools/ads_connected382.py prepares only an owned current recipe38 game and
+RC-network profiles;normal launchers are unchanged. The hook remains
+incompatible with the separate native field auditor,so this run did not
+claim field/queue/file/network/descendant coverage. The200ms diagnostic
+exit hold and Frida loader work before main-thread resume also bound the
+interpretation. The diagnostic never reads identity arguments, invokes the
+callback, accesses the real report queue or sends an original report.
+
+tools/review_d5_ads_connected382.py independently checks the exact source,
+game/helper/package/assets,prelaunch gates,Frida session/script identities,
+ordered callback/exit messages and owned process/job/worker lifetime. PASS.
+Retained ignored artifacts:
+ local/privacy382-ads-connected01/verification.json
+ SHA256 aece5db4219d15aa73eb81c79df6cc8031664fd40c0354c0b908b4daad4c1260
+ local/privacy382-ads-connected01/ads-review.json
+ local/privacy382-ads-connected-trace01/rea-evidence.json
+ SHA256 d62dd9ca5045e919f57500ec92027ac6025b6e6fbaa65b69776d884bbd3dd72f
+
+The preflight generator first rejected the wrong profile spelling before
+writing any scripts;the corrected generator then passed. P9 needs a positive
+producer/registration edge or a defensible pre-acquisition cut. Do not
+repeat this quiet connected match without a changed route or concern.
+Published174 and RUNTIME_VALIDATED=false are unchanged.

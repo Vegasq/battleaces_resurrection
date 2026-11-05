@@ -1,0 +1,36 @@
+D5 / P7 - recipe47 authored SDK queue during ordinary connected public1
+
+2026-10-31. The named owned two-client public1 run passed. This is a bounded
+P7 queue/send observation,not final D5 closure. RUNTIME_VALIDATED=false and
+published174 is unchanged.
+
+tools.verify_packaged_multiplayer now offers --preexisting-sdk-queue only with
+its prelaunch observer,two humans,RC-open public mode1. It seeds one authored
+.event and one .session under each fresh owned local profile before process
+creation and snapshots their bytes and file identities at completion.
+
+local/privacy524-public1-queue01/verification.json reports passed=true,
+two human seats,1220 frames,a completed result,zero active Job processes,
+and preexisting_queue_unchanged=true. Source,packages,assets,adapter and
+shared channels were unchanged. Report SHA256:
+3e540bb4ac24aee81f65714d4abf77edb0888fc09bc4ff765821b0e83aaf28eb.
+
+REA Frida attached to both suspended clients before main-thread resume.
+Both observers armed native file/socket/exit hooks and five exact-byte active
+SDK entry hooks before release. Both sessions detached naturally with no
+message truncation,script errors,or overflow. Each recorded zero for the
+five SDK entries;both recorded positive bridge send/recv and no WinHTTP
+connect. No selected queue-root file operation was emitted during these
+ordinary connected runs. The authored files were still byte-identical at
+the end. Each observer retained nine unresolved invalid-handle file writes;
+those are not classified as queue-root operations. REA evidence bundle:
+local/privacy524-trace01/rea-evidence.json SHA256
+d0dbe799c6919b5b4904d590e268dcaca9428c0540e9abba4b421d811eeac3b0.
+tools.review_recipe47_queue_connected524 independently rechecks the
+retained run,authored file identities and bytes,prelaunch PIDs,source
+hashes,untruncated observer messages,SDK hooks and exit counters:PASS.
+
+This closes the named authored-queue ordinary connected cut only. It does
+not establish behavior of a real previously produced queue,an in-flight
+request,resumed delivery,all supported modes,whole outbound wire,or P9's
+advertising-ID producer. P1-P8 final claims and final installed pair remain.

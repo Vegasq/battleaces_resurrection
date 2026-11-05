@@ -1,0 +1,33 @@
+D5 / P3 - authored Tutorial01 objective and final marker
+
+2026-10-30. Shipped-asset/static subcase PASS;P3/D5 OPEN.
+
+The shipped Addressables catalog maps ObjectiveController.asset to the
+96.6MB dcdf94ddb3d497da5d019d2532d55e07.bundle. The parsed bundle's
+16 addressable objects include that controller. The Tutorial01 visual-
+scripting asset FTUEtutorial references both the first observed objective
+2_Expand_2_Built and the FinalComplete marker.
+
+The authored 2_Expand_2_Built objective depends on 2_Expand_1_SelectHQ.
+Its sole condition is UnitTypeProduced with unit type18 and required count1.
+The description variables are HotKeyName=Z and
+UnitName=LOC[ExpansionBuilt]:[Units]. This narrows the real action needed
+to progress after431's first objective;it does not assert a key press alone
+completes it or describe a safe placement location.
+
+FinalComplete has an ObjectiveSkippedEvent containing a named
+MarkFTUEFullyComplete action. Shipped metadata maps that action's Execute to
+RVA6af170;both original and recipe38 contain C2 00 00 (immediate return).
+The named action therefore cannot itself prove that the tutorial success flag
+is set. Genuine objective/result flow and the separately preserved
+MarkTutorial01Complete call remain unobserved. Do not invoke the marker or
+set flags to manufacture a completion result.
+
+Reviewer:python -m tools.review_tutorial_objectives433 --output
+local/privacy433-objectives/review.json (PASS). It parses the shipped catalog,
+checks the unique bundle difference from FTUEGame.asset,loads that one bundle,
+checks authored objective references/conditions,and maps the final action to
+original/current native bytes. UnityPy was isolated under ignored
+local/d5-unitypy. Retained ignored report:
+local/privacy433-objectives/review.json.
+RUNTIME_VALIDATED=false;published174 unchanged.

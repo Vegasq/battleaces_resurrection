@@ -1,0 +1,43 @@
+D5 / P5-P8 - current private packaged Python socket mode matrix
+2026-10-30. Bounded public2/public5/Custom subcases PASS;full D5 OPEN.
+
+377 established an endpoint-only CPython audit in the packaged host and two
+client adapters for current private public1. The same opt-in diagnostic was
+extended to the other three supported connected-mode paths,without changing
+the packaged programs or normal launchers. Every driver was created suspended,
+assigned to its no-breakaway Job,then resumed before its script-entry audit.
+
+The recipe38 private pair358/helper357 and owned301 game/assets passed:
+* public2,two human/two bot,one full match/result/Continue/normal Quit0;
+* public5,two human/two bot,one full match/result/Continue/normal Quit0;
+* Custom,two human/two matches,changed host deck,guest/host Leave and
+  normal Quit0.
+All three bundled host/client runs had workers reaped,Jobs drained and no
+forced cleanup. The exact source/package/helper/asset binding and the
+Custom lifecycle were checked independently.
+
+For each mode,the host driver's complete script-entry-to-interpreter-exit
+journal has three loopback binds and two loopback connects. Each of the two
+client driver journals has two loopback binds and two loopback connects.
+There is no recorded DNS lookup or non-loopback socket endpoint,overflow or
+unfinished journal in these three runs. The authored positive DNS/bind control
+from377 is reused. tools.review_d5_python_modes378 PASS checks all events,
+PIDs,source hashes,exact generated prelude and source/package/mode results.
+
+Ignored evidence SHA256:
+ local/privacy378-python-mode2/verification.json
+ 886be22faff815393fd582923aafafe0e9a785e758fac2872778e3380cf55601
+ local/privacy378-python-mode5/verification.json
+ 449c20d128e8e0eafc0ebc498d9ea4fc2bb0d4b41355e9cf46cc9f980c643b1d
+ local/privacy378-python-custom/verification.json
+ 3943c855f9f3ab1b0dcc74be3432d278b3991b139e0579971a286b35cb77d56f
+ local/privacy378-python-modes-review.json
+ e5a47f68b8c949b2aff2d3fb6c335848c271667189bdf061875aaba9d808d862
+
+Together with377,this is a finite current private two-human public1/2/5
+and Custom CPython host/adapter endpoint matrix. It covers events emitted
+after those driver scripts start through normal interpreter exit. It does
+not cover native/ctypes bypasses,interpreter startup,the separate simulation
+workers,other player counts/credentials/configurations,kernel packet traffic,
+SDK queue contents or final installed artifacts. The independent advertising
+producer P9 and full P5-P9/D5 remain OPEN;RUNTIME_VALIDATED=false.

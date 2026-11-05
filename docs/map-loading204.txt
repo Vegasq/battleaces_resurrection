@@ -1,0 +1,85 @@
+CLIENT MAP-LOADER OWNERSHIP204
+2026-10-26. Static boundary established;safe cancellation and D4 remain OPEN.
+
+RESULT
+MapManager.get_IsLoading describes its scene-operation handle,not completion of
+the entire map-load coroutine. It cannot replace the existing GameServer map-load
+and native-world recovery guards. The iterator's Dispose is an empty return;
+disposing it does not establish scene cancellation or cleanup. Product unchanged.
+
+POSITIVE BINDINGS
+Original IL2CPP metadata binds type1563 <LoadCoroutine>d__18 and type1564
+MapManager to the reviewed methods and native field-offset table. Factory3dbb660
+captures MapManager at iterator+18,mapAddress AssetReference at+20,and complete
+Action at+30. Retained sim-create-game.asm agrees:RSI is reassigned to the newly
+allocated AssetReference at3e679e7 before this capture. It is not Simulation at
+that point. The caller invokes MEC.RunCoroutine at3e67b93 and does not retain
+the returned handle. This does not establish global absence of other owners.
+
+get_IsLoading3dbb340 reads manager+20 and its version at+28,checks the operation
+version,and negates generic predicate78c30. Null/invalid handles return false.
+It does not inspect _existingLoadRunning+70,scene activation,InitMap or completion.
+The generic predicate's precise metadata name is unresolved in this review;
+its use in the MoveNext readiness loop establishes the narrower phase boundary.
+
+MoveNext3dbcf80 has seven dispatch states. It waits for _existingLoadRunning to
+clear before entering a new load. The new-map branch sets that flag at3dbd382,
+loads the scene through3b217e0,and stores the operation handle in manager+20.
+State3 waits for that handle's predicate and any prior unload operation. Only
+afterward does it enable scene activation and wait for AsyncOperation.isDone
+(state4),InitMap through MEC.WaitUntilDone (state5),and minimum display duration
+(state6). Completion Action is invoked at3dbd929 BEFORE flag clear at3dbd931.
+An exception can therefore bypass the normal flag clear;no exception-safe cleanup
+contract was established. The same-map branch has separate delay/root restoration,
+completion and SetActiveScene behavior;it is not a new scene-load cancellation.
+
+Metadata binds IDisposable.Dispose to6af170,whose exact three bytes are c20000
+(ret0). It is a shared empty leaf without an unwind entry. MapManager's reviewed
+Simulation_SimulationShutdown body releases map components/deactivates roots;
+it does not establish cancellation of the asynchronous loading iterator.
+No direct cancellation/generation guard appears in these four bodies. Scheduler,
+virtual and generic internals remain outside this result;no global absence claim.
+
+PRIOR EVIDENCE REUSED
+local/p2-custom-abort-native.txt:the map-loaded closure creates the native world,
+invokes creation callbacks and starts the simulation thread before clearing the
+GameServer map-load flag. CleanupGameState does not establish map-load cancellation.
+local/p2-practice-ai-lifecycle.txt:human readiness separately waits for asset
+prewarming after world creation. A created world is not proof of ready-to-play.
+local/ordinary-player-custom-loading-abort05/verification.json already covers a
+loading abort followed by two completed rematches;final forced cleanup was not
+normal Quit. No repeat game launch or broader acceptance claim was made here.
+The existing120s recovery diagnostic retains native roots and requires restart
+when teardown cannot finish. Keep it until a safe cancellation contract is proved.
+
+VERIFICATION
+tools/review_map_loading.py verifies pinned original PE/metadata,method pointers,
+field offsets,complete merged-unwind body bounds,953 contiguous instructions,
+selected semantic anchors/direct edges and installed body equality. MoveNext's
+last28bytes are the seven-entry dispatch table,checked as data,not instructions.
+Four opt-in controls pass on Python3.12 (4.254s) and3.14 (4.347s),no skips:
+positive scoped binding;missing instruction,changed bytes and misleading capture
+text all reject. Set BA_MAP_LOADING_EVIDENCE=local/loading204-contract01 and run
+python -m unittest tests.test_map_loading. No original native code executes.
+
+Accepted report:local/loading204-contract01/verification01.json
+SHA256:711eba67f7485387a072b55fa75df0865da69b74437777bd2ddc2a54778f50eb
+Verifier:70ff7e30b7453214305ec2fdc8b9b1e05c59fcf68606751cb035fbea39cf9e08
+Tests:73be103c8afa7ce31ba01d802504c61b369686c33a3f8c6d7bca2fa070893e5c
+Original GameAssembly:e59d08c01479b27404778048d7e13546dbf3771f6b3912744c7c2bdf80c4e758
+Metadata:b760be9190309b14174cd272e1f83b730181b299bc7a0cdca66985c69dcdc57d
+Installed GameAssembly:f9e14f0b45134eb96e51c4cd7c3965049ae317a64734a364e43ab8325f35d3fa
+LLVM:5e7a457bf23033b6ec4a959d2276f09d44c024092529684d7eeb687d38da700d
+Body/assembly hashes are in the report. Prior planning bytes and final source/
+evidence inventory remain under local/loading204-contract01.
+
+BOUNDARY AND NEXT
+REA skill applied;native providers unavailable (Ghidra/IDA unconfigured,Hopper
+unsupported). Pinned LLVM/PE/metadata fallback supplies static evidence,not REA
+decompilation or runtime proof. No setup changes,launch,build or publication.
+Next missing claim:identify who owns the coroutine/scene operation after the
+Simulation.CreateGame caller discards its returned handle,and whether that owner
+offers cancellation that also prevents the completion callback from creating a
+world. Follow that concrete scheduler/operation boundary;do not repeat these
+four bodies or replace readiness with get_IsLoading alone. Until resolved,
+client slow-load recovery remains open and local preview203 stays latest.

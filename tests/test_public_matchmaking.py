@@ -87,6 +87,7 @@ class PublicQueueTests(DedicatedFixture):
         return offer.room
 
     async def play_frames(self, room, peers, count=3):
+        prior_legacy_frames = sum(kind == p.FRAME for peer in peers for kind, _ in peer.observed)
         for peer in peers: await peer.send(p.LOADED, hashlib.sha256(peer.bootstrap).digest())
         for peer in peers: await peer.receive(p.START)
         for number in range(count):
@@ -100,7 +101,8 @@ class PublicQueueTests(DedicatedFixture):
                 self.assertEqual(inputs[peer.slot], encode_player_input(room.match.identities_by_slot[peer.slot]))
             if room.bots:
                 self.assertEqual(room.sim.accepted_inputs[number], encode_frame(number, inputs))
-        self.assertFalse(any(kind == p.FRAME for peer in peers for kind, _ in peer.observed))
+        self.assertEqual(sum(kind == p.FRAME for peer in peers for kind, _ in peer.observed),
+                         prior_legacy_frames)  # Earlier Custom frames remain valid history.
 
     async def test_full_1v1_commits_once_after_both_acknowledgements_and_can_queue_again(self):
         await self.start_public()
@@ -147,6 +149,135 @@ class PublicQueueTests(DedicatedFixture):
         self.assertEqual(get_uint(room.match.armies_by_slot[1], 6), choice.portrait)
         self.assertEqual(peer.assignment['human_mask'], 1)
         await self.play_frames(room, [peer])
+
+    async def test_same_sessions_cross_public_modes_after_each_complete_return(self):
+        await self.start_public()
+        peers = [await self.online('sequence_a'), await self.online('sequence_b')]
+        sessions = [self.server.community.sessions[peer.profile] for peer in peers]
+        decks = [list(peer.deck) for peer in peers]
+        matches = []
+        for ticket, mode in enumerate((1, 2, 5, 1), 1):
+            with self.subTest(ticket=ticket, mode=mode):
+                for peer in peers:
+                    await self.queue(peer, mode=mode, ticket=ticket)
+                if mode == 2:
+                    self.assertFalse(self.public.offers)
+                    self.advance(30)  # Injected clock; not another real-time/native wait claim.
+                room = await self.accept(peers)
+                matches.append(room.match_id)
+                expected_seats = (0, 2) if mode == 5 else (0, 1)
+                self.assertEqual(tuple(peer.slot for peer in peers), expected_seats)
+                for index, peer in enumerate(peers):
+                    self.assertIs(self.server.community.sessions[peer.profile], sessions[index])
+                    self.assertEqual(list(room.match.decks_by_slot[peer.slot]), decks[index])
+                    self.assertEqual(peer.assignment['mode'], mode)
+                    self.assertEqual(peer.assignment['generation'], ticket)
+                await self.play_frames(room, peers)
+                await room.finish('authored sequence result', result={'complete': True})
+                for peer in peers:
+                    await self.public_command(peer, q.RETURN, match=room.match_id)
+                    self.assertIsNone(self.server.community.sessions[peer.profile].peer.room)
+                    self.assertFalse(self.public.busy(peer.profile))
+                await wait_until(lambda: not self.server.rooms and not self.server.worker_cleanup)
+                self.assertFalse(self.public.entries)
+                self.assertFalse(self.public.offers)
+                self.assertFalse(self.server.community.lobbies)
+                self.assertEqual(len(self.workers), ticket)
+        self.assertEqual(len(set(matches)), 4)
+        self.assertEqual(sum(event['event'] == 'community_joined' for event in self.events), 2)
+        self.assertEqual(sum(event['event'] == 'match_created' for event in self.events), 4)
+        self.assertTrue(all(worker.process.poll() == 0 for worker in self.workers))
+
+    async def test_custom_reconnect_public_custom_preserves_saved_players(self):
+        # Server side of T07/T08: real sockets/profile I/O, synthetic workers.
+        # The disconnected interval represents local play; it runs no native game.
+        # Author two interchangeable basic units, preserving real deck validation.
+        for entity in (100, 101):
+            self.template.catalog[entity]['deck_slot_flags'] |= 3
+        await self.start_public()
+        profiles = ('mixed_host', 'mixed_guest')
+        names = ('Mixed Host', 'Mixed Guest')
+        peers = [await self.online(profile, name, version=c.PORTRAIT_VERSION)
+                 for profile, name in zip(profiles, names)]
+        decks = [list(self.template.default_decks[index]) for index in range(2)]
+        decks[1][0], decks[1][1] = decks[1][1], decks[1][0]
+        self.assertNotEqual(decks[0], decks[1])
+        for peer, deck in zip(peers, decks):
+            await self.command(peer, c.SET_DECK, p.deck_bytes(deck))
+            peer.deck = deck
+        matches, lobbies = [], []
+
+        def assert_idle():
+            self.assertFalse(self.server.rooms)
+            self.assertFalse(self.server.community.lobbies)
+            self.assertFalse(self.server.community.invites)
+            self.assertFalse(self.public.entries)
+            self.assertFalse(self.public.offers)
+            for peer, deck in zip(peers, decks):
+                session = self.server.community.sessions[peer.profile]
+                self.assertEqual(session.deck, deck)
+                self.assertIsNone(session.lobby)
+                self.assertIsNone(session.peer.room)
+                self.assertIsNone(session.peer.slot)
+                self.assertFalse(session.saving)
+
+        async def custom_cycle():
+            lobby = await community_tests.CommunityTests.invite_pair(self, *peers)
+            lobbies.append(lobby.id)
+            room = await community_tests.CommunityTests.start_pair(self, lobby, peers)
+            matches.append(room.match_id)
+            for peer, deck in zip(peers, decks):
+                self.assertEqual(list(room.match.decks_by_slot[peer.slot]), deck)
+            for number in range(3):
+                await DedicatedFixture.advance(self, peers, number)
+            await room.finish('authored mixed Custom result', result={'complete': True})
+            await community_tests.CommunityTests.return_pair(self, lobby, peers, room.match_id)
+            # The retained native path leaves guest first, then host.
+            for peer in reversed(peers):
+                await self.command(peer, c.LEAVE, p.encode_string(lobby.id))
+            await wait_until(lambda: not self.server.rooms and not self.server.worker_cleanup)
+            assert_idle()
+
+        await custom_cycle()
+        old_sessions = [self.server.community.sessions[profile] for profile in profiles]
+        await asyncio.gather(*(peer.close() for peer in peers))
+        await wait_until(lambda: not self.server.community.sessions and not self.server.peers)
+        self.assertEqual(len(self.workers), 1)
+        self.assertFalse(self.server.rooms or self.server.community.lobbies or self.public.entries)
+        peers = [await self.online(profile, name, version=c.PORTRAIT_VERSION)
+                 for profile, name in zip(profiles, names)]
+        for index, peer in enumerate(peers):
+            session = self.server.community.sessions[peer.profile]
+            self.assertIsNot(session, old_sessions[index])
+            self.assertEqual(peer.deck, decks[index])
+            self.assertEqual(session.peer.name, names[index])
+            await self.command(peer, c.REFRESH)
+            self.assertTrue(any(kind == c.DIRECTORY_PORTRAITS for kind, _ in peer.observed))
+        assert_idle()
+        await custom_cycle()
+        sessions = [self.server.community.sessions[profile] for profile in profiles]
+        for peer in peers:
+            await self.queue(peer)
+        room = await self.accept(peers)
+        matches.append(room.match_id)
+        for peer, deck in zip(peers, decks):
+            self.assertEqual(list(room.match.decks_by_slot[peer.slot]), deck)
+        await self.play_frames(room, peers)
+        await room.finish('authored mixed public result', result={'complete': True})
+        for peer in peers:
+            await self.public_command(peer, q.RETURN, match=room.match_id)
+        await wait_until(lambda: not self.server.rooms and not self.server.worker_cleanup)
+        assert_idle()
+        await custom_cycle()
+        for profile, session in zip(profiles, sessions):
+            self.assertIs(self.server.community.sessions[profile], session)
+        self.assertEqual(len(set(lobbies)), 3)
+        self.assertEqual(len(set(matches)), 4)
+        self.assertEqual(len(self.workers), 4)
+        self.assertTrue(all(worker.process.poll() == 0 for worker in self.workers))
+        self.assertEqual(sum(event['event'] == 'community_joined' for event in self.events), 4)
+        self.assertEqual(sum(event['event'] == 'match_completed' for event in self.events), 4)
+        self.assertFalse(any(event['event'] == 'match_aborted' for event in self.events))
 
     async def test_partial_2v2_groups_stay_together_in_four_army_frames(self):
         await self.start_public()

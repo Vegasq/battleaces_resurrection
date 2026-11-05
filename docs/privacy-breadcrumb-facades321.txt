@@ -1,0 +1,60 @@
+D5 / P7 - public SDK breadcrumb facade entry guards
+
+2026-10-28. Source,owned install and loaded-byte audit PASS;P7/D5 OPEN.
+
+318 guards the concrete SDK Breadcrumbs.Leave overloads and the web-send
+callback.319 establishes Breadcrumbs as the only original metadata-declared
+IBreadcrumbs implementation. The public BugsnagUnity.Bugsnag.LeaveBreadcrumb
+facades still had independent entry work:the three-argument overload reads SDK
+state and dispatches through an IBreadcrumbs interface;the two-argument
+overload reads its supplied input before calling the guarded network-breadcrumb
+collector. Guarding only the downstream sinks did not prevent those reads.
+
+Recipe31 adds RET entry guards to both void facades:GameAssembly RVA811180,
+metadata token600006d,three inputs;and RVA8112a0,token600006e,two inputs.
+No caller-owned output,frame or acquired cleanup exists before entry. The
+shared interface dispatcher,the original web-completion/abort handlers and
+Unity networking stay unchanged. Recipe31 has144 guards:79 GameAssembly,
+63 UnityPlayer and two CEF.
+
+tools/verify_sdk_breadcrumb_facades321.py PASS binds both methods to original
+metadata and the BugsnagUnity.Windows method table,unwind bounds,complete
+decoded instruction/byte matches (67 and44),their void signatures,exact
+preimages and one-byte entry cuts. It checks the three-argument interface call
+and the two-argument input read/direct call to Client.LeaveNetworkBreadcrumb.
+Restoring only these two entry bytes reproduces recipe30 GameAssembly output
+SHA256 dd65e134d48a5da6c78ef69e48022027e89ad9ea6a5f300196d68f74e9bbf482.
+Current recipe31 output SHA256:
+b54d14c93d9621b22bac8311751b24e48e0e6e1c0d61fb93563451c59326c6d8.
+The307/317/318/319 source verifiers pass against recipe31.309/315 focused
+reviews pass against the upgraded owned GameAssembly.75 focused Python
+patch/audit/error/crash-gate tests pass with two optional skips;the C++ helper
+build and its tests pass.
+
+The owned local/privacy301-runtime01/game copy was upgraded from recipe30 to31
+with community/cosmetics options unchanged. Patcher dry run and install each
+verified all133 bundles. Installed GameAssembly SHA256:
+68a9b5ba4855b4833ad037fc1d09e2a15b494672309dd11bde39db8f90bb65f8.
+Native helper SHA256:
+2b8d04223536595c77f654bd9d659a57f7cc0129e041826ff9cc9da735ed6b8e.
+Manifest SHA256:
+6af79e5c1b8795fea94e82521b4ac43617b14a3bd8f6a888711aff86e616d4ef.
+Helper receipt local/privacy321-helper-build01/helper-build.json SHA256:
+2b80bf1d2399451fa97baabd5683902e1bf80a5a3691db19dafc9428db7701fd.
+
+The owned menu audit reports recipeVersion31,loaded/disk
+breadcrumbFacadeSignatures=2/2,prior breadcrumbCollectorSignatures=3/3 and
+networkBreadcrumbSignatures=1/1,with complete selected-field startup,menu and
+pre-Quit stages. Original Quit exits0 naturally in14.500s with no forced
+cleanup;owned process reaped,shared settings and source unchanged. This is
+loaded-byte and selected-field evidence,not an original facade invocation.
+local/privacy321-menu01/verification.json PASS SHA256:
+8ed6ab319f004366dc3264b1d92dd38485e73b58a1d073a05dfe1d9e7c246b1d.
+
+These cuts prevent either named public SDK breadcrumb facade from reading
+supplied content in the current owned recipe. Other SDK collection APIs,
+preexisting/in-flight work,real queue/file/wire,all-thread/descendant
+attribution and P9 advertising acquisition remain open. Published174 and
+historical recipe28 package preview316 are unchanged. RUNTIME_VALIDATED=false.
+322 subsequently adds ten SDK user/metadata/feature-flag ingress guards in
+current source/owned recipe32;see privacy-sdk-data-ingress322.txt.

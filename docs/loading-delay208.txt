@@ -1,0 +1,388 @@
+BATTLE ACES - DELAYED CLIENT MAP RECOVERY208
+2026-10-26. Scoped instrumented native result;full D4 remains OPEN.
+Latest:232 pending-load Quit PASS;233 original asset-completion retry binding below.
+
+CLAIM AND RESULT
+After a loading disconnect,the current client can recover when its original
+map callback finishes beyond the real120s recovery diagnostic. One owned
+two-client verified-TLS run passed retained-evidence reconciliation in248.953s.
+No production helper,package,game file or normal launcher changed.
+
+The first client's map iterator was held before its first original MoveNext
+for130000ms. It returned true on the same Unity thread;130 samples and453679
+held calls recorded mapLoading=1,simulation active=0,world=null. No game fields
+were cleared. The controller disconnected that client while the room was
+loading,with zero authoritative frames. The server released the aborted room.
+The actual120s diagnostic fired at457973359,inside the hold. Release occurred
+at457982890. The original callback returned at457991187 with mapLoading=0,
+active=1 and world present;only then did original reason1 cleanup run.
+
+Both original client processes recovered to menu,retried,and completed a new
+native1v1 with1220 matching authoritative frames and observable-state checks.
+Selected decks survived;native settings and aborted/completed replays validated.
+Both original menu Quit traces completed;game and launcher exit codes were0.
+Three native workers exited0. Owned jobs7/0/0,2/0/0,2/0/0;no forced cleanup.
+Shared settings/replays/backup,packages,assets and configs remained unchanged.
+
+PROBE AND OWNERSHIP
+tools/loading_delay_probe.py pins the installed recipe23 GameAssembly and full
+observed function bodies. ProcessJoinedGame and CleanupGameState contain only
+their exact previously installed internal call patches;their entries are intact.
+The original iterator body and other observed bodies match original bytes.
+REA attaches to the controller-owned PID only and checks its module path/body
+hashes before installing hooks. The controller waits for the armed journal
+before releasing the public-match gate. It retains process/job ownership.
+The probe delegates to the original iterator after one hold and remains loaded
+until normal process exit. Original managed roots/scheduler/thread remain intact.
+
+VERIFIER FAILURE PRESERVED AND RECONCILED
+local/loading208-native01/verification.json remains FAILED. After native Quit,
+the new script integrity check compared LF in-memory text with Windows CRLF
+file bytes and reported 'delay script changed during run'. No native failure
+or forced shutdown occurred. The recorded REA load digest equals the actual
+script file digest;replacing CRLF with LF equals the controller's original
+digest exactly. This is a byte-format bookkeeping defect,not changed probe code.
+The controller now writes exact UTF-8 bytes exclusively,avoiding text conversion.
+
+local/loading208-native01/reconcile.py rechecks retained bytes,delay ordering,
+the existing loading-recovery/match/replay/worker validators,native settings,
+original Quit traces and exit codes. It does not rerun gameplay or overwrite
+the failed report. Reconciliation PASS:
+local/loading208-native01/reconciliation.json
+SHA256:8b5376a948e9a3a83766dd8cb75205ee427ebfea6d0c1d27477f522d9e42ec73
+Its inventory binds captured evidence. Full REA load/status Evidence,exact
+at-run controller source,final source and prior planning bytes are retained.
+29focused controls pass on both Python3.12 and3.14,including four new delay
+controls rejecting premature cleanup,wrong identity/thread/world,missing real
+timeout and probe errors. The byte-write correction has no second native run.
+
+ARTIFACT SCOPE AND LIMITS
+Uses local/candidate203-packages02,local/r171g,helper-crash169-fix01 and
+local/s139/assets/build-37822. Installed GameAssembly SHA256:
+f9e14f0b45134eb96e51c4cd7c3965049ae317a64734a364e43ab8325f35d3fa
+The run report binds source,helper,assets and package inventories. Latest local
+preview203 and published174 remain unchanged;no publication occurred.
+
+This is an instrumented scheduler delay before native scene loading,not a
+physical slow-disk test or a failure injected inside Unity's scene operation.
+Transport uses existing ephemeral verified-TLS fixtures,not RC open admission.
+Original UI calls were automated;physical clicks/visual acceptance are unclaimed.
+It establishes late completion recovery,not safe cancellation or recovery from
+a permanently stuck engine. Preserve the native guards and restart diagnostic.
+Reuse204-207's static ownership findings;do not repeat that trace or this named
+130s case without a changed path/concern. Full D4 and final release stay open.
+
+FOLLOW-UP231 - PENDING-LOAD QUIT ADMISSION REVIEW - 2026-10-27
+Static applicability PASS;permanent loading failure/exit remains OPEN.
+No native run,production edit,helper build,installer or publication in231.
+This reconciles the retained native-quit-contract01 analysis with204-208 and
+current helper source;the original asset-counter veto was already known.
+
+tools/review_scene_release.py --quit-admission pins original GameAssembly and
+raw metadata,binds eight method tokens/addresses and AsyncAssetTables field
+offsets,and checks five complete unwind-bounded bodies against the installed227
+game. Retained slice hashes include their explicitly bounded trailing padding;
+installed comparisons use actual function bounds. Seven exact byte anchors
+cover the counter branch,both returns,WantsToQuit store and registration/UI
+calls. This is not a new whole-body disassembly or runtime observation.
+
+Original AsyncAssetTables.Application_wantsToQuit (3e933f0) sets WantsToQuit=true,
+then returns true when signed LoadingCount<=0 and false when LoadingCount>0.
+The misleading warning literal does not override the branch/return instructions.
+Its initializer registers wantsToQuit/quitting callbacks. UIQuitButton.Quit and
+UILoginFlowController.OnQuitApplication share3d06f50,which requests the original
+Unity Application.Quit. This request alone does not establish process exit.
+AsyncAssetTables.LoadingCount is NOT proven equivalent to GameServer.mapLoading,
+nor to the completion/activation state of the Unity scene operation.
+
+Current source review (snapshots and hashes retained):
+- native_quit_smoke.cpp requires an idle unloaded menu,LoadingCount0 and no
+  WantsToQuit before its normal-Quit diagnostic. Its passes exclude this case.
+- dedicated_adapter.cpp only calls recoverySmokeConfirm after completed
+  postgame or an idle main-menu world. Its120s stalled-loading branch shows
+  the failure notice but does not dispatch the diagnostic Quit callback.
+  Simply adding -dedicated-quit-smoke to208 cannot test pending-load Quit.
+- The original CleanupGameState guard still requires mapLoading=false and an
+  active world. Keep it:204-207 establish no safe forced scene cancellation.
+- 208 released its held iterator,received the original callback and recovered
+  before Quit. Reuse that pass;it cannot qualify exit with loading still pending.
+
+NEXT BOUNDED CHECK (not implemented or run in231)
+Prepare an explicitly opted-in diagnostic dispatch of the exact original
+disconnected-modal Quit callback on its owning update thread while the owned
+map iterator remains held. Normal launchers must remain free of automation.
+Verify exact installed helper/body applicability before attaching. Keep Unity
+updates responsive and retain the iterator/roots;do not release the hold to
+manufacture a successful Quit,clear native state,or bypass the asset veto.
+Capture real120s diagnostic,modal identity,asset LoadingCount/WantsToQuit,
+original wantsToQuit return,mapLoading,callback/cleanup ordering and exit.
+Require normal client/launcher exit and empty owned jobs with saved/shared state
+preserved. A deadline with forced owned cleanup is a failed exit check,even when
+an admission observation succeeds. Retain all reports and explicit force flags.
+
+Scope must name the observed counter:pending map iterator with LoadingCount0
+does not qualify positive-counter veto recovery or a hung Unity thread. If the
+counter stays positive,record the original refusal;do not rewrite it to zero.
+Positive-counter completion/retry semantics need their own justified evidence.
+Reserve manual replay230-manual01 exclusively for Nick's N13;use another copy.
+
+Evidence:%LOCALAPPDATA%/BattleAcesDiagnostics/local/loading231-quit01/
+verification.json SHA256:
+3d65b04bf17deee518812879130a29d4198f5e148b6e03124f8920df221c21cb
+Installed227 GameAssembly SHA256:
+f9e14f0b45134eb96e51c4cd7c3965049ae317a64734a364e43ab8325f35d3fa
+review-record.json records source snapshots/hashes and the initial static
+namespace lookup failure (UI versus Uncapped.UI),corrected before verification.
+Six evidence controls pass on both Python3.12 and3.14:scope limits,installed veto
+mutation,false-return interpretation,shared-body method identity,retained hash
+and unknown type binding. Run with BA_QUIT_ADMISSION_INSTALLED pointing to the
+installed game and python -m unittest tests.test_scene_release.QuitAdmissionTests.
+No acceptance claim for permanent loading recovery,physical input or safe cancel.
+
+FOLLOW-UP232 - QUIT WHILE MAP LOAD REMAINS PENDING - 2026-10-27 - PASS
+One owned two-client verified-TLS loading abort,then original Quit while the
+victim's first map iterator stays held. Native02 passes in140.687s. This advances
+231's missing exit check;it does not repeat208's release/retry/completed-game case.
+
+Observed victim mapLoading=1,simulation inactive,no world,asset LoadingCount=0.
+The real120s recovery diagnostic appeared. At121703ms into the hold,the helper
+invoked the exact original disconnected ModalConfirmVM.OnCancel on the Unity
+thread. The probe observed the shared UI Quit body,Application.Quit,original
+Application_wantsToQuit returning1 with WantsToQuit changing0->1,and the asset
+quitting callback. All122pre-Quit samples retained the pending/no-world state.
+No hold release,map-completion callback or CleanupGameState occurred. The native
+game and launcher exited0 without force. This is admission with asset count0;
+it does not establish positive-counter veto recovery or exit from a hung engine.
+
+The survivor finished native abort cleanup,retired ticket1,then used the original
+menu Quit/confirmation and exited0. One authoritative match was aborted at frame0;
+no retry or completed match was created. Both native workers exited0/reaped.
+Owned jobs:server5/0/0,client0 2/0/0,client1 2/0/0(total/active/terminated).
+Host rooms/queues/sessions/workers drained;listener/state lock released. Selected
+decks,shared settings/replays/backups,packages,assets and configs were preserved.
+Retained settings review finds only normal serialization of account.menuuistates
+from empty string to {"States":[]};all other parsed values match before Quit.
+Do not claim byte-identical native TOML. Temporary authored PKI was removed.
+
+IMPLEMENTATION AND CHECKS
+dedicated_adapter.cpp adds -dedicated-pending-load-quit-smoke. Only this explicit
+flag dispatches the original modal Quit while blocked with a pending map load;
+normal launchers,cleanup guards,roots and original wantsToQuit remain unchanged.
+The existing diagnostic modal identity/thread checks are reused. No production
+automatic Quit,field reset,scene cancellation or asset-veto bypass was added.
+loading_delay_probe.py adds hold-until-Quit and observations of the separate
+asset count/flag and original Quit methods. Nine native bodies are checked before
+hooks install;231's raw metadata/static gate is reapplied. Sampling ends at the
+asset-quitting callback. The journal is flushed and the held iterator never
+delegates just to permit success. Instrumentation stays until process exit.
+
+verify_packaged_multiplayer.py --recover-loading --delay-loading
+--pending-load-quit uses the actual bundled host/clients with external diagnostic
+adapters. It opens the survivor's menu-Quit gate only after native return/server
+drain;the victim uses the new explicit modal dispatch. No retry gate is opened.
+Verifier requires original admission,normal exit,no forced cleanup and preserved
+ownership. A positive-counter refusal remains an observation with passed=false.
+Normal completed-match verification remains separate.40focused tests pass on
+Python3.12 and3.14,including seven new pending-Quit cases and two PKI path guards.
+Helper build and generated Frida script syntax check pass.
+
+Local output:%LOCALAPPDATA%/BattleAcesDiagnostics/local/loading232-quit01/
+native02/verification.json SHA256:
+4b1c0c0f3747bb6c7b87efb679048112db4227f0dc8976044135f573066caf53
+Helper01 SHA256:
+47aa23d3689c50c85a8e83207707a7c3d1272c6ae950ecd8e508dfebda1b2b8f
+Packages02 client manifest SHA256:
+c932c4fc14baf6691586a8c2d86eaa5aaab7c25a75f2203d36ebe6485009a73d
+Packages02 server manifest SHA256:
+dae9becd37009065bbc4b47752169a432a9fdd5c3706f6ab5c98b8a9d84de74d
+Dirty local diagnostic preview only;no standalone installer publication or push.
+Independent game installed through the bundled installer;all133bundles verified.
+Full REA attach/load/final/close records,exact running source snapshots,raw logs,
+journal,settings and retained-review.json remain. REA's131messages match the
+journal exactly,with no truncation/errors. Controller handles/jobs prove exit;
+REA close's unknown target state is not used as exit proof.
+
+PREFLIGHT FAILURES RETAINED
+First package command used an incorrect nested launcher executable path and
+failed before output creation. Reassembled the existing matching executable/
+receipt inputs and built packages02;no launcher source change was needed.
+Native01 rejected the C diagnostic PKI path before any process launch. The common
+authored-PKI helper now accepts strict children of repository local or the
+per-user BattleAcesDiagnostics/local root for creation/removal,never either root
+itself or its parent. Negative path tests pass;native02 used real verified TLS.
+Both failure records remain;neither was a native game failure or forced run.
+
+NEXT
+Reuse this zero-counter pending-map pass without another identical hold. Review
+the original asset-completion path after positive LoadingCount vetoes Quit:
+does it retry the Quit request,or require another user request? Identify a genuine
+owned pending-asset trigger before selecting that separate bounded runtime check.
+Do not simulate it by setting the counter or claim safe cancellation from232.
+Permanent engine/scene-operation failure and physical presentation remain open.
+N13 manual replay copy stays reserved;no new action requested from Nick.
+
+FOLLOW-UP233 - ORIGINAL ASSET COMPLETION RETRIES QUIT - 2026-10-27
+Static PASS;positive-counter runtime exit remains UNTESTED. No helper/product
+change,game launch,package build or publication in233. Reuses231's admission
+gate and232's distinct asset-count0/map-pending exit result.
+
+ANSWER TO THE232 NEXT QUESTION
+The original completion callback automatically retries Application.Quit when a
+previous request set WantsToQuit and the remaining LoadingCount is nonpositive.
+It does not require another user request on this branch. If completion never
+arrives,or the count remains positive,this branch does not establish exit.
+
+PINNED CHAIN
+AsyncAssetTables.LoadTableInBackground<T> shared body1381620 first checks its
+existing table dictionary. A new load increments LoadingCount at138179d,loads
+through Addressables.LoadAssetAsync<T>,and subscribes its original completion
+delegate through AsyncOperationHandle<T>.add_Completed at1381a01. Duplicate
+dictionary hits return before that increment. No counter is authored by233.
+
+The nested <>c__5<T>.<LoadTableInBackground>b__5_0 shared body166c650 decrements
+the count at166c70d,tests WantsToQuit at166c71e,and tests count at166c740. A false
+flag or positive count branches to normal completion processing at166c76f.
+Otherwise it tail-calls original UnityEngine.Application.Quit at166c76a. This
+retry branch precedes the callback's normal status/result processing. Full
+callback bytes are reviewed;this is not a claim that the callback ran in233.
+
+Generic metadata registration186198290 plus code registration18563d9e0 bind
+spec235893/method10672/pointer214539 to1381620 and spec1075/method10678/pointer816
+to166c650. These are reference-type shared implementations,not guessed labels.
+The RGame.dll rgctx range for token060014f7 is494,length10. Slots1/6/8 bind the
+load,matching nested callback,and add_Completed respectively. Method specs:
+217644=(167705,-1,1097);1068=(10678,1097,-1);21457=(162420,1097,-1).
+
+CONCRETE OWNED TRIGGER
+Concrete spec293112=(10672,-1,970),usage186ad8b10,selects LargeGroupAudioTable.
+RGameRequiredTables.LoadInBackground3e19c60 reads its LargeGroupAudioTable field
+at+18 and calls that specialization. RGameInit.<Start>d__20.MoveNext3dfe460 has
+the same inlined load at3dfea5a,using that field and method-info usage. This is a
+startup asset load,not MapManager's scene iterator or a fake counter increment.
+The consumer LargeGroupAudioSystem constructor references GetTable for the same
+table;its observed reference is a lead,not an additional reviewed runtime claim.
+
+APPLICABILITY AND CHECKS
+tools/review_scene_release.py --asset-quit-retry checks pinned original binary/
+metadata,registration/rgctx identities,three whole bodies and the explicit
+startup window3dfe9f8..3dfea5f.452instructions,11semantic anchors and5call/jump
+edges pass against installed232 GameAssembly. The entire startup body is NOT
+unchanged:existing recipe edits lie at3dff35b..35d and3dff370..373,outside this
+window. Do not infer blanket startup identity or generic callback runtime ABI.
+Current GameAssembly SHA256 remains:
+f9e14f0b45134eb96e51c4cd7c3965049ae317a64734a364e43ab8325f35d3fa
+
+20static evidence controls pass on Python3.12/3.14,including six new cases that
+reject reversed predicates,missing decrement,wrong callback slot,substituted
+increment and changed installed code,and preserve static/window scope limits.
+No repeated native delay/exit test. Existing LLVM/PE/raw metadata fallback used;
+no analysis-engine installation or configuration change. Raw slices,bindings,
+original broad startup capture,source snapshots and test logs are retained at:
+%LOCALAPPDATA%/BattleAcesDiagnostics/local/loading233-assets01/
+verification.json SHA256:
+14dcd2c89e68463b104ad1b828af8a34c13b14f54ef5972e1db3c4336cc87260
+Exploratory lookup failures (generic leaf ctor has no unwind record;module is
+RGame.dll rather than Assembly-CSharp.dll) occurred before final verification.
+The leaf constructor is excluded from whole-body claims;all captures remain.
+
+PLANNED RUNTIME CHECK233 - ATTEMPTED AND REFINED IN234 BELOW
+Use an owned ordinary offline launch/fresh profile with early attach before
+startup (existing owned_suspended_launch supports controlled primary resume).
+Observe the real LargeGroupAudioTable loader increment and its actual operation.
+Verify callback ABI,handle identity/version and owning thread before any action.
+At that operation's original completion entry,before its decrement,request the
+original Application.Quit once. Require a positive actual counter and original
+wantsToQuit=false response;then let the untouched completion callback proceed.
+Require its decrement and automatic second Application.Quit to produce original
+admission and normal exit,empty owned jobs,and saved/shared data preservation.
+Do not write LoadingCount/WantsToQuit,invoke a fabricated completion,block Unity,
+or suppress a callback. If the first request is deferred until after completion,
+no positive-count veto was observed:retain failure rather than counting exit as
+acceptance. A force/deadline also fails. No second user-request simulation.
+
+This specifically tests genuine completion bookkeeping and automatic retry;the
+operation may already be complete on entering its callback. It is not an I/O
+stall,hung engine,physical Quit click or safe scene-cancellation qualification.
+Record this scope explicitly. Positive-counter UI/lifetime cases remain open.
+Use a separate fresh profile in an owned diagnostic copy;N13 stays reserved.
+
+FOLLOW-UP234 - REAL POSITIVE-COUNT VETO / COMPLETION / QUIT RETRY
+2026-10-27. Scoped native PASS;full D4 remains OPEN.
+
+Question:does the original real asset load refuse a Quit request while count>0,
+then retry automatically from its untouched completion callback? Reuse233's
+original/generic binding and installed232 game/helper;no new product build.
+tools/asset_quit_probe.py pins all six original observed bodies against the
+known original and installed SHA256. Runtime generic MethodInfo matches the
+concrete LargeGroupAudioTable slot;the callback matches its original RGCTX slot.
+The returned operation pointer/version survives subscription and completion on
+the same original thread. Runtime fields for AsyncOperationHandle<T> have boxed
+offsets16/24/32/40;the loader copies32unboxed bytes. Generic raw metadata's zero
+offset placeholders were not treated as the instantiated layout. Original
+add_Completed raw capture contributes35validated instructions.
+
+tools/verify_asset_quit.py owns a suspended direct offline-practice launch/job,
+new nativestest_ profile seeded from232's owned saved settings,and bounded early
+REA attachment/resume gate. No native menu-Quit smoke or automatic match flags.
+This uses the original startup path,not a bundled ordinary-launch qualification.
+No server/TLS/transport is started. N13's manual game is never used.
+
+native01 - FAILED POSITIVE-COUNT CLAIM,RETAINED
+PID32748:the planned request at original completion entry returned with count1
+and WantsToQuit0. The untouched callback decremented to0;only afterward did the
+engine invoke wantsToQuit,which accepted. Natural exit0/job1/0/0/no force and
+preserved settings do not establish a positive-count refusal or automatic retry.
+Original report error is "request flag/decrement missing". Twelve REA messages
+match the journal without truncation/errors. This result justified moving the
+single request earlier;the report and exact source-at-run remain unchanged.
+
+native02 - PASS WITH EARLIER REAL-LOAD REQUEST
+PID10456,original thread30736. Request at loader return after subscription:
+ - tick487605078:actual operation captured/subscribed,count1,WantsToQuit0;
+   original Application.Quit called exactly once by the diagnostic.
+ - tick487605218:original wantsToQuit sees count1,sets WantsToQuit1,returns false.
+ - tick487605281:same operation/version/context/thread enters original callback
+   with count1/flag1. Its original decrement yields0,and its original retry
+   reaches Application.Quit while that callback is on-stack.
+ - Same tick:callback returns;engine wantsToQuit accepts count0/flag1;original
+   assets Quit follows. Game exits0,owned job1/0/0,no forced cleanup.
+The request-to-refusal interval is140ms;completion follows63ms later. The full
+controller run22.094s includes the attachment wait. Native resume to the last
+observed teardown event is1141ms,not an independently timed process-exit bound.
+
+No LoadingCount/WantsToQuit writes,fabricated completion,callback suppression,
+retained managed callback arguments or second authored Quit request. Frida's
+NativeFunction request bypasses its own target-entry hook;the authored call is
+recorded explicitly. The automatic original retry independently hits that hook.
+Hook return addresses may be instrumentation trampolines;no native callsite
+identity claim is made from returnRva. Static233 plus callback-on-stack ordering
+and the distinct original admission results support the retry attribution.
+
+Both runs preserve parsed owned settings exactly,shared settings/replays/backup
+snapshots,and installed executable/helper/GameAssembly/patch-manifest hashes.
+Helper232 receipt matches current helper sources. Installed GameAssembly SHA:
+f9e14f0b45134eb96e51c4cd7c3965049ae317a64734a364e43ab8325f35d3fa
+Helper SHA:
+47aa23d3689c50c85a8e83207707a7c3d1272c6ae950ecd8e508dfebda1b2b8f
+Sixteen REA messages equal native02 journal;no errors/truncation. Both sessions
+closed;owned process handles/jobs independently prove exit and empty membership.
+Sixteen tests pass on each Python3.12/3.14,including both retained native traces,
+wrong handle/version/thread/ABI,missing retry/decrement and deferred-vote refusal.
+
+Retained artifact root:
+%LOCALAPPDATA%/BattleAcesDiagnostics/local/loading234-assets01/
+native01/verification.json SHA256:
+c24581c154ce0559b4d66e573d8a628f3ce20444c5f7e6c1aad435ad22b413d2
+native02/verification.json SHA256:
+37db9f3d75310c31610231944e1941ca469c9816908b96f67bf89f4fac9c3e31
+Each run retains source snapshots,script/journal,REA records,native logs and
+before/after settings. Root retained-review.json reconciles both captures;
+tests312.txt/tests314.txt retain test output. No helper/package/release change.
+
+Scope is direct instrumented startup asset bookkeeping with a real pending
+operation. It does not qualify physical input,slow/hung I/O,a hung engine,
+pending scene cancellation or ordinary packaged presentation. Do not repeat
+this successful load/veto/retry without a changed path or concrete concern.
+Next finite D4 gap:server asset permission-denial/recovery beyond224/225 sharing
+locks;inspect its contract first and confine any permission fixture to an owned
+disposable file with exact descriptor restoration. N13 remains pending/reserved.

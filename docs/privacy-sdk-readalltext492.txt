@@ -1,0 +1,44 @@
+D5 / P7 - shared File.ReadAllText direct-call ownership
+
+2026-10-31. Read-only pinned original GameAssembly/IL2CPP metadata review
+PASS against current source recipe44. No game,queue file or endpoint was
+invoked. P7/P9/D5 remain OPEN,RUNTIME_VALIDATED=false.
+
+tools.review_sdk_file_reads492 scans mapped original PE sections for E8
+calls to the exact System.IO.File.ReadAllText target RVA35480a0. It binds
+each of eight hits to a complete unwind-bounded function and decodes every
+candidate as an instruction. The original image SHA256 is
+e59d08c01479b27404778048d7e13546dbf3771f6b3912744c7c2bdf80c4e758;
+metadata identity is checked. The detailed receipt is
+local/privacy492-file-read01/verification.json SHA256
+98a51259b60fa6b9baf7b6be1a17f077ecbf88a4250ce849222ea8fcfdea3342.
+
+Two direct calls are in BugsnagUnity.CacheManager:
+- 836a7a in GetCachedDeviceId(8368b0),now recipe44 entry31c0c3.
+- 83782e in GetJsonFromCachePath(837810),now recipe43 branch at837816
+  to its original null path before the read.
+The reviewer confirms both current recipe44 source bytes,so these two
+named SDK direct File.ReadAllText paths are cut for fresh patched code.
+
+Four other direct calls have metadata owners:
+- 458211d:Unity.Addressables InitalizationObjectsOperation.LogRuntimeWarnings.
+- 4592123:Unity.Addressables AddressablesImpl.IsCatalogCached.
+- 4ceba3f:Unity.ResourceManager InternalOp.Start.
+- 54898b2:UnityUIExtensions ColorPickerPresets.LoadPresets.
+These are shared app/resource/UI file operations;do not guard the common
+File.ReadAllText API.
+
+Two genuine decoded calls at2630b35/function2630870 and
+2632a86/function2632790 have no direct metadata method-table name in the
+137-image scan. Both obtain a path through a virtual call immediately
+before File.ReadAllText. They may be generated generic methods or another
+indirect codegen form;their owner and potential SDK applicability are
+unresolved. Next useful P7 evidence is a method-spec/caller binding for
+these two specific roots,not another global E8 scan. This check does not
+cover indirect File.ReadAllText calls,other file APIs,real queue state,
+delivery or whole wire.
+
+Follow-up493 resolves both roots to RGame.dll SteamRemoteFile`2.ReadJsonText
+through the generic method table and method specs. See
+privacy-sdk-generic-reads493.txt. This record preserves the original492
+observation and its then-open question.

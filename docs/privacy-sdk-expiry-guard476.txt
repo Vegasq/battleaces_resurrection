@@ -1,0 +1,60 @@
+D5 / P7 - SDK cache expiry entry guard
+
+2026-10-31. Current dirty source recipe41 and owned installed menu/Quit check
+PASS at this exact path. P7/P9/D5 stay OPEN,RUNTIME_VALIDATED=false;
+published174 remains recipe23. No real SDK queue was read,seeded or cleared.
+
+121 established that CacheManager::.ctor calls RemoveExpiredPayloads at
+GameAssembly RVA836b50. The void helper enumerates both cached report
+directories and can delete entries older than60 days. The prior Client
+constructor skip at8129db blocks its one identified direct call,but an
+indirectly acquired CacheManager could still reach the helper. Recipe41 adds
+an entry RET before any receiver dereference,directory read or deletion.
+This is one new GameAssembly guard;recipe40's other169 guards and all shared
+game/Unity functions remain as before.
+
+tools.review_sdk_expiry_guard476 PASS pins pristine GameAssembly and IL2CPP
+metadata,CacheManager's method pointer,original complete function boundary
+836b50-836f01,the exact16-byte entry and recipe41 replacement. The updated
+tools.review_sdk_cache_readers467 PASS still finds the same original direct
+reader/Delivery candidates and verifies the new expiry entry in recipe41.
+The recipe41 patch tests pass35 with2 optional asset tests skipped;patcher/
+cache tests pass13. No new client helper build is required because the helper
+source and installed helper bytes are unchanged.
+
+A fresh 7.6GB owned copy of recipe40 at local/privacy476-game01 initially
+matched its source game,helper,Unity and manifest hashes. Standard patcher
+dry run and installation each passed all133 game asset checks. The installed
+manifest records recipe41/103 GameAssembly guards;installed GameAssembly
+SHA256 bc56260c985bcde5ae352654727ab88f89d28dd4f5754508e085fe860096dacc.
+The other three component images and helper stayed at their recipe40 hashes.
+Retained dry-run/install outputs:local/privacy476-dryrun.json and
+local/privacy476-install.json (PowerShell UTF-16 redirects).
+
+The owned game was created suspended under a no-breakaway Job. REA Frida
+attached before primary resume. The observer checked the loaded expiry-entry
+bytes c3895c2408488974241048897c241841,then called that void entry with
+a null receiver. It returned on the original game main thread. The native
+quit-trace records armed,Show.dispatch/return and OnConfirm.dispatch/return
+on that same PID/thread. Both self-TerminateProcess entries record exit0;
+the process exited0,Job1/0/0 and no forced cleanup. The untruncated four-
+message REA stream reports no script error. tools.review_sdk_expiry_runtime476
+PASS independently binds source,installed/dry-run manifest,loaded bytes,
+null-receiver return,Quit trace,owned exit and image hashes.
+
+Retained local/privacy476-expiry-runtime01/{ready.json,observer.js,
+rea-status.json,verification.json,review476.json,game.log};REA evidence ID
+ev_ecfde0350f7aab32a3fc2ba7255ab20e6e0fbd25e5f29b6ab2f21e62122eca43.
+The image/source reviewer reports pristine SHA256
+e59d08c01479b27404778048d7e13546dbf3771f6b3912744c7c2bdf80c4e758
+and recipe41 pre-checksum GameAssembly SHA256
+22747e0539ebaaeaadbf84fd069b0e537ff3545d0b39485218da41fa57c6534c.
+
+This closes the expiry helper's directory enumeration/deletion path even for
+an unrecognized caller. It does not guard GetCachedEventFiles,
+GetCachedSessionFiles or GetJsonFromCachePath themselves,prove no indirect
+reader invocation,observe real queue state,or establish full source/network/
+descendant/final-pair privacy. Recipe41 later passed one source-bound private
+connected package match at477;that is compatibility evidence,not queue/wire
+privacy or final publication. P9's independent advertising-ID producer
+remains unresolved.

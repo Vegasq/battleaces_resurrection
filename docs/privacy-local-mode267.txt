@@ -1,0 +1,42 @@
+D5 CURRENT INSTALLED LOCAL PUBLIC MODE5 ROUTE267 - 2026-10-28
+P4/P8 selected route PASS;P4/P8/P9/D5 remain OPEN.
+
+This is the distinct mode5 branch left after266's mode1/2 normal-Quit checks.
+The owned current installed game uses the same private ABI2 bridge launch and
+observer,with a fresh nativestest_ diagnostic profile and original mode5
+selection. It completes native match/result/Continue and confirmed original
+Quit0. Seven complete selected native-field snapshots cover startup,menu,
+game,result,menu and pre-Quit;all15 sampled scalar values remain at default0.
+One owned process leaves job1/0/0 with no forced cleanup. Source files remain
+unchanged;the installed component and helper hash comparison passes against264.
+
+The Frida session detached after1383 contiguous untruncated selected events.
+Its five selected network operations are two send and three recv calls,all on
+socket0x1d8/decimal472. That exactly matches the inherited private bridge
+handle in the owner receipt and command. Selected connect,WSAConnect,DNS,
+sendto and WinHttpConnect counts are0. Selected process/shell creation and
+lazy browser activation counts are0. The two final self-termination snapshots
+are present and route review passes. These calls are attributed to the private
+transport,not to an analytics endpoint. No remote connection or invite read
+was requested by the local runner.
+
+Retained ignored evidence:local/privacy267-public-mode5/verification.json,
+route-review.json,network-review.json,component-review.json,rea-evidence.json.
+SHA256 respectively:
+ da126ae2d5ff4ade963b19702187b39ec870030b6b5306ee0e7e6ff618e7cc42
+ 2fb84627e377964111296e0eb20ce6368043ac3cfa251166b517e3165fd5b1c5
+ 50670e4a9e7574950678f5c1c0a6c85e9b525ed428e4c09e6f8b58bb1461365a
+ 37f4813a23c4502bd6df77429b78409660f62af0d77d35d7fcefba773882857c
+Final detached REA evidence ID:
+ ev_c3c6d1da71b24163bbaf60e17e016c72b0b4872e21cb96143c4b8d4992872ec2.
+rea-load.json is a status-derived handshake record;the exact load result is in
+the exported REA bundle with load evidence ID
+ ev_2ca07bf71a5abe0cb5ef6e4843749fc918b3cd49c4b54aa0a36833ec3a83c88b.
+The ignored review.py binds the final session/owner,continuous rows,selected
+route,counters,bridge handle and installed hashes. The REA session is closed.
+
+Mode5 now joins1/2 for local public selected route and normal-Quit evidence.
+This does not establish queue/file absence,all-thread/pre-loader coverage,
+raw-socket/kernel/wire completeness,connected modes,final installer binding or
+P9's advertising producer. Keep P4/P8 and full D5 open;reuse this result rather
+than run another equivalent quiet local match.

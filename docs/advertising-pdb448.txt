@@ -1,0 +1,43 @@
+D5 / P9 - exact UnityPlayer PDB and advertising callback names
+
+2026-10-30. Static source evidence PASS at this scope. P9/D5 remain OPEN.
+No game, advertising ID producer, SDK queue, or network endpoint was invoked.
+
+The pristine UnityPlayer.dll used in443 has SHA256
+ac144d56d53f07904d52ed27a1539de90bc3290038fe52d73d2f6b268c85d6bc.
+Its PE CodeView record names UnityPlayer_Win64_player_il2cpp_x64.pdb,
+GUID 006fe7b8-64a8-4e55-b410-662f52fd53c1, age1. The matching
+compressed PDB came from Unity's documented Windows symbol server:
+https://docs.unity3d.com/cn/2022.3/Manual/WindowsDebugging.html
+The ignored local decompressed PDB SHA256 is
+f92b35cd4d85189e0de6bffd62d29a7d3e5e4ed7be73982687335eb3e18474a0.
+Ghidra's PDB parser confirmed GUID/age; a full headless process with its PDB
+file option applied names/types and saved successfully. PDB application log:
+local/d5-ghidra-12.1.4/pdb-symbols-console.log, SHA256
+62a8027bf8e24a34109000f8a99e45358c0de3c42dc0c82763ffe64966c1544f.
+The PDB, tool and Ghidra project are ignored local artifacts,not game changes.
+
+Names that narrow the graph:
+  c307c0 AnalyticsCoreStats::OnAdsIdRequestDone, a virtual
+          IAdsIdListener callback with arguments (adsId,tracking,error).
+  c300f0 AnalyticsCoreStats::HandleRequestToSendAdsId, serializes the
+          already retained value into the adsIdentity config payload.
+  5fb70  Application_CUSTOM_RequestAdvertisingIdentifierAsync, the public
+          request entry guarded before queue insertion by recipe39/441.
+  3611d0 AdsIdHandler::FetchCachedAdsId, a cached-result check/state setter.
+  361260/361510 AdsIdHandler managed delegate invocation/traversal.
+  1a2afb8/1a2c630 AnalyticsCoreStats/UnityAnalytics vtables for
+          IAdsIdListener.
+Decompilation with the exact PDB confirms the 443 sink and separates its
+native listener callback from later adsIdentity serialization. See ignored
+local/d5-ghidra-12.1.4/pdb-trace-console.log and pdb-handler-console.log.
+
+The listener registration and the producer that supplies adsId/error to
+IAdsIdListener are still unidentified. PDB class-type inspection exposed only
+opaque demangler types for AdsIdHandler and AnalyticsCoreStats,so it did not
+establish the list type at handler+0x78. No absence claim follows from the
+named functions or prior bounded direct-reference inventories. The next P9
+check is to locate the IAdsIdListener registration/dispatch and prove a cut
+before ID acquisition,or bound acquisition as unreachable on supported modes.
+P1-P8 queue/read/wire/descendant and final installed privacy claims remain
+separate acceptance work. RUNTIME_VALIDATED=false;published174 is recipe23.

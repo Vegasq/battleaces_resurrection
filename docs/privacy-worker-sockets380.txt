@@ -1,0 +1,47 @@
+D5 / P5-P8 - current private simulation worker Python socket audit
+2026-10-30. Bounded public1 subcase PASS;full D5 OPEN.
+
+377/378 cover the packaged host and two client adapter CPython socket events,
+but the server launches simulation_worker in separate packaged Python processes.
+The external diagnostic now prepends the same endpoint-only audit to each
+worker's existing isolated -c bootstrap. A controlled localhost getaddrinfo
+after hook registration proves the hook ran in that exact worker. The package,
+worker module and ordinary launchers are unchanged;no gameplay payload,
+SDK queue or credential is read by this observer.
+
+The first owned attempt379 assumed one worker. It observed the server's native
+startup-check worker and then its diagnostic capacity rejected a second,
+match-worker launch. We requested the owned server-stop gate to end the case;
+verification.json reports FAILED/forced cleanup. This report and worker-0
+journal are retained,not treated as match evidence.
+
+The corrected bounded attempt380 accounts for both workers. Current recipe38
+private pair358/helper357 and owned301 game/assets pass public1/two-human
+match1220 frames,result/Continue,normal Quit0. Both worker PIDs are distinct,
+exit0 and reaped;host/client jobs drain with no forced cleanup. The worker
+PIDs in the server report match the journals exactly. Each journal spans
+its pre-bootstrap observer-ready through interpreter exit and contains one
+authored localhost getaddrinfo control. No other CPython socket event appears
+in either worker journal. The host/client adapter journals again contain
+only loopback bind/connect endpoints,with no overflow.
+
+tools.review_d5_worker_sockets380 checks the retained failed result,the
+corrected source/package/game/asset binding,two generated worker preludes,
+exact PIDs,positive control/exit markers,all endpoint events and normal
+worker/game/job cleanup. Review PASS. Historical377/378/376 reviewers were
+also rerun after pinning their recorded source hashes;all PASS without
+rewriting their evidence.
+
+Ignored evidence SHA256:
+ local/privacy379-worker-sockets01/verification.json
+ acce4f1d0e6f36e5b9471ee3e89fbf715ce0d9b0edd6ebd5386a1cb7e6814b02
+ local/privacy380-worker-sockets02/verification.json
+ f807ef806a0702e20a16e8b8e6853efde8032995bfeec58af253f631b99c25f2
+ local/privacy380-worker-sockets02/worker-socket-review.json
+ eb704c3a2964562c0f6b24a2556bbbfb1dae1e841de5c717254dece6dc9b246a
+
+This is CPython socket-event coverage from the two owned worker script entries
+to their interpreter exits in one private public1 run. It does not establish
+whole-process absence of native/ctypes sockets,pre-interpreter events,
+external brokers,kernel packets or all configurations. P9,final installed
+privacy and full P5-P9/D5 remain OPEN;RUNTIME_VALIDATED=false.

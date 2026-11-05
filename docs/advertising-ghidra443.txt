@@ -1,0 +1,34 @@
+D5 / P9 - pinned UnityPlayer Ghidra decompilation
+
+2026-10-30. Static source review PASS at the named scope;P9/D5 OPEN.
+No game,ID getter,provider,SDK queue or endpoint was invoked.
+
+Ghidra12.1.4 headless analyzed the pristine UnityPlayer.dll from
+<original-game-root>, SHA256
+ac144d56d53f07904d52ed27a1539de90bc3290038fe52d73d2f6b268c85d6bc.
+The local ignored project and TraceAds.java postscript are retained under
+local/d5-ghidra-12.1.4. Headless import,post-analysis and save exited0.
+The console log SHA256 is
+5287ed6fa271baf2bf4cfd16ce2a6529b4878a68b59bd11245b09d38bd86a61e.
+
+The c307c0 decompilation confirms the Main+1498 callback takes a caller-
+supplied string at param_2. When the destination string at Main+0x15f8 is
+empty and the input is nonempty,it copies that input,stores the Boolean
+parameter and sets the initialized flag. If Main's state at +8 equals3,it
+then calls c300f0. This is a sink and state transition;the caller/provider
+supplying param_2 remains unidentified.
+
+The c2ee90 constructor installs callback table1a2afb8 and initializes
+several analytics fields. c33210 allocates/constructs the derived instance,
+installs callback table1a2c630 and publishes its singleton. Ghidra records
+only data references to c307c0 from the two callback tables and one other
+data slot. Their registration does not prove which runtime path calls it.
+
+The pristine public advertising request at5fb70 decompiles into native
+argument conversion followed by an insertion into Unity's pending-request
+list. This supports the pre-queue placement of recipe39's entry return
+from441;the API was not invoked in this check. Ghidra's zero direct call
+references to5fb70 do not exclude indirect or managed invocation.
+
+This analysis adds no positive provider edge for the separate Main+1498
+callback. P9,RUNTIME_VALIDATED=false,and final-installed D5 remain OPEN.

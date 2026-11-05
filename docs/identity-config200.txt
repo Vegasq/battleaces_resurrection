@@ -1,0 +1,80 @@
+PARSED IDENTITY TOKEN RETENTION200
+2026-10-26. Positive static input binding;P9/D5 OPEN,runtime flag=false.
+
+RESULT AND CORRECTION
+c416b0 has a concrete parsed-input write to Main190.125's provisional
+"serialization-shaped" description did not establish direction;the selected
+branch reads a token node INTO retained native state. It is not merely output
+serialization. This resolves one immediate source for197's named identity-token
+notification. The parser's activation and upstream transport remain unproved;
+this is not the separate Main+1498/c307c0 advertising-ID source.
+No product guard or native execution follows from this static result.
+
+POSITIVE DATAFLOW
+c416cd keeps the parser context in RBX;c416dc retains Main in R12. The function
+selects IdentityConfigValue metadata and literal token at1a2ad94. c41763 calls
+acad70 and c41768 stores its returned node at parser+78. If non-null,c41786
+sets RDX=Main+190 and c41791 calls ac4ad0 with RCX=parser. a1ca40's intervening
+bookkeeping uses parser+80 and its owned stack,not the selected-node slot+78.
+acad70 first calls the lookup routine at RVAacaea0 with the requested key. It builds
+a key descriptor and calls acbf20,which compares lengths/content while walking
+48-byte member records. The value address is matching-record+18;not found returns
+null. acad70 may then search aliases from parser+c0/global1d0da00. This is token-key
+lookup with alias fallback,not proof that only the literal spelling is accepted.
+
+ac4ad0 loads parser+78 and retains its RDX destination in R14. On the string-tag
+branch it selects inline or indirect node characters,finds their NUL-terminated
+length,and tailcalls15b680 with RCX=R14,RDX=characters,R8=length.15b680 preserves
+destination/source/length,obtains destination storage,copies,terminates it and
+updates its inline/heap length representation. Thus destination is Main190.
+Other branches convert booleans/numbers or assign empty for unsupported values;
+this is not string-only validation. Missing/invalid containers or missing members
+bypass the value write and can preserve the PREVIOUS Main190;no blanket clear.
+
+CHANGE AND NOTIFICATION
+Nonempty Main190 becomes a local effective identity;empty uses the already
+reviewed c43ae0 cloud-ID fallback. c41b2d selects Main1138. Length/content equality
+branches to c41c35,skipping update and notification. A difference copies the
+effective value into Main1138 atc41c10,calls c41ec0,then dispatches Main virtual+d8
+atc41c24. Both retained Main tables bind that slot to c308a0. Its four-instruction
+terminal leaf passes the Main owner and c308c0 to the existing queue helper.
+Reuse197's named managed CallIdentityTokenChanged binding. The eventual queued
+callback reads THEN-CURRENT Main190,not a captured effective Main1138/cloud-ID
+copy. No subscriber set,notification delivery or runtime activation is inferred.
+
+VERIFICATION
+tools/review_identity_config.py checks eight complete merged-unwind roots and
+one exact terminal leaf:1426contiguous decoded instructions against pinned
+original bytes,semantic direction/branch anchors,direct calls/tailcalls,selected
+literals,table slots and unchanged current bodies. Whole recipe23 transformation
+matches local/r171g. Prior197 report/hash and exact installed Unity identity are
+reused;its runtime-resolver investigation is not repeated.
+Four opt-in tests PASS on Python3.12 (2.773s) and3.14 (2.750s),no skips:positive
+input binding and explicit unknowns;wrong key,swapped destination and missing
+write instruction all reject. Run with BA_IDENTITY_CONFIG_EVIDENCE set to
+local/privacy200-token-source01 and python -m unittest tests.test_identity_config.
+Independent read-only review agrees on input direction,alias fallback,missing
+member/non-string behavior and the later queued-field observation boundary.
+
+Accepted report:local/privacy200-token-source01/verification01.json
+SHA256:f150c3beac4c1a6642e059e3abda01d04fe962e27681f0334f89cec6dd7ddb9c
+Reviewer:006ee0e926ff61aae9ede59ec70a9c06817a9b710e79c47dc337cd421780d8e3
+Tests:a59e18b6195d4c529662b48c95223ca3ad97dc2b6398157a9cf9ad4ebf7e2ea2
+Original Unity:ac144d56d53f07904d52ed27a1539de90bc3290038fe52d73d2f6b268c85d6bc
+Installed Unity:a53b0c613a86c737b7caa7588c7c93ae20d5d5700f9321a406df9dcca8e32a7f
+LLVM:5e7a457bf23033b6ec4a959d2276f09d44c024092529684d7eeb687d38da700d
+197 report:d1154fddb6f83a8b16107b2f1375a0dff745bd76c66204deecbe2c692d18a8c8
+Exact assembly/body identities are in the report;source/evidence snapshots and
+prior documents remain under local/privacy200-token-source01. One attempted
+unwind lookup for the known c308a0 leaf failed;attempt-leaf-unwind.json retains
+that failure. Its explicit22-byte terminal extent is separately checked.
+
+BOUNDARY AND NEXT
+REA skill applied with retained PE/unwind/LLVM fallback;known unavailable native
+decompiler not retried. Static source evidence,not native REA/runtime Evidence.
+No original query/collector/DLL execution,game launch,real identifier/queue access,
+build,installation or publication. Shared parser/string/queue helpers stay intact.
+Actual c416b0 entry activation,input provenance,and Main+1498 advertising producer
+remain unknown. No repeat exact-offset/manager/platform scan is justified. Follow
+a positive activation edge when available;do not use this different token path
+or quiet runtime counts to close advertising-source or final-installed gates.

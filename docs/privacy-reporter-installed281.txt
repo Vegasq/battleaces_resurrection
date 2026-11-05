@@ -1,0 +1,53 @@
+D5 RECIPE24 OWNED INSTALL AND CONNECTED FAULT281
+2026-10-28. P7 installed binding/runtime compatibility subcase PASS;P7/D5 OPEN.
+
+A separate owned copy of local/sprays257-match01/game was made at
+local/privacy281-runtime01/game (543 files,8055914493 bytes each before
+upgrade). No reserved manual game or original game was modified. The normal
+patch installer dry run passed all133 bundle checks,then its ordinary install
+upgraded this copy with the same community/cosmetics flags and the unchanged
+source-bound helper. Manifest recipe24/129 guards;all four installed component
+hashes match the manifest. GameAssembly SHA256 is
+2bce71cc4688303bbe74ff00c255b4f7f6dc0de88d75eec3d9a884071cafd117.
+Relative to the prior recipe23 installed image,only file offsets170-171 (PE
+checksum) and3cc43f0-3cc43f2 (new AddUserConfigToReport false-return entry)
+changed. The other three component images and helper retain their prior hashes.
+
+The current-source local preview client/server pair was built under ignored
+local/privacy281-packages01 with --allow-dirty. Client ZIP SHA256:
+31fae69539b63de54f2fa0489c475414ff444a85ce437a0d8ec9dc6b2e6ef460.
+Server ZIP SHA256:
+9cbb8d2da58f6ad4c2ab0f0770fbf92cfdb7b5a4ebfe548009c7f6b1704dec04.
+Both extracted package inventories verify;the packaged telemetry source exactly
+equals current recipe24 source,and the packaged/installed helper hash is
+28967b56df524c452096b835a6a26ee9b52aa7e97fcf8523e681041841fd4058.
+The helper receipt remains source-bound. This pair is a dirty local preview,
+not a published release.
+
+One first verifier invocation combined incompatible --rc-open and authored
+--recover-running options;its preflight rejected that command before creating
+output or launching any child. The corrected source-owned verifier ran the
+recipe24 pair with two clients and an owned running TLS-peer disconnect after
+both clients received frame600. The fault room was running at next_frame602.
+The original client processes23188/8196 each created two worlds,then completed
+a distinct replacement match,Continue/menu/original Quit. Retained result
+local/privacy281-recovery01/verification.json:PASS in150.094s,
+forced_cleanup=false. Three jobs account7+2+2 processes and end active0/
+terminated0. Package,assets,source,shared channels and adapters unchanged;
+temporary PKI removed. No user-owned process was stopped.
+
+Read-only exact-binding result local/privacy281-binding.json SHA256:
+bab8e06f8d14738420511934f2f062549b92acec62784bbcdc1d31aba7faff5c.
+Its source local/privacy281-binding.py SHA256:
+b126e46739cad3a797b455d56d426a6d0cb162c34c82d1c7f402956f687a49d0.
+Installed manifest SHA256:
+c5b283cb80728e4dc15412d940cc85c57fa3995d8c3ff943cb0361768e7e38d6.
+Package build report SHA256:
+c59feef34b9c16d16b36227716bac2898d8b5f53c54e0899a97aba2601faf578.
+Runtime verification SHA256:
+bb6f541bb48ec33fc4051790039987ee4e77d72394705de6bc83750b4522b57c.
+
+The run shows compatibility under one authored connected error/recovery path.
+It did not record an AddUserConfigToReport invocation. It did not inspect a
+real SDK queue or continuously attribute all file/network/descendant activity.
+P7 queue/error/reporter and P9 producer/final-installed D5 proof remain OPEN.

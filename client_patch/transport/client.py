@@ -103,21 +103,25 @@ def prepare_settings(path, game=None, *, default_game=None):
     return config
 
 
-def player_options():
+def player_options(replay=None):
     """The single ordinary entry point enables the complete player capability set."""
-    return argparse.Namespace(run_name='client', unified_experimental=True, player_features=True)
+    options = argparse.Namespace(run_name='client', unified_experimental=True, player_features=True)
+    if replay is not None:
+        options.replay = str(Path(replay).resolve()) if replay else ''
+    return options
 
 
 def main(argv=None, *, default_game=None):
     parser = argparse.ArgumentParser(description=__doc__)
     parser.add_argument('--config', type=Path, default=Path.cwd() / 'client.json')
     parser.add_argument('--game', type=Path, help='working game directory for first launch without a configuration')
+    parser.add_argument('--replay', nargs='?', const='', help='watch a replay file; omit FILE to choose one')
     args = parser.parse_args(argv)
     try:
         config = prepare_settings(args.config, args.game, default_game=default_game)
         from .rc_setup import Resolver
         remote = Resolver(args.config, config['game_directory'])
-        return asyncio.run(launcher.launch(config, remote, player_options()))
+        return asyncio.run(launcher.launch(config, remote, player_options(args.replay)))
     except launcher.LaunchError as error:
         print('Client could not start: ' + str(error))
         return 1

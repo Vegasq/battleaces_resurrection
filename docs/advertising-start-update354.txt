@@ -1,0 +1,33 @@
+D5 / P9 - Main.Start periodic update registration
+2026-10-28. Bounded source/current-installed review PASS;P9/D5 OPEN.
+
+Both original Main.Start bodies register the same c2f5d0 callback pointer in
+global 1ce04a0:base c2f570 stores at c2f5bb,platform c66c20 at c66c6b.
+The callback reads Main singleton cell 1d0eb28 and tail-jumps c30940. That
+complete 108-instruction update body runs timed/owner-state work and can call
+c3dc00,c1e1c0 and c351a0. It has no direct c307c0 call or Main+1498 access;
+its deeper callees are not classified by this review.
+
+The current recipe38 source and owned installed UnityPlayer have RET at both
+Start entries and preserve the remainder of those bodies,the c2f5d0 leaf and
+c30940. Thus a fresh call through either guarded Start entry cannot install
+this named periodic update callback. Another writer to the global slot,an
+already registered callback or a separate producer is not excluded.
+
+tools/review_ads_update_registration354.py verifies pinned original/source/
+installed Unity SHA256,original unwind-bounded body extents,353 contiguous
+decoded original instructions,exact callback and global-slot displacements,
+the two entry RET replacements and unchanged update body. Source bytes were
+reviewed with LLVM/PE because the known native decompiler provider remains
+unavailable. No target process,identity getter,real queue or network endpoint
+was invoked. Raw assembly and report remain ignored under
+local/privacy354-start-update01. Verification PASS SHA256:
+5747ebfca968066dabfc7cda7abec18c946d8a90c1950c363014729013873b6c.
+Verifier SHA256:
+7693aeef97e827ec2950773895478d4c101c652f86e196ccd078161504054842.
+
+This is a pre-registration cut for one periodic update route,not proof that
+the separate advertising callback never runs or that its ID source is gone.
+P9 upstream producer/computed aliases and final installed privacy attribution
+remain OPEN;RUNTIME_VALIDATED=false. Do not repeat this same Start/update scan
+without a changed route or positive new caller.

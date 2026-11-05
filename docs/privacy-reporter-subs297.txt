@@ -1,0 +1,46 @@
+D5 / P7 - original reporter Subs delegate handoff
+2026-10-28. Bounded static source/installed review;P7/D5 remain OPEN.
+
+Original Uncapped.BugsnagCrashReporter.Subs at GameAssembly RVA3cc2140 has
+six paired calls to delegate constructor18179aa50 and helper18081b2b0.
+The pinned IL2CPP BugsnagUnity.Windows.dll method table and metadata resolve
+that helper to BugsnagUnity.Configuration.AddOnSendError,token0x60000e3.
+The latter call sites are3cc2802,3cc28f2,3cc2923,3cc2954,3cc2985 and
+3cc29b6. Two constructed delegates are cached through class-static slots+8
+and+10 before their helper calls. This confirms multiple candidate subscription
+handoffs within the named Subs method. The precise delegate target methods
+have not been resolved. An exact E8-relative scan across all mapped sections
+of the original GameAssembly finds these same six sites and no other direct
+AddOnSendError call candidate. Indirect/interface/delegate calls remain unknown.
+The complete
+original Subs body has no direct
+E8 call to SetEnabled or the three reporter Boolean callbacks reviewed280/282.
+
+The current recipe25 owned GameAssembly image replaces Subs' first byte with
+RET and preserves the rest of its complete original body. A fresh invocation
+through this entry therefore cannot perform the six named helper calls. This
+does not rule out previously retained delegates,independent registrations,
+interface dispatch or direct callback invocation. The reporter Boolean callback
+entries have their own guards;SetEnabled remains unmodified so a false
+argument can still clear the reporter flag. The earlier exact direct-call
+inventory found no E8 caller of SetEnabled;its indirect callers and runtime
+argument values remain unknown.
+
+tools/review_reporter_subs297.py PASS verifies pinned original GameAssembly
+SHA256 e59d08c01479b27404778048d7e13546dbf3771f6b3912744c7c2bdf80c4e758
+and owned installed SHA256
+c6e4480475e515e71a46e9579ee48d4db1a7f22062db5282d73c314a204d6b4e.
+It checks the full unwind extent,542 contiguous decoded instructions,all
+12 paired call sites,two cached slots,the pinned metadata/method-table helper
+binding,the all-mapped-section direct E8 inventory,and installed entry RET/
+intact tail.
+Ignored local/privacy297-reporter-subs01/verification.json SHA256
+65e7e7ee033f33ea592fd525a9689df353b2a3fb9b0139317602a8795fe59a71.
+Original LLVM disassembly was retained at local/privacy279-game-3cc2140.asm.
+REA's deep native provider reported unavailable;this is PE/LLVM evidence,not
+decompiler output. No game,report queue,reporter or network operation ran.
+
+Next P7 evidence must identify the six delegate targets and any independent
+indirect AddOnSendError registration or
+runtime SetEnabled argument path,then establish effective queue/file/wire
+behavior where applicable. RUNTIME_VALIDATED remains false.

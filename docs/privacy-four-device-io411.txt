@@ -1,0 +1,40 @@
+D5 / P5-P8 - four-human native device-I/O code attribution
+
+2026-10-30. Current private public2/four-human subcase PASS;full D5 OPEN.
+
+This extends410's selected native NtDeviceIoControlFile sensor to a distinct
+four-client public2 path. All four current recipe38 native clients were
+created suspended and observed before main-thread resume. The RC-open
+1250-frame match reached result/Continue and normal Quit0 for each client.
+Server workers exited0/reaped and Jobs5/2/2/2/2 drained without forced
+cleanup. Seven packaged Python endpoint journals passed their existing
+loopback-only reviewer.
+
+The four clients observed50272/50188/49552/50139 device-I/O calls,
+respectively. Each stream contains25 complete control-code totals,with no
+sensor error,overflow or message truncation. In every client,all seven
+observed0x120xx codes use only that client's inherited private bridge
+handle(0x184/0x250/0x240/0x234). The0x1201f totals(1246/1246/1245/1245)
+equal its selected Winsock send count;0x12017 totals(43242/43158/42523/43110)
+equal its selected Winsock recv count. The other five0x120xx codes each
+occur once per client on the same bridge handle. Recv totals include failed
+nonblocking attempts and are not successful packet counts.
+
+tools.review_d5_four_device_io411 binds the exact source/package/helper/
+game/assets,match,Jobs,seven Python journals,prelaunch gates,observer source,
+REA streams,all selected native file/socket events and each device-I/O
+summary. The sensor reads no request buffer or report content. Published174
+and product binaries remain unchanged;RUNTIME_VALIDATED=false.
+
+This corroborates410 in the four-human path at the selected user-mode API
+boundary. Other native APIs,brokers/other processes,kernel/actual wire,
+report queue/retry,other configurations and final installed release remain
+open. P5-P8 and D5 remain OPEN.
+
+Ignored retained evidence SHA256:
+ local/privacy411-device-io-four01/verification.json
+ 37b81926cf3d6265d4fb0083cbd088105a996df21b9bfb775ff5c563f5489356
+ local/privacy411-device-io-four01/device-io-review.json
+ c67641aae5708b49813da391069eee599c2b8d52e8c883b778192084bcc003ca
+ local/privacy411-device-io-four-trace01/rea-evidence.json
+ dd0db0f2f5d8575b7432a5cadf2a52f886d7bad3a4188cd5dae5c2408af4505c

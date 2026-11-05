@@ -1,0 +1,39 @@
+D5 / P5 and P7 - installed recipe39 connected match with selected SDK observer
+
+2026-10-31. Owned private installed client/server pair PASS at the named scope.
+P5/P7/P9/D5 remain OPEN;RUNTIME_VALIDATED=false. No real SDK queue file
+was read,seeded,cleared or copied.
+
+The source-bound recipe39 private packages at local/privacy441-packages03 and
+installed game at local/privacy441-game01 ran a public1 two-human match with
+the existing packaged verifier. The verifier created both native clients
+suspended;REA Frida attached to PID36696 and PID45612 before their primary
+threads resumed. Each passive observer reported ready with the five selected
+GameAssembly SDK hooks installed without error. The same observer also watched
+selected native file and network APIs through original self-TerminateProcess.
+
+The match completed1220 frames;both clients reached native result,Continue,
+original Quit confirmation and game exit0. Both packaged driver reports pass.
+The server/client jobs total5/2/2 processes,all have0 active and0 terminated;
+no forced cleanup occurred. The private report is
+local/privacy452-connected-sdk01/verification.json,
+SHA256 7c46edbadcec73f9f52c19c9e95eec718da734a8969982b1aa36d29ab62bd518.
+
+At each original self-termination entry,the five selected cached-delivery/
+send SDK entry counts are0. No selected SDK-root file-operation event appears.
+The nine pathless operations per client are NtWriteFile on invalid handle -1,
+all returning STATUS_INVALID_HANDLE. Unknown relative roots and root-resolve
+failures are0;fileResolveFailed is1 per client. Each client used one native
+socket handle for selected send/recv:0x1e0(1219/63404) and0x200(1220/63445).
+Selected connect,WSAConnect,sendto,WSASendTo,DNS and WinHttpConnect counts
+are0. Both streams have41 ordered messages,no truncation,SDK errors,other
+observer errors or overflow. The final detached REA status evidence IDs are
+ev_536f2e5d7969fbc7f3db5b04ced6dc7adfc8dd5854924fb1cb0bda35def5d826
+and ev_bf044cf49481992af6d0b4a1c8a4e039d5fccf0ac5d72aa365aedfb0c7611a00.
+REA bundle:local/privacy452-connected-sdk-trace01/rea-evidence.json,
+SHA256 aa867924146a6ac3f42b0bfbae76b2eab0066722ba05dbc7e77e770f7628714e.
+
+This is selected user-mode entry/file/socket observation in one private
+connected mode. It does not prove complete SDK queue state,all API aliases,
+kernel wire,all descendants,other modes,ordinary published installation or
+P9's separate native advertising-ID producer. Published174 remains recipe23.

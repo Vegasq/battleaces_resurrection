@@ -1,0 +1,54 @@
+D5 / P1 and P7 - recipe39 installed original Quit with selected SDK entry observer
+
+2026-10-30. Owned private installed client PASS at the named scope.
+P1/P7/P9/D5 remain OPEN;RUNTIME_VALIDATED=false. No real SDK queue
+file was read,seeded,cleared or copied.
+
+The recipe39 game installed at local/privacy441-game01 used a new isolated
+nativestest_d5sdk_78bdeee2c7c8 profile. The owner verified the complete
+game and exact installed UnityPlayer SHA256
+ce5fb2e15d5997a9ed6e2971a61d25812b5f91ec918ce0eee8e88a7915c21cdd,
+GameAssembly SHA256 368ccf4af6b8c94bdd5e1c7269b038c7c79b869b797c000c2a64d1daabbc9648,
+and helper SHA256 3f97afc1f4247577a24a91fbcd789e01aa974939f661c9b3eecf95b1ab86a4c1.
+No other Battle Aces process was running at preparation. The owned game
+was created suspended and immediately assigned to its job. REA Frida
+attached to its retained PID5052 before primary-thread resume. The
+passive observer reported ready with selected native API hooks and an
+original self-TerminateProcess boundary before the owner released it.
+
+All five source-bound GameAssembly SDK hooks installed without errors:
+DeliverCachedPayloads,ProcessCachedItems and PushToServer iterator
+factories,BugsnagUnityWebRequest.SendWebRequest,and shared UnityWebRequest
+SendWebRequest. The six already-guarded related entries were byte-checked
+on the installed GameAssembly disk image. The five active entry counts
+were0 at the game's original self-TerminateProcess entry. Selected
+Winsock send/receive/connect/name-resolution and WinHTTP connect counts
+were0. No selected SDK-root file-operation event appeared;the9 otherwise
+unresolved file operations were NtWriteFile on invalid handle -1,all
+returning STATUS_INVALID_HANDLE. The observer reported no decode errors,
+SDK hook errors,overflow or message truncation. This is an entry/API
+observation,not a complete queue-read or kernel-wire census.
+
+The game reached original Quit confirmation and exited0 naturally. Its
+ordered native trace is armed,Show.dispatch,Show.return,OnConfirm.dispatch,
+OnConfirm.return. Retained owner handle and job accounting confirm1 total,
+0 active,0 terminated,no forced cleanup. Frida was detached after exit.
+This is a direct diagnostic launch of the installed game. The ordinary
+installed launcher/WM_CLOSE checks from446 and previous SDK-root metadata
+watch from447 remain distinct.
+
+Ignored artifacts:local/privacy451-installed-sdk01/{verification.json,
+review.json,observer.js,observer-config.json,rea-evidence.json}. The
+read-only local/privacy451-review.py independently reconciles observer
+source hash,untruncated REA message prefix/sequence,PID/run ID,installed
+hook set,exit counts,failed file calls and owned natural Quit. PASS.
+Owner receipt SHA256 6154470b7a94cfef61e37d3f3e2aad1b051100cd66c121b362d82de3537b617f;
+review SHA256 282ddcde12632df964fa2ffcd0cbd922652ebc11c40d5cfc6d23f892eafca340;
+REA bundle SHA256 e578afb46717242fc7b5f00a041542f507a68b576e65d5e6614b0f197b881ba0.
+
+The instrumentation itself can perform loader work before primary resume;
+its five GameAssembly hooks only begin when that module loads. Other SDK
+entry aliases,pre-existing or in-flight queue state,other file roots/APIs,
+other thread/process routes,kernel wire,descendants,connected modes and final published
+installed privacy remain unproved. The separate P9 ID provider remains
+unresolved. No release gate is closed by this selected quiet interval.

@@ -1,0 +1,33 @@
+D5 / P5-P8 - direct dynamic-loader names in worker Simulation.dll
+
+2026-10-30. Retained412 worker/source review PASS;full D5 OPEN.
+No game or worker was rerun.
+
+417 identified dynamic loader imports in the exact worker Simulation.dll.
+This follow-up disassembles its executable .text and binds all direct call
+sites to the three imported loader slots:6 LoadLibraryA,4 LoadLibraryExW
+and65 GetProcAddress. The six LoadLibraryA sites belong to three selected
+owner regions. Their literal inputs are dbghelp.dll,kernel32.dll,
+tlhelp32.dll and three ProgramFiles paths ending in dbghelp.dll.
+The four LoadLibraryExW calls read two indexed wide-name tables containing
+3 and21 entries. Those entries name Windows core/API-set modules,
+advapi32,kernel32,kernelbase,ntdll and user32. None of the selected loader
+names is a network DLL. The direct call sites,literal references and indexed
+table operands are byte-bound to the exact DLL reported by both412 workers.
+
+This resolves the selected direct loader-name question,not the full native
+path.65 GetProcAddress calls and any indirect loader calls still need
+target/dataflow attribution;computed names and other loaded modules are not
+excluded. No OS/kernel packet or wire capture was made. The DLL's ordinary
+imports and empty delay-import directory retain417's narrower scope.
+
+tools.review_d5_simulation_loader418 reuses417's exact worker SHA/PE import
+review and verifies the whole .text direct-call inventory,selected literal
+references,loader tables and original bytes. Ignored receipt:
+ local/privacy418-simulation-loader01/verification.json SHA256
+ 30706851007ab976d08f88b2d2adcdb11207bb12e19918b0db0fe92a5ad10dff.
+P5-P8/full D5 remain OPEN;RUNTIME_VALIDATED=false,published174 unchanged.
+
+Follow-up419 binds63 of the65 direct GetProcAddress sites to literal,
+non-network function names. Two resolver sites take caller-supplied names;
+see privacy-simulation-getproc419.txt.

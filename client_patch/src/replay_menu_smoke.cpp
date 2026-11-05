@@ -311,14 +311,17 @@ static bool clickExit(Probe& value,Obj controller) {
     return false;
 }
 static void update(Obj front) {
-    if(!ba::flag(L"-native-replay-menu-smoke") || stage>=4 || GetTickCount64()<due)return;
+    const bool entry=ba::flag(L"-native-replay-entry-smoke");
+    if((!ba::flag(L"-native-replay-menu-smoke") && !entry) || stage>=4 || GetTickCount64()<due)return;
     due=GetTickCount64()+50;
     try {
-        require(ui::unityThread() && ba::offlinePractice() && ba_native_settings::session &&
+        require(ui::unityThread() && (entry?ba::unified():ba::offlinePractice()) && ba_native_settings::session &&
             ba::flag(L"-native-quit-smoke") && ba::flag(L"-native-quit-gate-smoke") &&
             ba::flag(L"-replay-binding-inventory") && ba::flag(L"-replay-signal-inventory") &&
             ba::flag(L"-replay-nody-inventory") && !ba::flag(L"-practice-ai-smoke") &&
             !ba::flag(L"-native-replay-playback-smoke"),"replay menu control requires one owned diagnostic API sequence");
+        require(!entry || (!ba::flag(L"-native-replay-menu-smoke") && !partialMode() && !invalidMode() && !semanticMode() && buttonMode() && cancelMode()),
+            "ordinary-entry observer requires only original Cancel/Leave controls,without diagnostic loading");
         require(!cancelMode() || buttonMode(),"replay Cancel control requires the original authored leave route");
         require(!invalidMode() || (buttonMode() && cancelMode()),"replay invalid-file control requires subsequent healthy Cancel/reopen/exit");
         require(!semanticMode() || invalidMode(),"replay semantic controls require invalid-file and subsequent healthy controls");
@@ -332,6 +335,22 @@ static void update(Obj front) {
         const auto state=ba_replay_binding::className(current.get());
         if(state!=lastState){lastState=state;ba::log("NATIVE REPLAY MENU state: stage=%u state=%s",stage,state.c_str());}
         const auto now=GetTickCount64();
+        if(stage==0 && entry) {
+            if(!deadline)deadline=now+90000;
+            require(now<deadline,"ordinary replay entry observer deadline");
+            if(state!=".RGameInGameState" || ba_client::worldOwner!=ba_client::Owner::Replay)return;
+            Root replay(ba::get<Obj>(ba::owner,"<Replay>k__BackingField")),simulation(ba::get<Obj>(replay.get(),"_simulation"));
+            if(!ba::read<uint64_t>(simulation.get(),0x1a8))return;
+            probe=std::make_unique<Probe>(ba::owner,front,replay.get(),simulation.get());
+            Root frames(codec::get(replay.get(),"get_FrameCount",0x3ddb470,0x0600092a));
+            probe->frames=ba_catalog::unbox<int>(frames.get());probe->gameData=ba::get<Obj>(replay.get(),"_gameData");
+            require(probe->frames>0 && probe->gameData,"ordinary replay entry has no decoded recording");
+            stage=1;deadline=now+60000;
+            const auto digest=ba_lan::sha(ba_lan::serialize(probe->gameData));std::string hash;char byte[3];
+            for(unsigned char value:digest){sprintf_s(byte,"%02x",value);hash+=byte;}
+            ba::log("NATIVE REPLAY ENTRY observed: ordinaryLoader=1 diagnosticLoadCalls=0 frames=%d gameDataSha256=%s",probe->frames,hash.c_str());
+            return;
+        }
         if(stage==0) {
             if(deadline)require(now<deadline,"replay menu entry deadline");
             if(!ba_local_menu::ready(front) || !ba_dedicated_session::inMenu() || !ba_client::nativeIdle(front))return;
@@ -410,6 +429,7 @@ static void update(Obj front) {
         }
         if(stage==3) {
             if(!ba_dedicated_session::inMenu() || !ba_local_menu::ready(front) || !ba_client::nativeIdle(front))return;
+            if(entry && ba_client::worldOwner==ba_client::Owner::Replay)return;
             require(!ba::read<uint64_t>(probe->simulation.get(),0x1a8) &&
                 !ba::read<bool>(probe->simulation.get(),0x1a0) && !ba_practice::active() &&
                 ba_client::worldOwner==ba_client::Owner::None,"replay menu exit did not release the original world");
@@ -418,6 +438,7 @@ static void update(Obj front) {
             if(semanticMode())require(semanticIndex==2,"semantic replay refusal controls incomplete");
             if(partialMode())require(partialSettled,"partial replay recovery control incomplete");
             probe.reset();stage=4;
+            if(entry)ba::log("NATIVE REPLAY ENTRY control passed: originalCancelLeave=1 diagnosticLoadCalls=0 idleMenu=1 leaseReleased=1");
             if(partialMode())ba::log("NATIVE REPLAY MENU PARTIAL control passed: originalRunnerFailureObserved=1 subsequentHealthyPlayback=1 mainMenu=1 worldIdle=1 originalExitApi=0 probeRootsReleased=1 filePinReleased=1 buttonClicks=2 cancelCallbacks=1 originalStopCalls=0 fsmWrites=0 helperTicks=0 BA_RESURRECTION_REPLAY_MENU_PARTIAL_V1");
             else if(semanticMode())ba::log("NATIVE REPLAY MENU SEMANTIC control passed: originalBadFilesRefused=3 semanticCases=2 subsequentHealthyPlayback=1 mainMenu=1 worldIdle=1 originalExitApi=0 probeRootsReleased=1 filePinReleased=1 buttonClicks=2 cancelCallbacks=1 originalStopCalls=0 fsmWrites=0 helperTicks=0 BA_RESURRECTION_REPLAY_MENU_SEMANTIC_V1");
             else if(invalidMode())ba::log("NATIVE REPLAY MENU INVALID control passed: originalBadFileRefused=1 subsequentHealthyPlayback=1 mainMenu=1 worldIdle=1 originalExitApi=0 probeRootsReleased=1 filePinReleased=1 buttonClicks=2 cancelCallbacks=1 originalStopCalls=0 fsmWrites=0 helperTicks=0 BA_RESURRECTION_REPLAY_MENU_INVALID_V1");

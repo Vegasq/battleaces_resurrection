@@ -49,3 +49,36 @@ static void startupRun() noexcept {
     }catch(const std::exception& error) {ba::log("TELEMETRY CACHESTARTUP probe failed: %s; no success claim",error.what());}
     catch(...) {ba::log("TELEMETRY CACHESTARTUP probe failed: unknown; no success claim");}
 }
+
+// Separate owned menu observation. Invoke the original pure path getters with
+// their unmodified Unity icall. Only hashes of returned path strings are logged.
+// CacheManager's instance ctor, directory readers and report delivery stay out.
+static void liveRootRun() noexcept {
+    static const bool enabled=ba::flag(L"-telemetry-cache-live-root-probe");
+    static bool attempted=false;if(!enabled || attempted)return;attempted=true;
+    try {
+        require(requested() && checked && !disabled && completeRecipe && auditThread==GetCurrentThreadId() &&
+            ba::flag(L"-native-quit-smoke") && ba_native_settings::session &&
+            ba_native_settings::session->profile().compare(0,12,"nativestest_")==0,
+            "live root probe requires owned complete-recipe menu diagnostic");
+        require(!ba::flag(L"-telemetry-cache-startup-probe") && !ba::flag(L"-telemetry-cache-probe") &&
+            !ba::flag(L"-telemetry-cache-disk-probe") && !ba::flag(L"-telemetry-cache-delivery-probe") &&
+            !ba::flag(L"-telemetry-cache-failure-probe"),"live root probe excludes all root overrides and cache fixtures");
+        original(0x8364e0,158,"74b3fb1edab3252e13eccbca61f993aa3dc9f7b4dcae540a784ac71f850bbeb8");
+        original(0x5021d80,80,"c4438c6106e839f61d264d22bd99aeb3f79d14cd697550126151bd93a78b2590");
+        ba_local::Root applicationBefore(ba::native<Obj(*)(void*)>(0x5021d80)(nullptr));
+        ba_local::Root root(ba::native<Obj(*)(void*)>(0x8364e0)(nullptr));
+        ba_local::Root applicationAfter(ba::native<Obj(*)(void*)>(0x5021d80)(nullptr));
+        const auto application=text(applicationBefore.get()),cache=text(root.get());
+        require(!application.empty() && application.size()<4096 && cache==application+L"/Bugsnag" &&
+            application==text(applicationAfter.get()),"live original SDK root or Unity path changed");
+        const auto hash=[](const std::wstring& value) {
+            Bytes bytes(value.size()*sizeof(wchar_t));
+            memcpy(bytes.data(),value.data(),bytes.size());return digest(bytes);
+        };
+        const auto appHash=hash(application),cacheHash=hash(cache);
+        ba::log("TELEMETRY CACHELIVEROOT probe passed: version=1 thread=%lu originalGetters=3 rootSha256=%s applicationSha256=%s rootChars=%zu applicationChars=%zu rootMatchesApplication=1 icallOverride=0 cacheInstanceConstructed=0 reportPayloadRead=0 queueEnumeration=0",
+            GetCurrentThreadId(),cacheHash.c_str(),appHash.c_str(),cache.size(),application.size());
+    }catch(const std::exception& error) {ba::log("TELEMETRY CACHELIVEROOT probe failed: %s; no success claim",error.what());}
+    catch(...) {ba::log("TELEMETRY CACHELIVEROOT probe failed: unknown; no success claim");}
+}

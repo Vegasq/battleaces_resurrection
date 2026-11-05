@@ -5,9 +5,52 @@ import unittest
 from tests import test_replay_signal_evidence as fixture_module
 from tools.replay_menu_evidence import validate, COMPLETE, BUTTON_COMPLETE, CANCEL_COMPLETE, INVALID_COMPLETE, SEMANTIC_COMPLETE, PARTIAL_COMPLETE
 from tools.replay_binding_evidence import validate as binding
+from tools.verify_replay_entry import locked_refusal_evidence, refusal_evidence, missing_file_evidence
 
 
 class ReplayMenuEvidenceTests(unittest.TestCase):
+    def test_missing_file_probe_handles_actual_crt_absence_and_rejects_existing_file(self):
+        from tests.test_credentials import private_test_folder, remove_test_folder
+        folder=private_test_folder('replay-missing-')
+        self.addCleanup(remove_test_folder,folder)
+        path=folder/'absent.rep'
+        self.assertEqual(missing_file_evidence(path)['errno'],2)
+        self.assertFalse(path.exists())
+        path.write_bytes(b'authored existing fixture')
+        with self.assertRaisesRegex(AssertionError,'unexpectedly exists'):missing_file_evidence(path)
+
+    def test_ordinary_missing_and_corrupt_refusal_require_their_own_boundary(self):
+        prefix='[1] Unified client ready: local menu independent of server\n'
+        missing=prefix+'[2] Replay file entry refused: cosmetic state requires an ordinary local file/directory\n'
+        corrupt=prefix+'[2] Replay file entry refused: replay data is invalid, incomplete or exceeds supported decoding limits\n'
+        for case,text,wrong in (('missing',missing,corrupt),('invalid-deflate',corrupt,missing)):
+            with self.subTest(case=case):
+                result=refusal_evidence(text,case)
+                self.assertTrue(result['ordinary_admission_refused'])
+                self.assertFalse(result['retry_qualified'])
+                self.assertFalse(result['natural_quit_qualified'])
+                for altered in (wrong,text+text,text+'[3] Replay file entry: boundedAdmission=1\n'):
+                    with self.assertRaises(AssertionError):refusal_evidence(altered,case)
+        with self.assertRaisesRegex(AssertionError,'unsupported refusal case'):
+            refusal_evidence(corrupt,'other-malformed')
+
+    def test_locked_admission_observation_never_claims_recovery_or_quit(self):
+        text=('[1] Unified client ready: local menu independent of server\r\n'
+              '[2] Replay file entry refused: cosmetic state requires an ordinary local file/directory\r\n')
+        result=locked_refusal_evidence(text)
+        self.assertTrue(result['ordinary_admission_refused'])
+        for name in ('original_file_loader_called','world_acquired','dialog_action_qualified',
+                     'retry_qualified','natural_quit_qualified'):
+            self.assertFalse(result[name])
+        for change in ('', text+text, text.replace('ordinary local','other local'),
+                       text.splitlines(keepends=True)[1],
+                       text+'[3] Replay file entry: boundedAdmission=1\n',
+                       text+'[3] Client world acquired: generation=1 owner=replay\n',
+                       text+'[3] Client lifecycle invariant failed: stale owner\n',
+                       text+'[3] NATIVE REPLAY MENU loaded: frames=1220\n'):
+            with self.subTest(log=change),self.assertRaises(AssertionError):
+                locked_refusal_evidence(change)
+
     def setUp(self):
         fixture = fixture_module.ReplaySignalEvidenceTests()
         fixture.setUp()
@@ -248,6 +291,22 @@ class ReplayMenuEvidenceTests(unittest.TestCase):
         self.assertFalse(result['physical_ui_input_qualified'])
         with self.assertRaises(AssertionError):validate(self.cancel_text(),self.replay,button_exit=True,cancel_first=True,partial_first=True)
         with self.assertRaises(AssertionError):validate(self.partial_text(),self.replay,button_exit=True,cancel_first=True)
+
+    def test_ordinary_entry_requires_production_load_and_released_owner(self):
+        text=self.cancel_text()
+        text=re.sub(r'NATIVE REPLAY MENU load dispatch:[^\n]+',
+                    'Replay file entry: boundedAdmission=1 originalLoadReplayFromFile=1 frames=100 BA_RESURRECTION_REPLAY_ENTRY_V1',text)
+        text=text.replace('NATIVE REPLAY MENU loaded: frames=',
+                          'NATIVE REPLAY ENTRY observed: ordinaryLoader=1 diagnosticLoadCalls=0 frames=')
+        text+='\nReplay file entry finished: originalLeave=1 idleMenu=1\nNATIVE REPLAY ENTRY control passed: originalCancelLeave=1 diagnosticLoadCalls=0 idleMenu=1 leaseReleased=1\n'
+        result=validate(text,self.replay,button_exit=True,cancel_first=True,ordinary_entry=True)
+        self.assertTrue(result['ordinary_file_entry_qualified'])
+        self.assertFalse(result['user_exposed_disk_selection_qualified'])
+        for bad in (text.replace('leaseReleased=1','leaseReleased=0'),
+                    text.replace('diagnosticLoadCalls=0','diagnosticLoadCalls=1'),
+                    text+'\nNATIVE REPLAY MENU load dispatch: invalid',self.cancel_text()):
+            with self.assertRaises(AssertionError):
+                validate(bad,self.replay,button_exit=True,cancel_first=True,ordinary_entry=True)
 
     def test_partial_recovery_rejects_retrying_same_bad_data_or_helper_stop(self):
         text=self.partial_text()

@@ -1,0 +1,64 @@
+D5 / P4 - CURRENT RECIPE34 LOCAL PUBLIC1/2 SDK-CACHE PATH WATCH336
+2026-10-28. Bounded selected-route PASS;P4/P8/P9/full D5 remain OPEN.
+
+Question and method
+335 watched the293-bound SDK cache path through an owned local public5 match.
+This check applies the same passive metadata watch to the distinct local
+public1 and2 match paths in the current recipe34 owned installation. Each
+run uses a fresh isolated profile,one original mode callback,result,Continue
+and normal Quit. The observer tracks selected user-mode file/network/process/
+browser APIs through the self-termination entry;it does not open,seed,read or
+clear any real SDK queue. tools/review_d5_local_sdk_route.py verifies the
+game/helper/Unity source binding,complete detached stream,bridge socket and
+job. The normal launcher and product files are unchanged.
+
+Retained failed attempts
+local/privacy336-modes12-01 stopped before either match because the existing
+native Quit diagnostic requires exactly one local match;its failed report and
+detached partial stream are retained. local/privacy336-mode1-02 reached a
+result,Continue and normal Quit0,but its1200-frame gameplay verifier found no
+bot production/movement correlation. The runner therefore marked it FAILED;
+its complete observer stream is retained but not used for this acceptance.
+The separate3600-frame runs below pass the original verifier.
+
+Accepted mode1 and mode2 observations
+local/privacy336-mode1-03 and local/privacy336-mode2-04 each pass the original
+match/result/Continue/normal Quit0,seven selected native telemetry snapshots,
+owned job1total/0active/0terminated and no forced cleanup. Each has a complete
+detached1903-event observer stream. Mode1 has890 selected file records:
+586 owned output,304 owned profile,zero under the SDK cache root. Mode2 has888:
+558 owned output,330 owned profile,zero under that root. The root's exact path
+matches293's original getter result with the same Unity image. Both captures
+have no observer error,unknown relative root,overflow or truncated messages.
+
+For each mode,all five selected send/recv calls use precisely its inherited
+private game bridge socket. Selected connect,WSAConnect,DNS,sendto,
+WinHttpConnect,process/shell creation and lazy browser activation counts are
+zero. Together with335,local public1/2/5 now have this scoped cache-root and
+bridge observation on the current recipe34 installation.
+
+Ignored evidence identities
+  local/privacy336-mode1-03/verification.json SHA256
+  d480c7c0263562d63d21b98376cb8ddd30bf3bc0708cbee9ab9c23c4723524ba
+  local/privacy336-mode1-03/route-review.json SHA256
+  745c03a16363a6e6b277265c8a48eaf891a205cf1ef5fa14ec0e78cfb0a592c0
+  local/privacy336-mode1-03/rea-evidence.json SHA256
+  2ff2be4056007fd7764ad62edd6c59a1f560d42fda1e4c8d39f2d8698350c651
+  Final detached REA evidence ID:
+  ev_85276a406c67dccb07f1a6ed489889913cd426ac567796f7fc30fd5daa3f3b1e.
+  local/privacy336-mode2-04/verification.json SHA256
+  a726135275c23c3962bb1931c7e3f30abe74a83e601f744cb973345cfdc2fe75
+  local/privacy336-mode2-04/route-review.json SHA256
+  97e3f01f4df0e248deab0066d4849764b36ae4fe5f960b066dcb95b25b15c812
+  local/privacy336-mode2-04/rea-evidence.json SHA256
+  614fe3ce42623b3114507c49bb5b25f828da06e64aef0b0613ad01ac6eaee8ab
+  Final detached REA evidence ID:
+  ev_ca5b9169566618178f8895d98e90f9e0ff1afa5949f4e1f4e2c07f54e84c6459.
+
+Boundary
+These are owned diagnostic local public matches,not ordinary final installed
+client/server use. Selected user-mode hooks and three roots do not establish
+all APIs/threads,pre-attach/in-flight activity,other cache locations,SDK queue
+state,kernel/raw-socket wire,connected play or absent advertising-ID acquisition.
+The Try Deck4 path also lacks this specific SDK-root match observation. Reuse
+these bounded mode1/2 results;P4/P8/P9/D5 remain OPEN,RUNTIME_VALIDATED=false.

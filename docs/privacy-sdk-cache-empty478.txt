@@ -1,0 +1,27 @@
+D5 / P7 checkpoint 478 - CacheManager.GetFilesBySuffix empty-array branch
+
+Status: source recipe42 implemented; installed recipe42 and final D5 remain OPEN.
+
+The pristine GameAssembly.dll SHA256 is
+e59d08c01479b27404778048d7e13546dbf3771f6b3912744c7c2bdf80c4e758.
+The pinned metadata binds BugsnagUnity.CacheManager.GetFilesBySuffix to
+RVA 0x836830. Its body calls Directory.GetFiles and has an original
+empty-array path at RVA 0x836884. The recipe42 guard at RVA 0x83683a jumps
+to that path after the original prologue, preserving normal unwind.
+
+Before the source change, an owned recipe41 game was run with a reversible
+in-memory probe of those six branch bytes. A direct helper call returned a
+non-null array with length zero. The original bytes were restored before
+normal menu Quit; exit code was zero, Job accounting 1/0/0, no forced cleanup,
+and disk images were unchanged. Independent reviewer
+tools/review_sdk_empty_probe478.py passed; evidence
+ev_0bc27c1607d37f81f42ee0879a772f1a28f9071128d397aced6dab8acc480fe8.
+Owned artifacts: local/privacy478-emptyprobe01/.
+
+The recipe42 source and reader review pass. The current recipe has 171 guards,
+including 104 GameAssembly guards. This is a specific queue-directory reader
+cut; it does not establish that the real SDK queue is empty, that no other
+reader runs, or that no report reaches the wire. Next: install recipe42 in an
+owned game, exercise direct helper and connected play, then address the
+remaining P7 queue/wire routes and P9 advertising producer before final D5
+qualification.

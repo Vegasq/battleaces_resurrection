@@ -1,0 +1,30 @@
+D5 / P5-P8 - packaged Python direct socket route inventory
+2026-10-29. Bounded static review PASS; full P5/P8/P9/D5 remain OPEN.
+
+tools.review_d5_python_egress360 checks the current private recipe38 pair358
+against the current source and the connected recovery fixture359. Package
+integrity, both archive hashes and exact packaged/source bytes for 30 client
+and 66 server Python/PowerShell files pass. The verifier inventories every
+direct socket-creation/bind/connect/start-server call in the allowlisted
+Python modules: nine sites. They resolve to the bridge's local socketpair,
+the configured server listener/accepted TLS socket, the dashboard listener,
+and the adapter's verified connection to the explicitly configured host/port.
+The selected359 fixture uses 127.0.0.1 for the server and dashboard, and both
+clients select that server address and port. No direct HTTP-client library
+imports or dynamic eval/import calls appear in these packaged Python sources.
+
+The PowerShell client configuration path can resolve a hostname through DNS.
+The dashboard's browser JavaScript uses a relative /api/status request. Neither
+is evidence of a reporting endpoint. This review classifies only direct
+source-level call sites and the selected loopback configuration. Indirect
+library behavior, native game/worker code, installed user configurations,
+other processes, packet delivery, and SDK queue reads/retries remain outside
+its scope. It does not establish all-thread or whole-wire absence. Published174
+remains unchanged and RUNTIME_VALIDATED remains false.
+
+Local result:local/privacy360-python-egress01/verification.json
+SHA256:75a979f8784bb1a9b8875c43abec11311fdd355b17df9a788684297bfadfdf2d
+Bound inputs:pair358 build-report SHA256
+63fdd8ecb661deab858f616cee692831eb27519d22e93708b4003dfb92cad504
+and recovery359 verification SHA256
+62a9616868e6f3e3ea7d940ef98d6be06b158c5cf66de862275cb17f67537661.

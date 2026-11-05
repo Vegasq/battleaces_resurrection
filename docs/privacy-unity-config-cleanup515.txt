@@ -1,0 +1,54 @@
+D5 / P7 - native Unity Analytics config request shutdown path
+
+2026-10-31. Exact-PDB source and private installed owned shutdown trace PASS
+at the stated scope. P7/P9/D5 remain OPEN;RUNTIME_VALIDATED=false. No
+product patch,published package or Nick-owned process changed.
+
+The pristine DispatcherService destructor at RVA c58b00 calls CloseService
+at c58f50 before destroying its DataDispatcher and remaining owned members.
+On an enabled service,CloseService clears +0xb58,closes its scheduler and
+checks the config WebRequestRestClient pointer at +0xb70. If that pointer
+exists,it cleans up the request,invokes its destructor,deallocates it and
+sets +0xb70 to null. WebRequestRestClient::Cleanup at c64210 releases its
+three held request/handler references and clears their slots. The same
+request cleanup appears at the start of the next active config fetch,as
+recorded in privacy-unity-config-followup514.txt. If CloseService enters
+with enabled=0,it returns false without touching +0xb70;whether another
+path can create a pending pointer then disable the service before Close
+remains outside this review.
+
+Ghidra read-only -noanalysis exact-PDB symbol census/decompilation both
+exited0. Pristine UnityPlayer SHA256 is
+ac144d56d53f07904d52ed27a1539de90bc3290038fe52d73d2f6b268c85d6bc.
+Ignored logs under local/d5-ghidra-12.1.4:
+pdb-config-cleanup515-census-console.log SHA256
+e9fe056055fe4596d1e74e86f01eb611b81a72013380c45a4ddd8b81f60008e2;
+pdb-config-cleanup515-trace-console.log SHA256
+37b38f71223cec4e2404cac23387463be55c8cedd918a5ae5efd5fe345df7ce9.
+
+An owned recipe47 client launched suspended under a retained Job,with
+pre/post exact game/helper hashes. REA loaded a passive observer before
+main-thread resume. Its loaded UnityPlayer path and guard bytes 31 c0 c3
+matched recipe47. In the single original Quit0 run,the observer recorded
+one DispatcherService destructor entry,one CloseService entry/return and
+zero FetchAndSaveConfigFromServer entries. Both observed destructor and
+CloseService states had enabled=0 and +0xb70=null;CloseService returned
+false. No actual pending request existed in this run. Two selected native
+self-TerminateProcess entry notifications had exitCode0 and the same final
+counts. REA messages were not truncated. Retained Job ended1/0/0,with
+no forced cleanup;all four executable/helper hashes remained unchanged.
+Owner receipt:local/privacy515-config-lifetime01/verification.json SHA256
+65431100815505ca4b1465da6c43133a7c6cea02cf49dbc1a6522c3f719abe39.
+Observer:tools/unity_config_lifetime515.js SHA256
+b42f3009271b271dcb7cba77f59f39883f84f8163b540336a998cb151ad9dcb6;
+REA corrected script-load Evidence ID
+ev_a7a8bb1eff6c9e4ed234e13af6ac71b9a7b43e9f8dcccff65096f6b542ac556c.
+
+The first pre-resume observer load could not intercept the three byte
+PerformPost guard and emitted a Frida script error;its session was detached
+while the process remained suspended. The corrected observer only reads
+those guard bytes and hooks the longer caller/cleanup methods. Its source
+SHA above matches the corrected REA load. This does not imply an original
+network post or a real pending-request cleanup was observed. The next
+specific config check needs a legitimate active caller state,not a guessed
+object pointer. Whole queue/wire and P9 remain separate work.

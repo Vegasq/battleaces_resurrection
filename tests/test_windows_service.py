@@ -128,6 +128,7 @@ class HostReadinessTests(unittest.IsolatedAsyncioTestCase):
         server.close = mock.AsyncMock()
         server.listener.serve_forever = listener_wait.wait
         audit = mock.Mock()
+        audit.aclose = mock.AsyncMock()
         config = mock.Mock(data_directory=Path('data'), assets_directory=Path('assets'))
         template = mock.Mock()
         async def check(*args):
@@ -150,7 +151,7 @@ class HostReadinessTests(unittest.IsolatedAsyncioTestCase):
                 await asyncio.wait_for(ready_event.wait(), 2)
                 task.cancel()
                 with self.assertRaises(asyncio.CancelledError): await task
-                server.close.assert_awaited_once(); audit.close.assert_called_once()
+                server.close.assert_awaited_once(); audit.aclose.assert_awaited_once()
                 self.assertEqual(stages, ['assets_and_storage_checked', 'native_checked', 'stopping'])
             finally:
                 if not task.done(): task.cancel(); await asyncio.gather(task, return_exceptions=True)

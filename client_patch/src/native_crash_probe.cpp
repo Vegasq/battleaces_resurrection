@@ -72,8 +72,8 @@ static void nativeCrashProbe() noexcept {
             uintptr_t entry=0;
             require(read(unity,0x18cf630,entry) && entry==unity+0x1484d0,"native crash registrar binding differs");
             ready=true;
-            ba::log("NATIVE CRASH ready: version=1 thread=%lu recipe=23 mode=%lu savedMode=%lu expectedMode=%lu managerPresent=%u managerDisabledChecked=%u pendingTreeChecked=%u managerAbsent=%u controllerOnCurrentStack=1 ipcInvalid=6 cursorCallbackRva=801fb0 recursion=0 breakOnCrash=0 originalWrapperRva=1484d0 gateRequired=1",
-                GetCurrentThreadId(),state.mode,state.savedMode,state.expectedMode,state.manager?1u:0u,
+            ba::log("NATIVE CRASH ready: version=1 thread=%lu recipe=%u mode=%lu savedMode=%lu expectedMode=%lu managerPresent=%u managerDisabledChecked=%u pendingTreeChecked=%u managerAbsent=%u controllerOnCurrentStack=1 ipcInvalid=6 cursorCallbackRva=801fb0 recursion=0 breakOnCrash=0 originalWrapperRva=1484d0 gateRequired=1",
+                GetCurrentThreadId(),currentRecipeVersion,state.mode,state.savedMode,state.expectedMode,state.manager?1u:0u,
                 state.manager?1u:0u,state.manager?1u:0u,state.manager?0u:1u);
         }
         const auto& settings=ba_native_settings::session->path();const auto slash=settings.find_last_of(L'\\');

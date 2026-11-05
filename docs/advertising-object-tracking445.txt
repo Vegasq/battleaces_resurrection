@@ -1,0 +1,33 @@
+D5 / P9 - Ads settings post-write tracking path
+
+2026-10-30. Pinned pristine UnityPlayer static review PASS at the named
+scope;P9/D5 OPEN. No setter,ID provider,callback,queue or endpoint ran.
+
+444 showed SetGameId stores a caller-supplied string at Ads manager+d8,
+then calls c038d0 on the inline object at+b8. 414/415 already bound
+the same post-write path for changed Ads enabled state. This follow-up
+decompiles the previously unclassified immediate descendants of c5bd620
+in the completed Ghidra project from443. Ignored postscript/log:
+local/d5-ghidra-12.1.4/scripts/TraceAdsNotify.java and
+local/d5-ghidra-12.1.4/notify3-console.log. The log SHA256 is
+fcc60974ca76e67c18e6b1c18343048035e5d90de1dcfa849d96b7b208441307.
+The pristine UnityPlayer SHA256 remains
+ac144d56d53f07904d52ed27a1539de90bc3290038fe52d73d2f6b268c85d6bc.
+Headless processing/postscript/save exited0.
+
+c5bd620 walks a counted array of tracked object records. Depending on
+gates and record state,it calls c5bd720 for each child,recurses on each
+child's tracking object,and calls c5ba5a0 for a negative state byte.
+c5bd720 calls c5b8d40 to resolve the object/state byte,can call c5ba5a0,
+then conditionally recurses into c5bd620. c5b8d40 uses runtime handle
+conversion function pointers and calls c5c08a0. c5c08a0 probes/inserts
+into a global hash table. c5ba5a0 updates a tracked-value lookup and
+calls c5c04b0 to append a value to a circular queue on the selected path.
+These are object-tracking operations,not a direct callback-table dispatch.
+The five selected descendants have no direct Main+1498 or c307c0 edge.
+
+This narrows the SetGameId/set_enabled post-write branch. The indirect
+runtime handle conversions,deeper hash-table growth and other settings
+effects remain outside this check. The actual advertising-ID producer and
+the separate Main callback's registration/invocation are still unresolved.
+No broad absence claim follows;RUNTIME_VALIDATED=false and D5 remain OPEN.

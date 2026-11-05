@@ -1,0 +1,44 @@
+D5 / P5-P8 - four-human native selected file-path attribution
+2026-10-30. Current private public2 four-human subcase PASS;full D5 OPEN.
+
+The earlier394 match established selected native socket-handle attribution
+but left1545 relative file paths unresolved per client. This distinct run
+used the later373 opt-in directory/file-handle metadata resolver on all four
+owned clients. It queries handle paths,not file contents or the real SDK
+queue. The same current private recipe38 pair358/helper357 and owned301
+game/assets completed one RC-open four-human/no-bot match:1250 frames,
+result/Continue/normal Quit0 on all four clients. Server workers exited0
+and were reaped;Jobs5/2/2/2/2 drained without forced cleanup.
+
+All four clients were created suspended and the observers installed before
+their main threads resumed. Their complete untruncated streams end at each
+original self-TerminateProcess entry with status0. Each resolved its one
+relative directory root with zero failures and zero unknown relative paths.
+Selected file operations under the293-bound LocalLow Bugsnag root were0.
+The only unresolved selected file calls were nine per client:NtWriteFile
+on handle0xffffffffffffffff,return STATUS_INVALID_HANDLE. Thus none of those
+calls was a successful file operation with an unknown destination. Selected
+send/recv calls used only each inherited private bridge socket;selected
+DNS/connect/sendto/WinHTTP and process-create events were0. Seven packaged
+Python endpoint journals retain the same loopback-only selected results.
+
+tools.review_d5_four_human_file404 independently checks package/source/
+helper/assets/match,worker/Job outcomes,each suspended PID/gate/resume,
+exact observer bytes,REA load/final streams,path-resolution and failed-call
+status,bridge socket arguments/handles and all seven Python journals.
+No shared report queue was read,seeded or cleared. Published174 and product
+binaries remain unchanged;RUNTIME_VALIDATED=false.
+
+Ignored evidence SHA256:
+ local/privacy404-four-human-file01/verification.json
+ 38a3ecd0f5a9f2537527c61a7718fc476b9d54e1d9bd295023612f4f0339c3f2
+ local/privacy404-four-human-file01/review404.json
+ c5dcf1d795ca23e9a120922cd09f35fba598f4c9f06e980ff0848e4a21aa9e1b
+ local/privacy404-four-human-file-trace01/rea-evidence.json
+ a32d2d930674f737af3bca95b4adb9604e2b777bf28bf25886ad1f587c251e00.
+
+This qualifies selected user-mode native file calls in this one owned mode
+from pre-resume to self-exit entry. Other file APIs,absolute NT aliases,
+memory mappings,raw/kernel I/O,other processes or brokers,the200ms hold/
+actual-death suffix,real SDK queue/retry/wire,other configurations and final
+installed privacy remain outside it. P5-P8 and full D5 remain OPEN.

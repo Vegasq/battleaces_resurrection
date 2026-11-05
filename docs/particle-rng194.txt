@@ -1,0 +1,85 @@
+PARTICLE AUTO-SEED CONSUMER194
+2026-10-26. Positive static binding. P9/D5 remain OPEN;runtime flag=false.
+
+Result
+The second native random-state owner left unclassified by164 has a concrete
+particle-system auto-seed consumer. Registered ParticleSystem.Play reaches a
+path that advances the four words at owner+c0/c4/c8/cc and publishes its output
+to the same field exposed by ParticleSystem.get_randomSeed. The condition is
+the field exposed by get_useAutoRandomSeed. This establishes a gameplay/effects
+use;the shared RNG and getter remain unchanged. No telemetry-only cut follows.
+The exact C++ manager type and every other owner consumer are not established.
+This does not identify Main+1498/c307c0's advertising producer.
+
+New positive binding
+The literal get_randomSeed belongs to a separate826-entry registration table,
+not the previously reviewed3471-entry core table. Actual rootfd4b10..fd4bbd
+uses the same R14 index with imagebase R12 for function array193b490 and name
+array193ce60. It passes RDX=function/RCX=name to registered callbacks and to
+global1d0d5c8,advances8bytes and bounds826. Reuse164's positive binding of that
+global to il2cpp_add_internal_call;table adjacency alone is not the evidence.
+Selected exact pairs:
+  index8:2482e0 -> UnityEngine.ParticleSystem::get_randomSeed
+  index10:2485c0 -> UnityEngine.ParticleSystem::get_useAutoRandomSeed
+  index28:24ada0 -> UnityEngine.ParticleSystem::Play
+The two getters resolve the native object and read [object+40]+30 and+34.
+
+Concrete consumer path
+Play callsd72220 at24aeea. That routine selects a component from the object's
+component list into R15,retains it through the relevant branch,and passes it to
+d66880 atd72691. d66880 retains that receiver in RBX and on its initialization
+branch callsd65c40 atd66979 with RCX=RBX. No claim that every Play takes it.
+d65c40 tests [receiver+40]+34. If false,it skips automatic seed generation.
+If true,it loads global1d0ec98 atd65c70,advances its four-word state using
+shifts/xors,and writes the output to [receiver+40]+30 atd65cc8. The named getters
+independently establish the meaning of these fields. The string simulationSpeed
+or proximity of native functions is not the classification proof.
+Reuse164's exact constructor edge:d5fae0 callsd5f730 atd5fc39 and publishes
+returned RAX to1d0ec98 atd5fc45. d5f730 passes its own+c0 to5920b0 atd5f80a,
+then returns that same object.193/192 server diagnostics are unrelated.
+
+Shared RNG policy
+164 already proves5920b0's system-RNG-first16-byte initialization and conditional
+machine-ID fallback on a nonzero BCryptGenRandom result.194 preserves and
+rechecks its zero-return branch to5921c0 and fallback call592161->9fb910;it does
+not execute either API or discover a new acquisition path. Particle auto-seed
+consumption is positive evidence against disabling this shared gameplay state.
+It is not proof that every possible consumer is nontelemetry,that the fallback
+never executes,or that the unresolved advertising callback is unreachable.
+
+Verification
+Source-owned tools/review_particle_rng.py verifies the pinned original,current
+whole-Unity recipe/checksum transformation,ten complete unwind extents and1754
+contiguous decoded instructions against original bytes.36semantic anchors,
+6direct calls,5RIP bindings,3branches and3exact registration pairs pass.
+All ten reviewed bodies and selected registration records/literals remain
+identical in actual local/r171g. No product patch/helper/build/install needed.
+Four opt-in tests PASS on Python3.12(2.806s) and3.14(2.783s),including retained
+positive evidence,wrong API label,changed dispatch text and missing instruction.
+Run with BA_PARTICLE_RNG_EVIDENCE=local/privacy194-particle-source01 and
+ python -B -m unittest tests.test_particle_rng
+No original collector,getter,RNG,game,SDK or shared report queue was executed.
+
+REA skill applied. Read-only binary_session confirmed native Ghidra unconfigured;
+no setup/install retry. These are PE/unwind/LLVM static findings,not native REA
+decompiler/runtime Evidence. Original Unity SHA256:
+ ac144d56d53f07904d52ed27a1539de90bc3290038fe52d73d2f6b268c85d6bc
+LLVM SHA256:
+ 5e7a457bf23033b6ec4a959d2276f09d44c024092529684d7eeb687d38da700d
+Installed recipe23 Unity SHA256:
+ a53b0c613a86c737b7caa7588c7c93ae20d5d5700f9321a406df9dcca8e32a7f
+local/privacy194-particle-source01/verification01.json SHA256:
+ 58f723a3f4efff27bcc36eac66474d089b7907ed32fb34e4752113960c3c4bc2
+Reviewer SHA256:
+ 6a82b790d99a5995a11517ea720ea9d36e064ed077fbbac41edfdaaea4438178
+Tests SHA256:
+ a4fc7e53d7b289a1617ec8a3a3a71c4b4048650ab0ec5bd15ffaf874b0d4107b
+Raw disassembly,exploratory bindings,source snapshots and manifest stay ignored
+under local/privacy194-particle-source01. Retained164 evidence is unchanged.
+
+Next
+Do not repeat the core registration/getter inventory or this particle path.
+The advertising producer still needs a positive registration/consumer edge or
+an established pre-acquisition cut.179-183 results retain their limits;quiet
+caller-witness intervals remain insufficient. No new privacy guard is justified
+by194. Remaining supported-mode/final-installed/privacy and D1-D9 gates stay open.

@@ -1,0 +1,27 @@
+D5 - OS sensor access and synthetic ETW calibration
+
+2026-11-01. The installed recipe47 public2 whole-wire/file/process
+qualification needs an OS-level capture with verified event schema and loss.
+No new game capture or D5 acceptance resulted from555/556.
+
+555 tried to start a uniquely named Microsoft-Windows-Kernel-Network ETW
+session before any game launch. logman returned signed -2147024891,
+0x80070005 Access is denied. The automation token had medium integrity;
+Administrators was deny-only and the named profiling/debug privileges were
+absent. No collector was created,game was launched or real report queue was
+read or written. Retained receipt:
+local/privacy555-os-sensor-preflight01/verification.json (passed:false).
+
+556 prepares tools/Run-ETWSensorSmoke556.ps1 with a local synthetic
+socket/file/child and tools/review_etw_sensor_smoke556.py. Read-only script
+preflight,PowerShell parse and Python compile PASS. The elevated ETW smoke
+has NOT RUN;there are no captured ETL events or reviewed event schemas.
+DEV.txt N16 contains the single-use Administrator PowerShell action and
+matching answer fields. Its output remains local/private.
+
+After an actual N16 run,the retained ETL/XML must still establish the
+positive synthetic controls,event fields,loss counters and PID/path/socket
+attribution before any owned installed-game capture can be trusted. Then
+P1-P8 collection/delivery/descendant claims and the independent P9
+advertising-ID producer need exact final-installed qualification. D5,
+RUNTIME_VALIDATED and the rc1.7 release remain OPEN/false/unpublished.

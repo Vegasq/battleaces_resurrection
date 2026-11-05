@@ -9,6 +9,23 @@ from tools import owned_suspended_launch as launch
 
 @unittest.skipUnless(os.name=='nt','Windows diagnostic only')
 class SuspendedOwnership(unittest.TestCase):
+    def test_alternate_root_is_explicit_and_limited_to_diagnostics(self):
+        self.assertEqual(launch.diagnostic_root(), (launch.ROOT/'local').resolve())
+        self.assertEqual(launch.diagnostic_root(launch.EXTERNAL_DIAGNOSTICS), launch.EXTERNAL_DIAGNOSTICS.resolve())
+        for path in (Path.home(), Path('C:/'), launch.ROOT, launch.EXTERNAL_DIAGNOSTICS.parent):
+            with self.subTest(path=path), self.assertRaises(ValueError): launch.diagnostic_root(path)
+
+    def test_external_images_require_opt_in_and_cwd_cannot_escape(self):
+        import _winapi
+        image=launch.EXTERNAL_DIAGNOSTICS/'adscaller_0123456789ab/Battle Aces.exe'
+        cases=[([str(image)], {}), ([str(Path.home()/'Battle Aces.exe')], dict(owned_root=launch.EXTERNAL_DIAGNOSTICS)),
+               ([str(image)], dict(owned_root=launch.EXTERNAL_DIAGNOSTICS, cwd=Path.home()))]
+        with patch.object(launch,'kernel_api',return_value=Mock()), patch.object(Path,'is_file',return_value=True), \
+                patch.object(_winapi,'CreateProcess') as create:
+            for command,kwargs in cases:
+                with self.subTest(kwargs=kwargs), self.assertRaises(ValueError): launch.SuspendedChild.create(command,**kwargs)
+            create.assert_not_called()
+
     def child(self):
         child=launch.SuspendedChild();child.kernel=Mock();child.handle=11;child.thread=12
         child.pid=21;child.tid=22;child.job=Mock(handle=13);child.returncode=None;child.resumed=False

@@ -1,0 +1,39 @@
+D5 / P5-P9 - recipe36 private package pair and connected match
+
+2026-10-28. Source-bound private package and owned connected public1
+compatibility PASS. Full P5/P7/P9/D5 remain OPEN;RUNTIME_VALIDATED=false.
+
+The first package attempt correctly refused launcher provenance:the launcher
+receipt listed unrelated certificate_tool.cs after that file joined the
+launcher directory. server/build_launcher.ps1 now records only the launcher
+sources actually tested and compiled;the separate certificate build keeps
+its own receipt. The rebuilt launcher and client installer/certificate tool
+are source-bound. tools.build_windows_packages builds the ignored local
+0.3.0-rc1.7 recipe36 preview at local/privacy348-packages02 with official
+SHA-verified Python3.14.8. This is not a published release. Build report
+SHA256:6b40ed889f54e92664e79b54cadbc74bd3541f74ef81b634d9f1d1570c1a9574.
+Client ZIP SHA256:42ec055849fbefeeb39fbcea3f74a93fb64647ffc80bbcec4f320d6c93c245ee.
+Server ZIP SHA256:40ded749c2324172043d63c65a53daf0f11dfb34a4c60fc982e010ad7c66971e.
+
+The source-owned packaged multiplayer verifier ran those exact ZIPs,the
+owned recipe36 installed game and verified build37822 assets through an
+RC-open loopback public1 match. Two human clients completed1220 frames,
+result/Continue/menu/normal Quit0. Both server workers exited0 and were
+reaped;listener,status writer and lock released. The three owned jobs
+finished with0 active/terminated processes and no forced cleanup. Source,
+package,assets,config,adapters and shared channels remained unchanged;
+temporary test PKI was removed. Elapsed101.578s.
+local/privacy348-connected01/verification.json PASS SHA256:
+a4b19ef1d4bae6a8db98c76cfb9360b7a2318847687e15cc9f4694b5f39c1e1a.
+
+tools/review_d5_connected_pair348.py binds the connected report to current
+source/package/helper/installed hashes and the separate owned recipe36
+practice loaded-byte scene metadata audit1/1 with natural Quit0. Its
+local/privacy348-connected01/review.json PASS SHA256:
+8cf2f3a1559de2eed9ce319ad2a31037536d02266590db8c205b4e19d0faaa38.
+
+This closes the recipe36 private pair's connected compatibility gap. It
+does not observe actual scene callback invocation or include SDK queue/file,
+complete network/wire,all-thread/descendant coverage,other modes or P9
+upstream advertising-ID producer. Published174 is unchanged;final installed
+release privacy qualification remains OPEN.

@@ -1,0 +1,54 @@
+D5 / P7 - recipe44 genuine Client/error fixture without cache reads
+
+2026-10-31. Current recipe44 owned installed SDK error subcase PASS;full
+P7/P9/D5 and RUNTIME_VALIDATED=false remain OPEN. The older recipe38 fixture
+and both failed498 attempts remain retained,not reclassified.
+
+The explicit -telemetry-current-error-probe mode in the owned helper constructs
+the original BugsnagUnity.Configuration and EndpointConfiguration from authored
+local values,then a genuine NativeClient and Client. A same-thread scoped
+persistentDataPath override points only this fixture at its fresh qc directory
+during construction and is restored before original Quit. The current cache
+guards remain loaded. The helper verifies14 Client core fields,dependencies,
+four existing global callback heads and idle delivery state. It calls seven
+guarded Client Notify/NotifyOnMainThread entries with a genuine Exception and
+checks the borrowed Exception and Client stay stable. It then invokes original
+Unity Debug.LogException for a local diagnostic. No original SDK cache reader
+or authored report disk seed is used;the scoped qc directory contains no
+files after the run. This is not a real queue/resumed-delivery/wire proof.
+
+The new verifier mode refuses combinations with the old disk/cache fixture,
+requires recipe44 audit and original Confirm/Quit,and validates the seven
+error calls plus the explicit current Client/path-restoration marker. The
+evidence parser rejects missing,reordered,duplicated,changed or disk-reader
+records. Focused test modules telemetry_current_error_evidence,
+telemetry_report_errors and telemetry_audit pass37 tests. The helper build
+passes its native source/test suite. The only product recipe remains44;
+these are opt-in diagnostic helper and verifier changes.
+
+Owned game:local/privacy498-game01 with recipe44/106 GameAssembly guards,
+quit diagnostic enabled and all133 assets verified. Rebuilt helper:
+local/privacy499-helper-build01/BattleAcesOffline.dll SHA256
+516e89cdda053bdbb811a7d507b7830d025eeb5c78d1117e5f2085bfb5fb7e12;
+source receipt SHA256
+264dfa12900971b7624628e61f3c362f2d4d14c812e61212ca2154244604e9af.
+Owned run local/privacy499-error01/verification.json SHA256
+40e988dfe03b9949fe1375b1ea9f8f728c27a54a94f29354aeddd599a81e8e7d
+passes in15.891s:recipe44 native audit,all seven error entries,original
+local Exception log,original Quit0,owned process reaped,zero forced cleanup,
+source/shared settings unchanged. The raw native log SHA256 is
+b6b582defe4962fc362d2ffd00b55347bc10a97884fc313fb41f7d2de5fc3a0b.
+
+tools.review_current_error499 independently regenerates the installed
+GameAssembly from the pinned pristine image and current source,checks current
+helper source provenance,manifest,raw log,error order,scoped empty qc folder,
+original Quit trace and run file hashes. PASS receipt:
+local/privacy499-error01/review499.json SHA256
+704101acf0abc6f411cdd0c5fbe71e390f88a0d911723940d4bcfc26129aa217.
+
+This closes changed-recipe genuine fresh Client/error compatibility at the
+authored in-memory input scope. It does not prove ordinary SDK queue state,
+resumed/inflight delivery,all-thread acquisition,whole wire,independent native
+advertising provider or final public installed D5. The private489/496 pair
+uses the prior helper;its historical source binding does not extend to this
+new diagnostic helper.

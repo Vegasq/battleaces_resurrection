@@ -1,0 +1,38 @@
+D5 / P5 - current private public2 four-human endpoint audit
+2026-10-30. Owned four-human package match and CPython driver audit PASS;
+full P5/P8/P9/D5 remain OPEN,RUNTIME_VALIDATED=false.
+
+The endpoint-only CPython prelude previously accepted server/client-0/client-1
+and was used for two-human modes. The diagnostic verifier now permits public2
+with four humans,and its path guard permits client-2/client-3. The first attempt
+at local/privacy390-four-human01 stopped before the native clients launched
+because that path guard had not yet been extended. It is retained as FAILED;
+its owned jobs exited. Failed report SHA256
+8f182f5f00b4147887b5062d2783b24d8d7a9ac4cd46a40916d79dffa5ae369c.
+
+The corrected run used current recipe38 owned game,the source-bound private
+client/server pair358,helper357 and verified build37822 assets. RC-open
+public2 formed four human seats0-3 with no bots. Each native client received
+all1250 frames;the result completed at frame1230. All four continued/quit
+through the original path with game and launcher exit0. Both workers exited0
+and were reaped;the server listener,status writer and lock closed. Five owned
+Jobs had total processes5/2/2/2/2 and ended with zero active/terminated;
+no forced cleanup. Elapsed122.515s.
+
+The server and four client adapter driver journals each begin at script entry
+and end at interpreter exit,without overflow. Server recorded3loopback binds
+and2loopback connects;each client recorded2binds and2connects,all to127.0.0.1.
+No recorded DNS lookup or non-loopback endpoint occurred. The authored positive
+DNS/bind control from377 was checked. tools/review_d5_four_humans391.py PASS
+independently binds source,package,helper,assets,match,exit/jobs and all five
+complete journal files. Ignored evidence:
+ local/privacy391-four-human02/verification.json SHA256
+ e2a5ea5ce0ae9c39845617ed461881bee301dafa385cbc1c1f38793ea234547c
+ local/privacy391-four-human02/review391.json SHA256
+ a3560159d80aad6da2719b45cb3c84fd6affef192fba4f392be8bc6fcebb29d6.
+
+This closes four-human public2 compatibility and selected CPython driver
+endpoint attribution for this current private pair. It does not cover native
+socket libraries,workers,raw/kernel wire,SDK queue content,other credentials/
+network configurations,advertising-ID source or the final installed release.
+Published174 and product binaries are unchanged;no Nick action was requested.

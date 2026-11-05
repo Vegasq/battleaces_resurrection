@@ -1,0 +1,59 @@
+D5 / P7 - recipe44 genuine Client with authored cached reports
+
+2026-10-31. Current recipe44 owned installed cached-queue subcase PASS;whole
+P7/P9/D5 and RUNTIME_VALIDATED=false remain OPEN. No real shared SDK queue
+or original game installation was read,seeded or cleared.
+
+An isolated copy of the passing499 owned game was made at
+local/privacy500-game01. All1899 files/8,054,911,804 bytes and the installed
+GameAssembly SHA256 matched before its helper update. The normal patcher
+verified all133 assets and installed the new opt-in diagnostic helper only
+in this copy. Original local/privacy498-game01 and the499 report retain
+their former exact helper and game bytes.
+
+The explicit -telemetry-current-queue-probe creates genuine original SDK
+Configuration,NativeClient,Client,CacheManager and Delivery owners under a
+same-thread scoped authored qc path. After Client construction it creates
+one fresh authored event file and one session file,verifying empty directories
+before both seeds. It calls the original CacheManager event/session file-list
+and ID-lookup entry methods on that genuine manager. The installed recipe44
+GetFilesBySuffix guard yields two non-null empty arrays;the installed
+GetJsonFromCachePath guard makes both ID lookups return null. It calls the
+guarded StartDeliveringCachedPayloads entry and checks Delivery/Client fields
+unchanged. Both authored file identities and bytes remain unchanged after
+these calls. The scoped path override is restored before original Quit.
+The fixture does not instrument every OS read or network route;its return
+values,file checks and current loaded guard signatures establish this named
+SDK route only.
+
+The new verifier mode rejects combinations with old original disk-reader or
+error modes and requires recipe44 audit,ordered Client/queue/path-restoration
+markers and original same-thread Quit. Its evidence controls and relevant
+audit/Client/native Quit tests pass57. The native helper build passes its
+required source/test suite. Product patch recipe44 is unchanged.
+
+Helper:local/privacy500-helper-build01/BattleAcesOffline.dll SHA256
+f4cc92e9267c10b2dd29764fdb4262336615c911043f0d5f599c08ff1230e4d1;
+source receipt SHA256
+15d3d0942f781d05c9c6f2ed48e46820092652653c43ade7f608f4aab1215df1.
+Owned run:local/privacy500-queue01/verification.json SHA256
+d841401434499c7341b3f1b950f8b55daef44c81fe8becd9f27621fa0272d904.
+It passes recipe44 audit,empty file lists/null IDs/unchanged seeds,normal
+Quit0 in23.079s,owned process reaped,zero forced cleanup and unchanged
+source/shared settings. The two authored seed SHA256 values are
+d8f2d6b8d957ce7109e7277ed39a7c60301c97d6251068fe536ed62b0814207b
+and 0dbcc2e8b51e7dc44fe0a056161f9bbfe5199e5976fcf0a2a35446eb88698c8b.
+
+tools.review_current_queue500 independently regenerates the installed
+GameAssembly from pinned pristine bytes/current source,validates helper
+provenance,checks actual authored files against source literals,and rechecks
+raw log markers,run/manifest/source binding and original Quit trace. PASS
+receipt:local/privacy500-queue01/review500.json SHA256
+8f7dabc9f42bf95155c1e667f127319e47fd7c3531d7957cfb5ebf5a552f4e30.
+
+This closes the fresh genuine Client's named cached file-list/ID/delivery
+start route with two authored files. It does not prove all indirect readers,
+ordinary preexisting queue state,resumed/inflight delivery,whole wire,
+independent advertising ID provider or final published installer privacy.
+The private489/496 gameplay pair uses an earlier helper and is not bound to
+the new diagnostic build.

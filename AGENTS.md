@@ -36,7 +36,9 @@
   version0.3.0-rc1.6,clean48135e3. Exact downloads/identities/scope are in
   `docs/coherent-candidate174.txt`. Preserve166/manual130,accepted startup71,
   earlier evidence and installed user copies.
-- Source168 is recipe23/128 guards; `RUNTIME_VALIDATED` remains false.
+- Current dirty source is recipe47/176 guards;recipe47 private installed menu and public1 pair pass,recipe46 owned SDK directory/Client/queue/Quit and installed ordinary restart pass,recipe45 deletion/queue and recipe44 mode pair pass;published174 remains
+  recipe23/128. `RUNTIME_VALIDATED` remains false. See current plan and STATUS
+  for exact local source/owned runtime evidence;do not treat it as a release.
 - Crash169 handoff defect is FIXED:closed temporary/no-replacement rename,
   exact Win32 open error logging,and prompt owner refusal detection. Clean02
   passes the original native exception exit without instrumentation or force
@@ -49,8 +51,61 @@
   startup lifetime;see docs/browser-activation172.txt.173 settles named report
   resumption applicability for fresh patched launches;report-resume173.txt.
   Requested paired installers/GitHub prerelease174 published and hash-verified.
-  Next:P9 upstream c307c0/computed consumers per current roadmap. Do not
-  repeat qualified native/package subcases without a changed path or concern.
+  Recipe39 added a public advertising-request pre-queue cut at441;its private
+  pair/menu audit pass. Recipe40 cuts AdsIdHandler static allocation at461;
+  private owned menu/Quit and source-bound connected match/Continue/Quit pass
+  at461/462;463's pre-resume connected callback trace is quiet at its selected
+  entries.465 qualifies public1/2/5 and Custom match/rematch compatibility.
+  Recipe41 adds a CacheManager.RemoveExpiredPayloads entry guard at476;
+  owned installed/loaded-entry/menu Quit pass at that scoped path;477 passes
+  a source-bound private connected pair. Recipe42 adds an SDK cache directory
+  reader cut at478,with reversible probe and source review PASS.479/480
+  owned installed helper and private connected pair pass;real SDK queue/wire
+  remain open. Recipe43 cuts the direct cached JSON file reader at481;
+  owned installed and private connected pair pass at483/484. The
+  separate c307c0 producer remains open. Next:P9
+  upstream c307c0/computed consumers and broader P1-P8 privacy
+  attribution per current roadmap. Recipe38 owned menu audit passes at351;
+  recipe38 private connected pair passes at352. 353 additionally passes current
+  recipe38 ordinary fresh/existing menu idle
+  and owned window-close shutdown without forced cleanup;P1 privacy attribution
+  and in-game Quit remain open. 354 source review binds a separate periodic
+  update registration to already-guarded Main.Start entries;P9 producer stays
+  open. 357 repairs a stale SDK fixture recognition hash and passes current
+  recipe38 genuine Client/error/isolated-cache/natural Quit;helper357 is now in
+  the owned game. 358 rebuilds/runs a source-bound private pair with that
+  helper;352 remains historical. 359 adds a current running fault/recovery
+  with a prelaunch-through-exit SDK-root change watch and positive control;
+  full P6/privacy remains open. 360/364 classify current packaged Python socket/
+  process routes;363 passes current public5/public2 private-pair compatibility.
+  365 proves an inert prelaunch observer gate;366 applies it to both owned native
+  clients before main-thread resume with positive selected network hooks.
+  367/368 validate a self-termination-entry sensor and cover the selected
+  native API heartbeat-to-entry gap in the current pair. The200ms diagnostic
+  hold/actual death,relative file roots,descendants/wire and full D5 remain open.
+  370 binds selected pre-resume-to-self-exit native send/recv entries to both
+  inherited private bridge sockets;other routes,queue/wire and full D5 stay open.
+  371 resolves both clients' previously unknown relative file roots with an
+  owned positive control. Its preexisting read-handle gap was then narrowed
+  by372/373;other APIs/aliases,queue/wire and full D5 remain open.
+  372/373 qualify pre-attach file-handle reads and classify the nine formerly
+  unresolved file calls per client as failed invalid-handle writes. Other
+  APIs/aliases/processes,queue/wire and full D5 remain open.
+  374 binds current private public1/2/5 client Job totals to only driver+game
+  under the unchanged no-breakaway policy;external brokers/other modes and
+  full P8/D5 remain open.
+  375 qualifies current private Custom rematch selected native file/socket
+  routes from suspended prelaunch to self-termination entry;full D5 remains open.
+  376 closes the external verifier's initial driver-to-Job assignment gap in
+  one current private public1 run;external brokers and full P8/D5 remain open.
+  377 observes endpoint-only CPython socket events in current private public1
+  packaged host/client drivers;native/worker/wire and full D5 remain open.
+  378 extends that bounded Python endpoint audit to current private public2,
+  public5 and Custom;other paths and full D5 remain open.
+  380 qualifies both current private public1 packaged simulation worker
+  CPython socket journals after retained failed one-worker attempt379;
+  native/OS/wire and full D5 remain open.
+  Do not repeat qualified native/package subcases without a changed path or concern.
   Use the source-owned verifier/gate;historical private scripts remain evidence.
 - N9's desktop pipe result passes; retained automation result is DENIED.
   This supports a context difference, not complete browser qualification.

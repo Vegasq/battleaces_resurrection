@@ -33,8 +33,13 @@ def sources():
                                                ROOT/'tools/verify_telemetry_audit.py', ROOT/'tools/replay_binding_evidence.py',
                                                ROOT/'tools/replay_signal_evidence.py', ROOT/'tools/replay_nody_evidence.py',
                                                ROOT/'tools/telemetry_report_error_evidence.py',
+                                               ROOT/'tools/telemetry_current_error_evidence.py',
+                                               ROOT/'tools/telemetry_current_queue_evidence.py',
+                                               ROOT/'tools/telemetry_preexisting_seed.py',
+                                               ROOT/'tools/telemetry_reporter_callback_evidence.py',
                                                ROOT/'tools/telemetry_cache_evidence.py',ROOT/'tools/telemetry_cache_failure_evidence.py',ROOT/'tools/telemetry_activation_evidence.py',
-                                               ROOT/'tools/telemetry_cache_startup_evidence.py',ROOT/'tools/frida_cache_startup.py')}
+                                               ROOT/'tools/telemetry_cache_startup_evidence.py',ROOT/'tools/telemetry_cache_live_root_evidence.py',
+                                               ROOT/'tools/frida_cache_startup.py')}
 
 
 def telemetry_evidence(text,rows,expected_sha256,*,after_practice=False,device_probe=False):
@@ -192,6 +197,11 @@ def run(args):
     require(not getattr(args,'telemetry_audit',False) or args.mode=='confirm','pre-Quit telemetry requires original Confirm/natural exit')
     require(not getattr(args,'telemetry_device_probe',False) or getattr(args,'telemetry_audit',False),
             'device API probe requires full telemetry/native-Quit evidence')
+    prelaunch_observer=getattr(args,'prelaunch_observer',False)
+    require(not prelaunch_observer or (getattr(args,'telemetry_preexisting_queue_probe',False) and
+            getattr(args,'telemetry_audit',False) and args.mode=='confirm' and args.visible and
+            not args.after_practice),
+            'prelaunch observer requires the owned visible preexisting-queue confirm fixture')
     require(args.profile is None or re.fullmatch(r'nativestest_[a-z0-9_-]{1,34}',args.profile),
             'explicit Quit profile must be an owned nativestest_ key')
     display_name = getattr(args,'display_name',None) or 'Native Quit Probe'
@@ -231,8 +241,10 @@ def run(args):
                   patch_manifest_sha256=hashlib.sha256((game/'.battleaces-resurrection/patch-manifest.json').read_bytes()).hexdigest(),
                   after_practice=args.after_practice,
                   default_recipe=args.default_recipe,
+                  prelaunch_observer=prelaunch_observer,
                   natural_exit=False,forced_cleanup=False)
     process = job = None;started = time.monotonic();tick = None
+    preexisting_root = preexisting_before = None
     clock = ctypes.WinDLL('kernel32').GetTickCount64;clock.restype = ctypes.c_ulonglong
 
     def log():
@@ -247,6 +259,18 @@ def run(args):
 
     try:
         report['shared_settings_before'] = startup.shared_state(args.shared_settings.resolve())
+        preexisting_queue=getattr(args,'telemetry_preexisting_queue_probe',False)
+        if preexisting_queue:
+            require(getattr(args,'telemetry_audit',False) and args.mode=='confirm' and
+                    not any(getattr(args,name,False) for name in (
+                        'telemetry_current_queue_probe','telemetry_current_error_probe',
+                        'telemetry_report_error_probe','telemetry_cache_probe',
+                        'telemetry_cache_disk_probe','telemetry_cache_delivery_probe',
+                        'telemetry_cache_client_probe','telemetry_cache_failure_probe')),
+                    'preexisting queue requires its own audited owned fixture')
+            from tools.telemetry_preexisting_seed import seed
+            preexisting_root,preexisting_before=seed(game,profile)
+            report['preexisting_queue_before']=preexisting_before
         command = [str(game/'Battle Aces.exe'),'-offline-practice','-practice-ai-experimental','-local-profile='+profile,
                    '-player-name='+display_name,'-native-quit-smoke','-native-quit-mode='+args.mode,
                    '-screen-fullscreen','0','-screen-width','960','-screen-height','540','-logFile',str(output/'game.log')]
@@ -262,9 +286,30 @@ def run(args):
             require(getattr(args,'telemetry_audit',False) and args.mode=='confirm',
                     'startup cache probe requires telemetry audit and original confirmed Quit')
             command.append('-telemetry-cache-startup-probe')
+        if getattr(args,'telemetry_cache_live_root_probe',False):
+            require(getattr(args,'telemetry_audit',False) and args.mode=='confirm' and
+                    not getattr(args,'telemetry_cache_startup_probe',False),
+                    'live root probe requires telemetry audit,unmodified root and original confirmed Quit')
+            command.append('-telemetry-cache-live-root-probe')
         cache_failure=getattr(args,'telemetry_cache_failure_probe',False)
-        report_errors=getattr(args,'telemetry_report_error_probe',False)
-        cache_client=getattr(args,'telemetry_cache_client_probe',False) or report_errors
+        current_error=getattr(args,'telemetry_current_error_probe',False)
+        ordinary_queue=getattr(args,'telemetry_current_queue_probe',False)
+        current_queue=ordinary_queue or preexisting_queue
+        require(not (ordinary_queue and preexisting_queue),'current queue fixture modes are exclusive')
+        require(not (current_error and current_queue), 'current SDK diagnostic modes are exclusive')
+        require(not current_error or not (getattr(args,'telemetry_report_error_probe',False) or
+                getattr(args,'telemetry_cache_probe',False) or getattr(args,'telemetry_cache_disk_probe',False) or
+                getattr(args,'telemetry_cache_delivery_probe',False) or getattr(args,'telemetry_cache_client_probe',False) or
+                cache_failure), 'current error fixture cannot combine with original cache-reader modes')
+        require(not current_queue or not (getattr(args,'telemetry_report_error_probe',False) or
+                getattr(args,'telemetry_cache_probe',False) or getattr(args,'telemetry_cache_disk_probe',False) or
+                getattr(args,'telemetry_cache_delivery_probe',False) or getattr(args,'telemetry_cache_client_probe',False) or
+                cache_failure), 'current queue fixture cannot combine with original cache-reader/error modes')
+        report_errors=getattr(args,'telemetry_report_error_probe',False) or current_error
+        reporter_callbacks=getattr(args,'telemetry_reporter_callback_probe',False)
+        require(not reporter_callbacks or report_errors,
+                'reporter callback probe requires the owned initialized error fixture')
+        cache_client=getattr(args,'telemetry_cache_client_probe',False) or (report_errors and not current_error)
         cache_delivery=getattr(args,'telemetry_cache_delivery_probe',False) or cache_failure or cache_client
         if getattr(args,'telemetry_cache_probe',False) or getattr(args,'telemetry_cache_disk_probe',False) or cache_delivery: command.append('-telemetry-cache-probe')
         if getattr(args,'telemetry_cache_disk_probe',False) or cache_delivery:command.append('-telemetry-cache-disk-probe')
@@ -272,7 +317,11 @@ def run(args):
         if cache_failure:command.append('-telemetry-cache-failure-probe')
         if cache_client:command.append('-telemetry-cache-client-probe')
         if report_errors:command.append('-telemetry-report-error-probe')
-        if getattr(args,'telemetry_cache_probe',False) or getattr(args,'telemetry_cache_disk_probe',False) or cache_delivery:
+        if current_error:command.append('-telemetry-current-error-probe')
+        if ordinary_queue:command.append('-telemetry-current-queue-probe')
+        if preexisting_queue:command.append('-telemetry-preexisting-queue-probe')
+        if reporter_callbacks:command.append('-telemetry-reporter-callback-probe')
+        if getattr(args,'telemetry_cache_probe',False) or getattr(args,'telemetry_cache_disk_probe',False) or cache_delivery or current_error or current_queue:
             require(getattr(args,'telemetry_audit',False) and args.mode=='confirm',
                     'cache probe requires telemetry audit and original confirmed Quit')
         if getattr(args,'replay_binding_inventory',False): command.append('-replay-binding-inventory')
@@ -292,10 +341,35 @@ def run(args):
                             f'-practice-ai-smoke-frames={practice_frames}','-practice-ai-smoke-delay-ms=3000','-lan-audit','-lan-smoke'])
         info = subprocess.STARTUPINFO();info.dwFlags |= subprocess.STARTF_USESHOWWINDOW;info.wShowWindow = 5 if args.visible else 0
         tick = clock();process = subprocess.Popen(command,cwd=game,startupinfo=info,
-            creationflags=0 if args.visible else subprocess.CREATE_NO_WINDOW,close_fds=True)
+            creationflags=(0x00000004 if prelaunch_observer else 0) |
+                          (0 if args.visible else subprocess.CREATE_NO_WINDOW),close_fds=True)
         job = _WindowsJob(process.pid)
         report.update(pid=process.pid,launch_tick=tick,command=command)
         (output/'process.json').write_text(json.dumps(report,indent=2)+'\n',encoding='utf-8')
+        if prelaunch_observer:
+            gate=output/'observer-ready'
+            require(not gate.exists(),'prelaunch observer gate already exists')
+            (output/'prelaunch.json').write_text(json.dumps(dict(pid=process.pid,
+                launch_tick=tick,suspended_for_observer=True,job_assigned=True,
+                gate=str(gate)),indent=2)+'\n',encoding='utf-8')
+            print(json.dumps(dict(stage='prelaunch_attach_required',pid=process.pid,
+                                  output=str(output))),flush=True)
+            while not gate.exists():
+                require(process.poll() is None,'owned suspended game exited before observer gate')
+                require(time.monotonic()-started<args.timeout,'prelaunch observer gate deadline reached')
+                time.sleep(.05)
+            require(gate.read_bytes()==b'FRIDA_READY\n','prelaunch observer gate contents differ')
+            kernel=job.kernel
+            handle=kernel.OpenProcess(0x0800,False,process.pid)
+            require(handle,'cannot resume owned native game')
+            ntdll=ctypes.WinDLL('ntdll',use_last_error=True)
+            ntdll.NtResumeProcess.argtypes=[ctypes.c_void_p]
+            ntdll.NtResumeProcess.restype=ctypes.c_long
+            try:status=ntdll.NtResumeProcess(handle)
+            finally:kernel.CloseHandle(handle)
+            require(status==0,'owned native game resume failed')
+            report['prelaunch_resume_tick']=clock()
+            print(json.dumps(dict(stage='prelaunch_resumed',pid=process.pid)),flush=True)
         quit_tick = None
         while True:
             text = log();rows = trace_rows()
@@ -366,6 +440,9 @@ def run(args):
         if getattr(args,'telemetry_cache_startup_probe',False):
             from tools.telemetry_cache_startup_evidence import validate as startup_cache_validate
             report['telemetry_cache_startup']=startup_cache_validate(log(),rows)
+        if getattr(args,'telemetry_cache_live_root_probe',False):
+            from tools.telemetry_cache_live_root_evidence import validate as live_root_validate
+            report['telemetry_cache_live_root']=live_root_validate(log(),rows,args.shared_settings)
         if getattr(args,'telemetry_cache_probe',False) or getattr(args,'telemetry_cache_disk_probe',False) or cache_delivery:
             from tools.telemetry_cache_evidence import validate
             report['telemetry_cache_contract']=validate(log(),rows,disk_probe=getattr(args,'telemetry_cache_disk_probe',False),delivery_probe=cache_delivery,client_probe=cache_client)
@@ -376,6 +453,16 @@ def run(args):
             require('Exception: authored-report-error165' in local_log,
                     'original Unity local exception diagnostic was not retained')
             report['telemetry_report_errors']['local_exception_log_retained']=True
+        if current_error:
+            from tools.telemetry_current_error_evidence import validate as current_error_validate
+            report['telemetry_current_error']=current_error_validate(log(),rows,report['telemetry'],
+                report['telemetry_report_errors'])
+        if current_queue:
+            from tools.telemetry_current_queue_evidence import validate as current_queue_validate
+            report['telemetry_current_queue']=current_queue_validate(log(),rows,report['telemetry'],preexisting=preexisting_queue)
+        if reporter_callbacks:
+            from tools.telemetry_reporter_callback_evidence import validate as reporter_validate
+            report['telemetry_reporter_callbacks']=reporter_validate(log(),rows)
         if cache_failure:
             from tools.telemetry_cache_failure_evidence import validate as failure_validate
             report['telemetry_cache_failure']=failure_validate(log(),rows)
@@ -404,9 +491,18 @@ def run(args):
         except OSError as error: report.update(passed=False,shared_settings_read_error=repr(error))
         report['shared_settings_unchanged'] = ('shared_settings_before' in report and 'shared_settings_after' in report and
                                               report['shared_settings_before']==report['shared_settings_after'])
+        if preexisting_root is not None:
+            try:
+                from tools.telemetry_preexisting_seed import snapshot
+                report['preexisting_queue_after']=snapshot(preexisting_root)
+                report['preexisting_queue_unchanged']=report['preexisting_queue_after']==preexisting_before
+            except (OSError,ValueError) as error:
+                report['preexisting_queue_unchanged']=False
+                report['preexisting_queue_error']=repr(error)
         report.update(elapsed_seconds=time.monotonic()-started,source_sha256_at_finish=sources())
         report['source_files_unchanged'] = report['source_sha256_at_start']==report['source_sha256_at_finish']
         report['passed'] &= report.get('owned_process_reaped',False) and report['source_files_unchanged'] and report['shared_settings_unchanged']
+        if preexisting_root is not None: report['passed'] &= report['preexisting_queue_unchanged']
         if args.mode=='confirm': report['passed'] &= report['natural_exit'] and not report['forced_cleanup']
         (output/'verification.json').write_text(json.dumps(report,indent=2)+'\n',encoding='utf-8')
     print(json.dumps({k:report[k] for k in ('passed','mode','natural_exit','forced_cleanup','error','elapsed_seconds') if k in report}))
@@ -432,8 +528,14 @@ if __name__=='__main__':
     parser.add_argument('--telemetry-cache-failure-probe',action='store_true',help='genuine pending-owner cleanup and owned readable device-file/empty-ID guard; no operational Client')
     parser.add_argument('--telemetry-activation-probe',action='store_true',help='guarded initialization decline and retained-string getter on genuine inactive owners; no original acquisition or initializer')
     parser.add_argument('--telemetry-cache-startup-probe',action='store_true',help='positive original SDK root control with separate externally verified early isolation; no queue reader/expiry')
+    parser.add_argument('--telemetry-cache-live-root-probe',action='store_true',help='owned original SDK root getter return with unmodified Unity path;hash-only,no queue access')
     parser.add_argument('--telemetry-cache-client-probe',action='store_true',help='owned genuine reporting-disabled SDK Client constructors and cached-delivery guards; implies scoped disk/delivery probes')
     parser.add_argument('--telemetry-report-error-probe',action='store_true',help='owned genuine Client guarded error reporting and original local exception logging; implies initialized-client cache probes')
+    parser.add_argument('--telemetry-current-error-probe',action='store_true',help='recipe44/45 genuine Client/error fixture with scoped in-memory inputs and no original cache reader')
+    parser.add_argument('--telemetry-current-queue-probe',action='store_true',help='recipe45 genuine Client with two authored queue files and guarded list/ID/delivery/delete entry checks')
+    parser.add_argument('--telemetry-preexisting-queue-probe',action='store_true',help='recipe45 seeded owned queue before process launch and genuine Client construction;retain file identity/bytes')
+    parser.add_argument('--prelaunch-observer',action='store_true',help='owned preexisting-queue confirm only:hold suspended game for an external observer-ready gate')
+    parser.add_argument('--telemetry-reporter-callback-probe',action='store_true',help='execute seven verified guarded Boolean reporter entries with unreadable borrowed inputs in owned fixture')
     parser.add_argument('--after-practice',action='store_true',help='explicit automated one-match result/Continue before original menu Quit')
     parser.add_argument('--practice-frames',type=int,default=3600,help='owned diagnostic match length1200..3600;default allows normal bot deployment before Quit')
     parser.add_argument('--replay-binding-inventory',action='store_true',help='read existing hidden replay-button actions in healthy owned practice; no click')

@@ -1,0 +1,59 @@
+D5 / P9 - AdsIdHandler static construction cut,private menu compatibility
+
+2026-10-31. Recipe40 source and owned private installed runtime PASS at the
+named scope. P9/D5 remain OPEN;RUNTIME_VALIDATED=false. Published174 is
+recipe23 and was not changed.
+
+The exact-PDB pristine UnityPlayer at SHA256
+ac144d56d53f07904d52ed27a1539de90bc3290038fe52d73d2f6b268c85d6bc
+has RuntimeStatic<AdsIdHandler>::StaticInitialize at RVA361870/file360c70.
+Its complete body passes the0xb0-byte handler type and constructor361900 to
+RuntimeStaticBase::InitializeImpl. Its paired StaticDestroy3617c0 handles a
+null object pointer. The dynamic global initializer17920 sets up the
+runtime-static registration and atexit hook;those remain intact. Exact
+Ghidra/PDB record:local/d5-ghidra-12.1.4/pdb-ads-static460-console.log.
+The direct UnityPlayer references to global s_AdsIdHandler+0 are the
+dynamic initializer and public request5fb70;449/453 retain the scope and
+alias limitations. Recipe39 already returns false at the public request
+before dereferencing that global.
+
+Recipe40 adds one source-bound RET at361870 before the handler allocator can
+run. The only differences between the owned recipe39 and recipe40 UnityPlayer
+files are byte360c70(4c->c3) and the PE checksum byte at1a0. Generation from
+the exact pristine image with current patch_component/update_checksum is
+byte-identical to the owned recipe40 installation, SHA256
+d45b20470f41a05abf1513f7be65f27506f7dc63decfca625caab21792a04a98.
+The helper audit recognizes58/58 Unity core signatures under recipe40.
+Current four-component recipe has169 guards;RUNTIME_VALIDATED stays false.
+
+The helper built from current sources at local/privacy461-helper-build01,
+SHA256 59aebb2db4a6778f817e6135b6ba767f54f1087cac69d9b65b5fda009fbb276f.
+The focused patch/audit suites pass65 tests with2 platform skips. An owned
+7.6GB copy of recipe39 at local/privacy461-game01 passed all133 asset checks
+and normal patcher installation of recipe40 with that helper. The standard
+Quit verifier refused its background invocation before game launch because
+that diagnostic requires a visible window;no result is claimed for it.
+
+A separate owned suspended-launch diagnostic then attached a passive Frida
+observer before primary resume. The observer checked the loaded361870 RET
+and existing public5fb70 guard before release,armed constructor361900 and
+both self-TerminateProcess exports. Its first attempt to hook the one-byte
+RET itself was rejected by Frida before release;that script was unloaded.
+The corrected observer saw a null handler global at readiness,zero constructor
+entries and a null global at original self-termination with exit code0.
+Original Show/Confirm Quit trace,process exit0,job1/0/0 and no forced cleanup
+passed. The read-only local/privacy461-review.py independently binds the
+source bytes,helper,owner receipt and untruncated REA stream:PASS.
+
+Retained:local/privacy461-runtime01/{verification.json,observer.js,
+rea-evidence.json,review.json};owner SHA256
+0d8b02b002547486ae9688459e2e466a526c0935c0500ca137a55d2ffd2a5591;
+observer SHA256 21bb37b32ad97553823acb257e78e0aa2ec5a27bda749c182da0f6589a307d6d;
+REA SHA256 f0252420127aabdafa30c215de5d8ca5e9bd6651b6b9cdc8302daeabc196f119.
+REA final status ev_361ea8d27498915e9aacd4bc94819a8f1452bc3fcd5466ed0cd8ea8bd9a0058f.
+
+This cuts construction through the named AdsIdHandler static initializer
+on a fresh recipe40 game and passes menu compatibility. It does not prove
+that every native advertising-ID provider uses this handler,exclude
+computed/global aliases or other modules,prove connected/local modes or
+whole queue/wire/descendant privacy,or qualify the published installer.

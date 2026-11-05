@@ -35,3 +35,25 @@ static void guardedReportErrors(CacheClientFixture& client) {
     require(calls==7,"report error fixture coverage differs");
     ba::log("TELEMETRY REPORTERROR probe passed: version=1 thread=%lu calls=7 genuineClient=1 genuineException=1 nullOptionalInputs=1 clientFieldsUnchanged=1 globalCallbackHeadsUnchanged=4 originalUnityExceptionLog=1 reportDelivered=0 wholeRunIsolation=0",GetCurrentThreadId());
 }
+
+static void guardedReporterCallbacks() {
+    if(!ba::flag(L"-telemetry-reporter-callback-probe"))return;
+    require(ba_telemetry_audit::reporterCallbackGuardCount()==7,
+            "reporter callback loaded/disk guards incomplete");
+    const auto unreadable=reinterpret_cast<void*>(uintptr_t(1));
+    unsigned calls=0;
+    ba::log("TELEMETRY REPORTCALLBACK begin: version=2 thread=%lu guards=7 borrowedUnreadable=1",
+            GetCurrentThreadId());
+    for(const size_t rva:{size_t(0x3cc3600),size_t(0x3cc5440),size_t(0x3cc5df0),
+                          size_t(0x3cc6930),size_t(0x3cc6a70),size_t(0x3cc3700),
+                          size_t(0x3cc4aa0)}) {
+        const auto result=reinterpret_cast<int(*)(void*,void*,void*,void*)>(
+            reinterpret_cast<uintptr_t>(ba::module)+rva)(unreadable,unreadable,unreadable,unreadable);
+        require(result==0,"reporter callback did not return false");
+        ba::log("TELEMETRY REPORTCALLBACK call: version=2 thread=%lu index=%u rva=%llx returnedFalse=1",
+                GetCurrentThreadId(),++calls,static_cast<unsigned long long>(rva));
+    }
+    require(calls==7,"reporter callback count differs");
+    ba::log("TELEMETRY REPORTCALLBACK probe passed: version=2 thread=%lu calls=7 guards=7 borrowedUnreadable=1 returnedFalse=7 payloadRead=0 callerRegistrationQualified=0 reportDelivered=0",
+            GetCurrentThreadId());
+}

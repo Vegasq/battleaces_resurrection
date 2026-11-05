@@ -1,0 +1,12 @@
+{
+  "date": "2026-10-26",
+  "purpose": "Exact roadmap before replacing completed next-work history with the active queue; requirements retained.",
+  "files": [
+    {
+      "original_path": "docs/REMAINING_DELIVERY_PLAN.txt",
+      "archive_path": "docs/history/2026-10-26/REMAINING_DELIVERY_PLAN-before189.txt",
+      "sha256": "157da81523cdf9fe665359b3415545ba9aadd4450b1129c0581e7b6438748d30",
+      "bytes": 15020
+    }
+  ]
+}

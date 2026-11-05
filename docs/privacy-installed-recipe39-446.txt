@@ -1,0 +1,44 @@
+D5 / P1 - current recipe39 private installed launcher fresh/restart
+
+2026-10-30. Owned installed runtime PASS at the named menu/idle/window-close
+and SDK-root metadata scope. Full P1/P9/D5 remain OPEN.
+
+The source-bound private441 client installer was applied to the already
+owned recipe39 game copy at local/privacy441-game01. It installed runtime
+identity0ac20ef3a4b6ff5a7af0 and generated the normal Start Battle Aces.cmd.
+The independent read-only reviewer confirms the client archive SHA256
+af73c19c1b459f41dd44a78bc2cb58c165fe54ed8441a01e36cb9d485c48f54d,
+complete installed package inventory,exact launcher bytes,matching installed
+helper SHA256 3f97afc1f4247577a24a91fbcd789e01aa974939f661c9b3eecf95b1ab86a4c1,
+and full UnityPlayer recipe39 transformation. The installed UnityPlayer
+SHA256 is ce5fb2e15d5997a9ed6e2971a61d25812b5f91ec918ce0eee8e88a7915c21cdd.
+The original source game and published174 package were not changed.
+
+The normal installed launcher ran a new owned profile packageprobe_67507c6568c7
+to ordinary menu in10.343s,idled30.172s and exited0 after WM_CLOSE to its
+unique owned Unity window. The same profile restarted through that launcher,
+reached menu in6.703s,idled30.157s and exited0 the same way. Both wrapper and
+native game were reaped without forced cleanup. Per-session checks report
+package,source,diagnostic config and shared settings unchanged.
+
+A read-only Windows FileSystemWatcher on the earlier269/284-bound LocalLow
+Bugsnag root was ready before the first launch and stopped after the second
+verifier exited. Created/Changed/Deleted/Renamed/Error counts are all zero;
+the watcher ran from2026-10-31T04:10:16.632Z to04:11:42.168Z. It watched
+metadata notifications only and did not read,seed or clear any SDK queue.
+
+Ignored receipts:
+ local/privacy446-ordinary-recipe39-01/verification.json SHA256
+ aa2bfe0a858301d9a7e175ec5bbcec476fc99a00361321f319db75e03f219469
+ local/privacy446-ordinary-recipe39-01/review.json PASS SHA256
+ 86edd071e123225cdc269e505ae8a68a9a9c0643604203fcd762b3cacfaa44e9.
+The independent read-only reviewer is retained in the same ignored directory.
+It checks the installed recipe and package against source,each run's exit and
+same-profile identity,and the full watcher interval. The prior395 recipe38
+result remains separate.
+
+This is a current recipe39 ordinary installed startup/restart check at the
+selected SDK-root metadata scope. It does not inspect file reads,other roots,
+SDK queue contents,all-thread/whole-wire traffic,external descendants,
+in-game Quit,other modes,or a final published installed pair. P1/P9/D5 and
+RUNTIME_VALIDATED=false remain OPEN.

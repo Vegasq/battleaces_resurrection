@@ -4,7 +4,7 @@
 namespace ba_client {
 using ba::Obj;using ba_local::Root;
 namespace wire=ba_community_wire;
-enum class Owner {None,Practice,Remote};
+enum class Owner {None,Practice,Remote,Replay};
 static Owner worldOwner=Owner::None;
 static uint64_t generation=0,worldLease=0;
 static std::string worldMatch;
@@ -22,6 +22,7 @@ static void queueLoadoutAccepted(const wire::Loadout& selection) {
 static unsigned smokeStage=0;
 static void require(bool condition,const char* message) {if(!condition)throw std::runtime_error(message);}
 static bool remoteWorld() {return ba::unified() && worldOwner==Owner::Remote;}
+static bool replayWorld() {return ba::unified() && worldOwner==Owner::Replay;}
 static bool nativeIdle(Obj front) {
     return ba_dedicated_session::worldIdle(ba::read<Obj>(front,0xd8)) &&
         !ba_bootstrap::creating && !ba_bootstrap::awaitingWorld;
@@ -31,7 +32,7 @@ static uint64_t acquire(Obj front,Owner owner,const std::string& match) {
         !ba_dedicated_session::joined && generation!=UINT64_MAX,"client world is already owned or still loading");
     worldOwner=owner;worldLease=++generation;worldMatch=match;
     ba::log("Client world acquired: generation=%llu owner=%s match=%s",
-        static_cast<unsigned long long>(worldLease),owner==Owner::Practice?"local-practice":"remote",match.c_str());
+        static_cast<unsigned long long>(worldLease),owner==Owner::Practice?"local-practice":owner==Owner::Replay?"replay":"remote",match.c_str());
     return worldLease;
 }
 static void retireControl(Obj front,const char* reason) {
@@ -65,6 +66,19 @@ static void releaseRemote(Obj front,const std::string& match) {
     require(worldOwner==Owner::Remote && !match.empty() && match==worldMatch && nativeIdle(front),"stale remote world release");
     ba::log("Client world released: generation=%llu owner=remote nativeIdle=1",static_cast<unsigned long long>(worldLease));
     worldOwner=Owner::None;worldLease=0;worldMatch.clear();
+}
+static uint64_t acquireReplay(Obj front) {
+    require(ba::unified() && worldOwner==Owner::None && !ba_public::active() &&
+        !ba_practice::active() && !ba_dedicated_session::joined && ba_dedicated_session::inMenu(),
+        "finish the current match or search before opening a replay");
+    retireControl(front,"replay requested");connectRequested=false;
+    return acquire(front,Owner::Replay,"");
+}
+static void releaseReplay(Obj front,uint64_t lease) {
+    require(worldOwner==Owner::Replay && lease && lease==worldLease && nativeIdle(front) &&
+        ba_dedicated_session::inMenu(),"replay owner has not returned to an idle menu");
+    ba::log("Client world released: generation=%llu owner=replay nativeIdle=1",static_cast<unsigned long long>(lease));
+    worldOwner=Owner::None;worldLease=0;worldMatch.clear();ba_local_menu::restoreIdentity(front);
 }
 static bool optionalFailure(const char* where,const std::exception& error) {
     if(!ba::unified() || worldOwner==Owner::Remote)return false;
@@ -132,6 +146,7 @@ static void update(Obj front) {
                 "unified client requires private bridge ABI2 without an offline-only launch flag");
             logged=true;ba::log("Unified client ready: local menu independent of server BA_RESURRECTION_UNIFIED_CLIENT_V1");
         }
+        if(ba_replay_entry::update(front))return;
         if(worldOwner==Owner::Practice || ba_practice::active()) {ba_practice::frontUpdate(front);return;}
         if(controlFailed && worldOwner==Owner::None) {
             if(!nativeIdle(front) || !ba_dedicated_session::inMenu())return;

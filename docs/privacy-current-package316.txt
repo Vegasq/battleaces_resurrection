@@ -1,0 +1,30 @@
+D5 / P4 - recipe28 private package Try Deck compatibility
+2026-10-28. Bounded owned runtime PASS;P4/P9/D5 remain OPEN.
+
+The current dirty source built a private Windows client/server ZIP pair with
+the source-bound helper from307. The client ZIP SHA256 is
+5a227dd5775b851aeb2c5b872e767fbbe60ec61acd8216e61619d4e3f8c30072;
+the server ZIP SHA256 is
+6be7397728b78216c3a9ea5c6ec60cb683291e9ba2883d2b2da321f62ff9a9a8.
+Build report:local/privacy316-packages01/build-report.json SHA256
+e4a150b6937e7d4ce1fa4e303d722eb8018c40a0f58ce7479824cf734c557214.
+This is a local preview from dirty revision3ea4ab0;published174 is unchanged.
+
+The source-owned packaged-play verifier used that actual bundled client runtime
+and the already owned recipe28 installation at local/privacy301-runtime01/game.
+It required exact package/game helper equality and the307 helper build receipt,
+then launched one isolated profile in Try Deck4 with unconfigured remote
+settings. The original native match delivered result,Continue and menu return,
+followed by original Quit confirmation. Exit0 occurred2.187s after confirmation.
+The driver and game were reaped;job2total/0active/0terminated,no forced cleanup.
+The verifier recorded154 autonomous action records and40 produced bot units
+with orders and position change. Package/config/driver/source/shared settings
+stayed unchanged. Elapsed212.266s.
+
+local/privacy316-play01/verification.json PASS SHA256:
+fc903279c8031d0eac7667a3d9050bdb379c987b3b6fcb544abfdf78e6975bab.
+This checks changed-recipe gameplay compatibility through the private bundled
+runtime. The added diagnostic match/Quit arguments are separate from the
+ordinary launch arguments. No native field audit,SDK queue/file/retry/wire or
+all-thread/descendant privacy attribution was collected. It is not a final
+installed release or a P9 advertising-producer result. RUNTIME_VALIDATED=false.

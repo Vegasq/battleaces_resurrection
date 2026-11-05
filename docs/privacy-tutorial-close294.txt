@@ -1,0 +1,29 @@
+D5 / P3 - owned Tutorial01 active-window close after mission start
+2026-10-28. P3/full D5 remain OPEN,RUNTIME_VALIDATED=false.
+
+289 established original Tutorial01 entry and290 advanced to original
+GameStarted,mission/first objective and a later complete selected-field audit.
+The source-owned verifier now has an opt-in --window-close-after-mission mode.
+It requires those same milestones,enumerates top-level windows belonging only
+to its retained owned game PID,selects exactly one UnityWndClass window and
+posts WM_CLOSE. No game/native helper source or ordinary launcher changed.
+
+One fresh-profile owned recipe25 run local/privacy294-tutorial01 PASS took18.547s.
+The original Tutorial01 state entered;world ready/GameStarted tick597520890,
+third complete tutorial audit tick597522390,then original game log mission start
+and Enter Objective:2_Expand_2_Built. The only owned UnityWndClass top-level
+window was hidden by the diagnostic launcher;WM_CLOSE was posted at tick597523156
+to that handle for PID23000. The process exited0 and reaped without forced
+cleanup;the retained job ended1total/0active/0terminated. The installed helper
+SHA256 was2cff1618ac4643a09a59d56f29e38a67357dae3337ee7cd1048247f0ae99df0b.
+Installed components,source files and real shared settings hashes matched
+before/after. The owned game process was absent in a subsequent OS check.
+Verifier SHA256:
+8fc415a365f93b8a905d52de7a2b24e8c747d4ca5735cadea22c44146e751f86.
+
+This qualifies one active Tutorial01 window-close/exit path after mission start
+and the same selected disabled reporting field snapshots as290. It does not
+complete the tutorial objective,exercise its in-game Quit UI,prove every
+shutdown handler,or attribute SDK queue/file/network,all threads or descendants.
+The controlled WM_CLOSE is a diagnostic input;Nick's deferred Tutorial2/N8 was
+not run or requested. P3/D5 remain OPEN. No Nick action is requested.

@@ -1,0 +1,34 @@
+D5 / P9 - native custom-device getter uses cached Main field
+
+2026-10-28. Original/current-owned source binding PASS;P9/D5 remain OPEN,
+RUNTIME_VALIDATED=false. 332 identified the Main+14a8 cached device string
+read by c330e0. This review follows the separate native getter atc204c60.
+
+The pinned original native registration table's index63 pairs function
+c204c60 with
+UnityEngine.Analytics.AnalyticsSessionInfo::get_customDeviceIdInternal.
+Its complete20-instruction body loads the Main singleton from global
+1d0eb28,adds14a8,selects the inline or heap representation of that
+existing string,and passes it to two indirect calls before returning a
+managed result. 197 separately binds the first runtime cell1d0d6a8 to
+il2cpp_string_new_len;the second cell1d0d568 is not classified here.
+It has no direct call to a named OS/device query. The second indirect
+callee and all possible prior writers are not classified here;
+the getter can expose retained state if another route populated the field.
+
+tools/review_custom_device_getter333.py PASS binds the table function and
+name pointers,complete original LLVM bytes/unwind body,the current recipe34
+source and exact owned UnityPlayer body. The original SHA256 is
+ac144d56d53f07904d52ed27a1539de90bc3290038fe52d73d2f6b268c85d6bc;
+owned Unity SHA256 is
+a53b0c613a86c737b7caa7588c7c93ae20d5d5700f9321a406df9dcca8e32a7f.
+Raw ignored unity-204c60.asm SHA256 is
+79f26706ea4491262fa5c70334e790524cc9ad8d933fa2a64d3fc7ca6b4fd340.
+Retained local/privacy333-device-field01/verification.json PASS SHA256 is
+b625dd88924ef1b58e57d2b87acf4688f7cfcfc25d5af7968d986ea0c7e7f29b.
+
+An exploratory exact displacement scan found19mapped byte candidates.
+Several are code for unrelated objects or literal operands;this count is
+neither a writer count nor a whole-program alias census. The distinct
+Main+1498/c307c0 advertising callback producer remains unknown. No game
+or native getter was run,no queue was accessed,and published174 is unchanged.

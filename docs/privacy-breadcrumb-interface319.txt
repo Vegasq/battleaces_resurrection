@@ -1,0 +1,23 @@
+D5 / P7 - SDK IBreadcrumbs implementation census
+
+2026-10-28. Original metadata census PASS;P7/D5 OPEN.
+
+tools/verify_sdk_breadcrumb_interface319.py checks the pinned build37822
+metadata SHA256 b760be9190309b14174cd272e1f83b730181b299bc7a0cdca66985c69dcdc57d.
+Its complete 22961 type definitions partition all12973 declared interface
+slots without a gap or overlap. The unique BugsnagUnity.IBreadcrumbs definition
+has type index45089 and methods Leave(3),Leave(1),Retrieve(0). Exactly one
+type definition lists that interface:BugsnagUnity.Breadcrumbs,definition20022.
+No metadata type directly derives from Breadcrumbs,so there is no declared
+subclass inheriting its implementation. Its two concrete Leave overloads are
+the two entries guarded in source recipe30;the verifier reruns318's complete
+original-body and exact guard check.
+
+This resolves the "other IBreadcrumbs implementations" uncertainty within the
+pinned original IL2CPP metadata. It is a static census,not a claim about
+runtime-created/external implementations or all paths that may process the
+objects returned by Retrieve. It does not invoke the SDK or inspect a real
+queue. Already queued/in-flight work,other collection APIs,file/network
+delivery,all-thread/descendant attribution and P9 advertising acquisition
+remain open. The owned recipe30 menu check in318 is unchanged;no new build or
+game launch was needed. RUNTIME_VALIDATED=false;published174 is unchanged.

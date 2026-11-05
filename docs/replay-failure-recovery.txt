@@ -1,6 +1,12 @@
 REPLAY RECOVERY FINDING55 -- 2026-10-20
 Plan item:D4-RP1. Status:OPEN;malformed batch recovery is NOT qualified.
 
+Current entry finding226 (2026-10-27)
+Parsed debug ReplayUI Load-button lead has no corresponding compiled controller
+type in build37822;in-game replay controls do. Current218 ordinary launcher has
+no file-selection handoff. Follow-up226 below binds this static finding and the
+implementation contract;it does not close D4 or alter163's runtime scope.
+
 Installed-engine supplement163 (2026-10-23)
 Actual coherent139 installed copy/current packaged helper138 now passes the late
 100replacement and early96/97refusal sequences:two fresh profiles,3607decoded
@@ -991,3 +997,361 @@ API/lifecycle work;it must not claim a user-exposed disk selector without eviden
 Only then inspect/qualify that replay's actual bound exit before a stateful fault.
 No new replay browser,forced menu jump or direct callback is justified by89.
 D4-RP1 stays OPEN;D6's pending physical candidate/check remains first priority.
+
+FOLLOW-UP226 - 2026-10-27 - PARSED DEBUG LOAD LEAD;ORDINARY ENTRY GAP
+Question:does the retained Debug/ReplayUI prefab supply an existing file-selection
+route that can simply be enabled?86 had catalog names and compressed-byte scans,
+not parsed serialized ownership. This follow-up decodes that previously unexamined
+surface;no repeated native playback/leave/fault sequence or broad byte-name scan.
+
+Current source/package entry
+Start Client.cmd invokes bundled tools.package_client start. Its parser accepts
+config/game but no selected replay;client.main calls player_options and launcher.
+game_arguments. Those ordinary options add unified/public/cosmetics capabilities,
+not replay diagnostics. Source copies of these three modules match actual218
+package files;whole client package integrity passes. Helper214 build receipt pins
+offline_client.cpp,native_replay_playback.cpp,replay_menu_smoke.cpp,replay_runtime.cpp.
+OfflineInitialUpdate chooses the existing menu/tutorial,except explicit batch
+diagnostic. FrontUpdate's high-level file-loader sequence is separately gated by
+-native-replay-menu-smoke and owned profile/diagnostic checks. Original runner
+support is present,but does not itself select a file. No flags were promoted.
+
+Serialized original evidence
+Using86's fixed88-bundle dependency list,read UnityFS block/node directories only.
+One32MB candidate lacked replay containers. The dependency root2fa2b6...bundle
+contains both ReplayUI prefabs in one149196632-byte serialized CAB. Only CAB blocks
+were decompressed;large texture/audio resource nodes were skipped. Full original
+bundle hashes match build37822_bundles.py;catalog identity remains f0ce6877...f76.
+Parsed GameObject/component/child references give:
+ - In-game root1453547165129844261:99nodes,UIInGameReplayController.
+ - Debug root4169009109474296842:64nodes,Uncapped.UI.UIDebugReplayController and
+   Uncapped.UI.DebugDraggablePanelBehaviour;MonoScript assembly RGame.
+ - Debug controller9205278017511768107._load points to Button-5575812453813939371
+   at/ReplayUI/Load. Interactable1;serialized m_OnClick persistent list is empty.
+These are prefab values,not proof of live visibility or physical input.
+
+Native reconciliation
+All22961raw IL2CPP type definitions were independently decoded at the metadata
+header's offset/count,88bytes each. Every row/index/name/namespace matches the
+retained cache. Neither DebugReplay nor DebugDraggablePanel has a definition;
+Uncapped.Replay and Uncapped.UIInGameReplayController are positive controls.
+Thus the debug prefab's declared loading controller is absent from this build's
+compiled metadata. Merely exposing that prefab cannot restore its missing class.
+This does not prove every possible indirect/asset route is absent;no claim about
+all UI bindings or unknown external code. No handler body was invented from names.
+
+Validation/provenance
+UnityPy1.23.0 is isolated under the owned C diagnostics directory;no project/runtime
+dependencies changed. Its full bundle reader and the selective reader produce
+byte-identical999052-byte CAB data for the32MB control. Target CAB hashes also
+reconcile against a fresh selective read;the original target bundle rehashes.
+Raw type-table comparison and source/package/helper pin checks pass. DEV unchanged.
+This is ordinary local static/parser evidence,not REA native Evidence or a game
+runtime PASS. REA session reports Ghidra not configured,Hopper unsupported and IDA
+not configured. No engine/setup/policy changes were made and no session opened.
+
+Retained attempts:wheel-only UnityPy1.25.4 resolution failed on tpk_ar before
+installation;1.23.0 installed successfully in the isolated target. First container
+inspection used the wrong PPtr property;corrected via deref. First prefab report
+failed JSON serialization of bytes after retaining the CAB;original partial report
+is preserved. Separate typed extraction encodes byte fields explicitly and passes.
+Two exact native-type lookups returned no match;the complete raw-table review then
+established the scoped absence. No native process was launched or retried.
+
+All raw artifacts/scripts/parser/install reports/source snapshots are retained at:
+ %LOCALAPPDATA%/BattleAcesDiagnostics/local/replay226-assets01
+completion-review.json SHA256:
+ 24c8d978e2349c523234807b219072d4f6329a77a6c335944fbee32b0da7e19b
+Target bundle SHA256:
+ e69769a1c70cbf50786f753d0fe5a79d46b4bc0a5569b7c59e37f05e15082283
+Target CAB SHA256:
+ 4848dd34f5b0d14b7626d1d814830d5083c5ece322827360f02bff877655ada5
+Raw metadata SHA256:
+ b760be9190309b14174cd272e1f83b730181b299bc7a0cdca66985c69dcdc57d
+Current client package-manifest SHA256:
+ 95cd6f1356e582b05d313f6206d147e10580484ebdc73473feb134bc6ab28a93
+Exact reviewed source copies and hashes are in source-snapshot/completion-review.
+No original assets,binaries,parser libraries or decoded trees enter Git/packages.
+Parser reference:https://github.com/K0lb3/UnityPy (read2026-10-27).
+
+Next implementation contract
+Provide a minimal ordinary selected-file launch path through the installed client
+and existing original LoadReplayFromFile. Keep the current profile and supported
+in-game playback/Leave controls;do not create a new replay browser or expose debug
+automation. Establish idle menu/thread/world ownership before load;exclude live
+local/remote/queue/loading owners. Retain the selected regular file across native
+read,handle missing/invalid/locked files and selection cancellation visibly,keep
+saved data unchanged,and return through original lifecycle. Unified connection
+and replay ownership need explicit reconciliation;do not copy offline diagnostic
+assumptions into production. Qualify the changed installed entry with healthy
+playback,Cancel/Leave/menu/normal Quit plus bounded refusal/retry. Reuse163's
+unchanged loader/error proofs;physical UI and fullD4 remain open. No new Nick
+request or release/build/publication claim is made by this investigation.
+
+
+FOLLOW-UP227 - 2026-10-27 - ORDINARY SELECTED-FILE ENTRY / HEALTHY LIFECYCLE
+Missing claim:the installed ordinary client can admit and play a chosen recording
+without a diagnostic replay loader,and return through original Leave/Cancel/Quit.
+This implements226's entry contract. It does not close chooser/error/physical UI.
+
+Product changes
+--replay FILE flows through package_client/client to one native file argument;
+--replay without FILE opens a Windows chooser after original idle menu readiness.
+New Watch Replay.cmd exists in package and installed game. Start Battle Aces.cmd
+forwards optional arguments. Install protects unrelated same-name scripts and
+rolls back config/both launchers together;uninstall removes only its exact script.
+Old helpers are refused before replay launch;ordinary launch compatibility stays.
+The feature is explicit and does not persist a replay choice or enable diagnostics.
+
+replay_entry.cpp admits a regular local-drive file,holds a strict read-sharing
+handle,checks identity through the original FileStream and bounds compressed data
+to64MiB/decoded protobuf to256MiB. Original codec/version/config/frame admission
+precedes exclusive replay lease acquisition and original LoadReplayFromFile.
+Diagnostic reader retains its stricter recording expectations and16MiB bound.
+Chooser Cancel returns to menu;refusal presents Retry/Cancel;Retry selects again.
+Original replay runner updates are restored in the unified BootstrapGameUpdate
+path only while Replay owns the world. Remote/practice/queue processing is paused.
+Original world/menu/loading state releases the lease and restores local identity;
+retained decoded GameData is not cleared by the helper. Runtime failure retains
+an active owner until safe release;no helper FSM writes/forced native teardown.
+
+Exact native qualification
+Source-owned tools/verify_replay_entry.py runs the actual installed bundled Python
+and packaged start --replay FILE in a fresh owned game/profile/job. External Popen
+adapter only appends opt-in observations,original control callbacks and Quit gate;
+it cannot load a file. Original UI observation is separate from ordinary loading.
+Unconfigured schema3 avoids any host dependency;an observer fails on resolver OPEN.
+Native04 passes in30.047s:source recording1220frames,matching decoded GameDataSHA,
+presented frame30 and advancing replay;original Options/Leave then Cancel keeps
+same world advancing;reopen/Confirm returns original idle main menu;replay lease
+released before Quit. Original Quit trace is armed/Show.dispatch/Show.return/
+OnConfirm.dispatch/OnConfirm.return. Controller/native exit0,job3/0/0,no force.
+No diagnostic load,helper ticks or helper FSM writes. Not an entire1220-frame
+play-through claim:recording was left early to check the original controls.
+Settings bytes,selected/source replay,config,package and frozen runtime source
+remain unchanged. Real shared TOML/AutoSaveReplays/StorageSyncBackup unchanged.
+No remote OPEN request. Owned game is independent of the earlier214 user/test copy.
+
+Failed attempts retained verbatim
+native01:original load accepted but unified BootstrapGameUpdate bypassed replay
+pump;90s observer deadline and forced owned cleanup. Fixed production pump hook.
+native02:playback/Cancel/Confirm worked,but lease wrongly required decoded data
+cleared. Fixed release to original idle/menu/loading state;observer waits for it.
+native03:all controls/lease release passed,but evidence reader received CRLF and
+its strict line-end regex rejected the inventory. Forced cleanup remains failure.
+Only external harness newline normalization changed for native04;same installed
+helper07/packages05. Raw native03 inventory independently validates after normal
+text decoding;native03 is still not accepted as normal Quit. No failed run erased.
+Earlier build/package attempts and source snapshots are retained in the same root.
+
+Validation/artifact identity
+75launcher/installer/replay evidence tests pass on Python3.12(3.930s)/3.14(3.624s).
+17package tests pass on3.12(9.187s)/3.14(8.977s). Native helper build including
+existing compiled policy suites passes. Final helper source receipt matches the
+runtime native sources. No original assets/private data/binaries enter Git.
+All outputs/source snapshots/failed runs remain under:
+ %LOCALAPPDATA%/BattleAcesDiagnostics/local/replay227-entry01
+Healthy report:native04/verification.json SHA256:
+ 7816d9228a09d41b60663767a4cc67ac9ca61821bd22c30c75967adf49866fa5
+helper07/BattleAcesOffline.dll SHA256:
+ adb9649f010ea120a8bbc4838adf363467340ddcb347955e32354192a2a94a5f
+packages05 client package-manifest SHA256:
+ 084092587459ac52fc745e66f7808630cb5e5414d6519856cd85a7deb2a8e4f0
+Installed patch-manifest SHA256:
+ 88dae9fa41ef89935cd95d0327d16987cf2d63cd343c9588239ad8c1d65b2855
+Native04 archives exact tested source. Later changes are test coverage and docs;
+packaged QUICKSTART predates this final documentation update. No rebuild is claimed
+for that prose. Completion review binds artifacts/current source/final docs.
+
+Remaining bounded work
+Qualify actual Windows chooser cancellation and ordinary missing/locked/malformed
+file refusal/Retry without diagnostic file loading. Existing163 reader fault
+proofs remain separate and reusable. Physical input/presentation,fullD4 and final
+release acceptance remain open. New entry is local dirty preview only;published
+174rc1.6 and Nick's installed copies remain unchanged. No new Nick request.
+
+
+FOLLOW-UP228 - 2026-10-27 - ACTUAL FILE LOCK ADMISSION;NO UI RECOVERY CLAIM
+Previous goal turn227 made progress:implemented ordinary entry and qualified its
+healthy installed lifecycle. Current queue retains chooser/error/retry coverage.
+Read current AGENTS/DEV/roadmap and227 sources/report before choosing this check.
+
+Computer-use availability
+Read computer-use SKILL.md/guidance/confirmations/API,initialized @oai/sky through
+node_repl and called sky.list_windows. Result:Computer Use native pipe unavailable;
+failed to connect native pipe,system cannot find file(os error2). No target selected,
+no UI action,no alternate automation bypass,no user dialog response. This is a
+current tooling limit,not evidence of a locked desktop or of user acceptance.
+No repeated N9 desktop pipe test or new Nick action was requested.
+
+Bounded missing claim and result
+Can ordinary installed227 entry reject a healthy selected replay that Windows
+refuses to open,without loading it/acquiring a replay world? Reused unchanged227
+helper07/packages05 and its owned game with a new isolated native profile. Added
+--locked-refusal to the external source-owned verify_replay_entry verifier. Its
+bundled driver selects the ordinary file argument and adds NO diagnostic flags.
+The existing OwnedFileLock helper pins a new repo-local copy of the known1220-frame
+recording. An independent conflicting Win32 open proves error32 while the handle
+is held. Native reaches original local menu and logs exactly one ordinary-file
+refusal. No entry-admission/load marker,world acquisition,runner/diagnostic replay
+or lifecycle failure marker;no remote resolver OPEN. Retain this state5.032s.
+The source places this refusal before lease acquisition and original file loader.
+This is source-bound admission evidence,not a rendered-dialog/button observation.
+
+The report deliberately records passed=false,admission_observation_passed=true,
+forced_cleanup=true. Controller exit1;owned job had3active processes before close,
+0after. The forced-cleanup receipt is authoritative even though the OS terminated-
+process counter is0. No normal Quit claim. File lock closes after owned process
+cleanup;selected/source recording SHA unchanged. Local settings/config and real
+shared TOML/AutoSaveReplays/StorageSyncBackup unchanged. Frozen source unchanged.
+Native elapsed12.360s. No host/user game/accepted install/global setting touched.
+
+The evidence parser requires the exact one refusal,ordinary menu and no conflicting
+load/world/diagnostic/failure markers. Authored tests reject absent,duplicated,
+wrong-cause,mixed-loader and lifecycle-failure traces and enforce false recovery/
+physical-input/normal-Quit claims.26tests pass on3.12(.025s)/3.14(.024s),including
+existing owned lock checks. Only diagnostic source/test/docs changed;no helper or
+package rebuild and no repeated healthy playback. Current helper receipt matches.
+
+Retained artifacts
+ %LOCALAPPDATA%/BattleAcesDiagnostics/local/replay228-refusal01
+baseline.json binds unchanged DEV and the exact computer-use failure.
+native01 contains request,driver,source snapshot,native.log and verification.json.
+Report SHA256:
+ fc5d1e13e70507eca5198a779f2a43808f0cacc9f981459c5b1c1b0df13f8def
+Installed client manifest remains227:
+ 084092587459ac52fc745e66f7808630cb5e5414d6519856cd85a7deb2a8e4f0
+Helper remains227:
+ adb9649f010ea120a8bbc4838adf363467340ddcb347955e32354192a2a94a5f
+Exact owned replay-copy path/profile are in the private request/report. No source
+recording or original asset enters Git. completion-review/final-manifest bind the
+current source,raw evidence and existing helper/install identities.
+
+Next
+Reuse this lock-only boundary;do not repeat it without a changed path or concern.
+Missing/malformed ordinary admission is independent work. Chooser Cancel and
+refusal Retry/Cancel require actual UI interaction once a usable tool surface is
+available. Recovery and physical presentation remain open;do not count forced
+cleanup as recovery. Published174 and all broad release gates remain unchanged.
+
+
+FOLLOW-UP229 - 2026-10-27 - MISSING / INVALID-DEFLATE ORDINARY ADMISSION
+Previous turn228 made progress through real locked-file refusal and source-owned
+evidence. Current AGENTS/unchanged DEV/roadmap/actual227 entry/228 verifier reviewed.
+Missing claim:ordinary packaged entry refuses absent or invalid compressed input
+before loading a replay world and releases corrupt-input handles while still alive.
+No new native fault injection,diagnostic replay loading,UI automation or rebuild.
+
+Generalize external --refusal-case to locked,missing,invalid-deflate;retain the
+--locked-refusal alias. Default healthy control stays separate;refusal driver adds
+no diagnostic flags. Missing fixture is a fresh absent filename in an owned local
+directory. Python read-open independently proves FileNotFoundError/errno2;optional
+winerror is not required. Corrupt fixture reuses the existing authored one-byte07
+invalid-DEFLATE payload;independent raw-DEFLATE decoding rejects it. Original source
+recording stays unchanged. Strict evidence parser requires the case's exact one
+ordinary-file or codec-admission refusal and excludes load/world/lifecycle failure.
+
+Native results on unchanged227 helper07/packages05
+missing02:errno2/winerrorNone,path absent before/after;original local menu followed
+by ordinary-file refusal,no high-level load/world/remote OPEN. State held5.016s;
+11.938s total. Original recording,settings/config/shared channels unchanged.
+corrupt01:authored07 regular file refused by bounded codec admission,no high-level
+load/world/remote OPEN. State held5.015s;11.750s total. While native is alive,an
+external exclusive read handle opens that same file and an independent conflicting
+read fails WinError32. Native reader/selection handles therefore no longer obstruct
+the file before process cleanup. External handle then closes. Corrupt bytes,
+reference recording,settings/config/shared channels unchanged. This is no claim
+about all malformed recordings or the original parser's particular exception type.
+
+Both reports explicitly keep passed=false,admission_observation_passed=true,
+forced_cleanup=true. Each controller exits1 after owned-job termination;3processes
+before close,0active after. OS terminated-process counter0 does not override the
+forced-cleanup receipt. No natural Quit or error Cancel/Retry accepted.227 healthy
+normal-Quit evidence stays separate. Computer-use limitation228 retained;no UI
+availability/visibility retry or Nick action requested229. Source frozen in both.
+
+Failed missing01 preparation retained:stopped before any controller/native launch
+because Python CRT reported errno2/winerrorNone and the initial probe wrongly
+required winerror2. Corrected external probe checks errno2;actual-filesystem test
+covers absent versus existing input. No production fix was needed. Reports/source
+snapshots remain verbatim.32focused replay/lock/codec tests pass on3.12(.246s) and
+3.14(.134s);earlier31-test outputs retained. Wrong-phase/mixed-loader/unsupported
+cases are rejected;recovery/Quit claims stay false. Existing helper/package/source
+identity revalidated without rebuilding or repeating healthy/locked native cases.
+
+Outputs and provenance
+ %LOCALAPPDATA%/BattleAcesDiagnostics/local/replay229-refusal01
+missing02/verification.json SHA256:
+ 32621b89b8a89ba15a4c7a09ed4d755c8917e8a9c841b6349ed60357826e603d
+corrupt01/verification.json SHA256:
+ 50167f20a0830cbe1b8adfeb9af0da7e0d2f821bc955e41b7f5053e7432b31d1
+failed missing01/verification.json SHA256:
+ 682b8256dce7b6423cea547d4996c7f2574427b5ca2f3a9f3dd2df7b05fb2836
+Installed client manifest:
+ 084092587459ac52fc745e66f7808630cb5e5414d6519856cd85a7deb2a8e4f0
+Helper:
+ adb9649f010ea120a8bbc4838adf363467340ddcb347955e32354192a2a94a5f
+completion-review/final-manifest bind current source/docs/raw logs and artifacts.
+No originals/private state/binaries committed;published174 unchanged.
+
+Next:prepare/qualify ordinary chooser Cancel and file-error Retry/Cancel with
+actual UI input. Reuse228/229 admission and227/163 healthy/replay-engine evidence;
+do not repeat boundary runs as substitute recovery proof. Other malformed classes,
+physical presentation and all broader D4 requirements retain their scope.
+
+
+FOLLOW-UP230 - 2026-10-27 - ISOLATED ORDINARY UI CHECK READY;N13 PENDING
+Previous229 turn progressed missing/corrupt ordinary admission;recovery UI remained
+open. Rechecked current instructions/DEV/roadmap/artifacts. Windows computer-use
+sky.list_windows still returns native pipe unavailable,system cannot find file
+(os error2). No windows targeted/UI input/game launched through automation230.
+
+Prepared concrete manual capsule before requesting Nick's action:
+ %LOCALAPPDATA%/BattleAcesDiagnostics/local/replay230-manual01
+This has a NEW independent copied game,installed unchanged227 client/helper,
+three separately seeded manual_replay230 profiles,unconfigured schema3 offline
+case configs,Good replay.rep and authored invalid07 input. Missing input stays
+absent. Original227 donor and all usual/user copies remain separate. No original
+assets or recordings are published. RESERVED FOR N13.txt explicitly reserves this
+copy/profiles for Nick;do not run unattended diagnostics in it. Automatic future
+checks must use other owned copies. Good recording remains the known1220-frame
+source,byte-identical to prior227/229 reference.
+
+Three ordinary CMD launchers invoke the installed bundled Python/package_client:
+ 1 - Choose and cancel.cmd : chooser Cancel,menu,normal Quit.
+ 2 - Corrupt then retry.cmd : error Retry,select good recording,advancing playback,
+     original Leave Cancel then Leave Confirm/menu,normal Quit.
+ 3 - Missing then cancel.cmd : error Cancel,menu,normal Quit.
+No diagnostic flags,UI injection,automatic gameplay,server/admin step or forced
+cleanup. Each records console output and exit code under results and refuses
+reuse once that console log exists. User keeps the console open during gameplay.
+The game writes its normal local native logs under game/investigation/runtime.
+READ ME FIRST.txt has exact steps/full local good-replay path. This is an operator
+check on a reserved copy,not a new release/installer or a repeated LAN/startup test.
+
+Preparation verification
+Current installer verifies all133game bundles and installs matching current helper
+and runtime in the new copy. Package inventory,patch component/helper hashes and
+helper source receipt reconcile. Three actual bundled package_client start entry
+preflights run with launcher.launch replaced by a Python observer:config/profile
+selection,native arguments,required helper checks and unconfigured remote resolver
+are validated. No executable is launched,so these are preparation proofs only.
+No smoke/inventory/auto flags. All three seed TOMLs match the retained seed;good
+recording hashes/1220frames match;invalid bytes remain07;missing path absent.
+Results and native-runtime directories remain empty. No physical success inferred.
+readiness.json SHA256:
+ da6e47aa7aa1f477fe6dc0f979869861b7acc05ad43f82b3a81e0acf8ec4685c
+Installed manifest remains227:
+ 084092587459ac52fc745e66f7808630cb5e5414d6519856cd85a7deb2a8e4f0
+Helper remains227:
+ adb9649f010ea120a8bbc4838adf363467340ddcb347955e32354192a2a94a5f
+manual-plan,install,preflight/readiness reports,baseline and before snapshots are
+retained. Completion review binds scripts/configs/profile seeds/fixtures/docs.
+The manual results are intentionally outside immutable preparation hashes.
+
+DEV N13 added only after preparation passes;all existing answers preserved. It
+requests PASS/FAILED/NOT RUN per case and visible issue/exit result. Empty fields
+remain pending. Do not repeat the request or run the reserved copy unattended.
+No production source change,helper rebuild,commit or publication. UI/fullD4 remain
+open. Next independent engineering:review permanent client-loading failure and
+exit ownership versus204-208;reuse their completed130s delay/late callback proof.

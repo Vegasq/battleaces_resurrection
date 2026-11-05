@@ -1,0 +1,76 @@
+BATTLE ACES - RC IDENTITY STORAGE ISOLATION187
+Date:2026-10-26. Named D4 defect FIXED in source/local preview;full release OPEN.
+
+Reproduced defect
+The client accepted an rc-identities directory junction pointing into another
+installation. Two independent client settings roots with the same server/profile
+then resolved the same player identity. This contradicts the intended independent
+storage boundary. The reproduction uses only fresh local authored settings/game
+existence fixtures;no original game executes and no user's identity is selected.
+Baseline:local/identity187-junction01/baseline.json,same_player_id=true,reparse=true.
+rc_setup-before.py retains the exact previous production source.
+
+Correction
+client_patch/transport/rc_setup.py now checks identity directories,identity files
+and setup lock storage with lstat. It refuses nonordinary files/directories,
+Windows reparse points,symlinks and multiply linked identity/lock files. Missing
+storage is distinguished from a dangling link. It never repairs or deletes an
+unsupported path or changes permissions. Normal existing identities keep their
+exact bytes and schema. A directory/lock is checked before opening the lock.
+
+First identity publication is now exclusive:Windows rename,or POSIX hard-link
+publication followed by owned temporary cleanup. If another file appears before
+publication,it is preserved and validated. A valid identity wins;damaged data
+refuses without replacement. Serialization,flush/fsync and cooperative setup
+locking remain. This is not immunity to arbitrary malicious same-user filesystem
+replacement between metadata checks and open,or a new cross-account ACL policy.
+
+Actual Windows verification
+The retained real junction now refuses;target identity/lock bytes and the first
+installation's player ID remain unchanged. fixed.json records the result.
+The actual187 client bundled runtime follows Resolver.__call__ and returns the
+existing CONFIG_FAILURE reason9 with those same target bytes unchanged:
+local/identity187-junction01/bundled-fixed.json.
+Final rc_setup SHA256:
+  a7bc3d89fb5991a9b89b05f28c2a1c7df830380b1a118085a042aaba022a9d28
+
+tests.test_rc_identity_storage,tests.test_rc_setup,tests.test_game_installer pass
+25/25 with no skips on Python3.12(6.384s) and3.14(6.534s). Eight new cases cover
+actual Windows junction refusal without target writes,authored reparse/symlink
+metadata,real identity/lock hard links,intervening valid/damaged publication and
+failed flush followed by stable retry. Existing setup/name/save and installer
+fixtures pass. Installer fixtures do not claim actual game installation/UI.
+
+Matching local packages and changed-path lifecycle
+local/candidate187-packages01 contains both verified source-allowlisted packages.
+Version0.3.0-rc1.7,revision3ea4ab0ea42bd1957c559815847ab8c18b5de302,dirty=true.
+These are LOCAL previews,not a new published release or clean final candidate.
+Server ZIP SHA256:
+  2696acfe4a69db0827bf4ff0b88e86f2263df3a2899ca13a039fb5fa99c3e8a3
+Client ZIP SHA256:
+  287e8367890c6c7ff5c89bb156434652d0a19b697cc098c2ee668f3fc6ba1acd
+Both actual bundled verify commands pass. Compared with175,the executable source
+delta is rc_setup in both packages and the already documented178 rc_host relative
+initializer in server. Other deltas are guides and source/provenance metadata.
+Recipe23/helper169/native installers and launcher remain unchanged.
+
+The unchanged source-owned185 lifecycle runner passes against the NEW server
+package:local/identity187-lifecycle01/verification.json.
+Report SHA256:1d29ef19758a594b0a87cb8eacd1bb231a4020b7ff4ddf739644242aa55f8d90
+Four actual bundled processes concurrently create/read one identity. Rename and
+route/profile return preserve it;corrupt identity refuses and exact backup works.
+Two real packaged host starts/native health checks/TLS admissions preserve that
+identity and saved deck/full cosmetics across certificate replacement. Existing
+config with a missing key refuses without regeneration. Job18/0/0,no forced
+cleanup,9.187s;package/assets/read-only game binding/source unchanged. This also
+exercises178's relative initializer in a newly built package,within that scope.
+It is not a new native match,graphical install,SCM,Internet or clean-PC result.
+
+Roadmap disposition
+Close the named RC linked-storage/exclusive-publication defect. Ordinary UI,
+other settings/replay channels and remaining D4 faults still require their own
+evidence. Client quickstart explains independent identity backups and refusal.
+N12 remains pending on its original175 capsule;all four source pins still match.
+No new Nick action. Published174 and earlier accepted artifacts remain unchanged.
+P9 review yielded no new producer/registration binding this turn;no repeated
+scan/quiet-run result or source privacy closure is claimed. D5 stays OPEN.

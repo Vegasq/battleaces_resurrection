@@ -7,7 +7,7 @@ bodies are checked before hooking. The registered crash wrapper stays untouched.
 """
 import json
 import re
-from pathlib import PureWindowsPath
+from pathlib import Path, PureWindowsPath
 from tools.frida_attribution_cwd import build_source as cwd_source
 from tools.frida_attribution_clock import replace_once
 
@@ -15,7 +15,9 @@ HOOKS={'filter':0x9fdec0,'local-stack':0x9fde30,'handoff':0x9e0e10,'teardown':0x
 
 def build_source(config,cwd,native):
     image=PureWindowsPath(config['image'])
-    if image.name!='Battle Aces.exe' or not re.fullmatch('r169g',image.parent.name):
+    recipe34_game=PureWindowsPath(Path(__file__).resolve().parents[1]/'local/privacy301-runtime01/game')
+    if image.name!='Battle Aces.exe' or not (re.fullmatch('r169g',image.parent.name) or
+                                              image.parent==recipe34_game):
         raise ValueError('Owned crash169 diagnostic image required')
     if not isinstance(native,dict) or set(native)!={'module','bodies','armFile'} or native['module']!=str(image.parent/'UnityPlayer.dll'):
         raise ValueError('Exact owned Unity module required')

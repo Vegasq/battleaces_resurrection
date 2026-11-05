@@ -1,0 +1,49 @@
+D5 / P6 - owned TCP refusal -> authenticated retry -> local match -> original Quit
+2026-10-28. P6/full D5 remain OPEN,RUNTIME_VALIDATED=false.
+
+The source-owned unified-client verifier now has an opt-in --tcp-refusal-first
+mode. It holds an exclusive loopback port without listening,and checks that
+asyncio.open_connection receives Windows connection refusal1225. On the
+client's first OPEN,the bridge resolves to that real endpoint;the resulting
+OSError maps to protocol CONNECT_FAILURE. After original local Try Deck returns,
+the same client makes a second OPEN to the owned TLS server. The verifier
+records only bridge kind/session/failure,not identity or credential payload.
+The normal product bridge/native helper and ordinary launcher are unchanged.
+
+local/privacy292-transition01 is a FAILED diagnostic. Its first TCP refusal
+and first local match occurred,but the new observer accidentally reused a
+variable captured by the test server's send callback. The server failed to
+answer Custom and the client logged a welcome timeout. The owned verifier was
+interrupted;no verification.json was produced. A subsequent OS check found no
+process using the owned game copy. The partial process/events/game/native log
+and failed-run-note.txt are retained. The observer variable was renamed before
+the fresh run;this failure is a test harness defect,not product evidence.
+
+local/privacy292-transition02/verification.json PASS in425.281s with installed
+default recipe25/helper291:game PID26588,one held non-listening loopback port,
+control WinError1225,first bridge event FAILURE(session1,CONNECT_FAILURE=2),
+second READY(session2),two remote attempts,one TLS authentication,four Custom
+lobby events and two distinct completed local matches. The same process
+continued after the failed TCP connect,completed original Custom Create/Leave,
+finished the second match and took original menu Quit/Confirm,exit0,no forced
+cleanup,job1/0/0. Source hashes at start/finish and shared-settings hashes
+matched;the helper remained SHA256
+2cff1618ac4643a09a59d56f29e38a67357dae3337ee7cd1048247f0ae99df0b.
+Report SHA256:
+046caebca0e5bff562b1b745ad0dc0d2761209a071ec982751701556d13ffd6b.
+
+The retained raw Quit trace independently has exactly armed,Show.dispatch,
+Show.return,OnConfirm.dispatch,OnConfirm.return,all for PID26588 after its
+launch tick. Native log markers order the initial Secure server unavailable,
+Custom Create/Leave,second local completion,menu Quit and original confirmation.
+Raw trace SHA256:
+c415f9188e21c67e4d4223accb1b5b47ee818063b9313bfc808006efd7494ca6.
+No owned game process remained after the completed run.
+
+This closes the selected actual loopback TCP-refusal -> later authenticated
+bridge retry -> ordinary shutdown path on the current owned install. It is not
+a whole network outage or proof of automatic periodic retry without user/match
+action. The bridge events establish its own two session outcomes;they do not
+observe the separate SDK analytics/report retry or queue. SDK queue/file/wire,
+early/brief sockets,all-thread collection,descendant and final installed
+shipping attribution remain. P6/D5 stay OPEN. No Nick action is requested.

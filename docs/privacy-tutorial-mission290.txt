@@ -1,0 +1,27 @@
+D5 / P3 - current recipe25 original Tutorial01 mission and later audit
+2026-10-28. P3/full D5 remain OPEN,RUNTIME_VALIDATED=false.
+
+289 established original Tutorial01 entry in the current owned recipe25 copy.
+The source-owned verifier now has an explicit --through-mission mode. It waits
+for original Offline world ready/GameStarted,then the original Tutorial 1
+mission and first objective in the local game log,and a complete later tutorial
+native field snapshot. The later audit must follow the GameStarted marker.
+No new product hook or patch recipe is installed for this check.
+
+One fresh-profile run local/privacy290-tutorial01 PASS took18.719s. Its audit
+contains three complete selected-field snapshots in order:startup-after-engine-
+init,tutorial entry,and tutorial after world ready. All selected Main/session/
+performance reporting fields are disabled constructor values in each;retained
+singleton pointers are stable in these samples. Original GameStarted occurred
+at tick594485296;the third tutorial audit followed at594486953. The game log
+records "Start Mission - Tutorial 1" and "Enter Objective: 2_Expand_2_Built".
+The installed recipe25 helper/source and real shared-settings hashes remained
+unchanged. Owned teardown was forced after observation,root reaped,job1/0/0.
+Verification SHA256:
+5a2e56337ea09fcc84324562e747b5ebf5f8e439426f9ecae5ecf0fe86baf9a9.
+
+This qualifies selected field state through original tutorial mission start.
+It does not prove objective completion,ordinary Quit,SDK queue/file/network,
+all-thread behavior or descendants. The prior289 entry pass and failed first
+verifier attempt remain separate evidence. Deferred Tutorial2 was not run or
+requested. P3/D5 stay OPEN.

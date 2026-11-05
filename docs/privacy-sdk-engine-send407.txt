@@ -1,0 +1,32 @@
+D5 / P7 - shared UnityWebRequest send caller classification
+2026-10-30. Bounded original/current recipe38 static review PASS;P7/D5 OPEN.
+
+The original GameAssembly has exactly four raw direct E8/E9 positions to
+UnityWebRequest.SendWebRequest at53dd0d0 across its two executable sections.
+All four decode as E8 calls in complete method-table named bodies:
+  80e9cf BugsnagNetworking.BugsnagUnityWebRequest.SendWebRequest
+  821cab BugsnagUnity.Delivery.<PushToServer>d__21.MoveNext
+  4cd4084 Unity ResourceManager.WebRequestQueue.BeginWebRequest
+  4cf5973 Unity ResourceManager.UnityWebRequestOperation.Execute.
+
+The current owned recipe38 GameAssembly changes the PushToServer.MoveNext
+entry to return false before its original call at821cab. Its remaining body,
+the SDK wrapper and both ResourceManager caller bodies are byte-identical to
+the original. The SDK wrapper's own SendWebRequest method80e920 remains
+active;406 found no direct caller to that method,and409 excludes ordinary
+virtual/interface send dispatch. Other indirect acquisition remains unresolved.
+The two ResourceManager calls establish why
+the shared Unity send routine cannot be treated as reporting-only. This
+classifies direct call ownership,not effective wire activity or a whole
+SDK request absence conclusion. Original work already in flight remains
+outside this fresh patched-process entry guard.
+
+tools.review_sdk_engine_send407 binds original/current GameAssembly and
+metadata hashes,all four literal target calculations,named method tables,
+complete decoded caller bodies and exact three-byte Push entry/source guard.
+Ignored receipt and four assemblies:local/privacy407-engine-send01/
+verification.json SHA256
+a2063c591d128949d226ebc53748291016192acaaa39922dd5262d4181457699.
+No game,real queue,web request or report endpoint ran. Published174 is
+unchanged,RUNTIME_VALIDATED=false. P7/D5 remain OPEN for indirect SDK
+acquisition,queue/retry/file/wire and final installed release scope.

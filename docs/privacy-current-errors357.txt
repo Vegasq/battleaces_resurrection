@@ -1,0 +1,51 @@
+D5 / P7 - recipe38 genuine SDK Client/error fixture and stale diagnostic signature
+2026-10-28. Current owned source/installed fixture PASS;full P7/P9/D5 OPEN.
+
+The recipe34 error fixture331 was run on the current recipe38 owned game with
+the existing genuine Client/NativeClient,isolated authored cache and original
+local Exception diagnostic. The first run at local/privacy355-error01 failed
+after original cache type reconstruction because the loaded-method recognition
+table still expected the original Client.InitUserObject full-body hash. The game
+exited0 through original Confirm without forced cleanup. Its failed report is
+retained SHA256 aa8a14ede91a99f0dd74f43e2888b97745b6bf9963cf4295324f11164f2eeb7a.
+
+A diagnostic-only helper change logged the exact mismatch on the second run:
+RVA8141f0,size529,read1,expected original SHA256
+13cefdd6fd5f13c4b1f1cacc2e716f7e5af9e6e026150971b5f44795ea3bf9a2,
+observed SHA256
+bd5cc8f129a984dea24b420e571cb4ee273b50f29123486bda4c5297e19c4686.
+The observed hash equals the current owned GameAssembly disk body;the original
+hash equals the untouched binary. The seven-byte recipe37 branch in that body
+is source-verified by tools/verify_sdk_user_cache349.py. The second failed run
+local/privacy356-error02/verification.json is retained SHA256
+71b26b0e5c9ffc9c5986cb829329072fe1e9f6b904a67ffa5d1b02ba4dce6f0c.
+Neither failure is silently converted to a pass.
+
+The diagnostic recognition table now pins the recipe37+ guarded body hash.
+All other listed SDK method signatures still match the owned disk image;the
+strict loaded-byte check remains. The failure log now names the method RVA,
+size,read status and expected/observed hashes for future changes. The actual
+privacy patch recipe stays38/167 guards. The final helper builds/tests PASS at
+local/privacy357-helper-build01 and was dry-run/installed in the owned game
+with all133 bundles verified,community/cosmetics options preserved. Helper
+SHA256 98e4651ad427da3ab8f1a17d6f5108d2a5d9b28f28535c6acff43df45cffe58c.
+Receipt SHA256 4a4ddd582e8b1453ad001069de1e4f7e7505e2caf922892ca5900930b8b422e0.
+
+local/privacy357-error03/verification.json PASS SHA256
+a2b2b5c3c9faaff9cc9100662c998eae53a1a9993511fb93a00dbffc576acde7.
+In15.344s the genuine initialized reporting-disabled Client retained14 core
+fields and four global callback heads. Two isolated authored cache files were
+read through original readers;two missing IDs were rejected and the files
+remained byte-identical. Guarded delivery exercised two Deliver calls,one
+cached start,five false MoveNext and five original Dispose paths. All seven
+checked reporting-error entries returned with stable Client/Exception;the
+original local game.log contains one authored Exception diagnostic. The same
+game thread reached original Show/OnConfirm and natural exit0;no forced cleanup.
+Source/shared settings were unchanged during the run.
+
+The fixture is authored and isolated. It does not prove ordinary real queue,
+resumed/inflight retries,all-thread collection,network/wire absence or P9's
+native advertising producer. Published174 is unchanged;private recipe38 pair
+352 uses its earlier helper and remains historical compatibility evidence.
+358 subsequently rebuilt and ran a source-bound private connected pair with
+the corrected helper;see privacy-current-package358.txt. RUNTIME_VALIDATED=false.

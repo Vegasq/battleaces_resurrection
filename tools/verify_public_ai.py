@@ -1,7 +1,9 @@
 """Opt-in native local AI combat/results/rematch and mode-switch verification.
 
 Runs the real unified launcher with no server/CA/invite and explicit diagnostic
-flags. Native Play, build, surrender and Continue are automated; hidden by default.
+flags. The local fallback probe removes the ordinary public-queue switch from
+its owned child command so the original public button selects the local AI path.
+Native Play, build, surrender and Continue are automated; hidden by default.
 Forced owned teardown does not qualify native Quit, visible UI or online queues.
 Optional --search-smoke cancels before building and at the original map callback,
 then retries successfully. It retains original Unity UI screenshots for review.
@@ -17,6 +19,7 @@ import json
 import os
 from pathlib import Path
 import re
+import secrets
 import shutil
 import subprocess
 import threading
@@ -81,6 +84,8 @@ def run(args):
     modes=[int(value) for value in args.modes.split(',')] if args.modes else [args.mode]*args.matches
     require(1 <= len(modes) <= 8 and all(mode in (1,2,4,5) for mode in modes), 'unsupported mode sequence')
     matches=len(modes)
+    require(not args.telemetry_audit or matches <= 3,
+            'telemetry audit supports at most three local matches within its stage budget')
     require(1200 <= args.frames <= 3600, 'bounded frame count required')
     require(not args.search_smoke or (not args.modes and args.mode == 1), 'cancellation probe currently covers repeated mode1')
     require(not args.profile or 1 in modes, 'profile override applies only to mode1')
@@ -89,6 +94,7 @@ def run(args):
     output.mkdir(parents=True, exist_ok=False)
     path = output/'client.json'
     settings = client.defaults(game); settings['display_name'] = 'Public AI Tester'
+    settings['local_profile'] = 'publicai_' + secrets.token_hex(6)
     path.write_text(json.dumps(settings, indent=2), encoding='utf-8')
     report = dict(passed=False, utc=datetime.now(timezone.utc).isoformat(), scope=__doc__, requested_modes=modes,
                   source_sha256_at_start=source_hashes())
@@ -119,12 +125,16 @@ def run(args):
     def spawn(config, remote, options, child):
         nonlocal process, job, monitor, tick
         command = launcher.game_arguments(config, None, child.fileno(), options)
+        require(command.count('-public-queue-experimental') == 1,
+                'ordinary unified launcher queue switch contract differs')
+        command.remove('-public-queue-experimental')
         require(not any('smoke' in value or 'audit' in value for value in command), 'normal launcher added diagnostics')
         command[command.index('-logFile')+1] = str(output/'game.log')
         command += ['-public-ai-experimental', '-public-ai-smoke', '-practice-ai-smoke',
                     f'-public-ai-smoke-mode={args.mode}',
                     f'-practice-ai-smoke-matches={matches}', f'-practice-ai-smoke-frames={args.frames}',
                     '-lan-smoke', '-lan-audit']
+        if args.telemetry_audit: command.append('-telemetry-audit')
         if matches > 1: command.append('-practice-ai-deck-smoke')
         if args.modes: command.append('-practice-ai-smoke-modes='+','.join(map(str,modes)))
         if args.profile: command.append(f'-public-ai-smoke-profile={args.profile}')
@@ -144,7 +154,8 @@ def run(args):
         job = _WindowsJob(process.pid)
         manifest = json.loads((game/'.battleaces-resurrection/patch-manifest.json').read_text())
         report.update(game_pid=process.pid, launch_tick=tick, client_arguments=command,
-                      helper_sha256=manifest['helper_sha256'], visible_window=args.visible)
+                      helper_sha256=manifest['helper_sha256'], visible_window=args.visible,
+                      local_fallback_queue_switch_removed=True)
         (output/'process.json').write_text(json.dumps(report, indent=2), encoding='utf-8')
         monitor = threading.Thread(target=watch, name='public-ai-monitor')
         monitor.start()
@@ -227,6 +238,11 @@ def run(args):
             if previous['mode']==current['mode']==1: require(previous['bot_name']!=current['bot_name'],'public1v1 bot name did not vary')
         require(len(set(practice_settings))<=1,'public play changed the practice difficulty selection')
         report['practice_difficulty_snapshots']=practice_settings
+        if args.telemetry_audit:
+            from tools.verify_telemetry_audit import verify_lines
+            report['telemetry'] = verify_lines(log.splitlines(), expected_sha256=hashlib.sha256((game/'UnityPlayer.dll').read_bytes()).hexdigest(),
+                required_stages=('startup-after-engine-init','menu') + ('ingame','postgame','menu') * matches)
+            require(report['telemetry']['passed'], 'local public mode telemetry snapshots incomplete')
         report.update(passed=True, remote_connections=0, invite_reads=0)
     except BaseException as error:
         report.update(passed=False, error=report.get('error', f'{type(error).__name__}: {error}'))
@@ -262,4 +278,5 @@ if __name__ == '__main__':
     parser.add_argument('--natural', action='store_true', help='wait for a natural result; never surrender automatically')
     parser.add_argument('--search-smoke', action='store_true')
     parser.add_argument('--visible', action='store_true', help='show the owned window for native UI capture/review')
+    parser.add_argument('--telemetry-audit', action='store_true', help='review read-only native fields through the local public result/menu')
     run(parser.parse_args())

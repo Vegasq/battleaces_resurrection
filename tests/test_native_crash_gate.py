@@ -92,6 +92,13 @@ class ExitTests(unittest.TestCase):
     def child(self, code):
         return Mock(tid=19, poll=Mock(return_value=code))
 
+    def test_recipe34_requires_matching_original_thread_preflight(self):
+        text = READY.replace('recipe=23', 'recipe=34') + TRIGGER
+        self.assertEqual(gate.ready_saved_mode(text, 19, recipe_version=34), 32769)
+        gate.validate_trigger(text, 19, recipe_version=34)
+        with self.assertRaises(ValueError):
+            gate.validate_trigger(text, 19, recipe_version=25)
+
     def test_refusal_stops_without_waiting_for_exit_or_timeout(self):
         child, tracker = self.child(None), Mock()
         text = READY + '[21] NATIVE CRASH gate open failed: version=1 thread=19 error=32\n' + REFUSED
@@ -122,6 +129,31 @@ class ExitTests(unittest.TestCase):
     def test_actual_matching_marker_contract_and_exit_pass(self):
         self.assertEqual(gate.wait_for_crash_exit(self.child(gate.FAULT), Mock(),
                                                lambda: READY + TRIGGER), gate.FAULT)
+
+    def test_current_recipe25_requires_explicit_matching_version(self):
+        current = READY.replace('recipe=23', 'recipe=25') + TRIGGER
+        self.assertEqual(gate.ready_saved_mode(current, 19, recipe_version=25), 32769)
+        self.assertEqual(gate.wait_for_crash_exit(self.child(gate.FAULT), Mock(),
+                         lambda: current, recipe_version=25), gate.FAULT)
+        with self.assertRaises(ValueError):
+            gate.validate_ready(current, 19)
+        with self.assertRaises(ValueError):
+            gate.validate_ready(READY, 19, recipe_version=25)
+        for version in (22, 24, 29, True, '25'):
+            with self.subTest(version=version), self.assertRaises(ValueError):
+                gate.validate_ready(current, 19, recipe_version=version)
+        next_recipe = READY.replace('recipe=23', 'recipe=26') + TRIGGER
+        self.assertEqual(gate.ready_saved_mode(next_recipe, 19, recipe_version=26), 32769)
+        self.assertEqual(gate.wait_for_crash_exit(self.child(gate.FAULT), Mock(),
+                         lambda: next_recipe, recipe_version=26), gate.FAULT)
+        with self.assertRaises(ValueError):
+            gate.validate_ready(current, 19, recipe_version=26)
+        newest_recipe = READY.replace('recipe=23', 'recipe=27') + TRIGGER
+        self.assertEqual(gate.ready_saved_mode(newest_recipe, 19, recipe_version=27), 32769)
+        with self.assertRaises(ValueError):
+            gate.validate_ready(current, 19, recipe_version=27)
+        registration_recipe = READY.replace('recipe=23', 'recipe=28') + TRIGGER
+        self.assertEqual(gate.ready_saved_mode(registration_recipe, 19, recipe_version=28), 32769)
 
     def test_saved_mode_is_bound_to_this_launch_without_changing_active_policy(self):
         text = READY.replace('savedMode=32769', 'savedMode=1') + TRIGGER

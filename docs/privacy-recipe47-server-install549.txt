@@ -1,0 +1,32 @@
+D5 / P8-P9 - actual native server Install from recipe47 private package
+
+2026-10-31. Scoped PASS. The unchanged private recipe47 server installer
+was loaded by the same external native form host used for the543 client
+install. Its real Install button started its BackgroundWorker. The form
+showed progress,locked controls while busy,and restored them on completion.
+Elapsed time293.688s. No server was started and no listener or private key
+was created. The client source was the already owned543 installed game;
+the installer copied it into separate private setup space for asset export.
+
+The server appeared in fresh local/privacy548-server01. Its package
+inventory and exported build-37822 assets verify. The source game's five
+selected executable/helper/manifest hashes were unchanged. The native form,
+backend and export process exited0;the owned Job ended4/0/0 without forced
+cleanup. tools.review_recipe47_server_native549 independently checks the
+native installer/source binding inherited from546,the form receipt,prelaunch
+Job assignment,normal exit,server files/assets and unchanged source hashes:
+PASS. This completes the actual server Install subcase missing from546.
+
+Run:local/privacy548-server-install01/verification.json SHA256
+3121f1024ae90df74b760c9e4e7aa00925d17d7821f37062d982778baa6d40fa.
+Independent review:local/privacy548-server-install01/review549.json SHA256
+8f09fe3bd45a99ac888c81380927aebc396dd3b7f451cb72b6cb19eda8b1f99b.
+Installer EXE SHA256
+bce2c4e13e010c3a7adb9c65864ee07087786d1a647d5fd0790b42543e7b08a6.
+Exported asset-manifest SHA256
+4f70d43a1af2bd74180a9acf059609948eab8026e2f54120184eb254662fd1bc.
+
+This is a private actual-install result,not a server startup,connected
+runtime privacy,whole file/wire attribution or final clean release. The
+advertising-ID upstream producer and real SDK queue remain unresolved.
+P7/P8/P9/D5 and RUNTIME_VALIDATED=false stay OPEN.

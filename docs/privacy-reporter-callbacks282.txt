@@ -1,0 +1,68 @@
+D5 ADDITIONAL REPORTER CALLBACK CUTS AND OWNED INSTALL282
+2026-10-28. P7 source/installed byte and packaged menu subcases PASS;
+full P7/P9/D5 remain OPEN,RUNTIME_VALIDATED=false.
+
+Pinned original GameAssembly/IL2CPP metadata map the concrete
+Uncapped.BugsnagCrashReporter methods FlagFirstEvent token0x6000552 to
+RVA3cc3600 and AddVariablesToReport token0x6000558 to RVA3cc5440.
+FlagFirstEvent sets the reporter first-event byte+19 and can add a value to
+its report argument before returning the reporter enabled byte+18.
+AddVariablesToReport calls the reporter's AddVariables helper before reading
+and returning that same enabled byte. These are reporter-specific Boolean
+callbacks;the shared configuration reader and SetEnabled(false) remain intact.
+This review does not establish their complete indirect/delegate caller set.
+
+Recipe25 adds exact-build entry false returns at RVA3cc3600/offset3cc1c00
+and RVA3cc5440/offset3cc3a40. Compared with the complete recipe24 telemetry
+transformation,exactly six bytes change:the first three bytes at each entry
+become31c0c3. No later original callback instructions execute through those
+entries. Recipe25 has131 guards across four components;its static source
+validator and all51 patch/audit tests pass with pinned originals on both
+Python3.12 and3.14. The ignored source-only verification result is
+local/privacy282-guards.json SHA256:
+952aeecc79504f9edc55067ea1c7e44f50a42bd7ad66622737b25a8d2595bd27.
+Its verifier local/privacy282-guards.py SHA256:
+e9600d8bf41b30bfca6a326fe90eced8083e911320ab9d4274b92eeb9cabe2a4.
+
+A separate owned copy of the recipe24 game was created at
+local/privacy282-runtime01/game. The normal installer dry run and install
+each verified all133 bundles. The installed manifest records recipe25/131
+guards,with all four component hashes matching disk. GameAssembly SHA256:
+c6e4480475e515e71a46e9579ee48d4db1a7f22062db5282d73c314a204d6b4e.
+Relative to the recipe24 installed image,only offsets170-171 (PE checksum)
+and the six new entry bytes differ. The other three transformed components
+and the native helper remain identical. Manifest SHA256:
+4b736dd61e5d21fe12b666de81582f1c10e279308a613785a31bf1316cb8cc53.
+Read-only binding local/privacy282-binding.json SHA256:
+68ebb9a9fb20a47ddc550f40ebe7cbbad85ee613dbb26913397ac8e6d8f6141b.
+Its verifier local/privacy282-binding.py SHA256:
+22c5fe882cedc52ca715865ea902256106f67b5bcb5fd4439ebbffdd52eecc1a.
+
+A current dirty-source local client/server preview pair was built in
+local/privacy282-packages01. Both extracted package inventories verify;
+packaged telemetry source equals source recipe25 and the installed/package
+helper hashes match. Client ZIP SHA256:
+5c0b1e641c68b9332c2c8e9c500f4bb31546457c1fc9a55f21441ebbd832caa3.
+Server ZIP SHA256:
+3053513de893385c0aff88c4fbe5b1ebaab4acedc39f4211d76c6435e0cb8643.
+Package build report SHA256:
+ac892e44ea52ea7804bb003c2d9325adb2e131c97e0255e789b81aa01522c5f6.
+This pair is an owned local preview;published174 remains recipe23.
+
+The ordinary packaged Start Client.cmd reached the menu in11.969s under a
+fresh owned profile. Its bounded verifier passed in12.438s with unchanged
+package/source/shared settings and owned forced cleanup. It was not a natural
+Quit,callback invocation,error-path exercise,SDK queue/file/network census
+or privacy qualification. Verification:
+local/privacy282-startup01/verification.json SHA256
+5249754d79354dbf010374736d206991fd0502ef9cd17242915874f3b40d7d48.
+
+P1 ordinary lifecycle,P7 remaining reporter/queue/error routes and P9
+advertising producer/final-installed scope remain OPEN. The existing SDK
+startup observer counts CacheRoot entry only;it has no return witness and
+cannot establish the live cache-root value from this menu run.
+Later audit correction (283):the helper installed in this retained pair labeled
+its complete recipe23 and did not attest the three reporter callback guards.
+The ordinary menu and file-hash observations above retain their original
+scope. See privacy-audit-binding283.txt for the corrected helper and live
+recipe25 selected-signature audit.

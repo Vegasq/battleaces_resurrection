@@ -1,0 +1,29 @@
+D5 / P7 - owned recipe27 reporter SetEnabled true/false runtime check
+2026-10-28. Selected setter state behavior PASS;P7/D5 remain OPEN.
+
+An owned recipe27 default game reached the original local menu under a fresh
+isolated profile. A separate opt-in REA Frida script checked the exact loaded
+initializer and setter guard bytes,then confirmed the reporter class was
+already initialized and its private static enabled byte was0. On the Frida
+diagnostic thread it called only the installed reporter-specific SetEnabled
+method,first with true and then false. The enabled byte stayed0 after both
+calls. This is a controlled call to the patched method,not an observed original
+caller or the original unpatched setter. No report payload,SDK queue,identity
+getter or network API was accessed by the script.
+
+REA load evidence ID:
+ev_2bc054ce0151c7072755037d115e473e4b86ab7f8f533b8a6d5223130e10a96c.
+The emitted result records initialized class,guard bytes,inputs1/0 and
+before/afterTrue/afterFalse=0/0/0 without message truncation or script error.
+Script tools/frida_reporter_setter306.js SHA256:
+c25f989edc64f73605f518bd425b55837ceb9d98d5a7d7a408c5a7353680a3b8.
+The observer detached before the native Quit gate was released. Original
+Confirm exited0;the owned job drained with no forced cleanup. Retained ignored
+local/privacy306-reporter-setter01/verification.json SHA256:
+14dfab5ab54d4bfec8c27bdbd4a659985ac929917307eef3f4e8821c36312fcb.
+Installed GameAssembly is the recipe27 image pinned in305;this case did not
+install a new build or change the published recipe23 release.
+
+This confirms false-state semantics for the selected initialized reporter
+instance. Independent registration/callers,all-thread states,SDK queue/file/
+retry/wire and final release acceptance remain OPEN. RUNTIME_VALIDATED=false.

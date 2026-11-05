@@ -1,0 +1,62 @@
+D5 / P7 - recipe47 preexisting authored queue with prelaunch native observation
+
+2026-10-31. Current owned recipe47 genuine SDK Client and selected native
+file/send observation PASS at the named fixture scope. Full P7/P9/D5 stay
+OPEN,RUNTIME_VALIDATED=false;published174 remains unchanged. No real shared
+SDK queue was read,seeded or cleared.
+
+tools.verify_native_quit now has an opt-in --prelaunch-observer gate limited
+to its visible,telemetry-audited preexisting-queue Confirm fixture. It
+creates the owned game suspended,assigns its kill-on-close Job,publishes
+the PID,and resumes only after an exact FRIDA_READY gate. Its other
+verification still requires the original menu Quit and natural exit.
+The new option was used only under local/privacy520-game01 with fresh
+profile nativestest_quit_d5q523a. One authored .event and one .session
+were seeded before process creation,as in520.
+
+REA Frida attached to PID57876 before main-thread resume. The passive
+observer covered the exact owned qc/Bugsnag root and the selected shared
+SDK root,checked loaded bytes and installed five active SDK hooks:
+DeliverCachedPayloads,ProcessCachedItems and PushToServer factories,
+BugsnagUnityWebRequest.SendWebRequest,and the shared
+UnityWebRequest.SendWebRequest. The independent reviewer also checked
+six guarded SDK entry bytes on the installed disk image. Observer setup,
+hook install,self-exit,error and overflow checks passed.
+
+The genuine SDK Client constructed in the opt-in fixture with both authored
+files present. Its guarded lists were empty,ID lookups null,delivery and
+delete entries returned,and both file identities/bytes remained unchanged.
+The original menu Quit exited0 naturally without force. Across the
+pre-resume-to-self-exit observer,all five SDK entry counters stayed0 and
+selected socket send/recv/WinHTTP-connect counts stayed0. The observer
+recorded24 file operations under the owned qc/Bugsnag root. Six were
+successful reads of the authored files (three per file);all24 call stacks
+include BattleAcesOffline.dll,the explicit diagnostic helper. None was a
+watched queue-root write or deletion. Nine other unresolved calls were
+failed invalid-handle NtWriteFile operations. The fixture's positive
+file reads are retained as evidence;this is not a no-file-access run.
+
+tools.review_preexisting_observer523 independently checks current recipe47
+source/installed images and helper provenance,prelaunch PID/Job/gate,
+authored file bytes,verifier source snapshot and original Quit,observer
+source/loaded hash and untruncated REA messages,all24 file events and
+the final SDK/socket counters. PASS receipts:
+ local/privacy523-preexisting01/verification.json SHA256
+ 590e53aefab934deed610df45290fb21b774eb9bd9e75c067a18d67391d83983;
+ local/privacy523-trace01/rea-evidence.json SHA256
+ 960d40f34a5b22bba118c71cf8d9379f7607044c731b6f1092bd57a7f915b091;
+ local/privacy523-preexisting01/review523.json SHA256
+ 04ad096b7b1d4bf5c22771be23cfad41c91b04ee44691d3b67f98aa135635f86.
+
+The first independent review attempt rejected the trace config's source
+digest because preparation hashed LF-normalized JavaScript text while
+Windows wrote CRLF bytes. The ignored config digest was corrected to the
+exact already-loaded observer file SHA256;the script bytes,REA session,
+game run and verifier report did not change. The reviewer then passed.
+
+This combines an authored preexisting queue with selected prelaunch file
+and send observation for one opt-in Client lifetime. The reads were helper
+calls,so the trace does not prove an original SDK reader accessed arbitrary
+real queue contents. It does not cover resumed/in-flight delivery,other
+file/network APIs or processes,whole kernel wire,the independent native
+advertising ID provider,or a final published installer.

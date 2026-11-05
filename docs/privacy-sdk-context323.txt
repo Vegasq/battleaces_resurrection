@@ -1,0 +1,51 @@
+D5 / P7 - SDK report context setters
+
+2026-10-28. Source,owned install,loaded-byte audit and natural menu Quit PASS;
+P7/D5 OPEN.
+
+The original BugsnagUnity.Bugsnag.set_Context facade is a callable void method
+that forwards caller text to SDK state. The independent Client.SetContext
+method stores that text at Configuration+0x100 and can notify an SDK callback.
+Recipe32 guarded user/metadata/feature-flag inputs but left this context path
+callable. Recipe33 adds one-byte RET entry guards to both void methods before
+input reads or SDK state changes. Other context getters,state/lifecycle methods
+and shared game storage remain unchanged.
+
+tools/verify_sdk_context323.py PASS binds both original metadata/codegen entries,
+complete unwind extents,79 decoded byte-matched LLVM instructions,source guards
+and exact recipe32-to33 delta. Restoring only these two entry bytes reproduces
+recipe32 GameAssembly SHA256
+4d622855c06fea1dd47eb10b57a73fe1731e85ea2b4dc8eb276d441756918dfd.
+Recipe33 source output SHA256:
+e02bd2bbd2cfe104637816df7da3dfa481031503602a92035adb1ab7552dd5cd.
+The original disassemblies stay ignored under local/privacy323-sdk-context01.
+Historical307/317/318/321/322 source verifiers pass against recipe33.
+
+The source now has156 guards:91 GameAssembly,63 UnityPlayer,two CEF. The native
+helper build and its C++ tests pass.77 focused Python tests pass with two
+optional skips. Owned local/privacy301-runtime01/game was upgraded from32 to33
+after dry-run;both passes verified133 bundles. Installed GameAssembly SHA256:
+5c06b0d1023cd23bc948127e457a044ef757fc9eb9dccc31d08cbec847224357.
+Installed helper/build SHA256:
+8a1e8557fc9bf6dac950598ce91e74f897f00e28a2a280fa8c2701bfe3f9a10d.
+Build receipt local/privacy323-helper-build01/helper-build.json SHA256:
+4fd7a46382c478beb0d1719a9fdadacbfe8344acf54a61b070016b7a6ca46653.
+Installed patch manifest SHA256:
+16bf824ec55c6bb510661251168caecaab1676f73624a1035041c705f9a3af10.
+
+An owned native menu check reports recipeVersion33,SDK context loaded/disk
+signatures2/2,three complete selected-field audit stages,original natural
+Quit0 after14.156s,no force,process reaped and shared settings/source unchanged.
+local/privacy323-menu01/verification.json PASS SHA256:
+c8e2e60c0fae41024797eee683e6201a76482d8f1fd5b259d1d7fdaa250170fd.
+This is loaded-byte compatibility,not actual original setter invocation or
+complete queue/file/wire attribution. Recipe32's changed-path match remains
+its own evidence;no repeat match was needed for these two entry cuts.
+
+The two context input routes are cut in the current owned recipe33. Other
+collection paths,already retained/in-flight work,SDK queue/file/wire,all-thread
+and descendant attribution,and P9 advertising-ID acquisition remain open.
+Published174 is unchanged;RUNTIME_VALIDATED=false.
+
+Follow-up324 upgrades the same owned copy to recipe34 and preserves these two
+context guards. The hashes above identify the completed recipe33 checkpoint.

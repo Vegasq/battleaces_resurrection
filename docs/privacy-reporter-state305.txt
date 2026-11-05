@@ -1,0 +1,49 @@
+D5 / P7 - reporter enabled state defaults false in source recipe27
+2026-10-28. Source/owned install/runtime subcase PASS;P7/D5 remain OPEN.
+
+Original BugsnagCrashReporter class initializer at3cc687c writes1 to its
+private static enabled byte+18. Original SetEnabled at3cc30fd copies DL into
+BL,then a JNE at3cc3100 consumes flags from the preceding class-init CMP;
+the method later writes BL to that same enabled byte at3cc3140. Recipe27
+changes the initializer immediate from1 to0. It replaces MOVZX EBX,DL with
+MOV BL,0/NOP,which leaves the CMP flags intact and preserves the original
+class-init branch and store. SetEnabled(false) still writes false,while an
+indirect SetEnabled(true) call can no longer turn on this reporter flag.
+These are reporter-specific state cuts;the shared configuration reader and
+local exception logging remain unmodified.
+
+tools/verify_reporter_enabled305.py checks the pinned original hash,method
+unwind bounds,complete two method bodies and exact four changed bytes against
+the recipe26-equivalent transformation. Source recipe27 has137 guards across
+four components;the GameAssembly-only transformation SHA256 is
+1064252ba1c044683b08d74894abfe30245ee47e9dd96fdf3fa7c6567bde0ed8.
+Focused Python3.12 and3.14 tests each PASS72 with two optional original-asset
+skips. The source native audit requires reporterEnabledSignatures2/2 plus
+reporterCallbackSignatures7/7 for a complete recipe27 signature check.
+
+Fresh ignored helper local/privacy305-helper-build01/BattleAcesOffline.dll
+SHA256:0206286020a28c894a569e2cfeef889c5d6cfeb9bd0bf00081852fec9310a58b3.
+The normal installer dry run and install each checked all133 bundles in the
+owned local/privacy301-runtime01/game copy,with its existing community and
+cosmetics fixture options. Installed GameAssembly SHA256:
+25d54551a50bafeb0e5fc98012e483f86e2c5aa6db7fb72fd5c3f98fbdce3dc4.
+Installed manifest SHA256:
+110e04ba67c740ad5a4b34ef2ef2e30b74888d0ca145858196d09d75bdc1de6e.
+One bounded native menu Confirm passed in27.25s,original Quit0/no forced
+cleanup,with recipeVersion27,callback7/7 and enabled2/2 read-only signatures.
+Verification.json SHA256:
+6a4f438aaee90bff7f17f9d4fac37ea5c2691605f670ecb6269bd910ce2b3d0b.
+
+A separate owned recipe27 menu process had the reporter class pointer and
+static fields allocated,class-init field1,and enabled byte0. The read-only
+Frida script also verified the two loaded instruction sequences. The observer
+detached and original Quit0/job drain completed without force. REA evidence
+ID:ev_f6231a5868aa1077c5f6a1dd37703079add0272babc9c539c085b66a33e7adbd.
+Retained ignored local/privacy305-reporter-state01/verification.json SHA256:
+2549ede3c330964b83b10c04ea59898e3abdcdb9a47453d734ecd5db4947c025.
+
+This verifies the selected initialized menu state and byte-level setter
+semantics;it does not exercise an original SetEnabled(true) caller or prove
+all paths. Independent registration,SDK queue/retry/file/wire,descendants and
+final release acceptance remain OPEN. Published174 is still recipe23.
+RUNTIME_VALIDATED=false.

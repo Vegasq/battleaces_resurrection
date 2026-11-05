@@ -1,0 +1,20 @@
+D5 / P9 - classify the third native advertising callback reference
+
+2026-10-31. Read-only pinned UnityPlayer PE check PASS. No source recipe,
+game process or provider changed. P9/D5 remain OPEN.
+
+The earlier Ghidra PDB reference list showed three data references to
+AnalyticsCoreStats::OnAdsIdRequestDone at RVA c307c0. Two at RVAs1a2afb8
+and1a2c630 are the known IAdsIdListener vtable pointers. The third at
+RVA1daf5cc lies in PE section .pdata. Its twelve bytes are an x64
+RUNTIME_FUNCTION entry:begin RVA c307c0,end RVA c30871,unwind info RVA
+1ab315c. This is Windows unwind metadata for the callback body,not a third
+dispatch pointer or registration site.
+
+tools.review_ads_callback_pdata491 checks the pristine UnityPlayer SHA256
+ac144d56d53f07904d52ed27a1539de90bc3290038fe52d73d2f6b268c85d6bc,
+PE section bounds,unwind entry/function extent and both actual64-bit
+vtable pointers. It passes. This resolves the specific extra Ghidra xref;
+it does not exclude computed listener registration,external providers or
+virtual calls through the two real tables. A positive producer/state edge
+is still needed;another reference or numeric-offset census is not planned.

@@ -1,0 +1,48 @@
+D5 / P9 - listener interface subobject offset census
+
+2026-10-31. Read-only exact-PDB pristine UnityPlayer scan PASS at the named
+instruction scope. P9/D5 remain OPEN,RUNTIME_VALIDATED=false. No game,ID
+provider or SDK queue was invoked.
+
+468 binds the listener-bearing AnalyticsCoreStats/UnityAnalytics singleton to
+an IAdsIdListener vtable stored at object+0x1498. The next question was whether
+any native body visibly forms that subobject address for registration. The
+Ghidra script TraceAdsInterfaceOffset475.java enumerated all instructions in
+59,459 analyzed functions and matched the exact0x1498 operand in23
+instructions across19 functions. Eight functions belong to
+AnalyticsCoreStats,BaseUnityAnalytics or UnityAnalytics. Their matched
+instructions set/clear the vtable,subtract0x1498 to recover the object in
+callback/deletion,or use0x1498 as a deletion offset. None has a direct
+LEA of an analytics object plus0x1498. The precise instruction list is in
+the retained log. tools.review_ads_interface_offset475 PASS confirms the
+exact image hash,headless project/script identity,counts and these
+instructions;the headless process exited0.
+
+The broader preceding PDB name pass visited797,150 symbols,matching
+advertis18,adsid34,idfa14 and identifier282 name substrings. Its output
+was capped at350 printed names and yielded no positive new provider lead;
+it is not an absence inventory. The initial headless command unnecessarily
+reanalyzed the entire image and was stopped while still running;the second
+used the already analyzed saved project with -noanalysis and exited0.
+
+Retained read-only scripts and logs under local/d5-ghidra-12.1.4:
+scripts/FindIdentifierNames474.java,pdb-identifiers474-console.log (stopped),
+pdb-identifiers474-noanalysis-console.log,
+scripts/TraceAdsInterfaceOffset475.java,pdb-interface-offset475-console.log.
+The reviewed475 script SHA256 is
+dffd7ec299bddbc2c36c334e0e29e9e82e20ef8fd3c90cfe56275a06872abc12;
+log SHA256 cd47b99f066494cd6dd71ca7acb327f4478673977b57de2fa11152102b594876;
+pristine UnityPlayer SHA256
+ac144d56d53f07904d52ed27a1539de90bc3290038fe52d73d2f6b268c85d6bc.
+
+This rules out one straightforward inline LEA +0x1498 registration shape in
+the analyzed Unity functions. It does not rule out a pointer made with other
+arithmetic,helper dispatch,external modules or other offsets. It supplies
+no pre-acquisition cut. The next P9 check should follow a concrete computed
+pointer flow or shift to remaining P1-P8 attribution;do not repeat equivalent
+name scans or quiet matches as provider proof.
+
+Correction2026-10-31:423 already enumerated the same23 exact operands in
+original .text,and429/430 classified all14 sites outside the known callback
+object. This Ghidra/PDB scan independently reproduced that bound but added no
+new P9 coverage. Retain it as a diagnostic cross-check,not roadmap progress.

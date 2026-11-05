@@ -1,0 +1,29 @@
+D5 / P9 - short Main singleton reference windows
+2026-10-30. Bounded original/current recipe38 static review PASS;P9/D5 OPEN.
+
+383 identified thirteen selected RIP MOV/LEA references to Main singleton
+cell1d0eb28 outside complete unwind owner bounds. This review decodes all
+six intervening code/padding windows (232byte-matched original instructions)
+and binds all thirteen references to them. None directly names Main+1498
+or c307c0. They are short windows with RET/tail jumps and INT3 separators;
+they are not promoted to unwind-proven complete function owners.
+
+The windows include a named c2f5d0 tail to the already-reviewed c30940
+periodic update,scalar getters and settings predicates,plus the analytics
+and device-statistics setter leaves. Current recipe38 matches four windows
+exactly. In the other two,only the already-established first-byte changes
+at2078b0 and207a60 differ (TEST->XOR),forcing those setter inputs false
+while retaining their later notifier/state paths. This is not an advertising
+producer cut;the predicates and tail callees retain their own scopes.
+
+tools/review_ads_main_leaves384.py PASS reuses383's exact65-reference
+inventory,checks all six original decoded windows,selected singleton sites
+and their current installed bytes. Ignored assembly/report:
+ local/privacy384-main-leaves01/verification.json
+ SHA256 3019d7744079ddf9d89bb72aaec5bfc70787bda759cd866a91a9e2725e3189b0.
+
+Together383/384 classify the selected RIP MOV/LEA direct singleton sites
+at an immediate-body/window scope. Other instruction forms,globals,
+computed pointers,indirect callees,retained state and the actual upstream
+advertising-ID source remain unproved. No target,identity getter,report
+queue or network endpoint ran;no product patch or release occurred.

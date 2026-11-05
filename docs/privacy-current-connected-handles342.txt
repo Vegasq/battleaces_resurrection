@@ -1,0 +1,53 @@
+D5 / P5 - CURRENT PRIVATE PAIR CONNECTED NATIVE BRIDGE HANDLE WATCH342
+
+2026-10-29. Selected post-attach socket-handle attribution PASS;
+P5/P9/full D5 remain OPEN,RUNTIME_VALIDATED=false.
+
+Question and method
+341's two native client observers counted substantial send/recv during a
+current private-pair connected match,but did not record their socket handles.
+This changed observer counts each selected send/recv entry by numeric SOCKET
+argument,without reading payloads,headers,credentials or SDK queue files.
+It uses the same source-owned packaged RC-open public1/two-human verifier,
+current recipe34 private328 pair and owned301 game. Each Frida session attaches
+to an owned native game PID after its game-process receipt. The separate
+packaged launch receipt records its inherited -secure-transport-socket value.
+
+Result
+local/privacy342-connected01/verification.json passes in109.938s with
+1220 frames,complete match/result,normal Quit0 on both clients,server workers
+reaped/final state drained and no forced cleanup. Both Frida sessions detached
+with24 contiguous untruncated messages each,18 heartbeats,no observer errors
+or overflow. Each native launch inherited socket handle500 (0x1f4). At the
+last heartbeat,client0 observed1211 send and62429 recv entries on0x1f4;
+client1 observed1212 send and62421 recv entries on0x1f4. No other handle
+appears in either selected send/recv map at any heartbeat. The selected
+connect,DNS,sendto and WinHTTP counts remain0 over these attached intervals.
+The source-owned reviewer verifies the observer bytes,REA streams,PIDs,
+current package/helper/game/source identities,all heartbeat map/count sums
+and each exact launch argument. Thus the selected native send/recv calls
+observed in these two clients belong to the inherited private bridge socket.
+
+Ignored identities
+  local/privacy342-connected01/verification.json SHA256
+  5616bdb4eb791b1722008c10f761aefd3071ee84b07e43b9675a0b124abe1d82
+  local/privacy342-connected01/socket-review.json SHA256
+  0c986bda282f69c25346838d3fb3dd06d4d1d1cbc293bdcbd86290acc68115b7
+  local/privacy342-connected-handles01/rea-evidence.json SHA256
+  b0e834bd3afce4dae22dd0e4df9f21bab682153e9a397dc29455224cbcfb6a1e
+
+Boundary
+The result covers selected user-mode calls on all threads in the two native
+game PIDs after Frida attachment and through the last heartbeat. It does not
+cover earlier startup,the final seconds after heartbeat,other networking
+APIs/raw sockets/kernel wire,server/adapter/child traffic or complete SDK
+delivery. The observer's file helper has unresolved relative roots;it is not
+used for a file absence claim. The unchanged340 cache notification result
+remains separate. P9's advertising-ID acquisition/registration is still
+unresolved. P5 and full D5 remain OPEN.
+
+The initial local reviewer incorrectly required a nonempty handle map at a
+zero-call first heartbeat. The reviewer now requires an empty map at zero
+calls,and exact handle/count equality once calls occur. It passes on the
+retained unchanged streams;the failed assertion did not alter the game or
+captured evidence.

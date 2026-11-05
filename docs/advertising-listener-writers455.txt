@@ -1,0 +1,35 @@
+D5 / P9 - bounded listener-list writer search in pristine UnityPlayer
+
+2026-10-31. Exact-PDB Ghidra project and pristine UnityPlayer static scan
+completed;P9/D5 remain OPEN. No game or advertising-ID provider was invoked.
+
+The listener-list layout from453 is handler+0x78 pointer,+0x80 count and
++0x88 critical section. A read-only headless scan visited59,459 Ghidra
+functions. The loose paired+0x78/+0x80 offset search found4,798 functions,
+mostly unrelated structures and stack references. A second scan required
+all three offsets on the same register other than RSP,one direct call to the
+Unity MemoryManager::Allocate at3576d0,and a same-body0x18 size operand.
+That reduced the output to26 candidate functions. The known handler
+constructor at361900 is among them. None of the other25 has an AdsIdHandler
+name;four are Unity Analytics ContinuousEvent data constructors/configurers,
+with unrelated object fields. The complete candidate list is in the retained
+log,so this is a reproducible search reduction rather than a proof that the
+listener list has no registration writer.
+
+RBP can still refer to a stack frame,so even this narrower pattern includes
+unrelated stack fields. The filter may miss a writer that passes the handler
+pointer to a helper,uses a different allocator,node construction or register
+form,or lives in another module. Conversely matching offsets and an allocation do not prove
+a candidate handles AdsIdHandler. The next useful evidence is a runtime
+watch of the actual+0x78/+0x80 handler fields with a positive witness for
+the handler address,or a dataflow trace from the two direct global xrefs.
+Keep P9 and full D5 open.
+
+Ignored scripts:local/d5-ghidra-12.1.4/scripts/
+TraceAdsListenerCandidates454.java and TraceAdsListenerPattern455.java.
+Refined read-only headless log:
+local/d5-ghidra-12.1.4/pdb-listener-pattern455b-console.log,
+SHA256 a10a04a874ab9d0d89fc43829cebbddd7195fcf7dba10b3ffe35390ac2127038;
+script SHA256 8ea47ffc2abbf7402b494b252940014186a8575bc454fa2947ac749525fac09c;
+headless exit0. The prior loose scan log is
+local/d5-ghidra-12.1.4/pdb-listener-candidates454-console.log.

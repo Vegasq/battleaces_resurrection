@@ -1,0 +1,29 @@
+D5 CURRENT LOCAL INSTALLED BINDING261
+2026-10-28. Current-source installed byte binding PASS;P1-P9/D5 remain OPEN.
+
+Correction to258:its UnityPlayer generated hash was taken before the installer
+updated the PE checksum. The real installer uses update_checksum after the
+telemetry transformation. With that step, the generated UnityPlayer hash is
+a53b0c613a86c737b7caa7588c7c93ae20d5d5700f9321a406df9dcca8e32a7f,
+matching the sealed local/sprays256-runtime01/game installation and its
+install02.json manifest.258's parent-game comparison remains true:the parent
+installed copy differs from current source. Keep its preliminary report as
+historical evidence;use this corrected comparison for current-source claims.
+
+Independently regenerate current community+cosmetics GameAssembly and the
+checksum-complete UnityPlayer,chrome_elf and libcef transformations from the
+pinned untouched game. Every generated whole-file SHA256 equals both the
+installed file and its manifest entry. The manifest lists63+63+1+1=128
+telemetry guards. The installed helper matches its manifest and build receipt.
+All122helper source hashes in that receipt still match the current worktree;
+the receipt says sources stayed unchanged during compilation. Exact hashes,
+paths and row outcomes:ignored local/privacy261-installed-source01/
+verification.json. Read-only;the sealed game and helper were not modified.
+
+This is a dirty local preview,not the final published installation. Its
+existing native spray-menu run is not a privacy route census. The byte/receipt
+binding does not establish absence of collection,report delivery,indirect
+descendants,inflight queues or supported-mode behavior. P9 advertising-ID
+producer remains unknown. Next D5 work can use this exact installed preview
+for bounded effective-route tests while preserving existing manual games and
+avoiding another unchanged quiet startup.

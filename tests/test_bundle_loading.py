@@ -60,6 +60,24 @@ class BundleLoadingTests(unittest.TestCase):
         with patch.object(hashlib, 'file_digest', side_effect=AssertionError('unexpected bundle scan')):
             loading.verify_installed(self.root, loading.descriptor())
 
+    @unittest.skipUnless(os.name == 'nt', 'real Windows cached-file access refusals')
+    def test_cached_bundle_read_denial_and_sharing_lock_refuse_without_rehash(self):
+        from tools.owned_file_denial import OwnedFileReadDenial
+        from tools.verify_profile_storage import OwnedFileLock
+        plan=self.installed();prior=plan.receipt_path.read_bytes()
+        path=self.root/loading.BUNDLE_DIR/next(iter(self.fixture.content))
+        fingerprint=loading._fingerprint(path.stat())
+        controls=(lambda:OwnedFileReadDenial(path,self.root),
+                  lambda:OwnedFileLock(path,self.root,allow_read=False))
+        for make in controls:
+            with self.subTest(control=make):
+                with make():
+                    self.assertEqual(loading._fingerprint(path.stat()),fingerprint)
+                    with patch.object(hashlib,'file_digest',side_effect=AssertionError('unchanged bundle should not be rehashed')):
+                        with self.assertRaises(OSError):loading.verify_installed(self.root,loading.descriptor())
+                self.assertEqual(plan.receipt_path.read_bytes(),prior)
+                loading.verify_installed(self.root,loading.descriptor())
+
     def test_metadata_change_rehashes_one_unchanged_file_then_refreshes_receipt(self):
         plan = self.installed()
         path = self.root / loading.BUNDLE_DIR / next(iter(self.fixture.content))
@@ -96,6 +114,65 @@ class BundleLoadingTests(unittest.TestCase):
                     loading.verify_installed(self.root, loading.descriptor())
                     self.assertEqual(read.call_count, 2)
                 self.assertTrue(loading._valid_receipt(json.loads(plan.receipt_path.read_bytes())))
+
+    @unittest.skipUnless(os.name == 'nt', 'real Windows cache replacement refusal')
+    def test_locked_receipt_keeps_valid_content_available_and_recovers(self):
+        from tools.verify_profile_storage import OwnedFileLock
+        from client_patch.patcher.patch_client import atomic_write
+        plan=self.installed();prior=plan.receipt_path.read_bytes()
+        path=self.root/loading.BUNDLE_DIR/next(iter(self.fixture.content));info=path.stat()
+        os.utime(path,ns=(info.st_atime_ns,info.st_mtime_ns+5_000_000_000))
+        with OwnedFileLock(plan.receipt_path,self.root,allow_read=True):
+            # Installation/other callers retain strict atomic-write failure.
+            with self.assertRaises(OSError):atomic_write(plan.receipt_path,b'not published')
+            errors=io.StringIO()
+            with redirect_stderr(errors):loading.verify_installed(self.root,loading.descriptor())
+            self.assertIn('Game files verified',errors.getvalue())
+            self.assertIn('verification cache could not be saved',errors.getvalue())
+            self.assertNotIn(str(self.root),errors.getvalue())
+            self.assertEqual(plan.receipt_path.read_bytes(),prior)
+            self.assertFalse(list(plan.receipt_path.parent.glob(plan.receipt_path.name+'.*.tmp')))
+        with patch.object(hashlib,'file_digest',wraps=hashlib.file_digest) as reads:
+            loading.verify_installed(self.root,loading.descriptor());self.assertEqual(reads.call_count,1)
+        self.assertNotEqual(plan.receipt_path.read_bytes(),prior)
+        with patch.object(hashlib,'file_digest',side_effect=AssertionError('recovered cache not reused')):
+            loading.verify_installed(self.root,loading.descriptor())
+
+    def test_cache_create_and_flush_failures_preserve_optional_receipt_state(self):
+        from client_patch.patcher import patch_client
+        plan=self.installed()
+        for existing,stage in ((False,'create'),(True,'flush')):
+            with self.subTest(existing=existing,stage=stage):
+                prior=plan.receipt_path.read_bytes()
+                if not existing:plan.receipt_path.unlink()
+                path=self.root/loading.BUNDLE_DIR/next(iter(self.fixture.content));info=path.stat()
+                os.utime(path,ns=(info.st_atime_ns,info.st_mtime_ns+5_000_000_000))
+                real_open=Path.open
+                def open_file(path,*args,**kwargs):
+                    if path.name.startswith(plan.receipt_path.name+'.') and args and args[0]=='xb':
+                        raise OSError(28,'private marker')
+                    return real_open(path,*args,**kwargs)
+                failure=patch.object(Path,'open',open_file) if stage=='create' else patch.object(patch_client.os,'fsync',side_effect=OSError(28,'private marker'))
+                errors=io.StringIO()
+                with failure,redirect_stderr(errors):loading.verify_installed(self.root,loading.descriptor())
+                self.assertIn('verification cache could not be saved',errors.getvalue())
+                self.assertNotIn('private marker',errors.getvalue())
+                self.assertEqual(plan.receipt_path.read_bytes() if existing else None,prior if existing else None)
+                self.assertEqual(plan.receipt_path.exists(),existing)
+                self.assertFalse(list(plan.receipt_path.parent.glob(plan.receipt_path.name+'.*.tmp')))
+                loading.verify_installed(self.root,loading.descriptor())
+                self.assertTrue(loading._valid_receipt(json.loads(plan.receipt_path.read_bytes())))
+
+    def test_bad_content_never_becomes_cache_warning_or_success(self):
+        from client_patch.patcher import patch_client
+        plan=self.installed();prior=plan.receipt_path.read_bytes()
+        path=self.root/loading.BUNDLE_DIR/next(iter(self.fixture.content));info=path.stat()
+        path.write_bytes(b'X'*info.st_size);os.utime(path,ns=(info.st_atime_ns,info.st_mtime_ns+5_000_000_000))
+        errors=io.StringIO()
+        with patch.object(patch_client,'atomic_write',side_effect=OSError(28,'cache write')) as writer,redirect_stderr(errors):
+            with self.assertRaisesRegex(ValueError,'bundle hash differs'):loading.verify_installed(self.root,loading.descriptor())
+        writer.assert_not_called();self.assertEqual(errors.getvalue(),'')
+        self.assertEqual(plan.receipt_path.read_bytes(),prior)
 
     def test_typed_manifest_and_catalog_refusals_precede_bundle_scans(self):
         self.installed()

@@ -1,0 +1,49 @@
+D5 / P5 - selected native bridge socket from pre-resume through exit entry
+2026-10-30. Bounded current private-pair subcase PASS. Full D5 OPEN.
+
+The existing342 diagnostic attributed selected send/recv to each inherited
+private bridge handle after attachment through its last heartbeat.366/368
+subsequently moved selected API observation before both native clients' main
+threads resumed and recorded counts at the original self-TerminateProcess
+entry.370 combines those sensors in the same opt-in observer and same owned
+match,so handle attribution covers that larger interval.
+
+The current recipe38 private package pair358,helper357 and owned301 game/
+assets passed one RC-open public1/two-human match:1220 frames,result,
+Continue,normal Quit0 for both native games and launchers. Both clients were
+created suspended,then Frida hooks reported observer-ready and exit-boundary-
+armed before their gates permitted main-thread resume. Server workers reaped,
+jobs5/2/2 drained,no forced cleanup. Source/package files were unchanged.
+
+At each client's final self-TerminateProcess entry,selected ws2_32 send/recv
+counts were1214/63916 on inherited socket500 (0x1f4),and1215/63740 on
+inherited socket528 (0x210). There were no other send/recv handles in any
+heartbeat or final snapshot. Selected connect,WSAConnect,sendto,WSASendTo,
+getaddrinfo,GetAddrInfoW,GetAddrInfoExW and WinHttpConnect counts were0 at
+entry. Each detached REA session has30 contiguous messages,no truncation,
+empty errors and one last self-terminate-entry with status0. The independent
+reviewer checks exact game/source/package/asset bindings,PID and suspended
+receipts,gate order,source bytes,observer message order,all heartbeat handle
+maps,final event,game exits and worker/job cleanup.15 focused packaged tests
+and Python syntax checks pass.
+
+Scope:these selected user-mode native-client send/recv API entries from before
+main-thread resume through the original self-TerminateProcess entry belong to
+the inherited private bridge sockets in this owned run. The200ms diagnostic
+hold/actual process death,other network APIs/kernel/raw wire,server/adapters/
+descendants,queue/file activity and final installed artifact remain open.
+Each client still has1545 unresolved relative file roots;no SDK queue/file
+absence is claimed. P9 advertising producer and full P5/P8/D5 remain open.
+Published174 is unchanged and RUNTIME_VALIDATED=false.
+
+Ignored evidence SHA256:
+ local/privacy370-connected01/verification.json
+ 1ff24f71c065d1817315f722efd791a33d08872af2e1fe5cf63337a38a2dfb02
+ local/privacy370-connected01/network-review.json
+ c3aaa033766ab0f0678a0fb9fe1b608eac7c6ea935cf6e0f48ca638f9e179d23
+ local/privacy370-connected01/socket-exit-review.json
+ 2e45c19bfdca53b6c2c6839cd6fe4768a5b9ce1962e5a906d9bf40a130a36d4b
+ local/privacy370-prelaunch-socket-trace01/rea-evidence.json
+ 85bd35b3d69cf5c6c4ab799d1f12fc9aa8dad7a3f7dbc5379f2b806df48d410b
+The REA export includes older sessions;the reviewer selects the exact two
+session IDs in the ignored manifest.

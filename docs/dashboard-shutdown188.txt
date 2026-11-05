@@ -1,0 +1,79 @@
+DASHBOARD HISTORY SHUTDOWN OWNERSHIP188
+2026-10-26. Named D4/D7 defect FIXED;full delivery gates remain OPEN.
+
+Reproduced defect
+Dashboard.close directly awaited the persistence task. Cancellation propagated
+to that task's asyncio.to_thread waiter while the filesystem thread could still
+publish web-matches.json. The caller could then release its host state lock before
+that write finished,allowing a subsequent host/maintenance operation to overlap.
+This concerns asyncio task cancellation,not a claim of a reported user data loss.
+
+Two regression cases pause the real atomic write immediately before os.replace,
+after serialization/flush/fsync,in a fresh temporary folder. Repeatedly cancelling
+the shutdown owner returned prematurely in both cases on the old implementation.
+The original source and failed output remain in local/dashboard188-shutdown01:
+ web_dashboard-before.py SHA256:
+ bee7fb6e6f464a8f763e8fd6d4a33209a8b2116689180350b909a8898a2186b1
+ baseline312.txt:2tests,2failures,0.230s.
+No real player state,host process,service,permission or shared report queue used.
+
+Correction
+server/web_dashboard.py gives complete shutdown one retained task. All callers
+join it using the existing cancellation-safe storage waiter from profile_io.
+Repeated caller cancellation waits for handlers/listener and the persistence
+worker to settle,then propagates cancellation. Concurrent/repeated closes share
+that cleanup. New events are detached before waiting. File errors retain the
+existing persistence_ok=false behavior and preserve the previous complete file.
+No data format,gameplay timing,normal save algorithm or service policy changes.
+Final module SHA256:
+ 52ae1b051cd74ae8f7b282e9718268de4645f60dbb9c127be9add068746e265c
+
+Regression coverage
+tests/test_dashboard_shutdown.py covers successful publication and injected
+publication failure. Both use actual temporary files,threaded I/O,ordinary local
+HTTP listeners and the production OS-backed state lock. It verifies that repeated
+cancellation and a second close cannot finish while publication is held;another
+state owner is refused until it settles. Success preserves the terminal result;
+failure preserves exact old bytes. Temporary output and handlers drain,no loop
+exception is left unconsumed,and the lock is subsequently available.
+The test's owner models host.run's lock context;it does not run a native match.
+This is not sudden-power-loss,device-failure,forced process-exit or actual SCM proof.
+
+Python3.12/3.14 each PASS with no skips:
+ - dashboard_shutdown,web_dashboard,profile_io:14tests,5.450s/5.575s.
+ - windows_service,windows_packages:31tests,12.043s/11.683s.
+Total45 per Python. Existing service tests use their authored controller scope;
+package fixture tests are not actual installer or clean-Windows acceptance.
+
+Actual package and changed shutdown path
+Paired local previews:local/candidate188-packages01;version0.3.0-rc1.7,
+revision3ea4ab0ea42bd1957c559815847ab8c18b5de302,dirty=true. Not published.
+Server ZIP SHA256:
+ b035c69b566ba5f0017781f08b76ef8ee4ec9b98bb018d211521254e8560e42b
+Client ZIP SHA256:
+ 287e8367890c6c7ff5c89bb156434652d0a19b697cc098c2ee668f3fc6ba1acd
+Compared with187,the server differs ONLY in web_dashboard.py and its package
+manifest. Client archive/files are byte-identical. Both actual bundled verify
+commands pass. One initial client command used a missing runtime path and never
+launched;the corrected program/runtime/python.exe command passes.
+Artifact/pin comparison:local/dashboard188-shutdown01/artifact-review.json.
+Recipe23/helper169/native installer/launcher remain unchanged;no new EXE build.
+
+The unchanged source-owned184 verifier was run in --transport-control mode:
+ py -3.12 -B -m tools.verify_recovered_game --package local/candidate188-packages01/battleaces-server-win64 --assets local/s139/assets/build-37822 --output local/dashboard188-native01 --transport-control
+PASS13.265s,actual bundled host/native1v1 surrender,160matching frames per TLS
+peer,worker exit0 before host cancellation,completed dashboard result persisted,
+game/dashboard listeners and state lock released. Job8total/0active/0terminated,
+no force,inputs/source unchanged. Disposable state/keys only;no protected backup/
+restore repeated. This run qualifies the changed normal shutdown path;the held
+write/repeated cancellation fault is qualified by the regression cases above.
+Report SHA256:
+ f14c40cde65f645dc4c5f4214d33787347d0eb6628c34d188e94a9f63385da6d
+
+Disposition
+Close this named dashboard shutdown race. D4/D7 retain other storage/lifecycle,
+physical,SCM and clean-host requirements. N12 is still pending with all four
+original source pins intact and no operator report;no new Nick action requested.
+P9 prior-source review established no new upstream producer binding;no new
+binary scan,quiet game/privacy observation or source-removal claim is made.
+Published174 and earlier evidence are preserved. Final release remains unaccepted.

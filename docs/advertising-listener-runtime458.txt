@@ -1,0 +1,42 @@
+D5 / P9 - installed recipe39 AdsIdHandler listener-list lifetime
+
+2026-10-31. Owned private installed client PASS at the named scope.
+P9/D5 remain OPEN;RUNTIME_VALIDATED=false. No advertising ID or SDK queue
+payload was read,and no original advertising API was invoked.
+
+An owned recipe39 game at local/privacy441-game01 was created suspended and
+assigned to a no-breakaway Job before primary-thread resume. REA Frida
+attached to PID46328 while suspended;the passive observer matched its exact
+image and UnityPlayer paths,then armed the PDB-bound AdsIdHandler constructor
+361900,destructor3617c0 and both Windows TerminateProcess exports. The
+installed UnityPlayer SHA256 in the owner report is
+ce5fb2e15d5997a9ed6e2971a61d25812b5f91ec918ce0eee8e88a7915c21cdd.
+
+The global handler pointer at UnityPlayer+1c0af00 was null at observer
+readiness. The constructor later returned0x17b6003db10;the global pointer
+then matched it. The listener list at handler+0x78 had count0 at+0x80 and
+a self-linked head. A50ms passive sampler recorded312 reads through original
+Quit. At the exact handler destructor entry,the owner argument matched the
+global address and the same handler/head remained count0 and self-linked.
+The global became null after destruction. The original self-TerminateProcess
+entry reported exit0. The game's native trace is armed,Show dispatch/return,
+OnConfirm dispatch/return;the process exited0,job1/0/0,no forced cleanup.
+
+The read-only local/privacy458-review.py independently reconciles the
+owner,source hash,complete ordered REA stream,constructor/global/destructor
+identity,head/count samples,original Quit and job accounting:PASS. Retained
+artifacts:local/privacy458-ads-list03/{verification.json,observer.js,
+rea-evidence.json,review.json}. Owner SHA256
+33c18921a940e3950499fddda35dfb87f7e2eb8526891054565a25503595162f;
+observer SHA256 eb19b12dc846e5afef3e2ab7a51c19063f73b5cb23a7e072ee6b56da6d6dedf7;
+REA bundle SHA256 72e61b63e446f0603184feeb7e62f0e3dfd791a3898f8cb5b84570f96726a9df.
+Final detached status evidence ID
+ev_20da2cf37838a7bb07651e1879b82236d99666a4a695a1b16e4fa9b3b9c1f388.
+
+This shows no persistent native listener in one private menu/Quit session.
+Sampling can miss a transient list insertion/removal between reads;the
+destructor snapshot closes only the final-state gap. It does not identify
+the registration writer or independent native ID acquisition,prove all
+supported modes or final published privacy. The earlier owned456 run missed
+the termination export and457 observed the already-destroyed final global;
+both are retained as diagnostic iterations,not accepted final coverage.

@@ -1,0 +1,40 @@
+D5 / P1 - recipe46 private installed ordinary launcher fresh/restart
+
+2026-10-31. Current private recipe46 installed runtime PASS at the named
+startup/menu/idle/window-close and SDK-root metadata scope. Full P1/P9/D5
+remain OPEN;RUNTIME_VALIDATED=false. Published174 is unchanged.
+
+The private506 client archive was installed into a separate owned copy at
+local/privacy509-game01. It published the normal Start Battle Aces.cmd and
+runtime identity3c1149e0560e01c2d861. The installed archive/helper,
+complete UnityPlayer transformation and normal GameAssembly recipe46
+are source-bound by tools.review_recipe46_ordinary509. The installed
+GameAssembly SHA256 is
+99ffb3f723ccb6f48e89eb8f3cff3ed1675978cfec092be19b8f4d06ee5edb6e.
+
+tools.verify_recipe46_ordinary509 armed a read-only Windows
+FileSystemWatcher on the previously269/284-bound LocalLow Bugsnag root
+before the first launch. It watched metadata notifications only;no
+shared queue content was opened,seeded or cleared. The normal installed
+launcher reached ordinary menu in12.766s on a fresh private profile,
+idled30.156s and exited0 after WM_CLOSE to its owned Unity window.
+The same profile restarted via the same launcher,reached menu in6.703s,
+idled30.063s and exited0 the same way. Both wrappers and game processes
+were reaped without forced cleanup. Package,source,config and shared
+settings snapshots stayed unchanged. The watcher remained active from
+before the first launch through the second verifier exit and recorded
+Created/Changed/Deleted/Renamed/Error all0.
+
+Owned orchestration local/privacy509-ordinary01/verification.json PASS
+SHA256 55d39ca9d01005d87ef1c63171e49f4dbdd99446677b76e7eed60e7e95e59789.
+tools.review_recipe46_ordinary509 independently checks the installed
+package inventory,archive,launcher bytes,source-generated native images,
+both exact same-profile results and the spanning watcher interval.
+PASS receipt local/privacy509-ordinary01/review509.json SHA256
+9a1395ba8238347af605318f4dab15e9b262b3ed0e3b430183e16fa90b79432a.
+
+This is ordinary installed startup/restart evidence for recipe46 at one
+selected SDK-root metadata scope. It does not measure file reads,other
+paths,transient notifications missed by the OS,whole wire,descendants,
+in-game Quit or final public release acceptance. Other owned504-506
+checks retain their distinct genuine-Client/queue/connected scopes.

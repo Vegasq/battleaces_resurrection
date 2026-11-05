@@ -1,0 +1,91 @@
+BATTLE ACES - REAL SCM OPERATOR CHECK186
+Date:2026-10-26. Prepared/rehearsed;actual SCM acceptance remains OPEN.
+
+Missing requirement and observed boundary
+D7 requires real Windows service registration,account logon,session0,start/stop,
+shutdown/reboot and supported clean deployments. Existing service controller
+tests are not SCM evidence. A read-only OpenSCManagerW request for CONNECT plus
+CREATE_SERVICE access returned Windows error5. No service was created/started.
+This is an administrator boundary,not an application runtime result. DEV N12
+holds the one prepared operator request;no repeated N9/N10 acceptance requested.
+
+Prepared operator action
+tools/verify_scm_operator.py prepare uses the unchanged175 bundled runtime and
+real imported assets. It creates only a fresh ignored capsule with production
+RC host TLS configuration/private keys,disposable peer identities and profiles.
+Token preflight must be unrestricted before protected operations. The generated
+plan binds exact operator/probe/recovery/protocol sources,package/config hashes,
+owner SID,runtime path and the production service-command ImagePath. It selects
+numeric loopback,an available ephemeral game port,disabled dashboard and fresh
+data. It does not register a service or open a host listener.
+
+tools/Run-SCMCheck.ps1 first validates paths/pins and the bundled package/config.
+- PreflightOnly never prompts for credentials,registers or starts a service.
+- Actual execution requires elevation as the same owner and a local Windows
+  credential prompt. Password/PIN values are never accepted through CLI/chat.
+- New-Service must create a new unique MANUAL registration. Existing names are
+  not overwritten/deleted. The account is resolved back to the prepared SID.
+- Every start/stop/removal rechecks exact ImagePath,Manual startup and owner SID.
+  RUNNING must expose the expected bundled Python process in session0;its OS
+  process handle is retained through exit. Two host starts share fresh data/port.
+- Each probe uses151's unchanged scripted TLS peers/native40-frame verifier.
+  It retains the live match worker handle and keeps peers open through SCM Stop.
+  Explicit request/armed/stopped files bind stop timing and audit validation.
+  The worker and service must exit0;profiles must retain exact bytes and the
+  listener/state lock must be released. Probe results stay under each cycle.
+- Finally removes only the matching created registration after Stopped and
+  confirms its disappearance. It does not force-kill a service,alter ACL/policy,
+  select an existing host,enable boot startup or reboot. Failures remain failures;
+  a cleanup problem is reported instead of claiming removal. Test data retained.
+
+Prepared N12 capsule (no operator execution yet)
+local/scm186-owner02/plan.json
+Service name:BattleAcesDiag186_fc191046651a
+Plan SHA256:45d746c5a125ab520aa080e59ee753c2b5d870d9fc4ab799a3e8b02cc59463d7
+Probe source:bbf94953beb5d55193ea7b0717aa8486501e728981d0c5219a932dd18a96e8b3
+Wrapper source:bb6a98d8b73b5d5f4849531bb9c62f52b5bcb099af5ccf02c7544bb603a27937
+Accepted151 driver/helper unchanged:
+  cc5e44970c513069eaaa40800da6602bbb0177094e673dd7c42d6bb7321b60ad
+  5560da33f54071cd61a0506d3940162688a324e6c434b6978793e69e4ed235d2
+Uses local/candidate175-packages01/battleaces-server-win64 and
+local/s139/assets/build-37822;no copied assets/new package/product change.
+Actual PowerShell preflight PASS,package/config/source pins verified. SCM access
+still error5. Original owner01 preparation is superseded by owner02;never run
+owner01 with changed sources. User request and exact command live only in DEV.
+
+Rehearsal evidence and limitations
+local/scm186-rehearsal02/rehearsal-report.json PASS;SCM_qualified=false.
+SHA256:76332e5c78a1938ae5ceac7db0e68eb2bf9cf24bb50a9ad61a4002261c7e7d97
+Two actual packaged host tasks each deliver40matching native/TLS frames,hold
+peers open through control-file handshake and stop through normal host cleanup.
+Workers7724/16612 retained live,then exit0;profiles unchanged,locks/listeners
+released,no forced cleanup. This checks the NEW probe/operator handoff against
+real native processes;console cancellation is explicitly not SCM Stop/session0.
+No whole-job service census or native health-worker lifetime is inferred.
+
+First rehearsal01 FAILED before peer readiness:the child received a relative
+plan path while its working directory was the capsule. Host closed naturally;
+no match started or force used. Exact driver retained in driver-at-run.py.
+Rehearsal now resolves the plan before launching its peer subprocess. Corrected
+02 passes;no production or old151 verifier changes. Failure is not relabeled PASS.
+
+Validation
+PowerShell parser accepts the wrapper;actual PreflightOnly succeeds without
+registration. tests.test_scm_operator plus tests.test_windows_service pass20/20
+on Python3.12(2.457s) and3.14(2.463s),no skips. New negative controls reject
+missing/changed pins,unrelated service/runtime/script/output,changed config or
+ImagePath,public listener activation and observe operator-abort synchronization.
+Synthetic package integrity is mocked only in the boundary unit tests;actual
+capsule preflight independently verifies the real package.
+
+Remaining
+Await N12 before claiming SCM account logon/session0/start-stop. The intended
+account may still need administrator-reviewed service-logon policy;this tool
+does not grant it. Windows shutdown/reboot,clean Windows10/11,other accounts,
+completed service-hosted games and final current-package applicability remain
+separate. D7 stays OPEN. Continue other finite roadmap work while N12 is pending.
+
+API references used for status/process validity,registration checks and removal:
+https://learn.microsoft.com/en-us/windows/win32/api/winsvc/nf-winsvc-queryservicestatusex
+https://learn.microsoft.com/en-us/windows/win32/api/winsvc/nf-winsvc-queryserviceconfigw
+https://learn.microsoft.com/en-us/windows/win32/api/winsvc/nf-winsvc-deleteservice

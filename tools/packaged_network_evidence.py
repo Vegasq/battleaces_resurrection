@@ -189,6 +189,44 @@ def validate_running_recovery(events,clients,*,fault,mode=1):
     return _validate_recovery(events,clients,fault=fault,stage='running',mode=mode)
 
 
+def validate_outage_recovery(events,clients,outage,*,mode):
+    """Both native clients lose a real relay TCP path and rejoin a new match."""
+    require(mode==1 and len(clients)==2 and len({r['pid'] for r in clients})==2,
+            'outage requires two independent public1 native clients')
+    require(outage['control']['disconnected']==2 and outage['connect_ex']!=0 and
+            outage['control']['port']>0 and outage['restored_seconds']-outage['started_seconds']>=2 and
+            outage['before_retry']['sessions']==0,'owned TCP outage/restoration proof differs')
+    created=[e for e in events if e['event']=='match_created']
+    aborted=[e for e in events if e['event']=='match_aborted']
+    completed=[e for e in events if e['event']=='match_completed']
+    entered=[e for e in events if e['event']=='public_queue_entered']
+    require(len(created)==2 and len(aborted)==len(completed)==1 and
+            aborted[0]['match']==created[0]['match'] and
+            completed[0]['match']==created[1]['match']!=created[0]['match'] and
+            sorted(e['ticket'] for e in entered)==[1,1,2,2],
+            'outage did not abort one match and complete one queued replacement')
+    old=created[0]['match'];frames=[e for e in events if e['event']=='frame_queued' and e.get('match')==old]
+    require(len(frames)>=601 and [e['frame'] for e in frames]==list(range(len(frames))),
+            'outage interrupted before the authoritative running prefix')
+    details=[]
+    for row in clients:
+        log=row['initial_log'].replace('\r','');whole=row['full_log'].replace('\r','')
+        receipts=row['initial_receipts']
+        require(f'match={old}' in log and len(receipts)>=601 and
+                [int(r['frame']) for r in receipts]==list(range(len(receipts))) and
+                len(receipts)<=len(frames),'native outage prefix missing or out of order')
+        require(whole.count('Public search intent:')==2 and
+                whole.count('Public native match joined:')==2 and
+                whole.count('Client world acquired:')==2 and
+                whole.count('owner=remote nativeIdle=1')==2 and
+                'Public fallback accepted:' not in whole,
+                'native outage recovery lost or duplicated its world/queue lifecycle')
+        details.append(dict(pid=row['pid'],old_received_frames=len(receipts)))
+    return dict(aborted_match=old,replacement_match=created[1]['match'],
+                authoritative_old_frames=len(frames),clients=details,
+                both_reconnected=True)
+
+
 def validate_worker_shutdown(workers,events,*,fault=None):
     """Allow only a reaped, audited cancellation of the deliberately aborted worker."""
     result=[]
@@ -327,3 +365,79 @@ def validate_replays(files,*,frozen,frames,loading_abort=False,running_abort_fra
     result=dict(completed=completed[0],aborted_loading=aborted[0] if loading_abort else None,files=len(files))
     if running:result['aborted_running']=aborted[0]
     return result
+
+
+def validate_waiting_cancel(events,clients,selections,*,frozen,before_retry,mode=2):
+    """R02 public modes: cancellation before any world, same choices and a new ticket.
+
+    The caller separately validates the complete ticket2 match, replay, native
+    Quit, production TLS count and owned-job cleanup. This check cannot replace
+    those proofs or count physical button input as observed.
+    """
+    require(mode in (1,2,5),'waiting cancellation requires an admitted public mode')
+    require(len(clients)==1,'waiting cancellation requires one native client')
+    row=clients[0];profile=row['player'];log=row.get('full_log',row['log'])
+    counts=('rooms','retired','entries','offers','cleanup','active_workers')
+    require(all(type(before_retry.get(k)) is int and before_retry[k]==0 for k in counts) and
+            before_retry.get('sessions')==1,'cancelled search retained server ownership')
+    entered=[(i,e) for i,e in enumerate(events) if e['event']=='public_queue_entered']
+    retired=[(i,e) for i,e in enumerate(events) if e['event']=='public_ticket_retired' and e.get('ticket')==1]
+    require(len(entered)==2 and [e['ticket'] for _,e in entered]==[1,2] and
+            all(e['profile']==profile and e['mode']==mode for _,e in entered),'cancel retry ticket/profile/mode changed')
+    require(len(retired)==1 and entered[0][0]<retired[0][0]<entered[1][0] and
+            retired[0][1]['profile']==profile and retired[0][1]['reason']=='search cancelled',
+            'server did not retire the first waiting ticket before retry')
+    require(not any(e['event'] in ('public_match_offered','match_created','worker_started','frame_queued')
+                    for e in events[:entered[1][0]]),'cancelled ticket acquired a match or worker')
+    require(len(selections)==2 and [s['ticket'] for s in selections]==[1,2] and
+            all(s['profile']==profile and s['mode']==mode and s['full_loadout'] is True for s in selections),
+            'both original complete loadouts must be observed')
+    def appearance(value):
+        slots=value['slots'];pairs=list(slots.items()) if isinstance(slots,dict) else slots
+        require(isinstance(pairs,list) and len(pairs)==17 and all(isinstance(p,(list,tuple)) and len(p)==2 for p in pairs),
+                'complete cosmetic slot pairs required')
+        normalized=[]
+        for key,item in pairs:
+            require(type(key) is int or type(key) is str and key.isdecimal(), 'invalid cosmetic slot key')
+            require(type(item) is int and item>=0, 'invalid cosmetic item')
+            normalized.append((int(key),item))
+        require({key for key,_ in normalized}==set(range(1,18)), 'missing or duplicate cosmetic slot')
+        return value['catalog_sha256'],sorted(normalized)
+    first,second=selections
+    require(first['deck']==second['deck'] and len(first['deck'])==8 and
+            appearance(first['cosmetics'])==appearance(second['cosmetics']),
+            'cancellation lost chosen deck or cosmetics')
+    seats=[s for s,human in frozen['humans'].items() if human['profile']==profile]
+    require(len(seats)==1 and frozen['decks'][seats[0]]==first['deck'] and
+            appearance(frozen['cosmetics'][seats[0]])==appearance(first['cosmetics']),'replacement world lost chosen loadout')
+    edited=re.findall(r'Dedicated deck smoke rematch-after units=\[([\d,]+)\] abilities=\[([\d,]+)\]',log)
+    require(len(edited)==1 and [int(x) for x in edited[0][0].split(',')]==first['deck'] and
+            [int(x) for x in edited[0][1].split(',')]==frozen['active_ability_groups'][seats[0]] and
+            log.index('Dedicated deck smoke rematch-after')<log.index('Public search intent:'),
+            'original saved native edit not bound to both tickets and final abilities')
+    require(log.count('Public search intent:')==2 and log.count('PUBLIC QUEUE SMOKE cancellation:')==1 and
+            log.count('Native search original Cancel invoked:')==1 and
+            'Native search stale ticket rejected: retired=1 current=2 panelRetained=1' in log,
+            'original Cancel/new native search generation missing or duplicated')
+    markers=(f'Public search intent: ticket=1 mode={mode} ',
+             'Native search original Cancel invoked: ticket=1 ',
+             'PUBLIC QUEUE SMOKE cancellation: ticket=1 point=waiting noWorld=1',
+             'Native search released: ticket=1 reason=cancel requested status=0',
+             'Public intent retired: ticket=1 reason=cancelled nativeIdle=1 disconnect=0',
+             'PUBLIC QUEUE SMOKE waiting for retry gate:',
+             'PUBLIC QUEUE SMOKE retry gate released:',
+             f'Public search intent: ticket=2 mode={mode} ')
+    positions=[]
+    for marker in markers:
+        require(log.count(marker)==1,'missing/duplicate cancel transition: '+marker)
+        positions.append(log.index(marker))
+    require(positions==sorted(positions),'native Cancel/retry ordering changed')
+    require('Client world acquired:' not in log[:positions[-1]] and
+            'Public native match joined:' not in log[:positions[-1]] and
+            'Public fallback accepted:' not in log,'cancelled ticket acquired a native world')
+    starts=re.findall(r'\[(\d+)\] Public search intent: ticket=1 ',log)
+    cancels=re.findall(r'\[(\d+)\] PUBLIC QUEUE SMOKE cancellation: ticket=1 ',log)
+    require(len(starts)==len(cancels)==1 and 3000<=int(cancels[0])-int(starts[0])<30000,
+            'Cancel did not occur during the first waiting interval')
+    return dict(passed=True,mode=mode,tickets=[1,2],cancel_elapsed_ms=int(cancels[0])-int(starts[0]),
+                no_world_before_retry=True,loadout_preserved=True,physical_input=False)

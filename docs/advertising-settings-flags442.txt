@@ -1,0 +1,37 @@
+D5 / P9 - remaining Unity Ads settings flag entries
+
+2026-10-30. Pinned original/current recipe39 static review PASS;P9/D5 OPEN.
+No game API,ID getter,provider,queue or endpoint was invoked.
+
+413 corrected the parallel UnityConnectSettings/UnityAdsSettings name and
+function tables and mapped Ads enabled indices12/13. The six following
+slots14-19 now bind exactly to get/set_initializeOnStartup at native
+1f48f0/1f4900,get/set_testMode at1f4920/1f4930,and Get/SetGameId at
+1f4950/1f49d0. Each selected body matches the pinned original and the
+owned recipe39 UnityPlayer byte for byte. This avoids the prior397 table-index
+error:all20 names and20 function pointers are matched by the same index.
+
+The first two getters are complete short leaves reading manager+d0 and+d1.
+Their setters store normalized Boolean values there and tail-call the
+previously classified settings notification c038d0. The constructor's
+exact bytes initialize enabled(manager+c8)=0,initializeOnStartup(+d0)=1
+and testMode(+d1)=0. These are constructor defaults,not a claim that the
+values remain constant in play. GetGameId reads the per-platform string
+at manager+d8;SetGameId is a larger caller-supplied string path with indirect
+calls. Their complete behavior and any registration side effects are not
+classified by this check. None of the four short flag bodies directly
+references Main+1498 or callback c307c0.
+
+Ignored exact-byte/table receipt:
+local/privacy442-ads-settings-flags01/verification.json SHA256
+d6d212148d28ce27f8e0ba54d2bf4816e28a9ad6833c4d1ffa1107a57cbeef08.
+This retires the
+remaining four short Ads flag accessors as direct advertising-ID sources.
+It does not identify the separate Main callback's provider,prove that the
+Ads enabled flag stays0,or rule out indirect/serialized settings changes.
+The REA native decompiler remains unavailable on this workstation;this
+result uses pinned PE bytes and existing LLVM disassembly. P9/D5 and
+RUNTIME_VALIDATED=false remain unchanged.
+
+Follow-up444 used a local Ghidra headless project to classify both GameId
+bodies and their settings notification;see advertising-gameid444.txt.

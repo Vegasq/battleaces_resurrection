@@ -1,0 +1,44 @@
+D5 / P9 - loaded recipe47 public advertising request return
+
+2026-10-31. Bounded owned loaded-entry runtime check PASS. P9/D5 remain
+OPEN;RUNTIME_VALIDATED=false. No product patch or published package changed.
+
+The exact source/installed recipe47 image and package were bound by512/517.
+tools.ads_public_owner518 launched that separate owned installed client
+local/privacy512-game01 suspended with exact game,GameAssembly,UnityPlayer
+and helper hashes. REA attached to PID53284 before primary-thread resume
+and loaded tools/ads_public_probe518.js SHA256
+9987ac21d04f7d1c6d1667b0d6abdbfd12cb97be57c1eb045816d54b7e2406ff.
+The observer checked the executable and UnityPlayer paths,x64,and loaded
+entry bytes31 c0 c3 at Application_CUSTOM_RequestAdvertisingIdentifierAsync
+RVA5fb70 plus RET at AdsIdHandler::StaticInitialize RVA361870.
+
+After GameAssembly il2cpp_init returned,the observer made one direct
+Boolean call to the guarded public request with a null callback pointer.
+This is safe for the reviewed guard because it returns before reading the
+argument. The call returned0/false. The AdsIdHandler constructor and
+AnalyticsCoreStats::OnAdsIdRequestDone counters stayed0,and the handler
+global at UnityPlayer+1c0af00 stayed null. The loaded guard bytes were
+unchanged. No ID string,callback argument,queue or endpoint was read.
+REA script-load Evidence ID:
+ev_005c52f5bd74c5465ebbf02fbf478485c01859bfcc52469f29070c6977415e7f.
+The session status contained four ordered untruncated messages:
+unity-ready,observer-ready,module-hook-ready,public-call passed=true;
+the public-call ran on primary thread54504. No script error was reported.
+
+The owned game reached original Quit0. Retained Job accounting was
+total1/active0/terminated0 with no forced cleanup;all four installed images
+were unchanged. Local receipt:local/privacy518-public-ads01/verification.json
+SHA256 fe1fa5a8ae04a56c1aa1b8e01a8ecc625407371d1993113b1bbe14b9edb6bf83.
+tools.review_ads_public518 independently rechecked the recipe47 source,
+installed guard bytes,observer source and owned run provenance:PASS.
+Review receipt local/privacy518-public-ads01/review518.json SHA256
+675792242b79d908780184191cd02f7e22f02e74b0b9765d23d3951569cee41b.
+REA messages are retained in the tool evidence above rather than this local
+review receipt,so this reviewer does not independently prove their content.
+
+This proves the current installed public API's direct loaded return and
+no handler construction/callback during that one call. It does not identify
+the separately constructed AnalyticsCoreStats native listener's provider,
+exclude computed/alternate callers,or prove full advertising acquisition
+absence. P1-P8 real queue/wire and final installed acceptance remain open.

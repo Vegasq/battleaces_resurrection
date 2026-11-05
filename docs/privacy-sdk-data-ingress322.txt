@@ -1,0 +1,72 @@
+D5 / P7 - SDK user,metadata and feature-flag data ingress
+
+2026-10-28. Source,owned install,loaded-byte audit and changed-path match PASS;
+P7/D5 OPEN.
+
+The original SDK has callable reporting-only setters in both its public
+Bugsnag facade and direct Client object. Existing Notify/Send/Delivery guards
+stop named reporting routes, but do not prevent these entries from reading or
+retaining caller data before delivery. The direct Client.SetUser allocates a
+user object and stores it at Client+18;Client.AddFeatureFlags iterates a caller
+collection. Both Client.AddMetadata overloads immediately read Client+20 and
+forward to metadata storage. The public facade methods perform singleton/
+type work and can reach SDK state independently of direct Client calls.
+
+Recipe32 adds void RET entry guards to five Bugsnag methods:SetUser,
+AddMetadata(3),AddMetadata(2),AddFeatureFlag,AddFeatureFlags;and the same five
+Client methods. These are SDK-specific data-ingress methods,not shared game
+identity,metadata or feature-flag storage. The getters,clearing methods,
+session lifecycle and shared runtime helpers stay intact. The recipe has154
+guards:89 GameAssembly,63 UnityPlayer and two CEF.
+
+tools/verify_sdk_data_ingress322.py PASS binds all ten methods to pinned
+original metadata and the BugsnagUnity.Windows codegen table,their void
+signatures,complete unwind extents and467 decoded instructions matched to
+original bytes. It verifies exact guard preimages,one-byte entry replacements,
+selected original data-read/store paths and the source output delta. Restoring
+only the ten new entry bytes reproduces recipe31 GameAssembly SHA256
+b54d14c93d9621b22bac8311751b24e48e0e6e1c0d61fb93563451c59326c6d8.
+Current recipe32 output SHA256:
+4d622855c06fea1dd47eb10b57a73fe1731e85ea2b4dc8eb276d441756918dfd.
+The307/317/318/319/321 source verifiers pass against recipe32.76 focused
+Python patch/audit/error/crash-gate tests pass with two optional skips;
+the C++ helper build and its tests pass.
+
+The owned local/privacy301-runtime01/game copy was upgraded from recipe31 to32
+with community/cosmetics options unchanged. Patcher dry run and install each
+verified all133 bundles. Installed GameAssembly SHA256:
+d4e6b492a73679708331fe3ed428ac545999b3bd3cf4c05ac798ae999f868425.
+Native helper SHA256:
+52f9f482cda73f5639c4822a4125d138d662a8a63b75eb360ed16e228e27b745.
+Manifest SHA256:
+d41432d17e2a9cbba561b8a8199757054145c3f9419b5c2bbc428699fc4945c3.
+Helper receipt local/privacy322-helper-build01/helper-build.json SHA256:
+9a22a987af175658a86bf0828cb58dc308a76a6b8f5915c0276505ae847af704.
+
+The owned menu audit reports recipeVersion32 and loaded/disk
+sdkDataIngressSignatures=10/10,with three complete selected-field stages.
+Original Quit exits0 naturally in14.469s,no forced cleanup,process reaped,
+shared settings/source unchanged. Its local/privacy322-menu01/verification.json
+PASS SHA256 is
+e49b0d3f07bd1539c793e3bde0f4d486fa4dc6a3e3ee68480abb169b69cd10fe.
+
+A first changed-path practice check used1200frames. It reached native match,
+result,Continue and natural Quit0,but the verifier rejected missing correlated
+bot movement and Move/Attack orders. Retain
+local/privacy322-practice01/verification.json as FAILED;do not count it as a
+match pass. A fresh3600-frame owned run then passed the same check:254
+autonomous action records,37 produced bot units with correlated orders and
+position change,native result/Continue/menu return,original Quit0 naturally
+after214.750s,no force,process reaped,shared settings/source unchanged. The
+read-only audit has8 selected-field stages through in-game/postgame/pre-Quit
+and sdkDataIngressSignatures=10/10. The successful
+local/privacy322-practice02/verification.json PASS SHA256 is
+eb27ccda248fccf6a029c15f558ffd84f454a30d2f51ad33535cccad7345f4c2.
+This is automated diagnostic gameplay and loaded-byte compatibility,not
+actual original setter invocation or physical-input acceptance.
+
+The ten named SDK input methods are cut before processing in current owned
+recipe32. Other collection APIs,already retained/in-flight work,real
+queue/file/wire,all-thread/descendant attribution and P9 advertising-ID
+acquisition remain open. Published174 and historical recipe28 private
+package316 are unchanged. RUNTIME_VALIDATED=false.

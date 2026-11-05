@@ -1,0 +1,40 @@
+D5 / P7 - recipe34 owned genuine Client error and isolated cache fixture
+
+2026-10-28. Current recipe34 changed-path fixture PASS. P7/D5 remain OPEN;
+RUNTIME_VALIDATED=false,published174 remains recipe23. This extends the
+recipe25 evidence in privacy-current-errors287.txt to the current owned
+recipe34 installation without touching the real shared SDK report queue.
+
+One run used local/privacy301-runtime01/game,source-bound helper build
+local/privacy324-helper-build02 and a fresh isolated nativestest_ profile.
+tools.verify_native_quit used its existing genuine Client/NativeClient,
+rooted Exception,isolated cache and original local log diagnostic,with
+--default-recipe --telemetry-audit --telemetry-report-error-probe and original
+visible Confirm. The owner report local/privacy331-error01/verification.json
+PASS,SHA256 69866a12a3ccbde0cbc9c8daf3170320714de5e8f86bb6f139ee015fcb29afed.
+It binds manifest SHA256 eb8a652086339b9b69dd598f766f9d579055b0ed51a11bb96c2f7f953a81b3fa
+and helper SHA256 1c16a737574123eef622cc7d9d5d6601dad971d9b71b9915ac96efd80c70f320.
+
+The read-only native audit passes recipe34. On the original game thread,
+seven checked report-error entries were called with the genuine initialized
+reporting-disabled SDK Client and Exception. The original local
+"Exception: authored-report-error165" diagnostic appears once in the owned
+game.log. The fixture read two isolated seeded cache files through the
+original readers,returned null for two absent IDs,and kept both seeded
+files byte-identical. It observed two guarded Deliver calls,one guarded
+cached start and five guarded MoveNext false results;the original fresh
+iterators were disposed. The SDK Client and native interface were genuinely
+initialized at this fixture scope.
+
+The original Show/OnConfirm dispatches and returns were recorded on that
+thread. PID16476 exited0 naturally in14.468s;the owner reaped it and did
+not force cleanup. Source files and the read-only shared settings baseline
+were unchanged. This verifier does not retain an independent job/tree handle;
+no descendant-absence claim follows from it.
+
+This is an authored seeded fixture,not an ordinary report submission or a
+whole-process file/network census. It does not qualify resumed/in-flight
+delivery,all reporter callbacks,SDK retry/wire behavior,or final installed
+release attribution. Its reviewer reports report_delivered=false,
+whole_run_cache_isolation=false and whole_run_privacy_qualified=false.
+No real shared queue was read,seeded or cleared;no user-owned game changed.

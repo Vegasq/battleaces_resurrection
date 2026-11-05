@@ -396,3 +396,202 @@ callbacks and deliberately injected faults, not manual mouse acceptance or a
 private internet/TLS custom-game qualification. Helpers/original files/assets and
 all raw evidence stay local. The offered manual custom copy remains helper04
 from the preceding milestone; the normal no-lag copy remains unchanged.
+
+CUSTOM READY APPLICABILITY238 - 2026-10-27 - REVIEW / CURRENT SOCKET PASS
+The current D2 matrix still requested applicability of these older rejection,
+expiry and duplicate native checks. Recovered exact historical source bytes,
+rather than assuming that an old green report describes today's implementation.
+No product/helper/package change or new game launch in238.
+
+SOURCE AND RETAINED TRACE REVIEW
+community_match.cpp/community_native.cpp and the old verifier match ace3ac1.
+community_transport.cpp matches ea5266e with the report's CRLF bytes;server
+community.py matches95ba8df. Each recovered file's SHA256 equals timeout02's
+source-at-start identity. Current counterparts are separately copied and hashed.
+The exact owned(Operation) body is unchanged after newline normalization:the
+manager must still own the observed front and the exact pending request pointer.
+ACK request/kind correlation remains;the operation is removed before invoking
+the original callback and its old pending pointer must be released afterwards.
+Ordered Lobby/ACK event consumption remains in community_native.update;the
+decoder's eagerly updated lobby does not replace that ordered authority.
+
+These are NOT unchanged whole functions/modules. Current enqueue freezes full
+loadout/deck intent and starts loading feedback. Completion may settle that
+loading ticket before the reentrant callback. Successful ACK now also requires
+phase<=Running and no abort recovery;acceptance transfers frozen selections.
+Those changed dependencies require current integration evidence.
+Server cancel_start has identical AST. The START and READY branches differ from
+the retained version only by one pending-profile-save refusal each;the existing
+phase/epoch/deadline checks still precede commitment. Other server code changed.
+The current three client files also match the source-bound helper232 receipt.
+
+Retained timeout02 ticks establish the exact crossing:
+ -616106859:host sends new Start at epoch3/request4.
+ -616107437:guest's old epoch1 request completes unsuccessfully and releases
+  its exact pending pointer;guest then dispatches Ready epoch3/request3.
+ -616107781:guest epoch3 success completes/releases its pending request.
+Later epoch4 completes the rematch. This is actual OLD native evidence,not a
+new runtime pass. timeout01 remains FAILED for the original epoch expectation.
+Rejection and duplicate/deck reports remain passes at their original scope;
+forced final client cleanup in these historical cases is not normal Quit.
+
+CURRENT REGRESSION AND REMAINING CHECK
+test_expired_ready_preserves_new_start_and_duplicate_cannot_launch_twice adds
+one real-loopback-socket/supervised synthetic-worker scenario in test_community.
+After accelerated0.05s expiry and a new host Start,both old positive Ready and
+old negative/cancel Ready receive correlated refusal. Lobby revision,epoch,
+phase,deadline,members/readiness and peer/room ownership stay exact;no worker.
+The valid new Ready supplies identical bootstraps. Duplicate Ready during Loading
+is refused without changing ownership or creating another worker. Both LOADED
+acknowledgements reach Running;exactly one match_created. Full18community tests
+pass on Python3.12/3.14,no skips (8.018s/7.792s). This is current server/control
+evidence,not native Unity,TLS,physical input or completed-game acceptance.
+
+The next check specified here is now completed in239 below. Its bounded plan:
+hold the first guest Ready through the ORIGINAL10s expiry,allow host retry before
+the old rejection arrives,and require old pending release/new epoch Ready.
+Validate actual epochs3/4,chosen full loadouts,original results/Continue/Leave/
+Quit and empty jobs/no force. The ordinary packaged validator expects epochs1/2
+and cannot be reused unchanged for this scenario. The older standalone verifier
+forces final client termination;do not mistake rerunning it for that lifetime
+requirement. No helper rebuild is justified unless this check exposes a defect.
+FullD2 stays OPEN;public waiting-Cancel221-223 do not need repeating.
+
+EVIDENCE
+%LOCALAPPDATA%/BattleAcesDiagnostics/local/ownership238-review01 contains exact
+original/current sources,diffs,retained reports/events/native logs,test outputs,
+before/after test source,source-comparison.json and reproducible review.py.
+review.json SHA256:
+449e63f1d2b93de3f9b2b95d2363ae5382487e39fd981f5454125fa78b315fb9
+Retained report hashes,unchanged:
+ reject01:52a554c5e2e018302ff78aa601f8b1c50016b403fd61d53ed6828821d4e8e189
+ timeout01(FAILED):9882d39df04045b0406cceffdbf1bdeb5cf907363f0e32529eca5855933159cc
+ timeout02:783c85e215a887bd4572fafe8f4542106945b15796d848b83c92f0bad9d65880
+ duplicates-deck01:8fe08a01341e8314f848238823f1418dc31f15b7eaf54fa02d2b706771e6639b
+Use the custom-match- prefix for those retained directory names under local/.
+DEV is unchanged;N13 remains reserved and N7/N11/N12/N13 answers are still pending.
+
+PACKAGED READY EXPIRY/RETRY239 - 2026-10-27 - SCOPED PASS
+[x]Current packaged native expiry/retry,duplicate callbacks,rematch and normal Quit.
+[x]Distinct explicit host Start rejection is completed in240 below.
+[ ]Remaining physical D2 acceptance.
+This completes238's named next runtime check. No production/helper/package change.
+
+The existing packaged multiplayer driver adds --custom-ready-expiry with
+--rc-open --custom-rematch. Only the first guest Ready is held by the external
+server observer. Original maintenance uses its unchanged10s deadline;the host's
+original callback retries. Once epoch3 is Starting,the old epoch1 command reaches
+original apply and receives original Rejected/start attempt changed. No fake ACK,
+counter write,native patch or alternate server state transition is substituted.
+Full lobby/revision/epoch/deadline/members/readiness/room snapshot stays unchanged
+across that refusal,with zero rooms/matches. Normal requests then proceed.
+
+INITIAL RUN - FAILED / PRESERVED
+ready239-native01 completes both recovered matches,but its pre-existing Leave
+gate expects final epoch2. Expiry/cancellation adds two epochs,so actual final
+epoch4 correctly refuses that diagnostic assertion. Controller stops the server
+through ordinary shutdown,then forced job cleanup terminates the clients before
+Leave/Quit.187.000s;all three workers0. This remains FAILED and is not normal-Quit
+evidence. Source/package/config/assets/shared data checks pass at that scope.
+Review also found the new validator expected only one successful guest callback;
+the existing duplicate probe intentionally produces two. Before rerunning,the
+validator now requires exactly two success completions but only one wire Ready
+per epoch,and a shared expected_epochs function feeds validation and Leave gate.
+Original failed report and source snapshots are not rewritten.
+
+CORRECTED RUN - PASS
+ready239-native02 uses the same237 packages/helper232 and owned client237-game01,
+fresh isolated profiles,real RC TLS identities and one lobby/two connections.
+First guest Ready is held10.290s;release is0.331s after the original deadline.
+Server snapshot at release:epoch3/Starting,only host Ready,no room/match;old Ready
+rejection preserves it exactly. Native ticks:
+ 492045468 host dispatches new epoch3 Start.
+ 492045515 old guest epoch1 completion fails/releases its exact pending pointer;
+           new guest epoch3 Ready dispatches in the same clock tick.
+ 492045531 new guest success releases pending;the expected duplicate callback
+           also completes without another wire Ready.
+Both clients expose the original expiry error,then clear their loading notices
+after each recovered load (rendererFailed=0,pending/visible/nativeVisible=0).
+Epochs3/4 each deliver1220 identical frame receipts per client and122 common
+observable-state samples per client,results/Continue and matching replay hashes.
+Host deck changes for rematch;guest deck stays fixed;server full17-slot loadouts
+are present. This is not exhaustive rendered cosmetic/catalog coverage.
+Clients25596/13956 perform original guest/host Leave then original menu/confirmation
+Quit,exit0. Three workers0/reaped;owned jobs7/0/0,2/0/0,2/0/0,no force.194.016s.
+Shared settings/replays/backups,configs,packages,assets and207source identities
+are preserved. Native replay/trace/raw captures retained;no physical-input claim.
+
+48focused tests pass on each Python3.12/3.14:packaged_custom_evidence,
+packaged_network_evidence,packaged_snapshot,packaged_play. Corrected run suite
+times1.459s/1.397s. Refusals include wrong expiry deadline/epoch/request/owner,
+changed new-attempt state,premature match,missing old-pointer release,wrong
+callback order and uncleared/failed loading notice. Ordinary and21-round validators
+retain their prior expectations. Normal launchers do not receive diagnostic flags.
+
+ARTIFACTS
+All239 directories are under %LOCALAPPDATA%/BattleAcesDiagnostics/local/.
+ready239-preparation01 holds before sources,tests,plans,exact207-file sources for
+each run,reconcile.py and independent completion-review.json. Both actual packages
+verify against their unchanged manifests;237 is still dirty/unpublished.
+ready239-native01/verification.json SHA256 (FAILED):
+00069058c8da6c147fa79fcf649d59a8d12a223033855d3df7d4f2f3f274bbf5
+ready239-native02/verification.json SHA256 (PASS):
+931b442a9126bdb9f3f0294512279742de0370915e520af3c460af97accac618
+Client manifest:f8c0fb3ef3474aa1a6396f14c7ea8be82f7cc63c93f3125635707829a7b5ba37
+Server manifest:d7999174934fe94a43339484cbd391a85869d0164c584c929a5bcf8fbcd4baa4
+Helper:47aa23d3689c50c85a8e83207707a7c3d1272c6ae950ecd8e508dfebda1b2b8f
+Published174 and DEV answers unchanged;no rebuild,publication or repeated user
+request. The roadmap's daily checkbox summary now distinguishes completed scoped
+steps from OPEN parent release gates. Reuse this completed expiry/duplicate
+sequence;240 below completes the distinct old host Start-rejection applicability.
+
+PACKAGED START REJECTION/RETRY240 - 2026-10-27 - SCOPED PASS
+[x]Current packaged native Start rejection/retry,loadouts,rematch and normal Quit.
+No production/helper/package change;no repeat of239's completed expiry case.
+The existing driver adds --custom-start-rejection with --rc-open --custom-rematch.
+Its external observer raises one authored Rejected before the first host Start
+can change the lobby. The original server handler sends the correlated negative
+ACK. This is injected refusal,not evidence of a spontaneous production error.
+Snapshot:Open/epoch0,revision3,request4,no rooms/matches. Both complete player
+selections are captured at refusal and checked against the first frozen match.
+This case disables only the diagnostic duplicate-Start/Ready probe so a queued
+duplicate cannot replace the intended original rejected-Start/retry sequence.
+Ordinary and239 duplicate controls are unchanged and retain their covered scope.
+
+start240-native01 PASS,182.640s. Host32008 receives original error2,settles loading
+ticket1 before its original callback,releases the exact old pending pointer,and
+restores the native full lobby. The original diagnostic host action retries;
+new loading ticket2 reaches ready and clears the notice. Guest36944 gets no
+loading error. Both first-match native decks and server17-slot cosmetic selections
+equal their captured pre-rejection intent. Rematch changes the host deck while
+preserving the guest's. This does not qualify every rendered cosmetic asset.
+Epochs1/2 complete with1220 exact frame receipts and122common observable-state
+samples per match/client,matching replay hashes,original results/Continue and
+ordered guest/host Leave. Both original menu/confirmation Quits exit0. Three
+workers0/reaped,jobs7/0/0,2/0/0,2/0/0,no forced cleanup. Same two RC TLS sessions
+and one lobby;no local fallback or unwanted second world. Source/config/packages/
+assets/shared settings,replays and backups remain unchanged.
+
+49tests pass per Python3.12/3.14,no skips,1.514s/1.406s:packaged_custom_evidence,
+packaged_network_evidence,packaged_snapshot,packaged_play. New evidence refusals
+cover rejection after commitment,wrong request/host,missing full selection,
+lost pending release,reused failed loading ticket,wrong retry and uncleared
+notice. The239 expiry and normal/21-round validators continue to pass.
+
+Artifacts under %LOCALAPPDATA%/BattleAcesDiagnostics/local/:
+ start240-preparation01:before and207-file source-at-run snapshots,tests,plan,
+ reconcile.py,completion-review.json and after sources/docs.
+ start240-native01:actual packaged drivers,server events/observations,native
+ logs,frame/state receipts,settings,replays,Quit traces and verification.json.
+Independent reconciliation revalidates the saved native/replay evidence,exact
+source/package identities,pre-rejection selections and empty jobs. No second run.
+verification.json SHA256:
+0a8eae9fecd798e596444cfc8638fba37ec67c86e3c82cc5d2608b1a8da42fd2
+Unchanged237 manifest hashes:
+ client:f8c0fb3ef3474aa1a6396f14c7ea8be82f7cc63c93f3125635707829a7b5ba37
+ server:d7999174934fe94a43339484cbd391a85869d0164c584c929a5bcf8fbcd4baa4
+Helper232:47aa23d3689c50c85a8e83207707a7c3d1272c6ae950ecd8e508dfebda1b2b8f.
+Published174 and DEV answers remain unchanged. The roadmap checks this step off;
+full D2 retains transition/physical requirements. Next inspect existing T05/84
+public transition source applicability before deciding whether any run is needed.
+Do not reopen these completed expiry/rejection/duplicate subcases.

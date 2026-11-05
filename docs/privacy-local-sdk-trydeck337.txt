@@ -1,0 +1,50 @@
+D5 / P4 - CURRENT RECIPE34 TRY DECK SDK-CACHE PATH WATCH337
+2026-10-28. Bounded selected-route PASS;P4/P8/P9/full D5 remain OPEN.
+
+Question and method
+335/336 gave the current recipe34 local public1/2/5 paths a passive watch of
+the293-bound SDK cache root through owned match/result/Continue/normal Quit.
+Try Deck4 was the remaining required local path without that match-lifetime
+root watch. This owned run uses the original Edit Deck/Try Deck callback with
+one3600-frame diagnostic match,isolated profile,explicit private bridge and
+passive selected user-mode file/network/process/browser observer. It does not
+open,seed,read or clear the real SDK report queue. The user-owned game/server,
+normal launcher,product files and published prerelease remain unchanged.
+
+Accepted observation
+local/privacy337-mode4-01/verification.json passes the original Try Deck4
+result,Continue and normal Quit0. Eight complete read-only native telemetry
+snapshots cover startup/menu/in-game/postgame/pre-Quit stages. The retained
+owned job finishes1total/0active/0terminated with no forced cleanup. The
+source-owned reviewer binds the game assembly and helper to the installation
+manifest,the Unity image to293's original SDK getter path binding,and the
+observer to its embedded three-root configuration.
+
+The detached REA stream has1847 contiguous,untruncated selected events through
+both original self-termination entries. Its862 selected file-operation records
+classify582 to owned output,280 to owned profile and zero at or under the
+watched SDK cache path. There is no observer error,unknown relative root or
+overflow. All five selected send/recv calls use precisely the inherited
+private bridge socket;selected connect,WSAConnect,DNS,sendto,WinHttpConnect,
+process/shell creation and lazy browser activation counts are zero.
+
+Together335-337 supply this selected-root/bridge observation for all four
+required local modes4/1/2/5 on the current recipe34 owned installation. The
+four runs are separate owned diagnostic lifetimes,not an ordinary final pair.
+
+Ignored evidence identities
+  local/privacy337-mode4-01/verification.json SHA256
+  e0d4d4f812ca2ec03587651f126f5209738a5f475dc0ae270874450a24d8b2d8
+  local/privacy337-mode4-01/route-review.json SHA256
+  36518805739cede2e991d9ab1cde5a4f4a997c52375a71ba16aaa840ec0b7420
+  local/privacy337-mode4-01/rea-evidence.json SHA256
+  c5994e7a26992f5343307729faf18b364154b15d5d78306399f100c7077a97bf
+  Final detached REA evidence ID:
+  ev_6fc3fb0bac13c58cf90137fa386539c6532a3e6c6efd4e2ba4f7bf9dc50fce91.
+
+Boundary
+Selected user-mode hooks and three roots do not establish every API/thread,
+pre-attach/in-flight activity,other cache paths,SDK queue state,kernel/raw-
+socket wire,connected play or absent advertising-ID acquisition. Do not
+translate zero selected root events into whole-program reporting absence.
+P4/P8/P9/D5 remain OPEN,RUNTIME_VALIDATED=false. Reuse this exact scope.

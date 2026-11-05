@@ -1,0 +1,31 @@
+D5 / P7 - current direct SDK disk-call reachability
+
+2026-10-31. Recipe46 pinned source and installed-image review PASS for
+selected direct System.IO calls. Full P7/P9/D5 remains OPEN;
+RUNTIME_VALIDATED=false. No game or live report queue was run for this check.
+
+503 enumerated exactly19 decoded direct BugsnagUnity.Windows E8 calls to
+selected System.IO File,Directory,FileStream,StreamReader,StreamWriter,
+DirectoryInfo and FileInfo methods. Four StreamReader/Writer calls receive
+same-method allocated MemoryStream objects. tools.review_sdk_disk_reachability507
+now binds the remaining15 direct File/Directory call sites to seven SDK
+owner methods and the current recipe46 installed GameAssembly.
+
+Five owners return at their method entries before their disk calls:
+CacheManager.GetCachedDeviceId,RemoveExpiredPayloads,DeleteFile,WriteFile
+and CheckForDirectoryCreation. GetFilesBySuffix branches from83683a to
+836884,past Directory.GetFiles at83687c and into its existing empty-array
+path. GetJsonFromCachePath branches from837816 to83783a,past both
+File.Exists and File.ReadAllText and into its original null epilogue.
+The reviewer checks original prologues,all15 call positions,exact guards,
+relative jump targets and the installed recipe46 bytes. Its installed
+image is the private normal-Quit game local/privacy506-game01,
+GameAssembly SHA256 99ffb3f723ccb6f48e89eb8f3cff3ed1675978cfec092be19b8f4d06ee5edb6e.
+
+PASS receipt local/privacy507-disk-reach01/review507.json SHA256
+20ece400ec8dc583982e44895e5e6b3e6dc3c1e245309d2365549ebac328ee0b.
+This proves those named direct calls cannot execute through their normal
+method entries in recipe46. It does not exclude indirect/virtual/reflection
+or other BCL calls,native/OS file APIs,other modules,transient files,
+network/descendant activity or the independent P9 advertising producer.
+The previous owned504/505/506 runs retain their separate runtime scopes.

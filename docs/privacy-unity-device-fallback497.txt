@@ -1,0 +1,34 @@
+D5 / P9 - Unity device ID fallback attribution
+
+2026-10-31. Read-only exact-PDB Ghidra decompilation and independent raw-call/
+current-recipe review PASS. No game or identity provider was invoked. This
+retires GetDeviceIdFallback as an unclassified advertising-provider lead;it
+does not resolve the independent advertising ID provider. D5/P9 remain OPEN,
+RUNTIME_VALIDATED=false.
+
+Pristine UnityPlayer.dll GetDeviceIdFallback(9fb3e0) reads HKCU
+Software\Unity Technologies\DeviceId;when absent,it generates a GUID and
+writes that value. It is called directly once,at9fbdba,from the shared
+systeminfo::GetDeviceUniqueIdentifier(9fb910). The decompiled shared getter
+also has earlier device-identity logic;this check does not classify all of it.
+
+The raw original .text E8 scan finds exactly five direct calls to the shared
+getter:public SystemInfo wrapper(10e274),Rand::RandomizeState(592161),and
+AnalyticsCoreStats sites c2f7de,c2fc09,c32468. Current recipe44 skips all
+three named analytics calls:the c2f790 entry redirect bypasses c2f7de and
+the latter two sites take their existing unknown-value sentinel branches.
+The shared SystemInfo and RNG callers remain intact because they have
+nonanalytics uses. Indirect callers are outside this direct-call census.
+
+tools.review_device_fallback497 PASS pins original/current Unity images,
+exact-PDB Ghidra output and script,all direct E8 sites and recipe44 bytes.
+Receipt:local/privacy497-device-fallback01/verification.json SHA256
+9fedb82e8cd6b875583fa5a89e82ca6e17311f77dad326b5716d6d92331a49a2.
+The headless PowerShell wrapper reported exit1 from a Java stderr warning,
+but the log shows the script ran and Ghidra saved the processed image. The
+independent reviewer passed on that retained output.
+
+This is a source attribution check,not proof of effective SDK absence. The
+separate AnalyticsCoreStats IAdsIdListener/c307c0 advertising provider or
+registration edge,computed consumers,SDK queue/delivery and final installed
+release coverage remain for P9/D5.

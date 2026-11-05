@@ -1,0 +1,41 @@
+D5 / P4 - recipe25 default install and packaged Try Deck lifecycle
+2026-10-28. Named changed-recipe compatibility PASS;full P4/P9/D5 OPEN.
+
+The recipe25 reporter callbacks added after the prior connected recipe24 check
+had only an ordinary menu result. This check uses current-source helper284 and
+its matching dirty-source local package pair. The package embeds the same
+helper SHA256 4ede2e94bb35b6fca781f48099115f264ed8dd8269e5027db273dda61198866a
+as the owned default-recipe installation. Packaged telemetry.py matches source
+SHA256 4b7f4baf73b29eafa46ad8698c27abbeafb2b87f17b68b46d19fb475b23edb19.
+Client ZIP SHA256 a872d270ca910cdfc13a2a4b56c7acc62d435dfa4ec3d1b09504b49c65cd12fa;
+server ZIP SHA256 a4c6df0888c53d328d1c76f4f03861528064fc9bc2451cced1274c10f54c40f7.
+Build report SHA256 429359e66f474e8b5389c4dcab12b8c8e0e5730eb3e258bece935dfebb905df0.
+These are local previews;published174 is unchanged.
+
+The first packaged-play invocation refused before launch because the owned284
+game had optional native Quit diagnostic hooks. Its exact failed preflight is
+retained at local/privacy285-preflight-failed.txt SHA256
+a409bda8691427888455e030ee3d027d09981aca90f439fd19b997575b0f2ad3.
+No runtime result is inferred from that refusal. A separate copy of the282
+default game matched590 files/8056640161 bytes before the normal patcher dry
+run and install. Both verified133 bundles. The installed manifest records
+recipe25,RUNTIME_VALIDATED=false,helper284 and native_quit=false;SHA256
+dcbcaf85ca8b5dae174eee383d71f82fe4deb31c15540adcb1ab8d719d44c15c.
+
+The source-owned packaged verifier passed Try Deck mode4 on that exact copy:
+one3600-frame match,original native result/Continue/menu and original Quit0.
+93 autonomous action records,bot supply137 and48 produced bot units with orders
+and position change passed its gameplay check. The game PID was reaped;
+the owner job recorded2 total/0 active/0 terminated processes at driver exit,
+with natural_quit=true and forced_cleanup=false. Source,package files,driver,
+configuration and real shared game settings remained unchanged during the
+220.359s run. Verification:
+local/privacy285-play01/verification.json SHA256
+5b709dc706987b3ca1192644ef0ffb5d5e7d7b2a7a36a34cdfdaf8fc05ec2f88.
+
+The ordinary package launch arguments were preserved before adding diagnostic
+match/Quit flags. This is an automated owned game and bounded compatibility
+check for the changed recipe,not physical input,ordinary unflagged shutdown,
+reporter callback invocation,full queue/file/network/descendant attribution or
+final privacy acceptance. P9 and full D5 remain OPEN;do not repeat this same
+quiet match solely to collect another selected counter.

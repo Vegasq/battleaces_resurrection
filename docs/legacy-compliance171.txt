@@ -43,6 +43,27 @@ Search boundary
   runtime states are not globally excluded. No original web URL,account flow
   or real queue was activated to inventory features.
 
+Follow-up396 - executable direct-call inventory (2026-10-30)
+The pinned original GameAssembly and metadata above were read again. A raw
+E8/E9 rel32 scan covered both executable PE sections (89,500,160 bytes total)
+against819 method pointers present in the Vuplex table but not the RGame table.
+It found621 candidate opcode positions:10 in four named RGame methods,507 in
+named Vuplex methods,and104 without a named owner in those two metadata tables.
+All10 named RGame positions and10 additional positions in two unnamed unwind
+bodies decode as byte-matched direct calls. The named RGame calls remain in the
+known KoreanComplianceDialogVM methods. The additional calls target the
+CursorInfo.get_HotSpot getter;the two callers are not assigned a managed owner
+by this two-module table. The other601 raw positions were not individually
+instruction-validated in this follow-up. The raw scan includes embedded data
+and possible opcode bytes inside other instructions,so its count is not a
+whole-program call count. It also does not cover indirect calls,shared method
+aliases,reflection,serialized component activation,or effective OS descendants.
+Thus this review adds no newly confirmed game-specific browser activation
+route and does not close P8. The prior Korean creation cut remains the only
+confirmed game-specific Vuplex consumer. Read-only receipts and raw assembly:
+local/privacy396-webview-fulltext01/discovery.json and review.json. Reviewers:
+tools/review_webview_fulltext396.py and tools/review_webview_calls396.py.
+
 Implementation
 client_patch/patcher/legacy_compliance.py supplies four exact-original-byte
 patches included by patch_client.PATCHES in both local and community variants:

@@ -1,0 +1,82 @@
+BATTLE ACES - RESTORED PROTECTED HOST COMPLETED GAME184
+Date:2026-10-26. PASS at the scripted native/TLS scope below;D7 remains OPEN.
+
+Missing claim and bounded check
+N10/151 already accepted protected recovery and40native frames.184 adds one
+completed native1v1 on newly restored protected state,matching public results,
+worker release BEFORE host shutdown,and actual dashboard history persistence.
+No repeat user request;N10 driver/helper and its accepted pins remain unchanged.
+
+Implementation
+tools/verify_recovered_game.py is an opt-in diagnostic derived from151. It uses
+the selected package's isolated bundled Python and unmodified production modules.
+An observer subclass retains the actual DedicatedServer instance;it changes no
+coordinator methods,simulation output or runtime bytes. Two scripted RC-open TLS
+peers authenticate with fresh disposable tokens and restored profile IDs/decks.
+Full saved cosmetics are verified before and after restore/gameplay.
+The surrender command is derived from the worker's actual preceding state and
+the template's SelfDestruct ability. No hardcoded entity/ability or authored
+result is injected. Production simulation steps remain50ms.
+
+Default run requires an unrestricted owner preflight before private operations.
+It creates a fresh ignored output with owner-protected certificate/key/config,
+snapshot and restore destination,then reads them back using production checks.
+Only fresh loopback ports/data/processes are used. RC TLS deliberately does not
+verify the self-signed server certificate;this does not qualify invite mode.
+Retained worker handle proves live identity before surrender and exit0 before
+host cancellation. The parent job encloses the controller and descendants;
+final accounting is checked before job close. Existing host/user data untouched.
+
+Passed evidence
+Output:local/recovery184-completed02/verification.json
+Report SHA256:fc1872f23a02ba844358c163c608b4fd59fd8483175b4c26813317d51a426ddd
+Driver SHA256:440ec9553197ac918b8c7bda7541a38109399ad6ea14c5b67c9c0327e0fe6bfb
+Package:local/candidate175-packages01/battleaces-server-win64
+Package manifest:b00409fcab5afb033d52c8bc8ca93790faac492389eed778c3450fd21a03bd21
+Assets:local/s139/assets/build-37822
+Asset manifest:5f26ae7e35ce004c5105fa42a85fed8671194380e9461caa89888decd2ee4ad3
+Bundled/source backup module:
+  2f8508fcf1b6ce6c06a5a546dcc52b654aba0e079e0f4027361ed827a85065ad
+Package175 is the existing0.3.0-rc1.7 candidate from clean04b3910;no new package
+was built or published. Package and imported assets reverified unchanged.
+
+Protected backup/verify/restore/readback PASS. Both original profiles/config
+preserved;restored full cosmetics/decks equal. Match22dd287165a8479aafc686641a991291
+delivered160identical contiguous frames per peer. Native surrender frame140,
+winning alliance1,conceded flag1,checksum7189542666341306834. Both MATCH_END
+payloads agree with actual worker state and native_game_over/match_completed
+audit records. No match_aborted/protocol/worker/audit omission failure.
+Worker15936 retained live and then observed exit0 BEFORE host shutdown.
+Dashboard HTTP shows the matching running game and then one completed history
+entry with both expected players and winning alliance1. After shutdown,production
+history loader returns the exact completed record;cleanup did not overwrite it.
+State lock and game/dashboard listener ports released. Job8total/0active/0killed,
+no forced cleanup.15.188s. Report's inherited worker field names mention 'stop';
+184 actually reads the signaled/exit status before cancelling the host.
+
+Failure retained
+local/recovery184-completed01 remains FAILED. Protected recovery passed,but
+the first diagnostic submitted surrender atframe60. No native completion was
+observed;after80frames it waited for MATCH_END and the host aborted for stalled
+input. This is not a completed game or a passing shutdown case.24.969s,job8/0/0,
+no forced cleanup. driver-at-run.py retains its exact source. The correction
+reuses frame140 from the previously qualified native coordinator fixture;it
+changes no game timing or production behavior. No stronger cause is asserted.
+
+Verification
+Six focused unittest cases PASS on Python3.12 and3.14. Negative controls reject
+incomplete/wrong native results,missing/duplicate/wrong-worker release,release
+after stop,aborts,missing/reordered/changed frames,and wrong dashboard match/
+player/winner. Saved successful audit/report rechecked independently after run.
+Example (Windows owner,from repository root;output must not exist):
+  py -3.12 -m tools.verify_recovered_game --package local/candidate175-packages01/battleaces-server-win64 --assets local/s139/assets/build-37822 --output local/recovery184-new
+  py -3.12 -m unittest tests.test_recovered_game
+
+Scope and next work
+Closes restored completed native surrender and real-game dashboard persistence
+at this package/scripted1v1 scope. It does not qualify physical Unity clients,
+ordinary result/Continue/rematch,natural combat victory,actual host restart with
+history,SCM/session0/reboot,clean Windows deployment,Internet or Linux/Wine.
+History created AFTER restore is verified;backup still excludes dashboard
+history as documented at175. D7 account/key/identity lifecycle and supported
+deployment cells remain. D5 privacy/source gates are unaffected.

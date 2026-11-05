@@ -1,0 +1,35 @@
+D5 CONNECTED PRIVACY PREFLIGHT270 - 2026-10-28
+P5/D5 remain OPEN. No runtime observation was made.
+
+The previously qualified candidate203 package and r171g helper have the same
+SHA256 56c279af274156cad21424416b0ee254f6372d6ceb3b7996342eef4ddfdd7374.
+An owned fresh public1/two-human RC verifier attempt used the command recorded
+in local/privacy270-preflight.json. It stopped at helper receipt validation in
+tools/verify_packaged_multiplayer.py:316 before creating its owned output or
+starting the server, clients or native game. The exact assertion was:
+"helper build receipt does not bind installed helper to current sources".
+
+The build receipt is SHA256
+9a33a704d2188521fca51a5b15e9474d103f3de904c723575ede1ce2c6abfdb3.
+Its 116 source entries have 105 current hash matches and 11 differences, with
+none missing. One concrete difference is client_lifecycle.cpp: receipt
+e9e1095a65310bbf1c49eb7d0366bd1310d57d495122f4241e653611cae36552,
+current e77a7b2f93c195933931353bbc64aec8c9bca270ca461151b2310f4bc4533435.
+The runner intentionally requires a helper receipt bound to ALL current sources;
+an old matched binary pair cannot pass that gate after source changes.
+
+The separate ignored, metadata-only socket sampler observed 91 intervals while
+the preflight ran: zero game-PID rows and zero selected TCP/UDP endpoint rows.
+Its journal is local/privacy270-sockets.jsonl, SHA256
+cede97c34a07eb71db506ec4c922a6a36c39cfbbceaa44e4bc166d1d30bd4a3.
+The sampler script is local/privacy270-socket-sample.ps1. It was subsequently
+parameterized for271 without changing this retained journal;its final SHA256 is
+31a5a3cedc567cc08e158eca5ce1cbb3f47c366222ff39ce0dc3b2b0b4df7ad3.
+No owned verifier output directory was created; the parent verifier processes
+exited and no owned child process remained.
+
+This is a preflight incompatibility, not a failed game or evidence about
+connected reporting. A future P5 observation needs a package/game/helper/receipt
+pair rebuilt or otherwise validly bound to the then-current source, followed by
+the specific network/queue/descendant attribution. Do not use the old verifier
+pair to claim a current-source connected D5 result.

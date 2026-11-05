@@ -1,0 +1,29 @@
+D5 / P5-P8 - explicit FFI in connected packaged Python driver modules
+
+2026-10-30. Retained412 public1/two-human package/source review PASS;
+full D5 OPEN. No game or package was rerun.
+
+The412 host and two adapter reports each identify six production Python
+modules imported from their exact packaged app directory. All18 module
+records match the package manifest's file hashes. A bounded AST review of
+those reported modules finds three distinct explicit ctypes DLL constructors:
+server.credentials has kernel32 and advapi32;server.worker_client has
+kernel32. The clients report server.credentials but not worker_client.
+The declared Windows APIs in those two source modules handle private
+credential files/ACLs and worker Job ownership. No explicit WinDLL/CDLL/
+OleDLL/PyDLL constructor in the selected reported modules names a network
+DLL. These are source facts,not runtime counts of native API calls.
+
+This narrows412's direct-ctypes concern for these named bundled modules.
+The driver reports are selected production-module inventories;other imports,
+stdlib/extension code,dynamic lookup,worker-native DLLs,OS/kernel traffic and
+actual wire remain outside this check. It does not prove process-wide or
+whole-tree absence of direct native networking,or any SDK queue result.
+
+tools.review_d5_packaged_ffi416 reuses the retained412 connected review,
+checks each reported module path/hash against the matching package manifest,
+parses the exact packaged source and asserts the three distinct DLL sites.
+Ignored receipt:
+ local/privacy416-packaged-ffi01/verification.json SHA256
+ 41b639bf599f97d2abf7d1c375febefa05a44c3d46634f929b6b2b6660f2166d.
+P5-P8/full D5 remain OPEN;RUNTIME_VALIDATED=false,published174 unchanged.

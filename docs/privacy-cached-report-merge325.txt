@@ -1,0 +1,44 @@
+D5 / P7 - remaining direct SDK metadata merge in cached-report construction
+
+2026-10-28. Source and owned-installed call-chain review PASS;P7/D5 OPEN.
+
+The fifth original direct E8 call to Payload.Metadata.MergeMetadata is at
+844701 inside BugsnagUnity.Payload.Event::.ctor 843e80. The Event constructor's
+only direct E8 caller is Report::.ctor 84b090 at84b4a9. The Report constructor's
+only direct E8 caller is <ProcessCachedItems>d__37::MoveNext 8204c0 at8209e1.
+The current recipe34 guards that MoveNext at entry with xor eax,eax;ret,
+before its direct Report constructor call. The owned installed GameAssembly
+contains that same entry guard. Both constructors retain their original bodies.
+Thus this named automatic saved-report resume chain cannot reach the remaining
+merge on a fresh patched launch through those direct edges.
+
+The same verifier also closes the exact five-call direct inventory in source
+and the owned installed image. Client::.ctor and Client.InitMetadata have NOPs
+at812ff0/814064. The two calls at8161b2/816289 are inside the entry-guarded
+Client.NotifyOnMainThread 815ba0;its original tail remains intact. The fifth
+uses the guarded MoveNext chain above. These findings establish that none of
+the five original direct call sites reaches MergeMetadata through its named
+fresh-entry path in recipe34. The shared helper and constructor bodies remain.
+
+tools/verify_cached_report_merge325.py PASS checks pinned original GameAssembly
+and metadata,four method identities/codegen pointers/unwind extents and full
+byte-matched original LLVM bodies:974 NotifyOnMainThread,448 MoveNext,1687
+Event constructor and264 Report constructor instructions. It checks each exact call instruction and
+the complete original direct E8 caller inventories for Event and Report. It
+binds source recipe34 output SHA256
+dd8464a34a84a3d4e66ef59390d28a894c75227f1eeab1c5f01ce1c10b808c26
+and owned installed GameAssembly SHA256
+30600add160a5bd1c23f4f3e37749080596985582ce577e22308cbfe9c64713e.
+For both,NotifyOnMainThread has the one-byte entry return and MoveNext has
+the three-byte entry return,with unchanged remainders;the two Client merge
+sites are five-byte NOPs. Event and Report constructors match the original
+complete bodies. Original
+disassemblies generated for this check stay ignored under local/privacy325-*.
+
+This narrows the open independent-payload-builder note in324. Event and Report
+constructors remain callable by direct diagnostic fixtures or possible indirect
+or reflective paths;the source check does not establish their process-wide
+unreachability. It does not inspect real SDK report files or queue,prove that
+older in-flight work is cancelled,or establish file/network/descendant coverage.
+No new code guard or runtime launch was needed. Published174 is unchanged;
+RUNTIME_VALIDATED=false.

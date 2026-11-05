@@ -1,0 +1,42 @@
+D5 USER-CONFIG REPORT CALLBACK SOURCE GUARD280
+2026-10-28. Bounded P7 source transformation PASS;runtime/final-installed P7/D5 OPEN.
+
+Original build37822 IL2CPP metadata RGame.dll token0x600055b maps
+Uncapped.BugsnagCrashReporter.AddUserConfigToReport to RVA3cc5df0;token
+0x600055c maps GenerateUserConfigCrashMetadata to RVA3cc5ee0. The former
+calls the latter at3cc5e4a,can add metadata to its report argument,and
+returns the reporter static enabled byte at3cc5eba-3cc5ecd. The reporter
+class initializer writes true to that byte;SetEnabled can write false.
+This is the reporter-specific report-metadata callback,not the shared
+configuration reader.
+
+Recipe24 adds one exact-build entry guard at RVA3cc5df0/file offset3cc43f0:
+original 40534881ec80000000803d8136190300 -> 31c0c3 (return false).
+This prevents the callback body from collecting user configuration if an
+independent registered/indirect caller reaches it. The existing Subs and
+SendReport/Notify guards remain;SetEnabled and the shared configuration
+reader remain intact. No claim is made about the complete caller set,
+existing SDK queues,other reporter helpers,or delivery.
+
+The source recipe has129 guards and RUNTIME_VALIDATED=false. The installed
+local candidate used by261-279 remains recipe23/128 guards;published174
+also remains recipe23. No new game,package,installer,host,queue or network
+operation was performed. Source24 cannot inherit recipe23 runtime results.
+
+Exact original GameAssembly SHA256:
+e59d08c01479b27404778048d7e13546dbf3771f6b3912744c7c2bdf80c4e758.
+Original metadata SHA256:
+b760be9190309b14174cd272e1f83b730181b299bc7a0cdca66985c69dcdc57d.
+Ignored local/privacy280-guard-check.py SHA256:
+99f25732ac41ebd3797fd443ee157fded9a1f2cbacbc376e46dd1f711cd92092.
+Its PASS result local/privacy280-guard-check.json SHA256:
+a01b5b919d8817584bb946baf9cafda1f2392266561475b6e6aaa0aee0991abe.
+The result compares full output with the same recipe excluding only this
+new guard:exactly offsets3cc43f0-3cc43f2 change;all other bytes match.
+Patch/audit unit suites report49 passed/two optional-original skips on
+Python3.12/3.14. With pinned original directory supplied,the34 patch tests
+all pass on Python3.12,including all four component transforms and unaffected
+bytes.
+Next:install recipe24 in an owned copy,check its package binding and a
+relevant reporter/error route with passive queue/network/file attribution;
+continue P9 producer and remaining P1-P9 rows. Full D5 is OPEN.

@@ -1,0 +1,42 @@
+D5 / P7 - Unity Analytics configuration caller after blocked PerformPost
+
+2026-10-31. Read-only exact-PDB/pristine UnityPlayer source trace PASS at
+this narrow control-flow scope. P7/P9/D5 remain OPEN;RUNTIME_VALIDATED=false.
+No client,archived request,endpoint or queue was invoked for this trace.
+
+DispatcherService::FetchAndSaveConfigFromServer at RVA c59350 owns a
+WebRequestRestClient pointer at dispatcher+0xb70. If its +0xb58 gate is
+zero,it returns false immediately. On the active path it cleans up/destroys
+any previous request at that slot,allocates a fresh request,
+sets the request/header/body fields,then calls PerformPost at c59630.
+When PerformPost returns false,the caller immediately returns true without
+clearing +0xb70. On the true PerformPost branch it destroys the request,
+clears +0xb70 and returns false. Thus recipe47's false return follows the
+original pending branch and leaves an owned request for a later invocation
+or owner teardown. It does not immediately retry inside this method.
+
+BaseUnityAnalytics::UpdateConfigFromServer at c3b1f0 builds the config
+request and calls FetchAndSaveConfigFromServer at c3b476. It discards that
+Boolean result and continues local temporary cleanup. Its two direct
+references are from StartPreparingConfigRequest at c3ae9f and the static
+thunk at c2e680. StartPreparingConfigRequest at c3a680 either calls the
+update directly if no job queue/handle is available,or schedules one
+UpdateConfigFromServerStatic job. That reviewed body has no loop around
+the continuation. Its references include constructor-installed vtables;
+later virtual invocations and request destruction timing are not settled.
+
+This refines512/513's compatibility interpretation:the false guard does
+not itself spin inside the selected caller,while a retained request can
+remain pending. A future check should observe the request slot/owner over
+an actual applicable activation and shutdown;do not call a guessed owner
+or manufacture an archived report. Other network routes and P9 remain.
+
+Read-only Ghidra project uses the exact PDB-matched pristine UnityPlayer
+SHA256 ac144d56d53f07904d52ed27a1539de90bc3290038fe52d73d2f6b268c85d6bc.
+Both corrected -readOnly -noanalysis headless runs exited0. Ignored logs:
+local/d5-ghidra-12.1.4/pdb-config-post514-final-console.log SHA256
+c2cf397ef945c569f7cef48eac3b061b671d1b6edacf982b7eec232039890180;
+local/d5-ghidra-12.1.4/pdb-config-post514-callers-console.log SHA256
+635d501c6cf8fc14d4c6ce94e69e2ff1627499919540acda207b32a5053cf421.
+The first headless attempt failed on a UTF-8 BOM and made no source claim;
+the corrected script ran. No product files were changed.

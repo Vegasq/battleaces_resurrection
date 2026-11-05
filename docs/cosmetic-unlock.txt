@@ -1,4 +1,7 @@
 EXPERIMENTAL COSMETIC VISIBILITY AND OWNERSHIP
+Current navigation245:cosmetics.txt now separates completed picker/callback/
+persistence/selected-match claims from remaining all-item visuals/audio/input.
+The dated experimental/pending statements below describe their historical build.
 Updated:2026-10-19 UTC. Picker/model qualification; equip/persistence remain open.
 
 Activation and boundaries

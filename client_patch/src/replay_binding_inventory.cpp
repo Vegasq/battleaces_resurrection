@@ -176,7 +176,7 @@ static std::string snapshot(Obj controller,Obj button) {
     require(container.get() && id.get(),"replay binding existing container/id missing");
     require(ba::get<Obj>(container.get(),"Selectable")==button,"replay binding container owner");
     std::string ownActive;
-    if(ba::flag(L"-native-replay-menu-smoke")) {
+    if(ba::flag(L"-native-replay-menu-smoke") || ba::flag(L"-native-replay-entry-smoke")) {
         Root go(ui::gameObject(button)),active(ba::call(go.get(),"get_activeSelf"));
         ownActive=",\"active_self\":"+std::string(ba_catalog::unbox<bool>(active.get())?"true":"false");
     }
@@ -191,11 +191,12 @@ static std::string snapshot(Obj controller,Obj button) {
 }
 static void observe() {
     if(!ba::flag(L"-replay-binding-inventory") || finished || GetTickCount64()<due)return;
-    const bool replayMenu=ba::flag(L"-native-replay-menu-smoke");
+    const bool entry=ba::flag(L"-native-replay-entry-smoke");
+    const bool replayMenu=ba::flag(L"-native-replay-menu-smoke") || entry;
     if(replayMenu && !ba_replay_menu::canInspect())return;
     due=GetTickCount64()+250;
     try {
-        require(ui::unityThread() && ba::offlinePractice() && (replayMenu || ba::flag(L"-practice-ai-smoke")) &&
+        require(ui::unityThread() && (ba::offlinePractice() || (entry && ba::unified())) && (replayMenu || ba::flag(L"-practice-ai-smoke")) &&
             ba_native_settings::session && ba_native_settings::session->profile().rfind("nativestest_",0)==0,
             "replay binding inventory requires owned offline Unity practice");
         Root fsm(ba::get<Obj>(ba::owner,"_mainFSM")),current(ba::get<Obj>(fsm.get(),"_currentState"));

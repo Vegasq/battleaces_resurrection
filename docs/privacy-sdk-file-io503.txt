@@ -1,0 +1,35 @@
+D5 / P7 - pinned direct SDK System.IO file-call inventory
+
+2026-10-31. Static review PASS for the selected direct-call inventory only.
+Full P7/P9/D5 remains OPEN;RUNTIME_VALIDATED=false. No game launched or
+product patch changed for this check.
+
+tools.review_sdk_file_io503 pins the original GameAssembly and metadata
+hashes,decodes named BugsnagUnity.Windows methods in .text,and checks all
+direct E8 calls to selected System.IO File,Directory,FileStream,StreamReader,
+StreamWriter,DirectoryInfo and FileInfo methods. It finds exactly19 decoded
+sites. Fifteen are File/Directory calls in CacheManager:directory enumeration,
+cached device ID and JSON reads,expiry/deletion,creation and directory checks.
+The reviewer checks the current recipe45 guard entries and regenerated patched
+GameAssembly SHA256 da6f477e91dd6f97c08ecd98068ee100611a99c1da1cf650ff3080add5c9264d.
+
+The other four sites are StreamReader/StreamWriter constructors in
+Delivery.SerializeObject and PayloadManager.AddPendingPayload. At each owner,
+the reviewed method first allocates a System.IO.MemoryStream and passes that
+same object to both stream constructors. These four calls are in-memory
+serialization,not direct disk opens. This classification is bound to decoded
+register/stack instructions as well as the constructor targets.
+
+CacheManager.CheckForDirectoryCreation remains active:its three
+Directory.Exists/CreateDirectory pairs can create cache directories. Its
+direct-call body has no payload read/write;this does not establish that the
+directory is never created. Existing recipe45 guards and owned502 runtime
+evidence cover their named cached-file subcases only.
+
+PASS receipt:local/privacy503-sdk-file-io01/review503.json SHA256
+7ee14c9a8addeb05e4d3f86bdabcaf15a979de80c9f9a36eb1e2a428b96c5ba6.
+This inventory excludes indirect/virtual/reflection calls,other BCL types,
+native/OS APIs,actual queue traversal,live/inflight reporter state,whole wire,
+effective descendants and the independent P9 advertising producer. It adds
+source attribution but does not close the cross-cutting D5 requirement or
+justify a release flag change.

@@ -1,0 +1,31 @@
+D5 / P9 - advertising-manager readiness-byte candidate classification
+2026-10-28. Bounded source/current-owned review PASS;P9/D5 OPEN.
+
+311 leaves the manager+5c readiness-byte producer unknown. A targeted
+discovery pass over the pinned original Unity image found15 raw C6 disp8
+patterns that could encode a literal byte write of1 at an object's+5c.
+Raw byte matches alone do not identify the object,an instruction boundary
+or every way to write that field. Five nearby matches at105065c,10508ef,
+1050a95,1050c0c and105109e were a promising cluster because each also
+writes adjacent +5d. Their enclosing functions use an owner+30 pointer.
+
+tools/review_ads_flag_candidates312.py PASS checks complete byte-matched
+original LLVM bodies for those five roots (173+177+116+104+186 instructions),
+their exact +5c/+5d stores and unchanged current-owned Unity bytes. The
+first root is bound to the original serialization field literal
+"m_EnlightenSceneMapping";the same body also references LightProbes and
+Lightmaps fields. The cluster is therefore a Unity lightmap/scene-data
+serialization lead,with no positive binding to the advertising manager's
+global cell or request predicate. Do not patch it as an advertising producer.
+
+The remaining raw candidates include constructors,graphics/math and parser
+contexts;they were inspected as leads but are not promoted here into a
+complete writer inventory. Computed addresses,word/block stores,indirect
+native writes and unexamined code remain possible. This check finds no
+confirmed writer of the advertising manager's ID/error or +5c state,and
+does not prove they cannot be written. The separate Main+1498/c307c0
+producer remains unresolved. No product patch or game execution occurred.
+Original Unity SHA256 ac144d56d53f07904d52ed27a1539de90bc3290038fe52d73d2f6b268c85d6bc;
+current owned Unity SHA256 a53b0c613a86c737b7caa7588c7c93ae20d5d5700f9321a406df9dcca8e32a7f.
+Ignored source disassemblies:local/privacy312-ads-manager-writers01 and
+local/privacy312-ads-manager-adjacent01. RUNTIME_VALIDATED=false.

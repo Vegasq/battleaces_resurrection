@@ -1,0 +1,163 @@
+CLIENT SCENE RELEASE206 / PROVIDER207
+2026-10-26. Unload/provider boundaries resolved statically;D4 remains OPEN.
+Latest207 follow-up is at the end;206 evidence and its original source hashes remain.
+
+RESULT
+AssetMemoryManager scene unload is separate from205's scheduler cancellation.
+For a running scene operation,Addressables constructs a chain operation instead
+of immediately entering InternalUnloadScene. Both reviewed chain callbacks later
+call InternalUnloadScene. This establishes a deferred release path,not a safe
+way to cancel an indefinitely pending scene load. No production code changed.
+
+ASSET OWNERSHIP
+LoadSceneAsset3b217e0 captures loadSceneMode/activateSceneOnLoad in a closure and
+calls LoadAssetHelper<SceneInstance>137e760. The closure3b21cb0 forwards those
+values and priority100 through the AssetReference's virtual load method.
+The helper retains a handle in the typed bucket and optionally dispatches or
+registers completion. The map-manager iterator and its world-creation Action
+are a different layer;see204. Do not infer callback suppression from asset release.
+
+UnloadSceneAsset3b21920 looks up the requested bucket,list-filters to
+Bucket<SceneInstance>,selects the first match and calls RemoveScene2aba6d0.
+RemoveScene looks up the asset handle and removes the asset entry before testing
+the returned handle/version. A valid handle is converted to the typeless form
+and passed to Addressables.UnloadSceneAsync458bf40 with autoReleaseHandle=true.
+Missing bucket/entry or invalid handle can return a default handle;that is not
+proof that no native scene work exists. ReleaseBucket3b210e0 instead enumerates
+IBucket.Release (interface slot1) and clears the list after normal completion.
+Its interface dispatch is not a proven cancellation of every asynchronous asset.
+
+GENERIC IDENTITY
+Pinned metadata-registration186198290 resolves method specs235870 to
+LoadAssetHelper<SceneInstance>,24804 to Bucket<SceneInstance>.RemoveScene,
+293930/294007 to FirstOrDefault/OfType of that bucket. These bindings replace
+guessing from generic thunk names. Spec21752 also resolves204's readiness
+predicate to AsyncOperationHandle<SceneInstance>.get_IsDone;the earlier phase
+boundary remains valid. Exact raw generic-binding records are retained locally.
+
+PENDING UNLOAD PATH
+Addressables.UnloadSceneAsync458bf40 forwards to AddressablesImpl45987d0.
+At4598839 it requests IAsyncOperation interface slot14,metadata get_IsRunning.
+True branches at4598845 to CreateUnloadSceneWithChain4598a80. The other path
+converts the handle to SceneInstance and also checks running state before
+choosing InternalUnloadScene4598e40 or typed chain factory4598c10.
+The chain factories capture the AddressablesImpl owner,unload options and
+auto-release choice;they call ResourceManager.CreateChainOperation specializations
+158ea00/158f560 with the scene handle and their delegate. Delegate targets
+459c8e0/459c9f0 both call InternalUnloadScene. The generic chain scheduler itself
+was not reimplemented or runtime-qualified;no bounded completion is inferred.
+
+InternalUnloadScene calls SceneProviderExtensions.ReleaseScene4ce72d0 and can
+register an auto-release completion delegate on the returned operation. This
+does not remove the map iterator's completion Action or clear its ownership flags.
+
+The separately bound UnloadSceneOp.Execute4ceaf80 checks the scene-load handle
+and calls the exact icall Scene.GetIsLoadedInternal. Only the loaded-scene branch
+calls SceneManager.UnloadSceneAsyncInternal50ae4b0 and subscribes to its completion.
+The invalid/not-loaded branch takes completion/release handling without that
+native unload call. The remaining generic completion helper and native scene
+engine behavior are not proven here. In particular,an unactivated Unity load is
+not established to be cancelled by this branch. Kill iterator + unload therefore
+remains an unqualified recovery proposal;retain the existing native-state guard.
+
+VERIFICATION
+tools/review_scene_release.py verifies14 complete merged-unwind bodies and1576
+contiguous decoded instructions against original and installed bytes. It binds
+non-generic native method tables,selected call edges/branch anchors,six exact
+generic usage/spec records,the SceneInstance instantiation,IAsyncOperation slot14
+and the loaded-scene icall literal. Names in rendered annotations alone are not
+the verification basis. No native code executes;no runtime cancellation claim.
+Four opt-in controls PASS on Python3.12 (4.692s) and3.14 (4.784s),no skips:
+positive scoped result,wrong scene-generic binding,missing chain call and reversed
+running-branch text. Run BA_SCENE_RELEASE_EVIDENCE=local/loading206-assets01 with
+python -m unittest tests.test_scene_release.
+
+Report:local/loading206-assets01/verification01.json
+SHA256:ab5fa849f9bc1c9c470edd8c910413341c7d9c653e83cb34212357cc4341038b
+Verifier:d9723f103d3b18fba8691a7a70e146a485917ef9445ff9c0604f421c70b3233d
+Tests:f5fcdb18cb301a4209c21290b7b6fc22b1d8d927e0955920ab6a015c571d585a
+Original GameAssembly:e59d08c01479b27404778048d7e13546dbf3771f6b3912744c7c2bdf80c4e758
+Metadata:b760be9190309b14174cd272e1f83b730181b299bc7a0cdca66985c69dcdc57d
+Installed GameAssembly:f9e14f0b45134eb96e51c4cd7c3965049ae317a64734a364e43ab8325f35d3fa
+Full body/assembly hashes in report;source/evidence inventory and prior planning
+snapshots under local/loading206-assets01. Existing LLVM/PE/metadata REA fallback;
+no provider setup,repeated native launch,build or publication. Preview203 latest.
+
+NEXT MISSING CLAIM
+Follow SceneProvider.SceneOp's pre-activation completion and Destroy behavior:
+when activateOnLoad=false,does release terminate the native AsyncOperation or
+only release managed/dependency ownership? Determine whether a controlled drain
+requires scene activation before unload,and how to prevent world creation during
+that drain. Reuse204-206's reviewed scheduler/asset/chain bodies. Do not force
+clear mapLoad/world flags or use a completed unload handle as proof of native
+teardown. Client slow-load recovery remains open until an owned runtime check
+proves usable menu/retry,correct cleanup and normal Quit on the final approach.
+
+PROVIDER207 FOLLOW-UP - PRE-ACTIVATION COMPLETION
+The original SceneOp does deliberately complete its Addressables operation before
+native scene activation in one branch. Its Update4ceab60 succeeds when native
+AsyncOperation.isDone is true OR allowSceneActivation is false and progress is
+approximately0.9. The latter branch removes the update receiver and completes
+with the retained SceneInstance even though the native load is not done.
+This positively explains204's distinction between operation readiness and full
+map/world completion;it is not a missing IsDone check we should patch.
+
+Exact icall literals bind4ceabee to get_isDone and4ceac2f to
+get_allowSceneActivation. True isDone jumps to completion4ceac65. Otherwise true
+allowSceneActivation returns;false calls get_progress,compares against float32
+0.8999999761581421 through helper85c0a0,and completes only when that relative/
+absolute tolerance comparison succeeds. The helper's full arithmetic body is
+verified;no new name-based dependency on a guessed generic symbol.
+RemoveUpdateReciever is called4ceac83,followed by the Complete specialization at
+4cead6f with success=true. The missing native activation remains the map-loader's
+responsibility;reuse204's later allowSceneActivation=true and activation wait.
+
+Execute4ce9f80 passes m_ActivateOnLoad+ a0 to InternalLoadScene4cea590 and retains
+its SceneInstance at+a8 (native AsyncOperation reference at+b0). InternalLoadScene
+calls SceneManager.LoadSceneAsync,then the exact set_allowSceneActivation icall
+with the supplied flag. This confirms that the earlier completion branch is
+reachable for the game's chosen inactive scene-load mode.
+
+SceneOp.Destroy4cea9c0 checks m_DepOp+d0/version+d8 and releases that dependency
+handle via279e330. It does not read the native operation at+b0,set activation or
+call scene unload in this body. Metadata spec278767 is the dependency handle's
+Release specialization,not a scene cancellation API. Transitive dependency
+destruction/native engine internals are outside this result. Combined with206's
+loaded-scene check,this does not establish safe cancellation of an unactivated
+load. Preserve the original map callback/guard rather than force-clearing state.
+
+VERIFICATION207
+Extended existing tools/review_scene_release.py with explicit --provider-only;
+no separate verifier or duplicate source module. It reuses the exact206 report
+by hash and verifies five new full bodies/717instructions,SceneOp method bindings,
+field offsets,icall literals,threshold bytes,generic identities,branches/calls
+and unchanged installed bytes. Original206 source/test snapshots remain intact.
+Eight controls pass on Python3.12 (8.698s) and3.14 (8.945s),no skips:four retained
+unload controls plus provider positive scope,activation branch reversal,substituted
+scene-handle release text,and missing progress branch. Both evidence environment
+variables are set:BA_SCENE_RELEASE_EVIDENCE=local/loading206-assets01 and
+BA_SCENE_PROVIDER_EVIDENCE=local/loading207-provider01.
+
+Report:local/loading207-provider01/verification01.json
+SHA256:95d79a3451577815b9fe66f580bcf6133770cf487056c3e10e359016805fba90
+Verifier207:dd52ae36da636417894979af86f16d7319fbdbc11faf8f0276953b4a6426822d
+Tests207:f5e94ee886e01b39625677288c8ba953a26af2455e9b754f3612c8c4902cc3cb
+Original/metadata/installed identities unchanged from206. Full source/evidence
+inventory and prior planning bytes:local/loading207-provider01. No game launch,
+package change,provider setup or publication;latest preview203 remains unchanged.
+
+NEXT207 - QUALIFY DEFERRED RECOVERY,NOT A SPECULATIVE CANCEL PATCH
+The selected static boundary is now answered:operation completion and native
+activation differ,and Destroy does not supply the required scene cancellation.
+Stop expanding the same loader/scheduler/unload trace without a new concern.
+Next bounded runtime claim:the current deferred recovery remains usable when a
+native map callback completes late,including beyond the real120s diagnostic.
+Prepare an owned,one-shot delayed-completion control that keeps the Unity thread
+pumping and original fields intact;release the delay and observe original world
+completion,reason1 cleanup,menu/retry,preserved choices and normal Quit. Reject
+any probe that calls Cleanup while mapLoad is true or skips the original callback.
+Reuse verify_custom_match's prior loading-abort path as context only:its forced
+final cleanup is not Quit and it has no native callback delay seam. Do not rerun
+that unchanged short abort merely to claim the new long-load case. A permanently
+stuck engine still requires the existing retained-state/restart diagnostic;
+late-completion success cannot close permanent-failure or full D4 acceptance.

@@ -1,0 +1,39 @@
+D5 / P5-P9 - recipe38 private package pair and connected match
+
+2026-10-28. Source-bound private package and owned connected public1
+compatibility PASS. Full P5/P7/P9/D5 remain OPEN;RUNTIME_VALIDATED=false.
+
+tools.build_windows_packages built the ignored dirty-source0.3.0-rc1.7
+recipe38 preview at local/privacy352-packages01 with current helper351-build01,
+source-bound launcher/client installer/certificate helper and official
+SHA-verified Python3.14.8 embeddable runtime. Game assets,private profiles
+and credentials are excluded. Both package manifests verify. This is not a
+published release. Build report SHA256:
+07a481f0bdac70837dd7ef422941c6796b8e40d8164fea8047752c7fe396a1fe.
+Client ZIP SHA256:
+9c3c53bffa281e379f25e209a4a35d15713cf6ca5b217964d9abef60c3f70381.
+Server ZIP SHA256:
+a00528115593c208819982721c07359858676cd5e9b43e82c5a412dd724012e1.
+
+The source-owned packaged multiplayer verifier ran these ZIPs,the owned
+recipe38 installed game and verified build37822 assets in one RC-open loopback
+public1 match. Two human clients reached complete result at1220 frames;both
+bundled launchers/games exited0 after original Continue/menu/Quit. Both server
+workers exited0 and were reaped;listener,status writer and lock released.
+Three owned jobs report5/2/2 total processes,all0 active/terminated at end.
+No forced cleanup. Source,package,assets,config,adapters and shared channels
+stayed unchanged;temporary PKI was removed. Elapsed118.172s. Retained
+local/privacy352-connected01/verification.json PASS SHA256:
+3d2ff31fd3bb4d80aa81e424a6159d9c03f2d5c409432e36f2c9587572df09e2.
+
+tools/review_d5_connected_pair352.py binds the run to current source/package/
+helper/installed GameAssembly and the separate recipe38 loaded session-cache
+guard1/1/natural menu Quit report351. Retained
+local/privacy352-connected01/review.json PASS SHA256:
+843e3a9ed6e20af43f2acfcfa99abc973f0abdc0f8fcebab036d8642c2a7b895.
+
+This closes the changed recipe38 private pair's connected compatibility gap.
+It does not include SDK queue/file or complete network/wire capture for the
+clients/server,other modes,all-thread/descendant attribution,actual session
+getter invocation or P9's upstream advertising-ID producer. Published174 is
+unchanged;final installed release privacy qualification remains OPEN.

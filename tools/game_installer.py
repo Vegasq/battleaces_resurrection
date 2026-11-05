@@ -15,8 +15,15 @@ from client_patch.transport import client, rc_setup, launcher
 from client_patch.transport.player_name import default_name, chosen_name
 
 LAUNCHER = 'Start Battle Aces.cmd'
+REPLAY_LAUNCHER = 'Watch Replay.cmd'
 MARKER = b'rem BA_RESURRECTION_GAME_LAUNCHER_V1'
 CONFIG = '.battleaces-resurrection/client-config.json'
+
+
+def replay_launcher_bytes():
+    return (b'@echo off\r\nsetlocal DisableDelayedExpansion\r\n'
+            b'rem BA_RESURRECTION_REPLAY_LAUNCHER_V1\r\n'
+            b'call "%~dp0Start Battle Aces.cmd" --replay\r\nexit /b %errorlevel%\r\n')
 
 
 def uninstall(game):
@@ -25,6 +32,10 @@ def uninstall(game):
     script=target.read_bytes() if target.exists() else None
     if script is not None and (MARKER not in script or len(script)>4096):
         raise PackageError('An unrelated Start Battle Aces.cmd exists; it was preserved')
+    replay_target=contained_path(game,REPLAY_LAUNCHER)
+    replay_script=replay_target.read_bytes() if replay_target.exists() else None
+    if replay_script is not None and replay_script!=replay_launcher_bytes():
+        raise PackageError('An unrelated Watch Replay.cmd exists; it was preserved')
     manifest=launcher.read_json(game/'.battleaces-resurrection/patch-manifest.json',131072)
     helper=contained_path(game,'BattleAcesOffline.dll')
     if helper.exists() and hashlib.sha256(helper.read_bytes()).hexdigest()!=manifest.get('helper_sha256'):
@@ -38,6 +49,9 @@ def uninstall(game):
         if target.read_bytes()!=script: raise PackageError('Launcher changed during restore; it was preserved')
         target.unlink()
     helper.unlink(missing_ok=True)
+    if replay_target.exists():
+        if replay_target.read_bytes()!=replay_script: raise PackageError('Replay launcher changed during restore; it was preserved')
+        replay_target.unlink()
     return dict(uninstalled=True,original_game_restored=True,saves_preserved=True,
                 recovery_directory=str(game/'.battleaces-resurrection'))
 
@@ -50,7 +64,7 @@ def launcher_bytes(runtime_relative):
     runtime = runtime_relative.replace('/', '\\')
     return ('@echo off\r\nsetlocal DisableDelayedExpansion\r\n' + MARKER.decode() + '\r\n'
             f'"%~dp0{runtime}\\program\\runtime\\python.exe" -I -B -m tools.package_client start '
-            '--config "%~dp0.battleaces-resurrection\\client-config.json"\r\n'
+            '--config "%~dp0.battleaces-resurrection\\client-config.json" %*\r\n'
             'set "BA_CLIENT_EXIT=%errorlevel%"\r\n'
             'if not "%BA_CLIENT_EXIT%"=="0" pause\r\n'
             'exit /b %BA_CLIENT_EXIT%\r\n').encode('ascii')
@@ -69,8 +83,12 @@ def install(package, request):
     # Validate the normal native storage boundary before patching/copying anything.
     config = contained_path(game, CONFIG)
     target = contained_path(game, LAUNCHER)
+    replay_target = contained_path(game, REPLAY_LAUNCHER)
     before_config = config.read_bytes() if config.exists() else None
     before_launcher = target.read_bytes() if target.exists() else None
+    before_replay_launcher = replay_target.read_bytes() if replay_target.exists() else None
+    if before_replay_launcher is not None and before_replay_launcher != replay_launcher_bytes():
+        raise PackageError('An unrelated Watch Replay.cmd exists; keep it and choose another working copy')
     if before_launcher is not None and (MARKER not in before_launcher or len(before_launcher) > 4096):
         raise PackageError('An unrelated Start Battle Aces.cmd exists; keep it and choose another working copy')
     previous = launcher.read_json(config, 32768) if before_config is not None else {}
@@ -116,14 +134,19 @@ def install(package, request):
             raise PackageError('Settings changed during installation; reopen the installer')
         if (target.read_bytes() if target.exists() else None) != before_launcher:
             raise PackageError('Game launcher changed during installation; existing launcher was preserved')
+        if (replay_target.read_bytes() if replay_target.exists() else None) != before_replay_launcher:
+            raise PackageError('Replay launcher changed during installation; existing launcher was preserved')
         try:
             atomic_write(config, (json.dumps(settings, indent=2)+'\n').encode('utf-8'))
             atomic_write(target, script)
+            atomic_write(replay_target, replay_launcher_bytes())
         except BaseException:
             if before_config is None: config.unlink(missing_ok=True)
             else: atomic_write(config, before_config)
             if before_launcher is None: target.unlink(missing_ok=True)
             else: atomic_write(target, before_launcher)
+            if before_replay_launcher is None: replay_target.unlink(missing_ok=True)
+            else: atomic_write(replay_target, before_replay_launcher)
             raise
     return dict(installed=True, launcher=str(target), config=str(config), runtime=str(runtime),
                 server_host=settings['server_host'], offline_supported=True)

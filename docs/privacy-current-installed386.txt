@@ -1,0 +1,27 @@
+D5 / P5-P9 - corrected private client package installed in owned game copy
+2026-10-30. Local installation and exact installed-byte review PASS;
+full D5/P5/P7/P9 remain OPEN,RUNTIME_VALIDATED=false.
+
+The extracted client package from private pair358 was installed through its
+bundled Python install-game command into the existing owned recipe38 game
+at local/privacy301-runtime01/game. Its133 game-file checks completed and
+the installer returned ok/exit0. No game process was running at the path
+before or after installation. This is an update of an owned patched copy,
+not a fresh clean-machine installation or a published release.
+
+tools/review_d5_installed_package386.py independently verifies the archive
+against build-report,all81 listed package files in both extracted and
+installed runtimes,identical package manifests,the exact generated launcher
+and replay launcher,the isolated loopback configuration,installed helper
+against its patch manifest and packaged runtime,and complete installed
+UnityPlayer against current source recipe38. The current installed helper
+SHA256 is98e4651ad427da3ab8f1a17d6f5108d2a5d9b28f28535c6acff43df45cffe58c.
+Retained ignored report local/privacy386-installed-package01/review.json
+PASS SHA256 08d01aa610b1058360b521ccc1272c0797b16dec67f09855d3e633aa15df9ca3.
+Installer log SHA256 2a6f10e637a818b951ee5796075f3b71be99ac827826243d73afa495f0aacc49.
+
+This binds the corrected private client's installed runtime to the source-
+bound package used by358's connected test. It does not run the installed
+launcher,install a server from this pair,observe real SDK queue/wire traffic,
+identify the advertising producer or qualify the final public installer.
+Published174 is unchanged. No Nick action was requested.

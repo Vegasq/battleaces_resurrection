@@ -123,3 +123,50 @@ Physical controls/pixels,protected storage,
 bundled ordinary execution,native Quit,LAN/Internet remain independent gates.
 All original game/bootstrap/capture bytes remain ignored;Git contains own source,
 authored test fixtures and this knowledge record only.
+
+SOURCE APPLICABILITY REVIEW241 - 2026-10-27 - COMPLETE
+T05's original named native pass remains checked off. Revalidated its unchanged
+report,preparation/helper receipt,raw logs,all four bootstraps/manifests/journals,
+both clients' complete frame receipts and native lease/Continue sequences.
+The failed fixture pilot remains byte-identical and FAILED. This review starts
+no game/server and does not compare today's shared files to historical seals.
+Historical D6-pending text above is superseded by Nick's accepted N1/D6 result.
+
+Recovered five exact source files from commit33e566c (including original CRLF
+where required),matching84's source hashes before comparing current bytes.
+public_client.cpp differs only by two opt-in custom-transition-smoke guards;
+that flag is absent from both retained command lines. Public attempt/wire/result,
+dedicated results,community native binding,and the three evidence readers plus
+server cosmetic validation remain byte-identical at the reviewed paths.
+client_lifecycle adds Replay ownership/entry and opted-in Custom diagnostic
+updates;existing local/remote acquire/release bodies remain. Replay entry is
+requested only by replay-select/replay-file,absent from84's arguments. Transport
+now validates directory portrait capability. local_loop now invokes a guarded
+replay update,which checks native owner/thread/service identity and replay
+ownership. These shared additions mean whole-build equivalence is NOT claimed.
+The original T05 pass stays at its recorded native/fixture-TLS scope;it is not
+fresh bundled/physical/native-Quit evidence for current237.
+
+Current server changes include session/save checks,async profile persistence,
+after-save activity revalidation,awaited room joins and sanitized diagnostics.
+Added test_same_sessions_cross_public_modes_after_each_complete_return to
+PublicQueueTests:actual loopback sockets retain the same two Session objects
+and frozen decks through1/2/5/1,correct seats/generations,four distinct matches,
+RETURN cleanup and four worker exits0. Synthetic workers run three frames per
+match;2v2 uses injected time and results are authored. This test does not prove
+native simulation completion,real30s waiting,TLS,cosmetics or physical controls.
+
+Focused public_matchmaking/profile_save_races/public_sequence_evidence suites:
+Python3.12 30tests/29pass/1skip,15.240s;Python3.14 same,13.675s. The skipped
+native snapshot test requires explicit BA_RUN_NATIVE_WORKER_TESTS opt-in and is
+not counted as acceptance. The new sequence regression passed on both versions.
+
+Artifacts:%LOCALAPPDATA%/BattleAcesDiagnostics/local/transition241-review01/
+review.py,review.json,source-comparison.json,original/current source snapshots,
+before documentation/test snapshots,and tests312.txt/tests314.txt are retained.
+review.json SHA256:
+8cd49782982d79fb0fb9f1ecf3ba340b6e61c9fb0d7f2b754be0b9e33fb43273
+Current source identities and reader/source assertions are bound in that report.
+No product/helper/package change,rebuild,publication or new Nick request.
+No further T05 rerun is justified by this review alone. Remaining final artifact
+integration and physical scope stay in D2;existing scoped passes stay complete.

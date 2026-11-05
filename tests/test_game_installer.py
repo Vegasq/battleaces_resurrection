@@ -111,6 +111,35 @@ class GameInstallerTests(unittest.TestCase):
         for relative in ('../escape','C:/absolute','abc & whoami','.battleaces-resurrection/client-runtime/%PATH%'):
             with self.assertRaises(ValueError):installer.launcher_bytes(relative)
 
+    def test_replay_shortcut_is_installed_and_unrelated_file_is_preserved(self):
+        replay = self.game / installer.REPLAY_LAUNCHER
+        replay.write_bytes(b'user shortcut')
+        with self.assertRaises(ValueError): self.install()
+        self.patcher.assert_not_called()
+        self.assertEqual(replay.read_bytes(), b'user shortcut')
+        replay.unlink();self.install()
+        self.assertEqual(replay.read_bytes(), installer.replay_launcher_bytes())
+        self.assertIn('--replay', replay.read_text())
+        self.assertIn('%*', (self.game / installer.LAUNCHER).read_text())
+
+    def test_replay_shortcut_publication_failure_rolls_back_config_and_launcher(self):
+        self.install()
+        paths = [self.game / installer.CONFIG, self.game / installer.LAUNCHER,
+                 self.game / installer.REPLAY_LAUNCHER]
+        before = [p.read_bytes() for p in paths]
+        original = installer.atomic_write
+        failed = False
+        def write(path, data):
+            nonlocal failed
+            if path == paths[2] and not failed:
+                failed = True
+                raise PermissionError('held replay shortcut')
+            return original(path, data)
+        with mock.patch.object(installer, 'atomic_write', side_effect=write):
+            with self.assertRaises(PermissionError): self.install('127.0.0.2')
+        self.assertTrue(failed)
+        self.assertEqual([p.read_bytes() for p in paths], before)
+
     def test_uninstall_restores_before_removing_owned_files_and_keeps_saves(self):
         result=self.install();helper=self.game/'BattleAcesOffline.dll';helper.write_bytes(b'known helper')
         manifest=self.game/'.battleaces-resurrection/patch-manifest.json'
@@ -121,6 +150,7 @@ class GameInstallerTests(unittest.TestCase):
         installer.uninstall(self.game)
         self.assertTrue(self.patcher.call_args.kwargs['restore'])
         self.assertFalse(helper.exists());self.assertFalse(Path(result['launcher']).exists())
+        self.assertFalse((self.game / installer.REPLAY_LAUNCHER).exists())
         self.assertEqual((saves/'gameconfig-localuser.toml').read_bytes(),b'keep saved deck')
         self.assertTrue(Path(result['runtime']).is_dir())
 

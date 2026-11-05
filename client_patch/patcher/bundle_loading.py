@@ -154,7 +154,7 @@ def _valid_receipt(value):
 
 
 def verify_bundles(root, *, previous=None, progress=None):
-    """Hash every file at install; rehash only changed fingerprints at launch."""
+    """Check current readability; hash at install or after a fingerprint change."""
     root = Path(root).resolve()
     cached = previous['files'] if _valid_receipt(previous) else {}
     files, hashed = {}, 0
@@ -163,13 +163,20 @@ def verify_bundles(root, *, previous=None, progress=None):
         before = _fingerprint(path.stat())
         if before['size'] != size:
             raise ValueError('Installed bundle size differs; repair the supported game files')
-        if not cached or cached[name]['fingerprint'] != before:
+        changed = not cached or cached[name]['fingerprint'] != before
+        if changed:
             if progress is not None:
                 progress(index, len(BUILD.BUNDLES))
-            with path.open('rb') as stream:
+        # Windows read denial/sharing changes need not alter the fingerprint.
+        # Cached integrity never substitutes for present access to the content.
+        with path.open('rb', buffering=0) as stream:
+            if changed:
                 actual = hashlib.file_digest(stream, 'sha256').hexdigest()
-            if _fingerprint(path.stat()) != before:
-                raise ValueError('Game content changed during verification')
+            elif not stream.read(1):
+                raise ValueError('Installed bundle cannot be read; repair the supported game files')
+        if _fingerprint(path.stat()) != before:
+            raise ValueError('Game content changed during verification')
+        if changed:
             if actual != expected:
                 raise ValueError('Installed bundle hash differs; repair the supported game files')
             hashed += 1
@@ -235,7 +242,16 @@ def verify_installed(root, value, *, progress=None):
     verified, hashed = verify_bundles(root, previous=previous, progress=progress)
     if hashed:
         from .patch_client import atomic_write
-        atomic_write(receipt_path, _json_bytes(verified))
+        try:
+            atomic_write(receipt_path, _json_bytes(verified))
+        except OSError:
+            # Content has already passed every check. This disposable cache is
+            # an optimization, not a prerequisite for playing verified files.
+            # Keep installation/other atomic writes strict; only this cache is
+            # best effort. A stale/missing receipt causes rehashing next launch.
+            print('Game files verified, but their verification cache could not be saved. '
+                  'Next launch may recheck files. Check free disk space and write access to the game folder.',
+                  file=sys.stderr, flush=True)
 
 
 def console_progress(done, total):

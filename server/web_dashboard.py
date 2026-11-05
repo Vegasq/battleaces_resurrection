@@ -14,6 +14,7 @@ import time
 from urllib.parse import parse_qs, urlsplit
 
 from .web_dashboard_page import PAGE, STYLE, SCRIPT
+from .profile_io import _await_owned
 
 HISTORY_LIMIT = 1000
 PAGE_SIZE = 50
@@ -100,6 +101,7 @@ class Dashboard:
         self.server, self.path = server, Path(path)
         self.records = OrderedDict()
         self.listener = self.worker = None
+        self._shutdown = None
         self.handlers = set()
         self.changed = asyncio.Event()
         self.stopping = False
@@ -251,9 +253,7 @@ class Dashboard:
         writer.write(header.encode('ascii') + (b'' if head else body))
         await writer.drain()
 
-    async def close(self):
-        self.stopping = True
-        if self.server.match_observer == self.record: self.server.match_observer = None
+    async def _close(self):
         if self.listener:
             self.listener.close()
         for task in list(self.handlers): task.cancel()
@@ -263,3 +263,20 @@ class Dashboard:
             self.changed.set()
             await self.worker
             self.worker = None
+
+    async def close(self):
+        if self._shutdown is None:
+            self.stopping = True
+            if self.server.match_observer == self.record: self.server.match_observer = None
+            self._shutdown = asyncio.create_task(self._close())
+        try:
+            await _await_owned(self._shutdown)
+        except asyncio.CancelledError:
+            # Cancelling to_thread's waiter cannot stop its filesystem write.
+            # Keep the complete shutdown owned, including accepted handlers,
+            # until publication settles before the host releases its state lock.
+            while not self._shutdown.done():
+                try: await _await_owned(self._shutdown)
+                except asyncio.CancelledError: pass
+            self._shutdown.result()
+            raise

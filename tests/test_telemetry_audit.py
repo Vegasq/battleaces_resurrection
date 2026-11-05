@@ -9,11 +9,23 @@ ORIGINAL = 'ac144d56d53f07904d52ed27a1539de90bc3290038fe52d73d2f6b268c85d6bc'
 
 
 def fixture(stages=DEFAULT_STAGES,*,recipe_version=RECIPE_VERSION):
-    core={3:12,4:14,5:15,6:16,7:18,8:21,9:25,10:27,11:28,12:31,13:40,14:48,15:53,16:53,17:56,18:56,19:56,20:56,21:56,22:56,23:56}[recipe_version]
+    core={3:12,4:14,5:15,6:16,7:18,8:21,9:25,10:27,11:28,12:31,13:40,14:48,15:53,16:53,17:56,18:56,19:56,20:56,21:56,22:56,23:56,24:56,25:56,26:56,27:56,28:56,29:56,30:56,31:56,32:56,33:56,34:56,35:56,36:56,37:56,38:56,39:57,40:58,44:58,45:58,46:58,47:59}[recipe_version]
     crash=4 if recipe_version>=23 else 3
     lines = [f'[100] Telemetry audit build verified: UnityPlayer sha256={SHA} '
              f'normalized={ORIGINAL} crashSignatures={crash}/{crash} coreCandidateSignatures={core}/{core} '
-             f'performanceCandidateSignatures=3/3'+(' cacheFailureSignatures=5/5' if recipe_version>=16 else '')+(' serviceIdentitySignatures=2/2' if recipe_version==18 else '')+(f' serviceProfileSignatures=2/2 recipeVersion={recipe_version}' if recipe_version>=19 else '')+(' automaticCollectorSignatures=1/1' if recipe_version>=20 else '')+(' sdkInitializationSignatures=6/6' if recipe_version>=21 else '')+(' reportErrorSignatures=7/7' if recipe_version>=22 else '')+'; READ ONLY, no qualification claim']
+             f'performanceCandidateSignatures=3/3'+(' cacheFailureSignatures=5/5' if recipe_version>=16 else '')+(' serviceIdentitySignatures=2/2' if recipe_version==18 else '')+(f' serviceProfileSignatures=2/2 recipeVersion={recipe_version}' if recipe_version>=19 else '')+(' automaticCollectorSignatures=1/1' if recipe_version>=20 else '')+(' sdkInitializationSignatures=6/6' if recipe_version>=21 else '')+(' reportErrorSignatures=7/7' if recipe_version>=22 else '')+(f' reporterCallbackSignatures={7 if recipe_version>=26 else 3}/{7 if recipe_version>=26 else 3}' if recipe_version>=25 else '')+(' reporterEnabledSignatures=2/2' if recipe_version>=27 else '')+(' reporterRegistrationSignatures=1/1' if recipe_version>=28 else '')+(' networkBreadcrumbSignatures=1/1' if recipe_version>=29 else '')+(' breadcrumbCollectorSignatures=3/3' if recipe_version>=30 else '')+(' breadcrumbFacadeSignatures=2/2' if recipe_version>=31 else '')+(' sdkDataIngressSignatures=10/10' if recipe_version>=32 else '')+(' sdkContextSignatures=2/2' if recipe_version>=33 else '')+(' sdkMetadataMergeSignatures=2/2' if recipe_version>=34 else '')+(' sdkConfigurationIngressSignatures=6/6' if recipe_version>=35 else '')+(' sdkSceneMetadataSignatures=1/1' if recipe_version>=36 else '')+'; READ ONLY, no qualification claim']
+    if recipe_version >= 37:
+        lines[0] = lines[0].replace('; READ ONLY, no qualification claim',
+                                  ' sdkUserCacheSignatures=1/1; READ ONLY, no qualification claim')
+    if recipe_version >= 38:
+        lines[0] = lines[0].replace('; READ ONLY, no qualification claim',
+                                  ' sdkSessionCacheSignatures=1/1; READ ONLY, no qualification claim')
+    if recipe_version in (44,45,46,47):
+        lines[0] = lines[0].replace('; READ ONLY, no qualification claim',
+                                  f' sdkCacheReaderSignatures={5 if recipe_version>=45 else 4}/{5 if recipe_version>=45 else 4}; READ ONLY, no qualification claim')
+    if recipe_version >= 46:
+        lines[0] = lines[0].replace('; READ ONLY, no qualification claim',
+                                  ' sdkCacheDirectorySignatures=1/1; READ ONLY, no qualification claim')
     for sequence, stage in enumerate(stages, 1):
         prefix = f'[{100 + sequence}] Telemetry audit {sequence}'
         lines.extend([
@@ -28,6 +40,167 @@ def fixture(stages=DEFAULT_STAGES,*,recipe_version=RECIPE_VERSION):
 
 
 class TelemetryAuditTests(unittest.TestCase):
+    def test_recipe46_requires_cache_directory_guard(self):
+        lines=fixture(recipe_version=46)
+        self.assertTrue(verify_lines(lines,expected_sha256=SHA,recipe_version=46)['passed'])
+        for value in ('', ' sdkCacheDirectorySignatures=0/1', ' sdkCacheDirectorySignatures=1/2'):
+            changed=[lines[0].replace(' sdkCacheDirectorySignatures=1/1',value),*lines[1:]]
+            with self.subTest(value=value):
+                self.assertFalse(verify_lines(changed,expected_sha256=SHA,recipe_version=46)['passed'])
+
+    def test_recipe45_requires_delete_guard(self):
+        lines=fixture(recipe_version=45)
+        self.assertTrue(verify_lines(lines,expected_sha256=SHA,recipe_version=45)['passed'])
+        for value in ('', ' sdkCacheReaderSignatures=4/4', ' sdkCacheReaderSignatures=4/5'):
+            changed=[lines[0].replace(' sdkCacheReaderSignatures=5/5',value),*lines[1:]]
+            with self.subTest(value=value):
+                self.assertFalse(verify_lines(changed,expected_sha256=SHA,recipe_version=45)['passed'])
+
+    def test_current_recipe_requires_cache_reader_guards(self):
+        lines=fixture(recipe_version=44)
+        self.assertTrue(verify_lines(lines,expected_sha256=SHA,recipe_version=44)['passed'])
+        for value in ('', ' sdkCacheReaderSignatures=0/4', ' sdkCacheReaderSignatures=4/5'):
+            changed=[lines[0].replace(' sdkCacheReaderSignatures=4/4',value),*lines[1:]]
+            with self.subTest(value=value):
+                self.assertFalse(verify_lines(changed,expected_sha256=SHA,recipe_version=44)['passed'])
+
+    def test_recipe38_requires_session_cache_guard(self):
+        lines=fixture()
+        for value in ('', ' sdkSessionCacheSignatures=0/1',
+                      ' sdkSessionCacheSignatures=1/2'):
+            changed=[lines[0].replace(' sdkSessionCacheSignatures=1/1',value),*lines[1:]]
+            with self.subTest(value=value):
+                self.assertFalse(verify_lines(changed,expected_sha256=SHA)['passed'])
+        self.assertTrue(verify_lines(fixture(recipe_version=37),expected_sha256=SHA,recipe_version=37)['passed'])
+
+    def test_recipe37_requires_user_cache_guard(self):
+        lines=fixture()
+        for value in ('', ' sdkUserCacheSignatures=0/1',
+                      ' sdkUserCacheSignatures=1/2'):
+            changed=[lines[0].replace(' sdkUserCacheSignatures=1/1',value),*lines[1:]]
+            with self.subTest(value=value):
+                self.assertFalse(verify_lines(changed,expected_sha256=SHA)['passed'])
+        self.assertTrue(verify_lines(fixture(recipe_version=36),expected_sha256=SHA,recipe_version=36)['passed'])
+
+    def test_recipe36_requires_scene_metadata_guard(self):
+        lines=fixture()
+        for value in ('', ' sdkSceneMetadataSignatures=0/1',
+                      ' sdkSceneMetadataSignatures=1/2'):
+            changed=[lines[0].replace(' sdkSceneMetadataSignatures=1/1',value),*lines[1:]]
+            with self.subTest(value=value):
+                self.assertFalse(verify_lines(changed,expected_sha256=SHA)['passed'])
+        self.assertTrue(verify_lines(fixture(recipe_version=35),expected_sha256=SHA,recipe_version=35)['passed'])
+
+    def test_recipe35_requires_six_configuration_ingress_guards(self):
+        lines=fixture()
+        for value in ('', ' sdkConfigurationIngressSignatures=0/6',
+                      ' sdkConfigurationIngressSignatures=5/6',
+                      ' sdkConfigurationIngressSignatures=6/5'):
+            changed=[lines[0].replace(' sdkConfigurationIngressSignatures=6/6',value),*lines[1:]]
+            with self.subTest(value=value):
+                self.assertFalse(verify_lines(changed,expected_sha256=SHA)['passed'])
+        self.assertTrue(verify_lines(fixture(recipe_version=34),expected_sha256=SHA,recipe_version=34)['passed'])
+
+    def test_recipe34_requires_both_sdk_metadata_merge_guards(self):
+        lines=fixture()
+        for value in ('', ' sdkMetadataMergeSignatures=0/2',
+                      ' sdkMetadataMergeSignatures=1/2',
+                      ' sdkMetadataMergeSignatures=2/3'):
+            changed=[lines[0].replace(' sdkMetadataMergeSignatures=2/2',value),*lines[1:]]
+            with self.subTest(value=value):
+                self.assertFalse(verify_lines(changed,expected_sha256=SHA)['passed'])
+        self.assertTrue(verify_lines(fixture(recipe_version=33),expected_sha256=SHA,recipe_version=33)['passed'])
+
+    def test_recipe33_requires_both_sdk_context_guards(self):
+        lines=fixture()
+        for value in ('', ' sdkContextSignatures=0/2',
+                      ' sdkContextSignatures=1/2',
+                      ' sdkContextSignatures=2/3'):
+            changed=[lines[0].replace(' sdkContextSignatures=2/2',value),*lines[1:]]
+            with self.subTest(value=value):
+                self.assertFalse(verify_lines(changed,expected_sha256=SHA)['passed'])
+        self.assertTrue(verify_lines(fixture(recipe_version=32),expected_sha256=SHA,recipe_version=32)['passed'])
+
+    def test_recipe32_requires_all_ten_sdk_data_ingress_guards(self):
+        lines=fixture()
+        for value in ('', ' sdkDataIngressSignatures=0/10',
+                      ' sdkDataIngressSignatures=9/10',
+                      ' sdkDataIngressSignatures=10/9'):
+            changed=[lines[0].replace(' sdkDataIngressSignatures=10/10',value),*lines[1:]]
+            with self.subTest(value=value):
+                self.assertFalse(verify_lines(changed,expected_sha256=SHA)['passed'])
+        previous=fixture(recipe_version=31)
+        self.assertTrue(verify_lines(previous,expected_sha256=SHA,recipe_version=31)['passed'])
+
+    def test_recipe31_requires_both_breadcrumb_facades(self):
+        lines=fixture()
+        for value in ('', ' breadcrumbFacadeSignatures=0/2',
+                      ' breadcrumbFacadeSignatures=1/2',
+                      ' breadcrumbFacadeSignatures=2/3'):
+            changed=[lines[0].replace(' breadcrumbFacadeSignatures=2/2',value),*lines[1:]]
+            with self.subTest(value=value):
+                self.assertFalse(verify_lines(changed,expected_sha256=SHA)['passed'])
+        previous=fixture(recipe_version=30)
+        self.assertTrue(verify_lines(previous,expected_sha256=SHA,recipe_version=30)['passed'])
+
+    def test_recipe30_requires_breadcrumb_collector_guards(self):
+        lines=fixture()
+        for value in ('', ' breadcrumbCollectorSignatures=0/3',
+                      ' breadcrumbCollectorSignatures=2/3',
+                      ' breadcrumbCollectorSignatures=3/2'):
+            changed=[lines[0].replace(' breadcrumbCollectorSignatures=3/3',value),*lines[1:]]
+            with self.subTest(value=value):
+                self.assertFalse(verify_lines(changed,expected_sha256=SHA)['passed'])
+        previous=fixture(recipe_version=29)
+        self.assertTrue(verify_lines(previous,expected_sha256=SHA,recipe_version=29)['passed'])
+
+    def test_recipe29_requires_network_breadcrumb_guard(self):
+        lines=fixture()
+        for value in ('', ' networkBreadcrumbSignatures=0/1',
+                      ' networkBreadcrumbSignatures=1/2'):
+            changed=[lines[0].replace(' networkBreadcrumbSignatures=1/1',value),*lines[1:]]
+            with self.subTest(value=value):
+                self.assertFalse(verify_lines(changed,expected_sha256=SHA)['passed'])
+        previous=fixture(recipe_version=28)
+        self.assertTrue(verify_lines(previous,expected_sha256=SHA,recipe_version=28)['passed'])
+
+    def test_recipe28_requires_reporter_registration_guard(self):
+        lines=fixture()
+        for value in ('', ' reporterRegistrationSignatures=0/1',
+                      ' reporterRegistrationSignatures=1/2'):
+            changed=[lines[0].replace(' reporterRegistrationSignatures=1/1',value),*lines[1:]]
+            with self.subTest(value=value):
+                self.assertFalse(verify_lines(changed,expected_sha256=SHA)['passed'])
+        previous=fixture(recipe_version=27)
+        self.assertTrue(verify_lines(previous,expected_sha256=SHA,recipe_version=27)['passed'])
+
+    def test_recipe27_requires_both_reporter_enabled_guards(self):
+        lines=fixture()
+        for value in ('', ' reporterEnabledSignatures=0/2',
+                      ' reporterEnabledSignatures=1/2',
+                      ' reporterEnabledSignatures=2/3'):
+            changed=[lines[0].replace(' reporterEnabledSignatures=2/2',value),*lines[1:]]
+            with self.subTest(value=value):
+                self.assertFalse(verify_lines(changed,expected_sha256=SHA)['passed'])
+        prior=fixture(recipe_version=26)
+        self.assertTrue(verify_lines(prior,expected_sha256=SHA,recipe_version=26)['passed'])
+
+    def test_current_requires_seven_reporter_callback_guards(self):
+        lines=fixture()
+        for value in ('', ' reporterCallbackSignatures=0/7',
+                      ' reporterCallbackSignatures=6/7',
+                      ' reporterCallbackSignatures=7/3',
+                      ' reporterCallbackSignatures=3/3'):
+            changed=[lines[0].replace(' reporterCallbackSignatures=7/7',value),*lines[1:]]
+            with self.subTest(value=value):
+                self.assertFalse(verify_lines(changed,expected_sha256=SHA)['passed'])
+        prior=fixture(recipe_version=25)
+        self.assertTrue(verify_lines(prior,expected_sha256=SHA,recipe_version=25)['passed'])
+        self.assertFalse(verify_lines(prior,expected_sha256=SHA)['passed'])
+        old=fixture(recipe_version=24)
+        self.assertTrue(verify_lines(old,expected_sha256=SHA,recipe_version=24)['passed'])
+        self.assertFalse(verify_lines(old,expected_sha256=SHA)['passed'])
+
     def test_current_requires_all_four_crash_guards_and_exact_denominator(self):
         lines=fixture()
         for value in ('3/3','3/4','4/3','4/5','5/4','0/4'):
@@ -39,13 +212,13 @@ class TelemetryAuditTests(unittest.TestCase):
         self.assertFalse(verify_lines(old,expected_sha256=SHA)['passed'])
 
     def test_legacy_samples_require_explicit_legacy_recipe_and_never_validate_current(self):
-        for version in range(3,RECIPE_VERSION):
+        for version in range(3,41):
             old=fixture(recipe_version=version)
             self.assertFalse(verify_lines(old,expected_sha256=SHA)['passed'])
             result=verify_lines(old,expected_sha256=SHA,recipe_version=version)
             self.assertTrue(result['passed']);self.assertEqual(result['recipe_version'],version)
             self.assertFalse(verify_lines(fixture(),expected_sha256=SHA,recipe_version=version)['passed'])
-        for version in (True,2,RECIPE_VERSION+1,'4'):
+        for version in (True,2,41,42,43,RECIPE_VERSION+1,'4'):
             with self.subTest(version=version),self.assertRaises(ValueError):
                 verify_lines(fixture(),expected_sha256=SHA,recipe_version=version)
 
@@ -122,8 +295,8 @@ class TelemetryAuditTests(unittest.TestCase):
         lines = fixture()
         self.rejects([lines[0].replace(SHA, 'b' * 64), *lines[1:]], 'unsupported_or_partial_build')
         self.rejects([lines[0].replace(ORIGINAL, 'b' * 64), *lines[1:]], 'unsupported_or_partial_build')
-        self.rejects([lines[0].replace('56/56', '55/56'), *lines[1:]], 'unsupported_or_partial_build')
-        self.rejects([lines[0].replace('56/56', '10/10'), *lines[1:]], 'disabled_or_unrecognized_audit')
+        self.rejects([lines[0].replace('59/59', '58/59'), *lines[1:]], 'unsupported_or_partial_build')
+        self.rejects([lines[0].replace('59/59', '10/10'), *lines[1:]], 'disabled_or_unrecognized_audit')
 
     def test_unavailable_nonzero_or_missing_fields_and_objects(self):
         lines = fixture()

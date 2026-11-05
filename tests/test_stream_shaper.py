@@ -2,7 +2,7 @@
 import asyncio
 import unittest
 
-from tools.stream_shaper import StreamShaper
+from tools.stream_shaper import StreamShaper,ThreadedStreamShaper
 
 
 class StreamShaperTests(unittest.IsolatedAsyncioTestCase):
@@ -59,6 +59,8 @@ class StreamShaperTests(unittest.IsolatedAsyncioTestCase):
         writer.write(b'round trip'); await writer.drain()
         self.assertEqual(await asyncio.wait_for(reader.readexactly(10), 3), b'round trip')
         self.assertGreaterEqual(self.loop.time() - started, .095)
+        self.assertEqual(self.relay.stats['delay_samples'],2)
+        self.assertGreaterEqual(self.relay.stats['minimum_delay_ms'],45)
         writer.close(); await writer.wait_closed()
 
     async def test_capacity_and_shutdown_reap_live_connections(self):
@@ -90,6 +92,58 @@ class StreamShaperTests(unittest.IsolatedAsyncioTestCase):
             await asyncio.sleep(0)
             await asyncio.wait_for(self.relay.close(), 2)
             self.assertEqual(self.relay.tasks, set())
+
+    async def test_owned_thread_relays_and_releases_listener(self):
+        relay=ThreadedStreamShaper(self.port,rtt_ms=80,jitter_ms=10,seed=17)
+        try:
+            reader,writer=await asyncio.open_connection('127.0.0.1',relay.port)
+            data=bytes(range(256))*512;writer.write(data);await writer.drain()
+            self.assertEqual(await asyncio.wait_for(reader.readexactly(len(data)),5),data)
+            writer.close();await writer.wait_closed()
+        finally:result=await asyncio.to_thread(relay.close)
+        self.assertTrue(result['thread_stopped'] and result['listener_closed'])
+        self.assertEqual(result['active_connections'],0)
+        self.assertEqual(result['forwarded_bytes'],2*len(data))
+        self.assertGreater(result['delay_samples'],0)
+        self.assertGreaterEqual(result['minimum_delay_ms'],29)
+        with self.assertRaises(OSError):await asyncio.open_connection('127.0.0.1',relay.port)
+
+    async def test_owned_thread_failed_bind_reaps_itself(self):
+        with self.assertRaises(OSError):
+            await asyncio.to_thread(ThreadedStreamShaper,self.port,listen_port=self.port)
+
+    async def test_owned_thread_shutdown_with_pending_delivery(self):
+        relay=ThreadedStreamShaper(self.port,rtt_ms=500)
+        reader,writer=await asyncio.open_connection('127.0.0.1',relay.port)
+        writer.write(b'pending');await writer.drain();await asyncio.sleep(.02)
+        result=await asyncio.to_thread(relay.close)
+        self.assertTrue(result['thread_stopped']);self.assertEqual(result['active_connections'],0)
+        self.assertEqual(await asyncio.wait_for(reader.read(1),2),b'')
+        writer.close();await writer.wait_closed()
+
+    async def test_owned_thread_outage_refuses_then_restores_same_port(self):
+        relay=ThreadedStreamShaper(self.port)
+        reader=writer=None
+        try:
+            reader,writer=await asyncio.open_connection('127.0.0.1',relay.port)
+            writer.write(b'before');await writer.drain()
+            self.assertEqual(await asyncio.wait_for(reader.readexactly(6),2),b'before')
+            outage=await asyncio.to_thread(relay.outage)
+            self.assertEqual(outage,dict(port=relay.port,disconnected=1))
+            self.assertEqual(await asyncio.wait_for(reader.read(1),2),b'')
+            with self.assertRaises(OSError):
+                await asyncio.open_connection('127.0.0.1',relay.port)
+            self.assertEqual(await asyncio.to_thread(relay.restore),relay.port)
+            renewed,remote=await asyncio.open_connection('127.0.0.1',relay.port)
+            remote.write(b'after');await remote.drain()
+            self.assertEqual(await asyncio.wait_for(renewed.readexactly(5),2),b'after')
+            remote.close();await remote.wait_closed()
+        finally:
+            if writer:writer.close();await writer.wait_closed()
+            result=await asyncio.to_thread(relay.close)
+        self.assertEqual(result['accepted'],2)
+        self.assertEqual(result['active_connections'],0)
+        self.assertTrue(result['thread_stopped'] and result['listener_closed'])
 
 
 if __name__ == '__main__': unittest.main()

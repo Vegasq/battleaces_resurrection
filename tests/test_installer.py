@@ -33,6 +33,7 @@ class InstallerTests(unittest.TestCase):
         self.helper = self.root / 'synthetic-helper.dll'
         self.helper.write_bytes(b'MZ authored helper test fixture BA_RESURRECTION_RECOVERY_V1 OfflineMatchResultContinue\0 BA_RESURRECTION_NATIVE_SETTINGS_V1 OfflineLocalUserConfigPath\0 BA_RESURRECTION_NATIVE_SETTINGS_ERRORS_V1 OfflineLocalUserLoadTable\0 OfflineLocalUserSaveTable\0 BA_RESURRECTION_NATIVE_DECK_INPUT_V1 OfflineLocalDeckStorageLoad\0 BA_RESURRECTION_NATIVE_SETTINGS_ATOMIC_V1 BA_RESURRECTION_NATIVE_BACKUP_GUARD_V1 OfflineBackupInitialRead\0 OfflineBackupWriteText\0 BA_RESURRECTION_NATIVE_STORAGE_V1 OfflineBackupStoragePath\0 OfflineReplayStoragePath\0 OfflineCleanupAutoSaveReplay\0')
         self.helper.write_bytes(self.helper.read_bytes()+b' BA_RESURRECTION_NATIVE_REPLAY_LONG_PATH_V2')
+        self.helper.write_bytes(self.helper.read_bytes()+b' BA_RESURRECTION_STARTUP_FAILURE_V1 OfflineStartupFailure\0')
         self.bundles = AuthoredBundles(self.root)
         self.stack.enter_context(patch.object(bundle_loading, 'BUILD', self.bundles.build))
         self.stack.enter_context(patch.object(installer, 'ORIGINAL_SHA256', installer.digest(self.originals['GameAssembly.dll'])))
@@ -60,6 +61,7 @@ class InstallerTests(unittest.TestCase):
             self.assertEqual((self.root / '.battleaces-resurrection/original' / name).read_bytes(), self.originals[name])
         self.helper.write_bytes(b'MZ authored helper update BA_RESURRECTION_RECOVERY_V1 OfflineMatchResultContinue\0 BA_RESURRECTION_NATIVE_SETTINGS_V1 OfflineLocalUserConfigPath\0 BA_RESURRECTION_NATIVE_SETTINGS_ERRORS_V1 OfflineLocalUserLoadTable\0 OfflineLocalUserSaveTable\0 BA_RESURRECTION_NATIVE_DECK_INPUT_V1 OfflineLocalDeckStorageLoad\0 BA_RESURRECTION_NATIVE_SETTINGS_ATOMIC_V1 BA_RESURRECTION_NATIVE_BACKUP_GUARD_V1 OfflineBackupInitialRead\0 OfflineBackupWriteText\0 BA_RESURRECTION_NATIVE_STORAGE_V1 OfflineBackupStoragePath\0 OfflineReplayStoragePath\0 OfflineCleanupAutoSaveReplay\0')
         self.helper.write_bytes(self.helper.read_bytes()+b' BA_RESURRECTION_NATIVE_REPLAY_LONG_PATH_V2')
+        self.helper.write_bytes(self.helper.read_bytes()+b' BA_RESURRECTION_STARTUP_FAILURE_V1 OfflineStartupFailure\0')
         installer.install(self.root, helper=self.helper)
         self.assertEqual((self.root / 'BattleAcesOffline.dll').read_bytes(), self.helper.read_bytes())
         restored = installer.install(self.root, restore=True)
@@ -151,6 +153,17 @@ class InstallerTests(unittest.TestCase):
         for name, original in self.originals.items():
             self.assertEqual((self.root / name).read_bytes(), original)
         self.assertFalse((self.root / '.battleaces-resurrection').exists())
+
+    def test_startup_failure_contract_rejected_before_any_install_write(self):
+        complete = self.helper.read_bytes()
+        for marker in (b'BA_RESURRECTION_STARTUP_FAILURE_V1', b'OfflineStartupFailure\0'):
+            with self.subTest(marker=marker):
+                self.helper.write_bytes(complete.replace(marker, b''))
+                with self.assertRaisesRegex(ValueError, 'native startup failure handling'):
+                    installer.install(self.root, helper=self.helper)
+                for name, original in self.originals.items():
+                    self.assertEqual((self.root / name).read_bytes(), original)
+                self.assertFalse((self.root / '.battleaces-resurrection').exists())
 
     def test_optional_quit_recipe_requires_diagnostic_helper_before_writes(self):
         with self.assertRaisesRegex(ValueError, 'owned native Quit diagnostic helper'):

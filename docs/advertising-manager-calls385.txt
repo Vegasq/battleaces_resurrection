@@ -1,0 +1,23 @@
+D5 / P9 - direct calls into advertising-manager predicate and drain
+2026-10-30. Bounded original/current recipe38 review PASS;P9/D5 OPEN.
+
+A complete raw E8 rel32 target scan of the pinned original UnityPlayer .text
+finds one direct call each to manager readiness predicate3611d0 and queued
+callback drain361510:5fc6b and5fc77. Both are within the previously decoded
+public request5fb70 body. Its LLVM instruction boundaries,call targets and
+five original instruction bytes agree;the current owned recipe38 UnityPlayer
+has the same bytes at both sites. This confirms that the named public request
+is the only direct E8 caller of these two manager routines in this image.
+
+This does not exclude indirect calls,jumps,other manager operations or a
+separate Main+1498/c307c0 acquisition path. In particular,it does not prove
+that the readiness byte cannot be set through an alias,that an ID cannot be
+acquired elsewhere or that a live request never occurs. P9's producer and
+final installed privacy remain open. Next source evidence needs an indirect
+caller/manager writer or a proved pre-acquisition cut;another quiet run is
+not evidence of absence.
+
+tools/review_ads_manager_calls385.py PASS. Ignored report:
+local/privacy385-ads-manager-calls01/verification.json SHA256
+a8c81a825e1791d538007aed32845b19d2f856833d6255371ed24cc22299f48d.
+No game,identifier request,queue,installer or network endpoint was run.

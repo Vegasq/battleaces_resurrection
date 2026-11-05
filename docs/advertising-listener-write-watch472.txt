@@ -1,0 +1,59 @@
+D5 / P9 - native advertising listener-count write watch
+
+2026-10-31. Authored watchpoint control PASS;one private recipe39 menu/Quit
+watch PASS at its bounded scope. P9/D5 remain OPEN,RUNTIME_VALIDATED=false.
+
+The matching PDB and453 identify AdsIdHandler+0x78 as the
+std::list<IAdsIdListener*> head and+0x80 as its count. Prior458 sampled
+the count every50ms and found0,but could miss transient insertion/removal.
+This run uses Frida's per-thread x64 hardware write watchpoint on the exact
+eight-byte count. The official API documents Thread.setHardwareWatchpoint,
+Process.setExceptionHandler and synchronous onAdded thread observation:
+https://frida.re/docs/javascript-api/
+
+First,an entirely authored local WatchControl.exe wrote a known8-byte slot.
+The sensor's untruncated REA stream reported one single-step at the exact
+instruction after the store,RVA114f,with the expected value. The matching
+source,binary/store bytes,script,REA message and natural owned exit0/job2/0/0
+pass tools.review_ads_watchpoint471. The second write happened after Frida
+detached and the process still exited0. The first attempted Python control
+was rejected before child creation by the project's owned-image rule;its
+local/adswatch_471000000001/owner.json remains a failed setup record.
+Control artifacts:tests/fixtures/ads_watch471/host.cpp,
+tools/build_ads_watch471.ps1,tools/frida_watchpoint_control471.py,
+local/adswatch_471000000002/{build.json,ready.json,watch.js,
+rea-status.json,owner.json}. Control reviewer PASS.
+
+Then an owned fresh-profile local/privacy441-game01 recipe39 game was created
+suspended and assigned to a no-breakaway Job. REA Frida attached before the
+primary-thread release and installed the constructor/destructor/exit hooks.
+At constructor return,the handler pointer was0x1da0003db10,its count at
++0x80 was0,and the observer armed write watchpoints on the four then-current
+threads. New threads were armed through attachThreadObserver.onAdded. From
+that return through the exact handler destructor entry,the untruncated stream
+contains no watch-hit or watch-error. At destructor entry the same handler
+was still global,the list head was self-linked and count0;64 live thread IDs
+remained watched. Both self-TerminateProcess hooks observed exit0 after the
+global became null,with no watchpoint errors. The owned process exited0,
+job1/0/0 and no forced cleanup;source image hashes stayed unchanged.
+
+tools.review_ads_listener_watch472 PASS independently binds the positive
+sensor control,private game/helper image hashes,PID/runID/message order,
+count/head/owner identities,untruncated REA status and owned natural exit.
+Retained local/privacy472-adswatch01/{ready.json,observer.js,rea-status.json,
+verification.json,game.log};observer SHA256
+c9b78fbeef9709818c29328ef76fb1a2101cc36ead9b75e147c62bed1b52e8db;
+REA receipt SHA256
+5bdaf1ed6e1882f2af7a8fd2873ed46dd9f5bd212cb158cd90e7aa254704d713;
+owner receipt SHA256
+28b6a19233b91a49bfd603e0d5bf9b69b7126752d94db924d9e271ea35b4c797.
+REA final evidence ID ev_b27cf1c4c63a963d8188e58779e83babfeac347c7e282d97661a1ff3c83b644c.
+
+This closes the transient-count-write gap for this one recipe39 menu/Quit
+lifetime after constructor return. It does not cover construction before the
+watchpoint,other list fields or insertion forms that leave count unchanged,
+other modes,the separate provider/c307c0 callback,recipe40/final installed
+privacy,real queues or whole wire. No advertising ID or original provider
+was invoked intentionally. Next P9 work needs an upstream producer or
+supported-mode applicability;do not repeat this menu case without a changed
+path.

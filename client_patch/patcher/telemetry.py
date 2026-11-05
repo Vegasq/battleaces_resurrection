@@ -1,6 +1,6 @@
 """Exact-build telemetry patch transformations; no file or process operations.
 
-These 128 guards have static source/control-flow review. The complete recipe
+These 176 guards have static source/control-flow review. The complete recipe
 set has not been runtime validated; recipe2's 59 had a bounded compatibility run.
 They do not establish complete telemetry removal; see docs/telemetry.txt.
 Only brief patch safety signatures are included, never original game payloads.
@@ -10,7 +10,7 @@ import hashlib
 from types import MappingProxyType
 
 GAME_BUILD = 37822
-RECIPE_VERSION = 23
+RECIPE_VERSION = 47
 RUNTIME_VALIDATED = False
 VALIDATION_STATUS = "Scoped native compatibility verified; full lifecycle/report-removal qualification pending"
 UNRESOLVED_COMPONENTS = (
@@ -51,6 +51,11 @@ COMPONENTS = MappingProxyType({
         (
             Patch('Uncapped.BugsnagCrashReporter::Subs', 0x3cc2140, 0x3cc0740,
                   bytes.fromhex('40534883ec50803d22731903000f859f'), bytes.fromhex('c3')),
+            # This SDK-specific void helper appends an OnSendError delegate to
+            # Configuration+0x168. Cut independent registrations through the
+            # same API before reading the receiver or retained delegate.
+            Patch('BugsnagUnity.Configuration::AddOnSendError', 0x81b2b0, 0x8198b0,
+                  bytes.fromhex('48895c2410574883ec40488bfa488bd9'), bytes.fromhex('c3')),
             Patch('Uncapped.BugsnagCrashReporter::OnApplicationQuit', 0x3cc2af0, 0x3cc10f0,
                   bytes.fromhex('40534883ec20803d7369190300754b48'), bytes.fromhex('c3')),
             Patch('Uncapped.BugsnagCrashReporter::AddStaticMetadata', 0x3cc2bc0, 0x3cc11c0,
@@ -63,6 +68,40 @@ COMPONENTS = MappingProxyType({
                   bytes.fromhex('48895c2408574883ec30803d73641903'), bytes.fromhex('c3')),
             Patch('Uncapped.BugsnagCrashReporter::UnregisterDynamicMetadataEnricher', 0x3cc3150, 0x3cc1750,
                   bytes.fromhex('48895c2418574883ec60803d15631903'), bytes.fromhex('c3')),
+            # Bool report callback: the original builds user-config crash
+            # metadata before returning the reporter enabled flag. Return
+            # false before collection, including for an independent caller.
+            # Leave the shared config reader and SetEnabled(false) intact.
+            Patch('Uncapped.BugsnagCrashReporter::AddUserConfigToReport', 0x3cc5df0, 0x3cc43f0,
+                  bytes.fromhex('40534881ec80000000803d8136190300'), bytes.fromhex('31c0c3')),
+            # Four further Configuration.AddOnSendError Boolean callbacks.
+            # Subs is guarded, but independent/retained delegate invocation
+            # must return false before touching the report or reporter state.
+            Patch('Uncapped.BugsnagCrashReporter.<>c::<Subs>b__20_0', 0x3cc6930, 0x3cc4f30,
+                  bytes.fromhex('40534883ec30803d492b190300488bda'), bytes.fromhex('31c0c3')),
+            Patch('Uncapped.BugsnagCrashReporter.<>c::<Subs>b__20_1', 0x3cc6a70, 0x3cc5070,
+                  bytes.fromhex('40534883ec50803d0a2a190300488bda'), bytes.fromhex('31c0c3')),
+            Patch('Uncapped.BugsnagCrashReporter::CleanBugEvents', 0x3cc3700, 0x3cc1d00,
+                  bytes.fromhex('48895c2408488974241048897c241841'), bytes.fromhex('31c0c3')),
+            Patch('Uncapped.BugsnagCrashReporter::AssignCustomGroupingHash', 0x3cc4aa0, 0x3cc30a0,
+                  bytes.fromhex('48895c2410488974242048894c240857'), bytes.fromhex('31c0c3')),
+            # The reporter class initializer originally stores true at its
+            # private enabled byte+18. Start false even when another path
+            # initializes this class without calling the guarded Subs method.
+            Patch('Uncapped.BugsnagCrashReporter::.cctor enabled=false', 0x3cc687c, 0x3cc4e7c,
+                  bytes.fromhex('c64118014883c4205fc3cccccccccccc'), bytes.fromhex('c6411800')),
+            # Preserve SetEnabled's class-initialization,branch and store path,
+            # including SetEnabled(false). MOV BL,0 does not change EFLAGS,
+            # so the original JNE still consumes the preceding CMP result.
+            Patch('Uncapped.BugsnagCrashReporter::SetEnabled force=false', 0x3cc30fd, 0x3cc16fd,
+                  bytes.fromhex('0fb6da7518488d0d27fae702e8f29a95'), bytes.fromhex('b30090')),
+            # These Boolean reporter callbacks mutate the report before
+            # returning the enabled flag. Prevent the data/flag collection
+            # even if an independent delegate reaches either entry.
+            Patch('Uncapped.BugsnagCrashReporter::FlagFirstEvent', 0x3cc3600, 0x3cc1c00,
+                  bytes.fromhex('40534883ec30803d6b5e190300488bd9'), bytes.fromhex('31c0c3')),
+            Patch('Uncapped.BugsnagCrashReporter::AddVariablesToReport', 0x3cc5440, 0x3cc3a40,
+                  bytes.fromhex('40534883ec20803d3140190300488bd9'), bytes.fromhex('31c0c3')),
             Patch('Uncapped.AnalyticsUIActions::AddPlayerPing', 0x3e2f2f0, 0x3e2d8f0,
                   bytes.fromhex('48895c240848896c2410488974241848'), bytes.fromhex('c3')),
             Patch('Uncapped.AnalyticsUIActions::AddPlayerSpray', 0x3e2f4e0, 0x3e2dae0,
@@ -106,12 +145,18 @@ COMPONENTS = MappingProxyType({
                   bytes.fromhex('e85a05010044393d7b3b630649897e58'), bytes.fromhex('9090909090')),
             Patch('Bugsnag Client bypass cache directory and expiry IO', 0x8129db, 0x810fdb,
                   bytes.fromhex('e8704e020033d2488bcbe86641020044'), bytes.fromhex('909090909033d2488bcb9090909090')),
+            # Keep the genuine payload metadata object and Client lifetime.
+            # Suppress only its configuration-to-report metadata merge.
+            Patch('Bugsnag Client ctor omit configured metadata merge', 0x812ff0, 0x8115f0,
+                  bytes.fromhex('e8fb640300498b4e5833d2e820cbffff'), bytes.fromhex('9090909090')),
             Patch('Bugsnag Client bypass automatic lifecycle activation', 0x813183, 0x811783,
                   bytes.fromhex('4538be80000000740a33d2498bcee8ea'), bytes.fromhex('e9130100009090')),
             Patch('Bugsnag Client bypass global reporting callback setup', 0x81338d, 0x81198d,
                   bytes.fromhex('44383da05763067529488d0d1b8f3306'), bytes.fromhex('e9ca0300009090')),
             Patch('Bugsnag Client restored-register tail returns without log subscription', 0x813778, 0x811d78,
                   bytes.fromhex('e913f08004e86e0fddffcc488d0d4686'), bytes.fromhex('c390909090')),
+            Patch('Bugsnag Client InitMetadata omit configured metadata merge', 0x814064, 0x812664,
+                  bytes.fromhex('e887540300488b4f5833d2488b5c2430'), bytes.fromhex('9090909090')),
             Patch('Bugsnag NativeClient restored-register tail returns without low-memory subscription', 0x834ea1, 0x8334a1,
                   bytes.fromhex('e97ad47e04cccccccccccccccccccc48'), bytes.fromhex('c390909090')),
             Patch('BugsnagUnity.Bugsnag::Start', 0x810660, 0x80ec60,
@@ -126,6 +171,29 @@ COMPONENTS = MappingProxyType({
                   bytes.fromhex('48895c24084889742410574883ec3080'), bytes.fromhex('c3')),
             Patch('BugsnagUnity.Bugsnag::Notify', 0x810f60, 0x80f560,
                   bytes.fromhex('48896c241856415641574883ec30803d'), bytes.fromhex('c3')),
+            # Public void breadcrumb facades read SDK state and supplied
+            # inputs before their concrete/network collectors. Cut both
+            # entries,including an independent caller of either overload.
+            Patch('BugsnagUnity.Bugsnag::LeaveBreadcrumb with metadata', 0x811180, 0x80f780,
+                  bytes.fromhex('48895c240848896c2410488974241857'), bytes.fromhex('c3')),
+            Patch('BugsnagUnity.Bugsnag::LeaveBreadcrumb network', 0x8112a0, 0x80f8a0,
+                  bytes.fromhex('48895c2408574883ec30803d59786306'), bytes.fromhex('c3')),
+            # Public Bugsnag data setters are reporting-only void facades.
+            # Stop before singleton/type work or processing caller inputs.
+            Patch('BugsnagUnity.Bugsnag::SetUser', 0x811450, 0x80fa50,
+                  bytes.fromhex('48895c240848896c2410488974241857'), bytes.fromhex('c3')),
+            Patch('BugsnagUnity.Bugsnag::AddMetadata with section', 0x811c60, 0x810260,
+                  bytes.fromhex('48895c24084889742410574883ec3080'), bytes.fromhex('c3')),
+            Patch('BugsnagUnity.Bugsnag::AddMetadata', 0x811d00, 0x810300,
+                  bytes.fromhex('48895c2408574883ec30803d096e6306'), bytes.fromhex('c3')),
+            Patch('BugsnagUnity.Bugsnag::AddFeatureFlag', 0x811fb0, 0x8105b0,
+                  bytes.fromhex('48895c2408574883ec30803d5e6b6306'), bytes.fromhex('c3')),
+            Patch('BugsnagUnity.Bugsnag::AddFeatureFlags', 0x812040, 0x810640,
+                  bytes.fromhex('48895c2408574883ec20803dcf6a6306'), bytes.fromhex('c3')),
+            # Context is SDK report data. Cut both the public facade and the
+            # direct Client setter before reading or retaining caller text.
+            Patch('BugsnagUnity.Bugsnag::set_Context', 0x8118e0, 0x80fee0,
+                  bytes.fromhex('40534883ec20803d2572630600488bd9'), bytes.fromhex('c3')),
             Patch('BugsnagUnity.Client::Send', 0x8147e0, 0x812de0,
                   bytes.fromhex('48895c2408574883ec20488bfa488bd9'), bytes.fromhex('c3')),
             Patch('BugsnagUnity.Client::NotifyFromUnityLog', 0x814880, 0x812e80,
@@ -147,6 +215,63 @@ COMPONENTS = MappingProxyType({
                   bytes.fromhex('48895c2408488974241048897c24184c'), bytes.fromhex('c3')),
             Patch('BugsnagUnity.Client::NotifyOnMainThread queued collector', 0x815ba0, 0x8141a0,
                   bytes.fromhex('4c894c24204c89442418488954241048'), bytes.fromhex('c3')),
+            # Direct Client callers bypass the static facades. These void
+            # methods retain user/metadata/feature values in SDK state.
+            Patch('BugsnagUnity.Client::AddMetadata with section', 0x817760, 0x815d60,
+                  bytes.fromhex('4883ec38488b49204885c9741248c744'), bytes.fromhex('c3')),
+            Patch('BugsnagUnity.Client::AddMetadata', 0x817790, 0x815d90,
+                  bytes.fromhex('4883ec28488b49204885c9740c4533c9'), bytes.fromhex('c3')),
+            Patch('BugsnagUnity.Client::SetUser', 0x817830, 0x815e30,
+                  bytes.fromhex('48895c240848896c2410488974241848'), bytes.fromhex('c3')),
+            Patch('BugsnagUnity.Client::AddFeatureFlag', 0x817940, 0x815f40,
+                  bytes.fromhex('48895c24084889742410574883ec3080'), bytes.fromhex('c3')),
+            Patch('BugsnagUnity.Client::AddFeatureFlags', 0x8179d0, 0x815fd0,
+                  bytes.fromhex('48895c240848896c2410488974241848'), bytes.fromhex('c3')),
+            # Configuration and NativeClient also expose SDK-only data setters.
+            # Stop before retaining or forwarding borrowed caller values.
+            Patch('BugsnagUnity.Configuration::AddMetadata with section', 0x81bdf0, 0x81a3f0,
+                  bytes.fromhex('4883ec38488b49604885c9741248c744'), bytes.fromhex('c3')),
+            Patch('BugsnagUnity.Configuration::AddMetadata', 0x81be20, 0x81a420,
+                  bytes.fromhex('4883ec28488b49604885c9740c4533c9'), bytes.fromhex('c3')),
+            Patch('BugsnagUnity.Configuration::SetUser', 0x81bec0, 0x81a4c0,
+                  bytes.fromhex('48895c240848896c2410488974241848'), bytes.fromhex('c3')),
+            Patch('BugsnagUnity.Configuration::AddFeatureFlag', 0x81c1c0, 0x81a7c0,
+                  bytes.fromhex('4883ec28488b49684885c9740c4533c9'), bytes.fromhex('c3')),
+            Patch('BugsnagUnity.Configuration::AddFeatureFlags', 0x81c1e0, 0x81a7e0,
+                  bytes.fromhex('48895c240848896c2410488974241848'), bytes.fromhex('c3')),
+            Patch('BugsnagUnity.NativeClient::AddNativeMetadata', 0x8359a0, 0x833fa0,
+                  bytes.fromhex('4883ec28488b49284885c9740c4533c9'), bytes.fromhex('c3')),
+            Patch('BugsnagUnity.Client::SetContext', 0x817510, 0x815b10,
+                  bytes.fromhex('48895c2408574883ec20803d1f1663'), bytes.fromhex('c3')),
+            # Fresh SDK User initialization calls CacheManager.GetCachedDeviceId.
+            # Keep the constructed User and callback setup, but leave its Id
+            # unset instead of reading or generating a cached identifier.
+            Patch('BugsnagUnity.Client::InitUserObject cached device ID', 0x81428e, 0x81288e,
+                  bytes.fromhex('488b4b384885c90f846001000033d2e8'), bytes.fromhex('e9260000009090')),
+            # Independent session reporting constructs a Device payload using
+            # CacheManager.GetCachedDeviceId. Stop before acquiring that ID or
+            # any session-owned work; preserve shared getter and cleanup APIs.
+            Patch('BugsnagUnity.SessionTracker::StartManagedSession', 0x826b40, 0x825140,
+                  bytes.fromhex('48895c2410488974242048894c240857'), bytes.fromhex('c3')),
+            # This SDK-only void collector borrows its callback inputs. Guard
+            # the sink even if an independent web-completion route reaches it.
+            Patch('BugsnagUnity.Client::LeaveNetworkBreadcrumb', 0x8181f0, 0x8167f0,
+                  bytes.fromhex('40535641564883ec70803d4b096306'), bytes.fromhex('c3')),
+            # SDK scene-load callback can gather scene data and write it to
+            # Client.Metadata without a Notify call. Cut before those reads.
+            Patch('BugsnagUnity.Client::<ListenForSceneLoad>b__47_0', 0x818cf0, 0x8172f0,
+                  bytes.fromhex('48895c2418574883ec30803d4efe6206'), bytes.fromhex('c3')),
+            # The SDK's concrete breadcrumb overloads retain supplied content.
+            # Both return void; cut before conversion/list mutation regardless
+            # of which facade or independent caller reached them.
+            Patch('BugsnagUnity.Breadcrumbs::Leave with metadata', 0x835c60, 0x834260,
+                  bytes.fromhex('48895c240848896c2410488974241848'), bytes.fromhex('c3')),
+            Patch('BugsnagUnity.Breadcrumbs::Leave', 0x835d00, 0x834300,
+                  bytes.fromhex('48895c241056574154415641574883ec'), bytes.fromhex('c3')),
+            # The web-send event records request timing before completion.
+            # Preserve completion/abort handlers for existing cleanup.
+            Patch('BugsnagUnity.Client::OnWebRequestSend', 0x818040, 0x816640,
+                  bytes.fromhex('48895c2408574883ec40803df80a6306'), bytes.fromhex('c3')),
             Patch('.<DeliverCachedPayloads>d__36::MoveNext', 0x8201f0, 0x81e7f0,
                   bytes.fromhex('4889742410574883ec20803d79896206'), bytes.fromhex('31c0c3')),
             Patch('.<ProcessCachedItems>d__37::MoveNext', 0x8204c0, 0x81eac0,
@@ -161,6 +286,26 @@ COMPONENTS = MappingProxyType({
                   bytes.fromhex('48895c24084889742410574156415748'), bytes.fromhex('31c0c3')),
             Patch('BugsnagUnity.CacheManager::SaveDeviceIdToCache', 0x836ad0, 0x8350d0,
                   bytes.fromhex('48895c2408574883ec20803d47216106'), bytes.fromhex('c3')),
+            # This getter can generate and persist a new SDK device ID when
+            # no cached value exists. Return null before either read or write,
+            # including if an indirect caller bypasses the known entry guards.
+            Patch('BugsnagUnity.CacheManager::GetCachedDeviceId null', 0x8368b0, 0x834eb0,
+                  bytes.fromhex('48895c2408574883ec50488bf9803d63'), bytes.fromhex('31c0c3')),
+            # Preserve the original empty-array return and unwind path while
+            # bypassing Directory.GetFiles for both cached report queues.
+            Patch('BugsnagUnity.CacheManager::GetFilesBySuffix empty array', 0x83683a, 0x834e3a,
+                  bytes.fromhex('498bd8488bfa803ddf236106007518'),
+                  bytes.fromhex('e94500000090')),
+            # Even a direct path lookup must not read a cached SDK report.
+            # Reuse the original File.Exists-false null return and epilogue.
+            Patch('BugsnagUnity.CacheManager::GetJsonFromCachePath null', 0x837816, 0x835e16,
+                  bytes.fromhex('488bda33d2488bcbe88d02d10284c0'),
+                  bytes.fromhex('e91f00000090')),
+            # CacheManager::.ctor can be reached independently of Client's
+            # interior skip. Its void expiry helper enumerates both report
+            # queues and may delete aged entries. Stop before either read.
+            Patch('BugsnagUnity.CacheManager::RemoveExpiredPayloads', 0x836b50, 0x835150,
+                  bytes.fromhex('48895c2408488974241048897c241841'), bytes.fromhex('c3')),
             Patch('BugsnagUnity.CacheManager::SaveSessionToCache', 0x836f10, 0x835510,
                   bytes.fromhex('48895c24084889742410574883ec3080'), bytes.fromhex('c3')),
             Patch('BugsnagUnity.CacheManager::SaveEventToCache', 0x837020, 0x835620,
@@ -169,6 +314,15 @@ COMPONENTS = MappingProxyType({
                   bytes.fromhex('498bc04533c94c8bc2488bd0e9ff0500'), bytes.fromhex('c3')),
             Patch('BugsnagUnity.CacheManager::WriteFile', 0x837740, 0x835d40,
                   bytes.fromhex('48895c2408574883ec40498bf8488bc2'), bytes.fromhex('c3')),
+            # The SDK's short void deletion helper reaches System.IO.File.Delete.
+            # Parent report cleanup paths are already guarded, but an indirect
+            # caller can invoke this helper directly. Preserve cached reports.
+            Patch('BugsnagUnity.CacheManager::DeleteFile', 0x837720, 0x835d20,
+                  bytes.fromhex('4883ec38488bc233d2488bc8e81f02'), bytes.fromhex('c3')),
+            # Both Client and CacheManager constructors can reach this void
+            # helper. Do not create SDK cache directories for a disabled SDK.
+            Patch('BugsnagUnity.CacheManager::CheckForDirectoryCreation', 0x837850, 0x835e50,
+                  bytes.fromhex('4883ec38803dd2136106007518488d'), bytes.fromhex('c3')),
             Patch('BugsnagUnity.BugsnagAutoInit::OnBeforeSceneLoadRuntimeMethod', 0x80b370, 0x809970,
                   bytes.fromhex('40534883ec20803d52d7630600756d48'), bytes.fromhex('c3')),
             # Keep original pending lookup/removal and all saved-register exits.
@@ -200,6 +354,19 @@ COMPONENTS = MappingProxyType({
     'UnityPlayer.dll': Component(
         'ac144d56d53f07904d52ed27a1539de90bc3290038fe52d73d2f6b268c85d6bc',
         (
+            # The public advertising request below is the only direct reader
+            # of s_AdsIdHandler and already returns before using it. Keep the
+            # runtime-static registration/teardown, but decline its lazy
+            # allocator before it can construct the native listener list.
+            Patch('AdsIdHandler static initialization declines before native listener allocation', 0x361870, 0x360c70,
+                  bytes.fromhex('4c8d0589000000bab0000000e9af5432'), bytes.fromhex('c3')),
+            # The public Application advertising request roots a managed
+            # callback and queues it before checking manager readiness. A
+            # false return is the API's existing pending/unavailable result.
+            # Decline at entry so this request cannot acquire an identifier.
+            # The separate Main+1498 provider path still needs attribution.
+            Patch('Application RequestAdvertisingIdentifierAsync declines before callback queue', 0x5fb70, 0x5ef70,
+                  bytes.fromhex('48895c24184889742420574883ec604c'), bytes.fromhex('31c0c3')),
             Patch('force native crash/error reporting initialization disabled', 0xc90c2a, 0xc9002a,
                   bytes.fromhex('0fb64210488bf2884101488bd984c00f'), bytes.fromhex('31c09090')),
             Patch('prevent Unity crash-handler child creation', 0x80366f, 0x802a6f,
@@ -219,6 +386,10 @@ COMPONENTS = MappingProxyType({
             # Its caller forwards AL after releasing its own temporary strings.
             Patch('Unity analytics configuration preparation declines before borrowed input', 0xc34270, 0xc33670,
                   bytes.fromhex('48895c240848896c2410488974241857'), bytes.fromhex('31c0c3')),
+            # Final native Unity Analytics submission boundary. The original
+            # method can return false before Begin;both callers own cleanup.
+            Patch('Unity Analytics PerformPost declines before request preparation and send', 0xc64e20, 0xc64220,
+                  bytes.fromhex('40534883ec20488bd9e8e2f4ffff84'), bytes.fromhex('31c0c3')),
             # Always take the original retained-SSO fast return. Do not acquire,
             # migrate or persist a cloud ID;do not return null/fabricate an owner.
             Patch('Unity cloud user ID getter retains value without acquisition', 0xc478f5, 0xc46cf5,

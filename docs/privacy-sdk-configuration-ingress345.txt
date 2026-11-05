@@ -1,0 +1,61 @@
+D5 / P7 - Configuration and NativeClient SDK data ingress
+
+2026-10-28. Static/source,owned install,loaded-byte audit and natural menu
+Quit PASS;full P7/D5 remain OPEN.
+
+The pinned original BugsnagUnity.Windows metadata/codegen table identifies five
+callable,void Configuration reporting-data setters:AddMetadata(3),
+AddMetadata(2),SetUser(3),AddFeatureFlag(2),AddFeatureFlags(1). Their original
+bodies read or retain data independently of the previously guarded public
+Bugsnag and direct Client setters. NativeClient.AddNativeMetadata(2) is a sixth
+active void entry forwarding to the metadata store. Other inspected
+NativeClient setters resolve to the original RET stub,so no cut was added for
+those names. These are SDK-specific entries;shared game state/helpers are not
+patched.
+
+Recipe35 guards these six entries with void RET before reading caller data.
+It has164 guards total,99 in GameAssembly. RUNTIME_VALIDATED remains false.
+tools/verify_sdk_configuration_ingress345.py PASS binds the six metadata
+method identities,argument counts,void return types,codegen pointers,unwind
+extents and183 decoded original instructions to the pinned original SHA256
+e59d08c01479b27404778048d7e13546dbf3771f6b3912744c7c2bdf80c4e758.
+It checks exact entry preimages and output bytes. Restoring only these six
+entry bytes yields recipe34 source GameAssembly SHA256
+dd8464a34a84a3d4e66ef59390d28a894c75227f1eeab1c5f01ce1c10b808c26.
+Recipe35 source GameAssembly SHA256:
+eb016205270a729cf36300e7d8bd64fb5115b26afd8c51d9291e3f377c7a8b33.
+The source-owned audit now requires all six loaded/disk signatures for recipe35.
+
+The two focused Python test modules pass61 tests with2 optional skips.
+The first Windows C++ helper build and its embedded tests passed at
+local/privacy345-helper-build01. The installer dry run and upgrade of the
+owned local/privacy301-runtime01/game copy each verified133 bundles with
+community/cosmetics options retained. The first owned menu run reached native
+menu and natural Quit0;the six new loaded/disk signatures passed,but its
+verification.json is FAILED because the C++ audit header retained recipe34.
+Retain local/privacy345-menu01/verification.json SHA256
+ab7ad550e9058e804732f05a889c0f5a5b650917fc7d6e939b970cb4d025b3f3.
+
+The audit version constant was corrected to35,helper rebuilt and reinstalled
+in the same owned copy. Current installed GameAssembly SHA256:
+bd47d6136703930f9e820b56ed6b8e94404542a5d2448cd83a6708db0f39f671.
+Installed helper SHA256:
+b00d2652686ab58978bf11b15b3b3598771c2fcc08ab4b70ae40b6102cd70e49.
+Manifest SHA256:
+e385c8659f68f009cb87addb0176873e7e0f363a14d69af18329c5dca13905e1.
+Build receipt local/privacy345-helper-build02/helper-build.json SHA256:
+8f3fe9e37d3fa4cfbff3d570f10d204ce2d92ba9de262ff2a1405a9179c17074.
+
+Fresh local/privacy345-menu02/verification.json PASS SHA256 is
+1c47a95db16cab12cfce486630f3830ef7480365037c492adcef7c89c8d138a2.
+It reports recipeVersion35,loaded/disk sdkConfigurationIngressSignatures6/6,
+three complete selected-field stages,original Quit exit0 naturally in14.140s,
+no force,process reaped,shared settings/source unchanged. This is owned menu
+compatibility and loaded-byte proof,not actual setter invocation or all-path
+privacy closure.
+
+Follow-up346 builds a recipe35 private client/server pair and passes one
+connected public1 compatibility run;see privacy-current-package346.txt.
+Earlier recipe34 local/crash observations retain their scope. Actual setter
+invocation,queue/read/retry,whole wire,advertising-ID producer,all-thread/
+descendant and final installed closure remain OPEN. Published174 is unchanged.

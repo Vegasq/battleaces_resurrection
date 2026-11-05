@@ -1,5 +1,10 @@
 DOCUMENTATION HISTORY
 
+2026-10-26/ preserves the exact roadmap before189's active-queue consolidation.
+Its manifest binds the former completed milestones and unchanged D1-D9 gates.
+The live roadmap now leads with remaining work;no requirement or failed evidence
+was removed. These snapshots are references,not current instructions.
+
 2026-10-24/ contains exact pre-cleanup snapshots of AGENTS,README,the delivery
 plan,status ledger,release checklist,RC1 contract and privacy matrix. manifest.json
 records each original path,SHA256 and byte length. No historical pass/failure

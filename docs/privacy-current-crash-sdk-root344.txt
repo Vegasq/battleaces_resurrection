@@ -1,0 +1,46 @@
+D5 / P7 - RECIPE34 SUSPENDED-START CRASH SDK-ROOT FILE API WATCH344
+
+2026-10-29. Selected SDK-root file API observation PASS through filter return;
+P7/P9/full D5 remain OPEN,RUNTIME_VALIDATED=false.
+
+Question and method
+330's original crash observer tracked file/network activity and DbgHelp
+through the exception filter but did not select the293-bound Bugsnag cache
+root outside its policy scope. 343 added a separate whole-lifetime change
+notification watch,which cannot see opens or reads. This run extends the
+source-owned suspended-start recipe34 crash observer's fileRoots with that
+exact SDK path. REA attaches and loads it before the owned game resumes.
+It observes selected NtCreateFile,NtOpenFile,NtReadFile,NtWriteFile,
+NtSetInformationFile,NtDeleteFile and related handle tracking without
+opening,reading,seeding or clearing queue files itself.
+
+Result
+local/privacy330-crash344/verification.json passes:original c0000005
+native exception,job1/0/0,root reaped,no forced cleanup. The separate
+existing crash-policy reviewer passes its native filter/local-stack/handoff
+sequence,DbgHelp and9040 aggregated selected file operations through filter
+return. It confirms1166 contiguous untruncated events,no decode error,
+unknown relative root or overflow. The selected network counters remain0.
+The focused SDK-root reviewer binds the six-root observer to293's original
+cache getter path and the exact installed Unity image. It finds0 SDK-root
+file-operation events outside the crash policy scope and0 SDK-root rows or
+operations within the full9040-operation crash/symbol aggregate. Non-SDK
+operations and280 local game.log writes provide positive selected file activity.
+
+Ignored identities
+  local/privacy330-crash344/verification.json SHA256
+  53d34d8266381f8ad912a172bd99e9a47b366e0f747c33f5b81c44b4e05f588a
+  local/privacy330-crash344/evidence.json SHA256
+  af022eeb514ebb0cf27d113b1c14fd219c6945a68ecb9e37bd1c0841112089c9
+  local/privacy330-crash344/sdk-root-review.json SHA256
+  61e09f92ba45a0a3252a56810013c032cf49dfe8bfac88f9fef9da04fde7a262
+
+Boundary
+This rules out selected user-mode file opens/reads/writes under the named SDK
+root in this instrumented owned process from resumed startup through the
+original filter return. It does not cover post-filter OS handling,other file
+APIs,preexisting/inherited handles,mapped I/O,other cache roots or external
+processes. 343's distinct uninstrumented crash observed0 named-root change
+notifications through process exit,but the two runs cannot be combined into
+one complete file-I/O census. Neither proves queue state,network wire or
+all reporter routes. P7/P9/full D5 remain OPEN.

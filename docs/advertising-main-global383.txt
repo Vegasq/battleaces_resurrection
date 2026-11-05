@@ -1,0 +1,34 @@
+D5 / P9 - direct RIP references to native Main singleton
+2026-10-30. Bounded original/current recipe38 static review PASS;P9/D5 OPEN.
+
+The pinned original UnityPlayer contains65raw RIP MOV/LEA candidates aimed
+at Main singleton cell1d0eb28 in its executable .text section. Each is
+instruction-checked;all65 selected six-byte operands are unchanged in the
+current owned recipe38 UnityPlayer,whose complete image matches the source
+patch recipe. Fifty complete unwind-bounded owner roots decode and match
+their original bytes. Thirteen references lie in leaf/unwind-gap windows;
+their individual instructions decode,but complete containing bodies are
+not claimed.
+
+Among the fifty complete roots,only Main constructor c33210 directly
+mentions Main+1498 or callback c307c0. Its c332b5 instruction installs
+the secondary-interface vtable,as already bound109. No other complete
+direct-singleton owner immediately names that field/callback. This narrows
+one previously unbounded global-reference route. It is not an alias census:
+the thirteen short windows,callee-derived pointers,other instruction forms,
+other globals,computed/RVA tables and indirect calls may still reach the
+callback. The advertising-ID producer remains unknown.
+
+tools/review_ads_main_global383.py reproduces the selected RIP search,
+instruction/whole-body checks and current-image binding. PASS report and raw
+LLVM assembly stay ignored in local/privacy383-main-singleton01.
+Verification SHA256 0736ea8c436f5118e46bd827a688a065827c89e4ff34fc22a89dd1bd0048fef4.
+The first candidate pass stopped on an unwind-gap reference;the corrected
+review explicitly retains thirteen such limited sites rather than assigning
+them to a false complete owner. A later pass corrected REX-prefix location
+and checks the decoded RIP instruction while preserving raw target arithmetic.
+
+No game,original identity getter,real report queue or network endpoint ran;
+no product patch or release was made. Continue with a positive callback
+producer/registration lead or other D5 matrix work. Do not turn this
+selected-form zero into whole-program absence.

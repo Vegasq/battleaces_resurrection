@@ -292,6 +292,9 @@ extern "C" __declspec(dllexport) void OfflineSignalReadyToPlay(void* server,void
 }
 
 extern "C" __declspec(dllexport) void OfflineBootstrapGameUpdate(void* server,void* method) {
+    // The unified LAN branch normally bypasses OfflineGameUpdate. A replay lease
+    // needs only the original runner, never LAN input production or helper ticks.
+    if(ba_client::replayWorld()){ba_replay_runtime::update(server);return;}
     if(ba_practice::gameUpdate(server,method))return;
     try {ba::init();ba_bootstrap::poll(server);}
     catch(const std::exception& error){ba_bootstrap::fail("bootstrap update",error);}

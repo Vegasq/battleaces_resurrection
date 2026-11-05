@@ -1,0 +1,32 @@
+D5 / P9 - Unity Ads enabled setter virtual target
+
+2026-10-30. Bounded original/current recipe38 static review PASS;P9/D5 OPEN.
+
+413 corrected the UnityAdsSettings::set_enabled name/function mapping to native
+1f48d0. That function obtains the UnityConnectSettings manager from global
+1ca49c8,forms its inline object+0xb8 and tail-dispatches virtual slot+0x20.
+The pinned manager constructor c03bf0 installs table1a27a18 into that inline
+object;table+0x20 points to c03970. Thus the constructed object's setter
+target is concrete,subject to retained state or any later table replacement.
+
+The complete short c03970 target compares the requested Boolean to inline
+byte+0x10 (manager+c8). If unchanged it returns. If changed it stores the
+new value and tail-jumps c038d0. The complete c038d0 body checks an owner
+pointer at inline+8 and a global gate,then invokes three further helpers on
+its active path. This is a changed-value notification route. Those helpers,
+other possible table values and runtime invocation are outside this review;
+it is not a whole-path no-ID proof or an advertising producer cut.
+
+tools.review_ads_settings_setter414 verifies the corrected413 table,pinned
+original/current full manager constructor and notification bodies,exact setter
+and target leaves,the constructor vtable store,slot pointer,byte write and
+tail jump. Ignored assembly and receipt:
+ local/privacy414-ads-settings-setter01/verification.json SHA256
+ 984c63dc531eff5c36efdc33a81bdb641c2e5d97880153c3b13fae361ae1567c.
+No game,identity provider,real SDK queue,endpoint or installer ran. The
+separate Main+1498/c307c0 ID producer and full D5 remain OPEN;
+RUNTIME_VALIDATED=false,published174 unchanged.
+
+Follow-up415 binds the three immediate notification helpers. Their decoded
+bodies have no direct Main+1498/c307c0 reference,but generic recursive
+propagation and deeper helpers remain;advertising-settings-notify415.txt.

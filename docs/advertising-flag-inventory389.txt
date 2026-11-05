@@ -1,0 +1,57 @@
+D5 / P9 - complete literal +5c readiness-write encoding inventory
+2026-10-30. Bounded original/current recipe38 static review PASS;P9/D5 OPEN.
+
+312 classified five nearby literal writes of1 to an object's byte+5c as
+lightmap serialization. This follow-up covers all15 raw C6 ModRM40..47
+disp8=5c imm8=01 candidates in the pinned original UnityPlayer .text. Each
+site is a decoded instruction;13 have complete unwind-bounded owner bodies
+and two are exact short leaf windows outside unwind ownership. All selected
+bytes and complete bodies match the current owned recipe38 UnityPlayer.
+
+The additional candidates include object/list initialization,graphics
+state and parser/temporary flags. The complete selected bodies and short
+windows have no direct reference to manager cell1c0af00,readiness predicate
+3611d0 or callback c307c0. This retires the previously unclassified raw
+candidates for this single literal-byte-write encoding. It does not prove
+their receiver pointers can never alias the manager,or exclude other write
+encodings,bulk/indirect writes,retained state or a separate Main+1498 source.
+No advertising readiness writer or upstream ID producer is identified.
+
+tools/review_ads_flag_inventory389.py PASS checks the15 raw site inventory,
+contiguous original instruction bytes,13 complete unwind extents,two short
+windows and exact current-owned bytes. Ignored report and assembly:
+local/privacy389-ads-flag-all01/verification.json SHA256
+139ac642707bdbff5b4ade12d09417f6ccb0eba7dc7ee2b85ca8d561a14ed0e5.
+Prior five complete bodies are reused from local/privacy312-ads-manager-writers01.
+No game,ID query,manager state,queue,installer or network endpoint was run;
+published174 is unchanged,RUNTIME_VALIDATED=false.
+
+Follow-up398 (2026-10-30):a wider original UnityPlayer .text disassembly
+inventories MOV byte ptr [nonstack base+0x5c] forms. Of45 candidate sites,
+15 are the prior389 literal-one sites and30 are new encoding/operand forms.
+Thirty-six sites lie in34 complete unwind owners;their instructions and
+entire bodies are byte-matched to original and current owned recipe38.
+None of those34 bodies directly names manager cell1c0af00,predicate3611d0
+or callbackc307c0. Nine candidate sites lack an unwind owner and have only
+selected instruction-byte/current-image checks,not full-body qualification.
+The first reviewer run failed solely at a mistaken37/8 expected owner count;
+the retained observed count is36/9,and the corrected run passes. This is
+one instruction-form inventory,not a complete write/path census:aliases,
+bulk/dword/indirect stores and the nine short sites remain. No new manager
+readiness writer or advertising-ID producer is identified;P9/D5 stay OPEN.
+Reviewer:tools/review_ads_manager_byte_writes398.py. Read-only receipt and
+34 original assembly bodies:local/privacy398-manager-writes01.
+
+Follow-up399 (2026-10-30):the seven NEW ownerless398 sites decode inside six
+complete contiguous gaps from the preceding unwind end to the next unwind
+start. All gap bytes match original and current owned recipe38;each selected
+MOV instruction is byte-bound. Two windows reference a distinct global object
+1ca4958. None of the six windows directly names manager cell1c0af00,
+predicate3611d0 or callbackc307c0. The two previously reviewed ownerless
+literal-one sites retain389's exact short-window evidence. Together389/398/
+399 instruction-bind all45 selected MOV byte [nonstack base+5c] candidates.
+The known361230 manager write clears readiness;no new positive readiness
+writer is identified. Pointer aliases,bulk/other-width writes and separate
+advertising-ID acquisition remain unresolved;P9/D5 stay OPEN. Reviewer:
+tools/review_ads_manager_gaps399.py;receipt and six ignored assemblies:
+local/privacy399-manager-gaps01.
