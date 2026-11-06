@@ -1,8 +1,19 @@
 import unittest
+from pathlib import Path
 from tools.audit_repository import inspect_content
 
 
 class PublicationAuditTests(unittest.TestCase):
+    def test_only_reviewed_documentation_screenshots_allowed(self):
+        root = Path(__file__).resolve().parents[1]
+        for name in ('client-installer.png', 'server-dashboard.png'):
+            path = f'docs/screenshots/{name}'
+            data = (root / path).read_bytes()
+            self.assertEqual(inspect_content(path, data), [])
+            self.assertIn('unreviewed documentation screenshot',
+                          inspect_content(path, data + b'changed'))
+            self.assertTrue(inspect_content('docs/screenshots/other.png', data))
+
     def test_authored_source_and_short_safety_signatures_allowed(self):
         source = b'ORIGINAL_SHA = "' + b'a' * 64 + b'"\nBEFORE = "e812345678"\n'
         self.assertEqual(inspect_content("client_patch/patcher/patch_client.py", source), [])

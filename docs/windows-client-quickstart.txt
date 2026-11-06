@@ -15,8 +15,8 @@ Install Battle Aces.exe. Setup Client.cmd opens that same native window.
 3. Wait for the installed message,then close the installer.
 4. In the GAME folder,double-click Start Battle Aces.cmd for every later launch.
 
-WATCH A SAVED REPLAY (new local preview227;not in published rc1.6)
-After installing a client package containing this feature,close any running game
+WATCH A SAVED REPLAY (included in published rc1.7)
+After installing the current client,close any running game
 and double-click Watch Replay.cmd in the GAME folder. Choose a complete .rep file
 on a local drive. A server is not needed. Use the original in-game replay controls;
 Options -> Leave Replay returns to the menu. Cancel in the file chooser returns
@@ -26,7 +26,7 @@ Advanced:Start Battle Aces.cmd --replay "C:\Replays\match.rep" opens that file.
 Files must be nonempty,at most64MiB,and decode within256MiB. Missing,locked or
 invalid files are refused. The replay selection is not saved in client settings.
 Healthy explicit-file playback/Leave/normal Quit are qualified locally;Windows
-chooser and new refusal/Retry UI qualification remain pending before release.
+chooser and new refusal/Retry UI qualification remain pending for final acceptance.
 
 For maintenance,select that game folder in the installer. Reset selected deck
 backs up local settings and restores the original starter selection on next

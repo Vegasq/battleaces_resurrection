@@ -1,5 +1,7 @@
 BATTLE ACES RESURRECTION
 Windows x64 server and reversible client patch for Battle Aces build37822.
+For installation,first launch and screenshots,see README.md. This text file
+retains the source/developer reference and historical links.
 
 START HERE
   Work remaining:       docs/REMAINING_DELIVERY_PLAN.txt

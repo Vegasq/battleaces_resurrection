@@ -6,8 +6,8 @@ Start the updated server normally with Start Server.exe. On that same PC open:
   http://127.0.0.1:47624
 The console prints the dashboard address. It starts/stops with the host; no
 separate web program,Node installation,external CDN or database setup is needed.
-Published GitHub174 installers predate this feature.175source and its local
-server installer include the dashboard;174clients remain protocol-compatible.
+Published GitHub174 installers predate this feature. The current557 server
+installer includes the dashboard;174clients remain protocol-compatible.
 
 What it shows
 - Online player names,stable profile IDs and availability from the live directory.

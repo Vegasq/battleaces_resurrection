@@ -6,12 +6,17 @@ Only Git objects are read, so ignored local runtime files are not inspected.
 from __future__ import annotations
 import argparse
 from pathlib import PurePosixPath
+import hashlib
 import re
 import subprocess
 
-ROOT_FILES = {".gitignore", ".gitattributes", "README.txt", "AGENTS.md"}
+ROOT_FILES = {".gitignore", ".gitattributes", "README.txt", "README.md", "AGENTS.md"}
 SOURCE_DIRS = {"server", "client_patch", "tools", "tests", "docs", ".github"}
 EXTENSIONS = {".py", ".cpp", ".cs", ".h", ".hpp", ".ps1", ".cmd", ".txt", ".json", ".yml", ".yaml", ".js", ".asm"}
+DOC_SCREENSHOTS = {
+    "docs/screenshots/client-installer.png": "50e00f44dd4c90548f11d7a7ba82977febeddeba6c140d167b85dd685e2b9f75",
+    "docs/screenshots/server-dashboard.png": "d89b2b68b6a0fbff259f3169a4039f98460d2dff065069064ff07cd08d0ee28a",
+}
 FORBIDDEN_PARTS = {"local", "build", "dist", "assets", "fixtures", "captures", "original",
                    "backups", "metadata", "descriptors", "battle aces_data", "__pycache__"}
 SOURCE_FIXTURES = {
@@ -22,6 +27,11 @@ SOURCE_FIXTURES = {
 
 
 def inspect_content(name: str, data: bytes) -> list[str]:
+    if name in DOC_SCREENSHOTS:
+        if (len(data) > 128 * 1024 or not data.startswith(b"\x89PNG\r\n\x1a\n") or
+                hashlib.sha256(data).hexdigest() != DOC_SCREENSHOTS[name]):
+            return ["unreviewed documentation screenshot"]
+        return []
     path = PurePosixPath(name)
     reasons = []
     if name not in ROOT_FILES and (path.parts[0] not in SOURCE_DIRS or path.suffix.lower() not in EXTENSIONS):

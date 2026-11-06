@@ -1,11 +1,11 @@
 BATTLE ACES RESURRECTION - RC1 WINDOWS HOST
 
-SERVER DASHBOARD (175and newer)
+SERVER DASHBOARD (included in published rc1.7)
 While hosting,open http://127.0.0.1:47624 on the server PC for online players,
 active games and saved match history. Local access is the default. Public/LAN
 access,port settings and history retention:DASHBOARD.txt
 (source:docs/server-dashboard175.txt).
-The published174 installer predates this feature.
+The current published557 server installer includes this feature.
 
 MOVING AN INSTALLED HOST TO LINUX
 Copy the complete stopped host,including config/private and data as well as
@@ -32,6 +32,7 @@ execution is needed. Stop with Ctrl+C. Setup itself starts no listening server.
 The reference/manual import and verified-mode commands below remain for advanced
 deployments;they are not additional steps after successful native setup.
 
+ADVANCED MANUAL PACKAGE ROUTE (skip after a successful native installation)
 Import your locally owned build37822 assets using section1 below. Then double-click
 Start Server.exe. If config/host.json is absent,it creates an RC open-access config
 and self-signed certificate automatically using built-in Windows cryptography.
