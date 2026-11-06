@@ -1,5 +1,5 @@
 BATTLE ACES - CURRENT DELIVERY ROADMAP
-Updated:2026-11-01. ACTIVE. Single current work queue;final release is not accepted.
+Updated:2026-11-05. ACTIVE. Single current work queue;final release is not accepted.
 
 Read this file for what to do next. STATUS.txt summarizes the latest evidence;
 RELEASE_ACCEPTANCE.txt defines closure;INDEX.txt locates guides and detailed records.
@@ -68,7 +68,7 @@ COMPLETED
     native match/dashboard persistence also qualified (184).
 [x] Packaged21-match cadence/resource check on Windows/C data (219).
 [x] Linux/Wine setup and copied-host relocation tooling (175/178).
-[x] Paired engineering prerelease published and downloads verified (174).
+[x] Paired engineering prereleases published and downloads verified (174/557).
 
 STILL OUTSTANDING
 [ ] D2:remaining current transition applicability and physical checks in the
@@ -89,6 +89,7 @@ STILL OUTSTANDING
 [ ] Experimental Linux host:remote repaired Wine startup result (existing N11).
 [ ] D9:final clean release freeze,remaining clean-machine installation/update/
     uninstall/save checks,and final publication after applicable gates close.
+    Clean rc1.7 engineering prerelease557 is published;this does not close D9.
 
 Latest D5 subcase:547 actual-installed recipe47 four-human public2 match,
 native selected device-I/O and seven packaged Python endpoint audits PASS.
@@ -492,9 +493,10 @@ Follow-up177:existing installs now have headless configure and clear repeat-setu
 guidance;no recopy/reinstall is needed to change the player name or server.
 
 CURRENT BASELINE
-- Published coherent prerelease174:version0.3.0-rc1.6,recipe23/128guards/helper169.
-  Clean build48135e3 includes171 Korean-flow removal and169/170 diagnostic fixes.
-  Exact downloads,hashes and scope:coherent-candidate174.txt.166/manual preserved.
+- Published coherent engineering prerelease557:version0.3.0-rc1.7,
+  recipe47/176guards,clean36fef3b. Exact downloads,hashes,retained
+  failures and scoped validation:coherent-candidate557.txt. Prior174
+  recipe23 and166/manual copies are preserved.
 - Source/package guards agree;RUNTIME_VALIDATED=false. Full release stays open.
 - Latest local preview203 updates asset validation/startup errors and quickstart;
   client identical191. Dirty/unpublished;asset-recovery203.txt owns its scope.

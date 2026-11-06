@@ -1,5 +1,5 @@
 BATTLE ACES - DOCUMENTATION INDEX
-Updated:2026-11-01. Paths below are relative to docs/.
+Updated:2026-11-05. Paths below are relative to docs/.
 
 START WITH THREE FILES
   REMAINING_DELIVERY_PLAN.txt - what is next and which D1-D9 gates remain
@@ -20,6 +20,7 @@ Focused evidence files were not renamed because tools and retained reports
 depend on their paths. Top-level reference documents are indexed below.
 
 CURRENT PLANNING AND ACCEPTANCE
+  coherent-candidate557.txt - published clean rc1.7 paired prerelease,public hashes and scoped checks
   privacy-etw-sensor556.txt - failed medium-token ETW start and prepared synthetic elevated calibration;N16 pending
   advertising-libcef-winrt554.txt - installed libcef direct WinRT factory call resolves UIViewSettings
   advertising-gameassembly-winrt553.txt - actual-installed GameAssembly direct WinRT chain resolves DispatcherQueue

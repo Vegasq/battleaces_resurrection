@@ -1,13 +1,21 @@
 BATTLE ACES - CURRENT STATUS
-Reviewed:2026-11-01. Final release is not accepted.
+Reviewed:2026-11-05. Final release is not accepted.
 Current work:REMAINING_DELIVERY_PLAN.txt. Evidence navigation:INDEX.txt.
 Exact prior3576-line ledger:history/2026-10-24/STATUS.txt.
 Historical records retain their original failures,claims and artifact scopes.
 
+557 paired Windows engineering prerelease0.3.0-rc1.7 published from clean
+36fef3b,recipe47/176guards. Client/server installers,manifest and checksums
+downloaded anonymously and hash-verified. Both Python suites,shell/payload,
+actual native client/server Install,owned fresh/restart menu and corrected
+same-PC portable qualification PASS at their stated scope. Prior portable01/02
+failures retained. D5,RUNTIME_VALIDATED and final release stay OPEN;
+coherent-candidate557.txt.
+
 555/556 D5 OS sensor calibration NOT RUN:medium-integrity ETW start failed
 0x80070005 before game launch;the synthetic elevated smoke passes only
 preflight/parse/compile and awaits DEV N16. No ETL schema,whole-wire,P1-P9
-or D5 PASS;rc1.7 unpublished. privacy-etw-sensor556.txt.
+or D5 PASS;privacy-etw-sensor556.txt.
 
 554 installed recipe47 libcef direct RoGetActivationFactory FF15 call
 PASS:the resolved class is Windows.UI.ViewManagement.UIViewSettings.

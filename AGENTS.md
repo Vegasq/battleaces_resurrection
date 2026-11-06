@@ -32,13 +32,12 @@
 
 ## Current source and artifacts
 
-- Published174 is the coherent paired installer/package:recipe23/helper169,
-  version0.3.0-rc1.6,clean48135e3. Exact downloads/identities/scope are in
-  `docs/coherent-candidate174.txt`. Preserve166/manual130,accepted startup71,
-  earlier evidence and installed user copies.
-- Current dirty source is recipe47/176 guards;recipe47 private installed menu and public1 pair pass,recipe46 owned SDK directory/Client/queue/Quit and installed ordinary restart pass,recipe45 deletion/queue and recipe44 mode pair pass;published174 remains
-  recipe23/128. `RUNTIME_VALIDATED` remains false. See current plan and STATUS
-  for exact local source/owned runtime evidence;do not treat it as a release.
+- Published557 is the clean paired engineering prerelease:version0.3.0-rc1.7,
+  recipe47/176guards,source36fef3b. Exact downloads,hashes and scoped checks
+  are in `docs/coherent-candidate557.txt`. Published174 remains the prior
+  recipe23/128guards pair;preserve166/manual130,accepted startup71,earlier
+  evidence and installed user copies. `RUNTIME_VALIDATED` remains false;
+  D5 and final release acceptance stay OPEN.
 - Crash169 handoff defect is FIXED:closed temporary/no-replacement rename,
   exact Win32 open error logging,and prompt owner refusal detection. Clean02
   passes the original native exception exit without instrumentation or force

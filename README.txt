@@ -8,14 +8,14 @@ START HERE
   Guides and references:docs/INDEX.txt
   Nick's requests:      DEV.txt (private/local; answers belong here)
 
-CURRENT POSITION - 2026-10-24
+CURRENT POSITION - 2026-11-05
 The Windows release candidate works, including accepted physical LAN play and
-startup. Final release qualification is still open. Published prerelease174 is
-the current coherent client/server pair:version0.3.0-rc1.6,recipe23/helper169,
-including171's disabled Korean login/compliance flow. Download both installers:
-https://github.com/Vegasq/battleaces_resurrection/releases/tag/v0.3.0-rc1.6
+startup. Final release qualification is still open. Published prerelease557 is
+the current coherent client/server pair:version0.3.0-rc1.7,recipe47/176guards,
+including the disabled Korean login/compliance flow. Download both installers:
+https://github.com/Vegasq/battleaces_resurrection/releases/tag/v0.3.0-rc1.7
 Both public downloads are hash-verified. Exact identities and tested scope:
-docs/coherent-candidate174.txt. Earlier166/manual copies remain frozen.
+docs/coherent-candidate557.txt. Prior174 and earlier166/manual copies remain frozen.
 
 Nick has confirmed N2/LAN, N5/download-install, N9/desktop pipe and N10/protected
 recovery PASS. N7's remaining visible portrait/host/save details are unreported.
@@ -46,7 +46,7 @@ No original game assets are distributed. Internet release acceptance is pending.
 
 IMPLEMENTED CAPABILITIES
 - Server dashboard175:online players,active games and persistent match history.
-  Included in source;published174 installers predate it. docs/server-dashboard175.txt.
+  Included in published557;docs/server-dashboard175.txt.
 - Local Try Deck and public1v1/2v2/2vAI with local fallback;online queues retain
   available humans and fill missing public seats after30seconds. Custom is human-only.
 - Custom presence/invites,results/Continue and same-connection rematches.
@@ -83,8 +83,8 @@ Exact-build patch/restore into a CLOSED working game copy:
   python -m client_patch.patcher.patch_client --game-dir "<game>"
   python -m client_patch.patcher.patch_client --game-dir "<game>" --restore
 Do not target the untouched recovery installation or a reserved manual candidate.
-Source recipe23 covers GameAssembly.dll,UnityPlayer.dll and nested chrome_elf.dll/
-libcef.dll. RUNTIME_VALIDATED remains false. Prerelease174 binds recipe23.
+Source recipe47 covers GameAssembly.dll,UnityPlayer.dll and nested chrome_elf.dll/
+libcef.dll. RUNTIME_VALIDATED remains false. Prerelease557 binds recipe47.
 Use the guides/index for asset import,advanced verified setup and diagnostic tools.
 
 DOCUMENTATION HISTORY

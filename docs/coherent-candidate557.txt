@@ -1,0 +1,70 @@
+PUBLISHED WINDOWS ENGINEERING PRERELEASE557
+2026-11-05. Version0.3.0-rc1.7,Windows x64,game build37822.
+Engineering prerelease;D5 and final release acceptance remain OPEN.
+
+Release and source
+https://github.com/Vegasq/battleaces_resurrection/releases/tag/v0.3.0-rc1.7
+The tag binds the exact clean source commit
+36fef3bcfd9c57589a5bed29f28a45c2f9dc2b5d. The published pair carries
+recipe47/176 reporting guards,helper SHA256
+e5f8201edadf0c6852464e36b813f0ab0beb8523769013207931e7306f6683ac.
+RUNTIME_VALIDATED=false;d5_accepted=false;clean_windows_qualified=false.
+No original game assets or private profiles are distributed. Published174
+remains the prior recipe23 prerelease;its exact artifacts are unchanged.
+
+Exact public assets (bytes;SHA256)
+BattleAces-Client-Installer-0.3.0-rc1.7.exe
+  13478912;6dde206cf3cd255717ec3158ef590a8f01aedde9fda001cc9eb95e1ee8cbfe22
+BattleAces-Server-Installer-0.3.0-rc1.7.exe
+  13673472;d062f98e672919200d6e838331e1d60fe67c9d3105ff96fcbf79c5b2e5d066d3
+SHA256SUMS.txt
+  311;fa903a15f662b901e5169fdb87f1c639346b1800c2e1c36ea7ca8e2339bce5ab
+release-manifest.json
+  2153;e05e1d5e430bfdf3591849b98cb52de83e31580e0aeda702c30899bad0ed98e8
+All four public assets were downloaded anonymously and matched both local
+SHA256 and GitHub asset digests:ignored
+local/rc17-release-verification01/published.json (passed:true).
+The embedded ZIPs are build inputs,not separate release downloads:
+client13449057bytes/82ZIP entries/SHA256
+24dbb6f9ab7ffe47314a0f1afab2a5a0c941c86f7b1e7992db7466e5697d2aaa;
+server13643569bytes/118ZIP entries/SHA256
+5b643347b6f03e6e14766453c382652bf6ddf1e4d2178709692ce6a147e2c7e8.
+
+Build and scoped validation
+The clean package build receipt is
+local/rc17-packages01/build-report.json. Both Python3.14.8 and3.12.10 suites
+ran1438tests:1356passed/82explicit skips/0failures each;retained summary
+local/rc17-clean-tests01/summary.json. Paired native shell/payload checks
+PASS:local/rc17-shell-qualification01/verification.json. Actual native
+client and server Install actions PASS with Job3/0/0 and4/0/0 respectively:
+local/rc17-client-install01/verification.json and
+local/rc17-server-install01/verification.json. Owned installed fresh and
+same-profile menu/window-close runs PASS,no forced cleanup:
+local/rc17-startup-fresh01/verification.json and
+local/rc17-startup-restart01/verification.json. These are not physical
+in-game Quit,clean-machine,Internet or full privacy acceptance.
+
+Same-PC relocated package qualification retained two failures:
+portable-qualification01 stopped on an unexpected asset-import exit;
+portable-qualification02 timed out after180s at patch dry-run. They are
+preserved under local/rc17-portable-qualification01/verification.json and
+local/rc17-portable-qualification02/verification.json. The corrected third
+run passed package integrity/imports,local asset import,host lifecycle,
+service-command/refusal,authored transfer snapshot and patch install,
+reinstall,restore and prior-version upgrade roundtrips:
+local/rc17-portable-qualification03/verification.json. The two expected
+refusal commands exited1 and were checked as such. This covers one owned
+same-PC relocation;it does not qualify clean PCs,private ACLs or graphical
+play. Local receipt SHA256s are in the published release-manifest.json.
+
+Product and acceptance scope
+Compared with174,the client ZIP adds Watch Replay.cmd;the server ZIP adds
+DASHBOARD.txt,server/web_dashboard.py and server/web_dashboard_page.py.
+Both package manifests bind additional changed helper,launcher,host,
+configuration and patcher files. The dashboard shows online players,
+running games and retained match history by default on127.0.0.1:47624;
+identity and recovery limits are in server-dashboard175.txt and focused
+records185/187/188. Linux setup tools are source-only,not Windows installer
+contents. D5 advertising-ID acquisition,real report queue/whole wire and
+final installed privacy qualification remain open;D2-D4,D7-D9 also remain
+open per RELEASE_ACCEPTANCE.txt. A later final release needs its own gates.

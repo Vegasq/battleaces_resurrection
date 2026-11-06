@@ -1,5 +1,5 @@
 BATTLE ACES - RELEASE ACCEPTANCE
-Reviewed:2026-10-27. FINAL RELEASE:NOT ACCEPTED.
+Reviewed:2026-11-05. FINAL RELEASE:NOT ACCEPTED.
 Work queue:REMAINING_DELIVERY_PLAN.txt. Latest results:STATUS.txt.
 Exact prior checklist/history:history/2026-10-24/RELEASE_ACCEPTANCE.txt.
 
@@ -229,7 +229,7 @@ D4    OPEN        Replay163 and worker faults152-154 pass named cases.
                   pre-activation native teardown and client recovery remain open.
                   207 explains completion before activation and dependency-only
                   Destroy;no safe cancellation or late-completion runtime proof.
-D5    OPEN        Current dirty source47/176guards;recipe47 native Unity
+D5    OPEN        Published557 source47/176guards;recipe47 native Unity
                   Analytics PerformPost guard has private installed menu and
                   public1 match/Continue/Quit compatibility PASS at512;
                   public2/public5/Custom rematch and all original Quits PASS
@@ -392,11 +392,17 @@ D8    OPEN        Bounded two/four-room TLS/native and older soak evidence retai
                   max gap298.300ms. Scoped stream-delay pass;network-qualification.txt.
                   Internet/network/click delay,final capacity/graphical lifetime
                   and remaining deployment/duration scopes remain.
-D9    OPEN        Prerelease174 published;earlier N5 accepted. Final clean
+D9    OPEN        Prereleases174/557 published;earlier N5 accepted. Final clean
                   artifact freeze/audit,guides and applicable prerequisite closure
                   remain. No final release from source-only or diagnostic passes.
 
 CURRENT ARTIFACTS
+Published557:version0.3.0-rc1.7,clean36fef3b,recipe47/176guards.
+Both native installers,manifest and checksums downloaded anonymously and
+hash-verified. Python suites,shell/payload,actual native Install,owned
+fresh/restart menu and same-PC portable package pass at their named scope;
+portable01/02 failures retained. D5,RUNTIME_VALIDATED,clean-PC and final
+acceptance remain OPEN/false;coherent-candidate557.txt.
 Published174:version0.3.0-rc1.6,clean48135e3,recipe23/helper169. Exact hashes,
 public downloads and scoped checks:coherent-candidate174.txt. Both Python suites,
 native forms/payloads and owned client update pass;all public assets hash-verified.
