@@ -12,6 +12,7 @@ using System.Windows.Forms;
 
 // BA_RESURRECTION_NATIVE_INSTALLER_V1
 internal sealed class Installer : Form {
+    const string DefaultServerHost = "134.209.176.39";
 #if SERVER_INSTALLER
     static readonly bool Server = true;
 #else
@@ -27,6 +28,7 @@ internal sealed class Installer : Form {
     string selectedGame, selectedAddress, selectedPlayerName;
     bool resetRequested, uninstallRequested;
     bool playerNameEdited, loadingPlayerName;
+    bool serverAddressEdited, loadingServerAddress;
     readonly string smokeReport;
 
     Installer(string smoke) {
@@ -56,8 +58,10 @@ internal sealed class Installer : Form {
             AddLabel("Player name", 24, 222, 120, 28);
             playerName.SetBounds(148, 218, 548, 28); playerName.MaxLength = 64;
             playerName.Text = PlayerName.Default(); Controls.Add(playerName);
+            address.Text = DefaultServerHost;
+            address.TextChanged += delegate { if (!loadingServerAddress) serverAddressEdited = true; };
             playerName.TextChanged += delegate { if (!loadingPlayerName) playerNameEdited = true; };
-            game.TextChanged += delegate { RefreshPlayerName(); };
+            game.TextChanged += delegate { RefreshPlayerName(); RefreshServerAddress(); };
         }
         AddLabel(Server ? "Imports game data locally. Creates Start Server.exe; no game files ship." : "Leave server IP blank for offline play. Player name: 1-32 characters.", 148, Server ? 202 : 254, 548, 38);
         int actions = Server ? 247 : 305;
@@ -145,6 +149,21 @@ internal sealed class Installer : Form {
         } catch (Exception) { /* Backend validates config before writing; this is only a read-only preview. */ }
         loadingPlayerName = true;
         try { playerName.Text = value; } finally { loadingPlayerName = false; }
+    }
+
+    void RefreshServerAddress() {
+        if (Server || serverAddressEdited) return;
+        string value = DefaultServerHost;
+        try {
+            string path = Path.Combine(game.Text, ".battleaces-resurrection", "client-config.json");
+            if (File.Exists(path) && new FileInfo(path).Length <= 32768) {
+                var saved = new JavaScriptSerializer().Deserialize<Dictionary<string, object>>(File.ReadAllText(path));
+                object host;
+                if (saved.TryGetValue("server_host", out host) && host is string) value = (string)host;
+            }
+        } catch (Exception) { /* The backend validates saved settings; this only previews the host. */ }
+        loadingServerAddress = true;
+        try { address.Text = value; } finally { loadingServerAddress = false; }
     }
 
     static string Quote(string value) {
@@ -244,6 +263,24 @@ internal sealed class Installer : Form {
                         shown = form.Visible, saved_name = saved, other_saved_name = other, chosen_name = form.playerName.Text,
                         player_name_visible = form.playerName.Visible, edited_name_retained = form.playerNameEdited
                     })); form.Close();
+                }
+                return;
+            }
+            if (args.Length == 3 && args[0] == "--ui-address-smoke") {
+                var serializer = new JavaScriptSerializer();
+                var input = serializer.Deserialize<Dictionary<string,string>>(File.ReadAllText(args[1]));
+                using (var form = new Installer(null)) {
+                    string initial = form.address.Text;
+                    form.game.Text = input["game_directory"];
+                    string saved = form.address.Text;
+                    form.game.Text = input["other_game_directory"];
+                    string other = form.address.Text;
+                    form.address.Text = "";
+                    form.game.Text = input["game_directory"];
+                    File.WriteAllText(args[2], serializer.Serialize(new {
+                        initial_host = initial, saved_host = saved, other_host = other,
+                        manually_cleared_host = form.address.Text, manual_choice_retained = form.serverAddressEdited
+                    }));
                 }
                 return;
             }

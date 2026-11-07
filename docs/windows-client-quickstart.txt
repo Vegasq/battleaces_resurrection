@@ -9,7 +9,9 @@ change is required. Alternatively,extract the full client ZIP and double-click
 Install Battle Aces.exe. Setup Client.cmd opens that same native window.
 
 1. Browse to the working folder containing Battle Aces.exe (supported build37822).
-2. Enter the server IP,or leave it blank for offline play. Choose your Player name;
+2. The server IP starts at 134.209.176.39 for a new install. Replace it for
+   another host,or clear it for offline play. Existing saved server IPs load
+   when their game folder is selected. Choose your Player name;
    a fresh install suggests your cleaned Windows account name. Existing saved
    names are loaded automatically. Click Install / Update.
 3. Wait for the installed message,then close the installer.
