@@ -1,6 +1,6 @@
 BATTLE ACES RESURRECTION - RC1 WINDOWS HOST
 
-SERVER DASHBOARD (included in published rc1.7)
+SERVER DASHBOARD (included since rc1.7)
 While hosting,open http://127.0.0.1:47624 on the server PC for online players,
 active games and saved match history. Local access is the default. Public/LAN
 access,port settings and history retention:DASHBOARD.txt
