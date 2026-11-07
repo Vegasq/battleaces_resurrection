@@ -6,6 +6,9 @@ A community server and reversible Windows client patch for **Battle Aces build 3
 
 The installers contain our client and server software. **They do not contain the original game files.** Keep an untouched copy of your supported game installation for recovery.
 
+![Crabs moving into a number formation in an offline practice match](docs/media/crabs-2026.gif)
+*A scripted offline practice scene with 79 Crabs. The animation starts 15 seconds into the recorded clip.*
+
 ## Install the client
 
 1. Close Battle Aces. Download **BattleAces-Client-Installer-0.3.0-rc1.7.exe** from the release above.
