@@ -89,7 +89,8 @@ STILL OUTSTANDING
 [ ] Experimental Linux host:remote repaired Wine startup result (existing N11).
 [ ] D9:final clean release freeze,remaining clean-machine installation/update/
     uninstall/save checks,and final publication after applicable gates close.
-    Clean rc1.7 engineering prerelease557 is published;this does not close D9.
+    Clean rc1.7 engineering prerelease557 and paired rc1.8 shortcut installer
+    prerelease are published;neither closes D9.
 
 Latest D5 subcase:547 actual-installed recipe47 four-human public2 match,
 native selected device-I/O and seven packaged Python endpoint audits PASS.

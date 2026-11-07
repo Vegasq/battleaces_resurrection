@@ -392,11 +392,15 @@ D8    OPEN        Bounded two/four-room TLS/native and older soak evidence retai
                   max gap298.300ms. Scoped stream-delay pass;network-qualification.txt.
                   Internet/network/click delay,final capacity/graphical lifetime
                   and remaining deployment/duration scopes remain.
-D9    OPEN        Prereleases174/557 published;earlier N5 accepted. Final clean
+D9    OPEN        Prereleases174/557/rc1.8 published;earlier N5 accepted. Final clean
                   artifact freeze/audit,guides and applicable prerequisite closure
                   remain. No final release from source-only or diagnostic passes.
 
 CURRENT ARTIFACTS
+Published rc1.8:clean f364ef9,paired Windows GUI installers with desktop
+shortcuts and new-client IP134.209.176.39. Payloads,isolated shortcut targets,
+form behavior and anonymous public hashes PASS at focused scope;no fresh
+physical Install or final acceptance. See installer-shortcuts-rc18.txt.
 Published557:version0.3.0-rc1.7,clean36fef3b,recipe47/176guards.
 Both native installers,manifest and checksums downloaded anonymously and
 hash-verified. Python suites,shell/payload,actual native Install,owned

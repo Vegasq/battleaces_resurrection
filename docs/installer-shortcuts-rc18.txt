@@ -1,0 +1,56 @@
+BATTLE ACES 0.3.0-rc1.8 WINDOWS INSTALLER PRERELEASE
+2026-11-07. Published paired Windows x64 engineering prerelease for original
+game build37822. Source tag v0.3.0-rc1.8 binds clean commit
+f364ef9ebb863677c4d9ad587574f6574677fba4.
+https://github.com/Vegasq/battleaces_resurrection/releases/tag/v0.3.0-rc1.8
+
+Changes
+- The native client and server GUI installers create a current-user desktop
+  shortcut after a successful Install / Update action. The client shortcut
+  targets the installed Start Battle Aces.cmd;the server shortcut targets the
+  installed Start Server.exe. The working directory is the installed folder.
+  An existing same-name shortcut without this installer's description marker
+  is preserved and a warning is shown. A shortcut error does not undo a
+  completed game/server installation.
+- A new client install prefills server IP134.209.176.39. Selecting a game folder
+  with an existing client-config.json loads its saved server_host instead.
+  Manual edits,including clearing the IP for offline play,are retained.
+- The game helper SHA256 is unchanged from rc1.7:
+  e5f8201edadf0c6852464e36b813f0ab0beb8523769013207931e7306f6683ac.
+  Game build,game protocol3,community protocol2 and asset format1 are unchanged.
+  The original game files and private state are not distributed.
+
+Published assets (bytes;SHA256)
+BattleAces-Client-Installer-0.3.0-rc1.8.exe
+  13502976;8a808956b49653df872bef665b28061ff33c58dd20ed55cf3227f8b0f63d098f
+BattleAces-Server-Installer-0.3.0-rc1.8.exe
+  13693952;741996a995e7b36246f4966208268a7554df85c38b8278a9b19b9cf7bc53b726
+release-manifest.json
+  1492;0f3f1a727b28890543569f80e2484318f52f0315663e9368d38c1ffcf8f57006
+SHA256SUMS.txt
+  311;b3d7c29b80446138018cf55110e3bd2ceb654aae112e1f351466c5ae1b69e1c3
+Embedded client ZIP SHA256:
+  a623761609be82c4eb60bc2757c6a9e369edaef0c5003b9b9df7729b088f3a6e
+Embedded server ZIP SHA256:
+  321ee9d63135940f283572693d2d21820daeb98113e298991427f6cfdef99e4c
+GitHub reported matching digests and sizes for all four assets. All four
+anonymous public downloads matched the local asset hashes. Both downloaded
+installers report embedded package version0.3.0-rc1.8.
+
+Scoped validation
+Both source-bound native GUI builds and standalone payload verifications PASS.
+The installed package inventory verifier passes for client and server. The
+standalone EXEs created actual .lnk files in isolated test desktops with exact
+launcher targets and working directories,including paths with spaces;owned
+shortcut refresh and unrelated same-name preservation pass. The client form
+smoke passes default IP,saved-host reload and a manually cleared offline IP.
+Relevant Windows packaging/setup unit suites passed18tests;the17 packaging
+tests passed again after the package version bump. No real user desktop was
+changed during these checks. A fresh physical client/server Install action was
+not repeated for this UI-only change;rc1.7's backend install acceptance retains
+its original scope and does not establish new clean-machine acceptance.
+
+The server installer still requires a new empty destination and does not
+replace an existing host or its profiles/keys/assets. The live DigitalOcean
+host was not changed by this Windows installer release. D5 privacy acceptance,
+RUNTIME_VALIDATED,clean Windows/final release gates remain OPEN/false.

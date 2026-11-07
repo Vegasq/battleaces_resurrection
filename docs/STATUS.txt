@@ -1,8 +1,15 @@
 BATTLE ACES - CURRENT STATUS
-Reviewed:2026-11-05. Final release is not accepted.
+Reviewed:2026-11-07. Final release is not accepted.
 Current work:REMAINING_DELIVERY_PLAN.txt. Evidence navigation:INDEX.txt.
 Exact prior3576-line ledger:history/2026-10-24/STATUS.txt.
 Historical records retain their original failures,claims and artifact scopes.
+
+Paired Windows engineering prerelease0.3.0-rc1.8 published from clean f364ef9.
+Native client/server installers add current-user desktop shortcuts;the client
+prefills server IP134.209.176.39 on new installs while preserving saved/manual
+host choices. Both payloads,actual isolated .lnk targets,form behavior and
+anonymous download hashes pass. No new physical Install action was repeated;
+D5,RUNTIME_VALIDATED and final release stay OPEN;installer-shortcuts-rc18.txt.
 
 557 paired Windows engineering prerelease0.3.0-rc1.7 published from clean
 36fef3b,recipe47/176guards. Client/server installers,manifest and checksums
