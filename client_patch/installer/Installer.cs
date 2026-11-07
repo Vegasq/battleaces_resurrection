@@ -67,7 +67,7 @@ internal sealed class Installer : Form {
         uninstall.Text = "Uninstall client patch"; uninstall.SetBounds(435,actions,261,39); uninstall.Visible = !Server; Controls.Add(uninstall);
         progress.SetBounds(24,Server ? 299 : 357,672,16);
         progress.Style = ProgressBarStyle.Marquee; progress.Visible = false; Controls.Add(progress);
-        status.SetBounds(24, Server ? 331 : 389, 672, 65); status.Text = Server ? "Creates Start Server.exe. The source game folder stays unchanged." : "Creates Start Battle Aces.cmd in your game folder."; Controls.Add(status);
+        status.SetBounds(24, Server ? 331 : 389, 672, 65); status.Text = Server ? "Creates Start Server.exe and a desktop shortcut. The source game folder stays unchanged." : "Creates Start Battle Aces.cmd and a desktop shortcut."; Controls.Add(status);
         browse.Click += delegate {
             using (var dialog = new FolderBrowserDialog()) {
                 dialog.Description = "Choose the folder containing Battle Aces.exe";
@@ -92,8 +92,20 @@ internal sealed class Installer : Form {
         worker.RunWorkerCompleted += delegate(object sender, RunWorkerCompletedEventArgs e) {
             timer.Stop(); Text = "Battle Aces Resurrection - Install"; progress.Visible = false;
             game.Enabled = address.Enabled = playerName.Enabled = browse.Enabled = install.Enabled = reset.Enabled = uninstall.Enabled = true;
-            status.Text = e.Error == null ? (Server ? "Installed. Open Start Server.exe in your server folder to host." : uninstallRequested ? "Client patch uninstalled. Original game restored; saves and recovery files kept." : resetRequested ? "Deck reset. Start Battle Aces.cmd will load the original starter deck." : "Installed. Open Start Battle Aces.cmd in your game folder to play.") : e.Error.Message;
-            if (e.Error != null) MessageBox.Show(this, e.Error.Message, "Installation failed", MessageBoxButtons.OK, MessageBoxIcon.Error);
+            if (e.Error != null) {
+                status.Text = e.Error.Message;
+                MessageBox.Show(this, e.Error.Message, "Installation failed", MessageBoxButtons.OK, MessageBoxIcon.Error);
+            } else if (uninstallRequested) status.Text = "Client patch uninstalled. Original game restored; saves and recovery files kept.";
+            else if (resetRequested) status.Text = "Deck reset. Start Battle Aces.cmd will load the original starter deck.";
+            else {
+                try {
+                    DesktopShortcut.CreateOnDesktop((string)e.Result, Server);
+                    status.Text = Server ? "Installed. Battle Aces Server shortcut created on your desktop." : "Installed. Battle Aces Resurrection shortcut created on your desktop.";
+                } catch (Exception error) {
+                    status.Text = "Installed, but the desktop shortcut could not be created. Open the launcher in the installed folder.";
+                    MessageBox.Show(this, error.Message, "Desktop shortcut unavailable", MessageBoxButtons.OK, MessageBoxIcon.Warning);
+                }
+            }
         };
         timer.Interval = 1000; timer.Tick += delegate { Text = "Battle Aces Resurrection - Installing (" + (int)(DateTime.UtcNow-started).TotalSeconds + "s)"; };
         FormClosing += delegate(object sender, FormClosingEventArgs e) { if (worker.IsBusy) { e.Cancel = true; status.Text = "Please wait for installation to finish."; } };
@@ -194,6 +206,8 @@ internal sealed class Installer : Form {
                     throw new Exception(message);
                 }
             }
+            if (!resetRequested && !uninstallRequested)
+                args.Result = Path.Combine(Path.GetFullPath(Server ? selectedAddress : selectedGame), Server ? "Start Server.exe" : "Start Battle Aces.cmd");
         } finally { File.Delete(request); }
     }
 
@@ -204,6 +218,16 @@ internal sealed class Installer : Form {
                 var serializer = new JavaScriptSerializer();
                 string[] inputs = serializer.Deserialize<string[]>(File.ReadAllText(args[1]));
                 File.WriteAllText(args[2], serializer.Serialize(Array.ConvertAll(inputs, PlayerName.Clean))); return;
+            }
+            if (args.Length == 4 && args[0] == "--shortcut-smoke") {
+                try {
+                    string path = DesktopShortcut.Create(args[1], args[2], Server);
+                    File.WriteAllText(args[3], new JavaScriptSerializer().Serialize(new { created = true, shortcut = path }));
+                } catch (Exception error) {
+                    File.WriteAllText(args[3], new JavaScriptSerializer().Serialize(new { created = false, error = error.Message }));
+                    Environment.ExitCode = 1;
+                }
+                return;
             }
             if (args.Length == 3 && args[0] == "--ui-name-smoke") {
                 var serializer = new JavaScriptSerializer();

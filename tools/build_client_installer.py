@@ -7,7 +7,8 @@ from pathlib import Path
 import subprocess
 
 ROOT = Path(__file__).resolve().parents[1]
-SOURCES = ('client_patch/installer/Installer.cs', 'client_patch/installer/PlayerName.cs', 'tools/build_client_installer.py')
+SOURCES = ('client_patch/installer/Installer.cs', 'client_patch/installer/PlayerName.cs',
+           'client_patch/installer/DesktopShortcut.cs', 'tools/build_client_installer.py')
 
 
 def build(output, payload=None, *, server=False):

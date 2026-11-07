@@ -25,7 +25,8 @@ supported build37822 game folder and an EMPTY server destination. Setup works on
 copy,so the source game,its binaries and saves stay unchanged. It imports required
 maps/simulation/AI locally;no game assets are distributed. Allow temporary space
 for a full game copy and a few minutes. Do not select an existing host to overwrite.
-On completion run Start Server.exe in the chosen server folder. It generates its
+On completion use the Battle Aces Server desktop shortcut or run Start Server.exe
+in the chosen server folder. It generates its
 own private certificate/config using a native Windows helper and then checks/
 starts hosting on TCP47623. No CA,invite,Python installation or PowerShell script
 execution is needed. Stop with Ctrl+C. Setup itself starts no listening server.
