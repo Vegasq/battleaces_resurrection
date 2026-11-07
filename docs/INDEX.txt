@@ -20,6 +20,7 @@ Focused evidence files were not renamed because tools and retained reports
 depend on their paths. Top-level reference documents are indexed below.
 
 CURRENT PLANNING AND ACCEPTANCE
+  installer-fullscreen-rc19.txt - published rc1.9 paired installers,fullscreen default and hashes
   installer-shortcuts-rc18.txt - published rc1.8 paired installers,desktop shortcuts,prefilled host and public hashes
   coherent-candidate557.txt - published clean rc1.7 paired prerelease,public hashes and scoped checks
   privacy-etw-sensor556.txt - failed medium-token ETW start and prepared synthetic elevated calibration;N16 pending

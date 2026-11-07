@@ -4,6 +4,13 @@ Current work:REMAINING_DELIVERY_PLAN.txt. Evidence navigation:INDEX.txt.
 Exact prior3576-line ledger:history/2026-10-24/STATUS.txt.
 Historical records retain their original failures,claims and artifact scopes.
 
+Paired Windows engineering prerelease0.3.0-rc1.9 published from clean13bf4c7.
+The installed client starts fullscreen by default,with an editable persisted
+windowed preference. README identifies the supported original GameAssembly.dll
+hash and backup path. Both embedded payloads verified;52 focused tests pass.
+No fresh physical install or graphical fullscreen run was repeated;D5,
+RUNTIME_VALIDATED and final release remain OPEN;installer-fullscreen-rc19.txt.
+
 Paired Windows engineering prerelease0.3.0-rc1.8 published from clean f364ef9.
 Native client/server installers add current-user desktop shortcuts;the client
 prefills server IP134.209.176.39 on new installs while preserving saved/manual

@@ -1,0 +1,34 @@
+BATTLE ACES 0.3.0-rc1.9 WINDOWS INSTALLER PRERELEASE
+2026-11-07. Paired Windows x64 engineering prerelease for original game
+build37822. Source tag v0.3.0-rc1.9 binds clean package source commit
+13bf4c7a1c5f2cfc535329e13d82f630ff752cc8.
+https://github.com/Vegasq/battleaces_resurrection/releases/tag/v0.3.0-rc1.9
+
+The installed client starts fullscreen by default. client-config.json may set
+"fullscreen":false for a 960x540 window;installer updates preserve that choice.
+Existing schema4 configs without the field remain valid. README now explains
+the supported original GameAssembly.dll SHA256 and where a patched copy keeps
+its original backup. Server behavior,game helper,game/network protocols and
+asset format are unchanged from rc1.8.
+
+Published assets (bytes;SHA256)
+BattleAces-Client-Installer-0.3.0-rc1.9.exe
+  13502976;913722935577b08968e439171e99cb70850d418738b254421d01f3bea0fb8fc9
+BattleAces-Server-Installer-0.3.0-rc1.9.exe
+  13694464;bb7bc18e7c3d1a3ef8b04d0903e7f612b17f4558619216b137bbfec8abc74c2b
+release-manifest.json
+  1523;d86abec22df00ef7aee740122797bc5e5e10ae10d158a10bcf3579ee4ed3a8fc
+SHA256SUMS.txt
+  311;4a91653adaf65ce5a0224b12deffde26dea76477c41e4203a47246511de0adcf
+Embedded client ZIP SHA256:
+  866a489076e4fb26d61595d2bc2512605f2be517ef4455f1de7ae2a21d920704
+Embedded server ZIP SHA256:
+  2bcdecf31e20869e1849d34404514332bfaf4dedddb0c2e4cf6f3919edfe842a
+GitHub reported matching sizes and SHA256 digests for all four assets.
+
+Scoped validation:both native installers verified their embedded package
+inventory;52 focused Windows package,server/client installer,unified launcher
+and RC setup tests passed. The windowed preference and update preservation
+were covered by authored fixtures. A fresh physical install and graphical
+fullscreen launch were not repeated for this setting change. D5 privacy,
+RUNTIME_VALIDATED,clean Windows and final release acceptance remain OPEN/false.
