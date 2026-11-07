@@ -4,6 +4,8 @@ A community server and reversible Windows client patch for **Battle Aces build 3
 
 **Current download:** [Battle Aces 0.3.0-rc1.7 client and server installers](https://github.com/Vegasq/battleaces_resurrection/releases/tag/v0.3.0-rc1.7) · Windows x64 · Engineering prerelease
 
+<a href="https://discord.gg/s8YM4d2Sf"><img src="docs/media/discord-server.webp" alt="Community Discord icon" width="28" height="28"></a> **Community:** [Join the Discord server](https://discord.gg/s8YM4d2Sf) to chat with other players and find matches.
+
 The installers contain our client and server software. **They do not contain the original game files.** Keep an untouched copy of your supported game installation for recovery.
 
 ![Crabs moving into a number formation in an offline practice match](docs/media/crabs-2026.gif)
