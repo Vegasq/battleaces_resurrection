@@ -114,6 +114,8 @@ class UnifiedLauncherTests(unittest.TestCase):
     def test_start_uses_unified_transport_without_diagnostic_actions(self):
         async def launch(config, remote, args):
             argv = launcher.game_arguments(config, None, 1234, args)
+            self.assertEqual(argv[argv.index('-screen-fullscreen') + 1], '1')
+            self.assertNotIn('-screen-width', argv)
             self.assertIn('-unified-client', argv)
             self.assertIn('-secure-transport-version=2', argv)
             self.assertIn('-local-profile=default', argv)
@@ -124,6 +126,19 @@ class UnifiedLauncherTests(unittest.TestCase):
             return 17
         with mock.patch.object(launcher, 'launch', side_effect=launch):
             self.assertEqual(client.main(['--config', str(self.path), '--game', str(self.game)]), 17)
+
+    def test_windowed_setting_changes_startup_mode(self):
+        value = client.defaults(self.game)
+        value['fullscreen'] = False
+        self.save(value)
+        config = client.prepare_settings(self.path)
+        argv = launcher.game_arguments(config, None, 1234, client.player_options())
+        self.assertEqual(argv[argv.index('-screen-fullscreen') + 1], '0')
+        self.assertEqual(argv[argv.index('-screen-width') + 1], '960')
+        value['fullscreen'] = 'false'
+        self.save(value)
+        with self.assertRaisesRegex(launcher.LaunchError, 'fullscreen must be true or false'):
+            client.prepare_settings(self.path)
 
     def test_replay_file_and_picker_reach_native_without_diagnostic_actions(self):
         selected = self.folder / 'replay with spaces & percent %.rep'

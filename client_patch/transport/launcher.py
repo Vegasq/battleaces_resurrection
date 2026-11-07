@@ -225,8 +225,9 @@ def game_arguments(config, player_id, handle, args):
         f"-dedicated-server={config['server_host']}:{config['server_port']}",
         f'-secure-transport-socket={handle}',
         '-player-name=' + config['display_name'], '-room=' + config['room'],
-        '-screen-fullscreen', '0', '-screen-width', '960', '-screen-height', '540',
         '-logFile', str(runtime / (run_name + '-' + log_identity + '.log'))]
+    if config.get('fullscreen', True): result.extend(('-screen-fullscreen', '1'))
+    else: result.extend(('-screen-fullscreen', '0', '-screen-width', '960', '-screen-height', '540'))
     if dynamic: result.append('-secure-transport-version=2')
     else: result.append(f'-player-id={player_id}')
     result.append('-local-profile=' + profile)

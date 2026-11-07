@@ -47,10 +47,11 @@ class GameInstallerTests(unittest.TestCase):
         value=json.loads((self.game/installer.CONFIG).read_bytes())
         self.assertEqual(value['server_host'],'127.0.0.1')
         self.assertEqual(value['schema'],4)
+        self.assertIs(value['fullscreen'], True)
 
     def test_update_preserves_name_profile_port_and_local_identity(self):
         result=self.install();path=Path(result['config'])
-        value=json.loads(path.read_bytes());value.update(display_name='Nick',local_profile='friends',server_port=5000)
+        value=json.loads(path.read_bytes());value.update(display_name='Nick',local_profile='friends',server_port=5000,fullscreen=False)
         path.write_text(json.dumps(value))
         a=rc_setup.Resolver(path,self.game).read()
         self.install()
@@ -58,6 +59,7 @@ class GameInstallerTests(unittest.TestCase):
         self.assertEqual((a.player_id,a.token),(b.player_id,b.token))
         after=json.loads(path.read_bytes())
         self.assertEqual((after['display_name'],after['local_profile'],after['server_port']),('Nick','friends',5000))
+        self.assertIs(after['fullscreen'], False)
 
     def test_fresh_install_uses_player_pc_account_default_and_rename_keeps_identity_and_saves(self):
         with mock.patch.object(installer,'default_name',return_value='Local Pilot'):

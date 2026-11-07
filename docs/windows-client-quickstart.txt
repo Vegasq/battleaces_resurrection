@@ -17,6 +17,9 @@ Install Battle Aces.exe. Setup Client.cmd opens that same native window.
 3. Wait for the installed message,then close the installer.
 4. For later launches,use the Battle Aces Resurrection desktop shortcut or
    double-click Start Battle Aces.cmd in the GAME folder.
+The client starts fullscreen by default. To start it in a 960x540 window,
+close the game and set "fullscreen": false in
+.battleaces-resurrection/client-config.json. Set it back to true for fullscreen.
 
 WATCH A SAVED REPLAY (included since rc1.7)
 After installing the current client,close any running game

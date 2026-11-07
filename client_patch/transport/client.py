@@ -12,9 +12,9 @@ from .bridge import RemoteUnavailable
 from .player_name import default_name
 
 KEYS = frozenset(('schema', 'game_directory', 'display_name', 'server_host',
-                 'server_port', 'server_name', 'ca_bundle', 'credential_file', 'room', 'local_profile'))
+                 'server_port', 'server_name', 'ca_bundle', 'credential_file', 'room', 'local_profile', 'fullscreen'))
 LOCAL_KEYS = frozenset(('schema', 'game_directory', 'display_name'))
-REMOTE_KEYS = KEYS - {'local_profile'}
+REMOTE_KEYS = KEYS - {'local_profile', 'fullscreen'}
 
 
 def profile_key(value):
@@ -25,7 +25,7 @@ def profile_key(value):
 
 
 def defaults(game):
-    return dict(schema=3, game_directory=str(Path(game).resolve()), display_name=default_name(), local_profile='default',
+    return dict(schema=3, game_directory=str(Path(game).resolve()), display_name=default_name(), local_profile='default', fullscreen=True,
                 server_host='', server_port=47623, server_name='', ca_bundle='',
                 credential_file='', room='community')
 
@@ -46,6 +46,9 @@ def local_settings(value, path):
         raise launcher.LaunchError('Invalid display name')
     if not isinstance(game, str) or not game or any(ord(c) < 32 or c == '"' for c in game):
         raise launcher.LaunchError('Invalid game directory')
+    fullscreen = value.get('fullscreen', True)
+    if type(fullscreen) is not bool:
+        raise launcher.LaunchError('fullscreen must be true or false')
     selected = Path(game).expanduser()
     root = (selected if selected.is_absolute() else Path(path).resolve().parent / selected).resolve()
     if root.name.casefold() == 'battleacesbeta_untouched':
@@ -54,7 +57,7 @@ def local_settings(value, path):
     # satisfy the legacy argv shape; secure transport never opens a plaintext link.
     room = value.get('room', 'community')
     if not isinstance(room, str) or not re.fullmatch(r'[A-Za-z0-9_-]{1,48}', room): room = 'community'
-    return dict(game_directory=root, display_name=name, room=room, local_profile=profile_key(value.get('local_profile', 'default')),
+    return dict(game_directory=root, display_name=name, room=room, local_profile=profile_key(value.get('local_profile', 'default')), fullscreen=fullscreen,
                 server_host='127.0.0.1', server_port=47623)
 
 
@@ -64,6 +67,7 @@ def connection_settings(value, path):
     candidate = defaults(Path(path).parent)
     candidate.update(value)
     candidate.pop('local_profile')
+    candidate.pop('fullscreen', None)
     candidate['schema'] = 2
     return candidate
 

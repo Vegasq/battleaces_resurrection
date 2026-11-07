@@ -16,7 +16,8 @@ from server import tls_transport as tls
 from server.admission import authenticate_client, rc_player_id
 
 KEYS = frozenset(('schema', 'game_directory', 'display_name', 'local_profile',
-                  'server_host', 'server_port', 'room'))
+                  'server_host', 'server_port', 'room', 'fullscreen'))
+LEGACY_KEYS = KEYS - {'fullscreen'}
 
 
 def _ordinary(path, *, directory=False, missing_ok=False):
@@ -34,7 +35,7 @@ def _ordinary(path, *, directory=False, missing_ok=False):
 
 def settings(value, path):
     from . import client
-    if not isinstance(value, dict) or set(value) != KEYS or type(value['schema']) is not int or value['schema'] != 4:
+    if not isinstance(value, dict) or set(value) not in (KEYS, LEGACY_KEYS) or type(value['schema']) is not int or value['schema'] != 4:
         raise launcher.LaunchError('RC client settings require schema4 and its exact fields')
     local = client.local_settings(value, path)
     host, port = value['server_host'], value['server_port']
@@ -103,7 +104,8 @@ def save(request, path):
         if previous: client.local_settings(previous, path)  # Never discard unknown/corrupt settings.
         value = dict(schema=4, game_directory=request['game_directory'], display_name=request['display_name'],
                      local_profile=previous.get('local_profile', 'default'), server_host=request['server_host'].strip(),
-                     server_port=previous.get('server_port', 47623), room=previous.get('room', 'community'))
+                     server_port=previous.get('server_port', 47623), room=previous.get('room', 'community'),
+                     fullscreen=previous.get('fullscreen', True))
         validated = settings(value, path)
         if not (validated['game_directory'] / 'Battle Aces.exe').is_file():
             raise launcher.LaunchError('Choose the working Battle Aces game folder')
