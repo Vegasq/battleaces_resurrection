@@ -76,6 +76,19 @@ New server source SHA256:
 b878dd5b75f828c08efcead62a2ed96ddbf3e979e3d3ffb623e75954b0c5041b.
 This is a live candidate fix,not visual acceptance or a public paired package.
 
+Post-fix isolated coordinator checks on the same Wine Droplet used separate
+/srv/ba-runtime directories,loopback ephemeral listeners,real native workers
+and six pipelined client inputs. No public service/player data was altered.
+The two-scripted-human1200-frame run delivered ordered equal frames at20.004Hz,
+frame interval p95 54.062ms,max60.718ms,zero late/clamped events;summary SHA256
+b5c3a840f9dc7a5617aaa81127233c1607b70dd5e18e54835dc04b2377d9b5c2.
+The one-scripted-human/one-native-bot600-frame run delivered ordered frames at
+20.009Hz,interval p95 58.561ms,max78.205ms,one late event,zero clamps;
+summary SHA256 6f31009974dcee53224e5c1ff22ffdea77e509f983f2da3aa6b5aef7fb071fa0.
+The public systemd host remained active/listening. These checks confirm normal
+coordinator cadence under Wine;they do not simulate Nick's Internet path,
+client presentation or the same unit load as the reported match.
+
 Next: N18 in private DEV.txt requests one ordinary online versus AI match.
 Compare its cadence_late/clamp fields, completion rate and local sampled client
 receipts with the prior match. Nick's movement result is required for visual

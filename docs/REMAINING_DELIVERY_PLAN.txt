@@ -1679,6 +1679,8 @@ D8 - Internet,latency,capacity:OPEN.
   observed rate loss before visual movement. The server's old late-tick reset
   discarded time;bounded20Hz catch-up is now live/package-verified as a candidate
   fix. N18 requests one normal online AI match for visual and timing comparison.
+  Isolated patched Wine coordinator runs now pass20.004Hz/1200frames (two humans)
+  and20.009Hz/600frames (one native AI);neither measures Internet presentation.
   Isolated Wine AI worker at1600 frames averaged12.1ms,one frame over50ms;
   this does not cover live client input or explain97 resets in the prior match.
   Visual acceptance and coherent public packaging remain open;
