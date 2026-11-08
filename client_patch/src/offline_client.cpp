@@ -286,6 +286,8 @@ extern "C" __declspec(dllexport) int OfflineInitialUpdate(void* state,void*) {
     }
 }
 
+#include "frame_timing_audit.cpp"
+
 extern "C" __declspec(dllexport) void OfflineFrontUpdate(void* front,void*) {
     // Offline mode owns no connection to the discontinued front service.
     using namespace ba;
@@ -314,6 +316,7 @@ extern "C" __declspec(dllexport) void OfflineFrontUpdate(void* front,void*) {
         ba_match_loading::update(front);
         ba_match_loading_smoke::update(front);
         ba_webview_probe::update(front);
+        ba_frame_timing::observe(front);
         if(GetTickCount64()-last<10000)return;
         last=GetTickCount64();
         Obj fsm=read<Obj>(owner,0x2b0), state=get<Obj>(fsm,"_currentState");

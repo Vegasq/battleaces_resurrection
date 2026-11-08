@@ -4,6 +4,8 @@ A community server and reversible Windows client patch for **Battle Aces build 3
 
 **Current download:** [Battle Aces 0.3.0-rc1.9 client and server installers](https://github.com/Vegasq/battleaces_resurrection/releases/tag/v0.3.0-rc1.9) · Windows x64 · Engineering prerelease
 
+**Live server status (November 8, 2026):** Online play on 134.209.176.39 is temporarily limited to the project owner while we fix movement lag. You can still play smooth local AI from **Try Deck**. For a new install, clear the prefilled server IP. For an existing install, close the game and set `"server_host": ""` in `.battleaces-resurrection/client-config.json`; restore your saved IP later to return to the same online identity. Public queues and Custom rooms on this server will reopen after the fix is verified.
+
 <a href="https://discord.gg/s8YM4d2Sf"><img src="docs/media/discord-server.webp" alt="Community Discord icon" width="28" height="28"></a> **Community:** [Join the Discord server](https://discord.gg/s8YM4d2Sf) to chat with other players and find matches.
 
 The installers contain our client and server software. **They do not contain the original game files.** Keep an untouched copy of your supported game installation for recovery.

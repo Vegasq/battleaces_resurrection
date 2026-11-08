@@ -138,3 +138,208 @@ server cadence/input waits with N18 before keeping or reverting this setting.
 The first config write had a literal trailing escape and failed JSON parsing;
 it was immediately rebuilt from the saved bytes and parsed successfully before
 the service restart. The running service had not read the invalid draft.
+
+N19 FAILED:Nick reports "Nothing changed." Matching 2vAI match
+371342d3656a41f59ba04962b446337f ran19:25:09-19:25:29 UTC,
+381frames/19.27s=19.8Hz. Only4 cadence_late events and total195.88ms schedule
+clamp were recorded;late-frame worker max12.87ms. This separates the persisting
+visible jumps from broad server cadence loss. The current client can feed up
+to four authoritative frames to local simulation in one Unity update after a
+receive burst. A client presentation pacing candidate is being built/tested.
+
+At Nick's request,public game TCP47623 is temporarily owner-only so other
+players can use local Try Deck while the visual lag is investigated. At19:36
+UTC,no game TCP connections were active. A separate enabled systemd
+ba-game-allowlist.service installs BA_GAME_47623 via iptables-nft and the server
+unit requires it at future starts. The chain allows loopback and
+70.113.101.244/32;other TCP sources receive a reset. SSH and the existing
+BA_DASHBOARD_47624 allowlist were left intact. The owner PC connected to
+TCP47623 after the rule was applied. Reopen the public game port by removing
+the INPUT jump to BA_GAME_47623 and disabling/removing the game allowlist
+service and server unit drop-in;do not remove the dashboard rule.
+
+Client presentation regression,2026-11-08:an isolated owned game copy under
+local/online-frame-pacing/game carries an opt-in -lan-audit helper that records
+Unity front updates,network frame arrival,authoritative input application,
+native simulation frame and presented frame. Ordinary launches do not write
+this trace. Offline local AI reached1200 frames;after frame10 it had1191
+presented-frame changes,p95 gap62ms,max78ms,zero gaps>100ms and zero skips.
+The local AI verifier's separate strict movement gate failed because this
+profile did not both order and move;simulation/presentation trace completed.
+The retained trace is local/online-frame-pacing/offline-baseline/frame-timing-20440.tsv.
+
+The controlled network run used tools.run_secure_match with two owned clients,
+ephemeral TLS,ordered stream RTT200ms +/-20ms one-way variation,seed17,
+input_window6 and two 620-frame matches. It passed with matching sampled
+state and all1240 contiguous frames delivered/applied on each client;server
+effective rates were19.741 and19.878Hz. Traces under
+local/matches/online-frame-timing-200ms/ show four displayed views skipping
+8,9,24 and19 frames respectively (60 total),with p95 presented gaps79-94ms.
+This directly reproduces displayed jumps despite valid authoritative state.
+The baseline command `python -m tools.frame_timing --expected-frames 620
+--max-skips 1 --max-p95-ms 80 <two trace paths>` exits1 as intended.
+
+The first client pacing attempt delayed native input before PushSimMessage but
+left the small original receive bound;owned public5 trials stopped at frame16
+with `unexpected public frame`. Failed reports remain in
+local/online-frame-pacing/public5-check and public5-check02. A revised
+candidate continues receiving up to64 ordered frames while applying at most
+one per Unity update on a50ms wall clock;the native simulation's existing
+four-frame lead check remains. The candidate was run only in the isolated game
+copy. Under the same RTT/jitter/seed/four-view test,all four full traces
+reached frame619 with620 arrivals and620 applies each;display skips were
+1,0,0,0,p95 gaps78-79ms,max receive queue6. Both matches passed exact sampled
+server/client state with no mismatch and server rates19.691/19.811Hz. The
+new `--max-skips 1 --max-p95-ms 80 --expected-frames 620` gate exits0.
+Candidate evidence is local/matches/online-frame-pacing-candidate01/.
+The local loopback shaper does not establish real Internet/Wine presentation
+or subjective movement smoothness;pauses>100ms remain3-11 per view. Public5
+normal client and live visual checks are still required before release.
+
+After N19's unsuccessful nine-frame trial,the live host configuration was
+restored exactly from /srv/ba-runtime/host.pre-input-window9-20261108.json
+with no established game TCP connections. systemd restarted active,port47623
+listened again,and the owner-only game firewall chain remained in place.
+
+Final default-on helper source changed only the pacing gate from -lan-audit
+opt-in to dedicated online sessions. Rebuilt helper SHA256
+7be45352a822d8413764272e03eb38529ba6e6046a80215f83be22d279d4cc82.
+The exact final helper ran the same two-match delayed-stream test under
+local/matches/online-frame-pacing-final-source/;both 620-frame matches had
+zero state mismatches and the four displayed views skipped1,0,0,0 frames.
+Each view had620 contiguous arrivals and applies,p95 gaps78-79ms and max
+receive queue6. The regression gate exits0. The second server match averaged
+19.199Hz because of one1457.826ms stall;its p95 server interval was66.97ms.
+This is not a substitute for live visual acceptance.
+
+Local dirty-source client package preview:
+local/online-frame-pacing/packages-preview/battleaces-client-win64.zip
+SHA256 88d09985da236cefedd421fbb7ce39f92b09e1d5b4ba3ea4ffe84b7d633ecdd5.
+Its embedded client installer is
+local/online-frame-pacing/client-installer-preview/Install Battle Aces.exe
+SHA256 eee7bd12ee41cc308d480291b8201ac851ef53857146a852d1963d552e8f4c76.
+The installer's `--verify-payload` returned verified=true/exit0 against the
+embedded package. These are private test artifacts,not a public release;the
+version remains0.3.0-rc1.9 and must be incremented before publication.
+
+Public5 overflow regression:the exact final helper passed the existing owned
+public2vAI running/disconnect check at
+local/online-frame-pacing/public5-paced-running02/verification.json. All201
+applied frames match the server,zero displayed skips,p95 gap63ms,max queue6;
+injected disconnect/native cleanup passed and worker exited0. The first run
+at public5-paced-running passed its native/prefix/cleanup checks but its final
+source-stability gate failed because tools/run_secure_match.py was edited
+during that run. That failed report is preserved;running02 kept its complete
+source set unchanged. No normal Quit or full-game result claim is made.
+
+ACTUAL INTERNET REPRODUCTION AND CANDIDATE COMPARISON
+Two separate owned test identities ran public2vAI over134.209.176.39:47623.
+The real Wine service/source/input_window6 and existing owner-only firewall
+were used. No production configuration or user-owned installation was changed.
+The opt-in local probe automated normal Play and one normal build at frame300,
+recorded at least1200 frames,then terminated only its retained owned game/Job;
+the server aborted each test match and reaped its worker. These are timing
+prefixes,not completed games or native Quit evidence.
+
+Baseline helper01abf49... match9cfd39f4b7b54af0b9cd770418e73851:
+1205 applied frames,displayed-frame skips522 after frame10,median gap125ms,
+p95 156ms,446 gaps>100ms. Effective displayed progression19.920Hz shows that
+simulation speed alone concealed severe presentation jumps. Server started
+20:26:02 UTC and aborted20:27:04 UTC at next_frame1211;21 late events.
+
+Paced final helper7be4535... match80a60c1ea54a47e296eeb71ce5bf85b8:
+1204 applied frames,zero displayed skips after frame10,median gap47ms,p95 78ms,
+six gaps>100ms,effective progression19.606Hz,max receive queue5. A1.125s
+presented gap coincides with a1.094s gap in Unity's own front-update samples
+at presented frame592. The server then waited1030.199ms for client input at
+frame600 while worker work took12.048ms. This places that residual pause in
+client update/input starvation rather than slow native server work;the
+underlying reason for the client update pause is not established by this trace.
+The normal-build submit->authoritative apply and submit->first displayed frame
+both measured250ms in BOTH live runs. This is one command proxy,not physical
+move-command latency acceptance.
+
+Exact raw captures,helper/trace hashes and equal predeclared1200-frame prefix
+comparison:local/online-frame-pacing/live-baseline01/,live-candidate01/,
+live-comparison.json and server-live-evidence.json. The same pacing gate is
+red on the baseline prefix and green on the candidate prefix;the candidate
+contains every presented frame11..1199. The baseline prefix misses520 of
+those expected displayed frames,including its skipped final boundary frame.
+The installed user client still requires the existing N20 visual check;no
+new request,public release or public-port reopening follows from these probes.
+
+Reusable regression:tools.run_secure_match now accepts --require-frame-pacing.
+It retains both native traces and includes their qualification in summary.json
+and the command exit status. It checks contiguous complete frames from0,
+complete presentation,at most one skipped frame,p95 gap<=80ms and19..21Hz
+presentation rate. Missing final views,missing matches,shifted frame sequences,
+two-frame bursts,slow motion and fast-forward cannot pass. The22 focused
+frame-timing/recovery-evidence tests pass. Reproduce with:
+  python -m tools.run_secure_match --game local/online-frame-pacing/game --assets ../battleaces_resuraction/local/assets224-native01/asset-copy --run-name NEW_UNIQUE_NAME --duration 180 --input-window 6 --rtt-ms 200 --jitter-ms 20 --network-seed 17 --require-frame-pacing
+
+The first integrated gate at local/matches/online-pacing-integrated-gate/
+correctly exited1:all four620-frame views had zero skips and matching state,
+but one rematch had p95 gap93ms against the80ms limit. The failure is retained
+and the gate was not loosened. The original pacing clock reset whenever the
+receive queue emptied,allowing early packets to pull the next update forward.
+
+Revised helper starts with two received frames (one frame of reserve),then
+keeps the50ms clock across empty polls. Native input ordering,per-update
+limit,lead check,buffer cap and50ms simulation step remain enforced. Helper
+SHA256 d03dd97d8ec8f7aa12f3a739931675a26c81ddc3f7acdf7c86846d0ab3e4d8da.
+The exact helper passes --require-frame-pacing at
+local/matches/online-pacing-buffered-gate/summary.json with exit0. All four
+complete620-frame views have zero skipped frames and zero gaps>100ms;
+p95 gaps63/63/78/78ms,max gaps79/78/94/78ms,rates19.995-20.027Hz. Both
+matches have matching server/client sampled state and native result readiness.
+The harness then forcibly terminates its owned clients as documented;this
+does not claim natural Quit. Actual Internet verification of this refinement
+and its normal-build delay follows before changing the N20 artifact.
+
+The buffered helper's real public2vAI match676c0e8932a749c48c330f478aa06c77
+reached1202 applied frames with zero displayed skips,median gap47ms,p95 63ms,
+max queue6 and effective progression19.512Hz. Seven gaps exceeded100ms;
+the largest was859ms. The corresponding server frame1106 waited889.158ms
+for client input and used14.592ms native work. Another390ms gap at frame768
+has continuing client front updates and server input wait415.936ms at773.
+Their transport/observer cause remains unresolved. The probe synchronously
+reads native log files on the same event loop as its TLS bridge,so a threaded
+observer comparison is being retained separately. No observer hypothesis is
+treated as proven by the timing correlation alone. Evidence:
+local/online-frame-pacing/live-buffered01/ and live-comparison.json.
+The sampled normal build took297ms from submission to both authoritative
+application and first presented frame,47ms more than the baseline sample.
+
+Current N20 private installer:
+local/online-frame-pacing/buffered-client-installer-preview/Install Battle Aces.exe
+SHA256 c6cad4d1412e0169c52ab51f4f202933bab8d1611bd01611df82769149adf09f.
+Its embedded ZIP SHA256 is
+07190bb22c520980558c1e0533a87eeaa26d42fa778385cf01f404e83db98021;
+--verify-payload returned verified=true/exit0. Paired dirty-source ZIP previews
+are under local/online-frame-pacing/buffered-packages-preview/. The previous
+N20 installer remains preserved. N20 was refreshed in place with this artifact
+and its delay tradeoff;all answer fields remain unfilled. No public release.
+
+Threaded-observer comparison:the same buffered helper on the same live host
+ran match056a3c8ccd9140668a534d6a598d8aa0. The only probe change moves its
+live native-log reads into asyncio.to_thread,leaving TLS processing free to
+continue during disk reads. Captured1202 applied frames have zero displayed
+skips,median gap47ms,p95 63ms,max140ms,three gaps>100ms and20.000Hz displayed
+progression;max queue5. The defined first1200-frame prefix passes the pacing
+gate and displays every frame11..1199. The same build-command proxy took296ms.
+The former859ms pause did not recur. This is evidence that synchronous observer
+I/O can contaminate this test,not proof that every prior pause shared that cause.
+Both scripts and all prior reports remain preserved. The tracked
+tools.run_secure_match observer now also batches native-log reads on a worker
+thread;its22 focused evidence tests still pass. Product/helper bytes are
+unchanged by this observer repair.
+
+Threaded evidence:local/online-frame-pacing/live-buffered-threaded01/,
+including exact probe/helper/trace hashes;the equal-prefix result is appended
+to live-comparison.json. server-live-evidence.json binds all four live probes
+to the actual service source/input window and one aborted match/worker release
+per probe. Final service check is active/listening with no established game
+connections. The large cadence_late counts657/717 in the buffered runs do not
+mean657/717 visible pauses:the client clock can keep a constant offset while
+advancing20Hz. Use measured intervals and input/worker durations to interpret
+that diagnostic. N20 remains the sole current manual lag check;no answer yet.

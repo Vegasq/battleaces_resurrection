@@ -34,10 +34,15 @@ static std::string dedicatedMatchId;
 static size_t txPosition=0;
 static std::deque<Bytes> frames;
 static int nextFrame=0;
+// Feed the native simulation at the 20 Hz wall clock while continuing to
+// receive the ordered stream. This prevents catch-up bursts from jumping
+// across multiple displayed positions in a single Unity front update.
+static ULONGLONG nextNativePushAt=0;
+static bool paceNativeFrames() {return ba::dedicated();}
 static unsigned inputWindow=0;
 static uint64_t bootstrapHash=0;
 static FILE* receipts=nullptr;
-static void closeReceipts() {if(receipts){fclose(receipts);receipts=nullptr;}}
+static void closeReceipts() {if(receipts){fclose(receipts);receipts=nullptr;}ba_frame_timing::flush();}
 static void recordReceipt(int frame,int actions,int sim,const char* digest) {
     if(!ba::dedicated() || !ba::flag(L"-lan-audit"))return;
     if(dedicatedMatchId.empty())throw std::runtime_error("receipt match ID missing");
@@ -237,9 +242,9 @@ static void poll() {
         else if(type==37){std::string notice(payload.begin(),payload.end());ba::log("Dedicated server notice: %s",notice.c_str());}
         else if(type==36){std::string result(payload.begin(),payload.end());ba::log("Dedicated match ended: %s",result.c_str());ba_dedicated_results::receive(result);matchEnded=true;}
         else if(type==12){if(!bootstrap.empty() || payload.empty())throw std::runtime_error("duplicate or empty bootstrap");bootstrap=std::move(payload);if(ba::dedicated())saveReceivedBootstrap(bootstrap);auto h=sha(bootstrap);memcpy(&bootstrapHash,h.data(),8);ba::log("LAN canonical GameData received: %llu bytes hash-prefix=%016llx",static_cast<unsigned long long>(bootstrap.size()),bootstrapHash);}
-        else if(type==13){if(!worldReady || !payload.empty() || running)throw std::runtime_error("unexpected LAN start");running=true;nextFrame=0;ba::log("LAN both players ready; synchronized start");}
-        else if(type==14){if(!running || frames.size()>=(ba::dedicated()?inputWindow+4:8))throw std::runtime_error("unexpected LAN frame");frames.push_back(std::move(payload));}
-        else if(type==64){if(!publicMatch || !running || frames.size()>=inputWindow+4)throw std::runtime_error("unexpected public frame");ba_public_wire::frame(payload,static_cast<unsigned>(publicIdentities.size()));frames.push_back(std::move(payload));}
+        else if(type==13){if(!worldReady || !payload.empty() || running)throw std::runtime_error("unexpected LAN start");running=true;nextFrame=0;nextNativePushAt=0;ba::log("LAN both players ready; synchronized start");}
+        else if(type==14){if(!running || frames.size()>=(paceNativeFrames()?64u:ba::dedicated()?inputWindow+4:8))throw std::runtime_error("unexpected LAN frame");const int frame=static_cast<int>(u32(payload,0));frames.push_back(std::move(payload));ba_frame_timing::arrival(frame,frames.size());}
+        else if(type==64){if(!publicMatch || !running || frames.size()>=(paceNativeFrames()?64u:inputWindow+4))throw std::runtime_error("unexpected public frame");ba_public_wire::frame(payload,static_cast<unsigned>(publicIdentities.size()));const int frame=static_cast<int>(u32(payload,0));frames.push_back(std::move(payload));ba_frame_timing::arrival(frame,frames.size());}
         else if(type==255){std::string message(payload.begin(),payload.end());throw std::runtime_error(message.c_str());}
         else throw std::runtime_error("unknown LAN message type");
     }
@@ -294,7 +299,17 @@ static void tick(Obj server) {
     if(window<2 || window>12)throw std::runtime_error("input window was not negotiated");
     if(!submittedFirst){for(int f=0;f<window;++f)submit(server,f);submittedFirst=true;}
     Obj sim=ba::read<Obj>(server,0x140);
+    const bool paced=paceNativeFrames();
+    const ULONGLONG now=paced?GetTickCount64():0;
+    // Start with one frame of receive lead. Keep the established wall clock
+    // across empty polls so an early packet cannot pull presentation forward
+    // and leave a longer pause before the next network burst.
+    if(paced && !nextNativePushAt){
+        if(frames.size()<2 && !matchEnded)return;
+        nextNativePushAt=now;
+    }
     while(!frames.empty() && nextFrame-ba::read<int>(sim,0xa8)<4) {
+        if(paced && now<nextNativePushAt)break;
         Bytes frame=std::move(frames.front());frames.pop_front();
         if(u32(frame,0)!=static_cast<uint32_t>(nextFrame))throw std::runtime_error("noncontiguous LAN frame");
         std::vector<Bytes> inputs;
@@ -315,12 +330,18 @@ static void tick(Obj server) {
             if(actions)ba_local::addItem(ba::get<Obj>(message.get(),"playerInputActions_"),player.get());
         }
         bool catching=false;void* args[]={message.get(),&catching};ba::call(server,"ProcessInputActions",2,args);void* push[]={message.get()};ba::call(sim,"PushSimMessage",1,push);
+        ba_frame_timing::applied(nextFrame,sim,frames.size());
         if(nextFrame%200==0 || total || (ba::dedicated() && ba::flag(L"-lan-audit"))) {
             auto hash=sha(frame);char hex[65];for(int i=0;i<32;++i)sprintf_s(hex+i*2,3,"%02x",hash[i]);
             recordReceipt(nextFrame,total,ba::read<int>(sim,0xa8),hex);
             if(nextFrame%200==0 || total)ba::log("LAN received frame %d, actions=%d, sim=%d sha256=%s match=%s",nextFrame,total,ba::read<int>(sim,0xa8),hex,dedicatedMatchId.c_str());
         }
         ++nextFrame;submit(server,nextFrame+window-1);
+        if(paced){
+            nextNativePushAt+=50;
+            if(now>nextNativePushAt+50)nextNativePushAt=now+50;
+            break; // A front update may publish only one native frame.
+        }
     }
     if(matchEnded && frames.empty())running=false;
 }

@@ -34,6 +34,7 @@ from server.worker_client import SimulationWorker
 from server.verify_dedicated_run import verify
 from tests.test_tls_transport import generate_test_pki, remove_test_pki
 from tools.stream_shaper import StreamShaper
+from tools import frame_timing as presentation_timing
 
 ROOT = Path(__file__).resolve().parents[1]
 
@@ -57,6 +58,10 @@ def read_native_log(game, pid, *, since_tick=None):
     # only complete lines are evidence. Reject invalid bytes in completed lines.
     complete = raw[:raw.rfind(b'\n') + 1].decode('utf-8')
     return current_native_log(complete, since_tick=since_tick)
+
+
+def read_native_logs(game, pids):
+    return {pid: read_native_log(game, pid) for pid in pids}
 
 
 def native_result_ready(log, match):
@@ -107,6 +112,8 @@ def frame_timing(events, match):
 def scenario_expectations(args):
     modes = sum((args.disconnect_frame is not None, args.postgame_error, args.pre_match_failure is not None))
     if modes > 1: raise ValueError('choose one failure scenario per run')
+    if modes and getattr(args, 'require_frame_pacing', False):
+        raise ValueError('frame pacing qualification requires completed healthy matches')
     if args.quit_on_failure and (not modes or args.pre_match_failure):
         raise ValueError('quit qualification requires a mid-match or postgame failure affecting both clients')
     if args.pre_match_failure and (args.rtt_ms or args.jitter_ms):
@@ -201,7 +208,8 @@ async def run(args):
     try:
         source_paths = sorted({path for pattern in ('server/*.py','client_patch/src/*.cpp',
             'client_patch/src/*.hpp','client_patch/transport/*.py','client_patch/patcher/*.py',
-            'client_patch/build.ps1','tools/run_secure_match.py','tools/stream_shaper.py') for path in ROOT.glob(pattern)})
+            'client_patch/build.ps1','tools/run_secure_match.py','tools/stream_shaper.py',
+            'tools/frame_timing.py') for path in ROOT.glob(pattern)})
         (destination / 'source-sha256.json').write_text(json.dumps(dict(
             note='Working source digests captured before game launch; installed binaries are identified separately by patch-manifest.json.',
             files={path.relative_to(ROOT).as_posix():hashlib.sha256(path.read_bytes()).hexdigest() for path in source_paths}),
@@ -241,12 +249,15 @@ async def run(args):
             deadline = time.monotonic() + args.duration
             final_result_at = quit_requested_at = None
             while time.monotonic() < deadline:
+                # File reads can block on the game's drive. They must not pause
+                # the coordinator/TLS bridge event loop being measured.
+                logs = await asyncio.to_thread(read_native_logs, game, tuple(process.pid for process in processes))
                 if args.quit_on_failure:
                     if len(processes)==2 and all(process.poll() is not None for process in processes):
                         stop_reason = 'clients_exited'
                         break
                     if len(processes)==2 and all('QUIT SMOKE invoking original disconnected modal OnCancel'
-                            in read_native_log(game,process.pid) for process in processes):
+                            in logs.get(process.pid, '') for process in processes):
                         if quit_requested_at is None: quit_requested_at=time.monotonic()
                         # A shutdown hang is a failed test, not a successful
                         # forced exit. Bound it independently of cold startup.
@@ -257,7 +268,7 @@ async def run(args):
                     stop_reason = 'client_task_ended'
                     break
                 if args.pre_match_failure and not faults and len(processes)==2:
-                    log=read_native_log(game,processes[0].pid)
+                    log=logs.get(processes[0].pid, '')
                     if args.pre_match_failure=='lobby':
                         room=coordinator.rooms.get('tls-rematch')
                         peer=next((peer for peer in room.peers.values() if peer.profile_id==players[0][0]),None) if room else None
@@ -278,7 +289,7 @@ async def run(args):
                     match = completions[0]
                     # Wait for both actual native result states, inactive worlds
                     # and empty navigation; never inject merely on server finish.
-                    if all(native_result_ready(read_native_log(game,process.pid), match) for process in processes):
+                    if all(native_result_ready(logs.get(process.pid, ''), match) for process in processes):
                         room = next((room for room in coordinator.retired if room.match_id == match), None)
                         if room is not None and len(room.peers)==2:
                             fault = dict(match=match, phase='native-postgame', slots=sorted(room.peers))
@@ -291,7 +302,7 @@ async def run(args):
                     # Server completion precedes native animation/world teardown.
                     # An elapsed grace period alone cannot prove the result UI.
                     if (time.monotonic() - final_result_at >= 15 and len(processes)==2
-                            and all(native_result_ready(read_native_log(game,process.pid), completions[-1])
+                            and all(native_result_ready(logs.get(process.pid, ''), completions[-1])
                                     for process in processes)):
                         stop_reason = 'native_results_ready'
                         break
@@ -349,13 +360,26 @@ async def run(args):
         ready=native_result_ready(read_native_log(game,process.pid), completions[-1]))
         for process in processes] if completions else []
     result_ui_ok = args.quit_on_failure or (len(final_postgame)==2 and all(row['ready'] for row in final_postgame))
+    pacing = []
+    if getattr(args, 'require_frame_pacing', False):
+        for process in processes:
+            trace = game / 'investigation/runtime' / f'frame-timing-{process.pid}.tsv'
+            try:
+                shutil.copyfile(trace, destination / trace.name)
+                timing = presentation_timing.qualify(presentation_timing.read_trace(trace),
+                                                    [row['frames'] for row in results])
+            except (OSError, ValueError) as error:
+                timing = dict(passed=False, matches=[], errors=[str(error)])
+            pacing.append(dict(pid=process.pid, **timing))
+    pacing_ok = not getattr(args, 'require_frame_pacing', False) or (len(pacing)==2 and all(row['passed'] for row in pacing))
     summary = dict(matches=results, authenticated_sessions=records, faults=faults, recovery=recovery,
                    exits=exits,pre_match_failure=args.pre_match_failure,quit_on_failure=args.quit_on_failure,
                    stop_reason=stop_reason, final_native_results=final_postgame,
                    game_protocol=p.VERSION, input_window=args.input_window,
                    stream_delay=dict(rtt_ms=args.rtt_ms, jitter_ms=args.jitter_ms, seed=args.network_seed,
                                      relay_stats=relay.stats if relay else None),
-                   success=len(results) >= expected_matches
+                   frame_pacing=pacing,
+                   success=len(results) >= expected_matches and pacing_ok
                        and len(records) >= expected_auth and recovery_ok and quit_ok and result_ui_ok
                        and all(row['status']=='matching_sampled_server_and_clients' for row in results))
     (destination / 'summary.json').write_text(json.dumps(summary, indent=2), encoding='utf-8')
@@ -374,6 +398,8 @@ if __name__ == '__main__':
     parser.add_argument('--rtt-ms', type=float, default=0, help='loopback ordered-stream round-trip delay,0..500ms')
     parser.add_argument('--jitter-ms', type=float, default=0, help='uniform +/- one-way delay variation,0..100ms')
     parser.add_argument('--network-seed', type=int, default=1)
+    parser.add_argument('--require-frame-pacing', action='store_true',
+                        help='retain native timing traces and require complete near-20Hz presentation with at most one skip per match')
     failure = parser.add_mutually_exclusive_group()
     failure.add_argument('--disconnect-frame', type=int,
                         help='test-only abrupt peer disconnect during the first match; require native button recovery')

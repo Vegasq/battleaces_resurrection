@@ -1,5 +1,5 @@
 BATTLE ACES - CURRENT STATUS
-Reviewed:2026-11-07. Final release is not accepted.
+Reviewed:2026-11-08. Final release is not accepted.
 Current work:REMAINING_DELIVERY_PLAN.txt. Evidence navigation:INDEX.txt.
 Exact prior3576-line ledger:history/2026-10-24/STATUS.txt.
 Historical records retain their original failures,claims and artifact scopes.
@@ -7,7 +7,23 @@ Historical records retain their original failures,claims and artifact scopes.
 Live DigitalOcean Droplet612569133 at134.209.176.39 scaled to2vCPU/4GiB
 ($24/month) with disk unchanged. A powered-off snapshot preceded resize;
 systemd/Wine autostart survived actual power-on. Game TCP47623 is externally
-reachable and dashboard status/history is healthy. This operational result
+reachable only from70.113.101.244 and loopback during online lag diagnosis;
+other IPs receive a TCP reset so local Try Deck remains usable. The dashboard
+allowlist and SSH access are unchanged. Server cadence reached19.8Hz in Nick's
+N19 online 2vAI match but movement still jumped. The ineffective nine-frame
+window was restored to six. Local 200ms RTT delayed-stream tests reproduce
+60 displayed-frame skips in four views;an isolated paced client reduced this
+to one while preserving exact 620-frame matches. A private client installer
+preview is payload-verified. Actual Internet public2vAI probes now reproduce
+522 displayed skips with the baseline and zero with the latest buffered helper
+over1200+ frames;median gap125->47ms,p95 156->63ms. The integrated four-view
+regression passes zero skips/zero gaps>100ms. After moving probe log reads off
+the TLS event loop,the same helper's actual Internet run has20.000Hz displayed
+progression,p95 gap63ms,max140ms and zero skips over1200+ frames. N20 points to
+the payload-verified buffered client installer. The existing
+N20 visual/command-response acceptance and a versioned paired release are
+still open;live-online-lag-20261108.txt.
+The earlier operational result
 does not close D8 graphical/capacity or final release gates;
 live-droplet-scale-20261108.txt.
 
