@@ -135,3 +135,6 @@ client accepts server-selected windows2..12. Nine provides150ms more input
 lead but can add up to150ms to move-command response. Private DEV N19 asks for
 one normal online AI match to test movement and command response;compare its
 server cadence/input waits with N18 before keeping or reverting this setting.
+The first config write had a literal trailing escape and failed JSON parsing;
+it was immediately rebuilt from the saved bytes and parsed successfully before
+the service restart. The running service had not read the invalid draft.
