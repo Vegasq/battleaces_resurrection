@@ -1,0 +1,109 @@
+CLIENT VERSION POLICY AND PERSISTENT UPDATE OVERLAY
+2026-11-08. Prepared for paired0.3.0-rc1.10;not yet published or deployed.
+
+Behavior
+The native helper sends client compatibility revision1 as a four-byte trailer
+on its existing dedicated/community HELLO. Protocol3,original game/simulation
+hashes,community versions and player identities keep their existing checks.
+An absent trailer is legacy revision0. Extra/truncated trailers are rejected.
+Newer compatible revisions can connect;client/server package version strings
+do not have to be identical.
+
+The host defaults to minimum_client_revision1. After TLS authentication and
+validating HELLO,the server rejects older revisions before reserving a player
+identity,writing a profile,registering presence,creating a room or worker.
+The error contains the bounded BA_UPDATE_REQUIRED/minimum/message policy.
+client_update_required audit events record observed and required revisions.
+The client displays the message through the existing top-center status strip.
+Its separate persistent notice survives normal loading/error expiry,local
+practice and return to menu. It never captures mouse input or owns a match.
+Only a successful server welcome clears it;ordinary connection failures do
+not erase a prior update warning. The existing local AI fallback remains.
+
+The persistent overlay uses a720x84 panel/font20 rather than the normal
+560x54/font22 loading strip. Messages are plain text with rich text disabled.
+The configured message is bounded to1..160 printable ASCII/newline characters.
+There is no automatic download,installer execution or clickable link in this
+overlay. The native original login/compliance service remains disabled.
+
+Settings in config/host.json (both are optional with these defaults):
+  "minimum_client_revision": 1,
+  "client_update_message": "Client update required (0.3.0-rc1.10). Download the latest installer from GitHub Releases."
+Set minimum_client_revision0 only for a deliberate legacy-compatible rollout
+or rollback. For a later required revision,change the message to name that
+release too. Invalid/bool/negative/overflow revisions and invalid text fail
+configuration validation. Packaged compatibility.json records client_revision.
+
+Rollout
+Publish the paired installers before enforcing a revision that is not yet
+available for download. A staged server can accept legacy clients with minimum0
+while clients are upgraded;set minimum1 to require this corrected helper.
+Before enabling the policy on the public host,retain the host configuration
+backup and the existing owner-only firewall until N20 accepts movement.
+Current live service/configuration and pending N20 installer are unchanged.
+
+An old server rejects this new HELLO trailer as "extra hello fields". Updated
+clients map that incompatibility to a persistent "Server update required"
+warning and retain offline AI. Existing released clients do not contain this
+overlay wiring:their first upgrade still needs the release announcement. The
+server can reject them,but cannot add new rendering code to their old helper.
+
+Evidence
+python -m unittest tests.test_client_compatibility tests.test_protocol tests.test_host_configuration -v
+  23passed:legacy rejection before all online state,current/newer acceptance,
+  explicit minimum0 rollout,custom messages,hash/protocol checks,policy bounds,
+  native/package revision agreement and old configuration defaults.
+python -m unittest tests.test_dedicated_server tests.test_community tests.test_public_matchmaking -q
+  56tests pass,one prior scoped skip.
+python -m unittest tests.test_windows_packages tests.test_game_installer tests.test_client_compatibility -q
+  36passed,including package dependency integrity and retained install behavior.
+client_patch/build.ps1 compiles the helper and passes existing native suites
+plus client_compatibility_tests:malformed policies,ordinary errors preserving
+the warning,successful welcome clearing,independent pending tickets and
+persistence beyond UINT64_MAX expiry/local-world cleanup.
+
+Native helper SHA256:
+b150b85933e31b7a81c5b2c92145003378af1dc58ae61f7ec59114909455bbbc.
+Owned native rejection fixture uses ephemeral TLS,in-memory credentials and
+a synthetic server template;no production account/configuration is used.
+local/client-version-overlay/native-rejection01 retains a failed hidden run:
+the warning did persist and offline AI completed,but the fixture waited for
+the wrong sampled frame label and no screenshot was produced. No visual pass
+was inferred. The corrected source-owned verifier is:
+  python -m tools.verify_client_update_notice --game local/online-frame-pacing/game --output local/client-version-overlay/NEW_NAME --render-window
+native-rejection02 passes in25.516s. The server observes revision1 against
+minimum2 and creates no online presence/room/worker. The actual overlay text
+readback matches the server message at12000ms,raycasts remain disabled and
+offline AI advances at least200 frames. The retained Unity PNG was inspected:
+the amber two-line warning is readable at top center above the local game.
+The owned window is shown without activation for render qualification. Cleanup
+is forced owned termination,not a physical-player or normal-Quit claim.
+Screenshot SHA256:
+58fa85fd7a276447e0d3ca03968c0cff9bca9fbc9b2a84412d50b79161ffb52c.
+
+Compatible native clients completed two620-frame TLS/rematch games with four
+authenticated sessions,matching sampled server/client state,zero skipped
+presented frames and native result readiness. The broader --require-frame-pacing
+gate FAILED because one view's p95 gap94ms exceeds80ms;other views were78-79ms.
+That full failed report and traces remain at
+local/matches/client-revision-compatible/. This proves handshake/match
+compatibility at that scope,not complete lag acceptance. N20 and D8 stay open.
+
+Private paired0.3.0-rc1.10 packages are under
+local/client-version-overlay/packages/. Embedded installers are under
+local/client-version-overlay/client-installer/ and server-installer/.
+Client EXE SHA256 bd40e2cf3d9a97410ae013a962bf13a4cae41228b6677bbe9adf45b95aae0ef5;
+server EXE SHA256 c9659c2486e7576262478845d6aa0e6339d57eb3a011ac97e4e82425e28c8408.
+Both --verify-payload calls pass. Both extracted pinned Python3.14 runtimes
+import the new policy module,encode/decode revision1 and legacy0 correctly,
+and report package0.3.0-rc1.10/client_revision1;runtime-check.json retains this.
+These are dirty-source private previews,not a public release or live policy
+change. The earlier N20 buffered installer remains the live-host test artifact.
+
+The final private previews include updated player/operator quickstarts at
+local/client-version-overlay/packages02/,client-installer02/ and
+server-installer02/. Both final embedded payload verifications pass. Final
+client EXE SHA2564970259e952ba381b97ac202acac0077519e387a093ad7340eba1b9a9dfe8758;
+server EXE SHA25609084ea34c60fa60d11c4afe327b22840cd48a9e015d51e63752a6d692631352.
+Earlier previews/reports are retained. An additional32 compatibility/public
+protocol/admission tests pass. No public publication or live host change.

@@ -14,9 +14,15 @@ struct Model {
     Ticket sequence=0,ticket=0;
     Source source=Source::Practice;
     Stage stage=Stage::Preparing;
-    std::string identity,message;
+    std::string identity,message,persistentMessage;
     bool pending=false,visible=false,notice=false;
     uint64_t expires=0;
+    bool displayVisible()const{return visible || !persistentMessage.empty();}
+    bool setPersistent(const std::string& text) {
+        if(text.size()>160)throw std::invalid_argument("persistent notice too long");
+        if(persistentMessage==text)return false;
+        persistentMessage=text;return true;
+    }
 
     Ticket begin(Source kind,const std::string& key,Stage value) {
         if(key.empty() || key.size()>160)throw std::invalid_argument("invalid loading identity");

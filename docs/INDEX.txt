@@ -1,5 +1,5 @@
 BATTLE ACES - DOCUMENTATION INDEX
-Updated:2026-11-07. Paths below are relative to docs/.
+Updated:2026-11-08. Paths below are relative to docs/.
 
 START WITH THREE FILES
   REMAINING_DELIVERY_PLAN.txt - what is next and which D1-D9 gates remain
@@ -20,6 +20,8 @@ Focused evidence files were not renamed because tools and retained reports
 depend on their paths. Top-level reference documents are indexed below.
 
 CURRENT PLANNING AND ACCEPTANCE
+  client-version-policy.txt - minimum client revision and persistent top-center update overlay;private rc1.10 preview
+  live-online-lag-20261108.txt - live lag reproduction,client pacing fix,retained timing failures and N20
   live-droplet-scale-20261108.txt - live 4GiB resize,same IP,powered-off snapshot and boot autostart
   installer-fullscreen-rc19.txt - published rc1.9 paired installers,fullscreen default and hashes
   installer-shortcuts-rc18.txt - published rc1.8 paired installers,desktop shortcuts,prefilled host and public hashes

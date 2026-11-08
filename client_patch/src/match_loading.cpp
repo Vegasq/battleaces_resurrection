@@ -114,26 +114,29 @@ static void ensureView() {
     }
 }
 static void paint(bool force=false) {
-    if(rendererFailed || (!model.visible && !view))return;
+    const bool persistent=!model.persistentMessage.empty(),visible=model.displayVisible();
+    if(rendererFailed || (!visible && !view))return;
     try {
-        if(model.visible)ensureView();
+        if(visible)ensureView();
         require(view && ba::read<Obj>(view->object.get(),0x10),"loading UI owned canvas was destroyed");
         const auto now=GetTickCount64();
-        if(!force && paintedVisible==model.visible && (!model.visible || now-lastPaint<400))return;
-        std::string text=model.notice?model.message:stageText(model.stage);
-        if(model.pending)text+=std::string(1+(now/400)%3,'.');
-        if(model.visible && text!=painted) {
+        if(!force && paintedVisible==visible && (!visible || now-lastPaint<400))return;
+        std::string text=persistent?model.persistentMessage:model.notice?model.message:stageText(model.stage);
+        if(model.pending && !persistent)text+=std::string(1+(now/400)%3,'.');
+        setValue(view->panel.get(),"set_sizeDelta",persistent?Vec2{720,84}:Vec2{560,54});
+        setValue(view->text.get(),"set_fontSize",persistent?20.0f:22.0f);
+        if(visible && text!=painted) {
             Root label(ba::str(text.c_str()));setObject(view->text.get(),"set_text",label.get());
-            setValue(view->text.get(),"set_color",model.notice?Color{1,.78f,.46f,1}:Color{.83f,.95f,1,1});
+            setValue(view->text.get(),"set_color",(persistent || model.notice)?Color{1,.78f,.46f,1}:Color{.83f,.95f,1,1});
             Root actual(ba::call(view->text.get(),"get_text"));
             require(ba_catalog::utf8(actual.get())==text,"loading UI text readback failed");painted=text;
         }
-        setValue(view->object.get(),"SetActive",model.visible);
+        setValue(view->object.get(),"SetActive",visible);
         Root shown(ba::call(view->object.get(),"get_activeInHierarchy"));
-        require(boolean(shown.get())==model.visible,"loading UI visibility readback failed");
+        require(boolean(shown.get())==visible,"loading UI visibility readback failed");
         Root blocked(ba::call(view->group.get(),"get_blocksRaycasts")),textRaycast(ba::call(view->text.get(),"get_raycastTarget"));
         require(!boolean(blocked.get()) && !boolean(textRaycast.get()),"loading UI must not capture input");
-        paintedVisible=model.visible;lastPaint=now;
+        paintedVisible=visible;lastPaint=now;
     }catch(const std::exception& e) {
         rendererFailed=true;ba::log("Match loading UI failed: %s; gameplay remains independent",e.what());
         if(view)try{setValue(view->object.get(),"SetActive",false);}catch(...){}
@@ -160,8 +163,25 @@ static void success(Ticket ticket) {if(unityThread() && model.finish(ticket))cha
 static void cancel(Ticket ticket,const char* reason) {if(unityThread() && model.finish(ticket))changed("cancel",reason);}
 static void error(Ticket ticket,const char* message) {if(unityThread() && model.error(ticket,message,GetTickCount64()))changed("error",message);}
 static void dismissNotice(Ticket ticket,const char* reason) {if(unityThread() && model.dismissNotice(ticket))changed("notice-dismissed",reason);}
+static void persistent(const std::string& text) {
+    if(!unityThread())return;
+    if(model.setPersistent(text))changed("persistent-notice",text.c_str());
+    // Owned verification only: capture the actual overlay after the former
+    // ten-second expiry, without adding automation to ordinary launchers.
+    static const bool smoke=ba::flag(L"-client-update-overlay-smoke");
+    if(!smoke)return;
+    static ULONGLONG since=0;static bool requested=false;
+    if(text.empty()){since=0;requested=false;return;}
+    if(!since)since=GetTickCount64();
+    if(!requested && GetTickCount64()-since>=12000 && paintedVisible && !rendererFailed)try {
+        requested=true;
+        ba::log("Client update overlay persisted: ageMs=%llu nativeVisible=1 inputBlocked=0 text=%s",
+            GetTickCount64()-since,ba_catalog::quote(text).c_str());
+        capture=std::make_unique<Capture>(Capture{model.ticket,"persistent-after-12s",frame()+2});
+    }catch(const std::exception& e){ba::log("Client update overlay capture failed: %s",e.what());}
+}
 static void update(void* front) {
-    if(!front || (!model.visible && !view && !capture))return;
+    if(!front || (!model.displayVisible() && !view && !capture))return;
     if(!unityThread())return;
     if(model.expire(GetTickCount64()))changed("expired");
     paint();

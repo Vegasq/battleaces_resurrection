@@ -4,6 +4,15 @@ Current work:REMAINING_DELIVERY_PLAN.txt. Evidence navigation:INDEX.txt.
 Exact prior3576-line ledger:history/2026-10-24/STATUS.txt.
 Historical records retain their original failures,claims and artifact scopes.
 
+Next paired0.3.0-rc1.10 adds client revision enforcement and a persistent update
+warning in the existing top-center overlay. Rejected clients retain offline AI;
+native rejection/text persistence beyond12s and rendered appearance pass in an
+owned copy. Protocol/server/config/package/install checks pass. Publication and
+live rollout remain open;client-version-policy.txt. Existing N20 is unchanged.
+Compatible native clients complete two matching620-frame matches with zero
+skips,but one view still fails the broader p95<=80ms gate at94ms. That failed
+timing report is retained;the update-overlay feature does not close D8.
+
 Live DigitalOcean Droplet612569133 at134.209.176.39 scaled to2vCPU/4GiB
 ($24/month) with disk unchanged. A powered-off snapshot preceded resize;
 systemd/Wine autostart survived actual power-on. Game TCP47623 is externally

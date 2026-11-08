@@ -4,6 +4,7 @@ from __future__ import annotations
 import asyncio
 import re
 import struct
+from .client_compatibility import CLIENT_REVISION
 
 HELLO, SET_DECK, LOBBY_READY, LEAVE = 21, 22, 23, 24
 LOADED, INPUT = 3, 4
@@ -47,12 +48,13 @@ def encode_string(text):
     return struct.pack("<H", len(value)) + value
 
 
-def hello(slot, profile_id, name, room="local"):
+def hello(slot, profile_id, name, room="local", *, client_revision=CLIENT_REVISION):
+    trailer = b'' if client_revision is None else struct.pack('<I', client_revision)
     return struct.pack("<HB", VERSION, slot) + bytes.fromhex(BUILD_SHA + SIM_SHA) + b"".join(
-        encode_string(value) for value in (profile_id, name, room))
+        encode_string(value) for value in (profile_id, name, room)) + trailer
 
 
-def decode_hello(payload):
+def _decode_hello(payload):
     require(len(payload) >= 73, "short hello")
     version, slot = struct.unpack_from("<HB", payload)
     require(version == VERSION, "unsupported game protocol; update client and server together")
@@ -71,11 +73,20 @@ def decode_hello(payload):
             raise ProtocolError("hello requires UTF8") from error
         values.append(value)
         cursor += size
-    require(cursor == len(payload), "extra hello fields")
+    require(len(payload)-cursor in (0, 4), "extra hello fields")
+    revision = struct.unpack_from('<I', payload, cursor)[0] if cursor < len(payload) else 0
     profile_id, name, room = values
     require(KEY.fullmatch(profile_id) and KEY.fullmatch(room), "invalid profile or room key")
     require(1 <= len(name) <= 32 and all(ord(c) >= 32 for c in name), "invalid display name")
-    return slot, profile_id, name, room
+    return slot, profile_id, name, room, revision
+
+
+def decode_hello(payload):
+    return _decode_hello(payload)[:4]
+
+
+def client_revision(payload):
+    return _decode_hello(payload)[4]
 
 
 def deck_bytes(deck):

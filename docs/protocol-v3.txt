@@ -1,5 +1,15 @@
 DEDICATED ADAPTER PROTOCOL v3 (authored adapter, not original gRPC)
-Updated:2026-10-17
+Updated:2026-11-08
+
+Client release revision extension (prepared0.3.0-rc1.10)
+HELLO may append one u32 client compatibility revision after the room string.
+An absent trailer means legacy revision0;other trailer lengths fail. Current
+clients send revision1. The host enforces minimum_client_revision(default1)
+before any online registration/room/worker. Minimum0 explicitly permits legacy
+clients for rollout. ERROR255 BA_UPDATE_REQUIRED/minimum/plain-text-message is
+rendered as a persistent top-center warning by updated helpers. An old server
+rejects the trailer;updated clients show "Server update required". See
+client-version-policy.txt for bounds,rollout,tests and legacy UI limitations.
 
 Compatibility
 The client helper and coordinator must both use game protocol 3. Protocol 2 HELLO
@@ -28,10 +38,11 @@ C21 HELLO: u16 version 3, u8 requested seat 0/1 or 255 (auto), original
  GameAssembly SHA256 (32 bytes), original Simulation.dll SHA256 (32 bytes), then
  profile_id, display_name and room strings. Profile/room keys use [A-Za-z0-9_-],
  1..48 characters. Names have 1..32 printable characters. Duplicate live profiles
- across rooms fail. Normal clients request seat 255.
+ across rooms fail. Normal clients request seat 255. An optional u32 client
+ compatibility revision follows these strings as described above.
 S31 WELCOME: u8 assigned seat,u8 input_window,u32[8] saved/validated deck.
- Exactly 34 bytes. Seat is 0/1 and input_window is 2..12. This is the only changed
- game payload layout relative to v2; versioning prevents shifted deck decoding.
+ Exactly 34 bytes. Seat is 0/1 and input_window is 2..12;versioning prevents
+ shifted deck decoding. The later release-revision HELLO extension is above.
 C22 SET_DECK: u32[8] entity IDs. Validate,persist,clear that player's ready flag.
 C23 LOBBY_READY: u8 bool. Both connected players ready freeze the match roster.
 S35 LOBBY: u8 connected mask,u8 ready mask,u32 revision,u32[8] deck0,u32[8] deck1.

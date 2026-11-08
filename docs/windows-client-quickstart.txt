@@ -3,6 +3,12 @@ BATTLE ACES RESURRECTION - NATIVE WINDOWS CLIENT INSTALLER
 Use the client and server installers from the same release. Update the host
 before updating clients. The pair supports selected portraits in Invite Friend.
 
+From rc1.10,an outdated client shows a persistent top-center update warning.
+Download the latest client installer from GitHub Releases,close the game,and
+use Install / Update on the same game folder. Saves and online identity are
+retained. Offline AI remains available while an update is required. A "Server
+update required" warning means the host also needs the matching update.
+
 Double-click the standalone client installer downloaded from this release. It
 contains the complete patch runtime;no ZIP extraction,Python install or PowerShell policy
 change is required. Alternatively,extract the full client ZIP and double-click

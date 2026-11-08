@@ -603,7 +603,11 @@ class DedicatedServer:
     def __init__(self, template, profiles, *, sim_factory=None, ai_factory=None, audit=None, data_dir=None,
                  input_timeout=10, audit_state=True, max_rooms=4, lobby_timeout=300,
                  loading_timeout=120, completed_timeout=60, tls_context=None, admission=None,
-                 input_window=p.DEFAULT_INPUT_WINDOW, templates=None, bot_catalog=None):
+                 input_window=p.DEFAULT_INPUT_WINDOW, templates=None, bot_catalog=None,
+                 minimum_client_revision=1, client_update_message=None):
+        from .client_compatibility import validate_policy, DEFAULT_UPDATE_MESSAGE
+        self.minimum_client_revision, self.client_update_message = validate_policy(
+            minimum_client_revision, DEFAULT_UPDATE_MESSAGE if client_update_message is None else client_update_message)
         self.template, self.profiles = template, profiles
         from .profile_io import ProfileIO
         self.profile_io = ProfileIO(profiles)
@@ -721,6 +725,13 @@ class DedicatedServer:
                 peer.community_version = community_wire.hello_version(payload)
             else:
                 slot, profile_id, name, room_name = p.decode_hello(payload)
+            revision = p.client_revision(payload[2:] if is_community else payload)
+            if revision < self.minimum_client_revision:
+                from .client_compatibility import rejection
+                self.audit('client_update_required', connection=peer.connection,
+                           client_revision=revision, minimum_client_revision=self.minimum_client_revision)
+                peer.close(rejection(self.minimum_client_revision, self.client_update_message))
+                return
             p.require(not self.closing, "server stopped")
             if authenticated_id is not None and profile_id != authenticated_id:
                 raise AdmissionError("identity_mismatch")

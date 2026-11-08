@@ -18,6 +18,7 @@
 #include <share.h>
 #include "command_line.h"
 #include "match_loading.h"
+#include "client_compatibility.hpp"
 #include "cosmetics_loadout.hpp"
 #include "remote_profile_smoke.hpp"
 #include "custom_transition_smoke.hpp"
@@ -313,6 +314,7 @@ extern "C" __declspec(dllexport) void OfflineFrontUpdate(void* front,void*) {
         ba_replay_menu::update(front);
         ba_cosmetics::update(front);
         ba_match_search::update(front);
+        ba_match_loading::persistent(ba_client_compat::state.message);
         ba_match_loading::update(front);
         ba_match_loading_smoke::update(front);
         ba_webview_probe::update(front);

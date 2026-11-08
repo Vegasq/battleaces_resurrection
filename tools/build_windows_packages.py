@@ -16,15 +16,16 @@ import zipfile
 
 from .audit_repository import inspect_content
 from .package_integrity import safe_name, ordinary_file, PackageError, verify
+from server.client_compatibility import CLIENT_REVISION
 
 ROOT = Path(__file__).resolve().parents[1]
 PYTHON_VERSION = '3.14.8'
 PYTHON_ZIP_SHA256 = 'a93abe456ab01bd96d7a085b3cdb6566b3063f4241360d114142fbdb07f0a310'
 PYTHON_URL = 'https://www.python.org/ftp/python/3.14.8/python-3.14.8-embed-amd64.zip'
-PACKAGE_VERSION = '0.3.0-rc1.9'
+PACKAGE_VERSION = '0.3.0-rc1.10'
 RUNTIME_PTH = b'python314.zip\n.\n../app\n'
 COMMON = (
-    'server/__init__.py', 'server/protocol.py', 'server/credentials.py',
+    'server/__init__.py', 'server/protocol.py', 'server/client_compatibility.py', 'server/credentials.py',
     'server/admission.py', 'server/tls_transport.py',
     'tools/__init__.py', 'tools/package_integrity.py',
 )
@@ -60,6 +61,7 @@ CLIENT = COMMON + (
 # validation/export orchestration sources, not original client files or assets.
 SERVER = tuple(dict.fromkeys(SERVER + CLIENT + ('tools/server_installer.py',)))
 MARKERS = (
+    b'BA_RESURRECTION_CLIENT_REVISION_V1',
     b'BA_RESURRECTION_NATIVE_BACKUP_GUARD_V1', b'OfflineBackupInitialRead\0', b'OfflineBackupWriteText\0',
     b'BA_RESURRECTION_NATIVE_STORAGE_V1',
     b'BA_RESURRECTION_NATIVE_REPLAY_LONG_PATH_V2',
@@ -243,7 +245,7 @@ def build(runtime_zip, helper, output, *, allow_dirty=False, server_launcher=Non
             raise PackageError('Certificate helper build differs from current sources')
         crypto=(data,receipt)
     if source['dirty'] and not allow_dirty: raise PackageError('Commit source changes or explicitly use --allow-dirty for a local preview')
-    versions = dict(package=PACKAGE_VERSION, game_build=37822, game_protocol=3, community_protocol=2,
+    versions = dict(package=PACKAGE_VERSION, client_revision=CLIENT_REVISION, game_build=37822, game_protocol=3, community_protocol=2,
                     community_protocol_min=1,
                     asset_format=1, patch_schema=2, python=PYTHON_VERSION, platform='windows-amd64')
     plans = {}

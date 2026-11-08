@@ -184,6 +184,7 @@ static void sendHello() {
         std::string values[]={profile,ba::argument(L"-player-name=",requestedSlot==1?"Player2":"Player1"),ba::community()?"community":ba::argument(L"-room=","local")};
         for(const auto& value:values){if(value.size()>128)throw std::runtime_error("dedicated hello value too long");hello.push_back(static_cast<unsigned char>(value.size()));hello.push_back(0);hello.insert(hello.end(),value.begin(),value.end());}
     }
+    if(ba::dedicated())append32(hello,ba_client_compat::revision);
     if(ba::community())hello.insert(hello.begin(),{2,0});
     send(ba::community()?40:ba::dedicated()?21:1,hello);helloSent=true;
     ba::log("LAN connecting to %s requested slot %d protocol=%d transport=%s",ba::argument(L"-dedicated-server=","127.0.0.1:47622").c_str(),requestedSlot,ba::dedicated()?ba_wire::protocol:1,secureMode()?"private-TLS-bridge":"development-TCP");
@@ -228,13 +229,14 @@ static void poll() {
         unsigned char type=rx[consumed+4];Bytes payload(rx.begin()+consumed+5,rx.begin()+consumed+4+length);consumed+=4+length;
         if(ba::community() && (type==62 || type==63 || type==67))ba_public::receive(type,payload);
         else if(ba::community() && ba_public::ignoreMatchData() && (type==12 || type==13 || type==14 || type==36 || type==64))continue;
-        else if(ba::community() && (type==41 || type==42 || type==44 || type==53 || type==54 || type==56 || type==68 || type==69))ba_community::receive(type,payload);
+        else if(ba::community() && (type==41 || type==42 || type==44 || type==53 || type==54 || type==56 || type==68 || type==69)){ba_community::receive(type,payload);if(type==41)ba_client_compat::state.accepted();}
         else if(type==11){if(payload.size()!=1 || payload[0]!=ba::lanSlot())throw std::runtime_error("LAN slot mismatch");welcomed=true;ba::log("LAN welcome slot %d",payload[0]);}
         else if(type==31){
             if(!ba::dedicated() || welcomed)throw std::runtime_error("unexpected dedicated welcome");
             const auto settings=ba_wire::parseWelcome(payload,ba::requestedLanSlot());
             ba::dedicatedAssignedSlot=settings.slot;inputWindow=settings.inputWindow;
             dedicatedDeck=Bytes(payload.begin()+2,payload.end());welcomed=true;
+            ba_client_compat::state.accepted();
             ba::log("Dedicated lobby welcome slot %d; saved deck received; input_window=%u tick_ms=50",payload[0],inputWindow);
         }
         else if(type==32){if(payload.size()!=32 || !dedicatedMatchId.empty())throw std::runtime_error("dedicated match ID invalid");for(unsigned char c:payload)if(!((c>='0'&&c<='9')||(c>='a'&&c<='f')))throw std::runtime_error("dedicated match ID malformed");dedicatedMatchId=std::string(payload.begin(),payload.end());}
@@ -245,7 +247,9 @@ static void poll() {
         else if(type==13){if(!worldReady || !payload.empty() || running)throw std::runtime_error("unexpected LAN start");running=true;nextFrame=0;nextNativePushAt=0;ba::log("LAN both players ready; synchronized start");}
         else if(type==14){if(!running || frames.size()>=(paceNativeFrames()?64u:ba::dedicated()?inputWindow+4:8))throw std::runtime_error("unexpected LAN frame");const int frame=static_cast<int>(u32(payload,0));frames.push_back(std::move(payload));ba_frame_timing::arrival(frame,frames.size());}
         else if(type==64){if(!publicMatch || !running || frames.size()>=(paceNativeFrames()?64u:inputWindow+4))throw std::runtime_error("unexpected public frame");ba_public_wire::frame(payload,static_cast<unsigned>(publicIdentities.size()));const int frame=static_cast<int>(u32(payload,0));frames.push_back(std::move(payload));ba_frame_timing::arrival(frame,frames.size());}
-        else if(type==255){std::string message(payload.begin(),payload.end());throw std::runtime_error(message.c_str());}
+        else if(type==255){std::string message(payload.begin(),payload.end());
+            if(ba_client_compat::state.serverError(message))ba::log("Client compatibility blocked: persistentOverlay=1 BA_RESURRECTION_CLIENT_REVISION_V1");
+            throw std::runtime_error(message.c_str());}
         else throw std::runtime_error("unknown LAN message type");
     }
     if(consumed)rx.erase(rx.begin(),rx.begin()+consumed);

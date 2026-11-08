@@ -117,6 +117,12 @@ the host is unnecessary. Never upload imported assets as project releases.
 
 Copy config/host.example.json to config/host.json. Paths in this file are relative
 to the config directory, regardless of the terminal's current directory.
+From rc1.10,minimum_client_revision defaults to1 and requires the updated client.
+Publish both installers before upgrading the host. For a gradual rollout,set
+minimum_client_revision to0 while upgrading clients,then restore1 to enforce
+the new revision. client_update_message controls the persistent top-center
+warning in updated clients. See docs/client-version-policy.txt in the source
+repository for bounds and the first-update limitation of older clients.
 Set listen_host (numeric IPv4 bind address), listen_port, asset/data directories,
 certificate_file, private_key_file and credential_directory. Default port:47623.
 The server certificate must be valid for the DNS name/IP used by your players.

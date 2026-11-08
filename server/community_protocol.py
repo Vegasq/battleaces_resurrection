@@ -66,9 +66,9 @@ class Reader:
         p.require(self.offset == len(self.payload), 'extra community fields')
 
 
-def hello(profile_id, name, *, version=VERSION):
+def hello(profile_id, name, *, version=VERSION, client_revision=p.CLIENT_REVISION):
     p.require(version in (VERSION, PORTRAIT_VERSION), 'unsupported community protocol')
-    return struct.pack('<H', version) + p.hello(p.AUTO_SEAT, profile_id, name, 'community')
+    return struct.pack('<H', version) + p.hello(p.AUTO_SEAT, profile_id, name, 'community', client_revision=client_revision)
 
 
 def hello_version(payload):

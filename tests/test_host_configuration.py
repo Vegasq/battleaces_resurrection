@@ -48,6 +48,18 @@ class HostConfigurationTests(unittest.TestCase):
             with self.subTest(key=key, value=value), self.assertRaises(ConfigurationError): self.load()
             self.settings = prior
 
+    def test_update_policy_defaults_and_bounds(self):
+        self.settings.pop('minimum_client_revision', None)
+        self.settings.pop('client_update_message', None)
+        self.assertEqual(self.load().minimum_client_revision, 1)
+        self.settings.update(minimum_client_revision=0,client_update_message='Server rollout: update your client.')
+        self.assertEqual(self.load().minimum_client_revision, 0)
+        for key, value in (('minimum_client_revision',True),('minimum_client_revision',-1),
+                           ('client_update_message',''),('client_update_message','x'*161),('client_update_message','bad\rtext')):
+            prior=self.settings.copy(); self.settings[key]=value
+            with self.subTest(key=key,value=value), self.assertRaises(ConfigurationError): self.load()
+            self.settings=prior
+
     def test_plaintext_requires_explicit_numeric_loopback_and_no_tls_settings(self):
         self.settings.update(allow_insecure_loopback=True, certificate_file=None, private_key_file=None, credential_directory=None)
         for address in ('0.0.0.0', '192.0.2.1', 'localhost', '::1', ''):

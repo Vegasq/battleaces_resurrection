@@ -1,6 +1,12 @@
 COMMUNITY SESSION CONTROL V1
 Updated: 2026-10-18. Server implementation: community.py/community_protocol.py.
 
+Release revision extension2026-11-08:the nested game HELLO now permits a u32
+client compatibility revision after its final room string. Community1/2 and
+WELCOME/directory layouts are unchanged. A missing trailer is legacy0;host
+minimum_client_revision defaults1 for the new paired release. The persistent
+update warning and rollout limitations are in client-version-policy.txt.
+
 PORTRAIT EXTENSION - DEVELOPMENT105,2026-10-22
 The current source also accepts community HELLO version2 and echoes that version
 in WELCOME41. The remainder of HELLO/WELCOME is unchanged. Version1 still gets
