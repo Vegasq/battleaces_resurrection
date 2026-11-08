@@ -46,8 +46,38 @@ coordinator/dash processing or rendered movement. They cannot explain or rule
 out the97 live cadence resets;the true match may have different unit load.
 The live service remained active/listening after both runs.
 
+The matching local native client log for the18:29 UTC live match retained182
+sampled frame receipts from frame131 through1756. Their wall rate was19.125Hz,
+matching the server's19.1Hz. Eighteen sampled receipt spans exceeded their
+nominal50ms-per-frame duration by more than100ms;three pairs of logged frames
+shared a timestamp. These are sparse logs (actionful/every200th frames),not a
+full receive timeline or rendered-FPS measurement, but they place the observed
+rate loss before visual movement. The original scheduler advanced next_tick
+by50ms, then replaced it with now+50ms whenever the current start was over
+roughly25ms late. Repeated resets discard wall time;97 resets can contribute
+materially to the4.3s excess duration of this match.
+
+Bounded catch-up fix: after each frame, keep the absolute20Hz deadline after
+brief lateness. After a long input/worker stall, clamp the schedule to at most
+one tick behind completion, allowing at most two immediate catch-up frames.
+All simulation steps remain50ms,frame numbers/validation/input window remain
+unchanged. Late-frame diagnostic fields continue under cadence_late, with a
+schedule_clamp_ms field. Two deterministic deadline tests, a120-frame
+pipelined integration test with periodic80ms worker spikes, all19 dedicated
+server tests,19 public matchmaking tests (one skipped) and13 worker-AI tests
+(two native opt-in skips) pass on Python3.12. The integration run retained
+ordered equal frames and finished under6.3s for120 frames.
+
+The live server accepted the new bundled file plus its matching manifest entry
+as a temporary override after a no-client check. The previous diagnostic code
+and manifest are backed up under /srv/ba-runtime/*pre-cadence-fix-20261108*.
+Installed package integrity passed;systemd is active and TCP47623 listens.
+New server source SHA256:
+b878dd5b75f828c08efcead62a2ed96ddbf3e979e3d3ffb623e75954b0c5041b.
+This is a live candidate fix,not visual acceptance or a public paired package.
+
 Next: N18 in private DEV.txt requests one ordinary online versus AI match.
-Analyze the new reset fields by match. Compare input wait, native/AI work and
-preceding-frame work before changing gameplay cadence or client buffering.
-After a cause-specific fix, rebuild a coherent package and verify live online
-movement with Nick; a timing counter alone cannot prove visual smoothness.
+Compare its cadence_late/clamp fields, completion rate and local sampled client
+receipts with the prior match. Nick's movement result is required for visual
+acceptance. If improved, rebuild a coherent package for the next release;
+if it still jumps, use the timing fields to pursue client/network buffering.

@@ -1675,11 +1675,14 @@ D8 - Internet,latency,capacity:OPEN.
   Live Nick report2026-11-08:offline smooth,online versus AI hard unit jumps.
   Post-resize London match completed at19.1Hz with97 timing resets/1761 frames;
   host not CPU/RAM saturated;operator RTT mean134ms in a short loss-free probe.
-  A low-volume reset timing diagnostic is live and package-verified;N18 requests
-  one reproduced match to attribute input wait versus current/prior worker work.
+  The same match's sparse native client receipts averaged19.125Hz,placing the
+  observed rate loss before visual movement. The server's old late-tick reset
+  discarded time;bounded20Hz catch-up is now live/package-verified as a candidate
+  fix. N18 requests one normal online AI match for visual and timing comparison.
   Isolated Wine AI worker at1600 frames averaged12.1ms,one frame over50ms;
   this does not cover live client input or explain97 resets in the prior match.
-  No cause-specific lag fix or visual acceptance yet;live-online-lag-20261108.txt.
+  Visual acceptance and coherent public packaging remain open;
+  live-online-lag-20261108.txt.
   219passes the21-match cadence/resource gate with218 packages on Windows/C data:
   19.974326-20.005228Hz,max gap124.3548ms,no worker awaits>50ms,normal Quits and
   22workers0;all owned jobs empty/no force,28466audit records written and joined.

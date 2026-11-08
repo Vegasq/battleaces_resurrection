@@ -37,6 +37,13 @@ from .profile_io import _await_owned
 TICK = 0.05
 
 
+def next_frame_deadline(deadline, completed, tick):
+    """Keep the 20 Hz clock, with at most two immediate frames after a long stall."""
+    scheduled = deadline + tick
+    bounded = max(scheduled, completed - tick)
+    return bounded, (bounded - scheduled) * 1000
+
+
 class Audit:
     def __init__(self, directory):
         self.directory = Path(directory)
@@ -536,22 +543,21 @@ class Room:
                     self.result_frame = self.frame - 1
                     self.event("native_game_over", result=self.result)
                 self.last_progress = time.perf_counter()
-                self.next_tick += TICK
-                if self.next_tick < now + TICK/2:
-                    # Keep a small timing sample even when detailed frame audits
-                    # are disabled. This separates missing network input from
-                    # worker/snapshot time without writing every frame.
-                    tick_late_ms = max(0.0, now - (self.next_tick - TICK)) * 1000
-                    reset_lag_ms = (self.last_progress - self.next_tick) * 1000
-                    self.next_tick = now + TICK
-                    self.event("cadence_reset", next_frame=self.frame,
+                old_deadline = self.next_tick
+                self.next_tick, schedule_clamp_ms = next_frame_deadline(
+                    old_deadline, self.last_progress, TICK)
+                tick_late_ms = max(0.0, now - old_deadline) * 1000
+                if tick_late_ms > (TICK / 2) * 1000 or schedule_clamp_ms > 0:
+                    # Record only late frames when detailed audits are disabled.
+                    # Normal brief lateness can catch up without discarding a tick.
+                    self.event("cadence_late", next_frame=self.frame,
                                input_wait_ms=input_wait_ms, worker_ms=worker_ms,
                                snapshot_ms=snapshot_ms,
                                frame_work_ms=(self.last_progress - now) * 1000,
                                previous_worker_ms=self.previous_worker_ms,
                                previous_frame_work_ms=self.previous_frame_work_ms,
                                tick_late_ms=tick_late_ms,
-                               reset_lag_ms=reset_lag_ms)
+                               schedule_clamp_ms=schedule_clamp_ms)
                 self.previous_worker_ms = worker_ms
                 self.previous_frame_work_ms = (self.last_progress - now) * 1000
                 if self.frame >= 0x7fffffff:

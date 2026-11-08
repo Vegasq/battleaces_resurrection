@@ -10,6 +10,7 @@ import json
 from pathlib import Path
 import shutil
 import struct
+import time
 import unittest
 from unittest import mock
 import uuid
@@ -22,6 +23,26 @@ from server import simulation_worker as ipc
 from tests.synthetic import template as synthetic_template
 
 ROOT = Path(__file__).resolve().parents[1]
+
+
+class DeadlineTests(unittest.TestCase):
+    def test_brief_lateness_does_not_slow_the_simulation_clock(self):
+        deadline = 1.05
+        for frame in range(100):
+            deadline, clamp_ms = coordinator.next_frame_deadline(deadline, deadline + .03, .05)
+            self.assertAlmostEqual(deadline, 1.10 + frame * .05)
+            self.assertEqual(clamp_ms, 0)
+
+    def test_long_stall_bounds_catch_up_to_two_immediate_frames(self):
+        deadline, clamp_ms = coordinator.next_frame_deadline(1.05, 1.55, .05)
+        self.assertAlmostEqual(deadline, 1.50)
+        self.assertAlmostEqual(clamp_ms, 400)
+        deadline, clamp_ms = coordinator.next_frame_deadline(deadline, 1.56, .05)
+        self.assertAlmostEqual(deadline, 1.55)
+        self.assertEqual(clamp_ms, 0)
+        deadline, clamp_ms = coordinator.next_frame_deadline(deadline, 1.57, .05)
+        self.assertAlmostEqual(deadline, 1.60)
+        self.assertEqual(clamp_ms, 0)
 
 
 def test_descriptor():
@@ -166,6 +187,33 @@ class DedicatedFixture(unittest.IsolatedAsyncioTestCase):
         shutil.rmtree(target)
 
 class DedicatedLifecycleTests(DedicatedFixture):
+    async def test_brief_worker_spikes_keep_pipelined_match_near_20hz(self):
+        await self.start(input_window=6)
+        peers = await self.pair("worker_spikes")
+        room = self.server.rooms["worker_spikes"]
+        original_step = room.sim.process_frame
+
+        async def spiky_step(actions, **kwargs):
+            frame = room.sim.frame + 1
+            if frame % 10 == 0:
+                await asyncio.sleep(.08)
+            return await original_step(actions, **kwargs)
+
+        with mock.patch.object(room.sim, "process_frame", side_effect=spiky_step):
+            for frame in range(6):
+                await asyncio.gather(*(peer.send(p.INPUT, struct.pack("<I", frame)) for peer in peers))
+            started = time.perf_counter()
+            for frame in range(120):
+                payloads = await asyncio.gather(*(peer.receive(p.FRAME, timeout=10) for peer in peers))
+                self.assertEqual(payloads[0], payloads[1])
+                self.assertEqual(struct.unpack_from("<I", payloads[0])[0], frame)
+                if frame + 6 < 120:
+                    await asyncio.gather(*(peer.send(p.INPUT, struct.pack("<I", frame + 6)) for peer in peers))
+            elapsed = time.perf_counter() - started
+        self.assertLess(elapsed, 6.3)
+        self.assertTrue(any(e["event"] == "cadence_late" for e in self.events))
+        self.assertFalse(any(e["event"] in ("simulation_error", "match_aborted") for e in self.events))
+
     async def test_two_network_rooms_crash_isolated_and_no_failed_frame_published(self):
         await self.start(max_rooms=2)
         alpha, beta = await asyncio.gather(self.pair("alpha"), self.pair("beta"))
@@ -219,6 +267,10 @@ class DedicatedLifecycleTests(DedicatedFixture):
         self.assertGreaterEqual(row["snapshot_ms"], 90)
         self.assertGreaterEqual(row["frame_work_ms"], row["worker_ms"] + row["snapshot_ms"])
         self.assertEqual(row["input_wait_ms"], 0)
+        slow = next(e for e in self.events if e["event"] == "cadence_late" and e["next_frame"] == 1)
+        self.assertGreaterEqual(slow["worker_ms"], 35)
+        self.assertGreaterEqual(slow["snapshot_ms"], 90)
+        self.assertGreater(slow["schedule_clamp_ms"], 0)
         # Deliberately withhold the second player's next frame. After receipt,
         # the frame must advance once and report observed input wait separately.
         self.server.audit_state = False
@@ -232,12 +284,12 @@ class DedicatedLifecycleTests(DedicatedFixture):
         self.assertGreaterEqual(row["input_wait_ms"], 70)
         self.assertGreaterEqual(row["tick_late_ms"], row["input_wait_ms"])
         self.assertEqual(row["snapshot_ms"], 0)
-        self.assertIsNone(room.input_wait_started)
-        reset = next(e for e in self.events if e["event"] == "cadence_reset" and e["next_frame"] == 2)
-        self.assertGreaterEqual(reset["input_wait_ms"], 70)
-        self.assertGreaterEqual(reset["previous_worker_ms"], 35)
-        self.assertGreaterEqual(reset["previous_frame_work_ms"], 90)
-        self.assertGreater(reset["tick_late_ms"], 0)
+        self.assertEqual(room.frame, 2)
+        late = next(e for e in self.events if e["event"] == "cadence_late" and e["next_frame"] == 2)
+        self.assertGreaterEqual(late["input_wait_ms"], 70)
+        self.assertGreaterEqual(late["previous_worker_ms"], 35)
+        self.assertGreaterEqual(late["previous_frame_work_ms"], 90)
+        self.assertGreater(late["tick_late_ms"], 0)
 
     async def test_stalled_peer_cannot_accumulate_more_than_negotiated_window(self):
         await self.start()
