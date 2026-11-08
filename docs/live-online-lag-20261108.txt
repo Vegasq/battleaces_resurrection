@@ -92,5 +92,18 @@ client presentation or the same unit load as the reported match.
 Next: N18 in private DEV.txt requests one ordinary online versus AI match.
 Compare its cadence_late/clamp fields, completion rate and local sampled client
 receipts with the prior match. Nick's movement result is required for visual
-acceptance. If improved, rebuild a coherent package for the next release;
+acceptance. If improved, version and qualify the package candidate for release;
 if it still jumps, use the timing fields to pursue client/network buffering.
+
+Unpublished package preparation: from clean source d6fa281, rebuilt the native
+helper with its source receipt, server launcher with argument checks, base
+installer, and paired Windows portable packages at version 0.3.0-rc1.9.
+Server ZIP SHA256 6cb64f50285f6f7da1091b1bd836db56d055f56ded01e2665cf5f761f3155d24;
+client ZIP SHA256 f90c38d670bf9f9aa098c1e92da246baeb6765457a0e921e2f2637a3de5096ed.
+Built embedded-payload installers: server EXE SHA256
+066b5e2e1c2472aef05fd75a3ae9680c2563514a728b2e3d29db59fc05ec9dd2,
+client EXE SHA256 b166183d5ac968d36ad0c0c94259b6eec8f4d126c6de8b28b14ff1c4f7569cd9.
+Each installer payload was extracted by exact digest and its package manifest
+verified. These are ignored local/online-lag-candidate artifacts, not published
+or installed on the live host. Same version string as the earlier public rc1.9
+means they must receive a new version before any release. N18 remains open.

@@ -1683,7 +1683,9 @@ D8 - Internet,latency,capacity:OPEN.
   and20.009Hz/600frames (one native AI);neither measures Internet presentation.
   Isolated Wine AI worker at1600 frames averaged12.1ms,one frame over50ms;
   this does not cover live client input or explain97 resets in the prior match.
-  Visual acceptance and coherent public packaging remain open;
+  Clean paired local package and embedded-installer candidates were built and
+  integrity-verified from d6fa281; visual acceptance, new release version and
+  public publication remain open;
   live-online-lag-20261108.txt.
   219passes the21-match cadence/resource gate with218 packages on Windows/C data:
   19.974326-20.005228Hz,max gap124.3548ms,no worker awaits>50ms,normal Quits and
