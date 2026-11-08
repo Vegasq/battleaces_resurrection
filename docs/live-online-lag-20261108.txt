@@ -57,6 +57,15 @@ by50ms, then replaced it with now+50ms whenever the current start was over
 roughly25ms late. Repeated resets discard wall time;97 resets can contribute
 materially to the4.3s excess duration of this match.
 
+Client follow-up path if N18 still jumps: client_patch/src/lan_transport.cpp
+queues received authoritative frames and its Unity game-update tick can apply
+up to four in one update while the simulation is behind. The old sparse native
+log has three same-timestamp receipt pairs, consistent with occasional burst
+application, but it cannot establish whether the network, server, or Unity
+update timing caused them. The Python TLS bridge uses awaited stream reads and
+writes with no fixed frame batching timer. N18's patched-match cadence and
+visual observation determine whether client pacing needs a separate fix.
+
 Bounded catch-up fix: after each frame, keep the absolute20Hz deadline after
 brief lateness. After a long input/worker stall, clamp the schedule to at most
 one tick behind completion, allowing at most two immediate catch-up frames.
