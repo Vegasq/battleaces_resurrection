@@ -57,14 +57,14 @@ by50ms, then replaced it with now+50ms whenever the current start was over
 roughly25ms late. Repeated resets discard wall time;97 resets can contribute
 materially to the4.3s excess duration of this match.
 
-Client follow-up path if N18 still jumps: client_patch/src/lan_transport.cpp
+Client follow-up path after N18's failed movement check: client_patch/src/lan_transport.cpp
 queues received authoritative frames and its Unity game-update tick can apply
 up to four in one update while the simulation is behind. The old sparse native
 log has three same-timestamp receipt pairs, consistent with occasional burst
 application, but it cannot establish whether the network, server, or Unity
 update timing caused them. The Python TLS bridge uses awaited stream reads and
-writes with no fixed frame batching timer. N18's patched-match cadence and
-visual observation determine whether client pacing needs a separate fix.
+writes with no fixed frame batching timer. N18's failed check warrants a
+client pacing investigation if the N19 input-window trial is insufficient.
 
 Bounded catch-up fix: after each frame, keep the absolute20Hz deadline after
 brief lateness. After a long input/worker stall, clamp the schedule to at most
@@ -98,11 +98,8 @@ The public systemd host remained active/listening. These checks confirm normal
 coordinator cadence under Wine;they do not simulate Nick's Internet path,
 client presentation or the same unit load as the reported match.
 
-Next: N18 in private DEV.txt requests one ordinary online versus AI match.
-Compare its cadence_late/clamp fields, completion rate and local sampled client
-receipts with the prior match. Nick's movement result is required for visual
-acceptance. If improved, version and qualify the package candidate for release;
-if it still jumps, use the timing fields to pursue client/network buffering.
+N18 was the next live check;its failed result and ensuing N19 trial follow
+below. A visual pass remains required before versioning or release.
 
 Unpublished package preparation: from clean source d6fa281, rebuilt the native
 helper with its source receipt, server launcher with argument checks, base
@@ -115,4 +112,26 @@ client EXE SHA256 b166183d5ac968d36ad0c0c94259b6eec8f4d126c6de8b28b14ff1c4f7569c
 Each installer payload was extracted by exact digest and its package manifest
 verified. These are ignored local/online-lag-candidate artifacts, not published
 or installed on the live host. Same version string as the earlier public rc1.9
-means they must receive a new version before any release. N18 remains open.
+means they must receive a new version before any release.
+
+N18 FAILED:Nick reports "Still lagging hard." His local native log and live
+server identify the post-fix public 2vAI match5b2a097886d547d1b7dc10ff60c3ebf7,
+started19:17:32 UTC. It reached343 frames in19.47s before player disconnect,
+about17.6Hz against20Hz. There were142 cadence_late records and22 schedule
+clamps totaling809.66ms. In late frames, input wait averaged34.21ms,
+p95 96.62ms,max383.74ms;native worker averaged17.87ms,p95 34.76ms,
+max47.51ms. This supports player-input starvation as a material cause of
+online cadence loss under real Internet play;the bounded scheduler alone did
+not fix visible movement. The client log also shows occasional multiple frame
+receipts in one Unity update. It does not prove whether network latency,
+client frame pacing or transport buffering dominates the missing inputs.
+
+Reversible live trial:the bundled server source/manifest are unchanged. The
+host configuration input_window was changed6->9 after saving exact prior bytes
+at /srv/ba-runtime/host.pre-input-window9-20261108.json. No game connection
+was active at restart. systemd became active, TCP47623 accepted connections,
+and server_started at19:22:08 UTC recorded input_window9. The existing native
+client accepts server-selected windows2..12. Nine provides150ms more input
+lead but can add up to150ms to move-command response. Private DEV N19 asks for
+one normal online AI match to test movement and command response;compare its
+server cadence/input waits with N18 before keeping or reverting this setting.

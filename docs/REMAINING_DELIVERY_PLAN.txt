@@ -1672,13 +1672,18 @@ D7 - Protected Windows hosting and recovery:OPEN,with N10 recovery COMPLETE.
   windows-server-quickstart.txt,host-failure-diagnostics161.txt.
 
 D8 - Internet,latency,capacity:OPEN.
+  N18 post-fix public2vAI match still jumped per Nick;343frames/19.47s=17.6Hz,
+  142 late events,22 schedule clamps,worker max47.51ms and input-wait max383.74ms.
+  Live input window6->9 trial is active after backed-up config/restart;N19
+  requests visual smoothness and move-response acceptance before retaining it.
+  See live-online-lag-20261108.txt.
   Live Nick report2026-11-08:offline smooth,online versus AI hard unit jumps.
   Post-resize London match completed at19.1Hz with97 timing resets/1761 frames;
   host not CPU/RAM saturated;operator RTT mean134ms in a short loss-free probe.
   The same match's sparse native client receipts averaged19.125Hz,placing the
   observed rate loss before visual movement. The server's old late-tick reset
-  discarded time;bounded20Hz catch-up is now live/package-verified as a candidate
-  fix. N18 requests one normal online AI match for visual and timing comparison.
+  discarded time;bounded20Hz catch-up is now live/package-verified but did not
+  resolve N18's visible lag. N19 tests the larger input window.
   Isolated patched Wine coordinator runs now pass20.004Hz/1200frames (two humans)
   and20.009Hz/600frames (one native AI);neither measures Internet presentation.
   Isolated Wine AI worker at1600 frames averaged12.1ms,one frame over50ms;
