@@ -1,0 +1,47 @@
+BATTLE ACES LIVE DIGITALOCEAN SCALE AND AUTOSTART
+2026-11-08. Operational change to the existing ba Droplet612569133 in lon1.
+Public IPv4:134.209.176.39. No new Droplet,region transfer,disk resize,
+server package replacement,host config rewrite or identity rotation.
+
+Size changed from s-1vcpu-1gb (1vCPU,1GiB,25GiB disk,$6/month) to
+s-2vcpu-4gb (2vCPU,4GiB,25GiB retained,$24/month). DigitalOcean size API
+confirmed lon1 availability and the $24 monthly bundled-plan rate before the
+action. A powered-off snapshot ba-pre-resize-20261108 (ID253678670) completed
+before resizing;billable size8.48GiB at $0.06/GiB-month,about $0.51/month
+while retained. Estimated Droplet+snapshot monthly cost:about $24.51,
+excluding any unrelated account charges or overage.
+
+The existing game service was stopped through systemd with a normal Ctrl+C
+sent to its Wine console. The Droplet shut down cleanly. DigitalOcean action
+3530901661 snapshot,action3530905457 CPU/RAM-only resize and action3530907055
+power-on all completed. API after resize reports the same Droplet ID and IP,
+2vCPU,4096MiB RAM and25GiB disk. Linux after boot reports2 CPUs and3.8GiB
+RAM;the original root filesystem remains24GiB,29% used.
+
+Autostart files are tracked at deploy/linux/ba-server-supervise and
+deploy/linux/battle-aces-server.service. Live files are installed at
+/usr/local/sbin/ba-server-supervise and
+/etc/systemd/system/battle-aces-server.service,with matching SHA256.
+The service runs the installed /srv/ba/Start Server.exe in a dedicated tmux
+console under a persistent /srv/ba-runtime/wineprefix. It requires the
+ba-dashboard-allowlist.service gate before opening the dashboard. Graceful
+systemctl restart/stop sent Ctrl+C,freed Wine helpers,and passed. The unit is
+enabled;after the actual Droplet power-on it became active without SSH action.
+
+Verification after boot:TCP47623 reachable from the operator PC;TCP47623 and
+47624 listening;dashboard /api/status healthy,history persistence true,
+zero active games at the check. The live host.json SHA256 matched its retained
+pre-autostart backup. A root-only config/data archive is at
+/root/ba-before-autostart-20261108.tgz (SHA256
+ad50c1570259cad329b59fca603b7d1e1f264a6956600a21b9c4bad23f1c7bd0).
+No private key,API token,player profile or audit body is included in this
+record. The snapshot remains in the DigitalOcean account for rollback.
+
+Operator commands on the live host:
+  systemctl status battle-aces-server.service
+  systemctl restart battle-aces-server.service
+  journalctl -u battle-aces-server.service -n 50 --no-pager
+  tmux -L ba-autostart attach -t server
+Do not start a second independent Wine process against the same /srv/ba/data
+and identity. The service was tested on this Ubuntu24.04/Wine9 Droplet;
+broader Linux service and gameplay/capacity acceptance remain open.

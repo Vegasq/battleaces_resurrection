@@ -4,6 +4,13 @@ Current work:REMAINING_DELIVERY_PLAN.txt. Evidence navigation:INDEX.txt.
 Exact prior3576-line ledger:history/2026-10-24/STATUS.txt.
 Historical records retain their original failures,claims and artifact scopes.
 
+Live DigitalOcean Droplet612569133 at134.209.176.39 scaled to2vCPU/4GiB
+($24/month) with disk unchanged. A powered-off snapshot preceded resize;
+systemd/Wine autostart survived actual power-on. Game TCP47623 is externally
+reachable and dashboard status/history is healthy. This operational result
+does not close D8 graphical/capacity or final release gates;
+live-droplet-scale-20261108.txt.
+
 Paired Windows engineering prerelease0.3.0-rc1.9 published from clean13bf4c7.
 The installed client starts fullscreen by default,with an editable persisted
 windowed preference. README identifies the supported original GameAssembly.dll

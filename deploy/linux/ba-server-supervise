@@ -1,0 +1,33 @@
+#!/usr/bin/env bash
+set -euo pipefail
+
+socket=ba-autostart
+session=server
+if tmux -L "$socket" has-session -t "$session" 2>/dev/null; then
+    echo 'Refusing to attach to an existing Battle Aces service session.' >&2
+    exit 1
+fi
+
+stop_server() {
+    trap - TERM INT
+    tmux -L "$socket" send-keys -t "$session" C-c 2>/dev/null || true
+    for ((attempt=0; attempt<40; attempt++)); do
+        if ! tmux -L "$socket" has-session -t "$session" 2>/dev/null; then
+            wineserver -k
+            echo 'Battle Aces server stopped.'
+            exit 0
+        fi
+        sleep 1
+    done
+    echo 'Battle Aces server did not stop after Ctrl+C.' >&2
+    exit 1
+}
+trap stop_server TERM INT
+
+tmux -L "$socket" new-session -d -s "$session" -c /srv/ba 'exec wine "./Start Server.exe"'
+echo 'Battle Aces server session started.'
+while tmux -L "$socket" has-session -t "$session" 2>/dev/null; do
+    sleep 1
+done
+echo 'Battle Aces server session exited unexpectedly.' >&2
+exit 1

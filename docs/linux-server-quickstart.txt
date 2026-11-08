@@ -115,6 +115,12 @@ chat. New source178Windows configs use relative paths where possible;existing
 174/175installer configs still need the explicit relocation step when copied.
 
 SCOPE
+The live DigitalOcean Ubuntu24.04/Wine9 deployment now has a tested systemd
+autostart template at deploy/linux/. It uses a persistent Wine prefix and
+requires the host-specific dashboard allowlist service. The exact boot,
+resize and verification record is live-droplet-scale-20261108.txt;other Linux
+hosts must adapt paths and firewall dependencies to their own deployment.
+
 RC open mode uses TLS with unverified server identity and open admission, as in
 the Windows RC. The native launcher's owned-job supervision and original worker
 IPC are retained. Configuration and keys are only created when missing;

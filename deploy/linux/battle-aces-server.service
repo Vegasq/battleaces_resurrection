@@ -1,0 +1,22 @@
+[Unit]
+Description=Battle Aces Wine dedicated server
+Wants=network-online.target
+Requires=ba-dashboard-allowlist.service
+After=network-online.target ba-dashboard-allowlist.service
+
+[Service]
+Type=simple
+User=root
+WorkingDirectory=/srv/ba
+Environment=WINEPREFIX=/srv/ba-runtime/wineprefix
+Environment=WINEARCH=win64
+Environment=WINEDLLOVERRIDES=mscoree,mshtml=
+ExecStartPre=/usr/bin/test -f "/srv/ba/Start Server.exe"
+ExecStart=/usr/local/sbin/ba-server-supervise
+Restart=on-failure
+RestartSec=5
+KillMode=mixed
+TimeoutStopSec=45
+
+[Install]
+WantedBy=multi-user.target
