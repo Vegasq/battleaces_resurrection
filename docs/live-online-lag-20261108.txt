@@ -32,6 +32,20 @@ systemd service is active, and TCP47623 is listening. Diagnostic source SHA256:
 1dde6e8e44e45b6fb4b1f06322c51a12d123db8be2abe316e3de5b14cf4b16a6.
 This is not a public paired release; its manifest records diagnostic_override.
 
+Independent Wine worker timing on the same Droplet used a separate directory
+under /srv/ba-runtime, the installed Windows runtime/assets, one scripted
+human, one native AI bot and the production worker IPC at50ms wall cadence.
+No public match, profile, host configuration or listener was changed. The first
+400-frame run:combined AI prepare+step mean9.726ms,p95 16.212ms,max27.081ms,
+zero frames over50ms;report SHA256 f7d642c21d393efba16061105954515bec244e9a238b794fb8fe5f688644de23.
+The1600-frame run:mean12.100ms,p95 19.651ms,max50.101ms,23 frames over25ms
+and one over50ms;worker exit0,wall79.974s;report SHA256
+8871ae8c7cf25f4ad2f2f65ba9196be686aee116dd76e40df0a26ba1d7ea0136.
+These isolated worker timings do not include actual client input, TLS/network,
+coordinator/dash processing or rendered movement. They cannot explain or rule
+out the97 live cadence resets;the true match may have different unit load.
+The live service remained active/listening after both runs.
+
 Next: N18 in private DEV.txt requests one ordinary online versus AI match.
 Analyze the new reset fields by match. Compare input wait, native/AI work and
 preceding-frame work before changing gameplay cadence or client buffering.

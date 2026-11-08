@@ -1677,6 +1677,8 @@ D8 - Internet,latency,capacity:OPEN.
   host not CPU/RAM saturated;operator RTT mean134ms in a short loss-free probe.
   A low-volume reset timing diagnostic is live and package-verified;N18 requests
   one reproduced match to attribute input wait versus current/prior worker work.
+  Isolated Wine AI worker at1600 frames averaged12.1ms,one frame over50ms;
+  this does not cover live client input or explain97 resets in the prior match.
   No cause-specific lag fix or visual acceptance yet;live-online-lag-20261108.txt.
   219passes the21-match cadence/resource gate with218 packages on Windows/C data:
   19.974326-20.005228Hz,max gap124.3548ms,no worker awaits>50ms,normal Quits and
