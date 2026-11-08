@@ -159,6 +159,8 @@ class Room:
         self.assignment_started = False
         self.next_tick = None
         self.input_wait_started = None
+        self.previous_worker_ms = 0.0
+        self.previous_frame_work_ms = 0.0
         self.last_progress = time.perf_counter()
         self.history = None
         self.entity_history = {}
@@ -536,8 +538,22 @@ class Room:
                 self.last_progress = time.perf_counter()
                 self.next_tick += TICK
                 if self.next_tick < now + TICK/2:
+                    # Keep a small timing sample even when detailed frame audits
+                    # are disabled. This separates missing network input from
+                    # worker/snapshot time without writing every frame.
+                    tick_late_ms = max(0.0, now - (self.next_tick - TICK)) * 1000
+                    reset_lag_ms = (self.last_progress - self.next_tick) * 1000
                     self.next_tick = now + TICK
-                    self.event("cadence_reset", next_frame=self.frame)
+                    self.event("cadence_reset", next_frame=self.frame,
+                               input_wait_ms=input_wait_ms, worker_ms=worker_ms,
+                               snapshot_ms=snapshot_ms,
+                               frame_work_ms=(self.last_progress - now) * 1000,
+                               previous_worker_ms=self.previous_worker_ms,
+                               previous_frame_work_ms=self.previous_frame_work_ms,
+                               tick_late_ms=tick_late_ms,
+                               reset_lag_ms=reset_lag_ms)
+                self.previous_worker_ms = worker_ms
+                self.previous_frame_work_ms = (self.last_progress - now) * 1000
                 if self.frame >= 0x7fffffff:
                     await self.finish("frame counter exhausted", aborted=True)
                 elif self.result is not None and self.frame >= self.result_frame + 20:

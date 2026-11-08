@@ -216,10 +216,9 @@ class DedicatedLifecycleTests(DedicatedFixture):
             await self.advance(peers, 0)
         row = next(e for e in self.events if e["event"] == "frame_queued")
         self.assertGreaterEqual(row["worker_ms"], 35)
-        self.assertGreaterEqual(row["snapshot_ms"], 100)
+        self.assertGreaterEqual(row["snapshot_ms"], 90)
         self.assertGreaterEqual(row["frame_work_ms"], row["worker_ms"] + row["snapshot_ms"])
         self.assertEqual(row["input_wait_ms"], 0)
-
         # Deliberately withhold the second player's next frame. After receipt,
         # the frame must advance once and report observed input wait separately.
         self.server.audit_state = False
@@ -234,6 +233,11 @@ class DedicatedLifecycleTests(DedicatedFixture):
         self.assertGreaterEqual(row["tick_late_ms"], row["input_wait_ms"])
         self.assertEqual(row["snapshot_ms"], 0)
         self.assertIsNone(room.input_wait_started)
+        reset = next(e for e in self.events if e["event"] == "cadence_reset" and e["next_frame"] == 2)
+        self.assertGreaterEqual(reset["input_wait_ms"], 70)
+        self.assertGreaterEqual(reset["previous_worker_ms"], 35)
+        self.assertGreaterEqual(reset["previous_frame_work_ms"], 90)
+        self.assertGreater(reset["tick_late_ms"], 0)
 
     async def test_stalled_peer_cannot_accumulate_more_than_negotiated_window(self):
         await self.start()

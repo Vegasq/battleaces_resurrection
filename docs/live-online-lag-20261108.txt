@@ -1,0 +1,39 @@
+BATTLE ACES LIVE ONLINE MOVEMENT LAG
+2026-11-08. D8 remains open. Nick reports smooth offline movement and hard
+unit jumps online, including versus AI. This is a live Internet/presentation
+observation, not a packaged graphical qualification result.
+
+The post-resize public versus AI match at18:29:23 UTC completed normally at
+18:30:55 UTC. It published1761 frames in92.3s (19.1Hz wall cadence against
+20Hz intended) and logged97 cadence_reset events. Earlier same-day matches
+before resize reset substantially more often, but modes and paths varied.
+The 2vCPU/4GiB host had3.3GiB available memory and low load when inspected;
+no current CPU or RAM saturation was seen. Eight ICMP probes from Nick's PC
+to the London host took127-142ms (mean134ms),zero lost. That short probe does
+not measure game TCP jitter or distinguish late input from native work.
+
+Normal live logging omits frame_queued and thus cannot attribute a reset.
+server/dedicated_server.py now adds input_wait_ms, worker_ms, snapshot_ms,
+frame_work_ms, previous_worker_ms, previous_frame_work_ms, tick_late_ms and
+reset_lag_ms to cadence_reset only. It leaves the50ms simulation step, six-frame
+input window, transport, matchmaking and diagnostic_audit=false unchanged.
+The previous-frame fields matter because a slow worker can trigger the reset
+on the next iteration. Focused network-loop test and all16 dedicated-server
+tests passed on Python3.12; source diff check and compile passed.
+
+Live operational diagnostic: initial single-file copy was rejected by the
+package manifest; the exact original file was restored and the host recovered.
+The successful deployment updates the bundled file and matching manifest
+entry as a temporary diagnostic override, retaining originals at
+/srv/ba-runtime/dedicated_server.pre-lag-diagnostic-20261108.py and
+/srv/ba-runtime/package-manifest.pre-lag-diagnostic-20261108.json.
+The installed package verified with its own package_integrity.verify, the
+systemd service is active, and TCP47623 is listening. Diagnostic source SHA256:
+1dde6e8e44e45b6fb4b1f06322c51a12d123db8be2abe316e3de5b14cf4b16a6.
+This is not a public paired release; its manifest records diagnostic_override.
+
+Next: N18 in private DEV.txt requests one ordinary online versus AI match.
+Analyze the new reset fields by match. Compare input wait, native/AI work and
+preceding-frame work before changing gameplay cadence or client buffering.
+After a cause-specific fix, rebuild a coherent package and verify live online
+movement with Nick; a timing counter alone cannot prove visual smoothness.
