@@ -20,7 +20,9 @@ over1200+ frames;median gap125->47ms,p95 156->63ms. The integrated four-view
 regression passes zero skips/zero gaps>100ms. After moving probe log reads off
 the TLS event loop,the same helper's actual Internet run has20.000Hz displayed
 progression,p95 gap63ms,max140ms and zero skips over1200+ frames. N20 points to
-the payload-verified buffered client installer. The existing
+the buffered client installer;its exact embedded update action passes in an
+owned copy,installing matching root/cached helpers and retaining110 profile
+files. The existing
 N20 visual/command-response acceptance and a versioned paired release are
 still open;live-online-lag-20261108.txt.
 The earlier operational result

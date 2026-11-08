@@ -343,3 +343,17 @@ connections. The large cadence_late counts657/717 in the buffered runs do not
 mean657/717 visible pauses:the client clock can keep a constant offset while
 advancing20Hz. Use measured intervals and input/worker durations to interpret
 that diagnostic. N20 remains the sole current manual lag check;no answer yet.
+
+Packaged update verification:the exact payload extracted by the N20 installer
+ran its bundled `tools.package_client install-game` action against the owned
+local/online-frame-pacing/game copy. It completed successfully and published
+installed runtime15efde9447c636452863. Root and cached helpers both match
+d03dd97d8ec8f7aa12f3a739931675a26c81ddc3f7acdf7c86846d0ab3e4d8da;
+the installed patch manifest agrees and Start Battle Aces.cmd selects that
+runtime. All110 preexisting profile files retain exact hashes;player settings
+are retained,with the copied game's binding corrected to this owned path and
+the absent fullscreen setting initialized to its existing defaulttrue. The
+patched GameAssembly bytes and original e59d08c... backup remain unchanged.
+Evidence:local/online-frame-pacing/installed-update-check/report.json and
+captured bundled install stdout/stderr. This checks the actual embedded
+package's update action,not a physical GUI click or user-owned installation.
