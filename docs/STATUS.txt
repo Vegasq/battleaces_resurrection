@@ -4,13 +4,21 @@ Current work:REMAINING_DELIVERY_PLAN.txt. Evidence navigation:INDEX.txt.
 Exact prior3576-line ledger:history/2026-10-24/STATUS.txt.
 Historical records retain their original failures,claims and artifact scopes.
 
+N31:Nick reports "Looks good, once command is given unit moves just fine" and
+authorizes pushing the current branch. This accepts ongoing movement after an
+order;the exact launcher/match mode is not stated. Command-start delay and true
+movement prediction remain open. Next:discuss immediate speculative movement
+and the required complete-world restore/replay feasibility proof. No new play
+test,server change,release or implementation is requested by this discussion.
+
 N29:Nick authorized deployment for testing. Live134.209.176.39:47623 now runs
 clean d167aba with explicit experimental scheduling acceptance enabled. Both
 test clients must use matching helper/launcher and Custom1v1. Ordinary clients
 retain buffered play.17 profiles/3 private files,assets,IP,autostart,firewall
 and restricted web dashboard are preserved. Wine package verification and an
 actual external two-peer40-frame protocol match pass. Prepared isolated local
-launcher and partner installer kit are ready;N29 manual result is pending.
+launcher and partner installer kit are ready;N31 supplies positive movement
+feedback without identifying a particular client mode.
 No usual-client install,GitHub release or push. This supersedes the earlier
 local-only boundary for this rollout;scheduling-test-deploy-20261109.txt.
 

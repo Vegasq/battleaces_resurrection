@@ -8,10 +8,16 @@ matchmaking;2vAI still searches for a human teammate. N24 private installer is
 superseded by the published release;N23 stays superseded,no repeat requested.
 Other-human online lag/D8 remains open. Details:release-040-20261109.txt.
 
+N31:Nick accepts ongoing movement after an order and authorizes pushing this
+branch. Exact tested client mode is not identified. Discuss true movement
+prediction next:immediate local simulation,then authoritative reconciliation;
+complete-world checkpoint/restore must be demonstrated first. D8 stays open.
+
 N29 DEPLOYED FOR TESTING:134.209.176.39:47623 runs clean d167aba with opt-in
 experimental Custom1v1 scheduling. Matching local launcher and partner kit are
-ready;external two-peer40-frame check passes. N29 manual result is pending in
-DEV.txt. IP/profiles/certificates/autostart/firewall remain unchanged. See
+ready;external two-peer40-frame check passes. Nick's N31 feedback is positive
+for ongoing movement,with exact mode unspecified. IP/profiles/certificates/
+autostart/firewall remain unchanged. See
 scheduling-test-deploy-20261109.txt. N29 supersedes the local-only boundary for
 this deployment;no GitHub release/push or usual-client update was requested.
 
@@ -51,7 +57,8 @@ an exact count of every remaining test. DEV.txt remains the owner of user answer
 
 COMPLETED
 [x] N29 selected test host deployed/readiness-checked with rollback and matching
-    client artifacts. Human visual/movement acceptance remains pending.
+    client artifacts. Nick accepts ongoing movement after orders (N31);this
+    does not identify the tested protocol or close broader D8/input latency.
 [x] N28 original sender/prediction investigation and local default-off test
     branch. Native600-frame timing/replay,240 snapshot comparisons,two result/Continue cycles
     and held-worker command conservation pass at their named scopes. Full

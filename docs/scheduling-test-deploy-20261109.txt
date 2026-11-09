@@ -1,5 +1,7 @@
 BATTLE ACES - N29 SCHEDULING TEST DEPLOYMENT
-2026-11-09. Deployment complete;human test result pending in private DEV.txt.
+2026-11-09. Deployment complete. N31 feedback:"Looks good, once command is given
+unit moves just fine". Exact launcher/mode is not stated;do not infer a named
+experimental-protocol PASS or immediate-input/prediction acceptance.
 
 Nick explicitly requested "Deploy new server please" / "so we can test it".
 This supersedes N27/N28's local-only boundary for this deployment/readiness.
@@ -81,4 +83,5 @@ uses it instead of the ordinary launcher. Set server134.209.176.39 in install.
 
 All private packages,receipts,probes and deployment evidence are under
 local/scheduling-deploy-20261109/. N29's manual result fields are in canonical
-private DEV.txt. D8/Internet visual acceptance and movement prediction stay open.
+private DEV.txt. N31 authorizes pushing the source branch,then discussing
+movement prediction. Broader D8/Internet/input latency and prediction stay open.
