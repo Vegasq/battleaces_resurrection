@@ -4,11 +4,14 @@ Current work:REMAINING_DELIVERY_PLAN.txt. Evidence navigation:INDEX.txt.
 Exact prior3576-line ledger:history/2026-10-24/STATUS.txt.
 Historical records retain their original failures,claims and artifact scopes.
 
-N32:Scheduling PR#1 merged into main as0ad2afb. Work starts on a separate genuine
-movement-prediction draft:original native simulation executes speculative moves,
-then reconciles conflicting authority through exact input replay. Native motion,
-convergence and reconstruction cost still need proof. No client integration,
-checkpoint qualification or live deployment is claimed;movement-prediction.txt.
+N32:Scheduling PR#1 merged into main as0ad2afb. Draft PR#2 now has a real native
+movement-prediction/correction baseline:Crab moves3.776 units over8 speculative
+ticks before authority;conflicting moves reconstruct to the control's parsed
+state and match20 continuation frames at240/600-frame histories.18 focused+10
+audit unit tests pass;6 workers exit0/reaped. Reconstruction costs717/1439ms
+including Python startup/IPC,too slow for interactive correction. Hidden-state
+equality,cooldown behavior(empty vectors),fast checkpoints and graphical client/
+network integration remain unqualified. No live changes;movement-prediction.txt.
 
 N31:Nick reports "Looks good, once command is given unit moves just fine" and
 authorizes pushing the current branch. This accepts ongoing movement after an

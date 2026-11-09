@@ -1,6 +1,7 @@
 BATTLE ACES - MOVEMENT PREDICTION DRAFT
 N32 requested2026-11-09. Branch:experiment/movement-prediction.
 Scheduling PR#1 merged into main as0ad2afb;its tested behavior is preserved.
+Draft PR:https://github.com/Vegasq/battleaces_resurrection/pull/2
 
 OBJECTIVE
 Start a genuine movement-prediction PR. The local simulation must execute a
@@ -31,6 +32,23 @@ fast enough for interactive use. Measure its cost explicitly. A faster complete
 world clone/save/restore path remains a separate original-engine investigation.
 The earlier view/replay display snapshots do not establish such a path.
 
+ORIGINAL-ENGINE RESTORE REVIEW
+Exact Simulation.dll SHA256:
+107bb83dc416a16492277392c50104660e34c48911345ae2e0d5afe3929a07fb
+Fresh bounded LLVM disassembly binds SimProcessMsg13fd0 ->104b0 ->342b0 to
+an RTTI-confirmed game_pb::InputActions parser and the world's input queue.
+The complete retained game_messages/game_debug descriptors occur byte-for-byte
+in this exact DLL;the inspected action/debug variants do not provide a complete
+world restore carrier. This is stronger than inferring native types from C# names.
+The inspected new-world path13770 ->ff30/ef80 ->270a0 allocates0x22c68 bytes,
+sets frame=-1 and initializes pointer-owned containers and a312-word64-bit
+RNG-style state array. A shallow memcpy or displayed snapshot cannot be assumed
+to restore those allocations/state. No complete clone/restore was demonstrated;
+untraced internal/downstream functions remain unknown. REA identified the
+artifact;its native provider was unavailable,so this is ordinary LLVM static
+evidence,not decompiler or runtime proof. Private source/tool/schema bindings
+and raw ranges:local/prediction-movement-20261109/restore-review.{txt,json}.
+
 NORMAL CLIENT/SERVER BOUNDARY
 No normal launcher,host,wire mode or game simulation is changed by this draft.
 No server contact/restart/deployment or usual-client installation is part of
@@ -50,6 +68,68 @@ FOLLOW-UP INTEGRATION GATES
   feature opt-in until its native integration and actual human results pass.
 
 STATUS
-Controller,unit tests and native movement/correction proof are in progress.
-No immediate movement prediction in the installed game is claimed yet. A draft
-PR will separate passing feasibility evidence from these remaining gates.
+The unintegrated controller and native movement/correction proof pass at the
+following bounded scope. The installed game still has no movement prediction.
+
+IMPLEMENTATION
+client_patch/transport/prediction.py provides an async PredictionController:
+- predict applies a complete validated canonical input frame immediately.
+- confirm accepts contiguous authoritative frames. Exact matches retire the
+  prediction without rebuilding;different inputs reconstruct a fresh world.
+- Replay includes the confirmed prefix,corrected frame and remaining speculative
+  frames. Confirmed parsed-state fingerprints must reproduce before replacement.
+- Input envelopes,ahead/frame/byte budgets and owned cleanup are bounded. Bad
+  ordering rejects before mutation;failed correction/budget/cancellation stops
+  the known-wrong world. No display-buffer restoration or native memcpy is used.
+Defaults:12-frame lead,1200-frame reconstruction budget,64MiB journal budget.
+These are lab limits,not a promise of support for full-length online matches.
+Input action legality remains the caller's responsibility;this controller is
+not a replacement for the server's strict command validator.
+
+NATIVE PROOF
+Owned original assets identify Crab as type75. The fixed-seed fixture uses original JoinArmy,
+the default deck's slot0 build and Move12 with original Q32.32 target positions.
+Native snapshots expose float3 positions. The separate252-step discovery run
+observes5.664 world units of Crab motion over12 ticks and reaps its sole worker.
+
+Main native01 passes two independent cases:
+History frames                240                 600
+Speculative frames              8                   8
+Reconstructed frames          248                 608
+Continuation frames            20                  20
+Speculative displacement       3.776 units         3.776 units
+Complete reconstruction      717.27ms            1438.81ms
+New Python worker startup    363.97ms             363.51ms
+Replay/IPC/fingerprints       339.47ms            1061.43ms
+Old-world cleanup             13.75ms              13.78ms
+
+Before confirming the move,the native speculative Crab actually changes
+position and differs from the independent authoritative world. Correcting the
+move produces identical parsed observable state,including positions,resources
+and health,then preserves equality for20 additional native frames in each case.
+This checks all parsed fields except raw snapshot SHA. It does not prove all
+hidden state,arbitrary combat/pathfinding outcomes or future convergence.
+Allied-view cooldown vectors were empty in this fixture;there is NO positive
+cooldown-behavior coverage despite matching empty vectors.
+
+Times include Python subprocess startup,IPC,fingerprinting and cleanup;they
+are not engine-only SimStep measurements. They are too slow for interactive
+correction in this implementation. No faster native checkpoint is qualified.
+Normal renderer/client/network integration remains intentionally outside this
+first draft;server command-sequence receipts and full-match correction costs
+must be solved before implementing that integration.
+
+Six owned workers exit0 and are reaped,with no cleanup failures. Exact tested
+source hashes stay unchanged during the18.13s main run. Controller metrics in
+each case are captured before teardown;the final worker list proves cleanup.
+18 focused controller/fixture tests and10 repository/instruction-audit unit
+tests pass. Full native reports,PID receipts,journals and immutable proprietary
+asset/source bindings remain ignored under local/prediction-movement-20261109/.
+
+REPEAT LOCALLY
+  python -B -m unittest tests.test_movement_prediction tests.test_movement_prediction_fixture
+  python -B -m tools.verify_movement_prediction --assets ../battleaces_resuraction/local/assets224-native01/asset-copy --output local/prediction-movement-20261109/my-native01 --histories 240 600 --ahead 8 --continuation 20
+The native command requires Windows,the owner's imported build37822 assets,
+and a fresh evidence directory under local/. It creates only headless owned
+workers;no Unity game or live endpoint is launched/contacted. The controller is
+excluded from normal packaged-client sources. No Nick manual action requested.

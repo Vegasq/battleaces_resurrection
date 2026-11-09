@@ -8,12 +8,14 @@ matchmaking;2vAI still searches for a human teammate. N24 private installer is
 superseded by the published release;N23 stays superseded,no repeat requested.
 Other-human online lag/D8 remains open. Details:release-040-20261109.txt.
 
-N32:Scheduling PR#1 is MERGED into main (0ad2afb). Start genuine movement
-prediction on experiment/movement-prediction and a separate draft PR. First:
-native speculative move -> conflicting authoritative input -> reconstruct/
-replay -> continued-state convergence,with measured cost. No installed-client
-prediction or fast checkpoint is claimed yet. See movement-prediction.txt.
-Keep the running server and user-owned game sessions unchanged.
+N32:Scheduling PR#1 is MERGED into main (0ad2afb). Draft prediction PR#2 has a
+passing original-native speculative Crab move -> conflicting authority ->
+reconstruction ->20-frame continuation proof at240/600-frame histories.18
+focused tests pass. Current reconstruction costs717/1439ms including worker
+startup/IPC;it is not ready for interactive rollout. Next:efficient complete
+world reconstruction/checkpoint and command-confirmation mapping,then original
+client integration. No installed prediction or hidden-state equality claimed.
+See movement-prediction.txt. Keep live server/user-owned sessions unchanged.
 
 N31:Nick accepts ongoing movement after an order and authorizes pushing this
 branch. Exact tested client mode is not identified. Discuss true movement
@@ -63,6 +65,8 @@ These grouped rows summarize the detailed matrices;they are not a percentage or
 an exact count of every remaining test. DEV.txt remains the owner of user answers.
 
 COMPLETED
+[x] N32 scheduling merge and initial prediction draft:real native motion before
+    confirmation and bounded correction/replay proof. Client rollout remains open.
 [x] N29 selected test host deployed/readiness-checked with rollback and matching
     client artifacts. Nick accepts ongoing movement after orders (N31);this
     does not identify the tested protocol or close broader D8/input latency.
