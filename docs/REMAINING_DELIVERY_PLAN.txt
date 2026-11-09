@@ -8,14 +8,21 @@ matchmaking;2vAI still searches for a human teammate. N24 private installer is
 superseded by the published release;N23 stays superseded,no repeat requested.
 Other-human online lag/D8 remains open. Details:release-040-20261109.txt.
 
+N29 DEPLOYED FOR TESTING:134.209.176.39:47623 runs clean d167aba with opt-in
+experimental Custom1v1 scheduling. Matching local launcher and partner kit are
+ready;external two-peer40-frame check passes. N29 manual result is pending in
+DEV.txt. IP/profiles/certificates/autostart/firewall remain unchanged. See
+scheduling-test-deploy-20261109.txt. N29 supersedes the local-only boundary for
+this deployment;no GitHub release/push or usual-client update was requested.
+
 N28 local investigation/test branch is READY:experiment/original-command-scheduling.
 Original retail sender skips empty command batches;full movement rollback is
 unqualified. Default-off Custom1v1 arrival scheduling plus first-output startup
 barrier passes native timing/state/rematch/conservation checks. Sampled command
 application296/594->141/500ms under controlled130/475ms RTT,with wider frame
-spacing. Guide:original-command-scheduling.txt. N27 remains LOCAL ONLY.
+spacing. Guide:original-command-scheduling.txt. N29 authorizes its test rollout.
 Next D8 scope:review/test this branch under real Internet jitter/loss and human
-visual input. Keep the live host unchanged;no new Nick test is requested.
+visual input,using the concrete N29 client artifacts and recorded request.
 
 N26 real0.4.0 Custom1v1 with Nick's friend in Korea was barely
 playable. Logs prove12.306Hz rather than20,>200ms input starvation about every
@@ -43,6 +50,8 @@ These grouped rows summarize the detailed matrices;they are not a percentage or
 an exact count of every remaining test. DEV.txt remains the owner of user answers.
 
 COMPLETED
+[x] N29 selected test host deployed/readiness-checked with rollback and matching
+    client artifacts. Human visual/movement acceptance remains pending.
 [x] N28 original sender/prediction investigation and local default-off test
     branch. Native600-frame timing/replay,240 snapshot comparisons,two result/Continue cycles
     and held-worker command conservation pass at their named scopes. Full

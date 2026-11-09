@@ -20,6 +20,7 @@ Focused evidence files were not renamed because tools and retained reports
 depend on their paths. Top-level reference documents are indexed below.
 
 CURRENT PLANNING AND ACCEPTANCE
+  scheduling-test-deploy-20261109.txt - N29 deployed test server,matching client launchers,external protocol readiness and rollback
   original-command-scheduling.txt - original sender/prediction evidence and default-off local Custom1v1 scheduling experiment
   input-buffering-local-20261109.txt - N27 local-only fix,controlled native reproduction,adaptive buffer and latency tradeoff
   korea-match-lag-20261109.txt - real0.4.0 two-human12.3Hz slowdown,six-frame input starvation and next regression target

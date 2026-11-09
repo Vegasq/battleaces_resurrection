@@ -1,13 +1,16 @@
 BATTLE ACES - ORIGINAL COMMAND SCHEDULING EXPERIMENT
 Local branch:experiment/original-command-scheduling. Baseline:a3ca53e.
-Status:LOCAL TEST CANDIDATE VERIFIED. Default off. Not deployed,pushed or released.
+Status:N28 local qualification complete. N29 subsequently authorizes deployment
+for testing;see scheduling-test-deploy-20261109.txt for the selected live host
+and matching launchers. Defaults remain off;no GitHub release or push.
 
 PURPOSE
 Nick asked to investigate the original command scheduling and prediction
 support,and make a separate test branch if feasible. This branch tests timely
 command dispatch without requiring an empty input packet from every human on
 every simulation frame. It does not implement speculative unit movement.
-The live0.4.0 server and the usual installed game are outside this experiment.
+N28 qualification used isolated copies. N29 separately authorizes the selected
+server test deployment;Nick's usual installed game remains unchanged.
 
 ORIGINAL CLIENT EVIDENCE
 Untouched build37822 GameAssembly.dll SHA256:
@@ -149,8 +152,10 @@ Build from source when needed:
   & ./client_patch/build.ps1 -OutputDirectory local/original-scheduling/my-helper01
 Use that build's receipt/hash and a separately prepared owned patched copy;
 the verifier checks the helper identity and experimental marker explicitly.
-There is deliberately no public host configuration switch for this branch.
-Do not enable it on the public server while local-only N27 applies.
+N29 adds the strict optional host.json key experimental_command_scheduling,
+default false,and client CLI --original-command-scheduling-experimental for
+per-launch opt-in. N29 supersedes N27's local-only boundary for its selected
+deployment. Follow the separate deployment guide for that live test setup.
 
 Fresh buffered control:native-buffered03/verification.json PASS. Two owned
 clients each receive/apply600 frames;20.004/20.005Hz presented cadence,zero
@@ -220,7 +225,8 @@ state replay match. Its timing gate intentionally FAILS:~1.56s pause and one
 All named runs report source files unchanged,owned clients reaped,workers exit0
 and no cleanup errors. Failed prototype/verifier reports remain alongside the
 passing runs. No manual Nick test is requested. The experiment stays default
-off and local only. It is ready for reviewing/repeating the local test branch.
+off by default. N29's explicit opt-in deployment is recorded separately. It is
+ready for reviewing/repeating the local test branch.
 
 Acceptance scope:qualified local experiment only. D8/real Internet lag,full
 prediction,D5 and final release acceptance remain open.

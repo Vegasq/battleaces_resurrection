@@ -1,0 +1,84 @@
+BATTLE ACES - N29 SCHEDULING TEST DEPLOYMENT
+2026-11-09. Deployment complete;human test result pending in private DEV.txt.
+
+Nick explicitly requested "Deploy new server please" / "so we can test it".
+This supersedes N27/N28's local-only boundary for this deployment/readiness.
+No GitHub release,push,firewall change or usual-client update was performed.
+
+SERVER
+Existing DigitalOcean134.209.176.39:47623 now runs clean source:
+d167aba90755fba256e204e6068225806fbf7422
+Branch:experiment/original-command-scheduling. Package label remains0.4.0;
+this is a private experimental deployment,not a new published release.
+Server ZIP SHA256:
+ad8ff6161f171237f20126c0f5b84397a28e28ea09435009c58d2b64d703c2fe
+All119 immutable members verify,including under bundled Python3.14/Wine.
+
+Host config adds only "experimental_command_scheduling":true. Normal peers
+remain buffered;matching experimental peers explicitly negotiate before Custom
+play. Per-player buffering from N27 is also included for ordinary clients.
+The config key defaults false and strictly requires a JSON boolean. Client
+opt-in is per launch;no new persistent client configuration key was added.
+
+The service was idle before its controlled stop/update/start. All17 existing
+profile hashes and3 private config/certificate files survived. Asset paths,
+host IP,other host settings,systemd service/autostart and normalized firewall
+rules are unchanged. Game access remains public;web47624 remains restricted
+by its existing rules. Service active/enabled and dashboard persistence pass.
+
+Backup and rollback on the selected host:
+  /srv/ba-runtime/scheduling-test-20261109/backup
+  python3 /srv/ba-runtime/scheduling-test-20261109/deploy_server.py rollback
+Rollback refuses established game connections and restores immutable files
+and exact old config while preserving current mutable data. No rollback run
+was needed. Private deployment report is retained locally and on the host.
+
+VERIFICATION
+Host opt-in/readiness tests28 PASS;launcher tests36 PASS. Root package/host/
+launcher check ran80 actual tests successfully;an extra nonexistent module
+selector caused its overall failure. Corrected client_compatibility module
+passes7 tests. No code failure was concealed by that selector correction.
+Existing native600-frame/state/rematch/fault evidence for exact helper8d0675...
+is in original-command-scheduling.txt;native code/helper did not change here.
+
+Actual external RC/TLS live03 passes with exactly two fresh own identities,
+an explicitly targeted invitation,70/71 negotiation,frozen bootstrap/JoinArmy,
+scripted READY74,independent heartbeats and40 identical contiguous frames on
+both peers. There are no per-frame INPUT packets. The real original worker
+runs on the deployed Wine host. Own connections close;subsequent dashboard
+shows0 active matches/online players/connections and17 stored profiles.
+Unnegotiated community v1 WELCOME also passes;no full legacy match is claimed.
+This protocol probe does not present native frames or measure visual latency.
+
+live01 failed on the probe reading a stale one-member lobby snapshot;live02
+failed comparing tuple/list representations of the same ordered deck. Both
+failed reports and exact probe versions remain. Corrected own-ID/ordered-deck
+checks pass authored fixtures,then live03. No server restart/code change was
+needed for these diagnostic corrections.
+
+MATCHING HUMAN TEST CLIENT
+No install into Nick's usual game is required. Prepared launcher:
+  local/scheduling-deploy-20261109/Launch Scheduling Test.cmd
+It validates the package and uses local/online-frame-pacing/game with an
+isolated n29_scheduling_test profile,name Nick Scheduling Test,fullscreen and
+server134.209.176.39. It has no diagnostic automation flags. The package,game,
+helper and per-launch arguments verify;no visible/manual play is claimed.
+
+Both players must use the matching test client AND special launcher:
+  Custom Game -> Invite the other test player -> Start.
+Public Play is excluded from this experiment. Mixed regular/test Custom peers
+are rejected at Start. Ordinary launchers retain buffered behavior.
+
+Partner kit:local/scheduling-deploy-20261109/Scheduling Test Client.zip
+Contains private installer,an installed-game test launcher and instructions.
+ZIP SHA256:31c98575509cd9fe1124d6162013d188343a57cdc906d7f4516c49371414df35
+Installer SHA256:e588312387d76f9a64d25be6778e0afa738ca7dc009ea60f6475696cd8c3f689
+Embedded client ZIP SHA256:5e449e27e983e2c1accc52d91e91bf30cc3f091a0935f51b37fb5dc0a3c5f4af
+Installer embedded-payload verification passes. No game assets are included.
+After installing that client on their supported working copy,the partner
+places Launch Scheduling Test - installed client.cmd in that game folder and
+uses it instead of the ordinary launcher. Set server134.209.176.39 in install.
+
+All private packages,receipts,probes and deployment evidence are under
+local/scheduling-deploy-20261109/. N29's manual result fields are in canonical
+private DEV.txt. D8/Internet visual acceptance and movement prediction stay open.
