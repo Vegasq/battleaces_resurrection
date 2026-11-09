@@ -343,6 +343,7 @@ extern "C" __declspec(dllexport) void OfflineFrontUpdate(void* front,void*) {
 #include "lan_smoke.cpp"
 #include "community_transport.cpp"
 #include "lan_transport.cpp"
+#include "online_presentation.cpp"
 #include "dedicated_transport.cpp"
 #include "dedicated_deck.cpp"
 #include "dedicated_results.cpp"

@@ -367,7 +367,8 @@ async def run(args):
             try:
                 shutil.copyfile(trace, destination / trace.name)
                 timing = presentation_timing.qualify(presentation_timing.read_trace(trace),
-                                                    [row['frames'] for row in results])
+                                                    [row['frames'] for row in results],
+                                                    max_short_gaps=2, max_gap_ms=100)
             except (OSError, ValueError) as error:
                 timing = dict(passed=False, matches=[], errors=[str(error)])
             pacing.append(dict(pid=process.pid, **timing))
@@ -399,7 +400,7 @@ if __name__ == '__main__':
     parser.add_argument('--jitter-ms', type=float, default=0, help='uniform +/- one-way delay variation,0..100ms')
     parser.add_argument('--network-seed', type=int, default=1)
     parser.add_argument('--require-frame-pacing', action='store_true',
-                        help='retain native timing traces and require complete near-20Hz presentation with at most one skip per match')
+                        help='require complete near-20Hz traces, at most one skip/two sub25ms advances and no pause over100ms per match')
     failure = parser.add_mutually_exclusive_group()
     failure.add_argument('--disconnect-frame', type=int,
                         help='test-only abrupt peer disconnect during the first match; require native button recovery')

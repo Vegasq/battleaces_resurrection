@@ -1,0 +1,124 @@
+ONLINE PRESENTATION CLOCK - PRIVATE CANDIDATE
+2026-11-08 Chicago. D8/visible movement acceptance stays OPEN.
+
+Owner result
+Nick's N20 answer after rc1.10:"It is better, no doubt. But it is not good."
+N21 clarifies:"Tiny jumps. Game felt laggy." These are not movement acceptance.
+No new change has been installed in Nick's usual game or the live server by
+this work. Remote game access remains owner-only;input_window6/minimum revision1.
+
+Cause and implementation
+The former gate advanced an overdue50ms input-push deadline,allowing multiple
+callbacks to push frames at the same clock timestamp after starvation. The
+retained rc1.10 trace has17 presented-counter gaps<25ms,including zero-ms gaps.
+Its old skip/p95/rate gate missed this. A minimum-spacing push-clock prototype
+removed all sub25ms pushes,but9 short presentation intervals remained:variable
+native worker completion latency compressed31ms pushes into15ms view intervals.
+QPC instrumentation confirms genuinely short intervals,not only coarse15ms ticks.
+
+Original native code has a replaceable latest-result slot,not a FIFO. The worker
+replaces Simulation+0x110 and reuses the old buffer;letting four inputs run ahead
+while throttling presentation would lose snapshots. The candidate instead allows
+only one unpresented input. The main thread calls the original native presentation
+method on a50ms QPC clock,with bounded recovery and a25ms spacing floor. The worker
+can finish ahead of the next deadline without replacing an unconsumed output.
+Local/replay/inactive calls forward to the original method. Original native
+locking,buffer ownership,presentation work and subsequent rendering jobs remain.
+The final pending frame after match completion retains the original drain path;
+the active-match clock does not promise postgame terminal-frame spacing.
+
+Exact boundary
+Original backup GameAssembly SHA256e59d08c01479b27404778048d7e13546dbf3771f6b3912744c7c2bdf80c4e758.
+Only the RGameInstance.ProcessUpdate direct CALL at RVA3de3b31,file3de2131,
+original bytesE83A210800,is redirected through the existing import thunk design.
+ABI:void(Obj simulation,Obj MethodInfo),original target RVA3e65c70,token0600125c.
+The original body[3e65c70,3e65e60) remains byte-identical,SHA256
+e8a07b45332c7b5bd33419961061718cc82a0b092685a3befe57242e7b94663f.
+Owned patched GameAssembly SHA256529add6cae08ccb263ccd569b6ebc6ae9b170f644798b7e469a9c24e22bb508f.
+Ordinary LLVM/metadata inspection supplies this static evidence;REA's native
+provider is unavailable here,so this is not a REA decompilation claim.
+
+Regression and compatibility
+online_frame_clock_tests covers the exact1090/1091ms overdue-burst defect,
+20/25/30/32/60/64Hz callback rates,starvation/recovery,reset,overflow boundaries,
+microsecond units and the single-slot producer/consumer constraint. The same
+acceptance compiled against the old clock fails at!ready(1090);the revised clock
+passes. helper/clock-red-green.json retains that controlled red/green result.
+helper-presentation01 retains a failed test build:the new microsecond test
+expected1140000 instead of its actual1150000 deadline. That assertion was
+corrected;helper-presentation02 and later compile/pass the full native suites.
+
+Patch installation and packaging now require both the new presentation export
+and its ABI marker before writes/output. Missing-contract transaction tests
+prove refusal preserves originals and avoids bundle preparation. The helper
+remains protocol revision1;this changes native pacing,not the network protocol.
+
+Retained timing experiments
+All captures below are ignored under local/online-frame-pacing/remaining-stutter01/.
+No failed report is overwritten. Each live probe uses its own test identity,
+an owned game copy and retained process/Job handles;forced cleanup is not Quit.
+The usual game/saves and user-owned gameplay are untouched.
+
+live-spaced01:601 applies,zero input intervals<25ms,but9 short sampled views,
+p9578ms,max125ms. This rejects input pacing alone as a complete smoothness fix.
+local/matches/spaced-clock-gate01 retains two matching620-frame games/four full
+views,but the strengthened timing gate fails short intervals and one long pause.
+live-qpc01 confirms14 short views,p9569.261ms,max102.612ms at high resolution.
+
+live-presentation01:original native clock wrapper active;zero skips,median49.982ms,
+p9554.932ms,4 sampled-view intervals<25ms,6 pauses>100ms,max296.620ms. The native
+worker stalls~295/289ms at audited frames80/320 while front callbacks continue.
+These local stalls later delay server inputs87/327;server native work stays
+5.819/15.169ms at the matching waits. Synchronous canonical worker-state capture
+is an interference candidate,not a proven explanation for every pause.
+
+local/matches/presentation-clock-gate01:two matching620-frame matches,four
+authenticated sessions,native result readiness and zero skipped frames. One
+first-match pause~819-852ms makes the stricter timing gate FAIL;second-match
+views have no gaps>100ms. No full timing PASS is inferred from state agreement.
+Its helper4ec39f7a... differs from later builds only in timing instrumentation.
+
+live-timing-only01 disables heavyweight canonical snapshots. Its trace still
+has a256.531ms pause exactly after data row1024,the synchronous32-row trace
+flush boundary. Another120.847ms gap is upstream availability;the local worker
+advances1.345ms after the input arrives. Both occur before the build command.
+The report is also INCOMPLETE:last applied599,last presented598. The verifier
+now drains eight extra frames before cleanup rather than accepting a missing
+final view. These failures remain;they do not establish a production timing pass.
+
+Measurement repair
+The lightweight verifier uses-frame-timing with a bounded in-memory capture
+window. It writes the TSV only after the measured prefix has been presented.
+Canonical state auditing remains available separately and its failed timing
+reports stay unchanged. Publication rows sample immediately after the original
+native handoff;view rows retain their separate observer/sampling limitations.
+The stricter gate retains completeness,skip,p95/rate,short-interval and maximum
+pause checks. User-visible smoothness still requires Nick's result.
+
+Final helper and scoped result
+helper-presentation04/BattleAcesOffline.dll SHA256
+e56bd8a0380ee64b1150fd15ba3d1549b080d1380954a1e1621601eba24b9d43.
+All native build suites pass;96 focused Python installer/package/patcher/timing/
+recovery tests pass. Normal launchers contain no timing or scripted-game flags.
+
+live-buffered-timing01 retains a complete four-player/three-AI FAILED stress
+prefix:zero sub25ms publications,zero skips,p9553.940ms,but three gaps>100ms,
+publication maximum141.843ms. Human input was already available at each affected
+server frame. Coordinator worker_ms values88.047/69.709/61.306ms include BOT_INPUT,
+STEP,snapshot decoding,IPC/executor/event-loop scheduling;they are not isolated
+native AI CPU measurements. No other match overlapped. An idle host sample taken
+later cannot establish historical VM contention. Server operation/CPU separation
+remains next for these tails;receipt-based input replenishment was not introduced.
+
+live-single-ai01 matches Nick's latest public1vAI mode and PASSES both complete
+first600-frame gates on the actual Wine/Internet route. Each has600 ordered
+arrivals/applies and every presented frame11..599,zero skips,zero sub25ms gaps
+and zero pauses>100ms. Sampled-view p9552.842ms,max75.192ms,20.001Hz;actual native
+publication p9550.874ms,max78.707ms,20.000Hz. The new clock's marker is present.
+The trace is buffered in memory until frame602,then written outside the prefix.
+Cleanup remains forced owned termination;no physical smoothness or Quit PASS.
+
+Reproduce this scoped check with a fresh ignored output directory:
+  python -m tools.verify_live_frame_pacing --game local/online-frame-pacing/game --output local/online-frame-pacing/NEW_NAME --helper local/online-frame-pacing/remaining-stutter01/helper-presentation04/BattleAcesOffline.dll --label candidate --frames 600 --mode 1
+Mode5 exercises the heavier three-AI/four-player workload. Both retained failed
+gates and their complete raw traces remain available;limits were not loosened.

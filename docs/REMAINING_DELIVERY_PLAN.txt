@@ -1680,7 +1680,12 @@ D8 - Internet,latency,capacity:OPEN.
   Owner-only live host upgraded to rc1.10/minimum client revision1;actual
   Internet legacy rejection/current welcome pass,seven original profiles
   unchanged. Firewall retained. Publication/public rollout and N20 acceptance
-  remain open;live-server-rc110-20261108.txt. N20 now uses client-installer02.
+  remain open;live-server-rc110-20261108.txt. N20 answered:better,but not good.
+  N21:"Tiny jumps. Game felt laggy." Private native presentation-clock and
+  one-unpresented-output candidate passes complete600-frame real Internet1vAI
+  pacing with no skips/bursts/pauses>100ms. State/results match at the named
+  paired scope;four-player/three-AI server round-trip tails still fail.
+  No user-visible PASS;online-presentation-clock-20261108.txt.
   N19 still jumped per Nick despite381frames/19.27s=19.8Hz and only4 late
   server events with input window9. Client authoritative-frame presentation
   pacing passes a local delayed-stream regression (60 total displayed-frame

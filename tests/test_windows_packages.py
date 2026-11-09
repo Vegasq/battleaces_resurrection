@@ -128,6 +128,18 @@ class WindowsPackageTests(unittest.TestCase):
         with self.assertRaises(PackageError): self.build()
         self.assertFalse((self.root/'out').exists())
 
+    def test_online_presentation_export_and_marker_required_before_output(self):
+        complete = self.helper.read_bytes()
+        for marker in (b'BA_RESURRECTION_ONLINE_PRESENTATION_V1', b'OfflinePresentAvailableSimFrame\0'):
+            with self.subTest(missing=marker):
+                helper = complete.replace(marker, b'')
+                self.helper.write_bytes(helper)
+                receipt = dict(self.helper_receipt, helper_sha256=builder.sha(helper))
+                (self.root/'helper-build.json').write_text(json.dumps(receipt))
+                with self.assertRaisesRegex(PackageError, 'feature/protocol markers'):
+                    self.build()
+                self.assertFalse((self.root/'out').exists())
+
     def test_archive_paths_and_member_types_are_checked_before_extraction(self):
         link = zipfile.ZipInfo('linked'); link.create_system = 3; link.external_attr = 0o120777 << 16
         for name in ('../outside', '/absolute', 'folder\\outside', 'a:stream', 'NUL.txt', 'trailing.', 'PYTHON.EXE', link):

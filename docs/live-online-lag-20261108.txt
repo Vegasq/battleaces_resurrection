@@ -3,6 +3,27 @@ BATTLE ACES LIVE ONLINE MOVEMENT LAG
 unit jumps online, including versus AI. This is a live Internet/presentation
 observation, not a packaged graphical qualification result.
 
+LATEST OWNER RESULT AND REMAINING PACING DEFECT
+After the rc1.10 owner-only deployment,Nick answered N20:"It is better, no
+doubt. But it is not good." The lag issue stays open;N20 is not a visual PASS.
+The installed helper manifest now matches b150b859... . His actual public1vAI
+match79af8f4c9cc34a8dafe644e43b23c52a ran2026-11-09 00:09:07-00:10:08 UTC,
+1199frames in61.156s,and reached its native result and Continue normally.
+Among731 conditional cadence_late records,input waits had median33.137ms,
+p9571.934ms,max305.138ms;worker work median10.206ms,p9518.269ms,max73.425ms.
+These conditional records are not an all-frame CPU distribution. Input waits
+and a short cluster of slower worker frames both remain in the retained data.
+Private copy and summary:local/online-frame-pacing/remaining-stutter01/.
+
+The retained rc1.10 owned trace also exposes a missed timing failure. Frames
+531/532 apply at the same timestamp623349390 after a110ms presented gap;
+563/564 apply at623351031 after141ms. Among591 presented changes,17 gaps are
+under25ms,three exceed100ms,max157ms. A one-frame-per-callback limit still
+allows multiple callbacks to catch up against an overdue clock. The old gate
+checks skipped labels,p95 and rate,so it misses these compressed intervals.
+This evidence supports fixing the helper clock and strengthening the timing
+regression;it does not establish the original renderer's interpolation state.
+
 The post-resize public versus AI match at18:29:23 UTC completed normally at
 18:30:55 UTC. It published1761 frames in92.3s (19.1Hz wall cadence against
 20Hz intended) and logged97 cadence_reset events. Earlier same-day matches

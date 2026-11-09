@@ -1,8 +1,9 @@
 """Measure displayed simulation frame pacing from opt-in -lan-audit traces.
 
 The game runs simulation and presentation on different threads.  Only `view`
-rows sample what Unity actually displayed; `arrival` and `apply` rows explain
-whether the network and native simulation were still advancing.
+rows sample Unity's presentation-frame counter; observations at the same clock
+timestamp need not represent separate rendered frames.  `arrival` and `apply`
+rows explain whether the network and native simulation were still advancing.
 """
 
 import argparse
@@ -17,7 +18,9 @@ def read_trace(path):
     required = {"ms", "event", "update", "frame", "sim", "presented", "queued"}
     if not rows or not required.issubset(rows[0]):
         raise ValueError(f"{path}: empty or invalid timing trace")
-    return [{key: int(value) if key != "event" else value for key, value in row.items()}
+    return [{key: value if key == "event" else
+             None if key == "qpc_us" and value in (None, "") else int(value)
+             for key, value in row.items()}
             for row in rows]
 
 
@@ -35,7 +38,12 @@ def measure(rows, warmup_frame=10):
              and row["presented"] > warmup_frame]
     changes = [row for i, row in enumerate(views)
                if i == 0 or row["presented"] != views[i-1]["presented"]]
-    gaps = [b["ms"]-a["ms"] for a, b in zip(changes, changes[1:])]
+    # Use one clock throughout a match. Retained traces have only coarse ms;
+    # a blank optional QPC value also falls back without mixing clock epochs.
+    use_qpc = bool(changes) and all(type(row.get("qpc_us")) is int for row in changes)
+    clock, scale = ("qpc_us", 1000) if use_qpc else ("ms", 1)
+    gaps = [(b[clock]-a[clock])/scale if use_qpc else b[clock]-a[clock]
+            for a, b in zip(changes, changes[1:])]
     steps = [b["presented"]-a["presented"] for a, b in zip(changes, changes[1:])]
     if any(gap < 0 for gap in gaps) or any(step <= 0 for step in steps):
         raise ValueError("nonmonotonic presentation trace")
@@ -45,13 +53,19 @@ def measure(rows, warmup_frame=10):
         if any(b != a+1 for a, b in zip(frames, frames[1:])):
             raise ValueError(f"noncontiguous {name} frames")
     ordered = sorted(gaps)
+    def milliseconds(value):
+        return round(value, 3) if use_qpc and value is not None else value
     return {
+        "timestamp_source": clock,
         "presented_changes": len(changes),
         "first_presented": changes[0]["presented"] if changes else None,
         "last_presented": changes[-1]["presented"] if changes else None,
-        "median_gap_ms": ordered[len(ordered)//2] if ordered else None,
-        "p95_gap_ms": ordered[(95*(len(ordered)-1))//100] if ordered else None,
-        "max_gap_ms": max(gaps, default=None),
+        "min_gap_ms": milliseconds(min(gaps, default=None)),
+        "p05_gap_ms": milliseconds(ordered[(5*(len(ordered)-1))//100] if ordered else None),
+        "median_gap_ms": milliseconds(ordered[len(ordered)//2] if ordered else None),
+        "p95_gap_ms": milliseconds(ordered[(95*(len(ordered)-1))//100] if ordered else None),
+        "max_gap_ms": milliseconds(max(gaps, default=None)),
+        "gaps_under_25_ms": sum(gap < 25 for gap in gaps),
         "gaps_over_100_ms": sum(gap > 100 for gap in gaps),
         "skipped_presented_updates": sum(step > 1 for step in steps),
         "skipped_presented_frames": sum(step-1 for step in steps),
@@ -67,8 +81,14 @@ def measure(rows, warmup_frame=10):
     }
 
 
-def qualify(rows, expected_frames, max_skips=1, max_p95_ms=80, min_hz=19, max_hz=21):
-    """Require every completed match to remain complete, paced and near 20 Hz."""
+def qualify(rows, expected_frames, max_skips=1, max_p95_ms=80, min_hz=19, max_hz=21,
+            max_short_gaps=None, max_gap_ms=None):
+    """Require complete, near-20 Hz matches with optional burst/pause limits.
+
+    The optional short-gap limit counts distinct counter advances less than
+    half a 50 ms simulation tick apart.  A pause followed by bunched advances
+    can otherwise preserve the mean rate, p95 gap and every frame number.
+    """
     parts = matches(rows)
     errors = []
     measured = []
@@ -95,6 +115,10 @@ def qualify(rows, expected_frames, max_skips=1, max_p95_ms=80, min_hz=19, max_hz
             errors.append(f"match {index+1}: displayed frame skips exceed {max_skips}")
         if result["p95_gap_ms"] is None or result["p95_gap_ms"] > max_p95_ms:
             errors.append(f"match {index+1}: p95 presentation gap exceeds {max_p95_ms} ms")
+        if max_short_gaps is not None and result["gaps_under_25_ms"] > max_short_gaps:
+            errors.append(f"match {index+1}: presentation gaps under 25 ms exceed {max_short_gaps}")
+        if max_gap_ms is not None and (result["max_gap_ms"] is None or result["max_gap_ms"] > max_gap_ms):
+            errors.append(f"match {index+1}: maximum presentation gap exceeds {max_gap_ms} ms")
         if result["effective_presented_hz"] is None or result["effective_presented_hz"] < min_hz:
             errors.append(f"match {index+1}: presentation rate is below {min_hz} Hz")
         elif result["effective_presented_hz"] > max_hz:
@@ -107,6 +131,8 @@ def main():
     parser.add_argument("traces", nargs="+", type=Path)
     parser.add_argument("--max-skips", type=int, help="fail if any match exceeds this number of skipped presented frames")
     parser.add_argument("--max-p95-ms", type=int, help="fail if the 95th percentile presentation gap exceeds this")
+    parser.add_argument("--max-short-gaps", type=int, help="fail if distinct presented advances less than 25 ms apart exceed this count")
+    parser.add_argument("--max-gap-ms", type=int, help="fail if the maximum presentation gap exceeds this")
     parser.add_argument("--expected-frames", type=int, help="require this many contiguous arrived and applied frames per match")
     parser.add_argument("--min-changes", type=int, default=100)
     args = parser.parse_args()
@@ -123,6 +149,10 @@ def main():
             if args.max_skips is not None and match["skipped_presented_frames"] > args.max_skips:
                 return 1
             if args.max_p95_ms is not None and match["p95_gap_ms"] > args.max_p95_ms:
+                return 1
+            if args.max_short_gaps is not None and match["gaps_under_25_ms"] > args.max_short_gaps:
+                return 1
+            if args.max_gap_ms is not None and match["max_gap_ms"] > args.max_gap_ms:
                 return 1
     return 0
 

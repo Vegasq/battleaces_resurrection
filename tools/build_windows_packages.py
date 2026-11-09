@@ -61,6 +61,7 @@ CLIENT = COMMON + (
 # validation/export orchestration sources, not original client files or assets.
 SERVER = tuple(dict.fromkeys(SERVER + CLIENT + ('tools/server_installer.py',)))
 MARKERS = (
+    b'BA_RESURRECTION_ONLINE_PRESENTATION_V1', b'OfflinePresentAvailableSimFrame\0',
     b'BA_RESURRECTION_CLIENT_REVISION_V1',
     b'BA_RESURRECTION_NATIVE_BACKUP_GUARD_V1', b'OfflineBackupInitialRead\0', b'OfflineBackupWriteText\0',
     b'BA_RESURRECTION_NATIVE_STORAGE_V1',

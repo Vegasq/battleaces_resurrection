@@ -20,6 +20,7 @@ Focused evidence files were not renamed because tools and retained reports
 depend on their paths. Top-level reference documents are indexed below.
 
 CURRENT PLANNING AND ACCEPTANCE
+  online-presentation-clock-20261108.txt - remaining tiny jumps,native output-slot constraint,private presentation-clock candidate and timing interference
   live-server-rc110-20261108.txt - owner-only rc1.10 deployment,rollback,upgrade cleanup and Internet verification
   client-version-policy.txt - minimum client revision and persistent top-center update overlay;owner-only rc1.10 live
   live-online-lag-20261108.txt - live lag reproduction,client pacing fix,retained timing failures and N20

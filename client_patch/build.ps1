@@ -67,6 +67,10 @@ try {
     if ($LASTEXITCODE -ne 0) { throw 'Client compatibility test build failed.' }
     & (Join-Path $OutputDirectory 'client_compatibility_tests.exe')
     if ($LASTEXITCODE -ne 0) { throw 'Client compatibility tests failed.' }
+    & (Join-Path $CompilerRoot 'bin/Hostx64/x64/cl.exe') /nologo /MT /EHsc /O2 /W4 /std:c++17 (Join-Path $PSScriptRoot 'src/online_frame_clock_tests.cpp') "/Fe:$OutputDirectory/online_frame_clock_tests.exe"
+    if ($LASTEXITCODE -ne 0) { throw 'Online frame clock test build failed.' }
+    & (Join-Path $OutputDirectory 'online_frame_clock_tests.exe')
+    if ($LASTEXITCODE -ne 0) { throw 'Online frame clock tests failed.' }
     & (Join-Path $CompilerRoot 'bin/Hostx64/x64/cl.exe') /nologo /MT /EHsc /O2 /W4 /std:c++17 (Join-Path $PSScriptRoot 'src/replay_update_policy_tests.cpp') "/Fe:$OutputDirectory/replay_update_policy_tests.exe"
     if ($LASTEXITCODE -ne 0) { throw 'Replay update policy test build failed.' }
     & (Join-Path $OutputDirectory 'replay_update_policy_tests.exe')

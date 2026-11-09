@@ -89,6 +89,9 @@ CALL_HOOKS = [
     {'name': 'OfflinePracticeSettingsOptions', 'rva': 0x3c922f2, 'offset': 0x3c908f2, 'before': 'e849000000'},
     # AI entering-game coroutine only; all non-practice calls retain original JoinGame.
     {'name': 'OfflinePracticeAIJoin', 'rva': 0x37bdaee, 'offset': 0x37bc0ee, 'before': 'e84d5e6900'},
+    # Pace only the owned remote simulation's discrete publication. Local/replay
+    # calls forward to the original unpatched method with unchanged arguments.
+    {'name': 'OfflinePresentAvailableSimFrame', 'rva': 0x3de3b31, 'offset': 0x3de2131, 'before': 'e83a210800'},
     {'name': 'OfflineAuditReadSimFrame', 'rva': 0x3e61faf, 'offset': 0x3e605af, 'before': 'e8dc600000'},
     {'name': 'OfflineAuditReadSimFrame', 'rva': 0x3e62160, 'offset': 0x3e60760, 'before': 'e82b5f0000'},
 ]
@@ -326,6 +329,9 @@ def install(game_dir, *, helper=None, original_path=None, restore=False, dry_run
     if helper_bytes is not None and any(marker not in helper_bytes for marker in
             (b'BA_RESURRECTION_STARTUP_FAILURE_V1', b'OfflineStartupFailure\0')):
         raise ValueError('Build the current helper with native startup failure handling before installing this patch.')
+    if helper_bytes is not None and any(marker not in helper_bytes for marker in
+            (b'BA_RESURRECTION_ONLINE_PRESENTATION_V1', b'OfflinePresentAvailableSimFrame\0')):
+        raise ValueError('Build the current helper with the online presentation hook before installing this patch.')
     if quit_diagnostics and helper_bytes is not None and any(marker not in helper_bytes for marker in
             (b'BA_RESURRECTION_NATIVE_QUIT_TRACE_V1',) + tuple(h['name'].encode()+b'\0' for h in QUIT_CALL_HOOKS+QUIT_POINTER_HOOKS)):
         raise ValueError('Build the owned native Quit diagnostic helper before installing this recipe.')

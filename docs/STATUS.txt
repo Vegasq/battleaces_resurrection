@@ -4,13 +4,24 @@ Current work:REMAINING_DELIVERY_PLAN.txt. Evidence navigation:INDEX.txt.
 Exact prior3576-line ledger:history/2026-10-24/STATUS.txt.
 Historical records retain their original failures,claims and artifact scopes.
 
+N21 clarifies the remaining symptom:"Tiny jumps. Game felt laggy." A private
+candidate paces the original native presentation handoff and permits only one
+unpresented output. The exact helper passes a complete600-frame real Internet
+public1vAI check:zero skips/bursts/pauses>100ms;publication p9550.874ms. Native
+state/results pass at the named two-match scope. Four-player/three-AI server
+round-trip tails still fail the stricter gate;diagnostic I/O failures remain
+separate evidence. No visible PASS or usual-client/live-server rollout;
+online-presentation-clock-20261108.txt.
+
 Paired0.3.0-rc1.10 adds client revision enforcement and a persistent update
 warning in the existing top-center overlay. Rejected clients retain offline AI;
 native rejection/text persistence beyond12s and rendered appearance pass in an
 owned copy. Protocol/server/config/package/install checks pass. The live
 owner-only host now runs rc1.10 with minimum revision1;actual Internet legacy
 rejection/current-client welcome pass. Seven original profiles are unchanged.
-Publication and N20 remain open;the same N20 request now uses client-installer02.
+Nick's N20 answer is improved but not accepted:"It is better, no doubt. But it
+is not good." Lag/D8 and publication remain open. His latest match completed
+normally;remaining-stutter timing analysis is in live-online-lag-20261108.txt.
 See live-server-rc110-20261108.txt and client-version-policy.txt.
 Compatible native clients complete two matching620-frame matches with zero
 skips,but one view still fails the broader p95<=80ms gate at94ms. That failed
