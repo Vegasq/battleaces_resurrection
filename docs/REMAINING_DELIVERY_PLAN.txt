@@ -8,14 +8,15 @@ matchmaking;2vAI still searches for a human teammate. N24 private installer is
 superseded by the published release;N23 stays superseded,no repeat requested.
 Other-human online lag/D8 remains open. Details:release-040-20261109.txt.
 
-N32:Scheduling PR#1 is MERGED into main (0ad2afb). Draft prediction PR#2 has a
-passing original-native speculative Crab move -> conflicting authority ->
-reconstruction ->20-frame continuation proof at240/600-frame histories.18
-focused tests pass. Current reconstruction costs717/1439ms including worker
-startup/IPC;it is not ready for interactive rollout. Next:efficient complete
-world reconstruction/checkpoint and command-confirmation mapping,then original
-client integration. No installed prediction or hidden-state equality claimed.
-See movement-prediction.txt. Keep live server/user-owned sessions unchanged.
+N33 ACTIVE:complete genuine movement prediction through actual client
+integration/verification. Scheduling PR#1 is MERGED (0ad2afb);prediction PR#2
+remains draft. Efficient headless checkpoints now match601 unmodified control
+frames and six corrected38-frame continuations. Restore+8 replayed/observed
+ticks18.1..18.8ms;restore alone~0.5..0.7ms. Next:combat/deeper scheduling and
+actual Unity API-thread/renderer integration,then local two-client latency
+qualification. No installed prediction or complete hidden-state equality yet.
+See native-prediction-checkpoints.txt and movement-prediction.txt. Keep live
+server/user-owned sessions unchanged. Do not stop at the headless prototype.
 
 N31:Nick accepts ongoing movement after an order and authorizes pushing this
 branch. Exact tested client mode is not identified. Discuss true movement

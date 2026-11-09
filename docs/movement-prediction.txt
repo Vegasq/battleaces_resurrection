@@ -3,6 +3,15 @@ N32 requested2026-11-09. Branch:experiment/movement-prediction.
 Scheduling PR#1 merged into main as0ad2afb;its tested behavior is preserved.
 Draft PR:https://github.com/Vegasq/battleaces_resurrection/pull/2
 
+CURRENT N33 PROGRESS
+Efficient headless native checkpoints now pass unmodified601-frame control
+comparison and six conflicting-move corrections. Restore plus eight replayed/
+observed ticks takes18.1..18.8ms in that bounded run. Client integration remains
+OPEN;the installed game still has no prediction. Complete the actual client
+feature under N33 rather than stopping at this prototype. Exact mechanism,
+scope,failed controls and remaining gates:native-prediction-checkpoints.txt.
+The reconstruction-only evidence below is the earlier correctness baseline.
+
 OBJECTIVE
 Start a genuine movement-prediction PR. The local simulation must execute a
 move before server confirmation,and recover correctly when authoritative
@@ -10,7 +19,7 @@ inputs differ. This targets command-start delay;Nick already reports that
 ongoing movement after an order looks good. That feedback does not identify
 which previous client mode he tested and is not prediction acceptance.
 
-FIRST IMPLEMENTATION SCOPE
+FIRST IMPLEMENTATION SCOPE (HISTORICAL BASELINE)
 An isolated headless original-Simulation.dll proof,with no renderer shortcuts:
 1. Create a native world from a fixed supported bootstrap and train a Crab.
 2. Advance speculative frames with a local move before authoritative confirmation.

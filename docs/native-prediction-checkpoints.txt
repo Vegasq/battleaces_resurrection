@@ -1,0 +1,118 @@
+BATTLE ACES - EXPERIMENTAL NATIVE PREDICTION CHECKPOINTS
+2026-11-09. N33 remains ACTIVE. No installed-game prediction or live rollout.
+
+RESULT
+An owned headless world now restores and replays a bounded speculative tail
+without reconstructing the match prefix. The private native experiment matches
+the unmodified threaded simulation at all601 observed frames, including two
+ordinary Crab builds and changed move targets. Six conflicting-move corrections
+at240/480-frame histories match38 continuation frames each. Restore plus eight
+replayed/observed ticks costs18.1..18.8ms in that run; restore alone is roughly
+0.5..0.7ms. These timings include Python observation/progress I/O, not solely
+engine stepping. No graphical client integration or human acceptance yet.
+
+NATIVE BOUNDARY
+The original exact Simulation.dll remains untouched on disk. A private derived
+copy changes import metadata only: the existing four heap IAT slots resolve to
+BAHeap.dll from the first native initializer. All original section bytes and
+IAT RVAs are preserved. A read-only appended section holds partitioned import
+descriptors and independently terminated name tables. The original SHA is
+checked before derivation; a manifest binds every change and both file hashes.
+The private child explicitly accepts only that derived hash. Normal worker
+source and supported installed-client identities are unchanged.
+
+BAHeap must initialize before loading the derived DLL. It reserves a bounded
+512MiB address-stable arena and implements the reviewed native CRT heap boundary
+(Alloc/Free/ReAlloc/Size). Native .data virtual extent and static TLS layout are
+checked against PE metadata. Captures include allocator metadata, arena page
+versions, all native writable image data and the API-owner's133-byte static TLS.
+Unknown heap operations, foreign allocator threads and sticky errors invalidate
+capture/restore. Startup and teardown must also have zero unknown operations.
+No pre-load allocation exception is accepted by the current implementation.
+
+BACKGROUND WORK
+Simply requesting zero native workers stalls at frame0. A retained bounded
+context capture identifies a pathfinding consumer waiting for another queued
+producer. The experiment changes the world-pool request3->0 and guards three
+additional sites: generic wait callf7f22, consumer wait9fbe0, producer wait9fd7d.
+The waits can execute original queued work on the same owner thread, while
+preserving reserved item indices, registers, flags, XMM state and MXCSR.
+Generated CALL gateways have registered unwind metadata.48 authored unwind
+checks pass. The independent601-frame parity run matches the original threaded
+control and creates no pool threads. Its exercised pump depth is only1 and
+producer-wait count is0: deeper dependency paths remain unqualified.
+
+PAGE VERSIONS
+MEM_WRITE_WATCH identifies changed pages. Shared immutable page batches keep
+the initial baseline once; later captures copy dirty/new pages. Restore copies
+the union of dirty pages and differing saved versions, then resets write-watch.
+Saved page storage is capped at384MiB and16 checkpoints. Physical committed
+pages remain allocated after logical rollback. Five real64KiB Windows memory
+test groups cover version changes, growth, drops, caps and fail-closed OS errors.
+The native proof's first capture takes~98ms during setup; its second capture
+takes1.35ms. Saved pages total~242MB. This is not an in-game memory benchmark.
+
+OTHER UNINTEGRATED POLICIES
+Numbered buffered INPUT frames already identify each submitted batch; the new
+InputCreditPlanner keeps confirmed/predicted/received cursors separate. Only a
+new contiguous authority frame grants another input credit. Identical repeated
+orders retain separate frame identities; normalization requires reconciliation.
+No new server message or live configuration change is needed for this planner.
+An isolated presentation policy defers terminal events until authority agrees
+and detects entity-ID reuse with a different type/army requiring actor reload.
+Neither policy is wired into the existing native launcher or rendering path.
+
+RETAINED EVIDENCE (PRIVATE, IGNORED)
+local/prediction-checkpoint-20261109/
+  serial01/ - original threaded control; failed zero-worker run
+  serial02/ - localized failed zero-worker diagnostic
+  serial03/ - cooperative601-frame parity and clean process/hook teardown
+  arena01/,arena02/,arena-startup01/ - failed post-load interception controls
+  arena-early-startup01/ - early allocation interception and teardown pass
+  arena-early01/ - first repeated native checkpoint/correction proof
+  arena-early-control01/ - unmodified601-frame parity plus six corrections
+  page-checkpoint02/,presentation-policy01/ - isolated policy/memory tests
+Failed reports and raw evidence are retained. Owned proof children exit0/reaped
+without forced cleanup in the successful runs. No game session or host changed.
+
+NEXT REQUIRED WORK
+Guard FLS/other external state and deeper dependency behavior. Establish actual Unity load/API-thread ownership before
+activation. Integrate capture/repair before the next original SimProcessMsg,
+separate confirmed from physical speculative cursors, and preserve output-slot
+and renderer/terminal ownership. Then qualify actual two-client local latency,
+input-to-visible movement, corrections, rematch and failure behavior. D8, full
+prediction, RUNTIME_VALIDATED and broad release gates remain OPEN.
+
+COMBAT CONTROL EXTENSION
+An independent unmodified1200-frame fixture builds six Crabs across both
+armies, issues original configured AttackMove, observes all six take damage,
+five DEAD6->removed transitions, and crowded moving units within the configured
+contact envelope. The early-interception/cooperative checkpoint world matches
+all1200 parsed states, entity-state vectors and allied charge observations.
+Six corrections at500/740 match38-frame continuations each, including deaths
+and removals. Attack COOLDOWN4 states are positively observed; charge vectors
+remain empty. This is not arbitrary-unit/combat or collision-solver coverage.
+Evidence:combat01/,arena-combat01/ under the private folder above.
+Restore+8 replayed/observed combat ticks takes32.5..83.2ms with per-tick snapshot,
+allied queries and progress I/O. That overhead and first-correction spike need
+separate measurement. A subsequent minimal-replay proof omits intermediate
+display queries/progress writes:restore+8 native steps takes1.93..4.97ms,or
+3.53..6.65ms including head observation. All1200 control frames still match;
+each of six corrected heads and30 continuation frames match, including entity
+states/deaths. This qualifies the native replay pattern without intermediate
+display queries,not an in-game frame-time guarantee. The first minimal run was
+interrupted by a retained monitor read/write race;the append-record monitor fix
+has three regression tests and the subsequent run exits0/reaped without force.
+Evidence:arena-combat-minimal01/ (failed monitor),arena-combat-minimal02/ (pass).
+Current source declares heap export aliases in C++ linker directives;the fresh
+arena-build07 helper repeats the same control/correction proof successfully in
+arena-combat-minimal03/. Earlier exact helper sources remain with their private
+build evidence. No normal package/launcher is changed by these experiments.
+
+INPUT ADMISSION CONSTRAINT
+Current buffered host validation checks selected entity ownership on receipt
+and again at commit. A predicted spawn may not exist in authority yet, and
+future entity IDs can differ after an unseen remote build. Do not blindly send
+orders targeting unconfirmed IDs or weaken host ownership checks. Integrate
+explicit confirmed-entity admission/deferred command handling and selection
+repair alongside the movement path; preserve every accepted user order once.

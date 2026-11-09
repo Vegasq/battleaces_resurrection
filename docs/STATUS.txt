@@ -4,6 +4,17 @@ Current work:REMAINING_DELIVERY_PLAN.txt. Evidence navigation:INDEX.txt.
 Exact prior3576-line ledger:history/2026-10-24/STATUS.txt.
 Historical records retain their original failures,claims and artifact scopes.
 
+N33 ACTIVE:efficient headless native checkpoint/correction proof now passes
+601 unmodified threaded-control frames plus six divergent-move corrections,
+38 compared continuation frames each. Restore+8 replayed/observed ticks costs
+18.1..18.8ms;native page restore~0.5..0.7ms. Early heap interception closes the
+observed pre-load allocation gap;zero-worker cooperative scheduling matches
+the bounded original control. No external/foreign heap operation across native
+startup/steps/teardown in the successful checkpoint runs. This does not qualify
+all hidden state,combat,deeper scheduling or actual Unity prediction. Continue
+through client integration and owned multiplayer tests;no live/usual-client
+change. Details:native-prediction-checkpoints.txt. Prior N32 baseline follows.
+
 N32:Scheduling PR#1 merged into main as0ad2afb. Draft PR#2 now has a real native
 movement-prediction/correction baseline:Crab moves3.776 units over8 speculative
 ticks before authority;conflicting moves reconstruct to the control's parsed
