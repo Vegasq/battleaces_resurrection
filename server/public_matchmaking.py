@@ -215,7 +215,8 @@ class PublicMatchmaking:
                 bots.append(BotSeat(slot, choice.profile, choice.name, choice.deck.units, choice))
             name = 'public_' + offer.id
             require(name not in self.server.rooms, 'public match already launched')
-            room = Room(self.server, name, bots=bots, mode=offer.mode, public_match=offer.id)
+            room = Room(self.server, name, bots=bots, mode=offer.mode, public_match=offer.id,
+                        feedback_peers={slot: entry.session.peer for slot, entry in humans.items()})
             self.server.rooms[name], offer.room = room, room
             for slot, entry in humans.items():
                 peer = entry.session.peer

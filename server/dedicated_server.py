@@ -34,6 +34,7 @@ from .community import Community
 from . import public_protocol as public_wire
 from .diagnostics import failure_fields,validation_reason
 from .profile_io import _await_owned
+from .latency_policy import feedback_sample, select_input_window
 TICK = 0.05
 
 
@@ -75,6 +76,7 @@ class Peer:
         self.closed = False
         self.outgoing = asyncio.Queue(32)
         self.connection = uuid.uuid4().hex[:12]
+        self.feedback_ms = None  # AUTH_OK -> validated HELLO, only with real TLS admission.
 
     def send(self, kind, payload=b""):
         p.require(not self.closed and not self.outgoing.full(), "client output stalled")
@@ -133,7 +135,8 @@ class BotSeat:
 
 
 class Room:
-    def __init__(self, server, name, *, community_lobby=None, bots=(), mode=1, public_match=None):
+    def __init__(self, server, name, *, community_lobby=None, bots=(), mode=1, public_match=None,
+                 feedback_peers=None):
         p.require(mode in server.templates, 'match mode assets unavailable')
         self.template, self.mode = server.templates[mode], mode
         self.slots = frozenset(range(self.template.player_count))
@@ -152,7 +155,17 @@ class Room:
         self.queue_tickets = {}
         self.full_loadout_seats = set()
         self.bots = MappingProxyType({bot.slot: bot for bot in bots})
-        self.input_window = server.input_window  # Frozen for every participant in this room.
+        managed = community_lobby is not None or public_match is not None
+        p.require(feedback_peers is None or (managed and isinstance(feedback_peers, dict) and
+                  feedback_peers.keys() == self.slots - self.bots.keys()), 'complete managed feedback roster required')
+        samples = {slot: feedback_sample(getattr(peer, 'feedback_ms', None))
+                   for slot, peer in (feedback_peers or {}).items()}
+        self.input_window_feedback = MappingProxyType(samples)
+        configured_window = server.input_window
+        adaptive = managed and server.adaptive_input_window
+        # Managed rosters are complete before the first WELCOME/assignment.
+        # Direct legacy rooms retain the first window already sent to a joining peer.
+        self.input_window = select_input_window(configured_window, samples.values()) if adaptive else configured_window
         self.peers = {}
         self.joining, self.saving_decks = set(), set()
         self.decks = {bot.slot: self.template.validate_deck(bot.deck) for bot in bots}
@@ -173,6 +186,8 @@ class Room:
         self.entity_history = {}
         self.result = None
         self.result_frame = None
+        self.event('input_window_selected', configured_input_window=configured_window,
+                   input_window=self.input_window, adaptive=adaptive, managed=managed, feedback_ms=dict(samples))
         self.task = asyncio.create_task(self.tick_loop())
 
     def event(self, event, **fields):
@@ -604,7 +619,10 @@ class DedicatedServer:
                  input_timeout=10, audit_state=True, max_rooms=4, lobby_timeout=300,
                  loading_timeout=120, completed_timeout=60, tls_context=None, admission=None,
                  input_window=p.DEFAULT_INPUT_WINDOW, templates=None, bot_catalog=None,
-                 minimum_client_revision=1, client_update_message=None):
+                 minimum_client_revision=1, client_update_message=None, adaptive_input_window=True):
+        if type(adaptive_input_window) is not bool:
+            raise ValueError('adaptive_input_window must be true or false')
+        self.adaptive_input_window = adaptive_input_window
         from .client_compatibility import validate_policy, DEFAULT_UPDATE_MESSAGE
         self.minimum_client_revision, self.client_update_message = validate_policy(
             minimum_client_revision, DEFAULT_UPDATE_MESSAGE if client_update_message is None else client_update_message)
@@ -663,7 +681,9 @@ class DedicatedServer:
                 return
             name = 'custom_' + lobby.id
             p.require(name not in self.rooms, 'custom match room already exists')
-            room = Room(self, name, community_lobby=lobby.id)
+            room = Room(self, name, community_lobby=lobby.id,
+                        feedback_peers={slot: self.community.sessions[profile].peer
+                                        for slot, profile in enumerate(lobby.members)})
             self.rooms[name] = room
             lobby.room = room
             for slot, profile in enumerate(lobby.members):
@@ -717,7 +737,10 @@ class DedicatedServer:
             p.require(not self.closing and len(self.peers) < min(community_wire.MAX_PLAYERS, self.max_rooms * 4 + 8), "connection limit")
             self.peers.add(peer)
             authenticated_id = await self.admission.authenticate(reader, writer) if self.admission else None
+            hello_started = (time.perf_counter() if authenticated_id is not None and
+                             writer.get_extra_info('ssl_object') is not None else None)
             kind, payload = await asyncio.wait_for(p.receive(reader), 5)
+            hello_received = time.perf_counter() if hello_started is not None else None
             p.require(kind in (p.HELLO, community_wire.HELLO), "dedicated protocol3 or community hello required")
             is_community = kind == community_wire.HELLO
             if is_community:
@@ -737,6 +760,8 @@ class DedicatedServer:
                 raise AdmissionError("identity_mismatch")
             p.require(all(other is peer or other.closed or other.profile_id != profile_id for other in self.peers),
                       "profile already connected")
+            if hello_started is not None:
+                peer.feedback_ms = feedback_sample((hello_received - hello_started) * 1000)
             peer.profile_id = profile_id  # Reserve identity across asynchronous profile I/O.
             if is_community:
                 await self.community.register(peer, profile_id, name)
