@@ -1,11 +1,12 @@
 BATTLE ACES - CURRENT DELIVERY ROADMAP
 Updated:2026-11-08. ACTIVE. Single current work queue;final release is not accepted.
 
-Current priority per Nick:local solo AI by default,configurable server AI.
-rc1.11 routing/configuration is implemented;private native/installer checks pass.
-N24 has the exact ready installer. Host solo-offer metadata is live. This supersedes N23;no repeat
-online AI acceptance request. Other-human online lag/D8 remains open.
-Details:solo-ai-host-20261109.txt.
+Nick's requested0.4.0 client/server release is PUBLISHED;matching host deployed
+at134.209.176.39 and game TCP47623 reopened publicly,durable across restart.
+Dashboard47624 remains owner-IP-only. Solo AI defaults to local after human
+matchmaking;2vAI still searches for a human teammate. N24 private installer is
+superseded by the published release;N23 stays superseded,no repeat requested.
+Other-human online lag/D8 remains open. Details:release-040-20261109.txt.
 
 Read this file for what to do next. STATUS.txt summarizes the latest evidence;
 RELEASE_ACCEPTANCE.txt defines closure;INDEX.txt locates guides and detailed records.
@@ -22,9 +23,11 @@ These grouped rows summarize the detailed matrices;they are not a percentage or
 an exact count of every remaining test. DEV.txt remains the owner of user answers.
 
 COMPLETED
+[x] Requested0.4.0 paired installers published/download-verified;matching live
+    host upgraded with profiles/certs retained;public game firewall reopened.
 [x] Solo AI defaults to local after a confirmed one-human public offer;server
     hosting remains configurable. Native local1/local5/server5 and exact embedded
-    update pass;human/co-op matchmaking retained. Private rc1.11 installer ready.
+    update pass;human/co-op matchmaking retained. Included in published0.4.0.
 [x] LAN play and patch download/installation accepted by Nick (N2/N5,D1).
 [x] Startup usability and console shutdown accepted (N1/N3,D6).
 [x] Crash169 handoff repaired and qualified (169/170).

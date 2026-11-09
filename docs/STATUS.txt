@@ -4,13 +4,23 @@ Current work:REMAINING_DELIVERY_PLAN.txt. Evidence navigation:INDEX.txt.
 Exact prior3576-line ledger:history/2026-10-24/STATUS.txt.
 Historical records retain their original failures,claims and artifact scopes.
 
+0.4.0 client/server installers are PUBLISHED from clean573c750;GitHub digests
+and all four downloaded assets match. Both embedded packages verify;96 focused
+tests pass and source audit has zero failures. Exact embedded client update
+preserves161 profile files/settings. Complete0.4.0 host is live at134.209.176.39:
+15 original profiles/private certificates retained,Wine package/native startup
+and live command/solo-offer checks pass. Game TCP47623 is public;its boot-time
+owner restriction is removed. Dashboard47624 retains loopback/70.113.101.244
+only. Autostart enabled,IP unchanged. N25 COMPLETE;release-040-20261109.txt.
+N24 private installer is superseded by this release. D8/final gates stay open.
+
 Nick now requests local solo AI by default,with server hosting retained as a
 config option. rc1.11 implements safe pre-READY retirement of one-human AI offers
 in public1v1/2v2/2vAI,retaining human co-op matchmaking. Other-human games remain
 server-owned. Configuration/install preservation and routing regressions pass.
 Native local1vAI/local2vAI prefixes pass with zero authoritative workers;explicit
 server2vAI passes with one real worker. Exact embedded installer update preserves
-161 profile files/settings. Private installer02 is ready;N24 has its exact path.
+161 profile files/settings. This candidate is superseded by published0.4.0.
 Host metadata support is live,
 package-verified in Wine;14 existing profiles/configuration unchanged. A live
 RC/TLS peer received the marker and CANCEL/RETIRED with no READY/assignment.

@@ -1,7 +1,12 @@
 BATTLE ACES - RELEASE ACCEPTANCE
-Reviewed:2026-11-05. FINAL RELEASE:NOT ACCEPTED.
+Reviewed:2026-11-08. FINAL RELEASE:NOT ACCEPTED.
 Work queue:REMAINING_DELIVERY_PLAN.txt. Latest results:STATUS.txt.
 Exact prior checklist/history:history/2026-10-24/RELEASE_ACCEPTANCE.txt.
+
+Nick's requested0.4.0 publication/public-game reopening is COMPLETE. Paired
+installers are hash-verified on GitHub;matching live host/data-preserving upgrade
+and durable game firewall reopening pass. Dashboard stays owner-IP-only.
+This named delivery does not close the broad gates below;release-040-20261109.txt.
 
 Acceptance is scoped to actual artifacts and observations. A user request may
 be complete without closing its entire parent gate. Historical failures remain

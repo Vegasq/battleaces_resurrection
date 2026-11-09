@@ -1,0 +1,73 @@
+BATTLE ACES RESURRECTION 0.4.0 - PUBLISHED AND PUBLIC HOST REOPENED
+2026-11-08 Chicago /2026-11-09 UTC. Nick's requested version/publication and
+public-game reopening are complete. Broad final-release gates remain open.
+https://github.com/Vegasq/battleaces_resurrection/releases/tag/v0.4.0
+
+SOURCE AND CONTENT
+Tag v0.4.0 binds clean package source573c7505906faac0686e5108ef7d3665724539e1.
+Both products identify0.4.0,client revision1,game build37822,game protocol3,
+community protocol2 and asset format1. No original game files are included.
+The exact already-qualified helper is pinned to ancestor51c0d03;its receipt
+binds native source/compiler/SDK. Helper SHA256:
+ee7932bf27889d7b55b4a5159d03a16600e92d0c5f6d2ca41ca91c12285427f2.
+
+Changes since public rc1.9:local solo AI by default after human matchmaking;
+configurable server hosting;human co-op retained in2vAI;online presentation
+pacing;validated empty-selection commands no longer disconnect;version-update
+guidance. Fullscreen/desktop shortcuts and saved identity remain supported.
+Public1v1/2v2/2vAI still search for humans for up to30s;only a confirmed one-human
+offer retires into local native play. Other-human games stay server-hosted.
+
+PUBLISHED ASSETS
+BattleAces-Client-Installer-0.4.0.exe:13512192bytes;SHA256
+cb29976f33fee9c7b212d0224319ece7398306bb6dcd7990d6a598dc4ea294be.
+BattleAces-Server-Installer-0.4.0.exe:13701120bytes;SHA256
+519b33e6cc309b1df8540215429175e19b91aecd55b8fcd2867686aee55991f5.
+release-manifest.json and SHA256SUMS.txt accompany both installers.
+Embedded client ZIP:b09841598ab02580738cb8a03cf8d9647474d4a0954c700c6c54ad0c68f0bc04.
+Embedded server ZIP:f62a9c67b90bfb7aca2354cad502ae4e93d44951efda42bfe53ed4c27edba27c.
+GitHub reports matching sizes/digests;all four actual public downloads match
+local hashes. Release is published,non-draft,non-prerelease and marked latest.
+
+VERIFICATION
+local/release040/ holds exact packages,receipts,extracted payload reports,
+published asset metadata/download verification and deployment/firewall reports.
+Both standalone installers verify their embedded package inventories.
+The exact embedded0.4.0 client install-game action preserves161 profile files,
+saved settings/identity preferences,original backup and GameAssembly recipe;
+root/cached helper and manifest match. User-owned game files were not replaced.
+96 focused package/installer/config/compatibility tests pass;6 audit tests pass.
+Publication audit covers1313source paths/objects with zero failures. Earlier
+baseline audit failures remain retained;reviewed media is now hash/size pinned
+and only three exact Linux deployment source paths were admitted.
+Reuse exact helper02 native local1/local5/server5 healthy-prefix evidence in
+solo-ai-host-20261109.txt. No redundant graphical lifecycle/clean-machine run.
+
+LIVE DEPLOYMENT
+134.209.176.39 now runs the complete clean0.4.0 package under its existing
+Wine prefix/systemd supervisor. All116immutable members verify on Linux and
+the actual bundled Wine Python;startup/native preflight and TCP listener pass.
+15 original profile hashes,3private config/certificate files,assets and host
+settings retained. Only client_update_message changes to0.4.0;min revision1,
+input_window6,max_rooms4 remain. Backup/rollback:
+/srv/ba-runtime/release040-20261109/backup and deploy_server.py rollback.
+Actual RC/TLS two-peer32-frame native match passes empty-command bursts at8/12;
+the solo-offer CANCEL/RETIRED check also passes with no READY/assignment.
+Post-opening authenticated community WELCOME passes. The initial readiness
+probe's pending-directory TLS-close error is retained;owned transport cleanup
+was corrected without claiming a normal game shutdown.
+
+PUBLIC GAME FIREWALL
+Opened only after the GitHub release and downloads were verified. INPUT remains
+ACCEPT;the exact47623 game jump/chain is removed. The game-only systemd drop-in
+is backed up/removed and ba-game-allowlist.service disabled without stopping it.
+Thus a later host start/reboot does not restore the old owner-only game policy.
+No DigitalOcean cloud firewall is attached;public IPv4 and Droplet unchanged.
+TCP47624 retains its exact loopback/70.113.101.244/DROP dashboard chain,files and
+base-service dependency. SSH unchanged. Server active/autostart enabled.
+Exact rule/unit/script backup:/srv/ba-runtime/release040-20261109/firewall-backup.
+
+LIMITS
+This completes N25's publication/reopening request. Multiplayer latency remains
+under evaluation;prior failed timing/visual checks are retained. D5,D8,clean
+Windows and broad final acceptance are not closed;RUNTIME_VALIDATED stays false.
