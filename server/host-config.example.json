@@ -12,7 +12,7 @@
   "max_rooms": 4,
   "input_window": 6,
   "minimum_client_revision": 1,
-  "client_update_message": "Client update required (0.3.0-rc1.10). Download the latest installer from GitHub Releases.",
+  "client_update_message": "Client update required (0.4.0). Download the latest installer from GitHub Releases.",
   "diagnostic_audit": false,
   "log_max_bytes": 8388608,
   "log_backups": 4,

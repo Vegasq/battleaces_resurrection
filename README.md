@@ -2,9 +2,9 @@
 
 A community server and reversible Windows client patch for **Battle Aces build 37822**. Play against local AI, host private matches, or join a community server using your own game installation.
 
-**Current download:** [Battle Aces 0.3.0-rc1.9 client and server installers](https://github.com/Vegasq/battleaces_resurrection/releases/tag/v0.3.0-rc1.9) · Windows x64 · Engineering prerelease
+**Download 0.4.0:** [Client installer](https://github.com/Vegasq/battleaces_resurrection/releases/download/v0.4.0/BattleAces-Client-Installer-0.4.0.exe) · [Server installer](https://github.com/Vegasq/battleaces_resurrection/releases/download/v0.4.0/BattleAces-Server-Installer-0.4.0.exe) · [Release notes](https://github.com/Vegasq/battleaces_resurrection/releases/tag/v0.4.0) · Windows x64
 
-**Live server status (November 8, 2026):** Online play on 134.209.176.39 is temporarily limited to the project owner while we fix movement lag. You can still play smooth local AI from **Try Deck**. For a new install, clear the prefilled server IP. For an existing install, close the game and set `"server_host": ""` in `.battleaces-resurrection/client-config.json`; restore your saved IP later to return to the same online identity. Public queues and Custom rooms on this server will reopen after the fix is verified.
+**Community server:** Public queues and Custom rooms on **134.209.176.39:47623** are open again for 0.4.0 players. The dashboard remains restricted to the project owner's IP. Solo AI runs locally by default; movement and latency in games with other humans remain under evaluation.
 
 <a href="https://discord.gg/s8YM4d2Sf"><img src="docs/media/discord-server.webp" alt="Community Discord icon" width="28" height="28"></a> **Community:** [Join the Discord server](https://discord.gg/s8YM4d2Sf) to chat with other players and find matches.
 
@@ -29,8 +29,8 @@ This patch supports the **Windows x64 Battle Aces build 37822** files. Before in
 
 ## Install the client
 
-1. Close Battle Aces. Download **BattleAces-Client-Installer-0.3.0-rc1.9.exe** from the release above.
-2. Open the installer and select your working Battle Aces folder—the one containing `Battle Aces.exe`. Enter your player name. The server IP defaults to **134.209.176.39** on new installs; replace it for another host or clear it to play offline against AI. Existing saved addresses load when you select their game folder.
+1. Close Battle Aces. Download **BattleAces-Client-Installer-0.4.0.exe** from the release above.
+2. Open the installer and select your working Battle Aces folder—the one containing `Battle Aces.exe`. Enter your player name. The server IP defaults to **134.209.176.39** on new installs; keep it for the community server or replace it for another host. Existing saved addresses load when you select their game folder. Solo AI runs locally without clearing the server IP; a blank IP also supports offline play.
 3. Click **Install / Update** and wait for the installed message. Verifying the game files can take several minutes.
 4. Use the **Battle Aces Resurrection** desktop shortcut, or open **Start Battle Aces.cmd** in the game folder. You do not need to keep the downloaded installer or install Python.
 
@@ -39,13 +39,15 @@ The client starts fullscreen. To start in a window, close the game and set `"ful
 ![Client installer with example fields](docs/screenshots/client-installer.png)
 *The native client installer. The screenshot uses example settings.*
 
-From the game menu, **Try Deck** starts a local AI game. Public 1v1, 2v2 and 2vAI queues use available players and fill open seats with AI after 30 seconds. **Custom** rooms are for human players. To open a saved replay, close the game and use **Watch Replay.cmd** in the game folder.
+From the game menu, **Try Deck** starts a local AI game immediately. Public **1v1, 2v2 and 2vAI** search for human players for up to **30 seconds**, then fill open seats with AI. In **2vAI**, this gives another human time to join as your co-op teammate. If you are the only human, the game runs on your PC by default. A match containing other humans stays on the server. **Custom** rooms are for human players. To open a saved replay, close the game and use **Watch Replay.cmd** in the game folder.
 
-**Next client (rc1.11):** Solo AI runs locally by default, even with a server saved. Public **1v1/2v2/2vAI** still search for humans, including a co-op teammate in 2vAI, then switch locally if the matching server offers a match with you as the only human. Matches containing other humans stay online. To choose server-hosted solo AI, close the game and set `"solo_ai_host": "server"` in `.battleaces-resurrection/client-config.json`; `"local"` restores the default. Local games do not appear in server match history. Public queue handoff requires the matching rc1.11 host.
+To choose server-hosted solo AI, close the game and set `"solo_ai_host": "server"` in `.battleaces-resurrection/client-config.json`; `"local"` restores the default. Updates keep this choice. Local games do not appear in server match history. Use the matching 0.4.0 host for the public queue handoff.
+
+If an update warning appears in the game, close it and run the latest client installer's **Install / Update** on the same game folder. The update keeps your saved choices and identity.
 
 ## Host a server
 
-1. Download **BattleAces-Server-Installer-0.3.0-rc1.9.exe** from the **same release**. Close the game and any server you are replacing.
+1. Download **BattleAces-Server-Installer-0.4.0.exe** from the **same release**. Close the game and any server you are replacing.
 2. Select your supported build 37822 game folder and a **new, empty server folder**. The installer makes a private working copy while importing local game data, so allow space for roughly one full game copy during setup. It does not change the source game.
 3. Use the **Battle Aces Server** desktop shortcut, or open **Start Server.exe** in the new server folder. On first start it creates its local configuration and private certificate, then listens for players on **TCP 47623**. Stop it with **Ctrl+C** in its console.
 4. Give players the server's LAN or public IP address. For Internet play, allow and forward **TCP 47623** to the host. Players enter that IP in the client installer.
@@ -54,7 +56,7 @@ Start the host before updating clients. The server installer requires an empty d
 
 ### Server dashboard
 
-While the host runs, open **http://127.0.0.1:47624** on the server PC to see online players, active games and match history. It is local to the host by default. The dashboard has no login, so expose port 47624 only if you intend to make those names and match summaries public. Gameplay uses the separate TCP 47623 port.
+While the host runs, open **http://127.0.0.1:47624** on the server PC to see online players, active games and match history. It is local to the host by default and has no login; keep remote access limited to trusted IPs. The community server's dashboard remains restricted to the project owner's IP. Gameplay uses the separate public TCP 47623 port.
 
 ![Server dashboard with synthetic player and match data](docs/screenshots/server-dashboard.png)
 *Example dashboard using demo data; no real player records are shown.*
@@ -67,7 +69,7 @@ For a server, keep `config/` (including `config/private/`), `data/` and imported
 
 ## Project status and guides
 
-This is an **engineering prerelease**. D5 privacy acceptance and the final release gates remain open; `RUNTIME_VALIDATED` is false. The [release record](docs/installer-fullscreen-rc19.txt) lists the exact hashes and checks. The [roadmap](docs/REMAINING_DELIVERY_PLAN.txt) tracks remaining work.
+Version **0.4.0** adds local solo AI by default, online frame pacing improvements and a fix for disconnects caused by empty selection commands. Online movement and latency evaluation, D5 privacy acceptance and final release gates remain open; `RUNTIME_VALIDATED` is false. See the [0.4.0 release notes](https://github.com/Vegasq/battleaces_resurrection/releases/tag/v0.4.0) and [roadmap](docs/REMAINING_DELIVERY_PLAN.txt) for scope and remaining work.
 
 | Guide | Use it for |
 | --- | --- |

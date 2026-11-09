@@ -1,9 +1,14 @@
-BATTLE ACES RESURRECTION - NATIVE WINDOWS CLIENT INSTALLER
+BATTLE ACES RESURRECTION 0.4.0 - NATIVE WINDOWS CLIENT INSTALLER
+
+Release and both Windows installers:
+https://github.com/Vegasq/battleaces_resurrection/releases/tag/v0.4.0
+Client download: BattleAces-Client-Installer-0.4.0.exe
+https://github.com/Vegasq/battleaces_resurrection/releases/download/v0.4.0/BattleAces-Client-Installer-0.4.0.exe
 
 Use the client and server installers from the same release. Update the host
 before updating clients. The pair supports selected portraits in Invite Friend.
 
-From rc1.10,an outdated client shows a persistent top-center update warning.
+An outdated client shows a persistent top-center update warning.
 Download the latest client installer from GitHub Releases,close the game,and
 use Install / Update on the same game folder. Saves and online identity are
 retained. Offline AI remains available while an update is required. A "Server
@@ -14,9 +19,11 @@ contains the complete patch runtime;no ZIP extraction,Python install or PowerShe
 change is required. Alternatively,extract the full client ZIP and double-click
 Install Battle Aces.exe. Setup Client.cmd opens that same native window.
 
-1. Browse to the working folder containing Battle Aces.exe (supported build37822).
+1. Close Battle Aces,then browse to the working folder containing Battle Aces.exe
+   (supported build37822). Keep a separate untouched copy for recovery.
 2. The server IP starts at 134.209.176.39 for a new install. Replace it for
-   another host,or clear it for offline play. Existing saved server IPs load
+   another host,or keep it for the public community server. Solo AI runs locally
+   without clearing the IP;blank also supports offline play. Saved server IPs load
    when their game folder is selected. Choose your Player name;
    a fresh install suggests your cleaned Windows account name. Existing saved
    names are loaded automatically. Click Install / Update.
@@ -27,17 +34,25 @@ The client starts fullscreen by default. To start it in a 960x540 window,
 close the game and set "fullscreen": false in
 .battleaces-resurrection/client-config.json. Set it back to true for fullscreen.
 
-SOLO AI HOSTING (rc1.11 and later)
+SOLO AI HOSTING AND PUBLIC MATCHMAKING
 Solo AI games run on your PC by default,even with a server IP saved. Public
-1v1/2v2/2vAI still search for humans,including a co-op teammate in2vAI;
-if the server offers a match containing only you and AI,the client retires that
-offer before starting a local game. Games with other human players stay online.
-Try Deck remains local. Local games do not enter the server's match history.
+1v1/2v2/2vAI search for human players for up to 30 seconds,then fill open seats
+with AI. In 2vAI,this gives another human time to join as your co-op teammate.
+If you are the only human,the client leaves the server offer before starting
+the local game. Games with other human players stay online. Custom is human-only.
+Try Deck starts immediately and remains local. Local games do not enter the
+server's match history.
 To opt into server-hosted solo AI,close the game and set "solo_ai_host": "server"
 in .battleaces-resurrection/client-config.json. Use "local" to restore the
 default. Missing settings also default to local;updates preserve your choice.
-The host needs rc1.11's solo-offer support for the public queue handoff.
-Older hosts retain their original queue behavior. No IP/identity reset is needed.
+Use the matching 0.4.0 host for the public queue handoff. Older hosts retain
+their original queue behavior. No IP/identity reset is needed.
+
+The public game port on 134.209.176.39:47623 is open again for 0.4.0 players.
+The dashboard remains restricted to the project owner's IP. Online frame pacing
+and empty-selection disconnect handling have improved;movement and latency in
+games with other humans remain under evaluation. This release does not close
+the remaining acceptance gates in docs/REMAINING_DELIVERY_PLAN.txt.
 
 WATCH A SAVED REPLAY (included since rc1.7)
 After installing the current client,close any running game
@@ -83,7 +98,7 @@ Identity directories,identity files and setup lock files must be ordinary local
 storage. Linked/junction identity directories and linked identity/lock files are
 refused to prevent one installation from reading another's player identity.
 Use an independent copy of your own backed-up identity files,not filesystem links.
-TLS encryption without certificate verification remains the explicit RC policy.
+TLS encryption without certificate verification is the standard open-access policy.
 Install verifies local game content and may take several minutes on a slow drive.
 Close the game before installing/updating. No original game assets are distributed.
 

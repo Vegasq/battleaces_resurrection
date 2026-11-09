@@ -1,11 +1,33 @@
-BATTLE ACES RESURRECTION - RC1 WINDOWS HOST
+BATTLE ACES RESURRECTION 0.4.0 - WINDOWS HOST
 
-SERVER DASHBOARD (included since rc1.7)
+Release and both Windows installers:
+https://github.com/Vegasq/battleaces_resurrection/releases/tag/v0.4.0
+Server download: BattleAces-Server-Installer-0.4.0.exe
+https://github.com/Vegasq/battleaces_resurrection/releases/download/v0.4.0/BattleAces-Server-Installer-0.4.0.exe
+
+Use the client and server installers from this same release. Update the host
+before updating clients. Keep existing host data/backups private;the installer
+requires a new,empty destination and does not overwrite an installed host.
+
+The community game server at 134.209.176.39:47623 is open again for 0.4.0 players.
+Its dashboard remains restricted to the project owner's IP. Online movement and
+latency remain under evaluation;remaining release acceptance gates stay open.
+
+PUBLIC MATCHMAKING AND SOLO AI
+Public 1v1/2v2/2vAI search for humans for up to 30 seconds before filling open
+seats with AI. In 2vAI,a second human can join as a co-op teammate. The 0.4.0
+client runs a game locally if it is the only human,unless its saved
+solo_ai_host setting is "server". Matches containing other humans remain
+server-hosted. Try Deck stays immediate/local. Local games do not create a
+server match-history entry. Keep the matching host/client pair for this handoff.
+
+SERVER DASHBOARD
 While hosting,open http://127.0.0.1:47624 on the server PC for online players,
 active games and saved match history. Local access is the default. Public/LAN
 access,port settings and history retention:DASHBOARD.txt
 (source:docs/server-dashboard175.txt).
-The current published557 server installer includes this feature.
+The 0.4.0 server installer includes this feature. Gameplay uses the separate
+TCP 47623 port;opening gameplay does not require public dashboard access.
 
 MOVING AN INSTALLED HOST TO LINUX
 Copy the complete stopped host,including config/private and data as well as
@@ -17,9 +39,6 @@ New source178first-run configs use relative paths for same-drive deployments;
 existing installer/config files are unchanged and need explicit relocation.
 
 NATIVE SERVER INSTALLER
-Use the client and server installers from the same release. Update the host
-before updating clients. Keep existing host data/backups private;
-this installer requires a fresh destination and does not overwrite an old host.
 Run the standalone server installer downloaded from this release. Choose your
 supported build37822 game folder and an EMPTY server destination. Setup works on a private independent
 copy,so the source game,its binaries and saves stay unchanged. It imports required
@@ -45,7 +64,8 @@ State snapshots do not include TLS keys. If an existing config points to a missi
 key,the host refuses startup;it does not regenerate the key or reset the config.
 Restore the matching certificate/key backup and check the configured paths.
 
-RC1 encrypts transport but clients do not verify the server certificate. Anyone
+The standard open-access host encrypts transport but clients do not verify the
+server certificate. Anyone
 who can reach this host can join. Configure normal Windows firewall/router access
 for the intended network;the program makes no automatic firewall/trust-store/NAT
 changes. Host config schema2 uses access_mode:rc-open,certificate/key paths and
@@ -117,12 +137,11 @@ the host is unnecessary. Never upload imported assets as project releases.
 
 Copy config/host.example.json to config/host.json. Paths in this file are relative
 to the config directory, regardless of the terminal's current directory.
-From rc1.10,minimum_client_revision defaults to1 and requires the updated client.
-Publish both installers before upgrading the host. For a gradual rollout,set
-minimum_client_revision to0 while upgrading clients,then restore1 to enforce
-the new revision. client_update_message controls the persistent top-center
-warning in updated clients. See docs/client-version-policy.txt in the source
-repository for bounds and the first-update limitation of older clients.
+minimum_client_revision selects the oldest client revision accepted by the host.
+Use the matching release's default and publish both installers before upgrading
+the host. client_update_message controls the persistent top-center warning in
+updated clients. See docs/client-version-policy.txt in the source repository
+for bounds and the first-update limitation of older clients.
 Set listen_host (numeric IPv4 bind address), listen_port, asset/data directories,
 certificate_file, private_key_file and credential_directory. Default port:47623.
 The server certificate must be valid for the DNS name/IP used by your players.
