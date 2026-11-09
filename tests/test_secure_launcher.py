@@ -117,6 +117,29 @@ class SecureLauncherTests(unittest.TestCase):
         for version in (True, 0, 3):
             with self.assertRaises(launch.LaunchError): launch.verify_game(root, bridge_version=version)
 
+    def test_original_command_scheduling_marker_is_only_required_when_requested(self):
+        root,path,manifest = self.install()
+        manifest['community'] = dict(native_scope='custom-match-prototype')
+        helper = root/'BattleAcesOffline.dll'
+        helper.write_bytes(helper.read_bytes()+b' BA_RESURRECTION_TLS_BRIDGE_V2 BA_RESURRECTION_UNIFIED_CLIENT_V1 BA_RESURRECTION_COMMUNITY_MATCH_V1 BA_RESURRECTION_SOLO_AI_HOST_V1')
+        manifest['helper_sha256'] = hashlib.sha256(helper.read_bytes()).hexdigest()
+        path.write_text(json.dumps(manifest))
+        flags = dict(community=True,bridge_version=2,unified=True)
+        launch.verify_game(root,**flags)
+        with self.assertRaisesRegex(launch.LaunchError,'matching experimental client helper'):
+            launch.verify_game(root,**flags,original_command_scheduling_experimental=True)
+        helper.write_bytes(helper.read_bytes()+b' BA_RESURRECTION_ORIGINAL_COMMAND_SCHEDULING_V1')
+        manifest['helper_sha256'] = hashlib.sha256(helper.read_bytes()).hexdigest()
+        path.write_text(json.dumps(manifest))
+        launch.verify_game(root,**flags,original_command_scheduling_experimental=True)
+        with self.assertRaises(launch.LaunchError):
+            launch.verify_game(root,original_command_scheduling_experimental=True)
+
+    def test_original_command_scheduling_arguments_require_unified_context(self):
+        config = self.load()
+        with self.assertRaisesRegex(launch.LaunchError,'unified client'):
+            launch.game_arguments(config,None,1234,argparse.Namespace(run_name='test',original_command_scheduling_experimental=True))
+
     def test_dynamic_arguments_have_no_startup_identity_or_private_settings(self):
         config = self.load()
         argv = launch.game_arguments(config, None, 1234,

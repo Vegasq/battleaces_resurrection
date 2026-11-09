@@ -9,6 +9,7 @@ from server.host_audit import HostAudit
 from server import host
 from server.worker_client import SimulationWorker, WorkerError
 from tests.test_credentials import private_test_folder, remove_test_folder
+from tests.synthetic import template as synthetic_template
 
 ROOT = Path(__file__).resolve().parents[1]
 
@@ -32,6 +33,21 @@ class HostConfigurationTests(unittest.TestCase):
         self.assertFalse(config.allow_insecure_loopback)
         self.settings['certificate_file'] = None
         with self.assertRaises(ConfigurationError): self.load()
+
+    def test_experimental_command_scheduling_is_optional_and_defaults_off_in_both_schemas(self):
+        for schema in (1, 2):
+            self.settings['schema'] = schema
+            if schema == 2: self.settings['access_mode'] = 'invite'
+            for selected in (None, False, True):
+                self.settings.pop('experimental_command_scheduling', None)
+                if selected is not None: self.settings['experimental_command_scheduling'] = selected
+                with self.subTest(schema=schema, selected=selected):
+                    self.assertIs(self.load().experimental_command_scheduling, selected is True)
+
+    def test_experimental_command_scheduling_rejects_nonboolean_json_values(self):
+        for selected in (None, 0, 1, 2, '', 'false', 'true', [], {}):
+            self.settings['experimental_command_scheduling'] = selected
+            with self.subTest(selected=selected), self.assertRaises(ConfigurationError): self.load()
 
     def test_dashboard_defaults_disable_and_public_address(self):
         self.settings.pop('dashboard_host', None)
@@ -117,6 +133,45 @@ class HostConfigurationTests(unittest.TestCase):
 
 
 class HostWorkerTests(unittest.IsolatedAsyncioTestCase):
+    async def test_actual_host_run_passes_only_explicit_experiment_opt_in_to_real_coordinator(self):
+        root = private_test_folder('host-experiment-wiring-')
+        try:
+            config_path = root / 'config/host.json'; config_path.parent.mkdir()
+            base = json.loads((ROOT / 'server/host-config.example.json').read_text())
+            base['dashboard_port'] = 0
+            original_server = host.DedicatedServer
+            for selected in (None, False, True):
+                settings = dict(base)
+                if selected is not None: settings['experimental_command_scheduling'] = selected
+                config_path.write_text(json.dumps(settings))
+                config = load_config(config_path)
+                servers = []
+                def construct(*args, **kwargs):
+                    server = original_server(*args, **kwargs)
+                    server.start = mock.AsyncMock(return_value=('127.0.0.1', 12345))
+                    server.listener = mock.Mock()
+                    server.listener.serve_forever = mock.AsyncMock()
+                    server.listener.wait_closed = mock.AsyncMock()
+                    servers.append(server)
+                    return server
+                audit = mock.Mock(); audit.aclose = mock.AsyncMock()
+                manifest = dict(game_build=37822, asset_format=1, files={})
+                with self.subTest(selected=selected), \
+                     mock.patch.object(host, 'prepare', return_value=(synthetic_template(), None, None, manifest)), \
+                     mock.patch.object(host, 'check_native', mock.AsyncMock(return_value={})), \
+                     mock.patch.object(host, 'HostAudit', return_value=audit), \
+                     mock.patch.object(host, 'DedicatedServer', side_effect=construct) as factory, \
+                     mock.patch('builtins.print'):
+                    await host.run(config)
+                self.assertEqual(len(servers), 1)
+                self.assertIs(factory.call_args.kwargs['experimental_command_scheduling'], selected is True)
+                self.assertIs(servers[0].experimental_command_scheduling, selected is True)
+                server = servers[0]
+                self.assertTrue(server.closing)
+                server.start.assert_awaited_once()
+                audit.aclose.assert_awaited_once()
+        finally: remove_test_folder(root)
+
     async def test_worker_uses_writable_cwd_without_importing_foreign_code(self):
         path = private_test_folder('worker-cwd-')
         try:

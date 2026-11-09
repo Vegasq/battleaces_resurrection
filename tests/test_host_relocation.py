@@ -160,6 +160,7 @@ class RelocationTests(unittest.TestCase):
              mock.patch.object(rc_host.private, '_write_file', side_effect=lambda p,b:p.write_bytes(b)):
             config=rc_host.initialize(self.path, self.host/'assets/build-37822')
         self.assertEqual(config.assets_directory, self.host/'assets/build-37822')
+        self.assertIs(config.experimental_command_scheduling, False)
         value=json.loads(self.path.read_bytes())
         for name in migration.PATH_FIELDS:
             if value[name] is not None:

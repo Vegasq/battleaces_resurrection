@@ -113,6 +113,7 @@ async def _run_owned(config, *, check_only=False, on_progress=None, on_ready=Non
             audit=audit, data_dir=None, audit_state=config.diagnostic_audit,
             max_rooms=config.max_rooms, input_window=config.input_window, templates=templates, bot_catalog=catalog,
             minimum_client_revision=config.minimum_client_revision, client_update_message=config.client_update_message,
+            experimental_command_scheduling=config.experimental_command_scheduling,
             tls_context=context, admission=AdmissionController(store, rc_open=config.access_mode == 'rc-open') if context else None,
             sim_factory=lambda data: SimulationWorker.create(data, config.assets_directory / 'Simulation.dll',
                 working_directory=config.data_directory / 'workers'),

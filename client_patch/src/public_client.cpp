@@ -78,6 +78,12 @@ static void fallback(Obj front) {
 }
 static void start(Obj front,Obj controller,int mode) {
     require(ba::unified() && ba::flag(L"-public-queue-experimental"),"public queue adapter not enabled");
+    if(ba_lan::originalCommandScheduling()) {
+        ba_match_loading::dismissNotice(errorNotice,"Custom-only experiment notice replaced");
+        errorNotice=ba_match_loading::begin(ba_match_loading::Source::Dedicated,"original-command-custom-only",ba_match_loading::Stage::Preparing);
+        ba_match_loading::error(errorNotice,"This experiment supports Custom 1v1 only.");
+        ba::log("Original command public Play rejected: mode=%d customOnly=1 ticketCreated=0",mode);return;
+    }
     q::participants(mode);
     if(active() || ba_practice::active()){ba::log("Public Play duplicate ignored while an intent/world is active");return;}
     require(ba_local_menu::ready(front) && ba_dedicated_session::inMenu() && ba_client::nativeIdle(front) &&

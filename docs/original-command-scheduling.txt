@@ -1,0 +1,232 @@
+BATTLE ACES - ORIGINAL COMMAND SCHEDULING EXPERIMENT
+Local branch:experiment/original-command-scheduling. Baseline:a3ca53e.
+Status:N28 local qualification complete. N29 subsequently authorizes deployment
+for testing;see scheduling-test-deploy-20261109.txt for the selected live host
+and matching launchers. Defaults remain off;no GitHub release or push.
+
+PURPOSE
+Nick asked to investigate the original command scheduling and prediction
+support,and make a separate test branch if feasible. This branch tests timely
+command dispatch without requiring an empty input packet from every human on
+every simulation frame. It does not implement speculative unit movement.
+N28 qualification used isolated copies. N29 separately authorizes the selected
+server test deployment;Nick's usual installed game remains unchanged.
+
+ORIGINAL CLIENT EVIDENCE
+Untouched build37822 GameAssembly.dll SHA256:
+e59d08c01479b27404778048d7e13546dbf3771f6b3912744c7c2bdf80c4e758
+Original Simulation.dll SHA256:
+107bb83dc416a16492277392c50104660e34c48911345ae2e0d5afe3929a07fb
+
+Focused LLVM disassembly and recovered IL2CPP metadata establish:
+- ProcessRequestStream,RVA3e4e5b0,skips a game-input send when both command
+  queues are empty and development mode is false. The queue tests and retail
+  return branch are at3e4e7f6-3e4e829.
+- Its send admission checks connection/lifecycle and prior transport write
+  completion. No mandatory simulation-frame acknowledgment or50ms send
+  deadline was found in the inspected sender. Its outer polling frequency
+  and original production server's frame arbitration remain unknown.
+- ICommand entries are serialized first,then proto actions. Camera data can
+  follow an admitted batch but does not itself trigger idle game-input sends.
+- The debug marker increments per batch and supports RTT bookkeeping. Game
+  frame/checksum fields are populated only in the development branch.
+- EnqueueCommand3e53530 and EnqueueAction3e53620 enqueue under a lock;these
+  inspected bodies do not step the world or apply local movement prediction.
+
+Prediction-related names do not yet establish movement rollback:
+- PassesClientPredictedResourceCheck3eb2c20 compares presented resources and
+  supply against an ability's cost,and optionally signals insufficient funds.
+- CheckForCatchUp's MoveNext3e6ac10 compares the presented frame with the
+  received frame minus3. This is presentation catch-up.
+- LoadRecordedFrame3e65b90 copies replay display buffers;PresentRecordedFrame
+  presents them. Neither inspected body restores the simulation world handle.
+- All26 named Simulation.dll exports were accounted for. None exposes a
+  complete world save/load/clone/restore operation. Internal capabilities and
+  other untraced paths remain unknown;this is not proof that rollback is
+  impossible. A valid simulation-rollback implementation would need a demonstrated
+  hidden-state-complete restore or bounded reconstruction and a correction/
+  replay convergence test. Restoring only rendered snapshots is insufficient.
+
+REA opened and identified the original binary. A native decompilation engine
+was unavailable;the findings above use ordinary static disassembly,not REA
+decompilation or original runtime observation. Private source-bound reports,
+tool provenance and raw assembly are retained under local/original-scheduling/.
+
+EXPERIMENT CONTRACT
+The client flag is -original-command-scheduling-experimental. The server must
+also explicitly enable experimental_command_scheduling. Ordinary launchers
+and normal server configuration retain the buffered mode by default.
+
+Authenticated unified TLS community peers negotiate version1 before using
+the mode. Both humans must negotiate;unsupported hosts,mixed peers and public
+queue entry are rejected. The initial scope is Custom1v1 only. No silent
+fallback to another scheduling mode is permitted.
+
+After match START,the client drains nonempty original command/action queues
+independently of authoritative frame receipt or presentation. Match-scoped
+batch sequence numbers preserve order;they are not requested simulation
+frames. An independent1s heartbeat distinguishes an idle player from a dead
+connection. Both humans must supply their own validated JoinArmy before frame0.
+The common handshake still carries input-window metadata;arrival mode does
+not seed,replenish or schedule commands by those buffered frame leads.
+After receiving frame0,each client sends READY74 only after applying it AND
+observing its original presented-frame counter reach0. The server waits for
+both33-byte(version1+match32) acknowledgments before sealing frame1,then rebases
+the steady clock to now+50ms. A fixed timeout cannot be extended by heartbeats.
+This avoids carrying the native first-output startup delay into the entire
+match. The barrier is per match,including rematches.
+
+The server validates complete batches,keeps bounded per-player FIFO queues,
+and seals each authoritative frame before awaiting the simulation worker.
+Arrivals during that await belong to a following unsealed frame. Empty turns
+then progress at20Hz without waiting for per-frame idle packets. Validation,
+ownership,identity,deck and size limits remain enforced. The existing native
+ordered-input simulation and one-unpresented-output contract remain in force.
+The experiment admits frame0 with one queued authoritative frame;
+the ordinary mode retains its existing two-frame startup reserve.
+
+This server scheduling is a reconstruction choice supported by the original
+sender evidence,not recovered production server code. Different network delays
+still change when players' commands reach the authoritative frame. This mode
+does not promise instant input,fairness under all latency,or rollback.
+
+VERIFICATION AND TEST GUIDE
+The full helper build and pure C++ policy/wire tests pass. The frozen helper
+is local/original-scheduling/helper02/BattleAcesOffline.dll,SHA256:
+8d0675cf15a6f9019efc2dc0cb53c538c8ea1cd72c88f2ba392ef95ba5af35de
+Its helper-build.json binds every native/build source byte. The existing
+recipe47 patched GameAssembly is unchanged,SHA256:
+529add6cae08ccb263ccd569b6ebc6ae9b170f644798b7e469a9c24e22bb508f
+Only local/online-frame-pacing/game has this experimental helper. Its prior
+helpers and manifests are retained in owned-helper-backup01/and02/;the current
+install receipt is owned-helper-install02.json. Nick's usual game was not modified.
+
+Server suite:152 tests run,3 opt-in worker tests skipped,suite PASS. This
+includes29 focused experiment tests:disabled/plaintext/malformed/non-idle
+negotiation,mixed peers/public rejection,strict command validation,queue byte/
+action limits,JoinArmy barrier,idle heartbeat timeout,atomic worker-await
+arrival,same-connection rematch loading heartbeat reset,and first-output READY
+barrier/rebase/timeout/rejection. Initial failures
+and green reports are retained under local/original-command-scheduling/.
+Package/repository/instruction suites:28 tests PASS.
+Verifier regressions:10 tests PASS,including omitted idle players,ordered
+conservation/drop/reorder detection,fragmented private packets and cleanup
+continuation after owned-process timeout,and the exact native build-log format.
+READY requires an actual frame0 publication,not merely applied input0. The
+steady deadline comparison uses perf_counter for both operands;an authored
+distinct-clock-epoch regression rejects the former cross-clock comparison.
+native-buffered01 is retained as
+FAILED:the original verifier compared idle [] to protobuf (),not a game-state
+failure. No replay equality is claimed from that incomplete failed report.
+native-buffered02 is also retained FAILED:the next verifier expected ability=34
+instead of the original native log's ability34. Expected bridge connection
+resets during forced teardown were also incorrectly classified as cleanup
+failures. These diagnostic defects are corrected before the fresh controls.
+
+Run from this worktree in PowerShell,using an already patched owned game copy
+under local/. The verifier refuses a game/evidence directory outside local/.
+The exact test copy is prepared here;these commands do not install into the
+usual game or contact any external host. Outputs must be fresh directories.
+
+  $owned_game = 'local/online-frame-pacing/game'
+  $server_assets = '../battleaces_resuraction/local/assets224-native01/asset-copy'
+  $helper_sha = '8d0675cf15a6f9019efc2dc0cb53c538c8ea1cd72c88f2ba392ef95ba5af35de'
+  python -B -m tools.verify_original_command_scheduling --game "$owned_game" --assets "$server_assets" --expected-helper-sha256 "$helper_sha" --frames 600 --rtt-ms 130 475 --scheduling buffered --output local/original-scheduling/my-buffered01
+  python -B -m tools.verify_original_command_scheduling --game "$owned_game" --assets "$server_assets" --expected-helper-sha256 "$helper_sha" --frames 600 --rtt-ms 130 475 --scheduling arrival --output local/original-scheduling/my-arrival01
+
+Each command owns two native clients,separate isolated profiles,one loopback
+TLS server and an original Simulation.dll worker,then a fresh replay worker.
+Timing runs use original Custom Create/Invite/Accept/Start and queued native
+build callbacks. They retain per-frame authority/bridge hashes,native timing,
+command provenance and source identities. End-of-prefix process cleanup is
+forced;it does not qualify normal Quit,physical clicks or visual acceptance.
+--state-audit separately compares native client canonical snapshots;its extra
+diagnostic I/O is excluded from primary timing qualification. --rematch runs
+two original result/Continue cycles;timing covers only the first prefix.
+--scenario held-worker --hold-ms 1500
+tests commands arriving while delivery of frame300's real worker result is
+delayed;it introduces a deliberate pause and qualifies command conservation,
+not smooth timing. It does not pause any process.
+
+Build from source when needed:
+  & ./client_patch/build.ps1 -OutputDirectory local/original-scheduling/my-helper01
+Use that build's receipt/hash and a separately prepared owned patched copy;
+the verifier checks the helper identity and experimental marker explicitly.
+N29 adds the strict optional host.json key experimental_command_scheduling,
+default false,and client CLI --original-command-scheduling-experimental for
+per-launch opt-in. N29 supersedes N27's local-only boundary for its selected
+deployment. Follow the separate deployment guide for that live test setup.
+
+Fresh buffered control:native-buffered03/verification.json PASS. Two owned
+clients each receive/apply600 frames;20.004/20.005Hz presented cadence,zero
+skips,bursts or gaps>100ms. Sampled build queue-to-application delays297/609ms
+at controlled130/475ms RTT.1200 accepted per-frame inputs conserve exact
+ordered actions;all600 authoritative parsed states match fresh-worker replay.
+This is the existing per-player6/12 buffering candidate,not published0.4.0's
+fixed6-frame behavior. Source/helper bindings and owned cleanup pass.
+
+Initial arrival mode:native-arrival01/verification.json passes600-frame
+cadence,ordered action conservation and fresh replay,but command delay REGRESSES
+to500/844ms. Native frame0 takes313/359ms from input application to first output
+publication. While clients finish that startup,the independent server clock
+advances;its resulting queued frames persist under the50ms presentation clock.
+Retained analysis:startup-backlog-diagnosis01.json. Do not recommend this initial
+helper as a latency improvement. The subsequent first-output-ready barrier is
+measured separately below. No manual test requested.
+
+CURRENT PAIRED HELPER02 COMPARISON
+native-buffered04 and native-arrival02 both PASS,600 frames per client and
+600 parsed authoritative states equal to fresh native-worker replay per mode.
+Same helper and production/native source bytes;the only observer-source change
+fixes READY-only comparison of two different Windows clock domains. Each run
+binds its exact observer source and passes the unchanged-during-run check.
+
+Controlled RTT                 130ms peer            475ms peer
+Buffered queue->apply          296ms                 594ms
+Arrival queue->apply           141ms                 500ms
+Buffered queue->publication    343ms                 641ms
+Arrival queue->publication     157ms                 516ms
+Buffered presented cadence     20.004Hz              20.002Hz
+Arrival presented cadence      19.995Hz              19.992Hz
+Buffered p95 presentation gap  52.113ms               51.570ms
+Arrival p95 presentation gap   72.732ms               65.250ms
+
+These are one native queued build sample per peer/mode,not physical clicks or
+pixel response. Presentation measurements exclude warm-up through frame10;
+all600 frames are received/applied. Both modes have zero skipped frames,zero
+gaps<25ms and zero gaps>100ms. Arrival spacing is less uniform than buffered
+spacing;reduced command delay does not establish visual or Internet acceptance.
+The arrival receive queue peaks at1 instead of5. All4 nonempty batches conserve
+their ordered actions,including both players' own real JoinArmy. No legacy
+per-frame INPUT packets are sent;301 consecutive command-free frames progress.
+READY is bound to each client's actual first publication,then both server
+receipts,clock rebase and the first legal frame1 seal. Startup waits861.6ms in
+this run;it is not counted as steady gameplay. The full authority prefix is
+19.43Hz including that deliberate startup hold. Raw reports/comparison hashes
+are retained in local/original-scheduling/comparison01.json.
+
+native-arrival-state-rematch01 PASS:two original Custom Start/result/Continue
+cycles retain one lobby/two community connections,with fresh match IDs and
+workers. Both matches independently satisfy JoinArmy/first-output-ready
+barriers and exact prefix command conservation. Each native client matches60
+canonical authoritative snapshots per match (240 comparisons total),and both
+600-frame journals equal fresh-worker parsed state replay. These are observable
+snapshot fields,not complete hidden-world equality or a rollback checkpoint.
+This separate run enables audit I/O and is not the primary timing comparison.
+Its teardown is forced at the menu;normal Quit is not being requalified.
+
+native-arrival-held01 PASS AT CONSERVATION SCOPE:delivery of the real native
+frame300 worker result is held1500ms. A real queued build arrives during that
+await and commits exactly once in301,with no rewrite of300 or lost command.
+All600 frames reach/apply in both clients;ordered actions and fresh-worker
+state replay match. Its timing gate intentionally FAILS:~1.56s pause and one
+24.06ms recovery gap remain recorded. This fault run is not smooth-play evidence.
+
+All named runs report source files unchanged,owned clients reaped,workers exit0
+and no cleanup errors. Failed prototype/verifier reports remain alongside the
+passing runs. No manual Nick test is requested. The experiment stays default
+off by default. N29's explicit opt-in deployment is recorded separately. It is
+ready for reviewing/repeating the local test branch.
+
+Acceptance scope:qualified local experiment only. D8/real Internet lag,full
+prediction,D5 and final release acceptance remain open.

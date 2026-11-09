@@ -201,6 +201,38 @@ class UnifiedLauncherTests(unittest.TestCase):
         with self.assertRaisesRegex(launcher.LaunchError, 'fullscreen must be true or false'):
             client.prepare_settings(self.path)
 
+    def test_original_command_scheduling_is_per_launch_without_config_or_automation(self):
+        self.save(client.defaults(self.game))
+        saved = self.path.read_bytes()
+        for requested in (True,False):
+            async def launch(config, remote, options):
+                arguments = launcher.game_arguments(config,None,1234,options)
+                self.assertEqual('-original-command-scheduling-experimental' in arguments,requested)
+                self.assertFalse(any('smoke' in value or 'audit' in value or 'auto-' in value for value in arguments))
+                return 0
+            extra = ['--original-command-scheduling-experimental'] if requested else []
+            with mock.patch.object(launcher,'launch',side_effect=launch):
+                self.assertEqual(client.main(['--config',str(self.path),*extra]),0)
+            self.assertEqual(self.path.read_bytes(),saved)
+        self.assertNotIn('original_command_scheduling_experimental',client.KEYS)
+
+    def test_missing_scheduling_capability_fails_before_private_socket_or_spawn(self):
+        self.save(client.defaults(self.game))
+        output = io.StringIO()
+        # Windows asyncio creates its own self-pipe through socket.socketpair.
+        # Initialize that loop before forbidding the launcher's game IPC path.
+        with asyncio.Runner() as runner:
+            runner.get_loop()
+            with (mock.patch.object(client.asyncio,'run',side_effect=runner.run),
+                  mock.patch.object(launcher,'native_storage_preflight'),
+                  mock.patch.object(launcher,'verify_game',side_effect=launcher.LaunchError('matching experimental client helper required')) as verify,
+                  mock.patch.object(launcher.socket,'socketpair',side_effect=AssertionError('must not open IPC')),
+                  mock.patch.object(launcher,'spawn_game',side_effect=AssertionError('must not spawn')),
+                  redirect_stdout(output)):
+                self.assertEqual(client.main(['--config',str(self.path),'--original-command-scheduling-experimental']),1)
+        self.assertTrue(verify.call_args.kwargs['original_command_scheduling_experimental'])
+        self.assertIn('matching experimental client helper required',output.getvalue())
+
     def test_replay_file_and_picker_reach_native_without_diagnostic_actions(self):
         selected = self.folder / 'replay with spaces & percent %.rep'
         for extra, expected in ((['--replay'], '-replay-select'),

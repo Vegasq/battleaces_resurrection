@@ -34,6 +34,8 @@ from .community import Community
 from . import public_protocol as public_wire
 from .diagnostics import failure_fields,validation_reason
 from .profile_io import _await_owned
+from .latency_policy import feedback_sample, select_input_windows
+from . import command_scheduling as command_wire
 TICK = 0.05
 
 
@@ -75,6 +77,10 @@ class Peer:
         self.closed = False
         self.outgoing = asyncio.Queue(32)
         self.connection = uuid.uuid4().hex[:12]
+        self.feedback_ms = None  # AUTH_OK -> validated HELLO, only with real TLS admission.
+        self.authenticated_tls = False
+        self.command_scheduling = False
+        self.command_activity, self.command_last_applied = 0.0, -1
 
     def send(self, kind, payload=b""):
         p.require(not self.closed and not self.outgoing.full(), "client output stalled")
@@ -133,7 +139,8 @@ class BotSeat:
 
 
 class Room:
-    def __init__(self, server, name, *, community_lobby=None, bots=(), mode=1, public_match=None):
+    def __init__(self, server, name, *, community_lobby=None, bots=(), mode=1, public_match=None,
+                 feedback_peers=None, command_scheduling=False):
         p.require(mode in server.templates, 'match mode assets unavailable')
         self.template, self.mode = server.templates[mode], mode
         self.slots = frozenset(range(self.template.player_count))
@@ -152,7 +159,30 @@ class Room:
         self.queue_tickets = {}
         self.full_loadout_seats = set()
         self.bots = MappingProxyType({bot.slot: bot for bot in bots})
-        self.input_window = server.input_window  # Frozen for every participant in this room.
+        managed = community_lobby is not None or public_match is not None
+        p.require(feedback_peers is None or (managed and isinstance(feedback_peers, dict) and
+                  feedback_peers.keys() == self.slots - self.bots.keys()), 'complete managed feedback roster required')
+        human_slots = self.slots - self.bots.keys()
+        samples = ({slot: feedback_sample(getattr((feedback_peers or {}).get(slot), 'feedback_ms', None))
+                    for slot in sorted(human_slots)} if managed else {})
+        self.input_window_feedback = MappingProxyType(samples)
+        configured_window = server.input_window
+        adaptive = managed and server.adaptive_input_window
+        # Managed rosters are complete before the first WELCOME/assignment.
+        # Direct legacy rooms retain the first window already sent to a joining peer.
+        windows = (select_input_windows(configured_window, samples) if adaptive else
+                   {slot: configured_window for slot in sorted(human_slots)})
+        self.input_windows = MappingProxyType(windows)
+        self.input_window = max(windows.values())  # Aggregate cap; each human negotiates its own lead.
+        p.require(type(command_scheduling) is bool and (not command_scheduling or
+                  (server.experimental_command_scheduling and community_lobby is not None and mode == 1 and not bots and
+                   feedback_peers is not None and all(getattr(peer, 'authenticated_tls', False) and
+                   getattr(peer, 'command_scheduling', False) for peer in feedback_peers.values()))),
+                  'arrival command experiment requires negotiated TLS Custom peers')
+        self.command_scheduling = command_scheduling
+        self.command_scheduler, self.command_join_deadline = None, None
+        self.command_ready = set()
+        self.command_startup_started, self.command_startup_deadline = None, None
         self.peers = {}
         self.joining, self.saving_decks = set(), set()
         self.decks = {bot.slot: self.template.validate_deck(bot.deck) for bot in bots}
@@ -173,6 +203,9 @@ class Room:
         self.entity_history = {}
         self.result = None
         self.result_frame = None
+        self.event('input_window_selected', configured_input_window=configured_window,
+                   input_window=self.input_window, input_windows=dict(self.input_windows),
+                   adaptive=adaptive, managed=managed, feedback_ms=dict(samples))
         self.task = asyncio.create_task(self.tick_loop())
 
     def event(self, event, **fields):
@@ -233,13 +266,16 @@ class Room:
         p.require(type(full_loadout) is bool and (not full_loadout or
                   (self.public_match is not None and frozen_cosmetics is not None)), 'invalid full public assignment')
         peer.room, peer.slot, peer.profile_id, peer.name = self, slot, profile_id, name
+        if self.command_scheduling:
+            # A reused connection may heartbeat the new assignment before START.
+            peer.command_activity, peer.command_last_applied = time.perf_counter(), -1
         self.peers[slot] = peer
         self.decks[slot] = deck
         if self.public_match is not None: self.queue_tickets[slot] = ticket
         if full_loadout: self.full_loadout_seats.add(slot)
         if frozen_cosmetics is not None: self.cosmetics[slot] = frozen_cosmetics
         if self.public_match is None:
-            peer.send(p.WELCOME, p.welcome(slot, self.input_window, deck))
+            peer.send(p.WELCOME, p.welcome(slot, self.input_windows[slot], deck))
         self.event("player_joined", slot=slot, profile=profile_id, name=name, deck=deck)
         self.last_progress = time.perf_counter()
         self.lobby_state()
@@ -350,6 +386,8 @@ class Room:
         self.refresh_native_state(state)
         self.validation = InputValidation(self.match, self.template,
                                            entity_lookup=self.entity_history.get)
+        if self.command_scheduling:
+            self.command_scheduler = command_wire.ArrivalScheduler(self.validation, self.peers.keys())
         self.state = "loading"
         self.last_progress = time.perf_counter()
         if self.server.data_dir:
@@ -358,7 +396,9 @@ class Room:
             (match_dir / "bootstrap.pb.gz").write_bytes(self.match.gzip_game_data)
             (match_dir / "match.json").write_text(json.dumps({
                 "schema": 1, "match_id": self.match_id, "room": self.name,
-                "seed": self.match.seed, "decks": self.decks, "input_window": self.input_window, "mode": self.mode,
+                "seed": self.match.seed, "decks": self.decks, "input_window": self.input_window,
+                "input_windows": dict(self.input_windows), "mode": self.mode,
+                "command_scheduling": self.command_scheduling,
                 "profiles": {slot: self.peers[slot].profile_id for slot in self.peers},
                 "bots": {slot: bot.profile_id for slot, bot in self.bots.items()},
                 "original_sha256": p.BUILD_SHA, "simulation_sha256": p.SIM_SHA,
@@ -377,16 +417,20 @@ class Room:
                 complete = slot in self.full_loadout_seats
                 peer.send(loadout.MATCH_LOADOUT if complete else public_wire.MATCH,
                           public_wire.assignment(self.queue_tickets[slot], self.match_id, self.mode,
-                          slot, human_mask, self.input_window, self.decks[slot],
+                          slot, human_mask, self.input_windows[slot], self.decks[slot],
                           cosmetics=self.cosmetics[slot] if complete else None))
         self.broadcast(p.BOOTSTRAP, self.match.gzip_game_data)
         self.event("match_created", seed=self.match.seed, decks=self.decks,
                    bootstrap_bytes=len(self.match.gzip_game_data),
                    bootstrap_sha256=hashlib.sha256(self.match.gzip_game_data).hexdigest(),
                    authority="original Simulation.dll in isolated match worker", worker_pid=sim.pid,
-                   input_window=self.input_window, mode=self.mode, participants=len(self.slots))
+                   input_window=self.input_window, input_windows=dict(self.input_windows),
+                   command_scheduling=self.command_scheduling,
+                   mode=self.mode, participants=len(self.slots))
 
     async def on_message(self, peer, kind, payload):
+        if self.state in ('completed', 'closed') and kind in (command_wire.BATCH, command_wire.HEARTBEAT, command_wire.READY):
+            return  # Already-in-flight experiment messages cannot reopen a finished match.
         p.require(self.state != "closed", "room closed")
         if self.state == "completed" and kind == p.INPUT:
             return
@@ -435,17 +479,61 @@ class Room:
                 self.state = "running"
                 self.last_progress = time.perf_counter()
                 self.next_tick = self.last_progress + TICK
+                if self.command_scheduling:
+                    self.command_join_deadline = self.last_progress + self.server.input_timeout
+                    for human in self.peers.values():
+                        human.command_activity, human.command_last_applied = self.last_progress, -1
                 self.broadcast(p.START)
                 self.event("match_started", frame=0, tick_ms=50)
                 if self.community_lobby is not None:
                     self.server.community.match_running(self)
                 elif self.public_match is not None:
                     self.server.community.public.match_running(self)
+        elif kind == command_wire.READY:
+            p.require(self.command_scheduling and getattr(peer, 'command_scheduling', False) and
+                      getattr(peer, 'authenticated_tls', False) and self.peers.get(peer.slot) is peer,
+                      'arrival startup readiness was not negotiated for this match')
+            match = command_wire.decode_ready(payload)
+            now = time.perf_counter()
+            p.require(self.state == 'running' and self.frame == 1 and match == self.match_id and
+                      self.command_startup_deadline is not None and now < self.command_startup_deadline and
+                      peer.slot not in self.command_ready, 'startup readiness is early, duplicate, stale or expired')
+            self.command_ready.add(peer.slot)
+            peer.command_activity = now
+            complete = self.command_ready == self.peers.keys()
+            self.event('command_startup_ready', slot=peer.slot, frame=0,
+                       ready_count=len(self.command_ready), all_ready=complete)
+            if complete:
+                self.command_startup_deadline = None
+                self.next_tick = now + TICK
+                self.event('command_startup_released', frame=1, ready_slots=sorted(self.command_ready),
+                           rebased_at=now, next_tick=self.next_tick,
+                           wait_ms=(now - self.command_startup_started) * 1000)
+        elif kind in (command_wire.BATCH, command_wire.HEARTBEAT):
+            p.require(self.command_scheduling and getattr(peer, 'command_scheduling', False) and
+                      self.peers.get(peer.slot) is peer, 'arrival command mode was not negotiated for this match')
+            if kind == command_wire.BATCH:
+                p.require(self.state == 'running', 'command batch outside running match')
+                match, sequence, body = command_wire.decode_batch(payload)
+                p.require(match == self.match_id, 'command batch belongs to another active match')
+                accepted = self.command_scheduler.accept(peer.slot, sequence, body)
+                peer.joined_army = peer.slot in self.command_scheduler.joined
+                self.event('command_batch_accepted', slot=peer.slot, sequence=sequence,
+                           earliest_frame=self.command_scheduler.next_frame, body_sha256=accepted.body_sha256,
+                           action_count=accepted.action_count, body_bytes=len(accepted.body))
+            else:
+                p.require(self.state in ('loading', 'running'), 'command heartbeat outside active match')
+                match, applied = command_wire.decode_heartbeat(payload)
+                p.require(match == self.match_id and peer.command_last_applied <= applied < self.frame,
+                          'command heartbeat match or applied frame changed')
+                peer.command_last_applied = applied
+            peer.command_activity = time.perf_counter()
         elif kind == p.INPUT:
+            p.require(not self.command_scheduling, 'numbered input is unavailable in arrival command mode')
             p.require(self.state == "running", "input outside running match")
             p.require(4 <= len(payload) <= 4 + p.MAX_INPUT, "input size limit")
             frame, = struct.unpack_from("<I", payload)
-            p.require(frame == peer.next_input and frame < self.frame + self.input_window,
+            p.require(frame == peer.next_input and frame < self.frame + self.input_windows[peer.slot],
                       "input frame must be contiguous and within lookahead")
             try:
                 body = self.validation.validate_player_input(peer.slot, payload[4:])
@@ -483,8 +571,28 @@ class Room:
                     continue
                 if self.state != "running" or now < self.next_tick:
                     continue
-                inputs = self.pending.get(self.frame, {})
-                if set(inputs) != set(self.peers):
+                if self.command_scheduling:
+                    if any(now - peer.command_activity > self.server.input_timeout for peer in self.peers.values()):
+                        await self.finish('command connection activity stalled', aborted=True)
+                        continue
+                    if self.frame == 1 and self.command_startup_deadline is not None:
+                        if now >= self.command_startup_deadline:
+                            await self.finish('startup presentation readiness stalled', aborted=True)
+                        continue
+                    if not self.command_scheduler.ready:
+                        if self.input_wait_started is None: self.input_wait_started = now
+                        if now >= self.command_join_deadline:
+                            await self.finish('initial JoinArmy stalled', aborted=True)
+                        continue
+                    sealed = self.command_scheduler.seal(self.frame)
+                    inputs = dict(sealed.inputs)
+                    if sealed.batches:
+                        self.event('command_frame_sealed', frame=self.frame,
+                                   batches={slot: [item.sequence for item in sealed.batches if item.slot == slot]
+                                            for slot in self.peers})
+                else:
+                    inputs = self.pending.get(self.frame, {})
+                if not self.command_scheduling and set(inputs) != set(self.peers):
                     if self.input_wait_started is None:
                         self.input_wait_started = now
                     if now - self.last_progress > self.server.input_timeout:
@@ -536,8 +644,18 @@ class Room:
                            slot1_sha256=hashlib.sha256(second).hexdigest(),
                            participant_sha256={slot: hashlib.sha256(body).hexdigest() for slot, body in inputs.items()},
                            frame_payload_sha256=hashlib.sha256(payload).hexdigest())
-                del self.pending[self.frame]
+                if self.command_scheduling:
+                    for item in self.command_scheduler.commit(self.frame):
+                        self.event('command_batch_committed', slot=item.slot, sequence=item.sequence,
+                                   frame=self.frame, body_sha256=item.body_sha256, action_count=item.action_count)
+                else:
+                    del self.pending[self.frame]
                 self.frame += 1
+                if self.command_scheduling and self.frame == 1:
+                    self.command_startup_started = time.perf_counter()
+                    self.command_startup_deadline = self.command_startup_started + self.server.input_timeout
+                    self.event('command_startup_waiting', frame=0, ready_slots=sorted(self.peers),
+                               deadline=self.command_startup_deadline, timeout_seconds=self.server.input_timeout)
                 if native_state["game_state"]["complete"] and self.result is None:
                     self.result = native_state["game_state"]
                     self.result_frame = self.frame - 1
@@ -604,7 +722,14 @@ class DedicatedServer:
                  input_timeout=10, audit_state=True, max_rooms=4, lobby_timeout=300,
                  loading_timeout=120, completed_timeout=60, tls_context=None, admission=None,
                  input_window=p.DEFAULT_INPUT_WINDOW, templates=None, bot_catalog=None,
-                 minimum_client_revision=1, client_update_message=None):
+                 minimum_client_revision=1, client_update_message=None, adaptive_input_window=True,
+                 experimental_command_scheduling=False):
+        if type(experimental_command_scheduling) is not bool:
+            raise ValueError('experimental_command_scheduling must be true or false')
+        self.experimental_command_scheduling = experimental_command_scheduling
+        if type(adaptive_input_window) is not bool:
+            raise ValueError('adaptive_input_window must be true or false')
+        self.adaptive_input_window = adaptive_input_window
         from .client_compatibility import validate_policy, DEFAULT_UPDATE_MESSAGE
         self.minimum_client_revision, self.client_update_message = validate_policy(
             minimum_client_revision, DEFAULT_UPDATE_MESSAGE if client_update_message is None else client_update_message)
@@ -663,7 +788,11 @@ class DedicatedServer:
                 return
             name = 'custom_' + lobby.id
             p.require(name not in self.rooms, 'custom match room already exists')
-            room = Room(self, name, community_lobby=lobby.id)
+            humans = {slot: self.community.sessions[profile].peer for slot, profile in enumerate(lobby.members)}
+            command_modes = {getattr(peer, 'command_scheduling', False) for peer in humans.values()}
+            p.require(len(command_modes) == 1, 'mixed experimental command scheduling peers cannot start')
+            room = Room(self, name, community_lobby=lobby.id,
+                        feedback_peers=humans, command_scheduling=command_modes == {True})
             self.rooms[name] = room
             lobby.room = room
             for slot, profile in enumerate(lobby.members):
@@ -717,7 +846,10 @@ class DedicatedServer:
             p.require(not self.closing and len(self.peers) < min(community_wire.MAX_PLAYERS, self.max_rooms * 4 + 8), "connection limit")
             self.peers.add(peer)
             authenticated_id = await self.admission.authenticate(reader, writer) if self.admission else None
+            hello_started = (time.perf_counter() if authenticated_id is not None and
+                             writer.get_extra_info('ssl_object') is not None else None)
             kind, payload = await asyncio.wait_for(p.receive(reader), 5)
+            hello_received = time.perf_counter() if hello_started is not None else None
             p.require(kind in (p.HELLO, community_wire.HELLO), "dedicated protocol3 or community hello required")
             is_community = kind == community_wire.HELLO
             if is_community:
@@ -737,6 +869,9 @@ class DedicatedServer:
                 raise AdmissionError("identity_mismatch")
             p.require(all(other is peer or other.closed or other.profile_id != profile_id for other in self.peers),
                       "profile already connected")
+            if hello_started is not None:
+                peer.feedback_ms = feedback_sample((hello_received - hello_started) * 1000)
+                peer.authenticated_tls = True
             peer.profile_id = profile_id  # Reserve identity across asynchronous profile I/O.
             if is_community:
                 await self.community.register(peer, profile_id, name)

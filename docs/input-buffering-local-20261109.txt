@@ -1,0 +1,121 @@
+LOCAL INPUT-BUFFERING FIX - N27
+Nick:"Do not kill running server please. Develop fix locally for now."
+All work below is isolated loopback testing. The running public0.4.0 server,
+its configuration/firewall and user-owned game were not changed. No release,
+push or deployment is authorized in this phase. D8 remains open.
+
+REPRODUCTION
+N26's real two-human match ran12.306Hz with repeating six-frame input starvation.
+tools.verify_high_latency_clients creates two owned native0.4.0 clients and one
+local authoritative native worker,through independent ordered TLS relays with
+injected RTTs130/475ms. These are illustrative controlled delays,not measured
+RTTs from Korea. The helper remains the published ee7932bf... binary.
+Fixed-six control:authority12.487Hz;clients12.595Hz;p95 gaps266/269ms;
+98/99 pauses>100ms;zero skipped frames. All101 server waits>200ms awaited the
+slow peer. Each client receives/applies the complete600-frame prefix and fresh
+worker replay matches all600 observable states. Native build enqueue->apply
+samples485/469ms. Source/failed attempts retained under ignored
+local/korea-match-20261109/native-asymmetric-*.
+
+CANDIDATE A - SHARED ADAPTIVE WINDOW
+Local commit0a2a8e0 adds server/latency_policy.py and protocol-compatible managed
+room selection. A successful authenticated TLS AUTH_OK->validated HELLO interval
+measures feedback before registration/profile I/O. It is a feedback estimate,
+not a claim of pure network RTT. Invalid/unmeasured samples stay unknown.
+Select max(configured minimum,ceil((feedback+100ms)/50ms)),capped at existing12.
+Freeze before assignment;direct legacy rooms keep their first configured window.
+An internal adaptive_input_window=False switch supplies the fixed-policy control.
+
+Same native helper and130/475ms profile:feedback143/489ms selects12. Authority
+19.935Hz;client presentation20.003/20.005Hz;p95 gaps52.18/53.07ms,max64.34/59.83ms.
+No skipped frames,bursts<25ms or pauses>100ms. Complete600-frame prefixes and
+same-journal fresh-worker replay pass. Worker median remains about2.9ms.
+Tradeoff:the two sampled native build delays rise to594/610ms (+109/+141ms).
+Only one build sample per peer is available;this is not a full command-latency
+distribution,mouse latency or pure RTT measurement.
+
+Candidate A's separate state-audit run matches60 canonical server snapshots per
+actual native client. Its initial unpaced replay assertion fails only on
+raw_sha256 at121/300/400:controlled two-worker replay with/without the exact
+snapshot query schedule proves every parsed state field equal at all600 frames.
+The verifier now excludes only the opaque raw-buffer fingerprint and includes a
+frame-mutation positive control. Failed report/exact old verifier remain intact;
+canonical-evidence-review.json contains the scoped follow-up. Diagnostic owned
+teardown is forced;one audit worker cancelled an in-flight request and exited1,
+fully reaped. No claim of natural Quit/full game acceptance is made.
+
+CANDIDATE B - FROZEN PER-PLAYER LOOKAHEAD
+Implemented locally:retain short lookahead for the faster peer rather than giving
+every player the slowest peer's delay. Existing WELCOME/assignment fields are
+per-recipient;canonical frames/bootstrap/50ms step do not require equal windows.
+Each known human gets its own bounded selection,unknown feedback conservatively
+uses the aggregate known selection,and all-unknown uses configured minimum.
+Server input validation must enforce each slot's own frozen future bound.
+The room maximum remains an aggregate memory/diagnostic bound. Direct legacy
+semantics,contiguous inputs,identity validation and native backpressure remain.
+Primary native comparison uses the same helper and130/475ms delay profile.
+Measured feedback selects frozen windows6/12;actual WELCOME/assignments match.
+Authority19.915Hz,both client presentations20.002Hz. p95 gaps53.50/51.69ms;
+max62.73/67.55ms;zero skipped frames,bursts<25ms or pauses>100ms. Both clients
+receive/apply all600 frames;fresh unpaced native replay matches all600 parsed
+states. Only two startup input waits>200ms remain in this prefix.
+Sampled original build enqueue->apply:fast297ms (fixed485/shared594),slow610ms
+(fixed469/shared610). This is one native build sample per peer,not a latency
+distribution or a promise about every game/route. Slower-link command delay is
+still a material limit;the fix removes starvation rather than physical latency.
+Separate B state-audit run:each real native client matches60 canonical server
+snapshots;fresh worker replay matches600 parsed states. Native assigned windows
+remain6/12 and all600 arrival/apply frames are captured. The diagnostic run has
+no smoothness gate;the lightweight primary above establishes cadence.
+Both native clients' per-frame payload hashes also match all600 authoritative
+inputs,zero mismatches;native-payload-evidence.json retains the copied receipts.
+Owned request draining avoids an in-flight cancellation in this B audit:worker
+exit0,no failure,all owned game/worker processes reaped.
+Reports:local/korea-match-20261109/native-asymmetric-per-peer-475-01/ and
+native-asymmetric-per-peer-state-475-01/. Owned processes are reaped;all source
+hashes remain unchanged during each qualified run. Normal Quit/full results,
+real Internet loss/jitter and Nick's visible acceptance remain separate.
+
+107 server/managed-room/admission/AI regression tests pass (3 opt-in skips);
+10 model tests and24 package/publication-audit tests pass. New per-peer tests
+cover immutable6/11 assignments,changed-feedback/config freeze,read-only maps,
+strict own-lead rejection/acceptance,24-frame mixed-lead shared input progress,
+humans+AI,unknown conservative fallback and direct legacy behavior. Tests do not
+disable command validation or relax contiguous inputs/native state comparison.
+The new server module is included in the Windows package source allowlist.
+
+MODEL AND SCOPE
+tests.test_high_latency_pipeline models the actual deadline function,5ms server
+poll,ordered links,client polling/worker delay,one pending output,startup reserve
+and50ms/25ms presentation rules. Fixed6 reproduces12.204Hz with long waits every
+six frames;actual adaptive11 reaches20.002Hz and identical600-frame authored
+journals. Receipt-only replenishment does not fix the latency budget. A separate
+32Hz callback case caps at16Hz;removing backpressure instead overflows the bounded
+queue. This is a distinct modeled limitation,not a diagnosis of the friend's FPS.
+Models do not establish Internet behavior;native tests above provide the bounded
+counterpart. Connection changes/loss/jitter beyond the tested regime and eventual
+real-player movement/command acceptance remain open.
+
+Per-peer model extension consumes the actual selection API. Windows6/12 sustain
+20.002Hz with zero long waits,strict own leads5/11,maxreceivequeue3 and identical
+600-frame authored journals. A separate SAME10s wall-clock command enqueue case
+reduces the fast peer's publication latency650.213->350.207ms,while the slow
+peer stays633.546ms. Authored-frame content equality is not used as a substitute
+for command latency. local/korea-fix-20261109/pipeline-model-per-peer-report.json.
+
+DELIVERY BOUNDARY
+Source is committed locally only. The existing client/helper and network wire
+already support per-recipient windows2..12;no native patch/reinstall is needed
+for this candidate. No GitHub upload/push,live configuration change,service
+restart,firewall change or public-server update was performed under N27.
+Any future deployment must respect Nick's separate instruction to keep the
+running server intact;this local result does not authorize replacing it.
+
+Private package snapshot from clean local sourcef70c67e05107963b3eb9fad485d259aca486b44c:
+local/korea-fix-20261109/packages/battleaces-server-win64.zip
+SHA256:902b4c466d2c13778189633026f1a7aebc0ac4ad9fde6aeaadd1a92c0d6cf400.
+This is an unpublished candidate with the existing0.4.0 label,not a replacement
+public asset. Package inventory verifies and its actual isolated Python3.14
+runtime imports the packaged policy and passes all17 policy/integration tests
+using only local test fixtures. No production host is started or contacted.
+local/korea-fix-20261109/bundled-runtime-report.json.

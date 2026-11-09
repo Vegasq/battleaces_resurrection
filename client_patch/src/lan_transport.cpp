@@ -3,6 +3,7 @@
 #include "dedicated_wire.hpp"
 #include "public_wire.hpp"
 #include "online_frame_clock.hpp"
+#include "original_command_scheduling.hpp"
 // Experimental loopback transport. All IL2CPP work stays on Unity's main thread.
 namespace ba_lan {
 using ba::Obj; using ba_local::Root;
@@ -35,6 +36,16 @@ static std::string dedicatedMatchId;
 static size_t txPosition=0;
 static std::deque<Bytes> frames;
 static int nextFrame=0;
+static ba_original_commands::State originalCommands;
+static Bytes originalWelcome;
+struct DeferredCommunity {unsigned char type;Bytes payload;};
+static std::deque<DeferredCommunity> originalDeferred;
+static size_t originalDeferredBytes=0;
+static bool originalCommandScheduling() {
+    static const bool enabled=ba::flag(L"-original-command-scheduling-experimental");return enabled;
+}
+static void resetOriginalCommandMatch(){originalCommands.clearMatch();}
+static void originalOutputReady(Obj server);
 // Native simulation output is a replaceable single slot. Admit only one
 // unpresented frame and pace its consumption, allowing the worker to finish
 // ahead of the next presentation deadline without overwriting prior output.
@@ -67,6 +78,7 @@ static void recordReceipt(int frame,int actions,int sim,const char* digest) {
     fprintf(receipts,"%lu\t%s\t%d\t%d\t%d\t%s\n",GetCurrentProcessId(),dedicatedMatchId.c_str(),frame,actions,sim,digest);fflush(receipts);
 }
 static void closeSocket() {
+    originalCommands.disconnect();originalWelcome.clear();originalDeferred.clear();originalDeferredBytes=0;
     if(secureMode())secureChannel().end();
     if(socketValue!=INVALID_SOCKET){closesocket(socketValue);socketValue=INVALID_SOCKET;}
     connecting=false;helloSent=false;
@@ -152,6 +164,8 @@ static std::string authenticatedProfile() {
     return ba::argument(L"-player-id=",slot==255?"":(slot?"player1":"player0"));
 }
 static void connect() {
+    ba_original_commands::validateContext(originalCommandScheduling(),ba::unified(),
+        secureMode() && secureVersion()==2,ba::community() && ba::dedicated());
     connectStarted=GetTickCount64();helloSent=false;
     std::string endpoint=ba::argument(L"-dedicated-server=","127.0.0.1:47622");
     if(secureMode()) {
@@ -201,6 +215,38 @@ static void sendHello() {
     ba::log("LAN connecting to %s requested slot %d protocol=%d transport=%s",ba::argument(L"-dedicated-server=","127.0.0.1:47622").c_str(),requestedSlot,ba::dedicated()?ba_wire::protocol:1,secureMode()?"private-TLS-bridge":"development-TCP");
     if(ba::dedicated())ba::log("Dedicated wire ABI BA_RESURRECTION_GAME_PROTOCOL_3");
 }
+static void flushOutgoing() {
+    while(txPosition<tx.size()) {
+        int n=secureMode()?secureChannel().send(reinterpret_cast<const char*>(tx.data()+txPosition),static_cast<int>(tx.size()-txPosition)):
+            ::send(socketValue,reinterpret_cast<const char*>(tx.data()+txPosition),static_cast<int>(tx.size()-txPosition),0);
+        if(n==SOCKET_ERROR){if(secureMode() || WSAGetLastError()==WSAEWOULDBLOCK)break;throw std::runtime_error("LAN send failed");}
+        if(n<=0)throw std::runtime_error("LAN send closed");txPosition+=n;
+    }
+    if(txPosition==tx.size()){tx.clear();txPosition=0;}
+}
+static void originalHeartbeat() {
+    if(!originalCommandScheduling() || stopped || matchEnded || (ba::community() && ba_community::abortPending))return;
+    const auto now=GetTickCount64();
+    if(auto payload=originalCommands.heartbeat(now)) {
+        send(ba_original_commands::heartbeat,*payload);
+        ba::log("Original command heartbeat: match=%s lastApplied=%d sendTick=%llu",
+            originalCommands.match().c_str(),originalCommands.lastApplied(),static_cast<unsigned long long>(now));
+    }
+}
+static void communityMessage(unsigned char type,const Bytes& payload) {
+    if(type==41 && originalCommandScheduling()) {
+        originalCommands.request();originalWelcome=payload;
+        send(ba_original_commands::negotiate,ba_original_commands::negotiation());
+        ba::log("Original command scheduling requested: version=1 customOnly=1 BA_RESURRECTION_ORIGINAL_COMMAND_SCHEDULING_V1");
+        return; // Native Custom callbacks cannot run until the host ACKs.
+    }
+    if(originalCommands.pending()) {
+        if(originalDeferred.size()>=64 || originalDeferredBytes+payload.size()>1024*1024)
+            throw std::runtime_error("original command negotiation deferred queue limit");
+        originalDeferred.push_back({type,payload});originalDeferredBytes+=payload.size();return;
+    }
+    ba_community::receive(type,payload);if(type==41)ba_client_compat::state.accepted();
+}
 static void poll() {
     if(stopped || peerClosed)return;
     if(socketValue==INVALID_SOCKET && (!secureMode() || !secureChannel().active()))connect();
@@ -216,13 +262,7 @@ static void poll() {
         if(secureMode() && secureVersion()==2 && !secureChannel().ready())return;
         sendHello();
     }
-    while(txPosition<tx.size()) {
-        int n=secureMode()?secureChannel().send(reinterpret_cast<const char*>(tx.data()+txPosition),static_cast<int>(tx.size()-txPosition)):
-            ::send(socketValue,reinterpret_cast<const char*>(tx.data()+txPosition),static_cast<int>(tx.size()-txPosition),0);
-        if(n==SOCKET_ERROR){if(secureMode() || WSAGetLastError()==WSAEWOULDBLOCK)break;throw std::runtime_error("LAN send failed");}
-        if(n<=0)throw std::runtime_error("LAN send closed");txPosition+=n;
-    }
-    if(txPosition==tx.size()){tx.clear();txPosition=0;}
+    flushOutgoing();
     unsigned char buffer[65536];bool reachedEof=false;
     for(int i=0;i<16;++i) {
         int n=secureMode()?secureChannel().receive(reinterpret_cast<char*>(buffer),sizeof(buffer)):
@@ -238,9 +278,23 @@ static void poll() {
         uint32_t length=u32(rx,consumed);if(length<1 || length>1024*1024+1)throw std::runtime_error("LAN message length invalid");
         if(rx.size()-consumed<length+4)break;
         unsigned char type=rx[consumed+4];Bytes payload(rx.begin()+consumed+5,rx.begin()+consumed+4+length);consumed+=4+length;
-        if(ba::community() && (type==62 || type==63 || type==67))ba_public::receive(type,payload);
+        if(type==ba_original_commands::ack) {
+            if(!originalCommandScheduling())throw std::runtime_error("unsolicited original command ACK");
+            originalCommands.acknowledge(payload);
+            ba_community::receive(41,originalWelcome);originalWelcome.clear();ba_client_compat::state.accepted();
+            while(!originalDeferred.empty()) {
+                auto message=std::move(originalDeferred.front());originalDeferred.pop_front();
+                ba_community::receive(message.type,message.payload);
+            }
+            originalDeferredBytes=0;
+            ba::log("Original command scheduling negotiated: version=1 customOnly=1 BA_RESURRECTION_ORIGINAL_COMMAND_SCHEDULING_V1");
+        }
+        else if(ba::community() && (type==62 || type==63 || type==67)) {
+            if(originalCommandScheduling())throw std::runtime_error("original command experiment supports Custom1v1 only");
+            ba_public::receive(type,payload);
+        }
         else if(ba::community() && ba_public::ignoreMatchData() && (type==12 || type==13 || type==14 || type==36 || type==64))continue;
-        else if(ba::community() && (type==41 || type==42 || type==44 || type==53 || type==54 || type==56 || type==68 || type==69)){ba_community::receive(type,payload);if(type==41)ba_client_compat::state.accepted();}
+        else if(ba::community() && (type==41 || type==42 || type==44 || type==53 || type==54 || type==56 || type==68 || type==69))communityMessage(type,payload);
         else if(type==11){if(payload.size()!=1 || payload[0]!=ba::lanSlot())throw std::runtime_error("LAN slot mismatch");welcomed=true;ba::log("LAN welcome slot %d",payload[0]);}
         else if(type==31){
             if(!ba::dedicated() || welcomed)throw std::runtime_error("unexpected dedicated welcome");
@@ -250,12 +304,12 @@ static void poll() {
             ba_client_compat::state.accepted();
             ba::log("Dedicated lobby welcome slot %d; saved deck received; input_window=%u tick_ms=50",payload[0],inputWindow);
         }
-        else if(type==32){if(payload.size()!=32 || !dedicatedMatchId.empty())throw std::runtime_error("dedicated match ID invalid");for(unsigned char c:payload)if(!((c>='0'&&c<='9')||(c>='a'&&c<='f')))throw std::runtime_error("dedicated match ID malformed");dedicatedMatchId=std::string(payload.begin(),payload.end());}
+        else if(type==32){if(payload.size()!=32 || !dedicatedMatchId.empty())throw std::runtime_error("dedicated match ID invalid");for(unsigned char c:payload)if(!((c>='0'&&c<='9')||(c>='a'&&c<='f')))throw std::runtime_error("dedicated match ID malformed");dedicatedMatchId=std::string(payload.begin(),payload.end());if(originalCommandScheduling())originalCommands.assign(dedicatedMatchId,GetTickCount64());}
         else if(type==35){if(!welcomed || payload.size()!=70)throw std::runtime_error("dedicated lobby payload invalid");lobbyReady=(payload[1]&(1<<ba::lanSlot()))!=0;ba::log("Dedicated lobby connected_mask=%u ready_mask=%u revision=%u",payload[0],payload[1],u32(payload,2));}
         else if(type==37){std::string notice(payload.begin(),payload.end());ba::log("Dedicated server notice: %s",notice.c_str());}
         else if(type==36){std::string result(payload.begin(),payload.end());ba::log("Dedicated match ended: %s",result.c_str());ba_dedicated_results::receive(result);matchEnded=true;}
         else if(type==12){if(!bootstrap.empty() || payload.empty())throw std::runtime_error("duplicate or empty bootstrap");bootstrap=std::move(payload);if(ba::dedicated())saveReceivedBootstrap(bootstrap);auto h=sha(bootstrap);memcpy(&bootstrapHash,h.data(),8);ba::log("LAN canonical GameData received: %llu bytes hash-prefix=%016llx",static_cast<unsigned long long>(bootstrap.size()),bootstrapHash);}
-        else if(type==13){if(!worldReady || !payload.empty() || running)throw std::runtime_error("unexpected LAN start");running=true;nextFrame=0;presentationClock.reset();ba::log("LAN both players ready; synchronized start");}
+        else if(type==13){if(!worldReady || !payload.empty() || running)throw std::runtime_error("unexpected LAN start");if(originalCommandScheduling())originalCommands.start(GetTickCount64());running=true;nextFrame=0;presentationClock.reset();ba::log("LAN both players ready; synchronized start");}
         else if(type==14){if(!running || frames.size()>=(paceNativeFrames()?64u:ba::dedicated()?inputWindow+4:8))throw std::runtime_error("unexpected LAN frame");const int frame=static_cast<int>(u32(payload,0));frames.push_back(std::move(payload));ba_frame_timing::arrival(frame,frames.size());}
         else if(type==64){if(!publicMatch || !running || frames.size()>=(paceNativeFrames()?64u:inputWindow+4))throw std::runtime_error("unexpected public frame");ba_public_wire::frame(payload,static_cast<unsigned>(publicIdentities.size()));const int frame=static_cast<int>(u32(payload,0));frames.push_back(std::move(payload));ba_frame_timing::arrival(frame,frames.size());}
         else if(type==255){std::string message(payload.begin(),payload.end());
@@ -264,6 +318,10 @@ static void poll() {
         else throw std::runtime_error("unknown LAN message type");
     }
     if(consumed)rx.erase(rx.begin(),rx.begin()+consumed);
+    if(originalCommandScheduling() && !reachedEof) {
+        originalHeartbeat();originalOutputReady(ba_local::server());flushOutgoing();
+        if(secureChannel().active())secureChannel().ready(); // Flush private queued bytes without waiting for simulation.
+    }
     if(reachedEof) {
         if(!rx.empty())throw std::runtime_error("match server disconnected mid-message");
         closeSocket();peerClosed=true;
@@ -295,15 +353,50 @@ static void normalizeAction(Obj action) {
         }
     }
 }
+static Bytes playerInput(Obj server,int& count) {
+    Root player(ba::make("GamePb","InputActionsByPlayer"));ba::set<Obj>(player.get(),"playerHandle_",ba::read<Obj>(server,0x1a8));
+    Obj output=ba::get<Obj>(player.get(),"actions_");count=0;
+    while(count<256){Root command(ba_local::dequeue(ba::read<Obj>(server,0x180)));if(!command.get())break;Root action(ba_local::toProto(command.get()));normalizeAction(action.get());ba_local::addItem(output,action.get());++count;}
+    while(count<256){Root action(ba_local::dequeue(ba::read<Obj>(server,0x188)));if(!action.get())break;normalizeAction(action.get());ba_local::addItem(output,action.get());++count;}
+    Bytes body=serialize(player.get());if(body.size()>65536)throw std::runtime_error("LAN input batch exceeds 64KiB");return body;
+}
 static void submit(Obj server,int frame) {
     if(matchEnded || (ba::community() && ba_community::abortPending))return;
     if(wcsstr(GetCommandLineW(),L"-lan-smoke"))ba_lan_smoke::enqueue(server,frame);
-    Root player(ba::make("GamePb","InputActionsByPlayer"));ba::set<Obj>(player.get(),"playerHandle_",ba::read<Obj>(server,0x1a8));
-    Obj output=ba::get<Obj>(player.get(),"actions_");int count=0;
-    while(count<256){Root command(ba_local::dequeue(ba::read<Obj>(server,0x180)));if(!command.get())break;Root action(ba_local::toProto(command.get()));normalizeAction(action.get());ba_local::addItem(output,action.get());++count;}
-    while(count<256){Root action(ba_local::dequeue(ba::read<Obj>(server,0x188)));if(!action.get())break;normalizeAction(action.get());ba_local::addItem(output,action.get());++count;}
-    Bytes payload;append32(payload,frame);Bytes body=serialize(player.get());if(body.size()>65536)throw std::runtime_error("LAN input batch exceeds 64KiB");payload.insert(payload.end(),body.begin(),body.end());send(4,payload);
+    int count=0;Bytes body=playerInput(server,count);
+    Bytes payload;append32(payload,frame);payload.insert(payload.end(),body.begin(),body.end());send(4,payload);
     if(count)ba::log("LAN submitted frame %d with %d local actions",frame,count);
+}
+static void originalInput(Obj server) {
+    if(matchEnded || ba_community::abortPending)return;
+    if(ba::flag(L"-lan-smoke") && originalCommands.smoke(nextFrame))
+        ba_lan_smoke::enqueue(server,nextFrame);
+    // Like the reviewed retail sender, an empty input queue produces no batch.
+    // This collection is outside all canonical-frame/presentation admission gates.
+    if(!ba_local::count(ba::read<Obj>(server,0x180)) && !ba_local::count(ba::read<Obj>(server,0x188)))return;
+    int count=0;const Bytes body=playerInput(server,count);
+    if(auto value=originalCommands.batch(body,static_cast<unsigned>(count))) {
+        const auto hash=sha(body);char hex[65];for(int i=0;i<32;++i)sprintf_s(hex+i*2,3,"%02x",hash[i]);
+        const auto now=GetTickCount64();send(ba_original_commands::batch,value->payload);
+        flushOutgoing();secureChannel().ready();
+        ba::log("Original command batch submitted: match=%s sequence=%llu actions=%d bytes=%zu body_sha256=%s sendTick=%llu sourceNextFrame=%d",
+            dedicatedMatchId.c_str(),static_cast<unsigned long long>(value->sequence),count,body.size(),hex,
+            static_cast<unsigned long long>(now),nextFrame);
+    }
+}
+static void originalOutputReady(Obj server) {
+    if(!originalCommandScheduling() || !running || !worldReady || stopped || matchEnded ||
+       ba_community::abortPending || !ba_local::isTarget(server))return;
+    Obj simulation=ba::read<Obj>(server,0x140);if(!simulation)return;
+    // This is the ORIGINAL presented-output counter, not the applied input
+    // counter. Publishing frame0 can take time during native world startup.
+    const int presented=ba::read<int>(simulation,0xac);
+    if(auto payload=originalCommands.firstOutputReady(presented)) {
+        const auto now=GetTickCount64();send(ba_original_commands::firstOutputReady,*payload);
+        flushOutgoing();secureChannel().ready();
+        ba::log("Original command first output ready: match=%s presentedFrame=%d sendTick=%llu",
+            dedicatedMatchId.c_str(),presented,static_cast<unsigned long long>(now));
+    }
 }
 static void tick(Obj server) {
     if(ba::community() && ba_community::abortPending)return;
@@ -312,10 +405,13 @@ static void tick(Obj server) {
     // each accepted frame; native simulation still advances exactly50ms per tick.
     const int window=ba::dedicated()?static_cast<int>(inputWindow):3;
     if(window<2 || window>12)throw std::runtime_error("input window was not negotiated");
-    if(!submittedFirst){for(int f=0;f<window;++f)submit(server,f);submittedFirst=true;}
+    const bool original=originalCommandScheduling();
+    if(original)originalInput(server);
+    else if(!submittedFirst){for(int f=0;f<window;++f)submit(server,f);submittedFirst=true;}
     Obj sim=ba::read<Obj>(server,0x140);
+    if(original)originalOutputReady(server); // Must precede admitting frame1.
     const bool paced=paceNativeFrames();
-    if(paced && nextFrame==0 && frames.size()<2 && !matchEnded)return;
+    if(paced && nextFrame==0 && !ba_original_commands::canStart(original,frames.size()) && !matchEnded)return;
     while(!frames.empty() && nextFrame-ba::read<int>(sim,0xa8)<4 &&
           (!paced || ba_online_frame_clock::canFeed(nextFrame,ba::read<int>(sim,0xac)))) {
         Bytes frame=std::move(frames.front());frames.pop_front();
@@ -344,7 +440,8 @@ static void tick(Obj server) {
             recordReceipt(nextFrame,total,ba::read<int>(sim,0xa8),hex);
             if(nextFrame%200==0 || total)ba::log("LAN received frame %d, actions=%d, sim=%d sha256=%s match=%s",nextFrame,total,ba::read<int>(sim,0xa8),hex,dedicatedMatchId.c_str());
         }
-        ++nextFrame;submit(server,nextFrame+window-1);
+        if(original)originalCommands.applied(nextFrame);
+        ++nextFrame;if(!original)submit(server,nextFrame+window-1);
         if(paced){
             break; // The previous native output must be presented first.
         }

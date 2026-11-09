@@ -348,6 +348,7 @@ static void resetAtMenu(Obj front,Obj server,bool completed,bool keepCommunity=f
         ba_lan::rx.clear();ba_lan::tx.clear();ba_lan::txPosition=0;
     }
     ba_lan::closeReceipts();
+    ba_lan::resetOriginalCommandMatch(); // Keep a negotiated community stream across rematch.
     ba_lan::frames.clear();
     ba_lan::publicMatch=false;ba_lan::publicIdentities.clear();
     ba_lan::bootstrap.clear();ba_lan::dedicatedDeck.clear();ba_lan::dedicatedMatchId.clear();
