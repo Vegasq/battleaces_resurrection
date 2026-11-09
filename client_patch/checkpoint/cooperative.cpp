@@ -23,6 +23,25 @@ struct Patch {
     bool installed = false;
 };
 constexpr size_t kCodeSize = 65536, kMaximumDepth = 64, kMaximumPumps = 1000000;
+// A match may legitimately pump more than this many jobs over its lifetime.
+// Bound one outer dependency wait instead; recursively entered waits share its
+// budget so recursion cannot reset the limit while the original wait is stuck.
+struct WaitEpochBudget {
+    uint64_t pumps = 0, waits = 0;
+    void enter() { if (!waits) pumps = 0; ++waits; }
+    void leave() { --waits; }
+    bool consume(uint64_t depth) {
+        if (depth >= kMaximumDepth || pumps >= kMaximumPumps) return false;
+        ++pumps; return true;
+    }
+};
+struct WaitEpochScope {
+    WaitEpochBudget& budget;
+    explicit WaitEpochScope(WaitEpochBudget& value) : budget(value) { budget.enter(); }
+    ~WaitEpochScope() { budget.leave(); }
+    WaitEpochScope(const WaitEpochScope&) = delete;
+    WaitEpochScope& operator=(const WaitEpochScope&) = delete;
+};
 constexpr uintptr_t kWaitCall = 0xf7f22, kWait = 0xa15f0, kTryRun = 0x291c00;
 constexpr uintptr_t kConsumer = 0x9fbe0, kProducer = 0x9fd7d;
 constexpr std::array<uint8_t, 5> kWaitBytes{{0xe8,0xc9,0x96,0xfa,0xff}};
@@ -36,6 +55,7 @@ std::array<Patch,3> patches{};
 std::array<RUNTIME_FUNCTION,7> functions{};
 bool registered = false;
 Stats stats;
+WaitEpochBudget waitEpoch;
 using Wait = void (__fastcall*)(void*,void*);
 using TryRun = bool (__fastcall*)(void*);
 
@@ -53,6 +73,7 @@ void __fastcall boundWait(void* service, void* suppliedPool) {
     pool = suppliedPool;
     stats.pool = reinterpret_cast<uintptr_t>(pool);
     ++stats.waitEntries;
+    WaitEpochScope epoch(waitEpoch);
     reinterpret_cast<Wait>(reinterpret_cast<uintptr_t>(image)+kWait)(service,suppliedPool);
 }
 
@@ -68,7 +89,7 @@ void __fastcall pump(uint64_t index, const void* capture, uint64_t producer) noe
     // genuine dependency wait may execute another queued task recursively.
     if (!active || index < published) return;
     if (producer) ++stats.producerWaits; else ++stats.consumerWaits;
-    if (stats.depth >= kMaximumDepth || stats.pumps >= kMaximumPumps) { fail(6); return; }
+    if (!waitEpoch.consume(stats.depth)) { fail(6); return; }
     ++stats.depth;
     if (stats.depth > stats.maxDepth) stats.maxDepth = stats.depth;
     ++stats.pumps;
@@ -181,6 +202,7 @@ bool restore() {
 extern "C" __declspec(dllexport) int BAEnableCooperative(HMODULE native) {
     if (image || !native) return 1;
     image=native; owner=GetCurrentThreadId(); stats=Stats{}; stats.owner=owner;
+    waitEpoch=WaitEpochBudget{};
     auto base=reinterpret_cast<uint8_t*>(native);
     const uint8_t serial[]{0x8d,0x56,0};
     if (std::memcmp(base+0x331b4,serial,sizeof(serial)) ||
@@ -239,7 +261,7 @@ extern "C" __declspec(dllexport) int BAGetCooperativeStats(void* output) {
 }
 extern "C" __declspec(dllexport) int BADisableCooperative() {
     if (!image) return 0;
-    if (!owned() || stats.depth) return 1;
+    if (!owned() || stats.depth || waitEpoch.waits) return 1;
     if (!restore()) {fail(14);return 2;}
     if (registered && !RtlDeleteFunctionTable(functions.data())) {fail(15);return 3;}
     registered=false;

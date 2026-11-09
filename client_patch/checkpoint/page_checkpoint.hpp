@@ -46,7 +46,7 @@ public:
         require(maxUniqueSavedBytes>0,"saved-page byte budget must be positive");
         budget_->limit=maxUniqueSavedBytes;
         checkpoints_.reserve(limit_);watchAddresses_.resize(reserved_/pageSize_);
-        currentMap_=std::make_shared<const PageMap>();
+        emptyMap_=std::make_shared<const PageMap>();currentMap_=emptyMap_;
     }
     Store(const Store&)=delete;
     Store& operator=(const Store&)=delete;
@@ -72,10 +72,11 @@ public:
         if(copies || pages!=currentMap_->size()) {
             auto map=std::make_shared<PageMap>(*currentMap_);map->resize(pages);
             if(copies) {
-                auto batch=makeBatch(copies);size_t index=0;
+                checkBudget(copies);
                 for(size_t page=0;page<pages;++page)if(needed[page]) {
-                    std::copy_n(base_+page*pageSize_,pageSize_,batch->bytes.data()+index*pageSize_);
-                    (*map)[page]=Page{batch,index++};
+                    auto version=makePage();
+                    std::copy_n(base_+page*pageSize_,pageSize_,version->bytes.data());
+                    (*map)[page]=Page{std::move(version)};
                 }
             }
             candidate=map;
@@ -108,11 +109,11 @@ public:
         // Preparation above does not mutate arena memory. Validate every page
         // before beginning copies; OS watch errors after copying fail terminally.
         for(size_t page=0;page<target->size();++page)
-            require((*target)[page].batch!=nullptr,"checkpoint has an uncaptured page");
+            require((*target)[page].version!=nullptr,"checkpoint has an uncaptured page");
         size_t copies=0;
         for(size_t page=0;page<target->size();++page)if(needed[page]) {
             const auto& value=(*target)[page];
-            std::copy_n(value.batch->bytes.data()+value.index*pageSize_,pageSize_,base_+page*pageSize_);
+            std::copy_n(value.version->bytes.data(),pageSize_,base_+page*pageSize_);
             ++copies;
         }
         resetWatch();currentMap_=target;position_=result;
@@ -130,6 +131,14 @@ public:
         // Current-version pages remain referenced as the baseline for the next
         // incremental capture even if its saved checkpoint has been dropped.
     }
+    // Match retirement only, after every checkpoint was dropped. This changes
+    // helper-owned references/metadata, never arena bytes or OS write-watch.
+    // A subsequent capture copies every logical page, even when watch is quiet.
+    // It also remains available for cleanup after a terminal OS-watch failure.
+    void forgetBaseline() {
+        require(checkpoints_.empty(),"cannot forget baseline with retained checkpoints");
+        currentMap_=emptyMap_;position_={};
+    }
     Stats stats()const {
         auto result=stats_;result.uniqueSavedBytes=budget_->live;
         result.checkpointCount=checkpoints_.size();result.currentHigh=position_.high;
@@ -141,17 +150,20 @@ public:
 private:
     using Clock=std::chrono::steady_clock;
     struct Budget {size_t limit=0,live=0;};
-    struct Batch {
+    // Each immutable version owns exactly one page. A quiet page must not pin
+    // the obsolete remainder of a large per-capture allocation indefinitely.
+    // The byte budget counts payload; bounded maps/control metadata is extra.
+    struct PageData {
         std::shared_ptr<Budget> budget;
         std::vector<uint8_t> bytes;
-        Batch(std::shared_ptr<Budget> owner,size_t amount):budget(std::move(owner)),bytes(amount) {
+        PageData(std::shared_ptr<Budget> owner,size_t amount):budget(std::move(owner)),bytes(amount) {
             budget->live+=amount;
         }
-        ~Batch(){budget->live-=bytes.size();}
-        Batch(const Batch&)=delete;
-        Batch& operator=(const Batch&)=delete;
+        ~PageData(){budget->live-=bytes.size();}
+        PageData(const PageData&)=delete;
+        PageData& operator=(const PageData&)=delete;
     };
-    struct Page {std::shared_ptr<const Batch> batch;size_t index=0;};
+    struct Page {std::shared_ptr<const PageData> version;};
     using PageMap=std::vector<Page>;
     struct Checkpoint {uint64_t id;Position position;std::shared_ptr<const PageMap> pages;};
     static void require(bool result,const char* message) {
@@ -189,15 +201,15 @@ private:
             if(code)osError("ResetWriteWatch",code);
         }
     }
-    std::shared_ptr<Batch> makeBatch(size_t pages) {
+    void checkBudget(size_t pages)const {
         require(pages<=reserved_/pageSize_,"saved page count exceeds reservation");
         const size_t amount=pages*pageSize_;
         require(budget_->live<=budget_->limit && amount<=budget_->limit-budget_->live,
                 "unique saved-page byte budget reached");
-        return std::make_shared<Batch>(budget_,amount);
     }
+    std::shared_ptr<PageData> makePage(){return std::make_shared<PageData>(budget_,pageSize_);}
     static bool same(const Page& left,const Page& right) {
-        return left.batch==right.batch && left.index==right.index;
+        return left.version==right.version;
     }
     static uint64_t micros(const Clock::time_point& start) {
         return static_cast<uint64_t>(std::chrono::duration_cast<std::chrono::microseconds>(Clock::now()-start).count());
@@ -209,7 +221,7 @@ private:
     Position position_;
     Stats stats_;
     std::shared_ptr<Budget> budget_;
-    std::shared_ptr<const PageMap> currentMap_;
+    std::shared_ptr<const PageMap> emptyMap_,currentMap_;
     std::vector<Checkpoint> checkpoints_;
     std::vector<void*> watchAddresses_;
 };

@@ -4,12 +4,20 @@ Scheduling PR#1 merged into main as0ad2afb;its tested behavior is preserved.
 Draft PR:https://github.com/Vegasq/battleaces_resurrection/pull/2
 
 CURRENT N33 PROGRESS
-Efficient headless native checkpoints now pass unmodified601-frame control
-comparison and six conflicting-move corrections. Restore plus eight replayed/
-observed ticks takes18.1..18.8ms in that bounded run. Client integration remains
-OPEN;the installed game still has no prediction. Complete the actual client
+Efficient native checkpoints pass1200-frame combat control and six corrections.
+Minimal restore plus eight native ticks takes1.93..4.97ms in the bounded run.
+The owned native worker transport passes combat/rematch and actual Unity menu/
+Quit. A late CRT thread-attach allocation failure is reproduced and fixed in
+the private derived worker DLL;35s idle and1200-frame actual AI/Continue/Quit
+now pass. Worker reconciliation matches1200 canonical frames and two corrected
+eight-frame tails with30 continuation frames;three retirements release saved
+payload after fixing page retention. See scoped original-report/reanalysis and
+timing details in prediction-worker-client.txt. Client integration remains
+OPEN;the installed game
+still has no prediction. Complete the actual client
 feature under N33 rather than stopping at this prototype. Exact mechanism,
-scope,failed controls and remaining gates:native-prediction-checkpoints.txt.
+scope,failed controls and remaining gates:native-prediction-checkpoints.txt
+and prediction-worker-client.txt.
 The reconstruction-only evidence below is the earlier correctness baseline.
 
 OBJECTIVE

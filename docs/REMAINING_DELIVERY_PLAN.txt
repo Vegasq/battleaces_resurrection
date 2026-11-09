@@ -1,5 +1,5 @@
 BATTLE ACES - CURRENT DELIVERY ROADMAP
-Updated:2026-11-08. ACTIVE. Single current work queue;final release is not accepted.
+Updated:2026-11-09. ACTIVE. Single current work queue;final release is not accepted.
 
 Nick's requested0.4.0 client/server release is PUBLISHED;matching host deployed
 at134.209.176.39 and game TCP47623 reopened publicly,durable across restart.
@@ -10,11 +10,16 @@ Other-human online lag/D8 remains open. Details:release-040-20261109.txt.
 
 N33 ACTIVE:complete genuine movement prediction through actual client
 integration/verification. Scheduling PR#1 is MERGED (0ad2afb);prediction PR#2
-remains draft. Efficient headless checkpoints now match601 unmodified control
-frames and six corrected38-frame continuations. Restore+8 replayed/observed
-ticks18.1..18.8ms;restore alone~0.5..0.7ms. Next:combat/deeper scheduling and
-actual Unity API-thread/renderer integration,then local two-client latency
-qualification. No installed prediction or complete hidden-state equality yet.
+remains draft. Efficient checkpoints match1200 combat-control frames and six
+corrections;restore+8 native ticks1.93..4.97ms in the scoped minimal replay.
+The actual Unity API transport now runs through an owned local worker;menu,
+1200-frame AI/Continue and natural Quit pass after fixing eager CRT thread-
+attach allocation. Worker reconciliation now matches1200 control frames,two
+eight-frame corrections and30 continuation frames each;three world retirements
+release saved payload after fixing page retention/fragmentation. The strict
+ownership guard remains. Next:integrate ordered immediate input/renderer
+correction and qualify local two-client latency.
+No installed prediction or complete hidden-state equality yet.
 See native-prediction-checkpoints.txt and movement-prediction.txt. Keep live
 server/user-owned sessions unchanged. Do not stop at the headless prototype.
 

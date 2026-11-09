@@ -380,6 +380,7 @@ extern "C" __declspec(dllexport) void OfflineFrontUpdate(void* front,void*) {
 #include "match_loading.cpp"
 #include "match_loading_smoke.cpp"
 #include "server_assets_export.cpp"
+#include "prediction_worker.cpp"
 #include "lan_audit.cpp"
 #include "telemetry_audit.cpp"
 #include "player_cosmetics.cpp"
@@ -418,6 +419,7 @@ extern "C" __declspec(dllexport) void OfflineStartupFailure(void* builder,void* 
         static bool requested=false;
         if(!ba::localMenu() || requested)return;
         requested=true;ba::init();
+        ba_prediction_worker::shutdown();
         ba::log("Startup failed before readiness; requesting original Unity Quit exit=78 BA_RESURRECTION_STARTUP_FAILURE_V1");
         // Original Application.Quit(int); keep wantsToQuit, pending-load
         // admission and original shutdown. No readiness/counter/owner writes.

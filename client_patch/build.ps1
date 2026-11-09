@@ -4,7 +4,7 @@ $repo = Split-Path -Parent $PSScriptRoot
 $buildScriptPath = $PSCommandPath
 function Get-HelperBuildSources {
     $result = [ordered]@{}
-    $paths = @($buildScriptPath) + @(Get-ChildItem -LiteralPath (Join-Path $PSScriptRoot 'src') -Recurse -File | Where-Object Extension -in @('.cpp','.h','.hpp') | Select-Object -ExpandProperty FullName)
+    $paths = @($buildScriptPath) + @(@('src','checkpoint') | ForEach-Object { Get-ChildItem -LiteralPath (Join-Path $PSScriptRoot $_) -Recurse -File } | Where-Object Extension -in @('.cpp','.h','.hpp') | Select-Object -ExpandProperty FullName)
     foreach ($sourcePath in ($paths | Sort-Object)) {
         $relative = $sourcePath.Substring($repo.Length + 1).Replace('\','/')
         $result[$relative] = (Get-FileHash -LiteralPath $sourcePath -Algorithm SHA256).Hash.ToLowerInvariant()

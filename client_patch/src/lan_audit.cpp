@@ -225,8 +225,8 @@ static void capture(Obj simulation,uint32_t originalViewer) {
     if(!s.make || !s.get) {
         HMODULE nativeModule=GetModuleHandleW(L"Simulation.dll");
         if(!nativeModule)throw std::runtime_error("audit Simulation.dll unavailable");
-        s.make=reinterpret_cast<MakeFrame>(GetProcAddress(nativeModule,"SimMakeSimFrame"));
-        s.get=reinterpret_cast<GetFrame>(GetProcAddress(nativeModule,"SimGetSimFrameBuffer"));
+        s.make=reinterpret_cast<MakeFrame>(ba_prediction_worker::lookup(nativeModule,"SimMakeSimFrame"));
+        s.get=reinterpret_cast<GetFrame>(ba_prediction_worker::lookup(nativeModule,"SimGetSimFrameBuffer"));
         if(!s.make || !s.get)throw std::runtime_error("audit native exports unavailable");
     }
     if(!s.output) {

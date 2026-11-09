@@ -1,19 +1,28 @@
 BATTLE ACES - CURRENT STATUS
-Reviewed:2026-11-08. Final release is not accepted.
+Reviewed:2026-11-09. Final release is not accepted.
 Current work:REMAINING_DELIVERY_PLAN.txt. Evidence navigation:INDEX.txt.
 Exact prior3576-line ledger:history/2026-10-24/STATUS.txt.
 Historical records retain their original failures,claims and artifact scopes.
 
-N33 ACTIVE:efficient headless native checkpoint/correction proof now passes
-601 unmodified threaded-control frames plus six divergent-move corrections,
-38 compared continuation frames each. Restore+8 replayed/observed ticks costs
-18.1..18.8ms;native page restore~0.5..0.7ms. Early heap interception closes the
-observed pre-load allocation gap;zero-worker cooperative scheduling matches
-the bounded original control. No external/foreign heap operation across native
-startup/steps/teardown in the successful checkpoint runs. This does not qualify
-all hidden state,combat,deeper scheduling or actual Unity prediction. Continue
-through client integration and owned multiplayer tests;no live/usual-client
-change. Details:native-prediction-checkpoints.txt. Prior N32 baseline follows.
+N33 ACTIVE:efficient native checkpoints match1200 unmodified combat-control
+frames,six corrections and continued original state. Minimal restore+8 native
+ticks costs1.93..4.97ms;including corrected-head observation3.53..6.65ms.
+An owned worker transport matches combat1200+rematch240 frames;IPC median67us,
+p95 78us in its bounded query sample. Actual Unity menu/original Quit passes.
+Failed practice01 at frame317 led to a reproduced CRT THREAD_ATTACH allocation
+trace. Guarded private two-call deferral fixes the observed lifetime path:
+35s idle proof and actual1200-frame AI/Continue/original Quit pass,worker9813/
+9813requests,exit0/reaped/I/O joined,no force. Strict heap/FLS guards remain.
+Worker controls now match1200 canonical frames plus two divergent eight-frame
+corrections and30 continuation frames each. Three world retirements release all
+saved page payload after helper10 fixes retention/fragmentation. The original
+parent report's unjustified total1 Job gate remains failed;separate file-only
+reanalysis passes with actual2/0/0 and one extra process UNATTRIBUTED. Internal
+correction21..24ms includes5..6ms verifier observation. Game input/renderer and
+multiplayer prediction integration remain OPEN;prediction-worker-client.txt.
+All live/usual-client files remain unchanged. Actual visible prediction,
+hidden-state completeness and multiplayer qualification remain OPEN.
+Details:native-prediction-checkpoints.txt,prediction-worker-client.txt.
 
 N32:Scheduling PR#1 merged into main as0ad2afb. Draft PR#2 now has a real native
 movement-prediction/correction baseline:Crab moves3.776 units over8 speculative

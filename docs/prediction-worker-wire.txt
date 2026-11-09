@@ -1,0 +1,95 @@
+EXPERIMENTAL LOCAL NATIVE WORKER WIRE V1
+Not enabled by normal launchers. Anonymous inherited pipes, one ordered request
+at a time. Worker executes all native calls on its sole owner thread. This is
+an implementation contract, not a user-facing network service.
+
+HEADER / ENVELOPE
+Header little-endian <4sBBHII>,16 bytes:
+ magic BAPW,version1,opcode,uint16flags,uint32requestID,uint32payloadLength.
+Requests flags0, IDs contiguous starting1; response opcode=request|0x80 and
+same ID. Payload maximum32MiB. Unknown op/flags/size/order fails before native
+mutation. Response flag1 denotes terminal protocol/host failure; flags0 includes
+ordinary native nonzero return codes without treating them as transport errors.
+Every response payload starts int32nativeResult,uint32logCount, then logCount
+records {int32kind,uint32byteLength,rawUTF8bytes}. At most256 logs,16KiB each.
+Following bytes are the opcode data below. Callback pointer stays client-local;
+worker callback records bytes and client replays them after decoding response.
+Error-flag response uses result=-1 and trailing uint32length+UTF8error text.
+
+RAW NATIVE API OPCODES
+All integers little endian; world is opaque uint64. Input bytes are copied and
+never contain cross-process pointers. Out-value seeds preserve native no-write
+behavior. Successful buffer operations are bounded to16MiB; system counts2048.
+1 SimInit: uint8bool -> no data
+2 SimDestroy: empty -> no data
+3 SimSetLogCallBack: uint8enabled -> no data (worker uses its own callback)
+4 SimSetLogFlags: uint32flags -> no data
+5 SimCreateWorld: rawGameData -> uint64world (seed0)
+6 SimDestroyWorld: uint64world -> no data
+7 SimProcessMsg: uint64world + rawInputActions -> no data
+8 SimStep: uint64world,uint32dt,int32timeSeed -> int32time
+9 SimMakeSimFrame: uint64world,uint32viewer,uint32sizeSeed -> BUFFER_PAIR_U
+10 SimGetSimFrameBuffer: CLIENT-LOCAL cache read, no wire request
+11 SimGetLabelsFrameBufferSize: uint64world,uint32registry,uint32sizeSeed -> BUFFER_PAIR_U
+12 SimGetLabelsFrameBuffer: CLIENT-LOCAL cache read, no wire request
+13 SimGetConnectedPlayersSizeAndVersion: uint64world,int32sizeSeed,int32versionSeed
+   -> int32size,int32version,int32getResult,uint32length,bytes
+14 SimGetConnectedPlayers: CLIENT-LOCAL cache read, no wire request
+15 SimGetMapFrameSize: uint64world,int32sizeSeed -> BUFFER_PAIR_I
+16 SimGetMapFrame: CLIENT-LOCAL cache read, no wire request
+17 SimCrashOnCommand: empty -> no data
+18 SimGetDebugDrawCommandBufferCount: uint64world,uint32countSeed -> uint32count
+19 SimGetDebugDrawCommandBufferSize: uint64world,uint32sizeSeed,uint32index -> BUFFER_PAIR_U
+20 SimGetDebugDrawCommandBuffer: CLIENT-LOCAL cache read, no wire request
+21 SimClearAllDebugDrawCommandBuffers: uint64world -> no data
+22 SimSetDebugDrawCommandListsActive: uint64world,uint32count,int32[count] -> no data
+23 SimGetSystemCount: uint64world,uint32countSeed -> uint32count
+24 SimGetSystemIDAttributes: uint64world,uint32count,128*count initialbytes
+   -> 128*count outputbytes (inline name records, no native pointers)
+127 SHUTDOWN: empty -> no data; close owned worlds/runtime, respond then exit.
+Opcodes25..63 and67..126 reserved and rejected.
+
+EXPLICIT PREDICTION CONTROLS (not sent by ordinary launchers)
+64 BEGIN: uint64world,uint32maxAhead,uint32maxJournalBytes -> no data.
+ Requires maxAhead1..12,journal4096..64MiB,one call before any ProcessMsg/Step.
+ Requires primed root bindings and native checkpoint helper. Takes initial
+ full checkpoint during loading,before READY. Failure is terminal.
+65 AUTHORITY: uint64world + rawInputActions(up to2MiB) -> no data.
+ Validates/enqueues contiguous authority only;no native call or restore occurs.
+ Ordinary opcode7 reconciles at the next original ProcessMsg boundary,after
+ previous original frame queries. It uses authoritative bytes for a known next
+ frame,or rolls back/replays earlier mismatches before forwarding that frame.
+ Ordinary opcode8 records only a successful prepared50ms native Step.
+66 METRICS: uint64world -> <iiiI8Q>(80bytes): confirmed,predicted,received,
+ flags(prepared bit0,failed bit1,closed bit2,confirmed terminal admitted bit3),then captures,restores,drops,
+ corrections,replayedFrames,matchedFrames,peakAhead,maxReconcileMicroseconds.
+ No native call. DestroyWorld/SHUTDOWN retire snapshots before freeing worlds.
+ These controls are implemented in the worker;the game input/presentation path
+ has not yet enabled them. No current launcher provides visible prediction.
+
+BUFFER_PAIR_U = uint32size,int32getResult,uint32length,bytes.
+BUFFER_PAIR_I = int32size,int32getResult,uint32length,bytes.
+Make/Size and corresponding native Get execute atomically in ONE worker request.
+Envelope result is the native Make/Size return. If it is nonzero, omit native
+Get and return getResult=-1,length0. If Make succeeds, call Get with a correctly
+sized private buffer and preserve its separate return code. Get failure length0.
+Zero size allows zero-length Get; negative/oversized successful sizes are host
+failures. Later client Get returns the saved Get result/copies only successful
+bytes. Cache ownership is caller-thread/world/kind (plus labels registry/debug
+index). Missing/mismatched cache returns-1. Consume a cache once, reject duplicate
+Get. Source/counts are verified before any client buffer write.
+Exact-build exception: recovered debug-buffer exports alias a no-write stub.
+Its exact bytes b808000000c3 return8. Opcode19 returns native result8,size seed
+unchanged,getResult8,length0,even for positive size seeds. Opcode20 returns8
+WITHOUT copying bytes or sending a request,even without a prior pair. Do not
+manufacture zero-filled output or use this exception for ordinary buffers.
+Setup verifies the original debug-stub bytes before relying on this behavior.
+
+LIFETIME
+Bind selected native module/exact24 recovered names only. Two unrecovered debug
+aliases reject; do not guess their ABI. Client serializes requests via recursive
+gate. Start worker suspended, assign owned kill-on-close Job, then resume. Only
+private stdio handles inherited. Bounded I/O timeout terminates this owned worker
+and returns failure; no process-name lookup/kill. Worker native stdout redirected
+away from protocol. EOF attempts natural native cleanup. Normal SHUTDOWN waits
+for exit0 and reaps. A callback never passes a process-local address over wire.

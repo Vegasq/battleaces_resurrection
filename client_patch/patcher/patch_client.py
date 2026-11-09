@@ -6,6 +6,7 @@ from . import telemetry
 from . import startup_tasks
 from . import bundle_loading
 from . import legacy_compliance
+from . import prediction_worker as prediction_worker_patch
 ROOT = Path(__file__).resolve().parents[2]
 ORIGINAL_SHA256 = 'e59d08c01479b27404778048d7e13546dbf3771f6b3912744c7c2bdf80c4e758'
 PATCHES = [
@@ -178,7 +179,7 @@ def redirect_relocated_pointer(original, patched, hook, image_base, thunk_rva):
     struct.pack_into('<Q',patched,offset,image_base+thunk_rva)
 
 
-def build_patch(original, *, include_telemetry=True, community=False, cosmetics=False, quit_diagnostics=False, allow_dlss_diagnostics=False, startup_diagnostics=False):
+def build_patch(original, *, include_telemetry=True, community=False, cosmetics=False, quit_diagnostics=False, allow_dlss_diagnostics=False, startup_diagnostics=False, prediction_worker=False):
     """Pure transformation; only a matching original may enter this routine."""
     if digest(original) != ORIGINAL_SHA256:
         raise ValueError('Original build SHA256 does not match.')
@@ -190,6 +191,8 @@ def build_patch(original, *, include_telemetry=True, community=False, cosmetics=
     if startup_diagnostics:
         call_hooks += startup_tasks.CALL_HOOKS
         tail_hooks += startup_tasks.TAIL_HOOKS
+    if prediction_worker:
+        call_hooks += prediction_worker_patch.CALL_HOOKS
     sites = sorted(patches + HOOKS + tail_hooks + call_hooks + pointer_hooks, key=lambda site: site['offset'])
     for left, right in zip(sites, sites[1:]):
         if left['offset'] + len(bytes.fromhex(left['before'])) > right['offset']:

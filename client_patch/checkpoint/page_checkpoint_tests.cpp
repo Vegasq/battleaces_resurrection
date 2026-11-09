@@ -103,16 +103,16 @@ static void sharedStorageAndBudget() {
     const auto baseline=store.capture(1,Arena::reserve);
     arena.data[0]=0x92;const auto first=store.capture(2,Arena::reserve);
     arena.data[0]=0x93;const auto second=store.capture(3,Arena::reserve);
-    check(store.stats().uniqueSavedBytes==Arena::reserve+2*page,"page batches not shared/accounted");
+    check(store.stats().uniqueSavedBytes==Arena::reserve+2*page,"page versions not shared/accounted");
     arena.data[page]=0x94;
     rejects([&]{store.capture(4,Arena::reserve);});
     check(!store.failed() && store.stats().checkpointCount==3,"budget refusal mutated snapshot ownership");
     store.drop(first);
-    check(store.stats().uniqueSavedBytes==Arena::reserve+page,"drop did not release unreferenced page batch");
+    check(store.stats().uniqueSavedBytes==Arena::reserve+page,"drop did not release unreferenced page version");
     const auto third=store.capture(4,Arena::reserve);
     check(store.stats().lastCaptureCopiedBytes==page,"budget rejection lost dirty watch bits");
     store.drop(baseline);store.drop(second);store.drop(third);
-    check(store.stats().checkpointCount==0 && store.stats().uniqueSavedBytes==Arena::reserve+2*page,
+    check(store.stats().checkpointCount==0 && store.stats().uniqueSavedBytes==Arena::reserve,
           "current baseline ownership was not retained after dropping all saved IDs");
 }
 static void checkpointCountAndBounds() {
@@ -139,10 +139,72 @@ static void checkpointCountAndBounds() {
     check(unsupported.failed(),"missing MEM_WRITE_WATCH did not fail closed");
     rejects([&]{unsupported.capture(1,Arena::reserve);});
 }
+static void sparseWritesDoNotPinDeadBatchPages() {
+    Arena arena;arena.commit(Arena::reserve);std::memset(arena.data,0x31,Arena::reserve);
+    p::Store store(arena.data,Arena::reserve,2*Arena::reserve);
+    const size_t page=store.pageSize(),count=Arena::reserve/page;
+    auto current=store.capture(1,Arena::reserve);
+    for(size_t version=1;version<=128;++version) {
+        store.drop(current);
+        // Each new version leaves one old page unchanged. A per-capture batch
+        // would pin all dead pages merely to retain that one page's version.
+        for(size_t index=0;index<count;++index)if(index!=version%count)
+            arena.data[index*page]=static_cast<uint8_t>(version);
+        current=store.capture(version+1,Arena::reserve);
+    }
+    check(store.stats().uniqueSavedBytes==Arena::reserve,"sparse capture pinned obsolete batch pages");
+    store.restore(current,Arena::reserve);
+    check(store.stats().lastRestoreCopiedBytes==0,"quiet sparse head restore copied pages");
+}
+static void explicitBaselineRetirementAndQuietRecapture() {
+    Arena arena;arena.commit(Arena::reserve);std::memset(arena.data,0x52,Arena::reserve);
+    p::Store store(arena.data,Arena::reserve,2*Arena::reserve);
+    const auto first=store.capture(17,Arena::reserve);
+    const auto before=store.stats();
+    rejects([&]{store.forgetBaseline();});
+    check(store.stats().checkpointCount==before.checkpointCount &&
+          store.stats().uniqueSavedBytes==before.uniqueSavedBytes &&
+          store.stats().currentHigh==before.currentHigh,"refused forget mutated retained checkpoint/baseline");
+    store.drop(first);store.forgetBaseline();
+    const auto retired=store.stats();
+    check(retired.checkpointCount==0 && retired.uniqueSavedBytes==0 && retired.currentHigh==0 &&
+          retired.logicalCommittedExtent==0 && retired.physicalCommittedHighwater==Arena::reserve,
+          "baseline retirement did not release storage/reset logical metadata/preserve physical extent");
+    bytes(arena,0,Arena::reserve,0x52);
+    // No arena write since capture cleared watch. Empty-map recapture must
+    // nevertheless save every page, rather than trust the quiet OS interval.
+    const auto second=store.capture(23,Arena::reserve);
+    check(second>first && store.stats().lastCaptureCopiedBytes==Arena::reserve &&
+          store.stats().lastCaptureDirtyPages==0,"quiet post-forget capture reused missing baseline");
+    std::memset(arena.data,0x93,Arena::reserve);
+    check(store.restore(second,Arena::reserve).high==23,"post-forget logical metadata did not restore");
+    bytes(arena,0,Arena::reserve,0x52);
+    rejects([&]{store.restore(first,Arena::reserve);});
+    store.drop(second);store.forgetBaseline();store.forgetBaseline();
+    check(store.stats().uniqueSavedBytes==0,"idempotent retired baseline release retained pages");
+    bytes(arena,0,Arena::reserve,0x52);
+}
+static void sequentialWorldsUnderTightBudget() {
+    Arena arena;arena.commit(Arena::reserve);
+    p::Store store(arena.data,Arena::reserve,2*Arena::reserve);const size_t page=store.pageSize();
+    uint64_t previous=0;
+    for(unsigned world=1;world<=12;++world) {
+        std::memset(arena.data,static_cast<int>(world),Arena::reserve);
+        const auto initial=store.capture(world,Arena::reserve);
+        check(initial>previous && store.stats().lastCaptureCopiedBytes==Arena::reserve,"new world did not get full independent baseline");
+        arena.data[page+7]=0xee;
+        const auto changed=store.capture(world+100,Arena::reserve);
+        store.restore(initial,Arena::reserve);bytes(arena,0,Arena::reserve,static_cast<uint8_t>(world));
+        store.restore(changed,Arena::reserve);check(arena.data[page+7]==0xee,"newer sparse version lost across world restore");
+        store.drop(initial);store.drop(changed);store.forgetBaseline();previous=changed;
+        check(store.stats().uniqueSavedBytes==0 && store.stats().checkpointCount==0,"sequential world leaked saved page payload");
+    }
+}
 int main() {
     try {
         incrementalAndVersionRestore();mixedDirtyAndChangedVersions();growthAndLogicalRollback();
-        sharedStorageAndBudget();checkpointCountAndBounds();
-        std::cout<<"page checkpoint: 5 native write-watch scenario groups PASS\n";return 0;
+        sharedStorageAndBudget();checkpointCountAndBounds();sparseWritesDoNotPinDeadBatchPages();
+        explicitBaselineRetirementAndQuietRecapture();sequentialWorldsUnderTightBudget();
+        std::cout<<"page checkpoint: 8 native write-watch scenario groups PASS\n";return 0;
     }catch(const std::exception& error){std::cerr<<error.what()<<'\n';return 1;}
 }

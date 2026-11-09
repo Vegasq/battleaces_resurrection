@@ -1,0 +1,138 @@
+BATTLE ACES - EXPERIMENTAL CLIENT NATIVE WORKER
+N33 active,2026-11-09. Draft PR#2,experiment/movement-prediction.
+
+PURPOSE
+Run the original native simulation in one owned local worker. Unity calls typed
+API shims over inherited pipes;native pointers never cross the process boundary.
+This gives checkpoint capture/replay a permanent owner,independent of Unity's
+threads and CRT roots. It is a transport foundation,not installed prediction.
+The normal patch output and launchers remain unchanged. Explicit owned probes
+use the optional GetProcAddress hook and -prediction-native-worker-probe.
+
+QUALIFIED SCOPE
+The exact original DLL is independently hash-checked before private import-table
+derivation. Early heap interception,zero native pool workers and cooperative
+original task execution are installed before client-requested SimInit.
+Shipping IL2CPP loads18 functional delegates;the six debug-only fields are
+skipped by its original loader. All24 recovered raw ABI wrappers are separately
+authored-tested;the crash API is never invoked by these gameplay checks.
+See prediction-worker-wire.txt for buffers,callbacks and request contracts.
+
+native-worker01 matches1200 combat and240 rematch frames against an independent
+original threaded control:positions,entity state and observed empty charge
+vectors match. Positive combat coverage includes damage,five deaths/removals
+and six COOLDOWN4 attack states. This does not establish positive charge-vector
+cooldown coverage. A500-query IPC sample measures67us median,78us p95,107us max.
+The worker closes naturally with exit0;the I/O thread joins,owned job empties,
+and no timeout,termination or abandoned request occurs. Total runtime2.254s.
+
+Owned actual Unity menu01 initializes through the worker and follows original
+OnConfirm Quit. Game and worker exit0;worker is reaped/I/O joined,job active0/
+terminated0. The first verifier wrongly required24 shipping lookups;its failed
+report is preserved. Static original-loader evidence establishes exactly18,
+and separate menu01/reanalysis01.json passes without repeating the runtime.
+
+LIFETIME FAILURE,FIX AND BOUNDED QUALIFICATION
+practice01 stops at frame317 on allocator error1,foreign_threads4,unknown0.
+Its owned job is forcibly cleaned,so this is FAILED practice,not natural Quit.
+The short2.254s headless control did not qualify this roughly17s world lifetime.
+Arena08 records at most8 strict foreign failures with16 raw stack PCs/module
+base/RVA pairs each. It keeps the same stats ABI and rejects those calls.
+The worker saves the first diagnostic privately without weakening the guard.
+foreign-idle02 reproduces four allocations at29.719s after world creation:
+two new Windows threads each request128/968bytes. Raw stacks pass native CRT
+THREAD_ATTACH3403b5/343795/3438cf,not simulation tasks or thread detach.
+The file-only transform tools/prediction_crt_attach.py changes only two guarded
+CALLs in the exact40-byte attach wrapper to MOV EAX,1,plus the PE checksum.
+Original process attach,lazy getters,thread detach and TLS callbacks remain.
+Exact original bytes are reconstructed and hash-checked before transformation;
+the nested import derivation and final code patches remain in the manifest.
+The original DLL on disk is unchanged. Final private derived SHA:
+491dbaf6984d10f28bf2688acc63376abcc1ebcf12cbb38dd077135485827e09.
+
+Arena09 primes original owner CRT roots before checkpoints and exposes readonly
+owner/TLS/FLS bindings. Every worker native API observes those bindings;an
+observed change or read failure invalidates checkpoints permanently,including
+A->B->A. Capture stores the token;restore validates before any memory mutation.
+Foreign and unknown heap calls still fail. Single-owner lifetime is required;
+this is not a complete proof of arbitrary FLS/OS hidden state.
+
+foreign-idle03 passes35s of owner polling,679queries,zero unknown/foreign/error,
+stable primed roots and natural child exit0/reaped/job active0 terminated0.
+practice02 actual Unity AI/Continue/Quit passes in95.954s with helper02,
+arena09 and cooperative03. Worker9813requests/responses,exit0/reaped/I/O joined,
+zero abandoned operations or forced cleanup;original menu Quit callback used.
+The managed presented counter reaches1201 with122 sampled native audits.
+This is transport/lifetime evidence,not render-pixel or every-frame parity.
+Cooperative03 also fixes the pump budget to bound one wait rather than lifetime
+accumulation;six authored wait-epoch tests preserve depth/owner/stall guards.
+The retained failed practice01 remains unchanged.
+
+TERMINAL AND WORKER RECONCILIATION
+The original three-thread engine accepts Core self-destruct ability8 at frame500
+and advances501..508 with successful native calls and stable terminal metadata;
+game time freezes. Thus prediction can continue to the next repair boundary.
+The worker's optional copied presentation filter withholds only the complete
+scalar until native game_over_frame is confirmed. It leaves original physics
+and the native output allocation untouched. Three authored FlatBuffer cases
+cover masking,confirmation/retraction and inconsistent frame refusal.
+Controls64..66 enable checkpoints before the first frame,enqueue authority
+without native calls,and expose metrics. Correction occurs only before the
+next original ProcessMsg after previous frame queries.
+
+worker-reconcile02 matches all1200 control frames but fails retirement:the
+page store intentionally retains its current baseline after the last drop.
+An authored sparse-write control also proves whole-batch page ownership pins
+dead pages and exhausts a tight budget with one current map. Helper10 switches
+to immutable per-page payload ownership and adds explicit baseline forgetting
+after all handles retire. The384MiB/16-checkpoint limits remain. Nineteen
+authored page/root/export groups cover quiet full recapture,sparse128-generation
+reuse,refusal with live handles and12 sequential worlds. Failed02 is preserved.
+
+worker-reconcile03's child passes all1200 canonical frames and two eight-frame
+divergent Move tails at500/740. Crab displacement reaches3.680/3.584units before
+authority. Queuing authority performs no native/capture/restore/drop call.
+The next original ProcessMsg repairs:corrected507/747 and30 continuation frames
+each match state,entity states and observed charge vectors against the original
+control. Supplied differing next guesses are overridden by known authority.
+Three sequential worlds retire with saved payload0;roots/revision remain stable,
+unknown/foreign/error0,natural child exit0/reaped,no force.
+
+The original parent verdict is FALSE solely because it assumed cumulative Job
+total1. Actual total2/active0/terminated0 includes one UNATTRIBUTED extra process.
+Original report/source/raw captures remain unchanged. Separate file-only
+reanalysis01 reparses all observations/receipts and passes the corrected bounded
+lifecycle rule. It does not identify the extra process or close broader process/
+privacy gates. Fourteen authored verifier cases cover the revised rule.
+Internal correction boundaries measure24.462/21.089ms INCLUDING the verifier's
+5.565/5.833ms corrected-head observation. Replay dispatch alone5.841/2.871ms.
+These are measured scopes,not an engine-only correction benchmark.
+
+The ordered local-action ledger,confirmed entity history and speculative
+revision API have separate authored checks. The ledger retains ordinal FIFO,
+mirrors server normalization and only forecasts movement abilities12/14;it is
+not yet wired to game input. No game path enables the worker controls yet.
+
+INTEGRATION STILL OPEN
+Integrate ordered immediate input,separate confirmed and
+physical counters;confirmed entity admission and actor repair;confirmed-only
+terminal UI;visible original renderer movement before authority;two-client
+latency/rematch/failure qualification;private installer and human acceptance.
+The reconciler is wired into explicit worker controls;actual client prediction
+is still unintegrated. No live server,firewall or usual-client changes.
+
+PRIVATE EVIDENCE
+local/prediction-checkpoint-20261109/native-worker01/verification.json
+local/pw/menu01/verification.json (original failed parser),reanalysis01.json
+local/pw/practice01/verification.json and owned worker data
+local/pw/practice02/verification.json
+local/prediction-checkpoint-20261109/foreign-idle02/verification.json
+local/prediction-checkpoint-20261109/foreign-idle03/verification.json
+local/prediction-checkpoint-20261109/terminal-drain02/verification.json
+local/prediction-checkpoint-20261109/worker-reconcile02/verification.json
+local/prediction-checkpoint-20261109/worker-reconcile03/reanalysis01.json
+local/prediction-checkpoint-20261109/worker-reconcile03/timing-clarification01.json
+local/prediction-checkpoint-20261109/page-checkpoint-green10/
+local/prediction-checkpoint-20261109/arena-build08/diagnostic-abi.txt
+local/movement-prediction/reconciler02/verification.json
+Generated binaries,assets,raw captures and private profiles remain ignored.
