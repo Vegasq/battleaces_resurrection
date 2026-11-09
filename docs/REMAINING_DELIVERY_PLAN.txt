@@ -13,6 +13,11 @@ playable. Logs prove12.306Hz rather than20,>200ms input starvation about every
 six frames and~484ms submitted-command delay. Reproduce the asymmetric two-peer
 input/presentation feedback before changing the live host. D8 remains FAILED;
 korea-match-lag-20261109.txt. No new Nick test or reinstall requested.
+N27 constraint:LOCAL DEVELOPMENT ONLY. Do not stop/restart/update the running
+server or change its firewall. Native local control reproduces12.5Hz;per-player
+buffers pass20Hz/zero long pauses and improve the fast-peer command sample
+485->297ms. Slow-peer sample remains610ms. Native state/replay checks pass;
+input-buffering-local-20261109.txt. Local candidate ready;no deployment/push.
 
 Read this file for what to do next. STATUS.txt summarizes the latest evidence;
 RELEASE_ACCEPTANCE.txt defines closure;INDEX.txt locates guides and detailed records.

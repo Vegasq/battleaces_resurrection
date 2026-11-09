@@ -34,7 +34,7 @@ from .community import Community
 from . import public_protocol as public_wire
 from .diagnostics import failure_fields,validation_reason
 from .profile_io import _await_owned
-from .latency_policy import feedback_sample, select_input_window
+from .latency_policy import feedback_sample, select_input_windows
 TICK = 0.05
 
 
@@ -158,14 +158,18 @@ class Room:
         managed = community_lobby is not None or public_match is not None
         p.require(feedback_peers is None or (managed and isinstance(feedback_peers, dict) and
                   feedback_peers.keys() == self.slots - self.bots.keys()), 'complete managed feedback roster required')
-        samples = {slot: feedback_sample(getattr(peer, 'feedback_ms', None))
-                   for slot, peer in (feedback_peers or {}).items()}
+        human_slots = self.slots - self.bots.keys()
+        samples = ({slot: feedback_sample(getattr((feedback_peers or {}).get(slot), 'feedback_ms', None))
+                    for slot in sorted(human_slots)} if managed else {})
         self.input_window_feedback = MappingProxyType(samples)
         configured_window = server.input_window
         adaptive = managed and server.adaptive_input_window
         # Managed rosters are complete before the first WELCOME/assignment.
         # Direct legacy rooms retain the first window already sent to a joining peer.
-        self.input_window = select_input_window(configured_window, samples.values()) if adaptive else configured_window
+        windows = (select_input_windows(configured_window, samples) if adaptive else
+                   {slot: configured_window for slot in sorted(human_slots)})
+        self.input_windows = MappingProxyType(windows)
+        self.input_window = max(windows.values())  # Aggregate cap; each human negotiates its own lead.
         self.peers = {}
         self.joining, self.saving_decks = set(), set()
         self.decks = {bot.slot: self.template.validate_deck(bot.deck) for bot in bots}
@@ -187,7 +191,8 @@ class Room:
         self.result = None
         self.result_frame = None
         self.event('input_window_selected', configured_input_window=configured_window,
-                   input_window=self.input_window, adaptive=adaptive, managed=managed, feedback_ms=dict(samples))
+                   input_window=self.input_window, input_windows=dict(self.input_windows),
+                   adaptive=adaptive, managed=managed, feedback_ms=dict(samples))
         self.task = asyncio.create_task(self.tick_loop())
 
     def event(self, event, **fields):
@@ -254,7 +259,7 @@ class Room:
         if full_loadout: self.full_loadout_seats.add(slot)
         if frozen_cosmetics is not None: self.cosmetics[slot] = frozen_cosmetics
         if self.public_match is None:
-            peer.send(p.WELCOME, p.welcome(slot, self.input_window, deck))
+            peer.send(p.WELCOME, p.welcome(slot, self.input_windows[slot], deck))
         self.event("player_joined", slot=slot, profile=profile_id, name=name, deck=deck)
         self.last_progress = time.perf_counter()
         self.lobby_state()
@@ -373,7 +378,8 @@ class Room:
             (match_dir / "bootstrap.pb.gz").write_bytes(self.match.gzip_game_data)
             (match_dir / "match.json").write_text(json.dumps({
                 "schema": 1, "match_id": self.match_id, "room": self.name,
-                "seed": self.match.seed, "decks": self.decks, "input_window": self.input_window, "mode": self.mode,
+                "seed": self.match.seed, "decks": self.decks, "input_window": self.input_window,
+                "input_windows": dict(self.input_windows), "mode": self.mode,
                 "profiles": {slot: self.peers[slot].profile_id for slot in self.peers},
                 "bots": {slot: bot.profile_id for slot, bot in self.bots.items()},
                 "original_sha256": p.BUILD_SHA, "simulation_sha256": p.SIM_SHA,
@@ -392,14 +398,15 @@ class Room:
                 complete = slot in self.full_loadout_seats
                 peer.send(loadout.MATCH_LOADOUT if complete else public_wire.MATCH,
                           public_wire.assignment(self.queue_tickets[slot], self.match_id, self.mode,
-                          slot, human_mask, self.input_window, self.decks[slot],
+                          slot, human_mask, self.input_windows[slot], self.decks[slot],
                           cosmetics=self.cosmetics[slot] if complete else None))
         self.broadcast(p.BOOTSTRAP, self.match.gzip_game_data)
         self.event("match_created", seed=self.match.seed, decks=self.decks,
                    bootstrap_bytes=len(self.match.gzip_game_data),
                    bootstrap_sha256=hashlib.sha256(self.match.gzip_game_data).hexdigest(),
                    authority="original Simulation.dll in isolated match worker", worker_pid=sim.pid,
-                   input_window=self.input_window, mode=self.mode, participants=len(self.slots))
+                   input_window=self.input_window, input_windows=dict(self.input_windows),
+                   mode=self.mode, participants=len(self.slots))
 
     async def on_message(self, peer, kind, payload):
         p.require(self.state != "closed", "room closed")
@@ -460,7 +467,7 @@ class Room:
             p.require(self.state == "running", "input outside running match")
             p.require(4 <= len(payload) <= 4 + p.MAX_INPUT, "input size limit")
             frame, = struct.unpack_from("<I", payload)
-            p.require(frame == peer.next_input and frame < self.frame + self.input_window,
+            p.require(frame == peer.next_input and frame < self.frame + self.input_windows[peer.slot],
                       "input frame must be contiguous and within lookahead")
             try:
                 body = self.validation.validate_player_input(peer.slot, payload[4:])

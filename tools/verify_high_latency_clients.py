@@ -139,6 +139,8 @@ async def run(args):
             row['peer_next_inputs'] = {slot: peer.next_input for slot, peer in room.peers.items()}
             row['pending_by_slot'] = {slot: sum(slot in value for value in room.pending.values()) for slot in room.peers}
             row['input_window'] = room.input_window
+            row['input_windows'] = dict(getattr(room, 'input_windows',
+                                       {slot: room.input_window for slot in room.peers}))
             canonical_states[fields['frame']] = state_digest(room.sim.last_state)
         events.append(row)
         audit(event, **{key: value for key, value in row.items() if key != 'event'})
@@ -160,6 +162,7 @@ async def run(args):
     report = dict(passed=False, scope=__doc__, helper_sha256=helper_hash,
                   source_sha256_at_start=source_hashes(), input_window=args.input_window,
                   rtt_ms=args.rtt_ms, target_frames=args.frames, state_audit=args.state_audit, policy=args.policy,
+                  expected_peer_windows=args.expected_peer_windows,
                   state_digest_scope='all parsed worker state fields except raw_sha256 (raw native buffer fingerprint)',
                   delay_model='ordered independent stream delay, end-to-end verified TLS; no packet loss or remote TCP model')
     original_message = Room.on_message
@@ -245,6 +248,7 @@ async def run(args):
             elapsed = queued[-1]['observed_at']-queued[0]['observed_at']
             report['authority'] = dict(match=match, frames=len(queued), effective_hz=(args.frames-1)/elapsed,
                 frozen_input_window=queued[0]['input_window'],
+                frozen_input_windows=queued[0]['input_windows'],
                 input_wait_ms=summary([row['input_wait_ms'] for row in queued]),
                 waits_over_100=sum(row['input_wait_ms'] > 100 for row in queued),
                 waits_over_200=sum(row['input_wait_ms'] > 200 for row in queued),
@@ -277,9 +281,15 @@ async def run(args):
                         'queued=1 commandQueueDelta=1' in row['log'], 'original native build command was not exercised')
                 build_tick, build_frame = map(int, builds[0])
                 assignment = re.search(r'Public match assignment: [^\r\n]* inputWindow=(\d+)', row['log'])
-                require(assignment is not None, 'native negotiated input window is missing')
+                seat = re.search(r'Public match assignment: [^\r\n]* seat=(\d+)', row['log'])
+                require(assignment is not None and seat is not None, 'native negotiated input window/seat is missing')
+                require(queued[0]['input_windows'][int(seat[1])] == int(assignment[1]),
+                        'native assignment differs from its frozen peer window')
+                if args.expected_peer_windows is not None:
+                    require(int(assignment[1]) == args.expected_peer_windows[row['index']],
+                            'native negotiated peer window differs from the requested expectation')
                 report['clients'].append(dict(index=row['index'], pid=row['process'].pid, rtt_ms=args.rtt_ms[row['index']],
-                    assigned_input_window=int(assignment[1]),
+                    assigned_input_window=int(assignment[1]), seat=int(seat[1]),
                     command_delays=delays, build_frame=build_frame,
                     build_enqueue_to_apply_ms=applied[build_frame]-build_tick,
                     submit_to_apply_ms=summary([value['submit_to_apply_ms'] for value in delays if value['frame'] > 0]),
@@ -314,6 +324,17 @@ async def run(args):
     except BaseException as error:
         report.update(passed=False, error=f'{type(error).__name__}: {error}', traceback=traceback.format_exc())
     finally:
+        if report['passed']:
+            # Observations are complete. Stop admitting new work in this owned
+            # fixture before closing its clients, then let any IPC request drain.
+            # This is forced prefix teardown, not a native completed-game result.
+            for room in server.rooms.values():
+                if room.state == 'running':
+                    room.state = 'completed'
+            drain_deadline = time.monotonic()+3
+            while any(worker._lock.locked() for worker in workers) and time.monotonic() < drain_deadline:
+                await asyncio.sleep(.005)
+            report['owned_worker_requests_drained'] = not any(worker._lock.locked() for worker in workers)
         for row in clients:
             process = row.get('process')
             if process is not None:
@@ -371,6 +392,7 @@ def main():
     parser.add_argument('--expected-helper-sha256', required=True)
     parser.add_argument('--rtt-ms', type=float, nargs=2, default=(130, 425))
     parser.add_argument('--input-window', type=int, default=6)
+    parser.add_argument('--expected-peer-windows', type=int, nargs=2)
     parser.add_argument('--policy', choices=('fixed', 'adaptive'), default='fixed')
     parser.add_argument('--frames', type=int, default=600)
     parser.add_argument('--timeout', type=int, default=240)
@@ -383,6 +405,9 @@ def main():
     require(not (args.expect_starvation and args.require_smooth), 'choose baseline or candidate expectation')
     for rtt in args.rtt_ms:
         StreamShaper(1, rtt_ms=rtt)
+    if args.expected_peer_windows is not None:
+        for window in args.expected_peer_windows:
+            p.validate_input_window(window)
     return asyncio.run(run(args))
 
 

@@ -4,6 +4,15 @@ Current work:REMAINING_DELIVERY_PLAN.txt. Evidence navigation:INDEX.txt.
 Exact prior3576-line ledger:history/2026-10-24/STATUS.txt.
 Historical records retain their original failures,claims and artifact scopes.
 
+N27:Nick explicitly requires local development only;the running server is left
+untouched. Two owned native clients with controlled130/475ms RTT reproduce
+12.5Hz. Shared adaptive buffering reaches20Hz/zero pauses>100ms with complete
+600-frame replay equality,but increases sampled command delay. Per-player
+lookahead now passes20.002Hz on both clients,zero skips/long pauses,complete600
+frames and native state/replay equality. Fast command sample485->297ms;slow
+sample610ms remains. Candidate is ready locally;no deployment or client change.
+See input-buffering-local-20261109.txt. No new release/deployment/D8 acceptance.
+
 N26 real0.4.0 Custom1v1 with Nick's friend in Korea is barely playable per Nick.
 Matched server/native logs show12.306Hz throughout,not20;1035 recorded input
 waits>200ms repeat almost exactly every six frames. Recorded slow-frame worker
