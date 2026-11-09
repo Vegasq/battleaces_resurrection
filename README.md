@@ -20,7 +20,7 @@ This patch supports the **Windows x64 Battle Aces build 37822** files. Before in
 2. Open PowerShell and check the original DLL, replacing the example folder with yours:
 
    ```powershell
-   (Get-FileHash -Algorithm SHA256 -LiteralPath 'C:\Games\Battle Aces\GameAssembly.dll').Hash
+   (Get-FileHash -Algorithm SHA256 -LiteralPath 'D:\BattleAces\GameAssembly.dll').Hash
    ```
 
    The supported original `GameAssembly.dll` hash is `e59d08c01479b27404778048d7e13546dbf3771f6b3912744c7c2bdf80c4e758` (letter case does not matter).

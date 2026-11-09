@@ -17,6 +17,15 @@ DOC_SCREENSHOTS = {
     "docs/screenshots/client-installer.png": "50e00f44dd4c90548f11d7a7ba82977febeddeba6c140d167b85dd685e2b9f75",
     "docs/screenshots/server-dashboard.png": "d89b2b68b6a0fbff259f3169a4039f98460d2dff065069064ff07cd08d0ee28a",
 }
+DOC_MEDIA = {
+    "docs/media/crabs-2026.gif": (11450491, "0a55bca8d973e006520c4621ad2a2cd1c3b87532d81b15ca953d8b6aff033b1f"),
+    "docs/media/discord-server.webp": (14522, "20a8cc9fad8aa716d0f85c1782b0aab35ec22c95b53468a91779f9833e87ea83"),
+}
+DEPLOY_SOURCES = {
+    "deploy/linux/README.md",
+    "deploy/linux/ba-server-supervise",
+    "deploy/linux/battle-aces-server.service",
+}
 FORBIDDEN_PARTS = {"local", "build", "dist", "assets", "fixtures", "captures", "original",
                    "backups", "metadata", "descriptors", "battle aces_data", "__pycache__"}
 SOURCE_FIXTURES = {
@@ -27,6 +36,11 @@ SOURCE_FIXTURES = {
 
 
 def inspect_content(name: str, data: bytes) -> list[str]:
+    if name in DOC_MEDIA:
+        size, digest = DOC_MEDIA[name]
+        if len(data) != size or hashlib.sha256(data).hexdigest() != digest:
+            return ["unreviewed documentation media"]
+        return []
     if name in DOC_SCREENSHOTS:
         if (len(data) > 128 * 1024 or not data.startswith(b"\x89PNG\r\n\x1a\n") or
                 hashlib.sha256(data).hexdigest() != DOC_SCREENSHOTS[name]):
@@ -34,7 +48,7 @@ def inspect_content(name: str, data: bytes) -> list[str]:
         return []
     path = PurePosixPath(name)
     reasons = []
-    if name not in ROOT_FILES and (path.parts[0] not in SOURCE_DIRS or path.suffix.lower() not in EXTENSIONS):
+    if name not in ROOT_FILES | DEPLOY_SOURCES and (path.parts[0] not in SOURCE_DIRS or path.suffix.lower() not in EXTENSIONS):
         reasons.append("not an allowed source/documentation path")
     if name not in SOURCE_FIXTURES and any(part.lower() in FORBIDDEN_PARTS for part in path.parts):
         reasons.append("runtime/capture/asset directory")
