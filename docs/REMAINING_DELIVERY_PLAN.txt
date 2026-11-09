@@ -8,6 +8,12 @@ matchmaking;2vAI still searches for a human teammate. N24 private installer is
 superseded by the published release;N23 stays superseded,no repeat requested.
 Other-human online lag/D8 remains open. Details:release-040-20261109.txt.
 
+Current priority:N26 real0.4.0 Custom1v1 with Nick's friend in Korea was barely
+playable. Logs prove12.306Hz rather than20,>200ms input starvation about every
+six frames and~484ms submitted-command delay. Reproduce the asymmetric two-peer
+input/presentation feedback before changing the live host. D8 remains FAILED;
+korea-match-lag-20261109.txt. No new Nick test or reinstall requested.
+
 Read this file for what to do next. STATUS.txt summarizes the latest evidence;
 RELEASE_ACCEPTANCE.txt defines closure;INDEX.txt locates guides and detailed records.
 The exact previous1096-line plan is history/2026-10-24/REMAINING_DELIVERY_PLAN.txt.

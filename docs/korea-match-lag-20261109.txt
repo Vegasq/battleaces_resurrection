@@ -1,0 +1,65 @@
+0.4.0 REAL-HUMAN MATCH - PERSISTENT INPUT STARVATION
+Nick2026-11-08:"Tested with a friend in korea. Do you have acces to logs?
+It was barely playable." Private worksheet:N26. D8 remains FAILED/open.
+
+MATCH AND SOURCE
+Custom1v1 match4640eb26ded14db28d6aab642b900eb1,server134.209.176.39.
+Created02:49:25UTC;started02:49:34;completed02:57:59 (20:49-20:58 Chicago).
+Nick client14764,local session27348-368,seat0. The usual installed launcher
+selects cached runtime38ae3681710872873e8c,clean0.4.0 source573c750. Its helper
+ee7932bf27889d7b55b4a5159d03a16600e92d0c5f6d2ca41ca91c12285427f2 matches
+the release. Native online-presentation clock is active,input_window6.
+Server remains the clean0.4.0 deployment. This was two humans/no server AI.
+
+RAW EVIDENCE
+Read-only snapshots in local/korea-match-20261109/:server-events.jsonl,
+web-matches.json,dedicated-native-14764.log,client-session-27348-368.log.
+No credential/profile files or friend-PC files were copied. No live service,
+configuration,firewall,game process or user files were changed during diagnosis.
+Native/server analysis JSONs are kept beside these ignored snapshots.
+
+SERVER FINDINGS
+6221frames in505.545seconds =12.306Hz;target20Hz. At50ms/frame,this is311.05s
+of simulated time in505.545s wall time,an extra194.495s. Native game completed
+by concession;worker released normally. No match abort/protocol error observed.
+3967 cadence_late records (selected slow frames,not every frame):
+- worker median12.155ms,p9519.229ms,max80.940ms;only one sample>50ms.
+- input_wait median68.097ms,p95229.938ms,max338.224ms,sum317.052s.
+- 1038 recorded input waits>100ms;1035>200ms.
+- schedule clamps total194.459s,closely matching the wall-time excess.
+1027 of1034 successive >200ms-wait pairs are exactly6frames apart;lag6
+autocorrelation after warmup0.994. This is strongly periodic input starvation
+at the configured six-frame pipeline,not a few isolated simulation spikes.
+
+NICK CLIENT FINDINGS
+Sparse original native frame-application logs independently show frame0->6201
+over503.906s =12.306Hz. All31 consecutive200-frame windows run12.20-12.43Hz,
+median12.30Hz. No late-game-only degradation is needed to explain the report.
+296 matched local action batches take median484ms from submission to native
+application,p95515ms,max547ms. This includes configured lead,transport,both
+clients/server buffering and local scheduling;it is NOT raw mouse latency or RTT.
+51 sampled world states keep sim-presented at0/1;the presentation clock runs.
+Native result/Continue/session reset and world release complete normally.
+
+INTERPRETATION AND LIMITS
+The server waits for every human's exact contiguous input before a50ms step.
+lan_transport.cpp replenishes its six-frame input lookahead only after applying
+an authoritative frame,behind the one-pending-output presentation gate. That
+forms a feedback pipeline whose latency budget can be exhausted by network
+round trips and/or client-side scheduling. The repeating six-frame starvation
+is a concrete regression target for this high-latency two-client case.
+The logs prove a materially slow shared simulation and substantial missing-input
+wait. They do not identify which slot was missing or measure either RTT,packet
+loss,friend FPS or exact raw wire arrivals. A slower render/input producer,
+transport buffering and network latency remain possible contributors. Korea
+location alone does not prove the cause. The local 'LAN received' log is after
+ProcessInputActions/PushSimMessage,not a transport-arrival timestamp.
+
+NEXT ENGINEERING CLAIM
+Reproduce the persistent six-frame starvation with two owned clients and
+asymmetric bounded latency;measure per-peer input readiness and replenishment
+separately from native presentation. Then qualify a buffering/input-production
+fix against20Hz and command delay. Do not blindly repeat the earlier6->9 live
+trial:that prior1vAI case already reached19.8Hz while still looking jerky.
+Do not claim a server-capacity fix or blame one player without new evidence.
+The public0.4.0 service remains available;no new Nick install/test is requested.

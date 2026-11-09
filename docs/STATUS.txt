@@ -4,6 +4,15 @@ Current work:REMAINING_DELIVERY_PLAN.txt. Evidence navigation:INDEX.txt.
 Exact prior3576-line ledger:history/2026-10-24/STATUS.txt.
 Historical records retain their original failures,claims and artifact scopes.
 
+N26 real0.4.0 Custom1v1 with Nick's friend in Korea is barely playable per Nick.
+Matched server/native logs show12.306Hz throughout,not20;1035 recorded input
+waits>200ms repeat almost exactly every six frames. Recorded slow-frame worker
+median12.155ms,p9519.229ms;only one>50ms. Local submitted actions take median
+484ms to apply. Match completes normally;no protocol/abort error. Which peer/
+network/client mechanism causes the missing inputs is not logged. The next
+target is asymmetric two-client input buffering/presentation feedback,not an
+unmeasured capacity change. No live mutation/new user test;korea-match-lag-20261109.txt.
+
 0.4.0 client/server installers are PUBLISHED from clean573c750;GitHub digests
 and all four downloaded assets match. Both embedded packages verify;96 focused
 tests pass and source audit has zero failures. Exact embedded client update
