@@ -110,3 +110,12 @@ for this candidate. No GitHub upload/push,live configuration change,service
 restart,firewall change or public-server update was performed under N27.
 Any future deployment must respect Nick's separate instruction to keep the
 running server intact;this local result does not authorize replacing it.
+
+Private package snapshot from clean local sourcef70c67e05107963b3eb9fad485d259aca486b44c:
+local/korea-fix-20261109/packages/battleaces-server-win64.zip
+SHA256:902b4c466d2c13778189633026f1a7aebc0ac4ad9fde6aeaadd1a92c0d6cf400.
+This is an unpublished candidate with the existing0.4.0 label,not a replacement
+public asset. Package inventory verifies and its actual isolated Python3.14
+runtime imports the packaged policy and passes all17 policy/integration tests
+using only local test fixtures. No production host is started or contacted.
+local/korea-fix-20261109/bundled-runtime-report.json.
