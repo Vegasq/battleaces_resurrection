@@ -9,6 +9,7 @@ import uuid
 from . import community_protocol as c, protocol as p
 from . import loadout_protocol as loadout
 from .diagnostics import failure_fields,validation_reason
+from . import command_scheduling as command_wire
 
 
 class Rejected(ValueError):
@@ -246,6 +247,23 @@ class Community:
         self.server.audit('community_left', profile=profile)
 
     async def handle(self, peer, kind, payload):
+        if kind == command_wire.NEGOTIATE:
+            session = self.sessions[peer.profile_id]
+            self.require_session(session)
+            p.require(self.server.experimental_command_scheduling, 'experimental command scheduling disabled')
+            p.require(payload == bytes([command_wire.VERSION]) and getattr(peer, 'authenticated_tls', False) and
+                      not getattr(peer, 'command_scheduling', False) and session.lobby is None and peer.room is None and
+                      not session.practicing and not session.saving and not self.public.busy(peer.profile_id),
+                      'command experiment requires an authenticated TLS idle community peer')
+            peer.send(command_wire.ACK, bytes([command_wire.VERSION]))
+            peer.command_scheduling = True
+            self.server.audit('command_scheduling_negotiated', connection=peer.connection, version=command_wire.VERSION)
+            return
+        if kind in (command_wire.BATCH, command_wire.HEARTBEAT, command_wire.READY):
+            p.require(peer.room is not None, 'command experiment message without an assigned match')
+            if peer.room.state in ('completed', 'closed'): return
+            await peer.room.on_message(peer, kind, payload)
+            return
         if kind in (p.INPUT, p.LOADED):
             p.require(peer.room is not None, 'match message without an assigned match')
             if peer.room.state in ('completed', 'closed'):
@@ -274,6 +292,9 @@ class Community:
         require(not session.saving or kind == c.REFRESH, 'profile selection is still saving')
         from . import public_protocol as public
         if kind in public.COMMANDS:
+            require(kind not in (public.ENTER, loadout.ENTER_LOADOUT) or
+                    not getattr(session.peer, 'command_scheduling', False),
+                    'arrival command experiment supports Custom 1v1 only')
             return await self.public.apply(session, kind, command, now)
         require(not self.public.busy(profile) or kind == c.REFRESH, 'finish or cancel public matchmaking first')
         if kind == c.PRACTICE:
@@ -394,6 +415,8 @@ class Community:
             require(lobby.phase == c.OPEN and len(lobby.members) == 2, 'custom lobby needs two players')
             require(not any(self.sessions[member].saving for member in lobby.members), 'wait for profile selections to finish saving')
             require(command['revision'] == lobby.revision, 'custom lobby changed; refresh before starting')
+            require(len({getattr(self.sessions[member].peer, 'command_scheduling', False)
+                         for member in lobby.members}) == 1, 'mixed experimental command scheduling peers cannot start')
             lobby.phase, lobby.deadline = c.STARTING, now + self.start_timeout
             lobby.epoch += 1
             lobby.ready = {profile}  # Native host Start is its readiness acknowledgement.

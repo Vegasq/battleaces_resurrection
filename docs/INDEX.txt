@@ -20,6 +20,7 @@ Focused evidence files were not renamed because tools and retained reports
 depend on their paths. Top-level reference documents are indexed below.
 
 CURRENT PLANNING AND ACCEPTANCE
+  original-command-scheduling.txt - original sender/prediction evidence and default-off local Custom1v1 scheduling experiment
   input-buffering-local-20261109.txt - N27 local-only fix,controlled native reproduction,adaptive buffer and latency tradeoff
   korea-match-lag-20261109.txt - real0.4.0 two-human12.3Hz slowdown,six-frame input starvation and next regression target
   release-040-20261109.txt - published0.4.0 paired installers,clean source,live upgrade and durable public game reopening

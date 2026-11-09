@@ -4,6 +4,20 @@ Current work:REMAINING_DELIVERY_PLAN.txt. Evidence navigation:INDEX.txt.
 Exact prior3576-line ledger:history/2026-10-24/STATUS.txt.
 Historical records retain their original failures,claims and artifact scopes.
 
+N28:original sender/prediction investigation is complete at the inspected
+scope;local branch experiment/original-command-scheduling is ready. Retail
+sender skips empty batches. Resource/catch-up/replay paths do not establish
+movement rollback. Default-off Custom1v1 arrival scheduling with first-output
+READY barrier improves sampled command application296/594->141/500ms at
+controlled130/475ms RTT. Both native clients sustain~20Hz,zero skipped frames
+or gaps>100ms over600 frames,but presentation spacing is wider. Full-prefix
+native consumption/replay,240 canonical snapshot comparisons,two result/Continue
+cycles and held-worker command conservation pass.152 server tests (3 skips),
+38 verifier/package/audit tests and full native build pass. Failed prototypes
+remain recorded. This does not close D8 or qualify movement prediction.
+Evidence/test guide:original-command-scheduling.txt. No live change/push/release
+or Nick test requested;usual installed game is untouched.
+
 N27:Nick explicitly requires local development only;the running server is left
 untouched. Two owned native clients with controlled130/475ms RTT reproduce
 12.5Hz. Shared adaptive buffering reaches20Hz/zero pauses>100ms with complete

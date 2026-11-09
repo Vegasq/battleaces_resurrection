@@ -33,7 +33,7 @@ SERVER = COMMON + (
     'server/ai_rules.py', 'server/native_ai.py', 'server/worker_ai.py', 'server/bot_catalog.py',
     'server/assets.py', 'server/community.py', 'server/community_protocol.py',
     'server/cosmetics.py', 'server/loadout_protocol.py', 'server/public_protocol.py', 'server/public_matchmaking.py',
-    'server/configuration.py', 'server/dedicated_server.py', 'server/latency_policy.py', 'server/game_data.py',
+    'server/configuration.py', 'server/dedicated_server.py', 'server/latency_policy.py', 'server/command_scheduling.py', 'server/game_data.py',
     'server/host.py', 'server/host_audit.py', 'server/diagnostics.py', 'server/native_simulation.py',
     'server/web_dashboard.py', 'server/web_dashboard_page.py',
     'server/rc_host.py', 'server/New-RCCertificate.ps1',
