@@ -1677,7 +1677,10 @@ D8 - Internet,latency,capacity:OPEN.
   rejection/offline fallback/rendered notice pass;client-version-policy.txt.
   Compatible native pair has matching state/zero skips;one p95 gap94ms still
   fails the broader80ms timing gate. Preserve that failure;D8 remains open.
-  Rollout and N20 acceptance remain open;live host/firewall unchanged.
+  Owner-only live host upgraded to rc1.10/minimum client revision1;actual
+  Internet legacy rejection/current welcome pass,seven original profiles
+  unchanged. Firewall retained. Publication/public rollout and N20 acceptance
+  remain open;live-server-rc110-20261108.txt. N20 now uses client-installer02.
   N19 still jumped per Nick despite381frames/19.27s=19.8Hz and only4 late
   server events with input window9. Client authoritative-frame presentation
   pacing passes a local delayed-stream regression (60 total displayed-frame

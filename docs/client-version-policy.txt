@@ -1,5 +1,5 @@
 CLIENT VERSION POLICY AND PERSISTENT UPDATE OVERLAY
-2026-11-08. Prepared for paired0.3.0-rc1.10;not yet published or deployed.
+2026-11-08. Paired0.3.0-rc1.10;deployed owner-only,not publicly published.
 
 Behavior
 The native helper sends client compatibility revision1 as a four-byte trailer
@@ -40,7 +40,9 @@ available for download. A staged server can accept legacy clients with minimum0
 while clients are upgraded;set minimum1 to require this corrected helper.
 Before enabling the policy on the public host,retain the host configuration
 backup and the existing owner-only firewall until N20 accepts movement.
-Current live service/configuration and pending N20 installer are unchanged.
+The owner-only live host now runs rc1.10/minimum1. The existing N20 request
+now points to final client-installer02,which matches this server. Publication
+and public reopening remain pending;live-server-rc110-20261108.txt.
 
 An old server rejects this new HELLO trailer as "extra hello fields". Updated
 clients map that incompatibility to a persistent "Server update required"
@@ -97,8 +99,8 @@ server EXE SHA256 c9659c2486e7576262478845d6aa0e6339d57eb3a011ac97e4e82425e28c84
 Both --verify-payload calls pass. Both extracted pinned Python3.14 runtimes
 import the new policy module,encode/decode revision1 and legacy0 correctly,
 and report package0.3.0-rc1.10/client_revision1;runtime-check.json retains this.
-These are dirty-source private previews,not a public release or live policy
-change. The earlier N20 buffered installer remains the live-host test artifact.
+These first previews were prepared before the live policy change and remain
+historical private artifacts. N20 now uses the final preview below.
 
 The final private previews include updated player/operator quickstarts at
 local/client-version-overlay/packages02/,client-installer02/ and
@@ -106,4 +108,5 @@ server-installer02/. Both final embedded payload verifications pass. Final
 client EXE SHA2564970259e952ba381b97ac202acac0077519e387a093ad7340eba1b9a9dfe8758;
 server EXE SHA25609084ea34c60fa60d11c4afe327b22840cd48a9e015d51e63752a6d692631352.
 Earlier previews/reports are retained. An additional32 compatibility/public
-protocol/admission tests pass. No public publication or live host change.
+protocol/admission tests pass. Source was committed as4afe119 before the
+owner-only live deployment;public publication remains pending.

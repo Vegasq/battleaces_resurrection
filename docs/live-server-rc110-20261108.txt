@@ -1,0 +1,74 @@
+LIVE OWNER-ONLY SERVER UPDATE TO RC1.10
+2026-11-08 Chicago;deployment/readiness checks crossed into2026-11-09 UTC.
+
+Result
+DigitalOcean134.209.176.39 now runs paired0.3.0-rc1.10 server code from4afe119.
+The existing battle-aces-server.service restarted successfully and listens on
+TCP47623. Minimum client revision is1,input_window remains6. The matching
+client installer is the final private preview already supplied to Nick:
+local/client-version-overlay/client-installer02/Install Battle Aces.exe
+SHA2564970259e952ba381b97ac202acac0077519e387a093ad7340eba1b9a9dfe8758.
+This is an owner-only candidate deployment,not a new GitHub release or public
+reopening. The same pending N20 request now points to this matching installer.
+
+Archive and deployment
+local/client-version-overlay/packages02/battleaces-server-win64.zip
+SHA2561926bb3db4780f962b7369708275ae8b827dba20bccf55cbb7564ccef6fff4d1.
+The uploaded ZIP and all116 immutable package members were verified before
+installation. The old package was rc1.7 with its manifest-bound live cadence
+override. No established game clients were present when deployment began.
+Remote deployment directory:/srv/ba-runtime/rc110-deploy-20261108.
+An owner-only backup contains the previous manifest/program files,exact host
+configuration and mutable data. All seven original profile JSON hashes were
+unchanged after upgrade. Existing assets,certificate paths,Wine prefix,IP and
+systemd autostart configuration were retained.
+
+Retained initial failure and correction
+The first restart failed:the old package's program/crypto/Generate Certificate.exe
+and program/crypto/certificate-build.json were no longer in the new manifest.
+Copying new files over old files left these two obsolete members behind;
+package_integrity correctly rejected the unlisted program files. The restart
+loop was stopped. Their bytes were checked against the rollback backup before
+removing those two exact obsolete paths. The normal service then started and
+its asset/TLS/native create-step-close preflight passed under Wine.
+The private install-report.json initially records start-request success only;
+readiness-report.json and the actual connection reports establish readiness.
+
+Upgrade rule for future operators
+Before an in-place upgrade,verify both inventories,stop with no connected
+games,and back up old package/config/data. Compare old manifest files with the
+new manifest. Remove obsolete immutable members only after matching them to
+the backup;preserve mutable data,assets and private configuration. Verify the
+whole new package,including absence of unlisted program files,under its actual
+bundled runtime before restarting. Check readiness after systemctl start:
+its exit status alone does not prove the game listener is running.
+
+Verification
+local/client-version-overlay/live-rc110-protocol01/report.json PASS:
+actual external TLS route134.209.176.39:47623 authenticates a fresh isolated
+probe identity;legacy revision0 receives BA_UPDATE_REQUIRED/1/... and revision1
+receives community WELCOME41. RC transport encrypts without certificate
+validation,as before. No real player's credential was used or logged.
+
+local/client-version-overlay/live-rc110-native01/report.json PASS at its bounded
+600-frame prefix scope:owned native client connects to the actual Wine host,
+gets public2vAI assignment and applies602 frames. Presented changes591,
+zero displayed skips,median47ms,p9563ms,max157ms,three gaps>100ms,19.926Hz.
+This probe is not the strict complete-view pacing gate or visual acceptance.
+Its forced owned-process cleanup does not establish results/Continue/Quit.
+Logs include local profile write-sharing errors;these were retained and did
+not prevent the online prefix. No usual game folder or player session changed.
+The prior four-view p9594ms timing failure remains recorded;D8/N20 stay open.
+
+Firewall and recovery
+Game BA_GAME_47623 still allows loopback and70.113.101.244/32,then TCP reset.
+Dashboard BA_DASHBOARD_47624 still allows loopback and that IP,then DROP.
+SSH and public-access policy were not changed. Do not reopen public access
+before the pending movement check and publication of matching installers.
+
+Rollback is prepared on the selected host:
+  python3 /srv/ba-runtime/rc110-deploy-20261108/deploy.py rollback
+It refuses established game connections,stops the service,restores backed-up
+immutable files/exact old config,removes new-only members and restarts. It
+preserves current mutable data;the original data backup is available separately.
+Verify service readiness after any rollback. The initial backup is not replaced.

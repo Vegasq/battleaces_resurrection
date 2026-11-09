@@ -20,7 +20,8 @@ Focused evidence files were not renamed because tools and retained reports
 depend on their paths. Top-level reference documents are indexed below.
 
 CURRENT PLANNING AND ACCEPTANCE
-  client-version-policy.txt - minimum client revision and persistent top-center update overlay;private rc1.10 preview
+  live-server-rc110-20261108.txt - owner-only rc1.10 deployment,rollback,upgrade cleanup and Internet verification
+  client-version-policy.txt - minimum client revision and persistent top-center update overlay;owner-only rc1.10 live
   live-online-lag-20261108.txt - live lag reproduction,client pacing fix,retained timing failures and N20
   live-droplet-scale-20261108.txt - live 4GiB resize,same IP,powered-off snapshot and boot autostart
   installer-fullscreen-rc19.txt - published rc1.9 paired installers,fullscreen default and hashes
