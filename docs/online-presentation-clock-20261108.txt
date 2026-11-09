@@ -122,3 +122,28 @@ Reproduce this scoped check with a fresh ignored output directory:
   python -m tools.verify_live_frame_pacing --game local/online-frame-pacing/game --output local/online-frame-pacing/NEW_NAME --helper local/online-frame-pacing/remaining-stutter01/helper-presentation04/BattleAcesOffline.dll --label candidate --frames 600 --mode 1
 Mode5 exercises the heavier three-AI/four-player workload. Both retained failed
 gates and their complete raw traces remain available;limits were not loosened.
+
+Prepared private installer for N22
+Source2a7b6f7,built clean. It retains the rc1.10 package label/revision1 and is
+compatible with the current server. It is not a GitHub publication or rollout.
+Client ZIP:local/online-frame-pacing/presentation-packages/battleaces-client-win64.zip
+SHA25690a4501fe671068d3da48a1307138e4c6c007ec3491b4287fc3dd23eea94458a.
+Client EXE:local/online-frame-pacing/presentation-client-installer/Install Battle Aces.exe
+SHA25603db42e3511fa048ea83e86766175d76ef712a2d786f855f59cd80fbdf7daa50.
+Its --verify-payload <report-file> check passes;the embedded pinned runtime
+verifies all package files. The report is remaining-stutter01/installer-payload-check.json.
+
+The actual extracted embedded package's bundled install-game action passes in
+the owned copy:145 profile files and saved configuration retain exact values;
+root/cached helpers both match e56bd8a0...,GameAssembly matches529add6c... .
+Start Battle Aces.cmd selects cached runtime58206e09d00e2f9f4a43.
+Evidence:local/online-frame-pacing/presentation-install-check/report.json,
+retained request/stdout/stderr. No physical GUI Install or desktop action was
+automated. An initial malformed verifier call opened the new installer form;
+only that owned form was closed. The preexisting user installer was preserved.
+The corrected verification produced its structured report successfully.
+
+Nick's usual installation still records helperb150b859... / patched99ffb3f7... .
+N22 now contains the exact new path and a single1vAI movement/response check.
+No N22 answer is recorded;D8/visible acceptance stays OPEN. The live server,
+saved identities,owner-only game firewall and dashboard access remain intact.

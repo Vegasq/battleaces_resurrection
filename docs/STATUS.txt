@@ -10,7 +10,9 @@ unpresented output. The exact helper passes a complete600-frame real Internet
 public1vAI check:zero skips/bursts/pauses>100ms;publication p9550.874ms. Native
 state/results pass at the named two-match scope. Four-player/three-AI server
 round-trip tails still fail the stricter gate;diagnostic I/O failures remain
-separate evidence. No visible PASS or usual-client/live-server rollout;
+separate evidence. The exact private installer payload and bundled update pass,
+preserving145 owned profile files/settings. N22 points to the new presentation
+client installer;no visible PASS or usual-client/live-server rollout;
 online-presentation-clock-20261108.txt.
 
 Paired0.3.0-rc1.10 adds client revision enforcement and a persistent update
