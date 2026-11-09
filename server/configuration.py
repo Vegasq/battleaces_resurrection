@@ -35,6 +35,7 @@ class HostConfig:
     dashboard_port: int = 47624
     minimum_client_revision: int = CLIENT_REVISION
     client_update_message: str = DEFAULT_UPDATE_MESSAGE
+    experimental_command_scheduling: bool = False
 
 
 def load_config(path):
@@ -51,16 +52,18 @@ def load_config(path):
         value = json.loads(raw.decode('utf-8-sig'), object_pairs_hook=pairs)
     except (OSError, UnicodeError, ValueError, RecursionError):
         raise ConfigurationError('Cannot read a bounded valid host configuration') from None
-    web_fields = {'dashboard_host', 'dashboard_port', 'minimum_client_revision', 'client_update_message'}
-    fields = set(HostConfig.__dataclass_fields__) - {'source', 'access_mode'} - web_fields
+    optional_fields = {'dashboard_host', 'dashboard_port', 'minimum_client_revision', 'client_update_message',
+                       'experimental_command_scheduling'}
+    fields = set(HostConfig.__dataclass_fields__) - {'source', 'access_mode'} - optional_fields
     if (not isinstance(value, dict) or type(value.get('schema')) is not int or value['schema'] not in (1, 2)
-            or set(value) - web_fields != fields | {'schema'} | ({'access_mode'} if value['schema'] == 2 else set())):
+            or set(value) - optional_fields != fields | {'schema'} | ({'access_mode'} if value['schema'] == 2 else set())):
         raise ConfigurationError('Expected host configuration schema1/2 and its exact fields')
     value.setdefault('access_mode', 'invite')
     value.setdefault('dashboard_host', '127.0.0.1')
     value.setdefault('dashboard_port', 47624)
     value.setdefault('minimum_client_revision', CLIENT_REVISION)
     value.setdefault('client_update_message', DEFAULT_UPDATE_MESSAGE)
+    value.setdefault('experimental_command_scheduling', False)
     try: validate_policy(value['minimum_client_revision'], value['client_update_message'])
     except ValueError as error: raise ConfigurationError(str(error)) from None
     try:
@@ -78,7 +81,7 @@ def load_config(path):
             ('input_window', MIN_INPUT_WINDOW, MAX_INPUT_WINDOW), ('log_max_bytes', 65536, 64*1024*1024), ('log_backups', 1, 16)):
         if type(value[name]) is not int or not minimum <= value[name] <= maximum:
             raise ConfigurationError(f'{name} must be an integer in {minimum}..{maximum}')
-    for name in ('diagnostic_audit', 'allow_insecure_loopback'):
+    for name in ('diagnostic_audit', 'allow_insecure_loopback', 'experimental_command_scheduling'):
         if type(value[name]) is not bool: raise ConfigurationError(name + ' must be true or false')
     try:
         if not isinstance(value['listen_host'], str): raise ValueError()

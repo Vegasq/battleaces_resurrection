@@ -115,9 +115,10 @@ def prepare_settings(path, game=None, *, default_game=None):
     return config
 
 
-def player_options(replay=None):
+def player_options(replay=None, *, original_command_scheduling_experimental=False):
     """The single ordinary entry point enables the complete player capability set."""
-    options = argparse.Namespace(run_name='client', unified_experimental=True, player_features=True)
+    options = argparse.Namespace(run_name='client', unified_experimental=True, player_features=True,
+                                 original_command_scheduling_experimental=original_command_scheduling_experimental)
     if replay is not None:
         options.replay = str(Path(replay).resolve()) if replay else ''
     return options
@@ -128,12 +129,15 @@ def main(argv=None, *, default_game=None):
     parser.add_argument('--config', type=Path, default=Path.cwd() / 'client.json')
     parser.add_argument('--game', type=Path, help='working game directory for first launch without a configuration')
     parser.add_argument('--replay', nargs='?', const='', help='watch a replay file; omit FILE to choose one')
+    parser.add_argument('--original-command-scheduling-experimental', action='store_true',
+                        help='use negotiated experimental Custom1v1 command scheduling for this launch; requires a matching helper')
     args = parser.parse_args(argv)
     try:
         config = prepare_settings(args.config, args.game, default_game=default_game)
         from .rc_setup import Resolver
         remote = Resolver(args.config, config['game_directory'])
-        return asyncio.run(launcher.launch(config, remote, player_options(args.replay)))
+        return asyncio.run(launcher.launch(config, remote, player_options(args.replay,
+            original_command_scheduling_experimental=args.original_command_scheduling_experimental)))
     except launcher.LaunchError as error:
         print('Client could not start: ' + str(error))
         return 1
