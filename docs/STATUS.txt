@@ -4,6 +4,12 @@ Current work:REMAINING_DELIVERY_PLAN.txt. Evidence navigation:INDEX.txt.
 Exact prior3576-line ledger:history/2026-10-24/STATUS.txt.
 Historical records retain their original failures,claims and artifact scopes.
 
+N32:Scheduling PR#1 merged into main as0ad2afb. Work starts on a separate genuine
+movement-prediction draft:original native simulation executes speculative moves,
+then reconciles conflicting authority through exact input replay. Native motion,
+convergence and reconstruction cost still need proof. No client integration,
+checkpoint qualification or live deployment is claimed;movement-prediction.txt.
+
 N31:Nick reports "Looks good, once command is given unit moves just fine" and
 authorizes pushing the current branch. This accepts ongoing movement after an
 order;the exact launcher/match mode is not stated. Command-start delay and true

@@ -8,6 +8,13 @@ matchmaking;2vAI still searches for a human teammate. N24 private installer is
 superseded by the published release;N23 stays superseded,no repeat requested.
 Other-human online lag/D8 remains open. Details:release-040-20261109.txt.
 
+N32:Scheduling PR#1 is MERGED into main (0ad2afb). Start genuine movement
+prediction on experiment/movement-prediction and a separate draft PR. First:
+native speculative move -> conflicting authoritative input -> reconstruct/
+replay -> continued-state convergence,with measured cost. No installed-client
+prediction or fast checkpoint is claimed yet. See movement-prediction.txt.
+Keep the running server and user-owned game sessions unchanged.
+
 N31:Nick accepts ongoing movement after an order and authorizes pushing this
 branch. Exact tested client mode is not identified. Discuss true movement
 prediction next:immediate local simulation,then authoritative reconciliation;

@@ -1,0 +1,55 @@
+BATTLE ACES - MOVEMENT PREDICTION DRAFT
+N32 requested2026-11-09. Branch:experiment/movement-prediction.
+Scheduling PR#1 merged into main as0ad2afb;its tested behavior is preserved.
+
+OBJECTIVE
+Start a genuine movement-prediction PR. The local simulation must execute a
+move before server confirmation,and recover correctly when authoritative
+inputs differ. This targets command-start delay;Nick already reports that
+ongoing movement after an order looks good. That feedback does not identify
+which previous client mode he tested and is not prediction acceptance.
+
+FIRST IMPLEMENTATION SCOPE
+An isolated headless original-Simulation.dll proof,with no renderer shortcuts:
+1. Create a native world from a fixed supported bootstrap and train a Crab.
+2. Advance speculative frames with a local move before authoritative confirmation.
+3. Prove actual native unit positions move and differ from a control world.
+4. Supply a conflicting authoritative move,then reconstruct and replay the
+   native world from its bootstrap and exact authoritative input journal.
+5. Replay outstanding speculative frames and compare all parsed observable
+   state with an independent authoritative world,including continuation.
+
+The controller accepts exact numbered InputActions frames and limits both
+prediction lead and replay work. A matching authoritative input should not
+trigger reconstruction. Invalid ordering,exceeded budget or failed correction
+must not silently continue presenting a known-wrong world. Reconstruction must
+complete before replacing the prior world;all owned workers must be closed.
+
+This is a baseline correction mechanism,not a verified efficient checkpoint.
+Rebuilding from the beginning grows with match length and cannot be assumed
+fast enough for interactive use. Measure its cost explicitly. A faster complete
+world clone/save/restore path remains a separate original-engine investigation.
+The earlier view/replay display snapshots do not establish such a path.
+
+NORMAL CLIENT/SERVER BOUNDARY
+No normal launcher,host,wire mode or game simulation is changed by this draft.
+No server contact/restart/deployment or usual-client installation is part of
+N32. Tests use owned headless subprocesses,not user-owned game sessions. Raw
+assets,commands,captures and generated reports remain in ignored local/.
+The new controller is not in the packaged client allowlist or normal launch path.
+
+FOLLOW-UP INTEGRATION GATES
+- Bind each authoritative frame to accepted local command sequences;handle
+  delayed,normalized or rejected orders without executing them twice.
+- Establish a correction mechanism with suitable cost at full match lengths.
+- Integrate confirmed/speculative worlds with the original Unity simulation,
+  output ownership and presentation contracts;never overwrite unconsumed output.
+- Qualify remote-command guesses,collisions,pathfinding,combat,spawns/deaths,
+  resources and delayed/reordered network arrivals before client rollout.
+- Measure physical input-to-visible motion and correction artifacts. Keep the
+  feature opt-in until its native integration and actual human results pass.
+
+STATUS
+Controller,unit tests and native movement/correction proof are in progress.
+No immediate movement prediction in the installed game is claimed yet. A draft
+PR will separate passing feasibility evidence from these remaining gates.
