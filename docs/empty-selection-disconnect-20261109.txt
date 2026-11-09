@@ -1,0 +1,69 @@
+EMPTY SELECTION COMMAND DISCONNECT
+2026-11-09 UTC / November8 Chicago. N22 FAILED;movement acceptance stays open.
+
+Observed failure
+Nick:"Game stopped with \"you hasbve been disconnected\"".
+The installed helpere56bd8a0... and patched GameAssembly529add6c... match N22.
+Client39356 submitted16 local actions atframe3267 in public match
+b0c13ad394e941fab3df583d2a20f326. The service stayed active. Its protocol_error
+was "entity IDs must be a bounded unique uint32 list";it closed the peer and
+aborted the match at01:21:57 UTC. The native client's normal failure cleanup
+returned to menu and exited. This is a command-validation rejection.
+Private evidence:local/disconnect-entity-list01/ with copied client logs,
+installed manifest and matching server events. Production host.py constructs
+DedicatedServer(data_dir=None),so no rejected packet body exists. The old
+message covers empty or duplicate lists;Nick's exact list is not recovered.
+
+Supported empty-selection case
+Original GameAssemblye59d08c0... InstantAbilityCaster.ProcessInput builds a
+SelectedEntitiesOfType enumerable over the live UnitSelectionSet. Group ToProto
+enumerates it later;ExecuteInstantCommand keeps every group. Clearing/removing
+the selection between enqueue and serialization can leave an empty group.
+Ordinary LLVM/metadata inspection supplies this static producer evidence:
+ProcessInput37a1d70,boxed selection37a2097,group creation37a20c3,
+group ToProto37aeb90/enumeration37aec49,selection Clear3c66c50.
+The native enumerator emits uint32 and avoids duplicate lead IDs;duplicates
+and overflow have no corresponding supported producer evidence and stay rejected.
+
+Owned native proof
+tools.verify_empty_entity_groups starts two isolated original Simulation.dll
+workers with identical seed/roster. One receives ordinary input;the other gets
+mixed empty/valid HQ build groups atframe200 and16 empty queued commands at230.
+Their observable state/resources match for all260 frames;the valid selected
+unit75 is created asentity74. Workers exit0/0. The old validator rejects the
+same empty body with Nick's exact error. native-empty-semantics02/report.json
+retains this successful raw native proof. The initial native-before-fix report
+is FAILED because an earlier queued build did not produce a unit in its short
+window;no valid-command preservation claim was inferred from that first run.
+The corrected native-after-fix --validate run passes all260 matching frames
+through the production descriptor/command validator and still createsentity74.
+
+Narrow correction
+Validate all original actions/groups and their original size/count/schema bounds.
+Drop only empty entity groups;drop an ExecuteCommand action if no groups remain.
+Retain valid groups,action order,target,queued flag and ordinary payload bytes.
+Unknown types/abilities,wrong decks,foreign ownership,duplicates,overflow and
+oversized pre-normalization inputs remain rejected. Native resource/cost rules
+continue to run in the original simulation;there is no new authority bypass.
+
+Validation
+15 authored unit regressions fail before and pass after the correction. Minimal
+test descriptors are authored and temporary;no proprietary descriptor is checked in.
+92 focused validation/coordinator/community/matchmaking/worker tests pass with
+two preexisting native opt-in skips. A further real loopback coordinator test
+passes20 frames across two16-command empty bursts with both peers connected,
+canonical empty authoritative actions,a live synthetic worker and no protocol
+error/abort. Native semantics are separately covered by the original-DLL proof.
+
+Live controlled reproduction before deployment
+local/disconnect-entity-list01/live_empty_probe.py opens two owned RC/TLS peers
+to the real Wine server. Authored empty groups at input8 reproduce the exact
+protocol rejection in roomempty_probe_4249f3b8/match90e19293fb8c4a21b9811621304ddae1.
+The server aborts at next_frame7 and reaps worker784. This report remains FAILED.
+It establishes the live empty-selection defect;it does not recover Nick's packet
+or prove which of the two old list conditions occurred in his particular input.
+
+Scope
+This is a server-only correction compatible with Nick's current N22 client.
+No new client installation is needed. Actual user-visible movement/disconnect
+acceptance and the separate four-player timing tail investigation remain open.

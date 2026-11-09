@@ -542,10 +542,14 @@ class InputValidation:
             actions = parsed["actions"]
             if len(actions) > MAX_ACTIONS:
                 raise InputError("too many input actions")
-            actions = tuple(self._action(slot, action) for action in actions)
+            normalized = []
+            for action in actions:
+                accepted = self._action(slot, action)
+                if accepted is not None:
+                    normalized.append(accepted)
             # Ignore sender-controlled display strings after validating UTF8;
             # use the exact authoritative match identity for both clients/native.
-            return encode_player_input(self.match.identities_by_slot[slot], actions)
+            return encode_player_input(self.match.identities_by_slot[slot], normalized)
         except (WireError, UnicodeError) as error:
             raise InputError(str(error)) from error
 
@@ -559,7 +563,11 @@ class InputValidation:
         if kind == 3:
             return field_bytes(3, self._join(slot, payload))
         elif kind == 1:
-            self._execute(slot, payload)
+            accepted = self._execute(slot, payload)
+            if accepted is None:
+                return None
+            if accepted != payload:
+                return field_bytes(1, accepted)
         elif kind == 5:
             if len(parse_fields(payload)) != 1:
                 raise InputError("UICommand requires exactly one command case")
@@ -588,6 +596,7 @@ class InputValidation:
         command_data = get_bytes(payload, 3, required=True)
         if len(parse_fields(command_data)) != 1:
             raise InputError("CommandData requires exactly one target case")
+        retained = []
         for group in groups:
             entity_type, ability = get_uint(group, 1), get_uint(group, 2)
             if entity_type not in self.template.entity_abilities or ability not in self.template.entity_abilities[entity_type]:
@@ -595,7 +604,7 @@ class InputValidation:
             if self.template.catalog[entity_type]["deck_slot_flags"] and entity_type not in self.match.decks_by_slot[slot]:
                 raise InputError("command entity type is absent from selected deck")
             ids = get_repeated_uint(group, 3, max_values=4096)
-            if not ids or len(ids) != len(set(ids)) or any(entity_id > 0xFFFFFFFF for entity_id in ids):
+            if len(ids) != len(set(ids)) or any(entity_id > 0xFFFFFFFF for entity_id in ids):
                 raise InputError("entity IDs must be a bounded unique uint32 list")
             if self.entity_lookup is not None:
                 for entity_id in ids:
@@ -605,6 +614,17 @@ class InputValidation:
                 deck_slot = self.template.build_ability_slots[ability]
                 if not 0 <= deck_slot < len(self.match.decks_by_slot[slot]):
                     raise InputError("build ability targets invalid deck slot")
+            if ids:
+                retained.append(group)
+        # The native client's lazy selection can become empty before ToProto.
+        # Native simulation treats these groups as no-ops. Validate every group
+        # first, then omit only inert groups; never skip a later ownership or
+        # ability failure. Preserve ordinary command bytes and all other fields.
+        if len(retained) == len(groups):
+            return payload
+        if not retained:
+            return None
+        return replace_fields(payload, {1: [field_bytes(1, group) for group in retained]})
 
     def encode_frame(self, frame, inputs_by_slot):
         inputs = dict(enumerate(inputs_by_slot)) if not isinstance(inputs_by_slot, Mapping) else inputs_by_slot

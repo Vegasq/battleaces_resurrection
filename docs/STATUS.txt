@@ -4,6 +4,14 @@ Current work:REMAINING_DELIVERY_PLAN.txt. Evidence navigation:INDEX.txt.
 Exact prior3576-line ledger:history/2026-10-24/STATUS.txt.
 Historical records retain their original failures,claims and artifact scopes.
 
+N22 FAILED with a disconnect atframe3267. The active server rejected a unit
+command's entity list. A supported empty-selection case reproduces the same
+live rejection;the exact original packet was not retained. Original native
+simulation ignores those empty groups. A narrow server correction drops only
+validated empty groups while retaining other command/ownership checks. Unit,
+network and native equivalence checks pass;deployment verification is pending.
+See empty-selection-disconnect-20261109.txt. No movement PASS is inferred.
+
 N21 clarifies the remaining symptom:"Tiny jumps. Game felt laggy." A private
 candidate paces the original native presentation handoff and permits only one
 unpresented output. The exact helper passes a complete600-frame real Internet

@@ -1672,6 +1672,10 @@ D7 - Protected Windows hosting and recovery:OPEN,with N10 recovery COMPLETE.
   windows-server-quickstart.txt,host-failure-diagnostics161.txt.
 
 D8 - Internet,latency,capacity:OPEN.
+  N22 FAILED atframe3267 with server entity-list rejection. Empty-selection
+  commands are a supported native no-op;the narrow server correction passes
+  authored unit/network and original-DLL equivalence checks. Live deployment/
+  post-fix verification next;empty-selection-disconnect-20261109.txt.
   Client revision enforcement and a persistent update warning in the existing
   top-center overlay are implemented for the next paired release. Native
   rejection/offline fallback/rendered notice pass;client-version-policy.txt.
