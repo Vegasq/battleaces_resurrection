@@ -9,7 +9,10 @@ command's entity list. A supported empty-selection case reproduces the same
 live rejection;the exact original packet was not retained. Original native
 simulation ignores those empty groups. A narrow server correction drops only
 validated empty groups while retaining other command/ownership checks. Unit,
-network and native equivalence checks pass;deployment verification is pending.
+network and native equivalence checks pass. Correction9465c28 is now live;
+the identical real RC/TLS two-peer test that failed before now passes32 frames
+through both empty-command bursts. Configuration and14 profile hashes preserved.
+N23 requests a normal match with the current client;no reinstall required.
 See empty-selection-disconnect-20261109.txt. No movement PASS is inferred.
 
 N21 clarifies the remaining symptom:"Tiny jumps. Game felt laggy." A private

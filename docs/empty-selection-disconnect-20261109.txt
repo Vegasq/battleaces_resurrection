@@ -67,3 +67,37 @@ Scope
 This is a server-only correction compatible with Nick's current N22 client.
 No new client installation is needed. Actual user-visible movement/disconnect
 acceptance and the separate four-player timing tail investigation remain open.
+
+Deployed and verified
+Source9465c28,live program/app/server/game_data.py SHA256
+514080eb14cb0150b12903f7982504c71b21a4f48a437e69b45b014e13a59513.
+The manifest records an explicit operator override with old/new digest and source
+revision;the base rc1.10 package/source metadata is not rewritten as a new release.
+The service was stopped only after verifying zero connected game peers. Exact
+module/manifest/config/data backups are retained at:
+  /srv/ba-runtime/empty-selection-20261109-02/backup
+All14 preexisting profile JSON hashes and configuration were unchanged through
+the update. Native assets,IP,autostart,game/dashboard allowlists and SSH remain.
+The bundled Wine/Python runtime verifies the entire updated package;the service
+is active and listening. Deployment/readiness reports are copied into the private
+local/disconnect-entity-list01/ evidence directory.
+
+First attempt is retained at /srv/ba-runtime/empty-selection-20261109/ . Its
+verification launch failed with WinError6 while initializing standard streams
+when Wine/Python output was redirected directly to a Linux file. Automatic
+rollback restored the old module/manifest and healthy service. The next attempt
+used pipe-based capture with NUL stdin,then wrote the report afterward;it passed.
+Keep these Wine verification streams valid in future operator scripts. Neither
+failed attempt files nor mutable data were discarded to obtain the later pass.
+
+The IDENTICAL live probe(source SHAa5195ac27823bc869516a1730fa72e39a509e62b9c255c9499b510824ed690e1)
+now PASSES in roomempty_probe_c29083d9:both RC/TLS peers receive all32 matching
+frames,including one and16 empty queued commands at8/12 normalized to no actions.
+Both remain connected until explicit test cleanup. The subsequent intentional
+peer closure aborts that owned diagnostic room at next_frame32 and releases
+worker356;this is cleanup,not a recurrence of the protocol rejection.
+Evidence:live-before-fix/report.json versus live-after-fix/report.json.
+
+N23 asks only for a normal3-4 minute match using the CURRENT installed client,
+to check both disconnect recurrence and remaining tiny jumps. N22 stays FAILED,
+N23 has no answer yet,and visible movement/D8 is not marked complete.
