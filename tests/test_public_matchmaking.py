@@ -141,6 +141,16 @@ class PublicQueueTests(DedicatedFixture):
         self.assertIsNone(self.public.entries[peer.profile].offer)
         self.assertFalse(self.workers)
         self.advance(.001)
+        offer = self.offer(peer)
+        await wait_until(lambda: any(kind == q.STATE and q.decode_state(payload)['phase'] == q.OFFERED
+                                    for kind, payload in peer.observed))
+        proposed = next(q.decode_state(payload) for kind, payload in reversed(peer.observed)
+                        if kind == q.STATE and q.decode_state(payload)['phase'] == q.OFFERED)
+        self.assertEqual(proposed['reason'], q.SOLO_AI_OFFER)
+        self.assertEqual(proposed['match'], offer.id)
+        self.assertEqual(offer.ready, set())
+        self.assertIsNone(offer.room)
+        self.assertFalse(self.workers)
         room = await self.accept([peer])
         self.assertEqual(set(room.peers), {0})
         self.assertEqual(set(room.bots), {1})
@@ -149,6 +159,67 @@ class PublicQueueTests(DedicatedFixture):
         self.assertEqual(get_uint(room.match.armies_by_slot[1], 6), choice.portrait)
         self.assertEqual(peer.assignment['human_mask'], 1)
         await self.play_frames(room, [peer])
+        # A legacy/server-policy client can still READY this marked offer.
+        self.assertEqual(len(self.workers), 1)
+        self.assertFalse(any(kind == q.STATE and q.decode_state(payload)['reason'] == q.SOLO_AI_OFFER
+                             and q.decode_state(payload)['phase'] != q.OFFERED
+                             for kind, payload in peer.observed))
+
+    async def test_solo_offer_metadata_allows_cancel_before_any_worker_for_each_mode(self):
+        await self.start_public()
+        for mode in (1, 2, 5):
+            with self.subTest(mode=mode):
+                peer = await self.online(f'solo_metadata_{mode}')
+                await self.queue(peer, mode=mode, wait_ms=0)
+                offer = self.offer(peer)
+                await wait_until(lambda: any(kind == q.STATE and q.decode_state(payload)['phase'] == q.OFFERED
+                                            for kind, payload in peer.observed))
+                proposed = next(q.decode_state(payload) for kind, payload in reversed(peer.observed)
+                                if kind == q.STATE and q.decode_state(payload)['phase'] == q.OFFERED)
+                self.assertEqual(proposed['reason'], q.SOLO_AI_OFFER)
+                self.assertEqual((proposed['mode'], proposed['match']), (mode, offer.id))
+                self.assertEqual(tuple(entry.profile for entry in offer.entries), (peer.profile,))
+                self.assertEqual(offer.ready, set())
+                self.assertIsNone(offer.room)
+                self.assertFalse(self.server.rooms or self.workers or self.server.community.launches)
+                self.assertTrue(self.public.busy(peer.profile))
+                self.advance(5)  # Metadata is not an automatic cancellation.
+                self.assertIs(self.offer(peer), offer)
+                await self.public_command(peer, q.CANCEL)
+                self.advance(31)
+                self.assertFalse(self.public.busy(peer.profile))
+                self.assertFalse(self.public.offers or self.server.rooms or self.workers)
+                self.assertIsNone(self.server.community.sessions[peer.profile].peer.room)
+                self.assertFalse(any(kind in (q.MATCH, p.BOOTSTRAP) for kind, _ in peer.observed))
+                self.assertFalse(any(event['event'] in ('worker_started', 'match_preparing', 'match_created')
+                                     for event in self.events))
+                self.assertFalse(any(kind == q.STATE and q.decode_state(payload)['reason'] == q.SOLO_AI_OFFER
+                                     and q.decode_state(payload)['phase'] != q.OFFERED
+                                     for kind, payload in peer.observed))
+
+    async def test_multi_human_offers_never_carry_solo_ai_metadata(self):
+        await self.start_public()
+        for mode, humans in ((1, 2), (2, 2), (2, 4), (5, 2)):
+            with self.subTest(mode=mode, humans=humans):
+                peers = [await self.online(f'metadata_{mode}_{humans}_{index}') for index in range(humans)]
+                for peer in peers:
+                    await self.queue(peer, mode=mode)
+                if mode == 2 and humans == 2:
+                    self.advance(30)
+                offer = self.offer(peers[0])
+                self.assertEqual(len(offer.entries), humans)
+                await wait_until(lambda: all(any(kind == q.STATE and
+                    q.decode_state(payload)['phase'] == q.OFFERED and q.decode_state(payload)['match'] == offer.id
+                    for kind, payload in peer.observed) for peer in peers))
+                for peer in peers:
+                    states = [q.decode_state(payload) for kind, payload in peer.observed if kind == q.STATE]
+                    offered = [state for state in states if state['phase'] == q.OFFERED and state['match'] == offer.id]
+                    self.assertTrue(offered)
+                    self.assertTrue(all(state['reason'] == '' for state in offered))
+                self.assertFalse(self.workers)
+                for peer in peers:
+                    await self.public_command(peer, q.CANCEL)
+                self.assertFalse(self.public.entries or self.public.offers or self.server.rooms or self.workers)
 
     async def test_same_sessions_cross_public_modes_after_each_complete_return(self):
         await self.start_public()

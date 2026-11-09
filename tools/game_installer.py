@@ -98,7 +98,7 @@ def install(package, request):
     settings = dict(schema=4, game_directory=str(game), server_host=request['server_host'].strip(),
                     server_port=previous.get('server_port', 47623), display_name=name,
                     local_profile=previous.get('local_profile', 'default'), room=previous.get('room', 'community'),
-                    fullscreen=previous.get('fullscreen', True))
+                    fullscreen=previous.get('fullscreen', True), solo_ai_host=previous.get('solo_ai_host', 'local'))
     validated = rc_setup.settings(settings, config)
     launcher.native_storage_preflight(client.local_settings(settings, config))
     settings['server_host'] = validated['server_host']

@@ -27,6 +27,18 @@ The client starts fullscreen by default. To start it in a 960x540 window,
 close the game and set "fullscreen": false in
 .battleaces-resurrection/client-config.json. Set it back to true for fullscreen.
 
+SOLO AI HOSTING (rc1.11 and later)
+Solo AI games run on your PC by default,even with a server IP saved. Public
+1v1/2v2/2vAI still search for humans,including a co-op teammate in2vAI;
+if the server offers a match containing only you and AI,the client retires that
+offer before starting a local game. Games with other human players stay online.
+Try Deck remains local. Local games do not enter the server's match history.
+To opt into server-hosted solo AI,close the game and set "solo_ai_host": "server"
+in .battleaces-resurrection/client-config.json. Use "local" to restore the
+default. Missing settings also default to local;updates preserve your choice.
+The host needs rc1.11's solo-offer support for the public queue handoff.
+Older hosts retain their original queue behavior. No IP/identity reset is needed.
+
 WATCH A SAVED REPLAY (included since rc1.7)
 After installing the current client,close any running game
 and double-click Watch Replay.cmd in the GAME folder. Choose a complete .rep file

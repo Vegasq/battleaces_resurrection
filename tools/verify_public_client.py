@@ -172,7 +172,8 @@ async def run(args):
             connection_attempts.append(attempt);observe('probe_resolve_attempt',**attempt)
             if args.unavailable or late_assignment and attempts==2: raise bridge.RemoteUnavailable()
             return bridge.Remote('127.0.0.1',port,context,credentials.player,credentials.token)
-        config=dict(game_directory=game,server_host='127.0.0.1',server_port=port,display_name='Public Config Player',room='community')
+        config=dict(game_directory=game,server_host='127.0.0.1',server_port=port,display_name='Public Config Player',room='community',
+                    solo_ai_host='server')
         if cosmetic_book:config['local_profile']=cosmetic_profile
         options=client.player_options() if args.ordinary_player else argparse.Namespace(run_name='public-queue-probe',unified_experimental=True)
         parent,child=socket.socketpair(socket.AF_INET);parent.setblocking(False)

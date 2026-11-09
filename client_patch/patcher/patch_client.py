@@ -332,6 +332,8 @@ def install(game_dir, *, helper=None, original_path=None, restore=False, dry_run
     if helper_bytes is not None and any(marker not in helper_bytes for marker in
             (b'BA_RESURRECTION_ONLINE_PRESENTATION_V1', b'OfflinePresentAvailableSimFrame\0')):
         raise ValueError('Build the current helper with the online presentation hook before installing this patch.')
+    if helper_bytes is not None and b'BA_RESURRECTION_SOLO_AI_HOST_V1' not in helper_bytes:
+        raise ValueError('Build the current helper with configurable local solo AI hosting before installing this patch.')
     if quit_diagnostics and helper_bytes is not None and any(marker not in helper_bytes for marker in
             (b'BA_RESURRECTION_NATIVE_QUIT_TRACE_V1',) + tuple(h['name'].encode()+b'\0' for h in QUIT_CALL_HOOKS+QUIT_POINTER_HOOKS)):
         raise ValueError('Build the owned native Quit diagnostic helper before installing this recipe.')

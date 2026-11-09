@@ -1,6 +1,12 @@
 BATTLE ACES - CURRENT DELIVERY ROADMAP
 Updated:2026-11-08. ACTIVE. Single current work queue;final release is not accepted.
 
+Current priority per Nick:local solo AI by default,configurable server AI.
+rc1.11 routing/configuration is implemented;private native/installer checks pass.
+N24 has the exact ready installer. Host solo-offer metadata is live. This supersedes N23;no repeat
+online AI acceptance request. Other-human online lag/D8 remains open.
+Details:solo-ai-host-20261109.txt.
+
 Read this file for what to do next. STATUS.txt summarizes the latest evidence;
 RELEASE_ACCEPTANCE.txt defines closure;INDEX.txt locates guides and detailed records.
 The exact previous1096-line plan is history/2026-10-24/REMAINING_DELIVERY_PLAN.txt.
@@ -16,6 +22,9 @@ These grouped rows summarize the detailed matrices;they are not a percentage or
 an exact count of every remaining test. DEV.txt remains the owner of user answers.
 
 COMPLETED
+[x] Solo AI defaults to local after a confirmed one-human public offer;server
+    hosting remains configurable. Native local1/local5/server5 and exact embedded
+    update pass;human/co-op matchmaking retained. Private rc1.11 installer ready.
 [x] LAN play and patch download/installation accepted by Nick (N2/N5,D1).
 [x] Startup usability and console shutdown accepted (N1/N3,D6).
 [x] Crash169 handoff repaired and qualified (169/170).
@@ -1675,8 +1684,8 @@ D8 - Internet,latency,capacity:OPEN.
   N22 FAILED atframe3267 with server entity-list rejection. Empty-selection
   commands are a supported native no-op;the narrow server correction passes
   authored unit/network and original-DLL equivalence checks. Fix9465c28 is live;
-  identical real TLS probe now passes32 frames. N23 normal-match/movement check
-  pending;empty-selection-disconnect-20261109.txt. No client reinstall needed.
+  identical real TLS probe now passes32 frames. N23 is superseded by local-first
+  solo AI;empty-selection-disconnect-20261109.txt and solo-ai-host-20261109.txt.
   Client revision enforcement and a persistent update warning in the existing
   top-center overlay are implemented for the next paired release. Native
   rejection/offline fallback/rendered notice pass;client-version-policy.txt.

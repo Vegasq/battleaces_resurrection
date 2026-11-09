@@ -137,6 +137,8 @@ def verify_game(root, *, community=False, bridge_version=1, unified=False, playe
                         raise LaunchError('Install a helper supporting secure transport ABI2')
                     if unified and b'BA_RESURRECTION_UNIFIED_CLIENT_V1' not in helper:
                         raise LaunchError('Install a helper supporting the unified client lifecycle')
+                    if unified and b'BA_RESURRECTION_SOLO_AI_HOST_V1' not in helper:
+                        raise LaunchError('Install a helper supporting configurable local solo AI hosting')
                     if replay and b'BA_RESURRECTION_REPLAY_ENTRY_V1' not in helper:
                         raise LaunchError('Install the current client patch to watch replay files')
                     if player_features:
@@ -214,11 +216,14 @@ def native_storage_preflight(config):
 def game_arguments(config, player_id, handle, args):
     run_name = args.run_name
     if not re.fullmatch('[A-Za-z0-9_-]{1,48}', run_name): raise LaunchError('Invalid run name')
+    unified = getattr(args, 'unified_experimental', False)
+    if unified:
+        from .client import solo_ai_host
+        ai_host = solo_ai_host(config.get('solo_ai_host', 'local'))
     profile = native_storage_preflight(config)
     root = config['game_directory']
     runtime = root / 'investigation/runtime'
     runtime.mkdir(parents=True, exist_ok=True)
-    unified = getattr(args, 'unified_experimental', False)
     dynamic = unified or getattr(args, 'dynamic_identity_experimental', False)
     log_identity = f'session-{os.getpid()}-{handle}' if dynamic else player_id
     result = [str(root / 'Battle Aces.exe'), '-offline-lan',
@@ -231,7 +236,7 @@ def game_arguments(config, player_id, handle, args):
     if dynamic: result.append('-secure-transport-version=2')
     else: result.append(f'-player-id={player_id}')
     result.append('-local-profile=' + profile)
-    if unified: result.append('-unified-client')
+    if unified: result.extend(('-unified-client', '-solo-ai-host=' + ai_host))
     replay = getattr(args, 'replay', None)
     if replay is not None:
         if not unified or not isinstance(replay, str) or len(replay) > 32000 or any(ord(c) < 32 for c in replay):

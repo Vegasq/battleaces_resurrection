@@ -190,7 +190,8 @@ async def run(args):
         shutil.copyfile(game/'.battleaces-resurrection/patch-manifest.json', output/'patch-manifest.json')
         for index in range(2):
             config = dict(game_directory=game, server_host='127.0.0.1', server_port=port,
-                          display_name=f'Sequence Human {index+1}', room='community', local_profile=keys[index])
+                          display_name=f'Sequence Human {index+1}', room='community', local_profile=keys[index],
+                          solo_ai_host='server')
             parent, child = socket.socketpair(socket.AF_INET)
             sockets.extend((parent, child))
             parent.setblocking(False)

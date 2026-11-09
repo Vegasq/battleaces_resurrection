@@ -1,0 +1,103 @@
+LOCAL SOLO AI DEFAULT - PRIVATE rc1.11
+Date:2026-11-08/09. Owner request:N24 in private DEV.txt.
+
+WHY AND BEHAVIOR
+Nick reports smooth offline AI but online movement jumps,then asks for solo AI
+to run locally by default. Earlier public queues accepted AI-filled offers and
+used the same authoritative remote simulation as human matches. The network
+therefore remained in the gameplay loop even when only one human participated.
+
+solo_ai_host is an optional strict local/server enum in client-config.json.
+Missing settings default to local across existing schema2/3/4 configurations.
+Normal unified launches pass the frozen choice;legacy transport argv is unchanged.
+Install/update,RC setup and enrollment preserve existing choices/profile/window.
+No automatic diagnostic flags are added to ordinary launchers.
+
+Try Deck (mode4) remains immediate/local. Public1v1/2v2/2vAI (modes1/2/5)
+retain human matchmaking,including human co-op in2vAI.
+For an uncommitted one-human offer,the updated host fills existing STATE.reason
+with solo_ai_offer. A local-policy client sends CANCEL before READY,waits for
+authoritative RETIRED,then transfers the existing search ticket/frozen deck and
+cosmetics to the local native match. Local play retires the optional control
+connection;no server simulation/input stream owns that game. The local native
+world/AI implementation is reused. Local results are absent from server history.
+
+Other-human offers have no marker and remain online. server preference accepts
+solo offers through the existing READY/worker path. User Cancel takes priority.
+READY/commit/assignment and ambiguous lost cancellation cannot silently become
+local matches. Older clients ignore the marker and retain hosted AI;older hosts
+without the marker keep their original AI-fill behavior. Existing wire shape/version/revision is unchanged.
+
+BUILD AND AUTOMATED EVIDENCE
+Native policy tests and full helper build pass with MSVC;receipt binds sources.
+Helper SHA256:ee7932bf27889d7b55b4a5159d03a16600e92d0c5f6d2ca41ca91c12285427f2.
+New BA_RESURRECTION_SOLO_AI_HOST_V1 marker is required by installation,package
+build and unified launch,preventing silent use of an old helper.
+147 focused Python tests pass,one opt-in native-worker test skipped:
+local/solo-ai-host/python-tests02.txt. Initial146-test run retained separately.
+Tests include default/explicit/invalid configs,settings preservation,strict TLS
+projection,native argv,old-helper refusal,pre-READY metadata and worker-free
+cancellation,multi-human offers and legacy/server READY acceptance.
+
+Private dirty-worktree rc1.11 packages contain exact source hashes:
+local/solo-ai-host/packages02/battleaces-client-win64.zip
+SHA256:73c005dc65f7a625235cfb821861eb53d8ed379c30cea0e081bfa6c073db5b23.
+Standalone installer:local/solo-ai-host/client-installer02/Install Battle Aces.exe
+SHA256:3714a43176c144c30b27419530c0b117161e21fc574d47595037da710da21991.
+Actual two-argument --verify-payload extraction/package verification passes;
+client-installer02/payload.json records the exact extracted package.
+Actual embedded package install-game action also passes on the owned copy:
+installed-update-check02/report.json. Exact root/cached/manifest helper matches,
+launcher selects the installed runtime,all161 profile-file hashes preserved,
+saved configuration preserved with the local default added,original backup and
+GameAssembly patch unchanged. No user-owned game files were replaced.
+No public GitHub release or user-owned game overwrite is implied.
+Earlier helper01/packages/client-installer remain retained but superseded:the
+initial mode5 fast-local bypass was removed during review because it would
+prevent default public co-op matching. ALL public modes now use the actual
+one-human offer criterion. The first native-local5-01 refusal occurred before
+game launch because its old installed helper lacked the new marker;retained.
+Remote AI verifiers explicitly opt into server hosting to preserve their scope.
+
+NATIVE ROUTING VERIFICATION
+New source-owned tools.verify_solo_ai_host runs original public button callbacks
+against a reachable loopback TLS host with real imported maps/bot catalogs.
+Local-policy tests forbid any authoritative worker allocation;server policy
+uses the original Simulation.dll worker. Exact helper02 passes:
+- native-local1-02/verification.json:30s matchmaking,marked offer,CANCEL before
+  READY,authoritative RETIRED before local-practice,one native AI with actions,
+  native frame261,zero remote workers/assignments;63.172s.
+- native-local5-02/verification.json:same safe handoff after real matchmaking,
+  three native AIs with actions,frame206,zero READY/workers/assignments;56.765s.
+- native-server5-03/verification.json:marked offer accepted by READY,one actual
+  MATCH_LOADOUT assignment,one real worker with bots1/2/3,remote world only,
+  healthy frame200,worker exit0/no failure.
+All reports under local/solo-ai-host/. Source hashes unchanged during each run;
+all owned game/worker processes reaped. Teardown is forced diagnostic cleanup,
+not natural Quit,results,physical input or perceived-smoothness acceptance.
+The first server5-02 check retained a missing-assignment-witness failure despite
+native progress. Room.prepare_match sends assignment directly via Peer.send;
+the corrected observer captures that exact send. Earlier verifier bytes are
+retained as verifier-before-assignment-fix.py,matching the prior report hash.
+Only server5 was repeated for that changed observation;local evidence reused.
+
+LIVE HOST
+Updated only public_protocol.py/public_matchmaking.py on134.209.176.39 after
+confirming no established game peers. Existing host/package manifest/modules,
+config and data backed up at /srv/ba-runtime/solo-ai-host-20261109-01/backup.
+Exact module hashes and prior hashes recorded as operator_overrides instead of
+rewriting the original release provenance. Linux integrity and actual bundled
+Wine Python package verify pass. Service active,ports47623/47624 listen and
+autostart enabled;existing game/dashboard restrictions are retained.
+14 original player-profile hashes and host configuration unchanged.
+local/solo-ai-host/deployment-report.json.
+
+Actual disposable RC/TLS peer receives a marked one-human offer,then CANCEL and
+RETIRED without sending READY or receiving assignment/bootstrap/start/error:
+local/solo-ai-host/live-offer-check/report.json. This is a protocol check,not
+graphical gameplay acceptance. Public/server wire versions remain unchanged.
+
+ACCEPTANCE LIMITS
+N23's proposed post-disconnect online AI check is superseded by this routing
+request. Earlier tiny-jump/disconnect failures remain retained. Local routing
+does not resolve other-human online lag,D8,D5 or final-release acceptance.

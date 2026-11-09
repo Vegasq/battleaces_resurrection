@@ -46,7 +46,7 @@ async def run(args):
     started = time.monotonic()
     config = dict(schema=4, game_directory=str(game), display_name='Lag probe '+args.label,
                   local_profile='live_lag_probe', server_host='134.209.176.39',
-                  server_port=47623, room='community', fullscreen=False)
+                  server_port=47623, room='community', fullscreen=False, solo_ai_host='server')
     config_path = output/'client-config.json'
     config_path.write_text(json.dumps(config), encoding='utf-8')
     selected = rc_setup.settings(config, config_path)

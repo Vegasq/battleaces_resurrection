@@ -190,6 +190,8 @@ class EnrollmentTests(unittest.TestCase):
         value = client.defaults(self.folder/'working game')
         value['display_name'] = 'Local Name'
         value['local_profile'] = 'friends_02'
+        value['fullscreen'] = False
+        value['solo_ai_host'] = 'server'
         self.config.write_text(json.dumps(value))
         exposed = e.setup_data(self.config)
         self.assertEqual(exposed['display_name'], 'Local Name')
@@ -199,11 +201,17 @@ class EnrollmentTests(unittest.TestCase):
         selected = client.load_connection(self.config)
         self.assertEqual(selected['display_name'], 'Local Name')
         self.assertEqual(selected['game_directory'], self.folder/'working game')
-        self.assertEqual(client.prepare_settings(self.config)['local_profile'], 'friends_02')
+        local = client.prepare_settings(self.config)
+        self.assertEqual(local['local_profile'], 'friends_02')
+        self.assertIs(local['fullscreen'], False)
+        self.assertEqual(local['solo_ai_host'], 'server')
         self.assertEqual(e.setup_data(self.config)['display_name'], 'Local Name')
         self.request.update(display_name='New Online Name', expected_config_sha256=e.configuration_digest(self.config))
         e.enroll(self.request, self.config)
-        self.assertEqual(client.prepare_settings(self.config)['local_profile'], 'friends_02')
+        local = client.prepare_settings(self.config)
+        self.assertEqual(local['local_profile'], 'friends_02')
+        self.assertIs(local['fullscreen'], False)
+        self.assertEqual(local['solo_ai_host'], 'server')
 
     def test_packaged_enrollment_and_errors_do_not_echo_secrets(self):
         request_file = self.folder/'request.json'; request_file.write_text(json.dumps(self.request))

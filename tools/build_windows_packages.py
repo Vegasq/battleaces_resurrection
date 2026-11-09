@@ -22,7 +22,7 @@ ROOT = Path(__file__).resolve().parents[1]
 PYTHON_VERSION = '3.14.8'
 PYTHON_ZIP_SHA256 = 'a93abe456ab01bd96d7a085b3cdb6566b3063f4241360d114142fbdb07f0a310'
 PYTHON_URL = 'https://www.python.org/ftp/python/3.14.8/python-3.14.8-embed-amd64.zip'
-PACKAGE_VERSION = '0.3.0-rc1.10'
+PACKAGE_VERSION = '0.3.0-rc1.11'
 RUNTIME_PTH = b'python314.zip\n.\n../app\n'
 COMMON = (
     'server/__init__.py', 'server/protocol.py', 'server/client_compatibility.py', 'server/credentials.py',
@@ -61,6 +61,7 @@ CLIENT = COMMON + (
 # validation/export orchestration sources, not original client files or assets.
 SERVER = tuple(dict.fromkeys(SERVER + CLIENT + ('tools/server_installer.py',)))
 MARKERS = (
+    b'BA_RESURRECTION_SOLO_AI_HOST_V1',
     b'BA_RESURRECTION_ONLINE_PRESENTATION_V1', b'OfflinePresentAvailableSimFrame\0',
     b'BA_RESURRECTION_CLIENT_REVISION_V1',
     b'BA_RESURRECTION_NATIVE_BACKUP_GUARD_V1', b'OfflineBackupInitialRead\0', b'OfflineBackupWriteText\0',

@@ -1,4 +1,5 @@
 """Local startup and optional remote configuration have independent failure paths."""
+import argparse
 import asyncio
 from contextlib import redirect_stdout
 import io
@@ -38,6 +39,8 @@ class UnifiedLauncherTests(unittest.TestCase):
             self.assertEqual(result['game_directory'], self.game)
             self.assertEqual(result['display_name'], 'QA Tester')
             self.assertEqual(json.loads(self.path.read_text())['schema'], 3)
+            self.assertEqual(result['solo_ai_host'], 'local')
+            self.assertEqual(json.loads(self.path.read_text())['solo_ai_host'], 'local')
             with self.assertRaises(bridge.RemoteUnavailable) as failure: client.load_connection(self.path)
             self.assertEqual(failure.exception.reason, bridge.UNCONFIGURED_FAILURE)
 
@@ -66,6 +69,63 @@ class UnifiedLauncherTests(unittest.TestCase):
         with self.assertRaises(bridge.RemoteUnavailable) as failure:
             launcher.RemoteConfigResolver(self.path, self.game, config_loader=client.load_connection).read()
         self.assertEqual(failure.exception.reason, bridge.UNCONFIGURED_FAILURE)
+
+    def test_legacy_schemas_default_to_local_without_rewriting_saved_settings(self):
+        for schema in (2, 3, 4):
+            for missing in ((), ('solo_ai_host',), ('fullscreen',), ('solo_ai_host', 'fullscreen')):
+                value = dict(client.defaults(self.game), schema=schema)
+                for key in missing: value.pop(key)
+                self.save(value)
+                before = self.path.read_bytes()
+                with self.subTest(schema=schema, missing=missing):
+                    config = client.prepare_settings(self.path)
+                    self.assertEqual(config['solo_ai_host'], 'local')
+                    self.assertIs(config['fullscreen'], True)
+                    self.assertEqual(self.path.read_bytes(), before)
+
+    def test_solo_ai_host_is_a_strict_enum_and_cannot_inject_native_arguments(self):
+        config = client.local_settings(client.defaults(self.game), self.path)
+        for value in (True, False, None, 0, 1, [], {}, '', 'LOCAL', 'offline', 'server ',
+                      'local -lan-smoke', 'local\n-unified-client', 'local\0'):
+            with self.subTest(value=value):
+                with self.assertRaisesRegex(launcher.LaunchError, 'solo_ai_host must be local or server'):
+                    client.local_settings(dict(client.defaults(self.game), solo_ai_host=value), self.path)
+                with self.assertRaisesRegex(launcher.LaunchError, 'solo_ai_host must be local or server'):
+                    launcher.game_arguments(dict(config, solo_ai_host=value), None, 1234, client.player_options())
+
+    def test_solo_ai_host_reaches_only_unified_native_argv_and_keeps_other_arguments(self):
+        config = client.local_settings(dict(client.defaults(self.game), local_profile='friends_02',
+            fullscreen=False, display_name='Chosen Player'), self.path)
+        baseline = None
+        for host in (None, 'local', 'server'):
+            selected = dict(config)
+            if host is None: selected.pop('solo_ai_host')
+            else: selected['solo_ai_host'] = host
+            unified = launcher.game_arguments(selected, None, 1234, client.player_options())
+            with self.subTest(host=host):
+                self.assertEqual([arg for arg in unified if arg.startswith('-solo-ai-host=')],
+                                 ['-solo-ai-host=' + (host or 'local')])
+                other = [arg for arg in unified if not arg.startswith('-solo-ai-host=')]
+                if baseline is None: baseline = other
+                else: self.assertEqual(other, baseline)
+                for args in (argparse.Namespace(run_name='client'),
+                             argparse.Namespace(run_name='client', dynamic_identity_experimental=True),
+                             argparse.Namespace(run_name='client', community_experimental=True)):
+                    legacy = launcher.game_arguments(selected, 'p_' + '1' * 32, 1234, args)
+                    self.assertFalse(any(arg.startswith('-solo-ai-host=') for arg in legacy))
+
+    def test_solo_ai_host_is_removed_from_the_strict_tls_schema(self):
+        for schema in (2, 3, 4):
+            value = dict(client.defaults(self.game), schema=schema, solo_ai_host='server',
+                local_profile='friends_02', fullscreen=False, server_host='127.0.0.1',
+                server_name='localhost', ca_bundle='ca.pem', credential_file='invite.json')
+            with self.subTest(schema=schema):
+                projected = client.connection_settings(value, self.path)
+                self.assertFalse({'solo_ai_host', 'fullscreen', 'local_profile'} & projected.keys())
+                self.assertEqual(launcher.validate_config(projected, self.path)['server_host'], '127.0.0.1')
+                self.save(value)
+                self.assertEqual(client.prepare_settings(self.path)['solo_ai_host'], 'server')
+                self.assertNotIn('solo_ai_host', client.load_connection(self.path))
 
     def test_invalid_local_settings_and_unknown_secrets_are_rejected(self):
         for key, value in (('schema', True), ('schema', 1), ('display_name', 'bad\nname'),
@@ -117,6 +177,7 @@ class UnifiedLauncherTests(unittest.TestCase):
             self.assertEqual(argv[argv.index('-screen-fullscreen') + 1], '1')
             self.assertNotIn('-screen-width', argv)
             self.assertIn('-unified-client', argv)
+            self.assertIn('-solo-ai-host=local', argv)
             self.assertIn('-secure-transport-version=2', argv)
             self.assertIn('-local-profile=default', argv)
             self.assertIn('-public-queue-experimental', argv)

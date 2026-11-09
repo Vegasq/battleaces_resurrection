@@ -136,7 +136,7 @@ class SecureLauncherTests(unittest.TestCase):
         path.write_text(json.dumps(manifest))
         with self.assertRaisesRegex(launch.LaunchError, 'unified client lifecycle'):
             launch.verify_game(root, community=True, bridge_version=2, unified=True)
-        helper.write_bytes(helper.read_bytes() + b' BA_RESURRECTION_UNIFIED_CLIENT_V1')
+        helper.write_bytes(helper.read_bytes() + b' BA_RESURRECTION_UNIFIED_CLIENT_V1 BA_RESURRECTION_SOLO_AI_HOST_V1')
         manifest['helper_sha256'] = hashlib.sha256(helper.read_bytes()).hexdigest()
         path.write_text(json.dumps(manifest))
         launch.verify_game(root, community=True, bridge_version=2, unified=True)
@@ -146,11 +146,26 @@ class SecureLauncherTests(unittest.TestCase):
         self.assertNotIn('-offline-practice', argv)
         self.assertFalse(any(argument.startswith('-player-id=') for argument in argv))
 
+    def test_unified_solo_ai_requires_capable_helper_and_legacy_launch_remains_supported(self):
+        root, path, manifest = self.install()
+        manifest['community'] = dict(native_scope='custom-match-prototype')
+        helper = root / 'BattleAcesOffline.dll'
+        helper.write_bytes(helper.read_bytes() + b' BA_RESURRECTION_TLS_BRIDGE_V2 BA_RESURRECTION_COMMUNITY_MATCH_V1 BA_RESURRECTION_UNIFIED_CLIENT_V1')
+        manifest['helper_sha256'] = hashlib.sha256(helper.read_bytes()).hexdigest()
+        path.write_text(json.dumps(manifest))
+        launch.verify_game(root, community=True, bridge_version=2)
+        with self.assertRaisesRegex(launch.LaunchError, 'configurable local solo AI hosting'):
+            launch.verify_game(root, community=True, bridge_version=2, unified=True)
+        helper.write_bytes(helper.read_bytes() + b' BA_RESURRECTION_SOLO_AI_HOST_V1')
+        manifest['helper_sha256'] = hashlib.sha256(helper.read_bytes()).hexdigest()
+        path.write_text(json.dumps(manifest))
+        launch.verify_game(root, community=True, bridge_version=2, unified=True)
+
     @patch('client_patch.patcher.bundle_loading.verify_installed')
     def test_ordinary_player_requires_complete_helper_and_installed_feature_recipe(self, verify_bundles):
         root, path, manifest = self.install()
         helper = root / 'BattleAcesOffline.dll'
-        helper.write_bytes(helper.read_bytes()+b' BA_RESURRECTION_TLS_BRIDGE_V2 BA_RESURRECTION_UNIFIED_CLIENT_V1 BA_RESURRECTION_COMMUNITY_MATCH_V1')
+        helper.write_bytes(helper.read_bytes()+b' BA_RESURRECTION_TLS_BRIDGE_V2 BA_RESURRECTION_UNIFIED_CLIENT_V1 BA_RESURRECTION_COMMUNITY_MATCH_V1 BA_RESURRECTION_SOLO_AI_HOST_V1')
         manifest['community'] = dict(native_scope='custom-match-prototype')
         manifest['helper_sha256'] = hashlib.sha256(helper.read_bytes()).hexdigest()
         path.write_text(json.dumps(manifest))

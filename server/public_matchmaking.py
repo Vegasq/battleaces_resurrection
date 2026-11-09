@@ -186,9 +186,10 @@ class PublicMatchmaking:
                 members = tuple(waiting[:len(human_slots)])
                 offer = Offer(uuid.uuid4().hex, mode, members, now+self.offer_timeout)
                 self.offers[offer.id] = offer
+                reason = q.SOLO_AI_OFFER if len(members) == 1 else ''
                 for entry in members:
                     entry.offer = offer.id
-                    self.publish(entry, q.OFFERED, offer=offer.id, now=now)
+                    self.publish(entry, q.OFFERED, offer=offer.id, reason=reason, now=now)
                 self.community.publish_presence()
                 self.server.audit('public_match_offered', match=offer.id, mode=mode,
                                   humans=[entry.profile for entry in members],

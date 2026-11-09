@@ -17,6 +17,9 @@ COMMANDS = frozenset((ENTER, CANCEL, READY, RETURN, loadout.ENTER_LOADOUT))
 WAITING, OFFERED, PREPARING, LOADING, RUNNING, RESULTS, RETIRED = range(7)
 MODES = {1: (2, (0, 1)), 2: (4, (0, 1, 2, 3)), 5: (4, (0, 2))}
 FALLBACK_SECONDS = 30.0
+# Existing STATE.reason metadata, meaningful only for an uncommitted offer.
+# Clients may cancel and play locally before READY; legacy clients may accept.
+SOLO_AI_OFFER = 'solo_ai_offer'
 
 
 def ticket(value):

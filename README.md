@@ -41,6 +41,8 @@ The client starts fullscreen. To start in a window, close the game and set `"ful
 
 From the game menu, **Try Deck** starts a local AI game. Public 1v1, 2v2 and 2vAI queues use available players and fill open seats with AI after 30 seconds. **Custom** rooms are for human players. To open a saved replay, close the game and use **Watch Replay.cmd** in the game folder.
 
+**Next client (rc1.11):** Solo AI runs locally by default, even with a server saved. Public **1v1/2v2/2vAI** still search for humans, including a co-op teammate in 2vAI, then switch locally if the matching server offers a match with you as the only human. Matches containing other humans stay online. To choose server-hosted solo AI, close the game and set `"solo_ai_host": "server"` in `.battleaces-resurrection/client-config.json`; `"local"` restores the default. Local games do not appear in server match history. Public queue handoff requires the matching rc1.11 host.
+
 ## Host a server
 
 1. Download **BattleAces-Server-Installer-0.3.0-rc1.9.exe** from the **same release**. Close the game and any server you are replacing.

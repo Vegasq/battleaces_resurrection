@@ -154,12 +154,13 @@ def enroll(request, config_path):
             candidate.update(game_directory=str(validated['game_directory']), server_name=validated['server_name'],
                 ca_bundle=ca.relative_to(destination.parent).as_posix(), credential_file=invite.relative_to(destination.parent).as_posix())
             launcher.validate_config(candidate, destination)
-            # Enrollment changes only online identity/trust. Keep an explicitly
-            # selected local cosmetic profile across server/name changes.
+            # Enrollment changes only online identity/trust. Keep explicit local
+            # profile, display and solo-AI choices across server/name changes.
             if destination.exists():
                 previous = launcher.read_json(destination, MAX_REQUEST)
-                if 'local_profile' in previous:
-                    candidate['local_profile'] = client.profile_key(previous['local_profile'])
+                local = client.local_settings(previous, destination)
+                for name in ('local_profile', 'fullscreen', 'solo_ai_host'):
+                    if name in previous: candidate[name] = local[name]
             with private._private_create(temporary) as stream:
                 created.append(temporary)
                 stream.write((json.dumps(candidate, indent=2)+'\n').encode('utf-8'))

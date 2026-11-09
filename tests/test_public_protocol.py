@@ -40,6 +40,14 @@ class PublicProtocolTests(unittest.TestCase):
         self.assertEqual(q.decode_state(q.state(9, q.OFFERED, 5, 30000, 'offer', '')),
                          dict(ticket=9, phase=q.OFFERED, mode=5, elapsed_ms=30000, match='offer', reason=''))
 
+    def test_solo_ai_offer_marker_uses_existing_reason_field_and_version(self):
+        self.assertEqual(q.SOLO_AI_OFFER, 'solo_ai_offer')
+        wire = q.state(9, q.OFFERED, 1, 30000, 'offer', q.SOLO_AI_OFFER)
+        self.assertEqual(wire, struct.pack('<HQBBI', 1, 9, q.OFFERED, 1, 30000)
+                         + p.encode_string('offer') + p.encode_string('solo_ai_offer'))
+        self.assertEqual(q.decode_state(wire), dict(ticket=9, phase=q.OFFERED,
+            mode=1, elapsed_ms=30000, match='offer', reason=q.SOLO_AI_OFFER))
+
     def test_two_and_four_input_frames_have_no_implicit_last_seat(self):
         for count in (2, 4):
             inputs = {slot: bytes([slot+1])*(slot+1) for slot in range(count)}

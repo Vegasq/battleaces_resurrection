@@ -1,5 +1,14 @@
 PUBLIC QUEUE EXTENSION V1
 
+CURRENT SOLO AI ROUTING (rc1.11)
+Public1v1/2v2/2vAI retain their human matchmaking below. With the default local
+solo_ai_host,an offered one-human roster is cancelled before READY;only after
+RETIRED does the client transfer its frozen loadout to local native AI. Offers
+with other humans,including the allied2vAI pair,remain server-hosted. Explicit
+solo_ai_host=server preserves hosted solo AI. Try Deck remains local. Earlier
+hosted-solo evidence below stays scoped to that option. Current implementation,
+private candidate and limits:solo-ai-host-20261109.txt.
+
 MULTIPLE GRAPHICAL HUMANS (2026-10-18 UTC, EXPERIMENTAL)
 tools.verify_public_clients authenticates2..4 actual game processes and waits
 at a bounded diagnostic menu gate before invoking Play. Real queue timing is

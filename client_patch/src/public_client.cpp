@@ -1,5 +1,6 @@
 #pragma once
 #include "public_attempt.hpp"
+#include "solo_ai_policy.hpp"
 // Unity-thread public matchmaking adapter. Custom lobby ownership stays separate.
 namespace ba_public {
 using ba::Obj;using ba_local::Root;
@@ -7,13 +8,13 @@ namespace q=ba_public_wire;
 namespace c=ba_community_wire;
 using q::require;
 struct Current {
-    ba_public_attempt::Attempt intent;Root front,controller,deckSnapshot;
+    ba_public_attempt::Attempt intent;ba_solo_ai::Handoff solo;Root front,controller,deckSnapshot;
     ba_cosmetics::FrozenLoadout appearance;
     uint32_t enterRequest=0,readyRequest=0,cancelRequest=0,returnRequest=0;
     bool lost=false,cancelAck=false,cancelRejected=false,returnAck=false,joining=false,aborting=false,cleanup=false;
     bool found=false,returning=false;std::string failure;
-    Current(uint64_t ticket,int mode,const c::Loadout& selected,Obj f,Obj owner,Obj deck,const ba_cosmetics::FrozenLoadout& frozen):
-        intent(ticket,mode,selected,GetTickCount64()),front(f),controller(owner),deckSnapshot(deck),appearance(frozen){}
+    Current(uint64_t ticket,int mode,const c::Loadout& selected,Obj f,Obj owner,Obj deck,const ba_cosmetics::FrozenLoadout& frozen,ba_solo_ai::Host host):
+        intent(ticket,mode,selected,GetTickCount64()),solo(host),front(f),controller(owner),deckSnapshot(deck),appearance(frozen){}
 };
 static auto& current=*new std::unique_ptr<Current>();
 static uint64_t lastTicket=0;
@@ -23,6 +24,9 @@ static bool smokeCancelled=false;
 static uint64_t smokeRetryAt=0;
 static auto& oldMatches=*new std::deque<std::string>();
 static bool active(){return static_cast<bool>(current);}
+static ba_solo_ai::Host soloAiHost() {
+    static const auto value=ba_solo_ai::parseHost(ba::argument(L"-solo-ai-host=","local"));return value;
+}
 static bool smokeGate(bool practice=false);
 static bool smokePracticeReady() {
     if(ba_custom_transition::enabled())return ba_custom_transition::allowPractice();
@@ -82,11 +86,15 @@ static void start(Obj front,Obj controller,int mode) {
         ba_community_invites::operations.empty() && !ba::get<Obj>(front,"_party") && ba_lan::bootstrap.empty(),
         "public search requires an idle menu outside Custom");
     require(ba_dedicated_deck::canReady(front),"public selected deck invalid");
+    const auto host=soloAiHost();
+    static bool policyLogged=false;
+    if(!policyLogged){policyLogged=true;ba::log("Solo AI hosting policy: host=%s mode=%d BA_RESURRECTION_SOLO_AI_HOST_V1",ba_solo_ai::name(host),mode);}
+    if(host==ba_solo_ai::Host::Server)ba::log("Solo AI route: mode=%d host=server publicQueue=1",mode);
     Root deck(ba_dedicated_deck::selectedProto(front));const auto appearance=ba_cosmetics::freezeHuman(front,deck.get());
     const auto selected=ba_cosmetics::wireLoadout(deck.get(),appearance);
     const auto ticket=ba_match_search::begin(front,mode);
     try {
-        current=std::make_unique<Current>(ticket,mode,selected,front,controller,deck.get(),appearance);lastTicket=ticket;
+        current=std::make_unique<Current>(ticket,mode,selected,front,controller,deck.get(),appearance,host);lastTicket=ticket;
         if(ba::flag(L"-public-loadout-edit-smoke")) {
             require(ba::flag(L"-public-queue-smoke") && selected.full,"public loadout edit requires explicit full diagnostic");
             ba::log("PUBLIC LOADOUT original frozen deck: %s",ba_catalog::utf8(ba::call(deck.get(),"ToString")).c_str());
@@ -243,6 +251,13 @@ static void update(Obj front) {
         ba_remote_profiles::update(front);
         const auto now=GetTickCount64();Obj server=ba::read<Obj>(front,0xd8);
         if(s.lost) {
+            if(s.solo.pending()) {
+                const auto disposition=s.solo.observe(intent,s.joining);
+                if(disposition==ba_solo_ai::Action::StartLocal){fallback(front);return;}
+                if(disposition!=ba_solo_ai::Action::Online) {
+                    finishMenu(front,"solo AI cancellation lost before safe retirement",true,true);return;
+                }
+            }
             // A valid result and native Continue already finished this match.
             // Losing only its final control ACK must not report a start failure.
             if(s.returning && !s.aborting){finishMenu(front,"connection lost after return",true);return;}
@@ -264,6 +279,29 @@ static void update(Obj front) {
             if((intent.retired && s.cancelAck) || s.cancelRejected){finishMenu(front,"cancelled",s.cancelRejected);return;}
             if(!s.cancelRequest)s.cancelRequest=ba_community::send(q::cancel(ba_community::nextRequest(),intent.ticket));
             return;
+        }
+        const auto solo=s.solo.observe(intent,s.joining);
+        if(solo==ba_solo_ai::Action::CancelOffer) {
+            require(!s.cancelRequest && !intent.readySent,"solo AI cancellation after READY");
+            s.failure="solo AI runs locally";
+            s.cancelRequest=ba_community::send(q::cancel(ba_community::nextRequest(),intent.ticket));
+            ba::log("Solo AI offer retirement requested: ticket=%llu mode=%u beforeReady=1 reason=solo_ai_offer",
+                static_cast<unsigned long long>(intent.ticket),intent.mode);return;
+        }
+        if(solo==ba_solo_ai::Action::AwaitRetirement) {
+            if(s.cancelRejected || now-intent.started>=35000)
+                finishMenu(front,"solo AI offer retirement unavailable",true,true);
+            return;
+        }
+        if(solo==ba_solo_ai::Action::StartLocal) {
+            require(intent.retired && intent.mayFallback() && !intent.readySent && !intent.committed && !intent.assigned,
+                "solo AI transfer before safe authoritative retirement");
+            ba::log("Solo AI offer retired: ticket=%llu mode=%u localFallback=1 readySent=0",
+                static_cast<unsigned long long>(intent.ticket),intent.mode);
+            fallback(front);return;
+        }
+        if(solo==ba_solo_ai::Action::RetireOnly) {
+            finishMenu(front,"solo AI proposal changed during cancellation",false,true);return;
         }
         if(intent.retired) {if(intent.mayFallback()){fallback(front);return;}finishMenu(front,"server retired public ticket",false,true);return;}
         if(s.aborting || (intent.phase==q::Results && !ba_lan::matchEnded)) {

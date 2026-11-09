@@ -48,10 +48,11 @@ class GameInstallerTests(unittest.TestCase):
         self.assertEqual(value['server_host'],'127.0.0.1')
         self.assertEqual(value['schema'],4)
         self.assertIs(value['fullscreen'], True)
+        self.assertEqual(value['solo_ai_host'], 'local')
 
     def test_update_preserves_name_profile_port_and_local_identity(self):
         result=self.install();path=Path(result['config'])
-        value=json.loads(path.read_bytes());value.update(display_name='Nick',local_profile='friends',server_port=5000,fullscreen=False)
+        value=json.loads(path.read_bytes());value.update(display_name='Nick',local_profile='friends',server_port=5000,fullscreen=False,solo_ai_host='server')
         path.write_text(json.dumps(value))
         a=rc_setup.Resolver(path,self.game).read()
         self.install()
@@ -60,6 +61,30 @@ class GameInstallerTests(unittest.TestCase):
         after=json.loads(path.read_bytes())
         self.assertEqual((after['display_name'],after['local_profile'],after['server_port']),('Nick','friends',5000))
         self.assertIs(after['fullscreen'], False)
+        self.assertEqual(after['solo_ai_host'], 'server')
+
+    def test_legacy_update_defaults_to_local_and_keeps_saved_identity(self):
+        result=self.install();path=Path(result['config'])
+        value=json.loads(path.read_bytes())
+        value.pop('solo_ai_host');value.pop('fullscreen')
+        path.write_text(json.dumps(value))
+        identity=rc_setup.Resolver(path,self.game).read()
+        self.install()
+        after=json.loads(path.read_bytes())
+        self.assertEqual(after['solo_ai_host'],'local')
+        self.assertIs(after['fullscreen'],True)
+        saved=rc_setup.Resolver(path,self.game).read()
+        self.assertEqual((identity.player_id,identity.token),(saved.player_id,saved.token))
+
+    def test_invalid_existing_solo_ai_preference_is_preserved_before_patch(self):
+        result=self.install();path=Path(result['config'])
+        original=json.loads(path.read_bytes())
+        for invalid in (True,'unknown'):
+            value=dict(original,solo_ai_host=invalid);path.write_text(json.dumps(value))
+            before=path.read_bytes();self.patcher.reset_mock()
+            with self.subTest(invalid=invalid),self.assertRaises(ValueError):self.install()
+            self.patcher.assert_not_called()
+            self.assertEqual(path.read_bytes(),before)
 
     def test_fresh_install_uses_player_pc_account_default_and_rename_keeps_identity_and_saves(self):
         with mock.patch.object(installer,'default_name',return_value='Local Pilot'):

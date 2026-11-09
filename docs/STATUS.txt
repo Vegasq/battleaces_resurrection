@@ -4,6 +4,19 @@ Current work:REMAINING_DELIVERY_PLAN.txt. Evidence navigation:INDEX.txt.
 Exact prior3576-line ledger:history/2026-10-24/STATUS.txt.
 Historical records retain their original failures,claims and artifact scopes.
 
+Nick now requests local solo AI by default,with server hosting retained as a
+config option. rc1.11 implements safe pre-READY retirement of one-human AI offers
+in public1v1/2v2/2vAI,retaining human co-op matchmaking. Other-human games remain
+server-owned. Configuration/install preservation and routing regressions pass.
+Native local1vAI/local2vAI prefixes pass with zero authoritative workers;explicit
+server2vAI passes with one real worker. Exact embedded installer update preserves
+161 profile files/settings. Private installer02 is ready;N24 has its exact path.
+Host metadata support is live,
+package-verified in Wine;14 existing profiles/configuration unchanged. A live
+RC/TLS peer received the marker and CANCEL/RETIRED with no READY/assignment.
+N23 is superseded by this request;D8/human-online lag is still open.
+See solo-ai-host-20261109.txt for current scope and exact candidate evidence.
+
 N22 FAILED with a disconnect atframe3267. The active server rejected a unit
 command's entity list. A supported empty-selection case reproduces the same
 live rejection;the exact original packet was not retained. Original native
@@ -12,7 +25,7 @@ validated empty groups while retaining other command/ownership checks. Unit,
 network and native equivalence checks pass. Correction9465c28 is now live;
 the identical real RC/TLS two-peer test that failed before now passes32 frames
 through both empty-command bursts. Configuration and14 profile hashes preserved.
-N23 requests a normal match with the current client;no reinstall required.
+N23 was superseded by the local-first solo-AI request above.
 See empty-selection-disconnect-20261109.txt. No movement PASS is inferred.
 
 N21 clarifies the remaining symptom:"Tiny jumps. Game felt laggy." A private

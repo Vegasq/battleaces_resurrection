@@ -38,6 +38,7 @@ class RCSetupTests(unittest.TestCase):
             self.save()
             value = launcher.read_json(self.path, 32768)
             self.assertEqual(set(value), rc_setup.KEYS)
+            self.assertEqual(value['solo_ai_host'], 'local')
             self.assertFalse({'ca_bundle', 'credential_file', 'server_name'} & value.keys())
             self.assertEqual(client.prepare_settings(self.path)['game_directory'], self.game)
         first = rc_setup.Resolver(self.path, self.game).read()
@@ -62,15 +63,51 @@ class RCSetupTests(unittest.TestCase):
 
     def test_existing_local_profile_survives_upgrade_and_corrupt_identity_is_not_replaced(self):
         self.path.parent.mkdir()
-        old = dict(client.defaults(self.game), local_profile='friends_02')
+        old = dict(client.defaults(self.game), local_profile='friends_02', fullscreen=False, solo_ai_host='server')
         self.path.write_text(json.dumps(old))
         self.save()
-        self.assertEqual(client.prepare_settings(self.path)['local_profile'], 'friends_02')
+        saved = client.prepare_settings(self.path)
+        self.assertEqual(saved['local_profile'], 'friends_02')
+        self.assertIs(saved['fullscreen'], False)
+        self.assertEqual(saved['solo_ai_host'], 'server')
         rc_setup.Resolver(self.path, self.game).read()
         identity, = (self.path.parent / 'rc-identities').glob('*.json')
         identity.write_text('{}')
         with self.assertRaises(ValueError): rc_setup.Resolver(self.path, self.game).read()
         self.assertEqual(identity.read_text(), '{}')
+
+    def test_legacy_optional_fields_default_on_read_and_are_preserved_on_save(self):
+        self.save()
+        original = launcher.read_json(self.path, 32768)
+        for missing in (('solo_ai_host',), ('fullscreen',), ('solo_ai_host', 'fullscreen')):
+            value = dict(original, fullscreen=False, solo_ai_host='server')
+            for key in missing: value.pop(key)
+            self.path.write_text(json.dumps(value))
+            with self.subTest(missing=missing):
+                before = self.path.read_bytes()
+                config = rc_setup.settings(value, self.path)
+                self.assertEqual(config['solo_ai_host'], 'local' if 'solo_ai_host' in missing else 'server')
+                self.assertIs(config['fullscreen'], 'fullscreen' in missing)
+                identity = rc_setup.Resolver(self.path, self.game).read()
+                self.assertEqual(self.path.read_bytes(), before)
+                self.save(name='Renamed')
+                saved = launcher.read_json(self.path, 32768)
+                self.assertEqual(saved['solo_ai_host'], config['solo_ai_host'])
+                self.assertIs(saved['fullscreen'], config['fullscreen'])
+                after = rc_setup.Resolver(self.path, self.game).read()
+                self.assertEqual((identity.player_id, identity.token), (after.player_id, after.token))
+
+    def test_unknown_or_invalid_solo_ai_preferences_are_not_overwritten(self):
+        self.save()
+        original = launcher.read_json(self.path, 32768)
+        for change in (dict(solo_ai_host=True), dict(solo_ai_host='unknown'), dict(extra='unknown')):
+            value = dict(original, **change)
+            self.path.write_text(json.dumps(value))
+            before = self.path.read_bytes()
+            with self.subTest(change=change):
+                with self.assertRaises(launcher.LaunchError): rc_setup.settings(value, self.path)
+                with self.assertRaises(launcher.LaunchError): self.save()
+                self.assertEqual(self.path.read_bytes(), before)
 
     def test_rc_server_configuration_requires_tls_and_explicit_mode(self):
         value = json.loads((ROOT / 'server/host-config.example.json').read_text())
