@@ -226,11 +226,19 @@ class PreparationTests(unittest.TestCase):
         plan=verifier.prepare(self.args)
         self.assertEqual(plan['frames'],650)
         self.assertEqual(plan['changing_pose_clock'],'sampled_us')
+        self.assertEqual(plan['publication_source'],'post-original-qpc')
         self.assertIsNone(plan['actor_fixture']);self.assertFalse(plan['actor_correction'])
         for index in (0,1):
             flags=verifier.command_extra(plan,index,self.args.output/'run')
             self.assertEqual('-prediction-movement-smoke-distance=48' in flags,index==0)
             self.assertIn('-frame-timing-frames=650',flags)
+            self.assertIn('-frame-timing-worlds=2',flags)
+
+    def test_ordinary_preparation_adds_no_multiworld_publication_option(self):
+        plan=verifier.prepare(self.args)
+        self.assertIsNone(plan['publication_source'])
+        for index in (0,1):
+            self.assertNotIn('-frame-timing-worlds=2',verifier.command_extra(plan,index,self.args.output/'run'))
 
     def test_changing_rtt_rejects_other_modes_actor_confound_or_wrong_topology(self):
         self.args.changing_rtt=True;self.args.scenario='movement'
@@ -1363,6 +1371,98 @@ class NativePoseQpcTests(unittest.TestCase):
         self.assertFalse(after['pose_timing_approximate']);self.assertEqual(after['pose_metric_clock'],'sampled_us')
         for key in ('command_to_visible_ms','visibility_before_authority_ms','canonical_commit_frame','speculative_frame'):
             self.assertEqual(after[key],before[key])
+
+
+class PostOriginalPublicationTests(unittest.TestCase):
+    def fixture(self,*,observer_late=False,producer_gap=50,pose_stall=False):
+        base,control,_=NativePoseQpcTests().fixture(pose_stall=pose_stall)
+        rows=[];worlds=[];trace=[];matches=['a'*32,'b'*32]
+        for index,match in enumerate(matches):
+            shift=30000+index*60000;world=7+index
+            for original in base:
+                row=deepcopy(original);row.update(match=match,world=world,tick_ms=original['tick_ms']+shift)
+                if row['event']=='transform':
+                    # Actual rendering can interpolate while the published
+                    # counter is unchanged; do not conflate those observations.
+                    movement_tick=6600 if pose_stall and 6600<=original['tick_ms']<7000 else original['tick_ms']
+                    row['position']=[max(0,(movement_tick-1500)*.003),0,0]
+                    row['sampled_us']+=shift*1000
+                    if observer_late and row['presented_frame']>=467:row['sampled_us']+=43000
+                rows.append(row)
+            state=deepcopy(control['worlds'][0]);state.update(match=match,world=world)
+            state['command']=next(row for row in rows if row['match']==match and row['event']=='command_created')
+            for name in ('rise','fall'):
+                state[name]['effective_tick_ms']+=shift
+                state[name]['effective_perf_counter_ns']+=shift*1_000_000
+            worlds.append(state)
+            start=(1000+shift-430*50)*1000+123456
+            trace.append(dict(event='arrival',frame=0,qpc_us=start-1000,ms=(start-1000)//1000))
+            for frame in range(651):
+                extra=(producer_gap-50)*1000 if frame==467 else 20000 if frame==468 and producer_gap>50 else 0
+                qpc=start+frame*50000+extra
+                trace.append(dict(event='publication',frame=frame,presented=frame,sim=frame-1,queued=0,
+                                  update=frame+1,qpc_us=qpc,ms=qpc//1000))
+        return NativePoseQpcTests.log(rows),dict(worlds=worlds),matches,trace
+
+    def check(self,**kwargs):
+        log,control,matches,trace=self.fixture(**kwargs)
+        return verifier.changing_rtt_evidence(log,control,matches,require_sampled_us=True,
+            publication_source='post-original-qpc',publication_trace=trace)
+
+    def test_late_transform103_is_retained_while_real_producer90_passes(self):
+        result=self.check(observer_late=True,producer_gap=90)
+        self.assertTrue(result['passed'])
+        for world in result['worlds']:
+            self.assertEqual(world['maximum_publication_observation_gap']['gap_ms'],103)
+            self.assertEqual(world['maximum_post_original_publication_gap']['gap_ms'],90)
+            self.assertEqual(world['publication_gate_source'],'post-original-qpc')
+            self.assertEqual(world['producer_full_prefix_publications'],651)
+        log,control,matches,_=self.fixture(observer_late=True,producer_gap=90)
+        self.assertFalse(verifier.changing_rtt_evidence(log,control,matches,require_sampled_us=True)['passed'])
+
+    def test_true_producer103_is_red_despite_transform_observations_under100(self):
+        result=self.check(producer_gap=103)
+        self.assertFalse(result['passed'])
+        self.assertTrue(all(world['maximum_post_original_publication_gap']['gap_ms']==103 and
+                            world['maximum_publication_observation_gap']['gap_ms']<100 for world in result['worlds']))
+
+    def test_unfinished_transform_hold_stays_red_with_healthy_producer(self):
+        result=self.check(pose_stall=True)
+        self.assertFalse(result['passed'])
+        self.assertTrue(all(world['maximum_unfinished_pose_gap']['gap_ms']>100 for world in result['worlds']))
+
+    def test_missing_second_world_duplicate_frame0_or_publication_hole_cannot_fallback(self):
+        log,control,matches,trace=self.fixture()
+        second=next(i for i,row in enumerate(trace)if i and row['event']=='arrival')
+        cases=[trace[:second],trace[:second]+[dict(trace[second])]+trace[second:],
+               [row for row in trace if not(row['event']=='publication'and row['frame']==470)]]
+        for changed in cases:
+            with self.subTest(rows=len(changed)),self.assertRaises(AssertionError):
+                verifier.changing_rtt_evidence(log,control,matches,require_sampled_us=True,
+                    publication_source='post-original-qpc',publication_trace=changed)
+
+    def test_qpc_is_mandatory_monotone_and_frame_must_equal_actual_presented(self):
+        for changes in (dict(qpc_us=None),dict(qpc_us=1.5),dict(qpc_us=True),dict(qpc_us=0),dict(presented=99)):
+            log,control,matches,trace=self.fixture();trace[475].update(changes)
+            with self.subTest(changes=changes),self.assertRaisesRegex(AssertionError,'QPC/identity'):
+                verifier.changing_rtt_evidence(log,control,matches,require_sampled_us=True,
+                    publication_source='post-original-qpc',publication_trace=trace)
+
+    def test_mode_and_world_boundaries_are_explicit_without_clock_mixing(self):
+        log,control,matches,trace=self.fixture()
+        with self.assertRaisesRegex(AssertionError,'silently change'):
+            verifier.changing_rtt_evidence(log,control,matches,publication_trace=trace)
+        with self.assertRaisesRegex(AssertionError,'actual QPC'):
+            verifier.changing_rtt_evidence(log,control,matches,publication_source='post-original-qpc',publication_trace=trace)
+        with self.assertRaisesRegex(AssertionError,'two matched'):
+            verifier.changing_rtt_evidence(log,control,matches,require_sampled_us=True,publication_source='post-original-qpc')
+        for row in trace:
+            if row['event']=='publication':row['qpc_us']+=10**12
+        with self.assertRaisesRegex(AssertionError,'cover both transition'):
+            verifier.changing_rtt_evidence(log,control,matches,require_sampled_us=True,
+                publication_source='post-original-qpc',publication_trace=trace)
+        # sim=a8 can lag published ac; the source does not promise their order.
+        self.assertTrue(self.check()['passed'])
 
 
 class TransitionGateTests(unittest.TestCase):

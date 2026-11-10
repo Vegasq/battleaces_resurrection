@@ -307,3 +307,77 @@ local/prediction-runtime/movement14-dense-phase/run/verification.json
 local/prediction-runtime/movement14-dense-phase/file-audit01/audit.json
 local/prediction-checkpoint-20261110/dense-phase-retime-verifier01/
 local/prediction-checkpoint-20261110/own-retime-review01/
+
+Portable15:FAILED,not handed off
+The clean c3700f7 private package binds108 files,official Python3.14.8 and the
+same helper24. Both actual rounds finish naturally and all2890 retained native
+hashes match. New direction responses42.642/53.593/36.859/63.253ms occur before
+authority. However,both recovered order3 commands are+2 frames from their real
+canonical commits,exceeding the unchanged one-frame limit. Transient order2
+phases are-3/0. The original full result remains FAILED with inputs/package
+and ZIP unchanged;no special launcher or new human reservation is published.
+
+The recovered gate samples are fresh and valid;this is not stale-file timing.
+The existing Policy decision compares CURRENT next67 N with assigned targetA,
+but subsequently queues physical frameN and advances next67 toN+1. Actual W1
+last-before-enqueue isN600/A599,then67 assigns601 while canonical commit is599.
+W2 hasN573/A572,then67 assigns574/canonical572. The prospective queue-head
+setpoint must account for that actuation. A finite zero-deadband prospective
+candidate is under investigation,with independent server-seal/input-phase
+controls rather than assertions that merely repeat the chosen formula.
+
+The W2 TF first-observation publication gap is103.578ms,also above its100ms
+gate. The first-world timing collector had stopped and did not rearm on
+rematch,so there is no exact W2 post-original publication trace. Other actual
+counter observations bound the transition interval to83.565..98.602ms under
+the sole-owner publication contract;these are bounds,not invented publication
+timestamps. The original observed-gap RED is preserved. The next explicit
+diagnostic will retain actual post-original publication QPC rows for both
+worlds against the same100ms producer gate,and keep TF observations separate.
+Full first-prefix hitches and sharp1.575/1.237-unit pose steps remain open.
+
+Package/ZIP SHA256:
+11e36153ee87ec162fd197f8e02bd563db74833342039399e8af0ae8739a5381
+Original failed report SHA256:
+548066369d14b3c075810ff9a1b6066b0d6099287950ea25d8483a392969de83
+Ignored evidence:
+local/prediction-runtime/movement15-portable/run/verification.json
+local/prediction-runtime/movement15-portable/file-audit01/audit.json
+local/prediction-private-package-20261110/build-report.json
+
+Fractional-time candidate,source-qualified only
+Independent server-seal/input-phase controls reject a simple zero-deadband
+prospective integer-head rule:it still produces late two-frame assignments.
+The assigned integer target with zero deadband improves results but still
+fails some dynamic recovery cases. Those controls and all original failures
+remain retained;no integer phase tolerance is widened.
+
+The candidate instead keeps the unrounded age+apparent-RTT lead,clamped to
+50..600ms. Its signed time error is(received-next)*50ms+lead. After initial
+acquisition,the deadline period is50ms-error/8,clamped to45..55ms. Initial
+25ms acquisition,first50ms deadline,native50ms step,12-frame budget,spacing,
+immutable67 assignment and successful-original-call ownership are preserved.
+All unsigned/signed,frame,lead,clock and deadline bounds are checked.
+
+Both predeclared gain4 and gain8 controls pass160 fixed and96 dynamic cases
+against an independent server-seal oracle,including prepared/unprepared and
+arbitrary command phases. Gain8 is selected for its gentler roughly400ms
+small-error correction and all100-frame healthy5s windows;gain4 has99..101.
+This choice is recorded separately from the earlier private recommendation.
+The actual-header suite now passes289 authored cases and1,790,400 dynamic
+input-phase probes. These are model/source results,not runtime or visual
+acceptance. The actual bundled candidate is the next required qualification.
+
+The explicit diagnostic flag -frame-timing-worlds=2 retains both post-original
+publication QPC segments. Default1,cumulative row cap,first-segment bytes and
+header ownership remain guarded. New verifier plans require both segments and
+use the unchanged100ms producer gate;TF observation gaps stay separately
+reported and unfinished pose holds retain100ms.162 verifier/shaper cases pass.
+Portable15's original observed-gap failure is not reclassified.
+
+Ignored source/model evidence:
+local/prediction-checkpoint-20261110/pacing-prospective01/verification.json
+local/prediction-checkpoint-20261110/pacing-prospective01/fractional-verification.json
+local/prediction-checkpoint-20261110/pacing-prospective01/production-verification.json
+local/prediction-checkpoint-20261110/frame-timing-worlds01/verification.json
+local/prediction-checkpoint-20261110/producer-publication-verifier01/verification.json

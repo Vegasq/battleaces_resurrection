@@ -265,6 +265,7 @@ def prepare(args):
         transition_orders=transition_orders,
         transition_phase_source='decision' if transition_orders else None,
         changing_pose_clock='sampled_us' if changing_rtt else None,
+        publication_source='post-original-qpc' if changing_rtt else None,
         actor_fixture=actor_fixture_metadata() if actor_correction else None,
         rtt_ms=list(args.rtt_ms), surrender_frame=260 if args.scenario == 'startup' else 700,
         move_slot=args.move_slot, expected_matches=2 if args.lifecycle == 'natural' else 1,
@@ -319,6 +320,8 @@ def command_extra(plan, index, run):
         result.append('-prediction-movement-smoke-distance=48')
     if plan.get('transition_orders') and index == plan['move_slot']:
         result.append('-prediction-movement-smoke-transition-gates='+str(run/'transition-gates'))
+    if plan.get('publication_source')=='post-original-qpc':
+        result.append('-frame-timing-worlds=2')
     if plan['lifecycle'] == 'natural':
         result += ['-native-quit-smoke', '-native-quit-mode=confirm', '-native-quit-gate-smoke',
                    '-community-match-leave-quit-smoke']
@@ -637,12 +640,43 @@ class ChangingRttController:
                   'Own correlated application ACK estimates include directory transfer. No new network requests.')
 
 
-def changing_rtt_evidence(log, control, matches, *, require_sampled_us=False):
+def publication_segments(trace, matches):
+    """Two ordered worlds; real post-original publication events, never TF fallback."""
+    require(type(trace)is list and 0<len(trace)<=2_000_000 and len(matches)==2 and len(set(matches))==2,
+            'two matched post-original publication traces required')
+    starts=[index for index,row in enumerate(trace)if row.get('event')=='arrival'and row.get('frame')==0]
+    require(len(starts)==len(matches),'missing/duplicate world frame0 in publication trace')
+    require(not any(row.get('event')=='publication'for row in trace[:starts[0]]),
+            'publication precedes first matched frame0')
+    result={};last_clock=-1
+    for match,start,end in zip(matches,starts,starts[1:]+[len(trace)]):
+        part=trace[start:end]
+        arrivals=[row['frame']for row in part if row.get('event')=='arrival']
+        require(arrivals==list(range(len(arrivals))),'noncontiguous authoritative trace arrivals')
+        publications=[row for row in part if row.get('event')=='publication']
+        require(len(publications)>=650 and [row.get('frame')for row in publications]==list(range(len(publications))),
+                'noncontiguous/incomplete post-original publications')
+        for row in publications:
+            require(all(type(row.get(key))is int for key in ('qpc_us','ms','frame','presented'))and
+                    row['frame']==row['presented'] and 0<=row['ms']<2**64 and
+                    last_clock<row['qpc_us']<2**64,
+                    'post-original publication QPC/identity differs')
+            last_clock=row['qpc_us']
+        result[match]=publications
+    return result
+
+
+def changing_rtt_evidence(log, control, matches, *, require_sampled_us=False,
+                          publication_source=None, publication_trace=None):
     """Preserve transition stalls as RED after collecting natural lifecycle."""
     require([row['match'] for row in control['worlds']] == matches, 'changing RTT controlled match identities differ')
     if any(row['stage']!='complete' for row in control['worlds']):
         return dict(passed=False,worlds=[],missing_gates=[dict(match=row['match'],stage=row['stage'],error=row.get('error'))
             for row in control['worlds'] if row['stage']!='complete'],scope='Transition acquisition/readiness incomplete; no smoothness acceptance')
+    require(publication_source in (None,'post-original-qpc'),'unknown publication measurement source')
+    require(publication_source is not None or publication_trace is None,'legacy TF gate cannot silently change measurement source')
+    producer=publication_segments(publication_trace,matches)if publication_source is not None else None
+    require(producer is None or require_sampled_us,'post-original producer gate requires actual QPC poses/setters')
     rows = feel_rows(log)
     worlds = []
     for state in control['worlds']:
@@ -684,13 +718,24 @@ def changing_rtt_evidence(log, control, matches, *, require_sampled_us=False):
             stationary.append(value)
         pairs = [pose_pair(a,b,clock,scale)for a,b in zip(window,window[1:])]
         peak_publication = max(publications,key=lambda row:row['gap_ms'])
+        producer_peak=None;producer_window=None
+        if producer is not None:
+            producer_window=[row for row in producer[state['match']]
+                if rise_clock-250_000<=row['qpc_us']<=poses[-1]['sampled_us']]
+            require(len(producer_window)>1 and producer_window[0]['qpc_us']<=rise_clock and
+                    producer_window[-1]['qpc_us']>=fall_clock+2_000_000 and producer_window[-1]['frame']>=649,
+                    'post-original publications do not cover both transition windows')
+            producer_gaps=[dict(from_frame=a['frame'],to_frame=b['frame'],from_qpc_us=a['qpc_us'],to_qpc_us=b['qpc_us'],
+                gap_ms=(b['qpc_us']-a['qpc_us'])/1000)for a,b in zip(producer_window,producer_window[1:])]
+            producer_peak=max(producer_gaps,key=lambda row:row['gap_ms'])
         peak_stationary = max(stationary,key=lambda row:row['gap_ms'],default=dict(gap_ms=0))
         baseline = [row for row in poses if rise_clock-500*scale <= row[clock] <= rise_clock]
         baseline_pairs = [(math.dist(a['position'],b['position']),(b[clock]-a[clock])/scale)
                           for a,b in zip(baseline,baseline[1:]) if b[clock]>a[clock]]
         baseline_speed = max((distance*1000/span for distance,span in baseline_pairs),default=0)
         peak_speed = max((row['displacement']*1000/row['interval_ms']for row in pairs if row['interval_ms']>0),default=0)
-        worlds.append(dict(match=state['match'],world=state['world'],passed=max(peak_publication['gap_ms'],peak_stationary['gap_ms'])<=100,
+        worlds.append(dict(match=state['match'],world=state['world'],passed=max(
+            (producer_peak or peak_publication)['gap_ms'],peak_stationary['gap_ms'])<=100,
             pose_clock=clock,pose_timing_approximate=approximate,
             pose_timing_scope='legacy GetTickCount64; coarse approximate intervals, no synthetic microseconds' if approximate else
                 'checked native QPC sampled_us; first observation of counter change, not exact publication time',
@@ -703,8 +748,16 @@ def changing_rtt_evidence(log, control, matches, *, require_sampled_us=False):
             first_pose_tick_ms=poses[0]['tick_ms'],last_pose_tick_ms=poses[-1]['tick_ms'],
             maximum_actual_presented_frame=max(row['presented_frame'] for row in poses),
             maximum_actual_completed_frame=max(row['completed_frame'] for row in poses)))
+        if producer_peak is not None:
+            worlds[-1].update(publication_gate_source=publication_source,maximum_post_original_publication_gap=producer_peak,
+                producer_window_publications=len(producer_window),producer_full_prefix_publications=len(producer[state['match']]),
+                producer_scope='Actual event=publication QPC after original PresentAvailableSimFrame returned and ac changed; '
+                    'pacing bookkeeping precedes this trace sample. Ordered frame0 segments bind the two actual Custom worlds. '
+                    'Transform first-observation gaps remain separate measurements, not exact producer timestamps.')
     return dict(passed=all(row['passed'] for row in worlds),worlds=worlds,
-        scope='Actual original Unity poses/counters throughout transitions, >100ms gaps are RED. Counter-change first-observation times '
+        scope=('Actual post-original publication QPC and unfinished Transform holds use unchanged100ms gates; TF first-observation gaps are separately retained. '
+               if producer is not None else 'Actual original Unity poses/counters throughout transitions, >100ms gaps are RED. ')+
+              'Counter-change first-observation times '
               'are sampled, not synthetic publication timestamps; speed/jumps reported without a universal speed threshold. '
               +('Fresh subject-order causality/phase is evaluated separately from these gap metrics.' if control.get('transition_orders') else
                'No new subject order after transition, so subject transition command latency is unmeasured.'))
@@ -2045,7 +2098,10 @@ async def run_prepared(output):
                 def collect_independent():
                     if changing is not None:
                         report['changing_rtt_observation'] = changing_rtt_evidence(clients[plan['move_slot']]['log'],
-                            report['changing_rtt_control'],created,require_sampled_us=plan.get('changing_pose_clock')=='sampled_us')
+                            report['changing_rtt_control'],created,require_sampled_us=plan.get('changing_pose_clock')=='sampled_us',
+                            publication_source=plan.get('publication_source'),publication_trace=(
+                                frame_timing.read_trace(clients[plan['move_slot']]['trace'])
+                                if plan.get('publication_source')=='post-original-qpc'else None))
                         report['changing_rtt_smoothness_passed'] = report['changing_rtt_observation']['passed']
                         other=1-plan['move_slot']
                         try:

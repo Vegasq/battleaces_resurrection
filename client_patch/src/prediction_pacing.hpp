@@ -38,6 +38,39 @@ inline Target assignmentTarget(Frame received,Tick receivedAt,Tick now,Tick rtt)
     return Target{received+lead,received+lead-1,raw,raw>static_cast<uint64_t>(maximumAhead)};
 }
 
+
+// Continuous command phase, in the same process clock as authority receipts.
+// Integer ceil targets remain useful for initial acquisition and diagnostics;
+// using their whole-frame deadband for steady pacing retains subframe debt.
+inline Tick fractionalPeriod(Frame received,Frame next,Tick age,Tick rtt) {
+    require(received>=1 && received<=maximumFrame && next>=1 && next<=maximumFrame,
+            "fractional pacing frame out of range");
+    const Tick maximumTime=(std::numeric_limits<Tick>::max)();
+    require(rtt<=maximumTime-age,"fractional target time overflow");
+    static_assert(maximumAhead>0 && static_cast<Tick>(maximumAhead)<=
+                  (std::numeric_limits<Tick>::max)()/stepUs,"fractional lead cap overflow");
+    constexpr Tick maximumLeadUs=static_cast<Tick>(maximumAhead)*stepUs;
+    const Tick leadUs=(std::max)(stepUs,(std::min)(age+rtt,maximumLeadUs));
+    const Frame maximumSigned=(std::numeric_limits<Frame>::max)();
+    const Frame minimumSigned=(std::numeric_limits<Frame>::min)();
+    require(leadUs<=static_cast<Tick>(maximumSigned),"fractional lead conversion overflow");
+    // Both bounded frame operands are validated before this subtraction.
+    const Frame delta=received-next,frameUs=static_cast<Frame>(stepUs);
+    require(delta>=minimumSigned/frameUs && delta<=maximumSigned/frameUs,
+            "fractional frame-time overflow");
+    const Frame errorBase=delta*frameUs,signedLead=static_cast<Frame>(leadUs);
+    require(errorBase<=maximumSigned-signedLead,"fractional target addition overflow");
+    const Frame errorUs=errorBase+signedLead;
+    // Fixed gain8 gives a roughly400ms small-error phase correction. Saturate
+    // BEFORE subtraction, so even the largest legal error cannot wrap a period.
+    const Frame correction=errorUs/8,nominal=static_cast<Frame>(stepUs);
+    if(correction>nominal-static_cast<Frame>(shortestPeriodUs))return shortestPeriodUs;
+    if(correction<nominal-static_cast<Frame>(longestPeriodUs))return longestPeriodUs;
+    const Tick period=static_cast<Tick>(nominal-correction);
+    require(period>=shortestPeriodUs && period<=longestPeriodUs,"fractional period out of range");
+    return period;
+}
+
 // Only call observe AFTER the EXISTING own request/ACK validator accepts the
 // current connection generation, request ID, kind, and payload. No heartbeat,
 // remote player's request, server timestamp, or fabricated RTT is admissible.
@@ -187,18 +220,15 @@ public:
         if(haveQueue_ && now-lastQueueAt_<minimumSpacingUs){d.wait=Wait::Spacing;return d;}
         if(acquired_ && now<nextDeadline_){d.wait=Wait::Spacing;return d;}
         if(acquired_ || !d.acquiring) {
-            // Only initial acquisition follows the raw target at25ms. Once
-            // acquired, changing RTT must not hard-hold a monotonically growing
-            // physical head or switch back to initial acquisition. Slew its absolute deadline,
-            // with a one-frame deadband for receipt/ceil quantization. This
-            // trades temporary phase error for continuity, not input-phase or
-            // visual-interpolation acceptance. Native dt stays exactly50ms.
-            // originalInput assigns67 to NEXT before this queue. Compare like
-            // coordinates: desired head(A-1) minus current head(NEXT-1) is
-            // A-NEXT. Comparing desired head with NEXT shifts the neutral band
-            // one frame late and silently accepts a two-frame input deficit.
-            const Frame error=d.target.assigned-next;
-            const Tick period=error>1?shortestPeriodUs:error<-1?longestPeriodUs:stepUs;
+            // Initial acquisition alone follows the ceil target at25ms, then
+            // starts with one nominal50ms deadline. After acquisition, retain
+            // within-frame receipt age and apparent own RTT instead of a
+            // quantized deadband. Slew the absolute deadline without changing
+            // physical frame order, immutable67 assignment or native50ms dt.
+            // This trades transient phase/correction error for continuity;
+            // actual command phase and visual smoothness still need runtime proof.
+            const Tick period=acquired_?
+                fractionalPeriod(received_,next,now-receivedAt_,*rtt):stepUs;
             const Tick base=acquired_?nextDeadline_:now;
             const Tick maximum=(std::numeric_limits<Tick>::max)();
             require(base<=maximum-period,"pacing deadline exhausted");

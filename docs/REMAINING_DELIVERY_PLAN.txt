@@ -46,8 +46,11 @@ bias is fixed locally with25 authored cases;Movement13 initial phases are-1,
 but its sparse timing gate misses the final order and the run remainsFAILED.
 Movement14 now passes dense recovery observations,both rounds,and unchanged
 command-phase/native-state/natural-Quit gates. Four fresh turns respond in
-38..43ms before authority;recovered phases+1/+1. Next:freeze/package and qualify
-the new portable runtime,test launcher and independent human copy.
+38..43ms before authority;recovered phases+1/+1. Portable15 later remainsRED:
+both recovered orders are+2,despite real local response/state parity/natural
+Quit. A bounded fractional-time servo now passes289 actual-header cases;
+two-world producer tracing and162 verifier/shaper cases also pass. Next:build
+and qualify the actual bundled candidate before updating the human handoff.
 Then qualify eligible mobile focus/casting and physical/Internet feel;review
 N35 human feedback. Detailed failures/scopes:prediction-multiplayer-movement.txt.
 The bounded fix,open scopes and separate mobile control are recorded in

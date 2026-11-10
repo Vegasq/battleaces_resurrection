@@ -50,7 +50,11 @@ gate misses the final order and owned cleanup is forced. Full run remainsRED.
 Movement14 now passes both dense actual-decision recovery episodes and all
 four fresh direction orders:38..43ms before authority,recovered phases+1/+1,
 native continuations and natural shutdown. Portable packaging/qualification
-of the new source is next.
+of the new source follows. Portable15 remainsRED:both recovered orders+2
+frames;all2890native hashes match and all children exit naturally. Prospective
+phase control now uses unrounded time in a bounded45..55ms servo;289 authored
+actual-header cases pass. Complete two-world producer timing/162 script cases
+also pass. Actual bundled-client qualification is next before a new human kit.
 Mobile focus/casting and
 physical/Internet acceptance remain open;
 prediction-actor-correction.txt. N35's frozen kit remains reserved.
