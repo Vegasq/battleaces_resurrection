@@ -284,7 +284,16 @@ void tick(void* serverValue) {
         }
         Root physical(message(next));void* push[]={physical.get()};
         ba::call(state.simulation,"PushSimMessage",1,push);
+        const bool recoveringBefore=state.pacing.recovering();
         state.pacing.queued(decision); // Observe ONLY the successful original queue call.
+        if(recoveringBefore!=state.pacing.recovering()) {
+            uint64_t queuedUs=0;require(ba_frame_timing::timestampMicros(queuedUs)&&queuedUs>=decision.now,
+                "movement recovery queue/QPC clock differs");
+            ba::log("MOVEMENT RECOVERY {\"schema\":1,\"event\":\"queued_mode\",\"world\":%llu,\"match\":\"%s\",\"frame\":%d,\"active\":%s,\"decision_us\":%llu,\"queue_return_us\":%llu,\"target_assigned\":%lld,\"native_dt_us\":50000}",
+                static_cast<unsigned long long>(state.world),state.match.c_str(),next,
+                state.pacing.recovering()?"true":"false",static_cast<unsigned long long>(decision.now),
+                static_cast<unsigned long long>(queuedUs),static_cast<long long>(decision.target.assigned));
+        }
         if(next && !decision.acquiring && !state.pacingAcquired) {
             state.pacingAcquired=true;
             ba::log("Movement pacing acquired: match=%s physical=%d targetAssigned=%lld rtt_us=%llu at_us=%llu BA_RESURRECTION_MOVEMENT_PACING_V1",

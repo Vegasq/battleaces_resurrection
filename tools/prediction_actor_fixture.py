@@ -115,3 +115,92 @@ def make_template(base:GameTemplate,assets:Path)->GameTemplate:
     fixture=ActorFixtureTemplate(raw,catalog_path=assets/'unit-catalog.json',descriptors_path=assets/'descriptors')
     fixture.set_allowed_entity_ids(base.allowed_entity_ids)
     return fixture
+
+
+# Separate explicit mobile control. The original HQ transform above is unchanged.
+MOBILE_SEED=20261111
+MOBILE_METADATA=MappingProxyType(dict(
+    name='original-gunbot-mobile-move-v1',attacker_slot=0,attacker_id=10,attacker_type=1,
+    victim_slot=1,victim_id=11,victim_type=1,unit_type=1,health=100,seed=MOBILE_SEED,
+    initial_attacker=(-2.0,0.0,0.0),initial_victim=(2.0,0.0,0.0),
+    activation_seconds=7,original_reveal_seconds=6,original_delayed_commands_raw=21474836400,
+    selection_frame=130,casting_frame=145,escape_physical_frame=150,expected_canonical_frame=151,
+    safe_canonical_frames=(151,152),baseline_first_damage_frame=142,baseline_death_frame=153,
+    baseline_absent_frame=154,survivor_through_frame=173,attacker_still_dies_frame=153,
+    fresh_move_physical_frame=180,observation_last_frame=220,
+    target=(-32.0,0.0,0.0),unchanged_core_health=True))
+
+
+def mobile_metadata():
+    """Fixture inputs and retained control timings, not a new runtime result."""
+    return {key:list(value)if isinstance(value,tuple)else value for key,value in MOBILE_METADATA.items()}
+
+
+def _mobile_require(value,message):
+    if not value:raise GameDataError('Mobile fixture: '+message)
+
+
+class MobileFixtureTemplate(ActorFixtureTemplate):
+    """Fixture marker also prevents composing either transform over the other."""
+    fixture_metadata=MOBILE_METADATA
+
+    def build_match(self,roster,decks,seed=None,game_name=None,**kwargs):
+        _mobile_require(kwargs.get('game_mode') in (None,1),'requires Custom1v1 topology')
+        # Bypass the HQ fixture's different seed; normal MatchData construction
+        # still owns identities, selected decks, cosmetics, gzip and hashes.
+        match=GameTemplate.build_match(self,roster,decks,MOBILE_SEED,game_name,**kwargs)
+        _mobile_require(all(player.army_id==player.slot and player.ai_profile_id==0 for player in match.roster),
+                        'requires two human slots with their ordinary army assignments')
+        _mobile_require(all(1 in match.decks_by_slot[slot] for slot in (0,1)),
+                        'both human slots must choose legal decks containing Gunbot1')
+        return match
+
+
+def make_mobile_template(base:GameTemplate,assets:Path)->GameTemplate:
+    """The retained two-Gunbot initial GameData, without runtime state writes.
+
+    Change only Gunbot health and activation time; append IDs10/11 in original
+    action order. Core definitions, global22, all other entities and both chosen
+    decks remain caller-owned. The explicit mobile seed differs from the HQ
+    control. Native-control timing is retained evidence, not asserted by this
+    byte transformation or its authored unit tests.
+    """
+    _mobile_require(isinstance(base,GameTemplate)and not isinstance(base,ActorFixtureTemplate),
+                    'requires an ordinary source GameTemplate, not an already transformed fixture')
+    _mobile_require(base.game_mode==1 and base.player_count==2,'requires the original two-army map')
+    assets=Path(assets)
+    _mobile_require((assets/'unit-catalog.json').is_file()and(assets/'descriptors').is_dir(),
+                    'requires imported catalog and descriptor paths')
+    _mobile_require(1 in base.catalog and 12 in base.entity_abilities.get(1,()),'Gunbot1/Move12 metadata unavailable')
+    initial=get_repeated_bytes(base.raw_game_data,2)
+    _mobile_require(len(initial)==10,'requires the original ten initial map entities')
+    for index,action in enumerate(initial):
+        entity=get_bytes(action,2,required=True)
+        _mobile_require(get_uint(entity,1)==(3 if index in (0,5) else 19)and
+                        get_uint(entity,2)==(0 if index<5 else 1),'initial map entity IDs/types/armies differ')
+    _mobile_require(get_uint(base.global_config,27)==6*2**32 and get_uint(base.global_config,29)==21474836400,
+                    'original reveal/delayed-command startup differs')
+    definitions=[];gunbots=0
+    for entity in get_repeated_bytes(base.game_config,1):
+        if get_uint(entity,1)==1:
+            attributes=[];health=0
+            for attribute in get_repeated_bytes(entity,8):
+                if get_uint(attribute,1)==4:
+                    attribute=replace_fields(attribute,{2:[field_uint(2,100*2**32)]});health+=1
+                attributes.append(attribute)
+            _mobile_require(health==1,'Gunbot requires its unique original health attribute')
+            entity=replace_fields(entity,{8:[field_bytes(8,value)for value in attributes]});gunbots+=1
+        definitions.append(entity)
+    _mobile_require(gunbots==1,'requires a unique Gunbot1 definition')
+    global_config=replace_fields(base.global_config,{4:[field_uint(4,7*2**32)]})
+    config=replace_fields(base.game_config,{1:[field_bytes(1,value)for value in definitions],
+                                          3:[field_bytes(3,global_config)]})
+    for army,point,sign in ((0,(-2.0,0.0,0.0),1),(1,(2.0,0.0,0.0),-1)):
+        rotation=field_uint(2,int(sign*math.sqrt(.5)*2**32)&(2**64-1))+field_uint(4,int(math.sqrt(.5)*2**32))
+        create=(field_uint(1,1)+(field_uint(2,army)if army else b'')+
+                field_bytes(3,_position_bytes(point))+field_bytes(4,rotation))
+        initial=(*initial,field_bytes(2,create))
+    raw=replace_fields(base.raw_game_data,{1:[field_bytes(1,config)],2:[field_bytes(2,action)for action in initial]})
+    fixture=MobileFixtureTemplate(raw,catalog_path=assets/'unit-catalog.json',descriptors_path=assets/'descriptors')
+    fixture.set_allowed_entity_ids(base.allowed_entity_ids)
+    return fixture

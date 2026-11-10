@@ -4,6 +4,7 @@
 #include <winsock2.h>
 #include <windows.h>
 #include <array>
+#include <algorithm>
 #include <vector>
 #include <string>
 #include <cstdint>
@@ -23,7 +24,7 @@
 namespace host {
 using Obj=void*;
 struct Class;
-struct Method {Obj function=nullptr;const char* name=nullptr;uint32_t token=0;Class* result=nullptr;uint32_t parameters=1;};
+struct Method {Obj function=nullptr;const char* name=nullptr;uint32_t token=0;Class* result=nullptr;uint32_t parameters=1;uint32_t flags=0;};
 struct Class {std::string space,name;std::vector<Method*> methods;};
 struct Field {size_t offset=0;};
 struct Node {
@@ -55,6 +56,10 @@ static Obj currentSelector=nullptr;
 static unsigned selectionRemovals=0;
 static std::vector<uint32_t> removedSelectionIds;
 static bool failSelectionRemoval=false,stopOnSelectionRemoval=false;
+static unsigned groupRemovals=0,groupMarks=0,groupNotifications=0;
+static bool failGroupRemove=false,leaveGroupTyped=false,failGroupMark=false,stopAfterGroupRemove=false;
+static Obj expectedGroupHelper=nullptr;
+static unsigned char groupRemoveCode[32]{},groupBeginCode[32]{},groupDisposeCode[8]{},groupMarkCode[32]{};
 static unsigned char focusCode[]={0x3b,0x91,0xa0,0,0,0,0x75,0x59,0x83,0x3d,0x99,0x34,0x25,0x03,0,0x48,0x8d,0x91,0xa8,0,0,0,0x48,0xc7,0x02,0,0,0,0,0xc7,0x81,0xa0,0,0,0,0xff,0xff,0xff,0xff};
 static unsigned char clearCode[]={0x48,0x89,0x5c,0x24,0x08,0x57,0x48,0x83,0xec,0x70,0x48,0x8b,0xd9,0x80,0x3d,0xb4};
 static void check(bool ok,const char* reason){if(!ok)throw std::runtime_error(reason);}
@@ -78,7 +83,7 @@ template<class T>static T read(Obj object,size_t offset){
 }
 static bool contains(Obj node,uint32_t id,Obj){return static_cast<Node*>(node)->components.count(id)!=0;}
 static uint32_t item(Obj node,uint32_t id,Obj){return static_cast<Node*>(node)->components.at(id);}
-static Method containsMethod,itemMethod,selectionContainsMethod,countMethod,valuesMethod,enumeratorMethod,moveNextMethod,currentMethod,disposeMethod,focusMethod,scopeBeginMethod,scopeDisposeMethod,clearMethod,removeSelectionMethod;
+static Method containsMethod,itemMethod,selectionContainsMethod,countMethod,valuesMethod,enumeratorMethod,moveNextMethod,currentMethod,disposeMethod,focusMethod,scopeBeginMethod,scopeDisposeMethod,clearMethod,removeSelectionMethod,groupRemoveMethod,groupMarkMethod;
 static Class* focusParameter=nullptr;
 static Node boxedBool,boxedInt;
 static bool failEnumeration=false;
@@ -97,14 +102,20 @@ static void metadata(){
     disposeMethod={reinterpret_cast<Obj>(&contains),"Dispose",0x06002e26,nullptr,0};
     focusMethod={focusCode,"FocusControlGroupCancel",0x06002220,type("System","Void"),1};
     focusParameter=type("System","Int32");
-    scopeBeginMethod={reinterpret_cast<Obj>(&contains),"BeginControlGroupChange",0x06001645,nullptr,1};
-    scopeDisposeMethod={reinterpret_cast<Obj>(&contains),"Dispose",0x060000cd,nullptr,0};
+    scopeBeginMethod={groupBeginCode,"BeginControlGroupChange",0x06001645,type("System","IDisposable"),1};
+    scopeDisposeMethod={groupDisposeCode,"Dispose",0x060000cd,type("System","Void"),0};
+    groupRemoveMethod={groupRemoveCode,"Remove",0x060025ab,boolType,1};
+    groupMarkMethod={groupMarkCode,"MarkForFire",0x060000ce,type("System","Void"),0};
     clearMethod={clearCode,"Clear",0x060025ac,type("System","Void"),0};
     removeSelectionMethod={reinterpret_cast<Obj>(&contains),"RemoveSelection",0x0600220a,type("System","Void"),1};
     for(auto* method:{&selectionContainsMethod,&countMethod,&valuesMethod,&enumeratorMethod,&moveNextMethod,&currentMethod,&disposeMethod,&focusMethod,&scopeBeginMethod,&scopeDisposeMethod,&clearMethod})methodObjects.insert(method);
     type("Uncapped","UnitSelector")->methods={&focusMethod};
     methodObjects.insert(&removeSelectionMethod);
-    type("Uncapped.Collections","UnitSelectionSet")->methods={&selectionContainsMethod,&clearMethod};
+    methodObjects.insert(&groupRemoveMethod);methodObjects.insert(&groupMarkMethod);
+    methodObjects.insert(&scopeBeginMethod);methodObjects.insert(&scopeDisposeMethod);
+    type("Uncapped.Collections","UnitSelectionSet")->methods={&selectionContainsMethod,&clearMethod,&groupRemoveMethod};
+    type("Uncapped","ControlGroup")->methods={&scopeBeginMethod};
+    type("Authored","GroupHelper")->methods={&scopeDisposeMethod,&groupMarkMethod};
     type("Authored","TypedSubsets")->methods={&countMethod,&valuesMethod};
     type("Authored","ValueCollection")->methods={&enumeratorMethod};
     type("Authored","ValueEnumerator")->methods={&moveNextMethod,&currentMethod,&disposeMethod};
@@ -114,7 +125,12 @@ static void metadata(){
             {"_dictionary",{0x10}},{"_previewSelectionSet",{0x88}},{"_selectionSet",{0x90}},
             {"_castingSet",{0x98}},{"_activeAbilityCaster",{0x100}},
             {"_repeatFocusUnit",{0xa8}},{"_focusChaseControlGroup",{0xa0}},
-            {"_controlGroupChangeHelper",{0x40}},{"_queuedInputCommands",{0x180}}};
+            {"_controlGroupChangeHelper",{0x40}},{"_queuedInputCommands",{0x180}},
+            {"_unitManager",{0x40}},{"_controlGroupPanel",{0x38}},{"_controlGroups",{0x38}},
+            {"_unitIDs",{0x20}},{"<ID>k__BackingField",{0x38}},{"_controlGroup",{0x18}},
+            {"<IsSuspended>k__BackingField",{0x10}},{"_simFrames",{0x48}},
+            {"_componentData",{0x158}},{"<DeadToTheSim>k__BackingField",{0x160}},
+            {"_localPlayer",{0x90}},{"ArmyID",{0x38}},{"_simulation",{0x48}}};
 }
 static Obj methods(Obj klass,void** iterator){
     const auto index=reinterpret_cast<uintptr_t>(*iterator);
@@ -126,14 +142,19 @@ static Obj parent(Obj){return nullptr;}
 static const char* methodName(Obj value){return static_cast<Method*>(value)->name;}
 static uint32_t parameterCount(Obj value){return static_cast<Method*>(value)->parameters;}
 static uint32_t methodToken(Obj value){return static_cast<Method*>(value)->token;}
+static uint32_t methodFlags(Obj value,uint32_t* implementation){*implementation=0;return static_cast<Method*>(value)->flags;}
 static Obj parameter(Obj method,uint32_t){
     if(method==&focusMethod){if(focusParameterHook){auto hook=std::move(focusParameterHook);focusParameterHook={};hook();}return focusParameter;}
-    return type("System","UInt32");
+    return type("System",method==&scopeBeginMethod?"Boolean":"UInt32");
 }
 static Obj resultType(Obj value){return static_cast<Method*>(value)->result;}
 static Obj fromType(Obj value){return value;}
 static size_t fieldOffset(Obj value){return static_cast<Field*>(value)->offset;}
 static bool isValueType(Obj klass){return klass==type("Authored","ValueEnumerator");}
+static bool isEnum(Obj){return false;}
+static int32_t valueSize(Obj klass,uint32_t* alignment){
+    check(klass==type("System","UInt32"),"unexpected authored scalar type");*alignment=4;return 4;
+}
 static void* unbox(Obj value){
     auto* node=static_cast<Node*>(value);
     if(isValueType(node->klass)){node->unboxedReceiver=true;return node;}
@@ -155,18 +176,25 @@ template<class T>T api(const char* name){
     if(!strcmp(name,"il2cpp_method_get_name"))return reinterpret_cast<T>(&host::methodName);
     if(!strcmp(name,"il2cpp_method_get_param_count"))return reinterpret_cast<T>(&host::parameterCount);
     if(!strcmp(name,"il2cpp_method_get_token"))return reinterpret_cast<T>(&host::methodToken);
+    if(!strcmp(name,"il2cpp_method_get_flags"))return reinterpret_cast<T>(&host::methodFlags);
     if(!strcmp(name,"il2cpp_method_get_param"))return reinterpret_cast<T>(&host::parameter);
     if(!strcmp(name,"il2cpp_method_get_return_type"))return reinterpret_cast<T>(&host::resultType);
     if(!strcmp(name,"il2cpp_class_from_type"))return reinterpret_cast<T>(&host::fromType);
     if(!strcmp(name,"il2cpp_field_get_offset"))return reinterpret_cast<T>(&host::fieldOffset);
     if(!strcmp(name,"il2cpp_object_unbox"))return reinterpret_cast<T>(&host::unbox);
     if(!strcmp(name,"il2cpp_class_is_valuetype"))return reinterpret_cast<T>(&host::isValueType);
+    if(!strcmp(name,"il2cpp_class_is_enum"))return reinterpret_cast<T>(&host::isEnum);
+    if(!strcmp(name,"il2cpp_class_value_size"))return reinterpret_cast<T>(&host::valueSize);
     throw std::runtime_error("unexpected authored metadata API");
 }
 template<class T>T native(uintptr_t rva){
     if(rva==0x3787d20)return reinterpret_cast<T>(&host::ids);
     if(rva==0x3bf2fa0)return reinterpret_cast<T>(&host::focusCode[0]);
     if(rva==0x3c66c50)return reinterpret_cast<T>(&host::clearCode[0]);
+    if(rva==0x3c66610)return reinterpret_cast<T>(&host::groupRemoveCode[0]);
+    if(rva==0x3ea5790)return reinterpret_cast<T>(&host::groupBeginCode[0]);
+    if(rva==0x3b02160)return reinterpret_cast<T>(&host::groupDisposeCode[0]);
+    if(rva==0x3b02170)return reinterpret_cast<T>(&host::groupMarkCode[0]);
     throw std::runtime_error("unexpected original native call");
 }
 template<class T>T read(Obj object,size_t offset){return host::read<T>(object,offset);}
@@ -174,7 +202,11 @@ static bool flag(const wchar_t*){return false;}
 static void init(){}static void log(const char*,...){}
 static Obj klass(Obj object){return static_cast<host::Node*>(object)->klass;}
 static Obj find_class(const char* space,const char* name){return host::type(space,name);}
-static Obj field(Obj,const char* name){return &host::fields.at(name);}
+static Obj field(Obj receiver,const char* name){
+    static host::Field groupManager{0x60};
+    if(!strcmp(name,"_unitManager") && klass(receiver)==host::type("Uncapped","ControlGroup"))return &groupManager;
+    return &host::fields.at(name);
+}
 static Obj call(Obj receiver,const char* name,int=0,void** =nullptr){return static_cast<host::Node*>(receiver)->calls.at(name);}
 static Obj make(const char*,const char*){throw std::runtime_error("unexpected managed creation");}
 template<class T>T get(Obj,const char*){
@@ -223,13 +255,33 @@ static void* invokeMethod(void* method,void* object,void** args){
         host::interactionEvents.push_back("begin");
         host::check(args && !*static_cast<bool*>(args[0]),"group scope incorrectly player initiated");
         auto* helper=host::read<host::Node*>(object,0x40);host::put(*helper,0x10,true);
+        host::put(*helper,0x12,false);
         if(host::failScopeBegin)throw std::runtime_error("authored original group begin failure");
         return helper;
     }
     if(token==0x060000cd){
         host::interactionEvents.push_back("dispose");
         host::check(host::read<bool>(object,0x10),"scope disposed without begin");
+        if(host::read<bool>(object,0x12)){++host::groupNotifications;host::put(node,0x12,false);}
         host::put(node,0x10,false);++node.disposed;return nullptr;
+    }
+    if(token==0x060025ab){
+        host::check(host::expectedGroupHelper && host::read<bool>(host::expectedGroupHelper,0x10),"group Remove outside original scope");
+        ++host::groupRemovals;host::interactionEvents.push_back("groupRemove");
+        if(host::failGroupRemove)throw std::runtime_error("authored original group Remove failure");
+        const auto id=*static_cast<uint32_t*>(args[0]);
+        auto erase=[&](host::Node* led){auto& values=host::read<host::Node*>(led,0x10)->values;
+            const auto before=values.size();values.erase(std::remove(values.begin(),values.end(),id),values.end());return before!=values.size();};
+        const bool removed=erase(host::read<host::Node*>(object,0x18));node.components.erase(id);
+        if(!host::leaveGroupTyped)for(auto value:host::read<host::Node*>(object,0x20)->objects)erase(static_cast<host::Node*>(value));
+        if(host::stopAfterGroupRemove)host::movementWorld=0;
+        return host::boolean(removed);
+    }
+    if(token==0x060000ce){
+        host::check(object==host::expectedGroupHelper && host::read<bool>(object,0x10),"group MarkForFire outside original scope");
+        ++host::groupMarks;host::interactionEvents.push_back("mark");
+        if(host::failGroupMark)throw std::runtime_error("authored original group notification failure");
+        host::put(node,0x12,true);return nullptr;
     }
     if(token==0x060025ac){
         host::check(object==host::expectedCasting && host::queueLocks==1,"Clear used wrong set or producer lock");
@@ -241,6 +293,7 @@ static void* invokeMethod(void* method,void* object,void** args){
         for(auto value:host::read<host::Node*>(object,0x20)->objects)clearLed(static_cast<host::Node*>(value));
         return nullptr;
     }
+    if(token==0x0600013d)return host::integer(static_cast<int>(node.components.at(*static_cast<uint32_t*>(args[0]))));
     if(token==0x060025b7)return host::boolean(node.components.count(*static_cast<uint32_t*>(args[0]))!=0);
     if(token==0x06002dcc)return host::integer(static_cast<int>(node.objects.size()));
     if(token==0x06002dd0)return node.calls.at("values");
@@ -753,6 +806,167 @@ static void ownershipGuardRejectsContinuationAfterCallbackStop(){
         rejected([&]{actors::requireOwned(f.state);});f.noRemoval();
     }
 }
+struct GroupIntent:Fixture {
+    Node selector,panel,array,simulation,player,nativeStates;
+    std::array<Node,8> groups,helpers;
+    std::array<Selection,8> sets;
+    uint32_t group;
+    explicit GroupIntent(uint32_t index=4):Fixture(110,100),group(index) {
+        check(index<groups.size(),"authored group index bound");
+        host::interactionEvents.clear();host::failedRoot=nullptr;host::failEnumeration=false;
+        host::groupRemovals=host::groupMarks=host::groupNotifications=0;
+        host::failGroupRemove=host::leaveGroupTyped=host::failGroupMark=host::stopAfterGroupRemove=false;
+        host::failScopeBegin=false;host::scopeBeginMethod.flags=host::groupRemoveMethod.flags=host::groupMarkMethod.flags=0;
+        ba::initialThread=ba_local::updateThread=GetCurrentThreadId();
+        state.thread=GetCurrentThreadId();state.inUpdate=true;state.world=93;state.match=std::string(32,'g');
+        state.manager=std::make_unique<ba_local::Root>(&manager);state.simulation=std::make_unique<ba_local::Root>(&simulation);
+        state.groupGeneration=1;state.groupIntent.reset(1);cache(7,75,0,900);
+        host::movementWorld=state.world;host::movementMatch=state.match;host::presentationOwned=true;
+        selector.klass=host::type("Uncapped","UnitSelector");panel.klass=host::type("Uncapped","ControlGroupPanel");
+        simulation.klass=host::type("Uncapped","Simulation");player.klass=host::type("Uncapped","SimPlayer");
+        nativeStates.klass=host::type("Authored","ComponentBuffer");nativeStates.components={{7,0}};
+        frame.calls["get_StateBuffer"]=&nativeStates;put(actor,0x158,static_cast<void*>(&nativeStates));put(actor,0x160,false);
+        put(selector,0x40,static_cast<void*>(&manager));put(selector,0x38,static_cast<void*>(&panel));
+        put(panel,0x38,static_cast<void*>(&array));put(array,0x18,uintptr_t{8});
+        put(simulation,0x148,static_cast<void*>(&frames));put(simulation,0x90,static_cast<void*>(&player));put(player,0x38,uint32_t{0});
+        for(uint32_t i=0;i<8;++i) {
+            groups[i].klass=host::type("Uncapped","ControlGroup");helpers[i].klass=host::type("Authored","GroupHelper");
+            put(array,0x20+i*sizeof(void*),static_cast<void*>(&groups[i]));
+            put(groups[i],0x38,i);put(groups[i],0x60,static_cast<void*>(&manager));
+            put(groups[i],0x48,static_cast<void*>(&simulation));put(groups[i],0x40,static_cast<void*>(&helpers[i]));
+            put(groups[i],0x20,static_cast<void*>(&sets[i].set));put(helpers[i],0x18,static_cast<void*>(&groups[i]));
+            put(sets[i].set,0x48,static_cast<void*>(&frames));sets[i].setIDs({},{});
+        }
+        sets[group].setIDs({7,99},{7,99});host::expectedGroupHelper=&helpers[group];host::currentSelector=&selector;
+        setActive(false);position.components.clear();type.components.clear();army.components.clear();
+    }
+    ~GroupIntent(){
+        host::currentSelector=nullptr;host::expectedGroupHelper=nullptr;host::failedRoot=nullptr;
+        host::scopeBeginMethod.flags=host::groupRemoveMethod.flags=host::groupMarkMethod.flags=0;
+        host::failGroupRemove=host::leaveGroupTyped=host::failGroupMark=host::stopAfterGroupRemove=host::failScopeBegin=false;
+    }
+    bool preserve(uint32_t id=7){return actors::preserveReleasedGroupMember(state,&sets[group].set,id);}
+    void reconcile(){actors::reconcileGroupIntent(state);}
+    void unchanged(){
+        check(sets[group].allIDs.values==std::vector<uint32_t>({7,99})&&
+            sets[group].typedIDs.values==std::vector<uint32_t>({7,99})&&
+            !host::groupRemovals&&!host::groupMarks&&!host::groupNotifications,
+            "group intent preflight changed original membership/notification");
+    }
+};
+static void groupIntentPreservesActualTypedMembershipIncludingGroupZero(){
+    for(uint32_t index:{0u,4u}){
+        GroupIntent f(index);check(f.preserve(),"same confirmed actor absence was not preserved");
+        check(f.preserve()&&f.state.groupIntent.entries().size()==1,"repeat release consumed metadata twice");
+        f.reconcile();f.unchanged();
+        check(f.state.groupIntent.entries().at({index,7}).token==900,"group intent recorded wrong incarnation");
+    }
+}
+static void groupIntentNonmemberAndIneligibleReleaseForwardsWithoutMetadata(){
+    for(int mode=0;mode<7;++mode){
+        GroupIntent f;
+        if(mode==0)f.sets[f.group].setIDs({99},{99});
+        if(mode==1)f.state.identities.clear();
+        if(mode==2)f.state.identities[&f.actor].incarnation=0;
+        if(mode==3)f.state.admission.entities.clear();
+        if(mode==4)f.state.identities[&f.actor].identity.unitType=3;
+        if(mode==5)put(f.player,0x38,uint32_t{1});
+        if(mode==6)f.current(7,75,0);
+        check(!f.preserve()&&f.state.groupIntent.entries().empty(),"nonmember/ineligible release kept hidden intent");
+        check(!host::groupRemovals&&!host::groupMarks,"forward decision invoked an original mutation");
+    }
+}
+static void groupIntentVisibleUserClearReplaceAndNoopAreNeverReadded(){
+    for(int mode=0;mode<3;++mode){
+        GroupIntent f;check(f.preserve(),"authored preservation failed");
+        const std::vector<uint32_t> accepted=mode==1?std::vector<uint32_t>{88}:std::vector<uint32_t>{};
+        f.sets[f.group].setIDs(accepted,accepted); // Accepted original external edit.
+        if(mode==2)f.sets[f.group].setIDs({},{}); // Repeated empty/no-op clear.
+        f.reconcile();
+        check(f.state.groupIntent.entries().empty()&&f.sets[f.group].allIDs.values==accepted&&
+            f.sets[f.group].typedIDs.values==accepted&&!host::groupRemovals&&!host::groupMarks,
+            "original accepted clear/replace was undone by pending metadata");
+        f.setActive(true);f.current(7,75,0);f.reconcile();
+        check(f.sets[f.group].allIDs.values==accepted,"recreation re-added explicitly removed membership");
+    }
+}
+static void groupIntentSameRecreatedLeaseForgetsMetadataWithoutMutation(){
+    GroupIntent f;check(f.preserve(),"authored preservation failed");f.setActive(true);f.current(7,75,0);f.reconcile();
+    check(f.state.groupIntent.entries().empty(),"recreated same lease retained provisional metadata");f.unchanged();
+}
+static void groupIntentUninitializedOrStillDeadActorCannotForgetObligation(){
+    for(int mode=0;mode<6;++mode){
+        GroupIntent f;check(f.preserve(),"authored preservation failed");f.setActive(true);f.current(7,75,0);
+        if(mode==0)put(f.actor,0x158,static_cast<void*>(nullptr));
+        if(mode==1)put(f.actor,0x160,true);
+        if(mode==2)f.nativeStates.components[7]=6;
+        if(mode==3)put(f.frame,0x40,113);
+        if(mode==4)f.current(7,76,0);
+        if(mode==5)f.state.identities[&f.actor].incarnation=0;
+        f.reconcile();check(f.state.groupIntent.entries().size()==1,"transient old actor retired pending canonical obligation");f.unchanged();
+    }
+    GroupIntent missing;check(missing.preserve(),"authored preservation failed");missing.setActive(true);missing.current(7,75,0);
+    missing.nativeStates.components.clear();rejected([&]{missing.reconcile();});
+    check(missing.state.groupIntent.entries().size()==1,"missing native state silently forgot obligation");missing.unchanged();
+}
+static void groupIntentCanonicalLossPurgesThroughOriginalScopeAndNotification(){
+    for(int mode=0;mode<4;++mode){
+        GroupIntent f;check(f.preserve(),"authored preservation failed");
+        if(mode==0)f.state.admission.entities.clear();
+        if(mode==1)f.admit(7,75,0,901);
+        if(mode==2)f.admit(7,76,0,900);
+        if(mode==3)f.admit(7,75,1,900);
+        f.reconcile();
+        check(f.state.groupIntent.entries().empty()&&f.sets[f.group].allIDs.values==std::vector<uint32_t>{99}&&
+            f.sets[f.group].typedIDs.values==std::vector<uint32_t>{99},"canonical loss left all/type membership or removed another unit");
+        check(host::groupRemovals==1&&host::groupMarks==1&&host::groupNotifications==1&&f.helpers[f.group].disposed==1&&
+            !host::read<bool>(&f.helpers[f.group],0x10)&&
+            host::interactionEvents==std::vector<std::string>({"begin","groupRemove","mark","dispose"}),
+            "original canonical purge scope/notification ordering differs");
+        f.reconcile();check(host::groupRemovals==1,"finished purge was repeated");
+    }
+}
+static void groupIntentTypedInconsistencyRefusesBeforeDecliningOriginalRemove(){
+    for(int mode=0;mode<4;++mode){
+        GroupIntent f;Node extra,extraIDs;
+        if(mode==0)f.sets[f.group].setIDs({7,99},{99});
+        if(mode==1)f.sets[f.group].setIDs({99},{7,99});
+        if(mode==2)f.sets[f.group].setIDs({7,7},{7});
+        if(mode==3){extra.klass=f.sets[f.group].typed.klass;extraIDs.klass=f.sets[f.group].typedIDs.klass;extraIDs.values={7};
+            put(extra,0x10,static_cast<void*>(&extraIDs));f.sets[f.group].subsets.objects.push_back(&extra);f.sets[f.group].enumerator.objects.push_back(&extra);}
+        rejected([&]{f.preserve();});check(f.state.groupIntent.entries().empty()&&!host::groupRemovals,
+            "inconsistent typed cache entered preservation metadata");
+    }
+}
+static void groupIntentOwnerMetadataAndSignatureRefuseBeforeMutation(){
+    for(int mode=0;mode<7;++mode){
+        GroupIntent f;
+        if(mode==0)host::movementWorld=0;
+        if(mode==1)host::presentationOwned=false;
+        if(mode==2)put(f.groups[f.group],0x60,static_cast<void*>(&f.simulation));
+        if(mode==3)put(f.helpers[f.group],0x18,static_cast<void*>(&f.groups[0]));
+        if(mode==4)put(f.sets[f.group].set,0x48,static_cast<void*>(&f.simulation));
+        if(mode==5)host::groupRemoveMethod.flags=0x10;
+        if(mode==6)f.state.groupGeneration=2;
+        rejected([&]{f.preserve();});check(f.state.groupIntent.entries().empty(),"invalid owner recorded group intent");f.unchanged();
+    }
+}
+static void groupIntentPurgePreflightAndOriginalFailuresRetainMetadata(){
+    for(int mode=0;mode<5;++mode){
+        GroupIntent f;check(f.preserve(),"authored preservation failed");f.state.admission.entities.clear();
+        if(mode==0)host::groupMarkMethod.flags=0x10;
+        if(mode==1)host::failScopeBegin=true;
+        if(mode==2)host::failGroupRemove=true;
+        if(mode==3)host::leaveGroupTyped=true;
+        if(mode==4)host::failGroupMark=true;
+        rejected([&]{f.reconcile();});check(f.state.groupIntent.entries().size()==1,
+            "failed original purge discarded its acknowledgement metadata");
+        check(!host::read<bool>(&f.helpers[f.group],0x10),"failed original purge leaked scope");
+        check(f.helpers[f.group].disposed==(mode==0?0u:1u),"failed original purge retried Dispose");
+        if(mode<3)check(f.sets[f.group].allIDs.values==std::vector<uint32_t>({7,99}),"pre-mutation refusal changed visible group");
+        if(mode==3)check(!host::groupMarks,"incomplete typed removal emitted original success notification");
+    }
+}
 }
 int main(){try{
     host::metadata();
@@ -778,5 +992,10 @@ int main(){try{
     test::deferredSnapshotSurvivesPooledObjectReuse();test::deferredBatchMutationAndWrongReplacementRefuse();
     test::deferredFrameOwnerAndAbilityChangesRefuse();test::failedGenerationNeverFlushesOnDestruction();
     test::throwingOrStoppingCallbackCannotFlushTwice();test::ownershipGuardRejectsContinuationAfterCallbackStop();
-    std::cout<<"actor binding/held gesture/focus/casting/deferred:44 actual-source authored flow groups PASS; no Unity/IL2CPP/native engine execution\n";return 0;
+    test::groupIntentPreservesActualTypedMembershipIncludingGroupZero();test::groupIntentNonmemberAndIneligibleReleaseForwardsWithoutMetadata();
+    test::groupIntentVisibleUserClearReplaceAndNoopAreNeverReadded();test::groupIntentSameRecreatedLeaseForgetsMetadataWithoutMutation();
+    test::groupIntentUninitializedOrStillDeadActorCannotForgetObligation();
+    test::groupIntentCanonicalLossPurgesThroughOriginalScopeAndNotification();test::groupIntentTypedInconsistencyRefusesBeforeDecliningOriginalRemove();
+    test::groupIntentOwnerMetadataAndSignatureRefuseBeforeMutation();test::groupIntentPurgePreflightAndOriginalFailuresRetainMetadata();
+    std::cout<<"actor binding/held gesture/focus/casting/deferred/group-intent:53 actual-source authored flow groups PASS; no Unity/IL2CPP/native engine execution\n";return 0;
 }catch(const std::exception& error){std::cerr<<error.what()<<'\n';return 1;}}

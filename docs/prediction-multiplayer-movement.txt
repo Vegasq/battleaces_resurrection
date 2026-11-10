@@ -552,7 +552,11 @@ local/prediction-runtime/movement17-position-trace/file-audit01/audit.json
 local/prediction-runtime/movement17-position-trace/pose-cause-audit01/verification.json
 local/prediction-checkpoint-20261110/position-capture17-clock01/verification.json
 
-Next finite scope:original mobile manual-group/repeat-focus through speculative
-death/pooling/recreation,then a new Move on the confirmed restored incarnation.
-Keep active casting/held input separate;existing HQ qualification does not
-prove mobile lifecycle behavior. N35 remains the same pending human test.
+Mobile retention and original Clear/empty-replace now have separate actual
+qualification,including original Move response after recreation and measured
+pause recovery;see prediction-actor-correction.txt. Actual28 also passes
+original recall refusal during absence and recall of the current unit after
+restoration,all2888 native hashes and natural shutdown. Next finite scope is
+held-focus target continuity through that correction. Keep active casting,held
+input and forced-retirement group handling open. N35 remains the same pending
+human test;these fixtures do not accept physical/Internet visual comfort.

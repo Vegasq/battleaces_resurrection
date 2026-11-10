@@ -9,6 +9,7 @@
 #include "../checkpoint/prediction_presentation_policy.hpp"
 #include "prediction_movement.hpp"
 #include "prediction_casting_cleanup.hpp"
+#include "prediction_group_intent.hpp"
 
 namespace ba_prediction_actors {
 using ba::Obj;
@@ -39,6 +40,8 @@ struct State {
     std::map<uint32_t,policy::ActorIdentity> pending;
     ba_prediction_worker::MovementAdmission admission;
     std::set<uint32_t> confirmedRecreation;
+    uint64_t groupGeneration=0;
+    ba_prediction_group_intent::Ledger groupIntent;
 };
 static State& state(){static State* lifetime=new State;return *lifetime;}
 static bool flag(){return ba::flag(L"-prediction-movement-experimental");}
@@ -53,7 +56,7 @@ static void clearInactive(State& s) {
     // native world API, selection callback or original collection is touched.
     ba::log("Prediction actors inactive: world=%llu match=%s observerRootsOnly=1 actorsUntouched=1",
         static_cast<unsigned long long>(s.world),s.match.c_str());
-    s.identities.clear();s.pending.clear();s.admission={};s.confirmedRecreation.clear();s.manager.reset();s.simulation.reset();
+    s.identities.clear();s.pending.clear();s.admission={};s.confirmedRecreation.clear();s.groupIntent.clear();s.manager.reset();s.simulation.reset();
     s.world=0;s.match.clear();s.thread=0;s.checked=false;s.failed=false;
 }
 
@@ -71,6 +74,9 @@ static void guards() {
     guard(0x3e66151,"\xff\x57\x18",3);
     guard(0x3ea5790,"\x48\x83\xec\x28\x48\x8b\x49\x40\x48\x85\xc9\x74\x0c\x45\x33\xc0\x48\x83\xc4\x28\xe9\xe7\xc9\xc5\xff\xe8\x42\xef\x73\xfc\xcc",31);
     guard(0x3b02160,"\x33\xd2\xe9\x79\x01\x00\x00",7);
+    guard(0x3ea6236,"\x8b\x97\x4c\x01\x00\x00\x45\x33\xc0\xe8\x2c\xc3\x8d\xff\x49\x8b\x4d\x20\x48\x85\xc9\x0f\x84\xf4\x00\x00\x00\x8b\x97\x4c\x01\x00\x00\x45\x33\xc0",36);
+    guard(0x3c66610,"\x48\x89\x5c\x24\x18\x89\x54\x24\x10\x48\x89\x4c\x24\x08\x56\x57\x41\x57\x48\x81\xec\x80\x00\x00\x00\x8b\xf2\x48\x8b\xf9",30);
+    guard(0x3b02170,"\x80\x79\x10\x00\x75\x11\x48\x8b\x01\x48\x8b\x90\x90\x01\x00\x00\x48\xff\xa0\x88\x01\x00\x00\xc6\x41\x12\x01\xc3",28);
 }
 static void field(Obj object,const char* name,size_t offset) {
     static std::map<std::pair<Obj,std::string>,size_t> checked;
@@ -257,6 +263,8 @@ static void checkContext(State& s,Obj manager,Obj frames) {
     const auto& match=ba_prediction_worker::movementMatchId();
     require(world && match.size()==32,"actor repair movement identity missing");
     if(s.world!=world || s.match!=match) {
+        require(s.groupGeneration!=UINT64_MAX,"actor group generation exhausted");
+        s.groupIntent.reset(++s.groupGeneration);
         s.identities.clear();s.pending.clear();s.admission={};s.confirmedRecreation.clear();s.simulation=std::make_unique<Root>(simulation);
         s.manager=std::make_unique<Root>(manager);s.world=world;s.match=match;s.thread=GetCurrentThreadId();
         s.failed=false;s.checked=false;
@@ -454,6 +462,204 @@ static bool selectionReferences(Obj selection,const std::set<uint32_t>& retired)
         require(groups==static_cast<size_t>(count),"held gesture cached selection count changed");
         close();return found;
     } catch(...) {try{close();}catch(...){ba::log("Held gesture readonly enumerator cleanup failed; retry=0");}throw;}
+}
+// Validate both original representations before retaining or purging an ID.
+// Remove's absent-Type fallback removes only the first cached typed subset; a
+// duplicate/ghost therefore refuses instead of becoming a partial repair.
+static bool groupCacheMembership(Obj selection,uint32_t id) {
+    classIs(selection,"Uncapped.Collections","UnitSelectionSet");
+    field(selection,"_allUnits",0x18);field(selection,"_subsetsByType",0x20);
+    Root all(ba::read<Obj>(selection,0x18)),subsets(ba::read<Obj>(selection,0x20));
+    require(all.get() && subsets.get(),"group intent typed storage missing");
+    const auto ledClass=ba::klass(all.get());size_t total=0;
+    auto occurrences=[&](Obj led) {
+        require(led && ba::klass(led)==ledClass,"group intent typed Led class differs");
+        field(led,"<Entities>k__BackingField",0x10);
+        const auto values=ids(ba::read<Obj>(led,0x10));
+        require(values.size()<=maximumActors-total,"group intent typed ID budget exceeded");total+=values.size();
+        const std::set<uint32_t> distinct(values.begin(),values.end());
+        require(distinct.size()==values.size(),"group intent duplicate IDs in original Led set");
+        return distinct.count(id);
+    };
+    const bool present=occurrences(all.get())!=0;total=0;
+    const Obj countMethod=method(subsets.get(),"get_Count",0,0x06002dcc);
+    require(ba::api<Obj(*)(Obj)>("il2cpp_class_from_type")(
+        ba::api<Obj(*)(Obj)>("il2cpp_method_get_return_type")(countMethod))==type("System","Int32"),
+        "group intent typed count signature differs");
+    Root countValue(invoke(countMethod,subsets.get()));const int count=unbox<int>(countValue.get());
+    require(count>=0 && static_cast<size_t>(count)<=maximumActors,"group intent typed count bound");
+    Root values(invoke(method(subsets.get(),"get_Values",0,0x06002dd0),subsets.get()));
+    field(values.get(),"_dictionary",0x10);
+    require(ba::read<Obj>(values.get(),0x10)==subsets.get(),"group intent typed dictionary owner differs");
+    Root iterator(invoke(method(values.get(),"GetEnumerator",0,0x06002e18),values.get()));
+    require(iterator.get() && ba::api<bool(*)(Obj)>("il2cpp_class_is_valuetype")(ba::klass(iterator.get())),
+        "group intent typed enumerator is not a value type");
+    const Obj move=method(iterator.get(),"MoveNext",0,0x06002e27);
+    const Obj current=method(iterator.get(),"get_Current",0,0x06002e28);
+    const Obj dispose=method(iterator.get(),"Dispose",0,0x06002e26);
+    require(ba::api<Obj(*)(Obj)>("il2cpp_class_from_type")(
+        ba::api<Obj(*)(Obj)>("il2cpp_method_get_return_type")(move))==type("System","Boolean"),
+        "group intent typed enumerator signature differs");
+    auto receiver=[&](){return ba::api<Obj(*)(Obj)>("il2cpp_object_unbox")(iterator.get());};
+    bool disposed=false;size_t groups=0,hits=0;
+    auto close=[&](){if(!disposed){disposed=true;invoke(dispose,receiver());}};
+    try {
+        for(;;) {
+            Root more(invoke(move,receiver()));if(!unbox<bool>(more.get()))break;
+            require(++groups<=static_cast<size_t>(count),"group intent typed enumeration grew");
+            Root led(invoke(current,receiver()));hits+=occurrences(led.get());
+        }
+        require(groups==static_cast<size_t>(count),"group intent typed enumeration changed");close();
+    } catch(...) {try{close();}catch(...){ba::log("Group intent readonly enumeration cleanup failed; retry=0");}throw;}
+    require(hits==(present?1u:0u),"group intent all/typed membership is inconsistent");return present;
+}
+static void requireOwned(const State& s);
+static void groupOwner(const State& s) {
+    requireOwned(s);
+    require(ba::initialThread && GetCurrentThreadId()==ba::initialThread &&
+        GetCurrentThreadId()==ba_local::updateThread && s.manager && s.simulation &&
+        ba_prediction_movement::ownsPresentation(s.simulation->get()) &&
+        s.groupIntent.generation()==s.groupGeneration,"group intent presentation owner differs");
+}
+struct IntentGroup {
+    Root group,helper,selected;
+    uint32_t id;
+    static Obj reference(Obj value,const char* name,size_t offset) {
+        classIs(value,"Uncapped","ControlGroup");field(value,name,offset);return ba::read<Obj>(value,offset);
+    }
+    IntentGroup(const State& s,Obj value,uint32_t index)
+        :group(value),helper(reference(value,"_controlGroupChangeHelper",0x40)),selected(reference(value,"_unitIDs",0x20)),id(index) {
+        classIs(group.get(),"Uncapped","ControlGroup");
+        field(group.get(),"<ID>k__BackingField",0x38);field(group.get(),"_controlGroupChangeHelper",0x40);
+        field(group.get(),"_unitIDs",0x20);field(group.get(),"_unitManager",0x60);field(group.get(),"_simulation",0x48);
+        require(ba::read<uint32_t>(group.get(),0x38)==id &&
+            ba::read<Obj>(group.get(),0x60)==s.manager->get() && ba::read<Obj>(group.get(),0x48)==s.simulation->get(),
+            "group intent original group owner differs");
+        require(helper.get() && selected.get(),"group intent original helper/set missing");
+        field(helper.get(),"_controlGroup",0x18);field(helper.get(),"<IsSuspended>k__BackingField",0x10);
+        require(ba::read<Obj>(helper.get(),0x18)==group.get(),"group intent helper owner differs");
+        classIs(selected.get(),"Uncapped.Collections","UnitSelectionSet");field(selected.get(),"_simFrames",0x48);
+        require(ba::read<Obj>(selected.get(),0x48)==ba::read<Obj>(s.simulation->get(),0x148),
+            "group intent typed set frame owner differs");
+    }
+    void validate(const State& s) const {
+        groupOwner(s);
+        require(ba::read<uint32_t>(group.get(),0x38)==id &&
+            ba::read<Obj>(group.get(),0x40)==helper.get() && ba::read<Obj>(group.get(),0x20)==selected.get() &&
+            ba::read<Obj>(group.get(),0x60)==s.manager->get() && ba::read<Obj>(group.get(),0x48)==s.simulation->get() &&
+            ba::read<Obj>(helper.get(),0x18)==group.get() &&
+            ba::read<Obj>(selected.get(),0x48)==ba::read<Obj>(s.simulation->get(),0x148),
+            "group intent original roots changed during callback");
+    }
+};
+static Obj intentGroups(const State& s) {
+    groupOwner(s);
+    Root selector(ba::get<Obj>(ba::owner,"<UnitSelector>k__BackingField"));classIs(selector.get(),"Uncapped","UnitSelector");
+    field(selector.get(),"_unitManager",0x40);field(selector.get(),"_controlGroupPanel",0x38);
+    require(ba::read<Obj>(selector.get(),0x40)==s.manager->get(),"group intent selector owner differs");
+    Root panel(ba::read<Obj>(selector.get(),0x38));classIs(panel.get(),"Uncapped","ControlGroupPanel");
+    field(panel.get(),"_controlGroups",0x38);Obj array=ba::read<Obj>(panel.get(),0x38);
+    require(array && ba::read<uintptr_t>(array,0x18)>0 && ba::read<uintptr_t>(array,0x18)<=16,
+        "group intent original group array bound");return array;
+}
+static void instanceSignature(Obj info,const char* result,const char* parameter=nullptr) {
+    uint32_t implementation=0;
+    require(!(ba::api<uint32_t(*)(Obj,uint32_t*)>("il2cpp_method_get_flags")(info,&implementation)&0x10u) &&
+        ba::api<Obj(*)(Obj)>("il2cpp_class_from_type")(
+            ba::api<Obj(*)(Obj)>("il2cpp_method_get_return_type")(info))==type("System",result),
+        "group intent original instance/return signature differs");
+    if(parameter)require(ba::api<Obj(*)(Obj)>("il2cpp_class_from_type")(
+        ba::api<Obj(*)(Obj,uint32_t)>("il2cpp_method_get_param")(info,0))==type("System",parameter),
+        "group intent original parameter signature differs");
+}
+static bool preserveReleasedGroupMember(State& s,Obj selected,uint32_t id) {
+    groupOwner(s);Root array(intentGroups(s));const auto count=ba::read<uintptr_t>(array.get(),0x18);
+    Obj found=nullptr;uint32_t groupId=0;
+    for(uintptr_t i=0;i<count;++i) {
+        Obj candidate=ba::read<Obj>(array.get(),0x20+i*sizeof(Obj));classIs(candidate,"Uncapped","ControlGroup");
+        field(candidate,"_unitIDs",0x20);
+        if(ba::read<Obj>(candidate,0x20)==selected) {
+            require(!found,"group intent set is shared between original groups");found=candidate;groupId=static_cast<uint32_t>(i);
+        }
+    }
+    if(!found)return false;
+    IntentGroup group(s,found,groupId);
+    const Resident* observed=nullptr;
+    for(const auto& entry:s.identities)if(entry.second.identity.entityId==id) {
+        require(!observed,"group intent released resident ID is ambiguous");observed=&entry.second;
+    }
+    if(!observed || !observed->incarnation || observed->identity.unitType==3 ||
+        confirmedToken(s,observed->identity)!=observed->incarnation)return false;
+    field(s.simulation->get(),"_localPlayer",0x90);Root player(ba::read<Obj>(s.simulation->get(),0x90));
+    classIs(player.get(),"Uncapped","SimPlayer");field(player.get(),"ArmyID",0x38);
+    if(observed->identity.armyId!=ba::read<uint32_t>(player.get(),0x38))return false;
+    Current current(ba::read<Obj>(s.simulation->get(),0x148));
+    const int frame=ba::read<int>(current.frame.get(),0x40);
+    if(!confirmedInterval(s,frame) || frame<=s.admission.frame || current.identity(id))return false;
+    // Original UnitsReleased visits every group and calls Remove even if this
+    // particular group never contained the released ID. Preserve that no-op.
+    if(!groupCacheMembership(group.selected.get(),id))return false;
+    const Obj remove=method(group.selected.get(),"Remove",1,0x060025ab,0x3c66610);
+    instanceSignature(remove,"Boolean","UInt32");group.validate(s);
+    s.groupIntent.remember(s.groupGeneration,{groupId,id},
+        {observed->identity.unitType,observed->identity.armyId,observed->incarnation});
+    ba::log("Prediction group intent retained: world=%llu match=%s group=%u entity=%u token=%llu originalMemberUnchanged=1 readd=0",
+        static_cast<unsigned long long>(s.world),s.match.c_str(),groupId,id,static_cast<unsigned long long>(observed->incarnation));
+    return true;
+}
+static void reconcileGroupIntent(State& s) {
+    if(s.groupIntent.entries().empty())return;
+    namespace intent=ba_prediction_group_intent;
+    Root array(intentGroups(s));const auto count=ba::read<uintptr_t>(array.get(),0x18);
+    Current current(ba::read<Obj>(s.simulation->get(),0x148));
+    const auto pending=s.groupIntent.entries();
+    for(const auto& entry:pending) {
+        groupOwner(s);require(entry.first.group<count,"pending group intent ID escaped original array");
+        IntentGroup group(s,ba::read<Obj>(array.get(),0x20+entry.first.group*sizeof(Obj)),entry.first.group);
+        const bool present=groupCacheMembership(group.selected.get(),entry.first.entity);
+        std::optional<intent::Identity> canonical;const auto known=s.admission.entities.find(entry.first.entity);
+        if(known!=s.admission.entities.end())canonical=intent::Identity{known->second.type,known->second.army,known->second.incarnation};
+        bool admitted=false;
+        for(Obj actor:units(ba::read<Obj>(s.manager->get(),0x10))) {
+            const auto observed=s.identities.find(actor);
+            if(observed==s.identities.end() || observed->second.identity.entityId!=entry.first.entity)continue;
+            const auto& identity=observed->second;
+            field(actor,"_componentData",0x158);field(actor,"<DeadToTheSim>k__BackingField",0x160);
+            const auto native=current.identity(entry.first.entity);
+            admitted=identity.incarnation==entry.second.token && identity.identity.unitType==entry.second.type &&
+                identity.identity.armyId==entry.second.army && confirmedToken(s,identity.identity)==identity.incarnation &&
+                native && native->unitType==entry.second.type && native->armyId==entry.second.army &&
+                ba::read<Obj>(actor,0x158) && !ba::read<bool>(actor,0x160) &&
+                confirmedInterval(s,ba::read<int>(current.frame.get(),0x40)) && current.retainedAlive(entry.first.entity);
+        }
+        const auto decision=s.groupIntent.classify(s.groupGeneration,entry.first,present,canonical,admitted);
+        if(decision==intent::Decision::Keep)continue;
+        if(decision==intent::Decision::Purge) {
+            require(!ba::read<bool>(group.helper.get(),0x10),"group intent purge found an active original scope");
+            const Obj begin=method(group.group.get(),"BeginControlGroupChange",1,0x06001645,0x3ea5790);
+            const Obj remove=method(group.selected.get(),"Remove",1,0x060025ab,0x3c66610);
+            const Obj mark=method(group.helper.get(),"MarkForFire",0,0x060000ce,0x3b02170);
+            const Obj dispose=method(group.helper.get(),"Dispose",0,0x060000cd,0x3b02160);
+            instanceSignature(begin,"IDisposable","Boolean");instanceSignature(remove,"Boolean","UInt32");
+            instanceSignature(mark,"Void");instanceSignature(dispose,"Void");group.validate(s);
+            bool begun=false,disposed=false;
+            auto close=[&](){if(begun && !disposed){disposed=true;invoke(dispose,group.helper.get());}};
+            try {
+                bool playerInitiated=false;void* beginArgs[]={&playerInitiated};Obj scope=nullptr;
+                try{scope=invoke(begin,group.group.get(),beginArgs);}
+                catch(...){begun=ba::read<bool>(group.helper.get(),0x10);throw;}
+                begun=true;require(scope==group.helper.get() && ba::read<bool>(group.helper.get(),0x10),
+                    "group intent purge original scope owner differs");group.validate(s);
+                uint32_t id=entry.first.entity;void* args[]={&id};Root removed(invoke(remove,group.selected.get(),args));
+                require(unbox<bool>(removed.get()),"group intent purge original member removal failed");group.validate(s);
+                require(!groupCacheMembership(group.selected.get(),id),"group intent purge left original cached membership");
+                invoke(mark,group.helper.get());group.validate(s);close();group.validate(s);
+            } catch(...) {try{close();}catch(...){ba::log("Group intent original scope cleanup failed; retry=0");}throw;}
+            ba::log("Prediction group intent purged: world=%llu match=%s group=%u entity=%u originalAPI=1 readd=0",
+                static_cast<unsigned long long>(s.world),s.match.c_str(),entry.first.group,entry.first.entity);
+        }
+        s.groupIntent.erase(s.groupGeneration,entry.first);
+    }
 }
 static void guardRetiringInteractions(Obj selector,const std::vector<Retire>& retire,bool clearingCasting=false) {
     for(const auto& actor:retire) {
@@ -841,12 +1047,14 @@ extern "C" __declspec(dllexport) void OfflinePredictionActorUpdate(void* manager
         }
         ba_prediction_actors::require(!s.inUpdate,"actor repair reentered");s.inUpdate=true;entered=true;
         ba_prediction_actors::checkContext(s,manager,frames);
+        ba_prediction_actors::reconcileGroupIntent(s);
         ba_prediction_actors::repair(s,manager,frames,changes,selection);
         original(manager,frames,methodInfo);
         ba_prediction_actors::requireOwned(s);
         changes.close();
         ba_prediction_actors::requireOwned(s);
         ba_prediction_actors::after(s,manager,frames);
+        ba_prediction_actors::reconcileGroupIntent(s);
         selection.commit(s);
         s.inUpdate=false;
     } catch(const std::exception& error) {
@@ -857,4 +1065,28 @@ extern "C" __declspec(dllexport) void OfflinePredictionActorUpdate(void* manager
             static_cast<unsigned long long>(s.world),s.match.c_str(),error.what());
         ba_prediction_worker::movementFail(error.what());
     }
+}
+
+// One exact call in ORIGINAL ControlGroup.UnitsReleased's physical-absence
+// branch. The surrounding tracked.Remove/count/notification operations remain
+// original. Clear, replace, explicit Remove and initialization use other calls.
+extern "C" __declspec(dllexport) bool OfflinePredictionGroupReleaseRemove(void* selected,uint32_t entity,void* methodInfo) {
+    ba::init();using namespace ba_prediction_actors;
+    const auto original=ba::native<bool(*)(Obj,uint32_t,Obj)>(0x3c66610);
+    auto& s=state();
+    if(!flag() || !ba_prediction_worker::movementEnabled() || !s.inUpdate ||
+       !ba_prediction_worker::movementWorldId() || ba_prediction_worker::movementMatchId().empty())
+        return original(selected,entity,methodInfo);
+    try {
+        require(!methodInfo,"group intent release call MethodInfo differs");
+        if(preserveReleasedGroupMember(s,selected,entity))return false;
+        return original(selected,entity,methodInfo);
+    } catch(const std::exception& error) {
+        s.failed=true;ba::log("Prediction group intent failed: entity=%u reason=%s retry=0",entity,error.what());
+        ba_prediction_worker::movementFail(error.what());
+    } catch(...) {
+        s.failed=true;ba::log("Prediction group intent failed: entity=%u reason=unknown exception retry=0",entity);
+        ba_prediction_worker::movementFail("unknown group intent exception");
+    }
+    return false;
 }

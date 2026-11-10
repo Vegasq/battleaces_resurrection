@@ -452,7 +452,9 @@ static void registered(uint64_t sequence,int assigned,const std::vector<uint8_t>
     ba::log("MOVEMENT FEEL %s",text.c_str());
 }
 static void authoritative(const std::vector<uint8_t>& raw,const std::string& wireSha) {
-    if(!enabled())return;
+    // The dedicated mobile fixture needs the actual accepted65 receipt too.
+    // Generic command generation and FEEL state remain gated by enabled/bound.
+    if(!enabled()&&!ba::flag(L"-prediction-mobile-correction-smoke"))return;
     Root frame(ba_lan::parse("InputActions",raw));Obj players=ba::get<Obj>(frame.get(),"playerInputActions_");
     const int count=ba_local::count(players);require(count>=0&&count<=2,"movement smoke canonical human count differs");
     int totalActions=0;

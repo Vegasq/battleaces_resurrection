@@ -139,7 +139,8 @@ static void setup(HMODULE selected) {
         root,L"--original-dll",modulePath(selected),L"--heap-helper",heap,
         L"--cooperative",cooperative,L"--data-dir",data};
     const bool movementSmoke=ba::flag(L"-prediction-movement-smoke");
-    if(movementSmoke)args.push_back(L"--movement-observe");
+    const bool mobileSmoke=ba::flag(L"-prediction-mobile-correction-smoke");
+    if(movementSmoke || mobileSmoke)args.push_back(L"--movement-observe");
     std::wstring positionTrace;
     if(ba_command_line::value(ba::arguments(),L"-prediction-movement-observe-position=",positionTrace)) {
         if(!movementSmoke || positionTrace.empty() || positionTrace.size()>64)
@@ -203,6 +204,7 @@ static void requireMovementHook(int64_t site,const char* exportName) {
 }
 static void requireActorHook() {
     requireMovementHook(0x3e6608b,"OfflinePredictionActorUpdate");
+    requireMovementHook(0x3ea625a,"OfflinePredictionGroupReleaseRemove");
     requireMovementHook(0x3b02322,"OfflinePredictionSelectionCommit");
     requireMovementHook(0x3bf9657,"OfflinePredictionSelectionConfirmer");
     requireMovementHook(0x3bf416d,"OfflinePredictionCastingSet");

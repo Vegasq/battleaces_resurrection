@@ -12,6 +12,11 @@ SUPPORTED_ORIGINAL_SHA256 = 'e59d08c01479b27404778048d7e13546dbf3771f6b3912744c7
 CALL_HOOKS = [
     dict(name='OfflinePredictionActorUpdate', rva=0x3e6608b,
          offset=0x3e6468b, before='e8801fdaff'),
+    # bool(UnitSelectionSet*, uint32 entity, MethodInfo*=null). The ORIGINAL
+    # false-Contains branch has already removed trackedReleasedUnits. Decline
+    # only the complete typed membership operation; the return is ignored.
+    dict(name='OfflinePredictionGroupReleaseRemove', rva=0x3ea625a,
+         offset=0x3ea485a, before='e8b103dcff'),
 ] + prediction_selection.CALL_HOOKS
 BODY_GUARDS = [
     dict(rva=0x3c08010, before='488bc44889501048894808535657415441'),
@@ -22,6 +27,13 @@ BODY_GUARDS = [
     dict(rva=0x3c6c660, before='40534883ec20488bd94885d20f84fa00'),
     dict(rva=0x3c54b2d, before='e80e150000'),
     dict(rva=0x3e66151, before='ff5718'),
+    dict(rva=0x3ea6236, before='8b974c0100004533c0e82cc38dff498b4d204885c90f84f40000008b974c0100004533c0'),
+    dict(rva=0x3ea625f, before='eb660fb7c84803c9'),
+    dict(rva=0x3ea62df, before='498b4d204885c9745d33d2e8112cdcff3bc3741f498b4d404885c9744980791000753d'),
+    dict(rva=0x3c66610, before='48895c24188954241048894c2408565741574881ec800000008bf2488bf9'),
+    dict(rva=0x3b02170, before='807910007511488b01488b909001000048ffa088010000c6411201c3'),
+    dict(rva=0x3ea5790, before='4883ec28488b49404885c9740c4533c04883c428e9e7c9c5ff'),
+    dict(rva=0x3b02160, before='33d2e979010000'),
 ]
 
 

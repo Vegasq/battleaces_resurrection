@@ -1,0 +1,945 @@
+"""Pure joins for the explicit original-Gunbot mobile correction experiment.
+
+This module consumes retained observations.  It starts no processes, queries no
+native state, and treats Unity addresses as observed leases, not entity IDs.
+The injected command/replay checkers retain the controller's existing wire and
+canonical-state contracts without importing that controller here.
+"""
+from __future__ import annotations
+
+import hashlib
+import json
+import math
+import re
+import struct
+
+from server.game_data import decode_player_input
+from server.protobuf_wire import get_bytes, get_repeated_bytes, get_repeated_uint, get_uint, parse_fields
+from tools.prediction_actor_fixture import mobile_metadata
+
+
+EVENTS = (
+    'original_mobile_selection_established', 'native_dead_observed',
+    'original_mobile_release_observed', 'original_mobile_restored_and_admitted',
+    'before_fresh_reselection', 'original_fresh_reselection_established',
+    'mobile_observation_complete',
+)
+HEX64 = re.compile('[a-f0-9]{64}')
+UINT32 = 2**32 - 1
+UINT64 = 2**64 - 1
+
+
+def require(ok, reason):
+    if not ok:
+        raise AssertionError('mobile evidence: ' + reason)
+
+
+def digest(value):
+    return hashlib.sha256(value).hexdigest()
+
+
+def _f32(value):
+    return struct.unpack('<f', struct.pack('<f', value))[0]
+
+
+def _bits(value):
+    return struct.unpack('<I', struct.pack('<f', value))[0]
+
+
+def _reported_bits_match(value, bits):
+    # ostream prints negative float zero as "-0". JSON's integer decoder loses
+    # its sign; preserve the separate raw bit field as the source of that sign.
+    return _bits(value) == bits or (value == 0 and bits in (0, 0x80000000))
+
+
+def _perspective(order):
+    require(_integer(order.get('local_alliance'), 0, UINT32) and
+            type(order.get('map_perspective')) is int and order['map_perspective'] in (0, 1) and
+            order.get('map_perspective_source') == 'Uncapped.Map.GetAlliancePerspective' and
+            order.get('map_perspective_enum') == 'Uncapped.Map.Perspective' and
+            order.get('map_perspective_enum_matches_ctor') is True and
+            type(order.get('map_perspective_normal')) is int and order['map_perspective_normal'] == 0 and
+            type(order.get('map_perspective_flipped')) is int and order['map_perspective_flipped'] == 1 and
+            order.get('map_perspective_value_name') == ('Normal' if order['map_perspective'] == 0 else 'Flipped'),
+            'fresh original runtime map getter/constructor Perspective proof differs')
+    return {key: order[key] for key in ('local_alliance', 'map_perspective', 'map_perspective_source',
+        'map_perspective_enum', 'map_perspective_enum_matches_ctor', 'map_perspective_normal',
+        'map_perspective_flipped', 'map_perspective_value_name')}
+
+
+def _integer(value, low=0, high=UINT64):
+    return type(value) is int and low <= value <= high
+
+
+def _pointer(value):
+    require(type(value) is str and re.fullmatch('[a-fA-F0-9]{1,16}', value), 'invalid observed actor pointer')
+    return int(value, 16)
+
+
+def _vector(value):
+    require(type(value) is list and len(value) == 3 and all(type(v) in (int, float) and
+            math.isfinite(v) and abs(v) <= 1e6 for v in value), 'nonfinite/out-of-range native vector')
+    return value
+
+
+def _unique_object(pairs):
+    result = {}
+    for key, value in pairs:
+        require(key not in result, 'duplicate diagnostic JSON key')
+        result[key] = value
+    return result
+
+
+def _rows(log, prefix, match, limit):
+    require(type(log) is str and len(log) <= 32 * 1024 * 1024, 'diagnostic log exceeds bound')
+    result = []
+    for line in log.splitlines():
+        if prefix not in line:
+            continue
+        raw = line.split(prefix, 1)[1]
+        require(0 < len(raw) <= 8192, 'diagnostic row exceeds bound')
+        row = json.loads(raw, object_pairs_hook=_unique_object)
+        require(type(row) is dict and type(row.get('schema')) is int and row['schema'] == 1 and
+                type(row.get('match')) is str and re.fullmatch('[a-f0-9]{32}', row['match']),
+                'invalid diagnostic schema/match')
+        if row['match'] == match:
+            result.append(row)
+            require(len(result) <= limit, 'diagnostic row count exceeds bound')
+    return result
+
+
+def _common(row, *, world=None):
+    require(all(_integer(row.get(k)) for k in ('world', 'tick_ms', 'sampled_us')) and
+            row['world'] > 0 and (world is None or row['world'] == world) and
+            all(_integer(row.get(k), 0, UINT32) for k in ('entity', 'unit_type', 'army')) and
+            _integer(row.get('frame'), 0, 2**31-1) and row.get('physicalUI') is False,
+            'invalid native identity/clock/scope')
+
+
+def _focus_observation(row, *, transient):
+    """Classify the original cached branch, never a camera-call observation."""
+    booleans = ('focus_is_unit', 'focus_dead_to_sim', 'focus_component_present', 'focus_in_active',
+        'focus_in_retained', 'focus_current_admitted', 'focus_unity_truth', 'focus_is_active_and_enabled',
+        'focus_lookup_id_present')
+    for key in booleans:
+        require(key in row and (row[key] is None or type(row[key]) is bool),
+                'missing/invalid nullable focus boolean')
+    for key in ('focus_actual_entity', 'focus_actual_type', 'focus_actual_army'):
+        require(key in row and (row[key] is None or _integer(row[key], 0, UINT32)),
+                'missing/invalid nullable focus identity')
+    for key in ('focus_observed_incarnation', 'focus_confirmed_incarnation', 'focus_cached_ptr'):
+        require(key in row and (row[key] is None or _integer(row[key])),
+                'missing/invalid nullable focus token/pointer')
+    for key in ('focus_class_name', 'focus_class_namespace', 'focus_unity_proof_error', 'focus_lookup_proof_error'):
+        require(key in row and (row[key] is None or type(row[key]) is str and len(row[key]) <= 2048),
+                'missing/invalid nullable focus class/error')
+    require(row.get('focus_lookup_source') == 'manager-active-UnitSet-id-enumeration' and
+            'focus_lookup_actor' in row and (row['focus_lookup_actor'] is None or
+                _pointer(row['focus_lookup_actor']) > 0), 'missing/invalid original manager lookup provenance')
+    if row['focus_lookup_id_present'] is False:
+        require(row['focus_lookup_actor'] is None, 'explicit manager lookup miss has an actor')
+    if row['focus_lookup_id_present'] is True:
+        require(row['focus_lookup_actor'] is not None, 'positive manager lookup has no actor')
+    predicates = {key: row[key] for key in
+                  ('focus_unity_truth', 'focus_lookup_id_present', 'focus_is_active_and_enabled')}
+    facts = {key: row[key] for key in (*booleans, 'focus_actual_entity', 'focus_actual_type', 'focus_actual_army',
+        'focus_observed_incarnation', 'focus_confirmed_incarnation', 'focus_cached_ptr', 'focus_class_name',
+        'focus_class_namespace', 'focus_unity_proof_error', 'focus_lookup_proof_error',
+        'focus_lookup_source', 'focus_lookup_actor')}
+    if not _pointer(row['focus_actor']):
+        classification, would_focus = 'null_cached_object', False
+        # No getter was queried for null; do not invent observed false values.
+    elif any(value is False for value in predicates.values()):
+        classification, would_focus = 'would_not_focus_known_false', False
+    elif all(value is True for value in predicates.values()):
+        would_focus = True
+        if transient:
+            classification = 'would_focus_predicates_true_transient_lease_unqualified'
+        else:
+            require(row['focus_is_unit'] is True and row['focus_class_namespace'] == 'Uncapped' and
+                    row['focus_class_name'] == 'Unit' and
+                    _integer(row['focus_actual_entity'], 0, UINT32) and
+                    _integer(row['focus_actual_type'], 1, UINT32) and
+                    _integer(row['focus_actual_army'], 0, UINT32) and
+                    row['focus_dead_to_sim'] is False and row['focus_component_present'] is True and
+                    row['focus_in_active'] is True and row['focus_in_retained'] is False and
+                    row['focus_cached_ptr'] is not None and row['focus_cached_ptr'] > 0 and
+                    row['focus_unity_proof_error'] is None and
+                    row['focus_lookup_proof_error'] is None and
+                    _pointer(row['focus_actor']) == _pointer(row['focus_lookup_actor']) and
+                    row['focus_observed_incarnation'] is not None and
+                    row['focus_observed_incarnation'] == row['focus_confirmed_incarnation'] > 0,
+                    'stable original focus predicates select an invalid/uninitialized/unconfirmed camera lease')
+            # Original camera following is not player input. Context.admitted
+            # additionally requires our army, so its False observation is not
+            # a stale-lease proof for a live enemy/allied camera target.
+            classification = 'would_focus_valid_camera_lease'
+    else:
+        classification, would_focus = 'focus_proof_missing', None
+        require(transient, 'stable original focus predicates missing')
+    return dict(event=row['event'], frame=row['frame'], tick_ms=row['tick_ms'], focus_actor=row['focus_actor'],
+        focus_group=row['focus_group'], predicates=predicates, facts=facts, classification=classification,
+        would_focus_per_original_predicates=would_focus, transient_front_update=transient,
+        target_identity=dict(entity=row['focus_actual_entity'], unit_type=row['focus_actual_type'], army=row['focus_actual_army']),
+        target_differs_from_input_mobile=(row['focus_actual_entity'], row['focus_actual_type'], row['focus_actual_army']) != (11, 1, 1),
+        own_input_admission_required=False,
+        whole_unity_frame_claim=False, actual_camera_call_observed=False,
+        scope='Would focus per original cached-branch predicates; not an actual camera-call observation')
+
+
+def _snapshots(log, match):
+    rows = _rows(log, 'MOBILE CORRECTION ', match, 2048)
+    require(rows, 'missing original mobile episode')
+    world = rows[0].get('world')
+    bool_fields = ('old_dead_to_sim', 'old_component_present', 'old_in_active', 'old_in_retained',
+        'current_in_active', 'current_admitted', 'native_identity_present', 'native_state_present',
+        'casting_references_victim', 'auto_type1', 'left_held', 'right_held', 'pool_callback_observed')
+    for row in rows:
+        _common(row, world=world)
+        require(row.get('event') in (*EVENTS, 'snapshot') and
+                (row['entity'], row['unit_type'], row['army']) == (11, 1, 1) and
+                _integer(row.get('completed_frame'), -1, 2**31-1), 'mobile episode event/identity differs')
+        require('selection_scope_player_initiated' in row and
+                (row['selection_scope_player_initiated'] is None or type(row['selection_scope_player_initiated']) is bool),
+                'original selection scope provenance missing')
+        require(all(type(row.get(k)) is bool for k in bool_fields), 'missing mobile observed boolean')
+        for key in ('original_actor', 'current_actor', 'active_caster', 'focus_actor'):
+            _pointer(row.get(key))
+        require(_pointer(row['original_actor']) > 0 and
+                _integer(row.get('original_incarnation'), 1) and _integer(row.get('current_incarnation')) and
+                _integer(row.get('original_actual_entity'), 0, UINT32), 'missing original lease/token')
+        for key in ('selected_ids', 'preview_ids', 'casting_ids', 'group_ids', 'tracked_released_ids'):
+            values = row.get(key)
+            require(type(values) is list and len(values) <= 4096 and len(values) == len(set(values)) and
+                    all(_integer(v, 0, UINT32) for v in values), 'invalid original selection/group ID set')
+        require(_integer(row.get('focus_group'), -1, 15) and
+                _integer(row.get('pending_commands'), 0, 256) and _integer(row.get('live_click_id'), 0, UINT32),
+                'invalid observed selector scalar')
+        require(row['pool_callback_observed'] is False and not row['left_held'] and not row['right_held'] and
+                row['live_click_id'] != 11 and not _pointer(row['active_caster']) and
+                not row['casting_ids'] and not row['casting_references_victim'],
+                'unexercised caster/gesture/pool-callback scope was crossed')
+        require(row['native_state_present'] == (row.get('native_state') is not None) and
+                (row['native_state'] is None or _integer(row['native_state'], 0, UINT32-1)),
+                'invalid actual native state presence')
+        actual = tuple(row.get('current_actual_' + key) for key in ('entity', 'type', 'army'))
+        if row['current_in_active']:
+            require(_pointer(row['current_actor']) > 0 and actual == (11, 1, 1), 'current actor identity differs')
+        else:
+            require(not _pointer(row['current_actor']) and actual == (None, None, None) and
+                    not row['current_admitted'] and row['current_incarnation'] == 0,
+                    'inactive actor masquerades as a current lease')
+        if row['current_admitted']:
+            require(row['current_in_active'] and row['current_incarnation'] > 0,
+                    'admission lacks current actor/token')
+        native = row.get('native_identity_type'), row.get('native_identity_army')
+        require(native == ((1, 1) if row['native_identity_present'] else (None, None)),
+                'observed native identity differs')
+    require(all(b['frame'] >= a['frame'] and b['tick_ms'] >= a['tick_ms'] and
+                b['sampled_us'] > a['sampled_us'] for a, b in zip(rows, rows[1:])),
+            'mobile observation clocks/physical frames regressed')
+    require(len({(_pointer(r['original_actor']), r['original_incarnation']) for r in rows}) == 1,
+            'original mobile root/token changed')
+    episode = [r for r in rows if r['event'] != 'snapshot']
+    require([r['event'] for r in episode] == list(EVENTS), 'incomplete/duplicate original mobile episode')
+    setup, dead, released, restored, before, reselected, complete = episode
+    require(setup['frame'] == 130 and dead['frame'] >= 153 and released['frame'] > dead['frame'] and
+            restored['frame'] >= released['frame'] and 180 <= before['frame'] < 200 and
+            before['frame'] == reselected['frame'] and complete['frame'] >= 260,
+            'mobile episode physical boundaries differ')
+    require(setup['original_actual_entity'] == 11 and setup['selected_ids'] == [11] and
+            11 in setup['group_ids'] and setup['focus_group'] == 4 and
+            _pointer(setup['focus_actor']) == _pointer(setup['original_actor']) == _pointer(setup['current_actor']) and
+            setup['current_admitted'] and setup['current_incarnation'] == setup['original_incarnation'],
+            'original mobile selection/group/repeat focus was not established')
+    require(setup['selection_scope_player_initiated'] is True and
+            reselected['selection_scope_player_initiated'] is False and
+            all(r['selection_scope_player_initiated'] is None for r in rows
+                if r['event'] not in ('original_mobile_selection_established', 'original_fresh_reselection_established')),
+            'fresh original programmatic selection scope differs from explicit initial player-initiated scope')
+    require(dead['native_state_present'] and dead['native_state'] == 6 and
+            not released['native_identity_present'] and not released['old_in_active'] and
+            not released['old_in_retained'] and not released['old_component_present'],
+            'original mobile death/release did not occur')
+    require(restored['native_identity_present'] and restored['native_state_present'] and restored['native_state'] != 6 and
+            restored['current_in_active'] and restored['current_admitted'], 'mobile was not reinitialized/admitted')
+    lease = _pointer(restored['current_actor']), restored['current_incarnation']
+    require(all((_pointer(r['current_actor']), r['current_incarnation']) == lease and r['current_admitted'] and
+                r['current_in_active'] for r in (before, reselected, complete)) and reselected['selected_ids'] == [11],
+            'fresh selection uses a stale/unadmitted mobile lease')
+    require(all(r['pending_commands'] == 0 for r in episode[:-1]), 'unrelated queued input crossed setup/reselection')
+    focus_observations = []
+    for row in rows:
+        # FrontUpdate precedes later original selector work. The actual cache
+        # in a death/release/first-restored frame is an observation, not a
+        # whole-Unity-frame safety assertion. Do not clear it to fit the test.
+        transient = dead['frame'] <= row['frame'] <= restored['frame'] and row['event'] not in (
+            'before_fresh_reselection', 'original_fresh_reselection_established', 'mobile_observation_complete')
+        focus_observations.append(_focus_observation(row, transient=transient))
+    require(focus_observations[0]['classification'] == 'would_focus_valid_camera_lease' and
+            (setup['focus_actual_entity'], setup['focus_actual_type'], setup['focus_actual_army']) == (11, 1, 1) and
+            setup['focus_observed_incarnation'] == setup['current_incarnation'],
+            'initial repeat-focus setup lacks original predicates/current-lease proof')
+    return rows, episode, focus_observations
+
+
+def _receipt(frame, world, match, rows, bridges, payloads):
+    own = [r for r in rows if (r.get('match'), r.get('world'), r.get('frame')) == (match, world, frame)]
+    wire = [r for r in bridges if (r.get('match'), r.get('frame')) == (match, frame)]
+    require(len(own) == len(wire) == 1 and _integer(own[0].get('tick_ms')) and
+            _integer(wire[0].get('received_tick_ms')) and type(payloads.get(frame)) is str and
+            HEX64.fullmatch(payloads[frame]) and own[0].get('wire_sha256') == wire[0].get('payload_sha256') == payloads[frame],
+            'actual victim65/raw bridge/authoritative wire differs')
+    return own[0], wire[0]
+
+
+def _joined(check, rows, *, world, receipt, states, journal, action_hash, slot, replay, latest_tick=None):
+    result = check(rows, world=world, authority=receipt, canonical_states=states, require_replay=replay)
+    indices = result.get('promotion_group_row_indices')
+    require(type(indices) is list and indices and len(indices) == len(set(indices)) and
+            all(_integer(i, 0, len(rows)-1) for i in indices), 'invalid confirmed replay group indices')
+    group = [rows[i] for i in indices]
+    frame = receipt['frame']
+    require(sum(r['frame'] == frame for r in group) == 1 and
+            all(r['world'] == world and r['parsed_state_sha256'] == states.get(r['frame']) and
+                r['tick_ms'] >= receipt['tick_ms'] and (latest_tick is None or r['tick_ms'] <= latest_tick) for r in group),
+            'correction group lacks its own canonical command/hash/time')
+    require(not replay or sum(r['replayed_frames_delta'] for r in group) > 0,
+            'canonical correction has no actual replay')
+    numbers = {r['frame'] for r in group}
+    require(len(numbers) == len(group) and numbers == set(range(min(numbers), max(numbers)+1)),
+            'canonical promotion group is not contiguous')
+    actions = [(r['frame'], s, digest(a)) for r in journal if r['frame'] in numbers
+               for s, values in r['players'].items() for a in values]
+    require(actions == [(frame, slot, action_hash)], 'replay group has unrelated/missing canonical actions')
+    tail = result.get('continuation_row_indices')
+    frontier = max(numbers)
+    require(type(tail) is list and len(tail) == 20 and all(_integer(i, 0, len(rows)-1) for i in tail) and
+            [rows[i]['frame'] for i in tail] == list(range(frontier+1, frontier+21)) and
+            all(rows[i]['world'] == world and rows[i]['parsed_state_sha256'] == states.get(rows[i]['frame']) and
+                rows[i]['tick_ms'] >= group[-1]['tick_ms'] for i in tail),
+            '20 actual canonical native continuations missing/mismatched')
+    return dict(result, group=group, input_actions=[dict(frame=f, slot=s, action_sha256=h) for f, s, h in actions])
+
+
+def _fresh_binding(log, order, *, match, commits, raw_bodies, journal):
+    perspective = _perspective(order)
+    sha = order['action_sha256']
+    candidates = []
+    for (m, slot, sequence), body in raw_bodies.items():
+        if (m, slot) != (match, 1):
+            continue
+        decoded = decode_player_input(body)
+        if any(digest(a) == sha for a in decoded['actions']):
+            require(len(decoded['actions']) == 1 and decoded['identity']['player_id'] == 2 and
+                    decoded['identity']['is_aliased'] and not decoded['identity']['ai_profile_id'],
+                    'fresh72 must be one exact original action for the victim human')
+            candidates.append((sequence, body, decoded['actions'][0]))
+    require(len(candidates) == 1, 'fresh original command missing/duplicated in72')
+    sequence, body, action = candidates[0]
+    require([f.number for f in parse_fields(action)] == [1], 'fresh command is not original Execute')
+    execute = get_bytes(action, 1, required=True)
+    groups = get_repeated_bytes(execute, 1)
+    require(len(groups) == 1 and get_uint(groups[0], 1) == 1 and get_uint(groups[0], 2) == 12 and
+            get_repeated_uint(groups[0], 3) == (11,) and get_uint(execute, 2) == 0,
+            'fresh source/type/ability/queued differs')
+    command = get_bytes(execute, 3, required=True)
+    require([f.number for f in parse_fields(command)] == [3], 'fresh target is not ground')
+    position = get_bytes(get_bytes(command, 3, required=True), 1, required=True)
+    target = []; target_raw = []
+    for n in (1, 2, 3):
+        value = get_uint(position, n)
+        require(value < 2**64, 'fresh target exceeds signed Q32.32')
+        signed = value-2**64 if value >= 2**63 else value
+        target_raw.append(signed); target.append(signed/2**32)
+    require(all(_reported_bits_match(v, bits) for v, bits in zip(order['target'], order['target_bits'])),
+            'fresh captured original float32 target bits differ')
+    # pointJson's nine decimal digits round-trip float32, not Python's exact
+    # binary64 comparison. Fixed-point cannot retain sub-Q32 float components:
+    # require exact raw integers on representable axes and a bracketing single
+    # Q32 quantum otherwise. Do not claim float-bit equality after quantization.
+    unity_target = [struct.unpack('<f', struct.pack('<I', bits))[0] for bits in order['target_bits']]
+    # Original ExecuteTargetGroundCommand.ToProto -> ProtocolUtil.ToProto:
+    # Flipped negates X/Z, preserves Y. Use the actual runtime getter enum;
+    # neither army numbering nor the observed camera target selects this map.
+    mapped_target = [(-v if perspective['map_perspective'] == 1 and axis in (0, 2) else v)
+                     for axis, v in enumerate(unity_target)]
+    quantization = [dict(float32=v, fixed_raw=raw, difference_raw=raw-v*2**32)
+                    for v, raw in zip(mapped_target, target_raw)]
+    require(all(math.floor(r['float32']*2**32) <= r['fixed_raw'] <= math.ceil(r['float32']*2**32)
+                for r in quantization), 'fresh original ToProto fixed-point target differs')
+    registrations = re.findall(r'Movement local batch registered: sequence=(\d+) speculativeFrame=(\d+) '
+        r'tick=(\d+) match=' + re.escape(match) + r'(?:\s|$)', log)
+    registered = [tuple(map(int, r)) for r in registrations if int(r[0]) == sequence]
+    sent = re.findall(r'Original command batch submitted: match=' + re.escape(match) +
+        r' sequence=(\d+) actions=(\d+) bytes=(\d+) body_sha256=([a-f0-9]{64}) sendTick=(\d+) sourceNextFrame=(\d+)', log)
+    sent = [r for r in sent if int(r[0]) == sequence]
+    require(len(registered) == len(sent) == 1 and registered[0][2] >= order['tick_ms'] and
+            int(sent[0][1]) == 1 and int(sent[0][2]) == len(body) and sent[0][3] == digest(body) and
+            int(sent[0][4]) >= registered[0][2], 'fresh actual67/native72 sender/body differs')
+    accepted = [r for r in commits if (r.get('event'), r.get('match'), r.get('slot'), r.get('sequence')) ==
+                ('command_batch_committed', match, 1, sequence)]
+    require(len(accepted) == 1 and _integer(accepted[0].get('frame'), 0, 2**31-1), 'fresh canonical commit missing/duplicated')
+    frame = accepted[0]['frame']
+    require(abs(registered[0][1]-frame) <= 1, 'fresh steady actual67/canonical phase exceeds one frame')
+    occurrences = [(r['frame'], slot) for r in journal for slot, values in r['players'].items()
+                   for a in values if digest(a) == sha]
+    require(occurrences == [(frame, 1)], 'fresh canonical journal is duplicated/rebound/missing')
+    return dict(order=order, sequence=sequence, action_sha256=sha, body_sha256=digest(body),
+        speculative_frame=registered[0][1], canonical_commit_frame=frame,
+        speculative_minus_canonical_frames=registered[0][1]-frame, native67_tick_ms=registered[0][2],
+        native72_send_tick_ms=int(sent[0][4]), target=target, unity_target=unity_target,
+        protocol_target_expected=mapped_target, perspective_proof=perspective, target_quantization=quantization,
+        json_zero_sign_loss_axes=[i for i, (v, bits) in enumerate(zip(order['target'], order['target_bits']))
+                                  if v == 0 and bits == 0x80000000 and _bits(v) != bits],
+        target_scope='Captured Unity float32 bits authoritative; JSON cannot prove zero sign. Original runtime Perspective maps X/Z for ToProto; signed Q32.32 exact when representable, otherwise adjacent quantization bracket')
+
+
+def _fresh_motion(log, match, world, token, order, restored, receipt, bridge):
+    poses = _rows(log, 'MOBILE FEEL ', match, 1024)
+    for row in poses:
+        _common(row, world=world)
+        require(row.get('event') == 'transform' and (row['entity'], row['unit_type'], row['army']) == (11, 1, 1) and
+                row.get('incarnation') == token and type(row.get('incarnation')) is int and row.get('move_id') == 1 and
+                type(row.get('baseline')) is bool and row.get('source') == 'UnityEngine.Transform.get_position' and
+                row.get('jobsJoined') is True and _integer(row.get('presented_frame'), -1, 2**31-1) and
+                _integer(row.get('completed_frame'), -1, 2**31-1) and row['presented_frame'] == row['frame'],
+                'fresh actual Transform owner/token/clock/source differs')
+        _vector(row.get('position'))
+    require(all(b['sampled_us'] > a['sampled_us'] and b['tick_ms'] >= a['tick_ms'] and
+                b['presented_frame'] >= a['presented_frame'] for a, b in zip(poses, poses[1:])),
+            'actual Transform clocks/frames regressed')
+    baseline = [r for r in poses if r['baseline'] and restored['sampled_us'] <= r['sampled_us'] <= order['sampled_us']]
+    require(baseline and baseline[-1]['sampled_us'] >= order['sampled_us']-50_000 and
+            baseline[0]['sampled_us'] <= order['sampled_us']-200_000, 'fresh Move has no actual 200ms pre-enqueue baseline')
+    quiet = [r for r in baseline if r['sampled_us'] >= order['sampled_us']-200_000]
+    require(len(quiet) >= 3 and quiet[-1]['sampled_us']-quiet[0]['sampled_us'] >= 150_000,
+            'fresh quiet baseline is sparse/incomplete')
+    drift = max(math.dist(r['position'], order['origin']) for r in quiet)
+    require(drift <= .025, 'fresh response could be ongoing pre-command auto-chase motion')
+    cutoff = min(receipt['tick_ms'], bridge['received_tick_ms'])
+    after = [r for r in poses if not r['baseline'] and r['sampled_us'] > order['enqueue_sampled_us'] and r['tick_ms'] < cutoff]
+    direction = [b-a for a, b in zip(order['origin'], order['target'])]
+    distance = math.sqrt(sum(v*v for v in direction))
+    require(distance > .25, 'fresh Move target was already reached')
+    response = [r for r in after if sum((v-o)*d for v, o, d in zip(r['position'], order['origin'], direction))/distance > .025]
+    require(response, 'fresh current actor has no NEW targetward motion before both65 and raw bridge')
+    first = response[0]
+    return dict(passed=True, baseline_rows=quiet, baseline_max_drift=drift, first_new_motion=first,
+        enqueue_return_us=order['enqueue_sampled_us'], response_after_enqueue_ms=(first['sampled_us']-order['enqueue_sampled_us'])/1000,
+        before_native65_ms=receipt['tick_ms']-first['tick_ms'], before_raw_bridge_ms=bridge['received_tick_ms']-first['tick_ms'],
+        pose_count=len(poses), clock_scope='Actual same-process checked QPC Transform samples;65/bridge ordering uses strict recorded tick_ms')
+
+
+def _assignment_span(rows, *, world, assigned, canonical, states):
+    first, last = min(assigned, canonical), canonical+20
+    selected = [(i, row) for i, row in enumerate(rows)
+                if row['world'] == world and first <= row['frame'] <= last]
+    require([r['frame'] for _, r in selected] == list(range(first, last+1)) and
+            all(r['parsed_state_sha256'] == states.get(r['frame']) for _, r in selected),
+            'fresh assigned-to-canonical+20 native state span is missing/mismatched')
+    return dict(first_frame=first, last_frame=last, frames_checked=len(selected),
+        worker_row_indices=[i for i, _ in selected], speculative_frame=assigned,
+        canonical_commit_frame=canonical, speculative_minus_canonical_frames=assigned-canonical,
+        hashes_match=True, fresh_repair_attribution_claim=False,
+        scope='Actual closed confirmed worker states across min(assignment,canonical)..canonical+20; no claim that fresh repair occurs after canonical receipt')
+
+
+def evaluate(log, *, attacker_log, match, commits, raw_bodies, journal, bridge_frames,
+             canonical_payloads, canonical_states, native_states, worker_states,
+             escape_check, join_check, authority_rows):
+    """Require one source-bound mobile release/reinit/fresh-command episode.
+
+    ``authority_rows`` is the victim's parsed actual65 list (or the existing
+    controller parser).  Exceptions are explicit missing/invalid evidence, never
+    a manufactured zero position or a synthetic successful observation.
+    """
+    require(type(match) is str and re.fullmatch('[a-f0-9]{32}', match), 'invalid selected match')
+    metadata = mobile_metadata()
+    escape = escape_check(attacker_log, match=match, commits=commits, raw_bodies=raw_bodies,
+                          journal=journal, fixture=metadata, prefix='MOBILE ORDER ')
+    cause = decode_player_input(raw_bodies[match, 0, escape['sequence']])['actions']
+    require(len(cause) == 1 and digest(cause[0]) == escape['action_sha256'],
+            'escape cause must be one exact original Move, not a multi-action batch')
+    snapshots, episode, focus_observations = _snapshots(log, match)
+    setup, dead, released, restored, before, reselected, complete = episode
+    world = setup['world']
+    actual65 = authority_rows(log) if callable(authority_rows) else authority_rows
+    frame = escape['canonical_commit_frame']
+    require(frame in metadata['safe_canonical_frames'] and frame < 153, 'escape canonical frame does not precede native death')
+    receipt, bridge = _receipt(frame, world, match, actual65, bridge_frames, canonical_payloads)
+    require(dead['tick_ms'] < min(receipt['tick_ms'], bridge['received_tick_ms']) and
+            dead['sampled_us'] < released['sampled_us'] < restored['sampled_us'] and
+            dead['frame'] < released['frame'] <= restored['frame'] and
+            released['tick_ms'] <= restored['tick_ms'] and
+            restored['tick_ms'] >= receipt['tick_ms'], 'speculative death/release or corrected restoration lacks real receipt ordering')
+    replay = _joined(join_check, worker_states, world=world, receipt=receipt, states=canonical_states,
+                     journal=journal, action_hash=escape['action_sha256'], slot=0, replay=True,
+                     latest_tick=restored['tick_ms'])
+    require([r.get('frame') for r in native_states] == list(range(130, 221)), 'actual native mobile authority timeline incomplete')
+    for row in native_states:
+        number = row['frame']; victim, attacker = row.get('victim'), row.get('attacker')
+        damage = victim.get('current_damage') if type(victim) is dict else None
+        require(row.get('parsed_state_sha256') == canonical_states.get(number) and type(victim) is dict and
+                (victim.get('id'), victim.get('army'), victim.get('type')) == (11, 1, 1) and
+                victim.get('max_health') == 100 and type(damage) in (int, float) and math.isfinite(damage) and
+                0 <= damage < 100 and (number > 173 or damage == (0 if number < 142 else 50)) and
+                type(row.get('game_state')) is dict and row['game_state'].get('complete') is False,
+                'actual authoritative victim is not continuously alive with qualified native damage')
+        if number <= 153:
+            require(type(attacker) is dict and (attacker.get('id'), attacker.get('army'), attacker.get('type')) == (10, 0, 1) and
+                    attacker.get('max_health') == 100 and attacker.get('current_damage') ==
+                    (0 if number < 142 else 50 if number < 153 else 100), 'actual attacker native death timeline differs')
+        else:
+            require(attacker is None, 'actual attacker remains after qualified native release')
+    orders = _rows(log, 'MOBILE ORDER ', match, 1)
+    require(len(orders) == 1, 'one fresh original mobile command required')
+    order = orders[0]; _common(order, world=world)
+    require(order.get('event') == 'original_fresh_move' and (order['entity'], order['unit_type'], order['army']) == (11, 1, 1) and
+            order.get('incarnation') == restored['current_incarnation'] and type(order.get('incarnation')) is int and
+            order.get('ability') == 12 and 180 <= order['frame'] < 200 and
+            order['frame'] == reselected['frame'] and order.get('originalCtor') is True and
+            type(order.get('queueDelta')) is int and order['queueDelta'] == 1 and
+            order.get('reselected_current') is True and order.get('original_callback') == 'Uncapped.ExecuteTargetGroundCommand..ctor' and
+            type(order.get('action_sha256')) is str and HEX64.fullmatch(order['action_sha256']), 'fresh constructor/source/admission differs')
+    for key in ('origin', 'target'):
+        _vector(order.get(key))
+    require(all(_integer(order.get(k)) for k in ('origin_sampled_us', 'enqueue_sampled_us')) and
+            reselected['sampled_us'] < order['origin_sampled_us'] <= order['sampled_us'] <= order['enqueue_sampled_us'] and
+            before['sampled_us'] < reselected['sampled_us'] and
+            type(order.get('target_bits')) is list and len(order['target_bits']) == 3 and
+            all(_integer(v, 0, UINT32) for v in order['target_bits']), 'fresh origin/constructor/enqueue clocks or float bits differ')
+    expected = [_f32(_f32(order['origin'][0])+16), _f32(order['origin'][1]), _f32(order['origin'][2])]
+    require(all(_reported_bits_match(v, bits) for v, bits in zip(expected, order['target_bits'])),
+            'fresh original target is not the actual restored origin plus bounded16mX')
+    fresh = _fresh_binding(log, order, match=match, commits=commits, raw_bodies=raw_bodies, journal=journal)
+    # No extra original command in this isolated window may stand in for the
+    # scripted escape or fresh response. Normal build automation starts at300.
+    window_actions = [(r['frame'], slot, digest(a)) for r in journal if 130 <= r['frame'] <= 220
+                      for slot, actions in r['players'].items() for a in actions]
+    require(window_actions == [(frame, 0, escape['action_sha256']),
+                               (fresh['canonical_commit_frame'], 1, fresh['action_sha256'])],
+            'mobile observation window contains an unintended/duplicate canonical command')
+    fresh65, fresh_bridge = _receipt(fresh['canonical_commit_frame'], world, match, actual65, bridge_frames, canonical_payloads)
+    fresh_replay = _joined(join_check, worker_states, world=world, receipt=fresh65, states=canonical_states,
+        journal=journal, action_hash=fresh['action_sha256'], slot=1, replay=False)
+    assignment_span = _assignment_span(worker_states, world=world, assigned=fresh['speculative_frame'],
+        canonical=fresh['canonical_commit_frame'], states=canonical_states)
+    motion = _fresh_motion(log, match, world, restored['current_incarnation'], order, restored, fresh65, fresh_bridge)
+    same_token = setup['original_incarnation'] == restored['current_incarnation']
+    stable_groups = [dict(event=r['event'], frame=r['frame'], group_ids=r['group_ids'],
+                         tracked_released_ids=r['tracked_released_ids']) for r in (before, reselected, complete)]
+    group_status = 'not_same_confirmed_token' if not same_token else (
+        'preserved' if all(11 in r['group_ids'] for r in (before, reselected, complete)) else 'lost')
+    return dict(passed=True, world=world, match=match, rows=snapshots, escape=escape,
+        escape_actual_victim65=receipt, escape_raw_bridge=bridge, escape_native_replay=replay,
+        release_receipt_observation=dict(release_tick_ms=released['tick_ms'],
+            actual_victim65_tick_ms=receipt['tick_ms'], raw_bridge_tick_ms=bridge['received_tick_ms'],
+            release_minus_victim65_ms=released['tick_ms']-receipt['tick_ms'],
+            same_quantized_tick=released['tick_ms'] == receipt['tick_ms'],
+            release_sampled_us=released['sampled_us'], restoration_sampled_us=restored['sampled_us'],
+            scope='Death precedes both receipts; release follows death and precedes restored native view. Bridge/65 may queue before PROCESS repair; no release-before-arrival or submillisecond receipt-order claim'),
+        native_authority_timeline=native_states, fresh=fresh, fresh_actual_victim65=fresh65,
+        fresh_raw_bridge=fresh_bridge, fresh_native_confirmation=fresh_replay, fresh_motion=motion,
+        fresh_assignment_span=assignment_span, fresh_repair_attribution_claim=False,
+        original_mobile_release_observed=True, current_mobile_reinitialized_and_admitted=True,
+        original_selection_group_focus_established=True,
+        same_observed_pointer=_pointer(setup['original_actor']) == _pointer(restored['current_actor']),
+        same_confirmed_token=same_token,
+        observed_group_timeline=[dict(event=r['event'], group_ids=r['group_ids'], tracked_released_ids=r['tracked_released_ids'],
+            focus_actor=r['focus_actor'], focus_group=r['focus_group'], auto_type1=r['auto_type1']) for r in episode],
+        focus_observations=focus_observations, whole_unity_frame_focus_safety_claim=False,
+        camera_retarget_observations=[r for r in focus_observations
+            if r['classification'] == 'would_focus_valid_camera_lease' and r['target_differs_from_input_mobile']],
+        group_intent_observation=dict(status=group_status, same_confirmed_token=same_token,
+            stable_observations=stable_groups, followup_open=group_status != 'preserved',
+            full_mobile_controls_accepted=False,
+            scope='Observed original group4 ID11 membership for the retained confirmed token; raw tracked IDs preserved, no all-controls restoration claim'),
+        inactive_casting_scratch_exercised=False, active_caster_exercised=False, pool_callback_observed=False,
+        physicalUI=False, full_feature_accepted=False,
+        scope='Scripted original Move12; original mobile membership/component release, corrected current admission, real group/focus setup and fresh command response; no physical UI/caster/VFX claim')
+
+
+def _group_intent_rows(log, *, match, slot):
+    rows = _rows(log, 'MOBILE GROUP INTENT ', match, 5)
+    fields = {'schema','event','world','match','slot','frame','tick_ms','sampled_us','entity','unit_type','army',
+        'incarnation','confirmed_incarnation','native_identity_present','current_admitted','retained_group',
+        'retained_ids','retained_tracked_ids','operation','original_scope_player_initiated','clear_callback',
+        'replace_callback','replace_source_count','replace_existing','physicalUI'}
+    for row in rows:
+        _common(row)
+        require(set(row) == fields and type(row['slot']) is int and row['slot'] == slot and
+                (row['entity'],row['unit_type'],row['army']) == ((10,1,0) if slot == 0 else (11,1,1)) and
+                _integer(row['incarnation'],1) and _integer(row['confirmed_incarnation']) and
+                row['retained_group'] == 4 and type(row['retained_group']) is int,
+                'group identity/schema/manual group differs')
+        require(type(row['native_identity_present']) is bool and type(row['current_admitted']) is bool,
+                'group native/current admission flags differ')
+        for key in ('retained_ids','retained_tracked_ids'):
+            ids=row[key]
+            require(type(ids) is list and len(ids) <= 4096 and all(_integer(v,0,UINT32) for v in ids) and
+                    len(set(ids)) == len(ids) and set(ids) <= {row['entity']}, 'group contains duplicate/unrelated IDs')
+        operation=row['operation']
+        if row['event'] == 'after_user_edits':
+            require(slot == 1 and operation in ('clear','replace') and row['original_scope_player_initiated'] is True,
+                    'original group edit scope/operation missing')
+            if operation == 'clear':
+                require(row['clear_callback'] == 'Uncapped.ControlGroup.Clear' and row['replace_callback'] is None and
+                        row['replace_source_count'] is None and row['replace_existing'] is None,
+                        'original Clear callback differs from observed edit')
+            else:
+                require(row['clear_callback'] is None and row['replace_callback'] == 'Uncapped.ControlGroupPanel.AssignToControlGroup' and
+                        type(row['replace_source_count']) is int and row['replace_source_count'] == 0 and
+                        row['replace_existing'] is True, 'original empty replacement callback/source differs')
+        else:
+            require(all(row[key] is None for key in ('operation','original_scope_player_initiated','clear_callback',
+                    'replace_callback','replace_source_count','replace_existing')), 'unobserved original edit was fabricated')
+    require(rows and all(b['frame'] >= a['frame'] and b['tick_ms'] >= a['tick_ms'] and
+            b['sampled_us'] > a['sampled_us'] for a,b in zip(rows,rows[1:])), 'group observation clock/frame regressed')
+    require(len({(r['world'],r['incarnation']) for r in rows}) == 1, 'group original world/incarnation changed')
+    return rows
+
+
+def evaluate_group_intent(log, *, attacker_log, mobile_episodes, user_edits=False):
+    """Opt-in group4 retention OR two original cancellation operations.
+
+    Both modes separately require the attacker's group4 provisional hold and
+    canonical death purge in its independently owned client. The already-qualified mobile body/replay/motion evidence is required;
+    the controller additionally gates on all closed native hashes and shutdown.
+    """
+    require(type(user_edits) is bool and type(mobile_episodes) is list and len(mobile_episodes) == 2,
+            'group intent requires both actual mobile episodes')
+    matches=[ep.get('match') for ep in mobile_episodes]
+    require(len(set(matches)) == 2 and all(type(m) is str and re.fullmatch('[a-f0-9]{32}',m) for m in matches) and
+            len({ep.get('world') for ep in mobile_episodes}) == 2, 'group match/world episodes repeat')
+    require(len({ep.get('escape',{}).get('order',{}).get('world') for ep in mobile_episodes}) == 2,
+            'group attacker escape world reused across rematch')
+    for text in (log,attacker_log):
+        count=0
+        for line in text.splitlines():
+            if 'MOBILE GROUP INTENT ' not in line:continue
+            raw=line.split('MOBILE GROUP INTENT ',1)[1]
+            require(len(raw) <= 8192, 'group diagnostic line exceeds bound')
+            row=json.loads(raw,object_pairs_hook=_unique_object)
+            require(type(row) is dict and row.get('match') in matches, 'group event belongs to an unqualified extra match')
+            count+=1;require(count <= 10, 'group diagnostic count exceeds two-round bound')
+    result=[]
+    for ep in mobile_episodes:
+        require(ep.get('passed') is True and ep.get('fresh_motion',{}).get('passed') is True and
+                ep.get('fresh_assignment_span',{}).get('hashes_match') is True and
+                ep.get('escape_native_replay',{}).get('promotion_group_replayed_delta',0) > 0 and
+                ep.get('escape_native_replay',{}).get('continuation_frames') == 20,
+                'group intent lacks positive mobile motion/replay+20/native confirmation')
+        match=ep['match'];world=ep['world']
+        correction=[r for r in ep['rows'] if r['event'] != 'snapshot']
+        require([r['event'] for r in correction] == list(EVENTS), 'group mobile lifecycle binding incomplete')
+        setup,dead,released,restored,before,reselected,complete=correction
+        token=setup['original_incarnation']
+        require(token == restored['current_incarnation'] == ep['fresh']['order']['incarnation'] > 0,
+                'group victim is not the same authoritative mobile incarnation')
+        victim=_group_intent_rows(log,match=match,slot=1)
+        names=['setup','before_user_edits','after_user_edits','restored','complete'] if user_edits else [
+            'setup','before_provisional_hold','restored','complete']
+        require([r['event'] for r in victim] == names and all(r['world'] == world and
+                r['incarnation'] == r['confirmed_incarnation'] == token for r in victim),
+                'victim group event/token/world chain differs')
+        first,hold=victim[:2];last_restored,last=victim[-2:]
+        require(first['frame'] == setup['frame'] == 130 and first['sampled_us'] >= setup['sampled_us'] and
+                first['native_identity_present'] and first['current_admitted'] and first['retained_ids'] == setup['group_ids'] == [11] and
+                not hold['native_identity_present'] and not hold['current_admitted'] and hold['retained_ids'] == [11] and
+                released['frame'] <= hold['frame'] <= restored['frame'] and
+                released['sampled_us'] <= hold['sampled_us'] < restored['sampled_us'],
+                'victim group lacks original setup and same-token provisional hold')
+        expected=[] if user_edits else [11]
+        require(all(r['native_identity_present'] and r['current_admitted'] and r['retained_ids'] == expected
+                    for r in (last_restored,last)) and last_restored['frame'] == restored['frame'] and
+                last_restored['sampled_us'] >= restored['sampled_us'] and
+                last['frame'] == complete['frame'] >= 260 and last['sampled_us'] <= complete['sampled_us'] and
+                last_restored['retained_ids'] == restored['group_ids'] and last['retained_ids'] == complete['group_ids'],
+                'victim group preservation/cancellation did not survive restored view and completion')
+        operation=None
+        if user_edits:
+            edited=victim[2];operation='clear' if world == 1 else 'replace'
+            require(world in (1,2) and edited['operation'] == operation and edited['frame'] == hold['frame'] and
+                    not edited['native_identity_present'] and not edited['current_admitted'] and
+                    edited['retained_ids'] == [] and hold['sampled_us'] < edited['sampled_us'] < restored['sampled_us'],
+                    'original user edit was not the distinct round-specific cancellation during absence')
+        attacker=_group_intent_rows(attacker_log,match=match,slot=0)
+        require([r['event'] for r in attacker] == ['attacker_setup','attacker_speculative_absence',
+                'attacker_confirmed_purge','attacker_complete'], 'attacker group chain incomplete')
+        attack_world=ep['escape']['order']['world'];attack_token=ep['escape']['order']['incarnation']
+        require(all(r['world'] == attack_world and r['incarnation'] == attack_token for r in attacker),
+                'attacker group does not bind the exact original escape actor/world')
+        a_setup,absence,purge,a_complete=attacker
+        require(a_setup['frame'] == 130 and a_setup['native_identity_present'] and a_setup['current_admitted'] and
+                a_setup['confirmed_incarnation'] == attack_token and a_setup['retained_ids'] == [10] and
+                absence['frame'] >= 154 and not absence['native_identity_present'] and not absence['current_admitted'] and
+                absence['confirmed_incarnation'] == attack_token and absence['retained_ids'] == [10],
+                'attacker provisional absence did not retain unchanged confirmed group intent')
+        require(all(not r['native_identity_present'] and not r['current_admitted'] and
+                r['confirmed_incarnation'] == 0 and r['retained_ids'] == [] for r in (purge,a_complete)) and
+                a_complete['frame'] >= 220, 'confirmed attacker death did not purge group membership permanently')
+        native=ep['native_authority_timeline']
+        require([r['frame'] for r in native] == list(range(130,221)) and
+                all(type(r['victim']) is dict and r['victim']['id'] == 11 and r['victim']['current_damage'] < 100 for r in native) and
+                next(r['attacker'] for r in native if r['frame'] == 153)['current_damage'] == 100 and
+                all(r['attacker'] is None for r in native if r['frame'] >= 154),
+                'group canonical attacker death/victim survival does not match actual native authority')
+        require(ep['fresh_motion']['passed'] is True, 'group test lost actual fresh original response')
+        result.append(dict(passed=True,match=match,world=world,victim_rows=victim,attacker_rows=attacker,
+            victim_same_confirmed_token=True,retained_group4_preserved=not user_edits,
+            original_user_operation=operation,user_cancellation_respected=user_edits,
+            attacker_provisional_membership_preserved=True,attacker_confirmed_numeric_membership_purged=True,
+            attacker_tracked_ids_after_purge=[r['retained_tracked_ids'] for r in (purge,a_complete)],
+            confirmation_scope='Actual confirmed_incarnation becomes0 plus canonical native death153/absence154; no invented per-frame65 timestamp',
+            physicalUI=False,full_mobile_controls_accepted=False))
+    require(not user_edits or [r['original_user_operation'] for r in result] == ['clear','replace'],
+            'two actual rounds must separately exercise original Clear and empty replacement')
+    return dict(passed=True,user_edits=user_edits,episodes=result,requires_controller_full_closed_native_parity=True,
+        physicalUI=False,active_casting_exercised=False,full_mobile_controls_accepted=False,
+        scope='Single original manual group4 retention OR separate Clear/empty-replace captures, plus attacker group4 provisional hold and confirmed-death numeric purge in its separate client; no physical UI/casting/all-controls acceptance')
+
+
+def evaluate_group_recall(log, *, attacker_log, mobile_episodes, group_intent):
+    """Join original group recall observations to the passed mobile slice.
+
+    Retained numeric membership is not a selectable native actor. The actual
+    callback and selection snapshots establish that distinction; this parser
+    does not invent a filter invocation, physical keypress or camera call.
+    """
+    require(type(mobile_episodes) is list and len(mobile_episodes) == 2 and
+            type(group_intent) is dict and group_intent.get('passed') is True and
+            group_intent.get('user_edits') is False and len(group_intent.get('episodes',[])) == 2,
+            'recall requires both passed mobile and retained-group episodes')
+    matches=[ep.get('match') for ep in mobile_episodes]
+    require(len(set(matches)) == 2 and all(type(m) is str and re.fullmatch('[a-f0-9]{32}',m) for m in matches) and
+            len({ep.get('world') for ep in mobile_episodes}) == 2 and
+            [ep.get('match') for ep in group_intent['episodes']] == matches,
+            'recall match/world rematch binding differs')
+    prefix='MOBILE GROUP RECALL '
+    require(type(log) is str and type(attacker_log) is str and len(log) <= 32*1024*1024 and
+            len(attacker_log) <= 32*1024*1024 and prefix not in attacker_log,
+            'recall log scope exceeds bound or attacker emitted victim recall')
+    count=0
+    for line in log.splitlines():
+        if prefix not in line:continue
+        raw=line.split(prefix,1)[1];require(0 < len(raw) <= 8192, 'recall diagnostic exceeds bound')
+        row=json.loads(raw,object_pairs_hook=_unique_object)
+        require(type(row) is dict and row.get('match') in matches, 'recall belongs to an extra unqualified match')
+        count+=1;require(count <= 12, 'recall exceeds two-round event bound')
+    names=['before_absent_recall','focus_cancelled','after_absent_recall',
+           'before_restored_recall','after_restored_recall','complete']
+    fields={'schema','event','world','match','slot','entity','unit_type','army','frame','completed_frame',
+        'tick_ms','sampled_us','incarnation','confirmed_incarnation','current_incarnation','retained_group',
+        'group_ids','selected_ids','preview_ids','casting_ids','native_identity_present','current_admitted','source_resolvable_count',
+        'current_actor','current_actual_entity','current_actual_type','current_actual_army','focus_group',
+        'pending_commands','cancel_callback','cancel_token','actuate_callback','actuate_token','actuate_result','physicalUI'}
+    result=[]
+    for ep,group in zip(mobile_episodes,group_intent['episodes']):
+        require(ep.get('passed') is True and ep.get('fresh_motion',{}).get('passed') is True and
+                ep.get('fresh_assignment_span',{}).get('hashes_match') is True and
+                ep.get('escape_native_replay',{}).get('promotion_group_replayed_delta',0) > 0 and
+                ep.get('escape_native_replay',{}).get('continuation_frames') == 20 and
+                group.get('passed') is True and group.get('world') == ep['world'] and
+                group.get('retained_group4_preserved') is True,
+                'recall lacks passed original input/replay+20/native confirmation/group preservation')
+        lifecycle=[r for r in ep['rows'] if r['event'] != 'snapshot']
+        require([r['event'] for r in lifecycle] == list(EVENTS), 'recall mobile lifecycle is incomplete')
+        setup,dead,released,restored,before_fresh,reselected,complete=lifecycle
+        token=setup['original_incarnation'];world=ep['world'];match=ep['match']
+        require(token == restored['current_incarnation'] == ep['fresh']['order']['incarnation'] > 0,
+                'recall canonical mobile incarnation changed')
+        rows=_rows(log,prefix,match,6)
+        require([r.get('event') for r in rows] == names, 'recall original callback/event chain is incomplete')
+        for row in rows:
+            _common(row,world=world)
+            require(set(row) == fields and type(row['slot']) is int and row['slot'] == 1 and
+                    (row['entity'],row['unit_type'],row['army']) == (11,1,1) and
+                    _integer(row['completed_frame'],-1,2**31-1) and
+                    _integer(row['incarnation'],1) and _integer(row['confirmed_incarnation'],1) and
+                    row['incarnation'] == row['confirmed_incarnation'] == token and
+                    _integer(row['current_incarnation']) and type(row['retained_group']) is int and
+                    row['retained_group'] == 4 and type(row['native_identity_present']) is bool and
+                    type(row['current_admitted']) is bool and _integer(row['focus_group'],-1,2**31-1) and
+                    type(row['pending_commands']) is int and row['pending_commands'] == 0 and
+                    _integer(row['source_resolvable_count'],0,1), 'recall observed identity/schema/group differs')
+            _pointer(row['current_actor'])
+            for key in ('current_actual_entity','current_actual_type','current_actual_army'):
+                require(row[key] is None or _integer(row[key],0,UINT32), 'recall actual identity nullable field differs')
+            for key in ('group_ids','selected_ids','preview_ids','casting_ids'):
+                ids=row[key]
+                require(type(ids) is list and len(ids) <= 4096 and all(_integer(v,0,UINT32) for v in ids) and
+                        len(set(ids)) == len(ids), 'recall observed ID set is invalid')
+            require(row['group_ids'] == [11], 'recall lost retained original group4 intent')
+            if row['event'] == 'focus_cancelled':
+                require(row['cancel_callback'] == 'Uncapped.UnitSelector.FocusControlGroupCancel' and
+                        row['cancel_token'] == '06002220' and all(row[k] is None for k in
+                        ('actuate_callback','actuate_token','actuate_result')), 'recall original Cancel callback differs')
+            elif row['event'] in ('after_absent_recall','after_restored_recall'):
+                require(row['actuate_callback'] == 'Uncapped.UnitSelector.ActuateControlGroup' and
+                        row['actuate_token'] == '0600220f' and type(row['actuate_result']) is bool and
+                        row['cancel_callback'] is None and row['cancel_token'] is None,
+                        'recall original Actuate callback/result differs')
+            else:
+                require(all(row[k] is None for k in ('cancel_callback','cancel_token',
+                        'actuate_callback','actuate_token','actuate_result')), 'unobserved recall callback was fabricated')
+        require(all(b['frame'] >= a['frame'] and b['tick_ms'] >= a['tick_ms'] and b['sampled_us'] >= a['sampled_us']
+                    for a,b in zip(rows,rows[1:])), 'recall actual event clocks/frame regressed')
+        absent,cancel,after_absent,before_restored,after_restored,last=rows
+        require(all(not r['native_identity_present'] and not r['current_admitted'] and
+                    _pointer(r['current_actor']) == 0 and r['current_incarnation'] == 0 and
+                    all(r[k] is None for k in ('current_actual_entity','current_actual_type','current_actual_army')) and
+                    released['frame'] <= r['frame'] <= restored['frame'] and
+                    released['sampled_us'] <= r['sampled_us'] < restored['sampled_us'] for r in rows[:3]) and
+                absent['frame'] == cancel['frame'] == after_absent['frame'] and cancel['focus_group'] == -1,
+                'original recall did not exclude unavailable mobile during actual absence')
+        # The original Count counts physically type-resolvable IDs, not the
+        # retained numeric group. A legal Count0 refusal returns before opening
+        # the selection scope; it must not be reported as an exercised filter.
+        require(after_absent['source_resolvable_count'] == cancel['source_resolvable_count'],
+                'absent recall original source count changed inside its callback')
+        if cancel['source_resolvable_count'] == 0:
+            require(after_absent['actuate_result'] is False and all(after_absent[k] == cancel[k]
+                    for k in ('selected_ids','preview_ids','casting_ids')),
+                    'absent recall Count0 refusal did not leave original selector sets unchanged')
+            classification='legal_absent_refusal'
+        else:
+            require(after_absent['actuate_result'] is True and after_absent['selected_ids'] == [] and
+                    after_absent['preview_ids'] == [], 'absent recall Count1 did not complete original empty-selection branch')
+            classification='excluded_on_recall'
+        require(all(r['native_identity_present'] and r['current_admitted'] and _pointer(r['current_actor']) > 0 and
+                    r['current_incarnation'] == token and
+                    r['source_resolvable_count'] == 1 and
+                    (r['current_actual_entity'],r['current_actual_type'],r['current_actual_army']) == (11,1,1)
+                    for r in rows[3:]) and
+                restored['sampled_us'] <= before_restored['sampled_us'] <= after_restored['sampled_us'] < before_fresh['sampled_us'] and
+                before_restored['frame'] == after_restored['frame'] and after_restored['actuate_result'] is True and
+                after_restored['selected_ids'] == [11] and
+                last['frame'] == complete['frame'] >= 260 and last['sampled_us'] <= complete['sampled_us'],
+                'original restored recall lacks admitted current lease/selection or completed observation')
+        result.append(dict(passed=True,match=match,world=world,rows=rows,
+            absent_recall_classification=classification,
+            unavailable_original_recall_selection_empty=after_absent['selected_ids'] == [],
+            absent_empty_selection_branch_exercised=classification == 'excluded_on_recall',
+            legal_refusal_selection_unchanged=True if classification == 'legal_absent_refusal' else None,
+            restored_original_recall_selected_current=True,
+            retained_group4_preserved=True,same_confirmed_incarnation=token,
+            absent_actuate_result=after_absent['actuate_result'],restored_actuate_result=after_restored['actuate_result'],
+            absent_selected_before=absent['selected_ids'],absent_selected_after=after_absent['selected_ids'],
+            restored_selected_before=before_restored['selected_ids'],restored_selected_after=after_restored['selected_ids'],
+            physicalUI=False,full_mobile_controls_accepted=False))
+    return dict(passed=True,episodes=result,requires_controller_full_closed_native_parity=True,
+        physicalUI=False,active_casting_exercised=False,full_mobile_controls_accepted=False,
+        scope='Original Cancel/Actuate during unavailable native view (legal Count0 refusal OR actual Count1 empty-selection branch) and original Actuate on restored admitted mobile; no invented filter, physical UI, camera-call or active-casting acceptance')
+
+
+def evaluate_recovery_stall(log, *, attacker_log, matches):
+    """Observe the opt-in hold and actual successful recovery queues.
+
+    Actual BEGIN plus raw normal snapshots keep this diagnostic independent of
+    a later failed command-phase gate. That gate remains mandatory in the
+    controller; an observed stall is never a replacement for it.
+    """
+    require(type(matches) is list and len(matches) == 2 and len(set(matches)) == 2 and
+            all(type(match) is str and re.fullmatch('[a-f0-9]{32}',match) for match in matches),
+            'recovery stall requires two exact actual matches')
+    require(type(log) is str and type(attacker_log) is str and len(log) <= 32*1024*1024 and
+            len(attacker_log) <= 32*1024*1024, 'recovery log exceeds bound')
+    ready=re.findall(r'Movement prediction ready: generation=(\d+) match=([a-f0-9]{32}) world=(\d+) slot=(\d+) ',log)
+    require([row[1] for row in ready] == matches and [int(row[2]) for row in ready] == [1,2] and
+            all(int(row[3]) == 1 for row in ready), 'recovery victim BEGIN/world/match/slot binding differs')
+    prefix='MOBILE RECOVERY STALL '
+    require(not any(prefix in line for line in attacker_log.splitlines()), 'recovery hold was emitted by the attacker')
+    raw=[line.split(prefix,1)[1] for line in log.splitlines() if prefix in line]
+    require(len(raw) == 1 and len(raw[0]) <= 2048, 'exactly one bounded world2 recovery hold required')
+    row=json.loads(raw[0],object_pairs_hook=_unique_object)
+    fields={'schema','event','world','match','slot','frame','requested_ms','begin_us','end_us',
+            'presented_before','presented_after','completed_before','completed_after','qpc_scope','physicalUI'}
+    require(type(row) is dict and set(row) == fields and type(row['schema']) is int and row['schema'] == 1 and
+            row['event'] == 'main_thread_stall' and row['physicalUI'] is False and
+            all(type(row[key]) is int for key in ('world','slot','frame','requested_ms')) and
+            (row['world'],row['match'],row['slot'],row['frame'],row['requested_ms']) == (2,matches[1],1,152,250) and
+            row['qpc_scope'] == 'Sleep(250) only', 'recovery hold schema/scope/world differs')
+    require(_integer(row['begin_us']) and _integer(row['end_us']) and
+            row['end_us']-row['begin_us'] >= 250_000, 'recovery QPC hold was shorter than250ms or invalid')
+    require(type(row['presented_before']) is int and row['presented_before'] == 152 and
+            type(row['presented_after']) is int and 152 <= row['presented_after'] <= 153 and
+            all(_integer(row[key],-1,2**31-1) for key in ('completed_before','completed_after')) and
+            row['completed_after'] >= row['completed_before'], 'recovery actual counter observations regressed/skipped')
+    corrections=_rows(log,'MOBILE CORRECTION ',matches[1],2048)
+    bracket=[]
+    for frame in (152,153):
+        found=[r for r in corrections if r.get('event') == 'snapshot' and r.get('frame') == frame]
+        require(len(found) == 1 and all(type(found[0].get(k)) is int for k in ('world','frame','army','entity','unit_type')) and
+                (found[0]['world'],found[0]['army'],found[0]['entity'],found[0]['unit_type']) == (2,1,11,1) and
+                found[0].get('physicalUI') is False and _integer(found[0].get('sampled_us')),
+                'recovery normal snapshot bracket missing/mismatched')
+        bracket.append(found[0])
+    require(bracket[0]['sampled_us'] < row['begin_us'] < row['end_us'] < bracket[1]['sampled_us'],
+            'recovery hold is not after normal152 snapshot and before normal153 snapshot')
+
+    def mode_changes(text, slot):
+        # The actual C++ emitter follows ORIGINAL PushSimMessage + queued().
+        # Policy starts inactive, and queued() is its only recovery-mode writer.
+        # Other worlds/clients may have their own natural recovery episodes.
+        changes={1:[],2:[]}; current=None; count=0
+        fields={'schema','event','world','match','frame','active','decision_us','queue_return_us',
+                'target_assigned','native_dt_us'}
+        for line in text.splitlines():
+            begin=re.search(r'Movement prediction ready: generation=(\d+) match=([a-f0-9]{32}) world=(\d+) slot=(\d+) ',line)
+            if begin:
+                current=(begin[2],int(begin[3]),int(begin[4]))
+            prefix='MOVEMENT RECOVERY '
+            if prefix not in line:
+                continue
+            count+=1; raw=line.split(prefix,1)[1]
+            require(count <= 4096 and 0 < len(raw) <= 2048, 'recovery mode changes exceed bound')
+            change=json.loads(raw,object_pairs_hook=_unique_object)
+            require(type(change) is dict and set(change) == fields and
+                    type(change['schema']) is int and change['schema'] == 1 and change['event'] == 'queued_mode' and
+                    _integer(change['world'],1,2) and change['match'] == matches[change['world']-1] and
+                    current == (change['match'],change['world'],slot) and
+                    _integer(change['frame'],1,2**31-1) and type(change['active']) is bool and
+                    _integer(change['decision_us']) and _integer(change['queue_return_us']) and
+                    change['queue_return_us'] >= change['decision_us'] and
+                    _integer(change['target_assigned'],1,2**63-1) and
+                    type(change['native_dt_us']) is int and change['native_dt_us'] == 50000,
+                    'recovery queued-mode schema/BEGIN/clock differs')
+            previous=changes[change['world']]
+            require(change['active'] != (previous[-1]['active'] if previous else False) and
+                    (not previous or (change['frame'] > previous[-1]['frame'] and
+                     change['decision_us'] >= previous[-1]['queue_return_us'])),
+                    'recovery mode chain did not alternate in actual queue order')
+            previous.append(change)
+        return changes
+
+    victim_modes=mode_changes(log,1)
+    attacker_modes=mode_changes(attacker_log,0)
+    fresh=_rows(log,'MOBILE ORDER ',matches[1],1)
+    require(len(fresh) == 1 and fresh[0].get('event') == 'original_fresh_move',
+            'recovery exit requires the actual fresh original Move')
+    fresh=fresh[0]
+    require(all(type(fresh.get(k)) is int for k in ('world','entity','unit_type','army','frame','queueDelta')) and
+            (fresh['world'],fresh['entity'],fresh['unit_type'],fresh['army'],fresh['frame'],fresh['queueDelta']) == (2,11,1,1,180,1) and
+            fresh.get('originalCtor') is True and fresh.get('reselected_current') is True and
+            fresh.get('physicalUI') is False and
+            all(_integer(fresh.get(k)) for k in ('origin_sampled_us','sampled_us','enqueue_sampled_us')) and
+            row['end_us'] < fresh['origin_sampled_us'] <= fresh['sampled_us'] <= fresh['enqueue_sampled_us'],
+            'recovery fresh original Move identity/clock differs')
+    modes=victim_modes[2]
+    require(not any(change['decision_us'] < row['end_us'] and change['queue_return_us'] >= row['begin_us'] for change in modes),
+            'recovery queue mode overlaps the owned Sleep bracket')
+    before=[change for change in modes if change['queue_return_us'] < row['begin_us']]
+    require(not before or before[-1]['active'] is False, 'recovery mode was already active before the hold')
+    episode=[change for change in modes if row['end_us'] < change['queue_return_us'] < fresh['sampled_us']]
+    require(len(episode) == 2 and [change['active'] for change in episode] == [True,False] and
+            all(change['decision_us'] >= row['end_us'] and 153 <= change['frame'] <= fresh['frame']+1 for change in episode),
+            'recovery requires one actual entered/exited queue chain after Sleep and before fresh Move')
+    return dict(passed=True,world=2,match=matches[1],slot=1,event=row,
+        actual_elapsed_us=row['end_us']-row['begin_us'],actual_elapsed_ms=(row['end_us']-row['begin_us'])/1000,
+        snapshot_before=bracket[0],snapshot_after=bracket[1],physicalUI=False,
+        recovery_entry=episode[0],recovery_exit=episode[1],fresh_original_order=fresh,
+        victim_mode_changes=victim_modes,attacker_mode_changes=attacker_modes,
+        recovered_before_fresh_original_input=True,native_dt_us=50000,
+        body_phase_qualified_by_this_gate=False,full_feature_accepted=False,
+        scope='Owned Sleep between actual normal152/153 snapshots, then successful original native queues enter/exit recovery before fresh original input; movement phase/body/hash/group/lifecycle remain independent mandatory gates')

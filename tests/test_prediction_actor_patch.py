@@ -1,6 +1,8 @@
 """Authored PE controls for the optional actor-repair admission guard."""
 from contextlib import ExitStack
 import hashlib
+from pathlib import Path
+import re
 import struct
 import unittest
 from unittest.mock import patch
@@ -30,6 +32,17 @@ def fixture():
 
 
 class PredictionActorGuardTests(unittest.TestCase):
+    def test_runtime_begin_requires_every_installed_actor_selection_hook(self):
+        # Cross-module recipe/runtime contract: adding a patch descriptor must
+        # also make an old or partially installed image fail before BEGIN.
+        source = (Path(__file__).resolve().parents[1] /
+                  'client_patch/src/prediction_worker.cpp').read_text(encoding='utf-8-sig')
+        body = source.split('static void requireActorHook() {', 1)[1].split('\n}', 1)[0]
+        required = [(int(site, 16), name) for site, name in re.findall(
+            r'requireMovementHook\((0x[0-9a-fA-F]+),\s*"([^"]+)"\);', body)]
+        self.assertEqual(len(required), len(set(required)))
+        self.assertEqual(set(required), {(hook['rva'], hook['name']) for hook in actor.CALL_HOOKS})
+
     def setUp(self):
         self.original = fixture()
         self.sha = hashlib.sha256(self.original).hexdigest()
@@ -138,6 +151,46 @@ class PredictionActorGuardTests(unittest.TestCase):
             with self.assertRaisesRegex(ValueError, 'Original build SHA256'):
                 patch_client.build_patch(b'')
             guard.assert_not_called()
+
+    def test_group_release_declines_only_the_original_complete_typed_remove_call(self):
+        hooks = [row for row in actor.CALL_HOOKS
+                 if row['name'] == 'OfflinePredictionGroupReleaseRemove']
+        self.assertEqual(len(hooks), 1)
+        hook = hooks[0]
+        self.assertEqual(hook, dict(name='OfflinePredictionGroupReleaseRemove',
+                                   rva=0x3ea625a, offset=0x3ea485a,
+                                   before='e8b103dcff'))
+        call = bytes.fromhex(hook['before'])
+        self.assertEqual(hook['rva'] + 5 + struct.unpack_from('<i', call, 1)[0],
+                         0x3c66610)
+        guards = {row['rva']: row['before'] for row in actor.BODY_GUARDS}
+        # The first original operation removes the tracking marker. The shim
+        # replaces only the subsequent complete UnitSelectionSet.Remove.
+        self.assertEqual(guards[0x3ea6236],
+                         '8b974c0100004533c0e82cc38dff498b4d20'
+                         '4885c90f84f40000008b974c0100004533c0')
+        self.assertEqual(guards[0x3ea625f], 'eb660fb7c84803c9')
+        self.assertIn(0x3c66610, guards)
+        self.assertEqual(guards[0x3b02170],
+                         '807910007511488b01488b909001000048ffa088010000c6411201c3')
+        self.assertNotIn(0x3ea5c56, {row['rva'] for row in actor.CALL_HOOKS})
+
+    def test_group_release_descriptor_rejects_mutated_call_before_publication(self):
+        original_hook = next(row for row in actor.CALL_HOOKS
+                             if row['name'] == 'OfflinePredictionGroupReleaseRemove')
+        hook = dict(original_hook, rva=0x4018, offset=0x518)
+        data = bytearray(self.original)
+        data[0x518:0x51d] = bytes.fromhex(hook['before'])
+        data = bytes(data)
+        sha = hashlib.sha256(data).hexdigest()
+        with self.admitted_fixture(), patch.object(actor, 'SUPPORTED_ORIGINAL_SHA256', sha), \
+                patch.object(actor, 'CALL_HOOKS', [hook]):
+            self.assertEqual(actor.validate_original(data, expected_sha256=sha)['call_hooks'], [hook])
+            for mismatch in (dict(offset=0x519), dict(before='e8b003dcff')):
+                with self.subTest(mismatch=mismatch), patch.object(actor, 'CALL_HOOKS',
+                                                                  [dict(hook, **mismatch)]):
+                    with self.assertRaisesRegex(ValueError, 'call guard/mapping mismatch'):
+                        actor.validate_original(data, expected_sha256=sha)
 
 
 if __name__ == '__main__':

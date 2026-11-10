@@ -137,9 +137,9 @@ static void steadyCadenceGatesAndReset() {
     assert(s.decide(3,1,1,1400000,475000).wait==p::Wait::NativeOutput);
     s.published(2,1400000);
     auto third=s.decide(3,2,1,1400000,475000);
-    assert(third.allowed && third.nextDeadline==1445000);
+    assert(third.allowed && third.recovering && !s.recovering() && third.nextDeadline==1435000);
     assert(s.decide(3,2,1,1400000,475000).nextDeadline==third.nextDeadline);
-    s.queued(third);s.published(3,1425000);
+    s.queued(third);assert(s.recovering());s.published(3,1425000);
     assert(s.decide(4,3,1,1425000,475000).wait==p::Wait::Spacing);
     assert(s.decide(4,3,1,1445000,std::nullopt).wait==p::Wait::RoundTrip);
     assert(s.observedQueued()==3);++cases;
@@ -240,8 +240,8 @@ static void pauseAndLateBurst() {
     for(Tick rtt:{130000ull,475000ull}) {
         auto run=simulate(rtt,1000,15000000,true);
         for(size_t i=2;i<run.feeds.size();++i)assert(run.feeds[i]-run.feeds[i-1]>=25000);
-        // The pause loses twelve physical slots. Bounded5ms phase slew can
-        // need six seconds; recovery is intentionally no longer a40Hz burst.
+        // The pause loses twelve physical slots. Qualified acquired-gap
+        // recovery remains bounded and is separate from25ms initial acquisition.
         unsigned steady=0;for(auto t:run.feeds)if(t>=12000000 && t<15000000)++steady;
         std::cout<<"pause model rtt_us="<<rtt<<" recovered3s_frames="<<steady<<std::endl;
         assert(steady>=59 && steady<=61);
@@ -258,7 +258,8 @@ static void pauseAndLateBurst() {
     // deliberately still0. This reaches the distinct worker safety ceiling.
     s.authorityReceived(2,3000000);
     const auto blocked=s.decide(13,12,0,4000000,475000);
-    assert(!blocked.allowed && blocked.wait==p::Wait::Budget && s.observedQueued()==12);++cases;
+    assert(!blocked.allowed && blocked.wait==p::Wait::Budget && !blocked.recovering &&
+        !s.recovering() && s.observedQueued()==12);++cases;
 }
 static void cursorPhaseRegression() {
     p::Policy s;s.authorityReceived(0,0);queue(s,0,-1,-1,0,1);s.published(0,2000);
@@ -279,7 +280,7 @@ static void cursorPhaseRegression() {
     }
     for(Frame f=2;f<=11;++f)ahead.authorityReceived(f,3000000);
     const auto neutral=ahead.decide(13,12,11,3000000,1);
-    assert(neutral.allowed&&neutral.target.assigned==12&&neutral.frame==13);
+    assert(neutral.allowed&&!neutral.recovering&&neutral.target.assigned==12&&neutral.frame==13);
     // The former integer deadband kept this at50ms (preserved in the old
     // source/RED control). Continuous clamped lead is50ms, so NEXT13 is a full
     //50ms ahead of received11+lead1 and must slow at55ms, including rebase.
@@ -449,7 +450,7 @@ static void probe(Stats& s,const Net& n,Tick at,Frame head,Frame pending,Tick qu
 struct Result{
     Stats baseline,afterLow,settled;Tick rise=0,fall=0,highEstimate=0,lowEstimate=0,gate=0;
     int gateError=100;unsigned frozen=0,missingRtt=0;Frame lead=0;Tick maxGap=0,lastPub=0;
-    std::vector<Event> ackRows;
+    std::vector<Event> ackRows;unsigned recoveryEntries=0;
 };
 static Result run(unsigned hz,Tick phase,Tick work,Tick control,Tick jitter){
     Net net;net.work=work;net.control=control;net.jitter=jitter;
@@ -512,6 +513,7 @@ static Result run(unsigned hz,Tick phase,Tick work,Tick control,Tick jitter){
         }
         if(d.allowed){
             p::require(pending<0&&next==head+1&&next-(std::min)(head,received)<=12,"native/budget changed");
+            if(d.recovering && !policy.recovering())++out.recoveryEntries;
             policy.queued(d);pending=next++;queued=now;out.lead=(std::max)(out.lead,next-1-(std::min)(head,received));
         }
         const Tick following=phase+(poll+1)*1000000/hz;
@@ -529,7 +531,7 @@ static unsigned verify(){
         for(Tick work:{0ull,6000ull})for(Tick control:{0ull,10000ull})for(Tick jitter:{0ull,8000ull}){
             const auto r=run(hz,phase,work,control,jitter);++totalCases;
             bool failed=!r.rise||!r.fall||!r.highEstimate||!r.lowEstimate||!r.gate||r.frozen<1||
-                r.gateError<-1||r.gateError>1||r.maxGap>=100000||r.lead>p::maximumAhead;
+                r.gateError<-1||r.gateError>1||r.maxGap>=100000||r.lead>p::maximumAhead||r.recoveryEntries;
             maximumGap=(std::max)(maximumGap,r.maxGap);
             for(const auto* s:{&r.baseline,&r.afterLow,&r.settled}){
                 totalBad+=s->bad;totalProbes+=s->total;failed=failed||!s->total||s->bad||s->low<-1||s->high>1;
@@ -545,12 +547,223 @@ static unsigned verify(){
 
 }
 
+// Actual25 lost about250ms of main-thread progress across physical152..154.
+// This authored control freezes the presentation owner for250ms immediately
+// after152, without pausing the independent server seal or network arrivals.
+// It does NOT identify/fix the original blocking call or simulate Unity poses.
+namespace stall_seal_oracle {
+namespace p=ba_prediction_pacing;using p::Tick;using p::Frame;
+constexpr Tick epoch=1000000,step=50000,pathRtt=475000,estimateRtt=464455;
+constexpr Tick ownerPause=250000,recoveryDeadline=1138000;
+struct Result {
+    std::array<fixed_seal_oracle::Stats,4> recovered;
+    fixed_seal_oracle::Stats healthy;
+    Tick pausedAt=0,resumedAt=0,anchor154=0;
+    Frame maximumLead=0;unsigned recoveryEntries=0;
+};
+static Frame assignedAt(Tick at,Frame head,Frame pending,Tick queued,Tick nativeWork) {
+    const bool prepared=pending>=0 && at>=queued+1000 && at<queued+nativeWork;
+    if(pending>=0 && at>=queued+nativeWork)head=pending;
+    return head+1+static_cast<int>(prepared);
+}
+static void probe(fixed_seal_oracle::Stats& stats,Tick at,Frame head,Frame pending,Tick queued,Tick nativeWork) {
+    const Frame error=assignedAt(at,head,pending,queued,nativeWork)-
+        fixed_seal_oracle::canonicalAt(at,pathRtt/2);
+    stats.low=(std::min)(stats.low,error);stats.high=(std::max)(stats.high,error);++stats.samples;
+    if(error<-1 || error>1)++stats.bad;
+}
+static Result run(unsigned hz,Tick offset,Tick nativeWork) {
+    p::Policy policy;Result out;Frame received=0,next=1,presented=0,head=0,pending=-1;
+    Tick queued=0;uint32_t random=0x25ab49u;
+    policy.authorityReceived(0,0);auto boot=policy.decide(0,-1,-1,0,estimateRtt);
+    policy.queued(boot);policy.published(0,2000);
+    for(Tick poll=0;;++poll) {
+        const Tick now=offset+poll*1000000/hz;if(now>15000000)break;
+        if(out.pausedAt && now<out.pausedAt+ownerPause)continue;
+        if(out.pausedAt && !out.resumedAt)out.resumedAt=now;
+        // Original server next_frame seals BEFORE awaiting its6ms worker.
+        // Receipts accumulate during the owner pause, then the real contiguous
+        // queue is consumed at the first resumed main-thread callback.
+        while(now>=epoch+static_cast<Tick>(received)*step+6000+pathRtt/2)
+            policy.authorityReceived(++received,now);
+        if(pending>=0 && now>=queued+nativeWork)head=pending;
+        auto score=[&](unsigned phase,Tick at) {
+            if(!out.pausedAt && presented>=100)
+                stall_seal_oracle::probe(out.healthy,at,head,pending,queued,nativeWork);
+            if(out.anchor154 && at>=out.anchor154+recoveryDeadline)
+                stall_seal_oracle::probe(out.recovered[phase],at,head,pending,queued,nativeWork);
+        };
+        score(0,now); // Arbitrary originalInput BEFORE publication/next Push.
+        if(pending>=0 && now>=queued+nativeWork && policy.canPublish(pending,now)) {
+            policy.published(pending,now);presented=pending;pending=-1;
+            if(presented==154)out.anchor154=now;
+            if(presented==152 && !out.pausedAt) {
+                out.pausedAt=now;continue; // No input/publish while owner is blocked.
+            }
+        }
+        const Frame projected=(std::min)(head,received);
+        const auto d=policy.decide(next,static_cast<int>(presented),projected,now,estimateRtt);
+        if(d.allowed) {
+            p::require(pending<0 && next==head+1 && next-projected<=12,"stall model ownership/budget mismatch");
+            if(d.recovering && !policy.recovering())++out.recoveryEntries;
+            policy.queued(d);pending=next++;queued=now;
+            out.maximumLead=(std::max)(out.maximumLead,next-1-projected);
+            // Three actual LOCAL_BATCH states, not a mirror of target math.
+            score(1,now+1);                  // Queued, ProcessMsg not prepared.
+            score(2,now+1000);               // ProcessMsg prepared.
+            score(2,now+nativeWork);          // Original Step completed.
+        }
+        random=random*1664525u+1013904223u;
+        const Tick following=offset+(poll+1)*1000000/hz;
+        if(following>now+1)score(3,now+1+random%(following-now-1));
+    }
+    return out;
+}
+static unsigned verify() {
+    unsigned failures=0,total=0;uint64_t bad=0,probes=0;
+    for(unsigned hz:{32u,60u,64u,144u})for(Tick offset:{0ull,17000ull})for(Tick nativeWork:{2000ull,8000ull}) {
+        const auto r=run(hz,offset,nativeWork);++total;
+        bool failed=!r.pausedAt || !r.resumedAt || !r.anchor154 || !r.healthy.samples || r.healthy.bad ||
+            r.maximumLead>p::maximumAhead || !r.recoveryEntries;
+        Frame low=100,high=-100;
+        for(const auto& stats:r.recovered) {
+            failed=failed || !stats.samples || stats.bad;bad+=stats.bad;probes+=stats.samples;
+            low=(std::min)(low,stats.low);high=(std::max)(high,stats.high);
+        }
+        if(failed)++failures;
+        std::cout<<"owner-stall hz="<<hz<<" offset="<<offset<<" simulated_native_us="<<nativeWork
+            <<" observed_pause_us="<<r.resumedAt-r.pausedAt<<" recovered_assigned_minus_canonical="<<low<<".."<<high
+            <<" failed="<<failed<<std::endl;
+    }
+    assert(total==16);cases+=total;
+    std::cout<<"independent owner-stall cases="<<total<<" failed="<<failures<<" bad_probes="<<bad
+        <<" probes="<<probes<<" recovery_deadline_us="<<recoveryDeadline<<std::endl;
+    return failures;
+}
+}
+
+static void recoveryEligibilityAndCommit() {
+    p::Policy s;s.authorityReceived(0,0);queue(s,0,-1,-1,0,1);s.published(0,2000);
+    s.authorityReceived(1,1000000);queue(s,1,0,0,1000000,1);s.published(1,1002000);
+    // A large RTT-only phase jump does not qualify without a real progress gap.
+    const auto rttOnly=s.decide(2,1,1,1050000,475000);
+    assert(rttOnly.allowed && !rttOnly.recovering && rttOnly.nextDeadline==1095000 && !s.recovering());
+    assert(!s.decide(2,1,1,1149999,475000).recovering);++cases;
+    auto below=s;below.authorityReceived(2,1250000);
+    assert(!below.decide(2,1,1,1250000,99999).recovering);
+    assert(below.decide(2,1,1,1250000,100000).recovering && !below.recovering());++cases;
+    const auto stalled=s.decide(2,1,1,1250000,475000);
+    assert(stalled.allowed && stalled.recovering && stalled.nextDeadline==1285000 && !s.recovering());
+    assert(s.decide(2,1,1,1250000,475000).recovering && !s.recovering());
+    s.queued(stalled);assert(s.recovering());s.published(2,1252000);++cases;
+    auto reset=s;reset.reset();assert(!reset.recovering() && reset.observedQueued()==-1);++cases;
+    auto exit=s;exit.authorityReceived(2,1290000);
+    const auto small=exit.decide(3,2,2,1290000,62500); // Exact12.5ms exit debt.
+    assert(small.allowed && !small.recovering && exit.recovering());
+    exit.queued(small);assert(!exit.recovering());++cases;
+    auto negative=s;negative.authorityReceived(2,1290000);
+    auto third=negative.decide(3,2,2,1290000,475000);assert(third.recovering);
+    negative.queued(third);negative.published(3,1292000);
+    const auto brake=negative.decide(4,3,2,1330000,1);
+    assert(brake.allowed && !brake.recovering && brake.nextDeadline==1375000);
+    negative.queued(brake);assert(!negative.recovering());negative.reset();assert(!negative.recovering());++cases;
+    p::Policy acquiring;acquiring.authorityReceived(0,0);queue(acquiring,0,-1,-1,0,475000);acquiring.published(0,2000);
+    acquiring.authorityReceived(1,1000000);
+    const auto start=acquiring.decide(1,0,0,1000000,475000);
+    assert(start.allowed && start.acquiring && !start.recovering && !acquiring.recovering());++cases;
+    assert(p::continuousPhaseError(10,12,0,100000)==0);
+    assert(p::recoveryPeriodFromError(100000)==35000);
+    assert(p::recoveryPeriodFromError(20000)==45000);
+    assert(refused([]{p::recoveryPeriodFromError(0);}));++cases;
+}
+
+// Actual26 queues153 with R142 BEFORE the same update delivers143..147.
+// A long gap and >=100ms debt therefore do not coexist in that decision.
+// Seed only through real contiguous policy observations, never private writes.
+namespace deferred_ingress {
+struct Episode {p::Policy policy;Tick at=1000000;Frame next=154,received=142;};
+static Episode firstResume() {
+    Episode e;auto& s=e.policy;
+    s.authorityReceived(0,0);queue(s,0,-1,-1,0,1);s.published(0,2000);
+    s.authorityReceived(1,e.at);queue(s,1,0,0,e.at,1);s.published(1,e.at+1000);
+    Frame received=1;
+    for(Frame frame=2;frame<=152;++frame) {
+        e.at+=55000;
+        while(received<(std::max)(Frame(1),frame-10))s.authorityReceived(++received,e.at);
+        queue(s,frame,static_cast<int>(frame-1),received,e.at,473540);s.published(frame,e.at+1000);
+    }
+    assert(received==142 && !s.recovering());e.at+=251000;
+    const auto stale=s.decide(153,152,142,e.at,473540);
+    assert(stale.allowed && !stale.recovering && p::continuousPhaseError(142,153,251000,473540)==50000);
+    s.queued(stale);s.published(153,e.at+1000);return e;
+}
+static void latchBounds() {
+    auto e=firstResume();const Tick armedAt=e.at;
+    // Ordinary successful queues, publications and const reads do not renew
+    // the real gap's timestamp. Keep debt low while permission ages.
+    for(unsigned poll=0;poll<35;++poll) {
+        e.at+=55000;
+        while(e.received<e.next-2)e.policy.authorityReceived(++e.received,e.at);
+        const auto d=e.policy.decide(e.next,static_cast<int>(e.next-1),e.received,e.at,50000);
+        assert(d.allowed && !d.recovering);e.policy.queued(d);e.policy.published(e.next,e.at+1000);++e.next;
+    }
+    const auto inclusive=e.policy.decide(e.next,static_cast<int>(e.next-1),e.received,armedAt+2000000,473540);
+    const auto expired=e.policy.decide(e.next,static_cast<int>(e.next-1),e.received,armedAt+2000001,473540);
+    assert(inclusive.allowed && inclusive.recovering && expired.allowed && !expired.recovering && !e.policy.recovering());++cases;
+    e.policy.queued(expired);e.policy.published(e.next,armedAt+2001001);++e.next;
+    assert(!e.policy.decide(e.next,static_cast<int>(e.next-1),e.received,armedAt+2055001,473540).recovering);
+    const auto newGap=e.policy.decide(e.next,static_cast<int>(e.next-1),e.received,armedAt+2300001,473540);
+    assert(newGap.allowed && newGap.recovering);++cases;
+
+    auto consumed=firstResume();const Tick start=consumed.at;consumed.at+=55000;
+    while(consumed.received<150)consumed.policy.authorityReceived(++consumed.received,consumed.at);
+    const auto first=consumed.policy.decide(154,153,150,consumed.at,473540);
+    assert(first.allowed && first.recovering && !consumed.policy.recovering());
+    auto invalid=first;invalid.frame=153;assert(refused([&]{consumed.policy.queued(invalid);}));
+    assert(consumed.policy.decide(154,153,150,consumed.at,473540).recovering);
+    consumed.policy.queued(first);consumed.policy.published(154,consumed.at+1000);
+    consumed.at+=55000;
+    while(consumed.received<154)consumed.policy.authorityReceived(++consumed.received,consumed.at);
+    const auto exit=consumed.policy.decide(155,154,154,consumed.at,1);
+    assert(exit.allowed && !exit.recovering);consumed.policy.queued(exit);consumed.policy.published(155,consumed.at+1000);
+    const auto noRearm=consumed.policy.decide(156,155,154,start+165000,473540);
+    assert(noRearm.allowed && !noRearm.recovering && !consumed.policy.recovering());++cases;
+
+    auto reset=firstResume();const Tick newEpoch=reset.at+100000;reset.policy.reset();
+    reset.policy.authorityReceived(0,newEpoch);queue(reset.policy,0,-1,-1,newEpoch,1);reset.policy.published(0,newEpoch+1000);
+    reset.policy.authorityReceived(1,newEpoch+100000);queue(reset.policy,1,0,0,newEpoch+100000,1);
+    reset.policy.published(1,newEpoch+101000);
+    const auto rttOnly=reset.policy.decide(2,1,1,newEpoch+150000,475000);
+    assert(rttOnly.allowed && !rttOnly.recovering && !reset.policy.recovering());++cases;
+}
+static unsigned verify() {
+    unsigned failures=0;
+    for(unsigned polls:{1u,2u}) {
+        auto e=firstResume();const Tick resumed=e.at;
+        for(unsigned poll=1;poll<polls;++poll) {
+            e.at+=55000;
+            const auto stale=e.policy.decide(e.next,static_cast<int>(e.next-1),e.received,e.at,473540);
+            assert(stale.allowed && !stale.recovering);e.policy.queued(stale);
+            e.policy.published(e.next,e.at+1000);++e.next;
+        }
+        e.at+=55000;
+        while(e.received<150)e.policy.authorityReceived(++e.received,e.at);
+        const auto fresh=e.policy.decide(e.next,static_cast<int>(e.next-1),e.received,e.at,473540);
+        assert(fresh.allowed);
+        if(!fresh.recovering)++failures;
+        std::cout<<"deferred ingress polls="<<polls<<" first_resume_R=142 first_resume_N=153 E_us=50000 later_R="
+            <<e.received<<" later_N="<<e.next<<" elapsed_us="<<e.at-resumed<<" recovering="<<fresh.recovering<<std::endl;
+    }
+    cases+=2;return failures;
+}
+}
+
 int main() {
     targetExamples();roundTripsAndRealAck();realCommunityCorrelation();barrierAndOneOutput();receiptAtomicityAndReset();
     steadyCadenceGatesAndReset();
     phaseAcquisitionAndSteady();pauseAndLateBurst();changingPathContinuity();
-    cursorPhaseRegression();fractionalBounds();
-    const auto failures=fixed_seal_oracle::verify()+queued_chunk_oracle::verify();
+    cursorPhaseRegression();fractionalBounds();recoveryEligibilityAndCommit();deferred_ingress::latchBounds();
+    const auto failures=fixed_seal_oracle::verify()+queued_chunk_oracle::verify()+stall_seal_oracle::verify()+deferred_ingress::verify();
     if(failures){std::cout<<"FAIL independent phase cases="<<failures<<std::endl;return 1;}
     std::cout<<"PASS "<<cases<<" authored pacing cases; no Simulation.dll/Unity/runtime executed\n";
 }

@@ -66,7 +66,21 @@ shift the native head0.630units;actual consecutive published endpoints move
 back0.315. Measured render backtracks0.255/0.180 stay inside those endpoints.
 No added renderer amplification is observed in this capture;16's larger steps
 remain retained.272 authored checks pass. This is not a new package or human
-acceptance. N35's frozen test remains unchanged. Mobile focus/casting and
+acceptance. N35's frozen test remains unchanged. Actual23 qualifies manual-group
+retention through false death/recreation and original confirmed-death purge.
+Actual27 now passes original Clear/empty-replace cancellation and recovery from
+a measured250.610ms owner pause. Actual recovery enters154/exits170 before
+fresh input180;both command phases0,responses49.087/49.832ms,all2888 native
+hashes matching,and every child quits naturally. Normal45..55ms pacing stays
+unchanged;the acquired recovery mode retains a real gap while delayed ingress
+exposes its debt. The original pause cause and visual comfort remain open.
+Actual28 passes original recall in both rounds:Count0 legally refuses while the
+unit is physically absent,then Count1 recalls the same current unit after
+restoration. All2888 native hashes match;every child exits naturally0. A separate
+held-focus defect is confirmed:original repeat focus can fall back to HQ0 outside
+the retained group. Rejecting that candidate alone would cancel the coroutine;
+guarded intent continuity and current-actor refinding remain under development.
+Forced-retirement group clearing remains open. Casting,held-input and
 physical/Internet acceptance remain open;
 prediction-actor-correction.txt. N35's frozen kit remains reserved.
 Full_feature_accepted remainsfalse. See

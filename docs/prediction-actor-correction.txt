@@ -84,6 +84,196 @@ state hashes repeat exactly. The retained child exits0 naturally with its
 whole Job inactive0. This supplies an eligible mobile victim for subsequent
 original group/focus qualification;no Unity/input/renderer result is inferred.
 
+Actual mobile client integration
+The optional --mobile-correction controller now uses that same authored
+bootstrap in both clients and the original authority. It records original
+selection/group4/repeat-focus setup,actual component/membership release,
+corrected current admission,and a fresh original Move on entity11. It does
+not exercise inactive casting scratch,an active caster or held mouse input.
+
+Movement18 is retained FAILED:the fresh selection probe incorrectly used
+BeginSelectionChange(true) while group focus was active. The original method
+deliberately returns null in that state;the supported programmatic path uses
+false. No production managed exception is established by that probe refusal.
+Movement19 finishes naturally but remains FAILED. Its camera rule incorrectly
+required own-army input admission for a valid enemy-HQ camera target. Separate
+file-only reanalysis corrects that classification;the fresh Move still runs
+away from its requested Unity target because the fixture used Normal
+perspective for the flipped player. No direction predicate was relaxed.
+
+Helper30 obtains the local alliance and exact original map perspective through
+MapManager.CurrentMap and Map.GetAlliancePerspective. The command receives
+the original enum and unchanged Unity target;original ToProto converts X/Z.
+The evaluator binds the captured float32 target bits,perspective and protocol
+fixed-point target,then checks actual Unity movement toward the Unity target.
+330 focused authored tests and the full helper build pass.
+
+Movement20 passes this bounded mobile slice in both actual rounds. Fresh
+response is54.526/66.248ms after enqueue,469/531ms before native65 and469ms
+before raw bridge. Fresh speculative/canonical phases are0/-1. The preceding
+remote escape causes10/9 real replayed frames;both escape and fresh commands
+have20 matching native continuations. The independent closed-file audit
+matches all2890 native parsed hashes to authority. Every owned process exits0
+naturally,without forced cleanup;prepared source and inputs remain unchanged.
+
+The overall20 report remains FAILED at the separate generic movement check:
+those newly built units still have the fixture's7second activation delay.
+The dedicated mobile result does not qualify that unrelated readiness case.
+Original20 report SHA256:
+1127501ce19d5d8a0f794762cd81894da5be1830af78e7a5d72c631db6d0b281
+Closed-file audit receipt SHA256:
+83d5a33e73ec753cc2a365f27423ce466d00d4224146d638a56e890813438fc1
+
+Actual20 exposes a logical regression:group4 contains11 before predicted
+death,then stays empty after original recreation of the same confirmed token.
+Valid fallback camera focus is distinct from preserving manual group intent.
+
+Candidate group retention
+One movement-only CALL shim declines the original complete typed-set removal
+only for an existing,owned,still-confirmed member during speculative absence.
+It preserves original numeric membership and never re-adds an ID. Original
+clear/replace/remove therefore act on visible membership. Bounded metadata
+tracks the original type,army and incarnation only until recreation or
+canonical loss. Confirmed death/identity change invokes original group scope,
+typed Remove,MarkForFire and Dispose once. Group0 is valid. Nonmembers take
+the original removal path. A physically dead/uninitialized actor cannot
+discharge the pending purge obligation merely by retaining its old token.
+
+Helper33 passes53 actual-source adapter flow groups,15 pure policy cases,
+the full helper build and376 focused Python tests. Explicit --scenario mobile
+emits no generic newborn movement commands;it instead requires both complete
+closed native timelines,the existing mobile response/replay gates and natural
+lifecycle. Actual21 remains FAILED before the product slice because the probe
+selected an unavailable group index. Actual22 finishes naturally with2888
+matching hashes but remains FAILED because the new mode omitted accepted65
+timing diagnostics. All wire bytes match;no timing row was fabricated.
+
+Actual23 now PASSES retention and confirmed-death purge in both actual rounds.
+The victim's original group4 keeps11 through false death/recreation and fresh
+input. The independently owned attacker client's group4 first retains10 during
+speculative absence,then removes it after actual canonical death. Fresh
+response64.566/69.809ms precedes native65 and raw bridge by422ms;both command
+phases are0. All2890 closed native hashes match authority. Both games,workers
+and authorities exit0 naturally,Jobs inactive0,no force or cleanup errors;
+prepared source and inputs remain unchanged.
+Original23 PASS report SHA256:
+fd32671f43969fc2f01c9deabab95f255793bb1799f73133a2dc5a4ce05f5279
+
+Explicit cancellation and remaining recovery failure
+Actual24 remains FAILED at a probe type guard:the original panel expects
+ISet<UInt32>,not Unit[]. The corrected fixture passes the selector's original
+empty preview UnitSelectionSet,with exact declared-type assignability,frame
+ownership and numeric/typed-cache emptiness guards. The ordinary selector
+wrapper rejects empty assignment;this is a scripted original-panel API test,
+not physical shortcut acceptance.
+
+Actual25 completes both rounds naturally. Original Clear in W1 and original
+empty replacement in W2 remove the visible group4 member at154;it stays empty
+after recreation and through260. All2890 native hashes match authority.
+Fresh responses56.586/46.056ms precede authority,but W2 predicts181 while the
+authority commits183. The unchanged one-frame phase gate correctly rejects it.
+W1 is181/181. Original25 FAIL report SHA256:
+173e28b814edf0a685c7fdfd09a3856ae3322830b8efdd874c3a8b1a023eef1d
+
+The W2 physical152..154 observations span349.658ms instead of~100ms;the
+client loses about five frames of lead. Replacement takes only0.373ms after
+that gap. Authority cadence stays near50ms and fresh send-to-accept timing
+matches23. The gap precedes the remote151 replay;its underlying blocking call
+is not localized because W2 producer/request-duration traces are absent.
+At45ms minimum,catch-up gains at most2.222frames per second. Fresh input is
+only1.138s after154,while physical lag remains two frames. Faster bounded
+recovery is under actual-header regression testing;the original pause itself
+is not fixed or explained by that candidate. No phase tolerance is relaxed.
+
+Actual26 deliberately pauses the owned second-round main thread for250.835ms
+after publication152. Both rounds still finish naturally and all2888 native
+hashes match,but phase-2 persists and the modeled recovery mode never enters.
+The captured producer orders resumed queue153 before delayed arrivals143..147
+in the same update. At that first decision,the stale received142 plus the
+unchanged600ms lead cap exposes only50ms continuous error;the100ms trigger
+does not fire. Queuing resets the gap timestamp before ingress reveals the
+larger debt. The authored model had drained ingress first. A bounded latch of
+the actual queue-gap observation is under regression testing;the lead cap and
+phase gate stay unchanged. Original26 FAIL report SHA256:
+1e64b82f6eda48992e852da9031d8fc316384b86593213c908a58458378234cf
+
+Actual27:queued-gap retention and original cancellation qualified
+The pacing policy now retains an acquired queue-gap observation for at most
+two seconds,independently of its current clipped phase error. Only a successful
+recovery queue consumes it;ordinary queues do not renew it and publication
+does not re-arm it. The100ms positive-error trigger,600ms lead cap,native50ms
+step,twelve-frame budget and one-output ownership stay unchanged. Normal pacing
+remains45..55ms/K8. Recovery alone uses35..50ms/K4 and exits to normal behavior
+when error reaches12.5ms,including negative error. It temporarily accelerates
+wall-clock catch-up;it does not change simulation dt or skip frames.
+
+319 actual-header authored cases pass,including1,807,894 independent phase
+probes and two deferred-ingress controls that fail on the previous policy.
+The prior96 latency-transition cases never enter recovery. The rejected global
+40ms-floor experiment and all prior failed captures remain retained.
+
+Actual27 PASSES both original cancellation cases and all unchanged movement
+gates in142.938s. W1 Clear and W2 original numeric-set empty replacement stay
+honored after correction. The W2 measured250.610ms hold queues153 before
+delayed ingress as intended. Real recovery enters at154 and exits at170,
+508.141ms before the fresh original Move. Both fresh phases are0;responses
+49.087/49.832ms precede native65 and raw bridge by437ms. Both remote corrections
+and fresh commands retain their required native continuations. All2888 closed
+native hashes match authority;two rounds/Continue/Leave/Quit and every child
+finish naturally0,Jobs inactive0,no force or cleanup errors. Source and consumed
+files stay unchanged. The synthetic hold qualifies recovery,not the cause of
+Actual25's original blocking call or human visual comfort.
+Original27 PASS report SHA256:
+d18b6aea336197ea3bc2bc511562f83e45075fa42a06c7c9eb4055d153b2c8aa
+Independent closed-file audit receipt SHA256:
+9fa6a7b86ff867032d30abc01046abc5660bece665359c32f2a554270dcce197
+
+Actual28:original recall during absence and restoration qualified
+The explicit --mobile-recall variant invokes original FocusControlGroupCancel
+and ActuateControlGroup through their exact original method signatures. The
+group remains numerically{11};original UnitSelectionSet.Count counts only
+physically Type-resolvable IDs. At154 it is0 and original recall returnsfalse
+before its selection scope. Selection,preview and casting remain unchanged.
+This is legal original refusal,not an empty-selection recall. At161 the same
+confirmed incarnation is recreated/current/admitted,Count1 and original recall
+returnstrue,leaving selected11. The original nonzero-count route returns true
+even when the same member was already selected;it is not a changed-selection
+Boolean. No numeric ID,actor field or coroutine state is written by the probe.
+
+Both actual rounds pass in142.891s,with all2888 closed native parsed hashes
+matching authority,source/inputs unchanged,and every retained child naturally0.
+No force or cleanup errors. The optional variant preserves the separate
+group-retention,remote replay/fresh response and full closed-state gates.
+408 focused Python tests and the full source-bound helper37 build pass.
+Independent review also found a missing runtime hook-admission check:the new
+helper could otherwise accept an older image lacking the group-release hook.
+BEGIN now requires that exact imported hook too. A cross-module descriptor/
+runtime completeness regression fails before the fix and passes afterward;
+all14 actor-patch tests pass. Actual28 remains bound to helper37,the correctly
+paired pre-guard build;this extra malformed-pair refusal is a separate change.
+Original28 PASS report SHA256:
+a671d8c64f7a333f9b17c874ea6a69fd4395bf0bea3580799cfec81cdf08af4e
+Independent closed-file audit receipt SHA256:
+0cff3b3b75ccc8a490821f77e5e183263e0ade5c8ee92c734baadd1f0a6c3f2c
+Helper37 SHA256:
+e8c6041c63e4e9ddb1d05cdbfb3cd699cc8f83a561b5f85abd95e9c2e339fd7e
+
+Remaining held-focus target defect
+Actual23's valid camera lease does not prove the intended group target:the
+repeat-focus coroutine replaces absent11 with default chooser result0,a real
+HQ outside the passed numeric group. The second chooser CALL was not guarded.
+Both chooser sites need passed-set membership plus current admission checks.
+That containment alone is insufficient:original TryGet writes null on a rejected
+candidate,the coroutine stores that null and cancels on its next resume. Its
+cached path also checks activity on the old object rather than refinding the
+current actor. A guarded pending/refind contract must preserve held intent while
+honoring original cancellation,group changes and world retirement. This remains
+OPEN;Actual23 stays PASS only for its stated retention/purge scope.
+
+Forced-retirement whole-group clearing,casting/held input and
+physical/Internet acceptance remain OPEN. This does not close all mobile
+controls or full_feature_accepted;N35's human kit is unchanged.
+
 Changing latency
 Owned actual-source tests qualify bounded existing REFRESH/ACK sampling and
 expiry of old RTT samples. Movement05's separate file-only review matches1299
@@ -112,6 +302,8 @@ local/prediction-checkpoint-20261109/retained-hq-selection-deferral-review01/
 local/prediction-checkpoint-20261109/changing-rtt-transition01/build02/analysis.json
 local/prediction-checkpoint-20261110/actor-deferred-selection01/verification.json
 local/prediction-checkpoint-20261110/actor09-guest-activation01/verification.json
+local/prediction-runtime/movement28-group-recall/run/verification.json
+local/prediction-checkpoint-20261110/mobile-focus-fallback-review01/receipt.json
 
 N35's optional human Custom test remains frozen and reserved independently.
 The live host,firewall,usual client and user-owned sessions remain unchanged.

@@ -175,13 +175,36 @@ def prepare(args):
         require(changing_rtt and transition_orders and position_spec.army == args.move_slot,
                 'native position trace requires subject-owned changing RTT and transition orders')
     require(not transition_orders or changing_rtt, 'transition orders require explicit changing RTT')
-    frames = args.frames if args.frames is not None else (650 if changing_rtt else 200 if args.scenario == 'startup' else 600)
+    require(args.scenario in ('startup', 'movement', 'mobile'), 'unknown prepared scenario')
+    frames = args.frames if args.frames is not None else (650 if changing_rtt or args.scenario == 'mobile' else 200 if args.scenario == 'startup' else 600)
     actor_correction = bool(getattr(args, 'actor_correction', False))
-    require(not changing_rtt or (not actor_correction and args.scenario == 'movement' and args.lifecycle == 'natural' and
+    mobile_correction = bool(getattr(args, 'mobile_correction', False))
+    mobile_group_intent = bool(getattr(args, 'mobile_group_intent', False))
+    mobile_group_user_edits = bool(getattr(args, 'mobile_group_user_edits', False))
+    mobile_recovery_stall = bool(getattr(args, 'mobile_recovery_stall', False))
+    mobile_recall = bool(getattr(args, 'mobile_recall', False))
+    require(not mobile_group_intent or (args.scenario == 'mobile' and mobile_correction),
+            'mobile group intent requires explicit mobile scenario/correction')
+    require(not mobile_group_user_edits or mobile_group_intent,
+            'mobile group user edits require explicit group intent')
+    require(not mobile_recovery_stall or (args.scenario == 'mobile' and mobile_correction and
+            mobile_group_intent and mobile_group_user_edits), 'mobile recovery stall requires explicit mobile group user edits')
+    require(not mobile_recall or (args.scenario == 'mobile' and mobile_correction and mobile_group_intent and
+            not mobile_group_user_edits and not mobile_recovery_stall),
+            'mobile recall requires explicit mobile group intent without user edits/recovery stall')
+    require(not (actor_correction and mobile_correction), 'HQ and mobile fixtures are mutually exclusive')
+    require(not changing_rtt or (not actor_correction and not mobile_correction and args.scenario == 'movement' and args.lifecycle == 'natural' and
             args.move_slot == 0 and list(args.rtt_ms) == [130,475] and frames == 650),
             'changing RTT requires ordinary natural movement, slot0,130/475ms,650frames and no actor fixture')
     require(not actor_correction or (args.scenario == 'movement' and args.lifecycle == 'natural'),
             'actor correction fixture requires natural movement scenario')
+    require(not mobile_correction or (args.scenario in ('movement', 'mobile') and args.lifecycle == 'natural' and args.move_slot == 0 and
+                                     list(args.rtt_ms) == [130,475]),
+            'mobile correction requires natural movement with slot0 and130/475ms RTT')
+    require(args.scenario != 'mobile' or (mobile_correction and not actor_correction and not changing_rtt and
+            not transition_orders and position_trace is None and args.lifecycle == 'natural' and frames == 650 and
+            args.move_slot == 0 and list(args.rtt_ms) == [130,475]),
+            'mobile scenario requires explicit mobile correction, natural650, slot0,130/475ms RTT and no other fixture')
     require((120 <= frames <= 200 if args.scenario == 'startup' else 500 <= frames <= 650),
             'startup requires120..200 frames; movement requires500..650')
     if position_trace is not None:
@@ -201,6 +224,14 @@ def prepare(args):
     if position_trace is not None:
         require('-prediction-movement-observe-position='.encode('utf-16-le') in helper,
                 'helper lacks selected native position option')
+    if mobile_correction:
+        require('-prediction-mobile-correction-smoke'.encode('utf-16-le') in helper,
+                'helper lacks the explicit mobile correction fixture')
+    for enabled,flag in ((mobile_group_intent,'-prediction-mobile-group-intent-smoke'),
+                         (mobile_group_user_edits,'-prediction-mobile-group-user-edits-smoke'),
+                         (mobile_recovery_stall,'-prediction-mobile-recovery-stall-smoke'),
+                         (mobile_recall,'-prediction-mobile-recall-smoke')):
+        require(not enabled or flag.encode('utf-16-le') in helper, 'helper lacks explicit ' + flag)
     required_hooks = prediction_worker.CALL_HOOKS + prediction_actor_repair.CALL_HOOKS
     require(all(marker in helper for marker in (
         b'BA_RESURRECTION_MOVEMENT_PIPELINE_V1', b'BA_RESURRECTION_NATIVE_WORKER_PROXY_V1',
@@ -272,17 +303,26 @@ def prepare(args):
         files=files, asset_files=assets, source_sha256=sources, profiles=profiles,
         scenario=args.scenario, lifecycle=args.lifecycle, frames=frames, timeout=args.timeout,
         actor_correction=actor_correction,
+        mobile_correction=mobile_correction,
         changing_rtt=changing_rtt,
         transition_orders=transition_orders,
         native_position_trace=position_trace,
         transition_phase_source='decision' if transition_orders else None,
         changing_pose_clock='sampled_us' if changing_rtt else None,
         publication_source='post-original-qpc' if changing_rtt else None,
-        actor_fixture=actor_fixture_metadata() if actor_correction else None,
+        actor_fixture=mobile_fixture_metadata() if mobile_correction else actor_fixture_metadata() if actor_correction else None,
         rtt_ms=list(args.rtt_ms), surrender_frame=260 if args.scenario == 'startup' else 700,
         move_slot=args.move_slot, expected_matches=2 if args.lifecycle == 'natural' else 1,
         endpoint_scope='ephemeral loopback TLS only; no production endpoint',
         feel_contract=FEEL_CONTRACT, full_feature_accepted=False)
+    if args.scenario == 'mobile':
+        invocation.update(generic_movement_not_exercised=True,
+            mobile_scope='Explicit original mobile release/reinit/freshMove; generic newborn440/460 feel is not exercised; group intent remains a separate open claim')
+        if mobile_group_intent:invocation['mobile_group_intent']=True
+        if mobile_group_user_edits:invocation['mobile_group_user_edits']=True
+        if mobile_recovery_stall:invocation['mobile_recovery_stall']=True
+        if mobile_recall:invocation['mobile_recall']=True
+        validate_mobile_plan(invocation)
     output.mkdir(parents=True, exist_ok=False)
     for name in sources:
         target = output / 'source-at-prepare' / name
@@ -294,6 +334,21 @@ def prepare(args):
     return invocation
 
 
+def validate_mobile_plan(plan):
+    require(plan.get('scenario') == 'mobile' and plan.get('mobile_correction') is True and
+            plan.get('lifecycle') == 'natural' and plan.get('frames') == 650 and plan.get('expected_matches') == 2 and
+            plan.get('move_slot') == 0 and plan.get('rtt_ms') == [130,475] and
+            plan.get('generic_movement_not_exercised') is True and not plan.get('actor_correction') and
+            not plan.get('changing_rtt') and not plan.get('transition_orders') and plan.get('native_position_trace') is None,
+            'prepared mobile scenario scope/fixture/650-frame natural contract differs')
+    require(all(key not in plan or type(plan[key]) is bool for key in ('mobile_group_intent','mobile_group_user_edits','mobile_recovery_stall','mobile_recall')) and
+            (not plan.get('mobile_group_user_edits') or plan.get('mobile_group_intent') is True) and
+            (not plan.get('mobile_recovery_stall') or plan.get('mobile_group_user_edits') is True) and
+            (not plan.get('mobile_recall') or (plan.get('mobile_group_intent') is True and
+             not plan.get('mobile_group_user_edits') and not plan.get('mobile_recovery_stall'))),
+            'prepared mobile group edits require typed explicit group intent')
+
+
 def verify_prepared(output):
     output = Path(output).resolve(strict=True)
     require(output.is_relative_to((ROOT / 'local').resolve()), 'prepared output must be ignored and owned')
@@ -301,6 +356,8 @@ def verify_prepared(output):
     require(plan.get('schema') == 1 and plan.get('native_executed') is False and
             Path(plan['output']).resolve() == output and Path(plan['module_root']).resolve() == ROOT,
             'prepared invocation identity differs')
+    if plan.get('scenario') == 'mobile':
+        validate_mobile_plan(plan)
     require(Path(plan['game']).resolve() == (ROOT / 'local/prediction-runtime/game').resolve(),
             'prepared game is not the independent runtime copy')
     require(source_hashes() == plan['source_sha256'], 'source changed since preparation')
@@ -328,13 +385,23 @@ def command_extra(plan, index, run):
             '-prediction-movement-smoke-start-frame='+str(440 if index==plan['move_slot']else 460)]
     if plan.get('actor_correction'):
         result.append('-prediction-actor-correction-smoke')
+    if plan.get('mobile_correction'):
+        result.append('-prediction-mobile-correction-smoke')
+    if plan.get('mobile_group_intent'):
+        result.append('-prediction-mobile-group-intent-smoke')
+    if plan.get('mobile_group_user_edits'):
+        result.append('-prediction-mobile-group-user-edits-smoke')
+    if plan.get('mobile_recovery_stall'):
+        result.append('-prediction-mobile-recovery-stall-smoke')
+    if plan.get('mobile_recall'):
+        result.append('-prediction-mobile-recall-smoke')
     if plan.get('changing_rtt') and index == plan['move_slot']:
         result.append('-prediction-movement-smoke-distance=48')
     if plan.get('transition_orders') and index == plan['move_slot']:
         result.append('-prediction-movement-smoke-transition-gates='+str(run/'transition-gates'))
     if plan.get('native_position_trace') is not None and index == plan['move_slot']:
         result.append('-prediction-movement-observe-position='+plan['native_position_trace'])
-    if plan.get('publication_source')=='post-original-qpc':
+    if plan.get('publication_source')=='post-original-qpc' or plan.get('mobile_recovery_stall'):
         result.append('-frame-timing-worlds=2')
     if plan['lifecycle'] == 'natural':
         result += ['-native-quit-smoke', '-native-quit-mode=confirm', '-native-quit-gate-smoke',
@@ -1008,6 +1075,121 @@ def finalize_movement_observation(report, collect_independent):
     report['scoped_observation_passed'] = True
 
 
+def mobile_closed_state_evidence(*, matches, states, worker_state_rows, client_logs, frames):
+    """Bind every closed native row to its real BEGIN world and full authority.
+
+    Checking only the650-frame presentation prefix or a correction's20-frame
+    tail cannot substitute for this mobile-only all-row comparison.
+    """
+    require(type(matches) is list and len(matches) == 2 and len(set(matches)) == 2 and
+            all(type(match) is str and re.fullmatch('[a-f0-9]{32}', match) for match in matches) and
+            set(states) == set(matches) and set(worker_state_rows) == set(client_logs) == {0,1} and frames == 650,
+            'mobile needs both closed clients and two exact authority matches')
+    result=[];count=0
+    for slot in (0,1):
+        ready=re.findall(r'Movement prediction ready: generation=(\d+) match=([a-f0-9]{32}) world=(\d+) slot=(\d+) ',client_logs[slot])
+        require([r[1]for r in ready] == matches and all(int(r[3]) == slot for r in ready) and
+                len({r[2]for r in ready}) == 2 and all(0 < int(r[2]) < 2**64 for r in ready),
+                'mobile closed-state BEGIN/match/world/slot binding differs')
+        rows=validate_worker_states(worker_state_rows[slot])
+        require(list(dict.fromkeys(r['world']for r in rows)) == [int(r[2])for r in ready],
+                'mobile closed-state worlds differ from actual BEGIN')
+        for (_,match,world,_),expected_match in zip(ready,matches):
+            require(match == expected_match, 'mobile authority match order differs')
+            canonical=states[match]
+            require(len(canonical) >= frames and sorted(canonical) == list(range(len(canonical))),
+                    'mobile complete authority prefix is missing/noncontiguous')
+            own=[(index,row)for index,row in enumerate(rows)if row['world'] == int(world)]
+            require([row['frame']for _,row in own] == list(range(len(canonical))) and all(
+                    row['parsed_state_sha256'] == canonical[row['frame']] for _,row in own),
+                    'mobile closed native state hashes differ from full authority')
+            result.append(dict(slot=slot,match=match,world=int(world),frames_checked=len(own),
+                first_frame=0,last_frame=len(canonical)-1,worker_row_indices=[index for index,_ in own]))
+            count+=len(own)
+    return dict(passed=True,checked_frames=count,clients=result,
+        scope='Every actual closed Spectator31 parsed-state row in both clients/both BEGIN worlds equals the complete original authority timeline')
+
+
+def finalize_mobile_observation(report, plan, *, states, worker_state_rows, client_logs):
+    """New mobile-only scope; no synthetic generic newborn feel acceptance."""
+    report['mobile_input_witness_passed']=False
+    report['scoped_observation_passed']=False
+    require(plan['scenario'] == 'mobile' and plan.get('mobile_correction') is True and
+            plan['lifecycle'] == 'natural' and plan['frames'] == 650 and plan['expected_matches'] == 2 and
+            not report.get('error'), 'mobile scenario is incomplete or already failed')
+    matches=report.get('matches',[])
+    require(len(matches) == 2 and all(row.get('canonical_frames') == 650 and
+            row.get('exact_bridge_and_native_authority_receipts') is True for row in matches),
+            'mobile exact650-frame bridge/native65 prefixes missing')
+    created=[row['match']for row in matches]
+    require(len(report.get('clients',[])) == 2 and {row['index']for row in report['clients']} == {0,1} and
+            all(row.get('natural_worker_shutdown') is True and row.get('matches') == created for row in report['clients']),
+            'mobile actual clients lack natural worker/native BEGIN evidence')
+    mobile=report.get('mobile_correction',{})
+    episodes=mobile.get('episodes',[])
+    require(mobile.get('passed') is True and len(episodes) == 2 and
+            [row.get('match')for row in episodes] == created and all(row.get('passed') is True for row in episodes),
+            'both actual mobile input/lifecycle episodes are required')
+    parity=mobile_closed_state_evidence(matches=created,states=states,worker_state_rows=worker_state_rows,
+                                      client_logs=client_logs,frames=plan['frames'])
+    victim={row['match']:row['world']for row in parity['clients']if row['slot'] == 1}
+    require(all(row.get('world') == victim[row['match']]for row in episodes), 'mobile episode does not belong to victim BEGIN world')
+    if plan.get('mobile_group_intent'):
+        groups=report.get('mobile_group_intent',{})
+        require(report.get('mobile_group_intent',{}).get('passed') is True and
+                report.get('group_intent_witness_passed') is True and
+                groups.get('user_edits') is bool(plan.get('mobile_group_user_edits')) and
+                len(groups.get('episodes',[])) == 2 and [row.get('match')for row in groups['episodes']] == created and
+                all(row.get('passed') is True and row.get('world') == victim[row['match']]for row in groups['episodes']),
+                'explicit mobile group intent witness missing/failed')
+    if plan.get('mobile_recovery_stall'):
+        require(plan.get('mobile_group_user_edits') is True and report.get('recovery_stall_witness_passed') is True and
+                report.get('mobile_recovery_stall',{}).get('passed') is True and
+                report['mobile_recovery_stall'].get('match') == created[1] and
+                report['mobile_recovery_stall'].get('world') == victim[created[1]],
+                'explicit mobile recovery stall witness missing/failed')
+    if plan.get('mobile_recall'):
+        recall=report.get('mobile_recall',{})
+        require(plan.get('mobile_group_intent') is True and not plan.get('mobile_group_user_edits') and
+                not plan.get('mobile_recovery_stall') and report.get('recall_witness_passed') is True and
+                recall.get('passed') is True and len(recall.get('episodes',[])) == 2 and
+                [row.get('match')for row in recall['episodes']] == created and
+                all(row.get('passed') is True and row.get('world') == victim[row['match']]for row in recall['episodes']),
+                'explicit mobile recall witness missing/failed')
+    report.update(mobile_state_parity=parity,mobile_input_witness_passed=True,scoped_observation_passed=True,
+        generic_movement_not_exercised=True,movement_feel_witness_passed=False,full_mobile_controls_accepted=False,
+        mobile_scope='Both original mobile release/reinit/freshMove episodes plus full closed native parity; generic newborn440/460 movement not exercised, group intent remains separately open')
+
+
+def mobile_final_gate(plan, report):
+    """Additional mobile-only final gate; the ordinary final expression remains."""
+    return bool(plan.get('scenario') == 'mobile' and plan.get('expected_matches') == 2 and
+        report.get('scoped_observation_passed') is True and report.get('mobile_input_witness_passed') is True and
+        report.get('mobile_correction',{}).get('passed') is True and
+        report.get('mobile_state_parity',{}).get('passed') is True and
+        report.get('generic_movement_not_exercised') is True and report.get('movement_feel_witness_passed') is False and
+        report.get('full_mobile_controls_accepted') is False and not report.get('error') and
+        (not plan.get('mobile_group_intent') or (report.get('mobile_group_intent',{}).get('passed') is True and
+            report.get('group_intent_witness_passed') is True and
+            report['mobile_group_intent'].get('user_edits') is bool(plan.get('mobile_group_user_edits')))) and
+        (not plan.get('mobile_recovery_stall') or (plan.get('mobile_group_intent') is True and
+            plan.get('mobile_group_user_edits') is True and report.get('mobile_recovery_stall',{}).get('passed') is True and
+            report.get('recovery_stall_witness_passed') is True and len(report.get('matches',[])) == 2 and
+            report['mobile_recovery_stall'].get('match') == report['matches'][1].get('match') and
+            report['mobile_recovery_stall'].get('world') == 2)) and
+        (not plan.get('mobile_recall') or (plan.get('mobile_group_intent') is True and
+            not plan.get('mobile_group_user_edits') and not plan.get('mobile_recovery_stall') and
+            report.get('mobile_recall',{}).get('passed') is True and report.get('recall_witness_passed') is True and
+            len(report['mobile_recall'].get('episodes',[])) == 2 and
+            len(report['mobile_correction'].get('episodes',[])) == 2 and
+            [row.get('match')for row in report['mobile_recall']['episodes']] == [row.get('match')for row in report.get('matches',[])] and
+            all(row.get('passed') is True and row.get('world') == episode.get('world')for row,episode in
+                zip(report['mobile_recall']['episodes'],report['mobile_correction'].get('episodes',[]))))) and
+        report.get('source_unchanged') is True and report.get('files_unchanged') is True and
+        not report.get('forced_cleanup') and not report.get('cleanup_errors') and
+        len(report.get('game_cleanup',[])) == 2 and all(r.get('natural_game_exit') is True for r in report['game_cleanup']))
+
+
 def timing_prefix_counts(prefix, frames, *, prediction, complete_delivery_proven):
     """Physical capture can finish before the last predicted authority arrives.
 
@@ -1033,35 +1215,45 @@ def actor_fixture_metadata():
     return metadata()
 
 
-def match_template(base, assets, *, actor_correction):
+def mobile_fixture_metadata():
+    from tools.prediction_actor_fixture import mobile_metadata
+    return mobile_metadata()
+
+
+def match_template(base, assets, *, actor_correction, mobile_correction=False):
     """Transform before DedicatedServer/ProfileStore build any MatchData."""
+    require(not (actor_correction and mobile_correction), 'HQ and mobile fixtures are mutually exclusive')
+    if mobile_correction:
+        from tools.prediction_actor_fixture import make_mobile_template
+        return make_mobile_template(base,assets)
     if not actor_correction:
         return base
     from tools.prediction_actor_fixture import make_template
     return make_template(base, assets)
 
 
-def actor_native_observation(state, parsed_hash):
+def actor_native_observation(state, parsed_hash, *, fixture=None):
     """Actual authority queries, not expected fixture values or actor telemetry."""
-    metadata = actor_fixture_metadata()
-    if not metadata['selection_frame'] <= state['frame'] <= metadata['baseline_death_frame'] + 20:
+    metadata = actor_fixture_metadata() if fixture is None else fixture
+    if not metadata['selection_frame'] <= state['frame'] <= metadata.get('observation_last_frame',metadata['baseline_death_frame'] + 20):
         return None
     entities = {row['id']: row for row in state['entities']}
+    mobile = 'victim_id' in metadata
     return dict(frame=state['frame'], parsed_state_sha256=parsed_hash,
-                core=entities.get(metadata['victim_core_id']),
-                attacker=entities.get(metadata['attacker_id']), game_state=state['game_state'])
+                attacker=entities.get(metadata['attacker_id']), game_state=state['game_state'],
+                **{('victim' if mobile else 'core'):entities.get(metadata['victim_id' if mobile else 'victim_core_id'])})
 
 
-def actor_escape_evidence(log, *, match, commits, raw_bodies, journal):
+def actor_escape_evidence(log, *, match, commits, raw_bodies, journal, fixture=None, prefix='ACTOR ORDER '):
     """Bind original constructor bytes through actual67/72 and one native commit."""
     from server.game_data import decode_player_input
     from server.protobuf_wire import get_bytes, get_repeated_bytes, get_repeated_uint, get_uint, parse_fields
-    metadata = actor_fixture_metadata()
+    metadata = actor_fixture_metadata() if fixture is None else fixture
     orders = []
     for line in log.splitlines():
-        if 'ACTOR ORDER ' not in line:
+        if prefix not in line:
             continue
-        raw = line.split('ACTOR ORDER ', 1)[1]
+        raw = line.split(prefix, 1)[1]
         require(len(raw) <= 2048, 'actor order diagnostic exceeds bound')
         row = json.loads(raw)
         require(type(row) is dict and row.get('schema') == 1 and
@@ -1687,7 +1879,7 @@ def native_evidence(log, *, matches, slot, profile, natural):
     forbidden = ('Movement prediction stopped;', 'Native worker request failed:', 'Native worker startup refused:',
         'Native worker shutdown failed:', 'Offline loop stopped in ', 'Original command scheduling failed:',
         'Prediction actor repair failed:', 'Prediction actors blocked:', 'Client lifecycle invariant failed:',
-        'Native Quit probe failed:', 'Frame timing capture stopped:', 'LAN audit disabled:')
+        'Native Quit probe failed:', 'Frame timing capture stopped:', 'LAN audit disabled:', 'Mobile correction smoke failed:')
     require(not any(x in log for x in forbidden), 'native movement/lifecycle failure in helper log')
     routes = re.findall(r'Native worker movement route active: pid=(\d+) assignedBeforeResume=1 .*movementRequested=1', log)
     require(len(routes) == 1, 'one actual Job-owned movement worker route required')
@@ -1748,6 +1940,7 @@ async def run_prepared(output):
 
     require(os.name == 'nt', 'actual Unity run requires Windows')
     plan = verify_prepared(output)
+    fixture_active = bool(plan.get('actor_correction') or plan.get('mobile_correction'))
     output, game, assets = Path(plan['output']), Path(plan['game']), Path(plan['assets'])
     run = output / 'run'; run.mkdir(exist_ok=False)
     pki_folder = run / 'ephemeral-pki'
@@ -1755,6 +1948,7 @@ async def run_prepared(output):
     states = defaultdict(dict)
     actor_states = defaultdict(list)
     feel_context = remote_context = actor_context = None
+    mobile_contexts = []
     turn_contexts=[];native_receipt_rows={}
     server = audit = pki = None
     tick = C.WinDLL('kernel32').GetTickCount64; tick.restype = C.c_uint64
@@ -1767,6 +1961,9 @@ async def run_prepared(output):
         full_feature_accepted=False, scope=__doc__, scenario=plan['scenario'], lifecycle=plan['lifecycle'],
         invocation_sha256=sha(output / 'invocation.json'), source_sha256_at_start=source_hashes(),
         forced_cleanup=False, clients=[], authority_workers=[])
+    if plan['scenario'] == 'mobile':
+        report.update(mobile_input_witness_passed=False,generic_movement_not_exercised=True,
+            full_mobile_controls_accepted=False,mobile_scope=plan['mobile_scope'])
     identities = [('p_' + secrets.token_hex(16), 'ba1_' + secrets.token_urlsafe(32)) for _ in range(2)]
 
     class Store:
@@ -1785,11 +1982,11 @@ async def run_prepared(output):
             room = server.rooms[fields['room']]
             row['parsed_state_sha256'] = state_digest(room.sim.last_state)
             states[fields['match']][fields['frame']] = row['parsed_state_sha256']
-            if plan.get('actor_correction'):
-                actual = actor_native_observation(room.sim.last_state, row['parsed_state_sha256'])
+            if fixture_active:
+                actual = actor_native_observation(room.sim.last_state, row['parsed_state_sha256'],fixture=plan['actor_fixture'])
                 if actual is not None:
                     actor_states[fields['match']].append(actual)
-        elif event == 'match_created' and plan.get('actor_correction'):
+        elif event == 'match_created' and fixture_active:
             room = server.rooms[fields['room']]
             require(fields['seed'] == plan['actor_fixture']['seed'] and
                     room.match.raw_game_data == workers[-1]['bootstrap'], 'actor fixture bootstrap/seed differs from actual worker')
@@ -1806,7 +2003,7 @@ async def run_prepared(output):
         # Use the existing original worker protocol/class, replacing ONLY its
         # unsafe PID-relookup launch with this retained suspended ownership.
         folder = run / ('authority-' + str(len(workers))); folder.mkdir()
-        if plan.get('actor_correction'):
+        if fixture_active:
             bootstrap_path = folder / 'actor-bootstrap.pb'
             bootstrap_path.write_bytes(data)
         bootstrap = "import runpy,sys;sys.path.insert(0,sys.argv.pop(1));runpy.run_module('server.simulation_worker',run_name='__main__')"
@@ -1815,7 +2012,7 @@ async def run_prepared(output):
         process, job = spawn_owned(argv, cwd=folder, env=environment, stdin=subprocess.PIPE,
             stdout=subprocess.PIPE, stderr=subprocess.PIPE, bufsize=0, close_fds=True)
         row = dict(process=process, job=job, assigned_before_resume=True, worker=None)
-        if plan.get('actor_correction'):
+        if fixture_active:
             row.update(bootstrap=data, bootstrap_path=str(bootstrap_path.relative_to(run)))
         workers.append(row)
         worker = SimulationWorker(process, request_timeout=10, close_timeout=5, test_backend=False)
@@ -1830,7 +2027,7 @@ async def run_prepared(output):
                     response.get('synthetic_test_backend') is False and response.get('ai') is None,
                     'original authority worker CREATE provenance differs')
                 worker.game_data_sha256, worker.dll_sha256 = digest(data), response['dll_sha256']
-            if plan['scenario'] == 'movement':
+            if plan['scenario'] in ('movement','mobile'):
                 original_frame = worker.process_frame
                 async def diagnostic_frame(actions, dt_ms=None, w=worker, original=original_frame):
                     return await full_authority_frame(w, original, actions, dt_ms)
@@ -1858,9 +2055,11 @@ async def run_prepared(output):
         audit = Audit(run)
         template = GameTemplate.load(assets / 'map-1v1.pb.gz', catalog_path=assets / 'unit-catalog.json',
                                      descriptors_path=assets / 'descriptors')
-        template = match_template(template, assets, actor_correction=plan.get('actor_correction', False))
-        if plan.get('actor_correction'):
-            require(plan.get('actor_fixture') == actor_fixture_metadata(), 'prepared actor fixture metadata changed')
+        template = match_template(template, assets, actor_correction=plan.get('actor_correction', False),
+                                  mobile_correction=plan.get('mobile_correction',False))
+        if fixture_active:
+            expected_fixture = mobile_fixture_metadata() if plan.get('mobile_correction') else actor_fixture_metadata()
+            require(plan.get('actor_fixture') == expected_fixture, 'prepared actor fixture metadata changed')
             write(run / 'actor-fixture.json', plan['actor_fixture'])
         server = DedicatedServer(template, ProfileStore(run / 'profiles', template, catalog=CosmeticCatalog(assets)),
             templates={1: template}, sim_factory=factory, audit=observe, data_dir=run,
@@ -1924,6 +2123,7 @@ async def run_prepared(output):
                         'Native worker request failed:', 'Native worker startup refused:',
                         'Prediction actor repair failed:', 'Prediction selection admission failed:',
                         'Actor correction smoke failed:',
+                        'Mobile correction smoke failed:',
                         'Offline loop stopped in ', 'Native Quit probe failed:')),
                         'actual movement client reported failure')
                 if changing is not None:
@@ -1977,7 +2177,7 @@ async def run_prepared(output):
                 trace = frame_timing.matches(frame_timing.read_trace(row['trace']))[0]
                 prefix = prefix_trace(trace, plan['frames'])
                 evidence['timing_capture'] = timing_prefix_counts(prefix, plan['frames'],
-                    prediction=plan['scenario'] == 'movement',
+                    prediction=plan['scenario'] in ('movement','mobile'),
                     complete_delivery_proven=len(report['matches']) == plan['expected_matches'] and all(
                         m['exact_bridge_and_native_authority_receipts'] for m in report['matches']))
                 require(any(r['event'] == 'publication' and r['presented'] >= plan['frames'] - 1 for r in prefix),
@@ -2007,11 +2207,20 @@ async def run_prepared(output):
                     bridge_frames=clients[1]['wire'], canonical_payloads={r['frame']:r['frame_payload_sha256']
                         for r in events if r['event']=='frame_queued' and r.get('match')==first},
                     canonical_states=states[first], native_states=actor_states[first])
-            feel_context = dict(rows=feel_rows(clients[slot]['log']), match=first, slot=slot,
-                commits=events, raw_bodies=raw_bodies, journal=read_journal(run, first, plan['frames']),
-                canonical_states=states[first], bridge_frames=clients[slot]['wire'],
-                catalog_units=template.catalog,entity_abilities=template.entity_abilities,
-                built_units=normal_build_units(clients[slot]['log'],slot))
+            if plan.get('mobile_correction'):
+                for match in created:
+                    count = sum(row['event']=='frame_queued' and row.get('match')==match for row in events)
+                    mobile_contexts.append(dict(log=clients[1]['log'],attacker_log=clients[0]['log'],match=match,
+                        commits=events,raw_bodies=raw_bodies,journal=read_journal(run,match,count),
+                        bridge_frames=clients[1]['wire'],canonical_payloads={row['frame']:row['frame_payload_sha256']
+                            for row in events if row['event']=='frame_queued' and row.get('match')==match},
+                        canonical_states=states[match],native_states=actor_states[match]))
+            if plan['scenario'] != 'mobile':
+                feel_context = dict(rows=feel_rows(clients[slot]['log']), match=first, slot=slot,
+                    commits=events, raw_bodies=raw_bodies, journal=read_journal(run, first, plan['frames']),
+                    canonical_states=states[first], bridge_frames=clients[slot]['wire'],
+                    catalog_units=template.catalog,entity_abilities=template.entity_abilities,
+                    built_units=normal_build_units(clients[slot]['log'],slot))
             if plan['scenario']=='movement':
                 subject=[r for r in feel_context['rows']if r['match']==first and r['event']=='command_created']
                 require(len(subject)==1,'one subject Move required before independent remote correction')
@@ -2023,7 +2232,7 @@ async def run_prepared(output):
                     canonical_states=states[first],commits=events,raw_bodies=raw_bodies,journal=feel_context['journal'],
                     catalog_units=template.catalog,entity_abilities=template.entity_abilities,
                     built_units=normal_build_units(clients[other]['log'],other))
-            if plan['scenario'] != 'movement':
+            if plan['scenario'] not in ('movement','mobile'):
                 report['feel'] = evaluate_feel(**feel_context)
                 report['movement_feel_witness_passed'] = report['feel']['passed']
                 report['scoped_observation_passed'] = True
@@ -2092,7 +2301,7 @@ async def run_prepared(output):
                 if row.get('native_path') and row['native_path'].exists():
                     await cleanup_step(errors, 'retain native log', lambda row=row:
                         (run / f'native-{row["index"]}.log').write_bytes(read(row['native_path'])))
-                    if plan['scenario']=='movement':
+                    if plan['scenario'] in ('movement','mobile'):
                         await cleanup_step(errors,'retain native authority diagnostics',lambda row=row:
                             write(run/f'movement-authorities-{row["index"]}.json',authority_rows(read_fresh_native_log(row['native_path']))))
                         await cleanup_step(errors,'retain original Move diagnostics',lambda row=row:
@@ -2120,7 +2329,7 @@ async def run_prepared(output):
                     retained_handle_closed=row.get('retained_handle_closed', False),
                     natural_game_exit=process.poll() == 0 and not (job and job.forced),
                     job=job.final_accounting if job else None))
-            if plan['scenario'] == 'movement':
+            if plan['scenario'] in ('movement','mobile'):
                 def retain_worker_states(row=row):
                     source = run / f'worker-data-{row["index"]}' / 'canonical-state.jsonl'
                     raw = read(source, 4 * 1024 * 1024)
@@ -2134,6 +2343,58 @@ async def run_prepared(output):
                     record.update(rows=len(actual), worlds=list(dict.fromkeys(r['world'] for r in actual)))
                     worker_state_rows[row['index']] = actual
                 await cleanup_step(errors, 'retain closed worker native states', retain_worker_states)
+        if plan.get('mobile_correction'):
+            try:
+                from tools.prediction_mobile_evidence import evaluate
+                require(len(mobile_contexts)==plan['expected_matches'] and 1 in worker_state_rows,
+                        'mobile correction lacks both actual match contexts or closed victim states')
+                episodes = [evaluate(**context,worker_states=worker_state_rows[1],escape_check=actor_escape_evidence,
+                                    join_check=joined_worker_evidence,authority_rows=authority_rows)
+                            for context in mobile_contexts]
+                report['mobile_correction'] = dict(passed=all(row['passed'] for row in episodes),episodes=episodes)
+            except BaseException as error:
+                report['mobile_correction'] = dict(passed=False,error=repr(error),
+                    scope='No substituted mobile lifecycle, input or correction evidence')
+        if plan.get('mobile_group_intent'):
+            try:
+                from tools.prediction_mobile_evidence import evaluate_group_intent
+                report['mobile_group_intent'] = evaluate_group_intent(clients[1]['log'],attacker_log=clients[0]['log'],
+                    mobile_episodes=report.get('mobile_correction',{}).get('episodes',[]),
+                    user_edits=bool(plan.get('mobile_group_user_edits')))
+                report['group_intent_witness_passed']=report['mobile_group_intent']['passed']
+            except BaseException as error:
+                report['mobile_group_intent']=dict(passed=False,error=repr(error),
+                    scope='No substituted group preservation, explicit original edits or canonical death purge')
+                report['group_intent_witness_passed']=False
+        if plan.get('mobile_recovery_stall'):
+            try:
+                from tools.prediction_mobile_evidence import evaluate_recovery_stall
+                report['mobile_recovery_stall']=evaluate_recovery_stall(clients[1]['log'],attacker_log=clients[0]['log'],
+                    matches=[event['match'] for event in events if event['event']=='match_created'])
+                report['recovery_stall_witness_passed']=report['mobile_recovery_stall']['passed']
+            except BaseException as error:
+                report['mobile_recovery_stall']=dict(passed=False,error=repr(error),
+                    scope='No substituted stall marker, original snapshot bracket or QPC elapsed time')
+                report['recovery_stall_witness_passed']=False
+        if plan.get('mobile_recall'):
+            try:
+                from tools.prediction_mobile_evidence import evaluate_group_recall
+                report['mobile_recall']=evaluate_group_recall(clients[1]['log'],attacker_log=clients[0]['log'],
+                    mobile_episodes=report.get('mobile_correction',{}).get('episodes',[]),
+                    group_intent=report.get('mobile_group_intent',{}))
+                report['recall_witness_passed']=report['mobile_recall']['passed']
+            except BaseException as error:
+                report['mobile_recall']=dict(passed=False,error=repr(error),
+                    scope='No substituted original recall callback, absent admission filter or restored selection')
+                report['recall_witness_passed']=False
+        if plan['scenario'] == 'mobile':
+            try:
+                finalize_mobile_observation(report,plan,states=states,worker_state_rows=worker_state_rows,
+                    client_logs={row['index']:row['log']for row in clients})
+            except BaseException as error:
+                report.setdefault('error',repr(error))
+                report['mobile_input_witness_passed']=False
+                report['scoped_observation_passed']=False
         if plan.get('native_position_trace') is not None:
             try:
                 slot = plan['move_slot']
@@ -2210,9 +2471,11 @@ async def run_prepared(output):
         report['teardown_scope'] = ('original result/Continue/Leave/Quit required' if plan['lifecycle'] == 'natural'
                                     else 'forced owned prefix teardown; no native Quit or acceptance claim')
         report['passed'] = bool(report['scoped_observation_passed'] and report['source_unchanged'] and
+            (plan['scenario'] != 'mobile' or mobile_final_gate(plan,report)) and
             (changing is None or (report.get('changing_rtt_smoothness_passed') is True and
              report.get('changing_rtt_other_client_feel',{}).get('passed') is True)) and
             (not plan.get('transition_orders')or report.get('transition_orders',{}).get('passed')is True)and
+            (not plan.get('mobile_correction')or report.get('mobile_correction',{}).get('passed')is True)and
             (plan.get('native_position_trace') is None or report.get('native_position_trace',{}).get('passed') is True)and
             report['files_unchanged'] and not report['forced_cleanup'] and not errors and
             len(report.get('game_cleanup', [])) == 2 and all(r['reaped'] and r['retained_handle_closed'] and r['exit_code'] == 0 and
@@ -2222,7 +2485,7 @@ async def run_prepared(output):
             for r in report['authority_workers']))
         write(run / 'verification.json', report)
         write(run / 'server-states.json', dict(states))
-        if plan.get('actor_correction'):
+        if fixture_active:
             write(run / 'actor-native-authority.json', dict(actor_states))
         body_dir = run / 'submitted-batches'; body_dir.mkdir()
         for (match, slot, sequence), body in raw_bodies.items():
@@ -2437,13 +2700,23 @@ def main(argv=None):
     parser.add_argument('--worker-package', type=Path,
                         help='Owned frozen private package; bind all files and use its actual worker imports/runtime')
     parser.add_argument('--expected-helper-sha256'); parser.add_argument('--expected-gameassembly-sha256')
-    parser.add_argument('--scenario', choices=('startup', 'movement'), default='startup')
+    parser.add_argument('--scenario', choices=('startup', 'movement', 'mobile'), default='startup')
     parser.add_argument('--lifecycle', choices=('natural', 'prefix'), default='natural')
     parser.add_argument('--frames', type=int); parser.add_argument('--timeout', type=float, default=180)
     parser.add_argument('--rtt-ms', type=float, nargs=2, default=(130, 475))
     parser.add_argument('--move-slot', type=int, choices=(0, 1), default=0)
     parser.add_argument('--actor-correction', action='store_true',
                         help='Explicit original Gunbot Move12/Core5 fixture; both clients use the same authored bootstrap')
+    parser.add_argument('--mobile-correction', action='store_true',
+                        help='Explicit Gunbot10/11 fixture: original mobile group/focus death, correction and fresh Move')
+    parser.add_argument('--mobile-group-intent', action='store_true',
+                        help='With mobile scenario only: retained original manual group through provisional absence and canonical death purge')
+    parser.add_argument('--mobile-group-user-edits', action='store_true',
+                        help='With mobile group intent: original Clear in round1 and original empty replace in round2 during absence')
+    parser.add_argument('--mobile-recovery-stall', action='store_true',
+                        help='With mobile group user edits: one owned250ms main-thread hold after victim world2 snapshot152')
+    parser.add_argument('--mobile-recall', action='store_true',
+                        help='With retained mobile group intent: original recall during absence and again after restored admission')
     parser.add_argument('--changing-rtt', action='store_true',
                         help='Owned ordinary650-frame movement: subject future-read130->475->130ms while original48-unit Move is unfinished')
     parser.add_argument('--transition-orders', action='store_true',
@@ -2462,6 +2735,7 @@ def main(argv=None):
     if args.run_prepared:
         report = asyncio.run(run_prepared(args.run_prepared))
         print(json.dumps({k: report[k] for k in ('passed', 'scoped_observation_passed', 'movement_feel_witness_passed',
+            'mobile_input_witness_passed','group_intent_witness_passed','recovery_stall_witness_passed','recall_witness_passed','generic_movement_not_exercised',
             'full_feature_accepted', 'forced_cleanup', 'error') if k in report}))
         return 0 if report['passed'] else 1
     required = ('game', 'assets', 'output', 'python', 'module_root', 'heap_helper', 'cooperative', 'helper_build_receipt',

@@ -14,6 +14,9 @@ using Tick=uint64_t;
 using Frame=int64_t;
 constexpr Tick stepUs=50000,minimumSpacingUs=25000;
 constexpr Tick shortestPeriodUs=45000,longestPeriodUs=55000;
+constexpr Tick recoveryGapUs=150000,recoveryEntryErrorUs=100000,recoveryExitErrorUs=12500;
+constexpr Tick recoveryGapLifetimeUs=2000000;
+constexpr Tick recoveryShortestPeriodUs=35000;
 constexpr Frame maximumAhead=12,maximumFrame=0x7fffffff;
 inline void require(bool value,const char* reason) {
     if(!value)throw std::invalid_argument(reason);
@@ -42,7 +45,7 @@ inline Target assignmentTarget(Frame received,Tick receivedAt,Tick now,Tick rtt)
 // Continuous command phase, in the same process clock as authority receipts.
 // Integer ceil targets remain useful for initial acquisition and diagnostics;
 // using their whole-frame deadband for steady pacing retains subframe debt.
-inline Tick fractionalPeriod(Frame received,Frame next,Tick age,Tick rtt) {
+inline Frame continuousPhaseError(Frame received,Frame next,Tick age,Tick rtt) {
     require(received>=1 && received<=maximumFrame && next>=1 && next<=maximumFrame,
             "fractional pacing frame out of range");
     const Tick maximumTime=(std::numeric_limits<Tick>::max)();
@@ -60,7 +63,9 @@ inline Tick fractionalPeriod(Frame received,Frame next,Tick age,Tick rtt) {
             "fractional frame-time overflow");
     const Frame errorBase=delta*frameUs,signedLead=static_cast<Frame>(leadUs);
     require(errorBase<=maximumSigned-signedLead,"fractional target addition overflow");
-    const Frame errorUs=errorBase+signedLead;
+    return errorBase+signedLead;
+}
+inline Tick fractionalPeriodFromError(Frame errorUs) {
     // Fixed gain8 gives a roughly400ms small-error phase correction. Saturate
     // BEFORE subtraction, so even the largest legal error cannot wrap a period.
     const Frame correction=errorUs/8,nominal=static_cast<Frame>(stepUs);
@@ -69,6 +74,16 @@ inline Tick fractionalPeriod(Frame received,Frame next,Tick age,Tick rtt) {
     const Tick period=static_cast<Tick>(nominal-correction);
     require(period>=shortestPeriodUs && period<=longestPeriodUs,"fractional period out of range");
     return period;
+}
+inline Tick fractionalPeriod(Frame received,Frame next,Tick age,Tick rtt) {
+    return fractionalPeriodFromError(continuousPhaseError(received,next,age,rtt));
+}
+inline Tick recoveryPeriodFromError(Frame errorUs) {
+    require(errorUs>0,"recovery requires positive continuous phase debt");
+    const Frame correction=errorUs/4,nominal=static_cast<Frame>(stepUs);
+    if(correction>nominal-static_cast<Frame>(recoveryShortestPeriodUs))return recoveryShortestPeriodUs;
+    const Tick period=static_cast<Tick>(nominal-correction);
+    require(period>=recoveryShortestPeriodUs && period<=stepUs,"recovery period out of range");return period;
 }
 
 // Only call observe AFTER the EXISTING own request/ACK validator accepts the
@@ -175,7 +190,7 @@ public:
 
 enum class Wait {None,NativeOutput,SteadyFrameOne,RoundTrip,TargetPhase,Budget,Spacing};
 struct Decision {
-    bool allowed=false,acquiring=false;
+    bool allowed=false,acquiring=false,recovering=false;
     Wait wait=Wait::None;
     Frame frame=-1;
     Tick now=0,nextDeadline=0;
@@ -183,13 +198,14 @@ struct Decision {
 };
 class Policy {
     Frame received_=-1,lastQueued_=-1,lastPresented_=-1;
-    Tick receivedAt_=0,lastQueueAt_=0,lastPublicationAt_=0,nextDeadline_=0;
-    bool haveQueue_=false,havePublication_=false,acquired_=false;
+    Tick receivedAt_=0,lastQueueAt_=0,lastPublicationAt_=0,nextDeadline_=0,recoveryGapAt_=0;
+    bool haveQueue_=false,havePublication_=false,acquired_=false,recovering_=false,haveRecoveryGap_=false;
 public:
     void reset(){*this=Policy{};}
     Frame received() const{return received_;}
     Frame observedQueued() const{return lastQueued_;}
     Frame observedPresented() const{return lastPresented_;}
+    bool recovering() const{return recovering_;}
     void authorityReceived(Frame frame,Tick now) {
         require(frame>=0 && frame<=maximumFrame && frame==received_+1,
                 "pacing authority receipts must be contiguous");
@@ -227,8 +243,23 @@ public:
             // physical frame order, immutable67 assignment or native50ms dt.
             // This trades transient phase/correction error for continuity;
             // actual command phase and visual smoothness still need runtime proof.
-            const Tick period=acquired_?
-                fractionalPeriod(received_,next,now-receivedAt_,*rtt):stepUs;
+            Tick period=stepUs;
+            if(acquired_) {
+                const Frame error=continuousPhaseError(received_,next,now-receivedAt_,*rtt);
+                bool recovery=recovering_ && error>static_cast<Frame>(recoveryExitErrorUs);
+                const bool stalled=(haveQueue_ && now-lastQueueAt_>=recoveryGapUs) ||
+                    (havePublication_ && now>=lastPublicationAt_ && now-lastPublicationAt_>=recoveryGapUs);
+                const bool recentGap=haveRecoveryGap_ && now>=recoveryGapAt_ &&
+                    now-recoveryGapAt_<=recoveryGapLifetimeUs;
+                if(!recovery && (stalled || recentGap) && error>=static_cast<Frame>(recoveryEntryErrorUs))recovery=true;
+                // Ordinary RTT changes keep45..55/K8. Only a real acquired
+                // progress gap with positive debt permits temporary28.6Hz
+                // recovery. Native dt/order/output ownership are unchanged.
+                // Exit (including negative error) uses normal55ms braking in
+                // THIS decision, not the recovery mode's50ms upper bound.
+                d.recovering=recovery;
+                period=recovery?recoveryPeriodFromError(error):fractionalPeriodFromError(error);
+            }
             const Tick base=acquired_?nextDeadline_:now;
             const Tick maximum=(std::numeric_limits<Tick>::max)();
             require(base<=maximum-period,"pacing deadline exhausted");
@@ -250,7 +281,15 @@ public:
     void queued(const Decision& d) {
         require(d.allowed && d.wait==Wait::None && d.frame==lastQueued_+1 &&
                 (!haveQueue_ || d.now>=lastQueueAt_),"invalid/stale pacing queue receipt");
-        if(d.nextDeadline){nextDeadline_=d.nextDeadline;acquired_=true;}
+        // Ingress can arrive AFTER the first resumed queue. Observe that real
+        // acquired gap before rewriting its timestamp, independently of E.
+        // Publication does not re-arm the same episode. Normal queues/decide
+        // reads never extend this fixed two-second permission; only a genuine
+        // new long gap can replace it. Initial acquisition cannot arm it.
+        const bool observedGap=acquired_ && haveQueue_ && d.now-lastQueueAt_>=recoveryGapUs;
+        if(d.recovering)haveRecoveryGap_=false;
+        else if(observedGap){recoveryGapAt_=d.now;haveRecoveryGap_=true;}
+        if(d.nextDeadline){nextDeadline_=d.nextDeadline;acquired_=true;recovering_=d.recovering;}
         lastQueued_=d.frame;lastQueueAt_=d.now;haveQueue_=true;
     }
     bool canPublish(Frame frame,Tick now) const {
