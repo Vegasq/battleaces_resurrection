@@ -185,6 +185,7 @@ def prepare(args):
     mobile_recall = bool(getattr(args, 'mobile_recall', False))
     mobile_focus = bool(getattr(args, 'mobile_focus', False))
     mobile_focus_no_start = bool(getattr(args, 'mobile_focus_no_start', False))
+    mobile_focus_restart = bool(getattr(args, 'mobile_focus_restart', False))
     mobile_caster_survey = bool(getattr(args, 'mobile_caster_survey', False))
     mobile_caster_lifetime = bool(getattr(args, 'mobile_caster_lifetime', False))
     mobile_ui_cast = bool(getattr(args, 'mobile_ui_cast', False))
@@ -204,6 +205,8 @@ def prepare(args):
             not mobile_recall and not mobile_group_user_edits and not mobile_recovery_stall and
             not mobile_caster_survey and not mobile_caster_lifetime and not mobile_ui_cast),
             'mobile focus no-start requires explicit base mobile focus without other optional fixture modes')
+    require(not mobile_focus_restart or mobile_focus_no_start,
+            'mobile focus restart requires the explicit mobile focus no-start variant')
     require(not mobile_caster_survey or (args.scenario == 'mobile' and mobile_correction and mobile_group_intent and
             not mobile_focus and not mobile_recall and not mobile_group_user_edits and not mobile_recovery_stall),
             'mobile caster survey requires preserved mobile group intent without focus/recall/user edits/recovery stall')
@@ -255,6 +258,7 @@ def prepare(args):
                          (mobile_recall,'-prediction-mobile-recall-smoke'),
                          (mobile_focus,'-prediction-mobile-focus-smoke'),
                          (mobile_focus_no_start,'-prediction-mobile-focus-no-start-smoke'),
+                         (mobile_focus_restart,'-prediction-mobile-focus-restart-smoke'),
                          (mobile_caster_survey,'-prediction-mobile-caster-survey-smoke'),
                          (mobile_caster_lifetime,'-prediction-mobile-caster-lifetime-smoke'),
                          (mobile_ui_cast,'-prediction-mobile-ui-cast-smoke')):
@@ -359,6 +363,7 @@ def prepare(args):
         if mobile_recall:invocation['mobile_recall']=True
         if mobile_focus:invocation['mobile_focus']=True
         if mobile_focus_no_start:invocation['mobile_focus_no_start']=True
+        if mobile_focus_restart:invocation['mobile_focus_restart']=True
         if mobile_caster_survey:invocation['mobile_caster_survey']=True
         if mobile_caster_lifetime:invocation['mobile_caster_lifetime']=True
         if mobile_ui_cast:invocation['mobile_ui_cast']=True
@@ -381,7 +386,7 @@ def validate_mobile_plan(plan):
             plan.get('generic_movement_not_exercised') is True and not plan.get('actor_correction') and
             not plan.get('changing_rtt') and not plan.get('transition_orders') and plan.get('native_position_trace') is None,
             'prepared mobile scenario scope/fixture/650-frame natural contract differs')
-    require(all(key not in plan or type(plan[key]) is bool for key in ('mobile_group_intent','mobile_group_user_edits','mobile_recovery_stall','mobile_recall','mobile_focus','mobile_focus_no_start','mobile_caster_survey','mobile_caster_lifetime','mobile_ui_cast')) and
+    require(all(key not in plan or type(plan[key]) is bool for key in ('mobile_group_intent','mobile_group_user_edits','mobile_recovery_stall','mobile_recall','mobile_focus','mobile_focus_no_start','mobile_focus_restart','mobile_caster_survey','mobile_caster_lifetime','mobile_ui_cast')) and
             (not plan.get('mobile_group_user_edits') or plan.get('mobile_group_intent') is True) and
             (not plan.get('mobile_recovery_stall') or plan.get('mobile_group_user_edits') is True) and
             (not plan.get('mobile_recall') or (plan.get('mobile_group_intent') is True and
@@ -396,7 +401,8 @@ def validate_mobile_plan(plan):
              not plan.get('mobile_focus') and not plan.get('mobile_recall') and not plan.get('mobile_caster_survey') and
              not plan.get('mobile_group_user_edits') and not plan.get('mobile_recovery_stall'))) and
             (not plan.get('mobile_focus_no_start') or (plan.get('mobile_focus') is True and plan.get('mobile_group_intent') is True and
-             not any(plan.get(k)for k in('mobile_recall','mobile_group_user_edits','mobile_recovery_stall','mobile_caster_survey','mobile_caster_lifetime','mobile_ui_cast')))),
+             not any(plan.get(k)for k in('mobile_recall','mobile_group_user_edits','mobile_recovery_stall','mobile_caster_survey','mobile_caster_lifetime','mobile_ui_cast')))) and
+            (not plan.get('mobile_focus_restart') or plan.get('mobile_focus_no_start')is True),
             'prepared mobile group edits require typed explicit group intent')
 
 
@@ -450,6 +456,8 @@ def command_extra(plan, index, run):
         result.append('-prediction-mobile-focus-smoke')
     if plan.get('mobile_focus_no_start'):
         result.append('-prediction-mobile-focus-no-start-smoke')
+    if plan.get('mobile_focus_restart'):
+        result.append('-prediction-mobile-focus-restart-smoke')
     if plan.get('mobile_caster_survey'):
         result.append('-prediction-mobile-caster-survey-smoke')
     if plan.get('mobile_caster_lifetime'):
@@ -1230,6 +1238,12 @@ def finalize_mobile_observation(report, plan, *, states, worker_state_rows, clie
         require(plan.get('mobile_focus')is True and report.get('focus_no_start_witness_passed')is True and focus.get('no_start_variant')is True and
                 focus.get('accepted_no_start_exercised')is True and focus.get('request_active_scope_verified')is True,
                 'explicit accepted focus no-start ownership witness missing/failed')
+    if plan.get('mobile_focus_restart'):
+        focus=report.get('mobile_focus',{})
+        require(plan.get('mobile_focus_no_start')is True and report.get('focus_restart_witness_passed')is True and
+                focus.get('restart_variant')is True and focus.get('accepted_restart_exercised')is True and
+                focus.get('old_iterator_retirement_verified')is True,
+                'explicit same-world original focus restart witness missing/failed')
     if plan.get('mobile_caster_survey'):
         survey=report.get('mobile_caster_survey',{})
         require(plan.get('mobile_group_intent') is True and not plan.get('mobile_focus') and not plan.get('mobile_recall') and
@@ -1298,6 +1312,9 @@ def mobile_final_gate(plan, report):
         (not plan.get('mobile_focus_no_start') or (plan.get('mobile_focus')is True and report.get('focus_no_start_witness_passed')is True and
             report.get('mobile_focus',{}).get('no_start_variant')is True and report['mobile_focus'].get('accepted_no_start_exercised')is True and
             report['mobile_focus'].get('request_active_scope_verified')is True)) and
+        (not plan.get('mobile_focus_restart') or (plan.get('mobile_focus_no_start')is True and report.get('focus_restart_witness_passed')is True and
+            report.get('mobile_focus',{}).get('restart_variant')is True and report['mobile_focus'].get('accepted_restart_exercised')is True and
+            report['mobile_focus'].get('old_iterator_retirement_verified')is True)) and
         (not plan.get('mobile_caster_survey') or (plan.get('mobile_group_intent') is True and not plan.get('mobile_focus') and
             not plan.get('mobile_recall') and not plan.get('mobile_group_user_edits') and not plan.get('mobile_recovery_stall') and
             report.get('mobile_caster_survey',{}).get('passed') is True and report.get('caster_survey_witness_passed') is True and
@@ -2541,14 +2558,17 @@ async def run_prepared(output):
                 report['mobile_focus']=evaluate_group_focus(clients[1]['log'],attacker_log=clients[0]['log'],
                     mobile_episodes=report.get('mobile_correction',{}).get('episodes',[]),
                     group_intent=report.get('mobile_group_intent',{}),
-                    **({'no_start':True}if plan.get('mobile_focus_no_start')else{}))
+                    **({'no_start':True}if plan.get('mobile_focus_no_start')else{}),
+                    **({'restart':True}if plan.get('mobile_focus_restart')else{}))
                 report['focus_witness_passed']=report['mobile_focus']['passed']
                 if plan.get('mobile_focus_no_start'):report['focus_no_start_witness_passed']=report['mobile_focus']['passed']
+                if plan.get('mobile_focus_restart'):report['focus_restart_witness_passed']=report['mobile_focus']['passed']
             except BaseException as error:
                 report['mobile_focus']=dict(passed=False,error=repr(error),
                     scope='No substituted owned iterator continuity, original pending cancellation or camera-call receipt')
                 report['focus_witness_passed']=False
                 if plan.get('mobile_focus_no_start'):report['focus_no_start_witness_passed']=False
+                if plan.get('mobile_focus_restart'):report['focus_restart_witness_passed']=False
         if plan.get('mobile_caster_survey'):
             try:
                 from tools.prediction_mobile_evidence import evaluate_caster_survey
@@ -2905,6 +2925,8 @@ def main(argv=None):
                         help='With preserved mobile group intent: owned held-focus continuity and original cancel control')
     parser.add_argument('--mobile-focus-no-start', action='store_true',
                         help='With mobile focus: accepted same-group request without new iterator, then continuity/original cancel')
+    parser.add_argument('--mobile-focus-restart', action='store_true',
+                        help='With mobile focus/no-start: same-callback original Cancel then real Focus/Start in world2')
     parser.add_argument('--mobile-caster-survey', action='store_true',
                         help='With preserved mobile group intent: readonly actual UI caster mappings at145; no activation')
     parser.add_argument('--mobile-caster-lifetime', action='store_true',
@@ -2929,7 +2951,7 @@ def main(argv=None):
     if args.run_prepared:
         report = asyncio.run(run_prepared(args.run_prepared))
         print(json.dumps({k: report[k] for k in ('passed', 'scoped_observation_passed', 'movement_feel_witness_passed',
-            'mobile_input_witness_passed','group_intent_witness_passed','recovery_stall_witness_passed','recall_witness_passed','focus_witness_passed','focus_no_start_witness_passed','caster_survey_witness_passed','caster_lifetime_witness_passed','ui_command_witness_passed','generic_movement_not_exercised',
+            'mobile_input_witness_passed','group_intent_witness_passed','recovery_stall_witness_passed','recall_witness_passed','focus_witness_passed','focus_no_start_witness_passed','focus_restart_witness_passed','caster_survey_witness_passed','caster_lifetime_witness_passed','ui_command_witness_passed','generic_movement_not_exercised',
             'full_feature_accepted', 'forced_cleanup', 'error') if k in report}))
         return 0 if report['passed'] else 1
     required = ('game', 'assets', 'output', 'python', 'module_root', 'heap_helper', 'cooperative', 'helper_build_receipt',

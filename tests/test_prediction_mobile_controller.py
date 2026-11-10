@@ -26,7 +26,7 @@ class MobilePreparationTests(unittest.TestCase):
         data=json.loads(receipt.read_text());data['helper_sha256']=v.sha(helper);receipt.write_text(json.dumps(data))
         self.args=deepcopy(f.args);self.args.scenario='mobile';self.args.mobile_correction=True
 
-    def add_group_markers(self, *, include_recovery=False, include_recall=False, include_focus=False, include_focus_no_start=False, include_caster_survey=False, include_caster_lifetime=False, include_ui_cast=False):
+    def add_group_markers(self, *, include_recovery=False, include_recall=False, include_focus=False, include_focus_no_start=False, include_focus_restart=False, include_caster_survey=False, include_caster_lifetime=False, include_ui_cast=False):
         f=self.fixture;helper=f.game/'BattleAcesOffline.dll'
         helper.write_bytes(helper.read_bytes()+b'|'+ '-prediction-mobile-group-intent-smoke'.encode('utf-16-le')+
                            '-prediction-mobile-group-user-edits-smoke'.encode('utf-16-le'))
@@ -34,6 +34,7 @@ class MobilePreparationTests(unittest.TestCase):
         if include_recall:helper.write_bytes(helper.read_bytes()+'-prediction-mobile-recall-smoke'.encode('utf-16-le'))
         if include_focus:helper.write_bytes(helper.read_bytes()+'-prediction-mobile-focus-smoke'.encode('utf-16-le'))
         if include_focus_no_start:helper.write_bytes(helper.read_bytes()+'-prediction-mobile-focus-no-start-smoke'.encode('utf-16-le'))
+        if include_focus_restart:helper.write_bytes(helper.read_bytes()+'-prediction-mobile-focus-restart-smoke'.encode('utf-16-le'))
         if include_caster_survey:helper.write_bytes(helper.read_bytes()+'-prediction-mobile-caster-survey-smoke'.encode('utf-16-le'))
         if include_caster_lifetime:helper.write_bytes(helper.read_bytes()+'-prediction-mobile-caster-lifetime-smoke'.encode('utf-16-le'))
         if include_ui_cast:helper.write_bytes(helper.read_bytes()+'-prediction-mobile-ui-cast-smoke'.encode('utf-16-le'))
@@ -65,6 +66,25 @@ class MobilePreparationTests(unittest.TestCase):
         self.assertNotIn('mobile_caster_lifetime',plan)
         self.assertNotIn('mobile_ui_cast',plan)
         self.assertNotIn('mobile_focus_no_start',plan)
+        self.assertNotIn('mobile_focus_restart',plan)
+
+    def test_focus_restart_requires_no_start_base_and_separate_helper_marker(self):
+        self.args.mobile_focus_restart=self.args.mobile_focus=self.args.mobile_group_intent=True
+        with self.assertRaisesRegex(AssertionError,'restart requires'):v.prepare(self.args)
+        self.add_group_markers(include_focus=True,include_focus_no_start=True);self.args.mobile_focus_no_start=True
+        with self.assertRaisesRegex(AssertionError,'helper lacks explicit'):v.prepare(self.args)
+
+    def test_focus_restart_forwards_only_explicit_variant_and_revalidates_typed_plan(self):
+        self.add_group_markers(include_focus=True,include_focus_no_start=True,include_focus_restart=True)
+        self.args.mobile_focus_restart=self.args.mobile_focus_no_start=self.args.mobile_focus=self.args.mobile_group_intent=True
+        plan=v.prepare(self.args);v.verify_prepared(self.args.output)
+        for slot in(0,1):
+            extra=v.command_extra(plan,slot,self.args.output/'run')
+            self.assertEqual(extra.count('-prediction-mobile-focus-restart-smoke'),1)
+            self.assertIn('-prediction-mobile-focus-no-start-smoke',extra);self.assertNotIn('-prediction-mobile-ui-cast-smoke',extra)
+        for change in(dict(mobile_focus_restart=1),dict(mobile_focus_no_start=False),dict(mobile_ui_cast=True)):
+            altered=deepcopy(plan);altered.update(change);(self.args.output/'invocation.json').write_text(json.dumps(altered))
+            with self.assertRaises(AssertionError):v.verify_prepared(self.args.output)
 
     def test_focus_no_start_requires_explicit_base_focus_and_its_own_binary_marker(self):
         for change in(dict(mobile_focus=False),dict(mobile_group_intent=False),dict(scenario='movement'),dict(mobile_correction=False),
@@ -628,6 +648,25 @@ class MobileFinalGateTests(unittest.TestCase):
         with self.assertRaises(AssertionError):f.finalize()
         self.assertFalse(v.mobile_final_gate(f.plan,f.report))
         f.report['mobile_correction']['passed']=True;f.workers[1][181]['parsed_state_sha256']='0'*64
+        with self.assertRaisesRegex(AssertionError,'hashes differ'):f.finalize()
+        self.assertFalse(v.mobile_final_gate(f.plan,f.report))
+
+    def test_restart_final_envelope_requires_real_handoff_proof_in_addition_to_no_start(self):
+        f=self.focus_fixture();f.plan.update(mobile_focus_no_start=True,mobile_focus_restart=True)
+        f.report.update(focus_witness_passed=True,focus_no_start_witness_passed=True,mobile_focus=dict(passed=True,no_start_variant=True,
+            accepted_no_start_exercised=True,request_active_scope_verified=True,
+            episodes=[dict(passed=True,match=m,world=141+i)for i,m in enumerate(f.matches)]))
+        with self.assertRaisesRegex(AssertionError,'restart witness'):f.finalize()
+        self.assertFalse(v.mobile_final_gate(f.plan,f.report))
+        # Final envelope only; raw supersession/newStart/syncNext/weak proof is
+        # independently required by the source-bound restart evaluator.
+        f.report.update(focus_restart_witness_passed=True)
+        f.report['mobile_focus'].update(restart_variant=True,accepted_restart_exercised=True,old_iterator_retirement_verified=True)
+        self.assertTrue(v.mobile_final_gate(f.plan,f.finalize()))
+        changed=deepcopy(f.report);changed['mobile_focus']['old_iterator_retirement_verified']=False
+        with self.assertRaises(AssertionError):v.finalize_mobile_observation(changed,f.plan,states=f.states,worker_state_rows=f.workers,client_logs=f.logs)
+        self.assertFalse(v.mobile_final_gate(f.plan,changed))
+        f.workers[1][181]['parsed_state_sha256']='0'*64
         with self.assertRaisesRegex(AssertionError,'hashes differ'):f.finalize()
         self.assertFalse(v.mobile_final_gate(f.plan,f.report))
 

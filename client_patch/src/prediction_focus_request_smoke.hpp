@@ -2,7 +2,8 @@
 // Included inside mobile. Original Focus/Cancel calls only; no iterator writes.
 namespace focus_request {
 struct State {
-    uint64_t world=0;std::string match;unsigned repeatCalls=0,cancelCalls=0;bool repeated=false,finished=false;
+    uint64_t world=0;std::string match;unsigned repeatCalls=0,cancelCalls=0,restartCalls=0;bool repeated=false,finished=false;
+    bool restartEligible=false,oldWeakRegistered=false;std::string retiredIterator;
 };
 static State& state(){static auto* value=new State;return *value;}
 static void clear(){auto& s=state();if(s.world)require(ba::initialThread&&GetCurrentThreadId()==ba::initialThread,
@@ -24,7 +25,7 @@ static Probe event(actors::State& owner,Obj selector,int frame,const char* name,
     require(s.world==owner.world&&s.match==owner.match&&frame==ba::read<int>(owner.simulation->get(),0xac)&&
         ba::lanSlot()==1&&frame>=130&&frame<280,"focus request receipt lost owner/frame");
     auto& active=selection::focusSession();const bool bound=selection::focusSameWorld(active)&&active.selector&&active.selector->get()==selector;
-    const bool retired=s.world==2&&s.cancelCalls==1&&!strcmp(name,"complete")&&!active.world&&!active.selector&&!active.iterator&&
+    const bool retired=!focusRestartEnabled()&&s.world==2&&s.cancelCalls==1&&!strcmp(name,"complete")&&!active.world&&!active.selector&&!active.iterator&&
         !active.handleReady&&!active.scheduling;
     require(bound||retired,"focus request receipt lost its original selector outside completed cancellation");
     Probe p;p.observerActive=bound;p.epoch=bound?active.epoch:0;p.requestEpoch=bound?active.request.epoch:0;p.iteration=bound?active.iteration:0;p.pendingIteration=active.pendingIteration;
@@ -51,6 +52,10 @@ static Probe event(actors::State& owner,Obj selector,int frame,const char* name,
        <<",\"current_incarnation\":"<<token(view.context,view.current)<<",\"native_identity_present\":"<<view.nativePresent
        <<",\"repeat_calls\":"<<s.repeatCalls<<",\"cancel_calls\":"<<s.cancelCalls<<",\"original_callback\":"<<(callback?ba_catalog::quote(callback):"null")
        <<",\"original_token\":";if(callbackToken)out<<callbackToken;else out<<"null";
+    if(focusRestartEnabled()) {
+        out<<",\"restart_calls\":"<<s.restartCalls<<",\"retired_iterator\":"<<(s.retiredIterator.empty()?"null":ba_catalog::quote(s.retiredIterator))
+           <<",\"old_iterator_weak_registered\":"<<s.oldWeakRegistered<<",\"restart_eligible\":"<<s.restartEligible;
+    }
     out<<",\"physicalUI\":false}";const auto text=out.str();require(text.size()<=8192,"focus request receipt bound");ba::log("MOBILE FOCUS REQUEST %s",text.c_str());return p;
 }
 static void repeat(actors::State& owner,Obj selector,int frame) {
@@ -73,18 +78,51 @@ static void repeat(actors::State& owner,Obj selector,int frame) {
         after.selected==before.selected&&after.requestEpoch>before.epoch&&after.requestEpoch>before.requestEpoch&&selection::focusSession().request.repeat,
         "accepted original focus without Start changed the active iterator session");s.repeated=true;
 }
-static void cancel(actors::State& owner,Obj selector,int frame) {
+static bool cancel(actors::State& owner,Obj selector,int frame) {
     auto& s=state();require(s.world==2&&s.repeated&&s.repeatCalls==1&&!s.cancelCalls&&frame>=170&&frame<180,"focus request cancellation missed its phase");
-    event(owner,selector,frame,"before_cancel","Uncapped.UnitSelector.FocusControlGroupCancel",0x06002220);
+    std::unique_ptr<Root> eligibleActor;
+    if(focusRestartEnabled()) {
+        idle(owner,selector,11);selection::FocusView eligibility(selector,4);const auto candidate=eligibility.byId(11);
+        if(!candidate)return false; // No original mutation before a genuine current focus lease exists.
+        require(candidate->identity.entityId==11&&candidate->identity.unitType==1&&candidate->identity.armyId==1&&
+            candidate->token==mobile::state().originalToken&&recallSourceCount(selector)==1&&
+            groupIds(groupFor(selector,4))==std::vector<uint32_t>{11},"focus restart eligibility differs from current group4 member11");
+        eligibleActor=std::make_unique<Root>(candidate->actor);require(eligibleActor->get()==candidate->actor,"focus restart eligibility root failed");
+        s.restartEligible=true;
+    }
+    const auto before=event(owner,selector,frame,"before_cancel","Uncapped.UnitSelector.FocusControlGroupCancel",0x06002220);
+    std::unique_ptr<Root> oldIterator;
+    if(focusRestartEnabled()) {
+        require(before.observerActive&&before.epoch&&before.iterator&&before.group==4&&before.held==4&&before.handleReady&&
+            !before.scheduling&&!before.ending&&before.handle==before.selectorHandle,"focus restart lost its old active iterator");
+        oldIterator=std::make_unique<Root>(before.iterator);require(oldIterator->get()==before.iterator,"focus restart old iterator root failed");
+    }
     require(ba::read<int>(selector,0xa0)==4,"focus request cancellation lost original group4");
     RecallMethods methods(selector);int group=4;void* args[]={&group};++s.cancelCalls;actors::invoke(methods.cancel,selector,args);owned(owner);methods.validate();
     require(ba::read<int>(selector,0xa0)==-1&&!ba::read<Obj>(selector,0xa8),"focus request original Cancel did not end held intent");
-    mobile::state().focusCancelled=true;event(owner,selector,frame,"after_cancel","Uncapped.UnitSelector.FocusControlGroupCancel",0x06002220);
+    mobile::state().focusCancelled=true;const auto cancelled=event(owner,selector,frame,"after_cancel","Uncapped.UnitSelector.FocusControlGroupCancel",0x06002220);
+    if(focusRestartEnabled()) {
+        require(cancelled.observerActive&&cancelled.epoch==before.epoch&&cancelled.iterator==oldIterator->get()&&
+            cancelled.handle==before.handle&&cancelled.iteration==before.iteration&&cancelled.source==before.source&&cancelled.logical==before.logical,
+            "original Cancel retired or relabeled the old session before the synchronous restart");
+        Obj method=actors::method(selector,"FocusControlGroup",2,0x06002221,0x3bf3010);actors::instanceSignature(method,"Void","Int32");
+        require(original::parameterClass(method,1)==actors::type("System","Boolean"),"focus restart original repeat argument differs");
+        bool repeat=true;void* restartArgs[]={&group,&repeat};++s.restartCalls;actors::invoke(method,selector,restartArgs);owned(owner);methods.validate();
+        s.oldWeakRegistered=selection::focusWasRetired(oldIterator->get());std::ostringstream old;old<<oldIterator->get();s.retiredIterator=old.str();
+        const auto after=event(owner,selector,frame,"after_restart","Uncapped.UnitSelector.FocusControlGroup",0x06002221);
+        require(s.restartCalls==1&&s.oldWeakRegistered&&after.observerActive&&after.epoch>before.epoch&&after.epoch>before.requestEpoch&&
+            after.iterator&&after.iterator!=oldIterator->get()&&after.requestEpoch==0&&after.held==4&&after.group==4&&
+            after.handleReady&&!after.scheduling&&!after.ending&&after.handle==after.selectorHandle&&after.iteration>0&&after.selected==before.selected,
+            "original same-world restart did not register a new active iterator and retire the old identity");
+    }
+    return true;
 }
 static void complete(actors::State& owner,Obj selector,int frame) {
     auto& s=state();require(s.repeated&&s.repeatCalls==1&&!s.finished&&(s.world==1?s.cancelCalls==0:s.cancelCalls==1),
         "focus request completion lacks the original accepted repeat/cancel");const auto p=event(owner,selector,frame,"complete");
-    require(s.world==1?(p.observerActive&&p.iterator&&p.held==4):(!p.observerActive&&!p.iterator&&p.epoch==0&&p.held==-1),
+    require((s.world==1||focusRestartEnabled())?(p.observerActive&&p.iterator&&p.held==4):(!p.observerActive&&!p.iterator&&p.epoch==0&&p.held==-1),
         "focus request completion did not retain/end its original active session");s.finished=true;
+    if(focusRestartEnabled())require(s.world==1?(s.restartCalls==0&&!s.oldWeakRegistered):(s.restartCalls==1&&s.oldWeakRegistered),
+        "focus restart completion lacks the original new-start handoff");
 }
 }

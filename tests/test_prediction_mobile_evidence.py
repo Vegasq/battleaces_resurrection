@@ -1476,6 +1476,97 @@ class FocusNoStartFixture(FocusFixture):
         return mobile.evaluate_group_focus(self.log(),attacker_log=self.attacker,mobile_episodes=self.episodes,group_intent=self.groups,no_start=True)
 
 
+class FocusRestartFixture(FocusNoStartFixture):
+    def __init__(self,equal_handles=False):
+        self.equal_handles=equal_handles;super().__init__()
+
+    def build_products(self):
+        super().build_products();offset=10000000;epoch=5;iterator='400';old='200';handle=102 if self.equal_handles else 202
+        self.products=[r for r in self.products if not(r['world']==2 and(r['event']=='cancel_observed'or r['stage']in('cancel_delegate','original_false')))]
+        old_positive=deepcopy(next(r for r in self.products if r['world']==2 and r['event']=='iteration'and r['iteration']==19))
+        def append(row,us):
+            row.update(world=2,match='2'*32,tick_ms=(us+offset)//1000,sampled_us=us+offset);self.products.append(row)
+        request=deepcopy(next(r for r in self.products if r['world']==2 and r['event']=='request'and r['request_epoch']==4));request['request_epoch']=epoch
+        append(request,600020)
+        for stage,us in(('requested',600021),('returned',600022)):
+            r=deepcopy(next(x for x in self.products if x['world']==2 and x['event']=='camera'and x['route']=='initial'and x['request_epoch']==4 and x['stage']==stage));r['request_epoch']=epoch;append(r,us)
+        terminal=deepcopy(old_positive);terminal.update(event='terminal',stage='superseded',actor=None,entity=None,unit_type=None,army=None,
+            incarnation=None,member=False,initialized=False,current_lease=False,original_result=None)
+        append(terminal,600025)
+        start=deepcopy(next(r for r in self.products if r['world']==2 and r['event']=='start'))
+        start.update(iterator=iterator,active_iterator=iterator,request_epoch=epoch,active_epoch=epoch,iteration=0,original_state=0,active_handle=None)
+        append(start,600030)
+        def positive(ordinal,us,ready=True):
+            for stage,at in(('requested',us),('returned',us+1)):
+                row=deepcopy(next(r for r in self.products if r['world']==2 and r['event']=='camera'and r['route']=='repeat'and r['stage']==stage))
+                row.update(iterator=iterator,active_iterator=iterator,request_epoch=epoch,active_epoch=epoch,iteration=ordinal,active_handle=handle if ready else None)
+                append(row,at)
+            row=deepcopy(old_positive);row.update(iterator=iterator,active_iterator=iterator,request_epoch=epoch,active_epoch=epoch,iteration=ordinal,
+                active_handle=handle if ready else None);append(row,us+2)
+        positive(1,600040,False)
+        scheduled=deepcopy(next(r for r in self.products if r['world']==2 and r['event']=='scheduled'))
+        scheduled.update(iterator=iterator,active_iterator=iterator,request_epoch=epoch,active_epoch=epoch,iteration=1,active_handle=handle)
+        append(scheduled,600050);positive(2,610000);positive(3,6000010)
+        end=deepcopy(terminal);end.update(stage='world_retired',iterator=iterator,active_iterator=iterator,request_epoch=epoch,active_epoch=epoch,
+            iteration=3,active_handle=handle);append(end,7000000)
+        for row in self.requests:
+            row.update(restart_calls=0,retired_iterator=None,old_iterator_weak_registered=False,restart_eligible=False)
+            if row['world']==2 and row['event']in('before_cancel','after_cancel','complete'):row['restart_eligible']=True
+            if row['world']==2 and row['event']=='complete':
+                row.update(observer_active=True,observer_world=2,active_epoch=epoch,request_epoch=0,active_group=4,iterator=iterator,
+                    handle=handle,selector_handle=handle,handle_ready=True,scheduling=False,ending=False,iteration=2,original_state=1,
+                    yield_bits=0xff800000,held_group=4,source_ids=[11],logical_ids=[11],restart_calls=1,retired_iterator=old,old_iterator_weak_registered=True)
+        restarted=deepcopy(next(r for r in self.requests if r['world']==2 and r['event']=='complete'))
+        restarted.update(event='after_restart',frame=170,tick_ms=(600060+offset)//1000,sampled_us=600060+offset,iteration=1,
+            original_callback='Uncapped.UnitSelector.FocusControlGroup',original_token=0x06002221)
+        self.requests.append(restarted);self.renumber()
+
+    def evaluate(self):
+        return mobile.evaluate_group_focus(self.log(),attacker_log=self.attacker,mobile_episodes=self.episodes,group_intent=self.groups,no_start=True,restart=True)
+
+
+class FocusRestartEvidenceTests(unittest.TestCase):
+    def test_real_restart_supersedes_old_scope_and_sync_executes_new_scope_even_with_equal_handle_values(self):
+        for equal in(False,True):
+            with self.subTest(equal=equal):
+                result=FocusRestartFixture(equal).evaluate();ep=result['episodes'][1]
+                self.assertTrue(result['old_iterator_retirement_verified']);self.assertEqual(ep['restart_epoch'],5)
+                self.assertNotEqual(ep['iterator'],ep['restart_iterator']);self.assertFalse(ep['handle_inequality_required'])
+                self.assertFalse(ep['late_old_next_attempt_observed']);self.assertEqual(ep['retired_old_camera_calls'],0)
+
+    def test_missing_eligibility_weak_registration_or_consumed_request_rejects(self):
+        for event,change in(('before_cancel',dict(restart_eligible=False)),('after_restart',dict(old_iterator_weak_registered=False)),
+                             ('after_restart',dict(request_epoch=5,requested_group=4,effective_group=4)),('after_restart',dict(retired_iterator='BEEF'))):
+            with self.subTest(change=change):
+                f=FocusRestartFixture();next(r for r in f.requests if r['world']==2 and r['event']==event).update(change)
+                with self.assertRaises(AssertionError):f.evaluate()
+
+    def test_old_terminal_must_precede_new_start_with_old_identity(self):
+        for kind in('epoch','pointer','order'):
+            with self.subTest(kind=kind):
+                f=FocusRestartFixture();row=f.product(2,'terminal','superseded')
+                if kind=='epoch':row.update(request_epoch=5,active_epoch=5)
+                elif kind=='pointer':row.update(iterator='400',active_iterator='400')
+                else:row['sampled_us']+=100;row['tick_ms']=row['sampled_us']//1000
+                f.renumber()
+                with self.assertRaises(AssertionError):f.evaluate()
+
+    def test_new_start_needs_actual_synchronous_move_next_and_no_late_old_camera(self):
+        f=FocusRestartFixture();row=next(r for r in f.products if r['world']==2 and r['event']=='scheduled'and r['request_epoch']==5)
+        row['sampled_us']-=15;row['tick_ms']=row['sampled_us']//1000;f.renumber()
+        with self.assertRaises(AssertionError):f.evaluate()
+        f=FocusRestartFixture();row=next(r for r in f.products if r['world']==2 and r['event']=='camera'and r['route']=='repeat'and r['request_epoch']==5)
+        row.update(request_epoch=3,active_epoch=3,iterator='200',active_iterator='200',active_handle=102)
+        with self.assertRaises(AssertionError):f.evaluate()
+
+    def test_restart_schema_is_opt_in_and_base35_controls_stay_unchanged(self):
+        self.assertTrue(FocusNoStartFixture().evaluate()['passed']);self.assertTrue(FocusFixture().evaluate()['passed'])
+        f=FocusRestartFixture()
+        with self.assertRaises(AssertionError):mobile.evaluate_group_focus(f.log(),attacker_log=f.attacker,mobile_episodes=f.episodes,group_intent=f.groups,no_start=True)
+        f.episodes[1]['fresh_assignment_span']['hashes_match']=False
+        with self.assertRaises(AssertionError):f.evaluate()
+
+
 class FocusNoStartEvidenceTests(unittest.TestCase):
     def test_two_initial_requests_one_active_iterator_and_original_cancel_with_zero_or_nonzero_pending(self):
         for pending in(False,True):

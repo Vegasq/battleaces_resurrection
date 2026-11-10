@@ -398,6 +398,7 @@ static bool recoveryStallEnabled(){return ba::flag(L"-prediction-mobile-recovery
 static bool recallEnabled(){return ba::flag(L"-prediction-mobile-recall-smoke");}
 static bool focusEnabled(){return ba::flag(L"-prediction-mobile-focus-smoke");}
 static bool focusNoStartEnabled(){return ba::flag(L"-prediction-mobile-focus-no-start-smoke");}
+static bool focusRestartEnabled(){return ba::flag(L"-prediction-mobile-focus-restart-smoke");}
 static bool casterSurveyEnabled(){return ba::flag(L"-prediction-mobile-caster-survey-smoke");}
 static bool casterLifetimeEnabled(){return ba::flag(L"-prediction-mobile-caster-lifetime-smoke");}
 static bool uiCastEnabled(){return ba::flag(L"-prediction-mobile-ui-cast-smoke");}
@@ -817,6 +818,7 @@ static void tick() {
         require(!uiCastEnabled()||(groupIntentEnabled()&&!groupUserEditsEnabled()&&!recoveryStallEnabled()&&!recallEnabled()&&!focusEnabled()&&!casterSurveyEnabled()&&!casterLifetimeEnabled()),
             "mobile UI cast requires its separate preserve-only group intent fixture");
         require(!focusNoStartEnabled()||focusEnabled(),"mobile accepted-no-Start requires the explicit held-focus fixture");
+        require(!focusRestartEnabled()||focusNoStartEnabled(),"mobile focus restart requires the explicit accepted-no-Start fixture");
         require(ba::unified()&&ba::community()&&ba::dedicated()&&ba::lan()&&ba_lan::originalCommandScheduling()&&ba_lan::running&&!ba_lan::publicMatch,
             "mobile fixture requires negotiated prediction Custom");
         const int frame=ba::read<int>(owner.simulation->get(),0xac);
@@ -905,7 +907,9 @@ static void tick() {
             recallRestoredGroup(owner,selector,frame);return;
         }
         if(focusNoStartEnabled()&&s.firstRestored>=0&&!focus_request::state().repeated){focus_request::repeat(owner,selector,frame);return;}
-        if(focusNoStartEnabled()&&s.world==2&&focus_request::state().repeated&&!s.focusCancelled&&frame>=170){focus_request::cancel(owner,selector,frame);return;}
+        if(focusNoStartEnabled()&&s.world==2&&focus_request::state().repeated&&!s.focusCancelled&&frame>=170){
+            if(focus_request::cancel(owner,selector,frame))return;
+        }
         // Retain actual pre-command motion after restoration. A quiet baseline
         // is a verifier gate, never an assumption about native auto-chase.
         if(!uiCastEnabled()&&s.firstRestored>=0&&!s.freshQueued&&frame<180&&GetTickCount64()-s.lastPoseTick>=15){

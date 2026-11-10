@@ -574,6 +574,9 @@ Actual35 now qualifies accepted held-focus actions without new coroutine
 startup:request epochs2/4 advance while active epochs1/3 remain;old repeat
 continues or originalCancel ends it. All2892 native hashes match,natural Quit.
 Nonzero pending preservation is authored-only coverage;actual counts are0.
-Next:same-world original cancellation/new-start handoff. Keep broader held
+Actual36 now passes same-world Cancel4/new-Focus4 handoff,old-scope supersession,
+genuine Start5/synchronous Next,all2892 native hashes/wire triples/natural Quit.
+Weak registration is observed without claiming an actual late old delivery.
+Next:expired idle-click history versus genuinely live/held intent. Keep broader held
 input and forced-retirement group handling open. N35 remains the same pending
 human test;these fixtures do not accept physical/Internet visual comfort.

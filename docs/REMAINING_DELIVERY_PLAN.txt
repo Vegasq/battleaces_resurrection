@@ -84,7 +84,11 @@ Actual35 now passes the accepted-Actuate/no-new-iterator repair in both rounds:
 new request epochs2/4 leave active coroutine epochs1/3 unchanged;original Cancel
 ends W2,all2892 native hashes match and every child quits naturally. Nonzero
 pending preservation is authored coverage;actual before/after counts are0.
-Next:same-world original cancellation/new-start handoff,then broader held input.
+Actual36 now passes same-world Cancel4/new-Focus4 handoff:old epoch3 is
+superseded before genuine Start5 and its synchronous first Next;all2892 native
+hashes/wire joins match,natural shutdown. Old weak registration is observed;
+an actual late old callback is not claimed. Next:expired idle-click history
+versus genuinely live/held input,then broader held-input qualification.
 Prediction eligibility remains
 12/14. Forced-retirement group clearing and physical/Internet
 feedback remain open. N35's reserved kit stays frozen. Prior failures and the
@@ -151,6 +155,8 @@ COMPLETED
 [x] Original UI command ownership through correction/rematch (actual34),and
     accepted held-focus action without new coroutine startup (actual35).
     These close their named integration scopes,not full physical/Internet D8.
+[x] Same-world original focus cancellation/new-start handoff (actual36):old
+    metadata and weak registration,new startup/callback ordering,native parity.
 [x] N32 scheduling merge and initial prediction draft:real native motion before
     confirmation and bounded correction/replay proof. Client rollout remains open.
 [x] N29 selected test host deployed/readiness-checked with rollback and matching

@@ -537,8 +537,42 @@ Authored RED receipt SHA256:
 Authored GREEN receipt SHA256:
 ee0f36a0de304f537f450a944f2bc1dd9e0c4d28d3a5f23ddcaa6b6fcf1d60e1.
 
-Next:same-world original cancellation/new-start handoff. Cross-group runtime,
-broader held gestures and physical input remain unqualified.
+Actual36:same-world cancellation/new-start handoff
+The explicit restart variant preserves35's W1 control. In W2,it waits for a
+full original focus lease on current member11 before any mutation,then calls
+original Cancel4 and Focus4(repeat=true) in one owned callback. Count/admission
+alone is not substituted for native interval,initialization and Unity activity.
+The old iterator has one bounded diagnostic root through those calls. No old
+MoveNext is manually invoked;no handle inequality or nonzero pending is assumed.
+The default35 fixture and schema remain unchanged.
+
+Actual36 PASSES157.531s. At170,old epoch3/iterator/ID snapshots appear in original
+superseded metadata before new Start5. Start's original state is0;the actual
+first MoveNext returns true before scheduling returns and the handle is ready.
+The original caller stores the returned handle. The request is consumed,and
+the new epoch has7031 recorded iterations;the old scope has401.
+No old repeat camera is forwarded after supersession. The fixture observes the
+old weak registration after the call;its later scalar certificate is not a new
+weak-liveness sample or proof of an actual late delivery. Authored late-callback
+rejection remains separate evidence. Cross-group behavior is not claimed.
+
+All2892 closed parsed hashes and all2892 native65/raw-bridge/authority wire
+triples match. Fresh responses59.922/54.723ms precede65 by515/438ms and bridge
+by453/422ms;phases-1/0. Escape replay8/10 plus20 continuations and fresh+20 pass.
+All games,client workers and authorities exit naturally0/reaped/Jobs inactive0,
+with no force or cleanup errors;source/inputs stay unchanged. Full helper46
+build passes with178 unchanged C++ sources;359 focused Python cases pass.
+Original36 PASS report SHA256:
+ef02a81dc296c72df3b1935511a909b1b71c6ba7d4432150dd0e2a58f188a8fe.
+Protected snapshot receipt SHA256:
+9cbd57ce872fae52dcbf17d18acbd2fa5e34729da480494f83f0c9f9db58f7fc.
+Independent complete audit receipt SHA256:
+f65579a670122142db9ccfa78fc0ff0fa6f215abe0d719835ec620d3b8d38ab1.
+Helper46 SHA256:
+7038cbf8bb0b5bfadff6b4ccc541d6012f1b753f506ee39678c0196d7a467335.
+
+Next:distinguish expired inactive click history from genuinely live/held intent.
+Cross-group runtime,broader held gestures and physical input remain unqualified.
 
 Forced-retirement whole-group clearing,casting/held input and
 physical/Internet acceptance remain OPEN. This does not close all mobile
@@ -578,6 +612,9 @@ local/prediction-runtime/movement29-group-focus/run/verification.json
 local/prediction-runtime/movement29-group-focus/file-audit01/gate-audit01/receipt.json
 local/prediction-runtime/movement30-caster-survey/run/verification.json
 local/prediction-runtime/movement31-caster-lifetime/run/verification.json
+local/prediction-runtime/movement34-ui-cast/run/verification.json
+local/prediction-runtime/movement35-focus-no-start/run/verification.json
+local/prediction-runtime/movement36-focus-restart/run/verification.json
 
 N35's optional human Custom test remains frozen and reserved independently.
 The live host,firewall,usual client and user-owned sessions remain unchanged.

@@ -1579,15 +1579,17 @@ def evaluate_caster_survey(log, *, attacker_log, mobile_episodes, group_intent):
         scope='Readonly owned active-button array and original getter/field values at145. Zero eligible mappings is complete evidence; no factory lookup, caster instance, activation or target semantics accepted.')
 
 
-def _focus_request_rows(log, *, match, world, token):
-    rows=_rows(log,'MOBILE FOCUS REQUEST ',match,5)
-    names=['before_repeat','after_repeat']+(['before_cancel','after_cancel']if world==2 else[])+['complete']
+def _focus_request_rows(log, *, match, world, token, restart=False):
+    require(type(restart)is bool,'focus restart schema option is not typed')
+    rows=_rows(log,'MOBILE FOCUS REQUEST ',match,6 if restart else 5)
+    names=['before_repeat','after_repeat']+((['before_cancel','after_cancel','after_restart']if restart else['before_cancel','after_cancel'])if world==2 else[])+['complete']
     require([r.get('event')for r in rows]==names,'accepted no-start fixture event chain incomplete/duplicated')
     fields={'schema','event','world','match','slot','entity','frame','tick_ms','sampled_us','observer_active','observer_world',
         'active_epoch','request_epoch','requested_group','effective_group','active_group','iterator','handle','selector_handle',
         'handle_ready','scheduling','ending','iteration','pending_iteration','pending_count','pending_identities','original_state','yield_bits',
         'held_group','source_ids','logical_ids','selected_ids','current_actor','current_admitted','original_incarnation','current_incarnation',
         'native_identity_present','repeat_calls','cancel_calls','original_callback','original_token','physicalUI'}
+    if restart:fields|={'restart_calls','retired_iterator','old_iterator_weak_registered','restart_eligible'}
     for i,row in enumerate(rows):
         require(set(row)==fields and _integer(row['world'],1,2) and row['world']==world and
             type(row['slot'])is int and row['slot']==1 and type(row['entity'])is int and row['entity']==11 and
@@ -1618,7 +1620,7 @@ def _focus_request_rows(log, *, match, world, token):
                 _integer(row['original_state'],-2**31,2**31-1) and _integer(row['yield_bits'],0,UINT32) and
                 row['source_ids']==row['logical_ids']==[11], 'focus request active iterator/handle/state is not the original owned scope')
         else:
-            require(world==2 and row['event']=='complete' and row['observer_world']==row['active_epoch']==row['request_epoch']==
+            require(not restart and world==2 and row['event']=='complete' and row['observer_world']==row['active_epoch']==row['request_epoch']==
                 row['handle']==row['iteration']==row['pending_iteration']==row['pending_count']==0 and
                 not _pointer(row['iterator']) and row['active_group']is None and not row['handle_ready'] and not row['scheduling'] and
                 not row['ending'] and row['original_state']is None and row['yield_bits']is None and
@@ -1626,10 +1628,19 @@ def _focus_request_rows(log, *, match, world, token):
         require(row['request_epoch']==0 and row['requested_group']is None and row['effective_group']is None or
             row['request_epoch']>0 and type(row['requested_group'])is int and row['requested_group']==4 and
             type(row['effective_group'])is int and row['effective_group']==4,'focus request pending epoch/group null semantics differ')
-        cancelled=world==2 and row['event']in('after_cancel','complete')
+        cancelled=world==2 and (row['event']=='after_cancel' or not restart and row['event']=='complete')
+        cancel_called=world==2 and row['event']in('after_cancel','after_restart','complete')
         require(type(row['held_group'])is int and row['held_group']==(-1 if cancelled else 4) and
             type(row['repeat_calls'])is int and row['repeat_calls']==(0 if i==0 else 1) and
-            type(row['cancel_calls'])is int and row['cancel_calls']==int(cancelled),'focus request original call counter/held intent differs')
+            type(row['cancel_calls'])is int and row['cancel_calls']==int(cancel_called),'focus request original call counter/held intent differs')
+        if restart:
+            restarted=world==2 and row['event']in('after_restart','complete')
+            eligible=world==2 and row['event']in('before_cancel','after_cancel','after_restart','complete')
+            require(type(row['restart_calls'])is int and row['restart_calls']==int(restarted) and
+                type(row['old_iterator_weak_registered'])is bool and row['old_iterator_weak_registered']==restarted and
+                type(row['restart_eligible'])is bool and row['restart_eligible']==eligible and
+                (_pointer(row['retired_iterator'])>0 if restarted else row['retired_iterator']is None),
+                'restart fixture eligibility/call/old weak lifetime proof differs')
         callback='Uncapped.UnitSelector.FocusControlGroupCancel'if'cancel'in row['event']else'Uncapped.UnitSelector.FocusControlGroup'
         expected_token=0x06002220 if'cancel'in row['event']else 0x06002221
         require((row['original_callback']is None and row['original_token']is None)if row['event']=='complete'else
@@ -1643,12 +1654,62 @@ def _focus_request_rows(log, *, match, world, token):
     require(before['observer_active'] and after['observer_active'] and all(before[k]==after[k]for k in same) and
         before['frame']==after['frame'] and after['request_epoch']>max(before['active_epoch'],before['request_epoch']),
         'accepted request without Start changed the old active iterator/pending/state or did not advance its independent request nonce')
-    require(rows[-1]['frame']>=260 and (rows[-1]['observer_active'] if world==1 else not rows[-1]['observer_active']),
+    require(rows[-1]['frame']>=260 and (rows[-1]['observer_active'] if world==1 or restart else not rows[-1]['observer_active']),
         'focus request completed without expected live/retired scope')
     return rows
 
 
-def _evaluate_focus_no_start(log, *, attacker_log, mobile_episodes, group_intent):
+def _focus_restart_proof(records, fixture, camera, requests, starts, scheduled, marker, *, epoch, iterator, handle, fresh_us):
+    before,cancelled,restarted=fixture[2:5];complete=fixture[-1]
+    request=requests[2];start=starts[1];returned=scheduled[1]
+    new_epoch=request['row']['request_epoch'];new_iterator=start['row']['iterator'];new_handle=returned['row']['active_handle']
+    require(170<=before['frame']==cancelled['frame']==restarted['frame']<180 and
+        before['sampled_us']<cancelled['sampled_us']<restarted['sampled_us']<fresh_us and before['restart_eligible']is True and
+        before['active_epoch']==cancelled['active_epoch']==epoch and before['iterator']==cancelled['iterator']==iterator and
+        before['handle']==cancelled['handle']==handle and before['iteration']==cancelled['iteration'] and
+        before['source_ids']==cancelled['source_ids']==before['logical_ids']==cancelled['logical_ids']==[11],
+        'same-callback original cancel/restart lacks old live scope/eligibility/boundary proof')
+    require(marker('after_cancel')<request['line']<start['line']<returned['line']<marker('after_restart') and
+        new_epoch>max(epoch,before['request_epoch']) and new_iterator is not None and new_iterator!=iterator and
+        start['row']['original_state']==0 and start['row']['iteration']==0 and start['row']['active_handle']is None and
+        start['row']['request_epoch']==returned['row']['request_epoch']==new_epoch and
+        restarted['active_epoch']==complete['active_epoch']==new_epoch and restarted['request_epoch']==complete['request_epoch']==0 and
+        restarted['iterator']==complete['iterator']==new_iterator and restarted['handle']==complete['handle']==new_handle and
+        restarted['retired_iterator']==complete['retired_iterator']==iterator and restarted['old_iterator_weak_registered']is True,
+        'original restart did not install a genuine new iterator/consume its request/register the old identity')
+    superseded=[x for x in records if x['row']['event']=='terminal'and x['row']['stage']=='superseded']
+    require(len(superseded)==1 and request['line']<superseded[0]['line']<start['line'] and
+        superseded[0]['row']['request_epoch']==superseded[0]['row']['active_epoch']==epoch and superseded[0]['row']['iterator']==iterator and
+        superseded[0]['row']['active_iterator']==iterator and superseded[0]['row']['active_handle']==handle and
+        superseded[0]['row']['source_ids']==superseded[0]['row']['logical_ids']==[11],
+        'superseded terminal was emitted after installation or relabeled with new request metadata')
+    new_iterations=[x for x in records if x['row']['event']=='iteration'and x['row']['request_epoch']==new_epoch]
+    require(new_iterations and [x['row']['iteration']for x in new_iterations]==list(range(1,len(new_iterations)+1)) and
+        start['line']<new_iterations[0]['line']<returned['line'] and new_iterations[0]['row']['original_result']is True and
+        max(x['row']['iteration']for x in new_iterations if x['line']<marker('after_restart'))==restarted['iteration'],
+        'restart lacks actual synchronous new MoveNext inside original Start before scheduled return')
+    require(all(x['row']['request_epoch']==x['row']['active_epoch']==new_epoch and x['row']['iterator']==x['row']['active_iterator']==new_iterator
+                for x in records if x['row']['route']=='repeat'and x['line']>=start['line']) and
+        all(x['row']['active_handle']==new_handle for x in records if x['line']>=returned['line']),
+        'restarted repeat callbacks reused the old installed scope')
+    pair=camera.get((new_epoch,'initial',0),[])
+    require(len(pair)==2 and request['line']<pair[0]['line']<pair[-1]['line']<superseded[0]['line'] and
+        all(x['row']['active_epoch']==epoch and x['row']['active_iterator']==iterator for x in pair),
+        'restart initial camera is not separately scoped while the old session remains installed')
+    late_old=[x for x in records if x['row']['event']=='camera'and x['row']['route']=='repeat'and
+        (x['row']['request_epoch']==epoch or x['row']['iterator']==iterator)and x['line']>superseded[0]['line']]
+    require(not late_old and not any(x['row']['event']=='cancel_observed'and x['line']>start['line']for x in records) and
+        not any(x['row']['event']=='terminal'and x['row']['sampled_us']<=complete['sampled_us']and x is not superseded[0]for x in records) and
+        any(x['row']['request_epoch']==new_epoch and x['row']['route']=='repeat'and x['row']['stage']=='returned'and
+            x['row']['sampled_us']>=complete['sampled_us']for x in records if x['row']['event']=='camera'),
+        'old camera forwarded after retirement or new active repeat failed continuity through completion')
+    return dict(restart_epoch=new_epoch,restart_iterator=new_iterator,restart_handle=new_handle,
+        original_restart_frame=restarted['frame'],new_outer_iterations=len(new_iterations),old_iterator_weak_registration_observed=True,
+        old_registration_is_cached_certificate_at_complete=True,retired_old_camera_calls=0,late_old_next_attempt_observed=False,
+        handle_inequality_required=False,superseded_old_scope=superseded[0],synchronous_first_new_iteration=new_iterations[0])
+
+
+def _evaluate_focus_no_start(log, *, attacker_log, mobile_episodes, group_intent, restart=False):
     require(type(mobile_episodes)is list and len(mobile_episodes)==2 and [e.get('world')for e in mobile_episodes]==[1,2] and
         group_intent.get('passed')is True and group_intent.get('user_edits')is False and len(group_intent.get('episodes',[]))==2,
         'no-start focus needs both mobile/preserved-group episodes')
@@ -1675,7 +1736,7 @@ def _evaluate_focus_no_start(log, *, attacker_log, mobile_episodes, group_intent
         lifecycle=[r for r in ep['rows']if r['event']!='snapshot'];require([r['event']for r in lifecycle]==list(EVENTS),'focus mobile lifecycle incomplete')
         setup,dead,released,restored,_,_,complete=lifecycle;world=ep['world'];match=ep['match'];token=setup['original_incarnation']
         require(token==restored['current_incarnation']==ep['fresh']['order']['incarnation'],'focus current mobile incarnation differs')
-        fixture=_focus_request_rows(log,match=match,world=world,token=token);before,after=fixture[:2]
+        fixture=_focus_request_rows(log,match=match,world=world,token=token,restart=restart);before,after=fixture[:2]
         marker=lambda event:index['MOBILE FOCUS REQUEST ',match,event]
         require(restored['sampled_us']<=before['sampled_us']<after['sampled_us']<ep['fresh']['order']['sampled_us'] and
             restored['frame']<=before['frame']<180 and fixture[-1]['frame']==complete['frame'] and
@@ -1684,20 +1745,24 @@ def _evaluate_focus_no_start(log, *, attacker_log, mobile_episodes, group_intent
         require(rows and all(r['group']==r['requested_group']==4 for r in rows) and len({r['selector']for r in rows})==1,
             'focus requested/active group or selector changed')
         requests=[x for x in records if x['row']['event']=='request'];starts=[x for x in records if x['row']['event']=='start'];scheduled=[x for x in records if x['row']['event']=='scheduled']
-        require(len(requests)==2 and all(x['row']['stage']=='accepted_repeat'for x in requests) and len(starts)==len(scheduled)==1,
-            'no-start focus lacks exactly two accepted requests and one real original Start')
-        first,second=[x['row']for x in requests];epoch=first['request_epoch'];new_epoch=second['request_epoch'];iterator=starts[0]['row']['iterator'];handle=scheduled[0]['row']['active_handle']
+        restarting=restart and world==2
+        require(len(requests)==(3 if restarting else 2) and all(x['row']['stage']=='accepted_repeat'for x in requests) and
+            len(starts)==len(scheduled)==(2 if restarting else 1), 'focus accepted request/real Start count differs')
+        first,second=[x['row']for x in requests[:2]];epoch=first['request_epoch'];new_epoch=second['request_epoch'];iterator=starts[0]['row']['iterator'];handle=scheduled[0]['row']['active_handle']
         require(epoch>0 and new_epoch>epoch and before['active_epoch']==after['active_epoch']==epoch and after['request_epoch']==new_epoch and
             iterator==before['iterator'] and handle==before['handle'] and first['active_epoch']==0 and first['active_iterator']is None and
             starts[0]['row']['request_epoch']==scheduled[0]['row']['request_epoch']==epoch and
             requests[0]['line']<starts[0]['line']<scheduled[0]['line']<index['MOBILE CORRECTION ',match,EVENTS[0]] and
             marker('before_repeat')<requests[1]['line']<marker('after_repeat'),
             'focus accepted request/new nonce became the old active scope or Start provenance differs')
+        old_records=[x for x in records if not restarting or x['line']<starts[1]['line']]
         require(second['active_epoch']==epoch and second['active_iterator']==iterator and second['active_handle']==handle and
-            all(r['request_epoch']==epoch and r['active_epoch']==epoch and r['active_iterator']==iterator for r in rows if r['route']=='repeat') and
-            all(r['active_handle']==handle for x in records if x['line']>=scheduled[0]['line']for r in(x['row'],)),
+            all(r['request_epoch']==epoch and r['active_epoch']==epoch and r['active_iterator']==iterator for x in old_records for r in(x['row'],)if r['route']=='repeat') and
+            all(r['active_handle']==handle for x in old_records if x['line']>=scheduled[0]['line']for r in(x['row'],)),
             'no-start accepted request changed active epoch/iterator/handle')
-        iterations=[x for x in records if x['row']['event']=='iteration'];by_iteration={x['row']['iteration']:x for x in iterations}
+        all_iterations=[x for x in records if x['row']['event']=='iteration']
+        iterations=[x for x in all_iterations if x['row']['request_epoch']==epoch]
+        by_iteration={(x['row']['request_epoch'],x['row']['iteration']):x for x in all_iterations}
         require([x['row']['iteration']for x in iterations]==list(range(1,len(iterations)+1)) and
             max(x['row']['iteration']for x in iterations if x['line']<marker('before_repeat'))==before['iteration'] and
             not any(marker('before_repeat')<x['line']<marker('after_repeat')for x in iterations),
@@ -1713,10 +1778,11 @@ def _evaluate_focus_no_start(log, *, attacker_log, mobile_episodes, group_intent
             require(all(pair[0]['row'][k]==pair[1]['row'][k]for k in('request_epoch','route','iterator','iteration','active_epoch','active_iterator','active_handle','actor','entity','unit_type','army','incarnation')),
                 'focus camera receipt changed its request/active lease')
             if key[1]=='repeat':
-                decision=by_iteration.get(key[2]);require(decision is not None and decision['row']['stage']in('delegate','refind') and
+                decision=by_iteration.get((key[0],key[2]));require(decision is not None and decision['row']['stage']in('delegate','refind') and
                     decision['row']['original_result']is True and pair[-1]['line']<decision['line'],'focus camera has no same-iteration original result')
             returned.append(pair[-1])
-        require({key for key in camera if key[1]=='initial'}=={(epoch,'initial',0),(new_epoch,'initial',0)} and
+        initial_epochs={epoch,new_epoch}|({requests[2]['row']['request_epoch']}if restarting else set())
+        require({key for key in camera if key[1]=='initial'}=={(value,'initial',0)for value in initial_epochs} and
             requests[0]['line']<camera[epoch,'initial',0][0]['line']<camera[epoch,'initial',0][-1]['line']<starts[0]['line'] and
             requests[1]['line']<camera[new_epoch,'initial',0][0]['line']<camera[new_epoch,'initial',0][-1]['line']<marker('after_repeat'),
             'focus no-start request lacks its distinct actual initial-camera callback pair')
@@ -1735,7 +1801,7 @@ def _evaluate_focus_no_start(log, *, attacker_log, mobile_episodes, group_intent
                 any(x['row']['route']=='repeat'and x['row']['sampled_us']>=fixture[-1]['sampled_us']for x in returned),
                 'accepted no-start request did not preserve held repeat through completion')
             branch='accepted_no_start_held_continuity'
-        else:
+        elif not restarting:
             cancel_before,cancel_after=fixture[2:4]
             require(170<=cancel_before['frame']==cancel_after['frame']<180 and after['sampled_us']<cancel_before['sampled_us'] and
                 cancel_before['active_epoch']==cancel_after['active_epoch']==epoch and cancel_before['iterator']==cancel_after['iterator']==iterator and
@@ -1753,20 +1819,29 @@ def _evaluate_focus_no_start(log, *, attacker_log, mobile_episodes, group_intent
                 tail[-1]['line']<terminals[0]['line'] and terminals[0]['row']['sampled_us']<ep['fresh']['order']['sampled_us'] and
                 not any(x['line']>marker('after_cancel')for x in returned),'original cancel did not terminate the old iterator without restarting/forwarding')
             branch='accepted_no_start_then_original_cancel'
+        else:
+            restart_proof=_focus_restart_proof(records,fixture,camera,requests,starts,scheduled,marker,
+                epoch=epoch,iterator=iterator,handle=handle,fresh_us=ep['fresh']['order']['sampled_us'])
+            branch='accepted_no_start_then_same_world_restart'
         result.append(dict(passed=True,match=match,world=world,path=branch,fixture_rows=fixture,active_epoch=epoch,accepted_no_start_request_epoch=new_epoch,
             iterator=iterator,handle=handle,outer_iterations=len(iterations),camera_callbacks_returned=len(returned),waiting_absent_iterations=len(pending),
             pending_count_before=before['pending_count'],pending_count_after=after['pending_count'],nonzero_pending_preservation_exercised=before['pending_count']>0,
             no_new_start=True,request_active_scope_verified=True,physicalUI=False,full_mobile_controls_accepted=False))
-    return dict(passed=True,episodes=result,no_start_variant=True,accepted_no_start_exercised=True,request_active_scope_verified=True,
+        if restarting:result[-1].update(restart_proof,no_new_start_during_first_repeat=True,no_new_start=False)
+    answer=dict(passed=True,episodes=result,no_start_variant=True,accepted_no_start_exercised=True,request_active_scope_verified=True,
         accepted_group_switch_exercised=False,requires_controller_full_closed_native_parity=True,physicalUI=False,full_mobile_controls_accepted=False,
         scope='Actual same-group accepted original Void Focus request/initial camera without Start; old active iterator/epoch/handle/pending preserved and real repeat continues or originalCancel terminates it. No physicalUI/group-switch/casting claim.')
+    if restart:answer.update(restart_variant=True,accepted_restart_exercised=True,old_iterator_retirement_verified=True,
+        late_old_next_attempt_observed=False,scope='First accepted no-start preserves old scope; actual same-callback originalCancel/Focus then supersedes it and installs a genuine new active iterator. No manual/observed late oldNext, handle inequality, physicalUI or group-switch claim.')
+    return answer
 
 
-def evaluate_group_focus(log, *, attacker_log, mobile_episodes, group_intent, no_start=False):
+def evaluate_group_focus(log, *, attacker_log, mobile_episodes, group_intent, no_start=False, restart=False):
     """Complete owned repeat-focus trace, distinct from cached-focus snapshots."""
     require(type(no_start)is bool,'focus no-start variant option is not typed')
+    require(type(restart)is bool and (not restart or no_start),'focus restart requires typed no-start variant')
     if no_start:
-        return _evaluate_focus_no_start(log,attacker_log=attacker_log,mobile_episodes=mobile_episodes,group_intent=group_intent)
+        return _evaluate_focus_no_start(log,attacker_log=attacker_log,mobile_episodes=mobile_episodes,group_intent=group_intent,restart=restart)
     require(type(mobile_episodes) is list and len(mobile_episodes) == 2 and
             [ep.get('world') for ep in mobile_episodes] == [1,2] and
             type(group_intent) is dict and group_intent.get('passed') is True and group_intent.get('user_edits') is False and
