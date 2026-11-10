@@ -202,6 +202,50 @@ static void requireMovementHook(int64_t site,const char* exportName) {
     if(!expected || target!=expected)
         throw std::runtime_error(std::string("movement actor import target differs: ")+exportName);
 }
+static void requireMovementPointerHook(int64_t site,const char* exportName) {
+    const auto module=GetModuleHandleW(L"GameAssembly.dll");
+    if(!module)throw std::runtime_error("movement pointer module is unavailable");
+    const auto image=reinterpret_cast<const uint8_t*>(module);
+    const auto dos=reinterpret_cast<const IMAGE_DOS_HEADER*>(image);
+    if(dos->e_magic!=IMAGE_DOS_SIGNATURE || dos->e_lfanew<=0 || dos->e_lfanew>=4096)
+        throw std::runtime_error("movement pointer image header differs");
+    const auto pe=reinterpret_cast<const IMAGE_NT_HEADERS64*>(image+dos->e_lfanew);
+    const int64_t size=pe->OptionalHeader.SizeOfImage;
+    if(pe->Signature!=IMAGE_NT_SIGNATURE || pe->FileHeader.Machine!=IMAGE_FILE_MACHINE_AMD64 ||
+       pe->OptionalHeader.Magic!=IMAGE_NT_OPTIONAL_HDR64_MAGIC || site<0 || size<8 || site>size-8)
+        throw std::runtime_error("movement pointer image layout differs");
+    uintptr_t target=0;memcpy(&target,image+site,8);
+    const auto base=reinterpret_cast<uintptr_t>(module);
+    // The existing DIR64 fixup makes the slot an ACTUAL loaded-image address.
+    // It points to our RX import thunk, never directly to the helper export.
+    if(target<base || target-base>static_cast<uintptr_t>(size-6))
+        throw std::runtime_error("movement method pointer lies outside image");
+    const int64_t thunk=static_cast<int64_t>(target-base);
+    if(image[thunk]!=0xff || image[thunk+1]!=0x25)
+        throw std::runtime_error("movement requires its optional method-pointer hook");
+    int32_t displacement=0;memcpy(&displacement,image+thunk+2,4);
+    const int64_t iat=thunk+6+displacement;
+    if(iat<0 || iat>size-8)throw std::runtime_error("movement pointer import lies outside image");
+    uintptr_t imported=0;memcpy(&imported,image+iat,8);
+    const auto helper=GetModuleHandleW(L"BattleAcesOffline.dll");
+    const auto expected=reinterpret_cast<uintptr_t>(helper?GetProcAddress(helper,exportName):nullptr);
+    if(!expected || imported!=expected)
+        throw std::runtime_error(std::string("movement pointer import target differs: ")+exportName);
+}
+static void requireMovementBytes(int64_t site,const char* bytes,size_t count) {
+    const auto module=GetModuleHandleW(L"GameAssembly.dll");
+    if(!module)throw std::runtime_error("movement byte-patch module is unavailable");
+    const auto image=reinterpret_cast<const uint8_t*>(module);
+    const auto dos=reinterpret_cast<const IMAGE_DOS_HEADER*>(image);
+    if(dos->e_magic!=IMAGE_DOS_SIGNATURE || dos->e_lfanew<=0 || dos->e_lfanew>=4096)
+        throw std::runtime_error("movement byte-patch image header differs");
+    const auto pe=reinterpret_cast<const IMAGE_NT_HEADERS64*>(image+dos->e_lfanew);
+    const uint64_t size=pe->OptionalHeader.SizeOfImage;
+    if(pe->Signature!=IMAGE_NT_SIGNATURE || pe->FileHeader.Machine!=IMAGE_FILE_MACHINE_AMD64 ||
+       pe->OptionalHeader.Magic!=IMAGE_NT_OPTIONAL_HDR64_MAGIC || site<0 || !count ||
+       count>size || static_cast<uint64_t>(site)>size-count || memcmp(image+site,bytes,count))
+        throw std::runtime_error("movement requires its scoped focus argument patch");
+}
 static void requireActorHook() {
     requireMovementHook(0x3e6608b,"OfflinePredictionActorUpdate");
     requireMovementHook(0x3ea625a,"OfflinePredictionGroupReleaseRemove");
@@ -210,6 +254,13 @@ static void requireActorHook() {
     requireMovementHook(0x3bf416d,"OfflinePredictionCastingSet");
     requireMovementHook(0x3bf42e9,"OfflinePredictionCastingSet");
     requireMovementHook(0x3bf310f,"OfflinePredictionControlGroupFocus");
+    requireMovementHook(0x3bfa10b,"OfflinePredictionControlGroupFocus");
+    requireMovementHook(0x3bf306c,"OfflinePredictionFocusActuate");
+    requireMovementHook(0x3bf322b,"OfflinePredictionStartRepeatFocus");
+    requireMovementHook(0x3bf315d,"OfflinePredictionControlGroupCamera");
+    requireMovementHook(0x3bfa027,"OfflinePredictionControlGroupCamera");
+    requireMovementPointerHook(0x6d4dc48,"OfflinePredictionRepeatFocusNext");
+    requireMovementBytes(0x3bf305b,"\x45\x88\xf0",3);
 }
 uint64_t movementWorldId() {
     auto& s=state();std::lock_guard<std::recursive_mutex> hold(s.gate);

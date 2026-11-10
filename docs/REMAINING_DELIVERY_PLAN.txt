@@ -69,8 +69,11 @@ generic newborn readiness and visual comfort are not accepted from it.
 Actual28 now passes original recall in both rounds:the absent unit has original
 Count0 and recall legally refuses without changing selection;after restoration
 Count1 recalls the same current unit. All2888 native hashes match/natural Quit.
-Next:repair held group focus retargeting the HQ during provisional absence,
-then casting and held-input lifetimes. Forced-retirement group clearing and physical/Internet
+Actual29 now passes held-focus continuity and original cancellation while
+pending:all camera callbacks target current member11,no pending camera calls
+or silent restarts,all2894 native hashes match,and every child quits naturally.
+Next:identify the actual mapped noninstant Move/AttackMove UI route,then qualify
+active casting and held-input lifetimes. Forced-retirement group clearing and physical/Internet
 feedback remain open. N35's reserved kit stays frozen. Prior failures and the
 model-to-runtime ordering correction are preserved in the focused evidence.
 Detailed failures/scopes:prediction-multiplayer-movement.txt.

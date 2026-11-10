@@ -36,6 +36,8 @@ class PredictionSelectionPatchTests(unittest.TestCase):
         stack.enter_context(patch.object(selection, 'SUPPORTED_ORIGINAL_SHA256', self.sha))
         stack.enter_context(patch.object(selection, 'BODY_GUARDS', self.guards))
         stack.enter_context(patch.object(selection, 'CALL_HOOKS', self.hooks))
+        stack.enter_context(patch.object(selection, 'POINTER_HOOKS', []))
+        stack.enter_context(patch.object(selection, 'PATCHES', []))
         return stack
 
     def patch_recipe_fixture(self):
@@ -44,6 +46,8 @@ class PredictionSelectionPatchTests(unittest.TestCase):
         stack.enter_context(patch.object(actor, 'SUPPORTED_ORIGINAL_SHA256', self.sha))
         stack.enter_context(patch.object(actor, 'BODY_GUARDS', []))
         stack.enter_context(patch.object(actor, 'CALL_HOOKS', self.hooks))
+        stack.enter_context(patch.object(actor, 'POINTER_HOOKS', []))
+        stack.enter_context(patch.object(actor, 'PATCHES', []))
         for name in ('PATCHES', 'HOOKS', 'TAIL_HOOKS', 'CALL_HOOKS',
                      'COMMUNITY_CALL_HOOKS', 'COMMUNITY_TAIL_HOOKS',
                      'COSMETIC_PATCHES', 'COSMETIC_CALL_HOOKS', 'COSMETIC_TAIL_HOOKS',

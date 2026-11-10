@@ -85,7 +85,7 @@ def profile(package):
     helper=bounded(paths['main_helper'],8*1024*1024)
     markers=(b'BA_RESURRECTION_MOVEMENT_PIPELINE_V1',b'BA_RESURRECTION_NATIVE_WORKER_PROXY_V1',
         b'BA_RESURRECTION_ORIGINAL_COMMAND_SCHEDULING_V1')
-    hooks=prediction_worker.CALL_HOOKS+prediction_actor_repair.CALL_HOOKS
+    hooks=prediction_worker.CALL_HOOKS+prediction_actor_repair.CALL_HOOKS+prediction_actor_repair.POINTER_HOOKS
     if any(m not in helper for m in markers)or any(h['name'].encode()+b'\0'not in helper for h in hooks):
         raise PackageError('Private package helper lacks movement prediction support')
     return dict(package=package,descriptor=value,paths=paths,inventory=inventory,
@@ -140,12 +140,20 @@ def inspect_game(package,game):
     is_prediction=actual==hashes['prediction_sha256']
     if manifest.get('call_hooks')!=(extended if is_prediction else ordinary_hooks):
         raise PackageError('GameAssembly hook descriptors differ from the exact prediction recipe')
+    pointer_hooks=prediction_actor_repair.POINTER_HOOKS if is_prediction else []
+    if manifest.get('pointer_hooks',[])!=pointer_hooks:
+        raise PackageError('GameAssembly pointer descriptors differ from the exact prediction recipe')
+    ordinary_patches=patcher.PATCHES+patcher.COSMETIC_PATCHES+patcher.DLSS_PRIVACY_PATCHES
+    patches=ordinary_patches+(prediction_actor_repair.PATCHES if is_prediction else [])
+    if manifest.get('patches')!=patches:
+        raise PackageError('GameAssembly byte patches differ from the exact prediction recipe')
     marker=dict(schema=1,profile=PROFILE,package_sha256=bundle['package_sha256'],**hashes)
     if is_prediction and manifest.get('prediction_client')!=marker:
         raise PackageError('Prediction manifest does not belong to this exact private package')
     return dict(bundle=bundle,game=game,assembly=assembly,manifest_path=manifest_path,
         current=current,manifest_raw=manifest_raw,manifest=manifest,predicted=predicted,hashes=hashes,
-        hooks=extended,marker=marker,is_prediction=is_prediction)
+        hooks=extended,pointer_hooks=list(prediction_actor_repair.POINTER_HOOKS),
+        patches=ordinary_patches+prediction_actor_repair.PATCHES,marker=marker,is_prediction=is_prediction)
 
 
 def settings(game):
@@ -215,7 +223,9 @@ def prepare(package,game):
         manifest=copy.deepcopy(checked['manifest'])
         manifest['patched_sha256']=checked['hashes']['prediction_sha256']
         manifest['components']['GameAssembly.dll'].update(patched_sha256=manifest['patched_sha256'],installed_sha256=manifest['patched_sha256'])
-        manifest['call_hooks']=checked['hooks'];manifest['prediction_client']=checked['marker']
+        manifest['call_hooks']=checked['hooks'];manifest['pointer_hooks']=checked['pointer_hooks']
+        manifest['patches']=checked['patches']
+        manifest['prediction_client']=checked['marker']
         changes=[(checked['assembly'],checked['current'],checked['predicted']),
             (checked['manifest_path'],checked['manifest_raw'],json_bytes(manifest)),
             (config,bounded(config,32768)if config.exists()else None,json_bytes(value))]

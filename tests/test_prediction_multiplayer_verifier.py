@@ -32,7 +32,8 @@ class PreparationTests(unittest.TestCase):
         helper = b'MZ' + b' '.join((b'BA_RESURRECTION_MOVEMENT_PIPELINE_V1',
             b'BA_RESURRECTION_NATIVE_WORKER_PROXY_V1', b'BA_RESURRECTION_ORIGINAL_COMMAND_SCHEDULING_V1'))
         hooks = prediction_worker.CALL_HOOKS + prediction_actor_repair.CALL_HOOKS
-        helper += b' '.join(h['name'].encode() + b'\0' for h in hooks)
+        pointers = prediction_actor_repair.POINTER_HOOKS
+        helper += b' '.join(h['name'].encode() + b'\0' for h in hooks + pointers)
         helper += '-prediction-movement-observe-position='.encode('utf-16-le')
         (self.game / 'BattleAcesOffline.dll').write_bytes(helper)
         (self.game / 'Battle Aces.exe').write_bytes(b'MZgame')
@@ -43,7 +44,8 @@ class PreparationTests(unittest.TestCase):
         state = self.game / '.battleaces-resurrection'; state.mkdir()
         (state / 'patch-manifest.json').write_text(json.dumps(dict(
             helper_sha256=verifier.sha(self.game / 'BattleAcesOffline.dll'),
-            patched_sha256=verifier.sha(self.game / 'GameAssembly.dll'), call_hooks=hooks)))
+            patched_sha256=verifier.sha(self.game / 'GameAssembly.dll'), call_hooks=hooks,
+            pointer_hooks=pointers,patches=prediction_actor_repair.PATCHES)))
         build_receipt = self.root / 'helper-build.json'
         build_receipt.write_text(json.dumps(dict(schema=1, sources_unchanged_during_build=True,
             helper_sha256=verifier.sha(self.game / 'BattleAcesOffline.dll'),

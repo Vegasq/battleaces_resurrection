@@ -26,12 +26,13 @@ class MobilePreparationTests(unittest.TestCase):
         data=json.loads(receipt.read_text());data['helper_sha256']=v.sha(helper);receipt.write_text(json.dumps(data))
         self.args=deepcopy(f.args);self.args.scenario='mobile';self.args.mobile_correction=True
 
-    def add_group_markers(self, *, include_recovery=False, include_recall=False):
+    def add_group_markers(self, *, include_recovery=False, include_recall=False, include_focus=False):
         f=self.fixture;helper=f.game/'BattleAcesOffline.dll'
         helper.write_bytes(helper.read_bytes()+b'|'+ '-prediction-mobile-group-intent-smoke'.encode('utf-16-le')+
                            '-prediction-mobile-group-user-edits-smoke'.encode('utf-16-le'))
         if include_recovery:helper.write_bytes(helper.read_bytes()+'-prediction-mobile-recovery-stall-smoke'.encode('utf-16-le'))
         if include_recall:helper.write_bytes(helper.read_bytes()+'-prediction-mobile-recall-smoke'.encode('utf-16-le'))
+        if include_focus:helper.write_bytes(helper.read_bytes()+'-prediction-mobile-focus-smoke'.encode('utf-16-le'))
         self.args.expected_helper_sha256=v.sha(helper)
         for path in(f.game/'.battleaces-resurrection/patch-manifest.json',f.args.helper_build_receipt):
             data=json.loads(path.read_text());data['helper_sha256']=v.sha(helper);path.write_text(json.dumps(data))
@@ -51,6 +52,60 @@ class MobilePreparationTests(unittest.TestCase):
             self.assertIn('-native-quit-smoke',extra)
             self.assertNotIn('-frame-timing-worlds=2',extra)
             self.assertNotIn('-prediction-mobile-recall-smoke',extra)
+            self.assertNotIn('-prediction-mobile-focus-smoke',extra)
+        self.assertNotIn('mobile_focus',plan)
+
+    def test_movement_pointer_and_byte_patch_descriptors_are_exact_required_members(self):
+        manifest=self.fixture.game/'.battleaces-resurrection/patch-manifest.json'
+        original=json.loads(manifest.read_text())
+        cases=('no_pointer_key','no_pointer_entry','pointer_inventory','pointer_target','pointer_relocation_guard',
+               'no_patch_key','no_patch_entry','patch_inventory','patch_before','patch_after','patch_address')
+        for kind in cases:
+            with self.subTest(kind=kind):
+                data=deepcopy(original)
+                if kind=='no_pointer_key':data.pop('pointer_hooks')
+                elif kind=='no_pointer_entry':data['pointer_hooks']=[]
+                elif kind=='pointer_inventory':data['pointer_hooks']=None
+                elif kind=='pointer_target':data['pointer_hooks'][0]['target_rva']+=1
+                elif kind=='pointer_relocation_guard':data['pointer_hooks'][0]['relocation_entry_before']='0000'
+                elif kind=='no_patch_key':data.pop('patches')
+                elif kind=='no_patch_entry':data['patches']=[]
+                elif kind=='patch_inventory':data['patches']='not-an-inventory'
+                elif kind=='patch_before':data['patches'][0]['before']='909090'
+                elif kind=='patch_after':data['patches'][0]['after']='909090'
+                else:data['patches'][0]['offset']+=1
+                manifest.write_text(json.dumps(data));before=self.fixture.snapshot_game()
+                with patch.object(v.subprocess,'Popen',side_effect=AssertionError('Native forbidden')):
+                    with self.assertRaisesRegex(AssertionError,'manifest lacks movement '+('pointer hook'if'pointer'in kind else'byte patch')):
+                        v.prepare(self.args)
+                self.assertFalse(self.args.output.exists());self.assertEqual(before,self.fixture.snapshot_game())
+
+    def test_pointer_export_marker_is_required_even_with_rebound_authored_helper_hash(self):
+        from client_patch.patcher import prediction_actor_repair
+        helper=self.fixture.game/'BattleAcesOffline.dll'
+        marker=prediction_actor_repair.POINTER_HOOKS[0]['name'].encode('ascii')+b'\0'
+        raw=helper.read_bytes();self.assertIn(marker,raw)
+        helper.write_bytes(raw.replace(marker,marker[:-1]+b'_missing\0'))
+        self.args.expected_helper_sha256=v.sha(helper)
+        for path in(self.fixture.game/'.battleaces-resurrection/patch-manifest.json',self.args.helper_build_receipt):
+            data=json.loads(path.read_text());data['helper_sha256']=v.sha(helper);path.write_text(json.dumps(data))
+        before=self.fixture.snapshot_game()
+        with patch.object(v.subprocess,'Popen',side_effect=AssertionError('Native forbidden')):
+            with self.assertRaisesRegex(AssertionError,'movement/actor/selection exports'):v.prepare(self.args)
+        self.assertFalse(self.args.output.exists());self.assertEqual(before,self.fixture.snapshot_game())
+
+    def test_existing_diagnostic_quit_pointer_can_coexist_with_required_movement_pointer(self):
+        # Membership is additive. This authored metadata check does not claim
+        # an actual Quit/native run or replace the pinned helper/GA digests.
+        from client_patch.patcher.patch_client import QUIT_POINTER_HOOKS
+        manifest=self.fixture.game/'.battleaces-resurrection/patch-manifest.json'
+        data=json.loads(manifest.read_text());data['pointer_hooks']+=deepcopy(QUIT_POINTER_HOOKS)
+        manifest.write_text(json.dumps(data));before=self.fixture.snapshot_game()
+        with patch.object(v.subprocess,'Popen',side_effect=AssertionError('Native forbidden')):
+            plan=v.prepare(self.args)
+        self.assertFalse(plan['native_executed']);self.assertEqual(before,self.fixture.snapshot_game())
+        self.assertEqual(plan['files']['helper']['sha256'],self.args.expected_helper_sha256)
+        self.assertEqual(plan['files']['gameassembly']['sha256'],self.args.expected_gameassembly_sha256)
 
     def test_mobile_rejects_unqualified_plan_before_creating_output(self):
         cases=[dict(mobile_correction=False),dict(lifecycle='prefix'),dict(frames=600),dict(move_slot=1),
@@ -155,6 +210,37 @@ class MobilePreparationTests(unittest.TestCase):
                 (self.args.output/'invocation.json').write_text(json.dumps(altered))
                 with self.assertRaisesRegex(AssertionError,'group edits'):v.verify_prepared(self.args.output)
 
+    def test_focus_requires_explicit_preserve_scope_and_cannot_mix_recall_edits_or_stall(self):
+        for changes in(dict(mobile_focus=True),dict(mobile_focus=True,mobile_group_intent=True,scenario='movement'),
+                       dict(mobile_focus=True,mobile_group_intent=True,mobile_recall=True),
+                       dict(mobile_focus=True,mobile_group_intent=True,mobile_group_user_edits=True),
+                       dict(mobile_focus=True,mobile_group_intent=True,mobile_group_user_edits=True,mobile_recovery_stall=True)):
+            with self.subTest(changes=changes):
+                args=deepcopy(self.args)
+                for key,val in changes.items():setattr(args,key,val)
+                with self.assertRaises(AssertionError):v.prepare(args)
+                self.assertFalse(args.output.exists())
+        self.add_group_markers();self.args.mobile_focus=self.args.mobile_group_intent=True
+        with self.assertRaisesRegex(AssertionError,'helper lacks explicit'):v.prepare(self.args)
+
+    def test_focus_forwarding_prepared_contract_and_no_ordinary_diagnostic_expansion(self):
+        self.add_group_markers(include_focus=True);self.args.mobile_focus=self.args.mobile_group_intent=True
+        with patch.object(v.subprocess,'Popen',side_effect=AssertionError('Native forbidden')):
+            plan=v.prepare(self.args);v.verify_prepared(self.args.output)
+        self.assertTrue(plan['mobile_focus'])
+        for slot in(0,1):
+            extra=v.command_extra(plan,slot,self.args.output/'run')
+            self.assertEqual(extra.count('-prediction-mobile-focus-smoke'),1)
+            for flag in('-prediction-mobile-recall-smoke','-prediction-mobile-group-user-edits-smoke',
+                        '-prediction-mobile-recovery-stall-smoke','-prediction-movement-smoke','-frame-timing-worlds=2'):
+                self.assertNotIn(flag,extra)
+        for change in(dict(mobile_focus=1),dict(mobile_group_intent=False),dict(mobile_recall=True),
+                      dict(mobile_group_user_edits=True),dict(mobile_recovery_stall=True)):
+            with self.subTest(change=change):
+                altered=deepcopy(plan);altered.update(change)
+                (self.args.output/'invocation.json').write_text(json.dumps(altered))
+                with self.assertRaisesRegex(AssertionError,'group edits'):v.verify_prepared(self.args.output)
+
     def test_ordinary_startup_defaults_and_no_generic_smoke_are_unchanged(self):
         args=deepcopy(self.fixture.args)
         plan=v.prepare(args)
@@ -203,6 +289,10 @@ class MobilePreparationTests(unittest.TestCase):
         with patch.object(v,'prepare',prepare),contextlib.redirect_stdout(io.StringIO()):
             self.assertEqual(v.main(argv),0)
         self.assertTrue(seen[1].mobile_recall);self.assertFalse(seen[1].mobile_group_user_edits)
+        argv=[arg for arg in argv if arg!='--mobile-recall']+['--mobile-focus']
+        with patch.object(v,'prepare',prepare),contextlib.redirect_stdout(io.StringIO()):
+            self.assertEqual(v.main(argv),0)
+        self.assertTrue(seen[2].mobile_focus);self.assertFalse(seen[2].mobile_recall)
 
 
 class MobileStateFixture:
@@ -376,6 +466,46 @@ class MobileFinalGateTests(unittest.TestCase):
     def test_recall_witness_cannot_override_mobile_body_phase_or_closed_hash_failure(self):
         f=self.recall_fixture()
         f.report.update(recall_witness_passed=True,mobile_recall=dict(passed=True,
+            episodes=[dict(passed=True,match=m,world=141+i)for i,m in enumerate(f.matches)]))
+        f.report['mobile_correction']['passed']=False
+        with self.assertRaises(AssertionError):f.finalize()
+        self.assertFalse(v.mobile_final_gate(f.plan,f.report))
+        f.report['mobile_correction']['passed']=True;f.workers[1][181]['parsed_state_sha256']='0'*64
+        with self.assertRaisesRegex(AssertionError,'hashes differ'):f.finalize()
+        self.assertFalse(v.mobile_final_gate(f.plan,f.report))
+
+    def focus_fixture(self):
+        f=self.f;f.plan.update(mobile_group_intent=True,mobile_focus=True)
+        f.report.update(group_intent_witness_passed=True,mobile_group_intent=dict(passed=True,user_edits=False,
+            episodes=[dict(passed=True,match=match,world=141+i)for i,match in enumerate(f.matches)]))
+        return f
+
+    def test_requested_focus_is_fail_closed_without_both_actual_world_envelopes(self):
+        f=self.focus_fixture()
+        with self.assertRaisesRegex(AssertionError,'focus witness'):f.finalize()
+        self.assertFalse(v.mobile_final_gate(f.plan,f.report))
+        # Authored final-envelope contract only; no actual event evaluator is
+        # substituted by these synthetic rows.
+        f.report.update(focus_witness_passed=True,mobile_focus=dict(passed=True,
+            episodes=[dict(passed=True,match=m,world=141+i)for i,m in enumerate(f.matches)]))
+        self.assertTrue(v.mobile_final_gate(f.plan,f.finalize()))
+        for kind in('missing','failed','world','match','recall','edits','stall'):
+            with self.subTest(kind=kind):
+                altered=deepcopy(f.report);plan=deepcopy(f.plan)
+                if kind=='missing':altered['mobile_focus']['episodes'].pop()
+                elif kind=='failed':altered['mobile_focus']['episodes'][0]['passed']=False
+                elif kind=='world':altered['mobile_focus']['episodes'][0]['world']=999
+                elif kind=='match':altered['mobile_focus']['episodes'][0]['match']='c'*32
+                elif kind=='recall':plan['mobile_recall']=True
+                elif kind=='edits':plan['mobile_group_user_edits']=True
+                else:plan['mobile_recovery_stall']=True
+                with self.assertRaises(AssertionError):
+                    v.finalize_mobile_observation(altered,plan,states=f.states,worker_state_rows=f.workers,client_logs=f.logs)
+                self.assertFalse(v.mobile_final_gate(plan,altered))
+
+    def test_focus_envelope_cannot_override_old_body_phase_or_all_closed_state_failure(self):
+        f=self.focus_fixture()
+        f.report.update(focus_witness_passed=True,mobile_focus=dict(passed=True,
             episodes=[dict(passed=True,match=m,world=141+i)for i,m in enumerate(f.matches)]))
         f.report['mobile_correction']['passed']=False
         with self.assertRaises(AssertionError):f.finalize()

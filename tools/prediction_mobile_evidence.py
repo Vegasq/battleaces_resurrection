@@ -700,6 +700,302 @@ def evaluate_group_intent(log, *, attacker_log, mobile_episodes, user_edits=Fals
         scope='Single original manual group4 retention OR separate Clear/empty-replace captures, plus attacker group4 provisional hold and confirmed-death numeric purge in its separate client; no physical UI/casting/all-controls acceptance')
 
 
+def _group_focus_fixture_rows(log, *, match, world, token):
+    """Original fixture callbacks/snapshots, separate from product call proof."""
+    require(world in (1,2) and _integer(world,1,2) and _integer(token,1), 'focus fixture world/token differs')
+    rows=_rows(log,'MOBILE GROUP FOCUS ',match,5)
+    names=['setup','restored','complete'] if world == 1 else ['setup','before_cancel','after_cancel','restored','complete']
+    fields={'schema','event','world','match','slot','entity','unit_type','army','frame','completed_frame','tick_ms','sampled_us',
+        'selector','incarnation','confirmed_incarnation','current_incarnation','retained_group','group_ids','selected_ids',
+        'preview_ids','casting_ids','native_identity_present','current_admitted','current_actor','current_actual_entity',
+        'current_actual_type','current_actual_army','source_resolvable_count','focus_group','focus_actor','pending_iteration',
+        'pending_epoch','pending_iterator','release_pending_baseline','pending_commands','cancel_callback','cancel_token','physicalUI'}
+    require([r.get('event') for r in rows] == names, 'focus fixture original event chain is incomplete')
+    for row in rows:
+        _common(row,world=world)
+        require(set(row) == fields and type(row['slot']) is int and row['slot'] == 1 and
+                (row['entity'],row['unit_type'],row['army']) == (11,1,1) and
+                _integer(row['completed_frame'],-1,2**31-1) and _integer(row['incarnation'],1) and
+                _integer(row['confirmed_incarnation'],1) and row['incarnation'] == row['confirmed_incarnation'] == token and
+                _integer(row['current_incarnation']) and type(row['retained_group']) is int and row['retained_group'] == 4 and
+                type(row['native_identity_present']) is bool and type(row['current_admitted']) is bool and
+                _integer(row['source_resolvable_count'],0,1) and _integer(row['focus_group'],-1,2**31-1) and
+                type(row['pending_commands']) is int and row['pending_commands'] == 0 and
+                _integer(row['pending_iteration']) and _integer(row['pending_epoch']) and _integer(row['release_pending_baseline']) and
+                _pointer(row['selector']) > 0, 'focus fixture identity/owner/schema differs')
+        for key in ('current_actor','focus_actor','pending_iterator'):_pointer(row[key])
+        require(bool(row['pending_iteration']) == bool(row['pending_epoch']) == bool(_pointer(row['pending_iterator'])),
+                'focus fixture pending witness is only partial')
+        for key in ('group_ids','selected_ids','preview_ids','casting_ids'):
+            ids=row[key]
+            require(type(ids) is list and len(ids) <= 4096 and all(_integer(v,0,UINT32) for v in ids) and
+                    len(set(ids)) == len(ids), 'focus fixture observed ID set is invalid')
+        require(row['group_ids'] == [11], 'focus fixture lost original group4 intent')
+        for key in ('current_actual_entity','current_actual_type','current_actual_army'):
+            require(row[key] is None or _integer(row[key],0,UINT32), 'focus fixture nullable current identity differs')
+        if row['event'] == 'after_cancel':
+            require(row['cancel_callback'] == 'Uncapped.UnitSelector.FocusControlGroupCancel' and row['cancel_token'] == '06002220',
+                    'focus fixture original Cancel callback differs')
+        else:
+            require(row['cancel_callback'] is None and row['cancel_token'] is None, 'unobserved focus cancellation fabricated')
+    require(len({_pointer(r['selector']) for r in rows}) == 1 and all(b['frame'] >= a['frame'] and
+            b['tick_ms'] >= a['tick_ms'] and b['sampled_us'] >= a['sampled_us'] for a,b in zip(rows,rows[1:])),
+            'focus fixture owner or actual clocks/frame changed')
+    setup=rows[0];restored,last=rows[-2:]
+    require(setup['frame'] == 130 and setup['focus_group'] == 4 and setup['selected_ids'] == [11] and
+            _pointer(setup['focus_actor']) == _pointer(setup['current_actor']) > 0 and not setup['release_pending_baseline'] and
+            restored['release_pending_baseline'] == last['release_pending_baseline'] and last['frame'] >= 260,
+            'focus fixture lacks original positive setup/complete')
+    for row in (setup,restored,last):
+        require(row['native_identity_present'] and row['current_admitted'] and _pointer(row['current_actor']) > 0 and
+                row['current_incarnation'] == token and row['source_resolvable_count'] == 1 and
+                (row['current_actual_entity'],row['current_actual_type'],row['current_actual_army']) == (11,1,1),
+                'focus fixture current mobile is not the admitted canonical lease')
+    if world == 1:
+        require(all(not r['pending_iteration'] and r['focus_group'] == 4 for r in rows) and
+                _pointer(last['focus_actor']) == _pointer(last['current_actor']), 'positive focus fixture lost held intent/current cache')
+    else:
+        before,after=rows[1:3]
+        require(not setup['pending_iteration'] and before['pending_iteration'] > before['release_pending_baseline'] and
+                len({r['release_pending_baseline'] for r in rows[1:]}) == 1 and
+                len({(r['pending_iteration'],r['pending_epoch'],_pointer(r['pending_iterator'])) for r in rows[1:]}) == 1 and
+                before['frame'] == after['frame'] and before['focus_group'] == 4 and
+                all(not r['native_identity_present'] and not r['current_admitted'] and
+                    _pointer(r['current_actor']) == 0 and r['current_incarnation'] == 0 and
+                    all(r[k] is None for k in ('current_actual_entity','current_actual_type','current_actual_army'))
+                    for r in (before,after)) and
+                all(r['focus_group'] == -1 and not _pointer(r['focus_actor']) for r in (after,restored,last)),
+                'focus fixture original pending cancellation did not remain cancelled')
+    return rows
+
+
+def _group_focus_product_rows(log, *, matches):
+    require(type(log) is str and len(log) <= 32*1024*1024, 'focus product log exceeds bound')
+    fields={'schema','event_sequence','event','stage','route','world','match','selector','iterator','request_epoch','iteration',
+        'group','held_group','tick_ms','sampled_us','original_state','yield_bits','original_result','source_ids','logical_ids',
+        'actor','entity','unit_type','army','incarnation','member','initialized','current_lease'}
+    stages={'request':{'accepted_repeat'},'start':{'scheduling'},'scheduled':{'returned'},
+        'iteration':{'waiting_absent','refind','delegate','cancel_delegate','ending_delegate'},'camera':{'requested','returned'},
+        'cancel_observed':{'cancel_delegate'},'ending_observed':{'ending_delegate'},
+        'terminal':{'original_false','world_retired','superseded','failed'}}
+    rows=[];previous=None
+    for line_index,line in enumerate(log.splitlines()):
+        if 'MOVEMENT FOCUS ' not in line:continue
+        raw=line.split('MOVEMENT FOCUS ',1)[1]
+        require(0 < len(raw) <= 8192 and len(rows) < 65536, 'focus product diagnostic exceeds bound')
+        row=json.loads(raw,object_pairs_hook=_unique_object)
+        require(type(row) is dict and set(row) == fields and type(row['schema']) is int and row['schema'] == 1 and
+                row['match'] in matches and _integer(row['world'],1,2) and row['match'] == matches[row['world']-1] and
+                _integer(row['event_sequence'],1) and _integer(row['request_epoch'],1) and _integer(row['iteration']) and
+                row['event'] in stages and row['stage'] in stages[row['event']] and row['route'] in ('initial','repeat') and
+                _pointer(row['selector']) > 0 and _integer(row['group'],0,UINT32) and _integer(row['held_group'],-1,2**31-1) and
+                _integer(row['tick_ms']) and _integer(row['sampled_us']), 'focus product schema/owner/event differs')
+        require(row['route'] == 'repeat' or row['event'] == 'camera', 'focus initial route is not a camera callback')
+        if row['iterator'] is None:
+            require(row['iteration'] == 0 and row['original_state'] is None and row['yield_bits'] is None,
+                    'focus product fabricated iterator state')
+        else:
+            require(_pointer(row['iterator']) > 0 and _integer(row['original_state'],-2**31,2**31-1) and
+                    _integer(row['yield_bits'],0,UINT32), 'focus product iterator/state differs')
+        require(row['original_result'] is None or type(row['original_result']) is bool, 'focus original result is not observed bool/null')
+        for key in ('source_ids','logical_ids'):
+            ids=row[key]
+            require(type(ids) is list and len(ids) <= 4096 and all(_integer(v,0,UINT32) for v in ids) and
+                    len(set(ids)) == len(ids), 'focus numeric membership is invalid')
+        if row['actor'] is None:
+            require(all(row[k] is None for k in ('entity','unit_type','army','incarnation')) and
+                    all(row[k] is False for k in ('member','initialized','current_lease')), 'focus null candidate has invented lease facts')
+        else:
+            require(_pointer(row['actor']) > 0 and _integer(row['entity'],0,UINT32) and _integer(row['unit_type'],1,UINT32) and
+                    _integer(row['army'],0,UINT32) and _integer(row['incarnation'],1) and
+                    all(row[k] is True for k in ('member','initialized','current_lease')) and
+                    row['entity'] in row['source_ids'] and row['entity'] in row['logical_ids'],
+                    'focus candidate lacks independent source/group membership and current initialized lease')
+        if row['event'] == 'camera':
+            require(row['actor'] is not None and row['original_result'] is None and
+                    ((row['route'] == 'initial' and row['iterator'] is None) or
+                     (row['route'] == 'repeat' and row['iterator'] is not None and row['iteration'] > 0)),
+                    'focus camera does not bind its actual initial/repeat route')
+        elif row['event'] == 'iteration':
+            require(row['iterator'] is not None and row['iteration'] > 0,
+                    'focus outer iteration has no actual iterator/ordinal')
+            if row['stage'] == 'waiting_absent':
+                require(row['actor'] is None and row['original_result'] is None and row['original_state'] in (1,2) and
+                        row['yield_bits'] == 0xff800000, 'focus pending did not preserve original MEC yield/state')
+            else:
+                require(type(row['original_result']) is bool, 'focus delegate lacks original bool receipt')
+        elif row['event'] == 'terminal':
+            require(row['actor'] is None and (row['original_result'] is False if row['stage'] == 'original_false' else
+                    row['original_result'] is None), 'focus terminal fabricated an original false result')
+        else:
+            require(row['actor'] is None and row['original_result'] is None, 'focus bookkeeping fabricated an original result/actor')
+        old=previous
+        require(row['event_sequence'] == (old['event_sequence']+1 if old else 1) and
+                (old is None or row['sampled_us'] >= old['sampled_us'] and row['tick_ms'] >= old['tick_ms']),
+                'focus event sequence or checked clock has a gap/regression')
+        previous=row;rows.append(dict(row=row,line=line_index))
+    return rows
+
+
+def evaluate_group_focus(log, *, attacker_log, mobile_episodes, group_intent):
+    """Complete owned repeat-focus trace, distinct from cached-focus snapshots."""
+    require(type(mobile_episodes) is list and len(mobile_episodes) == 2 and
+            [ep.get('world') for ep in mobile_episodes] == [1,2] and
+            type(group_intent) is dict and group_intent.get('passed') is True and group_intent.get('user_edits') is False and
+            len(group_intent.get('episodes',[])) == 2, 'focus requires both passed mobile/preserved-group episodes')
+    matches=[ep.get('match') for ep in mobile_episodes]
+    require(len(set(matches)) == 2 and all(type(match) is str and re.fullmatch('[a-f0-9]{32}',match) for match in matches) and
+            [r.get('match') for r in group_intent['episodes']] == matches,
+            'focus actual match/rematch binding differs')
+    require(type(attacker_log) is str and len(attacker_log) <= 32*1024*1024 and
+            'MOVEMENT FOCUS ' not in attacker_log and 'MOBILE GROUP FOCUS ' not in attacker_log,
+            'attacker emitted the victim-only focus witness')
+    product=_group_focus_product_rows(log,matches=matches)
+    require(not any(item['row']['event'] == 'terminal' and item['row']['stage'] == 'failed' for item in product),
+            'focus product recorded a runtime failure')
+    fixture_index={};release_index={}
+    for i,line in enumerate(log.splitlines()):
+        for prefix in ('MOBILE GROUP FOCUS ','MOBILE CORRECTION '):
+            if prefix not in line:continue
+            raw=line.split(prefix,1)[1];require(0 < len(raw) <= 8192, 'focus fixture diagnostic exceeds bound')
+            row=json.loads(raw,object_pairs_hook=_unique_object)
+            if prefix == 'MOBILE GROUP FOCUS ':
+                require(type(row) is dict and row.get('match') in matches, 'focus fixture extra match')
+                key=(row['match'],row.get('event'));require(key not in fixture_index,'duplicate focus fixture event')
+                fixture_index[key]=i
+            elif row.get('event') == 'original_mobile_release_observed':
+                require(row['match'] not in release_index,'duplicate focus physical release')
+                release_index[row['match']]=i
+    result=[]
+    for ep,group in zip(mobile_episodes,group_intent['episodes']):
+        require(ep.get('passed') is True and ep.get('fresh_motion',{}).get('passed') is True and
+                ep.get('fresh_assignment_span',{}).get('hashes_match') is True and
+                ep.get('escape_native_replay',{}).get('promotion_group_replayed_delta',0) > 0 and
+                ep.get('escape_native_replay',{}).get('continuation_frames') == 20 and
+                group.get('passed') is True and group.get('world') == ep['world'] and group.get('retained_group4_preserved') is True,
+                'focus lacks unchanged mobile input/replay+20/native confirmation/group gates')
+        lifecycle=[r for r in ep['rows'] if r['event'] != 'snapshot']
+        require([r['event'] for r in lifecycle] == list(EVENTS), 'focus mobile lifecycle is incomplete')
+        setup,dead,released,restored,before_fresh,reselected,complete=lifecycle
+        token=setup['original_incarnation'];world=ep['world'];match=ep['match']
+        require(token == restored['current_incarnation'] == ep['fresh']['order']['incarnation'] > 0,
+                'focus canonical mobile incarnation changed')
+        fixture=_group_focus_fixture_rows(log,match=match,world=world,token=token)
+        require(fixture[0]['sampled_us'] >= setup['sampled_us'] and fixture[-2]['sampled_us'] >= restored['sampled_us'] and
+                fixture[-2]['frame'] == restored['frame'] and fixture[-1]['sampled_us'] <= complete['sampled_us'] and
+                fixture[-1]['frame'] == complete['frame'], 'focus fixture does not bind actual mobile lifecycle')
+        records=[item for item in product if item['row']['world'] == world];rows=[item['row'] for item in records]
+        require(rows and all(r['selector'] == fixture[0]['selector'] and r['group'] == 4 for r in rows), 'focus product selector/requested group differs')
+        require(not any(r['stage'] == 'ending_delegate' and r['sampled_us'] <= fixture[-1]['sampled_us'] for r in rows),
+                'held focus ended its canonical/member identity before completion')
+        require(all(r['held_group'] == 4 for r in rows if r['sampled_us'] <= fixture[-1]['sampled_us'] and
+                    (r['event'] == 'iteration' and r['stage'] != 'cancel_delegate' or
+                     r['event'] == 'camera' and r['route'] == 'repeat')), 'focus held intent silently switched groups')
+        require(len({r['request_epoch'] for r in rows}) == 1, 'focus silently restarted/superseded its accepted request epoch')
+        request=[item for item in records if item['row']['event'] == 'request']
+        start=[item for item in records if item['row']['event'] == 'start']
+        scheduled=[item for item in records if item['row']['event'] == 'scheduled']
+        require(len(request) == len(start) == len(scheduled) == 1 and request[0]['line'] < start[0]['line'] < scheduled[0]['line'] <
+                fixture_index[match,'setup'] and scheduled[0]['row']['sampled_us'] <= fixture[0]['sampled_us'],
+                'focus lacks one actual accepted/scheduled original iterator before setup')
+        iterator=start[0]['row']['iterator'];epoch=start[0]['row']['request_epoch']
+        require(iterator is not None and start[0]['row']['iteration'] == 0 and start[0]['row']['original_state'] == 0 and
+                all(r['iterator'] == iterator for r in rows if r['iterator'] is not None), 'focus iterator was replaced/reused inside the owned epoch')
+        iterations=[item for item in records if item['row']['event'] == 'iteration']
+        require([item['row']['iteration'] for item in iterations] == list(range(1,len(iterations)+1)),
+                'focus outer MoveNext iteration coverage has a gap/duplicate')
+        by_iteration={item['row']['iteration']:item for item in iterations}
+        false_iterations=[item for item in iterations if item['row']['original_result'] is False]
+        false_terminals=[item for item in records if item['row']['event'] == 'terminal' and item['row']['stage'] == 'original_false']
+        require(len(false_iterations) == len(false_terminals) and len(false_iterations) <= 1 and
+                all(exit_['row']['iteration'] == call['row']['iteration'] and call['line'] < exit_['line']
+                    for call,exit_ in zip(false_iterations,false_terminals)) and
+                (not false_iterations or false_iterations[-1]['row']['iteration'] == len(iterations)),
+                'focus original false terminal lacks its actual last delegated receipt')
+        camera={}
+        for item in records:
+            row=item['row']
+            if row['actor'] is not None:
+                require((row['entity'],row['unit_type'],row['army'],row['incarnation']) == (11,1,1,token),
+                        'owned held focus forwarded a different member/incarnation')
+            if row['event'] != 'camera':continue
+            key=(row['route'],row['iteration']);camera.setdefault(key,[]).append(item)
+        returned=[]
+        for key,pair in camera.items():
+            require(len(pair) == 2 and [item['row']['stage'] for item in pair] == ['requested','returned'],
+                    'focus camera callback requested/returned proof incomplete/duplicated')
+            a,b=[item['row'] for item in pair]
+            require(all(a[k] == b[k] for k in ('selector','iterator','request_epoch','iteration','group','actor','entity','unit_type','army','incarnation')),
+                    'focus camera returned under another lease/iterator')
+            if key[0] == 'repeat':
+                decision=by_iteration.get(key[1])
+                require(decision is not None and decision['row']['stage'] in ('delegate','refind') and
+                        decision['row']['original_result'] is True and start[0]['line'] < pair[0]['line'] and
+                        pair[-1]['line'] < decision['line'],
+                        'focus camera has no same-iteration successful original MoveNext receipt')
+            returned.append(pair[-1])
+        require(('initial',0) in camera and len(camera['initial',0]) == 2,
+                'original group focus has no positive initial camera-call receipt')
+        pending=[item for item in iterations if item['row']['stage'] == 'waiting_absent']
+        require(pending and all(('repeat',item['row']['iteration']) not in camera for item in pending),
+                'focus pending path forwarded a camera or was never exercised')
+        actual_absence=[item for item in pending if item['line'] > release_index.get(match,2**63) and
+            released['sampled_us'] <= item['row']['sampled_us'] < restored['sampled_us'] and
+            item['row']['source_ids'] == item['row']['logical_ids'] == [11]]
+        require(actual_absence, 'focus has no waiting decision after complete physical release')
+        require(any(item['row']['route'] == 'repeat' and item['row']['sampled_us'] < dead['sampled_us'] for item in returned),
+                'focus never positively forwarded intended member before speculative death')
+        if world == 1:
+            after=[item for item in returned if item['row']['route'] == 'repeat' and
+                item['row']['sampled_us'] > actual_absence[-1]['row']['sampled_us'] and
+                restored['sampled_us'] <= item['row']['sampled_us'] < ep['fresh']['order']['sampled_us']]
+            require(after and any(item['row']['route'] == 'repeat' and item['row']['sampled_us'] >= fixture[-1]['sampled_us']
+                        for item in returned) and
+                    not any(item['row']['event'] in ('terminal','cancel_observed') and
+                        item['row']['sampled_us'] <= fixture[-1]['sampled_us'] for item in records),
+                    'held focus did not resume the same current member and persist through completion')
+            branch='held_focus_continuity';witness=actual_absence[-1];resume=after[0]
+        else:
+            before,after_cancel=fixture[1:3]
+            require(released['sampled_us'] <= before['sampled_us'] <= after_cancel['sampled_us'] < restored['sampled_us'] and
+                    released['frame'] <= before['frame'] <= restored['frame'], 'original focus Cancel was not during actual physical absence')
+            saved=[item for item in actual_absence if item['row']['iteration'] == before['pending_iteration'] and
+                item['row']['request_epoch'] == before['pending_epoch'] and item['row']['iterator'] == before['pending_iterator'] and
+                item['line'] < fixture_index[match,'before_cancel'] and item['row']['sampled_us'] <= before['sampled_us']]
+            require(len(saved) == 1 and epoch == before['pending_epoch'] and iterator == before['pending_iterator'] and
+                    max(item['row']['iteration'] for item in iterations if item['line'] < fixture_index[match,'before_cancel']) == before['pending_iteration'],
+                    'original focus Cancel does not bind the latest post-release pending iterator')
+            cancelled=[item for item in records if item['row']['event'] == 'cancel_observed']
+            require(cancelled and cancelled[0]['line'] > fixture_index[match,'after_cancel'] and
+                    cancelled[0]['row']['sampled_us'] >= after_cancel['sampled_us'] and
+                    cancelled[0]['row']['iteration'] == before['pending_iteration']+1 and cancelled[0]['row']['held_group'] == -1,
+                    'original Cancel was not consumed by the next same owned iterator')
+            cancel_iterations=[item for item in iterations if item['row']['iteration'] > before['pending_iteration']]
+            require([item['row']['iteration'] for item in cancelled] == [item['row']['iteration'] for item in cancel_iterations] and
+                    all(item['row']['stage'] == 'cancel_delegate' and item['row']['held_group'] == -1 and
+                        item['row']['actor'] is None and observation['row']['held_group'] == -1 and
+                        observation['line'] < item['line'] for observation,item in zip(cancelled,cancel_iterations)),
+                    'original pending cancel did not remain a consecutive cancelled delegation chain')
+            final=cancel_iterations[-1] if cancel_iterations else None
+            terminals=[item for item in records if item['row']['event'] == 'terminal' and item['row']['stage'] == 'original_false']
+            require(final is not None and final['row']['stage'] == 'cancel_delegate' and final['row']['original_result'] is False and
+                    all(item['row']['original_result'] is True for item in cancel_iterations[:-1]) and
+                    len(terminals) == 1 and terminals[0]['row']['iteration'] == final['row']['iteration'] and
+                    final['line'] < terminals[0]['line'] and terminals[0]['row']['sampled_us'] < ep['fresh']['order']['sampled_us'] and
+                    not any(item['line'] > fixture_index[match,'after_cancel'] for item in returned) and
+                    not any(item['row']['iteration'] > final['row']['iteration'] for item in iterations),
+                    'cancelled held focus forwarded/restarted or did not naturally terminate')
+            branch='original_pending_cancel_honored';witness=saved[0];resume=None
+        result.append(dict(passed=True,match=match,world=world,path=branch,fixture_rows=fixture,
+            request_epoch=epoch,iterator=iterator,product_events=len(records),outer_iterations=len(iterations),
+            camera_callbacks_returned=len(returned),waiting_absent_iterations=len(pending),post_release_pending=witness,
+            restored_camera_return=resume,all_camera_targets_current_member11=True,pending_camera_calls=0,
+            no_silent_restart=True,source_event_sequence_complete=True,physicalUI=False,full_mobile_controls_accepted=False))
+    return dict(passed=True,episodes=result,requires_controller_full_closed_native_parity=True,
+        physicalUI=False,active_casting_exercised=False,accepted_group_switch_exercised=False,full_mobile_controls_accepted=False,
+        scope='Complete owned original iterator/camera callback trace: same-member continuity OR original pending cancel. Snapshot cached predicates alone, physical camera pixels, group switching and active casting are not accepted.')
+
+
 def evaluate_group_recall(log, *, attacker_log, mobile_episodes, group_intent):
     """Join original group recall observations to the passed mobile slice.
 

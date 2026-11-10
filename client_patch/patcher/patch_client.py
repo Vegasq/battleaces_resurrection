@@ -190,9 +190,12 @@ def build_patch(original, *, include_telemetry=True, community=False, cosmetics=
         prediction_actor_repair.validate_original(original, expected_sha256=ORIGINAL_SHA256)
     patched = bytearray(telemetry.patch_component('GameAssembly.dll', original) if include_telemetry else original)
     patches = PATCHES + (COSMETIC_PATCHES if cosmetics else []) + ([] if allow_dlss_diagnostics else DLSS_PRIVACY_PATCHES)
+    if prediction_movement:
+        patches += prediction_actor_repair.PATCHES
     call_hooks = CALL_HOOKS + (COMMUNITY_CALL_HOOKS if community else []) + (COSMETIC_CALL_HOOKS if cosmetics else []) + (QUIT_CALL_HOOKS if quit_diagnostics else [])
     tail_hooks = TAIL_HOOKS + (COMMUNITY_TAIL_HOOKS if community else []) + (COSMETIC_TAIL_HOOKS if cosmetics else [])
-    pointer_hooks = QUIT_POINTER_HOOKS if quit_diagnostics else []
+    # Never append movement descriptors into the shared Quit-only recipe list.
+    pointer_hooks = list(QUIT_POINTER_HOOKS) if quit_diagnostics else []
     if startup_diagnostics:
         call_hooks += startup_tasks.CALL_HOOKS
         tail_hooks += startup_tasks.TAIL_HOOKS
@@ -200,6 +203,7 @@ def build_patch(original, *, include_telemetry=True, community=False, cosmetics=
         call_hooks += prediction_worker_patch.CALL_HOOKS
     if prediction_movement:
         call_hooks += prediction_actor_repair.CALL_HOOKS
+        pointer_hooks += prediction_actor_repair.POINTER_HOOKS
     sites = sorted(patches + HOOKS + tail_hooks + call_hooks + pointer_hooks, key=lambda site: site['offset'])
     for left, right in zip(sites, sites[1:]):
         if left['offset'] + len(bytes.fromhex(left['before'])) > right['offset']:

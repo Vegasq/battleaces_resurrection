@@ -662,6 +662,302 @@ class GroupIntentEvidenceTests(unittest.TestCase):
         with self.assertRaisesRegex(AssertionError,'attacker escape world reused'):f.evaluate()
 
 
+class FocusFixture:
+    def __init__(self):
+        self.base=GroupFixture();self.episodes=self.base.episodes;self.groups=self.base.evaluate();self.rows=[]
+        for ep in self.episodes:
+            world=ep['world'];token=ep['rows'][0]['original_incarnation']
+            offset=(world-1)*10000000
+            if offset:
+                for row in ep['rows']:
+                    row['sampled_us']+=offset;row['tick_ms']+=offset//1000
+                for key in('origin_sampled_us','sampled_us','enqueue_sampled_us'):ep['fresh']['order'][key]+=offset
+            events=[('setup',130,100020),('restored',163,350020),('complete',260,5999990)]
+            if world == 2:events[1:1]=[('before_cancel',154,225010),('after_cancel',154,225020)]
+            for event,frame,us in events:
+                us+=offset
+                absent=event in('before_cancel','after_cancel');cancelled=world == 2 and event not in('setup','before_cancel')
+                saved=world == 2 and event != 'setup'
+                row=dict(schema=1,event=event,world=world,match=ep['match'],slot=1,entity=11,unit_type=1,army=1,
+                    frame=frame,completed_frame=frame,tick_ms=us//1000,sampled_us=us,selector='00000300',
+                    incarnation=token,confirmed_incarnation=token,current_incarnation=0 if absent else token,
+                    retained_group=4,group_ids=[11],selected_ids=[11],preview_ids=[],casting_ids=[],
+                    native_identity_present=not absent,current_admitted=not absent,current_actor='0'if absent else'000001A0',
+                    current_actual_entity=None if absent else 11,current_actual_type=None if absent else 1,
+                    current_actual_army=None if absent else 1,source_resolvable_count=0 if absent else 1,
+                    focus_group=-1 if cancelled else 4,focus_actor='0'if cancelled else'000001A0',
+                    pending_iteration=17 if saved else 0,pending_epoch=2 if saved else 0,pending_iterator='00000200'if saved else'0',
+                    release_pending_baseline=15 if event != 'setup' else 0,
+                    pending_commands=0,cancel_callback='Uncapped.UnitSelector.FocusControlGroupCancel'if event=='after_cancel'else None,
+                    cancel_token='06002220'if event=='after_cancel'else None,physicalUI=False)
+                self.rows.append(row)
+        self.attacker='';self.products=[]
+        self.build_products()
+
+    def build_products(self):
+        for ep in self.episodes:
+            world=ep['world'];offset=(world-1)*10000000;iterator='00000201'if world==1 else'00000200'
+            token=ep['rows'][0]['original_incarnation']
+            def emit(event,stage,us,iteration=0,*,route='repeat',candidate=False,result=None,state=1,yield_bits=0xff800000):
+                no_iterator=event=='request'or route=='initial'
+                row=dict(schema=1,event_sequence=len(self.products)+1,event=event,stage=stage,route=route,
+                    world=world,match=ep['match'],selector='00000300',iterator=None if no_iterator else iterator,
+                    request_epoch=world,iteration=0 if no_iterator else iteration,group=4,
+                    held_group=-1 if event=='cancel_observed'or stage in('cancel_delegate','original_false','world_retired')else 4,
+                    tick_ms=(us+offset)//1000,sampled_us=us+offset,original_state=None if no_iterator else state,
+                    yield_bits=None if no_iterator else yield_bits,original_result=result,source_ids=[11],logical_ids=[11],
+                    actor='000001A0'if candidate else None,entity=11 if candidate else None,
+                    unit_type=1 if candidate else None,army=1 if candidate else None,incarnation=token if candidate else None,
+                    member=candidate,initialized=candidate,current_lease=candidate)
+                self.products.append(row);return row
+            def camera(iteration,us,route='repeat'):
+                emit('camera','requested',us,iteration,route=route,candidate=True,state=-1)
+                emit('camera','returned',us+1,iteration,route=route,candidate=True,state=-1)
+            def positive(iteration,us,stage='delegate'):
+                camera(iteration,us);emit('iteration',stage,us+2,iteration,candidate=True,result=True)
+            emit('request','accepted_repeat',99970)
+            camera(0,99971,'initial');emit('start','scheduling',99974,state=0,yield_bits=0)
+            positive(1,99975);emit('scheduled','returned',99978,1)
+            for ordinal in range(2,15):positive(ordinal,110000+(ordinal-2)*6000)
+            for ordinal,us in((15,210000),(16,221000),(17,224000)):emit('iteration','waiting_absent',us,ordinal)
+            if world==1:
+                positive(18,350100,'refind');positive(19,6000010)
+                emit('terminal','world_retired',7000000,19,state=-1)
+            else:
+                emit('cancel_observed','cancel_delegate',226000,18)
+                emit('iteration','cancel_delegate',226010,18,result=True,state=2)
+                emit('cancel_observed','cancel_delegate',230000,19,state=2)
+                emit('iteration','cancel_delegate',230010,19,result=False,state=-1)
+                emit('terminal','original_false',230011,19,result=False,state=-1)
+                emit('terminal','world_retired',7000000,19,state=-1)
+
+    def renumber(self):
+        self.products.sort(key=lambda r:r['sampled_us'])
+        for i,row in enumerate(self.products,1):row['event_sequence']=i
+
+    def log(self):
+        items=[]
+        for ep in self.episodes:
+            items.extend((row['sampled_us'],'MOBILE CORRECTION ',row)for row in ep['rows'])
+        items.extend((row['sampled_us'],'MOBILE GROUP FOCUS ',row)for row in self.rows)
+        items.extend((row['sampled_us'],'MOVEMENT FOCUS ',row)for row in self.products)
+        return '\n'.join(prefix+json.dumps(row)for _,prefix,row in sorted(items,key=lambda item:item[0]))
+
+    def evaluate(self):
+        return mobile.evaluate_group_focus(self.log(),attacker_log=self.attacker,mobile_episodes=self.episodes,group_intent=self.groups)
+
+    def product(self,world,event,stage=None,iteration=None):
+        return next(row for row in self.products if row['world']==world and row['event']==event and
+                    (stage is None or row['stage']==stage)and(iteration is None or row['iteration']==iteration))
+
+    def fixture_rows(self,world):
+        ep=self.episodes[world-1]
+        return mobile._group_focus_fixture_rows('\n'.join('MOBILE GROUP FOCUS '+json.dumps(r)for r in self.rows),
+            match=ep['match'],world=world,token=ep['rows'][0]['original_incarnation'])
+
+
+class GroupFocusFixtureEvidenceTests(unittest.TestCase):
+    def test_positive_held_fixture_and_actual_original_cancel_fixture_are_distinct(self):
+        f=FocusFixture();positive=f.fixture_rows(1);cancel=f.fixture_rows(2)
+        self.assertEqual([r['event']for r in positive],['setup','restored','complete'])
+        self.assertEqual([r['event']for r in cancel],['setup','before_cancel','after_cancel','restored','complete'])
+        self.assertTrue(all(r['focus_group']==4 for r in positive))
+        self.assertEqual(cancel[1]['pending_iteration'],17);self.assertEqual(cancel[2]['pending_iterator'],'00000200')
+        self.assertTrue(all(r['focus_group']==-1 and r['focus_actor']=='0'for r in cancel[2:]))
+
+    def test_cancel_marker_requires_same_full_saved_pending_witness_and_original_callback(self):
+        changes=(dict(pending_iteration=0),dict(pending_epoch=0),dict(pending_iterator='0'),dict(pending_iteration=18),
+                 dict(release_pending_baseline=17),dict(release_pending_baseline=True),
+                 dict(cancel_callback=None),dict(cancel_token='06002221'),dict(focus_group=4),dict(focus_actor='000001A0'))
+        for change in changes:
+            with self.subTest(change=change):
+                f=FocusFixture();f.rows[5].update(change)
+                with self.assertRaises(AssertionError):f.fixture_rows(2)
+
+    def test_positive_must_preserve_intent_and_cancelled_world_must_not_restart(self):
+        for index,change in((1,dict(focus_group=-1)),(2,dict(focus_actor='0')),(6,dict(focus_group=4)),
+                            (6,dict(focus_actor='000001A0')),(0,dict(pending_iteration=1,pending_epoch=1,pending_iterator='123'))):
+            with self.subTest(index=index,change=change):
+                f=FocusFixture();f.rows[index].update(change)
+                with self.assertRaises(AssertionError):f.fixture_rows(f.rows[index]['world'])
+
+    def test_cancel_cannot_reuse_pending_ordinal_from_before_complete_physical_release(self):
+        f=FocusFixture()
+        for row in f.rows:
+            if row['world']==2 and row['event']!='setup':row['release_pending_baseline']=17
+        with self.assertRaisesRegex(AssertionError,'pending cancellation'):f.fixture_rows(2)
+
+    def test_focus_fixture_native_identity_lease_group_schema_and_scope_are_strict(self):
+        for index,change in((0,dict(current_actual_army=0)),(1,dict(current_incarnation=8)),(1,dict(current_admitted=False)),
+                            (4,dict(native_identity_present=True)),(4,dict(current_actor='000001A0')),
+                            (4,dict(group_ids=[])),(4,dict(pending_commands=1)),(4,dict(physicalUI=True)),
+                            (4,dict(selector='0')),(4,dict(extra=True)),(4,dict(source_resolvable_count=True))):
+            with self.subTest(index=index,change=change):
+                f=FocusFixture();f.rows[index].update(change)
+                with self.assertRaises(AssertionError):f.fixture_rows(f.rows[index]['world'])
+
+
+class GroupFocusEvidenceTests(unittest.TestCase):
+    def test_complete_original_iterator_camera_and_cancel_paths_both_worlds(self):
+        f=FocusFixture();r=f.evaluate();self.assertTrue(r['passed'])
+        hold,cancel=r['episodes'];self.assertEqual(hold['path'],'held_focus_continuity')
+        self.assertEqual(cancel['path'],'original_pending_cancel_honored')
+        self.assertEqual(hold['outer_iterations'],19);self.assertEqual(cancel['outer_iterations'],19)
+        self.assertTrue(all(ep['all_camera_targets_current_member11'] and ep['pending_camera_calls']==0 and
+                            ep['source_event_sequence_complete']for ep in r['episodes']))
+        self.assertEqual(cancel['post_release_pending']['row']['iteration'],17)
+        self.assertFalse(r['physicalUI']);self.assertFalse(r['accepted_group_switch_exercised'])
+        self.assertFalse(r['active_casting_exercised']);self.assertFalse(r['full_mobile_controls_accepted'])
+
+    def test_synchronous_first_move_next_can_precede_scheduler_return(self):
+        f=FocusFixture()
+        first=f.product(1,'iteration',iteration=1);scheduled=f.product(1,'scheduled')
+        self.assertLess(first['event_sequence'],scheduled['event_sequence'])
+        self.assertLess(f.product(1,'camera','returned',1)['event_sequence'],first['event_sequence'])
+        self.assertTrue(f.evaluate()['passed'])
+
+    def test_lifetime_event_sequence_and_checked_clocks_are_not_reset_or_fabricated(self):
+        for change in(dict(event_sequence=1),dict(sampled_us=True),dict(tick_ms=-1)):
+            with self.subTest(change=change):
+                f=FocusFixture();f.product(2,'request').update(change)
+                with self.assertRaises(AssertionError):f.evaluate()
+
+    def test_admitted_own_hq_zero_outside_group11_is_not_the_intended_focus(self):
+        for independent_membership in(False,True):
+            with self.subTest(independent_membership=independent_membership):
+                f=FocusFixture();r=f.product(1,'camera','requested',1)
+                r.update(entity=0,unit_type=3,army=1,incarnation=1)
+                if independent_membership:r.update(source_ids=[0,11],logical_ids=[0,11])
+                with self.assertRaises(AssertionError):f.evaluate()
+
+    def test_actual_camera_pair_and_void_receipts_cannot_be_invented(self):
+        for kind in('missing_return','changed_actor','camera_bool','retired_false','original_false_null'):
+            with self.subTest(kind=kind):
+                f=FocusFixture()
+                if kind=='missing_return':f.products.remove(f.product(1,'camera','returned',1));f.renumber()
+                elif kind=='changed_actor':f.product(1,'camera','returned',1)['actor']='00000400'
+                elif kind=='camera_bool':f.product(1,'camera','returned',1)['original_result']=True
+                elif kind=='retired_false':f.product(1,'terminal','world_retired')['original_result']=False
+                else:f.product(2,'terminal','original_false')['original_result']=None
+                with self.assertRaises(AssertionError):f.evaluate()
+
+    def test_all_outer_iterations_and_original_pending_bits_are_required(self):
+        f=FocusFixture();f.products.remove(f.product(1,'iteration',iteration=16));f.renumber()
+        with self.assertRaisesRegex(AssertionError,'iteration coverage'):f.evaluate()
+        for change in(dict(original_state=0),dict(yield_bits=0),dict(original_result=True),dict(actor='123')):
+            with self.subTest(change=change):
+                f=FocusFixture();f.product(1,'iteration','waiting_absent',17).update(change)
+                with self.assertRaises(AssertionError):f.evaluate()
+
+    def test_saved_pending_must_be_latest_and_after_complete_physical_release(self):
+        f=FocusFixture()
+        for world in(1,2):
+            for ordinal,us in((16,211000),(17,212000)):
+                r=f.product(world,'iteration','waiting_absent',ordinal)
+                r.update(sampled_us=us+(world-1)*10000000,tick_ms=(us+(world-1)*10000000)//1000)
+        f.renumber()
+        with self.assertRaisesRegex(AssertionError,'after complete physical release'):f.evaluate()
+        f=FocusFixture()
+        for row in f.rows:
+            if row['world']==2 and row['event']!='setup':row['pending_iteration']=16
+        with self.assertRaisesRegex(AssertionError,'latest post-release'):f.evaluate()
+
+    def test_waiting_absent_iteration_can_never_forward_a_camera(self):
+        f=FocusFixture()
+        for stage,us in(('requested',223995),('returned',223996)):
+            row=deepcopy(f.product(1,'camera',stage,1));row.update(iteration=17,sampled_us=us,tick_ms=us//1000)
+            f.products.append(row)
+        f.renumber()
+        with self.assertRaises(AssertionError):f.evaluate()
+
+    def test_same_epoch_must_resume_current_member_and_persist_without_silent_restart(self):
+        for kind in('no_resume','epoch','iterator','start','held_switch','ending'):
+            with self.subTest(kind=kind):
+                f=FocusFixture()
+                if kind=='no_resume':
+                    f.products=[r for r in f.products if not(r['world']==1 and r['event']=='camera' and r['iteration']==18)]
+                    f.renumber()
+                elif kind=='epoch':f.product(1,'iteration',iteration=18)['request_epoch']=999
+                elif kind=='iterator':f.product(1,'iteration',iteration=18)['iterator']='00000400'
+                elif kind=='start':
+                    row=deepcopy(f.product(1,'start'));row.update(sampled_us=400000,tick_ms=400)
+                    f.products.append(row);f.renumber()
+                elif kind=='held_switch':f.product(1,'iteration','waiting_absent',17)['held_group']=3
+                else:
+                    row=deepcopy(f.product(1,'cancel_observed'))if any(r['world']==1 and r['event']=='cancel_observed'for r in f.products)else deepcopy(f.product(2,'cancel_observed'))
+                    row.update(event='ending_observed',stage='ending_delegate',world=1,match=f.episodes[0]['match'],
+                        request_epoch=1,iterator='00000201',iteration=18,sampled_us=225000,tick_ms=225,held_group=4)
+                    f.products.append(row);f.renumber()
+                with self.assertRaises(AssertionError):f.evaluate()
+
+    def test_original_cancel_allows_real_yield_but_requires_eventual_original_false_without_camera(self):
+        f=FocusFixture()
+        self.assertTrue(f.product(2,'iteration','cancel_delegate',18)['original_result'])
+        self.assertFalse(f.product(2,'iteration','cancel_delegate',19)['original_result'])
+        self.assertTrue(f.evaluate()['passed'])
+        for kind in('unobserved','ignored','not_false','missing_false_receipt','camera','late'):
+            with self.subTest(kind=kind):
+                f=FocusFixture()
+                if kind=='unobserved':f.products=[r for r in f.products if not(r['world']==2 and r['event']=='cancel_observed')];f.renumber()
+                elif kind=='ignored':f.product(2,'cancel_observed',iteration=18)['held_group']=4
+                elif kind=='not_false':f.product(2,'iteration','cancel_delegate',19)['original_result']=True
+                elif kind=='missing_false_receipt':f.products.remove(f.product(2,'terminal','original_false'));f.renumber()
+                elif kind=='camera':
+                    for stage,us in(('requested',226001),('returned',226002)):
+                        row=deepcopy(f.product(2,'camera',stage,1));row.update(iteration=18,sampled_us=us+10000000,tick_ms=(us+10000000)//1000)
+                        f.products.append(row)
+                    f.renumber()
+                else:
+                    for r in f.products:
+                        if r['world']==2 and r['iteration']==19 and r['stage']!='world_retired':r['sampled_us']+=1500000;r['tick_ms']+=1500
+                    f.renumber()
+                with self.assertRaises(AssertionError):f.evaluate()
+
+    def test_runtime_failure_is_not_a_successful_post_scope_retirement(self):
+        f=FocusFixture();r=f.product(1,'terminal','world_retired');r['stage']='failed'
+        with self.assertRaisesRegex(AssertionError,'runtime failure'):f.evaluate()
+
+    def test_later_canonical_ending_is_not_mislabelled_original_user_cancel(self):
+        f=FocusFixture();template=deepcopy(f.product(2,'cancel_observed',iteration=18))
+        for ordinal,us,result in((20,6200000,True),(21,6300000,False)):
+            row=deepcopy(template);row.update(world=1,match=f.episodes[0]['match'],request_epoch=1,iterator='00000201',
+                iteration=ordinal,event='ending_observed',stage='ending_delegate',held_group=4,sampled_us=us,tick_ms=us//1000)
+            f.products.append(row)
+            row=deepcopy(row);row.update(event='iteration',original_result=result,sampled_us=us+10,original_state=2 if result else -1)
+            f.products.append(row)
+        row=deepcopy(f.product(2,'terminal','original_false'));row.update(world=1,match=f.episodes[0]['match'],
+            request_epoch=1,iterator='00000201',iteration=21,sampled_us=6300011,tick_ms=6300)
+        f.products.append(row);f.product(1,'terminal','world_retired')['iteration']=21;f.renumber()
+        self.assertEqual(f.evaluate()['episodes'][0]['path'],'held_focus_continuity')
+
+    def test_false_terminal_without_actual_false_iteration_cannot_fake_original_completion(self):
+        f=FocusFixture();r=f.product(1,'terminal','world_retired');r.update(stage='original_false',original_result=False)
+        with self.assertRaisesRegex(AssertionError,'last delegated receipt'):f.evaluate()
+
+    def test_focus_trace_cannot_replace_mobile_motion_replay_hash_or_preserved_group_gates(self):
+        for kind in('mobile','motion','hash','replay','tail','group','edits','token'):
+            with self.subTest(kind=kind):
+                f=FocusFixture()
+                if kind=='mobile':f.episodes[0]['passed']=False
+                elif kind=='motion':f.episodes[0]['fresh_motion']['passed']=False
+                elif kind=='hash':f.episodes[0]['fresh_assignment_span']['hashes_match']=False
+                elif kind=='replay':f.episodes[0]['escape_native_replay']['promotion_group_replayed_delta']=0
+                elif kind=='tail':f.episodes[0]['escape_native_replay']['continuation_frames']=19
+                elif kind=='group':f.groups['episodes'][0]['retained_group4_preserved']=False
+                elif kind=='edits':f.groups['user_edits']=True
+                else:f.episodes[0]['fresh']['order']['incarnation']=99
+                with self.assertRaises(AssertionError):f.evaluate()
+
+    def test_nullable_candidate_schema_owner_bounds_and_extra_host_rows_are_strict(self):
+        for change in(dict(actor=None),dict(member=1),dict(initialized=False),dict(current_lease=False),
+                      dict(selector='0'),dict(request_epoch=True),dict(yield_bits=2**32),dict(extra=1),dict(original_state=True)):
+            with self.subTest(change=change):
+                f=FocusFixture();f.product(1,'camera','requested',1).update(change)
+                with self.assertRaises(AssertionError):f.evaluate()
+        f=FocusFixture();f.attacker='MOVEMENT FOCUS '+json.dumps(f.products[0])
+        with self.assertRaisesRegex(AssertionError,'attacker'):f.evaluate()
+
+
 class RecallFixture:
     def __init__(self):
         self.base=GroupFixture();self.episodes=self.base.episodes;self.groups=self.base.evaluate()

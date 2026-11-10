@@ -556,7 +556,11 @@ Mobile retention and original Clear/empty-replace now have separate actual
 qualification,including original Move response after recreation and measured
 pause recovery;see prediction-actor-correction.txt. Actual28 also passes
 original recall refusal during absence and recall of the current unit after
-restoration,all2888 native hashes and natural shutdown. Next finite scope is
-held-focus target continuity through that correction. Keep active casting,held
+restoration,all2888 native hashes and natural shutdown. Held-focus target
+continuity now passes in actual29:the same original iterator
+waits without camera calls,then resumes on current member11;original Cancel in
+round2 ends it without restart. All2894 native hashes match,natural shutdown,
+fresh responses52.335/46.678ms and phases-1/0. Next identify the actual mapped
+original UI casting route before activating it. Keep active casting,held
 input and forced-retirement group handling open. N35 remains the same pending
 human test;these fixtures do not accept physical/Internet visual comfort.

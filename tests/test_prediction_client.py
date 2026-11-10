@@ -20,7 +20,7 @@ class PredictionClientTests(unittest.TestCase):
         self.package.mkdir();self.game.mkdir();self.original=b'ORIGINAL';self.ordinary=b'ORDINARY';self.prediction=b'PREDICTION'
         helper=b'MZ'+b' '.join((b'BA_RESURRECTION_MOVEMENT_PIPELINE_V1',b'BA_RESURRECTION_NATIVE_WORKER_PROXY_V1',
             b'BA_RESURRECTION_ORIGINAL_COMMAND_SCHEDULING_V1'))
-        helper+=b' '.join(h['name'].encode()+b'\0'for h in p.prediction_worker.CALL_HOOKS+p.prediction_actor_repair.CALL_HOOKS)
+        helper+=b' '.join(h['name'].encode()+b'\0'for h in p.prediction_worker.CALL_HOOKS+p.prediction_actor_repair.CALL_HOOKS+p.prediction_actor_repair.POINTER_HOOKS)
         self.helper=helper
         files={'program/runtime/python.exe':b'MZpython',
             'program/app/client_patch/prediction_worker/__main__.py':b'# authored\n',
@@ -45,6 +45,7 @@ class PredictionClientTests(unittest.TestCase):
         sim=self.game/'Battle Aces_Data/Plugins/x86_64/Simulation.dll';sim.parent.mkdir(parents=True);sim.write_bytes(b'MZoriginalSim')
         self.manifest=dict(schema=2,original_sha256=p.digest(self.original),patched_sha256=p.digest(self.ordinary),
             helper_sha256=p.digest(helper),call_hooks=p.patcher.CALL_HOOKS+p.patcher.COMMUNITY_CALL_HOOKS+p.patcher.COSMETIC_CALL_HOOKS,
+            patches=p.patcher.PATCHES+p.patcher.COSMETIC_PATCHES+p.patcher.DLSS_PRIVACY_PATCHES,pointer_hooks=[],
             components={'GameAssembly.dll':dict(original_sha256=p.digest(self.original),patched_sha256=p.digest(self.ordinary),
                 installed_sha256=p.digest(self.ordinary),telemetry_guards=7),'Other.dll':dict(installed_sha256='f'*64)},
             asset_loading=dict(keep='original verified loading'),local_settings=dict(keep=True),other_user_data=dict(keep=['unchanged']))
@@ -72,6 +73,8 @@ class PredictionClientTests(unittest.TestCase):
         self.assertEqual(value['components']['GameAssembly.dll']['installed_sha256'],expected)
         self.assertEqual(value['components']['GameAssembly.dll']['patched_sha256'],expected)
         self.assertEqual(value['call_hooks'],self.manifest['call_hooks']+p.prediction_worker.CALL_HOOKS+p.prediction_actor_repair.CALL_HOOKS)
+        self.assertEqual(value['pointer_hooks'],p.prediction_actor_repair.POINTER_HOOKS)
+        self.assertEqual(value['patches'],self.manifest['patches']+p.prediction_actor_repair.PATCHES)
         for field in ('asset_loading','local_settings','other_user_data'):self.assertEqual(value[field],self.manifest[field])
         self.assertEqual(value['components']['Other.dll'],self.manifest['components']['Other.dll'])
         self.assertEqual((self.game/'BattleAcesOffline.dll').read_bytes(),self.helper)
@@ -87,6 +90,33 @@ class PredictionClientTests(unittest.TestCase):
         with patch.object(p.os,'replace',side_effect=AssertionError('idempotent prepare wrote files')):
             self.assertTrue(p.prepare(self.package,self.game)['ready'])
         self.assertEqual(self.manifest_path.read_bytes(),snapshot)
+
+    def test_verified_package_missing_repeat_pointer_export_refuses_before_game_changes(self):
+        name=p.prediction_actor_repair.POINTER_HOOKS[0]['name'].encode()+b'\0'
+        changed=self.helper.replace(name,b'authored_missing_export\0')
+        self.assertNotEqual(changed,self.helper)
+        helper_path=self.package/p.ARTIFACTS['main_helper'];helper_path.write_bytes(changed)
+        provenance=p.json_bytes(dict(helper_sha256=p.digest(changed)))
+        (self.package/p.ARTIFACTS['main_helper_provenance']).write_bytes(provenance)
+        for role,data in (('main_helper',changed),('main_helper_provenance',provenance)):
+            self.descriptor['artifacts'][role]['sha256']=p.digest(data)
+            self.inventory['files'][p.ARTIFACTS[role]]=dict(bytes=len(data),sha256=p.digest(data))
+        descriptor=p.json_bytes(self.descriptor);(self.package/p.DESCRIPTOR).write_bytes(descriptor)
+        self.inventory['files'][p.DESCRIPTOR]=dict(bytes=len(descriptor),sha256=p.digest(descriptor));self.publish_inventory()
+        before=self.manifest_path.read_bytes()
+        with self.assertRaisesRegex(p.PackageError,'lacks movement prediction'):p.prepare(self.package,self.game)
+        self.assertEqual(self.manifest_path.read_bytes(),before)
+        self.assertEqual((self.game/'GameAssembly.dll').read_bytes(),self.ordinary)
+
+    def test_prediction_pointer_and_argument_manifest_must_match_exact_recipe(self):
+        p.prepare(self.package,self.game);good=json.loads(self.manifest_path.read_bytes())
+        for field in ('pointer_hooks','patches'):
+            changed=copy.deepcopy(good);changed[field]=[];raw=p.json_bytes(changed);self.manifest_path.write_bytes(raw)
+            with self.subTest(field=field),self.assertRaisesRegex(p.PackageError,'descriptors|byte patches'):
+                p.check(self.package,self.game)
+            self.assertEqual(self.manifest_path.read_bytes(),raw)
+            self.assertEqual((self.game/'GameAssembly.dll').read_bytes(),self.prediction)
+        self.manifest_path.write_bytes(p.json_bytes(good))
 
     def test_both_top_and_component_hash_bookkeeping_must_be_exact(self):
         for field in ('top','patched','installed','hooks'):

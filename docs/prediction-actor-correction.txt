@@ -258,7 +258,7 @@ Independent closed-file audit receipt SHA256:
 Helper37 SHA256:
 e8c6041c63e4e9ddb1d05cdbfb3cd699cc8f83a561b5f85abd95e9c2e339fd7e
 
-Remaining held-focus target defect
+Held-focus target defect and qualified repair
 Actual23's valid camera lease does not prove the intended group target:the
 repeat-focus coroutine replaces absent11 with default chooser result0,a real
 HQ outside the passed numeric group. The second chooser CALL was not guarded.
@@ -267,8 +267,68 @@ That containment alone is insufficient:original TryGet writes null on a rejected
 candidate,the coroutine stores that null and cancels on its next resume. Its
 cached path also checks activity on the old object rather than refinding the
 current actor. A guarded pending/refind contract must preserve held intent while
-honoring original cancellation,group changes and world retirement. This remains
-OPEN;Actual23 stays PASS only for its stated retention/purge scope.
+honoring original cancellation,group changes and world retirement. Actual29
+qualifies continuity/cancellation below;Actual23 stays PASS only for its stated
+retention/purge scope. Accepted group switching remains a separate runtime case.
+
+The movement-only recipe now guards both original chooser CALLs,tracks accepted
+repeat requests and captures the exact iterator before original MEC scheduling.
+A relocated codegen-pointer shim adds a prelude to original MoveNext. It leaves
+the iterator state/current and original held-group field untouched. While the
+same canonical intent has no initialized physical member,it clears only the
+cached actor through IL2CPP's GC setter and preserves the original next-frame
+yield. A real current admitted member can replace that cache before original
+MoveNext runs once. Both camera CALLs independently require passed-selection
+and logical-group membership,current native identity and the initialized lease.
+Diagnostic requested/returned records bind the actual original camera callback.
+
+Pending canonical identity changes end the old request through original control
+flow;the original state1 fallback cannot silently bind a new incarnation. Weak
+IL2CPP handles identify retired iterators without keeping their scene graph
+alive,including an old iterator still in state0. A Unity-main periodic boundary
+releases observer roots even when MEC never calls the iterator again. No GC API
+is called by a C++ static destructor. Both concrete lifetime regressions retain
+authored RED captures;21 final actual-header cases pass /W4 /WX,with all authored
+strong roots and weak handles released. These are authored lifecycle controls,
+not runtime observations of every engine GC handle.
+
+Actual29 PASSES in166.328s at130/475ms RTT. W1 preserves epoch1 and one original
+iterator through457 waiting iterations with no camera call,then refinds current
+member11. All6921 successful original camera returns target that member,and the
+same iterator remains active through observation260. W2 waits after physical
+release (baseline213 -> pending214),then original Cancel4 at154 is honored.
+Original delegates215/216 returntrue/false respectively;the latter ends the
+iterator. No later camera forwarding or restart occurs. This preserves actual
+original yield behavior rather than demanding an immediate false return.
+
+Fresh original Move responses52.335/46.678ms precede native65 by531/437ms and
+raw bridge by484/437ms. Speculative/canonical phases are-1/0. Both remote escapes
+cause ten real replayed frames and20 matching continuations;fresh commands also
+retain20 continuations. All2894 closed full parsed native hashes and all2600
+required650-frame wire joins independently match authority. Both rounds,
+Continue/rematch/Leave/Quit and every child finish naturally0,Jobs inactive0,
+without force or cleanup errors. Prepared source and consumed files are unchanged.
+The full helper39 build also runs53 actual-source actor binding groups,21 focus
+groups,319 pacing and15 group-intent cases.409 focused Python cases pass;the
+later exact pointer/byte preflight addition passes186 affected cases. Ordinary
+and worker-only transformation bytes stay unchanged. The frozen human kit is
+not refreshed by this source/runtime qualification.
+
+Original29 PASS report SHA256:
+71afd2bec8644ac57bed6f6a40aec1ddb92f3abc583cb60ef6f266d62bdfe26c
+Independent protected snapshot receipt SHA256:
+dc9beecdb8af700d0dde08094d9b2f447c6b2ab189ccbc5bb8b8ccd8ec29a839
+Independent strict gate audit receipt SHA256:
+ae6b2e3ec5c2321e3ec53af1f63431001cd51c022569b17387270ce6a41ff7c0
+Helper39 SHA256:
+8dcb621d211b7f97d5679d1c4c9d9b17b5b1f1551c7b96c1d47c2b398a7b6d23
+Owned diagnostic GameAssembly SHA256:
+9d950df9224345cc5d00eab07dce6019fdda7ec74a449902134776a96d4e7fe6
+
+This verifies callback targets and script-controlled original input. Camera
+pixels,physical UI,accepted group switching,active casting and general held
+gestures remain separate. Next identify the actually mapped noninstant12/14
+button/caster route before its activation/cancellation/command-ownership test.
 
 Forced-retirement whole-group clearing,casting/held input and
 physical/Internet acceptance remain OPEN. This does not close all mobile
@@ -304,6 +364,8 @@ local/prediction-checkpoint-20261110/actor-deferred-selection01/verification.jso
 local/prediction-checkpoint-20261110/actor09-guest-activation01/verification.json
 local/prediction-runtime/movement28-group-recall/run/verification.json
 local/prediction-checkpoint-20261110/mobile-focus-fallback-review01/receipt.json
+local/prediction-runtime/movement29-group-focus/run/verification.json
+local/prediction-runtime/movement29-group-focus/file-audit01/gate-audit01/receipt.json
 
 N35's optional human Custom test remains frozen and reserved independently.
 The live host,firewall,usual client and user-owned sessions remain unchanged.

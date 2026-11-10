@@ -10,6 +10,12 @@ import hashlib
 
 SUPPORTED_ORIGINAL_SHA256 = 'e59d08c01479b27404778048d7e13546dbf3771f6b3912744c7c2bdf80c4e758'
 
+PATCHES = [
+    # Only the scoped observer consumes this third bool argument. It forwards
+    # ORIGINAL Actuate(selector, group, MethodInfo=null) exactly once.
+    dict(name='Pass original repeat bit to scoped focus Actuate observer',
+         rva=0x3bf305b, offset=0x3bf165b, before='4533c0', after='4588f0'),
+]
 CALL_HOOKS = [
     # SuspendedEventHelper.EndSuspend's virtual OnRaiseEvent dispatch. The
     # window starts BEFORE the MethodInfo load: RCX=helper, RDX=actual class,
@@ -34,6 +40,26 @@ CALL_HOOKS = [
     # chooser is 0x3c646a0; 0xffffffff declines focus through original TryGet.
     dict(name='OfflinePredictionControlGroupFocus', rva=0x3bf310f,
          offset=0x3bf170f, before='e88c150700'),
+    # The same chooser in the ORIGINAL repeat-focus MoveNext fallback.
+    dict(name='OfflinePredictionControlGroupFocus', rva=0x3bfa10b,
+         offset=0x3bf870b, before='e890a50600'),
+    dict(name='OfflinePredictionFocusActuate', rva=0x3bf306c,
+         offset=0x3bf166c, before='e8dfe5ffff'),
+    dict(name='OfflinePredictionStartRepeatFocus', rva=0x3bf322b,
+         offset=0x3bf182b, before='e8c06570ff'),
+    dict(name='OfflinePredictionControlGroupCamera', rva=0x3bf315d,
+         offset=0x3bf175d, before='e8aeb12a00'),
+    dict(name='OfflinePredictionControlGroupCamera', rva=0x3bfa027,
+         offset=0x3bf8627, before='e8e4422a00'),
+]
+
+# Redirect the one codegen method-pointer slot, preserving its DIR64 fixup.
+# The original MoveNext body remains callable for inactive delegation.
+POINTER_HOOKS = [
+    dict(name='OfflinePredictionRepeatFocusNext', rva=0x6d4dc48, offset=0x6d4b248,
+         before='e09dbf8301000000', target_rva=0x3bf9de0,
+         relocation_block_offset=0x736fbb4, relocation_block_before='00d0d40614030000',
+         relocation_entry_offset=0x736fdd8, relocation_entry_before='48ac'),
 ]
 
 # Pin the register/return contracts and original collection operations as well
@@ -52,6 +78,18 @@ BODY_GUARDS = [
     dict(rva=0x3bf4143, before='488d55b78b458f488bcb440fb68b180100004c8b8390000000f20f1145b78945bf48c744242000000000'),
     dict(rva=0x3bf42ba, before='f20f1006488d5424308b460833db440fb68f18010000488bcf4c8b8790000000f20f1144243048895c242089442438'),
     dict(rva=0x3c646a0, before='488954241048894c24085356574154'),
+    dict(rva=0x3bf9de0, before='4053574883ec58803d64f1250300488bf9'),
+    dict(rva=0x3bfa110, before='4d85f67460488d4c2470448b'),
+    dict(rva=0x3bf1650, before='48895c24104889742418574883ec404863f2488bd9803db1'),
+    dict(rva=0x3bf3067, before='8bd7488bcb'),
+    dict(rva=0x3bf3071, before='84c00f84c7010000'),
+    dict(rva=0x32f97f0, before='40574883ec50803de3a8b50300488bf9'),
+    dict(rva=0x3bf3226, before='33d2488bcf'),
+    dict(rva=0x3bf3230, before='8983b0000000'),
+    dict(rva=0x3e9e310, before='48895c2408574883ec40803d50c0fb02'),
+    dict(rva=0x3bf3155, before='488b5424304533c0'),
+    dict(rva=0x3bfa021, before='488b164533c0'),
+    dict(rva=0x3bfa02c, before='c74714000080ff'),
 ]
 
 
@@ -67,7 +105,8 @@ def validate_original(original, *, expected_sha256):
     actual_sha256 = hashlib.sha256(original).hexdigest()
     if actual_sha256 != SUPPORTED_ORIGINAL_SHA256:
         raise ValueError('Prediction selection original SHA256 does not match.')
-    from .prediction_actor_repair import rva_to_offset
+    from .prediction_actor_repair import rva_to_offset, validate_pointer_hooks, validate_byte_patches
+    patches = validate_byte_patches(original, PATCHES)
     guarded = []
     for guard in BODY_GUARDS:
         before = bytes.fromhex(guard['before'])
@@ -83,6 +122,9 @@ def validate_original(original, *, expected_sha256):
                 original[offset:offset + len(before)] != before):
             raise ValueError('Prediction selection call guard/mapping mismatch: ' + hook['name'])
         calls.append(dict(hook))
+    pointers = validate_pointer_hooks(original, POINTER_HOOKS)
     return dict(original_sha256=actual_sha256,
                 supported_original_sha256=SUPPORTED_ORIGINAL_SHA256,
-                body_guards=guarded, call_hooks=calls)
+                body_guards=guarded, call_hooks=calls,
+                patches=patches,
+                pointer_hooks=[dict(hook) for hook in POINTER_HOOKS], pointer_guards=pointers)

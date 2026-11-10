@@ -147,6 +147,9 @@ struct State {
     bool setup=false,escapeQueued=false,freshQueued=false,passed=false,failed=false;
     bool groupHoldObserved=false,groupEdits=false,groupRestored=false,attackerSetup=false,attackerAbsent=false,attackerPurged=false;
     bool recoveryStalled=false,recallAbsent=false,recallRestored=false;
+    bool focusCancelled=false;
+    uint64_t focusPendingIteration=0,focusPendingEpoch=0,focusReleasePendingBaseline=0;
+    std::unique_ptr<Root> focusPendingIterator;
 };
 static State& state(){static State* value=new State;return *value;}
 static uint64_t stamp(){uint64_t value=0;require(ba_frame_timing::timestampMicros(value),"mobile fixture QPC unavailable");return value;}
@@ -390,6 +393,7 @@ static bool groupIntentEnabled(){return ba::flag(L"-prediction-mobile-group-inte
 static bool groupUserEditsEnabled(){return ba::flag(L"-prediction-mobile-group-user-edits-smoke");}
 static bool recoveryStallEnabled(){return ba::flag(L"-prediction-mobile-recovery-stall-smoke");}
 static bool recallEnabled(){return ba::flag(L"-prediction-mobile-recall-smoke");}
+static bool focusEnabled(){return ba::flag(L"-prediction-mobile-focus-smoke");}
 static std::vector<uint32_t> groupIds(Obj group){return selection::selectionIds(ba::read<Obj>(group,0x20));}
 static void assignSelected(actors::State& owner,Obj selector,int index) {
     Obj group=groupFor(selector,index);require(!actors::automaticType(ba::read<Obj>(group,0x30),1),"group intent fixture needs manual type1 membership");
@@ -576,6 +580,52 @@ static void recallRestoredGroup(actors::State& owner,Obj selector,int frame) {
         "original restored recall did not select the current admitted unit");
     s.recallRestored=true;recallEvidence(owner,selector,frame,"after_restored_recall",false,result);
 }
+static void focusEvidence(actors::State& owner,Obj selector,int frame,const char* event,bool cancelled=false) {
+    const auto& s=state();owned(owner);View view(owner,selector);
+    require(s.group&&s.group->get()==groupFor(selector)&&groupIds(s.group->get())==std::vector<uint32_t>{11}&&
+        actors::groupCacheMembership(ba::read<Obj>(s.group->get(),0x20),11)&&
+        actors::confirmedToken(owner,{11,1,1})==s.originalToken,"group focus lost its unchanged original group identity");
+    std::ostringstream out;out.imbue(std::locale::classic());out<<std::boolalpha;
+    out<<"{\"schema\":1,\"event\":\""<<event<<"\",\"world\":"<<s.world<<",\"match\":\""<<s.match
+       <<"\",\"slot\":1,\"entity\":11,\"unit_type\":1,\"army\":1,\"frame\":"<<frame
+       <<",\"completed_frame\":"<<ba::read<int>(owner.simulation->get(),0xa8)<<",\"tick_ms\":"<<GetTickCount64()<<",\"sampled_us\":"<<stamp()
+       <<",\"selector\":\""<<selector<<"\",\"incarnation\":"<<s.originalToken
+       <<",\"confirmed_incarnation\":"<<actors::confirmedToken(owner,{11,1,1})
+       <<",\"current_incarnation\":"<<token(view.context,view.current)<<",\"retained_group\":4,\"group_ids\":"<<idsJson(groupIds(s.group->get()))
+       <<",\"selected_ids\":"<<idsJson(selection::selectionIds(ba::read<Obj>(selector,0x90)))
+       <<",\"preview_ids\":"<<idsJson(selection::selectionIds(ba::read<Obj>(selector,0x88)))
+       <<",\"casting_ids\":"<<idsJson(selection::selectionIds(ba::read<Obj>(selector,0x98)))
+       <<",\"native_identity_present\":"<<view.nativePresent<<",\"current_admitted\":"<<view.context.admitted(view.current)
+       <<",\"source_resolvable_count\":"<<recallSourceCount(selector)<<",\"current_actor\":\""<<view.current
+       <<"\",\"current_actual_entity\":";
+    if(view.current){const auto id=actors::resident(view.current);out<<id.entityId<<",\"current_actual_type\":"<<id.unitType<<",\"current_actual_army\":"<<id.armyId;}
+    else out<<"null,\"current_actual_type\":null,\"current_actual_army\":null";
+    out<<",\"focus_group\":"<<ba::read<int>(selector,0xa0)<<",\"focus_actor\":\""<<ba::read<Obj>(selector,0xa8)
+       <<"\",\"pending_iteration\":"<<s.focusPendingIteration<<",\"pending_epoch\":"<<s.focusPendingEpoch
+       <<",\"release_pending_baseline\":"<<s.focusReleasePendingBaseline
+       <<",\"pending_iterator\":\""<<(s.focusPendingIterator?s.focusPendingIterator->get():nullptr)
+       <<"\",\"pending_commands\":"<<pending(owner)
+       <<",\"cancel_callback\":"<<(cancelled?"\"Uncapped.UnitSelector.FocusControlGroupCancel\"":"null")
+       <<",\"cancel_token\":"<<(cancelled?"\"06002220\"":"null")<<",\"physicalUI\":false}";
+    ba::log("MOBILE GROUP FOCUS %s",out.str().c_str());
+}
+static void cancelPendingFocus(actors::State& owner,Obj selector,int frame) {
+    auto& s=state();idle(owner,selector,11);View view(owner,selector);RecallMethods methods(selector);
+    require(s.world==2&&!s.focusCancelled&&s.firstReleased>=0&&!view.nativePresent&&!view.current&&s.groupHoldObserved&&
+        ba::read<int>(selector,0xa0)==4,"group focus cancellation needs the actual absent held group");
+    s.focusPendingIteration=selection::focusPendingIteration(selector);
+    s.focusPendingEpoch=selection::focusPendingEpoch(selector);
+    Obj iterator=selection::focusPendingIterator(selector);
+    require(s.focusPendingIteration>s.focusReleasePendingBaseline&&s.focusPendingEpoch&&iterator,
+        "group focus cancellation lacks a real pending iteration after physical release");
+    s.focusPendingIterator=std::make_unique<Root>(iterator);
+    require(s.focusPendingIterator->get()==iterator,"group focus pending iterator root failed");
+    focusEvidence(owner,selector,frame,"before_cancel");
+    int index=4;void* args[]={&index};actors::invoke(methods.cancel,selector,args);owned(owner);methods.validate();
+    require(ba::read<int>(selector,0xa0)==-1&&!ba::read<Obj>(selector,0xa8),
+        "original group focus cancel did not release the held intent");
+    s.focusCancelled=true;focusEvidence(owner,selector,frame,"after_cancel",true);
+}
 static void setup(actors::State& owner,Obj selector,int frame) {
     auto& s=state();selection::Context context(selector);const auto found=context.live.find(11);
     require(found!=context.live.end()&&context.admitted(found->second),"mobile fixture confirmed victim11 missing");Obj actor=found->second;
@@ -593,6 +643,7 @@ static void setup(actors::State& owner,Obj selector,int frame) {
         "mobile fixture original group/repeat focus was not positively established");
     s.setup=true;snapshot(owner,selector,frame,"original_mobile_selection_established",true);
     if(groupIntentEnabled())groupEvidence(owner,selector,frame,"setup");
+    if(focusEnabled())focusEvidence(owner,selector,frame,"setup");
 }
 static std::string common(const char* event,int frame,uint32_t entity,uint32_t army,uint64_t incarnation) {
     std::ostringstream out;const auto& s=state();out<<"{\"schema\":1,\"event\":\""<<event<<"\",\"world\":"<<s.world<<",\"match\":\""<<s.match
@@ -744,6 +795,8 @@ static void tick() {
             "mobile recovery stall requires the explicit group user-edit fixture");
         require(!recallEnabled()||(groupIntentEnabled()&&!groupUserEditsEnabled()&&!recoveryStallEnabled()),
             "mobile recall requires preserve-only group intent without an injected stall");
+        require(!focusEnabled()||(groupIntentEnabled()&&!groupUserEditsEnabled()&&!recoveryStallEnabled()&&!recallEnabled()),
+            "mobile focus requires preserve-only group intent without recall or an injected stall");
         require(ba::unified()&&ba::community()&&ba::dedicated()&&ba::lan()&&ba_lan::originalCommandScheduling()&&ba_lan::running&&!ba_lan::publicMatch,
             "mobile fixture requires negotiated prediction Custom");
         const int frame=ba::read<int>(owner.simulation->get(),0xac);
@@ -779,11 +832,16 @@ static void tick() {
         }
         if(s.firstDead<0&&view.nativeValue&&*view.nativeValue==6){s.firstDead=frame;snapshot(owner,selector,frame,"native_dead_observed");}
         if(s.firstReleased<0&&s.firstDead>=0&&!view.nativePresent&&!view.oldActive&&!view.oldRetained&&!view.oldComponent){
-            s.firstReleased=frame;snapshot(owner,selector,frame,"original_mobile_release_observed");}
+            s.firstReleased=frame;snapshot(owner,selector,frame,"original_mobile_release_observed");
+            if(focusEnabled()&&s.world==2)s.focusReleasePendingBaseline=selection::focusPendingIteration(selector);}
         if(groupIntentEnabled()&&s.firstReleased>=0&&!s.groupHoldObserved&&!view.nativePresent&&!view.current)
             editGroupsDuringAbsence(owner,selector,frame);
         if(recallEnabled()&&s.firstReleased>=0&&!s.recallAbsent&&!view.nativePresent&&!view.current) {
             recallAbsentGroup(owner,selector,frame);return; // Reacquire after the original callback scope.
+        }
+        if(focusEnabled()&&s.world==2&&!s.focusCancelled&&s.firstReleased>=0&&!view.nativePresent&&!view.current&&
+            selection::focusPendingIteration(selector)>s.focusReleasePendingBaseline) {
+            cancelPendingFocus(owner,selector,frame);return;
         }
         if(s.firstReleased>=0&&s.firstRestored<0&&view.nativePresent&&view.nativeValue&&*view.nativeValue!=6&&view.current&&view.context.admitted(view.current)){
             const auto identity=actors::resident(view.current);require(identity.entityId==11&&identity.unitType==1&&identity.armyId==1,"mobile fixture restored identity differs");
@@ -795,6 +853,10 @@ static void tick() {
                 require(s.groupHoldObserved&&s.groupEdits==groupUserEditsEnabled()&&groupIds(s.group->get())==expected,
                     "group intent restoration changed visible manual membership");
                 s.groupRestored=true;groupEvidence(owner,selector,frame,"restored");
+            }
+            if(focusEnabled()) {
+                require(s.world==1||s.focusCancelled,"mobile focus restored before the original pending cancellation");
+                focusEvidence(owner,selector,frame,"restored");
             }
         }
         if(recallEnabled()&&s.firstRestored>=0&&!s.recallRestored) {
@@ -833,6 +895,10 @@ static void tick() {
             if(recallEnabled()) {
                 require(s.recallAbsent&&s.recallRestored,"mobile recall completion lacks both original calls");
                 recallEvidence(owner,selector,frame,"complete");
+            }
+            if(focusEnabled()) {
+                require(s.world==1||s.focusCancelled,"mobile focus completion lacks the original pending cancellation");
+                focusEvidence(owner,selector,frame,"complete");
             }
             snapshot(owner,selector,frame,"mobile_observation_complete");s.passed=true;
         }

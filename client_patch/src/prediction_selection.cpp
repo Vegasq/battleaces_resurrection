@@ -80,6 +80,7 @@ static void failed(const char* where,const char* reason) noexcept {
     ba::log("Prediction selection admission failed: where=%s reason=%s",where,reason);
     ba_prediction_worker::movementFail(reason);
 }
+static uint32_t focusCandidate(Obj set,const void* position,Obj info);
 }
 
 extern "C" __declspec(dllexport) void OfflinePredictionSelectionCommit(void* helper,void* actualClass) {
@@ -161,12 +162,7 @@ extern "C" __declspec(dllexport) void* OfflinePredictionCastingSet(void* selecto
 
 extern "C" __declspec(dllexport) uint32_t OfflinePredictionControlGroupFocus(void* set,const void* position,void* info) {
     ba::init();using namespace ba_prediction_selection;
-    const auto id=ba::native<uint32_t(*)(Obj,const void*,Obj)>(0x3c646a0)(set,position,info);
-    if(!active() || id==UINT32_MAX)return id;
-    try {
-        Context context(currentSelector());if(context.admitted(id))return id;
-        notice();return UINT32_MAX;
-    } catch(const std::exception& error) {failed("focus",error.what());}
-    catch(...) {failed("focus","unknown focus exception");}
-    return UINT32_MAX;
+    return focusCandidate(set,position,info);
 }
+
+#include "prediction_focus.hpp"

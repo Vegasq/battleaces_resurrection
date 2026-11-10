@@ -183,6 +183,7 @@ def prepare(args):
     mobile_group_user_edits = bool(getattr(args, 'mobile_group_user_edits', False))
     mobile_recovery_stall = bool(getattr(args, 'mobile_recovery_stall', False))
     mobile_recall = bool(getattr(args, 'mobile_recall', False))
+    mobile_focus = bool(getattr(args, 'mobile_focus', False))
     require(not mobile_group_intent or (args.scenario == 'mobile' and mobile_correction),
             'mobile group intent requires explicit mobile scenario/correction')
     require(not mobile_group_user_edits or mobile_group_intent,
@@ -192,6 +193,9 @@ def prepare(args):
     require(not mobile_recall or (args.scenario == 'mobile' and mobile_correction and mobile_group_intent and
             not mobile_group_user_edits and not mobile_recovery_stall),
             'mobile recall requires explicit mobile group intent without user edits/recovery stall')
+    require(not mobile_focus or (args.scenario == 'mobile' and mobile_correction and mobile_group_intent and
+            not mobile_recall and not mobile_group_user_edits and not mobile_recovery_stall),
+            'mobile focus requires explicit preserved mobile group intent without recall/user edits/recovery stall')
     require(not (actor_correction and mobile_correction), 'HQ and mobile fixtures are mutually exclusive')
     require(not changing_rtt or (not actor_correction and not mobile_correction and args.scenario == 'movement' and args.lifecycle == 'natural' and
             args.move_slot == 0 and list(args.rtt_ms) == [130,475] and frames == 650),
@@ -230,13 +234,16 @@ def prepare(args):
     for enabled,flag in ((mobile_group_intent,'-prediction-mobile-group-intent-smoke'),
                          (mobile_group_user_edits,'-prediction-mobile-group-user-edits-smoke'),
                          (mobile_recovery_stall,'-prediction-mobile-recovery-stall-smoke'),
-                         (mobile_recall,'-prediction-mobile-recall-smoke')):
+                         (mobile_recall,'-prediction-mobile-recall-smoke'),
+                         (mobile_focus,'-prediction-mobile-focus-smoke')):
         require(not enabled or flag.encode('utf-16-le') in helper, 'helper lacks explicit ' + flag)
     required_hooks = prediction_worker.CALL_HOOKS + prediction_actor_repair.CALL_HOOKS
+    required_pointers = prediction_actor_repair.POINTER_HOOKS
+    required_patches = prediction_actor_repair.PATCHES
     require(all(marker in helper for marker in (
         b'BA_RESURRECTION_MOVEMENT_PIPELINE_V1', b'BA_RESURRECTION_NATIVE_WORKER_PROXY_V1',
         b'BA_RESURRECTION_ORIGINAL_COMMAND_SCHEDULING_V1')) and all(
-            h['name'].encode('ascii') + b'\0' in helper for h in required_hooks),
+            h['name'].encode('ascii') + b'\0' in helper for h in required_hooks + required_pointers),
             'helper lacks the explicit movement/actor/selection exports')
     manifest = json.loads(read(files['patch_manifest']['path'], 4 * 1024 * 1024))
     require(manifest.get('helper_sha256') == files['helper']['sha256'] and
@@ -244,6 +251,12 @@ def prepare(args):
             'owned patch manifest differs from installed pins')
     for hook in required_hooks:
         require(hook in manifest.get('call_hooks', []), 'owned manifest lacks movement hook: ' + hook['name'])
+    require(type(manifest.get('pointer_hooks', [])) is list, 'owned manifest lacks movement pointer hook list')
+    for hook in required_pointers:
+        require(hook in manifest.get('pointer_hooks', []), 'owned manifest lacks movement pointer hook: ' + hook['name'])
+    require(type(manifest.get('patches', [])) is list, 'owned manifest lacks movement byte patch list')
+    for patch in required_patches:
+        require(patch in manifest.get('patches', []), 'owned manifest lacks movement byte patch: ' + patch['name'])
     plugins = list((game / 'Battle Aces_Data/Plugins').rglob('Simulation.dll'))
     require(len(plugins) == 1 and sha(plugins[0]) == SUPPORTED_SIM_SHA256,
             'one exact original client Simulation image is required')
@@ -322,6 +335,7 @@ def prepare(args):
         if mobile_group_user_edits:invocation['mobile_group_user_edits']=True
         if mobile_recovery_stall:invocation['mobile_recovery_stall']=True
         if mobile_recall:invocation['mobile_recall']=True
+        if mobile_focus:invocation['mobile_focus']=True
         validate_mobile_plan(invocation)
     output.mkdir(parents=True, exist_ok=False)
     for name in sources:
@@ -341,10 +355,12 @@ def validate_mobile_plan(plan):
             plan.get('generic_movement_not_exercised') is True and not plan.get('actor_correction') and
             not plan.get('changing_rtt') and not plan.get('transition_orders') and plan.get('native_position_trace') is None,
             'prepared mobile scenario scope/fixture/650-frame natural contract differs')
-    require(all(key not in plan or type(plan[key]) is bool for key in ('mobile_group_intent','mobile_group_user_edits','mobile_recovery_stall','mobile_recall')) and
+    require(all(key not in plan or type(plan[key]) is bool for key in ('mobile_group_intent','mobile_group_user_edits','mobile_recovery_stall','mobile_recall','mobile_focus')) and
             (not plan.get('mobile_group_user_edits') or plan.get('mobile_group_intent') is True) and
             (not plan.get('mobile_recovery_stall') or plan.get('mobile_group_user_edits') is True) and
             (not plan.get('mobile_recall') or (plan.get('mobile_group_intent') is True and
+             not plan.get('mobile_group_user_edits') and not plan.get('mobile_recovery_stall'))) and
+            (not plan.get('mobile_focus') or (plan.get('mobile_group_intent') is True and not plan.get('mobile_recall') and
              not plan.get('mobile_group_user_edits') and not plan.get('mobile_recovery_stall'))),
             'prepared mobile group edits require typed explicit group intent')
 
@@ -395,6 +411,8 @@ def command_extra(plan, index, run):
         result.append('-prediction-mobile-recovery-stall-smoke')
     if plan.get('mobile_recall'):
         result.append('-prediction-mobile-recall-smoke')
+    if plan.get('mobile_focus'):
+        result.append('-prediction-mobile-focus-smoke')
     if plan.get('changing_rtt') and index == plan['move_slot']:
         result.append('-prediction-movement-smoke-distance=48')
     if plan.get('transition_orders') and index == plan['move_slot']:
@@ -1156,6 +1174,14 @@ def finalize_mobile_observation(report, plan, *, states, worker_state_rows, clie
                 [row.get('match')for row in recall['episodes']] == created and
                 all(row.get('passed') is True and row.get('world') == victim[row['match']]for row in recall['episodes']),
                 'explicit mobile recall witness missing/failed')
+    if plan.get('mobile_focus'):
+        focus=report.get('mobile_focus',{})
+        require(plan.get('mobile_group_intent') is True and not plan.get('mobile_recall') and
+                not plan.get('mobile_group_user_edits') and not plan.get('mobile_recovery_stall') and
+                report.get('focus_witness_passed') is True and focus.get('passed') is True and
+                len(focus.get('episodes',[])) == 2 and [row.get('match')for row in focus['episodes']] == created and
+                all(row.get('passed') is True and row.get('world') == victim[row['match']]for row in focus['episodes']),
+                'explicit mobile focus witness missing/failed')
     report.update(mobile_state_parity=parity,mobile_input_witness_passed=True,scoped_observation_passed=True,
         generic_movement_not_exercised=True,movement_feel_witness_passed=False,full_mobile_controls_accepted=False,
         mobile_scope='Both original mobile release/reinit/freshMove episodes plus full closed native parity; generic newborn440/460 movement not exercised, group intent remains separately open')
@@ -1185,6 +1211,14 @@ def mobile_final_gate(plan, report):
             [row.get('match')for row in report['mobile_recall']['episodes']] == [row.get('match')for row in report.get('matches',[])] and
             all(row.get('passed') is True and row.get('world') == episode.get('world')for row,episode in
                 zip(report['mobile_recall']['episodes'],report['mobile_correction'].get('episodes',[]))))) and
+        (not plan.get('mobile_focus') or (plan.get('mobile_group_intent') is True and not plan.get('mobile_recall') and
+            not plan.get('mobile_group_user_edits') and not plan.get('mobile_recovery_stall') and
+            report.get('mobile_focus',{}).get('passed') is True and report.get('focus_witness_passed') is True and
+            len(report['mobile_focus'].get('episodes',[])) == 2 and
+            len(report['mobile_correction'].get('episodes',[])) == 2 and
+            [row.get('match')for row in report['mobile_focus']['episodes']] == [row.get('match')for row in report.get('matches',[])] and
+            all(row.get('passed') is True and row.get('world') == episode.get('world')for row,episode in
+                zip(report['mobile_focus']['episodes'],report['mobile_correction']['episodes'])))) and
         report.get('source_unchanged') is True and report.get('files_unchanged') is True and
         not report.get('forced_cleanup') and not report.get('cleanup_errors') and
         len(report.get('game_cleanup',[])) == 2 and all(r.get('natural_game_exit') is True for r in report['game_cleanup']))
@@ -2387,6 +2421,17 @@ async def run_prepared(output):
                 report['mobile_recall']=dict(passed=False,error=repr(error),
                     scope='No substituted original recall callback, absent admission filter or restored selection')
                 report['recall_witness_passed']=False
+        if plan.get('mobile_focus'):
+            try:
+                from tools.prediction_mobile_evidence import evaluate_group_focus
+                report['mobile_focus']=evaluate_group_focus(clients[1]['log'],attacker_log=clients[0]['log'],
+                    mobile_episodes=report.get('mobile_correction',{}).get('episodes',[]),
+                    group_intent=report.get('mobile_group_intent',{}))
+                report['focus_witness_passed']=report['mobile_focus']['passed']
+            except BaseException as error:
+                report['mobile_focus']=dict(passed=False,error=repr(error),
+                    scope='No substituted owned iterator continuity, original pending cancellation or camera-call receipt')
+                report['focus_witness_passed']=False
         if plan['scenario'] == 'mobile':
             try:
                 finalize_mobile_observation(report,plan,states=states,worker_state_rows=worker_state_rows,
@@ -2717,6 +2762,8 @@ def main(argv=None):
                         help='With mobile group user edits: one owned250ms main-thread hold after victim world2 snapshot152')
     parser.add_argument('--mobile-recall', action='store_true',
                         help='With retained mobile group intent: original recall during absence and again after restored admission')
+    parser.add_argument('--mobile-focus', action='store_true',
+                        help='With preserved mobile group intent: owned held-focus continuity and original cancel control')
     parser.add_argument('--changing-rtt', action='store_true',
                         help='Owned ordinary650-frame movement: subject future-read130->475->130ms while original48-unit Move is unfinished')
     parser.add_argument('--transition-orders', action='store_true',
@@ -2735,7 +2782,7 @@ def main(argv=None):
     if args.run_prepared:
         report = asyncio.run(run_prepared(args.run_prepared))
         print(json.dumps({k: report[k] for k in ('passed', 'scoped_observation_passed', 'movement_feel_witness_passed',
-            'mobile_input_witness_passed','group_intent_witness_passed','recovery_stall_witness_passed','recall_witness_passed','generic_movement_not_exercised',
+            'mobile_input_witness_passed','group_intent_witness_passed','recovery_stall_witness_passed','recall_witness_passed','focus_witness_passed','generic_movement_not_exercised',
             'full_feature_accepted', 'forced_cleanup', 'error') if k in report}))
         return 0 if report['passed'] else 1
     required = ('game', 'assets', 'output', 'python', 'module_root', 'heap_helper', 'cooperative', 'helper_build_receipt',

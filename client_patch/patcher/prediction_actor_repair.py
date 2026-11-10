@@ -18,6 +18,8 @@ CALL_HOOKS = [
     dict(name='OfflinePredictionGroupReleaseRemove', rva=0x3ea625a,
          offset=0x3ea485a, before='e8b103dcff'),
 ] + prediction_selection.CALL_HOOKS
+POINTER_HOOKS = list(prediction_selection.POINTER_HOOKS)
+PATCHES = list(prediction_selection.PATCHES)
 BODY_GUARDS = [
     dict(rva=0x3c08010, before='488bc44889501048894808535657415441'),
     dict(rva=0x3c0913c, before='e8afe8ffff'),
@@ -96,6 +98,86 @@ def rva_to_offset(original, rva, length):
     return _mapped_offset(*_pe_sections(original), rva, length)
 
 
+def validate_pointer_hooks(original, hooks):
+    """Validate exact method slots and their unique, file-backed DIR64 entries."""
+    if not hooks:
+        return []
+
+    def require(condition, message):
+        if not condition:
+            raise ValueError('Prediction actor pointer: ' + message)
+
+    headers, sections = _pe_sections(original)
+    pe = struct.unpack_from('<I', original, 0x3c)[0]
+    opt = pe + 24
+    require(struct.unpack_from('<H', original, pe + 20)[0] >= 160 and
+            struct.unpack_from('<I', original, opt + 108)[0] >= 6,
+            'base relocation directory is missing')
+    image_base = struct.unpack_from('<Q', original, opt + 24)[0]
+    directory_rva, directory_size = struct.unpack_from('<II', original, opt + 112 + 5 * 8)
+    require(directory_size >= 8, 'base relocation directory is empty')
+    directory = _mapped_offset(headers, sections, directory_rva, directory_size)
+    wanted = set()
+    for hook in hooks:
+        for key in ('rva', 'offset', 'target_rva', 'relocation_block_offset', 'relocation_entry_offset'):
+            require(type(hook.get(key)) is int and hook[key] >= 0, 'invalid descriptor ' + key)
+        require(hook['rva'] not in wanted, 'duplicate method-pointer slot')
+        wanted.add(hook['rva'])
+    matches = {rva: 0 for rva in wanted}
+    blocks = {}
+    at, end = directory, directory + directory_size
+    while at < end:
+        require(at + 8 <= end, 'truncated relocation block header')
+        page, size = struct.unpack_from('<II', original, at)
+        require(page % 4096 == 0 and size >= 8 and size % 2 == 0 and at + size <= end,
+                'malformed relocation block')
+        blocks[at] = (page, size)
+        for entry in range(at + 8, at + size, 2):
+            value = struct.unpack_from('<H', original, entry)[0]
+            target = page + (value & 0xfff)
+            if value >> 12 == 10 and target in matches:
+                matches[target] += 1
+        at += size
+    guarded = []
+    for hook in hooks:
+        offset = _mapped_offset(headers, sections, hook['rva'], 8)
+        before = bytes.fromhex(hook['before'])
+        require(offset == hook['offset'] and len(before) == 8 and original[offset:offset + 8] == before,
+                'method-pointer bytes/mapping mismatch: ' + hook['name'])
+        _mapped_offset(headers, sections, hook['target_rva'], 1)
+        require(image_base + hook['target_rva'] < 1 << 64 and
+                int.from_bytes(before, 'little') == image_base + hook['target_rva'],
+                'original target mismatch: ' + hook['name'])
+        block, entry = hook['relocation_block_offset'], hook['relocation_entry_offset']
+        require(block in blocks, 'relocation block is not in the PE directory')
+        page, size = blocks[block]
+        block_bytes, entry_bytes = (bytes.fromhex(hook[key]) for key in
+                                   ('relocation_block_before', 'relocation_entry_before'))
+        require(len(block_bytes) == 8 and len(entry_bytes) == 2 and
+                original[block:block + 8] == block_bytes and
+                block + 8 <= entry < block + size and (entry - block) % 2 == 0 and
+                original[entry:entry + 2] == entry_bytes,
+                'relocation bytes/entry mismatch: ' + hook['name'])
+        relocation = struct.unpack_from('<H', original, entry)[0]
+        require(relocation >> 12 == 10 and page + (relocation & 0xfff) == hook['rva'] and
+                matches[hook['rva']] == 1, 'unique DIR64 target mismatch: ' + hook['name'])
+        guarded.append(dict(hook, image_base=image_base,
+                            relocation_directory_rva=directory_rva,
+                            relocation_directory_size=directory_size))
+    return guarded
+
+
+def validate_byte_patches(original, patches):
+    guarded = []
+    for item in patches:
+        before, after = bytes.fromhex(item['before']), bytes.fromhex(item['after'])
+        offset = rva_to_offset(original, item['rva'], len(before))
+        if not before or len(before) != len(after) or offset != item['offset'] or original[offset:offset + len(before)] != before:
+            raise ValueError('Prediction actor byte patch guard/mapping mismatch: ' + item['name'])
+        guarded.append(dict(item))
+    return guarded
+
+
 def validate_original(original, *, expected_sha256):
     """Return guard provenance only after independent recipe and original checks.
 
@@ -125,7 +207,11 @@ def validate_original(original, *, expected_sha256):
         if offset != hook['offset'] or original[offset:offset + len(before)] != before:
             raise ValueError('Prediction actor call guard/mapping mismatch: ' + hook['name'])
         calls.append(dict(hook))
+    pointers = validate_pointer_hooks(original, POINTER_HOOKS)
+    patches = validate_byte_patches(original, PATCHES)
     return dict(original_sha256=actual_sha256,
                 supported_original_sha256=SUPPORTED_ORIGINAL_SHA256,
                 body_guards=guarded, call_hooks=calls,
+                pointer_hooks=[dict(hook) for hook in POINTER_HOOKS], pointer_guards=pointers,
+                patches=patches,
                 selection_admission=selection)

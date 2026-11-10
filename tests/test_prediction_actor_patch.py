@@ -42,6 +42,14 @@ class PredictionActorGuardTests(unittest.TestCase):
             r'requireMovementHook\((0x[0-9a-fA-F]+),\s*"([^"]+)"\);', body)]
         self.assertEqual(len(required), len(set(required)))
         self.assertEqual(set(required), {(hook['rva'], hook['name']) for hook in actor.CALL_HOOKS})
+        pointers = [(int(site, 16), name) for site, name in re.findall(
+            r'requireMovementPointerHook\((0x[0-9a-fA-F]+),\s*"([^"]+)"\);', body)]
+        self.assertEqual(len(pointers), len(set(pointers)))
+        self.assertEqual(set(pointers), {(hook['rva'], hook['name']) for hook in actor.POINTER_HOOKS})
+        byte_patches = [(int(site, 16), bytes(int(x, 16) for x in re.findall(r'\\x([0-9a-fA-F]{2})', before)).hex(), int(count))
+                        for site, before, count in re.findall(
+            r'requireMovementBytes\((0x[0-9a-fA-F]+),\s*"([^"]+)",\s*(\d+)\);', body)]
+        self.assertEqual(set(byte_patches), {(row['rva'], row['after'], len(bytes.fromhex(row['after']))) for row in actor.PATCHES})
 
     def setUp(self):
         self.original = fixture()
@@ -56,6 +64,8 @@ class PredictionActorGuardTests(unittest.TestCase):
         stack.enter_context(patch.object(actor, 'SUPPORTED_ORIGINAL_SHA256', self.sha))
         stack.enter_context(patch.object(actor, 'BODY_GUARDS', self.guards))
         stack.enter_context(patch.object(actor, 'CALL_HOOKS', self.hooks))
+        stack.enter_context(patch.object(actor, 'POINTER_HOOKS', []))
+        stack.enter_context(patch.object(actor, 'PATCHES', []))
         # The independent selection guard has its own authored controls in
         # test_prediction_selection_patch; isolate these actor PE controls.
         stack.enter_context(patch.object(actor.prediction_selection, 'validate_original',

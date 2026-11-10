@@ -30,6 +30,7 @@ static void registered(uint64_t,int,const std::vector<uint8_t>&);
 static void authoritative(const std::vector<uint8_t>&,const std::string&);
 }
 namespace ba_prediction_actor_smoke {static void tick();}
+namespace ba_prediction_selection {static void focusClearInactive();}
 namespace ba_dedicated_results { static void receive(const std::string&); }
 namespace ba_audit { static void beginMatch(const std::string&);static void practiceAIView(void*,int); }
 namespace ba_telemetry_audit { static void startup();static void update();static void beforeQuit() noexcept; }
@@ -299,8 +300,9 @@ extern "C" __declspec(dllexport) void OfflineFrontUpdate(void* front,void*) {
     // Offline mode owns no connection to the discontinued front service.
     using namespace ba;
     static ULONGLONG last=0;
-    if(!owner)return;
     try {
+        ba_prediction_selection::focusClearInactive();
+        if(!owner)return;
         if(!get<Obj>(front,"_frontVersionResponse")) {
             local_version(front);log("Restored local version state after frontend reset.");
         }
