@@ -10,14 +10,21 @@ struct FocusCandidate {
     actors::policy::ActorIdentity identity{};
     uint64_t token=0;
 };
+struct FocusRequest {
+    uint64_t epoch=0;
+    uint32_t requestedGroup=0,effectiveGroup=0;
+    bool repeat=false;
+    std::vector<uint32_t> sourceIds,logicalIds;
+};
 struct FocusSession {
     uint64_t world=0,epoch=0,iteration=0,eventSequence=0,pendingIteration=0,lastSampled=0;
     std::string match;
     std::unique_ptr<Root> selector,iterator;
-    uint32_t handle=0,group=0,lastGroup=0;
-    bool scheduling=false,handleReady=false,lastRepeat=false,ending=false;
+    uint32_t handle=0,group=0;
+    bool scheduling=false,handleReady=false,ending=false;
     std::vector<uint32_t> sourceIds,logicalIds;
     std::map<uint32_t,actors::Resident> pending;
+    FocusRequest request;
 };
 static FocusSession& focusSession(){static auto* value=new FocusSession;return *value;}
 static uint64_t& focusEpochCounter(){static uint64_t value=0;return value;}
@@ -129,6 +136,7 @@ static void focusForget() {
     s.world=0;s.match.clear();s.handleReady=false;s.scheduling=false;
     s.ending=false;
     s.sourceIds.clear();s.logicalIds.clear();
+    s.request=FocusRequest{};
     if(failure)std::rethrow_exception(failure);
 }
 static void focusBeginWorld(Obj selector) {
@@ -234,8 +242,10 @@ static bool focusSameMembers(const std::map<uint32_t,actors::Resident>& a,const 
     }
     return true;
 }
-static void focusSnapshot(FocusView& view) {
-    auto& s=focusSession();s.sourceIds=view.sourceIds;s.logicalIds=view.logicalIds;
+static void focusSnapshot(FocusView& view,bool initial=false) {
+    auto& s=focusSession();
+    if(initial){s.request.sourceIds=view.sourceIds;s.request.logicalIds=view.logicalIds;}
+    else {s.sourceIds=view.sourceIds;s.logicalIds=view.logicalIds;}
 }
 static void focusEvent(const char* event,const char* stage,const FocusCandidate* candidate,
                        int originalResult,const char* route) {
@@ -244,20 +254,34 @@ static void focusEvent(const char* event,const char* stage,const FocusCandidate*
     actors::require(ba_frame_timing::timestampMicros(sampled),"focus diagnostic QPC unavailable");
     actors::require(sampled>=s.lastSampled,"focus diagnostic QPC moved backwards");s.lastSampled=sampled;
     actors::require(s.eventSequence!=UINT64_MAX,"focus event sequence exhausted");++s.eventSequence;
+    const bool initial=!strcmp(event,"request") || !strcmp(route,"initial");
+    const bool extended=ba::flag(L"-prediction-mobile-focus-no-start-smoke");
+    // Retain the qualified base receipt shape. Its first accepted request had
+    // no iterator and used the repeat route; the new explicit scope separates
+    // initial requests from an already running repeat iterator.
+    const char* recordedRoute=initial && !strcmp(event,"request") && !extended?"repeat":route;
+    const auto& sourceIds=initial?s.request.sourceIds:s.sourceIds;
+    const auto& logicalIds=initial?s.request.logicalIds:s.logicalIds;
     std::ostringstream out;out<<"MOVEMENT FOCUS {\"schema\":1,\"event_sequence\":"<<s.eventSequence
-        <<",\"event\":\""<<event<<"\",\"stage\":\""<<stage<<"\",\"route\":\""<<route
+        <<",\"event\":\""<<event<<"\",\"stage\":\""<<stage<<"\",\"route\":\""<<recordedRoute
         <<"\",\"world\":"<<s.world<<",\"match\":\""<<s.match<<"\",\"selector\":\""<<(s.selector?s.selector->get():nullptr)
         <<"\",\"iterator\":";
-    Obj iterator=(!strcmp(route,"initial")?nullptr:(s.iterator?s.iterator->get():nullptr));
+    Obj iterator=(initial?nullptr:(s.iterator?s.iterator->get():nullptr));
     if(iterator)out<<'"'<<iterator<<'"';else out<<"null";
-    out<<",\"request_epoch\":"<<s.epoch<<",\"iteration\":"<<(iterator?s.iteration:0)
-        <<",\"group\":"<<(!strcmp(route,"initial")?s.lastGroup:s.group)<<",\"held_group\":"<<(s.selector?ba::read<int>(s.selector->get(),0xa0):-1)
+    out<<",\"request_epoch\":"<<(initial?s.request.epoch:s.epoch)<<",\"iteration\":"<<(iterator?s.iteration:0);
+    if(extended) {
+        out<<",\"requested_group\":"<<(initial?s.request.requestedGroup:s.group)
+            <<",\"active_epoch\":"<<(s.iterator?s.epoch:0)<<",\"active_iterator\":";
+        if(s.iterator)out<<'"'<<s.iterator->get()<<'"';else out<<"null";
+        out<<",\"active_handle\":";if(s.iterator && s.handleReady)out<<s.handle;else out<<"null";
+    }
+    out<<",\"group\":"<<(initial?s.request.effectiveGroup:s.group)<<",\"held_group\":"<<(s.selector?ba::read<int>(s.selector->get(),0xa0):-1)
         <<",\"tick_ms\":"<<GetTickCount64()<<",\"sampled_us\":"<<sampled<<",\"original_state\":";
     if(iterator)out<<ba::read<int>(iterator,0x10);else out<<"null";
     out<<",\"yield_bits\":";if(iterator)out<<ba::read<uint32_t>(iterator,0x14);else out<<"null";
     out<<",\"original_result\":";if(originalResult<0)out<<"null";else out<<(originalResult?"true":"false");
-    out<<",\"source_ids\":[";bool comma=false;for(auto id:s.sourceIds){if(comma)out<<',';out<<id;comma=true;}
-    out<<"],\"logical_ids\":[";comma=false;for(auto id:s.logicalIds){if(comma)out<<',';out<<id;comma=true;}
+    out<<",\"source_ids\":[";bool comma=false;for(auto id:sourceIds){if(comma)out<<',';out<<id;comma=true;}
+    out<<"],\"logical_ids\":[";comma=false;for(auto id:logicalIds){if(comma)out<<',';out<<id;comma=true;}
     out<<"],\"actor\":";if(candidate)out<<'"'<<candidate->actor<<'"';else out<<"null";
     out<<",\"entity\":";if(candidate)out<<candidate->identity.entityId;else out<<"null";
     out<<",\"unit_type\":";if(candidate)out<<candidate->identity.unitType;else out<<"null";
@@ -274,8 +298,10 @@ static uint32_t focusCandidate(Obj set,const void* position,Obj info) {
         auto& s=focusSession();Obj selector=currentSelector();
         actors::require(focusSameWorld(s) && s.selector && s.selector->get()==selector,
             "focus chooser has no accepted request epoch");
-        FocusView view(selector,focusCameraContext?s.group:s.lastGroup);actors::require(view.source.get()==set,"focus chooser passed set owner differs");
-        focusSnapshot(view);const auto candidate=view.choose(position,info);
+        const bool initial=!focusCameraContext;
+        actors::require(!initial || s.request.epoch,"focus initial chooser has no accepted request");
+        FocusView view(selector,initial?s.request.effectiveGroup:s.group);actors::require(view.source.get()==set,"focus chooser passed set owner differs");
+        focusSnapshot(view,initial);const auto candidate=view.choose(position,info);
         return candidate?candidate->identity.entityId:UINT32_MAX;
     } catch(const std::exception& error){failed("focus",error.what());}
     catch(...){failed("focus","unknown focus chooser exception");}
@@ -348,12 +374,19 @@ extern "C" __declspec(dllexport) bool OfflinePredictionFocusActuate(void* select
         Obj method=actors::method(selector,"ActuateControlGroup",1,0x0600220f,0x3bf1650);
         actors::instanceSignature(method,"Boolean","Int32");void* args[]={&group};Root result(actors::invoke(method,selector,args));
         const bool accepted=actors::unbox<bool>(result.get());if(!accepted)return false;
-        focusBeginWorld(selector);auto& s=focusSession();s.lastGroup=static_cast<uint32_t>(group);s.lastRepeat=repeat;
-        FocusView view(selector,s.lastGroup);focusSnapshot(view);
-        if(repeat) {
-            auto& next=focusEpochCounter();actors::require(next!=UINT64_MAX,"focus request epoch exhausted");
-            s.epoch=++next;s.group=s.lastGroup;s.ending=false;focusClearPending(s);focusEvent("request","accepted_repeat");
-        }
+        focusBeginWorld(selector);auto& s=focusSession();
+        const int held=ba::read<int>(selector,0xa0);actors::require(held>=-1,"focus held group differs");
+        // Original Actuate can return true without a selection scope while a
+        // group is already held. Original Focus then skips RunCoroutine. Keep
+        // this initial request separate from the still-owned repeat iterator.
+        FocusRequest request;request.requestedGroup=static_cast<uint32_t>(group);
+        request.effectiveGroup=held<0?request.requestedGroup:static_cast<uint32_t>(held);request.repeat=repeat;
+        FocusView view(selector,request.effectiveGroup);
+        request.sourceIds=view.sourceIds;request.logicalIds=view.logicalIds;
+        auto& next=focusEpochCounter();actors::require(next!=UINT64_MAX,"focus request epoch exhausted");
+        request.epoch=++next;s.request=std::move(request);
+        if(repeat || ba::flag(L"-prediction-mobile-focus-no-start-smoke"))
+            focusEvent("request",repeat?"accepted_repeat":"accepted_once",nullptr,-1,"initial");
         return true;
     } catch(const std::exception& error){focusFailed("focus_actuate",error.what());}
     catch(...){focusFailed("focus_actuate","unknown focus request exception");}
@@ -365,8 +398,12 @@ extern "C" __declspec(dllexport) uint32_t OfflinePredictionStartRepeatFocus(void
     if(!active())return ba::native<uint32_t(*)(Obj,Obj)>(0x32f97f0)(iterator,info);
     try {
         Obj selector=focusIteratorOwner(iterator);auto& s=focusSession();
-        actors::require(focusSameWorld(s) && s.selector && s.selector->get()==selector && s.epoch && s.lastRepeat,
+        actors::require(focusSameWorld(s) && s.selector && s.selector->get()==selector && s.request.epoch && s.request.repeat,
             "focus scheduler has no accepted repeat epoch");
+        actors::require(ba::read<int>(selector,0xa0)>=0 &&
+            static_cast<uint32_t>(ba::read<int>(selector,0xa0))==s.request.requestedGroup,
+            "focus scheduler did not observe the original requested held group");
+        actors::require(ba::read<int>(iterator,0x10)==0,"focus scheduler received an already started iterator");
         actors::require(!focusWeakStore().failed,"focus weak lifetime guard failed; restart required");
         if(s.iterator && s.iterator->get()!=iterator) {
             focusEvent("terminal","superseded");focusRememberRetired(s.iterator->get());
@@ -374,10 +411,12 @@ extern "C" __declspec(dllexport) uint32_t OfflinePredictionStartRepeatFocus(void
         focusPruneRetired();actors::require(focusWeakStore().handles.size()<maximumRetiredFocusIterators,
             "retired focus iterator weak budget exhausted before registration");
         s.iterator=std::make_unique<Root>(iterator);s.iteration=0;focusClearPending(s);
+        s.epoch=s.request.epoch;s.group=s.request.requestedGroup;
+        s.sourceIds=s.request.sourceIds;s.logicalIds=s.request.logicalIds;
+        s.request=FocusRequest{}; // Only an actual Start consumes this request.
         actors::require(s.iterator->get()==iterator,"focus iterator GC root allocation failed");
         actors::require(!focusWasRetired(iterator),"a live retired focus iterator cannot be registered again");
         s.scheduling=true;s.handleReady=false;s.ending=false;
-        actors::require(ba::read<int>(iterator,0x10)==0,"focus scheduler received an already started iterator");
         focusEvent("start","scheduling");void* args[]={iterator};Root boxed(actors::invoke(focusStartInfo(),nullptr,args));
         uint32_t alignment=0;
         actors::require(focusSameWorld(s) && boxed.get() && ba::klass(boxed.get())==actors::type("MEC","CoroutineHandle") &&
@@ -472,10 +511,11 @@ extern "C" __declspec(dllexport) void OfflinePredictionControlGroupCamera(void* 
             focusCameraContext->iterator==s.iterator->get() && focusCameraContext->epoch==s.epoch &&
             focusCameraContext->iteration==s.iteration && ba::read<int>(s.selector->get(),0xa0)>=0,
             "focus camera iterator/epoch was cancelled or superseded");
-        FocusView view(s.selector->get(),repeat?s.group:s.lastGroup);focusSnapshot(view);
+        actors::require(repeat || s.request.epoch,"focus initial camera has no accepted request");
+        FocusView view(s.selector->get(),repeat?s.group:s.request.effectiveGroup);focusSnapshot(view,!repeat);
         actors::require(camera==view.camera.get(),"focus camera belongs to another selector");
         const auto candidate=view.positive(actor);actors::require(candidate.has_value(),"focus camera target is not a current admitted logical member");
-        const uint64_t epoch=s.epoch;Obj selector=s.selector->get();
+        const uint64_t epoch=repeat?s.epoch:s.request.epoch;Obj selector=s.selector->get();
         const char* route=repeat?"repeat":"initial";
         focusEvent("camera","requested",&*candidate,-1,route);
         Obj method=actors::method(camera,"FocusOnUnit",1,0x060015ec,0x3e9e310);
@@ -484,7 +524,7 @@ extern "C" __declspec(dllexport) void OfflinePredictionControlGroupCamera(void* 
             ba::api<Obj(*)(Obj,uint32_t)>("il2cpp_method_get_param")(method,0))==actors::type("Uncapped","Unit"),
             "focus camera Unit parameter differs");
         void* args[]={actor};actors::invoke(method,camera,args);
-        actors::require(focusSameWorld(s) && s.epoch==epoch && s.selector && s.selector->get()==selector,
+        actors::require(focusSameWorld(s) && (repeat?s.epoch:s.request.epoch)==epoch && s.selector && s.selector->get()==selector,
             "focus camera callback retired or superseded the owned epoch");
         focusEvent("camera","returned",&*candidate,-1,route);
     } catch(const std::exception& error){focusFailed("focus_camera",error.what());}

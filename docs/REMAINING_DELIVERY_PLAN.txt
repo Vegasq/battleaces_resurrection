@@ -80,7 +80,11 @@ original Pop161. All2890 native hashes match/natural Quit,fresh phases0/0.
 Actual34 now passes both real UI88 cast/drain/rematch episodes:one canonical
 execution per command,exact map target bytes,20 native continuations,all2890
 parsed hashes matching,and natural shutdown.32/33 remain failed and preserved.
-Next:held-focus accepted-Actuate/no-new-iterator ownership,then broader held input.
+Actual35 now passes the accepted-Actuate/no-new-iterator repair in both rounds:
+new request epochs2/4 leave active coroutine epochs1/3 unchanged;original Cancel
+ends W2,all2892 native hashes match and every child quits naturally. Nonzero
+pending preservation is authored coverage;actual before/after counts are0.
+Next:same-world original cancellation/new-start handoff,then broader held input.
 Prediction eligibility remains
 12/14. Forced-retirement group clearing and physical/Internet
 feedback remain open. N35's reserved kit stays frozen. Prior failures and the
@@ -144,6 +148,9 @@ These grouped rows summarize the detailed matrices;they are not a percentage or
 an exact count of every remaining test. DEV.txt remains the owner of user answers.
 
 COMPLETED
+[x] Original UI command ownership through correction/rematch (actual34),and
+    accepted held-focus action without new coroutine startup (actual35).
+    These close their named integration scopes,not full physical/Internet D8.
 [x] N32 scheduling merge and initial prediction draft:real native motion before
     confirmation and bounded correction/replay proof. Client rollout remains open.
 [x] N29 selected test host deployed/readiness-checked with rollback and matching

@@ -482,10 +482,63 @@ Its actual target predicate and original report bytes remain unchanged.
 
 Ability88 remains nonpredicted;no pre-authority motion or movement-feel claim is
 made. The qualified Move12 prediction evidence remains separate and reusable.
-Next:the original accepted-Actuate/no-new-iterator held-focus path. Source review
-finds that accepted Actuate while already holding can return true without a new
-selection scope or coroutine;active adapter request ownership needs to respect
-that distinction. Broader physical input remains unqualified.
+Actual35:accepted held-focus action without a new iterator
+Original ActuateControlGroup may return true while a group is already held,
+without creating a selection scope or changing selection. Original Focus then
+keeps the held group and does not schedule another coroutine. The old adapter
+nevertheless advanced the active epoch and cleared pending members. An authored
+actual-header RED reproduces epoch18->19/pending1->0 with original handle,
+selection,iterator state,current value,Start and Next unchanged.
+
+The adapter now keeps a separate pending initial request,including its own ID
+snapshots. Initial chooser/camera callbacks use that request;repeat callbacks
+use the existing active session. Only actual original coroutine startup installs
+a new active epoch,before its synchronous first MoveNext. Old terminal records
+retain their old epoch,iterator and ID snapshots. The request is consumed after
+startup. Effective initial-group membership follows the original held group
+when Actuate leaves selection unchanged. Cross-group runtime behavior remains
+separate. Default diagnostic schema is preserved;the explicit no-start variant
+adds fields distinguishing pending request and active ownership.
+
+The fixed header passes25 authored cases /W4 /WX,including nonzero pending and
+ending preservation,true/false action results,real synchronous startup,old
+terminal provenance and weak rejection of a late old iterator. A separate stale
+authored chooser invocation after a consumed request remains a retained failed
+control;its repaired input supplies an actual accepted request.
+
+Actual35 PASSES157.187s. After original restoration,each guest invokes original
+Focus4(repeat=true) once. Requests2/4 have their own initial camera callbacks,
+while the original active epochs1/3,iterators,handles,state/yield values and
+pending snapshots remain unchanged. Each world has exactly one original Start;
+the next actual repeat still belongs to the old epoch. W1 continues through260;
+W2 original Cancel4 at170 ends that iterator through original MoveNext false.
+The completion receipt observes an absent session without retaining old roots
+or presenting stale metadata as an active lease. Actual pending counts are0
+before/after in both worlds;nonzero preservation is not a runtime claim.
+
+Fresh original Move12 responds64.329/55.214ms before actual65 by437/531ms and
+raw bridge by437/485ms;phases0/-1. Both escapes replay10frames plus20 matching
+continuations,and both fresh commands retain20 continuations. All2892 closed
+parsed hashes and all2892 native65/raw-bridge/authority wire triples match.
+Two results/Continue,
+rematch/Leave/Quit and every game/client worker/authority finish naturally0,
+without force or cleanup errors. Source and consumed files stay unchanged.
+Full helper45 build passes with178 unchanged C++ sources;351 focused Python
+cases pass. Original35 PASS report SHA256:
+c76a46eec592a142f9546c0729e3bf1a41f331c47c0f004260a9eb352f1418f8.
+Protected snapshot receipt SHA256:
+62fb27cfaf074562d01353fd49bfd88dc138091451afe325090e7e8c20add45d.
+Independent complete audit receipt SHA256:
+021e2b7ff61640a20287a961131555717670da2a57f7e2be72a86ee8d0cab098.
+Helper45 SHA256:
+35898a9620844e572eb95650e6981a2dc3fe19801178714fc475d59497660697.
+Authored RED receipt SHA256:
+44efe866232381e2106085c9ddc20d32fd97dbb2cd06c842dd4cc487780c7e1e.
+Authored GREEN receipt SHA256:
+ee0f36a0de304f537f450a944f2bc1dd9e0c4d28d3a5f23ddcaa6b6fcf1d60e1.
+
+Next:same-world original cancellation/new-start handoff. Cross-group runtime,
+broader held gestures and physical input remain unqualified.
 
 Forced-retirement whole-group clearing,casting/held input and
 physical/Internet acceptance remain OPEN. This does not close all mobile

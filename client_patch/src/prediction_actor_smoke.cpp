@@ -397,6 +397,7 @@ static bool groupUserEditsEnabled(){return ba::flag(L"-prediction-mobile-group-u
 static bool recoveryStallEnabled(){return ba::flag(L"-prediction-mobile-recovery-stall-smoke");}
 static bool recallEnabled(){return ba::flag(L"-prediction-mobile-recall-smoke");}
 static bool focusEnabled(){return ba::flag(L"-prediction-mobile-focus-smoke");}
+static bool focusNoStartEnabled(){return ba::flag(L"-prediction-mobile-focus-no-start-smoke");}
 static bool casterSurveyEnabled(){return ba::flag(L"-prediction-mobile-caster-survey-smoke");}
 static bool casterLifetimeEnabled(){return ba::flag(L"-prediction-mobile-caster-lifetime-smoke");}
 static bool uiCastEnabled(){return ba::flag(L"-prediction-mobile-ui-cast-smoke");}
@@ -793,12 +794,13 @@ static void attackerGroupTick(actors::State& owner,Obj selector,int frame) {
 #include "prediction_caster_survey.hpp"
 #include "prediction_caster_lifetime.hpp"
 #include "prediction_ui_cast.hpp"
+#include "prediction_focus_request_smoke.hpp"
 static void tick() {
     try {
         require(!ba::flag(L"-prediction-actor-correction-smoke"),"mobile/HQ fixture flags must be separate");
         const auto world=worker::movementWorldId();const auto match=worker::movementMatchId();
-        if(!worker::movementEnabled()||!world||match.empty()){if(casterLifetimeEnabled())caster_lifetime::clear();if(uiCastEnabled())ui_cast::clear();state()=State{};return;}
-        auto& s=state();if(s.world!=world||s.match!=match){if(casterLifetimeEnabled())caster_lifetime::clear();if(uiCastEnabled())ui_cast::clear();s=State{};s.world=world;s.match=match;}
+        if(!worker::movementEnabled()||!world||match.empty()){if(casterLifetimeEnabled())caster_lifetime::clear();if(uiCastEnabled())ui_cast::clear();if(focusNoStartEnabled())focus_request::clear();state()=State{};return;}
+        auto& s=state();if(s.world!=world||s.match!=match){if(casterLifetimeEnabled())caster_lifetime::clear();if(uiCastEnabled())ui_cast::clear();if(focusNoStartEnabled())focus_request::clear();s=State{};s.world=world;s.match=match;}
         if(s.failed||s.passed)return;auto& owner=actors::state();
         if(owner.world!=world||owner.match!=match||!owner.manager||!owner.simulation)return;
         owned(owner);if(ba_lan::matchEnded)return;
@@ -814,6 +816,7 @@ static void tick() {
             "mobile caster lifetime requires preserve-only group intent without other interaction diagnostics");
         require(!uiCastEnabled()||(groupIntentEnabled()&&!groupUserEditsEnabled()&&!recoveryStallEnabled()&&!recallEnabled()&&!focusEnabled()&&!casterSurveyEnabled()&&!casterLifetimeEnabled()),
             "mobile UI cast requires its separate preserve-only group intent fixture");
+        require(!focusNoStartEnabled()||focusEnabled(),"mobile accepted-no-Start requires the explicit held-focus fixture");
         require(ba::unified()&&ba::community()&&ba::dedicated()&&ba::lan()&&ba_lan::originalCommandScheduling()&&ba_lan::running&&!ba_lan::publicMatch,
             "mobile fixture requires negotiated prediction Custom");
         const int frame=ba::read<int>(owner.simulation->get(),0xac);
@@ -876,7 +879,7 @@ static void tick() {
         if(recallEnabled()&&s.firstReleased>=0&&!s.recallAbsent&&!view.nativePresent&&!view.current) {
             recallAbsentGroup(owner,selector,frame);return; // Reacquire after the original callback scope.
         }
-        if(focusEnabled()&&s.world==2&&!s.focusCancelled&&s.firstReleased>=0&&!view.nativePresent&&!view.current&&
+        if(focusEnabled()&&!focusNoStartEnabled()&&s.world==2&&!s.focusCancelled&&s.firstReleased>=0&&!view.nativePresent&&!view.current&&
             selection::focusPendingIteration(selector)>s.focusReleasePendingBaseline) {
             cancelPendingFocus(owner,selector,frame);return;
         }
@@ -892,7 +895,7 @@ static void tick() {
                 s.groupRestored=true;groupEvidence(owner,selector,frame,"restored");
             }
             if(focusEnabled()) {
-                require(s.world==1||s.focusCancelled,"mobile focus restored before the original pending cancellation");
+                require(focusNoStartEnabled()||s.world==1||s.focusCancelled,"mobile focus restored before the original pending cancellation");
                 focusEvidence(owner,selector,frame,"restored");
             }
             if(casterLifetimeEnabled()){caster_lifetime::restored(owner,selector,frame);return;}
@@ -901,6 +904,8 @@ static void tick() {
         if(recallEnabled()&&s.firstRestored>=0&&!s.recallRestored) {
             recallRestoredGroup(owner,selector,frame);return;
         }
+        if(focusNoStartEnabled()&&s.firstRestored>=0&&!focus_request::state().repeated){focus_request::repeat(owner,selector,frame);return;}
+        if(focusNoStartEnabled()&&s.world==2&&focus_request::state().repeated&&!s.focusCancelled&&frame>=170){focus_request::cancel(owner,selector,frame);return;}
         // Retain actual pre-command motion after restoration. A quiet baseline
         // is a verifier gate, never an assumption about native auto-chase.
         if(!uiCastEnabled()&&s.firstRestored>=0&&!s.freshQueued&&frame<180&&GetTickCount64()-s.lastPoseTick>=15){
@@ -948,6 +953,7 @@ static void tick() {
                 require(s.world==1||s.focusCancelled,"mobile focus completion lacks the original pending cancellation");
                 focusEvidence(owner,selector,frame,"complete");
             }
+            if(focusNoStartEnabled())focus_request::complete(owner,selector,frame);
             snapshot(owner,selector,frame,"mobile_observation_complete");s.passed=true;
         }
     } catch(const std::exception& error){state().failed=true;ba::log("Mobile correction smoke failed: reason=%s physicalUI=0",error.what());worker::movementFail(error.what());}

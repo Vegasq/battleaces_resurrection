@@ -39,6 +39,7 @@ uint64_t world=1,now=1;std::string match(32,'a'),lastFailure;
 Obj selector=nullptr,lastIterator=nullptr,lastInfo=nullptr,lastCamera=nullptr,lastActor=nullptr;
 unsigned originalNextCalls=0,originalActuateCalls=0,originalStartCalls=0,originalCameraCalls=0,chooserCalls=0,failures=0,barriers=0,roots=0;
 uint32_t choice=11,handle=77;std::vector<std::string> logs;
+std::function<void(Obj)> startObserver;
 std::map<uint32_t,Obj> weakTargets;uint32_t nextWeak=1;unsigned weakAllocated=0,weakFreed=0;
 Node slot;
 Method nextMethod,startMethod,actuateMethod,cameraMethod,truthMethod,activityMethod,targetMethod,positionMethod;
@@ -218,6 +219,7 @@ bool originalNext(Obj iterator,Obj info){++originalNextCalls;lastIterator=iterat
 }
 bool originalActuate(Obj owner,int32_t group,Obj info){++originalActuateCalls;lastIterator=owner;lastInfo=info;check(group>=0&&group<16,"authored Actuate group bound");return accepted;}
 uint32_t originalStart(Obj iterator,Obj info){++originalStartCalls;lastIterator=iterator;lastInfo=info;
+    if(startObserver)startObserver(iterator);
     if(active&&!deferStart)OfflinePredictionRepeatFocusNext(iterator,&nextMethod);return handle;}
 void originalCamera(Obj camera,Obj actor,Obj info){++originalCameraCalls;lastCamera=camera;lastActor=actor;lastInfo=info;
     if(throwCamera)throw std::runtime_error("authored original camera failure");}
@@ -252,7 +254,7 @@ struct Fixture{
     Node selector,iterator,otherIterator,simulation,manager,frames,frame,source,logical,panel,array,group,camera,unit,replacement,hq;
     Fixture(){ba::initialThread=ba_local::updateThread=GetCurrentThreadId();
         focus::focusForget();focus::focusPruneRetired();focus::focusStopped()=false;host::boxes.clear();host::active=true;host::diagnostic=false;host::codeGuardOkay=true;host::world=1;host::match=std::string(32,'a');
-        host::accepted=true;host::throwNext=host::throwCamera=host::fallbackOnNext=host::deferStart=false;host::originalResult=host::cameraOnNext=true;host::choice=11;
+        host::accepted=true;host::throwNext=host::throwCamera=host::fallbackOnNext=host::deferStart=false;host::originalResult=host::cameraOnNext=true;host::choice=11;host::startObserver={};
         host::originalNextCalls=host::originalActuateCalls=host::originalStartCalls=host::originalCameraCalls=host::chooserCalls=host::failures=host::barriers=0;host::logs.clear();host::lastFailure.clear();
         auto& s=actors::state();s.identities.clear();s.admission.entities.clear();s.simulation.reset();s.manager.reset();s.world=host::world;s.match=host::match;s.admission.frame=100;
         host::selector=&selector;
@@ -272,7 +274,7 @@ struct Fixture{
         manager.objects={&unit};s.identities[&unit]={{11,1,1},11};s.identities[&replacement]={{11,1,1},11};s.identities[&hq]={{0,3,1},1};
         s.admission.entities[11]={1,1,11};s.admission.entities[0]={3,1,1};frame.native[11]={11,1,1};frame.states[11]=0;frame.native[0]={0,3,1};frame.states[0]=0;
     }
-    ~Fixture(){focus::focusForget();actors::state().simulation.reset();actors::state().manager.reset();
+    ~Fixture(){host::startObserver={};focus::focusForget();actors::state().simulation.reset();actors::state().manager.reset();
         host::collect(&iterator);host::collect(&otherIterator);focus::focusPruneRetired();}
     void start(){check(OfflinePredictionFocusActuate(&selector,4,true),"authored accepted repeat rejected");
         const auto h=OfflinePredictionStartRepeatFocus(&iterator,nullptr);check(h==host::handle,"authored coroutine handle changed");put(selector,0xb0,h);
@@ -300,6 +302,9 @@ void worldAndMembershipRetirement(){
         auto n=host::originalNextCalls;check(!OfflinePredictionRepeatFocusNext(&f.iterator,&host::nextMethod)&&host::originalNextCalls==n+1&&
             !focus::focusPendingIteration(&f.selector),"changed logical group retained hidden pending intent");++cases;}}
 void chooserAndPeriodicRetirement(){Fixture f;f.start();struct Vec3{float x,y,z;};Vec3 position{};
+    // This direct chooser invocation models the original initial Focus caller,
+    // so it needs an accepted request, not a request already consumed by Start.
+    check(OfflinePredictionFocusActuate(&f.selector,4,true),"original initial chooser lacks accepted request");
     check(focus::focusCandidate(&f.source,&position,nullptr)==11,"original chooser rejected current member");
     host::choice=0;f.manager.objects.push_back(&f.hq);
     check(focus::focusCandidate(&f.source,&position,nullptr)==UINT32_MAX&&!host::failures,"chooser selected own nonmember HQ");++cases;
@@ -347,9 +352,111 @@ void inactiveForwarding(){Fixture f;host::active=false;host::cameraOnNext=false;
     check(OfflinePredictionFocusActuate(&f.selector,4,false)&&host::originalActuateCalls==1&&!host::lastInfo,"inactive Actuate did not preserve null MethodInfo");
     check(OfflinePredictionStartRepeatFocus(&f.otherIterator,info)==host::handle&&host::lastInfo==info,"inactive scheduler forwarding differs");
     OfflinePredictionControlGroupCamera(&f.camera,&f.unit,info);check(host::lastCamera==&f.camera&&host::lastActor==&f.unit&&host::lastInfo==info,"inactive camera forwarding differs");++cases;}
+void acceptedHeldRequestDoesNotRebindActiveIterator(){Fixture f;f.start();f.wait();f.restored();
+    // Original Actuate's held-a0 branch returns true without a selection scope;
+    // original Focus then skips RunCoroutine while a0 remains nonnegative.
+    // This authored same-group case models that branch, not a new iterator.
+    auto& s=focus::focusSession();
+    check(host::read<int>(&f.selector,0xa0)==4&&f.source.ids==std::vector<uint32_t>{11}&&
+        f.logical.ids==std::vector<uint32_t>{11}&&f.manager.objects==std::vector<void*>{&f.replacement}&&
+        f.frame.native.count(11)==1&&f.frame.states.at(11)==0&&s.pending.size()==1,
+        "authored held request lacks a restored current member and old pending intent");
+    const auto epoch=s.epoch,iteration=s.iteration,pendingIteration=s.pendingIteration;
+    const auto group=s.group,handle=s.handle;const auto pending=s.pending;
+    const auto ending=s.ending,scheduling=s.scheduling,handleReady=s.handleReady;
+    const auto sourceIds=s.sourceIds,logicalIds=s.logicalIds,selected=f.source.ids;
+    auto* const selectorRoot=s.selector.get();auto* const iteratorRoot=s.iterator.get();
+    const auto rooted=host::roots;const auto state=host::read<int>(&f.iterator,0x10);
+    const auto current=host::read<uint32_t>(&f.iterator,0x14);
+    const auto nextCalls=host::originalNextCalls,startCalls=host::originalStartCalls;
+    const auto samePending=[&](){if(s.pending.size()!=pending.size())return false;
+        for(const auto& item:pending){const auto found=s.pending.find(item.first);if(found==s.pending.end())return false;
+            const auto& a=item.second;const auto& b=found->second;
+            if(a.incarnation!=b.incarnation||a.identity.entityId!=b.identity.entityId||
+               a.identity.unitType!=b.identity.unitType||a.identity.armyId!=b.identity.armyId)return false;}
+        return true;};
+    const auto activeUnchanged=[&](){return s.epoch==epoch&&s.group==group&&s.iteration==iteration&&
+        s.pendingIteration==pendingIteration&&s.handle==handle&&s.handleReady==handleReady&&
+        s.ending==ending&&s.scheduling==scheduling&&
+        s.selector.get()==selectorRoot&&s.iterator.get()==iteratorRoot&&s.iterator->get()==&f.iterator&&
+        s.sourceIds==sourceIds&&s.logicalIds==logicalIds&&samePending()&&host::roots==rooted;};
+    host::accepted=false;auto actuateCalls=host::originalActuateCalls;
+    check(!OfflinePredictionFocusActuate(&f.selector,4,true)&&host::originalActuateCalls==actuateCalls+1&&
+        activeUnchanged(),"refused held request changed the active iterator binding");++cases;
+    host::accepted=true;actuateCalls=host::originalActuateCalls;
+    check(OfflinePredictionFocusActuate(&f.selector,4,true)&&host::originalActuateCalls==actuateCalls+1,
+        "authored original held request was not accepted exactly once");
+    check(host::originalStartCalls==startCalls&&host::originalNextCalls==nextCalls&&
+        host::read<int>(&f.selector,0xa0)==4&&host::read<int>(&f.iterator,0x10)==state&&
+        host::read<uint32_t>(&f.iterator,0x14)==current&&f.source.ids==selected&&!host::failures,
+        "authored accepted held request unexpectedly started/stepped/mutated original state");
+    std::cout<<"accepted held/no-Start: active epoch "<<epoch<<" -> "<<s.epoch
+        <<", pending "<<pending.size()<<" -> "<<s.pending.size()<<", group "<<group<<" -> "<<s.group
+        <<", original Start/Next unchanged; prior "<<cases<<" cases passed\n";
+    check(activeUnchanged(),"accepted held/no-Start request rebound the old active epoch or pending intent");
+    // The original Focus caller may still perform this initial camera call.
+    // It must not rewrite the ownership of an already-running repeat iterator.
+    const auto cameras=host::originalCameraCalls;OfflinePredictionControlGroupCamera(&f.camera,&f.replacement,nullptr);
+    check(host::originalCameraCalls==cameras+1&&host::lastActor==&f.replacement&&activeUnchanged()&&!host::failures,
+        "accepted request's initial camera retagged the old active iterator");++cases;}
+void acceptedHeldRequestDoesNotReviveEndingIterator(){Fixture f;f.start();f.wait();f.restored();host::fallbackOnNext=true;
+    actors::state().identities[&f.replacement].incarnation=22;actors::state().admission.entities[11].incarnation=22;
+    check(OfflinePredictionRepeatFocusNext(&f.iterator,&host::nextMethod)&&focus::focusSession().ending&&
+        host::read<int>(&f.iterator,0x10)==2,"authored old request did not reach its original ending state");
+    auto& s=focus::focusSession();const auto epoch=s.epoch;const auto cameras=host::originalCameraCalls;
+    auto* const iteratorRoot=s.iterator.get();
+    check(OfflinePredictionFocusActuate(&f.selector,4,true)&&s.ending&&s.epoch==epoch&&s.iterator.get()==iteratorRoot,
+        "accepted no-Start request revived an ending old iterator");
+    const auto calls=host::originalNextCalls;
+    check(!OfflinePredictionRepeatFocusNext(&f.iterator,&host::nextMethod)&&host::originalNextCalls==calls+1&&
+        host::originalCameraCalls==cameras&&host::read<int>(&f.selector,0xa0)==-1,
+        "accepted no-Start request prevented original eventual exit or adopted a new token");++cases;}
+void actualStartCommitsBeforeSynchronousNext(){Fixture f;host::diagnostic=true;f.start();f.wait();f.restored();
+    auto& s=focus::focusSession();const auto oldEpoch=s.epoch;const auto oldIteration=s.iteration;
+    const auto oldPending=s.pendingIteration;const auto rooted=host::roots;
+    // Authored original Cancel releases a0; the next original Focus may accept
+    // and really start a new iterator before the old iterator is called again.
+    put(f.selector,0xa0,int32_t{-1});
+    check(OfflinePredictionFocusActuate(&f.selector,4,true),"new accepted request after cancel failed");
+    check(s.epoch==oldEpoch&&s.iteration==oldIteration&&s.pendingIteration==oldPending&&s.pending.size()==1,
+        "new acceptance mutated old active state before actual Start");
+    const auto nextCalls=host::originalNextCalls,startCalls=host::originalStartCalls;
+    const auto logStart=host::logs.size();bool observed=false;
+    host::startObserver=[&](void* iterator){observed=true;
+        check(iterator==&f.otherIterator&&s.iterator&&s.iterator->get()==iterator&&s.epoch!=oldEpoch&&s.group==4&&
+            s.scheduling&&!s.handleReady&&s.iteration==0&&s.pending.empty()&&!s.pendingIteration,
+            "actual Start did not install new active binding before synchronous original Next");};
+    // A real new original Start is a separate event, not implied by acceptance.
+    put(f.selector,0xa0,int32_t{4}); // Original Focus writes requested group on its a0==-1 branch.
+    put(f.otherIterator,0x10,int32_t{0});put(f.otherIterator,0x14,uint32_t{0});
+    check(OfflinePredictionStartRepeatFocus(&f.otherIterator,nullptr)==host::handle&&observed&&
+        host::originalStartCalls==startCalls+1&&host::originalNextCalls==nextCalls+1&&s.handleReady&&!s.scheduling&&
+        s.iteration==1&&host::read<int>(&f.otherIterator,0x10)==1&&
+        host::read<uint32_t>(&f.otherIterator,0x14)==0xff800000u&&host::roots==rooted&&!host::failures,
+        "new Start did not synchronously run the new original iterator exactly once");
+    std::ostringstream oldPointer;oldPointer<<&f.iterator;
+    const auto oldEpochField=std::string("\"request_epoch\":")+std::to_string(oldEpoch)+',';
+    bool oldTerminal=false,newStart=false;
+    for(size_t i=logStart;i<host::logs.size();++i){const auto& row=host::logs[i];
+        if(row.find("\"event\":\"terminal\",\"stage\":\"superseded\"")!=std::string::npos){
+            check(!oldTerminal&&!newStart&&row.find(oldEpochField)!=std::string::npos&&
+                row.find(std::string("\"iterator\":\"")+oldPointer.str()+"\"")!=std::string::npos&&
+                row.find("\"group\":4,")!=std::string::npos&&row.find("\"source_ids\":[11]")!=std::string::npos&&
+                row.find("\"logical_ids\":[11]")!=std::string::npos,
+                "superseded old terminal was relabeled with new request provenance");oldTerminal=true;}
+        if(row.find("\"event\":\"start\",\"stage\":\"scheduling\"")!=std::string::npos){
+            check(oldTerminal&&row.find(oldEpochField)==std::string::npos,"new Start preceded old terminal retirement");newStart=true;}}
+    check(oldTerminal&&newStart&&focus::focusWasRetired(&f.iterator),"new Start lost old terminal/weak retirement");
+    const auto newEpoch=s.epoch;const auto n=host::originalNextCalls,c=host::originalCameraCalls;
+    check(!OfflinePredictionRepeatFocusNext(&f.iterator,&host::nextMethod)&&s.epoch==newEpoch&&
+        s.iterator->get()==&f.otherIterator&&host::originalNextCalls==n&&host::originalCameraCalls==c,
+        "late old iterator adopted the newly started request");++cases;}
 }
 int main(){try{host::metadata();test::pendingAndRefind();test::cancelAndSupersede();test::worldAndMembershipRetirement();test::chooserAndPeriodicRetirement();test::ownHQCannotBecomeFallback();
     test::positiveGuards();test::originalFailuresNoRetry();test::changedCanonicalCannotAdoptNewToken();test::deferredIteratorCannotReviveRetiredWorld();test::inactiveForwarding();
+    test::acceptedHeldRequestDoesNotRebindActiveIterator();
+    test::acceptedHeldRequestDoesNotReviveEndingIterator();
+    test::actualStartCommitsBeforeSynchronousNext();
     host::check(!host::roots,"authored focus roots leaked");host::check(host::weakTargets.empty()&&host::weakAllocated==host::weakFreed,"authored weak identity handles leaked");
     std::cout<<"focus adapter: "<<test::cases<<" actual-header authored cases PASS; no original DLL/game loaded\n";return 0;
 }catch(const std::exception& error){std::cerr<<error.what()<<'\n';return 1;}}

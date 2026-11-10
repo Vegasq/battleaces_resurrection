@@ -96,8 +96,13 @@ one canonical execution per command182/181,exact original map target bytes,
 nativeC+20,all2890 parsed hashes matching,and natural shutdown without force.
 The UI-only rematch guard observes current scratch ownership and prior drain;
 default idle behavior remains strict.32/33 stay failed and preserved. This is
-command ownership,not prediction/feel acceptance for88. Next:held-focus
-accepted Actuate without a new iterator;then broader held input.
+command ownership,not prediction/feel acceptance for88. Actual35 now passes
+accepted held-focus requests without new coroutine startup:active epochs1/3 stay
+unchanged while request epochs2/4 advance;W1 continues and W2 original Cancel
+ends the iterator. All2892 native hashes match,natural shutdown,source unchanged.
+Authored RED reproduces eager epoch/pending corruption;25 fixed-header cases
+pass. Actual pending counts are0/0,so nonzero preservation stays authored only.
+Next:same-world cancellation/new-start handoff;broader held input remains open.
 Forced-retirement group clearing remains open. Casting,held-input and
 physical/Internet acceptance remain open;
 prediction-actor-correction.txt. N35's frozen kit remains reserved.

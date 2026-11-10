@@ -570,6 +570,10 @@ one execution182/181,exact map target bytes,nativeC+20,all2890 parsed hashes and
 natural shutdown.32/33 remain failed and preserved in the actor evidence. The
 UI-only rematch guard retains scalar prior-drain proof and checks current-world
 scratch ownership without clearing it. No88 prediction/feel claim. Next is
-held-focus accepted-Actuate/no-new-iterator ownership. Keep broader held
+Actual35 now qualifies accepted held-focus actions without new coroutine
+startup:request epochs2/4 advance while active epochs1/3 remain;old repeat
+continues or originalCancel ends it. All2892 native hashes match,natural Quit.
+Nonzero pending preservation is authored-only coverage;actual counts are0.
+Next:same-world original cancellation/new-start handoff. Keep broader held
 input and forced-retirement group handling open. N35 remains the same pending
 human test;these fixtures do not accept physical/Internet visual comfort.
