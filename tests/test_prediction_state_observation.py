@@ -9,7 +9,7 @@ import threading
 import unittest
 from unittest.mock import patch
 
-from client_patch.prediction_worker.observation import CanonicalStateObserver, ObservationError, state_digest
+from client_patch.prediction_worker.observation import CanonicalStateObserver, ObservationError, PositionTraceSpec, state_digest
 from client_patch.prediction_worker.native import HostError, NativeSession
 from server.game_data import encode_frame
 from server.native_simulation import decode_snapshot
@@ -118,6 +118,192 @@ class ObserverTests(unittest.TestCase):
         observer, path = self.observer()
         with self.assertRaises(FileExistsError): CanonicalStateObserver(path, tick=lambda: 0)
         self.assertFalse(observer.closed)
+
+
+class PositionTraceTests(unittest.TestCase):
+    def observer(self, *, spec=None, maximum=8192):
+        folder=tempfile.TemporaryDirectory();self.addCleanup(folder.cleanup)
+        canonical=Path(folder.name)/'canonical-state.jsonl'
+        value=CanonicalStateObserver(canonical,tick=lambda:12345,position_trace=spec,
+                                     max_position_records=maximum)
+        self.addCleanup(value.close);value.begin_world(7)
+        return value,canonical,canonical.with_name('native-positions.jsonl')
+
+    @staticmethod
+    def spec(first=0,last=10):return PositionTraceSpec(42,75,0,first,last)
+
+    @staticmethod
+    def context(frame, *, stage='ordinary', head=None, at=100, **extra):
+        return dict(dict(stage=stage,head=frame-1 if head is None else head,confirmed=-1,received=-1,
+            corrections=0,replayed_frames=0,query_begin_us=at,query_end_us=at+4),**extra)
+
+    @staticmethod
+    def actual(frame, *, entities=None, position=None):
+        if entities is None:
+            entities=[dict(id=42,army=0,type=75,position=position if position is not None else [1.5,-0.0,-2.25])]
+        return dict(state(frame),entities=entities)
+
+    @staticmethod
+    def rows(path):return [json.loads(line)for line in path.read_text().splitlines()]
+
+    def test_optional_trace_keeps_canonical_bytes_identical_and_disabled_has_no_child_file(self):
+        plain,p1,absent=self.observer();watched,p2,trace=self.observer(spec=self.spec())
+        for frame in range(3):
+            actual=self.actual(frame)
+            plain.record(7,frame,actual)
+            watched.record(7,frame,actual,context=self.context(frame,at=100+frame*10))
+        for value in (plain,watched):value.promote(7,1,dict(corrections=0,replayed_frames=0))
+        self.assertEqual(p1.read_bytes(),p2.read_bytes());self.assertFalse(absent.exists())
+        self.assertEqual(trace.read_bytes(),b'')
+        watched.finish_world(7)
+        self.assertEqual([row['frame']for row in self.rows(trace)],[0,1,2])
+        self.assertEqual([row['frame']for row in self.rows(p2)],[0,1])  # No speculative promotion.
+
+    def test_cached_same_head_before_restore_and_actual_replayed_head_are_distinct_copies(self):
+        observer,_,path=self.observer(spec=self.spec())
+        for frame in range(4):observer.record(7,frame,self.actual(frame,position=[float(frame),0.,0.]),context=self.context(frame,at=100+frame*10))
+        observer.invalidate_after(7,0)
+        self.assertEqual(set(observer.pending),{0});self.assertEqual(path.read_bytes(),b'')
+        for frame in range(1,4):
+            observer.record(7,frame,self.actual(frame,position=[-float(frame),0.,0.]),
+                context=self.context(frame,stage='replay',head=3,at=200+frame*10,replayed_frames=frame-1))
+        observer.finish_world(7);rows=self.rows(path)
+        before=next(row for row in rows if row['event']=='before_restore_cached_head')
+        after=next(row for row in rows if row['event']=='after_replay_same_head')
+        self.assertEqual((before['frame'],before['cached_physical_head'],before['head']),(3,3,2))
+        self.assertEqual((before['checkpoint_base'],before['first_divergent_frame'],before['revision'],before['query_revision']),(0,1,1,0))
+        self.assertEqual(before['position'],[3.,0.,0.]);self.assertEqual(after['position'],[-3.,0.,0.])
+        self.assertEqual((after['frame'],after['head'],after['revision'],after['first_divergent_frame']),(3,3,1,1))
+        self.assertEqual(before['query_end_us'],134)  # Original query clock, not invented invalidation time.
+        self.assertEqual(rows[before['cached_from_record']]['position'],[3.,0.,0.])
+
+    def test_native_float32_bits_are_exact_and_source_vectors_are_copied(self):
+        observer,_,path=self.observer(spec=self.spec());actual=self.actual(0)
+        observer.record(7,0,actual,context=self.context(0));actual['entities'][0]['position'][0]=99.
+        observer.close();row=self.rows(path)[0]
+        self.assertEqual(row['position'],[1.5,-0.0,-2.25])
+        self.assertEqual(row['position_bits'],list(struct.unpack('<III',struct.pack('<fff',1.5,-0.0,-2.25))))
+        self.assertEqual(row['position_bits'][1],0x80000000)
+        self.assertEqual(row['clock_source'],'python.perf_counter_ns//1000')
+        self.assertEqual(row['query_scope'],'existing-native-make-get-and-decode')
+
+    def test_absent_partial_and_wrong_native_identity_never_create_zero_or_rebound_position(self):
+        observer,_,path=self.observer(spec=self.spec())
+        entities=[[],[dict(id=42,army=0,type=75)],
+                  [dict(id=42,army=1,type=76,position=[1.,2.,3.])]]
+        for frame,rows in enumerate(entities):observer.record(7,frame,self.actual(frame,entities=rows),context=self.context(frame,at=100+frame*10))
+        observer.finish_world(7);rows=self.rows(path)
+        self.assertEqual([row['status']for row in rows],['absent','partial','identity_mismatch'])
+        self.assertTrue(all(row['position']is None and row['position_bits']is None for row in rows))
+        self.assertTrue(all(row['watched_identity']==dict(id=42,type=75,army=0)for row in rows))
+        self.assertEqual(rows[-1]['observed_identity'],dict(id=42,army=1,type=76))
+
+    def test_ambiguous_nonfinite_or_non_float32_position_refuses_before_candidate_mutation(self):
+        bad=[self.actual(0,entities=[dict(id=42),dict(id=42)]),self.actual(0,position=[float('nan'),0.,0.]),
+             self.actual(0,position=[float('inf'),0.,0.]),self.actual(0,position=[1e300,0.,0.]),
+             self.actual(0,position=[.1,0.,0.])]
+        for actual in bad:
+            observer,_,path=self.observer(spec=self.spec())
+            with self.subTest(actual=actual),self.assertRaises(ObservationError):
+                observer.record(7,0,actual,context=self.context(0))
+            self.assertFalse(observer.pending);self.assertEqual(path.read_bytes(),b'')
+
+    def test_context_clocks_stage_frame_and_metrics_are_required_and_monotone(self):
+        bad=[None,dict(stage='ordinary'),self.context(0,head=0),self.context(0,stage='unknown'),
+             self.context(0,stage='replay',head=3),self.context(0,query_begin_us=True),
+             self.context(0,query_end_us=99),self.context(0,confirmed=2,received=1)]
+        for context in bad:
+            observer,_,_=self.observer(spec=self.spec())
+            with self.subTest(context=context),self.assertRaises(ObservationError):observer.record(7,0,self.actual(0),context=context)
+            self.assertFalse(observer.pending)
+        observer,_,_=self.observer(spec=self.spec());observer.record(7,0,self.actual(0),context=self.context(0,corrections=2,replayed_frames=4))
+        for context in (self.context(1,at=103,corrections=2,replayed_frames=4),self.context(1,at=120,corrections=1,replayed_frames=4)):
+            with self.assertRaisesRegex(ObservationError,'regressed'):observer.record(7,1,self.actual(1),context=context)
+        observer.invalidate_after(7,0)
+        with self.assertRaisesRegex(ObservationError,'actual decoded frame'):
+            observer.record(7,0,self.actual(0),context=self.context(0,stage='replay',head=2,at=130,corrections=2,replayed_frames=4))
+
+    def test_outside_window_or_incomplete_replay_cache_cannot_be_claimed_as_same_head(self):
+        observer,_,path=self.observer(spec=self.spec(1,2))
+        self.assertFalse(observer.position_active(7,0));self.assertTrue(observer.position_active(7,1))
+        observer.record(7,0,self.actual(0));observer.invalidate_after(7,-1)
+        observer.record(7,1,self.actual(1),context=self.context(1,stage='replay',head=2))
+        observer.invalidate_after(7,0)
+        observer.record(7,1,self.actual(1),context=self.context(1,stage='replay',head=2,at=120))
+        observer.record(7,2,self.actual(2),context=self.context(2,stage='replay',head=2,at=140))
+        observer.record(7,3,self.actual(3));observer.invalidate_after(7,2);observer.finish_world(7)
+        rows=self.rows(path);before=[row for row in rows if row['event']=='before_restore_cached_head']
+        self.assertEqual([row['status']for row in before],['outside_window','cached_frame_not_head','outside_window'])
+        self.assertTrue(all(row['cached_physical_head']is None for row in before))
+        self.assertFalse(any(row['event']=='after_replay_same_head'for row in rows))
+
+    def test_budget_refusal_precedes_invalidation_and_rematch_has_distinct_world_revision(self):
+        observer,_,path=self.observer(spec=self.spec(),maximum=2)
+        for frame in range(2):observer.record(7,frame,self.actual(frame),context=self.context(frame,at=100+10*frame))
+        before=dict(observer.pending)
+        with self.assertRaisesRegex(ObservationError,'budget'):observer.invalidate_after(7,0)
+        self.assertEqual(observer.pending,before);self.assertEqual(path.read_bytes(),b'')
+        observer.finish_world(7);observer.begin_world(8)
+        with self.assertRaisesRegex(ObservationError,'budget'):observer.record(8,0,self.actual(0),context=self.context(0,at=200))
+        observer2,_,path2=self.observer(spec=self.spec())
+        observer2.record(7,0,self.actual(0),context=self.context(0));observer2.finish_world(7);observer2.begin_world(8)
+        observer2.record(8,0,self.actual(0),context=self.context(0,at=200));observer2.finish_world(8)
+        self.assertEqual([(r['world'],r['revision'])for r in self.rows(path2)],[(7,0),(8,0)])
+
+    def test_owner_world_file_and_lifecycle_fail_closed(self):
+        observer,_,path=self.observer(spec=self.spec());errors=[]
+        def foreign():
+            try:observer.invalidate_after(7,0)
+            except Exception as error:errors.append(error)
+        thread=threading.Thread(target=foreign);thread.start();thread.join()
+        self.assertIsInstance(errors[0],ObservationError);self.assertEqual(path.read_bytes(),b'')
+        with self.assertRaises(ObservationError):observer.record(8,0,self.actual(0),context=self.context(0))
+        with self.assertRaises(ObservationError):observer.begin_world(8)
+        observer.finish_world(7);observer.begin_world(8)
+        observer.record(8,0,self.actual(0),context=self.context(0));observer.finish_world(8)
+        with self.assertRaises(FileExistsError):
+            CanonicalStateObserver(path.with_name('other-canonical.jsonl'),tick=lambda:0,position_trace=self.spec())
+
+    def test_spec_requires_explicit_native_identity_and_bounded_frame_window(self):
+        for values in ((42,0,0,0,1),(True,75,0,0,1),(42,75,-1,0,1),(42,75,0,2,1),
+                       (42,75,0,0,4096),(42,75,0,0,True)):
+            with self.subTest(values=values),self.assertRaises(ObservationError):PositionTraceSpec(*values)
+        with self.assertRaises(TypeError):PositionTraceSpec(42,75,0)
+        self.assertEqual(PositionTraceSpec(0,1,0,0,4095).last_frame,4095)
+
+    def test_new_world_keeps_real_query_clock_monotone_and_failed_record_atomic(self):
+        observer,_,path=self.observer(spec=self.spec())
+        observer.record(7,0,self.actual(0),context=self.context(0,at=500));observer.finish_world(7);observer.begin_world(8)
+        with self.assertRaisesRegex(ObservationError,'regressed'):
+            observer.record(8,0,self.actual(0),context=self.context(0,at=100))
+        self.assertFalse(observer.pending)
+        observer.record(8,0,self.actual(0),context=self.context(0,at=600));observer.finish_world(8)
+        self.assertEqual([row['query_begin_us']for row in self.rows(path)],[500,600])
+
+    def test_failed_flush_is_preserved_without_retry_and_all_streams_close(self):
+        observer,_,_=self.observer(spec=self.spec())
+        observer.record(7,0,self.actual(0),context=self.context(0))
+        observer._positions.stream.close()
+        class Broken:
+            writes=0;closed=False
+            def write(self,data):self.writes+=1;raise OSError('authored disk failure')
+            def flush(self):raise AssertionError('failed write must not flush/retry')
+            def close(self):self.closed=True
+        broken=Broken();observer._positions.stream=broken
+        with self.assertRaisesRegex(OSError,'disk failure'):observer.finish_world(7)
+        with self.assertRaisesRegex(ObservationError,'closed/failed'):observer.record(7,11,self.actual(11))
+        observer.close()
+        self.assertEqual(broken.writes,1);self.assertTrue(broken.closed)
+        self.assertTrue(observer.closed and observer.stream.closed and observer._positions.closed)
+
+    def test_disabled_trace_never_consumes_position_context_or_creates_position_output(self):
+        observer,_,path=self.observer()
+        class Unreadable(dict):
+            def __iter__(self):raise AssertionError('disabled trace consulted context')
+            def __getitem__(self,key):raise AssertionError('disabled trace consulted context')
+        observer.record(7,0,self.actual(0),context=Unreadable())
+        observer.invalidate_after(7,-1);observer.finish_world(7);observer.close()
+        self.assertFalse(path.exists())
 
 
 class NativeBoundaryTests(unittest.TestCase):

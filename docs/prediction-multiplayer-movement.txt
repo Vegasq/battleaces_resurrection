@@ -443,3 +443,48 @@ Ignored setup/readiness:
 local/custom-prediction-manual-20261110/installation02/verification.json
 local/custom-prediction-manual-20261110/human-launch-preflight02.json
 local/custom-prediction-manual-20261110/ready.json
+
+Correction amplitude:retained analysis and optional same-query trace
+File-only Portable16 review identifies subject entity74/type1/incarnation75
+in both largest steps. W1 moves1.353037units/20.293ms between actual542/543
+publications;W2 moves0.758751/18.748ms across publication541. Both point opposite
+the second turn immediately after genuine replay. This correlation does not
+prove whether the corrected native head or original renderer causes the jump:
+the saved canonical20-frame snapshots are not the speculative pre/post head.
+
+The default-off worker diagnostic now accepts
+--movement-observe-position ID:TYPE:ARMY:FIRST:LAST with --movement-observe.
+The owned C++ fixture forwards -prediction-movement-observe-position=SPEC only
+with -prediction-movement-smoke. Five canonical ASCII integers are validated
+before the worker loads native code. Identity/window are explicit,not fixture
+defaults. The output is an exclusively created sibling native-positions.jsonl.
+
+It copies finite decoded float32 positions/bits from the EXISTING Spectator31
+query,without another native query. Selected rows are buffered outside restored
+native memory and flushed only on world retirement/close. Before invalidation,
+it preserves the last sampled physical head and its original query timestamp;
+the same-head replay sample is separate. D/checkpoint/revision,ordinary/replay,
+query-time H/C/R and pre-accounting correction/replay totals remain explicit.
+Missing,partial,mismatched identity and clipped/non-head samples stay explicit.
+No Unity incarnation or cross-process clock equivalence is invented. Brackets
+cover the existing Make/Get PLUS decode,not pure native-call latency.
+
+108 authored worker/observer/adapter/reconciler tests pass,including unchanged
+canonical bytes/no position file or position clocks when disabled,strict CLI
+startup refusal,same decoded-state copies and actual authored restore ordering.
+The full helper build and its authored controls pass;helper26 is56cf9eea... .
+This diagnostic has NOT run in a game or been installed/packaged. No movement,
+rendering or pacing behavior is changed;the sharp-jump cause remains OPEN.
+The N35 runtime/ZIP/manual reservations and live server remain unchanged.
+
+Next bounded claim:join actual native pre/post-H XYZ to the selected FEEL
+identity and correction group in an owned capture. Only add an original
+interpolation-buffer observer if that result leaves the renderer ambiguous;
+its closed NativeArray layout must be validated at runtime before any read.
+Static slices prove12-byte Vector3 stride and16-byte headers,not a32-byte
+element stride. Open-generic placeholder offsets are not runtime ABI proof.
+
+Ignored evidence:
+local/prediction-runtime/movement16-portable-fractional/pose-cause-audit01/evidence.json
+local/prediction-checkpoint-20261110/native-position-observer01/verification.json
+local/prediction-checkpoint-20261110/position-trace01/verification.json

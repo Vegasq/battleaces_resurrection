@@ -138,7 +138,18 @@ static void setup(HMODULE selected) {
         L"import runpy,sys;sys.path.insert(0,sys.argv.pop(1));runpy.run_module('client_patch.prediction_worker',run_name='__main__')",
         root,L"--original-dll",modulePath(selected),L"--heap-helper",heap,
         L"--cooperative",cooperative,L"--data-dir",data};
-    if(ba::flag(L"-prediction-movement-smoke"))args.push_back(L"--movement-observe");
+    const bool movementSmoke=ba::flag(L"-prediction-movement-smoke");
+    if(movementSmoke)args.push_back(L"--movement-observe");
+    std::wstring positionTrace;
+    if(ba_command_line::value(ba::arguments(),L"-prediction-movement-observe-position=",positionTrace)) {
+        if(!movementSmoke || positionTrace.empty() || positionTrace.size()>64)
+            throw std::runtime_error("selected native position diagnostic requires the owned movement fixture");
+        for(const auto ch:positionTrace)if((ch<L'0' || ch>L'9') && ch!=L':')
+            throw std::runtime_error("selected native position diagnostic is not ASCII decimal");
+        // The Python entry point validates all five identity/window fields
+        // before stdout isolation or NativeSession.open. No shell is used.
+        args.push_back(L"--movement-observe-position");args.push_back(positionTrace);
+    }
     s.process=std::make_unique<channel::Process>(python,args,data,data+L"\\worker-stderr.log");
     if(backend::initialize(selected,request,&s)!=0 ||
        proxy::bind(selected,backend::resolver,{&s,enter,leave})!=0)

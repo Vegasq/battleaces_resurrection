@@ -443,26 +443,42 @@ class NativeSession:
             raise HostError('unknown/stale worker world ID')
         return self.worlds[key]
 
-    def enable_movement_observation(self, path):
+    def enable_movement_observation(self, path, *, position_trace=None):
         """Called once after open(),before client streams/Init/world creation."""
         self.healthy()
         if self.initialized or self.worlds or self.movement_observer is not None:
             raise HostError('diagnostic movement observation must precede native Init/worlds')
         from .observation import CanonicalStateObserver
-        self.movement_observer = CanonicalStateObserver(path)
+        self.movement_observer = (CanonicalStateObserver(path) if position_trace is None else
+                                  CanonicalStateObserver(path, position_trace=position_trace))
 
-    def _observe_native_frame(self, key, frame):
+    def _observe_native_frame(self, key, frame, *, stage='ordinary'):
         observer = self.movement_observer
         if observer is None or key not in self.command_ledgers:
             return  # Default/foundation paths never gain an extra query.
         observer.prepare_frame(key, frame)
         from server.native_simulation import decode_snapshot
         world, size = self._world(key), C.c_uint32()
+        context = None
+        if observer.position_active(key, frame):
+            prediction = self.predictions[key]
+            metrics = prediction.metrics
+            # These are query-time counters: ordinary capture precedes the
+            # head advance, and replay capture precedes this step's accounting.
+            context = dict(stage=stage, head=prediction.predicted_frame,
+                           confirmed=prediction.confirmed_frame, received=prediction.received_frame,
+                           corrections=metrics['corrections'], replayed_frames=metrics['replayed_frames'],
+                           query_begin_us=time.perf_counter_ns() // 1000)
         code, data = self._pair(size, 'SimMakeSimFrame', (world, 31, C.byref(size)),
                                'SimGetSimFrameBuffer', lambda output: (world, output))
         if code or struct.unpack_from('<i', data, 4)[0] != 0:
             raise HostError('diagnostic native Spectator31 Make/Get query failed')
-        observer.record(key, frame, decode_snapshot(data[12:], 31, include_entities=True))
+        state = decode_snapshot(data[12:], 31, include_entities=True)
+        if context is None:
+            observer.record(key, frame, state)
+        else:
+            context['query_end_us'] = time.perf_counter_ns() // 1000
+            observer.record(key, frame, state, context=context)
 
     def _retire_prediction(self, key):
         prediction = self.predictions.pop(key, None)
@@ -580,7 +596,7 @@ class NativeSession:
         from .prediction import frame_number
         prediction = self.predictions[key]
         number = frame_number(raw)
-        self._observe_native_frame(key, number)  # EVERY replayed step,before its checkpoint.
+        self._observe_native_frame(key, number, stage='replay')  # EVERY replayed step,before its checkpoint.
         if number != prediction.received_frame or number > prediction.predicted_frame:
             return
         # The existing own-alliance identity query still caches ONLY the latest

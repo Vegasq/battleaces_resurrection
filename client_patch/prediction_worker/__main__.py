@@ -3,10 +3,22 @@ from __future__ import annotations
 
 import argparse
 from pathlib import Path
+import re
 import sys
 
 from . import wire as w
 from .native import NativeSession
+
+
+def _position_trace_spec(value):
+    """Validate diagnostic input before stdout isolation or a native DLL load."""
+    if len(value) > 64 or re.fullmatch(r'(?:0|[1-9][0-9]*)(?::(?:0|[1-9][0-9]*)){4}', value) is None:
+        raise argparse.ArgumentTypeError('expected ID:TYPE:ARMY:FIRST:LAST in canonical ASCII decimal')
+    from .observation import PositionTraceSpec
+    try:
+        return PositionTraceSpec(*(int(field) for field in value.split(':')))
+    except ValueError as error:
+        raise argparse.ArgumentTypeError(str(error)) from error
 
 
 def run_streams(source, sink, backend):
@@ -62,7 +74,12 @@ def main(argv=None):
     parser.add_argument('--data-dir', required=True)
     parser.add_argument('--movement-observe', action='store_true',
                         help='explicit diagnostic-only confirmed Spectator31 state journal')
+    parser.add_argument('--movement-observe-position', type=_position_trace_spec,
+                        metavar='ID:TYPE:ARMY:FIRST:LAST',
+                        help='diagnostic-only native position copies from the existing state query; requires --movement-observe')
     args = parser.parse_args(argv)
+    if args.movement_observe_position is not None and not args.movement_observe:
+        parser.error('--movement-observe-position requires --movement-observe')
     # Preserve the private protocol pipe before any DLL initializer/CRT output.
     from server.simulation_worker import isolate_protocol_stdout
     sink = isolate_protocol_stdout()
@@ -72,7 +89,10 @@ def main(argv=None):
         session = NativeSession.open(original_dll=args.original_dll, heap_helper=args.heap_helper,
                                      cooperative=args.cooperative, data_dir=args.data_dir)
         if observation_path is not None:
-            session.enable_movement_observation(observation_path)
+            if args.movement_observe_position is None:
+                session.enable_movement_observation(observation_path)
+            else:
+                session.enable_movement_observation(observation_path, position_trace=args.movement_observe_position)
     except Exception as error:
         if session is not None:
             try:session.close()
