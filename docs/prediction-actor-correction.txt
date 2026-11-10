@@ -408,10 +408,84 @@ d231c6ccedd9710e0d20abb4bb6604813f815a08a2504288aa9f476913104f3a
 Helper41 SHA256:
 29a1ec949b2f06be04e15175b83b19a0a0e85792e9668c899b7e7543eac83a2f
 
-Next exercise the actual retained caster's original minimap command path and
-normal queue serialization. Ability88 remains nonpredicted;this separate UI
-command check must not demand pre-authority motion or invent a direct-constructor
-witness. The qualified Move12 prediction evidence remains separate and reusable.
+Actual32 is retained FAILED before its cast attempt. At145,after original
+Perform returns,the diagnostic requires Composite.MapPerspective to equal the
+current map perspective before emitting after_activation. That assertion fails;
+no actual numeric pair was logged and no Minimap/ability88 command was attempted.
+The report remains FAILED,with forced retained-Job cleanup rather than natural
+client shutdown. All277 available closed parsed native hashes match authority;
+source and inputs remain unchanged. Independent protected snapshot receipt:
+673a152698fad32b01a7c6b596d54f81ae52259fc00a58b564540205b7d00d1d.
+Original32 failed report SHA256:
+834b09815040259a4f1fafc4e0eb34606091f62c32d02a300d23ff94cce3ffef.
+This establishes a failed fixture precondition,not captured numeric orientation
+values or a demonstrated gameplay defect. Exact original ActivateAbility passes
+the alliance perspective to Composite.Activate,which forwards it to each child
+without writing Composite's own cached perspective. Child AbilityCaster.Activate
+stores its perspective;parent equality is therefore not a valid pre/post-cast
+condition. The follow-up records both enum values independently;the actual
+serialized target must still match the current map's original perspective
+conversion. Old Move12 checks stay strict.
+
+Actual33 is also retained FAILED. Its first round reaches real Minimap180,
+queue1,normal queue drain and observation completion260. The captured original
+map value is1 and Composite parent value0. Rematch setup130 then fails the old
+empty-casting-scratch precondition before the second activation. The first-round
+command left inactive98 residue;the rematch guard encounters nonempty or cached
+casting data. Exact cross-world storage identity was not observed. No manual
+cleanup or second-round qualification is claimed;
+client cleanup is forced and the full run stays FAILED. Report SHA256:
+5a20ae3ce317b8b83e0ac22c425dd694f16d26955638e9f37390fda830c83293.
+All1692 available closed parsed hashes match authority;the truncated second
+round is not full-match qualification. Exact second-round scratch IDs/storage
+were not logged before the assertion. Protected snapshot receipt SHA256:
+23615f42cc2e8d901a5b2220d9c7a396a5f10f171f110e0c0047a162da714f88.
+Separate frozen-source first-round analysis passes the real88 command subset:
+normal67/72 sequence2,one canonical execution181,exact Flipped target bytes,
+nativeC..C+20,escape replay+20 and all1444 first-world wire joins. The whole33
+result remains FAILED. Partial audit receipt SHA256:
+76168fca11302f366c50b98d4604ba52a00a2a6bc848e947ce75a2c1aab952f1.
+
+Actual34:real UI command ownership across correction and rematch
+The explicit UI-only variant retains the actual TargetGroundOrUnit caster from
+original activation145 through death/release/restoration,then invokes original
+Minimap180 once without reselection. Original inline command construction,
+enqueue,auto-Pop and normal ToProto/67/72 serialization remain intact. Both
+worlds observe queue1->0;normal sequence2 joins one canonical execution182/181,
+actual65/raw bridge and20 matching native continuations. The original map is1
+while the parent cache remains0;serialized target bytes correctly negate X/Z.
+No extra ToProto,GetCasterSet,Pop,manual scratch clear or constructor witness.
+
+Rematch preactivation130 prospectively observes98[11],Count1,consistent typed
+membership,current frame-collection ownership,100null,queue0 and no held input.
+A scalar certificate links the completed first-world drain;it contains no old
+actor,GC root,pointer or incarnation. Current unit11 admission is checked afresh.
+No cross-world same-storage claim is made. Default idle/select behavior remains
+strict;only this explicit UI setup uses the bounded130..145 scratch policy.
+
+Actual34 PASSES142.672s,two rounds/results/Continue/rematch/Leave/Quit. All2890
+closed full parsed hashes and all2890 retained native65/raw-bridge/authority
+wire triples match. Games,client workers and authorities
+exit naturally0,all Jobs inactive0,no force/cleanup error,and source/inputs stay
+unchanged. The full helper44 build passes with177 unchanged C++ sources;341
+focused Python cases pass. Protected snapshot receipt SHA256:
+d7e02776a11496fd8d572851be2d3897d8f3b52ff4134829c12837c4884d716e.
+Independent complete audit receipt SHA256:
+2d42340acb3c65d1bb4fa4311499ff2253d414bcb571f9f080ea0196e9c44616.
+Original34 PASS report SHA256:
+c91d6d36a0da0bf8e36f8ff0235127d3fd07e85e129b950dd44cb9c781ba8b87.
+Helper44 SHA256:
+f7d81e35511a75bd5465b59a3bc3df275759ef2ec6fef19b1a87df7ac1e20a51.
+The at-run result's target_scope prose incorrectly names Composite perspective;
+this wording is superseded by the original-map/child forwarding proof above.
+Its actual target predicate and original report bytes remain unchanged.
+
+Ability88 remains nonpredicted;no pre-authority motion or movement-feel claim is
+made. The qualified Move12 prediction evidence remains separate and reusable.
+Next:the original accepted-Actuate/no-new-iterator held-focus path. Source review
+finds that accepted Actuate while already holding can return true without a new
+selection scope or coroutine;active adapter request ownership needs to respect
+that distinction. Broader physical input remains unqualified.
 
 Forced-retirement whole-group clearing,casting/held input and
 physical/Internet acceptance remain OPEN. This does not close all mobile

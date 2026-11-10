@@ -24,6 +24,7 @@ EVENTS = (
     'before_fresh_reselection', 'original_fresh_reselection_established',
     'mobile_observation_complete',
 )
+UI_EVENTS = (*EVENTS[:4], 'before_ui_cast', 'original_ui_cast_queued', 'mobile_observation_complete')
 HEX64 = re.compile('[a-f0-9]{64}')
 UINT32 = 2**32 - 1
 UINT64 = 2**64 - 1
@@ -307,11 +308,205 @@ def _caster_lifetime_records(log, match):
         restored_relation=restored['active_relation'],natural_clear_observed=natural is not None)
 
 
-def _snapshots(log, match, *, caster_lifetime=False):
+def _ui_residue(log, match, world):
+    rows=_rows(log,'MOBILE UI RESIDUE ',match,1)
+    require(len(rows)==1,'UI preactivation scratch proof missing or duplicated')
+    row=rows[0]
+    fields={'schema','event','world','match','slot','entity','frame','tick_ms','sampled_us','casting_set','casting_ids','casting_count',
+        'casting_references_victim','typed_member11','typed_proof_error','casting_frame_collection','current_frame_collection',
+        'frame_owner_matches','active_caster','pending_commands','left_held','right_held','click_reference','prior_completed_world',
+        'prior_match','prior_normal_drain_complete','prior_next_sequence_before','prior_next_sequence_after','prior_complete_frame',
+        'policy_result','physicalUI','scope'}
+    require(set(row)==fields and type(row['schema'])is int and row['schema']==1 and row['event']=='preactivation' and
+        _integer(row['world'],1,2) and row['world']==world and type(row['slot'])is int and row['slot']==1 and
+        type(row['entity'])is int and row['entity']==11 and type(row['frame'])is int and row['frame']==130 and
+        _integer(row['tick_ms']) and _integer(row['sampled_us']) and row['physicalUI']is False and
+        row['scope']=='inactive_scratch_only_not_admission','UI preactivation scratch event/owner scope differs')
+    require(all(type(row[k])is bool for k in('casting_references_victim','frame_owner_matches','left_held','right_held','prior_normal_drain_complete')) and
+        (row['typed_member11']is None or type(row['typed_member11'])is bool) and
+        (row['typed_proof_error']is None or type(row['typed_proof_error'])is str and len(row['typed_proof_error'])<=4096),
+        'UI preactivation scratch nullable proof differs')
+    require(_pointer(row['casting_set'])>0 and _pointer(row['casting_frame_collection'])>0 and
+        _pointer(row['casting_frame_collection'])==_pointer(row['current_frame_collection']) and row['frame_owner_matches'] and
+        not _pointer(row['active_caster']) and type(row['pending_commands'])is int and row['pending_commands']==0 and
+        not row['left_held'] and not row['right_held'] and _integer(row['click_reference'],0,UINT32) and row['click_reference']!=11,
+        'UI preactivation scratch is not inactive/current-frame-owned/input-idle')
+    ids=row['casting_ids'];require(type(ids)is list and len(ids)<=4096 and all(_integer(v,0,UINT32)for v in ids) and
+        len(set(ids))==len(ids) and (row['casting_count']is None or _integer(row['casting_count'],0,len(ids))) and
+        type(row['prior_completed_world'])is int and row['prior_completed_world']in(0,1),
+        'UI preactivation scratch IDs/prior world invalid')
+    proof=None
+    if row['prior_completed_world']==0:
+        require(row['prior_normal_drain_complete']is False and all(row[k]is None for k in
+            ('prior_match','prior_next_sequence_before','prior_next_sequence_after','prior_complete_frame')),
+            'UI preactivation invented an absent prior-drain certificate')
+    else:
+        require(world==2 and type(row['prior_match'])is str and re.fullmatch('[a-f0-9]{32}',row['prior_match']) and
+            row['prior_match']!=match and row['prior_normal_drain_complete']is True and
+            _integer(row['prior_next_sequence_before'],1) and type(row['prior_next_sequence_after'])is int and
+            row['prior_next_sequence_after']==row['prior_next_sequence_before']+1 and _integer(row['prior_complete_frame'],260,279),
+            'UI preactivation prior completed/drained world certificate invalid')
+        previous=_ui_cast_records(log,row['prior_match']);events=previous['events']
+        require(previous['world']==1 and events['complete']['frame']==row['prior_complete_frame'] and
+            events['complete']['sampled_us']<row['sampled_us'] and
+            events['before_cast']['next_sequence_before_cast']==row['prior_next_sequence_before'] and
+            events['normal_drain_observed']['next_sequence_after_drain']==row['prior_next_sequence_after'] and
+            events['complete']['drain_observed']is True and events['complete']['pending_commands']==0 and
+            events['complete']['casting_ids']==[11],
+            'UI preactivation prior certificate does not bind real first-world normal drain/completion/residue')
+        proof=dict(world=1,match=row['prior_match'],normal_drain_sampled_us=events['normal_drain_observed']['sampled_us'],
+            complete_sampled_us=events['complete']['sampled_us'],next_before=row['prior_next_sequence_before'],next_after=row['prior_next_sequence_after'])
+    require(row['typed_proof_error']is None and row['casting_count']is not None,'UI preactivation original typed scratch proof failed')
+    if row['policy_result']=='strict_empty':
+        require(not ids and row['casting_references_victim']is False and row['typed_member11']is False,
+            'UI strict-empty preactivation scratch still references11')
+    else:
+        require(row['policy_result']=='prior_drained_residue' and world==2 and proof is not None and ids==[11] and
+            row['typed_member11']is True,
+            'UI residue is not exact11 from a qualified prior completed/drained world')
+    indices=[i for i,line in enumerate(log.splitlines())if 'MOBILE UI RESIDUE 'in line and
+        json.loads(line.split('MOBILE UI RESIDUE ',1)[1],object_pairs_hook=_unique_object).get('match')==match]
+    return dict(row=row,index=indices[0],prior_drain=proof,
+        scope='Current inactive numeric/typed scratch and frame owner only; no cross-world same-storage/actor/incarnation or admission claim')
+
+
+def _ui_cast_records(log, match):
+    rows=_rows(log,'MOBILE UI CAST ',match,2048);require(rows,'missing original UI cast receipts')
+    indices=[i for i,line in enumerate(log.splitlines())if 'MOBILE UI CAST ' in line and
+        json.loads(line.split('MOBILE UI CAST ',1)[1],object_pairs_hook=_unique_object).get('match')==match]
+    events={'before_activation','after_activation','snapshot','native_dead','release_observed','restored','before_cast',
+        'after_cast_queued','normal_drain_observed','complete'}
+    names=['before_activation','after_activation','native_dead','release_observed','restored','before_cast',
+        'after_cast_queued','normal_drain_observed','complete']
+    require([r.get('event')for r in rows if r.get('event')!='snapshot']==names,'UI original activation/cast/drain lifecycle incomplete or duplicated')
+    by_event={r['event']:r for r in rows if r['event']!='snapshot'};world=rows[0].get('world')
+    require(_integer(world,1,2),'UI world is not sequential1/2')
+    residue=_ui_residue(log,match,world)
+    fields={'schema','event','world','match','slot','entity','unit_type','army','frame','tick_ms','sampled_us','button_slot','config_id',
+        'ui_cast_type','ui_group_kind','smart_casting','retained_caster','retained_caster_class','active_caster','active_caster_class',
+        'same_retained','is_unit_selection_related','source_set','casting_set','command_queue','alias_storage_unchanged','source_ids',
+        'source_count','casting_ids','casting_count','pending_commands','activation_calls','cast_calls','drain_observed',
+        'next_sequence_before_cast','next_sequence_after_drain','cast_result','origin','origin_bits','target','target_bits','origin_sampled_us',
+        'minimap_call_begin_us','minimap_call_end_us','local_alliance','map_perspective','composite_map_perspective',
+        'composite_queue_cast_before','perspective_observed_frame','map_perspective_source','composite_map_perspective_source',
+        'map_perspective_enum','map_perspective_enum_matches_composite','map_perspective_normal','map_perspective_flipped',
+        'map_perspective_value_name','selector_append','left_held','right_held','click_reference','native_identity_present','native_state',
+        'current_actor','current_admitted','original_incarnation','current_incarnation','route','original_callback','original_callback_token',
+        'originalCtor','extra_pop_calls','extra_to_proto_calls','manual_caster_set_calls','direct_factory_calls','physicalUI'}
+    active=by_event['after_activation'];before=by_event['before_cast'];queued=by_event['after_cast_queued'];drain=by_event['normal_drain_observed']
+    active_i=rows.index(active);before_i=rows.index(before);queued_i=rows.index(queued);drain_i=rows.index(drain)
+    for i,row in enumerate(rows):
+        _common(row,world=world)
+        require(set(row)==fields and row['event'] in events and type(row['slot'])is int and row['slot']==1 and
+            (row['entity'],row['unit_type'],row['army'])==(11,1,1) and 145<=row['frame']<280,'UI schema/event/identity/frame differs')
+        require(all(type(row[k])is int and row[k]==v for k,v in(('button_slot',4),('config_id',88),('ui_cast_type',5),('ui_group_kind',2),
+            ('extra_pop_calls',0),('extra_to_proto_calls',0),('manual_caster_set_calls',0),('direct_factory_calls',0),('original_callback_token',0x0600222a))) and
+            row['route']=='original_ui_minimap' and row['original_callback']=='Uncapped.UnitSelector.ProcessActiveAbilityCaster_Minimap' and
+            row['originalCtor'] is False and row['smart_casting'] is False,'UI original mapping/callback/fixture-only scope differs')
+        require(all(type(row[k])is bool for k in('same_retained','alias_storage_unchanged','selector_append','left_held','right_held',
+            'native_identity_present','current_admitted','drain_observed')) and row['alias_storage_unchanged'] and
+            not row['left_held'] and not row['right_held'] and _integer(row['click_reference'],0,UINT32) and row['click_reference']!=11 and
+            _integer(row['original_incarnation'],1) and _integer(row['current_incarnation']) and
+            (row['native_state']is None or _integer(row['native_state'],0,UINT32-1)),'UI owner/gesture/native scalar differs')
+        for stem in('source','casting'):
+            ids=row[stem+'_ids'];count=row[stem+'_count']
+            require(type(ids)is list and len(ids)<=8192 and all(_integer(v,0,UINT32)for v in ids) and
+                len(set(ids))==len(ids) and _integer(count,0,len(ids)),'UI original IDs/resolvable count invalid')
+        pointers=tuple(_pointer(row[k])for k in('source_set','casting_set','command_queue'))
+        require(all(pointers) and pointers[0]!=pointers[1] and all(row[k]==rows[0][k] for k in
+            ('source_set','casting_set','command_queue','original_incarnation')),'UI lazy storage roots were replaced or aliased incorrectly')
+        require(_pointer(row['casting_set'])==_pointer(residue['row']['casting_set']) and
+            row['sampled_us']>=residue['row']['sampled_us'],'UI preactivation scratch does not bind current-world casting storage')
+        current=_pointer(row['active_caster']);retained=_pointer(row['retained_caster']);actor=_pointer(row['current_actor'])
+        require((actor>0 or not row['current_admitted'] and row['current_incarnation']==0) and
+            (not row['current_admitted'] or row['current_incarnation']>0),'UI current actor/admission token differs')
+        for key in('retained_caster_class','active_caster_class'):
+            require(row[key]is None or type(row[key])is str and 0<len(row[key].encode('utf-8'))<=511,'UI managed caster class invalid')
+        require((row['retained_caster_class']is not None)==bool(retained) and (row['active_caster_class']is not None)==bool(current) and
+            (type(row['is_unit_selection_related'])is bool if current else row['is_unit_selection_related']is None) and
+            row['same_retained']==bool(current and current==retained),'UI actual caster/null/Related observation differs')
+        require(type(row['activation_calls'])is int and row['activation_calls']==(0 if i<active_i else 1) and
+            type(row['cast_calls'])is int and row['cast_calls']==(0 if i<queued_i else 1) and
+            row['drain_observed']==(i>=drain_i),'UI fixture invocation/drain counters changed')
+        if i<active_i:
+            initial_scratch_ok=(not row['casting_ids'] and row['casting_count']==0) or (
+                residue['row']['policy_result']=='prior_drained_residue' and row['casting_ids']==[11])
+            require(not current and not retained and row['source_ids']==[11] and row['source_count']==1 and
+                initial_scratch_ok,'UI activation was not originally inactive/prior-drained scratch/source11Count1')
+        else:
+            require(row['retained_caster']==active['retained_caster'] and row['retained_caster_class']==
+                active['retained_caster_class']=='Uncapped.TargetGroundOrUnitAbilityCaster' and retained>0 and
+                (row['same_retained'] and row['active_caster_class']==row['retained_caster_class'] if i<queued_i else not current),
+                'UI original retained100 was cleared/replaced before cast or reappeared after auto-Pop')
+        require(_integer(row['pending_commands'],0,1) and (queued_i<=i<drain_i or row['pending_commands']==0),
+            'UI pending queue escaped its queued→normal-drain phase')
+        require(row['next_sequence_before_cast']is None if i<before_i else _integer(row['next_sequence_before_cast'],1) and
+                row['next_sequence_before_cast']==before['next_sequence_before_cast'],'UI captured NEXT sequence changed')
+        require(row['next_sequence_after_drain']is None if i<drain_i else row['next_sequence_after_drain']==before['next_sequence_before_cast']+1 and
+                type(row['next_sequence_after_drain'])is int,'UI normal-drain NEXT sequence missing/changed')
+        require(row['cast_result']is None if i<queued_i else row['cast_result']is True,'UI original Minimap did not return actualtrue')
+        if i>=queued_i and i<=drain_i:
+            require(row['source_ids']==queued['source_ids']==[11] and row['casting_ids']==queued['casting_ids']==[11],
+                'UI lazy source/casting IDs changed before normal serialize')
+        if i:
+            previous=rows[i-1];require(row['frame']>=previous['frame'] and row['tick_ms']>=previous['tick_ms'] and
+                row['sampled_us']>=previous['sampled_us'],'UI observation clocks/physical frames regressed')
+        perspective_keys=('local_alliance','map_perspective','composite_map_perspective','composite_queue_cast_before',
+            'perspective_observed_frame','map_perspective_enum_matches_composite','map_perspective_value_name')
+        require(row['map_perspective_source']=='Uncapped.Map.GetAlliancePerspective' and
+            row['composite_map_perspective_source']=='Uncapped.CompositeAbilityCaster.get_MapPerspective' and
+            row['map_perspective_enum']=='Uncapped.Map.Perspective' and type(row['map_perspective_normal'])is int and row['map_perspective_normal']==0 and
+            type(row['map_perspective_flipped'])is int and row['map_perspective_flipped']==1,'UI original map/Composite source/literals differ')
+        if i<active_i:require(all(row[k]is None for k in perspective_keys),'UI invented a perspective before original caster activation')
+        else:
+            require(_integer(row['local_alliance'],0,UINT32) and type(row['map_perspective'])is int and row['map_perspective']in(0,1) and
+                type(row['composite_map_perspective'])is int and row['composite_map_perspective']in(0,1) and
+                type(row['composite_queue_cast_before'])is bool and row['map_perspective_enum_matches_composite']is True and
+                type(row['perspective_observed_frame'])is int and row['perspective_observed_frame']==(145 if i<before_i else 180) and
+                row['map_perspective_value_name']==('Normal'if row['map_perspective']==0 else'Flipped'),'UI actual Composite/runtime map enum proof differs')
+            # These are actual independent pre-command values. The getter
+            # return enum CLASS matches; original Minimap owns initialization.
+            # Cached145/180 observations are not post-call property samples.
+            # The normal serialized target is bound to actual Map below.
+            reference=active if i<before_i else before
+            require(all(row[k]==reference[k]for k in perspective_keys),'UI stored perspective proof changed without original getter observation')
+        target_keys=('origin','origin_bits','target','target_bits','origin_sampled_us')
+        if i<before_i:require(all(row[k]is None for k in target_keys),'UI invented an origin/target before original sample')
+        else:
+            for key in('origin','target'):
+                _vector(row[key]);bits=row[key+'_bits']
+                require(type(bits)is list and len(bits)==3 and all(_integer(b,0,UINT32)for b in bits) and
+                    all(_reported_bits_match(v,b)for v,b in zip(row[key],bits)),'UI captured target/origin float32 bits differ')
+            require(_integer(row['origin_sampled_us']) and all(row[k]==before[k]for k in target_keys),
+                'UI retained actual origin/target sample changed')
+        require(all(row[k]is None for k in('minimap_call_begin_us','minimap_call_end_us'))if i<queued_i else
+            all(_integer(row[k]) and row[k]==queued[k]for k in('minimap_call_begin_us','minimap_call_end_us')),
+            'UI original call QPC bracket missing or altered')
+    start=by_event['before_activation'];dead=by_event['native_dead'];released=by_event['release_observed'];restored=by_event['restored']
+    require(start['frame']==active['frame']==145 and active['is_unit_selection_related']is True and
+        all(r['current_admitted'] and r['native_identity_present'] and r['native_state']not in(None,6) and
+            r['source_ids']==[11] and r['source_count']==1 and r['current_incarnation']==r['original_incarnation'] for r in(start,active,restored,before)) and
+        dead['native_identity_present'] and dead['native_state']==6 and not released['native_identity_present'] and
+        not _pointer(released['current_actor']) and dead['frame']<released['frame']<=restored['frame']<before['frame']==queued['frame']==180,
+        'UI activation/correction/current original source11 lifecycle differs')
+    require(not before['selector_append'] and not queued['selector_append'] and before['composite_queue_cast_before']is False and
+        before['pending_commands']==0 and queued['pending_commands']==1 and queued['casting_count']==1 and
+        before['origin_sampled_us']<=before['sampled_us']<=queued['minimap_call_begin_us']<queued['minimap_call_end_us']<=queued['sampled_us'] and
+        before['current_actor']==queued['current_actor'] and before['current_incarnation']==queued['current_incarnation'],
+        'UI original call/queue0→1/auto-Pop/current lease bracket differs')
+    expected=[_f32(_f32(before['origin'][0])+16),_f32(before['origin'][1]),_f32(before['origin'][2])]
+    require(all(_reported_bits_match(v,b)for v,b in zip(expected,before['target_bits'])),'UI target is not actual sampled origin plus bounded16X')
+    require(by_event['complete']['frame']>=260 and drain['pending_commands']==0 and
+        all(r['pending_commands']==0 and not _pointer(r['active_caster'])for r in rows[drain_i:]),'UI normal drain/complete did not remain inactive')
+    return dict(rows=rows,indices=indices,events=by_event,world=world,match=match,
+        activation_index=indices[active_i],queued_index=indices[queued_i],drain_index=indices[drain_i],preactivation_residue=residue)
+
+
+def _snapshots(log, match, *, caster_lifetime=False, _ui=None):
     require(type(caster_lifetime) is bool,'invalid active-caster observation option')
     lifetime=_caster_lifetime_records(log,match) if caster_lifetime else None
     mobile_indices=[]
-    if lifetime:
+    if lifetime or _ui:
         for index,line in enumerate(log.splitlines()):
             if 'MOBILE CORRECTION ' in line and json.loads(line.split('MOBILE CORRECTION ',1)[1],object_pairs_hook=_unique_object).get('match')==match:
                 mobile_indices.append(index)
@@ -319,12 +514,14 @@ def _snapshots(log, match, *, caster_lifetime=False):
     require(rows, 'missing original mobile episode')
     world = rows[0].get('world')
     require(lifetime is None or lifetime['world']==world,'active-caster/mobile world binding differs')
+    require(_ui is None or _ui['world']==world and not caster_lifetime,'UI-cast/mobile world/mode differs')
+    events=UI_EVENTS if _ui else EVENTS
     bool_fields = ('old_dead_to_sim', 'old_component_present', 'old_in_active', 'old_in_retained',
         'current_in_active', 'current_admitted', 'native_identity_present', 'native_state_present',
         'casting_references_victim', 'auto_type1', 'left_held', 'right_held', 'pool_callback_observed')
     for row_index,row in enumerate(rows):
         _common(row, world=world)
-        require(row.get('event') in (*EVENTS, 'snapshot') and
+        require(row.get('event') in (*events, 'snapshot') and
                 (row['entity'], row['unit_type'], row['army']) == (11, 1, 1) and
                 _integer(row.get('completed_frame'), -1, 2**31-1), 'mobile episode event/identity differs')
         require('selection_scope_player_initiated' in row and
@@ -347,10 +544,27 @@ def _snapshots(log, match, *, caster_lifetime=False):
             lifetime['events']['after_activation']['sampled_us']<=row['sampled_us']<=lifetime['events'].get('after_explicit_pop',lifetime['events'].get('cleanup_skipped'))['sampled_us'] and 145<=row['frame']<180)
         scratch_window=bool(lifetime and lifetime['activation_index']<mobile_indices[row_index] and
             row['sampled_us']>=lifetime['events']['after_activation']['sampled_us'] and 145<=row['frame']<180)
+        if _ui:
+            active_window=bool(_ui['activation_index']<mobile_indices[row_index]<_ui['queued_index'] and
+                _ui['events']['after_activation']['sampled_us']<=row['sampled_us']<=_ui['events']['after_cast_queued']['sampled_us'] and 145<=row['frame']<=180)
+            scratch_window=bool(_ui['activation_index']<mobile_indices[row_index] and
+                row['sampled_us']>=_ui['events']['after_activation']['sampled_us'] and 145<=row['frame']<=_ui['events']['complete']['frame'])
+            residue=_ui['preactivation_residue']
+            if residue['row']['policy_result']=='prior_drained_residue' and 130<=row['frame']<=145 and mobile_indices[row_index]<_ui['activation_index']:
+                require(residue['index']<mobile_indices[row_index] and residue['row']['sampled_us']<=row['sampled_us'] and
+                    row['casting_ids'] in ([],[11]),'UI preactivation scratch escaped its actual prior-drain proof')
+                scratch_window=True
+            queue_window=bool(_ui['events']['before_cast']['sampled_us']<=row['sampled_us']<=_ui['events']['normal_drain_observed']['sampled_us'] and
+                180<=row['frame']<=_ui['events']['normal_drain_observed']['frame'])
+            require(row['pending_commands'] in ((0,1) if queue_window else (0,)), 'UI queue1 escaped the validated normal-drain interval')
+            if _pointer(row['active_caster']):
+                require(_pointer(row['active_caster'])==_pointer(_ui['events']['after_activation']['retained_caster']),
+                        'UI snapshot replaced the retained actual caster')
         if active_window and _pointer(row['active_caster']):
+            witness=lifetime or _ui
             require(any(index>mobile_indices[row_index] and receipt['frame']==row['frame'] and
                 receipt['sampled_us']>=row['sampled_us'] and _pointer(receipt['active_caster'])==_pointer(row['active_caster'])
-                for index,receipt in zip(lifetime['indices'],lifetime['rows'])),
+                for index,receipt in zip(witness['indices'],witness['rows'])),
                 'mobile active100 lacks its actual same-frame lifetime observation')
         require(row['pool_callback_observed'] is False and not row['left_held'] and not row['right_held'] and
                 row['live_click_id'] != 11 and (active_window or not _pointer(row['active_caster'])) and
@@ -378,8 +592,12 @@ def _snapshots(log, match, *, caster_lifetime=False):
     require(len({(_pointer(r['original_actor']), r['original_incarnation']) for r in rows}) == 1,
             'original mobile root/token changed')
     episode = [r for r in rows if r['event'] != 'snapshot']
-    require([r['event'] for r in episode] == list(EVENTS), 'incomplete/duplicate original mobile episode')
+    require([r['event'] for r in episode] == list(events), 'incomplete/duplicate original mobile episode')
     setup, dead, released, restored, before, reselected, complete = episode
+    if _ui:
+        residue=_ui['preactivation_residue']
+        require(residue['row']['sampled_us']<=setup['sampled_us'] and residue['index']<mobile_indices[0],
+            'UI preactivation proof did not precede original setup')
     require(setup['frame'] == 130 and dead['frame'] >= 153 and released['frame'] > dead['frame'] and
             restored['frame'] >= released['frame'] and 180 <= before['frame'] < 200 and
             before['frame'] == reselected['frame'] and complete['frame'] >= 260,
@@ -390,9 +608,10 @@ def _snapshots(log, match, *, caster_lifetime=False):
             setup['current_admitted'] and setup['current_incarnation'] == setup['original_incarnation'],
             'original mobile selection/group/repeat focus was not established')
     require(setup['selection_scope_player_initiated'] is True and
-            reselected['selection_scope_player_initiated'] is False and
+            (reselected['selection_scope_player_initiated'] is None if _ui else reselected['selection_scope_player_initiated'] is False) and
             all(r['selection_scope_player_initiated'] is None for r in rows
-                if r['event'] not in ('original_mobile_selection_established', 'original_fresh_reselection_established')),
+                if r['event'] not in (('original_mobile_selection_established',) if _ui else
+                    ('original_mobile_selection_established', 'original_fresh_reselection_established'))),
             'fresh original programmatic selection scope differs from explicit initial player-initiated scope')
     require(dead['native_state_present'] and dead['native_state'] == 6 and
             not released['native_identity_present'] and not released['old_in_active'] and
@@ -404,7 +623,8 @@ def _snapshots(log, match, *, caster_lifetime=False):
     require(all((_pointer(r['current_actor']), r['current_incarnation']) == lease and r['current_admitted'] and
                 r['current_in_active'] for r in (before, reselected, complete)) and reselected['selected_ids'] == [11],
             'fresh selection uses a stale/unadmitted mobile lease')
-    require(all(r['pending_commands'] == 0 for r in episode[:-1]), 'unrelated queued input crossed setup/reselection')
+    require(all(r['pending_commands'] == (1 if _ui and r['event']=='original_ui_cast_queued' else 0) for r in episode[:-1]),
+            'unrelated queued input crossed setup/reselection')
     focus_observations = []
     for row in rows:
         # FrontUpdate precedes later original selector work. The actual cache
@@ -568,6 +788,62 @@ def _fresh_motion(log, match, world, token, order, restored, receipt, bridge):
         pose_count=len(poses), clock_scope='Actual same-process checked QPC Transform samples;65/bridge ordering uses strict recorded tick_ms')
 
 
+def _ui_binding(log, witness, *, match, commits, raw_bodies, journal):
+    """One normal serialized original UI action;67's frame is not prediction."""
+    before=witness['events']['before_cast'];after=witness['events']['after_cast_queued'];drain=witness['events']['normal_drain_observed']
+    sequence=before['next_sequence_before_cast']
+    require(_integer(sequence,1) and drain['next_sequence_after_drain']==sequence+1,
+            'UI normal input drain did not advance exactly the captured NEXT sequence')
+    body=raw_bodies.get((match,1,sequence));require(type(body) is bytes,'UI original72 body is missing')
+    decoded=decode_player_input(body)
+    require(len(decoded['actions'])==1 and decoded['identity']['player_id']==2 and decoded['identity']['is_aliased'] and
+            not decoded['identity']['ai_profile_id'],'UI72 is not one exact original victim-human action')
+    action=decoded['actions'][0];action_hash=digest(action)
+    require([f.number for f in parse_fields(action)]==[1],'UI original command is not Execute')
+    execute=get_bytes(action,1,required=True);groups=get_repeated_bytes(execute,1)
+    require(len(groups)==1 and get_uint(groups[0],1)==1 and get_uint(groups[0],2)==88 and
+            get_repeated_uint(groups[0],3)==(11,) and get_uint(execute,2)==0,
+            'UI source/type/ability88/unqueued original body differs')
+    from client_patch.prediction_worker.commands import _action
+    normalized,predictive,join=_action(action,1)
+    require(normalized==action and predictive is False and join is False,'UI88 body changed or became prediction eligible')
+    command=get_bytes(execute,3,required=True)
+    require([f.number for f in parse_fields(command)]==[3],'UI minimap original target is not ground')
+    position=get_bytes(get_bytes(command,3,required=True),1,required=True)
+    raw=[]
+    for axis in(1,2,3):
+        value=get_uint(position,axis);require(value<2**64,'UI target exceeds signedQ32')
+        raw.append(value-2**64 if value>=2**63 else value)
+    target=[struct.unpack('<f',struct.pack('<I',bits))[0]for bits in before['target_bits']]
+    mapped=[-value if before['map_perspective']==1 and axis in(0,2)else value for axis,value in enumerate(target)]
+    require(all(math.floor(value*2**32)<=fixed<=math.ceil(value*2**32)for value,fixed in zip(mapped,raw)),
+            'UI actual normal ToProto target differs from mapped original float32 target')
+    registered=[];sent=[]
+    for index,line in enumerate(log.splitlines()):
+        found=re.search(r'Movement local batch registered: sequence=(\d+) speculativeFrame=(\d+) tick=(\d+) match='+re.escape(match)+r'(?:\s|$)',line)
+        if found and int(found[1])==sequence:registered.append((index,tuple(map(int,found.groups()))))
+        found=re.search(r'Original command batch submitted: match='+re.escape(match)+r' sequence=(\d+) actions=(\d+) bytes=(\d+) body_sha256=([a-f0-9]{64}) sendTick=(\d+) sourceNextFrame=(\d+)',line)
+        if found and int(found[1])==sequence:sent.append((index,found.groups()))
+    require(len(registered)==len(sent)==1,'UI actual67/native72 receipt missing or duplicated')
+    registration_index,registration=registered[0];send_index,send=sent[0]
+    require(witness['queued_index']<registration_index<send_index<witness['drain_index'] and
+            before['tick_ms']<=registration[2]<=int(send[4])<=drain['tick_ms'] and
+            int(send[1])==1 and int(send[2])==len(body) and send[3]==digest(body),
+            'UI normal drain/body is not source-ordered after queued input and before actual drain observation')
+    accepted=[r for r in commits if(r.get('event'),r.get('match'),r.get('slot'),r.get('sequence'))==
+        ('command_batch_committed',match,1,sequence)]
+    require(len(accepted)==1 and _integer(accepted[0].get('frame'),0,2**31-1),'UI canonical commit missing or duplicated')
+    frame=accepted[0]['frame'];occurrences=[(r['frame'],slot)for r in journal for slot,actions in r['players'].items()for a in actions if digest(a)==action_hash]
+    require(occurrences==[(frame,1)],'UI exact original action absent/rebound/duplicated in canonical journal')
+    return dict(passed=True,sequence=sequence,incarnation=before['current_incarnation'],action_sha256=action_hash,body_sha256=digest(body),
+        canonical_commit_frame=frame,registration_frame_hint=registration[1],registration_minus_canonical_frames=registration[1]-frame,
+        registration_tick_ms=registration[2],native72_send_tick_ms=int(send[4]),
+        normal_serialize_source_lines=dict(queued=witness['queued_index'],registered67=registration_index,submitted72=send_index,drain=witness['drain_index']),
+        protocol_target_raw=raw,protocol_target=[value/2**32 for value in raw],unity_target=target,protocol_target_expected=mapped,
+        prediction_exercised=False,movement_feel_exercised=False,constructor_callback_claim=False,
+        target_scope='Actual original normal ToProto bytes; original runtime map perspective maps X/Z, adjacentQ32 quantization bound only. No extra ToProto/hash or constructor call inferred.')
+
+
 def _assignment_span(rows, *, world, assigned, canonical, states):
     first, last = min(assigned, canonical), canonical+20
     selected = [(i, row) for i, row in enumerate(rows)
@@ -698,6 +974,69 @@ def evaluate(log, *, attacker_log, match, commits, raw_bodies, journal, bridge_f
                'Scripted original Move12; original mobile membership/component release, corrected current admission, real group/focus setup and fresh command response; no physical UI/caster/VFX claim'))
 
 
+def evaluate_ui_cast(log, *, attacker_log, match, commits, raw_bodies, journal, bridge_frames,
+                     canonical_payloads, canonical_states, native_states, worker_states,
+                     escape_check, join_check, authority_rows):
+    """Original minimap88 queue/serialization ownership; no predictive feel gate."""
+    require(type(match) is str and re.fullmatch('[a-f0-9]{32}',match),'invalid UI selected match')
+    ui=_ui_cast_records(log,match)
+    snapshots,episode,focus=_snapshots(log,match,_ui=ui)
+    setup,dead,released,restored,before,queued,complete=episode;world=setup['world']
+    metadata=mobile_metadata()
+    escape=escape_check(attacker_log,match=match,commits=commits,raw_bodies=raw_bodies,journal=journal,fixture=metadata,prefix='MOBILE ORDER ')
+    cause=decode_player_input(raw_bodies[match,0,escape['sequence']])['actions']
+    require(len(cause)==1 and digest(cause[0])==escape['action_sha256'],'UI episode escape cause is not one original Move12')
+    frame=escape['canonical_commit_frame'];actual65=authority_rows(log)if callable(authority_rows)else authority_rows
+    require(frame in metadata['safe_canonical_frames'] and frame<153,'UI episode canonical escape misses actual native death')
+    receipt,bridge=_receipt(frame,world,match,actual65,bridge_frames,canonical_payloads)
+    require(dead['tick_ms']<min(receipt['tick_ms'],bridge['received_tick_ms']) and
+            dead['sampled_us']<released['sampled_us']<restored['sampled_us'] and
+            restored['tick_ms']>=receipt['tick_ms'],'UI episode real death/release/restoration lacks receipt chronology')
+    replay=_joined(join_check,worker_states,world=world,receipt=receipt,states=canonical_states,journal=journal,
+        action_hash=escape['action_sha256'],slot=0,replay=True,latest_tick=restored['tick_ms'])
+    require([r.get('frame')for r in native_states]==list(range(130,221)),'UI actual native authority timeline incomplete')
+    for row in native_states:
+        number=row['frame'];victim,attacker=row.get('victim'),row.get('attacker')
+        damage=victim.get('current_damage')if type(victim)is dict else None
+        require(row.get('parsed_state_sha256')==canonical_states.get(number) and type(victim)is dict and
+            (victim.get('id'),victim.get('army'),victim.get('type'))==(11,1,1) and victim.get('max_health')==100 and
+            type(damage)in(int,float) and math.isfinite(damage) and 0<=damage<100 and
+            (number>173 or damage==(0 if number<142 else 50)) and type(row.get('game_state'))is dict and
+            row['game_state'].get('complete')is False,'UI actual authority victim health/state/hash differs')
+        require((type(attacker)is dict and (attacker.get('id'),attacker.get('army'),attacker.get('type'))==(10,0,1) and
+            attacker.get('max_health')==100 and attacker.get('current_damage')==(0 if number<142 else 50 if number<153 else 100))
+            if number<=153 else attacker is None,'UI actual authority attacker death/purge differs')
+    command=_ui_binding(log,ui,match=match,commits=commits,raw_bodies=raw_bodies,journal=journal)
+    canonical=command['canonical_commit_frame']
+    window=[(r['frame'],slot,digest(a))for r in journal if 130<=r['frame']<=220 for slot,actions in r['players'].items()for a in actions]
+    require(window==[(frame,0,escape['action_sha256']),(canonical,1,command['action_sha256'])],
+            'UI observation canonical window contains unintended/missing commands')
+    cast65,cast_bridge=_receipt(canonical,world,match,actual65,bridge_frames,canonical_payloads)
+    confirmed=_joined(join_check,worker_states,world=world,receipt=cast65,states=canonical_states,journal=journal,
+        action_hash=command['action_sha256'],slot=1,replay=False)
+    command.update(native_confirmation=confirmed,actual_victim65=cast65,raw_bridge=cast_bridge,
+        original_ui_rows=ui['rows'],preactivation_residue=ui['preactivation_residue'],active_caster_exercised=True,physicalUI=False)
+    critical=ui['events']
+    require(all(row['original_incarnation']==setup['original_incarnation'] for row in ui['rows']) and
+            setup['sampled_us']<critical['before_activation']['sampled_us']<=critical['after_activation']['sampled_us']<dead['sampled_us'] and
+            all(critical[name]['frame']==source['frame'] and critical[name]['sampled_us']>=source['sampled_us'] for name,source in
+                (('native_dead',dead),('release_observed',released),('restored',restored))) and
+            critical['before_cast']['frame']==before['frame']==queued['frame']==180 and
+            before['sampled_us']<=critical['before_cast']['sampled_us']<critical['after_cast_queued']['sampled_us']<=queued['sampled_us'] and
+            critical['complete']['frame']==complete['frame'] and critical['complete']['sampled_us']<=complete['sampled_us'] and
+            critical['before_cast']['current_incarnation']==restored['current_incarnation']==command['incarnation'],
+            'UI phase rows do not join actual lifecycle/current identity/cast queue boundary')
+    require(not _rows(log,'MOBILE ORDER ',match,1) and not _rows(log,'MOBILE FEEL ',match,1024),
+            'UI-only variant emitted a fake fresh constructor or predicted feel witness')
+    return dict(passed=True,world=world,match=match,rows=snapshots,escape=escape,escape_actual_victim65=receipt,escape_raw_bridge=bridge,
+        escape_native_replay=replay,native_authority_timeline=native_states,ui_command=command,focus_observations=focus,
+        same_confirmed_token=setup['original_incarnation']==restored['current_incarnation'],
+        original_mobile_release_observed=True,current_mobile_reinitialized_and_admitted=True,
+        original_selection_group_focus_established=True,active_caster_exercised=True,physicalUI=False,
+        full_feature_accepted=False,full_mobile_controls_accepted=False,prediction_exercised=False,movement_feel_exercised=False,
+        scope='Original UI88 activation retained across correction, original minimap queue0→1, normal serialize67/72 and one canonical88/nativeC+20; no fresh Move12, constructor-call, preauthority movement or phase acceptance claim')
+
+
 def _group_intent_rows(log, *, match, slot):
     rows = _rows(log, 'MOBILE GROUP INTENT ', match, 5)
     fields = {'schema','event','world','match','slot','frame','tick_ms','sampled_us','entity','unit_type','army',
@@ -738,14 +1077,15 @@ def _group_intent_rows(log, *, match, slot):
     return rows
 
 
-def evaluate_group_intent(log, *, attacker_log, mobile_episodes, user_edits=False):
+def evaluate_group_intent(log, *, attacker_log, mobile_episodes, user_edits=False, ui_cast=False):
     """Opt-in group4 retention OR two original cancellation operations.
 
     Both modes separately require the attacker's group4 provisional hold and
     canonical death purge in its independently owned client. The already-qualified mobile body/replay/motion evidence is required;
     the controller additionally gates on all closed native hashes and shutdown.
     """
-    require(type(user_edits) is bool and type(mobile_episodes) is list and len(mobile_episodes) == 2,
+    require(type(user_edits) is bool and type(ui_cast) is bool and not(ui_cast and user_edits) and
+            type(mobile_episodes) is list and len(mobile_episodes) == 2,
             'group intent requires both actual mobile episodes')
     matches=[ep.get('match') for ep in mobile_episodes]
     require(len(set(matches)) == 2 and all(type(m) is str and re.fullmatch('[a-f0-9]{32}',m) for m in matches) and
@@ -763,17 +1103,21 @@ def evaluate_group_intent(log, *, attacker_log, mobile_episodes, user_edits=Fals
             count+=1;require(count <= 10, 'group diagnostic count exceeds two-round bound')
     result=[]
     for ep in mobile_episodes:
-        require(ep.get('passed') is True and ep.get('fresh_motion',{}).get('passed') is True and
-                ep.get('fresh_assignment_span',{}).get('hashes_match') is True and
+        input_ok=(ep.get('ui_command',{}).get('passed') is True and
+                  ep['ui_command'].get('prediction_exercised') is False and
+                  ep['ui_command'].get('native_confirmation',{}).get('continuation_frames')==20) if ui_cast else (
+                  ep.get('fresh_motion',{}).get('passed') is True and ep.get('fresh_assignment_span',{}).get('hashes_match') is True)
+        require(ep.get('passed') is True and input_ok and
                 ep.get('escape_native_replay',{}).get('promotion_group_replayed_delta',0) > 0 and
                 ep.get('escape_native_replay',{}).get('continuation_frames') == 20,
                 'group intent lacks positive mobile motion/replay+20/native confirmation')
         match=ep['match'];world=ep['world']
         correction=[r for r in ep['rows'] if r['event'] != 'snapshot']
-        require([r['event'] for r in correction] == list(EVENTS), 'group mobile lifecycle binding incomplete')
+        require([r['event'] for r in correction] == list(UI_EVENTS if ui_cast else EVENTS), 'group mobile lifecycle binding incomplete')
         setup,dead,released,restored,before,reselected,complete=correction
         token=setup['original_incarnation']
-        require(token == restored['current_incarnation'] == ep['fresh']['order']['incarnation'] > 0,
+        input_token=ep['ui_command']['incarnation'] if ui_cast else ep['fresh']['order']['incarnation']
+        require(token == restored['current_incarnation'] == input_token > 0,
                 'group victim is not the same authoritative mobile incarnation')
         victim=_group_intent_rows(log,match=match,slot=1)
         names=['setup','before_user_edits','after_user_edits','restored','complete'] if user_edits else [
@@ -823,7 +1167,7 @@ def evaluate_group_intent(log, *, attacker_log, mobile_episodes, user_edits=Fals
                 next(r['attacker'] for r in native if r['frame'] == 153)['current_damage'] == 100 and
                 all(r['attacker'] is None for r in native if r['frame'] >= 154),
                 'group canonical attacker death/victim survival does not match actual native authority')
-        require(ep['fresh_motion']['passed'] is True, 'group test lost actual fresh original response')
+        require(input_ok, 'group test lost its actual original input witness')
         result.append(dict(passed=True,match=match,world=world,victim_rows=victim,attacker_rows=attacker,
             victim_same_confirmed_token=True,retained_group4_preserved=not user_edits,
             original_user_operation=operation,user_cancellation_respected=user_edits,
@@ -834,8 +1178,9 @@ def evaluate_group_intent(log, *, attacker_log, mobile_episodes, user_edits=Fals
     require(not user_edits or [r['original_user_operation'] for r in result] == ['clear','replace'],
             'two actual rounds must separately exercise original Clear and empty replacement')
     return dict(passed=True,user_edits=user_edits,episodes=result,requires_controller_full_closed_native_parity=True,
-        physicalUI=False,active_casting_exercised=False,full_mobile_controls_accepted=False,
-        scope='Single original manual group4 retention OR separate Clear/empty-replace captures, plus attacker group4 provisional hold and confirmed-death numeric purge in its separate client; no physical UI/casting/all-controls acceptance')
+        physicalUI=False,active_casting_exercised=ui_cast,full_mobile_controls_accepted=False,
+        scope=('Retained original group4 plus attacker canonical purge and actual nonpredicted UI88 ownership/native continuation; no predicted response/full-controls acceptance' if ui_cast else
+            'Single original manual group4 retention OR separate Clear/empty-replace captures, plus attacker group4 provisional hold and confirmed-death numeric purge in its separate client; no physical UI/casting/all-controls acceptance'))
 
 
 def _group_focus_fixture_rows(log, *, match, world, token):

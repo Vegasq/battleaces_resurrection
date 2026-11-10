@@ -10,9 +10,9 @@ from tools import prediction_mobile_evidence as mobile
 from tools import verify_prediction_multiplayer as controller
 
 
-def move(entity, target):
+def move(entity, target, ability=12):
     position = b''.join(field_uint(n, int(v * 2**32) & (2**64-1)) for n, v in enumerate(target, 1))
-    group = field_uint(1, 1) + field_uint(2, 12) + field_packed_uint(3, [entity])
+    group = field_uint(1, 1) + field_uint(2, ability) + field_packed_uint(3, [entity])
     return field_bytes(1, field_bytes(1, group) + field_bytes(3, field_bytes(3, field_bytes(1, position))))
 
 
@@ -660,6 +660,250 @@ class GroupIntentEvidenceTests(unittest.TestCase):
         f=GroupFixture();f.episodes[1]['escape']['order']['world']=1
         for row in f.attacker[4:]:row['world']=1
         with self.assertRaisesRegex(AssertionError,'attacker escape world reused'):f.evaluate()
+
+
+class UICastFixture(Fixture):
+    """Synthetic queue/normal-wire evidence, not a real cast execution."""
+    def __init__(self,world=2,match='a'*32):
+        super().__init__();self.match=match
+        self.offset_us=0;self.prior_log=''
+        for row in [*self.rows,*self.poses,*self.receipts,*self.worker,self.order]:row['world']=world
+        self.escape['world']=world
+        for row in [*self.rows,*self.receipts,*self.bridges,*self.commits,self.escape]:row['match']=match
+        self.bodies={(match,slot,seq):body for(_,slot,seq),body in self.bodies.items()}
+        self.set_wire([21.,0.,0.]);self.ui=[]
+        self.rows[4]['event']='before_ui_cast';self.rows[5].update(event='original_ui_cast_queued',tick_ms=1495,sampled_us=1495000)
+        for row in self.rows:
+            if row['event']!='original_mobile_selection_established':row['selection_scope_player_initiated']=None
+            if 145<=row['frame']<180:row['active_caster']='A100'
+            if row['frame']>=180:row.update(casting_ids=[11],casting_references_victim=True)
+        self.rows[4]['active_caster']='A100';self.rows[4].update(casting_ids=[],casting_references_victim=False)
+        self.rows[5]['pending_commands']=1
+        self.residue=dict(schema=1,event='preactivation',world=world,match=match,slot=1,entity=11,frame=130,tick_ms=99,sampled_us=99000,
+            casting_set='2000',casting_ids=[],casting_count=0,casting_references_victim=False,typed_member11=False,typed_proof_error=None,
+            casting_frame_collection='4000',current_frame_collection='4000',frame_owner_matches=True,active_caster='0',pending_commands=0,
+            left_held=False,right_held=False,click_reference=0,prior_completed_world=0,prior_match=None,prior_normal_drain_complete=False,
+            prior_next_sequence_before=None,prior_next_sequence_after=None,prior_complete_frame=None,policy_result='strict_empty',
+            physicalUI=False,scope='inactive_scratch_only_not_admission')
+        def row(event,frame,us):
+            activated=event!='before_activation';pre=us<1494000;alive=event!='release_observed'
+            target=us>=1492000;queued=us>=1494000;drained=us>=1510000
+            current='A100'if activated and pre else'0';perspective=activated
+            value=dict(schema=1,event=event,world=world,match=match,slot=1,entity=11,unit_type=1,army=1,frame=frame,
+                tick_ms=us//1000,sampled_us=us,button_slot=4,config_id=88,ui_cast_type=5,ui_group_kind=2,smart_casting=False,
+                retained_caster='A100'if activated else'0',retained_caster_class='Uncapped.TargetGroundOrUnitAbilityCaster'if activated else None,
+                active_caster=current,active_caster_class='Uncapped.TargetGroundOrUnitAbilityCaster'if int(current,16)else None,
+                same_retained=bool(int(current,16)),is_unit_selection_related=True if int(current,16)else None,
+                source_set='1000',casting_set='2000',command_queue='3000',alias_storage_unchanged=True,
+                source_ids=[11],source_count=1 if alive else 0,casting_ids=[11]if queued else[],casting_count=int(queued),
+                pending_commands=int(queued and not drained and event!='snapshot'),activation_calls=int(activated),cast_calls=int(queued),drain_observed=drained,
+                next_sequence_before_cast=2 if target else None,next_sequence_after_drain=3 if drained else None,cast_result=True if queued else None,
+                origin=[5.,0.,0.]if target else None,origin_bits=[mobile._bits(v)for v in[5.,0.,0.]]if target else None,
+                target=[21.,0.,0.]if target else None,target_bits=[mobile._bits(v)for v in[21.,0.,0.]]if target else None,
+                origin_sampled_us=1491000 if target else None,minimap_call_begin_us=1492010 if queued else None,minimap_call_end_us=1493900 if queued else None,
+                local_alliance=17 if perspective else None,map_perspective=0 if perspective else None,composite_map_perspective=0 if perspective else None,
+                composite_queue_cast_before=False if perspective else None,perspective_observed_frame=(180 if target else 145)if perspective else None,
+                map_perspective_source='Uncapped.Map.GetAlliancePerspective',composite_map_perspective_source='Uncapped.CompositeAbilityCaster.get_MapPerspective',
+                map_perspective_enum='Uncapped.Map.Perspective',map_perspective_enum_matches_composite=True if perspective else None,
+                map_perspective_normal=0,map_perspective_flipped=1,map_perspective_value_name='Normal'if perspective else None,
+                selector_append=False,left_held=False,right_held=False,click_reference=0,native_identity_present=alive,
+                native_state=None if not alive else 6 if event=='native_dead'else 1,current_actor='A0'if alive else'0',
+                current_admitted=alive,original_incarnation=7,current_incarnation=7 if alive else 0,
+                route='original_ui_minimap',original_callback='Uncapped.UnitSelector.ProcessActiveAbilityCaster_Minimap',original_callback_token=0x0600222a,
+                originalCtor=False,extra_pop_calls=0,extra_to_proto_calls=0,manual_caster_set_calls=0,direct_factory_calls=0,physicalUI=False)
+            if alive:value['current_actor']=self.rows[3]['current_actor']
+            self.ui.append(value)
+        for name,frame,us in [('before_activation',145,150000),('after_activation',145,151000),('snapshot',152,195000),
+            ('native_dead',153,200001),('release_observed',154,220001),('restored',163,350001),('before_cast',180,1492000),
+            ('after_cast_queued',180,1494000),('snapshot',181,1509000),('normal_drain_observed',181,1510000),('complete',260,5999999)]:row(name,frame,us)
+
+    def set_wire(self,target,ability=88):
+        self.fresh_action=move(11,target,ability);self.bodies[self.match,1,2]=encode_player_input(encode_identity(2,'Victim'),[self.fresh_action])
+        self.journal[181]['players'][1]=[self.fresh_action]
+
+    def log(self):
+        items=[(r['sampled_us'],'MOBILE CORRECTION '+json.dumps(r))for r in self.rows]
+        items.extend((r['sampled_us'],'MOBILE UI CAST '+json.dumps(r))for r in self.ui)
+        items.append((self.residue['sampled_us'],'MOBILE UI RESIDUE '+json.dumps(self.residue)))
+        body=self.bodies[self.match,1,2]
+        offset=self.offset_us;tick=offset//1000
+        items.extend([(1501000+offset,f'Movement local batch registered: sequence=2 speculativeFrame={self.fresh_assigned} tick={1501+tick} match={self.match}'),
+            (1502000+offset,f'Original command batch submitted: match={self.match} sequence=2 actions=1 bytes={len(body)} body_sha256={mobile.digest(body)} sendTick={1502+tick} sourceNextFrame=181')])
+        return self.prior_log+'\n'+'\n'.join(line for _,line in sorted(items))
+
+    def incoming_residue(self):
+        previous=UICastFixture(world=1,match='1'*32);self.prior_log=previous.log();offset=10000000;self.offset_us=offset
+        for r in[*self.rows,*self.ui,self.residue]:
+            r['sampled_us']+=offset;r['tick_ms']+=offset//1000
+            for key in('origin_sampled_us','minimap_call_begin_us','minimap_call_end_us'):
+                if key in r and r[key]is not None:r[key]+=offset
+        for r in self.receipts:r['tick_ms']+=offset//1000
+        for r in self.bridges:r['received_tick_ms']+=offset//1000
+        for r in self.worker:r['tick_ms']+=offset//1000
+        self.escape['tick_ms']+=offset//1000
+        for key in('origin_sampled_us','sampled_us','enqueue_sampled_us'):self.escape[key]+=offset
+        self.residue.update(casting_ids=[11],casting_count=1,casting_references_victim=True,typed_member11=True,
+            prior_completed_world=1,prior_match=previous.match,prior_normal_drain_complete=True,prior_next_sequence_before=2,
+            prior_next_sequence_after=3,prior_complete_frame=260,policy_result='prior_drained_residue')
+        for r in self.rows:
+            if r['frame']<=180:r.update(casting_ids=[11],casting_references_victim=True)
+        for r in self.ui:
+            if r['cast_calls']==0:r.update(casting_ids=[11],casting_count=1)
+        return self
+
+    def evaluate(self,**changes):
+        args=dict(attacker_log=self.sender(0,self.escape,151,191+self.offset_us//1000),match=self.match,commits=self.commits,raw_bodies=self.bodies,journal=self.journal,
+            bridge_frames=self.bridges,canonical_payloads=self.wires,canonical_states=self.hashes,native_states=self.native,worker_states=self.worker,
+            escape_check=controller.actor_escape_evidence,join_check=controller.joined_worker_evidence,authority_rows=self.receipts)
+        args.update(changes);return mobile.evaluate_ui_cast(self.log(),**args)
+
+
+class UICastEvidenceTests(unittest.TestCase):
+    def test_rematch_inactive11_is_bound_to_prior_normal_drain_and_current_frame_owner_without_same_storage_claim(self):
+        f=UICastFixture(world=2,match='2'*32).incoming_residue();result=f.evaluate()['ui_command']['preactivation_residue']
+        self.assertEqual(result['row']['casting_ids'],[11]);self.assertEqual(result['prior_drain']['next_after'],3)
+        self.assertIn('no cross-world same-storage',result['scope'])
+        # A current-world storage address need not equal a prior-world address.
+        f.residue['casting_set']='5000'
+        for r in f.ui:r['casting_set']='5000'
+        self.assertTrue(f.evaluate()['passed'])
+
+    def test_rematch_residue_rejects_missing_completed_drain_extra_ids_stale_owner_active_or_pending_input(self):
+        for kind in('missingprior','priorsequence','priorcomplete','ids','typed','owner','active','queue','held','proofmissing'):
+            with self.subTest(kind=kind):
+                f=UICastFixture(world=2,match='2'*32).incoming_residue()
+                if kind=='missingprior':f.prior_log=''
+                elif kind=='priorsequence':f.residue['prior_next_sequence_after']=4
+                elif kind=='priorcomplete':f.residue['prior_complete_frame']=261
+                elif kind=='ids':f.residue['casting_ids']=[11,12]
+                elif kind=='typed':f.residue['typed_member11']=None
+                elif kind=='owner':f.residue['casting_frame_collection']='9999'
+                elif kind=='active':f.residue['active_caster']='A100'
+                elif kind=='queue':f.residue['pending_commands']=1
+                elif kind=='held':f.residue['left_held']=True
+                else:f.residue['typed_proof_error']='unknown original typed cache'
+                with self.assertRaises(AssertionError):f.evaluate()
+
+    def test_strict_empty_requires_original_typed_empty_and_residue_does_not_relax_old_move_or_lifetime(self):
+        f=UICastFixture();f.residue['typed_member11']=True
+        with self.assertRaises(AssertionError):f.evaluate()
+        f=UICastFixture(world=1,match='1'*32);f.residue.update(casting_ids=[11],casting_count=1,typed_member11=True,policy_result='prior_drained_residue')
+        with self.assertRaises(AssertionError):f.evaluate()
+        f=UICastFixture(world=2,match='2'*32).incoming_residue()
+        with self.assertRaises(AssertionError):mobile._snapshots(f.log(),f.match)
+        old=Fixture();old.rows[0].update(casting_ids=[11],casting_references_victim=True)
+        with self.assertRaises(AssertionError):old.evaluate()
+
+    def test_original_ui_queue_serialize_and_authority_without_predicted_move_claim(self):
+        f=UICastFixture();r=f.evaluate();ui=r['ui_command']
+        self.assertTrue(r['passed']);self.assertFalse(r['movement_feel_exercised']);self.assertNotIn('fresh',r)
+        self.assertFalse(ui['prediction_exercised']);self.assertFalse(ui['constructor_callback_claim'])
+        self.assertEqual(ui['sequence'],2);self.assertEqual(ui['native_confirmation']['continuation_frames'],20)
+        self.assertEqual(r['escape_native_replay']['promotion_group_replayed_delta'],10)
+        self.assertEqual(r['rows'][-1]['casting_ids'],[11]);self.assertFalse(r['full_mobile_controls_accepted'])
+
+    def test_opaque_registration_hint_is_reported_without_phase_or_preauthority_motion_claim(self):
+        f=UICastFixture();f.fresh_assigned=190;r=f.evaluate()['ui_command']
+        self.assertEqual(r['registration_minus_canonical_frames'],9);self.assertFalse(r['prediction_exercised'])
+        with self.assertRaises(AssertionError):Fixture().evaluate(caster_lifetime=True)
+
+    def test_flipped_composite_runtime_enum_maps_actual_wire_without_changing_unity_target(self):
+        f=UICastFixture();f.set_wire([-21.,0.,0.])
+        for r in f.ui:
+            if r['map_perspective']is not None:r.update(map_perspective=1,composite_map_perspective=1,map_perspective_value_name='Flipped')
+        result=f.evaluate()['ui_command'];self.assertEqual(result['protocol_target_expected'],[-21.,0.,-0.]);self.assertEqual(result['unity_target'],[21.,0.,0.])
+        f.set_wire([21.,0.,0.])
+        with self.assertRaisesRegex(AssertionError,'normal ToProto target'):f.evaluate()
+
+    def test_precommand145_and180_composite_default_can_differ_from_map_but_body_must_match_actual_map(self):
+        f=UICastFixture();f.set_wire([-21.,0.,0.])
+        for row in f.ui:
+            if row['map_perspective']is not None:
+                row.update(map_perspective=1,composite_map_perspective=0,map_perspective_value_name='Flipped')
+        result=f.evaluate()['ui_command']
+        self.assertEqual(result['protocol_target_expected'],[-21.,0.,-0.])
+        proof=result['original_ui_rows']
+        self.assertEqual({r['perspective_observed_frame']for r in proof if r['map_perspective']is not None},{145,180})
+        self.assertTrue(all(r['map_perspective_enum_matches_composite']for r in proof if r['map_perspective']is not None))
+        f.set_wire([21.,0.,0.])
+        with self.assertRaisesRegex(AssertionError,'normal ToProto target'):f.evaluate()
+        f.set_wire([-21.,0.,0.])
+        for row in f.ui:
+            if row['composite_map_perspective']is not None:row['composite_map_perspective']=2
+        with self.assertRaisesRegex(AssertionError,'map enum proof'):f.evaluate()
+
+    def test_queue_true_alone_missing_drain_or_false_alias_cannot_prove_command_ownership(self):
+        for change in(dict(pending_commands=0),dict(cast_result=False),dict(alias_storage_unchanged=False),dict(active_caster='A100'),dict(casting_ids=[])):
+            with self.subTest(change=change):
+                f=UICastFixture();next(r for r in f.ui if r['event']=='after_cast_queued').update(change)
+                with self.assertRaises(AssertionError):f.evaluate()
+        f=UICastFixture();f.ui=[r for r in f.ui if r['event']!='normal_drain_observed']
+        with self.assertRaises(AssertionError):f.evaluate()
+
+    def test_lazy_storage_and_ids_cannot_change_until_original_normal_serialize(self):
+        for change in(dict(source_set='9999'),dict(casting_set='9999'),dict(command_queue='9999'),dict(source_ids=[]),dict(casting_ids=[])):
+            with self.subTest(change=change):
+                f=UICastFixture();next(r for r in f.ui if r['event']=='normal_drain_observed').update(change)
+                with self.assertRaises(AssertionError):f.evaluate()
+
+    def test_sequence_normal_body_and_canonical_commit_are_not_substituted(self):
+        for kind in('sequence','wrongability','wiretarget','body','duplicate','canonical'):
+            with self.subTest(kind=kind):
+                f=UICastFixture()
+                if kind=='sequence':f.ui[-2]['next_sequence_after_drain']=4
+                elif kind=='wrongability':f.set_wire([21.,0.,0.],12)
+                elif kind=='wiretarget':f.set_wire([22.,0.,0.])
+                elif kind=='body':f.bodies[f.match,1,2]=encode_player_input(encode_identity(2,'Victim'),[f.fresh_action,f.fresh_action])
+                elif kind=='duplicate':f.journal[182]['players'][1]=[f.fresh_action]
+                else:f.commits[-1]['frame']=182
+                with self.assertRaises(AssertionError):f.evaluate()
+
+    def test_same_retained_class_current_source_and_no_extra_fixture_calls_mandatory(self):
+        for change in(dict(retained_caster='B100'),dict(retained_caster_class='Wrong.Class'),dict(current_incarnation=8),dict(source_count=0),
+                      dict(extra_pop_calls=1),dict(extra_to_proto_calls=1),dict(manual_caster_set_calls=1),dict(originalCtor=True),dict(selector_append=True),dict(composite_queue_cast_before=True)):
+            with self.subTest(change=change):
+                f=UICastFixture();next(r for r in f.ui if r['event']=='before_cast').update(change)
+                with self.assertRaises(AssertionError):f.evaluate()
+
+    def test_actual_origin_target_bits_map_provenance_and_call_clocks_required(self):
+        for change in(dict(target_bits=[mobile._bits(22.),0,0]),dict(map_perspective_enum_matches_composite=False),
+                      dict(composite_map_perspective_source='Uncapped.AbilityCaster.get_MapPerspective'),dict(map_perspective=1),dict(origin_sampled_us=1493000)):
+            with self.subTest(change=change):
+                f=UICastFixture();next(r for r in f.ui if r['event']=='before_cast').update(change)
+                with self.assertRaises(AssertionError):f.evaluate()
+
+    def test_pending_and100_exceptions_are_only_in_validated_ui_phase_old_modes_stay_strict(self):
+        f=UICastFixture()
+        with self.assertRaises(AssertionError):mobile._snapshots(f.log(),f.match)
+        for kind in('beforequeue','afterdrain','postcaster','missingwitness'):
+            with self.subTest(kind=kind):
+                f=UICastFixture()
+                if kind=='beforequeue':f.rows[1]['pending_commands']=1
+                elif kind=='afterdrain':f.rows[-1]['pending_commands']=1
+                elif kind=='postcaster':f.rows[-1]['active_caster']='A100'
+                else:f.ui.pop()
+                with self.assertRaises(AssertionError):f.evaluate()
+
+    def test_real_escape_replay_wire_native_hash_and_ui_twenty_tail_stay_required(self):
+        for kind in('escape','wire','hash','tail','death'):
+            with self.subTest(kind=kind):
+                f=UICastFixture()
+                if kind=='escape':f.worker[151]['replayed_frames_delta']=0
+                elif kind=='wire':f.bridges[-1]['payload_sha256']='0'*64
+                elif kind=='hash':f.worker[181]['parsed_state_sha256']='0'*64
+                elif kind=='tail':f.worker=[r for r in f.worker if r['frame']!=202]
+                else:f.native[24]['attacker']={'id':10}
+                with self.assertRaises(AssertionError):f.evaluate()
+
+    def test_preserved_groups_can_use_explicit_ui_native_witness_but_not_fake_move_motion(self):
+        base=GroupFixture();episodes=[UICastFixture(world=i,match=str(i)*32).evaluate()for i in(1,2)]
+        text=lambda rows:'\n'.join('MOBILE GROUP INTENT '+json.dumps(r)for r in rows)
+        args=dict(attacker_log=text(base.attacker),mobile_episodes=episodes)
+        result=mobile.evaluate_group_intent(text(base.victim),ui_cast=True,**args)
+        self.assertTrue(result['passed']);self.assertTrue(result['active_casting_exercised'])
+        with self.assertRaises(AssertionError):mobile.evaluate_group_intent(text(base.victim),**args)
+        episodes[0]['ui_command']['native_confirmation']['continuation_frames']=0
+        with self.assertRaises(AssertionError):mobile.evaluate_group_intent(text(base.victim),ui_cast=True,**args)
 
 
 class CasterLifetimeFixture:

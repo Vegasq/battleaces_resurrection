@@ -91,7 +91,13 @@ hashes match/natural Quit. Actual31 now observes TargetGroundOrUnitAbilityCaster
 original activation/Pop145 works,and W2 preserves the same caster across
 death153/release154/restoration161 before explicit Pop161. All2890 native
 hashes/wire joins match,natural Quit,fresh response53.585/55.638ms/phases0/0.
-No88 command was issued;actual UI casting/queued-command ownership remains next.
+Actual34 now passes both real UI88 cast/queue/drain/rematch episodes in142.672s:
+one canonical execution per command182/181,exact original map target bytes,
+nativeC+20,all2890 parsed hashes matching,and natural shutdown without force.
+The UI-only rematch guard observes current scratch ownership and prior drain;
+default idle behavior remains strict.32/33 stay failed and preserved. This is
+command ownership,not prediction/feel acceptance for88. Next:held-focus
+accepted Actuate without a new iterator;then broader held input.
 Forced-retirement group clearing remains open. Casting,held-input and
 physical/Internet acceptance remain open;
 prediction-actor-correction.txt. N35's frozen kit remains reserved.

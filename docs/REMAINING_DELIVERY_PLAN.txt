@@ -77,7 +77,11 @@ slot4 maps noninstant88;slot5 maps instant Hold14;Move12 has no active button.
 Actual31 now activates the real TargetGroundOrUnit caster:W1 original Pop145
 cancels it;W2 keeps the same object through death/release/restoration before
 original Pop161. All2890 native hashes match/natural Quit,fresh phases0/0.
-Next:actual UI casting and queued-command ownership,then held input. Prediction eligibility remains
+Actual34 now passes both real UI88 cast/drain/rematch episodes:one canonical
+execution per command,exact map target bytes,20 native continuations,all2890
+parsed hashes matching,and natural shutdown.32/33 remain failed and preserved.
+Next:held-focus accepted-Actuate/no-new-iterator ownership,then broader held input.
+Prediction eligibility remains
 12/14. Forced-retirement group clearing and physical/Internet
 feedback remain open. N35's reserved kit stays frozen. Prior failures and the
 model-to-runtime ordering correction are preserved in the focused evidence.

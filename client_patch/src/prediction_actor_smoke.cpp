@@ -136,6 +136,7 @@ static void escape(actors::State& owner,Obj selector,int frame) {
 // an explicit diagnostic precondition, not a production input policy.
 namespace mobile {
 namespace original=ba_prediction_movement_smoke;
+namespace ui_cast {static void preactivation(actors::State&,Obj,uint32_t);}
 struct State {
     uint64_t world=0,originalToken=0,currentToken=0,lastPoseUs=0;
     std::string match;
@@ -370,8 +371,9 @@ static void snapshot(actors::State& owner,Obj selector,int frame,const char* eve
     focus.json(out);out<<'}';
     ba::log("MOBILE CORRECTION %s",out.str().c_str());
 }
-static void selectCurrent(actors::State& owner,Obj selector,Obj actor,bool playerInitiated=true,uint32_t entity=11,uint32_t army=1) {
-    idle(owner,selector,entity);selection::Context context(selector);
+static void selectCurrent(actors::State& owner,Obj selector,Obj actor,bool playerInitiated=true,uint32_t entity=11,uint32_t army=1,
+                          void(*idleGuard)(actors::State&,Obj,uint32_t)=idle) {
+    idleGuard(owner,selector,entity);selection::Context context(selector);
     require(context.live.count(entity)&&context.live.at(entity)==actor&&context.admitted(actor),"mobile fixture reselect source is not current confirmed unit");
     const auto identity=actors::resident(actor);require(identity.entityId==entity&&identity.unitType==1&&identity.armyId==army,"mobile fixture selection identity differs");
     Obj clear=actors::method(selector,"ClearSelection",0,0x06002217,0x3bf2680);
@@ -397,6 +399,7 @@ static bool recallEnabled(){return ba::flag(L"-prediction-mobile-recall-smoke");
 static bool focusEnabled(){return ba::flag(L"-prediction-mobile-focus-smoke");}
 static bool casterSurveyEnabled(){return ba::flag(L"-prediction-mobile-caster-survey-smoke");}
 static bool casterLifetimeEnabled(){return ba::flag(L"-prediction-mobile-caster-lifetime-smoke");}
+static bool uiCastEnabled(){return ba::flag(L"-prediction-mobile-ui-cast-smoke");}
 static std::vector<uint32_t> groupIds(Obj group){return selection::selectionIds(ba::read<Obj>(group,0x20));}
 static void assignSelected(actors::State& owner,Obj selector,int index) {
     Obj group=groupFor(selector,index);require(!actors::automaticType(ba::read<Obj>(group,0x30),1),"group intent fixture needs manual type1 membership");
@@ -636,7 +639,9 @@ static void setup(actors::State& owner,Obj selector,int frame) {
     actors::field(actor,"_entityConfig",0x168);Obj config=ba::read<Obj>(actor,0x168);actors::field(config,"IsHQ",0x2c);
     require(!ba::read<bool>(config,0x2c),"mobile fixture cannot bypass original HQ group exclusion");
     s.oldActor=std::make_unique<Root>(actor);s.originalToken=token(context,actor);require(s.originalToken,"mobile fixture original admission token missing");
-    s.group=std::make_unique<Root>(groupFor(selector));selectCurrent(owner,selector,actor);
+    s.group=std::make_unique<Root>(groupFor(selector));
+    if(uiCastEnabled())selectCurrent(owner,selector,actor,true,11,1,ui_cast::preactivation);
+    else selectCurrent(owner,selector,actor);
     Obj assign=actors::method(selector,"AssignSelectionToControlGroup",2,0x0600220e,0x3bf14e0);
     Obj focus=actors::method(selector,"FocusControlGroup",2,0x06002221,0x3bf3010);
     int group=4;bool replace=true;void* assignArgs[]={&group,&replace};actors::invoke(assign,selector,assignArgs);owned(owner);
@@ -787,12 +792,13 @@ static void attackerGroupTick(actors::State& owner,Obj selector,int frame) {
 }
 #include "prediction_caster_survey.hpp"
 #include "prediction_caster_lifetime.hpp"
+#include "prediction_ui_cast.hpp"
 static void tick() {
     try {
         require(!ba::flag(L"-prediction-actor-correction-smoke"),"mobile/HQ fixture flags must be separate");
         const auto world=worker::movementWorldId();const auto match=worker::movementMatchId();
-        if(!worker::movementEnabled()||!world||match.empty()){if(casterLifetimeEnabled())caster_lifetime::clear();state()=State{};return;}
-        auto& s=state();if(s.world!=world||s.match!=match){if(casterLifetimeEnabled())caster_lifetime::clear();s=State{};s.world=world;s.match=match;}
+        if(!worker::movementEnabled()||!world||match.empty()){if(casterLifetimeEnabled())caster_lifetime::clear();if(uiCastEnabled())ui_cast::clear();state()=State{};return;}
+        auto& s=state();if(s.world!=world||s.match!=match){if(casterLifetimeEnabled())caster_lifetime::clear();if(uiCastEnabled())ui_cast::clear();s=State{};s.world=world;s.match=match;}
         if(s.failed||s.passed)return;auto& owner=actors::state();
         if(owner.world!=world||owner.match!=match||!owner.manager||!owner.simulation)return;
         owned(owner);if(ba_lan::matchEnded)return;
@@ -806,6 +812,8 @@ static void tick() {
             "mobile caster survey requires preserve-only group intent without other interaction diagnostics");
         require(!casterLifetimeEnabled()||(groupIntentEnabled()&&!groupUserEditsEnabled()&&!recoveryStallEnabled()&&!recallEnabled()&&!focusEnabled()&&!casterSurveyEnabled()),
             "mobile caster lifetime requires preserve-only group intent without other interaction diagnostics");
+        require(!uiCastEnabled()||(groupIntentEnabled()&&!groupUserEditsEnabled()&&!recoveryStallEnabled()&&!recallEnabled()&&!focusEnabled()&&!casterSurveyEnabled()&&!casterLifetimeEnabled()),
+            "mobile UI cast requires its separate preserve-only group intent fixture");
         require(ba::unified()&&ba::community()&&ba::dedicated()&&ba::lan()&&ba_lan::originalCommandScheduling()&&ba_lan::running&&!ba_lan::publicMatch,
             "mobile fixture requires negotiated prediction Custom");
         const int frame=ba::read<int>(owner.simulation->get(),0xac);
@@ -817,7 +825,9 @@ static void tick() {
         Obj selector=selectorFor(owner);
         if(!s.setup){require(frame==130,"mobile fixture missed victim setup130");setup(owner,selector,frame);return;}
         if(!s.freshQueued) {
-            if(casterLifetimeEnabled()&&caster_lifetime::observing(frame))caster_lifetime::guard(owner,selector,frame);
+            if(uiCastEnabled()&&ui_cast::started())ui_cast::guard(owner,selector,frame);
+            else if(uiCastEnabled())ui_cast::preactivation(owner,selector,11);
+            else if(casterLifetimeEnabled()&&caster_lifetime::observing(frame))caster_lifetime::guard(owner,selector,frame);
             else idle(owner,selector,11);
         }
         View view(owner,selector);
@@ -828,7 +838,11 @@ static void tick() {
         if(casterLifetimeEnabled()&&!caster_lifetime::state().activationCalls&&frame>=145) {
             require(frame==145,"mobile caster lifetime missed publication145");caster_lifetime::activate(owner,selector,frame);return;
         }
+        if(uiCastEnabled()&&!ui_cast::started()&&frame>=145) {
+            require(frame==145,"mobile UI cast missed activation145");ui_cast::activate(owner,selector,frame);return;
+        }
         if(casterLifetimeEnabled())caster_lifetime::snapshot(owner,selector,frame);
+        if(uiCastEnabled())ui_cast::observe(owner,selector,frame);
         if(recoveryStallEnabled()&&s.world==2&&!s.recoveryStalled&&frame>=152) {
             require(frame==152&&s.lastSnapshot==152&&ba::read<int>(owner.simulation->get(),0xac)==152,
                 "mobile recovery stall missed its owned publication152");
@@ -850,10 +864,12 @@ static void tick() {
             return; // Reacquire a fresh view after the ordinary owner resumes.
         }
         if(s.firstDead<0&&view.nativeValue&&*view.nativeValue==6){s.firstDead=frame;snapshot(owner,selector,frame,"native_dead_observed");
-            if(casterLifetimeEnabled())caster_lifetime::event(owner,selector,frame,"native_dead");}
+            if(casterLifetimeEnabled())caster_lifetime::event(owner,selector,frame,"native_dead");
+            if(uiCastEnabled())ui_cast::observe(owner,selector,frame,"native_dead");}
         if(s.firstReleased<0&&s.firstDead>=0&&!view.nativePresent&&!view.oldActive&&!view.oldRetained&&!view.oldComponent){
             s.firstReleased=frame;snapshot(owner,selector,frame,"original_mobile_release_observed");
             if(casterLifetimeEnabled())caster_lifetime::event(owner,selector,frame,"release_observed");
+            if(uiCastEnabled())ui_cast::observe(owner,selector,frame,"release_observed");
             if(focusEnabled()&&s.world==2)s.focusReleasePendingBaseline=selection::focusPendingIteration(selector);}
         if(groupIntentEnabled()&&s.firstReleased>=0&&!s.groupHoldObserved&&!view.nativePresent&&!view.current)
             editGroupsDuringAbsence(owner,selector,frame);
@@ -880,18 +896,24 @@ static void tick() {
                 focusEvidence(owner,selector,frame,"restored");
             }
             if(casterLifetimeEnabled()){caster_lifetime::restored(owner,selector,frame);return;}
+            if(uiCastEnabled()){ui_cast::observe(owner,selector,frame,"restored");return;}
         }
         if(recallEnabled()&&s.firstRestored>=0&&!s.recallRestored) {
             recallRestoredGroup(owner,selector,frame);return;
         }
         // Retain actual pre-command motion after restoration. A quiet baseline
         // is a verifier gate, never an assumption about native auto-chase.
-        if(s.firstRestored>=0&&!s.freshQueued&&frame<180&&GetTickCount64()-s.lastPoseTick>=15){
+        if(!uiCastEnabled()&&s.firstRestored>=0&&!s.freshQueued&&frame<180&&GetTickCount64()-s.lastPoseTick>=15){
             require(s.currentActor&&view.context.admitted(s.currentActor->get())&&token(view.context,s.currentActor->get())==s.currentToken,
                 "mobile fixture restored baseline lost its current admitted lease");
             pose(owner,original::actualPosition(owner,s.currentActor->get()),frame,true);
         }
-        if(!s.freshQueued&&frame>=180){
+        if(uiCastEnabled()&&!ui_cast::queued()&&frame>=180) {
+            require(frame==180&&s.firstDead>=0&&s.firstReleased>=0&&s.firstRestored>=0,"mobile UI cast lacks the bounded death/release/restore before180");
+            snapshot(owner,selector,frame,"before_ui_cast");ui_cast::cast(owner,selector,frame);
+            snapshot(owner,selector,frame,"original_ui_cast_queued");return; // Original lazy98 command waits for the normal input path.
+        }
+        if(!uiCastEnabled()&&!s.freshQueued&&frame>=180){
             require(!recallEnabled()||(s.recallAbsent&&s.recallRestored),"mobile fresh move lacks original absent/restored recall");
             require(frame<200&&s.firstDead>=0&&s.firstReleased>=0&&s.firstRestored>=0,"mobile fixture lacks a bounded real death/release/restore");
             if(casterLifetimeEnabled())caster_lifetime::beforeFresh(owner,selector,frame);
@@ -908,7 +930,8 @@ static void tick() {
             pose(owner,original::actualPosition(owner,s.currentActor->get()),frame,false);
         }
         if(frame>=260){
-            require(s.freshQueued,"mobile fixture fresh Move missing");
+            if(uiCastEnabled())ui_cast::complete(owner,selector,frame);
+            else require(s.freshQueued,"mobile fixture fresh Move missing");
             require(!casterSurveyEnabled()||s.casterSurveyed,"mobile caster survey was not captured");
             if(casterLifetimeEnabled())caster_lifetime::complete(owner,selector,frame);
             if(groupIntentEnabled()) {
