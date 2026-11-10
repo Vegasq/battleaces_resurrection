@@ -117,6 +117,13 @@ bool ownsPresentation(void* simulation) {
     if(!worker::movementWorldId() || worker::movementMatchId().empty())return false;
     bound(state.server);return true;
 }
+bool activeForRefresh() {
+    if(!worker::movementEnabled() || !state.prepared || !state.pacingStarted || state.failed || state.drained ||
+       !ba_lan::running || !ba_lan::worldReady || ba_lan::stopped || ba_lan::matchEnded ||
+       ba_community::abortPending || ba_community::lobby.phase!=ba_community_wire::Running ||
+       !state.world || state.match.empty() || !worker::movementWorldId() || worker::movementMatchId().empty())return false;
+    bound(state.server);return true;
+}
 bool canPublish(void* simulation,uint64_t nowUs) {
     require(ownsPresentation(simulation),"movement publication is outside its owned generation");
     return state.pacing.canPublish(state.physicalNext-1,nowUs);

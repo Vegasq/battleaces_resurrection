@@ -105,7 +105,20 @@ extern "C" __declspec(dllexport) void OfflinePredictionSelectionCommit(void* hel
             ba::log("Prediction selection filtered: denied=%u confirmedFrame=%d originalScope=1 deferredIntent=0",denied,context.state.admission.frame);
             notice();
         }
-        original(helper,info);
+        // Invoke the exact original callback through IL2CPP's managed boundary.
+        // A direct C++ call can throw its private exception wrapper, leaving
+        // only an "unknown selection exception" at this exported shim. The
+        // runtime boundary retains the original exception/stack diagnostic.
+        // This is OnRaiseEvent, not the surrounding EndSuspend call site;
+        // EndSuspend still owns its ordinary reset/finally after we return.
+        actors::require(info==actors::method(helper,"OnRaiseEvent",0,0x06002274,0x3bf95f0),
+            "selection callback MethodInfo differs from original virtual target");
+        uint32_t implementationFlags=0;
+        const auto flags=ba::api<uint32_t(*)(Obj,uint32_t*)>("il2cpp_method_get_flags")(info,&implementationFlags);
+        actors::require(!(flags&0x10u) && ba::api<Obj(*)(Obj)>("il2cpp_class_from_type")(
+            ba::api<Obj(*)(Obj)>("il2cpp_method_get_return_type")(info))==actors::type("System","Void"),
+            "selection callback instance/void signature differs");
+        actors::invoke(info,helper); // Exactly once; never retry a throwing callback.
     } catch(const std::exception& error) {failed("commit",error.what());}
     catch(...) {failed("commit","unknown selection exception");}
 }

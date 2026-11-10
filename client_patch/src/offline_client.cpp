@@ -29,6 +29,7 @@ static void tick();
 static void registered(uint64_t,int,const std::vector<uint8_t>&);
 static void authoritative(const std::vector<uint8_t>&,const std::string&);
 }
+namespace ba_prediction_actor_smoke {static void tick();}
 namespace ba_dedicated_results { static void receive(const std::string&); }
 namespace ba_audit { static void beginMatch(const std::string&);static void practiceAIView(void*,int); }
 namespace ba_telemetry_audit { static void startup();static void update();static void beforeQuit() noexcept; }
@@ -317,6 +318,7 @@ extern "C" __declspec(dllexport) void OfflineFrontUpdate(void* front,void*) {
         else if(offlinePractice())ba_practice::offlineUpdate(front);
         else if(lan())lanFrontUpdate(front);
         ba_prediction_movement_smoke::tick();
+        ba_prediction_actor_smoke::tick();
         ba_replay_menu::update(front);
         ba_cosmetics::update(front);
         ba_match_search::update(front);
@@ -392,6 +394,7 @@ extern "C" __declspec(dllexport) void OfflineFrontUpdate(void* front,void*) {
 #include "prediction_actor_repair.cpp"
 #include "prediction_selection.cpp"
 #include "prediction_movement_smoke.cpp"
+#include "prediction_actor_smoke.cpp"
 #include "lan_audit.cpp"
 #include "telemetry_audit.cpp"
 #include "player_cosmetics.cpp"

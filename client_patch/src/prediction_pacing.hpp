@@ -40,34 +40,103 @@ inline Target assignmentTarget(Frame received,Tick receivedAt,Tick now,Tick rtt)
 // Only call observe AFTER the EXISTING own request/ACK validator accepts the
 // current connection generation, request ID, kind, and payload. No heartbeat,
 // remote player's request, server timestamp, or fabricated RTT is admissible.
-// This is a rolling minimum of eight genuine local elapsed round trips. It
-// resists positive UI/flush/load outliers, but cannot distinguish a consistently
-// inflated path from genuine high RTT, or promptly discover a rising RTT when
-// no new correlated request is sent. Those are explicit integration limits.
+// Keep at most eight samples from four seconds of genuine own elapsed round
+// trips. Two independently timed fresh replies support an increase; one larger
+// UI/flush outlier cannot replace a still-qualified lower estimate. A first
+// sample after complete expiry starts acquisition again. These are apparent
+// application RTTs, not pure transport latency or a proof of future path delay.
 class RoundTrips {
     struct Sample {Tick duration=0,received=0;};
     std::array<Sample,8> samples_{};
     size_t count_=0,next_=0;
     uint64_t generation_=0;
+    std::optional<Tick> estimate_;
+    Tick lastClock_=0;
+    bool haveClock_=false;
+    void expire(Tick now) {
+        require(!haveClock_ || now>=lastClock_,"RTT measurement clock regressed");
+        lastClock_=now;haveClock_=true;
+        for(auto& sample:samples_)if(sample.duration && now-sample.received>sampleLifetimeUs) {
+            sample={};--count_;
+        }
+        if(!count_)estimate_.reset();
+    }
+    void update() {
+        Tick best=(std::numeric_limits<Tick>::max)(),first=best,last=0;
+        for(const auto& sample:samples_)if(sample.duration) {
+            best=(std::min)(best,sample.duration);first=(std::min)(first,sample.received);
+            last=(std::max)(last,sample.received);
+        }
+        if(count_ && (!estimate_ || best<=*estimate_ ||
+                     (count_>=2 && last-first>=riseSupportUs)))estimate_=best;
+    }
 public:
     static constexpr Tick maximumSampleUs=2000000;
+    static constexpr Tick sampleLifetimeUs=4000000,riseSupportUs=500000;
     void reset(uint64_t generation) {
         require(generation!=0,"RTT connection generation must be nonzero");
-        samples_={};count_=next_=0;generation_=generation;
+        *this=RoundTrips{};generation_=generation;
     }
     bool observe(uint64_t generation,Tick sent,Tick received) {
         if(!generation_ || generation!=generation_ || received<sent ||
-           received-sent>maximumSampleUs)return false;
+           received-sent>maximumSampleUs || (haveClock_ && received<lastClock_))return false;
+        expire(received);
+        if(samples_[next_].duration)--count_;
         samples_[next_]=Sample{(std::max)(Tick(1),received-sent),received};
-        next_=(next_+1)%samples_.size();count_=(std::min)(count_+1,samples_.size());return true;
+        next_=(next_+1)%samples_.size();++count_;update();return true;
     }
     size_t count() const{return count_;}
-    std::optional<Tick> estimate() const {
-        if(!count_)return std::nullopt;
-        Tick best=(std::numeric_limits<Tick>::max)();
-        for(size_t i=0;i<count_;++i)best=(std::min)(best,samples_[i].duration);
-        return best;
+    std::optional<Tick> estimate() const {return estimate_;}
+    std::optional<Tick> estimate(Tick now) {expire(now);update();return estimate_;}
+};
+
+// A sparse use of existing REFRESH55, never a new heartbeat/wire protocol.
+// Exact pending request/kind/generation checks remain in the community decoder.
+// Ordinary or inactive/public paths never call sent(). No retries are created
+// while one request is outstanding; the normal15s control timeout still owns it.
+class RefreshRequests {
+    uint64_t generation_=0;
+    uint32_t pending_=0;
+    Tick lastSend_=0,lastClock_=0,directoryBytes_=0;
+    bool haveSend_=false,haveClock_=false;
+    void clock(Tick now) {
+        require(!haveClock_ || now>=lastClock_,"RTT refresh clock regressed");
+        lastClock_=now;haveClock_=true;
     }
+public:
+    static constexpr Tick intervalUs=2000000;
+    void reset(uint64_t generation) {
+        require(generation!=0,"RTT refresh generation must be nonzero");
+        *this=RefreshRequests{};generation_=generation;
+    }
+    bool due(uint64_t generation,Tick now,bool capacity,std::optional<Tick> lastOtherReply) {
+        require(generation_ && generation==generation_,"RTT refresh generation differs");clock(now);
+        if(pending_ || !capacity || (haveSend_ && now-lastSend_<intervalUs))return false;
+        if(lastOtherReply) {
+            require(now>=*lastOtherReply,"RTT control reply timestamp is in the future");
+            if(now-*lastOtherReply<intervalUs)return false;
+        }
+        return true;
+    }
+    void sent(uint64_t generation,uint32_t request,Tick now) {
+        require(generation_ && generation==generation_ && request && !pending_ &&
+                (!haveSend_ || (now>=lastSend_ && now-lastSend_>=intervalUs)),"RTT refresh send scope/cadence");
+        clock(now);pending_=request;lastSend_=now;haveSend_=true;directoryBytes_=0;
+    }
+    bool tracks(uint64_t generation,uint32_t request) const {
+        return generation_ && generation==generation_ && request && pending_==request;
+    }
+    bool complete(uint64_t generation,uint32_t request,Tick now) {
+        if(!tracks(generation,request))return false;
+        clock(now);pending_=0;return true;
+    }
+    void directoryBytes(uint64_t bytes) {
+        if(!pending_)return;
+        const auto maximum=(std::numeric_limits<Tick>::max)();
+        directoryBytes_=bytes>maximum-directoryBytes_?maximum:directoryBytes_+bytes;
+    }
+    uint32_t pending() const{return pending_;}
+    Tick directoryBytes() const{return directoryBytes_;}
 };
 
 enum class Wait {None,NativeOutput,SteadyFrameOne,RoundTrip,TargetPhase,Budget,Spacing};

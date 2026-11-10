@@ -27,6 +27,7 @@ void beforeReady();
 void started();
 void authorityReceived(int frame,uint64_t receivedUs);
 bool ownsPresentation(void* simulation);
+bool activeForRefresh();
 bool canPublish(void* simulation,uint64_t nowUs);
 void published(void* simulation,uint64_t nowUs);
 void tick(void* server);

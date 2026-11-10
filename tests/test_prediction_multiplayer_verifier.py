@@ -209,6 +209,18 @@ class PreparationTests(unittest.TestCase):
         self.assertFalse(any(flag.startswith('-prediction-movement-smoke')for flag in
             verifier.command_extra(plan,0,self.args.output/'run')))
 
+    def test_actor_fixture_is_explicit_prepared_metadata_not_an_ordinary_default(self):
+        self.args.actor_correction = True
+        with self.assertRaisesRegex(AssertionError, 'natural movement'):
+            verifier.prepare(self.args)
+        self.args.scenario = 'movement'
+        plan = verifier.prepare(self.args)
+        self.assertEqual(plan['actor_fixture'], verifier.actor_fixture_metadata())
+        self.assertEqual(plan['actor_fixture']['safe_canonical_frames'], [152,153,154])
+        for index in (0,1):
+            self.assertIn('-prediction-actor-correction-smoke',
+                          verifier.command_extra(plan,index,self.args.output/'run'))
+
 
 class OwnedSpawnTests(unittest.TestCase):
     def fixture(self):
@@ -783,6 +795,264 @@ class PredictedTimingCutoffTests(unittest.TestCase):
         with self.assertRaisesRegex(AssertionError, 'budget'):
             verifier.timing_prefix_counts(self.prefix(593), 600, prediction=False,
                 complete_delivery_proven=True)
+
+
+class ActorCorrectionFixtureTests(unittest.TestCase):
+    """Authored positive/negative witnesses, never a native actor acceptance claim."""
+    def setUp(self):
+        self.match = 'c' * 32
+        self.metadata = verifier.actor_fixture_metadata()
+        names = ['original_hq_selection_established', 'original_dead_hq_retained',
+                 'original_hq_restored_and_admitted', 'hq_selection_correction_passed']
+        self.rows = [dict(schema=1, event=name, world=2, match=self.match, entity=5, army=1, unit_type=3,
+            frame=frame, tick_ms=tick, original_actor='000001A0', current_actor=pointer,
+            focus_retained_at_death=False, original_focus_supported=False,
+            original_group_supported=False, physicalUI=False)
+            for name, frame, tick, pointer in zip(names, (130, 156, 157, 159),
+                (1000, 2100, 2200, 2300), ('000001A0', '000001A0', '000002B0', '000002B0'))]
+        position = b''.join(field_uint(n, int(value * 2**32) & (2**64-1))
+            for n, value in enumerate(self.metadata['target'], 1))
+        group = field_uint(1, 1) + field_uint(2, 12) + field_packed_uint(3, [10])
+        self.action = field_bytes(1, field_bytes(1, group) +
+            field_bytes(3, field_bytes(3, field_bytes(1, position))))
+        self.body = encode_player_input(encode_identity(1, 'Owned attacker'), [self.action])
+        self.order = dict(schema=1, event='original_escape_move', world=1, match=self.match, army=0,
+            entity=10, unit_type=1, ability=12, frame=152, tick_ms=2000,
+            action_sha256=verifier.digest(self.action), originalCtor=True, physicalUI=False)
+        self.commits = [dict(event='command_batch_committed', match=self.match, slot=0,
+                            sequence=2, frame=153, probe_tick_ms=2070)]
+        self.authority = dict(schema=1, world=2, match=self.match, frame=153, tick_ms=2150,
+                              canonical_sha256='a'*64, wire_sha256='b'*64)
+        self.bridge = [dict(match=self.match, frame=153, received_tick_ms=2140, payload_sha256='b'*64)]
+        self.journal = [dict(frame=153, players={0:[self.action], 1:[]})]
+        self.worker = [dict(schema=1, event='confirmed_native_state', world=2, frame=frame,
+            parsed_state_sha256='d'*64, confirmed_frontier=frame,
+            corrections=int(frame>=153), corrections_delta=int(frame==153),
+            replayed_frames_total=3 if frame>=153 else 0, replayed_frames_delta=3 if frame==153 else 0,
+            tick_ms=1000+frame*5 if frame<153 else 2160+(frame-153)*10) for frame in range(174)]
+        self.states = {frame:'d'*64 for frame in range(176)}
+        self.native = [dict(frame=frame, parsed_state_sha256='d'*64,
+            core=dict(id=5, army=1, type=3, max_health=100, current_damage=0 if frame<144 else 50),
+            attacker=dict(id=10, army=0, type=1), game_state=dict(complete=False)) for frame in range(130,176)]
+        self.pool = ('[2180] Prediction actor retired: world=2 match='+self.match+
+            ' entity=5 actor=000001A0 oldType=3 oldArmy=1 correctedType=3 correctedArmy=1 '
+            'selectionBatch=1 releasedMulticast=1 originalPool=1 oldMembershipRemoved=1 retainedHQ=1')
+        self.focus = ''
+
+    def attacker_log(self):
+        return ('ACTOR ORDER '+json.dumps(self.order)+'\n'
+            'Movement local batch registered: sequence=2 speculativeFrame=153 tick=2001 match='+self.match+'\n'
+            'Original command batch submitted: match='+self.match+' sequence=2 actions=1 bytes='+str(len(self.body))+
+            ' body_sha256='+verifier.digest(self.body)+' sendTick=2002 sourceNextFrame=150\n')
+
+    def victim_log(self):
+        return ('\n'.join('ACTOR CORRECTION '+json.dumps(row) for row in self.rows)+'\n'+
+                'MOVEMENT AUTHORITY '+json.dumps(self.authority)+'\n'+self.pool+'\n'+self.focus)
+
+    def evaluate(self, **changes):
+        args = dict(attacker_log=self.attacker_log(), match=self.match, commits=self.commits,
+            raw_bodies={(self.match,0,2):self.body}, journal=self.journal, bridge_frames=self.bridge,
+            canonical_payloads={153:'b'*64}, canonical_states=self.states, native_states=self.native,
+            worker_states=self.worker)
+        args.update(changes)
+        return verifier.actor_correction_evidence(self.victim_log(), **args)
+
+    def test_original_move_drives_actual_death_retraction_and_replay_twenty(self):
+        result = self.evaluate()
+        self.assertTrue(result['passed'])
+        self.assertEqual(result['escape']['canonical_commit_frame'], 153)
+        self.assertEqual(result['promotion_group_replayed_delta'], 3)
+        self.assertEqual(result['continuation_frames'], 20)
+        self.assertFalse(result['repair_focus_cancellation_exercised'])
+        self.assertFalse(result['control_group_cleanup_exercised'])
+        self.assertTrue(result['hq_selection_retraction_exercised'])
+        self.assertIn('not exercised', result['focus_cancellation_scope'])
+        self.assertNotIn('actual_packet_hold', result)
+
+    def coalesced_promotion(self):
+        self.worker[153]['confirmed_frontier'] = 154
+        self.worker[154]['confirmed_frontier'] = 154
+        row = dict(self.worker[-1], frame=174, confirmed_frontier=174, tick_ms=2370)
+        self.worker.append(row)
+
+    def test_canonical_move_row_in_real_coalesced_promotion_group_is_accepted(self):
+        self.coalesced_promotion()
+        result = self.evaluate()
+        self.assertTrue(result['passed'])
+        self.assertEqual(result['confirmed_state_frame'],154)
+        self.assertEqual(result['promotion_group_row_indices'],[153,154])
+        self.assertEqual(result['promotion_group_replayed_delta'],3)
+
+    def test_later_replay_group_without_canonical_move_row_cannot_explain_restore(self):
+        self.coalesced_promotion()
+        self.worker[153].update(confirmed_frontier=153, corrections=0, corrections_delta=0,
+                               replayed_frames_total=0, replayed_frames_delta=0)
+        self.worker[154].update(corrections_delta=1, replayed_frames_delta=3)
+        with self.assertRaisesRegex(AssertionError,'own native replay group'): self.evaluate()
+
+    def test_coalesced_replay_with_other_commands_cannot_be_attributed_to_escape(self):
+        self.coalesced_promotion()
+        other = field_bytes(5,field_bytes(1,b''))
+        self.journal.append(dict(frame=154,players={0:[],1:[other]}))
+        with self.assertRaisesRegex(AssertionError,'group input'): self.evaluate()
+
+    def test_original_hq_cannot_claim_focus_or_control_group_support(self):
+        for key in ('original_focus_supported','original_group_supported','focus_retained_at_death'):
+            self.rows[1][key] = True
+            with self.subTest(key=key),self.assertRaisesRegex(AssertionError, 'eligibility'): self.evaluate()
+            self.rows[1][key] = False
+
+    def test_core_focus_cancellation_claim_is_rejected(self):
+        self.focus = '[2170] Prediction actor focus cancelled: group=4 affectedActorOnly=1 originalAPI=1'
+        with self.assertRaisesRegex(AssertionError, 'cannot claim'): self.evaluate()
+
+    def test_original_actor_address_can_be_reused_by_original_pool(self):
+        for row in self.rows: row['current_actor'] = row['original_actor']
+        self.assertTrue(self.evaluate()['passed'])
+
+    def test_concede_cannot_replace_original_move(self):
+        self.order['ability'] = 8
+        with self.assertRaisesRegex(AssertionError, 'identity/frame'): self.evaluate()
+
+    def test_missing_duplicate_and_wrong_source_order_fail(self):
+        for change in ('missing','duplicate','entity','army','type','physical_ui','physical_frame'):
+            with self.subTest(change=change):
+                original = deepcopy(self.order)
+                log = self.attacker_log()
+                if change=='missing': log = '\n'.join(log.splitlines()[1:])
+                elif change=='duplicate': log += 'ACTOR ORDER '+json.dumps(self.order)+'\n'
+                else:
+                    key = dict(type='unit_type', physical_ui='physicalUI', physical_frame='frame').get(change, change)
+                    self.order[key] = True if change=='physical_ui' else 9
+                    log = self.attacker_log()
+                with self.assertRaises(AssertionError): self.evaluate(attacker_log=log)
+                self.order = original
+
+    def test_wrong_body_hash_missing67_and_missing72_fail(self):
+        for change in ('body','67','72'):
+            log = self.attacker_log()
+            if change=='body': log = log.replace(verifier.digest(self.body), 'e'*64)
+            else: log = '\n'.join(line for line in log.splitlines() if
+                ('Movement local batch registered:' if change=='67' else 'Original command batch submitted:') not in line)
+            with self.subTest(change=change), self.assertRaises(AssertionError): self.evaluate(attacker_log=log)
+
+    def test_missing_and_duplicate_exact72_action_fail(self):
+        with self.assertRaisesRegex(AssertionError, 'submitted72'): self.evaluate(raw_bodies={})
+        with self.assertRaisesRegex(AssertionError, 'submitted72'):
+            self.evaluate(raw_bodies={(self.match,0,2):self.body,(self.match,0,3):self.body})
+
+    def test_rehashed_wrong_source_ability_queue_or_target_still_fails(self):
+        from server.protobuf_wire import get_bytes, replace_fields
+        original = self.action
+        for change in ('ability','entity','queued','target'):
+            execute = get_bytes(original,1)
+            if change in ('ability','entity'):
+                group = get_bytes(execute,1)
+                group = replace_fields(group, {2:[field_uint(2,8)]} if change=='ability' else
+                                             {3:[field_packed_uint(3,[11])]})
+                execute = replace_fields(execute,{1:[field_bytes(1,group)]})
+            elif change=='queued': execute = replace_fields(execute,{2:[field_uint(2,1)]})
+            else:
+                position = field_uint(1,8*2**32)
+                execute = replace_fields(execute,{3:[field_bytes(3,field_bytes(3,field_bytes(1,position)))]})
+            self.action = field_bytes(1,execute)
+            self.body = encode_player_input(encode_identity(1,'Owned attacker'),[self.action])
+            self.order['action_sha256'] = verifier.digest(self.action)
+            self.journal = [dict(frame=153,players={0:[self.action],1:[]})]
+            with self.subTest(change=change),self.assertRaisesRegex(AssertionError,'source/ability|target differs'):
+                self.evaluate()
+
+    def test_commit_must_be_once_before_death_in_qualified_margin(self):
+        for frame in (151,155,156,700):
+            self.commits[0]['frame'] = frame
+            with self.subTest(frame=frame), self.assertRaisesRegex(AssertionError, 'margin'): self.evaluate()
+        self.commits[0]['frame'] = 153; self.commits.append(dict(self.commits[0]))
+        with self.assertRaisesRegex(AssertionError, 'margin'): self.evaluate()
+
+    def test_commit_and_canonical_action_must_agree_without_duplicate(self):
+        for journal in ([dict(frame=154, players={0:[self.action],1:[]})],
+                        self.journal+self.journal, [dict(frame=153, players={0:[],1:[self.action]})]):
+            with self.subTest(journal=journal), self.assertRaisesRegex(AssertionError, 'journal'):
+                self.evaluate(journal=journal)
+
+    def test_death_must_precede_both_actual_receipts(self):
+        for receipt in (self.authority,self.bridge[0]):
+            key = 'tick_ms' if receipt is self.authority else 'received_tick_ms'
+            original = receipt[key]; receipt[key] = 2090
+            with self.assertRaisesRegex(AssertionError, 'death must precede'): self.evaluate()
+            receipt[key] = original
+        self.rows[2]['tick_ms'] = 2145
+        with self.assertRaisesRegex(AssertionError, 'restoration must follow'): self.evaluate()
+
+    def test_different_peer_lead_can_present_future_death_before_order_creation(self):
+        self.rows[1]['tick_ms'] = 1990
+        self.assertTrue(self.evaluate()['passed'])
+
+    def test_wrong_native65_or_bridge_payload_cannot_pass(self):
+        self.bridge[0]['payload_sha256'] = 'f'*64
+        with self.assertRaisesRegex(AssertionError, 'wire binding'): self.evaluate()
+
+    def test_missing_focus_at_death_witness_cannot_be_inferred(self):
+        self.rows[1].pop('focus_retained_at_death')
+        with self.assertRaisesRegex(AssertionError, 'focus-at-death'): self.evaluate()
+
+    def test_wrong_world_entity_army_type_or_pointer_fail(self):
+        for key, value in (('world',3),('entity',0),('army',0),('unit_type',1),('current_actor','0')):
+            old=self.rows[2][key];self.rows[2][key]=value
+            with self.subTest(key=key),self.assertRaisesRegex(AssertionError, 'binding'): self.evaluate()
+            self.rows[2][key]=old
+
+    def test_missing_restoration_and_dead_prediction_cannot_pass(self):
+        self.rows.pop(2)
+        with self.assertRaisesRegex(AssertionError, 'incomplete'): self.evaluate()
+
+    def test_actual_native_canonical_survival_not_fixture_metadata_is_required(self):
+        for change in ('missing','dead','army','hash','health'):
+            rows=deepcopy(self.native)
+            if change=='missing': rows.pop()
+            elif change=='dead': rows[25]['game_state']['complete']=True
+            elif change=='army': rows[25]['core']['army']=0
+            elif change=='health': rows[25]['core']['current_damage']=100
+            else: rows[25]['parsed_state_sha256']='f'*64
+            with self.subTest(change=change),self.assertRaises(AssertionError): self.evaluate(native_states=rows)
+
+    def test_real_replay_and_twenty_matching_continuations_required(self):
+        for change in ('no_replay','late_unrelated_replay','wrong_tail','missing_tail'):
+            rows=deepcopy(self.worker)
+            if change=='no_replay':
+                for row in rows: row.update(replayed_frames_delta=0,replayed_frames_total=0)
+            elif change=='late_unrelated_replay':
+                for row in rows[153:]: row['tick_ms']+=100
+            elif change=='wrong_tail': rows[170]['parsed_state_sha256']='f'*64
+            else: rows.pop()
+            with self.subTest(change=change),self.assertRaises(AssertionError): self.evaluate(worker_states=rows)
+
+    def test_wrong_pool_lifetime_or_unproven_retained_path_cannot_pass(self):
+        for change in ('actor=000001A0','originalPool=1','retainedHQ=1','oldArmy=1'):
+            old=self.pool;self.pool=self.pool.replace(change,change.split('=')[0]+'=0')
+            with self.subTest(change=change),self.assertRaisesRegex(AssertionError, 'pool'):self.evaluate()
+            self.pool=old
+
+
+class ActorTemplateRoutingTests(unittest.TestCase):
+    def test_only_explicit_actor_flag_transforms_template_before_match_build(self):
+        original, fixture = object(), object()
+        with patch('tools.prediction_actor_fixture.make_template',return_value=fixture) as transform:
+            self.assertIs(verifier.match_template(original,Path('assets'),actor_correction=False),original)
+            transform.assert_not_called()
+            self.assertIs(verifier.match_template(original,Path('assets'),actor_correction=True),fixture)
+            transform.assert_called_once_with(original,Path('assets'))
+
+    def test_actor_flag_goes_to_both_clients_and_no_packet_hold_flag(self):
+        plan=dict(scenario='movement',lifecycle='natural',frames=600,move_slot=0,surrender_frame=700,
+            module_root='app',actor_correction=True,
+            files={name:dict(path=name)for name in ('python','heap_helper','cooperative')})
+        for index in (0,1):
+            args=verifier.command_extra(plan,index,Path('run'))
+            self.assertIn('-prediction-actor-correction-smoke',args)
+            self.assertFalse(any('hold' in arg or 'concede' in arg.lower()for arg in args))
+        plan['actor_correction']=False
+        self.assertNotIn('-prediction-actor-correction-smoke',verifier.command_extra(plan,1,Path('run')))
 
 
 if __name__ == '__main__':

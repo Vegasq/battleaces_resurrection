@@ -1,0 +1,115 @@
+BATTLE ACES - PREDICTION ACTOR AND SELECTION CORRECTION
+Reviewed:2026-11-10. Selected same-identity Core correction qualified at its
+bounded scope;broader actor,input,ability and latency qualification remains OPEN.
+
+Retained regression
+Two actual Unity clients reproduce a selection failure when a late opponent
+Move retracts a predicted HQ death. Movement07 reaches selected Core5 at130,
+predicted dead/retained Core5 at156,and the actual remote Move committed153.
+The original retained-HQ pool retirement at163 invokes selection notification
+while ID5 is absent from a sparse set. The client aborts the experimental match.
+Movement08 captures the original managed KeyNotFoundException for Item5 through
+the exact original OnRaiseEvent MethodInfo. Its formatted managed stack is
+empty;the precise subscriber has not yet been observed in a runtime stack.
+Original reports remain FAILED. Their clients were forcibly cleaned through
+retained owned Jobs and reaped;forced cleanup is not natural Quit acceptance.
+
+Qualified correction
+Keep the complete original RemoveSelection call,including its ability checks,
+until the original UnitManager update recreates the HQ and admission/cache
+state has been refreshed. Retain a rooted original UnitSet with a separately
+copied numeric ID batch;pooled Unit object addresses can be reused. Revalidate
+the generation,manager,simulation,presentation frame and admitted replacement
+before invoking the operation once. Drop the deferred operation on failure.
+The initial scope permits one already-released HQ and no active ability caster;
+mixed active/retained retirement and ability cases remain refused and open.
+Callback failure must also stop subsequent pool and membership mutations.
+Static minimap tracing identifies an unchecked old-selection footprint lookup.
+Its independent footprint map is repopulated synchronously by UnitsInitialized
+inside the original manager update. The runtime managed stack remains empty;
+that subscriber attribution is an inference from the static call/data route.
+
+Movement09,helper19 f43e3a26...,now completes this correction in two actual
+Unity Custom rounds. Both clients/workers and both authority workers exit0
+naturally;all retained Jobs are inactive0,no forced cleanup. Each victim shows
+dead HQ156,actual remote Move153,original deferred selection removal163,
+restored/admitted HQ163 and continued lifetime165. The separate file-only
+reanalysis binds each correction to ten real replayed native frames and20
+matching continuations. All2892 closed full parsed native hashes match authority.
+Original parent report remains FAILED:it incorrectly required the promotion
+frontier to equal153,while the first correction promotes153/154 together.
+The corrected predicate binds actual153 membership/hash in that exact positive
+replay group,only the original Move in its canonical inputs,and receipt/restore
+timing.90verifier/fixture tests pass,including batched-promotion acceptance and
+unrelated-replay rejection.60actual-source C++ flow/lifetime/inactive groups
+pass with /W4 /WX. No native rerun manufactures the corrected report.
+
+Fixture limitation:an extra guest-own Transform-before-authority check fails
+in both rounds;first position change occurs4516ms after the Move. Actual saved
+original-authority snapshots identify the chosen unit as Missilebot6/entity76:
+state9 ACTIVATION and identical position at420,440,460,480,500,520 and540,
+then state1 MOVE/displacement at560. The authored bootstrap's activation_time
+is7seconds. This extra command targets an activating newly built unit;it cannot
+qualify ready-unit responsiveness or establish a new client lag defect. The
+original parent gate remains host-own Move plus guest-to-host correction.
+Both-peer ready-unit responsiveness stays open for a suitable case. Earlier
+ordinary-template evidence remains separate.
+
+Fixture validity and preserved setup failures
+The authority and both clients receive the same explicitly authored GameData:
+original Core health100,no health-per-supply growth,activation7seconds,the
+unchanged6second reveal/startup delay,and a correctly oriented army0 Gunbot10
+near army1 Core5. Only the fixture pins seed20261110. Default original attacks
+kill Core5 at155. Original Move12 at152,153 or154 prevents the death in the
+retained native control. No runtime damage/spawn writes or additional predicted
+abilities are used. The actual client invokes the original Move constructor,
+ToProto and Enqueue;this is scripted command evidence rather than physical UI.
+
+Movement05's ClearSelection failed because it lacked the original suspension
+scope. The probe now uses BeginSelectionChange and its original Dispose once.
+The first Concede-hold design was invalid:the ledger predicts only12/14,so
+holding ability8 cannot retract a speculative death. Its source is archived.
+Movement06 then exposed an unsupported probe expectation:original control-group
+assignment deliberately excludes IsHQ. The probe now verifies normal HQ
+selection and ordinary group/focus refusal. HQ restoration does not qualify
+control-group cleanup or repeat-focus cancellation. Original eligibility is
+preserved;lower-level APIs do not manufacture HQ group membership.
+
+Separate mobile control
+An original-native fixture with opposing Gunbot10/11 at[-2,0,0]/[2,0,0],HP100
+and healthy unchanged Cores kills both Gunbots at153. Attacker10's original
+Move12 toward[-32,0,0] at151 or152 prevents victim11's death through173;
+attacker10 still dies legitimately. Baseline and Move151 journals/full parsed
+state hashes repeat exactly. The retained child exits0 naturally with its
+whole Job inactive0. This supplies an eligible mobile victim for subsequent
+original group/focus qualification;no Unity/input/renderer result is inferred.
+
+Changing latency
+Owned actual-source tests qualify bounded existing REFRESH/ACK sampling and
+expiry of old RTT samples. Movement05's separate file-only review matches1299
+retained native hashes and proves both Move phases at441/461 under steady
+130/475ms RTT. Its failed original runtime/lifecycle report remains unchanged.
+A separate actual-header authored timing model reproduces a395ms publication
+pause when the estimate falls475->130ms:the target drops seven frames against a
+monotonic physical cursor. Those times are simulated. Actual changing-path
+pose/publication qualification and the smooth-transition fix remain OPEN.
+
+Private evidence (ignored)
+local/prediction-runtime/movement05-actor/reanalysis01/FINAL-READ-ME.txt
+local/prediction-runtime/movement06-actor/run/verification.json
+local/prediction-runtime/movement07-actor/run/verification.json
+local/prediction-runtime/movement08-actor-diagnostic/run/verification.json
+local/prediction-runtime/movement09-actor/run/verification.json
+local/prediction-runtime/movement09-actor/reanalysis01/scoped-reanalysis03.json
+local/prediction-checkpoint-20261109/actor-hq-move-fixture01/SELECTED.json
+local/prediction-checkpoint-20261109/actor-mobile-move-fixture01/SELECTED.json
+local/prediction-checkpoint-20261109/actor-focus-diagnosis01/conclusion.json
+local/prediction-checkpoint-20261109/actor-selection-scope01/findings.txt
+local/prediction-checkpoint-20261109/retained-hq-selection-deferral-review01/
+local/prediction-checkpoint-20261109/changing-rtt-transition01/build02/analysis.json
+local/prediction-checkpoint-20261110/actor-deferred-selection01/verification.json
+local/prediction-checkpoint-20261110/actor09-guest-activation01/verification.json
+
+N35's optional human Custom test remains frozen and reserved independently.
+The live host,firewall,usual client and user-owned sessions remain unchanged.
+D8,RUNTIME_VALIDATED and full_feature_accepted remain open.

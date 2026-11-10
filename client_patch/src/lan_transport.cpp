@@ -56,14 +56,18 @@ static uint64_t presentationNowUs() {
     uint64_t value=0;
     return ba_frame_timing::timestampMicros(value)?value:GetTickCount64()*1000;
 }
-// Own correlated application round trips. No new requests or protocol fields.
+// Own correlated application RTT, plus sparse existing REFRESH requests.
+// No new server protocol/heartbeat fields; ordinary paths never send probes.
 static ba_prediction_pacing::RoundTrips movementRoundTrips;
+static ba_prediction_pacing::RefreshRequests movementRefreshRequests;
+static std::optional<uint64_t> movementOtherReplyUs;
 static uint64_t movementRoundTripGeneration=0,originalNegotiationSentUs=0,originalNegotiationGeneration=0;
 static bool originalNegotiationTimed=false;
 static bool movementPacingRequested(){return ba_prediction_worker::movementEnabled();}
 static uint64_t movementPacingNowUs(){return presentationNowUs();}
 static void resetMovementRoundTrips() {
     movementRoundTrips=ba_prediction_pacing::RoundTrips{};movementRoundTripGeneration=0;
+    movementRefreshRequests=ba_prediction_pacing::RefreshRequests{};movementOtherReplyUs.reset();
     originalNegotiationTimed=false;originalNegotiationSentUs=originalNegotiationGeneration=0;
 }
 static void movementRoundTrip(uint64_t generation,unsigned char kind,uint32_t request,uint64_t sentUs,uint64_t receivedUs) {
@@ -72,17 +76,43 @@ static void movementRoundTrip(uint64_t generation,unsigned char kind,uint32_t re
         throw std::runtime_error("movement RTT sample belongs to another connection generation");
     if(movementRoundTripGeneration!=generation) {
         movementRoundTrips.reset(generation);movementRoundTripGeneration=generation;
+        movementRefreshRequests.reset(generation);movementOtherReplyUs.reset();
     }
+    const bool refresh=kind==ba_community_wire::Refresh && movementRefreshRequests.tracks(generation,request);
+    const auto directoryBytes=refresh?movementRefreshRequests.directoryBytes():0;
+    if(refresh)movementRefreshRequests.complete(generation,request,receivedUs);
     const bool accepted=movementRoundTrips.observe(generation,sentUs,receivedUs);
-    const auto estimate=movementRoundTrips.estimate();
-    ba::log("Movement RTT sample: generation=%llu kind=%u request=%u sent_us=%llu received_us=%llu accepted=%d min_us=%llu samples=%zu BA_RESURRECTION_MOVEMENT_PACING_V1",
+    if(accepted && !refresh)movementOtherReplyUs=receivedUs;
+    const auto estimate=movementRoundTrips.estimate(receivedUs);
+    ba::log("Movement RTT sample: generation=%llu kind=%u request=%u sent_us=%llu received_us=%llu accepted=%d min_us=%llu samples=%zu refresh=%d directory_bytes_seen=%llu BA_RESURRECTION_MOVEMENT_PACING_V1",
         static_cast<unsigned long long>(generation),static_cast<unsigned>(kind),request,
         static_cast<unsigned long long>(sentUs),static_cast<unsigned long long>(receivedUs),accepted?1:0,
-        static_cast<unsigned long long>(estimate.value_or(0)),movementRoundTrips.count());
+        static_cast<unsigned long long>(estimate.value_or(0)),movementRoundTrips.count(),refresh?1:0,
+        static_cast<unsigned long long>(directoryBytes));
 }
 static std::optional<uint64_t> movementRoundTripEstimate() {
     if(movementRoundTripGeneration!=ba_community::generation)return std::nullopt;
-    return movementRoundTrips.estimate();
+    return movementRoundTrips.estimate(movementPacingNowUs());
+}
+static bool movementRefreshDue(uint64_t generation,uint64_t nowUs,bool capacity) {
+    if(movementRoundTripGeneration!=generation) {
+        movementRoundTrips.reset(generation);movementRoundTripGeneration=generation;
+        movementRefreshRequests.reset(generation);movementOtherReplyUs.reset();
+    }
+    return movementRefreshRequests.due(generation,nowUs,capacity,movementOtherReplyUs);
+}
+static bool movementRefreshActive() {
+    return movementPacingRequested() && running && worldReady && !stopped && !matchEnded && !publicMatch &&
+        !ba_community::abortPending && ba_community::online && originalCommands.ready() &&
+        ba_prediction_movement::activeForRefresh();
+}
+static void movementRefreshSent(uint64_t generation,uint32_t request,uint64_t sentUs) {
+    movementRefreshRequests.sent(generation,request,sentUs);
+    ba::log("Movement RTT refresh sent: generation=%llu request=%u sent_us=%llu wire_bytes=9 interval_us=2000000",
+        static_cast<unsigned long long>(generation),request,static_cast<unsigned long long>(sentUs));
+}
+static void movementDirectoryReceived(uint64_t bytes) {
+    movementRefreshRequests.directoryBytes(bytes);
 }
 static bool presentationActive(Obj simulation) {
     Obj server=ba_local::server();
@@ -357,6 +387,7 @@ static void poll() {
         else throw std::runtime_error("unknown LAN message type");
     }
     if(consumed)rx.erase(rx.begin(),rx.begin()+consumed);
+    if(!reachedEof)ba_community::pollMovementRefresh();
     if(originalCommandScheduling() && !reachedEof) {
         originalHeartbeat();originalOutputReady(ba_local::server());flushOutgoing();
         if(secureChannel().active())secureChannel().ready(); // Flush private queued bytes without waiting for simulation.

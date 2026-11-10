@@ -17,6 +17,10 @@ static bool movementPacingRequested(){return false;}
 static uint64_t movementPacingNowUs(){return now*1000;}
 static void resetMovementRoundTrips(){}
 static void movementRoundTrip(uint64_t,unsigned char,uint32_t,uint64_t,uint64_t){}
+static bool movementRefreshActive(){return false;}
+static bool movementRefreshDue(uint64_t,uint64_t,bool){return false;}
+static void movementRefreshSent(uint64_t,uint32_t,uint64_t){}
+static void movementDirectoryReceived(uint64_t){}
 static void send(unsigned char kind,const std::vector<unsigned char>& bytes){last={kind,bytes};}
 }
 #include "community_transport.cpp"
@@ -30,6 +34,7 @@ static Writer listing(unsigned revision=1) {
 }
 int main() {
     namespace c=ba_community;
+    c::pollMovementRefresh();
     rejects([]{c::receive(DirectoryKind,listing().bytes);});
     rejects([]{c::receive(WelcomeKind,greeting("someone_else").bytes);});
     c::receive(WelcomeKind,greeting().bytes);assert(c::online && c::welcome.profile=="me");

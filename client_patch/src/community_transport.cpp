@@ -10,6 +10,10 @@ static bool movementPacingRequested();
 static uint64_t movementPacingNowUs();
 static void resetMovementRoundTrips();
 static void movementRoundTrip(uint64_t generation,unsigned char kind,uint32_t request,uint64_t sentUs,uint64_t receivedUs);
+static bool movementRefreshActive();
+static bool movementRefreshDue(uint64_t generation,uint64_t nowUs,bool capacity);
+static void movementRefreshSent(uint64_t generation,uint32_t request,uint64_t sentUs);
+static void movementDirectoryReceived(uint64_t bytes);
 }
 namespace ba_community {
 namespace wire=ba_community_wire;
@@ -73,6 +77,7 @@ static void receive(unsigned char kind,const wire::Bytes& payload) {
                 wire::require(aliases.emplace(alias(row.profile),row.profile).second,"community identity alias collision");
             }
             wire::require(self,"community directory omits local identity");directory=*listing;
+            if(ba_lan::movementPacingRequested())ba_lan::movementDirectoryReceived(payload.size()+5);
         } else if(const auto* snapshot=std::get_if<wire::Lobby>(&event)) {
             if(snapshot->phase!=wire::None) {
                 bool self=false;for(const auto& row:snapshot->members)self|=row.profile==welcome.profile;
@@ -98,5 +103,16 @@ static void receive(unsigned char kind,const wire::Bytes& payload) {
 }
 static void checkTimeouts() {
     for(const auto& item:pending)wire::require(GetTickCount64()<item.second.deadline,"community acknowledgement timed out");
+}
+static void pollMovementRefresh() {
+    if(!online || !ba_lan::movementPacingRequested())return;
+    bool capacity=pending.size()<32 && requestId<UINT32_MAX;
+    for(const auto& item:pending)if(item.second.kind==wire::Refresh)capacity=false;
+    if(!ba_lan::movementRefreshDue(generation,ba_lan::movementPacingNowUs(),capacity) ||
+       !ba_lan::movementRefreshActive())return;
+    const auto id=send(wire::refresh(nextRequest()));
+    const auto found=pending.find(id);
+    wire::require(found!=pending.end() && found->second.timed,"RTT refresh lost its owned request");
+    ba_lan::movementRefreshSent(generation,id,found->second.sentUs);
 }
 }

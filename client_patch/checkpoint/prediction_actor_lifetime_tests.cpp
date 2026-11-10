@@ -61,6 +61,10 @@ template<class T>T get(Obj,const char*){throw std::runtime_error("unexpected sin
 }
 namespace ba_local {
 struct Root{void* value;explicit Root(void* pointer):value(pointer){}void* get()const{return value;}};
+static DWORD updateThread=1;
+static void* server(){throw std::runtime_error("unexpected casting server lookup");}
+static bool isTarget(void*){throw std::runtime_error("unexpected casting server check");}
+struct QueueLock {QueueLock(){throw std::runtime_error("unexpected casting queue lock");}};
 static int count(void* value){return static_cast<int>(static_cast<Model*>(value)->ids.size());}
 static void* invokeMethod(void* method,void* receiver,void** args){
     auto& model=*static_cast<Model*>(receiver);
@@ -94,6 +98,7 @@ const std::string& movementMatchId(){static std::string empty;return empty;}
 MovementAdmission movementAdmission(){return {};}
 void movementFail(const char*)noexcept{}
 }
+namespace ba_prediction_movement {bool ownsPresentation(void*){throw std::runtime_error("unexpected casting presentation check");}}
 #include "../src/prediction_actor_repair.cpp"
 using Scopes=ba_prediction_actors::GroupChanges;
 struct Fixture {

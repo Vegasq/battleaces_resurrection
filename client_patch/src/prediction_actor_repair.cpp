@@ -8,6 +8,7 @@
 #include <exception>
 #include "../checkpoint/prediction_presentation_policy.hpp"
 #include "prediction_movement.hpp"
+#include "prediction_casting_cleanup.hpp"
 
 namespace ba_prediction_actors {
 using ba::Obj;
@@ -454,14 +455,14 @@ static bool selectionReferences(Obj selection,const std::set<uint32_t>& retired)
         close();return found;
     } catch(...) {try{close();}catch(...){ba::log("Held gesture readonly enumerator cleanup failed; retry=0");}throw;}
 }
-static void guardRetiringInteractions(Obj selector,const std::vector<Retire>& retire) {
+static void guardRetiringInteractions(Obj selector,const std::vector<Retire>& retire,bool clearingCasting=false) {
     for(const auto& actor:retire) {
-        require(ba::read<Obj>(selector,0xa8)!=actor.actor,
-                "retiring actor is retained by control-group focus");
         Obj casting=ba::read<Obj>(selector,0x98);
         uint32_t id=actor.resident.entityId;void* args[]={&id};
-        Root has(invoke(method(casting,"Contains",1,0x060025b7),casting,args));
-        require(!unbox<bool>(has.get()),"retiring actor remains in an active casting set");
+        if(!clearingCasting) {
+            Root has(invoke(method(casting,"Contains",1,0x060025b7),casting,args));
+            require(!unbox<bool>(has.get()),"retiring actor remains in an active casting set");
+        }
         require(ba::read<uint32_t>(selector,0x128)!=id,
                 "retiring identity remains in a pending double-click reference");
     }
@@ -472,13 +473,199 @@ static void guardRetiringInteractions(Obj selector,const std::vector<Retire>& re
     for(const auto& entry:std::initializer_list<std::pair<const char*,size_t>>{
             {"_previewSelectionSet",0x88},{"_selectionSet",0x90},{"_castingSet",0x98}}) {
         field(selector,entry.first,entry.second);
+        if(clearingCasting && entry.second==0x98)continue;
         require(!selectionReferences(ba::read<Obj>(selector,entry.second),retired),
                 "retiring identity remains in held gesture selection or cached type subset");
     }
-    // No button/selection/caster/queue state is changed. In particular, queued
-    // ICommand enumerables can alias these sets; never clear them here.
+    // This preflight never changes button/selection/caster/queue state. A
+    // separate positively prepared queue-empty plan may clear casting scratch.
 }
-static void repair(State& s,Obj manager,Obj frames,GroupChanges& changes) {
+struct CastingCleanupAccess {
+    State& state;
+    Root selector,casting,server,commands;
+    std::set<uint32_t> retired;
+    uint64_t world=0;
+    std::string match;
+    Obj clearMethod=nullptr;
+    static Obj castingReference(Obj owner) {
+        field(owner,"_castingSet",0x98);field(owner,"_activeAbilityCaster",0x100);
+        return ba::read<Obj>(owner,0x98);
+    }
+    static Obj commandReference(Obj owner) {
+        field(owner,"_queuedInputCommands",0x180);return ba::read<Obj>(owner,0x180);
+    }
+    CastingCleanupAccess(State& owner,Obj value,const std::vector<Retire>& retire)
+        :state(owner),selector(value),casting(castingReference(value)),server(ba_local::server()),
+         commands(commandReference(server.get())),world(owner.world),match(owner.match) {
+        for(const auto& actor:retire)retired.insert(actor.resident.entityId);
+    }
+    void validate() {
+        require(GetCurrentThreadId()==ba::initialThread && GetCurrentThreadId()==ba_local::updateThread &&
+                state.thread==GetCurrentThreadId() && state.inUpdate && !state.failed &&
+                world && world==state.world && match.size()==32 && match==state.match &&
+                world==ba_prediction_worker::movementWorldId() && match==ba_prediction_worker::movementMatchId(),
+                "casting cleanup lost its Unity owner/world/match");
+        require(server.get() && server.get()==ba_local::server() && ba_local::isTarget(server.get()) &&
+                state.simulation && state.manager && selector.get() && casting.get() && commands.get() &&
+                ba::read<Obj>(server.get(),0x140)==state.simulation->get() &&
+                ba::read<Obj>(selector.get(),0x40)==state.manager->get() &&
+                ba_prediction_movement::ownsPresentation(state.simulation->get()),
+                "casting cleanup lost its presentation generation/roots");
+        require(castingReference(selector.get())==casting.get() && commandReference(server.get())==commands.get(),
+                "casting cleanup storage owner changed");
+        classIs(casting.get(),"Uncapped.Collections","UnitSelectionSet");
+        namespace cleanup=ba_prediction_casting_cleanup;
+        clearMethod=method(casting.get(),"Clear",0,cleanup::clearToken,cleanup::clearRva);
+        require(ba::api<Obj(*)(Obj)>("il2cpp_class_from_type")(
+                    ba::api<Obj(*)(Obj)>("il2cpp_method_get_return_type")(clearMethod))==type("System","Void"),
+                "casting cleanup original Clear signature differs");
+        guard(cleanup::clearRva,reinterpret_cast<const char*>(cleanup::clearEntry.data()),cleanup::clearEntry.size());
+    }
+    bool hasActiveCaster(){return ba::read<Obj>(selector.get(),0x100)!=nullptr;}
+    bool hasAffectedLiveClick(){return retired.count(ba::read<uint32_t>(selector.get(),0x128))!=0;}
+    struct Lock {ba_local::QueueLock lock;explicit Lock(CastingCleanupAccess&) {}};
+    size_t commandCount() {
+        const int count=ba_local::count(commands.get());
+        require(count>=0 && static_cast<size_t>(count)<=maximumActors,"casting cleanup pending command count bound");
+        return static_cast<size_t>(count);
+    }
+    void clearCasting(){invoke(clearMethod,casting.get());}
+};
+using CastingCleanup=ba_prediction_casting_cleanup::Plan<CastingCleanupAccess>;
+// Prepare without changing original focus. All other interaction, method and
+// group-scope checks must finish before cancel() enters the original API.
+struct FocusCancellation {
+    Root selector,focused;
+    int32_t group=-1;
+    Obj cancelMethod=nullptr;
+    bool attempted=false;
+    static Obj focusReference(Obj owner) {
+        field(owner,"_repeatFocusUnit",0xa8);field(owner,"_focusChaseControlGroup",0xa0);
+        return ba::read<Obj>(owner,0xa8);
+    }
+    FocusCancellation(Obj owner,const std::vector<Retire>& retire)
+        :selector(owner),focused(focusReference(owner)) {
+        require(selector.get()==owner,"actor focus selector root missing");
+        require(focused.get()==ba::read<Obj>(selector.get(),0xa8),"actor focus root missing");
+        group=ba::read<int32_t>(selector.get(),0xa0);
+        const bool affected=focused.get() && std::any_of(retire.begin(),retire.end(),
+            [&](const Retire& actor){return actor.actor==focused.get();});
+        if(!affected)return;
+        cancelMethod=method(selector.get(),"FocusControlGroupCancel",1,0x06002220,0x3bf2fa0);
+        require(ba::api<Obj(*)(Obj)>("il2cpp_class_from_type")(
+                    ba::api<Obj(*)(Obj,uint32_t)>("il2cpp_method_get_param")(cancelMethod,0))==type("System","Int32") &&
+                ba::api<Obj(*)(Obj)>("il2cpp_class_from_type")(
+                    ba::api<Obj(*)(Obj)>("il2cpp_method_get_return_type")(cancelMethod))==type("System","Void"),
+                "actor focus cancellation signature differs");
+        guard(0x3bf2fa0,"\x3b\x91\xa0\x00\x00\x00\x75\x59\x83\x3d\x99\x34\x25\x03\x00\x48\x8d\x91\xa8\x00\x00\x00\x48\xc7\x02\x00\x00\x00\x00\xc7\x81\xa0\x00\x00\x00\xff\xff\xff\xff",39);
+    }
+    void cancel() {
+        require(!attempted,"actor focus cancellation attempted twice");
+        // Original suspension callbacks must not redirect this prepared plan
+        // onto unrelated focus or introduce a new retiring reference.
+        require(ba::read<Obj>(selector.get(),0xa8)==focused.get() &&
+                ba::read<int32_t>(selector.get(),0xa0)==group,
+                "actor focus changed after retirement preflight");
+        attempted=true;
+        if(!cancelMethod)return;
+        void* args[]={&group};invoke(cancelMethod,selector.get(),args);
+        require(!ba::read<Obj>(selector.get(),0xa8) && ba::read<int32_t>(selector.get(),0xa0)==-1,
+                "original focus cancellation did not release retiring actor");
+        ba::log("Prediction actor focus cancelled: group=%d affectedActorOnly=1 originalAPI=1",group);
+    }
+};
+static void beginRetirement(GroupChanges& changes,FocusCancellation& focus) {
+    // A throwing original Begin still owns its ordinary Dispose, but neither
+    // focus nor actor ownership is changed until every scope has begun.
+    changes.begin();focus.cancel();changes.mutated=true;
+}
+static void beginRetiringInteractions(State& s,Obj selector,const std::vector<Retire>& retire,
+        const std::vector<Obj>& groups,GroupChanges& changes) {
+    std::set<uint32_t> retiredIds;for(const auto& actor:retire)retiredIds.insert(actor.resident.entityId);
+    field(selector,"_castingSet",0x98);
+    const bool affectedCasting=selectionReferences(ba::read<Obj>(selector,0x98),retiredIds);
+    std::unique_ptr<CastingCleanupAccess> castingAccess;
+    std::unique_ptr<CastingCleanup> casting;
+    if(affectedCasting) {
+        castingAccess=std::make_unique<CastingCleanupAccess>(s,selector,retire);
+        casting=std::make_unique<CastingCleanup>(*castingAccess,true);casting->prepare();
+    }
+    FocusCancellation focus(selector,retire);
+    guardRetiringInteractions(selector,retire,casting && casting->willClear());
+    changes.prepare(groups,retire);
+    // This is the first mutation. Its SAME producer SRW checks queue180 again;
+    // a new ICommand refuses before scratch/focus/selection/pool can change.
+    if(casting && casting->commit())ba::log("Prediction actor casting scratch cleared: pendingCommands=0 originalAPI=1 serializedActionsUntouched=1");
+    beginRetirement(changes,focus);
+}
+static void requireOwned(const State& s) {
+    require(!s.failed && s.inUpdate && s.thread==GetCurrentThreadId() && s.world &&
+        ba_prediction_worker::movementWorldId()==s.world && ba_prediction_worker::movementMatchId()==s.match,
+        "actor callback stopped or changed its owned prediction generation");
+}
+struct DeferredSelection {
+    std::unique_ptr<Root> selector,batch,manager,simulation,frames;
+    std::vector<uint32_t> frozenIds;
+    policy::ActorIdentity expected;
+    Obj remove=nullptr;
+    int preparedFrame=-1;
+    bool attempted=false;
+    bool prepare(State& s,Obj owner,Obj values,Obj original,Obj currentFrames,const std::vector<Retire>& retire) {
+        if(std::none_of(retire.begin(),retire.end(),[](const Retire& actor){return actor.alreadyReleased;}))return false;
+        // Normal HQ death has already released this actor from the simulation.
+        // Its old ID is absent from the live manager until original recreation.
+        // SelectionChanged listeners may dereference that ID, so retain the
+        // entire ORIGINAL RemoveSelection operation until the manager is whole.
+        // Keep mixed retirements/active abilities refused until separately proven.
+        require(retire.size()==1 && retire.front().alreadyReleased,
+            "mixed retained HQ selection retirement is not qualified");
+        const auto& actor=retire.front();
+        require(actor.resident.unitType==3 && actor.current.unitType==3 &&
+            actor.resident.entityId==actor.current.entityId && actor.resident.armyId==actor.current.armyId,
+            "retained HQ selection identity change is not qualified");
+        expected=actor.current;
+        field(owner,"_activeAbilityCaster",0x100);
+        require(!ba::read<Obj>(owner,0x100),"retained HQ selection with active ability is not qualified");
+        classIs(values,"Uncapped.Collections","UnitSet");field(values,"_entityIds",0x18);
+        frozenIds=ids(ba::read<Obj>(values,0x18));
+        require(frozenIds==std::vector<uint32_t>{retire.front().resident.entityId},
+            "retained HQ original selection batch IDs differ");
+        manager=std::make_unique<Root>(s.manager->get());simulation=std::make_unique<Root>(s.simulation->get());
+        frames=std::make_unique<Root>(currentFrames);Current current(frames->get());
+        preparedFrame=ba::read<int>(current.frame.get(),0x40);
+        selector=std::make_unique<Root>(owner);batch=std::make_unique<Root>(values);remove=original;
+        return true;
+    }
+    void commit(State& s) {
+        if(!batch)return;
+        require(!attempted,"retained HQ selection removal attempted twice");requireOwned(s);
+        Current current(frames->get());
+        require(selector->get()==ba::get<Obj>(ba::owner,"<UnitSelector>k__BackingField") &&
+            s.manager->get()==manager->get() && s.simulation->get()==simulation->get() &&
+            ba::read<Obj>(selector->get(),0x40)==manager->get() &&
+            ba::read<int>(current.frame.get(),0x40)==preparedFrame &&
+            ba_prediction_movement::ownsPresentation(simulation->get()) &&
+            !ba::read<Obj>(selector->get(),0x100),"retained HQ selection owner/ability changed");
+        // A pooled Unit object can be reused. Only the independent immutable ID
+        // snapshot chooses removals; never derive them from its mutable actors.
+        require(ids(ba::read<Obj>(batch->get(),0x18))==frozenIds,
+            "retained HQ selection batch changed during original recreation");
+        bool recreated=false;
+        for(Obj actor:units(ba::read<Obj>(s.manager->get(),0x10))) {
+            const auto identity=resident(actor);if(identity.entityId!=frozenIds.front())continue;
+            const auto observed=s.identities.find(actor);
+            require(identity.unitType==expected.unitType && identity.armyId==expected.armyId &&
+                observed!=s.identities.end() && observed->second.incarnation &&
+                confirmedToken(s,identity)==observed->second.incarnation,
+                "retained HQ selection notification precedes confirmed recreation");recreated=true;
+        }
+        require(recreated,"retained HQ selection notification lacks its recreated actor");
+        attempted=true;void* args[]={batch->get()};invoke(remove,selector->get(),args);requireOwned(s);
+        ba::log("Prediction retained HQ selection applied: world=%llu match=%s entity=%u originalRemoval=1 frozenIds=1 postRecreation=1",
+            static_cast<unsigned long long>(s.world),s.match.c_str(),frozenIds.front());
+    }
+};
+static void repair(State& s,Obj manager,Obj frames,GroupChanges& changes,DeferredSelection& selection) {
     Current current(frames);
     Root active(ba::read<Obj>(manager,0x10)),retained(ba::read<Obj>(manager,0xa0)),pending(ba::read<Obj>(manager,0x18));
     const auto activeActors=units(active.get()),retainedActors=units(retained.get());
@@ -544,6 +731,7 @@ static void repair(State& s,Obj manager,Obj frames,GroupChanges& changes) {
     // selection/pool mutation. An exception after this point fails the owner;
     // no partial repair is retried and no replacement is manually installed.
     Obj removeSelection=method(selector.get(),"RemoveSelection",1,0x0600220a,0x3bf0cf0);
+    const bool deferredSelection=selection.prepare(s,selector.get(),batch.get(),removeSelection,frames,retire);
     Root factory(ba::read<Obj>(manager,0x50));require(factory.get(),"actor repair factory missing");
     Root pools(ba::read<Obj>(factory.get(),0x10));require(pools.get(),"actor repair pool manager missing");
     Obj poolRelease=method(pools.get(),"Release",1,0x060021b1,0x3be9770);
@@ -563,10 +751,10 @@ static void repair(State& s,Obj manager,Obj frames,GroupChanges& changes) {
     for(const auto& actor:retire)method(actor.actor,"ReleaseFromSim",0,0x060022a1,0x3bfc570);
     ReleaseEvent releaseEvent(manager);
     // Original RemoveSelection handles ordinary preview/current selection and
-    // ability compatibility. Its pending focus/casting/gesture side effects
-    // are separate state. Refuse those concrete unqualified interactions.
-    guardRetiringInteractions(selector.get(),retire);
-    changes.prepare(groups,retire);changes.begin();changes.mutated=true;
+    // ability compatibility. Resolve supported affected-focus cancellation
+    // separately; casting/click/ability refusals must happen before it runs.
+    beginRetiringInteractions(s,selector.get(),retire,groups,changes);
+    requireOwned(s);
     for(const auto& actor:retire)
         ba::log("Prediction actor retirement begin: world=%llu match=%s frame=%d entity=%u actor=%p oldType=%u oldArmy=%u correctedType=%u correctedArmy=%u affectedGroups=%zu",
             static_cast<unsigned long long>(s.world),s.match.c_str(),ba::read<int>(current.frame.get(),0x40),
@@ -574,15 +762,18 @@ static void repair(State& s,Obj manager,Obj frames,GroupChanges& changes) {
             actor.current.unitType,actor.current.armyId,groups.size());
     // Original released observers complete interpolation jobs and remove
     // TransformAccessArray/turret registrations before the pool owns actors.
-    void* selectionArgs[]={batch.get()};invoke(removeSelection,selector.get(),selectionArgs);
+    if(!deferredSelection) {
+        void* selectionArgs[]={batch.get()};invoke(removeSelection,selector.get(),selectionArgs);requireOwned(s);
+    }
     if(std::any_of(retire.begin(),retire.end(),[](const Retire& value){return !value.alreadyReleased;}))
         releaseEvent.fire(manager,released.get(),current.frame.get());
+    requireOwned(s);
     for(const auto& actor:retire) {
         // Invoke the original UnitPoolManager dispatcher even for an active HQ.
         // Its old instantiated type selects the old pool and normal release
         // lifecycle. Never toggle shared IsHQ, destroy Unity objects or fake
         // state6/UnitsDying. Keep batch roots until ALL old-ID removals finish.
-        void* args[]={actor.actor};invoke(poolRelease,pools.get(),args);
+        void* args[]={actor.actor};invoke(poolRelease,pools.get(),args);requireOwned(s);
         require(ba::read<uint32_t>(actor.actor,0x14c)==actor.resident.entityId,
                 "old pool lifecycle changed the entity ID before exact membership removal");
         if(!actor.alreadyReleased) {
@@ -638,6 +829,7 @@ extern "C" __declspec(dllexport) void OfflinePredictionActorUpdate(void* manager
     const auto original=ba::native<void(*)(void*,void*,void*)>(0x3c08010);
     auto& s=ba_prediction_actors::state();
     ba_prediction_actors::GroupChanges changes;
+    ba_prediction_actors::DeferredSelection selection;
     bool entered=false;
     try {
         // movementEnabled means requested, including startup before BEGIN and
@@ -649,10 +841,13 @@ extern "C" __declspec(dllexport) void OfflinePredictionActorUpdate(void* manager
         }
         ba_prediction_actors::require(!s.inUpdate,"actor repair reentered");s.inUpdate=true;entered=true;
         ba_prediction_actors::checkContext(s,manager,frames);
-        ba_prediction_actors::repair(s,manager,frames,changes);
+        ba_prediction_actors::repair(s,manager,frames,changes,selection);
         original(manager,frames,methodInfo);
+        ba_prediction_actors::requireOwned(s);
         changes.close();
+        ba_prediction_actors::requireOwned(s);
         ba_prediction_actors::after(s,manager,frames);
+        selection.commit(s);
         s.inUpdate=false;
     } catch(const std::exception& error) {
         try{changes.close();}catch(const std::exception& cleanup){ba::log("Prediction actor group cleanup failed: reason=%s retry=0",cleanup.what());}

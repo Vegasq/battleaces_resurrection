@@ -1,5 +1,5 @@
 BATTLE ACES - CURRENT DELIVERY ROADMAP
-Updated:2026-11-09. ACTIVE. Single current work queue;final release is not accepted.
+Updated:2026-11-10. ACTIVE. Single current work queue;final release is not accepted.
 
 Nick's requested0.4.0 client/server release is PUBLISHED;matching host deployed
 at134.209.176.39 and game TCP47623 reopened publicly,durable across restart.
@@ -31,7 +31,15 @@ Portable Movement04 now passes on the exact frozen Python3.14.8 package/helper:
 63ms response,125ms before authority,remote replay,2892 full parsed state
 comparisons,two rounds and natural shutdown. A separate prepared private human
 test is READY in DEV N35;both players use its special Custom launcher.
-Next:review N35 human online feel and remaining actor/input edge cases.
+Selected same-identity Core correction now passes two actual Custom rounds,
+ten replayed frames+20continuations and2892 matching native hashes;the retained
+parent promotion-frontier parser failure has a separate file-only reanalysis.
+Extra guest-own Move observes a newly built Missilebot still in native
+ACTIVATION through540 under the altered7second fixture;it does not qualify
+ready-unit responsiveness. Next:qualify eligible mobile focus/casting and
+both-peer ready-unit/changing-RTT movement;review N35 human feel.
+The bounded fix,open scopes and separate mobile control are recorded in
+prediction-actor-correction.txt. N35's reserved kit remains frozen.
 Physical mouse/Internet jitter and
 D8 acceptance remain open;prediction-multiplayer-movement.txt.
 The offline N34 test is superseded;

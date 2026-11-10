@@ -1,5 +1,5 @@
 BATTLE ACES - CURRENT STATUS
-Reviewed:2026-11-09. Final release is not accepted.
+Reviewed:2026-11-10. Final release is not accepted.
 Current work:REMAINING_DELIVERY_PLAN.txt. Evidence navigation:INDEX.txt.
 Exact prior3576-line ledger:history/2026-10-24/STATUS.txt.
 Historical records retain their original failures,claims and artifact scopes.
@@ -32,6 +32,15 @@ Portable Movement04 now also passes on exact frozen Python3.14.8 package/helper:
 parsed state comparisons,and two natural rounds. SFX bytes/install/private
 preflight verified;N35 separate Custom human test is READY,not yet accepted.
 Physical mouse/selection edges and Internet human acceptance remain OPEN.
+Selected-HQ KeyNotFound regression is fixed at bounded Core/no-ability scope:
+defer the complete original selection removal until original recreation.
+Movement09 completes two actual rounds/natural Quit,ten-frame correction+20
+continuations,and2892 matching native hashes. The retained parent parser failure
+has a separate file-only reanalysis. Extra guest-own Move targets Missilebot76
+still in native ACTIVATION through540 under the altered7second fixture.
+Both-peer ready-unit responsiveness,mobile focus/casting and changing latency
+remain open;
+prediction-actor-correction.txt. N35's frozen kit remains reserved.
 Full_feature_accepted remainsfalse. See
 prediction-multiplayer-movement.txt. Live/usual-client files remain unchanged.
 Details:native-prediction-checkpoints.txt,prediction-worker-client.txt.

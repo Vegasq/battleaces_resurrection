@@ -79,6 +79,10 @@ try {
     if ($LASTEXITCODE -ne 0) { throw 'Movement prediction pacing test build failed.' }
     & (Join-Path $OutputDirectory 'prediction_pacing_tests.exe')
     if ($LASTEXITCODE -ne 0) { throw 'Movement prediction pacing tests failed.' }
+    & (Join-Path $CompilerRoot 'bin/Hostx64/x64/cl.exe') /nologo /MT /EHsc /O2 /W4 /WX /std:c++17 (Join-Path $PSScriptRoot 'src/prediction_rtt_tests.cpp') "/Fe:$OutputDirectory/prediction_rtt_tests.exe"
+    if ($LASTEXITCODE -ne 0) { throw 'Movement changing-RTT test build failed.' }
+    & (Join-Path $OutputDirectory 'prediction_rtt_tests.exe')
+    if ($LASTEXITCODE -ne 0) { throw 'Movement changing-RTT tests failed.' }
     & (Join-Path $CompilerRoot 'bin/Hostx64/x64/cl.exe') /nologo /MT /EHsc /O2 /W4 /WX /std:c++17 (Join-Path $PSScriptRoot 'src/prediction_presentation_pacing_tests.cpp') "/Fe:$OutputDirectory/prediction_presentation_pacing_tests.exe"
     if ($LASTEXITCODE -ne 0) { throw 'Movement prediction presentation pacing test build failed.' }
     & (Join-Path $OutputDirectory 'prediction_presentation_pacing_tests.exe')

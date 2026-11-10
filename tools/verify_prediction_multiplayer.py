@@ -167,6 +167,9 @@ def prepare(args):
     for value in (args.expected_helper_sha256, args.expected_gameassembly_sha256):
         require(isinstance(value, str) and HEX64.fullmatch(value), 'explicit lowercase SHA256 pins required')
     frames = args.frames if args.frames is not None else (200 if args.scenario == 'startup' else 600)
+    actor_correction = bool(getattr(args, 'actor_correction', False))
+    require(not actor_correction or (args.scenario == 'movement' and args.lifecycle == 'natural'),
+            'actor correction fixture requires natural movement scenario')
     require((120 <= frames <= 200 if args.scenario == 'startup' else 500 <= frames <= 650),
             'startup requires120..200 frames; movement requires500..650')
     require(60 <= args.timeout <= 240 and len(args.rtt_ms) == 2 and all(
@@ -251,6 +254,8 @@ def prepare(args):
         worker_module_root=str(worker_module_root), worker_package=str(worker_package) if worker_package else None,
         files=files, asset_files=assets, source_sha256=sources, profiles=profiles,
         scenario=args.scenario, lifecycle=args.lifecycle, frames=frames, timeout=args.timeout,
+        actor_correction=actor_correction,
+        actor_fixture=actor_fixture_metadata() if actor_correction else None,
         rtt_ms=list(args.rtt_ms), surrender_frame=260 if args.scenario == 'startup' else 700,
         move_slot=args.move_slot, expected_matches=2 if args.lifecycle == 'natural' else 1,
         endpoint_scope='ephemeral loopback TLS only; no production endpoint',
@@ -298,6 +303,8 @@ def command_extra(plan, index, run):
     if plan['scenario'] == 'movement':
         result += ['-prediction-movement-smoke','-prediction-movement-smoke-slot='+str(index),
             '-prediction-movement-smoke-start-frame='+str(440 if index==plan['move_slot']else 460)]
+    if plan.get('actor_correction'):
+        result.append('-prediction-actor-correction-smoke')
     if plan['lifecycle'] == 'natural':
         result += ['-native-quit-smoke', '-native-quit-mode=confirm', '-native-quit-gate-smoke',
                    '-community-match-leave-quit-smoke']
@@ -322,6 +329,212 @@ def timing_prefix_counts(prefix, frames, *, prediction, complete_delivery_proven
     return dict(trace_arrival_frames=len(arrived), trace_apply_frames=len(applied),
                 missing_trailing_arrival_timings=frames-len(arrived),
                 complete_delivery_proven=True, synthetic_timing_rows=0)
+
+
+def actor_fixture_metadata():
+    from tools.prediction_actor_fixture import metadata
+    return metadata()
+
+
+def match_template(base, assets, *, actor_correction):
+    """Transform before DedicatedServer/ProfileStore build any MatchData."""
+    if not actor_correction:
+        return base
+    from tools.prediction_actor_fixture import make_template
+    return make_template(base, assets)
+
+
+def actor_native_observation(state, parsed_hash):
+    """Actual authority queries, not expected fixture values or actor telemetry."""
+    metadata = actor_fixture_metadata()
+    if not metadata['selection_frame'] <= state['frame'] <= metadata['baseline_death_frame'] + 20:
+        return None
+    entities = {row['id']: row for row in state['entities']}
+    return dict(frame=state['frame'], parsed_state_sha256=parsed_hash,
+                core=entities.get(metadata['victim_core_id']),
+                attacker=entities.get(metadata['attacker_id']), game_state=state['game_state'])
+
+
+def actor_escape_evidence(log, *, match, commits, raw_bodies, journal):
+    """Bind original constructor bytes through actual67/72 and one native commit."""
+    from server.game_data import decode_player_input
+    from server.protobuf_wire import get_bytes, get_repeated_bytes, get_repeated_uint, get_uint, parse_fields
+    metadata = actor_fixture_metadata()
+    orders = []
+    for line in log.splitlines():
+        if 'ACTOR ORDER ' not in line:
+            continue
+        raw = line.split('ACTOR ORDER ', 1)[1]
+        require(len(raw) <= 2048, 'actor order diagnostic exceeds bound')
+        row = json.loads(raw)
+        require(type(row) is dict and row.get('schema') == 1 and
+                row.get('event') == 'original_escape_move' and row.get('originalCtor') is True and
+                row.get('physicalUI') is False, 'invalid original actor order schema')
+        if row.get('match') == match:
+            orders.append(row)
+    require(len(orders) == 1, 'one original actor escape order required')
+    order = orders[0]
+    require(all(type(order.get(key)) is int and order[key] >= 0 for key in
+                ('world', 'army', 'entity', 'unit_type', 'ability', 'frame', 'tick_ms')) and
+            order['world'] > 0 and order['army'] == metadata['attacker_slot'] and
+            order['entity'] == metadata['attacker_id'] and order['unit_type'] == metadata['attacker_type'] and
+            order['ability'] == 12 and order['frame'] == metadata['escape_physical_frame'] and
+            type(order.get('action_sha256')) is str and HEX64.fullmatch(order['action_sha256']),
+            'original actor escape identity/frame differs')
+    action_hash = order['action_sha256']
+    candidates = []
+    for (body_match, slot, sequence), body in raw_bodies.items():
+        if body_match != match or slot != metadata['attacker_slot']:
+            continue
+        decoded = decode_player_input(body)
+        matching = [action for action in decoded['actions'] if digest(action) == action_hash]
+        if matching:
+            require(len(matching) == 1, 'actor escape duplicated inside72')
+            require(decoded['identity']['player_id'] == slot + 1 and decoded['identity']['is_aliased'] and
+                    not decoded['identity']['ai_profile_id'], 'actor escape72 human identity differs')
+            candidates.append((sequence, body, matching[0]))
+    require(len(candidates) == 1, 'actor escape missing/duplicated in submitted72')
+    sequence, body, action = candidates[0]
+    require([field.number for field in parse_fields(action)] == [1], 'actor escape is not Execute')
+    execute = get_bytes(action, 1, required=True)
+    groups = get_repeated_bytes(execute, 1)
+    require(len(groups) == 1 and get_uint(groups[0], 1) == metadata['attacker_type'] and
+            get_uint(groups[0], 2) == 12 and
+            get_repeated_uint(groups[0], 3) == (metadata['attacker_id'],) and get_uint(execute, 2) == 0,
+            'actor escape source/ability/queued differs')
+    command = get_bytes(execute, 3, required=True)
+    require([field.number for field in parse_fields(command)] == [3], 'actor escape target case differs')
+    position = get_bytes(get_bytes(command, 3, required=True), 1, required=True)
+    target = []
+    for number in (1, 2, 3):
+        value = get_uint(position, number)
+        require(value < 2**64, 'actor escape target exceeds signed Q32.32')
+        target.append((value - 2**64 if value >= 2**63 else value) / 2**32)
+    require(target == metadata['target'], 'actor escape original ToProto target differs')
+    registrations = re.findall(r'Movement local batch registered: sequence=(\d+) speculativeFrame=(\d+) '
+                               r'tick=(\d+) match=' + re.escape(match) + r'(?:\s|$)', log)
+    registered = [tuple(map(int, row)) for row in registrations if int(row[0]) == sequence]
+    require(len(registered) == 1 and registered[0][2] >= order['tick_ms'], 'actor escape actual67 receipt missing/duplicated')
+    sent = re.findall(r'Original command batch submitted: match=' + re.escape(match) +
+        r' sequence=(\d+) actions=(\d+) bytes=(\d+) body_sha256=([a-f0-9]{64}) sendTick=(\d+) sourceNextFrame=(\d+)', log)
+    sent = [row for row in sent if int(row[0]) == sequence]
+    require(len(sent) == 1 and int(sent[0][1]) == len(decode_player_input(body)['actions']) and
+            int(sent[0][2]) == len(body) and sent[0][3] == digest(body) and int(sent[0][4]) >= registered[0][2],
+            'actor escape native72 sender/body differs')
+    accepted = [row for row in commits if row.get('event') == 'command_batch_committed' and
+                row.get('match') == match and row.get('slot') == metadata['attacker_slot'] and row.get('sequence') == sequence]
+    require(len(accepted) == 1 and type(accepted[0].get('frame')) is int and
+            accepted[0]['frame'] in metadata['safe_canonical_frames'] and
+            accepted[0]['frame'] < metadata['baseline_death_frame'], 'actor escape canonical commit outside qualified margin')
+    frame = accepted[0]['frame']
+    occurrences = [(row['frame'], slot) for row in journal for slot, actions in row['players'].items()
+                   for value in actions if digest(value) == action_hash]
+    require(occurrences == [(frame, metadata['attacker_slot'])], 'actor escape canonical journal duplicate/rebound/missing')
+    return dict(order=order, sequence=sequence, action_sha256=action_hash, body_sha256=digest(body),
+                canonical_commit_frame=frame, speculative_frame=registered[0][1], native67_tick_ms=registered[0][2],
+                native72_send_tick_ms=int(sent[0][4]), target=target)
+
+
+def actor_correction_evidence(log, *, attacker_log, match, commits, raw_bodies, journal,
+                              bridge_frames, canonical_payloads, canonical_states, native_states, worker_states):
+    metadata = actor_fixture_metadata()
+    escape = actor_escape_evidence(attacker_log, match=match, commits=commits, raw_bodies=raw_bodies, journal=journal)
+    rows = []
+    for line in log.splitlines():
+        if 'ACTOR CORRECTION ' in line:
+            row = json.loads(line.split('ACTOR CORRECTION ', 1)[1])
+            require(len(line) <= 4096 and type(row) is dict and row.get('schema') == 1 and row.get('physicalUI') is False,
+                    'invalid actor correction diagnostic schema')
+            require(type(row.get('focus_retained_at_death')) is bool, 'actor focus-at-death witness missing')
+            require(row.get('original_focus_supported') is False and row.get('original_group_supported') is False and
+                    row['focus_retained_at_death'] is False,
+                    'original HQ eligibility forbids positive focus/control-group coverage')
+            if row.get('match') == match:
+                rows.append(row)
+    names = ['original_hq_selection_established', 'original_dead_hq_retained',
+             'original_hq_restored_and_admitted', 'hq_selection_correction_passed']
+    require([r.get('event') for r in rows] == names, 'incomplete original HQ selection/correction episode')
+    require(all(all(type(r.get(key)) is int and r[key] >= 0 for key in
+                    ('world', 'entity', 'army', 'unit_type', 'frame', 'tick_ms')) and r['world'] > 0 and
+                r['entity'] == metadata['victim_core_id'] and r['army'] == metadata['victim_slot'] and
+                r['unit_type'] == metadata['core_type'] for r in rows),
+            'actor episode numeric binding differs')
+    valid_pointer = lambda value: isinstance(value, str) and re.fullmatch(r'[0-9A-Fa-f]{1,16}', value) and int(value, 16) != 0
+    require(len({r['world'] for r in rows}) == 1 and len({r.get('original_actor') for r in rows}) == 1 and
+            all(valid_pointer(r.get('current_actor')) and valid_pointer(r.get('original_actor')) for r in rows) and
+            rows[0]['current_actor'] == rows[1]['current_actor'] == rows[0]['original_actor'] and
+            rows[2]['current_actor'] == rows[3]['current_actor'],
+            'actor episode world/root binding differs')
+    require(all(b['frame'] > a['frame'] and b['tick_ms'] >= a['tick_ms'] for a, b in zip(rows, rows[1:])) and
+            metadata['selection_frame'] <= rows[0]['frame'] < 145 and
+            rows[1]['frame'] >= metadata['baseline_death_frame'] and rows[3]['frame'] >= rows[2]['frame'] + 2,
+            'actor episode did not progress through separate physical frames')
+    frame = escape['canonical_commit_frame']; world = rows[0]['world']
+    receipts = [row for row in authority_rows(log) if row['world'] == world and row['match'] == match and row['frame'] == frame]
+    bridge = [row for row in bridge_frames if row['match'] == match and row['frame'] == frame]
+    require(len(receipts) == len(bridge) == 1 and
+            receipts[0]['wire_sha256'] == bridge[0]['payload_sha256'] == canonical_payloads.get(frame),
+            'actor escape victim65/raw bridge wire binding differs')
+    require(rows[1]['tick_ms'] < min(receipts[0]['tick_ms'], bridge[0]['received_tick_ms']) and
+            receipts[0]['tick_ms'] <= rows[2]['tick_ms'],
+            'actor death must precede actual victim bridge/65 and restoration must follow65')
+    joined = joined_worker_evidence(worker_states, world=world, authority=receipts[0],
+                                   canonical_states=canonical_states, require_replay=True)
+    # Tie the positive replay group to THIS restoration, not a later unrelated Move.
+    group = [worker_states[index] for index in joined['promotion_group_row_indices']]
+    corrected = [row for row in group if row['frame'] == frame]
+    # One promotion can confirm several buffered canonical frames. Its frontier
+    # need not equal the command frame; that exact frame/hash must be IN the
+    # actual positive-replay group before the presentation restoration.
+    require(len(corrected) == 1 and corrected[0]['parsed_state_sha256'] == canonical_states.get(frame) and
+            all(receipts[0]['tick_ms'] <= row['tick_ms'] <= rows[2]['tick_ms'] for row in group),
+            'actor restoration lacks its own native replay group')
+    group_frames = {row['frame'] for row in group}
+    group_actions = [dict(frame=row['frame'],slot=slot,action_sha256=digest(action))
+                    for row in journal if row['frame'] in group_frames
+                    for slot, actions in row['players'].items() for action in actions]
+    require(group_actions == [dict(frame=frame,slot=metadata['attacker_slot'],action_sha256=escape['action_sha256'])],
+            'actor replay group input is not solely the exact canonical escape Move')
+    expected = range(metadata['selection_frame'], metadata['baseline_death_frame'] + 21)
+    require([row['frame'] for row in native_states] == list(expected), 'actual actor native authority timeline incomplete')
+    for row in native_states:
+        core, attacker = row['core'], row['attacker']
+        require(row['parsed_state_sha256'] == canonical_states.get(row['frame']) and type(core) is dict and
+                (core.get('id'), core.get('army'), core.get('type')) == (5, 1, 3) and core.get('max_health') == 100 and
+                core.get('current_damage') == (0 if row['frame'] < 144 else 50) and
+                type(attacker) is dict and (attacker.get('id'), attacker.get('army'), attacker.get('type')) == (10, 0, 1) and
+                row['game_state'].get('complete') is False,
+                'actual canonical actor timeline does not preserve living victim/Core native identity')
+    focus = [re.match(r'^\[(\d+)\] Prediction actor focus cancelled: group=4 ', line) for line in log.splitlines()]
+    cancelled = any(m and rows[0]['tick_ms'] <= int(m[1]) <= rows[3]['tick_ms'] for m in focus)
+    require(not cancelled, 'HQ fixture cannot claim original focus cancellation')
+    retired = []
+    for line in log.splitlines():
+        stamp = re.match(r'^\[(\d+)\] Prediction actor retired: ', line)
+        if not stamp:
+            continue
+        fields = dict(re.findall(r'(\w+)=([^\s]+)', line))
+        if fields.get('match') != match or fields.get('world') != str(world) or fields.get('entity') != '5':
+            continue
+        require(fields.get('actor') is not None and valid_pointer(fields['actor']) and
+                int(fields['actor'], 16) == int(rows[0]['original_actor'], 16) and
+                all(fields.get(key) == value for key, value in {
+                    'oldType':'3', 'oldArmy':'1', 'selectionBatch':'1', 'originalPool':'1',
+                    'oldMembershipRemoved':'1', 'retainedHQ':'1'}.items()) and
+                rows[1]['tick_ms'] <= int(stamp[1]) <= rows[2]['tick_ms'],
+                'original retained-HQ pool repair binding differs')
+        retired.append(dict(tick_ms=int(stamp[1]), **fields))
+    require(len(retired) == 1,
+            'original retained-HQ pool repair witness missing')
+    return dict(passed=True, rows=rows, escape=escape, actual_victim65=receipts[0],
+                victim_raw_bridge_tick_ms=bridge[0]['received_tick_ms'], native_authority_timeline=native_states,
+                retained_hq_original_pool=retired[0],
+                corrected_command_frame=frame, replay_group_input_actions=group_actions,
+                hq_selection_retraction_exercised=True,
+                original_focus_supported=False, original_group_supported=False,
+                repair_focus_cancellation_exercised=False, control_group_cleanup_exercised=False,
+                focus_cancellation_scope='not exercised; original HQ control-group eligibility excludes assignment/focus',
+                **joined, scope='Scripted original Move12 constructor; actual HQ death/retraction/admission and native replay+20; no physical UI or VFX claim')
 
 
 def resume(process):
@@ -793,7 +1006,8 @@ async def run_prepared(output):
     pki_folder = run / 'ephemeral-pki'
     clients, workers, shapers, events, raw_bodies = [], [], [], [], {}
     states = defaultdict(dict)
-    feel_context = remote_context = None
+    actor_states = defaultdict(list)
+    feel_context = remote_context = actor_context = None
     server = audit = pki = None
     tick = C.WinDLL('kernel32').GetTickCount64; tick.restype = C.c_uint64
     started = time.monotonic()
@@ -816,6 +1030,19 @@ async def run_prepared(output):
             room = server.rooms[fields['room']]
             row['parsed_state_sha256'] = state_digest(room.sim.last_state)
             states[fields['match']][fields['frame']] = row['parsed_state_sha256']
+            if plan.get('actor_correction'):
+                actual = actor_native_observation(room.sim.last_state, row['parsed_state_sha256'])
+                if actual is not None:
+                    actor_states[fields['match']].append(actual)
+        elif event == 'match_created' and plan.get('actor_correction'):
+            room = server.rooms[fields['room']]
+            require(fields['seed'] == plan['actor_fixture']['seed'] and
+                    room.match.raw_game_data == workers[-1]['bootstrap'], 'actor fixture bootstrap/seed differs from actual worker')
+            report.setdefault('actor_fixture_bootstraps', []).append(dict(
+                match=fields['match'], fixture=plan['actor_fixture'], seed=fields['seed'],
+                bootstrap_sha256=fields['bootstrap_sha256'], raw_game_data_sha256=digest(room.match.raw_game_data),
+                raw_path=workers[-1]['bootstrap_path'], authority_worker_pid=room.sim.pid,
+                delivery_scope='one frozen MatchData BOOTSTRAP broadcast to both clients; native worker CREATE uses same raw bytes'))
         events.append(row)
         require(len(events) <= 30000, 'authority event count exceeds bound')
         audit(event, **{k: v for k, v in row.items() if k != 'event'})
@@ -824,12 +1051,17 @@ async def run_prepared(output):
         # Use the existing original worker protocol/class, replacing ONLY its
         # unsafe PID-relookup launch with this retained suspended ownership.
         folder = run / ('authority-' + str(len(workers))); folder.mkdir()
+        if plan.get('actor_correction'):
+            bootstrap_path = folder / 'actor-bootstrap.pb'
+            bootstrap_path.write_bytes(data)
         bootstrap = "import runpy,sys;sys.path.insert(0,sys.argv.pop(1));runpy.run_module('server.simulation_worker',run_name='__main__')"
         argv = [plan['files']['python']['path'], '-I', '-S', '-B', '-u', '-c', bootstrap, str(ROOT), '--stdio']
         environment = os.environ.copy(); environment.pop('BA_ENABLE_SYNTHETIC_WORKER_TESTS', None)
         process, job = spawn_owned(argv, cwd=folder, env=environment, stdin=subprocess.PIPE,
             stdout=subprocess.PIPE, stderr=subprocess.PIPE, bufsize=0, close_fds=True)
         row = dict(process=process, job=job, assigned_before_resume=True, worker=None)
+        if plan.get('actor_correction'):
+            row.update(bootstrap=data, bootstrap_path=str(bootstrap_path.relative_to(run)))
         workers.append(row)
         worker = SimulationWorker(process, request_timeout=10, close_timeout=5, test_backend=False)
         row['worker'] = worker; worker._job = WorkerJobLease(job, worker)
@@ -871,6 +1103,10 @@ async def run_prepared(output):
         audit = Audit(run)
         template = GameTemplate.load(assets / 'map-1v1.pb.gz', catalog_path=assets / 'unit-catalog.json',
                                      descriptors_path=assets / 'descriptors')
+        template = match_template(template, assets, actor_correction=plan.get('actor_correction', False))
+        if plan.get('actor_correction'):
+            require(plan.get('actor_fixture') == actor_fixture_metadata(), 'prepared actor fixture metadata changed')
+            write(run / 'actor-fixture.json', plan['actor_fixture'])
         server = DedicatedServer(template, ProfileStore(run / 'profiles', template, catalog=CosmeticCatalog(assets)),
             templates={1: template}, sim_factory=factory, audit=observe, data_dir=run,
             input_timeout=30, experimental_command_scheduling=True,
@@ -931,6 +1167,7 @@ async def run_prepared(output):
                     require(not any(x in row['log'] for x in ('Movement prediction stopped;',
                         'Native worker request failed:', 'Native worker startup refused:',
                         'Prediction actor repair failed:', 'Prediction selection admission failed:',
+                        'Actor correction smoke failed:',
                         'Offline loop stopped in ', 'Native Quit probe failed:')),
                         'actual movement client reported failure')
                 require(not any(r['event'] in ('protocol_error', 'match_aborted', 'custom_match_setup_error') for r in events),
@@ -996,6 +1233,12 @@ async def run_prepared(output):
                         launch_tick=row['launch_tick'], transport=evidence)
                 report['clients'].append(dict(index=row['index'], pid=row['process'].pid, profile=row['profile'], **evidence))
             slot = plan['move_slot']; first = created[0]
+            if plan.get('actor_correction'):
+                actor_context = dict(log=clients[1]['log'], attacker_log=clients[0]['log'], match=first,
+                    commits=events, raw_bodies=raw_bodies, journal=read_journal(run, first, plan['frames']),
+                    bridge_frames=clients[1]['wire'], canonical_payloads={r['frame']:r['frame_payload_sha256']
+                        for r in events if r['event']=='frame_queued' and r.get('match')==first},
+                    canonical_states=states[first], native_states=actor_states[first])
             feel_context = dict(rows=feel_rows(clients[slot]['log']), match=first, slot=slot,
                 commits=events, raw_bodies=raw_bodies, journal=read_journal(run, first, plan['frames']),
                 canonical_states=states[first], bridge_frames=clients[slot]['wire'],
@@ -1112,6 +1355,9 @@ async def run_prepared(output):
                 await cleanup_step(errors, 'retain closed worker native states', retain_worker_states)
         if plan['scenario'] == 'movement' and feel_context is not None and 'error' not in report:
             try:
+                if plan.get('actor_correction'):
+                    require(actor_context is not None and 1 in worker_state_rows, 'victim actor native-state file unavailable')
+                    report['actor_correction'] = actor_correction_evidence(**actor_context, worker_states=worker_state_rows[1])
                 require(plan['move_slot'] in worker_state_rows, 'selected closed worker native-state file unavailable')
                 report['command_phase']=command_phase(feel_context['rows'],match=feel_context['match'],
                     slot=feel_context['slot'],commits=events)
@@ -1150,6 +1396,8 @@ async def run_prepared(output):
             for r in report['authority_workers']))
         write(run / 'verification.json', report)
         write(run / 'server-states.json', dict(states))
+        if plan.get('actor_correction'):
+            write(run / 'actor-native-authority.json', dict(actor_states))
         body_dir = run / 'submitted-batches'; body_dir.mkdir()
         for (match, slot, sequence), body in raw_bodies.items():
             (body_dir / f'{match}-{slot}-{sequence}.pb').write_bytes(body)
@@ -1368,6 +1616,8 @@ def main(argv=None):
     parser.add_argument('--frames', type=int); parser.add_argument('--timeout', type=float, default=180)
     parser.add_argument('--rtt-ms', type=float, nargs=2, default=(130, 475))
     parser.add_argument('--move-slot', type=int, choices=(0, 1), default=0)
+    parser.add_argument('--actor-correction', action='store_true',
+                        help='Explicit original Gunbot Move12/Core5 fixture; both clients use the same authored bootstrap')
     args = parser.parse_args(argv)
     if args.reanalyze_startup:
         require(not args.run_prepared and args.reanalysis_output is not None,'file-only reanalysis cannot launch native')
