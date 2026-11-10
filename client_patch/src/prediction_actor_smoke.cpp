@@ -148,6 +148,7 @@ struct State {
     bool groupHoldObserved=false,groupEdits=false,groupRestored=false,attackerSetup=false,attackerAbsent=false,attackerPurged=false;
     bool recoveryStalled=false,recallAbsent=false,recallRestored=false;
     bool focusCancelled=false;
+    bool casterSurveyed=false;
     uint64_t focusPendingIteration=0,focusPendingEpoch=0,focusReleasePendingBaseline=0;
     std::unique_ptr<Root> focusPendingIterator;
 };
@@ -394,6 +395,7 @@ static bool groupUserEditsEnabled(){return ba::flag(L"-prediction-mobile-group-u
 static bool recoveryStallEnabled(){return ba::flag(L"-prediction-mobile-recovery-stall-smoke");}
 static bool recallEnabled(){return ba::flag(L"-prediction-mobile-recall-smoke");}
 static bool focusEnabled(){return ba::flag(L"-prediction-mobile-focus-smoke");}
+static bool casterSurveyEnabled(){return ba::flag(L"-prediction-mobile-caster-survey-smoke");}
 static std::vector<uint32_t> groupIds(Obj group){return selection::selectionIds(ba::read<Obj>(group,0x20));}
 static void assignSelected(actors::State& owner,Obj selector,int index) {
     Obj group=groupFor(selector,index);require(!actors::automaticType(ba::read<Obj>(group,0x30),1),"group intent fixture needs manual type1 membership");
@@ -782,6 +784,7 @@ static void attackerGroupTick(actors::State& owner,Obj selector,int frame) {
         groupEvidence(owner,selector,frame,"attacker_complete");s.passed=true;
     }
 }
+#include "prediction_caster_survey.hpp"
 static void tick() {
     try {
         require(!ba::flag(L"-prediction-actor-correction-smoke"),"mobile/HQ fixture flags must be separate");
@@ -797,6 +800,8 @@ static void tick() {
             "mobile recall requires preserve-only group intent without an injected stall");
         require(!focusEnabled()||(groupIntentEnabled()&&!groupUserEditsEnabled()&&!recoveryStallEnabled()&&!recallEnabled()),
             "mobile focus requires preserve-only group intent without recall or an injected stall");
+        require(!casterSurveyEnabled()||(groupIntentEnabled()&&!groupUserEditsEnabled()&&!recoveryStallEnabled()&&!recallEnabled()&&!focusEnabled()),
+            "mobile caster survey requires preserve-only group intent without other interaction diagnostics");
         require(ba::unified()&&ba::community()&&ba::dedicated()&&ba::lan()&&ba_lan::originalCommandScheduling()&&ba_lan::running&&!ba_lan::publicMatch,
             "mobile fixture requires negotiated prediction Custom");
         const int frame=ba::read<int>(owner.simulation->get(),0xac);
@@ -810,6 +815,9 @@ static void tick() {
         if(!s.freshQueued)idle(owner,selector,11);
         View view(owner,selector);
         if(frame!=s.lastSnapshot){s.lastSnapshot=frame;snapshot(owner,selector,frame,"snapshot");}
+        if(casterSurveyEnabled()&&!s.casterSurveyed&&frame>=145) {
+            require(frame==145,"mobile caster survey missed publication145");caster_survey::observe(owner,selector,frame);s.casterSurveyed=true;
+        }
         if(recoveryStallEnabled()&&s.world==2&&!s.recoveryStalled&&frame>=152) {
             require(frame==152&&s.lastSnapshot==152&&ba::read<int>(owner.simulation->get(),0xac)==152,
                 "mobile recovery stall missed its owned publication152");
@@ -886,6 +894,7 @@ static void tick() {
         }
         if(frame>=260){
             require(s.freshQueued,"mobile fixture fresh Move missing");
+            require(!casterSurveyEnabled()||s.casterSurveyed,"mobile caster survey was not captured");
             if(groupIntentEnabled()) {
                 const auto expected=groupUserEditsEnabled()?std::vector<uint32_t>{}:std::vector<uint32_t>{11};
                 require(s.groupHoldObserved&&s.groupEdits==groupUserEditsEnabled()&&s.groupRestored&&groupIds(s.group->get())==expected,

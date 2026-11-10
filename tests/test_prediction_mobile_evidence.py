@@ -662,6 +662,211 @@ class GroupIntentEvidenceTests(unittest.TestCase):
         with self.assertRaisesRegex(AssertionError,'attacker escape world reused'):f.evaluate()
 
 
+class CasterSurveyFixture:
+    def __init__(self):
+        base=GroupFixture();self.episodes=base.episodes;self.groups=base.evaluate();self.rows=[];self.attacker=''
+        for ep in self.episodes:
+            world=ep['world'];offset=(world-1)*10000000;token=ep['rows'][0]['original_incarnation']
+            if offset:
+                for row in ep['rows']:row['sampled_us']+=offset;row['tick_ms']+=offset//1000
+                for key in('origin_sampled_us','sampled_us','enqueue_sampled_us'):ep['fresh']['order'][key]+=offset
+            self.rows.append(dict(schema=1,event='mapped_buttons',route='owned_active_buttons_original_getters',
+                world=world,match=ep['match'],slot=1,entity=11,unit_type=1,army=1,frame=145,tick_ms=150+offset//1000,
+                sample_begin_us=150000+offset,sample_end_us=150100+offset,incarnation=token,confirmed_incarnation=token,
+                current_actual_entity=11,current_actual_type=1,current_actual_army=1,current_admitted=True,
+                current_initialized=True,current_native_state=1,source_ids_before=[11],source_ids_after=[11],
+                preview_ids_before=[],preview_ids_after=[],casting_ids_before=[],casting_ids_after=[],
+                source_count_before=1,source_count_after=1,pending_before=0,pending_after=0,
+                active_caster_before=None,active_caster_after=None,active_array_present=False,active_array_count=0,
+                buttons=[],eligible_slots=[],settings_scope='AbilityGroup.SmartCasting',activation_performed=False,caster_class_observed=None))
+
+    @staticmethod
+    def button(slot=0,ability=12):
+        return dict(index=0,present=True,button_class='Uncapped.AbilityButtonAction',slot=slot,valid_button=True,
+            mapped_ids=[11],mapped_count=1,has_mapped_casters=True,group_present=True,group_class='Uncapped.AbilityGroup',
+            group_unity_truth=True,panel_group_matches=True,group_kind=3,cast_type=4,cast_type_method_token=0x06000177,
+            smart_casting=False,config_lookup_performed=True,config_present=True,config_id=ability,
+            config_key_observation=dict(declaring_class='Uncapped.AbilityConfig',field_name='Key',field_offset=52,
+                declared_class='Uncapped.IntKey`1',boxed_class='Uncapped.IntKey`1',declared_boxed_class_equal=True,
+                value_size=4,getter_token=0x0600151a,getter_rva_guarded=False,field_token_source='static_original_metadata',
+                closed_argument_source='original_AbilityConfig.Key_metadata'),candidate=True,candidate_reason='noninstant_ui_mapping_only')
+
+    @staticmethod
+    def null_button():
+        row={key:None for key in CasterSurveyFixture.button()}
+        row.update(index=0,present=False,config_lookup_performed=False,candidate=False,candidate_reason='null_button')
+        return row
+
+    @staticmethod
+    def ineligible(row,reason='ineligible_mapping'):
+        row.update(candidate=False,candidate_reason=reason);return row
+
+    @staticmethod
+    def skip_config(row):
+        row.update(config_lookup_performed=False,config_present=None,config_id=None,config_key_observation=None)
+
+    def buttons(self,world,rows):
+        rows=deepcopy(rows)
+        for index,row in enumerate(rows):row['index']=index
+        self.rows[world-1].update(active_array_present=True,active_array_count=len(rows),buttons=rows,
+            eligible_slots=[row['slot']for row in rows if row['candidate']])
+
+    def evaluate(self):
+        return mobile.evaluate_caster_survey('\n'.join('MOBILE CASTER SURVEY '+json.dumps(row)for row in self.rows),
+            attacker_log=self.attacker,mobile_episodes=self.episodes,group_intent=self.groups)
+
+
+class CasterSurveyEvidenceTests(unittest.TestCase):
+    def test_complete_null_or_empty_active_arrays_are_valid_zero_candidate_observations(self):
+        f=CasterSurveyFixture();f.rows[1]['active_array_present']=True;r=f.evaluate()
+        self.assertTrue(r['passed']);self.assertEqual([e['eligible_candidate_count']for e in r['episodes']],[0,0])
+        self.assertFalse(r['activation_exercised']);self.assertFalse(r['active_casting_exercised'])
+        self.assertFalse(r['full_mobile_controls_accepted'])
+        self.assertTrue(all(not e['caster_instance_type_qualified']and e['complete_active_array_recorded']for e in r['episodes']))
+
+    def test_actual_slot_values_order_and_duplicates_are_preserved_not_array_indices(self):
+        f=CasterSurveyFixture();first=f.button(7,12);second=f.button(7,14);second['cast_type_method_token']=0x06000193
+        f.buttons(1,[first,second]);r=f.evaluate()['episodes'][0]
+        self.assertEqual(r['eligible_slots'],[7,7]);self.assertEqual(r['eligible_config_ids'],[12,14])
+        self.assertEqual([b['index']for b in r['row']['buttons']],[0,1]);self.assertFalse(r['activation_exercised'])
+
+    def test_null_button_and_null_mapped_set_preserve_unknown_not_fake_false(self):
+        f=CasterSurveyFixture();button=f.ineligible(f.button());button.update(mapped_ids=None,mapped_count=None,has_mapped_casters=None)
+        f.skip_config(button);f.buttons(1,[f.null_button(),button]);self.assertTrue(f.evaluate()['passed'])
+        f.rows[0]['buttons'][1]['has_mapped_casters']=False
+        with self.assertRaisesRegex(AssertionError,'null mapped casters'):f.evaluate()
+
+    def test_resolvable_count_zero_is_not_numeric_membership_or_a_config_lookup(self):
+        f=CasterSurveyFixture();button=f.ineligible(f.button());button.update(mapped_count=0,has_mapped_casters=False)
+        f.skip_config(button);f.buttons(1,[button]);self.assertEqual(f.evaluate()['episodes'][0]['eligible_candidate_count'],0)
+        for change in(dict(has_mapped_casters=True),dict(mapped_count=2),dict(config_lookup_performed=True)):
+            with self.subTest(change=change):
+                g=CasterSurveyFixture();bad=deepcopy(button);bad.update(change);g.buttons(1,[bad])
+                with self.assertRaises(AssertionError):g.evaluate()
+
+    def test_group_absence_and_destroyed_unity_group_skip_unsafe_getters_honestly(self):
+        for present in(False,True):
+            with self.subTest(group_present=present):
+                f=CasterSurveyFixture();button=f.ineligible(f.button());f.skip_config(button)
+                button.update(group_present=present,group_unity_truth=False if present else None,
+                    group_class='Uncapped.AbilityGroup'if present else None,group_kind=3 if present else None,
+                    smart_casting=False if present else None,cast_type=None,cast_type_method_token=None)
+                f.buttons(1,[button]);self.assertTrue(f.evaluate()['passed'])
+                f.rows[0]['buttons'][0].update(cast_type=4,cast_type_method_token=0x06000177)
+                with self.assertRaises(AssertionError):f.evaluate()
+
+    def test_supported_invalid_and_unsupported_slots_do_not_fake_panel_calls(self):
+        f=CasterSurveyFixture();invalid=f.ineligible(f.button(0));invalid.update(valid_button=False,panel_group_matches=None)
+        unsupported=f.ineligible(f.button(99),'unsupported_slot');unsupported.update(valid_button=None,panel_group_matches=None)
+        f.buttons(1,[invalid,unsupported]);self.assertTrue(f.evaluate()['passed'])
+        for key in('valid_button','panel_group_matches'):
+            with self.subTest(key=key):
+                g=CasterSurveyFixture();bad=deepcopy(unsupported);bad[key]=False;g.buttons(1,[bad])
+                with self.assertRaisesRegex(AssertionError,'unsupported actual slot'):g.evaluate()
+
+    def test_instant_smart_wrong_id_or_panel_mismatch_is_observed_but_not_a_candidate(self):
+        variants=(dict(cast_type=2),dict(smart_casting=True),dict(config_id=99),dict(panel_group_matches=False),dict(mapped_ids=[5]))
+        for change in variants:
+            with self.subTest(change=change):
+                f=CasterSurveyFixture();button=f.ineligible(f.button());button.update(change);f.buttons(1,[button])
+                self.assertEqual(f.evaluate()['episodes'][0]['eligible_candidate_count'],0)
+                f.rows[0]['buttons'][0].update(candidate=True,candidate_reason='noninstant_ui_mapping_only');f.rows[0]['eligible_slots']=[0]
+                with self.assertRaisesRegex(AssertionError,'candidate classification'):f.evaluate()
+
+    def test_group_kind_never_substitutes_for_actual_config_key_and_null_config_is_not_unlooked(self):
+        f=CasterSurveyFixture();button=f.ineligible(f.button(2,99));button['group_kind']=12;f.buttons(1,[button])
+        self.assertEqual(f.evaluate()['episodes'][0]['eligible_candidate_count'],0)
+        button=f.ineligible(f.button());button.update(config_present=False,config_id=None,config_key_observation=None)
+        f.buttons(1,[button]);self.assertTrue(f.evaluate()['passed'])
+        f.rows[0]['buttons'][0]['config_present']=None
+        with self.assertRaisesRegex(AssertionError,'presence is unobserved'):f.evaluate()
+
+    def test_effective_virtual_getter_and_closed_boxed_key_provenance_are_required(self):
+        for change in(dict(cast_type=1),dict(cast_type=11),dict(cast_type_method_token=0x06000178),dict(cast_type_method_token=True)):
+            with self.subTest(change=change):
+                f=CasterSurveyFixture();button=f.button();button.update(change);f.buttons(1,[button])
+                with self.assertRaisesRegex(AssertionError,'virtual CastType'):f.evaluate()
+        for change in(dict(boxed_class='Uncapped.IntKey`2'),dict(declared_boxed_class_equal=False),dict(field_offset=53),
+                      dict(getter_token=0x06000001),dict(getter_rva_guarded=True),dict(field_token_source='runtime_field_get_token'),
+                      dict(closed_argument_source='guessed_native_RVA'),dict(value_size=True)):
+            with self.subTest(change=change):
+                f=CasterSurveyFixture();button=f.button();button['config_key_observation'].update(change);f.buttons(1,[button])
+                with self.assertRaisesRegex(AssertionError,'Key/get_ID provenance'):f.evaluate()
+
+    def test_full_twelve_button_receipt_above8k_uses_only_survey64k_limit(self):
+        f=CasterSurveyFixture();button=f.button(3);button['button_class']=button['group_class']='N'*250+'.'+'C'*250
+        f.buttons(1,[deepcopy(button)for _ in range(12)])
+        raw=json.dumps(f.rows[0]);self.assertGreater(len(raw),8192);self.assertLess(len(raw),65536)
+        self.assertEqual(f.evaluate()['episodes'][0]['eligible_candidate_count'],12)
+        with self.assertRaisesRegex(AssertionError,'diagnostic row exceeds bound'):
+            mobile._rows('LEGACY '+raw,'LEGACY ',f.rows[0]['match'],1)
+        padded=raw+' '*(65536-len(raw));self.assertEqual(mobile._caster_survey_json(padded),f.rows[0])
+        with self.assertRaisesRegex(AssertionError,'64KiB'):mobile._caster_survey_json(padded+' ')
+
+    def test_survey_json_duplicate_keys_depth_and_quoted_braces_are_bounded(self):
+        f=CasterSurveyFixture();f.buttons(1,[f.button()]);raw=json.dumps(f.rows[0])
+        with self.assertRaisesRegex(AssertionError,'duplicate diagnostic JSON key'):
+            mobile._caster_survey_json(raw.replace('"schema": 1','"schema": 1, "schema": 1',1))
+        with self.assertRaisesRegex(AssertionError,'duplicate diagnostic JSON key'):
+            mobile._caster_survey_json(raw.replace('"field_name": "Key"','"field_name": "Key", "field_name": "Key"',1))
+        with self.assertRaisesRegex(AssertionError,'depth4'):mobile._caster_survey_json('{"a":[{"b":[{}]}]}')
+        f.rows[0]['buttons'][0]['button_class']='N.Quoted"{[\\]}'
+        self.assertTrue(f.evaluate()['passed'])
+
+    def test_complete_array_and_candidate_list_cannot_be_truncated_deduplicated_or_reindexed(self):
+        for kind in('count','cap','array_missing','index','eligible_order','dedup','extra'):
+            with self.subTest(kind=kind):
+                f=CasterSurveyFixture();f.buttons(1,[f.button(7,12),f.button(2,14)])
+                if kind=='count':f.rows[0]['active_array_count']=1
+                elif kind=='cap':f.rows[0]['active_array_count']=13
+                elif kind=='array_missing':f.rows[0]['active_array_present']=False
+                elif kind=='index':f.rows[0]['buttons'][1]['index']=0
+                elif kind=='eligible_order':f.rows[0]['eligible_slots']=[2,7]
+                elif kind=='dedup':f.rows[0]['buttons'][1]['slot']=7;f.rows[0]['eligible_slots']=[7]
+                else:f.rows[0]['buttons'][0]['slot_supported']=True
+                with self.assertRaises(AssertionError):f.evaluate()
+
+    def test_identity_owner_route_empty_queue_and_unchanged_selection_are_mandatory(self):
+        for change in(dict(route='guessed_button_route'),dict(slot=0),dict(entity=10),dict(frame=146),dict(incarnation=99),
+                      dict(current_actual_army=0),dict(current_admitted=False),dict(current_initialized=False),dict(current_native_state=6),
+                      dict(source_count_after=0),dict(source_count_before=True),dict(source_ids_after=[]),dict(preview_ids_after=[11]),
+                      dict(casting_ids_after=[11]),dict(pending_after=1),dict(active_caster_before='0'),dict(active_caster_after='123'),
+                      dict(activation_performed=True),dict(caster_class_observed='TargetGroundAbilityCaster'),dict(settings_scope='global_setting_guess')):
+            with self.subTest(change=change):
+                f=CasterSurveyFixture();f.rows[0].update(change)
+                with self.assertRaises(AssertionError):f.evaluate()
+
+    def test_actual_qpc_bracket_and_both_matched_world_receipts_are_required(self):
+        for kind in('missing','duplicate','world','match','before_setup','after_dead','no_duration','clock_bool','host'):
+            with self.subTest(kind=kind):
+                f=CasterSurveyFixture()
+                if kind=='missing':f.rows.pop()
+                elif kind=='duplicate':f.rows.append(deepcopy(f.rows[0]))
+                elif kind=='world':f.rows[1]['world']=1
+                elif kind=='match':f.rows[1]['match']=f.rows[0]['match']
+                elif kind=='before_setup':f.rows[0].update(sample_begin_us=90000,sample_end_us=90100)
+                elif kind=='after_dead':f.rows[0]['sample_end_us']=200000
+                elif kind=='no_duration':f.rows[0]['sample_end_us']=f.rows[0]['sample_begin_us']
+                elif kind=='clock_bool':f.rows[0]['sample_begin_us']=True
+                else:f.attacker='MOBILE CASTER SURVEY '+json.dumps(f.rows[0])
+                with self.assertRaises(AssertionError):f.evaluate()
+
+    def test_value_only_survey_never_replaces_original_movement_native_or_group_proof(self):
+        for kind in('mobile','motion','span','replay','tail','groups','edits','group_world','token'):
+            with self.subTest(kind=kind):
+                f=CasterSurveyFixture()
+                if kind=='mobile':f.episodes[0]['passed']=False
+                elif kind=='motion':f.episodes[0]['fresh_motion']['passed']=False
+                elif kind=='span':f.episodes[0]['fresh_assignment_span']['hashes_match']=False
+                elif kind=='replay':f.episodes[0]['escape_native_replay']['promotion_group_replayed_delta']=0
+                elif kind=='tail':f.episodes[0]['escape_native_replay']['continuation_frames']=19
+                elif kind=='groups':f.groups['passed']=False
+                elif kind=='edits':f.groups['user_edits']=True
+                elif kind=='group_world':f.groups['episodes'][0]['world']=999
+                else:f.episodes[0]['fresh']['order']['incarnation']=99
+                with self.assertRaises(AssertionError):f.evaluate()
+
+
 class FocusFixture:
     def __init__(self):
         self.base=GroupFixture();self.episodes=self.base.episodes;self.groups=self.base.evaluate();self.rows=[]

@@ -26,13 +26,14 @@ class MobilePreparationTests(unittest.TestCase):
         data=json.loads(receipt.read_text());data['helper_sha256']=v.sha(helper);receipt.write_text(json.dumps(data))
         self.args=deepcopy(f.args);self.args.scenario='mobile';self.args.mobile_correction=True
 
-    def add_group_markers(self, *, include_recovery=False, include_recall=False, include_focus=False):
+    def add_group_markers(self, *, include_recovery=False, include_recall=False, include_focus=False, include_caster_survey=False):
         f=self.fixture;helper=f.game/'BattleAcesOffline.dll'
         helper.write_bytes(helper.read_bytes()+b'|'+ '-prediction-mobile-group-intent-smoke'.encode('utf-16-le')+
                            '-prediction-mobile-group-user-edits-smoke'.encode('utf-16-le'))
         if include_recovery:helper.write_bytes(helper.read_bytes()+'-prediction-mobile-recovery-stall-smoke'.encode('utf-16-le'))
         if include_recall:helper.write_bytes(helper.read_bytes()+'-prediction-mobile-recall-smoke'.encode('utf-16-le'))
         if include_focus:helper.write_bytes(helper.read_bytes()+'-prediction-mobile-focus-smoke'.encode('utf-16-le'))
+        if include_caster_survey:helper.write_bytes(helper.read_bytes()+'-prediction-mobile-caster-survey-smoke'.encode('utf-16-le'))
         self.args.expected_helper_sha256=v.sha(helper)
         for path in(f.game/'.battleaces-resurrection/patch-manifest.json',f.args.helper_build_receipt):
             data=json.loads(path.read_text());data['helper_sha256']=v.sha(helper);path.write_text(json.dumps(data))
@@ -53,7 +54,9 @@ class MobilePreparationTests(unittest.TestCase):
             self.assertNotIn('-frame-timing-worlds=2',extra)
             self.assertNotIn('-prediction-mobile-recall-smoke',extra)
             self.assertNotIn('-prediction-mobile-focus-smoke',extra)
+            self.assertNotIn('-prediction-mobile-caster-survey-smoke',extra)
         self.assertNotIn('mobile_focus',plan)
+        self.assertNotIn('mobile_caster_survey',plan)
 
     def test_movement_pointer_and_byte_patch_descriptors_are_exact_required_members(self):
         manifest=self.fixture.game/'.battleaces-resurrection/patch-manifest.json'
@@ -241,6 +244,38 @@ class MobilePreparationTests(unittest.TestCase):
                 (self.args.output/'invocation.json').write_text(json.dumps(altered))
                 with self.assertRaisesRegex(AssertionError,'group edits'):v.verify_prepared(self.args.output)
 
+    def test_caster_survey_requires_explicit_preserved_mobile_and_excludes_activating_fixtures(self):
+        for changes in(dict(mobile_caster_survey=True),dict(mobile_caster_survey=True,mobile_group_intent=True,scenario='movement'),
+                       dict(mobile_caster_survey=True,mobile_group_intent=True,mobile_focus=True),
+                       dict(mobile_caster_survey=True,mobile_group_intent=True,mobile_recall=True),
+                       dict(mobile_caster_survey=True,mobile_group_intent=True,mobile_group_user_edits=True),
+                       dict(mobile_caster_survey=True,mobile_group_intent=True,mobile_group_user_edits=True,mobile_recovery_stall=True)):
+            with self.subTest(changes=changes):
+                args=deepcopy(self.args)
+                for key,val in changes.items():setattr(args,key,val)
+                with self.assertRaises(AssertionError):v.prepare(args)
+                self.assertFalse(args.output.exists())
+        self.add_group_markers();self.args.mobile_caster_survey=self.args.mobile_group_intent=True
+        with self.assertRaisesRegex(AssertionError,'helper lacks explicit'):v.prepare(self.args)
+
+    def test_caster_survey_forwarding_is_readonly_option_and_typed_on_prepared_revalidation(self):
+        self.add_group_markers(include_caster_survey=True);self.args.mobile_caster_survey=self.args.mobile_group_intent=True
+        with patch.object(v.subprocess,'Popen',side_effect=AssertionError('Native forbidden')):
+            plan=v.prepare(self.args);v.verify_prepared(self.args.output)
+        self.assertTrue(plan['mobile_caster_survey'])
+        for slot in(0,1):
+            extra=v.command_extra(plan,slot,self.args.output/'run')
+            self.assertEqual(extra.count('-prediction-mobile-caster-survey-smoke'),1)
+            for flag in('-prediction-mobile-focus-smoke','-prediction-mobile-recall-smoke','-prediction-mobile-group-user-edits-smoke',
+                        '-prediction-mobile-recovery-stall-smoke','-prediction-movement-smoke','-frame-timing-worlds=2'):
+                self.assertNotIn(flag,extra)
+        for change in(dict(mobile_caster_survey=1),dict(mobile_group_intent=False),dict(mobile_focus=True),
+                      dict(mobile_recall=True),dict(mobile_group_user_edits=True),dict(mobile_recovery_stall=True)):
+            with self.subTest(change=change):
+                altered=deepcopy(plan);altered.update(change)
+                (self.args.output/'invocation.json').write_text(json.dumps(altered))
+                with self.assertRaisesRegex(AssertionError,'group edits'):v.verify_prepared(self.args.output)
+
     def test_ordinary_startup_defaults_and_no_generic_smoke_are_unchanged(self):
         args=deepcopy(self.fixture.args)
         plan=v.prepare(args)
@@ -293,6 +328,9 @@ class MobilePreparationTests(unittest.TestCase):
         with patch.object(v,'prepare',prepare),contextlib.redirect_stdout(io.StringIO()):
             self.assertEqual(v.main(argv),0)
         self.assertTrue(seen[2].mobile_focus);self.assertFalse(seen[2].mobile_recall)
+        argv=[arg for arg in argv if arg!='--mobile-focus']+['--mobile-caster-survey']
+        with patch.object(v,'prepare',prepare),contextlib.redirect_stdout(io.StringIO()):self.assertEqual(v.main(argv),0)
+        self.assertTrue(seen[3].mobile_caster_survey);self.assertFalse(seen[3].mobile_focus)
 
 
 class MobileStateFixture:
@@ -507,6 +545,46 @@ class MobileFinalGateTests(unittest.TestCase):
         f=self.focus_fixture()
         f.report.update(focus_witness_passed=True,mobile_focus=dict(passed=True,
             episodes=[dict(passed=True,match=m,world=141+i)for i,m in enumerate(f.matches)]))
+        f.report['mobile_correction']['passed']=False
+        with self.assertRaises(AssertionError):f.finalize()
+        self.assertFalse(v.mobile_final_gate(f.plan,f.report))
+        f.report['mobile_correction']['passed']=True;f.workers[1][181]['parsed_state_sha256']='0'*64
+        with self.assertRaisesRegex(AssertionError,'hashes differ'):f.finalize()
+        self.assertFalse(v.mobile_final_gate(f.plan,f.report))
+
+    def caster_fixture(self):
+        f=self.f;f.plan.update(mobile_group_intent=True,mobile_caster_survey=True)
+        f.report.update(group_intent_witness_passed=True,mobile_group_intent=dict(passed=True,user_edits=False,
+            episodes=[dict(passed=True,match=match,world=141+i)for i,match in enumerate(f.matches)]))
+        return f
+
+    def test_survey_final_envelope_accepts_complete_zero_candidates_without_activation_claim(self):
+        f=self.caster_fixture()
+        with self.assertRaisesRegex(AssertionError,'caster survey witness'):f.finalize()
+        self.assertFalse(v.mobile_final_gate(f.plan,f.report))
+        # Only final-envelope controls: the actual readonly getter/slot evidence
+        # is mandatory in the separate pure evaluator, never invented here.
+        f.report.update(caster_survey_witness_passed=True,mobile_caster_survey=dict(passed=True,activation_exercised=False,
+            episodes=[dict(passed=True,match=m,world=141+i,eligible_candidate_count=0)for i,m in enumerate(f.matches)]))
+        self.assertTrue(v.mobile_final_gate(f.plan,f.finalize()))
+        self.assertFalse(f.report['full_mobile_controls_accepted'])
+        for kind in('missing','failed','world','match','activation','focus','recall','edits','stall'):
+            with self.subTest(kind=kind):
+                altered=deepcopy(f.report);plan=deepcopy(f.plan)
+                if kind=='missing':altered['mobile_caster_survey']['episodes'].pop()
+                elif kind=='failed':altered['mobile_caster_survey']['passed']=False
+                elif kind=='world':altered['mobile_caster_survey']['episodes'][0]['world']=999
+                elif kind=='match':altered['mobile_caster_survey']['episodes'][0]['match']='c'*32
+                elif kind=='activation':altered['mobile_caster_survey']['activation_exercised']=True
+                else:plan[{'focus':'mobile_focus','recall':'mobile_recall','edits':'mobile_group_user_edits','stall':'mobile_recovery_stall'}[kind]]=True
+                with self.assertRaises(AssertionError):
+                    v.finalize_mobile_observation(altered,plan,states=f.states,worker_state_rows=f.workers,client_logs=f.logs)
+                self.assertFalse(v.mobile_final_gate(plan,altered))
+
+    def test_readonly_survey_does_not_override_actual_movement_phase_body_or_native_hash_gates(self):
+        f=self.caster_fixture()
+        f.report.update(caster_survey_witness_passed=True,mobile_caster_survey=dict(passed=True,activation_exercised=False,
+            episodes=[dict(passed=True,match=m,world=141+i,eligible_candidate_count=0)for i,m in enumerate(f.matches)]))
         f.report['mobile_correction']['passed']=False
         with self.assertRaises(AssertionError):f.finalize()
         self.assertFalse(v.mobile_final_gate(f.plan,f.report))

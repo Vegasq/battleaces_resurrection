@@ -184,6 +184,7 @@ def prepare(args):
     mobile_recovery_stall = bool(getattr(args, 'mobile_recovery_stall', False))
     mobile_recall = bool(getattr(args, 'mobile_recall', False))
     mobile_focus = bool(getattr(args, 'mobile_focus', False))
+    mobile_caster_survey = bool(getattr(args, 'mobile_caster_survey', False))
     require(not mobile_group_intent or (args.scenario == 'mobile' and mobile_correction),
             'mobile group intent requires explicit mobile scenario/correction')
     require(not mobile_group_user_edits or mobile_group_intent,
@@ -196,6 +197,9 @@ def prepare(args):
     require(not mobile_focus or (args.scenario == 'mobile' and mobile_correction and mobile_group_intent and
             not mobile_recall and not mobile_group_user_edits and not mobile_recovery_stall),
             'mobile focus requires explicit preserved mobile group intent without recall/user edits/recovery stall')
+    require(not mobile_caster_survey or (args.scenario == 'mobile' and mobile_correction and mobile_group_intent and
+            not mobile_focus and not mobile_recall and not mobile_group_user_edits and not mobile_recovery_stall),
+            'mobile caster survey requires preserved mobile group intent without focus/recall/user edits/recovery stall')
     require(not (actor_correction and mobile_correction), 'HQ and mobile fixtures are mutually exclusive')
     require(not changing_rtt or (not actor_correction and not mobile_correction and args.scenario == 'movement' and args.lifecycle == 'natural' and
             args.move_slot == 0 and list(args.rtt_ms) == [130,475] and frames == 650),
@@ -235,7 +239,8 @@ def prepare(args):
                          (mobile_group_user_edits,'-prediction-mobile-group-user-edits-smoke'),
                          (mobile_recovery_stall,'-prediction-mobile-recovery-stall-smoke'),
                          (mobile_recall,'-prediction-mobile-recall-smoke'),
-                         (mobile_focus,'-prediction-mobile-focus-smoke')):
+                         (mobile_focus,'-prediction-mobile-focus-smoke'),
+                         (mobile_caster_survey,'-prediction-mobile-caster-survey-smoke')):
         require(not enabled or flag.encode('utf-16-le') in helper, 'helper lacks explicit ' + flag)
     required_hooks = prediction_worker.CALL_HOOKS + prediction_actor_repair.CALL_HOOKS
     required_pointers = prediction_actor_repair.POINTER_HOOKS
@@ -336,6 +341,7 @@ def prepare(args):
         if mobile_recovery_stall:invocation['mobile_recovery_stall']=True
         if mobile_recall:invocation['mobile_recall']=True
         if mobile_focus:invocation['mobile_focus']=True
+        if mobile_caster_survey:invocation['mobile_caster_survey']=True
         validate_mobile_plan(invocation)
     output.mkdir(parents=True, exist_ok=False)
     for name in sources:
@@ -355,13 +361,15 @@ def validate_mobile_plan(plan):
             plan.get('generic_movement_not_exercised') is True and not plan.get('actor_correction') and
             not plan.get('changing_rtt') and not plan.get('transition_orders') and plan.get('native_position_trace') is None,
             'prepared mobile scenario scope/fixture/650-frame natural contract differs')
-    require(all(key not in plan or type(plan[key]) is bool for key in ('mobile_group_intent','mobile_group_user_edits','mobile_recovery_stall','mobile_recall','mobile_focus')) and
+    require(all(key not in plan or type(plan[key]) is bool for key in ('mobile_group_intent','mobile_group_user_edits','mobile_recovery_stall','mobile_recall','mobile_focus','mobile_caster_survey')) and
             (not plan.get('mobile_group_user_edits') or plan.get('mobile_group_intent') is True) and
             (not plan.get('mobile_recovery_stall') or plan.get('mobile_group_user_edits') is True) and
             (not plan.get('mobile_recall') or (plan.get('mobile_group_intent') is True and
              not plan.get('mobile_group_user_edits') and not plan.get('mobile_recovery_stall'))) and
             (not plan.get('mobile_focus') or (plan.get('mobile_group_intent') is True and not plan.get('mobile_recall') and
-             not plan.get('mobile_group_user_edits') and not plan.get('mobile_recovery_stall'))),
+             not plan.get('mobile_group_user_edits') and not plan.get('mobile_recovery_stall'))) and
+            (not plan.get('mobile_caster_survey') or (plan.get('mobile_group_intent') is True and not plan.get('mobile_focus') and
+             not plan.get('mobile_recall') and not plan.get('mobile_group_user_edits') and not plan.get('mobile_recovery_stall'))),
             'prepared mobile group edits require typed explicit group intent')
 
 
@@ -413,6 +421,8 @@ def command_extra(plan, index, run):
         result.append('-prediction-mobile-recall-smoke')
     if plan.get('mobile_focus'):
         result.append('-prediction-mobile-focus-smoke')
+    if plan.get('mobile_caster_survey'):
+        result.append('-prediction-mobile-caster-survey-smoke')
     if plan.get('changing_rtt') and index == plan['move_slot']:
         result.append('-prediction-movement-smoke-distance=48')
     if plan.get('transition_orders') and index == plan['move_slot']:
@@ -1182,6 +1192,15 @@ def finalize_mobile_observation(report, plan, *, states, worker_state_rows, clie
                 len(focus.get('episodes',[])) == 2 and [row.get('match')for row in focus['episodes']] == created and
                 all(row.get('passed') is True and row.get('world') == victim[row['match']]for row in focus['episodes']),
                 'explicit mobile focus witness missing/failed')
+    if plan.get('mobile_caster_survey'):
+        survey=report.get('mobile_caster_survey',{})
+        require(plan.get('mobile_group_intent') is True and not plan.get('mobile_focus') and not plan.get('mobile_recall') and
+                not plan.get('mobile_group_user_edits') and not plan.get('mobile_recovery_stall') and
+                report.get('caster_survey_witness_passed') is True and survey.get('passed') is True and
+                len(survey.get('episodes',[])) == 2 and [row.get('match')for row in survey['episodes']] == created and
+                all(row.get('passed') is True and row.get('world') == victim[row['match']]for row in survey['episodes']) and
+                survey.get('activation_exercised') is False,
+                'explicit mobile value-only caster survey witness missing/failed')
     report.update(mobile_state_parity=parity,mobile_input_witness_passed=True,scoped_observation_passed=True,
         generic_movement_not_exercised=True,movement_feel_witness_passed=False,full_mobile_controls_accepted=False,
         mobile_scope='Both original mobile release/reinit/freshMove episodes plus full closed native parity; generic newborn440/460 movement not exercised, group intent remains separately open')
@@ -1219,6 +1238,14 @@ def mobile_final_gate(plan, report):
             [row.get('match')for row in report['mobile_focus']['episodes']] == [row.get('match')for row in report.get('matches',[])] and
             all(row.get('passed') is True and row.get('world') == episode.get('world')for row,episode in
                 zip(report['mobile_focus']['episodes'],report['mobile_correction']['episodes'])))) and
+        (not plan.get('mobile_caster_survey') or (plan.get('mobile_group_intent') is True and not plan.get('mobile_focus') and
+            not plan.get('mobile_recall') and not plan.get('mobile_group_user_edits') and not plan.get('mobile_recovery_stall') and
+            report.get('mobile_caster_survey',{}).get('passed') is True and report.get('caster_survey_witness_passed') is True and
+            report['mobile_caster_survey'].get('activation_exercised') is False and
+            len(report['mobile_caster_survey'].get('episodes',[])) == 2 and len(report['mobile_correction'].get('episodes',[])) == 2 and
+            [row.get('match')for row in report['mobile_caster_survey']['episodes']] == [row.get('match')for row in report.get('matches',[])] and
+            all(row.get('passed') is True and row.get('world') == episode.get('world')for row,episode in
+                zip(report['mobile_caster_survey']['episodes'],report['mobile_correction']['episodes'])))) and
         report.get('source_unchanged') is True and report.get('files_unchanged') is True and
         not report.get('forced_cleanup') and not report.get('cleanup_errors') and
         len(report.get('game_cleanup',[])) == 2 and all(r.get('natural_game_exit') is True for r in report['game_cleanup']))
@@ -2432,6 +2459,17 @@ async def run_prepared(output):
                 report['mobile_focus']=dict(passed=False,error=repr(error),
                     scope='No substituted owned iterator continuity, original pending cancellation or camera-call receipt')
                 report['focus_witness_passed']=False
+        if plan.get('mobile_caster_survey'):
+            try:
+                from tools.prediction_mobile_evidence import evaluate_caster_survey
+                report['mobile_caster_survey']=evaluate_caster_survey(clients[1]['log'],attacker_log=clients[0]['log'],
+                    mobile_episodes=report.get('mobile_correction',{}).get('episodes',[]),
+                    group_intent=report.get('mobile_group_intent',{}))
+                report['caster_survey_witness_passed']=report['mobile_caster_survey']['passed']
+            except BaseException as error:
+                report['mobile_caster_survey']=dict(passed=False,error=repr(error),activation_exercised=False,
+                    scope='No substituted complete readonly UI/getter survey or activation witness')
+                report['caster_survey_witness_passed']=False
         if plan['scenario'] == 'mobile':
             try:
                 finalize_mobile_observation(report,plan,states=states,worker_state_rows=worker_state_rows,
@@ -2764,6 +2802,8 @@ def main(argv=None):
                         help='With retained mobile group intent: original recall during absence and again after restored admission')
     parser.add_argument('--mobile-focus', action='store_true',
                         help='With preserved mobile group intent: owned held-focus continuity and original cancel control')
+    parser.add_argument('--mobile-caster-survey', action='store_true',
+                        help='With preserved mobile group intent: readonly actual UI caster mappings at145; no activation')
     parser.add_argument('--changing-rtt', action='store_true',
                         help='Owned ordinary650-frame movement: subject future-read130->475->130ms while original48-unit Move is unfinished')
     parser.add_argument('--transition-orders', action='store_true',
@@ -2782,7 +2822,7 @@ def main(argv=None):
     if args.run_prepared:
         report = asyncio.run(run_prepared(args.run_prepared))
         print(json.dumps({k: report[k] for k in ('passed', 'scoped_observation_passed', 'movement_feel_witness_passed',
-            'mobile_input_witness_passed','group_intent_witness_passed','recovery_stall_witness_passed','recall_witness_passed','focus_witness_passed','generic_movement_not_exercised',
+            'mobile_input_witness_passed','group_intent_witness_passed','recovery_stall_witness_passed','recall_witness_passed','focus_witness_passed','caster_survey_witness_passed','generic_movement_not_exercised',
             'full_feature_accepted', 'forced_cleanup', 'error') if k in report}))
         return 0 if report['passed'] else 1
     required = ('game', 'assets', 'output', 'python', 'module_root', 'heap_helper', 'cooperative', 'helper_build_receipt',

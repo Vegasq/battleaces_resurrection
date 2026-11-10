@@ -327,8 +327,49 @@ Owned diagnostic GameAssembly SHA256:
 
 This verifies callback targets and script-controlled original input. Camera
 pixels,physical UI,accepted group switching,active casting and general held
-gestures remain separate. Next identify the actually mapped noninstant12/14
-button/caster route before its activation/cancellation/command-ownership test.
+gestures remain separate. Actual30 below resolves the configured-button mapping
+precondition;activation/cancellation and command ownership remain separate.
+
+Actual30:read-only configured-button survey
+The original owned CommandPanel exposes12 actual AbilityButtonAction entries.
+The probe reads original slot,group,mapped-caster count and AbilityConfig getters
+at145,then verifies the same selector/simulation/manager/server/frame roots,
+selection/preview/casting IDs,source Count1,pending0 and inactive100 afterward.
+Key is an actual boxed four-byte closed IntKey;its original get_ID runs on the
+unboxed receiver. No closed-generic native RVA is invented. Field declaring
+parent/name/offset/type/size replace an unavailable field-token SDK export,
+which the file-only preflight caught before game execution. Effective CastType
+uses original virtual dispatch;SmartCasting is a group Boolean field.
+
+Both actual rounds report the same three mapped slots:
+  slot0:config18,groupkind0,CastType2(Instant),SmartCastingfalse.
+  slot4:config88,groupkind2,CastType5,SmartCastingfalse.
+  slot5:config14(Hold),groupkind0,CastType2(Instant),SmartCastingfalse.
+Other entries have no mapped casters. Move12 is not in the active button set.
+Thus zero eligible noninstant12/14 candidates is a valid complete observation.
+It is not an activation result or a missing-button defect. The remaining real
+noninstant route is88;its instantiated caster class remains unknown.
+
+The snapshots take1072/922us without original activation,factory lookup,cast,
+Pop,command enqueue,manual collection/setting writes or a caster-class claim.
+Actual30 passes both rounds in143.235s,all2888 closed native hashes and normal
+lifecycle,with source/inputs unchanged and no force/cleanup errors. The full
+helper40 build passes its authored controls;305 affected Python cases pass.
+The survey alone permits a64KiB/depth4 JSON row;legacy8KiB limits stay intact.
+
+Original30 PASS report SHA256:
+9e3c6a385601115a9bf25ed91e088feea9eacc43b3907e1466e66b0a0d663fe7
+Independent protected snapshot receipt SHA256:
+7ee90a35a4e74197e5f5193a0fe7b87321af653eccad11b8d159095769d95caf
+Independent strict gate audit receipt SHA256:
+b5ab4a767e9a6b4cd3990cc35a914035c68bd1e2f637bd6e77b309415cea5b06
+Helper40 SHA256:
+64de5fce473e5b92ef515e328aa049510f92eaa7cbd3ec16177f6ae77f6dc53e
+
+Next activate the observed88 button through original UI APIs,observe its actual
+caster/queue/selection lifetime across correction,and exercise original Pop.
+No88 command or prediction expansion is needed for that lifecycle check;
+the existing fresh Move12 and all movement/native/lifecycle gates remain.
 
 Forced-retirement whole-group clearing,casting/held input and
 physical/Internet acceptance remain OPEN. This does not close all mobile
@@ -366,6 +407,7 @@ local/prediction-runtime/movement28-group-recall/run/verification.json
 local/prediction-checkpoint-20261110/mobile-focus-fallback-review01/receipt.json
 local/prediction-runtime/movement29-group-focus/run/verification.json
 local/prediction-runtime/movement29-group-focus/file-audit01/gate-audit01/receipt.json
+local/prediction-runtime/movement30-caster-survey/run/verification.json
 
 N35's optional human Custom test remains frozen and reserved independently.
 The live host,firewall,usual client and user-owned sessions remain unchanged.

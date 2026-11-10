@@ -837,6 +837,180 @@ def _group_focus_product_rows(log, *, matches):
     return rows
 
 
+def _caster_survey_json(raw):
+    # This opt-in atomic receipt can hold twelve detailed buttons. Legacy
+    # diagnostic prefixes retain their separate 8KiB limit in _rows().
+    require(type(raw) is str and 0 < len(raw.encode('utf-8')) <= 65536, 'caster survey row exceeds64KiB bound')
+    depth=0;quoted=False;escaped=False
+    for char in raw:
+        if quoted:
+            if escaped:escaped=False
+            elif char == '\\':escaped=True
+            elif char == '"':quoted=False
+        elif char == '"':quoted=True
+        elif char in '{[':
+            depth+=1;require(depth <= 4, 'caster survey JSON exceeds declared depth4')
+        elif char in '}]':
+            depth-=1;require(depth >= 0, 'caster survey JSON has an invalid container')
+    require(not quoted and depth == 0, 'caster survey JSON container is incomplete')
+    return json.loads(raw,object_pairs_hook=_unique_object)
+
+
+def _caster_survey_text(value):
+    if type(value) is not str:return False
+    try:return 0 < len(value.encode('utf-8')) <= 511
+    except UnicodeError:return False
+
+
+def _caster_survey_button(row, index):
+    fields={'index','present','button_class','slot','valid_button','mapped_ids','mapped_count','has_mapped_casters',
+        'group_present','group_class','group_unity_truth','panel_group_matches','group_kind','cast_type','cast_type_method_token',
+        'smart_casting','config_lookup_performed','config_present','config_id','config_key_observation','candidate','candidate_reason'}
+    require(type(row) is dict and set(row) == fields and _integer(row['index'],0,11) and row['index'] == index and
+            type(row['present']) is bool and type(row['config_lookup_performed']) is bool and type(row['candidate']) is bool,
+            'caster survey button schema/actual array position differs')
+    optional=fields-{'index','present','config_lookup_performed','candidate','candidate_reason'}
+    if not row['present']:
+        require(all(row[k] is None for k in optional) and row['config_lookup_performed'] is False and
+                row['candidate'] is False and row['candidate_reason'] == 'null_button', 'null UI button has invented getter values')
+        return False
+    require(_caster_survey_text(row['button_class']) and _integer(row['slot'],-2**31,2**31-1) and
+            type(row['group_present']) is bool, 'caster survey button class/actual slot/group presence differs')
+    supported=0 <= row['slot'] < 12
+    if supported:
+        require(type(row['valid_button']) is bool and
+                (type(row['panel_group_matches']) is bool if row['valid_button'] else row['panel_group_matches'] is None),
+                'caster survey original panel getter route differs')
+    else:
+        require(row['valid_button'] is None and row['panel_group_matches'] is None,
+                'unsupported actual slot fabricated a panel lookup')
+    if row['mapped_ids'] is None:
+        require(row['mapped_count'] is None and row['has_mapped_casters'] is None,
+                'null mapped casters fabricated Count/HasMappedCasters')
+    else:
+        ids=row['mapped_ids']
+        require(type(ids) is list and len(ids) <= 8192 and all(_integer(v,0,UINT32) for v in ids) and
+                len(set(ids)) == len(ids) and _integer(row['mapped_count'],0,len(ids)) and
+                type(row['has_mapped_casters']) is bool and row['has_mapped_casters'] == (row['mapped_count'] > 0),
+                'caster survey mapped numeric IDs/resolvable Count/Has differ')
+    if row['group_present']:
+        require(_caster_survey_text(row['group_class']) and type(row['group_unity_truth']) is bool and
+                _integer(row['group_kind'],-2**31,2**31-1) and type(row['smart_casting']) is bool,
+                'caster survey group field/Unity observations differ')
+        if row['group_unity_truth']:
+            require(_integer(row['cast_type'],2,10) and _integer(row['cast_type_method_token']) and
+                    row['cast_type_method_token'] in (0x06000177,0x06000193), 'caster survey actual virtual CastType getter differs')
+        else:
+            require(row['cast_type'] is None and row['cast_type_method_token'] is None,
+                    'destroyed Unity group fabricated an effective CastType getter')
+    else:
+        require(all(row[k] is None for k in ('group_class','group_unity_truth','group_kind','smart_casting','cast_type','cast_type_method_token')),
+                'null mapped group fabricated group getter/field values')
+    lookup=row['has_mapped_casters'] is True and row['group_present'] and row['group_unity_truth'] is True
+    require(row['config_lookup_performed'] == lookup, 'caster survey original config lookup preconditions differ')
+    if lookup:
+        require(type(row['config_present']) is bool, 'caster survey config result presence is unobserved')
+    else:
+        require(row['config_present'] is None, 'skipped config getter fabricated a null result')
+    if lookup and row['config_present']:
+        require(_integer(row['config_id'],0,UINT32), 'caster survey actual config Key ID differs')
+        expected=dict(declaring_class='Uncapped.AbilityConfig',field_name='Key',field_offset=52,
+            declared_class='Uncapped.IntKey`1',boxed_class='Uncapped.IntKey`1',declared_boxed_class_equal=True,
+            value_size=4,getter_token=0x0600151a,getter_rva_guarded=False,field_token_source='static_original_metadata',
+            closed_argument_source='original_AbilityConfig.Key_metadata')
+        observed=row['config_key_observation']
+        require(type(observed) is dict and set(observed) == set(expected) and
+                all(type(observed[k]) is type(value) and observed[k] == value for k,value in expected.items()),
+                'caster survey boxed closed Key/get_ID provenance differs')
+    else:
+        require(row['config_id'] is None and row['config_key_observation'] is None, 'missing config fabricated a Key ID/provenance')
+    candidate=(supported and row['valid_button'] is True and row['panel_group_matches'] is True and
+        row['group_unity_truth'] is True and row['has_mapped_casters'] is True and row['mapped_count'] == 1 and
+        row['mapped_ids'] == [11] and row['config_id'] in (12,14) and row['cast_type'] is not None and
+        row['cast_type'] != 2 and row['smart_casting'] is False)
+    reason='noninstant_ui_mapping_only' if candidate else 'unsupported_slot' if not supported else 'ineligible_mapping'
+    require(row['candidate'] == candidate and row['candidate_reason'] == reason,
+            'caster survey candidate classification does not match actual getter values')
+    return candidate
+
+
+def evaluate_caster_survey(log, *, attacker_log, mobile_episodes, group_intent):
+    """Bounded readonly UI values, never a caster-instance/activation proof."""
+    require(type(mobile_episodes) is list and len(mobile_episodes) == 2 and [ep.get('world') for ep in mobile_episodes] == [1,2] and
+            type(group_intent) is dict and group_intent.get('passed') is True and group_intent.get('user_edits') is False and
+            len(group_intent.get('episodes',[])) == 2, 'caster survey requires both original mobile/preserved-group episodes')
+    matches=[ep.get('match') for ep in mobile_episodes]
+    require(len(set(matches)) == 2 and all(type(match) is str and re.fullmatch('[a-f0-9]{32}',match) for match in matches) and
+            [r.get('match') for r in group_intent['episodes']] == matches, 'caster survey match/rematch binding differs')
+    prefix='MOBILE CASTER SURVEY '
+    require(type(log) is str and len(log) <= 32*1024*1024 and type(attacker_log) is str and
+            len(attacker_log) <= 32*1024*1024 and prefix not in attacker_log, 'caster survey log exceeds bound or attacker emitted survey')
+    observed=[]
+    for line in log.splitlines():
+        if prefix not in line:continue
+        require(len(observed) < 2, 'caster survey duplicate/extra atomic receipt')
+        observed.append(_caster_survey_json(line.split(prefix,1)[1]))
+    require(len(observed) == 2 and [r.get('match') if type(r) is dict else None for r in observed] == matches,
+            'caster survey requires exactly one actual receipt per matched world')
+    fields={'schema','event','route','world','match','slot','entity','unit_type','army','frame','tick_ms','sample_begin_us','sample_end_us',
+        'incarnation','confirmed_incarnation','current_actual_entity','current_actual_type','current_actual_army','current_admitted',
+        'current_initialized','current_native_state','source_ids_before','source_ids_after','preview_ids_before','preview_ids_after',
+        'casting_ids_before','casting_ids_after','source_count_before','source_count_after','pending_before','pending_after',
+        'active_caster_before','active_caster_after','active_array_present','active_array_count','buttons','eligible_slots',
+        'settings_scope','activation_performed','caster_class_observed'}
+    episodes=[]
+    for ep,group,row in zip(mobile_episodes,group_intent['episodes'],observed):
+        require(ep.get('passed') is True and ep.get('fresh_motion',{}).get('passed') is True and
+                ep.get('fresh_assignment_span',{}).get('hashes_match') is True and
+                ep.get('escape_native_replay',{}).get('promotion_group_replayed_delta',0) > 0 and
+                ep.get('escape_native_replay',{}).get('continuation_frames') == 20 and group.get('passed') is True and
+                group.get('world') == ep['world'] and group.get('retained_group4_preserved') is True,
+                'caster survey lacks unchanged mobile input/replay+20/native confirmation/group gates')
+        lifecycle=[r for r in ep['rows'] if r['event'] != 'snapshot']
+        require([r['event'] for r in lifecycle] == list(EVENTS), 'caster survey mobile lifecycle is incomplete')
+        setup,dead,released,restored,before,reselected,complete=lifecycle;token=setup['original_incarnation']
+        require(type(row) is dict and set(row) == fields and type(row['schema']) is int and row['schema'] == 1 and
+                row['event'] == 'mapped_buttons' and row['route'] == 'owned_active_buttons_original_getters' and
+                all(_integer(row[k],0,UINT32) for k in ('slot','entity','unit_type','army','frame','current_actual_entity','current_actual_type','current_actual_army')) and
+                _integer(row['world'],1,2) and row['world'] == ep['world'] and
+                (row['slot'],row['entity'],row['unit_type'],row['army'],row['frame']) == (1,11,1,1,145) and
+                (row['current_actual_entity'],row['current_actual_type'],row['current_actual_army']) == (11,1,1) and
+                row['current_admitted'] is True and row['current_initialized'] is True and
+                _integer(row['current_native_state'],0,UINT32-1) and row['current_native_state'] != 6 and
+                _integer(row['incarnation'],1) and _integer(row['confirmed_incarnation'],1) and
+                row['incarnation'] == row['confirmed_incarnation'] == token == restored['current_incarnation'] == ep['fresh']['order']['incarnation'],
+                'caster survey actual current mobile/route/schema differs')
+        require(_integer(row['tick_ms']) and _integer(row['sample_begin_us']) and _integer(row['sample_end_us']) and
+                setup['sampled_us'] <= row['sample_begin_us'] < row['sample_end_us'] < dead['sampled_us'],
+                'caster survey QPC bracket is not after setup and before actual speculative death')
+        require(not episodes or (row['sample_begin_us'] > episodes[-1]['row']['sample_end_us'] and
+                row['tick_ms'] >= episodes[-1]['row']['tick_ms']), 'caster survey rematch clocks regressed/reused')
+        for stem in ('source_ids','preview_ids','casting_ids'):
+            a,b=row[stem+'_before'],row[stem+'_after']
+            require(type(a) is list and type(b) is list and len(a) <= 8192 and len(b) <= 8192 and
+                    all(_integer(v,0,UINT32) for v in a+b) and len(set(a)) == len(a) and len(set(b)) == len(b) and a == b,
+                    'caster survey changed original selector sets')
+        require(row['source_ids_before'] == [11] and all(type(row[k]) is int and row[k] == 1 for k in ('source_count_before','source_count_after')) and
+                all(type(row[k]) is int and row[k] == 0 for k in ('pending_before','pending_after')) and
+                row['active_caster_before'] is None and row['active_caster_after'] is None and
+                row['settings_scope'] == 'AbilityGroup.SmartCasting' and row['activation_performed'] is False and row['caster_class_observed'] is None,
+                'caster survey crossed readonly source/queue/settings/active-caster scope')
+        require(type(row['active_array_present']) is bool and _integer(row['active_array_count'],0,12) and
+                type(row['buttons']) is list and len(row['buttons']) == row['active_array_count'] and
+                (row['active_array_present'] or row['active_array_count'] == 0), 'caster survey actual array is incomplete/truncated/unsupported')
+        candidates=[button for index,button in enumerate(row['buttons']) if _caster_survey_button(button,index)]
+        require(type(row['eligible_slots']) is list and row['eligible_slots'] == [button['slot'] for button in candidates] and
+                all(_integer(slot,0,11) for slot in row['eligible_slots']), 'caster survey eligible actual slots/order/duplicates differ')
+        episodes.append(dict(passed=True,match=ep['match'],world=ep['world'],row=row,eligible_candidate_count=len(candidates),
+            eligible_slots=row['eligible_slots'],eligible_config_ids=[button['config_id'] for button in candidates],
+            complete_active_array_recorded=True,readonly_bracket_us=row['sample_end_us']-row['sample_begin_us'],
+            ownership_provenance='Frozen helper validates actual selector/panel/button/simulation/frame owners; no invented pointer JSON',
+            value_only=True,activation_exercised=False,caster_instance_type_qualified=False,physicalUI=False))
+    return dict(passed=True,episodes=episodes,requires_controller_full_closed_native_parity=True,activation_exercised=False,
+        active_casting_exercised=False,physicalUI=False,full_mobile_controls_accepted=False,
+        scope='Readonly owned active-button array and original getter/field values at145. Zero eligible mappings is complete evidence; no factory lookup, caster instance, activation or target semantics accepted.')
+
+
 def evaluate_group_focus(log, *, attacker_log, mobile_episodes, group_intent):
     """Complete owned repeat-focus trace, distinct from cached-focus snapshots."""
     require(type(mobile_episodes) is list and len(mobile_episodes) == 2 and
