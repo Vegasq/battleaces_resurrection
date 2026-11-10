@@ -14,6 +14,7 @@ import hashlib
 import json
 import math
 from pathlib import Path
+import re
 import struct
 
 
@@ -40,6 +41,14 @@ class PositionTraceSpec:
                 not 0 <= self.first_frame <= self.last_frame <= 0x7fffffff or
                 self.last_frame-self.first_frame >= 4096):
             raise ObservationError('invalid selected native frame window')
+
+
+def parse_position_trace_spec(value):
+    """Shared strict spelling for the worker CLI and owned capture controller."""
+    if (type(value) is not str or len(value) > 64 or
+            re.fullmatch(r'(?:0|[1-9][0-9]*)(?::(?:0|[1-9][0-9]*)){4}', value) is None):
+        raise ObservationError('expected ID:TYPE:ARMY:FIRST:LAST in canonical ASCII decimal')
+    return PositionTraceSpec(*(int(field) for field in value.split(':')))
 
 
 class _PositionTrace:

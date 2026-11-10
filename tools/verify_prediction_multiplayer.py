@@ -168,6 +168,12 @@ def prepare(args):
         require(isinstance(value, str) and HEX64.fullmatch(value), 'explicit lowercase SHA256 pins required')
     changing_rtt = bool(getattr(args, 'changing_rtt', False))
     transition_orders = bool(getattr(args, 'transition_orders', False))
+    position_trace = getattr(args, 'native_position_trace', None)
+    if position_trace is not None:
+        from client_patch.prediction_worker.observation import parse_position_trace_spec
+        position_spec = parse_position_trace_spec(position_trace)
+        require(changing_rtt and transition_orders and position_spec.army == args.move_slot,
+                'native position trace requires subject-owned changing RTT and transition orders')
     require(not transition_orders or changing_rtt, 'transition orders require explicit changing RTT')
     frames = args.frames if args.frames is not None else (650 if changing_rtt else 200 if args.scenario == 'startup' else 600)
     actor_correction = bool(getattr(args, 'actor_correction', False))
@@ -178,6 +184,8 @@ def prepare(args):
             'actor correction fixture requires natural movement scenario')
     require((120 <= frames <= 200 if args.scenario == 'startup' else 500 <= frames <= 650),
             'startup requires120..200 frames; movement requires500..650')
+    if position_trace is not None:
+        require(position_spec.last_frame <= frames, 'native position trace exceeds prepared frame bound')
     require(60 <= args.timeout <= 240 and len(args.rtt_ms) == 2 and all(
         type(x) in (int, float) and math.isfinite(x) and 0 <= x <= 500 for x in args.rtt_ms),
         'bounded timeout and two finite RTTs0..500ms required')
@@ -190,6 +198,9 @@ def prepare(args):
             files['gameassembly']['sha256'] == args.expected_gameassembly_sha256,
             'installed helper/GameAssembly differs from explicit pins')
     helper = read(files['helper']['path'])
+    if position_trace is not None:
+        require('-prediction-movement-observe-position='.encode('utf-16-le') in helper,
+                'helper lacks selected native position option')
     required_hooks = prediction_worker.CALL_HOOKS + prediction_actor_repair.CALL_HOOKS
     require(all(marker in helper for marker in (
         b'BA_RESURRECTION_MOVEMENT_PIPELINE_V1', b'BA_RESURRECTION_NATIVE_WORKER_PROXY_V1',
@@ -263,6 +274,7 @@ def prepare(args):
         actor_correction=actor_correction,
         changing_rtt=changing_rtt,
         transition_orders=transition_orders,
+        native_position_trace=position_trace,
         transition_phase_source='decision' if transition_orders else None,
         changing_pose_clock='sampled_us' if changing_rtt else None,
         publication_source='post-original-qpc' if changing_rtt else None,
@@ -320,6 +332,8 @@ def command_extra(plan, index, run):
         result.append('-prediction-movement-smoke-distance=48')
     if plan.get('transition_orders') and index == plan['move_slot']:
         result.append('-prediction-movement-smoke-transition-gates='+str(run/'transition-gates'))
+    if plan.get('native_position_trace') is not None and index == plan['move_slot']:
+        result.append('-prediction-movement-observe-position='+plan['native_position_trace'])
     if plan.get('publication_source')=='post-original-qpc':
         result.append('-frame-timing-worlds=2')
     if plan['lifecycle'] == 'natural':
@@ -1484,6 +1498,47 @@ def normal_build_units(log,slot):
     return [int(unit)for frame,owner,unit in builds if int(owner)==slot and int(frame)==300+slot*100]
 
 
+def native_position_bindings(log, *, matches, slot, spec, commands):
+    """Join caller-validated original commands to actual native BEGIN records."""
+    ready = re.findall(r'Movement prediction ready: generation=(\d+) match=([a-f0-9]{32}) world=(\d+) slot=(\d+) ', log)
+    require(len(matches) == 2 and len(set(matches)) == 2 and
+            [row[1] for row in ready] == matches and len({row[2] for row in ready}) == 2 and
+            all(int(row[3]) == slot for row in ready), 'native position BEGIN/match/world/slot binding differs')
+    require(len(commands) == 2, 'native position trace requires two validated original commands')
+    result = []
+    for command, (_, match, world, _) in zip(commands, ready):
+        require(command['match'] == match and command['world'] == int(world) and
+                command['entity'] == spec.entity_id and command['unit_type'] == spec.unit_type and
+                command['incarnation'] > 0 and spec.army == slot,
+                'native position watch differs from actual original FEEL actor')
+        result.append(dict(world=int(world), match=match, entity=command['entity'],
+                           unit_type=command['unit_type'], army=slot, incarnation=command['incarnation']))
+    return result
+
+
+def native_position_evidence(path, *, log, matches, slot, specification, contexts, catalog_units, entity_abilities):
+    """Closed file-only diagnostic; canonical command/state gates stay separate."""
+    from client_patch.prediction_worker.observation import parse_position_trace_spec
+    from tools.prediction_position_trace import analyze, read_trace
+    spec = parse_position_trace_spec(specification)
+    require([row['match'] for row in contexts] == matches, 'native position command contexts incomplete')
+    commands = []
+    for context in contexts:
+        require(context['slot'] == slot, 'native position command context owner differs')
+        validated = validate_move_command(feel_rows(log), match=context['match'], slot=slot,
+            commits=context['commits'], raw_bodies=context['raw_bodies'], journal=context['journal'],
+            catalog_units=catalog_units, entity_abilities=entity_abilities, built_units=normal_build_units(log,slot))
+        commands.append(validated['command'])
+    bindings = native_position_bindings(log, matches=matches, slot=slot, spec=spec, commands=commands)
+    rows = read_trace(path)
+    result = analyze(rows, identity=dict(id=spec.entity_id, type=spec.unit_type, army=spec.army), worlds=bindings)
+    require(all(row['event'] == 'before_restore_cached_head' or spec.first_frame <= row['frame'] <= spec.last_frame
+                for row in rows), 'native position query lies outside the explicit prepared window')
+    result['external_binding_source'] = 'Actual native BEGIN plus original FEEL command checked against immutable67/72/canonical journal'
+    result['frame_window'] = [spec.first_frame,spec.last_frame]
+    return result
+
+
 def validate_move_command(rows, *, match, slot, commits, raw_bodies, journal,
                           catalog_units=None, entity_abilities=None, built_units=None):
     """Bind one original command to actual67/72 and its unique canonical action."""
@@ -2079,6 +2134,20 @@ async def run_prepared(output):
                     record.update(rows=len(actual), worlds=list(dict.fromkeys(r['world'] for r in actual)))
                     worker_state_rows[row['index']] = actual
                 await cleanup_step(errors, 'retain closed worker native states', retain_worker_states)
+        if plan.get('native_position_trace') is not None:
+            try:
+                slot = plan['move_slot']
+                source = run / f'worker-data-{slot}' / 'native-positions.jsonl'
+                target = run / f'native-positions-{slot}.jsonl'
+                raw = read(source, 16 * 1024 * 1024)
+                target.write_bytes(raw)
+                require(digest(raw) == sha(target), 'closed native position copy differs')
+                report['native_position_file'] = dict(source=str(source), copy=str(target), sha256=digest(raw), bytes=len(raw))
+                report['native_position_trace'] = native_position_evidence(target, log=clients[slot]['log'],
+                    matches=created, slot=slot, specification=plan['native_position_trace'], contexts=turn_contexts,
+                    catalog_units=template.catalog, entity_abilities=template.entity_abilities)
+            except BaseException as error:
+                report['native_position_trace'] = dict(passed=False, error=repr(error), scope='No substituted native position or renderer-cause evidence')
         if plan['scenario'] == 'movement' and feel_context is not None and 'error' not in report:
             try:
                 if plan.get('actor_correction'):
@@ -2144,6 +2213,7 @@ async def run_prepared(output):
             (changing is None or (report.get('changing_rtt_smoothness_passed') is True and
              report.get('changing_rtt_other_client_feel',{}).get('passed') is True)) and
             (not plan.get('transition_orders')or report.get('transition_orders',{}).get('passed')is True)and
+            (plan.get('native_position_trace') is None or report.get('native_position_trace',{}).get('passed') is True)and
             report['files_unchanged'] and not report['forced_cleanup'] and not errors and
             len(report.get('game_cleanup', [])) == 2 and all(r['reaped'] and r['retained_handle_closed'] and r['exit_code'] == 0 and
             r['job'] and r['job']['active'] == r['job']['terminated'] == 0 for r in report['game_cleanup']) and
@@ -2378,6 +2448,8 @@ def main(argv=None):
                         help='Owned ordinary650-frame movement: subject future-read130->475->130ms while original48-unit Move is unfinished')
     parser.add_argument('--transition-orders', action='store_true',
                         help='With --changing-rtt only: new original subject reversals immediately afterfall and after measured recovery')
+    parser.add_argument('--native-position-trace', metavar='ID:TYPE:ARMY:FIRST:LAST',
+                        help='With changing RTT/transition orders: copy the subject native identity from existing decoded queries')
     args = parser.parse_args(argv)
     if args.reanalyze_startup:
         require(not args.run_prepared and args.reanalysis_output is not None,'file-only reanalysis cannot launch native')

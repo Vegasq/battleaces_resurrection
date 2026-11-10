@@ -3,7 +3,6 @@ from __future__ import annotations
 
 import argparse
 from pathlib import Path
-import re
 import sys
 
 from . import wire as w
@@ -12,11 +11,9 @@ from .native import NativeSession
 
 def _position_trace_spec(value):
     """Validate diagnostic input before stdout isolation or a native DLL load."""
-    if len(value) > 64 or re.fullmatch(r'(?:0|[1-9][0-9]*)(?::(?:0|[1-9][0-9]*)){4}', value) is None:
-        raise argparse.ArgumentTypeError('expected ID:TYPE:ARMY:FIRST:LAST in canonical ASCII decimal')
-    from .observation import PositionTraceSpec
+    from .observation import parse_position_trace_spec
     try:
-        return PositionTraceSpec(*(int(field) for field in value.split(':')))
+        return parse_position_trace_spec(value)
     except ValueError as error:
         raise argparse.ArgumentTypeError(str(error)) from error
 

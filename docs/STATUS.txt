@@ -59,11 +59,14 @@ four new orders respond39..64ms before authority,recovered phases0/0,all2890
 native hashes match and all children quit naturally. N35's refreshed independent
 human copy/launcher and matching ZIP are READY on the frozen eb82ed8 package.
 Physical/Internet/amplitude acceptance staysopen;all manual copies are reserved.
-File-only analysis places both largest sharp steps immediately after correction;
-the retained data cannot distinguish native head displacement from rendering.
-An optional same-query native position trace now preserves pre/post replay-head
-values;108 authored checks and helper26 build pass. It is not game-qualified
-or installed. N35's frozen test remains unchanged. Mobile focus/casting and
+Actual17 qualifies the same-query position trace in two source-pinned Custom
+rounds on officialPython3.14.8/current worker sources:544rows,seven same-head
+pairs,2888 matching native hashes and natural shutdown. One-frame early turns
+shift the native head0.630units;actual consecutive published endpoints move
+back0.315. Measured render backtracks0.255/0.180 stay inside those endpoints.
+No added renderer amplification is observed in this capture;16's larger steps
+remain retained.272 authored checks pass. This is not a new package or human
+acceptance. N35's frozen test remains unchanged. Mobile focus/casting and
 physical/Internet acceptance remain open;
 prediction-actor-correction.txt. N35's frozen kit remains reserved.
 Full_feature_accepted remainsfalse. See

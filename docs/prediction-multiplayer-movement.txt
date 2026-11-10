@@ -473,7 +473,8 @@ cover the existing Make/Get PLUS decode,not pure native-call latency.
 canonical bytes/no position file or position clocks when disabled,strict CLI
 startup refusal,same decoded-state copies and actual authored restore ordering.
 The full helper build and its authored controls pass;helper26 is56cf9eea... .
-This diagnostic has NOT run in a game or been installed/packaged. No movement,
+At that source-check checkpoint the diagnostic had not run in a game or been
+installed/packaged. No movement,
 rendering or pacing behavior is changed;the sharp-jump cause remains OPEN.
 The N35 runtime/ZIP/manual reservations and live server remain unchanged.
 
@@ -488,3 +489,70 @@ Ignored evidence:
 local/prediction-runtime/movement16-portable-fractional/pose-cause-audit01/evidence.json
 local/prediction-checkpoint-20261110/native-position-observer01/verification.json
 local/prediction-checkpoint-20261110/position-trace01/verification.json
+
+Actual17:same-query trace qualification and correction decomposition
+The controller now accepts an explicit --native-position-trace SPEC only for
+the subject-owned changing-RTT/transition-order scenario. It requires a helper
+that forwards the option,strict identity/window spelling and bounded frames.
+After natural worker closure,it retains the trace and joins BOTH original Move
+commands to actual BEGIN world/match,FEEL actor/type/incarnation,immutable67,
+raw72 and canonical journal. A missing/bad trace fails this optional gate;all
+prior movement/state/lifetime gates remain. Ordinary plans emit no extra flag.
+272 authored tests pass,including strict closed JSONL/cached-query provenance,
+float32 bits,world/revision/H pairing,missing data and external identity joins.
+
+Actual17 runs helper26/c87 with the official frozen3.14.8 interpreter and newly
+pinned ROOT worker sources,heap12/cooperative03. This is source/interpreter
+qualification,not a refreshed-package claim. Two actual Custom rounds finish
+in176.797s. Four NEW turns respond40.263/70.487/40.023/40.331ms after enqueue,
+before both native65 and raw bridge. Recovered phases0/0;transient turns-1/-1.
+All2888 closed native parsed hashes match authority,722frames per client/world.
+Actual subject changing-window producer gaps75.553/74.305ms and unfinished-pose
+holds46.026/41.013ms pass unchanged100ms gates. Whole-prefix W1 subject125.942ms
+and peer106.603ms hitches remain explicit outside that window.
+
+The544-row trace contains seven qualified actual same-head pairs,three with
+changed position. Outside-window revisions remain unqualified. At the second
+turn,W1 D532/H536 and W2 D533/H537 each shift the native head approximately
+0.630units because the local reversal preceded canonical application by one
+frame. The next actual native step advances0.315 in the new direction,leaving
+a0.315 backtrack between consecutively published output endpoints.
+
+The corresponding actual Transform backtracks0.254738/0.179976units stay inside
+those native endpoint segments. Nineteen nearby samples per world have maximum
+orthogonal residuals3.54e-6/3.41e-6;no added renderer amplification is observed
+at these corrections. No renderer writes are justified by this capture.
+Python perf-counter/QPC conversion is separately checked with32 real samples
+from the consumed3.14.8 interpreter;native Make/Get brackets still include
+decode and cached pre-head samples retain their original times.
+
+This does NOT reproduce or resolve Portable16's larger1.353/0.759 steps. Their
+earlier transient phases-3/-2 are consistent with larger native retiming error,
+but their absent native pre/post-head data prevents a retrospective proof.
+Physical/Internet comfort and broader amplitude/input acceptance stay OPEN.
+
+Games40320/26848,their workers and authorities35096/39528 exit0 naturally;
+retained handles are closed,Jobsactive/terminated0,no force or cleanup errors.
+Worker raw close receipts independently show reaped/I-Ojoined/balancedrequests.
+Authority closure awaits its source-bound pipe/executor cleanup;no separate raw
+authority ioJoined Boolean is claimed.932prepared source files and consumed
+inputs stay unchanged. The file-only audit rechecks all hashes/payloads and
+archives fresh captures/new helper/manifest;unchanged large inputs reuse pinned
+Portable16 archives. N35/manual/live/normal-client files stay unchanged.
+
+Original17 PASS report SHA256:
+c36057f5f72fadd3bb67e38bdd5114cd609053781bbcfa49e150138c87c2b8f2
+Position trace SHA256:
+8bd5d4c501c02b422fd17103367299b90feaceb8a0aaee6372212a7ff44075d8
+File-audit receipt SHA256:
+58299113dd66299cbf177178a9eb36f4079cfd662483308212010da8c1d9c2bd
+Ignored evidence:
+local/prediction-runtime/movement17-position-trace/run/verification.json
+local/prediction-runtime/movement17-position-trace/file-audit01/audit.json
+local/prediction-runtime/movement17-position-trace/pose-cause-audit01/verification.json
+local/prediction-checkpoint-20261110/position-capture17-clock01/verification.json
+
+Next finite scope:original mobile manual-group/repeat-focus through speculative
+death/pooling/recreation,then a new Move on the confirmed restored incarnation.
+Keep active casting/held input separate;existing HQ qualification does not
+prove mobile lifecycle behavior. N35 remains the same pending human test.

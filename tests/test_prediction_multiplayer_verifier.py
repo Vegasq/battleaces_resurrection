@@ -33,6 +33,7 @@ class PreparationTests(unittest.TestCase):
             b'BA_RESURRECTION_NATIVE_WORKER_PROXY_V1', b'BA_RESURRECTION_ORIGINAL_COMMAND_SCHEDULING_V1'))
         hooks = prediction_worker.CALL_HOOKS + prediction_actor_repair.CALL_HOOKS
         helper += b' '.join(h['name'].encode() + b'\0' for h in hooks)
+        helper += '-prediction-movement-observe-position='.encode('utf-16-le')
         (self.game / 'BattleAcesOffline.dll').write_bytes(helper)
         (self.game / 'Battle Aces.exe').write_bytes(b'MZgame')
         (self.game / 'GameAssembly.dll').write_bytes(b'MZassembly')
@@ -237,8 +238,48 @@ class PreparationTests(unittest.TestCase):
     def test_ordinary_preparation_adds_no_multiworld_publication_option(self):
         plan=verifier.prepare(self.args)
         self.assertIsNone(plan['publication_source'])
+        self.assertIsNone(plan['native_position_trace'])
         for index in (0,1):
-            self.assertNotIn('-frame-timing-worlds=2',verifier.command_extra(plan,index,self.args.output/'run'))
+            flags = verifier.command_extra(plan,index,self.args.output/'run')
+            self.assertNotIn('-frame-timing-worlds=2',flags)
+            self.assertFalse(any(flag.startswith('-prediction-movement-observe-position=') for flag in flags))
+
+    def test_native_position_request_is_explicit_and_forwarded_only_to_its_owner(self):
+        self.args.scenario = 'movement'; self.args.changing_rtt = self.args.transition_orders = True
+        self.args.native_position_trace = '12:75:0:400:650'
+        plan = verifier.prepare(self.args)
+        self.assertEqual(plan['native_position_trace'], self.args.native_position_trace)
+        for index in (0,1):
+            flags = verifier.command_extra(plan,index,self.args.output/'run')
+            expected = '-prediction-movement-observe-position=12:75:0:400:650'
+            self.assertEqual(flags.count(expected), 1 if index == 0 else 0)
+
+    def test_native_position_request_refuses_wrong_mode_owner_or_window_before_preparation(self):
+        self.args.scenario = 'movement'; self.args.changing_rtt = self.args.transition_orders = True
+        for key, value, message in (('changing_rtt',False,'subject-owned'),
+                                    ('transition_orders',False,'subject-owned'),
+                                    ('native_position_trace','12:75:1:400:650','subject-owned'),
+                                    ('native_position_trace','12:75:0:400:651','frame bound')):
+            self.args.native_position_trace = '12:75:0:400:650'
+            old = getattr(self.args,key)
+            setattr(self.args,key,value)
+            with self.subTest(key=key,value=value), self.assertRaisesRegex(AssertionError,message):
+                verifier.prepare(self.args)
+            setattr(self.args,key,old)
+            self.assertFalse(self.args.output.exists())
+        self.args.native_position_trace = '012:75:0:400:650'
+        with self.assertRaisesRegex(ValueError,'canonical ASCII'): verifier.prepare(self.args)
+        self.assertFalse(self.args.output.exists())
+
+    def test_native_position_option_requires_a_helper_that_can_forward_it(self):
+        self.args.scenario = 'movement'; self.args.changing_rtt = self.args.transition_orders = True
+        self.args.native_position_trace = '12:75:0:400:650'
+        helper = self.game / 'BattleAcesOffline.dll'
+        helper.write_bytes(helper.read_bytes().replace('-prediction-movement-observe-position='.encode('utf-16-le'),b''))
+        self.args.expected_helper_sha256 = verifier.sha(helper)
+        with self.assertRaisesRegex(AssertionError,'helper lacks selected native position option'):
+            verifier.prepare(self.args)
+        self.assertFalse(self.args.output.exists())
 
     def test_changing_rtt_rejects_other_modes_actor_confound_or_wrong_topology(self):
         self.args.changing_rtt=True;self.args.scenario='movement'
@@ -278,6 +319,63 @@ class PreparationTests(unittest.TestCase):
             verifier.main(base)
             parsed=prepare.call_args[0][0]
             self.assertFalse(parsed.transition_orders or parsed.changing_rtt or parsed.actor_correction)
+            self.assertIsNone(parsed.native_position_trace)
+
+
+class NativePositionBindingTests(unittest.TestCase):
+    def fixture(self):
+        from client_patch.prediction_worker.observation import PositionTraceSpec
+        matches = ['a'*32,'b'*32]
+        log = ''.join(f'Movement prediction ready: generation={i} match={match} world={i} slot=0 \n'
+                      for i,match in enumerate(matches,1))
+        commands = [dict(match=match,world=i,entity=12,unit_type=75,incarnation=i*10)
+                    for i,match in enumerate(matches,1)]
+        return dict(log=log,matches=matches,slot=0,spec=PositionTraceSpec(12,75,0,400,650),commands=commands)
+
+    def test_binding_retains_actual_world_and_incarnation_as_external_decoration(self):
+        kwargs = self.fixture()
+        rows = verifier.native_position_bindings(**kwargs)
+        self.assertEqual(rows,[dict(world=i,match=match,entity=12,unit_type=75,army=0,incarnation=i*10)
+                               for i,match in enumerate(kwargs['matches'],1)])
+
+    def test_wrong_ready_or_command_identity_cannot_be_rebound_to_the_watch(self):
+        from copy import deepcopy
+        original = self.fixture()
+        for name,value in (('world',9),('entity',13),('unit_type',1),('incarnation',0),('match','c'*32)):
+            kwargs = deepcopy(original); kwargs['commands'][1][name] = value
+            with self.subTest(name=name), self.assertRaisesRegex(AssertionError,'FEEL actor'):
+                verifier.native_position_bindings(**kwargs)
+        for replacement in ('world=1 slot=0','world=2 slot=1'):
+            kwargs = deepcopy(original); kwargs['log'] = kwargs['log'].replace('world=2 slot=0',replacement)
+            with self.subTest(ready=replacement), self.assertRaisesRegex(AssertionError,'BEGIN'):
+                verifier.native_position_bindings(**kwargs)
+
+    def test_position_join_requires_each_command_validator_and_passes_only_native_identity(self):
+        kwargs = self.fixture()
+        contexts = [dict(match=match,slot=0,commits=[],raw_bodies={},journal=[]) for match in kwargs['matches']]
+        rows = [dict(event='native_position',frame=450)]
+        with patch.object(verifier,'validate_move_command',side_effect=[dict(command=command) for command in kwargs['commands']]) as validate, \
+                patch('tools.prediction_position_trace.read_trace',return_value=rows) as read, \
+                patch('tools.prediction_position_trace.analyze',return_value=dict(passed=True)) as analyze:
+            result = verifier.native_position_evidence(Path('closed.jsonl'),log=kwargs['log'],matches=kwargs['matches'],
+                slot=0,specification='12:75:0:400:650',contexts=contexts,catalog_units={75:{}},entity_abilities={75:[12]})
+        self.assertEqual(validate.call_count,2)
+        self.assertEqual([call.kwargs['match'] for call in validate.call_args_list],kwargs['matches'])
+        read.assert_called_once_with(Path('closed.jsonl'))
+        self.assertIs(analyze.call_args.args[0],rows)
+        self.assertEqual(analyze.call_args.kwargs['identity'],dict(id=12,type=75,army=0))
+        self.assertEqual(analyze.call_args.kwargs['worlds'],verifier.native_position_bindings(**kwargs))
+        self.assertTrue(result['passed']); self.assertEqual(result['frame_window'],[400,650])
+
+    def test_position_join_refuses_a_query_outside_the_prepared_window(self):
+        kwargs = self.fixture()
+        contexts = [dict(match=match,slot=0,commits=[],raw_bodies={},journal=[]) for match in kwargs['matches']]
+        with patch.object(verifier,'validate_move_command',side_effect=[dict(command=command) for command in kwargs['commands']]), \
+                patch('tools.prediction_position_trace.read_trace',return_value=[dict(event='native_position',frame=399)]), \
+                patch('tools.prediction_position_trace.analyze',return_value=dict(passed=True)), \
+                self.assertRaisesRegex(AssertionError,'explicit prepared window'):
+            verifier.native_position_evidence(Path('closed.jsonl'),log=kwargs['log'],matches=kwargs['matches'],
+                slot=0,specification='12:75:0:400:650',contexts=contexts,catalog_units={},entity_abilities={})
 
 
 class OwnedSpawnTests(unittest.TestCase):

@@ -53,10 +53,14 @@ two-world producer tracing and162 verifier/shaper cases also pass. Portable16
 now passes on the actual frozen Python3.14.8 package:both recovered phases0,
 all2890 native hashes match,two rounds/natural Quit. N35's refreshed independent
 human copy/launcher and matching friend ZIP are READY;both earlier copies stay
-reserved. Next:measure native same-head displacement across correction with
-the new optional position trace,then address the remaining visual/input cases.
-Its108 authored checks and helper build pass;actual game qualification of this
-trace is pending. Review N35 feedback without changing its reserved kit.
+reserved. Actual17 now qualifies the optional native-position trace in two
+real Custom rounds:544 rows,seven same-head pairs,2888 matching native hashes
+and natural shutdown. The one-frame early turn causes a0.630 native correction;
+consecutive output endpoints backtrack0.315 and observed rendering stays inside
+their interpolation envelope. This run does not repeat16's larger steps.
+Next:qualify mobile control-group/repeat-focus ownership through speculative
+death/recreation and fresh input on the restored incarnation. Keep casting/
+held-input and physical/Internet feedback open;N35's reserved kit stays frozen.
 Detailed failures/scopes:prediction-multiplayer-movement.txt.
 The bounded fix,open scopes and separate mobile control are recorded in
 prediction-actor-correction.txt. N35's reserved kit remains frozen.
@@ -64,7 +68,7 @@ Physical mouse/Internet jitter and
 D8 acceptance remain open;prediction-multiplayer-movement.txt.
 The offline N34 test is superseded;
 the next user handoff must be an actual client-server prediction/feel test.
-No installed prediction or complete hidden-state equality yet.
+No production prediction release or complete hidden-state equality yet.
 See native-prediction-checkpoints.txt and movement-prediction.txt. Keep live
 server/user-owned sessions unchanged. Do not stop at the headless prototype.
 
