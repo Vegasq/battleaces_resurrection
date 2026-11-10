@@ -27,8 +27,12 @@ original Quit and every retained child drain naturally. Earlier ten-frame
 timing error/3m jump is retained as RED;new bounded largest step0.279265/15ms.
 Original parent fails only at diagnostic physical-vs-authority cutoff;separate
 file-only reanalysis proves complete delivery from actual receipts/raw bridge.
-Physical mouse/selection edges,portable test and Internet human acceptance
-remain OPEN. Full_feature_accepted remainsfalse. See
+Portable Movement04 now also passes on exact frozen Python3.14.8 package/helper:
+63ms response,125ms before authority,remote replay+20 continuations,2892 full
+parsed state comparisons,and two natural rounds. SFX bytes/install/private
+preflight verified;N35 separate Custom human test is READY,not yet accepted.
+Physical mouse/selection edges and Internet human acceptance remain OPEN.
+Full_feature_accepted remainsfalse. See
 prediction-multiplayer-movement.txt. Live/usual-client files remain unchanged.
 Details:native-prediction-checkpoints.txt,prediction-worker-client.txt.
 

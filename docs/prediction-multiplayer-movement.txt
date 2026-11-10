@@ -85,3 +85,51 @@ feedback. Rolling-min ACK RTT is not an immediate rising-latency estimator.
 N34 offline worker test is superseded;the next Nick handoff must use actual
 online Custom1v1. D8,RUNTIME_VALIDATED and full_feature_accepted remain open.
 Live host,firewall,usual client and reserved manual copy remain untouched.
+
+Portable qualification and human handoff
+Movement04 uses clean source97773c2,final helper12 f4adae65... and the actual
+private package's Python3.14.8,app imports,heap12 and cooperative03. All108
+package files are bound before execution and unchanged at completion. The
+verifier source remains separate;the worker imports only the frozen package.
+Two actual Unity clients complete two Custom rounds naturally in152.609s.
+Visible response63ms,125ms before both65/raw bridge;assignment441=commit441.
+The independent opponent Move461 triggers real three-frame replay with20
+matching continuation frames. Separate file-only comparison checks all2892
+retained confirmed full parsed native hashes against original authority.
+Presentation has zero skipped frames or>100ms gaps in both first prefixes.
+The bounded timing-tail rule now reports593 actual slow-peer arrival timings
+and proves all600 deliveries separately from native65/raw bridge. No timestamps
+are synthesized. Original trace cutoff failures remain preserved.
+
+The human game uses no-Quit-diagnostic recipe bb371878...;all movement/worker
+hooks match the qualified diagnostic recipe. The exact base/optional transforms
+and both installed manifest hashes are verified before launch. Actual private
+embedded-payload install-game,optional prepare/check and bundled-interpreter
+argv preflight pass in a new independent copy without desktop-shortcut changes.
+The optional Quit trace hook difference is not a claim of an identical runtime
+recipe or physical-input acceptance. The special launcher has no gameplay,
+smoke,audit,probe,automatic readiness or timed shutdown flags.
+
+The first standalone installer artifact times out;inspection finds its private
+ZIP root differs from the stock installer's fixed client root. The corrected
+embedded payload changes only its ZIP prefix to battleaces-client-win64;
+all108 package file bytes are identical. Installer02 verifies/exits0 naturally,
+and its extracted runtime performs the installation. Both attempts are retained.
+This rebasing is required when embedding this private-named ZIP with the stock
+installer;the extracted private ZIP's own ordinary GUI installer already works.
+
+N35 in private DEV.txt owns the concrete optional human test and answer fields.
+Its separate copy local/custom-prediction-manual-20261109/game is now RESERVED:
+no automated probes or modifications. Both humans use the same special launcher
+and Custom Game -> Invite Friend -> Start;public Play is excluded. The normal
+client,prior N34 reservation and live host remain untouched. Human acceptance
+and the wider gates above stay OPEN.
+
+Additional ignored evidence
+local/prediction-runtime/movement04/run/verification.json
+local/prediction-runtime/movement04/full-state-comparison01.json
+local/prediction-private-package-20261109/build-report.json
+local/prediction-private-package-20261109/payload-verification02.json
+local/prediction-private-package-20261109/sfx01-failure.json
+local/prediction-private-package-20261109/human-launch-preflight.stdout.json
+local/custom-prediction-manual-20261109/ready.json

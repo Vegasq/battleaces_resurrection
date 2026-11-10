@@ -27,8 +27,12 @@ continuations,2888 full parsed state comparisons,two rounds/natural Quit.
 The earlier clock defect (ten-frame error/3m jump) is fixed in this bounded
 case. Original failed timing-cutoff report is retained;separate reanalysis
 uses real native65 receipts/raw bridge for deliveries beyond the timing cutoff.
-Next:finish safe actor/input handling and portable private test qualification,
-then hand off a real online Custom match. Physical mouse/Internet jitter and
+Portable Movement04 now passes on the exact frozen Python3.14.8 package/helper:
+63ms response,125ms before authority,remote replay,2892 full parsed state
+comparisons,two rounds and natural shutdown. A separate prepared private human
+test is READY in DEV N35;both players use its special Custom launcher.
+Next:review N35 human online feel and remaining actor/input edge cases.
+Physical mouse/Internet jitter and
 D8 acceptance remain open;prediction-multiplayer-movement.txt.
 The offline N34 test is superseded;
 the next user handoff must be an actual client-server prediction/feel test.
