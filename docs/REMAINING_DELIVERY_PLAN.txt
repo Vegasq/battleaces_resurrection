@@ -49,8 +49,12 @@ command-phase/native-state/natural-Quit gates. Four fresh turns respond in
 38..43ms before authority;recovered phases+1/+1. Portable15 later remainsRED:
 both recovered orders are+2,despite real local response/state parity/natural
 Quit. A bounded fractional-time servo now passes289 actual-header cases;
-two-world producer tracing and162 verifier/shaper cases also pass. Next:build
-and qualify the actual bundled candidate before updating the human handoff.
+two-world producer tracing and162 verifier/shaper cases also pass. Portable16
+now passes on the actual frozen Python3.14.8 package:both recovered phases0,
+all2890 native hashes match,two rounds/natural Quit. N35's refreshed independent
+human copy/launcher and matching friend ZIP are READY;both earlier copies stay
+reserved. Next:review physical/Internet feedback and finish the remaining
+mobile focus/casting/input/visual scopes using owned diagnostics.
 Then qualify eligible mobile focus/casting and physical/Internet feel;review
 N35 human feedback. Detailed failures/scopes:prediction-multiplayer-movement.txt.
 The bounded fix,open scopes and separate mobile control are recorded in

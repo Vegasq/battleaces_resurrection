@@ -381,3 +381,65 @@ local/prediction-checkpoint-20261110/pacing-prospective01/fractional-verificatio
 local/prediction-checkpoint-20261110/pacing-prospective01/production-verification.json
 local/prediction-checkpoint-20261110/frame-timing-worlds01/verification.json
 local/prediction-checkpoint-20261110/producer-publication-verifier01/verification.json
+
+Portable16:actual bundled two-round scoped PASS
+Clean eb82ed8,helper25 and the exact new package's Python3.14.8/app/heap12/
+cooperative03 complete the same two-client Custom scenario. All108 package
+files are bound before execution and unchanged afterwards. Four new original
+Move reversals respond54.738/64.346/39.218/59.308ms after enqueue,before both
+raw bridge and native65. Recovered order3 assignment-minus-canonical is0/0;
+transient order2 is-3/-2,reported without normalization. Each final canonical
+command/correction and20 continuations match authority. Separate file-only
+re-evaluation matches all2890 closed full parsed native hashes.
+
+Both clients' two actual publication segments contain contiguous0..652 frames.
+The subject changing-window post-original producer gaps are90.881/81.261ms;
+the separate TF observation gaps94.504/88.795ms and unfinished-pose gaps47.757/
+49.562ms are retained. No missing-world or mixed-clock fallback is used.
+Games30684/38228,their local workers,and authorities43264/34648 exit0 naturally,
+reaped/I-Ojoined/allJobsinactive0/no force. Sources/runtime inputs and package
+files remain unchanged through199.797s. Original Portable15 remains FAILED.
+
+Scope limits remain:the peer's whole W2 prefix has a102.600ms producer gap at
+312->313,outside the subject transition window. Peer first-view observations
+reach105.037/108.988ms. Actual sharp Transform steps1.353/0.759units remain
+unqualified for visual comfort. This qualifies the scoped input/state/lifetime
+integration on the distributable runtime;human physical/Internet feedback,
+mobile focus/casting and broad visual/D8 acceptance remain OPEN.
+
+Helper25 SHA256:
+da36f305b3915ddd1fe9497b521036ee899351a2785f918298f744cde3f0d614
+Frozen private ZIP SHA256:
+ed09331250a0fd67958f9e0f247f7ac15e8ba7eb7f10f605f622b757c1a86b58
+Original scoped PASS report SHA256:
+8d19bbcb76630349685dd97100c7131320ca2202e5f92fd40f8fb9e09094978e
+Ignored evidence:
+local/prediction-runtime/movement16-portable-fractional/run/verification.json
+local/prediction-runtime/movement16-portable-fractional/file-audit01/audit.json
+local/prediction-private-package-20261110/build-report02.json
+
+Refreshed N35 human handoff
+The new independent local/custom-prediction-manual-20261110/game uses the frozen
+eb82ed8 package,runtime content IDedcf46d3d94a92bc5869,helper25 and no-Quit-trace
+human recipebb371878... . Supported ordinary install-game/optional prepare/
+check pass;the earlier runtime and installation receipts remain unchanged.
+The actual installed Python3.14.8 pure argv preflight validates fullscreen,
+prediction_custom,the external134.209.176.39 setting and local native bridge,
+with no smoke/audit/timed-Quit flags. It does not launch a game or contact a host.
+An initial preflight's wrong external-vs-local-bridge assertion is preserved;
+its corrected source-layer check passes. This is not physical-input acceptance.
+
+The parent Launch Online Prediction Test.cmd and game-relative special launcher
+reuse the earlier verified pattern with the new frozen runtime ID. The matching
+friend ZIP is copied byte-identically to the1110 package parent for handoff.
+Canonical private DEV N35 is refreshed with these artifacts;its existing answer
+fields are preserved and old instructions archived. The old977/helper12 kit and
+both earlier manual reservations remain untouched. The new1110 game is now also
+RESERVED:never run unattended probes or change it after this handoff. No host,
+firewall,usual client or desktop shortcut change is made. Human feedback remains
+pending;full_feature_accepted,RUNTIME_VALIDATED and D8 remain open.
+
+Ignored setup/readiness:
+local/custom-prediction-manual-20261110/installation02/verification.json
+local/custom-prediction-manual-20261110/human-launch-preflight02.json
+local/custom-prediction-manual-20261110/ready.json
