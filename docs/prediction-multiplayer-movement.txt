@@ -563,6 +563,8 @@ round2 ends it without restart. All2894 native hashes match,natural shutdown,
 fresh responses52.335/46.678ms and phases-1/0. Actual30 identifies the original
 noninstant UI route as slot4/88;Hold14 is instant and no Move12 button is
 active. The value-only survey preserves all2888 native hashes/natural shutdown;
-activation and caster-instance lifetime remain open. Keep active casting,held
+Actual31 also passes original activation/Pop and same-caster retention through
+correction,all2890 native hashes/natural shutdown,fresh phases0/0. Actual cast
+delivery and queued-command ownership remain open. Keep held
 input and forced-retirement group handling open. N35 remains the same pending
 human test;these fixtures do not accept physical/Internet visual comfort.

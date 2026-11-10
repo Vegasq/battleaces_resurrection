@@ -187,14 +187,142 @@ def _focus_observation(row, *, transient):
         scope='Would focus per original cached-branch predicates; not an actual camera-call observation')
 
 
-def _snapshots(log, match):
+def _caster_lifetime_records(log, match):
+    """Validate fixture invocations and observed100, not engine callback causes."""
+    rows = _rows(log, 'MOBILE ACTIVE CASTER ', match, 2048)
+    require(rows, 'missing active-caster lifetime receipt')
+    indices=[]
+    for index,line in enumerate(log.splitlines()):
+        if 'MOBILE ACTIVE CASTER ' in line:
+            row=json.loads(line.split('MOBILE ACTIVE CASTER ',1)[1],object_pairs_hook=_unique_object)
+            if row['match']==match:indices.append(index)
+    fields={'schema','event','world','match','slot','entity','unit_type','army','frame','tick_ms','sampled_us',
+        'button_slot','config_id','ui_cast_type','ui_group_kind','smart_casting','activated_caster',
+        'activated_caster_class','active_caster','active_caster_class','active_relation','is_unit_selection_related',
+        'source_ids','source_count','casting_ids','casting_count','pending_commands','left_held','right_held',
+        'click_reference','activation_calls','explicit_pop_calls','pop_reason','natural_clear_observed',
+        'first_natural_clear_frame','first_natural_clear_us','activation_info_type','activation_info_count',
+        'activation_info_from_hotkey','activation_info_held','native_identity_present','native_state',
+        'current_actor','current_admitted','original_incarnation','current_incarnation','direct_factory_calls','cast_calls','physicalUI'}
+    events={'before_activation','after_activation','snapshot','native_dead','release_observed','restored_before_cleanup',
+        'before_explicit_pop','after_explicit_pop','cleanup_skipped','before_fresh','complete'}
+    world=rows[0].get('world');require(world in (1,2) and type(world) is int,'active-caster world is not sequential1/2')
+    natural=None;last_active=0
+    for i,row in enumerate(rows):
+        _common(row,world=world)
+        require(set(row)==fields and row['event'] in events and type(row['slot']) is int and row['slot']==1 and
+                (row['entity'],row['unit_type'],row['army'])==(11,1,1), 'active-caster schema/event/identity differs')
+        require(all(type(row[k]) is int and row[k]==v for k,v in
+            (('button_slot',4),('config_id',88),('ui_cast_type',5),('ui_group_kind',2),
+             ('activation_info_type',1),('activation_info_count',1),('direct_factory_calls',0),('cast_calls',0))) and
+                row['smart_casting'] is False and row['activation_info_from_hotkey'] is True and row['activation_info_held'] is False,
+                'active-caster original mapping/activation-info/fixture-call scope differs')
+        require(all(type(row[k]) is bool for k in ('native_identity_present','current_admitted','natural_clear_observed',
+                'left_held','right_held')) and not row['left_held'] and not row['right_held'] and
+                type(row['pending_commands']) is int and row['pending_commands']==0 and
+                _integer(row['click_reference'],0,UINT32) and row['click_reference']!=11 and
+                _integer(row['activation_calls'],0,1) and _integer(row['explicit_pop_calls'],0,1) and
+                _integer(row['original_incarnation'],1) and _integer(row['current_incarnation']) and
+                (row['native_state'] is None or _integer(row['native_state'],0,UINT32-1)),
+                'active-caster queue/gesture/counter/native observation differs')
+        for stem in ('source','casting'):
+            ids=row[stem+'_ids'];count=row[stem+'_count']
+            require(type(ids) is list and len(ids)<=8192 and all(_integer(v,0,UINT32) for v in ids) and
+                    len(ids)==len(set(ids)) and _integer(count,0,len(ids)), 'active-caster actual selector IDs/count invalid')
+        current=_pointer(row['active_caster']);activated=_pointer(row['activated_caster']);actor=_pointer(row['current_actor'])
+        require((actor>0 or not row['current_admitted'] and row['current_incarnation']==0) and
+                (not row['current_admitted'] or row['current_incarnation']>0),'active-caster current actor/token differs')
+        for key in ('activated_caster_class','active_caster_class'):
+            require(row[key] is None or type(row[key]) is str and 0<len(row[key].encode('utf-8'))<=511,
+                    'active-caster managed class invalid')
+        require((row['activated_caster_class'] is not None)==bool(activated) and
+                (row['active_caster_class'] is not None)==bool(current) and
+                (type(row['is_unit_selection_related']) is bool if current else row['is_unit_selection_related'] is None) and
+                row['active_relation']==('none' if not current else 'same' if current==activated else 'replaced') and
+                (not current or current!=activated or row['active_caster_class']==row['activated_caster_class']),
+                'active-caster null/class/Related/relation observation differs')
+        require(row['pop_reason'] in (None,'explicit_cancel','post_restore_cleanup'), 'active-caster pop reason invalid')
+        if row['activation_calls'] and not row['explicit_pop_calls'] and last_active and not current and natural is None:
+            natural=(row['frame'],row['sampled_us'])
+        require(row['natural_clear_observed']==(natural is not None) and
+                (row['first_natural_clear_frame'],row['first_natural_clear_us'])==(natural if natural is not None else (None,None)),
+                'active-caster first observed clear is not the actual pre-fixture-Pop transition')
+        last_active=current
+        if i:
+            previous=rows[i-1]
+            require(row['frame']>=previous['frame'] and row['tick_ms']>=previous['tick_ms'] and
+                    row['sampled_us']>=previous['sampled_us'], 'active-caster clocks/frames regressed')
+    names=[r['event'] for r in rows if r['event']!='snapshot']
+    wanted=['before_activation','after_activation']
+    if world==1:wanted+=['before_explicit_pop','after_explicit_pop']
+    wanted+=['native_dead','release_observed','restored_before_cleanup']
+    if world==2:wanted+=(['cleanup_skipped'] if any(r['event']=='cleanup_skipped' for r in rows) else ['before_explicit_pop','after_explicit_pop'])
+    wanted+=['before_fresh','complete']
+    require(names==wanted,'active-caster activation/death/restoration/cleanup event chain incomplete or duplicated')
+    by_event={row['event']:row for row in rows if row['event']!='snapshot'}
+    start,active=by_event['before_activation'],by_event['after_activation']
+    require(start['frame']==active['frame']==145 and start['activation_calls']==0 and not _pointer(start['active_caster']) and
+            not _pointer(start['activated_caster']) and start['source_ids']==[11] and start['source_count']==1 and
+            not start['casting_ids'] and start['casting_count']==0 and
+            active['active_relation']=='same' and _pointer(active['active_caster'])>0 and
+            active['is_unit_selection_related'] is True and start['current_admitted'] and active['current_admitted'] and
+            start['native_identity_present'] and active['native_identity_present'] and
+            start['native_state'] not in (None,6) and active['native_state'] not in (None,6) and
+            start['current_incarnation']==active['current_incarnation']==start['original_incarnation'],
+            'original Perform did not activate one actual current unit-related managed caster at145')
+    cleanup=by_event.get('after_explicit_pop',by_event.get('cleanup_skipped'))
+    cleanup_index=rows.index(cleanup)
+    for i,row in enumerate(rows):
+        require(row['activation_calls']==(0 if i==0 else 1) and
+                row['explicit_pop_calls']==(1 if 'after_explicit_pop' in by_event and i>=cleanup_index else 0) and
+                (i==0 or (row['activated_caster'],row['activated_caster_class'],row['original_incarnation'])==
+                 (active['activated_caster'],active['activated_caster_class'],active['original_incarnation'])) and
+                (i<cleanup_index or not _pointer(row['active_caster'])) and
+                (row['pop_reason'] is None or row['event']=='after_explicit_pop'),
+                'active-caster fixture counters/root/cleanup scope changed')
+        require((row['event'] in ('before_fresh','complete') or 145<=row['frame']<180),
+                'active-caster observation escaped145..179')
+    restored=by_event['restored_before_cleanup'];dead=by_event['native_dead'];released=by_event['release_observed']
+    require(dead['native_identity_present'] and dead['native_state']==6 and
+            not released['native_identity_present'] and not _pointer(released['current_actor']) and
+            restored['native_identity_present'] and restored['native_state'] not in (None,6) and restored['current_admitted'] and
+            restored['current_incarnation']>0 and dead['frame']<released['frame']<=restored['frame'],
+            'active-caster actual native death/release/re-admission differs')
+    if 'after_explicit_pop' in by_event:
+        before=by_event['before_explicit_pop']
+        require(_pointer(before['active_caster'])>0 and before['sampled_us']<=cleanup['sampled_us'] and
+                before['frame']==cleanup['frame'] and cleanup['pop_reason']==('explicit_cancel' if world==1 else 'post_restore_cleanup') and
+                (cleanup['frame']==145 if world==1 else before['active_caster']==restored['active_caster'] and
+                 before['sampled_us']>=restored['sampled_us']), 'original Pop did not consume the observed current caster exactly once')
+    else:
+        require(world==2 and not _pointer(restored['active_caster']) and cleanup['frame']==restored['frame'] and
+                cleanup['sampled_us']>=restored['sampled_us'] and cleanup['pop_reason'] is None,
+                'cleanup skipped without an actual prior null100 observation')
+    fresh,complete=by_event['before_fresh'],by_event['complete']
+    require(fresh['frame']==180 and complete['frame']>=260 and all(not _pointer(r['active_caster']) and not r['casting_ids'] and
+            r['casting_count']==0 and r['current_admitted'] for r in (fresh,complete)),
+            'active-caster before-fresh/completion strict100/98 idle boundary missing')
+    return dict(rows=rows,indices=indices,world=world,match=match,events=by_event,
+        activation_index=indices[1],cleanup_index=indices[cleanup_index],
+        restored_relation=restored['active_relation'],natural_clear_observed=natural is not None)
+
+
+def _snapshots(log, match, *, caster_lifetime=False):
+    require(type(caster_lifetime) is bool,'invalid active-caster observation option')
+    lifetime=_caster_lifetime_records(log,match) if caster_lifetime else None
+    mobile_indices=[]
+    if lifetime:
+        for index,line in enumerate(log.splitlines()):
+            if 'MOBILE CORRECTION ' in line and json.loads(line.split('MOBILE CORRECTION ',1)[1],object_pairs_hook=_unique_object).get('match')==match:
+                mobile_indices.append(index)
     rows = _rows(log, 'MOBILE CORRECTION ', match, 2048)
     require(rows, 'missing original mobile episode')
     world = rows[0].get('world')
+    require(lifetime is None or lifetime['world']==world,'active-caster/mobile world binding differs')
     bool_fields = ('old_dead_to_sim', 'old_component_present', 'old_in_active', 'old_in_retained',
         'current_in_active', 'current_admitted', 'native_identity_present', 'native_state_present',
         'casting_references_victim', 'auto_type1', 'left_held', 'right_held', 'pool_callback_observed')
-    for row in rows:
+    for row_index,row in enumerate(rows):
         _common(row, world=world)
         require(row.get('event') in (*EVENTS, 'snapshot') and
                 (row['entity'], row['unit_type'], row['army']) == (11, 1, 1) and
@@ -215,9 +343,18 @@ def _snapshots(log, match):
         require(_integer(row.get('focus_group'), -1, 15) and
                 _integer(row.get('pending_commands'), 0, 256) and _integer(row.get('live_click_id'), 0, UINT32),
                 'invalid observed selector scalar')
+        active_window=bool(lifetime and lifetime['activation_index']<mobile_indices[row_index]<lifetime['cleanup_index'] and
+            lifetime['events']['after_activation']['sampled_us']<=row['sampled_us']<=lifetime['events'].get('after_explicit_pop',lifetime['events'].get('cleanup_skipped'))['sampled_us'] and 145<=row['frame']<180)
+        scratch_window=bool(lifetime and lifetime['activation_index']<mobile_indices[row_index] and
+            row['sampled_us']>=lifetime['events']['after_activation']['sampled_us'] and 145<=row['frame']<180)
+        if active_window and _pointer(row['active_caster']):
+            require(any(index>mobile_indices[row_index] and receipt['frame']==row['frame'] and
+                receipt['sampled_us']>=row['sampled_us'] and _pointer(receipt['active_caster'])==_pointer(row['active_caster'])
+                for index,receipt in zip(lifetime['indices'],lifetime['rows'])),
+                'mobile active100 lacks its actual same-frame lifetime observation')
         require(row['pool_callback_observed'] is False and not row['left_held'] and not row['right_held'] and
-                row['live_click_id'] != 11 and not _pointer(row['active_caster']) and
-                not row['casting_ids'] and not row['casting_references_victim'],
+                row['live_click_id'] != 11 and (active_window or not _pointer(row['active_caster'])) and
+                (scratch_window or not row['casting_ids'] and not row['casting_references_victim']),
                 'unexercised caster/gesture/pool-callback scope was crossed')
         require(row['native_state_present'] == (row.get('native_state') is not None) and
                 (row['native_state'] is None or _integer(row['native_state'], 0, UINT32-1)),
@@ -447,7 +584,7 @@ def _assignment_span(rows, *, world, assigned, canonical, states):
 
 def evaluate(log, *, attacker_log, match, commits, raw_bodies, journal, bridge_frames,
              canonical_payloads, canonical_states, native_states, worker_states,
-             escape_check, join_check, authority_rows):
+             escape_check, join_check, authority_rows, caster_lifetime=False):
     """Require one source-bound mobile release/reinit/fresh-command episode.
 
     ``authority_rows`` is the victim's parsed actual65 list (or the existing
@@ -461,7 +598,7 @@ def evaluate(log, *, attacker_log, match, commits, raw_bodies, journal, bridge_f
     cause = decode_player_input(raw_bodies[match, 0, escape['sequence']])['actions']
     require(len(cause) == 1 and digest(cause[0]) == escape['action_sha256'],
             'escape cause must be one exact original Move, not a multi-action batch')
-    snapshots, episode, focus_observations = _snapshots(log, match)
+    snapshots, episode, focus_observations = _snapshots(log, match, caster_lifetime=caster_lifetime)
     setup, dead, released, restored, before, reselected, complete = episode
     world = setup['world']
     actual65 = authority_rows(log) if callable(authority_rows) else authority_rows
@@ -555,9 +692,10 @@ def evaluate(log, *, attacker_log, match, commits, raw_bodies, journal, bridge_f
             stable_observations=stable_groups, followup_open=group_status != 'preserved',
             full_mobile_controls_accepted=False,
             scope='Observed original group4 ID11 membership for the retained confirmed token; raw tracked IDs preserved, no all-controls restoration claim'),
-        inactive_casting_scratch_exercised=False, active_caster_exercised=False, pool_callback_observed=False,
+        inactive_casting_scratch_exercised=False, active_caster_exercised=caster_lifetime, pool_callback_observed=False,
         physicalUI=False, full_feature_accepted=False,
-        scope='Scripted original Move12; original mobile membership/component release, corrected current admission, real group/focus setup and fresh command response; no physical UI/caster/VFX claim')
+        scope=('Scripted original Move12; original mobile membership/component release, corrected current admission, real group/focus setup and fresh command response; no physical UI/casting/VFX claim' if caster_lifetime else
+               'Scripted original Move12; original mobile membership/component release, corrected current admission, real group/focus setup and fresh command response; no physical UI/caster/VFX claim'))
 
 
 def _group_intent_rows(log, *, match, slot):
@@ -932,6 +1070,74 @@ def _caster_survey_button(row, index):
     require(row['candidate'] == candidate and row['candidate_reason'] == reason,
             'caster survey candidate classification does not match actual getter values')
     return candidate
+
+
+def evaluate_caster_lifetime(log, *, attacker_log, mobile_episodes, group_intent):
+    """Observed real original UI activation/current100 cleanup, never a cast."""
+    require(type(mobile_episodes) is list and len(mobile_episodes)==2 and [e.get('world') for e in mobile_episodes]==[1,2] and
+            type(group_intent) is dict and group_intent.get('passed') is True and group_intent.get('user_edits') is False and
+            len(group_intent.get('episodes',[]))==2,'active-caster lifetime requires both mobile/preserved-group episodes')
+    matches=[e.get('match') for e in mobile_episodes]
+    require(len(set(matches))==2 and all(type(v) is str and re.fullmatch('[a-f0-9]{32}',v) for v in matches) and
+            [e.get('match') for e in group_intent['episodes']]==matches and type(attacker_log) is str and
+            len(attacker_log)<=32*1024*1024 and 'MOBILE ACTIVE CASTER ' not in attacker_log,
+            'active-caster match/rematch/guest-only scope differs')
+    require(type(log) is str and len(log)<=32*1024*1024,'active-caster log exceeds bound')
+    actual=[]
+    for line in log.splitlines():
+        if 'MOBILE ACTIVE CASTER ' in line:
+            raw=line.split('MOBILE ACTIVE CASTER ',1)[1]
+            require(0<len(raw)<=8192,'active-caster receipt exceeds bound')
+            row=json.loads(raw,object_pairs_hook=_unique_object)
+            require(type(row) is dict and row.get('match') in matches,'active-caster extra/unknown match')
+            actual.append(row)
+            require(len(actual)<=4096,'active-caster total receipt count exceeds bound')
+    require(actual and all(b['sampled_us']>=a['sampled_us'] and b['tick_ms']>=a['tick_ms'] for a,b in zip(actual,actual[1:])),
+            'active-caster global rematch clocks regressed')
+    require(list(dict.fromkeys(row['match'] for row in actual))==matches,'active-caster rematch ordering differs')
+    episodes=[]
+    for ep,group in zip(mobile_episodes,group_intent['episodes']):
+        require(ep.get('passed') is True and ep.get('active_caster_exercised') is True and
+                ep.get('fresh_motion',{}).get('passed') is True and ep.get('fresh_assignment_span',{}).get('hashes_match') is True and
+                ep.get('fresh_native_confirmation',{}).get('continuation_frames')==20 and
+                ep.get('escape_native_replay',{}).get('promotion_group_replayed_delta',0)>0 and
+                ep.get('escape_native_replay',{}).get('continuation_frames')==20 and group.get('passed') is True and
+                group.get('world')==ep['world'] and group.get('retained_group4_preserved') is True,
+                'active-caster lifetime lacks unchanged body/phase/replay+20/native/group gates')
+        witness=_caster_lifetime_records(log,ep['match']);events=witness['events'];rows=witness['rows']
+        require(witness['world']==ep['world'],'active-caster actual world differs')
+        lifecycle={r['event']:r for r in ep['rows'] if r['event']!='snapshot'}
+        require(list(lifecycle)==list(EVENTS),'active-caster mobile lifecycle incomplete')
+        setup=lifecycle[EVENTS[0]];dead=lifecycle[EVENTS[1]];released=lifecycle[EVENTS[2]]
+        restored=lifecycle[EVENTS[3]];before=lifecycle[EVENTS[4]];complete=lifecycle[EVENTS[-1]]
+        require(all(row['original_incarnation']==setup['original_incarnation'] for row in rows) and
+                setup['sampled_us']<events['before_activation']['sampled_us']<=events['after_activation']['sampled_us']<dead['sampled_us'] and
+                all(events[name]['frame']==source['frame'] and events[name]['sampled_us']>=source['sampled_us'] for name,source in
+                    (('native_dead',dead),('release_observed',released),('restored_before_cleanup',restored))) and
+                events['native_dead']['sampled_us']<events['release_observed']['sampled_us']<events['restored_before_cleanup']['sampled_us'] and
+                events['before_fresh']['frame']==before['frame']==180 and events['before_fresh']['sampled_us']<=before['sampled_us'] and
+                events['complete']['frame']==complete['frame'] and events['complete']['sampled_us']<=complete['sampled_us'],
+                'active-caster phase observations lack their actual mobile lifecycle/QPC join')
+        require(events['restored_before_cleanup']['current_actor']==restored['current_actor'] and
+                events['restored_before_cleanup']['current_incarnation']==restored['current_incarnation']==ep['fresh']['order']['incarnation'] and
+                events['before_fresh']['sampled_us']<ep['fresh']['order']['sampled_us'],
+                'active-caster cleanup/fresh boundary does not use the actual restored current lease')
+        cleanup=events.get('after_explicit_pop',events.get('cleanup_skipped'))
+        episodes.append(dict(passed=True,match=ep['match'],world=ep['world'],rows=rows,
+            activated_caster=events['after_activation']['activated_caster'],
+            activated_caster_class=events['after_activation']['activated_caster_class'],
+            restored_relation=witness['restored_relation'],active_at_native_dead=bool(_pointer(events['native_dead']['active_caster'])),
+            active_at_release=bool(_pointer(events['release_observed']['active_caster'])),
+            fixture_activation_calls=1,fixture_explicit_pop_calls=cleanup['explicit_pop_calls'],
+            cleanup_event=cleanup['event'],cleanup_reason=cleanup['pop_reason'],
+            observed_pre_fixture_pop_clear=witness['natural_clear_observed'],
+            first_observed_clear_frame=cleanup['first_natural_clear_frame'],first_observed_clear_us=cleanup['first_natural_clear_us'],
+            clear_callback_or_cause_observed=False,strict_idle_before_fresh=True,
+            casting98_observation_scope='Actual IDs/count through145..179, including after Pop; strict empty98 required at180',
+            fixture_direct_factory_calls=0,fixture_cast_calls=0,activation_exercised=True,cast_command_exercised=False,physicalUI=False))
+    return dict(passed=True,episodes=episodes,activation_exercised=True,cast_command_exercised=False,
+        requires_controller_full_closed_native_parity=True,physicalUI=False,full_mobile_controls_accepted=False,
+        scope='One original UI88 Perform per world; observed managed IAbilityCaster100/Related/class and current100 original Pop0/1. Fixture call counts are not intercepted engine totals. Null-before-fixture-Pop is an observed transition, not callback/cause proof. No cast, attack,88 prediction or hidden-caster-state claim.')
 
 
 def evaluate_caster_survey(log, *, attacker_log, mobile_episodes, group_intent):

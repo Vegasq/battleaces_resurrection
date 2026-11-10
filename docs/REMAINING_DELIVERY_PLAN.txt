@@ -74,8 +74,10 @@ pending:all camera callbacks target current member11,no pending camera calls
 or silent restarts,all2894 native hashes match,and every child quits naturally.
 Actual30 surveys all12 real buttons in both rounds with unchanged state/queue:
 slot4 maps noninstant88;slot5 maps instant Hold14;Move12 has no active button.
-No ability was activated. Next:qualify the real88 caster's activation/cancellation
-and lifetime through correction,then held input. Prediction eligibility remains
+Actual31 now activates the real TargetGroundOrUnit caster:W1 original Pop145
+cancels it;W2 keeps the same object through death/release/restoration before
+original Pop161. All2890 native hashes match/natural Quit,fresh phases0/0.
+Next:actual UI casting and queued-command ownership,then held input. Prediction eligibility remains
 12/14. Forced-retirement group clearing and physical/Internet
 feedback remain open. N35's reserved kit stays frozen. Prior failures and the
 model-to-runtime ordering correction are preserved in the focused evidence.

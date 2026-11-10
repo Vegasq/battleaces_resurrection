@@ -366,10 +366,52 @@ b5ab4a767e9a6b4cd3990cc35a914035c68bd1e2f637bd6e77b309415cea5b06
 Helper40 SHA256:
 64de5fce473e5b92ef515e328aa049510f92eaa7cbd3ec16177f6ae77f6dc53e
 
-Next activate the observed88 button through original UI APIs,observe its actual
-caster/queue/selection lifetime across correction,and exercise original Pop.
-No88 command or prediction expansion is needed for that lifecycle check;
-the existing fresh Move12 and all movement/native/lifecycle gates remain.
+Actual31:original active-caster activation/cancellation/lifetime
+The explicit lifetime variant re-finds the actual slot4/config88 mapping and
+uses original ButtonActivationInfo.HotkeyActivation and PerformButtonAction.
+It observes a real Uncapped.TargetGroundOrUnitAbilityCaster in selector100,
+original IsUnitSelectionRelatedAbility=true,and queue0. This is a managed
+interface instance;the probe makes no Unit/UnityBehaviour layout assumption.
+Original UI activation may call its factory internally;the fixture makes no
+direct factory call and does not cast or issue an88 command.
+
+W1 invokes original Pop in the same145 update and observes100null. W2 leaves
+the original caster untouched through native death153,physical release154 and
+same-identity recreation161. The SAME caster object/class remains active at
+all three boundaries. Only after that observation does original Pop161 clear
+it. No pre-fixture-Pop natural clear was observed;no intercepted Deactivate/
+Pop callback or UnitsDying-causation claim is made. Each world has one fixture
+activation and one explicit Pop. Casting98 remains empty throughout this run.
+
+The diagnostic permits100/98 observations only in its bounded145..179 phase;
+post-cleanup100 must stay null. Default paths and the strict idle check before
+fresh Move180 are unchanged. No GetCasterSet,cast,manual scratch/ID/setting
+writes or production retirement-policy change is used to make the probe pass.
+
+Actual31 PASSES both actual rounds in148.125s. Fresh original Move responses
+53.585/55.638ms precede native65 by453ms and raw bridge by437ms;both phases0.
+Each escape has ten replayed native frames and20 continuations,and both fresh
+orders have20 continuations. Independent audit matches all2890 closed native
+hashes and all2890 retained native65/raw-bridge/authority wire triples. Every
+game,worker and authority exits naturally0,Jobs inactive0,no force/errors;
+prepared source and consumed inputs remain unchanged. The full helper41 build
+and322 affected Python tests pass. This qualifies activation,observed object
+retention and explicit cancellation;actual casting/queued-command ownership,
+hidden caster state,physical UI and full controls remain separate.
+
+Original31 PASS report SHA256:
+bae97cc9fa2be92688733f8b44c83d3db2f07392ff157e8de40fe12a18bf0057
+Independent protected snapshot receipt SHA256:
+c11232cff1f133e4ca5851fb18162006452cad7cde3dcf3b78f24c792c8ddb12
+Independent complete audit receipt SHA256:
+d231c6ccedd9710e0d20abb4bb6604813f815a08a2504288aa9f476913104f3a
+Helper41 SHA256:
+29a1ec949b2f06be04e15175b83b19a0a0e85792e9668c899b7e7543eac83a2f
+
+Next exercise the actual retained caster's original minimap command path and
+normal queue serialization. Ability88 remains nonpredicted;this separate UI
+command check must not demand pre-authority motion or invent a direct-constructor
+witness. The qualified Move12 prediction evidence remains separate and reusable.
 
 Forced-retirement whole-group clearing,casting/held input and
 physical/Internet acceptance remain OPEN. This does not close all mobile
@@ -408,6 +450,7 @@ local/prediction-checkpoint-20261110/mobile-focus-fallback-review01/receipt.json
 local/prediction-runtime/movement29-group-focus/run/verification.json
 local/prediction-runtime/movement29-group-focus/file-audit01/gate-audit01/receipt.json
 local/prediction-runtime/movement30-caster-survey/run/verification.json
+local/prediction-runtime/movement31-caster-lifetime/run/verification.json
 
 N35's optional human Custom test remains frozen and reserved independently.
 The live host,firewall,usual client and user-owned sessions remain unchanged.

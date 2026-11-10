@@ -662,6 +662,205 @@ class GroupIntentEvidenceTests(unittest.TestCase):
         with self.assertRaisesRegex(AssertionError,'attacker escape world reused'):f.evaluate()
 
 
+class CasterLifetimeFixture:
+    """Authored original-event observations; these are not native runtime proof."""
+    def __init__(self, relation='same'):
+        base=GroupFixture();self.episodes=base.episodes;self.groups=base.evaluate();self.rows=[];self.attacker=''
+        for ep in self.episodes:
+            ep['active_caster_exercised']=True
+            world=ep['world'];offset=(world-1)*10000000
+            if offset:
+                for row in ep['rows']:row['sampled_us']+=offset;row['tick_ms']+=offset//1000
+                for key in('origin_sampled_us','sampled_us','enqueue_sampled_us'):ep['fresh']['order'][key]+=offset
+            self.rows.extend(self.make_rows(ep,relation))
+
+    @staticmethod
+    def make_rows(ep,relation='same'):
+        source={r['event']:r for r in ep['rows'] if r['event']!='snapshot'}
+        setup,dead,released,restored,before,complete=[source[k]for k in
+            (mobile.EVENTS[0],mobile.EVENTS[1],mobile.EVENTS[2],mobile.EVENTS[3],mobile.EVENTS[4],mobile.EVENTS[-1])]
+        world=ep['world'];offset=setup['sampled_us']-100000;token=setup['original_incarnation'];rows=[]
+        def row(name,frame,us,active='A100',pop=0):
+            is_released=name=='release_observed';is_dead=name=='native_dead';activated=name!='before_activation'
+            item=dict(schema=1,event=name,world=world,match=ep['match'],slot=1,entity=11,unit_type=1,army=1,
+                frame=frame,tick_ms=us//1000,sampled_us=us,button_slot=4,config_id=88,ui_cast_type=5,ui_group_kind=2,
+                smart_casting=False,activated_caster='A100'if activated else'0',
+                activated_caster_class='Original.ManagedCaster'if activated else None,active_caster=active,
+                active_caster_class=('Original.ManagedCaster'if active=='A100'else'Other.ManagedCaster')if int(active,16)else None,
+                active_relation='none'if not int(active,16)else'same'if active=='A100'else'replaced',
+                is_unit_selection_related=True if int(active,16)else None,source_ids=[11],source_count=0 if is_released else 1,
+                casting_ids=[]if name in('before_activation','before_fresh','complete')else[11],
+                casting_count=0 if is_released or name in('before_activation','before_fresh','complete')else 1,
+                pending_commands=0,left_held=False,right_held=False,click_reference=0,activation_calls=int(activated),
+                explicit_pop_calls=pop,pop_reason=None,natural_clear_observed=False,first_natural_clear_frame=None,
+                first_natural_clear_us=None,activation_info_type=1,activation_info_count=1,activation_info_from_hotkey=True,
+                activation_info_held=False,native_identity_present=not is_released,native_state=None if is_released else 6 if is_dead else 1,
+                current_actor='0'if is_released else restored['current_actor'],current_admitted=not is_released,
+                original_incarnation=token,current_incarnation=0 if is_released else token,direct_factory_calls=0,cast_calls=0,physicalUI=False)
+            rows.append(item);return item
+        row('before_activation',145,offset+150000,'0');row('after_activation',145,offset+151000)
+        if world==1:
+            row('before_explicit_pop',145,offset+152000)
+            row('after_explicit_pop',145,offset+153000,'0',1)['pop_reason']='explicit_cancel'
+        current='0'if world==1 or relation=='none'else'B100'if relation=='replaced'else'A100'
+        pop=int(world==1)
+        row('snapshot',152,offset+195000,current,pop)
+        row('native_dead',dead['frame'],dead['sampled_us']+1,current,pop)
+        row('release_observed',released['frame'],released['sampled_us']+1,current,pop)
+        row('restored_before_cleanup',restored['frame'],restored['sampled_us']+1,current,pop)
+        if world==2:
+            if current=='0':row('cleanup_skipped',restored['frame'],restored['sampled_us']+2,'0',0)
+            else:
+                row('before_explicit_pop',restored['frame'],restored['sampled_us']+2,current,0)
+                row('after_explicit_pop',restored['frame'],restored['sampled_us']+3,'0',1)['pop_reason']='post_restore_cleanup'
+        pop=rows[-1]['explicit_pop_calls']
+        row('snapshot',170,offset+1000000,'0',pop)
+        row('before_fresh',180,before['sampled_us']-1,'0',pop)
+        row('complete',260,complete['sampled_us']-1,'0',pop)
+        natural=None;last=0
+        for r in rows:
+            current=int(r['active_caster'],16)
+            if r['activation_calls'] and r['explicit_pop_calls']==0 and last and not current and natural is None:
+                natural=(r['frame'],r['sampled_us'])
+            if natural:r.update(natural_clear_observed=True,first_natural_clear_frame=natural[0],first_natural_clear_us=natural[1])
+            last=current
+        return rows
+
+    def log(self):
+        return '\n'.join('MOBILE ACTIVE CASTER '+json.dumps(r)for r in self.rows)
+
+    def evaluate(self):
+        return mobile.evaluate_caster_lifetime(self.log(),attacker_log=self.attacker,mobile_episodes=self.episodes,group_intent=self.groups)
+
+
+class CasterLifetimeEvidenceTests(unittest.TestCase):
+    def test_same_none_and_replaced_are_observed_not_forced_to_one_hidden_lifetime(self):
+        for relation in('same','none','replaced'):
+            with self.subTest(relation=relation):
+                result=CasterLifetimeFixture(relation).evaluate();a,b=result['episodes']
+                self.assertTrue(result['passed']);self.assertTrue(result['activation_exercised']);self.assertFalse(result['cast_command_exercised'])
+                self.assertEqual(a['fixture_explicit_pop_calls'],1);self.assertEqual(a['cleanup_reason'],'explicit_cancel')
+                self.assertEqual(b['restored_relation'],relation);self.assertEqual(b['fixture_explicit_pop_calls'],int(relation!='none'))
+                self.assertEqual(b['observed_pre_fixture_pop_clear'],relation=='none')
+                self.assertFalse(b['clear_callback_or_cause_observed']);self.assertFalse(result['full_mobile_controls_accepted'])
+
+    def test_unknown_real_managed_class_and_replacement_related_false_remain_truthful(self):
+        f=CasterLifetimeFixture('replaced')
+        for row in f.rows:
+            if row['active_relation']=='replaced':row.update(is_unit_selection_related=False,active_caster_class='Original.OtherInterfaceCaster')
+        self.assertTrue(f.evaluate()['passed'])
+
+    def test_activation_requires_actual_positive100_related_hotkey_and_original_mapping(self):
+        changes=(dict(active_caster='0',active_caster_class=None,is_unit_selection_related=None,active_relation='none'),
+            dict(is_unit_selection_related=False),dict(activation_info_type=2),dict(ui_cast_type=2),dict(config_id=14),
+            dict(button_slot=5),dict(activation_info_from_hotkey=False),dict(current_admitted=False))
+        for change in changes:
+            with self.subTest(change=change):
+                f=CasterLifetimeFixture();next(r for r in f.rows if r['event']=='after_activation').update(change)
+                with self.assertRaises(AssertionError):f.evaluate()
+        f=CasterLifetimeFixture();f.rows[0]['source_count']=0
+        with self.assertRaises(AssertionError):f.evaluate()
+
+    def test_class_null_related_null_and_same_root_class_mismatch_rejected(self):
+        for change in(dict(active_caster_class=None),dict(is_unit_selection_related=None),dict(activated_caster_class='Wrong.Class')):
+            with self.subTest(change=change):
+                f=CasterLifetimeFixture();f.rows[1].update(change)
+                with self.assertRaises(AssertionError):f.evaluate()
+        f=CasterLifetimeFixture();row=f.rows[-1];row['is_unit_selection_related']=False
+        with self.assertRaises(AssertionError):f.evaluate()
+
+    def test_missing_duplicate_or_second_activation_and_counter_lies_rejected(self):
+        for kind in('missing','duplicate','activation','pop','fixture_factory','fixture_cast'):
+            with self.subTest(kind=kind):
+                f=CasterLifetimeFixture()
+                if kind=='missing':f.rows=[r for r in f.rows if not(r['world']==2 and r['event']=='restored_before_cleanup')]
+                elif kind=='duplicate':f.rows.insert(2,deepcopy(f.rows[1]))
+                else:f.rows[1][{'activation':'activation_calls','pop':'explicit_pop_calls','fixture_factory':'direct_factory_calls','fixture_cast':'cast_calls'}[kind]]=2 if kind=='activation'else 1
+                with self.assertRaises(AssertionError):f.evaluate()
+
+    def test_first_observed_clear_must_be_actual_pre_fixture_pop_transition(self):
+        for change in(dict(natural_clear_observed=True,first_natural_clear_frame=145,first_natural_clear_us=153000),
+                      dict(first_natural_clear_frame=152),dict(first_natural_clear_us=1)):
+            with self.subTest(change=change):
+                f=CasterLifetimeFixture();f.rows[3].update(change)
+                with self.assertRaises(AssertionError):f.evaluate()
+        f=CasterLifetimeFixture('none')
+        for r in f.rows:
+            if r['world']==2:r.update(natural_clear_observed=False,first_natural_clear_frame=None,first_natural_clear_us=None)
+        with self.assertRaises(AssertionError):f.evaluate()
+
+    def test_explicit_pop_requires_current_nonnull_and_cannot_reappear_after_cleanup(self):
+        f=CasterLifetimeFixture();f.rows[2].update(active_caster='0',active_relation='none',active_caster_class=None,is_unit_selection_related=None)
+        with self.assertRaises(AssertionError):f.evaluate()
+        f=CasterLifetimeFixture();next(r for r in f.rows if r['world']==1 and r['event']=='snapshot').update(
+            active_caster='A100',active_caster_class='Original.ManagedCaster',active_relation='same',is_unit_selection_related=True)
+        with self.assertRaises(AssertionError):f.evaluate()
+
+    def test_null_cleanup_cannot_claim_pop_and_pop_must_target_observed_current_replacement(self):
+        f=CasterLifetimeFixture('none');next(r for r in f.rows if r['event']=='cleanup_skipped')['explicit_pop_calls']=1
+        with self.assertRaises(AssertionError):f.evaluate()
+        f=CasterLifetimeFixture('replaced');r=next(r for r in f.rows if r['world']==2 and r['event']=='before_explicit_pop')
+        r.update(active_caster='A100',active_caster_class='Original.ManagedCaster',active_relation='same')
+        with self.assertRaises(AssertionError):f.evaluate()
+
+    def test_observed98_after_pop_is_valid_until179_but_fresh180_must_be_empty(self):
+        f=CasterLifetimeFixture();self.assertTrue(f.evaluate()['passed'])
+        self.assertEqual(next(r for r in f.rows if r['event']=='after_explicit_pop')['casting_ids'],[11])
+        for key,val in(('casting_ids',[11]),('active_caster','A100')):
+            g=CasterLifetimeFixture();next(r for r in g.rows if r['event']=='before_fresh')[key]=val
+            with self.assertRaises(AssertionError):g.evaluate()
+
+    def test_guest_only_exact_two_worlds_clocks_native_lifecycle_and_base_proofs_required(self):
+        for kind in('attacker','extra','regress','world','native','hash','replay','fresh','group'):
+            with self.subTest(kind=kind):
+                f=CasterLifetimeFixture()
+                if kind=='attacker':f.attacker=f.log()
+                elif kind=='extra':f.rows[0]['match']='f'*32
+                elif kind=='regress':f.rows[-1]['sampled_us']=1
+                elif kind=='world':f.rows[0]['world']=3
+                elif kind=='native':next(r for r in f.rows if r['event']=='release_observed')['native_identity_present']=True
+                elif kind=='hash':f.episodes[0]['fresh_assignment_span']['hashes_match']=False
+                elif kind=='replay':f.episodes[0]['escape_native_replay']['promotion_group_replayed_delta']=0
+                elif kind=='fresh':f.episodes[0]['fresh_motion']['passed']=False
+                else:f.groups['episodes'][0]['retained_group4_preserved']=False
+                with self.assertRaises(AssertionError):f.evaluate()
+
+    def active_mobile(self):
+        f=Fixture();ep=f.evaluate();life=CasterLifetimeFixture.make_rows(ep)
+        for row in f.rows[1:4]:row.update(active_caster='A100',casting_ids=[11],casting_references_victim=True)
+        # Actual98 truth persists after cleanup, but100 does not.
+        extra=deepcopy(f.rows[3]);extra.update(event='snapshot',frame=170,tick_ms=1000,sampled_us=1000000,active_caster='0')
+        f.rows.insert(4,extra)
+        original=f.log
+        def log():
+            text=original();indexed=[];rest=[]
+            for line in text.splitlines():
+                if line.startswith('MOBILE CORRECTION '):
+                    row=json.loads(line.split('MOBILE CORRECTION ',1)[1]);indexed.append((row['sampled_us'],line))
+                else:rest.append(line)
+            indexed.extend((r['sampled_us'],'MOBILE ACTIVE CASTER '+json.dumps(r))for r in life)
+            return '\n'.join([line for _,line in sorted(indexed)]+rest)
+        f.log=log;return f,life
+
+    def test_default_snapshots_remain_strict_and_opt_scope_requires_complete_witness(self):
+        f,life=self.active_mobile()
+        with self.assertRaisesRegex(AssertionError,'unexercised caster'):f.evaluate()
+        self.assertTrue(f.evaluate(caster_lifetime=True)['active_caster_exercised'])
+        life.pop()
+        with self.assertRaises(AssertionError):f.evaluate(caster_lifetime=True)
+
+    def test_opt_mobile_scope_does_not_relax_postcleanup100_beforefresh98_or_queue(self):
+        for kind in('postcleanup','fresh98','queue','phase','wire'):
+            with self.subTest(kind=kind):
+                f,life=self.active_mobile()
+                if kind=='postcleanup':f.rows[4]['active_caster']='A100'
+                elif kind=='fresh98':f.rows[5]['casting_ids']=[11]
+                elif kind=='queue':f.rows[1]['pending_commands']=1
+                elif kind=='phase':f.fresh_assigned=183
+                else:f.bridges[0]['payload_sha256']='0'*64
+                with self.assertRaises(AssertionError):f.evaluate(caster_lifetime=True)
+
+
 class CasterSurveyFixture:
     def __init__(self):
         base=GroupFixture();self.episodes=base.episodes;self.groups=base.evaluate();self.rows=[];self.attacker=''
