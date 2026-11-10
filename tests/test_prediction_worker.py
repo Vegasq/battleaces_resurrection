@@ -113,7 +113,9 @@ class CodecTests(unittest.TestCase):
                   22:struct.pack('<QIii', 1, 2, -1, 3), 23:struct.pack('<QI', 1, 0),
                   24:struct.pack('<QI', 1, 2)+b'X'*256,
                   64:struct.pack('<QII', 1, 12, 16*1024*1024),
-                  65:struct.pack('<Q', 1)+b'frame',66:struct.pack('<Q',1),127:b''}
+                  65:struct.pack('<Q', 1)+b'frame',66:struct.pack('<Q',1),
+                  67:struct.pack('<QQ',1,1)+b'player',68:struct.pack('<Q',1),
+                  69:struct.pack('<Qi',1,0),70:struct.pack('<Q',1),71:struct.pack('<Q',1),127:b''}
         self.assertEqual(set(bodies), {int(op) for op in w.WIRE_OPS})
         for op, body in bodies.items():
             encoded = w.encode_request(op, 1, body)
@@ -127,10 +129,14 @@ class CodecTests(unittest.TestCase):
         for op, body in ((1,b'\2'), (3,b'\xff'), (8,b'\0'*15), (7,b'\0'*8), (5,b''),
                          (22,struct.pack('<QI',1,2)+b'\0'*4),
                          (24,struct.pack('<QI',1,2049)+b'\0'*128),
-                         (24,struct.pack('<QI',1,1)+b'\0'*127)):
+                         (24,struct.pack('<QI',1,1)+b'\0'*127),
+                         (67,struct.pack('<QQ',1,0)+b'x'), (67,struct.pack('<QQ',1,1)),
+                         (67,struct.pack('<QQ',1,1)+b'x'*65537),
+                         (68,struct.pack('<Q',1)+b'x'), (69,struct.pack('<Qi',1,-1)),
+                         (70,struct.pack('<Q',1)+b'x'), (70,struct.pack('<Q',0))):
             with self.subTest(op=op), self.assertRaises(w.ProtocolError):
                 command(op, body)
-        for op in (0, 25, 67, 126, 128, 255):
+        for op in (0, 25, 71, 126, 128, 255):
             with self.assertRaises(w.ProtocolError):
                 command(op)
 

@@ -2,6 +2,7 @@
 from __future__ import annotations
 
 import ctypes as C
+import copy
 import _thread
 import hashlib
 import json
@@ -316,6 +317,10 @@ class NativeSession:
         self.predictions, self.prediction_adapters, self.prepared_prediction = {}, {}, {}
         self.dirty_worlds = set()
         self.terminal_admitted, self.terminal_masked = {}, {}
+        self.command_ledgers, self.identity_histories = {}, {}
+        self.active_identity_histories, self.bootstrap_identity_views = {}, {}
+        self.entity_guards = {}
+        self.movement_observer = None  # Explicit --movement-observe only.
         self.initialized = self.closed = False
         self.logs, self.log_overflow = [], False
         self.log_enabled = False
@@ -412,7 +417,19 @@ class NativeSession:
 
     def _call(self, name, *args):
         self.healthy()
+        observers=tuple(self.entity_guards.values())
+        before=[observer.snapshot() for observer in observers]
         result = self.api.call(name, *args)
+        after=[observer.snapshot() for observer in observers]
+        # MakeSimFrame maintains auxiliary view registries through create_hint.
+        # Those are not the authoritative allocator and may change here. Only
+        # master creation/hint counts, bindings and the epoch must stay fixed.
+        stable=(0,1,2,3,4,5,6,7,10,11)
+        if name not in ('SimProcessMsg','SimStep') and any(
+                tuple(old[index] for index in stable)!=tuple(new[index] for index in stable)
+                for old,new in zip(before,after)):
+            raise HostError('original query changed native entity allocation counters: '+name+
+                            ' before='+repr(before)+' after='+repr(after))
         return self._after_call(result)
 
     def _after_call(self, result):
@@ -426,13 +443,42 @@ class NativeSession:
             raise HostError('unknown/stale worker world ID')
         return self.worlds[key]
 
+    def enable_movement_observation(self, path):
+        """Called once after open(),before client streams/Init/world creation."""
+        self.healthy()
+        if self.initialized or self.worlds or self.movement_observer is not None:
+            raise HostError('diagnostic movement observation must precede native Init/worlds')
+        from .observation import CanonicalStateObserver
+        self.movement_observer = CanonicalStateObserver(path)
+
+    def _observe_native_frame(self, key, frame):
+        observer = self.movement_observer
+        if observer is None or key not in self.command_ledgers:
+            return  # Default/foundation paths never gain an extra query.
+        observer.prepare_frame(key, frame)
+        from server.native_simulation import decode_snapshot
+        world, size = self._world(key), C.c_uint32()
+        code, data = self._pair(size, 'SimMakeSimFrame', (world, 31, C.byref(size)),
+                               'SimGetSimFrameBuffer', lambda output: (world, output))
+        if code or struct.unpack_from('<i', data, 4)[0] != 0:
+            raise HostError('diagnostic native Spectator31 Make/Get query failed')
+        observer.record(key, frame, decode_snapshot(data[12:], 31, include_entities=True))
+
     def _retire_prediction(self, key):
         prediction = self.predictions.pop(key, None)
         adapter = self.prediction_adapters.pop(key, None)
         self.prepared_prediction.pop(key, None)
         self.terminal_admitted.pop(key, None)
         self.terminal_masked.pop(key, None)
+        self.command_ledgers.pop(key, None)
+        self.identity_histories.pop(key, None)
+        self.active_identity_histories.pop(key, None)
+        self.bootstrap_identity_views.pop(key, None)
+        observer = self.entity_guards.pop(key, None)
         errors = []
+        if self.movement_observer is not None:
+            try:self.movement_observer.finish_world(key)
+            except Exception as error:errors.append(str(error))
         if prediction:
             try:prediction.close()
             except Exception as error:errors.append(str(error))
@@ -441,6 +487,9 @@ class NativeSession:
             except Exception as error:errors.append(str(error))
         if prediction and self.arena:
             try:self.arena.forget_baseline()
+            except Exception as error:errors.append(str(error))
+        if observer:
+            try:observer.close()
             except Exception as error:errors.append(str(error))
         if errors:
             raise HostError('native prediction cleanup: ' + '; '.join(errors))
@@ -482,6 +531,69 @@ class NativeSession:
             if get_code == 0:
                 payload = output.raw[:size.value]
         return code, struct.pack('<iiI' if signed else '<IiI', size.value, get_code, len(payload)) + payload
+
+    def _promote_identities(self, key):
+        history = self.identity_histories.get(key)
+        if history is not None:
+            history.confirm(self.predictions[key].confirmed_frame)
+            observer=self.entity_guards.get(key)
+            self.active_identity_histories[key].confirm(self.predictions[key].confirmed_frame,
+                continuity_proof=observer.continuity if observer else None)
+            if self.movement_observer is not None:
+                prediction = self.predictions[key]
+                self.movement_observer.promote(key, prediction.confirmed_frame, prediction.metrics)
+
+    def _cache_bootstrap_view(self, key, viewer, raw):
+        # Before BEGIN there is no assigned slot. Cache at most the two real
+        # own-view buffers, <=32MiB total. Only an actual native -1 frame with
+        # matching alliance and bounded components qualifies; legacy non-view
+        # buffers never become synthetic bootstrap identities or new errors.
+        if viewer not in (0, 1) or key in self.predictions or key in self.dirty_worlds:
+            return
+        from server.native_simulation import _Buffer
+        from .entities import active_identities
+        try:
+            buffer = _Buffer(raw)
+            root = buffer.read('I', 0)
+            if buffer.scalar(root, 0, 'I') != 0xffffffff or buffer.scalar(root, 1, 'I') != viewer:
+                return
+            active_identities(raw, expected_frame=-1, max_entities=65536, allow_bootstrap=True)
+        except (ValueError, struct.error):
+            return
+        self.bootstrap_identity_views.setdefault(key, {})[viewer] = raw
+
+    def _record_identity_view(self, key, raw, physical_frame):
+        from server.native_simulation import _Buffer
+        history = self.identity_histories.get(key)
+        if history is None or physical_frame < 0:
+            return
+        buffer = _Buffer(raw)
+        root = buffer.read('I', 0)
+        if buffer.scalar(root, 1, 'I') != self.command_ledgers[key].slot:
+            raise HostError('native identity view alliance differs from own human slot')
+        history.observe(raw, physical_frame=physical_frame)
+        self.active_identity_histories[key].observe(raw, physical_frame=physical_frame)
+
+    def _after_prediction_replay(self, key, raw):
+        if key not in self.command_ledgers:
+            return  # Foundation/no-ledger path remains query-free.
+        from .prediction import frame_number
+        prediction = self.predictions[key]
+        number = frame_number(raw)
+        self._observe_native_frame(key, number)  # EVERY replayed step,before its checkpoint.
+        if number != prediction.received_frame or number > prediction.predicted_frame:
+            return
+        # The existing own-alliance identity query still caches ONLY the latest
+        # known authoritative frontier. The explicit full31 diagnostic above
+        # independently records every replayed step. Neither applies the copied
+        # terminal-view filter inside reconstruction.
+        world, slot = self._world(key), self.command_ledgers[key].slot
+        size = C.c_uint32()
+        code, data = self._pair(size, 'SimMakeSimFrame', (world, slot, C.byref(size)),
+                                'SimGetSimFrameBuffer', lambda output: (world, output))
+        if code or struct.unpack_from('<i', data, 4)[0] != 0:
+            raise HostError('native confirmed replay identity query failed')
+        self._record_identity_view(key, data[12:], number)
 
     def dispatch(self, command):
         if _thread.get_ident() != self.owner_thread:
@@ -550,17 +662,80 @@ class NativeSession:
             from .checkpoint import CheckpointAdapter
             from .prediction import Reconciler
             adapter = CheckpointAdapter(self, args[0])
+            from .entity_guard import EntityGuard
+            observer=EntityGuard.optional(self.arena,world)
+            if observer:self.entity_guards[args[0]]=observer
             prediction = Reconciler(adapter, max_ahead=args[1], max_journal_bytes=args[2])
             # Retain cleanup ownership before the initial full capture.
             self.prediction_adapters[args[0]], self.predictions[args[0]] = adapter, prediction
             prediction.prime()
+            if self.movement_observer is not None:
+                self.movement_observer.begin_world(args[0])
             return 0, b''
+        if op == w.Op.ENTITY_GUARD:
+            if args[0] not in self.predictions:raise HostError('native prediction is not enabled for this world')
+            observer=self.entity_guards.get(args[0])
+            if observer:observer.snapshot()
+            return 0,struct.pack('<I',int(observer is not None))
+        if op in (w.Op.LOCAL_BATCH, w.Op.ENTITIES, w.Op.PREDICTION_END, w.Op.ACTIVE_ENTITIES):
+            from .commands import CommandLedger, CommandLedgerError, admit_entities, player_slot
+            if args[0] not in self.predictions:
+                raise HostError('native prediction is not enabled for this world')
+            key, prediction = args[0], self.predictions[args[0]]
+            if prediction.failed or prediction.closed:
+                raise HostError('native prediction match is terminal or retired')
+            ledger = self.command_ledgers.get(key)
+            if op == w.Op.LOCAL_BATCH:
+                slot = player_slot(args[2])
+                if ledger is None:
+                    if prediction.received_frame != -1:
+                        raise CommandLedgerError('first local batch must precede authority0')
+                    from .entities import IdentityHistory, ActiveIdentityHistory
+                    staged = CommandLedger(slot)
+                    history = IdentityHistory()
+                    active = ActiveIdentityHistory()
+                    bootstrap = self.bootstrap_identity_views.get(key, {}).get(slot)
+                    if bootstrap is not None:
+                        active.bootstrap(bootstrap)
+                else:
+                    if slot != ledger.slot:
+                        raise CommandLedgerError('local batch changed own human slot')
+                    staged, history = copy.copy(ledger), self.identity_histories[key]
+                    active = self.active_identity_histories[key]
+                if args[1] >= 2:
+                    admit_entities(args[2], slot, history.lookup)
+                assigned = prediction.predicted_frame + 1 + int(key in self.prepared_prediction)
+                staged.register(args[1], args[2], assigned)
+                self.command_ledgers[key], self.identity_histories[key] = staged, history
+                self.active_identity_histories[key] = active
+                self.bootstrap_identity_views.pop(key, None)
+                return 0, struct.pack('<Qi', args[1], assigned)
+            if ledger is None:
+                raise CommandLedgerError('local command ledger has not been configured')
+            if op == w.Op.ENTITIES:
+                return 0, self.identity_histories[key].packet()
+            if op == w.Op.ACTIVE_ENTITIES:
+                return 0, self.active_identity_histories[key].active_packet()
+            if args[1] != prediction.received_frame:
+                raise CommandLedgerError('final frame differs from latest received authority')
+            staged = copy.copy(ledger)
+            count = staged.finish(args[1])
+            self.command_ledgers[key] = staged
+            return 0, struct.pack('<I', count)
         if op in (w.Op.PREDICTION_AUTHORITY, w.Op.PREDICTION_METRICS):
             if args[0] not in self.predictions:
                 raise HostError('native prediction is not enabled for this world')
             prediction = self.predictions[args[0]]
             if op == w.Op.PREDICTION_AUTHORITY:
+                ledger = self.command_ledgers.get(args[0])
+                if ledger is not None:
+                    from .commands import own_player_body
+                    from .prediction import frame_number
+                    staged = copy.copy(ledger)
+                    staged.observe_authority(frame_number(args[1]), own_player_body(args[1], ledger.slot))
                 prediction.enqueue_authority(args[1])  # NO restore or native call here.
+                if ledger is not None:
+                    self.command_ledgers[args[0]] = staged
                 return 0, b''
             stats = prediction.metrics
             values = tuple(stats[name] for name in ('captures','restores','drops','corrections',
@@ -583,8 +758,24 @@ class NativeSession:
             return code, b''
         if op == w.Op.PROCESS_MSG:
             prediction = self.predictions.get(args[0])
-            actual = prediction.before_next_frame(args[1]) if prediction else args[1]
+            next_raw = args[1]
+            ledger = self.command_ledgers.get(args[0])
+            if ledger is not None:
+                from .prediction import frame_number, PredictionInputError
+                number = frame_number(next_raw)
+                if number != prediction.predicted_frame + 1 or args[0] in self.prepared_prediction:
+                    raise PredictionInputError('next ordinary frame must follow the physical head exactly once')
+                if number > prediction.received_frame:
+                    next_raw = ledger.forecast(number)
+                first, last = prediction.received_frame + 1, prediction.predicted_frame
+                plan = dict(ledger.revision_plan(first, last)) if first <= last else {}
+                prediction.revise_unconfirmed(plan)
+            actual = prediction.before_next_frame(next_raw) if prediction else next_raw
+            if prediction:
+                self._promote_identities(args[0])
             raw = C.create_string_buffer(actual)
+            observer=self.entity_guards.get(args[0])
+            if observer:observer.begin(actual)
             self.dirty_worlds.add(args[0])
             code = self._call('SimProcessMsg', world, raw, len(actual))
             if prediction:
@@ -600,14 +791,26 @@ class NativeSession:
             code = self._call('SimStep', world, args[1], C.byref(value))
             if prediction:
                 if code:raise HostError('predicted native Step failed')
+                observer=self.entity_guards.get(args[0])
+                if observer:observer.finish()
+                if self.movement_observer is not None:
+                    from .prediction import frame_number
+                    self._observe_native_frame(args[0], frame_number(self.prepared_prediction[args[0]]))
                 prediction.after_native_frame(self.prepared_prediction.pop(args[0]))
+                self._promote_identities(args[0])
             return code, struct.pack('<i', value.value)
         if op == w.Op.MAKE_FRAME:
             size = C.c_uint32(args[2])
             code, data = self._pair(size, 'SimMakeSimFrame', (world, args[1], C.byref(size)),
                                    'SimGetSimFrameBuffer', lambda output: (world, output))
             prediction = self.predictions.get(args[0])
+            if code == 0 and struct.unpack_from('<i', data, 4)[0] == 0:
+                self._cache_bootstrap_view(args[0], args[1], data[12:])
             if prediction and code == 0 and struct.unpack_from('<i',data,4)[0] == 0:
+                ledger = self.command_ledgers.get(args[0])
+                if ledger is not None and args[1] == ledger.slot:
+                    self._record_identity_view(args[0], data[12:], prediction.predicted_frame)
+                    self._promote_identities(args[0])
                 from .presentation import confirmed_terminal_view
                 view, masked, key = confirmed_terminal_view(data[12:],
                     confirmed_frame=prediction.confirmed_frame, physical_frame=prediction.predicted_frame)
@@ -690,6 +893,8 @@ class NativeSession:
             attempt('SimDestroyWorld', world)
         self.worlds.clear()
         self.dirty_worlds.clear()
+        self.bootstrap_identity_views.clear()
+        self.active_identity_histories.clear()
         # Retain callback and helpers until every original native teardown call
         # completes. Heap interception stays loaded through process CRT detach.
         attempt('SimSetLogCallBack', C.c_void_p())
@@ -702,5 +907,8 @@ class NativeSession:
             self.healthy()
         except BaseException as exc:
             errors.append(str(exc))
+        if self.movement_observer is not None:
+            try:self.movement_observer.close()
+            except BaseException as exc:errors.append('diagnostic observer close: ' + str(exc))
         if errors:
             raise HostError('native cleanup failed: ' + '; '.join(errors))

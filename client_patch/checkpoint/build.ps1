@@ -9,9 +9,13 @@ $version = (Get-ChildItem -LiteralPath (Join-Path $sdk 'Include') -Directory | W
 $source = Join-Path $PSScriptRoot 'arena.cpp'
 $pages = Join-Path $PSScriptRoot 'page_checkpoint.hpp'
 $roots = Join-Path $PSScriptRoot 'thread_state.hpp'
+$entityGuard = Join-Path $PSScriptRoot 'entityguard.hpp'
+$entityHooks = Join-Path $PSScriptRoot 'entityguard_hooks.hpp'
 $before = (Get-FileHash -LiteralPath $source -Algorithm SHA256).Hash
 $pagesBefore = (Get-FileHash -LiteralPath $pages -Algorithm SHA256).Hash
 $rootsBefore = (Get-FileHash -LiteralPath $roots -Algorithm SHA256).Hash
+$entityGuardBefore = (Get-FileHash -LiteralPath $entityGuard -Algorithm SHA256).Hash
+$entityHooksBefore = (Get-FileHash -LiteralPath $entityHooks -Algorithm SHA256).Hash
 $builderBefore = (Get-FileHash -LiteralPath $PSCommandPath -Algorithm SHA256).Hash
 New-Item -ItemType Directory -Path $OutputDirectory -Force | Out-Null
 $output = (Resolve-Path -LiteralPath $OutputDirectory).Path
@@ -27,8 +31,10 @@ try {
     if ((Get-FileHash -LiteralPath $source -Algorithm SHA256).Hash -ne $before) { throw 'Source changed during build.' }
     if ((Get-FileHash -LiteralPath $pages -Algorithm SHA256).Hash -ne $pagesBefore) { throw 'Page checkpoint source changed during build.' }
     if ((Get-FileHash -LiteralPath $roots -Algorithm SHA256).Hash -ne $rootsBefore) { throw 'Native root reader source changed during build.' }
+    if ((Get-FileHash -LiteralPath $entityGuard -Algorithm SHA256).Hash -ne $entityGuardBefore) { throw 'Native entity observer source changed during build.' }
+    if ((Get-FileHash -LiteralPath $entityHooks -Algorithm SHA256).Hash -ne $entityHooksBefore) { throw 'Native entity hook source changed during build.' }
     if ((Get-FileHash -LiteralPath $PSCommandPath -Algorithm SHA256).Hash -ne $builderBefore) { throw 'Arena build script changed during build.' }
-    [ordered]@{ source_sha256=$before.ToLowerInvariant(); page_source_sha256=$pagesBefore.ToLowerInvariant(); root_source_sha256=$rootsBefore.ToLowerInvariant(); build_script_sha256=$builderBefore.ToLowerInvariant(); dll_sha256=(Get-FileHash -LiteralPath (Join-Path $output 'BAHeap.dll') -Algorithm SHA256).Hash.ToLowerInvariant(); compiler=$compiler; sdk=$version; experimental=$true; foreign_event_abi=1; foreign_event_bytes=472; foreign_event_capacity=8; foreign_event_frames=16; root_bindings_abi=1; root_bindings_words=7; baseline_forget_abi=1; page_storage_abi=2 } | ConvertTo-Json | Set-Content -LiteralPath (Join-Path $output 'build.json') -Encoding UTF8
+    [ordered]@{ source_sha256=$before.ToLowerInvariant(); page_source_sha256=$pagesBefore.ToLowerInvariant(); root_source_sha256=$rootsBefore.ToLowerInvariant(); entity_guard_source_sha256=$entityGuardBefore.ToLowerInvariant(); entity_hooks_source_sha256=$entityHooksBefore.ToLowerInvariant(); entity_guard_abi=1; entity_guard_stats_bytes=96; build_script_sha256=$builderBefore.ToLowerInvariant(); dll_sha256=(Get-FileHash -LiteralPath (Join-Path $output 'BAHeap.dll') -Algorithm SHA256).Hash.ToLowerInvariant(); compiler=$compiler; sdk=$version; experimental=$true; foreign_event_abi=1; foreign_event_bytes=472; foreign_event_capacity=8; foreign_event_frames=16; root_bindings_abi=1; root_bindings_words=7; baseline_forget_abi=1; page_storage_abi=2 } | ConvertTo-Json | Set-Content -LiteralPath (Join-Path $output 'build.json') -Encoding UTF8
 } finally {
     Pop-Location
     $env:INCLUDE = $savedInclude

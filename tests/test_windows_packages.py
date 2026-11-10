@@ -17,6 +17,34 @@ from tools.package_integrity import verify, PackageError
 from tests.test_credentials import private_test_folder, remove_test_folder
 
 
+class StandardClientImportTests(unittest.TestCase):
+    def test_allowlisted_patcher_imports_without_checkout_or_prediction_worker_runtime(self):
+        root = private_test_folder('client-import-')
+        self.addCleanup(remove_test_folder, root)
+        app, foreign = root / 'app', root / 'foreign'
+        foreign.mkdir()
+        for name in builder.CLIENT:
+            target = app / name
+            target.parent.mkdir(parents=True, exist_ok=True)
+            target.write_bytes((builder.ROOT / name).read_bytes())
+        script = '''import importlib,pathlib,sys
+root=pathlib.Path(sys.argv[1]).resolve()
+sys.path.insert(0,str(root))
+importlib.import_module('client_patch.patcher.patch_client')
+for name in ('prediction_worker','prediction_actor_repair','prediction_selection'):
+    module=sys.modules['client_patch.patcher.'+name]
+    assert pathlib.Path(module.__file__).resolve().is_relative_to(root),name
+assert not any(name=='client_patch.prediction_worker' or
+               name.startswith('client_patch.prediction_worker.') for name in sys.modules)
+for name,module in tuple(sys.modules.items()):
+    if name.split('.')[0] in ('client_patch','server','tools'):
+        assert pathlib.Path(module.__file__).resolve().is_relative_to(root),name
+'''
+        result = subprocess.run([sys.executable, '-I', '-S', '-B', '-c', script, str(app)],
+                                cwd=foreign, capture_output=True, text=True, timeout=30)
+        self.assertEqual(result.returncode, 0, result.stderr[-4000:])
+
+
 class WindowsPackageTests(unittest.TestCase):
     def setUp(self):
         self.root = private_test_folder('packages-')
@@ -296,6 +324,114 @@ class PackageDispatchTests(unittest.TestCase):
               mock.patch('client_patch.transport.launcher.main') as launch, redirect_stderr(io.StringIO())):
             self.assertEqual(package_client.main(['launch']), 1)
             launch.assert_not_called()
+
+
+class PredictionClientPackageTests(unittest.TestCase):
+    write_runtime = WindowsPackageTests.write_runtime
+    def setUp(self):
+        WindowsPackageTests.setUp(self)
+        helper=self.helper.read_bytes()+b'\0'.join(builder.PREDICTION_MARKERS)
+        self.helper.write_bytes(helper);self.helper_receipt['helper_sha256']=builder.sha(helper)
+        (self.root/'helper-build.json').write_text(json.dumps(self.helper_receipt))
+        self.heap=self.root/'heap/BAHeap.dll';self.cooperative=self.root/'coop/PredictionCooperative.dll'
+        self.heap.parent.mkdir();self.cooperative.parent.mkdir()
+        self.heap.write_bytes(helper[:256]+b'authored heap helper')
+        self.cooperative.write_bytes(helper[:256]+b'authored cooperative helper')
+        arena=dict(experimental=True,dll_sha256=builder.sha(self.heap.read_bytes()),
+            source_sha256=builder.sha(builder.source_file('client_patch/checkpoint/arena.cpp')),
+            page_source_sha256=builder.sha(builder.source_file('client_patch/checkpoint/page_checkpoint.hpp')),
+            root_source_sha256=builder.sha(builder.source_file('client_patch/checkpoint/thread_state.hpp')),
+            entity_guard_source_sha256=builder.sha(builder.source_file('client_patch/checkpoint/entityguard.hpp')),
+            entity_hooks_source_sha256=builder.sha(builder.source_file('client_patch/checkpoint/entityguard_hooks.hpp')),
+            build_script_sha256=builder.sha(builder.source_file('client_patch/checkpoint/build.ps1')),
+            entity_guard_abi=1,entity_guard_stats_bytes=96,root_bindings_abi=1,root_bindings_words=7,
+            baseline_forget_abi=1,page_storage_abi=2,foreign_event_abi=1,foreign_event_bytes=472,
+            foreign_event_capacity=8,foreign_event_frames=16)
+        coop=dict(experimental=True,dll_sha256=builder.sha(self.cooperative.read_bytes()),
+                  source_sha256=builder.sha(builder.source_file('client_patch/checkpoint/cooperative.cpp')))
+        self.arena_receipt=arena
+        self.heap.with_name('build.json').write_text(json.dumps(arena))
+        self.cooperative.with_name('build.json').write_text(json.dumps(coop))
+        self.aux_pins=mock.patch.multiple(builder,PREDICTION_HEAP_SHA256=arena['dll_sha256'],
+                                       PREDICTION_COOPERATIVE_SHA256=coop['dll_sha256'])
+        self.aux_pins.start()
+    def tearDown(self):
+        self.aux_pins.stop();WindowsPackageTests.tearDown(self)
+    def build(self,name='private',**kwargs):
+        return builder.build_prediction_client(self.runtime,self.helper,self.root/name,
+            heap_helper=self.heap,cooperative=self.cooperative,client_installer=self.client_installer,**kwargs)
+    def package(self):return self.root/'private/battleaces-client-prediction-private-win64'
+
+    def test_explicit_private_profile_is_client_only_and_pins_all_artifacts(self):
+        self.server_launcher.unlink()  # Private packages need no server launcher.
+        report=self.build(ordinary_gameassembly_sha256='a'*64,prediction_gameassembly_sha256='b'*64)
+        self.assertEqual(set(report['packages']),{'client'})
+        package=self.package();inventory=verify(package,'client')
+        descriptor=json.loads((package/'program/prediction/prediction-profile.json').read_bytes())
+        self.assertEqual(descriptor['profile'],builder.PREDICTION_PROFILE)
+        self.assertEqual(descriptor['gameassembly'],dict(ordinary_sha256='a'*64,prediction_sha256='b'*64))
+        self.assertEqual(set(descriptor['artifacts']),{'main_helper','main_helper_provenance','heap_helper',
+                         'heap_receipt','cooperative','cooperative_receipt'})
+        for row in descriptor['artifacts'].values():
+            self.assertIn(row['path'],inventory['files'])
+            self.assertEqual(builder.sha((package/row['path']).read_bytes()),row['sha256'])
+        modules={name.removeprefix('program/app/') for name in inventory['files'] if name.startswith('program/app/')}
+        self.assertEqual(modules,set(builder.PREDICTION_CLIENT))
+        self.assertEqual((package/'PREDICTION-TEST.txt').read_bytes(),builder.source_file('docs/prediction-test-guide.txt'))
+        self.assertEqual((package/'Install Battle Aces.exe').read_bytes(),self.client_installer.read_bytes())
+        wrapper=(package/'Start Prediction Client.cmd').read_text()
+        self.assertIn('tools.prediction_client start %*',wrapper)
+        self.assertNotIn(str(builder.ROOT),wrapper)
+        self.assertFalse(any(word in wrapper for word in ('smoke','-probe','--movement-observe','134.209.')))
+        self.assertFalse((package/'Start Client.cmd').exists())
+        self.assertFalse(any(Path(name).name.casefold() in {'gameassembly.dll','simulation.dll','ai.dll','global-metadata.dat'}
+                             for name in inventory['files']))
+
+    def test_standard_allowlist_excludes_worker_runtime_and_private_guide(self):
+        self.assertFalse(any(name.startswith('client_patch/prediction_worker/') for name in builder.CLIENT))
+        self.assertNotIn('tools/prediction_client.py',builder.CLIENT)
+        WindowsPackageTests.build(self,name='ordinary')
+        package=self.root/'ordinary/battleaces-client-win64'
+        self.assertFalse((package/'PREDICTION-TEST.txt').exists())
+        self.assertFalse((package/'program/prediction').exists())
+
+    def test_private_auxiliary_pin_and_receipt_source_or_abi_are_strict(self):
+        original=self.heap.read_bytes();self.heap.write_bytes(original+b'changed')
+        with self.assertRaisesRegex(PackageError,'frozen private profile pin'):self.build()
+        self.assertFalse((self.root/'private').exists());self.heap.write_bytes(original)
+        for key,value in (('dll_sha256','0'*64),('source_sha256','0'*64),('root_source_sha256','0'*64),
+                          ('entity_guard_stats_bytes',95),('experimental',False)):
+            altered=dict(self.arena_receipt,**{key:value});self.heap.with_name('build.json').write_text(json.dumps(altered))
+            with self.subTest(key=key),self.assertRaisesRegex(PackageError,'receipt/source'):
+                self.build()
+            self.assertFalse((self.root/'private').exists())
+
+    def test_incomplete_hash_pair_or_untyped_profile_rejected_before_output(self):
+        with self.assertRaisesRegex(PackageError,'complete'):
+            self.build(ordinary_gameassembly_sha256='a'*64)
+        with self.assertRaisesRegex(PackageError,'typed'):
+            builder.build(self.runtime,self.helper,self.root/'private',prediction_client={})
+        self.assertFalse((self.root/'private').exists())
+
+    def test_full_private_worker_derivation_and_preparer_import_outside_checkout(self):
+        self.build();app=self.package()/'program/app';foreign=self.root/'foreign';foreign.mkdir()
+        script='''import importlib,pathlib,sys
+root=pathlib.Path(sys.argv[1]).resolve();sys.path.insert(0,str(root))
+for name in ('tools.prediction_client','tools.prediction_native','tools.prepare_prediction_native',
+             'tools.prediction_crt_attach','server.simulation_worker',
+             'client_patch.prediction_worker.__main__','client_patch.prediction_worker.checkpoint',
+             'client_patch.prediction_worker.prediction','client_patch.prediction_worker.commands',
+             'client_patch.prediction_worker.entities','client_patch.prediction_worker.entity_guard',
+             'client_patch.prediction_worker.presentation','client_patch.prediction_worker.observation'):
+    importlib.import_module(name)
+for name,module in tuple(sys.modules.items()):
+    if name.split('.')[0] in ('client_patch','server','tools'):
+        assert pathlib.Path(module.__file__).resolve().is_relative_to(root),name
+assert sys.modules['server.native_simulation']._runtime is None
+'''
+        result=subprocess.run([sys.executable,'-I','-S','-B','-c',script,str(app)],cwd=foreign,
+                              capture_output=True,text=True,timeout=30)
+        self.assertEqual(result.returncode,0,result.stderr[-4000:])
 
 
 if __name__ == '__main__': unittest.main()

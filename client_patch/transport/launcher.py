@@ -10,6 +10,7 @@ from pathlib import Path, PureWindowsPath
 import re
 import socket
 import subprocess
+from dataclasses import dataclass
 
 from .bridge import Bridge, Remote, RemoteUnavailable, CONFIG_FAILURE
 from server.credentials import CredentialError, read_credential_file
@@ -18,6 +19,69 @@ from server import tls_transport as tls
 
 class LaunchError(ValueError):
     pass
+
+
+@dataclass(frozen=True)
+class PredictionWorkerOptions:
+    """Explicit private launch resources; never read from ordinary settings."""
+    python: Path
+    module_root: Path
+    heap_helper: Path
+    cooperative: Path
+    data_directory: Path
+
+
+def prediction_worker_options(args, selected=None):
+    """Validate before filesystem/IPC/process work; no diagnostics are implied."""
+    supplied = getattr(args, 'prediction_worker', None)
+    if selected is not None and supplied is not None and selected != supplied:
+        raise LaunchError('Conflicting prediction worker launch options')
+    value = selected if selected is not None else supplied
+    if value is None:
+        return None
+    if type(value) is not PredictionWorkerOptions:
+        raise LaunchError('Prediction worker requires typed private launch options')
+    if (getattr(args, 'unified_experimental', False) is not True or
+            getattr(args, 'original_command_scheduling_experimental', False) is not True or
+            getattr(args, 'replay', None) is not None):
+        raise LaunchError('Prediction worker requires unified Custom command scheduling without replay')
+    from tools.package_integrity import PackageError, ordinary_file
+    resolved = {}
+    for name in ('python', 'module_root', 'heap_helper', 'cooperative', 'data_directory'):
+        path = getattr(value, name)
+        if (not isinstance(path, Path) or not path.is_absolute() or
+                (path.drive and not re.fullmatch('[A-Za-z]:', path.drive)) or
+                len(str(path)) > 32000 or any(ord(c) < 32 or c == '"' for c in str(path))):
+            raise LaunchError('Prediction worker resources require absolute local paths')
+        # Inspect original spelling before resolve so links/reparse points do
+        # not become a trusted different resource merely through normalization.
+        try:
+            if name in ('module_root', 'data_directory'):
+                import stat
+                for parent in (path, *path.parents):
+                    info = parent.lstat()
+                    if stat.S_ISLNK(info.st_mode) or getattr(info, 'st_file_attributes', 0) & 0x400:
+                        raise LaunchError('Prediction worker paths cannot use links or reparse points')
+                if not path.is_dir():
+                    raise LaunchError('Prediction worker directory is unavailable')
+            else:
+                anchor = Path(path.anchor)
+                ordinary_file(anchor, path.relative_to(anchor).as_posix())
+        except (OSError, PackageError):
+            raise LaunchError('Prediction worker resource is unavailable or not an ordinary local path') from None
+        resolved[name] = path.resolve()
+    if (resolved['python'].name.casefold() != 'python.exe' or
+            resolved['heap_helper'].name != 'BAHeap.dll' or
+            resolved['cooperative'].name != 'PredictionCooperative.dll'):
+        raise LaunchError('Prediction worker resource names do not match the private profile')
+    try:
+        ordinary_file(resolved['module_root'], 'client_patch/prediction_worker/__main__.py')
+    except PackageError:
+        raise LaunchError('Prediction worker module closure is unavailable') from None
+    if resolved['data_directory'] in {resolved['module_root'], resolved['python'].parent,
+                                      resolved['heap_helper'].parent, resolved['cooperative'].parent}:
+        raise LaunchError('Prediction worker data must be separate from immutable program resources')
+    return PredictionWorkerOptions(**resolved)
 
 
 def read_json(path, maximum):
@@ -218,7 +282,8 @@ def native_storage_preflight(config):
     return profile
 
 
-def game_arguments(config, player_id, handle, args):
+def game_arguments(config, player_id, handle, args, *, prediction_worker=None):
+    prediction = prediction_worker_options(args, prediction_worker)
     run_name = args.run_name
     if not re.fullmatch('[A-Za-z0-9_-]{1,48}', run_name): raise LaunchError('Invalid run name')
     unified = getattr(args, 'unified_experimental', False)
@@ -246,6 +311,12 @@ def game_arguments(config, player_id, handle, args):
     result.append('-local-profile=' + profile)
     if unified: result.extend(('-unified-client', '-solo-ai-host=' + ai_host))
     if original_commands: result.append('-original-command-scheduling-experimental')
+    if prediction is not None:
+        result.append('-prediction-movement-experimental')
+        for flag, value in (('python', prediction.python), ('module-root', prediction.module_root),
+                            ('heap-helper', prediction.heap_helper), ('cooperative', prediction.cooperative),
+                            ('data-dir', prediction.data_directory)):
+            result.append('-prediction-worker-' + flag + '=' + str(value))
     replay = getattr(args, 'replay', None)
     if replay is not None:
         if not unified or not isinstance(replay, str) or len(replay) > 32000 or any(ord(c) < 32 for c in replay):
@@ -269,7 +340,7 @@ def game_arguments(config, player_id, handle, args):
     return result
 
 
-def spawn_game(config, remote, args, child_socket):
+def spawn_game(config, remote, args, child_socket, *, prediction_worker=None):
     if os.name != 'nt': raise LaunchError('The client launcher requires Windows')
     startup = subprocess.STARTUPINFO()
     startup.dwFlags |= subprocess.STARTF_USESHOWWINDOW
@@ -277,7 +348,7 @@ def spawn_game(config, remote, args, child_socket):
     startup.lpAttributeList = {'handle_list': [child_socket.fileno()]}
     dynamic = getattr(args, 'unified_experimental', False) or getattr(args, 'dynamic_identity_experimental', False)
     player_id = None if dynamic else remote.player_id
-    argv = game_arguments(config, player_id, child_socket.fileno(), args)
+    argv = game_arguments(config, player_id, child_socket.fileno(), args, prediction_worker=prediction_worker)
     try:
         child_socket.set_inheritable(True)
         return subprocess.Popen(argv, cwd=config['game_directory'], close_fds=True, startupinfo=startup)
@@ -285,7 +356,7 @@ def spawn_game(config, remote, args, child_socket):
         child_socket.set_inheritable(False)
 
 
-async def launch(config, remote, args):
+async def launch(config, remote, args, *, prediction_worker=None):
     """Own the private stream for the game's lifetime; remote sessions authenticate.
 
     Version1 uses a Remote from verified local settings/private handoff. The
@@ -293,6 +364,7 @@ async def launch(config, remote, args):
     This API also permits controlled in-memory credentials in integration tests;
     there is no public bypass flag or token argument.
     """
+    prediction = prediction_worker_options(args, prediction_worker)
     unified = getattr(args, 'unified_experimental', False)
     version = 2 if unified or getattr(args, 'dynamic_identity_experimental', False) else 1
     native_storage_preflight(config)
@@ -305,7 +377,10 @@ async def launch(config, remote, args):
     writer = task = None
     try:
         reader, writer = await asyncio.open_connection(sock=parent)
-        game = spawn_game(config, remote, args, child)
+        if prediction is None:
+            game = spawn_game(config, remote, args, child)
+        else:
+            game = spawn_game(config, remote, args, child, prediction_worker=prediction)
         child.close()
         print(f'Client started (PID {game.pid}).' if unified else
               f'Secure client started (PID {game.pid}); transport owns the private invite', flush=True)

@@ -17,8 +17,21 @@ The actual Unity API transport now runs through an owned local worker;menu,
 attach allocation. Worker reconciliation now matches1200 control frames,two
 eight-frame corrections and30 continuation frames each;three world retirements
 release saved payload after fixing page retention/fragmentation. The strict
-ownership guard remains. Next:integrate ordered immediate input/renderer
-correction and qualify local two-client latency.
+ownership guard remains. Ordered local batches/correction/late terminal now
+pass a changed original-native control journal. Actual two-client Custom
+startup/rematch/terminal drain/Continue/Leave/Quit now pass at130/475ms RTT
+(retained parser failure has a separate file-only reanalysis).
+Actual scripted Unity movement before authority now passes at130/475ms RTT:
+response78ms,exact441/461 command phase,independent remote correction and20
+continuations,2888 full parsed state comparisons,two rounds/natural Quit.
+The earlier clock defect (ten-frame error/3m jump) is fixed in this bounded
+case. Original failed timing-cutoff report is retained;separate reanalysis
+uses real native65 receipts/raw bridge for deliveries beyond the timing cutoff.
+Next:finish safe actor/input handling and portable private test qualification,
+then hand off a real online Custom match. Physical mouse/Internet jitter and
+D8 acceptance remain open;prediction-multiplayer-movement.txt.
+The offline N34 test is superseded;
+the next user handoff must be an actual client-server prediction/feel test.
 No installed prediction or complete hidden-state equality yet.
 See native-prediction-checkpoints.txt and movement-prediction.txt. Keep live
 server/user-owned sessions unchanged. Do not stop at the headless prototype.

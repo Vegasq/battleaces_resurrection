@@ -44,6 +44,12 @@ struct Model {
         if(message.empty() || message.size()>160)message="Unable to start match.";
         pending=false;visible=notice=true;expires=now+10000;return true;
     }
+    bool hint(const std::string& text,uint64_t now) {
+        // A declined unit selection must not replace loading, connection or
+        // update notices. This carries no deferred selection/command intent.
+        if(pending || notice || !persistentMessage.empty() || text.empty() || text.size()>160)return false;
+        message=text;visible=notice=true;expires=now+2500;return true;
+    }
     bool dismissNotice(Ticket value) {
         if(pending || !notice || !value || value!=ticket)return false;
         visible=notice=false;expires=0;message.clear();return true;

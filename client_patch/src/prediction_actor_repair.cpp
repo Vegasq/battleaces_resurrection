@@ -1,0 +1,665 @@
+#pragma once
+// Include after ba/ba_local helpers and the movement-worker integration.
+// The normal recipe does not install this CALL hook. No worker-thread mutation.
+#include <map>
+#include <set>
+#include <memory>
+#include <algorithm>
+#include <exception>
+#include "../checkpoint/prediction_presentation_policy.hpp"
+#include "prediction_movement.hpp"
+
+namespace ba_prediction_actors {
+using ba::Obj;
+using ba_local::Root;
+namespace policy=ba_prediction_presentation;
+constexpr size_t maximumActors=8192;
+
+static void require(bool value,const char* reason) {
+    if(!value)throw std::runtime_error(reason);
+}
+struct Span {const uint32_t* values=nullptr;int count=0;int padding=0;};
+static_assert(sizeof(Span)==16,"Original ReadOnlySpan<uint> ABI changed");
+struct UnitEvent {Obj units=nullptr,currentFrame=nullptr;};
+static_assert(sizeof(UnitEvent)==16,"Original UnitEventArgs ABI changed");
+struct Resident {policy::ActorIdentity identity;uint64_t incarnation=0;};
+struct Retire {
+    Obj actor=nullptr;
+    policy::ActorIdentity resident,current;
+    bool alreadyReleased=false;
+};
+struct State {
+    uint64_t world=0;
+    std::string match;
+    DWORD thread=0;
+    bool checked=false,inUpdate=false,failed=false;
+    std::unique_ptr<Root> simulation,manager;
+    std::map<Obj,Resident> identities;
+    std::map<uint32_t,policy::ActorIdentity> pending;
+    ba_prediction_worker::MovementAdmission admission;
+    std::set<uint32_t> confirmedRecreation;
+};
+static State& state(){static State* lifetime=new State;return *lifetime;}
+static bool flag(){return ba::flag(L"-prediction-movement-experimental");}
+static void clearInactive(State& s) {
+    if(!s.world && !s.manager && !s.simulation && s.identities.empty() && s.pending.empty())return;
+    require(!s.inUpdate && ba::initialThread && GetCurrentThreadId()==ba::initialThread &&
+            (!s.thread || s.thread==GetCurrentThreadId()),
+            "inactive actor cache retirement requires its retained Unity thread");
+    // These roots/caches belong to this observer, not original actor ownership.
+    // Native shutdown may set worldID=0 on another thread; only this original
+    // main-thread presentation boundary frees GC handles. No actor pool/reset,
+    // native world API, selection callback or original collection is touched.
+    ba::log("Prediction actors inactive: world=%llu match=%s observerRootsOnly=1 actorsUntouched=1",
+        static_cast<unsigned long long>(s.world),s.match.c_str());
+    s.identities.clear();s.pending.clear();s.admission={};s.confirmedRecreation.clear();s.manager.reset();s.simulation.reset();
+    s.world=0;s.match.clear();s.thread=0;s.checked=false;s.failed=false;
+}
+
+static void guard(uintptr_t rva,const char* bytes,size_t size) {
+    require(!memcmp(ba::native<const void*>(rva),bytes,size),"actor repair original code guard differs");
+}
+static void guards() {
+    guard(0x3c08010,"\x48\x8b\xc4\x48\x89\x50\x10\x48\x89\x48\x08\x53\x56\x57\x41\x54\x41",17);
+    guard(0x3c0913c,"\xe8\xaf\xe8\xff\xff",5);
+    guard(0x3c08655,"\xe8\xf6\x86\x50\xff",5);
+    guard(0x3be9770,"\x48\x89\x6c\x24\x20\x57\x48\x83\xec\x20\x80\x3d\x71\xf7\x26\x03",16);
+    guard(0x3bf0cf0,"\x48\x89\x5c\x24\x10\x48\x89\x4c\x24\x08\x56\x57\x41\x54\x41\x56",16);
+    guard(0x3c6c660,"\x40\x53\x48\x83\xec\x20\x48\x8b\xd9\x48\x85\xd2\x0f\x84\xfa\x00",16);
+    guard(0x3c54b2d,"\xe8\x0e\x15\x00\x00",5);
+    guard(0x3e66151,"\xff\x57\x18",3);
+    guard(0x3ea5790,"\x48\x83\xec\x28\x48\x8b\x49\x40\x48\x85\xc9\x74\x0c\x45\x33\xc0\x48\x83\xc4\x28\xe9\xe7\xc9\xc5\xff\xe8\x42\xef\x73\xfc\xcc",31);
+    guard(0x3b02160,"\x33\xd2\xe9\x79\x01\x00\x00",7);
+}
+static void field(Obj object,const char* name,size_t offset) {
+    static std::map<std::pair<Obj,std::string>,size_t> checked;
+    require(object!=nullptr,"actor repair field receiver missing");
+    auto key=std::make_pair(ba::klass(object),std::string(name));auto found=checked.find(key);
+    if(found!=checked.end()){require(found->second==offset,"actor field offset expectation changed");return;}
+    require(object && ba::api<size_t(*)(Obj)>("il2cpp_field_get_offset")(ba::field(object,name))==offset,
+            "actor repair original field layout differs");
+    checked.emplace(std::move(key),offset);
+}
+static Obj type(const char* space,const char* name) {
+    static std::map<std::pair<std::string,std::string>,Obj> checked;
+    auto key=std::make_pair(std::string(space),std::string(name));auto found=checked.find(key);
+    if(found!=checked.end())return found->second;
+    Obj result=ba::find_class(space,name);require(result,"actor repair original class missing");
+    checked.emplace(std::move(key),result);return result;
+}
+static void classIs(Obj object,const char* space,const char* name) {
+    require(object && ba::klass(object)==type(space,name),"actor repair original concrete type differs");
+}
+static Obj method(Obj object,const char* name,unsigned count,uint32_t token,uintptr_t rva=0) {
+    require(object!=nullptr,"actor repair method receiver missing");
+    static std::map<std::pair<Obj,uint32_t>,Obj> checked;
+    const auto key=std::make_pair(ba::klass(object),token);auto prior=checked.find(key);
+    if(prior!=checked.end()) {
+        require(!rva || ba::read<Obj>(prior->second,0)==ba::native<Obj>(rva),"actor method pointer changed");
+        return prior->second;
+    }
+    for(Obj type=ba::klass(object);type;type=ba::api<Obj(*)(Obj)>("il2cpp_class_get_parent")(type)) {
+        void* iter=nullptr;Obj found=nullptr;
+        while(Obj value=ba::api<Obj(*)(Obj,void**)>("il2cpp_class_get_methods")(type,&iter)) {
+            if(strcmp(ba::api<const char*(*)(Obj)>("il2cpp_method_get_name")(value),name) ||
+               ba::api<uint32_t(*)(Obj)>("il2cpp_method_get_param_count")(value)!=count ||
+               ba::api<uint32_t(*)(Obj)>("il2cpp_method_get_token")(value)!=token)continue;
+            require(!found && ba::read<Obj>(value,0) && (!rva || ba::read<Obj>(value,0)==ba::native<Obj>(rva)),
+                    "actor repair original overload/pointer differs");found=value;
+        }
+        if(found){checked.emplace(key,found);return found;}
+    }
+    throw std::runtime_error("actor repair original method unavailable");
+}
+static Obj invoke(Obj methodInfo,Obj object,void** args=nullptr) {
+    return ba_local::invokeMethod(methodInfo,object,args);
+}
+template<class T> static T unbox(Obj boxed) {
+    require(boxed!=nullptr,"actor repair boxed result missing");
+    return *ba::api<T*(*)(Obj)>("il2cpp_object_unbox")(boxed);
+}
+static bool contains(Obj values,uint32_t id) {
+    Obj info=method(values,"Contains",1,0x0600013c);
+    static std::set<Obj> checked;
+    if(!checked.count(info)) {
+        require(ba::api<Obj(*)(Obj)>("il2cpp_class_from_type")(
+            ba::api<Obj(*)(Obj,uint32_t)>("il2cpp_method_get_param")(info,0))==type("System","UInt32") &&
+            ba::api<Obj(*)(Obj)>("il2cpp_class_from_type")(
+            ba::api<Obj(*)(Obj)>("il2cpp_method_get_return_type")(info))==type("System","Boolean"),
+            "actor component Contains signature differs");
+        checked.insert(info);
+    }
+    // Exact original closed NativeSparseDataSet<T>.Contains(uint) ABI. Passing
+    // its actual MethodInfo preserves generic context; no per-actor boxing.
+    return reinterpret_cast<bool(*)(Obj,uint32_t,Obj)>(ba::read<Obj>(info,0))(values,id,info);
+}
+// Use exact non-generic original methods for mutating ID/Unit sets. Calling
+// Remove by name/arity would choose between uint and Unit overloads ambiguously.
+static void removeId(Obj set,uint32_t id) {
+    void* args[]={&id};
+    invoke(method(set,"Remove",1,0x060000ad,0x3782570),set,args);
+}
+static void removeUnit(Obj set,Obj unit) {
+    void* args[]={unit};
+    Root result(invoke(method(set,"Remove",1,0x06002622,0x3c6c660),set,args));
+    require(unbox<bool>(result.get()),"old actor was missing during exact membership removal");
+}
+static std::vector<Obj> units(Obj set) {
+    classIs(set,"Uncapped.Collections","UnitSet");
+    field(set,"_units",0x10);field(set,"_entityIds",0x18);
+    const Obj array=ba::read<Obj>(set,0x10),ids=ba::read<Obj>(set,0x18);
+    require(array && ids,"actor repair UnitSet storage missing");
+    const int count=ba::read<int>(ids,0x10);
+    const uintptr_t capacity=ba::read<uintptr_t>(array,0x18);
+    require(count>=0 && static_cast<size_t>(count)<=maximumActors && static_cast<uintptr_t>(count)<=capacity,
+            "actor repair UnitSet count exceeds bound");
+    std::vector<Obj> result;result.reserve(static_cast<size_t>(count));
+    for(int index=0;index<count;++index) {
+        Obj actor=ba::read<Obj>(array,0x20+static_cast<size_t>(index)*sizeof(Obj));
+        classIs(actor,"Uncapped","Unit");result.push_back(actor);
+    }
+    return result;
+}
+static std::vector<uint32_t> ids(Obj set) {
+    classIs(set,"Uncapped.Collections","EntityIdSet");
+    // Original SparseSet.get_Values returns a sixteen-byte ReadOnlySpan<uint>
+    // via a hidden result pointer (RCX); copy before any later managed call.
+    Span span;
+    ba::native<Span*(*)(Span*,Obj,Obj)>(0x3787d20)(&span,set,nullptr);
+    require(span.count>=0 && static_cast<size_t>(span.count)<=maximumActors &&
+            (!span.count || span.values),"pending ID span exceeds bound");
+    if(!span.count)return {};
+    return std::vector<uint32_t>(span.values,span.values+span.count);
+}
+static policy::ActorIdentity resident(Obj actor) {
+    field(actor,"<EntityId>k__BackingField",0x14c);field(actor,"_fallbackArmyId",0x150);
+    field(actor,"_entityConfig",0x168);
+    Obj config=ba::read<Obj>(actor,0x168);classIs(config,"Uncapped","EntityConfig");
+    field(config,"UnitType",0x10);
+    return {ba::read<uint32_t>(actor,0x14c),ba::read<uint32_t>(config,0x10),ba::read<uint32_t>(actor,0x150)};
+}
+static uint64_t confirmedToken(const State& s,const policy::ActorIdentity& identity) {
+    const auto found=s.admission.entities.find(identity.entityId);
+    return found!=s.admission.entities.end() && found->second.type==identity.unitType &&
+        found->second.army==identity.armyId?found->second.incarnation:0;
+}
+static bool confirmedInterval(const State& s,int frame) {
+    // BEGIN requires the native allocation observer. It guards every14-tick
+    // rolling interval; never extend that proof to an arbitrarily old map.
+    const int64_t distance=static_cast<int64_t>(frame)-s.admission.frame;
+    return frame>=-1 && s.admission.frame>=-1 && distance>=0 && distance<=12;
+}
+static bool tryValue(Obj buffer,uint32_t id,uint32_t& value) {
+    // Original NativeComponentBuffer<T> inherits NativeSparseDataSet<T>, whose
+    // TryGet returns a nullable value. Use its original Contains/get_Item pair;
+    // validate the boxed value type before copying the uint32 identity.
+    if(!contains(buffer,id))return false;
+    Obj get=method(buffer,"get_Item",1,0x0600013d);
+    require(ba::api<Obj(*)(Obj)>("il2cpp_class_from_type")(
+        ba::api<Obj(*)(Obj)>("il2cpp_method_get_return_type")(get))==type("System","UInt32"),
+        "actor identity component value is not uint32");
+    value=reinterpret_cast<uint32_t(*)(Obj,uint32_t,Obj)>(ba::read<Obj>(get,0))(buffer,id,get);return true;
+}
+struct Current {
+    Root frame,position,type,army;
+    explicit Current(Obj frames):frame(ba::call(frames,"get_Current")),
+        position(ba::call(frame.get(),"get_PositionBuffer")),
+        type(ba::call(frame.get(),"get_TypeBuffer")),army(ba::call(frame.get(),"get_ArmyBuffer")) {
+        classIs(frame.get(),"Uncapped.Collections.ComponentBuffers","SimFrameComponentBuffers");
+    }
+    std::optional<policy::ActorIdentity> identity(uint32_t id) const {
+        if(!contains(position.get(),id))return std::nullopt;
+        uint32_t unitType=0,armyId=0;
+        require(tryValue(type.get(),id,unitType) && tryValue(army.get(),id,armyId),
+                "present entity lacks corrected type/army");
+        return policy::ActorIdentity{id,unitType,armyId};
+    }
+    bool retainedAlive(uint32_t id) const {
+        Root states(ba::call(frame.get(),"get_StateBuffer"));
+        require(contains(states.get(),id),"restored retained HQ lacks a current native state");
+        Obj get=method(states.get(),"get_Item",1,0x0600013d);
+        Obj valueType=ba::api<Obj(*)(Obj)>("il2cpp_class_from_type")(
+            ba::api<Obj(*)(Obj)>("il2cpp_method_get_return_type")(get));uint32_t alignment=0;
+        require((valueType==ba_prediction_actors::type("System","UInt32") || ba::api<bool(*)(Obj)>("il2cpp_class_is_enum")(valueType)) &&
+            ba::api<int32_t(*)(Obj,uint32_t*)>("il2cpp_class_value_size")(valueType,&alignment)==4,
+            "retained HQ state scalar ABI differs");
+        void* args[]={&id};Root boxed(invoke(get,states.get(),args));const auto value=unbox<uint32_t>(boxed.get());
+        require(value!=0xffffffff,"retained HQ has no native state value");
+        return value!=6; // An ordinary retained DEAD actor is not resurrection.
+    }
+};
+static void remember(State& s,const std::vector<Obj>& actors,std::set<Obj>& live) {
+    for(Obj actor:actors) {
+        require(live.insert(actor).second,"same actor appears in two manager sets");
+        const auto identity=resident(actor);
+        const auto found=s.identities.find(actor);
+        if(found==s.identities.end())s.identities.emplace(actor,Resident{identity,0});
+        else require(found->second.identity.entityId==identity.entityId &&
+            found->second.identity.unitType==identity.unitType && found->second.identity.armyId==identity.armyId,
+            "resident actor changed creation identity outside repair");
+    }
+}
+static void rememberPending(State& s,Obj pending,const Current& current) {
+    std::map<uint32_t,policy::ActorIdentity> now;
+    for(uint32_t id:ids(pending))if(auto identity=current.identity(id))now.emplace(id,*identity);
+    s.pending=std::move(now);
+}
+static void checkContext(State& s,Obj manager,Obj frames) {
+    require(GetCurrentThreadId()==ba::initialThread && ba::initialThread,"actor repair requires retained Unity main thread");
+    classIs(manager,"Uncapped","UnitManager");
+    field(manager,"_simulation",0x40);field(manager,"_units",0x10);
+    field(manager,"_entitiesPendingCreation",0x18);field(manager,"_presentationOnlyUnits",0xa0);
+    Obj simulation=ba::read<Obj>(manager,0x40);classIs(simulation,"Uncapped","Simulation");
+    require(ba::read<Obj>(simulation,0x70)==manager && ba::read<Obj>(simulation,0x148)==frames,
+            "actor repair manager/current collection owner differs");
+    const auto world=ba_prediction_worker::movementWorldId();
+    const auto& match=ba_prediction_worker::movementMatchId();
+    require(world && match.size()==32,"actor repair movement identity missing");
+    if(s.world!=world || s.match!=match) {
+        s.identities.clear();s.pending.clear();s.admission={};s.confirmedRecreation.clear();s.simulation=std::make_unique<Root>(simulation);
+        s.manager=std::make_unique<Root>(manager);s.world=world;s.match=match;s.thread=GetCurrentThreadId();
+        s.failed=false;s.checked=false;
+        ba::log("Prediction actors begin: world=%llu match=%s thread=%lu BA_RESURRECTION_PREDICTION_ACTORS_V1",
+            static_cast<unsigned long long>(world),match.c_str(),s.thread);
+    }
+    require(!s.failed && s.thread==GetCurrentThreadId() && s.manager->get()==manager &&
+            s.simulation->get()==simulation,"actor repair stale owner/generation");
+    if(!s.checked){guards();s.checked=true;}
+    s.admission=ba_prediction_worker::movementAdmission();
+}
+struct ReleaseEvent {
+    Root callback;
+    Obj invokeMethod=nullptr;
+    explicit ReleaseEvent(Obj manager):callback(ba::read<Obj>(manager,0x88)) {
+        field(manager,"UnitsReleased",0x88);
+        require(callback.get()!=nullptr,"actor repair original release subscribers missing");
+        Obj eventClass=ba::find_class("Uncapped","UnitEventArgs");uint32_t alignment=0;
+        require(ba::api<bool(*)(Obj)>("il2cpp_class_is_valuetype")(eventClass) &&
+                ba::api<int32_t(*)(Obj,uint32_t*)>("il2cpp_class_value_size")(eventClass,&alignment)==16,
+                "actor repair UnitEventArgs value layout differs");
+        invokeMethod=ba::api<Obj(*)(Obj,const char*,int)>("il2cpp_class_get_method_from_name")
+            (ba::klass(callback.get()),"Invoke",2);
+        require(invokeMethod && ba::api<Obj(*)(Obj)>("il2cpp_class_from_type")(
+            ba::api<Obj(*)(Obj,uint32_t)>("il2cpp_method_get_param")(invokeMethod,1))==eventClass,
+            "actor repair release delegate event ABI differs");
+    }
+    void fire(Obj manager,Obj set,Obj frame) {
+        UnitEvent value{set,frame};void* args[]={manager,&value};invoke(invokeMethod,callback.get(),args);
+    }
+};
+static bool automaticType(Obj rules,uint32_t unitType) {
+    if(!rules || !ba_local::count(rules))return false;
+    Obj contains=method(rules,"Contains",1,0x06000d34);
+    static std::set<Obj> checked;
+    if(!checked.count(contains)) {
+        Obj key=ba::api<Obj(*)(Obj)>("il2cpp_class_from_type")(
+            ba::api<Obj(*)(Obj,uint32_t)>("il2cpp_method_get_param")(contains,0));
+        uint32_t alignment=0;
+        require(key && ba::api<bool(*)(Obj)>("il2cpp_class_is_valuetype")(key) &&
+            ba::api<int32_t(*)(Obj,uint32_t*)>("il2cpp_class_value_size")(key,&alignment)==4 &&
+            !strcmp(ba::api<const char*(*)(Obj)>("il2cpp_class_get_name")(key),"IntKey`1") &&
+            !strcmp(ba::api<const char*(*)(Obj)>("il2cpp_class_get_namespace")(key),"Uncapped") &&
+            ba::api<Obj(*)(Obj)>("il2cpp_class_from_type")(
+                ba::api<Obj(*)(Obj)>("il2cpp_method_get_return_type")(contains))==type("System","Boolean"),
+            "automatic control-group IntKey<UnitType> Contains ABI differs");
+        checked.insert(contains);
+    }
+    void* args[]={&unitType};Root result(invoke(contains,rules,args));return unbox<bool>(result.get());
+}
+static std::vector<Obj> affectedGroups(Obj selector,Obj simulation,const std::vector<Retire>& retire) {
+    field(simulation,"_localPlayer",0x90);
+    Root player(ba::read<Obj>(simulation,0x90));classIs(player.get(),"Uncapped","SimPlayer");
+    field(player.get(),"ArmyID",0x38);const auto localArmy=ba::read<uint32_t>(player.get(),0x38);
+    field(selector,"_controlGroupPanel",0x38);
+    Root panel(ba::read<Obj>(selector,0x38));classIs(panel.get(),"Uncapped","ControlGroupPanel");
+    field(panel.get(),"_controlGroups",0x38);
+    Obj array=ba::read<Obj>(panel.get(),0x38);require(array,"actor repair control-group array missing");
+    const uintptr_t count=ba::read<uintptr_t>(array,0x18);require(count>0 && count<=16,"actor repair group count bound");
+    std::vector<Obj> result;
+    for(uintptr_t i=0;i<count;++i) {
+        Obj group=ba::read<Obj>(array,0x20+i*sizeof(Obj));classIs(group,"Uncapped","ControlGroup");
+        field(group,"_unitIDs",0x20);field(group,"_trackedReleasedUnits",0x10);
+        field(group,"_autoAssignments",0x30);
+        Obj selected=ba::read<Obj>(group,0x20);require(selected,"actor repair group unit set missing");
+        bool affected=false;
+        for(const auto& actor:retire) {
+            uint32_t id=actor.resident.entityId;void* args[]={&id};
+            Root has(invoke(method(selected,"Contains",1,0x060025b7),selected,args));
+            affected=affected || unbox<bool>(has.get());
+            Obj tracked=ba::read<Obj>(group,0x10);
+            Root remembered(invoke(method(tracked,"Contains",1,0x060000ac,0x3782540),tracked,args));
+            affected=affected || unbox<bool>(remembered.get());
+            if(!affected && actor.current.armyId==localArmy)
+                affected=automaticType(ba::read<Obj>(group,0x30),actor.current.unitType);
+        }
+        if(affected) {
+            method(group,"Clear",0,0x06001644,0x3ea5740);
+            method(ba::read<Obj>(group,0x10),"Remove",1,0x060000ad,0x3782570);
+            result.push_back(group);
+        }
+    }
+    return result;
+}
+// Original Begin returns its SAME SuspendedEventHelper as IDisposable. Hold it
+// through original recreation, clear only affected groups, then dispose once.
+// No automatic rule is removed, rewritten or replaced. This is a source-backed
+// candidate; original positive UI/group/HQ runtime qualification remains needed.
+struct GroupChanges {
+    struct Change {
+        Root group,helper;
+        Obj begin=nullptr,dispose=nullptr,clear=nullptr;
+        bool begun=false,disposed=false;
+        Change(Obj value):group(value),helper(ba::read<Obj>(value,0x40)){}
+    };
+    std::vector<std::unique_ptr<Change>> values;
+    std::vector<uint32_t> retiredIds;
+    bool mutated=false,closed=false;
+    void prepare(const std::vector<Obj>& groups,const std::vector<Retire>& retire) {
+        require(values.empty(),"actor group scopes prepared twice");
+        for(const auto& actor:retire)retiredIds.push_back(actor.resident.entityId);
+        values.reserve(groups.size());
+        for(Obj group:groups) {
+            field(group,"_controlGroupChangeHelper",0x40);
+            auto value=std::make_unique<Change>(group);require(value->helper.get(),"original group change helper missing");
+            field(value->helper.get(),"<IsSuspended>k__BackingField",0x10);
+            Root suspended(invoke(method(value->helper.get(),"get_IsSuspended",0,0x060000c7,0x90fd60),value->helper.get()));
+            require(!unbox<bool>(suspended.get()),"original group change already suspended");
+            value->begin=method(group,"BeginControlGroupChange",1,0x06001645,0x3ea5790);
+            value->dispose=method(value->helper.get(),"Dispose",0,0x060000cd,0x3b02160);
+            value->clear=method(group,"Clear",0,0x06001644,0x3ea5740);
+            values.push_back(std::move(value));
+        }
+    }
+    void begin() {
+        for(auto& value:values) {
+            bool playerInitiated=false;void* args[]={&playerInitiated};
+            Obj scope=nullptr;
+            try{scope=invoke(value->begin,value->group.get(),args);}
+            catch(...) {
+                // Original BeginSuspend sets IsSuspended in its finally even
+                // if OnBeginSuspension throws. Its rooted helper still needs
+                // exactly one Dispose; a pre-entry reflection failure does not.
+                value->begun=ba::read<bool>(value->helper.get(),0x10);throw;
+            }
+            // Mark ownership before validating the result; a failed check must
+            // still Dispose the already-started original suspension exactly once.
+            value->begun=true;
+            require(scope==value->helper.get(),"original group suspension did not return its rooted helper");
+        }
+    }
+    void close() {
+        if(closed)return;
+        std::exception_ptr error;
+        for(auto& value:values)if(value->begun && !value->disposed) {
+            if(mutated)try {
+                Obj tracked=ba::read<Obj>(value->group.get(),0x10);
+                for(auto id:retiredIds)removeId(tracked,id);
+                invoke(value->clear,value->group.get());
+                ba::log("Prediction actor control group cleared: group=%u changedIds=%zu originalScopeAcrossRecreation=1 automaticRulesPreserved=1 unaffectedGroupsRetained=1",
+                    ba::read<uint32_t>(value->group.get(),0x38),retiredIds.size());
+            }catch(...){if(!error)error=std::current_exception();}
+            value->disposed=true;
+            try{invoke(value->dispose,value->helper.get());}
+            catch(...){if(!error)error=std::current_exception();}
+        }
+        closed=true;if(error)std::rethrow_exception(error);
+    }
+    ~GroupChanges(){try{close();}catch(...){ba::log("Prediction actor group scope cleanup failed: retry=0");}}
+};
+static bool selectionReferences(Obj selection,const std::set<uint32_t>& retired) {
+    classIs(selection,"Uncapped.Collections","UnitSelectionSet");
+    field(selection,"_allUnits",0x18);field(selection,"_subsetsByType",0x20);
+    Root all(ba::read<Obj>(selection,0x18)),subsets(ba::read<Obj>(selection,0x20));
+    require(all.get() && subsets.get(),"held gesture selection storage missing");
+    const auto ledClass=ba::klass(all.get());
+    auto references=[&](Obj led,size_t& total) {
+        require(led && ba::klass(led)==ledClass,"held gesture typed selection class differs");
+        field(led,"<Entities>k__BackingField",0x10);
+        const auto values=ids(ba::read<Obj>(led,0x10));
+        require(values.size()<=maximumActors-total,"held gesture cached selection ID budget exceeded");
+        total+=values.size();
+        return std::any_of(values.begin(),values.end(),[&](uint32_t id){return retired.count(id)!=0;});
+    };
+    size_t mainCount=0;if(references(all.get(),mainCount))return true;
+    const Obj countMethod=method(subsets.get(),"get_Count",0,0x06002dcc);
+    require(ba::api<Obj(*)(Obj)>("il2cpp_class_from_type")(
+        ba::api<Obj(*)(Obj)>("il2cpp_method_get_return_type")(countMethod))==type("System","Int32"),
+        "held gesture dictionary count signature differs");
+    Root boxedCount(invoke(countMethod,subsets.get()));const int count=unbox<int>(boxedCount.get());
+    require(count>=0 && static_cast<size_t>(count)<=maximumActors,"held gesture cached selection count exceeds bound");
+    Root values(invoke(method(subsets.get(),"get_Values",0,0x06002dd0),subsets.get()));
+    field(values.get(),"_dictionary",0x10);
+    require(ba::read<Obj>(values.get(),0x10)==subsets.get(),"held gesture cached selection owner differs");
+    Root iterator(invoke(method(values.get(),"GetEnumerator",0,0x06002e18),values.get()));
+    require(iterator.get() && ba::api<bool(*)(Obj)>("il2cpp_class_is_valuetype")(ba::klass(iterator.get())),
+        "held gesture selection enumerator is not a value type");
+    const Obj move=method(iterator.get(),"MoveNext",0,0x06002e27);
+    const Obj current=method(iterator.get(),"get_Current",0,0x06002e28);
+    const Obj dispose=method(iterator.get(),"Dispose",0,0x06002e26);
+    require(ba::api<Obj(*)(Obj)>("il2cpp_class_from_type")(
+        ba::api<Obj(*)(Obj)>("il2cpp_method_get_return_type")(move))==type("System","Boolean"),
+        "held gesture selection enumerator signature differs");
+    // RuntimeInvoke expects the UNBOXED receiver for these original struct
+    // methods. Retain the box and obtain its payload anew for each invocation.
+    auto receiver=[&](){return ba::api<Obj(*)(Obj)>("il2cpp_object_unbox")(iterator.get());};
+    bool disposed=false,found=false;size_t groups=0,total=0;
+    auto close=[&](){if(!disposed){disposed=true;invoke(dispose,receiver());}};
+    try {
+        for(;;) {
+            Root more(invoke(move,receiver()));if(!unbox<bool>(more.get()))break;
+            require(++groups<=static_cast<size_t>(count),"held gesture cached selection enumeration exceeds count");
+            Root led(invoke(current,receiver()));found=references(led.get(),total)||found;
+        }
+        require(groups==static_cast<size_t>(count),"held gesture cached selection count changed");
+        close();return found;
+    } catch(...) {try{close();}catch(...){ba::log("Held gesture readonly enumerator cleanup failed; retry=0");}throw;}
+}
+static void guardRetiringInteractions(Obj selector,const std::vector<Retire>& retire) {
+    for(const auto& actor:retire) {
+        require(ba::read<Obj>(selector,0xa8)!=actor.actor,
+                "retiring actor is retained by control-group focus");
+        Obj casting=ba::read<Obj>(selector,0x98);
+        uint32_t id=actor.resident.entityId;void* args[]={&id};
+        Root has(invoke(method(casting,"Contains",1,0x060025b7),casting,args));
+        require(!unbox<bool>(has.get()),"retiring actor remains in an active casting set");
+        require(ba::read<uint32_t>(selector,0x128)!=id,
+                "retiring identity remains in a pending double-click reference");
+    }
+    if(!ba::read<bool>(selector,0x16c) && !ba::read<bool>(selector,0x16d))return;
+    field(selector,"_activeAbilityCaster",0x100);
+    require(!ba::read<Obj>(selector,0x100),"held gesture with an active ability caster is not qualified");
+    std::set<uint32_t> retired;for(const auto& actor:retire)retired.insert(actor.resident.entityId);
+    for(const auto& entry:std::initializer_list<std::pair<const char*,size_t>>{
+            {"_previewSelectionSet",0x88},{"_selectionSet",0x90},{"_castingSet",0x98}}) {
+        field(selector,entry.first,entry.second);
+        require(!selectionReferences(ba::read<Obj>(selector,entry.second),retired),
+                "retiring identity remains in held gesture selection or cached type subset");
+    }
+    // No button/selection/caster/queue state is changed. In particular, queued
+    // ICommand enumerables can alias these sets; never clear them here.
+}
+static void repair(State& s,Obj manager,Obj frames,GroupChanges& changes) {
+    Current current(frames);
+    Root active(ba::read<Obj>(manager,0x10)),retained(ba::read<Obj>(manager,0xa0)),pending(ba::read<Obj>(manager,0x18));
+    const auto activeActors=units(active.get()),retainedActors=units(retained.get());
+    std::set<Obj> firstObserved;
+    for(Obj actor:activeActors)if(!s.identities.count(actor))firstObserved.insert(actor);
+    std::set<Obj> live;remember(s,activeActors,live);remember(s,retainedActors,live);
+    std::vector<Retire> retire;
+    for(Obj actor:activeActors) {
+        auto& observed=s.identities.at(actor);const auto old=observed.identity;
+        const auto token=confirmedToken(s,old);
+        // Only an actually confirmed displayed frame may seed a previously
+        // unseen resident. Numeric coincidence at a predicted head does not
+        // promote an old speculative actor into an authoritative incarnation.
+        if(!observed.incarnation && token && firstObserved.count(actor) &&
+           ba::read<int>(current.frame.get(),0x40)==s.admission.frame)
+            observed.incarnation=token;
+        if(auto next=current.identity(old.entityId)) {
+            const auto nextToken=confirmedToken(s,*next);
+            if(policy::actorDecision(old,next)==policy::ActorDecision::Reload ||
+               (nextToken && observed.incarnation!=nextToken)) {
+                retire.push_back({actor,old,*next});
+                if(nextToken)s.confirmedRecreation.insert(old.entityId);
+            }
+        }
+    }
+    // Original UnitsReleased completed BEFORE ReleaseFromSim inserted this
+    // dead HQ into presentationOnly and returned its component data. Retire
+    // that old retained lifetime without broadcasting UnitsReleased again.
+    for(Obj actor:retainedActors) {
+        const auto old=s.identities.at(actor).identity;
+        if(auto next=current.identity(old.entityId)) {
+            if(!current.retainedAlive(old.entityId))continue;
+            field(actor,"<DeadToTheSim>k__BackingField",0x160);field(actor,"_componentData",0x158);
+            Obj config=ba::read<Obj>(actor,0x168);field(config,"IsHQ",0x2c);
+            require(ba::read<bool>(config,0x2c) && ba::read<bool>(actor,0x160) && !ba::read<Obj>(actor,0x158),
+                    "retained actor lacks original released HQ ownership state");
+            for(Obj activeActor:activeActors)require(resident(activeActor).entityId!=old.entityId,
+                    "retained HQ cleanup would remove an already-created same-ID actor");
+            retire.push_back({actor,old,*next,true});
+            if(confirmedToken(s,*next))s.confirmedRecreation.insert(old.entityId);
+        }
+    }
+    std::vector<uint32_t> invalidPending;
+    for(uint32_t id:ids(pending.get())) {
+        auto previous=s.pending.find(id);auto next=current.identity(id);
+        if(previous!=s.pending.end() && next &&
+           policy::actorDecision(previous->second,next)==policy::ActorDecision::Reload)invalidPending.push_back(id);
+    }
+    if(retire.empty()) {
+        for(uint32_t id:invalidPending)removeId(pending.get(),id);
+        return;
+    }
+    Root selector(ba::get<Obj>(ba::owner,"<UnitSelector>k__BackingField"));classIs(selector.get(),"Uncapped","UnitSelector");
+    field(selector.get(),"_unitManager",0x40);
+    require(ba::read<Obj>(selector.get(),0x40)==manager,"actor repair selector owner differs");
+    const auto groups=affectedGroups(selector.get(),s.simulation->get(),retire);
+    Root batch(ba::make("Uncapped.Collections","UnitSet"));
+    Root released(ba::make("Uncapped.Collections","UnitSet"));
+    Obj add=method(batch.get(),"Add",1,0x0600261b,0x3c6c280);
+    for(const auto& actor:retire){void* args[]={actor.actor};invoke(add,batch.get(),args);
+        if(!actor.alreadyReleased)invoke(add,released.get(),args);}
+    // Resolve every non-generic method and required owner before the first
+    // selection/pool mutation. An exception after this point fails the owner;
+    // no partial repair is retried and no replacement is manually installed.
+    Obj removeSelection=method(selector.get(),"RemoveSelection",1,0x0600220a,0x3bf0cf0);
+    Root factory(ba::read<Obj>(manager,0x50));require(factory.get(),"actor repair factory missing");
+    Root pools(ba::read<Obj>(factory.get(),0x10));require(pools.get(),"actor repair pool manager missing");
+    Obj poolRelease=method(pools.get(),"Release",1,0x060021b1,0x3be9770);
+    // The original dispatcher deliberately returns if the old-type pool is
+    // missing. Do not mistake that return for a completed ownership release.
+    Root poolMap(ba::read<Obj>(pools.get(),0x18));require(poolMap.get(),"actor repair old pool map missing");
+    for(const auto& actor:retire) {
+        uint32_t key=actor.resident.unitType;void* args[]={&key};
+        Root has(ba::call(poolMap.get(),"ContainsKey",1,args));
+        require(unbox<bool>(has.get()),"actor repair old instantiated pool is unavailable");
+    }
+    method(active.get(),"Remove",1,0x06002622,0x3c6c660);
+    method(retained.get(),"Remove",1,0x06002622,0x3c6c660);
+    method(pending.get(),"Remove",1,0x060000ad,0x3782570);
+    method(ba::read<Obj>(manager,0x30),"Remove",1,0x060000ad,0x3782570);
+    method(ba::read<Obj>(manager,0x28),"Remove",1,0x060000ad,0x3782570);
+    for(const auto& actor:retire)method(actor.actor,"ReleaseFromSim",0,0x060022a1,0x3bfc570);
+    ReleaseEvent releaseEvent(manager);
+    // Original RemoveSelection handles ordinary preview/current selection and
+    // ability compatibility. Its pending focus/casting/gesture side effects
+    // are separate state. Refuse those concrete unqualified interactions.
+    guardRetiringInteractions(selector.get(),retire);
+    changes.prepare(groups,retire);changes.begin();changes.mutated=true;
+    for(const auto& actor:retire)
+        ba::log("Prediction actor retirement begin: world=%llu match=%s frame=%d entity=%u actor=%p oldType=%u oldArmy=%u correctedType=%u correctedArmy=%u affectedGroups=%zu",
+            static_cast<unsigned long long>(s.world),s.match.c_str(),ba::read<int>(current.frame.get(),0x40),
+            actor.resident.entityId,actor.actor,actor.resident.unitType,actor.resident.armyId,
+            actor.current.unitType,actor.current.armyId,groups.size());
+    // Original released observers complete interpolation jobs and remove
+    // TransformAccessArray/turret registrations before the pool owns actors.
+    void* selectionArgs[]={batch.get()};invoke(removeSelection,selector.get(),selectionArgs);
+    if(std::any_of(retire.begin(),retire.end(),[](const Retire& value){return !value.alreadyReleased;}))
+        releaseEvent.fire(manager,released.get(),current.frame.get());
+    for(const auto& actor:retire) {
+        // Invoke the original UnitPoolManager dispatcher even for an active HQ.
+        // Its old instantiated type selects the old pool and normal release
+        // lifecycle. Never toggle shared IsHQ, destroy Unity objects or fake
+        // state6/UnitsDying. Keep batch roots until ALL old-ID removals finish.
+        void* args[]={actor.actor};invoke(poolRelease,pools.get(),args);
+        require(ba::read<uint32_t>(actor.actor,0x14c)==actor.resident.entityId,
+                "old pool lifecycle changed the entity ID before exact membership removal");
+        if(!actor.alreadyReleased) {
+            removeId(ba::read<Obj>(manager,0x30),actor.resident.entityId);
+            removeId(ba::read<Obj>(manager,0x28),actor.resident.entityId);
+            invoke(method(actor.actor,"ReleaseFromSim",0,0x060022a1,0x3bfc570),actor.actor);
+        }
+        removeUnit(actor.alreadyReleased?retained.get():active.get(),actor.actor);
+        removeId(pending.get(),actor.resident.entityId);
+        s.identities.erase(actor.actor);
+        ba::log("Prediction actor retired: world=%llu match=%s entity=%u actor=%p oldType=%u oldArmy=%u correctedType=%u correctedArmy=%u selectionBatch=1 releasedMulticast=%d originalPool=1 oldMembershipRemoved=1 retainedHQ=%d",
+            static_cast<unsigned long long>(s.world),s.match.c_str(),actor.resident.entityId,actor.actor,
+            actor.resident.unitType,actor.resident.armyId,actor.current.unitType,actor.current.armyId,
+            actor.alreadyReleased?0:1,actor.alreadyReleased?1:0);
+    }
+    for(uint32_t id:invalidPending)removeId(pending.get(),id);
+}
+static void after(State& s,Obj manager,Obj frames) {
+    Current current(frames);
+    // Ordinary original removal may return an actor to its pool and reuse its
+    // address for another ID during this same update. Retire that cache entry
+    // only when its old ID is absent; it is a new creation, not identity repair.
+    const auto active=units(ba::read<Obj>(manager,0x10));
+    const auto retained=units(ba::read<Obj>(manager,0xa0));
+    std::set<Obj> freshLifetimes;
+    for(const auto* list:{&active,&retained})for(Obj actor:*list) {
+        auto found=s.identities.find(actor);
+        if(found!=s.identities.end() && found->second.identity.entityId!=resident(actor).entityId) {
+            require(!current.identity(found->second.identity.entityId),
+                    "old actor ID remains present during ordinary pool-address reuse");
+            s.identities.erase(found);
+        }
+        if(!s.identities.count(actor))freshLifetimes.insert(actor);
+    }
+    std::set<Obj> live;
+    remember(s,active,live);remember(s,retained,live);
+    for(Obj actor:active) {
+        auto& observed=s.identities.at(actor);const auto token=confirmedToken(s,observed.identity);
+        const int frame=ba::read<int>(current.frame.get(),0x40);
+        if(!observed.incarnation && token && confirmedInterval(s,frame) &&
+           (frame<=s.admission.frame || freshLifetimes.count(actor) ||
+            s.confirmedRecreation.count(observed.identity.entityId)))observed.incarnation=token;
+    }
+    s.confirmedRecreation.clear();
+    for(auto it=s.identities.begin();it!=s.identities.end();)
+        if(!live.count(it->first))it=s.identities.erase(it);else ++it;
+    rememberPending(s,ba::read<Obj>(manager,0x18),current);
+}
+}
+
+extern "C" __declspec(dllexport) void OfflinePredictionActorUpdate(void* manager,void* frames,void* methodInfo) {
+    ba::init();
+    const auto original=ba::native<void(*)(void*,void*,void*)>(0x3c08010);
+    auto& s=ba_prediction_actors::state();
+    ba_prediction_actors::GroupChanges changes;
+    bool entered=false;
+    try {
+        // movementEnabled means requested, including startup before BEGIN and
+        // offline fallback. A transport world alone is not an active movement
+        // generation; the match ID and opaque world ID must both be assigned.
+        if(!ba_prediction_actors::flag() || !ba_prediction_worker::movementEnabled() ||
+           !ba_prediction_worker::movementWorldId() || ba_prediction_worker::movementMatchId().empty()) {
+            ba_prediction_actors::clearInactive(s);original(manager,frames,methodInfo);return;
+        }
+        ba_prediction_actors::require(!s.inUpdate,"actor repair reentered");s.inUpdate=true;entered=true;
+        ba_prediction_actors::checkContext(s,manager,frames);
+        ba_prediction_actors::repair(s,manager,frames,changes);
+        original(manager,frames,methodInfo);
+        changes.close();
+        ba_prediction_actors::after(s,manager,frames);
+        s.inUpdate=false;
+    } catch(const std::exception& error) {
+        try{changes.close();}catch(const std::exception& cleanup){ba::log("Prediction actor group cleanup failed: reason=%s retry=0",cleanup.what());}
+        if(entered)s.inUpdate=false;
+        s.failed=true;
+        ba::log("Prediction actor repair failed: world=%llu match=%s reason=%s retry=0",
+            static_cast<unsigned long long>(s.world),s.match.c_str(),error.what());
+        ba_prediction_worker::movementFail(error.what());
+    }
+}

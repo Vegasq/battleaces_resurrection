@@ -108,18 +108,76 @@ Internal correction boundaries measure24.462/21.089ms INCLUDING the verifier's
 5.565/5.833ms corrected-head observation. Replay dispatch alone5.841/2.871ms.
 These are measured scopes,not an engine-only correction benchmark.
 
-The ordered local-action ledger,confirmed entity history and speculative
-revision API have separate authored checks. The ledger retains ordinal FIFO,
-mirrors server normalization and only forecasts movement abilities12/14;it is
-not yet wired to game input. No game path enables the worker controls yet.
+The ordered local-action ledger now passes worker-ledger-native01 against an
+independent unmodified three-thread native control. Two byte-identical local
+Move batches keep distinct ordinals,commit together at502,and remove the later
+speculative duplicate on repair. Corrected507 plus30 continuations match the
+changed original journal. An actual known-dead own unit remains a valid delayed
+command source;unknown/wrong identities reject without changing native/ledger
+state. Terminal authority850 arrives while858 is prepared:END does no native
+work,then the next safe boundary repairs nine ticks and final859 matches the
+control. The copied terminal byte remains masked until authority is confirmed.
+Both sequential retained Job children exit0/reaped with no force;each reports
+Job2/0/0 with one extra process UNATTRIBUTED. Saved payload returns to0 and
+native roots remain stable. This is headless evidence,not visible game input.
+
+The opt-in Custom movement pipeline and actor/selection CALL wrappers are now
+written locally. They require the owned worker and separate authority/physical
+cursors;ordinary patch/install paths remain unchanged. Startup01 exposed a real
+helper-export validation bug beforeframe0:ba::module is GameAssembly,not the
+helper DLL. Helper06 resolves the optional exports fromBattleAcesOffline.dll.
+Startup02 then completes TWO actual Unity Custom rounds at controlled130/475ms
+RTT,each with200 matching canonical frame receipts and sampled native states,late
+terminal drain,Continue,rematch,Leave and original Quit. Both games exit0;each
+local worker exits0/reaped/I/Ojoined with31887/31685 matched requests/responses.
+Both authority workers also exit0;all retained Jobs drain naturally,no force.
+The recorded first prefixes sustain20.016/20.014Hz with no skipped presented
+frames or gaps over100ms in the189 observed changes,frames11..199.
+The original parent report remains FAILED because its reader excluded early
+worker bindings/route lines,and private bridge EOF after Quit was misclassified.
+File-only reanalysis01 passes full native logs and retained lifecycle/state
+evidence;raw bridge arrays were not retained,so their already-passed original
+source-bound comparisons are reused,not independently reparsed.
+This qualifies startup/rematch/lifetime,NOT movement before authority or feel.
+The first movement fixture stops before its Move because a fresh client picked
+its normal Gunbot deck,not the headless fixture's Crab deck. Its failed report
+is retained. Independent file comparison still finds590/592 confirmed full
+Spectator31 worker hashes equal to the original authority,including normal
+builds. The revised fixture uses the actual opening unit's validated type.
+Its timing evidence exposed a prediction-clock defect:the fast
+peer's local batch was assigned311 while the server committed302;the slow peer
+was assigned411 versus409. These were non-predicted builds,so no moving-unit
+jump is claimed. The actual Move test must constrain assignment to the measured
+server commit phase and observe correction displacement,not just early motion.
+Movement02 reproduces the actual consequence:local Move assigned442 versus
+canonical432,visible response110ms before correction,and a3.000785-unit
+Transform step in15ms. Matching native state alone did not qualify feel.
+The new pacing policy uses correlated own-request RTT and actual steady
+authority receipts;12frames is a ceiling,not the intended lead. It waits for
+real canonical1 after READY and preserves the original output/publication APIs.
+Movement03 then passes its bounded two-client movement/correction scope:
+visible response78ms,93ms before65 and78ms before raw bridge receipt;both
+Moves assigned exactly their canonical441/461. A separate remote Move triggers
+real native replay plus20 matching continuations. All2888 confirmed full parsed
+Spectator31 hashes match the unmodified authority across two rounds/two clients.
+Both games,local workers and authority workers exit0 naturally;no forced cleanup.
+The original report fails because buffered timing stops at physical602 before
+the slow peer receives authority593..599. Separate file-only reanalysis proves
+those deliveries from existing native65 receipts/raw bridge without inventing
+timing rows. Original failures and exact inputs are retained.
+This is scripted original command/actual Unity Transform evidence,not physical
+mouse input,Internet jitter acceptance or complete hidden-state equivalence.
+See prediction-multiplayer-movement.txt for identities,limits and next gates.
+The previous offline worker manual test N34 is superseded. The next Nick handoff must test
+actual client-server movement response/correction,not another offline smoke.
 
 INTEGRATION STILL OPEN
-Integrate ordered immediate input,separate confirmed and
-physical counters;confirmed entity admission and actor repair;confirmed-only
-terminal UI;visible original renderer movement before authority;two-client
-latency/rematch/failure qualification;private installer and human acceptance.
-The reconciler is wired into explicit worker controls;actual client prediction
-is still unintegrated. No live server,firewall or usual-client changes.
+Physical input/selection and actor-lifetime edge qualification,changing RTT,
+portable packaged runtime and human online-feel acceptance remain open. The
+actual scripted movement/bounded correction/rematch path is now qualified at
+Movement03's stated scope. A separate private portable test is being prepared;
+reserved manual copies stay intact. D8 and complete product acceptance stay open.
+No live server,firewall or usual-client changes.
 
 PRIVATE EVIDENCE
 local/prediction-checkpoint-20261109/native-worker01/verification.json
@@ -132,6 +190,13 @@ local/prediction-checkpoint-20261109/terminal-drain02/verification.json
 local/prediction-checkpoint-20261109/worker-reconcile02/verification.json
 local/prediction-checkpoint-20261109/worker-reconcile03/reanalysis01.json
 local/prediction-checkpoint-20261109/worker-reconcile03/timing-clarification01.json
+local/prediction-checkpoint-20261109/worker-ledger-native01/verification.json
+local/prediction-checkpoint-20261109/worker-ledger-native04/verification.json
+local/prediction-runtime/startup01/run/verification.json (failed)
+local/prediction-runtime/startup02/run/verification.json (original parser failure)
+local/prediction-runtime/startup02/reanalysis01/verification.json
+local/prediction-runtime/movement02/reanalysis01/verification.json (expected RED)
+local/prediction-runtime/movement03/reanalysis01/verification.json
 local/prediction-checkpoint-20261109/page-checkpoint-green10/
 local/prediction-checkpoint-20261109/arena-build08/diagnostic-abi.txt
 local/movement-prediction/reconciler02/verification.json

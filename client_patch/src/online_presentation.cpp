@@ -14,6 +14,17 @@ extern "C" __declspec(dllexport) void OfflinePresentAvailableSimFrame(void* simu
         // Reading only its presence mirrors the original method's first test;
         // the original retains all locking,buffer ownership and publication.
         if(!ba::read<ba::Obj>(simulation,0x110))return;
+        if(ba_prediction_movement::ownsPresentation(simulation)) {
+            const auto now=ba_lan::movementPacingNowUs();
+            if(!ba_prediction_movement::canPublish(simulation,now))return;
+            const int before=ba::read<int>(simulation,0xac);
+            original(simulation,methodInfo);
+            if(ba::read<int>(simulation,0xac)!=before) {
+                ba_prediction_movement::published(simulation,ba_lan::movementPacingNowUs());
+                ba_frame_timing::published(simulation,ba_lan::frames.size());
+            }
+            return; // Movement admission owns the single absolute phase.
+        }
         auto& clock=ba_lan::presentationClock;
         const auto now=ba_lan::presentationNowUs();
         if(!clock.started()) {

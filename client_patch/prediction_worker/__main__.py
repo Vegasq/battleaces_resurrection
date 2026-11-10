@@ -2,6 +2,7 @@
 from __future__ import annotations
 
 import argparse
+from pathlib import Path
 import sys
 
 from . import wire as w
@@ -59,14 +60,23 @@ def main(argv=None):
     parser.add_argument('--heap-helper', required=True)
     parser.add_argument('--cooperative', required=True)
     parser.add_argument('--data-dir', required=True)
+    parser.add_argument('--movement-observe', action='store_true',
+                        help='explicit diagnostic-only confirmed Spectator31 state journal')
     args = parser.parse_args(argv)
     # Preserve the private protocol pipe before any DLL initializer/CRT output.
     from server.simulation_worker import isolate_protocol_stdout
     sink = isolate_protocol_stdout()
+    session = None
     try:
+        observation_path = Path(args.data_dir).resolve() / 'canonical-state.jsonl' if args.movement_observe else None
         session = NativeSession.open(original_dll=args.original_dll, heap_helper=args.heap_helper,
                                      cooperative=args.cooperative, data_dir=args.data_dir)
+        if observation_path is not None:
+            session.enable_movement_observation(observation_path)
     except Exception as error:
+        if session is not None:
+            try:session.close()
+            except Exception as cleanup:error = RuntimeError(str(error) + '; cleanup: ' + str(cleanup))
         print('Prediction worker startup failed: ' + str(error), file=sys.stderr)
         return 1
     return run_streams(sys.stdin.buffer, sink, session)

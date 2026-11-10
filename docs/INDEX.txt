@@ -20,6 +20,8 @@ Focused evidence files were not renamed because tools and retained reports
 depend on their paths. Top-level reference documents are indexed below.
 
 CURRENT PLANNING AND ACCEPTANCE
+  prediction-multiplayer-movement.txt - N33 actual Unity Move-before-authority,clock regression/fix and scoped two-client correction proof
+  prediction-test-guide.txt - private Custom prediction kit installation,special launcher and useful human test
   prediction-worker-client.txt - N33 actual Unity worker transport,short native parity and late ownership failure
   prediction-worker-wire.txt - private local worker ABI,copied buffers and owned lifetime
   native-prediction-checkpoints.txt - N33 efficient headless restore/control proof,early allocation interception and actual client integration gates

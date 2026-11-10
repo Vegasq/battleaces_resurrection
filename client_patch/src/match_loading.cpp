@@ -163,6 +163,7 @@ static void success(Ticket ticket) {if(unityThread() && model.finish(ticket))cha
 static void cancel(Ticket ticket,const char* reason) {if(unityThread() && model.finish(ticket))changed("cancel",reason);}
 static void error(Ticket ticket,const char* message) {if(unityThread() && model.error(ticket,message,GetTickCount64()))changed("error",message);}
 static void dismissNotice(Ticket ticket,const char* reason) {if(unityThread() && model.dismissNotice(ticket))changed("notice-dismissed",reason);}
+static void hint(const std::string& text) {if(unityThread() && model.hint(text,GetTickCount64()))changed("hint",text.c_str());}
 static void persistent(const std::string& text) {
     if(!unityThread())return;
     if(model.setPersistent(text))changed("persistent-notice",text.c_str());

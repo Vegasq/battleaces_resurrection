@@ -75,6 +75,14 @@ try {
     if ($LASTEXITCODE -ne 0) { throw 'Online frame clock test build failed.' }
     & (Join-Path $OutputDirectory 'online_frame_clock_tests.exe')
     if ($LASTEXITCODE -ne 0) { throw 'Online frame clock tests failed.' }
+    & (Join-Path $CompilerRoot 'bin/Hostx64/x64/cl.exe') /nologo /MT /EHsc /O2 /W4 /WX /std:c++17 (Join-Path $PSScriptRoot 'src/prediction_pacing_tests.cpp') "/Fe:$OutputDirectory/prediction_pacing_tests.exe"
+    if ($LASTEXITCODE -ne 0) { throw 'Movement prediction pacing test build failed.' }
+    & (Join-Path $OutputDirectory 'prediction_pacing_tests.exe')
+    if ($LASTEXITCODE -ne 0) { throw 'Movement prediction pacing tests failed.' }
+    & (Join-Path $CompilerRoot 'bin/Hostx64/x64/cl.exe') /nologo /MT /EHsc /O2 /W4 /WX /std:c++17 (Join-Path $PSScriptRoot 'src/prediction_presentation_pacing_tests.cpp') "/Fe:$OutputDirectory/prediction_presentation_pacing_tests.exe"
+    if ($LASTEXITCODE -ne 0) { throw 'Movement prediction presentation pacing test build failed.' }
+    & (Join-Path $OutputDirectory 'prediction_presentation_pacing_tests.exe')
+    if ($LASTEXITCODE -ne 0) { throw 'Movement prediction presentation pacing tests failed.' }
     & (Join-Path $CompilerRoot 'bin/Hostx64/x64/cl.exe') /nologo /MT /EHsc /O2 /W4 /std:c++17 (Join-Path $PSScriptRoot 'src/original_command_scheduling_tests.cpp') "/Fe:$OutputDirectory/original_command_scheduling_tests.exe"
     if ($LASTEXITCODE -ne 0) { throw 'Original command scheduling test build failed.' }
     & (Join-Path $OutputDirectory 'original_command_scheduling_tests.exe')

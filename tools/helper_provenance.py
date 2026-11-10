@@ -6,13 +6,14 @@ from .audit_repository import inspect_content
 from .package_integrity import PackageError,ordinary_file,safe_name
 
 SCRIPT='client_patch/build.ps1'
+SOURCE_ROOTS=('client_patch/src','client_patch/checkpoint')
 def sha(data):return hashlib.sha256(data).hexdigest()
 def helper_source(name):
     safe_name(name)
-    return name==SCRIPT or (name.startswith('client_patch/src/') and PurePosixPath(name).suffix.lower() in ('.cpp','.h','.hpp'))
+    return name==SCRIPT or (any(name.startswith(root+'/') for root in SOURCE_ROOTS) and PurePosixPath(name).suffix.lower() in ('.cpp','.h','.hpp'))
 
 def current_sources(root):
-    names=[SCRIPT]+[path.relative_to(root).as_posix() for path in (root/'client_patch/src').rglob('*') if path.is_file() and path.suffix.lower() in ('.cpp','.h','.hpp')]
+    names=[SCRIPT]+[path.relative_to(root).as_posix() for source_root in SOURCE_ROOTS for path in (root/source_root).rglob('*') if path.is_file() and path.suffix.lower() in ('.cpp','.h','.hpp')]
     return {name:ordinary_file(root,name).read_bytes() for name in sorted(names)}
 
 def git_sources(root,revision):
@@ -22,7 +23,12 @@ def git_sources(root,revision):
         commit=git('rev-parse','--verify',revision+'^{commit}').decode().strip()
         if not re.fullmatch('[0-9a-f]{40}',commit):raise ValueError('commit identity')
         git('merge-base','--is-ancestor',commit,'HEAD')
-        rows=git('ls-tree','-r','-z',commit,'--','client_patch/build.ps1','client_patch/src')
+        script=git('show',commit+':'+SCRIPT)
+        # Pinned historical helpers used the src-only inventory. Select by the
+        # exact ancestor build script, never by the receipt or today's files.
+        expanded=bool(re.search(rb"@\(\s*['\"]src['\"]\s*,\s*['\"]checkpoint['\"]\s*\)",script))
+        roots=SOURCE_ROOTS if expanded else SOURCE_ROOTS[:1]
+        rows=git('ls-tree','-r','-z',commit,'--',SCRIPT,*roots)
         sources={}
         for row in rows.split(b'\0'):
             if not row:continue

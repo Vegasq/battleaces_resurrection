@@ -13,6 +13,10 @@ namespace ba_lan {
 static ba_community_wire::Packet last{};
 static std::string currentProfile="me";
 static std::string authenticatedProfile(){return currentProfile;}
+static bool movementPacingRequested(){return false;}
+static uint64_t movementPacingNowUs(){return now*1000;}
+static void resetMovementRoundTrips(){}
+static void movementRoundTrip(uint64_t,unsigned char,uint32_t,uint64_t,uint64_t){}
 static void send(unsigned char kind,const std::vector<unsigned char>& bytes){last={kind,bytes};}
 }
 #include "community_transport.cpp"

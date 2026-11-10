@@ -1,0 +1,40 @@
+CUSTOM GAME - PRIVATE MOVEMENT PREDICTION TEST
+
+Both players must use this same private kit and its special launcher.
+Use Custom Game -> Invite Friend -> Start. The public Play/1v1 queue is not
+part of this experiment. Try Deck vs AI uses local play and cannot measure
+the online improvement.
+
+Setup on another Windows PC
+1. Make a separate copy of your supported Battle Aces build37822 game folder.
+2. Extract this kit. Run its Install Battle Aces.exe,select that test copy,
+   and keep server134.209.176.39. Set your own player name.
+3. Open PowerShell in the extracted kit folder and run,using your test path:
+   & '.\Start Prediction Client.cmd' --game 'D:\Battle Aces Test'
+   The first special launch prepares the prediction patch. Use the same command
+   for later launches. The normal desktop shortcut starts the ordinary client.
+
+Nick's prepared local copy has a separate double-click launcher supplied with
+the handoff. It already selects the test game and frozen runtime.
+
+What to try
+Invite the other tester in Custom Game and start the match. Build some units,
+select them,and give repeated Move orders. Look for prompt movement after each
+click,steady travel,and any snap when the server catches up. Fight a small
+battle,finish the match,Continue,and try a rematch if convenient. Quit normally.
+The launcher sends no automated gameplay commands and has no timed shutdown.
+
+What this changes
+Your client simulates movement before the server response,then reconciles with
+server authority. The server still decides the accepted match state. New units
+may need a moment to become selectable while their identity is confirmed.
+Changing network delay and some selection/ability correction cases are still
+under test;this is a private test build,not the next public release.
+
+Feedback
+Describe whether clicks feel prompt,whether moving units jump,and any freeze,
+disconnect or selection problem. Include approximate match time and which
+player saw it. Private logs stay beside the selected test installation under
+investigation/runtime and .battleaces-resurrection/prediction-client/runs.
+Keep identity/credential files private. A detailed manual test request is
+recorded in the project's private DEV.txt when the handoff is ready.

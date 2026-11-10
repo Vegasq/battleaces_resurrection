@@ -1,0 +1,1395 @@
+"""Prepare-only by default: owned Unity/Custom movement integration evidence.
+
+An explicit coordinated --run-prepared starts only a local TLS authority and two
+fresh suspended, retained-handle Job-owned clients. The reserved manual game and
+production server are never used. Default startup scope is two 200-frame Custom
+prefixes, normal Concede/result/Continue/Leave and original menu Quit. The
+optional movement scope joins actual MOVEMENT FEEL command/Unity observations
+with the closed worker's native state journal; pacing alone cannot substitute.
+"""
+from __future__ import annotations
+
+import argparse
+import ast
+import asyncio
+from collections import defaultdict
+import csv
+import ctypes as C
+from dataclasses import replace
+import hashlib
+import json
+import math
+import os
+from pathlib import Path
+import re
+import secrets
+import shutil
+import socket
+import struct
+import subprocess
+import sys
+import time
+import traceback
+from unittest import mock
+
+ROOT = Path(__file__).resolve().parents[1]
+if str(ROOT) not in sys.path:
+    sys.path.insert(0, str(ROOT))
+
+from client_patch.prediction_worker.native import helper_receipt
+from server.protocol import SIM_SHA as SUPPORTED_SIM_SHA256
+from tools.verify_prediction_client_worker import (
+    CREATE_SUSPENDED, RetainedJob, SHIPPING_EXPORTS, quit_trace_evidence)
+
+MAX_LOG = 64 * 1024 * 1024
+HEX64 = re.compile(r'[0-9a-f]{64}')
+COMPLETE = 'COMMUNITY MATCH SMOKE passed: two native Start/result/Continue cycles;'
+FEEL_PREFIX = 'MOVEMENT FEEL '
+FEEL_CONTRACT = {
+    'schema': 1, 'line_prefix': FEEL_PREFIX,
+    'common': ['schema', 'event', 'match', 'world', 'entity', 'unit_type', 'incarnation', 'move_id', 'tick_ms'],
+    'events': {
+        'command_created': ['original_callback', 'ability', 'target', 'action_sha256'],
+        'batch_registered': ['sequence', 'speculative_frame', 'body_sha256', 'action_sha256'],
+        'transform': ['source', 'position'],
+        'authority_received': ['frame', 'action_sha256'],
+    },
+    'transform_source': 'UnityEngine.Transform.get_position',
+    'worker_state_file': 'worker-data-{client}/canonical-state.jsonl',
+    'worker_state_event': 'confirmed_native_state',
+    'worker_actor_join': 'verifier decoration only; worker records contain no actor IDs',
+    'state_scope': 'actual original Spectator31 include_entities=True parsed fields except raw_sha256; no hidden-state claim',
+    'required_continuation_frames': 20,
+    'implementation_status': 'requires real client events plus actual native worker state records',
+}
+
+
+def require(value, message):
+    if not value:
+        raise AssertionError(message)
+
+
+def digest(data):
+    return hashlib.sha256(data).hexdigest()
+
+
+def sha(path):
+    with Path(path).open('rb') as stream:
+        return hashlib.file_digest(stream, 'sha256').hexdigest()
+
+
+def read(path, maximum=MAX_LOG):
+    path = Path(path)
+    require(path.stat().st_size <= maximum, 'evidence exceeds bound: ' + path.name)
+    return path.read_bytes()
+
+
+def read_fresh_native_log(path):
+    """Whole fresh PID log; retain early worker route/bindings before menu entry."""
+    path=Path(path)
+    if not path.exists():return ''
+    raw=read(path)
+    # Live writes may end inside UTF8. Only completed lines are evidence;
+    # unlike current_native_log, never trim at the later initial-state marker.
+    return raw[:raw.rfind(b'\n')+1].decode('utf-8')
+
+
+def normal_peer_eof(error, *, natural, exited_zero):
+    return bool(natural and exited_zero and isinstance(error,ConnectionResetError) and
+                getattr(error,'winerror',None) in (64,10054))
+
+
+def recorded_peer_eof(row):
+    return (type(row) is dict and row.get('step')=='close private bridge' and
+            re.fullmatch(r'ConnectionResetError: \[WinError (64|10054)\] [^\r\n]+',row.get('error','')) is not None)
+
+
+def write(path, value):
+    with Path(path).open('x', encoding='utf-8') as stream:
+        json.dump(value, stream, indent=2, allow_nan=False)
+        stream.write('\n')
+
+
+def source_hashes():
+    # Includes imported verifier helpers and the complete local Python/native
+    # source closure, without scanning game assets or private runtime output.
+    paths = []
+    for directory in ('client_patch', 'server', 'tools', 'tests'):
+        paths.extend(p for p in (ROOT / directory).rglob('*') if p.is_file() and
+                     p.suffix in ('.py', '.cpp', '.h', '.hpp', '.ps1'))
+    require(1 <= len(paths) <= 8192, 'source inventory count differs')
+    return {p.relative_to(ROOT).as_posix(): sha(p) for p in sorted(paths)}
+
+
+def owned_paths(game, output):
+    game, output = Path(game).resolve(), Path(output).resolve()
+    expected = (ROOT / 'local/prediction-runtime/game').resolve()
+    require(game == expected and game.is_relative_to((ROOT / 'local').resolve()),
+            'only the independent local/prediction-runtime/game copy is permitted')
+    for reserved in (ROOT / 'local/pw/game', ROOT / 'local/worker-manual-20261109'):
+        require(not game.is_relative_to(reserved.resolve()), 'reserved manual game is forbidden')
+    require(output.is_relative_to((ROOT / 'local').resolve()) and output != ROOT / 'local' and
+            not output.is_relative_to(game) and not game.is_relative_to(output),
+            'fresh ignored output must be separate from the owned game')
+    require(not os.path.lexists(output), 'output already exists; preserve prior evidence')
+    return game, output
+
+
+def asset_files(directory):
+    """Pin exactly the assets this two-human authority consumes, not all bundles."""
+    directory = Path(directory).resolve(strict=True)
+    manifest_path = directory / 'asset-manifest.json'
+    manifest = json.loads(read(manifest_path, 4 * 1024 * 1024))
+    require(manifest.get('schema') == 1 and manifest.get('game_build') == 37822 and
+            manifest.get('simulation_sha256') == SUPPORTED_SIM_SHA256,
+            'unsupported authority asset manifest')
+    names = {'Simulation.dll', 'map-1v1.pb.gz', 'unit-catalog.json', 'cosmetic-catalog.json'}
+    descriptors = list((directory / 'descriptors').glob('*.proto.json'))
+    require(1 <= len(descriptors) <= 64, 'bounded original descriptor set required')
+    names.update(p.relative_to(directory).as_posix() for p in descriptors)
+    result = {'asset-manifest.json': dict(path=str(manifest_path), sha256=sha(manifest_path))}
+    for name in sorted(names):
+        path = (directory / name).resolve(strict=True)
+        require(path.is_relative_to(directory) and HEX64.fullmatch(manifest['files'].get(name, '')),
+                'consumed asset lacks safe declared identity')
+        actual = sha(path)
+        require(actual == manifest['files'][name], 'consumed authority asset differs: ' + name)
+        result[name] = dict(path=str(path), sha256=actual)
+    require(result['Simulation.dll']['sha256'] == SUPPORTED_SIM_SHA256,
+            'authority must use the exact unmodified original Simulation.dll')
+    return result
+
+
+def prepare(args):
+    from client_patch.patcher import prediction_actor_repair, prediction_worker
+    game, output = owned_paths(args.game, args.output)
+    require(Path(args.module_root).resolve() == ROOT, 'this exact module root is required')
+    for value in (args.expected_helper_sha256, args.expected_gameassembly_sha256):
+        require(isinstance(value, str) and HEX64.fullmatch(value), 'explicit lowercase SHA256 pins required')
+    frames = args.frames if args.frames is not None else (200 if args.scenario == 'startup' else 600)
+    require((120 <= frames <= 200 if args.scenario == 'startup' else 500 <= frames <= 650),
+            'startup requires120..200 frames; movement requires500..650')
+    require(60 <= args.timeout <= 240 and len(args.rtt_ms) == 2 and all(
+        type(x) in (int, float) and math.isfinite(x) and 0 <= x <= 500 for x in args.rtt_ms),
+        'bounded timeout and two finite RTTs0..500ms required')
+    files = {name: dict(path=str(path.resolve(strict=True)), sha256=sha(path)) for name, path in {
+        'game_exe': game / 'Battle Aces.exe', 'helper': game / 'BattleAcesOffline.dll',
+        'gameassembly': game / 'GameAssembly.dll', 'python': Path(args.python),
+        'patch_manifest': game / '.battleaces-resurrection/patch-manifest.json',
+    }.items()}
+    require(files['helper']['sha256'] == args.expected_helper_sha256 and
+            files['gameassembly']['sha256'] == args.expected_gameassembly_sha256,
+            'installed helper/GameAssembly differs from explicit pins')
+    helper = read(files['helper']['path'])
+    required_hooks = prediction_worker.CALL_HOOKS + prediction_actor_repair.CALL_HOOKS
+    require(all(marker in helper for marker in (
+        b'BA_RESURRECTION_MOVEMENT_PIPELINE_V1', b'BA_RESURRECTION_NATIVE_WORKER_PROXY_V1',
+        b'BA_RESURRECTION_ORIGINAL_COMMAND_SCHEDULING_V1')) and all(
+            h['name'].encode('ascii') + b'\0' in helper for h in required_hooks),
+            'helper lacks the explicit movement/actor/selection exports')
+    manifest = json.loads(read(files['patch_manifest']['path'], 4 * 1024 * 1024))
+    require(manifest.get('helper_sha256') == files['helper']['sha256'] and
+            manifest.get('patched_sha256') == files['gameassembly']['sha256'],
+            'owned patch manifest differs from installed pins')
+    for hook in required_hooks:
+        require(hook in manifest.get('call_hooks', []), 'owned manifest lacks movement hook: ' + hook['name'])
+    plugins = list((game / 'Battle Aces_Data/Plugins').rglob('Simulation.dll'))
+    require(len(plugins) == 1 and sha(plugins[0]) == SUPPORTED_SIM_SHA256,
+            'one exact original client Simulation image is required')
+    files['client_simulation'] = dict(path=str(plugins[0].resolve()), sha256=sha(plugins[0]))
+    for key in ('heap_helper', 'cooperative'):
+        path, receipt = helper_receipt(getattr(args, key), arena=key == 'heap_helper')
+        files[key] = dict(path=str(path), sha256=sha(path))
+        files[key + '_receipt'] = dict(path=str(path.with_name('build.json')), sha256=sha(path.with_name('build.json')))
+    require(args.helper_build_receipt is not None, 'main helper source-bound build receipt is required')
+    path = Path(args.helper_build_receipt).resolve(strict=True)
+    receipt = json.loads(read(path, 256 * 1024))
+    native_sources = [ROOT / 'client_patch/build.ps1'] + [p for directory in ('src', 'checkpoint')
+        for p in (ROOT / 'client_patch' / directory).rglob('*')
+        if p.is_file() and p.suffix in ('.cpp', '.h', '.hpp')]
+    expected_build_sources = {p.relative_to(ROOT).as_posix(): sha(p) for p in native_sources}
+    require(receipt.get('schema') == 1 and receipt.get('helper_sha256') == files['helper']['sha256'] and
+            receipt.get('sources_unchanged_during_build') is True and
+            receipt.get('source_sha256') == expected_build_sources,
+            'main helper build receipt differs from installed helper/current native sources')
+    files['helper_build_receipt'] = dict(path=str(path), sha256=sha(path))
+    worker_module_root = ROOT
+    worker_package = getattr(args, 'worker_package', None)
+    if worker_package is not None:
+        worker_package = Path(worker_package).resolve(strict=True)
+        require(worker_package.is_relative_to((ROOT / 'local').resolve()),
+                'packaged worker qualification requires an owned ignored package')
+        from tools.package_integrity import verify, ordinary_file
+        inventory = verify(worker_package, 'client')
+        profile = json.loads(read(worker_package / 'program/prediction/prediction-profile.json'))
+        require(profile.get('schema') == 1 and
+                profile.get('profile') == 'private-custom-movement-prediction-v1',
+                'explicit private prediction profile required')
+        for key, relative in {
+            'helper': 'program/client-helper/BattleAcesOffline.dll',
+            'python': 'program/runtime/python.exe',
+            'heap_helper': 'program/prediction/heap/BAHeap.dll',
+            'cooperative': 'program/prediction/cooperative/PredictionCooperative.dll',
+        }.items():
+            packaged = ordinary_file(worker_package, relative)
+            require(files[key]['sha256'] == sha(packaged), 'prepared input differs from worker package: ' + key)
+            if key != 'helper':
+                require(Path(files[key]['path']) == packaged,
+                        'packaged worker must use its exact bundled path: ' + key)
+        for index, relative in enumerate(sorted((*inventory['files'], 'package-manifest.json'))):
+            packaged = ordinary_file(worker_package, relative)
+            files['worker_package_' + str(index)] = dict(path=str(packaged), sha256=sha(packaged))
+        worker_module_root = worker_package / 'program/app'
+    assets = asset_files(args.assets)
+    sources = source_hashes()
+    prefix = 'nativestest_pm_' + secrets.token_hex(5)
+    profiles = [prefix + '_' + str(index) for index in range(2)]
+    require(all(not (game / '.battleaces-resurrection/profiles' / p).exists() for p in profiles),
+            'fresh owned profile names required')
+    invocation = dict(schema=1, native_executed=False, scope=__doc__, game=str(game),
+        output=str(output), module_root=str(ROOT), assets=str(Path(args.assets).resolve()),
+        worker_module_root=str(worker_module_root), worker_package=str(worker_package) if worker_package else None,
+        files=files, asset_files=assets, source_sha256=sources, profiles=profiles,
+        scenario=args.scenario, lifecycle=args.lifecycle, frames=frames, timeout=args.timeout,
+        rtt_ms=list(args.rtt_ms), surrender_frame=260 if args.scenario == 'startup' else 700,
+        move_slot=args.move_slot, expected_matches=2 if args.lifecycle == 'natural' else 1,
+        endpoint_scope='ephemeral loopback TLS only; no production endpoint',
+        feel_contract=FEEL_CONTRACT, full_feature_accepted=False)
+    output.mkdir(parents=True, exist_ok=False)
+    for name in sources:
+        target = output / 'source-at-prepare' / name
+        target.parent.mkdir(parents=True, exist_ok=True)
+        shutil.copyfile(ROOT / name, target)
+    require(source_hashes() == sources, 'source changed during preparation; preserve this incomplete preparation')
+    write(output / 'invocation.json', invocation)
+    write(output / 'feel-contract.json', FEEL_CONTRACT)
+    return invocation
+
+
+def verify_prepared(output):
+    output = Path(output).resolve(strict=True)
+    require(output.is_relative_to((ROOT / 'local').resolve()), 'prepared output must be ignored and owned')
+    plan = json.loads(read(output / 'invocation.json', 4 * 1024 * 1024))
+    require(plan.get('schema') == 1 and plan.get('native_executed') is False and
+            Path(plan['output']).resolve() == output and Path(plan['module_root']).resolve() == ROOT,
+            'prepared invocation identity differs')
+    require(Path(plan['game']).resolve() == (ROOT / 'local/prediction-runtime/game').resolve(),
+            'prepared game is not the independent runtime copy')
+    require(source_hashes() == plan['source_sha256'], 'source changed since preparation')
+    for name, expected in plan['source_sha256'].items():
+        require(sha(output / 'source-at-prepare' / name) == expected, 'retained source snapshot changed')
+    for row in list(plan['files'].values()) + list(plan['asset_files'].values()):
+        require(sha(row['path']) == row['sha256'], 'prepared binary/asset/receipt changed')
+    require(not os.path.lexists(output / 'run'), 'prepared run already started; do not overwrite evidence')
+    return plan
+
+
+def command_extra(plan, index, run):
+    role = ('host', 'guest')[index]
+    result = [f'-community-match-{role}-smoke', '-lan-smoke', '-dedicated-surrender-smoke',
+        '-dedicated-surrender-frame=' + str(plan['surrender_frame']),
+        '-prediction-movement-experimental', '-frame-timing',
+        '-frame-timing-frames=' + str(plan['frames']), '-lan-audit',
+        '-prediction-worker-python=' + plan['files']['python']['path'],
+        '-prediction-worker-module-root=' + plan.get('worker_module_root', plan['module_root']),
+        '-prediction-worker-heap-helper=' + plan['files']['heap_helper']['path'],
+        '-prediction-worker-cooperative=' + plan['files']['cooperative']['path'],
+        '-prediction-worker-data-dir=' + str(run / f'worker-data-{index}')]
+    if plan['scenario'] == 'movement':
+        result += ['-prediction-movement-smoke','-prediction-movement-smoke-slot='+str(index),
+            '-prediction-movement-smoke-start-frame='+str(440 if index==plan['move_slot']else 460)]
+    if plan['lifecycle'] == 'natural':
+        result += ['-native-quit-smoke', '-native-quit-mode=confirm', '-native-quit-gate-smoke',
+                   '-community-match-leave-quit-smoke']
+    return result
+
+
+def timing_prefix_counts(prefix, frames, *, prediction, complete_delivery_proven):
+    """Physical capture can finish before the last predicted authority arrives.
+
+    The separate exact native65/raw-bridge comparison must already prove EVERY
+    delivery. This only classifies bounded trailing rows absent from a timing
+    capture; it never creates timestamps or substitutes for delivery evidence.
+    """
+    applied = [r['frame'] for r in prefix if r['event'] == 'apply']
+    arrived = [r['frame'] for r in prefix if r['event'] == 'arrival']
+    require(applied == list(range(frames)), 'native physical prefix incomplete')
+    require(complete_delivery_proven, 'independent complete bridge/native65 delivery is required')
+    require(arrived == list(range(len(arrived))), 'native arrival timing prefix is noncontiguous')
+    require(len(arrived) == frames or
+            (prediction and frames - 12 <= len(arrived) < frames),
+            'native arrival timing cutoff exceeds prediction budget')
+    return dict(trace_arrival_frames=len(arrived), trace_apply_frames=len(applied),
+                missing_trailing_arrival_timings=frames-len(arrived),
+                complete_delivery_proven=True, synthetic_timing_rows=0)
+
+
+def resume(process):
+    ntdll = C.WinDLL('ntdll', use_last_error=True)
+    ntdll.NtResumeProcess.argtypes, ntdll.NtResumeProcess.restype = [C.c_void_p], C.c_long
+    require(ntdll.NtResumeProcess(C.c_void_p(int(process._handle))) == 0,
+            'retained suspended process resume failed')
+
+
+class ObservedJob(RetainedJob):
+    def __init__(self, process):
+        self.final_accounting = None
+        self.forced = False
+        super().__init__(process)
+
+    def terminate_owned(self):
+        self.forced = True
+        super().terminate_owned()
+
+    def close(self):
+        if getattr(self, 'handle', None):
+            try:
+                self.final_accounting = self.accounting()
+                self.forced |= bool(self.final_accounting['active'])
+            finally:
+                super().close()
+
+
+class WorkerJobLease:
+    """Let the fixture controller observe natural descendant drain.
+
+    SimulationWorker always calls its job.close during its own I/O cleanup,
+    including after a successful CLOSE and retained main-process exit0. Closing
+    the real kill-on-close Job there can kill a still-exiting owned descendant.
+    An abort still terminates/closes the exact retained Job before I/O drain.
+    """
+    def __init__(self, job, worker):
+        self.job,self.worker = job,worker
+        self.close_requested = False
+
+    def close(self):
+        self.close_requested = True
+        if not self.job.handle:
+            return
+        if self.worker.process.poll() == 0 and not self.worker.failure:
+            return
+        try:
+            self.job.terminate_owned()
+        finally:
+            self.job.close()
+
+
+async def close_owned_job(job, timeout=5.0, *, clock=time.monotonic, sleep=asyncio.sleep):
+    """Bounded drain using only this retained Job; never enumerate/kill PIDs."""
+    async def drained():
+        deadline = clock() + timeout
+        while job.handle:
+            if job.accounting()['active'] == 0:
+                return True
+            remaining = deadline - clock()
+            if remaining <= 0:
+                return False
+            await sleep(min(.01, remaining))
+        return True
+
+    try:
+        if job.handle and not await drained():
+            job.terminate_owned()
+            await drained()  # Bound termination observation too; close still owns survivors.
+    finally:
+        job.close()
+
+
+def spawn_owned(argv, *, before_resume=None, job_type=None, popen=None, resume_child=None, **kwargs):
+    """Assign the exact retained Popen handle before any original child code."""
+    process = job = None
+    try:
+        flags = kwargs.pop('creationflags', 0) | CREATE_SUSPENDED | getattr(subprocess, 'CREATE_NO_WINDOW', 0)
+        process = (popen or subprocess.Popen)(argv, creationflags=flags, **kwargs)
+        job = (job_type or ObservedJob)(process)
+        if before_resume:
+            before_resume(process)
+        (resume_child or resume)(process)
+        return process, job
+    except BaseException:
+        if process is not None:
+            try:
+                if process.poll() is None:
+                    try:
+                        if job is not None:
+                            job.terminate_owned()
+                        else:
+                            process.terminate()  # Exact still-suspended Popen handle.
+                    finally:
+                        if job is not None:
+                            job.close()  # Kill-on-close still owns only this exact child.
+            finally:
+                try:
+                    try:
+                        process.wait(timeout=5)
+                    except subprocess.TimeoutExpired:
+                        process.kill()
+                        process.wait(timeout=5)
+                finally:
+                    if job is not None:
+                        job.close()
+                    for stream in (getattr(process, name, None) for name in ('stdin', 'stdout', 'stderr')):
+                        if stream is not None:
+                            stream.close()
+                    process._handle.Close()
+        raise
+
+
+def feel_rows(log):
+    result = []
+    for line in log.splitlines():
+        if FEEL_PREFIX not in line:
+            continue
+        raw = line.split(FEEL_PREFIX, 1)[1]
+        require(len(raw) <= 8192, 'feel diagnostic line exceeds bound')
+        row = json.loads(raw)
+        require(type(row) is dict and row.get('schema') == 1 and row.get('event') in FEEL_CONTRACT['events'],
+                'unknown feel diagnostic schema/event')
+        for key in ('world', 'entity', 'unit_type', 'incarnation', 'move_id', 'tick_ms'):
+            require(type(row.get(key)) is int and row[key] >= 0, 'invalid feel identity/clock')
+        require(0<row['unit_type']<=0xffffffff,'invalid feel unit type')
+        require(row['world'] > 0 and re.fullmatch('[a-f0-9]{32}', row.get('match', '')),
+                'feel diagnostic lacks exact world/match')
+        for key in FEEL_CONTRACT['events'][row['event']]:
+            require(key in row, 'feel diagnostic lacks event field: ' + key)
+        result.append(row)
+        require(len(result) <= 65536, 'feel event count exceeds bound')
+    return result
+
+
+def validate_worker_states(rows):
+    """Validate the real diagnostic file, never actor-decorated/native FEEL rows."""
+    fields={'schema','event','world','frame','parsed_state_sha256','confirmed_frontier','corrections',
+            'corrections_delta','replayed_frames_total','replayed_frames_delta','tick_ms'}
+    require(type(rows)is list and 0<len(rows)<=4096,'worker state row count outside bound')
+    previous={};worlds=[];last_tick=-1;groups={}
+    for index,row in enumerate(rows):
+        require(type(row)is dict and set(row)==fields and type(row['schema'])is int and row['schema']==1 and
+            row['event']=='confirmed_native_state','unknown worker native-state schema/fields')
+        for name in fields-{'event','parsed_state_sha256','schema'}:
+            require(type(row[name])is int and 0<=row[name]<=0xffffffffffffffff,'invalid worker state counter/clock')
+        world=row['world'];frame=row['frame'];frontier=row['confirmed_frontier']
+        require(world>0 and frame<=frontier<=0x7fffffff and frontier-frame<32 and
+            type(row['parsed_state_sha256'])is str and HEX64.fullmatch(row['parsed_state_sha256']),
+            'invalid worker world/frame/hash')
+        require(row['tick_ms']>=last_tick,'worker state clock regressed');last_tick=row['tick_ms']
+        if not worlds or world!=worlds[-1]:
+            require(world not in previous,'worker world records interleaved/reused');worlds.append(world)
+        old=previous.get(world,dict(frame=-1,confirmed_frontier=-1,corrections=0,replayed_frames_total=0))
+        require(frame==old['frame']+1 and frontier>=old['confirmed_frontier'],'worker frame/frontier duplicate or noncontiguous')
+        for total,delta in (('corrections','corrections_delta'),('replayed_frames_total','replayed_frames_delta')):
+            require(row[total]>=old[total] and row[delta]==row[total]-old[total],'worker replay/correction counter/delta differs')
+        key=world,frontier
+        group=groups.setdefault(key,[])
+        if group:
+            require(all(row[name]==rows[group[0]][name] for name in ('corrections','replayed_frames_total')),
+                    'worker promotion group metrics changed')
+        group.append(index);previous[world]=row
+    require(all(rows[indices[-1]]['frame']==key[1] for key,indices in groups.items()),'worker promotion group missing frontier row')
+    return rows
+
+
+def authority_rows(log):
+    """Actual post-response65 Native-gate receipts; never inferred from FEEL."""
+    result=[];seen=set();previous={};last_tick=-1
+    for line in log.splitlines():
+        if 'MOVEMENT AUTHORITY 'not in line:continue
+        raw=line.split('MOVEMENT AUTHORITY ',1)[1]
+        require(len(raw)<=2048,'native authority diagnostic line exceeds bound')
+        row=json.loads(raw)
+        require(type(row)is dict and set(row)=={'schema','world','match','frame','tick_ms','canonical_sha256','wire_sha256'}and
+            type(row['schema'])is int and row['schema']==1,'unknown native authority schema/fields')
+        require(all(type(row[k])is int for k in ('world','frame','tick_ms'))and
+            0<row['world']<=0xffffffffffffffff and 0<=row['frame']<=0x7fffffff and
+            0<=row['tick_ms']<=0xffffffffffffffff and row['tick_ms']>=last_tick and
+            type(row['match'])is str and re.fullmatch('[a-f0-9]{32}',row['match'])and
+            all(type(row[key])is str and HEX64.fullmatch(row[key])for key in ('canonical_sha256','wire_sha256')),
+            'invalid native authority identity/frame/hash/clock')
+        key=row['world'],row['match'];identity=key+(row['frame'],)
+        require(identity not in seen and row['frame']>previous.get(key,-1),'duplicate/regressing native authority frame')
+        seen.add(identity);previous[key]=row['frame'];last_tick=row['tick_ms'];result.append(row)
+        require(len(result)<=4096,'native authority diagnostic count exceeds bound')
+    return result
+
+
+def read_worker_states(path):
+    raw=read(path,4*1024*1024)
+    require(raw.endswith(b'\n'),'closed worker state file is partial')
+    lines=raw.decode('utf-8').splitlines()
+    require(all(0<len(line)<=2048 for line in lines),'worker state line outside bound')
+    return validate_worker_states([json.loads(line)for line in lines])
+
+
+def joined_worker_evidence(worker_states, *, world, authority, canonical_states, require_replay=False):
+    """Compare a real confirmed frontier; require replay only for its separate witness."""
+    rows=validate_worker_states(worker_states)
+    own=[(index,row)for index,row in enumerate(rows)if row['world']==world]
+    require(own,'worker state file lacks selected RPC world')
+    groups=defaultdict(list)
+    for index,row in own:groups[row['confirmed_frontier']].append((index,row))
+    candidates=[]
+    for frontier,group in groups.items():
+        replayed=sum(row['replayed_frames_delta']for _,row in group)
+        if frontier>=authority['frame'] and (replayed>0 or not require_replay) and all(row['tick_ms']>=authority['tick_ms']for _,row in group):
+            candidates.append((frontier,group,replayed))
+    require(candidates,'no actual confirmed native'+(' replay'if require_replay else '')+' group after matching65')
+    frame,group,replayed=candidates[0];correction=group[-1][1]
+    require(correction['frame']==frame and canonical_states.get(frame)==correction['parsed_state_sha256'],
+            'confirmed native worker state differs from server')
+    by_frame={row['frame']:(index,row)for index,row in own}
+    tail=[]
+    for number in range(frame+1,frame+21):
+        require(number in by_frame and number in canonical_states,'20 contiguous canonical worker continuations missing')
+        index,row=by_frame[number]
+        require(row['tick_ms']>=correction['tick_ms'] and row['parsed_state_sha256']==canonical_states[number],
+                'canonical native worker continuation differs from server')
+        tail.append(index)
+    return dict(confirmed_state_frame=frame,correction_required=require_replay,continuation_frames=20,frontier_row_index=group[-1][0],
+        promotion_group_row_indices=[index for index,_ in group],promotion_group_replayed_delta=replayed,
+        frontier_row_replayed_delta=correction['replayed_frames_delta'],continuation_row_indices=tail,
+        worker_scope='Actual cached original Spectator31 decode_snapshot(include_entities=True); parsed fields excluding raw_sha256')
+
+
+async def full_authority_frame(worker,process_frame,actions,dt_ms=None):
+    """Movement diagnostic only: preserve FrameResult fields, replace actual state."""
+    result=await process_frame(actions,dt_ms)
+    actual=await worker.state(31,include_entities=True)
+    require(actual.get('frame')==result.frame and actual.get('viewer')==31 and type(actual.get('entities'))is list,
+            'authority full native state query differs from actual frame')
+    worker.last_state=actual
+    return replace(result,state=actual)
+
+
+def command_phase(rows, *, match, slot, commits):
+    batches=[r for r in rows if r['match']==match and r['event']=='batch_registered']
+    require(len(batches)==1,'one actual67 Move registration required for phase')
+    batch=batches[0]
+    accepted=[r for r in commits if r.get('match')==match and r.get('slot')==slot and
+              r.get('sequence')==batch['sequence'] and r.get('event','command_batch_committed')=='command_batch_committed']
+    require(len(accepted)==1 and type(batch.get('speculative_frame'))is int and
+        type(accepted[0].get('frame'))is int,'Move phase requires unique canonical commit')
+    delta=batch['speculative_frame']-accepted[0]['frame']
+    return dict(speculative_frame=batch['speculative_frame'],canonical_commit_frame=accepted[0]['frame'],
+        speculative_minus_canonical_frames=delta,command_phase_passed=abs(delta)<=1,
+        phase_scope='Controlled steady-RTT actual67 assignment versus unique original server commit; tolerance1frame')
+
+
+def normal_build_units(log,slot):
+    builds=re.findall(r'LAN NORMAL BUILD smoke frame(\d+) slot(\d+) army\d+ HQ\d+ deckSlot\d+ unitType(\d+) '
+        r'ability\d+ cost=\([^\n]+ prerequisite=1 queued=1 commandQueueDelta=1 ',log)
+    return [int(unit)for frame,owner,unit in builds if int(owner)==slot and int(frame)==300+slot*100]
+
+
+def validate_move_command(rows, *, match, slot, commits, raw_bodies, journal,
+                          catalog_units=None, entity_abilities=None, built_units=None):
+    """Bind one original command to actual67/72 and its unique canonical action."""
+    from server.game_data import decode_player_input
+    from server.protobuf_wire import get_bytes, get_repeated_bytes, get_repeated_uint, get_uint
+    relevant = [r for r in rows if r['match'] == match]
+    created = [r for r in relevant if r['event'] == 'command_created']
+    require(len(created) == 1, 'one original Move command is required for the bounded feel case')
+    command = created[0]
+    identity = tuple(command[k] for k in ('world', 'entity', 'unit_type', 'incarnation', 'move_id'))
+    same = [r for r in relevant if tuple(r[k] for k in ('world', 'entity', 'unit_type', 'incarnation', 'move_id')) == identity]
+    require(len(same) == len(relevant), 'feel observation changed actor incarnation/world/intent')
+    unit=command['unit_type']
+    require(type(unit)is int and 0<unit<=0xffffffff and unit in (catalog_units or {}) and
+        12 in (entity_abilities or {}).get(unit,()) and unit in (built_units or ()),
+        'Move unit type lacks actual asset Move12 metadata or original normal-build witness')
+    require(command['incarnation'] > 0 and command['ability'] == 12 and command['original_callback'] in (
+        'Uncapped.ExecuteTargetGroundCommand..ctor', 'Uncapped.UnitSelector.ProcessContextualRightClick_Pointer',
+        'Uncapped.UnitSelector.ProcessContextualRightClick_Minimap'), 'not an original native Move constructor/callback')
+    action_hash = command['action_sha256']
+    require(HEX64.fullmatch(action_hash), 'invalid Move action digest')
+    registered = [r for r in same if r['event'] == 'batch_registered']
+    received = [r for r in same if r['event'] == 'authority_received']
+    require(len(registered) == len(received) == 1, 'Move batch/authority occurrence is not unique')
+    batch, authority = registered[0], received[0]
+    require(batch['action_sha256'] == authority['action_sha256'] == action_hash and
+            command['tick_ms'] <= batch['tick_ms'] < authority['tick_ms'], 'Move registration/65 order differs')
+    key = match, slot, batch['sequence']
+    require(key in raw_bodies and digest(raw_bodies[key]) == batch['body_sha256'], 'native67 body differs from actual72')
+    decoded = decode_player_input(raw_bodies[key])
+    require(decoded['identity']['player_id'] == slot + 1 and decoded['identity']['is_aliased'] and
+            not decoded['identity']['ai_profile_id'], 'Move batch identity is not the assigned human')
+    submitted = decoded['actions']
+    selected = [a for a in submitted if digest(a) == action_hash]
+    require(len(selected) == 1, 'Move is missing/duplicated in the immutable submitted batch')
+    execute = get_bytes(selected[0], 1, required=True)
+    groups = get_repeated_bytes(execute, 1)
+    require(len(groups) == 1 and get_uint(groups[0], 1) == unit and get_uint(groups[0], 2) == 12 and
+            get_repeated_uint(groups[0], 3, max_values=256) == (command['entity'],),
+            'Move sources/ability differ from the actual stamped actor')
+    position = get_bytes(get_bytes(get_bytes(execute, 3, required=True), 3, required=True), 1, required=True)
+    target = []
+    for number in (1, 2, 3):
+        value = get_uint(position, number)
+        require(value < 2**64, 'Move target exceeds signed Q32.32 range')
+        target.append((value - 2**64 if value >= 2**63 else value) / 2**32)
+    require(type(command['target']) is list and len(command['target']) == 3 and all(
+        type(value) in (int, float) and math.isfinite(value) and abs(value - encoded) <= .0001
+        for value, encoded in zip(command['target'], target)), 'Move target differs from original ToProto bytes')
+    committed = [r for r in commits if r.get('match') == match and r.get('slot') == slot and
+                 r.get('sequence') == batch['sequence'] and r.get('event','command_batch_committed')=='command_batch_committed']
+    require(len(committed) == 1 and committed[0]['frame'] == authority['frame'], 'Move lacks unique canonical commit')
+    phase=command_phase(rows,match=match,slot=slot,commits=commits)
+    occurrences = [(f['frame'], digest(a)) for f in journal for a in f['players'][slot] if digest(a) == action_hash]
+    require(occurrences == [(authority['frame'], action_hash)], 'canonical journal lost/duplicated/rebound Move')
+    return dict(command=command, same=same, unit=unit, action_hash=action_hash,
+        batch=batch, authority=authority, target=target, phase=phase)
+
+
+def evaluate_feel(rows, *, match, slot, commits, raw_bodies, journal, canonical_states,
+                  worker_states=None,bridge_frames=None,catalog_units=None,entity_abilities=None,built_units=None):
+    """A bounded actual-command/render/correction claim, never a pacing proxy."""
+    relevant = [r for r in rows if r['match'] == match]
+    missing = [name for name in FEEL_CONTRACT['events'] if not any(r['event']==name for r in relevant)]
+    if worker_states is None:missing += ['confirmed_state','continuation_state']
+    if missing:
+        return dict(passed=False, missing_gates=missing, scope='no inferred or synthetic replacement evidence')
+    validated=validate_move_command(rows,match=match,slot=slot,commits=commits,raw_bodies=raw_bodies,
+        journal=journal,catalog_units=catalog_units,entity_abilities=entity_abilities,built_units=built_units)
+    command,same,unit,batch,authority,target,phase=(validated[name]for name in
+        ('command','same','unit','batch','authority','target','phase'))
+    bridge=[row for row in bridge_frames or []if row['match']==match and row['frame']==authority['frame']]
+    require(len(bridge)==1 and type(bridge[0].get('received_tick_ms'))is int and
+        batch['tick_ms']<bridge[0]['received_tick_ms']<=authority['tick_ms'],
+        'matching raw authority bridge arrival/65 order missing or different')
+    bridge_tick=bridge[0]['received_tick_ms']
+    transforms = [r for r in same if r['event'] == 'transform']
+    require(all(r['source'] == FEEL_CONTRACT['transform_source'] and len(r['position']) == 3 and
+                all(type(v) in (int, float) and math.isfinite(v) for v in r['position']) for r in transforms),
+            'transform samples must come from the actual original Unity Transform')
+    before = [r for r in transforms if r['tick_ms'] <= command['tick_ms']]
+    require(len(before)>=5 and max(r['tick_ms']for r in before)-min(r['tick_ms']for r in before)>=250,
+            'at least5 original Unity baseline samples spanning250ms required')
+    origin = max(before, key=lambda r: r['tick_ms'])
+    baseline_spread=max(math.dist(r['position'],origin['position'])for r in before)
+    require(baseline_spread<=.03,'original Unity actor was moving before the controlled Move')
+    direction=[value-start for value,start in zip(target,origin['position'])]
+    origin_distance=math.dist(origin['position'],target)
+    moved = [r for r in transforms if batch['tick_ms'] <= r['tick_ms'] < min(authority['tick_ms'],bridge_tick) and
+             math.dist(r['position'], origin['position']) > .05 and
+             sum((value-start)*toward for value,start,toward in zip(r['position'],origin['position'],direction))>0 and
+             origin_distance-math.dist(r['position'],target)>.05]
+    require(moved, 'no actual Unity transform movement toward Move target before BOTH raw bridge and65 authority')
+    joined=joined_worker_evidence(worker_states,world=command['world'],authority=authority,canonical_states=canonical_states)
+    first = min(moved, key=lambda r: r['tick_ms'])
+    ordered=sorted(transforms,key=lambda r:r['tick_ms'])
+    pairs=[dict(from_tick_ms=a['tick_ms'],to_tick_ms=b['tick_ms'],interval_ms=b['tick_ms']-a['tick_ms'],
+        displacement=math.dist(a['position'],b['position']))for a,b in zip(ordered,ordered[1:])]
+    largest=max(pairs,key=lambda r:r['displacement'])
+    confirmed_tick=worker_states[joined['frontier_row_index']]['tick_ms']
+    near=lambda tick:[dict(tick_ms=r['tick_ms'],position=r['position'])for r in ordered if abs(r['tick_ms']-tick)<=250]
+    return dict(passed=phase['command_phase_passed'], missing_gates=[]if phase['command_phase_passed']else['command_phase'],
+        match=match, slot=slot, entity=command['entity'],unit_type=unit,**phase,
+        sequence=batch['sequence'], command_to_visible_ms=first['tick_ms'] - command['tick_ms'],
+        visibility_before_authority_ms=authority['tick_ms'] - first['tick_ms'],
+        visibility_before_bridge_ms=bridge_tick-first['tick_ms'],
+        maximum_transform_sample_displacement=largest,
+        maximum_sample_speed_units_per_second=max((r['displacement']*1000/r['interval_ms']for r in pairs if r['interval_ms']>0),default=0),
+        transform_samples_near65=near(authority['tick_ms']),transform_samples_near_confirmed_state=near(confirmed_tick),
+        baseline_samples=len(before),baseline_span_ms=max(r['tick_ms']for r in before)-min(r['tick_ms']for r in before),
+        baseline_max_displacement=baseline_spread,target_distance_reduction=origin_distance-math.dist(first['position'],target),
+        **joined,worker_actor_join=dict(kind='verifier decoration only; worker records do not contain actor IDs',
+            match=match,world=command['world'],entity=command['entity'],incarnation=command['incarnation'],move_id=command['move_id']),
+        scope='One original Move; actual Unity Transform before bridge AND65; confirmed native full parsed state/continuation, no rollback required; diagnostic queries,not manual input or pure timing')
+
+
+def evaluate_remote_correction(rows, *, match, slot, host_world, host_authorities, host_worker_states,
+        host_bridge_frames, canonical_payloads, canonical_states, commits, raw_bodies, journal,
+        catalog_units=None, entity_abilities=None, built_units=None):
+    """Independent original remote Move causes real host replay, not an own-Move label."""
+    move=validate_move_command(rows,match=match,slot=slot,commits=commits,raw_bodies=raw_bodies,journal=journal,
+        catalog_units=catalog_units,entity_abilities=entity_abilities,built_units=built_units)
+    command,batch,frame=move['command'],move['batch'],move['authority']['frame']
+    native=[r for r in host_authorities if r['match']==match and r['world']==host_world and r['frame']==frame]
+    require(len(native)==1,'remote Move lacks unique actual host65 receipt')
+    receipt=native[0]
+    bridge=[r for r in host_bridge_frames if r['match']==match and r['frame']==frame]
+    require(len(bridge)==1 and type(bridge[0].get('received_tick_ms'))is int and
+        batch['tick_ms']<bridge[0]['received_tick_ms']<=receipt['tick_ms']and
+        receipt['wire_sha256']==bridge[0]['payload_sha256']==canonical_payloads.get(frame),
+        'remote host bridge/65 wire payload or receipt order differs')
+    state=joined_worker_evidence(host_worker_states,world=host_world,authority=receipt,
+        canonical_states=canonical_states,require_replay=True)
+    return dict(passed=True,scope='Independent other-player original Move; actual subject-client65 then genuine native replay and20 full parsed continuations',
+        remote_slot=slot,remote_world=command['world'],remote_entity=command['entity'],unit_type=command['unit_type'],
+        sequence=batch['sequence'],canonical_commit_frame=frame,actual_host65=receipt,
+        hash_scope='wire_sha256 binds exact raw FRAME payload; canonical_sha256 is worker serialization debug only; original action bytes and full parsed state are checked separately',
+        host_raw_bridge_tick_ms=bridge[0]['received_tick_ms'],remote_command_phase=move['phase'],**state,
+        actor_join=dict(kind='verifier decoration only; host native-state records do not contain actor IDs',
+            host_world=host_world,match=match,remote_owner_slot=slot,remote_entity=command['entity'],
+            remote_incarnation=command['incarnation'],move_id=command['move_id']))
+
+
+def native_evidence(log, *, matches, slot, profile, natural):
+    forbidden = ('Movement prediction stopped;', 'Native worker request failed:', 'Native worker startup refused:',
+        'Native worker shutdown failed:', 'Offline loop stopped in ', 'Original command scheduling failed:',
+        'Prediction actor repair failed:', 'Prediction actors blocked:', 'Client lifecycle invariant failed:',
+        'Native Quit probe failed:', 'Frame timing capture stopped:', 'LAN audit disabled:')
+    require(not any(x in log for x in forbidden), 'native movement/lifecycle failure in helper log')
+    routes = re.findall(r'Native worker movement route active: pid=(\d+) assignedBeforeResume=1 .*movementRequested=1', log)
+    require(len(routes) == 1, 'one actual Job-owned movement worker route required')
+    bindings = re.findall(r'Native worker export lookup: name=(\w+) count=(\d+) thread=(\d+)', log)
+    require(len(bindings) == 18 and {r[0] for r in bindings} == SHIPPING_EXPORTS and
+            [int(r[1]) for r in bindings] == list(range(1, 19)), 'exact18 shipping bindings required')
+    ready = re.findall(r'Movement prediction ready: generation=(\d+) match=([a-f0-9]{32}) world=(\d+) slot=(\d+) ', log)
+    require([r[1] for r in ready] == matches and all(int(r[3]) == slot for r in ready) and
+            len({r[2] for r in ready}) == len(matches), 'movement BEGIN/world/rematch identity differs')
+    names = set(re.findall(r'Native worker API observed: name=(\w+) thread=\d+ ', log))
+    require({'SimInit', 'SimCreateWorld', 'SimProcessMsg', 'SimStep', 'SimMakeSimFrame',
+             'SimGetSimFrameBuffer'} <= names, 'actual Unity native frame APIs not observed')
+    result = dict(worker_pid=int(routes[0]), matches=matches, native_frame_api_names=sorted(names),
+                  movement_route=True, natural_worker_shutdown=False)
+    if natural:
+        closed = re.findall(r'Native worker closed: pid=(\d+) exit=(\d+) natural=(\d+) reaped=(\d+) '
+                            r'ioJoined=(\d+) abandoned=(\d+) requests=(\d+) responses=(\d+)', log)
+        require(len(closed) == 1, 'one complete worker shutdown receipt required')
+        pid, code, normal, reaped, joined, abandoned, requests, responses = map(int, closed[0])
+        require(pid == int(routes[0]) and code == abandoned == 0 and normal == reaped == joined == 1 and
+                requests == responses and requests > 0, 'worker shutdown was not natural/complete')
+        markers = (COMPLETE, 'COMMUNITY MATCH SMOKE original post-match Leave dispatched:',
+            'COMMUNITY MATCH SMOKE post-match leave passed:', 'NATIVE QUIT owned gate released:',
+            'NATIVE QUIT owned menu verified: profile=' + profile)
+        indices = [log.find(m) for m in markers]
+        require(all(i >= 0 for i in indices) and indices == sorted(indices), 'Custom returns/Leave/Quit order differs')
+        require(log.count('COMMUNITY MATCH SMOKE native Continue') == 2, 'two original Continue callbacks required')
+        quits = re.findall(r'\[(\d+)\] NATIVE QUIT original confirmation dispatch: thread=(\d+) '
+                           r'worldIdle=1 assetLoadingCount=0 naturalExitDeadlineSeconds=60', log)
+        require(len(quits) == 1, 'original native Quit confirmation missing')
+        result.update(natural_worker_shutdown=True, quit_tick=int(quits[0][0]), quit_thread=int(quits[0][1]),
+                      requests=requests, responses=responses)
+    return result
+
+
+def publish_gate(game, profile, name):
+    directory = (game / '.battleaces-resurrection/profiles' / profile).resolve(strict=True)
+    require(directory.is_relative_to((game / '.battleaces-resurrection/profiles').resolve()) and
+            name in ('custom-match-leave.ready', 'native-quit.ready'), 'gate escaped fresh owned profile')
+    with (directory / name).open('xb'):
+        pass
+
+
+async def run_prepared(output):
+    from client_patch.transport import bridge, launcher
+    from server import admission, command_scheduling, simulation_worker as ipc, tls_transport as tls
+    from server.cosmetics import CosmeticCatalog
+    from server.credentials import AuthenticationError
+    from server.dedicated_server import Audit, DedicatedServer, Room
+    from server.game_data import GameTemplate
+    from server.profiles import ProfileStore
+    from server.worker_client import SimulationWorker
+    from tests.test_tls_transport import generate_test_pki, remove_test_pki
+    from tools import frame_timing
+    from tools.stream_shaper import StreamShaper
+    from tools.verify_high_latency_clients import prefix_trace, state_digest
+    from tools.verify_original_command_scheduling import ObservedBridge, cleanup_step, read_journal
+
+    require(os.name == 'nt', 'actual Unity run requires Windows')
+    plan = verify_prepared(output)
+    output, game, assets = Path(plan['output']), Path(plan['game']), Path(plan['assets'])
+    run = output / 'run'; run.mkdir(exist_ok=False)
+    pki_folder = run / 'ephemeral-pki'
+    clients, workers, shapers, events, raw_bodies = [], [], [], [], {}
+    states = defaultdict(dict)
+    feel_context = remote_context = None
+    server = audit = pki = None
+    tick = C.WinDLL('kernel32').GetTickCount64; tick.restype = C.c_uint64
+    started = time.monotonic()
+    report = dict(passed=False, scoped_observation_passed=False, movement_feel_witness_passed=False,
+        full_feature_accepted=False, scope=__doc__, scenario=plan['scenario'], lifecycle=plan['lifecycle'],
+        invocation_sha256=sha(output / 'invocation.json'), source_sha256_at_start=source_hashes(),
+        forced_cleanup=False, clients=[], authority_workers=[])
+    identities = [('p_' + secrets.token_hex(16), 'ba1_' + secrets.token_urlsafe(32)) for _ in range(2)]
+
+    class Store:
+        def authenticate(self, token):
+            for identity, expected in identities:
+                if secrets.compare_digest(token, expected):
+                    return identity
+            raise AuthenticationError()
+
+    def observe(event, **fields):
+        row = dict(event=event, probe_tick_ms=int(tick()), **fields)
+        if event == 'frame_queued':
+            room = server.rooms[fields['room']]
+            row['parsed_state_sha256'] = state_digest(room.sim.last_state)
+            states[fields['match']][fields['frame']] = row['parsed_state_sha256']
+        events.append(row)
+        require(len(events) <= 30000, 'authority event count exceeds bound')
+        audit(event, **{k: v for k, v in row.items() if k != 'event'})
+
+    async def factory(data):
+        # Use the existing original worker protocol/class, replacing ONLY its
+        # unsafe PID-relookup launch with this retained suspended ownership.
+        folder = run / ('authority-' + str(len(workers))); folder.mkdir()
+        bootstrap = "import runpy,sys;sys.path.insert(0,sys.argv.pop(1));runpy.run_module('server.simulation_worker',run_name='__main__')"
+        argv = [plan['files']['python']['path'], '-I', '-S', '-B', '-u', '-c', bootstrap, str(ROOT), '--stdio']
+        environment = os.environ.copy(); environment.pop('BA_ENABLE_SYNTHETIC_WORKER_TESTS', None)
+        process, job = spawn_owned(argv, cwd=folder, env=environment, stdin=subprocess.PIPE,
+            stdout=subprocess.PIPE, stderr=subprocess.PIPE, bufsize=0, close_fds=True)
+        row = dict(process=process, job=job, assigned_before_resume=True, worker=None)
+        workers.append(row)
+        worker = SimulationWorker(process, request_timeout=10, close_timeout=5, test_backend=False)
+        row['worker'] = worker; worker._job = WorkerJobLease(job, worker)
+        try:
+            async with worker._lock:
+                response, payload = await worker._exchange(ipc.CREATE, -1,
+                    {'dll_path': str(assets / 'Simulation.dll')}, data, timeout=45)
+                require(not payload and response.get('pid') == process.pid and
+                    response.get('game_data_sha256') == digest(data) and
+                    response.get('dll_sha256') == SUPPORTED_SIM_SHA256 and
+                    response.get('synthetic_test_backend') is False and response.get('ai') is None,
+                    'original authority worker CREATE provenance differs')
+                worker.game_data_sha256, worker.dll_sha256 = digest(data), response['dll_sha256']
+            if plan['scenario'] == 'movement':
+                original_frame = worker.process_frame
+                async def diagnostic_frame(actions, dt_ms=None, w=worker, original=original_frame):
+                    return await full_authority_frame(w, original, actions, dt_ms)
+                worker.process_frame = diagnostic_frame
+            return worker
+        except BaseException:
+            await worker._abort()
+            raise
+
+    original_message = Room.on_message
+
+    async def witnessed_message(room, peer, kind, body):
+        result = await original_message(room, peer, kind, body)
+        if room.server is server and kind == command_scheduling.BATCH:
+            match, sequence, payload = command_scheduling.decode_batch(body)
+            key = match, peer.slot, sequence
+            require(key not in raw_bodies and len(raw_bodies) < 4096, 'duplicate/unbounded submitted batch capture')
+            raw_bodies[key] = payload
+        return result
+
+    try:
+        for index in range(2):
+            (run / f'worker-data-{index}').mkdir()
+        pki = generate_test_pki(pki_folder)
+        audit = Audit(run)
+        template = GameTemplate.load(assets / 'map-1v1.pb.gz', catalog_path=assets / 'unit-catalog.json',
+                                     descriptors_path=assets / 'descriptors')
+        server = DedicatedServer(template, ProfileStore(run / 'profiles', template, catalog=CosmeticCatalog(assets)),
+            templates={1: template}, sim_factory=factory, audit=observe, data_dir=run,
+            input_timeout=30, experimental_command_scheduling=True,
+            tls_context=tls.load_server_context(pki['cert'], pki['key']),
+            admission=admission.AdmissionController(Store()))
+        port = (await server.start('127.0.0.1', 0))[1]
+        report['endpoint'] = dict(host='127.0.0.1', ephemeral_port=port, tls=True, fixture_identities=2)
+        context = tls.load_client_context(pki['ca'], 'localhost')
+        runtime = game / 'investigation/runtime'; runtime.mkdir(parents=True, exist_ok=True)
+        with mock.patch.object(Room, 'on_message', witnessed_message):
+            for index, role in enumerate(('host', 'guest')):
+                shaper = StreamShaper(port, rtt_ms=plan['rtt_ms'][index], seed=710 + index)
+                shapers.append(shaper); delayed = await shaper.start()
+                parent, child = socket.socketpair(socket.AF_INET); parent.setblocking(False)
+                try:
+                    reader, writer = await asyncio.open_connection(sock=parent)
+                except BaseException:
+                    parent.close(); child.close()
+                    raise
+                row = dict(index=index, profile=plan['profiles'][index], child=child, writer=writer,
+                           log='', wire=[], launch_tick=int(tick()))
+                clients.append(row)
+                async def resolve(index=index, delayed=delayed):
+                    return bridge.Remote('127.0.0.1', delayed, context, *identities[index])
+                config = dict(game_directory=game, server_host='127.0.0.1', server_port=delayed,
+                    display_name='Prediction ' + role, room='community', fullscreen=False,
+                    local_profile=row['profile'], solo_ai_host='server')
+                options = argparse.Namespace(run_name='prediction-' + role, unified_experimental=True,
+                    player_features=True, original_command_scheduling_experimental=True)
+                argv = launcher.game_arguments(config, None, child.fileno(), options)
+                argv[argv.index('-logFile') + 1] = str(run / f'game-{index}.log')
+                argv += command_extra(plan, index, run)
+                info = subprocess.STARTUPINFO(); info.dwFlags |= subprocess.STARTF_USESHOWWINDOW; info.wShowWindow = 0
+                info.lpAttributeList = {'handle_list': [child.fileno()]}
+                def before_resume(process, row=row):
+                    row['native_path'] = runtime / f'dedicated-native-{process.pid}.log'
+                    row['trace'] = runtime / f'frame-timing-{process.pid}.tsv'
+                    require(not row['native_path'].exists() and not row['trace'].exists(), 'reused PID evidence is not fresh')
+                child.set_inheritable(True)
+                try:
+                    row['process'], row['job'] = spawn_owned(argv, cwd=game, startupinfo=info,
+                        close_fds=True, before_resume=before_resume)
+                finally:
+                    child.set_inheritable(False); child.close()
+                row['assigned_before_resume'] = True
+                row['task'] = asyncio.create_task(ObservedBridge(reader, writer, resolve, version=2,
+                    evidence=row['wire'], tick=lambda: int(tick())).run())
+                write(run / f'client-{index}-process.json', dict(pid=row['process'].pid,
+                    profile=row['profile'], launch_tick=row['launch_tick'], command=argv,
+                    retained_handle_used=True, assigned_before_resume=True))
+            leave_stage, quit_released = 0, False
+            while True:
+                for row in clients:
+                    process = row['process']
+                    require(quit_released or process.poll() is None, 'owned game exited before original Quit release')
+                    require(quit_released or not row['task'].done(), 'owned bridge stopped before native lifecycle')
+                    row['log'] = await asyncio.to_thread(read_fresh_native_log, row['native_path'])
+                    require(not any(x in row['log'] for x in ('Movement prediction stopped;',
+                        'Native worker request failed:', 'Native worker startup refused:',
+                        'Prediction actor repair failed:', 'Prediction selection admission failed:',
+                        'Offline loop stopped in ', 'Native Quit probe failed:')),
+                        'actual movement client reported failure')
+                require(not any(r['event'] in ('protocol_error', 'match_aborted', 'custom_match_setup_error') for r in events),
+                        'owned Custom authority failed')
+                created = [r['match'] for r in events if r['event'] == 'match_created']
+                require(len(created) <= plan['expected_matches'], 'unexpected extra Custom match')
+                if plan['lifecycle'] == 'prefix' and created and all(r['trace'].exists() for r in clients):
+                    break  # Forced diagnostic prefix; never natural Quit acceptance.
+                if plan['lifecycle'] == 'natural':
+                    if leave_stage == 0 and all(COMPLETE in r['log'] for r in clients) and not server.rooms and not server.retired:
+                        publish_gate(game, clients[1]['profile'], 'custom-match-leave.ready'); leave_stage = 1
+                    elif leave_stage == 1 and 'post-match leave passed: role=guest' in clients[1]['log']:
+                        publish_gate(game, clients[0]['profile'], 'custom-match-leave.ready'); leave_stage = 2
+                    if not quit_released and leave_stage == 2 and not server.community.lobbies and all(
+                            'COMMUNITY MATCH SMOKE post-match leave passed:' in r['log'] for r in clients):
+                        for row in clients:
+                            publish_gate(game, row['profile'], 'native-quit.ready')
+                        quit_released = True
+                    if quit_released and all(r['process'].poll() is not None for r in clients):
+                        break
+                require(time.monotonic() - started < plan['timeout'], 'bounded multiplayer deadline reached')
+                await asyncio.sleep(.15)
+            require(len(created) == plan['expected_matches'], 'Custom match count differs')
+            if server.rooms:
+                for room in server.rooms.values():
+                    if room.history: room.history.flush()
+            report['matches'] = []
+            for match in created:
+                queued = [r for r in events if r['event'] == 'frame_queued' and r.get('match') == match and r['frame'] < plan['frames']]
+                require([r['frame'] for r in queued] == list(range(plan['frames'])), 'canonical prefix incomplete')
+                journal = read_journal(run, match, plan['frames'])
+                for row in clients:
+                    delivered = [r for r in row['wire'] if r['match'] == match and r['frame'] < plan['frames']]
+                    require([r['frame'] for r in delivered] == list(range(plan['frames'])) and all(
+                        r['payload_sha256'] == queued[r['frame']]['frame_payload_sha256'] for r in delivered),
+                        'actual private bridge prefix differs from authoritative frames')
+                    receipt = runtime / f'dedicated-receipts-{row["process"].pid}-{match}.tsv'
+                    with receipt.open(encoding='utf-8') as stream:
+                        receipts = [r for r in csv.DictReader(stream, delimiter='\t') if int(r['frame']) < plan['frames']]
+                    require([int(r['frame']) for r in receipts] == list(range(plan['frames'])) and all(
+                        r['match'] == match and int(r['pid']) == row['process'].pid and
+                        r['sha256'] == queued[int(r['frame'])]['frame_payload_sha256'] for r in receipts),
+                        'native65 authority accounting prefix differs')
+                    shutil.copyfile(receipt, run / receipt.name)
+                report['matches'].append(dict(match=match, canonical_frames=plan['frames'], exact_bridge_and_native_authority_receipts=True))
+            for row in clients:
+                row['log'] = read_fresh_native_log(row['native_path'])
+                evidence = native_evidence(row['log'], matches=created, slot=row['index'], profile=row['profile'],
+                                           natural=plan['lifecycle'] == 'natural')
+                trace = frame_timing.matches(frame_timing.read_trace(row['trace']))[0]
+                prefix = prefix_trace(trace, plan['frames'])
+                evidence['timing_capture'] = timing_prefix_counts(prefix, plan['frames'],
+                    prediction=plan['scenario'] == 'movement',
+                    complete_delivery_proven=len(report['matches']) == plan['expected_matches'] and all(
+                        m['exact_bridge_and_native_authority_receipts'] for m in report['matches']))
+                require(any(r['event'] == 'publication' and r['presented'] >= plan['frames'] - 1 for r in prefix),
+                        'actual native output publication did not reach prefix end')
+                evidence['first_prefix_timing'] = frame_timing.measure(prefix)
+                if plan['lifecycle'] == 'natural':
+                    require(row['process'].poll() == 0, 'game did not exit naturally with code0')
+                    quit_path = game / '.battleaces-resurrection/profiles' / row['profile'] / 'quit-trace.jsonl'
+                    evidence['quit_trace'] = quit_trace_evidence(read(quit_path, 64 * 1024), pid=row['process'].pid,
+                        launch_tick=row['launch_tick'], transport=evidence)
+                report['clients'].append(dict(index=row['index'], pid=row['process'].pid, profile=row['profile'], **evidence))
+            slot = plan['move_slot']; first = created[0]
+            feel_context = dict(rows=feel_rows(clients[slot]['log']), match=first, slot=slot,
+                commits=events, raw_bodies=raw_bodies, journal=read_journal(run, first, plan['frames']),
+                canonical_states=states[first], bridge_frames=clients[slot]['wire'],
+                catalog_units=template.catalog,entity_abilities=template.entity_abilities,
+                built_units=normal_build_units(clients[slot]['log'],slot))
+            if plan['scenario']=='movement':
+                subject=[r for r in feel_context['rows']if r['match']==first and r['event']=='command_created']
+                require(len(subject)==1,'one subject Move required before independent remote correction')
+                other=1-slot
+                remote_context=dict(rows=feel_rows(clients[other]['log']),match=first,slot=other,
+                    host_world=subject[0]['world'],host_authorities=authority_rows(clients[slot]['log']),
+                    host_bridge_frames=clients[slot]['wire'],canonical_payloads={r['frame']:r['frame_payload_sha256']
+                        for r in events if r['event']=='frame_queued'and r.get('match')==first},
+                    canonical_states=states[first],commits=events,raw_bodies=raw_bodies,journal=feel_context['journal'],
+                    catalog_units=template.catalog,entity_abilities=template.entity_abilities,
+                    built_units=normal_build_units(clients[other]['log'],other))
+            if plan['scenario'] != 'movement':
+                report['feel'] = evaluate_feel(**feel_context)
+                report['movement_feel_witness_passed'] = report['feel']['passed']
+                report['scoped_observation_passed'] = True
+    except BaseException as error:
+        report.update(error=repr(error), traceback=traceback.format_exc())
+    finally:
+        errors = []
+        worker_state_rows = {}
+        for row in clients:
+            process, job = row.get('process'), row.get('job')
+            if process is not None:
+                if process.poll() is None:
+                    report['forced_cleanup'] = True
+                    await cleanup_step(errors, 'terminate owned game', job.terminate_owned if job else process.terminate)
+                await cleanup_step(errors, 'reap owned game', lambda p=process: asyncio.to_thread(p.wait, timeout=10))
+            if row.get('task'):
+                row['task'].cancel()
+            await cleanup_step(errors, 'close child socket', row['child'].close)
+        await asyncio.gather(*(r['task'] for r in clients if r.get('task')), return_exceptions=True)
+        for row in clients:
+            await cleanup_step(errors, 'start private bridge close', row['writer'].close)
+            async def finish_writer(row=row):
+                try: await asyncio.wait_for(row['writer'].wait_closed(), 2)
+                except ConnectionResetError as error:
+                    if not normal_peer_eof(error,natural=plan['lifecycle']=='natural',
+                                           exited_zero=row.get('process') is not None and row['process'].poll()==0):
+                        raise
+                    report.setdefault('classified_bridge_eof',[]).append(dict(index=row['index'],
+                        pid=row['process'].pid,winerror=error.winerror,classification='normal_peer_quit_eof'))
+                finally: row['writer'].transport.abort()
+            await cleanup_step(errors, 'close private bridge', finish_writer)
+        if server:
+            # This is only the local fixture. Finish in-flight native requests
+            # before closing, so forced prefix teardown cannot cancel IPC mid-step.
+            for room in list(server.rooms.values()):
+                if room.state == 'running': room.state = 'completed'
+            deadline = time.monotonic() + 5
+            while any(r['worker'] and r['worker']._lock.locked() for r in workers) and time.monotonic() < deadline:
+                await asyncio.sleep(.01)
+            await cleanup_step(errors, 'close local authority', lambda: asyncio.wait_for(server.close(), 30))
+        for row in workers:
+            worker, process, job = row['worker'], row['process'], row['job']
+            if worker: await cleanup_step(errors, 'close authority worker', worker.close)
+            elif process.poll() is None: await cleanup_step(errors, 'stop incomplete authority', job.terminate_owned)
+            await cleanup_step(errors, 'reap authority', lambda p=process: asyncio.to_thread(p.wait, timeout=10))
+            await cleanup_step(errors, 'drain and close authority job', lambda j=job: close_owned_job(j))
+            report['authority_workers'].append(dict(pid=process.pid, exit_code=process.poll(),
+                assigned_before_resume=True, job=job.final_accounting, forced=job.forced,
+                failure=worker.failure if worker else 'incomplete startup'))
+            await cleanup_step(errors, 'close authority retained handle', process._handle.Close)
+        for shaper in shapers:
+            await cleanup_step(errors, 'close stream shaper', lambda s=shaper: asyncio.wait_for(s.close(), 5))
+        for row in clients:
+            process, job = row.get('process'), row.get('job')
+            if job:
+                await cleanup_step(errors, 'drain and close game job', lambda j=job: close_owned_job(j))
+                report['forced_cleanup'] |= job.forced
+            if process:
+                await cleanup_step(errors, 'retain private bridge hashes', lambda row=row:
+                    write(run/f'bridge-wire-{row["index"]}.json',row['wire']))
+                if row.get('native_path') and row['native_path'].exists():
+                    await cleanup_step(errors, 'retain native log', lambda row=row:
+                        (run / f'native-{row["index"]}.log').write_bytes(read(row['native_path'])))
+                    if plan['scenario']=='movement':
+                        await cleanup_step(errors,'retain native authority diagnostics',lambda row=row:
+                            write(run/f'movement-authorities-{row["index"]}.json',authority_rows(read_fresh_native_log(row['native_path']))))
+                        await cleanup_step(errors,'retain original Move diagnostics',lambda row=row:
+                            write(run/f'movement-feel-{row["index"]}.json',feel_rows(read_fresh_native_log(row['native_path']))))
+                if row.get('trace') and row['trace'].exists():
+                    await cleanup_step(errors, 'retain native timing', lambda row=row:
+                        shutil.copyfile(row['trace'], run / row['trace'].name))
+                quit_path=game/'.battleaces-resurrection/profiles'/row['profile']/'quit-trace.jsonl'
+                if quit_path.exists():
+                    await cleanup_step(errors,'retain original Quit trace',lambda row=row,p=quit_path:
+                        (run/f'quit-trace-{row["index"]}.jsonl').write_bytes(read(p,64*1024)))
+                def close_game_handle(row=row, process=process):
+                    process._handle.Close(); row['retained_handle_closed'] = True
+                await cleanup_step(errors, 'close game retained handle', close_game_handle)
+                report.setdefault('game_cleanup', []).append(dict(index=row['index'], pid=process.pid,
+                    exit_code=process.poll(), reaped=process.poll() is not None, assigned_before_resume=True,
+                    retained_handle_closed=row.get('retained_handle_closed', False),
+                    natural_game_exit=process.poll() == 0 and not (job and job.forced),
+                    job=job.final_accounting if job else None))
+            if plan['scenario'] == 'movement':
+                def retain_worker_states(row=row):
+                    source = run / f'worker-data-{row["index"]}' / 'canonical-state.jsonl'
+                    raw = read(source, 4 * 1024 * 1024)
+                    target = run / f'canonical-state-{row["index"]}.jsonl'
+                    target.write_bytes(raw)
+                    record = dict(index=row['index'], source=str(source), copy=str(target),
+                        source_sha256=digest(raw), copy_sha256=sha(target), bytes=len(raw))
+                    report.setdefault('worker_state_files', []).append(record)
+                    require(record['source_sha256'] == record['copy_sha256'], 'worker state retained copy differs')
+                    actual = read_worker_states(target)
+                    record.update(rows=len(actual), worlds=list(dict.fromkeys(r['world'] for r in actual)))
+                    worker_state_rows[row['index']] = actual
+                await cleanup_step(errors, 'retain closed worker native states', retain_worker_states)
+        if plan['scenario'] == 'movement' and feel_context is not None and 'error' not in report:
+            try:
+                require(plan['move_slot'] in worker_state_rows, 'selected closed worker native-state file unavailable')
+                report['command_phase']=command_phase(feel_context['rows'],match=feel_context['match'],
+                    slot=feel_context['slot'],commits=events)
+                report['feel'] = evaluate_feel(**feel_context, worker_states=worker_state_rows[plan['move_slot']])
+                require(remote_context is not None,'independent other-player correction fixture missing')
+                require(report['feel']['canonical_commit_frame']<command_phase(remote_context['rows'],match=remote_context['match'],
+                    slot=remote_context['slot'],commits=events)['canonical_commit_frame'],
+                    'independent remote Move must follow subject Move')
+                report['remote_correction']=evaluate_remote_correction(**remote_context,
+                    host_worker_states=worker_state_rows[plan['move_slot']])
+                report['movement_feel_witness_passed'] = report['feel']['passed']and report['remote_correction']['passed']
+                require(report['feel']['passed'], 'actual movement feel contract remains missing')
+                report['scoped_observation_passed'] = True
+            except BaseException as error:
+                report.update(error=repr(error), traceback=traceback.format_exc(), scoped_observation_passed=False)
+        if pki: await cleanup_step(errors, 'remove ephemeral PKI', lambda: remove_test_pki(pki_folder))
+        if audit: await cleanup_step(errors, 'close fixture audit', audit.close)
+        report['source_unchanged'] = report['files_unchanged'] = False
+        try:
+            report['source_sha256_at_finish'] = source_hashes()
+            report['source_unchanged'] = report['source_sha256_at_start'] == report['source_sha256_at_finish']
+            report['files_unchanged'] = all(sha(r['path']) == r['sha256'] for r in
+                list(plan['files'].values()) + list(plan['asset_files'].values()))
+        except BaseException as error:
+            errors.append(dict(step='final source/binary identity', error=repr(error)))
+        report['cleanup_errors'] = errors
+        report['elapsed_seconds'] = time.monotonic() - started
+        report['teardown_scope'] = ('original result/Continue/Leave/Quit required' if plan['lifecycle'] == 'natural'
+                                    else 'forced owned prefix teardown; no native Quit or acceptance claim')
+        report['passed'] = bool(report['scoped_observation_passed'] and report['source_unchanged'] and
+            report['files_unchanged'] and not report['forced_cleanup'] and not errors and
+            len(report.get('game_cleanup', [])) == 2 and all(r['reaped'] and r['retained_handle_closed'] and r['exit_code'] == 0 and
+            r['job'] and r['job']['active'] == r['job']['terminated'] == 0 for r in report['game_cleanup']) and
+            len(workers) == plan['expected_matches'] and all(r['exit_code'] == 0 and not r['failure'] and
+            not r['forced'] and r['job'] and r['job']['active'] == r['job']['terminated'] == 0
+            for r in report['authority_workers']))
+        write(run / 'verification.json', report)
+        write(run / 'server-states.json', dict(states))
+        body_dir = run / 'submitted-batches'; body_dir.mkdir()
+        for (match, slot, sequence), body in raw_bodies.items():
+            (body_dir / f'{match}-{slot}-{sequence}.pb').write_bytes(body)
+    return report
+
+
+def startup_failure_scope(previous,plan,invocation_sha256):
+    """Only the retained early-log parser failure and normal peer EOF qualify."""
+    require(previous.get('passed') is False and previous.get('error')==
+        "AssertionError('one actual Job-owned movement worker route required')",
+        'reanalysis only repairs the retained early-route parser failure')
+    require(plan.get('scenario')=='startup' and plan.get('lifecycle')=='natural' and
+        plan.get('frames')==200 and plan.get('expected_matches')==2 and
+        previous.get('scenario')=='startup' and previous.get('lifecycle')=='natural',
+        'reanalysis requires the bounded two-round natural startup scenario')
+    require(previous.get('invocation_sha256')==invocation_sha256 and
+        previous.get('source_unchanged') is True and previous.get('files_unchanged') is True and
+        previous.get('source_sha256_at_start')==previous.get('source_sha256_at_finish')==plan['source_sha256'],
+        'original invocation/source/file bindings differ')
+    require(previous.get('forced_cleanup') is False and previous.get('clients')==[],
+        'original failure occurred outside the explained pre-client parser gate')
+    for key in ('game_cleanup','authority_workers'):
+        rows=previous.get(key,[])
+        require(len(rows)==2 and all(row.get('exit_code')==0 and
+            row.get('assigned_before_resume') is True and row.get('job') and
+            row['job']['active']==row['job']['terminated']==0 for row in rows),
+            'original owned process/Job teardown was not natural and complete')
+    require(all(row.get('reaped') is True and row.get('retained_handle_closed') is True and
+        row.get('natural_game_exit') is True for row in previous['game_cleanup']) and
+        all(row.get('forced') is False and row.get('failure') is None for row in previous['authority_workers']),
+        'original native process teardown contains failure/force')
+    errors=previous.get('cleanup_errors',[])
+    require(len(errors)==2 and all(recorded_peer_eof(row) for row in errors),
+        'unexplained original cleanup failure remains')
+    matches=previous.get('matches',[])
+    require(len(matches)==2 and len({row.get('match') for row in matches})==2 and all(
+        row.get('canonical_frames')==200 and row.get('exact_bridge_and_native_authority_receipts') is True
+        for row in matches),'original bridge/native prefix gate was not already passed')
+    return [row['match'] for row in matches]
+
+
+def reanalyze_startup(source,output,*,expected_failed_report_sha256,expected_invocation_sha256):
+    """File-only correction. Preserve every original report/capture and fail closed.
+
+    Old raw Bridge arrays were not retained. Reuse only its source-bound, already
+    passed predicate; independently reparse journals/native65 receipts/audit and
+    lifecycle evidence. This is startup integration, never movement-feel proof.
+    """
+    source,output=Path(source).resolve(strict=True),Path(output).resolve()
+    require(source.is_relative_to((ROOT/'local').resolve()) and
+        output.is_relative_to((ROOT/'local').resolve()) and not os.path.lexists(output) and
+        not output.is_relative_to(source/'run') and not output.is_relative_to(source/'source-at-prepare') and
+        not output.is_relative_to(ROOT/'local/prediction-runtime/game'),
+        'fresh separate ignored reanalysis output required')
+    for pin in (expected_failed_report_sha256,expected_invocation_sha256):
+        require(type(pin) is str and HEX64.fullmatch(pin),'explicit reanalysis SHA256 pins required')
+    output.mkdir(parents=True,exist_ok=False)
+    inputs={}
+    def pin(path):
+        path=Path(path).resolve(strict=True)
+        value=dict(sha256=sha(path),bytes=path.stat().st_size)
+        require(str(path) not in inputs or inputs[str(path)]==value,'original input changed while reanalyzing')
+        inputs[str(path)]=value
+        return path
+    def retain(path,name,maximum=MAX_LOG):
+        path=pin(path);target=output/name;target.parent.mkdir(parents=True,exist_ok=True)
+        with target.open('xb') as stream:stream.write(read(path,maximum))
+        require(sha(target)==inputs[str(path)]['sha256'],'reanalysis evidence copy differs')
+        return target
+    report=dict(passed=False,file_only=True,native_executed=False,scenario='startup',
+        lifecycle='natural',full_feature_accepted=False,movement_feel_witness_passed=False,
+        scope='Two owned Unity Custom rounds/terminal drain/Continue/Leave/original Quit; no visible movement claim',
+        original_report_preserved=True,source=str(source),clients=[],matches=[])
+    try:
+        failed=pin(source/'run/verification.json');invocation=pin(source/'invocation.json')
+        require(sha(failed)==expected_failed_report_sha256 and sha(invocation)==expected_invocation_sha256,
+                'explicit failed report/invocation pins differ')
+        previous=json.loads(read(failed,2*1024*1024));plan=json.loads(read(invocation,2*1024*1024))
+        created=startup_failure_scope(previous,plan,sha(invocation))
+        game=Path(plan['game']).resolve(strict=True);runtime=game/'investigation/runtime';run=source/'run'
+        require(game==(ROOT/'local/prediction-runtime/game').resolve() and
+            Path(plan['output']).resolve()==source,'original scenario ownership paths differ')
+        retain(failed,'original-failed-report.json');retain(invocation,'original-invocation.json')
+        require(1<=len(plan['source_sha256'])<=8192,'original source inventory outside bound')
+        for name,expected in plan['source_sha256'].items():
+            path=(source/'source-at-prepare'/name).resolve(strict=True)
+            require(path.is_relative_to(source/'source-at-prepare') and sha(pin(path))==expected,
+                    'original prepared source snapshot differs: '+name)
+        # Only parsers used below must equal their retained versions. Product
+        # sources may have moved on; their at-run versions/binaries stay pinned.
+        parsers=('tools/frame_timing.py','tools/verify_high_latency_clients.py',
+            'tools/verify_original_command_scheduling.py','tools/verify_prediction_client_worker.py',
+            'server/game_data.py','server/protobuf_wire.py','server/native_simulation.py','server/protocol.py')
+        for name in parsers:
+            require(sha(pin(ROOT/name))==plan['source_sha256'][name],'reanalysis parser changed: '+name)
+        old_tool=source/'source-at-prepare/tools/verify_prediction_multiplayer.py'
+        def function_text(path,name):
+            text=read(path).decode('utf-8');tree=ast.parse(text)
+            return ast.get_source_segment(text,next(n for n in tree.body if isinstance(n,ast.FunctionDef) and n.name==name))
+        require(function_text(old_tool,'native_evidence')==function_text(Path(__file__),'native_evidence'),
+                'native lifecycle parser changed from original predicate')
+        for row in list(plan['files'].values())+list(plan['asset_files'].values()):
+            require(sha(pin(row['path']))==row['sha256'],'original binary/asset identity changed')
+        from tools import frame_timing
+        from tools.verify_high_latency_clients import prefix_trace
+        from tools.verify_original_command_scheduling import read_journal
+        from server.native_simulation import decode_snapshot
+        events=[json.loads(line) for line in read(pin(run/'events.jsonl'),4*1024*1024).splitlines()]
+        states=json.loads(read(pin(run/'server-states.json'),2*1024*1024))
+        require([row['match'] for row in events if row['event']=='match_created']==created and not any(
+            row['event'] in ('protocol_error','match_aborted','custom_match_setup_error') for row in events),
+            'retained authority match/order/failure evidence differs')
+        processes=[]
+        for index in range(2):
+            process=json.loads(read(pin(run/f'client-{index}-process.json')));processes.append(process)
+            require(process['profile']==plan['profiles'][index] and process['retained_handle_used'] is True and
+                process['assigned_before_resume'] is True and process['pid']==previous['game_cleanup'][index]['pid'],
+                'retained process identity differs')
+        for match in created:
+            queued=[r for r in events if r['event']=='frame_queued' and r.get('match')==match]
+            require([r['frame'] for r in queued]==list(range(len(queued))) and len(queued)>=200,
+                    'retained canonical frames incomplete')
+            for row in queued:
+                require(states[match][str(row['frame'])]==row['parsed_state_sha256'] and
+                    HEX64.fullmatch(row['parsed_state_sha256']),'server state digest journal differs')
+            for name in ('frames.bin','bootstrap.pb.gz','match.json'):pin(run/'matches'/match/name)
+            journal=read_journal(run,match,len(queued))
+            require(len(journal)==len(queued),'authoritative input journal incomplete')
+            for index,process in enumerate(processes):
+                receipt=retain(run/f'dedicated-receipts-{process["pid"]}-{match}.tsv',
+                               f'receipts/{process["pid"]}-{match}.tsv')
+                with receipt.open(encoding='utf-8') as stream:
+                    rows=[r for r in csv.DictReader(stream,delimiter='\t') if int(r['frame'])<200]
+                require([int(r['frame']) for r in rows]==list(range(200)) and all(
+                    r['match']==match and int(r['pid'])==process['pid'] and
+                    r['sha256']==queued[int(r['frame'])]['frame_payload_sha256'] for r in rows),
+                    'reparsed native65 receipts differ from canonical200 prefix')
+                audit=retain(runtime/f'lan-audit-{process["pid"]}-{match}.tsv',f'audit/{index}-{match}.tsv')
+                with audit.open(encoding='utf-8') as stream:audit_rows=list(csv.DictReader(stream,delimiter='\t'))
+                snapshots=[r for r in events if r['event']=='native_snapshot' and r.get('match')==match and r['frame']<200]
+                require(snapshots,'no retained server prefix snapshots')
+                for row in snapshots:
+                    path=pin(run/'matches'/match/'snapshots'/f'{row["frame"]:08d}-{row["viewer"]}.bin')
+                    raw=read(path);decoded=decode_snapshot(raw,row['viewer'])
+                    require(sha(path)==row['sha256'] and decoded['canonical_fnv1a64']==row['canonical_fnv1a64'],
+                            'retained authority snapshot/hash differs')
+                    matching=[r for r in audit_rows if int(r['frame'])==row['frame'] and int(r['viewer'])==row['viewer']]
+                    require(matching and all(int(r['pid'])==process['pid'] and
+                        r['canonical_fnv1a64']==decoded['canonical_fnv1a64'] for r in matching),
+                        'sampled native canonical field audit differs from original authority')
+            report['matches'].append(dict(match=match,canonical_frames=200,
+                native_receipts_reparsed=True,input_journal_frames=len(journal),
+                sampled_client_authority_canonical_fields=True,
+                bridge_scope='Source-bound original already-passed200-frame exact bridge predicate; raw bridge arrays not retained'))
+        for index,process in enumerate(processes):
+            pid=process['pid'];live=runtime/f'dedicated-native-{pid}.log';saved=run/f'native-{index}.log'
+            require(sha(pin(live))==sha(pin(saved)),'full retained/raw native logs differ')
+            native=retain(live,f'native-full-{index}.log');log=read_fresh_native_log(native)
+            require(log and all(int(value)>=process['launch_tick'] for value in re.findall(r'^\[(\d+)\]',log,re.M)),
+                    'full native log predates owned launch')
+            require('Prediction selection admission failed:' not in log,'native selection admission failure')
+            evidence=native_evidence(log,matches=created,slot=index,profile=process['profile'],natural=True)
+            ready=re.findall(r'Movement prediction ready: generation=(\d+) match=([a-f0-9]{32}) world=(\d+) slot=(\d+) ',log)
+            require([int(r[0]) for r in ready]==[1,2],'native generation progression differs')
+            drained=re.findall(r'Movement terminal drain complete: match=([a-f0-9]{32}) confirmed=(\d+) physical=(\d+) presented=(\d+) target=(\d+)',log)
+            require([r[0] for r in drained]==created,'two native terminal drains required')
+            for match,confirmed,physical,presented,target in drained:
+                completed=[r for r in events if r['event']=='match_completed' and r.get('match')==match]
+                require(len(completed)==1 and completed[0]['reason']=='native game complete' and
+                    int(confirmed)==completed[0]['next_frame']-1 and int(presented)>=int(target)==int(physical) and
+                    0<=int(physical)-int(confirmed)<=13,'native terminal/authority watermark differs')
+            timing=pin(run/f'frame-timing-{pid}.tsv')
+            prefix=prefix_trace(frame_timing.matches(frame_timing.read_trace(timing))[0],200)
+            require(all([r['frame'] for r in prefix if r['event']==event]==list(range(200)) for event in ('arrival','apply')) and
+                any(r['event']=='publication' and r['presented']>=199 for r in prefix),'native200-frame physical prefix incomplete')
+            quit_path=retain(game/'.battleaces-resurrection/profiles'/process['profile']/'quit-trace.jsonl',f'quit-trace-{index}.jsonl',64*1024)
+            evidence['quit_trace']=quit_trace_evidence(read(quit_path,64*1024),pid=pid,
+                launch_tick=process['launch_tick'],transport=evidence)
+            evidence.update(index=index,pid=pid,profile=process['profile'],terminal_drains=drained,
+                first_prefix_timing=frame_timing.measure(prefix))
+            report['clients'].append(evidence)
+        report.update(passed=True,scoped_observation_passed=True,forced_cleanup=False,
+            game_cleanup=previous['game_cleanup'],authority_workers=previous['authority_workers'],
+            explained_reclassifications=['Whole fresh native log restores early route/18bindings',
+                'Two ConnectionResetError WinError64/10054 after proven normal peer Quit are EOF'],
+            classified_bridge_eof=previous['cleanup_errors'],cleanup_errors=[])
+    except BaseException as error:
+        report.update(passed=False,error=repr(error),traceback=traceback.format_exc())
+    finally:
+        changed=[]
+        for path,row in inputs.items():
+            try:
+                if not Path(path).is_file() or sha(path)!=row['sha256']:changed.append(path)
+            except Exception as error:changed.append(dict(path=path,error=repr(error)))
+        report['original_inputs_unchanged']=not changed;report['changed_inputs']=changed
+        if changed:report['passed']=False
+        report['input_sha256']=inputs;report['reanalysis_tool_sha256']=sha(__file__)
+        write(output/'verification.json',report)
+    return report
+
+
+def main(argv=None):
+    parser = argparse.ArgumentParser(description=__doc__)
+    parser.add_argument('--run-prepared', type=Path, help='Explicit coordinated native execution; preparation is default')
+    parser.add_argument('--reanalyze-startup',type=Path,help='File-only retained natural startup parser/EOF correction')
+    parser.add_argument('--reanalysis-output',type=Path)
+    parser.add_argument('--expected-failed-report-sha256')
+    parser.add_argument('--expected-invocation-sha256')
+    for name in ('game', 'assets', 'output', 'python', 'module-root', 'heap-helper', 'cooperative', 'helper-build-receipt'):
+        parser.add_argument('--' + name, type=Path)
+    parser.add_argument('--worker-package', type=Path,
+                        help='Owned frozen private package; bind all files and use its actual worker imports/runtime')
+    parser.add_argument('--expected-helper-sha256'); parser.add_argument('--expected-gameassembly-sha256')
+    parser.add_argument('--scenario', choices=('startup', 'movement'), default='startup')
+    parser.add_argument('--lifecycle', choices=('natural', 'prefix'), default='natural')
+    parser.add_argument('--frames', type=int); parser.add_argument('--timeout', type=float, default=180)
+    parser.add_argument('--rtt-ms', type=float, nargs=2, default=(130, 475))
+    parser.add_argument('--move-slot', type=int, choices=(0, 1), default=0)
+    args = parser.parse_args(argv)
+    if args.reanalyze_startup:
+        require(not args.run_prepared and args.reanalysis_output is not None,'file-only reanalysis cannot launch native')
+        report=reanalyze_startup(args.reanalyze_startup,args.reanalysis_output,
+            expected_failed_report_sha256=args.expected_failed_report_sha256,
+            expected_invocation_sha256=args.expected_invocation_sha256)
+        print(json.dumps({k:report[k] for k in ('passed','file_only','native_executed','scoped_observation_passed',
+            'full_feature_accepted','original_inputs_unchanged','error') if k in report}))
+        return 0 if report['passed'] else 1
+    if args.run_prepared:
+        report = asyncio.run(run_prepared(args.run_prepared))
+        print(json.dumps({k: report[k] for k in ('passed', 'scoped_observation_passed', 'movement_feel_witness_passed',
+            'full_feature_accepted', 'forced_cleanup', 'error') if k in report}))
+        return 0 if report['passed'] else 1
+    required = ('game', 'assets', 'output', 'python', 'module_root', 'heap_helper', 'cooperative', 'helper_build_receipt',
+                'expected_helper_sha256', 'expected_gameassembly_sha256')
+    require(all(getattr(args, k) is not None for k in required), 'all preparation paths and explicit binary pins required')
+    invocation = prepare(args)
+    print(json.dumps(dict(prepared=True, native_executed=False, output=invocation['output'],
+                         scenario=invocation['scenario'], full_feature_accepted=False)))
+    return 0
+
+
+if __name__ == '__main__':
+    raise SystemExit(main())

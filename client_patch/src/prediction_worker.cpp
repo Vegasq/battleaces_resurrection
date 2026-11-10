@@ -1,4 +1,4 @@
-// Owned local-worker transport probe. Prediction is not enabled by this file.
+// Explicit local-worker route and private movement controller bridge.
 // Its sole optional GameAssembly CALL hook is excluded from the normal recipe.
 #include <memory>
 #include <mutex>
@@ -6,6 +6,7 @@
 #include "../checkpoint/native_api_proxy.hpp"
 #include "../checkpoint/native_rpc_backend.hpp"
 #include "../checkpoint/native_worker_channel.hpp"
+#include "prediction_movement.hpp"
 
 namespace ba_prediction_worker {
 namespace proxy=ba_native_api_proxy;
@@ -14,7 +15,8 @@ namespace wire=ba_native_worker_wire;
 namespace channel=ba_native_worker_channel;
 using Obj=void*;
 
-static bool enabled(){return ba::flag(L"-prediction-native-worker-probe");}
+bool movementEnabled(){return ba::flag(L"-prediction-movement-experimental");}
+static bool enabled(){return ba::flag(L"-prediction-native-worker-probe") || movementEnabled();}
 struct State {
     std::recursive_mutex gate;
     std::unique_ptr<channel::Process> process;
@@ -24,6 +26,11 @@ struct State {
     std::set<DWORD> threads;
     std::set<std::string> calls,lookups;
     uint64_t entered=0,left=0;
+    uint64_t world=0,movementWorld=0;
+    DWORD movementOwner=0;
+    unsigned movementSlot=0;
+    std::string movementMatch;
+    bool movementStopped=false,movementEnding=false;
 };
 static State& state() {
     // Explicit SimDestroy shutdown runs outside the loader lock. At abnormal
@@ -61,7 +68,9 @@ static std::string exportName(Obj name) {
 static int __cdecl enter(void* context,const char* name) {
     auto& s=*static_cast<State*>(context);s.gate.lock();
     try {
-        if(s.failed){s.gate.unlock();return -1;}
+        const bool cleanup=strcmp(name,"SimDestroyWorld")==0 || strcmp(name,"SimDestroy")==0 ||
+            strcmp(name,"SimSetLogCallBack")==0;
+        if(s.failed && !cleanup){s.gate.unlock();return -1;}
         ++s.depth;++s.entered;
         const bool newThread=s.threads.insert(GetCurrentThreadId()).second;
         const bool newCall=s.calls.insert(name).second;
@@ -97,6 +106,12 @@ static bool __cdecl request(void* context,uint8_t opcode,const wire::Bytes& byte
     try {
         const DWORD timeout=(s.firstRequest || opcode==5)?30000:5000;
         s.firstRequest=false;response=s.process->request(opcode,bytes,timeout);
+        if(opcode==5 && response.result==0) {
+            size_t at=0;const auto world=wire::read64(response.data,at);
+            if(!world || at!=response.data.size() || s.world)throw std::runtime_error("worker created-world response differs");
+            s.world=world;
+        }
+        if(opcode==6 && response.result==0)s.world=0;
         if(opcode==2 && response.result==0)s.destroyed=true;
         return true;
     } catch(const std::exception& error) {
@@ -123,14 +138,163 @@ static void setup(HMODULE selected) {
         L"import runpy,sys;sys.path.insert(0,sys.argv.pop(1));runpy.run_module('client_patch.prediction_worker',run_name='__main__')",
         root,L"--original-dll",modulePath(selected),L"--heap-helper",heap,
         L"--cooperative",cooperative,L"--data-dir",data};
+    if(ba::flag(L"-prediction-movement-smoke"))args.push_back(L"--movement-observe");
     s.process=std::make_unique<channel::Process>(python,args,data,data+L"\\worker-stderr.log");
     if(backend::initialize(selected,request,&s)!=0 ||
        proxy::bind(selected,backend::resolver,{&s,enter,leave})!=0)
         throw std::runtime_error("native worker proxy binding failed");
     s.selected=selected;
     const auto stats=s.process->stats();
-    ba::log("Native worker transport probe active: pid=%lu assignedBeforeResume=%d BA_RESURRECTION_NATIVE_WORKER_PROXY_V1; movement prediction is not enabled",
-        stats.pid,stats.assignedBeforeResume?1:0);
+    if(movementEnabled())
+        ba::log("Native worker movement route active: pid=%lu assignedBeforeResume=%d BA_RESURRECTION_NATIVE_WORKER_PROXY_V1; movementRequested=1",
+            stats.pid,stats.assignedBeforeResume?1:0);
+    else
+        ba::log("Native worker transport probe active: pid=%lu assignedBeforeResume=%d BA_RESURRECTION_NATIVE_WORKER_PROXY_V1; movement prediction is not enabled",
+            stats.pid,stats.assignedBeforeResume?1:0);
+}
+static void movementOwner(State& s,bool bound=true) {
+    if(!movementEnabled() || s.failed || s.movementStopped || !s.process || !s.process->healthy() || !s.world)
+        throw std::runtime_error("movement worker is unavailable");
+    if(bound && (!s.movementWorld || s.movementWorld!=s.world || s.movementMatch.size()!=32 ||
+                 s.movementOwner!=GetCurrentThreadId()))
+        throw std::runtime_error("movement worker owner/generation differs");
+}
+static wire::Response control(State& s,uint8_t opcode,const wire::Bytes& bytes,DWORD timeout=5000) {
+    auto response=s.process->request(opcode,bytes,timeout);
+    if(response.result!=0 || backend::dispatch_logs(response.logs)!=0)
+        throw std::runtime_error("movement worker control failed");
+    return response;
+}
+static void requireMovementHook(int64_t site,const char* exportName) {
+    const auto module=GetModuleHandleW(L"GameAssembly.dll");
+    if(!module)throw std::runtime_error("movement actor module is unavailable");
+    const auto image=reinterpret_cast<const uint8_t*>(module);
+    const auto dos=reinterpret_cast<const IMAGE_DOS_HEADER*>(image);
+    if(dos->e_magic!=IMAGE_DOS_SIGNATURE || dos->e_lfanew<=0 || dos->e_lfanew>=4096)
+        throw std::runtime_error("movement actor image header differs");
+    const auto pe=reinterpret_cast<const IMAGE_NT_HEADERS64*>(image+dos->e_lfanew);
+    const int64_t size=pe->OptionalHeader.SizeOfImage;
+    if(pe->Signature!=IMAGE_NT_SIGNATURE || pe->FileHeader.Machine!=IMAGE_FILE_MACHINE_AMD64 || size<site+5)
+        throw std::runtime_error("movement actor image layout differs");
+    int32_t displacement=0;memcpy(&displacement,image+site+1,4);
+    const int64_t thunk=site+5+displacement;
+    if(image[site]!=0xe8 || thunk<0 || thunk>size-6 || image[thunk]!=0xff || image[thunk+1]!=0x25)
+        throw std::runtime_error("movement requires its optional actor CALL hook");
+    memcpy(&displacement,image+thunk+2,4);const int64_t iat=thunk+6+displacement;
+    if(iat<0 || iat>size-8)throw std::runtime_error("movement actor import lies outside image");
+    uintptr_t target=0;memcpy(&target,image+iat,8);
+    // ba::module is GameAssembly, whose IL2CPP APIs the ordinary helper uses.
+    // The imported movement wrappers are exports of our separate helper DLL.
+    const auto helper=GetModuleHandleW(L"BattleAcesOffline.dll");
+    const auto expected=reinterpret_cast<uintptr_t>(helper?GetProcAddress(helper,exportName):nullptr);
+    if(!expected || target!=expected)
+        throw std::runtime_error(std::string("movement actor import target differs: ")+exportName);
+}
+static void requireActorHook() {
+    requireMovementHook(0x3e6608b,"OfflinePredictionActorUpdate");
+    requireMovementHook(0x3b02322,"OfflinePredictionSelectionCommit");
+    requireMovementHook(0x3bf9657,"OfflinePredictionSelectionConfirmer");
+    requireMovementHook(0x3bf416d,"OfflinePredictionCastingSet");
+    requireMovementHook(0x3bf42e9,"OfflinePredictionCastingSet");
+    requireMovementHook(0x3bf310f,"OfflinePredictionControlGroupFocus");
+}
+uint64_t movementWorldId() {
+    auto& s=state();std::lock_guard<std::recursive_mutex> hold(s.gate);
+    return s.failed || s.movementStopped?0:s.world;
+}
+const std::string& movementMatchId() {
+    static const std::string empty;
+    auto& s=state();std::lock_guard<std::recursive_mutex> hold(s.gate);
+    // This string changes only on the Unity owner during BEGIN. Native world
+    // destruction only changes the integer key;it never invalidates this ref.
+    return !s.failed && !s.movementStopped && s.world && s.world==s.movementWorld?s.movementMatch:empty;
+}
+void movementBegin(const std::string& match,unsigned slot) {
+    auto& s=state();std::lock_guard<std::recursive_mutex> hold(s.gate);movementOwner(s,false);
+    if(slot>1 || match.size()!=32 || match.find_first_not_of("0123456789abcdef")!=std::string::npos ||
+       !ba::flag(L"-original-command-scheduling-experimental") || s.movementWorld==s.world)
+        throw std::runtime_error("invalid movement BEGIN context");
+    requireActorHook();
+    wire::Bytes bytes;wire::append64(bytes,s.world);wire::append32(bytes,12);wire::append32(bytes,16u*1024u*1024u);
+    const auto response=control(s,64,bytes,30000);
+    if(!response.data.empty())throw std::runtime_error("movement BEGIN response differs");
+    wire::Bytes proof;wire::append64(proof,s.world);const auto guard=control(s,71,proof);
+    size_t at=0;
+    if(wire::read32(guard.data,at)!=1 || at!=guard.data.size())
+        throw std::runtime_error("movement needs the guarded native entity incarnation observer");
+    s.movementWorld=s.world;s.movementMatch=match;s.movementOwner=GetCurrentThreadId();
+    s.movementSlot=slot;s.movementEnding=false;
+}
+void movementAuthority(const MovementBytes& canonical,const std::string& wireSha) {
+    auto& s=state();std::lock_guard<std::recursive_mutex> hold(s.gate);movementOwner(s);
+    if(canonical.empty() || canonical.size()>2u*1024u*1024u || s.movementEnding)
+        throw std::runtime_error("movement authority outside match bounds");
+    wire::Bytes bytes;wire::append64(bytes,s.world);bytes.insert(bytes.end(),canonical.begin(),canonical.end());
+    if(!control(s,65,bytes).data.empty())throw std::runtime_error("movement authority response differs");
+    ba_prediction_movement_smoke::authoritative(canonical,wireSha);
+}
+MovementMetrics movementMetrics() {
+    auto& s=state();std::lock_guard<std::recursive_mutex> hold(s.gate);movementOwner(s);
+    wire::Bytes bytes;wire::append64(bytes,s.world);const auto response=control(s,66,bytes);
+    if(response.data.size()!=80)throw std::runtime_error("movement metrics response differs");
+    size_t at=0;MovementMetrics result;
+    result.confirmed=static_cast<int32_t>(wire::read32(response.data,at));
+    result.predicted=static_cast<int32_t>(wire::read32(response.data,at));
+    result.received=static_cast<int32_t>(wire::read32(response.data,at));
+    result.flags=wire::read32(response.data,at);
+    for(unsigned i=0;i<8;++i)wire::read64(response.data,at);
+    if(result.flags&~15u)throw std::runtime_error("movement metrics flags differ");
+    return result;
+}
+MovementAdmission movementAdmission() {
+    auto& s=state();std::lock_guard<std::recursive_mutex> hold(s.gate);movementOwner(s);
+    wire::Bytes bytes;wire::append64(bytes,s.world);const auto response=control(s,70,bytes);
+    if(response.data.size()<8)throw std::runtime_error("movement admission response is truncated");
+    size_t at=0;MovementAdmission result;
+    result.frame=static_cast<int32_t>(wire::read32(response.data,at));
+    const uint32_t count=wire::read32(response.data,at);
+    if(result.frame<-1 || count>65536 || response.data.size()!=8u+20u*static_cast<size_t>(count))
+        throw std::runtime_error("movement admission response bounds differ");
+    uint32_t previous=0;std::set<uint64_t> tokens;
+    for(uint32_t index=0;index<count;++index) {
+        const uint32_t id=wire::read32(response.data,at);
+        MovementIdentity identity;identity.army=wire::read32(response.data,at);
+        identity.type=wire::read32(response.data,at);identity.incarnation=wire::read64(response.data,at);
+        if((index && id<=previous) || !identity.incarnation || !tokens.insert(identity.incarnation).second)
+            throw std::runtime_error("movement admission identity order/token differs");
+        result.entities.emplace(id,identity);previous=id;
+    }
+    return result;
+}
+void movementBatch(uint64_t sequence,const MovementBytes& body) {
+    auto& s=state();std::lock_guard<std::recursive_mutex> hold(s.gate);movementOwner(s);
+    if(!sequence || body.empty() || body.size()>65536 || s.movementEnding)
+        throw std::runtime_error("movement local batch outside match bounds");
+    wire::Bytes bytes;wire::append64(bytes,s.world);wire::append64(bytes,sequence);
+    bytes.insert(bytes.end(),body.begin(),body.end());const auto response=control(s,67,bytes);
+    size_t at=0;const auto echoed=wire::read64(response.data,at);
+    const auto assigned=static_cast<int32_t>(wire::read32(response.data,at));
+    if(echoed!=sequence || assigned<0 || at!=response.data.size())
+        throw std::runtime_error("movement local batch response differs");
+    ba::log("Movement local batch registered: sequence=%llu speculativeFrame=%d tick=%llu match=%s",
+        static_cast<unsigned long long>(sequence),assigned,static_cast<unsigned long long>(GetTickCount64()),s.movementMatch.c_str());
+    ba_prediction_movement_smoke::registered(sequence,assigned,body);
+}
+void movementEnd(int finalInputFrame) {
+    auto& s=state();std::lock_guard<std::recursive_mutex> hold(s.gate);movementOwner(s);
+    if(finalInputFrame<0 || s.movementEnding)throw std::runtime_error("movement END outside match bounds");
+    wire::Bytes bytes;wire::append64(bytes,s.world);wire::append32(bytes,static_cast<uint32_t>(finalInputFrame));
+    const auto response=control(s,69,bytes);size_t at=0;const auto cancelled=wire::read32(response.data,at);
+    if(at!=response.data.size())throw std::runtime_error("movement END response differs");
+    s.movementEnding=true;
+    ba::log("Movement authoritative end queued: frame=%d uncommittedActionsCancelled=%u match=%s",
+        finalInputFrame,cancelled,s.movementMatch.c_str());
+}
+void movementFail(const char* reason) noexcept {
+    try {auto& s=state();std::lock_guard<std::recursive_mutex> hold(s.gate);s.movementStopped=true;s.failed=true;}
+    catch(...) {}
+    try {const std::runtime_error error(reason?reason:"unknown movement failure");ba_lan::fail("movement prediction",error);}
+    catch(...) {ba::log("Movement prediction stopped; normal Quit remains available");}
 }
 static uintptr_t lookup(HMODULE module,const char* name) {
     if(!enabled())return reinterpret_cast<uintptr_t>(GetProcAddress(module,name));

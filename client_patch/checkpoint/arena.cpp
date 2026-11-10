@@ -14,6 +14,8 @@
 #include <algorithm>
 #include "page_checkpoint.hpp"
 #include "thread_state.hpp"
+#include "entityguard.hpp"
+#include "entityguard_hooks.hpp"
 #pragma comment(linker, "/EXPORT:HeapAlloc=BAHeapAlloc")
 #pragma comment(linker, "/EXPORT:HeapFree=BAHeapFree")
 #pragma comment(linker, "/EXPORT:HeapReAlloc=BAHeapReAlloc")
@@ -75,6 +77,10 @@ Stats stats;
 std::vector<std::unique_ptr<Checkpoint>> saved;
 std::unique_ptr<ba_page_checkpoint::Store> pages;
 uint64_t nextId = 1;
+// Optional prediction observer; state/code live outside all saved native pages.
+// Hooks remain until process exit. Never unpatch/free them under loader lock.
+ba_entity_guard::Hooks entityHooks;
+std::unique_ptr<ba_entity_guard::State> entityGuard;
 using Alloc = LPVOID (WINAPI*)(HANDLE,DWORD,SIZE_T);
 using Free = BOOL (WINAPI*)(HANDLE,DWORD,LPVOID);
 using Realloc = LPVOID (WINAPI*)(HANDLE,DWORD,LPVOID,SIZE_T);
@@ -160,6 +166,37 @@ bool fail(uint64_t code) {
     InterlockedCompareExchange64(reinterpret_cast<volatile LONG64*>(&stats.error),static_cast<LONG64>(code),0);
     return false;
 }
+ba_entity_guard::Error entityStorageError(const void* registry) noexcept;
+struct EntityScope {
+    bool entered=false;
+    EntityScope(ba_entity_guard::Kind kind,const void* registry) noexcept {
+        ba_thread_state::LastError preserve;
+        if(entityGuard) {
+            entered=entityGuard->enter(kind,reinterpret_cast<uint64_t>(registry),GetCurrentThreadId());
+            if(entered && kind==ba_entity_guard::Kind::Create &&
+               entityGuard->isMaster(reinterpret_cast<uint64_t>(registry)))
+                entityGuard->unsupported(entityStorageError(registry));
+            if(entityGuard->error())fail(12);
+        }
+    }
+    ~EntityScope() noexcept {
+        ba_thread_state::LastError preserve;
+        if(entered)entityGuard->leave();
+        if(entityGuard && entityGuard->error())fail(12);
+    }
+};
+uint32_t __fastcall entityCreate(void* registry) {
+    EntityScope scope(ba_entity_guard::Kind::Create,registry);
+    // Ordinary compiled shim + registered copied-prologue trampoline. Preserve
+    // the actual native return and native C++ exception propagation.
+    using Function=uint32_t (__fastcall*)(void*);
+    return reinterpret_cast<Function>(entityHooks.createOriginal())(registry);
+}
+uint32_t __fastcall entityHint(void* registry,uint32_t hint) {
+    EntityScope scope(ba_entity_guard::Kind::Hint,registry);
+    using Function=uint32_t (__fastcall*)(void*,uint32_t);
+    return reinterpret_cast<Function>(entityHooks.hintOriginal())(registry,hint);
+}
 void foreign(uint64_t operation,const void* pointer,size_t size,HANDLE heap,void* caller) noexcept {
     const DWORD error = GetLastError();
     LONG index = InterlockedCompareExchange(&foreignClaims,0,0);
@@ -220,6 +257,43 @@ Block* block(const void* pointer) {
         b->capacity < 16 || (b->capacity & (b->capacity-1)) ||
         b->requested > b->capacity || b->capacity > state.high - (p-a)) return nullptr;
     return b;
+}
+bool ownedRange(uintptr_t pointer,size_t bytes) noexcept {
+    const auto base=reinterpret_cast<uintptr_t>(arena);
+    if(pointer<base)return false;
+    const auto offset=pointer-base;
+    return offset<=state.high && bytes<=state.high-offset && offset<=committed && bytes<=committed-offset;
+}
+uint64_t ownedVectorBytes(uintptr_t pointer) noexcept {
+    if(const auto exact=block(reinterpret_cast<const void*>(pointer)))return exact->requested;
+    // Original MSVC vector free paths use an8-byte saved allocation pointer
+    // for >=4096-byte manually aligned allocations; delta-8 must be<=31.
+    // Prove that saved-pointer read is within owned committed storage first.
+    if(pointer<8 || !ownedRange(pointer-8,8))return 0;
+    const auto raw=*reinterpret_cast<const uintptr_t*>(pointer-8);
+    if(raw>pointer)return 0;
+    const auto delta=pointer-raw;
+    if(delta<8 || delta>39)return 0;
+    const auto allocation=block(reinterpret_cast<const void*>(raw));
+    if(!allocation || delta>allocation->requested)return 0;
+    return allocation->requested-delta;
+}
+ba_entity_guard::Error entityStorageError(const void* registry) noexcept {
+    using Error=ba_entity_guard::Error;
+    const auto at=reinterpret_cast<uintptr_t>(registry);
+    if(at<0x22a08)return Error::Storage;
+    const auto world=at-0x22a08;
+    const auto allocation=block(reinterpret_cast<const void*>(world));
+    if(!allocation || allocation->requested<0x22c68 || !ownedRange(world,0x22c68) ||
+       *reinterpret_cast<const uint64_t*>(world)!=reinterpret_cast<uint64_t>(image)+0x387860)
+        return Error::Storage;
+    // Registry is wholly within the revalidated World allocation. The vector
+    // fields themselves can now be read; no pointed-to elements are sampled.
+    const auto header=reinterpret_cast<const uintptr_t*>(at+0xa8);
+    const auto begin=header[0],end=header[1],capacity=header[2];
+    const auto head=*reinterpret_cast<const uint32_t*>(at+0xc0);
+    const auto bytes=begin?ownedVectorBytes(begin):0;
+    return ba_entity_guard::storageError(begin,end,capacity,bytes,head);
 }
 void* allocate(size_t bytes, DWORD options) {
     if (!bytes) bytes = 1;
@@ -382,6 +456,55 @@ extern "C" __declspec(dllexport) int BAInstall(HMODULE target) {
         rootReader=std::make_unique<ba_thread_state::NativeReader>(target);
     }catch(...){fail(11);return -6;}
     image = target; return 0;
+}
+
+// Optional ABI1. Install at a serialized native API boundary after BAInstall;
+// observation is inactive until one exact owned world is explicitly bound.
+extern "C" __declspec(dllexport) int BAEntityGuardInstall() noexcept {
+    ba_thread_state::LastError preserve;
+    if(!image || !thread() || stats.error || entityGuard)return -1;
+    try {entityGuard=std::make_unique<ba_entity_guard::State>(owner);}
+    catch(...){fail(12);return -2;}
+    const auto base=reinterpret_cast<uint8_t*>(image);
+    const auto dos=reinterpret_cast<const IMAGE_DOS_HEADER*>(base);
+    const auto pe=reinterpret_cast<const IMAGE_NT_HEADERS64*>(base+dos->e_lfanew);
+    if(!entityHooks.install(base,pe->OptionalHeader.SizeOfImage,
+                           reinterpret_cast<void*>(&entityCreate),reinterpret_cast<void*>(&entityHint))) {
+        // Keep ownership/code alive if protection restoration fails. No native
+        // operation may follow this terminal failure except retained teardown.
+        entityHooks.disable();fail(12);return -3;
+    }
+    return 0;
+}
+extern "C" __declspec(dllexport) int BAEntityGuardBind(uint64_t world) noexcept {
+    ba_thread_state::LastError preserve;
+    if(!image || !thread() || stats.error || !entityGuard || !entityHooks.installed())return -1;
+    // Original creatoref80 allocates the complete0x22c68-byte World through
+    // intercepted operatornew; its authoritative registry beginsat+0x22a08.
+    const auto allocation=block(reinterpret_cast<const void*>(world));
+    if(!allocation || allocation->requested<0x22c68 ||
+       *reinterpret_cast<const uint64_t*>(world)!=reinterpret_cast<uint64_t>(image)+0x387860 ||
+       !entityGuard->bind(world,world+0x22a08,GetCurrentThreadId())) {fail(12);return -2;}
+    return 0;
+}
+extern "C" __declspec(dllexport) int BAEntityGuardReset() noexcept {
+    ba_thread_state::LastError preserve;
+    if(!image || !thread() || stats.error || !entityGuard)return -1;
+    if(!entityGuard->reset(GetCurrentThreadId())){fail(12);return -2;}
+    return 0;
+}
+extern "C" __declspec(dllexport) int BAGetEntityGuard(ba_entity_guard::Stats* output,uint32_t size) noexcept {
+    ba_thread_state::LastError preserve;
+    if(!image || !thread() || !entityGuard || !output || size!=sizeof(*output))return -1;
+    ba_entity_guard::Stats value;
+    if(!entityGuard->read(value,GetCurrentThreadId())){fail(12);return -2;}
+    *output=value;return 0;
+}
+extern "C" __declspec(dllexport) int BAEntityGuardUnbind(uint64_t world) noexcept {
+    ba_thread_state::LastError preserve;
+    if(!image || !thread() || !entityGuard)return -1;
+    if(!entityGuard->unbind(world,GetCurrentThreadId())){fail(12);return -2;}
+    return 0;
 }
 
 // Explicit pre-checkpoint setup only. The safe original lazy getters are

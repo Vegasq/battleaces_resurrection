@@ -6,6 +6,10 @@
 namespace ba_lan {
 static void send(unsigned char,const std::vector<unsigned char>&);
 static std::string authenticatedProfile();
+static bool movementPacingRequested();
+static uint64_t movementPacingNowUs();
+static void resetMovementRoundTrips();
+static void movementRoundTrip(uint64_t generation,unsigned char kind,uint32_t request,uint64_t sentUs,uint64_t receivedUs);
 }
 namespace ba_community {
 namespace wire=ba_community_wire;
@@ -19,7 +23,7 @@ static wire::Welcome welcome;
 static wire::Directory directory{};
 static wire::Lobby lobby;
 static std::deque<wire::Event> events;
-struct Pending {unsigned char kind;ULONGLONG deadline;};
+struct Pending {unsigned char kind;ULONGLONG deadline;uint64_t sentUs=0,generation=0;bool timed=false;};
 static std::map<uint32_t,Pending> pending;
 static uint32_t requestId=0;
 static uint64_t alias(const std::string& profile) {
@@ -35,6 +39,7 @@ static const wire::Player* player(const std::string& profile) {
 static void reset() {
     wire::require(generation!=UINT64_MAX,"community connection generation exhausted");
     ++generation;ba_public::controlReset();ba_client::controlReset();
+    if(ba_lan::movementPacingRequested())ba_lan::resetMovementRoundTrips();
     online=false;abortPending=false;welcome={};directory={};lobby={};events.clear();pending.clear();requestId=0;
 }
 static uint32_t nextRequest() {
@@ -45,11 +50,14 @@ static uint32_t send(wire::Packet packet) {
     wire::Reader r(packet.payload);const auto id=r.u32();
     wire::require(online && id==requestId && !pending.count(id) && packet.payload.size()<=256,
         "invalid outgoing community request");
-    pending.emplace(id,Pending{packet.kind,GetTickCount64()+15000});
+    const bool timed=ba_lan::movementPacingRequested();
+    const uint64_t sentUs=timed?ba_lan::movementPacingNowUs():0;
+    pending.emplace(id,Pending{packet.kind,GetTickCount64()+15000,sentUs,generation,timed});
     ba_lan::send(packet.kind,packet.payload);return id;
 }
 static void receive(unsigned char kind,const wire::Bytes& payload) {
     wire::require(events.size()<256,"community event queue capacity");
+    const uint64_t receivedUs=ba_lan::movementPacingRequested()?ba_lan::movementPacingNowUs():0;
     auto event=wire::decode(kind,payload);
     if(const auto* greeting=std::get_if<wire::Welcome>(&event)) {
         wire::require(!online && greeting->profile==ba_lan::authenticatedProfile(),"unexpected community identity/welcome");
@@ -75,6 +83,10 @@ static void receive(unsigned char kind,const wire::Bytes& payload) {
         } else if(const auto* reply=std::get_if<wire::Ack>(&event)) {
             const auto found=pending.find(reply->request);
             wire::require(found!=pending.end() && found->second.kind==reply->kind,"uncorrelated community acknowledgement");
+            if(found->second.timed) {
+                wire::require(found->second.generation==generation,"community RTT acknowledgement generation differs");
+                ba_lan::movementRoundTrip(generation,reply->kind,reply->request,found->second.sentUs,receivedUs);
+            }
             pending.erase(found);
         } else if(const auto* invitation=std::get_if<wire::Invitation>(&event)) {
             wire::require(invitation->sender==welcome.profile || invitation->target==welcome.profile,"foreign community invitation");

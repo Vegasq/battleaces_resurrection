@@ -41,6 +41,7 @@ SOURCE_SEEDS = (
 NATIVE_SOURCES = (
     'client_patch/checkpoint/arena.cpp', 'client_patch/checkpoint/build.ps1',
     'client_patch/checkpoint/page_checkpoint.hpp', 'client_patch/checkpoint/thread_state.hpp',
+    'client_patch/checkpoint/entityguard.hpp', 'client_patch/checkpoint/entityguard_hooks.hpp',
     'client_patch/checkpoint/cooperative.cpp', 'client_patch/checkpoint/build-cooperative.ps1',
 )
 
@@ -234,6 +235,10 @@ def validate_helper(path, *, arena):
         checks.update(page_source_sha256='client_patch/checkpoint/page_checkpoint.hpp',
                       root_source_sha256='client_patch/checkpoint/thread_state.hpp',
                       build_script_sha256='client_patch/checkpoint/build.ps1')
+        if receipt.get('entity_guard_abi') == 1:
+            require(receipt.get('entity_guard_stats_bytes') == 96,'entity guard stats ABI differs')
+            checks.update(entity_guard_source_sha256='client_patch/checkpoint/entityguard.hpp',
+                          entity_hooks_source_sha256='client_patch/checkpoint/entityguard_hooks.hpp')
     for key, name in checks.items():
         require(receipt.get(key) == sha(ROOT / name), 'helper receipt/source mismatch: ' + name)
     return receipt

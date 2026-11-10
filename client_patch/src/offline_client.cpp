@@ -24,6 +24,11 @@
 #include "custom_transition_smoke.hpp"
 
 namespace ba_catalog { static void exportOnce();static std::string utf8(void*);static std::string quote(const std::string&); }
+namespace ba_prediction_movement_smoke {
+static void tick();
+static void registered(uint64_t,int,const std::vector<uint8_t>&);
+static void authoritative(const std::vector<uint8_t>&,const std::string&);
+}
 namespace ba_dedicated_results { static void receive(const std::string&); }
 namespace ba_audit { static void beginMatch(const std::string&);static void practiceAIView(void*,int); }
 namespace ba_telemetry_audit { static void startup();static void update();static void beforeQuit() noexcept; }
@@ -311,6 +316,7 @@ extern "C" __declspec(dllexport) void OfflineFrontUpdate(void* front,void*) {
         if(unified())ba_client::update(front);
         else if(offlinePractice())ba_practice::offlineUpdate(front);
         else if(lan())lanFrontUpdate(front);
+        ba_prediction_movement_smoke::tick();
         ba_replay_menu::update(front);
         ba_cosmetics::update(front);
         ba_match_search::update(front);
@@ -342,6 +348,7 @@ extern "C" __declspec(dllexport) void OfflineFrontUpdate(void* front,void*) {
 #include "native_settings_deck_guard.cpp"
 #include "lan_smoke.cpp"
 #include "community_transport.cpp"
+#include "prediction_movement.hpp"
 #include "lan_transport.cpp"
 #include "online_presentation.cpp"
 #include "dedicated_transport.cpp"
@@ -381,6 +388,10 @@ extern "C" __declspec(dllexport) void OfflineFrontUpdate(void* front,void*) {
 #include "match_loading_smoke.cpp"
 #include "server_assets_export.cpp"
 #include "prediction_worker.cpp"
+#include "prediction_movement.cpp"
+#include "prediction_actor_repair.cpp"
+#include "prediction_selection.cpp"
+#include "prediction_movement_smoke.cpp"
 #include "lan_audit.cpp"
 #include "telemetry_audit.cpp"
 #include "player_cosmetics.cpp"

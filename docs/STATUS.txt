@@ -19,9 +19,17 @@ saved page payload after helper10 fixes retention/fragmentation. The original
 parent report's unjustified total1 Job gate remains failed;separate file-only
 reanalysis passes with actual2/0/0 and one extra process UNATTRIBUTED. Internal
 correction21..24ms includes5..6ms verifier observation. Game input/renderer and
-multiplayer prediction integration remain OPEN;prediction-worker-client.txt.
-All live/usual-client files remain unchanged. Actual visible prediction,
-hidden-state completeness and multiplayer qualification remain OPEN.
+multiplayer prediction integration continue;prediction-worker-client.txt.
+Actual Movement03 scripted client-server response now passes:78ms after input,
+93ms before65,exact command phase441/461,independent remote replay+20 matching
+continuations,and2888 full parsed state comparisons. Two rounds/Continue/Leave/
+original Quit and every retained child drain naturally. Earlier ten-frame
+timing error/3m jump is retained as RED;new bounded largest step0.279265/15ms.
+Original parent fails only at diagnostic physical-vs-authority cutoff;separate
+file-only reanalysis proves complete delivery from actual receipts/raw bridge.
+Physical mouse/selection edges,portable test and Internet human acceptance
+remain OPEN. Full_feature_accepted remainsfalse. See
+prediction-multiplayer-movement.txt. Live/usual-client files remain unchanged.
 Details:native-prediction-checkpoints.txt,prediction-worker-client.txt.
 
 N32:Scheduling PR#1 merged into main as0ad2afb. Draft PR#2 now has a real native

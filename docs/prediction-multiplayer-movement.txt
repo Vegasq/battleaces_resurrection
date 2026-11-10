@@ -1,0 +1,87 @@
+BATTLE ACES - ACTUAL CLIENT-SERVER MOVEMENT PREDICTION
+2026-11-09. N33 active;draft PR#2. No production deployment or user acceptance.
+
+Observed defect and fix
+Movement02 issues an original Move12 for an actual client Gunbot. It becomes
+visible110ms after construction,46ms before server confirmation,but its local
+assignment442 differs from canonical432. Native correction then moves the
+rendered actor3.000785world units in15ms. Full confirmed native hashes match:
+state correctness did not make this a useful movement-feel result.
+
+The old implementation filled the12-frame checkpoint safety budget during
+READY and continued at that lead. New opt-in pacing waits for real steady
+authority1,estimates own elapsed RTT from already-correlated validated ACKs,
+and targets the expected server command frame. It retains original enqueue,
+one unpresented output,publication and immutable67 batch assignments. Normal
+launchers and buffered presentation are unchanged. The cap remains12.
+
+Movement03 exact scope
+Two suspended-before-resume,retained Job-owned actual Unity clients connect to
+an ephemeral loopback TLS authority running the original simulation,with
+controlled130/475ms RTT. Each client uses its actual opening unit/type and
+original typed Ground-command constructor/Enqueue/ToProto. This is scripted
+input through original APIs,not physical mouse input.
+
+The selected client's Move is assigned441 and committed441. Actual original
+UnityEngine.Transform.get_position changes78ms after construction,93ms before
+its worker65 authority receipt and78ms before raw bridge delivery. A stationary
+baseline has67samples over1016ms with zero displacement. Own confirmation needs
+zero replay,which is accepted rather than manufacturing a correction.
+
+The other client's independent original Move is assigned461/committed461.
+Its exact Action/batch/server commit/raw bridge hash binds to the subject's
+real65 receipt. The subject then performs a genuine three-frame native replay;
+the corrected frontier461 and20 continuation frames match authority. All722
+confirmed frames for both worlds and both clients match full parsed original
+Spectator31 state hashes:2888 comparisons. No arbitrary hidden native/OS state
+equivalence is claimed. Actor identity is joined only by the verifier;worker
+state records do not contain invented actor IDs.
+
+Largest selected-actor sampled position step is0.279265units in15ms in this
+fixture,versus the earlier3.000785/15ms. This is a measured comparison,not a
+universal jerk threshold. Presentation frames11..599 have no skips or>100ms
+gap;effective rates19.994/20.219Hz. The slow client's eight<25ms observations
+include phase acquisition;perfect uniform50ms spacing is not claimed.
+
+Two rounds complete results/Continue/rematch/Leave/original Quit. Both games,
+their local workers and both authority workers exit0,reaped/I/Ojoined with no
+forced cleanup. Game Jobs3/0/0;authority Jobs2/0/0. All prepared files/source
+remain unchanged during native execution.
+
+Report limitation and preserved failures
+Original Movement03 report is FAILED:the buffered timing trace stops at
+physical presented602,while the slower client has received authority only592.
+It contains593 true arrival rows,not600. Full actual65 receipt TSVs and raw
+bridge arrays independently prove all600 deliveries;no timing rows are added.
+Separate file-only reanalysis reparses these inputs and passes the scoped
+movement/state/lifecycle checks. The original report is not rewritten.
+
+Exact identities
+Original Simulation.dll:
+107bb83dc416a16492277392c50104660e34c48911345ae2e0d5afe3929a07fb
+Owned GameAssembly.dll with diagnostic Quit/worker/actor/selection hooks:
+c87cd6ecdb5ea73bae83b736abeba29f67f282d0928b6f18f5a56fbe870c6702
+Movement03 helper11:
+b04b81cb09cbc4403d4bcecbe6d5cc4085578a985621bc3fd8c58d39d46f6d5c
+Heap12:
+64d8805ca111cf512d0edcd04057fca66db2ab7138bcc1bfed29aa770e62f26b
+Cooperative03:
+889be172703008e3aee02fc2b7ee0ac5ab4b3126e5db70979f7221d26828460f
+Prepared920source files and11binary/receipt inputs are hash-bound and retained.
+
+Private evidence (ignored)
+local/prediction-runtime/movement02/run/verification.json
+local/prediction-runtime/movement02/reanalysis01/verification.json (expected RED)
+local/prediction-runtime/movement03/run/verification.json (timing cutoff FAILED)
+local/prediction-runtime/movement03/reanalysis01/verification.json (scoped PASS)
+local/prediction-runtime/movement03/reanalysis01/bound-files/
+local/prediction-runtime/movement03/source-at-prepare/
+
+Remaining before broad acceptance
+Confirm physical selection/held-gesture behavior and actor/HQ lifetime edges.
+Qualify the final portable embedded interpreter/worker/helper and separate test
+launcher. Exercise real Internet jitter/RTT changes and obtain human online-feel
+feedback. Rolling-min ACK RTT is not an immediate rising-latency estimator.
+N34 offline worker test is superseded;the next Nick handoff must use actual
+online Custom1v1. D8,RUNTIME_VALIDATED and full_feature_accepted remain open.
+Live host,firewall,usual client and reserved manual copy remain untouched.

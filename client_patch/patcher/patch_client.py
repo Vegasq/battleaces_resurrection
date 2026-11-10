@@ -7,6 +7,7 @@ from . import startup_tasks
 from . import bundle_loading
 from . import legacy_compliance
 from . import prediction_worker as prediction_worker_patch
+from . import prediction_actor_repair
 ROOT = Path(__file__).resolve().parents[2]
 ORIGINAL_SHA256 = 'e59d08c01479b27404778048d7e13546dbf3771f6b3912744c7c2bdf80c4e758'
 PATCHES = [
@@ -179,10 +180,14 @@ def redirect_relocated_pointer(original, patched, hook, image_base, thunk_rva):
     struct.pack_into('<Q',patched,offset,image_base+thunk_rva)
 
 
-def build_patch(original, *, include_telemetry=True, community=False, cosmetics=False, quit_diagnostics=False, allow_dlss_diagnostics=False, startup_diagnostics=False, prediction_worker=False):
+def build_patch(original, *, include_telemetry=True, community=False, cosmetics=False, quit_diagnostics=False, allow_dlss_diagnostics=False, startup_diagnostics=False, prediction_worker=False, prediction_movement=False):
     """Pure transformation; only a matching original may enter this routine."""
+    if prediction_movement and not (prediction_worker and community):
+        raise ValueError('Prediction movement requires prediction_worker=True and community=True.')
     if digest(original) != ORIGINAL_SHA256:
         raise ValueError('Original build SHA256 does not match.')
+    if prediction_movement:
+        prediction_actor_repair.validate_original(original, expected_sha256=ORIGINAL_SHA256)
     patched = bytearray(telemetry.patch_component('GameAssembly.dll', original) if include_telemetry else original)
     patches = PATCHES + (COSMETIC_PATCHES if cosmetics else []) + ([] if allow_dlss_diagnostics else DLSS_PRIVACY_PATCHES)
     call_hooks = CALL_HOOKS + (COMMUNITY_CALL_HOOKS if community else []) + (COSMETIC_CALL_HOOKS if cosmetics else []) + (QUIT_CALL_HOOKS if quit_diagnostics else [])
@@ -193,6 +198,8 @@ def build_patch(original, *, include_telemetry=True, community=False, cosmetics=
         tail_hooks += startup_tasks.TAIL_HOOKS
     if prediction_worker:
         call_hooks += prediction_worker_patch.CALL_HOOKS
+    if prediction_movement:
+        call_hooks += prediction_actor_repair.CALL_HOOKS
     sites = sorted(patches + HOOKS + tail_hooks + call_hooks + pointer_hooks, key=lambda site: site['offset'])
     for left, right in zip(sites, sites[1:]):
         if left['offset'] + len(bytes.fromhex(left['before'])) > right['offset']:

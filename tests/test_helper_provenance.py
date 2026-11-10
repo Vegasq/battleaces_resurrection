@@ -1,5 +1,5 @@
 """Declared source/DLL receipt binding and explicit immutable historical inputs."""
-import copy,json,subprocess,unittest
+import copy,json,subprocess,unittest,stat
 from unittest import mock
 from pathlib import Path
 from tools import helper_provenance as h
@@ -18,7 +18,12 @@ class HelperProvenanceTests(unittest.TestCase):
         self.receipt=dict(schema=1,helper_sha256=h.sha(self.data),source_sha256={name:h.sha(value) for name,value in h.current_sources(self.root).items()},
             sources_unchanged_during_build=True,compiler_path=str(self.root/'private-source-folder/compiler.exe'),compiler_sha256='a'*64,sdk_version='10.0.26100.0')
         self.write(self.receipt)
-    def tearDown(self):remove_test_folder(self.root)
+    def tearDown(self):
+        # Git marks its OWN authored object files read-only on Windows.
+        self.root.resolve().relative_to(Path(__file__).resolve().parents[1]/'local/test-runs')
+        for path in (self.root/'.git').rglob('*'):
+            if path.is_file() and not path.is_symlink():path.chmod(stat.S_IREAD|stat.S_IWRITE)
+        remove_test_folder(self.root)
     def write(self,value):(self.root/'helper-build.json').write_text(json.dumps(value))
     def validate(self,**kwargs):return h.validate(self.helper,self.data,self.root,**kwargs)
 
@@ -58,6 +63,37 @@ class HelperProvenanceTests(unittest.TestCase):
         for name in ('../outside.cpp','client_patch/src/../../outside.cpp','server/foreign.cpp'):
             value=copy.deepcopy(self.receipt);value['source_sha256'][name]='b'*64;self.write(value)
             with self.subTest(name=name),self.assertRaises(PackageError):self.validate()
+
+    def test_current_checkpoint_inputs_are_required_and_source_bound(self):
+        folder=self.root/'client_patch/checkpoint';folder.mkdir()
+        header=folder/'owned.hpp';header.write_bytes(b'// authored checkpoint input\n')
+        with self.assertRaisesRegex(PackageError,'inventory differs'):self.validate()
+        receipt=copy.deepcopy(self.receipt)
+        receipt['source_sha256']={name:h.sha(data) for name,data in h.current_sources(self.root).items()}
+        self.write(receipt);self.validate()
+        header.write_bytes(b'// changed checkpoint input\n')
+        with self.assertRaisesRegex(PackageError,'source differs'):self.validate()
+
+    def test_pinned_inventory_follows_ancestor_build_script_not_present_checkpoint_files(self):
+        folder=self.root/'client_patch/checkpoint';folder.mkdir()
+        (folder/'owned.hpp').write_bytes(b'// authored checkpoint input\n')
+        def git(*args):
+            return subprocess.check_output(['git','-C',str(self.root),*args],stderr=subprocess.PIPE)
+        git('init');git('config','user.name','Authored test');git('config','user.email','authored@example.invalid')
+        git('add','client_patch');git('commit','-m','authored src-only build')
+        legacy=git('rev-parse','HEAD').decode().strip()
+        _,sources=h.git_sources(self.root,legacy)
+        self.assertNotIn('client_patch/checkpoint/owned.hpp',sources)
+        (self.root/h.SCRIPT).write_bytes(b"$paths=@('src','checkpoint')\n")
+        git('add',h.SCRIPT);git('commit','-m','authored expanded build')
+        modern=git('rev-parse','HEAD').decode().strip()
+        _,sources=h.git_sources(self.root,modern)
+        self.assertIn('client_patch/checkpoint/owned.hpp',sources)
+        # The exact old helper is still accepted only with its explicit ancestor.
+        _,old=h.git_sources(self.root,legacy)
+        value=copy.deepcopy(self.receipt);value['source_sha256']={n:h.sha(d) for n,d in old.items()}
+        self.write(value);self.validate(revision=legacy)
+        with self.assertRaisesRegex(PackageError,'inventory differs'):self.validate()
 
     def test_pinned_crlf_variant_is_exact_and_never_used_for_current_source(self):
         sources=h.current_sources(self.root);value=copy.deepcopy(self.receipt)

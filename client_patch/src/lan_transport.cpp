@@ -4,6 +4,7 @@
 #include "public_wire.hpp"
 #include "online_frame_clock.hpp"
 #include "original_command_scheduling.hpp"
+#include "prediction_pacing.hpp"
 // Experimental loopback transport. All IL2CPP work stays on Unity's main thread.
 namespace ba_lan {
 using ba::Obj; using ba_local::Root;
@@ -55,6 +56,34 @@ static uint64_t presentationNowUs() {
     uint64_t value=0;
     return ba_frame_timing::timestampMicros(value)?value:GetTickCount64()*1000;
 }
+// Own correlated application round trips. No new requests or protocol fields.
+static ba_prediction_pacing::RoundTrips movementRoundTrips;
+static uint64_t movementRoundTripGeneration=0,originalNegotiationSentUs=0,originalNegotiationGeneration=0;
+static bool originalNegotiationTimed=false;
+static bool movementPacingRequested(){return ba_prediction_worker::movementEnabled();}
+static uint64_t movementPacingNowUs(){return presentationNowUs();}
+static void resetMovementRoundTrips() {
+    movementRoundTrips=ba_prediction_pacing::RoundTrips{};movementRoundTripGeneration=0;
+    originalNegotiationTimed=false;originalNegotiationSentUs=originalNegotiationGeneration=0;
+}
+static void movementRoundTrip(uint64_t generation,unsigned char kind,uint32_t request,uint64_t sentUs,uint64_t receivedUs) {
+    if(!movementPacingRequested())return;
+    if(!generation || generation!=ba_community::generation)
+        throw std::runtime_error("movement RTT sample belongs to another connection generation");
+    if(movementRoundTripGeneration!=generation) {
+        movementRoundTrips.reset(generation);movementRoundTripGeneration=generation;
+    }
+    const bool accepted=movementRoundTrips.observe(generation,sentUs,receivedUs);
+    const auto estimate=movementRoundTrips.estimate();
+    ba::log("Movement RTT sample: generation=%llu kind=%u request=%u sent_us=%llu received_us=%llu accepted=%d min_us=%llu samples=%zu BA_RESURRECTION_MOVEMENT_PACING_V1",
+        static_cast<unsigned long long>(generation),static_cast<unsigned>(kind),request,
+        static_cast<unsigned long long>(sentUs),static_cast<unsigned long long>(receivedUs),accepted?1:0,
+        static_cast<unsigned long long>(estimate.value_or(0)),movementRoundTrips.count());
+}
+static std::optional<uint64_t> movementRoundTripEstimate() {
+    if(movementRoundTripGeneration!=ba_community::generation)return std::nullopt;
+    return movementRoundTrips.estimate();
+}
 static bool presentationActive(Obj simulation) {
     Obj server=ba_local::server();
     return paceNativeFrames() && running && !stopped && worldReady &&
@@ -79,6 +108,7 @@ static void recordReceipt(int frame,int actions,int sim,const char* digest) {
 }
 static void closeSocket() {
     originalCommands.disconnect();originalWelcome.clear();originalDeferred.clear();originalDeferredBytes=0;
+    if(movementPacingRequested())resetMovementRoundTrips();
     if(secureMode())secureChannel().end();
     if(socketValue!=INVALID_SOCKET){closesocket(socketValue);socketValue=INVALID_SOCKET;}
     connecting=false;helloSent=false;
@@ -236,6 +266,10 @@ static void originalHeartbeat() {
 static void communityMessage(unsigned char type,const Bytes& payload) {
     if(type==41 && originalCommandScheduling()) {
         originalCommands.request();originalWelcome=payload;
+        if(movementPacingRequested()) {
+            originalNegotiationSentUs=movementPacingNowUs();originalNegotiationGeneration=ba_community::generation;
+            originalNegotiationTimed=true;
+        }
         send(ba_original_commands::negotiate,ba_original_commands::negotiation());
         ba::log("Original command scheduling requested: version=1 customOnly=1 BA_RESURRECTION_ORIGINAL_COMMAND_SCHEDULING_V1");
         return; // Native Custom callbacks cannot run until the host ACKs.
@@ -280,7 +314,12 @@ static void poll() {
         unsigned char type=rx[consumed+4];Bytes payload(rx.begin()+consumed+5,rx.begin()+consumed+4+length);consumed+=4+length;
         if(type==ba_original_commands::ack) {
             if(!originalCommandScheduling())throw std::runtime_error("unsolicited original command ACK");
-            originalCommands.acknowledge(payload);
+            const uint64_t receivedUs=movementPacingRequested()?movementPacingNowUs():0;
+            originalCommands.acknowledge(payload); // Correlate/version-check BEFORE accepting timing.
+            if(originalNegotiationTimed) {
+                movementRoundTrip(originalNegotiationGeneration,ba_original_commands::negotiate,0,originalNegotiationSentUs,receivedUs);
+                originalNegotiationTimed=false;
+            }
             ba_community::receive(41,originalWelcome);originalWelcome.clear();ba_client_compat::state.accepted();
             while(!originalDeferred.empty()) {
                 auto message=std::move(originalDeferred.front());originalDeferred.pop_front();
@@ -309,8 +348,8 @@ static void poll() {
         else if(type==37){std::string notice(payload.begin(),payload.end());ba::log("Dedicated server notice: %s",notice.c_str());}
         else if(type==36){std::string result(payload.begin(),payload.end());ba::log("Dedicated match ended: %s",result.c_str());ba_dedicated_results::receive(result);matchEnded=true;}
         else if(type==12){if(!bootstrap.empty() || payload.empty())throw std::runtime_error("duplicate or empty bootstrap");bootstrap=std::move(payload);if(ba::dedicated())saveReceivedBootstrap(bootstrap);auto h=sha(bootstrap);memcpy(&bootstrapHash,h.data(),8);ba::log("LAN canonical GameData received: %llu bytes hash-prefix=%016llx",static_cast<unsigned long long>(bootstrap.size()),bootstrapHash);}
-        else if(type==13){if(!worldReady || !payload.empty() || running)throw std::runtime_error("unexpected LAN start");if(originalCommandScheduling())originalCommands.start(GetTickCount64());running=true;nextFrame=0;presentationClock.reset();ba::log("LAN both players ready; synchronized start");}
-        else if(type==14){if(!running || frames.size()>=(paceNativeFrames()?64u:ba::dedicated()?inputWindow+4:8))throw std::runtime_error("unexpected LAN frame");const int frame=static_cast<int>(u32(payload,0));frames.push_back(std::move(payload));ba_frame_timing::arrival(frame,frames.size());}
+        else if(type==13){if(!worldReady || !payload.empty() || running)throw std::runtime_error("unexpected LAN start");if(originalCommandScheduling())originalCommands.start(GetTickCount64());running=true;nextFrame=0;presentationClock.reset();if(movementPacingRequested())ba_prediction_movement::started();ba::log("LAN both players ready; synchronized start");}
+        else if(type==14){if(!running || frames.size()>=(paceNativeFrames()?64u:ba::dedicated()?inputWindow+4:8))throw std::runtime_error("unexpected LAN frame");const int frame=static_cast<int>(u32(payload,0));if(movementPacingRequested())ba_prediction_movement::authorityReceived(frame,movementPacingNowUs());frames.push_back(std::move(payload));ba_frame_timing::arrival(frame,frames.size());}
         else if(type==64){if(!publicMatch || !running || frames.size()>=(paceNativeFrames()?64u:inputWindow+4))throw std::runtime_error("unexpected public frame");ba_public_wire::frame(payload,static_cast<unsigned>(publicIdentities.size()));const int frame=static_cast<int>(u32(payload,0));frames.push_back(std::move(payload));ba_frame_timing::arrival(frame,frames.size());}
         else if(type==255){std::string message(payload.begin(),payload.end());
             if(ba_client_compat::state.serverError(message))ba::log("Client compatibility blocked: persistentOverlay=1 BA_RESURRECTION_CLIENT_REVISION_V1");
@@ -338,7 +377,10 @@ static void publish(Obj encoded) {
     if(evidence){fwrite(data.data(),1,data.size(),evidence);fclose(evidence);}
     send(2,data);ba::log("LAN host published shared GameData; evidence lan-bootstrap-%lu.pb.gz",GetCurrentProcessId());
 }
-static void ready() { worldReady=true;auto h=sha(bootstrap);send(3,Bytes(h.begin(),h.end()));ba::log("LAN world ready; waiting for other player"); }
+static void ready() {
+    ba_prediction_movement::beforeReady();
+    worldReady=true;auto h=sha(bootstrap);send(3,Bytes(h.begin(),h.end()));ba::log("LAN world ready; waiting for other player");
+}
 static void normalizeAction(Obj action) {
     Root join(ba::call(action,"get_JoinArmy"));
     if(join.get()) {
@@ -375,6 +417,8 @@ static void originalInput(Obj server) {
     // This collection is outside all canonical-frame/presentation admission gates.
     if(!ba_local::count(ba::read<Obj>(server,0x180)) && !ba_local::count(ba::read<Obj>(server,0x188)))return;
     int count=0;const Bytes body=playerInput(server,count);
+    if(ba_prediction_worker::movementEnabled() && count)
+        ba_prediction_worker::movementBatch(originalCommands.sequence(),body);
     if(auto value=originalCommands.batch(body,static_cast<unsigned>(count))) {
         const auto hash=sha(body);char hex[65];for(int i=0;i<32;++i)sprintf_s(hex+i*2,3,"%02x",hash[i]);
         const auto now=GetTickCount64();send(ba_original_commands::batch,value->payload);
@@ -401,6 +445,7 @@ static void originalOutputReady(Obj server) {
 static void tick(Obj server) {
     if(ba::community() && ba_community::abortPending)return;
     if(!running || stopped || !ba_local::isTarget(server))return;
+    if(ba_prediction_worker::movementEnabled()){ba_prediction_movement::tick(server);return;}
     // The server freezes the bounded pipeline for both seats. Replenish after
     // each accepted frame; native simulation still advances exactly50ms per tick.
     const int window=ba::dedicated()?static_cast<int>(inputWindow):3;

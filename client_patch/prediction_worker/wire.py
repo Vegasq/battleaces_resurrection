@@ -40,6 +40,11 @@ class Op(IntEnum):
     PREDICTION_BEGIN = 64
     PREDICTION_AUTHORITY = 65
     PREDICTION_METRICS = 66
+    LOCAL_BATCH = 67
+    ENTITIES = 68
+    PREDICTION_END = 69
+    ACTIVE_ENTITIES = 70
+    ENTITY_GUARD = 71
     SHUTDOWN = 127
 
 
@@ -110,7 +115,7 @@ def decode_request(packet):
     elif op == Op.CREATE_WORLD:
         require(bool(body), 'empty GameData')
         args = (body,)
-    elif op in (Op.DESTROY_WORLD, Op.DEBUG_CLEAR, Op.PREDICTION_METRICS):
+    elif op in (Op.DESTROY_WORLD, Op.DEBUG_CLEAR, Op.PREDICTION_METRICS, Op.ENTITIES, Op.ACTIVE_ENTITIES, Op.ENTITY_GUARD):
         args = exact('<Q')
     elif op in (Op.PROCESS_MSG, Op.PREDICTION_AUTHORITY):
         require(len(body) > 8, 'empty/truncated InputActions')
@@ -121,6 +126,14 @@ def decode_request(packet):
         args = exact('<QII')
         require(1 <= args[1] <= 12 and 4096 <= args[2] <= 64 * 1024 * 1024,
                 'prediction lead/journal budget outside bounds')
+    elif op == Op.LOCAL_BATCH:
+        require(16 < len(body) <= 16 + 65536, 'local batch player body exceeds64KiB/is empty')
+        world, sequence = struct.unpack_from('<QQ', body)
+        require(sequence != 0, 'local batch sequence must start at1')
+        args = (world, sequence, body[16:])
+    elif op == Op.PREDICTION_END:
+        args = exact('<Qi')
+        require(args[1] >= 0, 'prediction end requires canonical startup')
     elif op == Op.STEP:
         args = exact('<QIi')
     elif op in (Op.MAKE_FRAME, Op.LABEL_SIZE, Op.DEBUG_SIZE):

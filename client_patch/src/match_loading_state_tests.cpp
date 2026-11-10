@@ -47,5 +47,14 @@ int main() {
     assert(model.error(next,"A different failure.",21000));
     assert(!model.dismissNotice(rejected) && model.visible && model.message=="A different failure.");
     assert(model.expire(31000));
+    assert(model.hint("Unit awaiting server confirmation.",32000));
+    assert(!model.hint("Do not replace an active notice.",32001));
+    assert(!model.expire(34499) && model.expire(34500));
+    assert(model.setPersistent("Client update required."));
+    assert(!model.hint("Unit awaiting server confirmation.",35000));
+    assert(model.setPersistent(""));
+    auto loading=model.begin(Source::Custom,"new-match",Stage::Loading);
+    assert(!model.hint("Unit awaiting server confirmation.",35000));
+    assert(model.finish(loading));
     std::cout << "Match loading ownership and notice checks passed\n";
 }

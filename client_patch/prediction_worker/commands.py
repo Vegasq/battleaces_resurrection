@@ -62,6 +62,53 @@ def _player(raw, slot):
     return identity, actions
 
 
+def player_slot(raw):
+    """Strict Custom human identity, never infer a slot from player ordering."""
+    require(type(raw) is bytes and 1 <= len(raw) <= MAX_BODY, 'player body byte limit')
+    identity = get_bytes(raw, 1, required=True)
+    named = get_bytes(identity, 1, required=True)
+    handle = get_bytes(named, 1, required=True)
+    player_id = get_uint(handle, 1, required=True)
+    require(player_id in (1, 2), 'Custom human player ID must be1/2')
+    slot = player_id - 1
+    _player(raw, slot)
+    return slot
+
+
+def own_player_body(raw_frame, slot):
+    """Extract own canonical body; reject ambiguous/foreign human identities."""
+    _integer(slot, 0, 1, 'Custom human slot must be0/1')
+    bodies = get_repeated_bytes(raw_frame, 6)
+    require(len(bodies) <= 2, 'Custom authority may contain at most two human players')
+    seen, own = set(), b''
+    for raw in bodies:
+        current = player_slot(raw)
+        require(current not in seen, 'duplicate canonical player identity')
+        seen.add(current)
+        if current == slot:
+            own = raw
+    return own
+
+
+def admit_entities(raw_player_body, slot, lookup):
+    """Prototype admission for every Execute, using only confirmed identities.
+
+    The original server still validates abilities, payloads and startup actions.
+    Known dead IDs remain valid; speculative/new IDs cannot be rebound here.
+    """
+    _, actions = _player(raw_player_body, slot)
+    for action in actions:
+        normalized, _, _ = _action(action, slot)
+        if normalized is None:
+            continue
+        value = parse_fields(normalized)[0]
+        if value.number == 1:
+            for group in get_repeated_bytes(value.value, 1):
+                kind = get_uint(group, 1)
+                for entity in get_repeated_uint(group, 3, max_values=4096):
+                    require(lookup(entity) == (slot, kind), 'Execute entity identity is not confirmed for own army/type')
+
+
 def _action(raw, slot):
     """Return normalized bytes or None, prediction eligibility, Join flag."""
     fields = parse_fields(raw)
@@ -145,6 +192,7 @@ class CommandLedger:
         self._next_sequence, self._received, self._identity = 1, -1, None
         self._last_speculative_frame = -1
         self._pending, self._pending_bytes = (), 0
+        self._finished = False
         self._stats = dict(registered_batches=0, registered_actions=0, locally_elided_noops=0,
                            canonical_actions=0, authority_frames=0, reanchors=0,
                            peak_pending_actions=0, peak_pending_bytes=0)
@@ -162,11 +210,15 @@ class CommandLedger:
     def pending(self): return self._pending
 
     @property
+    def finished(self): return self._finished
+
+    @property
     def metrics(self):
         return dict(self._stats, pending_actions=len(self._pending), pending_bytes=self._pending_bytes,
-                    next_sequence=self._next_sequence, received_frame=self._received)
+                    next_sequence=self._next_sequence, received_frame=self._received, finished=self._finished)
 
     def register(self, sequence, raw_player_body, first_speculative_frame):
+        require(not self._finished, 'command ledger has finished')
         _integer(sequence, 1, 2**64 - 1, 'batch sequence outside uint64')
         _integer(first_speculative_frame, 0, MAX_FRAME, 'speculative frame outside nonnegative int32')
         require(sequence == self._next_sequence, 'batch sequence must be new and contiguous')
@@ -198,6 +250,7 @@ class CommandLedger:
         return result
 
     def observe_authority(self, frame, canonical_own_player_body):
+        require(not self._finished, 'command ledger has finished')
         _integer(frame, 0, MAX_FRAME, 'authority frame outside nonnegative int32')
         require(frame == self._received + 1, 'authority must be new and contiguous from0')
         if canonical_own_player_body == b'' and self._identity is not None:
@@ -232,6 +285,16 @@ class CommandLedger:
         self._pending, self._pending_bytes = remaining, size
         self._received, self._identity, self._stats = frame, identity, stats
         return result
+
+    def finish(self, frame):
+        require(not self._finished, 'command ledger has already finished')
+        _integer(frame, 0, MAX_FRAME, 'final authority frame must follow canonical startup')
+        require(frame == self._received, 'final frame differs from latest received authority')
+        count = len(self._pending)
+        stats = dict(self._stats, canceled_actions=count)
+        self._pending, self._pending_bytes, self._stats = (), 0, stats
+        self._finished = True
+        return count
 
     def forecast(self, frame):
         _integer(frame, 0, MAX_FRAME, 'forecast frame outside nonnegative int32')
