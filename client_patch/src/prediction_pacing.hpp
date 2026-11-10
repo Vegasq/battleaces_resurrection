@@ -193,7 +193,11 @@ public:
             // with a one-frame deadband for receipt/ceil quantization. This
             // trades temporary phase error for continuity, not input-phase or
             // visual-interpolation acceptance. Native dt stays exactly50ms.
-            const Frame error=d.target.head-next;
+            // originalInput assigns67 to NEXT before this queue. Compare like
+            // coordinates: desired head(A-1) minus current head(NEXT-1) is
+            // A-NEXT. Comparing desired head with NEXT shifts the neutral band
+            // one frame late and silently accepts a two-frame input deficit.
+            const Frame error=d.target.assigned-next;
             const Tick period=error>1?shortestPeriodUs:error<-1?longestPeriodUs:stepUs;
             const Tick base=acquired_?nextDeadline_:now;
             const Tick maximum=(std::numeric_limits<Tick>::max)();

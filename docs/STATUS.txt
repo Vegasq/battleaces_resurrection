@@ -43,7 +43,16 @@ Actual changing-RTT Movement10 reproduces266/360ms publication gaps;Movement11
 with the local pacing servo observes77.703/77.153ms maximum gaps and40.752/
 46.157ms unfinished-unit pose gaps across two rounds. All2890 native hashes
 match and every retained child quits naturally. Fresh input during/after the
-transition,mobile focus/casting and physical/Internet acceptance remain open;
+transition now has four separately qualified actual pre-authority reversals in
+Movement12. Its parent remainsRED:first steady phase-2. Local coordinate fix
+has25 authored cases;Movement13 initial phases are-1,but its sparse recovery
+gate misses the final order and owned cleanup is forced. Full run remainsRED.
+Movement14 now passes both dense actual-decision recovery episodes and all
+four fresh direction orders:38..43ms before authority,recovered phases+1/+1,
+native continuations and natural shutdown. Portable packaging/qualification
+of the new source is next.
+Mobile focus/casting and
+physical/Internet acceptance remain open;
 prediction-actor-correction.txt. N35's frozen kit remains reserved.
 Full_feature_accepted remainsfalse. See
 prediction-multiplayer-movement.txt. Live/usual-client files remain unchanged.

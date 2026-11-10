@@ -242,6 +242,35 @@ class PreparationTests(unittest.TestCase):
             setattr(self.args,key,old)
         self.assertFalse(self.args.output.exists())
 
+    def test_transition_orders_require_changing_and_only_flag_subject(self):
+        self.args.transition_orders=True
+        with self.assertRaisesRegex(AssertionError,'require explicit changing'):verifier.prepare(self.args)
+        self.args.changing_rtt=True;self.args.scenario='movement'
+        plan=verifier.prepare(self.args)
+        for index in (0,1):
+            flags=verifier.command_extra(plan,index,self.args.output/'run')
+            gate=[flag for flag in flags if flag.startswith('-prediction-movement-smoke-transition-gates=')]
+            self.assertEqual(len(gate),1 if index==0 else 0)
+        self.assertTrue(plan['transition_orders'])
+        self.assertEqual(plan['transition_phase_source'],'decision')
+
+    def test_cli_parses_exact_optin_and_preserves_ordinary_defaults_without_running(self):
+        base=[]
+        for name in ('game','assets','output','python','module-root','heap-helper','cooperative','helper-build-receipt'):
+            base+=['--'+name,str(self.root/name)]
+        base+=['--expected-helper-sha256','a'*64,'--expected-gameassembly-sha256','b'*64]
+        with (patch.object(verifier,'prepare',return_value=dict(output='owned',scenario='movement')) as prepare,
+              patch('builtins.print')):
+            self.assertEqual(verifier.main(base+['--scenario','movement','--lifecycle','natural','--changing-rtt',
+                '--transition-orders','--frames','650','--timeout','240','--rtt-ms','130','475','--move-slot','0']),0)
+            parsed=prepare.call_args[0][0]
+            self.assertTrue(parsed.transition_orders and parsed.changing_rtt)
+            self.assertEqual((parsed.frames,parsed.timeout,parsed.move_slot),(650,240,0))
+            self.assertEqual(parsed.rtt_ms,[130,475])
+            verifier.main(base)
+            parsed=prepare.call_args[0][0]
+            self.assertFalse(parsed.transition_orders or parsed.changing_rtt or parsed.actor_correction)
+
 
 class OwnedSpawnTests(unittest.TestCase):
     def fixture(self):
@@ -1114,7 +1143,7 @@ class ChangingRttControllerTests(unittest.TestCase):
 
     def update(self,tick):
         self.clock=tick
-        log='\n'.join('MOVEMENT FEEL '+json.dumps(row)for row in self.rows)+'\n'+self.rtt
+        log='\n'.join('MOVEMENT FEEL '+json.dumps(row)for row in self.rows)+'\n'+self.rtt+getattr(self,'extra_log','')
         self.control.update(log,self.relay)
 
     def rise(self):
@@ -1334,6 +1363,435 @@ class NativePoseQpcTests(unittest.TestCase):
         self.assertFalse(after['pose_timing_approximate']);self.assertEqual(after['pose_metric_clock'],'sampled_us')
         for key in ('command_to_visible_ms','visibility_before_authority_ms','canonical_commit_frame','speculative_frame'):
             self.assertEqual(after[key],before[key])
+
+
+class TransitionGateTests(unittest.TestCase):
+    def setUp(self):
+        self.temp=tempfile.TemporaryDirectory();self.addCleanup(self.temp.cleanup)
+        self.folder=Path(self.temp.name).resolve()
+        self.fixture=ChangingRttControllerTests();self.fixture.setUp()
+
+    def test_exact_marker_immutable_and_no_temporary_partial_file(self):
+        cmd=self.fixture.command()
+        row=verifier.publish_transition_gate(self.folder,cmd,2,lambda:1000,lambda:1000000)
+        expected=('BA_MOVEMENT_TURN_V1 '+'a'*32+' 7 91 1 1 2\n').encode('ascii')
+        self.assertEqual(Path(row['path']).read_bytes(),expected)
+        self.assertEqual(row['sha256'],verifier.digest(expected))
+        self.assertEqual(len(list(self.folder.iterdir())),1)
+        with self.assertRaisesRegex(AssertionError,'no overwrite'):
+            verifier.publish_transition_gate(self.folder,cmd,2,lambda:1000,lambda:1000000)
+
+    def phase(self,tick,nxt,target,*,match=None):
+        return f'[{tick}] Movement pacing waiting: reason=6 next={nxt} confirmed=500 received=500 networkReceived=500 physical={nxt-1} presented={nxt-1} targetAssigned={target} rtt_us=130000\n'
+
+    def test_controller_publishes2_aftersetter_and3_after_fresh_true_next_phase(self):
+        f=self.fixture
+        f.relay.changes=[]
+        f.control=verifier.ChangingRttController(lambda:f.clock,lambda:f.clock*1_000_000,transition_gates=self.folder)
+        f.control.begin(f.match,f.relay);f.rise();f.fall_ready();f.update(5700)
+        state=f.control.worlds[-1];self.assertTrue(Path(state['turn2_gate']['path']).exists())
+        self.assertGreaterEqual(state['turn2_gate']['requested_perf_counter_ns'],state['fall']['effective_perf_counter_ns'])
+        turn=dict(f.command(),ordinal=2,move_id=2,origin=[20,0,0],target=[-28,0,0],motion_from=[19,0,0],
+            sampled_us=5800000,motion_from_sampled_us=5700000,enqueue_sampled_us=5800001,
+            tick_ms=5800,presented_frame=532,completed_frame=532,physical_frame=532,
+            originalCtor=True,physicalUI=False,queueDelta=1,action_sha256='b'*64)
+        f.rtt+=f.sample(3,5800,raw=130,estimate=130)
+        start=f'[1000] Movement pacing START: match={f.match} world=7 waitSteadyFrame=1 budget=12 BA_RESURRECTION_MOVEMENT_PACING_V1\n'
+        f.extra_log='MOVEMENT TURN '+json.dumps(turn)+'\n'+start+self.phase(6000,540,539)+self.phase(6600,552,551)
+        f.rows.extend([f.pose(6500,18,550),f.pose(6600,17,552)])
+        f.update(6600)
+        self.assertIn('turn3_gate',state)
+        self.assertEqual([row['next_assignment_delta']for row in state['turn3_phase_rows']],[-1,-1])
+        self.assertEqual(state['turn3_phase_rows'][1]['tick_ms']-state['turn3_phase_rows'][0]['tick_ms'],600)
+
+    def test_phase_parser_binds_current_start_and_corrects_head_next_offbyone(self):
+        first='a'*32;second='b'*32
+        log=f'Movement pacing START: match={first} world=7 waitSteadyFrame=1\n'+self.phase(1000,594,593)
+        log+=f'Movement pacing START: match={second} world=8 waitSteadyFrame=1\n'+self.phase(2000,614,614)
+        rows=verifier.phase_rows(log,first,7)
+        self.assertEqual(len(rows),1);self.assertEqual(rows[0]['next_assignment_delta'],-1)
+        self.assertGreater(abs(rows[0]['target_assigned']-1-rows[0]['next']),1)
+        self.assertEqual(verifier.phase_rows(log,first,8),[])
+
+    def test_stale_or_newer_unconverged_phase_never_publishes_recovered_gate(self):
+        for condition in ('stale','newer_bad'):
+            folder=self.folder/condition;folder.mkdir()
+            f=ChangingRttControllerTests();f.setUp();f.relay.changes=[]
+            f.control=verifier.ChangingRttController(lambda:f.clock,lambda:f.clock*1_000_000,transition_gates=folder)
+            f.control.begin(f.match,f.relay);f.rise();f.fall_ready();f.update(5700)
+            turn=dict(f.command(),ordinal=2,move_id=2,origin=[20,0,0],target=[-28,0,0],motion_from=[19,0,0],
+                sampled_us=5800000,motion_from_sampled_us=5700000,enqueue_sampled_us=5800001,
+                tick_ms=5800,presented_frame=532,completed_frame=532,physical_frame=532,
+                originalCtor=True,physicalUI=False,queueDelta=1,action_sha256='b'*64)
+            f.rtt+=f.sample(3,5800,raw=130,estimate=130)
+            f.extra_log='MOVEMENT TURN '+json.dumps(turn)+'\n'+f'Movement pacing START: match={f.match} world=7 waitSteadyFrame=1\n'
+            f.extra_log+=self.phase(6000,540,539)+self.phase(6600,552,551)
+            if condition=='newer_bad':f.extra_log+=self.phase(6950,559,561)
+            now=7200 if condition=='stale' else 7000
+            f.rows.extend([f.pose(now-100,18,558),f.pose(now,17,560)])
+            f.update(now)
+            with self.subTest(condition=condition):self.assertNotIn('turn3_gate',f.control.worlds[-1])
+            f.extra_log+=self.phase(7600,570,569)
+            f.rows.extend([f.pose(7500,16,569),f.pose(7600,15,570)]);f.update(7600)
+            self.assertIn('turn3_gate',f.control.worlds[-1])
+
+
+class DecisionPhaseTests(unittest.TestCase):
+    @staticmethod
+    def row(tick=6000,nxt=540,assigned=539,**fields):
+        return dict(dict(schema=1,event='decision',match='a'*32,world=7,next=nxt,target_assigned=assigned,
+            presented_frame=nxt-1,rtt_us=130000,allowed=False,wait=6,
+            decision_us=tick*1000,sampled_us=tick*1000+10,tick_ms=tick),**fields)
+
+    @staticmethod
+    def log(rows):
+        return '\n'.join('MOVEMENT PHASE '+json.dumps(row)for row in rows)+'\n'
+
+    def test_real_decisions_include_allowed_and_wait_without_recomputing_target(self):
+        rows=[self.row(),self.row(6020,541,541,allowed=True,wait=0)]
+        result=verifier.decision_phase_rows(self.log(rows),'a'*32,7)
+        self.assertEqual([row['next_assignment_delta']for row in result],[-1,0])
+        self.assertEqual([{key:value for key,value in row.items()if key!='next_assignment_delta'}for row in result],rows)
+        self.assertEqual(verifier.decision_phase_rows(self.log(rows),'b'*32,7),[])
+
+    def test_schema_scope_clock_and_throttle_fail_closed(self):
+        for fields in (dict(schema=True),dict(world=True),dict(allowed=1),dict(wait=7),dict(allowed=True),
+                       dict(next=650),dict(next=399),dict(rtt_us=2000001),dict(target_assigned=0),
+                       dict(sampled_us=5999999),dict(sampled_us=6050000),dict(unexpected=1)):
+            with self.subTest(fields=fields),self.assertRaises(AssertionError):
+                verifier.decision_phase_rows(self.log([self.row(**fields)]),'a'*32,7)
+        for rows in ([self.row(),self.row()], [self.row(),self.row(6009)],
+                     [self.row(),self.row(6020,decision_us=5999000)],
+                     [self.row(),self.row(6020,tick_ms=5999)]):
+            with self.subTest(rows=rows),self.assertRaises(AssertionError):
+                verifier.decision_phase_rows(self.log(rows),'a'*32,7)
+
+    def test_world_and_count_bounds_and_rematch_reset(self):
+        first=self.row();second=self.row(1000,world=8,match='b'*32)
+        self.assertEqual(len(verifier.decision_phase_rows(self.log([first,second]),'b'*32,8)),1)
+        with self.assertRaisesRegex(AssertionError,'world/count'):
+            verifier.decision_phase_rows(self.log([first,second,self.row(2000,world=9,match='c'*32)]),'a'*32,7)
+        with self.assertRaisesRegex(AssertionError,'world/count'):
+            verifier.decision_phase_rows(self.log([self.row(6000+i*10)for i in range(4097)]),'a'*32,7)
+
+    def controller(self,folder):
+        f=ChangingRttControllerTests();f.setUp();f.relay.changes=[]
+        f.control=verifier.ChangingRttController(lambda:f.clock,lambda:f.clock*1_000_000,
+            transition_gates=folder,phase_source='decision')
+        f.control.begin(f.match,f.relay);f.rise();f.fall_ready();f.update(5700)
+        turn=dict(f.command(),ordinal=2,move_id=2,origin=[20,0,0],target=[-28,0,0],motion_from=[19,0,0],
+            sampled_us=5800000,motion_from_sampled_us=5700000,enqueue_sampled_us=5800001,
+            tick_ms=5800,presented_frame=532,completed_frame=532,physical_frame=532,
+            originalCtor=True,physicalUI=False,queueDelta=1,action_sha256='b'*64)
+        f.rtt+=f.sample(3,5800,raw=130,estimate=130)
+        f.extra_log='MOVEMENT TURN '+json.dumps(turn)+'\n'
+        f.rows.extend([f.pose(6500,18,550),f.pose(6600,17,552)])
+        return f
+
+    def test_dense_actual_decisions_close_sparse_sampling_alias_without_phase_relaxation(self):
+        with tempfile.TemporaryDirectory()as directory:
+            f=self.controller(Path(directory).resolve())
+            sparse=TransitionGateTests()
+            f.extra_log+=f'Movement pacing START: match={f.match} world=7 waitSteadyFrame=1\n'
+            f.extra_log+=sparse.phase(6000,540,538)+sparse.phase(6600,552,551)
+            f.update(6600)
+            self.assertNotIn('turn3_gate',f.control.worlds[-1])  # No fallback, even one sparse eligible sample.
+            actual=[self.row(6000,540,538),self.row(6050,541,540),self.row(6500,550,548),self.row(6600,552,551)]
+            f.extra_log+=self.log(actual);f.update(6601)
+            state=f.control.worlds[-1]
+            self.assertIn('turn3_gate',state)
+            self.assertEqual([row['next_assignment_delta']for row in state['turn3_phase_rows']],[-1,-1])
+            self.assertEqual(f.control.snapshot()['phase_source'],'decision')
+
+    def test_low_ack_causality_latest_bad_and_stale_decisions_prevent_gate(self):
+        cases={'before_ack':[self.row(5900),self.row(6600,552,551)],
+               'too_close':[self.row(6200),self.row(6600,552,551)],
+               'newest_bad':[self.row(6000),self.row(6550,551,550),self.row(6600,552,550)],
+               'stale':[self.row(5950),self.row(6050,541,540)]}
+        with tempfile.TemporaryDirectory()as directory:
+            for name,rows in cases.items():
+                folder=Path(directory)/name;folder.mkdir()
+                f=self.controller(folder.resolve());f.extra_log+=self.log(rows);f.update(6601)
+                with self.subTest(name=name):self.assertNotIn('turn3_gate',f.control.worlds[-1])
+
+
+class TransitionOrderEvidenceTests(unittest.TestCase):
+    def setUp(self):
+        self.temp=tempfile.TemporaryDirectory();self.addCleanup(self.temp.cleanup);self.folder=Path(self.temp.name).resolve()
+        self.match='a'*32
+        self.common=dict(schema=1,match=self.match,world=7,entity=91,unit_type=1,incarnation=340,move_id=1)
+        self.first=dict(self.common,event='command_created',tick_ms=1000,original_callback='Uncapped.ExecuteTargetGroundCommand..ctor',
+                        ability=12,target=[48,0,0],action_sha256='f'*64)
+        def pose(tick,x,frame):
+            return dict(self.common,event='transform',tick_ms=tick,sampled_us=tick*1000,
+                source=verifier.FEEL_CONTRACT['transform_source'],position=[x,0,0],presented_frame=frame,completed_frame=frame)
+        self.poses=[pose(1100,9,554),pose(1200,10,555),pose(1216,10.1,556),pose(1232,10.15,556),pose(1248,10,557),
+                    pose(1820,5,588),pose(1920,4,589),pose(1936,3.9,590),pose(1952,3.8,590),pose(1968,3.95,591)]
+        self.orders=[];self.actions=[];self.bodies={};self.commits=[];self.registrations=[]
+        for ordinal,origin,target,prior,tick,frame,assigned in ((2,10,-38,9,1201,550,557),(3,4,36,5,1921,590,590)):
+            position=field_uint(1,int(target*2**32)&(2**64-1))
+            group=field_uint(1,1)+field_uint(2,12)+field_packed_uint(3,[91])
+            action=field_bytes(1,field_bytes(1,group)+field_bytes(3,field_bytes(3,field_bytes(1,position))))
+            self.actions.append(action);body=encode_player_input(encode_identity(1,'Owned subject'),[action]);sequence=ordinal+2
+            self.bodies[self.match,0,sequence]=body
+            sample=(tick-1)*1000
+            order=dict(self.common,event='command_created',move_id=ordinal,ordinal=ordinal,tick_ms=tick,
+                sampled_us=sample,motion_from_sampled_us=sample-100000,enqueue_sampled_us=tick*1000,
+                origin=[origin,0,0],motion_from=[prior,0,0],target=[target,0,0],ability=12,
+                action_sha256=verifier.digest(action),original_callback='Uncapped.ExecuteTargetGroundCommand..ctor',
+                originalCtor=True,physicalUI=False,queueDelta=1,physical_frame=assigned-1,presented_frame=assigned-2,completed_frame=assigned-2)
+            self.orders.append(order)
+            self.commits.append(dict(event='command_batch_committed',match=self.match,slot=0,sequence=sequence,frame=frame))
+            self.registrations.append(dict(sequence=sequence,assigned=assigned,tick=tick,body=body))
+        self.state=dict(match=self.match,world=7,command=self.first,fall=dict(effective_tick_ms=1180,effective_perf_counter_ns=1180000000),
+                        low_samples=[dict(received_tick_ms=1350)])
+        for ordinal,tick in ((2,1190),(3,1910)):
+            self.state[f'turn{ordinal}_gate']=verifier.publish_transition_gate(self.folder,self.first,ordinal,lambda tick=tick:tick,
+                                                                            lambda tick=tick:tick*1000000)
+        self.phases=[dict(tick_ms=1400,reason=6,next=570,confirmed=500,received=500,network_received=500,
+            physical=569,presented=569,target_assigned=569,rtt_us=130000),
+            dict(tick_ms=1900,reason=6,next=590,confirmed=500,received=500,network_received=500,
+            physical=589,presented=589,target_assigned=590,rtt_us=130000)]
+        self.state['turn3_phase_rows']=self.phases
+        for row in self.phases:row['next_assignment_delta']=row['target_assigned']-row['next']
+        self.authorities=[dict(schema=1,world=7,match=self.match,frame=frame,tick_ms=tick,
+            canonical_sha256='b'*64,wire_sha256=wire*64)for frame,tick,wire in ((550,1300,'c'),(590,2050,'d'))]
+        self.bridge=[dict(match=self.match,frame=frame,received_tick_ms=tick,payload_sha256=wire*64)
+                     for frame,tick,wire in ((550,1290,'c'),(590,2040,'d'))]
+        self.states={frame:'a'*64 for frame in range(611)}
+        self.worker=[dict(schema=1,event='confirmed_native_state',world=7,frame=frame,confirmed_frontier=frame,
+            parsed_state_sha256='a'*64,corrections=int(frame>=550),corrections_delta=int(frame==550),
+            replayed_frames_total=7 if frame>=550 else 0,replayed_frames_delta=7 if frame==550 else 0,
+            tick_ms=100+frame*2 if frame<550 else 1310+(frame-550)*5 if frame<590 else 2060+(frame-590)*5)
+            for frame in range(611)]
+        self.journal=[dict(frame=frame,players={0:[self.actions[0]]if frame==550 else [self.actions[1]]if frame==590 else [],1:[]})
+                      for frame in range(611)]
+
+    def log(self):
+        lines=['MOVEMENT FEEL '+json.dumps(row)for row in [self.first,*self.poses]]
+        lines+=['MOVEMENT TURN '+json.dumps(row)for row in self.orders]
+        lines+=['MOVEMENT AUTHORITY '+json.dumps(row)for row in self.authorities]
+        for row in self.registrations:
+            lines.append(f'Movement local batch registered: sequence={row["sequence"]} speculativeFrame={row["assigned"]} tick={row["tick"]} match={self.match}')
+            lines.append(f'Original command batch submitted: match={self.match} sequence={row["sequence"]} actions={len(decode_player_input(row["body"])["actions"])} bytes={len(row["body"])} body_sha256={verifier.digest(row["body"])} sendTick={row["tick"]+1} sourceNextFrame=500')
+        lines.append(f'Movement pacing START: match={self.match} world=7 waitSteadyFrame=1')
+        for row in self.phases:
+            lines.append(f'[{row["tick_ms"]}] Movement pacing waiting: reason=6 next={row["next"]} confirmed=500 received=500 networkReceived=500 physical={row["physical"]} presented={row["presented"]} targetAssigned={row["target_assigned"]} rtt_us=130000')
+        lines+=['MOVEMENT PHASE '+json.dumps(row)for row in getattr(self,'decision_phases',[])]
+        return '\n'.join(lines)
+
+    def check(self,phase_source='pacer_wait'):
+        return verifier.transition_order_evidence(self.log(),dict(worlds=[self.state],phase_source=phase_source),match=self.match,slot=0,
+            commits=self.commits,raw_bodies=self.bodies,journal=self.journal,canonical_states=self.states,
+            canonical_payloads={550:'c'*64,590:'d'*64},
+            bridge_frames=self.bridge,worker_states=self.worker,native_receipts=getattr(self,'native_receipts',None))
+
+    def test_two_true_new_directions_before_both_receipts_with_raw_transient_phase(self):
+        result=self.check();self.assertTrue(result['passed'])
+        self.assertEqual([row['assigned_minus_canonical']for row in result['orders']],[7,0])
+        self.assertEqual(result['orders'][0]['promotion_group_replayed_delta'],7)
+        self.assertAlmostEqual(result['orders'][0]['enqueue_to_new_direction_ms'],47)
+        self.assertEqual([row['continuation_frames']for row in result['orders']],[20,20])
+
+    def test_dense_phase_final_proof_requires_exact_captured_rows_and_actual_low_ack(self):
+        self.state['low_samples'][-1]['received_us']=1350000
+        self.decision_phases=[DecisionPhaseTests.row(1400,570,569),DecisionPhaseTests.row(1900,590,590)]
+        self.state['turn3_phase_rows']=verifier.decision_phase_rows(self.log(),self.match,7)
+        self.assertTrue(self.check('decision')['passed'])
+        self.state['turn3_phase_rows'][0]['target_assigned']+=1
+        with self.assertRaisesRegex(AssertionError,'actual recovered phase'):self.check('decision')
+
+    def test_old_ongoing_motion_is_not_a_response_to_new_reverse_order(self):
+        for row in self.poses:
+            if 1201<row['tick_ms']<1290:row['position']=[10+(row['tick_ms']-1200)*.01,0,0]
+        with self.assertRaisesRegex(AssertionError,'NEW-direction'):self.check()
+
+    def test_reversal_only_after_one_authority_receipt_is_insufficient(self):
+        self.bridge[0]['received_tick_ms']=1240
+        with self.assertRaisesRegex(AssertionError,'NEW-direction'):self.check()
+
+    def test_origin_and_prior_must_be_exact_actual_qpc_pose_samples(self):
+        self.orders[0]['motion_from']=[8,0,0]
+        with self.assertRaisesRegex(AssertionError,'actual QPC pose'):self.check()
+
+    def test_duplicate_intent_changed_actor_or_target_cannot_pass(self):
+        self.orders[0]['action_sha256']='f'*64
+        with self.assertRaisesRegex(AssertionError,'hashes were replayed'):self.check()
+        self.orders[0]['action_sha256']=verifier.digest(self.actions[0]);self.orders[0]['incarnation']=341
+        with self.assertRaisesRegex(AssertionError,'incarnation'):self.check()
+
+    def test_immutable72_or_unique_canonical_commit_are_mandatory(self):
+        original=self.bodies;self.bodies={}
+        with self.assertRaisesRegex(AssertionError,'immutable72'):self.check()
+        self.bodies=original;self.commits.append(dict(self.commits[0]))
+        with self.assertRaisesRegex(AssertionError,'canonical commit'):self.check()
+
+    def test_missing_real67_and_wrong_wire_hash_fail(self):
+        self.registrations[0]['sequence']=40
+        with self.assertRaisesRegex(AssertionError,'actual67'):self.check()
+        self.registrations[0]['sequence']=4;self.bridge[0]['payload_sha256']='e'*64
+        with self.assertRaisesRegex(AssertionError,'wire binding'):self.check()
+
+    def test_recovered_order3_wrong_phase_is_reported_red_without_rewriting_it(self):
+        self.registrations[1]['assigned']=593
+        for row in self.worker[590:]:row.update(corrections=2,replayed_frames_total=10)
+        self.worker[590].update(corrections_delta=1,replayed_frames_delta=3)
+        result=self.check();self.assertFalse(result['passed'])
+        self.assertEqual(result['orders'][1]['assigned_minus_canonical'],3)
+
+    def test_missing_correction_or_twenty_frame_tail_cannot_be_substituted(self):
+        saved=deepcopy(self.worker)
+        for row in self.worker:row.update(corrections=0,corrections_delta=0,replayed_frames_total=0,replayed_frames_delta=0)
+        with self.assertRaisesRegex(AssertionError,'replay'):self.check()
+        self.worker=saved[:-1]
+        with self.assertRaisesRegex(AssertionError,'20 contiguous'):self.check()
+
+    def test_gate_visibility_is_a_bracket_not_postreturn_earliest_time(self):
+        gate=self.state['turn2_gate'];order=self.orders[0]
+        gate['published_perf_counter_ns']=order['enqueue_sampled_us']*1000+1000
+        gate['published_tick_ms']=order['tick_ms']+1
+        self.assertTrue(self.check()['passed'])
+        gate['requested_perf_counter_ns']=order['enqueue_sampled_us']*1000+1
+        with self.assertRaisesRegex(AssertionError,'precedes its actual owned gate'):self.check()
+
+    def test_phase_observations_must_be_current_match_fresh_and_after_actual_lowack(self):
+        self.state['low_samples'][0]['received_tick_ms']=1500
+        with self.assertRaisesRegex(AssertionError,'phase observations'):self.check()
+        self.state['low_samples'][0]['received_tick_ms']=1350
+        order=self.orders[1]
+        for key in ('sampled_us','motion_from_sampled_us','enqueue_sampled_us'):order[key]+=600000
+        order['tick_ms']+=600
+        for row in self.poses:
+            if row['tick_ms']>=1820:row['tick_ms']+=600;row['sampled_us']+=600000
+        self.state['turn3_gate'].update(requested_tick_ms=2510,requested_perf_counter_ns=2510000000,
+                                       published_tick_ms=2510,published_perf_counter_ns=2510000000)
+        with self.assertRaisesRegex(AssertionError,'stales'):self.check()
+
+
+class EarlyEmptyRetimeTests(unittest.TestCase):
+    def setUp(self):
+        f=self.f=TransitionOrderEvidenceTests();f.setUp();self.addCleanup(f.doCleanups)
+        f.registrations[0]['assigned']=547
+        for row in f.worker:
+            if 546<=row['frame']<=549:
+                row.update(confirmed_frontier=549,tick_ms=1280,corrections=1,replayed_frames_total=4,
+                    corrections_delta=int(row['frame']==546),replayed_frames_delta=4 if row['frame']==546 else 0)
+            elif row['frame']>=550:
+                row.update(corrections=1,replayed_frames_total=4,corrections_delta=0,replayed_frames_delta=0)
+        f.native_receipts=[dict(pid=123,match=f.match,frame=547,actions=0,sim=549,sha256='e'*64)]
+        f.bridge.append(dict(match=f.match,frame=547,received_tick_ms=1270,payload_sha256='e'*64))
+        self.payloads={547:'e'*64,550:'c'*64,590:'d'*64}
+
+    def check(self):
+        f=self.f
+        binding=verifier.transition_order_binding(f.log(),f.orders[0],slot=0,raw_bodies=f.bodies,journal=f.journal,commits=f.commits)
+        return verifier.early_empty_retime_evidence(f.log(),match=f.match,slot=0,order=f.orders[0],binding=binding,
+            authority=f.authorities[0],new_direction=f.poses[4],commits=f.commits,raw_bodies=f.bodies,journal=f.journal,
+            canonical_states=f.states,canonical_payloads=self.payloads,bridge_frames=f.bridge,
+            worker_states=f.worker,native_receipts=f.native_receipts)
+
+    def test_exact_early_empty65_positive_group_and_final_twenty_states_without_invented_time(self):
+        final,early=self.check()
+        self.assertEqual(early['kind'],'early_empty_retime');self.assertIsNone(early['native65_tick_ms'])
+        self.assertEqual(early['promotion_group_replayed_delta'],4)
+        self.assertEqual(early['pending_local_sequences'],[4]);self.assertEqual(final['continuation_frames'],20)
+        self.assertEqual(final['confirmed_state_frame'],550)
+        self.assertEqual(final['promotion_group_replayed_delta'],0)
+        self.assertTrue(final['correction_required'])
+
+    def test_real_transition_evaluator_accepts_this_early_retime_only_with_exact_witness(self):
+        f=self.f
+        result=verifier.transition_order_evidence(f.log(),dict(worlds=[f.state]),match=f.match,slot=0,
+            commits=f.commits,raw_bodies=f.bodies,journal=f.journal,canonical_states=f.states,
+            canonical_payloads=self.payloads,bridge_frames=f.bridge,worker_states=f.worker,native_receipts=f.native_receipts)
+        self.assertTrue(result['passed']);self.assertEqual(result['orders'][0]['assigned_minus_canonical'],-3)
+        self.assertEqual(result['orders'][0]['early_empty_retime']['promotion_group_replayed_delta'],4)
+
+    def test_wrong_assigned_hash_nonempty_or_missing_native65_cannot_substitute(self):
+        saved=deepcopy(self.f.native_receipts)
+        for changes in (dict(frame=548),dict(sha256='f'*64),dict(actions=1),dict(sim=546)):
+            self.f.native_receipts=[dict(saved[0],**changes)]
+            with self.subTest(changes=changes),self.assertRaisesRegex(AssertionError,'empty65'):self.check()
+        self.f.native_receipts=[]
+        with self.assertRaisesRegex(AssertionError,'empty65'):self.check()
+
+    def test_other_canonical_actions_or_pending_local_prediction_are_forbidden(self):
+        self.f.journal[548]['players'][1]=[b'other action']
+        with self.assertRaisesRegex(AssertionError,'other canonical actions'):self.check()
+        self.f.journal[548]['players'][1]=[]
+        self.f.registrations.append(dict(sequence=6,assigned=548,tick=1250,body=self.f.registrations[0]['body']))
+        self.f.bodies[self.f.match,0,6]=self.f.registrations[0]['body']
+        self.f.commits.append(dict(event='command_batch_committed',match=self.f.match,slot=0,sequence=6,frame=560))
+        # Keep the exact original command binding unique; use a different body for the extra pending order.
+        self.f.bodies[self.f.match,0,6]=encode_player_input(encode_identity(1,'Owned subject'),[b'other action'])
+        self.f.registrations[-1]['body']=self.f.bodies[self.f.match,0,6]
+        with self.assertRaisesRegex(AssertionError,'another pending'):self.check()
+
+    def test_second_predicted_action_in_same_batch_is_not_unique_original_move(self):
+        f=self.f;body=encode_player_input(encode_identity(1,'Owned subject'),[f.actions[0],b'another predicted Move'])
+        f.bodies[f.match,0,4]=body;f.registrations[0]['body']=body
+        with self.assertRaisesRegex(AssertionError,'another predicted action'):self.check()
+
+    def test_unrelated_or_nonpositive_replay_group_and_wrong_native_hash_fail(self):
+        saved=deepcopy(self.f.worker)
+        for row in self.f.worker:
+            row.update(corrections=0,replayed_frames_total=0,corrections_delta=0,replayed_frames_delta=0)
+        with self.assertRaisesRegex(AssertionError,'positive replay'):self.check()
+        self.f.worker=deepcopy(saved);self.f.worker[547]['parsed_state_sha256']='f'*64
+        with self.assertRaisesRegex(AssertionError,'differs from authority'):self.check()
+        self.f.worker=deepcopy(saved)
+        for row in self.f.worker[546:550]:row['confirmed_frontier']=550
+        with self.assertRaises(AssertionError):self.check()
+
+    def test_actual_new_direction_and_positive_group_must_precede_final65_in_order(self):
+        saved=deepcopy(self.f.worker)
+        for tick in (1260,1301):
+            for row in self.f.worker[546:550]:row['tick_ms']=tick
+            with self.subTest(tick=tick),self.assertRaisesRegex(AssertionError,'timing'):self.check()
+        self.f.worker=saved;self.f.bridge[-1]['received_tick_ms']=1240
+        with self.assertRaisesRegex(AssertionError,'timing'):self.check()
+
+    def test_final_confirmation_and_twenty_real_continuations_remain_required(self):
+        self.f.worker=self.f.worker[:570]
+        with self.assertRaisesRegex(AssertionError,'20 contiguous'):self.check()
+
+    def test_zero_or_positive_phase_cannot_use_early_empty_exception(self):
+        for assigned in (550,551):
+            self.f.registrations[0]['assigned']=assigned
+            with self.subTest(assigned=assigned),self.assertRaisesRegex(AssertionError,'negative actual command phase'):self.check()
+
+    def test_receipt_parser_binds_exact_pid_match_contiguous_native_payloads(self):
+        with tempfile.TemporaryDirectory()as directory:
+            path=Path(directory)/'receipts.tsv'
+            header='pid\tmatch\tframe\tactions\tsim\tsha256\n'
+            value=f'123\t{self.f.match}\t0\t0\t-1\t'+64*'a'+'\n'
+            path.write_text(header+value)
+            self.assertEqual(verifier.read_native_receipts(path,pid=123,match=self.f.match)[0]['frame'],0)
+            for raw in ((header+value).replace('\t0\t0\t','\t1\t0\t'),header+value+value,(header+value).rstrip('\n')):
+                path.write_text(raw)
+                with self.assertRaises(AssertionError):verifier.read_native_receipts(path,pid=123,match=self.f.match)
+            path.write_text(header+value)
+            with self.assertRaises(AssertionError):verifier.read_native_receipts(path,pid=124,match=self.f.match)
+
+
+class ObservationOrderingTests(unittest.TestCase):
+    def test_first_phase_red_retains_independent_turn_and_smoothness_results(self):
+        report=dict(passed=False,scoped_observation_passed=False,
+            feel=dict(passed=False,speculative_frame=441,canonical_commit_frame=443,
+                      speculative_minus_canonical_frames=-2))
+        collected=[]
+        def independent():
+            collected.append(True)
+            report['changing_rtt_observation']=dict(passed=True)
+            report['changing_rtt_smoothness_passed']=True
+            report['transition_orders']=dict(passed=True,episodes=[dict(match='a'*32),dict(match='b'*32)])
+        with self.assertRaisesRegex(AssertionError,'actual movement feel contract remains missing'):
+            verifier.finalize_movement_observation(report,independent)
+        self.assertEqual(collected,[True])
+        self.assertTrue(report['transition_orders']['passed'])
+        self.assertTrue(report['changing_rtt_smoothness_passed'])
+        self.assertFalse(report['passed']or report['scoped_observation_passed'])
+        self.assertEqual(report['feel']['speculative_minus_canonical_frames'],-2)
 
 
 if __name__ == '__main__':

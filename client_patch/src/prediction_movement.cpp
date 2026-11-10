@@ -25,10 +25,34 @@ struct State {
     bool prepared=false,failed=false,endSent=false,drained=false,pacingStarted=false,pacingAcquired=false;
     pacing::Policy pacing;
     ULONGLONG terminalAt=0,budgetLogAt=0;
+    uint64_t phaseSampleUs=0;
+    unsigned phaseRows=0;
 };
 static State state;
 static uint64_t generations=0;
 static void require(bool value,const char* reason) {if(!value)throw std::runtime_error(reason);}
+static void observePhase(const pacing::Decision& decision,int presented,std::optional<uint64_t> rtt) {
+    static const bool requested=ba::flag(L"-prediction-movement-smoke")&&
+        !ba::argument(L"-prediction-movement-smoke-transition-gates=","").empty();
+    if(!requested||ba::lanSlot()!=0||decision.frame<400||decision.frame>=650||decision.target.assigned<1)return;
+    require(state.world&&state.owner==GetCurrentThreadId()&&state.match.size()==32&&
+        state.match.find_first_not_of("0123456789abcdef")==std::string::npos&&rtt.has_value(),
+        "movement phase diagnostic lost its actual owned decision");
+    uint64_t sampledUs=0;
+    require(ba_frame_timing::timestampMicros(sampledUs)&&sampledUs>=decision.now&&sampledUs-decision.now<50000,
+        "movement phase decision/QPC clocks differ or observation is stale");
+    require(!state.phaseRows||sampledUs>=state.phaseSampleUs,"movement phase observation clock regressed");
+    if(state.phaseRows&&sampledUs-state.phaseSampleUs<10000)return;
+    require(state.phaseRows<4096,"movement phase diagnostic row bound reached");
+    // Observe this EXISTING decide result, including denied decisions. Do not
+    // recompute a target, spend a frame/ordinal or issue a native/worker query.
+    ba::log("MOVEMENT PHASE {\"schema\":1,\"event\":\"decision\",\"match\":\"%s\",\"world\":%llu,\"next\":%lld,\"target_assigned\":%lld,\"presented_frame\":%d,\"rtt_us\":%llu,\"allowed\":%s,\"wait\":%u,\"decision_us\":%llu,\"sampled_us\":%llu,\"tick_ms\":%llu}",
+        state.match.c_str(),static_cast<unsigned long long>(state.world),static_cast<long long>(decision.frame),
+        static_cast<long long>(decision.target.assigned),presented,static_cast<unsigned long long>(*rtt),
+        decision.allowed?"true":"false",static_cast<unsigned>(decision.wait),static_cast<unsigned long long>(decision.now),
+        static_cast<unsigned long long>(sampledUs),static_cast<unsigned long long>(GetTickCount64()));
+    state.phaseSampleUs=sampledUs;++state.phaseRows;
+}
 static void failed(const char* reason) noexcept {
     state.failed=true;
     worker::movementFail(reason);
@@ -247,6 +271,7 @@ void tick(void* serverValue) {
         require(state.pacingStarted,"movement physical input before pacing START");
         const auto rtt=ba_lan::movementRoundTripEstimate();
         const auto decision=state.pacing.decide(next,presented,projected,ba_lan::movementPacingNowUs(),rtt);
+        observePhase(decision,presented,rtt);
         if(!decision.allowed) {
             const auto now=GetTickCount64();
             if(!state.budgetLogAt || now-state.budgetLogAt>=1000) {

@@ -40,8 +40,16 @@ ready-unit responsiveness in that fixture. Ordinary-template ready guest Move
 now responds in47ms,469ms before authority. Actual changing-RTT Movement10 reproduces
 266/360ms publication gaps;Movement11's local pacing servo reduces them to
 77.703/77.153ms across two rounds,all2890 native hashes matching/natural Quit.
-Next:qualify fresh direction input during/after the latency transition,eligible
-mobile focus/casting and physical/Internet feel;review N35 human feedback.
+Movement12 separately proves four actual pre-authority direction reversals,but
+the parent staysRED:first steady command phase-2. A one-frame servo coordinate
+bias is fixed locally with25 authored cases;Movement13 initial phases are-1,
+but its sparse timing gate misses the final order and the run remainsFAILED.
+Movement14 now passes dense recovery observations,both rounds,and unchanged
+command-phase/native-state/natural-Quit gates. Four fresh turns respond in
+38..43ms before authority;recovered phases+1/+1. Next:freeze/package and qualify
+the new portable runtime,test launcher and independent human copy.
+Then qualify eligible mobile focus/casting and physical/Internet feel;review
+N35 human feedback. Detailed failures/scopes:prediction-multiplayer-movement.txt.
 The bounded fix,open scopes and separate mobile control are recorded in
 prediction-actor-correction.txt. N35's reserved kit remains frozen.
 Physical mouse/Internet jitter and

@@ -158,7 +158,8 @@ static void steadyCadenceGatesAndReset() {
     assert(refused([&]{exhausted.decide(1,0,0,end,1);}));
     assert(exhausted.observedQueued()==0);++cases;
 }
-struct Run {std::vector<Tick> feeds,publications;Frame head=-1,received=-1;Tick acquired=0;};
+struct PhasePoint {Tick at=0;Frame error=0;};
+struct Run {std::vector<Tick> feeds,publications;std::vector<PhasePoint> phases;Frame head=-1,received=-1;Tick acquired=0;};
 // Authored loopback time model, NOT a native/client acceptance test. Every input
 // spends a real numbered slot and every sole output must be observed/published.
 static Run simulate(Tick rtt,unsigned refresh,Tick end,bool pause,bool changing=false) {
@@ -181,6 +182,7 @@ static Run simulate(Tick rtt,unsigned refresh,Tick end,bool pause,bool changing=
         auto d=policy.decide(next,static_cast<int>(presented),projected,now,currentRtt);
         if(d.allowed) {
             assert(pending==-1 && next-projected<=p::maximumAhead);
+            if(next)out.phases.push_back(PhasePoint{now,d.target.assigned-next});
             policy.queued(d);pending=next++;readyAt=now+nativeWork;out.feeds.push_back(now);
             if(!d.acquiring && d.frame>0 && !out.acquired)out.acquired=now;
         }
@@ -204,6 +206,8 @@ static void changingPathContinuity() {
         for(Tick begin:{3500000ull,10000000ull,18000000ull}) {
             unsigned frames=0;for(auto t:run.feeds)if(t>=begin && t<begin+1000000)++frames;
             assert(frames>=19 && frames<=21);
+            for(const auto& phase:run.phases)if(phase.at>=begin&&phase.at<begin+1000000)
+                assert(phase.error>=-1&&phase.error<=1);
         }
     }
     ++cases;
@@ -219,8 +223,14 @@ static void phaseAcquisitionAndSteady() {
             assert(steady>=99 && steady<=101); // Real20Hz average, including32Hz polls.
             const Frame maximumLead=static_cast<Frame>((rtt+p::stepUs-1)/p::stepUs);
             assert(run.head-run.received>=maximumLead-2 && run.head-run.received<=maximumLead);
+            Frame low=p::maximumFrame,high=-p::maximumFrame;unsigned behind=0;
+            for(const auto& phase:run.phases)if(phase.at>=4000000&&phase.at<9000000) {
+                low=(std::min)(low,phase.error);high=(std::max)(high,phase.error);if(phase.error>1)++behind;
+            }
             std::cout<<"model rtt_us="<<rtt<<" refresh="<<refresh<<" acquired_us="<<run.acquired
-                     <<" steady5s_frames="<<steady<<" head_minus_received="<<run.head-run.received<<'\n';
+                     <<" steady5s_frames="<<steady<<" head_minus_received="<<run.head-run.received
+                     <<" assigned_minus_next_min="<<low<<" max="<<high<<" queues_late_by2plus="<<behind<<'\n';
+            assert(low>=-1&&high<=1);
         }
     }
     ++cases;
@@ -249,9 +259,34 @@ static void pauseAndLateBurst() {
     const auto blocked=s.decide(13,12,0,4000000,475000);
     assert(!blocked.allowed && blocked.wait==p::Wait::Budget && s.observedQueued()==12);++cases;
 }
+static void assignedCursorDeadband() {
+    p::Policy s;s.authorityReceived(0,0);queue(s,0,-1,-1,0,1);s.published(0,2000);
+    s.authorityReceived(1,1000000);queue(s,1,0,0,1000000,1);s.published(1,1002000);
+    const auto behind=s.decide(2,1,1,1050000,50001);
+    assert(behind.allowed&&behind.target.assigned==4&&behind.frame==2);
+    std::cout<<"cursor regression next="<<behind.frame<<" targetAssigned="<<behind.target.assigned
+             <<" following_deadline_us="<<behind.nextDeadline<<std::endl;
+    // Own immutable67 is assigned NEXT=2 before this physical queue. Desired
+    // assignment4 is TWO frames ahead, outside the one-frame neutral band.
+    assert(behind.nextDeadline==1095000);++cases;
+
+    p::Policy ahead;ahead.authorityReceived(0,0);queue(ahead,0,-1,-1,0,475000);ahead.published(0,2000);
+    ahead.authorityReceived(1,1000000);
+    for(Frame f=1;f<=12;++f) {
+        const Tick t=2000000+static_cast<Tick>(f)*25000;
+        queue(ahead,f,static_cast<int>(f-1),0,t,475000);ahead.published(f,t+1);
+    }
+    for(Frame f=2;f<=11;++f)ahead.authorityReceived(f,3000000);
+    const auto neutral=ahead.decide(13,12,11,3000000,1);
+    assert(neutral.allowed&&neutral.target.assigned==12&&neutral.frame==13);
+    // NEXT13 is only one frame ahead of desired12: keep nominal50ms, including
+    // the existing overdue-deadline rebase, rather than slowing at55ms.
+    assert(neutral.nextDeadline==3050000);++cases;
+}
 int main() {
     targetExamples();roundTripsAndRealAck();realCommunityCorrelation();barrierAndOneOutput();receiptAtomicityAndReset();
     steadyCadenceGatesAndReset();
     phaseAcquisitionAndSteady();pauseAndLateBurst();changingPathContinuity();
+    assignedCursorDeadband();
     std::cout<<"PASS "<<cases<<" authored pacing cases; no Simulation.dll/Unity/runtime executed\n";
 }

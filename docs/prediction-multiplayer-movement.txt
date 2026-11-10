@@ -189,3 +189,121 @@ local/prediction-checkpoint-20261110/pose-qpc-verifier01/
 N35's previously delivered manual kit remains frozen,reserved and independent
 of these local changes. No host connection/deployment,firewall change or usual
 client/user-session modification was made. D8 and final release gates stayopen.
+
+Fresh input diagnostic:Movement12,2026-11-10
+The next actual run issues two new original Move reversals in each round:
+immediately after the configured latency fall,and after actual low RTT plus
+two fresh recovered-phase observations. Separate MOVEMENT TURN records preserve
+the first Move tracker. Each new command is bound to its unique original
+constructor/action hash,actual67 registration,immutable72 batch,canonical
+commit,native65/raw bridge and actual post-enqueue QPC direction reversal.
+The complete retained700+frame journal supplies real correction/continuation
+tails beyond the650-frame pose capture;no timing/native rows are invented.
+
+Movement12 remains FAILED. The first steady Move is assigned441 but committed
+443 in round1;the other peer is461->463. The unchanged phase gate allows one
+frame,so both are RED at-2. Both round2 first orders are-1. A separate file-only
+audit qualifies all four NEW reversals:responses54.696/42.971/42.408/26.496ms,
+all before both authority receipts. Transient order2 phases are-2/-1;recovered
+order3 phases are0/0. Each command's own canonical state/replay group and20
+continuations match,and all2890 retained parsed native hashes match authority.
+Both games/workers/authorities finish naturally with no force. This partial
+input result does not turn the original failed run into an accepted run.
+
+Static/source ordering identifies a servo coordinate defect:original67 drains
+before the next physical queue. Its next assigned frame isN,current headN-1;
+the desired assigned target isA,headA-1. Their phase error isA-N. The old
+(A-1)-N expression permits a two-frame deficit inside its one-frame deadband,
+matching actual422/A424 and442/A444 observations. The local candidate changes
+that expression only;initial acquisition,deadlines,native step and safety gates
+are retained. Twenty-five actual-header cases now pass,including preserved
+RED/GREEN coordinate controls. Actual qualification of that fix is next.
+
+Other retained limits:round1 has574.428/436.764ms early publication gaps at the
+same coarse tick,and a106.874ms peer gap,all before Move440. Their cause is
+undetermined. Round2 has no>100ms publication gaps. The222.437s total includes
+96.843s from launch to first pacing START,versus24.906s in Movement11;total
+duration alone does not establish steady in-game server degradation. Broad
+cadence,physical feel and Internet acceptance remain OPEN.
+
+Movement12 helper22 SHA256:
+55e0a12bdc4c110f3df9ec0b72e4228c613ab2539cde4c22c9c0a1be4c7d92a9
+Original failed report SHA256:
+6315d8d959978d816b022393be2596000614a9f9bd0807dd0f1f43f6bac75336
+Ignored evidence:
+local/prediction-runtime/movement12-transition-orders/run/verification.json
+local/prediction-runtime/movement12-transition-orders/file-audit01/audit.json
+local/prediction-checkpoint-20261110/transition-orders-verifier01/
+local/prediction-checkpoint-20261110/pacing-command-cursor-review01/
+local/prediction-checkpoint-20261110/pacing-coordinate01/
+
+Movement13 retains a separate FAILED qualification attempt with helper23.
+Both initial commands are now one frame from their real canonical commits.
+The final reversal is never issued:the once-per-second pacing log supplies
+post-low-ACK assignment errors-2,-2,-2,-1,only one eligible observation before
+the650-frame cutoff. The diagnostic refuses the missing command;the harness
+then forces/reaps its owned children. This is not natural Quit acceptance.
+The sparse samples cannot establish the continuous phase distribution.
+The next helper adds bounded,explicit-test-only observations of real existing
+pacing decisions;it does not recompute targets or change pacing/command state.
+
+The earlier reversal is assigned537/committed540 and starts locally before
+the early empty537 bridge receipt. A positive four-frame replay group covers
+536..539 before matching540/65;540 then confirms without another replay.
+Source tracing shows the pending local order reanchors after empty authority.
+Any early-retime proof must bind that exact empty frame's real native65 hash,
+raw bridge,journal,unique pending command and positive group,then still require
+the final canonical command and20 matching continuations. The empty native65
+TSV has no timestamp:acceptance-before-promotion is a source-order statement,
+not an invented wall-clock sample. No arbitrary earlier replay can substitute.
+All1294 available confirmed native hashes match;the full run remains FAILED.
+
+Original Movement13 report SHA256:
+da0a07b71a0843f87611fe271e970ea53129b66795b99eb2e8bd393e79f8f266
+Ignored evidence:
+local/prediction-runtime/movement13-coordinate-fix/run/verification.json
+local/prediction-runtime/movement13-coordinate-fix/file-audit01/
+local/prediction-checkpoint-20261110/movement-phase01/
+
+Movement14:complete scoped two-round PASS
+Helper24 observes existing real decisions at bounded10ms minimum spacing,
+only in the explicit diagnostic subject/window. The controller uses that
+schema without sparse-log fallback. Both genuine low-RTT/recovered-phase gates
+now issue the final original command before the existing650-frame cutoff.
+The original first-command one-frame tolerance and natural-lifecycle gates
+are unchanged.155 focused verifier/shaper tests and25 actual-header pacing
+cases pass;independent source review found no remaining blocker.
+
+All four NEW reversals start in38.965/38.462/42.024/42.821ms,109..250ms before
+their raw bridge deliveries and125..265ms before matching native65 receipts.
+Transient order2 assigned-minus-canonical phases are-5/+1;after measured
+recovery,order3 phases are+1/+1. The first subject Move is441->442. The first
+transient command uses the explicitly source-ordered early-empty retime witness;
+the others have actual post-command positive replay groups. Every command's
+final canonical confirmation and20 continuations match original authority.
+Separate file-only re-evaluation also matches all2890 retained full parsed
+native hashes:723+723 in round1 and722+722 in round2.
+Both actual rounds complete results/Continue/rematch/Leave/original Quit;
+games44688/38236 and authorities16112/41232 exit0,reaped/Jobsinactive0,no force.
+All local workers exit0 with I/O joined. Sources/runtime inputs remain unchanged
+through the183.188s execution. Original Movement12/13 failures remain preserved.
+
+The bounded changing-window publication gaps are83.793/99.585ms and unfinished
+pose gaps39.451/50.271ms. Whole first-prefix maxima are107.707/137.097ms;peak
+pose speeds107.084/47.029units/s include corrections and remain report-only.
+Actual maximum pose steps are1.574998units/14.708ms and0.944998/20.094ms;
+their exact cause has not yet been assigned from the retained observations.
+This is a client-server input/reconciliation PASS,not broad physical visual
+acceptance. Correction jumps,Internet feel and mobile focus/casting remain open.
+The earlier frozen N35 kit is independent;qualifying a new portable runtime
+and separate human copy is the next delivery step. Live/usual clients stay as is.
+
+Movement14 helper24 SHA256:
+e1d466d535a09194d9aaaf02ab032727e28d1c93b48e120f6874c870d71d83f8
+Original scoped PASS report SHA256:
+b6b6223940c658c41f65b14c011d2fcaf887ef888a6c601baa1f721ebf9a80be
+Ignored evidence:
+local/prediction-runtime/movement14-dense-phase/run/verification.json
+local/prediction-runtime/movement14-dense-phase/file-audit01/audit.json
+local/prediction-checkpoint-20261110/dense-phase-retime-verifier01/
+local/prediction-checkpoint-20261110/own-retime-review01/

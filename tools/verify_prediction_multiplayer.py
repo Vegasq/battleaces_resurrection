@@ -167,6 +167,8 @@ def prepare(args):
     for value in (args.expected_helper_sha256, args.expected_gameassembly_sha256):
         require(isinstance(value, str) and HEX64.fullmatch(value), 'explicit lowercase SHA256 pins required')
     changing_rtt = bool(getattr(args, 'changing_rtt', False))
+    transition_orders = bool(getattr(args, 'transition_orders', False))
+    require(not transition_orders or changing_rtt, 'transition orders require explicit changing RTT')
     frames = args.frames if args.frames is not None else (650 if changing_rtt else 200 if args.scenario == 'startup' else 600)
     actor_correction = bool(getattr(args, 'actor_correction', False))
     require(not changing_rtt or (not actor_correction and args.scenario == 'movement' and args.lifecycle == 'natural' and
@@ -260,6 +262,8 @@ def prepare(args):
         scenario=args.scenario, lifecycle=args.lifecycle, frames=frames, timeout=args.timeout,
         actor_correction=actor_correction,
         changing_rtt=changing_rtt,
+        transition_orders=transition_orders,
+        transition_phase_source='decision' if transition_orders else None,
         changing_pose_clock='sampled_us' if changing_rtt else None,
         actor_fixture=actor_fixture_metadata() if actor_correction else None,
         rtt_ms=list(args.rtt_ms), surrender_frame=260 if args.scenario == 'startup' else 700,
@@ -313,6 +317,8 @@ def command_extra(plan, index, run):
         result.append('-prediction-actor-correction-smoke')
     if plan.get('changing_rtt') and index == plan['move_slot']:
         result.append('-prediction-movement-smoke-distance=48')
+    if plan.get('transition_orders') and index == plan['move_slot']:
+        result.append('-prediction-movement-smoke-transition-gates='+str(run/'transition-gates'))
     if plan['lifecycle'] == 'natural':
         result += ['-native-quit-smoke', '-native-quit-mode=confirm', '-native-quit-gate-smoke',
                    '-community-match-leave-quit-smoke']
@@ -396,11 +402,121 @@ def changing_fixture_require(ok, reason):
         raise ChangingRttFixtureError(reason)
 
 
+def transition_rows(log):
+    result=[]
+    for line in log.splitlines():
+        if 'MOVEMENT TURN ' not in line:continue
+        raw=line.split('MOVEMENT TURN ',1)[1]
+        require(len(raw)<=4096,'transition order diagnostic exceeds bound')
+        row=json.loads(raw)
+        require(type(row)is dict and row.get('schema')==1 and row.get('event')=='command_created' and
+            row.get('ordinal')in (2,3) and row.get('move_id')==row['ordinal'] and
+            row.get('originalCtor')is True and row.get('physicalUI')is False and row.get('queueDelta')==1 and
+            row.get('original_callback')=='Uncapped.ExecuteTargetGroundCommand..ctor' and row.get('ability')==12,
+            'invalid original transition order schema')
+        for name in ('world','entity','unit_type','incarnation','tick_ms','sampled_us','motion_from_sampled_us',
+                     'enqueue_sampled_us','physical_frame','presented_frame','completed_frame'):
+            require(type(row.get(name))is int and 0<=row[name]<=0xffffffffffffffff,'invalid transition identity/clock')
+        require(row['world']>0 and row['unit_type']>0 and row['incarnation']>0 and
+                re.fullmatch('[a-f0-9]{32}',row.get('match','')) and HEX64.fullmatch(row.get('action_sha256','')) and
+                row['motion_from_sampled_us']<row['sampled_us']<=row['enqueue_sampled_us'] and
+                max(row['presented_frame'],row['completed_frame'])<650,
+                'transition generation/clock/cutoff differs')
+        for name in ('origin','target','motion_from'):
+            require(type(row.get(name))is list and len(row[name])==3 and all(type(value)in(int,float)and
+                math.isfinite(value)for value in row[name]),'invalid transition original vector')
+        result.append(row);require(len(result)<=4,'bounded two-world transition order count exceeded')
+    require(len({(row['match'],row['world'],row['ordinal'])for row in result})==len(result),'duplicate transition order')
+    return result
+
+
+def phase_rows(log, match, world):
+    starts=list(re.finditer(r'Movement pacing START: match=([a-f0-9]{32}) world=(\d+) ',log))
+    own=[(index,row)for index,row in enumerate(starts)if row[1]==match and int(row[2])==world]
+    require(len(own)<=1,'duplicate current-match pacing START')
+    if not own:return []
+    index,start=own[0]
+    segment=log[start.start():starts[index+1].start()if index+1<len(starts)else len(log)]
+    pattern=(r'^\[(\d+)\] Movement pacing waiting: reason=(\d+) next=(\d+) confirmed=(-?\d+) received=(-?\d+) '
+        r'networkReceived=(-?\d+) physical=(-?\d+) presented=(-?\d+) targetAssigned=(-?\d+) rtt_us=(\d+)')
+    result=[]
+    for values in re.findall(pattern,segment,re.M):
+        tick,reason,nxt,confirmed,received,network,physical,presented,assigned,rtt=map(int,values)
+        result.append(dict(tick_ms=tick,reason=reason,next=nxt,confirmed=confirmed,received=received,
+            network_received=network,physical=physical,presented=presented,target_assigned=assigned,
+            rtt_us=rtt,next_assignment_delta=assigned-nxt))
+    return result
+
+
+def decision_phase_rows(log, match, world):
+    """Actual decide() observations; sparse status logs are not a fallback."""
+    result=[];previous={};counts=defaultdict(int)
+    fields={'schema','event','match','world','next','target_assigned','presented_frame',
+            'rtt_us','allowed','wait','decision_us','sampled_us','tick_ms'}
+    for line in log.splitlines():
+        if 'MOVEMENT PHASE 'not in line:continue
+        raw=line.split('MOVEMENT PHASE ',1)[1]
+        require(len(raw)<=2048,'movement phase diagnostic exceeds bound')
+        row=json.loads(raw)
+        require(type(row)is dict and set(row)==fields and type(row['schema'])is int and
+                row['schema']==1 and row['event']=='decision' and type(row['match'])is str and
+                re.fullmatch('[a-f0-9]{32}',row['match']) and type(row['allowed'])is bool,
+                'invalid actual movement phase schema')
+        for name in fields-{'event','match','allowed'}:
+            require(type(row[name])is int,'invalid actual movement phase numeric field')
+        require(0<row['world']<2**64 and 400<=row['next']<650 and 1<=row['target_assigned']<2**31 and
+                -1<=row['presented_frame']<2**31 and 0<=row['rtt_us']<=2_000_000 and
+                0<=row['wait']<=6 and row['allowed']==(row['wait']==0) and
+                0<=row['decision_us']<=row['sampled_us']<2**64 and
+                row['sampled_us']-row['decision_us']<50_000 and 0<=row['tick_ms']<2**64,
+                'actual movement phase scope/clock differs')
+        key=row['match'],row['world'];prior=previous.get(key)
+        require(prior is None or (row['sampled_us']-prior['sampled_us']>=10_000 and
+                row['decision_us']>=prior['decision_us'] and row['tick_ms']>=prior['tick_ms']),
+                'actual movement phase clock/throttle differs')
+        previous[key]=row;counts[key]+=1
+        require(len(counts)<=2 and counts[key]<=4096,'actual movement phase world/count bound exceeded')
+        if key==(match,world):
+            result.append(dict(row,next_assignment_delta=row['target_assigned']-row['next']))
+    return result
+
+
+def observed_phase_rows(log, match, world, source):
+    require(source in ('pacer_wait','decision'),'unknown transition phase observation source')
+    return decision_phase_rows(log,match,world)if source=='decision'else phase_rows(log,match,world)
+
+
+def publish_transition_gate(directory, command, ordinal, tick, perf):
+    require(ordinal in (2,3) and re.fullmatch('[a-f0-9]{32}',command['match']), 'invalid owned transition gate identity')
+    for name,upper in (('world',2**64-1),('entity',2**32-1),('unit_type',2**32-1),('incarnation',2**64-1)):
+        require(type(command[name])is int and 0<=command[name]<=upper,'transition gate numeric identity outside bound')
+    directory=Path(directory)
+    require(directory.is_absolute()and directory.is_dir()and not directory.is_symlink(),'owned transition gate directory unavailable')
+    path=directory/f'{command["match"]}-{command["world"]}-turn{ordinal}.ready'
+    require(not os.path.lexists(path),'transition gate already published; no overwrite')
+    data=('BA_MOVEMENT_TURN_V1 '+command['match']+' '+str(command['world'])+' '+str(command['entity'])+' '+
+          str(command['unit_type'])+' '+str(command['incarnation'])+' '+str(ordinal)+'\n').encode('ascii')
+    temporary=directory/f'.{path.name}.{secrets.token_hex(4)}.tmp'
+    try:
+        with temporary.open('xb')as stream:stream.write(data)
+        requested_tick,requested_perf=int(tick()),perf()
+        os.rename(temporary,path)  # One event-loop owner; Native only reads immutable ready files.
+    finally:
+        if temporary.exists():temporary.unlink()
+    return dict(path=str(path),sha256=digest(data),bytes=len(data),ordinal=ordinal,
+                requested_tick_ms=requested_tick,requested_perf_counter_ns=requested_perf,
+                published_tick_ms=int(tick()),published_perf_counter_ns=perf())
+
+
 class ChangingRttController:
     """Diagnostic local relay control; existing client RTT traffic is the witness."""
-    def __init__(self, tick, perf=time.perf_counter_ns, *, require_sampled_us=False):
+    def __init__(self, tick, perf=time.perf_counter_ns, *, require_sampled_us=False, transition_gates=None,
+                 phase_source='pacer_wait'):
         self.tick, self.perf = tick, perf
         self.require_sampled_us = require_sampled_us
+        self.transition_gates = transition_gates
+        require(phase_source in ('pacer_wait','decision'),'unknown transition phase observation source')
+        self.phase_source = phase_source
         self.worlds = []
         self.last_clock = (-1,-1)
 
@@ -435,7 +551,8 @@ class ChangingRttController:
         if not self.worlds:
             return
         state = self.worlds[-1]
-        if state['stage'] in ('complete','failed'):
+        if state['stage']=='failed' or (state['stage']=='complete'and
+            (self.transition_gates is None or 'turn3_gate'in state)):
             return
         try:
             now_tick, now_perf = self.now()
@@ -472,6 +589,8 @@ class ChangingRttController:
                 fall = shaper.set_rtt_ms(130,tick=self.tick)
                 state.update(fall_pose=latest,high_held_perf_ns=fall['effective_perf_counter_ns']-state['rise']['effective_perf_counter_ns'],
                     high_estimate_us=fresh[-1]['estimate_us'],fall=fall,stage='low')
+                if self.transition_gates is not None:
+                    state['turn2_gate']=publish_transition_gate(self.transition_gates,state['command'],2,self.tick,self.perf)
                 return
             if state['stage'] == 'low':
                 elapsed = now_perf-state['fall']['effective_perf_counter_ns']
@@ -481,6 +600,29 @@ class ChangingRttController:
                 state['low_samples'] = low
                 if low:
                     state.update(stage='complete',low_estimate_us=low[-1]['estimate_us'],low_observed_tick_ms=now_tick)
+            if state['stage']=='complete'and self.transition_gates is not None and 'turn3_gate'not in state:
+                turns=[row for row in transition_rows(log)if row['match']==state['match']and row['ordinal']==2]
+                if not turns:return
+                require(len(turns)==1,'transition2 original order is not unique')
+                low_tick=state['low_samples'][-1]['received_tick_ms']
+                observed_phases=observed_phase_rows(log,state['match'],state['world'],self.phase_source)
+                phases=[row for row in observed_phases if
+                    row['tick_ms']>=low_tick and row['tick_ms']>=state['fall']['effective_tick_ms']and
+                    abs(row['next_assignment_delta'])<=1 and
+                    row['presented_frame'if self.phase_source=='decision'else 'presented']<650 and
+                    (self.phase_source!='decision'or (row['decision_us']>=state['low_samples'][-1]['received_us']and
+                     row['decision_us']*1000>=state['fall']['effective_perf_counter_ns']))]
+                latest_phase=observed_phases[-1]if observed_phases else None
+                pair=next(((a,latest_phase)for a in reversed(phases[:-1])if latest_phase in phases and
+                    latest_phase['tick_ms']-a['tick_ms']>=500 and 0<=now_tick-latest_phase['tick_ms']<=500 and
+                    (self.phase_source!='decision'or (latest_phase['decision_us']-a['decision_us']>=500_000 and
+                     0<=now_perf-latest_phase['sampled_us']*1000<=500_000_000))),None)
+                if pair is None:return
+                latest=self.moving_unfinished(poses,turns[0])
+                changing_fixture_require(max(latest['presented_frame'],latest['completed_frame'])<650 and
+                    now_tick-latest['tick_ms']<=500,'transition3 missed actual pose cutoff650')
+                state['turn3_phase_rows']=list(pair)
+                state['turn3_gate']=publish_transition_gate(self.transition_gates,state['command'],3,self.tick,self.perf)
         except ChangingRttFixtureError as error:
             state.update(stage='failed',error=str(error),failure_scope='fixture acquisition/readiness; natural lifecycle continues')
         except AssertionError as error:
@@ -489,6 +631,8 @@ class ChangingRttController:
 
     def snapshot(self):
         return dict(schema=1,worlds=self.worlds,require_sampled_us=self.require_sampled_us,
+            phase_source=self.phase_source,
+            transition_orders=self.transition_gates is not None,
             scope='Configured BOTH-direction FUTURE-read delay, not measured RTT; queued chunks keep original due times. '
                   'Own correlated application ACK estimates include directory transfer. No new network requests.')
 
@@ -562,7 +706,239 @@ def changing_rtt_evidence(log, control, matches, *, require_sampled_us=False):
     return dict(passed=all(row['passed'] for row in worlds),worlds=worlds,
         scope='Actual original Unity poses/counters throughout transitions, >100ms gaps are RED. Counter-change first-observation times '
               'are sampled, not synthetic publication timestamps; speed/jumps reported without a universal speed threshold. '
-              'No new subject order after transition, so subject transition command latency is unmeasured.')
+              +('Fresh subject-order causality/phase is evaluated separately from these gap metrics.' if control.get('transition_orders') else
+               'No new subject order after transition, so subject transition command latency is unmeasured.'))
+
+
+def transition_order_binding(log, order, *, slot, raw_bodies, journal, commits):
+    """Actual ctor/67/72/journal chain; no generated FEEL receipt rows."""
+    from server.game_data import decode_player_input
+    from server.protobuf_wire import get_bytes,get_repeated_bytes,get_repeated_uint,get_uint
+    match=order['match'];action_hash=order['action_sha256'];bodies=[]
+    for (body_match,owner,sequence),body in raw_bodies.items():
+        if body_match!=match or owner!=slot:continue
+        decoded=decode_player_input(body)
+        selected=[action for action in decoded['actions']if digest(action)==action_hash]
+        if not selected:continue
+        require(len(selected)==1 and decoded['identity']['player_id']==slot+1 and decoded['identity']['is_aliased']and
+                not decoded['identity']['ai_profile_id'],'transition immutable72 identity/action differs')
+        bodies.append((sequence,body,selected[0],len(decoded['actions'])))
+    require(len(bodies)==1,'transition action missing/duplicated in immutable72')
+    sequence,body,action,count=bodies[0]
+    execute=get_bytes(action,1,required=True);groups=get_repeated_bytes(execute,1)
+    require(len(groups)==1 and get_uint(groups[0],1)==order['unit_type']and get_uint(groups[0],2)==12 and
+            get_repeated_uint(groups[0],3)==(order['entity'],)and get_uint(execute,2)==0,
+            'transition source/ability/queue differs from original constructor')
+    position=get_bytes(get_bytes(get_bytes(execute,3,required=True),3,required=True),1,required=True)
+    target=[]
+    for number in (1,2,3):
+        value=get_uint(position,number);require(value<2**64,'transition target uint64 overflow')
+        target.append((value-2**64 if value>=2**63 else value)/2**32)
+    require(all(abs(a-b)<=.0001 for a,b in zip(target,order['target'])),'transition original ToProto target differs')
+    registered=[tuple(map(int,row))for row in re.findall(r'Movement local batch registered: sequence=(\d+) '
+        r'speculativeFrame=(\d+) tick=(\d+) match='+re.escape(match)+r'(?:\s|$)',log)if int(row[0])==sequence]
+    require(len(registered)==1 and registered[0][2]>=order['tick_ms'],'transition actual67 response missing/duplicated')
+    sent=[row for row in re.findall(r'Original command batch submitted: match='+re.escape(match)+
+        r' sequence=(\d+) actions=(\d+) bytes=(\d+) body_sha256=([a-f0-9]{64}) sendTick=(\d+) sourceNextFrame=(\d+)',log)
+        if int(row[0])==sequence]
+    require(len(sent)==1 and int(sent[0][1])==count and int(sent[0][2])==len(body)and sent[0][3]==digest(body)and
+            int(sent[0][4])>=registered[0][2],'transition actual native72 sender differs')
+    committed=[row for row in commits if row.get('event')=='command_batch_committed'and row.get('match')==match and
+               row.get('slot')==slot and row.get('sequence')==sequence]
+    require(len(committed)==1,'transition canonical commit missing/duplicated')
+    frame=committed[0]['frame']
+    occurrences=[(row['frame'],owner)for row in journal for owner,actions in row['players'].items()
+                 for value in actions if digest(value)==action_hash]
+    require(occurrences==[(frame,slot)],'transition canonical action lost/duplicated/rebound')
+    return dict(sequence=sequence,body_sha256=digest(body),action_sha256=action_hash,
+        assigned_frame=registered[0][1],canonical_frame=frame,assigned_minus_canonical=registered[0][1]-frame,
+        native67_tick_ms=registered[0][2],native72_send_tick_ms=int(sent[0][4]))
+
+
+def read_native_receipts(path, *, pid, match):
+    """Native65 payload accounting has no receipt timestamp column."""
+    raw=read(path,2*1024*1024).decode('utf-8')
+    require(raw.endswith('\n'),'native65 receipt file is partial')
+    reader=csv.DictReader(raw.splitlines(),delimiter='\t')
+    require(reader.fieldnames==['pid','match','frame','actions','sim','sha256'],'native65 receipt schema differs')
+    result=[]
+    for source in reader:
+        require(None not in source and source['match']==match and HEX64.fullmatch(source['sha256']),
+                'native65 receipt identity/hash differs')
+        row={key:int(source[key])for key in ('pid','frame','actions','sim')}
+        require(row['pid']==pid and row['frame']==len(result) and 0<=row['actions']<=4096 and
+                -1<=row['sim']<=0x7fffffff and len(result)<4096,'native65 receipt sequence/bound differs')
+        result.append(dict(row,match=match,sha256=source['sha256']))
+    require(result,'native65 receipt file is empty')
+    return result
+
+
+def early_empty_retime_evidence(log, *, match, slot, order, binding, authority, new_direction,
+                                commits, raw_bodies, journal, canonical_states, canonical_payloads,
+                                bridge_frames, worker_states, native_receipts):
+    """A prediction assigned too early can be removed by an earlier EMPTY65.
+
+    AUTH(S) precedes promotion(S) in the frozen worker source. The native TSV
+    proves the real65 payload, not its wall time. Never invent that timestamp.
+    """
+    assigned,canonical=binding['assigned_frame'],binding['canonical_frame']
+    require(binding['assigned_minus_canonical']<0 and assigned<canonical,
+            'early empty retime requires negative actual command phase')
+    rows=validate_worker_states(worker_states)
+    promoted=[(index,row)for index,row in enumerate(rows)if row['world']==order['world']and row['frame']==assigned]
+    require(len(promoted)==1,'early empty retime assigned native state missing/duplicated')
+    frontier=promoted[0][1]['confirmed_frontier']
+    group=[(index,row)for index,row in enumerate(rows)if row['world']==order['world']and row['confirmed_frontier']==frontier]
+    require(assigned<=frontier<canonical and sum(row['replayed_frames_delta']for _,row in group)>0 and
+            sum(row['corrections_delta']for _,row in group)>0,'early empty retime lacks its actual positive replay group')
+    frames={row['frame']for _,row in group}
+    require(all(row['parsed_state_sha256']==canonical_states.get(row['frame'])for _,row in group),
+            'early empty retime native group differs from authority')
+    inputs=[row for row in journal if row['frame']in frames]
+    require(len(inputs)==len(frames) and {row['frame']for row in inputs}==frames and
+            all(not actions for row in inputs for actions in row['players'].values()),
+            'early empty retime group contains other canonical actions or missing inputs')
+    receipts=[row for row in native_receipts if row['match']==match and row['frame']==assigned]
+    bridge=[row for row in bridge_frames if row['match']==match and row['frame']==assigned]
+    require(len(receipts)==len(bridge)==1 and receipts[0]['actions']==0 and receipts[0]['sim']>=assigned and
+            receipts[0]['sha256']==bridge[0]['payload_sha256']==canonical_payloads.get(assigned),
+            'early empty retime actual empty65/raw bridge/server hash differs')
+    require(new_direction['tick_ms']<bridge[0]['received_tick_ms'] and
+            all(bridge[0]['received_tick_ms']<=row['tick_ms']<authority['tick_ms']for _,row in group),
+            'early empty retime motion/replay timing differs')
+    # Only THIS local prediction may be outstanding while the empty group is
+    # confirmed. Remote commands in that canonical group are forbidden above.
+    pending=[];at=max(row['tick_ms']for _,row in group)
+    registrations=re.findall(r'Movement local batch registered: sequence=(\d+) speculativeFrame=(\d+) '
+                             r'tick=(\d+) match='+re.escape(match)+r'(?:\s|$)',log)
+    require(len({int(row[0])for row in registrations})==len(registrations),'early empty retime duplicate local sequence')
+    for sequence,_,tick in map(lambda values:tuple(map(int,values)),registrations):
+        if tick>at:continue
+        committed=[row for row in commits if row.get('event')=='command_batch_committed'and row.get('match')==match and
+                   row.get('slot')==slot and row.get('sequence')==sequence]
+        require(len(committed)==1 and (match,slot,sequence)in raw_bodies,
+                'early empty retime pending local batch lacks exact canonical disposition')
+        if committed[0]['frame']>frontier:pending.append(sequence)
+    require(pending==[binding['sequence']],'early empty retime has another pending local prediction')
+    from server.game_data import decode_player_input
+    predicted=decode_player_input(raw_bodies[match,slot,binding['sequence']])['actions']
+    require(len(predicted)==1 and digest(predicted[0])==binding['action_sha256'],
+            'early empty retime pending batch contains another predicted action')
+    final=joined_worker_evidence(rows,world=order['world'],authority=authority,canonical_states=canonical_states)
+    require(any(rows[index]['frame']==canonical for index in final['promotion_group_row_indices'])and
+            all(rows[index]['parsed_state_sha256']==canonical_states.get(rows[index]['frame'])
+                for index in final['promotion_group_row_indices']),
+            'early empty retime final canonical confirmation is unrelated')
+    final['correction_required']=True
+    witness=dict(kind='early_empty_retime',assigned_frame=assigned,canonical_frame=canonical,
+        native65=receipts[0],native65_tick_ms=None,raw_bridge=bridge[0],
+        promotion_group_row_indices=[index for index,_ in group],
+        promotion_group_replayed_delta=sum(row['replayed_frames_delta']for _,row in group),
+        promotion_group_corrections_delta=sum(row['corrections_delta']for _,row in group),
+        pending_local_sequences=pending,
+        ordering_scope='Source-ordered actual AUTH(S) before contiguous confirmed promotion(S); native TSV has no timestamp. '
+                       'Actual positive replay group follows raw bridge(S) and precedes final command65(C).',
+        source_contract=['client_patch/prediction_worker/prediction.py:_confirm_matches',
+                         'client_patch/prediction_worker/native.py:_promote_identities'])
+    return final,witness
+
+
+def transition_order_evidence(log, control, *, match, slot, commits, raw_bodies, journal, canonical_states,
+                              canonical_payloads, bridge_frames, worker_states, native_receipts=None):
+    """New direction caused by each NEW local order, before both real receipts."""
+    states=[row for row in control['worlds']if row['match']==match]
+    require(len(states)==1,'transition controller match missing/duplicated')
+    state=states[0];command=state['command']
+    orders=[row for row in transition_rows(log)if row['match']==match]
+    require([row['ordinal']for row in orders]==[2,3],'two fresh original transition orders required')
+    require(len({row['action_sha256']for row in [command,*orders]})==3,'transition command hashes were replayed')
+    poses=changing_poses(feel_rows(log),match,require_sampled_us=True)
+    identity=lambda row:tuple(row[key]for key in ('world','entity','unit_type','incarnation'))
+    require(all(identity(row)==identity(command)for row in [*orders,*poses]),'transition actor/incarnation changed')
+    phases=state.get('turn3_phase_rows',[])
+    actual_phases=observed_phase_rows(log,match,command['world'],control.get('phase_source','pacer_wait'))
+    low_tick=state['low_samples'][-1]['received_tick_ms']
+    require(len(phases)==2 and all(row in actual_phases and row['tick_ms']>=low_tick and
+            row['tick_ms']>=state['fall']['effective_tick_ms']and abs(row['target_assigned']-row['next'])<=1 for row in phases)and
+            phases[1]['tick_ms']-phases[0]['tick_ms']>=500,'transition3 lacks actual recovered phase observations')
+    if control.get('phase_source')=='decision':
+        require(all(row['decision_us']>=state['low_samples'][-1]['received_us'] and
+                    row['decision_us']*1000>=state['fall']['effective_perf_counter_ns']for row in phases)and
+                phases[1]['decision_us']-phases[0]['decision_us']>=500_000,
+                'transition3 decision pair precedes actual low ACK or lacks real spacing')
+    result=[]
+    for order in orders:
+        ordinal=order['ordinal'];gate=state.get(f'turn{ordinal}_gate')
+        require(gate is not None and gate['requested_tick_ms']<=order['tick_ms']and
+                gate['requested_perf_counter_ns']/1000<=order['enqueue_sampled_us'], 'transition order precedes its actual owned gate')
+        path=Path(gate['path']);raw=read(path,256)
+        expected=('BA_MOVEMENT_TURN_V1 '+match+' '+str(command['world'])+' '+str(command['entity'])+' '+
+                  str(command['unit_type'])+' '+str(command['incarnation'])+' '+str(ordinal)+'\n').encode('ascii')
+        require(raw==expected and digest(raw)==gate['sha256'],'transition immutable gate identity differs')
+        if ordinal==2:
+            require(gate['requested_perf_counter_ns']>=state['fall']['effective_perf_counter_ns'], 'turn2 precedes actual fall setter')
+        else:
+            require(gate['requested_tick_ms']>=phases[-1]['tick_ms']and
+                    gate['requested_tick_ms']-phases[-1]['tick_ms']<=500,'turn3 precedes/stales recovered phase gate')
+            if control.get('phase_source')=='decision':
+                require(0<=gate['requested_perf_counter_ns']-phases[-1]['sampled_us']*1000<=500_000_000,
+                        'turn3 actual decision is stale or follows its marker')
+        origin=[row for row in poses if row['sampled_us']==order['sampled_us']and row['position']==order['origin']]
+        prior=[row for row in poses if row['sampled_us']==order['motion_from_sampled_us']and row['position']==order['motion_from']]
+        require(origin and prior and 100_000<=order['sampled_us']-order['motion_from_sampled_us']<=500_000,
+                'turn reversal vectors lack actual QPC pose observations')
+        motion=[b-a for a,b in zip(order['motion_from'],order['origin'])]
+        direction=[b-a for a,b in zip(order['origin'],order['target'])]
+        distance=math.dist(order['origin'],order['target']);motion_size=math.sqrt(sum(value*value for value in motion))
+        require(abs(distance-(48 if ordinal==2 else 32))<=.05 and motion_size>.05 and
+                sum(a*b for a,b in zip(motion,direction))/(motion_size*distance)<-.99,
+                'new transition target does not reverse actual prior motion')
+        binding=transition_order_binding(log,order,slot=slot,raw_bodies=raw_bodies,journal=journal,commits=commits)
+        frame=binding['canonical_frame']
+        authority=[row for row in authority_rows(log)if row['match']==match and row['world']==order['world']and row['frame']==frame]
+        bridge=[row for row in bridge_frames if row['match']==match and row['frame']==frame]
+        require(len(authority)==len(bridge)==1 and authority[0]['wire_sha256']==bridge[0]['payload_sha256']==canonical_payloads.get(frame)and
+                bridge[0]['received_tick_ms']<=authority[0]['tick_ms'],'transition actual65/raw bridge wire binding differs')
+        before=min(authority[0]['tick_ms'],bridge[0]['received_tick_ms'])
+        turned=[]
+        for a,b in zip(poses,poses[1:]):
+            if a['sampled_us']<order['enqueue_sampled_us']or b['tick_ms']>=before:continue
+            delta=[y-x for x,y in zip(a['position'],b['position'])]
+            size=math.sqrt(sum(value*value for value in delta))
+            if size>.025 and sum(x*y for x,y in zip(delta,direction))>size*distance*.5:
+                turned.append((a,b))
+        require(turned,'no actual NEW-direction motion before BOTH transition authority receipts')
+        a,b=turned[0]
+        early=None
+        try:
+            joined=joined_worker_evidence(worker_states,world=order['world'],authority=authority[0],canonical_states=canonical_states,
+                                          require_replay=binding['assigned_minus_canonical']!=0)
+            group=[worker_states[index]for index in joined['promotion_group_row_indices']]
+            require(any(row['frame']==frame for row in group),'transition state/replay group does not include its own canonical command')
+        except AssertionError:
+            if binding['assigned_minus_canonical']>=0 or native_receipts is None:raise
+            joined,early=early_empty_retime_evidence(log,match=match,slot=slot,order=order,binding=binding,
+                authority=authority[0],new_direction=b,commits=commits,raw_bodies=raw_bodies,journal=journal,
+                canonical_states=canonical_states,canonical_payloads=canonical_payloads,bridge_frames=bridge_frames,
+                worker_states=worker_states,native_receipts=native_receipts)
+        result.append(dict(ordinal=ordinal,original_order=order,**binding,**joined,
+            new_direction_from_pose=a,new_direction_to_pose=b,
+            enqueue_to_new_direction_ms=(b['sampled_us']-order['enqueue_sampled_us'])/1000,
+            before_native65_ms=authority[0]['tick_ms']-b['tick_ms'],before_raw_bridge_ms=bridge[0]['received_tick_ms']-b['tick_ms'],
+            native65=authority[0],raw_bridge=bridge[0],gate=gate,
+            early_empty_retime=early,
+            phase_gate_passed=ordinal==2 or abs(binding['assigned_minus_canonical'])<=1))
+    require(result[0]['sequence']<result[1]['sequence'],'transition original command FIFO differs')
+    return dict(passed=all(row['phase_gate_passed']for row in result),match=match,orders=result,recovered_phase_rows=phases,
+        scope='Actual new original Move2/3 direction reversal before both receipts; true immutable67/72/commit and native continuation. '
+              'Transient order2 phase reported without normalization; recovered order3 phase±1 required. No physical UI claim.')
+
+
+def finalize_movement_observation(report, collect_independent):
+    """Retain independent diagnostics before applying the unchanged primary gate."""
+    collect_independent()
+    require(report['feel']['passed'], 'actual movement feel contract remains missing')
+    report['scoped_observation_passed'] = True
 
 
 def timing_prefix_counts(prefix, frames, *, prediction, complete_delivery_proven):
@@ -1271,9 +1647,13 @@ async def run_prepared(output):
     states = defaultdict(dict)
     actor_states = defaultdict(list)
     feel_context = remote_context = actor_context = None
+    turn_contexts=[];native_receipt_rows={}
     server = audit = pki = None
     tick = C.WinDLL('kernel32').GetTickCount64; tick.restype = C.c_uint64
-    changing = ChangingRttController(tick,require_sampled_us=plan.get('changing_pose_clock')=='sampled_us') if plan.get('changing_rtt') else None
+    turn_directory=run/'transition-gates'if plan.get('transition_orders')else None
+    if turn_directory is not None:turn_directory.mkdir(exist_ok=False)
+    changing = ChangingRttController(tick,require_sampled_us=plan.get('changing_pose_clock')=='sampled_us',
+        transition_gates=turn_directory,phase_source=plan.get('transition_phase_source')or 'pacer_wait') if plan.get('changing_rtt') else None
     started = time.monotonic()
     report = dict(passed=False, scoped_observation_passed=False, movement_feel_witness_passed=False,
         full_feature_accepted=False, scope=__doc__, scenario=plan['scenario'], lifecycle=plan['lifecycle'],
@@ -1475,11 +1855,10 @@ async def run_prepared(output):
                         r['payload_sha256'] == queued[r['frame']]['frame_payload_sha256'] for r in delivered),
                         'actual private bridge prefix differs from authoritative frames')
                     receipt = runtime / f'dedicated-receipts-{row["process"].pid}-{match}.tsv'
-                    with receipt.open(encoding='utf-8') as stream:
-                        receipts = [r for r in csv.DictReader(stream, delimiter='\t') if int(r['frame']) < plan['frames']]
-                    require([int(r['frame']) for r in receipts] == list(range(plan['frames'])) and all(
-                        r['match'] == match and int(r['pid']) == row['process'].pid and
-                        r['sha256'] == queued[int(r['frame'])]['frame_payload_sha256'] for r in receipts),
+                    native_receipt_rows[row['index'],match]=read_native_receipts(receipt,pid=row['process'].pid,match=match)
+                    receipts=[r for r in native_receipt_rows[row['index'],match]if r['frame']<plan['frames']]
+                    require([r['frame'] for r in receipts] == list(range(plan['frames'])) and all(
+                        r['sha256'] == queued[r['frame']]['frame_payload_sha256'] for r in receipts),
                         'native65 authority accounting prefix differs')
                     shutil.copyfile(receipt, run / receipt.name)
                 report['matches'].append(dict(match=match, canonical_frames=plan['frames'], exact_bridge_and_native_authority_receipts=True))
@@ -1503,6 +1882,17 @@ async def run_prepared(output):
                         launch_tick=row['launch_tick'], transport=evidence)
                 report['clients'].append(dict(index=row['index'], pid=row['process'].pid, profile=row['profile'], **evidence))
             slot = plan['move_slot']; first = created[0]
+            if plan.get('transition_orders'):
+                for match in created:
+                    # A late (<650) order still needs genuine20-frame native
+                    # continuation. Retain the FULL journal/state tail through
+                    # normal Concede700; never substitute the650 render prefix.
+                    count=sum(row['event']=='frame_queued'and row.get('match')==match for row in events)
+                    turn_contexts.append(dict(log=clients[slot]['log'],match=match,slot=slot,commits=events,
+                        raw_bodies=raw_bodies,journal=read_journal(run,match,count),canonical_states=states[match],
+                        canonical_payloads={row['frame']:row['frame_payload_sha256']for row in events
+                            if row['event']=='frame_queued'and row.get('match')==match},bridge_frames=clients[slot]['wire'],
+                        native_receipts=native_receipt_rows[slot,match]))
             if plan.get('actor_correction'):
                 actor_context = dict(log=clients[1]['log'], attacker_log=clients[0]['log'], match=first,
                     commits=events, raw_bodies=raw_bodies, journal=read_journal(run, first, plan['frames']),
@@ -1599,9 +1989,17 @@ async def run_prepared(output):
                             write(run/f'movement-authorities-{row["index"]}.json',authority_rows(read_fresh_native_log(row['native_path']))))
                         await cleanup_step(errors,'retain original Move diagnostics',lambda row=row:
                             write(run/f'movement-feel-{row["index"]}.json',feel_rows(read_fresh_native_log(row['native_path']))))
+                        if plan.get('transition_orders'):
+                            await cleanup_step(errors,'retain fresh transition orders',lambda row=row:
+                                write(run/f'movement-turns-{row["index"]}.json',transition_rows(read_fresh_native_log(row['native_path']))))
                 if row.get('trace') and row['trace'].exists():
                     await cleanup_step(errors, 'retain native timing', lambda row=row:
                         shutil.copyfile(row['trace'], run / row['trace'].name))
+                for match in dict.fromkeys(event['match']for event in events if event['event']=='match_created'):
+                    receipt=game/'investigation/runtime'/f'dedicated-receipts-{process.pid}-{match}.tsv'
+                    if receipt.exists()and not (run/receipt.name).exists():
+                        await cleanup_step(errors,'retain native65 accounting on failed capture',
+                            lambda receipt=receipt:shutil.copyfile(receipt,run/receipt.name))
                 quit_path=game/'.battleaces-resurrection/profiles'/row['profile']/'quit-trace.jsonl'
                 if quit_path.exists():
                     await cleanup_step(errors,'retain original Quit trace',lambda row=row,p=quit_path:
@@ -1644,23 +2042,32 @@ async def run_prepared(output):
                 report['remote_correction']=evaluate_remote_correction(**remote_context,
                     host_worker_states=worker_state_rows[plan['move_slot']])
                 report['movement_feel_witness_passed'] = report['feel']['passed']and report['remote_correction']['passed']
-                require(report['feel']['passed'], 'actual movement feel contract remains missing')
-                report['scoped_observation_passed'] = True
-                if changing is not None:
-                    report['changing_rtt_observation'] = changing_rtt_evidence(clients[plan['move_slot']]['log'],
-                        report['changing_rtt_control'],created,require_sampled_us=plan.get('changing_pose_clock')=='sampled_us')
-                    report['changing_rtt_smoothness_passed'] = report['changing_rtt_observation']['passed']
-                    other=1-plan['move_slot']
-                    try:
-                        report['changing_rtt_other_client_feel'] = evaluate_feel(remote_context['rows'],
-                            match=remote_context['match'],slot=other,commits=events,raw_bodies=raw_bodies,
-                            journal=remote_context['journal'],canonical_states=remote_context['canonical_states'],
-                            worker_states=worker_state_rows[other],bridge_frames=clients[other]['wire'],
-                            catalog_units=template.catalog,entity_abilities=template.entity_abilities,
-                            built_units=normal_build_units(clients[other]['log'],other))
-                    except AssertionError as error:
-                        report['changing_rtt_other_client_feel'] = dict(passed=False,error=repr(error),
-                            scope='Other owned original unit readiness/Move-before-authority is unqualified; no substituted movement')
+                def collect_independent():
+                    if changing is not None:
+                        report['changing_rtt_observation'] = changing_rtt_evidence(clients[plan['move_slot']]['log'],
+                            report['changing_rtt_control'],created,require_sampled_us=plan.get('changing_pose_clock')=='sampled_us')
+                        report['changing_rtt_smoothness_passed'] = report['changing_rtt_observation']['passed']
+                        other=1-plan['move_slot']
+                        try:
+                            report['changing_rtt_other_client_feel'] = evaluate_feel(remote_context['rows'],
+                                match=remote_context['match'],slot=other,commits=events,raw_bodies=raw_bodies,
+                                journal=remote_context['journal'],canonical_states=remote_context['canonical_states'],
+                                worker_states=worker_state_rows[other],bridge_frames=clients[other]['wire'],
+                                catalog_units=template.catalog,entity_abilities=template.entity_abilities,
+                                built_units=normal_build_units(clients[other]['log'],other))
+                        except AssertionError as error:
+                            report['changing_rtt_other_client_feel'] = dict(passed=False,error=repr(error),
+                                scope='Other owned original unit readiness/Move-before-authority is unqualified; no substituted movement')
+                        if plan.get('transition_orders'):
+                            try:
+                                require(len(turn_contexts)==plan['expected_matches'],'transition order match contexts incomplete')
+                                episodes=[transition_order_evidence(control=report['changing_rtt_control'],
+                                    worker_states=worker_state_rows[plan['move_slot']],**context)for context in turn_contexts]
+                                report['transition_orders'] = dict(passed=all(row['passed']for row in episodes),episodes=episodes)
+                            except AssertionError as error:
+                                report['transition_orders'] = dict(passed=False,error=repr(error),
+                                    scope='Fresh transition input remains unqualified; no synthetic direction/phase/state evidence')
+                finalize_movement_observation(report,collect_independent)
             except BaseException as error:
                 report.update(error=repr(error), traceback=traceback.format_exc(), scoped_observation_passed=False)
         if pki: await cleanup_step(errors, 'remove ephemeral PKI', lambda: remove_test_pki(pki_folder))
@@ -1680,6 +2087,7 @@ async def run_prepared(output):
         report['passed'] = bool(report['scoped_observation_passed'] and report['source_unchanged'] and
             (changing is None or (report.get('changing_rtt_smoothness_passed') is True and
              report.get('changing_rtt_other_client_feel',{}).get('passed') is True)) and
+            (not plan.get('transition_orders')or report.get('transition_orders',{}).get('passed')is True)and
             report['files_unchanged'] and not report['forced_cleanup'] and not errors and
             len(report.get('game_cleanup', [])) == 2 and all(r['reaped'] and r['retained_handle_closed'] and r['exit_code'] == 0 and
             r['job'] and r['job']['active'] == r['job']['terminated'] == 0 for r in report['game_cleanup']) and
@@ -1912,6 +2320,8 @@ def main(argv=None):
                         help='Explicit original Gunbot Move12/Core5 fixture; both clients use the same authored bootstrap')
     parser.add_argument('--changing-rtt', action='store_true',
                         help='Owned ordinary650-frame movement: subject future-read130->475->130ms while original48-unit Move is unfinished')
+    parser.add_argument('--transition-orders', action='store_true',
+                        help='With --changing-rtt only: new original subject reversals immediately afterfall and after measured recovery')
     args = parser.parse_args(argv)
     if args.reanalyze_startup:
         require(not args.run_prepared and args.reanalysis_output is not None,'file-only reanalysis cannot launch native')
