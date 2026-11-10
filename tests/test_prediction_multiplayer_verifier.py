@@ -221,6 +221,27 @@ class PreparationTests(unittest.TestCase):
             self.assertIn('-prediction-actor-correction-smoke',
                           verifier.command_extra(plan,index,self.args.output/'run'))
 
+    def test_changing_rtt_is_explicit_ordinary650_frame_fixture(self):
+        self.args.changing_rtt=True;self.args.scenario='movement'
+        plan=verifier.prepare(self.args)
+        self.assertEqual(plan['frames'],650)
+        self.assertEqual(plan['changing_pose_clock'],'sampled_us')
+        self.assertIsNone(plan['actor_fixture']);self.assertFalse(plan['actor_correction'])
+        for index in (0,1):
+            flags=verifier.command_extra(plan,index,self.args.output/'run')
+            self.assertEqual('-prediction-movement-smoke-distance=48' in flags,index==0)
+            self.assertIn('-frame-timing-frames=650',flags)
+
+    def test_changing_rtt_rejects_other_modes_actor_confound_or_wrong_topology(self):
+        self.args.changing_rtt=True;self.args.scenario='movement'
+        for key,value in (('scenario','startup'),('lifecycle','prefix'),('actor_correction',True),
+                          ('move_slot',1),('rtt_ms',(475,130)),('frames',600)):
+            old=getattr(self.args,key,None);setattr(self.args,key,value)
+            with self.subTest(key=key),self.assertRaisesRegex(AssertionError,'changing RTT requires'):
+                verifier.prepare(self.args)
+            setattr(self.args,key,old)
+        self.assertFalse(self.args.output.exists())
+
 
 class OwnedSpawnTests(unittest.TestCase):
     def fixture(self):
@@ -1053,6 +1074,266 @@ class ActorTemplateRoutingTests(unittest.TestCase):
             self.assertFalse(any('hold' in arg or 'concede' in arg.lower()for arg in args))
         plan['actor_correction']=False
         self.assertNotIn('-prediction-actor-correction-smoke',verifier.command_extra(plan,1,Path('run')))
+
+
+class ChangingRttControllerTests(unittest.TestCase):
+    def setUp(self):
+        self.match='a'*32;self.clock=1000
+        test=self
+        class Relay:
+            def __init__(self):self.changes=[]
+            def set_rtt_ms(self,rtt,*,tick):
+                self.changes.append(rtt)
+                return dict(revision=len(self.changes),configured_rtt_ms=rtt,
+                    requested_tick_ms=tick(),effective_tick_ms=tick(),
+                    requested_perf_counter_ns=test.clock*1_000_000,effective_perf_counter_ns=test.clock*1_000_000)
+        self.relay=Relay()
+        self.control=verifier.ChangingRttController(lambda:self.clock,lambda:self.clock*1_000_000)
+        self.control.begin(self.match,self.relay)
+        self.rows=[self.pose(1400,0,438),self.command(),self.pose(1650,1,449),self.pose(1700,2,450)]
+        self.rtt=''
+
+    def common(self,event,tick,**fields):
+        return dict(schema=1,event=event,match=self.match,world=7,entity=91,unit_type=1,incarnation=1,
+                    move_id=1,tick_ms=tick,**fields)
+
+    def command(self):
+        return self.common('command_created',1500,original_callback='Uncapped.ExecuteTargetGroundCommand..ctor',
+                           ability=12,target=[48,0,0],action_sha256='a'*64)
+
+    def pose(self,tick,x,frame):
+        return self.common('transform',tick,source=verifier.FEEL_CONTRACT['transform_source'],position=[x,0,0],
+                           presented_frame=frame,completed_frame=frame-1)
+
+    @staticmethod
+    def sample(request,sent,*,raw=475,estimate=475,generation=1,accepted=1,refresh=1,kind=55):
+        return (f'[{sent}] Movement RTT refresh sent: generation={generation} request={request} sent_us={sent*1000} wire_bytes=9 interval_us=2000000\n'
+            f'[{sent+raw}] Movement RTT sample: generation={generation} kind={kind} request={request} sent_us={sent*1000} '
+            f'received_us={(sent+raw)*1000} accepted={accepted} min_us={estimate*1000} samples=2 refresh={refresh} '
+            'directory_bytes_seen=168 BA_RESURRECTION_MOVEMENT_PACING_V1\n')
+
+    def update(self,tick):
+        self.clock=tick
+        log='\n'.join('MOVEMENT FEEL '+json.dumps(row)for row in self.rows)+'\n'+self.rtt
+        self.control.update(log,self.relay)
+
+    def rise(self):
+        self.update(1700);self.assertEqual(self.relay.changes,[130,475])
+
+    def fall_ready(self):
+        self.rtt=self.sample(1,1800,estimate=130)+self.sample(2,3800)
+        self.rows.extend([self.pose(5600,19,528),self.pose(5700,20,530)])
+
+    def test_real450_pose_then_four_seconds_two_own_high_acks_then_low_recovery(self):
+        self.rows[-1]['presented_frame']=449;self.update(1690)
+        self.assertEqual(self.relay.changes,[130])
+        self.rows[-1]['presented_frame']=450;self.rise();self.fall_ready()
+        self.update(5699);self.assertEqual(self.relay.changes,[130,475])
+        self.update(5700);self.assertEqual(self.relay.changes,[130,475,130])
+        self.assertEqual(self.control.worlds[-1]['stage'],'low')
+        self.rtt+=self.sample(3,5800,raw=130,estimate=130);self.update(6000)
+        self.assertEqual(self.control.worlds[-1]['stage'],'complete')
+        self.assertEqual(self.control.worlds[-1]['high_held_perf_ns'],4_000_000_000)
+
+    def test_configured_high_alone_or_one_sample_does_not_prove_acquisition(self):
+        self.rise();self.fall_ready();self.rtt=self.sample(1,1800)
+        self.update(5700);self.assertEqual(self.relay.changes,[130,475])
+        self.update(7701)
+        self.assertEqual(self.control.worlds[-1]['stage'],'failed')
+        self.assertIn('within6seconds',self.control.worlds[-1]['error'])
+        self.control.begin('b'*32,self.relay)
+        self.assertEqual(self.relay.changes[-1],130)
+
+    def test_old_inflight_sample_and_stale_low_estimate_cannot_count_as_high(self):
+        self.rise();self.fall_ready()
+        for rtt in (self.sample(1,1600)+self.sample(2,3800),
+                    self.sample(1,1800,estimate=130)+self.sample(2,3800,estimate=130),
+                    self.sample(1,1800,raw=300)+self.sample(2,3800)):
+            self.rtt=rtt;self.update(5700)
+            self.assertEqual(self.relay.changes,[130,475])
+
+    def test_duplicate_or_different_generation_ack_cannot_manufacture_two_samples(self):
+        for change in ('duplicate','generation'):
+            self.setUp();self.rise();self.fall_ready()
+            self.rtt=self.sample(1,1800)*2 if change=='duplicate' else self.sample(1,1800)+self.sample(2,3800,generation=2)
+            with self.subTest(change=change),self.assertRaises(AssertionError):self.update(5700)
+
+    def test_unaccepted_nonrefresh_or_uncorrelated_sample_is_not_evidence(self):
+        for flags in (dict(accepted=0),dict(refresh=0),dict(kind=70)):
+            self.assertEqual(verifier.refresh_round_trips(self.sample(1,1800,**flags)),[])
+        with self.assertRaisesRegex(AssertionError,'matching validated'):
+            verifier.refresh_round_trips(self.sample(1,1800).split('\n',1)[1])
+        self.assertEqual(len(verifier.refresh_round_trips(self.sample(1,1800).replace('\n','\r\n'))),1)
+
+    def test_both_transitions_need_unfinished_actual_movement(self):
+        for change in ('stationary','finished','missing_counter'):
+            self.setUp()
+            if change=='stationary':
+                for row in self.rows:
+                    if row['event']=='transform':row['position']=[0,0,0]
+            elif change=='finished':self.rows[-1]['position']=[48,0,0]
+            else:self.rows[-1].pop('completed_frame')
+            with self.subTest(change=change):
+                if change=='missing_counter':
+                    with self.assertRaises(AssertionError):self.update(1700)
+                else:
+                    self.update(1700);self.assertEqual(self.control.worlds[-1]['stage'],'failed')
+        self.setUp();self.rise();self.fall_ready();self.rows[-1]['position']=[48,0,0]
+        self.update(5700);self.assertIn('already reached',self.control.worlds[-1]['error'])
+
+    def test_clock_regression_and_premature_rematch_fail(self):
+        self.rise()
+        with self.assertRaisesRegex(AssertionError,'clock regressed'):self.update(1600)
+        self.setUp()
+        with self.assertRaisesRegex(AssertionError,'prior match'):self.control.begin('b'*32,self.relay)
+
+    def test_short_rematch_resets_owned_delay_and_does_not_reuse_high_samples(self):
+        self.rise();self.fall_ready();self.update(5700)
+        self.rtt+=self.sample(3,5800,raw=130,estimate=130);self.update(6000)
+        self.control.begin('b'*32,self.relay)
+        self.assertEqual(self.relay.changes,[130,475,130,130])
+        self.assertEqual(self.control.worlds[-1]['high_samples'],[])
+
+    def test_low_config_is_not_proof_of_measured_recovery(self):
+        self.rise();self.fall_ready();self.update(5700)
+        self.update(11701);self.assertIn('low estimate',self.control.worlds[-1]['error'])
+
+
+class ChangingRttObservationTests(unittest.TestCase):
+    def fixture(self,*,publication_stall=False,pose_stall=False):
+        control=ChangingRttControllerTests();control.setUp()
+        command=control.command();poses=[]
+        for tick in range(1000,11981,20):
+            frame=(tick-1000)//50+430
+            if publication_stall:
+                if 2500<=tick<2900:frame=459
+                elif 2900<=tick<3300:frame=460+(tick-2900)//25
+            x=max(0,(frame-440)*.15)
+            if pose_stall and 6600<=tick<7000:x=(542-440)*.15
+            poses.append(control.pose(tick,x,frame))
+        log='\n'.join('MOVEMENT FEEL '+json.dumps(row)for row in [command,*poses])
+        state=dict(match=control.match,world=7,stage='complete',command=command,
+                   rise=dict(effective_tick_ms=2000),fall=dict(effective_tick_ms=6500))
+        return log,dict(worlds=[state]),[control.match]
+
+    def test_continuous_counters_and_motion_report_scope_without_fake_times(self):
+        result=verifier.changing_rtt_evidence(*self.fixture())
+        self.assertTrue(result['passed']);self.assertEqual(result['worlds'][0]['maximum_actual_presented_frame'],649)
+        self.assertIn('unmeasured',result['scope'])
+        self.assertIn('minimum_publication_observation_gap_ms',result['worlds'][0])
+        self.assertIn('transition_to_baseline_peak_speed_ratio',result['worlds'][0])
+
+    def test_expected_400ms_publication_stall_is_red_but_measurements_survive(self):
+        result=verifier.changing_rtt_evidence(*self.fixture(publication_stall=True))
+        self.assertFalse(result['passed'])
+        self.assertGreater(result['worlds'][0]['maximum_publication_observation_gap']['gap_ms'],100)
+        self.assertIn('maximum_observed_speed',result['worlds'][0])
+
+    def test_unfinished_pose_stall_is_red_even_if_publications_continue(self):
+        result=verifier.changing_rtt_evidence(*self.fixture(pose_stall=True))
+        self.assertFalse(result['passed'])
+        self.assertGreater(result['worlds'][0]['maximum_unfinished_pose_gap']['gap_ms'],100)
+
+    def test_incomplete_tail_or_acquisition_cannot_be_marked_smooth(self):
+        log,control,matches=self.fixture();control['worlds'][0]['stage']='high'
+        result=verifier.changing_rtt_evidence(log,control,matches)
+        self.assertFalse(result['passed']);self.assertEqual(len(result['missing_gates']),1)
+        log,control,matches=self.fixture();log='\n'.join(log.splitlines()[:100])
+        with self.assertRaisesRegex(AssertionError,'poses through'):verifier.changing_rtt_evidence(log,control,matches)
+
+
+class NativePoseQpcTests(unittest.TestCase):
+    def fixture(self,**kwargs):
+        log,control,matches=ChangingRttObservationTests().fixture(**kwargs)
+        rows=[json.loads(line.split('MOVEMENT FEEL ',1)[1])for line in log.splitlines()]
+        for row in rows:
+            if row['event']=='transform':row['sampled_us']=row['tick_ms']*1000+123456
+        for state in control['worlds']:
+            for name in ('rise','fall'):
+                state[name]['effective_perf_counter_ns']=(state[name]['effective_tick_ms']*1000+123456)*1000
+        return rows,control,matches
+
+    @staticmethod
+    def log(rows):
+        return '\n'.join('MOVEMENT FEEL '+json.dumps(row)for row in rows)
+
+    def test_checked_qpc_is_selected_and_raw_sample_anchors_remain_visible(self):
+        rows,control,matches=self.fixture()
+        result=verifier.changing_rtt_evidence(self.log(rows),control,matches,require_sampled_us=True)
+        self.assertTrue(result['passed'])
+        world=result['worlds'][0]
+        self.assertEqual(world['pose_clock'],'sampled_us');self.assertFalse(world['pose_timing_approximate'])
+        self.assertIn('from_sampled_us',world['maximum_transform_displacement'])
+        self.assertIn('not exact publication',world['pose_timing_scope'])
+
+    def test_qpc_pair_interval_prevents_coarse_tick_speed_quantization(self):
+        a=dict(position=[0,0,0],tick_ms=15,sampled_us=100000)
+        b=dict(position=[.105,0,0],tick_ms=31,sampled_us=116667)
+        field,scale,approximate=verifier.pose_metric_clock([a,b])
+        pair=verifier.pose_pair(a,b,field,scale)
+        self.assertFalse(approximate);self.assertAlmostEqual(pair['interval_ms'],16.667)
+        self.assertAlmostEqual(pair['displacement']*1000/pair['interval_ms'],6.3,places=3)
+        self.assertNotEqual(pair['interval_ms'],b['tick_ms']-a['tick_ms'])
+        self.assertEqual(pair['from_tick_ms'],15)
+
+    def test_old_gettick_file_analysis_is_explicitly_approximate_and_not_upscaled(self):
+        log,control,matches=ChangingRttObservationTests().fixture(publication_stall=True)
+        result=verifier.changing_rtt_evidence(log,control,matches,require_sampled_us=False)
+        self.assertFalse(result['passed']);world=result['worlds'][0]
+        self.assertTrue(world['pose_timing_approximate']);self.assertEqual(world['pose_clock'],'tick_ms')
+        self.assertNotIn('from_sampled_us',world['maximum_transform_displacement'])
+        with self.assertRaisesRegex(AssertionError,'requires native QPC'):
+            verifier.changing_rtt_evidence(log,control,matches,require_sampled_us=True)
+
+    def test_new_controller_fails_closed_without_qpc_but_empty_startup_is_live(self):
+        fixture=ChangingRttControllerTests();fixture.setUp()
+        fixture.control=verifier.ChangingRttController(lambda:fixture.clock,lambda:fixture.clock*1_000_000,
+                                                      require_sampled_us=True)
+        fixture.control.begin(fixture.match,fixture.relay)
+        fixture.control.update('',fixture.relay)
+        self.assertEqual(fixture.control.worlds[-1]['stage'],'waiting_for450')
+        with self.assertRaisesRegex(AssertionError,'requires native QPC'):fixture.update(1700)
+
+    def test_mixed_regressed_invalid_or_moving_duplicate_qpc_is_not_accepted(self):
+        for change in ('mixed','regressed','bool','negative','moving_duplicate'):
+            rows,control,matches=self.fixture();poses=[row for row in rows if row['event']=='transform']
+            if change=='mixed':poses[1].pop('sampled_us')
+            elif change=='regressed':poses[1]['sampled_us']=poses[0]['sampled_us']-1
+            elif change=='bool':poses[1]['sampled_us']=True
+            elif change=='negative':poses[1]['sampled_us']=-1
+            else:
+                poses[1]['sampled_us']=poses[0]['sampled_us'];poses[1]['position']=[1,0,0]
+            with self.subTest(change=change),self.assertRaises(AssertionError):
+                verifier.changing_rtt_evidence(self.log(rows),control,matches)
+
+    def test_identical_origin_duplicate_qpc_has_zero_dt_without_fake_speed(self):
+        row=dict(position=[0,0,0],tick_ms=100,sampled_us=12345)
+        field,scale,approximate=verifier.pose_metric_clock([row,dict(row)])
+        self.assertFalse(approximate)
+        self.assertEqual(verifier.pose_pair(row,row,field,scale)['interval_ms'],0)
+        rows,control,matches=self.fixture();rows.insert(2,dict(rows[1]))
+        self.assertTrue(verifier.changing_rtt_evidence(self.log(rows),control,matches,require_sampled_us=True)['passed'])
+
+    def test_qpc_does_not_weaken_hundred_ms_stall_red(self):
+        for kwargs in (dict(publication_stall=True),dict(pose_stall=True)):
+            rows,control,matches=self.fixture(**kwargs)
+            result=verifier.changing_rtt_evidence(self.log(rows),control,matches,require_sampled_us=True)
+            self.assertFalse(result['passed'])
+
+    def test_qpc_samples_require_actual_setter_perf_clock_not_a_guessed_offset(self):
+        rows,control,matches=self.fixture();control['worlds'][0]['rise'].pop('effective_perf_counter_ns')
+        with self.assertRaisesRegex(AssertionError,'setter perf clock'):
+            verifier.changing_rtt_evidence(self.log(rows),control,matches,require_sampled_us=True)
+
+    def test_existing_feel_summary_speed_prefers_qpc_without_retiming_command_gates(self):
+        rows,args=FeelEvidenceTests().fixture()
+        before=verifier.evaluate_feel(rows,**args)
+        for row in rows:
+            if row['event']=='transform':row['sampled_us']=row['tick_ms']*1000+123456
+        after=verifier.evaluate_feel(rows,**args)
+        self.assertFalse(after['pose_timing_approximate']);self.assertEqual(after['pose_metric_clock'],'sampled_us')
+        for key in ('command_to_visible_ms','visibility_before_authority_ms','canonical_commit_frame','speculative_frame'):
+            self.assertEqual(after[key],before[key])
 
 
 if __name__ == '__main__':

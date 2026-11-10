@@ -166,8 +166,12 @@ def prepare(args):
     require(Path(args.module_root).resolve() == ROOT, 'this exact module root is required')
     for value in (args.expected_helper_sha256, args.expected_gameassembly_sha256):
         require(isinstance(value, str) and HEX64.fullmatch(value), 'explicit lowercase SHA256 pins required')
-    frames = args.frames if args.frames is not None else (200 if args.scenario == 'startup' else 600)
+    changing_rtt = bool(getattr(args, 'changing_rtt', False))
+    frames = args.frames if args.frames is not None else (650 if changing_rtt else 200 if args.scenario == 'startup' else 600)
     actor_correction = bool(getattr(args, 'actor_correction', False))
+    require(not changing_rtt or (not actor_correction and args.scenario == 'movement' and args.lifecycle == 'natural' and
+            args.move_slot == 0 and list(args.rtt_ms) == [130,475] and frames == 650),
+            'changing RTT requires ordinary natural movement, slot0,130/475ms,650frames and no actor fixture')
     require(not actor_correction or (args.scenario == 'movement' and args.lifecycle == 'natural'),
             'actor correction fixture requires natural movement scenario')
     require((120 <= frames <= 200 if args.scenario == 'startup' else 500 <= frames <= 650),
@@ -255,6 +259,8 @@ def prepare(args):
         files=files, asset_files=assets, source_sha256=sources, profiles=profiles,
         scenario=args.scenario, lifecycle=args.lifecycle, frames=frames, timeout=args.timeout,
         actor_correction=actor_correction,
+        changing_rtt=changing_rtt,
+        changing_pose_clock='sampled_us' if changing_rtt else None,
         actor_fixture=actor_fixture_metadata() if actor_correction else None,
         rtt_ms=list(args.rtt_ms), surrender_frame=260 if args.scenario == 'startup' else 700,
         move_slot=args.move_slot, expected_matches=2 if args.lifecycle == 'natural' else 1,
@@ -305,10 +311,258 @@ def command_extra(plan, index, run):
             '-prediction-movement-smoke-start-frame='+str(440 if index==plan['move_slot']else 460)]
     if plan.get('actor_correction'):
         result.append('-prediction-actor-correction-smoke')
+    if plan.get('changing_rtt') and index == plan['move_slot']:
+        result.append('-prediction-movement-smoke-distance=48')
     if plan['lifecycle'] == 'natural':
         result += ['-native-quit-smoke', '-native-quit-mode=confirm', '-native-quit-gate-smoke',
                    '-community-match-leave-quit-smoke']
     return result
+
+
+def refresh_round_trips(log):
+    """Only actual own request55 -> validated ACK53 pairs, no estimated packets."""
+    log = '\n'.join(log.splitlines())
+    sends = {}
+    pattern = r'^\[(\d+)\] Movement RTT refresh sent: generation=(\d+) request=(\d+) sent_us=(\d+) wire_bytes=9 interval_us=2000000$'
+    for values in re.findall(pattern, log, re.M):
+        tick, generation, request, sent = map(int, values)
+        key = generation, request
+        require(key not in sends, 'duplicate own RTT refresh request')
+        sends[key] = dict(sent_tick_ms=tick, sent_us=sent)
+    rows = []
+    pattern = (r'^\[(\d+)\] Movement RTT sample: generation=(\d+) kind=(\d+) request=(\d+) '
+        r'sent_us=(\d+) received_us=(\d+) accepted=(\d+) min_us=(\d+) samples=(\d+) '
+        r'refresh=(\d+) directory_bytes_seen=(\d+) BA_RESURRECTION_MOVEMENT_PACING_V1$')
+    seen = set()
+    for values in re.findall(pattern, log, re.M):
+        tick, generation, kind, request, sent, received, accepted, estimate, count, refresh, directory = map(int, values)
+        if kind != 55 or accepted != 1 or refresh != 1:
+            continue
+        key = generation, request
+        require(key not in seen and key in sends and sends[key]['sent_us'] == sent and
+                0 < generation and 0 < request and 0 < received - sent <= 2_000_000 and
+                0 < estimate <= 2_000_000 and 1 <= count <= 8 and tick >= sends[key]['sent_tick_ms'],
+                'RTT sample lacks unique matching validated own refresh')
+        seen.add(key)
+        rows.append(dict(generation=generation, request=request, sent_us=sent, received_us=received,
+            sent_tick_ms=sends[key]['sent_tick_ms'], received_tick_ms=tick,
+            apparent_round_trip_us=received-sent, estimate_us=estimate, directory_bytes_seen=directory))
+    require(len(sends) <= 512 and len(rows) <= 512, 'bounded own RTT sample count exceeded')
+    return rows
+
+
+def pose_metric_clock(poses, *, require_sampled_us=False):
+    """Use genuine native samples only; never upscale coarse ticks into QPC."""
+    supplied = ['sampled_us' in row for row in poses]
+    require(not any(supplied) or all(supplied), 'mixed native pose clock coverage')
+    require(not require_sampled_us or not poses or all(supplied), 'new changing RTT run requires native QPC sampled_us')
+    if poses and all(supplied):
+        require(all(type(row['sampled_us']) is int and 0 <= row['sampled_us'] <= 0xffffffffffffffff for row in poses),
+                'invalid native QPC pose sample')
+        require(all(b['sampled_us'] >= a['sampled_us'] for a,b in zip(poses,poses[1:])), 'native QPC pose clock regressed')
+        require(all(b['sampled_us'] != a['sampled_us'] or b['position'] == a['position']
+                    for a,b in zip(poses,poses[1:])), 'different poses share one native QPC timestamp')
+        return 'sampled_us', 1000, False
+    return 'tick_ms', 1, True
+
+
+def pose_pair(a, b, clock, scale):
+    value = dict(interval_ms=(b[clock]-a[clock])/scale,displacement=math.dist(a['position'],b['position']),
+                 from_tick_ms=a['tick_ms'],to_tick_ms=b['tick_ms'])
+    if clock == 'sampled_us':
+        value.update(from_sampled_us=a['sampled_us'],to_sampled_us=b['sampled_us'])
+    return value
+
+
+def changing_poses(rows, match, *, require_sampled_us=False):
+    poses = [row for row in rows if row['match'] == match and row['event'] == 'transform']
+    require(all(type(row.get(key)) is int and row[key] >= -1 for row in poses
+                for key in ('presented_frame','completed_frame')), 'changing RTT needs actual native pose frame counters')
+    require(all(row['source'] == FEEL_CONTRACT['transform_source'] and type(row['position']) is list and
+                len(row['position']) == 3 and all(type(value) in (int,float) and math.isfinite(value)
+                for value in row['position']) for row in poses), 'changing RTT requires finite actual Unity positions')
+    require(all(b['tick_ms'] >= a['tick_ms'] and b['presented_frame'] >= a['presented_frame']
+                for a,b in zip(poses,poses[1:])), 'changing RTT native pose clock/publication regressed')
+    pose_metric_clock(poses,require_sampled_us=require_sampled_us)
+    return poses
+
+
+class ChangingRttFixtureError(AssertionError):
+    """Missing diagnostic acquisition/readiness; keep natural lifecycle capture."""
+
+
+def changing_fixture_require(ok, reason):
+    if not ok:
+        raise ChangingRttFixtureError(reason)
+
+
+class ChangingRttController:
+    """Diagnostic local relay control; existing client RTT traffic is the witness."""
+    def __init__(self, tick, perf=time.perf_counter_ns, *, require_sampled_us=False):
+        self.tick, self.perf = tick, perf
+        self.require_sampled_us = require_sampled_us
+        self.worlds = []
+        self.last_clock = (-1,-1)
+
+    def now(self):
+        tick, perf = int(self.tick()), self.perf()
+        require(type(perf) is int and tick >= self.last_clock[0] and perf >= self.last_clock[1],
+                'changing RTT controller clock regressed')
+        self.last_clock = tick, perf
+        return tick, perf
+
+    def begin(self, match, shaper):
+        require(re.fullmatch('[a-f0-9]{32}',match) and len(self.worlds) < 2 and
+                not any(row['match'] == match for row in self.worlds) and
+                (not self.worlds or self.worlds[-1]['stage'] in ('complete','failed')),
+                'changing RTT prior match did not finish both real transitions')
+        self.now()
+        reset = shaper.set_rtt_ms(130,tick=self.tick)
+        self.worlds.append(dict(match=match,stage='waiting_for450',reset=reset,high_samples=[],low_samples=[]))
+
+    @staticmethod
+    def moving_unfinished(poses, command):
+        changing_fixture_require(poses, 'changing RTT lacks actual subject positions')
+        latest = poses[-1]
+        changing_fixture_require(math.dist(latest['position'],command['target']) > .5,
+                'changing RTT target already reached before transition')
+        recent = [row for row in poses if latest['tick_ms']-500 <= row['tick_ms'] <= latest['tick_ms']]
+        changing_fixture_require(any(math.dist(row['position'],latest['position']) > .05 for row in recent),
+                'changing RTT subject is not demonstrably moving before transition')
+        return latest
+
+    def update(self, log, shaper):
+        if not self.worlds:
+            return
+        state = self.worlds[-1]
+        if state['stage'] in ('complete','failed'):
+            return
+        try:
+            now_tick, now_perf = self.now()
+            rows = feel_rows(log)
+            commands = [row for row in rows if row['match']==state['match'] and row['event']=='command_created']
+            require(len(commands) <= 1, 'changing RTT duplicated subject Move')
+            poses = changing_poses(rows,state['match'],require_sampled_us=self.require_sampled_us)
+            samples = refresh_round_trips(log)
+            if state['stage'] == 'waiting_for450':
+                eligible = [row for row in poses if row['presented_frame'] >= 450]
+                if not eligible:
+                    return
+                changing_fixture_require(len(commands)==1, 'changing RTT trigger lacks original subject Move')
+                command = commands[0]
+                before = [row for row in poses if row['tick_ms'] <= command['tick_ms']]
+                changing_fixture_require(before and abs(math.dist(before[-1]['position'],command['target'])-48) <= .05,
+                        'changing RTT requires the actual original48-unit Move target')
+                latest = self.moving_unfinished(poses,command)
+                changing_fixture_require(now_tick-latest['tick_ms'] <= 500, 'changing RTT trigger pose is stale')
+                state.update(world=command['world'],command=command,trigger=eligible[0],rise_pose=latest,
+                    rise=shaper.set_rtt_ms(475,tick=self.tick),stage='high')
+                return
+            if state['stage'] == 'high':
+                elapsed = now_perf-state['rise']['effective_perf_counter_ns']
+                changing_fixture_require(elapsed <= 6_000_000_000, 'changing RTT high estimate did not acquire within6seconds')
+                fresh = [row for row in samples if row['sent_tick_ms'] > state['rise']['effective_tick_ms']]
+                high = [row for row in fresh if row['apparent_round_trip_us'] >= 430_000]
+                require(len({row['generation'] for row in fresh}) <= 1, 'changing RTT connection generation changed mid-match')
+                state['high_samples'] = high
+                if elapsed < 4_000_000_000 or len(high) < 2 or not fresh or fresh[-1]['estimate_us'] < 430_000:
+                    return
+                latest = self.moving_unfinished(poses,state['command'])
+                changing_fixture_require(now_tick-latest['tick_ms'] <= 500, 'changing RTT fall pose is stale')
+                fall = shaper.set_rtt_ms(130,tick=self.tick)
+                state.update(fall_pose=latest,high_held_perf_ns=fall['effective_perf_counter_ns']-state['rise']['effective_perf_counter_ns'],
+                    high_estimate_us=fresh[-1]['estimate_us'],fall=fall,stage='low')
+                return
+            if state['stage'] == 'low':
+                elapsed = now_perf-state['fall']['effective_perf_counter_ns']
+                changing_fixture_require(elapsed <= 6_000_000_000, 'changing RTT low estimate did not recover within6seconds')
+                low = [row for row in samples if row['sent_tick_ms'] > state['fall']['effective_tick_ms'] and
+                       row['apparent_round_trip_us'] <= 200_000 and row['estimate_us'] <= 200_000]
+                state['low_samples'] = low
+                if low:
+                    state.update(stage='complete',low_estimate_us=low[-1]['estimate_us'],low_observed_tick_ms=now_tick)
+        except ChangingRttFixtureError as error:
+            state.update(stage='failed',error=str(error),failure_scope='fixture acquisition/readiness; natural lifecycle continues')
+        except AssertionError as error:
+            state.update(stage='failed',error=str(error))
+            raise
+
+    def snapshot(self):
+        return dict(schema=1,worlds=self.worlds,require_sampled_us=self.require_sampled_us,
+            scope='Configured BOTH-direction FUTURE-read delay, not measured RTT; queued chunks keep original due times. '
+                  'Own correlated application ACK estimates include directory transfer. No new network requests.')
+
+
+def changing_rtt_evidence(log, control, matches, *, require_sampled_us=False):
+    """Preserve transition stalls as RED after collecting natural lifecycle."""
+    require([row['match'] for row in control['worlds']] == matches, 'changing RTT controlled match identities differ')
+    if any(row['stage']!='complete' for row in control['worlds']):
+        return dict(passed=False,worlds=[],missing_gates=[dict(match=row['match'],stage=row['stage'],error=row.get('error'))
+            for row in control['worlds'] if row['stage']!='complete'],scope='Transition acquisition/readiness incomplete; no smoothness acceptance')
+    rows = feel_rows(log)
+    worlds = []
+    for state in control['worlds']:
+        poses = changing_poses(rows,state['match'],require_sampled_us=require_sampled_us)
+        clock, scale, approximate = pose_metric_clock(poses,require_sampled_us=require_sampled_us)
+        rise, fall = state['rise']['effective_tick_ms'],state['fall']['effective_tick_ms']
+        if clock == 'sampled_us':
+            require(all(type(state[k].get('effective_perf_counter_ns')) is int and state[k]['effective_perf_counter_ns'] >= 0
+                        for k in ('rise','fall')), 'native QPC poses lack actual setter perf clock')
+            rise_clock,fall_clock=(state[k]['effective_perf_counter_ns']/1000 for k in ('rise','fall'))
+        else:
+            rise_clock,fall_clock=rise,fall
+        require(poses and poses[0][clock] <= rise_clock and poses[-1][clock] >= fall_clock+2000*scale and
+                max(max(row['presented_frame'],row['completed_frame']) for row in poses) >= 649,
+                'changing RTT lacks actual poses through both transitions and650 cutoff')
+        window = [row for row in poses if row[clock] >= rise_clock-250*scale]
+        changes = [row for index,row in enumerate(window) if index==0 or
+                   row['presented_frame'] != window[index-1]['presented_frame']]
+        publications = [dict(from_tick_ms=a['tick_ms'],to_tick_ms=b['tick_ms'],gap_ms=(b[clock]-a[clock])/scale,
+            from_frame=a['presented_frame'],to_frame=b['presented_frame']) for a,b in zip(changes,changes[1:])]
+        if clock == 'sampled_us':
+            for value,a,b in zip(publications,changes,changes[1:]):
+                value.update(from_sampled_us=a['sampled_us'],to_sampled_us=b['sampled_us'])
+        require(publications, 'changing RTT lacks observed publication progression')
+        stationary = []
+        anchor = window[0]
+        for row in window[1:]:
+            if math.dist(anchor['position'],state['command']['target']) <= .5:
+                anchor = row
+                continue
+            if math.dist(row['position'],anchor['position']) > .025:
+                value=dict(from_tick_ms=anchor['tick_ms'],to_tick_ms=row['tick_ms'],gap_ms=(row[clock]-anchor[clock])/scale)
+                if clock == 'sampled_us':value.update(from_sampled_us=anchor['sampled_us'],to_sampled_us=row['sampled_us'])
+                stationary.append(value)
+                anchor = row
+        if math.dist(anchor['position'],state['command']['target']) > .5:
+            value=dict(from_tick_ms=anchor['tick_ms'],to_tick_ms=window[-1]['tick_ms'],gap_ms=(window[-1][clock]-anchor[clock])/scale)
+            if clock == 'sampled_us':value.update(from_sampled_us=anchor['sampled_us'],to_sampled_us=window[-1]['sampled_us'])
+            stationary.append(value)
+        pairs = [pose_pair(a,b,clock,scale)for a,b in zip(window,window[1:])]
+        peak_publication = max(publications,key=lambda row:row['gap_ms'])
+        peak_stationary = max(stationary,key=lambda row:row['gap_ms'],default=dict(gap_ms=0))
+        baseline = [row for row in poses if rise_clock-500*scale <= row[clock] <= rise_clock]
+        baseline_pairs = [(math.dist(a['position'],b['position']),(b[clock]-a[clock])/scale)
+                          for a,b in zip(baseline,baseline[1:]) if b[clock]>a[clock]]
+        baseline_speed = max((distance*1000/span for distance,span in baseline_pairs),default=0)
+        peak_speed = max((row['displacement']*1000/row['interval_ms']for row in pairs if row['interval_ms']>0),default=0)
+        worlds.append(dict(match=state['match'],world=state['world'],passed=max(peak_publication['gap_ms'],peak_stationary['gap_ms'])<=100,
+            pose_clock=clock,pose_timing_approximate=approximate,
+            pose_timing_scope='legacy GetTickCount64; coarse approximate intervals, no synthetic microseconds' if approximate else
+                'checked native QPC sampled_us; first observation of counter change, not exact publication time',
+            maximum_publication_observation_gap=peak_publication,maximum_unfinished_pose_gap=peak_stationary,
+            maximum_transform_displacement=max(pairs,key=lambda row:row['displacement']),
+            maximum_observed_speed=peak_speed,baseline_maximum_observed_speed=baseline_speed,
+            transition_to_baseline_peak_speed_ratio=peak_speed/baseline_speed if baseline_speed>0 else None,
+            minimum_publication_observation_gap_ms=min(row['gap_ms']for row in publications),
+            transform_sample_interval_ms=dict(minimum=min(row['interval_ms']for row in pairs),maximum=max(row['interval_ms']for row in pairs)),
+            first_pose_tick_ms=poses[0]['tick_ms'],last_pose_tick_ms=poses[-1]['tick_ms'],
+            maximum_actual_presented_frame=max(row['presented_frame'] for row in poses),
+            maximum_actual_completed_frame=max(row['completed_frame'] for row in poses)))
+    return dict(passed=all(row['passed'] for row in worlds),worlds=worlds,
+        scope='Actual original Unity poses/counters throughout transitions, >100ms gaps are RED. Counter-change first-observation times '
+              'are sampled, not synthetic publication timestamps; speed/jumps reported without a universal speed threshold. '
+              'No new subject order after transition, so subject transition command latency is unmeasured.')
 
 
 def timing_prefix_counts(prefix, frames, *, prediction, complete_delivery_proven):
@@ -665,6 +919,14 @@ def feel_rows(log):
                 'feel diagnostic lacks exact world/match')
         for key in FEEL_CONTRACT['events'][row['event']]:
             require(key in row, 'feel diagnostic lacks event field: ' + key)
+        if row['event'] == 'transform':
+            for key in ('presented_frame','completed_frame'):
+                if key in row:
+                    require(type(row[key]) is int and -1 <= row[key] <= 0x7fffffff,
+                            'invalid actual native pose frame counter')
+            if 'sampled_us' in row:
+                require(type(row['sampled_us']) is int and 0 <= row['sampled_us'] <= 0xffffffffffffffff,
+                        'invalid native QPC pose sample')
         result.append(row)
         require(len(result) <= 65536, 'feel event count exceeds bound')
     return result
@@ -889,8 +1151,8 @@ def evaluate_feel(rows, *, match, slot, commits, raw_bodies, journal, canonical_
     joined=joined_worker_evidence(worker_states,world=command['world'],authority=authority,canonical_states=canonical_states)
     first = min(moved, key=lambda r: r['tick_ms'])
     ordered=sorted(transforms,key=lambda r:r['tick_ms'])
-    pairs=[dict(from_tick_ms=a['tick_ms'],to_tick_ms=b['tick_ms'],interval_ms=b['tick_ms']-a['tick_ms'],
-        displacement=math.dist(a['position'],b['position']))for a,b in zip(ordered,ordered[1:])]
+    pose_clock, pose_scale, pose_approximate = pose_metric_clock(ordered)
+    pairs=[pose_pair(a,b,pose_clock,pose_scale)for a,b in zip(ordered,ordered[1:])]
     largest=max(pairs,key=lambda r:r['displacement'])
     confirmed_tick=worker_states[joined['frontier_row_index']]['tick_ms']
     near=lambda tick:[dict(tick_ms=r['tick_ms'],position=r['position'])for r in ordered if abs(r['tick_ms']-tick)<=250]
@@ -900,6 +1162,7 @@ def evaluate_feel(rows, *, match, slot, commits, raw_bodies, journal, canonical_
         visibility_before_authority_ms=authority['tick_ms'] - first['tick_ms'],
         visibility_before_bridge_ms=bridge_tick-first['tick_ms'],
         maximum_transform_sample_displacement=largest,
+        pose_metric_clock=pose_clock,pose_timing_approximate=pose_approximate,
         maximum_sample_speed_units_per_second=max((r['displacement']*1000/r['interval_ms']for r in pairs if r['interval_ms']>0),default=0),
         transform_samples_near65=near(authority['tick_ms']),transform_samples_near_confirmed_state=near(confirmed_tick),
         baseline_samples=len(before),baseline_span_ms=max(r['tick_ms']for r in before)-min(r['tick_ms']for r in before),
@@ -1010,6 +1273,7 @@ async def run_prepared(output):
     feel_context = remote_context = actor_context = None
     server = audit = pki = None
     tick = C.WinDLL('kernel32').GetTickCount64; tick.restype = C.c_uint64
+    changing = ChangingRttController(tick,require_sampled_us=plan.get('changing_pose_clock')=='sampled_us') if plan.get('changing_rtt') else None
     started = time.monotonic()
     report = dict(passed=False, scoped_observation_passed=False, movement_feel_witness_passed=False,
         full_feature_accepted=False, scope=__doc__, scenario=plan['scenario'], lifecycle=plan['lifecycle'],
@@ -1026,6 +1290,9 @@ async def run_prepared(output):
 
     def observe(event, **fields):
         row = dict(event=event, probe_tick_ms=int(tick()), **fields)
+        if event == 'match_created' and changing is not None:
+            require(len(shapers)==2, 'changing RTT match started before owned relays')
+            changing.begin(fields['match'],shapers[plan['move_slot']])
         if event == 'frame_queued':
             room = server.rooms[fields['room']]
             row['parsed_state_sha256'] = state_digest(room.sim.last_state)
@@ -1118,7 +1385,8 @@ async def run_prepared(output):
         runtime = game / 'investigation/runtime'; runtime.mkdir(parents=True, exist_ok=True)
         with mock.patch.object(Room, 'on_message', witnessed_message):
             for index, role in enumerate(('host', 'guest')):
-                shaper = StreamShaper(port, rtt_ms=plan['rtt_ms'][index], seed=710 + index)
+                shaper = StreamShaper(port, rtt_ms=plan['rtt_ms'][index], seed=710 + index,
+                                      metadata_limit=8192 if changing is not None and index==plan['move_slot'] else 0)
                 shapers.append(shaper); delayed = await shaper.start()
                 parent, child = socket.socketpair(socket.AF_INET); parent.setblocking(False)
                 try:
@@ -1170,6 +1438,8 @@ async def run_prepared(output):
                         'Actor correction smoke failed:',
                         'Offline loop stopped in ', 'Native Quit probe failed:')),
                         'actual movement client reported failure')
+                if changing is not None:
+                    changing.update(clients[plan['move_slot']]['log'],shapers[plan['move_slot']])
                 require(not any(r['event'] in ('protocol_error', 'match_aborted', 'custom_match_setup_error') for r in events),
                         'owned Custom authority failed')
                 created = [r['match'] for r in events if r['event'] == 'match_created']
@@ -1308,6 +1578,11 @@ async def run_prepared(output):
             await cleanup_step(errors, 'close authority retained handle', process._handle.Close)
         for shaper in shapers:
             await cleanup_step(errors, 'close stream shaper', lambda s=shaper: asyncio.wait_for(s.close(), 5))
+        if changing is not None:
+            report['changing_rtt_control'] = changing.snapshot()
+            for index,shaper in enumerate(shapers):
+                await cleanup_step(errors,'retain payload-free shaper timing',lambda index=index,shaper=shaper:
+                    write(run/f'shaper-delay-{index}.json',shaper.delay_metadata()))
         for row in clients:
             process, job = row.get('process'), row.get('job')
             if job:
@@ -1371,6 +1646,21 @@ async def run_prepared(output):
                 report['movement_feel_witness_passed'] = report['feel']['passed']and report['remote_correction']['passed']
                 require(report['feel']['passed'], 'actual movement feel contract remains missing')
                 report['scoped_observation_passed'] = True
+                if changing is not None:
+                    report['changing_rtt_observation'] = changing_rtt_evidence(clients[plan['move_slot']]['log'],
+                        report['changing_rtt_control'],created,require_sampled_us=plan.get('changing_pose_clock')=='sampled_us')
+                    report['changing_rtt_smoothness_passed'] = report['changing_rtt_observation']['passed']
+                    other=1-plan['move_slot']
+                    try:
+                        report['changing_rtt_other_client_feel'] = evaluate_feel(remote_context['rows'],
+                            match=remote_context['match'],slot=other,commits=events,raw_bodies=raw_bodies,
+                            journal=remote_context['journal'],canonical_states=remote_context['canonical_states'],
+                            worker_states=worker_state_rows[other],bridge_frames=clients[other]['wire'],
+                            catalog_units=template.catalog,entity_abilities=template.entity_abilities,
+                            built_units=normal_build_units(clients[other]['log'],other))
+                    except AssertionError as error:
+                        report['changing_rtt_other_client_feel'] = dict(passed=False,error=repr(error),
+                            scope='Other owned original unit readiness/Move-before-authority is unqualified; no substituted movement')
             except BaseException as error:
                 report.update(error=repr(error), traceback=traceback.format_exc(), scoped_observation_passed=False)
         if pki: await cleanup_step(errors, 'remove ephemeral PKI', lambda: remove_test_pki(pki_folder))
@@ -1388,6 +1678,8 @@ async def run_prepared(output):
         report['teardown_scope'] = ('original result/Continue/Leave/Quit required' if plan['lifecycle'] == 'natural'
                                     else 'forced owned prefix teardown; no native Quit or acceptance claim')
         report['passed'] = bool(report['scoped_observation_passed'] and report['source_unchanged'] and
+            (changing is None or (report.get('changing_rtt_smoothness_passed') is True and
+             report.get('changing_rtt_other_client_feel',{}).get('passed') is True)) and
             report['files_unchanged'] and not report['forced_cleanup'] and not errors and
             len(report.get('game_cleanup', [])) == 2 and all(r['reaped'] and r['retained_handle_closed'] and r['exit_code'] == 0 and
             r['job'] and r['job']['active'] == r['job']['terminated'] == 0 for r in report['game_cleanup']) and
@@ -1618,6 +1910,8 @@ def main(argv=None):
     parser.add_argument('--move-slot', type=int, choices=(0, 1), default=0)
     parser.add_argument('--actor-correction', action='store_true',
                         help='Explicit original Gunbot Move12/Core5 fixture; both clients use the same authored bootstrap')
+    parser.add_argument('--changing-rtt', action='store_true',
+                        help='Owned ordinary650-frame movement: subject future-read130->475->130ms while original48-unit Move is unfinished')
     args = parser.parse_args(argv)
     if args.reanalyze_startup:
         require(not args.run_prepared and args.reanalysis_output is not None,'file-only reanalysis cannot launch native')

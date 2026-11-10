@@ -29,6 +29,11 @@ struct State {
 static State& state(){static State* lifetime=new State;return *lifetime;}
 static void require(bool value,const char* why){actors::require(value,why);}
 static bool enabled(){return ba::flag(L"-prediction-movement-smoke");}
+static int moveDistance() {
+    const auto text=ba::argument(L"-prediction-movement-smoke-distance=","8");
+    require(text=="8"||text=="48","movement feel distance must be8or48");
+    return text=="48"?48:8;
+}
 static void reset(){state()=State{};} // Observer GC roots only, on retained main thread.
 static void failed(const char* why) noexcept {
     state().failed=true;ba::log("Movement feel smoke failed: reason=%s scriptedOriginalCtor=1 physicalUI=0",why);
@@ -51,9 +56,23 @@ static std::string pointJson(const Vec3& point) {
     finite(point);std::ostringstream out;out.imbue(std::locale::classic());out<<std::setprecision(9);
     out<<'['<<point.x<<','<<point.y<<','<<point.z<<']';return out.str();
 }
-static void emitTransform(const Vec3& point,ULONGLONG tick,bool baseline) {
+static void emitTransform(actors::State& owner,const Vec3& point,ULONGLONG tick,bool baseline) {
+    // QPC resolves pose intervals; the separate GetTickCount64 correlation
+    // clock can quantize Windows samples by roughly sixteen milliseconds.
+    uint64_t sampledUs=0;
+    require(ba_frame_timing::timestampMicros(sampledUs),"movement pose QPC sampling failed");
+    const auto& s=state();
+    require(owner.simulation && ba::initialThread && GetCurrentThreadId()==ba::initialThread &&
+        owner.thread==GetCurrentThreadId() && owner.world==s.world && owner.match==s.match &&
+        owner.world==worker::movementWorldId() && owner.match==worker::movementMatchId(),
+        "movement pose counters lost their owned simulation/thread");
+    Obj simulation=owner.simulation->get();require(simulation,"movement pose simulation root missing");
+    const int presented=ba::read<int>(simulation,0xac),completed=ba::read<int>(simulation,0xa8);
+    require(presented>=-1&&completed>=-1,"movement pose native frame counters are invalid");
     const auto text=common("transform",tick)+",\"source\":\"UnityEngine.Transform.get_position\",\"position\":"+
-        pointJson(point)+",\"baseline\":"+(baseline?"true":"false")+",\"jobsJoined\":true}";
+        pointJson(point)+",\"sampled_us\":"+std::to_string(sampledUs)+
+        ",\"baseline\":"+(baseline?"true":"false")+",\"jobsJoined\":true,"+
+        "\"presented_frame\":"+std::to_string(presented)+",\"completed_frame\":"+std::to_string(completed)+"}";
     ba::log("MOVEMENT FEEL %s",text.c_str());
 }
 static Obj allocate(const char* name) {
@@ -142,10 +161,11 @@ static void enqueueMove(selection::Context& context,Obj actor,const Vec3& origin
         known->second.identity.armyId==static_cast<uint32_t>(ba::lanSlot()),
         "movement smoke source is not the own confirmed opening unit");
     s.actor=std::make_unique<Root>(actor);
-    emitTransform(origin,GetTickCount64(),true);
+    emitTransform(context.state,origin,GetTickCount64(),true);
+    const float travel=static_cast<float>(moveDistance());
     Vec3 target=origin;const float distance=std::sqrt(origin.x*origin.x+origin.z*origin.z);
-    if(distance>.1f){target.x-=8.f*origin.x/distance;target.z-=8.f*origin.z/distance;}
-    else target.x+=8.f;
+    if(distance>.1f){target.x-=travel*origin.x/distance;target.z-=travel*origin.z/distance;}
+    else target.x+=travel;
     finite(target);
     Obj uintClass=actors::type("System","UInt32");checkValue(uintClass,4,"movement smoke uint32 ABI differs");
     Root ids(ba::api<Obj(*)(Obj,uintptr_t)>("il2cpp_array_new")(uintClass,1));require(ids.get(),"movement smoke source array allocation failed");
@@ -211,6 +231,7 @@ static void tick() {
             ba_lan::running&&!ba_lan::publicMatch,"movement feel smoke requires negotiated Custom remote match");
         const auto slotText=ba::argument(L"-prediction-movement-smoke-slot=","0");
         require(slotText=="0"||slotText=="1","movement feel smoke slot must be0or1");
+        const int captureEnd=moveDistance()==48?650:600;
         if(ba::lanSlot()!=slotText[0]-'0')return;
         const auto startText=ba::argument(L"-prediction-movement-smoke-start-frame=","440");
         require(startText=="440"||startText=="460","movement feel start frame must be440or460");
@@ -220,7 +241,7 @@ static void tick() {
         if(completed<startFrame-20||presented<startFrame-20)return;
         // This pose episode ends before the separate normal Concede700
         // lifecycle fixture legitimately retires the tracked army's units.
-        if(s.attempted && (completed>=600 || presented>=600))return;
+        if(s.attempted && (completed>=captureEnd || presented>=captureEnd))return;
         selection::Context context(selection::currentSelector());
         require(context.state.world==s.world&&context.state.match==s.match,"movement feel context changed generation");
         if(!s.attempted) {
@@ -232,7 +253,7 @@ static void tick() {
                 s.entity=identity->second.identity.entityId;s.incarnation=identity->second.incarnation;
                 s.unitType=identity->second.identity.unitType;
                 const auto point=actualPosition(owner,entry.second);s.lastSample=GetTickCount64();
-                emitTransform(point,s.lastSample,true);
+                emitTransform(owner,point,s.lastSample,true);
                 if(completed>=startFrame&&presented>=startFrame)enqueueMove(context,entry.second,point);
                 return;
             }
@@ -243,7 +264,7 @@ static void tick() {
         const auto now=GetTickCount64();if(s.lastSample&&now-s.lastSample<15)return;
         require(s.samples<2048,"movement feel bounded transform sample count reached");
         const auto point=actualPosition(owner,s.actor->get());s.lastSample=GetTickCount64();++s.samples;
-        emitTransform(point,s.lastSample,false);
+        emitTransform(owner,point,s.lastSample,false);
     } catch(const std::exception& error){failed(error.what());}
     catch(...){failed("unknown movement feel smoke exception");}
 }

@@ -91,8 +91,11 @@ retained native hashes and proves both Move phases at441/461 under steady
 130/475ms RTT. Its failed original runtime/lifecycle report remains unchanged.
 A separate actual-header authored timing model reproduces a395ms publication
 pause when the estimate falls475->130ms:the target drops seven frames against a
-monotonic physical cursor. Those times are simulated. Actual changing-path
-pose/publication qualification and the smooth-transition fix remain OPEN.
+monotonic physical cursor. Those times are simulated. Subsequent actual
+Movement10 reproduces266/360ms publication gaps;Movement11's pacing servo
+reduces them to77.703/77.153ms in two actual rounds,with matching native state
+and natural shutdown. Fresh transition input,physical micro-smoothness and
+Internet acceptance remain OPEN;see prediction-multiplayer-movement.txt.
 
 Private evidence (ignored)
 local/prediction-runtime/movement05-actor/reanalysis01/FINAL-READ-ME.txt

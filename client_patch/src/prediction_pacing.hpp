@@ -13,6 +13,7 @@ namespace ba_prediction_pacing {
 using Tick=uint64_t;
 using Frame=int64_t;
 constexpr Tick stepUs=50000,minimumSpacingUs=25000;
+constexpr Tick shortestPeriodUs=45000,longestPeriodUs=55000;
 constexpr Frame maximumAhead=12,maximumFrame=0x7fffffff;
 inline void require(bool value,const char* reason) {
     if(!value)throw std::invalid_argument(reason);
@@ -144,13 +145,13 @@ struct Decision {
     bool allowed=false,acquiring=false;
     Wait wait=Wait::None;
     Frame frame=-1;
-    Tick now=0;
+    Tick now=0,nextDeadline=0;
     Target target{};
 };
 class Policy {
     Frame received_=-1,lastQueued_=-1,lastPresented_=-1;
-    Tick receivedAt_=0,lastQueueAt_=0,lastPublicationAt_=0;
-    bool haveQueue_=false,havePublication_=false;
+    Tick receivedAt_=0,lastQueueAt_=0,lastPublicationAt_=0,nextDeadline_=0;
+    bool haveQueue_=false,havePublication_=false,acquired_=false;
 public:
     void reset(){*this=Policy{};}
     Frame received() const{return received_;}
@@ -180,10 +181,34 @@ public:
         if(received_<1){d.wait=Wait::SteadyFrameOne;return d;}
         if(!rtt){d.wait=Wait::RoundTrip;return d;}
         d.target=assignmentTarget(received_,receivedAt_,now,*rtt);
-        d.acquiring=next<d.target.head;
-        if(next>d.target.head){d.wait=Wait::TargetPhase;return d;}
+        d.acquiring=!acquired_ && next<d.target.head;
+        if(!acquired_ && next>d.target.head){d.wait=Wait::TargetPhase;return d;}
         if(next-projected>maximumAhead){d.wait=Wait::Budget;return d;}
         if(haveQueue_ && now-lastQueueAt_<minimumSpacingUs){d.wait=Wait::Spacing;return d;}
+        if(acquired_ && now<nextDeadline_){d.wait=Wait::Spacing;return d;}
+        if(acquired_ || !d.acquiring) {
+            // Only initial acquisition follows the raw target at25ms. Once
+            // acquired, changing RTT must not hard-hold a monotonically growing
+            // physical head or switch back to initial acquisition. Slew its absolute deadline,
+            // with a one-frame deadband for receipt/ceil quantization. This
+            // trades temporary phase error for continuity, not input-phase or
+            // visual-interpolation acceptance. Native dt stays exactly50ms.
+            const Frame error=d.target.head-next;
+            const Tick period=error>1?shortestPeriodUs:error<-1?longestPeriodUs:stepUs;
+            const Tick base=acquired_?nextDeadline_:now;
+            const Tick maximum=(std::numeric_limits<Tick>::max)();
+            require(base<=maximum-period,"pacing deadline exhausted");
+            d.nextDeadline=base+period;
+            // Preserve phase through coarse polls. After a genuine long
+            // native/budget stall, discard obsolete catch-up deadlines rather
+            // than retaining a long burst. Up to one nominal interval of
+            // overdue debt remains, still bounded by minimumSpacingUs.
+            // No clock/native-counter/command writes occur.
+            if(now>d.nextDeadline && now-d.nextDeadline>stepUs) {
+                require(now<=maximum-period,"pacing deadline exhausted");
+                d.nextDeadline=now+period;
+            }
+        }
         d.allowed=true;return d;
     }
     // Call only AFTER successful ORIGINAL PushSimMessage. These are audit
@@ -191,6 +216,7 @@ public:
     void queued(const Decision& d) {
         require(d.allowed && d.wait==Wait::None && d.frame==lastQueued_+1 &&
                 (!haveQueue_ || d.now>=lastQueueAt_),"invalid/stale pacing queue receipt");
+        if(d.nextDeadline){nextDeadline_=d.nextDeadline;acquired_=true;}
         lastQueued_=d.frame;lastQueueAt_=d.now;haveQueue_=true;
     }
     bool canPublish(Frame frame,Tick now) const {

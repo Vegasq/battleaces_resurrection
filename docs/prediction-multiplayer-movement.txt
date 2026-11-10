@@ -133,3 +133,59 @@ local/prediction-private-package-20261109/payload-verification02.json
 local/prediction-private-package-20261109/sfx01-failure.json
 local/prediction-private-package-20261109/human-launch-preflight.stdout.json
 local/custom-prediction-manual-20261109/ready.json
+
+Changing-latency movement:2026-11-10 local qualification
+Movement10 reproduces the phase-transition pause in two actual Unity Custom
+rounds. The subject's controlled RTT changes130->475->130ms while an original
+48-unit Move is in progress. Correlated existing REFRESH55/ACK53 observations
+prove that the measured estimate really rises and falls;configured delay alone
+is not accepted as measured RTT. Actual publication gaps reach266/360ms and
+unfinished-unit pose gaps219/328ms. Both rounds finish and all retained children
+quit naturally. This expected RED is preserved with all original captures.
+
+The local pacing change replaces the post-acquisition hard target hold with
+an absolute publication deadline. Successful original publications advance it
+at45/50/55ms according to phase error,with a one-frame deadband. Initial phase
+acquisition,12-frame prediction cap,original native50ms step and GameSpeed1,
+authority gates and original counter ownership are preserved. It does not
+change native simulation time or write presentation state to fabricate motion.
+Twenty-three actual-header C++ pacing cases pass,including the prior pause.
+
+Movement11 repeats the actual two-client/two-round latency scenario with the
+new policy and helper21. Maximum observed publication gaps are77.703/77.153ms;
+maximum unfinished-unit pose gaps are40.752/46.157ms. These position samples use
+checked QueryPerformanceCounter microseconds. Movement10's older GetTickCount
+pose timing is explicitly approximate;no precision is invented retrospectively.
+All2890 retained full parsed native hashes match the original authority. Both
+games,local workers and authority workers exit0 naturally,reaped/Jobsinactive0,
+without force. Prepared sources and runtime inputs are unchanged during each
+run and archived before any later helper replacement.
+
+This qualifies ongoing movement through the measured latency transitions at
+the bounded100ms gap gate. It does not qualify a fresh direction command during
+the transition. That is the next diagnostic:original Move reversals during the
+fall and after measured low-RTT/phase recovery,with actual new-direction motion
+before both authority receipts and exact command/native-state joins. Peak pose
+speed remains above the steady baseline;universal micro-smoothness and physical
+input/Internet acceptance are not claimed. Mobile focus/casting and remaining
+input/ability/lifetime edges also remain open. Full_feature_accepted staysfalse.
+
+Movement10 helper20 SHA256:
+6199b8e5c91374b05404f688432be53c8580fb1b36d99ef625ea378dcf37d21b
+Movement11 helper21 SHA256:
+0bb95b6381d1f2eabf68267c010b84b4a35db35739102a53d08b1671712d6816
+Movement10 original RED report SHA256:
+6080983427e9cd923f406e92456bf38cfa630926992808f34e7119e07a72f2c8
+Movement11 original scoped PASS report SHA256:
+e253574f4b04d3ba18b3acb3e6369b789cfc395272b8b52eef4a1432ec7f1a75
+Ignored evidence:
+local/prediction-runtime/movement10-changing-rtt/run/verification.json
+local/prediction-runtime/movement10-changing-rtt/baseline-audit01/audit.json
+local/prediction-runtime/movement11-changing-rtt/run/verification.json
+local/prediction-runtime/movement11-changing-rtt/baseline-audit01/audit.json
+local/prediction-checkpoint-20261110/pacing-servo01/
+local/prediction-checkpoint-20261110/pose-qpc-verifier01/
+
+N35's previously delivered manual kit remains frozen,reserved and independent
+of these local changes. No host connection/deployment,firewall change or usual
+client/user-session modification was made. D8 and final release gates stayopen.

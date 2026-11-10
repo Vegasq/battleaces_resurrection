@@ -1,5 +1,6 @@
 """Qualification relay preserves streams and applies bounded delay on real sockets."""
 import asyncio
+import json
 import unittest
 
 from tools.stream_shaper import StreamShaper,ThreadedStreamShaper
@@ -144,6 +145,128 @@ class StreamShaperTests(unittest.IsolatedAsyncioTestCase):
         self.assertEqual(result['accepted'],2)
         self.assertEqual(result['active_connections'],0)
         self.assertTrue(result['thread_stopped'] and result['listener_closed'])
+
+    async def wait_metadata(self, direction, count):
+        async def ready():
+            while True:
+                value = self.relay.delay_metadata()['directions'][direction]
+                if value['seen'] >= count:
+                    return value
+                await asyncio.sleep(.001)
+        return await asyncio.wait_for(ready(), 2)
+
+    async def test_downshift_preserves_queued_deadline_and_byte_order(self):
+        reader, writer = await self.connect(rtt_ms=400, metadata_limit=32)
+        try:
+            writer.write(b'A'); await writer.drain()
+            old = (await self.wait_metadata('client_to_server', 1))['rows'][0]
+            self.assertEqual(old['revision'], 0)
+            ticks = iter((1000, 1001))
+            change = self.relay.set_rtt_ms(0, tick=lambda: next(ticks))
+            self.assertEqual(change['revision'], 1)
+            self.assertEqual(change['configured_rtt_ms'], 0)
+            self.assertEqual((change['requested_tick_ms'], change['effective_tick_ms']), (1000, 1001))
+            self.assertLessEqual(change['requested_perf_counter_ns'], change['effective_perf_counter_ns'])
+            writer.write(b'B'); await writer.drain()
+            rows = (await self.wait_metadata('client_to_server', 2))['rows']
+            self.assertEqual([r['revision'] for r in rows], [0, 1])
+            self.assertAlmostEqual(rows[0]['due_loop'] - rows[0]['received_loop'], .2, places=5)
+            self.assertEqual(rows[1]['due_loop'], rows[0]['due_loop'])
+            with self.assertRaises(TimeoutError):
+                await asyncio.wait_for(reader.readexactly(1), .04)
+            self.assertEqual(await asyncio.wait_for(reader.readexactly(2), 2), b'AB')
+            data = self.relay.delay_metadata()
+            self.assertTrue(data['directions']['server_to_client']['rows'])
+            forwarded = data['directions']['client_to_server']['rows']
+            self.assertGreater(forwarded[1]['held_ms'], 100)
+            self.assertLessEqual(forwarded[0]['forwarded_loop'], forwarded[1]['forwarded_loop'])
+            # Installed asyncio _run_once promotes timers below time()+its
+            # clock resolution. This records its qualified accuracy, without
+            # changing the existing single-sleep scheduling or queued deadlines.
+            self.assertTrue(all(r['forwarded_loop'] + self.loop._clock_resolution >= r['due_loop']
+                                for r in forwarded))
+            json.dumps(data, allow_nan=False)
+        finally:
+            writer.close()
+            await writer.wait_closed()
+
+    async def test_increase_applies_to_future_reads_in_both_directions(self):
+        reader, writer = await self.connect(metadata_limit=32)
+        writer.write(b'old'); await writer.drain()
+        self.assertEqual(await asyncio.wait_for(reader.readexactly(3), 2), b'old')
+        self.relay.set_rtt_ms(100)
+        started = self.loop.time()
+        writer.write(b'new'); await writer.drain()
+        self.assertEqual(await asyncio.wait_for(reader.readexactly(3), 2), b'new')
+        self.assertGreaterEqual(self.loop.time() - started, .095)
+        metadata = self.relay.delay_metadata()
+        for direction in ('client_to_server', 'server_to_client'):
+            rows = metadata['directions'][direction]['rows']
+            self.assertEqual([r['revision'] for r in rows], [0, 1])
+            self.assertEqual([r['configured_rtt_ms'] for r in rows], [0, 100])
+            self.assertAlmostEqual(rows[1]['due_loop'] - rows[1]['received_loop'], .05, places=5)
+            self.assertEqual(rows[1]['byte_count'], 3)
+        writer.close(); await writer.wait_closed()
+
+    async def test_metadata_cap_drops_only_records_and_returns_detached_rows(self):
+        reader, writer = await self.connect(metadata_limit=1)
+        for value in (b'a', b'b', b'c'):
+            writer.write(value); await writer.drain()
+            self.assertEqual(await asyncio.wait_for(reader.readexactly(1), 2), value)
+        metadata = self.relay.delay_metadata()
+        for direction in metadata['directions'].values():
+            self.assertEqual((direction['seen'], direction['dropped'], len(direction['rows'])), (3, 2, 1))
+            self.assertNotIn('data', direction['rows'][0])
+            direction['rows'][0]['revision'] = -9
+        self.assertEqual(self.relay.delay_metadata()['directions']['client_to_server']['rows'][0]['revision'], 0)
+        self.assertEqual(self.relay.stats['forwarded_bytes'], 6)
+        writer.close(); await writer.wait_closed()
+
+    async def test_setter_refuses_wrong_loop_closed_bad_value_and_bound(self):
+        unopened = StreamShaper(self.port)
+        with self.assertRaises(ValueError): unopened.set_rtt_ms(130)
+        reader, writer = await self.connect()
+        for value in (True, -1, 501, float('nan'), float('inf'), '130'):
+            with self.subTest(value=value), self.assertRaises(ValueError):
+                self.relay.set_rtt_ms(value)
+        async def other_loop():
+            with self.assertRaises(ValueError): self.relay.set_rtt_ms(130)
+        await asyncio.to_thread(lambda: asyncio.run(other_loop()))
+        with self.assertRaises(ValueError): self.relay.set_rtt_ms(130, tick=lambda: True)
+        for _ in range(32): self.relay.set_rtt_ms(130)
+        with self.assertRaises(ValueError): self.relay.set_rtt_ms(475)
+        self.assertEqual(self.relay.delay_metadata()['revision'], 32)
+        await self.relay.close()
+        with self.assertRaises(ValueError): self.relay.set_rtt_ms(130)
+        writer.close(); await writer.wait_closed()
+
+    async def test_ordinary_default_has_no_chunk_capture(self):
+        reader, writer = await self.connect()
+        writer.write(b'ordinary'); await writer.drain()
+        self.assertEqual(await asyncio.wait_for(reader.readexactly(8), 2), b'ordinary')
+        metadata = self.relay.delay_metadata()
+        self.assertEqual(metadata['metadata_limit'], 0)
+        for direction in metadata['directions'].values():
+            self.assertEqual((direction['seen'], direction['dropped'], direction['rows']), (0, 0, []))
+        for limit in (True, -1, 8193, 1.5):
+            with self.subTest(limit=limit), self.assertRaises(ValueError):
+                StreamShaper(self.port, metadata_limit=limit)
+        writer.close(); await writer.wait_closed()
+
+    async def test_tick_failure_is_atomic_and_paused_setter_refuses(self):
+        reader, writer = await self.connect(rtt_ms=100)
+        before = self.relay.delay_metadata()
+        for values in ((10, True), (10, 9)):
+            ticks = iter(values)
+            with self.subTest(values=values), self.assertRaises(ValueError):
+                self.relay.set_rtt_ms(475, tick=lambda: next(ticks))
+            self.assertEqual(self.relay.delay_metadata(), before)
+            self.assertEqual(self.relay.delay, .05)
+        await self.relay.outage()
+        with self.assertRaises(ValueError): self.relay.set_rtt_ms(475)
+        await self.relay.restore()
+        self.assertEqual(self.relay.set_rtt_ms(130)['revision'], 1)
+        writer.close(); await writer.wait_closed()
 
 
 if __name__ == '__main__': unittest.main()
