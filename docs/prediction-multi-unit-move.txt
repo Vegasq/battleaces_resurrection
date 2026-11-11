@@ -1,6 +1,44 @@
 BATTLE ACES - MULTI-UNIT MOVEMENT PREDICTION
 Reviewed:2026-11-11. N33 remains ACTIVE;full feature/Internet acceptance OPEN.
 
+FOUR-UNIT CLOSE-FORMATION NATIVE BASELINE - PASS; UNITY PREDICTION OPEN
+The new explicit fixture keeps the ordinary GameConfig and global bytes intact,
+including Gunbot health600, speed6.3 and radius0.8000000119. It appends initial
+host10 at(60,0,60) and guest11..14 in a2m square around(-80,0,-60). The original
+ten map entities, selected legal decks, normal builder and cosmetics remain
+unchanged. No runtime health/position writes or mobile-death fixture are used.
+Ten focused pure fixture tests and a real-asset construction check pass.
+
+One bounded original Simulation.dll control now passes361 frames. All five
+units are ready at10 and remain undamaged;the original group Move181 gathers
+the four guests. They are idle/stationary throughout280..300. The settled
+minimum pair distance is1.5999407m and maximum diameter2.4786502m. A fresh
+shared Move301 targets the actual float32 centroid plus16 UnityZ, converted
+through the flipped perspective. All four respond at301 and keep moving
+targetward on every321..335 frame,covering the planned late-update window.
+Host10 independently responds to Move321 at321. The four-member distance graph
+remains connected using edges<=3r throughout280..335. Observation continues
+through360;connectivity/movement after335 is not an acceptance requirement.
+
+Geometric observations are reported separately:maximum labeled-pair convergence
+is0.9489284m,and one pair stays within2r+0.0001m for126 consecutive frames.
+These are center-distance measurements,not collision-solver causality or a
+nonpenetration proof. This headless control has no prediction/render/input/
+network-delay acceptance. Its purpose is to establish a usable ordinary-stat
+close-group scenario before the actual two-client test.
+
+Original report:local/close-formation-route01/native-control01/verification.json
+SHA25662efe660d8933bb59bdb77ad3e75b99a55b23df6b90e75aba2bdc638851a5f9e
+The retained run pins1020 source files and consumed assets;both stay unchanged.
+Every raw snapshot,canonical frame,decoded state and control source is retained.
+Child exits0 naturally,reaped/handleclosed,Job2/0/0,no force or cleanup errors.
+Review caught and fixed a parent timeout/exit race before execution:parent wait
+errors now remain failures even if the child subsequently exits0 naturally.
+Helper97,all installed/manual games,the N35 kit and live server are unchanged.
+Next:actual original four-unit selection/group and Move,per-member render/native
+response before authority,real remote replay+20,full wire/state parity and two
+natural rounds. The close-formation prediction gate remains OPEN.
+
 PARTIAL CANONICAL-DEATH GROUP PURGE - ACTUAL70 FILE-ONLY QUALIFICATION PASS
 The same initial11/12 fixture now omits the attacker's escape. Original native
 baseline evidence from69's preflight is reused:10/11 DEAD153,absent154,and12

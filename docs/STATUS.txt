@@ -4,6 +4,13 @@ Current work:REMAINING_DELIVERY_PLAN.txt. Evidence navigation:INDEX.txt.
 Exact prior3576-line ledger:history/2026-10-24/STATUS.txt.
 Historical records retain their original failures,claims and artifact scopes.
 
+2026-11-11 close-formation baseline:ordinary definitions/globals and four initial
+Gunbots pass361 original-native frames. All four settle into a close group,
+respond to the fresh301 Move at301,and remain moving through321..335;natural
+exit0/Job2/0/0,source/assets unchanged. Ten pure fixture tests pass. This only
+qualifies the new scenario;actual client/server prediction/rendering is next.
+No helper,installer or live change;details:prediction-multi-unit-move.txt.
+
 2026-11-11 partial-group progress:Actual70's separate file-only qualification
 PASSES canonical11 death with unrelated12 preserved in group4. Raw group all/
 type caches become12,Count1,pending metadata cleared;current selection numeric
