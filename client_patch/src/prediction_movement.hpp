@@ -31,5 +31,6 @@ bool activeForRefresh();
 bool canPublish(void* simulation,uint64_t nowUs);
 void published(void* simulation,uint64_t nowUs);
 void tick(void* server);
+void flushEarlyPhaseDiagnostics() noexcept;
 void reset() noexcept;
 }

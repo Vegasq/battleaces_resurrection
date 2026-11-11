@@ -11,6 +11,22 @@ from . import prediction_click_provenance
 
 SUPPORTED_ORIGINAL_SHA256 = 'e59d08c01479b27404778048d7e13546dbf3771f6b3912744c7c2bdf80c4e758'
 CALL_HOOKS = [
+    # Exact original Trigger -> EventContext.get_EventOwner edge. Observe its
+    # actual result without an additional lookup or a fabricated EventContext.
+    dict(name='OfflinePredictionTimelineEventOwner', rva=0x3be43be,
+         offset=0x3be29be, before='e8bdd4feff'),
+    dict(name='OfflinePredictionTimelineEventOwner', rva=0x3be4661,
+         offset=0x3be2c61, before='e81ad2feff'),
+    dict(name='OfflinePredictionTimelineEventOwner', rva=0x3be47b5,
+         offset=0x3be2db5, before='e8c6d0feff'),
+    dict(name='OfflinePredictionTimelineAnimator', rva=0x3be46a9,
+         offset=0x3be2ca9, before='e862a77dfd'),
+    dict(name='OfflinePredictionTimelineBinding', rva=0x3be468c,
+         offset=0x3be2c8c, before='e84f954f01'),
+    dict(name='OfflinePredictionTimelineBinding', rva=0x3be46bd,
+         offset=0x3be2cbd, before='e81e954f01'),
+    dict(name='OfflinePredictionTimelinePlay', rva=0x3be478a,
+         offset=0x3be2d8a, before='e8e1904f01'),
     dict(name='OfflinePredictionActorUpdate', rva=0x3e6608b,
          offset=0x3e6468b, before='e8801fdaff'),
     # bool(UnitSelectionSet*, uint32 entity, MethodInfo*=null). The ORIGINAL
@@ -20,7 +36,14 @@ CALL_HOOKS = [
          offset=0x3ea485a, before='e8b103dcff'),
 ] + prediction_selection.CALL_HOOKS + prediction_click_provenance.CALL_HOOKS
 TAIL_HOOKS = list(prediction_click_provenance.TAIL_HOOKS)
-POINTER_HOOKS = list(prediction_selection.POINTER_HOOKS)
+POINTER_HOOKS = list(prediction_selection.POINTER_HOOKS) + [
+    # Passive terminal diagnostic. The helper forwards the original Trigger
+    # once with the actual EventContext/MethodInfo; it never consumes failures.
+    dict(name='OfflinePredictionTimelineTrigger', rva=0x6d4ced0, offset=0x6d4a4d0,
+         before='9042be8301000000', target_rva=0x3be4290,
+         relocation_block_offset=0x736f880, relocation_block_before='00c0d40634030000',
+         relocation_entry_offset=0x736fb74, relocation_entry_before='d0ae'),
+]
 PATCHES = list(prediction_selection.PATCHES)
 BODY_GUARDS = [
     dict(rva=0x3c699b0, before='48895c2408574883ec20488bd98bfa48'),

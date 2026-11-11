@@ -1148,6 +1148,7 @@ struct DeferredSelection {
             static_cast<unsigned long long>(s.world),s.match.c_str(),frozenIds.front());
     }
 };
+#include "prediction_timeline_retirement_actor.hpp"
 static void repair(State& s,Obj manager,Obj frames,GroupChanges& changes,DeferredSelection& selection,HeldSelection* held=nullptr) {
     Current current(frames);
     Root active(ba::read<Obj>(manager,0x10)),retained(ba::read<Obj>(manager,0xa0)),pending(ba::read<Obj>(manager,0x18));
@@ -1214,7 +1215,6 @@ static void repair(State& s,Obj manager,Obj frames,GroupChanges& changes,Deferre
     // selection/pool mutation. An exception after this point fails the owner;
     // no partial repair is retried and no replacement is manually installed.
     Obj removeSelection=method(selector.get(),"RemoveSelection",1,0x0600220a,0x3bf0cf0);
-    const bool deferredSelection=selection.prepare(s,selector.get(),batch.get(),removeSelection,frames,retire);
     Root factory(ba::read<Obj>(manager,0x50));require(factory.get(),"actor repair factory missing");
     Root pools(ba::read<Obj>(factory.get(),0x10));require(pools.get(),"actor repair pool manager missing");
     Obj poolRelease=method(pools.get(),"Release",1,0x060021b1,0x3be9770);
@@ -1233,6 +1233,12 @@ static void repair(State& s,Obj manager,Obj frames,GroupChanges& changes,Deferre
     method(ba::read<Obj>(manager,0x28),"Remove",1,0x060000ad,0x3782570);
     for(const auto& actor:retire)method(actor.actor,"ReleaseFromSim",0,0x060022a1,0x3bfc570);
     ReleaseEvent releaseEvent(manager);
+    RetiredTimelines timelines;
+    timelines.prepare(s,retire,frames,current);
+    timelines.stop(s);
+    // Old timeline cancellation may dispatch original presentation callbacks.
+    // Capture current input/selection intent only after that scope has ended.
+    const bool deferredSelection=selection.prepare(s,selector.get(),batch.get(),removeSelection,frames,retire);
     // Original RemoveSelection handles ordinary preview/current selection and
     // ability compatibility. Resolve supported affected-focus cancellation
     // separately; casting/click/ability refusals must happen before it runs.

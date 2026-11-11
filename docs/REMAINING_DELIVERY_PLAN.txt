@@ -123,8 +123,21 @@ native Core0 control proves death153/Move151 escape. Its explicit mirror fixture
 is integrated;Actual52 observes the first fourteen-phase Core0 episode but
 remains FAILED:terminal Concede709 triggers a Unity timeline exception and the
 bounded deadline requires forced cleanup. Core0's two-world gate remains OPEN.
-Next:trace/fix that terminal state-event lifetime path,then qualify both mirror
-rounds,the remaining group paths,naturally removed/empty-preview held input and
+Native54 now identifies the exact null:the restored Core0 director's original
+GetComponentInChildren<Animator>() returnsnull;binding returns,then the original
+Animator postcheck throws before playback. Inactive/destroyed/absent remains
+unknown. Stopping the old retained-Core director before original pool release
+now passes BOTH actual mirrored rounds (Actual57):original Stop once per world,
+restoration/real Up,later nonnull Animator/Play/Trigger return,and natural Quit.
+All2920 native state hashes/wire joins match. Actual55 remains a late-escape
+failure;Actual57 still fails the separate generic movement gate because its
+test Gunbot is native ACTIVATION9 at440. Actual58 now PASSES mirror-v3:the
+original legal build250 supplies a native IDLE subject at420/440 in both worlds;
+unchanged Move440 responds63ms,484ms before raw bridge,with441->442 phase.
+Both Core held/terminal episodes,independent remote replay+20continuations and
+natural shutdown pass. Actual59 also PASSES the prior Core5 fixture on the same
+helper:both held episodes,Move response62ms/94ms before bridge,phase441->441,correction and
+natural shutdown. Next:the remaining group paths,naturally removed/empty-preview held input and
 broader input/render behavior. Detailed scopes:prediction-actor-correction.txt.
 Physical/Internet acceptance is open.
 Prediction eligibility remains
@@ -190,6 +203,12 @@ These grouped rows summarize the detailed matrices;they are not a percentage or
 an exact count of every remaining test. DEV.txt remains the owner of user answers.
 
 COMPLETED
+[x] Mirrored Core0 held correction and later terminal animation after old-director
+    cancellation (actual58):both worlds,original Stop/pool/recreation,real Up,
+    ready-unit Move before authority,remote correction and natural Quit. Actual57
+    stays FAILED at its unready-unit feel gate;broader feature acceptance is open.
+[x] Existing Core5 regression on the changed director path (actual59):both held
+    episodes,pre-authority Move,remote correction and natural shutdown.
 [x] Canonical-death group raw-cache cleanup (actual50):original API/scopes,
     metadata acknowledgment,recall and two native rounds. Actual type-changing
     forced retirement remains separate and open.

@@ -26,10 +26,14 @@ METADATA=MappingProxyType(dict(
     target=(-69.77999877929688,0.0,-80.8499984741211)))
 _CORE_POSITION=(-103.77999877929688,0.0,-80.8499984741211)
 MIRROR_SEED=20261112
+# Mirror v3 retains the original-native Move151/152 margin. Its later ordinary
+# subject build moves to250 so seven-second activation finishes before Move440.
+# Earlier prepared v1/v2 evidence keeps its immutable timing and outcome.
 MIRROR_METADATA=MappingProxyType(dict(METADATA,
-    name='original-gunbot-core-move-mirror-v1',victim_slot=0,victim_core_id=0,
+    name='original-gunbot-core-move-mirror-v3',victim_slot=0,victim_core_id=0,
     attacker_slot=1,escape_physical_frame=150,expected_canonical_frame=151,
-    safe_canonical_frames=(151,),baseline_first_damage_frame=142,baseline_death_frame=153,
+    safe_canonical_frames=(151,152),baseline_first_damage_frame=142,baseline_death_frame=153,
+    normal_build_frames=(250,400),ready_subject_frames=(420,440),
     seed=MIRROR_SEED,target=(69.77999877929688,0.0,80.8499984741211)))
 
 

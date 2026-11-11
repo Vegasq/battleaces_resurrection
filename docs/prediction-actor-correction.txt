@@ -1069,12 +1069,121 @@ Original FAILED report SHA256:
 6295230f53896d4589494f481e34e1cb79d1800ea34502f13ebe1f65d2df7ee7.
 File-only preservation source_updates_safe=true,1165 verified archive entries;
 receipt d5f53ac8cff94af9b1fe96338a0673254f4f59fc4a23e82d520a3181b1bdddd4.
-Next:observe the actual terminal timeline owner/transition/null boundary,repair
-the demonstrated lifetime defect,then repeat the changed mirror path. Core0's
+Later Native54 traces identify the restored Core0 timeline owner and the exact
+original active-only GetComponentInChildren<Animator>() returning null. Binding
+returns;the original null postcheck throws before Play. Timeline/director/owner
+are nonnull;inactive versus destroyed/absent is not yet distinguished.
+The candidate calls original Stop on the retained old HQ director before its
+original pool release/recreation. It validates canonical identity/roots,original
+dead/null-component state and only the known OnPlayableDirectorStopped handlers.
+The authored pre-fix test fails at pool release without Stop;50 actual-source
+cases pass after repair,including foreign subscribers and owner/root drift.
+Full helper74 passes all included suites with204 unchanged source bindings.
+Helper74 SHA256:
+68805c5d9f5da7394e4d7af35ba7d3b9877eedf3b2388d857bac63690ca0cd07.
+This candidate has NOT yet passed the actual restoration/terminal path.
+
+Actual55 remains FAILED:the physical150 order shares a coarse tick with server
+canonical152,whose seal definitely precedes native72. Actual67/native72 assigns151;the server accepts
+the exact batch at earliest154,after original native gameover153. Send-to-accept
+is78ms in the shared coarse clock. Canonical escape154 cannot restore the Core;
+the victim's held fixture therefore misses restoration164. No candidate Stop
+begin/completion is logged,so this run neither validates nor invalidates its
+effect. Both games require owned forced cleanup;authority exits naturally0.
+Original FAILED report SHA256:
+fe5248f977704f6d509d227172e7a4eddc9dd9fc74defbf112ebbf18078eadcb.
+Preservation receipt SHA256:
+7fe77ab4af3132d1b2056fb90829bffc13f3e0bb29fe9a832fa0e80443efbe31.
+All1106 archived entries verify;source_updates_safe=true. The independently
+qualified original-native Move152 control expands only new mirror-v2 evidence
+to safe151/152;Native53's frozen v1 failure stays failed. Frame154 is not admitted.
+Next:buffer actual early pacing decisions for both slots100..170 and retain
+producer/arrival QPC rows on genuine failure,then diagnose the preexisting phase
+gap. These observations do not alter pacing,commands,death or acceptance gates.
+Then qualify the changed restoration/terminal path in both mirror rounds. Core0's
 complete two-world Unity gate,naturally removed input,forced groups and broader
 input/render/physical/Internet acceptance remain OPEN. Private evidence:
 local/prediction-checkpoint-20261111/held-side-client-plan01/ and
 local/prediction-runtime/movement52-held-core0-mirror/.
+
+Actual57 closes the named Core0 restoration/terminal crash scope in BOTH worlds.
+The candidate stops the old Playing1 director to Paused0 once before original
+pool release. Both original held episodes have canonical escape151,ten replayed
+frames plus20 continuations,token1/accepted Down serial7 or18,restoration161 and
+real Up165. At terminal720 in each world,the original active-only Animator query
+returns nonnull;both bindings,Play and Trigger return. No callback/refusal/fatal
+is suppressed. All2920 closed native hashes/rawbridge/native65 joins match,
+730/client/world;16 accepted/committed actions are conserved. Both clients and
+both authorities exit naturally0,reaped/Jobs inactive,no force or cleanup error.
+The independent frozen-source scoped proof SHA256:
+842561642621ddc4558c4ccb859eb631674f68e14c8605b28a27faf899c063f4.
+The original FULL run remains FAILED,report SHA256:
+44b3ff14c1bd683f335799529e3e13ee2b2c33bb1f077bc5e23042742d0cf4d9.
+Preservation receipt SHA256:
+74e7f84d249ed06011efda3972ed09aa006d18f67399a89c0756f6cfeccd6320.
+All1260 retained entries verify. Private run:
+local/prediction-runtime/movement57-buffered-early-phase/.
+
+Its separate generic-feel failure is now explained by actual closed native
+snapshots:the subject Gunbot is ACTIVATION9 at380/400/420/440 in both rounds.
+First visible travel at452/450 follows both raw bridge/native65 receipts. This
+does not demonstrate an immediate-input regression for a ready unit. It also
+does not qualify ready-unit responsiveness. Mirror-v3 changes only the later
+ordinary subject-build trigger300 to250,using original AIUtility.BuildUnit;
+the Core encounter/bootstrap,Move440,remote Move460 and all original phase/
+prereceipt/correction/lifecycle gates remain. Additional native snapshots must
+prove the actual ctor-derived subject identity is IDLE0 at420/440 in BOTH worlds;
+elapsed time alone cannot qualify readiness. Legacy builds and mirror-v2 failed
+evidence are unchanged.238 focused Python checks and full204-source helper78 pass.
+Actual58 now PASSES the complete named mirror-v3 runtime in166.031seconds. Both
+subjects are original-native IDLE0 at420/440;the same original Move440 responds
+visibly in63ms,484ms before raw bridge/547ms before native65. Its immutable
+assignment441 versus canonical442 is within the unchanged one-frame tolerance.
+Independent remote Move462 requires ten replayed frames plus20 matching
+continuations. Both Core held/terminal episodes and Continue/rematch/Leave/Quit
+finish naturally;both client workers and both authorities exit0 with inactive
+Jobs,no force or cleanup errors. Sources/runtime inputs remain unchanged.
+Helper78 SHA256:
+73d14d3f8e3d6e82e5eccf01f8502692d0507ac73d6cdd643cda511cc5427b9a.
+Build receipt SHA256:
+4e35b30a2011875349264eb6c03bdf0478a72f9aed5536517421dff18ff169c1.
+Actual58 original PASS report SHA256:
+94e4af76fc1862d7dcce91851d4a9caf10692834406771d58cf4fcc4d70f0cb5.
+Preservation receipt SHA256:
+96af61ec47ef76b14c30fceab5959aa9a9163fd0a2322b7c78ee7bdb305aa5ba.
+All1260 archive entries verify. Independent frozen-source audit matches2918
+closed hashes/rawbridge/native65 joins to1459 canonical frames and conserves16
+actions. The second round also responds31ms,500ms before bridge;both phases are
+441->442,and both independent remote corrections replay10+20continuations.
+Movement audit SHA256:
+c784f8cb9664bd48d21f229af5b1a16197c3f04f2adfb8212c322e49cc400af3.
+Final audit SHA256:
+255dee60d37aa5ba109784d7c1d82a4137012b92f40eb76088b329cbe785a632.
+Private evidence:local/prediction-runtime/movement58-ready-mirror-subject/.
+Actual59 also PASSES the unchanged prior Core5 fixture on helper78 in145.766s:
+both real held episodes,original Stop-before-pool on Core5/token6,62ms Move
+response94ms before raw bridge/110ms before65,phase441->441 and independent
+remote correction. Every game/authority/worker exits naturally0 with no force,
+cleanup errors or source/runtime input changes. The terminal observer is OFF;
+normal terminal/Quit is the regression evidence,not a fabricated Animator trace.
+Original PASS report SHA256:
+65a1ded6625797538ac253c2cdd3190de2440277c4e3a6b88b7bff00819eecb2.
+Preservation receipt SHA256:
+8a8cd3b79387c2737209ee6fa3a1bdac35d510d4ce02ad6cd17216ee889e8a03.
+All1260 archived entries verify. Independent frozen-source audit matches2888
+native hashes/rawbridge/native65 joins and conserves16 actions. Both held
+episodes restore163/164 with real Up165/166 and token6;the second Move responds
+47ms,109ms before bridge. Both phases441->441;each independent remote correction
+replays3 frames plus20 matching continuations. Scoped/movement/final audit SHA256:
+01eacfc936ece49bf4f8952e8dbf008f3deccb8c0f1d39ef2487118b6d04b714 /
+d25fba76b6afa2e4b248f202e79d97219a5e2df5227b01c70f32a1146f5f03d9 /
+69aea78e36118cbc4fcde58e31c806ae2a7d23766255741ff4f4083db4f85bff.
+Private evidence:local/prediction-runtime/movement59-core5-stop-regression/.
+Next:the remaining forced-group/type paths,naturally removed held input and broader
+input/render/physical/Internet acceptance. This is not full-feature closure.
+896 buffered early-phase decisions and both QPC traces are retained from57.
+Neither peer enters recovery in that run;55's earlier transient gap remains a
+separate unresolved timing attribution,not a claimed pacing fix.
 
 Changing latency
 Owned actual-source tests qualify bounded existing REFRESH/ACK sampling and

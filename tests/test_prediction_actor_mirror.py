@@ -37,7 +37,7 @@ def mirror_held():
     return records,episodes
 
 
-def mirror_actor():
+def mirror_actor(commit_frame=151):
     source=verifier_tests.ActorCorrectionFixtureTests();source.setUp()
     source.metadata=fixture.metadata(True)
     for row,frame in zip(source.rows,(130,154,158,165)):row.update(entity=0,army=0,frame=frame)
@@ -46,13 +46,13 @@ def mirror_actor():
     source.action=field_bytes(1,field_bytes(1,group)+field_bytes(3,field_bytes(3,field_bytes(1,position))))
     source.body=encode_player_input(encode_identity(2,'Owned mirror attacker'),[source.action])
     source.order.update(army=1,frame=150,action_sha256=verifier.digest(source.action))
-    source.commits[0].update(slot=1,frame=151)
-    source.authority['frame']=151;source.bridge[0]['frame']=151
-    source.journal=[dict(frame=151,players={0:[],1:[source.action]})]
+    source.commits[0].update(slot=1,frame=commit_frame)
+    source.authority['frame']=commit_frame;source.bridge[0]['frame']=commit_frame
+    source.journal=[dict(frame=commit_frame,players={0:[],1:[source.action]})]
     for row in source.worker:
-        frame=row['frame'];row.update(corrections=int(frame>=151),corrections_delta=int(frame==151),
-            replayed_frames_total=3 if frame>=151 else 0,replayed_frames_delta=3 if frame==151 else 0,
-            tick_ms=1000+frame*5 if frame<151 else 2160+(frame-151)*10)
+        frame=row['frame'];row.update(corrections=int(frame>=commit_frame),corrections_delta=int(frame==commit_frame),
+            replayed_frames_total=3 if frame>=commit_frame else 0,replayed_frames_delta=3 if frame==commit_frame else 0,
+            tick_ms=1000+frame*5 if frame<commit_frame else 2160+(frame-commit_frame)*10)
     source.native=source.native[:44] # Exact metadata range130..173.
     for row in source.native:
         row['core'].update(id=0,army=0,current_damage=0 if row['frame']<142 else 50)
@@ -61,7 +61,7 @@ def mirror_actor():
     def evaluate(**changes):
         args=dict(attacker_log=source.attacker_log().replace('speculativeFrame=153','speculativeFrame=151'),
             match=source.match,commits=source.commits,raw_bodies={(source.match,1,2):source.body},
-            journal=source.journal,bridge_frames=source.bridge,canonical_payloads={151:'b'*64},
+            journal=source.journal,bridge_frames=source.bridge,canonical_payloads={commit_frame:'b'*64},
             canonical_states=source.states,native_states=source.native,worker_states=source.worker,fixture=source.metadata)
         args.update(changes)
         return verifier.actor_correction_evidence(source.victim_log(),**args)
@@ -78,14 +78,19 @@ class MirrorFixtureTests(unittest.TestCase):
         initial[0]=field_bytes(2,core)
         self.base=self.host.load(replace_fields(self.host.base.raw_game_data,{2:[field_bytes(2,a)for a in initial]}))
 
-    def test_metadata_records_only_observed_safe_frame_and_does_not_change_default(self):
+    def test_metadata_v3_keeps_safe_margin_and_records_ready_subject_build_without_changing_default(self):
         old=fixture.metadata();mirror=fixture.mirror_metadata()
         self.assertEqual(mirror,fixture.metadata(True))
         self.assertEqual((mirror['victim_core_id'],mirror['victim_slot'],mirror['attacker_slot'],mirror['seed']),(0,0,1,20261112))
-        self.assertEqual(mirror['safe_canonical_frames'],[151]);self.assertEqual(mirror['baseline_first_damage_frame'],142)
+        self.assertEqual(mirror['name'],'original-gunbot-core-move-mirror-v3')
+        self.assertEqual(mirror['normal_build_frames'],[250,400])
+        self.assertEqual(mirror['ready_subject_frames'],[420,440])
+        self.assertEqual(mirror['safe_canonical_frames'],[151,152]);self.assertEqual(mirror['expected_canonical_frame'],151)
+        self.assertEqual(mirror['baseline_first_damage_frame'],142)
         self.assertEqual(mirror['baseline_death_frame'],153)
-        mirror['safe_canonical_frames'].append(152);self.assertEqual(fixture.metadata(True)['safe_canonical_frames'],[151])
+        mirror['safe_canonical_frames'].append(153);self.assertEqual(fixture.metadata(True)['safe_canonical_frames'],[151,152])
         self.assertEqual(fixture.metadata(),old)
+        self.assertEqual(old['name'],'original-gunbot-core-move-v1')
         self.assertEqual(old['safe_canonical_frames'],[152,153,154])
 
     def test_mirror_keeps_initial_entities_and_changes_only_extra_spawn_vs_default(self):
@@ -172,15 +177,23 @@ class MirrorHeldTests(unittest.TestCase):
 
 class MirrorActorEvidenceTests(unittest.TestCase):
     def test_real_actor_journal_native67_72_65_and_replay_twenty_are_bound(self):
-        source=mirror_actor();result=source.mirror_evaluate()
-        self.assertTrue(result['passed']);self.assertEqual(result['escape']['canonical_commit_frame'],151)
-        self.assertEqual(result['escape']['target'],fixture.metadata(True)['target'])
-        self.assertEqual(result['continuation_frames'],20)
+        for frame in (151,152):
+            with self.subTest(frame=frame):
+                source=mirror_actor(frame);result=source.mirror_evaluate()
+                self.assertTrue(result['passed']);self.assertEqual(result['escape']['canonical_commit_frame'],frame)
+                self.assertEqual(result['escape']['target'],fixture.metadata(True)['target'])
+                self.assertEqual(result['continuation_frames'],20)
 
     def test_unobserved_commit_margin_frames_do_not_pass(self):
-        for frame in (150,152):
-            source=mirror_actor();source.commits[0]['frame']=frame
+        for frame in (150,153):
+            source=mirror_actor(frame)
             with self.subTest(frame=frame),self.assertRaisesRegex(AssertionError,'qualified margin'):source.mirror_evaluate()
+
+    def test_mirror_v1_metadata_is_not_silently_upgraded(self):
+        source=mirror_actor(152)
+        old=dict(source.metadata,name='original-gunbot-core-move-mirror-v1',safe_canonical_frames=[151])
+        with self.assertRaisesRegex(AssertionError,'unqualified actor fixture metadata'):
+            source.mirror_evaluate(fixture=old)
 
     def test_default_or_wrong_hero_army_and_wrong_damage_onset_refuse(self):
         for kind in ('metadata','army','damage'):
@@ -227,6 +240,37 @@ class MirrorVerifierTests(unittest.TestCase):
         args=self.enable(False)
         with self.assertRaisesRegex(AssertionError,'helper lacks explicit -prediction-actor-mirror-smoke'):verifier.prepare(args)
         self.assertFalse(args.output.exists())
+
+    def test_ready_subject_build_requires_exact_mirror_plan_and_successful_original_enqueue(self):
+        plan=dict(actor_mirror=True,actor_fixture=fixture.metadata(True))
+        subject='LAN NORMAL BUILD smoke frame250 slot0 army0 HQ0 deckSlot0 unitType1 ability34 cost=(50,0) prerequisite=1 queued=1 commandQueueDelta=1 presentedFrame=258'
+        legacy=subject.replace('frame250','frame300')
+        peer=subject.replace('frame250','frame400').replace('slot0','slot1').replace('army0','army1').replace('unitType1','unitType6')
+        self.assertEqual(verifier.planned_normal_build_units(subject,0,plan),[1])
+        self.assertEqual(verifier.normal_build_units(subject,0),[])
+        self.assertEqual(verifier.planned_normal_build_units(legacy,0,plan),[])
+        self.assertEqual(verifier.planned_normal_build_units(legacy,0,{}),[1])
+        self.assertEqual(verifier.planned_normal_build_units(peer,1,plan),[6])
+        for old,new in (('prerequisite=1','prerequisite=0'),('queued=1','queued=0'),('commandQueueDelta=1','commandQueueDelta=0')):
+            self.assertEqual(verifier.planned_normal_build_units(subject.replace(old,new),0,plan),[])
+        for description in (None,fixture.metadata(),dict(fixture.metadata(True),normal_build_frames=[300,400])):
+            with self.subTest(description=description),self.assertRaisesRegex(AssertionError,'mirror fixture changed'):
+                verifier.planned_normal_build_units(subject,0,dict(plan,actor_fixture=description))
+        for slot in (-1,2,True,'0'):
+            with self.subTest(slot=slot),self.assertRaises(AssertionError):verifier.planned_normal_build_units(subject,slot,plan)
+        for frame in (0,249,251,True,'250'):
+            with self.subTest(frame=frame),self.assertRaises(AssertionError):verifier.normal_build_units(subject,0,expected_frame=frame)
+
+    def test_admitted_activation_does_not_substitute_for_original_native_readiness(self):
+        state=dict(frame=440,entities=[dict(id=75,army=0,type=1)])
+        args=dict(frame=440,slot=0,entity=75,unit_type=1)
+        self.assertEqual(verifier.validate_ready_subject(state,{75:0},**args)['native_state'],0)
+        for mode in (None,1,6,7,9,12):
+            with self.subTest(mode=mode),self.assertRaisesRegex(AssertionError,'not native IDLE'):
+                verifier.validate_ready_subject(state,{}if mode is None else {75:mode},**args)
+        for changed in (dict(state,frame=420),dict(state,entities=[]),dict(state,entities=[dict(id=75,army=1,type=1)]),
+                dict(state,entities=[dict(id=75,army=0,type=6)])):
+            with self.subTest(changed=changed),self.assertRaises(AssertionError):verifier.validate_ready_subject(changed,{75:0},**args)
 
     def test_cli_mirror_is_explicit_and_metadata_tamper_refuses_prepared_plan(self):
         base=[]

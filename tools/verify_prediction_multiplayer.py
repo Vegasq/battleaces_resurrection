@@ -45,6 +45,7 @@ MAX_LOG = 64 * 1024 * 1024
 HEX64 = re.compile(r'[0-9a-f]{64}')
 COMPLETE = 'COMMUNITY MATCH SMOKE passed: two native Start/result/Continue cycles;'
 FEEL_PREFIX = 'MOVEMENT FEEL '
+UNITY_FATAL_MARKER = '********CRASHED! GAME CLIENT RESTART REQUIRED*************'
 FEEL_CONTRACT = {
     'schema': 1, 'line_prefix': FEEL_PREFIX,
     'common': ['schema', 'event', 'match', 'world', 'entity', 'unit_type', 'incarnation', 'move_id', 'tick_ms'],
@@ -92,6 +93,21 @@ def read_fresh_native_log(path):
     # Live writes may end inside UTF8. Only completed lines are evidence;
     # unlike current_native_log, never trim at the later initial-state marker.
     return raw[:raw.rfind(b'\n')+1].decode('utf-8')
+
+
+def unity_fatal_seen(log):
+    """Exact original Unity fatal marker only; ordinary log text is not fatal."""
+    return UNITY_FATAL_MARKER in log
+
+
+def check_owned_unity_log(run, index):
+    require(type(index) is int and index in (0,1), 'owned Unity client index differs')
+    path=Path(run)/f'game-{index}.log'
+    if path.exists():
+        # Live Unity writes can end inside UTF8 or without a newline. The
+        # ASCII fatal marker is decisive even before a final line is flushed.
+        text=read(path).decode('utf-8',errors='replace')
+        require(not unity_fatal_seen(text), f'owned game-{index}.log reported original Unity fatal marker')
 
 
 def normal_peer_eof(error, *, natural, exited_zero):
@@ -182,6 +198,8 @@ def prepare(args):
     require(type(held_click) is bool, 'held click option must be Boolean')
     actor_mirror = getattr(args, 'actor_mirror', False)
     require(type(actor_mirror) is bool, 'actor mirror option must be Boolean')
+    terminal_timeline = getattr(args, 'terminal_timeline', False)
+    require(type(terminal_timeline) is bool, 'terminal timeline option must be Boolean')
     require(not actor_mirror or held_click, 'actor mirror requires explicit held click')
     require(not (held_click and expired_click), 'held and expired click fixtures are mutually exclusive')
     frames = args.frames if args.frames is not None else (650 if changing_rtt or expired_click or held_click or args.scenario == 'mobile' else 200 if args.scenario == 'startup' else 600)
@@ -207,6 +225,12 @@ def prepare(args):
             scenario=args.scenario, lifecycle=args.lifecycle, frames=frames, expected_matches=2 if args.lifecycle == 'natural' else 1,
             move_slot=args.move_slot, rtt_ms=list(args.rtt_ms), changing_rtt=changing_rtt, transition_orders=transition_orders,
             native_position_trace=position_trace, **{key: getattr(args, key, False) for key in EXPIRED_CLICK_MOBILE_FLAGS}))
+    if terminal_timeline:
+        validate_terminal_timeline_plan(dict(terminal_timeline=True,held_click=held_click,actor_mirror=actor_mirror,
+            actor_correction=actor_correction,scenario=args.scenario,lifecycle=args.lifecycle,frames=frames,
+            expected_matches=2 if args.lifecycle == 'natural' else 1,move_slot=args.move_slot,rtt_ms=list(args.rtt_ms),
+            expired_click=expired_click,changing_rtt=changing_rtt,transition_orders=transition_orders,
+            native_position_trace=position_trace,**{key:getattr(args,key,False)for key in EXPIRED_CLICK_MOBILE_FLAGS}))
     require(not mobile_group_intent or (args.scenario == 'mobile' and mobile_correction),
             'mobile group intent requires explicit mobile scenario/correction')
     require(not mobile_group_user_edits or mobile_group_intent,
@@ -282,7 +306,8 @@ def prepare(args):
                          (mobile_ui_cast,'-prediction-mobile-ui-cast-smoke'),
                          (expired_click,'-prediction-expired-click-smoke'),
                          (held_click,'-prediction-held-click-smoke'),
-                         (actor_mirror,'-prediction-actor-mirror-smoke')):
+                         (actor_mirror,'-prediction-actor-mirror-smoke'),
+                         (terminal_timeline,'-prediction-terminal-timeline-smoke')):
         require(not enabled or flag.encode('utf-16-le') in helper, 'helper lacks explicit ' + flag)
     required_hooks = prediction_worker.CALL_HOOKS + prediction_actor_repair.CALL_HOOKS
     required_tails = prediction_actor_repair.TAIL_HOOKS
@@ -385,6 +410,9 @@ def prepare(args):
         invocation['held_click'] = True
         if actor_mirror:invocation['actor_mirror'] = True
         validate_held_click_plan(invocation)
+    if terminal_timeline:
+        invocation['terminal_timeline'] = True
+        validate_terminal_timeline_plan(invocation)
     if args.scenario == 'mobile':
         invocation.update(generic_movement_not_exercised=True,
             mobile_scope='Explicit original mobile release/reinit/freshMove; generic newborn440/460 feel is not exercised; group intent remains a separate open claim')
@@ -482,6 +510,16 @@ def validate_held_click_plan(plan):
         validate_expired_click_plan(dict(plan, expired_click=True))
 
 
+def validate_terminal_timeline_plan(plan):
+    require('terminal_timeline' not in plan or type(plan['terminal_timeline']) is bool,
+            'prepared terminal timeline option must be Boolean')
+    if not plan.get('terminal_timeline'):
+        return
+    require(plan.get('actor_mirror') is True and plan.get('held_click') is True,
+            'terminal timeline requires explicit mirror held click')
+    validate_held_click_plan(plan)
+
+
 def verify_prepared(output):
     output = Path(output).resolve(strict=True)
     require(output.is_relative_to((ROOT / 'local').resolve()), 'prepared output must be ignored and owned')
@@ -493,6 +531,7 @@ def verify_prepared(output):
         validate_mobile_plan(plan)
     validate_expired_click_plan(plan)
     validate_held_click_plan(plan)
+    validate_terminal_timeline_plan(plan)
     require(Path(plan['game']).resolve() == (ROOT / 'local/prediction-runtime/game').resolve(),
             'prepared game is not the independent runtime copy')
     require(source_hashes() == plan['source_sha256'], 'source changed since preparation')
@@ -507,6 +546,7 @@ def verify_prepared(output):
 def command_extra(plan, index, run):
     validate_expired_click_plan(plan)
     validate_held_click_plan(plan)
+    validate_terminal_timeline_plan(plan)
     role = ('host', 'guest')[index]
     result = [f'-community-match-{role}-smoke', '-lan-smoke', '-dedicated-surrender-smoke',
         '-dedicated-surrender-frame=' + str(plan['surrender_frame']),
@@ -524,6 +564,8 @@ def command_extra(plan, index, run):
         result.append('-prediction-actor-correction-smoke')
     if plan.get('actor_mirror'):
         result.append('-prediction-actor-mirror-smoke')
+    if plan.get('terminal_timeline'):
+        result.append('-prediction-terminal-timeline-smoke')
     if plan.get('expired_click'):
         result.append('-prediction-expired-click-smoke')
     if plan.get('held_click'):
@@ -2111,10 +2153,58 @@ def command_phase(rows, *, match, slot, commits):
         phase_scope='Controlled steady-RTT actual67 assignment versus unique original server commit; tolerance1frame')
 
 
-def normal_build_units(log,slot):
+def normal_build_units(log,slot,*,expected_frame=None):
+    require(type(slot)is int and 0<=slot<=1,'normal build slot must be0or1')
+    expected=300+slot*100 if expected_frame is None else expected_frame
+    require(type(expected)is int and expected in (250,300,400),'unqualified normal build frame')
     builds=re.findall(r'LAN NORMAL BUILD smoke frame(\d+) slot(\d+) army\d+ HQ\d+ deckSlot\d+ unitType(\d+) '
         r'ability\d+ cost=\([^\n]+ prerequisite=1 queued=1 commandQueueDelta=1 ',log)
-    return [int(unit)for frame,owner,unit in builds if int(owner)==slot and int(frame)==300+slot*100]
+    return [int(unit)for frame,owner,unit in builds if int(owner)==slot and int(frame)==expected]
+
+
+def planned_normal_build_units(log,slot,plan):
+    if not plan.get('actor_mirror'):return normal_build_units(log,slot)
+    description=actor_fixture_metadata(True)
+    require(plan.get('actor_fixture')==description,'normal build mirror fixture changed')
+    require(type(slot)is int and 0<=slot<=1,'normal build slot must be0or1')
+    return normal_build_units(log,slot,expected_frame=description['normal_build_frames'][slot])
+
+
+def validate_ready_subject(state,modes,*,frame,slot,entity,unit_type):
+    require(state.get('frame')==frame,'ready subject native snapshot frame differs')
+    subjects=[row for row in state.get('entities',[])if row.get('id')==entity]
+    require(len(subjects)==1 and subjects[0].get('army')==slot and subjects[0].get('type')==unit_type,
+            'ready subject native identity differs')
+    # Shipped EntityState enum: IDLE0, ACTIVATION9. A visible/admitted actor
+    # alone does not prove readiness; preserve that distinction explicitly.
+    require(modes.get(entity)==0,'controlled Move subject is not native IDLE before input')
+    return dict(frame=frame,entity=entity,army=slot,unit_type=unit_type,native_state=0)
+
+
+def mirror_ready_subject_evidence(run,plan,log,*,matches,events):
+    from server.native_simulation import decode_snapshot
+    from tools.verify_prediction_combat_fixture import entity_states
+    require(plan.get('actor_mirror')is True and plan.get('actor_fixture')==actor_fixture_metadata(True),
+            'ready subject requires exact mirror fixture')
+    slot=plan['move_slot'];rows=feel_rows(log);worlds=[]
+    for match in matches:
+        commands=[row for row in rows if row['match']==match and row['event']=='command_created']
+        require(len(commands)==1,'ready subject requires unique original Move actor')
+        command=commands[0];snapshots=[]
+        for frame in plan['actor_fixture']['ready_subject_frames']:
+            receipts=[row for row in events if row.get('event')=='native_snapshot'and row.get('match')==match and
+                row.get('frame')==frame and row.get('viewer')==slot]
+            require(len(receipts)==1,'ready subject native snapshot receipt missing/duplicated')
+            path=run/'matches'/match/'snapshots'/f'{frame:08d}-{slot}.bin';raw=read(path)
+            require(len(raw)==receipts[0]['bytes']and digest(raw)==receipts[0]['sha256'],
+                    'ready subject closed native snapshot hash differs')
+            state=decode_snapshot(raw,slot,include_entities=True)
+            proof=validate_ready_subject(state,entity_states(raw),frame=frame,slot=slot,
+                entity=command['entity'],unit_type=command['unit_type'])
+            snapshots.append(dict(proof,raw_sha256=digest(raw)))
+        worlds.append(dict(match=match,world=command['world'],entity=command['entity'],snapshots=snapshots))
+    require(len(worlds)==plan['expected_matches'],'ready subject match count differs')
+    return dict(passed=True,worlds=worlds,scope='Closed original native IDLE before unchanged Move440; no inferred readiness from elapsed activation time')
 
 
 def native_position_bindings(log, *, matches, slot, spec, commands):
@@ -2548,6 +2638,7 @@ async def run_prepared(output):
             leave_stage, quit_released = 0, False
             while True:
                 for row in clients:
+                    await asyncio.to_thread(check_owned_unity_log,run,row['index'])
                     process = row['process']
                     require(quit_released or process.poll() is None, 'owned game exited before original Quit release')
                     require(quit_released or not row['task'].done(), 'owned bridge stopped before native lifecycle')
@@ -2658,7 +2749,7 @@ async def run_prepared(output):
                     commits=events, raw_bodies=raw_bodies, journal=read_journal(run, first, plan['frames']),
                     canonical_states=states[first], bridge_frames=clients[slot]['wire'],
                     catalog_units=template.catalog,entity_abilities=template.entity_abilities,
-                    built_units=normal_build_units(clients[slot]['log'],slot))
+                    built_units=planned_normal_build_units(clients[slot]['log'],slot,plan))
             if plan['scenario']=='movement':
                 subject=[r for r in feel_context['rows']if r['match']==first and r['event']=='command_created']
                 require(len(subject)==1,'one subject Move required before independent remote correction')
@@ -2669,7 +2760,7 @@ async def run_prepared(output):
                         for r in events if r['event']=='frame_queued'and r.get('match')==first},
                     canonical_states=states[first],commits=events,raw_bodies=raw_bodies,journal=feel_context['journal'],
                     catalog_units=template.catalog,entity_abilities=template.entity_abilities,
-                    built_units=normal_build_units(clients[other]['log'],other))
+                    built_units=planned_normal_build_units(clients[other]['log'],other,plan))
             if plan['scenario'] not in ('movement','mobile'):
                 report['feel'] = evaluate_feel(**feel_context)
                 report['movement_feel_witness_passed'] = report['feel']['passed']
@@ -2910,6 +3001,9 @@ async def run_prepared(output):
                         finalize_held_click_observation(report, plan, contexts=click_actor_contexts,
                                                        worker_states=worker_state_rows[victim])
                 require(plan['move_slot'] in worker_state_rows, 'selected closed worker native-state file unavailable')
+                if plan.get('actor_mirror'):
+                    report['ready_subject']=mirror_ready_subject_evidence(run,plan,clients[plan['move_slot']]['log'],
+                        matches=created,events=events)
                 report['command_phase']=command_phase(feel_context['rows'],match=feel_context['match'],
                     slot=feel_context['slot'],commits=events)
                 report['feel'] = evaluate_feel(**feel_context, worker_states=worker_state_rows[plan['move_slot']])
@@ -2935,7 +3029,7 @@ async def run_prepared(output):
                                 journal=remote_context['journal'],canonical_states=remote_context['canonical_states'],
                                 worker_states=worker_state_rows[other],bridge_frames=clients[other]['wire'],
                                 catalog_units=template.catalog,entity_abilities=template.entity_abilities,
-                                built_units=normal_build_units(clients[other]['log'],other))
+                                built_units=planned_normal_build_units(clients[other]['log'],other,plan))
                         except AssertionError as error:
                             report['changing_rtt_other_client_feel'] = dict(passed=False,error=repr(error),
                                 scope='Other owned original unit readiness/Move-before-authority is unqualified; no substituted movement')
@@ -3206,6 +3300,8 @@ def main(argv=None):
                         help='Explicit original Gunbot Move12/Core5 fixture; both clients use the same authored bootstrap')
     parser.add_argument('--actor-mirror', action='store_true',
                         help='With held HQ correction only: explicit Core0 victim/army1 Gunbot10,475/130ms,canonical Move151')
+    parser.add_argument('--terminal-timeline', action='store_true',
+                        help='With mirror held correction only: passive original terminal Timeline Trigger diagnostics; all run gates remain required')
     parser.add_argument('--expired-click', action='store_true',
                         help='With explicit HQ actor correction: already-bound Mouse inside owned process; Single-expired history through both natural650-frame rounds')
     parser.add_argument('--held-click', action='store_true',

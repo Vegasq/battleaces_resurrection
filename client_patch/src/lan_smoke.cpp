@@ -8,7 +8,7 @@
 namespace ba_lan_smoke {
 using ba::Obj;
 using ba_local::Root;
-struct Plan { bool ready=false,attempted=false;int slot=-1,deckSlot=-1;uint32_t key=0,unit=0; };
+struct Plan { bool ready=false,attempted=false;int slot=-1,deckSlot=-1,buildAt=-1;uint32_t key=0,unit=0; };
 static Plan plan;
 static Obj require(Obj object,const char* message) { if(!object)throw std::runtime_error(message);return object; }
 static Obj item(Obj list,int index) {
@@ -46,7 +46,14 @@ static void prepare(Obj gameData,int slot) {
         }
         if(matches!=1)throw std::runtime_error("smoke requires exactly one normal build ability for selected deck slot");
         plan.slot=slot;plan.deckSlot=deckSlot;plan.key=key;plan.unit=unit;plan.ready=true;
-        ba::log("LAN smoke prepared: slot%d will request normal deckSlot%d unitType=%u ability=%u at input frame%d",slot,deckSlot,unit,key,300+100*slot);
+        // The explicit mirrored HQ fixture has seven-second activation. Build
+        // its subject earlier so the unchanged Move440 observes a READY unit,
+        // rather than asking activation to finish before its native deadline.
+        const bool mirror=ba::flag(L"-prediction-movement-experimental")&&
+            ba::flag(L"-prediction-actor-correction-smoke")&&ba::flag(L"-prediction-actor-mirror-smoke")&&
+            ba::flag(L"-prediction-held-click-smoke");
+        plan.buildAt=mirror&&slot==0?250:300+100*slot;
+        ba::log("LAN smoke prepared: slot%d will request normal deckSlot%d unitType=%u ability=%u at input frame%d",slot,deckSlot,unit,key,plan.buildAt);
     } catch(const std::exception& e) {ba::log("LAN normal-build smoke disabled during preparation: %s",e.what());}
 }
 static void enqueue(Obj server,int frame) {
@@ -64,7 +71,7 @@ static void enqueue(Obj server,int frame) {
             ba::log("DEDICATED SURRENDER smoke frame%d normal ConcedeGame commandQueueDelta=%d army=%d",frame,ba_local::count(ba::read<Obj>(server,0x180))-before,ba::lanSlot());
         }catch(const std::exception& e){ba::log("Dedicated surrender smoke failed: %s",e.what());}
     }
-    if(!plan.ready || plan.attempted || frame!=300+100*plan.slot)return;
+    if(!plan.ready || plan.attempted || frame!=plan.buildAt)return;
     plan.attempted=true;
     try {
         Obj simulation=require(ba::read<Obj>(server,0x140),"smoke simulation missing");

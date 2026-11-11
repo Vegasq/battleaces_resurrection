@@ -31,10 +31,45 @@ struct State {
 static State state;
 static uint64_t generations=0;
 static void require(bool value,const char* reason) {if(!value)throw std::runtime_error(reason);}
+struct EarlyPhase {
+    pacing::Decision decision{};
+    int presented=-1;
+    uint64_t rtt=0,sampledUs=0,tick=0;
+};
+// Explicit mirror diagnostics only. The measured early prefix performs no
+// extra log/file I/O or allocation; flush after that window or a real failure.
+static std::array<EarlyPhase,1024> earlyPhases{};
+static size_t earlyPhaseCount=0;
+static bool earlyPhaseOverflow=false;
+static void logPhase(const char* prefix,const EarlyPhase& row) {
+    const auto& d=row.decision;
+    ba::log("%s {\"schema\":1,\"event\":\"decision\",\"match\":\"%s\",\"world\":%llu,\"next\":%lld,\"target_assigned\":%lld,\"presented_frame\":%d,\"rtt_us\":%llu,\"allowed\":%s,\"wait\":%u,\"decision_us\":%llu,\"sampled_us\":%llu,\"tick_ms\":%llu}",
+        prefix,state.match.c_str(),static_cast<unsigned long long>(state.world),static_cast<long long>(d.frame),
+        static_cast<long long>(d.target.assigned),row.presented,static_cast<unsigned long long>(row.rtt),
+        d.allowed?"true":"false",static_cast<unsigned>(d.wait),static_cast<unsigned long long>(d.now),
+        static_cast<unsigned long long>(row.sampledUs),static_cast<unsigned long long>(row.tick));
+}
+void flushEarlyPhaseDiagnostics() noexcept {
+    // Both normal window completion and the failure path run on this owner.
+    // A failed diagnostic write must not replace the original game failure.
+    if(!earlyPhaseCount||state.owner!=GetCurrentThreadId())return;
+    const size_t count=earlyPhaseCount;const bool overflow=earlyPhaseOverflow;
+    earlyPhaseCount=0;earlyPhaseOverflow=false;
+    try {
+        for(size_t index=0;index<count;++index)logPhase("MOVEMENT EARLY PHASE",earlyPhases[index]);
+        if(overflow)ba::log("Movement early phase capture incomplete: retained=%zu capacityExceeded=1; original outcome unchanged",count);
+    }
+    catch(...) {}
+}
 static void observePhase(const pacing::Decision& decision,int presented,std::optional<uint64_t> rtt) {
     static const bool requested=ba::flag(L"-prediction-movement-smoke")&&
         !ba::argument(L"-prediction-movement-smoke-transition-gates=","").empty();
-    if(!requested||ba::lanSlot()!=0||decision.frame<400||decision.frame>=650||decision.target.assigned<1)return;
+    static const bool earlyRequested=ba::flag(L"-prediction-terminal-timeline-smoke")&&
+        ba::flag(L"-prediction-actor-mirror-smoke")&&ba::flag(L"-prediction-held-click-smoke");
+    if(earlyRequested&&decision.frame>170)flushEarlyPhaseDiagnostics();
+    const bool early=earlyRequested&&decision.frame>=100&&decision.frame<=170;
+    const bool transition=requested&&ba::lanSlot()==0&&decision.frame>=400&&decision.frame<650;
+    if((!early&&!transition)||decision.target.assigned<1)return;
     require(state.world&&state.owner==GetCurrentThreadId()&&state.match.size()==32&&
         state.match.find_first_not_of("0123456789abcdef")==std::string::npos&&rtt.has_value(),
         "movement phase diagnostic lost its actual owned decision");
@@ -46,18 +81,18 @@ static void observePhase(const pacing::Decision& decision,int presented,std::opt
     require(state.phaseRows<4096,"movement phase diagnostic row bound reached");
     // Observe this EXISTING decide result, including denied decisions. Do not
     // recompute a target, spend a frame/ordinal or issue a native/worker query.
-    ba::log("MOVEMENT PHASE {\"schema\":1,\"event\":\"decision\",\"match\":\"%s\",\"world\":%llu,\"next\":%lld,\"target_assigned\":%lld,\"presented_frame\":%d,\"rtt_us\":%llu,\"allowed\":%s,\"wait\":%u,\"decision_us\":%llu,\"sampled_us\":%llu,\"tick_ms\":%llu}",
-        state.match.c_str(),static_cast<unsigned long long>(state.world),static_cast<long long>(decision.frame),
-        static_cast<long long>(decision.target.assigned),presented,static_cast<unsigned long long>(*rtt),
-        decision.allowed?"true":"false",static_cast<unsigned>(decision.wait),static_cast<unsigned long long>(decision.now),
-        static_cast<unsigned long long>(sampledUs),static_cast<unsigned long long>(GetTickCount64()));
+    const EarlyPhase row{decision,presented,*rtt,sampledUs,GetTickCount64()};
+    if(early) {
+        if(earlyPhaseCount==earlyPhases.size()){earlyPhaseOverflow=true;return;}
+        earlyPhases[earlyPhaseCount++]=row;
+    } else logPhase("MOVEMENT PHASE",row);
     state.phaseSampleUs=sampledUs;++state.phaseRows;
 }
 static void failed(const char* reason) noexcept {
     state.failed=true;
     worker::movementFail(reason);
 }
-void reset() noexcept {state=State{};}
+void reset() noexcept {state=State{};earlyPhaseCount=0;earlyPhaseOverflow=false;}
 
 static void context(Obj server) {
     require(ba::unified() && ba::dedicated() && ba::community() && ba::lan() &&

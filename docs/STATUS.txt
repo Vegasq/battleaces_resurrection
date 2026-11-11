@@ -156,6 +156,31 @@ held episode,but remainsFAILED:terminal Concede709 hits a Unity timeline
 NullReferenceException,then the241.281s deadline forces cleanup. Sources/inputs
 are unchanged;the exact failing timeline owner/null object is not yet observed.
 Two-world Core0 and normal terminal shutdown remain unqualified in that run.
+Native53/54 passive original-call traces now identify the failing restored
+Core0:its active-only GetComponentInChildren<Animator>() returnsnull,original
+binding returns,then the Animator null postcheck throws. Timeline/owner/director
+are nonnull. Native54's first canonical151/replay6+20 episode is verified,but
+the full run remainsFAILED with forced cleanup. The reason the animator is not
+found (inactive/destroyed/absent) is not proven;no callback is suppressed.
+Old-director cancellation before original retained-HQ pool release now passes
+both Actual57 Core0 held/terminal episodes:original Stop once before pool,
+restored161/real Up165,later Animator nonnull and original Play/Trigger return.
+All2920 native hashes/rawbridge/native65 joins match;every child exits naturally0.
+The FULL run staysFAILED at its separate generic feel gate:closed snapshots show
+the new test Gunbot still native ACTIVATION9 at440,so it cannot move immediately.
+Mirror-v3 now builds that subject earlier via the same original legal build
+helper,retains Move440 and adds native IDLE420/440 proof before all existing
+prereceipt/phase gates.238 focused Python checks and full204-binding helper78
+pass. Actual58 now PASSES that complete named runtime:both native IDLE420/440
+proofs,63ms visible response/484ms before raw bridge,441->442 phase,remote ten-
+frame replay+20 continuations,both held/terminal episodes and natural shutdown.
+No force or cleanup errors;source/runtime inputs stay unchanged. Actual59 also
+PASSES the prior Core5 fixture on helper78:two held episodes,62ms Move/94ms
+before bridge,phase441->441,remote correction and natural shutdown. The remaining
+group/input scopes and physical/Internet acceptance are next.
+Actual55 staysFAILED for late escape154 after real death153;its exact captures
+and source archive remain. Actual57 buffered896 early decisions with no recovery
+episode;that does not resolve55's transient early stall attribution.
 No full-feature or physical/Internet closure from these scoped results.
 Full_feature_accepted remainsfalse. See
 prediction-multiplayer-movement.txt. Live/usual-client files remain unchanged.

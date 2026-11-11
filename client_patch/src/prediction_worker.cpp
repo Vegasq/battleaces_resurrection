@@ -248,6 +248,13 @@ static void requireMovementBytes(int64_t site,const char* bytes,size_t count) {
         throw std::runtime_error("movement requires its scoped focus argument patch");
 }
 static void requireActorHook() {
+    requireMovementHook(0x3be43be,"OfflinePredictionTimelineEventOwner");
+    requireMovementHook(0x3be4661,"OfflinePredictionTimelineEventOwner");
+    requireMovementHook(0x3be47b5,"OfflinePredictionTimelineEventOwner");
+    requireMovementHook(0x3be46a9,"OfflinePredictionTimelineAnimator");
+    requireMovementHook(0x3be468c,"OfflinePredictionTimelineBinding");
+    requireMovementHook(0x3be46bd,"OfflinePredictionTimelineBinding");
+    requireMovementHook(0x3be478a,"OfflinePredictionTimelinePlay");
     requireMovementTailHook(0x3bf3316,"OfflinePredictionNaturalSelectionRemove");
     requireMovementTailHook(0x3bf24f7,"OfflinePredictionPreviewAdd");
     requireMovementTailHook(0x3bf2666,"OfflinePredictionPreviewClear");
@@ -285,6 +292,7 @@ static void requireActorHook() {
     requireMovementPointerHook(0x6d4dba0,"OfflinePredictionInputUp");
     requireMovementPointerHook(0x6d4dba8,"OfflinePredictionInputContextDown");
     requireMovementPointerHook(0x6d4dbb0,"OfflinePredictionInputContextUp");
+    requireMovementPointerHook(0x6d4ced0,"OfflinePredictionTimelineTrigger");
     requireMovementBytes(0x3bf305b,"\x45\x88\xf0",3);
 }
 uint64_t movementWorldId() {
@@ -382,6 +390,17 @@ void movementEnd(int finalInputFrame) {
 void movementFail(const char* reason) noexcept {
     try {auto& s=state();std::lock_guard<std::recursive_mutex> hold(s.gate);s.movementStopped=true;s.failed=true;}
     catch(...) {}
+    // Preserve the already-buffered producer/arrival QPC rows after an owned
+    // mirror diagnostic fails. This does no trace I/O during a successful
+    // measured prefix and never flushes a worker thread's main-thread buffer.
+    try {
+        if(ba::initialThread&&GetCurrentThreadId()==ba::initialThread&&
+           ba::flag(L"-prediction-terminal-timeline-smoke")&&
+           ba::flag(L"-prediction-actor-mirror-smoke")&&ba::flag(L"-prediction-held-click-smoke")) {
+            ba_prediction_movement::flushEarlyPhaseDiagnostics();
+            ba_frame_timing::flush();
+        }
+    } catch(...) {}
     try {const std::runtime_error error(reason?reason:"unknown movement failure");ba_lan::fail("movement prediction",error);}
     catch(...) {ba::log("Movement prediction stopped; normal Quit remains available");}
 }

@@ -390,6 +390,16 @@ D8    OPEN        Bounded two/four-room TLS/native and older soak evidence retai
                   two-world Unity held/terminal gate remains OPEN;the failed
                   report/captures are preserved. Helper66 and21 authored mirror
                   groups pass;they do not convert the failed runtime to PASS.
+                  Old-director cancellation passes both Actual57 Core0 held/
+                  terminal episodes,2920 native hashes/wire joins and natural
+                  Quit. Its FULL run staysFAILED:generic Move targets a test
+                  unit still ACTIVATION9 at440. Mirror-v3 retains that gate and
+                  Move440,builds earlier and requires native IDLE420/440. Runtime
+                  verification now PASSES in Actual58:both readiness/held/terminal
+                  episodes,63ms Move before bridge,phase/remote correction and
+                  natural Quit. Actual59 PASSES Core5 changed-path regression:
+                  both held episodes,pre-authority Move and natural Quit. Broader
+                  input/physical/Internet stay OPEN;55/57 full failures retained.
                   Details:prediction-actor-correction.txt. N35 remains pending.
                   219named Windows/C-data21-match cadence/resource check PASSES:
                   19.974326-20.005228Hz,max gap124.3548ms,zero worker awaits>50ms.

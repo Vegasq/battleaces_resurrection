@@ -18,6 +18,7 @@
 #include <limits>
 #include <functional>
 #include <cmath>
+#include <type_traits>
 #ifndef BA_MOVEMENT_HEADER
 #define BA_MOVEMENT_HEADER "../src/prediction_movement.hpp"
 #endif
@@ -99,6 +100,17 @@ static bool failEnumeration=false;
 // Opt-in held-identity fixtures; defaults preserve the group-scope host.
 static bool heldMovementEnabled=false;static int heldSlot=1,vector2Bytes=8;
 static std::map<std::pair<Class*,std::string>,Field> heldFields;
+// Opt-in exact original-API fixtures. Empty defaults retain the old host's
+// refusals; each fixture must match receiver, method/token and arguments.
+static std::map<uintptr_t,Obj> nativeOverrides;
+static std::map<Obj,std::vector<Obj>> parameterOverrides;
+static std::map<Obj,Obj> classParents,enumClasses;
+static std::map<Obj,std::pair<int32_t,uint32_t>> valueSizes;
+static std::map<std::pair<Obj,std::string>,Field> extraLiterals;
+static std::function<Obj(const char*,const char*)> makeHook;
+static std::function<bool(Obj,const char*,int,void**,Obj&)> callHook;
+static std::function<bool(Obj,const char*,uintptr_t&)> getHook;
+static std::function<bool(Obj,Obj,void**,Obj&)> invokeHook;
 static void metadata(){
     auto uintType=type("System","UInt32");auto boolType=type("System","Boolean");
     containsMethod={reinterpret_cast<Obj>(&contains),"Contains",0x0600013c,boolType};
@@ -162,13 +174,25 @@ static Obj methods(Obj klass,void** iterator){
     if(index>=values.size())return nullptr;
     *iterator=reinterpret_cast<void*>(index+1);return values[index];
 }
-static Obj parent(Obj){return nullptr;}
+static Obj parent(Obj value){const auto found=classParents.find(value);return found==classParents.end()?nullptr:found->second;}
+static bool assignableFrom(Obj expected,Obj value){
+    for(unsigned count=0;value&&count<64;++count,value=parent(value))if(value==expected)return true;
+    return false;
+}
+static uintptr_t arrayLength(Obj value){return read<uintptr_t>(value,0x18);}
+static Obj classMethod(Obj value,const char* name,int count){
+    for(Obj current=value;current;current=parent(current))for(auto* method:static_cast<Class*>(current)->methods)
+        if(method->name&&!strcmp(method->name,name)&&method->parameters==static_cast<uint32_t>(count))return method;
+    return nullptr;
+}
 static const char* className(Obj value){return static_cast<Class*>(value)->name.c_str();}
 static const char* methodName(Obj value){return static_cast<Method*>(value)->name;}
 static uint32_t parameterCount(Obj value){return static_cast<Method*>(value)->parameters;}
 static uint32_t methodToken(Obj value){return static_cast<Method*>(value)->token;}
 static uint32_t methodFlags(Obj value,uint32_t* implementation){*implementation=0;return static_cast<Method*>(value)->flags;}
 static Obj parameter(Obj method,uint32_t index){
+    const auto extra=parameterOverrides.find(method);
+    if(extra!=parameterOverrides.end()){check(index<extra->second.size(),"authored exact parameter index");return extra->second[index];}
     if(method==&getTypedMethod){check(index==0,"authored typed view parameter index");return type("Uncapped","IntKey`1");}
     if(method==&typedLookupMethod){check(index<2,"authored typed lookup parameter index");return index?type("Authored","LedByRefType"):type("Uncapped","IntKey`1");}
     if(method==&focusMethod){if(focusParameterHook){auto hook=std::move(focusParameterHook);focusParameterHook={};hook();}return focusParameter;}
@@ -183,14 +207,16 @@ static uint32_t fieldFlags(Obj value){return static_cast<Field*>(value)->flags;}
 static void staticFieldValue(Obj value,void* result){check(result!=nullptr,"authored literal output missing");memcpy(result,&static_cast<Field*>(value)->literal,4);}
 static Obj declaringType(Obj value){return static_cast<Class*>(value)->declaring;}
 static Obj classField(Obj value,const char* name){
+    const auto extra=extraLiterals.find({value,name});if(extra!=extraLiterals.end())return const_cast<Field*>(&extra->second);
     if(value!=type("","DeferredClickMode"))throw std::runtime_error("unexpected authored class field lookup");
     const auto found=clickLiterals.find(name);return found==clickLiterals.end()?nullptr:&found->second;
 }
-static bool isEnum(Obj value){return value==type("","DeferredClickMode");}
-static Obj enumBase(Obj value){check(isEnum(value),"authored enum base lookup on another type");return type("System","Int32");}
-static bool isValueType(Obj klass){if(klass==type("UnityEngine","Vector2"))return true;return klass==type("Uncapped","IntKey`1")||klass==type("","SelectedEntitiesOfType")||klass==type("Authored","ValueEnumerator")||isEnum(klass)||
+static bool isEnum(Obj value){return value==type("","DeferredClickMode")||enumClasses.count(value)!=0;}
+static Obj enumBase(Obj value){check(isEnum(value),"authored enum base lookup on another type");const auto extra=enumClasses.find(value);return extra==enumClasses.end()?type("System","Int32"):extra->second;}
+static bool isValueType(Obj klass){if(valueSizes.count(klass))return true;if(klass==type("UnityEngine","Vector2"))return true;return klass==type("Uncapped","IntKey`1")||klass==type("","SelectedEntitiesOfType")||klass==type("Authored","ValueEnumerator")||isEnum(klass)||
     klass==type("System","Single")||klass==type("System","Int32")||klass==type("System","UInt32")||klass==type("System","Boolean");}
 static int32_t valueSize(Obj klass,uint32_t* alignment){
+    const auto extra=valueSizes.find(klass);if(extra!=valueSizes.end()){*alignment=extra->second.second;return extra->second.first;}
     if(klass==type("UnityEngine","Vector2")){*alignment=4;return vector2Bytes;}
     if(klass==type("System","Boolean")){*alignment=1;return 1;}
     if(klass==type("System","Single")){*alignment=4;return clickSingleSize;}
@@ -255,6 +281,9 @@ template<class T>T api(const char* name){
     if(!strcmp(name,"il2cpp_method_get_declaring_type"))return reinterpret_cast<T>(&host::methodOwner);
     if(!strcmp(name,"il2cpp_type_is_byref"))return reinterpret_cast<T>(&host::byref);
     if(!strcmp(name,"il2cpp_class_get_methods"))return reinterpret_cast<T>(&host::methods);
+    if(!strcmp(name,"il2cpp_class_get_method_from_name"))return reinterpret_cast<T>(&host::classMethod);
+    if(!strcmp(name,"il2cpp_class_is_assignable_from"))return reinterpret_cast<T>(&host::assignableFrom);
+    if(!strcmp(name,"il2cpp_array_length"))return reinterpret_cast<T>(&host::arrayLength);
     if(!strcmp(name,"il2cpp_class_get_parent"))return reinterpret_cast<T>(&host::parent);
     if(!strcmp(name,"il2cpp_class_get_name"))return reinterpret_cast<T>(&host::className);
     if(!strcmp(name,"il2cpp_method_get_name"))return reinterpret_cast<T>(&host::methodName);
@@ -279,6 +308,7 @@ template<class T>T api(const char* name){
     throw std::runtime_error(std::string("unexpected authored metadata API: ")+name);
 }
 template<class T>T native(uintptr_t rva){
+    const auto extra=host::nativeOverrides.find(rva);if(extra!=host::nativeOverrides.end())return reinterpret_cast<T>(extra->second);
     if(rva==0x3c65810)return reinterpret_cast<T>(&host::getTypedCode[0]);
     if(rva==0x3c699b0)return reinterpret_cast<T>(&host::ledCode[0]);
     if(rva==0x3c63de0)return reinterpret_cast<T>(&host::dirtyCode[0]);
@@ -313,10 +343,17 @@ static Obj field(Obj receiver,const char* name){
     if(!strcmp(name,"_unitManager") && klass(receiver)==host::type("Uncapped","ControlGroup"))return &groupManager;
     return &host::fields.at(name);
 }
-static Obj call(Obj receiver,const char* name,int=0,void** =nullptr){return static_cast<host::Node*>(receiver)->calls.at(name);}
-static Obj make(const char*,const char*){throw std::runtime_error("unexpected managed creation");}
+static Obj call(Obj receiver,const char* name,int count=0,void** args=nullptr){Obj result=nullptr;if(host::callHook&&host::callHook(receiver,name,count,args,result))return result;return static_cast<host::Node*>(receiver)->calls.at(name);}
+inline Obj method(Obj receiver,const char* name,int count){return host::classMethod(klass(receiver),name,count);}
+static Obj make(const char* space,const char* name){if(host::makeHook)return host::makeHook(space,name);throw std::runtime_error("unexpected managed creation");}
 template<class T>T get(Obj receiver,const char* name){
-    if(receiver==owner&&!strcmp(name,"<UnitSelector>k__BackingField")&&host::currentSelector)return static_cast<T>(host::currentSelector);
+    uintptr_t raw=0;if(host::getHook&&host::getHook(receiver,name,raw)){
+        if constexpr(std::is_pointer_v<T>)return reinterpret_cast<T>(raw);else return static_cast<T>(raw);
+    }
+    if(receiver==owner&&!strcmp(name,"<UnitSelector>k__BackingField")&&host::currentSelector){
+        if constexpr(std::is_pointer_v<T>)return static_cast<T>(host::currentSelector);
+        else throw std::runtime_error("authored selector field is not a scalar");
+    }
     ++host::retirementPreflights;
     throw std::runtime_error("authored stop: real retirement preflight reached");
 }
@@ -335,6 +372,7 @@ static int count(void* value){
     return static_cast<int>(static_cast<host::Node*>(value)->values.size());
 }
 static void* invokeMethod(void* method,void* object,void** args){
+    host::Obj hookResult=nullptr;if(host::invokeHook&&host::invokeHook(method,object,args,hookResult))return hookResult;
     const auto token=static_cast<host::Method*>(method)->token;
     if(token==0x060025a1)throw std::runtime_error("filtered GetUnitsOfType must never be invoked by raw ownership query");
     if(token==0x06002de7){
@@ -500,6 +538,8 @@ namespace ba_prediction_movement {bool ownsPresentation(void*){return host::pres
 namespace scope_test {
 using host::Node;using host::put;using host::check;namespace actors=ba_prediction_actors;
 static void metadata(){
+    host::nativeOverrides.clear();host::parameterOverrides.clear();host::classParents.clear();host::enumClasses.clear();host::valueSizes.clear();host::extraLiterals.clear();
+    host::makeHook={};host::callHook={};host::getHook={};host::invokeHook={};
     host::heldMovementEnabled=false;host::heldSlot=1;host::vector2Bytes=8;host::heldFields.clear();
     host::metadata();auto* selection=host::type("Uncapped.Collections","UnitSelectionSet");
     auto* led=host::type("","LedUnitSet");led->declaring=selection;
