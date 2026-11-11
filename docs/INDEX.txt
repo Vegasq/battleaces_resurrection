@@ -20,6 +20,7 @@ Focused evidence files were not renamed because tools and retained reports
 depend on their paths. Top-level reference documents are indexed below.
 
 CURRENT PLANNING AND ACCEPTANCE
+  prediction-original-hold.txt - N33 original instant Hold/stop before authority and reproduced post-match input ownership repair
   prediction-context-move.txt - N33 original right-click Move,normal serialization and pre-authority response in two actual rounds
   prediction-actor-correction.txt - N33 selected-HQ correction regression,original callback lifetime and mobile/RTT qualification
   prediction-multiplayer-movement.txt - N33 actual Unity Move-before-authority,clock regression/fix and scoped two-client correction proof

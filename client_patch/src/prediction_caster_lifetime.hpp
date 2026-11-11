@@ -79,7 +79,7 @@ static void event(actors::State& owner,Obj selector,int frame,const char* name,c
     const auto text=out.str();require(text.size()<=8192,"active caster receipt bound");ba::log("MOBILE ACTIVE CASTER %s",text.c_str());
 }
 struct Mapping {std::unique_ptr<Root> panel,array,button;caster_survey::Button row;};
-static Mapping findMapping(actors::State& owner,Obj selector) {
+static Mapping findMapping(actors::State& owner,Obj selector,int targetSlot=4,uint32_t configId=88,int castType=5,int groupKind=2) {
     Mapping result;caster_survey::reference(selector,"_commandPanel",0xc8,"Uncapped","CommandPanel");
     result.panel=std::make_unique<Root>(ba::read<Obj>(selector,0xc8));actors::classIs(result.panel->get(),"Uncapped","CommandPanel");
     caster_survey::reference(result.panel->get(),"_unitSelector",0xc0,"Uncapped","UnitSelector");
@@ -96,11 +96,11 @@ static Mapping findMapping(actors::State& owner,Obj selector) {
     const auto length=ba::api<uintptr_t(*)(Obj)>("il2cpp_array_length")(result.array->get());require(length<=12,"active caster button array exceeds diagnostic cap");unsigned matches=0;
     for(size_t i=0;i<length;++i) {
         const auto row=caster_survey::inspect(owner,selector,result.panel->get(),result.array->get(),i);
-        if(row.present&&row.slot==4){++matches;result.row=row;result.button=std::make_unique<Root>(ba::read<Obj>(result.array->get(),0x20+i*sizeof(Obj)));}
+        if(row.present&&row.slot==targetSlot){++matches;result.row=row;result.button=std::make_unique<Root>(ba::read<Obj>(result.array->get(),0x20+i*sizeof(Obj)));}
     }
-    const auto& row=result.row;require(matches==1&&result.button&&result.button->get()&&row.configId==88&&row.castType==5&&row.kind==2&&row.smart==false&&
+    const auto& row=result.row;require(matches==1&&result.button&&result.button->get()&&row.configId==configId&&row.castType==castType&&row.kind==groupKind&&row.smart==false&&
         row.valid==true&&row.groupMatches==true&&row.groupLive==true&&row.hasCasters==true&&row.mappedCount==1&&row.mappedIds&&*row.mappedIds==std::vector<uint32_t>{11},
-        "active caster unique actual slot4/config88 mapping unavailable");return result;
+        "original unique ability button mapping unavailable");return result;
 }
 static void pop(actors::State& owner,Obj selector,int frame,const char* reason) {
     auto& s=state();guard(owner,selector,frame);Root current(ba::read<Obj>(selector,0x100));

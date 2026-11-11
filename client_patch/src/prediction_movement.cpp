@@ -168,14 +168,7 @@ void authorityReceived(int frame,uint64_t receivedUs) {
     if(frame<2)ba::log("Movement pacing authority receipt: match=%s frame=%d received_us=%llu",
         state.match.c_str(),frame,static_cast<unsigned long long>(receivedUs));
 }
-bool ownsPresentation(void* simulation) {
-    if(!worker::movementEnabled() || !state.prepared || !state.pacingStarted || !state.world ||
-       state.match.empty() || state.simulation!=simulation)return false;
-    // A requested flag is not an active match. Teardown/local-AI fallback has
-    // no worker movement key; leave its original publication path alone.
-    if(!worker::movementWorldId() || worker::movementMatchId().empty())return false;
-    bound(state.server);return true;
-}
+#include "prediction_presentation_ownership.hpp"
 bool activeForRefresh() {
     if(!worker::movementEnabled() || !state.prepared || !state.pacingStarted || state.failed || state.drained ||
        !ba_lan::running || !ba_lan::worldReady || ba_lan::stopped || ba_lan::matchEnded ||

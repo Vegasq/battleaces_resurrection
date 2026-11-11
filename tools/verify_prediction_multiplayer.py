@@ -218,6 +218,22 @@ def prepare(args):
     mobile_held_click = getattr(args, 'mobile_held_click', False)
     require(type(mobile_held_click) is bool, 'mobile held click option must be Boolean')
     mobile_context_move = getattr(args, 'mobile_context_move', False)
+    mobile_original_hold = getattr(args, 'mobile_original_hold', False)
+    require(type(mobile_original_hold) is bool, 'mobile original Hold option must be Boolean')
+    if mobile_original_hold:
+        validate_mobile_original_hold_plan(dict(mobile_original_hold=True, scenario=args.scenario,
+            mobile_correction=mobile_correction, lifecycle=args.lifecycle, frames=frames,
+            expected_matches=2 if args.lifecycle == 'natural' else 1, move_slot=args.move_slot,
+            rtt_ms=list(args.rtt_ms), native_position_trace=position_trace,
+            **{key:getattr(args,key,False) for key in MOBILE_ORIGINAL_HOLD_EXCLUSIONS}))
+    mobile_context_hold = getattr(args, 'mobile_context_hold', False)
+    require(type(mobile_context_hold) is bool, 'mobile context Hold option must be Boolean')
+    if mobile_context_hold:
+        validate_mobile_context_hold_plan(dict(mobile_context_hold=True, mobile_context_move=mobile_context_move,
+            scenario=args.scenario, mobile_correction=mobile_correction, lifecycle=args.lifecycle, frames=frames,
+            expected_matches=2 if args.lifecycle == 'natural' else 1, move_slot=args.move_slot,
+            rtt_ms=list(args.rtt_ms), native_position_trace=position_trace,
+            **{key:getattr(args,key,False) for key in MOBILE_CONTEXT_EXCLUSIONS}))
     require(type(mobile_context_move) is bool, 'mobile context Move option must be Boolean')
     if mobile_context_move:
         validate_mobile_context_move_plan(dict(mobile_context_move=True, scenario=args.scenario,
@@ -322,6 +338,8 @@ def prepare(args):
                          (mobile_ui_cast,'-prediction-mobile-ui-cast-smoke'),
                          (mobile_held_click,'-prediction-mobile-held-click-smoke'),
                          (mobile_context_move,'-prediction-mobile-context-move-smoke'),
+                         (mobile_context_hold,'-prediction-mobile-context-hold-smoke'),
+                         (mobile_original_hold,'-prediction-mobile-original-hold-smoke'),
                          (expired_click,'-prediction-expired-click-smoke'),
                          (held_click,'-prediction-held-click-smoke'),
                          (actor_mirror,'-prediction-actor-mirror-smoke'),
@@ -450,6 +468,12 @@ def prepare(args):
         if mobile_context_move:
             invocation.update(mobile_context_move=True,
                 mobile_scope='Genuine bound-Mouse fresh primary reselection, ContextDown-created original Move12 and balanced ContextUp, original mobile correction and pre-authority response; physical UI, group/type retirement and full controls remain open')
+        if mobile_context_hold:
+            invocation.update(mobile_context_hold=True,
+                mobile_scope='Genuine ContextDown Move12 then original slot5 instant Hold14 and stop before authority, normal serialization, mobile correction and natural two-world lifecycle; physical keyboard/UI and full controls remain open')
+        if mobile_original_hold:
+            invocation.update(mobile_original_hold=True,
+                mobile_scope='Existing scripted original selection/Move180 then original slot5 instant Hold14/stop before authority, normal serialization and mobile correction; combined context/Hold, physical keyboard/UI and full controls remain open')
         validate_mobile_plan(invocation)
     output.mkdir(parents=True, exist_ok=False)
     for name in sources:
@@ -465,6 +489,8 @@ def prepare(args):
 def validate_mobile_plan(plan):
     validate_mobile_held_click_plan(plan)
     validate_mobile_context_move_plan(plan)
+    validate_mobile_context_hold_plan(plan)
+    validate_mobile_original_hold_plan(plan)
     require(plan.get('scenario') == 'mobile' and plan.get('mobile_correction') is True and
             plan.get('lifecycle') == 'natural' and plan.get('frames') == 650 and plan.get('expected_matches') == 2 and
             plan.get('move_slot') == 0 and plan.get('rtt_ms') == [130,475] and
@@ -493,14 +519,37 @@ def validate_mobile_plan(plan):
 
 EXPIRED_CLICK_MOBILE_FLAGS = ('mobile_correction', 'mobile_group_intent', 'mobile_group_user_edits',
     'mobile_recovery_stall', 'mobile_recall', 'mobile_focus', 'mobile_focus_no_start', 'mobile_focus_restart',
-    'mobile_caster_survey', 'mobile_caster_lifetime', 'mobile_ui_cast', 'mobile_held_click', 'mobile_context_move')
+    'mobile_caster_survey', 'mobile_caster_lifetime', 'mobile_ui_cast', 'mobile_held_click', 'mobile_context_move', 'mobile_context_hold', 'mobile_original_hold')
 
 MOBILE_HELD_EXCLUSIONS = ('actor_correction', 'actor_mirror', 'terminal_timeline', 'held_click',
     'expired_click', 'changing_rtt', 'transition_orders', 'mobile_group_intent', 'mobile_group_user_edits',
     'mobile_recovery_stall', 'mobile_recall', 'mobile_focus', 'mobile_focus_no_start', 'mobile_focus_restart',
-    'mobile_caster_survey', 'mobile_caster_lifetime', 'mobile_ui_cast', 'mobile_context_move')
+    'mobile_caster_survey', 'mobile_caster_lifetime', 'mobile_ui_cast', 'mobile_context_move', 'mobile_context_hold', 'mobile_original_hold')
 
-MOBILE_CONTEXT_EXCLUSIONS = tuple(key for key in MOBILE_HELD_EXCLUSIONS if key != 'mobile_context_move') + ('mobile_held_click',)
+MOBILE_CONTEXT_EXCLUSIONS = tuple(key for key in MOBILE_HELD_EXCLUSIONS if key not in ('mobile_context_move','mobile_context_hold')) + ('mobile_held_click',)
+MOBILE_ORIGINAL_HOLD_EXCLUSIONS = tuple(key for key in MOBILE_CONTEXT_EXCLUSIONS if key != 'mobile_original_hold') + ('mobile_context_move','mobile_context_hold')
+
+
+def validate_mobile_original_hold_plan(plan):
+    require('mobile_original_hold' not in plan or type(plan['mobile_original_hold']) is bool,
+            'prepared mobile original Hold option must be Boolean')
+    if not plan.get('mobile_original_hold'):
+        return
+    require(plan.get('scenario')=='mobile' and plan.get('mobile_correction') is True and
+        plan.get('lifecycle')=='natural' and type(plan.get('frames')) is int and plan['frames']==650 and
+        type(plan.get('expected_matches')) is int and plan['expected_matches']==2 and
+        type(plan.get('move_slot')) is int and plan['move_slot']==0 and plan.get('rtt_ms')==[130,475] and
+        plan.get('native_position_trace') is None and all(type(plan.get(k,False)) is bool and not plan.get(k,False)
+            for k in MOBILE_ORIGINAL_HOLD_EXCLUSIONS),'original Hold requires exclusive mobile correction, natural650, slot0,130/475ms')
+
+
+def validate_mobile_context_hold_plan(plan):
+    require('mobile_context_hold' not in plan or type(plan['mobile_context_hold']) is bool,
+            'prepared mobile context Hold option must be Boolean')
+    if not plan.get('mobile_context_hold'):
+        return
+    require(plan.get('mobile_context_move') is True, 'mobile context Hold requires explicit genuine context Move')
+    validate_mobile_context_move_plan(plan)
 
 
 def validate_mobile_context_move_plan(plan):
@@ -595,6 +644,8 @@ def verify_prepared(output):
     validate_terminal_timeline_plan(plan)
     validate_mobile_held_click_plan(plan)
     validate_mobile_context_move_plan(plan)
+    validate_mobile_context_hold_plan(plan)
+    validate_mobile_original_hold_plan(plan)
     require(Path(plan['game']).resolve() == (ROOT / 'local/prediction-runtime/game').resolve(),
             'prepared game is not the independent runtime copy')
     require(source_hashes() == plan['source_sha256'], 'source changed since preparation')
@@ -612,6 +663,8 @@ def command_extra(plan, index, run):
     validate_terminal_timeline_plan(plan)
     validate_mobile_held_click_plan(plan)
     validate_mobile_context_move_plan(plan)
+    validate_mobile_context_hold_plan(plan)
+    validate_mobile_original_hold_plan(plan)
     role = ('host', 'guest')[index]
     result = [f'-community-match-{role}-smoke', '-lan-smoke', '-dedicated-surrender-smoke',
         '-dedicated-surrender-frame=' + str(plan['surrender_frame']),
@@ -661,6 +714,10 @@ def command_extra(plan, index, run):
         result.append('-prediction-mobile-held-click-smoke')
     if plan.get('mobile_context_move'):
         result.append('-prediction-mobile-context-move-smoke')
+    if plan.get('mobile_context_hold'):
+        result.append('-prediction-mobile-context-hold-smoke')
+    if plan.get('mobile_original_hold'):
+        result.append('-prediction-mobile-original-hold-smoke')
     if plan.get('changing_rtt') and index == plan['move_slot']:
         result.append('-prediction-movement-smoke-distance=48')
     if plan.get('transition_orders') and index == plan['move_slot']:
@@ -1406,6 +1463,12 @@ def finalize_mobile_observation(report, plan, *, states, worker_state_rows, clie
     if plan.get('mobile_context_move'):
         validate_mobile_context_move_plan(plan)
         require(mobile_context_move_gate(report), 'genuine context callback/normal serialization/balanced input witness missing/failed')
+    if plan.get('mobile_context_hold'):
+        validate_mobile_context_hold_plan(plan)
+        require(mobile_context_hold_gate(report), 'original instant Hold14/normal serialization/pre-authority stop witness missing/failed')
+    if plan.get('mobile_original_hold'):
+        validate_mobile_original_hold_plan(plan)
+        require(mobile_original_hold_gate(report), 'standalone original Hold14/stop/native witness missing/failed')
     if plan.get('mobile_group_intent'):
         groups=report.get('mobile_group_intent',{})
         require(report.get('mobile_group_intent',{}).get('passed') is True and
@@ -1476,7 +1539,9 @@ def finalize_mobile_observation(report, plan, *, states, worker_state_rows, clie
                 'explicit nonpredicted original UI command witness missing/failed')
     report.update(mobile_state_parity=parity,mobile_input_witness_passed=True,scoped_observation_passed=True,
         generic_movement_not_exercised=True,movement_feel_witness_passed=False,full_mobile_controls_accepted=False,
-        mobile_scope=('Genuine fresh primary input and ContextDown Move12 normal serialization/balanced ContextUp, pre-authority response and full closed native parity; physical UI and group/type paths remain open' if plan.get('mobile_context_move') else
+        mobile_scope=('Scripted original selection/Move180 then original slot5 Hold14/pre-authority stop, full native parity/natural lifecycle; combined context/Hold and physical keyboard/UI remain open' if plan.get('mobile_original_hold') else
+            'Genuine ContextDown Move12 then original instant Hold14/pre-authority stop, full closed native parity and natural two-world lifecycle; physical keyboard/UI and group/type paths remain open' if plan.get('mobile_context_hold') else
+            'Genuine fresh primary input and ContextDown Move12 normal serialization/balanced ContextUp, pre-authority response and full closed native parity; physical UI and group/type paths remain open' if plan.get('mobile_context_move') else
             'Schema3 returned primary callbacks, original Count0 absent/Count1 restored, retained raw IDs, fresh genuine click/Move184 and full closed native parity; authorization and broad held/newborn acceptance stay separate' if plan.get('mobile_held_click') else
             'Both original mobile release/reinit/UI88 command ownership episodes plus full closed native parity; no predicted response or generic newborn movement claim' if plan.get('mobile_ui_cast') else
             'Both original mobile release/reinit/freshMove episodes plus full closed native parity; generic newborn440/460 movement not exercised, group intent remains separately open'))
@@ -1518,6 +1583,32 @@ def mobile_context_move_gate(report):
             for r,ep in zip(rows,episodes)))
 
 
+def mobile_context_hold_gate(report):
+    return bool(mobile_context_move_gate(report) and _mobile_hold_gate(report,'mobile_context_hold','context'))
+
+
+def mobile_original_hold_gate(report):
+    return bool(not report.get('mobile_context_move') and report.get('mobile_context_move_witness_passed') is not True and
+        _mobile_hold_gate(report,'mobile_original_hold','scripted_move_original_button'))
+
+
+def _mobile_hold_gate(report,key,scope):
+    proof=report.get(key,{})
+    episodes=report.get('mobile_correction',{}).get('episodes',[])
+    rows=proof.get('episodes',[])
+    return bool(report.get(key+'_witness_passed') is True and proof.get('scope')==scope and
+        proof.get('passed') is True and proof.get('evidence_schema')==1 and proof.get('originalCtor') is False and
+        proof.get('physicalUI') is False and proof.get('selection_writes')==0 and proof.get('history_writes')==0 and
+        len(rows)==len(episodes)==2 and all(row==ep.get(key) and row.get('passed') is True and row.get('scope')==scope and
+            row.get('world')==ep.get('world') and row.get('match')==ep.get('match') and len(row.get('rows',[]))==3 and
+            row.get('stop',{}).get('passed') is True and row.get('native_confirmation',{}).get('continuation_frames')==20 and
+            row.get('normal_serialization_only') is True and row.get('originalCtor') is False and
+            row.get('binding',{}).get('ability')==14 and row['binding'].get('instant') is True and
+            (scope!='scripted_move_original_button' or ep.get('fresh',{}).get('order',{}).get('originalCtor') is True and
+                ep['fresh']['order'].get('frame')==180 and not ep.get('mobile_context_move'))
+            for row,ep in zip(rows,episodes)))
+
+
 def mobile_final_gate(plan, report):
     """Additional mobile-only final gate; the ordinary final expression remains."""
     if plan.get('mobile_held_click'):
@@ -1525,6 +1616,12 @@ def mobile_final_gate(plan, report):
         except AssertionError:return False
     if plan.get('mobile_context_move'):
         try:validate_mobile_context_move_plan(plan)
+        except AssertionError:return False
+    if plan.get('mobile_context_hold'):
+        try:validate_mobile_context_hold_plan(plan)
+        except AssertionError:return False
+    if plan.get('mobile_original_hold'):
+        try:validate_mobile_original_hold_plan(plan)
         except AssertionError:return False
     return bool(plan.get('scenario') == 'mobile' and plan.get('expected_matches') == 2 and
         report.get('scoped_observation_passed') is True and report.get('mobile_input_witness_passed') is True and
@@ -1534,6 +1631,8 @@ def mobile_final_gate(plan, report):
         report.get('full_mobile_controls_accepted') is False and not report.get('error') and
         (not plan.get('mobile_held_click') or mobile_held_click_gate(report)) and
         (not plan.get('mobile_context_move') or mobile_context_move_gate(report)) and
+        (not plan.get('mobile_context_hold') or mobile_context_hold_gate(report)) and
+        (not plan.get('mobile_original_hold') or mobile_original_hold_gate(report)) and
         (not plan.get('mobile_group_intent') or (report.get('mobile_group_intent',{}).get('passed') is True and
             report.get('group_intent_witness_passed') is True and
             report['mobile_group_intent'].get('user_edits') is bool(plan.get('mobile_group_user_edits')))) and
@@ -2606,6 +2705,10 @@ async def run_prepared(output):
         report['held_click_witness_passed'] = False
     if plan.get('mobile_context_move'):
         report['mobile_context_move_witness_passed'] = False
+    if plan.get('mobile_context_hold'):
+        report['mobile_context_hold_witness_passed'] = False
+    if plan.get('mobile_original_hold'):
+        report['mobile_original_hold_witness_passed'] = False
     if plan['scenario'] == 'mobile':
         report.update(mobile_input_witness_passed=False,generic_movement_not_exercised=True,
             full_mobile_controls_accepted=False,mobile_scope=plan['mobile_scope'])
@@ -3002,7 +3105,8 @@ async def run_prepared(output):
                         'mobile correction lacks both actual match contexts or closed victim states')
                 active_scope=({'caster_lifetime':True} if plan.get('mobile_caster_lifetime') else
                     {'mobile_held_click':True} if plan.get('mobile_held_click') else
-                    {'mobile_context_move':True} if plan.get('mobile_context_move') else {})
+                    {'mobile_context_move':True, 'mobile_context_hold':plan.get('mobile_context_hold',False)} if plan.get('mobile_context_move') else
+                    {'mobile_original_hold':True} if plan.get('mobile_original_hold') else {})
                 evaluator=evaluate_ui_cast if plan.get('mobile_ui_cast') else evaluate
                 episodes = [evaluator(**context,worker_states=worker_state_rows[1],escape_check=actor_escape_evidence,
                                     join_check=joined_worker_evidence,authority_rows=authority_rows,**active_scope)
@@ -3023,6 +3127,16 @@ async def run_prepared(output):
                     report['mobile_context_move']=evaluate_context_move(clients[1]['log'],attacker_log=clients[0]['log'],
                         mobile_episodes=episodes,expected_matches=[r['match'] for r in episodes])
                     report['mobile_context_move_witness_passed']=report['mobile_context_move']['passed']
+                if plan.get('mobile_context_hold'):
+                    from tools.prediction_context_hold_evidence import evaluate as evaluate_context_hold
+                    report['mobile_context_hold']=evaluate_context_hold(clients[1]['log'],attacker_log=clients[0]['log'],
+                        mobile_episodes=episodes,expected_matches=[r['match'] for r in episodes])
+                    report['mobile_context_hold_witness_passed']=report['mobile_context_hold']['passed']
+                if plan.get('mobile_original_hold'):
+                    from tools.prediction_context_hold_evidence import evaluate as evaluate_original_hold
+                    report['mobile_original_hold']=evaluate_original_hold(clients[1]['log'],attacker_log=clients[0]['log'],
+                        mobile_episodes=episodes,expected_matches=[r['match'] for r in episodes],original_hold=True)
+                    report['mobile_original_hold_witness_passed']=report['mobile_original_hold']['passed']
             except BaseException as error:
                 report['mobile_correction'] = dict(passed=False,error=repr(error),
                     scope='No substituted mobile lifecycle, input or correction evidence')
@@ -3035,6 +3149,12 @@ async def run_prepared(output):
                 if plan.get('mobile_context_move'):
                     report['mobile_context_move']=dict(passed=False,error=repr(error))
                     report['mobile_context_move_witness_passed']=False
+                if plan.get('mobile_context_hold'):
+                    report['mobile_context_hold']=dict(passed=False,error=repr(error))
+                    report['mobile_context_hold_witness_passed']=False
+                if plan.get('mobile_original_hold'):
+                    report['mobile_original_hold']=dict(passed=False,error=repr(error))
+                    report['mobile_original_hold_witness_passed']=False
         if plan.get('mobile_group_intent'):
             try:
                 from tools.prediction_mobile_evidence import evaluate_group_intent
@@ -3451,6 +3571,10 @@ def main(argv=None):
                         help='Explicit Gunbot10/11 fixture: original mobile group/focus death, correction and fresh Move')
     parser.add_argument('--mobile-held-click', action='store_true',
                         help='With mobile correction only: real bound-Mouse Down/removal/Up and fresh real reselection/Move184')
+    parser.add_argument('--mobile-original-hold', action='store_true',
+        help='Exclusive scripted original Move180 then original slot5 Hold14; no context-input claim')
+    parser.add_argument('--mobile-context-hold', action='store_true',
+        help='Explicit original slot5 Hold14 after genuine context Move; requires --mobile-context-move')
     parser.add_argument('--mobile-context-move', action='store_true',
                         help='With mobile correction only: genuine fresh primary reselection, bound-Mouse ContextDown Move12 and balanced ContextUp')
     parser.add_argument('--mobile-group-intent', action='store_true',
@@ -3492,7 +3616,7 @@ def main(argv=None):
         report = asyncio.run(run_prepared(args.run_prepared))
         print(json.dumps({k: report[k] for k in ('passed', 'scoped_observation_passed', 'movement_feel_witness_passed',
             'mobile_input_witness_passed','group_intent_witness_passed','recovery_stall_witness_passed','recall_witness_passed','focus_witness_passed','focus_no_start_witness_passed','focus_restart_witness_passed','caster_survey_witness_passed','caster_lifetime_witness_passed','ui_command_witness_passed','generic_movement_not_exercised',
-            'expired_click_witness_passed', 'held_click_witness_passed', 'mobile_held_click_witness_passed', 'mobile_context_move_witness_passed', 'full_feature_accepted', 'forced_cleanup', 'error') if k in report}))
+            'expired_click_witness_passed', 'held_click_witness_passed', 'mobile_held_click_witness_passed', 'mobile_context_move_witness_passed', 'mobile_context_hold_witness_passed', 'mobile_original_hold_witness_passed', 'full_feature_accepted', 'forced_cleanup', 'error') if k in report}))
         return 0 if report['passed'] else 1
     required = ('game', 'assets', 'output', 'python', 'module_root', 'heap_helper', 'cooperative', 'helper_build_receipt',
                 'expected_helper_sha256', 'expected_gameassembly_sha256')

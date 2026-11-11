@@ -108,12 +108,14 @@ struct Dispatch {
         actors::require(ba::initialThread && GetCurrentThreadId()==ba::initialThread,
             "input observer callback is outside the retained Unity thread");
         auto& state=actors::state();
-        // Input may arrive before the first original presentation update has
-        // established actor ownership. Forward it without arming an episode.
+        // Input can precede actor ownership or follow terminal drain while the
+        // worker key still exists. Forward either original callback without
+        // arming an observer. Active binding errors continue to propagate.
         if(!state.world || !state.groupGeneration || !state.manager || !state.simulation ||
            state.world!=ba_prediction_worker::movementWorldId() ||
            state.match!=ba_prediction_worker::movementMatchId() ||
            selector!=selection::currentSelector())return false;
+        if(!ba_prediction_movement::ownsPresentation(state.simulation->get()))return false;
         const auto current=owner(selector);ledger=&actors::state().inputIntent;
         signature(route,selector,context,info);
         ticket=ledger->begin(current,route.kind);

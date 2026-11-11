@@ -502,12 +502,19 @@ def _ui_cast_records(log, match):
         activation_index=indices[active_i],queued_index=indices[queued_i],drain_index=indices[drain_i],preactivation_residue=residue)
 
 
-def _snapshots(log, match, *, caster_lifetime=False, _ui=None, mobile_held_click=False, mobile_context_move=False):
+def _snapshots(log, match, *, caster_lifetime=False, _ui=None, mobile_held_click=False, mobile_context_move=False,
+               mobile_original_hold=False):
     require(type(caster_lifetime) is bool,'invalid active-caster observation option')
     require(type(mobile_held_click) is bool and not(mobile_held_click and(caster_lifetime or _ui)),
         'invalid mobile held-click observation option')
     require(type(mobile_context_move) is bool and not(mobile_context_move and(caster_lifetime or _ui or mobile_held_click)),
         'invalid mobile context Move observation option')
+    require(type(mobile_original_hold) is bool and not(mobile_original_hold and
+        (caster_lifetime or _ui or mobile_held_click or mobile_context_move)),'invalid original Hold observation option')
+    original_hold=None
+    if mobile_original_hold:
+        from tools import prediction_context_hold_evidence as original_hold_evidence
+        original_hold=original_hold_evidence.records(log,match,original_hold=True)
     context = None
     if mobile_context_move:
         from tools import prediction_context_move_evidence as context_move
@@ -518,7 +525,7 @@ def _snapshots(log, match, *, caster_lifetime=False, _ui=None, mobile_held_click
         held=mobile_held.records(log,match)
     lifetime=_caster_lifetime_records(log,match) if caster_lifetime else None
     mobile_indices=[]
-    if lifetime or _ui or held or context:
+    if lifetime or _ui or held or context or original_hold:
         for index,line in enumerate(log.splitlines()):
             if 'MOBILE CORRECTION ' in line and json.loads(line.split('MOBILE CORRECTION ',1)[1],object_pairs_hook=_unique_object).get('match')==match:
                 mobile_indices.append(index)
@@ -581,14 +588,15 @@ def _snapshots(log, match, *, caster_lifetime=False, _ui=None, mobile_held_click
         held_scope=mobile_held.mobile_row_scope(held,row) if held else False
         context_scope=context_move.mobile_row_scope(context,row) if context else False
         context_post=bool(context and context_move.post_down_scope(context,row))
-        if context_post:
+        original_hold_post=bool(original_hold and original_hold_evidence.post_return_scope(original_hold,row))
+        if context_post or original_hold_post:
             require(row['casting_ids'] in ([],[11]) and
                 row['casting_references_victim'] == (11 in row['casting_ids']),
                 'context post-Down scratch differs from the observed mobile source')
         require(row['pool_callback_observed'] is False and (held_scope or context_scope or not row['left_held']) and
                 (context_scope or not row['right_held']) and (held_scope or context_scope or row['live_click_id'] != 11) and
-                (active_window or context_post or not _pointer(row['active_caster'])) and
-                (scratch_window or context_post or not row['casting_ids'] and not row['casting_references_victim']),
+                (active_window or context_post or original_hold_post or not _pointer(row['active_caster'])) and
+                (scratch_window or context_post or original_hold_post or not row['casting_ids'] and not row['casting_references_victim']),
                 'unexercised caster/gesture/pool-callback scope was crossed')
         require(row['native_state_present'] == (row.get('native_state') is not None) and
                 (row['native_state'] is None or _integer(row['native_state'], 0, UINT32-1)),
@@ -660,6 +668,7 @@ def _snapshots(log, match, *, caster_lifetime=False, _ui=None, mobile_held_click
             'initial repeat-focus setup lacks original predicates/current-lease proof')
     if held:mobile_held.bind_mobile(held,rows,mobile_indices)
     if context:context_move.bind_mobile(context,rows,mobile_indices)
+    if original_hold:original_hold_evidence.bind_mobile(original_hold,rows,mobile_indices)
     return rows, episode, focus_observations
 
 
@@ -888,7 +897,8 @@ def _assignment_span(rows, *, world, assigned, canonical, states):
 
 def evaluate(log, *, attacker_log, match, commits, raw_bodies, journal, bridge_frames,
              canonical_payloads, canonical_states, native_states, worker_states,
-             escape_check, join_check, authority_rows, caster_lifetime=False, mobile_held_click=False, mobile_context_move=False):
+             escape_check, join_check, authority_rows, caster_lifetime=False, mobile_held_click=False, mobile_context_move=False,
+             mobile_context_hold=False, mobile_original_hold=False):
     """Require one source-bound mobile release/reinit/fresh-command episode.
 
     ``authority_rows`` is the victim's parsed actual65 list (or the existing
@@ -896,6 +906,10 @@ def evaluate(log, *, attacker_log, match, commits, raw_bodies, journal, bridge_f
     a manufactured zero position or a synthetic successful observation.
     """
     require(type(match) is str and re.fullmatch('[a-f0-9]{32}', match), 'invalid selected match')
+    require(type(mobile_context_hold) is bool and (not mobile_context_hold or mobile_context_move is True),
+        'context Hold requires explicit genuine context Move')
+    require(type(mobile_original_hold) is bool and (not mobile_original_hold or not any(
+        (caster_lifetime,mobile_held_click,mobile_context_move,mobile_context_hold))), 'standalone original Hold must be exclusive')
     metadata = mobile_metadata()
     escape = escape_check(attacker_log, match=match, commits=commits, raw_bodies=raw_bodies,
                           journal=journal, fixture=metadata, prefix='MOBILE ORDER ')
@@ -903,7 +917,7 @@ def evaluate(log, *, attacker_log, match, commits, raw_bodies, journal, bridge_f
     require(len(cause) == 1 and digest(cause[0]) == escape['action_sha256'],
             'escape cause must be one exact original Move, not a multi-action batch')
     snapshots, episode, focus_observations = _snapshots(log, match, caster_lifetime=caster_lifetime,
-        mobile_held_click=mobile_held_click,mobile_context_move=mobile_context_move)
+        mobile_held_click=mobile_held_click,mobile_context_move=mobile_context_move,mobile_original_hold=mobile_original_hold)
     setup, dead, released, restored, before, reselected, complete = episode
     world = setup['world']
     actual65 = authority_rows(log) if callable(authority_rows) else authority_rows
@@ -970,8 +984,16 @@ def evaluate(log, *, attacker_log, match, commits, raw_bodies, journal, bridge_f
     # scripted escape or fresh response. Normal build automation starts at300.
     window_actions = [(r['frame'], slot, digest(a)) for r in journal if 130 <= r['frame'] <= 220
                       for slot, actions in r['players'].items() for a in actions]
-    require(window_actions == [(frame, 0, escape['action_sha256']),
-                               (fresh['canonical_commit_frame'], 1, fresh['action_sha256'])],
+    expected_actions=[(frame, 0, escape['action_sha256']), (fresh['canonical_commit_frame'], 1, fresh['action_sha256'])]
+    hold=None
+    if mobile_context_hold or mobile_original_hold:
+        from tools import prediction_context_hold_evidence as context_hold
+        hold=context_hold.qualify(log,context=context,move_order=order,move_sequence=fresh['sequence'],commits=commits,raw_bodies=raw_bodies,
+            journal=journal,bridge_frames=bridge_frames,canonical_payloads=canonical_payloads,
+            canonical_states=canonical_states,worker_states=worker_states,join_check=join_check,authority_rows=actual65,
+            original_hold=mobile_original_hold)
+        expected_actions.append((hold['binding']['canonical_commit_frame'],1,hold['binding']['action_sha256']))
+    require(window_actions == expected_actions,
             'mobile observation window contains an unintended/duplicate canonical command')
     fresh65, fresh_bridge = _receipt(fresh['canonical_commit_frame'], world, match, actual65, bridge_frames, canonical_payloads)
     fresh_replay = _joined(join_check, worker_states, world=world, receipt=fresh65, states=canonical_states,
@@ -1021,6 +1043,10 @@ def evaluate(log, *, attacker_log, match, commits, raw_bodies, journal, bridge_f
         indices=[i for i,line in enumerate(log.splitlines()) if 'MOBILE CORRECTION ' in line and
             json.loads(line.split('MOBILE CORRECTION ',1)[1],object_pairs_hook=_unique_object).get('match')==match]
         result['mobile_context_move']=context_move.bind_mobile(context,snapshots,indices)
+    if hold:
+        require(_pointer(restored['current_actor'])==_pointer(hold['rows'][0]['actor']) and
+            restored['current_incarnation']==hold['rows'][0]['incarnation'], 'Hold uses another restored actor lease')
+        result['mobile_original_hold' if mobile_original_hold else 'mobile_context_hold']=hold
     return result
 
 

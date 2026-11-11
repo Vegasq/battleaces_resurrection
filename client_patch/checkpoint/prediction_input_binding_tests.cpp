@@ -47,7 +47,7 @@ static std::vector<std::string> logs;
 static std::function<void(size_t)> originalBody;
 static std::function<void(Obj,Obj)> processBody;
 static Obj selected=nullptr;
-static bool active=true,stopped=false,presentationOwned=true;
+static bool active=true,stopped=false,presentationOwned=true,presentationThrows=false;
 static bool mobileDiagnostic=false,contextDiagnostic=false;
 static uint64_t world=91;
 static std::string match(32,'a'),lastFailure;
@@ -136,7 +136,10 @@ static uint64_t movementWorldId(){return host::world;}
 static const std::string& movementMatchId(){return host::match;}
 }
 namespace ba_prediction_movement {
-static bool ownsPresentation(void* value){return host::presentationOwned && value==&host::simulation;}
+static bool ownsPresentation(void* value){
+    if(host::presentationThrows)throw std::logic_error("active presentation mismatch");
+    return host::presentationOwned && value==&host::simulation;
+}
 }
 namespace ba_prediction_actors {
 using ba::Obj;
@@ -197,7 +200,7 @@ static void reset() {
     check(!ba_prediction_input::currentDispatch,"previous authored callback leaked its dispatch frame");
     originals.fill(0);calls.clear();logs.clear();originalBody={};processBody=&single;
     failures=0;processCalls=0;processSelector=nullptr;processInfo=nullptr;lastFailure.clear();
-    active=true;stopped=false;presentationOwned=true;world=91;match.assign(32,'a');
+    active=true;stopped=false;presentationOwned=true;presentationThrows=false;world=91;match.assign(32,'a');
     mobileDiagnostic=false;contextDiagnostic=false;ba_prediction_input::mobileReturnedInput.reset();
     ba_prediction_input::contextPrimaryReturnedInput.reset();ba_prediction_input::contextReturnedInput.reset();
     ba_prediction_input::contextProbe=nullptr;
@@ -506,6 +509,21 @@ static void nestedContextCallbackKeepsNewestReturnAndCorrectDispatch() {
         !ba_prediction_input::currentDispatch&&!ba_prediction_actors::state().inputIntent.accepted(),
         "older ContextDown return replaced its newer child or leaked nested dispatch");
 }
+static void retiredPresentationInputPassesThroughButActiveMismatchStillFails() {
+    for(size_t index=0;index<exports.size();++index) {
+        reset();presentationOwned=false;contextDiagnostic=true;mobileDiagnostic=true;
+        originalBody=[](size_t route){if(route==9)OfflinePredictionClickDownAccepted(&selector,nullptr);};
+        invoke(index);exact(index,&selector,&context,&methods[index]);
+        check(!failures&&!ba_prediction_actors::state().inputIntent.serial()&&
+            !ba_prediction_actors::state().inputIntent.accepted()&&!ba_prediction_input::mobileReturnedInput&&
+            !ba_prediction_input::contextPrimaryReturnedInput&&!ba_prediction_input::contextReturnedInput&&
+            processCalls==(index==9?1u:0u),
+            "retired presentation input armed an observer or failed normal original input");
+    }
+    reset();presentationThrows=true;invoke(8);exact(8,&selector,&context,&methods[8]);
+    check(failures==1&&stopped&&!ba_prediction_actors::state().inputIntent.serial(),
+        "active presentation mismatch was swallowed as retired input");
+}
 }
 int main(){try{
     host::allRoutesPreserveActualOriginalArgumentsAndContext();
@@ -521,7 +539,8 @@ int main(){try{
     host::contextOriginalExceptionPropagatesAndNeverCreatesReturn();
     host::contextProbeFailuresCannotSkipOrRetryOriginal();
     host::nestedContextCallbackKeepsNewestReturnAndCorrectDispatch();
-    std::cout<<"input binding:16 authored actual-source groups PASS; real context dispatch remains unqualified\n";
+    host::retiredPresentationInputPassesThroughButActiveMismatchStillFails();
+    std::cout<<"input binding:17 authored actual-source groups PASS; ordinary runtime qualification remains separate\n";
     return 0;
 }catch(const std::exception& error){std::cerr<<error.what()<<'\n';return 1;}
 catch(...){std::cerr<<"unexpected authored input exception\n";return 1;}}

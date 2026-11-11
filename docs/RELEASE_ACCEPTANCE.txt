@@ -416,6 +416,12 @@ D8    OPEN        Bounded two/four-room TLS/native and older soak evidence retai
                   pre-authority response,phase0,all2890 state hashes matching,
                   two natural rounds/Quit. Other input/casting/group/type and
                   physical/Internet scopes stayOPEN;prediction-context-move.txt.
+                  Actual66 PASSES original Instant Hold14/normal serialization
+                  and local stop before authority,phase0,all2888 native hashes,
+                  both natural rounds/Quit. A reproduced post-drain input
+                  ownership failure is fixed with direct actual-source RED/
+                  GREEN coverage;active guards remain. Combined/physical and
+                  remaining controls stayOPEN;prediction-original-hold.txt.
                   Details:prediction-actor-correction.txt. N35 remains pending.
                   219named Windows/C-data21-match cadence/resource check PASSES:
                   19.974326-20.005228Hz,max gap124.3548ms,zero worker awaits>50ms.

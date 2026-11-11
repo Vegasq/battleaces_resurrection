@@ -1,0 +1,120 @@
+BATTLE ACES - ORIGINAL HOLD AND POST-MATCH INPUT LIFETIME
+Reviewed:2026-11-11. Actual66 COMPLETE at its named scope;N33/D8 remains OPEN.
+
+Original slot5 Hold14 now has an actual two-client prediction qualification.
+The same work fixes a post-match observer error:input arriving after terminal
+drain could abort a completed game with "movement prediction generation/match
+changed" while the worker world key was still retained.
+
+RESULT
+Actual66 completes two real Custom rounds at130/475ms RTT,Continue/rematch,
+Leave and original Quit. Both games/workers/authorities exit naturally0;
+retained Jobs have active0/terminated0,no force and no cleanup errors.
+All2888 closed parsed native state hashes match the authoritative timelines.
+The independent remote correction replays10 frames with20 continuations;
+the setup Move and Hold confirmations each retain20 matching continuations.
+
+                              World1       World2
+Original Hold activation      198          198
+Normal command sequence       3            3
+Local/canonical frame         199 ->199     199 ->199
+Settled interval starts       42.876ms     33.523ms after enqueue return
+Settled interval duration     152.632ms    161.377ms
+Maximum interval drift        0.012514     0.024350 world units
+Interval ends before native65 313ms        328ms
+Interval ends before bridge   313ms        328ms
+
+The unit is already moving toward an unfinished target before Hold. The stop
+gate requires at least150ms/three prior observations with0.15m targetward
+progress,and a new
+settled interval of at least150ms entirely before BOTH authority receipts.
+The interval must begin within150ms of enqueue,drift no more than0.025 units,
+and remain over1m from the Move target. Target arrival cannot count as Hold.
+
+ORIGINAL COMMAND PATH
+Current CommandPanel slot5 maps source11/type1/army1 to config14/Instant2.
+The diagnostic gets the ORIGINAL HotkeyActivation object (Type1/Count1,
+from-hotkey true,held false),then invokes original PerformButtonAction once.
+Its existing selector/instant-caster route creates ExecuteInstantCommand.
+The diagnostic observes queue0->1 through original read-only Peek and reads
+the original get_Queued getter. It never constructs or additionally serializes
+the Hold command. A passive witness at normal ToProto binds the actual
+ICommand pointer,activation serial,normal action pointer and batch sequence.
+Raw67/72/canonical bytes require exactly one own-unit Hold14/Instant action.
+The observation window conserves exactly escape+Move+Hold,no extra actions.
+
+This case uses the existing authored original-constructor Move180 as movement
+setup. Hold uses the original UI button-action path,not a physical keyboard.
+Actual63 independently qualifies the original bound-Mouse right-click Move.
+These are separate observations;no combined physical-input acceptance follows.
+The explicit --mobile-original-hold mode refuses all other optional fixtures.
+Null context fields and absent context prefixes prevent a fabricated right-click
+claim. The separate combined --mobile-context-hold candidate stays unqualified.
+Ordinary two-action/default gates remain unchanged.
+
+POST-MATCH REPAIR AND REGRESSION
+Actual65 reached both Hold episodes but then failed after world2 terminal
+drain. Frozen logs show original EndOfGameResponse followed by input-observer
+failure in both clients. Movement sets drained=true before the worker key
+retires;ownsPresentation previously reached bound(),which rejects drained
+owners. The input observer therefore treated inactive presentation as corruption.
+
+The production presentation predicate now returnsfalse after terminal drain.
+Observer preparation checks that predicate before arming an input episode.
+Original callbacks still run exactly once. Active owner/world/thread/match
+checks and original exception behavior remain strict. No input,selection,
+history,bindings or ownership token is fabricated or cleared.
+
+Two actual-source regressions first FAIL on the old behavior,then PASS after
+the repair. The presentation function is directly included by its regression
+host:three groups cover retained-key drain,inactive prerequisites,strict active
+mismatch and next-world ownership. The actual input adapter has17 groups,
+including all13 retired input routes,exact forwarding and strict active errors.
+Full helper88 builds35 authored test executables with210 unchanged C++ bindings.
+The focused Python controller/mobile/Hold matrix passes244 tests.
+
+FAILURES REMAIN FAILED
+Actual64 stopped before primary Down180 in its combined Mouse setup. Its raw
+capture cannot distinguish delayed delivery from overwritten position or another
+failed observation conjunct;no Hold command was attempted. Its forced cleanup
+and report remain preserved. No selector write,focus hijack or assumed physical
+Mouse interference is used to manufacture a result.
+Actual65's separate preterminal file-only analysis proves both Hold/stop/native
+episodes,but the full run remainsFAILED with forced cleanup. Actual66 is a new
+source-bound execution after the reproduced ownership fix,not a relabeled65.
+
+RETAINED IDENTITIES (private captures/binaries excluded from Git/packages)
+Actual66 report:
+local/prediction-runtime/movement66-original-hold-retired-input/run/verification.json
+SHA256300bb6b4d5c37691f8fc8aaeb2b7b75ff2d7c5db76206b3b4c80dd310ff824f6
+Helper88:
+local/context-hold-route01/helper88/helper-build.json
+DLL SHA25667a94c0a016e05f22ff36915cd93c150876508b8988f739adc659a730f28b63d
+Installed manifest SHA256:
+4cef7a008a1cd126c09e03efaffc486964c715230bf02e6dfd39f815f530b2bd
+Installed GameAssembly (unchanged):
+742dc59d0063873a618f407e23cc5b93e7aee374483eb1f9dfdc46533f0999f3
+The run binds998 source inputs and unchanged runtime files.
+Independent file-only validation reproduces both complete mobile/Hold proofs,
+checks the actual-source RED/GREEN receipts and preserves both failed reports:
+local/context-hold-route01/actual66-file-audit01.json
+SHA256c5fec5e095cd47a0676e14e7ad8d7409dd59126d1db192a1b409d116ab954193
+
+Failed64 report SHA256:
+ffdfa18bb2a8b93fda55753d402c5760b470e89c5e26b4e0ea2096cc9e5865fb
+Failed65 report SHA256:
+d7b1bea503d3d2f2a1fefa3d8dccd835c3a33a2404730f1ec0307842f1f7c91a
+Original failed sources/raw captures are bound in:
+local/context-hold-route01/failed64-preserved.json
+local/context-hold-route01/failed65-preserved.json
+Additional bounded interpretation:
+local/context-hold-route01/failed64-boundary-audit01.json
+local/context-hold-route01/failed65-analysis01.json
+Actual-source RED/GREEN receipts:
+local/context-hold-route01/ownership-red02/verification.json
+local/context-hold-route01/ownership-green01/verification.json
+The earlier ownership-red01 runner stopped on expected stderr;it is retained.
+
+No new installer,release,deployment,firewall or reserved-manual-kit change.
+Remaining group/type paths,other control/casting interactions and physical/
+Internet acceptance remain in the roadmap. Prediction eligibility stays12/14.

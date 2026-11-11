@@ -974,11 +974,25 @@ static void tick() {
 }
 #include "prediction_mobile_held_smoke.hpp"
 #include "prediction_context_move_smoke.hpp"
+#include "prediction_context_hold_smoke.hpp"
 static void tick() {
+    if(context_hold::originalOnly()) {
+        try {
+            context_hold::originalScope();mobile::tick();
+            if(!mobile::state().failed)context_hold::tick();
+        } catch(const std::exception& error) {
+            context_hold::markFailed();mobile::state().failed=true;
+            ba::log("Original Hold smoke failed: reason=%s physicalUI=0",error.what());worker::movementFail(error.what());
+        } catch(...) {
+            context_hold::markFailed();mobile::state().failed=true;
+            ba::log("Original Hold smoke failed: reason=unknown physicalUI=0");worker::movementFail("unknown original Hold fixture exception");
+        }
+        return;
+    }
     if(context_move::enabled()) {
-        try {context_move::frontendUpdate();context_move::tick();}
-        catch(const std::exception& error){context_move::markFailed();ba::log("Context Move smoke failed: reason=%s physicalUI=0",error.what());worker::movementFail(error.what());}
-        catch(...){context_move::markFailed();ba::log("Context Move smoke failed: reason=unknown physicalUI=0");worker::movementFail("unknown context Move fixture exception");}
+        try {context_move::frontendUpdate();context_move::tick();if(context_hold::enabled())context_hold::tick();}
+        catch(const std::exception& error){context_move::markFailed();if(context_hold::enabled())context_hold::markFailed();ba::log("Context Move smoke failed: reason=%s physicalUI=0",error.what());worker::movementFail(error.what());}
+        catch(...){context_move::markFailed();if(context_hold::enabled())context_hold::markFailed();ba::log("Context Move smoke failed: reason=unknown physicalUI=0");worker::movementFail("unknown context Move fixture exception");}
         return;
     }
     if(mobile_held::enabled()) {
@@ -1064,13 +1078,19 @@ static void tick() {
 
 namespace ba_prediction_context_move {
 void serialized(void* command,void* action,uint64_t sequence,int sourceNextFrame) noexcept {
-    try {ba_prediction_actor_smoke::context_move::serialized(command,action,sequence,sourceNextFrame);}
+    try {
+        ba_prediction_actor_smoke::context_move::serialized(command,action,sequence,sourceNextFrame);
+        if(ba_prediction_actor_smoke::context_hold::enabled())
+            ba_prediction_actor_smoke::context_hold::serialized(command,action,sequence,sourceNextFrame);
+    }
     catch(const std::exception& error) {
         ba_prediction_actor_smoke::context_move::markFailed();
+        if(ba_prediction_actor_smoke::context_hold::enabled())ba_prediction_actor_smoke::context_hold::markFailed();
         ba::log("Context Move normal serializer observer failed: reason=%s physicalUI=0",error.what());
         ba_prediction_worker::movementFail(error.what());
     } catch(...) {
         ba_prediction_actor_smoke::context_move::markFailed();
+        if(ba_prediction_actor_smoke::context_hold::enabled())ba_prediction_actor_smoke::context_hold::markFailed();
         ba::log("Context Move normal serializer observer failed: reason=unknown physicalUI=0");
         ba_prediction_worker::movementFail("unknown context Move normal serializer observer exception");
     }

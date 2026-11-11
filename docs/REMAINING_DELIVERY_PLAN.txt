@@ -159,6 +159,12 @@ ContextUp close naturally;phases187->187,response60.699/62.188ms,438/468ms befor
 raw bridge. All2890 native hashes match and every child quits naturally0/no
 force. This closes the named original right-click path;remaining group/type
 paths and broader input/render behavior are next. See prediction-context-move.txt.
+Actual66 now PASSES original UI Hold14 after scripted Move setup:phase199->199,
+local settled intervals start43/34ms and finish313/328ms before authority.
+All2888 native hashes match/two natural rounds/Quit. A reproduced post-drain
+input-observer disconnect is fixed;strict active ownership remains. Failed64/
+65 stayFAILED;combined Mouse/Hold and physical/Internet remain unqualified.
+Details:prediction-original-hold.txt. Continue remaining controls/group/type.
 Natural-removal/empty-preview-held repair remains unqualified.
 Detailed scopes:prediction-actor-correction.txt.
 Physical/Internet acceptance is open.
@@ -225,6 +231,10 @@ These grouped rows summarize the detailed matrices;they are not a percentage or
 an exact count of every remaining test. DEV.txt remains the owner of user answers.
 
 COMPLETED
+[x] Original UI Hold14 and post-match input ownership (actual66):real Instant
+    command/normal serialization,pre-authority stop,two native rounds/natural
+    Quit. Direct actual-source RED/GREEN covers retained-key terminal drain;
+    broader physical/combined controls remain open;prediction-original-hold.txt.
 [x] Original right-click Move through normal serialization/prediction (actual63):
     real bound-Mouse primary selection/ContextDown/ContextUp,two native rounds,
     pre-authority response,phase0,matching states and natural Quit. Physical
