@@ -48,6 +48,7 @@ static std::function<void(size_t)> originalBody;
 static std::function<void(Obj,Obj)> processBody;
 static Obj selected=nullptr;
 static bool active=true,stopped=false,presentationOwned=true;
+static bool mobileDiagnostic=false;
 static uint64_t world=91;
 static std::string match(32,'a'),lastFailure;
 static unsigned failures=0,processCalls=0;
@@ -99,6 +100,10 @@ namespace ba {
 using Obj=void*;
 static DWORD initialThread=0;
 static void init(){}
+static bool flag(const wchar_t* name) {
+    host::check(name&&std::wstring(name)==L"-prediction-mobile-held-click-smoke","unexpected authored input flag");
+    return host::mobileDiagnostic;
+}
 template<class T>T read(Obj value,size_t offset){return host::read<T>(value,offset);}
 static void log(const char* format,...) {
     char text[2048];va_list args;va_start(args,format);vsnprintf(text,sizeof(text),format,args);va_end(args);
@@ -191,6 +196,7 @@ static void reset() {
     originals.fill(0);calls.clear();logs.clear();originalBody={};processBody=&single;
     failures=0;processCalls=0;processSelector=nullptr;processInfo=nullptr;lastFailure.clear();
     active=true;stopped=false;presentationOwned=true;world=91;match.assign(32,'a');
+    mobileDiagnostic=false;ba_prediction_input::mobileReturnedInput.reset();
     memories.clear();selector=Node{};otherSelector=Node{};manager=Node{};simulation=Node{};
     for(auto* node:{&selector,&otherSelector,&manager,&simulation})memories.emplace(node,&node->bytes);
     auto* selectorType=type("Uncapped","UnitSelector");auto* contextType=type("Authored","CallbackContext");
@@ -346,6 +352,63 @@ static void invalidatedDownAndWrongMarkerArgumentsCannotArm() {
         check(failures==(mode==2?1u:0u),"marker argument failure classification differs");
     }
 }
+static void diagnosticCompletionDoesNotAuthorizeUpOrObserveFailedCallbacks() {
+    reset();originalBody=[](size_t index){if(index==9)OfflinePredictionClickDownAccepted(&selector,nullptr);};
+    invoke(9);check(!ba_prediction_input::mobileReturnedInput,"default-off diagnostic observed input");
+    mobileDiagnostic=true;invoke(10);
+    const auto up=ba_prediction_input::mobileReturnedInput;
+    check(up&&up->ticket.kind==ba_prediction_input_observer::Kind::Up&&up->ticket.serial==2&&
+        !ba_prediction_actors::state().inputIntent.accepted(),"observed Up incorrectly gained Down authorization");
+    invoke(9);const auto down=ba_prediction_input::mobileReturnedInput;
+    check(down&&down->ticket.kind==ba_prediction_input_observer::Kind::Down&&down->ticket.serial==3&&
+        ba_prediction_actors::state().inputIntent.accepted()->serial==3,"completed Down observation lost its real ticket");
+    originalBody=[](size_t){throw OriginalError{41};};bool propagated=false;
+    try{invoke(10);}catch(const OriginalError& error){propagated=error.tag==41;}
+    check(propagated&&ba_prediction_input::mobileReturnedInput->ticket.serial==3&&
+        !ba_prediction_actors::state().inputIntent.accepted(),"failed Up fabricated a completion or retained authorization");
+    originalBody={};mobileDiagnostic=false;invoke(8);
+    check(ba_prediction_input::mobileReturnedInput->ticket.serial==3,"disabled diagnostic replaced retained observation");
+}
+static void originalUpSelectionCommitCannotEraseItsReturnObservation() {
+    reset();mobileDiagnostic=true;
+    originalBody=[](size_t index){
+        if(index==9)OfflinePredictionClickDownAccepted(&selector,nullptr);
+        if(index==10)ba_prediction_actors::state().inputIntent.invalidate();
+    };
+    invoke(9);invoke(10);
+    const auto up=ba_prediction_input::mobileReturnedInput;
+    check(up&&up->ticket.kind==ba_prediction_input_observer::Kind::Up&&up->ticket.serial==2&&
+        !up->ledgerCompleted&&up->ledgerSerial==3,
+        "normally returned original Up lost its observation when selection commit invalidated authorization");
+    check(!ba_prediction_actors::state().inputIntent.accepted()&&
+        ba_prediction_actors::state().inputIntent.serial()==3,
+        "return observation changed the original selection-commit authorization invalidation");
+    check(calls.size()==2&&calls[1].route==10&&calls[1].selector==&selector&&
+        calls[1].context==&context&&calls[1].info==&methods[10]&&originals[9]==1&&originals[10]==1&&
+        !ba_prediction_input::currentDispatch,"Up observation changed forwarding or leaked its dispatch");
+    invoke(8);
+    check(ba_prediction_input::mobileReturnedInput->ticket.kind==ba_prediction_input_observer::Kind::Up&&
+        ba_prediction_input::mobileReturnedInput->ticket.serial==2&&
+        ba_prediction_input::mobileReturnedInput->ledgerSerial==3&&
+        ba_prediction_actors::state().inputIntent.serial()==4,
+        "returned Position overwrote the retained primary-button return witness");
+}
+static void nestedCallbackReturnDoesNotReplaceItsNewerChildWitness() {
+    reset();mobileDiagnostic=true;
+    originalBody=[](size_t index){
+        if(index!=9)return;
+        OfflinePredictionClickDownAccepted(&selector,nullptr);
+        if(originals[9]==1){invoke(8);invoke(9);}
+    };
+    invoke(9);
+    const auto returned=ba_prediction_input::mobileReturnedInput;
+    check(returned&&returned->ticket.serial==3&&returned->ticket.kind==ba_prediction_input_observer::Kind::Down&&
+        returned->ledgerCompleted&&returned->ledgerSerial==3&&
+        ba_prediction_actors::state().inputIntent.accepted()->serial==3,
+        "older parent callback return replaced the newer completed child witness");
+    check(originals[9]==2&&originals[8]==1&&!failures&&!ba_prediction_input::currentDispatch,
+        "callback return observation changed nested forwarding or leaked its dispatch");
+}
 }
 int main(){try{
     host::allRoutesPreserveActualOriginalArgumentsAndContext();
@@ -353,7 +416,10 @@ int main(){try{
     host::onlyACompletedMarkedDownArms();host::metadataAndLoadedDispatchFailuresStillForwardExactlyOnce();
     host::failedCompletionAndChangedOwnershipDoNotArm();host::nonstandardOriginalExceptionsPropagateWithoutRetry();
     host::nestedCallbacksCannotRearmTheirParent();host::invalidatedDownAndWrongMarkerArgumentsCannotArm();
-    std::cout<<"input binding:8 authored actual-source groups PASS; real delegate dispatch and held-click repair remain unqualified\n";
+    host::diagnosticCompletionDoesNotAuthorizeUpOrObserveFailedCallbacks();
+    host::originalUpSelectionCommitCannotEraseItsReturnObservation();
+    host::nestedCallbackReturnDoesNotReplaceItsNewerChildWitness();
+    std::cout<<"input binding:11 authored actual-source groups PASS; real delegate dispatch and held-click repair remain unqualified\n";
     return 0;
 }catch(const std::exception& error){std::cerr<<error.what()<<'\n';return 1;}
 catch(...){std::cerr<<"unexpected authored input exception\n";return 1;}}

@@ -1179,7 +1179,77 @@ replays3 frames plus20 matching continuations. Scoped/movement/final audit SHA25
 d25fba76b6afa2e4b248f202e79d97219a5e2df5227b01c70f32a1146f5f03d9 /
 69aea78e36118cbc4fcde58e31c806ae2a7d23766255741ff4f4083db4f85bff.
 Private evidence:local/prediction-runtime/movement59-core5-stop-regression/.
-Next:the remaining forced-group/type paths,naturally removed held input and broader
+Actual60 is FAILED at a diagnostic assumption before any original Up. The
+original non-HQ mobile reaches native DEAD153 and physical absence154,with no
+active/retained actor or old native component. Both original numeric selection
+sets nevertheless retain[11] under the completed original Down serial9/token11.
+The test incorrectly required both sets to empty immediately and aborted at154.
+This does not establish a production defect or qualify empty-preview held input.
+No release/restoration/fresh-input outcome is accepted from that run. The later
+unfinished-session messages are diagnostic bookkeeping errors,not a second
+observed game defect. Both owned games require forced cleanup and are reaped;
+Jobs are inactive,two bridge-close WinError64 errors are retained. Source and
+installed inputs stay unchanged. The original FAILED report SHA256 is
+a240232ad0499532b2b05606341d9a74a2269256a2b40fc90801a6d86e7ebdcb.
+All1110 archived entries preserve983 sources,205 C++ bindings and the v1 contract;
+preservation receipt SHA256:
+a2089362c8bd3c7aacc7b929e5171de6c23dbeee039051b71ebc542530608ad1.
+The v2 diagnostic records selection results without aborting on an unproven
+outcome and distinguishes an unopened session from a failed borrowed session.
+No production selection/history behavior is changed. Private evidence:
+local/prediction-runtime/movement60-mobile-held-input/.
+Actual61 completes both rounds and every owned client/authority exits naturally0,
+reaped with inactive Jobs,no force or cleanup errors. Its FULL result remains
+FAILED:the diagnostic confuses ledger authorization completion with original
+callback return. Live Up commits selection;the unchanged selection observer
+invalidates authorization before ledger.complete,so the diagnostic retains its
+prior Down ticket. A focused actual-adapter authored RED reproduces that exact
+invalidation. World2's absent Up154 does complete ticket27 and retains both
+raw numeric sets[11];restoration161 retains current[11] and clears preview.
+The prior empty-at-Up hypothesis is therefore also unsupported by the actual
+original behavior. Original61 report SHA256:
+7e05c30499821d810f4a5308b6f6d4fb815938fe094841b536f3beb35b6eec96.
+All1266 archived entries preserve source,205 helper bindings,raw captures and
+both earlier contracts;preservation receipt SHA256:
+2e55f0be531b25b3d03b77ae36e98fded9215b76b718e85a6f6048eeb31346c8.
+Schema3 separates original callback return from authorization and observes the
+original current/preview resolvable Count,without changing numeric membership.
+Production Ledger.accepted remains Down-only;original selection commits still
+invalidate it. Actual60/61 are not reclassified. Private evidence:
+local/prediction-runtime/movement61-mobile-held-release/.
+Actual62 PASSES both original mobile release boundaries on helper83/schema3.
+In both worlds,physical absence154 retains numeric current/preview[11] while
+both original resolvable Counts are0. World1 holds through restoration161 with
+both Counts1,then original Up165 clears preview and retains current. World2's
+original Up154 returns while still absent with both Counts0 and retained IDs;
+restoration161 resolves current Count1 and leaves preview empty. Returned Up is
+observed independently of authorization:the live selection commits invalidate
+their tickets,while the absent Count0 branch completes without a selection scope.
+Both fresh real Down/Up sessions resolve admitted unit11 and close normally.
+Original Move184 responds in60.599/58.938ms,422/437ms before raw bridge;both
+immutable speculative/canonical assignments are185/185. Remote correction and
+fresh native confirmation each retain20 matching continuation frames per world.
+Both rounds/Continue/rematch/Leave/Quit and all owned children finish naturally0,
+reaped/Jobs inactive,no force or cleanup errors. Sources/runtime inputs remain
+unchanged. Full205-binding helper83 and452 focused Python tests pass,including
+11 actual-adapter authored groups and the preserved callback-return RED/GREEN.
+Original PASS report SHA256:
+b82311ea5604b42651593630d53780d94f708da5c71f52cace1fa173ec471c20.
+Preservation receipt SHA256:
+cabed5a161fe78d6ac420dbaf2f5a8799e6850d619b2dcaa6439c11a20e0a6af.
+All1267 archive entries retain source,helper bindings,raw evidence,v3 contract
+and both earlier FAILED reports. No production selection/history or authorization
+behavior changes. One independent frozen-source audit reruns the exact raw
+mobile/held/final gates and verifies all1267 archive entries:2890 full parsed
+native hashes,rawbridge joins and native65 joins match1445 canonical frames;
+ordered actions are conserved. Both escape151 corrections replay ten frames
+plus20 continuations. Independent proof receipt SHA256:
+a7bf3cb2b3ce79221141f1371b49d91fe10ccf94663b54825d8d78fe82524e6f.
+This closes the named original mobile button-release case;
+it does not qualify natural-removal/empty-preview-held repair,all controls,
+generic newborn movement,physical UI or Internet play. Private evidence:
+local/prediction-runtime/movement62-mobile-held-return/.
+Next:the remaining forced-group/type paths and broader
 input/render/physical/Internet acceptance. This is not full-feature closure.
 896 buffered early-phase decisions and both QPC traces are retained from57.
 Neither peer enters recovery in that run;55's earlier transient gap remains a

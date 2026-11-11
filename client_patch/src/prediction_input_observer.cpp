@@ -66,6 +66,15 @@ static void signature(const Route& route,Obj selector,const void* context,Obj in
 }
 struct Dispatch;
 static Dispatch* currentDispatch=nullptr; // Retained Unity owner thread only.
+// Explicit mobile diagnostic observation of primary Down/Up only. A returned button callback is
+// distinct from ledger authorization: original Up can commit a selection change
+// and invalidate its ticket before returning. Ledger.accepted() remains Down-only.
+struct ReturnedInput {
+    observer::Ticket ticket;
+    bool ledgerCompleted=false;
+    uint64_t ledgerSerial=0;
+};
+static std::optional<ReturnedInput> mobileReturnedInput;
 struct Dispatch {
     const Route& route;
     Obj selector;
@@ -115,6 +124,11 @@ struct Dispatch {
                 static_cast<unsigned long long>(ticket.owner.generation),
                 static_cast<unsigned long long>(ticket.serial),ba::read<uint32_t>(selector,0x128));
         }
+        if(ba::flag(L"-prediction-mobile-held-click-smoke")&&
+           (ticket.kind==Kind::Down||ticket.kind==Kind::Up)&&
+           (!mobileReturnedInput||!(mobileReturnedInput->ticket.owner==ticket.owner)||
+            ticket.serial>mobileReturnedInput->ticket.serial))
+            mobileReturnedInput=ReturnedInput{ticket,completed,ledger->serial()};
         leave();
     }
     void abandon() noexcept {if(ledger)ledger->abandon(ticket);leave();}

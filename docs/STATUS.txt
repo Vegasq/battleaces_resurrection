@@ -177,7 +177,23 @@ frame replay+20 continuations,both held/terminal episodes and natural shutdown.
 No force or cleanup errors;source/runtime inputs stay unchanged. Actual59 also
 PASSES the prior Core5 fixture on helper78:two held episodes,62ms Move/94ms
 before bridge,phase441->441,remote correction and natural shutdown. The remaining
-group/input scopes and physical/Internet acceptance are next.
+group/input scopes and physical/Internet acceptance are next. Actual60 stays
+FAILED at a diagnostic assumption:original mobile absence154 retains both
+numeric sets[11] while real Down is held. It stopped before original Up;the
+failed report and source/captures are preserved,with forced cleanup recorded.
+No new production defect or empty-preview input acceptance follows from it.
+Actual61 completes both rounds/natural Quit but remainsFAILED:original selection
+commit invalidates its authorization ticket,which the diagnostic wrongly uses
+as proof of callback return. Its absent Up also retains numeric IDs. Schema3
+separates callback return from authorization and adds original resolvable Count
+observations. Actual62 now PASSES that two-world gate:both original Up boundaries,
+raw retained IDs/original Count0 during absence and current Count1 on restoration,
+fresh genuine click/Move184,185->185 command phases and61/59ms response after
+enqueue,422/437ms before raw bridge. Native/wire/replay20 and both natural
+rounds/Quit pass,no force/errors.
+Helper83 binds205 unchanged sources;452 focused Python tests pass. Both earlier
+failed runs stay preserved. Remaining group/type paths,broader controls/rendering
+and physical/Internet acceptance stay OPEN;no broad empty-preview-held closure.
 Actual55 staysFAILED for late escape154 after real death153;its exact captures
 and source archive remain. Actual57 buffered896 early decisions with no recovery
 episode;that does not resolve55's transient early stall attribution.

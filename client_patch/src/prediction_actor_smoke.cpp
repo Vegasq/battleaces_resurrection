@@ -641,7 +641,7 @@ static void cancelPendingFocus(actors::State& owner,Obj selector,int frame) {
         "original group focus cancel did not release the held intent");
     s.focusCancelled=true;focusEvidence(owner,selector,frame,"after_cancel",true);
 }
-static void setup(actors::State& owner,Obj selector,int frame) {
+static void setup(actors::State& owner,Obj selector,int frame,void(*idleGuard)(actors::State&,Obj,uint32_t)=idle) {
     auto& s=state();selection::Context context(selector);const auto found=context.live.find(11);
     require(found!=context.live.end()&&context.admitted(found->second),"mobile fixture confirmed victim11 missing");Obj actor=found->second;
     const auto identity=actors::resident(actor);require(identity.entityId==11&&identity.unitType==1&&identity.armyId==1,"mobile fixture victim identity differs");
@@ -650,7 +650,7 @@ static void setup(actors::State& owner,Obj selector,int frame) {
     s.oldActor=std::make_unique<Root>(actor);s.originalToken=token(context,actor);require(s.originalToken,"mobile fixture original admission token missing");
     s.group=std::make_unique<Root>(groupFor(selector));
     if(uiCastEnabled())selectCurrent(owner,selector,actor,true,11,1,ui_cast::preactivation);
-    else selectCurrent(owner,selector,actor);
+    else selectCurrent(owner,selector,actor,true,11,1,idleGuard);
     Obj assign=actors::method(selector,"AssignSelectionToControlGroup",2,0x0600220e,0x3bf14e0);
     Obj focus=actors::method(selector,"FocusControlGroup",2,0x06002221,0x3bf3010);
     int group=4;bool replace=true;void* assignArgs[]={&group,&replace};actors::invoke(assign,selector,assignArgs);owned(owner);
@@ -717,8 +717,9 @@ static MapPerspective currentPerspective(actors::State& owner,Obj selector,Obj c
     return proof;
 }
 static void move(actors::State& owner,Obj selector,int frame,uint32_t id,const original::Vec3& target,bool fresh,
-                 const original::Vec3* observedOrigin=nullptr,uint64_t observedOriginUs=0) {
-    owned(owner);idle(owner,selector,id);selection::Context context(selector);const auto found=context.live.find(id);
+                 const original::Vec3* observedOrigin=nullptr,uint64_t observedOriginUs=0,
+                 void(*idleGuard)(actors::State&,Obj,uint32_t)=idle) {
+    owned(owner);idleGuard(owner,selector,id);selection::Context context(selector);const auto found=context.live.find(id);
     require(found!=context.live.end()&&context.admitted(found->second),"mobile fixture command source is not current admitted");Obj actor=found->second;
     const auto identity=actors::resident(actor);const uint32_t army=fresh?1u:0u;
     require(identity.entityId==id&&identity.unitType==1&&identity.armyId==army,"mobile fixture command identity differs");
@@ -752,7 +753,7 @@ static void move(actors::State& owner,Obj selector,int frame,uint32_t id,const o
         !memcmp(&stored,&target,sizeof(target)),"mobile fixture original ground constructor readback differs");
     const auto hash=original::actionHash(command.get());selection::Context recheck(selector);
     require(recheck.live.count(id)&&recheck.live.at(id)==actor&&recheck.admitted(actor)&&token(recheck,actor)==incarnation,"mobile fixture source changed before enqueue");
-    idle(owner,selector,id);Obj server=ba_local::server();Obj enqueue=actors::method(server,"EnqueueInputCommand",1,0x06001115,0x3e53530);
+    idleGuard(owner,selector,id);Obj server=ba_local::server();Obj enqueue=actors::method(server,"EnqueueInputCommand",1,0x06001115,0x3e53530);
     const auto sampled=stamp();void* commandArgs[]={command.get()};actors::invoke(enqueue,server,commandArgs);owned(owner);const auto enqueued=stamp();
     require(pending(owner)==1,"mobile fixture original enqueue did not add exactly one ICommand");
     uint32_t bits[3]{};std::memcpy(bits,&target,sizeof(target));
@@ -971,7 +972,14 @@ static void tick() {
     catch(...){state().failed=true;ba::log("Mobile correction smoke failed: reason=unknown fixture exception physicalUI=0");worker::movementFail("unknown mobile fixture exception");}
 }
 }
+#include "prediction_mobile_held_smoke.hpp"
 static void tick() {
+    if(mobile_held::enabled()) {
+        try {mobile_held::frontendUpdate();mobile_held::tick();}
+        catch(const std::exception& error){mobile_held::markFailed();ba::log("Mobile held click smoke failed: reason=%s physicalUI=0",error.what());worker::movementFail(error.what());}
+        catch(...){mobile_held::markFailed();ba::log("Mobile held click smoke failed: reason=unknown physicalUI=0");worker::movementFail("unknown mobile held fixture exception");}
+        return;
+    }
     if(held_click::enabled()) {
         try {
             require(fixture_roles::validScope(),"held click mirror flag scope differs");

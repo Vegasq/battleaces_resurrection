@@ -394,9 +394,10 @@ void movementFail(const char* reason) noexcept {
     // mirror diagnostic fails. This does no trace I/O during a successful
     // measured prefix and never flushes a worker thread's main-thread buffer.
     try {
-        if(ba::initialThread&&GetCurrentThreadId()==ba::initialThread&&
-           ba::flag(L"-prediction-terminal-timeline-smoke")&&
-           ba::flag(L"-prediction-actor-mirror-smoke")&&ba::flag(L"-prediction-held-click-smoke")) {
+        const bool heldTimeline=ba::flag(L"-prediction-terminal-timeline-smoke")&&
+            ba::flag(L"-prediction-actor-mirror-smoke")&&ba::flag(L"-prediction-held-click-smoke");
+        const bool mobileHeld=ba::flag(L"-prediction-mobile-held-click-smoke")&&ba::flag(L"-prediction-mobile-correction-smoke");
+        if(ba::initialThread&&GetCurrentThreadId()==ba::initialThread&&(heldTimeline||mobileHeld)) {
             ba_prediction_movement::flushEarlyPhaseDiagnostics();
             ba_frame_timing::flush();
         }

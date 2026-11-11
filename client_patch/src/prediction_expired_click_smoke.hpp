@@ -133,9 +133,11 @@ static int screenDimension(const char* name,uint32_t token,uintptr_t rva,const c
     require(found!=nullptr,"expired click fixture Screen method missing");actors::guard(rva,entry,16);
     Root value(actors::invoke(found,nullptr));actors::classIs(value.get(),"System","Int32");return actors::unbox<int32_t>(value.get());
 }
-static std::pair<float,float> project(actors::State& owner,Obj selector,Obj core,uint32_t coreId=5,int victimSlot=1) {
+static std::pair<float,float> project(actors::State& owner,Obj selector,Obj core,uint32_t coreId=5,int victimSlot=1,uint32_t unitType=3) {
     owned(owner,selector,victimSlot);const auto identity=actors::resident(core);
-    require(coreId==(victimSlot==0?0u:5u)&&identity.entityId==coreId&&identity.unitType==3&&
+    const bool mobile=ba::flag(L"-prediction-mobile-held-click-smoke")&&ba::flag(L"-prediction-mobile-correction-smoke")&&
+        !ba_prediction_actor_fixture_smoke::mirrored()&&victimSlot==1&&coreId==11&&unitType==1;
+    require((mobile||(unitType==3&&coreId==(victimSlot==0?0u:5u)))&&identity.entityId==coreId&&identity.unitType==unitType&&
         identity.armyId==static_cast<uint32_t>(victimSlot)&&
         ba_prediction_selection::Context(selector).admitted(core),"expired click fixture HQ target is not admitted");
     Root controller(reference(selector,"_cameraController",0x20,actors::type("Uncapped","CameraController")));

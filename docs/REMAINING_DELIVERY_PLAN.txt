@@ -137,8 +137,21 @@ unchanged Move440 responds63ms,484ms before raw bridge,with441->442 phase.
 Both Core held/terminal episodes,independent remote replay+20continuations and
 natural shutdown pass. Actual59 also PASSES the prior Core5 fixture on the same
 helper:both held episodes,Move response62ms/94ms before bridge,phase441->441,correction and
-natural shutdown. Next:the remaining group paths,naturally removed/empty-preview held input and
-broader input/render behavior. Detailed scopes:prediction-actor-correction.txt.
+natural shutdown. Actual60 staysFAILED:the test assumed physical mobile removal
+empties selection while held,but original current/preview both retain[11]. Its
+first failure,captures and v1 source are preserved;no original Up was reached.
+Actual61 completes both rounds/natural Quit but remainsFAILED:its observer
+conflates callback return with an authorization ticket invalidated by original
+selection commit. Absent Up also retains numeric IDs. Schema3 records callback
+return and original resolvable counts separately. Actual62 now PASSES both real
+mobile Up boundaries and fresh input/Move:absent numeric IDs retain original
+Count0,restoration resolves current Count1,all native/wire/continuation gates
+and two natural rounds/Quit pass. Both fresh phases185->185,response61/59ms
+after enqueue and422/437ms before raw bridge. This named mobile button case is
+complete;60/61 stayFAILED.
+Next:remaining group/type paths and broader input/render behavior.
+Natural-removal/empty-preview-held repair remains unqualified.
+Detailed scopes:prediction-actor-correction.txt.
 Physical/Internet acceptance is open.
 Prediction eligibility remains
 12/14. Forced-retirement group clearing and physical/Internet

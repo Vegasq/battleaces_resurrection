@@ -502,11 +502,17 @@ def _ui_cast_records(log, match):
         activation_index=indices[active_i],queued_index=indices[queued_i],drain_index=indices[drain_i],preactivation_residue=residue)
 
 
-def _snapshots(log, match, *, caster_lifetime=False, _ui=None):
+def _snapshots(log, match, *, caster_lifetime=False, _ui=None, mobile_held_click=False):
     require(type(caster_lifetime) is bool,'invalid active-caster observation option')
+    require(type(mobile_held_click) is bool and not(mobile_held_click and(caster_lifetime or _ui)),
+        'invalid mobile held-click observation option')
+    held=None
+    if mobile_held_click:
+        from tools import prediction_mobile_held_evidence as mobile_held
+        held=mobile_held.records(log,match)
     lifetime=_caster_lifetime_records(log,match) if caster_lifetime else None
     mobile_indices=[]
-    if lifetime or _ui:
+    if lifetime or _ui or held:
         for index,line in enumerate(log.splitlines()):
             if 'MOBILE CORRECTION ' in line and json.loads(line.split('MOBILE CORRECTION ',1)[1],object_pairs_hook=_unique_object).get('match')==match:
                 mobile_indices.append(index)
@@ -566,8 +572,9 @@ def _snapshots(log, match, *, caster_lifetime=False, _ui=None):
                 receipt['sampled_us']>=row['sampled_us'] and _pointer(receipt['active_caster'])==_pointer(row['active_caster'])
                 for index,receipt in zip(witness['indices'],witness['rows'])),
                 'mobile active100 lacks its actual same-frame lifetime observation')
-        require(row['pool_callback_observed'] is False and not row['left_held'] and not row['right_held'] and
-                row['live_click_id'] != 11 and (active_window or not _pointer(row['active_caster'])) and
+        held_scope=mobile_held.mobile_row_scope(held,row) if held else False
+        require(row['pool_callback_observed'] is False and (held_scope or not row['left_held']) and not row['right_held'] and
+                (held_scope or row['live_click_id'] != 11) and (active_window or not _pointer(row['active_caster'])) and
                 (scratch_window or not row['casting_ids'] and not row['casting_references_victim']),
                 'unexercised caster/gesture/pool-callback scope was crossed')
         require(row['native_state_present'] == (row.get('native_state') is not None) and
@@ -600,7 +607,8 @@ def _snapshots(log, match, *, caster_lifetime=False, _ui=None):
             'UI preactivation proof did not precede original setup')
     require(setup['frame'] == 130 and dead['frame'] >= 153 and released['frame'] > dead['frame'] and
             restored['frame'] >= released['frame'] and 180 <= before['frame'] < 200 and
-            before['frame'] == reselected['frame'] and complete['frame'] >= 260,
+            (before['frame']==180 and reselected['frame']in(182,183) if held else before['frame']==reselected['frame']) and
+            complete['frame'] >= 260,
             'mobile episode physical boundaries differ')
     require(setup['original_actual_entity'] == 11 and setup['selected_ids'] == [11] and
             11 in setup['group_ids'] and setup['focus_group'] == 4 and
@@ -608,7 +616,7 @@ def _snapshots(log, match, *, caster_lifetime=False, _ui=None):
             setup['current_admitted'] and setup['current_incarnation'] == setup['original_incarnation'],
             'original mobile selection/group/repeat focus was not established')
     require(setup['selection_scope_player_initiated'] is True and
-            (reselected['selection_scope_player_initiated'] is None if _ui else reselected['selection_scope_player_initiated'] is False) and
+            (reselected['selection_scope_player_initiated'] is None if _ui or held else reselected['selection_scope_player_initiated'] is False) and
             all(r['selection_scope_player_initiated'] is None for r in rows
                 if r['event'] not in (('original_mobile_selection_established',) if _ui else
                     ('original_mobile_selection_established', 'original_fresh_reselection_established'))),
@@ -637,6 +645,7 @@ def _snapshots(log, match, *, caster_lifetime=False, _ui=None):
             (setup['focus_actual_entity'], setup['focus_actual_type'], setup['focus_actual_army']) == (11, 1, 1) and
             setup['focus_observed_incarnation'] == setup['current_incarnation'],
             'initial repeat-focus setup lacks original predicates/current-lease proof')
+    if held:mobile_held.bind_mobile(held,rows,mobile_indices)
     return rows, episode, focus_observations
 
 
@@ -860,7 +869,7 @@ def _assignment_span(rows, *, world, assigned, canonical, states):
 
 def evaluate(log, *, attacker_log, match, commits, raw_bodies, journal, bridge_frames,
              canonical_payloads, canonical_states, native_states, worker_states,
-             escape_check, join_check, authority_rows, caster_lifetime=False):
+             escape_check, join_check, authority_rows, caster_lifetime=False, mobile_held_click=False):
     """Require one source-bound mobile release/reinit/fresh-command episode.
 
     ``authority_rows`` is the victim's parsed actual65 list (or the existing
@@ -874,7 +883,8 @@ def evaluate(log, *, attacker_log, match, commits, raw_bodies, journal, bridge_f
     cause = decode_player_input(raw_bodies[match, 0, escape['sequence']])['actions']
     require(len(cause) == 1 and digest(cause[0]) == escape['action_sha256'],
             'escape cause must be one exact original Move, not a multi-action batch')
-    snapshots, episode, focus_observations = _snapshots(log, match, caster_lifetime=caster_lifetime)
+    snapshots, episode, focus_observations = _snapshots(log, match, caster_lifetime=caster_lifetime,
+        mobile_held_click=mobile_held_click)
     setup, dead, released, restored, before, reselected, complete = episode
     world = setup['world']
     actual65 = authority_rows(log) if callable(authority_rows) else authority_rows
@@ -911,7 +921,7 @@ def evaluate(log, *, attacker_log, match, commits, raw_bodies, journal, bridge_f
     require(order.get('event') == 'original_fresh_move' and (order['entity'], order['unit_type'], order['army']) == (11, 1, 1) and
             order.get('incarnation') == restored['current_incarnation'] and type(order.get('incarnation')) is int and
             order.get('ability') == 12 and 180 <= order['frame'] < 200 and
-            order['frame'] == reselected['frame'] and order.get('originalCtor') is True and
+            (order['frame']==184 if mobile_held_click else order['frame']==reselected['frame']) and order.get('originalCtor') is True and
             type(order.get('queueDelta')) is int and order['queueDelta'] == 1 and
             order.get('reselected_current') is True and order.get('original_callback') == 'Uncapped.ExecuteTargetGroundCommand..ctor' and
             type(order.get('action_sha256')) is str and HEX64.fullmatch(order['action_sha256']), 'fresh constructor/source/admission differs')
@@ -944,7 +954,7 @@ def evaluate(log, *, attacker_log, match, commits, raw_bodies, journal, bridge_f
                          tracked_released_ids=r['tracked_released_ids']) for r in (before, reselected, complete)]
     group_status = 'not_same_confirmed_token' if not same_token else (
         'preserved' if all(11 in r['group_ids'] for r in (before, reselected, complete)) else 'lost')
-    return dict(passed=True, world=world, match=match, rows=snapshots, escape=escape,
+    result=dict(passed=True, world=world, match=match, rows=snapshots, escape=escape,
         escape_actual_victim65=receipt, escape_raw_bridge=bridge, escape_native_replay=replay,
         release_receipt_observation=dict(release_tick_ms=released['tick_ms'],
             actual_victim65_tick_ms=receipt['tick_ms'], raw_bridge_tick_ms=bridge['received_tick_ms'],
@@ -972,6 +982,12 @@ def evaluate(log, *, attacker_log, match, commits, raw_bodies, journal, bridge_f
         physicalUI=False, full_feature_accepted=False,
         scope=('Scripted original Move12; original mobile membership/component release, corrected current admission, real group/focus setup and fresh command response; no physical UI/casting/VFX claim' if caster_lifetime else
                'Scripted original Move12; original mobile membership/component release, corrected current admission, real group/focus setup and fresh command response; no physical UI/caster/VFX claim'))
+    if mobile_held_click:
+        from tools import prediction_mobile_held_evidence as mobile_held
+        indices=[i for i,line in enumerate(log.splitlines())if 'MOBILE CORRECTION 'in line and
+            json.loads(line.split('MOBILE CORRECTION ',1)[1],object_pairs_hook=_unique_object).get('match')==match]
+        result['mobile_held_click']=mobile_held.bind_mobile(mobile_held.records(log,match),snapshots,indices)
+    return result
 
 
 def evaluate_ui_cast(log, *, attacker_log, match, commits, raw_bodies, journal, bridge_frames,
