@@ -219,7 +219,9 @@ static Method ledMethod{ledCode,"Remove",0x060025c8,nullptr,1};
 static Method dirtyMethod{dirtyCode,"MarkCountAsDirty",0x0600259a,nullptr,0};
 static Method automaticMethod{reinterpret_cast<Obj>(&contains),"Add",0x060025aa,nullptr,1};
 static unsigned dirtyCalls=0,ledCalls=0,automaticCalls=0;
-static Obj failLed=nullptr,failDispose=nullptr;
+static unsigned removeCurrentTypeRoutes=0,removeAbsentTypeRoutes=0;
+static uint32_t lastRemoveType=UINT32_MAX;
+static Obj failLed=nullptr,failLedAfter=nullptr,failDispose=nullptr;
 static std::map<Obj,unsigned> dirtyBySet,ledByObject,disposeByHelper;
 static std::function<void(Obj)> disposeHook,markHook,beginHook,lookupHook;
 static bool removeLed(Node* led,uint32_t id){
@@ -339,7 +341,9 @@ static void* invokeMethod(void* method,void* object,void** args){
     if(token==0x060025c8){
         ++host::ledCalls;++host::ledByObject[object];host::interactionEvents.push_back("ledRemove");
         if(object==host::failLed)throw std::runtime_error("injected original Led.Remove failure");
-        return host::boolean(host::removeLed(static_cast<host::Node*>(object),*static_cast<uint32_t*>(args[0])));
+        const bool removed=host::removeLed(static_cast<host::Node*>(object),*static_cast<uint32_t*>(args[0]));
+        if(object==host::failLedAfter)throw std::runtime_error("injected original Led.Remove failure after mutation");
+        return host::boolean(removed);
     }
     if(token==0x060025aa){
         ++host::automaticCalls;host::interactionEvents.push_back("originalAutomaticAdd");
@@ -422,7 +426,24 @@ static void* invokeMethod(void* method,void* object,void** args){
         const auto id=*static_cast<uint32_t*>(args[0]);
         auto erase=[&](host::Node* led){return host::removeLed(led,id);};
         const bool removed=erase(host::read<host::Node*>(object,0x18));node.components.erase(id);
-        if(!host::leaveGroupTyped)for(auto value:host::read<host::Node*>(object,0x20)->objects)erase(static_cast<host::Node*>(value));
+        if(removed) {
+            // Faithful external original3c66610 routing: after all-Led removal,
+            // invalidate count, then use ONLY the current-type bucket if type
+            // resolves. The absent-type fallback stops at its first success.
+            host::put(node,0x54,int32_t{-1});
+            auto* dictionary=host::read<host::Node*>(object,0x20);
+            auto* frames=host::read<host::Node*>(object,0x48);host::Node* types=nullptr;
+            if(frames){auto* frame=static_cast<host::Node*>(frames->calls.at("get_Current"));types=static_cast<host::Node*>(frame->calls.at("get_TypeBuffer"));}
+            const auto currentType=types?types->components.find(id):std::map<uint32_t,uint32_t>::const_iterator{};
+            if(types && currentType!=types->components.end()) {
+                ++host::removeCurrentTypeRoutes;host::lastRemoveType=currentType->second;
+                const auto bucket=dictionary->typedBuckets.find(currentType->second);
+                if(!host::leaveGroupTyped && bucket!=dictionary->typedBuckets.end())erase(static_cast<host::Node*>(bucket->second));
+            } else {
+                ++host::removeAbsentTypeRoutes;
+                if(!host::leaveGroupTyped)for(auto value:dictionary->objects)if(erase(static_cast<host::Node*>(value)))break;
+            }
+        }
         if(host::stopAfterGroupRemove)host::movementWorld=0;
         return host::boolean(removed);
     }
@@ -499,8 +520,9 @@ static void metadata(){
     host::fields["_trackedReleasedUnits"]={0x10};host::fields["_autoAssignments"]={0x30};
     host::boxedBool.klass=boolean;host::boxedInt.klass=integer;
     host::dirtyCalls=host::ledCalls=host::automaticCalls=host::controlGroupClears=host::trackedRemoves=0;
+    host::removeCurrentTypeRoutes=host::removeAbsentTypeRoutes=0;host::lastRemoveType=UINT32_MAX;
     host::groupRemovals=host::groupMarks=host::groupNotifications=0;host::failGroupRemove=host::leaveGroupTyped=host::stopAfterGroupRemove=false;host::dirtyBySet.clear();host::ledByObject.clear();host::disposeByHelper.clear();
-    host::failLed=host::failDispose=nullptr;host::disposeHook={};host::markHook={};host::beginHook={};host::lookupHook={};host::failGroupMark=false;host::failScopeBegin=false;
+    host::failLed=host::failLedAfter=host::failDispose=nullptr;host::disposeHook={};host::markHook={};host::beginHook={};host::lookupHook={};host::failGroupMark=false;host::failScopeBegin=false;
     host::interactionEvents.clear();host::failedRoot=nullptr;host::failEnumeration=false;
 }
 struct Selection {
@@ -576,6 +598,16 @@ struct CanonicalGroup {
     void prepare(Fixture& f,actors::GroupChanges& changes,bool both=false) {
         changes.prepare(both?std::vector<void*>{&group,&f.group1}:std::vector<void*>{&group},f.retired,&f.state);
         changes.begin();changes.mutated=true;
+    }
+};
+struct CanonicalLoss:CanonicalGroup {
+    Node units,unitArray,unitIds;
+    explicit CanonicalLoss(Fixture& f):CanonicalGroup(f) {
+        units.klass=host::type("Uncapped.Collections","UnitSet");unitIds.klass=host::type("Uncapped.Collections","EntityIdSet");
+        put(units,0x10,static_cast<void*>(&unitArray));put(units,0x18,static_cast<void*>(&unitIds));
+        put(unitIds,0x10,int32_t{0});put(unitArray,0x18,uintptr_t{0});put(f.manager,0x10,static_cast<void*>(&units));
+        f.type.components[7]=76;f.state.admission.entities[7]={0,76,901};
+        selected.dictionary.objects.push_back(&selected.newType);selected.dictionary.typedBuckets[76]=&selected.newType;
     }
 };
 static void exact(Node& values,std::vector<uint32_t> expected){auto actual=values.values;std::sort(actual.begin(),actual.end());std::sort(expected.begin(),expected.end());check(actual==expected,"scope raw membership differs");}
@@ -825,6 +857,173 @@ int main(){using namespace scope_test;try{
         exact(g.selected.allIds,{7,99});exact(g.tracked,{7,99});exact(f.second.allIds,{7,100});
         check(host::dirtyCalls==1&&!host::ledCalls&&!host::dirtyBySet[&f.second.set]&&g.helper.disposed==1&&f.helper1.disposed==1,
             "post-query canonical drift continued adaptation/cleanup");
+    });
+    run("canonical token loss current-type route acknowledges only after Dispose",[](Fixture& f){
+        CanonicalLoss g(f);f.type.components[7]=75;f.state.admission.entities[7]={0,75,901};
+        bool markedPending=false,disposedPending=false;
+        host::markHook=[&](void* helper){if(helper==&g.helper)markedPending=f.state.groupIntent.entries().count({4,7})==1;};
+        host::disposeHook=[&](void* helper){if(helper==&g.helper)disposedPending=f.state.groupIntent.entries().count({4,7})==1;};
+        actors::reconcileGroupIntent(f.state);
+        exact(g.selected.allIds,{99});exact(g.selected.oldIds,{99});exact(g.selected.newIds,{});
+        check(markedPending&&disposedPending&&f.state.groupIntent.entries().empty()&&g.helper.disposed==1&&
+            host::groupMarks==1&&host::groupNotifications==1&&!host::automaticCalls&&!host::controlGroupClears,
+            "canonical loss acknowledged before successful original scope/notification");
+    });
+    run("canonical loss original user Clear wins",[](Fixture& f){
+        CanonicalLoss g(f);g.selected.allIds.values.clear();g.selected.oldIds.values.clear();g.selected.set.components.clear();
+        put(g.selected.all,0x18,UINT32_MAX);put(g.selected.oldType,0x18,UINT32_MAX);
+        actors::reconcileGroupIntent(f.state);exact(g.selected.allIds,{});exact(g.selected.oldIds,{});
+        check(f.state.groupIntent.entries().empty()&&!host::groupRemovals&&!host::ledCalls&&!host::dirtyCalls&&
+            !host::groupMarks&&!host::groupNotifications&&!g.helper.disposed&&!host::automaticCalls,
+            "original Clear was resurrected or unnecessarily purged");
+    });
+    run("canonical loss original mutation exception keeps metadata and closes once",[](Fixture& f){
+        CanonicalLoss g(f);host::failLed=&g.selected.all;
+        refused([&]{actors::reconcileGroupIntent(f.state);});exact(g.selected.allIds,{7,99});exact(g.selected.oldIds,{7,99});
+        check(f.state.groupIntent.entries().at({4,7}).token==900&&g.helper.disposed==1&&!host::read<bool>(&g.helper,0x10)&&
+            !host::groupMarks&&!host::groupNotifications&&!host::groupRemovals&&host::ledCalls==1,
+            "failed original mutation acknowledged metadata or retried/leaked scope");
+    });
+    for(int mode=0;mode<4;++mode)run(("canonical loss exact current owner refusal "+std::to_string(mode)).c_str(),[&](Fixture& f){
+        CanonicalLoss g(f);
+        if(mode==0)host::movementWorld=0;if(mode==1)put(f.simulation,0x148,static_cast<void*>(nullptr));
+        if(mode==2)f.frame.klass=host::type("Authored","WrongFrame");if(mode==3)put(g.helper,0x18,static_cast<void*>(&f.group1));
+        refused([&]{actors::reconcileGroupIntent(f.state);});exact(g.selected.allIds,{7,99});exact(g.selected.oldIds,{7,99});
+        check(f.state.groupIntent.entries().size()==1&&!host::groupRemovals&&!host::ledCalls&&!host::dirtyCalls&&
+            !host::groupMarks&&!g.helper.disposed,"invalid current owner reached canonical-loss mutation");
+    });
+    run("canonical loss Begin owner drift refuses and closes once",[](Fixture& f){
+        CanonicalLoss g(f);host::beginHook=[&](void* group){if(group==&g.group)host::movementWorld=0;};
+        refused([&]{actors::reconcileGroupIntent(f.state);});exact(g.selected.allIds,{7,99});exact(g.selected.oldIds,{7,99});
+        check(f.state.groupIntent.entries().size()==1&&g.helper.disposed==1&&!host::read<bool>(&g.helper,0x10)&&
+            !host::groupRemovals&&!host::ledCalls&&!host::dirtyCalls&&!host::groupMarks,
+            "Begin owner drift continued mutation or failed once-only cleanup");
+    });
+    run("canonical loss Dispose owner drift keeps unacknowledged metadata",[](Fixture& f){
+        CanonicalLoss g(f);f.type.components[7]=75;f.state.admission.entities[7]={0,75,901};
+        host::disposeHook=[&](void* helper){if(helper==&g.helper)host::movementWorld=0;};
+        refused([&]{actors::reconcileGroupIntent(f.state);});exact(g.selected.allIds,{99});exact(g.selected.oldIds,{99});
+        check(f.state.groupIntent.entries().at({4,7}).token==900&&g.helper.disposed==1&&host::groupMarks==1&&host::groupNotifications==1,
+            "Dispose owner drift acknowledged metadata or retried cleanup");
+    });
+    run("canonical loss current-type change needs every raw cached bucket purged",[](Fixture& f){
+        CanonicalLoss g(f);check(!host::leaveGroupTyped,"canonical-loss RED must not inject a skipped typed removal");
+        std::string failure;try{actors::reconcileGroupIntent(f.state);}catch(const std::exception& e){failure=e.what();}
+        std::cout<<"CANONICAL LOSS CHECK priorCases="<<cases<<" currentTypeRoutes="<<host::removeCurrentTypeRoutes
+            <<" resolvedType="<<host::lastRemoveType<<" allCount="<<g.selected.allIds.values.size()
+            <<" oldTypedCount="<<g.selected.oldIds.values.size()<<" currentTypedCount="<<g.selected.newIds.values.size()
+            <<" metadataEntries="<<f.state.groupIntent.entries().size()<<" disposed="<<g.helper.disposed
+            <<" marks="<<host::groupMarks<<" notifications="<<host::groupNotifications
+            <<" originalRemove="<<host::groupRemovals<<" rawLedRemove="<<host::ledCalls<<" skipTypedInjected="<<host::leaveGroupTyped
+            <<" originalFailure="<<failure<<'\n';
+        check(failure.empty(),"RED: actual canonical-loss reconciliation resolves only current type76 and leaves old typed75 ghost7");
+        exact(g.selected.allIds,{99});exact(g.selected.oldIds,{99});exact(g.selected.newIds,{});
+        check(f.state.groupIntent.entries().empty()&&g.helper.disposed==1&&host::groupMarks==1&&host::groupNotifications==1&&
+            !host::controlGroupClears&&!host::automaticCalls&&!host::groupRemovals&&host::ledCalls==2,
+            "canonical-loss cleanup did not surgically purge all original raw buckets before acknowledgment");
+    });
+    for(int stage=0;stage<3;++stage)for(int mode=0;mode<9;++mode)
+        run(("canonical loss callback current snapshot "+std::to_string(stage)+":"+std::to_string(mode)).c_str(),[&](Fixture& f){
+            CanonicalLoss g(f);Node otherFrames,otherFrame,otherBuffer;
+            otherFrames.calls["get_Current"]=&f.frame;otherFrame.klass=f.frame.klass;otherFrame.calls=f.frame.calls;
+            put(otherFrame,0x40,int32_t{110});otherBuffer.klass=host::type("Authored","ComponentBuffer");
+            auto drift=[&](){
+                if(mode==0)f.frames.calls["get_Current"]=&otherFrame; // Same collection/index, different current node.
+                if(mode==1)put(f.frame,0x40,int32_t{111});
+                if(mode==2)f.frame.calls["get_PositionBuffer"]=&otherBuffer;
+                if(mode==3)f.frame.calls["get_TypeBuffer"]=&otherBuffer;
+                if(mode==4)f.frame.calls["get_ArmyBuffer"]=&otherBuffer;
+                if(mode==5)put(f.simulation,0x148,static_cast<void*>(&otherFrames));
+                if(mode==6)f.state.admission.frame=111;
+                if(mode==7)put(f.array,0x40,static_cast<void*>(&f.group1));
+                if(mode==8)put(f.array,0x18,uintptr_t{4});
+            };
+            if(stage==0)host::beginHook=[&](void* group){if(group==&g.group)drift();};
+            if(stage==1)host::markHook=[&](void* helper){if(helper==&g.helper)drift();};
+            if(stage==2)host::disposeHook=[&](void* helper){if(helper==&g.helper)drift();};
+            refused([&]{actors::reconcileGroupIntent(f.state);});
+            exact(g.selected.allIds,stage==0?std::vector<uint32_t>{7,99}:std::vector<uint32_t>{99});
+            exact(g.selected.oldIds,stage==0?std::vector<uint32_t>{7,99}:std::vector<uint32_t>{99});
+            check(f.state.groupIntent.entries().at({4,7}).token==900&&g.helper.disposed==1&&
+                host::disposeByHelper[&g.helper]==1&&!host::read<bool>(&g.helper,0x10)&&!host::groupRemovals&&
+                host::dirtyCalls==(stage==0?0u:1u)&&host::ledCalls==(stage==0?0u:2u)&&
+                host::groupMarks==(stage==0?0u:1u)&&host::groupNotifications==(stage==0?0u:1u),
+                "current snapshot drift acknowledged metadata, continued mutation or retried cleanup");
+        });
+    for(int stage=0;stage<3;++stage)for(int mode=0;mode<6;++mode)
+        run(("canonical loss callback identity snapshot "+std::to_string(stage)+":"+std::to_string(mode)).c_str(),[&](Fixture& f){
+            CanonicalLoss g(f);
+            auto drift=[&](){
+                if(mode==0)f.state.admission.entities.erase(7);
+                if(mode==1)f.state.admission.entities[7].type=75;
+                if(mode==2)f.state.admission.entities[7].army=1;
+                if(mode==3)f.state.admission.entities[7].incarnation=902;
+                if(mode>=4)f.state.groupIntent.erase(1,{4,7});
+                if(mode==5)f.state.groupIntent.remember(1,{4,7},{75,0,902});
+            };
+            if(stage==0)host::beginHook=[&](void* group){if(group==&g.group)drift();};
+            if(stage==1)host::markHook=[&](void* helper){if(helper==&g.helper)drift();};
+            if(stage==2)host::disposeHook=[&](void* helper){if(helper==&g.helper)drift();};
+            refused([&]{actors::reconcileGroupIntent(f.state);});
+            exact(g.selected.allIds,stage==0?std::vector<uint32_t>{7,99}:std::vector<uint32_t>{99});
+            exact(g.selected.oldIds,stage==0?std::vector<uint32_t>{7,99}:std::vector<uint32_t>{99});
+            if(mode==4)check(f.state.groupIntent.entries().empty(),"callback-removed metadata was resurrected");
+            else check(f.state.groupIntent.entries().at({4,7}).token==(mode==5?902u:900u),"drifted callback metadata was erased or overwritten");
+            check(g.helper.disposed==1&&host::disposeByHelper[&g.helper]==1&&!host::read<bool>(&g.helper,0x10)&&
+                !host::groupRemovals&&host::dirtyCalls==(stage==0?0u:1u)&&host::ledCalls==(stage==0?0u:2u)&&
+                host::groupMarks==(stage==0?0u:1u)&&host::groupNotifications==(stage==0?0u:1u),
+                "identity drift continued adaptation or retried original cleanup");
+        });
+    run("canonical loss partial old-typed Led failure retains metadata",[](Fixture& f){
+        CanonicalLoss g(f);host::failLed=&g.selected.oldType;
+        refused([&]{actors::reconcileGroupIntent(f.state);});exact(g.selected.allIds,{99});exact(g.selected.oldIds,{7,99});
+        check(f.state.groupIntent.entries().at({4,7}).token==900&&host::dirtyCalls==1&&host::ledCalls==2&&
+            !host::groupRemovals&&!host::groupMarks&&!host::groupNotifications&&g.helper.disposed==1&&
+            host::read<int32_t>(&g.selected.set,0x54)==-1,"partial Led failure acknowledged metadata or left count valid");
+    });
+    for(bool typed:{false,true})run(typed?"canonical loss typed Led throws after mutation":"canonical loss all Led throws after mutation",[&](Fixture& f){
+        CanonicalLoss g(f);host::failLedAfter=typed?&g.selected.oldType:&g.selected.all;
+        refused([&]{actors::reconcileGroupIntent(f.state);});exact(g.selected.allIds,{99});
+        exact(g.selected.oldIds,typed?std::vector<uint32_t>{99}:std::vector<uint32_t>{7,99});
+        check(f.state.groupIntent.entries().at({4,7}).token==900&&host::dirtyCalls==1&&host::ledCalls==(typed?2u:1u)&&
+            !host::groupMarks&&!host::groupNotifications&&g.helper.disposed==1&&!host::groupRemovals,
+            "after-mutation Led exception acknowledged metadata or continued mutation");
+    });
+    run("canonical loss original Dispose failure keeps completed purge unacknowledged",[](Fixture& f){
+        CanonicalLoss g(f);host::failDispose=&g.helper;refused([&]{actors::reconcileGroupIntent(f.state);});
+        exact(g.selected.allIds,{99});exact(g.selected.oldIds,{99});
+        check(f.state.groupIntent.entries().at({4,7}).token==900&&host::dirtyCalls==1&&host::ledCalls==2&&
+            host::groupMarks==1&&host::groupNotifications==1&&g.helper.disposed==1&&host::disposeByHelper[&g.helper]==1,
+            "failed original Dispose acknowledged metadata or was retried");
+    });
+    run("canonical loss primary Led exception survives Dispose failure",[](Fixture& f){
+        CanonicalLoss g(f);host::failLed=&g.selected.oldType;host::failDispose=&g.helper;
+        std::string error;try{actors::reconcileGroupIntent(f.state);}catch(const std::exception& e){error=e.what();}
+        check(error=="injected original Led.Remove failure","cleanup replaced the original Led exception");
+        exact(g.selected.allIds,{99});exact(g.selected.oldIds,{7,99});
+        check(f.state.groupIntent.entries().at({4,7}).token==900&&host::ledCalls==2&&!host::groupMarks&&
+            !host::groupNotifications&&g.helper.disposed==1&&host::disposeByHelper[&g.helper]==1,"double failure lost metadata or retried cleanup");
+    });
+    run("canonical loss first partial failure stops later pending group",[](Fixture& f){
+        CanonicalLoss g(f);Selection selected5{100};Node group5,helper5,tracked5,rules5;
+        group5.klass=host::type("Uncapped","ControlGroup");helper5.klass=host::type("Authored","GroupHelper");
+        tracked5.klass=host::type("Uncapped.Collections","EntityIdSet");f.setup(group5,helper5,tracked5,rules5,selected5,5);
+        put(group5,0x30,static_cast<void*>(nullptr));put(f.array,0x18,uintptr_t{6});put(f.array,0x48,static_cast<void*>(&group5));
+        f.state.groupIntent.remember(1,{5,7},{75,0,900});host::failLed=&g.selected.oldType;
+        refused([&]{actors::reconcileGroupIntent(f.state);});exact(g.selected.allIds,{99});exact(g.selected.oldIds,{7,99});
+        exact(selected5.allIds,{7,100});exact(selected5.oldIds,{7,100});
+        check(f.state.groupIntent.entries().size()==2&&host::ledCalls==2&&host::dirtyCalls==1&&!host::dirtyBySet[&selected5.set]&&
+            g.helper.disposed==1&&!helper5.disposed&&!host::groupMarks,"first failure adapted/acknowledged a later pending group");
+    });
+    run("canonical loss original removal during Begin uses no resurrection and one dirty",[](Fixture& f){
+        CanonicalLoss g(f);host::beginHook=[&](void* group){if(group==&g.group){
+            g.selected.allIds.values={99};g.selected.oldIds.values={99};g.selected.set.components.erase(7);
+            put(g.selected.all,0x18,uint32_t{99});put(g.selected.oldType,0x18,uint32_t{99});
+        }};
+        actors::reconcileGroupIntent(f.state);exact(g.selected.allIds,{99});exact(g.selected.oldIds,{99});
+        check(f.state.groupIntent.entries().empty()&&!host::ledCalls&&!host::groupRemovals&&host::dirtyCalls==1&&
+            host::groupMarks==1&&host::groupNotifications==1&&g.helper.disposed==1&&!host::automaticCalls,
+            "original removal during Begin was re-added or double-dirtied");
     });
     std::cout<<"PASS "<<cases<<" actual-source pre-pool group-scope cases; original initializer suspension diagnostic exercised; no Unity/IL2CPP/game/DLL loads\n";return 0;
 }catch(const std::exception& e){std::cerr<<e.what()<<'\n';return 1;}}

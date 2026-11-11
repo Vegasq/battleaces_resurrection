@@ -1,5 +1,5 @@
 BATTLE ACES - CURRENT DELIVERY ROADMAP
-Updated:2026-11-10. ACTIVE. Single current work queue;final release is not accepted.
+Updated:2026-11-11. ACTIVE. Single current work queue;final release is not accepted.
 
 Nick's requested0.4.0 client/server release is PUBLISHED;matching host deployed
 at134.209.176.39 and game TCP47623 reopened publicly,durable across restart.
@@ -104,13 +104,17 @@ needed. Both fourteen-phase episodes,native replay and natural shutdown pass.
 42-47 remain failed and preserved;253 focused Python checks and helper59 pass.
 Actual49 passes the changed group candidate's prior two-client regression,
 all2892 native hashes/wire joins and natural shutdown. Its260 retirement rows
-all have affectedGroups0;the new group path is not engine-qualified. Whole-group
+all have affectedGroups0;that run did not exercise forced-retirement groups. Whole-group
 clearing and canonical-membership ownership REDs now have candidate repairs;
-122 raw-cache and44 actual-source lifecycle/ownership cases pass. Full
-helper63 build passes198 unchanged source bindings. A finite original-native
-build pair rules out the proposed delayed-birth trigger;forced-group coverage
-and the separate canonical-loss typed-cache path remain.
-Next:qualify those group paths,the separate naturally removed/empty-preview
+122 raw-cache,106 lifecycle/ownership and59 actor-binding cases now pass;
+full helper64 build binds198 unchanged sources. A faithful canonical-loss
+typed-cache RED is repaired. Actual50 qualifies its canonical-death raw API/
+scope path in both real mobile rounds:group preservation,confirmed purge,
+recall,fresh input,all2888 native hashes/wire joins and natural shutdown,
+independently reproduced against frozen sources. Actual type-change
+and forced-retirement coverage remain open. A finite original-native build
+pair rules out the proposed delayed-birth trigger.
+Next:qualify those remaining group paths,the naturally removed/empty-preview
 held case,and broader held-input/render behavior.
 Physical/Internet acceptance is open.
 Prediction eligibility remains
@@ -176,6 +180,11 @@ These grouped rows summarize the detailed matrices;they are not a percentage or
 an exact count of every remaining test. DEV.txt remains the owner of user answers.
 
 COMPLETED
+[x] Canonical-death group raw-cache cleanup (actual50):original API/scopes,
+    metadata acknowledgment,recall and two native rounds. Actual type-changing
+    forced retirement remains separate and open.
+[x] Same-identity HQ held-click preservation through genuine Down/correction/Up
+    (actual48),with original numeric sets/history unchanged. Broader input open.
 [x] Original UI command ownership through correction/rematch (actual34),and
     accepted held-focus action without new coroutine startup (actual35).
     These close their named integration scopes,not full physical/Internet D8.

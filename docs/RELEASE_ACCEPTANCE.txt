@@ -375,7 +375,12 @@ D8    OPEN        Bounded two/four-room TLS/native and older soak evidence retai
                   2892 native hashes/wire joins and natural shutdown;all260
                   retirement records have affectedGroups0. Later authored
                   group/identity repairs pass122+44 cases;forced-group native
-                  coverage/canonical-loss typed-cache repair remain OPEN.
+                  coverage remains OPEN. The separate canonical-loss cache
+                  repair now passes122 helper/106 scope/59 actor-binding cases
+                  and full helper64. Actual50 qualifies canonical-death raw
+                  cleanup in both mobile rounds,retention/recall/fresh input,
+                  all2888 native hashes and natural shutdown. Actual type-change,
+                  forced retirement and physical/Internet acceptance stay OPEN.
                   Details:prediction-actor-correction.txt. N35 remains pending.
                   219named Windows/C-data21-match cadence/resource check PASSES:
                   19.974326-20.005228Hz,max gap124.3548ms,zero worker awaits>50ms.

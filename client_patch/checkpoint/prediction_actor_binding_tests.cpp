@@ -25,7 +25,7 @@
 namespace host {
 using Obj=void*;
 struct Class;
-struct Method {Obj function=nullptr;const char* name=nullptr;uint32_t token=0;Class* result=nullptr;uint32_t parameters=1;uint32_t flags=0;};
+struct Method {Obj function=nullptr;const char* name=nullptr;uint32_t token=0;Class* result=nullptr;uint32_t parameters=1;uint32_t flags=0;Class* owner=nullptr;};
 struct Class {std::string space,name;std::vector<Method*> methods;Class* declaring=nullptr;};
 struct Field {size_t offset=0;Class* type=nullptr;Class* parent=nullptr;uint32_t flags=0;int32_t literal=0;};
 struct Node {
@@ -62,9 +62,12 @@ static unsigned selectionRemovals=0;
 static std::vector<uint32_t> removedSelectionIds;
 static bool failSelectionRemoval=false,stopOnSelectionRemoval=false;
 static unsigned groupRemovals=0,groupMarks=0,groupNotifications=0;
+static unsigned groupDirtyCalls=0,groupLedCalls=0;
+static Obj failedGroupLed=nullptr;
 static bool failGroupRemove=false,leaveGroupTyped=false,failGroupMark=false,stopAfterGroupRemove=false;
 static Obj expectedGroupHelper=nullptr;
 static unsigned char groupRemoveCode[32]{},groupBeginCode[32]{},groupDisposeCode[8]{},groupMarkCode[32]{};
+static unsigned char groupLedCode[16]{},groupDirtyCode[8]{};
 static unsigned char focusCode[]={0x3b,0x91,0xa0,0,0,0,0x75,0x59,0x83,0x3d,0x99,0x34,0x25,0x03,0,0x48,0x8d,0x91,0xa8,0,0,0,0x48,0xc7,0x02,0,0,0,0,0xc7,0x81,0xa0,0,0,0,0xff,0xff,0xff,0xff};
 static unsigned char clearCode[]={0x48,0x89,0x5c,0x24,0x08,0x57,0x48,0x83,0xec,0x70,0x48,0x8b,0xd9,0x80,0x3d,0xb4};
 static unsigned char clickClockCode[]={0x48,0x83,0xec,0x28,0x48,0x8b,0x05,0x0d,0xf8,0x5f,0x06,0x48,0x85,0xc0,0x75,0x18,0x48};
@@ -90,6 +93,7 @@ template<class T>static T read(Obj object,size_t offset){
 static bool contains(Obj node,uint32_t id,Obj){return static_cast<Node*>(node)->components.count(id)!=0;}
 static uint32_t item(Obj node,uint32_t id,Obj){return static_cast<Node*>(node)->components.at(id);}
 static Method containsMethod,itemMethod,selectionContainsMethod,countMethod,valuesMethod,enumeratorMethod,moveNextMethod,currentMethod,disposeMethod,focusMethod,scopeBeginMethod,scopeDisposeMethod,clearMethod,removeSelectionMethod,groupRemoveMethod,groupMarkMethod,clickTimeMethod;
+static Method groupLedMethod,groupDirtyMethod;
 static Class* focusParameter=nullptr;
 static Node boxedBool,boxedInt,boxedSingle;
 static bool failEnumeration=false;
@@ -149,6 +153,25 @@ static void metadata(){
     clickLiterals={{"None",{0,modeType,modeType,0x56,0}},{"SingleClickOnMouseUp",{0,modeType,modeType,0x56,1}},
         {"DoubleClickOnMouseUp",{0,modeType,modeType,0x56,2}}};
     boxedSingle.klass=type("System","Single");
+    boxedBool.klass=boolType;boxedInt.klass=type("System","Int32");
+    auto* selection=type("Uncapped.Collections","UnitSelectionSet");
+    auto* led=type("","LedUnitSet");led->declaring=selection;
+    auto* dictionary=type("System.Collections.Generic","Dictionary`2");
+    auto* valueCollection=type("Authored","ValueCollection");
+    auto* iterator=type("Authored","ValueEnumerator");
+    groupLedMethod={groupLedCode,"Remove",0x060025c8,boolType,1,0,led};
+    groupDirtyMethod={groupDirtyCode,"MarkCountAsDirty",0x0600259a,type("System","Void"),0,0,selection};
+    methodObjects.insert(&groupLedMethod);methodObjects.insert(&groupDirtyMethod);
+    led->methods={&groupLedMethod};selection->methods.push_back(&groupDirtyMethod);
+    dictionary->methods={&countMethod,&valuesMethod};
+    valuesMethod.result=valueCollection;enumeratorMethod.result=iterator;
+    currentMethod.result=led;disposeMethod.result=type("System","Void");
+    fields["_allUnits"]={0x18,led,selection};fields["_subsetsByType"]={0x20,dictionary,selection};
+    fields["<Entities>k__BackingField"]={0x10,type("Uncapped.Collections","EntityIdSet"),led};
+    fields["<Leader>k__BackingField"]={0x18,uintType,led};fields["_lastKnownLeaderId"]={0x1c,uintType,led};
+    fields["<OnlyHQSelected>k__BackingField"]={0x58,boolType,selection};
+    fields["_recomputeOverallLeader"]={0x10,boolType,selection};
+    fields["_lastFrameCountRecalculated"]={0x54,type("System","Int32"),selection};
 }
 static Obj methods(Obj klass,void** iterator){
     const auto index=reinterpret_cast<uintptr_t>(*iterator);
@@ -158,6 +181,9 @@ static Obj methods(Obj klass,void** iterator){
 }
 static Obj parent(Obj){return nullptr;}
 static const char* className(Obj value){return static_cast<Class*>(value)->name.c_str();}
+static const char* classNamespace(Obj value){return static_cast<Class*>(value)->space.c_str();}
+static Obj methodOwner(Obj value){return static_cast<Method*>(value)->owner;}
+static bool byref(Obj){return false;}
 static const char* methodName(Obj value){return static_cast<Method*>(value)->name;}
 static uint32_t parameterCount(Obj value){return static_cast<Method*>(value)->parameters;}
 static uint32_t methodToken(Obj value){return static_cast<Method*>(value)->token;}
@@ -206,6 +232,9 @@ namespace ba {
 static int lanSlot(){return 1;}
 using Obj=void*;static DWORD initialThread=1;static Obj owner=nullptr;
 template<class T>T api(const char* name){
+    if(!strcmp(name,"il2cpp_class_get_namespace"))return reinterpret_cast<T>(&host::classNamespace);
+    if(!strcmp(name,"il2cpp_method_get_declaring_type"))return reinterpret_cast<T>(&host::methodOwner);
+    if(!strcmp(name,"il2cpp_type_is_byref"))return reinterpret_cast<T>(&host::byref);
     if(!strcmp(name,"il2cpp_class_get_methods"))return reinterpret_cast<T>(&host::methods);
     if(!strcmp(name,"il2cpp_class_get_parent"))return reinterpret_cast<T>(&host::parent);
     if(!strcmp(name,"il2cpp_class_get_name"))return reinterpret_cast<T>(&host::className);
@@ -232,6 +261,8 @@ template<class T>T api(const char* name){
 }
 template<class T>T native(uintptr_t rva){
     if(rva==0x3787d20)return reinterpret_cast<T>(&host::ids);
+    if(rva==0x3c699b0)return reinterpret_cast<T>(&host::groupLedCode[0]);
+    if(rva==0x3c63de0)return reinterpret_cast<T>(&host::groupDirtyCode[0]);
     if(rva==0x3bf2fa0)return reinterpret_cast<T>(&host::focusCode[0]);
     if(rva==0x3c66c50)return reinterpret_cast<T>(&host::clearCode[0]);
     if(rva==0x3c66610)return reinterpret_cast<T>(&host::groupRemoveCode[0]);
@@ -249,6 +280,12 @@ static Obj find_class(const char* space,const char* name){return host::type(spac
 static Obj field(Obj receiver,const char* name){
     static host::Field groupManager{0x60};
     if(!strcmp(name,"_unitManager") && klass(receiver)==host::type("Uncapped","ControlGroup"))return &groupManager;
+    if(!strcmp(name,"_dictionary")) {
+        static host::Field valuesOwner{0x10,host::type("System.Collections.Generic","Dictionary`2"),host::type("Authored","ValueCollection")};
+        static host::Field iteratorOwner{0x10,host::type("System.Collections.Generic","Dictionary`2"),host::type("Authored","ValueEnumerator")};
+        if(klass(receiver)==valuesOwner.parent)return &valuesOwner;
+        if(klass(receiver)==iteratorOwner.parent)return &iteratorOwner;
+    }
     return &host::fields.at(name);
 }
 static Obj call(Obj receiver,const char* name,int=0,void** =nullptr){return static_cast<host::Node*>(receiver)->calls.at(name);}
@@ -280,6 +317,21 @@ static void* invokeMethod(void* method,void* object,void** args){
         host::boxedSingle.klass=host::type("System",host::wrongClickBox?"Int32":"Single");host::put(host::boxedSingle,0,host::clickNow);return &host::boxedSingle;
     }
     auto& node=*static_cast<host::Node*>(object);
+    if(token==0x0600259a){
+        host::check(host::expectedGroupHelper && host::read<bool>(host::expectedGroupHelper,0x10),"group dirty outside original scope");
+        ++host::groupDirtyCalls;host::interactionEvents.push_back("dirty");host::put(node,0x54,int32_t{-1});return nullptr;
+    }
+    if(token==0x060025c8){
+        host::check(host::expectedGroupHelper && host::read<bool>(host::expectedGroupHelper,0x10) && args && args[0],"group Led removal ABI/scope differs");
+        ++host::groupLedCalls;host::interactionEvents.push_back("ledRemove");
+        if(object==host::failedGroupLed)throw std::runtime_error("authored original Led removal failure");
+        const auto id=*static_cast<uint32_t*>(args[0]);auto& values=host::read<host::Node*>(object,0x10)->values;
+        const auto found=std::find(values.begin(),values.end(),id);
+        if(found==values.end())return host::boolean(false);
+        *found=values.back();values.pop_back();
+        if(host::read<uint32_t>(object,0x18)==id)host::put(node,0x18,values.empty()?UINT32_MAX:values.front());
+        return host::boolean(true);
+    }
     if(token==0x0600220a){
         host::check(object==host::currentSelector && args && args[0],"original removal owner/batch missing");
         ++host::selectionRemovals;host::interactionEvents.push_back("removeSelection");
@@ -472,17 +524,21 @@ struct Selection {
     Node set,all,allIDs,subsets,values,enumerator,typed,typedIDs;
     Selection(){
         set.klass=host::type("Uncapped.Collections","UnitSelectionSet");
-        all.klass=typed.klass=host::type("Authored","LedUnitSet");
+        all.klass=typed.klass=host::type("","LedUnitSet");
         allIDs.klass=typedIDs.klass=host::type("Uncapped.Collections","EntityIdSet");
-        subsets.klass=host::type("Authored","TypedSubsets");values.klass=host::type("Authored","ValueCollection");
+        subsets.klass=host::type("System.Collections.Generic","Dictionary`2");values.klass=host::type("Authored","ValueCollection");
         enumerator.klass=host::type("Authored","ValueEnumerator");
         put(set,0x18,static_cast<void*>(&all));put(set,0x20,static_cast<void*>(&subsets));
         put(all,0x10,static_cast<void*>(&allIDs));put(typed,0x10,static_cast<void*>(&typedIDs));
         put(values,0x10,static_cast<void*>(&subsets));subsets.calls["values"]=&values;values.calls["enumerator"]=&enumerator;
+        put(enumerator,0x10,static_cast<void*>(&subsets));
         subsets.objects={&typed};enumerator.objects={&typed};setIDs({100},{100});
     }
     void setIDs(std::vector<uint32_t> main,std::vector<uint32_t> cached){
         allIDs.values=std::move(main);typedIDs.values=std::move(cached);set.components.clear();
+        put(all,0x18,allIDs.values.empty()?UINT32_MAX:allIDs.values.front());
+        put(typed,0x18,typedIDs.values.empty()?UINT32_MAX:typedIDs.values.front());
+        put(all,0x1c,UINT32_MAX);put(typed,0x1c,UINT32_MAX);
         for(auto id:allIDs.values)set.components[id]=1;
     }
 };
@@ -868,6 +924,7 @@ struct GroupIntent:Fixture {
         check(index<groups.size(),"authored group index bound");
         host::interactionEvents.clear();host::failedRoot=nullptr;host::failEnumeration=false;
         host::groupRemovals=host::groupMarks=host::groupNotifications=0;
+        host::groupDirtyCalls=host::groupLedCalls=0;host::failedGroupLed=nullptr;
         host::failGroupRemove=host::leaveGroupTyped=host::failGroupMark=host::stopAfterGroupRemove=false;
         host::failScopeBegin=false;host::scopeBeginMethod.flags=host::groupRemoveMethod.flags=host::groupMarkMethod.flags=0;
         ba::initialThread=ba_local::updateThread=GetCurrentThreadId();
@@ -903,10 +960,25 @@ struct GroupIntent:Fixture {
     void unchanged(){
         check(sets[group].allIDs.values==std::vector<uint32_t>({7,99})&&
             sets[group].typedIDs.values==std::vector<uint32_t>({7,99})&&
-            !host::groupRemovals&&!host::groupMarks&&!host::groupNotifications,
+            !host::groupRemovals&&!host::groupMarks&&!host::groupNotifications&&
+            !host::groupDirtyCalls&&!host::groupLedCalls,
             "group intent preflight changed original membership/notification");
     }
 };
+static void groupIntentHostModelsOriginalSurgicalCacheAPIs(){
+    GroupIntent f;check(f.preserve(),"authored preservation failed");f.admit(7,76,0,901);f.current(7,76,0);
+    actors::GroupSelectionPurge purge(&f.sets[f.group].set);
+    bool playerInitiated=false;void* args[]={&playerInitiated};
+    const auto begin=actors::method(&f.groups[f.group],"BeginControlGroupChange",1,0x06001645,0x3ea5790);
+    const auto dispose=actors::method(&f.helpers[f.group],"Dispose",0,0x060000cd,0x3b02160);
+    check(actors::invoke(begin,&f.groups[f.group],args)==&f.helpers[f.group],"original helper host scope differs");
+    check(purge.erase({7}),"original raw helper did not remove the invalidated member");
+    actors::invoke(dispose,&f.helpers[f.group]);
+    check(f.sets[f.group].allIDs.values==std::vector<uint32_t>{99}&&f.sets[f.group].typedIDs.values==std::vector<uint32_t>{99}&&
+        host::read<uint32_t>(&f.sets[f.group].all,0x18)==99&&host::read<uint32_t>(&f.sets[f.group].typed,0x18)==99&&
+        host::groupDirtyCalls==1&&host::groupLedCalls==2&&!host::groupRemovals&&f.helpers[f.group].disposed==1&&
+        f.state.groupIntent.entries().at({f.group,7}).token==900,"surgical host changed unrelated members or caller-owned acknowledgement");
+}
 static void groupIntentPreservesActualTypedMembershipIncludingGroupZero(){
     for(uint32_t index:{0u,4u}){
         GroupIntent f(index);check(f.preserve(),"same confirmed actor absence was not preserved");
@@ -972,11 +1044,12 @@ static void groupIntentCanonicalLossPurgesThroughOriginalScopeAndNotification(){
         f.reconcile();
         check(f.state.groupIntent.entries().empty()&&f.sets[f.group].allIDs.values==std::vector<uint32_t>{99}&&
             f.sets[f.group].typedIDs.values==std::vector<uint32_t>{99},"canonical loss left all/type membership or removed another unit");
-        check(host::groupRemovals==1&&host::groupMarks==1&&host::groupNotifications==1&&f.helpers[f.group].disposed==1&&
+        check(!host::groupRemovals&&host::groupLedCalls==2&&host::groupDirtyCalls==1&&
+            host::groupMarks==1&&host::groupNotifications==1&&f.helpers[f.group].disposed==1&&
             !host::read<bool>(&f.helpers[f.group],0x10)&&
-            host::interactionEvents==std::vector<std::string>({"begin","groupRemove","mark","dispose"}),
+            host::interactionEvents==std::vector<std::string>({"begin","dirty","ledRemove","ledRemove","mark","dispose"}),
             "original canonical purge scope/notification ordering differs");
-        f.reconcile();check(host::groupRemovals==1,"finished purge was repeated");
+        f.reconcile();check(host::groupLedCalls==2&&host::groupDirtyCalls==1,"finished purge was repeated");
     }
 }
 static void groupIntentTypedInconsistencyRefusesBeforeDecliningOriginalRemove(){
@@ -1009,8 +1082,8 @@ static void groupIntentPurgePreflightAndOriginalFailuresRetainMetadata(){
         GroupIntent f;check(f.preserve(),"authored preservation failed");f.state.admission.entities.clear();
         if(mode==0)host::groupMarkMethod.flags=0x10;
         if(mode==1)host::failScopeBegin=true;
-        if(mode==2)host::failGroupRemove=true;
-        if(mode==3)host::leaveGroupTyped=true;
+        if(mode==2)host::failedGroupLed=&f.sets[f.group].all;
+        if(mode==3)host::failedGroupLed=&f.sets[f.group].typed;
         if(mode==4)host::failGroupMark=true;
         rejected([&]{f.reconcile();});check(f.state.groupIntent.entries().size()==1,
             "failed original purge discarded its acknowledgement metadata");
@@ -1018,6 +1091,8 @@ static void groupIntentPurgePreflightAndOriginalFailuresRetainMetadata(){
         check(f.helpers[f.group].disposed==(mode==0?0u:1u),"failed original purge retried Dispose");
         if(mode<3)check(f.sets[f.group].allIDs.values==std::vector<uint32_t>({7,99}),"pre-mutation refusal changed visible group");
         if(mode==3)check(!host::groupMarks,"incomplete typed removal emitted original success notification");
+        check(!host::groupRemovals&&host::groupLedCalls==(mode<2?0u:(mode==2?1u:2u))&&
+            host::groupDirtyCalls==(mode<2?0u:1u),"failure control did not reach the expected original raw API stage");
     }
 }
 static void expiredClick(CastingInteraction& f){
@@ -1150,5 +1225,6 @@ int main(){try{
     test::expiredIdleClickHistoryDoesNotOwnRetiringActor();
     test::liveDeferredHeldAndMalformedHistoryRefuse();test::originalClickFieldEnumClockAndBoxABIFailClosed();
     test::unmatchedClickDoesNotReadClockOrHistoryMetadata();test::expiredPreparationCannotClearAfterClickBecomesLive();
-    std::cout<<"actor binding/held gesture/focus/casting/deferred/group-intent/click:58 actual-source authored flow groups PASS; no Unity/IL2CPP/native engine execution\n";return 0;
+    test::groupIntentHostModelsOriginalSurgicalCacheAPIs();
+    std::cout<<"actor binding/held gesture/focus/casting/deferred/group-intent/click:59 actual-source authored flow groups PASS; no Unity/IL2CPP/native engine execution\n";return 0;
 }catch(const std::exception& error){std::cerr<<error.what()<<'\n';return 1;}}

@@ -891,11 +891,69 @@ The corrected pair exits0,Job2/0/0,no force,source/assets unchanged.
 Original-native pair receipt SHA256:
 b37bfb3c09d8a450263defcce854b2a5484152a46b398d59e8a610d14da48cb9.
 Original native type/army collision and forced-group lifecycle remain OPEN.
-The separate reconcileGroupIntent canonical-loss path still uses original
-UnitSelectionSet.Remove and can refuse on a stale typed cache;it needs separate
-repair/qualification. Prior failed evidence is preserved under ignored
+The separate canonical-loss path subsequently reproduces a faithful RED:
+original UnitSelectionSet.Remove removes all-set7,looks ONLY in current type76,
+and leaves old typed75 ghost7. No injected skipped removal is used. All53 prior
+cases/controls pass before case54 refuses with inconsistent all/type membership;
+metadata stays pending and Dispose runs once. Exact RED receipt SHA256:
+62729b5e3361592417bb8866f7c21761e826f422bd78d7debde58b0ee540b6c7.
+
+The repair moves reconciliation behind the raw helper and uses the same
+all-bucket original Led/count APIs inside original Begin/Mark/Dispose. It
+rechecks world,generation,match,simulation,manager,group array/slot,current
+frame collection/node/component roots,index,admission and remembered identity
+across callbacks. Metadata is acknowledged only after successful cleanup and
+post-Dispose ownership validation. User removal stays absent;failed or changed
+owners retain unacknowledged metadata and every begun scope closes once.
+106 actual-source scope cases and59 actor binding cases pass /W4 /WX,including
+all prior coverage,real Led faults,callback drift and partial removal. The raw
+helper's122 cases also pass. Full helper64 reruns all included suites with198
+unchanged source bindings. The added production marker records whether the raw
+helper actually changed caches. Helper SHA256:
+89054391c78438f72a8a04ed1c2e9a8bd956db5f9a3b7175ec48b5ee2476b4ab.
+Full build receipt SHA256:
+80796471b45b11878c0f3a819df617efdff2670727039129b23cddbf3c671414.
+106-case receipt before the final log-only addition SHA256:
+04916d9e20683117d100933f2eb2b5fbb253c9c6643f4559170af50dea8e994a.
+
+Actual50 now passes two actual Unity Custom mobile rounds at130/475ms RTT in
+142.671seconds. Manual group4 preserves victim11 through false death and same-
+token restoration;canonical attacker10 death clears its original group4 in
+BOTH worlds. Three completed production purge markers report rawCacheChanged1:
+world1 group4,and world2 groups0/4. Original recall refuses legally during
+absence and succeeds after restoration;fresh Move responds70.488/56.972ms
+after enqueue,437/438ms before native65. All2888 closed native state hashes
+match authority;all clients/workers/authorities exit naturally0,Jobs inactive,
+no force or cleanup errors,and sources/runtime inputs remain unchanged.
+This qualifies the canonical-death raw API/scope path. It does NOT reproduce
+the authored type-change ghost or qualify forced actor-retirement groups;
+generic newborn movement,physical input/render comfort and Internet acceptance
+remain open. Actual50 report SHA256:
+1c0d705901c388599b3c8a5b71e9945a11fb6e187d508347e8f28e860705ddbe.
+Preservation receipt SHA256:
+107d3911f144e9cbd18cd0b1d44d8636f48e3c5823305ed728b4b1966bf62c48.
+It verifies971 sources,198 helper bindings,11 inputs,55 assets and211 captures;
+the separate incorrect controller argument was rejected before any process
+startup and is retained as such,not counted as a resumed game failure.
+Independent frozen-source audit reproduces all2888 hashes,2888 rawbridge and
+2888 native65 joins against1444 canonical journal frames,722/client/world
+0..721. Seven ordered accepted/committed actions per world are conserved.
+Both manual group4/entity10 markers join raw{10} at provisional absence154 to
+empty confirmed157,with original native death153/absence154. The source-path
+proof binds rawCacheChanged1 to successful all-bucket mutation/countdirty,
+post-census,original scope/notification and subsequent acknowledgment.
+Both original mobile/group/recall parsers pass on archived sources;each actual
+escape replay has ten frames plus20 continuations. All1251 archive entries
+reverify. Proof receipt SHA256:
+78d298180bfe411913bc80e8be74e04133e0b81408bdac2780fdcfb798641120.
+Final audit receipt SHA256:
+35bb25fe3175191f937bac2fd66c9c7fe920b957936197a72be51ba7ae57f3c6.
+All256 actor-retirement records still have affectedGroups0;that separate
+forced-retirement path is not accepted from this canonical-death proof.
+Prior failed evidence is preserved under ignored
 local/prediction-checkpoint-20261110/forced-retirement-groups01/;
 Actual49 is local/prediction-runtime/movement49-group-frame-regression/.
+Actual50 is local/prediction-runtime/movement50-canonical-group-purge/.
 
 Changing latency
 Owned actual-source tests qualify bounded existing REFRESH/ACK sampling and

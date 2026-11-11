@@ -1,5 +1,5 @@
 BATTLE ACES - CURRENT STATUS
-Reviewed:2026-11-10. Final release is not accepted.
+Reviewed:2026-11-11. Final release is not accepted.
 Current work:REMAINING_DELIVERY_PLAN.txt. Evidence navigation:INDEX.txt.
 Exact prior3576-line ledger:history/2026-10-24/STATUS.txt.
 Historical records retain their original failures,claims and artifact scopes.
@@ -134,11 +134,15 @@ Forced-retirement group clearing has a local candidate repair. Actual49 passes
 the changed helper61's existing held/movement regression,2892 native hashes/
 wire joins and natural shutdown,but all260 retirement rows have affectedGroups0.
 A later ownership RED now passes with exact canonical token/type/army and raw
-typed-key proof;122 helper and44 actual-source cases pass. No new engine claim
-from those authored controls. Full helper63 build passes198 unchanged bindings.
-An original-native Build145/155 pair rules out delayed creation for the proposed
-trigger;no common-ID type/army conflict. Forced-group native coverage and the separate
-canonical-loss stale typed-cache path remain open. Casting,held-input and
+typed-key proof. A faithful canonical-loss stale typed-cache RED is now repaired
+through original raw APIs with strict owner/frame/identity checks and post-
+Dispose acknowledgment. Helper64 passes122 helper,106 scope and59 actor-binding
+cases,198 unchanged bindings. Actual50 passes its canonical-death path in two
+real mobile rounds:rawCacheChanged1/group4 in both worlds,retention,recall,
+fresh input,all2888 native hashes and natural shutdown/no force. It does not
+reproduce actual type-changing forced retirement,which remains open. An original-
+native build pair rules out delayed creation for that proposed trigger.
+Casting,held-input and
 physical/Internet acceptance remain open;
 prediction-actor-correction.txt. N35's frozen kit remains reserved.
 Full_feature_accepted remainsfalse. See

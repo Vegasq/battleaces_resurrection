@@ -570,60 +570,6 @@ static bool preserveReleasedGroupMember(State& s,Obj selected,uint32_t id) {
         static_cast<unsigned long long>(s.world),s.match.c_str(),groupId,id,static_cast<unsigned long long>(observed->incarnation));
     return true;
 }
-static void reconcileGroupIntent(State& s) {
-    if(s.groupIntent.entries().empty())return;
-    namespace intent=ba_prediction_group_intent;
-    Root array(intentGroups(s));const auto count=ba::read<uintptr_t>(array.get(),0x18);
-    Current current(ba::read<Obj>(s.simulation->get(),0x148));
-    const auto pending=s.groupIntent.entries();
-    for(const auto& entry:pending) {
-        groupOwner(s);require(entry.first.group<count,"pending group intent ID escaped original array");
-        IntentGroup group(s,ba::read<Obj>(array.get(),0x20+entry.first.group*sizeof(Obj)),entry.first.group);
-        const bool present=groupCacheMembership(group.selected.get(),entry.first.entity);
-        std::optional<intent::Identity> canonical;const auto known=s.admission.entities.find(entry.first.entity);
-        if(known!=s.admission.entities.end())canonical=intent::Identity{known->second.type,known->second.army,known->second.incarnation};
-        bool admitted=false;
-        for(Obj actor:units(ba::read<Obj>(s.manager->get(),0x10))) {
-            const auto observed=s.identities.find(actor);
-            if(observed==s.identities.end() || observed->second.identity.entityId!=entry.first.entity)continue;
-            const auto& identity=observed->second;
-            field(actor,"_componentData",0x158);field(actor,"<DeadToTheSim>k__BackingField",0x160);
-            const auto native=current.identity(entry.first.entity);
-            admitted=identity.incarnation==entry.second.token && identity.identity.unitType==entry.second.type &&
-                identity.identity.armyId==entry.second.army && confirmedToken(s,identity.identity)==identity.incarnation &&
-                native && native->unitType==entry.second.type && native->armyId==entry.second.army &&
-                ba::read<Obj>(actor,0x158) && !ba::read<bool>(actor,0x160) &&
-                confirmedInterval(s,ba::read<int>(current.frame.get(),0x40)) && current.retainedAlive(entry.first.entity);
-        }
-        const auto decision=s.groupIntent.classify(s.groupGeneration,entry.first,present,canonical,admitted);
-        if(decision==intent::Decision::Keep)continue;
-        if(decision==intent::Decision::Purge) {
-            require(!ba::read<bool>(group.helper.get(),0x10),"group intent purge found an active original scope");
-            const Obj begin=method(group.group.get(),"BeginControlGroupChange",1,0x06001645,0x3ea5790);
-            const Obj remove=method(group.selected.get(),"Remove",1,0x060025ab,0x3c66610);
-            const Obj mark=method(group.helper.get(),"MarkForFire",0,0x060000ce,0x3b02170);
-            const Obj dispose=method(group.helper.get(),"Dispose",0,0x060000cd,0x3b02160);
-            instanceSignature(begin,"IDisposable","Boolean");instanceSignature(remove,"Boolean","UInt32");
-            instanceSignature(mark,"Void");instanceSignature(dispose,"Void");group.validate(s);
-            bool begun=false,disposed=false;
-            auto close=[&](){if(begun && !disposed){disposed=true;invoke(dispose,group.helper.get());}};
-            try {
-                bool playerInitiated=false;void* beginArgs[]={&playerInitiated};Obj scope=nullptr;
-                try{scope=invoke(begin,group.group.get(),beginArgs);}
-                catch(...){begun=ba::read<bool>(group.helper.get(),0x10);throw;}
-                begun=true;require(scope==group.helper.get() && ba::read<bool>(group.helper.get(),0x10),
-                    "group intent purge original scope owner differs");group.validate(s);
-                uint32_t id=entry.first.entity;void* args[]={&id};Root removed(invoke(remove,group.selected.get(),args));
-                require(unbox<bool>(removed.get()),"group intent purge original member removal failed");group.validate(s);
-                require(!groupCacheMembership(group.selected.get(),id),"group intent purge left original cached membership");
-                invoke(mark,group.helper.get());group.validate(s);close();group.validate(s);
-            } catch(...) {try{close();}catch(...){ba::log("Group intent original scope cleanup failed; retry=0");}throw;}
-            ba::log("Prediction group intent purged: world=%llu match=%s group=%u entity=%u originalAPI=1 readd=0",
-                static_cast<unsigned long long>(s.world),s.match.c_str(),entry.first.group,entry.first.entity);
-        }
-        s.groupIntent.erase(s.groupGeneration,entry.first);
-    }
-}
 static void clickScalarSize(Obj value,int32_t expected) {
     uint32_t alignment=0;
     require(value && ba::api<int32_t(*)(Obj,uint32_t*)>("il2cpp_class_value_size")(value,&alignment)==expected,
@@ -717,6 +663,97 @@ static bool affectedLiveClick(Obj selector,const std::set<uint32_t>& affected) {
 #include "prediction_click_provenance_actor.hpp"
 #include "prediction_held_selection_actor.hpp"
 #include "prediction_group_retirement.hpp"
+static void reconcileGroupIntent(State& s) {
+    if(s.groupIntent.entries().empty())return;
+    namespace intent=ba_prediction_group_intent;
+    Root array(intentGroups(s)),simulation(s.simulation->get()),manager(s.manager->get());
+    Root frames(ba::read<Obj>(simulation.get(),0x148));Current current(frames.get());
+    const auto count=ba::read<uintptr_t>(array.get(),0x18);
+    const auto world=s.world,generation=s.groupGeneration;const auto match=s.match;
+    const int frame=ba::read<int>(current.frame.get(),0x40),admissionFrame=s.admission.frame;
+    auto owned=[&]() {
+        groupOwner(s);
+        require(s.world==world && s.groupGeneration==generation && s.match==match &&
+            s.simulation->get()==simulation.get() && s.manager->get()==manager.get() &&
+            ba::read<Obj>(simulation.get(),0x148)==frames.get() && intentGroups(s)==array.get() &&
+            ba::read<uintptr_t>(array.get(),0x18)==count && s.admission.frame==admissionFrame,
+            "group intent reconciliation owner changed during callback");
+        Current observed(frames.get());
+        require(observed.frame.get()==current.frame.get() && observed.position.get()==current.position.get() &&
+            observed.type.get()==current.type.get() && observed.army.get()==current.army.get() &&
+            ba::read<int>(observed.frame.get(),0x40)==frame,
+            "group intent reconciliation current frame changed during callback");
+    };
+    auto canonicalAt=[&](uint32_t id)->std::optional<intent::Identity> {
+        const auto known=s.admission.entities.find(id);
+        if(known==s.admission.entities.end())return std::nullopt;
+        return intent::Identity{known->second.type,known->second.army,known->second.incarnation};
+    };
+    const auto pending=s.groupIntent.entries();
+    for(const auto& entry:pending) {
+        owned();require(entry.first.group<count,"pending group intent ID escaped original array");
+        IntentGroup group(s,ba::read<Obj>(array.get(),0x20+entry.first.group*sizeof(Obj)),entry.first.group);
+        const auto canonical=canonicalAt(entry.first.entity);
+        auto validate=[&]() {
+            owned();group.validate(s);
+            const auto remembered=s.groupIntent.entries().find(entry.first);
+            require(ba::read<Obj>(array.get(),0x20+entry.first.group*sizeof(Obj))==group.group.get() &&
+                remembered!=s.groupIntent.entries().end() && remembered->second==entry.second &&
+                canonicalAt(entry.first.entity)==canonical,
+                "group intent reconciliation identity changed during callback");
+        };
+        const bool present=groupCacheMembership(group.selected.get(),entry.first.entity);
+        bool admitted=false;
+        for(Obj actor:units(ba::read<Obj>(manager.get(),0x10))) {
+            const auto observed=s.identities.find(actor);
+            if(observed==s.identities.end() || observed->second.identity.entityId!=entry.first.entity)continue;
+            const auto& identity=observed->second;
+            field(actor,"_componentData",0x158);field(actor,"<DeadToTheSim>k__BackingField",0x160);
+            const auto native=current.identity(entry.first.entity);
+            admitted=identity.incarnation==entry.second.token && identity.identity.unitType==entry.second.type &&
+                identity.identity.armyId==entry.second.army && confirmedToken(s,identity.identity)==identity.incarnation &&
+                native && native->unitType==entry.second.type && native->armyId==entry.second.army &&
+                ba::read<Obj>(actor,0x158) && !ba::read<bool>(actor,0x160) &&
+                confirmedInterval(s,frame) && current.retainedAlive(entry.first.entity);
+        }
+        validate();const auto decision=s.groupIntent.classify(generation,entry.first,present,canonical,admitted);
+        if(decision==intent::Decision::Keep)continue;
+        if(decision==intent::Decision::Purge) {
+            require(!ba::read<bool>(group.helper.get(),0x10),"group intent purge found an active original scope");
+            GroupSelectionPurge purge(group.selected.get());
+            const Obj begin=method(group.group.get(),"BeginControlGroupChange",1,0x06001645,0x3ea5790);
+            const Obj mark=method(group.helper.get(),"MarkForFire",0,0x060000ce,0x3b02170);
+            const Obj dispose=method(group.helper.get(),"Dispose",0,0x060000cd,0x3b02160);
+            instanceSignature(begin,"IDisposable","Boolean");instanceSignature(mark,"Void");
+            instanceSignature(dispose,"Void");validate();
+            bool begun=false,disposed=false,cacheChanged=false;
+            auto close=[&](){if(begun && !disposed){disposed=true;invoke(dispose,group.helper.get());}};
+            auto suspended=[&]() {
+                validate();purge.validate();
+                require(ba::read<bool>(group.helper.get(),0x10),"group intent purge lost its original suspension");
+            };
+            try {
+                bool playerInitiated=false;void* beginArgs[]={&playerInitiated};Obj scope=nullptr;
+                try{scope=invoke(begin,group.group.get(),beginArgs);}
+                catch(...){begun=ba::read<bool>(group.helper.get(),0x10);throw;}
+                begun=true;require(scope==group.helper.get(),"group intent purge original scope owner differs");suspended();
+                // Current native type may differ from the old cached key.
+                // Original UnitSelectionSet.Remove follows only the current
+                // type; remove this invalidated ID from EVERY raw bucket.
+                cacheChanged=purge.erase({entry.first.entity});
+                if(!cacheChanged)purge.invalidateCount();
+                suspended();
+                require(!groupCacheMembership(group.selected.get(),entry.first.entity),
+                    "group intent purge left original cached membership");
+                suspended();invoke(mark,group.helper.get());suspended();close();validate();
+                require(!ba::read<bool>(group.helper.get(),0x10),"group intent purge original scope stayed suspended");
+            } catch(...) {try{close();}catch(...){ba::log("Group intent original scope cleanup failed; retry=0");}throw;}
+            ba::log("Prediction group intent purged: world=%llu match=%s group=%u entity=%u originalAPI=1 rawBuckets=1 rawCacheChanged=%d readd=0",
+                static_cast<unsigned long long>(world),match.c_str(),entry.first.group,entry.first.entity,cacheChanged?1:0);
+        }
+        s.groupIntent.erase(generation,entry.first);
+    }
+}
 static void guardRetiringInteractions(Obj selector,const std::vector<Retire>& retire,bool clearingCasting=false,
         const HeldSelection* held=nullptr) {
     std::set<uint32_t> retired;for(const auto& actor:retire)retired.insert(actor.resident.entityId);
