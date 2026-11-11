@@ -31,5 +31,14 @@ int main() {
     // The passive normal serialization binding must use the actual raw67 ordinal.
     assert((ba_prediction_cohort::policy::action({10,1,9,18,1,7},0)==std::vector<uint8_t>{7}));
     refused([](){ba_prediction_cohort::policy::action({10,1,9,18,2,7},0);});
+    policy::survivorMove({readySurvivor},{12},1);
+    refused([&](){policy::survivorMove({readyVictim,readySurvivor},{11,12},2);});
+    refused([&](){policy::survivorMove({readySurvivor},{12},2);});
+    refused([&](){policy::survivorMove({readySurvivor},{},1);});
+    refused([&](){policy::survivorMove({survivor},{12},1);});
+    auto lost=readySurvivor;lost.canonical=0;
+    refused([&](){policy::survivorMove({lost},{12},1);});
+    lost=readySurvivor;lost.initialized=false;
+    refused([&](){policy::survivorMove({lost},{12},1);});
     return 0;
 }

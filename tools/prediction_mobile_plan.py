@@ -105,6 +105,8 @@ def validate_mobile_held_click_plan(plan):
 
 
 def validate_cohort_survivor_plan(plan):
+    require(type(plan.get('cohort_canonical_death',False))is bool,'canonical death option must be Boolean')
+    require(not plan.get('cohort_canonical_death')or plan.get('cohort_survivor')is True,'canonical death requires the explicit survivor fixture')
     require('cohort_survivor'not in plan or type(plan['cohort_survivor'])is bool,'survivor option must be Boolean')
     if not plan.get('cohort_survivor'):return
     exclusions=tuple(k for k in MOBILE_HELD_EXCLUSIONS if k!='cohort_survivor')+('mobile_held_click',)
@@ -116,8 +118,25 @@ def validate_cohort_survivor_plan(plan):
 
 def survivor_option(args,frames,position_trace):
     value=getattr(args,'cohort_survivor',False)
-    validate_cohort_survivor_plan(dict(cohort_survivor=value,scenario=args.scenario,mobile_correction=getattr(args,'mobile_correction',False),
+    validate_cohort_survivor_plan(dict(cohort_survivor=value,cohort_canonical_death=getattr(args,'cohort_canonical_death',False),scenario=args.scenario,mobile_correction=getattr(args,'mobile_correction',False),
         lifecycle=args.lifecycle,frames=frames,expected_matches=2 if args.lifecycle=='natural'else 1,move_slot=args.move_slot,
         rtt_ms=list(args.rtt_ms),native_position_trace=position_trace,**{k:getattr(args,k,False)for k in
             tuple(x for x in MOBILE_HELD_EXCLUSIONS if x!='cohort_survivor')+('mobile_held_click',)}))
     return value
+
+
+def cohort_evidence(plan):
+    validate_cohort_survivor_plan(plan)
+    from tools import prediction_cohort_survivor_evidence as survivor
+    if plan.get('cohort_canonical_death'):
+        from tools import prediction_cohort_canonical_death_evidence as death
+        return death
+    return survivor
+
+
+def cohort_scope(plan):
+    if plan.get('cohort_canonical_death'):
+        return ('Original pair selection/group130 through canonical death of11, raw group purge preserving12 and original survivor Move180 without reselection; '
+                'native/render response, full parity and natural lifecycle; no escape/replay/type-change/physical-input claim')
+    return ('Original pair selection/group130 through one member death/recreation, survivor lease continuity and two-ID Move180 without reselection; '
+            'per-member render/native response, full parity and natural lifecycle; no physical input/type-change/collision claim')

@@ -24,13 +24,13 @@ MEMBER={'id','unit_type','army','original_token','incarnation','canonical_token'
 EVENTS={'selected','setup','sample','native_dead','released','restored','move_queued','serialized','batch_registered','authority','complete'}
 require=shared.require
 
-def records(log,match,slot):
+def records(log,match,slot,*,prefix=PREFIX,events=EVENTS):
     require(type(log)is str and len(log.encode('utf8'))<=64*1024*1024,'survivor log bound')
     out=[];last_us=last_tick=-1
     for line_number,line in enumerate(log.splitlines(),1):
-        if PREFIX not in line:continue
-        raw=line.split(PREFIX,1)[1];require(0<len(raw)<=16384,'survivor row bound');r=shared._decode(raw)
-        require(type(r)is dict and COMMON<=set(r)and type(r['schema'])is int and r['schema']==1 and r['event']in EVENTS and
+        if prefix not in line:continue
+        raw=line.split(prefix,1)[1];require(0<len(raw)<=16384,'survivor row bound');r=shared._decode(raw)
+        require(type(r)is dict and COMMON<=set(r)and type(r['schema'])is int and r['schema']==1 and r['event']in events and
             type(r['match'])is str and re.fullmatch('[a-f0-9]{32}',r['match'])and r['slot']==slot and type(r['slot'])is int and
             shared.integer(r['world'],1)and shared.integer(r['frame'],-1,2**31-1)and shared.integer(r['completed_frame'],-1,2**31-1)and
             shared.integer(r['sampled_us'])and shared.integer(r['tick_ms'])and r['sampled_us']>=last_us and r['tick_ms']>=last_tick and
@@ -40,8 +40,9 @@ def records(log,match,slot):
         require(len(out)<=4096,'survivor observation budget')
     require(out,'survivor observation missing');return out
 
-def snapshot(r,slot):
-    require(set(r)==COMMON|SNAPSHOT and type(r['members'])is list and [m.get('id')for m in r['members']]==([10]if slot==0 else[11,12]),'survivor snapshot fields/fixed IDs differ')
+def snapshot(r,slot,*,canonical_death=False):
+    extra={'confirmed_frame','group_raw_has_victim','group_helper_suspended','group_victim_intent_pending'}if canonical_death else set()
+    require(set(r)==COMMON|SNAPSHOT|extra and type(r['members'])is list and [m.get('id')for m in r['members']]==([10]if slot==0 else[11,12]),'survivor snapshot fields/fixed IDs differ')
     require(all(shared.ptr(r[k])for k in('selector','manager','simulation','current_frame_owner'))and shared.integer(r['group_generation'])and
         all(shared.ids(r[k])for k in('current_ids','preview_ids','casting_ids','current_all_ids','current_typed_ids'))and
         r['current_ids']==r['current_all_ids']and shared.integer(r['current_count'],0,8)and r['active_caster']is None and
@@ -62,31 +63,40 @@ def snapshot(r,slot):
         if m['native_present']:require(m['current_has_type']is True,'native-present member lacks source original HasType')
         if slot==0:require(m['group_has_type']is None,'host invented group HasType')
         else:require(type(m['group_has_type'])is bool and m['group_has_type']==m['current_has_type'],'same frame owner HasType differs')
+    if canonical_death:
+        require(shared.integer(r['confirmed_frame'],0,2**31-1),'canonical loss actual admission frame missing')
+        if slot==0:require(all(r[k]is None for k in extra-{'confirmed_frame'}),'host invented group purge observation')
+        else:require(all(type(r[k])is bool for k in extra-{'confirmed_frame'})and r['group_helper_suspended']is False,'group purge scope is still suspended')
     if slot==0:
         require(r['selection_calls']==r['group_assign_calls']==0 and r['selection_scope_player_initiated']is None and all(r[k]is None for k in
             ('group','helper','group_ids','group_count','group_all_ids','group_typed_ids','group_frame_owner','tracked_released_ids','auto_type1')),'host selection/group mutation invented')
         return r
-    a,b=r['members'];require(all(m['canonical_token']==m['original_token']for m in(a,b))and
+    a,b=r['members'];require((a['canonical_token']in(0,a['original_token'])if canonical_death else a['canonical_token']==a['original_token'])and b['canonical_token']==b['original_token']and
         b['native_present']and b['native_state']!=6 and b['admitted']and b['initialized']and b['current_has_type']and
         b['actor']==b['original_actor']and b['incarnation']==b['original_token']and b['original_active']and
         not b['original_retained']and not b['original_dead']and b['original_component'],'survivor12 lease/native identity did not survive')
     require(r['selection_calls']==r['group_assign_calls']==1 and r['selection_scope_player_initiated']is False and
         all(shared.ptr(r[k])for k in('group','helper','group_frame_owner'))and r['current_frame_owner']==r['group_frame_owner']and
-        all(shared.ids(r[k])and set(r[k])=={11,12}for k in('current_ids','current_all_ids','group_ids','group_all_ids'))and
+        all(shared.ids(r[k])and(set(r[k])in({12},{11,12})if canonical_death else set(r[k])=={11,12})for k in('current_ids','current_all_ids','group_ids','group_all_ids'))and
         all(shared.ids(r[k])and 12 in r[k]and set(r[k])<={11,12}for k in('current_typed_ids','group_typed_ids'))and
         shared.ids(r['tracked_released_ids'])and r['auto_type1']is False and
         r['current_count']==sum(m['current_has_type']for m in(a,b))and r['group_count']==sum(m['group_has_type']for m in(a,b)),
         'selected pair raw intent/HasType Count/type1 survivor/frame owner differs')
+    if canonical_death:
+        require(r['group_ids']==r['group_all_ids']and r['group_raw_has_victim']==(11 in r['group_all_ids'])and
+            set(r['group_typed_ids'])==set(r['group_all_ids']),'canonical loss raw group all/type cache differs')
+        if a['canonical_token']:
+            require(set(r['group_all_ids'])=={11,12},'original group purged before confirmed loss')
     if a['native_present']and a['native_state']!=6 and a['initialized']and a['admitted']:
         require(set(r['current_typed_ids'])==set(r['group_typed_ids'])=={11,12}and r['current_count']==r['group_count']==2 and
             a['incarnation']==a['original_token'],'restored pair source/cache is incomplete')
     return r
 
 def _one(rows,event):return shared._one(rows,event)
-def _command(log,rows,context,slot):
+def _command(log,rows,context,slot,*,canonical_death=False):
     qx,sx,rx=(_one(rows,n)for n in('move_queued','serialized','batch_registered'));q,s,r=qx['row'],sx['row'],rx['row']
     require(set(q)==shared.COMMON|shared.ORDER and set(s)==shared.COMMON|shared.SERIAL and set(r)==shared.COMMON|shared.REGISTERED,'survivor command fields differ')
-    expected=[10]if slot==0 else[11,12]
+    expected=[12]if canonical_death else[10]if slot==0 else[11,12]
     require(q['frame']==(150 if slot==0 else 180)and q['source_ids']==expected and len(q['incarnations'])==len(q['origins'])==len(q['origins_sampled_us'])==len(expected)and
         all(shared.integer(x,1)for x in q['incarnations'])and all(shared.point(p)for p in q['origins'])and
         all(shared.integer(t)and t<=q['sampled_us']for t in q['origins_sampled_us'])and
@@ -164,6 +174,9 @@ def decorate(report,episodes):
     report['survivor_witness_passed']=report['cohort_survivor']['passed']
 
 def gate(plan,report):
+    if plan.get('cohort_canonical_death'):
+        from tools.prediction_cohort_canonical_death_evidence import gate as death_gate
+        return death_gate(plan,report)
     if not plan.get('cohort_survivor'):return True
     try:validate_cohort_survivor_plan(plan)
     except AssertionError:return False

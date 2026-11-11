@@ -20,7 +20,7 @@ Focused evidence files were not renamed because tools and retained reports
 depend on their paths. Top-level reference documents are indexed below.
 
 CURRENT PLANNING AND ACCEPTANCE
-  prediction-multi-unit-move.txt - N33 two-unit movement,selected-survivor correction,group/cache continuity and preserved failures
+  prediction-multi-unit-move.txt - N33 two-unit movement,survivor correction,partial canonical-death purge and preserved failures
   prediction-server-ai.txt - qualified solo server-AI prediction, new private installers and owner-only deployment
   prediction-draft2-installers.txt - PR2 private client/server installer handoff and prediction desktop shortcut
   prediction-original-hold.txt - N33 original instant Hold/stop before authority and reproduced post-match input ownership repair

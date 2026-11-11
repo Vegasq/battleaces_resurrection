@@ -17,13 +17,16 @@ struct State {
     std::unique_ptr<Root> selector,group,helper,command,action;
     unsigned selectionCalls=0,groupCalls=0,actionIndex=0;
     uint64_t sequence=0,enqueuedUs=0;
-    int lastFrame=-1,dead=-1,released=-1,restored=-1;
+    int lastFrame=-1,dead=-1,released=-1,restored=-1,confirmedLoss=-1,purged=-1;
     bool setup=false,queued=false,serialized=false,registered=false,complete=false,failed=false;
 };
 static State& state(){static auto* s=new State;return *s;}
 static void require(bool ok,const char* why){actors::require(ok,why);}
 bool enabled(){return ba::flag(L"-prediction-cohort-survivor-smoke");}
+bool canonicalDeath(){return ba::flag(L"-prediction-cohort-canonical-death-smoke");}
+static void record(const std::string& value){ba::log("%s%s",canonicalDeath()?"COHORT CANONICAL DEATH ":"COHORT SURVIVOR ",value.c_str());}
 void requireFlags() {
+    require(!canonicalDeath()||enabled(),"canonical death diagnostic requires its explicit survivor fixture");
     if(!enabled())return;
     require(worker::movementEnabled()&&ba::flag(L"-prediction-mobile-correction-smoke")&&ba::flag(L"-lan-smoke")&&
         ba::flag(L"-original-command-scheduling-experimental"),"survivor diagnostic requires its explicit mobile/arrival fixture");
@@ -142,7 +145,14 @@ static void snapshot(const char* event,actors::State& owner,Obj selector) {
            <<",\"tracked_released_ids\":"<<base::idsJson(actors::ids(ba::read<Obj>(group.group.get(),0x10)))
            <<",\"auto_type1\":"<<actors::automaticType(ba::read<Obj>(group.group.get(),0x30),1);
     } else out<<",\"group\":null,\"helper\":null,\"group_ids\":null,\"group_count\":null,\"group_all_ids\":null,\"group_typed_ids\":null,\"group_frame_owner\":null,\"tracked_released_ids\":null,\"auto_type1\":null";
-    out<<",\"physicalUI\":false}";ba::log("COHORT SURVIVOR %s",out.str().c_str());s.lastSample=GetTickCount64();s.lastFrame=frame(owner);
+    if(canonicalDeath()) {
+        out<<",\"confirmed_frame\":"<<owner.admission.frame;
+        if(s.group)out<<",\"group_raw_has_victim\":"<<actors::groupCacheMembership(ba::read<Obj>(s.group->get(),0x20),11)
+            <<",\"group_helper_suspended\":"<<ba::read<bool>(s.helper->get(),0x10)
+            <<",\"group_victim_intent_pending\":"<<(owner.groupIntent.entries().count({4,11})!=0);
+        else out<<",\"group_raw_has_victim\":null,\"group_helper_suspended\":null,\"group_victim_intent_pending\":null";
+    }
+    out<<",\"physicalUI\":false}";record(out.str());s.lastSample=GetTickCount64();s.lastFrame=frame(owner);
 }
 static void setup(actors::State& owner,Obj selector) {
     auto& s=state();owned(owner);selection::Context context(selector);
@@ -175,16 +185,27 @@ static void setup(actors::State& owner,Obj selector) {
     s.setup=true;snapshot(ba::lanSlot()==1?"selected":"setup",owner,selector);
 }
 static void move(actors::State& owner,Obj selector) {
-    auto& s=state();cohort::idle(owner,selector);const auto values=members(owner,selector,true);const bool pair=ba::lanSlot()==1;
+    auto& s=state();cohort::idle(owner,selector);auto values=members(owner,selector,true);const bool pair=ba::lanSlot()==1;
+    std::vector<uint32_t> resolved;
+    if(canonicalDeath()) {
+        require(pair,"canonical death fixture must not issue an attacker escape");
+        for(uint32_t id:selection::selectionIds(ba::read<Obj>(selector,0x90)))
+            if(hasType(owner,ba::read<Obj>(selector,0x90),id))resolved.push_back(id);
+        require(resolved==std::vector<uint32_t>{12},"original selection did not resolve only survivor12");
+        values.erase(std::remove_if(values.begin(),values.end(),[&](const Member& m){
+            return std::find(resolved.begin(),resolved.end(),m.id)==resolved.end();}),values.end());
+    }
     std::vector<uint32_t> sources;std::vector<policy::Member> proof;
     for(const auto& m:values) {
         require(m.pose&&m.token==m.originalToken&&m.canonical==m.originalToken,"survivor Move lacks an actual current confirmed pose/lease");
         sources.push_back(m.id);proof.push_back(m.proof());
     }
-    if(pair){const auto current=cohort::cache(ba::read<Obj>(selector,0x90));policy::move(proof,current.ids,current.count);}
+    if(pair){const auto current=cohort::cache(ba::read<Obj>(selector,0x90));
+        if(canonicalDeath())policy::survivorMove(proof,resolved,current.count);else policy::move(proof,current.ids,current.count);}
     else require(values.size()==1&&values[0].id==10&&values[0].admitted,"survivor escape source differs");
     original::Vec3 target{-32.f,0.f,0.f};
-    if(pair)target={(values[0].position.x+values[1].position.x)*.5f,(values[0].position.y+values[1].position.y)*.5f,
+    if(canonicalDeath())target={values[0].position.x,values[0].position.y,values[0].position.z+8.f};
+    else if(pair)target={(values[0].position.x+values[1].position.x)*.5f,(values[0].position.y+values[1].position.y)*.5f,
         (values[0].position.z+values[1].position.z)*.5f+8.f};
     original::finite(target);uint32_t ability=12,unitType=1;
     Root ids(ba::api<Obj(*)(Obj,uintptr_t)>("il2cpp_array_new")(actors::type("System","UInt32"),sources.size()));require(ids.get(),"survivor original ID array allocation failed");
@@ -219,7 +240,7 @@ static void move(actors::State& owner,Obj selector) {
     out<<"],\"target\":"<<original::pointJson(target)<<",\"target_bits\":["<<bits[0]<<','<<bits[1]<<','<<bits[2]
        <<"],\"command\":"<<cohort::pointer(command.get())<<",\"command_class\":\"Uncapped.ExecuteTargetGroundCommand\",\"queued\":false,\"ability\":12"
        <<",\"queue_before\":0,\"queue_after\":1,\"originalCtor\":true,\"original_callback\":\"Uncapped.ExecuteTargetGroundCommand..ctor\""
-       <<",\"enqueue_sampled_us\":"<<s.enqueuedUs<<perspective.json()<<",\"physicalUI\":false}";ba::log("COHORT SURVIVOR %s",out.str().c_str());
+       <<",\"enqueue_sampled_us\":"<<s.enqueuedUs<<perspective.json()<<",\"physicalUI\":false}";record(out.str());
 }
 void tick() {
     if(!enabled())return;
@@ -244,19 +265,26 @@ void tick() {
             const auto& victim=values[0];
             if(s.dead<0&&victim.nativeState&&*victim.nativeState==6){s.dead=current;snapshot("native_dead",owner,selector);}
             if(s.dead>=0&&s.released<0&&!victim.present&&!victim.oldActive&&!victim.oldRetained&&!victim.oldComponent){s.released=current;snapshot("released",owner,selector);}
-            if(s.released>=0&&s.restored<0&&victim.present&&victim.nativeState&&*victim.nativeState!=6&&victim.admitted&&victim.initialized) {
+            if(canonicalDeath()&&s.released>=0) {
+                if(s.confirmedLoss<0&&!victim.canonical){s.confirmedLoss=current;snapshot("confirmed_loss",owner,selector);}
+                if(s.confirmedLoss>=0&&s.purged<0&&!actors::groupCacheMembership(ba::read<Obj>(s.group->get(),0x20),11)&&
+                    !owner.groupIntent.entries().count({4,11})) {s.purged=current;snapshot("purge_observed",owner,selector);}
+            }
+            if(!canonicalDeath()&&s.released>=0&&s.restored<0&&victim.present&&victim.nativeState&&*victim.nativeState!=6&&victim.admitted&&victim.initialized) {
                 require(victim.token==victim.originalToken&&victim.canonical==victim.originalToken,"survivor restored11 changed its confirmed incarnation");
                 s.restored=current;snapshot("restored",owner,selector);
             }
         }
         const int moveAt=ba::lanSlot()==1?180:150;
-        if(!s.queued&&current>=moveAt) {
+        if(!s.queued&&current>=moveAt&&(!canonicalDeath()||ba::lanSlot()==1)) {
             require(current==moveAt,"survivor missed exact original Move frame");
-            if(ba::lanSlot()==1)require(s.dead>=0&&s.released>=0&&s.restored>=0,"survivor pair Move lacks one real death/release/restore");
+            if(ba::lanSlot()==1)require(s.dead>=0&&s.released>=0&&(canonicalDeath()?s.purged>=0:s.restored>=0),
+                "survivor Move lacks the actual requested lifecycle");
             snapshot("sample",owner,selector);move(owner,selector);return;
         }
         if(current>=220) {
-            require(current==220&&s.queued&&s.serialized&&s.registered,"survivor completion lacks its normal original command/batch");
+            require(current==220&&((canonicalDeath()&&ba::lanSlot()==0)?(!s.queued&&!s.serialized&&!s.registered):
+                (s.queued&&s.serialized&&s.registered)),"survivor completion lacks its normal original command/batch");
             snapshot("complete",owner,selector);s.complete=true;return;
         }
         if(current!=s.lastFrame||GetTickCount64()-s.lastSample>=15)snapshot("sample",owner,selector);
@@ -270,7 +298,7 @@ void serialized(void* command,void* action,uint64_t sequence,int sourceNextFrame
     s.action=std::make_unique<Root>(action);s.sequence=sequence;s.actionIndex=actionIndex;s.serialized=true;
     const auto text=common("serialized",owner)+",\"command\":"+cohort::pointer(command)+",\"action\":"+cohort::pointer(action)+
         ",\"sequence\":"+std::to_string(sequence)+",\"source_next_frame\":"+std::to_string(sourceNextFrame)+",\"action_index\":"+std::to_string(actionIndex)+",\"physicalUI\":false}";
-    ba::log("COHORT SURVIVOR %s",text.c_str());
+    record(text);
 }
 void registered(uint64_t sequence,int assigned,const std::vector<uint8_t>& body) {
     if(!enabled())return;auto& s=state();if(!s.serialized||sequence!=s.sequence)return;
@@ -279,7 +307,7 @@ void registered(uint64_t sequence,int assigned,const std::vector<uint8_t>& body)
     const auto text=common("batch_registered",owner)+",\"command\":"+cohort::pointer(s.command->get())+",\"action\":"+cohort::pointer(s.action->get())+
         ",\"sequence\":"+std::to_string(sequence)+",\"speculative_frame\":"+std::to_string(assigned)+",\"action_index\":"+std::to_string(s.actionIndex)+
         ",\"action_sha256\":\""+original::digest(raw)+"\",\"body_sha256\":\""+original::digest(body)+"\",\"physicalUI\":false}";
-    ba::log("COHORT SURVIVOR %s",text.c_str());
+    record(text);
 }
 void authoritative(const std::vector<uint8_t>& raw,const std::string& wireSha) {
     if(!enabled())return;const auto sampled=base::stamp();const auto tick=GetTickCount64();auto& s=state();
@@ -288,6 +316,6 @@ void authoritative(const std::vector<uint8_t>& raw,const std::string& wireSha) {
     require(wireSha.size()==64&&wireSha.find_first_not_of("0123456789abcdef")==std::string::npos,"survivor65 wire hash differs");
     const auto text=common("authority",actors::state(),sampled,tick)+",\"canonical_frame\":"+std::to_string(canonical)+
         ",\"wire_sha256\":\""+wireSha+"\",\"canonical_sha256\":\""+original::digest(raw)+"\",\"physicalUI\":false}";
-    ba::log("COHORT SURVIVOR %s",text.c_str());
+    record(text);
 }
 }

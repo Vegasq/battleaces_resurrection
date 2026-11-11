@@ -4,6 +4,16 @@ Current work:REMAINING_DELIVERY_PLAN.txt. Evidence navigation:INDEX.txt.
 Exact prior3576-line ledger:history/2026-10-24/STATUS.txt.
 Historical records retain their original failures,claims and artifact scopes.
 
+2026-11-11 partial-group progress:Actual70's separate file-only qualification
+PASSES canonical11 death with unrelated12 preserved in group4. Raw group all/
+type caches become12,Count1,pending metadata cleared;current selection numeric
+IDs remain11/12 with original resolvable Count1. No repair reselection. Survivor
+Move responds51.275/66.505ms,438ms before authority,phase181/181;all2892 state/wire
+comparisons and natural two-round shutdown pass. Original failed report stays
+preserved;the parser now uses the actual dense65 death receipt.401 tests/helper97
+pass. This is partial canonical purge,not forced type/actor retirement. No live
+or installer change;details:prediction-multi-unit-move.txt.
+
 2026-11-11 selected-survivor progress:Actual69 PASSES both Custom rounds. One
 selection/manual group11+12 survives11's false death/release/restoration while
 12 retains its actor/token. Original Count2->1->2,raw group/type IDs retained;

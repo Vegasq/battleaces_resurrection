@@ -143,7 +143,7 @@ static void setup(HMODULE selected) {
     const bool serverAiObserve=ba::flag(L"-prediction-server-ai-observe");
     const bool serverAiMove=ba::flag(L"-prediction-server-ai-move-smoke");
     if(ba_prediction_cohort::enabled())ba_prediction_cohort::requireFlags();
-    if(ba_prediction_survivor::enabled())ba_prediction_survivor::requireFlags();
+    if(ba_prediction_survivor::enabled()||ba_prediction_survivor::canonicalDeath())ba_prediction_survivor::requireFlags();
     if(serverAiMove && !serverAiObserve)
         throw std::runtime_error("server AI Move fixture requires its explicit state observer");
     if(serverAiObserve && (!movementEnabled() || movementSmoke || mobileSmoke ||

@@ -3,6 +3,7 @@
 
 namespace ba_prediction_survivor {
 bool enabled();
+bool canonicalDeath();
 void requireFlags();
 void tick();
 void serialized(void*,void*,uint64_t,int,unsigned);
@@ -34,6 +35,13 @@ inline void continuous(uintptr_t original,uintptr_t current,uint64_t token,uint6
                        uint64_t originalToken,bool present,bool initialized,bool admitted) {
     require(original&&current==original&&originalToken&&token==originalToken&&canonical==originalToken&&
         present&&initialized&&admitted,"surviving member lost its original continuous admitted lease");
+}
+inline void survivorMove(const std::vector<Member>& members,const std::vector<uint32_t>& resolved,int count) {
+    require(members.size()==1&&resolved==std::vector<uint32_t>{12}&&count==1,
+        "canonical loss Move requires exactly the original resolvable survivor");
+    const auto& m=members.front();
+    require(m.id==12&&m.type==1&&m.army==1&&m.token&&m.token==m.canonical&&m.nativePresent&&
+        m.state==0&&m.initialized&&m.admitted,"canonical loss Move survivor is not ready/admitted");
 }
 }
 }

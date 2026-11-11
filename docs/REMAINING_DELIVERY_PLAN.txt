@@ -20,6 +20,11 @@ Actual69 now passes the selected-survivor case:one selection/group11+12 through
 11's false death/release/restoration,continuous12 and original pair Move without
 reselection. Both respond53..63ms,437..438ms before authority;all2892 state/wire
 comparisons and two natural rounds pass. Same focused evidence file.
+Actual70's separate file-only qualification now passes partial canonical-death
+group purge:11 is removed from raw group caches while12 retains its actor/token
+and moves without reselection in51..67ms,438ms before authority. All2892 state/
+wire comparisons and natural lifecycle pass;the original failed parser report
+is preserved. This closes the named partial-purge case,not forced retirement.
 The0.4.0 deployment/reopening paragraph below records the earlier completed delivery.
 
 Nick's requested0.4.0 client/server release is PUBLISHED;matching host deployed
@@ -252,6 +257,11 @@ These grouped rows summarize the detailed matrices;they are not a percentage or
 an exact count of every remaining test. DEV.txt remains the owner of user answers.
 
 COMPLETED
+[x] Partial canonical-death group purge preserves the survivor (Actual70,
+    separate file-only reanalysis01):original group11+12 becomes12,Count1,
+    no repair reselection,original survivor Move before authority,all2892 state/
+    wire matches and natural two-round shutdown. Current numeric selection
+    retention is separately recorded;prediction-multi-unit-move.txt.
 [x] Selected pair through one member's false death/restoration (Actual69):
     survivor actor/token continuous,original Count2->1->2,retained raw caches,
     original two-ID Move without reselection,pre-authority response,all2892

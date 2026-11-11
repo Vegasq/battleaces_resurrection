@@ -29,6 +29,12 @@ state/wire comparisons,two rounds and natural shutdown pass. This adds the
 named selected-survivor case;forced retirement/type-change,collision,physical
 input and human Internet acceptance remain open. Same focused evidence file.
 
+Actual70's separate file-only qualification adds partial canonical-death group
+purge with a surviving member preserved and movable without reselection. All
+2892 state/wire matches and natural lifecycle pass. Its original report remains
+FAILED with the empty-frame receipt parser diagnosis retained. Forced actor/type
+retirement,physical input and Internet gates remain open;same focused record.
+
 Acceptance is scoped to actual artifacts and observations. A user request may
 be complete without closing its entire parent gate. Historical failures remain
 failures;skips,forced readiness cleanup and instrumentation have explicit limits.

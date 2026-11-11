@@ -1,6 +1,63 @@
 BATTLE ACES - MULTI-UNIT MOVEMENT PREDICTION
 Reviewed:2026-11-11. N33 remains ACTIVE;full feature/Internet acceptance OPEN.
 
+PARTIAL CANONICAL-DEATH GROUP PURGE - ACTUAL70 FILE-ONLY QUALIFICATION PASS
+The same initial11/12 fixture now omits the attacker's escape. Original native
+baseline evidence from69's preflight is reused:10/11 DEAD153,absent154,and12
+stationary/undamaged/ready through180. No unchanged native preflight is rerun.
+The explicit --cohort-canonical-death child option requires --cohort-survivor;
+its COHORT CANONICAL DEATH stream and named final gate are separate from69.
+
+Both actual Custom rounds preserve group4's raw11/12 intent during provisional
+absence. Actual confirmed token11 disappears at presented162/confirmed153.
+The production reconcileGroupIntent purge then removes11 from raw group all/
+type caches at163,keeps12,and acknowledges pending metadata after the original
+scope/notification completes. RawCacheChanged1 markers and a closed helper
+scope are required. Unit12 retains its actor/token throughout. The original
+CURRENT selection still retains numeric11/12 with Count1;this is recorded
+honestly and is not claimed as a current-selection cache purge. The original
+HasType/admission filter resolves12 only for the fresh original Move180.
+Exactly one initial selection and Assign4;no repair reselection or re-add.
+
+The survivor command is181/181 in both worlds,with render responses66.505ms
+and51.275ms,438ms before BOTH raw bridge/native65 receipts. Independent native
+motion at181 precedes those receipts by469/453ms. Each command has20 matching
+continuation states. All2892 closed parsed native hashes and2892 full wire
+triples match;two natural rounds,games0/reaped/handlesclosed/Jobs3/0/0,
+authorities0/Jobs2/0/0,and local workers natural0. Elapsed174.766s;no forced
+cleanup,errors or source/runtime mutation. No escape/independent replay is
+claimed. This qualifies partial canonical-death purge preserving an unrelated
+member,not forced actor/type retirement,close-formation or physical input.
+
+The original run report remains FAILED:the first verifier expected the empty
+death153 batch in the deliberately sparse command-only MOVEMENT AUTHORITY log.
+The actual dedicated diagnostic recorded every successful65 in130..240. The
+corrected parser directly joins that original death153 row to independent
+native65 TSV,raw bridge and server wire;it does not synthesize a missing row.
+401 affected Python tests pass,including missing/duplicate/mismatched dense
+receipts and refusal of a sparse-log substitute. Separate reanalysis01 checks
+1018 frozen source bindings,66 runtime files,native-route/Quit/timing/full-state
+gates and the literal original outer pass expression. Original captures remain
+unchanged;1231 files and helper97 are preserved in actual70-preserved/.
+
+Original report:local/prediction-runtime/movement70-cohort-canonical-death/run/verification.json
+SHA25659882bb9461aa4e8236160a22a7405817060c769333913c3bf6af2367f4d2706
+Qualified report:local/prediction-runtime/movement70-cohort-canonical-death/parser-reanalysis01/qualified-report.json
+SHA25695b763efb7a84fb08132603d0d910c5529fadbbef03fa31f4b56727b24c5e113
+Preservation:local/partial-group-purge-route01/actual70-preserved/receipt.json
+SHA256f0d1f05d1918401c16e5236be444af07490b57ad3b592f75053f07475cfea752
+Tests:local/partial-group-purge-route01/python-regression02/verification.json
+SHA256ff90070915c9ee62dda1e4cf288becd40d7def372da9c55263744cfd574d6d0a
+Helper97 builds37 authored test executables,including29 survivor-policy cases,
+with216 unchanged C++ bindings;production actor/group behavior is unchanged.
+DLL SHA2568efe8aa0dda85e700778ac94e978fa7b1c4dd25b76b17563f6437bb44c8dc52c
+Manifest SHA256b982573149fbe64414a0651081190d0c96d711f384fc3092e7871cc1da525efe
+Only the automated game received helper97. N35 installers/live host/manual games
+remain unchanged. Remaining forced-retirement coverage needs a real grouped
+same-full-ID type/army/token transition;ordinary death does not trigger that
+branch. HQ exclusion,immediate Build birth and unchanged Mortar Setup identity
+rule out only their previously proposed triggers,not all possible transitions.
+
 SELECTED PAIR THROUGH ONE MEMBER'S FALSE DEATH - ACTUAL69 PASS
 Both actual Custom rounds preserve one original selection/manual group4 of
 IDs11/12 through11's predicted DEAD153,release154 and restoration161. Unit12

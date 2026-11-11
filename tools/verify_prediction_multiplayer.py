@@ -339,7 +339,7 @@ def prepare(args):
     if mobile_correction:
         require('-prediction-mobile-correction-smoke'.encode('utf-16-le') in helper,
                 'helper lacks the explicit mobile correction fixture')
-    for enabled,flag in ((cohort_survivor,'-prediction-cohort-survivor-smoke'),(multi_unit_move,'-prediction-cohort-smoke'),
+    for enabled,flag in ((getattr(args,'cohort_canonical_death',False),'-prediction-cohort-canonical-death-smoke'),(cohort_survivor,'-prediction-cohort-survivor-smoke'),(multi_unit_move,'-prediction-cohort-smoke'),
                          (mobile_group_intent,'-prediction-mobile-group-intent-smoke'),
                          (mobile_group_user_edits,'-prediction-mobile-group-user-edits-smoke'),
                          (mobile_recovery_stall,'-prediction-mobile-recovery-stall-smoke'),
@@ -466,7 +466,10 @@ def prepare(args):
     if args.scenario == 'mobile':
         invocation.update(generic_movement_not_exercised=True,
             mobile_scope='Explicit original mobile release/reinit/freshMove; generic newborn440/460 feel is not exercised; group intent remains a separate open claim')
-        if cohort_survivor:invocation.update(cohort_survivor=True,native_cohort_spec='1:1:130:220:8',mobile_scope='Original pair selection/group130 through one member death/recreation, survivor lease continuity and two-ID Move180 without reselection; per-member render/native response, full parity and natural lifecycle; no physical input/type-change/collision claim')
+        if cohort_survivor:
+            invocation.update(cohort_survivor=True,native_cohort_spec='1:1:130:220:8')
+            if getattr(args,'cohort_canonical_death',False):invocation['cohort_canonical_death']=True
+            invocation['mobile_scope']=cohort_scope(invocation)
         if multi_unit_move:invocation.update(multi_unit_move=True,native_cohort_spec='1:1:420:520:8',
             mobile_scope='Original legal Build250/born-ID pair selection420/multi-IDMove440/NEW remote460 correction; per-unit render and native response, full native parity and natural two worlds; no physical input/collision/type-change claim')
         if mobile_group_intent:invocation['mobile_group_intent']=True
@@ -515,6 +518,7 @@ from tools.prediction_mobile_plan import (
     validate_mobile_context_move_plan,
     validate_mobile_held_click_plan,
     validate_cohort_survivor_plan,
+    cohort_evidence, cohort_scope,
 )
 
 
@@ -634,6 +638,7 @@ def command_extra(plan, index, run):
     if plan.get('cohort_survivor'):
         require(plan.get('native_cohort_spec')=='1:1:130:220:8','survivor cohort spec missing/different')
         result.append('-prediction-cohort-survivor-smoke')
+        if plan.get('cohort_canonical_death'):result.append('-prediction-cohort-canonical-death-smoke')
         if index==1:result.append('-prediction-movement-observe-cohort='+plan['native_cohort_spec'])
     if plan.get('multi_unit_move'):
         require(plan.get('native_cohort_spec')=='1:1:420:520:8','prepared native cohort observer specification missing/different')
@@ -1495,7 +1500,7 @@ def finalize_mobile_observation(report, plan, *, states, worker_state_rows, clie
         require(cohort_gate(plan,report),'multi-unit Move/native/render/late correction witness missing/failed')
     report.update(mobile_state_parity=parity,mobile_input_witness_passed=True,scoped_observation_passed=True,
         generic_movement_not_exercised=True,movement_feel_witness_passed=False,full_mobile_controls_accepted=False,
-        mobile_scope=('Original pair selection/group130 through one member death/recreation, survivor lease continuity and two-ID Move180 without reselection; per-member render/native response, full closed parity and natural lifecycle; no physical input/type-change/collision claim' if plan.get('cohort_survivor') else
+        mobile_scope=(cohort_scope(plan) if plan.get('cohort_survivor') else
             'Scripted original selection/Move180 then original slot5 Hold14/pre-authority stop, full native parity/natural lifecycle; combined context/Hold and physical keyboard/UI remain open' if plan.get('mobile_original_hold') else
             'Genuine ContextDown Move12 then original instant Hold14/pre-authority stop, full closed native parity and natural two-world lifecycle; physical keyboard/UI and group/type paths remain open' if plan.get('mobile_context_hold') else
             'Genuine fresh primary input and ContextDown Move12 normal serialization/balanced ContextUp, pre-authority response and full closed native parity; physical UI and group/type paths remain open' if plan.get('mobile_context_move') else
@@ -3083,7 +3088,7 @@ async def run_prepared(output):
                     {'mobile_context_move':True, 'mobile_context_hold':plan.get('mobile_context_hold',False)} if plan.get('mobile_context_move') else
                     {'mobile_original_hold':True} if plan.get('mobile_original_hold') else {})
                 if plan.get('cohort_survivor'):
-                    from tools.prediction_cohort_survivor_evidence import evaluate as evaluate_survivor
+                    evaluate_survivor=cohort_evidence(plan).evaluate
                     active_scope=dict(cohort_trace=report.pop('_cohort_trace_rows',[]),native_receipts=native_receipt_rows,peer_bridge_frames=clients[0]['wire'])
                 evaluator=evaluate_survivor if plan.get('cohort_survivor')else evaluate_ui_cast if plan.get('mobile_ui_cast') else evaluate
                 episodes = [evaluator(**context,worker_states=worker_state_rows[1],escape_check=actor_escape_evidence,
@@ -3091,8 +3096,7 @@ async def run_prepared(output):
                             for context in mobile_contexts]
                 report['mobile_correction'] = dict(passed=all(row['passed'] for row in episodes),episodes=episodes)
                 if plan.get('cohort_survivor'):
-                    from tools.prediction_cohort_survivor_evidence import decorate
-                    decorate(report,episodes)
+                    cohort_evidence(plan).decorate(report,episodes)
                 if plan.get('mobile_ui_cast'):
                     report['mobile_ui_cast']=dict(passed=all(row['ui_command']['passed'] for row in episodes),
                         episodes=[dict(passed=row['ui_command']['passed'],match=row['match'],world=row['world'],command=row['ui_command'])for row in episodes],
@@ -3588,6 +3592,7 @@ def main(argv=None):
     parser.add_argument('--mobile-caster-lifetime', action='store_true',
                         help='With preserved mobile group intent: original UI88 activation and observed caster cleanup; no cast command')
     parser.add_argument('--cohort-survivor',action='store_true',help='Exclusive initial pair selected130 through11 release/recreation; original pairMove180')
+    parser.add_argument('--cohort-canonical-death',action='store_true',help='Survivor variant: canonical11 death and partial group purge; no escape')
     parser.add_argument('--multi-unit-move',action='store_true',
                         help='Exclusive mobile RouteA: legal Build250, actual two-ID Move440 and NEW remote460 correction')
     parser.add_argument('--mobile-ui-cast', action='store_true',
