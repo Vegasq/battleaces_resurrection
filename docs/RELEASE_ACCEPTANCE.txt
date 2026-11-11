@@ -8,12 +8,13 @@ installers are hash-verified on GitHub;matching live host/data-preserving upgrad
 and durable game firewall reopening pass. Dashboard stays owner-IP-only.
 This named delivery does not close the broad gates below;release-040-20261109.txt.
 
-2026-11-11 override for current host state:old live service stopped on Nick's
-request;new prediction deployment and owner-only inbound restriction are held.
+2026-11-11 override:matching64e21c6 prediction server deployed/running with
+autostart and persistent owner70.113.101.244 inbound restriction on request.
 New solo server-AI startup/replay/lifecycle passes actual629states/475msRTT;
 actual03 original Move responds63ms,437ms before authority,phase441/441.
-Refreshed packaging/deployment remain open;
-the existing draft19b5aa5 installers remain Custom-only. prediction-server-ai.txt.
+Refreshed private client/server installers and external negotiation/soloAI
+offer/cancel pass. Human Internet feel/full N33 remain open;old draft19b5aa5
+installers stay Custom-only. See prediction-server-ai.txt.
 
 Acceptance is scoped to actual artifacts and observations. A user request may
 be complete without closing its entire parent gate. Historical failures remain

@@ -11,8 +11,10 @@ canonical AI against the frozen world roster.63 focused worker tests pass;
 629 matching full native states,AI correction/replay10+20 and natural Quit at
 475msRTT. Actual03 also passes one original Move:63ms response,437ms before
 authority,exact441/441 command phase,629matching states and natural Quit.
-New paired installers/deployment are next. Old19b5aa5 kits stay Custom-only.
-Old live service stopped;replacement/firewall changes held.
+New64e21c6 paired installers are ready;matching host deployed/running with
+autostart and persistent owner70.113.101.244 access. External negotiation and
+soloAI offer/cancel pass;human Internet feel is unreported. Old19b5aa5 kits
+remain frozen and Custom-only. Existing N35 is refreshed;no duplicate request.
 Details:prediction-server-ai.txt. Full N33/D8 remains OPEN.
 
 N33 ACTIVE:efficient native checkpoints match1200 unmodified combat-control

@@ -1,6 +1,6 @@
 SERVER-HOSTED SOLO AI PREDICTION -2026-11-11
 
-Status:ACTUAL SERVER-AI MOVE/REPLAY PASS;PACKAGING/DEPLOYMENT IN PROGRESS.
+Status:ACTUAL SERVER-AI MOVE/REPLAY PASS;PRIVATE INSTALLERS/DEPLOYMENT READY.
 Nick's intended first test uses solo_ai_host=server so one human can exercise
 client/server prediction against the real server AI. The frozen19b5aa5 draft
 installers do not support this route;they remain two-human Custom1v1 only.
@@ -74,14 +74,38 @@ The verifier's17 authored controls pass. This is one scripted original Move,
 not physical input or Internet feel acceptance.
 
 Next acceptance
-Prepare the matching test artifacts and refresh the existing N35 handoff.
-Full N33 remains open;
-previous multi-unit and broader input/physical/Internet requirements persist.
+N35 now has matching client/server installers for Nick's intended solo AI test.
+Full N33 remains open;multi-unit and broader input/physical/Internet acceptance
+requirements persist. Existing answers and all reserved manual games are preserved.
+
+Private installers
+Source64e21c6844ceb415cb6e2fb7abff413704e1fd28,helper92,Python3.14.8.
+dist/draft-pr2-server-ai-20261111/ contains the new separate files:
+BattleAces-Client-Prediction-PR2-AI.exe
+  SHA2569c6c09ca0aff2fca13ed696c66b60ddeb344c5b93e6042daa771897f4ce3e8f8
+BattleAces-Server-PR2-AI.exe
+  SHA256ce97ca8dfd6a3b8cbf842f2e0a951292a2074993b2d7d8fb4fed58cc280d5e18
+Both actual embedded payloads and isolated desktop shortcuts verify. Actual
+bundled client install/prepare/check/start arguments pass in the owned automated
+copy;all previous files restored. No game/network was started by that install
+check. Every packaged client runtime and server module matches actual03's frozen
+source;the updated private launcher separately passes19 authored tests. Fresh
+private settings default to server;existing private choices remain unchanged.
+See prediction-test-guide.txt and private local/draft2-server-ai-20261111/ reports.
+Old19b5aa5 installers remain frozen,Custom-only,and superseded for this AI test.
 
 Deployment
-Requested upgrade target134.209.176.39. Old service explicitly stopped;observed
-MainPID0,empty ControlGroup,no47623 listener. Unit state failed,not clean Quit.
-No replacement upload/install or new owner-only firewall has been applied.
-Confirmed SSH owner address70.113.101.244. Preserve host data/config/assets/TLS
-when completing the pending deployment. Do not report new test readiness from
-source tests or installer packaging alone. Existing manual games stay reserved.
+Matching clean64e21c6 server deployed to134.209.176.39 and running;TCP47623
+listens,autostart enabled,no restarts at post-deploy verification. Wine verifies
+all124 immutable package files. Protected6config,23data and120asset files retain
+their exact hashes;host config is unchanged and scheduling was already enabled.
+Backup:/srv/ba-runtime/prediction-ai-pr2-20261111/backup.
+Persistent inet nft table admits owner70.113.101.244 and rejects other new
+application traffic,including IPv6. Loopback,established replies and link-local
+IPv6 neighbor discovery remain allowed. Existing dashboard rules are preserved.
+A fresh SSH connection verified access before cancelling the timed rollback.
+Actual external TLS/admission/negotiation/publicAI offer/cancel passes;this probe
+creates no game and does not claim Internet movement-feel acceptance.
+Private evidence:local/draft2-server-ai-20261111/deployment.stdout,
+firewall-commit.stdout,live-probe.json. Original stop was forced/failed as recorded
+earlier;this successful start does not reclassify that prior shutdown.

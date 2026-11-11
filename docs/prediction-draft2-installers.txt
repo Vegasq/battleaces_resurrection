@@ -1,4 +1,6 @@
 PR2 - PRIVATE CLIENT AND SERVER INSTALLERS
+SUPERSEDED FOR AI TEST2026-11-11:see prediction-server-ai.txt for the new
+64e21c6 kit and deployment. This frozen19b5aa5 record remains Custom-only.
 Requested2026-11-11. This is a test handoff;full N33/D8 acceptance stays open.
 
 Output:dist/draft-pr2-20261111/

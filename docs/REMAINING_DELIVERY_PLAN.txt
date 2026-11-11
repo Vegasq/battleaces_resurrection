@@ -6,9 +6,10 @@ with solo_ai_host=server. The frozen19b5aa5 PR2 installers support only Custom1v
 Actual publicmode1 human0/nativebot1 now passes629full-state comparisons,
 AI correction/replay10+20 and natural lifecycle at475msRTT. Actual03's original
 Move responds in63ms,437ms before authority,with exact441/441 command phase.
-Refreshed installers/deployment are next. See prediction-server-ai.txt.
-The old live service was stopped on request2026-11-11;replacement deployment
-and new owner-only inbound restrictions are held pending this intended route.
+New64e21c6 client/server installers are READY;matching server deployed/running,
+autostart enabled,access restricted to70.113.101.244. External prediction
+negotiation/soloAI offer/cancel passes. See prediction-server-ai.txt and N35.
+Remaining:human Internet feel,multi-unit and broader input/correction acceptance.
 The0.4.0 deployment/reopening paragraph below records the earlier completed delivery.
 
 Nick's requested0.4.0 client/server release is PUBLISHED;matching host deployed
